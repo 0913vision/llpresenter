@@ -12,16 +12,17 @@ function Sidebar({ position }) {
 
 const styles = {
   sidebar: {
-    width: '250px',
-    backgroundColor: '#f4f4f4',
+    height: '100vh',
     padding: '10px',
-    height: '100dvh',
     boxShadow: '0px 0px 10px rgba(0,0,0,0.1)',
+    overflow: 'auto',
   },
   left: {
+    backgroundColor: '#f4f4f4',
     borderRight: '1px solid #ddd',
   },
   right: {
+    backgroundColor: '#f4f4f4',
     borderLeft: '1px solid #ddd',
   },
 };
