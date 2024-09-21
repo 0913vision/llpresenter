@@ -1,9 +1,11 @@
 // src/components/SlideComponent.js
 import React from 'react';
 
-function SlideComponent({ slide, index, groupIndex, onSelectSlide, onSlideUpdate, selectedSlide }) {
+function SlideComponent({ slide, index}) {
   return (
-    <div style={styles.slide} onClick={() => onSelectSlide(slide)}>
+    <div 
+      style={styles.slide}
+    >
       {slide.content}
     </div>
   );
@@ -11,17 +13,21 @@ function SlideComponent({ slide, index, groupIndex, onSelectSlide, onSlideUpdate
 
 const styles = {
   slide: {
-    width: '100px',
-    height: '100px',
-    padding: '10px',
-    backgroundColor: '#fff',
+    width: '150px',
+    height: '84.375px',
+    padding: '3px',
+    backgroundColor: '#000',
     border: '1px solid #ddd',
-    borderRadius: '5px',
+    borderRadius: '2px',
     cursor: 'pointer',
     overflow: 'hidden',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    fontSize: '12px',
+    color: '#fff',
+    pointerEvents: 'none',
+    userSelect: 'none',
   },
 };
 

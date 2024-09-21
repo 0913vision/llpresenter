@@ -1,27 +1,39 @@
 // src/App.js
 import React, { useState, useRef, useEffect } from 'react';
-import './App.css'; // App.css 임포트
-import MenuBar from './components/MenuBar';
-import Sidebar from './components/Sidebar';
-import CraftingZone from './components/CraftingZone';
-
+import './App.css';
+import RightSidebar from './components/RightSidebar';
+import LeftSidebar from './components/LeftSidebar';
+import LyricsWorkspace from './components/LyricsWorkspace';
+import MediaWorkspace from './components/MediaWorkspace';
+import ContextMenuProvider from './components/ContextMenuProvider';
 
 function App() {
-  const [groups, setGroups] = useState([]);
+  const [lyricsGroups, setLyricsGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
-  const [selectedSlide, setSelectedSlide] = useState(null);
 
-  const [leftWidth, setLeftWidth] = useState(80);
+  const [leftWidth, setLeftWidth] = useState(100);
   const [rightWidth, setRightWidth] = useState(250);
+  const [bottomHeight, setBottomHeight] = useState(200);
+  const [topHeight, setTopHeight] = useState(0);
+
+  const minLeftWidth = 100;
+  const minRightWidth = 100;
   const appRef = useRef(null);
 
   const leftWidthRef = useRef(leftWidth);
   const rightWidthRef = useRef(rightWidth);
+  const bottomHeightRef = useRef(bottomHeight);
 
   const [isLeftCollapsed, setIsLeftCollapsed] = useState(false);
   const [isRightCollapsed, setIsRightCollapsed] = useState(false);
 
   const [isToggleHovered, setIsResizerToggleButtonHovered] = useState(false);
+
+  useEffect(() => {
+    window.electronAPI.handleFileUpload((event, name, data) => {
+      handleFileUpload(name, data);
+    });
+  }, [lyricsGroups]);
 
   useEffect(() => {
     leftWidthRef.current = leftWidth;
@@ -30,6 +42,10 @@ function App() {
   useEffect(() => {
     rightWidthRef.current = rightWidth;
   }, [rightWidth]);
+
+  useEffect(() => {
+    bottomHeightRef.current = bottomHeight;
+  }, [bottomHeight]);
 
   const dragging = useRef(null);
 
@@ -45,6 +61,13 @@ function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []); 
 
+  const toggleLeftSidebar = () => {
+    setIsLeftCollapsed(!isLeftCollapsed);
+  };
+  const toggleRightSidebar = () => {
+    setIsRightCollapsed(!isRightCollapsed);
+  };
+
   const handleMouseDown = (side) => (e) => {
     dragging.current = side;
     document.addEventListener('mousemove', handleMouseMove);
@@ -54,14 +77,16 @@ function App() {
   const handleMouseMove = (e) => {
     if (!dragging.current || !appRef.current) return;
     const appWidth = appRef.current.getBoundingClientRect().width;
+    const appHeight = appRef.current.getBoundingClientRect().height;
     const maxWidth = appWidth * 0.4;
+    const maxHeight = appHeight * 0.5;
 
     if (dragging.current === 'left') {
       if(isLeftCollapsed) {
         setIsLeftCollapsed(false);
       }
       let newWidth = e.clientX;
-      if (newWidth < 100) newWidth = 50; // 최소 너비
+      if (newWidth < minLeftWidth) newWidth = minLeftWidth; // 최소 너비
       if (newWidth > maxWidth) newWidth = maxWidth;
       setLeftWidth(newWidth);
     } else if (dragging.current === 'right') {
@@ -69,11 +94,22 @@ function App() {
         setIsRightCollapsed(false);
       }
       let newWidth = appWidth - e.clientX;
-      if (newWidth < 100) newWidth = 50; // 최소 너비
+      if (newWidth < minRightWidth) newWidth = minRightWidth; // 최소 너비
       if (newWidth > maxWidth) newWidth = maxWidth;
       setRightWidth(newWidth);
+    } else if (dragging.current === 'middle') {
+      let newHeight = appHeight - e.clientY;
+      if (newHeight < minRightWidth) newHeight = minRightWidth; // 최소 높이
+      if (newHeight > maxHeight) newHeight = maxHeight;
+      setBottomHeight(newHeight);
     }
   };
+
+  useEffect(() => {
+    if (appRef.current) {
+      setTopHeight(appRef.current.getBoundingClientRect().height - bottomHeight);
+    }
+  }, [bottomHeight]);
 
   const handleMouseUp = () => {
     dragging.current = null;
@@ -81,37 +117,31 @@ function App() {
     document.removeEventListener('mouseup', handleMouseUp);
   };
 
-  const handleFileUpload = (text) => {
+  const handleFileUpload = (name, text) => {
+    console.log(text);
     const newSlides = text.split('\n\n').map((slide, index) => ({
       id: index,
       content: slide.trim(),
     }));
-    const newGroup = {
-      id: groups.length,
-      name: `Group ${groups.length + 1}`,
+    const newLyricGroup = {
+      id: lyricsGroups.length,
+      name: name,
       slides: newSlides,
     };
-    setGroups([...groups, newGroup]);
-    setSelectedGroup(newGroup);
-    setSelectedSlide(null);
+    setLyricsGroups([...lyricsGroups, newLyricGroup]);
+    setSelectedGroup(newLyricGroup);
   };
 
   const handleSelectGroup = (group) => {
-    console.log(group);
     setSelectedGroup(group);
-    setSelectedSlide(null);
-  };
-
-  const handleSelectSlide = (slide) => {
-    setSelectedSlide(slide);
   };
 
   const handleGroupUpdate = (updatedGroups) => {
-    setGroups(updatedGroups);
+    setLyricsGroups(updatedGroups);
   };
 
   const handleSlideUpdate = (updatedSlide) => {
-    const updatedGroups = groups.map((group) => {
+    const updatedGroups = lyricsGroups.map((group) => {
       if (group.id === selectedGroup.id) {
         return {
           ...group,
@@ -122,29 +152,24 @@ function App() {
       }
       return group;
     });
-    setGroups(updatedGroups);
+    setLyricsGroups(updatedGroups);
   };
-
-  const toggleLeftSidebar = () => {
-    setIsLeftCollapsed(!isLeftCollapsed);
-  };
-  const toggleRightSidebar = () => {
-    setIsRightCollapsed(!isRightCollapsed);
-  };
-
-  // src/App.js
 
   return (
-    <div className="appContainer" ref={appRef}>
-      <MenuBar onFileUpload={handleFileUpload} />
-      <div className="mainContainer">
-        {/* 좌측 사이드바 */}
+    <ContextMenuProvider>
+      <div className="appContainer" ref={appRef}>
+        <div className="mainContainer">
+          {/* 좌측 사이드바 */}
           <div className={`sidebar leftSidebar ${isLeftCollapsed ? 'collapsed' : ''}`} style={{ width: isLeftCollapsed ? '0px' : leftWidth }}>
-            <Sidebar position="left" />
+            <LeftSidebar 
+              groups={lyricsGroups}
+              selectedGroup={selectedGroup}
+              onGroupSelect={handleSelectGroup}
+            />
           </div>
 
           {/* 좌측 리사이저 및 토글 버튼 */}
-          <div className={`resizer leftResizer ${isToggleHovered ? 'no-hover' : ''}`} onMouseDown={handleMouseDown('left')}>
+          <div className={`resizer leftResizer vertical ${isToggleHovered ? 'no-hover' : ''}`} onMouseDown={handleMouseDown('left')}>
             <button className={`toggleButton leftToggle ${isLeftCollapsed ? 'collapsed' : ''}`}
               onMouseEnter={() => setIsResizerToggleButtonHovered(true)}
               onMouseLeave={() => setIsResizerToggleButtonHovered(false)}
@@ -160,39 +185,42 @@ function App() {
             </button>
           </div>
 
-        {/* 크래프팅 존 */}
-        <div className="craftingZoneContainer">
-          <CraftingZone
-            groups={groups}
-            selectedSlide={selectedSlide}
-            onSlideUpdate={handleSlideUpdate}
-            onSelectSlide={handleSelectSlide}
-          />
-        </div>
+          <div className="WorkspaceContainer">
+            <div className="LyricsWorkspaceContainer" style={{ height: topHeight }}>
+              <LyricsWorkspace
+                currentLyricsGroup={selectedGroup}
+              />
+            </div>
+            <div className={`resizer horizontal`} onMouseDown={handleMouseDown('middle')} />
+            <div className="MediaWorkspaceContainer" style={{ height: bottomHeight }}>
+              <MediaWorkspace />
+            </div>
+          </div>
 
-        {/* 우측 리사이저 및 토글 버튼 */}
-        <div className={`resizer rightResizer ${isToggleHovered ? 'no-hover' : ''}`} onMouseDown={handleMouseDown('right')}>
-          <button className={`toggleButton rightToggle ${isRightCollapsed ? 'collapsed' : ''}`}
-            onMouseEnter={() => setIsResizerToggleButtonHovered(true)}
-            onMouseLeave={() => setIsResizerToggleButtonHovered(false)}
-            onClick={(e) => {
-              e.stopPropagation(); // 이벤트 전파 중단
-              toggleRightSidebar();
-            }}
-            onMouseDown={(e) => {
-              e.stopPropagation(); // 드래깅 방지
-            }}
-          >
-            {isRightCollapsed ? '◀' : '▶'}
-          </button>
-        </div>
+          {/* 우측 리사이저 및 토글 버튼 */}
+          <div className={`resizer rightResizer vertical${isToggleHovered ? 'no-hover' : ''}`} onMouseDown={handleMouseDown('right')}>
+            <button className={`toggleButton rightToggle ${isRightCollapsed ? 'collapsed' : ''}`}
+              onMouseEnter={() => setIsResizerToggleButtonHovered(true)}
+              onMouseLeave={() => setIsResizerToggleButtonHovered(false)}
+              onClick={(e) => {
+                e.stopPropagation(); // 이벤트 전파 중단
+                toggleRightSidebar();
+              }}
+              onMouseDown={(e) => {
+                e.stopPropagation(); // 드래깅 방지
+              }}
+            >
+              {isRightCollapsed ? '◀' : '▶'}
+            </button>
+          </div>
 
-        {/* 우측 사이드바 */}
-        <div className={`sidebar rightSidebar ${isRightCollapsed ? 'collapsed' : ''}`} style={{ width: isRightCollapsed ? '0px' : rightWidth }}>
-          <Sidebar position="right" />
+          {/* 우측 사이드바 */}
+          <div className={`sidebar rightSidebar ${isRightCollapsed ? 'collapsed' : ''}`} style={{ width: isRightCollapsed ? '0px' : rightWidth }}>
+            <RightSidebar/>
+          </div>
         </div>
       </div>
-    </div>
+    </ContextMenuProvider>
   );
 };
 

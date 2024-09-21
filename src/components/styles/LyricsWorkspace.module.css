@@ -1,0 +1,49 @@
+/* LyricsWorkspace.module.css */
+.LyricsWorkspace {
+  padding: 20px;
+  box-sizing: border-box;
+  background-color: #f9f9f9;
+  height: 100%;
+  overflow-y: auto;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  
+}
+
+.SlideComponent {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 150px);
+  min-height: 100%;
+  max-width: 100%; 
+  gap: 5px;
+  justify-content: start;
+  align-content: flex-start;
+}
+
+.LyricsWorkspace::-webkit-scrollbar {
+  width: 8px;
+}
+
+.LyricsWorkspace::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.LyricsWorkspace::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.LyricsWorkspace::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.slide {
+  border: 1px solid transparent; /* 기본 슬라이드 테두리 */
+}
+
+.selected {
+  border: 2px solid blue; /* 선택된 슬라이드의 굵은 테두리 */
+}

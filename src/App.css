@@ -36,20 +36,37 @@
   border-left: 1px solid #ddd;
 }
 
-.craftingZoneContainer {
+.WorkspaceContainer {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.LyricsWorkspaceContainer {
   background-color: #fff;
+  overflow: auto;
+}
+
+.MediaWorkspaceContainer {
+  background-color: #eee;
   overflow: auto;
 }
 
 /* 리사이저 기본 스타일 */
 .resizer {
-  width: 4px;
-  cursor: col-resize;
   background-color: #ddd;
   position: relative; /* 자식 요소인 버튼을 절대 위치로 배치하기 위해 */
   z-index: 1;
-  transition: background-color 0.2s;
+}
+
+.vertical.resizer {
+  width: 4px;
+  cursor: col-resize;
+}
+
+.horizontal.resizer {
+  height: 4px;
+  cursor: row-resize;
 }
 
 /* 리사이저 호버 효과 */

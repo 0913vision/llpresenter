@@ -1,6 +1,6 @@
 // src/components/GroupComponent.js
 import React from 'react';
-import SlideComponent from './SlideComponent';
+import SlideComponent from '../components/SlideComponent';
 
 function GroupComponent({
   group,
