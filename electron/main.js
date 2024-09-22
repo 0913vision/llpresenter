@@ -80,42 +80,6 @@ function setAppMenu(customMenu = []) {
   const menu = Menu.buildFromTemplate(menuTemplate);
   Menu.setApplicationMenu(menu);
 }
-/*
-let storedAccelerators = new Map(); 
-
-// Electron 메뉴 단축키 비활성화
-function disableMenuShortcuts() {
-  const currentMenu = Menu.getApplicationMenu();
-  if (currentMenu) {
-    currentMenu.items.forEach(menuItem => {
-      menuItem.submenu.items.forEach(subItem => {
-        if (subItem.accelerator) {
-          console.log(subItem.label, subItem.accelerator);
-          storedAccelerators.set(subItem.label, subItem.accelerator);
-          subItem.accelerator = null;
-        }
-      });
-    });
-  }
-  Menu.setApplicationMenu(currentMenu);
-}
-
-// Electron 메뉴 단축키 활성화
-function enableMenuShortcuts() {
-  const currentMenu = Menu.getApplicationMenu();
-  if (currentMenu) {
-    currentMenu.items.forEach(menuItem => {
-      menuItem.submenu.items.forEach(subItem => {
-        if (storedAccelerators.has(subItem.label)) {
-          subItem.accelerator = storedAccelerators.get(subItem.label);
-        }
-      });
-    });
-    Menu.setApplicationMenu(currentMenu);
-    storedAccelerators.clear();
-  }
-}
-*/
 
 app.whenReady().then(createWindow);
 
@@ -124,17 +88,6 @@ app.on('window-all-closed', () => {
     app.quit();
   }
 });
-
-/*
-// IPC 통신을 통해 ContextMenuProvider와 연결
-ipcMain.on('disable-menu-shortcuts', () => {
-  disableMenuShortcuts(); // 메뉴 단축키 비활성화
-});
-
-ipcMain.on('enable-menu-shortcuts', () => {
-  enableMenuShortcuts(); // 메뉴 단축키 활성화
-});
-*/
 
 // 컴포넌트에서 메뉴를 추가 또는 수정하도록 요청할 때 사용
 ipcMain.on('update-component-menu', (event, customMenu) => {

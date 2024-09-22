@@ -4,12 +4,17 @@ import styles from './styles/LyricsWorkspace.module.css';
 import { ContextMenuContext } from './ContextMenuProvider';
 
 function LyricsWorkspace({
-  currentLyricsGroup
+  currentLyricsGroup,
+  updateLyricsGroup
 }) {
   const [selectedSlides, setSelectedSlides] = useState([]);
   const [shiftBaseIndex, setShiftBaseIndex] = useState(null);
   const { showMenu, hideMenu, getMenuState } = useContext(ContextMenuContext);
   const workspaceRef = useRef(null);
+
+  useEffect(() => {
+    setSelectedSlides([]);
+  }, [currentLyricsGroup]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -66,14 +71,20 @@ function LyricsWorkspace({
     }
     const menuItems = [
       { label: 'Edit', onClick: () => console.log('Edit clicked'), shortcut: 'Ctrl+E' },
-      { label: 'Delete', onClick: () => console.log('Delete clicked'), shortcut: 'Delete' },
+      { label: 'Delete', onClick: () => handleDeleteSlides(), shortcut: 'Delete' },
       // { type: 'separator' },
       // { label: 'Properties', onClick: () => console.log('Properties clicked') }
     ];
     showMenu({ x: event.clientX, y: event.clientY }, menuItems);
   };
 
-
+  // 삭제
+  const handleDeleteSlides = () => {
+    const updatedSlides = currentLyricsGroup.slides.filter((_, index) => !selectedSlides.includes(index));
+    const updatedGroup = { ...currentLyricsGroup, slides: updatedSlides };
+    updateLyricsGroup(updatedGroup); // 선택된 그룹을 업데이트
+    setSelectedSlides([]);
+  };
   
 
   return (

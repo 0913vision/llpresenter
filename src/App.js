@@ -136,8 +136,13 @@ function App() {
     setSelectedGroup(group);
   };
 
-  const handleGroupUpdate = (updatedGroups) => {
-    setLyricsGroups(updatedGroups);
+  const handleUpdateSelectedGroup = (updatedGroup) => {
+    setLyricsGroups((prevGroups) =>
+      prevGroups.map((group) =>
+        group.id === updatedGroup.id ? updatedGroup : group
+      )
+    );
+    setSelectedGroup(updatedGroup);
   };
 
   const handleSlideUpdate = (updatedSlide) => {
@@ -189,6 +194,7 @@ function App() {
             <div className="LyricsWorkspaceContainer" style={{ height: topHeight }}>
               <LyricsWorkspace
                 currentLyricsGroup={selectedGroup}
+                updateLyricsGroup={handleUpdateSelectedGroup}
               />
             </div>
             <div className={`resizer horizontal`} onMouseDown={handleMouseDown('middle')} />
