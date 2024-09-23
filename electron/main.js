@@ -3,6 +3,8 @@ const path = require('path');
 const fs = require('fs');
 
 let mainWindow;
+let lyricsEditWindow;
+let colorModal;
 
 function createWindow({ width = 800, height = 600, url = '/', options = {} }) {
   const window = new BrowserWindow({
@@ -30,29 +32,91 @@ function createMainWindow () {
     url: '/',
   });
   setAppMenu();
+  mainWindow.webContents.once('did-finish-load', () => {
+    mainWindow.setTitle('LoveLight Presenter');
+    mainWindow.show();
+  });
 }
 
 function createLyricsEditWindow(data) {
-  console.log("createLyricsEditWindow");
-  const editWindow = createWindow({
+  lyricsEditWindow = createWindow({
     width: 400,
     height: 500,
     url: `/lyricsEditWindow`, // 이 URL을 실제 파일 경로로 변경
     options: {
-      title: 'Lyrics Editor'
+      title: 'Lyrics Editor',
+      parent: mainWindow, 
+      modal: true, 
+      show: false,
+      maximizable: false,
+      minimizable: false,
     }
   });
 
+  // lyricsEditWindow.removeMenu(); 
+
   // 데이터 전송
-  editWindow.webContents.once('did-finish-load', () => {
-    editWindow.webContents.send('edit_lyrics_data', data);
+  lyricsEditWindow.webContents.once('did-finish-load', () => {
+    lyricsEditWindow.setTitle('슬라이드 수정');
+    lyricsEditWindow.webContents.send('send-lyrics-data-to-edit-window', data);
+    lyricsEditWindow.show();
   });
 
-  return editWindow;
+  lyricsEditWindow.on('close', () => {
+    lyricsEditWindow = null;
+    if (mainWindow) {
+      mainWindow.focus();  // 메인 윈도우로 포커스 강제 설정
+    }
+  });
 }
+
 ipcMain.on('open-lyrics-edit', (event, data) => {
   createLyricsEditWindow(data);
 });
+
+
+function createColorModal(data) {
+  colorModal = createWindow({
+    width: 500,
+    height: 500,
+    url: `/colorModal`,
+    options: {
+      title: 'Color Picker',
+      parent: lyricsEditWindow,
+      modal: true,
+      show: false,
+      maximizable: false,
+      minimizable: false,
+    }
+  });
+
+  colorModal.removeMenu(); 
+
+  colorModal.webContents.once('did-finish-load', () => {
+    colorModal.setTitle('색깔 수정');
+    colorModal.webContents.send('send-color-to-color-window', data);
+    colorModal.show();
+  });
+
+  colorModal.on('close', () => {
+    colorModal = null;
+    if(lyricsEditWindow) {
+      lyricsEditWindow.focus();
+    }
+  });
+}
+
+ipcMain.on('open-color-modal', (event, data) => {
+  createColorModal(data);
+});
+
+ipcMain.on('edited-color-data', (event, data) => {
+  if(lyricsEditWindow) {
+    lyricsEditWindow.webContents.send('edited-color-data', data);
+  }
+});
+
+
 
 // 기본 메뉴 설정 함수
 function getDefaultMenuTemplate() {

@@ -2,8 +2,18 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  handleFileUpload: callback => ipcRenderer.on('lyrics_file_upload', callback),
+  handleFileUpload: (callback) => ipcRenderer.on('lyrics_file_upload', callback),
   setComponentMenu: (customMenu) => ipcRenderer.send('set-component-menu', customMenu),
+
+  //lyrics modal
   openLyricsEdit: (data) => ipcRenderer.send('open-lyrics-edit', data),
-  onEditLyricsData: (callback) => ipcRenderer.on('edit_lyrics_data', (event, data) => callback(data)),
+  sendLyricsDataToEditWindow: (callback) => ipcRenderer.on('send-lyrics-data-to-edit-window', (event, data) => callback(data)),
+  sendEditedLyricsData: (data) => ipcRenderer.send('edited-lyrics-data', data),
+  receiveEditedLyricsData: (callback) => ipcRenderer.on('edited-lyrics-data', (event, data) => callback(data)),
+
+  //color modal
+  openColorModal: (data) => ipcRenderer.send('open-color-modal', data),
+  receiveColorToEdit: (callback) => ipcRenderer.on('send-color-to-color-window', (event, data) => callback(data)),
+  sendEditedColor: (data) => ipcRenderer.send('edited-color-data', data),
+  receiveEditedColor: (callback) => ipcRenderer.on('edited-color-data', (event, data) => callback(data)),
 });

@@ -66,13 +66,25 @@ function LyricsWorkspace({
 
   const handleSlideContextMenu = (event, slideIndex) => {
     event.preventDefault();
+    let newSelectedSlides = selectedSlides;
+
     if (!selectedSlides.includes(slideIndex)) {
-      setSelectedSlides([slideIndex]);
+      newSelectedSlides = [slideIndex];
+      setSelectedSlides(newSelectedSlides);
     }
     const menuItems = [
       { label: 'Edit', 
         onClick: () => {
-          window.electronAPI.openLyricsEdit(currentLyricsGroup.slides[slideIndex].content);
+          window.electronAPI.openLyricsEdit(newSelectedSlides.map(index => currentLyricsGroup.slides[index]));
+          window.electronAPI.receiveEditedLyricsData((data) => {
+            const updatedSlides = 
+            data.map((editedSlide, index) => {
+              const originalSlide = currentLyricsGroup.slides[newSelectedSlides[index]];
+              return { ...originalSlide, ...editedSlide };
+            })
+            const updatedGroup = { ...currentLyricsGroup, slides: updatedSlides };
+            updateLyricsGroup(updatedGroup);
+          });
         },
         shortcut: 'Ctrl+E'
       },
