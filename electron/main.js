@@ -2,26 +2,57 @@ const { app, BrowserWindow, Menu, dialog, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
-let mainWindow; // 전역 변수로 mainWindow 설정
+let mainWindow;
 
-function createWindow() {
-  mainWindow = new BrowserWindow({
-    width: 1400,
-    height: 800,
+function createWindow({ width = 800, height = 600, url = '/', options = {} }) {
+  const window = new BrowserWindow({
+    width: width,
+    height: height,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       enableRemoteModule: false,
-      nodeIntegration: false
+      nodeIntegration: false,
+      ...options.webPreferences
     },
-    // titleBarStyle: 'hidden',
+    ...options
   });
 
-  mainWindow.loadURL('http://localhost:3000');
-  // mainWindow.webContents.openDevTools();
+  window.loadURL(`http://localhost:3000/#${url}`);
 
-  setAppMenu(); // 초기 메뉴 설정
+  return window;
 }
+
+function createMainWindow () {
+  mainWindow = createWindow({
+    width: 1400,
+    height: 800,
+    url: '/',
+  });
+  setAppMenu();
+}
+
+function createLyricsEditWindow(data) {
+  console.log("createLyricsEditWindow");
+  const editWindow = createWindow({
+    width: 400,
+    height: 500,
+    url: `/lyricsEditWindow`, // 이 URL을 실제 파일 경로로 변경
+    options: {
+      title: 'Lyrics Editor'
+    }
+  });
+
+  // 데이터 전송
+  editWindow.webContents.once('did-finish-load', () => {
+    editWindow.webContents.send('edit_lyrics_data', data);
+  });
+
+  return editWindow;
+}
+ipcMain.on('open-lyrics-edit', (event, data) => {
+  createLyricsEditWindow(data);
+});
 
 // 기본 메뉴 설정 함수
 function getDefaultMenuTemplate() {
@@ -81,7 +112,7 @@ function setAppMenu(customMenu = []) {
   Menu.setApplicationMenu(menu);
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(createMainWindow);
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {

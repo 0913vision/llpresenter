@@ -1,11 +1,13 @@
 // src/App.js
 import React, { useState, useRef, useEffect } from 'react';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 import RightSidebar from './components/RightSidebar';
 import LeftSidebar from './components/LeftSidebar';
 import LyricsWorkspace from './components/LyricsWorkspace';
 import MediaWorkspace from './components/MediaWorkspace';
 import ContextMenuProvider from './components/ContextMenuProvider';
+import LyricsEditWindow from './components/LyricsEditWindow';
 
 function App() {
   const [lyricsGroups, setLyricsGroups] = useState([]);
@@ -161,72 +163,85 @@ function App() {
   };
 
   return (
-    <ContextMenuProvider>
-      <div className="appContainer" ref={appRef}>
-        <div className="mainContainer">
-          {/* 좌측 사이드바 */}
-          <div className={`sidebar leftSidebar ${isLeftCollapsed ? 'collapsed' : ''}`} style={{ width: isLeftCollapsed ? '0px' : leftWidth }}>
-            <LeftSidebar 
-              groups={lyricsGroups}
-              selectedGroup={selectedGroup}
-              onGroupSelect={handleSelectGroup}
-            />
-          </div>
+    <Router>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <ContextMenuProvider>
+              <div className="appContainer" ref={appRef}>
+                <div className="mainContainer">
+                  {/* 좌측 사이드바 */}
+                  <div className={`sidebar leftSidebar ${isLeftCollapsed ? 'collapsed' : ''}`} style={{ width: isLeftCollapsed ? '0px' : leftWidth }}>
+                    <LeftSidebar 
+                      groups={lyricsGroups}
+                      selectedGroup={selectedGroup}
+                      onGroupSelect={handleSelectGroup}
+                    />
+                  </div>
 
-          {/* 좌측 리사이저 및 토글 버튼 */}
-          <div className={`resizer leftResizer vertical ${isToggleHovered ? 'no-hover' : ''}`} onMouseDown={handleMouseDown('left')}>
-            <button className={`toggleButton leftToggle ${isLeftCollapsed ? 'collapsed' : ''}`}
-              onMouseEnter={() => setIsResizerToggleButtonHovered(true)}
-              onMouseLeave={() => setIsResizerToggleButtonHovered(false)}
-              onClick={(e) => {
-                e.stopPropagation(); // 이벤트 전파 중단
-                toggleLeftSidebar();
-              }}
-              onMouseDown={(e) => {
-                e.stopPropagation(); // 드래깅 방지
-              }}
-            >
-              {isLeftCollapsed ? '▶' : '◀'}
-            </button>
-          </div>
+                  {/* 좌측 리사이저 및 토글 버튼 */}
+                  <div className={`resizer leftResizer vertical ${isToggleHovered ? 'no-hover' : ''}`} onMouseDown={handleMouseDown('left')}>
+                    <button className={`toggleButton leftToggle ${isLeftCollapsed ? 'collapsed' : ''}`}
+                      onMouseEnter={() => setIsResizerToggleButtonHovered(true)}
+                      onMouseLeave={() => setIsResizerToggleButtonHovered(false)}
+                      onClick={(e) => {
+                        e.stopPropagation(); // 이벤트 전파 중단
+                        toggleLeftSidebar();
+                      }}
+                      onMouseDown={(e) => {
+                        e.stopPropagation(); // 드래깅 방지
+                      }}
+                    >
+                      {isLeftCollapsed ? '▶' : '◀'}
+                    </button>
+                  </div>
 
-          <div className="WorkspaceContainer">
-            <div className="LyricsWorkspaceContainer" style={{ height: topHeight }}>
-              <LyricsWorkspace
-                currentLyricsGroup={selectedGroup}
-                updateLyricsGroup={handleUpdateSelectedGroup}
-              />
-            </div>
-            <div className={`resizer horizontal`} onMouseDown={handleMouseDown('middle')} />
-            <div className="MediaWorkspaceContainer" style={{ height: bottomHeight }}>
-              <MediaWorkspace />
-            </div>
-          </div>
+                  <div className="WorkspaceContainer">
+                    <div className="LyricsWorkspaceContainer" style={{ height: topHeight }}>
+                      <LyricsWorkspace
+                        currentLyricsGroup={selectedGroup}
+                        updateLyricsGroup={handleUpdateSelectedGroup}
+                      />
+                    </div>
+                    <div className={`resizer horizontal`} onMouseDown={handleMouseDown('middle')} />
+                    <div className="MediaWorkspaceContainer" style={{ height: bottomHeight }}>
+                      <MediaWorkspace />
+                    </div>
+                  </div>
 
-          {/* 우측 리사이저 및 토글 버튼 */}
-          <div className={`resizer rightResizer vertical${isToggleHovered ? 'no-hover' : ''}`} onMouseDown={handleMouseDown('right')}>
-            <button className={`toggleButton rightToggle ${isRightCollapsed ? 'collapsed' : ''}`}
-              onMouseEnter={() => setIsResizerToggleButtonHovered(true)}
-              onMouseLeave={() => setIsResizerToggleButtonHovered(false)}
-              onClick={(e) => {
-                e.stopPropagation(); // 이벤트 전파 중단
-                toggleRightSidebar();
-              }}
-              onMouseDown={(e) => {
-                e.stopPropagation(); // 드래깅 방지
-              }}
-            >
-              {isRightCollapsed ? '◀' : '▶'}
-            </button>
-          </div>
+                  {/* 우측 리사이저 및 토글 버튼 */}
+                  <div className={`resizer rightResizer vertical${isToggleHovered ? 'no-hover' : ''}`} onMouseDown={handleMouseDown('right')}>
+                    <button className={`toggleButton rightToggle ${isRightCollapsed ? 'collapsed' : ''}`}
+                      onMouseEnter={() => setIsResizerToggleButtonHovered(true)}
+                      onMouseLeave={() => setIsResizerToggleButtonHovered(false)}
+                      onClick={(e) => {
+                        e.stopPropagation(); // 이벤트 전파 중단
+                        toggleRightSidebar();
+                      }}
+                      onMouseDown={(e) => {
+                        e.stopPropagation(); // 드래깅 방지
+                      }}
+                    >
+                      {isRightCollapsed ? '◀' : '▶'}
+                    </button>
+                  </div>
 
-          {/* 우측 사이드바 */}
-          <div className={`sidebar rightSidebar ${isRightCollapsed ? 'collapsed' : ''}`} style={{ width: isRightCollapsed ? '0px' : rightWidth }}>
-            <RightSidebar/>
-          </div>
-        </div>
-      </div>
-    </ContextMenuProvider>
+                  {/* 우측 사이드바 */}
+                  <div className={`sidebar rightSidebar ${isRightCollapsed ? 'collapsed' : ''}`} style={{ width: isRightCollapsed ? '0px' : rightWidth }}>
+                    <RightSidebar/>
+                  </div>
+                </div>
+              </div>
+            </ContextMenuProvider>
+          }
+        />
+        <Route 
+          path="/LyricsEditWindow"
+          element={<LyricsEditWindow />}
+        />
+      </Routes>
+    </Router>
   );
 };
 

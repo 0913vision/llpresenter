@@ -70,7 +70,12 @@ function LyricsWorkspace({
       setSelectedSlides([slideIndex]);
     }
     const menuItems = [
-      { label: 'Edit', onClick: () => console.log('Edit clicked'), shortcut: 'Ctrl+E' },
+      { label: 'Edit', 
+        onClick: () => {
+          window.electronAPI.openLyricsEdit(currentLyricsGroup.slides[slideIndex].content);
+        },
+        shortcut: 'Ctrl+E'
+      },
       { label: 'Delete', onClick: () => handleDeleteSlides(), shortcut: 'Delete' },
       // { type: 'separator' },
       // { label: 'Properties', onClick: () => console.log('Properties clicked') }
