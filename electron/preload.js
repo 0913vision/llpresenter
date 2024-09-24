@@ -7,13 +7,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   //lyrics modal
   openLyricsEdit: (data) => ipcRenderer.send('open-lyrics-edit', data),
-  sendLyricsDataToEditWindow: (callback) => ipcRenderer.on('send-lyrics-data-to-edit-window', (event, data) => callback(data)),
+  receiveLyricsToEdit: (callback) => ipcRenderer.on('lyrics-data-to-edit-window', (event, data) => callback(data)),
   sendEditedLyricsData: (data) => ipcRenderer.send('edited-lyrics-data', data),
   receiveEditedLyricsData: (callback) => ipcRenderer.on('edited-lyrics-data', (event, data) => callback(data)),
 
   //color modal
   openColorModal: (data) => ipcRenderer.send('open-color-modal', data),
-  receiveColorToEdit: (callback) => ipcRenderer.on('send-color-to-color-window', (event, data) => callback(data)),
+  receiveColorToEdit: (callback) => ipcRenderer.on('color-to-color-window', (event, data) => callback(data)),
   sendEditedColor: (data) => ipcRenderer.send('edited-color-data', data),
   receiveEditedColor: (callback) => ipcRenderer.on('edited-color-data', (event, data) => callback(data)),
 });

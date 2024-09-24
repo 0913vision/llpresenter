@@ -19,7 +19,7 @@ function LyricsEditWindow() {
   });
 
   useEffect(() => {
-    window.electronAPI.sendLyricsDataToEditWindow((data) => {
+    window.electronAPI.receiveLyricsToEdit((data) => {
       console.log('LyricsEditWindow data:', data);
       setLyricsData(data);
       initializeForm(data);
@@ -100,7 +100,6 @@ function LyricsEditWindow() {
 
   const openColorModal = () => {
     window.electronAPI.openColorModal(formState.labelColor);
-    // window.electronAPI.openColorModal("#123456");
   };
 
   // 수정 완료 버튼 클릭 시 데이터 업데이트
@@ -108,24 +107,42 @@ function LyricsEditWindow() {
     const updatedData = lyricsData.map((slide) => {
       let updatedSlide = { ...slide };
   
-      // isLabeled 상태가 true로 변경되었고, subtitle 또는 labelColor가 변경되지 않은 경우 원래 상태로 유지
       if (
-        isModified.isLabeled &&
-        formState.isLabeled &&
-        !isModified.subtitle &&
-        !isModified.labelColor
+        isModified.isLabeled && // 레이블을 고쳤는데
+        formState.isLabeled && // 레이블이 true로 설정되어 있음에도
+        !(isModified.subtitle && isModified.labelColor) // 부제목과 색깔 중 하나라도 고치지 않았다면
       ) {
-        updatedSlide.isLabeled = slide.isLabeled; // 원래 상태로 되돌림
+        // 올바른 레이블 변경이 아니다. 그러므로,
+        // 부제목과 색깔을 원래 슬라이드의 것으로 유지해야한다.
+        updatedSlide.subtitle = slide.subtitle;
+        updatedSlide.labelColor = slide.labelColor;
+        updatedSlide.isLabeled = slide.isLabeled;
       } else {
-        updatedSlide.isLabeled = isModified.isLabeled
-          ? formState.isLabeled
-          : slide.isLabeled;
+        // 아니라면, 레이블을 고치지않았거나, 레이블을 고쳤는데 false로 고쳤거나, 부제목과 색깔을 모두 고친 것이다.
+        // 그렇다는 것은 각각의 수정사항에 맞게 업데이트해주면된다.
+
+        // 1) 레이블 수정사항은 그대로 반영한다.
+        updatedSlide.isLabeled = isModified.isLabeled ? formState.isLabeled : slide.isLabeled;
+
+        // 2) 레이블이 false라는 것은 부제목과 색깔을 원래것으로 유지해야한다.
+        if(!formState.isLabeled) {
+          updatedSlide.labelColor = slide.labelColor;
+          updatedSlide.subtitle = slide.subtitle;
+        }
+        // 3) 레이블이 true인데 수정된 것이라면, 부제목과 색깔은 모두 수정된 것이다.
+        else if(isModified.isLabeled) {
+          updatedSlide.labelColor = formState.labelColor;
+          updatedSlide.subtitle = formState.subtitle;
+        }
+        else {
+          // 4) 레이블이 true이지만 수정된 것이 없다면, 부제목과 색깔은 원래것으로 유지해야한다.
+          updatedSlide.labelColor = slide.labelColor;
+          updatedSlide.subtitle = slide.subtitle;
+        }
       }
   
-      // 다른 필드 업데이트 처리
       updatedSlide.content = isModified.content ? formState.content : slide.content;
-      updatedSlide.labelColor = isModified.labelColor ? formState.labelColor : slide.labelColor;
-      updatedSlide.subtitle = isModified.subtitle ? formState.subtitle : slide.subtitle;
+      
   
       return updatedSlide;
     });

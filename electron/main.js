@@ -30,6 +30,7 @@ function createMainWindow () {
     width: 1400,
     height: 800,
     url: '/',
+    show: false,
   });
   setAppMenu();
   mainWindow.webContents.once('did-finish-load', () => {
@@ -50,15 +51,16 @@ function createLyricsEditWindow(data) {
       show: false,
       maximizable: false,
       minimizable: false,
+      closable: true,
     }
   });
 
-  // lyricsEditWindow.removeMenu(); 
+  lyricsEditWindow.removeMenu(); 
 
   // 데이터 전송
   lyricsEditWindow.webContents.once('did-finish-load', () => {
     lyricsEditWindow.setTitle('슬라이드 수정');
-    lyricsEditWindow.webContents.send('send-lyrics-data-to-edit-window', data);
+    lyricsEditWindow.webContents.send('lyrics-data-to-edit-window', data);
     lyricsEditWindow.show();
   });
 
@@ -94,7 +96,7 @@ function createColorModal(data) {
 
   colorModal.webContents.once('did-finish-load', () => {
     colorModal.setTitle('색깔 수정');
-    colorModal.webContents.send('send-color-to-color-window', data);
+    colorModal.webContents.send('color-to-color-window', data);
     colorModal.show();
   });
 
