@@ -11,9 +11,12 @@ function LyricsWorkspace({
   const [shiftBaseIndex, setShiftBaseIndex] = useState(null);
   const { showMenu, hideMenu, getMenuState } = useContext(ContextMenuContext);
   const workspaceRef = useRef(null);
+  const currentLyricsGroupRef = useRef(currentLyricsGroup);
+
 
   useEffect(() => {
     setSelectedSlides([]);
+    currentLyricsGroupRef.current = currentLyricsGroup;
   }, [currentLyricsGroup]);
 
   useEffect(() => {
@@ -64,8 +67,24 @@ function LyricsWorkspace({
 
   //우클릭
 
+  useEffect(() => {
+    window.electronAPI.receiveEditedLyricsData(handleReceiveEditedLyricsData)
+  }, []);
+
+  const handleReceiveEditedLyricsData = (receivedData) => {
+    const currentData = currentLyricsGroupRef.current;
+    receivedData.forEach((newSlide) => {
+      const index = currentData.slides.findIndex(slide => slide.id === newSlide.id);
+      if (index !== -1) {
+        currentData.slides[index] = newSlide;
+      }
+    });
+    updateLyricsGroup({ ...currentData });
+  };
+
   const handleSlideContextMenu = (event, slideIndex) => {
-    event.preventDefault();
+    event.preventDefault();    
+    console.log(currentLyricsGroup);
     let newSelectedSlides = selectedSlides;
 
     if (!selectedSlides.includes(slideIndex)) {
@@ -76,15 +95,6 @@ function LyricsWorkspace({
       { label: 'Edit', 
         onClick: () => {
           window.electronAPI.openLyricsEdit(newSelectedSlides.map(index => currentLyricsGroup.slides[index]));
-          window.electronAPI.receiveEditedLyricsData((data) => {
-            const updatedSlides = 
-            data.map((editedSlide, index) => {
-              const originalSlide = currentLyricsGroup.slides[newSelectedSlides[index]];
-              return { ...originalSlide, ...editedSlide };
-            })
-            const updatedGroup = { ...currentLyricsGroup, slides: updatedSlides };
-            updateLyricsGroup(updatedGroup);
-          });
         },
         shortcut: 'Ctrl+E'
       },

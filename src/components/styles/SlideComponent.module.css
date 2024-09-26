@@ -1,10 +1,11 @@
 .slide {
+  margin: 0;
+  padding: 0;
+  position: relative;
   width: 150px;
   height: 84.375px;
   padding: 3px;
   background-color: #000;
-  border: 1px solid #ddd;
-  border-radius: 2px;
   cursor: pointer;
   overflow: hidden;
   display: flex;
@@ -14,9 +15,22 @@
   color: #fff;
   pointer-events: none;
   user-select: none;
+  box-sizing: border-box;
 }
 
 .text {
   text-align: center;
   white-space: pre-wrap;
+}
+
+.label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  color: #fff;
+  margin: 0;
+  box-sizing: border-box;
+  font-size: 13px;
+  padding: 0;
 }

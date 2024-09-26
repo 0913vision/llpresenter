@@ -51,10 +51,10 @@ function createLyricsEditWindow(data) {
       show: false,
       maximizable: false,
       minimizable: false,
-      closable: true,
     }
   });
 
+  lyricsEditWindow.webContents.openDevTools();
   lyricsEditWindow.removeMenu(); 
 
   // 데이터 전송
@@ -75,6 +75,13 @@ function createLyricsEditWindow(data) {
 ipcMain.on('open-lyrics-edit', (event, data) => {
   createLyricsEditWindow(data);
 });
+ipcMain.on('edited-lyrics-data', (event, data) => {
+  if(mainWindow) {
+    mainWindow.webContents.send('edited-lyrics-data', data);
+  }
+});
+
+
 
 
 function createColorModal(data) {

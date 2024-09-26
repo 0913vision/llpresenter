@@ -104,51 +104,29 @@ function LyricsEditWindow() {
 
   // 수정 완료 버튼 클릭 시 데이터 업데이트
   const handleUpdate = () => {
-    const updatedData = lyricsData.map((slide) => {
+    const isLabelChangedValidly = isModified.isLabeled && lyricsData.some(slide => !slide.isLabeled) && formState.isLabeled && formState.labelColor === '';
+    const updatedLyricsData = lyricsData.map((slide) => {
       let updatedSlide = { ...slide };
   
-      if (
-        isModified.isLabeled && // 레이블을 고쳤는데
-        formState.isLabeled && // 레이블이 true로 설정되어 있음에도
-        !(isModified.subtitle && isModified.labelColor) // 부제목과 색깔 중 하나라도 고치지 않았다면
-      ) {
-        // 올바른 레이블 변경이 아니다. 그러므로,
-        // 부제목과 색깔을 원래 슬라이드의 것으로 유지해야한다.
-        updatedSlide.subtitle = slide.subtitle;
+      if (isLabelChangedValidly) {
         updatedSlide.labelColor = slide.labelColor;
+        updatedSlide.subtitle = slide.subtitle;
         updatedSlide.isLabeled = slide.isLabeled;
       } else {
-        // 아니라면, 레이블을 고치지않았거나, 레이블을 고쳤는데 false로 고쳤거나, 부제목과 색깔을 모두 고친 것이다.
-        // 그렇다는 것은 각각의 수정사항에 맞게 업데이트해주면된다.
-
-        // 1) 레이블 수정사항은 그대로 반영한다.
+        updatedSlide.labelColor = isModified.labelColor ? formState.labelColor : slide.labelColor;
+        updatedSlide.subtitle = isModified.subtitle ? formState.subtitle : slide.subtitle;
         updatedSlide.isLabeled = isModified.isLabeled ? formState.isLabeled : slide.isLabeled;
-
-        // 2) 레이블이 false라는 것은 부제목과 색깔을 원래것으로 유지해야한다.
-        if(!formState.isLabeled) {
-          updatedSlide.labelColor = slide.labelColor;
-          updatedSlide.subtitle = slide.subtitle;
-        }
-        // 3) 레이블이 true인데 수정된 것이라면, 부제목과 색깔은 모두 수정된 것이다.
-        else if(isModified.isLabeled) {
-          updatedSlide.labelColor = formState.labelColor;
-          updatedSlide.subtitle = formState.subtitle;
-        }
-        else {
-          // 4) 레이블이 true이지만 수정된 것이 없다면, 부제목과 색깔은 원래것으로 유지해야한다.
-          updatedSlide.labelColor = slide.labelColor;
-          updatedSlide.subtitle = slide.subtitle;
-        }
       }
-  
+
       updatedSlide.content = isModified.content ? formState.content : slide.content;
       
-  
       return updatedSlide;
     });
   
-    setLyricsData(updatedData);
-    console.log('Updated Data:', updatedData);
+    setLyricsData(updatedLyricsData);
+    // console.log('Updated lyrics data:', updatedLyricsData);
+    window.electronAPI.sendEditedLyricsData(updatedLyricsData)
+    window.close();
   };
   
 
@@ -156,7 +134,7 @@ function LyricsEditWindow() {
     <div className={styles.editwindow}>
       <div className={styles.container}>
         <h2 className={styles.title}>Edit Slides</h2>
-        <div classNAme={styles.content}>
+        <div className={styles.content}>
           <div className={styles.gridContainer}>
             {lyricsData.length === 1 && (
               <>
@@ -164,7 +142,7 @@ function LyricsEditWindow() {
                 <div></div>
                 <button className={styles.resetButton} onClick={() => handleResetField('content')}>Reset</button>
                 <div className={styles.inputBoxWrapper}>
-                  <input
+                  <textarea
                     className={styles.inputBox}
                     type="text"
                     value={formState.content}
@@ -187,20 +165,6 @@ function LyricsEditWindow() {
             {formState.isLabeled && (
               <>
                 <div className={styles.labelGroup}>
-                  <label className={styles.label}>부제목</label>
-                </div>
-                <div></div>
-                <button className={styles.resetButton} onClick={() => handleResetField('subtitle')}>Reset</button>
-                <div className={styles.inputBoxWrapper}>
-                  <input
-                    className={styles.inputBox}
-                    type="text"
-                    value={formState.subtitle}
-                    onChange={(e) => handleChange('subtitle', e.target.value)}
-                  />
-                </div>
-                
-                <div className={styles.labelGroup}>
                   <label className={styles.label}>색깔</label>
                   <div
                     className={styles.colorButton}
@@ -210,6 +174,20 @@ function LyricsEditWindow() {
                 </div>
                 <div></div>
                 <button className={styles.resetButton} onClick={() => handleResetField('labelColor')}>Reset</button>
+
+                <div className={styles.labelGroup}>
+                  <label className={styles.label}>내용</label>
+                </div>
+                <div></div>
+                <button className={styles.resetButton} onClick={() => handleResetField('subtitle')}>Reset</button>
+                <div className={styles.inputBoxWrapper}>
+                  <textarea
+                    className={styles.inputBox}
+                    type="text"
+                    value={formState.subtitle}
+                    onChange={(e) => handleChange('subtitle', e.target.value)}
+                  />
+                </div>
               </>
             )}
           </div>

@@ -8,6 +8,16 @@ function SlideComponent({ slide, index}) {
       <div className={`${styles.text}`}>
         {slide.content}
       </div>
+      <div className={styles.label}>
+        {slide.isLabeled && (
+          <div
+            className={styles.labelColor}
+            style={{ backgroundColor: slide.labelColor }}
+          >
+            {slide.subtitle}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
