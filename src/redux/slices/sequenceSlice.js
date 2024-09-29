@@ -21,6 +21,8 @@ const sequenceSlice = createSlice({
       // 유틸리티 함수를 이용하여 새로운 sequence 생성
       const newSequence = createNewSequence(name, newItems);
 
+      console.log(newSequence);
+
       // 상태 업데이트
       state.sequences.push(newSequence);
       state.items.push(...newItems);
