@@ -52,3 +52,10 @@
 .selected {
   outline: 2px solid blue; /* 선택된 슬라이드의 굵은 테두리 */
 }
+
+.cursor {
+  width: 2px;
+  height: 2px;
+  background-color: blue;
+  margin: 5px 0;
+}

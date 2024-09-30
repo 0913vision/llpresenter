@@ -1,20 +1,21 @@
 import React from 'react';
 import './styles/LeftSidebar.module.css'; // CSS 파일 import
+import { useSelector, useDispatch } from 'react-redux';
+import { sequenceActions } from '../redux/slices/sequenceSlice';
 
-const LeftSidebar = ({
-  groups,
-  selectedGroup,
-  onGroupSelect,
-}) => {
+const LeftSidebar = () => {
+  const sequences = useSelector((state) => state.sequence.sequences);
+  const currentSequence = useSelector((state) => state.sequence.currentSequence);
+  const dispatch = useDispatch();
   return (
     <div className="sidebar">
-      {groups.map((group, index) => (
+      {sequences.map((sequence, index) => (
         <div
           key={index}
-          className={`group-item ${selectedGroup && selectedGroup.id === group.id ? 'selected' : ''}`}
-          onClick={() => onGroupSelect(group)}
+          className={`group-item ${currentSequence && currentSequence === sequence.id ? 'selected' : ''}`}
+          onClick={() => dispatch(sequenceActions.setCurrentSequence({ id: sequence.id }))}
         >
-          {group.name}
+          {sequence.name}
         </div>
       ))}
     </div>

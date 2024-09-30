@@ -5,6 +5,7 @@ import './App.css';
 import LyricsEditWindow from './components/LyricsEditWindow';
 import MainWindow from './components/MainWindow';
 import ColorModal from './components/ColorModal';
+import LyricsAddWindow from './components/LyricsAddWindow';
 
 function App() {
   return (
@@ -15,8 +16,12 @@ function App() {
           element={<MainWindow />}
         />
         <Route 
-          path="/LyricsEditWindow"
+          path="/lyricsEditWindow"
           element={<LyricsEditWindow />}
+        />
+        <Route 
+          path="/lyricsAddWindow"
+          element={<LyricsAddWindow />}
         />
         <Route
           path="/ColorModal"

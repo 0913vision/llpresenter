@@ -7,11 +7,13 @@ import LyricsWorkspace from './LyricsWorkspace';
 import MediaWorkspace from './MediaWorkspace';
 import ContextMenuProvider from './ContextMenuProvider';
 import styles from './styles/MainWindow.module.css';
-// import './styles/MainWindow.css';
+import { useDispatch, useSelector } from 'react-redux';
+import { sequenceActions } from '../redux/slices/sequenceSlice';
 
 function MainWindow () {
-  const [lyricsGroups, setLyricsGroups] = useState([]);
-  const [selectedGroup, setSelectedGroup] = useState(null);
+  const dispatch = useDispatch();
+  // const [lyricsGroups, setLyricsGroups] = useState([]); //TODO
+  // const [selectedGroup, setSelectedGroup] = useState(null); //TODO
 
   const [leftWidth, setLeftWidth] = useState(100);
   const [rightWidth, setRightWidth] = useState(250);
@@ -32,10 +34,13 @@ function MainWindow () {
   const [isToggleHovered, setIsResizerToggleButtonHovered] = useState(false);
 
   useEffect(() => {
-    window.electronAPI.handleFileUpload((event, name, data) => {
-      handleFileUpload(name, data);
+    window.electronAPI.handleFileUpload((event, name, text) => {
+      dispatch(sequenceActions.createSequence({ name, text, update: true }));
+      // dispatch(sequenceActions.setCurrentSequence({ id: sequencesRef.current[sequencesRef.current.length-1].id }));
+      // dispatch(sequenceActions.setCurrentSequence({ id: sequences[sequences.length-1].id }));
+      // handleFileUpload(name, text);
     });
-  }, [lyricsGroups]);
+  }, []);
 
   useEffect(() => {
     leftWidthRef.current = leftWidth;
@@ -138,7 +143,8 @@ function MainWindow () {
   };
 
   const handleSelectGroup = (group) => {
-    setSelectedGroup(group);
+    dispatch(sequenceActions.setCurrentSequence({ id: group.id }));
+    // setSelectedGroup(group);
   };
 
   const handleUpdateSelectedGroup = (updatedGroup) => {
@@ -156,11 +162,7 @@ function MainWindow () {
         <div className={styles.mainContainer}>
           {/* 좌측 사이드바 */}
           <div className={`${styles.sidebar} ${styles.leftSidebar} ${isLeftCollapsed ? `${styles.collapsed}` : ''}`} style={{ width: isLeftCollapsed ? '0px' : leftWidth }}>
-            <LeftSidebar 
-              groups={lyricsGroups}
-              selectedGroup={selectedGroup}
-              onGroupSelect={handleSelectGroup}
-            />
+            <LeftSidebar />
           </div>
 
           {/* 좌측 리사이저 및 토글 버튼 */}
@@ -182,10 +184,7 @@ function MainWindow () {
 
           <div className={styles.WorkspaceContainer}>
             <div className={styles.LyricsWorkspaceContainer} style={{ height: topHeight }}>
-              <LyricsWorkspace
-                currentLyricsGroup={selectedGroup}
-                updateLyricsGroup={handleUpdateSelectedGroup}
-              />
+              <LyricsWorkspace />
             </div>
             <div className={`${styles.resizer} ${styles.horizontal}`} onMouseDown={handleMouseDown('middle')} />
             <div className={styles.MediaWorkspaceContainer} style={{ height: bottomHeight }}>

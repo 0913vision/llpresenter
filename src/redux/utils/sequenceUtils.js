@@ -8,6 +8,7 @@ export const generateItems = (text) => {
     id: uuidv4(),
     type: 'text',
     content: slide.trim(),
+    sequence: '',
     isLabeled: false,
     subtitle: '',
     labelColor: ''
@@ -22,3 +23,7 @@ export const createNewSequence = (name, items) => {
     items: items.map(item => item.id)
   };
 };
+
+export const getCurrentSequenceById = (state, id) => {
+  return state.sequence.sequences.find(sequence => sequence.id === id);
+}

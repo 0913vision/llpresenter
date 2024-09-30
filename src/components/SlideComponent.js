@@ -1,8 +1,11 @@
 // src/components/SlideComponent.js
 import React from 'react';
 import styles from './styles/SlideComponent.module.css';
+import { useSelector } from 'react-redux';
 
-function SlideComponent({ slide, index}) {
+function SlideComponent({ id }) {
+  // console.log('SlideComponent id:', id);
+  const slide = useSelector((state) => state.sequence.items.find((item) => item.id === id));
   return (
     <div className={`${styles.slide}`}>
       <div className={`${styles.text}`}>

@@ -81,7 +81,46 @@ ipcMain.on('edited-lyrics-data', (event, data) => {
   }
 });
 
+function createLyricsAddWindow(data) {
+  lyricsAddWindow = createWindow({
+    width: 400,
+    height: 500,
+    url: `/lyricsAddWindow`, // 이 URL을 실제 파일 경로로 변경
+    options: {
+      title: 'Lyrics Editor',
+      parent: mainWindow, 
+      modal: true, 
+      show: false,
+      maximizable: false,
+      minimizable: false,
+    }
+  });
 
+  lyricsAddWindow.webContents.openDevTools();
+  lyricsAddWindow.removeMenu(); 
+
+  // 데이터 전송
+  lyricsAddWindow.webContents.once('did-finish-load', () => {
+    lyricsAddWindow.setTitle('슬라이드 추가');
+    lyricsAddWindow.show();
+  });
+
+  lyricsAddWindow.on('close', () => {
+    lyricsAddWindow = null;
+    if (mainWindow) {
+      mainWindow.focus();  // 메인 윈도우로 포커스 강제 설정
+    }
+  });
+}
+
+ipcMain.on('open-lyrics-add', (event, data) => {
+  createLyricsAddWindow(data);
+});
+ipcMain.on('new-lyrics-data', (event, data) => {
+  if(mainWindow) {
+    mainWindow.webContents.send('new-lyrics-data', data);
+  }
+});
 
 
 function createColorModal(data) {
