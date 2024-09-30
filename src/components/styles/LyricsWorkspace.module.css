@@ -1,4 +1,9 @@
 /* LyricsWorkspace.module.css */
+
+:root {
+  --grid-gap: 15px;
+}
+
 .LyricsWorkspace {
   padding: 20px;
   box-sizing: border-box;
@@ -16,7 +21,7 @@
   grid-template-columns: repeat(auto-fill, 150px);
   min-height: 100%;
   max-width: 100%; 
-  gap: 5px;
+  gap: var(--grid-gap);
   justify-content: start;
   align-content: flex-start;
   margin: 0;

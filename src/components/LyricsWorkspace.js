@@ -8,9 +8,6 @@ import { sequenceActions } from '../redux/slices/sequenceSlice';
 function LyricsWorkspace() {
   const [shiftBaseIndex, setShiftBaseIndex] = useState(null);
 
-  const [cursorIndex, setCursorIndex] = useState(null); // 커서 위치 관리
-  const Cursor = () => <div className={styles.cursor}></div>;
-
   const { showMenu, hideMenu, getMenuState } = useContext(ContextMenuContext);
   const workspaceRef = useRef(null);
 
@@ -35,10 +32,75 @@ function LyricsWorkspace() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // 워크스페이스 클릭 핸들러
+  const handleWorkspaceClick = (event) => {
+    dispatch(sequenceActions.setCurrentItems({ids: []}))
+    // 클릭한 좌표
+    const clickX = event.clientX;
+    const clickY = event.clientY;
+  
+    // 슬라이드 컨테이너와 슬라이드 요소 가져오기
+    const slideContainer = document.getElementsByClassName(styles.SlideComponent); // 그리드 컨테이너 (클래스명 변경 가능)
+    const slideElements = document.getElementsByClassName(styles.slide); // 슬라이드들의 DOM 요소들 (클래스명은 상황에 맞게 변경)
+    const slideRects = Array.from(slideElements).map(slide => slide.getBoundingClientRect());
+    const gridGap = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--grid-gap').trim());  // 그리드 간격
+  
+    // console.log(slideRects);
+
+    if (slideRects.length === 0) return;  // 슬라이드가 없는 경우 처리
+  
+    // 슬라이드 하나의 크기
+    const slideWidth = slideRects[0].width;  // 슬라이드의 가로 길이
+    const slideHeight = slideRects[0].height;  // 슬라이드의 높이 (일정하다고 가정)
+  
+    // 그리드의 전체 너비 (컨테이너의 가로 길이)
+    const gridWidth = slideContainer[0].clientWidth;
+    console.log(gridWidth);
+  
+    // 한 행에 몇 개의 슬라이드가 들어가는지 계산
+    const slidesPerRow = (gridWidth+gridGap)/(gridGap+slideWidth)  // 슬라이드 너비 + 간격
+  
+    // 세로(행) 계산: 클릭한 Y 좌표를 기준으로 행 번호 계산
+    const originY = slideRects[0].top;  // 첫 번째 슬라이드의 Y 좌표
+    const originX = slideRects[0].left;
+    console.log(slideHeight, gridGap);
+    let rowIndex = Math.floor((clickY-originY)/(slideHeight+gridGap));
+    if(!(originY + rowIndex*(slideHeight+gridGap) <= clickY && clickY <= originY + rowIndex*(slideHeight+gridGap)+ slideHeight)) rowIndex = -1;
+
+    console.log(`클릭한 좌표: (${clickX}, ${clickY}), 클릭한 행: ${rowIndex}`);
+  
+    // 해당 행에서 몇 개의 슬라이드가 있는지 확인
+  
+    // 가로(열) 계산: 클릭한 X 좌표를 기준으로 슬라이드 간 공간 찾기
+    if(originX > clickX) {
+      console.log('맨 앞에 커서 배치');
+      return;
+    }
+
+    if(originX + slideWidth*slidesPerRow + gridGap*(slidesPerRow-1) <= clickX) {
+      console.log('맨 뒤에 커서 배치');
+      return;
+    }
+
+    let colIndex = Math.floor((clickX-originX)/(slideWidth+gridGap));
+    if(originX + colIndex*(slideWidth+gridGap) <= clickX && clickX <= originX + colIndex*(slideWidth+gridGap)+ slideWidth) {
+      console.log('invalid');
+      colIndex = -1;
+      return;
+    }
+    else {
+      console.log(colIndex); 
+      
+      return;
+    }
+  };
+  
+
+
   // 슬라이드 클릭 핸들러
   const handleSlideClick = (event, slideIndex, id) => {
     hideMenu();
-    event.stopPropagation();
+    // event.stopPropagation();
     if (event.shiftKey) {
       // Shift 키를 누르고 있을 때: 범위 선택
       if (shiftBaseIndex === null) {
@@ -133,30 +195,26 @@ function LyricsWorkspace() {
     <div className={styles.LyricsWorkspace} 
       ref={workspaceRef} 
       tabIndex={0} 
-      onClick={() => dispatch(sequenceActions.setCurrentItems({ids: []}))} 
+      onClick={(event) => handleWorkspaceClick(event)} 
       onContextMenu={(event) => {event.preventDefault(); handleWorkspaceContextMenu(event)}}>
       <div className={styles.SlideComponent}>
         {currentSequence && currentSequenceObject.items.map((id, slideIndex) => (
-          <React.Fragment key={`slide-cursor-${id}`}>
-            {cursorIndex === slideIndex && <Cursor />} 
-            <div
-              key={id}
-              className={`${styles.slide} ${currentItems.includes(id) ? styles.selected : ''}`}
-              onClick={(event) => {
-                handleSlideClick(event, slideIndex, id);
-                setCursorIndex(slideIndex);
-              }}
-              onContextMenu={(event) => {
-                event.preventDefault(); // 우클릭 기본 메뉴 방지
-                event.stopPropagation();
-                handleSlideContextMenu(event, id); //TODO
-              }}
-            >
-              <SlideComponent
-                id={id}
-              />
-            </div>
-          </React.Fragment>
+          <div
+            key={id}
+            className={`${styles.slide} ${currentItems.includes(id) ? styles.selected : ''}`}
+            onClick={(event) => {
+              handleSlideClick(event, slideIndex, id);
+            }}
+            onContextMenu={(event) => {
+              event.preventDefault(); // 우클릭 기본 메뉴 방지
+              event.stopPropagation();
+              handleSlideContextMenu(event, id); //TODO
+            }}
+          >
+            <SlideComponent
+              id={id}
+            />
+          </div>
         ))}
       </div>
     </div>
