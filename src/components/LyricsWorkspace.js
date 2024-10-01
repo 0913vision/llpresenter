@@ -93,7 +93,7 @@ function LyricsWorkspace() {
      // 이제 행과 행 사이를 누른 경우는 제외 되었다.
     // console.log(`클릭한 좌표: (${clickX}, ${clickY}), 클릭한 행: ${rowIndex}`);
 
-    console.log(rowIndex, Math.floor(slideRects.length/4))
+    console.log(rowIndex, Math.floor(slideRects.length/slidesPerRow))
 
     // 두 번째 케이스: 행의 제일 앞 슬라이드보다 앞을 누른 경우
     if(originX > clickX) {
@@ -105,8 +105,8 @@ function LyricsWorkspace() {
     }
 
     // 세 번째 케이스 예외: 단, 마지막 행이 가득 채워지지 않았다면, 마지막 행은 그 행의 마지막 슬라이드보다 오른쪽으로 대신 처리한다. (먼저적용)
-    if(rowIndex === Math.floor(slideRects.length/4) && slideRects.length % slidesPerRow !== 0 && slideRects[slideRects.length-1].right < clickX) {
-      // console.log('맨 뒤에 커서 배치');
+    if(rowIndex === Math.floor(slideRects.length/slidesPerRow) && slideRects.length % slidesPerRow !== 0 && slideRects[slideRects.length-1].right < clickX) {
+      console.log('부족한 맨 뒤에 커서 배치');
       setCursorIndex({index: (slideRects.length-1), position: 'right'});
       // setCursorPosition({ x: slideRects[slideRects.length-1].right + Math.floor(gridGap/2), y: originY + rowIndex*(slideHeight+gridGap)});
       // setCursorState(true);
