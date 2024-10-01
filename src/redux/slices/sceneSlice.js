@@ -7,7 +7,7 @@ const initialState = {
 
 /**
  * Scene slice
- * scene: {id, name, visibleObjects:[booleans], textFormat:{font, size, position, alignment, color}}
+ * scene: {id, name, objectsVisibility:{}, format:{text{font, size, position, alignment, color}}}
  */
 
 const sceneSlice = createSlice({
@@ -20,11 +20,12 @@ const sceneSlice = createSlice({
       state.scenes.push(newScene);
     },
     updateScene: (state, action) => {
-      const { id, name, visibleObjects, textFormat } = action.payload;
-      const scene = state.scenes.find((scene) => scene.id === id);
+      const { monitorId, name, objectsVisibility, camera, format } = action.payload;
+      const scene = state.scenes.find((scene) => scene.monitorId === monitorId);
       scene.name = name;
-      scene.visibleObjects = visibleObjects;
-      scene.textFormat = textFormat;
+      scene.objectsVisibility = objectsVisibility;
+      scene.camera = camera;
+      scene.format = format;
     },
     deleteScene: (state, action) => {
       const id = action.payload.id;

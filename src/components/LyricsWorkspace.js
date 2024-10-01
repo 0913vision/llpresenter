@@ -5,7 +5,7 @@ import { ContextMenuContext } from './ContextMenuProvider';
 import { useSelector, useDispatch } from 'react-redux';
 import { sequenceActions } from '../redux/slices/sequenceSlice';
 
-function LyricsWorkspace() {
+function LyricsWorkspace({editMode}) {
   const [shiftBaseIndex, setShiftBaseIndex] = useState(null);
 
   const { showMenu, hideMenu, getMenuState } = useContext(ContextMenuContext);
@@ -22,6 +22,17 @@ function LyricsWorkspace() {
   const [cursorIndex, setCursorIndex] = useState({index: 0, position: 'left'});
   const cursorIndexRef = useRef(cursorIndex);
 
+  const [previousModeCurrrentItems, setPreviousModeCurrentItems] = useState([]);
+
+  useEffect(() => {
+    if (editMode) {
+      console.log(currentItems, "currentItems");
+      setPreviousModeCurrentItems(currentItems);
+    } else {
+      dispatch(sequenceActions.setCurrentItems({ids:previousModeCurrrentItems}));
+    }
+  }, [editMode]);
+
   useEffect(() => {
     dispatch(sequenceActions.setCurrentItems({ ids: [] }));
   }, [currentSequence]);
@@ -34,7 +45,7 @@ function LyricsWorkspace() {
 
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if (getMenuState() === false && event.key === 'Escape' && workspaceRef.current === document.activeElement) {
+      if (getMenuState().visible === false && event.key === 'Escape' && workspaceRef.current === document.activeElement) {
         dispatch(sequenceActions.setCurrentItems({ ids: [] }));
         // setSelectedSlides([]);
       }
@@ -45,6 +56,7 @@ function LyricsWorkspace() {
 
   // 워크스페이스 클릭 핸들러
   const handleWorkspaceClick = (event) => {
+    if(!editMode) return;
     dispatch(sequenceActions.setCurrentItems({ids: []}))
     // 클릭한 좌표
     const clickX = event.clientX;
@@ -212,7 +224,7 @@ function LyricsWorkspace() {
   const handleSlideClick = (event, slideIndex, id) => {
     hideMenu();
     event.stopPropagation();
-    if (event.shiftKey) {
+    if (editMode && event.shiftKey) {
       // Shift 키를 누르고 있을 때: 범위 선택
       if (shiftBaseIndex === null) {
         // 기준점이 없으면 현재 클릭한 슬라이드를 기준점으로 설정
@@ -231,7 +243,7 @@ function LyricsWorkspace() {
         dispatch(sequenceActions.setCurrentItems({ ids : newSelection }));
         // setSelectedSlides(newSelection);
       }
-    } else if (event.ctrlKey || event.metaKey) {
+    } else if (editMode && (event.ctrlKey || event.metaKey)) {
       // Ctrl(또는 Mac에서는 Command) 키를 누르고 있을 때: 멀티 선택
       if (currentItems.includes(id)) {
         dispatch(sequenceActions.setCurrentItems({ ids : currentItems.filter(index => currentItems[index] !== id) }));
@@ -248,6 +260,13 @@ function LyricsWorkspace() {
       setShiftBaseIndex(slideIndex); // 기준점 초기화
     }
   };
+
+  useEffect(() => {
+    if(editMode) return;
+    if (currentItems.length <= 1) {
+      window.electronAPI.sendLyrics(currentItems.length === 1 ? items.find((item) => item.id === currentItems[0]).content : '');
+    }
+  }, [currentItems]);
 
   //우클릭
 
@@ -266,6 +285,7 @@ function LyricsWorkspace() {
   };
 
   const handleSlideContextMenu = (event, id) => {
+    if(!editMode) return;
     event.preventDefault();    
     let newSelectedSlides = currentItems;
 
@@ -279,7 +299,7 @@ function LyricsWorkspace() {
         shortcut: 'Ctrl+E'
       },
       { label: 'Delete', onClick: () => handleDeleteSlides(newSelectedSlides), shortcut: 'Delete' },
-      { label: 'Paste', onClick: () => console.log('Paste Slide clicked'), shortcut: 'Ctrl+V' },
+      // { label: 'Paste', onClick: () => console.log('Paste Slide clicked'), shortcut: 'Ctrl+V' },
       // { type: 'separator' },
       // { label: 'Properties', onClick: () => console.log('Properties clicked') }
     ];
@@ -295,11 +315,12 @@ function LyricsWorkspace() {
 
   const handleWorkspaceContextMenu = (event) => {
     if(!currentSequence) return;
+    if(!editMode) return;
     handleWorkspaceClick(event);
     console.log('workspace context menu');
     const menuItems = [
       { label: 'Add Slide', onClick: () => window.electronAPI.openLyricsAdd(), shortcut: 'Ctrl+N' },
-      { label: 'Paste', onClick: () => console.log('Paste Slide clicked'), shortcut: 'Ctrl+V' },
+      // { label: 'Paste', onClick: () => console.log('Paste Slide clicked'), shortcut: 'Ctrl+V' },
     ];
     showMenu({ x: event.clientX, y: event.clientY }, menuItems);
   };
@@ -316,7 +337,7 @@ function LyricsWorkspace() {
         {currentSequence && currentSequenceObject.items.map((id, slideIndex) => (
           <div
             key={id}
-            className={`${styles.slide} ${currentItems.includes(id) ? styles.selected : ''}`}
+            className={`${styles.slide} ${currentItems.includes(id) ? (editMode ? styles.edit_selected : styles.show_selected) : ''}`}
             onClick={(event) => {
               handleSlideClick(event, slideIndex, id);
             }}

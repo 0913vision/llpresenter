@@ -39,6 +39,14 @@ function createMainWindow () {
     mainWindow.setTitle('LoveLight Presenter');
     mainWindow.show();
   });
+
+  mainWindow.on('close', () => {
+    for (let id in exportWindows) {
+      const win = exportWindows[id];
+      win.destroy(); // 창 강제 종료
+    }
+    app.quit();
+  });
 }
 
 function createLyricsEditWindow(data) {
@@ -228,7 +236,7 @@ function setAppMenu(customMenu = []) {
 app.whenReady().then(createMainWindow);
 app.whenReady().then(() => {
   screens = screen.getAllDisplays().slice(1, screen.getAllDisplays().length);
-  screens.forEach((display) => createWindowForMonitor(display));
+  screens.forEach((display, index) => createWindowForMonitor(display, index+1));
 })
 app.whenReady().then(() => {
   session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
@@ -239,9 +247,9 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
+  // if (process.platform !== 'darwin') {
     app.quit();
-  }
+  // }
 });
 
 // 컴포넌트에서 메뉴를 추가 또는 수정하도록 요청할 때 사용
@@ -267,26 +275,47 @@ ipcMain.on('set-scene-data', (event, monitorId, sceneData) => {
   }
 });
 
-function createWindowForMonitor(display) {
+function createWindowForMonitor(display, index) {
   const win = createWindow({
-    fullscreen: true,
     url: `/sceneRenderer`,
     options: {
-      parent: mainWindow,
+      // title: `Export Window - ${display.id}`,
+      // parent: mainWindow,
       closable: false,
       x: display.bounds.x,
       y: display.bounds.y,
       movable: false,
       fullscreen: true,
+      maximizable: false,
+      minimizable: false,
     }
   });
-  win.removeMenu(); 
-  win.webContents.openDevTools();
-  // win.fullScreen = true;
+  exportWindows[display.id] = win; // 모니터 ID로 윈도우를 저장
   win.on('close', (event) => {
     event.preventDefault();  // 창 닫기 방지
   });
 
-  exportWindows[display.id] = win; // 모니터 ID로 윈도우를 저장
+  win.webContents.once('did-finish-load', () => {
+    win.setTitle(`Screen ${index}`);
+    win.removeMenu(); 
+    // win.maximize();
+    win.webContents.openDevTools();
+    // win.fullScreen = true;
+    console.log(win.id);
+  });
 }
 
+ipcMain.handle('get-export-windows', () => {
+  return Object.keys(exportWindows)
+    .map(id => ({
+      id, 
+      title: exportWindows[id].getTitle(),
+    }))
+    .sort((a, b) => a.title.localeCompare(b.title));
+});
+
+ipcMain.on('show-lyrics-data', (event, data) => {
+  for (let id in exportWindows) {
+    exportWindows[id].webContents.send('show-lyrics-data', data);
+  }
+});

@@ -1,0 +1,7 @@
+/* src/components/right_components/styles/QuickSlot.module.css */
+.buttonContainer {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

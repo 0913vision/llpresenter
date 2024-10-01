@@ -1,9 +1,6 @@
 import React from 'react';
 
-function TextDisplay({ visible, textFormat, textContent }) {
-  if (!visible) {
-    return null; // 텍스트가 보이지 않을 경우 렌더링하지 않음
-  }
+function TextDisplay({ textFormat, textContent }) {
 
   const textStyle = {
     fontFamily: textFormat.font,

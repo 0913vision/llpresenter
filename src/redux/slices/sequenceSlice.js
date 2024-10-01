@@ -77,7 +77,10 @@ const sequenceSlice = createSlice({
     setCurrentItems: (state, action) => {
       // console.log("setCurrentItems", action.payload);
       const { ids } = action.payload;
-      state.currentItems = ids;
+      // ids에 있는 id들이 실제로 존재하는 id인지 확인
+      // 존재하지 않는다면 해당 id는 ids에서 제거한다.
+      const validIds = ids.filter(id => state.items.some(item => item.id === id));
+      state.currentItems = validIds;
     },
     deleteItems: (state, action) => {
       const { ids } = action.payload;

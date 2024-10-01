@@ -1,5 +1,5 @@
 // preload.js
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer, desktopCapturer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
   handleFileUpload: (callback) => ipcRenderer.on('lyrics_file_upload', callback),
@@ -26,4 +26,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getDisplays: () => ipcRenderer.invoke('get-displays'),
   sendSceneDataToMonitor: (monitorId, sceneData) => ipcRenderer.send('set-scene-data', monitorId, sceneData),
   receiveSceneData: (callback) => ipcRenderer.on('set-scene-data', (event, data) => callback(data)),
+
+  //preview window
+  getExportWindows: () => ipcRenderer.invoke('get-export-windows'),
+  desktopCaptureGetSources: async () => {
+    return await desktopCapturer.getSources({ types: ['window'] }); 
+  },
+
+  //showing
+  sendLyrics: (data) => ipcRenderer.send('show-lyrics-data', data),
+  receiveLyrics: (callback) => ipcRenderer.on('show-lyrics-data', (event, data) => callback(data)),
 });

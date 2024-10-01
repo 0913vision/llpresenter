@@ -6,11 +6,19 @@
   height: 100vh;
 }
 
+.topBar {
+  flex: 0 0 60px;
+  width: 100%;
+  background-color: #555;
+  display: flex;
+  align-items: center;
+}
+
 .mainContainer {
   display: flex;
-  height: 100%;
-  flex: 1;
-  position: relative;
+  flex-direction: row;
+  flex-grow: 1; /* 이 부분을 수정했습니다 */
+  /* height: 250px; */
 }
 
 /* 사이드바 전환 효과 */
@@ -49,6 +57,7 @@
 .MediaWorkspaceContainer {
   background-color: #eee;
   overflow: auto;
+  flex-shrink: 0;
 }
 
 /* 리사이저 기본 스타일 */

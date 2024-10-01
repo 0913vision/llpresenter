@@ -1,0 +1,66 @@
+/* src/components/right_components/styles/Preview.module.css */
+
+.container {
+  width: 100%;
+  /* height: 100%; */
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.previewContainer {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: auto 30px 50px;
+  background-color: aquamarine;
+}
+
+.videoContainer {
+  flex: 1;  /* 가능한 모든 공간을 차지하도록 설정 */
+  max-width: 100%;  /* 컨테이너를 넘어가지 않도록 제한 */
+  aspect-ratio: 16 / 9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: blueviolet;
+}
+
+.previewVideo {
+  max-width: 100%;  /* videoContainer의 너비를 초과하지 않도록 */
+  max-height: 100%;  /* videoContainer의 높이를 초과하지 않도록 */
+  object-fit: contain;  /* 비디오의 비율을 유지하면서 컨테이너에 맞춤 */
+}
+
+.previewVideo.show{
+  display: block;
+}
+
+.previewVideo.hide{
+  display: none;
+}
+
+.deselectButtonContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.identifiersContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.identifiersContainer > * {
+  width: 100%;  /* 자식 요소들이 컨테이너의 전체 너비를 차지하도록 설정 */
+  flex-shrink: 0;  /* 자식 요소들이 압축되지 않도록 설정 */
+}
+
+
+.windowSelectContainer {
+  /* height: 30px; */
+  width: 100%;
+}

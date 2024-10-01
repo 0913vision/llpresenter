@@ -17,11 +17,15 @@ function MainWindow () {
 
   const [leftWidth, setLeftWidth] = useState(100);
   const [rightWidth, setRightWidth] = useState(250);
-  const [bottomHeight, setBottomHeight] = useState(200);
+  const [bottomHeight, setBottomHeight] = useState(100);
+  
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const minLeftWidth = 100;
   const minRightWidth = 100;
-  const appRef = useRef(null);
+  const minBottomHeight = 100;
+  const mainRef = useRef(null);
+  const topBarRef = useRef(null);
 
   const leftWidthRef = useRef(leftWidth);
   const rightWidthRef = useRef(rightWidth);
@@ -57,7 +61,7 @@ function MainWindow () {
 
   useEffect(() => {
     const handleResize = () => {
-      const appWidth = appRef.current.getBoundingClientRect().width;
+      const appWidth = mainRef.current.getBoundingClientRect().width;
       const maxWidth = appWidth * 0.4;
       if (leftWidthRef.current > maxWidth) setLeftWidth(maxWidth);
       if (rightWidthRef.current > maxWidth) setRightWidth(maxWidth);
@@ -81,9 +85,9 @@ function MainWindow () {
   };
 
   const handleMouseMove = (e) => {
-    if (!dragging.current || !appRef.current) return;
-    const appWidth = appRef.current.getBoundingClientRect().width;
-    const appHeight = appRef.current.getBoundingClientRect().height;
+    if (!dragging.current || !mainRef.current) return;
+    const appWidth = mainRef.current.getBoundingClientRect().width;
+    const appHeight = mainRef.current.getBoundingClientRect().height;
     const maxWidth = appWidth * 0.4;
     const maxHeight = appHeight * 0.5;
 
@@ -104,8 +108,8 @@ function MainWindow () {
       if (newWidth > maxWidth) newWidth = maxWidth;
       setRightWidth(newWidth);
     } else if (dragging.current === 'middle') {
-      let newHeight = appHeight - e.clientY;
-      if (newHeight < minRightWidth) newHeight = minRightWidth; // 최소 높이
+      let newHeight = appHeight - e.clientY + topBarRef.current.getBoundingClientRect().height;
+      if (newHeight < minBottomHeight) newHeight = minRightWidth; // 최소 높이
       if (newHeight > maxHeight) newHeight = maxHeight;
       setBottomHeight(newHeight);
     }
@@ -117,42 +121,15 @@ function MainWindow () {
     document.removeEventListener('mouseup', handleMouseUp);
   };
 
-  const handleFileUpload = (name, text) => {
-    console.log(text.split('\n\n'));
-    const newSlides = text.split('\n\n').map((slide, index) => ({
-      id: index,
-      content: slide.trim(),
-      isLabeled: false,
-      subtitle: '',
-      labelColor: '',
-    }));
-    const newLyricGroup = {
-      id: lyricsGroups.length,
-      name: name,
-      slides: newSlides,
-    };
-    setLyricsGroups([...lyricsGroups, newLyricGroup]);
-    setSelectedGroup(newLyricGroup);
-  };
-
-  const handleSelectGroup = (group) => {
-    dispatch(sequenceActions.setCurrentSequence({ id: group.id }));
-    // setSelectedGroup(group);
-  };
-
-  const handleUpdateSelectedGroup = (updatedGroup) => {
-    setLyricsGroups((prevGroups) =>
-      prevGroups.map((group) =>
-        group.id === updatedGroup.id ? updatedGroup : group
-      )
-    );
-    setSelectedGroup(updatedGroup);
-  };
-
   return (
     <ContextMenuProvider>
-      <div className={styles.appContainer} ref={appRef}>
-        <div className={styles.mainContainer}>
+      <div className={styles.appContainer}>
+        <div className={styles.topBar} ref={topBarRef}>
+          <div onClick={() => {
+            setIsEditMode(!isEditMode);
+          }}>누르면 편집</div>
+        </div>
+        <div className={styles.mainContainer} ref={mainRef}>
           {/* 좌측 사이드바 */}
           <div className={`${styles.sidebar} ${styles.leftSidebar} ${isLeftCollapsed ? `${styles.collapsed}` : ''}`} style={{ width: isLeftCollapsed ? '0px' : leftWidth }}>
             <LeftSidebar />
@@ -177,7 +154,7 @@ function MainWindow () {
 
           <div className={styles.WorkspaceContainer}>
             <div className={styles.LyricsWorkspaceContainer}>
-              <LyricsWorkspace />
+              <LyricsWorkspace editMode={isEditMode}/>
             </div>
             <div className={`${styles.resizer} ${styles.horizontal}`} onMouseDown={handleMouseDown('middle')} />
             <div className={styles.MediaWorkspaceContainer} style={{ height: bottomHeight }}>
