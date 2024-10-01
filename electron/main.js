@@ -1,10 +1,12 @@
-const { app, BrowserWindow, Menu, dialog, ipcMain } = require('electron');
+const { app, BrowserWindow, Menu, dialog, ipcMain, screen, session } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
 let mainWindow;
 let lyricsEditWindow;
 let colorModal;
+let exportWindows = {};
+let screens;
 
 function createWindow({ width = 800, height = 600, url = '/', options = {} }) {
   const window = new BrowserWindow({
@@ -165,7 +167,6 @@ ipcMain.on('edited-color-data', (event, data) => {
 });
 
 
-
 // 기본 메뉴 설정 함수
 function getDefaultMenuTemplate() {
   return [
@@ -225,6 +226,17 @@ function setAppMenu(customMenu = []) {
 }
 
 app.whenReady().then(createMainWindow);
+app.whenReady().then(() => {
+  screens = screen.getAllDisplays().slice(1, screen.getAllDisplays().length);
+  screens.forEach((display) => createWindowForMonitor(display));
+})
+app.whenReady().then(() => {
+  session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
+    if (permission === 'media') {  // 'media'는 카메라 및 마이크에 대한 권한 요청을 의미
+      callback(true); // 자동으로 권한을 허용
+    }
+  });
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
@@ -236,3 +248,43 @@ app.on('window-all-closed', () => {
 ipcMain.on('update-component-menu', (event, customMenu) => {
   setAppMenu(customMenu); // 컴포넌트에서 전달된 메뉴 항목 추가
 });
+
+
+// 모니터 처리 로직
+ipcMain.handle('get-displays', () => {
+  const displays = screens.map((display) => ({
+    id: display.id,
+    name: display.label || `Display ${display.id} (${display.size.width}x${display.size.height})`,
+  }));
+  return displays;
+});
+
+ipcMain.on('set-scene-data', (event, monitorId, sceneData) => {
+  const win = exportWindows[monitorId]; // 모니터 ID로 윈도우 가져옴
+  if (win) {
+    win.webContents.send('set-scene-data', sceneData); // 창으로 씬 데이터 전송
+  }
+});
+
+function createWindowForMonitor(display) {
+  const win = createWindow({
+    fullscreen: true,
+    url: `/sceneRenderer`,
+    options: {
+      parent: mainWindow,
+      closable: false,
+      x: display.bounds.x,
+      y: display.bounds.y,
+      movable: false,
+      fullscreen: true,
+    }
+  });
+  win.removeMenu(); 
+  // win.fullScreen = true;
+  win.on('close', (event) => {
+    event.preventDefault();  // 창 닫기 방지
+  });
+
+  exportWindows[display.id] = win; // 모니터 ID로 윈도우를 저장
+}
+

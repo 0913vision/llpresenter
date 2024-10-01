@@ -21,4 +21,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   receiveColorToEdit: (callback) => ipcRenderer.on('color-to-color-window', (event, data) => callback(data)),
   sendEditedColor: (data) => ipcRenderer.send('edited-color-data', data),
   receiveEditedColor: (callback) => ipcRenderer.on('edited-color-data', (event, data) => callback(data)),
+
+  //monitor
+  getDisplays: () => ipcRenderer.invoke('get-displays'),
+  sendSceneDataToMonitor: (monitorId, sceneData) => ipcRenderer.send('set-scene-data', monitorId, sceneData),
+  receiveSceneData: (callback) => ipcRenderer.on('set-scene-data', (event, data) => callback(data)),
 });

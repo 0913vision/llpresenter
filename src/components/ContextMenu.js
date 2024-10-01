@@ -13,9 +13,10 @@ function ContextMenu({ items, position, onClose }) {
           <div key={index} className={styles.separator}></div>
         ) : (
           <div key={index} className={styles.menuItem} onClick={() => {
-            item.onClick();
-            onClose();
-          }}>
+              item.onClick();
+              onClose();
+            }}
+          >
             {item.label}
             {item.shortcut && <span className={styles.shortcut}>{item.shortcut}</span>}
             

@@ -42,6 +42,7 @@
 
 .LyricsWorkspaceContainer {
   background-color: #fff;
+  flex: 1;
   overflow: auto;
 }
 

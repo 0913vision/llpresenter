@@ -18,7 +18,6 @@ function MainWindow () {
   const [leftWidth, setLeftWidth] = useState(100);
   const [rightWidth, setRightWidth] = useState(250);
   const [bottomHeight, setBottomHeight] = useState(200);
-  const [topHeight, setTopHeight] = useState(0);
 
   const minLeftWidth = 100;
   const minRightWidth = 100;
@@ -112,12 +111,6 @@ function MainWindow () {
     }
   };
 
-  useEffect(() => {
-    if (appRef.current) {
-      setTopHeight(appRef.current.getBoundingClientRect().height - bottomHeight);
-    }
-  }, [bottomHeight]);
-
   const handleMouseUp = () => {
     dragging.current = null;
     document.removeEventListener('mousemove', handleMouseMove);
@@ -183,7 +176,7 @@ function MainWindow () {
           </div>
 
           <div className={styles.WorkspaceContainer}>
-            <div className={styles.LyricsWorkspaceContainer} style={{ height: topHeight }}>
+            <div className={styles.LyricsWorkspaceContainer}>
               <LyricsWorkspace />
             </div>
             <div className={`${styles.resizer} ${styles.horizontal}`} onMouseDown={handleMouseDown('middle')} />

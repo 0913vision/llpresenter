@@ -1,7 +1,7 @@
 /* LyricsWorkspace.module.css */
 
 :root {
-  --grid-gap: 15px;
+  --grid-gap: 16px;
 }
 
 .LyricsWorkspace {
@@ -59,8 +59,15 @@
 }
 
 .cursor {
+  position:absolute;
   width: 2px;
-  height: 2px;
-  background-color: blue;
-  margin: 5px 0;
+  height: 84.375px;
+  background-color: grey;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  50% {
+    visibility: hidden;
+  }
 }

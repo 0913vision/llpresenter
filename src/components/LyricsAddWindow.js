@@ -64,6 +64,11 @@ function LyricsAddWindow() {
 
   // 추가 완료 버튼 클릭 시 데이터 생성 및 전송
   const handleAdd = () => {
+    if (!formState.content) {
+      alert('내용을 입력해주세요.');
+      return;
+    }
+
     const newLyricsData = {
       content: formState.content,
       isLabeled: formState.isLabeled,

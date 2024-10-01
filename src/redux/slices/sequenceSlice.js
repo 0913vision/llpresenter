@@ -1,5 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { generateItems, createNewSequence } from '../utils/sequenceUtils';
+import { v4 as uuidv4 } from 'uuid';
 
 const initialState = {
   sequences: [],        // [{id, title, items: [ids]}]
@@ -33,7 +34,34 @@ const sequenceSlice = createSlice({
     },
     // Placeholder for adding a new item
     addItem: (state, action) => {
-      // code to add a new item
+      const { item, index } = action.payload;
+      // const payload_item = {
+      //   content: formState.content,
+      //   isLabeled: formState.isLabeled,
+      //   labelColor: formState.labelColor,
+      //   subtitle: formState.subtitle,
+      // };
+
+      // it will be like this.
+      //   id: uuidv4(),
+      // type: 'text',
+      // content: slide.trim(),
+      // sequence: '',
+      // isLabeled: false,
+      // subtitle: '',
+      // labelColor: ''
+      const newItem = {
+        id: uuidv4(),
+        type: 'text',
+        content: item.content,
+        sequence: state.currentSequence,
+        isLabeled: item.isLabeled,
+        subtitle: item.subtitle,
+        labelColor: item.labelColor
+      };
+
+      state.items.push(newItem);
+      state.sequences.find(sequence => sequence.id === state.currentSequence).items.splice(index, 0, newItem.id);
     },
     updateItem: (state, action) => {
       const { items } = action.payload;
