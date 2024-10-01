@@ -98,7 +98,7 @@ function createLyricsAddWindow(data) {
     }
   });
 
-  lyricsAddWindow.webContents.openDevTools();
+  // lyricsAddWindow.webContents.openDevTools();
   lyricsAddWindow.removeMenu(); 
 
   // 데이터 전송
@@ -260,6 +260,7 @@ ipcMain.handle('get-displays', () => {
 });
 
 ipcMain.on('set-scene-data', (event, monitorId, sceneData) => {
+  console.log(monitorId, sceneData);
   const win = exportWindows[monitorId]; // 모니터 ID로 윈도우 가져옴
   if (win) {
     win.webContents.send('set-scene-data', sceneData); // 창으로 씬 데이터 전송
@@ -280,6 +281,7 @@ function createWindowForMonitor(display) {
     }
   });
   win.removeMenu(); 
+  win.webContents.openDevTools();
   // win.fullScreen = true;
   win.on('close', (event) => {
     event.preventDefault();  // 창 닫기 방지

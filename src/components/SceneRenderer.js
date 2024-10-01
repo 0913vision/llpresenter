@@ -11,6 +11,7 @@ function SceneRenderer() {
     // 메인 프로세스로부터 씬 데이터를 받음
     window.electronAPI.receiveSceneData((data) => {
       setSceneData(data);
+      console.log(data.name);
     });
   }, []);
 

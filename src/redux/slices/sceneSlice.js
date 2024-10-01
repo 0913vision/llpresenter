@@ -15,8 +15,9 @@ const sceneSlice = createSlice({
   initialState,
   reducers: {
     createScene: (state, action) => {
-      const { name, objectsVisibility, camera, format } = action.payload;
-      state.scenes.push({ id: uuidv4(), name, objectsVisibility, camera, format });
+      const { monitorId, name, objectsVisibility, camera, format } = action.payload;
+      const newScene = { monitorId, name, objectsVisibility, camera, format };
+      state.scenes.push(newScene);
     },
     updateScene: (state, action) => {
       const { id, name, visibleObjects, textFormat } = action.payload;
