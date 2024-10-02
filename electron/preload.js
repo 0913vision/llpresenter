@@ -2,7 +2,13 @@
 const { contextBridge, ipcRenderer, desktopCapturer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
+  //font
+  getFontList: () => ipcRenderer.invoke('get-font-list'),
+
+  //file
   handleFileUpload: (callback) => ipcRenderer.on('lyrics_file_upload', callback),
+
+  //menu
   setComponentMenu: (customMenu) => ipcRenderer.send('set-component-menu', customMenu),
 
   //lyrics modal
@@ -16,12 +22,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   sendNewLyricsData: (data) => ipcRenderer.send('new-lyrics-data', data),
   receiveNewLyricsData: (callback) => ipcRenderer.on('new-lyrics-data', (event, data) => callback(data)),
 
-  //color modal
-  openColorModal: (data) => ipcRenderer.send('open-color-modal', data),
-  receiveColorToEdit: (callback) => ipcRenderer.on('color-to-color-window', (event, data) => callback(data)),
-  sendEditedColor: (data) => ipcRenderer.send('edited-color-data', data),
-  receiveEditedColor: (callback) => ipcRenderer.on('edited-color-data', (event, data) => callback(data)),
-
   //monitor
   getDisplays: () => ipcRenderer.invoke('get-displays'),
   sendSceneDataToMonitor: (monitorId, sceneData) => ipcRenderer.send('set-scene-data', monitorId, sceneData),
@@ -32,6 +32,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   desktopCaptureGetSources: async () => {
     return await desktopCapturer.getSources({ types: ['window'] }); 
   },
+
+  //scene setup
+  openSceneSetup: (data) => ipcRenderer.send('open-scene-setup', data),
+  initialSceneSetup: (callback) => ipcRenderer.on('initial-scene-setup', (event, data) => callback(data)),
+  sendUpdatedSceneData: (data) => ipcRenderer.send('scene-setup-data', data),
+  receiveUpdatedSceneData: (callback) => ipcRenderer.on('scene-setup-data', (event, data) => callback(data)),
 
   //showing
   sendLyrics: (data) => ipcRenderer.send('show-lyrics-data', data),

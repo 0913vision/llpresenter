@@ -15,7 +15,7 @@
   height: 100%;
   display: grid;
   grid-template-columns: auto 30px 50px;
-  background-color: aquamarine;
+  background-color: #333;
 }
 
 .videoContainer {
@@ -25,7 +25,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: blueviolet;
+  background-color: #222;
 }
 
 .previewVideo {
@@ -48,6 +48,18 @@
   align-items: center;
 }
 
+.deselectButton {
+  width: 20px;
+  aspect-ratio: 1/1;
+  background-color: #ab3636;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .identifiersContainer {
   display: flex;
   flex-direction: column;
@@ -59,8 +71,30 @@
   flex-shrink: 0;  /* 자식 요소들이 압축되지 않도록 설정 */
 }
 
+.identifier {
+  flex-grow:1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 10px;
+  margin: 0px;
+  color: white;
+}
 
-.windowSelectContainer {
+.identifier.turnedOff {
+  background-color: #444;
+}
+.identifier.turnedOn {
+  background-color: #ab3636;
+}
+
+
+.windowSetupContainer {
   /* height: 30px; */
   width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+.sceneSetupButton {
+  
 }

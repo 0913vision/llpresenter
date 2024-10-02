@@ -3,10 +3,11 @@
   width: 100%;
   height: 100vh;
   background-color: black; /* 배경을 검정색으로 설정 */
+  user-select: none;
 }
 
 .visible {
-  display: flex;
+  display: block;
 }
 
 .hidden {
@@ -42,6 +43,4 @@
   z-index: 2;
   width: 100%;
   height: 100vh;
-  align-items: center;
-  justify-content: center;
 }

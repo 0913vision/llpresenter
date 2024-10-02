@@ -23,6 +23,12 @@ module.exports = {
         test: /\.css$/,
         use: ['style-loader', 'css-loader'],
       },
+      {
+        test: /\.(OTF|ttf|eot|svg|woff|woff2)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+        use: [{
+            loader: 'file-loader'
+        }]
+      },
     ],
   },
   plugins: [

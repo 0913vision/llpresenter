@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import styles from './styles/Preview.module.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { sceneActions } from '../../redux/slices/sceneSlice';
+import { current } from '@reduxjs/toolkit';
 
 function RightSidebar() {
   const [cameras, setCameras] = useState([]); // 카메라 목록
@@ -13,6 +14,7 @@ function RightSidebar() {
   const [streams, setStreams] = useState({});
   const [visibleWindow, setVisibleWindow] = useState(null);
   const [areScenesInitialized, setAreScenesInitialized] = useState(false);
+  const [currentScene, setCurrentScene] = useState(null);
 
   const scenes = useSelector((state) => state.scene.scenes);
   const dispatch = useDispatch();
@@ -38,11 +40,16 @@ function RightSidebar() {
             camera: firstCameraId,
             format: {
               text: {
-                font: 'Arial',
-                size: 24,
+                family: 'Arial',
+                size: 18,
+                weight: 'normal',
+                style: 'normal',
                 position: { x: 0, y: 0 },
                 alignment: 'center',
-                color: 'white',
+                color: '#ffffff',
+                letterSpacing: 100,
+                outline: false,
+                shadow: false,
               },
             },
           }
@@ -136,14 +143,14 @@ function RightSidebar() {
   
   const handleIdentifierClick = (index) => {
     if(!visibleWindow) return;
-    const targetScene = scenes.find(scene => scene.name.split(' ')[1] === visibleWindow.split(' ')[1]);
+    if(!currentScene) return;
     const newSceneState = {
-      ...targetScene,
-      objectsVisibility: {...targetScene.objectsVisibility, [identifiers[index]]: !targetScene.objectsVisibility[identifiers[index]]}
+      ...currentScene,
+      objectsVisibility: {...currentScene.objectsVisibility, [identifiers[index]]: !currentScene.objectsVisibility[identifiers[index]]}
     };
     // console.log(newSceneState);
     dispatch(sceneActions.updateScene(newSceneState));
-    window.electronAPI.sendSceneDataToMonitor(targetScene.monitorId, newSceneState);
+    window.electronAPI.sendSceneDataToMonitor(currentScene.monitorId, newSceneState);
     return;
   }
 
@@ -157,6 +164,30 @@ function RightSidebar() {
       window.electronAPI.sendSceneDataToMonitor(scene.monitorId, newSceneState);
     });
   }
+
+  const handleSceneSetupButton = () => {
+    if(!currentScene) return;
+    console.log(currentScene);
+    window.electronAPI.openSceneSetup(currentScene);
+  }
+
+  useEffect(() => {
+    window.electronAPI.receiveUpdatedSceneData((data) => {
+      dispatch(sceneActions.updateScene(data));
+    });
+  }, [])
+
+  useEffect(() => {
+    if(!currentScene) return;
+    window.electronAPI.sendSceneDataToMonitor(currentScene.monitorId, currentScene);
+  }, [currentScene])
+
+  useEffect(() => {
+    if(!areScenesInitialized) return;
+    if(!scenes) return;
+    if(!visibleWindow) return;
+    setCurrentScene(scenes.find(scene => scene.name.split(' ')[1] === visibleWindow.split(' ')[1]));
+  }, [areScenesInitialized, scenes, visibleWindow])
 
   return (
     <div className={styles.container}>
@@ -174,19 +205,23 @@ function RightSidebar() {
           ))}
         </div>
         <div className={styles.deselectButtonContainer}>
-          <button onClick={() => handleDeselectButtonClick()}>X</button>
+          <div className={styles.deselectButton} onClick={() => handleDeselectButtonClick()}>X</div>
+          {/* <button onClick={() => handleDeselectButtonClick()}>X</button> */}
         </div>
         <div className={styles.identifiersContainer}>
           {identifiers.map((value, index) => (
-            <button key={index} onClick={() => handleIdentifierClick(index)}>
-              {value}
-            </button>
+            <div key={index} onClick={() => handleIdentifierClick(index)} className={`${styles.identifier} ${currentScene && currentScene.objectsVisibility[value] ? `${styles.turnedOn}` : `${styles.turnedOff}`}`}> {/**/}
+              {value.slice(0,3)}
+            </div>
+            // <button key={index} onClick={() => handleIdentifierClick(index)}>
+            //   {value}
+            // </button>
           ))}
         </div>
       </div>
   
-      {/* 창 목록을 버튼으로 표시 */}
-      <div className={styles.windowSelectContainer}>
+      {/* 창 목록 */}
+      <div className={styles.windowSetupContainer}>
         <select onChange={(e) => setVisibleWindow(e.target.value)} defaultValue="">
           {!visibleWindow && <option value="" disabled>창 선택</option>}
           {areScenesInitialized && windows.map((window) => (
@@ -195,6 +230,7 @@ function RightSidebar() {
             </option>
           ))}
         </select>
+        {visibleWindow && <div className={styles.sceneSetupButton} onClick={()=>handleSceneSetupButton()}>설정</div>}
       </div>
     </div>
   );

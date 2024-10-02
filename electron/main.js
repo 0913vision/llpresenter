@@ -1,12 +1,45 @@
 const { app, BrowserWindow, Menu, dialog, ipcMain, screen, session } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 
+const font_list_module = require('font-list')
+const system_font_list_kr = require('system-font-list-kr');
+
+let fontList = null;
 let mainWindow;
 let lyricsEditWindow;
-let colorModal;
 let exportWindows = {};
 let screens;
+let sceneSetupModal;
+
+const getFontList = async () => {
+  try {
+    if (os.platform() === 'win32') {
+      const fonts = await system_font_list_kr.getFonts({disableQuoting: true});
+      return fonts;
+    }
+    else {
+      const fonts = await font_list_module.getFonts({disableQuoting: true});
+      return fonts;
+    }
+  } catch (err) {
+    console.log(err);
+  }
+};
+fontList = getFontList();
+
+ipcMain.handle('get-font-list', async () => {
+  if (!fontList) {
+    try {
+      fontList = await getFontList();
+      console.log(fontList);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+  return fontList;
+});
 
 function createWindow({ width = 800, height = 600, url = '/', options = {} }) {
   const window = new BrowserWindow({
@@ -132,15 +165,13 @@ ipcMain.on('new-lyrics-data', (event, data) => {
   }
 });
 
-
-function createColorModal(data) {
-  colorModal = createWindow({
+function createSceneSetupModal(data) {
+  sceneSetupModal = createWindow({
     width: 500,
     height: 500,
-    url: `/colorModal`,
+    url: `/sceneSetupWindow`,
     options: {
-      title: 'Color Picker',
-      parent: lyricsEditWindow,
+      parent: mainWindow,
       modal: true,
       show: false,
       maximizable: false,
@@ -148,29 +179,30 @@ function createColorModal(data) {
     }
   });
 
-  colorModal.removeMenu(); 
+  sceneSetupModal.removeMenu(); 
+  sceneSetupModal.webContents.openDevTools();
 
-  colorModal.webContents.once('did-finish-load', () => {
-    colorModal.setTitle('색깔 수정');
-    colorModal.webContents.send('color-to-color-window', data);
-    colorModal.show();
+  sceneSetupModal.webContents.once('did-finish-load', () => {
+    sceneSetupModal.setTitle('씬 수정');
+    sceneSetupModal.webContents.send('initial-scene-setup', data);
+    sceneSetupModal.show();
   });
 
-  colorModal.on('close', () => {
-    colorModal = null;
-    if(lyricsEditWindow) {
-      lyricsEditWindow.focus();
+  sceneSetupModal.on('close', () => {
+    sceneSetupModal = null;
+    if(mainWindow) {
+      mainWindow.focus();
     }
   });
 }
 
-ipcMain.on('open-color-modal', (event, data) => {
-  createColorModal(data);
+ipcMain.on('open-scene-setup', (event, data) => {
+  createSceneSetupModal(data);
 });
 
-ipcMain.on('edited-color-data', (event, data) => {
-  if(lyricsEditWindow) {
-    lyricsEditWindow.webContents.send('edited-color-data', data);
+ipcMain.on('scene-setup-data', (event, data) => {
+  if(mainWindow) {
+    mainWindow.webContents.send('scene-setup-data', data);
   }
 });
 
@@ -268,7 +300,7 @@ ipcMain.handle('get-displays', () => {
 });
 
 ipcMain.on('set-scene-data', (event, monitorId, sceneData) => {
-  console.log(monitorId, sceneData);
+  // console.log(monitorId, sceneData);
   const win = exportWindows[monitorId]; // 모니터 ID로 윈도우 가져옴
   if (win) {
     win.webContents.send('set-scene-data', sceneData); // 창으로 씬 데이터 전송
@@ -301,7 +333,7 @@ function createWindowForMonitor(display, index) {
     // win.maximize();
     win.webContents.openDevTools();
     // win.fullScreen = true;
-    console.log(win.id);
+    // console.log(win.id);
   });
 }
 

@@ -1,6 +1,7 @@
 // src/components/LyricsEditWindow.js
 import React, { useState, useEffect } from 'react';
 import styles from './styles/LyricsEditWindow.module.css';
+import ColorPickerModal from './ColorPickerModal';
 
 function LyricsEditWindow() {
   const [lyricsData, setLyricsData] = useState([]);
@@ -23,9 +24,6 @@ function LyricsEditWindow() {
       console.log('LyricsEditWindow data:', data);
       setLyricsData(data);
       initializeForm(data);
-    });
-    window.electronAPI.receiveEditedColor((color) => {
-      handleChange('labelColor', color);
     });
   }, []);
 
@@ -77,6 +75,19 @@ function LyricsEditWindow() {
     }));
   };
 
+  const handleColorChange = (color) => {
+    if (!isModified['labelColor']) {
+      setIsModified((prev) => ({
+        ...prev,
+        labelColor: true,
+      }));  
+    }
+    setFormState((prev) => ({
+      ...prev,
+      labelColor: color,
+    }));
+  };
+
   const handleResetField = (field) => {
     setFormState((prev) => ({
       ...prev,
@@ -96,10 +107,6 @@ function LyricsEditWindow() {
       labelColor: false,
       subtitle: false,
     });
-  };
-
-  const openColorModal = () => {
-    window.electronAPI.openColorModal(formState.labelColor);
   };
 
   // 수정 완료 버튼 클릭 시 데이터 업데이트
@@ -166,11 +173,12 @@ function LyricsEditWindow() {
               <>
                 <div className={styles.labelGroup}>
                   <label className={styles.label}>색깔</label>
-                  <div
+                  {/* <div
                     className={styles.colorButton}
                     style={{ backgroundColor: formState.labelColor }}
                     onClick={openColorModal}
-                  />
+                  /> */}
+                  <ColorPickerModal initialColor={formState.labelColor} onColorChange={handleColorChange} />
                 </div>
                 <div></div>
                 <button className={styles.resetButton} onClick={() => handleResetField('labelColor')}>Reset</button>

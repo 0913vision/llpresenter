@@ -1,0 +1,27 @@
+.colorPickerWrapper {
+  margin:0;
+  padding: 0;
+  position: relative;
+  display: inline-block;
+  user-select: none;
+}
+
+.colorPreview {
+  width: 30px;
+  aspect-ratio: 2 / 1;
+  /* height: 40px; */
+  border: 1px solid #ccc;
+  cursor: pointer;
+}
+
+.pickerContainer {
+  position: absolute;
+  top: 45px; /* 미리보기 박스 바로 아래에 배치 */
+  left: 0;
+  z-index: 100;
+  background: white;
+  padding: 10px;
+  background-color: #121212;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 5%;
+}

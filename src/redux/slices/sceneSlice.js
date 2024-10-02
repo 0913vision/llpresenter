@@ -27,7 +27,7 @@ const sceneSlice = createSlice({
       scene.camera = camera;
       scene.format = format;
     },
-    deleteScene: (state, action) => {
+    deleteScene: (state, action) => { // will we run this..? maybe not.
       const id = action.payload.id;
       state.scenes = state.scenes.filter((scene) => scene.id !== id);
     },
