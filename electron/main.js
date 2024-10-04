@@ -167,8 +167,8 @@ ipcMain.on('new-lyrics-data', (event, data) => {
 
 function createSceneSetupModal(data) {
   sceneSetupModal = createWindow({
-    width: 500,
-    height: 500,
+    width: 450,
+    height: 550,
     url: `/sceneSetupWindow`,
     options: {
       parent: mainWindow,

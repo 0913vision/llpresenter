@@ -7,7 +7,7 @@
 }
 
 .visible {
-  display: block;
+  display: flex;
 }
 
 .hidden {
@@ -43,4 +43,24 @@
   z-index: 2;
   width: 100%;
   height: 100vh;
+}
+
+.horizonLeft {
+  justify-content: flex-start;
+}
+.horizonCenter {
+  justify-content: center;
+}
+.horizonRight {
+  justify-content: flex-end;
+}
+
+.verticalTop {
+  align-items: flex-start;
+}
+.verticalCenter {
+  align-items: center;
+}
+.verticalBottom {
+  align-items: flex-end;
 }

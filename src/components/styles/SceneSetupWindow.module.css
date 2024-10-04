@@ -1,0 +1,122 @@
+.setupWindow {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+.container {
+  margin: 0px;
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  background-color: #222222;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: 24px;
+  margin-bottom: 20px;
+  flex-grow:0;
+}
+
+.tabContent {
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex-grow: 1;
+}
+
+.wholeSetContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.setGroupContainer {
+  background-color: #333;
+  padding: 15px;
+  border-radius: 5px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+select {
+  width: 60px;
+}
+
+select#fontFamily {
+  width: 110px;
+}
+
+input {
+  width: 50px;
+}
+
+span {
+  margin: 0;
+  padding: 0;
+}
+
+
+.elementSet {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+}
+
+.settingElement {
+  display: flex;
+}
+
+.label {
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.alignmentButtonGroup {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.alignmentButtonGroup .button {
+  flex: 1;
+}
+
+#offsets {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+
+.tabContent {
+  scrollbar-width: thin;
+  scrollbar-color: #666 #333;
+}
+
+.tabContent::-webkit-scrollbar {
+  width: 8px;
+}
+
+.tabContent::-webkit-scrollbar-track {
+  background: #333;
+}
+
+.tabContent::-webkit-scrollbar-thumb {
+  background-color: #666;
+  border-radius: 4px;
+}

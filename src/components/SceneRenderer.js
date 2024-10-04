@@ -42,7 +42,12 @@ function SceneRenderer() {
       </div>
 
       {/* 텍스트 컴포넌트 */}
-      <div className={`${styles.textContainer} ${sceneData.objectsVisibility.text ? `${styles.visible}` : `${styles.hidden}`}`}>
+      <div className={`
+        ${styles.textContainer} 
+        ${sceneData.objectsVisibility.text ? `${styles.visible}` : `${styles.hidden}`}
+        ${sceneData.format.text.alignment.horizontal === 'left' ? `${styles.horizonLeft}` : sceneData.format.text.alignment.horizontal === 'center' ? `${styles.horizonCenter}` : `${styles.horizonRight}`}
+        ${sceneData.format.text.alignment.vertical === 'top' ? `${styles.verticalTop}` : sceneData.format.text.alignment.vertical === 'center' ? `${styles.verticalCenter}` : `${styles.verticalBottom}`}
+      `} style={sceneData ? {margin: 0} : {margin: `${sceneData.format.text.margin.vertical}em ${sceneData.format.text.margin.horizontal}em`}}>
         <TextDisplay
           textFormat={sceneData.format.text}
           textContent={lyrics}

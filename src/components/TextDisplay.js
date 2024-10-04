@@ -1,4 +1,5 @@
 import React from 'react';
+import styles from './styles/TextDisplay.module.css';
 
 function TextDisplay({ textFormat, textContent }) {
 
@@ -8,12 +9,13 @@ function TextDisplay({ textFormat, textContent }) {
     fontStyle: textFormat.style,
     fontSize: `${textFormat.size}px`,
     color: textFormat.color,
-    textAlign: textFormat.alignment,
+    textAlign: textFormat.alignment.horizontal,
     position: 'absolute',
     top: `${textFormat.position.top}%`,
     left: `${textFormat.position.left}%`,
     whiteSpace: 'pre-wrap',
     letterSpacing: `${(textFormat.letterSpacing-100)/100}em`,
+    lineHeight: textFormat.lineHeight,
     textShadow: 
       (textFormat.outline || textFormat.shadow)
         ? `${
@@ -31,7 +33,7 @@ function TextDisplay({ textFormat, textContent }) {
   };
   console.log(textFormat);
 
-  return <div style={textStyle}>{textContent}</div>;
+  return <div className={styles.textDisplay} style={textStyle}>{textContent}</div>;
 }
 
 export default TextDisplay;
