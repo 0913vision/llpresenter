@@ -1,6 +1,7 @@
 // src/components/LyricsAddWindow.js
 import React, { useState } from 'react';
 import styles from './styles/LyricsAddWindow.module.css';
+import ColorPickerModal from './ColorPickerModal';
 
 function LyricsAddWindow() {
   const [formState, setFormState] = useState({
@@ -9,26 +10,18 @@ function LyricsAddWindow() {
     labelColor: '',
     subtitle: '',
   });
-  const [isModified, setIsModified] = useState({
-    content: false,
-    isLabeled: false,
-    labelColor: false,
-    subtitle: false,
-  });
-
   // 폼 입력 처리
   const handleChange = (field, value) => {
-    if (!isModified[field]) {
-      console.log('Field modified:', field);
-      setIsModified((prev) => ({
-        ...prev,
-        [field]: true,
-      }));
-    }
-
     setFormState((prev) => ({
       ...prev,
       [field]: value,
+    }));
+  };
+
+  const handleColorChange = (color) => {
+    setFormState((prev) => ({
+      ...prev,
+      labelColor: color,
     }));
   };
 
@@ -36,10 +29,6 @@ function LyricsAddWindow() {
     setFormState((prev) => ({
       ...prev,
       [field]: '',
-    }));
-    setIsModified((prev) => ({
-      ...prev,
-      [field]: false,
     }));
   };
 
@@ -50,16 +39,6 @@ function LyricsAddWindow() {
       labelColor: '',
       subtitle: '',
     });
-    setIsModified({
-      content: false,
-      isLabeled: false,
-      labelColor: false,
-      subtitle: false,
-    });
-  };
-
-  const openColorModal = () => {
-    window.electronAPI.openColorModal(formState.labelColor);
   };
 
   // 추가 완료 버튼 클릭 시 데이터 생성 및 전송
@@ -114,11 +93,7 @@ function LyricsAddWindow() {
               <>
                 <div className={styles.labelGroup}>
                   <label className={styles.label}>색깔</label>
-                  <div
-                    className={styles.colorButton}
-                    style={{ backgroundColor: formState.labelColor }}
-                    onClick={openColorModal}
-                  />
+                  <ColorPickerModal initialColor={formState.labelColor} onColorChange={handleColorChange} />
                 </div>
                 <div></div>
                 <button className={styles.resetButton} onClick={() => handleResetField('labelColor')}>Reset</button>

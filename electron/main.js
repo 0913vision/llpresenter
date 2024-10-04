@@ -4,7 +4,10 @@ const fs = require('fs');
 const os = require('os');
 
 const font_list_module = require('font-list')
-const system_font_list_kr = require('system-font-list-kr');
+let system_font_list_kr = null;
+if(os.platform() === 'win32') {
+  system_font_list_kr = require('system-font-list-kr');
+}
 
 let fontList = null;
 let mainWindow;

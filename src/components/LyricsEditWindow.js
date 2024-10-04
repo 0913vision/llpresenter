@@ -173,11 +173,6 @@ function LyricsEditWindow() {
               <>
                 <div className={styles.labelGroup}>
                   <label className={styles.label}>색깔</label>
-                  {/* <div
-                    className={styles.colorButton}
-                    style={{ backgroundColor: formState.labelColor }}
-                    onClick={openColorModal}
-                  /> */}
                   <ColorPickerModal initialColor={formState.labelColor} onColorChange={handleColorChange} />
                 </div>
                 <div></div>
