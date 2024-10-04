@@ -15,7 +15,7 @@
   margin: 0px;
   width: 100%;
   height: 100%;
-  padding: 20px;
+  padding: 30px 40px;
   box-sizing: border-box;
   background-color: #222222;
   color: white;
@@ -42,7 +42,7 @@
 
 .gridContainer {
   display: grid;
-  grid-template-columns: auto 3fr 1fr;
+  grid-template-columns: auto 1fr 3fr auto;
   gap: 10px;
   align-items: center;
   width: 100%;
@@ -53,21 +53,21 @@
   padding: 100px 0;
 }
 
-.labelGroup {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
 .label {
   font-weight: bold;
-  padding-right: 10px;
+}
+
+.longLabel {
+  grid-column: span 2;
 }
 
 .inputBoxWrapper {
   grid-column: 1 / -1;
   width: 100%;
+}
+
+.checkbox {
+  width: auto;
 }
 
 .inputBox {
@@ -83,7 +83,7 @@
 }
 
 .resetButton {
-  padding: 5px 10px;
+  /* padding: 5px 10px; */
   background-color: #7c7c7c;
   color: black;
   border: none;

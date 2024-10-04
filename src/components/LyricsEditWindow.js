@@ -145,9 +145,9 @@ function LyricsEditWindow() {
           <div className={styles.gridContainer}>
             {lyricsData.length === 1 && (
               <>
-                <label className={styles.label}>Content:</label>
+                <label className={`${styles.label} ${styles.longLabel}`}>슬라이드 내용</label>
                 <div></div>
-                <button className={styles.resetButton} onClick={() => handleResetField('content')}>Reset</button>
+                <button className={styles.resetButton} onClick={() => handleResetField('content')}><span className="material-symbols-outlined">restart_alt</span></button>
                 <div className={styles.inputBoxWrapper}>
                   <textarea
                     className={styles.inputBox}
@@ -158,31 +158,29 @@ function LyricsEditWindow() {
                 </div>
               </>
             )}
+            <label className={styles.label}>레이블</label>
             <div className={styles.labelGroup}>
-              <label className={styles.label}>레이블</label>
               <input
+                className={styles.checkbox}
                 type="checkbox"
                 checked={formState.isLabeled}
                 onChange={(e) => handleChange('isLabeled', e.target.checked)}
               />
             </div>
             <div></div>
-            <button className={styles.resetButton} onClick={() => handleResetField('isLabeled')}>Reset</button>
+            <button className={styles.resetButton} onClick={() => handleResetField('isLabeled')}><span className="material-symbols-outlined">restart_alt</span></button>
             
             {formState.isLabeled && (
               <>
-                <div className={styles.labelGroup}>
-                  <label className={styles.label}>색깔</label>
-                  <ColorPickerModal initialColor={formState.labelColor} onColorChange={handleColorChange} />
-                </div>
+                <label className={styles.label}>색깔</label>
+                <ColorPickerModal initialColor={formState.labelColor} onColorChange={handleColorChange} />
                 <div></div>
-                <button className={styles.resetButton} onClick={() => handleResetField('labelColor')}>Reset</button>
-
-                <div className={styles.labelGroup}>
-                  <label className={styles.label}>내용</label>
-                </div>
+                <button className={styles.resetButton} onClick={() => handleResetField('labelColor')}><span className="material-symbols-outlined">restart_alt</span></button>
+                
+                <label className={styles.label}>내용</label>
                 <div></div>
-                <button className={styles.resetButton} onClick={() => handleResetField('subtitle')}>Reset</button>
+                <div></div>
+                <button className={styles.resetButton} onClick={() => handleResetField('subtitle')}><span className="material-symbols-outlined">restart_alt</span></button>
                 <div className={styles.inputBoxWrapper}>
                   <textarea
                     className={styles.inputBox}
