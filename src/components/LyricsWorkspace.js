@@ -157,6 +157,7 @@ function LyricsWorkspace({editMode}) {
   
   useEffect(() => {
     const resizeObserver = new ResizeObserver(() => {
+      if(!editMode) return;
       handleCursorPosition(cursorIndexRef.current); // 최신 cursorIndex 값 전달
     });
   
@@ -213,7 +214,7 @@ function LyricsWorkspace({editMode}) {
     // 커서의 Y 좌표는 행에 따라 결정
     const newPositionY = originY + rowIndex * (slideHeight + gridGap);
 
-    console.log(newPositionX, newPositionY, currentCursorIndex);
+    // console.log(newPositionX, newPositionY, currentCursorIndex);
 
     // 커서 상태 및 위치 업데이트
     setCursorPosition({ x: newPositionX, y: newPositionY });

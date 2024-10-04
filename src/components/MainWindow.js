@@ -15,9 +15,9 @@ function MainWindow () {
   // const [lyricsGroups, setLyricsGroups] = useState([]); //TODO
   // const [selectedGroup, setSelectedGroup] = useState(null); //TODO
 
-  const [leftWidth, setLeftWidth] = useState(100);
-  const [rightWidth, setRightWidth] = useState(250);
-  const [bottomHeight, setBottomHeight] = useState(100);
+  const [leftWidth, setLeftWidth] = useState(150);
+  const [rightWidth, setRightWidth] = useState(400);
+  const [bottomHeight, setBottomHeight] = useState(250);
   
   const [isEditMode, setIsEditMode] = useState(false);
 
@@ -125,9 +125,9 @@ function MainWindow () {
     <ContextMenuProvider>
       <div className={styles.appContainer}>
         <div className={styles.topBar} ref={topBarRef}>
-          <div onClick={() => {
+          <div className={`${styles.editButton} ${isEditMode ? styles.activeButton : ''}`} onClick={() => {
             setIsEditMode(!isEditMode);
-          }}>누르면 편집</div>
+          }}>편집모드<span className={`material-symbols-outlined ${styles.materialSymbolsOutlined}`}>edit</span></div>
         </div>
         <div className={styles.mainContainer} ref={mainRef}>
           {/* 좌측 사이드바 */}

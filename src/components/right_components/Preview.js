@@ -47,7 +47,7 @@ function RightSidebar() {
                 position: { x: 0, y: 0 },
                 alignment: { horizontal: 'center', vertical: 'center' },
                 color: '#ffffff',
-                letterSpacing: 100,
+                letterSpacing: 0,
                 outline: false,
                 shadow: false,
                 lineHeight: 1,
@@ -169,7 +169,6 @@ function RightSidebar() {
 
   const handleSceneSetupButton = () => {
     if(!currentScene) return;
-    console.log(currentScene);
     window.electronAPI.openSceneSetup(currentScene);
   }
 

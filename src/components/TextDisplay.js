@@ -2,7 +2,7 @@ import React from 'react';
 import styles from './styles/TextDisplay.module.css';
 
 function TextDisplay({ textFormat, textContent }) {
-
+  console.log(textFormat);
   const textStyle = {
     fontFamily: textFormat.family,
     fontWeight: textFormat.weight,
@@ -11,10 +11,9 @@ function TextDisplay({ textFormat, textContent }) {
     color: textFormat.color,
     textAlign: textFormat.alignment.horizontal,
     position: 'absolute',
-    top: `${textFormat.position.top}%`,
-    left: `${textFormat.position.left}%`,
+    transform: `translate(${textFormat.position.x}%, ${textFormat.position.y}%)`,
     whiteSpace: 'pre-wrap',
-    letterSpacing: `${(textFormat.letterSpacing-100)/100}em`,
+    letterSpacing: `${(textFormat.letterSpacing)}em`,
     lineHeight: textFormat.lineHeight,
     textShadow: 
       (textFormat.outline || textFormat.shadow)
@@ -31,7 +30,6 @@ function TextDisplay({ textFormat, textContent }) {
           }`
         : 'none'
   };
-  console.log(textFormat);
 
   return <div className={styles.textDisplay} style={textStyle}>{textContent}</div>;
 }

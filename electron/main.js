@@ -27,7 +27,7 @@ const getFontList = async () => {
       return fonts;
     }
   } catch (err) {
-    console.log(err);
+    console.error(err);
   }
 };
 fontList = getFontList();
@@ -36,9 +36,8 @@ ipcMain.handle('get-font-list', async () => {
   if (!fontList) {
     try {
       fontList = await getFontList();
-      console.log(fontList);
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
   }
   return fontList;
@@ -65,8 +64,8 @@ function createWindow({ width = 800, height = 600, url = '/', options = {} }) {
 
 function createMainWindow () {
   mainWindow = createWindow({
-    width: 1400,
-    height: 800,
+    width: 1920,
+    height: 1080,
     url: '/',
     show: false,
   });
@@ -170,8 +169,8 @@ ipcMain.on('new-lyrics-data', (event, data) => {
 
 function createSceneSetupModal(data) {
   sceneSetupModal = createWindow({
-    width: 450,
-    height: 550,
+    width: 365,
+    height: 510,
     url: `/sceneSetupWindow`,
     options: {
       parent: mainWindow,
@@ -182,8 +181,7 @@ function createSceneSetupModal(data) {
     }
   });
 
-  sceneSetupModal.removeMenu(); 
-  sceneSetupModal.webContents.openDevTools();
+  sceneSetupModal.removeMenu();
 
   sceneSetupModal.webContents.once('did-finish-load', () => {
     sceneSetupModal.setTitle('씬 수정');

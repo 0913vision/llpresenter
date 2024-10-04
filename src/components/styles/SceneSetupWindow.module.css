@@ -1,3 +1,7 @@
+.materialSymbolsOutlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
 .setupWindow {
   display: flex;
   flex-direction: column;
@@ -9,6 +13,11 @@
   width: 100%;
   height: 100%;
   margin: 0;
+  user-select: none;
+}
+
+.setupWindow input:focus-visible , .setupWindow textarea:focus-visible , .setupWindow select:focus-visible , .setupWindow button:focus-visible , .setupWindow option:focus-visible , .setupWindow li:focus-visible , .setupWindow div:focus-visible  {
+  outline: 1px solid #666; 
 }
 
 .container {
@@ -43,33 +52,42 @@
   width: 100%;
   box-sizing: border-box;
 }
+.topSet {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-start;
+}
+.bottomSet {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-start;
+}
+
 
 .setGroupContainer {
   background-color: #333;
   padding: 15px;
   border-radius: 5px;
   display: flex;
+  flex-direction: column;
   gap: 10px;
-  align-items: center;
+  align-items: flex-start;
+  font-size: 18px;
 }
 
-select {
-  width: 60px;
+#fontFamily {
+  width: 120px;
+  height: 25px;
+  font-size: 15px;
+  background-color: #222; /* 어두운 배경 */
+  color: white; /* 밝은 텍스트 */
+  border: 1px solid #555; /* 테두리 색상 */
+  list-style: none;
 }
-
-select#fontFamily {
-  width: 110px;
-}
-
-input {
-  width: 50px;
-}
-
-span {
-  margin: 0;
-  padding: 0;
-}
-
 
 .elementSet {
   display: flex;
@@ -82,9 +100,79 @@ span {
 }
 
 .label {
-  font-weight: bold;
+  font-weight: 500;
   white-space: nowrap;
+  padding-bottom: 2px;
 }
+
+.input {
+  width: 65px;
+  height: 25px;
+  background-color: #222; /* 어두운 배경 */
+  color: white; /* 밝은 텍스트 */
+  border: 1px solid #555; /* 테두리 색상 */
+  padding: 4px 6px;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+
+.weightSelect {
+  width: 80px;
+  border: 1px solid #555;
+  background-color: #222; /* 드롭다운 배경 어두운 테마 */
+  color: white;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  z-index: 1000;
+  max-height: 150px;
+  height: 25px;
+}
+
+.weightSelect option {
+  padding: 8px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.weightSelect option:hover {
+  background-color: #444; /* 항목 hover 시 어두운 색상 */
+}
+
+.weightSelect option.active {
+  background-color: #555; /* 현재 선택된 항목 */
+}
+
+.styleButtonContainerContainer {
+  display: flex;
+  flex-direction: row;
+  gap: 2px;
+}
+
+.styleButtonContainer {
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  padding: 1px 4px;
+  margin-right: -5px;
+  margin: 0;
+}
+
+.styleButtonContainer.activeButton {
+  background-color: #303030; /* 눌렀을 때 약간 더 어두워짐 */
+  box-shadow: inset 0 2px 5px #111; /* 눌렸을 때 안쪽으로 들어가는 효과 */
+  transform: translateY(2px); /* 눌린 효과를 더욱 강화 */
+}
+
+.styleButtonContainer:hover  {
+  background-color: #444; /* 호버 상태에서 약간 밝아짐 */
+}
+
 
 .alignmentButtonGroup {
   display: flex;
@@ -95,6 +183,19 @@ span {
 .alignmentButtonGroup .button {
   flex: 1;
 }
+
+#offsetInputs {
+  display: flex;
+  align-items: center;
+} 
+#offsetInputs > span:nth-of-type(2) {
+  margin-right: -2px;
+}
+
+#offsetInputs > span {
+  margin-right: 2px;
+}
+
 
 #offsets {
   display: flex;
@@ -119,4 +220,24 @@ span {
 .tabContent::-webkit-scrollbar-thumb {
   background-color: #666;
   border-radius: 4px;
+}
+
+.buttonGroup {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 20px;
+  flex-grow:0;
+}
+
+.applyButton {
+  padding: 7px 10px;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: #004487;
+  font-size: 16px;
+  font-weight: 600;
 }

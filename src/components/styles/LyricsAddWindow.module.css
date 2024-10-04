@@ -54,7 +54,7 @@
 }
 
 .label {
-  font-weight: bold;
+  font-weight: 500;
 }
 
 .longLabel {
@@ -80,6 +80,8 @@
   white-space: pre-wrap;
   resize: vertical;
   min-height: auto;
+  font-family: 'Noto Sans KR';
+  font-weight: 300;
 }
 
 .resetButton {

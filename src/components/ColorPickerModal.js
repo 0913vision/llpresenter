@@ -4,7 +4,6 @@ import 'react-color-palette/dist/css/rcp.css';
 import styles from './styles/ColorPickerModal.module.css';
 
 const ColorPickerModal = ({ initialColor, onColorChange }) => {
-  console.log("initialColor", initialColor)
   const [color, setColor] = useColor(initialColor || "#000000");
   const [showPicker, setShowPicker] = useState(false);
   const pickerRef = useRef(null);
@@ -28,7 +27,7 @@ const ColorPickerModal = ({ initialColor, onColorChange }) => {
   };
 
   return (
-    <div className={styles.colorPickerWrapper}>
+    <div  tabIndex={0} className={styles.colorPickerWrapper}>
       {/* 색상 미리보기 div 클릭 시 컬러 피커를 보이도록 함 */}
       <div
         className={styles.colorPreview}
