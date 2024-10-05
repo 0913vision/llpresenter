@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef, useContext  } from 'react';
 import SlideComponent from './SlideComponent';
 import styles from './styles/LyricsWorkspace.module.css';
-import { ContextMenuContext } from './ContextMenuProvider';
 import { useSelector, useDispatch } from 'react-redux';
-import { sequenceActions } from '../redux/slices/sequenceSlice';
+import { sequenceActions } from '@/redux/slices/sequenceSlice';
+import { ContextMenuContext } from '../context_menu_components/ContextMenuProvider';
 
 function LyricsWorkspace({editMode}) {
   const [shiftBaseIndex, setShiftBaseIndex] = useState(null);

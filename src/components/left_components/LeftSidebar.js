@@ -1,7 +1,7 @@
 import React from 'react';
 import './styles/LeftSidebar.module.css'; // CSS 파일 import
 import { useSelector, useDispatch } from 'react-redux';
-import { sequenceActions } from '../redux/slices/sequenceSlice';
+import { sequenceActions } from '@/redux/slices/sequenceSlice';
 
 const LeftSidebar = () => {
   const sequences = useSelector((state) => state.sequence.sequences);

@@ -1,14 +1,14 @@
 // src/components/MainWindow.js
 import React, { useState, useRef, useEffect } from 'react';
 
-import RightSidebar from './RightSidebar';
-import LeftSidebar from './LeftSidebar';
-import LyricsWorkspace from './LyricsWorkspace';
-import MediaWorkspace from './MediaWorkspace';
-import ContextMenuProvider from './ContextMenuProvider';
+import RightSidebar from './right_components/RightSidebar';
+import LeftSidebar from './left_components/LeftSidebar';
+import LyricsWorkspace from './workspace_components/LyricsWorkspace';
+import MediaWorkspace from './bottom_components/MediaWorkspace';
 import styles from './styles/MainWindow.module.css';
 import { useDispatch, useSelector } from 'react-redux';
-import { sequenceActions } from '../redux/slices/sequenceSlice';
+import { sequenceActions } from '@/redux/slices/sequenceSlice';
+import ContextMenuProvider from './context_menu_components/ContextMenuProvider';
 
 function MainWindow () {
   const dispatch = useDispatch();

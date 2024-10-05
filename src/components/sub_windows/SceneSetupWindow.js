@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styles from './styles/SceneSetupWindow.module.css';
-import ColorPickerModal from './ColorPickerModal';
-import distinguishArrayTypes from '../utils/distinguishArrayTypes';
-import InputAndDropdown from './InputAndDropdown';
+import ColorPickerModal from '@/components/ColorPickerModal';
+import InputAndDropdown from '@/components/InputAndDropdown';
+import distinguishArrayTypes from '@/utils/distinguishArrayTypes';
 
 //icons
 

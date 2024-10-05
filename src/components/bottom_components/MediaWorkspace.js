@@ -1,5 +1,5 @@
 import React from 'react';
-import VideoItem from './video_components/VideoItem';
+import VideoItem from './VideoItem';
 
 const MediaWorkspace = () => {
   return (

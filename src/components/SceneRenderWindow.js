@@ -1,10 +1,10 @@
 // src/components/SceneRenderer.js
 import React, { useEffect, useState } from 'react';
 import styles from './styles/SceneRenderer.module.css';
-import Camera from './Camera';
-import TextDisplay from './TextDisplay';
+import Camera from './renderer_components/Camera';
+import TextDisplay from './renderer_components/TextDisplay';
 
-function SceneRenderer() {
+function SceneRenderWindow() {
   const [sceneData, setSceneData] = useState(null);
   const [lyrics, setLyrics] = useState('');
 
@@ -59,4 +59,4 @@ function SceneRenderer() {
   );
 }
 
-export default SceneRenderer;
+export default SceneRenderWindow;

@@ -1,7 +1,7 @@
 // src/components/LyricsAddWindow.js
 import React, { useState } from 'react';
 import styles from './styles/LyricsAddWindow.module.css';
-import ColorPickerModal from './ColorPickerModal';
+import ColorPickerModal from '@/components/ColorPickerModal';
 
 function LyricsAddWindow() {
   const [formState, setFormState] = useState({

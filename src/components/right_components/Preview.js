@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import styles from './styles/Preview.module.css';
 import { useDispatch, useSelector } from 'react-redux';
-import { sceneActions } from '../../redux/slices/sceneSlice';
+import { sceneActions } from '@/redux/slices/sceneSlice';
 import { current } from '@reduxjs/toolkit';
 
 function RightSidebar() {

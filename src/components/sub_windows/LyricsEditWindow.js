@@ -1,7 +1,7 @@
 // src/components/LyricsEditWindow.js
 import React, { useState, useEffect } from 'react';
 import styles from './styles/LyricsEditWindow.module.css';
-import ColorPickerModal from './ColorPickerModal';
+import ColorPickerModal from '@/components/ColorPickerModal';
 
 function LyricsEditWindow() {
   const [lyricsData, setLyricsData] = useState([]);
