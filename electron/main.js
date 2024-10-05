@@ -1,9 +1,9 @@
-const { app, ipcMain, screen, session } = require('electron');
+'use strict';
 
+const { app, screen, session } = require('electron');
 const { getFontList } = require('./getFontList');
 const { createMainWindow, createLyricsEditWindow, createLyricsAddWindow, createSceneSetupModal, createWindowForMonitor } = require('./windowModules');
-const { setAppMenu } = require('./menuFunctions');
-const { initializeIpcHandlers } = require('./ipcHandlers');  // 핸들러 모듈 추가
+const { initializeIpcHandlers } = require('./ipcHandlers');
 
 let fontList = null;
 let mainWindow;

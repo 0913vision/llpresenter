@@ -1,4 +1,6 @@
 // preload.js
+'use strict';
+
 const { contextBridge, ipcRenderer, desktopCapturer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {

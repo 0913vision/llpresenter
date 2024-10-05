@@ -1,3 +1,5 @@
+'use strict';
+
 const { BrowserWindow, app } = require('electron');
 const { setAppMenu } = require('./menuFunctions');
 const path = require('path');
@@ -30,7 +32,7 @@ function createMainWindow (exportWindows) {
   });
   mainWindow.setTitle('LoveLight Presenter');
   setAppMenu(mainWindow);
-  
+
   mainWindow.webContents.once('did-finish-load', () => {
     // mainWindow.setTitle('LoveLight Presenter');
     mainWindow.show();

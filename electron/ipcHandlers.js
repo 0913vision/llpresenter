@@ -1,8 +1,9 @@
+'use strict';
 const { ipcMain } = require('electron');
 const { getFontList } = require('./getFontList');
 
 // Font List 핸들러
-const handleFontList = (fontList, getFontList) => {
+const handleFontList = (fontList) => {
   ipcMain.handle('get-font-list', async () => {
     if (!fontList) {
       try {

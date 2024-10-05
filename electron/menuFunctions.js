@@ -1,4 +1,6 @@
-const { Menu, ipcMain } = require('electron');
+'use strict';
+
+const { Menu } = require('electron');
 const { getVideoMetadataWithThumbnails, getTxtDataAsync } = require('./fileDialogModules');
 
 // 기본 메뉴 설정 함수
