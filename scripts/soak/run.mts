@@ -21,6 +21,9 @@ const REPO_ROOT = resolve(import.meta.dirname, '..', '..');
 const BUILT_MAIN = join(REPO_ROOT, 'out', 'main', 'index.js');
 const RECORD_FILE_NAME = 'soak.jsonl';
 const TEST_WINDOWS_OFFSCREEN = 'offscreen';
+const NODE_OPTIONS = 'NODE_OPTIONS';
+const INSPECTOR_FLAG =
+  /^--(?:inspect(?:-brk|-port|-wait|-publish-uid)?|debug-port)(?:=|$)/;
 
 /** What the soak runner was asked to do. */
 export type SoakCommand =
@@ -96,15 +99,44 @@ export interface SoakRun {
 }
 
 /**
+ * Drops the flags that attach an inspector (`--inspect`, `--inspect-brk`,
+ * `--inspect-port`, and the like) from a `NODE_OPTIONS` value.
+ */
+export function withoutInspectorFlags(nodeOptions: string): string {
+  return nodeOptions
+    .split(/\s+/)
+    .filter(flag => flag !== '' && !INSPECTOR_FLAG.test(flag))
+    .join(' ');
+}
+
+// NOTE(0913vision): qa measured the main process's memory growing 4.9 to
+// 7.9 MB in 30 minutes with an inspector attached, and flat without one, so a
+// soak run never passes one on. Windows can hold NODE_OPTIONS under two
+// spellings, so every spelling is checked.
+function withoutInspector(base: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+  const env: NodeJS.ProcessEnv = {};
+  for (const [name, value] of Object.entries(base)) {
+    if (name.toLowerCase() !== NODE_OPTIONS.toLowerCase()) {
+      env[name] = value;
+      continue;
+    }
+    const kept = withoutInspectorFlags(value ?? '');
+    if (kept !== '') env[NODE_OPTIONS] = kept;
+  }
+  return env;
+}
+
+/**
  * The variables the app starts with for a soak run. `LLP_TEST_WINDOWS` keeps
- * every window off the user's screen.
+ * every window off the user's screen, and `NODE_OPTIONS` loses any flag that
+ * would attach an inspector.
  */
 export function soakEnvironment(
   run: SoakRun,
   base: NodeJS.ProcessEnv = process.env,
 ): NodeJS.ProcessEnv {
   return {
-    ...base,
+    ...withoutInspector(base),
     LLP_USER_DATA: run.userData,
     LLP_SOAK_RECORD: run.recordPath,
     LLP_SOAK_EXIT_MS: String(run.durationMs),
