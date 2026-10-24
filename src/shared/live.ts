@@ -86,6 +86,11 @@ export function emptyLiveState(): LiveState {
   return {version: 0, layers: emptyLayers(), outputs: {}, canUndo: false};
 }
 
+/** Whether any screen's output is on, which pauses backups and updates. */
+export function isAnyOutputOn({outputs}: LiveState): boolean {
+  return Object.values(outputs).some(on => on);
+}
+
 export function hasAnyLayer(layers: LiveLayers): boolean {
   return layerKinds.some(kind => layers[kind] !== null);
 }
