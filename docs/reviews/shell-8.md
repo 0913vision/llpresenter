@@ -29,7 +29,10 @@
 
 ## Checks run
 
-Pending.
+`npm run verify` on commit `1c8bb32` (stacked on `feat/shell/previews`,
+`34e23d5`) passed all five steps in 527.1 s: `typecheck`, `lint`,
+`format:check`, `test:coverage`, and `build`. The computer was busy, so the run
+was slow.
 
 New tests: Space to a focused button, switch, checkbox, radio, and tab; ← and →
 to a focused tab or radio only; the Page keys from a button; Space on key up for
