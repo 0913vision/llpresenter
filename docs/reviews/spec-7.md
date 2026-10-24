@@ -2,7 +2,7 @@
 
 - Team member: `spec`
 - Branch: `docs/spec/failure-and-previews`, from `main` (not stacked)
-- Base commit (`main`): `c402184`
+- Base commit (`main`): `8273192`
 - Shared files changed: none
 - Last commit: see the commit that adds this file
 - Related request: the lead's message of October 25 (spec-7, three parts)
@@ -76,10 +76,11 @@ The lead asked for three changes.
 
 ## Checks run
 
-| Command or test           | Result                                                                                                                                       |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run verify`          | Pass: typecheck 14.5 s, lint 94.9 s, format:check 29.6 s, test:coverage 74.7 s (74 files, 753 tests, 1 skipped), build 3.0 s; 216.8 s in all |
-| Middle dots and em dashes | None in the changed files (checked with `grep -c`)                                                                                           |
+| Command or test            | Result                                                                                                                                       |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run verify` (round 2) | Pass on base `8273192`: 88 files, 903 tests, 1 skipped; 156.5 s in all                                                                       |
+| `npm run verify` (round 1) | Pass: typecheck 14.5 s, lint 94.9 s, format:check 29.6 s, test:coverage 74.7 s (74 files, 753 tests, 1 skipped), build 3.0 s; 216.8 s in all |
+| Middle dots and em dashes  | None in the changed files (checked with `grep -c`)                                                                                           |
 
 ## Decisions I made (for the lead to confirm)
 
