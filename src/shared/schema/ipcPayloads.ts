@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import type {Result} from '../result';
-import {parsePayload, type PayloadError} from './payload';
+import {parsePayload, payloadObject, type PayloadError} from './payload';
 
 const FRAME_RATE_MAX = 240;
 
@@ -11,7 +11,7 @@ export const logLevels = ['info', 'warn', 'error'] as const;
 
 export type LogLevel = (typeof logLevels)[number];
 
-const rendererLogEntrySchema = v.object({
+const rendererLogEntrySchema = payloadObject({
   level: v.picklist(logLevels),
   message: v.pipe(
     v.string(),
@@ -23,7 +23,7 @@ const rendererLogEntrySchema = v.object({
   ),
 });
 
-const frameRateReportSchema = v.object({
+const frameRateReportSchema = payloadObject({
   screenId: v.pipe(v.string(), v.nonEmpty()),
   fps: v.pipe(
     v.number(),

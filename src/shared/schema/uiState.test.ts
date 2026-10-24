@@ -70,6 +70,7 @@ describe('parseUiState', () => {
       'layout.normal.left',
     ],
     ['a layout that is an array', {layout: []}, 'layout'],
+    ['a state that is an array', [], ''],
     ['a size class that is an array', {layout: {wide: []}}, 'layout.wide'],
   ])('rejects %s', (_name, value, field) => {
     const result = parseUiState(value);

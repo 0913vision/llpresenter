@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import type {Result} from '../result';
 import {appLayoutSchema, sizeClasses, type AppConfig} from './appConfig';
-import {parsePayload, type PayloadError} from './payload';
+import {parsePayload, payloadObject, type PayloadError} from './payload';
 
 /** The column width ranges (px) of the design system `Layout`. */
 export const COLUMN_LIMITS = {
@@ -18,13 +18,15 @@ function columnWidth({min, max}: WidthRange) {
   return v.pipe(v.number(), v.integer(), v.minValue(min), v.maxValue(max));
 }
 
-const layoutChangeSchema = v.object({
+const layoutChangeSchema = payloadObject({
   sizeClass: v.picklist(sizeClasses),
   left: columnWidth(COLUMN_LIMITS.left),
   right: columnWidth(COLUMN_LIMITS.right),
 });
 
-const uiStateSchema = v.object({layout: v.exactOptional(appLayoutSchema)});
+const uiStateSchema = payloadObject({
+  layout: v.exactOptional(appLayoutSchema),
+});
 
 /**
  * The UI part of `app.json` that the control window reads once before its

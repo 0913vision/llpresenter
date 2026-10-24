@@ -159,6 +159,7 @@ export function jsonRecord<
   );
 }
 
-function isJsonObject(input: unknown): boolean {
+/** Whether a value is a JSON object: not `null` and not an array. */
+export function isJsonObject(input: unknown): boolean {
   return typeof input === 'object' && input !== null && !Array.isArray(input);
 }

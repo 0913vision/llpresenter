@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import type {LayerKind, LiveState} from '../live';
 import type {Result} from '../result';
-import {parsePayload, type PayloadError} from './payload';
+import {parsePayload, payloadObject, type PayloadError} from './payload';
 
 const id = v.pipe(v.string(), v.nonEmpty());
 const count = v.pipe(v.number(), v.integer(), v.minValue(0));
@@ -24,7 +24,7 @@ const layerSchemas = {
   notice: v.object({noticeId: id}),
 } satisfies Record<LayerKind, v.GenericSchema>;
 
-const liveStateSchema = v.object({
+const liveStateSchema = payloadObject({
   version: count,
   layers: v.object({
     media: v.nullable(layerSchemas.media),

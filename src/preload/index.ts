@@ -27,11 +27,8 @@ function listen(
   };
 }
 
-/**
- * Invokes a main process handler and checks its reply. A failed call or a
- * malformed reply is logged and gives the fallback, so a window never starts
- * from bad data.
- */
+// NOTE(0913vision): A failed call or a malformed reply is logged and gives the
+// fallback, so a window never starts from bad data.
 async function invokeChecked<T>(
   channel: string,
   parse: Parse<T>,
