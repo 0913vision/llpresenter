@@ -1,0 +1,321 @@
+# 06. Settings
+
+This document covers the 화면 설정 (Screen settings) workspace (screens, display
+layout, test pattern, output method, Look editor, stage layout editor), the
+환경설정 (Preferences) window, and shortcuts.
+
+Terms: 출력 (output), 장 (slide), 이름표 (label), 본 화면 (main screen), 무대
+화면 (stage screen), 방송 자막 (broadcast captions), 진행 도구 (show tools), 퀵
+실행 (quick run), 소품 (prop), 공지 (notice), 메시지 (message), 타이머 (timer),
+라이브러리 (library), 진행 (Show workspace). See 01.
+
+## The 화면 설정 workspace
+
+### Layout and navigation
+
+| Column | Content                                                                                                                               | Source                            |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| Left   | The 화면 (screens) panel and the Look panel. In the stage layout editor, the 무대 배치 (stage layouts) panel and the 무대 화면 panel. | `Screens`, `Looks`, `StageEditor` |
+| Center | Display layout and output preview, the Look editor, or the layout editor                                                              | `Screens`, `Looks`, `StageEditor` |
+| Right  | Properties of the selected screen or stage layout element                                                                             | `Screens`, `StageEditor`          |
+
+- The boards don't show how the operator moves between screens, Looks, and stage
+  layouts. Version 1 stacks three panels in the left column (화면, Look, 무대
+  배치). Selecting a row switches the center and right columns to the matching
+  editor (proposal, open question).
+- The boards mark the current Look and the stage layout in use with a "사용 중"
+  (in use) chip. The design system forbids status chips. Mark them in the way
+  the design system allows (open question).
+- Changes in 화면 설정 save at once. Changes that affect what is on output (Look
+  edits, screen properties) apply to the output at once (proposal).
+
+Source: `Screens`, `Looks`, `StageEditor`, `Main` board guide (화면 설정, Look
+편집, 무대 화면 배치 편집).
+
+## Screens
+
+### Screen list
+
+- Two groups, 청중 (audience) and 무대 (stage). Each row shows an icon (본 화면
+  and 무대 화면 use monitor icons, 방송 자막 uses the capture icon), the name,
+  the target (모니터 2, 캡처용 창), and a health dot.
+- 화면 추가 (add screen, plus icon) is in the board. Version 1 keeps exactly
+  three screens (see 01, open question).
+- Selecting a screen shows its display layout, output preview, and properties.
+
+### Display layout
+
+- One box per monitor, sized by its resolution and placed like the Windows
+  display arrangement. Each box shows the monitor number (large and faint), the
+  assigned screen, the resolution, and the monitor name.
+- The monitor that holds the main window reads "컨트롤" (control), with dim
+  text. The monitor of the selected screen is highlighted.
+- A separate box shows targets without a monitor, such as the 방송 자막 capture
+  window, with its resolution.
+- 모니터 번호 표시 (show monitor numbers) shows a large number on each physical
+  monitor for 3 seconds, so the operator can match boxes to monitors (proposal
+  for the duration).
+- The operator assigns a monitor with the 장치 (device) property. Dragging a
+  screen onto a monitor box also assigns it (proposal).
+
+### Output preview
+
+- A segmented control switches between 화면 내용 (screen content) and 테스트
+  패턴 (test pattern).
+- 화면 내용 shows the selected screen's current output.
+- 테스트 패턴 shows color bars and a gray ramp in the preview and on that
+  screen's real output (proposal: like the ProPresenter test pattern). It
+  returns to the content when the operator chooses 화면 내용 or leaves 화면 설정
+  (proposal).
+- The caption shows the screen name, the target and monitor name ("모니터 2
+  EPSON 프로젝터"), and the resolution and refresh rate ("1920×1080 60Hz").
+
+### Screen properties
+
+| Group              | Row                                   | Control                                                                           | Behavior                                                                                                                                                   |
+| ------------------ | ------------------------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 화면 (screen)      | 이름 (name)                           | Text field                                                                        | Screen name. Toolbar labels and tooltips use it.                                                                                                           |
+| 화면               | 종류 (kind)                           | 청중 or 무대                                                                      | 무대 screens use a stage layout. 청중 screens use a lyric style (proposal).                                                                                |
+| 출력 (output)      | 방식 (method)                         | 전체 화면, 창, 캡처용 창, NDI                                                     | See 03. In version 1, NDI shows as unavailable, with the reason in a tooltip (proposal).                                                                   |
+| 출력               | 장치 (device)                         | Select with the monitor name as a detail ("모니터 2 EPSON 프로젝터")              | The monitor for full screen.                                                                                                                               |
+| 출력               | 해상도 (resolution)                   | Select                                                                            | For full screen, shows the monitor's resolution and can't change (proposal). For the capture window, offers 1920×1080, 1280×720, and 3840×2160 (proposal). |
+| 출력               | 주사율 (refresh rate)                 | Read-only value ("60Hz")                                                          |                                                                                                                                                            |
+| 안정성 (stability) | 연결이 끊기면 (when disconnected)     | Select: 창으로 바꾸기 (switch to a window), and turning the output off (proposal) | See 03.                                                                                                                                                    |
+| 안정성             | 항상 위 (always on top)               | Switch                                                                            | See 03.                                                                                                                                                    |
+| 안정성             | 절전 막기 (prevent sleep)             | Switch                                                                            | See 03.                                                                                                                                                    |
+| 보정 (correction)  | 가장자리 여백 (edge margin)           | Number field (%)                                                                  | See 03.                                                                                                                                                    |
+| 보정               | 위치 미세 조정 (position fine-tuning) | Two number fields (x, y)                                                          | See 03.                                                                                                                                                    |
+
+### NDI properties (later)
+
+The `ScreensNDI` board shows the NDI version of the properties. Version 1
+doesn't build them (see 09), but keeps the data fields (see 02).
+
+| Group              | Row                                                                                                                                                                                                             |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 출력               | 방식: NDI, 소스 이름 (source name, "LOVELIGHT 방송 자막"), 해상도, 프레임 수 (frame rate, 30fps), 알파 채널 (alpha channel), 미리보기 배경 (preview background: 초록 green, 검정 black, 체크 무늬 checkerboard) |
+| 네트워크 (network) | 보낼 곳 (network interface, "이더넷 192.168.0.12"), NDI 그룹 (NDI group, "public")                                                                                                                              |
+
+The display layout box of an NDI target shows "보내는 중 수신 1" (sending, 1
+receiver), and the status bar shows "방송 자막 NDI 30fps".
+
+### Preview background of the 방송 자막
+
+The in-app preview of the 방송 자막 is green by default. The `ScreensNDI` board
+puts the choice of 초록, 검정, and 체크 무늬 in the NDI properties. In version
+1, with the capture window, the preview stays green (proposal).
+
+Source: `Screens`, `ScreensNDI`, `PropertyRow` README, `Select` README, product
+log version 56.
+
+## Look editor
+
+### Layout
+
+- Left: the Look list with Look 추가 (add Look). The current Look is marked.
+- Center header: "Look", the Look name, the current mark, and 복제 (duplicate).
+- One card per screen. A card shows the screen icon, name, and target, a preview
+  of that screen with this Look, and a layer checklist:
+
+| Screen    | Layer rows (check boxes)                                                                           |
+| --------- | -------------------------------------------------------------------------------------------------- |
+| 본 화면   | 배경 미디어 (background media), 가사 (lyrics, with a lyric style select), 공지, 소품, 메시지       |
+| 무대 화면 | 배경 미디어, 가사 (with a stage layout select), 시계 (clock), 무대 메시지 (stage message), 메시지  |
+| 방송 자막 | 배경 (background, with a color select, 초록), 가사 (with a lyric style select), 공지, 소품, 메시지 |
+
+- Below the cards: the 가사 스타일 (lyric style) section, with a segmented
+  control for the styles (기본, 현재와 다음, 하단 자막), a style preview, and a
+  two-column property grid:
+
+| Property                         | Control                                                                           |
+| -------------------------------- | --------------------------------------------------------------------------------- |
+| 글꼴 (font)                      | Select. Pretendard is bundled. Installed system fonts are also listed (proposal). |
+| 글자색 (text color)              | Color swatch and hex value. Clicking opens a color picker (proposal).             |
+| 크기 (size)                      | Number field                                                                      |
+| 줄 간격 (line spacing)           | Number field                                                                      |
+| 가로 정렬 (horizontal alignment) | 왼쪽 (left), 가운데 (center)                                                      |
+| 세로 위치 (vertical position)    | 위 (top), 가운데 (middle), 아래 (bottom)                                          |
+| 최대 줄 수 (maximum lines)       | Number field                                                                      |
+| 여백 (margin)                    | Number field (%)                                                                  |
+| 그림자 (shadow)                  | Switch                                                                            |
+| 외곽선 (outline)                 | Switch                                                                            |
+
+### Behavior
+
+- Every change saves at once. Changes to the current Look apply to the output at
+  once (proposal).
+- A lyric style is shared. Editing it changes every Look that uses it.
+- The color select of the 방송 자막 background offers 초록 (`chroma`), 검정
+  (black), and 미디어 (show the background media) (proposal; the board shows
+  only 초록).
+- Look 추가 creates "새 Look" (new Look) as a copy of the current Look
+  (proposal). 복제 creates "<name> 복사본" (copy) (proposal).
+- The right-click menu of a Look row has 이름 바꾸기 (rename) and 삭제 (delete).
+  The current Look can't be deleted. Deleting a Look that a 매크로 uses asks in
+  a confirmation dialog (proposal).
+- No board shows how to add, rename, or delete a lyric style (open question).
+  Version 1 adds a right-click menu to the style segments, with 새 스타일 (new
+  style), 이름 바꾸기, and 삭제. A style that a Look uses can't be deleted
+  (proposal).
+
+Source: `Looks`, `Main` board guide (Look 편집), `Checkbox` README,
+`PropertyRow` README, `Switch` README.
+
+## Stage layout editor
+
+### Layout
+
+- Left: the 무대 배치 list (a small schematic of each layout, the name, and a
+  mark for the layout in use) with 새 배치 (new layout). Below it, the 무대 화면
+  panel: the screen name, the target, a health dot, and the 배치 (layout)
+  select. 03 defines what that select changes.
+- Center: a header with the layout name and size ("현재와 다음 1920×1080") and
+  요소 추가 (add element, a menu of element kinds). The 16:9 canvas with the
+  elements. The selected element has eight handles. A bottom bar has X, Y, W, H
+  fields, 비율 고정 (keep aspect ratio), 격자에 맞추기 (snap to grid), and the
+  zoom ("53%").
+- Right: the 요소 (element) properties: the element name and 요소 삭제 (delete
+  element). The 내용 (content) group: 이름 (name), 내용 종류 (content kind, a
+  select such as 현재 장, current 장), and 보여 줄 것 (what to show: 글자 text,
+  그림 image, 메모 memo). Then the tabs 모양 (appearance) and 글자 (text). The
+  글자 tab has 글꼴, 굵기 (weight), 크기, 글자색, 가로 정렬, 세로 정렬, 줄 간격,
+  and 크기 자동 맞춤 (auto-fit size).
+
+### Element kinds
+
+| Kind in the 요소 추가 menu (proposal names) | Content                     |
+| ------------------------------------------- | --------------------------- |
+| 현재 가사 (current lyrics)                  | The live 장                 |
+| 다음 가사 (next lyrics)                     | The next 장 in the sequence |
+| 현재 이름표 (current 이름표)                | The live 장's 이름표        |
+| 다음 이름표 (next 이름표)                   | The next 장's 이름표        |
+| 시계 (clock)                                | Current time                |
+| 타이머                                      | A 타이머 value              |
+| 무대 메시지 (stage message)                 | The stage message           |
+
+### Behavior
+
+- Dragging an element moves it. Dragging a handle resizes it. With 비율 고정 on,
+  resizing keeps the aspect ratio. With 격자에 맞추기 on, positions snap to a 20
+  px grid (proposal for the grid size).
+- The arrow keys move the selected element 1 px, and Shift with an arrow key
+  moves it 10 px. Delete removes it (proposal).
+- While editing, elements show the live content if there is any, and sample text
+  otherwise (proposal).
+- Every change saves at once. If the layout is on the 무대 화면 now, the change
+  applies to the output at once (proposal).
+- 새 배치 creates an empty 1920 x 1080 layout named "새 배치" (proposal). The
+  right-click menu of a layout row has 복제, 이름 바꾸기, and 삭제. A layout
+  that a Look uses can't be deleted (proposal).
+- No board shows the content of the 모양 tab (open question). Version 1 offers a
+  background color and opacity for the element box (proposal).
+
+Source: `StageEditor`, `Main` board guide (무대 화면 배치 편집), `IconButton`
+README (비율 고정, 격자에 맞추기), `SegmentedControl` README.
+
+## 환경설정 window
+
+- 환경설정 is a separate window with its own title bar ("환경설정") and a close
+  button. It opens from 파일 > 환경설정.
+- The left list has the pages 일반 (general), 출력 (output), 라이브러리, 성경
+  (Bible), 가져오기 (import), 단축키 (shortcuts), and 업데이트 (updates).
+- Switches and selects apply at once and save (`Switch` README). 02 lists the
+  stored fields.
+
+| Page       | Group                                | Row                                                                                                                                                                    | Control and behavior                                                                                                                                            | Source                      |
+| ---------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| 일반       | 앱 (app)                             | 언어 (language)                                                                                                                                                        | Select. Version 1 offers only 한국어 (Korean).                                                                                                                  | `Prefs`                     |
+| 일반       | 앱                                   | 시작할 때 (on launch)                                                                                                                                                  | Select. Version 1 offers only 마지막 예배 열기 (open the last service) (proposal).                                                                              | `Prefs`                     |
+| 일반       | 저장 (saving)                        | 자동 저장 (autosave)                                                                                                                                                   | Not in version 1. Saving happens on every change (open question).                                                                                               | `Prefs`                     |
+| 일반       | 저장                                 | 복구 사본 (recovery copies)                                                                                                                                            | Number field with the unit 개, default 10. See 02.                                                                                                              | `Prefs`                     |
+| 일반       | 보고 (reports)                       | 오류 보고 보내기 (send error reports), 사용 통계 보내기 (send usage statistics)                                                                                        | Not in version 1. `docs/TECH.md` keeps crash records on this computer, and no server exists (proposal, open question).                                          | `Prefs`                     |
+| 출력       | 시작 (launch)                        | 켤 때 화면 출력 (output on launch)                                                                                                                                     | Switch, default off. See 03.                                                                                                                                    | `Prefs`                     |
+| 출력       | 안정성                               | 출력 중 절전 막기, 출력 창 항상 위, 화면 연결이 끊기면                                                                                                                 | Defaults for new screens. Each screen has its own values in 화면 설정 (proposal, open question).                                                                | `Prefs`                     |
+| 출력       | 성능 (performance)                   | 하드웨어 가속 (hardware acceleration)                                                                                                                                  | Switch, default on. Takes effect on the next launch (proposal).                                                                                                 | `Prefs`                     |
+| 출력       | 성능                                 | 미리보기 (preview)                                                                                                                                                     | Select: 15fps, 30fps (default), 60fps (proposal for the options). See 03.                                                                                       | `Prefs`                     |
+| 라이브러리 | 위치 (locations)                     | 곡 (songs), 미디어 (media)                                                                                                                                             | Read-only path field with a folder icon, and 바꾸기 (change), which opens a folder dialog. See 02.                                                              | `Prefs`, `TextField` README |
+| 라이브러리 | 백업 (backup)                        | 자동 백업 (automatic backup)                                                                                                                                           | Switch, default on. See 02.                                                                                                                                     | `Prefs`                     |
+| 라이브러리 | 백업                                 | 백업 위치 (backup location)                                                                                                                                            | Read-only path field and 바꾸기.                                                                                                                                | `Prefs`                     |
+| 라이브러리 | 백업                                 | 보관 (keep)                                                                                                                                                            | Number field with the unit 개, default 30.                                                                                                                      | `Prefs`                     |
+| 라이브러리 | 백업                                 | 마지막 백업 (last backup)                                                                                                                                              | Read-only value ("오늘 07:58", today 07:58) and 지금 백업 (back up now).                                                                                        | `Prefs`                     |
+| 성경       | 설치된 역본 (installed translations) | One row per translation: name, language, size, a 기본 (default) tag, and a more menu                                                                                   | The more menu has 기본으로 (make default) and 삭제. The default translation can't be deleted (proposal).                                                        | `Prefs`                     |
+| 성경       | 설치된 역본                          | 역본 추가 (add translation)                                                                                                                                            | Opens a file dialog for a translation file. The file format is an open question (see 02).                                                                       | `Prefs`                     |
+| 성경       | 표시 (display)                       | 절 번호 (verse numbers)                                                                                                                                                | Switch, default on.                                                                                                                                             | `Prefs`                     |
+| 성경       | 표시                                 | 한 장 최대 줄 수 (maximum lines per 장)                                                                                                                                | Number field with the unit 줄, default 4.                                                                                                                       | `Prefs`                     |
+| 성경       | 표시                                 | 출처 위치 (reference position)                                                                                                                                         | Select, default 오른쪽 아래 (bottom right). Other options: 왼쪽 아래 (bottom left), 숨김 (hidden) (proposal).                                                   | `Prefs`                     |
+| 가져오기   | txt                                  | 장 나누기, 이름표, 첫 줄, 글자 인코딩                                                                                                                                  | Selects. Defaults for text import. See 05.                                                                                                                      | `Prefs`                     |
+| 가져오기   | pptx                                 | 슬라이드 하나 (one slide), 배경 이미지 가져오기 (import background images)                                                                                             | Later (see 09). Version 1 hides this group (proposal).                                                                                                          | `Prefs`                     |
+| 단축키     |                                      |                                                                                                                                                                        | See "Shortcuts".                                                                                                                                                | `Shortcuts`                 |
+| 업데이트   | 버전 (version)                       | 현재 버전 (current version)                                                                                                                                            | Read-only value.                                                                                                                                                | `Prefs`                     |
+| 업데이트   | 버전, 받기 (receiving)               | 마지막 확인 and 지금 확인 (check now), 자동 확인 (check automatically), 채널 (channel: 정식 stable, 미리 보기 preview), 예배 중에는 미루기 (postpone during a service) | Not in version 1. `docs/TECH.md` says the app never updates itself and the user installs new versions, and the installer comes later (proposal, open question). | `Prefs`                     |
+
+Source: `Prefs`, `PropertyRow` README, `MenuBar` README (secondary window title
+bar), `docs/TECH.md` operating rules.
+
+## Shortcuts
+
+### The 단축키 page
+
+- Header: "단축키" and 모두 기본값으로 (reset all to defaults).
+- A search field with the placeholder "명령, 키" (command, key), and a filter:
+  전체 (all), 바꾼 것 (changed, with a count), 겹침 (conflicts, with an amber
+  count).
+- A table with the columns 명령 (command) and 단축키 (shortcut), grouped by
+  area.
+- A bar at the bottom shows the selected command, its default ("기본값 없음", no
+  default), and the buttons 기본값으로 (reset to default) and 지우기 (remove the
+  shortcut). Here 지우기 is the board's label for removing a shortcut, not a
+  clear of the output.
+
+### Editing a shortcut
+
+- Double-clicking a row, or pressing Enter on it, opens the key field
+  (placeholder "키 입력", press keys). The next key combination becomes the
+  shortcut. Esc cancels. Backspace removes the shortcut.
+- A shortcut that differs from the default shows its key caps on the selection
+  background.
+- If two commands share a combination, both rows show an amber outline and a
+  warning icon. The icon's tooltip reads "<command>과 겹침" (conflicts with the
+  command), for example "출력 켜기와 겹침".
+- While a conflict exists, the command that had the combination first keeps it.
+  The other command doesn't run on that combination until the operator resolves
+  the conflict (proposal).
+- An 이름표 jump key that equals a shortcut also shows as a conflict (proposal).
+
+### Where shortcuts work
+
+- Shortcuts work while the main window has focus. When a text field has focus,
+  typing keys go to the field. F1 to F7 still clear (see 03).
+- Shortcuts don't work in the 환경설정 window, except F1 to F7 (proposal).
+
+### Default shortcuts
+
+The defaults follow ProPresenter where the sources say so (F1 to F7). The
+command IDs are proposals.
+
+| Group  | Command                                       | Command ID (proposal) | Default  |
+| ------ | --------------------------------------------- | --------------------- | -------- |
+| 진행   | 다음 장 (next 장)                             | `show.next`           | →, Space |
+| 진행   | 이전 장 (previous 장)                         | `show.previous`       | ←        |
+| 진행   | 되돌리기 (undo the last clear)                | `clear.undo`          | Ctrl Z   |
+| 지우기 | 모두 (all)                                    | `clear.all`           | F1       |
+| 지우기 | 가사 (lyrics)                                 | `clear.slide`         | F2       |
+| 지우기 | 미디어 (media)                                | `clear.media`         | F3       |
+| 지우기 | 소품                                          | `clear.prop`          | F4       |
+| 지우기 | 오디오 (audio)                                | `clear.audio`         | F5       |
+| 지우기 | 메시지                                        | `clear.message`       | F6       |
+| 지우기 | 공지                                          | `clear.notice`        | F7       |
+| Look   | One command per Look, for example 평상시      | `look.<Look ID>`      | None     |
+| 화면   | 출력 켜기 (audience screen outputs on or off) | `output.audience`     | Ctrl 1   |
+| 화면   | 무대 출력 켜기 (무대 화면 output on or off)   | `output.stage`        | Ctrl 2   |
+
+- The board shows 평상시 as Ctrl 1, 설교 as Alt 2, and 광고 as Alt 3. These are
+  examples of changed shortcuts, and the Ctrl 1 example shows a conflict with
+  출력 켜기.
+- The board also shows a 퀵 실행 group (검은 화면 Ctrl B, 로고 화면 with no
+  shortcut). The product log defers 퀵 실행 shortcuts, so version 1 leaves out
+  this group (see 09, open question).
+
+Source: `Shortcuts`, `Prefs`, `KeyCap` README, `SegmentedControl` README (filter
+counts), `ClearButton` README, `Main` decision "단축키", product log (퀵 실행
+shortcuts deferred).

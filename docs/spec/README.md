@@ -1,0 +1,167 @@
+# LoveLight Presenter functional specification
+
+This folder is the functional specification for version 1 of LoveLight
+Presenter, a Windows desktop app that outputs worship lyrics, Bible verses,
+notices, and messages to several screens. You build the app from this spec.
+
+- The design system defines how the UI looks: sizes, colors, type, component
+  states, keyboard behavior of components, and writing rules.
+- This spec defines what the app does and what it stores.
+- The UI drafts (boards) show the screens. Where a board and the design system
+  differ, the design system wins.
+
+The UI drafts and the design system are final. The app code is at the initial
+frame.
+
+## Sources
+
+| Source         | Location                                                                                   | How this spec uses it                                                                                                                                                                 |
+| -------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Product log    | `docs/product-log.md`                                                                      | The running record of product decisions from the drafts phase. A later entry overrides an earlier one.                                                                                |
+| Draft report   | `design/drafts/llp-design/project/Main.dc.html`                                            | Decisions (정한 것), differences from ProPresenter (프로프리젠터와 다른 점), the board guide, the `.llsong` and `.llservice` samples, and remaining items (남은 것). Cited as `Main`. |
+| Boards         | `design/drafts/llp-design/project/<Board>.dc.html`                                         | Only the boards on page `v2` in `canvas.json`. Boards on the backup page are rejected ideas and aren't specified. Cited by board name, for example `ShowH`.                           |
+| Design system  | `design/system/project/README.md` and `design/system/project/components/*/README.md`       | Principles, glossary, window sizes, and per-component behavior. Cited as "design system README" or by component, for example `ClearButton` README.                                    |
+| Team documents | `docs/TECH.md`, `docs/PLAN.md`, `docs/HANDOFF.md`, `docs/WORKFLOW.md`, `docs/decisions.md` | Technical decisions that this spec stays consistent with.                                                                                                                             |
+
+Current boards:
+
+| Board           | Title in the drafts            | English                              |
+| --------------- | ------------------------------ | ------------------------------------ |
+| `ShowH`         | 진행 화면                      | 진행 workspace                       |
+| `Compact`       | 진행 화면 1366×768             | 진행 workspace, narrow window        |
+| `Reflow`        | 준비 화면: 라이브러리 곡       | 준비: 라이브러리 song editor         |
+| `PrepService`   | 준비 화면: 예배 순서 항목      | 준비: 예배 순서 item                 |
+| `Screens`       | 화면 설정                      | Screen settings                      |
+| `ScreensNDI`    | 화면 설정: 방송 자막 NDI       | Screen settings with NDI             |
+| `Looks`         | Look 편집                      | Look editor                          |
+| `Overlays`      | 진행 도구                      | The eight 진행 도구 tabs             |
+| `Macros`        | 매크로                         | 매크로 tab, menu, and action palette |
+| `Outputs`       | 세 화면의 실제 출력            | Real output of the three screens     |
+| `Problems`      | 문제 상황: 진행 중             | Problems during a service            |
+| `Recovery`      | 문제 상황: 다시 시작           | Restart after a crash                |
+| `Bible`         | 성경 구절 띄우기               | Bible passages                       |
+| `NewService`    | 새 예배 만들기                 | New service                          |
+| `ServiceImport` | 다른 예배에서 가져오기         | Import from another service          |
+| `ServiceSwitch` | 예배 순서 바꾸기               | Service list                         |
+| `AddSongs`      | 예배 순서에 곡 넣기: 끌어 넣기 | Adding songs by drag                 |
+| `AddSongsQuick` | 예배 순서에 곡 넣기: 빠른 추가 | Quick add                            |
+| `ImportMenu`    | 파일 메뉴                      | File menu                            |
+| `ImportText`    | 텍스트 가져오기                | Text import                          |
+| `ImportEdit`    | 가져온 곡 편집                 | Editing an imported song             |
+| `ImportSave`    | 저장할 때 같은 곡이 있으면     | Saving with a duplicate title        |
+| `Media`         | 미디어 가져오기와 재생목록     | Media view                           |
+| `StageEditor`   | 무대 화면 배치 편집            | Stage layout editor                  |
+| `Prefs`         | 환경설정                       | Preferences                          |
+| `Shortcuts`     | 단축키 설정                    | Shortcuts                            |
+
+## Reading order
+
+| File                             | Content                                                                                                                        |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| [01-concepts.md](01-concepts.md) | Terms, principles, windows, workspaces, screens, data objects, and layers. Read this first.                                    |
+| [02-data.md](02-data.md)         | File formats, settings, media list, folder layout, save rules, and the recovery record.                                        |
+| [03-output.md](03-output.md)     | Output windows, output toggles, layers, Looks, 장 and background output, clears and undo, 방송 자막, 무대 화면, lost monitors. |
+| [04-show.md](04-show.md)         | The 진행 workspace: 예배 순서, 장 panel, previews, 진행 도구 tabs, 퀵 실행, media strip, Bible passages, narrow windows.       |
+| [05-prep.md](05-prep.md)         | The 준비 workspace: 라이브러리, song editor, item settings, adding items, new service, import, 틀, text import, media view.    |
+| [06-settings.md](06-settings.md) | 화면 설정, Look editor, stage layout editor, 환경설정, shortcuts.                                                              |
+| [07-macros.md](07-macros.md)     | 매크로, action kinds, collections, start 매크로, and Clear Groups replaced by 매크로.                                          |
+| [08-problems.md](08-problems.md) | Problem states, the output state recovery dialog, notifications, and what must never happen during a service.                  |
+| [09-later.md](09-later.md)       | Deferred features, the hooks version 1 must leave open, and dropped ideas.                                                     |
+
+## Conventions
+
+- **Korean terms.** The spec keeps the Korean names that the operator sees in
+  the app. Each file glosses them the first time, for example 예배 순서 (service
+  order), and uses the Korean term afterward. 01 has the full term table.
+- **Source lines.** Each feature ends with a "Source" line that names the
+  boards, documents, or product log entries it comes from.
+- **Proposals.** "(proposal)" marks anything that the sources don't settle and
+  that this spec decided. Build proposals as written unless the user decides
+  otherwise.
+- **Open questions.** "(open question)" marks a conflict or gap that needs the
+  user's answer. The full list is at the end of this file.
+- **Requirements.** "(implementation requirement)" marks a rule that has no
+  visible UI but that the app must follow, such as atomic writes.
+
+## Version 1 scope
+
+| Feature                                                                                                | Scope                      | Notes                 |
+| ------------------------------------------------------------------------------------------------------ | -------------------------- | --------------------- |
+| 진행 workspace: 예배 순서, 장 panel, previews, clear row, 진행 도구 (eight tabs), 퀵 실행, media strip | Version 1                  | 04                    |
+| Click outputs at once, F1 to F7 clears, undo of the last clear                                         | Version 1                  | 03                    |
+| Three screens (본 화면, 무대 화면, 방송 자막) with full screen, window, and capture window output      | Version 1                  | 03                    |
+| Looks, lyric styles, stage layouts                                                                     | Version 1                  | 03, 06                |
+| Looping background video                                                                               | Version 1                  | 03                    |
+| 메시지, 공지, 소품, 타이머, stage messages, audio playback                                             | Version 1                  | 04                    |
+| 매크로 with collections, action palette, start 매크로                                                  | Version 1                  | 07                    |
+| Bible passages from the 퀵 실행 field, offline 개역한글 and KJV                                        | Version 1                  | 04, open question     |
+| 라이브러리, search by title, lyrics, and initial consonants                                            | Version 1                  | 05                    |
+| Song editor with blocks, 이름표 and 이름표 colors, default background, named 구성                      | Version 1                  | 05                    |
+| 예배 순서 item settings: 구성, background override, start 매크로, memo                                 | Version 1                  | 05                    |
+| Adding items by drag and quick add                                                                     | Version 1                  | 05                    |
+| New service (빈 예배, 틀, 지난 예배), import from another service, service list, save as 틀            | Version 1                  | 05                    |
+| Text import from a file or the clipboard                                                               | Version 1                  | 05                    |
+| Media view: import, playlists, properties                                                              | Version 1                  | 05                    |
+| 화면 설정: screen list, display layout, test pattern                                                   | Version 1                  | 06                    |
+| 환경설정 and shortcuts                                                                                 | Version 1                  | 06                    |
+| Autosave, recovery copies, automatic backup, output state recovery                                     | Version 1                  | 02, 08                |
+| Lost monitor and missing media handling                                                                | Version 1                  | 08                    |
+| Narrow window layout (1280 to 1599)                                                                    | Version 1                  | 04                    |
+| NDI output with alpha channel                                                                          | Later                      | 09, open question     |
+| PowerPoint import                                                                                      | Later                      | 09                    |
+| Score display for the congregation                                                                     | Later                      | 09                    |
+| Camera input                                                                                           | Later                      | 09                    |
+| Cloud or multi-machine use                                                                             | Later                      | 09                    |
+| 퀵 실행 shortcuts                                                                                      | Later                      | 09, open question     |
+| Lobby screen                                                                                           | Later                      | 09                    |
+| Installer and in-app updates                                                                           | Later                      | 09, open question     |
+| Scheduled 매크로 (run at a set time)                                                                   | Later                      | 07, open question     |
+| Broadcast streaming and recording                                                                      | Out of scope               | OBS does this         |
+| Musician features (chords, transposition, arrangement versions for players)                            | Out of scope               |                       |
+| Cue-then-take output                                                                                   | Out of scope               | Dropped in version 61 |
+| Loading a 구성 from past services                                                                      | Out of scope               | Dropped in version 61 |
+| Settings stored in the service file (version 62 "scene")                                               | Out of scope               | Dropped in version 63 |
+| 다중 레이어 지우기 (Clear Groups) button                                                               | Out of scope for version 1 | Done with 매크로 (07) |
+
+## Resolving conflicts
+
+| Kind of question                                                                               | What wins                                                     | What to do                                                                                                                                  |
+| ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| UI appearance and component behavior: sizes, colors, states, component keyboard rules, writing | The design system                                             | If a board and the design system differ, follow the design system.                                                                          |
+| Functional behavior and data                                                                   | This spec                                                     | If a design system document describes behavior that differs from this spec, follow this spec, and add the difference to the open questions. |
+| Product decisions                                                                              | `docs/decisions.md`, then the product log, newest first       | A later entry overrides an earlier one. If either has a decision newer than this spec, follow it and ask the lead to update this spec.      |
+| Conflicts between sources                                                                      | The newest decision in `docs/decisions.md` or the product log | This spec follows it and lists the conflict in the open questions.                                                                          |
+
+## Open questions
+
+Each row names a conflict or gap, what this spec does for now, and the files it
+affects.
+
+| #   | Topic                                        | Conflict or gap                                                                                                                                                                                                                                                                                | What this spec does for now                                                                                                   | Files      |
+| --- | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 1   | NDI in version 1                             | The decisions say "방송 자막은 NDI로" (broadcast captions over NDI), and every board labels the 방송 자막 target "NDI". The brief, `docs/HANDOFF.md`, and `docs/PLAN.md` defer NDI.                                                                                                            | Ships the capture window in version 1 and defers NDI.                                                                         | 03, 09     |
+| 2   | Autosave interval                            | The `Prefs` board shows "자동 저장: 1분마다" (autosave every minute). Version 61 and the `Main` decisions say save on every change.                                                                                                                                                            | Saves on every change and drops the setting.                                                                                  | 02, 06     |
+| 3   | 퀵 실행 shortcuts                            | The product log defers them. The `Shortcuts` board shows a 퀵 실행 group (검은 화면 Ctrl B).                                                                                                                                                                                                   | Defers them.                                                                                                                  | 06, 09     |
+| 4   | Bible in version 1, and its data             | An earlier product log entry deferred Bible behavior and said to reuse copible logic with offline data. Version 55 drew the `Bible` board, and `docs/HANDOFF.md` names 개역한글 and KJV. The copible file format isn't documented. 개역개정 needs the Korean Bible Society's permission.       | Includes Bible passages in version 1 with 개역한글 and KJV.                                                                   | 02, 04     |
+| 5   | Enter in the Bible field                     | The `TextField` README says Enter shows the passage. The `Bible` board flow is preview first, then 바로 띄우기 (show now).                                                                                                                                                                     | Builds the preview while the operator types. Enter does the same as 바로 띄우기.                                              | 04         |
+| 6   | A style for Bible passages                   | The `Bible` board names the 본 화면 style "말씀". It's unclear whether Bible passages need their own lyric style.                                                                                                                                                                              | Uses the current Look's lyric style.                                                                                          | 04         |
+| 7   | Editing a 구성 from a 예배 순서 item         | Per version 61, 구성 belong to the song, so editing the chip strip changes that 구성 in every service that uses it. Version 52 said that editing the 라이브러리 song and editing the service's 구성 must differ.                                                                               | Follows version 61. The user should confirm the consequence.                                                                  | 05         |
+| 8   | Start 매크로 reference                       | The `.llservice` sample stores the 매크로 name ("찬양").                                                                                                                                                                                                                                       | Stores the 매크로 ID, with a fallback lookup by name.                                                                         | 02         |
+| 9   | Startup and scheduled 매크로                 | The meaning of 시작할 때 실행 needs confirming. The clock badge shows a scheduled time ("10:30"), but no board shows where to set it.                                                                                                                                                          | Reads 시작할 때 실행 as "run when the app starts" and defers scheduling.                                                      | 07         |
+| 10  | Which stage layout applies                   | Three places choose a stage layout: the Look's 무대 화면 card, the stage layout editor's 배치 select, and the 진행 도구 무대 tab.                                                                                                                                                              | Sets a priority rule.                                                                                                         | 03         |
+| 11  | Preview caption                              | The `PreviewFrame` README calls the caption's right-hand value the "Look name", but the boards show lyric style names ("기본", "현재와 다음", "하단 자막") while the toolbar Look is "평상시".                                                                                                 | Shows the applied lyric style or stage layout name.                                                                           | 04         |
+| 12  | Copying media or referring in place          | The `Media` board shows copy progress, but its file paths point to the original folder.                                                                                                                                                                                                        | Copies imported files into the media folder.                                                                                  | 02, 05     |
+| 13  | Number of screens                            | The 화면 설정 board has a 화면 추가 (add screen) button, but the decisions name exactly three screens, and the preview, toolbar, and status bar assume three.                                                                                                                                  | Keeps three screens and keeps the data open for more.                                                                         | 01, 06     |
+| 14  | Output stability settings in two places      | 환경설정 > 출력 has prevent sleep, always on top, and when disconnected, and so does each screen in 화면 설정.                                                                                                                                                                                 | Treats the 환경설정 values as defaults for new screens.                                                                       | 02, 06     |
+| 15  | Slide deck items                             | The board samples show "설교" (sermon, 12장), "축도" (benediction), and "헌금 기도" (offering prayer) items with a slides icon, and a 설교 slot kind. Version 1 has no way to create such decks.                                                                                               | Treats 축도-like texts as short 라이브러리 songs and leaves the `"slides"` slot unfillable until PowerPoint import.           | 02, 04, 09 |
+| 16  | Editors that no board shows                  | No board shows how to create or edit 메시지 templates, 공지 sets, 소품, 타이머, 퀵 실행 items, stage message presets, or lyric styles, how to rename an 이름표 or set its jump key, how to rename or delete a 구성, or how to delete songs, services, and 틀.                                  | Proposes minimal right-click menus and plus buttons.                                                                          | 04, 05, 06 |
+| 17  | Menus                                        | No source lists the items of the 내보내기 (Export) submenu or of the 편집, 보기, 출력, 창, and 도움말 menus.                                                                                                                                                                                   | Leaves out Export and proposes minimal menus.                                                                                 | 01         |
+| 18  | Toolbar search results                       | No board shows where results appear.                                                                                                                                                                                                                                                           | Proposes a dropdown list that opens a song in the 장 panel (진행) or in the song editor (준비).                               | 04         |
+| 19  | Reports and updates                          | The `Prefs` board shows 오류 보고 보내기 (send error reports), 사용 통계 보내기 (send usage statistics), automatic update checks, and update channels. `docs/TECH.md` keeps crash records on this computer and says the app never updates itself. The installer comes later.                   | Leaves these rows out of version 1.                                                                                           | 06, 09     |
+| 20  | Opening the media view                       | The `Media` board shows both 준비 and 미디어 turned on.                                                                                                                                                                                                                                        | Reads the 미디어 button in 준비 as switching to the media view.                                                               | 01, 05     |
+| 21  | Stage element memo                           | The stage layout editor offers 메모 (memo) as a 장 element's content, but songs have no per-장 memo.                                                                                                                                                                                           | Shows the current 예배 순서 item's memo.                                                                                      | 03         |
+| 22  | Sound effects playlist                       | The 효과음 (sound effects) audio playlist has its own icon. Whether it behaves differently is unknown.                                                                                                                                                                                         | Treats it like any audio playlist.                                                                                            | 05         |
+| 23  | Navigating 화면 설정, and the "사용 중" chip | The boards don't show how the operator moves between screens, Looks, and stage layouts. They mark the item in use with a "사용 중" chip, which the design system's no-status-chips rule forbids.                                                                                               | Stacks three lists in the left column, and marks the item in use in a way the design system allows.                           | 06         |
+| 24  | Transitions and media tabs                   | The design system says Looks and settings decide transitions, but no board has transition settings. The media properties 전환 (transition), 정보 (info), and 소리 (sound) tabs have no content.                                                                                                | Proposes fixed default transitions, shows read-only file information in 정보, and leaves out the 전환 and 소리 tabs.          | 03, 05     |
+| 25  | Text import details                          | The `Prefs` default "첫 줄: 제목" (first line is the title) conflicts with the `ImportText` example, which takes the title from the file name. No board shows where to enter the 기호 (symbol) delimiter. It's unclear whether English bracket labels such as "[Chorus]" map to Korean 이름표. | Uses the file name for files and the first line for clipboard text, proposes a delimiter field, and keeps bracket text as is. | 05         |
+| 26  | Small inconsistencies                        | The `Slider` README gives the thumbnail size as 1 to 5 steps, and the `SlideThumbnail` README gives 2 to 8 columns. The `Reflow` board spells 브릿지, and the design system spells 브리지. `docs/TECH.md` proposes 5 recovery copies, and the `Prefs` board shows 10.                          | Uses 2 to 8 columns, 브리지, and 10 copies.                                                                                   | 02, 04     |
