@@ -1,5 +1,6 @@
 # Review request: `spec-8`
 
+- Review range: `6ff3826...docs/spec/pp-audit`
 - Team member: `spec`
 - Branch: `docs/spec/pp-audit`, stacked on spec-5
   (`docs/spec/decided-shortcuts`) and rebased with it onto `main`
