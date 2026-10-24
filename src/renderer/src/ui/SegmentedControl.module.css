@@ -1,5 +1,5 @@
 .track {
-  --segmented-icon-width: 28px;
+  --segmented-icon-width: var(--size-segment-icon);
 
   display: inline-flex;
   flex: none;

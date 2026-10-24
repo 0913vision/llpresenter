@@ -1,6 +1,6 @@
 .select {
-  --select-media-width: 36px;
-  --select-lead-height: 20px;
+  --select-media-width: var(--size-select-media);
+  --select-lead-height: var(--size-select-lead);
 
   display: inline-flex;
   align-items: center;

@@ -2,11 +2,11 @@
   --slider-fill: var(--text);
   --slider-knob: var(--text);
   --slider-cut: var(--bg-panel);
-  --slider-width: 120px;
-  --slider-width-compact: 96px;
-  --slider-hit-height: 16px;
-  --slider-track-height: 4px;
-  --slider-knob-size: 12px;
+  --slider-width: var(--size-slider);
+  --slider-width-compact: var(--size-slider-compact);
+  --slider-hit-height: var(--size-slider-hit);
+  --slider-track-height: var(--size-slider-track);
+  --slider-knob-size: var(--size-slider-knob);
   --slider-focus-gap: 1px;
   --slider-focus-ring: 2px;
 

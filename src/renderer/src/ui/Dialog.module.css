@@ -1,6 +1,6 @@
 .scrim {
   --modal-side-gap: var(--space-16);
-  --modal-max-height-gap: 64px;
+  --modal-max-height-gap: var(--space-dialog-window-gap);
 
   position: fixed;
   top: var(--size-menubar);

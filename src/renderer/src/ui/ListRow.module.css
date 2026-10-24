@@ -11,7 +11,7 @@
 }
 
 .row {
-  --row-live-bar: 3px;
+  --row-live-bar: var(--size-live-bar);
 
   position: relative;
   display: flex;
@@ -88,7 +88,7 @@
 }
 
 .row:focus-visible {
-  outline-offset: -2px;
+  outline-offset: calc(-1 * var(--space-2));
 }
 
 .row[aria-selected='true'] {
@@ -136,7 +136,7 @@
 }
 
 .group {
-  --group-padding-bottom: 5px;
+  --group-padding-bottom: var(--space-group-label-bottom);
 
   display: flex;
   align-items: center;
@@ -186,7 +186,7 @@
 }
 
 .slot {
-  --slot-height: 24px;
+  --slot-height: var(--size-list-slot);
 
   display: flex;
   flex: 1 1 auto;
@@ -211,10 +211,10 @@
 }
 
 .insert {
-  --insert-line-inset: 12px;
+  --insert-line-inset: var(--space-12);
   --insert-line-height: 2px;
-  --insert-dot-left: 8px;
-  --insert-dot-size: 8px;
+  --insert-dot-left: var(--space-8);
+  --insert-dot-size: var(--size-insert-dot);
 
   position: relative;
   height: 0;
@@ -245,7 +245,7 @@
 }
 
 .ghost {
-  --ghost-width: 220px;
+  --ghost-width: var(--size-drag-ghost);
 
   width: var(--ghost-width);
   padding: 0 var(--space-8) 0 var(--space-10);

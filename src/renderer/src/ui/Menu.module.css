@@ -15,10 +15,10 @@
 }
 
 .menu {
-  --menu-min-width: 180px;
-  --menu-max-width: 320px;
-  --menu-swatch-width: 18px;
-  --menu-swatch-height: 12px;
+  --menu-min-width: var(--size-menu-min);
+  --menu-max-width: var(--size-menu-max);
+  --menu-swatch-width: var(--size-menu-swatch-width);
+  --menu-swatch-height: var(--size-menu-swatch-height);
 
   position: fixed;
   z-index: var(--menu-layer);

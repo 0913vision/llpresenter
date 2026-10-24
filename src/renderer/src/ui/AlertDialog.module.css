@@ -1,5 +1,5 @@
 .alert {
-  --alert-group-padding-bottom: 5px;
+  --alert-group-padding-bottom: var(--space-group-label-bottom);
 
   display: flex;
   flex-direction: column;

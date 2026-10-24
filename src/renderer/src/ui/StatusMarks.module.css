@@ -1,5 +1,5 @@
 .badge {
-  --badge-tracking: 0.04em;
+  --badge-tracking: var(--tracking-badge);
 
   display: inline-flex;
   flex: none;
@@ -16,7 +16,7 @@
 }
 
 .dot {
-  --dot-size: 6px;
+  --dot-size: var(--size-status-dot);
 
   display: inline-block;
   flex: none;
@@ -61,8 +61,8 @@
 }
 
 .progress {
-  --progress-height: 4px;
-  --progress-min-width: 24px;
+  --progress-height: var(--size-progress);
+  --progress-min-width: var(--size-progress-min);
 
   position: relative;
   display: block;

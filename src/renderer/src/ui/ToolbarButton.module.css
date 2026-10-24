@@ -1,7 +1,7 @@
 .button {
-  --toolbar-min-width: 64px;
-  --toolbar-dot-top: -3px;
-  --toolbar-dot-right: -4px;
+  --toolbar-min-width: var(--size-toolbar-button-min);
+  --toolbar-dot-top: calc(-1 * var(--space-output-dot-top));
+  --toolbar-dot-right: calc(-1 * var(--space-4));
 
   position: relative;
   display: inline-flex;

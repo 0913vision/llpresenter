@@ -1,7 +1,7 @@
 .field {
-  --field-number-width: 96px;
-  --field-title-width: 280px;
-  --field-clear-size-sm: 18px;
+  --field-number-width: var(--size-field-number);
+  --field-title-width: var(--size-field-title);
+  --field-clear-size-sm: var(--size-field-clear-sm);
 
   display: inline-flex;
   align-items: center;
@@ -139,7 +139,7 @@
 }
 
 .textarea {
-  --textarea-min-height: 72px;
+  --textarea-min-height: var(--size-textarea-min);
   --textarea-max-lines: 8;
 
   display: block;

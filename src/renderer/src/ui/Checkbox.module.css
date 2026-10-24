@@ -1,9 +1,9 @@
 .check {
-  --check-size: 16px;
+  --check-size: var(--size-checkbox);
   --check-border: 1px;
-  --check-mixed-width: 8px;
+  --check-mixed-width: var(--size-check-mixed);
   --check-mixed-height: 2px;
-  --check-mixed-radius: 1px;
+  --check-mixed-radius: var(--radius-hairline);
 
   position: relative;
   display: inline-flex;
@@ -45,7 +45,7 @@
 }
 
 .row {
-  --check-row-name-width: 168px;
+  --check-row-name-width: var(--size-check-row-name);
 
   display: flex;
   align-items: center;
