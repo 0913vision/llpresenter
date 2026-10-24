@@ -1,13 +1,6 @@
-import {readdir, readFile} from 'node:fs/promises';
 import {extname, join} from 'node:path';
-import type {Result} from '@shared/result';
 import type {FileError, LoadedFile} from '@shared/schema/fileFormat';
-
-/** Reads one file's text the way the schemas do. Never throws. */
-export type ParseFile<T> = (
-  text: string,
-  file: string,
-) => Result<LoadedFile<T>, FileError>;
+import {listFolder, loadFile, type ParseFile} from './readFiles';
 
 /** The files of one folder that loaded, by id, and the ones that didn't. */
 export interface LoadedFolder<T> {
@@ -19,7 +12,8 @@ export interface LoadedFolder<T> {
  * Loads every file with the extension in a folder through its schema. A file
  * that fails is skipped and reported, and so is a second file with an id that
  * another file already has; the rest load. A missing folder holds nothing,
- * as on the first launch. Never throws.
+ * as on the first launch, and a file deleted while the folder loads is left
+ * out. Never throws.
  */
 export async function loadFolder<T extends {readonly id: string}>(
   folder: string,
@@ -39,6 +33,9 @@ export async function loadFolder<T extends {readonly id: string}>(
       problems.push(loaded.error);
       continue;
     }
+    if (loaded.value === null) {
+      continue;
+    }
     const {id} = loaded.value.data;
     if (items.has(id)) {
       problems.push(duplicateProblem(file));
@@ -49,29 +46,6 @@ export async function loadFolder<T extends {readonly id: string}>(
   return {items, problems};
 }
 
-async function listFolder(
-  folder: string,
-): Promise<Result<readonly string[], FileError>> {
-  try {
-    return {ok: true, value: (await readdir(folder)).sort()};
-  } catch (error: unknown) {
-    return isMissing(error)
-      ? {ok: true, value: []}
-      : {ok: false, error: readProblem(folder, error)};
-  }
-}
-
-async function loadFile<T>(
-  file: string,
-  parse: ParseFile<T>,
-): Promise<Result<LoadedFile<T>, FileError>> {
-  try {
-    return parse(await readFile(file, 'utf8'), file);
-  } catch (error: unknown) {
-    return {ok: false, error: readProblem(file, error)};
-  }
-}
-
 function duplicateProblem(file: string): FileError {
   return {
     kind: 'invalid',
@@ -79,13 +53,4 @@ function duplicateProblem(file: string): FileError {
     field: 'id',
     message: 'Another file in the folder already has this id',
   };
-}
-
-function readProblem(file: string, error: unknown): FileError {
-  const message = error instanceof Error ? error.message : String(error);
-  return {kind: 'read', file, field: '', message};
-}
-
-function isMissing(error: unknown): boolean {
-  return error instanceof Error && 'code' in error && error.code === 'ENOENT';
 }
