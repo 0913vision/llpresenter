@@ -40,8 +40,8 @@ function catchUncaughtErrors(report: ErrorReport): () => void {
 
 /**
  * Runs one output window: draws the live state, sends every error to the main
- * log instead of showing it, and reports the frame rate once a second
- * (docs/spec/03-output.md).
+ * log instead of showing it, and reports the frame rate once a second from the
+ * time the first live state is drawn (docs/spec/03-output.md).
  *
  * @returns A function that stops everything it started.
  */
@@ -59,16 +59,25 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
     mediaUrl,
     onError: report,
   });
+  let stopMeter: (() => void) | null = null;
+  const reportFrameRates = (): void => {
+    stopMeter ??= startFrameRateMeter({
+      report: fps => api.output.reportFrameRate({screenId, fps}),
+    });
+  };
+  // NOTE(0913vision): The main process takes the first frame rate report as
+  // the sign that the page drew the live state, so the meter starts only
+  // once the first state is drawn.
   const stopFollowing = followLiveState(
     api.live,
-    state => renderer.render(state.layers),
+    state => {
+      renderer.render(state.layers);
+      reportFrameRates();
+    },
     report,
   );
-  const stopMeter = startFrameRateMeter({
-    report: fps => api.output.reportFrameRate({screenId, fps}),
-  });
   return () => {
-    stopMeter();
+    stopMeter?.();
     stopFollowing();
     renderer.dispose();
     stopCatching();

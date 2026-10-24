@@ -20,10 +20,20 @@ const SHOWING: LiveState = {
   },
 };
 
+const FRAME_MS = 1000 / 60;
+const SECOND_AND_A_BIT_MS = 1100;
+
 let frame: FrameRequestCallback | null = null;
+let frameTime = 0;
+
+function runFramesFor(durationMs: number): void {
+  const end = frameTime + durationMs;
+  for (; frameTime <= end; frameTime += FRAME_MS) frame?.(frameTime);
+}
 
 beforeEach(() => {
   frame = null;
+  frameTime = 0;
   vi.stubGlobal(
     'ResizeObserver',
     class {
@@ -96,10 +106,40 @@ describe('startOutput', () => {
     expect(logs.at(-1)?.detail).toContain('late failure');
   });
 
-  it('reports its frame rate with its screen id', () => {
+  it('reports its frame rate with its screen id once it draws the live state', async () => {
     const {rates} = setUp();
-    for (let time = 0; time <= 1100; time += 1000 / 60) frame?.(time);
+    await vi.waitFor(() => expect(frame).not.toBeNull());
+    runFramesFor(SECOND_AND_A_BIT_MS);
     expect(rates).toEqual([{screenId: 'main', fps: 60}]);
+  });
+
+  it('reports no frame rate while the live state is on its way', async () => {
+    let answer: (state: LiveState) => void = () => undefined;
+    const {root, rates} = setUp({
+      get: () =>
+        new Promise<LiveState>(resolve => {
+          answer = resolve;
+        }),
+    });
+    runFramesFor(SECOND_AND_A_BIT_MS * 3);
+    expect(rates).toEqual([]);
+    answer(SHOWING);
+    await vi.waitFor(() => {
+      expect(root.querySelector(`.${classes.shown}`)?.textContent).toBe(
+        '만복의 근원',
+      );
+    });
+    runFramesFor(SECOND_AND_A_BIT_MS);
+    expect(rates).toEqual([{screenId: 'main', fps: 60}]);
+  });
+
+  it('reports no frame rate when the live state never arrives', async () => {
+    const {logs, rates} = setUp({
+      get: () => Promise.reject(new Error('main process busy')),
+    });
+    await vi.waitFor(() => expect(logs).toHaveLength(1));
+    runFramesFor(SECOND_AND_A_BIT_MS * 3);
+    expect(rates).toEqual([]);
   });
 
   it('stops listening and removes its picture when stopped', () => {
