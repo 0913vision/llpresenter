@@ -6,7 +6,7 @@ Layout and sizes follow the design system and the `ShowH` and `Compact` boards.
 
 Terms: 장 (slide), 예배 순서 (service order), 구성 (arrangement), 이름표
 (label), 본 화면 (main screen), 무대 화면 (stage screen), 방송 자막 (broadcast
-captions), 진행 도구 (show tools), 퀵 실행 (quick run), 소품 (prop), 공지
+captions), 진행 도구 (show tools), 퀵 실행 (quick launch), 소품 (prop), 공지
 (notice), 메시지 (message), 타이머 (timer), 매크로 (macro), 라이브러리
 (library), 준비 (Prep workspace). See 01.
 

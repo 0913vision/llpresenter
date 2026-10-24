@@ -33,7 +33,7 @@ repository (`design/`).
 
 - There are three workspaces: 진행 (Show), 준비 (Prep), and 화면 설정 (Screen
   settings). The library exists only in 준비. The left column of 진행 holds the
-  예배 순서 (service order) and 퀵 실행 (quick run).
+  예배 순서 (service order) and 퀵 실행 (quick launch).
 - There are three screens: 본 화면, 무대 화면, and 방송 자막. The lobby screen
   isn't used for now.
 - The 진행 workspace is a compromise: the ProPresenter-style layout (icon

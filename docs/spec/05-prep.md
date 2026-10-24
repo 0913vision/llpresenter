@@ -8,7 +8,7 @@ media view.
 Terms: 장 (slide), 예배 순서 (service order), 틀 (template), 구성 (arrangement),
 이름표 (label), 라이브러리 (library), 매크로 (macro), 공지 (notice), 본 화면
 (main screen), 무대 화면 (stage screen), 방송 자막 (broadcast captions), 진행
-(Show workspace), 퀵 실행 (quick run). See 01.
+(Show workspace), 퀵 실행 (quick launch). See 01.
 
 ## Layout
 

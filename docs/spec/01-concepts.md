@@ -25,7 +25,7 @@ including the words the app must not use.
 | 방송 자막       | broadcast captions | The lower-third caption screen that OBS picks up.                                                                                 |
 | Look            | Look               | A set that decides, per screen, which layers show and which lyric style or stage layout to use.                                   |
 | 진행 도구       | show tools         | The tabbed panel at the bottom right of the 진행 workspace.                                                                       |
-| 퀵 실행         | quick run          | The list of frequent items at the bottom left of the 진행 workspace.                                                              |
+| 퀵 실행         | quick launch       | The list of frequent items at the bottom left of the 진행 workspace.                                                              |
 | 소품            | prop               | A logo, caption, or notice card that sits above the lyrics.                                                                       |
 | 공지            | notice             | A rotating set of announcement images.                                                                                            |
 | 메시지          | message            | A short text, such as a car number call, sent to chosen screens.                                                                  |
