@@ -157,6 +157,22 @@ cases.
 | `npm run verify` (round 2, on `8e0d3b3`) | Pass at 100% CPU, 196.9 s wall, every step at once: typecheck 41.0 s, lint 84.4 s, format:check 107.5 s, test:coverage 196.7 s, build 8.9 s      |
 | `npm run verify` (round 3, on `3329f81`) | Pass at 87 to 100% CPU, 184.0 s wall, every step at once: typecheck 11.9 s, lint 77.2 s, format:check 70.7 s, test:coverage 183.9 s, build 6.9 s |
 
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (ba9b383, codex4): Request changes with four findings and a nit: the
+  clip maker misread missing arguments, clip generation had no deadline or
+  output cap, non-finite playback data passed, and the scenario imported valibot
+  outside `src/shared/schema/`.
+- Round 2 (1ae3248, codex4): Request changes with two findings: splitting
+  `NODE_OPTIONS` on spaces broke quoted flags, and the hung-tree test could
+  leave processes behind when it failed.
+- Round 3 (44bc7d5): reviewer (Codex, codex4) Approve with no findings. Lead
+  Approve; the soak app starts without `NODE_OPTIONS` (nothing in it is needed,
+  and anything in it would change what the run measures), and every hung test
+  tree ends when its test finishes. Output adds the two `src/main/index.ts`
+  lines from "Wiring for output" in its own branch. Rebased by the lead onto
+  local `main` without conflicts.
+
 ## Team member's reply (round 1)
 
 1.  Codex 1, `slice(-2)`. `parseClipArgs` (`clip-frames.mts`) takes exactly two
