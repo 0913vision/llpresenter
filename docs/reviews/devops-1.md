@@ -494,3 +494,17 @@ Round 3, rebased onto `main` 831e18b. Both new tests fail without their fix.
 Checks after the rebase: `npm run verify` passes in 46.6 s (typecheck 2.6 s,
 lint 11.2 s, format:check 4.7 s, test:coverage 25.5 s, build 2.6 s), 128 unit
 tests.
+
+## Round 3 verdicts (recorded by the lead at merge)
+
+### Review: lead (round 3)
+
+- Verdict: Approve
+- Findings: none.
+
+### Review: reviewer (Codex, round 3)
+
+- Verdict: Approve
+- Findings: none. Both round 2 findings are fixed with regression tests (the
+  rebased commits a7ca07c and 23fc204), and the lowercase prose case remains
+  accepted.
