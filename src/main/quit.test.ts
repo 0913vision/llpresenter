@@ -71,4 +71,41 @@ describe('flushLogBeforeQuit', () => {
     expect(app.quitted).toBe(true);
     expect(console.error).toHaveBeenCalledTimes(1);
   });
+
+  it('quits when the flush fails and leaves no timer', async () => {
+    installFakeClock();
+    vi.spyOn(console, 'error').mockReturnValue(undefined);
+    const failing: Logger = {
+      info: () => undefined,
+      warn: () => undefined,
+      error: () => undefined,
+      flush: () => Promise.reject(new Error('disk gone')),
+    };
+    const app = new FakeApp();
+    flushLogBeforeQuit(app, failing);
+    app.quit();
+    await vi.waitFor(() => expect(app.quitted).toBe(true));
+    expect(vi.getTimerCount()).toBe(0);
+    expect(console.error).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the first deadline when quit is asked again during the flush', async () => {
+    const clock = installFakeClock();
+    vi.spyOn(console, 'error').mockReturnValue(undefined);
+    const stuck: Logger = {
+      info: () => undefined,
+      warn: () => undefined,
+      error: () => undefined,
+      flush: () => new Promise<void>(() => undefined),
+    };
+    const app = new FakeApp();
+    flushLogBeforeQuit(app, stuck);
+    app.quit();
+    await clock.advance(QUIT_FLUSH_LIMIT_MS - 500);
+    app.quit();
+    expect(app.quitted).toBe(false);
+    await clock.advance(500);
+    expect(app.quitted).toBe(true);
+    expect(vi.getTimerCount()).toBe(0);
+  });
 });

@@ -22,17 +22,21 @@ export function flushLogBeforeQuit(
   log: Logger,
   limitMs = QUIT_FLUSH_LIMIT_MS,
 ): void {
-  let flushed = false;
+  let state: 'running' | 'flushing' | 'flushed' = 'running';
   const finish = (problem: unknown): void => {
     if (problem !== null) {
       console.error('quitting before the log reached the disk', problem);
     }
-    flushed = true;
+    state = 'flushed';
     app.quit();
   };
   app.on('will-quit', event => {
-    if (flushed) return;
+    if (state === 'flushed') return;
     event.preventDefault();
+    // NOTE(0913vision): A second quit request while the flush runs waits for
+    // the same flush, so it can't push the time limit out.
+    if (state === 'flushing') return;
+    state = 'flushing';
     flushWithin(log, limitMs).then(
       written => finish(written ? null : `no flush within ${limitMs} ms`),
       (error: unknown) => finish(error),
