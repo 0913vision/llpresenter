@@ -134,3 +134,10 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   later (user). The spec member researches ProPresenter now and writes a
   proposal (`docs/spec/10-shortcuts-and-settings.md`) for the user to decide
   before design and code.
+- 2026-10-24: CI stays as it is (user): `npm run verify` locally is the gate
+  before a merge, and GitHub Actions checks `main` after each push. No GitHub
+  PRs for now.
+- 2026-10-24: Version rules (user): the major version goes up only with the
+  user's permission. `break`, `feat`, and `refactor` raise the minor version;
+  `fix`, `style`, `chore`, and `docs` raise the patch version. devops-2 builds
+  `npm run release` on these rules.

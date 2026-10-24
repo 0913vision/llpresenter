@@ -19,11 +19,13 @@ each), so the version and the changelog can come from them.
      none, starts from the version in `package.json` and the first commit after
      the tag `legacy-2024`,
    - reads the one-line commit subjects since then and decides the next version.
-     Before 1.0.0: `break` and `feat` raise the minor version and `fix` raises
-     the patch version. From 1.0.0 on: `break` raises the major version, `feat`
-     the minor, `fix` the patch. `refactor`, `style`, `docs`, and `chore` alone
-     raise the patch version only when the lead passes a flag; otherwise the
-     script says there is nothing to release,
+     The user's rule: the major version goes up only with the user's permission,
+     through an explicit `--major` flag that the lead passes after the user
+     approves; the commits never raise it on their own. `break`, `feat`, and
+     `refactor` raise the minor version. `fix`, `style`, `chore`, and `docs`
+     raise the patch version. A release with any minor-type commit raises the
+     minor version; otherwise it raises the patch version. With no commits since
+     the last release, the script says there is nothing to release,
    - updates `version` in `package.json` and `package-lock.json`,
    - adds a section to `CHANGELOG.md` with the date and three groups in English,
      as `CLAUDE.md` requires for documents (Breaking changes for `break`,
@@ -33,8 +35,8 @@ each), so the version and the changelog can come from them.
      tag `v<version>`,
    - never pushes. It prints the two push commands for the lead.
 2. Options: `--dry-run` prints the version and the changelog section without
-   changing anything, and `--version <x.y.z>` overrides the computed version
-   (for 1.0.0).
+   changing anything, and `--major` raises the major version (only after the
+   user approves).
 3. Refuse to run when the working tree isn't clean, when the branch isn't
    `main`, or when `npm run verify` fails. Say why in one line.
 4. A commit subject that doesn't match `tag(scope): sentence` stops the release
