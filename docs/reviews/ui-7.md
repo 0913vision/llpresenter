@@ -1,0 +1,210 @@
+# Review request: `ui-7`
+
+- Team member: `ui`
+- Branch: `feat/ui/live-parts`
+- Review range: `99cb546...feat/ui/live-parts` (stacked on ui-4, whose tip is
+  `99cb546`; after ui-4 merges, the range becomes `main...feat/ui/live-parts`)
+- Base commit: `99cb546` (`feat/ui/show-parts`, ui-4)
+- Last commit: the commit that adds this file (see the review request message)
+- Related brief: `docs/briefs/ui.md`, M2 in `docs/MILESTONES.md`
+- Shared changes: 42 new design tokens in `design/system/project/tokens.json`,
+  regenerated into `design/system/project/tokens.css` and copied into
+  `src/renderer/src/styles/tokens.css`; a fourth floating layer, `notification`,
+  in `src/renderer/src/ui/layers.ts`; one rule in the reference CSS
+  `design/system/css/30-panel.css` (rebuilt into `bundle.css`)
+- What to check: the 지우기 row, the preview frame, and the notification cards
+  against their READMEs and `docs/spec/08-problems.md` ("Notifications"); the
+  stack rules in `notices.ts`; that the notification layer stays outside a
+  modal's `inert` and first in the Tab order; that every new behavior has a
+  test; the token names and values
+
+## What changed and why
+
+The parts of the 진행 workspace that M2 needs next, built and checked the same
+way as ui-1 to ui-4: each follows its README in
+`design/system/project/components/` and its reference CSS, ported to a CSS
+module that uses only tokens.
+
+| Component    | Exports                                                                                                   | Notes                                                                                                                                                                               |
+| ------------ | --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ClearButton  | `ClearRow`, `ClearButton`, `ClearUndo`, `clearLabel`, `defaultClearShortcut`                              | The 지우기 row (`role="group"`, name 지우기) and its compact form; one button per `ClearTarget` with its key in the tooltip and `aria-keyshortcuts`; 되돌림 after its divider       |
+| PreviewFrame | `PreviewFrame`, `previewReason`, `smallPreviewName`, `PreviewScreen`, `PreviewStatus`, `PreviewTarget`    | One screen large with its name row, the others small; a click on a small one swaps it in; on, off, and warning states with their tooltip; `renderScreen` draws each screen's output |
+| Notification | `NotificationCard`, `NotificationStack`, `NOTICE_LIFETIME_MS`, `addNotice`, `removeNotice`, `MAX_NOTICES` | Warning and information cards, the 6 second close that waits for the pointer and focus, the stack at the top right that reports the height of its warning cards                     |
+
+Shared pieces:
+
+- `notices.ts`: the stack rules as pure functions. `addNotice` puts a card on
+  top, replaces the card with the same `key` (the same cause, so "disconnected"
+  turns into "reconnected"), and beyond three cards closes the oldest
+  information card first, else the oldest card. `removeNotice` takes one off.
+- `layers.ts`: the `notification` layer. It is the first child of `body`, so the
+  cards come before the right column in the Tab order, and it sits outside the
+  app root, so a modal's `inert` doesn't reach it (spec 08: "their buttons work
+  while a dialog is open").
+
+Also in this branch:
+
+- The component token sweep of the ui-1 and ui-2 modules: every anatomy value
+  that was a literal size is now a token (`size-checkbox`, `size-slider-knob`,
+  `size-menu-min`, `space-tooltip-block`, and so on). 1px and 2px line, ring,
+  and outline widths stay literal (the lead's rule).
+- README wording from spec: KeyCap and TextField (the key recording rules and
+  key names from spec-1 and its correction), ClearButton (where F1 to F7 and
+  Ctrl Z work), and the implementation notes of ClearButton, PreviewFrame, and
+  Notification, rewritten to the real API.
+- The Panel rule that both the Panel and ListRow cards draw: a list body right
+  under the tool row has no top padding (`.tools + .list`), in the module, the
+  reference CSS, and the README.
+- Gallery: sections for ClearButton, PreviewFrame, and Notification; the ui-2
+  gaps that qa listed (Panel "Thumbnail size only (장 panel)", ListRow "준비
+  (counts)", the drag specimen, "Media list", StatusMarks "On an icon, --cut",
+  "Output off", "Status bar", "Zero, hidden", "Inside a media tile"); the
+  LabelChip specimens the ui-3 gallery missed ("Insert", "Insert, hover", "None,
+  hover", the tag "Focus", "Under the 준비 preview"); the ListRow panel
+  specimens now have the card's headers, width (296), and rows.
+
+## Changed files
+
+- `src/renderer/src/ui/`: `ClearButton`, `PreviewFrame`, `Notification`,
+  `notices`, their CSS modules and tests; `layers.ts`, `modalStack.ts` (its
+  TSDoc), `index.ts`; the CSS modules of the token sweep (AlertDialog, Checkbox,
+  Dialog, ListRow, Menu, SegmentedControl, Select, Slider, StatusMarks, Switch,
+  TextField, ToolbarButton, Tooltip) and `Panel.module.css`.
+- `src/renderer/src/ui/gallery/`: the Clear, Preview, and Notification sections
+  (with `PreviewSection.module.css`), and the Panel, ListRow, StatusMarks, and
+  LabelChip sections (with `StatusMarksSection.module.css` and
+  `LabelSection.module.css`); `Gallery.test.tsx`.
+- `src/renderer/src/styles/tokens.css`, `design/system/project/tokens.json`,
+  `design/system/project/tokens.css`: the new tokens.
+- `design/system/css/30-panel.css`,
+  `design/system/project/components/bundle.css`: the Panel rule.
+- The READMEs of ClearButton, KeyCap, Notification, Panel, PreviewFrame, and
+  TextField.
+
+## Checks run
+
+| Command or test                              | Result                                                                            |
+| -------------------------------------------- | --------------------------------------------------------------------------------- |
+| `npm run verify`                             | Pass, 5 steps run at once, 158 s (the new verify prints no test counts on a pass) |
+| `npx vitest run --project renderer` (ui)     | Pass, 42 files, 370 tests                                                         |
+| Gallery beside the preview cards (see below) | Done for every card this branch touches, in Chromium (offscreen Electron)         |
+
+### Comparison with the preview cards
+
+My offscreen script loads each card and its gallery section, puts the pinned
+hover and focus states on the gallery with real input, and compares the computed
+styles of every part.
+
+| Card                                                                   | Result                                                                                                                                                                                                                                           |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| ClearButton                                                            | 12 of 12 identical                                                                                                                                                                                                                               |
+| PreviewFrame, Notification                                             | Checked from screenshots: the same apart from the sample screens; the live stack measured 4px under the toolbar and from the right, 480 wide, cards 4px apart, the layer first in `body`                                                         |
+| Button, IconButton, SegmentedControl, Select, Checkbox, Switch, KeyCap | Every matched specimen identical after the token sweep; the in-context specimens that the ui-1 gallery lacks are listed under "Known gaps"                                                                                                       |
+| ListRow                                                                | 17 of 17 matched; what differs is `box-sizing` (the card's `content-box` heights read 297 where the app's `border-box` reads 309, the same box), the tooltip wrapper of the warning icon, and the drag ghost sitting beside the panel, not in it |
+| LabelChip                                                              | 20 of 20 matched; the two differences are where my script picks the root (the card's swatch or strip against the gallery's row or chip)                                                                                                          |
+| StatusMarks                                                            | 15 of 15 matched; the three dot specimens differ only in the picked root (the card's dot against the gallery's button or status bar), except "Output off" (decision 6)                                                                           |
+| Panel                                                                  | All matched; the gallery's stand-in body (an extra 12px block) shifts the pairing of the parts after it                                                                                                                                          |
+| ToolbarButton                                                          | 26 of 29 matched; the buttons are `inline-flex` where the card's are `flex` (same box), and the output toggles wrap the icon and its dot in one 18px span                                                                                        |
+| Slider                                                                 | 9 of 9 matched; the input inherits its row's `text-3` `color`, which the slider doesn't draw with, and the "Media properties" specimen pairs with the card's switch                                                                              |
+| TextField                                                              | 18 of 18 matched; `outline-offset` differs where no outline is drawn, the card's disabled icon lacks the `:has(:disabled)` color, and the number field's unit wrapper shifts the pairing                                                         |
+
+### Known gaps (for my next branch)
+
+The same script shows card specimens that the ui-1 gallery sections never drew,
+mostly parts shown in their context. I kept them out of this branch so it stays
+focused:
+
+- Button: "Confirmation dialog buttons, md, gap 8, one primary at far right",
+  "In a panel header, sm".
+- IconButton: "Panel header +, 내리기 at row end (hover)", "On/off tools, 비율
+  고정 off, 격자에 맞추기 on", "Dialog close, md".
+- SegmentedControl: "Fill variant in property fields, equal widths, horizontal
+  8", "In a panel header, screen tabs (aria-selected), 구성 picker (radio)".
+- Checkbox: "Group rows, off, hover, focus, disabled", "Inside a dialog, row 30,
+  no hover".
+- Switch: "Switch at the left end of the control cell", "화면 설정 (Screen
+  settings)".
+- ToolbarButton: "Tooltip, on", "Tooltip, off", "Tooltip, no monitor".
+- KeyCap: "Recording a key, TextField sm", "Tooltip, ll-tooltip__key of
+  Tooltip", "Menu, ll-menu__meta of Menu", and two specimens without a label.
+
+## Quality checklist ("Quality bar" in `docs/TECH.md`)
+
+- [x] `npm run verify` passes
+- [x] `npm run format:check` passes
+- [x] Every new behavior has unit tests
+- [x] Values from outside the process are validated with a schema (none here)
+- [x] No `any`, no type assertions that bypass checks, and no `!`
+- [x] Every registered listener is released (the 6 second timer, the
+      ResizeObserver, tooltips)
+- [x] Caches and lists have size caps (the stack keeps at most 3 cards)
+- [x] An exception in the output path doesn't stop the output (not in the output
+      path; `renderScreen` belongs to the caller)
+- [x] Only what's needed re-renders: the stack measures in a layout effect and
+      reports only a changed height
+- [x] The clean code rules in `CLAUDE.md` hold
+- [x] Comments follow `CLAUDE.md` (TSDoc on exported APIs only)
+- [x] The code uses the modern language features that `CLAUDE.md` lists
+- [x] The change is small and focused per commit
+
+## Decisions I made (for the lead to confirm)
+
+1. **The caller keeps the notice list.** `NotificationStack` draws what it gets;
+   `addNotice` and `removeNotice` are pure functions, so shell can keep the list
+   in its store and test the rules without React. An information card calls
+   `onClose` itself after 6 seconds.
+2. **The notification layer goes first in `body`.** The other layers are
+   appended at the end. The cards never take focus, but Tab reaches their
+   buttons before the right column, and the layer stays outside the app root
+   that a modal makes inert.
+3. **PreviewFrame remounts the two screens that swap.** The large frame and the
+   small cell are different elements, so the swapped screens draw their
+   `renderScreen` content again; the output side has no motion, so the swap is
+   instant. Its README says so.
+4. **ClearUndo draws its own divider**, so `ClearRow` takes only `ClearButton`
+   and `ClearUndo` children and needs no divider part.
+5. **Gallery stand-ins** for parts the shell owns: the sample preview screens,
+   the status bar around the dots, and the name row under the 준비 preview, each
+   with a NOTE.
+6. **The output off dot.** The gallery's "Output off" uses `OutputToggle`, which
+   draws no dot, as the ToolbarButton README says ("No dot (don't draw a gray
+   dot)"). The StatusMarks README ("Dot: off ... Toolbar output button") and its
+   card draw a gray dot there. Which one should win? I can fix the other README
+   in my next branch.
+
+## Shared contract change requests
+
+None.
+
+## Where to look
+
+- `src/renderer/src/ui/notices.ts`: the stack rules.
+- `src/renderer/src/ui/Notification.tsx`: the 6 second close and what holds it,
+  and the warning height.
+- `src/renderer/src/ui/PreviewFrame.tsx`: the swap and the state texts.
+- `src/renderer/src/ui/ClearButton.tsx`: the row, the keys, and the off state.
+
+---
+
+Reviewers follow Google's engineering practices: approve a change once it
+improves the overall health of the code, even if it isn't perfect. Request
+changes when a clean code rule or a comment rule is broken, or when tests are
+missing.
+
+## Review: lead
+
+- Verdict: Approve / Request changes
+- Findings:
+
+  1.
+
+## Review: reviewer
+
+- Verdict: Approve / Request changes
+- Findings:
+
+  1.
+
+## Team member's reply
+
+1.
