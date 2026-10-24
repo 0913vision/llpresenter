@@ -1,26 +1,28 @@
-import { resolve } from 'node:path'
-import { defineConfig } from 'electron-vite'
-import react from '@vitejs/plugin-react'
+import {resolve} from 'node:path';
+import {defineConfig} from 'electron-vite';
+import react from '@vitejs/plugin-react';
 
-const shared = { '@shared': resolve('src/shared') }
+const DEFAULT_DEV_PORT = 5173;
 
-// 여러 세션이 동시에 개발 서버를 띄울 수 있게 포트를 환경 변수로 받는다(docs/WORKFLOW.md의 배정표).
-// 포트가 이미 쓰이면 다른 포트로 몰래 옮기지 않고 실패한다.
-const devPort = Number(process.env['LLP_DEV_PORT'] ?? '5173')
+const shared = {'@shared': resolve('src/shared')};
+
+// NOTE(0913vision): Each session gets its own dev server port (the table in
+// docs/WORKFLOW.md). strictPort makes a clash fail instead of silently moving.
+const devPort = Number(process.env['LLP_DEV_PORT'] ?? DEFAULT_DEV_PORT);
 
 export default defineConfig({
   main: {
-    resolve: { alias: shared },
+    resolve: {alias: shared},
   },
   preload: {
-    resolve: { alias: shared },
+    resolve: {alias: shared},
   },
   renderer: {
     resolve: {
-      alias: { ...shared, '@renderer': resolve('src/renderer/src') },
+      alias: {...shared, '@renderer': resolve('src/renderer/src')},
     },
     plugins: [react()],
-    server: { port: devPort, strictPort: true },
+    server: {port: devPort, strictPort: true},
     build: {
       rolldownOptions: {
         input: {
@@ -29,4 +31,4 @@ export default defineConfig({
       },
     },
   },
-})
+});

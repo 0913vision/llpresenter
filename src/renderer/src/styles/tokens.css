@@ -1,5 +1,7 @@
-/* 디자인 시스템 토큰. design/system/project/tokens.css에서 가져왔습니다. 여기서 고치지 말고 그쪽을 고친 뒤 다시 가져옵니다(@font-face 줄은 뺌). */
-:root, [data-theme="dark"] {
+/* NOTE(0913vision): Copied from design/system/project/tokens.css without the
+   @font-face rules. Edit the source and copy it again; never edit this file. */
+:root,
+[data-theme='dark'] {
   --bg-app: #0e0e0e;
   --bg-sunken: #0b0b0b;
   --bg-well: #121212;
@@ -127,16 +129,72 @@
   --z-tooltip: 200;
   --z-dialog: 300;
   --z-notification: 400;
-  --font-ui: "Pretendard Variable", Pretendard, "Segoe UI", "Malgun Gothic", sans-serif;
+  --font-ui:
+    'Pretendard Variable', Pretendard, 'Segoe UI', 'Malgun Gothic', sans-serif;
 }
-.heading { font-family: var(--font-ui); font-size: 16px; line-height: 22px; font-weight: 600; }
-.title { font-family: var(--font-ui); font-size: 13px; line-height: 18px; font-weight: 600; }
-.body { font-family: var(--font-ui); font-size: 13px; line-height: 18px; font-weight: 400; }
-.body-strong { font-family: var(--font-ui); font-size: 13px; line-height: 18px; font-weight: 600; }
-.label { font-family: var(--font-ui); font-size: 12px; line-height: 16px; font-weight: 400; }
-.label-strong { font-family: var(--font-ui); font-size: 12px; line-height: 16px; font-weight: 600; }
-.band { font-family: var(--font-ui); font-size: 12px; line-height: 16px; font-weight: 700; }
-.caption { font-family: var(--font-ui); font-size: 11px; line-height: 14px; font-weight: 400; }
-.caption-strong { font-family: var(--font-ui); font-size: 11px; line-height: 14px; font-weight: 600; }
-.toolbar-label { font-family: var(--font-ui); font-size: 11px; line-height: 14px; font-weight: 500; }
-.micro { font-family: var(--font-ui); font-size: 10px; line-height: 12px; font-weight: 700; }
+.heading {
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 600;
+}
+.title {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 600;
+}
+.body {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 400;
+}
+.body-strong {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 600;
+}
+.label {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+}
+.label-strong {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+}
+.band {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+}
+.caption {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 400;
+}
+.caption-strong {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 600;
+}
+.toolbar-label {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 500;
+}
+.micro {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 700;
+}
