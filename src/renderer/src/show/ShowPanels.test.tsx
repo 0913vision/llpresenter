@@ -4,7 +4,8 @@ import type {LiveCommand} from '@shared/commands';
 import {emptyLiveState} from '@shared/live';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {useLive} from '@renderer/state/live';
-import {openItem, useShow} from '@renderer/state/show';
+import {applyService, openItem, useShow} from '@renderer/state/show';
+import {sampleService, seedSampleService} from './testing/sampleService';
 import {ServiceOrderList} from './ServiceOrderList';
 import {SlideGrid} from './SlideGrid';
 
@@ -36,6 +37,7 @@ function setLiveSlide(itemId: string, position: number): void {
 beforeEach(() => {
   sent.length = 0;
   installApi();
+  seedSampleService();
   useShow.setState({openItemId: null, selectedTile: 0});
   useLive.setState({state: null});
 });
@@ -60,6 +62,32 @@ describe('ServiceOrderList', () => {
     expect(screen.getByText('찬양')).toBeTruthy();
     expect(screen.queryByRole('option', {name: '찬양'})).toBeNull();
     expect(screen.getByRole('option', {name: /아침이 밝아 오네/})).toBeTruthy();
+  });
+
+  it('explains the problem of a row in its tooltip, and only then', () => {
+    applyService({
+      ...sampleService,
+      revision: 2,
+      rows: [
+        {kind: 'song', id: 'ok', title: '정상'},
+        {kind: 'song', id: 'gone', title: '없는 곡', problem: 'missing-song'},
+        {kind: 'unknown', id: 'new', title: '새 항목', problem: 'unknown-kind'},
+      ],
+    });
+    render(<ServiceOrderList />);
+    expect(screen.getByRole('option', {name: /정상/}).title).toBe('');
+    expect(screen.getByRole('option', {name: /없는 곡/}).title).toBe(
+      '곡 파일을 찾을 수 없습니다.',
+    );
+    expect(screen.getByRole('option', {name: /새 항목/}).title).toBe(
+      '이 버전에서 알 수 없는 항목입니다.',
+    );
+  });
+
+  it('shows no rows while no service is open', () => {
+    applyService(null);
+    render(<ServiceOrderList />);
+    expect(screen.queryAllByRole('option')).toHaveLength(0);
   });
 
   it('selects an item on click without outputting anything', () => {

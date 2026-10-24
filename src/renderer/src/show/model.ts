@@ -1,9 +1,14 @@
 import type {LabelColor} from '@shared/colors';
+import type {showRowProblems} from '@shared/schema/showService';
 
 /** Id of a row in the 예배 순서 (service order). */
 export type ItemId = string;
 
-export type ItemKind = 'song' | 'bible' | 'media' | 'notice' | 'slot';
+/** Why a row shows a warning; the data layer decides it. */
+export type RowProblem = (typeof showRowProblems)[number];
+
+export type ItemKind =
+  'song' | 'bible' | 'media' | 'notice' | 'slot' | 'unknown';
 
 export interface HeaderRow {
   readonly kind: 'header';
@@ -15,6 +20,7 @@ export interface ItemRow {
   readonly kind: ItemKind;
   readonly id: ItemId;
   readonly title: string;
+  readonly problem?: RowProblem;
 }
 
 export type ServiceRow = HeaderRow | ItemRow;

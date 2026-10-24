@@ -59,3 +59,8 @@
   font: var(--type-micro);
   line-height: var(--size-badge);
 }
+
+.warning {
+  flex: none;
+  color: var(--warning);
+}

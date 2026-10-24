@@ -2,6 +2,7 @@ import {Fragment, type JSX, type ReactNode} from 'react';
 import {ClearRow} from '@renderer/show/ClearRow';
 import {PreviewPanel} from '@renderer/show/PreviewPanel';
 import {ServiceOrderList} from '@renderer/show/ServiceOrderList';
+import {ReadOnlyMark} from '@renderer/show/ReadOnlyMark';
 import {
   SlidePanelBody,
   SlidePanelMeta,
@@ -78,7 +79,7 @@ function ShowShortcuts(): null {
 function showPanelParts(title: string, sizeClass: SizeClass): PanelParts {
   switch (title) {
     case '예배 순서':
-      return {body: <ServiceOrderList />};
+      return {body: <ServiceOrderList />, meta: <ReadOnlyMark />};
     case '미리보기':
       return {
         size: 'content',

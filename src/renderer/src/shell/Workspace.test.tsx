@@ -2,6 +2,7 @@ import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {isColumnDragActive} from '@renderer/state/drag';
 import * as showState from '@renderer/state/show';
+import {seedSampleService} from '@renderer/show/testing/sampleService';
 import {createMemoryColumnWidthStore} from './columnWidthStore';
 import {Workspace} from './Workspace';
 
@@ -51,6 +52,7 @@ function dragGap(gap: HTMLElement, fromX: number, toX: number): void {
 }
 
 beforeEach(() => {
+  seedSampleService();
   setWindowWidth(1920);
   HTMLElement.prototype.setPointerCapture = vi.fn();
 });

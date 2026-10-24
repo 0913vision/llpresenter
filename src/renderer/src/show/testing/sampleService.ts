@@ -1,9 +1,9 @@
 import type {LabelColor} from '@shared/colors';
-import type {ItemId, ServiceRow, SlideTile} from './model';
+import type {ShowService} from '@shared/schema/showService';
+import {applyService} from '@renderer/state/show';
+import type {ItemId, ServiceRow, SlideTile} from '../model';
 
-// TODO(0913vision): Replace this invented service with the open 예배 순서 from
-// the data layer once the main process serves it.
-export const sampleRows: readonly ServiceRow[] = [
+const sampleRows: readonly ServiceRow[] = [
   {kind: 'header', id: 'before', title: '예배 전'},
   {kind: 'media', id: 'countdown', title: '예배 전 카운트다운'},
   {kind: 'header', id: 'praise', title: '찬양'},
@@ -50,7 +50,7 @@ const psalm = [
   tile(null, '쉴 만한 물 가으로 인도하시는도다'),
 ];
 
-export const sampleTiles: Readonly<Record<ItemId, readonly SlideTile[]>> = {
+const sampleTiles: Readonly<Record<ItemId, readonly SlideTile[]>> = {
   'song-morning': morning,
   'song-river': river,
   'psalm-23': psalm,
@@ -58,10 +58,24 @@ export const sampleTiles: Readonly<Record<ItemId, readonly SlideTile[]>> = {
   'notice-sunday': [tile(null, '주일 광고')],
 };
 
-// TODO(0913vision): Read the jump keys from `labels.json` (`.key`, stored as a
-// `code`) once the data layer serves the 이름표 list.
-export const sampleJumpKeys: Readonly<Record<string, string>> = {
+const sampleJumpKeys: Readonly<Record<string, string>> = {
   KeyC: '후렴',
   Digit1: '1절',
   Digit2: '2절',
 };
+
+export const sampleService: ShowService = {
+  revision: 1,
+  id: 'sample',
+  name: '주일 예배',
+  readOnly: false,
+  rows: sampleRows,
+  tiles: sampleTiles,
+  jumpKeys: sampleJumpKeys,
+};
+
+/** Opens the invented sample service in the show store, for tests. */
+export function seedSampleService(): void {
+  applyService(null);
+  applyService(sampleService);
+}

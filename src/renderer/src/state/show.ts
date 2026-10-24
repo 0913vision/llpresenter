@@ -1,4 +1,5 @@
 import {create} from 'zustand';
+import type {ShowService} from '@shared/schema/showService';
 import {sizeClasses} from '@shared/schema/appConfig';
 import {COLUMN_LIMITS, type UiState} from '@shared/schema/uiState';
 import {
@@ -21,17 +22,18 @@ import {
 } from '@renderer/show/navigation';
 import {slideLayerOf} from '@renderer/show/slideLayer';
 import {
-  sampleJumpKeys,
-  sampleRows,
-  sampleTiles,
-} from '@renderer/show/sampleService';
-import {
   defaultThumbnailColumns,
   type SizeClass,
 } from '@renderer/shell/sizeClass';
 import {sendLive, useLive} from './live';
 
 interface ShowView {
+  /** The revision of the service shown, or null while none is open. */
+  readonly revision: number | null;
+  readonly serviceId: string | null;
+  readonly serviceName: string;
+  /** The 예배 순서 file is from a newer app version and can't be edited. */
+  readonly readOnly: boolean;
   readonly rows: readonly ServiceRow[];
   readonly tiles: Readonly<Record<ItemId, readonly SlideTile[]>>;
   /** The item open in the 장 panel. */
@@ -45,13 +47,21 @@ interface ShowView {
 
 const noTiles: readonly SlideTile[] = [];
 
+const noService = {
+  revision: null,
+  serviceId: null,
+  serviceName: '',
+  readOnly: false,
+  rows: [],
+  tiles: {},
+  jumpKeys: {},
+} as const satisfies Partial<ShowView>;
+
 export const useShow = create<ShowView>(() => ({
-  rows: sampleRows,
-  tiles: sampleTiles,
+  ...noService,
   openItemId: null,
   selectedTile: 0,
   thumbnailColumns: {},
-  jumpKeys: sampleJumpKeys,
 }));
 
 export function tilesOf(itemId: ItemId): readonly SlideTile[] {
@@ -197,4 +207,66 @@ export function revealLiveItem(): void {
   const {rows, openItemId} = useShow.getState();
   const target = liveItem({rows, live: liveCursor(), current: openItemId});
   if (target !== null) openItem(target);
+}
+
+function isStale(service: ShowService): boolean {
+  const {revision, serviceId} = useShow.getState();
+  return (
+    revision !== null && serviceId === service.id && service.revision < revision
+  );
+}
+
+function keptSelection(
+  service: ShowService,
+): Pick<ShowView, 'openItemId' | 'selectedTile'> {
+  const {openItemId, selectedTile} = useShow.getState();
+  const stillThere =
+    openItemId !== null && service.rows.some(row => row.id === openItemId);
+  if (!stillThere) return {openItemId: null, selectedTile: 0};
+  const last = Math.max(0, (service.tiles[openItemId]?.length ?? 0) - 1);
+  return {openItemId, selectedTile: Math.min(selectedTile, last)};
+}
+
+/**
+ * Shows the open 예배 순서 the main process sent, or none when it is null. A
+ * revision older than the one shown is dropped. The open item and the selected
+ * tile stay when the item is still there.
+ */
+export function applyService(service: ShowService | null): void {
+  if (service === null) {
+    useShow.setState({...noService, openItemId: null, selectedTile: 0});
+    return;
+  }
+  if (isStale(service)) return;
+  useShow.setState({
+    revision: service.revision,
+    serviceId: service.id,
+    serviceName: service.name,
+    readOnly: service.readOnly,
+    rows: service.rows,
+    tiles: service.tiles,
+    jumpKeys: service.jumpKeys,
+    ...keptSelection(service),
+  });
+}
+
+function logServiceFailure(error: unknown): void {
+  window.llp?.log.write({
+    level: 'error',
+    message: 'could not read the open service',
+    detail: error instanceof Error ? (error.stack ?? error.message) : '',
+  });
+}
+
+/**
+ * Starts mirroring the open 예배 순서 of the main process.
+ *
+ * @returns A function that stops mirroring. Always call it.
+ */
+export function startServiceSync(): () => void {
+  const api = window.llp;
+  if (api === undefined) return () => undefined;
+  const unsubscribe = api.service.subscribe(applyService);
+  api.service.get().then(applyService, logServiceFailure);
+  return unsubscribe;
 }

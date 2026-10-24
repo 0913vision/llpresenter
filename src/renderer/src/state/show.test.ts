@@ -17,6 +17,7 @@ import {
   outputTile,
   useShow,
 } from './show';
+import {seedSampleService} from '@renderer/show/testing/sampleService';
 
 const sent: LiveCommand[] = [];
 
@@ -44,6 +45,7 @@ function setLive(itemId: string, position: number): void {
 beforeEach(() => {
   sent.length = 0;
   installApi();
+  seedSampleService();
   useShow.setState({openItemId: null, selectedTile: 0});
   useLive.setState({state: null});
 });

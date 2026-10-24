@@ -8,6 +8,7 @@ import {
   useShow,
   useThumbnailColumns,
 } from '@renderer/state/show';
+import {seedSampleService} from './testing/sampleService';
 import {
   SlidePanelBody,
   SlidePanelMeta,
@@ -36,6 +37,7 @@ function Columns({
 }
 
 beforeEach(() => {
+  seedSampleService();
   useShow.setState({openItemId: null, selectedTile: 0, thumbnailColumns: {}});
   useLive.setState({state: null});
 });

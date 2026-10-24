@@ -1,0 +1,4 @@
+.mark {
+  display: inline-flex;
+  color: var(--warning);
+}

@@ -2,7 +2,12 @@ import {memo, useEffect, useRef, type JSX, type KeyboardEvent} from 'react';
 import {Icon} from '@renderer/ui/Icon';
 import {moveRow, openItem, useShow} from '@renderer/state/show';
 import {useLive} from '@renderer/state/live';
-import {isItemRow, type ItemKind, type ServiceRow} from './model';
+import {
+  isItemRow,
+  type ItemKind,
+  type RowProblem,
+  type ServiceRow,
+} from './model';
 import type {RowKey} from './navigation';
 import styles from './ServiceOrderList.module.css';
 
@@ -12,6 +17,15 @@ const iconByKind: Readonly<Record<ItemKind, string>> = {
   media: 'film',
   notice: 'notice',
   slot: 'listplus',
+  unknown: 'filex',
+};
+
+const problemTips: Readonly<Record<RowProblem, string>> = {
+  'missing-song': '곡 파일을 찾을 수 없습니다.',
+  'missing-background': '배경 파일을 찾을 수 없습니다.',
+  'missing-media': '미디어 파일을 찾을 수 없습니다.',
+  'unknown-kind': '이 버전에서 알 수 없는 항목입니다.',
+  'newer-version': '새 버전의 파일이라 읽기 전용으로 엽니다.',
 };
 
 const rowKeys: Readonly<Record<string, RowKey>> = {
@@ -47,11 +61,15 @@ const Row = memo(
         tabIndex={tabStop ? 0 : -1}
         aria-selected={selected}
         data-state={live ? 'live' : undefined}
+        title={row.problem === undefined ? undefined : problemTips[row.problem]}
         className={styles.row}
         onClick={() => openItem(row.id)}
       >
         <Icon name={iconByKind[row.kind]} size={16} className={styles.icon} />
         <span className={styles.title}>{row.title}</span>
+        {row.problem === undefined ? null : (
+          <Icon name="warning" size={16} className={styles.warning} />
+        )}
         {live ? <span className={styles.badge}>LIVE</span> : null}
       </button>
     );

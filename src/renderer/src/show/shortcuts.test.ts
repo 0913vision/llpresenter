@@ -1,6 +1,7 @@
 import {renderHook} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {setColumnDragActive} from '@renderer/state/drag';
+import {seedSampleService} from './testing/sampleService';
 import * as showState from '@renderer/state/show';
 import {
   handleShowFocusIn,
@@ -53,6 +54,7 @@ function appendTo(tag: string, attributes: Record<string, string> = {}) {
 }
 
 beforeEach(() => {
+  seedSampleService();
   vi.spyOn(showState, 'outputNext').mockImplementation(() => undefined);
   vi.spyOn(showState, 'outputPrevious').mockImplementation(() => undefined);
   vi.spyOn(showState, 'outputLabel').mockImplementation(() => undefined);
