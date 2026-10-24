@@ -138,19 +138,13 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (374522b): reviewer (Codex, codex3) Approve, no findings. Lead
+  Approve. output builds the restart-limit card and the preview's amber outline
+  on these contracts. The verify run hit the lint and build race in the new
+  parallel verify, which devops fixes in devops-14. Rebased by the lead onto
+  local `main` without conflicts.
 
 ## Team member's reply
 
