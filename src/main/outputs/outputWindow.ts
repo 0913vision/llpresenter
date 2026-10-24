@@ -92,7 +92,6 @@ export class OutputWindow {
     this.visible = true;
   }
 
-  /** Whether the visible window must move or change for the placement. */
   private changes(placement: ShownPlacement): boolean {
     if (placement.kind === 'window') return this.applied?.kind !== 'window';
     return !sameFullScreen(this.applied, placement);
