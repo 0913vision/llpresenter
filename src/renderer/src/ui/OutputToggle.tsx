@@ -3,6 +3,7 @@ import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {objectParticle} from './korean';
 import {pressHandler} from './press';
+import {StatusDot} from './StatusMarks';
 import {toolbarIconSize} from './toolbarLook';
 import styles from './ToolbarButton.module.css';
 
@@ -80,7 +81,13 @@ export function OutputToggle({
           size={toolbarIconSize(compact)}
           className={styles.outputIcon}
         />
-        {state === 'off' ? null : <span className={styles.dot} />}
+        {state === 'off' ? null : (
+          <StatusDot
+            tone={state === 'warning' ? 'warning' : 'live'}
+            cut
+            className={styles.dot}
+          />
+        )}
       </span>
       <span className={styles.label}>{label}</span>
     </button>

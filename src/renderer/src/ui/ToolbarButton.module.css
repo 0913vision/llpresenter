@@ -1,6 +1,5 @@
 .button {
   --toolbar-min-width: 64px;
-  --toolbar-dot-size: 6px;
   --toolbar-dot-top: -3px;
   --toolbar-dot-right: -4px;
 
@@ -91,16 +90,7 @@
   position: absolute;
   top: var(--toolbar-dot-top);
   right: var(--toolbar-dot-right);
-  width: var(--toolbar-dot-size);
-  height: var(--toolbar-dot-size);
-  border-radius: var(--radius-full);
-  background: var(--live);
-  box-shadow: var(--ring-dot-cut);
   transition: box-shadow var(--motion-hover);
-}
-
-.output[data-state='warning'] .dot {
-  background: var(--warning);
 }
 
 .button:not([aria-disabled='true']):hover .dot {
