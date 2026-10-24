@@ -99,3 +99,15 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   tokens: `--motion-hover` (100ms ease-out), `--motion-popover` (120ms
   ease-out), and `--motion-dialog` (160ms ease-out), generated from a new
   `motion` family in `tokens.json` (asked by ui).
+- 2026-10-24: Lint with TypeScript 7 (asked by devops). typescript-eslint 8.72.0
+  supports only `typescript >=4.8.4 <6.1.0`, and TypeScript 7 has no JS API
+  until 7.1, so `typescript` is aliased to `@typescript/typescript6@6.0.2`
+  (binary `tsc6`) for typescript-eslint and the editor, and TypeScript 7 stays
+  as `@typescript/native` (`npm:typescript@7.0.2`), which provides `tsc` for
+  `npm run typecheck`. `@eslint/js` is added (exact pin) for ESLint's core
+  recommended rules. gts isn't used: it brings ESLint 9, runs Prettier inside
+  ESLint, and turns off `no-non-null-assertion`. Revisit when typescript-eslint
+  supports TypeScript 7.
+- 2026-10-24: `tsconfig.node.json` includes `test/**/*` (shared test helpers)
+  and sets `rewriteRelativeImportExtensions`, so scripts that Node runs directly
+  can import siblings as `./x.ts`.

@@ -19,7 +19,8 @@
     "skipLibCheck": true,
     "paths": {
       "@shared/*": ["./src/shared/*"]
-    }
+    },
+    "rewriteRelativeImportExtensions": true
   },
   "include": [
     "electron.vite.config.ts",
@@ -27,6 +28,7 @@
     "src/main/**/*",
     "src/preload/**/*",
     "src/shared/**/*",
-    "scripts/**/*"
+    "scripts/**/*",
+    "test/**/*"
   ]
 }
