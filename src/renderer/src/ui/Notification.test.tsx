@@ -152,6 +152,21 @@ describe('NotificationStack', () => {
     dialog.remove();
   });
 
+  it('gives an information card that replaces another its full six seconds', async () => {
+    const clock = installFakeClock();
+    const onClose = vi.fn<(key: string) => void>();
+    const {rerender} = render(
+      <NotificationStack notices={[back]} onClose={onClose} />,
+    );
+    await letTimePass(clock, NOTICE_LIFETIME_MS - 1000);
+    const again: Notice = {...back, time: '11:31'};
+    rerender(<NotificationStack notices={[again]} onClose={onClose} />);
+    await letTimePass(clock, NOTICE_LIFETIME_MS - 1);
+    expect(onClose).not.toHaveBeenCalled();
+    await letTimePass(clock, 1);
+    expect(onClose.mock.calls).toEqual([['screen:main']]);
+  });
+
   it('takes a closed card off', async () => {
     render(<Stack initial={[lost, back]} />);
     await userEvent.click(

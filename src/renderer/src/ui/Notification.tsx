@@ -54,13 +54,15 @@ function useHeld(): {
   };
 }
 
+// NOTE(0913vision): The timer follows the notice object, so a notice that
+// replaces a card with the same cause gets its full six seconds again.
 function useLifetime(notice: Notice, held: boolean, close: () => void): void {
   const expire = useEffectEvent(close);
   useEffect(() => {
     if (notice.kind !== 'info' || held) return undefined;
     const timer = setTimeout(expire, NOTICE_LIFETIME_MS);
     return () => clearTimeout(timer);
-  }, [notice.kind, notice.key, held]);
+  }, [notice, held]);
 }
 
 function Meta({values}: {readonly values: readonly string[]}): JSX.Element {
@@ -178,7 +180,10 @@ function useWarningHeight(
 }
 
 export interface NotificationStackProps {
-  /** The cards, newest first; build the list with `addNotice`. */
+  /**
+   * The cards, newest first; build the list with `addNotice`. Keep each notice
+   * object while its card shows: a new object starts its six seconds again.
+   */
   readonly notices: readonly Notice[];
   /** The narrow window form: under the 40px toolbar, 360 wide. */
   readonly compact?: boolean | undefined;
