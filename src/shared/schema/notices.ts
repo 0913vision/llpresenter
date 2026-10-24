@@ -10,18 +10,23 @@ import {
 } from './fileFormat';
 import {mediaIdSchema, noticeSetIdSchema, screenIdSchema} from './ids';
 import type {MigrationStep} from './migration';
-import {listWithUniqueIds, positiveInteger, positiveNumber} from './primitives';
+import {
+  jsonObject,
+  listWithUniqueIds,
+  positiveInteger,
+  positiveSeconds,
+} from './primitives';
 
-const noticeSetSchema = v.looseObject({
+const noticeSetSchema = jsonObject({
   id: noticeSetIdSchema,
   name: v.string(),
   media: v.array(mediaIdSchema),
-  interval: positiveNumber,
+  interval: positiveSeconds,
   loop: v.boolean(),
   targets: v.array(screenIdSchema),
 });
 
-const noticesSchema = v.looseObject({
+const noticesSchema = jsonObject({
   format: v.literal('llsettings.notices'),
   schemaVersion: positiveInteger,
   sets: listWithUniqueIds(noticeSetSchema),

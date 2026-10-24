@@ -39,6 +39,7 @@ describe('parseNotices', () => {
 
   it.each([
     ['an interval of 0', {interval: 0}, 'sets.0.interval'],
+    ['an interval that is text', {interval: '8'}, 'sets.0.interval'],
     ['an image path', {media: ['공지/1.png']}, 'sets.0.media.0'],
     ['no target list', {targets: 'all'}, 'sets.0.targets'],
     ['a loop that is text', {loop: 'yes'}, 'sets.0.loop'],

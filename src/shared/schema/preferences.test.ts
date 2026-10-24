@@ -44,6 +44,7 @@ describe('parsePreferences', () => {
 
   it.each([
     ['a language without a translation', {language: 'en'}, 'language'],
+    ['a backup group that is an array', {backup: []}, 'backup'],
     ['zero recovery copies', {backupCopies: 0}, 'backupCopies'],
     ['a frame rate that is text', {previewFps: '30'}, 'previewFps'],
     [

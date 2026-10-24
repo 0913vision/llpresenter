@@ -11,9 +11,10 @@ import {
 import {timerIdSchema} from './ids';
 import type {MigrationStep} from './migration';
 import {
+  jsonObject,
   listWithUniqueIds,
   positiveInteger,
-  positiveNumber,
+  positiveSeconds,
   timeOfDay,
 } from './primitives';
 
@@ -28,7 +29,7 @@ const timerSchema = v.variant('kind', [
   v.looseObject({
     ...timerFields,
     kind: v.literal('countdown'),
-    duration: positiveNumber,
+    duration: positiveSeconds,
   }),
   v.looseObject({
     ...timerFields,
@@ -38,7 +39,7 @@ const timerSchema = v.variant('kind', [
   v.looseObject({...timerFields, kind: v.literal('clock')}),
 ]);
 
-const timersSchema = v.looseObject({
+const timersSchema = jsonObject({
   format: v.literal('llsettings.timers'),
   schemaVersion: positiveInteger,
   timers: listWithUniqueIds(timerSchema),

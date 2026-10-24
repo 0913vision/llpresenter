@@ -92,6 +92,10 @@ describe('parseQuick', () => {
     expectInvalidField(codec, quickFile([item]), field);
   });
 
+  it('rejects an item that is an array', () => {
+    expectInvalidField(codec, quickFile([[]]), 'items.0');
+  });
+
   it('rejects two items with the same id', () => {
     const song = {id: itemId(1), name: '곡', kind: 'song', ref: SONG_ID};
 

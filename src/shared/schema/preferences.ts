@@ -9,14 +9,14 @@ import {
   type ReadonlyKnown,
 } from './fileFormat';
 import type {MigrationStep} from './migration';
-import {positiveInteger} from './primitives';
+import {jsonObject, positiveInteger} from './primitives';
 
 const PREFERENCES_FORMAT = 'llsettings.preferences';
 
 const optionalBoolean = v.exactOptional(v.boolean());
 const optionalCount = v.exactOptional(positiveInteger);
 
-const preferencesSchema = v.looseObject({
+const preferencesSchema = jsonObject({
   format: v.literal(PREFERENCES_FORMAT),
   schemaVersion: positiveInteger,
   language: v.exactOptional(v.picklist(['ko'])),
@@ -29,19 +29,19 @@ const preferencesSchema = v.looseObject({
   hardwareAcceleration: optionalBoolean,
   previewFps: optionalCount,
   backup: v.exactOptional(
-    v.looseObject({auto: optionalBoolean, keep: optionalCount}),
+    jsonObject({auto: optionalBoolean, keep: optionalCount}),
   ),
   bible: v.exactOptional(
-    v.looseObject({
+    jsonObject({
       verseNumbers: optionalBoolean,
       maxLines: optionalCount,
       sourcePosition: v.exactOptional(v.picklist(['bottomRight'])),
     }),
   ),
   import: v.exactOptional(
-    v.looseObject({
+    jsonObject({
       txt: v.exactOptional(
-        v.looseObject({
+        jsonObject({
           split: v.exactOptional(
             v.picklist(['blankLine', 'lineBreak', 'symbol']),
           ),

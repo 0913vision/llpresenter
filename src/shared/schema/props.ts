@@ -10,10 +10,10 @@ import {
 } from './fileFormat';
 import {mediaIdSchema, propIdSchema, screenIdSchema} from './ids';
 import type {MigrationStep} from './migration';
-import {listWithUniqueIds, positiveInteger} from './primitives';
+import {jsonObject, listWithUniqueIds, positiveInteger} from './primitives';
 import {lyricTextEntries} from './textStyle';
 
-const propSchema = v.looseObject({
+const propSchema = jsonObject({
   id: propIdSchema,
   name: v.string(),
   content: v.variant('kind', [
@@ -21,13 +21,13 @@ const propSchema = v.looseObject({
     v.looseObject({
       kind: v.literal('text'),
       text: v.string(),
-      style: v.looseObject(lyricTextEntries),
+      style: jsonObject(lyricTextEntries),
     }),
   ]),
   targets: v.array(screenIdSchema),
 });
 
-const propsSchema = v.looseObject({
+const propsSchema = jsonObject({
   format: v.literal('llsettings.props'),
   schemaVersion: positiveInteger,
   props: listWithUniqueIds(propSchema),

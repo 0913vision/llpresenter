@@ -18,7 +18,7 @@ import {
 } from './ids';
 import {isKnownKind, kindsWithUnknown} from './kinds';
 import type {MigrationStep} from './migration';
-import {listWithUniqueIds, positiveInteger} from './primitives';
+import {jsonObject, listWithUniqueIds, positiveInteger} from './primitives';
 
 /** The 퀵 실행 item kinds. `black` outputs a black screen and has no `ref`. */
 export const quickItemKinds = [
@@ -35,35 +35,35 @@ export type QuickItemKind = (typeof quickItemKinds)[number];
 const itemFields = {id: quickItemIdSchema, name: v.string()};
 
 const itemSchemas = {
-  song: v.looseObject({
+  song: jsonObject({
     ...itemFields,
     kind: v.literal('song'),
     ref: songIdSchema,
   }),
-  bible: v.looseObject({
+  bible: jsonObject({
     ...itemFields,
     kind: v.literal('bible'),
     ref: biblePassageSchema,
   }),
-  prop: v.looseObject({
+  prop: jsonObject({
     ...itemFields,
     kind: v.literal('prop'),
     ref: propIdSchema,
   }),
-  timer: v.looseObject({
+  timer: jsonObject({
     ...itemFields,
     kind: v.literal('timer'),
     ref: timerIdSchema,
   }),
-  macro: v.looseObject({
+  macro: jsonObject({
     ...itemFields,
     kind: v.literal('macro'),
     ref: macroIdSchema,
   }),
-  black: v.looseObject({...itemFields, kind: v.literal('black')}),
+  black: jsonObject({...itemFields, kind: v.literal('black')}),
 };
 
-const quickSchema = v.looseObject({
+const quickSchema = jsonObject({
   format: v.literal('llsettings.quick'),
   schemaVersion: positiveInteger,
   items: listWithUniqueIds(

@@ -10,7 +10,12 @@ import {
 } from './fileFormat';
 import {messageTemplateIdSchema, screenIdSchema} from './ids';
 import type {MigrationStep} from './migration';
-import {listWithUniqueIds, positiveInteger, seconds} from './primitives';
+import {
+  jsonObject,
+  listWithUniqueIds,
+  positiveInteger,
+  seconds,
+} from './primitives';
 
 /** Screens that a 메시지 goes to: a list of screens, or every screen. */
 export const messageTargetsSchema = v.union([
@@ -21,7 +26,7 @@ export const messageTargetsSchema = v.union([
 /** How long a 메시지 shows, in seconds, or `null` until it is cleared. */
 export const messageDurationSchema = v.nullable(seconds);
 
-const templateSchema = v.looseObject({
+const templateSchema = jsonObject({
   id: messageTemplateIdSchema,
   name: v.string(),
   icon: v.picklist(['msg', 'user']),
@@ -30,7 +35,7 @@ const templateSchema = v.looseObject({
   duration: v.exactOptional(messageDurationSchema),
 });
 
-const messagesSchema = v.looseObject({
+const messagesSchema = jsonObject({
   format: v.literal('llsettings.messages'),
   schemaVersion: positiveInteger,
   templates: listWithUniqueIds(templateSchema),

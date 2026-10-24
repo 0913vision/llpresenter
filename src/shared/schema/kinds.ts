@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import {isRecord} from '../guards';
-import {nonBlankText} from './primitives';
+import {jsonObject, nonBlankText} from './primitives';
 
 /**
  * A schema for objects told apart by their `kind` value. It picks the schema
@@ -14,10 +14,10 @@ import {nonBlankText} from './primitives';
  */
 export function kindsWithUnknown<
   TKind extends string,
-  TSchemas extends {readonly [Kind in TKind]: v.GenericSchema},
+  TSchemas extends Readonly<Record<TKind, v.GenericSchema>>,
   TEntries extends v.ObjectEntries,
 >(kinds: readonly TKind[], schemas: TSchemas, sharedEntries: TEntries) {
-  const unknownKindSchema = v.looseObject({
+  const unknownKindSchema = jsonObject({
     ...sharedEntries,
     kind: v.pipe(nonBlankText, v.notValues(kinds)),
   });

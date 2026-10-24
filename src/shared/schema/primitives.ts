@@ -33,6 +33,9 @@ export const percent = v.pipe(
 /** A time span in seconds. */
 export const seconds = v.pipe(nonNegativeNumber, v.flavor('Seconds'));
 
+/** A time span in seconds that is more than 0. */
+export const positiveSeconds = v.pipe(positiveNumber, v.flavor('Seconds'));
+
 /** A position in px, which can be negative. */
 export const pixelPosition = v.pipe(finiteNumber, v.flavor('Pixels'));
 

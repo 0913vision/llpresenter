@@ -1,4 +1,5 @@
 import {describe, expectTypeOf, it} from 'vitest';
+import type {Seconds} from './primitives';
 import {expectInvalidField, expectRoundTrip} from './testHelpers';
 import {parseTimers, serializeTimers, type Timer} from './timers';
 
@@ -61,7 +62,7 @@ describe('timer types', () => {
   it('ties the time and duration fields to the kind', () => {
     expectTypeOf<
       Extract<Timer, {kind: 'countdown'}>['duration']
-    >().toEqualTypeOf<number>();
+    >().toEqualTypeOf<Seconds>();
     expectTypeOf<
       Extract<Timer, {kind: 'countdownTo'}>['time']
     >().toEqualTypeOf<string>();
