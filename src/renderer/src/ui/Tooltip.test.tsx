@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event';
 import type {JSX} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {installFakeClock} from '../../../../test/fake-clock';
+import {Button} from './Button';
+import {IconButton} from './IconButton';
 import {Tooltip, ariaShortcut, withTooltipProps} from './Tooltip';
 import {
   TOOLTIP_DELAY_MS,
@@ -55,6 +57,23 @@ describe('Tooltip', () => {
     await hoverForTooltip(target);
     expect(screen.getByRole('button', {description: '가사 지우기F2'})).toBe(
       target,
+    );
+  });
+
+  it('gives its shortcut to a Button, which draws its own tooltip too', () => {
+    render(
+      <>
+        <Tooltip text="가사 지우기" shortcut="F2">
+          <Button>가사</Button>
+        </Tooltip>
+        <Tooltip text="되돌리기" shortcut="Ctrl Z">
+          <IconButton icon="undo" label="되돌림" />
+        </Tooltip>
+      </>,
+    );
+    expect(button('가사').getAttribute('aria-keyshortcuts')).toBe('F2');
+    expect(button('되돌림').getAttribute('aria-keyshortcuts')).toBe(
+      'Control+Z',
     );
   });
 

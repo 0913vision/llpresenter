@@ -178,7 +178,7 @@ function both<E>(first: Handler<E>, second: Handler<E>): Handler<E> {
   };
 }
 
-function joinIds(
+function joinSpaced(
   first: string | undefined,
   second: string | undefined,
 ): string | undefined {
@@ -194,6 +194,7 @@ export interface TooltipOwnProps<T extends HTMLElement> {
   readonly onFocus?: ((event: FocusEvent<T>) => void) | undefined;
   readonly onBlur?: ((event: FocusEvent<T>) => void) | undefined;
   readonly 'aria-describedby'?: string | undefined;
+  readonly 'aria-keyshortcuts'?: string | undefined;
 }
 
 /**
@@ -211,11 +212,14 @@ export function withTooltipProps<T extends HTMLElement>(
     onPointerLeave: both(own.onPointerLeave, tooltip.onPointerLeave),
     onFocus: both(own.onFocus, tooltip.onFocus),
     onBlur: both(own.onBlur, tooltip.onBlur),
-    'aria-describedby': joinIds(
+    'aria-describedby': joinSpaced(
       own['aria-describedby'],
       tooltip['aria-describedby'],
     ),
-    'aria-keyshortcuts': tooltip['aria-keyshortcuts'],
+    'aria-keyshortcuts': joinSpaced(
+      own['aria-keyshortcuts'],
+      tooltip['aria-keyshortcuts'],
+    ),
   };
 }
 
