@@ -61,16 +61,16 @@ None.
 
 ## Where to look
 
-Questions for the lead:
+The lead answered three questions before this request, and the plan follows the
+answers:
 
-1. **L1.** How does a song get from the library into a 예배 순서 in M2, since
-   the 준비 workspace and its adding flows are M3? Name the means at the freeze,
-   and L1 uses it.
-2. **Cases with the user.** Can you arrange K22, X20, and SK3 with the user
-   after the fake-monitor runs?
-3. **Notifications in M2.** F10 to F12 and X1 expect notification cards where
-   spec 08 has them. The Notification component is an M2 ui task, but nothing in
-   M2 says who shows the cards. Are they in M2, or only the component?
+1. In M2, a song reaches a 예배 순서 through a service file prepared on disk, so
+   the plan describes that fixture ("Fixture") and L1 starts from it.
+2. The lead arranges K22, X20, and SK3 with the user at the M2 freeze. The steps
+   for the user are in Korean under "Cases with the user".
+3. M2 ships the `Notification` component and the main-process events, not the
+   notification host. Cases that expect a card check the event, and the card
+   part is marked "(card: M3)"; X3 moves to M3.
 
 ---
 

@@ -29,6 +29,11 @@ Out of scope, because `docs/PLAN.md` puts them in phase 3 (M3):
 - The 출력 상태 복구 (output state recovery) dialog, Looks and the Look editor,
   the 무대 화면 layout, the 방송 자막 capture window, the 진행 도구 tabs, 퀵
   실행, the media strip, Bible passages, the 준비 workspace, and 화면 설정.
+- Adding songs and items through the UI. In M2, a song reaches a 예배 순서
+  through a service file prepared on disk (see [Fixture](#fixture)).
+- The notification host that shows cards on screen. M2 ships the `Notification`
+  component (G48) and the main-process events. Where a case expects a card, M2
+  checks the event and the log, and the card part is marked "(card: M3)".
 
 Where an M2 case meets one of these (for example, the recovery record that the
 dialog will read), the case checks only what M2 builds and says so.
@@ -61,11 +66,41 @@ placed offscreen, to the left of the real ones:
 ### Cases with the user
 
 Three checks need the real second monitor, so they show windows on the user's
-screen and need the user's time. QA asks the lead to schedule them with the
-user, and writes the steps for the user in Korean in the report:
+screen and need the user's time. The lead arranges them with the user at the M2
+freeze, after the fake-monitor runs pass. For these runs only, the main window
+shows on the user's primary monitor. These are the steps for the user, in
+Korean:
 
-- X20 (a real unplug and replug), K22 (real full screen output), and SK3 (the
-  60-minute soak on two real monitors).
+**K22: 실제 모니터에 전체 화면 출력**
+
+1. 두 번째 모니터를 켜 두고, 그 모니터에 있는 다른 창은 옮겨 주십시오.
+2. QA가 시험용 앱을 첫 번째 모니터에 띄웁니다.
+3. 도구 모음의 "본 화면" 단추를 눌러 출력을 켭니다.
+4. 두 번째 모니터 전체에 배경 영상과 가사가 나오고, 작업 표시줄이나 창 테두리가
+   보이지 않는지 확인합니다.
+5. 장을 몇 개 눌러 보고, F2, F3, F1, Ctrl Z를 차례로 눌러 화면이 지워지고
+   되살아나는지 봅니다.
+6. "본 화면" 단추를 다시 눌러 출력을 끄고, 두 번째 모니터에 아무것도 남지
+   않았는지 확인합니다.
+
+**X20: 모니터 케이블을 뽑았다 다시 꽂기**
+
+1. K22의 1번부터 3번까지 하고, 장 하나를 눌러 가사와 배경 영상이 나오게 합니다.
+2. 두 번째 모니터의 영상 케이블을 뽑습니다.
+3. 출력이 첫 번째 모니터의 창으로 옮겨 와 끊기지 않고 계속 나오는지, 도구 모음의
+   "본 화면" 단추가 주황색 경고 표시로 바뀌는지 봅니다.
+4. 10초쯤 뒤에 케이블을 다시 꽂습니다.
+5. 출력이 두 번째 모니터의 전체 화면으로 돌아가고, 단추가 원래대로 돌아오는지
+   봅니다.
+
+**SK3: 두 모니터에서 60분 연속 출력**
+
+1. 두 번째 모니터를 한 시간 동안 쓰지 않을 시간을 정해 주십시오. 컴퓨터는 전원에
+   연결해 둡니다.
+2. QA가 시험을 시작하면, 두 번째 모니터에 반복 배경 영상이 나오고 5초마다 장이
+   바뀝니다.
+3. 처음 1분과 마지막 1분 동안, 영상이 끊기거나 멈칫하는 곳이 있는지 봐 주십시오.
+4. 그 사이에는 앱을 만지지 않으셔도 됩니다. 끝나면 QA가 결과를 알려 드립니다.
 
 ### Test media
 
@@ -85,11 +120,29 @@ The frame counter lets QA see a gap or a jump at the loop point in a sequence of
 output captures: every loop must go from the last frame number to the first with
 no black frame and no repeated run.
 
+### Fixture
+
+The data store reads the songs and the 예배 순서 from the data folder under
+`LLP_USER_DATA` at startup. P-library writes this fixture there before each
+launch, through the M1 serializers, so every file is valid by construction:
+
+| File                          | Content                                                                                                                                                                                                                       |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `곡\<song ID>.llsong`         | Hymn 1 (만복의 근원 하나님, public domain) in 4 장 with the 이름표 1절, 프리코러스, 후렴, and none, as in the spec 02 sample; the 구성 주일용 (1, 2, 3, 4, 2, 3, 4, 3, 4) and 짧게 (1, 2, 3, 4); background `loop-1080p.webm` |
+| `설정\media.json`             | The test media of [Test media](#test-media), each with a new ID, `end` loop, `fit` fill                                                                                                                                       |
+| `예배\<service ID>.llservice` | 주일 예배, 2026-11-01T11:00: a header 찬양, the song item with the 구성 주일용, and a slot `song` 찬양                                                                                                                        |
+| `app.json`                    | `lastServiceId` pointing at that service                                                                                                                                                                                      |
+
+Variants for single cases: a second song item with the same background (R9), an
+item with a background override and a song without a background (R10), a song
+with 1 to 12 lines per 장 (R4), unknown fields at every level (F8), and a
+service with 200 items and a song with 150 장 (P12).
+
 ### New procedures
 
 | Procedure                   | What it does                                                                                                                                                                                              |
 | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| P-library                   | Writes the hymn 1 song file, the media list with the test media, and a service file that holds the song into the data folder under `LLP_USER_DATA` before launch, through the M1 schemas' serializers.    |
+| P-library                   | Writes the [Fixture](#fixture) (or one of its variants) into the data folder under `LLP_USER_DATA` before launch.                                                                                         |
 | P-output(screen)            | Attaches CDP to that screen's output window and reads what it draws: the text, its box and computed style, the video elements and their `currentTime`, and a screenshot through `Page.captureScreenshot`. |
 | P-frames(screen, s)         | Records `requestAnimationFrame` deltas in the output window for `s` seconds, and counts frames over 20 ms and over 50 ms.                                                                                 |
 | P-unplug(FM) and P-plug(FM) | Removes or adds a fake monitor and emits the event.                                                                                                                                                       |
@@ -181,23 +234,22 @@ rules", and "Schema versions and migration"; `docs/TECH.md` "Storage".
     that doesn't exist.
   - Expected: One backup folder per day, at launch, holding the song, service,
     틀, and settings folders and no media, at most 30 kept. A missing location
-    skips the backup, logs it, and shows the warning notification (if M2 has
-    notifications), without a dialog.
+    skips the backup, logs it, and raises the warning event (card: M3), without
+    a dialog.
   - Source: spec 02 "Automatic backup".
 - **F11 A broken file is skipped**
   - Steps: Put a broken song file, a song with a wrong `format`, and a song with
     a newer `schemaVersion` in `곡\`, next to good ones; start.
   - Expected: The app starts, the good songs load, each broken file is logged
-    once and left untouched, one warning notification shows (if M2 has
-    notifications), and the newer file opens read-only.
+    once and left untouched, one warning event is raised (card: M3), and the
+    newer file opens read-only.
   - Source: spec 02 "Schema versions and migration"; spec 08 "Problem states".
 - **F12 Save failure**
   - Steps: Make a song file read-only, change the song; make it writable and
     trigger 다시 시도 (or the next change).
   - Expected: The content stays in memory, the save time doesn't change, the
-    failure is logged (and the "저장할 수 없음" notification shows, if M2 has
-    notifications), no dialog opens, and output isn't affected. The retry writes
-    the file.
+    failure is logged and raises the "저장할 수 없음" warning event (card: M3),
+    no dialog opens, and output isn't affected. The retry writes the file.
   - Source: spec 02 "Save failures".
 - **F13 Saving never stalls output**
   - Steps: During P-frames(main, 60), write a 10 MB song file 30 times.
@@ -211,11 +263,11 @@ Sources: MILESTONES criterion 1; `docs/spec/04-show.md` "예배 순서 panel" an
 "장 panel"; `SlideThumbnail` README.
 
 - **L1 The song reaches the 예배 순서**
-  - Steps: With the means M2 provides (the lead names it at the freeze; spec 05
-    adding is M3), put the hymn 1 song into a 예배 순서.
-  - Expected: The service file holds a song item with the song's ID and a new
-    item ID, and the 예배 순서 list shows a row with the song icon and the
-    title.
+  - Steps: P-library, start.
+  - Expected: The app opens the fixture service (`lastServiceId`). The 예배 순서
+    list shows the header 찬양, a row with the song icon and the title 만복의
+    근원 하나님, and the slot. The files on disk are unchanged by the start,
+    unknown fields included.
   - Source: MILESTONES; spec 02 "Service file".
 - **L2 Rows and keyboard**
   - Steps: A service with headers, two songs, and a slot. Click rows, use Up,
@@ -605,25 +657,26 @@ Sources: MILESTONES criterion 4; `docs/spec/03-output.md` "Lost monitors" and
     drawing; the 장 and the video position don't break; the toolbar button shows
     the amber dot and icon with the tooltip "무대 화면: 모니터 3을 찾을 수
     없습니다"; the status bar shows "무대 화면 창으로 표시 중"; the preview
-    frame is amber; the warning notification "무대 모니터 연결 끊김" shows with
-    "모니터 3 → 창으로 표시 중" and the actions 모니터 다시 찾기 and 창 보기.
+    frame is amber; the main process raises the disconnect event for the warning
+    "무대 모니터 연결 끊김" with "모니터 3 → 창으로 표시 중" (card: M3).
   - Source: spec 03; spec 08 "Lost monitor".
 - **X2 Replug**
   - Steps: After X1, P-plug(FM3).
   - Expected: The output returns to full screen on FM3; the toolbar and status
-    bar return to normal; the card turns into "무대 모니터 다시 연결됨" and
-    closes after 6 seconds.
+    bar return to normal; the main process raises the reconnect event for "무대
+    모니터 다시 연결됨" (card, its replacing the warning, and its 6-second
+    close: M3).
   - Source: spec 03; `Notification` README.
-- **X3 The notification actions**
+- **X3 The notification actions (M3)**
   - Steps: In X1, click 창 보기, then 모니터 다시 찾기 (with FM3 back in the
-    fake list but no event).
+    fake list but no event). Runs with the M3 notification host.
   - Expected: 창 보기 brings the fallback window to the front (recorded, not
     focused on the user's screen); 모니터 다시 찾기 reads the list again and
     returns to full screen.
   - Source: spec 03.
 - **X4 Off output, unplug**
   - Steps: Unplug FM2 with 본 화면 off; then turn it on.
-  - Expected: No notification at the unplug; turning on follows X1 steps 1 to 3.
+  - Expected: No disconnect event at the unplug; turning on follows X1.
   - Source: spec 03 (proposal).
 - **X5 Other screens unaffected**
   - Steps: Unplug FM3 with both outputs on.
@@ -632,7 +685,8 @@ Sources: MILESTONES criterion 4; `docs/spec/03-output.md` "Lost monitors" and
   - Source: spec 03.
 - **X6 The "off" setting**
   - Steps: Set the screen's `onDisconnect` to `"off"`; unplug.
-  - Expected: The output turns off and the same warning notification shows.
+  - Expected: The output turns off and the same warning event is raised (card:
+    M3).
   - Source: spec 03 (proposal).
 - **X7 Resolution change**
   - Steps: Emit `display-metrics-changed` with FM2 at 1280×720, then at
@@ -649,18 +703,19 @@ Sources: MILESTONES criterion 4; `docs/spec/03-output.md` "Lost monitors" and
 - **X9 Rapid unplug and replug**
   - Steps: 50 unplug and replug pairs 100 ms apart.
   - Expected: The end state matches the last event; no stray windows; window
-    count and memory flat; one card at a time for the same monitor.
+    count and memory flat; the events end in the state of the last one (one card
+    per monitor: M3).
   - Source: spec 08 "Notifications" (same cause replaces).
 - **X10 Output window crash**
   - Steps: P-crash(main) with a 장 and a video showing.
   - Expected: Within 1 second, the window is back on the same target with the
     same 장 and background, the video continuing from its position; a log entry;
-    no notification.
+    no warning event.
   - Source: spec 08 "Output window crash".
 - **X11 Three crashes in a minute**
   - Steps: P-crash(main) three times within one minute.
-  - Expected: Restarts stop and the warning notification "본 화면 출력 창을 다시
-    띄울 수 없음" shows with 다시 시도, which works.
+  - Expected: Restarts stop and the warning event for "본 화면 출력 창을 다시
+    띄울 수 없음" is raised (the card and its 다시 시도: M3).
   - Source: spec 08 (proposal).
 - **X12 Crash while off**
   - Steps: P-crash on a hidden output window.
