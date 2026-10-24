@@ -2,7 +2,7 @@
 
 - Team member: `shell`
 - Branch: `feat/shell/show-keys`
-- Base commit (`main`): `3fea3fb`
+- Base commit (`main`): `86f5926`
 - Last commit: see the commit that adds this file
 - Related brief: the lead's queue item 3 (진행 keys per spec-1)
 
@@ -47,7 +47,8 @@ precedence" (rules 2 to 6) and the key list for 진행.
 
 ## Checks run
 
-Pending.
+`npm run verify` on commit `75d05ef` (base `main` 86f5926) passed all five steps
+in 154.8 s: `typecheck`, `lint`, `format:check`, `test:coverage`, and `build`.
 
 ### Running app (port 5187, app data `D:\llp-dev\shell`)
 
