@@ -1,0 +1,154 @@
+.strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.chips {
+  display: contents;
+}
+
+.chip {
+  --chip-gap-color: var(--bg-panel);
+  --chip-ring-gap: 2px;
+  --chip-ring: 2px;
+  --chip-focus-offset: 5px;
+  --chip-grip-opacity: 0.55;
+
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  height: var(--size-control-md);
+  padding: 0 var(--space-10) 0 var(--space-6);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--label-fill);
+  color: var(--label-ink);
+  font: var(--type-band);
+  white-space: nowrap;
+  transition:
+    background-color var(--motion-hover),
+    box-shadow var(--motion-hover);
+}
+
+.grip {
+  opacity: var(--chip-grip-opacity);
+}
+
+.chip:hover {
+  cursor: grab;
+}
+
+.chip:is(:hover, [data-dragging='true']) .grip {
+  opacity: 1;
+}
+
+.chip[data-color='none']:hover {
+  background: var(--bg-control-hover);
+}
+
+.chip[aria-selected='true'] {
+  box-shadow:
+    0 0 0 var(--chip-ring-gap) var(--chip-gap-color),
+    0 0 0 calc(var(--chip-ring-gap) + var(--chip-ring)) var(--accent);
+}
+
+.chip[data-state~='live'] {
+  box-shadow:
+    0 0 0 var(--chip-ring-gap) var(--chip-gap-color),
+    0 0 0 calc(var(--chip-ring-gap) + var(--chip-ring)) var(--live);
+}
+
+.chip:focus-visible {
+  outline-offset: var(--chip-focus-offset);
+}
+
+.chip[data-dragging='true'] {
+  box-shadow: var(--shadow-popover);
+  cursor: grabbing;
+}
+
+.drop {
+  --chip-drop-width: 2px;
+  --chip-drop-pull: -5px;
+
+  flex: none;
+  width: var(--chip-drop-width);
+  height: var(--size-control-md);
+  margin: 0 var(--chip-drop-pull);
+  border-radius: var(--radius-full);
+  background: var(--accent);
+}
+
+.add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-control-md);
+  height: var(--size-control-md);
+  padding: 0;
+  border: 1px dashed var(--line-control);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-2);
+  transition: background-color var(--motion-hover);
+}
+
+.add:hover {
+  background: var(--bg-raised);
+}
+
+.add:active {
+  background: var(--bg-control-hover);
+  color: var(--text);
+}
+
+.tag {
+  --tag-ring-gap: 2px;
+  --tag-ring: 1px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  height: var(--size-control-xs);
+  padding: 0 var(--space-8);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--label-fill);
+  color: var(--label-ink);
+  font: var(--type-band);
+  white-space: nowrap;
+  vertical-align: middle;
+  transition: background-color var(--motion-hover);
+}
+
+.picker {
+  padding-right: var(--space-6);
+}
+
+.picker[data-color='none']:hover {
+  background: var(--bg-control-hover);
+}
+
+.picker[aria-expanded='true'] {
+  box-shadow:
+    0 0 0 var(--tag-ring-gap) var(--bg-panel),
+    0 0 0 calc(var(--tag-ring-gap) + var(--tag-ring)) var(--text);
+}
+
+.swatch {
+  --label-swatch-size: 10px;
+
+  display: inline-block;
+  flex: none;
+  width: var(--label-swatch-size);
+  height: var(--label-swatch-size);
+  border-radius: var(--radius-xs);
+  background: var(--label-fill);
+}
+
+.swatch[data-color='none'] {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--line-control);
+}

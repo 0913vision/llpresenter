@@ -35,6 +35,15 @@ export {
   type KeyComboState,
 } from './KeyCap';
 export {
+  ArrangementStrip,
+  LabelSwatch,
+  LabelTag,
+  type ArrangementChip,
+  type ArrangementStripProps,
+  type LabelTagProps,
+} from './LabelChip';
+export {labelInk, type LabelInkStyle} from './labelInk';
+export {
   ListActionRow,
   ListBox,
   ListDragGhost,
