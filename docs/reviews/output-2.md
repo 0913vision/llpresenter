@@ -2,7 +2,7 @@
 
 - Team member: `output`
 - Branch: `feat/output/render`
-- Base commit (`main`): BASE_COMMIT
+- Base commit (`main`): `b9392d0`
 - Last commit: the commit that adds this file
 - Related brief: `docs/briefs/output.md` (task 2), milestone M2
 
@@ -59,7 +59,13 @@ on the 본 화면, with clears and undo reflected in the same call.
 
 ## Checks run
 
-CHECKS
+On `9f0c7e3`, on `main` at `b9392d0`.
+
+| Command or test     | Result                                                                                                                   |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `npm run verify`    | Passed, 5 steps in 270.7 s: typecheck, lint, format check, 98 test files and 980 tests with coverage, build              |
+| New tests           | 13 test files in `render/`, `output/`, and the main process; the background layer tests drive the two videos with events |
+| The app on a screen | Not run: no window may appear on the user's screen. See "Where to look"                                                  |
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
