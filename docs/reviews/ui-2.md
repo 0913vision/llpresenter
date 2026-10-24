@@ -2,7 +2,7 @@
 
 - Team member: `ui`
 - Branch: `feat/ui/overlays`
-- Base commit (`main`): `3afbb50`
+- Base commit (`main`): `9e2496a`
 - Last commit: the commit that adds this file (see the review request message)
 - Related brief: `docs/briefs/ui.md`
 
@@ -45,17 +45,20 @@ components (buttons that open each menu, dialog, and tooltip).
   tests, and the Tooltip change in the ui-1 components.
 - `src/renderer/src/ui/index.ts`: exports.
 - `src/renderer/src/ui/gallery/`: the new sections.
+- `src/renderer/src/styles/base.css`: the two layer values for menus and
+  tooltips over a dialog (round 1).
 - No shared files, no configuration, no `package.json`.
 
 ## Checks run
 
-| Command or test                              | Result                                            |
-| -------------------------------------------- | ------------------------------------------------- |
-| `npm run verify`                             | Pass, 5 steps, 50 files, 459 tests                |
-| `npx tsc`, `npx eslint src/renderer/src/ui`  | Pass                                              |
-| `npx vitest run --project renderer` (ui)     | Pass, 26 files, 218 tests                         |
-| Gallery beside the preview cards (see below) | Done for all seven cards                          |
-| Floating components in Electron (see below)  | Open, focus, Esc, placement, and tooltips checked |
+| Command or test                              | Result                                                                                 |
+| -------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `npm run verify` (round 2)                   | Pass, 5 steps, 68 files, 692 tests (1 skipped under coverage by design, not ui), 655 s |
+| `npx tsc`, `npx eslint src/renderer/src/ui`  | Pass                                                                                   |
+| `npx vitest run --project renderer` (ui)     | Pass, 27 files, 233 tests                                                              |
+| Gallery beside the preview cards (see below) | Done for all seven cards                                                               |
+| Floating components in Electron (see below)  | Open, focus, Esc, placement, and tooltips checked                                      |
+| Layers over a dialog in Chromium (round 1)   | Menu 301 and tooltip 302 over the scrim (300)                                          |
 
 ### Comparison with the preview cards
 
@@ -119,7 +122,12 @@ Found and fixed this way:
    `dialog`), created on first use. While a modal is open, every other child of
    `body` is `inert` except the popover and tooltip layers, so a Select inside a
    dialog still opens its list. A future notification layer stays live the same
-   way.
+   way. A menu or tooltip that opens while a modal is open carries
+   `data-over-modal` and takes `--z-popover-over-modal` (`--z-dialog` + 1) or
+   `--z-tooltip-over-modal` (`--z-dialog` + 2) from `base.css`, so it shows over
+   the dialog and stays under notifications (`--z-notification`, 400). A menu
+   that was already open in the main window stays under a dialog that opens
+   later, because the dialog covers it.
 2. **Tooltip.** `useTooltip(content)` returns the target props and the tooltip
    to render; `Tooltip` wraps one element. The tooltip describes its target only
    while it shows, and a shortcut also goes to `aria-keyshortcuts` ("Ctrl Z"
@@ -128,7 +136,13 @@ Found and fixed this way:
    a search field, focus stays in the field (a combobox) and the arrows still
    move through the items. A transparent layer under the menu catches the click
    outside, so that click doesn't reach what is underneath. Switching between
-   menu bar menus on hover is for MenuBar to build on top of this.
+   menu bar menus on hover is for MenuBar to build on top of this. Esc closes
+   one level: the submenu that the focused menu has open (also one the pointer
+   opened), else the focused submenu, else the menu. Focus follows the pointer
+   into a submenu and back. While a submenu is open, pointing at another parent
+   opens its submenu only after the 300ms close delay, so the pointer can cross
+   other items on its way into the open one. An open menu fits itself to the
+   window again when the window resizes.
 4. **Dialog API.** The footer is structured (`onCancel` and `cancelLabel`,
    `secondary`, one `primary`) so that Enter and the initial focus can find the
    primary button. `aside` and `asideFoot` make the two-column body; `topBar`
@@ -136,12 +150,16 @@ Found and fixed this way:
 5. **Enter in a modal** presses the primary button from text fields, checkboxes,
    and switches, and not from a multiline field, a focused button (which presses
    itself), a list, or a menu. F1 to F7 are never stopped, so the 지우기 keys
-   work while a dialog is open.
+   work while a dialog is open. Enter and Esc do nothing while an IME
+   composition is open (Korean input that isn't confirmed yet), in a dialog, in
+   a menu, in the search field, and in the number field.
 6. **ListBox.** The arrows move and select at once, skipping group headers and
    disabled rows; Tab enters on the selected row. A control at the end of a row
-   (`end`) never selects the row. 퀵 실행 rows are `ListActionRow` buttons that
-   run on a click. Dragging (the 4px threshold and snapping) is left to the
-   feature that drags; the drop line and the ghost row are here.
+   (`end`) never selects the row: it stops only the row keys (Enter, Space, ↑,
+   ↓, Home, End), so Esc, F1 to F7, and the other commands still pass. 퀵 실행
+   rows are `ListActionRow` buttons that run on a click. Dragging (the 4px
+   threshold and snapping) is left to the feature that drags; the drop line and
+   the ghost row are here.
 7. **Panel** is a set of small parts rather than one component with many props,
    so a header can hold any mix of tabs, title, switcher, and actions.
 
@@ -182,4 +200,58 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 findings from codex4, all fixed. Each fix has a test that fails on the
+old code.
+
+1. Menus and tooltips showed behind an open dialog. A menu or tooltip that opens
+   while a modal is open now carries `data-over-modal` and takes the layer
+   values `--z-popover-over-modal` and `--z-tooltip-over-modal` from `base.css`
+   (`--z-dialog` + 1 and + 2), below `--z-notification` (`71e3c08`). Tests
+   (`overlayLayers.test.tsx`): a menu opened in a dialog is marked, not inert,
+   and runs its item; a tooltip in a dialog is marked; a menu of the main
+   window, before and after the dialog, is not. jsdom applies no CSS, so I also
+   checked it in Chromium (an offscreen Electron window on the plain Vite
+   gallery): with the 텍스트 가져오기 dialog open, a marked menu computes to
+   z-index 301 and is the element at the dialog's center, an unmarked one
+   computes to 100 and is hidden; tooltips compute to 302 and 200; the scrim is
+   300 and notifications stay at 400.
+2. An end control stopped every key. `RowEnd` now stops only the row keys: Enter
+   and Space (row activation) and ↑, ↓, Home, End (list navigation) (`63f00c2`).
+   Tests: Esc, F1, and F7 from the end control reach a window listener; ↑, Home,
+   and End on it don't move or select the row.
+3. Enter ran commands during an IME composition. New `isComposing(event)`
+   (`ime.ts`) checks `isComposing` and the `Process` key. It replaces the
+   deprecated `keyCode === 229`, which the lint rule against deprecated APIs
+   rejects; Chromium reports both for IME keys. The modal ignores Enter and Esc
+   while composing, and the menu ignores every key of a composition. The same
+   check now also guards Esc in the search field and Enter in the number field,
+   which had the same problem (`b7feec5`). Tests: composing Enter, `Process`,
+   and composing Esc in a dialog field run nothing and a plain Enter still
+   presses the primary button; composing ↓, Enter, and Esc in the menu search
+   field move, run, and close nothing; the search field keeps its text on a
+   composing Esc; the number field doesn't commit on a composing Enter.
+4. A hover-opened submenu left focus on the root, so Esc closed the whole chain.
+   Esc now closes one level: the submenu that the focused menu has open, else
+   the focused submenu, else the menu (`closeChild` in `menuKeys.ts`). Focus
+   also follows the pointer into a submenu and back, so the menu under the
+   pointer takes the arrows and Esc (`05fdd97`). Tests: hover-open, Esc closes
+   only the submenu and a second Esc closes the menu; after the pointer enters
+   the submenu it has focus, and Esc there returns focus to the parent.
+5. A pending sibling open replaced the submenu the pointer was reaching. While a
+   submenu is open, pointing at another parent no longer starts the 150ms open
+   timer; it starts the 300ms close timer, which opens the other submenu when it
+   ends. Entering the open submenu, or pointing back at its parent, cancels both
+   timers (`05fdd97`). Tests on the fake clock: crossing 내보내기 on the way
+   into 가져오기's submenu within 299ms keeps 가져오기 open and never opens
+   내보내기; resting on 내보내기 opens it at 300ms exactly.
+6. Placement and the maximum height changed only on React commits. The menu now
+   sets its maximum height and position in one `fit` step, from its ref callback
+   and from a window `resize` listener that it removes when it closes
+   (`05fdd97`). Test: a smaller `innerHeight` and a `resize` event set the new
+   maximum height; closing the menu removes the listener.
+7. TSDoc on private declarations. TSDoc now sits only on exported APIs in every
+   ui file (`6c5d158`): the private helpers lost it where the name says enough
+   (`useMenuTimers`, `useMenuNavigation`, `Submenu`, `keepOneTabStop`,
+   `belowOrAbove`), names took over the rest (`OpenSubmenu.takesFocus`,
+   `closeSubmenu`, `keepSubmenuOpen`, `PanelIds` became `PanelIdBase`), and the
+   gallery entry name kept its context as a `NOTE(0913vision)`.
