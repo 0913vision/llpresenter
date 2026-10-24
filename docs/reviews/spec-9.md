@@ -1,15 +1,23 @@
 # Review request: `spec-9`
 
-- Review range: `20ffc86...docs/spec/wave-a-readiness`
+- Review range: `d9ecca5...docs/spec/wave-a-readiness`
 - Team member: `spec`
 - Branch: `docs/spec/wave-a-readiness`, from `main` (not stacked)
-- Base commit (`main`): `20ffc86`
+- Base commit (`main`): `d9ecca5`
 - Shared files changed: none
 - Last commit: see the commit that adds this file
 - Related request: the lead's message of October 25 (spec-9, M3 wave A
   readiness)
 
 ## What changed and why
+
+### Round 2
+
+The branch is rebased onto `main` `d9ecca5`, which now holds spec-5 and spec-8,
+so the review range starts there. Round 2 adds one commit; see "Team member's
+reply" for the two findings. It also takes spec-8's nit: S4 in 10 now links the
+exact Internet Archive snapshot that the page citations come from, and S18 sits
+before S19 and S20 in the source table.
 
 ### Round 1
 
@@ -54,10 +62,11 @@ request has to wait, but a later decision means a schema change.
 
 ## Checks run
 
-| Command or test           | Result                                                                                                                                                                                                                                              |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run verify`          | Pass on base `8273192`: typecheck 21.5 s, lint 44.9 s, format:check 33.4 s, test:coverage 75.1 s (88 files, 903 tests, 1 skipped), build 2.4 s; 177.2 s in all. Then rebased onto `20ffc86`, which changes no file in `docs/spec/` or `docs/plans/` |
-| Middle dots and em dashes | None in the changed files (checked with `grep -c`)                                                                                                                                                                                                  |
+| Command or test                  | Result                                                                                                                                                                                                                                              |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run format:check` (round 2) | Pass on base `d9ecca5` (a documents-only round runs only this check)                                                                                                                                                                                |
+| `npm run verify` (round 1)       | Pass on base `8273192`: typecheck 21.5 s, lint 44.9 s, format:check 33.4 s, test:coverage 75.1 s (88 files, 903 tests, 1 skipped), build 2.4 s; 177.2 s in all. Then rebased onto `20ffc86`, which changes no file in `docs/spec/` or `docs/plans/` |
+| Middle dots and em dashes        | None in the changed files (checked with `grep -c`)                                                                                                                                                                                                  |
 
 ## Decisions I made (for the lead to confirm)
 
@@ -77,3 +86,18 @@ request has to wait, but a later decision means a schema change.
 
 - The D2 defaults table and the broken file rule in 02.
 - The batch rules in 01, 03, and 07, which D1b, O10, S1a, and T3a share.
+
+## Team member's reply
+
+### Round 1 findings (codex4)
+
+1. **Standalone audio (04-show.md:249).** Fixed in 04 "오디오": a 매크로's
+   오디오 action plays one media ID outside any playlist. That track is
+   identified by its media ID alone, plays once, and stops at its end; 반복
+   doesn't apply; 이전 starts it again, 다음 stops it, and 일시 정지 and 재생
+   work as for a playlist track; no row of the track list is marked. A 매크로's
+   오디오 재생 목록 action plays the playlist from its first track.
+2. **Optional template defaults (04-show.md:311).** Fixed in 04 "메시지" and 02
+   "messages.json": a template without `targets` starts with 모든 화면
+   (`"all"`), and one without `duration` starts with 계속 (`null`), so every
+   valid template gives the same controls and the same send command.
