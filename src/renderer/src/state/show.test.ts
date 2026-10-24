@@ -5,11 +5,10 @@ import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {useLive} from './live';
 import {
   jumpLabelFor,
-  moveRow,
-  moveTile,
   openNextItem,
   openPreviousItem,
   revealLiveItem,
+  selectTile,
   openItem,
   outputLabel,
   outputNext,
@@ -65,28 +64,11 @@ describe('show state', () => {
     });
   });
 
-  it('moves the open item with the row keys and skips headers', () => {
-    moveRow('home');
-    expect(useShow.getState().openItemId).toBe('countdown');
-    moveRow('down');
-    expect(useShow.getState().openItemId).toBe('song-morning');
-    moveRow('end');
-    expect(useShow.getState().openItemId).toBe('notice-sunday');
-  });
-
-  it('moves the selected tile inside the open item', () => {
+  it('selects a tile of the open item without outputting it', () => {
     openItem('song-morning');
-    moveTile('down', 2);
+    selectTile(2);
     expect(useShow.getState().selectedTile).toBe(2);
-    moveTile('down', 2);
-    expect(useShow.getState().selectedTile).toBe(2);
-    moveTile('up', 2);
-    expect(useShow.getState().selectedTile).toBe(0);
-  });
-
-  it('ignores tile keys when no item is open', () => {
-    moveTile('down', 2);
-    expect(useShow.getState().selectedTile).toBe(0);
+    expect(sent).toHaveLength(0);
   });
 
   it('sends slide.show for a tile and shows it selected', () => {

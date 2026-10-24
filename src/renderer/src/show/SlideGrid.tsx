@@ -1,22 +1,10 @@
-import {
-  memo,
-  useCallback,
-  useEffect,
-  useRef,
-  type JSX,
-  type KeyboardEvent,
-} from 'react';
-import {moveTile, outputTile, useShow} from '@renderer/state/show';
+import {useCallback, useEffect, useRef, type JSX} from 'react';
+import {outputTile, selectTile, useShow} from '@renderer/state/show';
 import {useLive} from '@renderer/state/live';
-import type {ItemId, SlideTile} from './model';
-import type {TileKey} from './navigation';
+import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui';
+import type {ItemId} from './model';
 import {useKeptFocus} from './useKeptFocus';
 import styles from './SlideGrid.module.css';
-
-const tileKeys: Readonly<Record<string, TileKey>> = {
-  ArrowUp: 'up',
-  ArrowDown: 'down',
-};
 
 function useLiveIndex(itemId: ItemId | null): number | null {
   return useLive(view => {
@@ -24,51 +12,6 @@ function useLiveIndex(itemId: ItemId | null): number | null {
     return slide?.itemId === itemId ? slide.position : null;
   });
 }
-
-function tileName(number: number, {label, lines}: SlideTile): string {
-  const heading = label ? `${number} ${label}` : `${number}`;
-  const firstLine = lines[0];
-  return firstLine ? `${heading}, ${firstLine}` : heading;
-}
-
-const Thumbnail = memo(
-  ({
-    tile,
-    index,
-    selected,
-    live,
-    onOutput,
-  }: {
-    readonly tile: SlideTile;
-    readonly index: number;
-    readonly selected: boolean;
-    readonly live: boolean;
-    readonly onOutput: (index: number) => void;
-  }): JSX.Element => {
-    const number = index + 1;
-    return (
-      <button
-        type="button"
-        role="option"
-        tabIndex={selected ? 0 : -1}
-        aria-selected={selected}
-        aria-label={tileName(number, tile)}
-        data-state={live ? 'live' : undefined}
-        data-color={tile.labelColor === 'none' ? undefined : tile.labelColor}
-        className={styles.thumb}
-        onClick={() => onOutput(index)}
-      >
-        <span className={styles.canvas}>
-          <span className={styles.text}>{tile.lines.join('\n')}</span>
-        </span>
-        <span className={styles.band}>
-          <span className={styles.number}>{number}</span>
-          <span className={styles.label}>{tile.label}</span>
-        </span>
-      </button>
-    );
-  },
-);
 
 /** The 장 grid of the open item. A click outputs a tile. */
 export function SlideGrid({columns}: {readonly columns: number}): JSX.Element {
@@ -78,22 +21,13 @@ export function SlideGrid({columns}: {readonly columns: number}): JSX.Element {
     view.openItemId === null ? undefined : view.tiles[view.openItemId],
   );
   const liveIndex = useLiveIndex(openItemId);
-  const gridRef = useRef<HTMLDivElement>(null);
-
-  const {isInside, onFocus, onBlur} = useKeptFocus(gridRef);
+  const keeperRef = useRef<HTMLDivElement>(null);
+  const {isInside, onFocus, onBlur} = useKeptFocus(keeperRef);
 
   useEffect(() => {
     if (!isInside()) return;
-    gridRef.current?.querySelector<HTMLElement>('[tabindex="0"]')?.focus();
-  }, [isInside, openItemId, selectedTile]);
-
-  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
-    if (event.ctrlKey || event.altKey || event.metaKey) return;
-    const key = tileKeys[event.key];
-    if (key === undefined) return;
-    event.preventDefault();
-    moveTile(key, columns);
-  };
+    keeperRef.current?.querySelector<HTMLElement>('[tabindex="0"]')?.focus();
+  }, [isInside, openItemId]);
 
   const onOutput = useCallback(
     (index: number): void => {
@@ -104,26 +38,32 @@ export function SlideGrid({columns}: {readonly columns: number}): JSX.Element {
 
   return (
     <div
-      ref={gridRef}
-      role="listbox"
-      aria-label="장"
-      data-slide-grid=""
-      className={styles.grid}
-      style={{gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`}}
-      onKeyDown={onKeyDown}
+      ref={keeperRef}
+      className={styles.keeper}
       onFocus={onFocus}
       onBlur={onBlur}
     >
-      {tiles?.map((tile, index) => (
-        <Thumbnail
-          key={index}
-          tile={tile}
-          index={index}
-          selected={index === selectedTile}
-          live={index === liveIndex}
-          onOutput={onOutput}
-        />
-      ))}
+      <ThumbnailGrid
+        workspace="show"
+        label="장"
+        columns={columns}
+        selected={tiles === undefined ? undefined : selectedTile}
+        onSelect={selectTile}
+        onOutput={onOutput}
+        className={styles.grid}
+      >
+        {tiles?.map((tile, index) => (
+          <SlideThumbnail
+            key={index}
+            number={index + 1}
+            label={tile.label ?? undefined}
+            labelColor={tile.labelColor}
+            text={tile.lines.join('\n')}
+            selected={index === selectedTile}
+            live={index === liveIndex}
+          />
+        ))}
+      </ThumbnailGrid>
     </div>
   );
 }

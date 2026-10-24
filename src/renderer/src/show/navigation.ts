@@ -7,52 +7,12 @@ import {
   type TileCursor,
 } from './model';
 
-export type RowKey = 'up' | 'down' | 'home' | 'end';
-export type TileKey = 'up' | 'down';
-
 export type TilesOf = (itemId: ItemId) => readonly SlideTile[];
 
 export type ItemDirection = 'next' | 'previous';
 
 function selectableRows(rows: readonly ServiceRow[]): readonly ItemRow[] {
   return rows.filter(isItemRow);
-}
-
-/**
- * The row to select after an up, down, Home, or End key. Headers are skipped.
- * Up and down stop at the ends of the list.
- */
-export function moveRowSelection(
-  rows: readonly ServiceRow[],
-  current: ItemId | null,
-  key: RowKey,
-): ItemId | null {
-  const items = selectableRows(rows);
-  if (items.length === 0) return null;
-  if (key === 'home') return items[0]?.id ?? null;
-  if (key === 'end') return items.at(-1)?.id ?? null;
-  const at = items.findIndex(item => item.id === current);
-  if (at === -1) return key === 'down' ? (items[0]?.id ?? null) : null;
-  const step = key === 'down' ? 1 : -1;
-  const target = Math.min(Math.max(at + step, 0), items.length - 1);
-  return items[target]?.id ?? null;
-}
-
-/**
- * The tile index after the up or down arrow in a grid with the given number of
- * columns. The selection moves by one row, stays inside the grid, and does not
- * wrap around. ← and → are not grid keys: they output the previous and next 장.
- */
-export function moveTileSelection(params: {
-  readonly count: number;
-  readonly columns: number;
-  readonly index: number;
-  readonly key: TileKey;
-}): number {
-  const {count, columns, index, key} = params;
-  if (count === 0) return 0;
-  const target = key === 'down' ? index + columns : index - columns;
-  return target < 0 || target >= count ? index : target;
 }
 
 export interface SequenceState {

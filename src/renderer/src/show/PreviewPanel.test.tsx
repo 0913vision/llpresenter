@@ -6,7 +6,7 @@ import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {DEFAULT_LYRIC_STYLE} from '@renderer/render/lyricStyle';
 import {useLive} from '@renderer/state/live';
 import {showLarge, usePreview} from '@renderer/state/preview';
-import {moveTile, openItem, outputTile, useShow} from '@renderer/state/show';
+import {openItem, outputTile, selectTile, useShow} from '@renderer/state/show';
 import {PreviewPanel} from './PreviewPanel';
 import {seedSampleService} from './testing/sampleService';
 
@@ -333,9 +333,9 @@ describe('PreviewPanel pictures', () => {
     const before = created();
     const counts = drawCounts();
     act(() => openItem('song-river'));
-    act(() => moveTile('down', 2));
+    act(() => selectTile(2));
     act(() => openItem('song-morning'));
-    act(() => moveTile('down', 2));
+    act(() => selectTile(2));
     expect(useShow.getState().openItemId).toBe('song-morning');
     expect(created()).toEqual(before);
     expect(drawCounts()).toEqual(counts);

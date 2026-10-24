@@ -11,14 +11,10 @@ import {
 import {
   adjacentItem,
   liveItem,
-  moveRowSelection,
-  moveTileSelection,
   nextTile,
   previousTile,
   tileForLabel,
-  type RowKey,
   type SequenceState,
-  type TileKey,
 } from '@renderer/show/navigation';
 import {slideLayerOf} from '@renderer/show/slideLayer';
 import {
@@ -83,26 +79,9 @@ export function openItem(itemId: ItemId): void {
   useShow.setState({openItemId: itemId, selectedTile: 0});
 }
 
-export function moveRow(key: RowKey): void {
-  const {rows, openItemId} = useShow.getState();
-  const target = moveRowSelection(rows, openItemId, key);
-  if (target !== null && target !== openItemId) openItem(target);
-}
-
-function selectTile(index: number): void {
+/** Selects a tile of the open item without outputting it. */
+export function selectTile(index: number): void {
   useShow.setState({selectedTile: index});
-}
-
-export function moveTile(key: TileKey, columns: number): void {
-  const {openItemId, selectedTile} = useShow.getState();
-  if (openItemId === null) return;
-  const index = moveTileSelection({
-    count: tilesOf(openItemId).length,
-    columns,
-    index: selectedTile,
-    key,
-  });
-  selectTile(index);
 }
 
 /** Outputs a tile and shows it selected in the 장 panel. */

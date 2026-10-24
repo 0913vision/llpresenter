@@ -1,14 +1,8 @@
-import {memo, useEffect, useRef, type JSX, type KeyboardEvent} from 'react';
-import {Icon} from '@renderer/ui/Icon';
-import {moveRow, openItem, useShow} from '@renderer/state/show';
+import {useEffect, useRef, type JSX} from 'react';
+import {openItem, useShow} from '@renderer/state/show';
 import {useLive} from '@renderer/state/live';
-import {
-  isItemRow,
-  type ItemKind,
-  type RowProblem,
-  type ServiceRow,
-} from './model';
-import type {RowKey} from './navigation';
+import {ListBox, ListGroup, ListRow} from '@renderer/ui';
+import type {ItemKind, RowProblem, ServiceRow} from './model';
 import styles from './ServiceOrderList.module.css';
 
 const iconByKind: Readonly<Record<ItemKind, string>> = {
@@ -28,53 +22,60 @@ const problemTips: Readonly<Record<RowProblem, string>> = {
   'newer-version': '새 버전의 파일이라 읽기 전용으로 엽니다.',
 };
 
-const rowKeys: Readonly<Record<string, RowKey>> = {
-  ArrowUp: 'up',
-  ArrowDown: 'down',
-  Home: 'home',
-  End: 'end',
-};
+interface RowGroup {
+  readonly id: string;
+  readonly label: string | undefined;
+  readonly items: readonly ServiceRow[];
+}
+
+function groupRows(rows: readonly ServiceRow[]): readonly RowGroup[] {
+  const groups: {id: string; label: string | undefined; items: ServiceRow[]}[] =
+    [];
+  for (const row of rows) {
+    if (row.kind === 'header') {
+      groups.push({id: row.id, label: row.title, items: []});
+      continue;
+    }
+    const last = groups.at(-1);
+    if (last === undefined) {
+      groups.push({id: row.id, label: undefined, items: [row]});
+    } else {
+      last.items.push(row);
+    }
+  }
+  return groups;
+}
 
 function useLiveItemId(): string | null {
   return useLive(view => view.state?.layers.slide?.itemId ?? null);
 }
 
-const Row = memo(
-  ({
-    row,
-    selected,
-    tabStop,
-    live,
-  }: {
-    readonly row: ServiceRow;
-    readonly selected: boolean;
-    readonly tabStop: boolean;
-    readonly live: boolean;
-  }): JSX.Element => {
-    if (row.kind === 'header') {
-      return <div className={styles.group}>{row.title}</div>;
-    }
-    return (
-      <button
-        type="button"
-        role="option"
-        tabIndex={tabStop ? 0 : -1}
-        aria-selected={selected}
-        data-state={live ? 'live' : undefined}
-        title={row.problem === undefined ? undefined : problemTips[row.problem]}
-        className={styles.row}
-        onClick={() => openItem(row.id)}
-      >
-        <Icon name={iconByKind[row.kind]} size={16} className={styles.icon} />
-        <span className={styles.title}>{row.title}</span>
-        {row.problem === undefined ? null : (
-          <Icon name="warning" size={16} className={styles.warning} />
-        )}
-        {live ? <span className={styles.badge}>LIVE</span> : null}
-      </button>
-    );
-  },
-);
+function ItemRows({
+  items,
+  liveItemId,
+}: {
+  readonly items: readonly ServiceRow[];
+  readonly liveItemId: string | null;
+}): JSX.Element {
+  return (
+    <>
+      {items.map(row =>
+        row.kind === 'header' ? null : (
+          <ListRow
+            key={row.id}
+            value={row.id}
+            title={row.title}
+            icon={iconByKind[row.kind]}
+            live={row.id === liveItemId}
+            warning={
+              row.problem === undefined ? undefined : problemTips[row.problem]
+            }
+          />
+        ),
+      )}
+    </>
+  );
+}
 
 /** The 예배 순서 list of the 진행 workspace. */
 export function ServiceOrderList(): JSX.Element {
@@ -82,7 +83,6 @@ export function ServiceOrderList(): JSX.Element {
   const openItemId = useShow(view => view.openItemId);
   const liveItemId = useLiveItemId();
   const listRef = useRef<HTMLDivElement>(null);
-  const tabStopId = openItemId ?? rows.find(isItemRow)?.id ?? null;
 
   useEffect(() => {
     const list = listRef.current;
@@ -90,32 +90,28 @@ export function ServiceOrderList(): JSX.Element {
     list.querySelector<HTMLElement>('[tabindex="0"]')?.focus();
   }, [openItemId]);
 
-  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
-    if (event.ctrlKey || event.altKey || event.metaKey) return;
-    const key = rowKeys[event.key];
-    if (key === undefined) return;
-    event.preventDefault();
-    moveRow(key);
-  };
-
   return (
-    <div
-      ref={listRef}
-      role="listbox"
-      aria-label="예배 순서"
-      data-service-list=""
-      className={styles.list}
-      onKeyDown={onKeyDown}
-    >
-      {rows.map(row => (
-        <Row
-          key={row.id}
-          row={row}
-          selected={row.id === openItemId}
-          tabStop={row.id === tabStopId}
-          live={row.id === liveItemId}
-        />
-      ))}
+    <div ref={listRef} className={styles.list}>
+      <ListBox
+        workspace="show"
+        label="예배 순서"
+        selected={openItemId ?? undefined}
+        onSelect={openItem}
+      >
+        {groupRows(rows).map(group =>
+          group.label === undefined ? (
+            <ItemRows
+              key={group.id}
+              items={group.items}
+              liveItemId={liveItemId}
+            />
+          ) : (
+            <ListGroup key={group.id} label={group.label}>
+              <ItemRows items={group.items} liveItemId={liveItemId} />
+            </ListGroup>
+          ),
+        )}
+      </ListBox>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import {useEffect} from 'react';
 import {clearLayer, undoClear} from '@renderer/state/clear';
 import type {Workspace} from '@renderer/shell/Toolbar';
+import {SHORTCUT_RECORDING_SELECTOR} from '@renderer/ui';
 import {clearButtons, type ClearCommandId} from './clear';
 
 const UNDO_CODE = 'KeyZ';
@@ -13,10 +14,6 @@ const defaultCodes: ReadonlyMap<string, ClearCommandId> = new Map(
   clearButtons.map(spec => [spec.code, spec.command]),
 );
 
-// NOTE(0913vision): A field that records a shortcut takes every key, F1 to F7
-// included, because the operator opened it on purpose. The settings page marks
-// it with this attribute while it records.
-const SHORTCUT_RECORDER_SELECTOR = '[data-shortcut-recording]';
 const TEXT_ENTRY_SELECTOR =
   'textarea, [contenteditable]:not([contenteditable="false"])';
 const TEXT_INPUT_TYPES: ReadonlySet<string> = new Set([
@@ -41,10 +38,12 @@ function isTextEntry(target: EventTarget | null): boolean {
   return input !== null && TEXT_INPUT_TYPES.has(input.type);
 }
 
+// NOTE(0913vision): A field that records a shortcut takes every key, F1 to F7
+// included, because the operator opened it on purpose.
 function isInShortcutRecorder(target: EventTarget | null): boolean {
   return (
     target instanceof Element &&
-    target.closest(SHORTCUT_RECORDER_SELECTOR) !== null
+    target.closest(SHORTCUT_RECORDING_SELECTOR) !== null
   );
 }
 

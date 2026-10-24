@@ -1,5 +1,6 @@
 import {useEffect} from 'react';
 import {isColumnDragActive} from '@renderer/state/drag';
+import {CLICK_FOCUS_SELECTOR} from '@renderer/ui';
 import {
   jumpLabelFor,
   openNextItem,
@@ -55,9 +56,8 @@ const TEXT_FIELD_SELECTOR =
   'textarea, [contenteditable="true"], input:not([type="range"], [type="checkbox"], [type="radio"], [type="button"], [type="submit"], [type="reset"], [type="color"], [type="file"], [type="image"])';
 const OWN_KEYS_SELECTOR =
   '[role="menu"], [role="dialog"], [role="alertdialog"]';
-const FOCUSABLE_ON_CLICK_SELECTOR = `${EDITABLE_SELECTOR}, [data-slide-grid], [data-service-list], ${OWN_KEYS_SELECTOR}`;
 const CLICKED_CONTROL_SELECTOR = 'button, [role="button"], [role="tab"]';
-const PASSING_PARTS_SELECTOR = '[data-slide-grid], [data-service-list]';
+const PASSING_PARTS_SELECTOR = '[role="listbox"]';
 const PRESS_CONTROL_SELECTOR =
   'button, [role="button"], [role="switch"], [role="checkbox"], [role="radio"], [role="tab"]';
 const ARROW_CONTROL_SELECTOR = '[role="tab"], [role="radio"]';
@@ -195,7 +195,7 @@ export function handleShowKeyUp(event: KeyboardEvent): void {
 export function handleShowMouseDown(event: MouseEvent): void {
   pendingClick = null;
   if (event.button !== PRIMARY_BUTTON) return;
-  if (isInside(event.target, FOCUSABLE_ON_CLICK_SELECTOR)) return;
+  if (isInside(event.target, CLICK_FOCUS_SELECTOR)) return;
   const control =
     event.target instanceof Element
       ? event.target.closest(CLICKED_CONTROL_SELECTOR)

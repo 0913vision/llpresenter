@@ -3,8 +3,6 @@ import type {ItemId, ServiceRow, SlideTile} from './model';
 import {
   adjacentItem,
   liveItem,
-  moveRowSelection,
-  moveTileSelection,
   nextTile,
   previousTile,
   tileForLabel,
@@ -39,58 +37,6 @@ function stateOf(overrides: Partial<SequenceState>): SequenceState {
     ...overrides,
   };
 }
-
-describe('moveRowSelection', () => {
-  it('moves down and up between rows and skips headers', () => {
-    expect(moveRowSelection(rows, 'slot', 'down')).toBe('b');
-    expect(moveRowSelection(rows, 'b', 'up')).toBe('slot');
-  });
-
-  it('stops at both ends of the list', () => {
-    expect(moveRowSelection(rows, 'a', 'up')).toBe('a');
-    expect(moveRowSelection(rows, 'c', 'down')).toBe('c');
-  });
-
-  it('goes to the first and last row with Home and End', () => {
-    expect(moveRowSelection(rows, 'b', 'home')).toBe('a');
-    expect(moveRowSelection(rows, 'b', 'end')).toBe('c');
-  });
-
-  it('starts at the first row when nothing is selected and down is pressed', () => {
-    expect(moveRowSelection(rows, null, 'down')).toBe('a');
-    expect(moveRowSelection(rows, null, 'up')).toBeNull();
-  });
-
-  it('returns nothing for a list without selectable rows', () => {
-    expect(moveRowSelection([], null, 'home')).toBeNull();
-    expect(moveRowSelection(rows.slice(0, 1), null, 'down')).toBeNull();
-  });
-});
-
-describe('moveTileSelection', () => {
-  const grid = {count: 7, columns: 3};
-
-  it('moves by one row with up and down', () => {
-    expect(moveTileSelection({...grid, index: 3, key: 'down'})).toBe(6);
-    expect(moveTileSelection({...grid, index: 4, key: 'up'})).toBe(1);
-  });
-
-  it('stays on the first and last row', () => {
-    expect(moveTileSelection({...grid, index: 0, key: 'up'})).toBe(0);
-    expect(moveTileSelection({...grid, index: 2, key: 'up'})).toBe(2);
-    expect(moveTileSelection({...grid, index: 6, key: 'down'})).toBe(6);
-  });
-
-  it('does not move down past a short last row', () => {
-    expect(moveTileSelection({...grid, index: 5, key: 'down'})).toBe(5);
-  });
-
-  it('returns 0 for an empty grid', () => {
-    expect(
-      moveTileSelection({count: 0, columns: 3, index: 0, key: 'down'}),
-    ).toBe(0);
-  });
-});
 
 describe('nextTile', () => {
   it('outputs the first tile of the open item when nothing is live', () => {
