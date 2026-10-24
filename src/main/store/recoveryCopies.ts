@@ -91,7 +91,8 @@ export class RecoveryCopies {
   }
 }
 
-/** A copy's file name: its time, so names sort in time order on Windows too. */
+// NOTE(0913vision): A copy's name is its time with the colons replaced, so the
+// names are valid on Windows and sort in time order.
 function copyName(time: number): string {
   return `${new Date(time).toISOString().replaceAll(':', '-')}${COPY_EXTENSION}`;
 }
