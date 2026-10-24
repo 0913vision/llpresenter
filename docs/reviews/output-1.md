@@ -180,19 +180,21 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (10de323): lead Approve, and the lead confirms decisions 1 to 9
+  (decision 8's retry rule is replaced below). Reviewer (Codex, 0:6) Request
+  changes: two identical monitors could swap outputs after an id change, a
+  failed monitor read had no retry, and a private method had TSDoc.
+- Round 2 (47d39be): reviewer Request changes: a failed first read left the
+  default screen on `display: null` for good.
+- Round 3 (510bc2c): reviewer (Codex, 0:6) Approve, no findings. qa tested the
+  branch in the built app (window reuse, relaunch with the live state, hidden
+  relaunch, the restart limit, unplug and replug, the retry): pass. Lead
+  Approve. Lead rule for the next branch: after the restart limit the window
+  stays shown with a black background, the failure is logged, and a new attempt
+  follows after a cool-down, so the audience never sees the desktop. Rebased by
+  the lead onto `main` 430ce9a without conflicts.
 
 ## Team member's reply
 

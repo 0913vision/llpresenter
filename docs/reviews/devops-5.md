@@ -82,3 +82,14 @@ MB per hour drift, and growth that levels off after minute 20.
 
 The 4 MB/h limit stays, as the lead decided. `scripts/README.md` describes the
 new rule.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (583bd94): lead Approve; the 4 MB/h limit is a lead decision. Reviewer
+  (Codex, 0:6) Request changes: one low outlier could fail flat memory, and a
+  fit without enough points counted as flat.
+- Round 2 (c8c1aef): reviewer (Codex, 0:6) Approve with two nits: the
+  high-window fixtures don't raise a whole window, and a two-minute run gets
+  windows shorter than the documented one minute. The nits go into devops' next
+  branch. Lead Approve. Rebased by the lead onto `main` 430ce9a without
+  conflicts.

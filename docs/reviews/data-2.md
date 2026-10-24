@@ -159,19 +159,17 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (fe75ec8): reviewer (Codex, codex2) Request changes: shortcuts in the
+  old display-name format, unchecked jump keys, one bad binding rejecting the
+  whole file, unchecked media ranges, and plain numbers for units.
+- Round 2 (4256352, rebased as 794c0fd with no change): reviewer (Codex, codex2)
+  Approve with two nits: TSDoc on the private `jumpKeySchema`, and a test that
+  `serializeLabels` rejects an invalid key. The nits go into data's next branch.
+  Lead Approve; the lead accepts that the schema doesn't refuse reserved keys
+  (the key field does, and data-3's loader drops them). Merged onto `main`
+  430ce9a without conflicts.
 
 ## Team member's reply
 
