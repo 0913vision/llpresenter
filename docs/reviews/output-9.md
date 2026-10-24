@@ -142,19 +142,21 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (bc5bee2): reviewer (Codex, codex5) Request changes: an app.quit()
+  already under way could exit with a soak write pending, and the save waits had
+  no deadline. qa confirmed in the built app that it fixes M1-11.
+- Round 2 (5ead9e3): reviewer (Codex, codex5) Request changes: the UI state's
+  own before-quit guard could still block a quit forever when a write hangs. qa
+  found the same hang with a stuck rename.
+- Round 3 (02d872a): reviewer (Codex, codex5) Approve, no findings. One shutdown
+  coordinator owns quitting (outputs, UI state, soak, store, media, IPC within a
+  3 s save limit, then the log flush within 2 s, then quit), and the
+  single-instance lock is released right before the real quit. Changes in
+  shell's `src/main/uiState` were made with shell's permission. Lead Approve;
+  this fixes qa's M1-11 and wires registerUiState, registerSoakRecorder, and
+  registerStore. Rebased by the lead onto local `main` without conflicts.
 
 ## Team member's reply
 
