@@ -1,0 +1,78 @@
+import * as v from 'valibot';
+import {NO_LABEL_COLOR, paletteColors} from '../colors';
+import type {Result} from '../result';
+import type {ReadonlyKnown} from './fileFormat';
+import {
+  parsePayload,
+  payloadObject,
+  plainObject,
+  type PayloadError,
+} from './payload';
+
+/** Why a row of the 예배 순서 shows a warning icon. */
+export const showRowProblems = [
+  'missing-song',
+  'missing-background',
+  'missing-media',
+  'unknown-kind',
+] as const;
+
+const id = v.pipe(v.string(), v.nonEmpty());
+
+const showRowSchema = v.pipe(
+  plainObject,
+  v.variant('kind', [
+    v.object({kind: v.literal('header'), id, title: v.string()}),
+    v.object({
+      kind: v.picklist(['song', 'bible', 'media', 'notice', 'slot', 'unknown']),
+      id,
+      title: v.string(),
+      problem: v.exactOptional(v.picklist(showRowProblems)),
+    }),
+  ]),
+);
+
+const showTileSchema = payloadObject({
+  label: v.nullable(v.string()),
+  labelColor: v.picklist([...paletteColors, NO_LABEL_COLOR]),
+  lines: v.array(v.string()),
+});
+
+const showServiceSchema = payloadObject({
+  revision: v.pipe(v.number(), v.integer(), v.minValue(0)),
+  id,
+  name: v.string(),
+  rows: v.array(showRowSchema),
+  tiles: v.pipe(plainObject, v.record(v.string(), v.array(showTileSchema))),
+  jumpKeys: v.pipe(plainObject, v.record(v.string(), v.string())),
+});
+
+/**
+ * The open 예배 순서 as 진행 shows it. The main process resolves every item,
+ * so the renderer never reads song files. `revision` grows on every change,
+ * and a window drops one older than what it has.
+ */
+export type ShowService = ReadonlyKnown<
+  v.InferOutput<typeof showServiceSchema>
+>;
+
+/**
+ * One row, with the service item's id. Rows of a kind this version doesn't
+ * know show a warning and can't be output.
+ */
+export type ShowRow = ShowService['rows'][number];
+
+/**
+ * One tile of a song item, in the order of the item's 구성. A 장 that repeats
+ * has a tile for each time, and a tile's position is its index in the list.
+ */
+export type ShowTile = ShowService['tiles'][string][number];
+
+/** Checks a `service:get` reply or a `service:changed` push. Never throws. */
+export function parseShowService(
+  value: unknown,
+): Result<ShowService | null, PayloadError> {
+  return value === null
+    ? {ok: true, value: null}
+    : parsePayload(showServiceSchema, value);
+}
