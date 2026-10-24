@@ -99,6 +99,7 @@ The app uses one typeface, Pretendard Variable (`fonts/PretendardVariable.woff2`
 - Use `font-variant-numeric: tabular-nums` for numbers that must line up, such as counts, times, and 장 numbers.
 - Truncate a name that doesn't fit on one line with an ellipsis, and show the full name in a tooltip. Don't wrap lyrics or song titles onto two lines (two-line list items and macro names are the only exceptions).
 - Don't create sizes outside this table.
+- In code, set a style with its shorthand variable, for example `font: var(--type-label);`. Each style has one (`--type-<style>`). The global classes (`.label` and the rest) are for the previews.
 
 ## Spacing and sizes
 

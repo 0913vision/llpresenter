@@ -90,3 +90,8 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   longer downloads its binary on install, and electron-vite looks for the binary
   directly, so a fresh worktree failed with `Electron uninstall` (found by
   trial-1). The script skips the download when the binary is already there.
+- 2026-10-24: Each type style has a `font` shorthand variable, `--type-<style>`
+  (for example `--type-label: 400 12px/16px var(--font-ui)`), generated from
+  `tokens.json`. Components use `font: var(--type-label)` instead of the global
+  classes, which CSS modules can't compose safely (asked by ui). Named
+  `--type-*` so it doesn't collide with the family variables `--font-*`.
