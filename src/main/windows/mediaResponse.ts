@@ -4,6 +4,7 @@ import {extname} from 'node:path';
 import {Readable} from 'node:stream';
 import {mediaIdFromUrl} from '@shared/media';
 import type {Logger} from '../log';
+import {realPathInside} from './insideRoots';
 
 const MEDIA_TYPES: Readonly<Record<string, string>> = {
   '.mp4': 'video/mp4',
@@ -106,16 +107,20 @@ export type MediaPathResolver = (mediaId: string) => Promise<string | null>;
 /** The arguments of {@link createMediaHandler}. */
 export interface MediaHandlerOptions {
   readonly resolvePath: MediaPathResolver;
+  /** The folders media files may come from. A file outside them is refused. */
+  readonly mediaRoots: () => readonly string[];
   readonly log: Logger;
 }
 
 /**
  * Answers `llp-media:` requests with the library file of the media id. A URL
- * that isn't a media URL, an unknown id, and a missing file never throw; they
- * get an error status, and the last two are logged.
+ * that isn't a media URL, an unknown id, a missing file, and a file outside
+ * the media folders never throw; they get an error status, and all but the
+ * first are logged.
  */
 export function createMediaHandler({
   resolvePath,
+  mediaRoots,
   log,
 }: MediaHandlerOptions): (request: Request) => Promise<Response> {
   return async request => {
@@ -127,7 +132,14 @@ export function createMediaHandler({
         log.warn('no file for a media id', {mediaId});
         return new Response(null, {status: HTTP_NOT_FOUND});
       }
-      return await createFileResponse(path, request.headers.get('range'));
+      const allowed = await realPathInside(path, mediaRoots());
+      if (allowed === null) {
+        log.warn('no media file inside the media folders for a media id', {
+          mediaId,
+        });
+        return new Response(null, {status: HTTP_NOT_FOUND});
+      }
+      return await createFileResponse(allowed, request.headers.get('range'));
     } catch (error) {
       log.warn(`could not serve the media file of ${mediaId}`, error);
       return new Response(null, {status: HTTP_NOT_FOUND});

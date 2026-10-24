@@ -19,9 +19,10 @@ const userDataProblem = applyUserDataOverride(
 
 registerMediaScheme();
 
-// TODO(0913vision): Find media files through the media library once the file
-// store has it. Until then no media id resolves.
+// TODO(0913vision): Find media files and their folders through the media
+// library once the file store has it. Until then no media id resolves.
 const findMediaFile: MediaPathResolver = () => Promise.resolve(null);
+const noMediaRoots = (): readonly string[] => [];
 
 const log = createLogger(join(app.getPath('userData'), 'logs'), {
   echo: !app.isPackaged,
@@ -66,7 +67,11 @@ function start(): void {
     .then(() => {
       const store = new LiveStore();
       const disposeIpc = registerIpc(store, log);
-      const stopServingMedia = serveMedia({resolvePath: findMediaFile, log});
+      const stopServingMedia = serveMedia({
+        resolvePath: findMediaFile,
+        mediaRoots: noMediaRoots,
+        log,
+      });
       const win = createControlWindow(log);
       control = win;
       const stopOutputs = startOutputs({store, control: win, log});
