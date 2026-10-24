@@ -86,3 +86,7 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
 - 2026-10-24: Branch names follow `<tag>/<name>/<feature>` (user rule), for
   example `feat/ui/form-controls`, with exactly three parts. This replaces
   `team/<name>`, and each review request gets its own branch.
+- 2026-10-24: `npm ci` runs `install-electron` as `postinstall`. Electron 44 no
+  longer downloads its binary on install, and electron-vite looks for the binary
+  directly, so a fresh worktree failed with `Electron uninstall` (found by
+  trial-1). The script skips the download when the binary is already there.
