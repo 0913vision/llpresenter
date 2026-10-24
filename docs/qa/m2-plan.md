@@ -59,6 +59,12 @@ X20, and SK3 starts Electron only through QA's own launchers:
   `scripts/README.md` "`npm run soak`" (`LLP_SOAK_RECORD`, `LLP_SOAK_EXIT_MS`,
   and a new `LLP_USER_DATA`), wait until the app quits by itself, and judge the
   record with `npm run soak -- --minutes <n> --judge <record.jsonl>`.
+- Memory is judged only from runs without an inspector on the main process and
+  without a CDP client that compiles a script per command. In QA's output-2
+  soak, an inspector on main made the main heap grow 4.9 to 7.9 MB in 30 minutes
+  (+8.1 MB/h), while the same workload without CDP stayed at 4.4 to 4.5 MB. A
+  run that drives a window over CDP sends every command through one fixed
+  function with arguments (`Runtime.callFunctionOn`).
 - QA never runs `npm run soak` without `--judge`, `npm run dev`,
   `electron-vite dev` (with or without `--rendererOnly`), or `electron .`: each
   starts Electron with visible windows.
