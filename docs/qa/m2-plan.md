@@ -236,7 +236,9 @@ rules", and "Schema versions and migration"; `docs/TECH.md` "Storage".
     P-kill at a real write stage, in turn: (a) when the temporary file appears,
     (b) when it has its full size, and (c) right after the rename, when the song
     file changes. Then start again. If no temporary file ever shows, record how
-    the store writes and kill at the moment the song file changes.
+    the store writes and kill at the moment the song file changes. The report
+    records which stage each kill actually interrupted, and marks a stage
+    blocked when the watcher can't hit it reliably.
   - Expected: The song file always parses and holds either the old or the new
     content, never empty or partial. After a kill at (c), it holds the new
     content. A leftover temporary file doesn't break the next start and isn't
@@ -372,7 +374,8 @@ screen outputs on and off"; `docs/briefs/output.md`; `ToolbarButton` README.
     doesn't touch the other.
   - Source: spec 03; spec 08.
 - **O4 Unassigned or absent monitor at launch**
-  - Steps: Start with the default screens and only FM1, then with FM1 and FM2.
+  - Steps: Start with the default screens and only the primary monitor, then
+    with the primary monitor and FM2.
   - Expected: The default rule holds (본 화면 on the second monitor, if any);
     with no monitor for a screen, turning it on follows the lost monitor rules
     (X cases) instead of opening on the control monitor in full screen.
