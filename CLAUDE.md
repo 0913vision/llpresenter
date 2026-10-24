@@ -200,8 +200,17 @@ without exception.
   code.
 - Use the dev server port and app data folder that your brief assigns (see the
   table in `docs/WORKFLOW.md`).
-- When you finish, write your review request, commit it, send it to the lead
-  with SendMessage, and wait.
+- When you finish, write your review request, commit it, and send it to the lead
+  with SendMessage.
+- Never sit idle. While you wait for a review, an answer, or CI, move on to the
+  next item in your brief or milestone (the next request, more tests, reading
+  the spec for the next task). Before you end a turn with something still
+  pending outside your session, set yourself a wakeup with the `loop` skill
+  (self-paced, about every 20 to 30 minutes) to check messages, CI, and your
+  branch and carry on, and stop the loop once nothing is pending.
+- Report to the lead with SendMessage whenever something happens: a step done, a
+  blocker, a surprise, a failing check you didn't cause, or no work left. Short
+  and factual. Don't wait to be asked.
 - When you're blocked, ask the lead instead of guessing at a shared contract.
 
 ## Context and compaction
