@@ -37,9 +37,27 @@ function ClearButton({
   );
 }
 
+function UndoButton({compact}: {readonly compact: boolean}): JSX.Element {
+  const canUndo = useCanUndo();
+  return (
+    <button
+      type="button"
+      className={`${styles.button} ${styles.undo}`}
+      aria-label="되돌리기"
+      aria-keyshortcuts="Control+Z"
+      aria-disabled={!canUndo}
+      data-state={canUndo ? undefined : 'off'}
+      title={`되돌리기 ${UNDO_SHORTCUT}`}
+      onClick={undoClear}
+    >
+      <Icon name="undo" size={compact ? 16 : 18} />
+      {compact ? null : <span className={styles.label}>되돌림</span>}
+    </button>
+  );
+}
+
 /** The 지우기 row of the 진행 workspace: one button per layer, and 되돌림. */
 export function ClearRow({compact}: {readonly compact: boolean}): JSX.Element {
-  const canUndo = useCanUndo();
   return (
     <div
       role="group"
@@ -50,19 +68,7 @@ export function ClearRow({compact}: {readonly compact: boolean}): JSX.Element {
         <ClearButton key={spec.target} spec={spec} compact={compact} />
       ))}
       <span className={styles.divider} aria-hidden="true" />
-      <button
-        type="button"
-        className={`${styles.button} ${styles.undo}`}
-        aria-label="되돌리기"
-        aria-keyshortcuts="Control+Z"
-        aria-disabled={!canUndo}
-        data-state={canUndo ? undefined : 'off'}
-        title={`되돌리기 ${UNDO_SHORTCUT}`}
-        onClick={undoClear}
-      >
-        <Icon name="undo" size={compact ? 16 : 18} />
-        {compact ? null : <span className={styles.label}>되돌림</span>}
-      </button>
+      <UndoButton compact={compact} />
     </div>
   );
 }

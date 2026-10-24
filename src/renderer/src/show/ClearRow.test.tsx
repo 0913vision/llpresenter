@@ -1,11 +1,23 @@
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
-import {afterEach, beforeEach, describe, expect, it} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@shared/commands';
 import {emptyLayers, emptyLiveState, type LiveLayers} from '@shared/live';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {useLive} from '@renderer/state/live';
 import {hasSomethingToClear} from './clear';
 import {ClearRow} from './ClearRow';
+
+const iconRenders = vi.hoisted(() => {
+  const names: string[] = [];
+  return {names};
+});
+
+vi.mock('@renderer/ui/Icon', () => ({
+  Icon: ({name}: {readonly name: string}) => {
+    iconRenders.names.push(name);
+    return null;
+  },
+}));
 
 const sent: LiveCommand[] = [];
 
@@ -150,6 +162,22 @@ describe('ClearRow', () => {
     expect(
       screen.getByRole('button', {name: '되돌리기'}).getAttribute('data-state'),
     ).toBe('off');
+  });
+
+  it('redraws only the undo button when canUndo changes', () => {
+    setCanUndo(false);
+    render(<ClearRow compact={false} />);
+    iconRenders.names.length = 0;
+    act(() => setCanUndo(true));
+    expect(iconRenders.names).toEqual(['undo']);
+  });
+
+  it('redraws only the buttons whose layer changed when the layers change', () => {
+    setLayers({});
+    render(<ClearRow compact={false} />);
+    iconRenders.names.length = 0;
+    act(() => setLayers({slide}));
+    expect([...iconRenders.names].sort()).toEqual(['layers', 'text']);
   });
 
   it('follows the live state when a clear becomes undoable and when it is undone', () => {
