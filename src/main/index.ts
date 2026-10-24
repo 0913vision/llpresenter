@@ -5,12 +5,15 @@ import {createLogger, type Logger} from './log';
 import {registerIpc} from './ipc';
 import {startOutputs} from './outputs/start';
 import {flushLogBeforeQuit} from './quit';
+import {registerSoakRecorder} from './soak';
+import {registerUiState} from './uiState/register';
 import {applyUserDataOverride, type UserDataProblem} from './userData';
 import {createControlWindow} from './windows/control';
 import {registerMediaScheme, serveMedia} from './windows/mediaProtocol';
 import type {MediaPathResolver} from './windows/mediaResponse';
 
 const BAD_ENVIRONMENT_EXIT_CODE = 1;
+const UI_STATE_FILE = 'app.json';
 
 const userDataProblem = applyUserDataOverride(
   process.env['LLP_USER_DATA'],
@@ -59,12 +62,19 @@ function start(): void {
   app.on('child-process-gone', (_event, details) =>
     log.error('child process gone', details),
   );
-  app.on('window-all-closed', () => app.quit());
+  // NOTE(0913vision): The control window's close handler quits once the UI
+  // state and the soak record are written. Quitting here as well would cut
+  // those writes short when the last window closes.
+  app.on('window-all-closed', () => undefined);
   flushLogBeforeQuit(app, log);
 
   app
     .whenReady()
-    .then(() => {
+    .then(async () => {
+      const ui = await registerUiState(
+        join(app.getPath('userData'), UI_STATE_FILE),
+        log,
+      );
       const store = new LiveStore();
       const disposeIpc = registerIpc(store, log);
       const stopServingMedia = serveMedia({
@@ -74,6 +84,7 @@ function start(): void {
       });
       const win = createControlWindow(log);
       control = win;
+      const stopSoakRecorder = registerSoakRecorder(log);
       const stopOutputs = startOutputs({store, control: win, log});
       // NOTE(0913vision): Output windows turn a close into "output off", so
       // they must be destroyed before Electron closes windows to quit.
@@ -83,7 +94,13 @@ function start(): void {
         stopOutputs();
         stopServingMedia();
         disposeIpc();
-        app.quit();
+        Promise.all([ui.dispose(), stopSoakRecorder()]).then(
+          () => app.quit(),
+          (error: unknown) => {
+            log.error('could not finish saving before quitting', error);
+            app.quit();
+          },
+        );
       });
       quitAfterSmokeTest(win, log);
       log.info('started', {
