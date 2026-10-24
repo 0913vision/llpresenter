@@ -2,7 +2,7 @@
 
 - Team member: `shell`
 - Branch: `feat/shell/column-resize`
-- Base commit (`main`): `5b09a98`
+- Base commit (`main`): `eba31da`
 - Last commit: see the commit that adds this file
 - Related brief: `docs/briefs/shell.md`
 
@@ -45,14 +45,14 @@ The gaps have no focus stop, as the brief says.
 
 ## Checks run
 
-All on commit `6b79f52` (rebased onto `main` 5b09a98; the review document is
-added after it).
+Round 2: all on commit `fdea8a2` (rebased onto `main` eba31da; the review
+document changes come after it). Round 1 ran on `6b79f52` with 76 tests.
 
 | Command or test        | Result                             |
 | ---------------------- | ---------------------------------- |
 | `npm ci`               | Passed, 0 vulnerabilities          |
 | `npm run typecheck`    | Passed                             |
-| `npm test`             | Passed, 12 files, 76 tests         |
+| `npm test`             | Passed, 12 files, 87 tests         |
 | `npm run format:check` | Passed                             |
 | `npm run build`        | Passed                             |
 | `npm run verify`       | Not available yet (no such script) |
@@ -145,18 +145,84 @@ missing.
 
 ## Review: lead
 
-- Verdict: Approve / Request changes
+- Verdict: Request changes
 - Findings:
-
-  1.
+  1. Agree with the reviewer's findings 1 to 3; each needs a regression test in
+     `ColumnLayout.test.ts` or `Workspace.test.tsx`.
+  2. Nit: `columns.ts` repeats the 4px panel gap as `PANEL_GAP`, which also
+     lives in the `--panel-gap` token. Keep the constant, but add a
+     `NOTE(0913vision)` that it must match the token, or derive the fixed gap
+     width from the grid instead.
+  3. Nit: the size class is set from two places (`watchWindowResize` calls
+     `setSizeClass`, and the `sizeClass` prop effect calls it too). Keep one
+     source: let the prop drive `setSizeClass` and let the resize handler only
+     `refit`.
+  4. The column logic itself matches the Layout rules (ranges, center 560,
+     right-first shrink), and the drag avoids re-rendering the panels. Good
+     work.
 
 ## Review: reviewer
 
-- Verdict: Approve / Request changes
+- Verdict: Request changes (Codex)
 - Findings:
+  1. src/renderer/src/shell/ColumnLayout.ts:72 Clicking and releasing a gap
+     without moving overwrites its saved width with the temporarily shrunk
+     width. At 1600px, saved widths 400/720 display as 400/624; clicking the
+     right gap permanently saves 624. Save only when the dragged width changes,
+     and add a regression test.
+  2. src/renderer/src/shell/ColumnLayout.ts:46 Resizing during a drag skips
+     fitting, and endDrag() never refits afterward. Shrinking from 1920px to
+     1600px with columns 400/720 leaves tracks requiring 1696px, clipping the
+     right panel even after release. Handle resizing during a drag and test
+     fitting through release.
+  3. src/renderer/src/shell/ColumnGap.tsx:25 Pointer identity is not tracked,
+     and another pointer can replace the shared controller's active drag. Two
+     fingers on different gaps can make movement on one gap resize the other
+     column, then end its drag prematurely. Enforce one active pointer across
+     both gaps, ignore unrelated events, and add tests.
+  4. docs/reviews/shell-1.md:1 Nit: Commit 906d57e uses docs(review), while the
+     brief requires scope shell. Use docs(shell).
 
-  1.
+Lead's note on reviewer nit 4: `docs(review)` is the team's convention for
+review documents (trial-1 used it), so keep it; no change needed.
 
 ## Team member's reply
 
-1.
+Replies to the lead:
+
+1. Finding 1: Done, see the replies to the reviewer below.
+2. Finding 2: Done. `columns.ts` keeps `PANEL_GAP` with a `NOTE(0913vision)`
+   that it must match the `--panel-gap` token.
+3. Finding 3: Done. The resize handler in `useColumnLayout.ts` only calls
+   `refit`. The `sizeClass` prop is the only source of `setSizeClass`.
+4. Finding 4: Thank you.
+
+Replies to the reviewer:
+
+1. Finding 1: Fixed. `endDrag` saves the dragged column only when its width
+   differs from the width at the start of the drag. Tests: "does not overwrite a
+   saved width when a gap is pressed without moving" and "does not save a drag
+   that returns to the starting width" in `ColumnLayout.test.ts`, and "keeps a
+   shrunk width unsaved when a gap is clicked without moving" in
+   `Workspace.test.tsx`.
+2. Finding 2: Fixed. `endDrag` calls `refit` after the drag, so a window that
+   shrank during the drag is fitted at release. Tests: "fits the widths to a
+   window that resized during the drag when it ends" and "fits the columns when
+   the window shrinks during a drag".
+3. Finding 3: Fixed. `beginDrag` now returns a `DragSession`, or nothing while
+   another drag is active, so only one drag can exist across both gaps. A
+   session that has ended or was dropped by a size class change does nothing.
+   `ColumnGap` remembers the pointer id of its own drag and ignores move, up,
+   cancel, and lost-capture events of other pointers, and it ignores a second
+   press on the gap that is being dragged. Tests: "does not start a second drag
+   while one is in progress", "ignores moves and releases of a drag that has
+   ended", "lets a stale session end without touching a newer drag" (controller)
+   and "lets only one pointer drag across both gaps", "ignores a second pointer
+   on the gap that is being dragged", "can drag the other gap after the first
+   drag ends" (component).
+4. Finding 4: Keeping `docs(review)`, as the lead said.
+5. Rebase: onto `main` eba31da, no conflicts. Checks on commit fdea8a2:
+   `npm ci`, `npm run typecheck`, `npm test` (12 files, 87 tests),
+   `npm run format:check`, and `npm run build` all passed. I ran the three-size
+   drag check and the shrink check in the running app again, with the same
+   results as in "Running app".
