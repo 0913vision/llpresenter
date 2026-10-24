@@ -61,9 +61,22 @@ Source: `Screens`, `Looks`, `StageEditor`, `Main` board guide (화면 설정, Lo
   window, with its resolution.
 - 모니터 번호 표시 (show monitor numbers) shows a large number on each physical
   monitor for 3 seconds, so the operator can match boxes to monitors (proposal
-  for the duration).
+  for the duration). Each number shows in a borderless window above everything,
+  output windows included, and never takes focus or the mouse (proposal).
+- The health dot of a screen row is the design system's `ok` dot while the
+  output is on and drawing at its frame rate target, an amber dot while it has a
+  problem (lost monitor, low frame rate, or the restart limit; 08), and no dot
+  while the output is off (proposal).
 - The operator assigns a monitor with the 장치 (device) property. Dragging a
   screen onto a monitor box also assigns it (proposal).
+- A monitor holds at most one full screen output. Assigning a monitor that
+  another screen uses leaves that other screen unassigned, so it shows in a
+  window (proposal).
+- The 장치 select doesn't offer the monitor that holds the main window, so a
+  full screen output never covers the control window (proposal).
+- A screen name that is empty or that another screen has can't be saved: the
+  field shows the error ring with the reason in a tooltip, and the old name
+  comes back when the field loses focus (proposal).
 
 ### Output preview
 
@@ -75,6 +88,12 @@ Source: `Screens`, `Looks`, `StageEditor`, `Main` board guide (화면 설정, Lo
   audience screens with Show and removes it with Clear, S4 p. 45; tying it to
   this preview is our design). It returns to the content when the operator
   chooses 화면 내용 or leaves 화면 설정 (proposal).
+- The pattern (proposal): the top two thirds hold seven vertical bars at full
+  strength, white, yellow, cyan, green, magenta, red, and blue; the bottom third
+  holds a gray ramp in 11 steps from black to white; a 2 px white border runs
+  around the picture edge, and the screen name and resolution sit in the center
+  in white on black. The pattern is drawn with the screen's 가장자리 여백 and
+  위치 미세 조정 applied, so the border shows where the corrected picture ends.
 - The caption shows the screen name, the target and monitor name ("모니터 2
   EPSON 프로젝터"), and the resolution and refresh rate ("1920×1080 60Hz").
 

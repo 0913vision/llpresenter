@@ -57,7 +57,9 @@ Source: `Reflow`, `PrepService`, `AddSongs`, `ListRow` README.
 - Tool row: a search field with the placeholder "제목, 가사, 초성" (title,
   lyrics, initial consonants).
 - Rows: a song icon, the title, and the number of 장 in the file ("4장"). Rows
-  sort by title in Korean alphabetical order (as in the board).
+  sort by title in Korean alphabetical order (as in the board), compared with
+  the Korean collation of the platform (`Intl.Collator('ko', {numeric: true})`),
+  so "찬송 2" comes before "찬송 10" (proposal).
 - Clicking a row selects the song and opens the song editor.
 - Dragging a row to the 예배 순서 adds the song (see "Adding items to the 예배
   순서").
@@ -165,7 +167,11 @@ The song editor edits the 라이브러리 song, which is the source for every �
 - When blocks are inserted, deleted, merged, or moved, rewrite the 장 numbers in
   every 구성 (see 02).
 - Ctrl Z undoes edits for the current session, and Ctrl Y or Ctrl Shift Z redoes
-  them (decided; Ctrl Y follows ProPresenter, S1).
+  them (decided; Ctrl Y follows ProPresenter, S1). Each song has its own history
+  while the app runs, up to 100 steps; the oldest step drops off past that.
+  Typing in one block counts as one step until the cursor leaves the block or 1
+  second passes without typing. The history is gone when the app quits
+  (proposal).
 - Ctrl Enter splits the block at the cursor, and Ctrl Shift N inserts an empty
   block after the current one (decided, 10).
 
@@ -442,6 +448,20 @@ Source: `ServiceSwitch`, `NewService`, `ImportMenu`, `Main` board guide (예배
     when the song is saved (proposal). Whether to map English names such as
     "[Chorus]" to Korean ones is an open question.
 - Trim blank lines at the start and end, and trailing spaces on each line
+  (proposal).
+- Before splitting (proposal): CRLF and CR line endings become LF, and tabs
+  become spaces. 자동 encoding treats the bytes as UTF-8 only if they are valid
+  UTF-8; otherwise it reads them as CP949.
+- 줄 바꿈 respects stanza breaks: a blank line always ends a 장, so 한 장에 2
+  never joins the last line of one stanza with the first line of the next. This
+  follows ProPresenter's import ("with respect for stanza breaks", S4 p. 90 in
+  10).
+- 기호 splits wherever the symbol appears, inside a line or on its own line. The
+  text between two symbols, trimmed, is one unit, and its line breaks stay.
+  Empty units are dropped (proposal).
+- An 이름표 line is a line that holds only a name in square brackets, with
+  optional spaces: `[ 후렴 ]` gives 후렴. Other brackets, such as "(후렴)", are
+  lyrics. An 이름표 line also ends the current 장, so its 이름표 starts a new 장
   (proposal).
 - The preview updates at once when an option changes.
 

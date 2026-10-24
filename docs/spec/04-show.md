@@ -81,7 +81,9 @@ Source: `Main` decisions "진행 화면은 절충안" and "작업 공간 세 개
   항목 추가 (proposal: the header has an 항목 추가 button).
 - No board shows the row's right-click menu. Version 1 has "준비에서 열기" (open
   in 준비) and "삭제" (delete) (proposal). Delete works without confirmation,
-  and the edit undo (Ctrl Z in 준비) restores the item (proposal).
+  and the edit undo restores the item (proposal). In 진행, Ctrl Z stays the
+  clear undo (03), so the edit undo there is 편집 > 실행 취소 in the menu bar.
+  That menu item always runs the edit undo, in every workspace (proposal).
 - Deleting or moving the item that is on output doesn't change the output.
 
 Source: `ShowH`, `Compact`, `Problems` (warning icon), `ListRow` README, `Panel`
@@ -582,7 +584,11 @@ Source: `ShowH`, `Problems`, `MediaTile` README, `Layout` README.
   (proposal). Whether the board's 본 화면 style name "말씀" (sermon) is a style
   only for Bible passages is an open question.
 - A passage that the operator outputs or adds to the 예배 순서 goes to the front
-  of the recent list (up to 10, proposal).
+  of the recent list (up to 10, proposal). A passage that is already in the list
+  (same reference and translation) moves to the front instead of appearing
+  twice, and the oldest one drops off past 10 (proposal).
+- The "구절" suggestions list matching books in canonical order (창세기 first),
+  at most 8 (proposal).
 - Choosing a row in the 예배 순서 closes the Bible panel and returns to the 장
   panel (proposal).
 

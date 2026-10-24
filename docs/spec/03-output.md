@@ -43,6 +43,16 @@ Rules for output windows:
   (proposal).
 - Closing a window-method output window with its close button is the same as
   turning that screen's output off (proposal).
+- Changing a screen's method, monitor, or resolution while its output is on
+  moves or resizes the window at once and keeps drawing the live content. A
+  screen switched to 창 opens a 960 x 540 window centered on the control
+  monitor, like the window for a lost monitor (proposal).
+- 가장자리 여백 m % scales the picture to (100 − 2m) % of the screen and centers
+  it, so m % of the width stays empty on each side and m % of the height at the
+  top and bottom. 위치 미세 조정 then moves the scaled picture by x px to the
+  right and y px down, in the screen's own pixels (negative values move it left
+  and up). What moves past the screen edge isn't drawn, and the empty area is
+  the screen's empty color (proposal).
 
 Source: `Screens`, `ScreensNDI`, design system README (output windows draw at
 native resolution), `docs/TECH.md` (output windows show no dialogs).
@@ -185,7 +195,28 @@ Source: `Looks`, `Main` decision "설정은 앱 전체에 하나", `ShowH` (tool
 - A blank 장 (no lines) can be the live 장. It draws nothing on the lyrics layer
   (proposal).
 - Lyric style sizes are for a 1920 x 1080 screen. Scale them to the screen
-  resolution (proposal).
+  resolution (proposal): every px value of the style (size, outline width,
+  shadow blur and distance) is multiplied by the smaller of (screen width
+  / 1920) and (screen height / 1080).
+- The text area is the screen minus the margin: `margin` % of the screen width
+  on the left and right, and `margin` % of the screen height at the top and
+  bottom (proposal). The lines sit at the top, middle, or bottom of the area
+  (`vAlign`), each line aligned left or centered (`align`).
+- The area may hold `maxLines` lines at the style's size: the text block may be
+  as tall as `maxLines` × size × `lineHeight`, and never taller than the area
+  (proposal).
+- Wrapping breaks between words; Hangul words aren't broken inside
+  (`word-break: keep-all`, as in the design system's thumbnails). A single word
+  wider than the area breaks anywhere (proposal).
+- Shrink to fit: draw at the largest whole px size, no larger than the style's
+  size, at which the wrapped lines fit both the width and the allowed height.
+  The size never goes below half of the style's size; if the text still doesn't
+  fit at that size, it draws at that size and may run past the margins, and it's
+  never cut (proposal).
+- Until the user decides open decisions entry 26 (outline and shadow detail),
+  the switches draw fixed values from 10's defaults: an outline of 3 px, black,
+  and a shadow with 8 px blur, 4 px distance down and to the right, 60 %
+  opacity, black (proposal).
 
 ### Transitions
 
