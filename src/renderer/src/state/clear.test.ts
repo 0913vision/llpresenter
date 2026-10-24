@@ -60,7 +60,10 @@ describe('clearLayer', () => {
     useLive.setState({
       state: {
         ...base,
-        layers: {...emptyLayers(), media: {mediaId: 'm', loop: true}},
+        layers: {
+          ...emptyLayers(),
+          media: {mediaId: 'm', loop: true, startedAt: 0},
+        },
       },
     });
     clearLayer('slide');

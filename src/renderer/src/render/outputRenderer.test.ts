@@ -25,7 +25,7 @@ class FakeResizeObserver {
 
 const WITH_SLIDE: LiveLayers = {
   ...emptyLayers(),
-  media: {mediaId: 'warm-light', loop: true},
+  media: {mediaId: 'warm-light', loop: true, startedAt: Date.now()},
   slide: {itemId: 'hymn-1', position: 0, label: null, lines: ['만복의 근원']},
 };
 

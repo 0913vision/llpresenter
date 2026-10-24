@@ -83,7 +83,7 @@ function resumedMedia(
   media: MediaLayer | null,
   clearedForMs: number,
 ): MediaLayer | null {
-  if (media?.startedAt === undefined) return media;
+  if (media === null) return media;
   return {...media, startedAt: media.startedAt + clearedForMs};
 }
 

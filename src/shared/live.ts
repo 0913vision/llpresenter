@@ -20,10 +20,10 @@ export interface MediaChoice {
 export interface MediaLayer extends MediaChoice {
   /**
    * When this background started, in milliseconds since the epoch on the main
-   * process clock. Absent means the window starts the background from the
-   * beginning.
+   * process clock, so a window that opens or reloads later joins it at the
+   * same point.
    */
-  readonly startedAt?: number;
+  readonly startedAt: number;
 }
 
 /** The slide on output: a service item, its position in the arrangement, and what to draw. */

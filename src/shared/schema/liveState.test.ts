@@ -35,15 +35,6 @@ describe('parseLiveState', () => {
     });
   });
 
-  it('accepts a background without a start time', () => {
-    const state = busyState();
-    const media = {mediaId: 'warm-light', loop: false};
-
-    expect(
-      parseLiveState({...state, layers: {...state.layers, media}}).ok,
-    ).toBe(true);
-  });
-
   it.each([
     ['a negative version', {version: -1}, 'version'],
     ['a missing layer', {layers: {media: null}}, 'layers.slide'],
@@ -71,6 +62,11 @@ describe('parseLiveState', () => {
       'media without an id',
       {media: {mediaId: '', loop: true}},
       'layers.media.mediaId',
+    ],
+    [
+      'a background without a start time',
+      {media: {mediaId: 'm', loop: true}},
+      'layers.media.startedAt',
     ],
     [
       'an infinite start time',

@@ -42,7 +42,7 @@ function setLayers(layers: Partial<LiveLayers>): void {
 }
 
 const slide = {itemId: 'a', position: 0, label: null, lines: ['x']};
-const media = {mediaId: 'm', loop: true};
+const media = {mediaId: 'm', loop: true, startedAt: 0};
 
 beforeEach(() => {
   sent.length = 0;

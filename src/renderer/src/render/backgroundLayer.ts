@@ -28,7 +28,6 @@ export function startOffsetSeconds(
   duration: number,
   now: number,
 ): number {
-  if (media.startedAt === undefined) return 0;
   if (!Number.isFinite(duration) || duration <= 0) return 0;
   const elapsed = Math.max(0, (now - media.startedAt) / MS_PER_SECOND);
   const offset = media.loop ? elapsed % duration : Math.min(elapsed, duration);
@@ -147,7 +146,6 @@ export class BackgroundLayerView {
   }
 
   private seekOnceLoaded(video: HTMLVideoElement, media: MediaLayer): void {
-    if (media.startedAt === undefined) return;
     const onMetadata = (): void => {
       this.cancelSeek();
       const offset = startOffsetSeconds(media, video.duration, Date.now());

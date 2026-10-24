@@ -15,7 +15,7 @@ export const mediaChoiceSchema = payloadObject(mediaChoiceEntries);
 export const layerSchemas = {
   media: payloadObject({
     ...mediaChoiceEntries,
-    startedAt: v.exactOptional(v.pipe(v.number(), v.finite())),
+    startedAt: v.pipe(v.number(), v.finite()),
   }),
   slide: payloadObject({
     itemId: id,

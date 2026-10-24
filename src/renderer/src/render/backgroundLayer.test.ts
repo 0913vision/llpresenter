@@ -9,8 +9,16 @@ import {
 } from './backgroundLayer';
 import {classes} from './classes';
 
-const WARM_LIGHT: MediaLayer = {mediaId: 'warm-light', loop: true};
-const STILL_WATER: MediaLayer = {mediaId: 'still-water', loop: true};
+const WARM_LIGHT: MediaLayer = {
+  mediaId: 'warm-light',
+  loop: true,
+  startedAt: Date.now(),
+};
+const STILL_WATER: MediaLayer = {
+  mediaId: 'still-water',
+  loop: true,
+  startedAt: Date.now(),
+};
 
 const urlOf = (mediaId: string): string => `https://media.test/${mediaId}.mp4`;
 
@@ -260,7 +268,7 @@ describe('BackgroundLayerView rapid changes', () => {
     expect(isShown(second)).toBe(true);
     expect(first.classList.contains(classes.dissolving)).toBe(true);
 
-    view.show({mediaId: 'morning-sky', loop: true});
+    view.show({mediaId: 'morning-sky', loop: true, startedAt: Date.now()});
     expect(isShown(second)).toBe(false);
     expect(second.getAttribute('src')).toBe(urlOf('morning-sky'));
     expect(isShown(first)).toBe(true);
@@ -287,9 +295,9 @@ describe('startOffsetSeconds', () => {
     expect(startOffsetSeconds(media, DURATION, STARTED + 47_000)).toBe(20);
   });
 
-  it('starts from the beginning without a start time, a duration, or much time gone', () => {
-    expect(startOffsetSeconds(WARM_LIGHT, DURATION, STARTED)).toBe(0);
+  it('starts from the beginning without a duration, or with little time gone', () => {
     const media = {...WARM_LIGHT, startedAt: STARTED};
+    expect(startOffsetSeconds(media, DURATION, STARTED)).toBe(0);
     expect(startOffsetSeconds(media, Number.NaN, STARTED + 5000)).toBe(0);
     const justNow = STARTED + MIN_SEEK_SECONDS * 1000 - 1;
     expect(startOffsetSeconds(media, DURATION, justNow)).toBe(0);
