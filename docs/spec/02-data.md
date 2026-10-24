@@ -665,18 +665,22 @@ the numbers, and the separators are optional ("요3:16", "요한복음3장16절"
   suggestion list, where the operator picks one (04).
 - Chapter and verse numbers are whole numbers from 1. Anything else is invalid.
 
-Endpoint and order rules, checked against the chosen translation's file:
+Endpoint and order rules, checked against the chosen translation's file. The
+start and the end are compared as (chapter, verse) pairs, chapter first: the end
+comes before the start when its chapter is earlier, or when the chapters are
+equal and its verse is earlier. Only a pair with the same chapter and the same
+verse is one verse.
 
-| Case                                         | Result                                       | Example (요한복음 has 21 chapters, and its chapter 3 has 36 verses) |
-| -------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------- |
-| The start chapter doesn't exist              | Invalid                                      | 요 22:1                                                             |
-| The start verse doesn't exist in its chapter | Invalid                                      | 요 3:40                                                             |
-| The end verse is before the start verse      | Invalid (reversed)                           | 요 3:18-16                                                          |
-| The end chapter is before the start chapter  | Invalid (reversed)                           | 요 4:2-3:16                                                         |
-| The end chapter doesn't exist                | Invalid                                      | 요 3:16-22:1                                                        |
-| The end verse is past the end of its chapter | The range stops at that chapter's last verse | 요 3:16-99 becomes 요 3:16-36                                       |
-| The end chapter equals the start chapter     | Read as a range in one chapter               | 요 3:16-3:18 becomes 요 3:16-18                                     |
-| The end verse equals the start verse         | Read as one verse                            | 요 3:16-16 becomes 요 3:16                                          |
+| Case                                         | Result                                              | Example (요한복음 has 21 chapters, and its chapter 3 has 36 verses)                          |
+| -------------------------------------------- | --------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| The start chapter doesn't exist              | Invalid                                             | 요 22:1                                                                                      |
+| The start verse doesn't exist in its chapter | Invalid                                             | 요 3:40                                                                                      |
+| The end chapter doesn't exist                | Invalid                                             | 요 3:16-22:1                                                                                 |
+| The end verse is past the end of its chapter | The range stops at that chapter's last verse        | 요 3:16-99 becomes 요 3:16-36                                                                |
+| The end comes before the start               | Invalid (reversed)                                  | 요 3:18-16, 요 4:2-3:16                                                                      |
+| The end is in a later chapter                | A range across chapters, whatever the verse numbers | 요 3:16-4:2 (verse 2 is lower than 16, and the range is valid), 요 3:16-4:16 (not one verse) |
+| The end chapter equals the start chapter     | Read as a range in one chapter                      | 요 3:16-3:18 becomes 요 3:16-18                                                              |
+| The end equals the start                     | Read as one verse                                   | 요 3:16-16 and 요 3:16-3:16 become 요 3:16                                                   |
 
 - An invalid reference shows the error ring with the reason in a tooltip (04):
   "알아볼 수 없는 구절입니다" (passage not recognized) for a form the grammar
