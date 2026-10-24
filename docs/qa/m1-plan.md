@@ -1073,25 +1073,25 @@ says "passes" or "record".
   the JSON names are those of the schema at the tag (record them). Each invalid
   payload fails with the path `macros.<n>.actions.<m>.<parameter>`:
 
-  | Action (spec 07) | Valid payload                                                                                          | Invalid payloads                                                                                                     |
-  | ---------------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-  | Look 바꾸기      | A Look ID                                                                                              | No Look ID; an ID that isn't a UUID                                                                                  |
-  | 무대 화면 배치   | A stage layout ID, with and without a screen ID (the spec defaults to the 무대 화면)                   | No layout ID; a screen ID that isn't a UUID                                                                          |
-  | 모두 지우기      | No parameters                                                                                          | None (extra fields are kept as unknown fields)                                                                       |
-  | 레이어 지우기    | Each layer: 가사, 미디어, 소품, 오디오, 메시지, 공지; one 소품 by ID (proposal)                        | No layer; a layer outside the list                                                                                   |
-  | 배경 미디어      | A media ID                                                                                             | No media ID; a number                                                                                                |
-  | 소품             | A 소품 ID, with each mode (켜기, 끄기, 바꾸기) and with no mode (the spec defaults to 켜기)            | No 소품 ID; a mode outside the three                                                                                 |
-  | 메시지           | A template ID, blank values, target screens, and a display time                                        | No template ID; blank values that aren't strings; targets that aren't screen IDs or `"all"`; a negative display time |
-  | 공지             | A 공지 set ID                                                                                          | No set ID                                                                                                            |
-  | 오디오           | A track (media ID), 페이드 아웃, and 멈춤                                                              | A track without a media ID; an operation outside the three                                                           |
-  | 오디오 재생 목록 | An audio playlist ID                                                                                   | No playlist ID                                                                                                       |
-  | 타이머           | A 타이머 ID, with each operation (시작, 일시 정지, 처음으로) and with none (the spec defaults to 시작) | No 타이머 ID; an operation outside the three                                                                         |
-  | 매크로           | A 매크로 ID                                                                                            | No 매크로 ID; an ID that isn't a UUID                                                                                |
+  | Action (spec 07) | Valid payload                                                                                     | Invalid payloads                                                                                                                  |
+  | ---------------- | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+  | Look 바꾸기      | A Look ID                                                                                         | No Look ID; an ID that isn't a UUID                                                                                               |
+  | 무대 화면 배치   | A stage layout ID, with and without a screen ID (without one, the 무대 화면 applies on read)      | No layout ID; a screen ID that isn't a UUID                                                                                       |
+  | 모두 지우기      | No parameters                                                                                     | None (extra fields are kept as unknown fields)                                                                                    |
+  | 레이어 지우기    | Each layer: 가사, 미디어, 소품, 오디오, 메시지, 공지; or one 소품 by ID                           | No layer and no 소품; a layer outside the list; a 소품 ID that isn't a UUID                                                       |
+  | 배경 미디어      | A media ID                                                                                        | No media ID; a number                                                                                                             |
+  | 소품             | A 소품 ID, with each mode (켜기, 끄기, 바꾸기) and with no mode (켜기 applies on read)            | No 소품 ID; a mode outside the three                                                                                              |
+  | 메시지           | A template ID, blank values, target screens, and a display time, all four required                | Any one of the four missing; blank values that aren't strings; targets that aren't screen IDs or `"all"`; a negative display time |
+  | 공지             | A 공지 set ID                                                                                     | No set ID                                                                                                                         |
+  | 오디오           | A track (media ID), 페이드 아웃, and 멈춤                                                         | A track without a media ID; an operation outside the three                                                                        |
+  | 오디오 재생 목록 | An audio playlist ID                                                                              | No playlist ID                                                                                                                    |
+  | 타이머           | A 타이머 ID, with each operation (시작, 일시 정지, 처음으로) and with none (시작 applies on read) | No 타이머 ID; an operation outside the three                                                                                      |
+  | 매크로           | A 매크로 ID                                                                                       | No 매크로 ID; an ID that isn't a UUID                                                                                             |
 
-  Where the spec gives a default (the screen of 무대 화면 배치, the mode of
-  소품, the operation of 타이머) or allows one 소품 in 레이어 지우기, a schema
-  that requires the field or refuses the 소품 is recorded as a difference from
-  the spec, not filed as a bug until the lead decides.
+  The defaults and the one-소품 form follow the lead's decision of 2026-10-25
+  (spec 07): a missing screen, mode, or operation takes its default when the
+  file is read, and the editor writes the value explicitly. Serializing data
+  read without those fields writes them with the default values.
 
 - **D27 `quick.json`**: `kind` outside its enum; `"black"` without `ref` passes;
   `"bible"` with a passage object passes; `"song"` with a passage object fails.
