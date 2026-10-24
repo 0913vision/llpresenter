@@ -90,6 +90,6 @@ missing.
 `npm run verify` on commit `88defc7` (base `main` 6d8332f): `typecheck`, `lint`,
 `format:check`, and `build` passed. `test:coverage` had one failure in a test I
 did not touch: `scripts/soak/media.test.ts` > "ends the stalled maker and every
-process it started" (`expected true to be false`), which waits on a real child
-process and failed while the other four steps ran in parallel. The file passes
-alone on the same commit (11 of 11 tests). All other tests passed.
+process it started" (`expected true to be false`), which is a known failure on
+`main` since devops-13 (devops fixes it as devops-17). The file passes alone on
+the same commit (11 of 11 tests). All other tests passed.
