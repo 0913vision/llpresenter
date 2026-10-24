@@ -73,6 +73,7 @@ export function ServiceOrderList(): JSX.Element {
   }, [openItemId]);
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
+    if (event.ctrlKey || event.altKey || event.metaKey) return;
     const key = rowKeys[event.key];
     if (key === undefined) return;
     event.preventDefault();

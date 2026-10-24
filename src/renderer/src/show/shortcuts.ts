@@ -2,9 +2,12 @@ import {useEffect} from 'react';
 import {isColumnDragActive} from '@renderer/state/drag';
 import {
   jumpLabelFor,
+  openNextItem,
+  openPreviousItem,
   outputLabel,
   outputNext,
   outputPrevious,
+  revealLiveItem,
 } from '@renderer/state/show';
 
 const NEXT_CODES: ReadonlySet<string> = new Set([
@@ -14,6 +17,18 @@ const NEXT_CODES: ReadonlySet<string> = new Set([
 ]);
 const PREVIOUS_CODES: ReadonlySet<string> = new Set(['ArrowLeft', 'PageUp']);
 const SPACE_CODE = 'Space';
+
+// NOTE(0913vision): Command ids of docs/spec/10-shortcuts-and-settings.md. They
+// select or open an item and output nothing, so a held key may repeat.
+const ITEM_COMMANDS: ReadonlyArray<{
+  readonly id: string;
+  readonly code: string;
+  readonly run: () => void;
+}> = [
+  {id: 'service.nextItem', code: 'ArrowDown', run: () => openNextItem()},
+  {id: 'service.previousItem', code: 'ArrowUp', run: () => openPreviousItem()},
+  {id: 'service.revealLive', code: 'KeyL', run: () => revealLiveItem()},
+];
 const NUMPAD_DIGIT = /^Numpad(\d)$/;
 const NUM_LOCK = 'NumLock';
 const PRIMARY_BUTTON = 0;
@@ -56,6 +71,10 @@ function resetPendingInput(): void {
 
 function hasModifier(event: KeyboardEvent): boolean {
   return event.ctrlKey || event.altKey || event.metaKey || event.shiftKey;
+}
+
+function isControlOnly(event: KeyboardEvent): boolean {
+  return event.ctrlKey && !event.altKey && !event.metaKey && !event.shiftKey;
 }
 
 function isInside(target: EventTarget | null, selector: string): boolean {
@@ -104,9 +123,15 @@ function physicalKey(event: KeyboardEvent): string {
 export function handleShowKey(event: KeyboardEvent): void {
   pendingClick = null;
   if (event.code === SPACE_CODE && !event.repeat) spaceTakenOnKeyDown = false;
-  if (event.defaultPrevented || hasModifier(event) || belongsToOthers(event)) {
+  if (event.defaultPrevented || belongsToOthers(event)) return;
+  if (isControlOnly(event)) {
+    const command = ITEM_COMMANDS.find(item => item.code === event.code);
+    if (command === undefined) return;
+    event.preventDefault();
+    command.run();
     return;
   }
+  if (hasModifier(event)) return;
   const isNext = NEXT_CODES.has(event.code);
   const isPrevious = PREVIOUS_CODES.has(event.code);
   if (isNext || isPrevious) {

@@ -127,6 +127,15 @@ describe('ServiceOrderList', () => {
     expect(iconRenders.count).toBe(2);
   });
 
+  it('leaves Ctrl Down and Ctrl Up to the item commands instead of moving the focused row', () => {
+    openItem('song-morning');
+    render(<ServiceOrderList />);
+    const list = screen.getByRole('listbox', {name: '예배 순서'});
+    fireEvent.keyDown(list, {key: 'ArrowDown', ctrlKey: true});
+    fireEvent.keyDown(list, {key: 'ArrowUp', ctrlKey: true});
+    expect(useShow.getState().openItemId).toBe('song-morning');
+  });
+
   it('moves between rows with the arrow keys, Home, and End', () => {
     render(<ServiceOrderList />);
     const list = screen.getByRole('listbox', {name: '예배 순서'});
@@ -220,6 +229,16 @@ describe('SlideGrid', () => {
     first.focus();
     fireEvent.keyDown(first, {key: 'ArrowDown'});
     expect(document.activeElement).toBe(third);
+  });
+
+  it('leaves Ctrl Down to the item commands instead of moving the selection', () => {
+    openItem('song-morning');
+    render(<SlideGrid columns={2} />);
+    fireEvent.keyDown(screen.getByRole('listbox', {name: '장'}), {
+      key: 'ArrowDown',
+      ctrlKey: true,
+    });
+    expect(useShow.getState().selectedTile).toBe(0);
   });
 
   it('moves the selection by rows with up and down and outputs nothing', () => {

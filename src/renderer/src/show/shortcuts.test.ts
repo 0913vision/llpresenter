@@ -56,6 +56,9 @@ beforeEach(() => {
   vi.spyOn(showState, 'outputNext').mockImplementation(() => undefined);
   vi.spyOn(showState, 'outputPrevious').mockImplementation(() => undefined);
   vi.spyOn(showState, 'outputLabel').mockImplementation(() => undefined);
+  vi.spyOn(showState, 'openNextItem').mockImplementation(() => undefined);
+  vi.spyOn(showState, 'openPreviousItem').mockImplementation(() => undefined);
+  vi.spyOn(showState, 'revealLiveItem').mockImplementation(() => undefined);
 });
 
 afterEach(() => {
@@ -169,6 +172,77 @@ describe('handleShowKey where a focused control takes the key', () => {
     press('Space', {}, grid.appendChild(document.createElement('button')));
     press('Space', {}, list.appendChild(document.createElement('button')));
     expect(showState.outputNext).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('handleShowKey item keys', () => {
+  it('opens the next item with Ctrl Down and swallows the key', () => {
+    const event = press('ArrowDown', {ctrlKey: true});
+    expect(showState.openNextItem).toHaveBeenCalledTimes(1);
+    expect(event.defaultPrevented).toBe(true);
+  });
+
+  it('opens the previous item with Ctrl Up', () => {
+    press('ArrowUp', {ctrlKey: true});
+    expect(showState.openPreviousItem).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the live item with Ctrl L', () => {
+    press('KeyL', {ctrlKey: true});
+    expect(showState.revealLiveItem).toHaveBeenCalledTimes(1);
+  });
+
+  it('outputs nothing for these keys', () => {
+    press('ArrowDown', {ctrlKey: true});
+    press('ArrowUp', {ctrlKey: true});
+    press('KeyL', {ctrlKey: true});
+    expect(showState.outputNext).not.toHaveBeenCalled();
+    expect(showState.outputPrevious).not.toHaveBeenCalled();
+    expect(showState.outputLabel).not.toHaveBeenCalled();
+  });
+
+  it('works with the 장 grid and the 예배 순서 list in focus', () => {
+    const grid = appendTo('div', {'data-slide-grid': ''});
+    const list = appendTo('div', {'data-service-list': ''});
+    const tile = grid.appendChild(document.createElement('button'));
+    const row = list.appendChild(document.createElement('button'));
+    press('ArrowDown', {ctrlKey: true}, tile);
+    press('ArrowUp', {ctrlKey: true}, row);
+    expect(showState.openNextItem).toHaveBeenCalledTimes(1);
+    expect(showState.openPreviousItem).toHaveBeenCalledTimes(1);
+  });
+
+  it('lets a held key repeat, because it only selects', () => {
+    press('ArrowDown', {ctrlKey: true});
+    press('ArrowDown', {ctrlKey: true, repeat: true});
+    expect(showState.openNextItem).toHaveBeenCalledTimes(2);
+  });
+
+  it('ignores other modifiers and the keys without Ctrl', () => {
+    press('ArrowDown', {ctrlKey: true, shiftKey: true});
+    press('ArrowDown', {ctrlKey: true, altKey: true});
+    press('ArrowDown');
+    press('KeyL');
+    expect(showState.openNextItem).not.toHaveBeenCalled();
+    expect(showState.revealLiveItem).not.toHaveBeenCalled();
+  });
+
+  it('ignores other keys with Ctrl, which stay free for other commands', () => {
+    const event = press('KeyZ', {ctrlKey: true});
+    press('ArrowRight', {ctrlKey: true});
+    expect(event.defaultPrevented).toBe(false);
+    expect(showState.outputNext).not.toHaveBeenCalled();
+  });
+
+  it('leaves the keys to a text field, an open menu, an IME composition, and a drag', () => {
+    press('ArrowDown', {ctrlKey: true}, appendTo('input'));
+    press('KeyL', {ctrlKey: true}, appendTo('div', {role: 'menu'}));
+    press('ArrowUp', {ctrlKey: true, isComposing: true});
+    setColumnDragActive(true);
+    press('ArrowDown', {ctrlKey: true});
+    expect(showState.openNextItem).not.toHaveBeenCalled();
+    expect(showState.openPreviousItem).not.toHaveBeenCalled();
+    expect(showState.revealLiveItem).not.toHaveBeenCalled();
   });
 });
 

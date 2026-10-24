@@ -86,6 +86,7 @@ export function SlideGrid({columns}: {readonly columns: number}): JSX.Element {
   }, [selectedTile]);
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
+    if (event.ctrlKey || event.altKey || event.metaKey) return;
     const key = tileKeys[event.key];
     if (key === undefined) return;
     event.preventDefault();

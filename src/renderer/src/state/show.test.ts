@@ -7,6 +7,9 @@ import {
   jumpLabelFor,
   moveRow,
   moveTile,
+  openNextItem,
+  openPreviousItem,
+  revealLiveItem,
   openItem,
   outputLabel,
   outputNext,
@@ -183,5 +186,72 @@ describe('show state', () => {
     setLive('song-morning', 0);
     outputPrevious();
     expect(sent).toHaveLength(0);
+  });
+});
+
+describe('item keys', () => {
+  it('opens the next item that can output without outputting, and selects its first tile', () => {
+    openItem('song-river');
+    useShow.setState({selectedTile: 2});
+    openNextItem();
+    expect(useShow.getState()).toMatchObject({
+      openItemId: 'psalm-23',
+      selectedTile: 0,
+    });
+    expect(sent).toHaveLength(0);
+  });
+
+  it('skips headers and the empty slot', () => {
+    openItem('psalm-23');
+    openNextItem();
+    expect(useShow.getState().openItemId).toBe('notice-sunday');
+  });
+
+  it('opens the previous item and stays at the first one', () => {
+    openItem('song-river');
+    openPreviousItem();
+    expect(useShow.getState().openItemId).toBe('song-morning');
+    openItem('countdown');
+    openPreviousItem();
+    expect(useShow.getState().openItemId).toBe('countdown');
+    expect(sent).toHaveLength(0);
+  });
+
+  it('stays on the last item with next', () => {
+    openItem('notice-sunday');
+    openNextItem();
+    expect(useShow.getState().openItemId).toBe('notice-sunday');
+  });
+
+  it('opens the first item with next when nothing is open, and nothing with previous', () => {
+    openPreviousItem();
+    expect(useShow.getState().openItemId).toBeNull();
+    openNextItem();
+    expect(useShow.getState().openItemId).toBe('countdown');
+  });
+
+  it('opens the item of the live 장 after another item was looked at', () => {
+    setLive('song-morning', 2);
+    openItem('song-river');
+    revealLiveItem();
+    expect(useShow.getState()).toMatchObject({
+      openItemId: 'song-morning',
+      selectedTile: 0,
+    });
+    expect(sent).toHaveLength(0);
+  });
+
+  it('keeps the selected tile when the live item is already open', () => {
+    setLive('song-morning', 2);
+    openItem('song-morning');
+    useShow.setState({selectedTile: 3});
+    revealLiveItem();
+    expect(useShow.getState().selectedTile).toBe(3);
+  });
+
+  it('does nothing without a live 장', () => {
+    openItem('song-river');
+    revealLiveItem();
+    expect(useShow.getState().openItemId).toBe('song-river');
   });
 });

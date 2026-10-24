@@ -8,6 +8,8 @@ import {
   type TileCursor,
 } from '@renderer/show/model';
 import {
+  adjacentItem,
+  liveItem,
   moveRowSelection,
   moveTileSelection,
   nextTile,
@@ -167,4 +169,32 @@ export function seedThumbnailColumns(uiState: UiState): void {
     if (columns !== undefined) saved[sizeClass] = clampColumns(columns);
   }
   useShow.setState({thumbnailColumns: saved});
+}
+
+function openAdjacentItem(direction: 'next' | 'previous'): void {
+  const {rows, openItemId} = useShow.getState();
+  const target = adjacentItem({
+    rows,
+    tilesOf,
+    current: openItemId,
+    direction,
+  });
+  if (target !== null) openItem(target);
+}
+
+/** 다음 항목: opens the next item that can output, without outputting. */
+export function openNextItem(): void {
+  openAdjacentItem('next');
+}
+
+/** 이전 항목: opens the previous item that can output, without outputting. */
+export function openPreviousItem(): void {
+  openAdjacentItem('previous');
+}
+
+/** 출력 중인 항목 열기: opens the item of the live 장 in the 장 panel. */
+export function revealLiveItem(): void {
+  const {rows, openItemId} = useShow.getState();
+  const target = liveItem({rows, live: liveCursor(), current: openItemId});
+  if (target !== null) openItem(target);
 }

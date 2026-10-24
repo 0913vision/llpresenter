@@ -1,6 +1,8 @@
 import {describe, expect, it} from 'vitest';
 import type {ItemId, ServiceRow, SlideTile} from './model';
 import {
+  adjacentItem,
+  liveItem,
   moveRowSelection,
   moveTileSelection,
   nextTile,
@@ -180,5 +182,93 @@ describe('tileForLabel', () => {
 
   it('returns nothing without a live 장 and without an open item', () => {
     expect(tileForLabel(stateOf({}), 'Verse')).toBeNull();
+  });
+});
+
+describe('adjacentItem', () => {
+  const find = (current: ItemId | null, direction: 'next' | 'previous') =>
+    adjacentItem({rows, tilesOf: stateOf({}).tilesOf, current, direction});
+
+  it('gives the next item that can output and skips headers and slots', () => {
+    expect(find('a', 'next')).toBe('b');
+  });
+
+  it('gives the previous item that can output and skips headers and slots', () => {
+    expect(find('b', 'previous')).toBe('a');
+    expect(find('c', 'previous')).toBe('b');
+  });
+
+  it('skips an item without a 장', () => {
+    const withEmpty: readonly ServiceRow[] = [
+      {kind: 'song', id: 'a', title: 'A'},
+      {kind: 'song', id: 'empty', title: 'Missing song'},
+      {kind: 'song', id: 'b', title: 'B'},
+    ];
+    const tilesOf = stateOf({}).tilesOf;
+    expect(
+      adjacentItem({rows: withEmpty, tilesOf, current: 'a', direction: 'next'}),
+    ).toBe('b');
+    expect(
+      adjacentItem({
+        rows: withEmpty,
+        tilesOf,
+        current: 'b',
+        direction: 'previous',
+      }),
+    ).toBe('a');
+  });
+
+  it('gives nothing at the ends of the list', () => {
+    expect(find('c', 'next')).toBeNull();
+    expect(find('a', 'previous')).toBeNull();
+  });
+
+  it('opens the first item with next and nothing with previous when no item is open', () => {
+    expect(find(null, 'next')).toBe('a');
+    expect(find(null, 'previous')).toBeNull();
+  });
+
+  it('gives nothing for an item that is not in the list', () => {
+    expect(find('gone', 'next')).toBeNull();
+    expect(find('gone', 'previous')).toBeNull();
+  });
+
+  it('gives nothing for a list without an item that can output', () => {
+    const none: readonly ServiceRow[] = [
+      {kind: 'header', id: 'h', title: 'H'},
+      {kind: 'slot', id: 's', title: 'S'},
+    ];
+    expect(
+      adjacentItem({
+        rows: none,
+        tilesOf: stateOf({}).tilesOf,
+        current: null,
+        direction: 'next',
+      }),
+    ).toBeNull();
+  });
+});
+
+describe('liveItem', () => {
+  it('gives the item of the live 장 when another item is open or none is', () => {
+    expect(liveItem({rows, live: {itemId: 'b', index: 0}, current: 'a'})).toBe(
+      'b',
+    );
+    expect(liveItem({rows, live: {itemId: 'b', index: 0}, current: null})).toBe(
+      'b',
+    );
+  });
+
+  it('gives nothing when the live item is already open', () => {
+    expect(
+      liveItem({rows, live: {itemId: 'b', index: 1}, current: 'b'}),
+    ).toBeNull();
+  });
+
+  it('gives nothing without a live 장 or when its item is not in the list', () => {
+    expect(liveItem({rows, live: null, current: 'a'})).toBeNull();
+    expect(
+      liveItem({rows, live: {itemId: 'gone', index: 0}, current: 'a'}),
+    ).toBeNull();
   });
 });
