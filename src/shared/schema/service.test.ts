@@ -256,6 +256,9 @@ describe('service types', () => {
     expectTypeOf<ServiceItemOf<'header'>['header']>().toEqualTypeOf<string>();
     expectTypeOf<ServiceItemOf<'media'>['media']>().toEqualTypeOf<MediaId>();
     expectTypeOf<ServiceItemOf<'notice'>>().not.toBeNever();
+    expectTypeOf<ServiceItemOf<'song' | 'header'>>().toEqualTypeOf<
+      ServiceItemOf<'song'> | ServiceItemOf<'header'>
+    >();
   });
 
   it('brands item ids and names every kind', () => {

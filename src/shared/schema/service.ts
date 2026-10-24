@@ -161,11 +161,14 @@ export function serializeTemplate(
   return serializeFile(templateFormat, template, file);
 }
 
-/** The items of one kind, such as `ServiceItemOf<'song'>`. */
-export type ServiceItemOf<TKind extends ServiceItemKind> = Extract<
-  ServiceItem,
-  Readonly<Record<TKind, unknown>>
->;
+/**
+ * The items of a kind, such as `ServiceItemOf<'song'>`, or of any kind in a
+ * union, such as `ServiceItemOf<'song' | 'header'>`.
+ */
+export type ServiceItemOf<TKind extends ServiceItemKind> =
+  TKind extends ServiceItemKind
+    ? Extract<ServiceItem, Readonly<Record<TKind, unknown>>>
+    : never;
 
 /** Whether an item is of a kind, so its fields can be read with their types. */
 export function isItemOfKind<TKind extends ServiceItemKind>(
