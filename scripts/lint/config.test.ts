@@ -11,9 +11,10 @@ const NODE_HOST = 'scripts/verify.mts';
 const RENDERER_HOST = 'src/renderer/src/control/main.tsx';
 const TEST_HOST = 'scripts/lint/config.test.ts';
 
-// NOTE(0913vision): The first lint builds the TypeScript program for the
-// project, which takes several seconds on a cold start.
-const LINT_TIMEOUT_MS = 60_000;
+// NOTE(0913vision): The first lint loads the lint plugins (two copies of
+// TypeScript between them) and builds the project's TypeScript program. With
+// several sessions testing at once that took 65 s, so the limit leaves room.
+const LINT_TIMEOUT_MS = 180_000;
 
 const eslint = new ESLint({cwd: REPO_ROOT});
 

@@ -9,6 +9,10 @@ export default defineConfig({
     },
   },
   test: {
+    // NOTE(0913vision): Several sessions run tests on one PC at once. With a
+    // worker per core, workers missed Vitest's fixed 60 s start timeout and
+    // whole files didn't run; half the cores makes them slower, not lost.
+    maxWorkers: '50%',
     // NOTE(0913vision): Each test starts from real timers, real globals, and
     // fresh mocks, so no test depends on the one before it.
     restoreMocks: true,
