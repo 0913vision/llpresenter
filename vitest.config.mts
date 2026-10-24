@@ -1,8 +1,6 @@
 import {resolve} from 'node:path';
 import {defineConfig} from 'vitest/config';
 
-// TODO(0913vision): The devops member extends this with coverage and test
-// helpers.
 export default defineConfig({
   resolve: {
     alias: {
@@ -11,6 +9,18 @@ export default defineConfig({
     },
   },
   test: {
+    // NOTE(0913vision): Each test starts from real timers, real globals, and
+    // fresh mocks, so no test depends on the one before it.
+    restoreMocks: true,
+    unstubEnvs: true,
+    unstubGlobals: true,
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.{ts,tsx}', 'scripts/**/*.{ts,mts}'],
+      exclude: ['**/*.test.{ts,tsx}', '**/*.d.ts'],
+      reporter: ['text-summary', 'html'],
+      reportsDirectory: 'coverage',
+    },
     projects: [
       {
         extends: true,
@@ -21,6 +31,7 @@ export default defineConfig({
             'src/preload/**/*.test.ts',
             'src/shared/**/*.test.ts',
             'scripts/**/*.test.ts',
+            'test/**/*.test.ts',
           ],
           environment: 'node',
         },
@@ -31,6 +42,7 @@ export default defineConfig({
           name: 'renderer',
           include: ['src/renderer/**/*.test.{ts,tsx}'],
           environment: 'jsdom',
+          setupFiles: ['test/setup-renderer.ts'],
         },
       },
     ],
