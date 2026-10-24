@@ -6,6 +6,9 @@ export const SOAK_RECORD_VERSION = 1;
 /** How often the recorder samples the process memory. */
 export const SAMPLE_INTERVAL_MS = 10_000;
 
+/** The longest delay `setTimeout` can wait; a longer one fires at once. */
+export const MAX_EXIT_DELAY_MS = 2_147_483_647;
+
 /** The fields of Electron's `ProcessMetric` that the recorder reads. */
 export interface ProcessMetricLike {
   readonly pid: number;
@@ -33,6 +36,12 @@ export interface SoakSettings {
   readonly exitAfterMs: number | null;
 }
 
+/** Whether the soak runner asked for a record, and with what settings. */
+export type SoakSettingsResult =
+  | {readonly kind: 'off'}
+  | {readonly kind: 'on'; readonly settings: SoakSettings}
+  | {readonly kind: 'invalid'; readonly reason: string};
+
 /** What the timer loop needs, so tests can replace Electron and the disk. */
 export interface SoakRecording {
   readonly settings: SoakSettings;
@@ -44,16 +53,30 @@ export interface SoakRecording {
   readonly log: Logger;
 }
 
-/** Finds the user's soak settings, or `null` when no record was asked for. */
-export function soakSettings(env: NodeJS.ProcessEnv): SoakSettings | null {
+/**
+ * Reads the soak settings. Without `LLP_SOAK_EXIT_MS` the app keeps running;
+ * otherwise it must be a whole number of milliseconds that `setTimeout` can
+ * wait.
+ */
+export function readSoakSettings(env: NodeJS.ProcessEnv): SoakSettingsResult {
   const recordPath = env['LLP_SOAK_RECORD'] ?? '';
-  if (recordPath === '') return null;
-  const exitAfterMs = Number(env['LLP_SOAK_EXIT_MS']);
-  return {
-    recordPath,
-    exitAfterMs:
-      Number.isFinite(exitAfterMs) && exitAfterMs > 0 ? exitAfterMs : null,
-  };
+  if (recordPath === '') return {kind: 'off'};
+  const exitText = env['LLP_SOAK_EXIT_MS'] ?? '';
+  if (exitText === '') {
+    return {kind: 'on', settings: {recordPath, exitAfterMs: null}};
+  }
+  const exitAfterMs = Number(exitText);
+  const usable =
+    Number.isInteger(exitAfterMs) &&
+    exitAfterMs > 0 &&
+    exitAfterMs <= MAX_EXIT_DELAY_MS;
+  if (!usable) {
+    return {
+      kind: 'invalid',
+      reason: `LLP_SOAK_EXIT_MS must be a whole number of milliseconds from 1 to ${MAX_EXIT_DELAY_MS}, not "${exitText}"`,
+    };
+  }
+  return {kind: 'on', settings: {recordPath, exitAfterMs}};
 }
 
 /**
@@ -133,12 +156,15 @@ export function sampleLine(
 
 /**
  * Samples every {@link SAMPLE_INTERVAL_MS} and appends each line in order,
- * then quits after `exitAfterMs`. A failed write is logged and the recording
- * goes on.
+ * then quits after `exitAfterMs`, once every queued line is written. A failed
+ * write is logged and the recording goes on.
  *
- * @returns a function that stops the sampling and the quit timer
+ * @returns a function that stops the sampling and the quit timer, and resolves
+ *   once every queued line is written
  */
-export function startSoakRecording(recording: SoakRecording): () => void {
+export function startSoakRecording(
+  recording: SoakRecording,
+): () => Promise<void> {
   const startedAt = recording.now();
   let writes = Promise.resolve();
   const sampler = setInterval(() => {
@@ -149,16 +175,26 @@ export function startSoakRecording(recording: SoakRecording): () => void {
         recording.log.error('soak record write failed', error);
       });
   }, SAMPLE_INTERVAL_MS);
-  const {exitAfterMs} = recording.settings;
-  const quitter =
-    exitAfterMs === null
-      ? null
-      : setTimeout(() => {
-          recording.log.info('soak run finished; quitting');
-          recording.quit();
-        }, exitAfterMs);
-  return () => {
+  let quitter: ReturnType<typeof setTimeout> | null = null;
+  const stop = (): Promise<void> => {
     clearInterval(sampler);
     if (quitter !== null) clearTimeout(quitter);
+    return writes;
   };
+  const {exitAfterMs} = recording.settings;
+  if (exitAfterMs !== null) {
+    quitter = setTimeout(() => {
+      stop().then(
+        () => {
+          recording.log.info('soak run finished; quitting');
+          recording.quit();
+        },
+        (error: unknown) => {
+          recording.log.error('soak record drain failed; quitting', error);
+          recording.quit();
+        },
+      );
+    }, exitAfterMs);
+  }
+  return stop;
 }

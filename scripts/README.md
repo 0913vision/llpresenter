@@ -84,16 +84,16 @@ that it wrote. Run `npm run build` first.
 The runner starts Electron with these environment variables. In the app,
 `registerSoakRecorder` (`src/main/soak/`) reads them once the app is ready. It
 samples `app.getAppMetrics()` every 10 seconds, appends one line per sample, and
-quits after `LLP_SOAK_EXIT_MS`. It names renderers by their page: `index.html`
-is `control`, and `output.html?screen=<id>` is `output:<id>`. The test scenario
-(looping video and 장 changes) and the output frame rates come with output's M2
-work.
+quits after `LLP_SOAK_EXIT_MS`, once every queued line is written. It names
+renderers by their page: `index.html` is `control`, and
+`output.html?screen=<id>` is `output:<id>`. The test scenario (looping video and
+장 changes) and the output frame rates come with output's M2 work.
 
-| Variable           | Meaning                                                             |
-| ------------------ | ------------------------------------------------------------------- |
-| `LLP_USER_DATA`    | A new temp folder, so the run never touches real data               |
-| `LLP_SOAK_RECORD`  | The record file to append to; setting it turns on the test scenario |
-| `LLP_SOAK_EXIT_MS` | When the app quits on its own                                       |
+| Variable           | Meaning                                                                                                                |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| `LLP_USER_DATA`    | A new temp folder, so the run never touches real data                                                                  |
+| `LLP_SOAK_RECORD`  | The record file to append to; setting it turns on the test scenario                                                    |
+| `LLP_SOAK_EXIT_MS` | When the app quits on its own: whole milliseconds, 1 to 2,147,483,647; another value is logged and nothing is recorded |
 
 The record is JSON Lines: one sample per line, flushed as it's written. Here is
 one sample, spread over several lines:

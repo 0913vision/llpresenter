@@ -5,9 +5,10 @@ import type {Logger} from '../log';
 import {
   pageProcessName,
   processSamples,
+  readSoakSettings,
   sampleLine,
-  soakSettings,
   startSoakRecording,
+  type SoakSettings,
 } from './recorder';
 
 function rendererNames(): Map<number, string> {
@@ -28,19 +29,10 @@ function sampleApp(elapsedMs: number): string {
   return sampleLine(elapsedMs, processes);
 }
 
-/**
- * Records memory for the soak test when `LLP_SOAK_RECORD` names a record file,
- * and quits after `LLP_SOAK_EXIT_MS`. Does nothing otherwise. Call it once the
- * app is ready.
- *
- * @returns a function that stops the recording
- */
-export function registerSoakRecorder(
+function startRecording(
   log: Logger,
-  env: NodeJS.ProcessEnv = process.env,
-): () => void {
-  const settings = soakSettings(env);
-  if (settings === null) return () => undefined;
+  settings: SoakSettings,
+): () => Promise<void> {
   log.info('soak recording started', settings);
   return startSoakRecording({
     settings,
@@ -50,4 +42,29 @@ export function registerSoakRecorder(
     now: () => performance.now(),
     log,
   });
+}
+
+/**
+ * Records memory for the soak test when `LLP_SOAK_RECORD` names a record file,
+ * and quits after `LLP_SOAK_EXIT_MS` once the record is written. Does nothing
+ * otherwise, and logs an error for an unusable exit time. Call it once the app
+ * is ready.
+ *
+ * @returns a function that stops the recording and resolves once every queued
+ *   line is written
+ */
+export function registerSoakRecorder(
+  log: Logger,
+  env: NodeJS.ProcessEnv = process.env,
+): () => Promise<void> {
+  const result = readSoakSettings(env);
+  switch (result.kind) {
+    case 'off':
+      return () => Promise.resolve();
+    case 'invalid':
+      log.error('soak recording not started', result.reason);
+      return () => Promise.resolve();
+    case 'on':
+      return startRecording(log, result.settings);
+  }
 }

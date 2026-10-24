@@ -7,7 +7,8 @@ import {
   processSamples,
   SAMPLE_INTERVAL_MS,
   sampleLine,
-  soakSettings,
+  readSoakSettings,
+  MAX_EXIT_DELAY_MS,
   startSoakRecording,
   type ProcessMetricLike,
   type SoakSettings,
@@ -35,27 +36,55 @@ function fakeLog(): Logger {
   };
 }
 
-describe('soakSettings', () => {
+describe('readSoakSettings', () => {
   it('records nothing without LLP_SOAK_RECORD', () => {
-    expect(soakSettings({})).toBeNull();
-    expect(soakSettings({LLP_SOAK_RECORD: ''})).toBeNull();
+    expect(readSoakSettings({})).toEqual({kind: 'off'});
+    expect(readSoakSettings({LLP_SOAK_RECORD: ''})).toEqual({kind: 'off'});
   });
 
   it('reads the record path and the exit time', () => {
     expect(
-      soakSettings({
+      readSoakSettings({
         LLP_SOAK_RECORD: 'D:\\soak.jsonl',
         LLP_SOAK_EXIT_MS: '60000',
       }),
-    ).toEqual({recordPath: 'D:\\soak.jsonl', exitAfterMs: 60_000});
+    ).toEqual({
+      kind: 'on',
+      settings: {recordPath: 'D:\\soak.jsonl', exitAfterMs: 60_000},
+    });
   });
 
-  it.each(['', '0', '-5', 'soon'])('keeps running for exit time %j', exit => {
+  it('keeps running without an exit time', () => {
     expect(
-      soakSettings({LLP_SOAK_RECORD: 'soak.jsonl', LLP_SOAK_EXIT_MS: exit})
-        ?.exitAfterMs,
-    ).toBeNull();
+      readSoakSettings({LLP_SOAK_RECORD: 'soak.jsonl', LLP_SOAK_EXIT_MS: ''}),
+    ).toEqual({
+      kind: 'on',
+      settings: {recordPath: 'soak.jsonl', exitAfterMs: null},
+    });
   });
+
+  it('accepts the longest delay setTimeout can wait', () => {
+    expect(
+      readSoakSettings({
+        LLP_SOAK_RECORD: 'soak.jsonl',
+        LLP_SOAK_EXIT_MS: String(MAX_EXIT_DELAY_MS),
+      }),
+    ).toEqual({
+      kind: 'on',
+      settings: {recordPath: 'soak.jsonl', exitAfterMs: MAX_EXIT_DELAY_MS},
+    });
+  });
+
+  it.each(['0', '-5', '1.5', 'soon', String(MAX_EXIT_DELAY_MS + 1)])(
+    'rejects the exit time %j',
+    exit => {
+      const result = readSoakSettings({
+        LLP_SOAK_RECORD: 'soak.jsonl',
+        LLP_SOAK_EXIT_MS: exit,
+      });
+      expect(result.kind).toBe('invalid');
+    },
+  );
 });
 
 describe('pageProcessName', () => {
@@ -152,6 +181,14 @@ describe('startSoakRecording', () => {
     return {log, quit, stop};
   }
 
+  function deferred(): {promise: Promise<void>; resolve: () => void} {
+    let resolve: () => void = () => undefined;
+    const promise = new Promise<void>(done => {
+      resolve = done;
+    });
+    return {promise, resolve};
+  }
+
   it('appends a line per interval, in order', async () => {
     const clock = installFakeClock();
     const lines: string[] = [];
@@ -159,7 +196,7 @@ describe('startSoakRecording', () => {
       lines.push(line);
     });
     await clock.advance(3 * SAMPLE_INTERVAL_MS);
-    stop();
+    await stop();
     expect(lines).toEqual([
       '{"elapsedMs":10000}\n',
       '{"elapsedMs":20000}\n',
@@ -169,12 +206,48 @@ describe('startSoakRecording', () => {
 
   it('quits after the exit time', async () => {
     const clock = installFakeClock();
-    const {quit, stop} = record(async () => undefined);
+    const {quit} = record(async () => undefined);
     await clock.advance(34_000);
     expect(quit).not.toHaveBeenCalled();
     await clock.advance(1_000);
     expect(quit).toHaveBeenCalledOnce();
-    stop();
+  });
+
+  it('waits for a slow write before quitting', async () => {
+    const clock = installFakeClock();
+    const slow = deferred();
+    const lines: string[] = [];
+    const {quit} = record(async line => {
+      if (lines.length === 2) await slow.promise;
+      lines.push(line);
+    });
+    await clock.advance(35_000);
+    expect(quit).not.toHaveBeenCalled();
+    slow.resolve();
+    await clock.advance(0);
+    expect(lines).toHaveLength(3);
+    expect(quit).toHaveBeenCalledOnce();
+  });
+
+  it('resolves stop only once queued writes are done', async () => {
+    const clock = installFakeClock();
+    const slow = deferred();
+    let written = false;
+    const {stop} = record(async () => {
+      await slow.promise;
+      written = true;
+    });
+    await clock.advance(SAMPLE_INTERVAL_MS);
+    let stopped = false;
+    const stopping = stop().then(() => {
+      stopped = true;
+    });
+    await clock.advance(0);
+    expect(stopped).toBe(false);
+    slow.resolve();
+    await stopping;
+    expect(written).toBe(true);
+    expect(stopped).toBe(true);
   });
 
   it('logs a failed write and keeps recording', async () => {
@@ -187,7 +260,7 @@ describe('startSoakRecording', () => {
       lines.push(line);
     });
     await clock.advance(2 * SAMPLE_INTERVAL_MS);
-    stop();
+    await stop();
     expect(log.error).toHaveBeenCalledWith(
       'soak record write failed',
       expect.any(Error),
@@ -201,7 +274,7 @@ describe('startSoakRecording', () => {
     const {quit, stop} = record(async line => {
       lines.push(line);
     });
-    stop();
+    await stop();
     await clock.runAll();
     expect(lines).toEqual([]);
     expect(quit).not.toHaveBeenCalled();
