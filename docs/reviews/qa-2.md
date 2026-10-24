@@ -55,8 +55,9 @@ Not applicable: documents only. No middle dots or em dashes.
 2. **Undo as the spec says.** K14 expects one level of undo and K15 expects new
    content to end an undo (spec 03, `ClearButton` README). The reducer on `main`
    keeps 20 levels, so these cases may fail unless output changes it.
-3. **The recovery record is checked, the dialog isn't.** X15 records what M2
-   writes to `recovery\`; the dialog is M3.
+3. **The recovery record is required, the dialog isn't.** Since round 2, X15
+   fails a missing or stale `recovery\live.json` (phase 2 requires it); the
+   dialog is M3.
 
 ## Shared contract change requests
 
