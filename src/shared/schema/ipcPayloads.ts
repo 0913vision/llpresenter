@@ -2,7 +2,8 @@ import * as v from 'valibot';
 import type {Result} from '../result';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
 
-const FRAME_RATE_MAX = 240;
+/** The highest frame rate a window may report. */
+export const FRAME_RATE_MAX = 240;
 
 /** The longest message and detail a renderer log entry may have. */
 export const RENDERER_LOG_LIMITS = {message: 500, detail: 4000} as const;
