@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import {isRecord} from '../guards';
 import type {Result} from '../result';
 import {currentVersion, migrate, type MigrationStep} from './migration';
 import {jsonObject, positiveInteger} from './primitives';
@@ -156,7 +157,7 @@ function parseJson(text: string): Result<unknown, Problem> {
 }
 
 function readHeader(json: unknown, format: string): Result<Header, Problem> {
-  const formatCheck = check(
+  const formatCheck = checkTopLevel(
     jsonObject({format: v.literal(format)}),
     json,
     'format',
@@ -164,14 +165,13 @@ function readHeader(json: unknown, format: string): Result<Header, Problem> {
   if (!formatCheck.ok) {
     return formatCheck;
   }
-  const versionCheck = check(versionSchema, formatCheck.value, 'invalid');
+  const versionCheck = checkTopLevel(versionSchema, json, 'invalid');
   if (!versionCheck.ok) {
     return versionCheck;
   }
-  return succeed({
-    content: versionCheck.value,
-    schemaVersion: versionCheck.value.schemaVersion,
-  });
+  return isRecord(json)
+    ? succeed({content: json, schemaVersion: versionCheck.value.schemaVersion})
+    : fail({kind: 'format', field: '', message: 'Expected a JSON object'});
 }
 
 function upgrade(
@@ -191,7 +191,7 @@ function checkWritableVersion(
   data: unknown,
   steps: readonly MigrationStep[],
 ): Result<number, Problem> {
-  const checked = check(versionSchema, data, 'invalid');
+  const checked = checkTopLevel(versionSchema, data, 'invalid');
   if (!checked.ok) {
     return checked;
   }
@@ -212,13 +212,49 @@ function check<TSchema extends v.GenericSchema>(
   input: unknown,
   kind: FileErrorKind,
 ): Result<v.InferOutput<TSchema>, Problem> {
+  const checked = attempt(() => checkEscaped(schema, input, kind), 'invalid');
+  return checked.ok ? checked.value : checked;
+}
+
+/**
+ * Checks only the top-level fields that `schema` names, without escaping keys.
+ * Read nothing from the result but those fields, because valibot drops some
+ * unknown keys from it.
+ */
+function checkTopLevel<TSchema extends v.GenericSchema>(
+  schema: TSchema,
+  input: unknown,
+  kind: FileErrorKind,
+): Result<v.InferOutput<TSchema>, Problem> {
+  const checked = attempt(
+    () => toResult(v.safeParse(schema, input, {abortEarly: true}), kind),
+    'invalid',
+  );
+  return checked.ok ? checked.value : checked;
+}
+
+/** The schema check between escaping and restoring keys. It may throw. */
+function checkEscaped<TSchema extends v.GenericSchema>(
+  schema: TSchema,
+  input: unknown,
+  kind: FileErrorKind,
+): Result<v.InferOutput<TSchema>, Problem> {
   const escaped = escapeKeys(input);
   if (!escaped.ok) {
     return fail({kind: 'invalid', field: '', message: escaped.error});
   }
-  const result = v.safeParse(schema, escaped.value, {abortEarly: true});
-  if (result.success) {
+  const result = v.safeParse(schema, escaped.value.value, {abortEarly: true});
+  if (result.success && escaped.value.changed) {
     restoreKeys(result.output);
+  }
+  return toResult(result, kind);
+}
+
+function toResult<TSchema extends v.GenericSchema>(
+  result: v.SafeParseResult<TSchema>,
+  kind: FileErrorKind,
+): Result<v.InferOutput<TSchema>, Problem> {
+  if (result.success) {
     return succeed(result.output);
   }
   const [issue] = result.issues;

@@ -14,53 +14,53 @@ const KEYS_VALIBOT_DROPS = new Set(['__proto__', 'prototype', 'constructor']);
 const MAX_DEPTH = 64;
 const TOO_DEEP_MESSAGE = `Nested deeper than ${MAX_DEPTH} levels, or refers to itself`;
 
+/** JSON data ready for a schema, and whether any key had to be escaped. */
+export interface EscapedData {
+  readonly value: unknown;
+  readonly changed: boolean;
+}
+
+interface Container {
+  readonly value: object;
+  readonly depth: number;
+}
+
 interface CopyTask {
   readonly source: unknown;
-  readonly depth: number;
   readonly assign: (copy: unknown) => void;
 }
 
 /**
- * A deep copy of JSON data in which every key valibot would drop, and every key
- * that already starts with the escape prefix, gets the prefix. The mapping is
- * one to one, so {@link restoreKeys} can undo it. Data nested deeper than the
+ * JSON data in which every key valibot would drop, and every key that already
+ * starts with the escape prefix, gets the prefix. The mapping is one to one,
+ * so {@link restoreKeys} can undo it. When no key needs it, the data comes back
+ * as it is; otherwise it comes back as a copy. Data nested deeper than the
  * limit, or that refers to itself, gives an error. Never throws.
  */
-export function escapeKeys(value: unknown): Result<unknown, string> {
-  let copy: unknown;
-  const tasks: CopyTask[] = [
-    {
-      source: value,
-      depth: 0,
-      assign: result => {
-        copy = result;
-      },
-    },
-  ];
-  for (let task = tasks.pop(); task !== undefined; task = tasks.pop()) {
-    if (task.depth > MAX_DEPTH) {
-      return {ok: false, error: TOO_DEEP_MESSAGE};
-    }
-    task.assign(shallowEscapedCopy(task, tasks));
+export function escapeKeys(value: unknown): Result<EscapedData, string> {
+  const scan = needsEscaping(value);
+  if (!scan.ok) {
+    return scan;
   }
-  return {ok: true, value: copy};
+  return {
+    ok: true,
+    value: scan.value
+      ? {value: escapedCopy(value), changed: true}
+      : {value, changed: false},
+  };
 }
 
 /**
  * Gives escaped keys their own names back, in place and in the same order. Use
- * it only on data that {@link escapeKeys} or the schema just created, which is
- * never cyclic and never deeper than the limit.
+ * it only on data that {@link escapeKeys} changed, or that a schema made from
+ * such data, which is never cyclic and never deeper than the limit.
  */
 export function restoreKeys(value: unknown): void {
   const pending: unknown[] = [value];
   while (pending.length > 0) {
     const next = pending.pop();
-    if (Array.isArray(next)) {
-      const items: readonly unknown[] = next;
-      pending.push(...items);
-    } else if (isObject(next)) {
-      const values: readonly unknown[] = Object.values(next);
-      pending.push(...values);
+    if (isObject(next)) {
+      pushEach(pending, childrenOf(next));
       restoreOwnKeys(next);
     }
   }
@@ -71,16 +71,48 @@ export function restoreKeyPath(path: string): string {
   return path.split('.').map(restoreKey).join('.');
 }
 
-function shallowEscapedCopy(
-  {source, depth}: CopyTask,
-  tasks: CopyTask[],
-): unknown {
+function needsEscaping(value: unknown): Result<boolean, string> {
+  let found = false;
+  const pending: Container[] = isObject(value) ? [{value, depth: 0}] : [];
+  for (let next = pending.pop(); next !== undefined; next = pending.pop()) {
+    if (next.depth > MAX_DEPTH) {
+      return {ok: false, error: TOO_DEEP_MESSAGE};
+    }
+    if (!Array.isArray(next.value)) {
+      found ||= Object.keys(next.value).some(shouldEscape);
+    }
+    for (const child of childrenOf(next.value)) {
+      if (isObject(child)) {
+        pending.push({value: child, depth: next.depth + 1});
+      }
+    }
+  }
+  return {ok: true, value: found};
+}
+
+function escapedCopy(value: unknown): unknown {
+  let copy: unknown;
+  const tasks: CopyTask[] = [
+    {
+      source: value,
+      assign: result => {
+        copy = result;
+      },
+    },
+  ];
+  for (let task = tasks.pop(); task !== undefined; task = tasks.pop()) {
+    task.assign(shallowEscapedCopy(task.source, tasks));
+  }
+  return copy;
+}
+
+function shallowEscapedCopy(source: unknown, tasks: CopyTask[]): unknown {
   if (Array.isArray(source)) {
-    const copy: unknown[] = Array.from({length: source.length});
-    source.forEach((child: unknown, index) => {
+    const items: readonly unknown[] = source;
+    const copy: unknown[] = Array.from({length: items.length});
+    items.forEach((child, index) => {
       tasks.push({
         source: child,
-        depth: depth + 1,
         assign: result => {
           copy[index] = result;
         },
@@ -97,7 +129,6 @@ function shallowEscapedCopy(
     copy[escaped] = undefined;
     tasks.push({
       source: child,
-      depth: depth + 1,
       assign: result => {
         copy[escaped] = result;
       },
@@ -124,10 +155,22 @@ function restoreOwnKeys(target: object): void {
   }
 }
 
+function childrenOf(container: object): readonly unknown[] {
+  return Array.isArray(container) ? container : Object.values(container);
+}
+
+function pushEach(target: unknown[], items: readonly unknown[]): void {
+  for (const item of items) {
+    target.push(item);
+  }
+}
+
+function shouldEscape(key: string): boolean {
+  return KEYS_VALIBOT_DROPS.has(key) || isEscaped(key);
+}
+
 function escapeKey(key: string): string {
-  return KEYS_VALIBOT_DROPS.has(key) || isEscaped(key)
-    ? `${ESCAPE_PREFIX}${key}`
-    : key;
+  return shouldEscape(key) ? `${ESCAPE_PREFIX}${key}` : key;
 }
 
 function restoreKey(key: string): string {

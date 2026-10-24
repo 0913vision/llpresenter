@@ -7,6 +7,11 @@ import {jsonObject, positiveInteger} from './primitives';
 import {expectFailure, expectSuccess, TestRandom} from './testHelpers';
 
 const FILE = 'notes/note.json';
+// NOTE(0913vision): 200,000 entries are past the engine's argument limit for a
+// spread. Reading and writing them takes about two seconds, so the wide test
+// gets more time than the default.
+const WIDE_COUNT = 200_000;
+const WIDE_TEST_TIMEOUT_MS = 30_000;
 const RANDOM_TEXTS = 500;
 
 const noteSchema = jsonObject({
@@ -206,6 +211,33 @@ describe('parseFile', () => {
       message: 'step failed',
     });
   });
+
+  it(
+    'reads and writes very wide unknown arrays and objects',
+    () => {
+      const count = WIDE_COUNT;
+      const wideObject = Object.fromEntries(
+        Array.from({length: count}, (_, index) => [`key${index}`, index]),
+      );
+      const text = JSON.stringify({
+        format: 'llnote',
+        schemaVersion: 2,
+        text: 'hi',
+        list: Array.from({length: count}, (_, index) => index),
+        wideObject,
+      });
+
+      const loaded = expectSuccess(parseFile(noteFormat, text, FILE));
+      const written = expectSuccess(
+        serializeFile(noteFormat, loaded.data, FILE),
+      );
+
+      const reread: unknown = JSON.parse(written);
+      const original: unknown = JSON.parse(text);
+      expect(reread).toEqual(original);
+    },
+    WIDE_TEST_TIMEOUT_MS,
+  );
 
   it.each([
     ['nested deeper than the limit', 1_000],
