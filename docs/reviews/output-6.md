@@ -106,8 +106,7 @@ None.
 
 ## Where to look
 
-- `src/main/log.ts`, `enqueueUnlessMerged`, `scheduleDrain`, and
-  `writeNextBatch`.
+- `src/main/log.ts`, `enqueueUnlessMerged`, `scheduleDrain`, and `writeBatch`.
 - `src/main/quit.ts`: the `will-quit` hold and the second `app.quit()`.
 
 ---
@@ -117,19 +116,17 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (76de1fc): reviewer (Codex, codex4) Request changes: a failed mkdir
+  made the drain loop forever and flush never settle, merging ignored dropped
+  lines, the in-flight test didn't prove its order, and quit tests left out a
+  rejected flush and a second quit.
+- Round 2 (10294e0): reviewer Request changes: the in-flight test could still
+  pass on an earlier call.
+- Round 3 (78e6c04): reviewer (Codex, codex4) Approve with one nit: "Where to
+  look" still names `writeBatch` (now `writeBatch`). Lead Approve; this fixes
+  qa's M1-4 and M1-5. Rebased by the lead onto `main` 87a43f5 without conflicts.
 
 ## Team member's reply
 
