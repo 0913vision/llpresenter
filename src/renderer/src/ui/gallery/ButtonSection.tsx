@@ -1,5 +1,7 @@
 import type {JSX} from 'react';
 import {Button, type ButtonProps} from '../Button';
+import {Panel, PanelActions, PanelHeader, PanelTitle} from '../Panel';
+import styles from './ButtonSection.module.css';
 import {Section, SpecGroup, SpecItem, type SpecPin} from './Spec';
 
 interface StateSpec {
@@ -7,6 +9,9 @@ interface StateSpec {
   readonly pin?: SpecPin;
   readonly disabled?: boolean;
 }
+
+const DIALOG_WIDTH = 460;
+const HEADER_WIDTH = 360;
 
 const states: readonly StateSpec[] = [
   {label: 'Default'},
@@ -83,6 +88,33 @@ export function ButtonSection(): JSX.Element {
           <Button size="md" icon="undo">
             모두 기본값으로
           </Button>
+        </SpecItem>
+      </SpecGroup>
+      <SpecGroup>
+        <SpecItem
+          label="Confirmation dialog buttons, md, gap 8, one primary at far right"
+          width={DIALOG_WIDTH}
+        >
+          <div className={styles.dialogFooter}>
+            <Button size="md">취소</Button>
+            <Button size="md" className={styles.firstAfterGap}>
+              새 곡으로 저장
+            </Button>
+            <Button size="md" variant="primary">
+              덮어쓰기
+            </Button>
+          </div>
+        </SpecItem>
+        <SpecItem label="In a panel header, sm" width={HEADER_WIDTH}>
+          <Panel label="만복의 근원 하나님">
+            <PanelHeader>
+              <PanelTitle title="만복의 근원 하나님" />
+              <PanelActions>
+                <Button>버리기</Button>
+                <Button variant="primary">저장</Button>
+              </PanelActions>
+            </PanelHeader>
+          </Panel>
         </SpecItem>
       </SpecGroup>
     </Section>

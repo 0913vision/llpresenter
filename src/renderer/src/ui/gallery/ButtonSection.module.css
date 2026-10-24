@@ -1,0 +1,16 @@
+/* NOTE(0913vision): A stand-in for a dialog footer, as on the preview card;
+   the real footer belongs to Dialog and AlertDialog. */
+.dialogFooter {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  width: 100%;
+  padding: var(--space-16);
+  border-radius: var(--radius-2xl);
+  background: var(--bg-dialog);
+  box-shadow: var(--shadow-dialog);
+}
+
+.firstAfterGap {
+  margin-left: auto;
+}

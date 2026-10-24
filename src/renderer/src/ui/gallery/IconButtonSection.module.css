@@ -1,0 +1,27 @@
+/* NOTE(0913vision): Stand-ins for the frames the preview card draws around
+   the buttons: a tool group, an empty panel row, and a dialog header. */
+.tools {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.emptyRow {
+  height: var(--size-row);
+}
+
+.dialogHeader {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: var(--size-dialog-header);
+  padding: 0 var(--space-8) 0 var(--dialog-inset);
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+  background: var(--bg-dialog);
+  box-shadow: var(--shadow-dialog);
+  font: var(--type-title);
+}
+
+.headerEnd {
+  margin-left: auto;
+}
