@@ -4,17 +4,19 @@ This report holds the results of the M1 test plan (`docs/qa/m1-plan.md`). The
 lead asked QA to start before the freeze, on what is already merged into `main`,
 so the report has several runs:
 
-| Run         | Build                                                                       | Version | State                                               |
-| ----------- | --------------------------------------------------------------------------- | ------- | --------------------------------------------------- |
-| Pre-freeze  | `main` at `13d88b1`, a clean clone from GitHub                              | 0.2.0   | Done                                                |
-| Pre-freeze  | `main` at `3afbb50` (ui-1 merged), the same clone                           | 0.2.0   | Done (G)                                            |
-| Pre-freeze  | `main` at `23e0344` (devops-2, data-1, output-4 merged)                     | 0.4.1   | Done (V, D, M1-1 retest)                            |
-| Pre-freeze  | `main` at `9e2496a` (shell-4, devops-6 merged)                              | 0.4.1   | Done (M1-2 retest, C regression, `npm run gallery`) |
-| Pre-freeze  | `main` at `c402184` (output-1, data-2, devops-5 merged)                     | 0.4.2   | Done (output-1, M1-3 retest)                        |
-| Pre-freeze  | `main` at `b9392d0` (data-5, data-3, spec-2 merged)                         | 0.5.0   | Done (D1 to D37, data-5, output-1, M1-3)            |
-| Pre-freeze  | `main` at `20ffc86` (ui-2 merged)                                           | 0.7.0   | Done (G10, G14, G16, G29 to G35 part c)             |
-| Pre-freeze  | local `main` at `f72d3eb` and `8e114b5` (output-6, data-4, devops-9 merged) | 0.9.0   | Done (M1-4, M1-5, D17; M1-11 found)                 |
-| Frozen `m1` | The tag `m1`                                                                | -       | Waiting                                             |
+| Run         | Build                                                                                | Version | State                                               |
+| ----------- | ------------------------------------------------------------------------------------ | ------- | --------------------------------------------------- |
+| Pre-freeze  | `main` at `13d88b1`, a clean clone from GitHub                                       | 0.2.0   | Done                                                |
+| Pre-freeze  | `main` at `3afbb50` (ui-1 merged), the same clone                                    | 0.2.0   | Done (G)                                            |
+| Pre-freeze  | `main` at `23e0344` (devops-2, data-1, output-4 merged)                              | 0.4.1   | Done (V, D, M1-1 retest)                            |
+| Pre-freeze  | `main` at `9e2496a` (shell-4, devops-6 merged)                                       | 0.4.1   | Done (M1-2 retest, C regression, `npm run gallery`) |
+| Pre-freeze  | `main` at `c402184` (output-1, data-2, devops-5 merged)                              | 0.4.2   | Done (output-1, M1-3 retest)                        |
+| Pre-freeze  | `main` at `b9392d0` (data-5, data-3, spec-2 merged)                                  | 0.5.0   | Done (D1 to D37, data-5, output-1, M1-3)            |
+| Pre-freeze  | `main` at `20ffc86` (ui-2 merged)                                                    | 0.7.0   | Done (G10, G14, G16, G29 to G35 part c)             |
+| Pre-freeze  | local `main` at `f72d3eb` and `8e114b5` (output-6, data-4, devops-9 merged)          | 0.9.0   | Done (M1-4, M1-5, D17; M1-11 found)                 |
+| Pre-freeze  | local `main` at `c4bbd3a` and `9a63e2b` (ui-6 merged)                                | 0.9.0   | Done (M1-7 and M1-8 to M1-10 retests)               |
+| Pre-merge   | output-9 `bc5bee2` on `c4bbd3a` (the M1-11 fix, and the UI state wiring for shell-3) | 0.9.0   | Done (M1-11, C10, C14, C16 to C21)                  |
+| Frozen `m1` | The tag `m1`                                                                         | -       | Waiting                                             |
 
 At `13d88b1`, `main` holds devops-1 (verify, lint, coverage, CI, soak runner),
 devops-3 (the lint test fix), shell-1 (column dragging and widths per size
@@ -41,19 +43,19 @@ testing:
 
 ## Bugs
 
-| ID    | Severity | Area and owner              | Title                                                                                            | Build     | State                                                  |
-| ----- | -------- | --------------------------- | ------------------------------------------------------------------------------------------------ | --------- | ------------------------------------------------------ |
-| M1-1  | minor    | Main process wiring, output | A relative `LLP_USER_DATA` throws at load and leaves Electron's error dialog                     | `13d88b1` | Fixed (output-4), verified on `23e0344`                |
-| M1-2  | minor    | Shell, shell                | A resize within one size class during a drag leaves the grid wider than the window               | `13d88b1` | Fixed (shell-4), verified on `9e2496a`                 |
-| M1-3  | minor    | Soak judge, devops          | Steady memory growth under about 13 MB per hour passes a 60-minute soak                          | `13d88b1` | Fixed (devops-5), verified on `c402184` and `b9392d0`  |
-| M1-4  | minor    | Main process wiring, output | Log lines still queued when the app quits are lost                                               | `13d88b1` | Fixed (output-6), verified on `f72d3eb`                |
-| M1-5  | minor    | Logger, output              | The log's write queue has no cap and writes one line at a time                                   | `13d88b1` | Fixed (output-6), verified on `f72d3eb`                |
-| M1-6  | minor    | Design system cards, ui     | The design system cards render without Pretendard, so card comparisons use a fallback font       | `3afbb50` | Fix in review (ui-5), passes on `27eab54` before merge |
-| M1-7  | major    | Tests and `verify`, devops  | On a busy computer, test timeouts fail `verify` and stop pushes                                  | `c402184` | Fixed (devops-9), passed on `8c9aa08` before merge     |
-| M1-8  | minor    | Dialog and AlertDialog, ui  | A click on the scrim moves focus out of the dialog, and Esc then does nothing                    | `20ffc86` | Open, ui-6 (`fix/ui/overlay-keys`)                     |
-| M1-9  | minor    | Menu triggers, ui           | The Down arrow doesn't open the 파일 menu button or the service picker                           | `20ffc86` | Open, ui-6 (`fix/ui/overlay-keys`)                     |
-| M1-10 | minor    | Tooltip with Button, ui     | A Button inside `Tooltip` with a shortcut gets no `aria-keyshortcuts`                            | `20ffc86` | Open, ui-6 (`fix/ui/overlay-keys`)                     |
-| M1-11 | blocker  | Quit, output                | Closing the app with an empty log queue leaves the process running, so the app can't start again | `f72d3eb` | Open, `fix/output/quit-hang`                           |
+| ID    | Severity | Area and owner              | Title                                                                                            | Build     | State                                                      |
+| ----- | -------- | --------------------------- | ------------------------------------------------------------------------------------------------ | --------- | ---------------------------------------------------------- |
+| M1-1  | minor    | Main process wiring, output | A relative `LLP_USER_DATA` throws at load and leaves Electron's error dialog                     | `13d88b1` | Fixed (output-4), verified on `23e0344`                    |
+| M1-2  | minor    | Shell, shell                | A resize within one size class during a drag leaves the grid wider than the window               | `13d88b1` | Fixed (shell-4), verified on `9e2496a`                     |
+| M1-3  | minor    | Soak judge, devops          | Steady memory growth under about 13 MB per hour passes a 60-minute soak                          | `13d88b1` | Fixed (devops-5), verified on `c402184` and `b9392d0`      |
+| M1-4  | minor    | Main process wiring, output | Log lines still queued when the app quits are lost                                               | `13d88b1` | Fixed (output-6), verified on `f72d3eb`                    |
+| M1-5  | minor    | Logger, output              | The log's write queue has no cap and writes one line at a time                                   | `13d88b1` | Fixed (output-6), verified on `f72d3eb`                    |
+| M1-6  | minor    | Design system cards, ui     | The design system cards render without Pretendard, so card comparisons use a fallback font       | `3afbb50` | Fix in review (ui-5), passes on `27eab54` before merge     |
+| M1-7  | major    | Tests and `verify`, devops  | On a busy computer, test timeouts fail `verify` and stop pushes                                  | `c402184` | Fixed (devops-9), verified on local `c4bbd3a`              |
+| M1-8  | minor    | Dialog and AlertDialog, ui  | A click on the scrim moves focus out of the dialog, and Esc then does nothing                    | `20ffc86` | Fixed (ui-6), verified on local `9a63e2b`                  |
+| M1-9  | minor    | Menu triggers, ui           | The Down arrow doesn't open the 파일 menu button or the service picker                           | `20ffc86` | Fixed (ui-6), verified on local `9a63e2b`                  |
+| M1-10 | minor    | Tooltip with Button, ui     | A Button inside `Tooltip` with a shortcut gets no `aria-keyshortcuts`                            | `20ffc86` | Fixed (ui-6), verified on local `9a63e2b`                  |
+| M1-11 | blocker  | Quit, output                | Closing the app with an empty log queue leaves the process running, so the app can't start again | `f72d3eb` | Fix in review (output-9), passes on `bc5bee2` before merge |
 
 ### M1-1: A relative `LLP_USER_DATA` throws at load
 
@@ -226,6 +228,9 @@ testing:
   waits 70 s (in the QA clone only), "What failed" named both tests; devops
   added each one's first error line on QA's suggestion (`c75fdbf`).
 
+- Retest on local `main` at `c4bbd3a` (devops-9 merged): pass. `verify` passed
+  all 5 steps in 368.5 s while a soak and other sessions ran.
+
 ### M1-8: A click on the scrim moves focus out of a dialog
 
 - Severity: minor. The operator can Tab back in, but Esc, the quickest way out,
@@ -239,6 +244,9 @@ testing:
   with the app behind it inert until Tab brings focus back to 닫기.
 - A test that would have caught it: mousedown on the scrim, then Escape on
   `document.activeElement`; expect the cancel handler.
+
+- Retest on local `main` at `9a63e2b` (ui-6): pass. After a click on the scrim,
+  focus stays in 새 예배 and in 덮어쓰기 확인, and Esc closes both.
 
 ### M1-9: The Down arrow doesn't open a menu from its button
 
@@ -255,6 +263,9 @@ testing:
 - A test that would have caught it: a keydown of ArrowDown on a menu trigger
   opens the menu.
 
+- Retest on local `main` at `9a63e2b` (ui-6): pass. Down opens the 파일 menu and
+  the 주일 예배 picker; `Select` still opens on Down.
+
 ### M1-10: A Button inside Tooltip gets no aria-keyshortcuts
 
 - Severity: minor (screen readers don't announce the shortcut).
@@ -268,6 +279,9 @@ testing:
   `aria-keyshortcuts="Control+Z"`. `withTooltipProps` passes the attribute, but
   `Button` doesn't put it on the DOM element.
 - A test that would have caught it: render the pair and expect the attribute.
+
+- Retest on local `main` at `9a63e2b` (ui-6): pass. The 가사 button has
+  `aria-keyshortcuts="F2"`, and 되돌리기 keeps `Control+Z`.
 
 ### M1-11: Closing the app with an empty log queue never exits
 
@@ -292,6 +306,14 @@ testing:
 - A test that would have caught it: quit the built app with an empty queue and
   expect the process to exit; or a fake `app` that ignores `quit()` inside a
   `will-quit` listener, as Electron does.
+
+- Before merge, on output-9 (`bc5bee2`): pass. With no CDP at all, an empty log
+  closes in 6 of 6 runs; the trace shows a second `will-quit` and the exit
+  handlers 13 to 68 ms after the close, and the process ends 0.7 to 4.2 s later.
+  With 5, 1,000, and 10,000 queued lines, two closes back to back or 30 ms
+  apart, and a start right after the exit, the app quits and starts again. With
+  the renderer's debugging port open, Chromium's teardown sometimes takes over
+  20 s on this computer, as on `b9392d0`; that comes from the port.
 
 ## Results, pre-freeze run (`13d88b1`)
 
@@ -338,24 +360,31 @@ window couldn't reach ran on an emulated viewport, marked "(emulated)".
 
 ### C. Column widths
 
-| Case       | Result                  | Note                                                                                                                                                                               |
-| ---------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| C1         | pass                    | Two gaps, 4 px wide and as high as the work area, cursor `col-resize`, never reached by Tab (40 presses)                                                                           |
-| C2         | pass                    | Left stops at 400 and 200; the right column stays at 480                                                                                                                           |
-| C3         | pass                    | Right stops at 720 and 320; the left column doesn't move                                                                                                                           |
-| C4         | pass                    | At 1280×720 the right column stops at 484 (center 560), then the left column doesn't widen; the center never under 560                                                             |
-| C5         | pass                    | At 1600: right stops at 720 (center 584), then left at 304 (center 560)                                                                                                            |
-| C6         | pass                    | With the pointer past the left edge the left column holds 200, past the right edge 400, and the drag ends on release outside                                                       |
-| C7         | pass                    | No DOM mutation inside the panels during a 50-step drag                                                                                                                            |
-| C8         | pass                    | A touch drag on the other gap changes nothing during a mouse drag; the right mouse button doesn't start a drag                                                                     |
-| C9         | fail                    | M1-2                                                                                                                                                                               |
-| C10        | not yet merged          | The in-memory store has no file; runs with shell-2                                                                                                                                 |
-| C11        | pass                    | normal 350 and 600, narrow 250 and 360, wide 320 and 650; a class without saved widths shows its defaults                                                                          |
-| C12        | pass                    | At 1599: 400 and 623. At 1280: 384 and 320 (right first), center 560. Back at 1599: 400 and 623                                                                                    |
-| C13        | pass                    | At 2399: 400 and 720. At 1600: 400 and 624. Back: 400 and 720                                                                                                                      |
-| C14 to C21 | not yet merged          | shell-2 (`app.json` store): widths live in memory only at `13d88b1`, so a restart shows the defaults, as expected for now                                                          |
-| C22        | pass (emulated scaling) | At 125% (viewport 1284) and 150% (1281): the left column stops at 348 and 345 and the right at 508 and 505, where the center reaches 560 for those widths, and both go down to 200 |
-| C23        | pass                    | 1,000 drags (two rounds of 500 on each gap): DOM nodes 182 and listeners 157 before and after; renderer heap 2.04, 2.09, 1.80 MB; main heap 4.23, 4.35, 4.59 MB                    |
+| Case | Result                  | Note                                                                                                                                                                                                                                                                                                                                                           |
+| ---- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C1   | pass                    | Two gaps, 4 px wide and as high as the work area, cursor `col-resize`, never reached by Tab (40 presses)                                                                                                                                                                                                                                                       |
+| C2   | pass                    | Left stops at 400 and 200; the right column stays at 480                                                                                                                                                                                                                                                                                                       |
+| C3   | pass                    | Right stops at 720 and 320; the left column doesn't move                                                                                                                                                                                                                                                                                                       |
+| C4   | pass                    | At 1280×720 the right column stops at 484 (center 560), then the left column doesn't widen; the center never under 560                                                                                                                                                                                                                                         |
+| C5   | pass                    | At 1600: right stops at 720 (center 584), then left at 304 (center 560)                                                                                                                                                                                                                                                                                        |
+| C6   | pass                    | With the pointer past the left edge the left column holds 200, past the right edge 400, and the drag ends on release outside                                                                                                                                                                                                                                   |
+| C7   | pass                    | No DOM mutation inside the panels during a 50-step drag                                                                                                                                                                                                                                                                                                        |
+| C8   | pass                    | A touch drag on the other gap changes nothing during a mouse drag; the right mouse button doesn't start a drag                                                                                                                                                                                                                                                 |
+| C9   | fail                    | M1-2                                                                                                                                                                                                                                                                                                                                                           |
+| C10  | pass (pre-merge)        | On output-9 `bc5bee2`: nothing is written during a 50-step drag; one atomic write (temporary file, rename) lands 505 ms after the release; a drag that ends at its starting width writes nothing                                                                                                                                                               |
+| C11  | pass                    | normal 350 and 600, narrow 250 and 360, wide 320 and 650; a class without saved widths shows its defaults                                                                                                                                                                                                                                                      |
+| C12  | pass                    | At 1599: 400 and 623. At 1280: 384 and 320 (right first), center 560. Back at 1599: 400 and 623                                                                                                                                                                                                                                                                |
+| C13  | pass                    | At 2399: 400 and 720. At 1600: 400 and 624. Back: 400 and 720                                                                                                                                                                                                                                                                                                  |
+| C14  | pass (pre-merge)        | On output-9: after a drag and a close 0, 10, 50, or 200 ms later, `app.json` holds the new width, and the next start shows it (340)                                                                                                                                                                                                                            |
+| C15  | waiting                 | Runs after output-9 merges, with the window size option in the QA launcher                                                                                                                                                                                                                                                                                     |
+| C16  | pass (pre-merge)        | UTF-8 JSON, LF, final newline, no byte order mark; it parses with the `app.json` schema                                                                                                                                                                                                                                                                        |
+| C17  | pass (pre-merge)        | `qaUnknown` and `layout.normal.qaInner` survive a save                                                                                                                                                                                                                                                                                                         |
+| C18  | pass (pre-merge)        | 20 force-quits 0, 10, 50, 200, and 600 ms after a release: `app.json` holds the old or the new widths every time, never broken. A leftover `app.json.tmp` (after 8 of the kills) doesn't affect the next start; no dialog                                                                                                                                      |
+| C19  | pass (pre-merge)        | (a) to (e): the app starts on the defaults (280), `app.json` is never overwritten, and one warning names the file and the field (`json`, `format`, `layout.normal.left`). (f) left 50 and right 5000: shown as 200 and 720 (the shell clamps), and the next drag saves it. (g) a newer `schemaVersion`: shows 330 and 420, and a drag doesn't write. No dialog |
+| C20  | pass (pre-merge)        | An empty folder and a folder that doesn't exist yet both start on the defaults, and the first drag creates the folder and `app.json`                                                                                                                                                                                                                           |
+| C21  | pass (pre-merge)        | With `app.json` read-only, the drag works, "could not save app.json" logs the EPERM of the rename, no dialog opens, and the app runs on; after clearing the attribute, the next drag writes                                                                                                                                                                    |
+| C22  | pass (emulated scaling) | At 125% (viewport 1284) and 150% (1281): the left column stops at 348 and 345 and the right at 508 and 505, where the center reaches 560 for those widths, and both go down to 200                                                                                                                                                                             |
+| C23  | pass                    | 1,000 drags (two rounds of 500 on each gap): DOM nodes 182 and listeners 157 before and after; renderer heap 2.04, 2.09, 1.80 MB; main heap 4.23, 4.35, 4.59 MB                                                                                                                                                                                                |
 
 ### S. Stability
 

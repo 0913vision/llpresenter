@@ -96,4 +96,19 @@ Skipped because they need a visible window, for the M2 run with the user: real
 full screen on a second monitor, always on top over other apps, the hidden
 cursor over a full screen output, and a real cable unplug.
 
-QA reruns this pass after shell-5 to shell-7 merge.
+### Rerun on local `main` at `9a63e2b`
+
+shell-5 to shell-10 merged. M2-1 and M2-2 are fixed: a first → moves one 장 and
+5 repeats change nothing; in the grid, → and Space output the next 장, ← and
+Page Up the previous one, Page Down stops on the last, ↓ doesn't output, and
+Enter outputs the selected tile; with focus on the body, → Space Page Down ←
+Page Up step the live 장; → with another item open outputs that item's first 장;
+Space on a Tab-focused 본 화면 button presses it and leaves the 장 alone; a
+click on a toolbar button leaves focus where it was; the search field keeps ←
+and Space. F2 clears and Ctrl Z brings the 장 back. The notes above are fixed
+too: the header reads "아침이 밝아 오네 2 / 4" or "맑은 시냇물 3장", and tile
+names have the comma after the 이름표.
+
+Not built yet: Ctrl ↓ (`service.nextItem`), Ctrl ↑ (`service.previousItem`), and
+Ctrl L (`service.revealLive`). shell builds them in the branch after the preview
+panel, and QA tests the K cases there.
