@@ -1,5 +1,7 @@
 import {create} from 'zustand';
 import type {SlideLayer} from '@shared/live';
+import {sizeClasses} from '@shared/schema/appConfig';
+import {COLUMN_LIMITS, type UiState} from '@shared/schema/uiState';
 import {
   type ItemId,
   type ServiceRow,
@@ -132,26 +134,48 @@ export function outputLabel(label: string): void {
   outputIfPresent(tileForLabel(sequenceState(), label));
 }
 
-export const MIN_THUMBNAIL_COLUMNS = 2;
-export const MAX_THUMBNAIL_COLUMNS = 8;
+export const MIN_THUMBNAIL_COLUMNS = COLUMN_LIMITS.columns.min;
+export const MAX_THUMBNAIL_COLUMNS = COLUMN_LIMITS.columns.max;
 
-/** The columns of the 장 grid for a size class: the chosen number, or the default. */
-export function useThumbnailColumns(sizeClass: SizeClass): number {
-  return useShow(
-    view =>
-      view.thumbnailColumns[sizeClass] ?? defaultThumbnailColumns[sizeClass],
+function clampColumns(columns: number): number {
+  return Math.min(
+    Math.max(Math.round(columns), MIN_THUMBNAIL_COLUMNS),
+    MAX_THUMBNAIL_COLUMNS,
   );
 }
 
+function columnsOf(view: ShowView, sizeClass: SizeClass): number {
+  return view.thumbnailColumns[sizeClass] ?? defaultThumbnailColumns[sizeClass];
+}
+
+/** The columns of the 장 grid for a size class: the chosen number, or the default. */
+export function useThumbnailColumns(sizeClass: SizeClass): number {
+  return useShow(view => columnsOf(view, sizeClass));
+}
+
+/**
+ * Sets the columns of a size class and sends the new number to the main
+ * process, which saves it in `app.json`. A number that is already in effect
+ * changes and sends nothing.
+ */
 export function setThumbnailColumns(
   sizeClass: SizeClass,
   columns: number,
 ): void {
-  const clamped = Math.min(
-    Math.max(Math.round(columns), MIN_THUMBNAIL_COLUMNS),
-    MAX_THUMBNAIL_COLUMNS,
-  );
+  const clamped = clampColumns(columns);
+  if (clamped === columnsOf(useShow.getState(), sizeClass)) return;
   useShow.setState(view => ({
     thumbnailColumns: {...view.thumbnailColumns, [sizeClass]: clamped},
   }));
+  window.llp?.ui.setLayout({sizeClass, columns: clamped});
+}
+
+/** Takes the saved columns of every size class from the UI state. Sends nothing. */
+export function seedThumbnailColumns(uiState: UiState): void {
+  const saved: Partial<Record<SizeClass, number>> = {};
+  for (const sizeClass of sizeClasses) {
+    const columns = uiState.layout?.[sizeClass]?.columns;
+    if (columns !== undefined) saved[sizeClass] = clampColumns(columns);
+  }
+  useShow.setState({thumbnailColumns: saved});
 }

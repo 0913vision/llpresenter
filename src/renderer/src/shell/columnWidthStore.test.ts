@@ -5,7 +5,11 @@ import {
   createIpcColumnWidthStore,
   createMemoryColumnWidthStore,
 } from './columnWidthStore';
-import {loadColumnWidthStore} from './loadColumnWidthStore';
+import {
+  createColumnWidthStore,
+  loadColumnWidthStore,
+  loadUiState,
+} from './loadColumnWidthStore';
 
 describe('createMemoryColumnWidthStore', () => {
   it('returns what was saved, per size class', () => {
@@ -148,5 +152,62 @@ describe('loadColumnWidthStore', () => {
     );
     store.save('normal', {left: 300, right: 500});
     expect(setLayout).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('loadUiState', () => {
+  it('is empty without the Electron API', async () => {
+    expect(await loadUiState(undefined)).toEqual({});
+  });
+
+  it('returns the state of the main process', async () => {
+    const state = {layout: {wide: {left: 320, right: 560, columns: 6}}};
+    const api = fakeLlpApi({
+      ui: {get: () => Promise.resolve(state), setLayout: () => undefined},
+    });
+    expect(await loadUiState(api)).toEqual(state);
+  });
+
+  it('logs the failure and is empty when the main process cannot answer', async () => {
+    const write = vi.fn();
+    const api = fakeLlpApi({
+      ui: {
+        get: () => Promise.reject(new Error('no answer')),
+        setLayout: () => undefined,
+      },
+      log: {write},
+    });
+    expect(await loadUiState(api)).toEqual({});
+    expect(write).toHaveBeenCalledWith(
+      expect.objectContaining({
+        level: 'error',
+        message: 'could not read the UI state',
+      }),
+    );
+  });
+});
+
+describe('createColumnWidthStore', () => {
+  it('starts from the given state and sends saves through the API', () => {
+    const setLayout = vi.fn<(change: LayoutChange) => void>();
+    const api = fakeLlpApi({
+      ui: {get: () => Promise.resolve({}), setLayout},
+    });
+    const store = createColumnWidthStore(api, {
+      layout: {normal: {left: 300, right: 500}},
+    });
+    expect(store.load('normal')).toEqual({left: 300, right: 500});
+    store.save('normal', {left: 310, right: 500});
+    expect(setLayout).toHaveBeenCalledWith({
+      sizeClass: 'normal',
+      left: 310,
+      right: 500,
+    });
+  });
+
+  it('keeps the widths in memory without the Electron API', () => {
+    const store = createColumnWidthStore(undefined, {});
+    store.save('wide', {left: 320, right: 560});
+    expect(store.load('wide')).toEqual({left: 320, right: 560});
   });
 });

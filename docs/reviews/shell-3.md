@@ -133,12 +133,13 @@ change made just before closing was saved every time I tried.
   store.
 - A readable file from a newer schema version counts as one that must not be
   replaced, even when it fits the schema (`access: 'readOnly'`).
-- `columns` is not saved yet. It needs the `columns` field in `LayoutChange`
-  (the lead asked data for it in data-6).
+- `columns` is saved by shell-9 (`feat/shell/undo-and-columns`), which uses the
+  `columns` field that data-6 added to `LayoutChange`. This change only merges
+  it field by field.
 
 ## Shared contract change requests
 
-- None for this change (see the `columns` decision above).
+- None for this change.
 
 ## Where to look
 
