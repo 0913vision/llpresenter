@@ -1,0 +1,13 @@
+/* NOTE(0913vision): A stand-in for the 구성 row under the 준비 preview header,
+   as on the preview card; the real row belongs to the shell. */
+.arrangementRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  height: var(--size-row-double);
+  padding: 0 var(--space-8) 0 var(--panel-inset);
+}
+
+.arrangementName {
+  font: var(--type-label-strong);
+}

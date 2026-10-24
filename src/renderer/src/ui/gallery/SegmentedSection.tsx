@@ -1,5 +1,9 @@
 import type {JSX} from 'react';
+import {IconButton} from '../IconButton';
+import {Panel, PanelActions, PanelBody, PanelHeader, PanelTabs} from '../Panel';
+import {PropertyRow, Properties} from '../PropertyRow';
 import {SegmentedControl, type SegmentOption} from '../SegmentedControl';
+import styles from './SegmentedSection.module.css';
 import {
   ignore,
   Section,
@@ -13,6 +17,9 @@ type Arrangement = 'base' | 'sunday' | 'short';
 type View = 'grid' | 'list';
 type Filter = 'all' | 'changed' | 'conflict';
 type Mode = 'full' | 'window' | 'capture' | 'ndi';
+type Audience = 'audience' | 'stage';
+type Fit = 'fit' | 'fill' | 'stretch';
+type Screen = 'main' | 'stage' | 'captions';
 
 const arrangements: ReadonlyArray<SegmentOption<Arrangement>> = [
   {value: 'base', label: '기본'},
@@ -44,6 +51,52 @@ const modes: ReadonlyArray<SegmentOption<Mode>> = [
   {value: 'ndi', label: 'NDI'},
 ];
 
+const audiences: ReadonlyArray<SegmentOption<Audience>> = [
+  {value: 'audience', label: '청중'},
+  {value: 'stage', label: '무대'},
+];
+
+const fits: ReadonlyArray<SegmentOption<Fit>> = [
+  {value: 'fit', label: '맞추기'},
+  {value: 'fill', label: '채우기'},
+  {value: 'stretch', label: '늘리기'},
+];
+
+const screens: ReadonlyArray<SegmentOption<Screen>> = [
+  {value: 'main', label: '본 화면'},
+  {value: 'stage', label: '무대'},
+  {value: 'captions', label: '방송 자막'},
+];
+
+function FillRow<T extends string>({
+  label,
+  options,
+  initial,
+}: {
+  readonly label: string;
+  readonly options: ReadonlyArray<SegmentOption<T>>;
+  readonly initial: T;
+}): JSX.Element {
+  return (
+    <PropertyRow label={label}>
+      {({controlId, labelId}) => (
+        <Stateful<T> initial={initial}>
+          {(value, setValue) => (
+            <SegmentedControl
+              id={controlId}
+              labelledBy={labelId}
+              fill
+              options={options}
+              value={value}
+              onChange={setValue}
+            />
+          )}
+        </Stateful>
+      )}
+    </PropertyRow>
+  );
+}
+
 interface ArrangementState {
   readonly label: string;
   readonly pin?: SpecPin;
@@ -60,6 +113,7 @@ const arrangementStates: readonly ArrangementState[] = [
 ];
 
 const FILL_WIDTH = 400;
+const HEADER_WIDTH = 420;
 
 export function SegmentedSection(): JSX.Element {
   return (
@@ -142,36 +196,61 @@ export function SegmentedSection(): JSX.Element {
           />
         </SpecItem>
       </SpecGroup>
-      <SpecGroup title="Fill variant and screen tabs" surface="panel">
-        <SpecItem label="Fill, 방식" width={FILL_WIDTH}>
-          <Stateful<Mode> initial="full">
-            {(value, setValue) => (
-              <SegmentedControl
-                label="방식"
-                fill
-                options={modes}
-                value={value}
-                onChange={setValue}
-              />
-            )}
-          </Stateful>
+      <SpecGroup>
+        <SpecItem
+          label="Fill variant in property fields, equal widths, horizontal 8"
+          width={FILL_WIDTH}
+        >
+          <Panel label="화면">
+            <PanelBody>
+              <Properties>
+                <FillRow label="종류" options={audiences} initial="audience" />
+                <FillRow label="방식" options={modes} initial="full" />
+                <FillRow label="맞춤" options={fits} initial="fill" />
+              </Properties>
+            </PanelBody>
+          </Panel>
         </SpecItem>
-        <SpecItem label="Screen tabs (aria-selected)">
-          <Stateful<'main' | 'stage' | 'captions'> initial="main">
-            {(value, setValue) => (
-              <SegmentedControl
-                label="미리 볼 화면"
-                kind="tabs"
-                options={[
-                  {value: 'main', label: '본 화면'},
-                  {value: 'stage', label: '무대'},
-                  {value: 'captions', label: '방송 자막'},
-                ]}
-                value={value}
-                onChange={setValue}
+        <SpecItem
+          label="In a panel header, screen tabs (aria-selected), 구성 picker (radio)"
+          width={HEADER_WIDTH}
+        >
+          <Panel label="미리보기">
+            <PanelHeader>
+              <PanelTabs
+                tabs={[{value: 'preview', label: '미리보기'}]}
+                value="preview"
+                onChange={ignore}
               />
-            )}
-          </Stateful>
+              <PanelActions>
+                <Stateful<Screen> initial="main">
+                  {(value, setValue) => (
+                    <SegmentedControl
+                      label="미리 볼 화면"
+                      kind="tabs"
+                      options={screens}
+                      value={value}
+                      onChange={setValue}
+                    />
+                  )}
+                </Stateful>
+              </PanelActions>
+            </PanelHeader>
+            <div className={styles.arrangementRow}>
+              <span className={styles.arrangementName}>구성</span>
+              <Stateful<Arrangement> initial="base">
+                {(value, setValue) => (
+                  <SegmentedControl
+                    label="구성"
+                    options={arrangements}
+                    value={value}
+                    onChange={setValue}
+                  />
+                )}
+              </Stateful>
+              <IconButton icon="plus" label="구성 추가" />
+            </div>
+          </Panel>
         </SpecItem>
       </SpecGroup>
     </Section>
