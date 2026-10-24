@@ -56,6 +56,7 @@ function sendWindowAction(value: unknown): void {
 
 beforeEach(() => {
   electron.listeners.clear();
+  electron.window.isMaximized.mockReturnValue(false);
 });
 
 describe('registerIpc live commands', () => {

@@ -1,6 +1,7 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import type {Rect} from '../displays/rect';
 import type {Logger} from '../log';
+import {startLoading} from '../windows/page';
 import type {WindowMode} from '../windows/testWindows';
 import {createElectronOutputWindow} from './electronWindow';
 import type {OutputWindowHandle} from './outputWindow';
@@ -38,6 +39,7 @@ vi.mock('electron', () => ({BrowserWindow: electron.FakeBrowserWindow}));
 vi.mock('../windows/page', () => ({
   preloadPath: 'preload.js',
   loadPage: vi.fn(),
+  startLoading: vi.fn(() => Promise.resolve()),
   blockNavigation: vi.fn(),
 }));
 
@@ -138,6 +140,15 @@ describe('createElectronOutputWindow offscreen', () => {
     output.hide();
 
     expect(lastWindow().hide).not.toHaveBeenCalled();
+  });
+});
+
+describe('createElectronOutputWindow reload', () => {
+  it('rejects when the page fails to load, so the recovery hears of it', async () => {
+    const output = openOutput('normal');
+    vi.mocked(startLoading).mockRejectedValueOnce(new Error('ERR_FAILED'));
+
+    await expect(output.reload()).rejects.toThrow('ERR_FAILED');
   });
 });
 
