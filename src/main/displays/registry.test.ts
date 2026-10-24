@@ -2,6 +2,7 @@ import {describe, expect, it, vi} from 'vitest';
 import {installFakeClock} from '../../../test/fake-clock';
 import type {DisplayInfo} from './monitor';
 import {
+  DISPLAY_RETRY_MS,
   DISPLAY_SETTLE_MS,
   DisplayRegistry,
   type DisplaySource,
@@ -102,6 +103,7 @@ describe('DisplayRegistry', () => {
   });
 
   it('keeps the last list when the system reports no monitors', () => {
+    installFakeClock();
     const source = new FakeDisplaySource(control, projector);
     const log = recordingLogger();
     const registry = new DisplayRegistry(source, log);
@@ -112,6 +114,7 @@ describe('DisplayRegistry', () => {
   });
 
   it('logs a failed read and keeps the last list', () => {
+    installFakeClock();
     const source = new FakeDisplaySource(control);
     const log = recordingLogger();
     const registry = new DisplayRegistry(source, log);
@@ -119,6 +122,51 @@ describe('DisplayRegistry', () => {
     registry.refresh();
     expect(registry.monitors).toHaveLength(1);
     expect(log.messages('error')).toEqual(['could not read the monitors']);
+  });
+
+  it('reads again by itself after an empty read until the system recovers', async () => {
+    const clock = installFakeClock();
+    const source = new FakeDisplaySource(control, projector);
+    const log = recordingLogger();
+    const registry = new DisplayRegistry(source, log);
+    const listener = vi.fn();
+    registry.subscribe(listener);
+    source.displays = [];
+    registry.refresh();
+    await clock.advance(DISPLAY_RETRY_MS * 3);
+    expect(listener).not.toHaveBeenCalled();
+
+    source.displays = [control];
+    await clock.advance(DISPLAY_RETRY_MS);
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(registry.monitors.map(({id}) => id)).toEqual([1]);
+    expect(log.messages('warn')).toHaveLength(1);
+    expect(log.messages('info')).toContain('the monitors can be read again');
+  });
+
+  it('recovers from a failed read at start without a display event', async () => {
+    const clock = installFakeClock();
+    const source = new FakeDisplaySource(control);
+    source.failure = new Error('display service starting');
+    const log = recordingLogger();
+    const registry = new DisplayRegistry(source, log);
+    expect(registry.monitors).toEqual([]);
+    source.failure = null;
+    await clock.advance(DISPLAY_RETRY_MS);
+    expect(registry.monitors).toHaveLength(1);
+    expect(log.messages('error')).toEqual(['could not read the monitors']);
+  });
+
+  it('cancels a pending retry on dispose', async () => {
+    const clock = installFakeClock();
+    const source = new FakeDisplaySource(control);
+    const registry = new DisplayRegistry(source, recordingLogger());
+    source.displays = [];
+    registry.refresh();
+    const read = vi.spyOn(source, 'read');
+    registry.dispose();
+    await clock.runAll();
+    expect(read).not.toHaveBeenCalled();
   });
 
   it('keeps notifying the other listeners when one throws', () => {
