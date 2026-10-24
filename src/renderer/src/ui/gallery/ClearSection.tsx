@@ -6,6 +6,10 @@ import {ignore, Section, SpecGroup, SpecItem, type SpecPin} from './Spec';
 const ROW_WIDTH = 480;
 const COMPACT_ROW_WIDTH = 360;
 const SINGLE_WIDTH = 60;
+// NOTE(0913vision): 되돌림 brings its divider (1px and 4px on each side), so
+// its specimen is that much wider to keep the button at the card's 60px.
+const UNDO_WIDTH = SINGLE_WIDTH + 9;
+const SINGLE_BOX = {display: 'flex', width: '100%'} as const;
 
 const layers: readonly ClearTarget[] = [
   'all',
@@ -63,10 +67,14 @@ const singleStates: readonly SingleState[] = [
 ];
 
 function Single({state}: {readonly state: SingleState}): JSX.Element {
-  return state.undo === true ? (
-    <ClearUndo available={state.available} onUndo={ignore} />
-  ) : (
-    <ClearButton layer="slide" active={state.available} onClear={ignore} />
+  return (
+    <div style={SINGLE_BOX}>
+      {state.undo === true ? (
+        <ClearUndo available={state.available} onUndo={ignore} />
+      ) : (
+        <ClearButton layer="slide" active={state.available} onClear={ignore} />
+      )}
+    </div>
   );
 }
 
@@ -99,7 +107,7 @@ export function ClearSection(): JSX.Element {
             key={state.label}
             label={state.label}
             pin={state.pin}
-            width={SINGLE_WIDTH}
+            width={state.undo === true ? UNDO_WIDTH : SINGLE_WIDTH}
           >
             <Single state={state} />
           </SpecItem>

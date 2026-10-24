@@ -5,7 +5,6 @@ import {ignore, Section, SpecGroup, SpecItem} from './Spec';
 
 const REGULAR_WIDTH = 480;
 const NARROW_WIDTH = 360;
-const CLOSE_INDEX = 2;
 
 const lost: Notice = {
   key: 'screen:stage',
@@ -57,13 +56,8 @@ export function NotificationSection(): JSX.Element {
         >
           <NotificationCard notice={lost} onClose={ignore} />
         </SpecItem>
-        <SpecItem
-          label="Close focus"
-          pin="focus"
-          pinIndex={CLOSE_INDEX}
-          width={REGULAR_WIDTH}
-        >
-          <NotificationCard notice={lost} onClose={ignore} />
+        <SpecItem label="Close focus" pin="focus" width={NARROW_WIDTH}>
+          <NotificationCard notice={back} onClose={ignore} />
         </SpecItem>
       </SpecGroup>
     </Section>
