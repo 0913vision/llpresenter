@@ -72,8 +72,17 @@ Source: `Screens`, `Looks`, `StageEditor`, `Main` board guide (화면 설정, Lo
 - A monitor holds at most one full screen output. Assigning a monitor that
   another screen uses leaves that other screen unassigned, so it shows in a
   window (proposal).
-- The 장치 select doesn't offer the monitor that holds the main window, so a
-  full screen output never covers the control window (proposal).
+- The control monitor (the monitor that holds the largest part of the main
+  window) never shows a full screen output, so an output never covers the
+  control window (proposal). This holds on every path:
+  - The 장치 select doesn't offer the control monitor, and its display layout
+    box doesn't accept a dropped screen.
+  - A saved assignment isn't changed. If the main window is on the assigned
+    monitor at launch, or the operator moves the main window onto it, that
+    output shows in a 960 x 540 window instead, as for a lost monitor, with an
+    amber mark and the tooltip "모니터 2에 컨트롤 창이 있어 창으로 표시 중"
+    (proposal). When the main window leaves that monitor, the output goes back
+    to full screen on it.
 - A screen name that is empty or that another screen has can't be saved: the
   field shows the error ring with the reason in a tooltip, and the old name
   comes back when the field loses focus (proposal).

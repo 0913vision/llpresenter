@@ -450,8 +450,9 @@ Source: `ServiceSwitch`, `NewService`, `ImportMenu`, `Main` board guide (예배
 - Trim blank lines at the start and end, and trailing spaces on each line
   (proposal).
 - Before splitting (proposal): CRLF and CR line endings become LF, and tabs
-  become spaces. 자동 encoding treats the bytes as UTF-8 only if they are valid
-  UTF-8; otherwise it reads them as CP949.
+  become spaces. With 자동 encoding, a UTF-8 or UTF-16 byte order mark decides
+  first; without one, the bytes are read as UTF-8 only if they are valid UTF-8,
+  and otherwise as CP949.
 - 줄 바꿈 respects stanza breaks: a blank line always ends a 장, so 한 장에 2
   never joins the last line of one stanza with the first line of the next. This
   follows ProPresenter's import ("with respect for stanza breaks", S4 p. 90 in
