@@ -2,7 +2,7 @@
 
 - Team member: `shell`
 - Branch: `feat/shell/column-resize`
-- Base commit (`main`): `576c543`
+- Base commit (`main`): `8b5edaa`
 - Last commit: see the commit that adds this file
 - Related brief: `docs/briefs/shell.md`
 
@@ -252,3 +252,10 @@ Replies to the reviewer:
    (about 15 node processes, CPU near 65%). All the other tests (177 of 178) and
    `npm run build` pass. I did not change the timeout or the test; this is for
    the lead and devops.
+8. Round 3 (Codex nits): removed the redundant `refit()` from the `sizeClass`
+   effect in `useColumnLayout.ts` (mount fits once, and `setSizeClass` fits on a
+   class change), and removed the TSDoc block from the private `endDrag` in
+   `ColumnLayout.ts`; the reason for saving only a changed width is now a
+   `NOTE(0913vision)` comment. `npm run verify` on `main` 8b5edaa plus this
+   branch passed all five steps (typecheck, lint, format:check, test:coverage,
+   build) in 59.8 s.
