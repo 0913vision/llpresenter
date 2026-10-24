@@ -1,0 +1,117 @@
+.track {
+  --segmented-icon-width: 28px;
+
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  min-width: 0;
+  height: var(--size-control-sm);
+  padding: var(--space-2);
+  border-radius: var(--radius-lg);
+  background: var(--bg-well);
+}
+
+.fill {
+  display: flex;
+  flex: 1 1 auto;
+  width: 100%;
+}
+
+.segment {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-6);
+  min-width: 0;
+  height: var(--size-control-xs);
+  padding: 0 var(--space-10);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-3);
+  font: var(--type-label);
+  white-space: nowrap;
+  user-select: none;
+  transition:
+    background-color var(--motion-hover),
+    color var(--motion-hover);
+}
+
+.fill .segment {
+  flex: 1 1 0;
+  padding: 0 var(--space-8);
+  overflow: hidden;
+}
+
+.iconSegment {
+  width: var(--segmented-icon-width);
+  padding: 0;
+}
+
+.label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.count {
+  color: var(--text-3);
+  font: var(--type-caption);
+  font-variant-numeric: tabular-nums;
+}
+
+.count.warning {
+  color: var(--warning);
+}
+
+.segment:not(
+    [aria-disabled='true'],
+    [aria-checked='true'],
+    [aria-pressed='true'],
+    [aria-selected='true']
+  ):hover {
+  background: var(--bg-raised);
+  color: var(--text-2);
+}
+
+.segment:not(
+    [aria-disabled='true'],
+    [aria-checked='true'],
+    [aria-pressed='true'],
+    [aria-selected='true']
+  ):active {
+  background: var(--bg-control-hover);
+  color: var(--text-2);
+}
+
+.segment:is(
+  [aria-checked='true'],
+  [aria-pressed='true'],
+  [aria-selected='true']
+) {
+  background: var(--bg-control-hover);
+  color: var(--text);
+}
+
+.segment:is(
+    [aria-checked='true'],
+    [aria-pressed='true'],
+    [aria-selected='true']
+  ):not([aria-disabled='true'])
+  .count:not(.warning) {
+  color: var(--text-2);
+}
+
+.segment:focus-visible {
+  position: relative;
+  z-index: 1;
+}
+
+.segment[aria-disabled='true'] {
+  color: var(--text-off);
+}
+
+.segment[aria-disabled='true'] .count {
+  color: var(--text-off);
+}
