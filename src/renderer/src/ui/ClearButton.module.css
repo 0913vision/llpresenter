@@ -1,0 +1,87 @@
+.row {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-8);
+  border-radius: var(--radius-lg);
+  background: var(--bg-panel);
+}
+
+.divider {
+  flex: none;
+  width: 1px;
+  height: var(--size-clear-divider);
+  margin: 0 var(--space-4);
+  background: var(--line);
+}
+
+.button {
+  --clear-all-share: 1.4;
+
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  height: var(--size-clear-button);
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--bg-control);
+  color: var(--text);
+  font: var(--type-caption-strong);
+  white-space: nowrap;
+  user-select: none;
+  transition:
+    background-color var(--motion-hover),
+    color var(--motion-hover);
+}
+
+.label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.all {
+  flex-grow: var(--clear-all-share);
+}
+
+.undo {
+  background: var(--bg-toolbar-hover);
+}
+
+.button:not([data-state='off']):is(:hover, :active) {
+  background: var(--bg-control-hover);
+}
+
+.button[data-state='off'] {
+  background: var(--bg-control-off);
+  color: var(--text-off);
+}
+
+.undo[data-state='off'] {
+  background: var(--bg-toolbar-hover);
+}
+
+.compact {
+  padding: var(--space-6);
+}
+
+.compact .button {
+  gap: 0;
+  height: var(--size-toolbar-compact);
+}
+
+.compact .label {
+  display: none;
+}
+
+.compact .divider {
+  height: var(--size-clear-divider-compact);
+  margin: 0 var(--space-2);
+}

@@ -100,6 +100,8 @@
   --size-toolbar-button: 48px;
   --size-toolbar-button-compact: 32px;
   --size-clear-button: 52px;
+  --size-clear-divider: 32px;
+  --size-clear-divider-compact: 24px;
   --size-clear-button-compact: 40px;
   --size-dialog-header: 44px;
   --size-dialog-footer: 52px;

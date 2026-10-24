@@ -51,7 +51,7 @@ Don't use red because a layer is live. Show only whether there is something to c
 - A click clears that layer at once. Don't show a confirmation dialog. If the operator clicked by mistake, 되돌림 brings it back.
 - 모두 clears every layer that has something to clear at once. While even one layer is left, 모두 is in the something-to-clear state.
 - 되돌림 undoes the last 지우기 (including 모두), one step only. After the undo, it has nothing to undo.
-- Shortcuts: 모두 F1, 가사 F2, 미디어 F3, 소품 F4, 오디오 F5, 메시지 F6, 공지 F7, 되돌리기 Ctrl Z. The shortcuts work in the 진행 workspace wherever the focus is.
+- Shortcuts: 모두 F1, 가사 F2, 미디어 F3, 소품 F4, 오디오 F5, 메시지 F6, 공지 F7, 되돌리기 Ctrl Z. F1 to F7 work in every workspace and in the 환경설정 window, wherever the focus is: in a text field, with a menu or a dialog open, and during a drag. Only the key recording field on the 단축키 page takes them, while it records. Ctrl Z is 되돌리기 in 진행 and 화면 설정, also with a menu or a dialog open and during a drag. In 준비 and in text fields, Ctrl Z is the edit undo, and the 되돌림 button still works; in the 환경설정 window, Ctrl Z doesn't undo a clear. The 단축키 page can change every key; the tooltip and `aria-keyshortcuts` always show the current key.
 - Give a button with nothing to clear `aria-disabled="true"` and `data-state="off"` instead of `disabled`. It keeps its focus and tooltip, and its shortcut does nothing.
 - Give each button `aria-label="가사 지우기"` and `aria-keyshortcuts="F2"`. The row is `role="group"` (name "지우기").
 - Tooltip: append the shortcut in `text-3`, `space-8` after the name. "가사 지우기 F2", "모두 지우기 F1", "되돌리기 Ctrl Z".
@@ -73,7 +73,8 @@ Don't use red because a layer is live. Show only whether there is something to c
 </ClearRow>
 ```
 
-- `layer` sets the icon, the name, and the shortcut (see the lists above). With `active={false}`, the button draws `data-state="off"` and `aria-disabled`.
+- `layer` (`all`, `slide`, `media`, `prop`, `audio`, `message`, `notice`, the shared `ClearTarget`) sets the icon, the name, and the default shortcut (see the lists above). Pass `shortcut` with the current key when the 단축키 page changed it. With `active={false}`, the button draws `data-state="off"` and `aria-disabled`.
+- `ClearUndo` draws the divider before 되돌림 itself, so the row takes only `ClearButton` and `ClearUndo` children.
 - Classes: row `ll-clear-row`, compact form `ll-clear-row--compact`, divider `ll-clear-row__divider`, button `ll-clear`, 모두 `ll-clear--all`, 되돌림 `ll-clear--undo`, name `ll-clear__label` (hidden in the compact form).
 
 ```html

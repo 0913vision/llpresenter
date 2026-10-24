@@ -15,6 +15,15 @@ export {
   type CheckboxProps,
 } from './Checkbox';
 export {
+  ClearButton,
+  ClearRow,
+  ClearUndo,
+  clearLabel,
+  defaultClearShortcut,
+  type ClearButtonProps,
+  type ClearUndoProps,
+} from './ClearButton';
+export {
   CLICK_FOCUS_ATTRIBUTE,
   CLICK_FOCUS_SELECTOR,
   clickFocusProps,
