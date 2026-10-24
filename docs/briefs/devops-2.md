@@ -25,9 +25,10 @@ each), so the version and the changelog can come from them.
      raise the patch version only when the lead passes a flag; otherwise the
      script says there is nothing to release,
    - updates `version` in `package.json` and `package-lock.json`,
-   - adds a section to `CHANGELOG.md` with the date and three groups (변경으로
-     깨지는 것 for `break`, 새 기능 for `feat`, 고친 것 for `fix`), each line
-     taken from the commit subject without its tag, newest first,
+   - adds a section to `CHANGELOG.md` with the date and three groups in English,
+     as `CLAUDE.md` requires for documents (Breaking changes for `break`,
+     Features for `feat`, Fixes for `fix`), each line taken from the commit
+     subject without its tag, newest first,
    - commits as `chore(release): release v<version>` and creates the annotated
      tag `v<version>`,
    - never pushes. It prints the two push commands for the lead.
