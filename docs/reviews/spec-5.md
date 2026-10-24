@@ -100,3 +100,11 @@ The nine files in the table above, and `docs/reviews/spec-5.md` (new).
 - That each changed file now states the same rule as 10's command list and focus
   precedence.
 - The ui list above.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (84fda72): reviewer (Codex, codex4) Request changes: 04's click focus
+  rule left out 10's three exceptions, and the ui list missed TextField's key
+  input field.
+- Round 2 (ca89cc8): reviewer (Codex, codex4) Approve, no findings. Lead
+  Approve. Rebased by the lead onto `main` aeb111a without conflicts.

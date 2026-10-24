@@ -106,3 +106,14 @@ The lead asked for three changes.
 
 - The two tables in 08 (problem states, notifications) and the new section.
 - The guide citations in 04's "Preview panel".
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (951bdd2): reviewer (Codex, codex3) Request changes: the preview drew
+  live content while the audience saw an empty screen, the 방송 자막 example
+  contradicted configurable Looks, and the retry and key field rules needed
+  exact limits. Lead approved decision 1 (the capture window shows chroma at the
+  limit).
+- Round 2 (e6ba281, nit fixed in 700194a): reviewer (Codex, codex3) Approve with
+  one nit (decision 3's reasoning), which spec fixed before the merge. Lead
+  Approve. Rebased by the lead onto `main` 3650f82 without conflicts.

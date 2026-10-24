@@ -83,19 +83,18 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (803ecb5): reviewer (Codex, 0:6) Request changes: soak and gallery
+  runs could launch Electron visibly, the 진행 key cases contradicted spec 10,
+  F6 didn't hit a real write, unsourced thresholds were treated as gates, some
+  cases had no runnable setup, and the recovery record was optional.
+- Round 2 (1086197): reviewer (Codex, codex5) Approve with one nit: O4 still
+  says `FM1` where the monitor table now says `Primary`. A second Codex window
+  (0:6) also reviewed round 2 and approved with one nit: record which write
+  stage F6 actually interrupted, and mark a stage blocked if it can't be hit
+  reliably. Both nits go into qa's next commit. Lead Approve. Rebased by the
+  lead onto `main` 91b9ad7 without conflicts.
 
 ## Team member's reply
 
