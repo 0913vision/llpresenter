@@ -96,9 +96,12 @@ Status: planned. Starts as soon as each member's M1 work is merged.
 
 Acceptance criteria (QA), from `docs/PLAN.md` phase 2:
 
-- One song file goes from the library into a 예배 순서, shows as thumbnails in
-  진행, and a click shows its lyrics over a looping background video on the 본
-  화면.
+- A song in a 예배 순서 shows as thumbnails in 진행, and a click shows its
+  lyrics over a looping background video on the 본 화면. In M2 the song gets
+  into the 예배 순서 through a service file prepared on disk (a test fixture);
+  adding it from the library in the UI comes in M3.
+- The Notification component and the main-process problem events ship in M2; the
+  host that shows them in the control window comes in M3.
 - F1 to F7 clear the right layers, and undo restores the last clear.
 - 60 minutes of continuous output (looping video, 장 changes) on two monitors
   shows no stutter and no memory growth (soak test).
