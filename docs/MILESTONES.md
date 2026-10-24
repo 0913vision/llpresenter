@@ -51,7 +51,8 @@ A member who needs a new module wired into the main process exports a
 
 ## M1: Foundation
 
-Status: in progress.
+Status: frozen as tag `m1` on October 25, 2026. qa runs the M1 test plan on the
+tag; fixes go into M2 branches.
 
 | Task                                                            | Owner  | Review requests        |
 | --------------------------------------------------------------- | ------ | ---------------------- |
@@ -82,7 +83,10 @@ Acceptance criteria (QA):
 
 ## M2: Vertical slice
 
-Status: planned. Starts as soon as each member's M1 work is merged.
+Status: in progress. Output windows, rendering, the file store, the 진행 keys,
+header, clear row, and previews are merged or in review; open: the media library
+lookup, backups, the offscreen test switch, ui-4 and ui-7, the soak run, and the
+run with the user on real monitors.
 
 | Task                                                                                                                                                         | Owner (planned) |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------- |
