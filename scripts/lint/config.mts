@@ -12,7 +12,7 @@ const REPO_ROOT = resolve(import.meta.dirname, '..', '..');
 const TS_FILES = ['**/*.{ts,tsx,mts,cts}'];
 const RENDERER_FILES = ['src/renderer/**/*.{ts,tsx}'];
 const TEST_FILES = ['**/*.test.{ts,tsx}', 'test/**/*.{ts,tsx}'];
-const TOOL_CONFIG_FILES = ['*.config.{ts,mts,mjs}'];
+const TOOL_CONFIG_FILES = ['**/*.config.{ts,mts,mjs}'];
 
 const MAX_PARAMS = 3;
 const MAX_DEPTH = 3;
