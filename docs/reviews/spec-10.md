@@ -1,9 +1,9 @@
 # Review request: `spec-10`
 
-- Review range: `d5b8af9...docs/spec/wave-b-readiness`
+- Review range: `72978a0...docs/spec/wave-b-readiness`
 - Team member: `spec`
 - Branch: `docs/spec/wave-b-readiness`, from `main` (not stacked)
-- Base commit (`main`): `d5b8af9`
+- Base commit (`main`): `72978a0`
 - Shared files changed: none
 - Last commit: see the commit that adds this file
 - Related request: the lead's message of October 25 (spec-10, M3 wave B
@@ -13,11 +13,11 @@
 
 ### Round 2
 
-The branch is rebased onto `main` `d5b8af9`, which holds spec-5 and spec-8. Two
-conflicts were resolved by keeping both sides: the undo sentence in 05 (spec-5's
-decided keys plus this request's per-song history) and the test pattern bullet
-in 06 (spec-8's source wording plus this request's pattern layout). Round 2 adds
-one commit; see "Team member's reply".
+The branch is rebased onto `main` `72978a0`, which holds spec-5, spec-8, and
+spec-9. Two conflicts were resolved by keeping both sides: the undo sentence in
+05 (spec-5's decided keys plus this request's per-song history) and the test
+pattern bullet in 06 (spec-8's source wording plus this request's pattern
+layout). Round 2 adds one commit; see "Team member's reply".
 
 ### Round 1
 
@@ -66,7 +66,7 @@ no request has to wait, but a later decision changes code.
 
 | Command or test                  | Result                                                                                                                                                                                                                                                  |
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run format:check` (round 2) | Pass on base `d5b8af9` (a documents-only round runs only this check)                                                                                                                                                                                    |
+| `npm run format:check` (round 2) | Pass on base `d5b8af9`, before the last rebase onto `72978a0` (no conflicts) (a documents-only round runs only this check)                                                                                                                              |
 | `npm run verify` (round 1)       | Pass on base `20ffc86`: typecheck 11.5 s, lint 45.7 s, format:check 128.4 s, test:coverage 150.1 s (98 files, 1014 tests, 1 skipped), build 12.9 s; 348.6 s in all. Then rebased onto `814781b`, which changes no file in `docs/spec/` or `docs/plans/` |
 | Middle dots and em dashes        | None in the changed files (checked with `grep -c`)                                                                                                                                                                                                      |
 
