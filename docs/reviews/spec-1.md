@@ -2,12 +2,50 @@
 
 - Team member: `spec`
 - Branch: `docs/spec/shortcuts-settings`
-- Base commit (`main`): `7d46151`
+- Base commit (`main`): `13d88b1`
 - Shared files changed: none
 - Last commit: see the commit that adds this file
 - Related brief: `docs/briefs/spec.md` (as widened in b510a3e)
 
 ## What changed and why
+
+### Round 2
+
+Codex (codex3) requested changes, and the user decided the shortcut questions on
+2026-10-25 (`docs/decisions.md`). Round 2 changes only
+`docs/spec/10-shortcuts-and-settings.md` and the pointer notes in
+`docs/spec/06-settings.md`:
+
+1. **Missing commands (finding 1).** Added 무대 메시지 보내기, 메시지 보내기,
+   미디어 가져오기, and 14 more rows found the same way: 오디오 반복, 새 매크로,
+   새 재생목록, 다시 연결, 구성 추가, 장 넣기, 모니터 번호 표시, Look 추가, 새
+   배치, 요소 추가, 창 보기, 최소화 and 최대화, the Windows text keys, and
+   PowerPoint import (later). A new table, "Actions without a command", gives
+   the reason for every kind of action that has no command.
+2. **Focus precedence (finding 2).** "Where shortcuts work" now starts with a
+   seven-step precedence. A focused control such as a 매크로 tile (07) keeps its
+   own keys ahead of the global live keys; the 장 grid and the 예배 순서 list
+   pass ← → Space Page Up Page Down to live navigation, as in ProPresenter (S4
+   p. 70). A new rule keeps a mouse click in 진행 from moving keyboard focus to
+   buttons and tiles, so clicking a 매크로 and then pressing Space can't run it
+   again. A table names the rules this replaces or narrows (`SlideThumbnail`
+   README, 04 "Keyboard", 07 "Keyboard", component READMEs).
+3. **Inventory (finding 3).** "Settings on screens, Looks, and objects" is now a
+   complete inventory: control, range, default, storage field, and timing for
+   every row of the screens (edge margin 0 to 20 %, offset -200 to 200 px, and
+   the rest), Looks, lyric styles, stage layouts, media properties (speed 0.25
+   to 4.0), and the other objects. Defaults come from the boards where they show
+   values; ranges the spec left open are marked as proposals.
+4. **Nit at line 938 (finding 4).** Its text was cut off, so it isn't addressed
+   here. If codex3 still has it, it goes into my next branch.
+5. **The user's shortcut decision.** The intro has a "Decision status". Every
+   shortcut row's basis reads "Decided, follows ProPresenter" with the source,
+   or "Decided, no ProPresenter source found" (for example the last 장, default
+   jump keys, and → after picking another item). The open questions use the
+   numbering the user decided on: shortcuts 1 to 9 decided, settings 10 to 18
+   open. Every reference follows the new numbers.
+
+### Round 1
 
 This change adds a proposal for the user to decide before any design or code:
 `docs/spec/10-shortcuts-and-settings.md`. It also adds pointer notes to
@@ -28,11 +66,12 @@ The proposal has three parts:
 2. **The shortcut system.** Principles (one command registry, bare letters and
    digits only for 이름표 jump keys, live keys where ProPresenter has them,
    ignore key repeat for live commands), matching by `KeyboardEvent.code` so
-   keys work with the Korean IME on, a table of where shortcuts work, reserved
-   keys, conflicts, storage by `code`, and a command list of 81 rows in 12
-   groups (some rows stand for one command per Look, 소품, 매크로, or 타이머),
-   each with an ID, a default or none, the ProPresenter key, a basis, where it
-   works, and the version. A default key map shows that no two defaults collide.
+   keys work with the Korean IME on, focus precedence and where shortcuts work,
+   reserved keys, conflicts, storage by `code`, and a command list of 98 rows in
+   12 groups (after round 2) (some rows stand for one command per Look, 소품,
+   매크로, or 타이머), each with an ID, a default or none, the ProPresenter key,
+   a basis, where it works, and the version. A default key map shows that no two
+   defaults collide.
 3. **The settings.** Principles (a setting only where operators really differ,
    safety is never a setting, one place per value, no single-option controls),
    nine 환경설정 pages with every row's control, range, default, storage field,
@@ -71,6 +110,15 @@ EasyWorship, and OBS serve as evidence, not as the template.
 
 ## Checks run
 
+Round 2, on the branch rebased onto `13d88b1`:
+
+| Command or test           | Result                                                                                                                           |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run verify`          | Pass: typecheck 1.8 s, lint 25.2 s, format:check 25.4 s, test:coverage 83.1 s (21 files, 179 tests), build 5.5 s; 141.0 s in all |
+| Middle dots and em dashes | None in the changed files (checked with `grep -c`)                                                                               |
+
+Round 1:
+
 On the branch rebased onto `8b623b3`, after `npm ci`. The later rebase onto
 `7d46151` brought in documents only (`CLAUDE.md`, `docs/`), so these results
 still hold:
@@ -96,7 +144,8 @@ only failure is this test counts as passing while the review file says so.
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
-- [ ] `npm run verify` passes (fails only at the timeout above)
+- [x] `npm run verify` passes (round 2; round 1 failed only at the timeout
+      above)
 - [x] `npm run format:check` passes
 - [x] Every new behavior and every bug fix has unit tests (not applicable:
       documents only)
@@ -120,37 +169,38 @@ only failure is this test counts as passing while the review file says so.
 
 ## Decisions I made (for the lead to confirm)
 
-All of these are marked as proposals in the file, and the user decides. The ones
-most likely to draw comments:
+Items 1 to 4 and 9 are now decided by the user's shortcut decision. Items 5 to 8
+are settings proposals that stay open (numbers as in round 2):
 
 1. Bare letters and digits belong only to 이름표 jump keys; every command needs
    a modifier or a non-character key (follows ProPresenter's split between slide
    hot keys and Key Mappings, S2 and S4 p. 58).
 2. Ctrl S opens 진행 (ProPresenter's Show Mode), except in the imported song
-   editor, where it runs 저장 (open question 1).
+   editor, where it runs 저장 (decided, open question 1).
 3. In 진행, → ← Space Page Up Page Down always go to the live commands, even
    when the 장 grid or a list has focus. This differs from the `SlideThumbnail`
-   README (open question 2).
+   README (decided, follows ProPresenter; open question 2).
 4. On the last 장, → stops by default instead of moving into the next item,
-   because moving on runs the next item's start 매크로 (open question 3).
+   because moving on runs the next item's start 매크로 (decided, no ProPresenter
+   source found; open question 3).
 5. The prevent sleep switches in `Prefs` and `Screens` go away; sleep is always
-   blocked while any output is on (open question 11).
+   blocked while any output is on (open question 10).
 6. The 환경설정 output stability defaults go away, because version 1 can't add
    screens and the per-screen values already exist (answers README open question
    14).
 7. Transitions become 환경설정 > 출력 > 전환, global like ProPresenter's master
-   transitions (open question 7).
+   transitions (open question 12).
 8. Media copy on import is a switch, default on (differs from ProPresenter's
-   default off, open question 10); new videos import with sound off (open
-   question 9).
+   default off, open question 15); new videos import with sound off (open
+   question 14).
 9. Shortcut and jump key storage changes from display names to `code` values
-   (open question 15).
+   (decided, open question 8).
 
 ## Shared contract change requests
 
-None now. If the user accepts the proposal, the command registry and the key
-matcher belong in `src/shared/` (a shared change that a member's brief must
-allow), and 02 needs the field changes in "Storage changes for 02".
+None now. The command registry types and the key matcher belong in
+`src/shared/`, which data owns; the member who builds shortcuts sends data the
+shapes first. 02 needs the field changes in "Storage changes for 02".
 
 ## Where to look
 
@@ -160,7 +210,9 @@ allow), and 02 needs the field changes in "Storage changes for 02".
   pages.
 - "Fixed behaviors" and "Rejected candidates": anything you think should be a
   setting after all, or the reverse.
-- The 18 open questions, which go to the user.
+- Round 2: the new "Focus precedence", "Actions without a command", and the
+  inventory tables under "Settings on screens, Looks, and objects".
+- Open questions 10 to 18, which still go to the user.
 
 ---
 
