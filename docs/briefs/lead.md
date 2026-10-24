@@ -53,18 +53,22 @@ approved. You do the foundation work of phases 1 and 2 yourself.
    `docs/briefs/devops.md`. At the same time, do the rest of the lead's phase 1
    share yourself.
 
-## Calling the reviewer (before Codex joins)
+## Calling the reviewer
 
-- For each review request, start a fresh reviewer session in a tmux window, the
+- The reviewer is Codex in its own tmux window. Send each review request with
+  `tmux send-keys` (set `MSYS_NO_PATHCONV=1` in Git Bash so a leading `/` isn't
+  turned into a path), then a separate Enter, and read the verdict with
+  `tmux capture-pane`. Start every prompt with the read-only rule: read with
+  `git diff` and `git show` only, never edit files, commit, switch branches, or
+  install anything. Ask for the verdict in the review document format.
+- If Codex isn't available, start a fresh reviewer session in a tmux window, the
   same way as a team member, in a detached worktree at the reviewed commit
   (`git worktree add --detach .claude/worktrees/reviewer <branch>`). Never use a
-  subagent. Its `.llp/start.md` states that it must only read and must not
-  change files.
+  subagent.
 - Give it: the path of the review document, the range of
   `git diff rewrite...<branch>`, the brief, the quality bar in `docs/TECH.md`,
   the code, comment, and review rules in `CLAUDE.md`, and the related spec and
   design system component docs.
 - Get back: "Approve" or "Request changes," and a list of findings (file, line,
-  reason, and the situation where it fails), by SendMessage. Send it to the team
-  member to paste into the reviewer section of the review document, then close
-  the reviewer window and remove its worktree.
+  reason, and the situation where it fails). Send it to the team member to paste
+  into the reviewer section of the review document.

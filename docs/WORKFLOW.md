@@ -19,11 +19,15 @@ The integration branch is `rewrite`. For now, it acts as the team's main branch
 | Team member (work session) | Implementing the scope of the brief, rebasing their branch onto the latest `rewrite` and resolving conflicts themselves, writing review requests, addressing review comments, asking questions                                                    | Change shared files, touch other branches, or commit directly to `rewrite`         |
 | Reviewer                   | Only reads review requests, reviews them independently, and gives an approval or a change request                                                                                                                                                 | Change code                                                                        |
 
-Until Codex joins, the reviewer is a separate, read-only Claude Code session
-that the lead starts fresh for each review request, in a tmux window like a team
-member (never a subagent). It runs in a detached worktree at the reviewed commit
-and sends its verdict to the lead with SendMessage. After Codex joins, Codex
-(running read-only) takes this role.
+The reviewer is Codex (joined on 2026-10-24). It runs in its own tmux window,
+which the user started, in the lead's checkout. It has full access by the user's
+setting, so every review prompt tells it to stay read-only: read branches with
+`git diff` and `git show`, and never edit files, commit, switch branches, or
+install anything. Codex can't use SendMessage, so the lead sends it the review
+request with `tmux send-keys` and reads the verdict from its window. If Codex
+isn't available, the lead starts a read-only Claude Code session in a tmux
+window instead, in a detached worktree at the reviewed commit (never a
+subagent).
 
 ## Starting sessions
 
