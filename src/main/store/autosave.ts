@@ -10,12 +10,15 @@ interface Waiting {
 
 /**
  * Saves a file once its changes stop for a moment, so typing writes once,
- * within 0.5 seconds after the last change. `flush` saves everything that
- * waits at once, for example before the app quits.
+ * within 0.5 seconds after the last change. One save runs per file at a time:
+ * a save that comes due while the file's last one still runs waits for it, and
+ * only the newest such save runs. `flush` saves everything that waits at once,
+ * for example before the app quits.
  */
 export class Autosave {
   private readonly waiting = new Map<string, Waiting>();
-  private readonly running = new Set<Promise<void>>();
+  private readonly running = new Map<string, Promise<void>>();
+  private readonly due = new Map<string, Save>();
 
   constructor(
     private readonly onError: (key: string, error: unknown) => void,
@@ -33,15 +36,17 @@ export class Autosave {
   }
 
   /**
-   * Saves every file that waits now, and resolves when those saves and the
-   * ones already running have finished.
+   * Saves every file that waits now, and resolves when those saves, the ones
+   * already running, and the ones that came due meanwhile have finished.
    */
   async flush(): Promise<void> {
     for (const [key, {save}] of [...this.waiting]) {
       this.cancel(key);
       this.start(key, save);
     }
-    await Promise.all(this.running);
+    while (this.running.size > 0) {
+      await Promise.all(this.running.values());
+    }
   }
 
   /** Drops every waiting save without saving; call `flush` first to keep them. */
@@ -49,6 +54,7 @@ export class Autosave {
     for (const key of [...this.waiting.keys()]) {
       this.cancel(key);
     }
+    this.due.clear();
   }
 
   private cancel(key: string): void {
@@ -60,10 +66,21 @@ export class Autosave {
   }
 
   private start(key: string, save: Save): void {
-    const run = this.run(key, save).finally(() => {
-      this.running.delete(run);
-    });
-    this.running.add(run);
+    if (this.running.has(key)) {
+      this.due.set(key, save);
+      return;
+    }
+    const run = this.run(key, save).finally(() => this.startDue(key));
+    this.running.set(key, run);
+  }
+
+  private startDue(key: string): void {
+    this.running.delete(key);
+    const save = this.due.get(key);
+    if (save !== undefined) {
+      this.due.delete(key);
+      this.start(key, save);
+    }
   }
 
   private async run(key: string, save: Save): Promise<void> {

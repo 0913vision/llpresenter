@@ -64,6 +64,51 @@ describe('Autosave', () => {
     expect(waiting).toHaveBeenCalledTimes(1);
   });
 
+  it('runs one save per file while it stalls, then only the newest edit', async () => {
+    let finishStalled = (): void => undefined;
+    const stalled = vi.fn(
+      () => new Promise<void>(resolve => (finishStalled = resolve)),
+    );
+    const edits = Array.from({length: 5}, () => vi.fn(() => Promise.resolve()));
+    const autosave = new Autosave(vi.fn(), DELAY_MS);
+    autosave.schedule('song-1', stalled);
+    await vi.advanceTimersByTimeAsync(DELAY_MS);
+
+    for (const edit of edits) {
+      autosave.schedule('song-1', edit);
+      await vi.advanceTimersByTimeAsync(DELAY_MS);
+    }
+    expect(edits.map(edit => edit.mock.calls.length)).toEqual([0, 0, 0, 0, 0]);
+    finishStalled();
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(stalled).toHaveBeenCalledTimes(1);
+    expect(edits.map(edit => edit.mock.calls.length)).toEqual([0, 0, 0, 0, 1]);
+  });
+
+  it('waits on flush for a save that came due while another ran', async () => {
+    let finishStalled = (): void => undefined;
+    const stalled = vi.fn(
+      () => new Promise<void>(resolve => (finishStalled = resolve)),
+    );
+    const latest = vi.fn(() => Promise.resolve());
+    const autosave = new Autosave(vi.fn(), DELAY_MS);
+    autosave.schedule('song-1', stalled);
+    await vi.advanceTimersByTimeAsync(DELAY_MS);
+    autosave.schedule('song-1', latest);
+    let flushed = false;
+
+    const flush = autosave.flush().then(() => {
+      flushed = true;
+    });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(flushed).toBe(false);
+    finishStalled();
+    await flush;
+
+    expect(latest).toHaveBeenCalledTimes(1);
+  });
+
   it('reports a save that fails and keeps going', async () => {
     const onError = vi.fn();
     const autosave = new Autosave(onError, DELAY_MS);
@@ -87,5 +132,24 @@ describe('Autosave', () => {
 
     expect(save).not.toHaveBeenCalled();
     expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('drops a save that came due while another ran when disposed', async () => {
+    let finishStalled = (): void => undefined;
+    const due = vi.fn(() => Promise.resolve());
+    const autosave = new Autosave(vi.fn(), DELAY_MS);
+    autosave.schedule(
+      'song-1',
+      () => new Promise<void>(resolve => (finishStalled = resolve)),
+    );
+    await vi.advanceTimersByTimeAsync(DELAY_MS);
+    autosave.schedule('song-1', due);
+    await vi.advanceTimersByTimeAsync(DELAY_MS);
+
+    autosave.dispose();
+    finishStalled();
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(due).not.toHaveBeenCalled();
   });
 });
