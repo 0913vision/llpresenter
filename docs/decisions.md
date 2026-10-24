@@ -155,3 +155,9 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
 - 2026-10-24: The lead manages only (user): plans, briefs, reviews, merges, and
   coordination. Members write all code, shared contracts included when their
   brief allows it.
+- 2026-10-24: Speed changes after the user saw the team stall: members run fast
+  checks while working and the full `npm run verify` once per request (known
+  flaky tests recorded, not rerun); the lead rebases conflict-free branches at
+  merge time and batches its own document commits; reviewers approve when only
+  nits remain, which the author fixes in the next branch; the lead records the
+  verdicts in the review document at merge time.

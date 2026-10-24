@@ -200,6 +200,8 @@ without exception.
   code.
 - Use the dev server port and app data folder that your brief assigns (see the
   table in `docs/WORKFLOW.md`).
+- Create your own branches. While a branch is in review, keep going on the next
+  task in a branch stacked on it (`docs/WORKFLOW.md`, "Stacked branches").
 - When you finish, write your review request, commit it, and send it to the lead
   with SendMessage.
 - Never sit idle. While you wait for a review, an answer, or CI, move on to the

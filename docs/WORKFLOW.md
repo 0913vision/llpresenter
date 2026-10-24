@@ -62,20 +62,22 @@ subagent).
    in meaningful units. Keep each change small and focused, following Google's
    engineering practices. Each commit message is one line in the format and with
    the tags that `CLAUDE.md` defines. Run `npm run format` before you commit.
-2. **Rebase:** Before you send the review request, run `git rebase main` in your
-   own worktree to move your branch onto the latest `main`. The team member
-   resolves conflicts. A conflict in a shared file means that the team member
-   changed a shared file, so drop that change and send it to the lead as a
-   request instead.
-3. **Check:** Run the checks that `CLAUDE.md` lists (now `npm run typecheck`,
-   `npm test`, and `npm run format:check`; from phase 1 on, `npm run verify`)
-   and the UI tests that the brief lists, and record the results. If anything
-   fails, don't send the review request.
+2. **Rebase:** Before you send the review request, rebase onto the latest `main`
+   once and resolve any conflict yourself. You don't need to rebase again when
+   `main` moves later without touching your files: the lead rebases
+   conflict-free branches at merge time.
+3. **Check:** While you work, run the fast checks on what you changed:
+   `npm run typecheck`, `npx eslint <your files>`, and
+   `npx vitest run <your test files>`. Before the review request, run
+   `npm run verify` once. If it fails only in a test you didn't touch that is
+   known to be flaky (the lead keeps the list), record it and send the request;
+   any other failure blocks. Don't rerun the full verify again and again for a
+   clean run.
 4. **Request a review:** Write `docs/reviews/<name>-<number>.md` from
    `docs/reviews/_template.md` and commit it. It says what changed and why, the
    check results, the decisions you made yourself, and where you want the
-   reviewers to look. Then send the lead this message with SendMessage, and
-   wait:
+   reviewers to look. Then send the lead this message with SendMessage, and keep
+   working on your next branch (stacked if needed):
 
    ```text
    Review request: docs/reviews/<name>-<number>.md, branch <tag>/<name>/<feature>, commit <hash>
@@ -87,21 +89,24 @@ subagent).
    approve a change once it improves the overall health of the code, even if it
    isn't perfect. They check the clean code rules and the comment rules in
    `CLAUDE.md` and request changes when a rule is broken, and they don't approve
-   changes without tests. Both write their results in their review section of
-   that review document and state clearly "Approve" or "Request changes."
+   changes without tests. Approve when only nits are left; the author fixes nits
+   in the next branch. The lead records both verdicts in the review document at
+   merge time, so members don't paste them.
 6. **Address comments:** If changes are requested, the lead tells the team
    member with SendMessage. For each comment, the team member either addresses
-   it or replies in the review document with the reason for not addressing it,
-   adds new commits, and then starts again from step 2.
+   it or answers it in the reply message, adds new commits, and resends the
+   request line.
 7. **Approve and merge:** When both the lead and the reviewer approve, the lead
    first pulls the version bot's latest commit
    (`git pull --ff-only origin main`), confirms that the team member's branch
    sits on the latest `main`, and merges it by fast-forward only:
    `git merge --ff-only <branch>`. Pushing `main` runs the pre-push check, and
    GitHub then adds the `Bump version: x.y.z` commit and tag. If `main` moved in
-   the meantime, the lead asks the team member to rebase again. If a conflict in
-   that rebase changed code, the branch gets reviewed again. If the branch only
-   moved up without conflicts, it doesn't.
+   the meantime and the rebase is conflict-free, the lead rebases a copy of the
+   branch onto `main` and fast-forwards to it; the member then starts the next
+   branch from `main`. Only a conflicting rebase goes back to the member. The
+   lead batches document commits and pushes them with merges, so `main` moves
+   less often.
 8. **Clean up:** The lead updates `docs/STATUS.md`, commits it, and tells the
    other team members who are still working that `main` changed. Finished
    worktrees and branches are cleaned up after the user confirms.
@@ -177,9 +182,9 @@ folders, several copies of the same app can run without colliding.
 | trial   | 5190 | `D:\llp-dev\trial`  |
 | devops  | 5185 | `D:\llp-dev\devops` |
 | ui      | 5186 | `D:\llp-dev\ui`     |
-| shell   | 5187 | `D:llp-devshell`    |
-| data    | 5188 | `D:llp-devdata`     |
-| qa      | 5189 | `D:llp-devqa`       |
+| shell   | 5187 | `D:\llp-dev\shell`  |
+| data    | 5188 | `D:\llp-dev\data`   |
+| qa      | 5189 | `D:\llp-dev\qa`     |
 | prep    | 5181 | `D:\llp-dev\prep`   |
 | output  | 5182 | `D:\llp-dev\output` |
 | tools   | 5183 | `D:\llp-dev\tools`  |
@@ -210,9 +215,30 @@ Rules:
 
 - Always exactly three parts. Git stores a branch as a file, so `feat/ui` and
   `feat/ui/button` can't both exist, and nothing can live under `main/`.
-- One branch per review request. Start the next one from `main`. If your
-  previous branch is still waiting for review, start from it instead, and rebase
-  onto `main` after it merges.
+- One branch per review request. You create your next branch yourself, without
+  waiting for the lead.
+
+## Stacked branches
+
+Don't wait for a merge to keep working. Stack the next branch on the one under
+review:
+
+1. **Start:** if your previous branch is merged, branch from `main`. If it is
+   still in review, branch from it:
+   `git switch -c <tag>/<name>/<next> <previous>`.
+2. **Keep the stack fresh:** when you change a lower branch after review
+   comments, rebase the branches above it onto it
+   (`git rebase --onto <lower> <lower-before-the-change> <upper>`, or
+   `git rebase --update-refs` from the top branch).
+3. **After the lower branch merges:** move the next branch onto `main` with
+   `git rebase --onto main <lower> <next>`, so only its own commits remain, and
+   run `npm run verify`.
+4. **Review requests go out in stack order.** Send the next request only after
+   the one below it is merged and the next branch is rebased onto `main`.
+   Mention the stack in the review document ("stacked on ui-1").
+5. Keep stacks shallow, two or three branches. If a lower branch needs a large
+   rework, pause the upper ones instead of rebasing them again and again.
+
 - If a tool names a new worktree's branch itself, rename it first
   (`git branch -m <tag>/<name>/<feature>`). The SessionStart hook tells sessions
   apart by the `<name>` part.
