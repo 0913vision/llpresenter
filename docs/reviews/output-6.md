@@ -2,7 +2,7 @@
 
 - Team member: `output`
 - Branch: `fix/output/log-flush`
-- Base commit (`main`): `4aa7901` (round 2)
+- Base commit (`main`): `c402184` (round 3)
 - Last commit: the commit that adds this file
 - Related brief: `docs/briefs/output.md` (bugs from qa, M1-4 and M1-5, minor;
   the lead gave me `src/main/log.ts`)
@@ -16,7 +16,7 @@
 
 Two bugs in the log path, one commit each.
 
-**M1-5, the log queue (`6a4957f`).** The queue had no cap and wrote one
+**M1-5, the log queue (`380c080`).** The queue had no cap and wrote one
 `appendFile` per line through a chain of promises, so 10,000 malformed commands
 grew the main heap from 4.1 to 17.3 MB, took 30 to 70 seconds to drain, and
 slowed `live.get` meanwhile. The logger is now a small class
@@ -38,7 +38,7 @@ slowed `live.get` meanwhile. The logger is now a small class
 - The console echo in development prints only new lines, not merged or dropped
   ones. `FileLogger.pendingLines` exposes the queue length for tests.
 
-**M1-4, lines lost at quit (`35f7afd`).** `window-all-closed` called
+**M1-4, lines lost at quit (`87a4ca1`).** `window-all-closed` called
 `app.quit()` at once, so the `log.flush().then(app.quit)` in the control
 window's `closed` handler never finished. `flushLogBeforeQuit`
 (`src/main/quit.ts`) now holds Electron's `will-quit` until `flushWithin`
@@ -54,6 +54,10 @@ real. The control window's `closed` handler only calls `app.quit()`.
 - `docs/reviews/output-6.md` (new)
 
 ## Checks run
+
+Round 3, on `2ad73b8`, on `main` at `c402184` (one conflict: the `index.ts`
+imports next to output-1's, both kept): `npm run verify` passed, 5 steps in 95.4
+s (75 test files, 765 tests).
 
 Round 2, on `66bb4db`, on `main` at `4aa7901`: `npm run verify` passed, 5 steps
 in 390.1 s (58 test files, 585 tests, the machine was busy). Round 1 (the table
@@ -133,7 +137,7 @@ missing.
 
 Round 1 findings (codex4):
 
-1. **A batch that can't be written (`log.ts`)**: fixed in `f6ee22c`. The drain
+1. **A batch that can't be written (`log.ts`)**: fixed in `b738680`. The drain
    now takes the batch before it touches the disk, so a failed `mkdir` or
    `appendFile` consumes that batch: its lines are dropped, `console.error` says
    how many, the drain ends, and `flush()` settles. The next line tries the disk
@@ -141,7 +145,7 @@ Round 1 findings (codex4):
    lands in one batch because the drain yields once before taking it. Test: a
    log folder under a file (can't be created) takes two lines, both flushes
    settle, and each failed batch is reported once.
-2. **Merging across a dropped line (`log.ts`)**: fixed in `f6ee22c`. A repeat
+2. **Merging across a dropped line (`log.ts`)**: fixed in `b738680`. A repeat
    merges only while nothing has been dropped since the last waiting line. Test:
    with a cap of 1, A, B, A gives "A" and "2 log lines dropped".
 3. **The in-flight test (`log.test.ts`)**: rewritten. The first `appendFile` is
@@ -151,7 +155,14 @@ Round 1 findings (codex4):
 4. **Quit edge cases (`quit.ts`)**: a rejected flush already quit through the
    rejection handler, and `flushWithin` clears its timer in `finally`; a new
    test proves both. A second quit request during the flush could start a second
-   flush with a new deadline; fixed in `66bb4db`: the handler now holds a state
+   flush with a new deadline; fixed in `869fd41`: the handler now holds a state
    (running, flushing, flushed), and a request while flushing only prevents the
    default. Test: a second quit 500 ms before the limit doesn't move it, and no
    timer is left.
+
+Round 2 finding (codex4):
+
+1. **The in-flight test still raced (`log.test.ts`)**: fixed in `2ad73b8`. The
+   paused `appendFile` mock now resolves its own "started" promise when it runs,
+   and the test awaits that promise before it logs the second line, so call
+   history from earlier tests can't release the pause early.
