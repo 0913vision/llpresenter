@@ -2,7 +2,7 @@
 
 - Team member: `spec`
 - Branch: `docs/spec/shortcuts-settings`
-- Base commit (`main`): `18c9943`
+- Base commit (`main`): `7d46151`
 - Shared files changed: none
 - Last commit: see the commit that adds this file
 - Related brief: `docs/briefs/spec.md` (as widened in b510a3e)
@@ -72,7 +72,7 @@ EasyWorship, and OBS serve as evidence, not as the template.
 ## Checks run
 
 On the branch rebased onto `8b623b3`, after `npm ci`. The later rebase onto
-`18c9943` brought in documents only (`CLAUDE.md`, `docs/`), so these results
+`7d46151` brought in documents only (`CLAUDE.md`, `docs/`), so these results
 still hold:
 
 | Command or test           | Result                                                                                                                        |
