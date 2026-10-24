@@ -154,6 +154,27 @@ describe('loadStore', () => {
     expect(store.problems).toEqual([expect.objectContaining({kind: 'json'})]);
   });
 
+  it('runs a broken labels.json from its newest recovery copy', async () => {
+    const context = await developmentContext();
+    const root = dataRoot(context);
+    await writeJson(join(root, '설정', 'labels.json'), '{"labels": ');
+    await writeJson(
+      join(root, '.복구 사본', 'settings', 'labels', '2026-10-25.json'),
+      {
+        format: 'llsettings.labels',
+        schemaVersion: 1,
+        labels: [{name: '후렴', color: 'yellow', key: 'KeyC'}],
+      },
+    );
+
+    const store = await loadStore(context);
+
+    expect(store.labels).toEqual([
+      {name: '후렴', color: 'yellow', key: 'KeyC'},
+    ]);
+    expect(store.problems).toEqual([expect.objectContaining({kind: 'json'})]);
+  });
+
   it('reports a jump key that labels.json drops', async () => {
     const context = await developmentContext();
     await writeJson(join(dataRoot(context), '설정', 'labels.json'), {

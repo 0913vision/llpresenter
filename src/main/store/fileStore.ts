@@ -1,6 +1,4 @@
-import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
-import type {Result} from '@shared/result';
 import type {FileError, LoadedFile} from '@shared/schema/fileFormat';
 import {parseLabels, type Label} from '@shared/schema/labels';
 import {parseService, type Service} from '@shared/schema/service';
@@ -14,9 +12,11 @@ import {
   type LocationContext,
   type LocationFieldsRead,
 } from './locations';
+import {readTextFile} from './readFiles';
+import {readSettingsFile, settingsLocation} from './settingsFile';
 
 const APP_CONFIG_FILE = 'app.json';
-const LABELS_FILE = 'labels.json';
+const LABELS_AREA = 'labels';
 const SONG_EXTENSION = '.llsong';
 const SERVICE_EXTENSION = '.llservice';
 const IGNORED_FOLDER_MESSAGE =
@@ -65,7 +65,7 @@ export async function loadStore(context: StoreContext): Promise<LoadedStore> {
     SERVICE_EXTENSION,
     parseService,
   );
-  const labels = await readLabels(join(locations.settings, LABELS_FILE));
+  const labels = await readLabels(locations);
   return {
     locations,
     songs: dataOf(songs.items),
@@ -107,7 +107,7 @@ export function chooseOpenService(
 }
 
 async function readAppConfig(file: string): Promise<LocationFieldsRead> {
-  const text = await readText(file);
+  const text = await readTextFile(file);
   if (text.ok) {
     return text.value === null
       ? {fields: {}, config: null, problem: null}
@@ -116,42 +116,12 @@ async function readAppConfig(file: string): Promise<LocationFieldsRead> {
   return {fields: {}, config: null, problem: text.error};
 }
 
-async function readLabels(file: string): Promise<LabelsRead> {
-  const text = await readText(file);
-  if (!text.ok) {
-    return {labels: DEFAULT_LABELS, problems: [text.error]};
-  }
-  if (text.value === null) {
-    return {labels: DEFAULT_LABELS, problems: []};
-  }
-  const parsed = parseLabels(text.value, file);
-  if (!parsed.ok) {
-    return {labels: DEFAULT_LABELS, problems: [parsed.error]};
-  }
-  return {
-    labels: parsed.value.data.labels,
-    problems: parsed.value.dropped.map(({field, message}) => ({
-      kind: 'invalid',
-      file,
-      field,
-      message,
-    })),
-  };
-}
-
-/** A file's text, `null` when it doesn't exist, or why it couldn't be read. */
-async function readText(
-  file: string,
-): Promise<Result<string | null, FileError>> {
-  try {
-    return {ok: true, value: await readFile(file, 'utf8')};
-  } catch (error: unknown) {
-    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-      return {ok: true, value: null};
-    }
-    const message = error instanceof Error ? error.message : String(error);
-    return {ok: false, error: {kind: 'read', file, field: '', message}};
-  }
+async function readLabels(locations: DataLocations): Promise<LabelsRead> {
+  const {data, problems} = await readSettingsFile(
+    settingsLocation(locations, LABELS_AREA),
+    parseLabels,
+  );
+  return {labels: data?.labels ?? DEFAULT_LABELS, problems};
 }
 
 function dataOf<T>(
