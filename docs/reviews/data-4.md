@@ -118,19 +118,16 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (aad9928): reviewer (Codex, codex3) Request changes: main dispatched
+  the original payload instead of the parsed command, the schema accepted arrays
+  dressed as commands, sparse `lines` changed behavior, and hot-path cost wasn't
+  measured.
+- Round 2 (972be78): reviewer (Codex, codex3) Approve, no findings; the three
+  carried nits (data-2, data-3, data-6) are in. Lead Approve. The
+  `src/main/ipc.ts` change is output's file, made with output's permission.
+  Rebased by the lead onto `main` caf3511 without conflicts.
 
 ## Team member's reply
 
