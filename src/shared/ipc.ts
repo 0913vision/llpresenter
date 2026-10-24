@@ -42,7 +42,10 @@ export interface LlpApi {
   readonly ui: {
     /** Reads the UI state once, before the first render. */
     get(): Promise<UiState>;
-    /** Saves the column widths of one size class when a drag ends. */
+    /**
+     * Saves a size class's layout: the column widths when a drag ends, or the
+     * thumbnail columns when the slider moves.
+     */
     setLayout(change: LayoutChange): void;
   };
   readonly log: {
