@@ -20,6 +20,7 @@ const WARN_ICON_SIZE = 14;
 const ADD_ICON_SIZE = 12;
 const SLOT_MARK = '빈 자리';
 const OPTION = '[role="option"]:not([aria-disabled="true"])';
+const ACTIVATION_KEYS: ReadonlySet<string> = new Set([' ', 'Enter']);
 
 interface ListBoxState {
   readonly selected: string | undefined;
@@ -156,13 +157,18 @@ function WarningMark({reason}: {readonly reason: string}): JSX.Element {
   );
 }
 
-/** Keeps clicks and keys on an end control from selecting the row. */
+function isRowKey(key: string): boolean {
+  return ACTIVATION_KEYS.has(key) || Object.hasOwn(listKeyTargets, key);
+}
+
 function RowEnd({children}: {readonly children: ReactNode}): JSX.Element {
   return (
     <span
       className={styles.end}
       onClick={event => event.stopPropagation()}
-      onKeyDown={event => event.stopPropagation()}
+      onKeyDown={event => {
+        if (isRowKey(event.key)) event.stopPropagation();
+      }}
     >
       {children}
     </span>
@@ -226,7 +232,7 @@ export function ListRow(props: ListRowProps): JSX.Element {
   const isSelected = selected === value;
   const select = (): void => onSelect(value);
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
-    if (disabled || (event.key !== ' ' && event.key !== 'Enter')) return;
+    if (disabled || !ACTIVATION_KEYS.has(event.key)) return;
     event.preventDefault();
     select();
   };

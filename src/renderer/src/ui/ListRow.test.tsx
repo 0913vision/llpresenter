@@ -1,7 +1,7 @@
 import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import {IconButton} from './IconButton';
 import {
   ListActionRow,
@@ -159,6 +159,27 @@ describe('ListBox and ListRow', () => {
     await userEvent.click(screen.getByRole('button', {name: '내리기'}));
     expect(onDismiss).toHaveBeenCalledTimes(1);
     expect(onSelect).not.toHaveBeenCalled();
+  });
+
+  it('keeps row keys on an end control from moving or selecting the row', async () => {
+    const onSelect = vi.fn();
+    render(<ServiceOrder onSelect={onSelect} />);
+    screen.getByRole('button', {name: '내리기'}).focus();
+    await userEvent.keyboard('{ArrowUp}{Home}{End}');
+    expect(onSelect).not.toHaveBeenCalled();
+  });
+
+  it('lets Esc and the clear keys pass from an end control', async () => {
+    const seen: string[] = [];
+    const listener = (event: KeyboardEvent): void => {
+      seen.push(event.key);
+    };
+    window.addEventListener('keydown', listener);
+    onTestFinished(() => window.removeEventListener('keydown', listener));
+    render(<ServiceOrder />);
+    screen.getByRole('button', {name: '내리기'}).focus();
+    await userEvent.keyboard('{Escape}{F1}{F7}');
+    expect(seen).toEqual(['Escape', 'F1', 'F7']);
   });
 
   it('draws a two-line item with its second line', () => {
