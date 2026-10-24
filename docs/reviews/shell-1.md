@@ -2,7 +2,7 @@
 
 - Team member: `shell`
 - Branch: `feat/shell/column-resize`
-- Base commit (`main`): `eba31da`
+- Base commit (`main`): `576c543`
 - Last commit: see the commit that adds this file
 - Related brief: `docs/briefs/shell.md`
 
@@ -233,3 +233,14 @@ Replies to the reviewer:
    `npm run format:check`, and `npm run build` all passed. I ran the three-size
    drag check and the shrink check in the running app again, with the same
    results as in "Running app".
+6. Round 2 after `npm run verify` landed: I rebased onto `main` 576c543 and ran
+   `npm ci` and `npm run verify`. Lint found three errors in
+   `useColumnLayout.ts`: a deprecated `MutableRefObject`, a ref written during
+   render, and a ref passed to a function during render. I restructured the hook
+   without any lint exclusion: the layout is created in a layout effect,
+   `firstSizeClass` comes from `useState`, and the drag callbacks read the ref
+   only when called. `ColumnLayout` no longer shows widths from its constructor;
+   the hook calls `refit` once. All five `verify` steps passed on commit
+   `a15f3d3` (`typecheck`, `lint`, `format:check`, `test:coverage`, `build`).
+   The three-size drag check and the shrink check in the running app gave the
+   same results as before.
