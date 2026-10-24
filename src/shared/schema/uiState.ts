@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import type {Result} from '../result';
-import {sizeClasses, type AppConfig} from './appConfig';
+import {appLayoutSchema, sizeClasses, type AppConfig} from './appConfig';
 import {parsePayload, type PayloadError} from './payload';
 
 /** The column width ranges (px) of the design system `Layout`. */
@@ -24,11 +24,18 @@ const layoutChangeSchema = v.object({
   right: columnWidth(COLUMN_LIMITS.right),
 });
 
+const uiStateSchema = v.object({layout: v.exactOptional(appLayoutSchema)});
+
 /**
  * The UI part of `app.json` that the control window reads once before its
  * first render. A missing or broken file gives `{}`.
  */
 export type UiState = Pick<AppConfig, 'layout'>;
+
+/** Checks a `ui:get` reply on the receiving side. Never throws. */
+export function parseUiState(value: unknown): Result<UiState, PayloadError> {
+  return parsePayload(uiStateSchema, value);
+}
 
 /** The column widths of one size class, sent once when a drag ends. */
 export type LayoutChange = Readonly<v.InferOutput<typeof layoutChangeSchema>>;

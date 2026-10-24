@@ -2,9 +2,10 @@ import * as v from 'valibot';
 import type {Result} from '../result';
 import {parsePayload, type PayloadError} from './payload';
 
-const MESSAGE_MAX_LENGTH = 500;
-const DETAIL_MAX_LENGTH = 4000;
 const FRAME_RATE_MAX = 240;
+
+/** The longest message and detail a renderer log entry may have. */
+export const RENDERER_LOG_LIMITS = {message: 500, detail: 4000} as const;
 
 export const logLevels = ['info', 'warn', 'error'] as const;
 
@@ -12,8 +13,14 @@ export type LogLevel = (typeof logLevels)[number];
 
 const rendererLogEntrySchema = v.object({
   level: v.picklist(logLevels),
-  message: v.pipe(v.string(), v.minLength(1), v.maxLength(MESSAGE_MAX_LENGTH)),
-  detail: v.exactOptional(v.pipe(v.string(), v.maxLength(DETAIL_MAX_LENGTH))),
+  message: v.pipe(
+    v.string(),
+    v.minLength(1),
+    v.maxLength(RENDERER_LOG_LIMITS.message),
+  ),
+  detail: v.exactOptional(
+    v.pipe(v.string(), v.maxLength(RENDERER_LOG_LIMITS.detail)),
+  ),
 });
 
 const frameRateReportSchema = v.object({

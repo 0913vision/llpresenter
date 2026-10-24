@@ -1,5 +1,10 @@
 import {describe, expect, it} from 'vitest';
-import {COLUMN_LIMITS, isLayoutChange, parseLayoutChange} from './uiState';
+import {
+  COLUMN_LIMITS,
+  isLayoutChange,
+  parseLayoutChange,
+  parseUiState,
+} from './uiState';
 
 describe('parseLayoutChange', () => {
   it('accepts every size class at both ends of the ranges', () => {
@@ -44,6 +49,37 @@ describe('parseLayoutChange', () => {
   it('rejects values that are not objects', () => {
     for (const value of [null, undefined, 'normal', [], 3]) {
       expect(isLayoutChange(value)).toBe(false);
+    }
+  });
+});
+
+describe('parseUiState', () => {
+  it('accepts an empty state and a saved layout', () => {
+    const state = {
+      layout: {normal: {left: 280, right: 480}, wide: {columns: 6}},
+    };
+
+    expect(parseUiState({})).toEqual({ok: true, value: {}});
+    expect(parseUiState(state)).toEqual({ok: true, value: state});
+  });
+
+  it.each([
+    [
+      'a width that is text',
+      {layout: {normal: {left: 'bad'}}},
+      'layout.normal.left',
+    ],
+    ['a layout that is an array', {layout: []}, 'layout'],
+    ['a size class that is an array', {layout: {wide: []}}, 'layout.wide'],
+  ])('rejects %s', (_name, value, field) => {
+    const result = parseUiState(value);
+
+    expect(result.ok ? undefined : result.error.field).toBe(field);
+  });
+
+  it('rejects values that are not objects', () => {
+    for (const value of [null, undefined, 'state', 3]) {
+      expect(parseUiState(value).ok).toBe(false);
     }
   });
 });

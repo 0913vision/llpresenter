@@ -28,6 +28,13 @@ const sizeClassLayout = v.exactOptional(columnLayoutSchema);
 /** The window size classes of the design system `Layout`. */
 export const sizeClasses = ['narrow', 'normal', 'wide'] as const;
 
+/** The column layouts of the size classes, as `app.json` and `ui:get` hold them. */
+export const appLayoutSchema = jsonObject({
+  narrow: sizeClassLayout,
+  normal: sizeClassLayout,
+  wide: sizeClassLayout,
+});
+
 const appConfigSchema = jsonObject({
   format: v.literal('llapp'),
   schemaVersion: positiveInteger,
@@ -36,13 +43,7 @@ const appConfigSchema = jsonObject({
   mediaPath: v.exactOptional(v.string()),
   backupPath: v.exactOptional(v.string()),
   lastServiceId: v.exactOptional(serviceIdSchema),
-  layout: v.exactOptional(
-    jsonObject({
-      narrow: sizeClassLayout,
-      normal: sizeClassLayout,
-      wide: sizeClassLayout,
-    }),
-  ),
+  layout: v.exactOptional(appLayoutSchema),
   previewBig: v.exactOptional(screenIdSchema),
   macroView: v.exactOptional(v.picklist(['grid', 'list'])),
   macroCollection: v.exactOptional(macroCollectionIdSchema),
