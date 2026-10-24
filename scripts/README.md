@@ -89,11 +89,11 @@ renderers by their page: `index.html` is `control`, and
 `output.html?screen=<id>` is `output:<id>`. The test scenario (looping video and
 장 changes) and the output frame rates come with output's M2 work.
 
-| Variable           | Meaning                                                                                                                |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------------- |
-| `LLP_USER_DATA`    | A new temp folder, so the run never touches real data                                                                  |
-| `LLP_SOAK_RECORD`  | The record file to append to; setting it turns on the test scenario                                                    |
-| `LLP_SOAK_EXIT_MS` | When the app quits on its own: whole milliseconds, 1 to 2,147,483,647; another value is logged and nothing is recorded |
+| Variable           | Meaning                                                                                                                                                 |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `LLP_USER_DATA`    | A new temp folder, so the run never touches real data                                                                                                   |
+| `LLP_SOAK_RECORD`  | The record file to append to; setting it turns on the test scenario                                                                                     |
+| `LLP_SOAK_EXIT_MS` | When the app quits on its own: whole milliseconds, 1 to 2,147,483,647. Empty or unset keeps it running; another value is logged and nothing is recorded |
 
 The record is JSON Lines: one sample per line, flushed as it's written. Here is
 one sample, spread over several lines:
@@ -202,6 +202,8 @@ commits and rewriting `main` aren't allowed, so pull before every merge.
 
 ## CI
 
-`.github/workflows/ci.yml` runs `npm ci` and `npm run verify` on Windows when
-`main` is pushed, and on demand (`workflow_dispatch`). It caches npm and the
-Electron download. The `bump` job above runs after it on `main`.
+`.github/workflows/ci.yml` runs `npm ci` and `npm run verify`, the same check as
+the pre-push hook, when `main` is pushed and on demand (`workflow_dispatch`). It
+runs on `windows-latest`, so it moves to each new Windows image that GitHub
+makes the default. It caches npm and the Electron download. The `bump` job above
+runs after it on `main`.
