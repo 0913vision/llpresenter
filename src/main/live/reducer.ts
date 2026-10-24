@@ -27,7 +27,8 @@ function withLayers(
   undo: LiveLayers | null,
 ): LiveHistory {
   const version = history.state.version + 1;
-  return {state: {...history.state, version, layers}, undo};
+  const canUndo = undo !== null;
+  return {state: {...history.state, version, layers, canUndo}, undo};
 }
 
 function setLayer<K extends LayerKind>(

@@ -191,4 +191,39 @@ describe('applyCommand', () => {
       history = next;
     }
   });
+
+  it('tells windows whether a clear can be undone', () => {
+    const start = initialHistory(emptyLiveState());
+    expect(start.state.canUndo).toBe(false);
+    const shown = run([{type: 'slide.show', slide: slide(2)}], start);
+    expect(shown.state.canUndo).toBe(false);
+    const cleared = applyCommand(shown, {type: 'layer.clear', target: 'slide'});
+    expect(cleared.state.canUndo).toBe(true);
+    const switched = applyCommand(cleared, {
+      type: 'output.set',
+      screenId: 'main',
+      on: true,
+    });
+    expect(switched.state.canUndo).toBe(true);
+    const undone = applyCommand(switched, {type: 'clear.undo'});
+    expect(undone.state.canUndo).toBe(false);
+    const clearedAgain = applyCommand(undone, {
+      type: 'layer.clear',
+      target: 'slide',
+    });
+    const covered = applyCommand(clearedAgain, {
+      type: 'slide.show',
+      slide: slide(3),
+    });
+    expect(covered.state.canUndo).toBe(false);
+  });
+
+  it('keeps canUndo in step with the undo for random commands', () => {
+    const random = seededRandom(RANDOM_SEED);
+    let history = initialHistory(emptyLiveState());
+    for (let i = 0; i < RANDOM_COMMAND_COUNT; i += 1) {
+      history = applyCommand(history, randomCommand(random));
+      expect(history.state.canUndo).toBe(history.undo !== null);
+    }
+  });
 });
