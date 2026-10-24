@@ -5,11 +5,7 @@ import {afterEach, describe, expect, it, vi} from 'vitest';
 import {OutputToggle, outputTooltip} from './OutputToggle';
 import {ToolbarButton} from './ToolbarButton';
 import {ToolbarTabs, type ToolbarTab} from './ToolbarTabs';
-import {
-  hoverForTooltip,
-  resetTooltips,
-  setupTooltipUser,
-} from './tooltipTesting';
+import {hoverForTooltip, resetTooltips} from './tooltipTesting';
 
 afterEach(resetTooltips);
 
@@ -81,7 +77,7 @@ describe('ToolbarButton', () => {
     await userEvent.click(button);
     expect(onPressedChange).toHaveBeenCalledWith(true);
     await userEvent.unhover(button);
-    const tooltip = await hoverForTooltip(setupTooltipUser(), button);
+    const tooltip = await hoverForTooltip(button);
     expect(tooltip?.textContent).toBe('미디어 열기');
   });
 
@@ -131,7 +127,6 @@ describe('OutputToggle', () => {
   ] as const)(
     'draws the %s state with aria-pressed %s and its tooltip',
     async (state, pressed, tooltip) => {
-      const user = setupTooltipUser();
       render(
         <OutputToggle
           icon="mplay"
@@ -144,12 +139,11 @@ describe('OutputToggle', () => {
       const button = screen.getByRole('button', {name: '본 화면'});
       expect(button.getAttribute('aria-pressed')).toBe(pressed);
       expect(button.getAttribute('data-state')).toBe(state);
-      expect((await hoverForTooltip(user, button))?.textContent).toBe(tooltip);
+      expect((await hoverForTooltip(button))?.textContent).toBe(tooltip);
     },
   );
 
   it('uses the full screen name in the tooltip', async () => {
-    const user = setupTooltipUser();
     render(
       <OutputToggle
         icon="mplay"
@@ -161,7 +155,7 @@ describe('OutputToggle', () => {
       />,
     );
     const button = screen.getByRole('button', {name: '무대'});
-    expect((await hoverForTooltip(user, button))?.textContent).toBe(
+    expect((await hoverForTooltip(button))?.textContent).toBe(
       '무대 화면: 모니터 3을 찾을 수 없습니다',
     );
   });

@@ -1,4 +1,4 @@
-import {cleanup, render, screen} from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
@@ -11,16 +11,9 @@ import {
   ListRow,
   ListSlot,
 } from './ListRow';
-import {
-  hoverForTooltip,
-  resetTooltips,
-  setupTooltipUser,
-} from './tooltipTesting';
+import {pointAway, hoverForTooltip, resetTooltips} from './tooltipTesting';
 
-afterEach(() => {
-  cleanup();
-  resetTooltips();
-});
+afterEach(resetTooltips);
 
 function ServiceOrder({
   initial,
@@ -128,17 +121,16 @@ describe('ListBox and ListRow', () => {
   });
 
   it('does not select a disabled row and gives the reason as a tooltip', async () => {
-    const user = setupTooltipUser();
     const onSelect = vi.fn();
     render(<ServiceOrder onSelect={onSelect} />);
     const disabled = screen.getByRole('option', {
       name: '내 주를 가까이 하게 함은',
     });
     expect(disabled.getAttribute('aria-disabled')).toBe('true');
-    await user.click(disabled);
+    await userEvent.click(disabled);
     expect(onSelect).not.toHaveBeenCalled();
-    await user.unhover(disabled);
-    expect((await hoverForTooltip(user, disabled))?.textContent).toBe(
+    pointAway(disabled);
+    expect((await hoverForTooltip(disabled))?.textContent).toBe(
       '라이브러리에 없는 곡입니다',
     );
   });

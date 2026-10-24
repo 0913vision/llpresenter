@@ -1,19 +1,19 @@
-import {act, cleanup, render, screen} from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, beforeAll, describe, expect, it, vi} from 'vitest';
 import {Menu, type MenuCloseReason, type MenuSearch} from './Menu';
 import type {MenuEntry} from './menuModel';
-import {resetTooltips, setupTooltipUser} from './tooltipTesting';
+import {installFakeClock} from '../../../../test/fake-clock';
+import {letTimePass, pointAt, resetTooltips} from './tooltipTesting';
 
 beforeAll(() => {
   Element.prototype.scrollIntoView = () => undefined;
 });
 
-afterEach(() => {
-  cleanup();
-  resetTooltips();
-});
+afterEach(resetTooltips);
+
+const SUBMENU_DELAY_MS = 150;
 
 function fileMenu(onSelect: (id: string) => void): readonly MenuEntry[] {
   const item = (id: string, label: string, extra = {}): MenuEntry => ({
@@ -145,7 +145,11 @@ describe('Menu', () => {
     const onClose = vi.fn();
     const onOuterKey = vi.fn();
     render(
-      <div onKeyDown={event => onOuterKey(event.key)}>
+      <div
+        onKeyDown={event => {
+          onOuterKey(event.key);
+        }}
+      >
         <Harness onClose={onClose} />
       </div>,
     );
@@ -200,14 +204,13 @@ describe('Menu', () => {
   });
 
   it('opens a submenu when the pointer rests on its parent for 150ms', async () => {
-    const user = setupTooltipUser();
     render(<Harness />);
-    await user.click(screen.getByRole('button', {name: '파일'}));
-    await user.hover(screen.getByRole('menuitem', {name: '가져오기'}));
+    await userEvent.click(screen.getByRole('button', {name: '파일'}));
+    const clock = installFakeClock();
+    pointAt(screen.getByRole('menuitem', {name: '가져오기'}));
+    await letTimePass(clock, SUBMENU_DELAY_MS - 1);
     expect(screen.queryByRole('menu', {name: '가져오기'})).toBeNull();
-    act(() => {
-      vi.advanceTimersByTime(150);
-    });
+    await letTimePass(clock, 1);
     expect(screen.getByRole('menu', {name: '가져오기'})).toBeDefined();
   });
 

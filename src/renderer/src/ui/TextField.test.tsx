@@ -4,11 +4,7 @@ import {useState, type JSX} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {TextArea} from './TextArea';
 import {TextField, type TextFieldProps} from './TextField';
-import {
-  hoverForTooltip,
-  resetTooltips,
-  setupTooltipUser,
-} from './tooltipTesting';
+import {hoverForTooltip, resetTooltips} from './tooltipTesting';
 
 afterEach(resetTooltips);
 
@@ -103,7 +99,6 @@ describe('TextField', () => {
   });
 
   it('marks an invalid value and gives the reason as its description', async () => {
-    const user = setupTooltipUser();
     render(
       <TextField
         variant="title"
@@ -122,7 +117,7 @@ describe('TextField', () => {
         description: '라이브러리에 같은 제목의 곡이 있습니다',
       }),
     ).toBe(input);
-    expect((await hoverForTooltip(user, input))?.textContent).toBe(
+    expect((await hoverForTooltip(input))?.textContent).toBe(
       '라이브러리에 같은 제목의 곡이 있습니다',
     );
   });

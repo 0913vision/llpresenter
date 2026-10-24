@@ -2,23 +2,18 @@ import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {IconButton} from './IconButton';
-import {
-  hoverForTooltip,
-  resetTooltips,
-  setupTooltipUser,
-} from './tooltipTesting';
+import {hoverForTooltip, resetTooltips} from './tooltipTesting';
 
 afterEach(resetTooltips);
 
 describe('IconButton', () => {
   it('is named by its label and shows the shortcut in the tooltip', async () => {
-    const user = setupTooltipUser();
     render(<IconButton icon="x" label="닫기" size="md" shortcut="Esc" />);
     const button = screen.getByRole('button', {name: '닫기'});
     expect(button.hasAttribute('aria-pressed')).toBe(false);
     expect(button.hasAttribute('aria-haspopup')).toBe(false);
     expect(button.getAttribute('aria-keyshortcuts')).toBe('Escape');
-    const tooltip = await hoverForTooltip(user, button);
+    const tooltip = await hoverForTooltip(button);
     expect(tooltip?.textContent).toBe('닫기Esc');
   });
 
@@ -79,7 +74,7 @@ describe('IconButton', () => {
     expect(onClick).not.toHaveBeenCalled();
     expect(onPressedChange).not.toHaveBeenCalled();
     await userEvent.unhover(button);
-    const tooltip = await hoverForTooltip(setupTooltipUser(), button);
+    const tooltip = await hoverForTooltip(button);
     expect(tooltip?.textContent).toBe('소리가 꺼져 있습니다');
   });
 });

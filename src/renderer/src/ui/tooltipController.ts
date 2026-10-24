@@ -85,7 +85,8 @@ export class TooltipController {
   }
 
   private withinGrace(): boolean {
-    return Date.now() - this.hiddenAt < TOOLTIP_GRACE_MS;
+    const sinceHidden = Date.now() - this.hiddenAt;
+    return sinceHidden >= 0 && sinceHidden < TOOLTIP_GRACE_MS;
   }
 
   private clearTimer(): void {

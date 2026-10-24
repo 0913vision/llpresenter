@@ -1,5 +1,8 @@
-import {act, cleanup, render, screen} from '@testing-library/react';
+import {fireEvent, render, screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import type {JSX} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
+import {installFakeClock} from '../../../../test/fake-clock';
 import {Tooltip, ariaShortcut, withTooltipProps} from './Tooltip';
 import {
   TOOLTIP_DELAY_MS,
@@ -8,16 +11,15 @@ import {
 } from './tooltipController';
 import {
   hoverForTooltip,
+  letTimePass,
+  pointAt,
+  pointAway,
   resetTooltips,
-  setupTooltipUser,
 } from './tooltipTesting';
 
-afterEach(() => {
-  cleanup();
-  resetTooltips();
-});
+afterEach(resetTooltips);
 
-function ClearLyrics(): React.JSX.Element {
+function ClearLyrics(): JSX.Element {
   return (
     <>
       <Tooltip text="가사 지우기" shortcut="F2">
@@ -30,70 +32,75 @@ function ClearLyrics(): React.JSX.Element {
   );
 }
 
+function button(name: string): HTMLElement {
+  return screen.getByRole('button', {name});
+}
+
 describe('Tooltip', () => {
   it('shows after the pointer rests for 600ms, not before', async () => {
-    const user = setupTooltipUser();
+    const clock = installFakeClock();
     render(<ClearLyrics />);
-    await user.hover(screen.getByRole('button', {name: '가사'}));
-    act(() => {
-      vi.advanceTimersByTime(TOOLTIP_DELAY_MS / 2);
-    });
+    pointAt(button('가사'));
+    await letTimePass(clock, TOOLTIP_DELAY_MS - 1);
     expect(screen.queryByRole('tooltip')).toBeNull();
-    act(() => {
-      vi.advanceTimersByTime(TOOLTIP_DELAY_MS / 2);
-    });
+    await letTimePass(clock, 1);
     expect(screen.getByRole('tooltip').textContent).toBe('가사 지우기F2');
   });
 
   it('describes its target and gives the shortcut in aria form', async () => {
-    const user = setupTooltipUser();
     render(<ClearLyrics />);
-    const target = screen.getByRole('button', {name: '가사'});
+    const target = button('가사');
     expect(target.getAttribute('aria-keyshortcuts')).toBe('F2');
     expect(target.hasAttribute('aria-describedby')).toBe(false);
-    await hoverForTooltip(user, target);
+    await hoverForTooltip(target);
     expect(screen.getByRole('button', {description: '가사 지우기F2'})).toBe(
       target,
     );
   });
 
   it('closes at once when the pointer leaves', async () => {
-    const user = setupTooltipUser();
     render(<ClearLyrics />);
-    await hoverForTooltip(user, screen.getByRole('button', {name: '가사'}));
-    await user.unhover(screen.getByRole('button', {name: '가사'}));
+    await hoverForTooltip(button('가사'));
+    pointAway(button('가사'));
     expect(screen.queryByRole('tooltip')).toBeNull();
   });
 
-  it('shows the next tooltip at once when the pointer moves on', async () => {
-    const user = setupTooltipUser();
+  it('shows the next tooltip at once while one shows or just closed', async () => {
     render(<ClearLyrics />);
-    await hoverForTooltip(user, screen.getByRole('button', {name: '가사'}));
-    await user.hover(screen.getByRole('button', {name: '모두'}));
+    await hoverForTooltip(button('가사'));
+    pointAway(button('가사'));
+    pointAt(button('모두'));
     expect(screen.getByRole('tooltip').textContent).toBe(
       '모두 지우기F1본 화면, 무대 화면',
     );
   });
 
-  it('closes on a click and on a key press', async () => {
-    const user = setupTooltipUser();
+  it('waits the full delay again once the grace period is over', async () => {
+    const clock = installFakeClock();
     render(<ClearLyrics />);
-    const target = screen.getByRole('button', {name: '가사'});
-    await hoverForTooltip(user, target);
-    await user.pointer({keys: '[MouseLeft]', target});
+    await hoverForTooltip(button('가사'));
+    pointAway(button('가사'));
+    await letTimePass(clock, TOOLTIP_GRACE_MS);
+    pointAt(button('모두'));
+    expect(screen.queryByRole('tooltip')).toBeNull();
+    await letTimePass(clock, TOOLTIP_DELAY_MS);
+    expect(screen.getByRole('tooltip')).toBeDefined();
+  });
+
+  it('closes on a click and on a key press', async () => {
+    render(<ClearLyrics />);
+    const target = button('가사');
+    await hoverForTooltip(target);
+    fireEvent.pointerDown(target);
     expect(screen.queryByRole('tooltip')).toBeNull();
 
-    await user.unhover(target);
-    act(() => {
-      vi.advanceTimersByTime(TOOLTIP_GRACE_MS);
-    });
-    await hoverForTooltip(user, target);
-    await user.keyboard('{Escape}');
+    pointAway(target);
+    await hoverForTooltip(target);
+    fireEvent.keyDown(target, {key: 'Escape'});
     expect(screen.queryByRole('tooltip')).toBeNull();
   });
 
   it('keeps the target own handlers', async () => {
-    const user = setupTooltipUser();
     const onPointerEnter = vi.fn();
     render(
       <Tooltip text="내리기">
@@ -102,7 +109,7 @@ describe('Tooltip', () => {
         </button>
       </Tooltip>,
     );
-    await hoverForTooltip(user, screen.getByRole('button'));
+    await hoverForTooltip(screen.getByRole('button'));
     expect(onPointerEnter).toHaveBeenCalledTimes(1);
     expect(screen.getByRole('tooltip')).toBeDefined();
   });
@@ -134,9 +141,8 @@ describe('withTooltipProps', () => {
         x
       </button>,
     );
-    const user = setupTooltipUser();
-    await user.click(screen.getByRole('button'));
-    await user.tab();
+    await userEvent.click(screen.getByRole('button'));
+    await userEvent.tab();
     expect(calls).toEqual(['own', 'tooltip']);
     expect(merged['aria-describedby']).toBe('hint tip');
   });
@@ -144,12 +150,11 @@ describe('withTooltipProps', () => {
 
 describe('TooltipController', () => {
   it('releases its window listeners once nothing shows or waits', () => {
-    vi.useFakeTimers();
+    installFakeClock();
     const controller = new TooltipController();
     const add = vi.spyOn(window, 'addEventListener');
     const remove = vi.spyOn(window, 'removeEventListener');
-    const target = document.createElement('button');
-    controller.request({owner: 'a', target});
+    controller.request({owner: 'a', target: document.createElement('button')});
     controller.release('a');
     expect(add.mock.calls.length).toBeGreaterThan(0);
     expect(remove.mock.calls.length).toBe(add.mock.calls.length);
@@ -158,12 +163,24 @@ describe('TooltipController', () => {
     remove.mockRestore();
   });
 
-  it('drops a pending tooltip when its owner leaves before the delay', () => {
-    vi.useFakeTimers();
+  it('drops a pending tooltip when its owner leaves before the delay', async () => {
+    const clock = installFakeClock();
     const controller = new TooltipController();
     controller.request({owner: 'a', target: document.createElement('button')});
     controller.release('a');
-    vi.advanceTimersByTime(TOOLTIP_DELAY_MS);
+    await clock.advance(TOOLTIP_DELAY_MS);
+    expect(controller.current()).toBeNull();
+  });
+
+  it('ignores a grace period that lies in the future after a clock change', async () => {
+    const clock = installFakeClock(new Date('2026-03-01T09:00:00.000Z'));
+    const controller = new TooltipController();
+    const target = document.createElement('button');
+    controller.request({owner: 'a', target});
+    await clock.advance(TOOLTIP_DELAY_MS);
+    controller.hide();
+    installFakeClock(new Date('2026-02-01T09:00:00.000Z'));
+    controller.request({owner: 'b', target});
     expect(controller.current()).toBeNull();
   });
 });

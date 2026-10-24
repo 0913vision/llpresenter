@@ -1,30 +1,42 @@
-import {act, screen} from '@testing-library/react';
-import userEvent, {type UserEvent} from '@testing-library/user-event';
-import {vi} from 'vitest';
+import {act, fireEvent, screen} from '@testing-library/react';
+import {installFakeClock, type FakeClock} from '../../../../test/fake-clock';
 import {TOOLTIP_DELAY_MS, tooltipController} from './tooltipController';
 
-/** Starts fake timers and a user that advances them, for tooltip tests. */
-export function setupTooltipUser(): UserEvent {
-  // NOTE(0913vision): Testing Library waits on a real-time setTimeout after
-  // each event, so the fake clock must also follow real time.
-  vi.useFakeTimers({shouldAdvanceTime: true});
-  return userEvent.setup({advanceTimers: vi.advanceTimersByTime});
-}
-
-/** Closes any tooltip and goes back to real timers after a tooltip test. */
+/** Closes any tooltip that a test left showing. */
 export function resetTooltips(): void {
-  act(() => tooltipController.hide());
-  vi.useRealTimers();
+  act(() => {
+    tooltipController.hide();
+  });
 }
 
-/** Rests the pointer on an element and returns the tooltip that shows. */
+/** Moves a mouse pointer onto an element. */
+export function pointAt(element: Element): void {
+  fireEvent.pointerOver(element, {pointerType: 'mouse'});
+}
+
+/** Moves a mouse pointer off an element, out of the window. */
+export function pointAway(element: Element): void {
+  fireEvent.pointerOut(element, {pointerType: 'mouse'});
+}
+
+/** Lets fake time pass and renders what changed on the way. */
+export async function letTimePass(
+  clock: FakeClock,
+  milliseconds: number,
+): Promise<void> {
+  await act(() => clock.advance(milliseconds));
+}
+
+/**
+ * Rests the pointer on an element for the tooltip delay on a fake clock, and
+ * returns the tooltip that shows. Run user-event steps before it, because
+ * they wait on real timers.
+ */
 export async function hoverForTooltip(
-  user: UserEvent,
   element: Element,
 ): Promise<HTMLElement | null> {
-  await user.hover(element);
-  act(() => {
-    vi.advanceTimersByTime(TOOLTIP_DELAY_MS);
-  });
+  const clock = installFakeClock();
+  pointAt(element);
+  await letTimePass(clock, TOOLTIP_DELAY_MS);
   return screen.queryByRole('tooltip');
 }

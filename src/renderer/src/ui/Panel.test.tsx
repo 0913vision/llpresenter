@@ -1,4 +1,4 @@
-import {cleanup, render, screen} from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
@@ -14,20 +14,13 @@ import {
   type PanelTab,
 } from './Panel';
 import {TruncatedText} from './TruncatedText';
-import {
-  hoverForTooltip,
-  resetTooltips,
-  setupTooltipUser,
-} from './tooltipTesting';
+import {pointAway, hoverForTooltip, resetTooltips} from './tooltipTesting';
 
-afterEach(() => {
-  cleanup();
-  resetTooltips();
-});
+afterEach(resetTooltips);
 
 type Tool = 'showing' | 'audio' | 'stage';
 
-const tools: readonly PanelTab<Tool>[] = [
+const tools: ReadonlyArray<PanelTab<Tool>> = [
   {value: 'showing', label: '표시 중', count: 3},
   {value: 'audio', label: '오디오'},
   {value: 'stage', label: '무대'},
@@ -165,17 +158,16 @@ describe('TruncatedText', () => {
   }
 
   it('shows the full text in a tooltip only when it is cut off', async () => {
-    const user = setupTooltipUser();
     render(<TruncatedText text="주 하나님 지으신 모든 세계" />);
     const text = screen.getByText('주 하나님 지으신 모든 세계');
 
     const restoreFits = stubWidths(100, 100);
-    expect(await hoverForTooltip(user, text)).toBeNull();
-    await user.unhover(text);
+    expect(await hoverForTooltip(text)).toBeNull();
+    pointAway(text);
     restoreFits();
 
     const restoreCut = stubWidths(300, 100);
-    const tooltip = await hoverForTooltip(user, text);
+    const tooltip = await hoverForTooltip(text);
     restoreCut();
     expect(tooltip?.textContent).toBe('주 하나님 지으신 모든 세계');
   });

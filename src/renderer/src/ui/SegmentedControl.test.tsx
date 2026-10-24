@@ -7,11 +7,7 @@ import {
   type SegmentOption,
   type SegmentedKind,
 } from './SegmentedControl';
-import {
-  hoverForTooltip,
-  resetTooltips,
-  setupTooltipUser,
-} from './tooltipTesting';
+import {pointAway, hoverForTooltip, resetTooltips} from './tooltipTesting';
 
 afterEach(resetTooltips);
 
@@ -151,7 +147,7 @@ describe('SegmentedControl', () => {
     await userEvent.click(disabled);
     expect(onChange).toHaveBeenCalledTimes(1);
     await userEvent.unhover(disabled);
-    const tooltip = await hoverForTooltip(setupTooltipUser(), disabled);
+    const tooltip = await hoverForTooltip(disabled);
     expect(tooltip?.textContent).toBe('이유');
   });
 
@@ -169,7 +165,6 @@ describe('SegmentedControl', () => {
   });
 
   it('names icon segments by their label and shows counts after names', async () => {
-    const user = setupTooltipUser();
     const {rerender} = render(
       <SegmentedControl
         label="보기"
@@ -183,8 +178,8 @@ describe('SegmentedControl', () => {
       />,
     );
     const grid = screen.getByRole('button', {name: '격자 보기'});
-    expect((await hoverForTooltip(user, grid))?.textContent).toBe('격자 보기');
-    await user.unhover(grid);
+    expect((await hoverForTooltip(grid))?.textContent).toBe('격자 보기');
+    pointAway(grid);
 
     rerender(
       <SegmentedControl

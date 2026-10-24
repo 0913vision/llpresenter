@@ -1,15 +1,13 @@
-import {cleanup, render, screen} from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 import {AlertDialog} from './AlertDialog';
 import {Checkbox} from './Checkbox';
 import {Dialog, DialogBox, DialogField} from './Dialog';
 import {TextArea} from './TextArea';
 import {TextField} from './TextField';
 import {enterPressesPrimary} from './useModal';
-
-afterEach(cleanup);
 
 interface Handlers {
   readonly onCancel?: () => void;

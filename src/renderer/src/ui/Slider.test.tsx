@@ -3,11 +3,7 @@ import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {Slider} from './Slider';
-import {
-  hoverForTooltip,
-  resetTooltips,
-  setupTooltipUser,
-} from './tooltipTesting';
+import {hoverForTooltip, resetTooltips} from './tooltipTesting';
 
 afterEach(resetTooltips);
 
@@ -44,13 +40,10 @@ function filled(): string {
 
 describe('Slider', () => {
   it('is a named slider that fills the track up to its value', async () => {
-    const user = setupTooltipUser();
     render(<ThumbnailSize />);
     expect(slider().value).toBe('2');
     expect(filled()).toBe('25%');
-    expect((await hoverForTooltip(user, slider()))?.textContent).toBe(
-      '썸네일 크기',
-    );
+    expect((await hoverForTooltip(slider()))?.textContent).toBe('썸네일 크기');
   });
 
   it('moves one step with the arrow keys and stops at the ends', async () => {
@@ -96,7 +89,6 @@ describe('Slider', () => {
   });
 
   it('gives the reason as the tooltip while disabled', async () => {
-    const user = setupTooltipUser();
     render(
       <Slider
         label="음량"
@@ -113,7 +105,7 @@ describe('Slider', () => {
     expect(slider('음량').disabled).toBe(true);
     const row = slider('음량').parentElement;
     if (row === null) throw new Error('No row');
-    expect((await hoverForTooltip(user, row))?.textContent).toBe(
+    expect((await hoverForTooltip(row))?.textContent).toBe(
       '소리가 꺼져 있습니다',
     );
   });

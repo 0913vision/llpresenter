@@ -1,18 +1,16 @@
-import {cleanup, render, screen} from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
-import {afterEach, beforeAll, describe, expect, it, vi} from 'vitest';
+import {beforeAll, describe, expect, it, vi} from 'vitest';
 import {SelectMenu, type SelectOption} from './SelectMenu';
 
 beforeAll(() => {
   Element.prototype.scrollIntoView = () => undefined;
 });
 
-afterEach(cleanup);
-
 type Interval = 'one' | 'five' | 'off';
 
-const intervals: readonly SelectOption<Interval>[] = [
+const intervals: ReadonlyArray<SelectOption<Interval>> = [
   {value: 'one', label: '1분마다'},
   {value: 'five', label: '5분마다'},
   {value: 'off', label: '끄기', disabled: true},
