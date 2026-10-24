@@ -16,7 +16,6 @@ export const WINDOW_LOG_LINES_PER_SECOND = 20;
 
 const RATE_PERIOD_MS = 1000;
 
-/** How many windows the limiter remembers; the one heard from least recently is forgotten first. */
 const MAX_TRACKED_WINDOWS = 32;
 
 interface WindowLogRate {
@@ -28,7 +27,8 @@ interface WindowLogRate {
 /**
  * Keeps one window from filling the main log: each window may write
  * {@link WINDOW_LOG_LINES_PER_SECOND} lines a second. Lines over that are
- * dropped, and their count is logged when the window next writes.
+ * dropped, and their count is logged when the window next writes. It
+ * remembers 32 windows; the one heard from least recently is forgotten first.
  */
 export class WindowLogLimiter {
   private readonly rates = new Map<WindowId, WindowLogRate>();

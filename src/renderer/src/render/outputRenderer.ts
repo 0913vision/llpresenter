@@ -12,17 +12,16 @@ export interface OutputRendererOptions {
   readonly onError: (message: string, error: unknown) => void;
 }
 
-/** The layers from the bottom up (docs/spec/03-output.md, stacking order). */
+// NOTE(0913vision): The layers from the bottom up, as in "Layers and stacking
+// order" in docs/spec/03-output.md.
 const LAYER_ORDER = ['background', 'lyrics'] as const;
 
 type LayerName = (typeof LAYER_ORDER)[number];
 
-/**
- * A positioned box for one layer with its place in the order as its z-index,
- * so each layer is its own stacking context and nothing inside one, such as a
- * video's z-index, can rise above a higher layer.
- */
 function createLayerBox(root: HTMLElement, name: LayerName): HTMLElement {
+  // NOTE(0913vision): The z-index makes each layer box its own stacking
+  // context, so nothing inside a layer, such as a video's z-index, can rise
+  // above a higher layer.
   const box = document.createElement('div');
   box.className = classes.layer;
   box.style.zIndex = String(LAYER_ORDER.indexOf(name));

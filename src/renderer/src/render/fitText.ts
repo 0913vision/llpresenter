@@ -1,4 +1,3 @@
-/** The smallest size the search tries; text that doesn't fit even here gets it. */
 const MIN_FONT_SIZE = 1;
 
 /**
