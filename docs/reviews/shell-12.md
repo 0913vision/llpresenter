@@ -59,7 +59,8 @@ for the 진행 도구); (5) one test case that the shell-11 nit asked for.
 
 ## Checks run
 
-Pending.
+`npm run verify` on commit `9f5feb2` (base `main` f8dc565) passed all five steps
+in 160.4 s: `typecheck`, `lint`, `format:check`, `test:coverage`, and `build`.
 
 ### Running app (port 5187)
 
