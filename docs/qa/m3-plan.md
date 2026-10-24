@@ -76,18 +76,26 @@ no slice handles yet) is tested at the level it ships, and the case says so.
   - Expected: Every test and case gives the same result as before O0.
   - Source: breakdown M3-O0 acceptance.
 - **RG2 A new slice is one new file**
-  - Steps: In a scratch clone, add a slice module to `src/main/live/slices/`
-    that handles a test command type, build, and send that command from the
-    control window. Remove the file and rebuild.
-  - Expected: The command changes the state with the file in place, without any
-    other file edited. Without the file, the command is rejected as below.
-  - Source: breakdown M3-O0 ("How registration works").
-- **RG3 An unknown command type**
-  - Steps: Send a well-formed command of a type no slice handles, then a valid
+  - Steps: Run O0's fake-slice fixture test. Then, in a scratch clone, add a
+    second slice module for a test command type to that fixture folder and
+    dispatch the command to the registry directly from a test, not through IPC
+    (the IPC schema rejects a type outside `LiveCommand`, and widening it needs
+    data's file). Remove the file and dispatch again.
+  - Expected: With the file in place, the command changes the state and no other
+    file was edited. Without it, the registry rejects the command as in RG3 (b).
+  - Source: breakdown M3-O0 ("How registration works", acceptance).
+- **RG3 Two kinds of rejection**
+  - Steps: (a) From the control window, send a command whose type is outside
+    `LiveCommand`. (b) Dispatch, directly to the registry, a command of a type
+    that the schema accepts but no slice handles (after D1b, any new type
+    without its slice; before it, a fixture type). After each, send a valid
     `output.set`.
-  - Expected: The first is rejected and logged once with its type; the state and
-    its `version` don't change; the second applies normally. No dialog.
-  - Source: breakdown M3-O0 acceptance.
+  - Expected: (a) is dropped by the IPC validation ("dropped a malformed
+    command" with the field `type`) and never reaches the registry. (b) is
+    rejected by the registry with its own log line that names the type. In both,
+    the state and its `version` don't change, the valid command after it
+    applies, and no dialog opens. The two log lines tell the cases apart.
+  - Source: breakdown M3-O0 acceptance; data-4 (IPC validation).
 - **RG4 One slice per command**
   - Steps: Read the registry's map from command type to slice; send each command
     type of `LiveCommand` once and record which slice handled it.
@@ -211,14 +219,17 @@ throw.
     that isn't a UUID, an edge margin of 101, a resolution of 0).
   - Expected: As CB1.
   - Source: breakdown M3-D1c; spec 03; M1 D23.
-- **CC2 The recovery interface**
-  - Steps: Call `recovery.summary` with no recovery record, with a valid one,
-    and with a broken one; call `recovery.apply` with rows that exist, rows that
-    don't, and an empty list; call `recovery.startFresh`.
-  - Expected: The summary lists only rows that can be restored; a broken record
-    gives an empty summary and one warning; `apply` ignores rows that aren't in
-    the summary; every reply is checked in the preload like the M2 replies.
-  - Source: breakdown M3-D1c; spec 08; the M2 recovery record.
+- **CC2 The recovery interface (contracts only)**
+  - Steps: Check the schemas of `recovery.summary`, `recovery.apply`, and
+    `recovery.startFresh` with valid and malformed values. In the built app,
+    replace the main handlers with fakes (as the data-5 checks did) that return
+    a valid summary, a malformed one, a reply of the wrong type, and an error.
+  - Expected: The preload exposes typed functions only; a valid fake reply comes
+    through unchanged; a malformed or failed reply gives the empty fallback and
+    one "Ignored a bad reply" log line; `apply` sends only the row IDs in its
+    schema's shape. What the backend restores, filters, and starts fresh with is
+    O8's behavior (wave C) and is tested in O8's cases, not here.
+  - Source: breakdown M3-D1c, M3-O8; spec 08.
 
 ### SS. App-wide settings stores (D2)
 
@@ -242,14 +253,26 @@ throw.
     (temporary file, flush, rename) and took at most one recovery copy per file
     every 5 minutes.
   - Source: breakdown M3-D2; spec 02 "Save rules".
-- **SS3 A broken file is skipped**
-  - Steps: Break each file in turn: not JSON, empty, a wrong `format`, a field
-    that fails the schema, a newer `schemaVersion`.
-  - Expected: The broken file is skipped with one notification event and one log
-    warning that names it; every other file loads; the broken file is never
-    overwritten; a newer version opens read-only.
-  - Source: breakdown M3-D2; spec 02 "Schema versions and migration"; the lead's
-    C19 rule.
+- **SS3 A broken settings file falls back**
+  - Steps: Break each file in turn (not JSON, empty, a wrong `format`, a field
+    that fails the schema), twice: (a) with a readable recovery copy in
+    `.복구 사본\`, and (b) with none. After each start, edit that area once.
+  - Expected: One log entry and one warning notification whose detail names the
+    area and whether a recovery copy or the defaults were used. (a) runs the
+    area from the newest recovery copy that reads; (b) runs it from its
+    first-launch defaults (SS1). Every other file loads. The broken file stays
+    untouched until the area's next write; that write first copies it to
+    `(name).broken-(YYYYMMDD-HHmmss).json` in the same folder, byte for byte,
+    and then writes a valid file.
+  - Source: breakdown M3-D2; spec 02 "Schema versions and migration" (the lead's
+    decision of October 25, 2026).
+- **SS3b A settings file from a newer version**
+  - Steps: Give each file a higher `schemaVersion` that still fits the schema,
+    then one that doesn't; try to edit the area.
+  - Expected: A fitting file opens read-only: its values show, an edit isn't
+    written, and the file never changes. A file that doesn't fit falls back as
+    in SS3 (spec 02 treats it as broken content).
+  - Source: spec 02 "Schema versions and migration"; M1 D7.
 - **SS4 Unknown fields survive a save**
   - Steps: Add unknown fields at every level of each file (as M1 D9), start,
     edit one known value, quit.
@@ -342,11 +365,22 @@ throw.
   - Expected: The clear keys work as spec 10 scopes them; the tiles run on keys
     only when they have keyboard focus.
   - Source: spec 10; the ui list in `docs/reviews/spec-5.md`.
-- **US5 KeyCap names and reserved keys**
-  - Steps: Show each key of spec 10's command list in `KeyCap`, and try the
-    reserved keys in the key field.
-  - Expected: English key names as spec 10 writes them; the reserved keys are
-    refused with the reason in a tooltip.
+- **US5 KeyCap names and the key field**
+  - Steps: Show each key of spec 10's command list in `KeyCap`. In a recording
+    key field, press Esc, Backspace alone, Tab, and Shift Tab, then each key of
+    the table that keeps recording: Enter alone, Alt alone, F10 alone, Shift
+    F10, the Menu key, Ctrl X, C, V, and A, a key with an empty `code`, and a
+    bare letter and a bare digit.
+  - Expected: English key names as spec 10 writes them. Esc cancels the
+    recording and the shortcut stays as it was; Backspace alone removes the
+    shortcut; Tab and Shift Tab end the recording and move keyboard focus; none
+    of these four shows a tooltip. Each of the other keys isn't recorded: the
+    field keeps recording, shows the error ring, and gives the table's tooltip
+    ("확인과 실행에 쓰는 키", "메뉴 막대에 쓰는 키", "오른쪽 클릭 메뉴에 쓰는
+    키", "글자 편집에 쓰는 키", "입력기에 쓰는 키", "이름표 바로 가기에 쓰는
+    키"). Alt F4, Alt Tab, Ctrl Esc, Ctrl Alt Delete, the Windows key, and Print
+    Screen can't be sent as synthetic keys and are checked in the field's unit
+    tests ("Windows가 쓰는 키").
   - Source: spec 10 "Reserved keys".
 - **US6 The gallery and the cards**
   - Steps: P-compare the new states against the cards.
