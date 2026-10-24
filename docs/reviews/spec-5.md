@@ -81,11 +81,11 @@ The nine files in the table above, and `docs/reviews/spec-5.md` (new).
 
 ## Checks run
 
-| Command or test            | Result                                                                                                                          |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run verify` (round 2) | See below                                                                                                                       |
-| `npm run verify` (round 1) | Pass: typecheck 5.1 s, lint 26.9 s, format:check 15.1 s, test:coverage 41.8 s (41 files, 363 tests), build 1.8 s; 90.7 s in all |
-| Middle dots and em dashes  | None in the changed files (checked with `grep -c`)                                                                              |
+| Command or test            | Result                                                                                                                                       |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run verify` (round 2) | Pass: typecheck 4.8 s, lint 37.8 s, format:check 48.8 s, test:coverage 99.6 s (57 files, 573 tests, 1 skipped), build 16.7 s; 207.8 s in all |
+| `npm run verify` (round 1) | Pass: typecheck 5.1 s, lint 26.9 s, format:check 15.1 s, test:coverage 41.8 s (41 files, 363 tests), build 1.8 s; 90.7 s in all              |
+| Middle dots and em dashes  | None in the changed files (checked with `grep -c`)                                                                                           |
 
 ## Decisions I made (for the lead to confirm)
 
