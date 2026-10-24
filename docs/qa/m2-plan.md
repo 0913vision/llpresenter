@@ -40,19 +40,43 @@ dialog will read), the case checks only what M2 builds and says so.
 
 ## What changes from the M1 plan
 
+### Safe launching
+
+Nothing may appear on the user's screen, so every run in this plan except K22,
+X20, and SK3 starts Electron only through QA's own launchers:
+
+- **The app** starts through the QA launcher: a small wrapper app that patches
+  Electron and then loads the build's main process unchanged. Every window it
+  shows is fully transparent, click-through, unfocusable, and out of the task
+  bar and Alt+Tab, on the primary work area. Calls to `dialog.*`, `focus`,
+  `maximize`, `minimize`, `setFullScreen`, and `setAlwaysOnTop` are recorded,
+  not applied. This replaces the offscreen placement of the M1 plan, which
+  didn't hold at the monitor's full size and made the viewport 16×8 px larger
+  than the window.
+- **The gallery** runs on `LLP_DEV_PORT=5189 npm run gallery` (plain Vite, no
+  Electron), and the gallery and card pages open in QA's invisible viewer.
+- **Soak runs** start the build through the QA launcher with the variables in
+  `scripts/README.md` "`npm run soak`" (`LLP_SOAK_RECORD`, `LLP_SOAK_EXIT_MS`,
+  and a new `LLP_USER_DATA`), wait until the app quits by itself, and judge the
+  record with `npm run soak -- --minutes <n> --judge <record.jsonl>`.
+- QA never runs `npm run soak` without `--judge`, `npm run dev`,
+  `electron-vite dev` (with or without `--rendererOnly`), or `electron .`: each
+  starts Electron with visible windows.
+- After every run, QA checks that no Electron process from its folders is left.
+
 ### Fake monitors
 
-Output windows go full screen on real monitors, which would put test windows on
-the user's screen. So for every case except the ones marked "with the user", the
-QA launcher replaces what Electron's `screen` module reports with fake monitors
-placed offscreen, to the left of the real ones:
+Output windows go full screen on real monitors. So the QA launcher replaces what
+Electron's `screen` module reports with the real primary monitor plus fake
+monitors to its right, where no real monitor is on this computer today. The
+windows on them are invisible anyway:
 
-| Fake monitor | Bounds (DIP)             | Role                                           |
-| ------------ | ------------------------ | ---------------------------------------------- |
-| FM1          | x -8000, y 0, 1920×1080  | Control monitor (holds the main window)        |
-| FM2          | x -6000, y 0, 1920×1080  | 본 화면                                        |
-| FM3          | x -4000, y 0, 1920×1080  | 무대 화면                                      |
-| FM4          | x -12000, y 0, 2560×1440 | A 3840×2160 monitor at 150%, for scaling cases |
+| Monitor | Bounds (DIP)                                  | Role                                           |
+| ------- | --------------------------------------------- | ---------------------------------------------- |
+| Primary | The real monitor (1920×1080 at x 0 here)      | Control monitor (holds the main window)        |
+| FM2     | Starts at the primary's right edge, 1920×1080 | 본 화면                                        |
+| FM3     | Right of FM2, 1920×1080                       | 무대 화면                                      |
+| FM4     | Right of FM3, 2560×1440 DIP                   | A 3840×2160 monitor at 150%, for scaling cases |
 
 - The launcher emits `display-removed`, `display-added`, and
   `display-metrics-changed` on the fake list to simulate unplugging, plugging
@@ -105,7 +129,7 @@ Korean:
 ### Test media
 
 The repository holds no video files, and QA installs no programs. QA makes its
-own test media with the browser's `MediaRecorder` in an offscreen window and
+own test media with the browser's `MediaRecorder` in QA's invisible viewer and
 keeps it in `D:\llp-dev\qa\media`, never in the repository:
 
 | File              | Content                                                                                           |
@@ -208,11 +232,17 @@ rules", and "Schema versions and migration"; `docs/TECH.md` "Storage".
   - Expected: The change is on disk after the quit.
   - Source: spec 02 ("Before the app quits, write everything that is pending").
 - **F6 Atomic writes under force-quit**
-  - Steps: 50 times: change a song, then P-kill at a random point in the next
-    300 ms; start again.
-  - Expected: Every file parses: the old or the new content, never empty or
-    half-written. Leftover temporary files don't break the next start.
-  - Source: spec 02 "Atomic writes"; `CLAUDE.md`.
+  - Steps: Watch the song folder (`fs.watch`). 50 times, change a song and
+    P-kill at a real write stage, in turn: (a) when the temporary file appears,
+    (b) when it has its full size, and (c) right after the rename, when the song
+    file changes. Then start again. If no temporary file ever shows, record how
+    the store writes and kill at the moment the song file changes.
+  - Expected: The song file always parses and holds either the old or the new
+    content, never empty or partial. After a kill at (c), it holds the new
+    content. A leftover temporary file doesn't break the next start and isn't
+    read as a song.
+  - Source: spec 02 "Atomic writes" (temporary file, flush, rename);
+    `CLAUDE.md`.
 - **F7 Overlapping writes run in order**
   - Steps: Change the same file 100 times as fast as possible.
   - Expected: The file ends with the last change.
@@ -253,8 +283,9 @@ rules", and "Schema versions and migration"; `docs/TECH.md` "Storage".
   - Source: spec 02 "Save failures".
 - **F13 Saving never stalls output**
   - Steps: During P-frames(main, 60), write a 10 MB song file 30 times.
-  - Expected: No output frame over 50 ms, and the same frame counts as without
-    the writes.
+  - Expected: The output keeps drawing through every write (no gap in the frame
+    record). Frames over 50 ms and the frame counts with and without the writes
+    are recorded as observations, since the sources set no number for them.
   - Source: spec 02 ("Saving must never stall output or input"); spec 08.
 
 ### L. Library to 예배 순서 to 진행
@@ -331,6 +362,11 @@ screen outputs on and off"; `docs/briefs/output.md`; `ToolbarButton` README.
     picture while off. Window count and memory stay flat.
   - Source: spec 03; output brief task 1.
 - **O3 Each screen on its monitor**
+  - Precondition: the build lists a 무대 화면 screen. M2's default screen source
+    has only the 본 화면; if the build reads `설정\screens.json`, the fixture
+    adds one with the 본 화면 on FM2 and the 무대 화면 on FM3. QA asserts the
+    two screens in the toolbar and in `llp.live.get()` first; without them, O3,
+    X5, and the 무대 화면 part of SK2 are blocked.
   - Steps: Turn on 본 화면 and 무대 화면.
   - Expected: Each window covers its own fake monitor, and turning one on or off
     doesn't touch the other.
@@ -481,9 +517,15 @@ Sources: `docs/spec/03-output.md` "Clearing and undo"; `ClearButton` README;
 
 - **K1 to K7 Each key clears its layer**
   - Steps: For each of F1 (모두), F2 (가사), F3 (미디어), F4 (소품), F5
-    (오디오), F6 (메시지), and F7 (공지): put content on every layer that M2 can
-    fill (at least lyrics and media; the others through live commands), then
+    (오디오), F6 (메시지), and F7 (공지): fill the layers, assert in
+    `llp.live.get()` that the key's layer has content (the precondition), then
     press the key. Check the output windows, the previews, and `llp.live.get()`.
+    The fixtures that fill the layers: lyrics through a click on a 장 of the
+    fixture song (`slide.show`), media through the fixture background
+    (`media.show`), and 메시지 through `message.show`. M2 has no command that
+    fills 소품, 오디오, or 공지; if the build adds one (a live command or a 진행
+    control), the case uses it, and otherwise F4, F5, and F7 are blocked, never
+    passed on an empty layer.
   - Expected: Only that key's layer goes (all of them for F1), on every screen
     at once, with no confirmation and no message. After F2 there is no live 장.
   - Source: MILESTONES criterion 2; spec 03 table.
@@ -582,19 +624,35 @@ READMEs.
   - Expected: Blue `ring-selected` on the selected tile, red `ring-live` on the
     live one, live over selected, and the focus ring outside both.
   - Source: spec 04; `SlideThumbnail` README.
-- **P2 Grid keyboard**
-  - Steps: Tab into the grid, use the arrows, Enter, and Space.
-  - Expected: Tab enters once; arrows move the selection; Enter and Space output
-    the selected tile.
-  - Source: spec 04 "Keyboard"; `SlideThumbnail` README.
+- **P2 Grid and list keys**
+  - Steps: Tab into the 장 grid, then press ↑, ↓, Enter, ←, →, Space, Page Up,
+    and Page Down. Then do the same in the 예배 순서 list, with Home and End.
+  - Expected: Tab enters the grid once. In the grid, ↑ and ↓ move the selection
+    and Enter outputs the selected tile; ←, →, Space, Page Up, and Page Down are
+    the live keys of P3 even with the grid in focus. The list keeps ↑, ↓, Home,
+    End, and Enter and passes the same live keys on.
+  - Source: spec 10 "Focus precedence" rule 5 (decided, follows ProPresenter),
+    which narrows the `SlideThumbnail` README and spec 04 "Keyboard".
 - **P3 Next and previous**
-  - Steps: → and Space from no live 장, from the middle, and from the last tile;
-    ← from the first tile.
-  - Expected: With no live 장, the first tile of the open item; then the next
-    tile in the sequence; from the last tile, the first tile of the next item
-    that can output (skipping headers and slots); ← on the first tile does
-    nothing.
-  - Source: spec 04 (proposals).
+  - Steps: Press →, Space, and Page Down, and then ← and Page Up: with no live
+    장, from the middle, on the last tile, and on the first tile. Open another
+    item in the 장 panel while a 장 of the first item is live, and press →. Hold
+    → (one press and repeats). Press → with the toolbar search field in focus,
+    after a mouse click on a toolbar button, and with Tab focus on a toolbar
+    button (then Space). Press Ctrl ↓, Ctrl ↑, and Ctrl L.
+  - Expected: →, Space, and Page Down output the next tile; ← and Page Up the
+    previous one. With no live 장, next outputs the first tile of the open item.
+    On the last tile, next does nothing (장 넘기기 default 멈춤); on the first
+    tile, previous does nothing. With another item open, → outputs that item's
+    first tile. A held → moves one 장 (repeats are ignored). In the search field
+    the keys stay in the field. A mouse click on a toolbar button doesn't take
+    keyboard focus, so Space still moves on; with Tab focus on a button, Space
+    presses it. Ctrl ↓ and Ctrl ↑ select the next and previous item that can
+    output (skipping headers and slots) without output; Ctrl L opens the live
+    item in the 장 panel.
+  - Source: spec 10 "Command list" (다음 장, 이전 장, 다음 항목, 이전 항목, 출력
+    중인 항목 열기), "Ignore key repeat", "Focus precedence", and the 장 넘기기
+    setting (all decided).
 - **P4 LIVE badge and current item**
   - Steps: Output 장 from two items in turn; clear lyrics.
   - Expected: The LIVE badge follows the item the live 장 came from. After F2
@@ -680,7 +738,7 @@ Sources: MILESTONES criterion 4; `docs/spec/03-output.md` "Lost monitors" and
   - Expected: No disconnect event at the unplug; turning on follows X1.
   - Source: spec 03 (proposal).
 - **X5 Other screens unaffected**
-  - Steps: Unplug FM3 with both outputs on.
+  - Steps: With O3's precondition met, unplug FM3 with both outputs on.
   - Expected: Only the 무대 화면 moves to a window; the 본 화면 frame counts
     stay the same.
   - Source: spec 03.
@@ -735,11 +793,18 @@ Sources: MILESTONES criterion 4; `docs/spec/03-output.md` "Lost monitors" and
     dialog is M3).
   - Source: MILESTONES criterion 4; spec 08 "Crash and restart".
 - **X15 Recovery record**
-  - Steps: During X14, read `recovery\live.json` and `recovery\session.lock`
-    before the kill and after a clean quit.
-  - Expected: If M2 writes the record: it holds the fields in spec 02 (written
-    within about 1 s of each change), and `session.lock` exists while running
-    and is gone after a clean quit. Record what M2 writes.
+  - Steps: While the app runs, read `recovery\live.json` and
+    `recovery\session.lock`; change the output state (turn an output on, output
+    a 장, change the background) and read the record again after 1.5 s; then
+    P-kill, and on another run quit cleanly.
+  - Expected: `docs/PLAN.md` phase 2 requires the record, so a missing or stale
+    record fails. While the app runs, `session.lock` exists and `live.json`
+    parses with the spec 02 fields for what M2 outputs: `savedAt`, `outputs`
+    (equal to the live state), `serviceId` and `itemId`, `slide` (song, 구성
+    name, position), and `media`. Each change shows in the record within about 1
+    s (spec 02 allows batching to once per second). After P-kill, `session.lock`
+    remains and `live.json` holds the last state. After a clean quit,
+    `session.lock` is gone. The recovery dialog that reads the record is M3.
   - Source: spec 02 "What isn't saved, and the recovery record"; `docs/PLAN.md`
     phase 2.
 - **X16 Force-quit during a save**
@@ -775,18 +840,22 @@ Sources: MILESTONES criterion 3; `docs/TECH.md` "Memory" and "Verification";
 `scripts/README.md` "`npm run soak`".
 
 - **SK1 The app writes the record**
-  - Steps: `npm run soak -- --minutes 5`.
+  - Steps: A 5-minute soak run as "Safe launching" describes, then
+    `npm run soak -- --minutes 5 --judge <record.jsonl>`.
   - Expected: The record follows the format in `scripts/README.md` (one sample
     per line, `main`, `control`, `gpu`, and `output:<screen id>` processes, and
     each output's fps), and the judge reads it.
   - Source: M2 task (devops); `scripts/README.md`.
 - **SK2 60 minutes on fake monitors**
-  - Steps: `npm run soak` with 본 화면 and 무대 화면 on FM2 and FM3, the looping
+  - Steps: A 60-minute soak run as "Safe launching" describes, with the 본 화면
+    on FM2 (and the 무대 화면 on FM3 if O3's precondition is met), the looping
     video, and a 장 change every 5 seconds; P-frames(main) for the last 10
-    minutes; P-counters at the start and the end.
-  - Expected: The judge passes (no memory growth in any process); the median fps
-    is at least 58; frames over 50 ms are recorded (target: none); DOM nodes and
+    minutes; P-counters at the start and the end; then
+    `npm run soak -- --minutes 60 --judge <record.jsonl>`.
+  - Expected: The judge passes (no memory growth in any process). DOM nodes and
     video elements in the output windows are the same at the start and the end.
+    The median fps (the judge warns under 58) and frames over 50 ms are recorded
+    as observations.
   - Source: MILESTONES criterion 3.
 - **SK3 60 minutes on two real monitors, with the user**
   - Steps: As SK2 with the real second monitor and, if the user has one, a
@@ -809,9 +878,10 @@ Sources: MILESTONES criterion 3; `docs/TECH.md` "Memory" and "Verification";
 - **SK6 The status bar fps**
   - Steps: Compare the status bar's fps with P-frames during SK2; throttle the
     output's CPU (CDP `Emulation.setCPUThrottlingRate`) for 5 s.
-  - Expected: The values agree within 2 fps; under throttling the status turns
-    to a warning after 2 s and back to normal 2 s after the throttling ends,
-    with no flicker.
+  - Expected: Under throttling, the status turns to a warning after 2 s of more
+    than 10% below 60 fps and back to normal 2 s after the throttling ends, with
+    no flicker (`StatusBar` README). The difference between the status bar's fps
+    and P-frames is recorded as an observation.
   - Source: `StatusBar` README; spec 03 "Previews and frame rate".
 
 ### G. Gallery, M2 components

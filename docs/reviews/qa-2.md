@@ -98,4 +98,39 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 (Codex 0:6, Request changes). All six findings are addressed in round 2:
+
+1. **Safe launches.** Agreed. A new section, "Safe launching", says how every
+   run starts Electron: the app through the QA launcher (invisible windows,
+   recorded dialog, focus, full screen, and always-on-top calls), the gallery
+   with `npm run gallery` and the invisible viewer, and soak runs through the
+   launcher with the `LLP_SOAK_*` variables, judged with
+   `npm run soak -- --minutes <n> --judge`. It names the commands QA never runs
+   (`npm run soak` without `--judge`, `npm run dev`, `electron-vite dev`,
+   `electron .`), and only K22, X20, and SK3 show windows. SK1 and SK2 use it.
+   The M1 plan's P-gallery and safety rule, which the M2 plan inherits, now say
+   the same; the fake monitors sit right of the real one, where the windows stay
+   invisible.
+2. **P2 and P3 against spec 10.** Agreed. P2 follows focus precedence rule 5
+   (the grid keeps ↑, ↓, and Enter; the list also Home and End; ←, →, Space,
+   Page Up, and Page Down stay live keys). P3 covers →, Space, Page Down, ←, and
+   Page Up, the last 장 stopping (멈춤), opening another item before →, held
+   keys, the search field, click and Tab focus on a toolbar button, and Ctrl ↓,
+   Ctrl ↑, and Ctrl L.
+3. **F6 and the autosave delay.** Agreed. F6 now watches the folder and kills at
+   three real write stages (the temporary file appearing, at full size, and
+   right after the rename), and checks the next start.
+4. **Numbers without a rule.** Agreed. F13 keeps "no gap in the frame record"
+   and records frames over 50 ms and the counts; SK2 records the median fps (the
+   judge's warning under 58) and long frames; SK6 keeps the `StatusBar` README
+   switching rules and records the fps difference.
+5. **States M2 can't set.** Agreed. K1 to K7 assert each layer's content first
+   and name the fixtures for lyrics, media, and 메시지; F4, F5, and F7 are
+   blocked, never passed, unless the build adds a way to fill 소품, 오디오, or
+   공지. O3 asserts that a 무대 화면 screen exists (from a `screens.json`
+   fixture if the build reads one) and, without it, blocks O3, X5, and the 무대
+   화면 part of SK2.
+6. **Recovery record.** Agreed. X15 now requires `recovery\live.json` with the
+   spec 02 fields for what M2 outputs, updated within about 1 s of each change,
+   and `session.lock` while running, kept after a kill, and gone after a clean
+   quit. Missing or stale fails. The dialog stays M3.
