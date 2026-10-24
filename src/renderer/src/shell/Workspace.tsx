@@ -29,7 +29,8 @@ const panelsByWorkspace: Readonly<
 };
 
 interface PanelParts {
-  /** Draws the body as it is, without the panel, as the 지우기 row does. */
+  // NOTE(0913vision): `bare` draws its content without the panel around it,
+  // as the 지우기 row does.
   readonly bare?: ReactNode;
   readonly body?: ReactNode;
   readonly meta?: ReactNode;

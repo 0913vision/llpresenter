@@ -1,10 +1,15 @@
 # Review request: `shell-8`
 
+Review range: 7f61168...fix/shell/button-keys
+
+What to check: only the two fixes (a focused control takes Space and the arrows;
+the tile name with a comma) and the two nits of round 1, plus the one comment
+change in `Workspace.tsx` (the TSDoc nit of shell-7). The branch no longer sits
+on the previews branch.
+
 - Team member: `shell`
-- Branch: `fix/shell/button-keys` (stacked on `feat/shell/previews`, which is
-  stacked on shell-5, shell-6, and shell-7)
-- Base commit: the last commit of `feat/shell/previews` (`900cef4`). The two
-  fixes below touch only files from shell-5, so they can merge right after it.
+- Branch: `fix/shell/button-keys`
+- Base commit (`main`): `7f61168`
 - Last commit: see the commit that adds this file
 - Related brief: qa's finding on shell-5 (rule 6) and the lead's queue
 
@@ -116,3 +121,8 @@ Round 1 (codex2): Approve with two nits, both taken here.
    `feat/shell/previews` `900cef4`, which is on shell-7 round 2) passed all five
    steps in 117.5 s: `typecheck`, `lint`, `format:check`, `test:coverage`, and
    `build`.
+5. Restack: shell-5, shell-6, and shell-7 are merged, so this branch moved onto
+   `main` 7f61168 directly (`git rebase --onto main`), without conflicts and
+   without the previews commit. I also took the TSDoc nit of shell-7: the
+   comment on the unexported `PanelParts.bare` in `Workspace.tsx` is now a
+   `NOTE(0913vision)`.
