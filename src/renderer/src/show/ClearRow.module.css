@@ -52,6 +52,16 @@
   background: var(--bg-control-hover);
 }
 
+.undo[data-state='off'] {
+  background: var(--bg-toolbar-hover);
+  color: var(--text-off);
+  cursor: default;
+}
+
+.undo[data-state='off']:hover {
+  background: var(--bg-toolbar-hover);
+}
+
 .label {
   font: var(--type-caption-strong);
 }

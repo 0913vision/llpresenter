@@ -1,4 +1,4 @@
-import {cleanup, fireEvent, render, screen} from '@testing-library/react';
+import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 import type {LiveCommand} from '@shared/commands';
 import {emptyLayers, emptyLiveState, type LiveLayers} from '@shared/live';
@@ -17,6 +17,10 @@ function installApi(): void {
       subscribe: () => () => undefined,
     },
   });
+}
+
+function setCanUndo(canUndo: boolean): void {
+  useLive.setState({state: {...emptyLiveState(), canUndo}});
 }
 
 function setLayers(layers: Partial<LiveLayers>): void {
@@ -120,10 +124,42 @@ describe('ClearRow', () => {
     expect(sent).toHaveLength(0);
   });
 
-  it('sends clear.undo from the undo button', () => {
+  it('sends clear.undo from the undo button while there is something to undo', () => {
+    setCanUndo(true);
     render(<ClearRow compact={false} />);
-    fireEvent.click(screen.getByRole('button', {name: '되돌리기'}));
+    const undo = screen.getByRole('button', {name: '되돌리기'});
+    expect(undo.getAttribute('aria-disabled')).toBe('false');
+    expect(undo.getAttribute('data-state')).toBeNull();
+    fireEvent.click(undo);
     expect(sent).toEqual([{type: 'clear.undo'}]);
+  });
+
+  it('dims the undo button and sends nothing when there is nothing to undo', () => {
+    setCanUndo(false);
+    render(<ClearRow compact={false} />);
+    const undo = screen.getByRole('button', {name: '되돌리기'});
+    expect(undo.getAttribute('aria-disabled')).toBe('true');
+    expect(undo.getAttribute('data-state')).toBe('off');
+    expect(undo.hasAttribute('disabled')).toBe(false);
+    fireEvent.click(undo);
+    expect(sent).toHaveLength(0);
+  });
+
+  it('dims the undo button before the first live state arrives', () => {
+    render(<ClearRow compact={false} />);
+    expect(
+      screen.getByRole('button', {name: '되돌리기'}).getAttribute('data-state'),
+    ).toBe('off');
+  });
+
+  it('follows the live state when a clear becomes undoable and when it is undone', () => {
+    setCanUndo(false);
+    render(<ClearRow compact={false} />);
+    const undo = screen.getByRole('button', {name: '되돌리기'});
+    act(() => setCanUndo(true));
+    expect(undo.getAttribute('data-state')).toBeNull();
+    act(() => setCanUndo(false));
+    expect(undo.getAttribute('data-state')).toBe('off');
   });
 
   it('shows the names in the regular form and only icons in the compact form', () => {

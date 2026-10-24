@@ -3,6 +3,7 @@ import {Icon} from '@renderer/ui/Icon';
 import {
   clearLayer,
   undoClear,
+  useCanUndo,
   useSomethingToClear,
 } from '@renderer/state/clear';
 import {clearButtons, UNDO_SHORTCUT, type ClearButtonSpec} from './clear';
@@ -38,6 +39,7 @@ function ClearButton({
 
 /** The 지우기 row of the 진행 workspace: one button per layer, and 되돌림. */
 export function ClearRow({compact}: {readonly compact: boolean}): JSX.Element {
+  const canUndo = useCanUndo();
   return (
     <div
       role="group"
@@ -53,6 +55,8 @@ export function ClearRow({compact}: {readonly compact: boolean}): JSX.Element {
         className={`${styles.button} ${styles.undo}`}
         aria-label="되돌리기"
         aria-keyshortcuts="Control+Z"
+        aria-disabled={!canUndo}
+        data-state={canUndo ? undefined : 'off'}
         title={`되돌리기 ${UNDO_SHORTCUT}`}
         onClick={undoClear}
       >

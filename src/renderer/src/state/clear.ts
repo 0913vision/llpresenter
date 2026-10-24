@@ -16,8 +16,13 @@ export function clearLayer(target: ClearTarget): void {
   sendLive({type: 'layer.clear', target});
 }
 
-// TODO(0913vision): Ask for undo only while the live state says there is
-// something to undo (`canUndo`), and dim the 되돌림 button otherwise.
+/** Whether the live state has a clear that 되돌림 can undo. */
+export function useCanUndo(): boolean {
+  return useLive(view => view.state?.canUndo ?? false);
+}
+
+/** Undoes the last clear. With nothing to undo it does nothing. */
 export function undoClear(): void {
+  if (!useLive.getState().state?.canUndo) return;
   sendLive({type: 'clear.undo'});
 }
