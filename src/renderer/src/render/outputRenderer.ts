@@ -12,6 +12,25 @@ export interface OutputRendererOptions {
   readonly onError: (message: string, error: unknown) => void;
 }
 
+/** The layers from the bottom up (docs/spec/03-output.md, stacking order). */
+const LAYER_ORDER = ['background', 'lyrics'] as const;
+
+type LayerName = (typeof LAYER_ORDER)[number];
+
+/**
+ * A positioned box for one layer with its place in the order as its z-index,
+ * so each layer is its own stacking context and nothing inside one, such as a
+ * video's z-index, can rise above a higher layer.
+ */
+function createLayerBox(root: HTMLElement, name: LayerName): HTMLElement {
+  const box = document.createElement('div');
+  box.className = classes.layer;
+  box.style.zIndex = String(LAYER_ORDER.indexOf(name));
+  box.dataset['layer'] = name;
+  root.append(box);
+  return box;
+}
+
 /**
  * Draws one screen's layers from the live state, bottom up: the background
  * media, then the lyrics. A layer that fails to draw keeps its last picture,
@@ -28,8 +47,14 @@ export class OutputRenderer {
     private readonly options: OutputRendererOptions,
   ) {
     this.root.className = classes.root;
-    this.background = new BackgroundLayerView(this.root, options);
-    this.slide = new SlideLayerView(this.root, options.lyricStyle);
+    this.background = new BackgroundLayerView(
+      createLayerBox(this.root, 'background'),
+      options,
+    );
+    this.slide = new SlideLayerView(
+      createLayerBox(this.root, 'lyrics'),
+      options.lyricStyle,
+    );
     parent.append(this.root);
     this.resizeObserver = new ResizeObserver(() => this.rescale());
     this.resizeObserver.observe(this.root);

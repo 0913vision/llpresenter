@@ -49,6 +49,23 @@ function setUp() {
 }
 
 describe('OutputRenderer', () => {
+  it('keeps the playing video under the lyrics in separate stacking contexts', () => {
+    const {parent, renderer} = setUp();
+    renderer.render(WITH_SLIDE);
+    parent.querySelector('video[src]')?.dispatchEvent(new Event('playing'));
+    const box = (name: string): HTMLElement | null =>
+      parent.querySelector<HTMLElement>(`[data-layer="${name}"]`);
+    const background = box('background');
+    const lyrics = box('lyrics');
+    expect(Number(background?.style.zIndex)).toBeLessThan(
+      Number(lyrics?.style.zIndex),
+    );
+    expect(
+      background?.querySelector('video[src]')?.getAttribute('style'),
+    ).toContain('z-index: 1');
+    expect(lyrics?.querySelector('video')).toBeNull();
+  });
+
   it('draws the background under the lyrics', () => {
     const {parent, renderer} = setUp();
     renderer.render(WITH_SLIDE);
