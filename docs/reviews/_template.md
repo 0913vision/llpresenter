@@ -1,7 +1,7 @@
 # Review request: `<name>-<number>`
 
 - Team member: `<session name>`
-- Branch: `rewrite/<name>`
+- Branch: `team/<name>`
 - Base commit (`rewrite`): `<hash>`
 - Last commit: `<hash>`
 - Related brief: `docs/briefs/<name>.md`

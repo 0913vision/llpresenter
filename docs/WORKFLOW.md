@@ -33,7 +33,7 @@ read-only) takes this role.
   turned off. Team members start in the same mode. If the modes differ, messages
   between sessions stall while they wait for the user's approval.
 - The lead starts team members with the session start tool: a fresh context,
-  their own worktree, the branch `rewrite/<name>`, and running locally.
+  their own worktree, the branch `team/<name>`, and running locally.
 - The lead can start a new session right away only in a turn that a user message
   started. In a turn woken by a team member's completion notice, the lead can
   only offer a suggestion card, so the next bundle starts when the user says to
@@ -64,10 +64,10 @@ read-only) takes this role.
    wait:
 
    ```text
-   Review request: docs/reviews/<name>-<number>.md, branch rewrite/<name>, commit <hash>
+   Review request: docs/reviews/<name>-<number>.md, branch team/<name>, commit <hash>
    ```
 
-5. **Review:** The lead looks at `git diff rewrite...rewrite/<name>` and at the
+5. **Review:** The lead looks at `git diff rewrite...team/<name>` and at the
    actual behavior. At the same time, the lead calls the reviewer to review the
    same range separately. Both reviewers follow Google's engineering practices:
    approve a change once it improves the overall health of the code, even if it
@@ -81,7 +81,7 @@ read-only) takes this role.
    adds new commits, and then starts again from step 2.
 7. **Approve and merge:** When both the lead and the reviewer approve, the lead
    confirms that the team member's branch sits on the latest `rewrite` and
-   merges it by fast-forward only: `git merge --ff-only rewrite/<name>`. If
+   merges it by fast-forward only: `git merge --ff-only team/<name>`. If
    `rewrite` moved in the meantime, the lead asks the team member to rebase
    again. If a conflict in that rebase changed code, the branch gets reviewed
    again. If the branch only moved up without conflicts, it doesn't.
@@ -165,9 +165,11 @@ folders, several copies of the same app can run without colliding.
 | tools   | 5183 | `D:\llp-dev\tools`  |
 | polish  | 5184 | `D:\llp-dev\polish` |
 
-The desktop app names a new worktree's branch itself, so each member renames it
-to `rewrite/<name>` first (`git branch -m rewrite/<name>`). The SessionStart
-hook tells sessions apart by that branch name.
+Member branches are `team/<name>`. They can't be `rewrite/<name>`, because git
+stores a branch as a file, and `refs/heads/rewrite` can't be both a file and a
+folder. If a tool names a new worktree's branch itself, the member renames it to
+`team/<name>` first (`git branch -m team/<name>`). The SessionStart hook tells
+sessions apart by that branch name.
 
 ## Windows pitfalls
 

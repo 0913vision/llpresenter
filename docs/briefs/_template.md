@@ -1,7 +1,7 @@
 # Brief: `<name>`
 
 - Session name: `<name>`
-- Branch: `rewrite/<name>` (own worktree)
+- Branch: `team/<name>` (own worktree)
 - Dev server port: `<port>`; app data folder: `D:\llp-dev\<name>`
 - Phase: `<phase>`
 
@@ -59,7 +59,7 @@
 4. Send the lead this message with SendMessage, and wait:
 
    ```text
-   Review request: docs/reviews/<name>-<number>.md, branch rewrite/<name>, commit <hash>
+   Review request: docs/reviews/<name>-<number>.md, branch team/<name>, commit <hash>
    ```
 
 5. If changes are requested, address them and start again from step 1.

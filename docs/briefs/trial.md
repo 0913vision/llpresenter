@@ -1,7 +1,7 @@
 # Brief: trial
 
 - Session name: trial
-- Branch: `rewrite/trial` (own worktree)
+- Branch: `team/trial` (own worktree)
 - Dev server port: 5190; app data folder: `D:\llp-dev\trial` (the initial
   scaffold reads `LLP_DEV_PORT` and `LLP_USER_DATA`)
 - Phase: phase 1, after the initial scaffold lands on `rewrite`
@@ -14,7 +14,7 @@ app, review requests, messages, rebasing, and fast-forward merges.
 
 ## Tasks
 
-0. Before anything else, rename your branch with `git branch -m rewrite/trial`,
+0. Before anything else, rename your branch with `git branch -m team/trial`,
    then create `.llp/notes.md` as `CLAUDE.md` describes under "Context and
    compaction".
 1. Record the worktree information: the path that
@@ -36,7 +36,7 @@ app, review requests, messages, rebasing, and fast-forward merges.
    SendMessage, and wait:
 
    ```text
-   Review request: docs/reviews/trial-1.md, branch rewrite/trial, commit <hash>
+   Review request: docs/reviews/trial-1.md, branch team/trial, commit <hash>
    ```
 
 7. If the lead adds one more commit to `rewrite` and asks you to rebase again,

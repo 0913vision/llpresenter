@@ -187,8 +187,8 @@ without exception.
 
 ## Team member rules
 
-- Work only in your own worktree and branch (`rewrite/<name>`), and change only
-  the files your brief lists as yours.
+- Work only in your own worktree and branch (`team/<name>`), and change only the
+  files your brief lists as yours.
 - Only the lead changes shared files: `package.json`, `package-lock.json`,
   `src/shared/`, design tokens, `CLAUDE.md`, `docs/STATUS.md`, `docs/PLAN.md`,
   and `docs/HANDOFF.md`. Ask the lead when you need a change there.

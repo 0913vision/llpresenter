@@ -8,7 +8,7 @@ export const NOTES_PATH = '.llp/notes.md';
 
 const STATUS_PATH = 'docs/STATUS.md';
 const LEAD_BRANCH = 'rewrite';
-const MEMBER_PREFIX = 'rewrite/';
+const MEMBER_PREFIX = 'team/';
 const MAX_NOTES_CHARS = 12_000;
 const MAX_STATUS_LINES = 80;
 const MAX_CHANGED_FILES = 20;

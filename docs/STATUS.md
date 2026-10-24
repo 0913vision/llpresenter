@@ -15,12 +15,12 @@ Only the lead edits this file. Last updated: October 24, 2026.
 
 ## Sessions
 
-| Name   | Branch           | State                       | Brief                   |
-| ------ | ---------------- | --------------------------- | ----------------------- |
-| lead   | `rewrite`        | Held by the phase 0 session | `docs/briefs/lead.md`   |
-| trial  | `rewrite/trial`  | Started                     | `docs/briefs/trial.md`  |
-| devops | `rewrite/devops` | Started                     | `docs/briefs/devops.md` |
-| ui     | `rewrite/ui`     | Started                     | `docs/briefs/ui.md`     |
+| Name   | Branch        | State                       | Brief                   |
+| ------ | ------------- | --------------------------- | ----------------------- |
+| lead   | `rewrite`     | Held by the phase 0 session | `docs/briefs/lead.md`   |
+| trial  | `team/trial`  | Not started                 | `docs/briefs/trial.md`  |
+| devops | `team/devops` | Not started                 | `docs/briefs/devops.md` |
+| ui     | `team/ui`     | Not started                 | `docs/briefs/ui.md`     |
 
 ## Next steps
 

@@ -1,7 +1,7 @@
 # Brief: ui
 
 - Session name: ui
-- Branch: `rewrite/ui` (own worktree)
+- Branch: `team/ui` (own worktree)
 - Dev server port: 5186; app data folder: `D:\llp-dev\ui`
 - Phase: phase 1, in parallel with trial, devops, and the lead
 
@@ -15,7 +15,7 @@ them small, typed, accessible, and well tested.
 
 ## Tasks
 
-1. Before anything else, rename your branch: `git branch -m rewrite/ui`. Then
+1. Before anything else, rename your branch: `git branch -m team/ui`. Then
    create `.llp/notes.md` as `CLAUDE.md` describes under "Context and
    compaction".
 2. **First batch (review request `ui-1`):** `Button`, `IconButton`,
@@ -119,7 +119,7 @@ them small, typed, accessible, and well tested.
 4. Send the lead this message with SendMessage:
 
    ```text
-   Review request: docs/reviews/ui-<number>.md, branch rewrite/ui, commit <hash>
+   Review request: docs/reviews/ui-<number>.md, branch team/ui, commit <hash>
    ```
 
 5. If changes are requested, address them and start again from step 1.

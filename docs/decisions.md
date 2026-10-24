@@ -79,3 +79,7 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   each session keeping its own context (user). The shared UI components moved
   from the lead's share to the ui member. The lead keeps the shell, the data
   schemas, reviews, and merges.
+- 2026-10-24: Member branches are `team/<name>` instead of `rewrite/<name>`. Git
+  can't hold the `rewrite` branch and a `rewrite/<name>` branch at the same
+  time, so the earlier name could never be created. Found when the first member
+  worktree failed to create.

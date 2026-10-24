@@ -1,7 +1,7 @@
 # Brief: devops
 
 - Session name: devops
-- Branch: `rewrite/devops` (own worktree)
+- Branch: `team/devops` (own worktree)
 - Dev server port: 5185; app data folder: `D:\llp-dev\devops`
 - Phase: phase 1 (in parallel with the lead's foundation work)
 
@@ -14,7 +14,7 @@ Your job is to make tools enforce the "Quality bar" in `docs/TECH.md`.
 
 ## Tasks
 
-- **First:** rename your branch with `git branch -m rewrite/devops`, then create
+- **First:** rename your branch with `git branch -m team/devops`, then create
   `.llp/notes.md` as `CLAUDE.md` describes under "Context and compaction".
   `scripts/session-context.ts` (the SessionStart hook) is the lead's. Keep it
   working if you change `scripts/`.
