@@ -109,4 +109,24 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 (codex4), answered once:
+
+1. Finding 1 (the slider takes the keyboard focus): fixed. The slider notes the
+   focused element on pointer down and puts the focus back on pointer up (it
+   blurs itself when nothing had focus), so the live keys, which stay off in a
+   text field, keep working after a mouse use. Tab still reaches the slider, and
+   keyboard use of it is unchanged. Tests in `Workspace.test.tsx`: "keeps the
+   live keys working after the thumbnail slider is used with the mouse" (the
+   workspace test of the finding: a tile has focus, the slider is used, and
+   Space still outputs the next 장) and "blurs the slider after the mouse when
+   nothing had focus, and Tab can still reach it". In the running app, after
+   clicking a tile and then the slider, the focus stayed on the tile and Space
+   moved the live 장.
+2. Finding 2 (TSDoc on unexported names): removed from `PanelParts` and from
+   `ShowView.thumbnailColumns`. The names carry the meaning, and the one fact
+   that a name cannot carry (why the slider gives its focus back) is a
+   `NOTE(0913vision)` in `SlidePanel.tsx`.
+3. Finding 3 (nit, footer height): the footer uses `--size-panel-footer` (32
+   px).
+4. Restack: rebased onto the new shell-5 (round 2, `7ae5576`) with
+   `git rebase --onto`, without conflicts.

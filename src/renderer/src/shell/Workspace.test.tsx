@@ -1,6 +1,7 @@
-import {cleanup, fireEvent, render} from '@testing-library/react';
+import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {isColumnDragActive} from '@renderer/state/drag';
+import * as showState from '@renderer/state/show';
 import {createMemoryColumnWidthStore} from './columnWidthStore';
 import {Workspace} from './Workspace';
 
@@ -338,6 +339,59 @@ describe('Workspace column gaps', () => {
     expect(isColumnDragActive()).toBe(true);
     unmount();
     expect(isColumnDragActive()).toBe(false);
+  });
+
+  it('keeps the live keys working after the thumbnail slider is used with the mouse', () => {
+    const next = vi
+      .spyOn(showState, 'outputNext')
+      .mockImplementation(() => undefined);
+    showState.openItem('song-morning');
+    const {container} = render(
+      <Workspace
+        id="show"
+        sizeClass="normal"
+        store={createMemoryColumnWidthStore()}
+      />,
+    );
+    const tile = container.querySelector<HTMLElement>(
+      '[role="option"][tabindex="0"]',
+    );
+    if (!tile) throw new Error('The selected tile is missing');
+    tile.focus();
+    const slider = screen.getByRole('slider', {name: '썸네일 크기'});
+
+    fireEvent.pointerDown(slider, {pointerId: 1, button: 0});
+    slider.focus();
+    fireEvent.change(slider, {target: {value: '7'}});
+    fireEvent.pointerUp(slider, {pointerId: 1});
+
+    expect(document.activeElement).toBe(tile);
+    fireEvent.keyDown(document.activeElement ?? document.body, {
+      code: 'Space',
+      key: ' ',
+    });
+    expect(next).toHaveBeenCalledTimes(1);
+  });
+
+  it('blurs the slider after the mouse when nothing had focus, and Tab can still reach it', () => {
+    const next = vi
+      .spyOn(showState, 'outputNext')
+      .mockImplementation(() => undefined);
+    render(
+      <Workspace
+        id="show"
+        sizeClass="normal"
+        store={createMemoryColumnWidthStore()}
+      />,
+    );
+    const slider = screen.getByRole('slider', {name: '썸네일 크기'});
+    fireEvent.pointerDown(slider, {pointerId: 1, button: 0});
+    slider.focus();
+    fireEvent.pointerUp(slider, {pointerId: 1});
+    expect(document.activeElement).not.toBe(slider);
+    fireEvent.keyDown(document.body, {code: 'Space', key: ' '});
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(slider.tabIndex).toBe(0);
   });
 
   it('removes the resize listener when it unmounts', () => {

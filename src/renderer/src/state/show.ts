@@ -34,7 +34,6 @@ interface ShowView {
   readonly openItemId: ItemId | null;
   /** The selected tile of the open item. */
   readonly selectedTile: number;
-  /** The thumbnail columns the operator chose, per size class. */
   readonly thumbnailColumns: Readonly<Partial<Record<SizeClass, number>>>;
   /** 이름표 jump keys: a physical key (`KeyboardEvent.code`) to an 이름표 name. */
   readonly jumpKeys: Readonly<Record<string, string>>;

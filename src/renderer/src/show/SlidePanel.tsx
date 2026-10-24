@@ -1,4 +1,4 @@
-import type {ChangeEvent, JSX} from 'react';
+import {useRef, type ChangeEvent, type JSX, type PointerEvent} from 'react';
 import type {SizeClass} from '@renderer/shell/sizeClass';
 import {useLive} from '@renderer/state/live';
 import {
@@ -59,6 +59,28 @@ export function ThumbnailSizeSlider({
   readonly sizeClass: SizeClass;
 }): JSX.Element {
   const columns = useThumbnailColumns(sizeClass);
+  const focusBeforePointer = useRef<Element | null>(null);
+
+  // NOTE(0913vision): A click on the slider must not take the keyboard focus,
+  // because the live keys stay off in a text field and the slider is an input.
+  // Tab still reaches it. The focus goes back to where it was after the pointer
+  // is released.
+  const onPointerDown = (): void => {
+    focusBeforePointer.current = document.activeElement;
+  };
+  const onPointerUp = (event: PointerEvent<HTMLInputElement>): void => {
+    const previous = focusBeforePointer.current;
+    focusBeforePointer.current = null;
+    if (
+      previous instanceof HTMLElement &&
+      previous.isConnected &&
+      previous !== document.body
+    ) {
+      previous.focus({preventScroll: true});
+    } else {
+      event.currentTarget.blur();
+    }
+  };
   const onChange = (event: ChangeEvent<HTMLInputElement>): void =>
     setThumbnailColumns(
       sizeClass,
@@ -73,6 +95,8 @@ export function ThumbnailSizeSlider({
       max={MAX_THUMBNAIL_COLUMNS}
       step={1}
       value={SLIDER_SUM - columns}
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
       onChange={onChange}
     />
   );

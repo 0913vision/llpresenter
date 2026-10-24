@@ -29,9 +29,7 @@ const panelsByWorkspace: Readonly<
 
 interface PanelParts {
   readonly body?: ReactNode;
-  /** Shown in the header after the tab name. */
   readonly meta?: ReactNode;
-  /** A row under the body. */
   readonly footer?: ReactNode;
 }
 
