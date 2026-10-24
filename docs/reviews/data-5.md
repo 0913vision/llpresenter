@@ -2,7 +2,7 @@
 
 - Team member: `data`
 - Branch: `feat/data/ipc`, stacked on `data-1` (`feat/data/schemas`)
-- Base commit (`main`): `5cfd4f4`
+- Base commit (`main`): `86f5926`
 - Last commit: see the commit that adds this file
 - Related brief: `docs/briefs/data.md`; merge queue #10 in `docs/STATUS.md`
 
@@ -16,8 +16,12 @@ Shared changes:
   `sizeClasses` in `appConfig.ts`.
 - `src/shared/testing/fakeLlpApi.ts` (new): a complete fake `window.llp`.
 - `src/preload/index.ts`: the new API groups.
-- `src/renderer/src/shell/Toolbar.test.tsx` (shell's file, changed with shell's
+- `src/renderer/src/shell/Toolbar.test.tsx`,
+  `src/renderer/src/show/ShowPanels.test.tsx`, and
+  `src/renderer/src/state/show.test.ts` (shell's files, changed with shell's
   permission): `installApi` uses `fakeLlpApi`, with the same behavior.
+- `src/shared/schema/liveState.ts` (new, round 2): checks live states that
+  arrive from the main process.
 
 ## What changed and why
 
@@ -58,16 +62,16 @@ For output-2 (output windows):
 
 ## Checks run
 
-`npm run verify` on the commit before this document, on `main` 5cfd4f4 with
+`npm run verify` on the commit before this document, on `main` 86f5926 with
 `data-1` below it: every step passed.
 
 | Command or test                    | Result                                                                |
 | ---------------------------------- | --------------------------------------------------------------------- |
 | `npm run typecheck`                | Passed                                                                |
-| `npm test`                         | Passed: 32 files, 338 tests                                           |
+| `npm test`                         | Passed: 62 files, 630 tests                                           |
 | `npm run format:check`             | Passed                                                                |
 | `npm run build`                    | Passed                                                                |
-| `npm run verify` (from phase 1 on) | Passed: typecheck, lint, format:check, test:coverage, build (102.0 s) |
+| `npm run verify` (from phase 1 on) | Passed: typecheck, lint, format:check, test:coverage, build (118.5 s) |
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
@@ -143,3 +147,26 @@ missing.
 ## Team member's reply
 
 1.
+
+Round 2, reply to the reviewer's finding:
+
+1. Replies are now checked on the receiving side, and I checked every reply the
+   preload gets from the main process:
+   - `ui.get` checks its reply with `parseUiState`.
+   - `live.get` checks its reply with `parseLiveState`, a new schema of
+     `LiveState`. `parseLiveState` returns `LiveState`, so the type checker
+     confirms the schema never lets through anything the type doesn't allow.
+   - States pushed on `live:changed` are checked too.
+   - A malformed reply, or a failed invoke, is logged through `log:write` and
+     gives the defaults: `{}` for the UI state and the empty live state for
+     `live.get`.
+   - A malformed pushed state is logged and skipped, so the window keeps the
+     last good state.
+   - New tests cover malformed replies (a width that is text, an array, no
+     reply), a rejected invoke, a malformed live state, and a malformed pushed
+     state.
+   - The schema tests cover `parseUiState` and `parseLiveState` directly.
+
+Also in this round: shell's show workspace landed on `main` with two more tests
+that build a full `LlpApi` by hand. With shell's permission, they now use
+`fakeLlpApi` too.
