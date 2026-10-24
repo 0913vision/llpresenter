@@ -62,3 +62,9 @@ files instead.
 | Command          | Result                                                                                                                                                                |
 | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `npm run verify` | Pass at 100% CPU, 391.5 s: typecheck 7.7 s, lint 55.7 s, format:check 145.6 s, test:coverage 178.8 s (123 files, 1353 passed and 1 skipped, no timeouts), build 3.6 s |
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (621ca2a): reviewer (Codex, codex5) Approve, no findings. Lead
+  Approve; renderer `*.node.test.ts` files now run in the node project, which
+  ui-5 needs. Rebased by the lead onto local `main` without conflicts.
