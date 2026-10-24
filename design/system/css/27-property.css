@@ -1,4 +1,4 @@
-/* 27 PropertyRow: 속성 칸의 묶음(ll-prop-group)과 줄(ll-prop). 이름 칸 너비는 놓인 곳(패널, 창)이 정한다 */
+/* 27 PropertyRow: property group (ll-prop-group) and row (ll-prop). The placement (panel, window) sets the name cell width */
 .ll-props { font-family: var(--font-ui); }
 .ll-prop-group { padding: var(--space-12) 0 var(--space-8); border-bottom: 1px solid var(--line); }
 .ll-prop-group:last-child { border-bottom: 0; }
@@ -13,14 +13,14 @@
 .ll-prop__value .ll-i { flex: none; width: var(--size-icon-14); height: var(--size-icon-14); color: var(--text-3); }
 .ll-prop__value--primary { color: var(--text); }
 .ll-prop__meta { flex: none; font-size: 12px; line-height: 16px; color: var(--text-3); }
-/* 여러 줄 조작이 오면 이름을 첫 줄에 맞춘다 */
+/* With a multi-line control, align the name with the first line */
 .ll-prop--top { align-items: flex-start; padding: var(--space-4) 0; }
 .ll-prop--top .ll-prop__label { padding-top: 7px; }
 
-/* 창(환경설정): 이름 168, 사이 16, 조작 칸 340, 줄 38 */
+/* Window (Preferences) */
 .ll-props--window .ll-prop { gap: var(--space-16); min-height: var(--size-prop-row-wide); }
 .ll-props--window .ll-prop__label { flex-basis: var(--size-prop-label-wide); }
 .ll-props--window .ll-prop__control { flex: 0 1 340px; }
 
-/* 두 단(Look 편집의 글자 속성): 단 사이 24 */
+/* Two columns (Look editor text properties) */
 .ll-prop-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--space-24); }

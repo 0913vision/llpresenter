@@ -1,11 +1,11 @@
-<!-- @dsCard group="진행 요소" height=1220 -->
+<!-- @dsCard group="Show" height=1220 -->
 <!doctype html>
 <html lang="ko">
 <head>
 <meta charset="utf-8">
 <title>PreviewFrame</title>
 <style>
-  /* 화면 안 내용은 Look이 그리는 출력이라 토큰이 아니다. 미리보기용 흉내 */
+  /* Look draws the screen content, so it uses no tokens. A stand-in for the preview. */
   .scr-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .scr-lyric { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; box-sizing: border-box; padding: 0 8%; color: var(--text-on-fill); font-size: 4.2cqw; line-height: 1.42; font-weight: 700; text-align: center; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6); word-break: keep-all; }
   .scr-logo { position: absolute; right: 3.1cqw; top: 2.4cqw; color: rgba(255, 255, 255, 0.72); font-size: 2cqw; line-height: 1; font-weight: 700; letter-spacing: 0.08em; }
@@ -29,7 +29,7 @@
 
   <div class="row">
     <div class="col">
-      <div class="ll-spec-title">보통 창, 오른쪽 열 480</div>
+      <div class="ll-spec-title">Regular window, right column 480</div>
       <section class="ll-panel w480" aria-label="미리보기">
         <div class="ll-panel__header"><div class="ll-panel__tabs"><span class="ll-panel__tab" role="tab" aria-selected="true">미리보기</span></div></div>
         <div class="ll-panel__body">
@@ -59,7 +59,7 @@
     </div>
 
     <div class="col">
-      <div class="ll-spec-title">좁은 창, 오른쪽 열 360, 작은 미리보기는 64px 줄</div>
+      <div class="ll-spec-title">Narrow window, right column 360, small previews as 64px rows</div>
       <section class="ll-panel w360" aria-label="미리보기">
         <div class="ll-panel__header"><div class="ll-panel__tabs"><span class="ll-panel__tab" role="tab" aria-selected="true">미리보기</span></div></div>
         <div class="ll-panel__body">
@@ -91,7 +91,7 @@
 
   <div class="row">
     <div class="col">
-      <div class="ll-spec-title">작은 미리보기를 누르면 자리를 바꿈, 무대 화면을 크게</div>
+      <div class="ll-spec-title">A click on a small preview swaps places, 무대 화면 large</div>
       <section class="ll-panel w480" aria-label="미리보기">
         <div class="ll-panel__header"><div class="ll-panel__tabs"><span class="ll-panel__tab" role="tab" aria-selected="true">미리보기</span></div></div>
         <div class="ll-panel__body">
@@ -122,35 +122,35 @@
     </div>
 
     <div class="col">
-      <div class="ll-spec-title">상태</div>
+      <div class="ll-spec-title">States</div>
       <div class="states">
         <div class="ll-spec-item">
           <div class="ll-monitor w168"><button type="button" class="ll-monitor__small is-hover" aria-label="무대 화면 크게 보기">
             <span class="ll-monitor__frame"><span class="scr-stage"><span class="scr-stage-top"><span>저 천사여 찬송하세<br>찬송 성부 성자 성령</span><span>11:24</span></span></span><span class="scr-stage-bar">후렴 한 번 더</span></span>
             <span class="ll-monitor__caption"><span class="ll-monitor__name">무대 화면</span><span class="ll-monitor__target">모니터 3</span></span>
           </button></div>
-          <span class="ll-spec-label">마우스 올림, 1px line-control</span>
+          <span class="ll-spec-label">Hover, 1px line-control</span>
         </div>
         <div class="ll-spec-item">
           <div class="ll-monitor w168"><button type="button" class="ll-monitor__small is-focus" aria-label="방송 자막 크게 보기">
             <span class="ll-monitor__frame ll-monitor__frame--chroma"><span class="scr-bc">저 천사여 찬송하세<br>찬송 성부 성자 성령</span></span>
             <span class="ll-monitor__caption"><span class="ll-monitor__name">방송 자막</span><span class="ll-monitor__target">NDI</span></span>
           </button></div>
-          <span class="ll-spec-label">포커스</span>
+          <span class="ll-spec-label">Focus</span>
         </div>
         <div class="ll-spec-item">
           <div class="ll-monitor w168"><button type="button" class="ll-monitor__small" data-state="off" aria-label="방송 자막 크게 보기" title="방송 자막 출력이 꺼져 있습니다">
             <span class="ll-monitor__frame ll-monitor__frame--chroma"><span class="scr-bc">저 천사여 찬송하세<br>찬송 성부 성자 성령</span></span>
             <span class="ll-monitor__caption"><span class="ll-monitor__name">방송 자막</span><span class="ll-monitor__target">NDI</span></span>
           </button></div>
-          <span class="ll-spec-label">출력 꺼짐, 이름 text-off, 틀 line-strong</span>
+          <span class="ll-spec-label">Off, name text-off, frame line-strong</span>
         </div>
         <div class="ll-spec-item">
           <div class="ll-monitor w168"><button type="button" class="ll-monitor__small" data-state="warning" aria-label="무대 화면 크게 보기" title="모니터 3 연결 끊김, 창으로 표시 중">
             <span class="ll-monitor__frame"><span class="scr-stage"><span class="scr-stage-top"><span>저 천사여 찬송하세<br>찬송 성부 성자 성령</span><span>11:24</span></span></span><span class="scr-stage-bar">후렴 한 번 더</span></span>
             <span class="ll-monitor__caption"><span class="ll-monitor__name">무대 화면</span><span class="ll-monitor__target"><span class="ll-i ll-i-warning"></span>모니터 3</span></span>
           </button></div>
-          <span class="ll-spec-label">모니터 빠짐, warning</span>
+          <span class="ll-spec-label">Monitor missing, warning</span>
         </div>
       </div>
       <div class="ll-spec-item" style="margin-top: 8px">
@@ -164,7 +164,7 @@
             <div class="ll-monitor__caption"><span class="ll-monitor__name">본 화면</span><span class="ll-monitor__target"><span class="ll-i ll-i-monitor"></span>모니터 2</span><span class="ll-monitor__look">기본</span></div>
           </div>
         </div>
-        <span class="ll-spec-label">큰 미리보기, 출력 꺼짐</span>
+        <span class="ll-spec-label">Large preview, output off</span>
       </div>
       <div class="ll-spec-item">
         <div class="ll-monitor w360">
@@ -172,7 +172,7 @@
             <div class="ll-monitor__caption"><span class="ll-monitor__name">본 화면</span><span class="ll-monitor__target"><span class="ll-i ll-i-warning"></span>모니터 2</span><span class="ll-monitor__look">기본</span></div>
           </div>
         </div>
-        <span class="ll-spec-label">큰 미리보기 이름 줄, 모니터 빠짐</span>
+        <span class="ll-spec-label">Large preview name row, monitor missing</span>
       </div>
     </div>
   </div>

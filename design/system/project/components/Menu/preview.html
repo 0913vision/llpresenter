@@ -1,4 +1,4 @@
-<!-- @dsCard group="떠 있는 창" height=1674 -->
+<!-- @dsCard group="Overlays" height=1674 -->
 <!doctype html>
 <html lang="ko">
 <head>
@@ -6,7 +6,7 @@
 <title>Menu</title>
 <style>
   html, body { margin: 0; }
-  /* 미리보기 전용 틀: 메뉴를 실제 자리에 띄워 보이는 바탕 */
+  /* Preview-only stage that shows menus in their real positions */
   .pv-stage { position: relative; box-sizing: border-box; width: 920px; border-radius: var(--radius-lg); background: var(--bg-app); overflow: hidden; }
   .pv-stage .ll-menu { position: absolute; }
   .pv-work { position: absolute; left: 4px; right: 4px; top: 30px; bottom: 4px; border-radius: var(--radius-lg); background: var(--bg-panel); }
@@ -22,7 +22,7 @@
 <body>
 <div class="ll-preview">
 
-  <div class="ll-spec-title">메뉴줄 메뉴와 하위 메뉴: 하위 메뉴의 첫 항목은 부모 항목과 같은 높이(top = 부모 항목 top − 6), 가로는 부모 오른쪽에서 4px 겹침</div>
+  <div class="ll-spec-title">Menu bar menu and submenu: the first submenu item lines up with the parent item (top = parent item top − 6) and overlaps the parent's right edge by 4px</div>
   <div class="pv-stage" style="height: 280px">
     <div class="ll-menubar" style="width: 100%">
       <span class="ll-menubar__brand">LoveLight</span>
@@ -51,10 +51,10 @@
       <button class="ll-menu__item" role="menuitem"><span class="ll-menu__lead"><span class="ll-i ll-i-14 ll-i-fileppt"></span></span><span class="ll-menu__label">PowerPoint 파일</span></button>
     </div>
     <div class="pv-guide" style="left: 296px; width: 300px; top: 129px"></div>
-    <span class="pv-guide-label" style="left: 530px; top: 114px">부모 항목 top = 하위 메뉴 첫 항목 top</span>
+    <span class="pv-guide-label" style="left: 530px; top: 114px">Parent item top = first submenu item top</span>
   </div>
 
-  <div class="ll-spec-title">팝오버 목록: 예배 고르기 (맨 위 검색, 현재 항목은 앞 칸 체크, 오른쪽 날짜, 아래 동작)</div>
+  <div class="ll-spec-title">Popover list: service picker (search at the top, current item checked in the leading slot, dates on the right, actions at the bottom)</div>
   <div class="pv-stage" style="height: 432px">
     <section class="ll-panel" style="position: absolute; left: 4px; top: 4px; width: 280px; height: 424px">
       <div class="ll-panel__header">
@@ -98,11 +98,11 @@
         <div class="ll-menu__group">틀</div>
         <button class="ll-menu__item" role="menuitem"><span class="ll-menu__label">금요 기도회</span></button>
     </div>
-    <span class="pv-guide-label" style="left: 700px; top: 254px; color: var(--text-3)">묶음 이름 11px 600, 구분선</span>
-    <span class="pv-guide-label" style="left: 690px; top: 44px; color: var(--text-3); white-space: normal; width: 210px">이름표 메뉴: 앞 칸은 체크, 색 견본은 앞 칸 다음</span>
+    <span class="pv-guide-label" style="left: 700px; top: 254px; color: var(--text-3)">Group name 11px 600, divider</span>
+    <span class="pv-guide-label" style="left: 690px; top: 44px; color: var(--text-3); white-space: normal; width: 210px">이름표 menu: check in the leading slot, swatch after it</span>
   </div>
 
-  <div class="ll-spec-title">우클릭 메뉴: 누른 자리에서 열림 (매크로), 위험한 항목은 맨 아래 따로</div>
+  <div class="ll-spec-title">Right-click menu: opens where you click (macro), dangerous item set apart at the bottom</div>
   <div class="pv-stage" style="height: 500px">
     <div class="pv-work" style="top: 4px"></div>
     <div class="pv-tiles">
@@ -142,16 +142,16 @@
     </div>
   </div>
 
-  <div class="ll-spec-title">항목 28px의 모양과 상태</div>
+  <div class="ll-spec-title">28px item: shapes and states</div>
   <div class="ll-spec">
-    <div class="ll-spec-item"><div class="ll-menu pv-one"><button class="ll-menu__item" role="menuitem"><span class="ll-menu__label">새 예배</span></button></div><span class="ll-spec-label">기본 (글자만)</span></div>
-    <div class="ll-spec-item"><div class="ll-menu pv-one"><button class="ll-menu__item" role="menuitem"><span class="ll-menu__lead"><span class="ll-i ll-i-14 ll-i-filetext"></span></span><span class="ll-menu__label">텍스트 파일</span></button></div><span class="ll-spec-label">앞 아이콘 14</span></div>
-    <div class="ll-spec-item"><div class="ll-menu pv-one"><button class="ll-menu__item is-hover" role="menuitem"><span class="ll-menu__label">되돌리기</span><span class="ll-menu__meta">Ctrl Z</span></button></div><span class="ll-spec-label">가리킴 (마우스, 화살표 키) + 단축키</span></div>
-    <div class="ll-spec-item"><div class="ll-menu pv-one"><button class="ll-menu__item" role="menuitemradio" aria-checked="true"><span class="ll-menu__lead"><span class="ll-i ll-i-14 ll-i-check"></span></span><span class="ll-menu__label">평상시</span><span class="ll-menu__meta">Ctrl 1</span></button></div><span class="ll-spec-label">현재 항목 체크</span></div>
-    <div class="ll-spec-item"><div class="ll-menu pv-one"><button class="ll-menu__item" role="menuitem" aria-haspopup="menu" aria-expanded="true"><span class="ll-menu__label">가져오기</span><span class="ll-i ll-i-12 ll-i-right ll-menu__chevron"></span></button></div><span class="ll-spec-label">하위 메뉴 열림</span></div>
-    <div class="ll-spec-item"><div class="ll-menu pv-one"><button class="ll-menu__item" role="menuitem" aria-disabled="true"><span class="ll-menu__lead"><span class="ll-i ll-i-14 ll-i-layers"></span></span><span class="ll-menu__label">지금 예배를 틀로 저장</span></button></div><span class="ll-spec-label">쓸 수 없음</span></div>
-    <div class="ll-spec-item"><div class="ll-menu pv-one"><button class="ll-menu__item ll-menu__item--danger" role="menuitem"><span class="ll-menu__label">삭제</span></button></div><span class="ll-spec-label">위험한 항목</span></div>
-    <div class="ll-spec-item"><div class="ll-menu pv-one"><button class="ll-menu__item ll-menu__item--danger is-hover" role="menuitem"><span class="ll-menu__label">삭제</span></button></div><span class="ll-spec-label">위험한 항목, 가리킴</span></div>
+    <div class="ll-spec-item"><div class="ll-menu pv-one"><button class="ll-menu__item" role="menuitem"><span class="ll-menu__label">새 예배</span></button></div><span class="ll-spec-label">Default (text only)</span></div>
+    <div class="ll-spec-item"><div class="ll-menu pv-one"><button class="ll-menu__item" role="menuitem"><span class="ll-menu__lead"><span class="ll-i ll-i-14 ll-i-filetext"></span></span><span class="ll-menu__label">텍스트 파일</span></button></div><span class="ll-spec-label">Leading icon 14</span></div>
+    <div class="ll-spec-item"><div class="ll-menu pv-one"><button class="ll-menu__item is-hover" role="menuitem"><span class="ll-menu__label">되돌리기</span><span class="ll-menu__meta">Ctrl Z</span></button></div><span class="ll-spec-label">Pointed (mouse, arrow keys) + shortcut</span></div>
+    <div class="ll-spec-item"><div class="ll-menu pv-one"><button class="ll-menu__item" role="menuitemradio" aria-checked="true"><span class="ll-menu__lead"><span class="ll-i ll-i-14 ll-i-check"></span></span><span class="ll-menu__label">평상시</span><span class="ll-menu__meta">Ctrl 1</span></button></div><span class="ll-spec-label">Current item check</span></div>
+    <div class="ll-spec-item"><div class="ll-menu pv-one"><button class="ll-menu__item" role="menuitem" aria-haspopup="menu" aria-expanded="true"><span class="ll-menu__label">가져오기</span><span class="ll-i ll-i-12 ll-i-right ll-menu__chevron"></span></button></div><span class="ll-spec-label">Submenu open</span></div>
+    <div class="ll-spec-item"><div class="ll-menu pv-one"><button class="ll-menu__item" role="menuitem" aria-disabled="true"><span class="ll-menu__lead"><span class="ll-i ll-i-14 ll-i-layers"></span></span><span class="ll-menu__label">지금 예배를 틀로 저장</span></button></div><span class="ll-spec-label">Disabled</span></div>
+    <div class="ll-spec-item"><div class="ll-menu pv-one"><button class="ll-menu__item ll-menu__item--danger" role="menuitem"><span class="ll-menu__label">삭제</span></button></div><span class="ll-spec-label">Dangerous item</span></div>
+    <div class="ll-spec-item"><div class="ll-menu pv-one"><button class="ll-menu__item ll-menu__item--danger is-hover" role="menuitem"><span class="ll-menu__label">삭제</span></button></div><span class="ll-spec-label">Dangerous item, pointed</span></div>
   </div>
 
 </div>

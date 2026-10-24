@@ -1,4 +1,4 @@
-/* 17 StatusBar: 창 맨 아래 28px 줄. 왼쪽 저장 상태, 오른쪽 화면 출력 상태 */
+/* 17 StatusBar: 28px row at the bottom of the window. Save state on the left, screen output state on the right */
 .ll-statusbar {
   box-sizing: border-box; display: flex; flex: none; align-items: center; gap: var(--space-18);
   height: var(--size-statusbar); min-width: 0; padding: 0 var(--space-18); background: var(--bg-app); color: var(--text-3);
@@ -7,12 +7,12 @@
 }
 .ll-statusbar__item { display: inline-flex; flex: none; align-items: center; gap: var(--space-6); min-width: 0; }
 .ll-statusbar__item .ll-i { width: var(--size-icon-14); height: var(--size-icon-14); }
-/* 오른쪽 묶음의 첫 항목에 건다 */
+/* Set on the first item of the right group */
 .ll-statusbar__item.ll-statusbar__item--end { margin-left: auto; }
 
 .ll-statusbar__dot { flex: none; width: 6px; height: 6px; border-radius: var(--radius-full); background: var(--ok); }
 .ll-statusbar__item[data-state="warning"] { color: var(--warning); }
 .ll-statusbar__item[data-state="warning"] .ll-statusbar__dot { background: var(--warning); }
-/* 출력을 끈 화면: 툴바의 꺼진 출력 버튼처럼 점 없이 text-off */
+/* Screen with output off: no dot, like an off output button on the toolbar */
 .ll-statusbar__item[data-state="off"] { color: var(--text-off); }
 .ll-statusbar__item[data-state="off"] .ll-statusbar__dot { display: none; }

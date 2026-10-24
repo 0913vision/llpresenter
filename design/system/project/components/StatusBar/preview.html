@@ -1,4 +1,4 @@
-<!-- @dsCard group="앱 틀" height=300 -->
+<!-- @dsCard group="App shell" height=300 -->
 <!doctype html>
 <html lang="ko">
 <head>
@@ -12,31 +12,31 @@
 <div class="ll-preview">
 
 <div class="pv-group">
-<div class="ll-spec-title">상태 표시줄, 28, 좌우 18, 사이 18, caption text-3 (테두리는 미리보기용)</div>
+<div class="ll-spec-title">Status bar, 28, padding 18, gap 18, caption text-3 (outline is for the preview only)</div>
 <footer class="ll-statusbar" style="box-shadow: 0 0 0 1px var(--line)">
 <span class="ll-statusbar__item" title="자동 저장 23:41"><span class="ll-i ll-i-saved"></span>23:41 저장됨</span>
 <span class="ll-statusbar__item ll-statusbar__item--end" title="본 화면: 모니터 2, 60fps"><span class="ll-statusbar__dot"></span>본 화면 60fps</span>
 <span class="ll-statusbar__item" title="무대 화면: 모니터 3, 60fps"><span class="ll-statusbar__dot"></span>무대 화면 60fps</span>
 <span class="ll-statusbar__item" title="방송 자막: NDI, 60fps"><span class="ll-statusbar__dot"></span>방송 자막 60fps</span>
 </footer>
-<span class="ll-spec-label">모두 정상</span>
+<span class="ll-spec-label">All healthy</span>
 <footer class="ll-statusbar" style="box-shadow: 0 0 0 1px var(--line)">
 <span class="ll-statusbar__item" title="자동 저장 11:24"><span class="ll-i ll-i-saved"></span>11:24 저장됨</span>
 <span class="ll-statusbar__item ll-statusbar__item--end"><span class="ll-statusbar__dot"></span>본 화면 60fps</span>
 <span class="ll-statusbar__item" data-state="warning" title="무대 화면: 모니터 3을 찾을 수 없어 창으로 표시하고 있습니다"><span class="ll-statusbar__dot"></span>무대 화면 창으로 표시 중</span>
 <span class="ll-statusbar__item" data-state="off" title="방송 자막 출력이 꺼져 있습니다"><span class="ll-statusbar__dot"></span>방송 자막</span>
 </footer>
-<span class="ll-spec-label">무대 화면은 모니터 없음(경고), 방송 자막은 출력 꺼짐</span>
+<span class="ll-spec-label">무대 화면 has no monitor (warning), 방송 자막 output off</span>
 </div>
 
 <div class="pv-group">
-<div class="ll-spec-title">항목</div>
+<div class="ll-spec-title">Items</div>
 <div class="ll-spec">
-<div class="ll-spec-item"><span class="ll-statusbar" style="box-shadow: 0 0 0 1px var(--line)"><span class="ll-statusbar__item" title="자동 저장 23:41"><span class="ll-i ll-i-saved"></span>23:41 저장됨</span></span><span class="ll-spec-label">저장 상태, 아이콘 14</span></div>
-<div class="ll-spec-item"><span class="ll-statusbar" style="box-shadow: 0 0 0 1px var(--line)"><span class="ll-statusbar__item"><span class="ll-statusbar__dot"></span>본 화면 60fps</span></span><span class="ll-spec-label">정상, ok 점 6</span></div>
-<div class="ll-spec-item"><span class="ll-statusbar" style="box-shadow: 0 0 0 1px var(--line)"><span class="ll-statusbar__item" data-state="warning"><span class="ll-statusbar__dot"></span>무대 화면 창으로 표시 중</span></span><span class="ll-spec-label">경고, 모니터 없음</span></div>
-<div class="ll-spec-item"><span class="ll-statusbar" style="box-shadow: 0 0 0 1px var(--line)"><span class="ll-statusbar__item" data-state="warning" title="방송 자막: 41fps, 목표 60fps"><span class="ll-statusbar__dot"></span>방송 자막 41fps</span></span><span class="ll-spec-label">경고, 프레임 떨어짐</span></div>
-<div class="ll-spec-item"><span class="ll-statusbar" style="box-shadow: 0 0 0 1px var(--line)"><span class="ll-statusbar__item" data-state="off"><span class="ll-statusbar__dot"></span>방송 자막</span></span><span class="ll-spec-label">출력 꺼짐, 점 없음</span></div>
+<div class="ll-spec-item"><span class="ll-statusbar" style="box-shadow: 0 0 0 1px var(--line)"><span class="ll-statusbar__item" title="자동 저장 23:41"><span class="ll-i ll-i-saved"></span>23:41 저장됨</span></span><span class="ll-spec-label">Save state, icon 14</span></div>
+<div class="ll-spec-item"><span class="ll-statusbar" style="box-shadow: 0 0 0 1px var(--line)"><span class="ll-statusbar__item"><span class="ll-statusbar__dot"></span>본 화면 60fps</span></span><span class="ll-spec-label">Healthy, ok dot 6</span></div>
+<div class="ll-spec-item"><span class="ll-statusbar" style="box-shadow: 0 0 0 1px var(--line)"><span class="ll-statusbar__item" data-state="warning"><span class="ll-statusbar__dot"></span>무대 화면 창으로 표시 중</span></span><span class="ll-spec-label">Warning, no monitor</span></div>
+<div class="ll-spec-item"><span class="ll-statusbar" style="box-shadow: 0 0 0 1px var(--line)"><span class="ll-statusbar__item" data-state="warning" title="방송 자막: 41fps, 목표 60fps"><span class="ll-statusbar__dot"></span>방송 자막 41fps</span></span><span class="ll-spec-label">Warning, dropped frames</span></div>
+<div class="ll-spec-item"><span class="ll-statusbar" style="box-shadow: 0 0 0 1px var(--line)"><span class="ll-statusbar__item" data-state="off"><span class="ll-statusbar__dot"></span>방송 자막</span></span><span class="ll-spec-label">Output off, no dot</span></div>
 </div>
 </div>
 

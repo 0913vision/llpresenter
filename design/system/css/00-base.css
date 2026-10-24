@@ -1,14 +1,14 @@
-/* 00 공통: 글꼴과 바탕, 버튼 초기화, 포커스, 아이콘, 미리보기 도구 */
+/* 00 Base: font and background, button reset, focus, icons, preview tools */
 .ll-root, .ll-preview { font-family: var(--font-ui); font-size: 13px; line-height: 18px; color: var(--text); -webkit-font-smoothing: antialiased; font-synthesis: none; }
-/* 초기화는 :where()로 특이도를 0으로 두어 컴포넌트 규칙이 늘 이기게 한다 */
+/* The reset uses :where() for zero specificity so that component rules always win */
 :where(.ll-root, .ll-preview) :where(button, input, textarea, select) { font: inherit; color: inherit; margin: 0; cursor: default; }
 :where(.ll-root, .ll-preview) :where(input, textarea)::placeholder { color: var(--text-3); }
 .ll-num { font-variant-numeric: tabular-nums; }
 
-/* 키보드 포커스: 모든 조작 요소에 같은 고리 */
+/* Keyboard focus: the same ring on every control */
 .ll-focusable:focus-visible, .ll-preview .is-focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 
-/* 아이콘: Phosphor Regular를 마스크로 칠하므로 글자색(currentColor)을 따른다 */
+/* Icons: Phosphor Regular painted as a mask, so they follow the text color (currentColor) */
 .ll-i { display: inline-block; flex: none; width: var(--size-icon-16); height: var(--size-icon-16); background-color: currentColor; -webkit-mask: var(--ll-i) center / contain no-repeat; mask: var(--ll-i) center / contain no-repeat; }
 .ll-i-12 { width: var(--size-icon-12); height: var(--size-icon-12); }
 .ll-i-14 { width: var(--size-icon-14); height: var(--size-icon-14); }
@@ -102,7 +102,7 @@
 .ll-i-wave { --ll-i: url("/_blob/58bcaf06cc5f29d0ecbe6496e4b3d690"); }
 .ll-i-x { --ll-i: url("/_blob/b4d6030c7d0161f90dd1089f681b82e5"); }
 
-/* 미리보기 도구 (앱 코드에는 옮기지 않는다) */
+/* Preview tools (don't move these into app code) */
 .ll-preview { box-sizing: border-box; padding: 20px; background: var(--bg-app); display: flex; flex-direction: column; gap: 20px; }
 .ll-spec { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 24px; }
 .ll-spec-item { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }

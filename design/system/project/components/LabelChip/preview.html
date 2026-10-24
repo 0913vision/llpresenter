@@ -1,4 +1,4 @@
-<!-- @dsCard group="진행 요소" height=740 -->
+<!-- @dsCard group="Show" height=740 -->
 <!doctype html>
 <html lang="ko">
 <head>
@@ -17,7 +17,7 @@
 <body>
 <div class="ll-preview">
 
-  <div class="ll-spec-title">구성 줄, 칩 30, 사이 8, 썸네일과 같은 순서</div>
+  <div class="ll-spec-title">구성 strip, chip 30, gap 8, same order as the thumbnails</div>
   <div class="ll-on-panel box">
     <div class="strip-head">구성</div>
     <div class="ll-chip-strip" role="listbox" aria-label="구성" aria-orientation="horizontal">
@@ -34,27 +34,27 @@
     </div>
   </div>
 
-  <div class="ll-spec-title">칩 상태</div>
+  <div class="ll-spec-title">Chip states</div>
   <div class="ll-on-panel box">
     <div class="ll-spec">
-      <div class="ll-spec-item"><button type="button" class="ll-chip" data-color="teal"><span class="ll-i ll-i-14 ll-i-grip ll-chip__grip"></span>1절</button><span class="ll-spec-label">기본</span></div>
-      <div class="ll-spec-item"><button type="button" class="ll-chip is-hover" data-color="teal"><span class="ll-i ll-i-14 ll-i-grip ll-chip__grip"></span>1절</button><span class="ll-spec-label">마우스 올림</span></div>
-      <div class="ll-spec-item"><button type="button" class="ll-chip" data-color="green" aria-selected="true"><span class="ll-i ll-i-14 ll-i-grip ll-chip__grip"></span>프리코러스</button><span class="ll-spec-label">고름</span></div>
-      <div class="ll-spec-item"><button type="button" class="ll-chip" data-color="yellow" data-state="live"><span class="ll-i ll-i-14 ll-i-grip ll-chip__grip"></span>후렴</button><span class="ll-spec-label">출력 중</span></div>
-      <div class="ll-spec-item"><button type="button" class="ll-chip is-focus" data-color="slate"><span class="ll-i ll-i-14 ll-i-grip ll-chip__grip"></span>엔딩</button><span class="ll-spec-label">포커스</span></div>
-      <div class="ll-spec-item"><button type="button" class="ll-chip is-dragging" data-color="yellow"><span class="ll-i ll-i-14 ll-i-grip ll-chip__grip"></span>후렴</button><span class="ll-spec-label">끄는 중</span></div>
-      <div class="ll-spec-item"><span class="ll-chip-strip"><button type="button" class="ll-chip" data-color="teal"><span class="ll-i ll-i-14 ll-i-grip ll-chip__grip"></span>1절</button><span class="ll-chip-drop" aria-hidden="true"></span><button type="button" class="ll-chip" data-color="green"><span class="ll-i ll-i-14 ll-i-grip ll-chip__grip"></span>프리코러스</button></span><span class="ll-spec-label">놓을 자리, accent 2px</span></div>
+      <div class="ll-spec-item"><button type="button" class="ll-chip" data-color="teal"><span class="ll-i ll-i-14 ll-i-grip ll-chip__grip"></span>1절</button><span class="ll-spec-label">Default</span></div>
+      <div class="ll-spec-item"><button type="button" class="ll-chip is-hover" data-color="teal"><span class="ll-i ll-i-14 ll-i-grip ll-chip__grip"></span>1절</button><span class="ll-spec-label">Hover</span></div>
+      <div class="ll-spec-item"><button type="button" class="ll-chip" data-color="green" aria-selected="true"><span class="ll-i ll-i-14 ll-i-grip ll-chip__grip"></span>프리코러스</button><span class="ll-spec-label">Selected</span></div>
+      <div class="ll-spec-item"><button type="button" class="ll-chip" data-color="yellow" data-state="live"><span class="ll-i ll-i-14 ll-i-grip ll-chip__grip"></span>후렴</button><span class="ll-spec-label">Live</span></div>
+      <div class="ll-spec-item"><button type="button" class="ll-chip is-focus" data-color="slate"><span class="ll-i ll-i-14 ll-i-grip ll-chip__grip"></span>엔딩</button><span class="ll-spec-label">Focus</span></div>
+      <div class="ll-spec-item"><button type="button" class="ll-chip is-dragging" data-color="yellow"><span class="ll-i ll-i-14 ll-i-grip ll-chip__grip"></span>후렴</button><span class="ll-spec-label">Dragging</span></div>
+      <div class="ll-spec-item"><span class="ll-chip-strip"><button type="button" class="ll-chip" data-color="teal"><span class="ll-i ll-i-14 ll-i-grip ll-chip__grip"></span>1절</button><span class="ll-chip-drop" aria-hidden="true"></span><button type="button" class="ll-chip" data-color="green"><span class="ll-i ll-i-14 ll-i-grip ll-chip__grip"></span>프리코러스</button></span><span class="ll-spec-label">Drop position, accent 2px</span></div>
     </div>
     <div class="ll-spec">
-      <div class="ll-spec-item"><button type="button" class="ll-chip"><span class="ll-i ll-i-14 ll-i-grip ll-chip__grip"></span>4</button><span class="ll-spec-label">이름표 없음, 번호</span></div>
-      <div class="ll-spec-item"><button type="button" class="ll-chip is-hover"><span class="ll-i ll-i-14 ll-i-grip ll-chip__grip"></span>4</button><span class="ll-spec-label">이름표 없음, 마우스 올림</span></div>
-      <div class="ll-spec-item"><button type="button" class="ll-chip" aria-selected="true"><span class="ll-i ll-i-14 ll-i-grip ll-chip__grip"></span>4</button><span class="ll-spec-label">이름표 없음, 고름</span></div>
-      <div class="ll-spec-item"><button type="button" class="ll-chip-add" aria-label="장 넣기"><span class="ll-i ll-i-14 ll-i-plus"></span></button><span class="ll-spec-label">넣기</span></div>
-      <div class="ll-spec-item"><button type="button" class="ll-chip-add is-hover" aria-label="장 넣기"><span class="ll-i ll-i-14 ll-i-plus"></span></button><span class="ll-spec-label">넣기, 마우스 올림</span></div>
+      <div class="ll-spec-item"><button type="button" class="ll-chip"><span class="ll-i ll-i-14 ll-i-grip ll-chip__grip"></span>4</button><span class="ll-spec-label">No 이름표, number</span></div>
+      <div class="ll-spec-item"><button type="button" class="ll-chip is-hover"><span class="ll-i ll-i-14 ll-i-grip ll-chip__grip"></span>4</button><span class="ll-spec-label">No 이름표, hover</span></div>
+      <div class="ll-spec-item"><button type="button" class="ll-chip" aria-selected="true"><span class="ll-i ll-i-14 ll-i-grip ll-chip__grip"></span>4</button><span class="ll-spec-label">No 이름표, selected</span></div>
+      <div class="ll-spec-item"><button type="button" class="ll-chip-add" aria-label="장 넣기"><span class="ll-i ll-i-14 ll-i-plus"></span></button><span class="ll-spec-label">Insert</span></div>
+      <div class="ll-spec-item"><button type="button" class="ll-chip-add is-hover" aria-label="장 넣기"><span class="ll-i ll-i-14 ll-i-plus"></span></button><span class="ll-spec-label">Insert, hover</span></div>
     </div>
   </div>
 
-  <div class="ll-spec-title">이름표 색 8가지와 이름표 없음</div>
+  <div class="ll-spec-title">8 이름표 colors and no 이름표</div>
   <div class="ll-on-panel box">
     <div class="ll-chip-strip">
       <span class="ll-chip" data-color="teal"><span class="ll-i ll-i-14 ll-i-grip ll-chip__grip"></span>1절</span>
@@ -69,23 +69,23 @@
     </div>
   </div>
 
-  <div class="ll-spec-title">작은 이름표 22, 가사 블록과 목록 안</div>
+  <div class="ll-spec-title">Small 이름표 22, in lyric blocks and lists</div>
   <div class="ll-on-panel box">
     <div class="ll-spec">
-      <div class="ll-spec-item"><span class="mini"><span class="ll-tag" data-color="teal">1절</span><span class="ll-tag" data-color="green">프리코러스</span><span class="ll-tag" data-color="yellow">후렴</span><span class="ll-tag" data-color="violet">브리지</span><span class="ll-tag">4</span></span><span class="ll-spec-label">표시만</span></div>
-      <div class="ll-spec-item"><button type="button" class="ll-tag" data-color="yellow" aria-haspopup="menu" aria-expanded="false">후렴<span class="ll-i ll-i-12 ll-i-down"></span></button><span class="ll-spec-label">고르기 버튼</span></div>
-      <div class="ll-spec-item"><button type="button" class="ll-tag" data-color="yellow" aria-haspopup="menu" aria-expanded="true">후렴<span class="ll-i ll-i-12 ll-i-down"></span></button><span class="ll-spec-label">메뉴 열림</span></div>
-      <div class="ll-spec-item"><button type="button" class="ll-tag" aria-haspopup="menu" aria-expanded="false">이름표<span class="ll-i ll-i-12 ll-i-down"></span></button><span class="ll-spec-label">이름표 없음</span></div>
-      <div class="ll-spec-item"><button type="button" class="ll-tag is-hover" aria-haspopup="menu" aria-expanded="false">이름표<span class="ll-i ll-i-12 ll-i-down"></span></button><span class="ll-spec-label">없음, 마우스 올림</span></div>
-      <div class="ll-spec-item"><button type="button" class="ll-tag is-focus" data-color="teal" aria-haspopup="menu" aria-expanded="false">1절<span class="ll-i ll-i-12 ll-i-down"></span></button><span class="ll-spec-label">포커스</span></div>
+      <div class="ll-spec-item"><span class="mini"><span class="ll-tag" data-color="teal">1절</span><span class="ll-tag" data-color="green">프리코러스</span><span class="ll-tag" data-color="yellow">후렴</span><span class="ll-tag" data-color="violet">브리지</span><span class="ll-tag">4</span></span><span class="ll-spec-label">Display only</span></div>
+      <div class="ll-spec-item"><button type="button" class="ll-tag" data-color="yellow" aria-haspopup="menu" aria-expanded="false">후렴<span class="ll-i ll-i-12 ll-i-down"></span></button><span class="ll-spec-label">Picker button</span></div>
+      <div class="ll-spec-item"><button type="button" class="ll-tag" data-color="yellow" aria-haspopup="menu" aria-expanded="true">후렴<span class="ll-i ll-i-12 ll-i-down"></span></button><span class="ll-spec-label">Menu open</span></div>
+      <div class="ll-spec-item"><button type="button" class="ll-tag" aria-haspopup="menu" aria-expanded="false">이름표<span class="ll-i ll-i-12 ll-i-down"></span></button><span class="ll-spec-label">No 이름표</span></div>
+      <div class="ll-spec-item"><button type="button" class="ll-tag is-hover" aria-haspopup="menu" aria-expanded="false">이름표<span class="ll-i ll-i-12 ll-i-down"></span></button><span class="ll-spec-label">None, hover</span></div>
+      <div class="ll-spec-item"><button type="button" class="ll-tag is-focus" data-color="teal" aria-haspopup="menu" aria-expanded="false">1절<span class="ll-i ll-i-12 ll-i-down"></span></button><span class="ll-spec-label">Focus</span></div>
     </div>
   </div>
 
-  <div class="ll-spec-title">색 견본 10, 미리보기 이름 줄</div>
+  <div class="ll-spec-title">Color swatch 10, preview name row</div>
   <div class="ll-on-panel box">
     <div class="ll-spec">
-      <div class="ll-spec-item"><span class="cap"><span class="ll-label-swatch" data-color="green"></span><b>프리코러스</b><span class="m">5 / 9</span><span class="r">기본</span></span><span class="ll-spec-label">준비 화면 미리보기 아래</span></div>
-      <div class="ll-spec-item"><span class="mini"><span class="ll-label-swatch" data-color="teal"></span><span class="ll-label-swatch" data-color="green"></span><span class="ll-label-swatch" data-color="yellow"></span><span class="ll-label-swatch" data-color="orange"></span><span class="ll-label-swatch" data-color="rose"></span><span class="ll-label-swatch" data-color="violet"></span><span class="ll-label-swatch" data-color="slate"></span><span class="ll-label-swatch" data-color="gray"></span><span class="ll-label-swatch"></span></span><span class="ll-spec-label">8색과 없음</span></div>
+      <div class="ll-spec-item"><span class="cap"><span class="ll-label-swatch" data-color="green"></span><b>프리코러스</b><span class="m">5 / 9</span><span class="r">기본</span></span><span class="ll-spec-label">Under the 준비 preview</span></div>
+      <div class="ll-spec-item"><span class="mini"><span class="ll-label-swatch" data-color="teal"></span><span class="ll-label-swatch" data-color="green"></span><span class="ll-label-swatch" data-color="yellow"></span><span class="ll-label-swatch" data-color="orange"></span><span class="ll-label-swatch" data-color="rose"></span><span class="ll-label-swatch" data-color="violet"></span><span class="ll-label-swatch" data-color="slate"></span><span class="ll-label-swatch" data-color="gray"></span><span class="ll-label-swatch"></span></span><span class="ll-spec-label">8 colors and none</span></div>
     </div>
   </div>
 

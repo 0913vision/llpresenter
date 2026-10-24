@@ -1,17 +1,16 @@
-/* 30 패널: 패널 면, 머리글(탭, 제목, 예배 고르기, 조작), 도구 줄, 몸통, 바닥 줄, 패널 사이 배치 */
+/* 30 Panel: surface, header (tabs, title, service switcher, controls), tool row, body, footer row, layout between panels */
 
-/* 배치: 패널 사이와 창 가장자리는 panel-gap 4px */
+/* Layout between panels and at the window edges */
 .ll-panels { display: flex; gap: var(--panel-gap); min-width: 0; min-height: 0; }
 .ll-panels--column { flex-direction: column; }
 .ll-panels--window { padding: 0 var(--panel-gap); background: var(--bg-app); }
 
-/* 면: 그림자 없음 */
 .ll-panel { box-sizing: border-box; display: flex; flex-direction: column; min-width: 0; min-height: 0; background: var(--bg-panel); border-radius: var(--radius-lg); overflow: hidden; color: var(--text); color-scheme: dark; }
 
-/* 머리글 34px(아래 1px 선 포함), 왼쪽 14 오른쪽 8 */
+/* Header: 34px includes the 1px bottom line */
 .ll-panel__header { flex: none; box-sizing: border-box; display: flex; align-items: center; height: var(--size-panel-header); padding: 0 var(--space-8) 0 var(--panel-inset); border-bottom: 1px solid var(--line); white-space: nowrap; }
 
-/* 탭: 12px 600, 사이 space-18(18), 켜진 탭 아래 2px 밑줄이 머리글 선 바로 위에 붙는다 */
+/* Tabs: the 2px underline of the selected tab sits right above the header line */
 .ll-panel__tabs { display: flex; align-self: stretch; gap: var(--space-18); min-width: 0; }
 .ll-panel__tab, :is(.ll-root, .ll-preview) .ll-panel__tab { position: relative; display: inline-flex; align-items: center; gap: var(--space-6); margin: var(--space-4) 0; padding: 0; border: 0; background: transparent; color: var(--text-3); font: inherit; font-size: 12px; line-height: 16px; font-weight: 600; white-space: nowrap; cursor: default; transition: color 100ms ease-out; }
 .ll-panel__tab:hover, .ll-panel__tab.is-hover { color: var(--text-2); }
@@ -20,32 +19,32 @@
 .ll-panel__tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .ll-panel__tab:disabled { color: var(--text-off); }
 
-/* 제목 머리글: 곡 제목(title) + 위치, 개수(label, text-3) */
+/* Title header: song title + position or count */
 .ll-panel__title { display: flex; align-items: baseline; gap: var(--space-10); min-width: 0; }
 .ll-panel__title-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 13px; line-height: 18px; font-weight: 600; }
 .ll-panel__meta { flex: none; font-size: 12px; line-height: 16px; font-weight: 400; color: var(--text-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ll-panel__tabs + .ll-panel__meta { margin-left: var(--space-10); align-self: center; }
 
-/* 예배 고르기: 탭 바로 뒤의 투명 sm 버튼 "주일 예배 ▾" */
+/* Service switcher: ghost sm button right after the tab, "주일 예배 ▾" */
 .ll-panel__switch, :is(.ll-root, .ll-preview) .ll-panel__switch { flex: none; box-sizing: border-box; display: inline-flex; align-items: center; gap: var(--space-4); height: var(--size-control-sm); margin-left: var(--space-4); padding: 0 var(--space-4) 0 var(--space-6); border: 0; border-radius: var(--radius-md); background: transparent; color: var(--text-3); font: inherit; font-size: 12px; line-height: 16px; white-space: nowrap; cursor: default; transition: background-color 100ms ease-out; }
 .ll-panel__switch:hover, .ll-panel__switch.is-hover { background: var(--bg-raised); }
 .ll-panel__switch:active, .ll-panel__switch.is-active, .ll-panel__switch[aria-expanded="true"] { background: var(--bg-control-hover); color: var(--text); }
 .ll-panel__switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .ll-panel__switch:disabled { background: transparent; color: var(--text-off); }
 
-/* 오른쪽 조작: sm 컨트롤(아이콘 버튼, 보조 버튼, 드롭다운) 사이 8px */
+/* Controls on the right: sm controls only (icon button, secondary button, dropdown) */
 .ll-panel__actions { flex: none; display: flex; align-items: center; gap: var(--space-8); margin-left: auto; padding-left: var(--space-8); }
 
-/* 도구 줄: 머리글 아래 검색 칸 한 줄(라이브러리, 퀵 실행) */
+/* Tool row: one search field row under the header (library, 퀵 실행) */
 .ll-panel__tools { flex: none; display: flex; gap: var(--space-8); padding: var(--space-8) var(--space-8) var(--space-6); }
 .ll-panel__tools > * { flex: 1 1 auto; min-width: 0; }
 
-/* 몸통: 스크롤은 몸통만 */
+/* Body: only the body scrolls */
 .ll-panel__body { flex: 1 1 auto; min-height: 0; overflow: auto; padding: var(--panel-inset); scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
 .ll-panel__body--list { padding: var(--space-4) 0 var(--space-8); }
 .ll-panel__body--flush { padding: 0; }
 
-/* 바닥 줄 size-panel-footer(32): 개수 글자는 왼쪽, 썸네일 크기 같은 조작은 오른쪽 */
+/* Footer row: counts on the left, controls such as thumbnail size on the right */
 .ll-panel__footer { flex: none; box-sizing: border-box; display: flex; align-items: center; gap: var(--space-10); height: var(--size-panel-footer); padding: 0 var(--panel-inset); border-top: 1px solid var(--line); font-size: 11px; line-height: 14px; color: var(--text-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ll-panel__footer-end { display: flex; align-items: center; gap: var(--space-10); margin-left: auto; }
 

@@ -1,76 +1,76 @@
 # Notification
 
-앱이 스스로 알려야 하는 일을 오른쪽 위 카드로 보입니다. 출력 모니터가 빠진 것 같은 경고는 해결될 때까지 남고, 다시 연결됨 같은 정보는 6초 뒤 닫힙니다.
+Shows something the app must report on its own as a card at the top right. A warning, such as a lost output monitor, stays until it is resolved, and information, such as a reconnected monitor, closes after 6 seconds.
 
-## 쓰는 곳
+## Where to use
 
-- 경고: 출력 화면의 모니터 연결 끊김("무대 모니터 연결 끊김", 창으로 표시 중)
-- 정보: 빠졌던 모니터가 다시 연결됨("무대 모니터 다시 연결됨")
+- Warnings: a lost monitor connection for an output screen ("무대 모니터 연결 끊김", now showing in a window)
+- Information: a lost monitor is connected again ("무대 모니터 다시 연결됨")
 
-## 쓰지 않는 곳
+## Where not to use
 
-- 장 하나, 미디어 하나의 문제(미디어 파일 없음): 그 자리에서 보입니다. 미디어 칸은 `MediaTile`, 썸네일은 `SlideThumbnail`의 파일 없음 모양, 목록 줄은 `ListRow`의 경고 아이콘. 알림 카드를 띄우지 않습니다.
-- 사용자가 방금 한 일의 결과(지움, 저장됨): 띄우지 않습니다. 저장은 상태 표시줄의 "23:41 저장됨"이 알립니다.
-- 답이 필요한 것: `AlertDialog`를 씁니다.
+- A problem with one 장 (slide) or one media item (missing media file): show it in place. Media tiles use `MediaTile`, thumbnails use the missing file look of `SlideThumbnail`, and list rows use the warning icon of `ListRow`. Don't show a notification card.
+- The result of something the user just did (cleared, saved): don't show anything. The status bar reports saving with "23:41 저장됨".
+- Something that needs an answer: use `AlertDialog`.
 
-## 구성
+## Anatomy
 
-- 자리 `ll-notice-stack`: 툴바 아래 `panel-gap`(4px), 창 오른쪽 4px. 보통 창은 위 90px(30 + 56 + 4), 좁은 창(`--compact`)은 74px(30 + 40 + 4). 너비는 오른쪽 열과 같은 `col-right`(480px), 좁은 창 `col-right-compact`(360px). 쌓임 `z-notification`(대화상자와 막보다 위).
-- 카드 `ll-notice`: 바탕 `bg-raised`, 모서리 `radius-2xl`, 그림자 `shadow-dialog`, 안쪽 위 12 오른쪽 8 아래 12 왼쪽 14, 부품 사이 `space-12`.
-  - 아이콘 `ll-notice__icon`: 18px. 경고는 `warning`, 정보는 `text-2`. 경고 카드는 왼쪽 안쪽에 3px `warning` 막대를 긋습니다.
-  - 제목 줄 `ll-notice__head`: 제목 `ll-notice__title`(`title` 13/18/600) + 시각 `ll-notice__time`(`label` `text-3`), 사이 `space-10`.
-  - 부가 줄 `ll-notice__meta`: 제목 줄 아래 `space-2`, `label` `text-2`, 사이 `space-10`, 화살표 `arrow` 12px `text-3`("모니터 3 → 창으로 표시 중").
-  - 동작 `ll-notice__actions`: 글 아래 `space-10`, sm 보조 버튼(앞 아이콘 14px), 사이 `space-6`, 두 개까지.
-  - 닫기 `ll-notice__close`: 26×26, `x` 16px `text-2`, 4px 위로 올려 제목 줄 가운데에 맞춥니다. 카드가 `bg-raised`라서 마우스 올림 바탕은 `bg-control-hover`입니다.
-- 쌓기: 새 알림이 맨 위, 사이 4px, 최대 3장. 넘치면 가장 오래된 정보 알림부터 닫습니다. 같은 원인(같은 화면, 같은 모니터)의 알림은 새로 쌓지 않고 그 카드를 바꿉니다(끊김 → 다시 연결됨).
+- Position `ll-notice-stack`: `panel-gap` (4px) under the toolbar, 4px from the right of the window. In a regular window it is 90px from the top (30 + 56 + 4), and in a narrow window (`--compact`) 74px (30 + 40 + 4). The width matches the right column: `col-right` (480px), or `col-right-compact` (360px) in a narrow window. Stacking `z-notification` (above dialogs and the scrim).
+- Card `ll-notice`: background `bg-raised`, corner radius `radius-2xl`, shadow `shadow-dialog`, padding 12 top, 8 right, 12 bottom, 14 left, `space-12` between parts.
+  - Icon `ll-notice__icon`: 18px. `warning` for a warning, `text-2` for information. A warning card draws a 3px `warning` bar on the inside of its left edge.
+  - Title row `ll-notice__head`: title `ll-notice__title` (`title` 13/18/600) + time `ll-notice__time` (`label` `text-3`), `space-10` between them.
+  - Extra row `ll-notice__meta`: `space-2` under the title row, `label` `text-2`, `space-10` between values, arrow `arrow` 12px `text-3` ("모니터 3 → 창으로 표시 중").
+  - Actions `ll-notice__actions`: `space-10` under the text, secondary sm buttons (leading icon 14px), `space-6` between them, up to two.
+  - Close `ll-notice__close`: 26×26, `x` 16px `text-2`, raised by 4px to center it on the title row. The card is `bg-raised`, so the hover background is `bg-control-hover`.
+- Stacking: the newest notification is on top, 4px apart, up to 3 cards. When there are more, close the oldest information card first. A notification with the same cause (same screen, same monitor) doesn't stack a new card; it replaces that card (lost → connected again).
 
-## 크기와 변형
+## Sizes and variants
 
-| 이름 | 높이 | 글자 | 쓰는 곳 |
+| Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
-| 경고 | 96 (12 + 36 + 10 + 26 + 12) | title 13/18/600, label | 모니터 연결 끊김 |
-| 정보 | 60 (12 + 36 + 12) | title, label | 다시 연결됨 |
-| 좁은 창 | 같음, 너비 360 | 같음 | 1366×768 등 |
+| Warning | 96 (12 + 36 + 10 + 26 + 12) | `title` 13/18/600, `label` | Lost monitor connection |
+| Information | 60 (12 + 36 + 12) | `title`, `label` | Connected again |
+| Narrow window | Same, width 360 | Same | 1366×768 and similar |
 
-## 상태
+## States
 
-| 상태 | 바탕 | 글자/아이콘 | 그 밖 |
+| State | Background | Text and icon | Other |
 | --- | --- | --- | --- |
-| 경고 | `bg-raised` | 아이콘 `warning` | 왼쪽 3px `warning` 막대. 해결되거나 닫을 때까지 남음. `role="alert"` |
-| 정보 | `bg-raised` | 아이콘 `text-2` | 6초 뒤 닫힘. `role="status"` |
-| 포인터 올림, 포커스 안에 있음 | 그대로 | 그대로 | 닫힐 시간을 멈추고, 벗어나면 6초를 다시 셉니다 |
-| 닫기 마우스 올림 | `bg-control-hover` | `text-2` | 100ms |
-| 닫기 누름 | `bg-control-hover` | `text` | |
-| 닫기, 동작 포커스 | 그대로 | 그대로 | outline 2px `accent`, offset 1px |
-| 나타남 | | | 120ms 페이드, `prefers-reduced-motion`이면 바로 |
+| Warning | `bg-raised` | Icon `warning` | 3px `warning` bar on the left. Stays until resolved or closed. `role="alert"` |
+| Information | `bg-raised` | Icon `text-2` | Closes after 6 seconds. `role="status"` |
+| Pointer over it, focus inside it | Unchanged | Unchanged | Pauses the close timer, and counts 6 seconds again after the pointer or focus leaves |
+| Close, hover | `bg-control-hover` | `text-2` | 100ms |
+| Close, pressed | `bg-control-hover` | `text` | |
+| Close or action, focus | Unchanged | Unchanged | outline 2px `accent`, offset 1px |
+| Appearing | | | 120ms fade, at once under `prefers-reduced-motion` |
 
-## 동작
+## Behavior
 
-- 미리보기를 오래 가리지 않습니다.
-  - 남는 경고 카드가 있는 동안 오른쪽 열은 카드 묶음 높이 + 4px만큼 아래로 내려갑니다. 미리보기 패널과 그 조작은 가려지지 않습니다(Problems 시안과 같은 배치). 높이가 모자라면 `Layout` 규칙대로 진행 도구가 먼저 줄어듭니다.
-  - 정보 카드는 열을 내리지 않고 그 자리에 떠서 6초 뒤 닫힙니다. 잠깐 가리는 곳은 미리보기 머리글과 화면 위쪽 일부입니다.
-  - 경고를 닫기(×)로 닫으면 카드만 사라지고 오른쪽 열은 제자리로 돌아갑니다. 문제는 툴바 출력 버튼의 `warning` 표시와 상태 표시줄 글자("무대 화면 창으로 표시 중")로 남고, 상태 표시줄의 그 글자를 누르면 카드를 다시 엽니다.
-- 문제가 풀리면 경고 카드는 정보 카드("무대 모니터 다시 연결됨")로 바뀌고 6초 뒤 닫힙니다.
-- 알림은 포커스를 옮기지 않습니다. 카드의 동작과 닫기 버튼은 Tab 순서에서 오른쪽 열 앞에 들어갑니다. Esc로 닫지 않습니다(Esc는 메뉴와 대화상자가 씁니다).
-- 대화상자가 열려 있어도 같은 자리, 막 위에 보이고 동작 버튼을 누를 수 있습니다.
-- 소리를 내지 않습니다.
-- aria: 경고 `role="alert"`, 정보 `role="status"`, 카드에 `aria-labelledby`로 제목.
+- Don't cover the preview for long.
+  - While a lasting warning card is present, move the right column down by the height of the card stack + 4px. The preview panel and its controls stay uncovered (same layout as the Problems draft). If there isn't enough height, the 진행 도구 (show tools) panel shrinks first, following the `Layout` rules.
+  - An information card doesn't move the column down. It floats in place and closes after 6 seconds. It briefly covers the preview header and part of the top of the screen.
+  - When the user closes a warning with close (×), only the card disappears and the right column returns to its place. The problem stays visible through the `warning` mark on the toolbar output button and the status bar text ("무대 화면 창으로 표시 중"). A click on that status bar text opens the card again.
+- When the problem is resolved, the warning card turns into an information card ("무대 모니터 다시 연결됨") and closes after 6 seconds.
+- Notifications don't move focus. The card's actions and close button go into the Tab order before the right column. Esc doesn't close a notification (menus and dialogs use Esc).
+- Even while a dialog is open, notifications appear in the same place above the scrim, and their action buttons stay clickable.
+- Notifications make no sound.
+- aria: warning `role="alert"`, information `role="status"`, and `aria-labelledby` on the card pointing to the title.
 
-## 글쓰기
+## Writing
 
-- 제목은 무엇이 어떻게 되었는지 명사구로, 마침표 없이: "무대 모니터 연결 끊김", "무대 모니터 다시 연결됨".
-- 시각은 24시간, 초 없이: "11:24".
-- 부가 줄은 지금 상태: "모니터 3 → 창으로 표시 중".
-- 동작은 동사로 두 개까지: "모니터 다시 찾기", "창 보기".
-- 사과, 감탄, 설명 문장을 쓰지 않습니다.
+- Write the title as a noun phrase that says what happened to what, with no period: "무대 모니터 연결 끊김", "무대 모니터 다시 연결됨".
+- Write the time in 24-hour format, without seconds: "11:24".
+- Write the current state in the extra row: "모니터 3 → 창으로 표시 중".
+- Write up to two actions, as verbs: "모니터 다시 찾기", "창 보기".
+- Don't write apologies, exclamations, or explanatory sentences.
 
-## 구현 메모
+## Implementation notes
 
-- `<NotificationStack compact={isCompact} />` + `notify({ kind: 'warning' | 'info', key: 'screen:stage', icon: 'plug', title: '무대 모니터 연결 끊김', time: '11:24', meta: ['모니터 3', '창으로 표시 중'], actions: [{ icon: 'refresh', label: '모니터 다시 찾기' }, { icon: 'open', label: '창 보기' }] })`. 같은 `key`면 카드를 바꿉니다.
-- 오른쪽 열 밀어 내기: 남는 경고 카드 묶음의 높이를 재어(ResizeObserver) 오른쪽 열의 `padding-top`에 높이 + 4px을 줍니다. 정보 카드만 있을 때는 0입니다.
-- 알림 층은 모달의 `inert` 밖에 둡니다.
-- 클래스: `ll-notice-stack`, `ll-notice-stack--compact`, `ll-notice`, `ll-notice__icon`, `ll-notice__body`, `ll-notice__text`, `ll-notice__head`, `ll-notice__title`, `ll-notice__time`, `ll-notice__meta`, `ll-notice__actions`, `ll-notice__close`. 경고는 `data-state="warning"`.
+- `<NotificationStack compact={isCompact} />` + `notify({ kind: 'warning' | 'info', key: 'screen:stage', icon: 'plug', title: '무대 모니터 연결 끊김', time: '11:24', meta: ['모니터 3', '창으로 표시 중'], actions: [{ icon: 'refresh', label: '모니터 다시 찾기' }, { icon: 'open', label: '창 보기' }] })`. The same `key` replaces the card.
+- Pushing the right column down: measure the height of the lasting warning card stack (ResizeObserver), and set the right column's `padding-top` to that height + 4px. When only information cards are present, it is 0.
+- Keep the notification layer outside the modal's `inert`.
+- Classes: `ll-notice-stack`, `ll-notice-stack--compact`, `ll-notice`, `ll-notice__icon`, `ll-notice__body`, `ll-notice__text`, `ll-notice__head`, `ll-notice__title`, `ll-notice__time`, `ll-notice__meta`, `ll-notice__actions`, `ll-notice__close`. A warning has `data-state="warning"`.
 
-## 시안과 달라진 점
+## Changes from the drafts
 
-- Problems 알림 카드: 바탕 #1c1c1c(`bg-panel`), 모서리 5, 그림자 없음 → `bg-raised`, `radius-2xl`, `shadow-dialog`. 왼쪽 3px `warning` 막대는 그대로. 닫기 아이콘 14px #8c8c8c → 16px `text-2`. 부가 줄 화살표 #6e6e6e → `text-3`. 제목 줄과 부가 줄 사이 3 → 2.
+- Problems notification card: background #1c1c1c (`bg-panel`), radius 5, no shadow → `bg-raised`, `radius-2xl`, `shadow-dialog`. The 3px `warning` bar on the left stays. Close icon 14px #8c8c8c → 16px `text-2`. Extra row arrow #6e6e6e → `text-3`. Gap between title row and extra row 3 → 2.

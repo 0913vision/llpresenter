@@ -1,4 +1,4 @@
-<!-- @dsCard group="입력" height=480 -->
+<!-- @dsCard group="Inputs" height=480 -->
 <!doctype html>
 <html lang="ko">
 <head>
@@ -8,7 +8,7 @@
 <body>
 <div class="ll-preview">
 
-  <div class="ll-spec-title">색 칸, 누르는 곳 24, 색 16</div>
+  <div class="ll-spec-title">Swatch, hit area 24, color 16</div>
   <div class="ll-spec" style="padding: 14px; border-radius: 6px; background: var(--bg-raised)">
     <div class="ll-spec-item">
       <div class="ll-swatches" role="radiogroup" aria-label="후렴 색">
@@ -22,21 +22,21 @@
         <button type="button" class="ll-swatch ll-swatch--slate" role="radio" aria-checked="false" aria-label="남색"><span class="ll-swatch__chip"></span></button>
         <button type="button" class="ll-swatch ll-swatch--gray" role="radio" aria-checked="false" aria-label="회색"><span class="ll-swatch__chip"></span></button>
       </div>
-      <span class="ll-spec-label">없음, 청록, 초록, 노랑, 주황, 분홍, 보라, 남색, 회색</span>
+      <span class="ll-spec-label">None, teal, green, yellow, orange, rose, violet, slate, gray</span>
     </div>
   </div>
   <div class="ll-spec" style="padding: 14px; border-radius: 6px; background: var(--bg-raised)">
-    <div class="ll-spec-item"><button type="button" class="ll-swatch ll-swatch--teal" role="radio" aria-checked="false" aria-label="청록"><span class="ll-swatch__chip"></span></button><span class="ll-spec-label">기본</span></div>
-    <div class="ll-spec-item"><button type="button" class="ll-swatch ll-swatch--teal is-hover" role="radio" aria-checked="false" aria-label="청록"><span class="ll-swatch__chip"></span></button><span class="ll-spec-label">마우스 올림</span></div>
-    <div class="ll-spec-item"><button type="button" class="ll-swatch ll-swatch--teal" role="radio" aria-checked="true" aria-label="청록"><span class="ll-swatch__chip"></span></button><span class="ll-spec-label">고름, text 2px</span></div>
-    <div class="ll-spec-item"><button type="button" class="ll-swatch ll-swatch--teal is-focus" role="radio" aria-checked="true" aria-label="청록"><span class="ll-swatch__chip"></span></button><span class="ll-spec-label">고름, 포커스</span></div>
-    <div class="ll-spec-item"><button type="button" class="ll-swatch ll-swatch--none" role="radio" aria-checked="false" aria-label="없음"><span class="ll-swatch__chip"><span class="ll-i ll-i-x"></span></span></button><span class="ll-spec-label">없음</span></div>
-    <div class="ll-spec-item"><button type="button" class="ll-swatch ll-swatch--none" role="radio" aria-checked="true" aria-label="없음"><span class="ll-swatch__chip"><span class="ll-i ll-i-x"></span></span></button><span class="ll-spec-label">없음, 고름</span></div>
+    <div class="ll-spec-item"><button type="button" class="ll-swatch ll-swatch--teal" role="radio" aria-checked="false" aria-label="청록"><span class="ll-swatch__chip"></span></button><span class="ll-spec-label">Default</span></div>
+    <div class="ll-spec-item"><button type="button" class="ll-swatch ll-swatch--teal is-hover" role="radio" aria-checked="false" aria-label="청록"><span class="ll-swatch__chip"></span></button><span class="ll-spec-label">Hover</span></div>
+    <div class="ll-spec-item"><button type="button" class="ll-swatch ll-swatch--teal" role="radio" aria-checked="true" aria-label="청록"><span class="ll-swatch__chip"></span></button><span class="ll-spec-label">Selected, text 2px</span></div>
+    <div class="ll-spec-item"><button type="button" class="ll-swatch ll-swatch--teal is-focus" role="radio" aria-checked="true" aria-label="청록"><span class="ll-swatch__chip"></span></button><span class="ll-spec-label">Selected, focus</span></div>
+    <div class="ll-spec-item"><button type="button" class="ll-swatch ll-swatch--none" role="radio" aria-checked="false" aria-label="없음"><span class="ll-swatch__chip"><span class="ll-i ll-i-x"></span></span></button><span class="ll-spec-label">None</span></div>
+    <div class="ll-spec-item"><button type="button" class="ll-swatch ll-swatch--none" role="radio" aria-checked="true" aria-label="없음"><span class="ll-swatch__chip"><span class="ll-i ll-i-x"></span></span></button><span class="ll-spec-label">None, selected</span></div>
   </div>
 
   <div class="ll-spec" style="align-items: flex-start">
     <div class="ll-spec-item">
-      <div class="ll-spec-title">이름표 메뉴 안, 라이브러리 곡 편집</div>
+      <div class="ll-spec-title">In the 이름표 menu, library song editing</div>
       <div class="ll-menu" role="menu" aria-label="이름표" style="width: 280px">
         <button type="button" class="ll-menu__item" role="menuitemradio" aria-checked="false"><span class="ll-menu__lead"></span><span class="ll-menu__swatch" data-color="teal"></span><span class="ll-menu__label">1절</span></button>
         <button type="button" class="ll-menu__item" role="menuitemradio" aria-checked="false"><span class="ll-menu__lead"></span><span class="ll-menu__swatch" data-color="green"></span><span class="ll-menu__label">프리코러스</span></button>
@@ -56,10 +56,10 @@
         <div class="ll-menu__sep" role="separator"></div>
         <button type="button" class="ll-menu__item" role="menuitem"><span class="ll-menu__lead"><span class="ll-i ll-i-14 ll-i-plus"></span></span><span class="ll-menu__label">새 이름표</span></button>
       </div>
-      <span class="ll-spec-label">색 줄 28, 첫 색을 항목의 앞 칸에 맞춤</span>
+      <span class="ll-spec-label">Color row 28, first color aligned to the item's leading cell</span>
     </div>
     <div class="ll-spec-item">
-      <div class="ll-spec-title">매크로 우클릭 메뉴, 색 줄</div>
+      <div class="ll-spec-title">Macro right-click menu, color row</div>
       <div class="ll-menu" role="menu" aria-label="예배 시작" style="width: 240px">
         <button type="button" class="ll-menu__item" role="menuitem"><span class="ll-menu__label">이름 바꾸기</span></button>
         <button type="button" class="ll-menu__item" role="menuitem"><span class="ll-menu__label">아이콘 바꾸기</span></button>
@@ -77,7 +77,7 @@
         <div class="ll-menu__sep" role="separator"></div>
         <button type="button" class="ll-menu__item" role="menuitem" aria-haspopup="menu"><span class="ll-menu__label">동작 추가</span><span class="ll-i ll-i-12 ll-i-right ll-menu__chevron"></span></button>
       </div>
-      <span class="ll-spec-label">매크로는 없음이 없음, 메뉴 너비 240</span>
+      <span class="ll-spec-label">No none for macros, menu width 240</span>
     </div>
   </div>
 

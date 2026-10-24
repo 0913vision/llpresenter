@@ -1,72 +1,72 @@
 # MacroTile
 
-매크로 하나를 64px 색 타일과 이름으로 보여 주는 버튼이며, 진행 도구의 매크로 탭(격자 보기, 목록 보기)에 씁니다. 누르면 매크로의 동작이 바로 실행됩니다.
+A button that shows one macro as a 64px color tile with a name. Use it in the macro tab of the 진행 도구 (show tools) (grid view and list view). A click runs the macro's actions at once.
 
-## 쓰는 곳
+## Where to use
 
-- 진행 도구 매크로 탭 격자 보기(Macros, Overlays): 타일 `ll-macro`.
-- 같은 탭의 목록 보기(Macros): 30px 줄 `ll-macro-row`.
+- Grid view of the 진행 도구 macro tab (Macros, Overlays): tile `ll-macro`.
+- List view of the same tab (Macros): 30px row `ll-macro-row`.
 
-## 쓰지 않는 곳
+## Where not to use
 
-- 예배 순서 항목의 "시작할 때" 드롭다운 안의 22px 매크로 칸: Select의 `ll-select__tile`을 씁니다.
-- 동작 팔레트의 동작 줄: 목록 줄(ListRow)을 씁니다.
-- 퀵 실행 목록: 목록 줄을 씁니다.
+- The 22px macro cell inside the "시작할 때" (on start) dropdown of a 예배 순서 (service order) item: use Select's `ll-select__tile`.
+- Action rows in the action palette: use the list row (ListRow).
+- The 퀵 실행 (quick launch) list: use the list row.
 
-## 구성
+## Anatomy
 
-- 색: 이름표 색 8가지 중 하나(`data-color`, LabelChip의 색 연결). 매크로에는 "색 없음"이 없습니다.
-- 타일 `ll-macro__tile`: 64×64, 모서리 `radius-tile`(14), 바탕 `label-*`, 가운데 아이콘 `size-icon-28` `text-on-label`.
-- 이름 `ll-macro__name`: 타일 아래 `space-8`, `label`(12/16) `text-2`, 가운데 정렬, 두 줄까지(넘치면 말줄임), `word-break: keep-all`.
-- 예약 표시 `ll-macro__clock`: 시작할 때 실행하거나 시각을 정한 매크로에만. 타일 오른쪽 위 −6px에 20px 원, 바탕 `bg-control`, 2px `bg-panel` 고리, 12px `clock` 아이콘 `text`. 시각은 title 툴팁으로.
-- 새 매크로 자리 `ll-macro--new`: 같은 64px 틀에 1px 점선 `line-control`, 24px `plus` 아이콘과 이름 "새 매크로" 모두 `text-3`. 격자 맨 끝.
-- 격자 `ll-macro-grid`: `repeat(auto-fill, minmax(76px, 1fr))`, 틈 세로 `space-16` 가로 `space-8` 이상, 칸 가운데 정렬. 패널 안쪽(머리글 아래 도구 줄 다음) 위 10, 좌우와 아래 `panel-inset`. 오른쪽 열 480(안쪽 452)에서 5열, 360에서 4열이 됩니다.
-- 목록 줄 `ll-macro-row`: 목록 줄 규칙(높이 `size-row` 30, 좌우 `panel-inset`, 글자 `body`, 앞 칸과 글자 사이 `space-10`)에 아이콘 대신 20×20 색 칸(`radius-md`, 14px 아이콘 `text-on-label`). 오른쪽 부가 정보 `caption` `text-3`: 예약 시각(12px `clock` + "10:30"), 동작 수("동작 4개"), 둘 사이 `space-10`.
+- Color: one of the 8 이름표 (label) colors (`data-color`, the color mapping from LabelChip). Macros have no "no color" option.
+- Tile `ll-macro__tile`: 64×64, corner radius `radius-tile` (14), background `label-*`, icon `size-icon-28` in `text-on-label` in the center.
+- Name `ll-macro__name`: `space-8` below the tile, `label` (12/16) `text-2`, centered, up to two lines (truncate with an ellipsis beyond that), `word-break: keep-all`.
+- Schedule mark `ll-macro__clock`: only on a macro that runs on start or at a set time. A 20px circle −6px off the top right of the tile, background `bg-control`, 2px `bg-panel` ring, 12px `clock` icon in `text`. Give the time in the title tooltip.
+- New macro slot `ll-macro--new`: the same 64px frame with a 1px dashed `line-control` border. The 24px `plus` icon and the name "새 매크로" (new macro) are both `text-3`. At the very end of the grid.
+- Grid `ll-macro-grid`: `repeat(auto-fill, minmax(76px, 1fr))`, gap `space-16` vertical and at least `space-8` horizontal, cells centered. Panel padding (after the tool row under the header): 10 at the top, `panel-inset` on the left, right, and bottom. It has 5 columns at a right column of 480 (452 inside) and 4 columns at 360.
+- List row `ll-macro-row`: the list row rules (height `size-row` 30, horizontal padding `panel-inset`, text `body`, gap `space-10` between the leading cell and the text), with a 20×20 color cell instead of an icon (`radius-md`, 14px icon in `text-on-label`). Meta on the right in `caption` `text-3`: the scheduled time (12px `clock` + "10:30") and the action count ("동작 4개"), gap `space-10` between them.
 
-## 크기와 변형
+## Sizes and variants
 
-| 이름 | 높이 | 글자 | 쓰는 곳 |
+| Name | Height | Text | Where to use |
 |---|---|---|---|
-| 타일 `ll-macro` | 64 + 8 + 이름(16 또는 32) | `label` | 격자 보기 |
-| 새 매크로 `ll-macro--new` | 같음 | `label` `text-3` | 격자 끝 |
-| 목록 줄 `ll-macro-row` | 30 `size-row` | `body`, 부가 `caption` | 목록 보기 |
+| Tile `ll-macro` | 64 + 8 + name (16 or 32) | `label` | Grid view |
+| New macro `ll-macro--new` | Same | `label` `text-3` | End of the grid |
+| List row `ll-macro-row` | 30 `size-row` | `body`, meta `caption` | List view |
 
-## 상태
+## States
 
-| 상태 | 바탕 | 글자/아이콘 | 그 밖 |
+| State | Background | Text and icon | Other |
 |---|---|---|---|
-| 기본 | `label-*` | 아이콘 `text-on-label`, 이름 `text-2` | |
-| 마우스 올림 | 같음 | 같음 | 2px 틈(`bg-panel`) + 1px `line-control` |
-| 마지막 실행 | 같음 | 이름 `text`, 굵기 600 | 2px 틈 + 2px `text` |
-| 고름(편집, 우클릭 메뉴) | 같음 | 같음 | 2px 틈 + 2px `accent`. 마지막 실행 고리보다 우선 |
-| 포커스 | 같음 | 같음 | 타일에 `outline: 2px solid accent`, offset 5px |
-| 예약 | 같음 | 같음 | 오른쪽 위 시계 원 |
-| 새 매크로 마우스 올림 | 틀 안 `bg-raised` | `text-3` | |
-| 목록 줄 마우스 올림 / 고름 | `bg-raised` / `selection` | `text`, 부가 `text-3` / `text-on-selection` | 마지막 실행은 이름 굵기 600 |
+| Default | `label-*` | Icon `text-on-label`, name `text-2` | |
+| Hover | Same | Same | 2px gap (`bg-panel`) + 1px `line-control` |
+| Last run | Same | Name `text`, weight 600 | 2px gap + 2px `text` |
+| Selected (editing, right-click menu) | Same | Same | 2px gap + 2px `accent`. Takes priority over the last run ring |
+| Focus | Same | Same | `outline: 2px solid accent` on the tile, offset 5px |
+| Scheduled | Same | Same | Clock circle at the top right |
+| New macro hover | `bg-raised` inside the frame | `text-3` | |
+| List row hover / selected | `bg-raised` / `selection` | `text`, meta `text-3` / `text-on-selection` | Last run makes the name weight 600 |
 
-마지막 실행 고리는 시안 그대로 흰색입니다. 매크로는 화면에 "나가 있는" 것이 아니라 한 번 실행되는 동작이라 `live` 빨강을 쓰지 않습니다. 고름은 썸네일과 같은 `accent`이고, 색 타일이라 고리 앞에 2px 틈을 둡니다.
+The last run ring stays white, as in the draft. A macro isn't something that is "out" on the screens but an action that runs once, so it doesn't use the `live` red. Selected uses the same `accent` as thumbnails, and because the tiles are colored, a 2px gap comes before the ring.
 
-## 동작
+## Behavior
 
-- 누르면 바로 실행합니다. 확인을 묻지 않습니다. 실행하면 마지막 실행 고리가 그 타일로 옮겨 갑니다.
-- 우클릭하면 매크로 메뉴(실행, 이름 바꾸기, 아이콘 바꾸기, 색, 동작 추가 …, 삭제)를 열고, 열려 있는 동안 그 타일을 고름 상태로 둡니다.
-- 격자와 목록은 `role="listbox"`, 항목은 `role="option"`. 화살표 키로 옮기고 Enter, Space로 실행합니다. Shift + F10이나 메뉴 키로 우클릭 메뉴를 엽니다.
-- `aria-label`은 이름과 예약을 씁니다: "예배 시작, 10:30에 실행".
-- 상태 속성: 마지막 실행 `data-state="last-run"`, 고름 `aria-selected="true"`.
+- A click runs the macro at once, without asking for confirmation. After it runs, the last run ring moves to that tile.
+- A right-click opens the macro menu (실행, 이름 바꾸기, 아이콘 바꾸기, 색, 동작 추가 …, 삭제) and keeps that tile selected while the menu is open.
+- The grid and the list are `role="listbox"`, and the items are `role="option"`. The arrow keys move between items, and Enter or Space runs one. Shift + F10 or the menu key opens the right-click menu.
+- Write the name and the schedule in the `aria-label`: "예배 시작, 10:30에 실행".
+- State attributes: last run `data-state="last-run"`, selected `aria-selected="true"`.
 
-## 글쓰기
+## Writing
 
-- 이름은 예배 순서의 순간을 가리키는 짧은 명사입니다: "예배 시작", "찬양", "말씀", "광고", "헌금", "영상", "축도", "예배 끝".
-- 목록 줄 부가 정보는 "동작 4개"처럼 수만 씁니다. 동작 내용은 우클릭 메뉴의 동작 편집에서 봅니다.
+- Names are short nouns that point to a moment in the 예배 순서: "예배 시작", "찬양", "말씀", "광고", "헌금", "영상", "축도", "예배 끝".
+- In the list row meta, write only the count, as in "동작 4개". The user sees the actions themselves in action editing from the right-click menu.
 
-## 구현 메모
+## Implementation notes
 
 - `<MacroTile name="찬양" icon="song" color="teal" lastRun selected scheduled="10:30" onRun onContextMenu />`
-- `<MacroRow …같은 props… actionCount={2} />`, `<MacroGrid>`
-- 클래스: `ll-macro-grid`, `ll-macro`, `ll-macro__tile`, `ll-macro__name`, `ll-macro__clock`, `ll-macro--new`, `ll-macro-row`, `ll-macro-row__swatch`, `ll-macro-row__name`, `ll-macro-row__meta`.
-- 버튼 기본 글자 초기화(`.ll-root button { color: inherit }`)보다 앞서도록 블록 규칙을 `:is(.ll-root, .ll-preview) .ll-macro`로 한 단 올려 두었습니다.
+- `<MacroRow …same props… actionCount={2} />`, `<MacroGrid>`
+- Classes: `ll-macro-grid`, `ll-macro`, `ll-macro__tile`, `ll-macro__name`, `ll-macro__clock`, `ll-macro--new`, `ll-macro-row`, `ll-macro-row__swatch`, `ll-macro-row__name`, `ll-macro-row__meta`.
+- The block rules are raised one level to `:is(.ll-root, .ll-preview) .ll-macro` so that they beat the default button text reset (`.ll-root button { color: inherit }`).
 
-## 시안과 달라진 점
+## Changes from the drafts
 
-- Macros, Overlays 격자: 이름 #cfcfcf 500 → `text-2` 400(마지막 실행은 `text` 600 그대로), 새 매크로 점선 #4a4a4a → `line-control`, 새 매크로 hover는 버튼 전체(모서리 6) → 64px 틀 안만. 타일 hover 없음 → 2px 틈 + 1px `line-control`. 고름 상태가 없음 → 2px 틈 + 2px `accent`.
-- Macros 목록 보기: 34px 색 칸 + 동작 칩 줄(두 줄, 줄마다 9px 위아래 여백) → 30px 목록 줄 + 20px 색 칸 + "동작 4개". 마지막 실행 줄 바탕 #232323 → 이름 굵기 600만.
+- Macros and Overlays grid: name #cfcfcf 500 → `text-2` 400 (last run stays `text` 600), new macro dashed line #4a4a4a → `line-control`, new macro hover on the whole button (radius 6) → only inside the 64px frame. No tile hover → 2px gap + 1px `line-control`. No selected state → 2px gap + 2px `accent`.
+- Macros list view: 34px color cell + a row of action chips (two lines, 9px top and bottom padding per row) → 30px list row + 20px color cell + "동작 4개". Last run row background #232323 → name weight 600 only.

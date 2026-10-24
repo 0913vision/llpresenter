@@ -1,10 +1,10 @@
-/* 12 SegmentedControl: bg-well 바닥 홈(26) 안에 22px 항목을 늘어놓고 하나를 고른다 */
+/* 12 SegmentedControl: pick one of the 22px segments in a 26px bg-well track */
 .ll-seg {
   box-sizing: border-box; display: inline-flex; flex: none; align-items: center;
   height: var(--size-control-sm); min-width: 0; padding: var(--space-2);
   border-radius: var(--radius-lg); background: var(--bg-well);
 }
-/* 속성 칸을 채우는 형태: 항목이 같은 너비로 나눠 가진다 */
+/* Fill variant for property fields: segments share the width equally */
 .ll-seg.ll-seg--fill { display: flex; flex: 1 1 auto; width: 100%; }
 
 .ll-seg__item, :is(.ll-root, .ll-preview) .ll-seg__item {
@@ -18,25 +18,24 @@
 .ll-seg--fill .ll-seg__item.ll-seg__item { flex: 1 1 0; padding: 0 var(--space-8); overflow: hidden; text-overflow: ellipsis; }
 .ll-seg__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 
-/* 아이콘만 있는 항목: 22×28, 아이콘 14 */
 .ll-seg__item.ll-seg__item--icon { width: 28px; padding: 0; }
 .ll-seg__item .ll-i { width: var(--size-icon-14); height: var(--size-icon-14); }
 
-/* 개수: 바탕 없는 숫자. 겹침처럼 경고가 되는 개수만 warning */
+/* Count: a plain number with no background. Only counts that need a fix, such as conflicts, use warning */
 .ll-seg__count { font-size: 11px; line-height: 14px; font-weight: 400; color: var(--text-3); font-variant-numeric: tabular-nums; }
 .ll-seg__count.ll-seg__count--warning { color: var(--warning); }
 
 .ll-seg__item:not(:disabled, [aria-disabled="true"]):is(:hover, .is-hover) { background: var(--bg-raised); color: var(--text-2); }
 .ll-seg__item:not(:disabled, [aria-disabled="true"]):is(:active, .is-active) { background: var(--bg-control-hover); color: var(--text-2); }
 
-/* 고른 항목: radio(aria-checked), 보기 전환(aria-pressed), 탭(aria-selected) 어느 것이든 */
+/* Selected segment: radio (aria-checked), view toggle (aria-pressed), or tab (aria-selected) */
 .ll-seg__item.ll-seg__item:is([aria-checked="true"], [aria-pressed="true"], [aria-selected="true"]) { background: var(--bg-control-hover); color: var(--text); }
 .ll-seg__item:is([aria-checked="true"], [aria-pressed="true"], [aria-selected="true"]) .ll-seg__count:not(.ll-seg__count--warning) { color: var(--text-2); }
 
 .ll-seg__item:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; position: relative; z-index: 1; }
 .ll-seg__item:focus:not(:focus-visible) { outline: none; }
 
-/* 쓸 수 없음: 항목마다 disabled(또는 aria-disabled)를 준다. 고른 항목은 바탕을 남겨 무엇이 골라져 있는지 보인다 */
+/* Disabled: set disabled (or aria-disabled) on each segment. The selected segment keeps its background so the choice stays visible */
 .ll-seg__item.ll-seg__item:is(:disabled, [aria-disabled="true"]) { color: var(--text-off); }
 .ll-seg__item:is(:disabled, [aria-disabled="true"]) .ll-seg__count.ll-seg__count { color: var(--text-off); }
 

@@ -1,4 +1,4 @@
-<!-- @dsCard group="입력" height=1000 -->
+<!-- @dsCard group="Inputs" height=1000 -->
 <!doctype html>
 <html lang="ko">
 <head>
@@ -8,92 +8,92 @@
 <body>
 <div class="ll-preview">
 
-  <div class="ll-spec-title">크기</div>
+  <div class="ll-spec-title">Sizes</div>
   <div class="ll-on-panel">
     <div class="ll-spec">
       <div class="ll-spec-item">
         <span class="ll-field" style="width: 220px"><input class="ll-field__input" aria-label="이름" value="주일 예배"></span>
-        <span class="ll-spec-label">md 30, 새 예배 이름</span>
+        <span class="ll-spec-label">md 30, new service name</span>
       </div>
       <div class="ll-spec-item">
         <span class="ll-field" style="width: 252px"><span class="ll-i ll-i-book ll-field__icon"></span><input class="ll-field__input" aria-label="성경 구절" placeholder="요 3:16, 창 1:1-5"></span>
-        <span class="ll-spec-label">md 30, 앞 아이콘, 퀵 실행</span>
+        <span class="ll-spec-label">md 30, leading icon, 퀵 실행</span>
       </div>
       <div class="ll-spec-item">
         <span class="ll-field ll-field--sm" style="width: 192px"><span class="ll-i ll-i-book ll-field__icon"></span><input class="ll-field__input" aria-label="성경 구절" placeholder="요 3:16"></span>
-        <span class="ll-spec-label">sm 26, 좁은 창 퀵 실행</span>
+        <span class="ll-spec-label">sm 26, 퀵 실행 in a narrow window</span>
       </div>
     </div>
   </div>
 
-  <div class="ll-spec-title">검색 칸</div>
+  <div class="ll-spec-title">Search fields</div>
   <div class="ll-spec">
     <div class="ll-spec-item">
       <span class="ll-field ll-field--ring" style="width: 420px"><span class="ll-i ll-i-search ll-field__icon"></span><input class="ll-field__input" aria-label="검색" placeholder="곡, 가사, 초성"></span>
-      <span class="ll-spec-label">툴바 검색, bg-app 위라서 ring-field</span>
+      <span class="ll-spec-label">Toolbar search, ring-field because it sits on bg-app</span>
     </div>
   </div>
   <div class="ll-on-panel">
     <div class="ll-spec">
       <div class="ll-spec-item">
         <span class="ll-field" style="width: 252px"><span class="ll-i ll-i-search ll-field__icon"></span><input class="ll-field__input" aria-label="라이브러리 검색" placeholder="제목, 가사, 초성"></span>
-        <span class="ll-spec-label">비었을 때</span>
+        <span class="ll-spec-label">Empty</span>
       </div>
       <div class="ll-spec-item">
         <span class="ll-field" style="width: 252px"><span class="ll-i ll-i-search ll-field__icon"></span><input class="ll-field__input" aria-label="라이브러리 검색" value="주 하나님"><button type="button" class="ll-field__clear" aria-label="검색어 지우기"><span class="ll-i ll-i-x"></span></button></span>
-        <span class="ll-spec-label">값이 있을 때, 지우기</span>
+        <span class="ll-spec-label">With a value, clear-text button</span>
       </div>
       <div class="ll-spec-item">
         <span class="ll-field ll-field--sm" style="width: 220px"><span class="ll-i ll-i-search ll-field__icon"></span><input class="ll-field__input" aria-label="동작 찾기" value="오디오"><button type="button" class="ll-field__clear is-hover" aria-label="검색어 지우기"><span class="ll-i ll-i-x"></span></button></span>
-        <span class="ll-spec-label">sm, 지우기에 마우스 올림</span>
+        <span class="ll-spec-label">sm, hover on the clear-text button</span>
       </div>
     </div>
   </div>
 
-  <div class="ll-spec-title">상태</div>
+  <div class="ll-spec-title">States</div>
   <div class="ll-on-panel">
     <div class="ll-spec">
       <div class="ll-spec-item">
         <span class="ll-field" style="width: 200px"><span class="ll-i ll-i-book ll-field__icon"></span><input class="ll-field__input" aria-label="성경 구절" value="요 3:16-18"></span>
-        <span class="ll-spec-label">기본</span>
+        <span class="ll-spec-label">Default</span>
       </div>
       <div class="ll-spec-item">
         <span class="ll-field is-focus" style="width: 200px"><span class="ll-i ll-i-book ll-field__icon"></span><input class="ll-field__input" aria-label="성경 구절" value="요 3:16-18"></span>
-        <span class="ll-spec-label">포커스</span>
+        <span class="ll-spec-label">Focus</span>
       </div>
       <div class="ll-spec-item">
         <span class="ll-field" style="width: 200px" title="라이브러리에 같은 제목의 곡이 있습니다"><input class="ll-field__input" aria-label="제목" aria-invalid="true" value="만복의 근원 하나님"></span>
-        <span class="ll-spec-label">오류, 이유는 title 툴팁</span>
+        <span class="ll-spec-label">Error, reason in a title tooltip</span>
       </div>
       <div class="ll-spec-item">
         <span class="ll-field" style="width: 200px"><span class="ll-i ll-i-book ll-field__icon"></span><input class="ll-field__input" aria-label="성경 구절" placeholder="요 3:16, 창 1:1-5" disabled></span>
-        <span class="ll-spec-label">쓸 수 없음</span>
+        <span class="ll-spec-label">Disabled</span>
       </div>
     </div>
   </div>
 
-  <div class="ll-spec-title">숫자 칸과 구간 칸</div>
+  <div class="ll-spec-title">Number fields and range fields</div>
   <div class="ll-on-panel">
     <div class="ll-spec">
       <div class="ll-spec-item">
         <span style="display: inline-flex; align-items: center; gap: 8px"><span class="ll-field ll-field--num"><input class="ll-field__input" aria-label="복구 사본" value="10"></span><span class="ll-field-unit">개</span></span>
-        <span class="ll-spec-label">숫자 96, 단위는 칸 밖</span>
+        <span class="ll-spec-label">Number 96, unit outside the field</span>
       </div>
       <div class="ll-spec-item">
         <span class="ll-field ll-field--num"><input class="ll-field__input" aria-label="여백" value="6%"></span>
-        <span class="ll-spec-label">숫자, 단위가 값에 붙음</span>
+        <span class="ll-spec-label">Number, unit attached to the value</span>
       </div>
       <div class="ll-spec-item">
         <span style="display: inline-flex; gap: 8px; width: 300px">
           <span class="ll-field" style="flex: 1"><span class="ll-field__affix">시작</span><input class="ll-field__input" aria-label="구간 시작" value="00:00.0" style="text-align: right; font-variant-numeric: tabular-nums"></span>
           <span class="ll-field" style="flex: 1"><span class="ll-field__affix">끝</span><input class="ll-field__input" aria-label="구간 끝" value="00:30.0" style="text-align: right; font-variant-numeric: tabular-nums"></span>
         </span>
-        <span class="ll-spec-label">칸 안 앞 이름, 미디어 구간</span>
+        <span class="ll-spec-label">Prefix inside the field, media range</span>
       </div>
     </div>
   </div>
 
-  <div class="ll-spec-title">제목 칸, 패널 머리글 안</div>
+  <div class="ll-spec-title">Title field, inside a panel header</div>
   <div class="ll-spec">
     <div class="ll-spec-item">
       <div style="box-sizing: border-box; width: 560px; height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 8px 0 14px; border-radius: 5px 5px 0 0; background: var(--bg-panel); box-shadow: inset 0 -1px 0 var(--line)">
@@ -105,21 +105,21 @@
       <div style="box-sizing: border-box; width: 336px; height: 34px; display: flex; align-items: center; padding: 0 8px 0 14px; border-radius: 5px 5px 0 0; background: var(--bg-panel); box-shadow: inset 0 -1px 0 var(--line)">
         <span class="ll-field ll-field--title" title="라이브러리에 같은 제목의 곡이 있습니다"><input class="ll-field__input" aria-label="곡 제목" aria-invalid="true" value="만복의 근원 하나님"></span>
       </div>
-      <span class="ll-spec-label">같은 제목이 있음</span>
+      <span class="ll-spec-label">Same title exists</span>
     </div>
   </div>
 
-  <div class="ll-spec-title">여러 줄, 항목 설정의 메모</div>
+  <div class="ll-spec-title">Multiline, notes in item settings</div>
   <div class="ll-on-panel">
     <div class="ll-spec">
       <div class="ll-spec-item" style="width: 400px">
         <textarea class="ll-textarea" aria-label="메모">마지막 후렴은 천천히
 인도자 신호 보고 끝내기</textarea>
-        <span class="ll-spec-label">기본</span>
+        <span class="ll-spec-label">Default</span>
       </div>
       <div class="ll-spec-item" style="width: 400px">
         <textarea class="ll-textarea is-focus" aria-label="메모" placeholder="메모"></textarea>
-        <span class="ll-spec-label">비었을 때, 포커스</span>
+        <span class="ll-spec-label">Empty, focus</span>
       </div>
     </div>
   </div>

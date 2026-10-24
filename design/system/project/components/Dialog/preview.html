@@ -1,4 +1,4 @@
-<!-- @dsCard group="떠 있는 창" height=1746 -->
+<!-- @dsCard group="Overlays" height=1746 -->
 <!doctype html>
 <html lang="ko">
 <head>
@@ -6,7 +6,7 @@
 <title>Dialog</title>
 <style>
   html, body { margin: 0; }
-  /* 미리보기 전용: 0.3배로 줄인 1920×1080 창, 실제 크기 대화상자 옆의 치수 표 */
+  /* Preview only: a 1920×1080 window scaled to 0.3, and dimension notes beside the full-size dialog */
   .pv-win { position: relative; width: 576px; height: 324px; border-radius: var(--radius-md); background: var(--bg-app); overflow: hidden; box-shadow: 0 0 0 1px var(--line); }
   .pv-win__bar { position: absolute; left: 0; right: 0; top: 0; height: 9px; background: var(--bg-app); }
   .pv-win__line { position: absolute; left: 0; right: 0; top: 9px; height: 0; border-top: 1px dashed var(--accent); }
@@ -33,7 +33,7 @@
 <body>
 <div class="ll-preview">
 
-  <div class="ll-spec-title">막은 메뉴줄(30) 아래부터, 대화상자는 막 가운데. 너비는 네 가지</div>
+  <div class="ll-spec-title">Scrim starts under the menu bar (30), dialog centered on the scrim. Four widths</div>
   <div class="ll-spec" style="align-items: center; gap: 16px 32px">
     <div class="ll-spec-item">
       <div class="pv-win" aria-hidden="true">
@@ -44,20 +44,20 @@
         <div class="pv-win__scrim"></div>
         <div class="pv-win__dlg"></div>
         <div class="pv-win__line"></div>
-        <span class="pv-win__tag" style="right: 8px; top: 14px; color: var(--accent)">막은 메뉴줄 30 아래부터</span>
+        <span class="pv-win__tag" style="right: 8px; top: 14px; color: var(--accent)">Scrim starts under the 30 menu bar</span>
       </div>
-      <span class="ll-spec-label">1920×1080 창을 0.3배로: 메뉴줄은 덮지 않음</span>
+      <span class="ll-spec-label">1920×1080 window at 0.3×: menu bar not covered</span>
     </div>
     <div class="pv-sizes">
-      <div class="pv-size"><span class="pv-size__bar" style="width: 138px"></span><span class="pv-size__t"><b>s 460</b> 확인 창</span></div>
-      <div class="pv-size"><span class="pv-size__bar" style="width: 180px"></span><span class="pv-size__t"><b>m 600</b> 출력 상태 복구</span></div>
+      <div class="pv-size"><span class="pv-size__bar" style="width: 138px"></span><span class="pv-size__t"><b>s 460</b> Confirmation dialog</span></div>
+      <div class="pv-size"><span class="pv-size__bar" style="width: 180px"></span><span class="pv-size__t"><b>m 600</b> Output state recovery</span></div>
       <div class="pv-size"><span class="pv-size__bar" style="width: 246px"></span><span class="pv-size__t"><b>l 820</b> 새 예배, 다른 예배에서 가져오기</span></div>
       <div class="pv-size"><span class="pv-size__bar" style="width: 324px"></span><span class="pv-size__t"><b>xl 1080</b> 텍스트 가져오기</span></div>
-      <span class="ll-spec-label">같은 0.3배. 창이 좁으면 너비 = 창 − 32, 높이는 창 − 64까지</span>
+      <span class="ll-spec-label">Same 0.3×. In a narrow window, width = window − 32, height up to window − 64</span>
     </div>
   </div>
 
-  <div class="ll-spec-title">새 예배: dialog-l, 두 칸 몸통, 입력 줄, 바닥글 (실제 크기)</div>
+  <div class="ll-spec-title">새 예배: dialog-l, two-column body, input bar, footer (actual size)</div>
   <div class="pv-anat">
     <section class="ll-dialog ll-dialog--l pv-dlg" role="dialog" aria-modal="true" aria-labelledby="pv-ns-title" style="height: 560px">
       <header class="ll-dialog__header">
@@ -108,29 +108,29 @@
       </footer>
     </section>
     <div class="pv-notes" aria-hidden="true">
-      <span class="pv-note" style="top: 15px">머리글 44<br>닫기 30×30</span>
-      <span class="pv-note" style="top: 70px">왼쪽 260<br>안쪽 8</span>
-      <span class="pv-note" style="top: 140px">오른쪽<br>안쪽 16<br>상자 bg-inset</span>
-      <span class="pv-note" style="top: 475px">입력 줄 52<br>사이 20</span>
-      <span class="pv-note" style="top: 527px">바닥글 52<br>버튼 md</span>
+      <span class="pv-note" style="top: 15px">Header 44<br>Close 30×30</span>
+      <span class="pv-note" style="top: 70px">Left 260<br>Padding 8</span>
+      <span class="pv-note" style="top: 140px">Right<br>Padding 16<br>Box bg-inset</span>
+      <span class="pv-note" style="top: 475px">Input bar 52<br>Gap 20</span>
+      <span class="pv-note" style="top: 527px">Footer 52<br>Buttons md</span>
     </div>
   </div>
 
-  <div class="ll-spec-title">머리글: 부제, 닫기 버튼 상태</div>
+  <div class="ll-spec-title">Header: subtitle, close button states</div>
   <div class="ll-spec">
     <div class="ll-spec-item">
       <div class="pv-hdr" style="width: 600px"><header class="ll-dialog__header"><h2 class="ll-dialog__title">텍스트 가져오기</h2><span class="ll-dialog__subtitle"><span class="ll-i ll-i-14 ll-i-filetext"></span>만복의 근원 하나님.txt</span><button class="ll-dialog__close" aria-label="닫기"><span class="ll-i ll-i-x"></span></button></header></div>
-      <span class="ll-spec-label">제목 + 부제(파일 이름)</span>
+      <span class="ll-spec-label">Title + subtitle (file name)</span>
     </div>
   </div>
   <div class="ll-spec">
-    <div class="ll-spec-item"><div class="pv-hdr"><header class="ll-dialog__header"><h2 class="ll-dialog__title">새 예배</h2><button class="ll-dialog__close" aria-label="닫기"><span class="ll-i ll-i-x"></span></button></header></div><span class="ll-spec-label">닫기 기본</span></div>
-    <div class="ll-spec-item"><div class="pv-hdr"><header class="ll-dialog__header"><h2 class="ll-dialog__title">새 예배</h2><button class="ll-dialog__close is-hover" aria-label="닫기"><span class="ll-i ll-i-x"></span></button></header></div><span class="ll-spec-label">마우스 올림</span></div>
-    <div class="ll-spec-item"><div class="pv-hdr"><header class="ll-dialog__header"><h2 class="ll-dialog__title">새 예배</h2><button class="ll-dialog__close is-active" aria-label="닫기"><span class="ll-i ll-i-x"></span></button></header></div><span class="ll-spec-label">누름</span></div>
-    <div class="ll-spec-item"><div class="pv-hdr"><header class="ll-dialog__header"><h2 class="ll-dialog__title">새 예배</h2><button class="ll-dialog__close is-focus" aria-label="닫기"><span class="ll-i ll-i-x"></span></button></header></div><span class="ll-spec-label">포커스</span></div>
+    <div class="ll-spec-item"><div class="pv-hdr"><header class="ll-dialog__header"><h2 class="ll-dialog__title">새 예배</h2><button class="ll-dialog__close" aria-label="닫기"><span class="ll-i ll-i-x"></span></button></header></div><span class="ll-spec-label">Close, default</span></div>
+    <div class="ll-spec-item"><div class="pv-hdr"><header class="ll-dialog__header"><h2 class="ll-dialog__title">새 예배</h2><button class="ll-dialog__close is-hover" aria-label="닫기"><span class="ll-i ll-i-x"></span></button></header></div><span class="ll-spec-label">Hover</span></div>
+    <div class="ll-spec-item"><div class="pv-hdr"><header class="ll-dialog__header"><h2 class="ll-dialog__title">새 예배</h2><button class="ll-dialog__close is-active" aria-label="닫기"><span class="ll-i ll-i-x"></span></button></header></div><span class="ll-spec-label">Pressed</span></div>
+    <div class="ll-spec-item"><div class="pv-hdr"><header class="ll-dialog__header"><h2 class="ll-dialog__title">새 예배</h2><button class="ll-dialog__close is-focus" aria-label="닫기"><span class="ll-i ll-i-x"></span></button></header></div><span class="ll-spec-label">Focus</span></div>
   </div>
 
-  <div class="ll-spec-title">입력 줄: 머리글 아래(옵션) 또는 바닥글 위(이름, 날짜, 시간)</div>
+  <div class="ll-spec-title">Input bar: under the header (options) or above the footer (name, date, time)</div>
   <div class="ll-spec">
     <div class="ll-spec-item">
       <div class="pv-hdr" style="width: 820px">
@@ -140,11 +140,11 @@
           <div class="ll-dialog__field"><span class="ll-dialog__field-label">이름표 인식</span><button type="button" class="ll-switch" role="switch" aria-checked="true" aria-label="이름표 인식"></button></div>
         </div>
       </div>
-      <span class="ll-spec-label">위 옵션 줄 (텍스트 가져오기)</span>
+      <span class="ll-spec-label">Top option bar (텍스트 가져오기)</span>
     </div>
   </div>
 
-  <div class="ll-spec-title">바닥글: md 버튼, 오른쪽 정렬, 사이 8, [취소] … [주 버튼]</div>
+  <div class="ll-spec-title">Footer: md buttons, aligned right, gap 8, [취소] … [primary button]</div>
   <div class="ll-spec">
     <div class="ll-spec-item"><div class="pv-hdr" style="width: 440px"><footer class="ll-dialog__footer" style="border-top: 0"><button class="ll-btn ll-btn--md">취소</button><button class="ll-btn ll-btn--md ll-btn--primary">가져오기</button></footer></div><span class="ll-spec-label">다른 예배에서 가져오기</span></div>
     <div class="ll-spec-item"><div class="pv-hdr" style="width: 440px"><footer class="ll-dialog__footer" style="border-top: 0"><button class="ll-btn ll-btn--md">버리기</button><button class="ll-btn ll-btn--md ll-btn--primary">편집</button></footer></div><span class="ll-spec-label">텍스트 가져오기</span></div>

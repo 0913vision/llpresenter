@@ -1,4 +1,4 @@
-<!-- @dsCard group="진행 요소" height=600 -->
+<!-- @dsCard group="Show" height=600 -->
 <!doctype html>
 <html lang="ko">
 <head>
@@ -23,7 +23,7 @@
 
   <div class="row">
     <div class="col">
-      <div class="ll-spec-title">격자 보기, 타일 64, 사이 세로 16 가로 8 이상</div>
+      <div class="ll-spec-title">Grid view, tile 64, gap 16 vertical, 8 or more horizontal</div>
       <section class="ll-panel w480" aria-label="매크로">
         <div class="ll-panel__header"><div class="ll-panel__tabs">
           <span class="ll-panel__tab" role="tab">표시 중<span class="ll-count">3</span></span>
@@ -53,7 +53,7 @@
     </div>
 
     <div class="col">
-      <div class="ll-spec-title">목록 보기, 줄 30, 색 칸 20</div>
+      <div class="ll-spec-title">List view, row 30, color cell 20</div>
       <section class="ll-panel w416" aria-label="매크로 목록">
         <div class="ll-panel__header"><div class="ll-panel__tabs"><span class="ll-panel__tab" role="tab" aria-selected="true">매크로</span></div></div>
         <div class="tools">주일 예배<span>8개</span></div>
@@ -67,25 +67,25 @@
         </div>
       </section>
       <div class="ll-spec" style="gap: 6px 18px">
-        <span class="ll-spec-label">찬양: 마지막 실행(굵게)</span>
-        <span class="ll-spec-label">말씀: 고름</span>
-        <span class="ll-spec-label">광고: 마우스 올림</span>
+        <span class="ll-spec-label">찬양: last run (bold)</span>
+        <span class="ll-spec-label">말씀: selected</span>
+        <span class="ll-spec-label">광고: hover</span>
       </div>
     </div>
   </div>
 
-  <div class="ll-spec-title">타일 상태</div>
+  <div class="ll-spec-title">Tile states</div>
   <div class="ll-on-panel states">
     <div class="ll-spec">
-      <div class="ll-spec-item"><span class="cell"><button type="button" class="ll-macro" data-color="slate"><span class="ll-macro__tile"><span class="ll-i ll-i-28 ll-i-mic"></span></span><span class="ll-macro__name">말씀</span></button></span><span class="ll-spec-label">기본</span></div>
-      <div class="ll-spec-item"><span class="cell"><button type="button" class="ll-macro is-hover" data-color="slate"><span class="ll-macro__tile"><span class="ll-i ll-i-28 ll-i-mic"></span></span><span class="ll-macro__name">말씀</span></button></span><span class="ll-spec-label">마우스 올림</span></div>
-      <div class="ll-spec-item"><span class="cell"><button type="button" class="ll-macro" data-color="teal" data-state="last-run"><span class="ll-macro__tile"><span class="ll-i ll-i-28 ll-i-song"></span></span><span class="ll-macro__name">찬양</span></button></span><span class="ll-spec-label">마지막 실행</span></div>
-      <div class="ll-spec-item"><span class="cell"><button type="button" class="ll-macro" data-color="slate" aria-selected="true"><span class="ll-macro__tile"><span class="ll-i ll-i-28 ll-i-mic"></span></span><span class="ll-macro__name">말씀</span></button></span><span class="ll-spec-label">고름</span></div>
-      <div class="ll-spec-item"><span class="cell"><button type="button" class="ll-macro is-focus" data-color="yellow"><span class="ll-macro__tile"><span class="ll-i ll-i-28 ll-i-notice"></span></span><span class="ll-macro__name">광고</span></button></span><span class="ll-spec-label">포커스</span></div>
-      <div class="ll-spec-item"><span class="cell"><button type="button" class="ll-macro" data-color="green" title="예배 시작, 10:30에 실행"><span class="ll-macro__tile"><span class="ll-i ll-i-28 ll-i-sun"></span><span class="ll-macro__clock"><span class="ll-i ll-i-12 ll-i-clock"></span></span></span><span class="ll-macro__name">예배 시작</span></button></span><span class="ll-spec-label">예약 실행</span></div>
-      <div class="ll-spec-item"><span class="cell"><button type="button" class="ll-macro" data-color="rose"><span class="ll-macro__tile"><span class="ll-i ll-i-28 ll-i-film"></span></span><span class="ll-macro__name">설교 전 광고 영상과 헌금 안내</span></button></span><span class="ll-spec-label">이름 두 줄까지</span></div>
-      <div class="ll-spec-item"><span class="cell"><button type="button" class="ll-macro ll-macro--new" aria-label="새 매크로"><span class="ll-macro__tile"><span class="ll-i ll-i-24 ll-i-plus"></span></span><span class="ll-macro__name">새 매크로</span></button></span><span class="ll-spec-label">새 매크로</span></div>
-      <div class="ll-spec-item"><span class="cell"><button type="button" class="ll-macro ll-macro--new is-hover" aria-label="새 매크로"><span class="ll-macro__tile"><span class="ll-i ll-i-24 ll-i-plus"></span></span><span class="ll-macro__name">새 매크로</span></button></span><span class="ll-spec-label">새, 마우스 올림</span></div>
+      <div class="ll-spec-item"><span class="cell"><button type="button" class="ll-macro" data-color="slate"><span class="ll-macro__tile"><span class="ll-i ll-i-28 ll-i-mic"></span></span><span class="ll-macro__name">말씀</span></button></span><span class="ll-spec-label">Default</span></div>
+      <div class="ll-spec-item"><span class="cell"><button type="button" class="ll-macro is-hover" data-color="slate"><span class="ll-macro__tile"><span class="ll-i ll-i-28 ll-i-mic"></span></span><span class="ll-macro__name">말씀</span></button></span><span class="ll-spec-label">Hover</span></div>
+      <div class="ll-spec-item"><span class="cell"><button type="button" class="ll-macro" data-color="teal" data-state="last-run"><span class="ll-macro__tile"><span class="ll-i ll-i-28 ll-i-song"></span></span><span class="ll-macro__name">찬양</span></button></span><span class="ll-spec-label">Last run</span></div>
+      <div class="ll-spec-item"><span class="cell"><button type="button" class="ll-macro" data-color="slate" aria-selected="true"><span class="ll-macro__tile"><span class="ll-i ll-i-28 ll-i-mic"></span></span><span class="ll-macro__name">말씀</span></button></span><span class="ll-spec-label">Selected</span></div>
+      <div class="ll-spec-item"><span class="cell"><button type="button" class="ll-macro is-focus" data-color="yellow"><span class="ll-macro__tile"><span class="ll-i ll-i-28 ll-i-notice"></span></span><span class="ll-macro__name">광고</span></button></span><span class="ll-spec-label">Focus</span></div>
+      <div class="ll-spec-item"><span class="cell"><button type="button" class="ll-macro" data-color="green" title="예배 시작, 10:30에 실행"><span class="ll-macro__tile"><span class="ll-i ll-i-28 ll-i-sun"></span><span class="ll-macro__clock"><span class="ll-i ll-i-12 ll-i-clock"></span></span></span><span class="ll-macro__name">예배 시작</span></button></span><span class="ll-spec-label">Scheduled</span></div>
+      <div class="ll-spec-item"><span class="cell"><button type="button" class="ll-macro" data-color="rose"><span class="ll-macro__tile"><span class="ll-i ll-i-28 ll-i-film"></span></span><span class="ll-macro__name">설교 전 광고 영상과 헌금 안내</span></button></span><span class="ll-spec-label">Up to 2 lines</span></div>
+      <div class="ll-spec-item"><span class="cell"><button type="button" class="ll-macro ll-macro--new" aria-label="새 매크로"><span class="ll-macro__tile"><span class="ll-i ll-i-24 ll-i-plus"></span></span><span class="ll-macro__name">새 매크로</span></button></span><span class="ll-spec-label">New macro</span></div>
+      <div class="ll-spec-item"><span class="cell"><button type="button" class="ll-macro ll-macro--new is-hover" aria-label="새 매크로"><span class="ll-macro__tile"><span class="ll-i ll-i-24 ll-i-plus"></span></span><span class="ll-macro__name">새 매크로</span></button></span><span class="ll-spec-label">New, hover</span></div>
     </div>
   </div>
 

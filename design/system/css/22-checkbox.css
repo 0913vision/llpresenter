@@ -1,4 +1,4 @@
-/* 22 Checkbox: 16px 체크 상자(ll-check)와 줄 전체가 눌리는 체크 줄(ll-check-row) */
+/* 22 Checkbox: 16px checkbox (ll-check) and a check row that toggles from anywhere on it (ll-check-row) */
 .ll-check, :is(.ll-root, .ll-preview) .ll-check {
   box-sizing: border-box; flex: none; position: relative; display: inline-flex; align-items: center; justify-content: center;
   width: 16px; height: 16px; margin: 0; padding: 0; border: 0; border-radius: var(--radius-sm);
@@ -13,7 +13,7 @@
 .ll-check:disabled { box-shadow: inset 0 0 0 1px var(--line-strong); color: var(--text-off); }
 .ll-check:disabled[aria-checked="true"], .ll-check:disabled[aria-checked="mixed"] { background: var(--bg-control); box-shadow: none; }
 
-/* 체크 줄: 30px, 상자와 다음 것 사이 10px. label로 감싸 줄 어디를 눌러도 바뀐다 */
+/* Check row: wrapped in a label so that a click anywhere on the row toggles it */
 .ll-check-row {
   box-sizing: border-box; display: flex; align-items: center; gap: var(--space-10);
   min-width: 0; height: var(--size-row); padding: 0;
@@ -26,10 +26,9 @@
 .ll-check-row__value { flex: 1 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 12px; line-height: 16px; color: var(--text-3); font-variant-numeric: tabular-nums; }
 .ll-check-row__meta { flex: none; margin-left: auto; font-size: 11px; line-height: 14px; color: var(--text-3); font-variant-numeric: tabular-nums; }
 
-/* 목록 안의 줄: 좌우 14px, hover bg-raised */
 .ll-check-row--list { padding: 0 var(--space-14); }
 .ll-check-row--list:hover, .ll-check-row--list.is-hover { background: var(--bg-raised); }
-/* 묶음 머리글 줄(트리의 부모) */
+/* Group header row (parent in a tree) */
 .ll-check-row--group { font-size: 11px; line-height: 14px; font-weight: 600; color: var(--text-3); }
 
 .ll-check-row:has(> .ll-check:disabled) { color: var(--text-off); }

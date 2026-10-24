@@ -1,66 +1,66 @@
 # SegmentedControl
 
-한 단 낮은 바닥 홈 안에 두세 개의 항목을 늘어놓고 하나를 고르는 컨트롤입니다. 곡의 구성, 출력 방식, 미리 볼 화면, 보기 전환처럼 고를 것이 적고 모두 보여야 할 때 씁니다.
+A control that lines up two or three segments in a sunken track and picks one. Use it when there are few choices and all of them must be visible, such as the 구성 (arrangement) of a song, the output mode, the screen to preview, or a view switch.
 
-## 쓰는 곳
+## Where to use
 
-- 패널 머리글과 캡션 줄: 구성(기본, 주일용, 짧게), 미리보기의 화면(본 화면, 무대, 방송 자막), 출력 미리보기(화면 내용, 테스트 패턴)
-- 속성 칸(칸을 채우는 형태): 화면 설정의 종류와 방식, 미디어의 끝나면과 맞춤, 무대 배치의 보여 줄 것, 환경설정의 채널
-- 목록 위 거르기: 단축키의 전체, 바꾼 것, 겹침(개수 포함)
-- 보기 전환(아이콘 항목): 진행 도구와 매크로, 미디어의 격자 보기와 목록 보기, Look의 정렬
+- Panel headers and caption rows: 구성 (기본, 주일용, 짧게), the screen in the preview (본 화면 (main screen), 무대 (stage), 방송 자막 (broadcast captions)), output preview (화면 내용, 테스트 패턴)
+- Property fields (fill variant): 종류 (type) and 방식 (mode) in 화면 설정 (Screen settings), 끝나면 (when done) and 맞춤 (fit) in media, 보여 줄 것 (what to show) in the stage layout, 채널 (channel) in Preferences
+- Filters above a list: 전체, 바꾼 것, 겹침 in shortcuts (with counts)
+- View switches (icon segments): 진행 도구 (show tools) and macros, grid view and list view in media, alignment in Look
 
-## 쓰지 않는 곳
+## Where not to use
 
-- 고를 것이 다섯 개를 넘거나 이름이 길 때: Select를 씁니다.
-- 켜고 끄기 하나: Switch나 IconButton(`aria-pressed`).
-- 패널 머리글의 탭(예배 순서, 표시 중 …): 패널 탭을 씁니다. 세그먼트는 패널 안 내용을 바꾸는 작은 전환에만 씁니다.
-- 작업 공간 전환(진행, 준비, 화면 설정): ToolbarButton의 작업 공간 탭.
+- More than five choices, or long names: use Select.
+- A single on/off choice: Switch or IconButton (`aria-pressed`).
+- Tabs in panel headers (예배 순서 (service order), 표시 중 …): use panel tabs. Use segments only for small switches that change the content inside a panel.
+- Switching workspaces (진행 (Show), 준비 (Prep), 화면 설정): the workspace tabs of ToolbarButton.
 
-## 구성
+## Anatomy
 
-- 바닥 홈: 바탕 `bg-well`, 모서리 `radius-lg`(5px), 안쪽 `space-2`, 높이 `size-control-sm`(26px). 항목 사이 틈은 없습니다.
-- 항목: 높이 `size-control-xs`(22px), 좌우 `space-10`, 모서리 `radius-sm`(3px), 글자 `label`(12/16).
-- 고른 항목: 바탕 `bg-control-hover`, 글자 `text`. 나머지: 바탕 없음, 글자 `text-3`. 굵기는 바꾸지 않습니다.
-- 아이콘 항목: 22×28, 아이콘 `size-icon-14`, 이름은 `aria-label`과 툴팁으로.
-- 개수: 이름 뒤 `space-6`, 글자 `caption`(11/14), 숫자 폭 고정. 나머지 항목에서는 `text-3`, 고른 항목에서는 `text-2`, 겹침처럼 고쳐야 할 것의 개수는 `warning`. 바탕이 있는 배지로 만들지 않습니다.
-- 칸을 채우는 형태(`ll-seg--fill`): 너비 100%, 항목이 너비를 똑같이 나누고 좌우 `space-8`. 이름이 넘치면 말줄임.
+- Track: background `bg-well`, corner radius `radius-lg` (5px), padding `space-2`, height `size-control-sm` (26px). No gap between segments.
+- Segment: height `size-control-xs` (22px), horizontal padding `space-10`, corner radius `radius-sm` (3px), text `label` (12/16).
+- Selected segment: background `bg-control-hover`, text `text`. Other segments: no background, text `text-3`. Don't change the weight.
+- Icon segment: 22×28, icon `size-icon-14`, name in `aria-label` and the tooltip.
+- Count: `space-6` after the name, text `caption` (11/14), tabular numbers. `text-3` in unselected segments, `text-2` in the selected segment, and `warning` for a count of things that need fixing, such as conflicts. Don't make it a badge with a background.
+- Fill variant (`ll-seg--fill`): width 100%, segments share the width equally, horizontal padding `space-8`. Truncate names that overflow with an ellipsis.
 
-## 크기와 변형
+## Sizes and variants
 
-| 이름 | 높이 | 글자 | 쓰는 곳 |
+| Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
-| 기본 | 홈 `size-control-sm` 26, 항목 `size-control-xs` 22 | `label` | 패널 머리글, 캡션 줄, 목록 위 거르기 |
-| 칸 채움 | 같음 | `label` | 속성 칸, 환경설정의 줄 |
-| 아이콘 | 같음, 항목 너비 28 | 아이콘 14 | 격자/목록 보기, 정렬 |
+| Default | Track `size-control-sm` 26, segment `size-control-xs` 22 | `label` | Panel headers, caption rows, filters above lists |
+| Fill | Same | `label` | Property fields, Preferences rows |
+| Icon | Same, segment width 28 | Icon 14 | Grid and list view, alignment |
 
-크기는 하나입니다. md 30 컨트롤 옆(환경설정)에서도 26 홈을 쓰고 세로 가운데에 맞춥니다.
+There is one size. Next to md 30 controls (Preferences), use the 26 track too and center it vertically.
 
-## 상태
+## States
 
-| 상태 | 바탕 | 글자/아이콘 | 그 밖 |
+| State | Background | Text and icon | Other |
 | --- | --- | --- | --- |
-| 기본(고르지 않음) | 없음 | `text-3` | |
-| 마우스 올림 | `bg-raised` | `text-2` | 100ms ease-out |
-| 누름 | `bg-control-hover` | `text-2` | 놓으면 고른 항목이 됩니다 |
-| 고름 | `bg-control-hover` | `text` | 마우스를 올려도 그대로 |
-| 포커스 | 그대로 | 그대로 | 키보드 포커스에만 항목에 `outline: 2px solid accent`, offset 1px |
-| 쓸 수 없음 | 고른 항목만 `bg-control-hover`를 남김 | `text-off` | hover 없음, 이유는 툴팁으로 |
+| Default (not selected) | None | `text-3` | |
+| Hover | `bg-raised` | `text-2` | 100ms ease-out |
+| Pressed | `bg-control-hover` | `text-2` | Becomes the selected segment on release |
+| Selected | `bg-control-hover` | `text` | Stays the same on hover |
+| Focus | Unchanged | Unchanged | `outline: 2px solid accent`, offset 1px, on the segment, on keyboard focus only |
+| Disabled | Only the selected segment keeps `bg-control-hover` | `text-off` | No hover. Give the reason in a tooltip |
 
-## 동작
+## Behavior
 
-- 값 하나를 고르는 묶음은 `role="radiogroup"`과 항목 `role="radio"` + `aria-checked`로 만듭니다. 패널 안 내용을 바꾸는 화면 탭은 `role="tablist"`와 `role="tab"` + `aria-selected`, 보기 전환은 `aria-pressed`를 씁니다. CSS는 세 가지를 모두 받습니다.
-- 키보드: Tab으로 들어오면 고른 항목에 포커스가 갑니다(나머지는 `tabindex="-1"`). 왼쪽/오른쪽 화살표로 옆 항목으로 옮기면서 바로 고르고, 끝에서 처음으로 돌아갑니다. Home과 End는 처음과 끝.
-- 마우스: 누르면 바로 고릅니다. 이미 고른 항목을 다시 눌러도 바뀌지 않습니다.
-- 묶음 이름은 `aria-label`로 줍니다(구성, 방식, 보기). 화면에 보이는 앞 이름이 있으면 `aria-labelledby`로 잇습니다.
-- 묶음 전체를 쓸 수 없을 때는 항목마다 `aria-disabled="true"`를 줍니다.
+- Build a group that picks one value with `role="radiogroup"`, and its segments with `role="radio"` + `aria-checked`. Use `role="tablist"` and `role="tab"` + `aria-selected` for screen tabs that change the content inside a panel, and `aria-pressed` for view switches. The CSS accepts all three.
+- Keyboard: Tab moves focus to the selected segment (the others have `tabindex="-1"`). Left and Right arrows move to the next segment and select it at once, and wrap from the end to the start. Home and End go to the first and the last segment.
+- Mouse: a click selects at once. A click on the segment that is already selected changes nothing.
+- Name the group with `aria-label` (구성, 방식, 보기). If a visible label comes before it, connect it with `aria-labelledby`.
+- When the whole group is disabled, give each segment `aria-disabled="true"`.
 
-## 글쓰기
+## Writing
 
-- 항목 이름은 한두 낱말의 명사로, 서로 같은 꼴로 씁니다: 기본, 주일용, 짧게 / 맞추기, 채우기, 늘리기 / 전체 화면, 창, 캡처용 창, NDI.
-- 묶음 위에 설명을 붙이지 않습니다. 항목의 뜻이 어려우면 툴팁에 씁니다.
-- 아이콘 항목의 이름은 "격자 보기", "목록 보기"처럼 무엇이 되는지를 씁니다.
+- Write segment names as nouns of one or two words, in the same form as each other: 기본, 주일용, 짧게 / 맞추기, 채우기, 늘리기 / 전체 화면, 창, 캡처용 창, NDI.
+- Don't put a description above the group. If the meaning of a segment is hard to follow, put it in a tooltip.
+- Name an icon segment by what it switches to, such as "격자 보기" (grid view) and "목록 보기" (list view).
 
-## 구현 메모
+## Implementation notes
 
 ```jsx
 <SegmentedControl label="구성" value={arr} onChange={setArr}
@@ -72,13 +72,13 @@
   options={[{ value: 'all', label: '전체' }, { value: 'changed', label: '바꾼 것', count: 3 }, { value: 'conflict', label: '겹침', count: 1, warning: true }]} />
 ```
 
-- props: `options`(`value`, `label`, `icon`, `count`, `warning`, `disabled`), `value`, `onChange`, `label`(묶음 이름), `fill`, `kind` `'radio'`(기본) | `'tabs'` | `'toggle'`, `disabled`.
-- 클래스: 홈 `ll-seg`, 칸 채움 `ll-seg--fill`, 항목 `ll-seg__item`, 아이콘 항목 `ll-seg__item--icon`, 이름 `ll-seg__label`(말줄임이 필요할 때 감쌈), 개수 `ll-seg__count`, 경고 개수 `ll-seg__count--warning`.
+- props: `options` (`value`, `label`, `icon`, `count`, `warning`, `disabled`), `value`, `onChange`, `label` (group name), `fill`, `kind` `'radio'` (default) | `'tabs'` | `'toggle'`, `disabled`.
+- Classes: track `ll-seg`, fill `ll-seg--fill`, segment `ll-seg__item`, icon segment `ll-seg__item--icon`, name `ll-seg__label` (wraps the name when it needs truncating), count `ll-seg__count`, warning count `ll-seg__count--warning`.
 
-## 시안과 달라진 점
+## Changes from the drafts
 
-- Reflow, ImportSave: 구성(기본, 주일용, 짧게) 항목 24px 좌우 12 → 22px 좌우 10(홈 28 → 26).
-- Screens(종류, 방식), Media(끝나면, 맞춤), StageEditor(보여 줄 것), Prefs(채널): 칸 채움 항목 24px → 22px(홈 28 → 26), 좌우 0 → 8.
-- StageEditor: 속성 탭(바닥 홈 안 26px 항목, 고른 항목 굵게) → 22px 항목, 굵기 400 고정.
-- StageEditor, Looks: 정렬 아이콘 항목 최소 너비 32, 높이 24 → 22×28, 아이콘 14.
-- Prefs, Shortcuts: 거르기 항목 26px → 22px. 개수 배지(16px 둥근 칩, 바탕 #2a2a2a와 겹침 #4a3410, 10px 700) → 바탕 없는 11px 숫자(`text-3`, 겹침은 `warning`).
+- Reflow, ImportSave: 구성 (기본, 주일용, 짧게) segments 24px with horizontal padding 12 → 22px with horizontal padding 10 (track 28 → 26).
+- Screens (종류, 방식), Media (끝나면, 맞춤), StageEditor (보여 줄 것), Prefs (채널): fill segments 24px → 22px (track 28 → 26), horizontal padding 0 → 8.
+- StageEditor: property tabs (26px segments in a track, the selected segment in bold) → 22px segments, weight fixed at 400.
+- StageEditor, Looks: alignment icon segments with minimum width 32 and height 24 → 22×28, icon 14.
+- Prefs, Shortcuts: filter segments 26px → 22px. Count badge (16px round chip, background #2a2a2a and #4a3410 for conflicts, 10px 700) → 11px number with no background (`text-3`, `warning` for conflicts).

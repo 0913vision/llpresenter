@@ -1,86 +1,86 @@
 # Dialog
 
-작업 하나를 끝내야 닫히는 대화상자입니다. 44px 머리글, 안쪽 16px의 몸통, 52px 바닥글로 되어 있고 메뉴줄 아래를 막으로 덮습니다. 새 예배, 다른 예배에서 가져오기, 텍스트 가져오기에 씁니다.
+A dialog that closes only when the user finishes or cancels one task. It has a 44px header, a body with 16px padding, and a 52px footer, and it covers the area below the menu bar with a scrim. Use it for 새 예배 (new service), 다른 예배에서 가져오기 (import from another service), and 텍스트 가져오기 (import text).
 
-## 쓰는 곳
+## Where to use
 
-- 새 예배: `dialog-l`, 두 칸 몸통(왼쪽 틀과 지난 예배, 오른쪽 예배 순서) + 바닥글 위 입력 줄(이름, 날짜, 시간)
-- 다른 예배에서 가져오기: `dialog-l`, 두 칸 몸통
-- 텍스트 가져오기: `dialog-xl`, 머리글 아래 옵션 줄(장 나누기, 한 장에, 이름표 인식) + 장 미리보기
+- 새 예배: `dialog-l`, a two-column body (틀 (template) and past services on the left, 예배 순서 (service order) on the right) + an input bar above the footer (name, date, time)
+- 다른 예배에서 가져오기: `dialog-l`, a two-column body
+- 텍스트 가져오기: `dialog-xl`, an option bar under the header (장 나누기, 한 장에, 이름표 인식) + a 장 (slide) preview
 
-## 쓰지 않는 곳
+## Where not to use
 
-- 질문 하나에 답하는 창(덮어쓸까요?, 출력 상태 복구): `AlertDialog`를 씁니다.
-- 짧은 목록에서 하나 고르기: `Menu`의 팝오버 목록을 씁니다.
-- 알리기만 하는 것: `Notification`을 씁니다.
+- A window that answers one question ("덮어쓸까요?", output state recovery): use `AlertDialog`.
+- Picking one item from a short list: use the popover list from `Menu`.
+- Something that only informs: use `Notification`.
 
-## 구성
+## Anatomy
 
-- 막 `ll-scrim`: 바탕 `scrim`, 메뉴줄(`size-menubar` 30px) 아래부터 창 끝까지 덮고 대화상자를 가운데 둡니다. 좌우 16px은 남깁니다. 쌓임 `z-dialog`. 메뉴줄은 덮지 않지만 대화상자가 열린 동안 메뉴는 열리지 않습니다.
-- 면 `ll-dialog`: 바탕 `bg-dialog`, 모서리 `radius-2xl`(8px), 그림자 `shadow-dialog`(1px `line-strong` 테두리 포함). 너비는 `dialog-s/m/l/xl` 중 하나(`ll-dialog--s` … `--xl`). 높이는 내용이 정하거나 화면이 정한 값(새 예배 700). 창이 작으면 너비 = 창 너비 − 32, 높이 최대 = 창 높이 − 64이고 몸통만 스크롤합니다.
-- 머리글 `ll-dialog__header`: 높이 `size-dialog-header`(44px), 왼쪽 `dialog-inset`(16px) 오른쪽 `space-8`, 아래 1px `line`.
-  - 제목 `ll-dialog__title`: `title`(13/18/600).
-  - 부제 `ll-dialog__subtitle`: 제목 뒤 `space-12`, `label`(12/16) `text-3`, 앞 아이콘 14px(사이 `space-6`). 다루는 대상의 이름(파일 이름).
-  - 닫기 `ll-dialog__close`: 30×30 투명 아이콘 버튼, `x` 16px `text-2`, 오른쪽 끝.
-- 옵션 줄과 입력 줄 `ll-dialog__bar`: 높이 52px(`size-dialog-footer`와 같음), 좌우 16px, 항목 사이 `space-20`, 항목 이름(`label` 12/16 `text-2`)과 컨트롤 사이 `space-10`. 컨트롤은 md(30px). 바닥글 위에 두면 위 1px `line`, 머리글 아래에 두면(`--top`) 아래 1px `line`.
-- 몸통 `ll-dialog__body`: 안쪽 16px, 남는 높이를 쓰고 넘치면 몸통만 스크롤합니다.
-  - 두 칸 `ll-dialog__body--split`: 왼쪽 `ll-dialog__aside` 260px(오른쪽 1px `line`, 토큰 없음)과 오른쪽 `ll-dialog__main`(안쪽 16px, 상자 사이 `space-12`).
-  - 왼쪽 고르기 목록은 `ListRow`의 `ll-rowlist--inset`(안쪽 8px, 두 줄 항목 44px). 목록 아래에 붙는 동작은 `ll-dialog__aside-foot`(좌우 8 아래 8, 투명 sm 버튼 "지금 예배를 틀로 저장").
-  - 목록 상자 `ll-dialog__box`: 바탕 `bg-inset`, 안쪽 1px `line` 테두리, 모서리 `radius-lg`. 머리글 `ll-dialog__box-header` 34px(`label-strong` 12/16/600, 앞에 모두 고르기 체크 상자, 오른쪽 개수 `ll-dialog__box-meta` `text-3`), 몸통 `ll-dialog__box-body`(위 4 아래 8)에 `Checkbox`의 체크 줄.
-- 바닥글 `ll-dialog__footer`: 높이 `size-dialog-footer`(52px), 좌우 16px, 위 1px `line`. 버튼은 md(30px), 오른쪽 정렬, 사이 `space-8`, 순서는 [취소] … [주 버튼]. 주 버튼은 하나이고 맨 오른쪽입니다.
+- Scrim `ll-scrim`: background `scrim`. It covers the area from under the menu bar (`size-menubar` 30px) to the bottom of the window and centers the dialog. It leaves 16px on the left and right. Stacking `z-dialog`. It doesn't cover the menu bar, but menus don't open while a dialog is open.
+- Surface `ll-dialog`: background `bg-dialog`, corner radius `radius-2xl` (8px), shadow `shadow-dialog` (includes a 1px `line-strong` border). The width is one of `dialog-s/m/l/xl` (`ll-dialog--s` … `--xl`). The content decides the height, or the screen sets a value (새 예배 700). In a small window, width = window width − 32 and maximum height = window height − 64, and only the body scrolls.
+- Header `ll-dialog__header`: height `size-dialog-header` (44px), `dialog-inset` (16px) on the left and `space-8` on the right, 1px `line` at the bottom.
+  - Title `ll-dialog__title`: `title` (13/18/600).
+  - Subtitle `ll-dialog__subtitle`: `space-12` after the title, `label` (12/16) `text-3`, leading icon 14px (gap `space-6`). The name of the object the dialog works on (a file name).
+  - Close `ll-dialog__close`: a 30×30 ghost icon button, `x` 16px `text-2`, at the right end.
+- Option bar and input bar `ll-dialog__bar`: height 52px (same as `size-dialog-footer`), 16px left and right, `space-20` between fields, `space-10` between a field name (`label` 12/16 `text-2`) and its control. Controls are md (30px). Above the footer, it has a 1px `line` at the top; under the header (`--top`), a 1px `line` at the bottom.
+- Body `ll-dialog__body`: 16px padding. It takes the remaining height, and only the body scrolls when it overflows.
+  - Two columns `ll-dialog__body--split`: `ll-dialog__aside` on the left, 260px (1px `line` on the right, no token), and `ll-dialog__main` on the right (16px padding, `space-12` between boxes).
+  - The pick list on the left is `ll-rowlist--inset` from `ListRow` (8px padding, 44px two-line items). An action attached under the list is `ll-dialog__aside-foot` (8 left and right, 8 bottom, the ghost sm button "지금 예배를 틀로 저장").
+  - List box `ll-dialog__box`: background `bg-inset`, 1px inner `line` border, corner radius `radius-lg`. Header `ll-dialog__box-header` 34px (`label-strong` 12/16/600, a select-all checkbox in front, the count `ll-dialog__box-meta` in `text-3` on the right). Body `ll-dialog__box-body` (4 top, 8 bottom) holds the check rows from `Checkbox`.
+- Footer `ll-dialog__footer`: height `size-dialog-footer` (52px), 16px left and right, 1px `line` at the top. Buttons are md (30px), aligned right, with `space-8` between them, in the order [취소] … [primary button]. There is one primary button, at the far right.
 
-## 크기와 변형
+## Sizes and variants
 
-| 이름 | 높이 | 글자 | 쓰는 곳 |
+| Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
-| dialog-s (460) | 내용 | - | 확인 창(`AlertDialog`) |
-| dialog-m (600) | 내용 | - | 출력 상태 복구(`AlertDialog` 목록형) |
-| dialog-l (820) | 700 | - | 새 예배, 다른 예배에서 가져오기 |
-| dialog-xl (1080) | 내용 | - | 텍스트 가져오기 |
-| 머리글 | 44 | title 13/18/600, 부제 label text-3 | 모든 대화상자 |
-| 옵션 줄, 입력 줄 | 52 | 이름 label text-2, 컨트롤 md | 텍스트 가져오기 옵션, 새 예배 이름, 날짜, 시간 |
-| 바닥글 | 52 | 버튼 md body | 모든 대화상자 |
+| `dialog-s` (460) | Content | - | Confirmation dialog (`AlertDialog`) |
+| `dialog-m` (600) | Content | - | Output state recovery (`AlertDialog` with a list) |
+| `dialog-l` (820) | 700 | - | 새 예배, 다른 예배에서 가져오기 |
+| `dialog-xl` (1080) | Content | - | 텍스트 가져오기 |
+| Header | 44 | `title` 13/18/600, subtitle `label` `text-3` | All dialogs |
+| Option bar, input bar | 52 | Name `label` `text-2`, md controls | 텍스트 가져오기 options; 새 예배 name, date, time |
+| Footer | 52 | md buttons, `body` | All dialogs |
 
-## 상태
+## States
 
-| 상태 | 바탕 | 글자/아이콘 | 그 밖 |
+| State | Background | Text and icon | Other |
 | --- | --- | --- | --- |
-| 열림 | 막 `scrim` + 면 `bg-dialog` | | 막과 면 160ms 페이드. `prefers-reduced-motion`이면 바로 |
-| 닫기 기본 | 투명 | `text-2` | |
-| 닫기 마우스 올림 | `bg-raised` | `text-2` | 100ms ease-out |
-| 닫기 누름 | `bg-control-hover` | `text` | |
-| 닫기 포커스 | 그대로 | 그대로 | outline 2px `accent`, offset 1px |
-| 주 버튼 쓸 수 없음 | `bg-control` | `text-off` | 필요한 값이 비었을 때. 이유는 툴팁(`Button`) |
-| 몸통 넘침 | 그대로 | 그대로 | 몸통만 스크롤, 머리글, 줄, 바닥글은 고정 |
+| Open | Scrim `scrim` + surface `bg-dialog` | | Scrim and surface fade over 160ms. At once under `prefers-reduced-motion` |
+| Close, default | Transparent | `text-2` | |
+| Close, hover | `bg-raised` | `text-2` | 100ms ease-out |
+| Close, pressed | `bg-control-hover` | `text` | |
+| Close, focus | Unchanged | Unchanged | outline 2px `accent`, offset 1px |
+| Primary button disabled | `bg-control` | `text-off` | When a required value is empty. Reason in a tooltip (`Button`) |
+| Body overflow | Unchanged | Unchanged | Only the body scrolls; the header, bars, and footer stay fixed |
 
-## 동작
+## Behavior
 
-- 열면 첫 입력 칸에 포커스를 두고 글자를 모두 고릅니다(새 예배: 이름 칸). 입력 칸이 없으면 주 버튼에 둡니다.
-- 포커스는 대화상자 안에서만 돕니다(Tab, Shift+Tab). 순서는 화면 순서: 닫기 → 몸통 → 줄 → 바닥글.
-- Enter는 주 버튼(포커스가 여러 줄 입력 칸이나 목록 안이 아닐 때). Esc와 닫기 버튼은 [취소]와 같습니다.
-- 막을 눌러도 닫지 않습니다.
-- 닫으면 포커스를 대화상자를 연 버튼이나 메뉴 항목으로 돌려 둡니다.
-- 대화상자가 열려 있어도 출력 지우기 단축키(F1~F7)는 동작합니다. 예배 중 화면을 곧바로 지울 수 있어야 하기 때문입니다.
-- `Notification`은 막 위에 보이고, 알림의 동작 버튼은 대화상자가 열려 있어도 누를 수 있습니다.
-- aria: `role="dialog"`, `aria-modal="true"`, `aria-labelledby`에 제목 id. 열린 동안 뒤의 앱은 `inert`로 둡니다(알림 층은 빼고).
+- When the dialog opens, put focus in the first text field and select all its text (새 예배: the name field). If there is no text field, focus the primary button.
+- Focus cycles only inside the dialog (Tab, Shift+Tab). The order follows the screen: close → body → bar → footer.
+- Enter triggers the primary button (when focus isn't in a multiline text field or a list). Esc and the close button do the same as [취소].
+- A click on the scrim doesn't close the dialog.
+- When the dialog closes, return focus to the button or menu item that opened it.
+- The 지우기 (clear) shortcuts for 출력 (output) (F1 to F7) work even while a dialog is open, because the operator must be able to clear the screens at once during a service.
+- `Notification` appears above the scrim, and its action buttons stay clickable while a dialog is open.
+- aria: `role="dialog"`, `aria-modal="true"`, and `aria-labelledby` set to the title id. While the dialog is open, make the app behind it `inert` (except the notification layer).
 
-## 글쓰기
+## Writing
 
-- 제목은 하는 일의 이름: "새 예배", "다른 예배에서 가져오기", "텍스트 가져오기". 물음표나 설명을 붙이지 않습니다.
-- 주 버튼은 동사: "만들기", "가져오기", "편집". "확인", "예"를 쓰지 않습니다.
-- 몸통 위에 안내 문단을 두지 않습니다. 필요한 말은 항목 이름이나 툴팁에 씁니다.
-- 부제는 대상 이름만: "만복의 근원 하나님.txt".
+- Write the title as the name of the task: "새 예배", "다른 예배에서 가져오기", "텍스트 가져오기". Don't add a question mark or an explanation.
+- Write the primary button as a verb: "만들기", "가져오기", "편집". Don't use "확인" (OK) or "예" (Yes).
+- Don't put a paragraph of instructions above the body. Put whatever needs saying in field names or tooltips.
+- Write only the object's name in the subtitle: "만복의 근원 하나님.txt".
 
-## 구현 메모
+## Implementation notes
 
 - `<Dialog size="l" title="새 예배" onClose footer={<><Button size="md">취소</Button><Button size="md" variant="primary">만들기</Button></>}>…</Dialog>`
 - `<Dialog size="xl" title="텍스트 가져오기" subtitle={{ icon: 'filetext', text: '만복의 근원 하나님.txt' }} bar={<DialogBar position="top">…</DialogBar>}>`
-- 부품: `<DialogSplit aside={…}>`, `<DialogBox title="예배 순서" meta="항목 9개" checkAll>`, `<DialogBar position="top" | "bottom">`, `<DialogField label="이름">`.
-- 너비와 높이 제한은 CSS(`max-width: calc(100vw - 32px)`, `max-height: calc(100vh - 64px)`)가 맡습니다.
-- 클래스: `ll-scrim`, `ll-dialog`, `ll-dialog--s`, `--m`, `--l`, `--xl`, `ll-dialog__header`, `ll-dialog__title`, `ll-dialog__subtitle`, `ll-dialog__close`, `ll-dialog__bar`, `ll-dialog__bar--top`, `ll-dialog__field`, `ll-dialog__field-label`, `ll-dialog__body`, `ll-dialog__body--split`, `ll-dialog__aside`, `ll-dialog__aside-foot`, `ll-dialog__main`, `ll-dialog__box`, `ll-dialog__box-header`, `ll-dialog__box-meta`, `ll-dialog__box-body`, `ll-dialog__footer`.
+- Parts: `<DialogSplit aside={…}>`, `<DialogBox title="예배 순서" meta="항목 9개" checkAll>`, `<DialogBar position="top" | "bottom">`, `<DialogField label="이름">`.
+- CSS handles the width and height limits (`max-width: calc(100vw - 32px)`, `max-height: calc(100vh - 64px)`).
+- Classes: `ll-scrim`, `ll-dialog`, `ll-dialog--s`, `--m`, `--l`, `--xl`, `ll-dialog__header`, `ll-dialog__title`, `ll-dialog__subtitle`, `ll-dialog__close`, `ll-dialog__bar`, `ll-dialog__bar--top`, `ll-dialog__field`, `ll-dialog__field-label`, `ll-dialog__body`, `ll-dialog__body--split`, `ll-dialog__aside`, `ll-dialog__aside-foot`, `ll-dialog__main`, `ll-dialog__box`, `ll-dialog__box-header`, `ll-dialog__box-meta`, `ll-dialog__box-body`, `ll-dialog__footer`.
 
-## 시안과 달라진 점
+## Changes from the drafts
 
-- NewService, ServiceImport: 닫기 버튼 28 → 30. 바닥글 버튼 글자 12 → 13(md), 주 버튼 바탕 #3d8bf0 → `accent-fill`, 주 버튼 좌우 16 → 14.
-- NewService 입력 줄: 높이 60 → 52. 날짜, 시간 드롭다운 바탕 #262626 → `bg-control`(`Select`).
-- ImportText: 너비 980 → `dialog-xl` 1080, 머리글 48 → 44, 제목 14px → 13px, 좌우 18 → 16, 옵션 줄 항목 사이 28 → 20, 바닥글 56 → 52, 바닥글 버튼 32 → 30, 그림자 0 20px 48px → `shadow-dialog`, 막 창 전체 → 메뉴줄 아래부터.
+- NewService, ServiceImport: close button 28 → 30. Footer button text 12 → 13 (md), primary button background #3d8bf0 → `accent-fill`, primary button horizontal padding 16 → 14.
+- NewService input bar: height 60 → 52. Date and time dropdown background #262626 → `bg-control` (`Select`).
+- ImportText: width 980 → `dialog-xl` 1080, header 48 → 44, title 14px → 13px, left and right 18 → 16, gap between option bar fields 28 → 20, footer 56 → 52, footer buttons 32 → 30, shadow 0 20px 48px → `shadow-dialog`, scrim over the whole window → from under the menu bar.

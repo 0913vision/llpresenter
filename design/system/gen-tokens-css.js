@@ -1,11 +1,11 @@
 // tokens.json에서 project/tokens.css를 만든다 (format.md의 "tokens.css as compiled" 순서).
 const fs = require('fs')
 const j = JSON.parse(fs.readFileSync(__dirname + '/project/tokens.json', 'utf8'))
-const title = 'LoveLight 디자인 시스템'
+const title = 'LoveLight Design System'
 const first = j.color.themes[0].id
 const val = (v) => (typeof v === 'string' ? v : v[first])
 const ref = (v) => v.replace(/^\{([^}]+)\}$/, 'var(--$1)')
-const lines = [`/* ${title} — generated from tokens.json */`]
+const lines = [`/* ${title}, generated from tokens.json */`]
 lines.push(`:root, [data-theme="${first}"] {`)
 for (const t of j.color.tokens) lines.push(`  --${t.name}: ${ref(val(t.value))};`)
 for (const t of j.shadow.tokens) lines.push(`  --${t.name}: ${val(t.value)};`)

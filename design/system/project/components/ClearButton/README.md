@@ -1,68 +1,68 @@
 # ClearButton
 
-진행 화면 오른쪽 열의 지우기 줄입니다. 출력 화면에서 층 하나(가사, 미디어, 소품, 오디오, 메시지, 공지) 또는 모두를 한 번에 내리고, 마지막 지우기를 되돌립니다.
+The 지우기 (clear) row in the right column of the 진행 (Show) workspace. It takes one layer (lyrics, media, props, audio, messages, notices) or all layers off the output screens at once, and undoes the last 지우기.
 
-## 쓰는 곳
+## Where to use
 
-- 진행 화면 오른쪽 열, 출력 미리보기 아래의 지우기 줄(보통 창과 좁은 창).
-- 성경 화면처럼 진행 화면과 같은 오른쪽 열을 쓰는 곳.
+- The 지우기 row under the output preview, in the right column of the 진행 workspace (regular and narrow windows).
+- Places that use the same right column as the 진행 workspace, such as the Bible screen.
 
-## 쓰지 않는 곳
+## Where not to use
 
-- 목록이나 칸의 내용을 지우는 일(입력 칸 비우기, 항목 삭제): Button, IconButton.
-- 진행 도구의 표시 중 목록에서 하나씩 내리기: IconButton(내리기).
-- 지우기 줄에 다른 명령을 섞지 않습니다. 되돌림 하나만 구분선 뒤에 둡니다.
-- 여러 층을 골라 한 번에 지우는 버튼(프로프리젠터의 Clear Groups에 해당)은 v1에 두지 않습니다. 그런 조합은 매크로의 지우기 동작으로 만들고, 필요하면 예배 순서 항목의 시작할 때 매크로에 겁니다.
+- Clearing the contents of a list or a field (emptying a text field, deleting an item): Button, IconButton.
+- Taking items down one at a time from the 표시 중 (showing) list in 진행 도구 (show tools): IconButton (내리기).
+- Don't mix other commands into the 지우기 row. Put only 되돌림 (undo) there, after the divider.
+- Don't add a button that clears a chosen set of layers at once (like Clear Groups in ProPresenter) in v1. Build such combinations as 지우기 actions in a macro, and if needed, attach that macro to the 시작할 때 (on start) macro of a 예배 순서 (service order) item.
 
-## 구성
+## Anatomy
 
-- 줄: 바탕 `bg-panel`, 모서리 `radius-lg`, 안쪽 `space-8`, 버튼 사이 `space-4`. 줄 자체가 패널 하나이며 머리글이 없습니다.
-- 순서: 모두, 가사, 미디어, 소품, 오디오, 메시지, 공지, 구분선, 되돌림.
-- 버튼: 높이 `size-clear-button`(52px), 모서리 `radius-md`, 아이콘 `size-icon-18` 위에 이름 `caption-strong`(11/14/600), 사이 `space-4`. 너비는 줄을 나눠 가집니다(flex 1). 모두는 1.4배.
-- 아이콘: 모두 `layers`, 가사 `text`, 미디어 `image`, 소품 `prop`, 오디오 `audio`, 메시지 `msg`, 공지 `notice`, 되돌림 `undo`.
-- 구분선: 1×32, `line`, 좌우 `space-4`(버튼 사이 틈과 합쳐 8).
-- 되돌림: 바탕 `bg-toolbar-hover`. 지우기 버튼보다 한 단 낮게 두어 다른 일임을 보입니다.
-- 좁은 창: 줄 안쪽 `space-6`, 버튼 높이 40, 아이콘 `size-icon-16`만, 이름 없음. 구분선 1×24, 좌우 `space-2`. 모두는 그대로 1.4배라서 넓이로 구별됩니다.
+- Row: background `bg-panel`, corner radius `radius-lg`, padding `space-8`, gap between buttons `space-4`. The row is a panel of its own and has no header.
+- Order: 모두 (all), 가사 (lyrics), 미디어 (media), 소품 (props), 오디오 (audio), 메시지 (message), 공지 (notice), divider, 되돌림.
+- Button: height `size-clear-button` (52px), corner radius `radius-md`, name `caption-strong` (11/14/600) under an icon `size-icon-18`, gap `space-4`. Buttons share the row width (flex 1). 모두 is 1.4 times as wide.
+- Icons: 모두 `layers`, 가사 `text`, 미디어 `image`, 소품 `prop`, 오디오 `audio`, 메시지 `msg`, 공지 `notice`, 되돌림 `undo`.
+- Divider: 1×32, `line`, horizontal margin `space-4` (8 together with the gap between buttons).
+- 되돌림: background `bg-toolbar-hover`. It sits one step lower than the 지우기 buttons to show that it does a different job.
+- Narrow window: row padding `space-6`, button height 40, icon `size-icon-16` only, no name. Divider 1×24, horizontal margin `space-2`. 모두 stays 1.4 times as wide, so its width sets it apart.
 
-## 크기와 변형
+## Sizes and variants
 
-| 이름 | 높이 | 글자 | 쓰는 곳 |
+| Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
-| 지우기 | `size-clear-button` 52 | `caption-strong` | 보통 창(열 `col-right` 480) |
-| 모두 | 52, 너비 1.4배 | `caption-strong` | 줄의 첫 자리 |
-| 되돌림 | 52 | `caption-strong` | 구분선 뒤 마지막 자리 |
-| 좁은 형태 | 40 | 이름 없음(아이콘 16) | 좁은 창(열 `col-right-compact` 360) |
+| 지우기 | `size-clear-button` 52 | `caption-strong` | Regular window (column `col-right` 480) |
+| 모두 | 52, 1.4 times as wide | `caption-strong` | First place in the row |
+| 되돌림 | 52 | `caption-strong` | Last place, after the divider |
+| Compact | 40 | No name (icon 16) | Narrow window (column `col-right-compact` 360) |
 
-## 상태
+## States
 
-| 상태 | 바탕 | 글자/아이콘 | 그 밖 |
+| State | Background | Text and icon | Other |
 | --- | --- | --- | --- |
-| 지울 것 있음 | `bg-control` | `text` | 그 층이 지금 화면에 나가고 있음 |
-| 마우스 올림, 누름 | `bg-control-hover` | `text` | 100ms ease-out |
-| 지울 것 없음 | `bg-control-off` | `text-off` | hover 없음, 눌러도 아무 일 없음 |
-| 되돌림 쓸 수 있음 | `bg-toolbar-hover` | `text` | hover는 `bg-control-hover` |
-| 되돌릴 것 없음 | `bg-toolbar-hover` | `text-off` | hover 없음 |
-| 포커스 | 그대로 | 그대로 | 키보드 포커스에만 `outline: 2px solid accent`, offset 1px |
+| Something to clear | `bg-control` | `text` | That layer is on the screens now |
+| Hover, pressed | `bg-control-hover` | `text` | 100ms ease-out |
+| Nothing to clear | `bg-control-off` | `text-off` | No hover, a click does nothing |
+| Undo available | `bg-toolbar-hover` | `text` | Hover is `bg-control-hover` |
+| Nothing to undo | `bg-toolbar-hover` | `text-off` | No hover |
+| Focus | Unchanged | Unchanged | `outline: 2px solid accent`, offset 1px, on keyboard focus only |
 
-출력 중이라고 빨강을 쓰지 않습니다. 지울 것이 있는지만 밝기로 보입니다.
+Don't use red because a layer is live. Show only whether there is something to clear, with brightness.
 
-## 동작
+## Behavior
 
-- 누르면 그 층을 바로 지웁니다. 확인 창을 띄우지 않습니다. 잘못 눌렀으면 되돌림으로 돌립니다.
-- 모두는 지울 것이 있는 층을 한 번에 지웁니다. 층이 하나라도 남아 있으면 모두는 지울 것 있음 상태입니다.
-- 되돌림은 마지막 지우기(모두 포함) 하나를 되돌립니다. 되돌린 뒤에는 되돌릴 것 없음이 됩니다.
-- 단축키: 모두 F1, 가사 F2, 미디어 F3, 소품 F4, 오디오 F5, 메시지 F6, 공지 F7, 되돌리기 Ctrl Z. 단축키는 포커스가 어디 있든 진행 화면에서 동작합니다.
-- 지울 것 없는 버튼은 `disabled` 대신 `aria-disabled="true"`와 `data-state="off"`를 줍니다. 포커스와 툴팁이 남고 단축키를 눌러도 아무 일이 없습니다.
-- 각 버튼은 `aria-label="가사 지우기"`와 `aria-keyshortcuts="F2"`를 줍니다. 줄은 `role="group"`(이름 "지우기").
-- 툴팁: 이름 뒤 `space-8`에 단축키를 `text-3`으로 붙입니다. "가사 지우기 F2", "모두 지우기 F1", "되돌리기 Ctrl Z".
+- A click clears that layer at once. Don't show a confirmation dialog. If the operator clicked by mistake, 되돌림 brings it back.
+- 모두 clears every layer that has something to clear at once. While even one layer is left, 모두 is in the something-to-clear state.
+- 되돌림 undoes the last 지우기 (including 모두), one step only. After the undo, it has nothing to undo.
+- Shortcuts: 모두 F1, 가사 F2, 미디어 F3, 소품 F4, 오디오 F5, 메시지 F6, 공지 F7, 되돌리기 Ctrl Z. The shortcuts work in the 진행 workspace wherever the focus is.
+- Give a button with nothing to clear `aria-disabled="true"` and `data-state="off"` instead of `disabled`. It keeps its focus and tooltip, and its shortcut does nothing.
+- Give each button `aria-label="가사 지우기"` and `aria-keyshortcuts="F2"`. The row is `role="group"` (name "지우기").
+- Tooltip: append the shortcut in `text-3`, `space-8` after the name. "가사 지우기 F2", "모두 지우기 F1", "되돌리기 Ctrl Z".
 
-## 글쓰기
+## Writing
 
-- 버튼 이름은 층의 이름 한 낱말입니다: 모두, 가사, 미디어, 소품, 오디오, 메시지, 공지. 되돌리는 버튼은 "되돌림".
-- 툴팁과 `aria-label`은 "층 이름 + 지우기"로 씁니다: "가사 지우기". 되돌림은 "되돌리기".
-- 지운 뒤 알림 문구를 띄우지 않습니다. 버튼이 지울 것 없음으로 바뀌는 것으로 충분합니다.
+- A button name is the one-word name of its layer: 모두, 가사, 미디어, 소품, 오디오, 메시지, 공지. The undo button is "되돌림".
+- Write tooltips and `aria-label` as "layer name + 지우기": "가사 지우기". For 되돌림, write "되돌리기".
+- Don't show a notification after a clear. The button changing to nothing to clear is enough.
 
-## 구현 메모
+## Implementation notes
 
 ```jsx
 <ClearRow compact={narrow}>
@@ -73,8 +73,8 @@
 </ClearRow>
 ```
 
-- `layer`가 아이콘, 이름, 단축키를 정합니다(위 목록). `active={false}`이면 `data-state="off"`와 `aria-disabled`를 그립니다.
-- 클래스: 줄 `ll-clear-row`, 좁은 형태 `ll-clear-row--compact`, 구분선 `ll-clear-row__divider`, 버튼 `ll-clear`, 모두 `ll-clear--all`, 되돌림 `ll-clear--undo`, 이름 `ll-clear__label`(좁은 형태에서 숨김).
+- `layer` sets the icon, the name, and the shortcut (see the lists above). With `active={false}`, the button draws `data-state="off"` and `aria-disabled`.
+- Classes: row `ll-clear-row`, compact form `ll-clear-row--compact`, divider `ll-clear-row__divider`, button `ll-clear`, 모두 `ll-clear--all`, 되돌림 `ll-clear--undo`, name `ll-clear__label` (hidden in the compact form).
 
 ```html
 <button class="ll-clear" aria-label="가사 지우기" aria-keyshortcuts="F2">
@@ -82,8 +82,8 @@
 </button>
 ```
 
-## 시안과 달라진 점
+## Changes from the drafts
 
-- ShowH, Problems, Bible: 지울 것 없는 버튼 글자 #5c5c5c → `text-off`. 되돌릴 것 없는 되돌림 글자 #5c5c5c → `text-off`.
-- ShowH: 툴팁 "가사 지우기 F2"를 한 덩어리 글자로 쓰던 것 → 단축키를 `space-8` 띄우고 `text-3`.
-- Compact: 모두 너비 1.6배 → 1.4배. 모두 아래 10px 이름 → 없앰(아이콘만). 구분선 높이 26 → 24. 툴팁 "가사 지우기" → "가사 지우기 F2", "되돌리기" → "되돌리기 Ctrl Z".
+- ShowH, Problems, Bible: text of a button with nothing to clear #5c5c5c → `text-off`. Text of 되돌림 with nothing to undo #5c5c5c → `text-off`.
+- ShowH: tooltip "가사 지우기 F2" written as one run of text → shortcut set `space-8` apart in `text-3`.
+- Compact: 모두 width 1.6 times → 1.4 times. 10px name under 모두 → removed (icon only). Divider height 26 → 24. Tooltip "가사 지우기" → "가사 지우기 F2", "되돌리기" → "되돌리기 Ctrl Z".

@@ -1,77 +1,77 @@
 # ToolbarButton
 
-툴바에 놓는 버튼입니다. 아이콘 위에 이름을 두며, 작업 공간 탭, 미디어 열고 닫기, Look 고르기, 세 화면의 출력 켜고 끄기에 씁니다.
+A button on the toolbar, with its name under the icon. Use it for the workspace tabs, opening and closing media, picking a Look, and turning 출력 (output) on and off for the three screens.
 
-## 쓰는 곳
+## Where to use
 
-- 작업 공간 탭: 진행, 준비, 화면 설정
-- 보기 켜고 끄기: 미디어(미디어 칸 열고 닫기)
-- 메뉴를 여는 동작 버튼: Look 고르기(평상시)
-- 화면 출력: 본 화면, 무대, 방송 자막
-- 좁은 창(1366)의 40px 툴바에서는 같은 버튼을 좁은 형태로 씁니다.
+- Workspace tabs: 진행 (Show), 준비 (Prep), 화면 설정 (Screen settings)
+- View toggle: 미디어 (opens and closes the media strip)
+- Action button that opens a menu: Look picker (평상시)
+- Screen output: 본 화면 (main screen), 무대 (stage), 방송 자막 (broadcast captions)
+- On the 40px toolbar of a narrow window (1366), use the compact form of the same buttons.
 
-## 쓰지 않는 곳
+## Where not to use
 
-- 패널과 대화상자 안: Button, IconButton.
-- 툴바의 검색 칸: TextField(`ll-field`). 배치는 Toolbar가 정합니다.
-- 출력 상태를 글자나 칩으로 덧붙이지 않습니다. 점과 아이콘 색만 씁니다. 자세한 이유는 툴팁에 씁니다.
+- Inside panels and dialogs: Button, IconButton.
+- The search field on the toolbar: TextField (`ll-field`). Toolbar sets the layout.
+- Don't add text or chips for the output state. Use only the dot and the icon color. Put the detailed reason in the tooltip.
 
-## 구성
+## Anatomy
 
-- 높이 `size-toolbar-button`(48px), 모서리 `radius-lg`(5px), 바탕 없음.
-- 아이콘 `size-icon-18`을 위에, 이름 `toolbar-label`(11/14/500)을 아래에 두고 사이 `space-4`. 아이콘과 이름은 가운데 정렬.
-- 작업 공간 탭: 너비 64, 좌우 여백 없음.
-- 동작 버튼과 출력 버튼: 좌우 `space-8`, 최소 너비 64. Look처럼 메뉴를 여는 버튼은 좌우 `space-12`이고, 아이콘 오른쪽 `space-4`에 `size-icon-12` 아래 화살표(`text-3`)를 둡니다.
-- 출력 버튼의 상태 점: 6px 원(`radius-full`), 아이콘의 오른쪽 위 모서리에 걸침(위 −3px, 오른쪽 −4px). `ring-dot-cut`으로 아이콘과 떼어 놓고, 버튼에 마우스를 올리거나 누르면 고리 색도 버튼 바탕(`bg-toolbar-hover`, `bg-raised`)으로 바꿉니다.
-- 아이콘: 진행 `slides`, 준비 `edit`, 화면 설정 `gear`, 미디어 `film`, Look `layers` + `down`, 본 화면과 무대 `mplay`, 방송 자막 `capture`.
-- 좁은 형태: 높이 32, 아이콘 `size-icon-16`을 이름 왼쪽에, 사이 `space-6`, 이름 `label`(12/16), 좌우 `space-8` `space-10`. Look은 이름 뒤에 화살표를 두고 오른쪽 `space-6`. 미디어는 아이콘만 32×32. 작업 공간 탭도 너비를 글자에 맞춥니다.
+- Height `size-toolbar-button` (48px), corner radius `radius-lg` (5px), no background.
+- Icon `size-icon-18` on top and name `toolbar-label` (11/14/500) below, with a gap of `space-4`. The icon and the name are centered.
+- Workspace tab: width 64, no horizontal padding.
+- Action and output buttons: horizontal padding `space-8`, minimum width 64. A button that opens a menu, like Look, has horizontal padding `space-12` and a `size-icon-12` down arrow (`text-3`) `space-4` to the right of the icon.
+- Status dot on output buttons: a 6px circle (`radius-full`) over the top right corner of the icon (top −3px, right −4px). `ring-dot-cut` sets it apart from the icon. When the button is hovered or pressed, the ring color also changes to the button background (`bg-toolbar-hover`, `bg-raised`).
+- Icons: 진행 `slides`, 준비 `edit`, 화면 설정 `gear`, 미디어 `film`, Look `layers` + `down`, 본 화면 and 무대 `mplay`, 방송 자막 `capture`.
+- Compact form: height 32, icon `size-icon-16` to the left of the name, gap `space-6`, name `label` (12/16), horizontal padding `space-8` `space-10`. Look puts the arrow after the name, with right padding `space-6`. 미디어 is icon only, 32×32. Workspace tabs also fit their width to the text.
 
-## 크기와 변형
+## Sizes and variants
 
-| 이름 | 높이 | 글자 | 쓰는 곳 |
+| Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
-| 작업 공간 탭 | `size-toolbar-button` 48, 너비 64 | `toolbar-label` | 진행, 준비, 화면 설정 |
-| 보기 켜고 끄기 | 48, 최소 64 | `toolbar-label` | 미디어 |
-| 메뉴 동작 | 48, 좌우 12 | `toolbar-label` | Look(평상시) |
-| 화면 출력 | 48, 최소 64 | `toolbar-label` | 본 화면, 무대, 방송 자막 |
-| 좁은 형태 | 32 | `label` | 툴바 40(`size-toolbar-compact`)의 모든 버튼 |
+| Workspace tab | `size-toolbar-button` 48, width 64 | `toolbar-label` | 진행, 준비, 화면 설정 |
+| View toggle | 48, minimum 64 | `toolbar-label` | 미디어 |
+| Menu action | 48, horizontal padding 12 | `toolbar-label` | Look (평상시) |
+| Screen output | 48, minimum 64 | `toolbar-label` | 본 화면, 무대, 방송 자막 |
+| Compact | 32 | `label` | Every button on the 40 toolbar (`size-toolbar-compact`) |
 
-## 상태
+## States
 
-| 상태 | 바탕 | 글자/아이콘 | 그 밖 |
+| State | Background | Text and icon | Other |
 | --- | --- | --- | --- |
-| 기본(동작 버튼) | 없음 | `text` | 화살표 `text-3` |
-| 작업 공간 탭 고르지 않음 | 없음 | `text-3` | |
-| 작업 공간 탭 고름 | `bg-raised` | `text` | 마우스를 올려도 그대로 |
-| 미디어 켜짐 / 꺼짐 | 없음 | `text` / `text-3` | 바탕으로 켜짐을 보이지 않습니다 |
-| 출력 켜짐 | 없음 | `text` | `live` 점 6px + `ring-dot-cut` |
-| 출력 꺼짐 | 없음 | `text-off` | 점 없음(회색 점을 그리지 않습니다) |
-| 출력 모니터 없음 | 없음 | 아이콘 `warning`, 이름 `text` | `warning` 점 6px + `ring-dot-cut` |
-| 마우스 올림 | `bg-toolbar-hover` | 그대로 | 100ms ease-out, 점 고리도 같은 색 |
-| 누름, 메뉴 열림(`aria-expanded`) | `bg-raised` | 그대로 | |
-| 포커스 | 그대로 | 그대로 | 키보드 포커스에만 `outline: 2px solid accent`, offset 1px |
-| 쓸 수 없음 | 없음 | `text-off` | hover 없음, 이유는 툴팁으로 |
+| Default (action button) | None | `text` | Arrow `text-3` |
+| Workspace tab, not selected | None | `text-3` | |
+| Workspace tab, selected | `bg-raised` | `text` | Stays the same on hover |
+| 미디어 on / off | None | `text` / `text-3` | Don't show the on state with the background |
+| Output on | None | `text` | 6px `live` dot + `ring-dot-cut` |
+| Output off | None | `text-off` | No dot (don't draw a gray dot) |
+| Output, no monitor | None | Icon `warning`, name `text` | 6px `warning` dot + `ring-dot-cut` |
+| Hover | `bg-toolbar-hover` | Unchanged | 100ms ease-out, the dot ring takes the same color |
+| Pressed, menu open (`aria-expanded`) | `bg-raised` | Unchanged | |
+| Focus | Unchanged | Unchanged | `outline: 2px solid accent`, offset 1px, on keyboard focus only |
+| Disabled | None | `text-off` | No hover. Give the reason in a tooltip |
 
-## 동작
+## Behavior
 
-- 작업 공간 탭: 세 탭을 `role="tablist"`(이름 "작업 공간")로 묶고 각 탭은 `role="tab"` + `aria-selected`. 왼쪽/오른쪽 화살표로 옮기며 바로 바꿉니다. Tab은 고른 탭 하나에만 멈춥니다.
-- 미디어: `aria-pressed`로 켜짐을 알립니다. 툴팁 "미디어 열기" / "미디어 닫기".
-- Look: `aria-haspopup="menu"`, 메뉴가 열리면 `aria-expanded="true"`. 메뉴는 버튼 아래 왼쪽 끝에 맞춰 엽니다. 이름에는 지금 Look 이름(평상시)을 씁니다.
-- 화면 출력: 누르면 그 화면의 출력을 켜거나 끕니다. `aria-pressed`는 출력을 켜 둔 상태(켜짐과 모니터 없음은 `true`), 그리는 상태는 `data-state="live|off|warning"`으로 줍니다. 세 버튼은 `role="group"`(이름 "화면 출력")으로 묶습니다.
-- 모니터를 다시 찾으면 바로 켜짐으로 돌아갑니다. 모니터 없음 상태에서 누르면 출력을 끕니다.
-- 툴팁(600ms 뒤, Tooltip 규칙):
-  - 켜짐: "본 화면 출력 끄기 (모니터 2)", "무대 화면 출력 끄기 (모니터 3)", "방송 자막 출력 끄기 (NDI)"
-  - 꺼짐: "본 화면 출력 켜기 (모니터 2)"
-  - 모니터 없음: "본 화면: 모니터 2를 찾을 수 없습니다"
-- 좁은 형태에서 이름을 숨긴 버튼(미디어)은 `aria-label`을 줍니다.
+- Workspace tabs: group the three tabs in `role="tablist"` (name "작업 공간"), and give each tab `role="tab"` + `aria-selected`. Left and Right arrows move between tabs and switch at once. Tab stops only on the selected tab.
+- 미디어: `aria-pressed` reports the on state. Tooltip "미디어 열기" / "미디어 닫기".
+- Look: `aria-haspopup="menu"`, and `aria-expanded="true"` while the menu is open. Open the menu below the button, aligned to its left edge. The name shows the current Look name (평상시).
+- Screen output: a click turns 출력 for that screen on or off. `aria-pressed` reports whether the output is turned on (`true` for on and for no monitor), and `data-state="live|off|warning"` gives the drawn state. Group the three buttons in `role="group"` (name "화면 출력").
+- When the monitor is found again, the button goes back to on at once. A click in the no-monitor state turns the output off.
+- Tooltips (after 600ms, following the Tooltip rules):
+  - On: "본 화면 출력 끄기 (모니터 2)", "무대 화면 출력 끄기 (모니터 3)", "방송 자막 출력 끄기 (NDI)"
+  - Off: "본 화면 출력 켜기 (모니터 2)"
+  - No monitor: "본 화면: 모니터 2를 찾을 수 없습니다"
+- Give a button whose name is hidden in the compact form (미디어) an `aria-label`.
 
-## 글쓰기
+## Writing
 
-- 이름은 한두 낱말의 명사입니다: 진행, 준비, 화면 설정, 미디어, 본 화면, 무대, 방송 자막.
-- 출력 버튼의 툴팁은 "누르면 일어날 일 (대상)"으로 씁니다: "본 화면 출력 끄기 (모니터 2)". 대상은 화면 설정의 출력 대상 이름을 그대로 씁니다.
-- 문제가 있을 때의 툴팁은 "화면 이름: 무엇이 안 되는지"로 씁니다: "본 화면: 모니터 2를 찾을 수 없습니다". 해결 방법을 길게 적지 않습니다.
+- Names are nouns of one or two words: 진행, 준비, 화면 설정, 미디어, 본 화면, 무대, 방송 자막.
+- Write an output button tooltip as "what a click does (target)": "본 화면 출력 끄기 (모니터 2)". For the target, use the output target name from 화면 설정 as it is.
+- Write a problem tooltip as "screen name: what doesn't work": "본 화면: 모니터 2를 찾을 수 없습니다". Don't write out a long fix.
 
-## 구현 메모
+## Implementation notes
 
 ```jsx
 <ToolbarTab icon="slides" label="진행" selected={ws === 'show'} onSelect={() => setWs('show')} />
@@ -81,9 +81,9 @@
 <OutputToggle icon="capture" label="방송 자막" target="NDI" state="off" compact />
 ```
 
-- `OutputToggle`의 `state`: `'live'` | `'off'` | `'warning'`. 툴팁 문구는 `label`(툴팁에서는 "무대 화면"처럼 전체 이름), `target`, `state`로 만듭니다.
-- 모든 버튼에 `compact`(좁은 형태) prop을 둡니다. 좁은 형태에서는 화살표를 이름 뒤로 옮기므로 마크업 순서가 다릅니다.
-- 클래스: `ll-tbtn`, 변형 `ll-tbtn--tab` `ll-tbtn--toggle` `ll-tbtn--menu` `ll-tbtn--output`, 좁은 형태 `ll-tbtn--compact`, 아이콘만 `ll-tbtn--icon-only`. 부품 `ll-tbtn__icon`(아이콘, 화살표, 점을 묶음), `ll-tbtn__chevron`, `ll-tbtn__dot`, `ll-tbtn__label`.
+- `state` of `OutputToggle`: `'live'` | `'off'` | `'warning'`. Build the tooltip text from `label` (the full name in the tooltip, such as "무대 화면"), `target`, and `state`.
+- Give every button a `compact` (compact form) prop. The compact form moves the arrow after the name, so the markup order differs.
+- Classes: `ll-tbtn`, variants `ll-tbtn--tab` `ll-tbtn--toggle` `ll-tbtn--menu` `ll-tbtn--output`, compact form `ll-tbtn--compact`, icon only `ll-tbtn--icon-only`. Parts `ll-tbtn__icon` (groups the icon, arrow, and dot), `ll-tbtn__chevron`, `ll-tbtn__dot`, `ll-tbtn__label`.
 
 ```html
 <button class="ll-tbtn ll-tbtn--output" aria-pressed="true" data-state="live">
@@ -92,10 +92,10 @@
 </button>
 ```
 
-## 시안과 달라진 점
+## Changes from the drafts
 
-- 모든 보드(assemble.js `toolbar()`): 출력 점 7px(오른쪽 −5, 위 −3) → 6px(오른쪽 −4, 위 −3).
-- ShowH, Bible: 꺼진 출력의 회색 점(#3a3a3a) → 점 없음. 꺼진 출력 글자 #6e6e6e는 `text-off` 그대로.
-- Problems: 모니터 없음 출력의 바탕 #2a2210과 이름까지 칠한 #e3a23b → 바탕 없음, 아이콘과 점만 `warning`, 이름 `text`. 점 고리 #2a2210 → `ring-dot-cut`. 툴팁 "모니터 3 연결 끊김, 창으로 표시 중" → "무대 화면: 모니터 3을 찾을 수 없습니다".
-- 모든 보드: Look 화살표 14px → 12px.
-- Compact: 작업 공간 탭의 바닥 홈(#161616, 안쪽 2, 모서리 6) 없앰. 고른 탭 #2f2f2f → `bg-raised`. 탭, Look, 출력 버튼 높이 30 → 32, 모서리 4 → `radius-lg`. 탭 이름 굵기 500 → 400. 미디어 34×34 → 32×32.
+- All boards (assemble.js `toolbar()`): output dot 7px (right −5, top −3) → 6px (right −4, top −3).
+- ShowH, Bible: gray dot (#3a3a3a) on an output that is off → no dot. The #6e6e6e text of an output that is off stays `text-off`.
+- Problems: no-monitor output with a #2a2210 background and #e3a23b painted all the way to the name → no background, only the icon and the dot in `warning`, name `text`. Dot ring #2a2210 → `ring-dot-cut`. Tooltip "모니터 3 연결 끊김, 창으로 표시 중" → "무대 화면: 모니터 3을 찾을 수 없습니다".
+- All boards: Look arrow 14px → 12px.
+- Compact: removed the track behind the workspace tabs (#161616, padding 2, radius 6). Selected tab #2f2f2f → `bg-raised`. Tab, Look, and output button height 30 → 32, radius 4 → `radius-lg`. Tab name weight 500 → 400. 미디어 34×34 → 32×32.

@@ -1,8 +1,8 @@
-시안과 미리보기에 쓰는 예시 배경 그림입니다. 실제 앱에 넣는 미디어가 아니라, 썸네일, 미디어 칸, 미리보기를 그릴 때 쓰는 견본입니다.
+These are sample background pictures for the drafts and previews. They aren't media that ship in the app. Use them as samples when you draw thumbnails, media tiles, and previews.
 
-| 파일 | 이름 | 쓰는 곳 |
+| File | Name | Where to use |
 | --- | --- | --- |
-| warm-light.jpg | 따뜻한 빛 | 기본 배경 예시, 진행 화면 미리보기 |
-| blue-rays.jpg | 푸른 빛줄기 | 미디어 칸 예시 |
-| dawn-sky.jpg | 새벽 하늘 | 미디어 칸 예시 |
-| starlight.jpg | 별빛 | 미디어 칸 예시 |
+| warm-light.jpg | 따뜻한 빛 (warm light) | Default background sample, 진행 (Show) workspace preview |
+| blue-rays.jpg | 푸른 빛줄기 (blue rays) | Media tile sample |
+| dawn-sky.jpg | 새벽 하늘 (dawn sky) | Media tile sample |
+| starlight.jpg | 별빛 (starlight) | Media tile sample |

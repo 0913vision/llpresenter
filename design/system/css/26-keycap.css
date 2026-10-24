@@ -1,4 +1,4 @@
-/* 26 KeyCap: 단축키 글쇠(ll-key), 조합(ll-keys), 명령 하나의 단축키 묶음(ll-key-list), 글자로 쓴 단축키(ll-key-text) */
+/* 26 KeyCap: key (ll-key), combination (ll-keys), shortcuts of one command (ll-key-list), text shortcut (ll-key-text) */
 .ll-key-list { display: inline-flex; align-items: center; gap: var(--space-10); font-family: var(--font-ui); }
 .ll-keys { display: inline-flex; align-items: center; gap: var(--space-4); border-radius: var(--radius-md); }
 .ll-key {
@@ -7,14 +7,13 @@
   font-family: var(--font-ui); font-size: 11px; line-height: 18px; font-weight: 600; text-align: center; white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
-/* 바꾼 단축키: 글쇠 바탕을 selection으로 */
 .ll-keys[data-state="changed"] .ll-key { background: var(--selection); }
-/* 겹친 단축키: 조합 둘레 warning 1px(2px 띄움) + 경고 아이콘(이유는 title 툴팁) */
+/* Conflict: the reason goes in the icon's title tooltip */
 .ll-keys[data-state="warning"] { outline: 1px solid var(--warning); outline-offset: 2px; }
 .ll-key-warn { flex: none; display: inline-flex; color: var(--warning); }
 .ll-key-warn .ll-i { width: var(--size-icon-14); height: var(--size-icon-14); }
 .ll-key-empty { font-size: 12px; line-height: 16px; color: var(--text-3); }
 
-/* 글자로 쓴 단축키: 상자 없이 text-3, 크기는 놓인 글을 따른다.
-   툴팁 안은 Tooltip의 ll-tooltip__key, 메뉴 안은 Menu의 ll-menu__meta가 같은 모양을 그린다 */
+/* Text shortcut: size follows the surrounding text. In tooltips and menus,
+   ll-tooltip__key (Tooltip) and ll-menu__meta (Menu) draw the same look */
 .ll-key-text { color: var(--text-3); white-space: nowrap; font-variant-numeric: tabular-nums; }

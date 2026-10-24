@@ -1,72 +1,72 @@
 # MenuBar
 
-창 맨 위의 30px 줄입니다. 앱 이름, 메뉴, 가운데 예배 이름, 창 조절 버튼을 담고 창 제목줄을 겸합니다(테두리 없는 Electron 창).
+The 30px row at the top of the window. It holds the app name, the menus, the service name in the center, and the window control buttons, and it also serves as the window title bar (frameless Electron window).
 
-## 쓰는 곳
+## Where to use
 
-- 주 창의 맨 위, 모든 작업 공간에서 같은 모양.
-- 환경설정 같은 보조 창의 제목줄(메뉴 없이 창 이름과 닫기만).
+- The top of the main window, with the same look in every workspace.
+- The title bar of secondary windows such as Preferences (the window name and close only, no menus).
 
-## 쓰지 않는 곳
+## Where not to use
 
-- 툴바(작업 공간 탭, 검색, 출력): Toolbar.
-- 메뉴를 펼친 목록 자체: Menu. 메뉴줄은 펼칠 자리만 정합니다.
-- 대화상자 머리글: Dialog. 대화상자는 창이 아니라 메뉴줄 아래에 뜹니다.
+- The toolbar (workspace tabs, search, output): Toolbar.
+- The open menu list itself: Menu. The menu bar only sets where the menu opens.
+- Dialog headers: Dialog. A dialog opens below the menu bar, not as a window.
 
-## 구성
+## Anatomy
 
-- 줄: 높이 `size-menubar`(30px), 바탕 `bg-app`, 왼쪽 `space-12`. 아래 선은 없습니다(툴바와 같은 바탕으로 이어짐).
-- 앱 이름 "LoveLight": 12px 700(`band`와 같은 값), 자간 −0.01em, `text`, 오른쪽 `space-14`.
-- 메뉴 항목: 파일, 편집, 보기, 출력, 창, 도움말. 높이 24px, 좌우 9px, 모서리 `radius-sm`, 글자 `label`(12/16) `text-2`, 항목 사이 틈 없음.
-- 가운데 제목: 지금 예배 이름(주일 예배). 창 너비의 가운데, 글자 `label` `text-3`. 메뉴나 창 조절 버튼과 겹치지 않게 최대 너비 36%이고 넘치면 말줄임.
-- 창 조절 버튼: 최소화 `min`, 최대화 `max`, 닫기 `x`. 46×30, 아이콘 `size-icon-14` `text-2`, 모서리 없음, 오른쪽 끝에 붙임.
-- 보조 창 제목줄: 같은 30px 줄, 왼쪽 `space-14`에 창 이름 `label-strong` `text`, 오른쪽에 닫기 하나.
+- Row: height `size-menubar` (30px), background `bg-app`, left padding `space-12`. No bottom line (it runs into the toolbar on the same background).
+- App name "LoveLight": 12px 700 (the same values as `band`), letter spacing −0.01em, `text`, right margin `space-14`.
+- Menu items: 파일 (File), 편집 (Edit), 보기 (View), 출력 (output), 창 (Window), 도움말 (Help). Height 24px, horizontal padding 9px, corner radius `radius-sm`, text `label` (12/16) `text-2`, no gap between items.
+- Center title: the name of the current service (주일 예배). Centered in the window width, text `label` `text-3`. Its maximum width is 36% so that it doesn't overlap the menus or the window control buttons. Truncate it with an ellipsis when it overflows.
+- Window control buttons: minimize `min`, maximize `max`, close `x`. 46×30, icon `size-icon-14` `text-2`, no corner radius, flush with the right end.
+- Secondary window title bar: the same 30px row, with the window name in `label-strong` `text` at left `space-14` and one close button on the right.
 
-## 크기와 변형
+## Sizes and variants
 
-| 이름 | 높이 | 글자 | 쓰는 곳 |
+| Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
-| 주 창 메뉴줄 | `size-menubar` 30 | 메뉴 `label`, 제목 `label` | 주 창 |
-| 메뉴 항목 | 24 | `label` `text-2` | 메뉴줄 안 |
-| 창 조절 버튼 | 46×30 | 아이콘 14 | 메뉴줄 오른쪽 끝 |
-| 보조 창 제목줄 | 30 | 창 이름 `label-strong` | 환경설정 |
+| Main window menu bar | `size-menubar` 30 | Menus `label`, title `label` | Main window |
+| Menu item | 24 | `label` `text-2` | Inside the menu bar |
+| Window control button | 46×30 | Icon 14 | Right end of the menu bar |
+| Secondary window title bar | 30 | Window name `label-strong` | Preferences |
 
-## 상태
+## States
 
-| 상태 | 바탕 | 글자/아이콘 | 그 밖 |
+| State | Background | Text and icon | Other |
 | --- | --- | --- | --- |
-| 메뉴 항목 기본 | 없음 | `text-2` | |
-| 메뉴 항목 마우스 올림 | `bg-raised` | `text-2` | 100ms ease-out |
-| 메뉴 항목 누름, 메뉴 열림(`aria-expanded`) | `bg-control-hover` | `text` | 메뉴가 열려 있는 동안 유지 |
-| 창 조절 기본 | 없음 | `text-2` | |
-| 창 조절 마우스 올림 | `bg-raised` | `text-2` | 닫기도 같습니다(빨강 hover 없음) |
-| 창 조절 누름 | `bg-control-hover` | `text` | |
-| 포커스 | 그대로 | 그대로 | 메뉴 항목은 offset 1px, 창 조절 버튼은 창 가장자리에서 잘리지 않게 안쪽(offset −2px) |
+| Menu item, default | None | `text-2` | |
+| Menu item, hover | `bg-raised` | `text-2` | 100ms ease-out |
+| Menu item, pressed or menu open (`aria-expanded`) | `bg-control-hover` | `text` | Stays while the menu is open |
+| Window control, default | None | `text-2` | |
+| Window control, hover | `bg-raised` | `text-2` | The same for close (no red hover) |
+| Window control, pressed | `bg-control-hover` | `text` | |
+| Focus | Unchanged | Unchanged | Menu items offset 1px. Window control buttons draw it inside (offset −2px) so that the window edge doesn't clip it |
 
-## 동작
+## Behavior
 
-- 줄 전체가 창을 끄는 자리입니다(`-webkit-app-region: drag`). 메뉴와 창 조절 버튼만 `no-drag`. 빈 곳을 두 번 누르면 최대화와 되돌리기를 오갑니다(Windows 기본 동작).
-- 메뉴: 줄은 `role="menubar"`, 항목은 `role="menuitem"` + `aria-haspopup="menu"` + `aria-expanded`. 누르면 메뉴를 항목 아래 왼쪽 끝에 맞춰 엽니다. 메뉴 하나가 열려 있을 때 다른 항목에 마우스를 올리면 그 메뉴로 바뀝니다.
-- 키보드: Alt 또는 F10으로 첫 항목에 포커스, 왼쪽/오른쪽 화살표로 옮김, Enter, Space, 아래 화살표로 열기, Esc로 닫고 메뉴줄에서 나옵니다. Alt + 밑줄 글자 접근 키는 두지 않습니다.
-- 창 조절 버튼은 `aria-label`(최소화, 최대화, 닫기)과 같은 이름의 툴팁을 줍니다. 최대화된 창에서는 이름을 "이전 크기로 복원"으로 바꿉니다(두 겹 사각형 아이콘은 아직 아이콘 목록에 없습니다).
-- 가운데 제목은 누를 수 없습니다. 예배를 바꾸는 일은 예배 순서 패널 머리글에서 합니다.
+- The whole row is the window drag area (`-webkit-app-region: drag`). Only the menus and the window control buttons are `no-drag`. A double-click on an empty spot toggles between maximize and restore (Windows default behavior).
+- Menus: the row is `role="menubar"`, and each item is `role="menuitem"` + `aria-haspopup="menu"` + `aria-expanded`. A click opens the menu below the item, aligned to its left edge. While one menu is open, hovering another item switches to that menu.
+- Keyboard: Alt or F10 focuses the first item, Left and Right arrows move between items, Enter, Space, or Down arrow opens a menu, and Esc closes it and leaves the menu bar. Don't add Alt + underlined letter access keys.
+- Give the window control buttons an `aria-label` (최소화, 최대화, 닫기) and a tooltip with the same name. In a maximized window, change the name to "이전 크기로 복원" (the double-square icon isn't in the icon list yet).
+- The center title isn't clickable. Switch services in the 예배 순서 (service order) panel header.
 
-## 글쓰기
+## Writing
 
-- 메뉴 이름은 두세 글자의 명사로 고정합니다: 파일, 편집, 보기, 출력, 창, 도움말.
-- 가운데 제목에는 예배 이름만 씁니다(주일 예배). 앱 이름, 파일 경로, "저장 안 됨" 표시를 붙이지 않습니다. 저장 상태는 StatusBar가 보입니다.
+- Fix menu names as nouns of two or three characters: 파일, 편집, 보기, 출력, 창, 도움말.
+- Put only the service name in the center title (주일 예배). Don't add the app name, a file path, or a "저장 안 됨" (not saved) mark. StatusBar shows the save state.
 
-## 구현 메모
+## Implementation notes
 
 ```jsx
 <MenuBar title={service.name} menus={['파일', '편집', '보기', '출력', '창', '도움말']} />
 <MenuBar variant="window" title="환경설정" />
 ```
 
-- 창 조절은 Electron `BrowserWindow`의 minimize, maximize/unmaximize, close를 부릅니다. 메뉴 내용은 Menu 컴포넌트로 그리고 Electron 기본 메뉴는 쓰지 않습니다.
-- 클래스: 줄 `ll-menubar`, 보조 창 `ll-menubar--window`, 앱 이름 `ll-menubar__brand`, 메뉴 묶음 `ll-menubar__menus`, 항목 `ll-menubar__item`, 제목 `ll-menubar__title`, 창 이름 `ll-menubar__name`, 창 조절 묶음 `ll-menubar__controls`, 버튼 `ll-menubar__win`.
+- The window controls call minimize, maximize/unmaximize, and close on the Electron `BrowserWindow`. Draw the menu contents with the Menu component, and don't use the default Electron menu.
+- Classes: row `ll-menubar`, secondary window `ll-menubar--window`, app name `ll-menubar__brand`, menu group `ll-menubar__menus`, item `ll-menubar__item`, title `ll-menubar__title`, window name `ll-menubar__name`, window control group `ll-menubar__controls`, button `ll-menubar__win`.
 
-## 시안과 달라진 점
+## Changes from the drafts
 
-- 모든 보드(assemble.js `menubar`): 메뉴줄 바탕 #0b0b0b → `bg-app`(#0e0e0e).
-- Prefs, Shortcuts: 보조 창 제목줄 높이 32 → 30, 바탕 #0b0b0b → `bg-app`, 닫기 46×32 → 46×30.
+- All boards (assemble.js `menubar`): menu bar background #0b0b0b → `bg-app` (#0e0e0e).
+- Prefs, Shortcuts: secondary window title bar height 32 → 30, background #0b0b0b → `bg-app`, close 46×32 → 46×30.

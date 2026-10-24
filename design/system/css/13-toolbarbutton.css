@@ -1,4 +1,4 @@
-/* 13 ToolbarButton: 툴바의 아이콘 위 이름 버튼(48). 변형 작업 공간 탭 / 동작 / 보기 켜고 끄기 / 화면 출력, 좁은 창 형태(32) */
+/* 13 ToolbarButton: toolbar button with the name under the icon (48). Variants workspace tab / action / view toggle / screen output, compact form (32) */
 .ll-tbtn, :is(.ll-root, .ll-preview) .ll-tbtn {
   box-sizing: border-box; position: relative; display: inline-flex; flex: none; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-4);
   height: var(--size-toolbar-button); min-width: 0; margin: 0; padding: 0 var(--space-8);
@@ -8,7 +8,7 @@
   transition: background-color 100ms ease-out, color 100ms ease-out;
 }
 .ll-tbtn .ll-i { width: var(--size-icon-18); height: var(--size-icon-18); }
-/* 아이콘 자리: 아이콘과 (있으면) 화살표, 상태 점을 묶는다 */
+/* Icon slot: groups the icon, the optional chevron, and the status dot */
 .ll-tbtn__icon { position: relative; display: inline-flex; align-items: center; gap: var(--space-4); }
 .ll-tbtn .ll-tbtn__chevron { width: var(--size-icon-12); height: var(--size-icon-12); color: var(--text-3); }
 .ll-tbtn__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
@@ -18,25 +18,25 @@
 .ll-tbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .ll-tbtn:focus:not(:focus-visible) { outline: none; }
 
-/* 작업 공간 탭(진행, 준비, 화면 설정): 64 너비, 고른 탭만 bg-raised */
+/* Workspace tabs (진행, 준비, 화면 설정) */
 .ll-tbtn.ll-tbtn--tab { width: 64px; padding: 0; color: var(--text-3); }
 .ll-tbtn.ll-tbtn--tab:is([aria-selected="true"], [aria-pressed="true"]) { background: var(--bg-raised); color: var(--text); }
 
-/* 동작 버튼(Look 고르기처럼 메뉴를 여는 것 포함): 좌우 12 */
+/* Action button that opens a menu, such as the Look picker */
 .ll-tbtn.ll-tbtn--menu { padding: 0 var(--space-12); }
 
-/* 보기 켜고 끄기(미디어): 켜짐 text, 꺼짐 text-3, 바탕은 바꾸지 않는다 */
+/* View toggle (미디어): the background doesn't change */
 .ll-tbtn.ll-tbtn--toggle { min-width: 64px; color: var(--text-3); }
 .ll-tbtn.ll-tbtn--toggle[aria-pressed="true"] { color: var(--text); }
 
-/* 화면 출력(본 화면, 무대, 방송 자막) */
+/* Screen output (본 화면, 무대, 방송 자막) */
 .ll-tbtn.ll-tbtn--output { min-width: 64px; }
 .ll-tbtn__dot {
   position: absolute; top: -3px; right: -4px; width: 6px; height: 6px;
   border-radius: var(--radius-full); background: var(--live); box-shadow: var(--ring-dot-cut);
   transition: box-shadow 100ms ease-out;
 }
-/* 점을 떼어 내는 고리는 버튼 바탕과 같은 색이어야 한다 */
+/* The ring that cuts the dot free must match the button background */
 .ll-tbtn:not(:disabled, [aria-disabled="true"]):is(:hover, .is-hover) .ll-tbtn__dot { box-shadow: 0 0 0 2px var(--bg-toolbar-hover); }
 .ll-tbtn:not(:disabled, [aria-disabled="true"]):is(:active, .is-active, [aria-expanded="true"]) .ll-tbtn__dot { box-shadow: 0 0 0 2px var(--bg-raised); }
 .ll-tbtn.ll-tbtn--output:is([data-state="off"], [aria-pressed="false"]) { color: var(--text-off); }
@@ -47,7 +47,7 @@
 .ll-tbtn.ll-tbtn:is(:disabled, [aria-disabled="true"]) { background: transparent; color: var(--text-off); }
 .ll-tbtn:is(:disabled, [aria-disabled="true"]) .ll-tbtn__chevron { color: var(--text-off); }
 
-/* 좁은 창(툴바 40): 버튼 32, 아이콘 16을 이름 왼쪽에, 이름 12px */
+/* Narrow window (toolbar 40) */
 .ll-tbtn.ll-tbtn--compact { flex-direction: row; gap: var(--space-6); height: 32px; padding: 0 var(--space-10) 0 var(--space-8); font-size: 12px; line-height: 16px; font-weight: 400; }
 .ll-tbtn.ll-tbtn--compact .ll-i { width: var(--size-icon-16); height: var(--size-icon-16); }
 .ll-tbtn.ll-tbtn--compact .ll-tbtn__chevron { width: var(--size-icon-12); height: var(--size-icon-12); }

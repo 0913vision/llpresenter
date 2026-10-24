@@ -1,74 +1,74 @@
 # Layout
 
-메인 창의 크기 구분(좁은 창, 보통 창, 넓은 창)과 그에 따른 열 너비, 막대 높이, 기본값을 정한 배치 규칙입니다. 재사용 위젯이 아니라 앱 틀을 만들 때 따르는 문서입니다.
+The layout rules that set the size classes of the main window (narrow window, regular window, wide window) and the column widths, bar heights, and defaults that follow from them. This isn't a reusable widget. It is the document to follow when you build the app shell.
 
-## 쓰는 곳
+## Where to use
 
-- 메인 창의 진행, 준비, 화면 설정 작업 공간 전체 배치(메뉴줄, 툴바, 왼쪽, 가운데, 오른쪽 열, 상태 표시줄).
-- 대화상자와 메뉴가 창보다 클 때의 크기 제한.
+- The whole layout of the 진행 (Show), 준비 (Prep), and 화면 설정 (Screen settings) workspaces in the main window (menu bar, toolbar, left, center, and right columns, status bar).
+- Size limits for dialogs and menus that are larger than the window.
 
-## 쓰지 않는 곳
+## Where not to use
 
-- 출력 창(본 화면, 무대 화면, 방송 자막): 디스플레이의 원래 해상도로 따로 여는 창이며 이 규칙을 따르지 않습니다.
-- 패널 안쪽의 배치: Panel, SlideThumbnail, PreviewFrame 같은 각 컴포넌트 문서를 따릅니다.
+- Output windows (본 화면 (main screen), 무대 화면 (stage screen), 방송 자막 (broadcast captions)): separate windows that open at the native resolution of their display. They don't follow these rules.
+- Layout inside a panel: follow the document of each component, such as Panel, SlideThumbnail, and PreviewFrame.
 
-## 구성
+## Anatomy
 
-모든 값은 Windows 배율을 적용한 CSS 픽셀입니다(Electron의 DIP와 같습니다). 1920×1080 화면을 125%로 쓰면 화면은 1536×864, 150%면 1280×720 CSS 픽셀입니다.
+All values are CSS pixels after Windows display scaling (the same as Electron DIPs). A 1920×1080 screen at 125% is 1536×864 CSS pixels, and at 150% it is 1280×720.
 
-- 최소 창: `window-min-width` 1280 × `window-min-height` 720.
-- 위에서 아래로: 메뉴줄 `size-menubar`(30), 툴바(보통 창 `size-toolbar` 56, 좁은 창 `size-toolbar-compact` 40), 작업 영역, 상태 표시줄 `size-statusbar`(28). 막대와 패널 사이 틈의 바탕은 `bg-app`.
-- 작업 영역: 왼쪽 열, 가운데 열, 오른쪽 열. 창 가장자리와 열 사이, 패널 사이 모두 `panel-gap`(4). 작업 영역 위아래에는 틈을 두지 않습니다.
-- 왼쪽 열: 예배 순서(남는 높이) + 퀵 실행(내용 높이). 준비 화면은 예배 순서 + 라이브러리.
-- 가운데 열: 나머지 너비 전부, 최소 560. 슬라이드 패널(남는 높이) + 미디어 줄(열림일 때 170 = 머리글 34 + 내용 136).
-- 오른쪽 열: 미리보기(내용 높이) + 지우기(내용 높이) + 진행 도구(남는 높이, 최소 240).
-- 높이가 모자라 진행 도구가 240보다 작아지면 미리보기 패널이 줄어듭니다. 큰 미리보기는 16:9를 지킨 채 높이에 맞춰 작아지고 가운데에 놓입니다. 1280×720(좁은 창)에서는 미리보기 306, 지우기 68, 진행 도구 240이 됩니다.
+- Minimum window: `window-min-width` 1280 × `window-min-height` 720.
+- From top to bottom: menu bar `size-menubar` (30), toolbar (regular window `size-toolbar` 56, narrow window `size-toolbar-compact` 40), work area, status bar `size-statusbar` (28). The background of the gaps between bars and panels is `bg-app`.
+- Work area: left column, center column, right column. The gaps at the window edges, between columns, and between panels are all `panel-gap` (4). Don't put a gap above or below the work area.
+- Left column: 예배 순서 (service order) (remaining height) + 퀵 실행 (quick launch) (content height). In the 준비 workspace: 예배 순서 + library.
+- Center column: all remaining width, minimum 560. 장 (slide) panel (remaining height) + media strip (170 when open = header 34 + content 136).
+- Right column: preview (content height) + 지우기 (clear) (content height) + 진행 도구 (show tools) (remaining height, minimum 240).
+- If the height runs short and the 진행 도구 would get smaller than 240, the preview panel shrinks. The large preview keeps 16:9, gets smaller to fit the height, and is centered. At 1280×720 (narrow window), this gives preview 306, 지우기 68, and 진행 도구 240.
 
-## 크기와 변형
+## Sizes and variants
 
-| 구분 | 창 너비 | 툴바 | 왼쪽 | 오른쪽 | 미디어 줄 | 진행 도구 탭 | 작은 미리보기 | 지우기 버튼 | 썸네일 기본 열 |
+| Class | Window width | Toolbar | Left | Right | Media strip | 진행 도구 tabs | Small previews | 지우기 buttons | Default thumbnail columns |
 |---|---|---|---|---|---|---|---|---|---|
-| 좁은 창 | 1280–1599 | 40 `size-toolbar-compact` | 220 `col-left-compact` | 360 `col-right-compact` | 닫힌 채 시작 | 표시 중, 무대, 더 보기 | 64px 줄 | 아이콘만(모두는 이름) | 3 |
-| 보통 창 | 1600–2399 | 56 `size-toolbar` | 280 `col-left` | 480 `col-right` | 열림 | 8개 모두 | 두 칸 | 아이콘 + 이름 | 4 |
-| 넓은 창 | 2400 이상 | 56 | 320 | 560 | 열림 | 8개 모두 | 두 칸 | 아이콘 + 이름 | 6 |
+| Narrow window | 1280–1599 | 40 `size-toolbar-compact` | 220 `col-left-compact` | 360 `col-right-compact` | Starts closed | 표시 중, 무대, 더 보기 | 64px rows | Icon only (모두 has a name) | 3 |
+| Regular window | 1600–2399 | 56 `size-toolbar` | 280 `col-left` | 480 `col-right` | Open | All 8 | Two cells | Icon + name | 4 |
+| Wide window | 2400 or more | 56 | 320 | 560 | Open | All 8 | Two cells | Icon + name | 6 |
 
-넓은 창의 열 너비는 `col-left-wide`(320), `col-right-wide`(560), 가운데 최소 너비는 `col-center-min`(560)입니다. 좁은 창의 "더 보기"는 나머지 탭(오디오, 타이머, 메시지, 공지, 소품, 매크로)을 메뉴로 엽니다.
+The column widths of the wide window are `col-left-wide` (320) and `col-right-wide` (560), and the minimum center width is `col-center-min` (560). In the narrow window, "더 보기" (more) opens the remaining tabs (오디오, 타이머, 메시지, 공지, 소품, 매크로) as a menu.
 
-| 화면 | 배율 | CSS 픽셀 | 구분 |
+| Screen | Scaling | CSS pixels | Class |
 |---|---|---|---|
-| 1366×768 | 100% | 1366×768 | 좁은 창 |
-| 1920×1080 | 100% | 1920×1080 | 보통 창 |
-| 1920×1080 | 125% | 1536×864 | 좁은 창, 높이 900 미만 |
-| 1920×1080 | 150% | 1280×720 | 좁은 창, 최소 크기 |
-| 2560×1440 | 125% | 2048×1152 | 보통 창 |
-| 2560×1440 | 100% | 2560×1440 | 넓은 창 |
-| 3840×2160 | 150% | 2560×1440 | 넓은 창 |
+| 1366×768 | 100% | 1366×768 | Narrow window |
+| 1920×1080 | 100% | 1920×1080 | Regular window |
+| 1920×1080 | 125% | 1536×864 | Narrow window, height under 900 |
+| 1920×1080 | 150% | 1280×720 | Narrow window, minimum size |
+| 2560×1440 | 125% | 2048×1152 | Regular window |
+| 2560×1440 | 100% | 2560×1440 | Wide window |
+| 3840×2160 | 150% | 2560×1440 | Wide window |
 
-## 상태
+## States
 
-| 상태 | 무엇이 바뀌나 | 그 밖 |
+| State | What changes | Other |
 |---|---|---|
-| 미디어 줄 열림 / 닫힘 | 가운데 열 아래 170을 슬라이드 패널과 나눔 / 슬라이드가 전부 | 툴바 "미디어" 버튼이 켜고 끕니다(`aria-pressed`) |
-| 높이 900 미만 | 미디어 줄이 닫힌 채 시작 | 사용자가 열면 연 채로 둡니다 |
-| 진행 도구 240 미만이 될 때 | 미리보기 패널이 줄어듦 | 위 구성 참고 |
-| 열 너비를 끄는 중 | 커서 `col-resize` | 끝나면 그 너비를 저장 |
+| Media strip open / closed | Shares the bottom 170 of the center column with the 장 panel / the 장 panel takes it all | The toolbar "미디어" (media) button turns it on and off (`aria-pressed`) |
+| Height under 900 | The media strip starts closed | If the user opens it, keep it open |
+| 진행 도구 would go under 240 | The preview panel shrinks | See Anatomy above |
+| Dragging a column width | Cursor `col-resize` | Save that width when the drag ends |
 
-## 동작
+## Behavior
 
-- 열 사이 4px 틈을 끌어 너비를 바꿉니다. 왼쪽 200–400, 오른쪽 320–720이며, 가운데가 560이 되면 더 넓어지지 않습니다.
-- 크기 구분은 기본값만 정합니다. 사용자가 바꾼 왼쪽, 오른쪽 너비는 크기 구분마다 따로 저장하고, 창 크기가 다른 구분으로 넘어가면 그 구분에 저장된 너비(없으면 기본값)를 씁니다.
-- 창을 줄여 가운데가 560보다 작아지게 되면 오른쪽 열부터, 그다음 왼쪽 열을 범위의 최솟값까지 화면에서만 줄입니다(저장한 너비는 그대로 둡니다). 최소 창 1280에서도 왼쪽 200 + 오른쪽 320이면 가운데가 744라 언제나 들어맞습니다.
-- 썸네일 크기 슬라이더의 기본값은 크기 구분의 기본 열 수이고, 사용자가 바꾸면 그 값을 저장합니다.
-- 대화상자: 너비는 `dialog-s/m/l/xl` 토큰을 지킵니다. 창이 너비 + 32보다 좁으면 너비 = 창 − 32. 높이는 최대 창 − 64이고 몸통만 스크롤합니다(머리글과 바닥글은 고정). 지금 토큰으로는 가장 넓은 `dialog-xl`(1080)도 최소 창 1280 안에 들어가므로 너비 규칙은 앞으로의 크기를 위한 것입니다.
-- 메뉴: 높이는 최대 창 − 16, 넘치면 메뉴 안을 스크롤합니다.
-- 출력 창은 디스플레이 해상도 그대로이고, 메인 창의 크기 구분과 상관없습니다.
+- The user drags the 4px gap between columns to change their widths. Left 200–400, right 320–720, and a column doesn't widen further once the center reaches 560.
+- The size classes set only the defaults. Save the left and right widths that the user changes separately for each size class. When the window size crosses into another class, use the widths saved for that class (or the defaults if there are none).
+- If shrinking the window would make the center smaller than 560, shrink the right column first and then the left column, down to the minimum of their ranges, on screen only (keep the saved widths). Even at the minimum window of 1280, left 200 + right 320 leaves 744 for the center, so it always fits.
+- The default of the thumbnail size slider is the default column count of the size class. If the user changes it, save that value.
+- Dialogs: keep the `dialog-s/m/l/xl` width tokens. If the window is narrower than the width + 32, width = window − 32. The maximum height is window − 64, and only the body scrolls (the header and footer stay fixed). With the current tokens, even the widest `dialog-xl` (1080) fits in the minimum window of 1280, so the width rule is for future sizes.
+- Menus: the maximum height is window − 16. When a menu overflows, scroll inside it.
+- Output windows use the display resolution as it is, regardless of the size class of the main window.
 
-## 글쓰기
+## Writing
 
-- 화면에 크기 구분 이름("좁은 창")을 보이지 않습니다. 개발 문서와 설정 저장 키에만 씁니다.
-- "더 보기" 메뉴의 항목 이름은 탭 이름과 같습니다.
+- Don't show size class names ("좁은 창") on screen. Use them only in developer documents and in saved settings keys.
+- The item names in the "더 보기" menu are the same as the tab names.
 
-## 구현 메모
+## Implementation notes
 
 ```ts
 type SizeClass = 'narrow' | 'normal' | 'wide'
@@ -79,15 +79,15 @@ const defaults = {
   wide:   { toolbar: 56, left: 320, right: 560, mediaStrip: true, columns: 6 },
 }
 const limits = { left: [200, 400], right: [320, 720], center: 560, toolsMin: 240 }
-// 시작할 때: mediaStrip = defaults[c].mediaStrip && window.innerHeight >= 900
-// 저장: settings.layout[c] = { left, right, columns }
+// On start: mediaStrip = defaults[c].mediaStrip && window.innerHeight >= 900
+// Save: settings.layout[c] = { left, right, columns }
 ```
 
-- Electron `BrowserWindow`에 `minWidth: 1280, minHeight: 720`을 줍니다.
-- 앱 틀은 `<AppShell>`이 `data-size="narrow|normal|wide"`를 뿌리에 두고 `--ll-col-left`, `--ll-col-right`를 style로 넘깁니다. 툴바, 지우기, 진행 도구, 미리보기는 `data-size`를 보고 좁은 창 모양(`ll-toolbar--compact`, `ll-clear-row--compact`, `ll-monitor--compact`)을 씁니다.
-- 이 카드의 도식 클래스(`ll-layout*`)는 문서용이며 앱으로 옮기지 않습니다.
+- Give the Electron `BrowserWindow` `minWidth: 1280, minHeight: 720`.
+- In the app shell, `<AppShell>` puts `data-size="narrow|normal|wide"` on the root and passes `--ll-col-left` and `--ll-col-right` through style. The toolbar, 지우기, 진행 도구, and preview read `data-size` and use the narrow window form (`ll-toolbar--compact`, `ll-clear-row--compact`, `ll-monitor--compact`).
+- The diagram classes in this card (`ll-layout*`) are for documentation only. Don't move them into the app.
 
-## 시안과 달라진 점
+## Changes from the drafts
 
-- Compact(1366×768): 툴바 44 → 40(`size-toolbar-compact`), 상태 표시줄 24 → 28, 진행 도구 탭 "표시 중, 무대, 메시지 + 더 보기" → "표시 중, 무대 + 더 보기".
-- ShowH, Problems: 미디어 줄 패널 220 → 170.
+- Compact (1366×768): toolbar 44 → 40 (`size-toolbar-compact`), status bar 24 → 28, 진행 도구 tabs "표시 중, 무대, 메시지 + 더 보기" → "표시 중, 무대 + 더 보기".
+- ShowH, Problems: media strip panel 220 → 170.

@@ -1,11 +1,10 @@
-/* 32 메뉴: 메뉴줄 메뉴, 하위 메뉴, 우클릭 메뉴, 팝오버 목록(예배 고르기, 이름표) */
+/* 32 Menu: menu bar menus, submenus, right-click menus, popover lists (service picker, labels) */
 
 .ll-menu { box-sizing: border-box; display: flex; flex-direction: column; min-width: 180px; max-width: 320px; padding: var(--space-6); border-radius: var(--radius-xl); background: var(--bg-raised); box-shadow: var(--shadow-popover); color: var(--text); font-size: 13px; line-height: 18px; z-index: var(--z-popover); animation: ll-menu-in 120ms ease-out; }
 .ll-menu__scroll { min-height: 0; overflow-y: auto; display: flex; flex-direction: column; scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
 
-/* 항목 28px, 좌우 8, 앞 칸 14 + 사이 10 */
 .ll-menu__item, :is(.ll-root, .ll-preview) .ll-menu__item { flex: none; box-sizing: border-box; display: flex; align-items: center; gap: var(--space-10); width: 100%; height: var(--size-row-menu); padding: 0 var(--space-8); border: 0; border-radius: var(--radius-md); background: transparent; color: var(--text); font: inherit; font-size: 13px; line-height: 18px; text-align: left; white-space: nowrap; cursor: default; transition: background-color 100ms ease-out; }
-/* 가리킨 항목(마우스, 화살표 키)과 하위 메뉴가 열린 부모는 같은 바탕. 메뉴 안에서는 고리를 그리지 않는다 */
+/* A pointed item (mouse or arrow keys) and the parent of an open submenu share one background. No focus ring inside a menu. */
 .ll-menu__item:hover, .ll-menu__item:focus-visible, .ll-menu__item.is-hover, .ll-menu__item[aria-expanded="true"] { background: var(--bg-control-hover); outline: none; }
 .ll-menu__item:hover .ll-menu__meta, .ll-menu__item:hover .ll-menu__chevron,
 .ll-menu__item:focus-visible .ll-menu__meta, .ll-menu__item:focus-visible .ll-menu__chevron,
@@ -18,7 +17,7 @@
 .ll-menu__meta { flex: none; margin-left: var(--space-6); font-size: 11px; line-height: 14px; color: var(--text-3); font-variant-numeric: tabular-nums; }
 .ll-menu__chevron { flex: none; color: var(--text-3); }
 
-/* 이름표 색 견본: 앞 칸 다음, 이름 앞 */
+/* Label swatch: after the leading slot, before the name. */
 .ll-menu__swatch { flex: none; width: 18px; height: 12px; border-radius: var(--radius-xs); background: var(--label-none); box-shadow: inset 0 0 0 1px var(--line-control); }
 .ll-menu__swatch[data-color] { box-shadow: none; }
 .ll-menu__swatch[data-color="teal"] { background: var(--label-teal); }
@@ -30,20 +29,18 @@
 .ll-menu__swatch[data-color="slate"] { background: var(--label-slate); }
 .ll-menu__swatch[data-color="gray"] { background: var(--label-gray); }
 
-/* 삭제 같은 항목도 색을 따로 칠하지 않는다(빨강은 출력에만). 메뉴 맨 아래 구분선 뒤에 두고, 되돌릴 수 없으면 확인 창을 띄운다 */
+/* Delete items keep the normal text color because red is only for output. Put them at the bottom after a divider, and confirm when they can't be undone. */
 .ll-menu__item.ll-menu__item--danger { color: var(--text); }
 
-/* 쓸 수 없음 */
 .ll-menu__item:disabled, .ll-menu__item[aria-disabled="true"] { background: transparent; color: var(--text-off); }
 .ll-menu__item:disabled .ll-menu__lead, .ll-menu__item:disabled .ll-menu__meta, .ll-menu__item:disabled .ll-menu__chevron,
 .ll-menu__item[aria-disabled="true"] .ll-menu__lead, .ll-menu__item[aria-disabled="true"] .ll-menu__meta, .ll-menu__item[aria-disabled="true"] .ll-menu__chevron { color: var(--text-off); }
 
-/* 구분선과 묶음 이름 */
 .ll-menu__sep { flex: none; height: 1px; margin: var(--space-4) var(--space-2); background: var(--line-strong); }
 .ll-menu__group { flex: none; padding: var(--space-6) var(--space-8) var(--space-4); font-size: 11px; line-height: 14px; font-weight: 600; color: var(--text-3); white-space: nowrap; }
 .ll-menu > .ll-menu__group:first-child { padding-top: var(--space-2); }
 
-/* 맨 위 검색 칸: md 30, 돋보기 16. 글자가 항목 이름과 같은 32px 선에서 시작한다 */
+/* Search field at the top. Its text starts on the same 32px line as the item names. */
 .ll-menu__search { flex: none; box-sizing: border-box; display: flex; align-items: center; gap: var(--space-8); height: var(--size-control-md); margin-bottom: var(--space-4); padding: 0 var(--space-8); border-radius: var(--radius-md); background: var(--bg-well); color: var(--text-3); }
 .ll-menu__search:focus-within, .ll-menu__search.is-focus { box-shadow: var(--ring-field-focus); outline: none; }
 .ll-menu__search input { flex: 1 1 auto; min-width: 0; height: 100%; padding: 0; border: 0; outline: 0; background: transparent; color: var(--text); font: inherit; font-size: 13px; line-height: 18px; }

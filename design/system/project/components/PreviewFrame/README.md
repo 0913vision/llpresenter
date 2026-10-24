@@ -1,73 +1,73 @@
 # PreviewFrame
 
-미리보기 패널의 몸통으로, 세 출력 화면(본 화면, 무대 화면, 방송 자막) 중 하나를 크게, 나머지 둘을 작게 줄여 보여 줍니다.
+The body of the preview panel. It shows one of the three output screens (본 화면 (main screen), 무대 화면 (stage screen), 방송 자막 (broadcast captions)) large, and the other two scaled down small.
 
-## 쓰는 곳
+## Where to use
 
-- 진행 화면 오른쪽 열 맨 위의 미리보기 패널(ShowH, Compact, Problems).
-- 준비 화면 미리보기 패널(PrepService, Reflow)의 큰 틀(`ll-monitor__frame`)만. 준비 화면은 머리글의 세그먼트로 화면을 바꾸므로 작은 미리보기 줄을 두지 않고, 이름 줄에는 이름표 색 견본(LabelChip의 `ll-label-swatch`), 이름표 이름, 위치("5 / 9"), Look 이름을 씁니다.
+- The preview panel at the top of the right column in the 진행 (Show) workspace (ShowH, Compact, Problems).
+- Only the large frame (`ll-monitor__frame`) of the preview panel in the 준비 (Prep) workspace (PrepService, Reflow). The 준비 workspace switches screens with the segmented control in the header, so it has no row of small previews. Its name row shows the 이름표 (label) color swatch (`ll-label-swatch` from LabelChip), the 이름표 name, the position ("5 / 9"), and the Look name.
 
-## 쓰지 않는 곳
+## Where not to use
 
-- 슬라이드 썸네일: SlideThumbnail을 씁니다.
-- 화면 설정, Look 편집, 무대 배치 편집의 큰 편집 캔버스.
-- 클래스 `ll-preview`는 디자인 시스템 미리보기 도구의 것이므로 쓰지 않습니다. 이 컴포넌트는 `ll-monitor`입니다.
+- Slide thumbnails: use SlideThumbnail.
+- The large editing canvases of 화면 설정 (Screen settings), Look editing, and stage layout editing.
+- Don't use the class `ll-preview`. It belongs to the design system preview tool. This component is `ll-monitor`.
 
-## 구성
+## Anatomy
 
-- 바깥 `ll-monitor`: 세로로 큰 미리보기와 작은 미리보기 줄을 쌓고 사이 `space-10`. 패널 몸통이 안쪽 `panel-inset`(14)을 줍니다.
-- 화면 틀 `ll-monitor__frame`: 16:9, 모서리 `radius-md`, 바탕 `output-black`, 테두리 `0 0 0 1px line`. 방송 자막은 캡처용 창 바탕과 같은 `chroma`(`ll-monitor__frame--chroma`)입니다.
-- 화면 내용 `ll-monitor__screen`: 출력 창과 같은 렌더러를 틀 너비로 줄여 넣는 자리(canvas, video 등)입니다. 안의 글자 크기와 색은 Look이 정하며 UI 토큰을 쓰지 않습니다. 틀에 `container-type: inline-size`가 있어 HTML로 그릴 때도 `cqw`로 비율을 맞출 수 있습니다.
-- 큰 미리보기 이름 줄 `ll-monitor__caption`: 틀 아래 `space-10`. 화면 이름 `label-strong`(12/16/600) `text`, 대상 `label` `text-3`(앞에 14px `monitor` 아이콘, 사이 `space-4`), Look 이름은 오른쪽 끝 `label` `text-3`. 항목 사이 `space-8`. 대상이 NDI면 아이콘 없이 글자만 씁니다.
-- 작은 미리보기 줄 `ll-monitor__smalls`: 두 칸 격자, 사이 `space-10`. 칸 `ll-monitor__small`은 버튼이며 틀 아래 `space-6`에 이름 줄(`caption` 11/14, 이름 `text-2`, 대상 `text-3`, 사이 `space-6`). Look 이름은 쓰지 않습니다.
-- 좁은 창(`ll-monitor--compact`): 작은 미리보기가 줄로 바뀝니다. 틀 너비 64px(높이 36), 틀과 글자 사이 `space-8`, 이름과 대상을 두 줄로(사이 `space-2`).
-- 높이가 모자라 진행 도구 240을 지킬 수 없으면 미리보기 패널이 줄어듭니다. 이때 큰 틀은 16:9를 지킨 채 높이에 맞춰 작아지고 가운데에 놓입니다(Layout 참고).
+- Outer `ll-monitor`: stacks the large preview and the row of small previews vertically, gap `space-10`. The panel body gives the `panel-inset` (14) padding.
+- Screen frame `ll-monitor__frame`: 16:9, corner radius `radius-md`, background `output-black`, border `0 0 0 1px line`. 방송 자막 uses `chroma` (`ll-monitor__frame--chroma`), the same as the capture window background.
+- Screen content `ll-monitor__screen`: the slot where the same renderer as the output window goes, scaled to the frame width (canvas, video, and so on). Look decides the font sizes and colors inside it, and it doesn't use UI tokens. The frame has `container-type: inline-size`, so you can match proportions with `cqw` when you draw it in HTML.
+- Large preview name row `ll-monitor__caption`: `space-10` below the frame. Screen name `label-strong` (12/16/600) `text`, target `label` `text-3` (with a 14px `monitor` icon in front, gap `space-4`), and the Look name at the right end in `label` `text-3`. Gap between items `space-8`. If the target is NDI, write only the text, without the icon.
+- Small preview row `ll-monitor__smalls`: a two-cell grid, gap `space-10`. Each cell `ll-monitor__small` is a button, with a name row `space-6` below the frame (`caption` 11/14, name `text-2`, target `text-3`, gap `space-6`). Don't write the Look name.
+- Narrow window (`ll-monitor--compact`): the small previews become rows. Frame width 64px (height 36), gap between frame and text `space-8`, name and target on two lines (gap `space-2`).
+- If the height isn't enough to keep the 진행 도구 (show tools) at 240, the preview panel shrinks. The large frame then keeps 16:9, gets smaller to fit the height, and is centered (see Layout).
 
-## 크기와 변형
+## Sizes and variants
 
-| 이름 | 높이 | 글자 | 쓰는 곳 |
+| Name | Height | Text | Where to use |
 |---|---|---|---|
-| 기본 | 큰 틀 = 열 안쪽 너비 × 9/16, 작은 틀 = (너비 − 10) / 2 × 9/16 | 이름 줄 `label-strong`/`label`, 작은 칸 `caption` | 보통 창, 넓은 창(오른쪽 열 480, 560) |
-| 좁은 창 `--compact` | 큰 틀 같음, 작은 칸 36(틀 64×36) | 같음, 작은 칸은 두 줄 | 좁은 창(오른쪽 열 360) |
+| Default | Large frame = inner column width × 9/16, small frame = (width − 10) / 2 × 9/16 | Name row `label-strong`/`label`, small cells `caption` | Regular and wide windows (right column 480, 560) |
+| Narrow window `--compact` | Large frame the same, small cells 36 (frame 64×36) | Same, small cells on two lines | Narrow window (right column 360) |
 
-## 상태
+## States
 
-| 상태 | 바탕 | 글자/아이콘 | 그 밖 |
+| State | Background | Text and icon | Other |
 |---|---|---|---|
-| 출력 켜짐(기본) | 화면 내용 | 이름 `text`(작은 칸 `text-2`), 대상과 Look `text-3` | 틀 1px `line` |
-| 작은 칸 마우스 올림 | 같음 | 같음 | 틀 1px `line-control` |
-| 작은 칸 포커스 | 같음 | 같음 | 칸 둘레 `outline: 2px solid accent`, offset 3px |
-| 출력 꺼짐 | 화면 내용 그대로 | 이름 `text-off` | 틀 1px `line-strong`. title "본 화면 출력이 꺼져 있습니다" |
-| 모니터 빠짐 | 화면 내용 그대로 | 대상 `warning`, 앞 아이콘을 `warning` 아이콘으로 바꿈 | 틀 1px `warning`. title "모니터 3 연결 끊김, 창으로 표시 중" |
+| Output on (default) | Screen content | Name `text` (small cells `text-2`), target and Look `text-3` | Frame 1px `line` |
+| Small cell hover | Same | Same | Frame 1px `line-control` |
+| Small cell focus | Same | Same | `outline: 2px solid accent` around the cell, offset 3px |
+| Output off | Screen content unchanged | Name `text-off` | Frame 1px `line-strong`. title "본 화면 출력이 꺼져 있습니다" |
+| Monitor missing | Screen content unchanged | Target `warning`, the leading icon becomes the `warning` icon | Frame 1px `warning`. title "모니터 3 연결 끊김, 창으로 표시 중" |
 
-출력 꺼짐: 시안 ShowH에서 툴바의 출력 버튼을 끄면 버튼 글자색과 점만 바뀌고 미리보기는 그대로입니다. 꺼진 동안에도 다시 켤 때 나갈 내용을 봐야 하므로 그림은 흐리게 하지 않고, 이름만 `text-off`로, 틀만 한 단 밝은 `line-strong`으로 바꿉니다. 꺼짐은 툴바 출력 버튼이 주로 알리고 미리보기는 거들기만 합니다.
+Output off: in the draft ShowH, turning off the output button in the toolbar changes only the button text color and dot, and the preview stays the same. Even while output is off, the operator must see what goes out when it is turned back on, so don't dim the picture. Change only the name to `text-off` and only the frame to the one step lighter `line-strong`. The toolbar output button is the main signal for off, and the preview only supports it.
 
-모니터 빠짐 테두리는 마우스를 올려도 그대로 둡니다. 출력 꺼진 칸에는 마우스 올림이 보입니다.
+Keep the missing monitor border as it is on hover. A cell with output off shows hover.
 
-## 동작
+## Behavior
 
-- 작은 칸을 누르면 그 화면이 크게 오고, 크게 보이던 화면은 작은 줄로 내려갑니다. 작은 줄의 순서는 항상 본 화면 → 무대 화면 → 방송 자막 중 큰 것을 뺀 순서입니다.
-- 큰 미리보기는 누를 수 없습니다.
-- 작은 칸은 `button`, `aria-label="무대 화면 크게 보기"`. 상태가 있으면 이유를 붙입니다: "무대 화면 크게 보기, 모니터 3 연결 끊김".
-- 상태는 `data-state="off"` 또는 `data-state="warning"`을 큰 미리보기(`ll-monitor__main`)나 작은 칸에 겁니다.
-- 포커스 순서: 작은 칸 왼쪽 → 오른쪽.
-- 출력 화면 쪽에는 움직임을 넣지 않으므로 자리를 바꿀 때도 전환 효과 없이 바로 바꿉니다.
+- A click on a small cell brings that screen to the large preview, and the screen that was large moves down to the small row. The order of the small row is always 본 화면 → 무대 화면 → 방송 자막, without the large one.
+- The large preview can't be clicked.
+- A small cell is a `button` with `aria-label="무대 화면 크게 보기"`. If it has a state, add the reason: "무대 화면 크게 보기, 모니터 3 연결 끊김".
+- Put the state as `data-state="off"` or `data-state="warning"` on the large preview (`ll-monitor__main`) or on a small cell.
+- Focus order: small cells from left to right.
+- The output screen side has no motion, so swap places at once, without a transition.
 
-## 글쓰기
+## Writing
 
-- 이름 줄에는 화면 이름, 대상, Look 이름만 씁니다. "출력 중", "꺼짐", "창으로 표시 중" 같은 설명은 글자로 붙이지 않고 title 툴팁으로 줍니다.
-- 화면 이름은 "본 화면", "무대 화면", "방송 자막". 대상은 "모니터 2", "NDI". Look 이름은 사용자가 지은 그대로("기본", "현재와 다음", "하단 자막").
+- Write only the screen name, the target, and the Look name in the name row. Don't add descriptions such as "출력 중" (live), "꺼짐" (off), or "창으로 표시 중" (showing in a window) as text. Give them in the title tooltip.
+- Screen names are "본 화면", "무대 화면", "방송 자막". Targets are "모니터 2", "NDI". Look names are exactly as the user named them ("기본", "현재와 다음", "하단 자막").
 
-## 구현 메모
+## Implementation notes
 
 - `<PreviewFrame screens={[main, stage, broadcast]} big="main" compact={sizeClass === 'narrow'} onSwap={(id) => …} />`
-- 각 화면: `{ id: 'stage', name: '무대 화면', target: { kind: 'display', label: '모니터 3' }, look: '현재와 다음', state: 'on' | 'off' | 'warning', chroma: false }`
-- 클래스: `ll-monitor`, `ll-monitor--compact`, `ll-monitor__main`, `ll-monitor__frame`, `ll-monitor__frame--chroma`, `ll-monitor__screen`, `ll-monitor__caption`, `ll-monitor__name`, `ll-monitor__target`, `ll-monitor__look`, `ll-monitor__smalls`, `ll-monitor__small`.
-- 미리보기 고정용 `.is-hover`, `.is-focus`.
+- Each screen: `{ id: 'stage', name: '무대 화면', target: { kind: 'display', label: '모니터 3' }, look: '현재와 다음', state: 'on' | 'off' | 'warning', chroma: false }`
+- Classes: `ll-monitor`, `ll-monitor--compact`, `ll-monitor__main`, `ll-monitor__frame`, `ll-monitor__frame--chroma`, `ll-monitor__screen`, `ll-monitor__caption`, `ll-monitor__name`, `ll-monitor__target`, `ll-monitor__look`, `ll-monitor__smalls`, `ll-monitor__small`.
+- `.is-hover` and `.is-focus` fix a state in the preview.
 
-## 시안과 달라진 점
+## Changes from the drafts
 
-- ShowH, Compact, Problems, PrepService, Reflow: 화면 틀 모서리 3px → `radius-md` 4px(썸네일, 미디어 칸과 맞춤).
-- ShowH, Problems: 작은 칸 이름 #cfcfcf → `text-2`. 작은 칸 hover는 칸 전체 고리 → 틀에만 1px `line-control`.
-- Compact: 작은 미리보기 줄의 틀 80px → 64px, 패널 안쪽 12 → 14, 사이 8 → 10. 큰 이름 줄의 대상 앞에 `monitor` 아이콘을 붙입니다.
-- Problems: 작은 칸 이름 줄 "⚠ 창으로 표시 중" → "⚠ 모니터 3"(대상을 `warning`으로) + title 툴팁.
+- ShowH, Compact, Problems, PrepService, Reflow: screen frame corner radius 3px → `radius-md` 4px (matches thumbnails and media tiles).
+- ShowH, Problems: small cell name #cfcfcf → `text-2`. Small cell hover: ring around the whole cell → 1px `line-control` on the frame only.
+- Compact: frame in the small preview row 80px → 64px, panel padding 12 → 14, gap 8 → 10. Add the `monitor` icon in front of the target in the large name row.
+- Problems: small cell name row "⚠ 창으로 표시 중" → "⚠ 모니터 3" (target in `warning`) + title tooltip.

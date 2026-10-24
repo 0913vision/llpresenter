@@ -1,4 +1,4 @@
-<!-- @dsCard group="목록과 패널" height=1322 -->
+<!-- @dsCard group="Lists and panels" height=1322 -->
 <!doctype html>
 <html lang="ko">
 <head>
@@ -6,7 +6,7 @@
 <title>Panel</title>
 <style>
   html, body { margin: 0; }
-  /* 미리보기 전용: 머리글만 보일 때 아래 몸통 자리 */
+  /* Preview only: stands in for the body when only the header is shown */
   .pv-mini-body { height: 12px; }
   .pv-note { font-size: 11px; line-height: 14px; color: var(--text-3); }
 </style>
@@ -14,7 +14,7 @@
 <body>
 <div class="ll-preview">
 
-  <div class="ll-spec-title">머리글 34px</div>
+  <div class="ll-spec-title">Header 34px</div>
   <div class="ll-spec">
     <div class="ll-spec-item">
       <section class="ll-panel" style="width: 280px">
@@ -25,7 +25,7 @@
         </div>
         <div class="pv-mini-body"></div>
       </section>
-      <span class="ll-spec-label">탭 + 예배 고르기 + 조작</span>
+      <span class="ll-spec-label">Tab + service switcher + controls</span>
     </div>
     <div class="ll-spec-item">
       <section class="ll-panel" style="width: 280px">
@@ -36,7 +36,7 @@
         </div>
         <div class="pv-mini-body"></div>
       </section>
-      <span class="ll-spec-label">탭 + 개수</span>
+      <span class="ll-spec-label">Tab + count</span>
     </div>
     <div class="ll-spec-item">
       <section class="ll-panel" style="width: 320px">
@@ -51,7 +51,7 @@
         </div>
         <div class="pv-mini-body"></div>
       </section>
-      <span class="ll-spec-label">탭 여러 개, 사이 18</span>
+      <span class="ll-spec-label">Several tabs, gap 18</span>
     </div>
     <div class="ll-spec-item">
       <section class="ll-panel" style="width: 440px">
@@ -61,7 +61,7 @@
         </div>
         <div class="pv-mini-body"></div>
       </section>
-      <span class="ll-spec-label">제목 + 위치, 오른쪽 드롭다운</span>
+      <span class="ll-spec-label">Title + position, dropdown on the right</span>
     </div>
     <div class="ll-spec-item">
       <section class="ll-panel" style="width: 440px">
@@ -71,29 +71,29 @@
         </div>
         <div class="pv-mini-body"></div>
       </section>
-      <span class="ll-spec-label">제목 + 개수, 오른쪽 sm 버튼</span>
+      <span class="ll-spec-label">Title + count, sm button on the right</span>
     </div>
   </div>
 
-  <div class="ll-spec-title">탭 상태</div>
+  <div class="ll-spec-title">Tab states</div>
   <div class="ll-spec">
-    <div class="ll-spec-item"><section class="ll-panel" style="width: 150px"><div class="ll-panel__header"><div class="ll-panel__tabs"><button class="ll-panel__tab" role="tab" aria-selected="true">미리보기</button></div></div><div class="pv-mini-body"></div></section><span class="ll-spec-label">켜짐</span></div>
-    <div class="ll-spec-item"><section class="ll-panel" style="width: 150px"><div class="ll-panel__header"><div class="ll-panel__tabs"><button class="ll-panel__tab" role="tab" aria-selected="false">미리보기</button></div></div><div class="pv-mini-body"></div></section><span class="ll-spec-label">꺼짐</span></div>
-    <div class="ll-spec-item"><section class="ll-panel" style="width: 150px"><div class="ll-panel__header"><div class="ll-panel__tabs"><button class="ll-panel__tab is-hover" role="tab" aria-selected="false">미리보기</button></div></div><div class="pv-mini-body"></div></section><span class="ll-spec-label">마우스 올림</span></div>
-    <div class="ll-spec-item"><section class="ll-panel" style="width: 150px"><div class="ll-panel__header"><div class="ll-panel__tabs"><button class="ll-panel__tab is-focus" role="tab" aria-selected="true">미리보기</button></div></div><div class="pv-mini-body"></div></section><span class="ll-spec-label">포커스</span></div>
-    <div class="ll-spec-item"><section class="ll-panel" style="width: 150px"><div class="ll-panel__header"><div class="ll-panel__tabs"><button class="ll-panel__tab" role="tab" aria-selected="false" disabled>미리보기</button></div></div><div class="pv-mini-body"></div></section><span class="ll-spec-label">쓸 수 없음</span></div>
+    <div class="ll-spec-item"><section class="ll-panel" style="width: 150px"><div class="ll-panel__header"><div class="ll-panel__tabs"><button class="ll-panel__tab" role="tab" aria-selected="true">미리보기</button></div></div><div class="pv-mini-body"></div></section><span class="ll-spec-label">Selected</span></div>
+    <div class="ll-spec-item"><section class="ll-panel" style="width: 150px"><div class="ll-panel__header"><div class="ll-panel__tabs"><button class="ll-panel__tab" role="tab" aria-selected="false">미리보기</button></div></div><div class="pv-mini-body"></div></section><span class="ll-spec-label">Unselected</span></div>
+    <div class="ll-spec-item"><section class="ll-panel" style="width: 150px"><div class="ll-panel__header"><div class="ll-panel__tabs"><button class="ll-panel__tab is-hover" role="tab" aria-selected="false">미리보기</button></div></div><div class="pv-mini-body"></div></section><span class="ll-spec-label">Hover</span></div>
+    <div class="ll-spec-item"><section class="ll-panel" style="width: 150px"><div class="ll-panel__header"><div class="ll-panel__tabs"><button class="ll-panel__tab is-focus" role="tab" aria-selected="true">미리보기</button></div></div><div class="pv-mini-body"></div></section><span class="ll-spec-label">Focus</span></div>
+    <div class="ll-spec-item"><section class="ll-panel" style="width: 150px"><div class="ll-panel__header"><div class="ll-panel__tabs"><button class="ll-panel__tab" role="tab" aria-selected="false" disabled>미리보기</button></div></div><div class="pv-mini-body"></div></section><span class="ll-spec-label">Disabled</span></div>
   </div>
 
-  <div class="ll-spec-title">예배 고르기 버튼</div>
+  <div class="ll-spec-title">Service switcher button</div>
   <div class="ll-spec">
-    <div class="ll-spec-item"><section class="ll-panel" style="width: 166px"><div class="ll-panel__header"><div class="ll-panel__tabs"><button class="ll-panel__tab" role="tab" aria-selected="true">예배 순서</button></div><button class="ll-panel__switch" aria-haspopup="menu" aria-expanded="false">주일 예배<span class="ll-i ll-i-12 ll-i-down"></span></button></div><div class="pv-mini-body"></div></section><span class="ll-spec-label">기본</span></div>
-    <div class="ll-spec-item"><section class="ll-panel" style="width: 166px"><div class="ll-panel__header"><div class="ll-panel__tabs"><button class="ll-panel__tab" role="tab" aria-selected="true">예배 순서</button></div><button class="ll-panel__switch is-hover" aria-haspopup="menu">주일 예배<span class="ll-i ll-i-12 ll-i-down"></span></button></div><div class="pv-mini-body"></div></section><span class="ll-spec-label">마우스 올림</span></div>
-    <div class="ll-spec-item"><section class="ll-panel" style="width: 166px"><div class="ll-panel__header"><div class="ll-panel__tabs"><button class="ll-panel__tab" role="tab" aria-selected="true">예배 순서</button></div><button class="ll-panel__switch" aria-haspopup="menu" aria-expanded="true">주일 예배<span class="ll-i ll-i-12 ll-i-down"></span></button></div><div class="pv-mini-body"></div></section><span class="ll-spec-label">열림, 누름</span></div>
-    <div class="ll-spec-item"><section class="ll-panel" style="width: 166px"><div class="ll-panel__header"><div class="ll-panel__tabs"><button class="ll-panel__tab" role="tab" aria-selected="true">예배 순서</button></div><button class="ll-panel__switch is-focus" aria-haspopup="menu">주일 예배<span class="ll-i ll-i-12 ll-i-down"></span></button></div><div class="pv-mini-body"></div></section><span class="ll-spec-label">포커스</span></div>
-    <div class="ll-spec-item"><section class="ll-panel" style="width: 166px"><div class="ll-panel__header"><div class="ll-panel__tabs"><button class="ll-panel__tab" role="tab" aria-selected="true">예배 순서</button></div><button class="ll-panel__switch" aria-haspopup="menu" disabled>주일 예배<span class="ll-i ll-i-12 ll-i-down"></span></button></div><div class="pv-mini-body"></div></section><span class="ll-spec-label">쓸 수 없음</span></div>
+    <div class="ll-spec-item"><section class="ll-panel" style="width: 166px"><div class="ll-panel__header"><div class="ll-panel__tabs"><button class="ll-panel__tab" role="tab" aria-selected="true">예배 순서</button></div><button class="ll-panel__switch" aria-haspopup="menu" aria-expanded="false">주일 예배<span class="ll-i ll-i-12 ll-i-down"></span></button></div><div class="pv-mini-body"></div></section><span class="ll-spec-label">Default</span></div>
+    <div class="ll-spec-item"><section class="ll-panel" style="width: 166px"><div class="ll-panel__header"><div class="ll-panel__tabs"><button class="ll-panel__tab" role="tab" aria-selected="true">예배 순서</button></div><button class="ll-panel__switch is-hover" aria-haspopup="menu">주일 예배<span class="ll-i ll-i-12 ll-i-down"></span></button></div><div class="pv-mini-body"></div></section><span class="ll-spec-label">Hover</span></div>
+    <div class="ll-spec-item"><section class="ll-panel" style="width: 166px"><div class="ll-panel__header"><div class="ll-panel__tabs"><button class="ll-panel__tab" role="tab" aria-selected="true">예배 순서</button></div><button class="ll-panel__switch" aria-haspopup="menu" aria-expanded="true">주일 예배<span class="ll-i ll-i-12 ll-i-down"></span></button></div><div class="pv-mini-body"></div></section><span class="ll-spec-label">Open, pressed</span></div>
+    <div class="ll-spec-item"><section class="ll-panel" style="width: 166px"><div class="ll-panel__header"><div class="ll-panel__tabs"><button class="ll-panel__tab" role="tab" aria-selected="true">예배 순서</button></div><button class="ll-panel__switch is-focus" aria-haspopup="menu">주일 예배<span class="ll-i ll-i-12 ll-i-down"></span></button></div><div class="pv-mini-body"></div></section><span class="ll-spec-label">Focus</span></div>
+    <div class="ll-spec-item"><section class="ll-panel" style="width: 166px"><div class="ll-panel__header"><div class="ll-panel__tabs"><button class="ll-panel__tab" role="tab" aria-selected="true">예배 순서</button></div><button class="ll-panel__switch" aria-haspopup="menu" disabled>주일 예배<span class="ll-i ll-i-12 ll-i-down"></span></button></div><div class="pv-mini-body"></div></section><span class="ll-spec-label">Disabled</span></div>
   </div>
 
-  <div class="ll-spec-title">배치: 패널 사이 4px, 창 가장자리 4px, 몸통만 스크롤</div>
+  <div class="ll-spec-title">Layout: 4px between panels, 4px at window edges, only the body scrolls</div>
   <div class="ll-panels ll-panels--window" style="box-sizing: border-box; width: 920px; height: 500px; padding-top: 4px">
     <div class="ll-panels ll-panels--column" style="flex: 0 0 280px">
       <section class="ll-panel" style="flex: 1 1 auto" aria-label="예배 순서">
@@ -149,21 +149,21 @@
     </section>
   </div>
 
-  <div class="ll-spec-title">바닥 줄 32px</div>
+  <div class="ll-spec-title">Footer row 32px</div>
   <div class="ll-spec">
     <div class="ll-spec-item">
       <section class="ll-panel" style="width: 440px">
         <div class="pv-mini-body"></div>
         <div class="ll-panel__footer"><span>7개</span><span>2.1GB</span><div class="ll-panel__footer-end"><span class="ll-slider-row"><span class="ll-i ll-i-grid"></span><input type="range" class="ll-slider" min="1" max="5" step="1" value="3" style="--ll-value: 50%" aria-label="썸네일 크기"></span></div></div>
       </section>
-      <span class="ll-spec-label">개수 + 썸네일 크기 (미디어)</span>
+      <span class="ll-spec-label">Count + thumbnail size (media)</span>
     </div>
     <div class="ll-spec-item">
       <section class="ll-panel" style="width: 440px">
         <div class="pv-mini-body"></div>
         <div class="ll-panel__footer"><div class="ll-panel__footer-end"><span class="ll-slider-row"><span class="ll-i ll-i-grid"></span><input type="range" class="ll-slider" min="1" max="5" step="1" value="3" style="--ll-value: 50%" aria-label="썸네일 크기"></span></div></div>
       </section>
-      <span class="ll-spec-label">썸네일 크기만 (슬라이드)</span>
+      <span class="ll-spec-label">Thumbnail size only (장 panel)</span>
     </div>
   </div>
 

@@ -1,72 +1,72 @@
 # Tooltip
 
-포인터를 올리거나 키보드 포커스가 머물 때 이름, 단축키, 쓸 수 없는 이유, 오류 이유를 짧게 보이는 작은 상자입니다. 아이콘만 있는 버튼, 지우기 버튼, 툴바 버튼, 상태 아이콘, 오류가 있는 입력 칸에 씁니다.
+A small box that briefly shows a name, a shortcut, the reason something is disabled, or the reason for an error when the pointer rests on its target or keyboard focus stays there. Use it for icon-only buttons, 지우기 (clear) buttons, toolbar buttons, status icons, and text fields with an error.
 
-## 쓰는 곳
+## Where to use
 
-- 아이콘만 있는 버튼과 툴바 버튼의 이름: "사이드바 접기", "본 화면 출력 끄기 (모니터 2)"
-- 단축키가 있는 조작: "가사 지우기 F2", "되돌리기 Ctrl Z"
-- 쓸 수 없는 조작의 이유, 입력 칸의 오류 이유: "라이브러리에 같은 제목의 곡이 있습니다"
-- 상태 아이콘의 자세한 이유: "미디어 파일 없음", "배경 파일을 찾을 수 없음"
-- 말줄임된 이름의 전체 이름
+- Names of icon-only buttons and toolbar buttons: "사이드바 접기", "본 화면 출력 끄기 (모니터 2)"
+- Controls that have a shortcut: "가사 지우기 F2", "되돌리기 Ctrl Z"
+- The reason a control is disabled, the reason for a text field error: "라이브러리에 같은 제목의 곡이 있습니다"
+- The detailed reason behind a status icon: "미디어 파일 없음", "배경 파일을 찾을 수 없음"
+- The full name of a name truncated with an ellipsis
 
-## 쓰지 않는 곳
+## Where not to use
 
-- 꼭 읽어야 하는 경고: `Notification`이나 `AlertDialog`를 씁니다.
-- 고를 것이 있는 내용: `Menu`를 씁니다.
-- 글자가 보이는 버튼에 같은 이름만 되풀이하는 툴팁은 띄우지 않습니다. 단축키나 이유가 있을 때만 띄웁니다.
-- 출력 화면(본 화면, 무대 화면, 방송 자막) 안에는 띄우지 않습니다.
+- Warnings that the user must read: use `Notification` or `AlertDialog`.
+- Content with choices to make: use `Menu`.
+- Don't show a tooltip that only repeats the name on a button whose text is visible. Show one only when there is a shortcut or a reason.
+- Don't show tooltips inside the output screens (본 화면 (main screen), 무대 화면 (stage screen), 방송 자막 (broadcast captions)).
 
-## 구성
+## Anatomy
 
-- 면 `ll-tooltip`: 바탕 `bg-raised`, 모서리 `radius-md`(4px), 그림자 `shadow-popover`, 안쪽 위아래 5px 좌우 `space-8`, 최대 너비 280px. 넘치면 낱말 단위로 줄을 바꾸고(`keep-all`), 경로처럼 끊을 곳이 없으면 아무 데서나 끊습니다. 화살표는 없습니다. 쌓임 `z-tooltip`.
-- 글자: `label`(12/16) `text`.
-- 단축키 `ll-tooltip__key`: 이름 뒤 `space-8`, `text-3`, 숫자 고정폭, 줄바꿈 없음. 글쇠 상자를 그리지 않습니다(`KeyCap`의 글자 단축키).
-- 둘째 줄 `ll-tooltip__sub`: 위 `space-2`, `text-3`. 이유 뒤에 판단에 필요한 사실 하나(겹치는 곡의 장 수와 수정 날짜, 파일 경로).
-- 자리: 대상 아래 6px, 가로는 대상 가운데. 대상이 툴팁보다 넓으면(입력 칸) 왼쪽 끝을 맞춥니다. 아래가 모자라면 대상 위 6px로 뒤집고, 창 옆 가장자리에서는 8px 안쪽으로 밉니다. 포인터 위치가 아니라 대상의 사각형을 기준으로 둡니다.
+- Surface `ll-tooltip`: background `bg-raised`, corner radius `radius-md` (4px), shadow `shadow-popover`, padding 5px top and bottom and `space-8` left and right, maximum width 280px. Text that overflows wraps at word boundaries (`keep-all`), and text with no break points, such as a path, breaks anywhere. There is no arrow. Stacking `z-tooltip`.
+- Text: `label` (12/16) `text`.
+- Shortcut `ll-tooltip__key`: `space-8` after the name, `text-3`, tabular numbers, no wrapping. Don't draw a key box (it is the text shortcut from `KeyCap`).
+- Second line `ll-tooltip__sub`: `space-2` above, `text-3`. After the reason, one fact that the user needs to decide (the 장 (slide) count and modified date of the conflicting song, a file path).
+- Position: 6px below the target, centered horizontally on the target. If the target is wider than the tooltip (a text field), align the left edges. If there isn't enough room below, flip it to 6px above the target, and at the side edges of the window, push it 8px inward. Position it from the target's rectangle, not from the pointer position.
 
-## 크기와 변형
+## Sizes and variants
 
-| 이름 | 높이 | 글자 | 쓰는 곳 |
+| Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
-| 이름만 | 26 (16 + 5 × 2) | label 12/16 text | 아이콘 버튼, 툴바 버튼 |
-| 단축키 | 26 | label text + text-3 | 지우기 버튼, 되돌리기 |
-| 두 줄 | 44 (16 + 2 + 16 + 5 × 2) | label text, 둘째 줄 text-3 | 오류 이유 + 부가 정보 |
-| 줄바꿈 | 너비 280까지, 줄마다 16 | label | 긴 이유, 파일 경로 |
+| Name only | 26 (16 + 5 × 2) | `label` 12/16 `text` | Icon buttons, toolbar buttons |
+| Shortcut | 26 | `label` `text` + `text-3` | 지우기 buttons, undo |
+| Two lines | 44 (16 + 2 + 16 + 5 × 2) | `label` `text`, second line `text-3` | Error reason + extra info |
+| Wrapping | Up to 280 wide, 16 per line | `label` | Long reasons, file paths |
 
-## 상태
+## States
 
-| 상태 | 바탕 | 글자/아이콘 | 그 밖 |
+| State | Background | Text and icon | Other |
 | --- | --- | --- | --- |
-| 나타남 | `bg-raised` | `text`, 단축키와 둘째 줄 `text-3` | 투명도 0 → 1, 120ms ease-out. `prefers-reduced-motion`이면 바로 |
-| 보임 | `bg-raised` | 그대로 | |
-| 닫힘 | 없음 | 없음 | 바로 사라짐(페이드 없음) |
-| 쓸 수 없는 대상 위 | 그대로 | 그대로 | 대상이 `aria-disabled="true"`여도 띄웁니다 |
-| 오류 입력 칸 | 그대로 | 그대로 | 칸은 `ring-field-error`, 툴팁에 이유 |
+| Appearing | `bg-raised` | `text`, shortcut and second line `text-3` | Opacity 0 → 1, 120ms ease-out. At once under `prefers-reduced-motion` |
+| Visible | `bg-raised` | Unchanged | |
+| Closed | None | None | Disappears at once (no fade) |
+| On a disabled target | Unchanged | Unchanged | Show it even when the target has `aria-disabled="true"` |
+| Text field with an error | Unchanged | Unchanged | The field has `ring-field-error`, and the tooltip gives the reason |
 
-## 동작
+## Behavior
 
-- 지연: 포인터를 올리고 600ms 뒤에 나타납니다. 툴팁이 떠 있는 동안이나 닫힌 지 300ms 안에 다른 대상으로 옮기면 지연 없이 바로 바꿔 보입니다.
-- 키보드 포커스(`:focus-visible`)가 대상에 들어와도 같은 지연으로 뜹니다. 마우스로 눌러 생긴 포커스에는 띄우지 않습니다.
-- 닫힘: 포인터가 대상을 벗어나거나, 누르거나, 키를 치거나(Esc 포함), 스크롤하거나, 창이 포커스를 잃으면 바로 닫힙니다. 툴팁은 포인터를 받지 않습니다.
-- 쓸 수 없는 버튼은 `disabled` 대신 `aria-disabled="true"`로 만들어 포인터와 포커스를 받게 합니다(`Button`, `IconButton`, `ClearButton`과 같습니다).
-- aria: 툴팁 `role="tooltip"`과 `id`, 대상에 `aria-describedby`. 아이콘만 있는 버튼은 `aria-label`이 이름이고 툴팁은 같은 이름에 단축키를 더합니다. 단축키는 대상의 `aria-keyshortcuts`로도 줍니다.
-- 브라우저 기본 `title` 툴팁은 쓰지 않습니다. 시안의 `title` 속성은 모두 이 툴팁으로 그립니다.
+- Delay: the tooltip appears 600ms after the pointer rests on the target. If the pointer moves to another target while a tooltip is showing or within 300ms after it closes, show the new tooltip at once, with no delay.
+- Show it with the same delay when keyboard focus (`:focus-visible`) enters the target. Don't show it for focus that comes from a mouse click.
+- Closing: close at once when the pointer leaves the target, or on a click, a key press (including Esc), a scroll, or when the window loses focus. The tooltip doesn't receive the pointer.
+- Make a disabled button with `aria-disabled="true"` instead of `disabled` so that it receives the pointer and focus (same as `Button`, `IconButton`, and `ClearButton`).
+- aria: the tooltip has `role="tooltip"` and an `id`, and the target has `aria-describedby`. For an icon-only button, `aria-label` is the name, and the tooltip adds the shortcut to the same name. Also give the shortcut through the target's `aria-keyshortcuts`.
+- Don't use the browser's default `title` tooltip. Draw every `title` attribute in the drafts with this tooltip.
 
-## 글쓰기
+## Writing
 
-- 이름은 누르면 일어날 일: "가사 지우기", "사이드바 접기". 켜고 끄는 버튼은 지금 상태가 아니라 누르면 될 상태를 씁니다: 켜져 있으면 "본 화면 출력 끄기 (모니터 2)".
-- 단축키는 이름 뒤에 글자로: "F2", "Ctrl Z".
-- 이유는 무엇이 문제인지 한 문장, 마침표 없이: "라이브러리에 같은 제목의 곡이 있습니다", "배경 파일을 찾을 수 없음". 고치는 방법을 길게 쓰지 않습니다.
-- 대상에 이미 보이는 이름을 되풀이하지 않습니다.
+- Write the name as what happens on a click: "가사 지우기", "사이드바 접기". For a toggle button, write the state that a click leads to, not the current state: when it is on, "본 화면 출력 끄기 (모니터 2)".
+- Put the shortcut after the name, as text: "F2", "Ctrl Z".
+- Write a reason as one sentence about what is wrong, with no period: "라이브러리에 같은 제목의 곡이 있습니다", "배경 파일을 찾을 수 없음". Don't write long instructions for the fix.
+- Don't repeat a name that is already visible on the target.
 
-## 구현 메모
+## Implementation notes
 
-- `<Tooltip content="가사 지우기" shortcut="F2" sub="라이브러리 곡 4장, 10월 20일 수정" placement="bottom"><ClearButton … /></Tooltip>` 또는 `useTooltip(ref, { content, shortcut })`.
-- 툴팁은 앱 전체에 한 층(포털, `z-tooltip`)으로 그리고, 지연과 300ms 유예 타이머도 하나로 둡니다.
-- 자리는 대상의 `getBoundingClientRect()` 기준, 간격 6, 뒤집기(아래 → 위), 가장자리 8px 밀기.
-- 클래스: `ll-tooltip`, `ll-tooltip__key`, `ll-tooltip__sub`.
+- `<Tooltip content="가사 지우기" shortcut="F2" sub="라이브러리 곡 4장, 10월 20일 수정" placement="bottom"><ClearButton … /></Tooltip>` or `useTooltip(ref, { content, shortcut })`.
+- Draw tooltips in one layer for the whole app (a portal, `z-tooltip`), and keep one timer for the delay and the 300ms grace period.
+- Position from the target's `getBoundingClientRect()`, with a gap of 6, a flip (below → above), and an 8px push from the edges.
+- Classes: `ll-tooltip`, `ll-tooltip__key`, `ll-tooltip__sub`.
 
-## 시안과 달라진 점
+## Changes from the drafts
 
-- 시안은 모두 브라우저 `title` 툴팁입니다(ShowH, Bible, CueTake "되돌리기 Ctrl Z", 지우기 버튼, Compact "사이드바 접기", ImportText, ImportSave, ImportEdit "라이브러리에 같은 제목의 곡이 있습니다", Problems "미디어 파일 없음", "배경 파일을 찾을 수 없음"). 앱에서는 이 툴팁으로 바꿉니다. 보드에 새로 그릴 것은 없습니다.
+- The drafts all use the browser `title` tooltip (ShowH, Bible, CueTake "되돌리기 Ctrl Z", the 지우기 buttons, Compact "사이드바 접기", ImportText, ImportSave, ImportEdit "라이브러리에 같은 제목의 곡이 있습니다", Problems "미디어 파일 없음", "배경 파일을 찾을 수 없음"). The app replaces them with this tooltip. Nothing new needs to be drawn on the boards.

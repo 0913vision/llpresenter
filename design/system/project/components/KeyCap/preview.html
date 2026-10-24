@@ -1,11 +1,11 @@
-<!-- @dsCard group="입력" height=500 -->
+<!-- @dsCard group="Inputs" height=500 -->
 <!doctype html>
 <html lang="ko">
 <head>
 <meta charset="utf-8">
 <title>KeyCap</title>
 <style>
-  /* 미리보기용: 단축키 설정 표의 줄을 흉내 낸 틀 */
+  /* Preview only: mimics the rows of the shortcut table */
   .pv-keys { box-sizing: border-box; width: 560px; padding: 0 0 8px; border-radius: var(--radius-lg); background: var(--bg-panel); font-family: var(--font-ui); }
   .pv-head { display: flex; align-items: center; height: 28px; margin: 0 12px; border-bottom: 1px solid var(--line); font-size: 11px; line-height: 14px; font-weight: 600; color: var(--text-3); }
   .pv-group { margin: 0; padding: 10px 12px 4px; font-size: 11px; line-height: 14px; font-weight: 600; color: var(--text-3); }
@@ -18,22 +18,22 @@
 <body>
 <div class="ll-preview">
 
-  <div class="ll-spec-title">글쇠, 높이 18, 최소 너비 22</div>
+  <div class="ll-spec-title">Key, height 18, minimum width 22</div>
   <div class="ll-on-panel">
     <div class="ll-spec">
-      <div class="ll-spec-item"><span class="ll-keys"><kbd class="ll-key">F1</kbd></span><span class="ll-spec-label">글쇠 하나</span></div>
-      <div class="ll-spec-item"><span class="ll-keys"><kbd class="ll-key">Ctrl</kbd><kbd class="ll-key">Z</kbd></span><span class="ll-spec-label">조합, 사이 4</span></div>
-      <div class="ll-spec-item"><span class="ll-key-list"><span class="ll-keys"><kbd class="ll-key">→</kbd></span><span class="ll-keys"><kbd class="ll-key">Space</kbd></span></span><span class="ll-spec-label">단축키 둘, 사이 10</span></div>
-      <div class="ll-spec-item"><span class="ll-keys" data-state="changed"><kbd class="ll-key">Alt</kbd><kbd class="ll-key">2</kbd></span><span class="ll-spec-label">바꾼 단축키</span></div>
-      <div class="ll-spec-item"><span class="ll-key-list"><span class="ll-keys" data-state="warning"><kbd class="ll-key">Ctrl</kbd><kbd class="ll-key">1</kbd></span><span class="ll-key-warn" title="출력 켜기와 겹침" aria-label="출력 켜기와 겹침"><span class="ll-i ll-i-warning"></span></span></span><span class="ll-spec-label">겹침, 이유는 툴팁</span></div>
-      <div class="ll-spec-item"><span class="ll-key-empty">없음</span><span class="ll-spec-label">없음</span></div>
-      <div class="ll-spec-item"><span class="ll-field ll-field--sm is-focus" style="width: 160px"><input class="ll-field__input" aria-label="로고 화면 단축키" placeholder="키 입력"></span><span class="ll-spec-label">키 입력 중, TextField sm</span></div>
+      <div class="ll-spec-item"><span class="ll-keys"><kbd class="ll-key">F1</kbd></span><span class="ll-spec-label">One key</span></div>
+      <div class="ll-spec-item"><span class="ll-keys"><kbd class="ll-key">Ctrl</kbd><kbd class="ll-key">Z</kbd></span><span class="ll-spec-label">Combination, gap 4</span></div>
+      <div class="ll-spec-item"><span class="ll-key-list"><span class="ll-keys"><kbd class="ll-key">→</kbd></span><span class="ll-keys"><kbd class="ll-key">Space</kbd></span></span><span class="ll-spec-label">Two shortcuts, gap 10</span></div>
+      <div class="ll-spec-item"><span class="ll-keys" data-state="changed"><kbd class="ll-key">Alt</kbd><kbd class="ll-key">2</kbd></span><span class="ll-spec-label">Changed shortcut</span></div>
+      <div class="ll-spec-item"><span class="ll-key-list"><span class="ll-keys" data-state="warning"><kbd class="ll-key">Ctrl</kbd><kbd class="ll-key">1</kbd></span><span class="ll-key-warn" title="출력 켜기와 겹침" aria-label="출력 켜기와 겹침"><span class="ll-i ll-i-warning"></span></span></span><span class="ll-spec-label">Conflict, reason in tooltip</span></div>
+      <div class="ll-spec-item"><span class="ll-key-empty">없음</span><span class="ll-spec-label">None</span></div>
+      <div class="ll-spec-item"><span class="ll-field ll-field--sm is-focus" style="width: 160px"><input class="ll-field__input" aria-label="로고 화면 단축키" placeholder="키 입력"></span><span class="ll-spec-label">Recording a key, TextField sm</span></div>
     </div>
   </div>
 
   <div class="ll-spec" style="align-items: flex-start">
     <div class="ll-spec-item">
-      <div class="ll-spec-title">단축키 설정의 표</div>
+      <div class="ll-spec-title">Shortcut settings table</div>
       <div class="pv-keys">
         <div class="pv-head"><span style="flex: 1">명령</span><span style="flex: 0 0 300px">단축키</span></div>
         <p class="pv-group">진행</p>
@@ -48,14 +48,14 @@
       </div>
     </div>
     <div class="ll-spec-item">
-      <div class="ll-spec-title">글자 단축키, 상자 없음</div>
+      <div class="ll-spec-title">Text shortcut, no box</div>
       <div class="ll-spec" style="flex-direction: column; align-items: flex-start">
-        <div class="ll-spec-item"><span class="ll-tooltip" role="tooltip">되돌리기<span class="ll-tooltip__key">Ctrl Z</span></span><span class="ll-spec-label">툴팁, Tooltip의 ll-tooltip__key</span></div>
+        <div class="ll-spec-item"><span class="ll-tooltip" role="tooltip">되돌리기<span class="ll-tooltip__key">Ctrl Z</span></span><span class="ll-spec-label">Tooltip, ll-tooltip__key of Tooltip</span></div>
         <div class="ll-spec-item">
           <div class="ll-menu" role="menu" aria-label="편집" style="width: 220px">
             <button type="button" class="ll-menu__item" role="menuitem"><span class="ll-menu__label">되돌리기</span><span class="ll-menu__meta">Ctrl Z</span></button>
           </div>
-          <span class="ll-spec-label">메뉴, Menu의 ll-menu__meta</span>
+          <span class="ll-spec-label">Menu, ll-menu__meta of Menu</span>
         </div>
       </div>
     </div>

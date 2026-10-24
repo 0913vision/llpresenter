@@ -1,4 +1,4 @@
-/* 15 MenuBar: 창 맨 위 30px 줄. 앱 이름, 메뉴, 가운데 예배 이름, 창 조절 버튼. 창 제목줄을 겸한다 */
+/* 15 MenuBar: 30px row at the top of the window with the app name, menus, centered service name, and window controls. Also serves as the title bar */
 .ll-menubar {
   box-sizing: border-box; position: relative; display: flex; flex: none; align-items: center;
   height: var(--size-menubar); min-width: 0; padding-left: var(--space-12);
@@ -18,7 +18,7 @@
 .ll-menubar__item:is(:hover, .is-hover) { background: var(--bg-raised); }
 .ll-menubar__item.ll-menubar__item:is(:active, .is-active, [aria-expanded="true"]) { background: var(--bg-control-hover); color: var(--text); }
 
-/* 가운데 예배 이름: 창 너비의 가운데. 메뉴나 창 조절 버튼과 겹치지 않게 너비를 줄인다 */
+/* Service name centered in the window. Its width is capped so it doesn't overlap the menus or window controls */
 .ll-menubar__title {
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); max-width: 36%;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -37,11 +37,11 @@
 .ll-menubar__win.ll-menubar__win:is(:active, .is-active) { background: var(--bg-control-hover); color: var(--text); }
 
 .ll-menubar__item:focus-visible, .ll-menubar__win:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-/* 창 맨 위 가장자리에서 고리가 잘리지 않게 창 조절 버튼은 안쪽으로 그린다 */
+/* Window controls draw the focus ring inside so the top window edge doesn't clip it */
 .ll-menubar__win:focus-visible, .ll-preview .ll-menubar__win.is-focus { outline-offset: -2px; }
 .ll-menubar__item:focus:not(:focus-visible), .ll-menubar__win:focus:not(:focus-visible) { outline: none; }
 
-/* 보조 창(환경설정)의 제목줄: 메뉴 없이 왼쪽에 창 이름, 닫기 하나 */
+/* Title bar of a secondary window (Preferences): window name on the left and one close button, no menus */
 .ll-menubar.ll-menubar--window { padding-left: var(--space-14); }
 .ll-menubar__name { flex: none; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--text); }
 

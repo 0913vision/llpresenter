@@ -1,4 +1,4 @@
-/* 24 Slider: 네이티브 range를 다시 그린 슬라이더(ll-slider). 채운 부분은 --ll-value(0%~100%) */
+/* 24 Slider: native range redrawn (ll-slider). --ll-value (0%~100%) sets the filled part */
 .ll-slider {
   --ll-value: 50%; --ll-slider-fill: var(--text); --ll-slider-knob: var(--text); --ll-slider-cut: var(--bg-panel);
   -webkit-appearance: none; appearance: none; box-sizing: border-box; display: inline-block; flex: none;
@@ -14,13 +14,13 @@
   -webkit-appearance: none; appearance: none; box-sizing: border-box; width: 12px; height: 12px; margin-top: -4px;
   border: 0; border-radius: var(--radius-full); background: var(--ll-slider-knob);
 }
-/* 포커스 고리는 손잡이에: 1px 틈 + 2px accent */
+/* Focus ring goes on the knob only: 1px gap + 2px accent */
 .ll-slider:focus-visible { outline: none; }
 .ll-preview .ll-slider.is-focus { outline: none; }
 .ll-slider:focus-visible::-webkit-slider-thumb, .ll-slider.is-focus::-webkit-slider-thumb { box-shadow: 0 0 0 1px var(--ll-slider-cut), 0 0 0 3px var(--accent); }
 .ll-slider:disabled { --ll-slider-fill: var(--text-off); --ll-slider-knob: var(--text-off); }
 
-/* 앞 아이콘 + 슬라이더(썸네일 크기, 음량) */
+/* Leading icon + slider (thumbnail size, volume) */
 .ll-slider-row { display: inline-flex; align-items: center; gap: var(--space-8); color: var(--text-3); }
 .ll-slider-row > .ll-i { width: var(--size-icon-14); height: var(--size-icon-14); }
 .ll-slider-row:has(> .ll-slider:disabled) { color: var(--text-off); }

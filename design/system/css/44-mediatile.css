@@ -1,16 +1,16 @@
-/* 44 MediaTile: 미디어 칸(진행 화면 아래 미디어 줄, 미디어 화면). 16:9 그림 + 이름 */
+/* 44 MediaTile: media tile (진행 media strip, media view). 16:9 picture + name. */
 .ll-media-grid { box-sizing: border-box; display: grid; grid-template-columns: repeat(var(--ll-cols, 5), minmax(0, 1fr)); gap: var(--space-16) var(--space-12); align-content: start; }
 .ll-media-strip { box-sizing: border-box; display: grid; grid-auto-flow: column; grid-auto-columns: 150px; gap: var(--space-12); overflow-x: auto; overflow-y: hidden; padding: var(--space-4); margin: calc(-1 * var(--space-4)); }
-/* 줄은 스크롤 상자라 고리가 잘리지 않게 4px 안쪽 여백을 두고 그만큼 바깥으로 당긴다 */
+/* The strip is a scroll box, so 4px padding and a matching negative margin keep rings from being clipped. */
 .ll-media, :is(.ll-root, .ll-preview) .ll-media { box-sizing: border-box; display: flex; flex-direction: column; gap: var(--space-8); width: 100%; min-width: 0; margin: 0; padding: 0; border: 0; background: transparent; color: var(--text-2); font: inherit; text-align: left; cursor: default; }
 .ll-media__frame { position: relative; display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: var(--radius-md); overflow: hidden; background: var(--bg-well); transition: box-shadow 100ms ease-out; }
 .ll-media__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-/* 길이: 그림 오른쪽 아래. 반복 재생이면 앞에 12px 반복 아이콘 */
+/* Duration: bottom right of the picture, with a 12px loop icon for looping playback. */
 .ll-media__dur { position: absolute; right: var(--space-6); bottom: var(--space-6); box-sizing: border-box; display: inline-flex; align-items: center; gap: var(--space-4); height: var(--size-count); padding: 0 var(--space-6); border-radius: var(--radius-sm); background: var(--scrim-strong); color: var(--text); font-size: 11px; line-height: 14px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ll-media__dur .ll-i { margin-left: -2px; }
 .ll-media__name { min-width: 0; font-size: 12px; line-height: 16px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 
-/* 상태: 마우스 올림 < 고름 < 출력 중 */
+/* States: hover < selected < live. */
 .ll-media:hover .ll-media__frame, .ll-media.is-hover .ll-media__frame { box-shadow: 0 0 0 1px var(--line-control); }
 .ll-media[aria-selected="true"] .ll-media__frame { box-shadow: var(--ring-selected); }
 .ll-media[data-state~="live"] .ll-media__frame { box-shadow: var(--ring-live); }
@@ -18,13 +18,13 @@
 .ll-media:focus-visible, .ll-preview .ll-media.is-focus { outline: none; }
 .ll-media:focus-visible .ll-media__frame, .ll-preview .ll-media.is-focus .ll-media__frame { outline: 2px solid var(--accent); outline-offset: 4px; }
 
-/* 파일 없음: 빗금 + 24px 파일 없음 아이콘(warning). 그림과 길이는 숨긴다 */
+/* Missing file: hatching + 24px missing file icon. Hides the picture and duration. */
 .ll-media__missing { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; color: var(--warning); }
 .ll-media[data-state~="warning"] .ll-media__frame { background: repeating-linear-gradient(135deg, var(--bg-inset) 0 6px, var(--bg-well) 6px 12px); }
 .ll-media[data-state~="warning"] .ll-media__img, .ll-media[data-state~="warning"] .ll-media__dur { display: none; }
 .ll-media[data-state~="warning"] .ll-media__missing { display: flex; }
 
-/* 복사 중: 막(scrim) + 가운데 퍼센트 + 아래 진행 막대(ll-progress). 누를 수 없다 */
+/* Copying: scrim + percentage + progress bar. Can't be clicked. */
 .ll-media__busy { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: var(--scrim); color: var(--text); font-size: 11px; line-height: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .ll-media__busy .ll-progress { position: absolute; left: var(--space-6); right: var(--space-6); bottom: var(--space-6); }
 .ll-media[data-state~="busy"] .ll-media__busy { display: flex; }

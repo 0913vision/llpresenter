@@ -1,81 +1,81 @@
 # LabelChip
 
-곡의 장 묶음(1절, 프리코러스, 후렴)을 이름표 색으로 칠해 보이는 칩이며, 준비 화면의 구성 줄과 가사 블록, 목록 안의 작은 이름표에 씁니다.
+A chip that shows a group of 장 (slide) in a song (1절, 프리코러스, 후렴) painted in its 이름표 (label) color. Use it in the 구성 (arrangement) strip and lyric blocks of the 준비 (Prep) workspace, and as a small 이름표 inside lists.
 
-## 쓰는 곳
+## Where to use
 
-- 구성 줄 칩 30px: 준비 화면 예배 순서 항목의 "구성"(PrepService). 칩 순서가 아래 썸네일 순서와 같고, 끌어서 순서를 바꿉니다.
-- 작은 이름표 22px: 라이브러리 곡 편집(Reflow), 가져온 곡 편집(ImportEdit, ImportSave)의 가사 블록 왼쪽, 텍스트 가져오기(ImportText) 미리보기, 목록 줄 안.
-- 색 견본 10px: 준비 화면 미리보기 아래 이름 줄("■ 프리코러스 5 / 9").
-- 이름표 색 연결(`data-color`)은 SlideThumbnail 띠, MacroTile도 함께 씁니다.
+- 구성 strip chip, 30px: the "구성" of a 예배 순서 (service order) item in the 준비 workspace (PrepService). The chip order matches the order of the thumbnails below, and dragging a chip changes the order.
+- Small 이름표, 22px: to the left of lyric blocks in library song editing (Reflow) and imported song editing (ImportEdit, ImportSave), in the text import (ImportText) preview, and inside list rows.
+- Color swatch, 10px: the name row under the preview in the 준비 workspace ("■ 프리코러스 5 / 9").
+- The SlideThumbnail band and MacroTile also use the 이름표 color mapping (`data-color`).
 
-## 쓰지 않는 곳
+## Where not to use
 
-- 썸네일 아래 띠: SlideThumbnail의 `ll-thumb__band`.
-- 이름표 색을 고르는 견본 줄: LabelColorPicker(`ll-swatch`).
-- 상태를 알리는 칩(출력 중, 경고): 상태는 고리와 아이콘으로 보입니다(규칙 18).
+- The band under a thumbnail: SlideThumbnail's `ll-thumb__band`.
+- The swatch row for picking an 이름표 color: LabelColorPicker (`ll-swatch`).
+- Chips that report a state (live, warning): rings and icons show state (rule 18).
 
-## 구성
+## Anatomy
 
-- 이름표 색: `data-color="teal|green|yellow|orange|rose|violet|slate|gray"`. 칠하는 색은 `label-*`, 글자는 `text-on-label`. 속성이 없으면 이름표 없음이며 `label-none` + 글자 `label-gray`.
-- 구성 줄 `ll-chip-strip`: 줄바꿈되는 가로 줄, 칩 사이와 줄 사이 `space-8`.
-- 칩 `ll-chip`: 높이 `size-control-md`(30), 모서리 `radius-sm`, 왼쪽 `space-6` 오른쪽 `space-10`, 글자 `band`(12/16/700). 앞에 14px `grip` 아이콘(불투명도 0.55), 아이콘과 글자 사이 `space-6`. 이름표가 없는 묶음은 그 묶음의 번호("4")를 씁니다.
-- 넣기 자리 `ll-chip-add`: 30×30, `radius-sm`, 1px 점선 `line-control`, 14px `plus` 아이콘 `text-2`. 줄 맨 끝에 둡니다.
-- 놓을 자리 `ll-chip-drop`: 끄는 동안 칩 사이 틈 가운데에 2px × 30 `accent` 막대(`radius-full`). 틈을 넓히지 않도록 좌우 여백을 −5px로 당깁니다.
-- 작은 이름표 `ll-tag`: 높이 `size-control-xs`(22), `radius-sm`, 좌우 `space-8`, 글자 `band`. 이름표를 고르는 버튼이면 뒤에 12px `down` 아이콘(사이 `space-6`, 오른쪽 `space-6`)을 붙이고, 이름표가 없을 때 글자는 "이름표"입니다.
-- 색 견본 `ll-label-swatch`: 10×10, `radius-xs`. 이름표가 없으면 속을 비우고 1px `line-control` 테두리.
+- 이름표 color: `data-color="teal|green|yellow|orange|rose|violet|slate|gray"`. The fill color is `label-*`, and the text is `text-on-label`. Without the attribute, there is no 이름표: `label-none` + `label-gray` text.
+- 구성 strip `ll-chip-strip`: a horizontal row that wraps, gap `space-8` between chips and between lines.
+- Chip `ll-chip`: height `size-control-md` (30), corner radius `radius-sm`, left padding `space-6`, right padding `space-10`, text `band` (12/16/700). A 14px `grip` icon in front (opacity 0.55), gap between icon and text `space-6`. A group without an 이름표 shows its group number ("4").
+- Insert slot `ll-chip-add`: 30×30, `radius-sm`, 1px dashed `line-control`, 14px `plus` icon in `text-2`. Place it at the very end of the strip.
+- Drop position `ll-chip-drop`: while dragging, a 2px × 30 `accent` bar (`radius-full`) in the middle of the gap between chips. Its left and right margins are pulled in to −5px so that the gap doesn't widen.
+- Small 이름표 `ll-tag`: height `size-control-xs` (22), `radius-sm`, horizontal padding `space-8`, text `band`. If it is a button that picks an 이름표, add a 12px `down` icon after the text (gap `space-6`, right padding `space-6`). With no 이름표, its text is "이름표".
+- Color swatch `ll-label-swatch`: 10×10, `radius-xs`. With no 이름표, leave it empty with a 1px `line-control` border.
 
-## 크기와 변형
+## Sizes and variants
 
-| 이름 | 높이 | 글자 | 쓰는 곳 |
+| Name | Height | Text | Where to use |
 |---|---|---|---|
-| 칩 `ll-chip` | 30 `size-control-md` | `band` | 구성 줄 |
-| 넣기 `ll-chip-add` | 30 | 아이콘 14 | 구성 줄 끝 |
-| 작은 이름표 `ll-tag` | 22 `size-control-xs` | `band` | 가사 블록, 목록 줄 |
-| 고르기 이름표 `button.ll-tag` | 22 | `band` + 12px 화살표 | 가사 블록(이름표 메뉴를 엶) |
-| 색 견본 `ll-label-swatch` | 10 | 없음 | 미리보기 이름 줄 |
+| Chip `ll-chip` | 30 `size-control-md` | `band` | 구성 strip |
+| Insert `ll-chip-add` | 30 | Icon 14 | End of the 구성 strip |
+| Small 이름표 `ll-tag` | 22 `size-control-xs` | `band` | Lyric blocks, list rows |
+| Picker 이름표 `button.ll-tag` | 22 | `band` + 12px arrow | Lyric blocks (opens the 이름표 menu) |
+| Color swatch `ll-label-swatch` | 10 | None | Preview name row |
 
-## 상태
+## States
 
-| 상태 | 바탕 | 글자/아이콘 | 그 밖 |
+| State | Background | Text and icon | Other |
 |---|---|---|---|
-| 기본 | `label-*` / `label-none` | `text-on-label` / `label-gray`, 손잡이 0.55 | |
-| 마우스 올림(색 칩) | 그대로 | 손잡이 불투명도 1 | 커서 grab |
-| 마우스 올림(이름표 없음) | `bg-control-hover` | 손잡이 불투명도 1 | |
-| 고름 | 그대로 | 그대로 | 2px 틈(`bg-panel`) + 2px `accent` |
-| 출력 중 | 그대로 | 그대로 | 2px 틈 + 2px `live` |
-| 포커스 | 그대로 | 그대로 | `outline: 2px solid accent`, offset 5px(고리 바깥) |
-| 끄는 중 | 그대로 | 손잡이 1 | `shadow-popover`, 커서 grabbing. 놓을 자리에 `ll-chip-drop` |
-| 넣기 마우스 올림 / 누름 | `bg-raised` / `bg-control-hover` | `text-2` / `text` | |
-| 작은 이름표 메뉴 열림 | 그대로 | 그대로 | 2px 틈 + 1px `text`(`aria-expanded="true"`) |
+| Default | `label-*` / `label-none` | `text-on-label` / `label-gray`, grip 0.55 | |
+| Hover (color chip) | Unchanged | Grip opacity 1 | Cursor grab |
+| Hover (no 이름표) | `bg-control-hover` | Grip opacity 1 | |
+| Selected | Unchanged | Unchanged | 2px gap (`bg-panel`) + 2px `accent` |
+| Live | Unchanged | Unchanged | 2px gap + 2px `live` |
+| Focus | Unchanged | Unchanged | `outline: 2px solid accent`, offset 5px (outside the ring) |
+| Dragging | Unchanged | Grip 1 | `shadow-popover`, cursor grabbing. `ll-chip-drop` at the drop position |
+| Insert hover / pressed | `bg-raised` / `bg-control-hover` | `text-2` / `text` | |
+| Small 이름표 menu open | Unchanged | Unchanged | 2px gap + 1px `text` (`aria-expanded="true"`) |
 
-고리 앞의 2px 틈은 색 칩 위에서 고리가 칩 색과 섞이지 않게 하려는 것입니다(남색 칩과 `accent`는 밝기 차이가 1.1:1). 칩이 30px라 출력 중 고리도 3px가 아닌 2px로 씁니다. 틈 색은 `--ll-chip-gap`(기본 `bg-panel`)으로 바꿀 수 있습니다.
+The 2px gap before the ring keeps the ring from blending with the chip color on color chips (a navy chip and `accent` differ in brightness by only 1.1:1). Because the chip is 30px, the live ring is also 2px, not 3px. You can change the gap color with `--ll-chip-gap` (default `bg-panel`).
 
-색 칩의 hover는 바탕색을 바꾸지 않습니다. 이름표 색이 곧 정보라 hover 회색(#333333)으로 덮으면 안 되기 때문입니다.
+Hover on a color chip doesn't change the background color. The 이름표 color itself is the information, so the hover gray (#333333) must not cover it.
 
-## 동작
+## Behavior
 
-- 구성 줄은 `role="listbox"`, `aria-orientation="horizontal"`, 칩은 `role="option"` + `aria-selected`. 화살표 키로 고르고, 고른 칩은 아래 썸네일도 함께 고릅니다.
-- 칩을 끌어 순서를 바꿉니다. 키보드로는 Alt + ←/→로 고른 칩을 한 칸 옮깁니다. Delete로 그 자리의 장을 구성에서 뺍니다(곡에서 지우지 않습니다).
-- 넣기(+)는 이름표 메뉴를 열어 넣을 묶음을 고르게 합니다. `aria-label="장 넣기"`.
-- 고르기 이름표는 `aria-haspopup="menu"`, 열리면 `aria-expanded="true"`. 메뉴는 Menu 규칙(규칙 11)을 따릅니다.
-- 출력 중인 묶음의 칩은 `data-state="live"`.
+- The 구성 strip is `role="listbox"` with `aria-orientation="horizontal"`, and each chip is `role="option"` + `aria-selected`. The arrow keys select chips, and selecting a chip also selects its thumbnail below.
+- Drag a chip to change the order. From the keyboard, Alt + ←/→ moves the selected chip by one place. Delete removes the 장 at that place from the 구성 (it doesn't delete it from the song).
+- Insert (+) opens the 이름표 menu so that the user picks the group to insert. `aria-label="장 넣기"`.
+- A picker 이름표 has `aria-haspopup="menu"` and gets `aria-expanded="true"` when open. The menu follows the Menu rules (rule 11).
+- The chip of a live group has `data-state="live"`.
 
-## 글쓰기
+## Writing
 
-- 칩 글자는 이름표 이름 하나입니다. 개수나 "(2)" 같은 반복 표시를 붙이지 않습니다. 같은 묶음이 두 번 나오면 칩이 두 개입니다.
-- 이름표가 없으면 묶음 번호만 씁니다("4"). 고르기 이름표에서는 "이름표"라고 씁니다.
-- 이름표 이름 예: "1절", "2절", "프리코러스", "후렴", "브리지", "간주", "엔딩".
+- The chip text is a single 이름표 name. Don't add a count or a repeat mark such as "(2)". If the same group appears twice, there are two chips.
+- With no 이름표, write only the group number ("4"). In a picker 이름표, write "이름표".
+- Example 이름표 names: "1절", "2절", "프리코러스", "후렴", "브리지", "간주", "엔딩".
 
-## 구현 메모
+## Implementation notes
 
 - `<ArrangementStrip items={[{ id, name: '1절', color: 'teal', n: 1 }, …]} selected={4} live={2} onReorder onInsert />`
 - `<LabelChip name="후렴" color="yellow" selected live dragging />`, `<LabelTag name="후렴" color="yellow" picker onOpen />`, `<LabelSwatch color="green" />`
-- 클래스: `ll-chip-strip`, `ll-chip`, `ll-chip__grip`, `ll-chip-add`, `ll-chip-drop`, `ll-tag`, `ll-label-swatch`. 끄는 중은 `.is-dragging`.
-- 이름표 색 연결 규칙(`--ll-label`, `--ll-label-fg`)이 이 파일에 있습니다. 썸네일과 매크로 타일도 같은 `data-color`를 씁니다.
+- Classes: `ll-chip-strip`, `ll-chip`, `ll-chip__grip`, `ll-chip-add`, `ll-chip-drop`, `ll-tag`, `ll-label-swatch`. Dragging is `.is-dragging`.
+- The 이름표 color mapping rules (`--ll-label`, `--ll-label-fg`) are in this file. Thumbnails and macro tiles use the same `data-color`.
 
-## 시안과 달라진 점
+## Changes from the drafts
 
-- PrepService 구성 줄: 칩 모서리 4px → `radius-sm` 3px, 칩 사이 6 → 8, 고른 칩 고리 "2px 틈 + 1px #ececec" → "2px 틈 + 2px `accent`"(썸네일의 고름과 같은 색), 칩 hover #333333 → 손잡이 불투명도만, 이름표 없는 칩 글자 #b4b4b4 → `label-gray`, 넣기 점선 #4a4a4a → `line-control`.
-- Reflow, ImportEdit, ImportSave 가사 블록: 이름표 24px → 22px, 이름표 없음 글자 #8c8c8c(`bg-control` 위 `text-3`) → `label-gray`, 화살표 불투명도 0.7 → 1, 활성 블록 이름표의 흰 고리 → 메뉴가 열렸을 때만.
+- PrepService 구성 strip: chip corner radius 4px → `radius-sm` 3px, gap between chips 6 → 8, selected chip ring "2px gap + 1px #ececec" → "2px gap + 2px `accent`" (the same color as a selected thumbnail), chip hover #333333 → grip opacity only, text of a chip without an 이름표 #b4b4b4 → `label-gray`, insert dashed line #4a4a4a → `line-control`.
+- Reflow, ImportEdit, ImportSave lyric blocks: 이름표 24px → 22px, no-이름표 text #8c8c8c (`text-3` on `bg-control`) → `label-gray`, arrow opacity 0.7 → 1, white ring on the 이름표 of the active block → only while the menu is open.
 - ImportText: 이름표 24px → 22px.

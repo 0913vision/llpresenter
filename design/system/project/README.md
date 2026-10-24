@@ -1,71 +1,71 @@
-LoveLight Presenter는 예배 중에 가사, 성경 구절, 공지를 여러 화면에 내보내는 앱입니다. 운영자는 어두운 방에서 예배를 보며 클릭 한 번으로 화면을 바꿉니다. 이 시스템의 모든 규칙은 그 한 번의 클릭이 틀리지 않게 하려고 있습니다.
+LoveLight Presenter is an app that sends lyrics, Bible verses, and announcements to several screens during a service. The operator watches the service from a dark room and changes the screens with one click. Every rule in this system exists so that this one click is never wrong.
 
-앱은 다크 하나만 둡니다. 값은 모두 `tokens.json`에 있고, CSS 변수 이름은 토큰 이름과 같습니다(`--bg-panel`). 컴포넌트 클래스는 `ll-`로 시작하며 `components/bundle.css`에 있습니다.
+The app has one theme, dark. All values are in `tokens.json`, and each CSS variable has the same name as its token (`--bg-panel`). Component classes start with `ll-` and live in `components/bundle.css`.
 
-## 원칙
+## Principles
 
-1. **화면이 주인공입니다.** UI는 어둡고 조용하게 둡니다. 화면에서 가장 밝은 것은 출력 미리보기와 썸네일이어야 합니다. UI 면은 `bg-app`부터 `bg-control-hover`까지의 회색 단계 안에서만 고릅니다.
-2. **프로프리젠터를 따릅니다.** 같은 기능은 프로프리젠터와 같은 자리, 같은 동작으로 둡니다(장을 누르면 바로 출력, F1부터 F7까지의 지우기, Look, 곡 구성, 화면 구성, 무대 배치 편집, 매크로의 우클릭 메뉴, 예배 순서 틀, 자동 저장). 다르게 할 때는 이유가 있어야 하고, 그 이유를 이 문서나 시안 보고에 적습니다.
-3. **상태는 모양과 색으로 보입니다.** 상태를 설명하는 문구, 칩, 점을 덧붙이지 않습니다. 출력 중이면 `ring-live` 테두리나 LIVE 배지, 문제가 있으면 `warning` 아이콘이나 테두리, 저장할 수 없는 값이면 `ring-field-error`로만 알립니다. 자세한 이유는 툴팁에 둡니다.
-4. **빨강은 출력에만 씁니다.** `live`는 지금 화면에 나가고 있는 것에만 씁니다. 고른 것과 키보드 포커스는 `accent`, 주 버튼의 면은 `accent-fill`, 문제는 `warning`, 정상은 `ok` 점입니다. 빨강을 경고나 삭제에 쓰지 않습니다.
-5. **강조는 한 곳에만 둡니다.** 주 버튼은 창이나 대화상자마다 하나, 바닥글 맨 오른쪽에 둡니다. 나머지는 모두 보조 버튼이나 투명 버튼입니다.
-6. **예배 중에도 안전해야 합니다.** 출력에 영향을 주는 조작(썸네일, 지우기, 화면 출력)은 크고 늘 같은 자리에 있습니다. 실수는 되돌림 버튼과 Ctrl+Z로 바로 되돌립니다. 출력을 끊는 일(화면 출력 끄기, 다른 예배 순서 열기)도 확인 창 없이 되돌릴 수 있게 만들고, 되돌릴 수 없는 일(덮어쓰기, 삭제)에만 확인 창을 띄웁니다.
-7. **촘촘하되 읽히게 합니다.** 기본 줄 높이는 `size-row`(30px), 기본 글자는 `body`(13px)입니다. 패널 안의 모든 글자와 격자는 왼쪽 `panel-inset`(14px) 선에서 시작합니다.
+1. **The screens come first.** Keep the UI dark and quiet. The brightest things on screen must be the 출력 (output) preview and the thumbnails. Pick UI surfaces only from the gray steps between `bg-app` and `bg-control-hover`.
+2. **Follow ProPresenter.** Give a feature that ProPresenter also has the same place and the same behavior as in ProPresenter (a click on a 장 (slide) outputs it at once, the F1 to F7 지우기 (clear) actions, Look, song 구성 (arrangement), screen configuration, stage layout editing, the right-click menu on macros, 예배 순서 (service order) 틀 (template), autosave). When you do something differently, have a reason, and write that reason in this document or in the draft report.
+3. **Show state with shape and color.** Don't add text, chips, or dots that describe a state. Mark something live only with a `ring-live` outline or a LIVE badge, a problem only with a `warning` icon or outline, and a value that can't be saved only with `ring-field-error`. Put the detailed reason in a tooltip.
+4. **Use red only for 출력.** Use `live` only for what is on the screens right now. Use `accent` for selection and keyboard focus, `accent-fill` for the surface of a primary button, `warning` for problems, and an `ok` dot for a healthy state. Don't use red for warnings or deletion.
+5. **Put emphasis in one place.** Give each window or dialog one primary button, at the far right of the footer. Make every other button a secondary or ghost button.
+6. **Stay safe during a service.** Make the controls that affect 출력 (thumbnails, 지우기, screen output) large, and keep them in the same place. Let the operator undo a mistake at once with the undo button and Ctrl+Z. Make actions that cut 출력 (turning off screen output, opening another 예배 순서) undoable without a confirmation dialog too, and show a confirmation dialog only for actions that can't be undone (overwriting, deleting).
+7. **Keep it dense but readable.** The default row height is `size-row` (30px), and the default text is `body` (13px). Start all text and grids in a panel at the left `panel-inset` (14px) line.
 
-## 색
+## Color
 
-### 면
+### Surfaces
 
-면은 아래에서 위로 쌓입니다. 위에 올라가는 것은 아래보다 한 단 밝습니다. 같은 색의 컨트롤을 같은 색의 면 위에 두지 않습니다.
+Surfaces stack from bottom to top. A surface on top is one step lighter than the one below it. Don't put a control on a surface of the same color.
 
-| 단계 | 토큰 | 쓰는 곳 |
+| Level | Token | Where to use |
 | --- | --- | --- |
-| 바탕 | `bg-app` | 창, 패널 사이 4px 틈, 메뉴줄, 툴바, 상태 표시줄 |
-| 낮은 면 | `bg-sunken`, `bg-well` | 미리보기 이름 띠, 입력 칸, 검색 칸, 세그먼트 바닥 홈 |
-| 패널 | `bg-panel` | 모든 패널 |
-| 대화상자 | `bg-dialog`, `bg-inset` | 대화상자와 그 안의 목록 상자 |
-| 떠 있는 면 | `bg-raised` | 메뉴, 팝오버, 툴팁, 알림, 선택된 툴바 탭 |
-| 컨트롤 | `bg-control`, `bg-control-hover` | 보조 버튼, 드롭다운, 켜진 지우기 버튼 / 그 hover와 누름 |
+| Base | `bg-app` | Window, the 4px gap between panels, menu bar, toolbar, status bar |
+| Sunken | `bg-sunken`, `bg-well` | Preview name band, text fields, search fields, segmented control track |
+| Panel | `bg-panel` | All panels |
+| Dialog | `bg-dialog`, `bg-inset` | Dialogs and the list boxes inside them |
+| Raised | `bg-raised` | Menus, popovers, tooltips, notifications, the selected toolbar tab |
+| Control | `bg-control`, `bg-control-hover` | Secondary buttons, dropdowns, 지우기 buttons that are on / their hover and pressed states |
 
-- 패널과 패널은 테두리 대신 `bg-app` 틈 4px으로 나눕니다. 패널 안의 구획만 `line` 1px으로 나눕니다.
-- 떠 있는 면(메뉴, 대화상자, 알림)은 `line-strong` 1px 테두리와 그림자를 함께 씁니다(`shadow-popover`, `shadow-dialog`).
+- Separate panels with a 4px `bg-app` gap instead of a border. Use a 1px `line` only to divide sections inside a panel.
+- Give floating surfaces (menus, dialogs, notifications) both a 1px `line-strong` border and a shadow (`shadow-popover`, `shadow-dialog`).
 
-### 글자
+### Text
 
-- 기본 글자와 아이콘은 `text`, 보조 글자와 투명 버튼 아이콘은 `text-2`, 개수와 날짜와 단축키는 `text-3`, 꺼진 것과 쓸 수 없는 것은 `text-off`입니다.
-- `text-3`은 `bg-panel`, `bg-dialog`, `bg-raised` 위에서만 씁니다. `bg-control` 위에서는 대비가 4.3:1이라 `text-2` 이상을 씁니다.
-- `text-off`는 읽혀야 하는 글자에 쓰지 않습니다. 꺼진 상태를 보이는 데만 씁니다.
-- 채운 면 위의 글자: `accent-fill`과 `live` 위에는 `text-on-fill`, 이름표 색과 매크로 타일 위에는 `text-on-label`, `selection` 위의 보조 글자에는 `text-on-selection`.
+- Use `text` for primary text and icons, `text-2` for secondary text and ghost button icons, `text-3` for counts, dates, and shortcuts, and `text-off` for things that are off or disabled.
+- Use `text-3` only on `bg-panel`, `bg-dialog`, and `bg-raised`. On `bg-control` its contrast is 4.3:1, so use `text-2` or brighter.
+- Don't use `text-off` for text that must be read. Use it only to show an off state.
+- Text on filled surfaces: use `text-on-fill` on `accent-fill` and `live`, `text-on-label` on 이름표 (label) colors and macro tiles, and `text-on-selection` for secondary text on `selection`.
 
-### 파랑은 둘입니다
+### Two blues
 
-- `accent`(#3d8bf0)는 선의 파랑입니다. 포커스 고리, 고른 썸네일의 `ring-selected`, 입력 칸 포커스, 끌어 넣을 자리 표시에 씁니다.
-- `accent-fill`(#2a70dc)은 면의 파랑입니다. 주 버튼, 켜진 체크 상자와 스위치에 씁니다. 흰 글자가 4.7:1로 읽히도록 `accent`보다 어둡게 정했습니다. 주 버튼의 hover와 누름은 `accent-fill-hover`로 한 단 더 어둡게 합니다.
-- 목록에서 고른 줄은 `selection` 바탕에 `text` 글자입니다.
+- `accent` (#3d8bf0) is the line blue. Use it for focus rings, `ring-selected` on a selected thumbnail, text field focus, and drop position marks.
+- `accent-fill` (#2a70dc) is the surface blue. Use it for primary buttons and for checkboxes and switches that are on. It is darker than `accent` so that white text reads at 4.7:1. For the hover and pressed states of a primary button, go one step darker with `accent-fill-hover`.
+- A selected row in a list has a `selection` background and `text` text.
 
-### 상태
+### Status
 
-| 상태 | 토큰 | 모양 |
+| State | Token | Shape |
 | --- | --- | --- |
-| 출력 중 | `live` | 썸네일과 배경의 `ring-live` 3px, LIVE 배지, 켜진 화면 출력 버튼의 점 |
-| 문제 | `warning`, `warning-tint` | 아이콘, 테두리, 알림 |
-| 정상 | `ok` | 상태 표시줄의 6px 점 |
-| 저장할 수 없는 값 | `live` | 입력 칸의 `ring-field-error`와 툴팁 |
+| Live | `live` | 3px `ring-live` on thumbnails and backgrounds, LIVE badge, the dot on a screen output button that is on |
+| Problem | `warning`, `warning-tint` | Icon, outline, notification |
+| Healthy | `ok` | 6px dot in the status bar |
+| Value that can't be saved | `live` | `ring-field-error` on the text field, and a tooltip |
 
-### 이름표 색
+### 이름표 colors
 
-- 이름표(1절, 프리코러스, 후렴 같은 장의 이름)는 사용자가 이름표 목록에서 고른 색을 가집니다: `label-teal`, `label-green`, `label-yellow`, `label-orange`, `label-rose`, `label-violet`, `label-slate`, `label-gray`, 그리고 없음(`label-none`).
-- 썸네일 아래 띠 전체와 구성 칩을 그 색으로 칠하고 글자는 `text-on-label`로 씁니다. 색이 없으면 `label-none` 바탕에 `label-gray` 글자입니다.
-- 이름표 색은 곡 파일이 아니라 앱의 이름표 목록에 저장합니다.
+- An 이름표 is the name of a 장, such as 1절 (verse 1), 프리코러스 (pre-chorus), or 후렴 (chorus). It has the color that the user picked in the 이름표 list: `label-teal`, `label-green`, `label-yellow`, `label-orange`, `label-rose`, `label-violet`, `label-slate`, `label-gray`, or none (`label-none`).
+- Paint the whole band under a thumbnail and the 구성 chip in that color, and write the text in `text-on-label`. With no color, use `label-gray` text on a `label-none` background.
+- Store 이름표 colors in the app's 이름표 list, not in song files.
 
-### 출력 색
+### Output screen colors
 
-- 출력 화면의 바탕은 `output-black`, 방송 자막의 캡처용 창은 `chroma`입니다. 둘 다 UI 색으로 쓰지 않습니다.
-- 출력 화면 안의 글자, 색, 배경은 Look과 가사 스타일이 정하며 이 시스템의 토큰이 아닙니다.
+- The background of an output screen is `output-black`, and the capture window for 방송 자막 (broadcast captions) is `chroma`. Don't use either as a UI color.
+- Look and the lyric style decide the text, colors, and backgrounds inside the output screens. The tokens of this system don't.
 
-### 대비
+### Contrast
 
-| 조합 | 대비 |
+| Pair | Contrast |
 | --- | --- |
 | `text` / `bg-panel` | 14.4:1 |
 | `text-2` / `bg-control` | 6.9:1 |
@@ -73,150 +73,150 @@ LoveLight Presenter는 예배 중에 가사, 성경 구절, 공지를 여러 화
 | `text-3` / `bg-raised` | 4.5:1 |
 | `text-on-fill` / `accent-fill` | 4.7:1 |
 | `text-on-fill` / `live` | 4.9:1 |
-| `text-on-label` / 이름표 색 | 6.1:1 이상 |
+| `text-on-label` / 이름표 colors | 6.1:1 or higher |
 | `warning` / `bg-panel` | 7.7:1 |
-| `accent`(포커스 고리) / `bg-control-hover` | 3.7:1 |
-| `line-control`(체크 상자 테두리) / `bg-dialog` | 3.2:1 |
+| `accent` (focus ring) / `bg-control-hover` | 3.7:1 |
+| `line-control` (checkbox border) / `bg-dialog` | 3.2:1 |
 
-## 글자
+## Typography
 
-글꼴은 Pretendard Variable 하나입니다(`fonts/PretendardVariable.woff2`, OFL). 앱에 파일을 넣어 배포하고, 시스템 글꼴로 바꾸지 않습니다.
+The app uses one typeface, Pretendard Variable (`fonts/PretendardVariable.woff2`, OFL). Ship the file with the app, and don't replace it with a system font.
 
-| 스타일 | 크기/줄 높이/굵기 | 쓰는 곳 |
+| Style | Size/line height/weight | Where to use |
 | --- | --- | --- |
-| `heading` | 16/22/600 | 확인 창 제목, 환경설정 쪽 제목 |
-| `title` | 13/18/600 | 대화상자 머리글, 패널 머리글의 곡 제목 |
-| `body` | 13/18/400 | 목록, 메뉴, 입력 칸, md 버튼 |
-| `body-strong` | 13/18/600 | 강조할 이름, md 주 버튼 |
-| `label` | 12/16/400 | sm 버튼, 드롭다운, 속성 이름 |
-| `label-strong` | 12/16/600 | 패널 탭, sm 주 버튼 |
-| `band` | 12/16/700 | 썸네일 이름표 띠, 구성 칩 |
-| `caption` | 11/14/400 | 개수, 날짜, 상태 표시줄, 둘째 줄 |
-| `caption-strong` | 11/14/600 | 목록 묶음 머리글, 지우기 버튼 이름 |
-| `toolbar-label` | 11/14/500 | 툴바 버튼 이름 |
-| `micro` | 10/12/700 | LIVE 배지 |
+| `heading` | 16/22/600 | Confirmation dialog titles, Preferences page titles |
+| `title` | 13/18/600 | Dialog headers, the song title in a panel header |
+| `body` | 13/18/400 | Lists, menus, text fields, md buttons |
+| `body-strong` | 13/18/600 | Names to emphasize, md primary buttons |
+| `label` | 12/16/400 | sm buttons, dropdowns, property names |
+| `label-strong` | 12/16/600 | Panel tabs, sm primary buttons |
+| `band` | 12/16/700 | 이름표 bands on thumbnails, 구성 chips |
+| `caption` | 11/14/400 | Counts, dates, status bar, second lines |
+| `caption-strong` | 11/14/600 | List group headers, 지우기 button names |
+| `toolbar-label` | 11/14/500 | Toolbar button names |
+| `micro` | 10/12/700 | LIVE badge |
 
-- 개수, 시간, 장 번호처럼 줄 맞춤이 필요한 숫자에는 `font-variant-numeric: tabular-nums`를 씁니다.
-- 한 줄에 안 들어가는 이름은 말줄임표로 자르고 전체 이름을 툴팁으로 보입니다. 가사와 곡 제목을 두 줄로 접지 않습니다(두 줄 목록 항목과 매크로 이름만 예외).
-- 이 표 밖의 크기를 새로 만들지 않습니다.
+- Use `font-variant-numeric: tabular-nums` for numbers that must line up, such as counts, times, and 장 numbers.
+- Truncate a name that doesn't fit on one line with an ellipsis, and show the full name in a tooltip. Don't wrap lyrics or song titles onto two lines (two-line list items and macro names are the only exceptions).
+- Don't create sizes outside this table.
 
-## 간격과 크기
+## Spacing and sizes
 
-- 모든 간격은 `space-*` 토큰에서 고릅니다. 4px 단위를 바탕으로 하되 2, 6, 10, 14px은 이미 쓰는 자리에만 씁니다.
-- 패널 사이와 창 가장자리는 `panel-gap`(4px), 패널 안쪽은 `panel-inset`(14px), 대화상자 안쪽은 `dialog-inset`(16px)입니다.
+- Pick every spacing value from the `space-*` tokens. The base is a 4px unit, but use 2, 6, 10, and 14px only where they are already used.
+- Use `panel-gap` (4px) between panels and at the window edges, `panel-inset` (14px) inside panels, and `dialog-inset` (16px) inside dialogs.
 
-| 높이 | 토큰 | 쓰는 곳 |
+| Height | Token | Where to use |
 | --- | --- | --- |
-| 22 | `size-control-xs` | 세그먼트 항목, 칩 |
-| 26 | `size-control-sm` | 패널 안 버튼, 드롭다운, 아이콘 버튼 |
-| 28 | `size-row-menu` | 메뉴 항목 |
-| 30 | `size-control-md`, `size-row` | 대화상자와 환경설정의 버튼과 입력 칸, 목록 줄 |
-| 34 | `size-panel-header` | 패널 머리글 |
-| 44 | `size-row-double`, `size-dialog-header` | 두 줄 목록 항목, 대화상자 머리글 |
-| 48 | `size-toolbar-button` | 툴바 버튼 |
-| 52 | `size-clear-button`, `size-dialog-footer` | 지우기 버튼, 대화상자 바닥글 |
+| 22 | `size-control-xs` | Segments, chips |
+| 26 | `size-control-sm` | Buttons, dropdowns, and icon buttons in panels |
+| 28 | `size-row-menu` | Menu items |
+| 30 | `size-control-md`, `size-row` | Buttons and text fields in dialogs and Preferences, list rows |
+| 34 | `size-panel-header` | Panel headers |
+| 44 | `size-row-double`, `size-dialog-header` | Two-line list items, dialog headers |
+| 48 | `size-toolbar-button` | Toolbar buttons |
+| 52 | `size-clear-button`, `size-dialog-footer` | 지우기 buttons, dialog footers |
 
-- 버튼과 입력 칸은 sm(26)과 md(30) 두 가지뿐입니다. 패널 안에는 sm, 대화상자와 환경설정과 툴바 검색 칸에는 md를 씁니다. 24, 28, 32px 버튼은 만들지 않습니다.
-- 클릭할 수 있는 영역은 22×22보다 작게 만들지 않습니다.
+- Buttons and text fields come in two sizes only: sm (26) and md (30). Use sm in panels, and md in dialogs, Preferences, and the toolbar search field. Don't make 24, 28, or 32px buttons.
+- Don't make a clickable area smaller than 22×22.
 
-## 모서리, 테두리, 그림자
+## Corners, borders, and shadows
 
-| 토큰 | 값 | 쓰는 곳 |
+| Token | Value | Where to use |
 | --- | --- | --- |
-| `radius-xs` | 2 | 버튼 안 작은 그림, 진행 막대 |
-| `radius-sm` | 3 | 세그먼트 항목, 칩, 배지, 단축키 글쇠, 체크 상자 |
-| `radius-md` | 4 | 버튼, 입력 칸, 썸네일, 메뉴 항목 |
-| `radius-lg` | 5 | 패널, 툴바 버튼, 두 줄 목록 항목 |
-| `radius-xl` | 6 | 메뉴, 팝오버, 툴팁 |
-| `radius-2xl` | 8 | 대화상자, 알림 |
-| `radius-tile` | 14 | 매크로 타일 |
+| `radius-xs` | 2 | Small graphics inside buttons, progress bars |
+| `radius-sm` | 3 | Segments, chips, badges, keycaps, checkboxes |
+| `radius-md` | 4 | Buttons, text fields, thumbnails, menu items |
+| `radius-lg` | 5 | Panels, toolbar buttons, two-line list items |
+| `radius-xl` | 6 | Menus, popovers, tooltips |
+| `radius-2xl` | 8 | Dialogs, notifications |
+| `radius-tile` | 14 | Macro tiles |
 
-- 안에 든 요소의 모서리는 바깥 요소의 모서리보다 크게 하지 않습니다.
-- 패널에는 그림자를 쓰지 않습니다. 그림자는 떠 있는 면에만 씁니다.
-- 고른 것과 출력 중인 것은 테두리 대신 바깥 고리(`ring-selected` 2px, `ring-live` 3px)로 그려서 크기가 바뀌지 않게 합니다.
+- Don't make the corner radius of an inner element larger than that of its outer element.
+- Don't use shadows on panels. Use shadows only on floating surfaces.
+- Draw selected and live items with an outer ring (`ring-selected` 2px, `ring-live` 3px) instead of a border, so that their size doesn't change.
 
-## 아이콘
+## Icons
 
-- 아이콘은 Phosphor Icons의 Regular 굵기(MIT 사용권)입니다. 재생과 일시정지만 Fill을 씁니다. 쓰는 86개와 원래 이름은 `assets/Icons/README.md`에 있습니다. 목록에 없는 아이콘이 필요하면 같은 Phosphor Regular에서 고릅니다.
-- 아이콘은 마스크로 칠하므로 글자색을 따라갑니다(`<span class="ll-i ll-i-14 ll-i-song"></span>`). 아이콘에 따로 색을 주지 않습니다. 상태 아이콘(경고)만 `warning`을 씁니다.
-- 크기: 12(드롭다운 화살표, 체크), 14(버튼과 메뉴 안), 16(목록 줄, 기본), 18(툴바, 지우기 버튼), 24(확인 창), 28(매크로 타일).
-- 아이콘만 있는 버튼에는 반드시 툴팁과 `aria-label`을 붙입니다.
-- 이모지와 장식용 그림은 쓰지 않습니다.
-- 로고는 아직 없습니다. 메뉴줄에는 "LoveLight"를 Pretendard 700으로 씁니다.
+- Icons come from Phosphor Icons in the Regular weight (MIT license). Only play and pause use Fill. The 86 icons in use and their original names are in `assets/Icons/README.md`. If you need an icon that isn't in the list, pick it from the same Phosphor Regular set.
+- Icons are painted with a mask, so they follow the text color (`<span class="ll-i ll-i-14 ll-i-song"></span>`). Don't give an icon its own color. Only status icons (warning) use `warning`.
+- Sizes: 12 (dropdown arrows, check marks), 14 (inside buttons and menus), 16 (list rows, default), 18 (toolbar, 지우기 buttons), 24 (confirmation dialogs), 28 (macro tiles).
+- Always give an icon-only button a tooltip and an `aria-label`.
+- Don't use emoji or decorative images.
+- There is no logo yet. In the menu bar, write "LoveLight" in Pretendard 700.
 
-## 상태와 움직임
+## States and motion
 
-| 상태 | 표시 |
+| State | Display |
 | --- | --- |
-| 마우스 올림 | 투명 버튼과 줄은 `bg-raised`, 채워진 컨트롤은 `bg-control-hover`, 툴바 버튼은 `bg-toolbar-hover` |
-| 누름, 켜짐 | `bg-control-hover`와 `text` |
-| 고름 | 목록은 `selection`, 썸네일과 타일은 `ring-selected` |
-| 키보드 포커스 | `accent` 2px 고리, 1px 띄움. 입력 칸은 `ring-field-focus` |
-| 쓸 수 없음 | 글자와 아이콘 `text-off`, hover 없음. 투명도를 낮추지 않습니다 |
-| 출력 중 | `ring-live`, LIVE 배지, `live` 점 |
-| 문제 | `warning` 아이콘이나 테두리, 이유는 툴팁 |
+| Hover | `bg-raised` for ghost buttons and rows, `bg-control-hover` for filled controls, `bg-toolbar-hover` for toolbar buttons |
+| Pressed, on | `bg-control-hover` and `text` |
+| Selected | `selection` in lists, `ring-selected` on thumbnails and tiles |
+| Keyboard focus | 2px `accent` ring with a 1px offset. `ring-field-focus` for text fields |
+| Disabled | `text-off` for text and icons, no hover. Don't lower the opacity |
+| Live | `ring-live`, LIVE badge, `live` dot |
+| Problem | `warning` icon or outline, reason in a tooltip |
 
-- 키보드 포커스 고리는 `:focus-visible`에서만 보입니다. 마우스로 누를 때는 보이지 않습니다.
-- hover와 누름의 바탕 변화는 100ms ease-out, 메뉴와 툴팁은 120ms 페이드, 대화상자는 160ms 페이드입니다. 그 밖의 움직임은 넣지 않습니다.
-- 출력 화면에는 UI 움직임을 넣지 않습니다. 장과 배경이 바뀌는 전환은 Look과 설정이 정합니다.
-- `prefers-reduced-motion`이면 모든 UI 움직임을 0으로 합니다.
+- Show the keyboard focus ring only on `:focus-visible`. Don't show it when the user clicks with the mouse.
+- Background changes for hover and pressed take 100ms ease-out, menus and tooltips fade over 120ms, and dialogs fade over 160ms. Don't add any other motion.
+- Don't add UI motion to the output screens. Look and the settings decide the transitions when a 장 or a background changes.
+- Under `prefers-reduced-motion`, set all UI motion to 0.
 
-## 창 크기와 배치
+## Window sizes and layout
 
-크기는 Windows 배율을 적용한 뒤의 CSS 픽셀입니다. 1920×1080 화면을 125%로 쓰면 1536×864, 150%로 쓰면 1280×720입니다. 시안은 100%의 1920×1080을 기준으로 그렸습니다.
+Sizes are CSS pixels after Windows display scaling is applied. A 1920×1080 screen at 125% is 1536×864, and at 150% it is 1280×720. The drafts are drawn for 1920×1080 at 100%.
 
-| | 좁은 창 | 보통 창 | 넓은 창 |
+| | Narrow window | Regular window | Wide window |
 | --- | --- | --- | --- |
-| 창 너비 | 1280–1599 | 1600–2399 | 2400 이상 |
-| 툴바 | `size-toolbar-compact` 40, 이름은 아이콘 오른쪽 | `size-toolbar` 56, 이름은 아이콘 아래 | 보통과 같음 |
-| 왼쪽 열 | `col-left-compact` 220 | `col-left` 280 | `col-left-wide` 320 |
-| 오른쪽 열 | `col-right-compact` 360 | `col-right` 480 | `col-right-wide` 560 |
-| 썸네일 열 기본값 | 3 | 4 | 6 |
-| 미디어 줄 | 닫힌 채 시작 | 열린 채 시작 | 열린 채 시작 |
-| 진행 도구 탭 | 표시 중, 무대, 더 보기 | 8개 모두 | 8개 모두 |
-| 작은 미리보기 | 64px 썸네일이 있는 줄 | 16:9 두 개 | 16:9 두 개 |
-| 지우기 버튼 | 아이콘만("모두"만 이름) | 아이콘과 이름 | 아이콘과 이름 |
+| Window width | 1280–1599 | 1600–2399 | 2400 or more |
+| Toolbar | `size-toolbar-compact` 40, name to the right of the icon | `size-toolbar` 56, name under the icon | Same as regular |
+| Left column | `col-left-compact` 220 | `col-left` 280 | `col-left-wide` 320 |
+| Right column | `col-right-compact` 360 | `col-right` 480 | `col-right-wide` 560 |
+| Default thumbnail columns | 3 | 4 | 6 |
+| Media strip | Starts closed | Starts open | Starts open |
+| 진행 도구 (show tools) tabs | 표시 중 (showing), 무대 (stage), 더 보기 (more) | All 8 | All 8 |
+| Small previews | A row with 64px thumbnails | Two 16:9 previews | Two 16:9 previews |
+| 지우기 buttons | Icon only (only "모두" (all) has a name) | Icon and name | Icon and name |
 
-- 창의 최소 크기는 `window-min-width` × `window-min-height`(1280×720)입니다.
-- 가운데 열이 남는 너비를 모두 가집니다. 가운데 열의 최소 너비는 `col-center-min`(560)입니다.
-- 열 사이 4px 틈을 끌어 왼쪽 열(200–400)과 오른쪽 열(320–720)의 너비를 바꿀 수 있습니다. 창 크기 구간은 기본값만 정하고, 사용자가 바꾼 너비는 구간마다 기억합니다.
-- 창 높이가 900보다 작으면 미디어 줄이 닫힌 채 시작합니다. 진행 도구 패널은 높이 240 아래로 줄지 않습니다.
-- 대화상자는 너비 토큰(`dialog-s/m/l/xl`)을 지킵니다. 창이 그보다 좁으면 창 너비 − 32, 최대 높이는 창 높이 − 64이고 몸통만 스크롤합니다. 메뉴의 최대 높이는 창 높이 − 16입니다.
-- 출력 창(본 화면, 무대 화면, 방송 자막)은 따로 뜨는 창이며 그 모니터의 원래 해상도로 그립니다. 위의 규칙을 받지 않습니다.
-- 세 작업 공간(진행, 준비, 화면 설정)은 같은 3열 틀을 씁니다. 라이브러리는 준비에만 있고, 진행의 왼쪽 열은 예배 순서와 퀵 실행입니다.
+- The minimum window size is `window-min-width` × `window-min-height` (1280×720).
+- The center column takes all remaining width. Its minimum width is `col-center-min` (560).
+- The user can drag the 4px gap between columns to change the width of the left column (200–400) and the right column (320–720). The window size ranges set only the defaults. Remember the widths that the user changes separately for each range.
+- If the window is less than 900 high, the media strip starts closed. The 진행 도구 panel doesn't shrink below a height of 240.
+- Dialogs keep their width tokens (`dialog-s/m/l/xl`). If the window is narrower than that, a dialog is the window width − 32 wide. Its maximum height is the window height − 64, and only its body scrolls. The maximum height of a menu is the window height − 16.
+- Output windows (본 화면 (main screen), 무대 화면 (stage screen), 방송 자막) are separate windows and draw at the native resolution of their monitor. The rules above don't apply to them.
+- The three workspaces (진행 (Show), 준비 (Prep), 화면 설정 (Screen settings)) use the same three-column frame. The library exists only in 준비, and the left column of 진행 holds the 예배 순서 and 퀵 실행 (quick launch).
 
-## 글쓰기
+## Writing
 
-- 버튼 이름은 짧은 명사나 동사입니다: 출력, 지우기, 저장, 가져오기, 덮어쓰기, 새로 시작, 복구, 만들기. 버튼에 "~하기"를 붙이지 않습니다.
-- 확인 창의 제목은 합니다체 질문 한 문장입니다: "‘만복의 근원 하나님’ 곡이 이미 있습니다. 덮어쓸까요?" 버튼은 그 질문에 대한 답입니다.
-- 화면에 설명 문구를 쓰지 않습니다. 시안에서 뺀 예: "넣을 위치", "방금 실행", "같은 제목", "원본을 따름", "파일 없음 1". 상태는 모양과 색으로, 이유는 툴팁으로 보입니다.
-- 툴팁은 이름과 단축키만 씁니다: "가사 지우기  F2". 마침표를 찍지 않습니다. 문제의 이유를 알릴 때만 문장을 씁니다: "모니터 2를 찾을 수 없습니다".
-- 오류와 문제는 무엇이 잘못되었는지 말하고, 고치는 방법은 버튼으로 둡니다("모니터 다시 찾기", "다시 가져오기"). 사과하지 않습니다.
-- 형식: 날짜 "10월 25일 일요일", 시간 "오전 11:00", 장 위치 "2 / 9", 개수 "항목 12개", 길이 "0:42", 화면 상태 "60fps".
+- Write button names as short nouns or verbs: 출력, 지우기, 저장 (save), 가져오기 (import), 덮어쓰기 (overwrite), 새로 시작 (start over), 복구 (recover), 만들기 (create). Don't add "~하기" to a button name.
+- Write the title of a confirmation dialog as one question in 합니다체: "‘만복의 근원 하나님’ 곡이 이미 있습니다. 덮어쓸까요?" (A song named ‘만복의 근원 하나님’ already exists. Overwrite it?) The buttons answer that question.
+- Don't put explanatory text on screen. Examples removed from the drafts: "넣을 위치" (insert position), "방금 실행" (just ran), "같은 제목" (same title), "원본을 따름" (follows the source), "파일 없음 1" (1 missing file). Show state with shape and color, and reasons in tooltips.
+- Write only the name and the shortcut in a tooltip: "가사 지우기  F2". Don't end it with a period. Write a sentence only to give the reason for a problem: "모니터 2를 찾을 수 없습니다" (Can't find monitor 2).
+- For errors and problems, say what went wrong, and offer the fix as a button ("모니터 다시 찾기", "다시 가져오기"). Don't apologize.
+- Formats: date "10월 25일 일요일", time "오전 11:00", 장 position "2 / 9", count "항목 12개", duration "0:42", screen status "60fps".
 
-### 용어
+### Glossary
 
-| 쓰는 말 | 쓰지 않는 말 | 뜻 |
-| --- | --- | --- |
-| 출력 | 송출, 라이브 | 화면에 내보내는 일 |
-| 장 | 슬라이드 | 가사나 내용 한 화면 |
-| 예배 순서 | 재생목록, 플레이리스트, 큐시트 | 한 예배의 항목 목록 |
-| 틀 | 템플릿 | 새 예배 순서를 만들 때 쓰는 예배 순서 |
-| 구성 | 편곡, 어레인지먼트 | 곡에 저장된, 이름 붙은 장 순서(기본, 주일용, 짧게) |
-| 이름표 | 그룹, 태그 | 1절, 프리코러스, 후렴 같은 장의 이름 |
-| 지우기 | 삭제(출력에 대해), 클리어 | 화면에서 내리는 일. 파일이나 항목을 없애는 일만 "삭제"입니다 |
-| 본 화면, 무대 화면, 방송 자막 | 메인, 스테이지, 송출 화면 | 세 출력 화면 |
-| Look | 룩, 레이아웃 | 화면마다 어떤 층을 보일지 정한 묶음 |
-| 진행 도구 | 쇼 컨트롤 | 진행 화면 오른쪽 아래의 탭 묶음 |
-| 퀵 실행 | 단축 목록 | 진행 화면 왼쪽 아래의 자주 쓰는 항목 |
-| 소품, 공지, 메시지, 타이머 | Props, 배너 | 가사 위에 얹는 층 |
-| 라이브러리 | 곡 목록, DB | 곡 원본을 모아 둔 곳 |
-| 매크로 | 스크립트 | 여러 동작을 한 번에 실행하는 버튼 |
+| Use | English gloss | Don't use | Meaning |
+| --- | --- | --- | --- |
+| 출력 | output | 송출, 라이브 | Sending content to the screens |
+| 장 | slide | 슬라이드 | One screen of lyrics or other content |
+| 예배 순서 | service order | 재생목록, 플레이리스트, 큐시트 | The list of items in one service |
+| 틀 | template | 템플릿 | A 예배 순서 that you use to create a new 예배 순서 |
+| 구성 | arrangement | 편곡, 어레인지먼트 | A named 장 order saved in a song (기본, 주일용, 짧게) |
+| 이름표 | label | 그룹, 태그 | The name of a 장, such as 1절, 프리코러스, or 후렴 |
+| 지우기 | clear | 삭제 (for 출력), 클리어 | Taking content off the screens. Only removing a file or an item is "삭제" (delete) |
+| 본 화면, 무대 화면, 방송 자막 | main screen, stage screen, broadcast captions | 메인, 스테이지, 송출 화면 | The three output screens |
+| Look | Look | 룩, 레이아웃 | A set that decides which layers each screen shows |
+| 진행 도구 | show tools | 쇼 컨트롤 | The group of tabs at the bottom right of the 진행 workspace |
+| 퀵 실행 | quick launch | 단축 목록 | Frequently used items at the bottom left of the 진행 workspace |
+| 소품, 공지, 메시지, 타이머 | prop, notice, message, timer | Props, 배너 | Layers placed over the lyrics |
+| 라이브러리 | library | 곡 목록, DB | Where the source songs are kept |
+| 매크로 | macro | 스크립트 | A button that runs several actions at once |
 
-## 구현 메모
+## Implementation notes
 
-- `tokens.css`를 앱의 맨 처음에 불러오고, 컴포넌트 CSS에서는 `var(--토큰 이름)`만 씁니다. 값을 직접 적지 않습니다.
-- 컴포넌트 클래스와 상태 속성은 `components/bundle.css`와 각 컴포넌트 문서를 따릅니다. 상태는 클래스 대신 `aria-pressed`, `aria-selected`, `aria-checked`, `aria-expanded`, `aria-invalid`, `disabled`, `data-state`로 나타냅니다.
-- 창은 Windows의 기본 제목줄 없이 띄우고 메뉴줄(30px)이 제목줄을 겸합니다. 창 조절 버튼은 메뉴줄 오른쪽 끝입니다.
-- 화면 배율은 운영체제 설정을 따릅니다. 앱 안에서 따로 확대하지 않습니다.
-- 출력 창은 UI와 다른 창이며, 이 시스템의 컴포넌트를 쓰지 않습니다.
+- Load `tokens.css` first in the app, and use only `var(--token-name)` in component CSS. Don't write values directly.
+- Follow `components/bundle.css` and each component document for component classes and state attributes. Express state with `aria-pressed`, `aria-selected`, `aria-checked`, `aria-expanded`, `aria-invalid`, `disabled`, and `data-state` instead of classes.
+- Open the window without the Windows title bar. The menu bar (30px) also serves as the title bar, and the window control buttons are at its right end.
+- Follow the operating system setting for display scaling. Don't add a separate zoom inside the app.
+- Output windows are separate from the UI window and don't use the components of this system.

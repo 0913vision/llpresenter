@@ -1,55 +1,55 @@
 # StatusBar
 
-창 맨 아래의 28px 줄입니다. 왼쪽에 마지막 저장 시각, 오른쪽에 세 화면 출력의 상태를 작게 보입니다.
+The 28px row at the very bottom of the window. It shows the last save time on the left and, in small type, the state of the three screen outputs on the right.
 
-## 쓰는 곳
+## Where to use
 
-- 주 창의 맨 아래, 모든 작업 공간과 좁은 창에서 같은 모양과 높이.
+- At the very bottom of the main window, with the same shape and height in every workspace and in a narrow window.
 
-## 쓰지 않는 곳
+## Where not to use
 
-- 진행 중 알려야 할 문제(모니터가 빠짐, 미디어 파일 없음): 알림(Notification)과 툴바 출력 버튼의 경고로 먼저 알립니다. 상태 표시줄은 늘 보이는 작은 확인 자리일 뿐입니다.
-- 버튼이나 메뉴를 두지 않습니다. 저장, 출력 켜고 끄기는 다른 곳에서 합니다.
-- 작업 안내, 도움말 문구를 두지 않습니다.
+- Problems to report during a service (a monitor is gone, a media file is missing): report them first with a notification (Notification) and the warning on the toolbar output buttons. The status bar is only a small, always visible place to check.
+- Don't put buttons or menus in it. Saving and turning 출력 (output) on and off happen elsewhere.
+- Don't put task guidance or help text in it.
 
-## 구성
+## Anatomy
 
-- 줄: 높이 `size-statusbar`(28px), 바탕 `bg-app`, 좌우 18px, 항목 사이 18px, 글자 `caption`(11/14) `text-3`, 숫자 폭 고정.
-- 저장 상태(왼쪽): 아이콘 `saved` `size-icon-14` + 사이 `space-6` + "23:41 저장됨".
-- 출력 상태(오른쪽, 첫 항목부터 오른쪽 끝으로 밀어 붙임): 본 화면, 무대 화면, 방송 자막 순서. 6px 점(`radius-full`) + 사이 `space-6` + "본 화면 60fps".
-- 점 색은 `ok`(정상)와 `warning`(경고) 두 가지만 씁니다. `live` 빨강은 쓰지 않습니다(출력이 켜져 있다는 표시는 툴바가 맡습니다).
+- Row: height `size-statusbar` (28px), background `bg-app`, horizontal padding 18px, gap between items 18px, text `caption` (11/14) `text-3`, tabular numbers.
+- Save state (left): icon `saved` `size-icon-14` + gap `space-6` + "23:41 저장됨".
+- Output state (right, pushed to the right end from the first item): in the order 본 화면 (main screen), 무대 화면 (stage screen), 방송 자막 (broadcast captions). 6px dot (`radius-full`) + gap `space-6` + "본 화면 60fps".
+- Use only two dot colors: `ok` (healthy) and `warning` (warning). Don't use `live` red (the toolbar shows that an output is on).
 
-## 크기와 변형
+## Sizes and variants
 
-| 이름 | 높이 | 글자 | 쓰는 곳 |
+| Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
-| 상태 표시줄 | `size-statusbar` 28 | `caption` `text-3` | 주 창 맨 아래(보통 창과 좁은 창 모두) |
+| Status bar | `size-statusbar` 28 | `caption` `text-3` | Very bottom of the main window (both regular and narrow windows) |
 
-## 상태
+## States
 
-| 상태 | 바탕 | 글자/아이콘 | 그 밖 |
+| State | Background | Text and icon | Other |
 | --- | --- | --- | --- |
-| 저장됨 | 없음 | `text-3` | "23:41 저장됨". 툴팁 "자동 저장 23:41" |
-| 출력 정상 | 없음 | `text-3` | `ok` 점. "본 화면 60fps" |
-| 경고: 모니터 없음 | 없음 | `warning` | `warning` 점. "무대 화면 창으로 표시 중" |
-| 경고: 프레임 떨어짐 | 없음 | `warning` | `warning` 점. "방송 자막 41fps" |
-| 출력 꺼짐 | 없음 | `text-off` | 점 없음. 이름만 "방송 자막" |
+| Saved | None | `text-3` | "23:41 저장됨". Tooltip "자동 저장 23:41" |
+| Output healthy | None | `text-3` | `ok` dot. "본 화면 60fps" |
+| Warning: no monitor | None | `warning` | `warning` dot. "무대 화면 창으로 표시 중" |
+| Warning: dropped frames | None | `warning` | `warning` dot. "방송 자막 41fps" |
+| Output off | None | `text-off` | No dot. Name only: "방송 자막" |
 
-## 동작
+## Behavior
 
-- 저장 시각은 자동 저장이 끝날 때마다 바꿉니다. 바뀔 때 움직임을 넣지 않습니다.
-- fps는 1초마다 고칩니다. 목표(60)보다 10% 넘게 떨어진 상태가 2초 이어지면 경고로 바꾸고, 2초 동안 돌아와 있으면 정상으로 되돌립니다. 숫자가 흔들려 색이 깜박이지 않게 합니다.
-- 모니터를 찾을 수 없어 창으로 대신 보이는 동안은 "창으로 표시 중"을 씁니다. 모니터가 돌아오면 바로 정상으로 돌아갑니다.
-- 각 항목에 툴팁으로 자세한 이유를 줍니다: "무대 화면: 모니터 3을 찾을 수 없어 창으로 표시하고 있습니다", "방송 자막: 41fps, 목표 60fps".
-- 누를 수 있는 것이 없으므로 포커스를 받지 않습니다. 화면 읽기 프로그램을 위해 출력 상태 묶음에 `role="status"`를 주고, 경고로 바뀔 때만 알립니다.
+- Update the save time each time an autosave finishes. Don't animate the change.
+- Update the fps every second. Switch to warning when it stays more than 10% below the target (60) for 2 seconds, and switch back to healthy after it has recovered for 2 seconds. Don't let the color flicker when the number wavers.
+- While a monitor can't be found and a window shows the output instead, write "창으로 표시 중" (showing in a window). When the monitor comes back, return to healthy at once.
+- Give each item a tooltip with the detailed reason: "무대 화면: 모니터 3을 찾을 수 없어 창으로 표시하고 있습니다", "방송 자막: 41fps, 목표 60fps".
+- Nothing in it can be clicked, so it doesn't take focus. For screen readers, give the output state group `role="status"`, and announce only a change to warning.
 
-## 글쓰기
+## Writing
 
-- 짧은 명사구로 씁니다: "23:41 저장됨", "본 화면 60fps", "무대 화면 창으로 표시 중".
-- 화면 이름은 전체 이름을 씁니다(본 화면, 무대 화면, 방송 자막). 툴바 버튼의 줄인 이름(무대)과 다를 수 있습니다.
-- "정상", "OK" 같은 말을 붙이지 않습니다. 정상은 숫자와 초록 점으로 충분합니다.
+- Write short noun phrases: "23:41 저장됨", "본 화면 60fps", "무대 화면 창으로 표시 중".
+- Write the full screen names (본 화면, 무대 화면, 방송 자막). They can differ from the short names on the toolbar buttons (무대).
+- Don't add words such as "정상" (healthy) or "OK". For a healthy state, the number and the green dot are enough.
 
-## 구현 메모
+## Implementation notes
 
 ```jsx
 <StatusBar>
@@ -60,9 +60,9 @@
 </StatusBar>
 ```
 
-- `OutputHealth`의 `state`: `'ok'`(기본) | `'warning'` | `'off'`.
-- 클래스: 줄 `ll-statusbar`, 항목 `ll-statusbar__item`, 오른쪽 묶음의 첫 항목 `ll-statusbar__item--end`, 점 `ll-statusbar__dot`, 상태는 항목의 `data-state="warning|off"`.
+- `state` of `OutputHealth`: `'ok'` (default) | `'warning'` | `'off'`.
+- Classes: row `ll-statusbar`, item `ll-statusbar__item`, first item of the right group `ll-statusbar__item--end`, dot `ll-statusbar__dot`. State is `data-state="warning|off"` on the item.
 
-## 시안과 달라진 점
+## Changes from the drafts
 
-- Compact: 상태 표시줄 높이 24 → 28, 좌우 16 → 18, 사이 14 → 18, 저장 아이콘 12 → 14. 출력 이름 "본 화면", "무대", "방송 자막"(fps 없음) → 보통 창과 같게 "본 화면 60fps", "무대 화면 60fps", "방송 자막 60fps".
+- Compact: status bar height 24 → 28, horizontal padding 16 → 18, gap 14 → 18, save icon 12 → 14. Output names "본 화면", "무대", "방송 자막" (no fps) → the same as in a regular window: "본 화면 60fps", "무대 화면 60fps", "방송 자막 60fps".

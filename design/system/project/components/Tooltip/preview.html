@@ -1,4 +1,4 @@
-<!-- @dsCard group="떠 있는 창" height=680 -->
+<!-- @dsCard group="Overlays" height=680 -->
 <!doctype html>
 <html lang="ko">
 <head>
@@ -6,7 +6,7 @@
 <title>Tooltip</title>
 <style>
   html, body { margin: 0; }
-  /* 미리보기 전용: 창 가장자리를 점선으로 그린 바탕과, 대상 아래(또는 위)에 6px 띄워 두는 묶음 */
+  /* Preview only: a stage with dashed window edges, and a stack that keeps the tooltip 6px below (or above) its target */
   .pv-stage { position: relative; box-sizing: border-box; width: 284px; height: 150px; border-radius: var(--radius-lg); background: var(--bg-app); overflow: hidden; }
   .pv-stage .ll-tooltip { position: absolute; }
   .pv-col { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 6px; }
@@ -25,16 +25,16 @@
 <body>
 <div class="ll-preview">
 
-  <div class="ll-spec-title">모양: bg-raised, radius-md, 글자 12px, 안쪽 5 8, 최대 너비 280, 단축키는 8px 띄우고 text-3</div>
+  <div class="ll-spec-title">Shape: bg-raised, radius-md, text 12px, padding 5 8, max width 280, shortcut 8px apart in text-3</div>
   <div class="ll-spec" style="align-items: flex-start">
-    <div class="ll-spec-item"><div class="ll-tooltip" role="tooltip">본 화면 출력 끄기 (모니터 2)</div><span class="ll-spec-label">이름만</span></div>
-    <div class="ll-spec-item"><div class="ll-tooltip" role="tooltip">가사 지우기<span class="ll-tooltip__key">F2</span></div><span class="ll-spec-label">단축키</span></div>
-    <div class="ll-spec-item"><div class="ll-tooltip" role="tooltip">되돌리기<span class="ll-tooltip__key">Ctrl Z</span></div><span class="ll-spec-label">단축키 (조합)</span></div>
-    <div class="ll-spec-item"><div class="ll-tooltip" role="tooltip">라이브러리에 같은 제목의 곡이 있습니다<span class="ll-tooltip__sub">라이브러리 곡 4장, 10월 20일 수정</span></div><span class="ll-spec-label">두 줄 (오류 이유 + 부가 정보)</span></div>
-    <div class="ll-spec-item"><div class="ll-tooltip" role="tooltip">배경 파일을 찾을 수 없음<span class="ll-tooltip__sub">D:\예배 미디어\배경\따뜻한 빛.mp4</span></div><span class="ll-spec-label">긴 경로는 280에서 줄바꿈</span></div>
+    <div class="ll-spec-item"><div class="ll-tooltip" role="tooltip">본 화면 출력 끄기 (모니터 2)</div><span class="ll-spec-label">Name only</span></div>
+    <div class="ll-spec-item"><div class="ll-tooltip" role="tooltip">가사 지우기<span class="ll-tooltip__key">F2</span></div><span class="ll-spec-label">Shortcut</span></div>
+    <div class="ll-spec-item"><div class="ll-tooltip" role="tooltip">되돌리기<span class="ll-tooltip__key">Ctrl Z</span></div><span class="ll-spec-label">Shortcut (combo)</span></div>
+    <div class="ll-spec-item"><div class="ll-tooltip" role="tooltip">라이브러리에 같은 제목의 곡이 있습니다<span class="ll-tooltip__sub">라이브러리 곡 4장, 10월 20일 수정</span></div><span class="ll-spec-label">Two lines (error reason + extra info)</span></div>
+    <div class="ll-spec-item"><div class="ll-tooltip" role="tooltip">배경 파일을 찾을 수 없음<span class="ll-tooltip__sub">D:\예배 미디어\배경\따뜻한 빛.mp4</span></div><span class="ll-spec-label">Long path wraps at 280</span></div>
   </div>
 
-  <div class="ll-spec-title">자리: 대상 아래 6px, 가운데 정렬. 창 아래 가장자리에 닿으면 위로, 옆 가장자리에서는 8px 안쪽으로 민다. 화살표 없음</div>
+  <div class="ll-spec-title">Position: 6px below the target, centered. Flips up at the bottom window edge, pushed 8px inward at a side edge. No arrow</div>
   <div class="ll-spec" style="align-items: flex-start">
     <div class="ll-spec-item">
       <div class="pv-stage">
@@ -43,7 +43,7 @@
           <div class="ll-tooltip" role="tooltip" id="pv-t1" style="position: static">본 화면 출력 끄기 (모니터 2)</div>
         </div>
       </div>
-      <span class="ll-spec-label">기본: 아래</span>
+      <span class="ll-spec-label">Default: below</span>
     </div>
     <div class="ll-spec-item">
       <div class="pv-stage">
@@ -52,22 +52,22 @@
           <div class="ll-tooltip" role="tooltip" style="position: static">가사 지우기<span class="ll-tooltip__key">F2</span></div>
         </div>
         <span class="pv-edge-b"></span>
-        <span class="pv-tag" style="left: 8px; bottom: 4px">창 아래</span>
+        <span class="pv-tag" style="left: 8px; bottom: 4px">Window bottom</span>
       </div>
-      <span class="ll-spec-label">창 아래 가장자리: 위로 뒤집음</span>
+      <span class="ll-spec-label">Bottom window edge: flipped up</span>
     </div>
     <div class="ll-spec-item">
       <div class="pv-stage">
         <button type="button" class="ll-iconbtn is-hover" aria-label="알림 닫기" style="position: absolute; right: 10px; top: 14px"><span class="ll-i ll-i-x"></span></button>
         <div class="ll-tooltip" role="tooltip" style="right: 8px; top: 46px">알림 닫기</div>
         <span class="pv-edge-r"></span>
-        <span class="pv-tag" style="right: 8px; bottom: 6px">창 오른쪽</span>
+        <span class="pv-tag" style="right: 8px; bottom: 6px">Window right</span>
       </div>
-      <span class="ll-spec-label">창 옆 가장자리: 8px 안쪽에 맞춤</span>
+      <span class="ll-spec-label">Side window edge: 8px inward</span>
     </div>
   </div>
 
-  <div class="ll-spec-title">쓸 수 없는 이유와 오류는 툴팁으로만</div>
+  <div class="ll-spec-title">Disabled reasons and errors only in tooltips</div>
   <div class="ll-spec" style="align-items: flex-start">
     <div class="ll-spec-item">
       <div class="pv-stage" style="height: 132px">
@@ -76,7 +76,7 @@
           <div class="ll-tooltip" role="tooltip" style="position: static">공지 지우기<span class="ll-tooltip__key">F7</span></div>
         </div>
       </div>
-      <span class="ll-spec-label">쓸 수 없는 버튼에도 뜸</span>
+      <span class="ll-spec-label">Shows on a disabled button too</span>
     </div>
     <div class="ll-spec-item">
       <div class="pv-stage" style="width: 400px; height: 132px">
@@ -85,15 +85,15 @@
           <div class="ll-tooltip" role="tooltip" style="position: static">라이브러리에 같은 제목의 곡이 있습니다<span class="ll-tooltip__sub">라이브러리 곡 4장, 10월 20일 수정</span></div>
         </div>
       </div>
-      <span class="ll-spec-label">입력 칸 오류: 넓은 대상은 왼쪽 끝에 맞춤</span>
+      <span class="ll-spec-label">Text field error: left-aligned to a wide target</span>
     </div>
   </div>
 
-  <div class="ll-spec-title">시간</div>
+  <div class="ll-spec-title">Timing</div>
   <div class="ll-spec">
-    <div class="ll-spec-item"><div class="pv-time"><span class="pv-bar pv-bar--wait" style="width: 240px">포인터를 올리고 600ms</span><span class="pv-bar pv-bar--fade" style="width: 60px">120ms</span><span class="pv-bar pv-bar--show">보임</span></div><span class="ll-spec-label">처음 뜰 때</span></div>
-    <div class="ll-spec-item"><div class="pv-time"><span class="pv-bar pv-bar--wait" style="width: 120px">300ms 안에 옮김</span><span class="pv-bar pv-bar--show">바로 보임</span></div><span class="ll-spec-label">다른 대상으로 옮길 때</span></div>
-    <div class="ll-spec-item"><div class="pv-time"><span class="pv-bar pv-bar--show">누름, 키 입력, 스크롤, 창 밖으로</span><span class="pv-bar pv-bar--wait">바로 닫힘</span></div><span class="ll-spec-label">닫힐 때</span></div>
+    <div class="ll-spec-item"><div class="pv-time"><span class="pv-bar pv-bar--wait" style="width: 240px">600ms after pointer rests</span><span class="pv-bar pv-bar--fade" style="width: 60px">120ms</span><span class="pv-bar pv-bar--show">Visible</span></div><span class="ll-spec-label">First appearance</span></div>
+    <div class="ll-spec-item"><div class="pv-time"><span class="pv-bar pv-bar--wait" style="width: 120px">Moved within 300ms</span><span class="pv-bar pv-bar--show">Visible at once</span></div><span class="ll-spec-label">Moving to another target</span></div>
+    <div class="ll-spec-item"><div class="pv-time"><span class="pv-bar pv-bar--show">Click, key, scroll, leave window</span><span class="pv-bar pv-bar--wait">Closes at once</span></div><span class="ll-spec-label">Closing</span></div>
   </div>
 
 </div>

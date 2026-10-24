@@ -1,76 +1,76 @@
 # Checkbox
 
-여러 개를 골라 담을 때 쓰는 16px 체크 상자와, 줄 어디를 눌러도 바뀌는 체크 줄입니다. 다른 예배에서 가져오기의 항목 나무, 출력 상태 복구의 복구할 상태, Look의 층 목록에 씁니다.
+A 16px checkbox for picking several things, and a check row that toggles when you click anywhere on it. Use them in the item tree of 다른 예배에서 가져오기 (import from another service), in the states to restore in 출력 상태 복구 (restore output state), and in the layer list of a Look.
 
-## 쓰는 곳
+## Where to use
 
-- 다른 예배에서 가져오기, 새 예배의 예배 순서: 묶음(예배 전, 찬양)과 항목을 골라 담기
-- 출력 상태 복구: 복구할 상태(화면 출력, 마지막 장, 표시 중이던 항목)
-- Look 편집의 층 목록(보이기)
+- 다른 예배에서 가져오기, and the 예배 순서 (service order) of a new service: picking groups (예배 전, 찬양) and items
+- 출력 상태 복구: the states to restore (화면 출력, 마지막 장, 표시 중이던 항목)
+- The layer list in the Look editor (visibility)
 
-## 쓰지 않는 곳
+## Where not to use
 
-- 바로 적용되는 켜고 끄기 설정(항상 위, 절전 막기, 오류 보고 보내기): `Switch`를 씁니다.
-- 하나만 고르는 곳: `SegmentedControl`이나 `Select`를 씁니다.
-- 목록에서 지금 고른 줄을 나타낼 때: 목록 줄의 `selection` 바탕을 씁니다. 체크 상자를 덧붙이지 않습니다.
+- On/off settings that apply at once (항상 위, 절전 막기, 오류 보고 보내기): use `Switch`.
+- Picking only one: use `SegmentedControl` or `Select`.
+- Marking the currently selected row in a list: use the `selection` background of the list row. Don't add a checkbox.
 
-## 구성
+## Anatomy
 
-- 상자 `ll-check`: 16×16, 모서리 `radius-sm`(3px).
-  - 꺼짐: 바탕 `bg-well`, 테두리 `inset 0 0 0 1px` `line-control`.
-  - 켜짐: 바탕 `accent-fill`, 흰 체크(`check` 12px, `text-on-fill`), 테두리 없음.
-  - 일부: 바탕 `accent-fill`, 가운데 8×2 막대(`text-on-fill`, 모서리 1px).
-- 체크 줄 `ll-check-row`: 높이 `size-row`(30), 상자와 다음 것 사이 `space-10`, 글자 `body`(13/18) `text`.
-  - 종류 아이콘 `ll-check-row__icon`: 16px `text-2`, 글자와 10px.
-  - 오른쪽 부가 정보 `ll-check-row__meta`: `caption`(11/14) `text-3`(예: 구성 이름 주일용).
-  - 값이 붙는 줄(출력 상태 복구): 이름을 `ll-check-row__text--fixed`(168px)로 고정하고, 뒤에 값 `ll-check-row__value`(`label` 12/16, `text-3`, 말줄임)를 둡니다.
-- 목록 안의 줄 `ll-check-row--list`: 좌우 `space-14`, 마우스 올림 `bg-raised`. 목록 줄과 같은 규칙입니다.
-- 묶음 머리글 줄 `ll-check-row--group`: 글자 `caption-strong`(11/14/600) `text-3`. 그 묶음의 항목이 일부만 골라지면 상자가 일부 상태가 됩니다.
-- 대화상자 안의 줄(출력 상태 복구)은 좌우 여백과 hover 없이 대화상자 몸통의 여백을 따릅니다.
+- Box `ll-check`: 16×16, radius `radius-sm` (3px).
+  - Off: background `bg-well`, border `inset 0 0 0 1px` `line-control`.
+  - On: background `accent-fill`, white check mark (`check` 12px, `text-on-fill`), no border.
+  - Mixed: background `accent-fill`, an 8×2 bar in the center (`text-on-fill`, radius 1px).
+- Check row `ll-check-row`: height `size-row` (30), gap between the box and the next element `space-10`, text `body` (13/18) `text`.
+  - Type icon `ll-check-row__icon`: 16px `text-2`, 10px from the text.
+  - Extra info on the right `ll-check-row__meta`: `caption` (11/14) `text-3` (for example, the 구성 (arrangement) name 주일용).
+  - Row with a value (출력 상태 복구): fix the name with `ll-check-row__text--fixed` (168px), and put the value `ll-check-row__value` (`label` 12/16, `text-3`, truncated with an ellipsis) after it.
+- Row in a list `ll-check-row--list`: horizontal padding `space-14`, hover `bg-raised`. Same rules as a list row.
+- Group header row `ll-check-row--group`: text `caption-strong` (11/14/600) `text-3`. When only some items of the group are picked, the box shows the mixed state.
+- Rows in a dialog (출력 상태 복구) have no horizontal padding and no hover, and follow the padding of the dialog body.
 
-## 크기와 변형
+## Sizes and variants
 
-| 이름 | 높이 | 글자 | 쓰는 곳 |
+| Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
-| 상자 | 16 | - | 줄 안, 목록 머리글(모두 고르기) |
-| 체크 줄 | 30 | body 13/18 | 대화상자 안의 고르기 |
-| 목록 줄 | 30 | body 13/18, 좌우 14 | 다른 예배에서 가져오기, 새 예배, Look 층 |
-| 묶음 머리글 줄 | 30 | caption-strong 11/14/600 text-3 | 항목 나무의 부모 |
+| Box | 16 | - | Inside rows, list headers (select all) |
+| Check row | 30 | `body` 13/18 | Choices in dialogs |
+| List row | 30 | `body` 13/18, horizontal padding 14 | 다른 예배에서 가져오기, new service, Look layers |
+| Group header row | 30 | `caption-strong` 11/14/600 `text-3` | Parents in the item tree |
 
-## 상태
+## States
 
-| 상태 | 바탕 | 글자/아이콘 | 그 밖 |
+| State | Background | Text and icon | Other |
 | --- | --- | --- | --- |
-| 꺼짐 | bg-well | - | 테두리 line-control 1px |
-| 켜짐 | accent-fill | 체크 text-on-fill | |
-| 일부 | accent-fill | 막대 text-on-fill | `aria-checked="mixed"` |
-| 마우스 올림 | 목록 줄은 bg-raised | 같음 | 상자 자체는 바뀌지 않습니다 |
-| 포커스 | 같음 | 같음 | 상자에 outline 2px accent, offset 1px |
-| 쓸 수 없음(꺼짐) | bg-well | 줄 글자, 아이콘, 부가 정보 text-off | 테두리 line-strong. hover 없음 |
-| 쓸 수 없음(켜짐, 일부) | bg-control | 체크와 막대 text-off | 투명도를 낮추지 않습니다. 이유는 툴팁 |
+| Off | `bg-well` | - | Border `line-control` 1px |
+| On | `accent-fill` | Check mark `text-on-fill` | |
+| Mixed | `accent-fill` | Bar `text-on-fill` | `aria-checked="mixed"` |
+| Hover | `bg-raised` for list rows | Same | The box itself doesn't change |
+| Focus | Same | Same | outline 2px `accent` on the box, offset 1px |
+| Disabled (off) | `bg-well` | Row text, icon, and extra info `text-off` | Border `line-strong`. No hover |
+| Disabled (on, mixed) | `bg-control` | Check mark and bar `text-off` | Don't lower the opacity. Reason in a tooltip |
 
-## 동작
+## Behavior
 
-- 줄 전체가 `label`이라 상자, 아이콘, 이름 어디를 눌러도 바뀝니다. Space도 바꿉니다.
-- 묶음 머리글을 누르면: 일부나 꺼짐이면 묶음 전체를 켜고, 켜짐이면 전체를 끕니다. 항목을 바꾸면 머리글 상태를 다시 셉니다(전부 켜짐, 일부, 전부 꺼짐).
-- 목록(항목 나무) 안에서는 탭이 목록에 한 번만 들어가고, 위아래 화살표로 줄을 옮기며 Space로 바꿉니다. 대화상자 안의 몇 줄(출력 상태 복구)은 상자마다 탭이 멈춥니다.
-- aria: `role="checkbox"`, `aria-checked="true|false|mixed"`. 나무 구조면 목록에 `role="tree"`, 줄에 `role="treeitem"`과 `aria-checked`를 줍니다.
+- The whole row is a `label`, so a click on the box, icon, or name toggles it. Space toggles it too.
+- A click on a group header: if it is mixed or off, turn on the whole group; if it is on, turn off the whole group. When an item changes, recount the header state (all on, mixed, all off).
+- In a list (item tree), Tab enters the list only once, the up and down arrows move between rows, and Space toggles. For the few rows in a dialog (출력 상태 복구), Tab stops at each box.
+- aria: `role="checkbox"`, `aria-checked="true|false|mixed"`. For a tree structure, give the list `role="tree"` and each row `role="treeitem"` and `aria-checked`.
 
-## 글쓰기
+## Writing
 
-- 줄 이름은 담길 것의 이름만 씁니다: "화면 출력", "마지막 장", "표시 중이던 항목". "~을 복구합니다" 같은 문장으로 쓰지 않습니다.
-- 값은 지금 무엇이 들어 있는지를 쉼표로 늘어놓습니다: "본 화면, 무대 화면, 방송 자막".
+- Write only the name of what is picked as the row name: "화면 출력", "마지막 장", "표시 중이던 항목". Don't write sentences such as "~을 복구합니다" (Restores ~).
+- In the value, list what is in it now, separated by commas: "본 화면, 무대 화면, 방송 자막".
 
-## 구현 메모
+## Implementation notes
 
 - `<Checkbox checked={true | false | 'mixed'} onChange />`
 - `<CheckRow checked label="주일 광고" icon="notice" meta="주일용" variant="list" />`, `<CheckRow group label="예배 전" checked="mixed" />`
-- 마크업: `label.ll-check-row[.ll-check-row--list][.ll-check-row--group] > button.ll-check[role=checkbox][aria-checked] > span.ll-i.ll-i-check` + `[span.ll-i.ll-check-row__icon]` + `span.ll-check-row__text` + `[span.ll-check-row__value | span.ll-check-row__meta]`
-- 일부 상태의 막대는 CSS가 `::after`로 그리므로 체크 아이콘 span은 늘 넣어 둡니다.
-- 클래스: `ll-check`, `ll-check-row`, `ll-check-row--list`, `ll-check-row--group`, `ll-check-row__icon`, `ll-check-row__text`, `ll-check-row__text--fixed`, `ll-check-row__value`, `ll-check-row__meta`.
+- Markup: `label.ll-check-row[.ll-check-row--list][.ll-check-row--group] > button.ll-check[role=checkbox][aria-checked] > span.ll-i.ll-i-check` + `[span.ll-i.ll-check-row__icon]` + `span.ll-check-row__text` + `[span.ll-check-row__value | span.ll-check-row__meta]`
+- The CSS draws the bar of the mixed state with `::after`, so always include the check icon span.
+- Classes: `ll-check`, `ll-check-row`, `ll-check-row--list`, `ll-check-row--group`, `ll-check-row__icon`, `ll-check-row__text`, `ll-check-row__text--fixed`, `ll-check-row__value`, `ll-check-row__meta`.
 
-## 시안과 달라진 점
+## Changes from the drafts
 
-- NewService, ServiceImport, Recovery, Looks의 켜진 상자: 바탕 #3d8bf0(`accent`) → `accent-fill`.
-- ServiceImport, Looks의 꺼진 상자: 테두리 #4a4a4a → `line-control`. Looks는 바탕 투명 → `bg-well`.
-- ServiceImport, NewService 줄 높이 28 → 30. Recovery 줄 높이 36 → 30, 상자와 아이콘 사이 12 → 10. Looks 층 목록 줄 34 → 30, 좌우 12 → 14.
+- Checked boxes in NewService, ServiceImport, Recovery, Looks: background #3d8bf0 (`accent`) → `accent-fill`.
+- Unchecked boxes in ServiceImport, Looks: border #4a4a4a → `line-control`. Looks background transparent → `bg-well`.
+- ServiceImport, NewService row height 28 → 30. Recovery row height 36 → 30, gap between box and icon 12 → 10. Looks layer list row 34 → 30, horizontal padding 12 → 14.

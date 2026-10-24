@@ -1,4 +1,4 @@
-/* 25 LabelColorPicker: 이름표 색 고르기(ll-swatches, ll-swatch) */
+/* 25 LabelColorPicker: 이름표 color picker (ll-swatches, ll-swatch) */
 .ll-swatches { display: flex; align-items: center; gap: 0; font-family: var(--font-ui); }
 .ll-swatches--menu { padding: var(--space-2) var(--space-4); }
 .ll-swatches__label { flex: none; margin: 0 var(--space-4); font-size: 13px; line-height: 18px; color: var(--text); }

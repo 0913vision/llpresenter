@@ -1,5 +1,5 @@
-/* 21 Select: 메뉴를 여는 드롭다운 버튼(ll-select). 메뉴 자체는 Menu가 그린다 */
-/* 00-base의 `.ll-root button { font: inherit; color: inherit }`(0,1,1)보다 앞서도록 블록은 한 단 올리고, 변형은 `.ll-select.ll-select--x`로 쓴다 */
+/* 21 Select: dropdown button that opens a menu (ll-select). Menu draws the menu itself */
+/* The block is raised one level to beat `.ll-root button { font: inherit; color: inherit }` (0,1,1) in 00-base, and variants use `.ll-select.ll-select--x` */
 .ll-select, :is(.ll-root, .ll-preview) .ll-select {
   box-sizing: border-box; display: inline-flex; align-items: center; gap: 0;
   min-width: 0; max-width: 100%; height: var(--size-control-md); margin: 0; padding: 0 var(--space-8) 0 var(--space-10);
@@ -15,26 +15,25 @@
 .ll-select--sm .ll-select__meta { font-size: 11px; line-height: 14px; }
 .ll-select__chevron { flex: none; width: var(--size-icon-12); height: var(--size-icon-12); margin-left: var(--space-8); color: var(--text-3); }
 
-/* 앞 아이콘(날짜, 시간, 역본): md 16 / sm 14, 글자와 8 / 6 */
+/* Leading icon (date, time, Bible version) */
 .ll-select__icon { flex: none; width: var(--size-icon-16); height: var(--size-icon-16); margin-right: var(--space-8); color: var(--text-2); }
 .ll-select--sm .ll-select__icon { width: var(--size-icon-14); height: var(--size-icon-14); margin-right: var(--space-6); }
 .ll-select:has(> .ll-select__icon:first-child) { padding-left: var(--space-10); }
 .ll-select--sm:has(> .ll-select__icon:first-child) { padding-left: var(--space-8); }
 
-/* 앞 그림: 배경 미디어 36×20, 매크로 색 칸 20×20. 위아래 여백과 왼쪽 여백을 같게 */
+/* Leading image: background media or macro color tile. Left padding equals the top and bottom padding */
 .ll-select__media { flex: none; display: block; width: 36px; height: 20px; margin-right: var(--space-8); border-radius: var(--radius-xs); object-fit: cover; background: var(--output-black); }
 .ll-select__tile { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; margin-right: var(--space-8); border-radius: var(--radius-md); color: var(--text-on-label); }
 .ll-select__tile .ll-i { width: var(--size-icon-14); height: var(--size-icon-14); }
 .ll-select:has(> .ll-select__media:first-child), .ll-select:has(> .ll-select__tile:first-child) { padding-left: 5px; }
 .ll-select--sm:has(> .ll-select__media:first-child), .ll-select--sm:has(> .ll-select__tile:first-child) { padding-left: 3px; }
 
-/* 상태 */
 .ll-select:hover, .ll-select.is-hover, .ll-select:active, .ll-select.is-active, .ll-select[aria-expanded="true"] { background: var(--bg-control-hover); }
 .ll-select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .ll-select:disabled { background: var(--bg-control); color: var(--text-off); }
 .ll-select:disabled .ll-select__icon, .ll-select:disabled .ll-select__meta, .ll-select:disabled .ll-select__chevron { color: var(--text-off); }
 
-/* 매크로 색 칸 */
+/* Macro color tiles */
 .ll-select__tile--teal { background: var(--label-teal); }
 .ll-select__tile--green { background: var(--label-green); }
 .ll-select__tile--yellow { background: var(--label-yellow); }

@@ -1,4 +1,4 @@
-<!-- @dsCard group="앱 틀" height=380 -->
+<!-- @dsCard group="App shell" height=380 -->
 <!doctype html>
 <html lang="ko">
 <head>
@@ -13,7 +13,7 @@
 <div class="ll-preview">
 
 <div class="pv-group">
-<div class="ll-spec-title">메뉴줄, 30, bg-app, 창 제목줄을 겸함 (테두리는 미리보기용)</div>
+<div class="ll-spec-title">Menu bar, 30, bg-app, doubles as the title bar (border for preview only)</div>
 <div class="ll-menubar" style="width: 100%; box-shadow: 0 0 0 1px var(--line)">
 <span class="ll-menubar__brand">LoveLight</span>
 <nav class="ll-menubar__menus" role="menubar" aria-label="메뉴">
@@ -48,27 +48,27 @@
 <button type="button" class="ll-menubar__win is-hover" aria-label="닫기" title="닫기"><span class="ll-i ll-i-x"></span></button>
 </span>
 </div>
-<span class="ll-spec-label">위: 기본, 아래: 출력 메뉴 열림, 닫기에 마우스 올림</span>
+<span class="ll-spec-label">Top: default. Bottom: 출력 menu open, hover on close</span>
 </div>
 
 <div class="pv-group">
-<div class="ll-spec-title">메뉴 항목, 24, 좌우 9, radius-sm, label text-2</div>
+<div class="ll-spec-title">Menu items, 24, horizontal 9, radius-sm, label text-2</div>
 <div class="ll-spec">
-<div class="ll-spec-item"><span class="pv-box"><button type="button" class="ll-menubar__item" role="menuitem" aria-haspopup="menu" aria-expanded="false">파일</button></span><span class="ll-spec-label">기본</span></div>
-<div class="ll-spec-item"><span class="pv-box"><button type="button" class="ll-menubar__item is-hover" role="menuitem" aria-haspopup="menu" aria-expanded="false">파일</button></span><span class="ll-spec-label">마우스 올림</span></div>
-<div class="ll-spec-item"><span class="pv-box"><button type="button" class="ll-menubar__item" role="menuitem" aria-haspopup="menu" aria-expanded="true">파일</button></span><span class="ll-spec-label">메뉴 열림, 누름</span></div>
-<div class="ll-spec-item"><span class="pv-box"><button type="button" class="ll-menubar__item is-focus" role="menuitem" aria-haspopup="menu" aria-expanded="false">파일</button></span><span class="ll-spec-label">포커스</span></div>
+<div class="ll-spec-item"><span class="pv-box"><button type="button" class="ll-menubar__item" role="menuitem" aria-haspopup="menu" aria-expanded="false">파일</button></span><span class="ll-spec-label">Default</span></div>
+<div class="ll-spec-item"><span class="pv-box"><button type="button" class="ll-menubar__item is-hover" role="menuitem" aria-haspopup="menu" aria-expanded="false">파일</button></span><span class="ll-spec-label">Hover</span></div>
+<div class="ll-spec-item"><span class="pv-box"><button type="button" class="ll-menubar__item" role="menuitem" aria-haspopup="menu" aria-expanded="true">파일</button></span><span class="ll-spec-label">Menu open, pressed</span></div>
+<div class="ll-spec-item"><span class="pv-box"><button type="button" class="ll-menubar__item is-focus" role="menuitem" aria-haspopup="menu" aria-expanded="false">파일</button></span><span class="ll-spec-label">Focus</span></div>
 </div>
 </div>
 
 <div class="pv-group">
-<div class="ll-spec-title">창 조절, 46×30, 아이콘 14 text-2</div>
+<div class="ll-spec-title">Window controls, 46×30, icon 14 text-2</div>
 <div class="ll-spec">
-<div class="ll-spec-item"><span class="pv-box" style="padding: 0"><button type="button" class="ll-menubar__win" aria-label="최소화" title="최소화"><span class="ll-i ll-i-min"></span></button><button type="button" class="ll-menubar__win" aria-label="최대화" title="최대화"><span class="ll-i ll-i-max"></span></button><button type="button" class="ll-menubar__win" aria-label="닫기" title="닫기"><span class="ll-i ll-i-x"></span></button></span><span class="ll-spec-label">기본</span></div>
-<div class="ll-spec-item"><span class="pv-box" style="padding: 0"><button type="button" class="ll-menubar__win is-hover" aria-label="닫기" title="닫기"><span class="ll-i ll-i-x"></span></button></span><span class="ll-spec-label">마우스 올림</span></div>
-<div class="ll-spec-item"><span class="pv-box" style="padding: 0"><button type="button" class="ll-menubar__win is-active" aria-label="닫기" title="닫기"><span class="ll-i ll-i-x"></span></button></span><span class="ll-spec-label">누름</span></div>
-<div class="ll-spec-item"><span class="pv-box" style="padding: 0"><button type="button" class="ll-menubar__win is-focus" aria-label="닫기" title="닫기"><span class="ll-i ll-i-x"></span></button></span><span class="ll-spec-label">포커스, 안쪽 고리</span></div>
-<div class="ll-spec-item"><div class="ll-menubar ll-menubar--window" style="width: 360px; box-shadow: 0 0 0 1px var(--line)"><span class="ll-menubar__name">환경설정</span><span class="ll-menubar__controls"><button type="button" class="ll-menubar__win" aria-label="닫기" title="닫기"><span class="ll-i ll-i-x"></span></button></span></div><span class="ll-spec-label">보조 창 제목줄, 환경설정</span></div>
+<div class="ll-spec-item"><span class="pv-box" style="padding: 0"><button type="button" class="ll-menubar__win" aria-label="최소화" title="최소화"><span class="ll-i ll-i-min"></span></button><button type="button" class="ll-menubar__win" aria-label="최대화" title="최대화"><span class="ll-i ll-i-max"></span></button><button type="button" class="ll-menubar__win" aria-label="닫기" title="닫기"><span class="ll-i ll-i-x"></span></button></span><span class="ll-spec-label">Default</span></div>
+<div class="ll-spec-item"><span class="pv-box" style="padding: 0"><button type="button" class="ll-menubar__win is-hover" aria-label="닫기" title="닫기"><span class="ll-i ll-i-x"></span></button></span><span class="ll-spec-label">Hover</span></div>
+<div class="ll-spec-item"><span class="pv-box" style="padding: 0"><button type="button" class="ll-menubar__win is-active" aria-label="닫기" title="닫기"><span class="ll-i ll-i-x"></span></button></span><span class="ll-spec-label">Pressed</span></div>
+<div class="ll-spec-item"><span class="pv-box" style="padding: 0"><button type="button" class="ll-menubar__win is-focus" aria-label="닫기" title="닫기"><span class="ll-i ll-i-x"></span></button></span><span class="ll-spec-label">Focus, inner ring</span></div>
+<div class="ll-spec-item"><div class="ll-menubar ll-menubar--window" style="width: 360px; box-shadow: 0 0 0 1px var(--line)"><span class="ll-menubar__name">환경설정</span><span class="ll-menubar__controls"><button type="button" class="ll-menubar__win" aria-label="닫기" title="닫기"><span class="ll-i ll-i-x"></span></button></span></div><span class="ll-spec-label">Secondary window title bar, Preferences</span></div>
 </div>
 </div>
 

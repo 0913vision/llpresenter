@@ -1,28 +1,28 @@
-/* 40 SlideThumbnail: 16:9 출력 캔버스 + 24px 이름표 띠. 이름표 색(data-color)은 42-labelchip.css가 정한다 */
-/* 00-base의 `.ll-root button { font: inherit; color: inherit }`(0,1,1)보다 앞서도록 버튼이 되는 블록은 `:is(.ll-root, .ll-preview) .ll-…`로 한 단 올린다 */
+/* 40 SlideThumbnail: 16:9 output canvas + 24px 이름표 band. 42-labelchip.css maps data-color. */
+/* Blocks that are buttons use `:is(.ll-root, .ll-preview) .ll-…` to beat 00-base `.ll-root button { font: inherit; color: inherit }` (0,1,1). */
 .ll-thumb, :is(.ll-root, .ll-preview) .ll-thumb { box-sizing: border-box; display: flex; flex-direction: column; width: 100%; min-width: 0; margin: 0; padding: 0; border: 0; border-radius: var(--radius-md); overflow: hidden; background: var(--output-black); color: inherit; font: inherit; text-align: left; cursor: default; transition: box-shadow 100ms ease-out; }
 .ll-thumb__canvas { position: relative; display: block; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; background: var(--output-black); container-type: inline-size; }
-/* 가사: 글자 크기 = 캔버스 너비 × 0.044 (4.4cqw). 최솟값을 두지 않는다(출력과 같은 줄바꿈을 지키려고) */
+/* No minimum font size, so lines break in the same places as the output. */
 .ll-thumb__text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; box-sizing: border-box; padding: 0 10%; color: var(--text-on-fill); font-size: 4.4cqw; line-height: 1.45; font-weight: 700; text-align: center; white-space: pre-line; word-break: keep-all; overflow-wrap: anywhere; }
 .ll-thumb__media { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .ll-thumb__band { display: flex; align-items: center; gap: var(--space-8); height: var(--size-thumb-band); padding: 0 var(--space-8); background: var(--ll-label); color: var(--ll-label-fg); font-size: 12px; line-height: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; }
 .ll-thumb__num { flex: none; font-variant-numeric: tabular-nums; }
 .ll-thumb__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 
-/* 상태: 마우스 올림 < 고름 < 출력 중 (뒤의 것이 이긴다) */
+/* States: hover < selected < live (later wins). */
 .ll-thumb:hover, .ll-thumb.is-hover { box-shadow: 0 0 0 1px var(--line-control); }
 .ll-thumb[aria-selected="true"] { box-shadow: var(--ring-selected); }
 .ll-thumb[data-state~="live"] { box-shadow: var(--ring-live); }
-/* 포커스 고리는 출력 중 고리(3px) 바깥에 1px 띄워 그린다 */
+/* The focus ring sits 1px outside the 3px live ring. */
 .ll-thumb:focus-visible, .ll-preview .ll-thumb.is-focus { outline: 2px solid var(--accent); outline-offset: 4px; }
 
-/* 장에 넣은 미디어 파일이 없음: 빗금 + 파일 없음 아이콘 */
+/* Missing 장 media file: hatching + missing file icon. */
 .ll-thumb[data-state~="warning"] .ll-thumb__canvas { background: repeating-linear-gradient(135deg, var(--bg-inset) 0 6px, var(--bg-well) 6px 12px); }
 .ll-thumb[data-state~="warning"] .ll-thumb__media { display: none; }
 .ll-thumb__missing { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; color: var(--warning); }
 .ll-thumb[data-state~="warning"] .ll-thumb__missing { display: flex; }
 
-/* 격자: 열 수는 크기 슬라이더(2–8)가 --ll-cols로 정한다 */
+/* Grid: the size slider (2–8) sets --ll-cols. */
 .ll-thumb-grid { box-sizing: border-box; display: grid; grid-template-columns: repeat(var(--ll-cols, 4), minmax(0, 1fr)); gap: var(--space-16) var(--space-12); align-content: start; }
 
 @media (prefers-reduced-motion: reduce) { .ll-thumb { transition: none; } }

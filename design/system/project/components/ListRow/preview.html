@@ -1,4 +1,4 @@
-<!-- @dsCard group="목록과 패널" height=1553 -->
+<!-- @dsCard group="Lists and panels" height=1553 -->
 <!doctype html>
 <html lang="ko">
 <head>
@@ -6,7 +6,7 @@
 <title>ListRow</title>
 <style>
   html, body { margin: 0; }
-  /* 미리보기 전용 틀 */
+  /* Preview-only frames */
   .pv-strip { width: 280px; padding: 4px 0; border-radius: var(--radius-lg); background: var(--bg-panel); }
   .pv-cols { display: grid; grid-template-columns: repeat(3, 296px); gap: 16px; align-items: start; }
   .pv-dialog { box-sizing: border-box; display: flex; border-radius: var(--radius-2xl); background: var(--bg-dialog); box-shadow: var(--shadow-dialog); overflow: hidden; }
@@ -19,27 +19,27 @@
 <body>
 <div class="ll-preview">
 
-  <div class="ll-spec-title">한 줄 30px: 아이콘 16 + 이름 13 + 오른쪽 부가 정보 11</div>
+  <div class="ll-spec-title">One line 30px: icon 16 + name 13 + extra info 11 on the right</div>
   <div class="ll-spec">
-    <div class="ll-spec-item"><div class="pv-strip"><button class="ll-row"><span class="ll-i ll-i-song ll-row__icon"></span><span class="ll-row__title">내 주를 가까이 하게 함은</span><span class="ll-row__meta">5장</span></button></div><span class="ll-spec-label">기본</span></div>
-    <div class="ll-spec-item"><div class="pv-strip"><button class="ll-row is-hover"><span class="ll-i ll-i-song ll-row__icon"></span><span class="ll-row__title">내 주를 가까이 하게 함은</span><span class="ll-row__meta">5장</span></button></div><span class="ll-spec-label">마우스 올림</span></div>
-    <div class="ll-spec-item"><div class="pv-strip"><button class="ll-row is-active"><span class="ll-i ll-i-song ll-row__icon"></span><span class="ll-row__title">내 주를 가까이 하게 함은</span><span class="ll-row__meta">5장</span></button></div><span class="ll-spec-label">누름</span></div>
-    <div class="ll-spec-item"><div class="pv-strip"><button class="ll-row is-focus"><span class="ll-i ll-i-song ll-row__icon"></span><span class="ll-row__title">내 주를 가까이 하게 함은</span><span class="ll-row__meta">5장</span></button></div><span class="ll-spec-label">포커스</span></div>
-    <div class="ll-spec-item"><div class="pv-strip"><button class="ll-row" aria-selected="true"><span class="ll-i ll-i-song ll-row__icon"></span><span class="ll-row__title">만복의 근원 하나님</span><span class="ll-row__meta">9장</span></button></div><span class="ll-spec-label">고름</span></div>
-    <div class="ll-spec-item"><div class="pv-strip"><button class="ll-row" disabled><span class="ll-i ll-i-book ll-row__icon"></span><span class="ll-row__title">요한복음 3장 16절</span><span class="ll-row__meta">2장</span></button></div><span class="ll-spec-label">쓸 수 없음</span></div>
+    <div class="ll-spec-item"><div class="pv-strip"><button class="ll-row"><span class="ll-i ll-i-song ll-row__icon"></span><span class="ll-row__title">내 주를 가까이 하게 함은</span><span class="ll-row__meta">5장</span></button></div><span class="ll-spec-label">Default</span></div>
+    <div class="ll-spec-item"><div class="pv-strip"><button class="ll-row is-hover"><span class="ll-i ll-i-song ll-row__icon"></span><span class="ll-row__title">내 주를 가까이 하게 함은</span><span class="ll-row__meta">5장</span></button></div><span class="ll-spec-label">Hover</span></div>
+    <div class="ll-spec-item"><div class="pv-strip"><button class="ll-row is-active"><span class="ll-i ll-i-song ll-row__icon"></span><span class="ll-row__title">내 주를 가까이 하게 함은</span><span class="ll-row__meta">5장</span></button></div><span class="ll-spec-label">Pressed</span></div>
+    <div class="ll-spec-item"><div class="pv-strip"><button class="ll-row is-focus"><span class="ll-i ll-i-song ll-row__icon"></span><span class="ll-row__title">내 주를 가까이 하게 함은</span><span class="ll-row__meta">5장</span></button></div><span class="ll-spec-label">Focus</span></div>
+    <div class="ll-spec-item"><div class="pv-strip"><button class="ll-row" aria-selected="true"><span class="ll-i ll-i-song ll-row__icon"></span><span class="ll-row__title">만복의 근원 하나님</span><span class="ll-row__meta">9장</span></button></div><span class="ll-spec-label">Selected</span></div>
+    <div class="ll-spec-item"><div class="pv-strip"><button class="ll-row" disabled><span class="ll-i ll-i-book ll-row__icon"></span><span class="ll-row__title">요한복음 3장 16절</span><span class="ll-row__meta">2장</span></button></div><span class="ll-spec-label">Disabled</span></div>
   </div>
 
-  <div class="ll-spec-title">출력과 상태</div>
+  <div class="ll-spec-title">Live and other states</div>
   <div class="ll-spec">
-    <div class="ll-spec-item"><div class="pv-strip"><button class="ll-row" aria-selected="true" data-state="live"><span class="ll-i ll-i-song ll-row__icon"></span><span class="ll-row__title">만복의 근원 하나님</span><span class="ll-badge ll-badge--live">LIVE</span></button></div><span class="ll-spec-label">출력 중, 고름</span></div>
-    <div class="ll-spec-item"><div class="pv-strip"><button class="ll-row" data-state="live"><span class="ll-i ll-i-song ll-row__icon"></span><span class="ll-row__title">만복의 근원 하나님</span><span class="ll-badge ll-badge--live">LIVE</span></button></div><span class="ll-spec-label">출력 중, 다른 줄을 고름</span></div>
-    <div class="ll-spec-item"><div class="pv-strip"><button class="ll-row" data-state="done"><span class="ll-i ll-i-song ll-row__icon"></span><span class="ll-row__title">이 세상 험하고</span></button></div><span class="ll-spec-label">지난 항목 (진행 화면)</span></div>
-    <div class="ll-spec-item"><div class="pv-strip"><button class="ll-row" aria-selected="true" data-state="live warning"><span class="ll-i ll-i-song ll-row__icon"></span><span class="ll-row__title">만복의 근원 하나님</span><span class="ll-i ll-i-14 ll-i-warning ll-row__warn" title="미디어 파일 없음"></span><span class="ll-badge ll-badge--live">LIVE</span></button></div><span class="ll-spec-label">미디어 파일 없음 + 출력 중</span></div>
-    <div class="ll-spec-item"><div class="pv-strip"><button class="ll-row" aria-pressed="true"><span class="ll-i ll-i-prop ll-row__icon"></span><span class="ll-row__title">로고 화면</span></button></div><span class="ll-spec-label">퀵 실행 켜짐 (화면에 나가는 중)</span></div>
-    <div class="ll-spec-item"><div class="pv-strip"><div class="ll-row"><span class="ll-row__slot"><span class="ll-i ll-i-song ll-row__icon"></span><span class="ll-row__title">찬양</span><span class="ll-row__slot-mark">빈 자리</span></span></div></div><span class="ll-spec-label">빈 자리</span></div>
+    <div class="ll-spec-item"><div class="pv-strip"><button class="ll-row" aria-selected="true" data-state="live"><span class="ll-i ll-i-song ll-row__icon"></span><span class="ll-row__title">만복의 근원 하나님</span><span class="ll-badge ll-badge--live">LIVE</span></button></div><span class="ll-spec-label">Live, selected</span></div>
+    <div class="ll-spec-item"><div class="pv-strip"><button class="ll-row" data-state="live"><span class="ll-i ll-i-song ll-row__icon"></span><span class="ll-row__title">만복의 근원 하나님</span><span class="ll-badge ll-badge--live">LIVE</span></button></div><span class="ll-spec-label">Live, another row selected</span></div>
+    <div class="ll-spec-item"><div class="pv-strip"><button class="ll-row" data-state="done"><span class="ll-i ll-i-song ll-row__icon"></span><span class="ll-row__title">이 세상 험하고</span></button></div><span class="ll-spec-label">Past item (진행)</span></div>
+    <div class="ll-spec-item"><div class="pv-strip"><button class="ll-row" aria-selected="true" data-state="live warning"><span class="ll-i ll-i-song ll-row__icon"></span><span class="ll-row__title">만복의 근원 하나님</span><span class="ll-i ll-i-14 ll-i-warning ll-row__warn" title="미디어 파일 없음"></span><span class="ll-badge ll-badge--live">LIVE</span></button></div><span class="ll-spec-label">Missing media file + live</span></div>
+    <div class="ll-spec-item"><div class="pv-strip"><button class="ll-row" aria-pressed="true"><span class="ll-i ll-i-prop ll-row__icon"></span><span class="ll-row__title">로고 화면</span></button></div><span class="ll-spec-label">퀵 실행 on (showing now)</span></div>
+    <div class="ll-spec-item"><div class="pv-strip"><div class="ll-row"><span class="ll-row__slot"><span class="ll-i ll-i-song ll-row__icon"></span><span class="ll-row__title">찬양</span><span class="ll-row__slot-mark">빈 자리</span></span></div></div><span class="ll-spec-label">Empty slot</span></div>
   </div>
 
-  <div class="ll-spec-title">패널 안 목록: 묶음 머리글 11px 600, 안쪽 10 14 5</div>
+  <div class="ll-spec-title">List in a panel: group header 11px 600, padding 10 14 5</div>
   <div class="pv-cols">
     <div class="ll-spec-item">
       <section class="ll-panel" style="width: 296px">
@@ -57,7 +57,7 @@
           <button class="ll-row" role="option"><span class="ll-i ll-i-slides ll-row__icon"></span><span class="ll-row__title">설교</span><span class="ll-row__meta">12장</span></button>
         </div>
       </section>
-      <span class="ll-spec-label">준비 화면 (개수)</span>
+      <span class="ll-spec-label">준비 (counts)</span>
     </div>
     <div class="ll-spec-item">
       <section class="ll-panel" style="width: 296px">
@@ -75,7 +75,7 @@
           <button class="ll-row"><span class="ll-i ll-i-slides ll-row__icon"></span><span class="ll-row__title">설교</span></button>
         </div>
       </section>
-      <span class="ll-spec-label">진행 화면 (지난 항목, 출력 중)</span>
+      <span class="ll-spec-label">진행 (past items, live)</span>
     </div>
     <div class="ll-spec-item">
       <section class="ll-panel" style="width: 296px">
@@ -90,11 +90,11 @@
           <button class="ll-row"><span class="ll-i ll-i-slides ll-row__icon"></span><span class="ll-row__title">축도</span></button>
         </div>
       </section>
-      <span class="ll-spec-label">퀵 실행 (로고 화면 켜짐, 검은 화면 마우스 올림)</span>
+      <span class="ll-spec-label">퀵 실행 (로고 화면 on, 검은 화면 hover)</span>
     </div>
   </div>
 
-  <div class="ll-spec-title">대화상자 안 목록: 두 줄 44px(왼쪽 고르기), 체크 줄 30px, 빈 자리</div>
+  <div class="ll-spec-title">List in a dialog: two lines 44px (left pick list), check row 30px, empty slot</div>
   <div class="pv-dialog" style="width: 820px; height: 340px">
     <div class="pv-aside">
       <div class="ll-rowlist--inset" role="listbox" aria-label="예배">
@@ -125,7 +125,7 @@
     </div>
   </div>
 
-  <div class="ll-spec-title">끌어 넣기: 넣을 자리 2px accent + 8px 고리 점, 끌고 있는 줄</div>
+  <div class="ll-spec-title">Drag and drop: drop position 2px accent + 8px ring dot, drag ghost row</div>
   <div class="ll-spec">
     <div class="ll-spec-item">
       <section class="ll-panel pv-rel" style="width: 296px">
@@ -142,7 +142,7 @@
         </div>
         <div class="ll-row ll-row--ghost pv-ghost" aria-hidden="true"><span class="ll-i ll-i-song ll-row__icon"></span><span class="ll-row__title">주 하나님 지으신 모든 세계</span><span class="ll-row__add"><span class="ll-i ll-i-12 ll-i-plus"></span></span></div>
       </section>
-      <span class="ll-spec-label">라이브러리에서 끌어 '내 주를 가까이 하게 함은' 다음에 넣기</span>
+      <span class="ll-spec-label">Dragged from the library, dropped after '내 주를 가까이 하게 함은'</span>
     </div>
     <div class="ll-spec-item">
       <section class="ll-panel" style="width: 296px">
@@ -157,7 +157,7 @@
           <button class="ll-row"><span class="ll-i ll-i-image ll-row__icon"></span><span class="ll-row__title">설교 이미지</span><span class="ll-row__meta">8</span></button>
         </div>
       </section>
-      <span class="ll-spec-label">미디어 목록</span>
+      <span class="ll-spec-label">Media list</span>
     </div>
   </div>
 

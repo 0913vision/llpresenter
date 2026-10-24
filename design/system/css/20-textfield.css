@@ -1,11 +1,11 @@
-/* 20 TextField: 한 줄 입력 칸(ll-field), 여러 줄 입력 칸(ll-textarea) */
+/* 20 TextField: single-line field (ll-field), multiline field (ll-textarea) */
 .ll-field {
   box-sizing: border-box; display: inline-flex; align-items: center; gap: var(--space-8);
   min-width: 0; height: var(--size-control-md); padding: 0 var(--space-10);
   border-radius: var(--radius-md); background: var(--bg-well); color: var(--text-3);
   font-family: var(--font-ui); font-size: 13px; line-height: 18px; vertical-align: middle;
 }
-/* 00-base의 `.ll-root input { font: inherit; color: inherit }`(0,1,1)보다 앞서도록 한 단 올린다 */
+/* Raised one level to beat `.ll-root input { font: inherit; color: inherit }` (0,1,1) in 00-base */
 .ll-field__input, :is(.ll-root, .ll-preview) .ll-field__input {
   flex: 1 1 auto; min-width: 0; width: 100%; height: 100%; margin: 0; padding: 0;
   border: 0; outline: none; background: transparent; color: var(--text);
@@ -15,28 +15,28 @@
 .ll-field__input:focus-visible { outline: none; }
 .ll-field__icon { flex: none; width: var(--size-icon-16); height: var(--size-icon-16); color: var(--text-3); }
 
-/* 크기 sm: 패널 머리글 안, 좁은 창의 퀵 실행, 팔레트 안. 툴바 검색 칸은 좁은 창에서도 md */
+/* sm: panel headers, 퀵 실행 in a narrow window, palettes. The toolbar search stays md even in a narrow window */
 .ll-field--sm { height: var(--size-control-sm); padding: 0 var(--space-8); gap: var(--space-6); font-size: 12px; line-height: 16px; }
 .ll-field--sm .ll-field__icon { width: var(--size-icon-14); height: var(--size-icon-14); }
 
-/* 칸을 채움(속성 칸, 대화상자 입력 줄) */
+/* Fills the cell (property fields, dialog input rows) */
 .ll-field--block { flex: 1 1 auto; width: 100%; }
 
-/* 바탕이 bg-app처럼 bg-well과 거의 같은 면 위(툴바 검색 칸) */
+/* On a surface almost the same as bg-well, such as bg-app (toolbar search) */
 .ll-field--ring { box-shadow: var(--ring-field); }
 
-/* 숫자 칸: 오른쪽 정렬, 단위는 칸 밖 */
+/* Number field. The unit sits outside the field */
 .ll-field--num { width: 96px; }
 .ll-field--num .ll-field__input { text-align: right; font-variant-numeric: tabular-nums; }
 .ll-field-unit { flex: none; font-size: 12px; line-height: 16px; color: var(--text-3); }
 
-/* 칸 안 앞 이름(구간 칸의 시작, 끝) */
+/* Prefix inside the field (start and end of a range field) */
 .ll-field__affix { flex: none; font-size: 11px; line-height: 14px; color: var(--text-3); }
 
-/* 제목 칸: 패널 머리글 안의 곡 제목(가져온 곡 편집) */
+/* Title field: song title in a panel header (imported song editing) */
 .ll-field--title { width: 280px; height: var(--size-control-sm); padding: 0 var(--space-8); font-size: 13px; line-height: 18px; font-weight: 600; }
 
-/* 지우기 단추: 값이 있을 때만 보인다 */
+/* Clear-text button: shows only when there is a value */
 .ll-field__clear, :is(.ll-root, .ll-preview) .ll-field__clear {
   box-sizing: border-box; flex: none; display: inline-flex; align-items: center; justify-content: center;
   width: var(--size-control-xs); height: var(--size-control-xs); margin: 0 calc(var(--space-6) * -1) 0 0; padding: 0;
@@ -49,7 +49,7 @@
 .ll-field--sm .ll-field__clear.ll-field__clear { width: 18px; height: 18px; margin-right: calc(var(--space-4) * -1); }
 .ll-field--sm .ll-field__clear .ll-i { width: var(--size-icon-12); height: var(--size-icon-12); }
 
-/* 상태: 포커스는 고리 대신 ring-field-focus, 오류는 ring-field-error(포커스보다 우선) */
+/* Focus uses ring-field-focus instead of an outline. The error ring wins over focus */
 .ll-field:focus-within, .ll-field.is-focus { box-shadow: var(--ring-field-focus); }
 .ll-preview .ll-field.is-focus { outline: none; }
 .ll-field:has(> .ll-field__input[aria-invalid="true"]) { box-shadow: var(--ring-field-error); }
@@ -57,7 +57,7 @@
 .ll-field__input:disabled { color: var(--text-off); }
 .ll-field__input:disabled::placeholder { color: var(--text-off); }
 
-/* 여러 줄 입력 칸(메모) */
+/* Multiline field (notes) */
 .ll-textarea {
   box-sizing: border-box; display: block; width: 100%; min-height: 72px; margin: 0; padding: var(--space-8) var(--space-10);
   border: 0; outline: none; border-radius: var(--radius-md); background: var(--bg-well); color: var(--text);
