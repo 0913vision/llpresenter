@@ -1028,8 +1028,8 @@ If the user accepts this proposal:
   question 2).
 - Spec: update 02, 03, 04, and 06 as "What this proposal would replace" says,
   and move the answered README open questions.
-- Code (phase 4): the command registry and key matcher in `src/shared/`, which
-  the lead owns.
+- Code: the command registry and key matcher in `src/shared/`, built by the
+  member whose brief allows that shared change.
 
 ## Open questions
 

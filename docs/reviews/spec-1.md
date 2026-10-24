@@ -2,7 +2,8 @@
 
 - Team member: `spec`
 - Branch: `docs/spec/shortcuts-settings`
-- Base commit (`main`): `8b623b3`
+- Base commit (`main`): `18c9943`
+- Shared files changed: none
 - Last commit: see the commit that adds this file
 - Related brief: `docs/briefs/spec.md` (as widened in b510a3e)
 
@@ -70,7 +71,9 @@ EasyWorship, and OBS serve as evidence, not as the template.
 
 ## Checks run
 
-On the rebased branch (base `8b623b3`), after `npm ci`:
+On the branch rebased onto `8b623b3`, after `npm ci`. The later rebase onto
+`18c9943` brought in documents only (`CLAUDE.md`, `docs/`), so these results
+still hold:
 
 | Command or test           | Result                                                                                                                        |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
@@ -87,8 +90,9 @@ The failing test is "the lint config > reports a floating promise". Its first
 `npx vitest run scripts/lint/config.test.ts`, the file took 142 s and the same
 case timed out. The computer was shared by about 49 node, Electron, and Claude
 processes at 51% CPU load. This branch changes only Markdown files, so the
-failure comes from `main` on a loaded computer, not from this change. I asked
-the lead how to proceed before sending this request.
+failure comes from `main` on a loaded computer, not from this change. The lead
+confirmed it's a known defect that devops is fixing, and that a verify run whose
+only failure is this test counts as passing while the review file says so.
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
@@ -145,8 +149,8 @@ most likely to draw comments:
 ## Shared contract change requests
 
 None now. If the user accepts the proposal, the command registry and the key
-matcher belong in `src/shared/` (lead-owned), and 02 needs the field changes in
-"Storage changes for 02".
+matcher belong in `src/shared/` (a shared change that a member's brief must
+allow), and 02 needs the field changes in "Storage changes for 02".
 
 ## Where to look
 
