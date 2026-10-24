@@ -1,4 +1,4 @@
-import {app, ipcMain} from 'electron';
+import {ipcMain} from 'electron';
 import {Channels} from '@shared/ipc';
 import type {Logger} from '../log';
 import {fileIo} from './fileIo';
@@ -12,7 +12,8 @@ export interface UiStateRegistration {
 /**
  * Reads `app.json` and registers the UI state channels (`ui:get` and
  * `ui:layout:set`). Call it before the control window opens, so that the
- * window finds its state. Pending changes are written before the app quits.
+ * window finds its state. The app's shutdown calls `dispose()` to write the
+ * pending changes before it quits.
  *
  * @param file - The path of `app.json`.
  */
@@ -27,27 +28,12 @@ export async function registerUiState(
     store.setLayout(value),
   );
 
-  let flushedBeforeQuit = false;
-  const onBeforeQuit = (event: Electron.Event): void => {
-    if (flushedBeforeQuit) return;
-    event.preventDefault();
-    store
-      .flush()
-      .catch((error: unknown) => log.error('could not save app.json', error))
-      .finally(() => {
-        flushedBeforeQuit = true;
-        app.quit();
-      });
-  };
-  app.on('before-quit', onBeforeQuit);
-
   return {
     dispose: async () => {
       ipcMain.removeHandler(Channels.uiGet);
       ipcMain.removeAllListeners(Channels.uiLayoutSet);
       store.dispose();
       await store.flush();
-      app.removeListener('before-quit', onBeforeQuit);
     },
   };
 }

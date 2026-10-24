@@ -10,17 +10,9 @@ type Handler = (event: unknown, value?: unknown) => unknown;
 const handlers = vi.hoisted(() => ({
   handle: new Map<string, Handler>(),
   on: new Map<string, Handler>(),
-  appListeners: new Map<string, (event: Event) => void>(),
-  quit: vi.fn(),
 }));
 
 vi.mock('electron', () => ({
-  app: {
-    on: (name: string, listener: (event: Event) => void) =>
-      handlers.appListeners.set(name, listener),
-    removeListener: (name: string) => handlers.appListeners.delete(name),
-    quit: handlers.quit,
-  },
   ipcMain: {
     handle: (channel: string, handler: Handler) =>
       handlers.handle.set(channel, handler),
@@ -51,8 +43,6 @@ beforeEach(async () => {
 afterEach(async () => {
   handlers.handle.clear();
   handlers.on.clear();
-  handlers.appListeners.clear();
-  handlers.quit.mockClear();
   await rm(dir, {recursive: true, force: true});
 });
 
@@ -105,30 +95,5 @@ describe('registerUiState', () => {
     );
     await registration.dispose();
     expect(await readFile(file, 'utf8')).toBe('{ broken');
-  });
-
-  it('writes pending changes before the app quits and then quits again', async () => {
-    await registerUiState(file, log);
-    handlers.on.get(Channels.uiLayoutSet)?.(
-      {},
-      {sizeClass: 'narrow', left: 220, right: 360},
-    );
-    const quitting = new Event('before-quit', {cancelable: true});
-    handlers.appListeners.get('before-quit')?.(quitting);
-    expect(quitting.defaultPrevented).toBe(true);
-    await vi.waitFor(() => expect(handlers.quit).toHaveBeenCalledTimes(1));
-    expect(JSON.parse(await readFile(file, 'utf8'))).toMatchObject({
-      layout: {narrow: {left: 220, right: 360}},
-    });
-
-    const second = new Event('before-quit', {cancelable: true});
-    handlers.appListeners.get('before-quit')?.(second);
-    expect(second.defaultPrevented).toBe(false);
-  });
-
-  it('stops listening for the quit when it is disposed', async () => {
-    const registration = await registerUiState(file, log);
-    await registration.dispose();
-    expect(handlers.appListeners.has('before-quit')).toBe(false);
   });
 });
