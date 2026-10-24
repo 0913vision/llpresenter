@@ -101,3 +101,12 @@ both versions, so they show the tiny program alone, under 74 to 100% CPU.
 2.  The compile cache is per checkout, under `node_modules`, rather than Node's
     default in the system temp folder. That way the sessions' caches don't mix,
     and `npm ci` resets the cache.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (a863a39): lead Approve, and the lead confirms decisions 1 and 2 (the
+  180 s setup timeout stays; the compile cache lives under `node_modules` per
+  checkout). The npm `overrides` entry for eslint-plugin-tsdoc is approved, to
+  be removed when the plugin updates its pin. Reviewer (Codex, codex2) Approve,
+  no findings. Rebased by the lead onto `main` 1a90661; the lockfile conflict
+  was resolved with `main`'s `package-lock.json` and `npm install`.
