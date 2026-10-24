@@ -64,6 +64,8 @@ describe('parseAppConfig', () => {
   });
 
   it.each([
+    ['a layout that is an array', {layout: []}, 'layout'],
+    ['a size class that is an array', {layout: {normal: []}}, 'layout.normal'],
     ['a negative width', {layout: {normal: {left: -1}}}, 'layout.normal.left'],
     [
       'a width that is text',

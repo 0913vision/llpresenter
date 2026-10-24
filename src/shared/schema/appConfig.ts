@@ -10,9 +10,14 @@ import {
 } from './fileFormat';
 import {macroCollectionIdSchema, screenIdSchema, serviceIdSchema} from './ids';
 import type {MigrationStep} from './migration';
-import {nonNegativeNumber, positiveInteger, timestamp} from './primitives';
+import {
+  jsonObject,
+  nonNegativeNumber,
+  positiveInteger,
+  timestamp,
+} from './primitives';
 
-const columnLayoutSchema = v.looseObject({
+const columnLayoutSchema = jsonObject({
   left: v.exactOptional(nonNegativeNumber),
   right: v.exactOptional(nonNegativeNumber),
   columns: v.exactOptional(positiveInteger),
@@ -20,7 +25,7 @@ const columnLayoutSchema = v.looseObject({
 
 const sizeClassLayout = v.exactOptional(columnLayoutSchema);
 
-const appConfigSchema = v.looseObject({
+const appConfigSchema = jsonObject({
   format: v.literal('llapp'),
   schemaVersion: positiveInteger,
   dataRoot: v.exactOptional(v.string()),
@@ -29,7 +34,7 @@ const appConfigSchema = v.looseObject({
   backupPath: v.exactOptional(v.string()),
   lastServiceId: v.exactOptional(serviceIdSchema),
   layout: v.exactOptional(
-    v.looseObject({
+    jsonObject({
       narrow: sizeClassLayout,
       normal: sizeClassLayout,
       wide: sizeClassLayout,

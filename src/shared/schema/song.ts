@@ -12,6 +12,7 @@ import {mediaIdSchema, songIdSchema} from './ids';
 import type {MigrationStep} from './migration';
 import {
   isFirstWithKey,
+  jsonObject,
   nonBlankText,
   positiveInteger,
   timestamp,
@@ -20,12 +21,12 @@ import {
 /** The name of the default 구성. It is never stored, so no 구성 may use it. */
 export const DEFAULT_ARRANGEMENT_NAME = '기본';
 
-const slideSchema = v.looseObject({
+const slideSchema = jsonObject({
   label: v.exactOptional(v.string()),
   lines: v.array(v.string()),
 });
 
-const arrangementSchema = v.looseObject({
+const arrangementSchema = jsonObject({
   name: v.pipe(
     nonBlankText,
     v.notValue(
@@ -46,7 +47,7 @@ const arrangementsSchema = v.pipe(
 );
 
 const songSchema = v.pipe(
-  v.looseObject({
+  jsonObject({
     format: v.literal('llsong'),
     schemaVersion: positiveInteger,
     id: songIdSchema,

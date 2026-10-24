@@ -4,6 +4,7 @@ const LOCAL_DATE_TIME =
   /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])T([01]\d|2[0-3]):[0-5]\d$/;
 const TIME_OF_DAY = /^([01]\d|2[0-3]):[0-5]\d$/;
 const DATE_LENGTH = 'YYYY-MM-DD'.length;
+const NOT_AN_OBJECT = 'Invalid type: Expected Object';
 
 export const positiveInteger = v.pipe(v.number(), v.integer(), v.minValue(1));
 
@@ -57,4 +58,22 @@ function isCalendarDate(dateTime: string): boolean {
   return (
     !Number.isNaN(parsed.getTime()) && parsed.toISOString().startsWith(date)
   );
+}
+
+/**
+ * A JSON object with these fields that keeps unknown fields. Unlike
+ * `v.looseObject` alone, it rejects an array, which would otherwise pass and
+ * turn into an object.
+ */
+export function jsonObject<TEntries extends v.ObjectEntries>(
+  entries: TEntries,
+) {
+  return v.pipe(
+    v.custom<Readonly<Record<string, unknown>>>(isJsonObject, NOT_AN_OBJECT),
+    v.looseObject(entries),
+  );
+}
+
+function isJsonObject(input: unknown): boolean {
+  return typeof input === 'object' && input !== null && !Array.isArray(input);
 }

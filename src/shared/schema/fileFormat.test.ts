@@ -3,17 +3,17 @@ import {describe, expect, it} from 'vitest';
 import {isRecord} from '../guards';
 import {parseFile, serializeFile, type FileFormat} from './fileFormat';
 import type {MigrationStep} from './migration';
-import {positiveInteger} from './primitives';
+import {jsonObject, positiveInteger} from './primitives';
 import {expectFailure, expectSuccess, TestRandom} from './testHelpers';
 
 const FILE = 'notes/note.json';
 const RANDOM_TEXTS = 500;
 
-const noteSchema = v.looseObject({
+const noteSchema = jsonObject({
   format: v.literal('llnote'),
   schemaVersion: positiveInteger,
   text: v.string(),
-  meta: v.exactOptional(v.looseObject({author: v.string()})),
+  meta: v.exactOptional(jsonObject({author: v.string()})),
 });
 
 const renameBodyToText: MigrationStep = ({body, ...rest}) => ({
@@ -62,6 +62,38 @@ describe('parseFile', () => {
       meta: {author: 'a', color: 'teal'},
       future: [1, 2],
     });
+  });
+
+  it('keeps unknown keys named __proto__, prototype, and constructor', () => {
+    const text =
+      '{"format":"llnote","schemaVersion":2,"__proto__":{"x":1},' +
+      '"text":"hi","prototype":2,' +
+      '"meta":{"author":"a","constructor":3,"__proto__":{"y":2}}}';
+
+    const loaded = expectSuccess(parseFile(noteFormat, text, FILE));
+    const written = expectSuccess(serializeFile(noteFormat, loaded.data, FILE));
+
+    const knownFirst: unknown = JSON.parse(
+      '{"format":"llnote","schemaVersion":2,"text":"hi",' +
+        '"meta":{"author":"a","constructor":3,"__proto__":{"y":2}},' +
+        '"__proto__":{"x":1},"prototype":2}',
+    );
+    expect(written).toBe(`${JSON.stringify(knownFirst, null, 2)}
+`);
+    expect(Object.getPrototypeOf(loaded.data)).toBe(Object.prototype);
+  });
+
+  it.each([
+    ['the root', '[]', 'format'],
+    [
+      'a nested object',
+      '{"format":"llnote","schemaVersion":2,"text":"hi","meta":[]}',
+      'meta',
+    ],
+  ])('rejects an array as %s', (_name, text, kind) => {
+    const error = expectFailure(parseFile(noteFormat, text, FILE));
+
+    expect(error.kind === 'format' ? 'format' : error.field).toBe(kind);
   });
 
   it('migrates an older file and reports the version it had', () => {

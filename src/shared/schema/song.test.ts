@@ -93,6 +93,23 @@ describe('parseSong', () => {
     expect(JSON.parse(written)).toEqual(withUnknown);
   });
 
+  it('keeps unknown keys named __proto__, prototype, and constructor', () => {
+    const text = JSON.stringify(hymnOne())
+      .replace('{"format"', '{"__proto__":{"a":1},"format"')
+      .replace('"lines":["아멘"]', '"lines":["아멘"],"constructor":2')
+      .replace('"slides":[1,3]', '"slides":[1,3],"prototype":3');
+
+    const song = expectSuccess(parseSong(text, FILE)).data;
+    const written = expectSuccess(serializeSong(song, FILE));
+    const reread = expectSuccess(parseSong(written, FILE)).data;
+
+    for (const key of ['"__proto__"', '"constructor"', '"prototype"']) {
+      expect(written).toContain(key);
+    }
+    expect(JSON.stringify(reread)).toBe(JSON.stringify(song));
+    expect(Object.getPrototypeOf(song)).toBe(Object.prototype);
+  });
+
   it.each([
     ['an uppercase id', {id: SONG_ID.toUpperCase()}, 'id'],
     [
@@ -103,6 +120,7 @@ describe('parseSong', () => {
     ['an empty title', {title: ''}, 'title'],
     ['a blank title', {title: '   '}, 'title'],
     ['no slides', {slides: []}, 'slides'],
+    ['a slide that is an array', {slides: [[]]}, 'slides.0'],
     [
       'a line that is not text',
       {slides: [{lines: ['아멘', 3]}]},

@@ -21,6 +21,7 @@ import {
 import type {MigrationStep} from './migration';
 import {
   isFirstWithKey,
+  jsonObject,
   localDateTime,
   nonBlankText,
   positiveInteger,
@@ -50,7 +51,7 @@ const startFields = {
   memo: v.exactOptional(v.string()),
 };
 
-const biblePassageSchema = v.looseObject({
+const biblePassageSchema = jsonObject({
   translation: translationIdSchema,
   ref: nonBlankText,
   split: v.picklist(['verse', 'two', 'fit']),
@@ -60,33 +61,33 @@ const biblePassageSchema = v.looseObject({
 });
 
 const itemSchemas = {
-  header: v.looseObject({...itemFields, header: v.string()}),
-  song: v.looseObject({
+  header: jsonObject({...itemFields, header: v.string()}),
+  song: jsonObject({
     ...itemFields,
     song: songIdSchema,
     arrangement: v.exactOptional(v.string()),
     background: v.exactOptional(mediaIdSchema),
     ...startFields,
   }),
-  slot: v.looseObject({
+  slot: jsonObject({
     ...itemFields,
     slot: v.picklist(slotKinds),
     title: v.string(),
   }),
-  bible: v.looseObject({
+  bible: jsonObject({
     ...itemFields,
     bible: biblePassageSchema,
     ...startFields,
   }),
-  media: v.looseObject({...itemFields, media: mediaIdSchema, ...startFields}),
-  notice: v.looseObject({
+  media: jsonObject({...itemFields, media: mediaIdSchema, ...startFields}),
+  notice: jsonObject({
     ...itemFields,
     notice: noticeSetIdSchema,
     ...startFields,
   }),
 };
 
-const unknownItemSchema = v.looseObject(itemFields);
+const unknownItemSchema = jsonObject(itemFields);
 
 const mixedItemSchema = v.never('An item has more than one kind key');
 
@@ -100,7 +101,7 @@ const orderSchema = v.pipe(
   ),
 );
 
-const serviceSchema = v.looseObject({
+const serviceSchema = jsonObject({
   format: v.literal(SERVICE_FORMAT),
   schemaVersion: positiveInteger,
   id: serviceIdSchema,
@@ -109,7 +110,7 @@ const serviceSchema = v.looseObject({
   order: orderSchema,
 });
 
-const templateSchema = v.looseObject({
+const templateSchema = jsonObject({
   format: v.literal(SERVICE_FORMAT),
   schemaVersion: positiveInteger,
   id: templateIdSchema,

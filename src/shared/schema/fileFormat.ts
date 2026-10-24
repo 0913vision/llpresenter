@@ -1,7 +1,8 @@
 import * as v from 'valibot';
 import type {Result} from '../result';
 import {currentVersion, migrate, type MigrationStep} from './migration';
-import {positiveInteger} from './primitives';
+import {jsonObject, positiveInteger} from './primitives';
+import {escapeKeys, restoreKeyPath, restoreKeys} from './safeKeys';
 
 /**
  * Why a file couldn't be read or written. `json`: the text isn't JSON.
@@ -67,7 +68,7 @@ interface Header {
 
 const BYTE_ORDER_MARK = '\uFEFF';
 const JSON_INDENT = 2;
-const versionSchema = v.looseObject({schemaVersion: positiveInteger});
+const versionSchema = jsonObject({schemaVersion: positiveInteger});
 
 /**
  * Reads a file's text: JSON, then the header, then migration, then the schema.
@@ -156,7 +157,7 @@ function parseJson(text: string): Result<unknown, Problem> {
 
 function readHeader(json: unknown, format: string): Result<Header, Problem> {
   const formatCheck = check(
-    v.looseObject({format: v.literal(format)}),
+    jsonObject({format: v.literal(format)}),
     json,
     'format',
   );
@@ -211,14 +212,15 @@ function check<TSchema extends v.GenericSchema>(
   input: unknown,
   kind: FileErrorKind,
 ): Result<v.InferOutput<TSchema>, Problem> {
-  const result = v.safeParse(schema, input, {abortEarly: true});
+  const result = v.safeParse(schema, escapeKeys(input), {abortEarly: true});
   if (result.success) {
+    restoreKeys(result.output);
     return succeed(result.output);
   }
   const [issue] = result.issues;
   return fail({
     kind,
-    field: v.getDotPath(issue) ?? '',
+    field: restoreKeyPath(v.getDotPath(issue) ?? ''),
     message: issue.message,
   });
 }
