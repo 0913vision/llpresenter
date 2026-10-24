@@ -1,0 +1,116 @@
+.select {
+  --select-media-width: 36px;
+  --select-lead-height: 20px;
+
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  max-width: 100%;
+  height: var(--size-control-md);
+  padding: 0 var(--space-8) 0 var(--space-10);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--bg-control);
+  color: var(--text);
+  font: var(--type-body);
+  text-align: left;
+  white-space: nowrap;
+  vertical-align: middle;
+  user-select: none;
+  transition: background-color var(--motion-hover);
+}
+
+.sm {
+  height: var(--size-control-sm);
+  padding: 0 var(--space-6) 0 var(--space-8);
+  font: var(--type-label);
+}
+
+.block {
+  display: flex;
+  width: 100%;
+}
+
+.withImage {
+  padding-left: calc((var(--size-control-md) - var(--select-lead-height)) / 2);
+}
+
+.sm.withImage {
+  padding-left: calc((var(--size-control-sm) - var(--select-lead-height)) / 2);
+}
+
+.value {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.numeric {
+  font-variant-numeric: tabular-nums;
+}
+
+.meta {
+  flex: none;
+  margin-left: var(--space-8);
+  color: var(--text-2);
+  font: var(--type-label);
+}
+
+.sm .meta {
+  font: var(--type-caption);
+}
+
+.chevron {
+  margin-left: var(--space-8);
+  color: var(--text-3);
+}
+
+.icon {
+  margin-right: var(--space-8);
+  color: var(--text-2);
+}
+
+.sm .icon {
+  margin-right: var(--space-6);
+}
+
+.media {
+  display: block;
+  flex: none;
+  width: var(--select-media-width);
+  height: var(--select-lead-height);
+  margin-right: var(--space-8);
+  border-radius: var(--radius-xs);
+  background: var(--output-black);
+  object-fit: cover;
+}
+
+.tile {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--select-lead-height);
+  height: var(--select-lead-height);
+  margin-right: var(--space-8);
+  border-radius: var(--radius-md);
+  color: var(--text-on-label);
+}
+
+.tile[data-color='none'] {
+  color: var(--label-gray);
+}
+
+.select:not([aria-disabled='true']):is(
+    :hover,
+    :active,
+    [aria-expanded='true']
+  ) {
+  background: var(--bg-control-hover);
+}
+
+.select[aria-disabled='true'],
+.select[aria-disabled='true'] :is(.icon, .meta, .chevron) {
+  color: var(--text-off);
+}
