@@ -2,7 +2,7 @@
 
 - Team member: `shell`
 - Branch: `feat/shell/ui-state-ipc`
-- Base commit (`main`): `b9392d0` (it has data-5)
+- Base commit (`main`): `814781b`
 - Last commit: see the commit that adds this file
 - Related brief: the lead's queue (the UI state IPC and the `app.json` store for
   the column widths)
@@ -194,3 +194,6 @@ Round 1 (codex4), answered once:
    cannot be made").
 4. Finding 4 (later): when data-7 lands, I switch `src/main/uiState` to its
    writer in a small follow-up, as the lead said.
+5. Round 2: rebased onto `main` 814781b without conflicts. `npm run verify` on
+   commit `bd7036f` passed all five steps in 207.1 s: `typecheck`, `lint`,
+   `format:check`, `test:coverage`, and `build`.
