@@ -29,6 +29,12 @@ export interface ProcessSample {
   readonly privateKb: number;
 }
 
+/** One output screen's last frame rate in a record line. */
+export interface OutputFrameRate {
+  readonly screen: string;
+  readonly fps: number;
+}
+
 /** What the soak runner asked for through the environment. */
 export interface SoakSettings {
   readonly recordPath: string;
@@ -143,14 +149,13 @@ export function processSamples(
 export function sampleLine(
   elapsedMs: number,
   processes: readonly ProcessSample[],
+  outputs: readonly OutputFrameRate[],
 ): string {
   return JSON.stringify({
     v: SOAK_RECORD_VERSION,
     elapsedMs: Math.round(elapsedMs),
     processes,
-    // TODO(0913vision): Add each output window's frame rate once output
-    // windows measure it (M2, output).
-    outputs: [],
+    outputs,
   });
 }
 

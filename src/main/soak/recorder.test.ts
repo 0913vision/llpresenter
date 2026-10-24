@@ -153,10 +153,11 @@ describe('processSamples', () => {
 describe('sampleLine', () => {
   it('writes a line that the soak runner reads back unchanged', () => {
     const processes = processSamples([metric('Browser', 10)], () => null);
-    const line = sampleLine(10_000.4, processes);
+    const outputs = [{screen: 'main', fps: 59.8}];
+    const line = sampleLine(10_000.4, processes, outputs);
     expect(parseSample(JSON.parse(line))).toEqual({
       ok: true,
-      value: {elapsedMs: 10_000, processes, outputs: []},
+      value: {elapsedMs: 10_000, processes, outputs},
     });
   });
 });
