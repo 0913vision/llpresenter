@@ -166,3 +166,28 @@ missing.
    `SequenceState` and the skip rules) is removed, not hidden behind a flag.
 2. Lead answer 3: `SlideTile.labelColor` is now `LabelColor` from
    `@shared/colors`, with `none` for no color.
+
+Replies to Codex round 1 (2553a74), findings 2 to 4:
+
+3. Finding 2 (focus in the 예배 순서 list): fixed with roving focus. The rows
+   are buttons with one tab stop (the open item, or the first row when none is
+   open), and after an arrow key, Home, or End the list moves focus to the new
+   row when the list had focus. A change of the selection from elsewhere does
+   not take focus. Tests: "keeps one tab stop, on the first row until an item is
+   open", "moves focus with the arrow keys so that Enter acts on the focused
+   row", and "does not take focus when the selection changes from elsewhere" in
+   `ShowPanels.test.tsx`. The 장 grid already moved focus; a test now covers it
+   ("moves focus with the arrow keys").
+4. Finding 3 (lyrics size): fixed. The canvas is the full-width query container
+   again, and the 10% side padding sits on the text layer, so `4.4cqw` is 4.4%
+   of the canvas width as the design system says. CSS cannot be unit tested
+   here; I checked the computed sizes in the running app (see below).
+5. Finding 4 (re-rendering): `Row` and `Thumbnail` are memoized and `onOutput`
+   is stable (it changes only with the open item). Test: "re-renders only the
+   rows whose state changed" counts the row renders after a selection change.
+   There is no equivalent unit test for the grid, because its thumbnail has no
+   child component to count; the memoization is the same pattern.
+6. Running app after these fixes (1920x1080, a 270 px wide thumbnail): the
+   lyrics are `11.88px`, which is exactly 4.4% of the canvas width, the canvas
+   has no padding, and after a click and the down arrow in the list, the focus
+   and the selection were both on the next row.

@@ -1,4 +1,11 @@
-import {useEffect, useRef, type JSX, type KeyboardEvent} from 'react';
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useRef,
+  type JSX,
+  type KeyboardEvent,
+} from 'react';
 import {moveTile, outputTile, useShow} from '@renderer/state/show';
 import {useLive} from '@renderer/state/live';
 import type {ItemId, SlideTile} from './model';
@@ -19,42 +26,44 @@ function useLiveIndex(itemId: ItemId | null): number | null {
   });
 }
 
-function Thumbnail({
-  tile,
-  index,
-  selected,
-  live,
-  onOutput,
-}: {
-  readonly tile: SlideTile;
-  readonly index: number;
-  readonly selected: boolean;
-  readonly live: boolean;
-  readonly onOutput: (index: number) => void;
-}): JSX.Element {
-  const number = index + 1;
-  return (
-    <button
-      type="button"
-      role="option"
-      tabIndex={selected ? 0 : -1}
-      aria-selected={selected}
-      aria-label={`${number} ${tile.label ?? ''} ${tile.lines[0] ?? ''}`.trim()}
-      data-state={live ? 'live' : undefined}
-      data-color={tile.labelColor === 'none' ? undefined : tile.labelColor}
-      className={styles.thumb}
-      onClick={() => onOutput(index)}
-    >
-      <span className={styles.canvas}>
-        <span className={styles.text}>{tile.lines.join('\n')}</span>
-      </span>
-      <span className={styles.band}>
-        <span className={styles.number}>{number}</span>
-        <span className={styles.label}>{tile.label}</span>
-      </span>
-    </button>
-  );
-}
+const Thumbnail = memo(
+  ({
+    tile,
+    index,
+    selected,
+    live,
+    onOutput,
+  }: {
+    readonly tile: SlideTile;
+    readonly index: number;
+    readonly selected: boolean;
+    readonly live: boolean;
+    readonly onOutput: (index: number) => void;
+  }): JSX.Element => {
+    const number = index + 1;
+    return (
+      <button
+        type="button"
+        role="option"
+        tabIndex={selected ? 0 : -1}
+        aria-selected={selected}
+        aria-label={`${number} ${tile.label ?? ''} ${tile.lines[0] ?? ''}`.trim()}
+        data-state={live ? 'live' : undefined}
+        data-color={tile.labelColor === 'none' ? undefined : tile.labelColor}
+        className={styles.thumb}
+        onClick={() => onOutput(index)}
+      >
+        <span className={styles.canvas}>
+          <span className={styles.text}>{tile.lines.join('\n')}</span>
+        </span>
+        <span className={styles.band}>
+          <span className={styles.number}>{number}</span>
+          <span className={styles.label}>{tile.label}</span>
+        </span>
+      </button>
+    );
+  },
+);
 
 /** The 장 grid of the open item. A click outputs a tile. */
 export function SlideGrid({columns}: {readonly columns: number}): JSX.Element {
@@ -79,9 +88,12 @@ export function SlideGrid({columns}: {readonly columns: number}): JSX.Element {
     moveTile(key, columns);
   };
 
-  const onOutput = (index: number): void => {
-    if (openItemId !== null) outputTile({itemId: openItemId, index});
-  };
+  const onOutput = useCallback(
+    (index: number): void => {
+      if (openItemId !== null) outputTile({itemId: openItemId, index});
+    },
+    [openItemId],
+  );
 
   return (
     <div

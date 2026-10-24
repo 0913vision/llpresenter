@@ -39,12 +39,14 @@
   align-items: center;
   justify-content: center;
   aspect-ratio: 16 / 9;
-  padding: 0 10%;
   background: var(--output-black);
   container-type: inline-size;
 }
 
 .text {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0 10%;
   color: var(--text-on-fill);
   font-family: var(--font-ui);
   font-size: 4.4cqw;

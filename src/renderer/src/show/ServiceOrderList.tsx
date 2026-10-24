@@ -1,8 +1,8 @@
-import type {JSX, KeyboardEvent} from 'react';
+import {memo, useEffect, useRef, type JSX, type KeyboardEvent} from 'react';
 import {Icon} from '@renderer/ui/Icon';
 import {moveRow, openItem, useShow} from '@renderer/state/show';
 import {useLive} from '@renderer/state/live';
-import type {ItemKind, ServiceRow} from './model';
+import {isItemRow, type ItemKind, type ServiceRow} from './model';
 import type {RowKey} from './navigation';
 import styles from './ServiceOrderList.module.css';
 
@@ -25,40 +25,52 @@ function useLiveItemId(): string | null {
   return useLive(view => view.state?.layers.slide?.itemId ?? null);
 }
 
-function Row({
-  row,
-  selected,
-  live,
-}: {
-  readonly row: ServiceRow;
-  readonly selected: boolean;
-  readonly live: boolean;
-}): JSX.Element {
-  if (row.kind === 'header') {
-    return <div className={styles.group}>{row.title}</div>;
-  }
-  return (
-    <button
-      type="button"
-      role="option"
-      tabIndex={-1}
-      aria-selected={selected}
-      data-state={live ? 'live' : undefined}
-      className={styles.row}
-      onClick={() => openItem(row.id)}
-    >
-      <Icon name={iconByKind[row.kind]} size={16} className={styles.icon} />
-      <span className={styles.title}>{row.title}</span>
-      {live ? <span className={styles.badge}>LIVE</span> : null}
-    </button>
-  );
-}
+const Row = memo(
+  ({
+    row,
+    selected,
+    tabStop,
+    live,
+  }: {
+    readonly row: ServiceRow;
+    readonly selected: boolean;
+    readonly tabStop: boolean;
+    readonly live: boolean;
+  }): JSX.Element => {
+    if (row.kind === 'header') {
+      return <div className={styles.group}>{row.title}</div>;
+    }
+    return (
+      <button
+        type="button"
+        role="option"
+        tabIndex={tabStop ? 0 : -1}
+        aria-selected={selected}
+        data-state={live ? 'live' : undefined}
+        className={styles.row}
+        onClick={() => openItem(row.id)}
+      >
+        <Icon name={iconByKind[row.kind]} size={16} className={styles.icon} />
+        <span className={styles.title}>{row.title}</span>
+        {live ? <span className={styles.badge}>LIVE</span> : null}
+      </button>
+    );
+  },
+);
 
 /** The 예배 순서 list of the 진행 workspace. */
 export function ServiceOrderList(): JSX.Element {
   const rows = useShow(view => view.rows);
   const openItemId = useShow(view => view.openItemId);
   const liveItemId = useLiveItemId();
+  const listRef = useRef<HTMLDivElement>(null);
+  const tabStopId = openItemId ?? rows.find(isItemRow)?.id ?? null;
+
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list?.contains(document.activeElement)) return;
+    list.querySelector<HTMLElement>('[tabindex="0"]')?.focus();
+  }, [openItemId]);
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
     const key = rowKeys[event.key];
@@ -69,9 +81,9 @@ export function ServiceOrderList(): JSX.Element {
 
   return (
     <div
+      ref={listRef}
       role="listbox"
       aria-label="예배 순서"
-      tabIndex={0}
       className={styles.list}
       onKeyDown={onKeyDown}
     >
@@ -80,6 +92,7 @@ export function ServiceOrderList(): JSX.Element {
           key={row.id}
           row={row}
           selected={row.id === openItemId}
+          tabStop={row.id === tabStopId}
           live={row.id === liveItemId}
         />
       ))}

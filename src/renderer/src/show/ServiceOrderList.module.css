@@ -1,11 +1,5 @@
 .list {
   padding: var(--space-4) 0 var(--space-8);
-  outline: none;
-}
-
-.list:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
 }
 
 .group {
@@ -28,6 +22,11 @@
   text-align: left;
   cursor: pointer;
   transition: background var(--motion-hover);
+}
+
+.row:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 
 .row:hover {

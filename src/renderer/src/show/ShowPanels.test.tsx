@@ -1,5 +1,5 @@
 import {cleanup, fireEvent, render, screen} from '@testing-library/react';
-import {afterEach, beforeEach, describe, expect, it} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@shared/commands';
 import {emptyLiveState} from '@shared/live';
 import type {LlpApi} from '@shared/ipc';
@@ -47,6 +47,15 @@ afterEach(() => {
   delete window.llp;
 });
 
+const iconRenders = vi.hoisted(() => ({count: 0}));
+
+vi.mock('@renderer/ui/Icon', () => ({
+  Icon: () => {
+    iconRenders.count += 1;
+    return null;
+  },
+}));
+
 describe('ServiceOrderList', () => {
   it('shows headers as text and items as options', () => {
     render(<ServiceOrderList />);
@@ -78,6 +87,46 @@ describe('ServiceOrderList', () => {
     const live = screen.getByRole('option', {name: /맑은 시냇물/});
     expect(live.textContent).toContain('LIVE');
     expect(screen.getAllByText('LIVE')).toHaveLength(1);
+  });
+
+  it('keeps one tab stop, on the first row until an item is open', () => {
+    render(<ServiceOrderList />);
+    const stops = screen
+      .getAllByRole('option')
+      .filter(option => option.tabIndex === 0);
+    expect(stops).toHaveLength(1);
+    expect(stops[0]?.textContent).toContain('예배 전 카운트다운');
+  });
+
+  it('moves focus with the arrow keys so that Enter acts on the focused row', () => {
+    render(<ServiceOrderList />);
+    const first = screen.getByRole('option', {name: /아침이 밝아 오네/});
+    fireEvent.click(first);
+    first.focus();
+    const list = screen.getByRole('listbox', {name: '예배 순서'});
+    fireEvent.keyDown(first, {key: 'ArrowDown'});
+    const second = screen.getByRole('option', {name: /맑은 시냇물/});
+    expect(useShow.getState().openItemId).toBe('song-river');
+    expect(document.activeElement).toBe(second);
+    expect(second.tabIndex).toBe(0);
+    expect(first.tabIndex).toBe(-1);
+    expect(list.contains(document.activeElement)).toBe(true);
+    fireEvent.click(document.activeElement ?? document.body);
+    expect(useShow.getState().openItemId).toBe('song-river');
+  });
+
+  it('does not take focus when the selection changes from elsewhere', () => {
+    render(<ServiceOrderList />);
+    openItem('song-river');
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  it('re-renders only the rows whose state changed', () => {
+    render(<ServiceOrderList />);
+    openItem('song-morning');
+    iconRenders.count = 0;
+    openItem('song-river');
+    expect(iconRenders.count).toBeLessThanOrEqual(2);
   });
 
   it('moves between rows with the arrow keys, Home, and End', () => {
@@ -155,6 +204,16 @@ describe('SlideGrid', () => {
       .getAllByRole('option')
       .filter(tile => tile.tabIndex === 0);
     expect(stops).toHaveLength(1);
+  });
+
+  it('moves focus with the arrow keys', () => {
+    openItem('song-morning');
+    render(<SlideGrid columns={3} />);
+    const [first, second] = screen.getAllByRole('option');
+    if (!first || !second) throw new Error('The tiles are missing');
+    first.focus();
+    fireEvent.keyDown(first, {key: 'ArrowRight'});
+    expect(document.activeElement).toBe(second);
   });
 
   it('moves the selection with the arrow keys and outputs nothing', () => {
