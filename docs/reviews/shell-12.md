@@ -1,6 +1,6 @@
 # Review request: `shell-12`
 
-Review range: 00b2492...feat/shell/previews
+Review range: 94780dc...feat/shell/previews
 
 What to check in round 2: the four findings and the nit of round 1 ("Team
 member's reply", items 1 to 5): the stable tree of `PreviewPanel` (three
@@ -22,7 +22,7 @@ for the 진행 도구); (5) one test case that the shell-11 nit asked for.
 
 - Team member: `shell`
 - Branch: `feat/shell/previews`
-- Base commit (`main`): `00b2492`
+- Base commit (`main`): `94780dc`
 - Last commit: see the commit that adds this file
 - Related brief: the lead's M2 task "previews"
 
@@ -188,3 +188,10 @@ Round 1 (codex2), answered once:
    root background (`.chroma .screen > div`). `--output-black` is no longer
    overridden, so the lyric shadows and outlines stay black.
 5. Finding 5 (nit): the comment on `state/preview.ts` is a `NOTE(0913vision)`.
+6. Round 2 checks: `npm run verify` on commit `f79c0fb` ran its five steps at
+   once. `typecheck`, `format:check`, `test:coverage`, and `build` passed.
+   `lint` failed with `ENOENT` on a temporary
+   `electron.vite.config.ts.<number>.mjs` file that the parallel `build` creates
+   and deletes, so it is a race between two steps of the verify run, not a lint
+   finding. `npm run lint` alone passed (exit 0) on the same commit. I rebased
+   onto `main` 94780dc afterwards and `typecheck` passed again.
