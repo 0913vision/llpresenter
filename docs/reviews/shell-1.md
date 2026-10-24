@@ -145,6 +145,13 @@ missing.
 
 ## Review: lead
 
+Round 2 (25909a4):
+
+- Verdict: Approve
+- Findings: none. Round 1 findings 1 to 3 and both nits are addressed.
+
+Round 1 (906d57e):
+
 - Verdict: Request changes
 - Findings:
   1. Agree with the reviewer's findings 1 to 3; each needs a regression test in
