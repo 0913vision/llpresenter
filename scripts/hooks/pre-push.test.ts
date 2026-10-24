@@ -7,10 +7,6 @@ import {
   type RefUpdate,
 } from './pre-push.mts';
 
-// NOTE(0913vision): Each case runs several git commands, which take up to a
-// few seconds together on a loaded Windows machine.
-const GIT_TIMEOUT_MS = 60_000;
-
 const NULL_SHA = '0000000000000000000000000000000000000000';
 const SHA_A = 'a'.repeat(40);
 const SHA_B = 'b'.repeat(40);
@@ -82,7 +78,7 @@ async function repoWithPush(...subjects: string[]): Promise<PushedRepo> {
   };
 }
 
-describe('checkMainPush', {timeout: GIT_TIMEOUT_MS}, () => {
+describe('checkMainPush', () => {
   it('lets valid commits and the bot bump commit through', async () => {
     const {repo, main} = await repoWithPush(
       'feat(live): add undo',

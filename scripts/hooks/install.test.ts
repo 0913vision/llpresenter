@@ -4,7 +4,7 @@ import {git, tryGit} from '../git.mts';
 import {makeTempGitRepo} from '../../test/git-repo';
 import {HOOKS_PATH, installHooks} from './install.mts';
 
-describe('installHooks', {timeout: 60_000}, () => {
+describe('installHooks', () => {
   it('points the repository config at the committed hooks', async () => {
     const repo = await makeTempGitRepo();
     expect(installHooks(repo.path)).toBe(true);

@@ -4,10 +4,6 @@ import {describe, expect, it} from 'vitest';
 import {makeTempGitRepo, type TempGitRepo} from '../../test/git-repo';
 import {BumpError, bumpFromCommits, type BumpOutcome} from './bump.mts';
 
-// NOTE(0913vision): Each case runs a dozen git commands, which take up to a
-// few seconds together on a loaded Windows machine.
-const GIT_TIMEOUT_MS = 60_000;
-
 const MANIFEST = {name: 'llp-test', version: '0.2.0', private: true};
 const LOCKFILE = {
   name: 'llp-test',
@@ -60,7 +56,7 @@ async function readJsonFile(repo: TempGitRepo, file: string): Promise<unknown> {
   return parsed;
 }
 
-describe('bumpFromCommits', {timeout: GIT_TIMEOUT_MS}, () => {
+describe('bumpFromCommits', () => {
   it('commits the bump, tags it, and sets both versions', async () => {
     const repo = await packageRepo();
     await repo.commit('feat(live): add undo');

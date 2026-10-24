@@ -13,6 +13,16 @@ export default defineConfig({
     // worker per core, workers missed Vitest's fixed 60 s start timeout and
     // whole files didn't run; half the cores makes them slower, not lost.
     maxWorkers: '50%',
+    // NOTE(0913vision): Worker threads start much cheaper than forked
+    // processes on Windows, and forks missed that start timeout under load
+    // (bug M1-7). Alternating runs here took 55 to 72 s with threads against
+    // 71 to 109 s with forks.
+    pool: 'threads',
+    // NOTE(0913vision): The 5 s default failed a test that spawns git when
+    // seven sessions built at once (M1-7). A slow machine must slow the gate
+    // down, not fail it; a hung test still fails.
+    testTimeout: 60_000,
+    hookTimeout: 60_000,
     // NOTE(0913vision): Each test starts from real timers, real globals, and
     // fresh mocks, so no test depends on the one before it.
     restoreMocks: true,
