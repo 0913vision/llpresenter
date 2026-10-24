@@ -124,8 +124,8 @@ describe('ThumbnailSizeSlider', () => {
       </>,
     );
     const grid = screen.getByRole('listbox', {name: '장'});
-    expect(grid.style.gridTemplateColumns).toBe('repeat(4, minmax(0, 1fr))');
+    expect(grid.style.getPropertyValue('--thumb-columns')).toBe('4');
     fireEvent.change(screen.getByRole('slider'), {target: {value: '7'}});
-    expect(grid.style.gridTemplateColumns).toBe('repeat(3, minmax(0, 1fr))');
+    expect(grid.style.getPropertyValue('--thumb-columns')).toBe('3');
   });
 });

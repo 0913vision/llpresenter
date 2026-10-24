@@ -29,8 +29,11 @@ interface RowGroup {
 }
 
 function groupRows(rows: readonly ServiceRow[]): readonly RowGroup[] {
-  const groups: {id: string; label: string | undefined; items: ServiceRow[]}[] =
-    [];
+  const groups: Array<{
+    id: string;
+    label: string | undefined;
+    items: ServiceRow[];
+  }> = [];
   for (const row of rows) {
     if (row.kind === 'header') {
       groups.push({id: row.id, label: row.title, items: []});

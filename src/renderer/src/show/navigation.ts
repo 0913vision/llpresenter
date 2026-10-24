@@ -11,10 +11,6 @@ export type TilesOf = (itemId: ItemId) => readonly SlideTile[];
 
 export type ItemDirection = 'next' | 'previous';
 
-function selectableRows(rows: readonly ServiceRow[]): readonly ItemRow[] {
-  return rows.filter(isItemRow);
-}
-
 export interface SequenceState {
   readonly tilesOf: TilesOf;
   /** The tile on output, or null when no 장 is live. */

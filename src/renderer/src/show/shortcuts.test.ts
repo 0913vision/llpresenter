@@ -1,6 +1,7 @@
 import {renderHook} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {setColumnDragActive} from '@renderer/state/drag';
+import {CLICK_FOCUS_ATTRIBUTE} from '@renderer/ui';
 import {seedSampleService} from './testing/sampleService';
 import * as showState from '@renderer/state/show';
 import {
@@ -121,9 +122,9 @@ describe('handleShowKey next and previous', () => {
   });
 
   it('works with the 장 grid and the 예배 순서 list in focus', () => {
-    const grid = appendTo('div', {'data-slide-grid': ''});
+    const grid = appendTo('div', {role: 'listbox'});
     const tile = grid.appendChild(document.createElement('button'));
-    const list = appendTo('div', {'data-service-list': ''});
+    const list = appendTo('div', {role: 'listbox'});
     const row = list.appendChild(document.createElement('button'));
     press('ArrowRight', {}, tile);
     press('Space', {}, row);
@@ -169,8 +170,8 @@ describe('handleShowKey where a focused control takes the key', () => {
   });
 
   it('still takes Space from a button of the 장 grid and the 예배 순서 list', () => {
-    const grid = appendTo('div', {'data-slide-grid': ''});
-    const list = appendTo('div', {'data-service-list': ''});
+    const grid = appendTo('div', {role: 'listbox'});
+    const list = appendTo('div', {role: 'listbox'});
     press('Space', {}, grid.appendChild(document.createElement('button')));
     press('Space', {}, list.appendChild(document.createElement('button')));
     expect(showState.outputNext).toHaveBeenCalledTimes(2);
@@ -204,8 +205,8 @@ describe('handleShowKey item keys', () => {
   });
 
   it('works with the 장 grid and the 예배 순서 list in focus', () => {
-    const grid = appendTo('div', {'data-slide-grid': ''});
-    const list = appendTo('div', {'data-service-list': ''});
+    const grid = appendTo('div', {role: 'listbox'});
+    const list = appendTo('div', {role: 'listbox'});
     const tile = grid.appendChild(document.createElement('button'));
     const row = list.appendChild(document.createElement('button'));
     press('ArrowDown', {ctrlKey: true}, tile);
@@ -451,9 +452,24 @@ describe('click focus', () => {
     expect(document.activeElement).toBe(previous);
   });
 
-  it('lets text fields, the 장 grid, the 예배 순서 list, and menus take focus', () => {
-    const grid = appendTo('div', {'data-slide-grid': ''});
-    const list = appendTo('div', {'data-service-list': ''});
+  it('keeps the focus where it was when a tile of an unmarked list is clicked', () => {
+    const strip = appendTo('div', {role: 'listbox'});
+    const tile = strip.appendChild(document.createElement('button'));
+    const previous = appendTo('button');
+    previous.focus();
+    clickAndFocus(tile);
+    expect(document.activeElement).toBe(previous);
+  });
+
+  it('lets text fields, the marked lists, and menus take focus', () => {
+    const grid = appendTo('div', {
+      role: 'listbox',
+      [CLICK_FOCUS_ATTRIBUTE]: '',
+    });
+    const list = appendTo('div', {
+      role: 'listbox',
+      [CLICK_FOCUS_ATTRIBUTE]: '',
+    });
     const menu = appendTo('div', {role: 'menu'});
     const targets = [
       appendTo('input'),

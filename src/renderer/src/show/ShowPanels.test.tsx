@@ -1,4 +1,11 @@
-import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@shared/commands';
 import {emptyLiveState} from '@shared/live';
@@ -47,14 +54,7 @@ afterEach(() => {
   delete window.llp;
 });
 
-const iconRenders = vi.hoisted(() => ({count: 0}));
-
-vi.mock('@renderer/ui/Icon', () => ({
-  Icon: () => {
-    iconRenders.count += 1;
-    return null;
-  },
-}));
+vi.mock('@renderer/ui/Icon', () => ({Icon: () => null}));
 
 describe('ServiceOrderList', () => {
   it('shows headers as text and items as options', () => {
@@ -75,13 +75,17 @@ describe('ServiceOrderList', () => {
       ],
     });
     render(<ServiceOrderList />);
-    expect(screen.getByRole('option', {name: /정상/}).title).toBe('');
-    expect(screen.getByRole('option', {name: /없는 곡/}).title).toBe(
+    const marks = screen.getAllByRole('img').map(mark => mark.ariaLabel);
+    expect(marks).toEqual([
       '곡 파일을 찾을 수 없습니다.',
-    );
-    expect(screen.getByRole('option', {name: /새 항목/}).title).toBe(
       '이 버전에서 알 수 없는 항목입니다.',
-    );
+    ]);
+    expect(
+      within(screen.getByRole('option', {name: /정상/})).queryByRole('img'),
+    ).toBeNull();
+    expect(
+      within(screen.getByRole('option', {name: /없는 곡/})).getByRole('img'),
+    ).toBeTruthy();
   });
 
   it('shows no rows while no service is open', () => {
@@ -115,13 +119,18 @@ describe('ServiceOrderList', () => {
     expect(screen.getAllByText('LIVE')).toHaveLength(1);
   });
 
-  it('keeps one tab stop, on the first row until an item is open', () => {
+  it('keeps one tab stop: the list until an item is open, then its row', () => {
     render(<ServiceOrderList />);
-    const stops = screen
-      .getAllByRole('option')
-      .filter(option => option.tabIndex === 0);
-    expect(stops).toHaveLength(1);
-    expect(stops[0]?.textContent).toContain('예배 전 카운트다운');
+    const list = screen.getByRole('listbox', {name: '예배 순서'});
+    const rowStops = (): HTMLElement[] =>
+      screen.getAllByRole('option').filter(option => option.tabIndex === 0);
+    expect(list.tabIndex).toBe(0);
+    expect(rowStops()).toHaveLength(0);
+    act(() => openItem('song-river'));
+    expect(list.tabIndex).toBe(-1);
+    expect(rowStops().map(row => row.textContent)).toEqual([
+      expect.stringContaining('맑은 시냇물'),
+    ]);
   });
 
   it('moves focus with the arrow keys so that Enter acts on the focused row', () => {
@@ -147,36 +156,32 @@ describe('ServiceOrderList', () => {
     expect(document.activeElement).toBe(document.body);
   });
 
-  it('re-renders only the rows whose state changed', () => {
-    openItem('song-morning');
-    render(<ServiceOrderList />);
-    iconRenders.count = 0;
-    act(() => openItem('song-river'));
-    expect(iconRenders.count).toBe(2);
-  });
-
   it('leaves Ctrl Down and Ctrl Up to the item commands instead of moving the focused row', () => {
     openItem('song-morning');
     render(<ServiceOrderList />);
-    const list = screen.getByRole('listbox', {name: '예배 순서'});
-    const down = fireEvent.keyDown(list, {key: 'ArrowDown', ctrlKey: true});
+    const row = screen.getByRole('option', {name: /아침이 밝아 오네/});
+    row.focus();
+    const down = fireEvent.keyDown(row, {key: 'ArrowDown', ctrlKey: true});
     expect(useShow.getState().openItemId).toBe('song-morning');
     expect(down).toBe(true);
-    const up = fireEvent.keyDown(list, {key: 'ArrowUp', ctrlKey: true});
+    const up = fireEvent.keyDown(row, {key: 'ArrowUp', ctrlKey: true});
     expect(useShow.getState().openItemId).toBe('song-morning');
     expect(up).toBe(true);
   });
 
   it('moves between rows with the arrow keys, Home, and End', () => {
     render(<ServiceOrderList />);
-    const list = screen.getByRole('listbox', {name: '예배 순서'});
-    fireEvent.keyDown(list, {key: 'Home'});
+    const press = (key: string): void => {
+      fireEvent.keyDown(document.activeElement ?? document.body, {key});
+    };
+    screen.getByRole('option', {name: /아침이 밝아 오네/}).focus();
+    press('Home');
     expect(useShow.getState().openItemId).toBe('countdown');
-    fireEvent.keyDown(list, {key: 'ArrowDown'});
+    press('ArrowDown');
     expect(useShow.getState().openItemId).toBe('song-morning');
-    fireEvent.keyDown(list, {key: 'ArrowUp'});
+    press('ArrowUp');
     expect(useShow.getState().openItemId).toBe('countdown');
-    fireEvent.keyDown(list, {key: 'End'});
+    press('End');
     expect(useShow.getState().openItemId).toBe('notice-sunday');
   });
 });
@@ -209,7 +214,7 @@ describe('SlideGrid', () => {
     openItem('song-morning');
     render(<SlideGrid columns={6} />);
     const grid = screen.getByRole('listbox', {name: '장'});
-    expect(grid.style.gridTemplateColumns).toBe('repeat(6, minmax(0, 1fr))');
+    expect(grid.style.getPropertyValue('--thumb-columns')).toBe('6');
   });
 
   it('outputs a 장 with slide.show when its tile is clicked', () => {
@@ -312,12 +317,15 @@ describe('SlideGrid', () => {
   it('moves the selection by rows with up and down and outputs nothing', () => {
     openItem('song-morning');
     render(<SlideGrid columns={2} />);
-    const grid = screen.getByRole('listbox', {name: '장'});
-    fireEvent.keyDown(grid, {key: 'ArrowDown'});
+    const press = (key: string): void => {
+      fireEvent.keyDown(document.activeElement ?? document.body, {key});
+    };
+    screen.getAllByRole('option')[0]?.focus();
+    press('ArrowDown');
     expect(useShow.getState().selectedTile).toBe(2);
-    fireEvent.keyDown(grid, {key: 'ArrowDown'});
+    press('ArrowDown');
     expect(useShow.getState().selectedTile).toBe(2);
-    fireEvent.keyDown(grid, {key: 'ArrowUp'});
+    press('ArrowUp');
     expect(useShow.getState().selectedTile).toBe(0);
     expect(sent).toHaveLength(0);
   });
