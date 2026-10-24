@@ -69,6 +69,30 @@ export {
   type ListRowProps,
 } from './ListRow';
 export {
+  MacroGrid,
+  MacroList,
+  MacroRow,
+  MacroTile,
+  macroName,
+  scheduleMeta,
+  scheduleText,
+  type MacroGridProps,
+  type MacroListProps,
+  type MacroProps,
+  type MacroRowProps,
+  type MacroSchedule,
+} from './MacroTile';
+export {
+  MediaGrid,
+  MediaStrip,
+  MediaTile,
+  copyingText,
+  type MediaGridProps,
+  type MediaListProps,
+  type MediaStripProps,
+  type MediaTileProps,
+} from './MediaTile';
+export {
   Menu,
   type MenuAnchor,
   type MenuCloseReason,
@@ -139,6 +163,11 @@ export {
   type SelectOption,
 } from './SelectMenu';
 export {
+  SHORTCUT_RECORDING_ATTRIBUTE,
+  SHORTCUT_RECORDING_SELECTOR,
+  shortcutRecordingProps,
+} from './shortcutRecording';
+export {
   SlideThumbnail,
   ThumbnailGrid,
   thumbnailName,
@@ -170,6 +199,19 @@ export {
   type SwitchProps,
   type SwitchRowProps,
 } from './Switch';
+export {
+  TileList,
+  gridMoves,
+  rowMoves,
+  stripMoves,
+  type FocusArrowsProps,
+  type SelectionArrowsProps,
+  type TileColumns,
+  type TileListBaseProps,
+  type TileListProps,
+  type TileMoves,
+  type TileSpaceKey,
+} from './TileList';
 export {TextArea, type TextAreaProps} from './TextArea';
 export {
   TextField,
