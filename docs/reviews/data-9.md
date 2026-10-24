@@ -1,17 +1,36 @@
 # Review request: `data-9`
 
-Review range: `db4b2e6...feat/data/backups`
+Review range: `02bb9c0...feat/data/backups`
+
+Round 2 changes only: `374a810...feat/data/backups`
 
 - Team member: `data`
 - Branch: `feat/data/backups`
-- Base commit (`main`): `db4b2e6`
-- Last commit: see the commit that adds this file
+- Base commit (`main`): `02bb9c0` (round 1: `db4b2e6`)
+- Last commit: see the newest commit that changes this file
 - Related brief: `docs/briefs/data.md`; M2 in `docs/MILESTONES.md`,
   "Main-process file store"; `docs/spec/02-data.md`, "Automatic backup";
   `docs/spec/10-shortcuts-and-settings.md`, the 백업 rows of 라이브러리;
   `docs/spec/08-problems.md` (no automatic backup during a service)
 
-What to check:
+What to check in round 2:
+
+1.  Finding 1: `copyFolder` in `src/main/store/backup.ts` copies with
+    `dereference`, so a linked data folder is copied as its contents. Test:
+    `backup.test.ts`, "copies what a linked data folder holds, so the backup
+    stands alone".
+2.  Finding 2: only a source folder that doesn't exist is skipped, checked
+    before the copy; any error during a copy fails the backup before the rename
+    and the pruning. A file where a data folder should be fails it too. Tests:
+    `backupCopyFailure.test.ts` (a copy that fails with `ENOENT` halfway) and
+    "fails when a file stands where a data folder should be".
+3.  Finding 3: `backupFolders` lists only real folders, and a name counts only
+    when it parses to a time that writes back to the same name. Tests: "leaves
+    files, links, and other names alone when it deletes old backups" and "counts
+    only folders with a valid time as backups".
+4.  Finding 4: names follow spec 02, `YYYY-MM-DD HHmmss`.
+
+What to check in round 1:
 
 1.  `src/main/store/backup.ts` against spec 02, "Automatic backup", and the
     lead's rules:
@@ -43,15 +62,15 @@ returns a promise. Nothing calls it yet; output wires it once after this merges
 
 ## What changed and why
 
-| Module         | What it does                                                                                                                                                                                                                               |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `backup.ts`    | `runBackup`: copies 곡, 예배, 틀, and 설정 into `<backup location>\<YYYY-MM-DD HH-mm-ss>.partial`, renames it without the suffix, then deletes the oldest backups past 보관 and any leftover `.partial`. Returns a `Result`, never throws. |
-|                | `lastBackupTime`: the time of the newest complete backup, read from its folder name.                                                                                                                                                       |
-|                | `Backups`: `atLaunch()` (자동 백업 on, not yet today) and `backUpNow()` (지금 백업). Both refuse while an output is on, and a second request while one runs is skipped.                                                                    |
-| `register.ts`  | After the data is read, runs `Backups.atLaunch()` once and logs the outcome: done, skipped with the reason, or failed. Old backups it can't delete are warnings.                                                                           |
-| `fileStore.ts` | `LoadedStore.preferences`: 환경설정 with the default for every field the file leaves out, read like `labels.json`, recovery copies included. The backup reads 자동 백업 and 보관 from it.                                                  |
-| `locations.ts` | The default backup folder is `LoveLight 백업` next to the data folder: `Documents\LoveLight 백업`, or `<LLP_USER_DATA>\LoveLight 백업` in development. It was `<data folder>\백업`.                                                        |
-| `fsErrors.ts`  | `isMissingFile(error)`. Three store modules had their own copy; they share this one now.                                                                                                                                                   |
+| Module         | What it does                                                                                                                                                                                                                             |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `backup.ts`    | `runBackup`: copies 곡, 예배, 틀, and 설정 into `<backup location>\<YYYY-MM-DD HHmmss>.partial`, renames it without the suffix, then deletes the oldest backups past 보관 and any leftover `.partial`. Returns a `Result`, never throws. |
+|                | `lastBackupTime`: the time of the newest complete backup, read from its folder name.                                                                                                                                                     |
+|                | `Backups`: `atLaunch()` (자동 백업 on, not yet today) and `backUpNow()` (지금 백업). Both refuse while an output is on, and a second request while one runs is skipped.                                                                  |
+| `register.ts`  | After the data is read, runs `Backups.atLaunch()` once and logs the outcome: done, skipped with the reason, or failed. Old backups it can't delete are warnings.                                                                         |
+| `fileStore.ts` | `LoadedStore.preferences`: 환경설정 with the default for every field the file leaves out, read like `labels.json`, recovery copies included. The backup reads 자동 백업 and 보관 from it.                                                |
+| `locations.ts` | The default backup folder is `LoveLight 백업` next to the data folder: `Documents\LoveLight 백업`, or `<LLP_USER_DATA>\LoveLight 백업` in development. It was `<data folder>\백업`.                                                      |
+| `fsErrors.ts`  | `isMissingFile(error)`. Three store modules had their own copy; they share this one now.                                                                                                                                                 |
 
 The lead's decisions for this request:
 
@@ -66,10 +85,10 @@ The lead's decisions for this request:
 
 Other details:
 
-- A backup folder name is the local time, `2026-10-25 07-58-00`, so the operator
-  can read it in Explorer and the names sort in time order. Two backups in the
-  same second fail the second one, which the tests show leaves the first
-  untouched.
+- A backup folder name is the local time, `2026-10-25 075800`, as spec 02 writes
+  it, so the operator can read it in Explorer and the names sort in time order.
+  Two backups in the same second fail the second one, which the tests show
+  leaves the first untouched.
 - "Once a day" means the newest backup's local date isn't today.
 - A backup location that can't be read or written makes the backup fail with the
   reason. It doesn't retry; the next launch or 지금 백업 tries again. The
@@ -107,19 +126,22 @@ shutdown.add({name: 'close the data store', run: disposeStore});
 
 ## Checks run
 
-`npm run verify` on the commit before this document (4866376), on `main`
-db4b2e6: every step passed. The one skipped test belongs to another member's
-suite. Coverage: `src/main/store/` 96.1% of lines and 91.3% of branches;
-`backup.ts` 90.8% of lines and 81.8% of branches, where the uncovered lines are
-the cleanup failures (a `.partial` or an old backup that can't be deleted).
+Round 2: `npm run verify` on the commit before this document's round 2 change
+(78c60d8), on `main` 02bb9c0: every step passed (167.8 s, steps at once).
+Coverage: `src/main/store/` 96.4% of lines and 91.7% of branches; `backup.ts`
+93.5% of lines and 86.7% of branches, where the uncovered lines are the cleanup
+failures (a `.partial` or an old backup that can't be deleted).
 
-| Command or test                    | Result                                                                |
-| ---------------------------------- | --------------------------------------------------------------------- |
-| `npm run typecheck`                | Passed                                                                |
-| `npm test`                         | Passed: 147 files, 1571 tests and 1 skipped                           |
-| `npm run format:check`             | Passed                                                                |
-| `npm run build`                    | Passed                                                                |
-| `npm run verify` (from phase 1 on) | Passed: typecheck, lint, format:check, test:coverage, build (346.0 s) |
+| Command or test                    | Result                       |
+| ---------------------------------- | ---------------------------- |
+| `npm run typecheck`                | Passed (37.3 s)              |
+| `npm run lint`                     | Passed (91.1 s)              |
+| `npm run format:check`             | Passed (95.9 s)              |
+| `npm test`                         | Passed as `test:coverage`    |
+| `npm run build`                    | Passed (9.4 s)               |
+| `npm run verify` (from phase 1 on) | Passed: every step (167.8 s) |
+
+Round 1 passed on `main` db4b2e6 (1571 tests, 346.0 s).
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
@@ -184,4 +206,26 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 findings from codex3, answered in round 2:
+
+1.  Fixed. `cp` runs with `dereference: true`, so a link inside a data folder,
+    or a data folder that is itself a junction, is copied as what it points to.
+    The test backs up a 곡 location that is a junction, deletes the original
+    folder, and reads the song from the backup.
+2.  Fixed. `copyFolder` no longer catches `ENOENT`. It checks first whether the
+    source folder exists: a missing one is skipped (such as 틀 before the first
+    틀), anything that isn't a folder fails the backup, and every error from the
+    copy itself fails it. A failed backup is never renamed, and the pruning
+    doesn't run, so it can't push good backups out. The new test mocks `cp` to
+    fail with `ENOENT` and checks that the older backup stays and no new or
+    `.partial` folder is left.
+3.  Fixed. Discovery and cleanup share `backupFolders`, which reads the folder
+    with file types and keeps only real folders, so a file or a link named like
+    a backup is neither counted nor deleted. A name counts only when it parses
+    to a valid local time that writes back to the same name, so
+    `2026-13-40 250000` or `2026-02-30 060000` never count. The tests put a
+    file, a junction (whose target must survive), an invalid time, and a file
+    named like a `.partial` in the backup location, and check that all of them
+    stay.
+4.  Switched to spec 02's `YYYY-MM-DD HHmmss`, so there is one format and no
+    spec change.
