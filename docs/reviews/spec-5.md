@@ -9,6 +9,23 @@
 
 ## What changed and why
 
+### Round 2
+
+Codex (codex4) requested changes:
+
+1. **Click focus exceptions (finding 1).** `04-show.md` now says that a mouse
+   click in 진행 moves keyboard focus only to a text field, the 장 grid, or the
+   예배 순서 list, and that a click on any other button or tile leaves focus
+   where it was. It gives both outcomes: after a click on a 장, focus is on the
+   grid and Space outputs the next 장; after a click on a 매크로, Space still
+   outputs the next 장. `07-macros.md` names the same three exceptions.
+2. **TextField (nit).** Item 7 of the ui list now names the `TextField` README's
+   key input field next to `KeyCap`.
+
+The branch is rebased once onto the latest `main`.
+
+### Round 1
+
 The shortcut part of `docs/spec/10-shortcuts-and-settings.md` was decided on
 2026-10-25 and merged with spec-1. The spec files it replaces or narrows still
 stated the old proposals or pointed at 10 as a proposal. This change writes the
@@ -53,8 +70,10 @@ README, what it says now, and the decided rule (10).
    focus on a click (10).
 6. `KeyCap` README, Writing: the key names list lacks Page Up, Page Down, Home,
    End, and Delete (decided: English, as Windows writes them).
-7. `KeyCap` README, Behavior (key recording field): it should refuse reserved
-   keys with the reason in a tooltip (10, "Reserved keys").
+7. `KeyCap` README, Behavior (key recording field), and `TextField` README,
+   Behavior (key input field): both let the field accept any combination. It
+   should refuse reserved keys, with the reason in a tooltip (10, "Reserved
+   keys").
 
 ## Changed files
 
@@ -62,10 +81,11 @@ The nine files in the table above, and `docs/reviews/spec-5.md` (new).
 
 ## Checks run
 
-| Command or test           | Result                                                                                                                          |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run verify`          | Pass: typecheck 5.1 s, lint 26.9 s, format:check 15.1 s, test:coverage 41.8 s (41 files, 363 tests), build 1.8 s; 90.7 s in all |
-| Middle dots and em dashes | None in the changed files (checked with `grep -c`)                                                                              |
+| Command or test            | Result                                                                                                                          |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run verify` (round 2) | See below                                                                                                                       |
+| `npm run verify` (round 1) | Pass: typecheck 5.1 s, lint 26.9 s, format:check 15.1 s, test:coverage 41.8 s (41 files, 363 tests), build 1.8 s; 90.7 s in all |
+| Middle dots and em dashes  | None in the changed files (checked with `grep -c`)                                                                              |
 
 ## Decisions I made (for the lead to confirm)
 
