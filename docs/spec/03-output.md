@@ -66,11 +66,11 @@ screen's output on and off. There is no confirmation.
   off, the preview keeps showing the same picture.
 - Off means the output window is hidden (proposal: treated like turning off
   audience screens in ProPresenter). The capture window is hidden too.
-- Default shortcuts (see 06): Ctrl 1 turns the audience screen outputs (본 화면
-  and 방송 자막) on and off together, and Ctrl 2 turns the 무대 화면 output on
-  and off (proposal: the board's 출력 켜기 and 무대 출력 켜기 read as
-  ProPresenter's audience and stage screen toggles). If some of those outputs
-  are on and some off, the shortcut turns them all on (proposal).
+- Shortcuts: Ctrl 1 turns the audience screen outputs (본 화면 and 방송 자막) on
+  and off together, and Ctrl 2 turns the 무대 화면 output on and off (decided;
+  follows ProPresenter's Toggle Output Screens and Toggle Stage Display Screens,
+  see 10). If some of those outputs are on and some off, the shortcut turns them
+  all on (proposal).
 - Don't save whether outputs are on. At launch, if the 환경설정 option 켤 때
   화면 출력 (output on launch, default off) is on, turn every screen output on.
   Otherwise start with all outputs off. After a crash, the answer to the output
@@ -127,7 +127,7 @@ screen shows that content.
   list of Looks. Choosing one applies it to every screen at once. The current
   Look has a check mark.
 - The 매크로 action "Look 바꾸기" (change Look) and user-defined shortcuts also
-  change the Look (see 06; there are no defaults). Put a Look change in an
+  change the Look (see 10; there are no defaults). Put a Look change in an
   item's start 매크로 to change the look per service or per item.
 - The change happens at once, without a transition (proposal).
 - Save the current Look in settings, and start with it on the next launch
@@ -264,8 +264,12 @@ The clear happens at once, with no confirmation, on every screen.
   still counts as something to clear.
 - 모두 has something to clear while any layer has something.
 - Don't show a message after a clear.
-- The shortcuts work wherever the focus is, even with a dialog or a confirmation
-  dialog open. F1 to F7 clear even while a text field has focus (proposal).
+- F1 to F7 work wherever the focus is: in every workspace, in the 환경설정
+  window, with a dialog or a confirmation dialog open, and while a text field
+  has focus. The only exception is the key field on the 단축키 page while it
+  records (decided; 10, focus precedence).
+- Ctrl Z undoes the last clear in 진행 and 화면 설정, also with a dialog open.
+  In 준비 and in text fields it is the edit undo (see "Undo"; 10).
 - The 내리기 (take down) button on each row of the 진행 도구 표시 중 (Showing)
   tab takes down only that one thing (see 04).
 
@@ -296,7 +300,7 @@ the start 매크로 of a 예배 순서 item. See 07.
 - Undo only undoes clears. It doesn't undo clicking a 장, turning outputs on or
   off, or changing the Look.
 - In 준비, while the operator edits text or a list, Ctrl Z is the edit undo. The
-  되돌림 button in the clear row still undoes a clear (proposal).
+  되돌림 button in the clear row still undoes a clear (decided, 10).
 
 Source: `ClearButton` README, `ShowH` (clear row, 되돌림), `Main` decision "다중
 레이어 지우기는 v1에서 뺌", `Shortcuts` (clear group, 되돌리기 Ctrl Z), `Dialog`

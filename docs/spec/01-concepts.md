@@ -162,7 +162,9 @@ and 61.
   title bar.
 - All sizes are CSS pixels after Windows display scaling. The app has no zoom of
   its own.
-- Shortcuts use Windows key names: Ctrl, Alt, Shift.
+- Shortcuts are matched by physical key, so they work with the Korean IME on,
+  and their names are written in English as Windows writes them: Ctrl, Alt,
+  Shift, Page Up (decided, 10).
 
 Source: design system README (implementation notes, window sizes), `KeyCap`
 README.
@@ -210,7 +212,7 @@ Source: `Main` "프로프리젠터와 다른 점", design system principle 2, pr
 | ------------------ | ------------ | ------------------------------------------ | ------------------------- |
 | Main window        | 1            | Menu bar, toolbar, workspaces, status bar  | This document, 04, 05, 06 |
 | Output window      | 1 per screen | Draws the 본 화면, 무대 화면, or 방송 자막 | 03                        |
-| Preferences window | 1            | 환경설정 (Preferences) and shortcuts       | 06                        |
+| Preferences window | 1            | 환경설정 (Preferences) and shortcuts       | 06, 10                    |
 
 - The main window's minimum size is 1280 x 720. Size classes (narrow, regular,
   wide) and column widths follow the design system `Layout` document.
@@ -298,9 +300,10 @@ All three workspaces use the same three-column frame (left, center, right). The
 - Switching workspaces never changes the output.
 - All three workspaces share the current service. The 예배 순서 panels in 진행
   and 준비 show the same 예배 순서.
-- Clear shortcuts (F1 to F7) and undo work in every workspace while the main
-  window is in front, even with a dialog open (proposal: the design system says
-  "in the 진행 screen" and also "even with a dialog open").
+- F1 to F7 work in every workspace, even with a dialog open, and undo of a clear
+  (Ctrl Z) works in 진행 and 화면 설정 (decided; 10, focus precedence). The
+  `ClearButton` README still says "in the 진행 workspace"; that is a design
+  system follow-up.
 - The app always opens in the 진행 workspace (proposal).
 
 Source: `Main` decision "작업 공간 세 개", design system README (window sizes

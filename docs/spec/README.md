@@ -67,7 +67,7 @@ Current boards:
 | [07-macros.md](07-macros.md)                                 | 매크로, action kinds, collections, start 매크로, and Clear Groups replaced by 매크로.                                          |
 | [08-problems.md](08-problems.md)                             | Problem states, the output state recovery dialog, notifications, and what must never happen during a service.                  |
 | [09-later.md](09-later.md)                                   | Deferred features, the hooks version 1 must leave open, and dropped ideas.                                                     |
-| [10-shortcuts-and-settings.md](10-shortcuts-and-settings.md) | Proposal, not yet decided: the full shortcut system and the 환경설정 pages, with ProPresenter research.                        |
+| [10-shortcuts-and-settings.md](10-shortcuts-and-settings.md) | The shortcut system (decided 2026-10-25) and the 환경설정 proposal (open), with ProPresenter research.                         |
 
 ## Conventions
 
@@ -104,7 +104,7 @@ Current boards:
 | Text import from a file or the clipboard                                                               | Version 1                  | 05                    |
 | Media view: import, playlists, properties                                                              | Version 1                  | 05                    |
 | 화면 설정: screen list, display layout, test pattern                                                   | Version 1                  | 06                    |
-| 환경설정 and shortcuts                                                                                 | Version 1                  | 06                    |
+| 환경설정 and shortcuts                                                                                 | Version 1                  | 06, 10                |
 | Autosave, recovery copies, automatic backup, output state recovery                                     | Version 1                  | 02, 08                |
 | Lost monitor and missing media handling                                                                | Version 1                  | 08                    |
 | Narrow window layout (1280 to 1599)                                                                    | Version 1                  | 04                    |

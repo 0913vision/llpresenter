@@ -405,17 +405,17 @@ state (see the recovery record).
 
 ### 이름표 list (`labels.json`)
 
-| Field      | Type                                       | Meaning                                             | Source                                        |
-| ---------- | ------------------------------------------ | --------------------------------------------------- | --------------------------------------------- |
-| `labels[]` | Array                                      | The 이름표 list, in the order of the 이름표 menu.   | `Reflow` 이름표 menu                          |
-| `.name`    | String                                     | Name. Unique in the list.                           | `Reflow`                                      |
-| `.color`   | One of the eight colors above, or `"none"` | Color.                                              | `Reflow` color row, `LabelColorPicker` README |
-| `.key`     | One key, or `null`                         | Jump key that outputs this 이름표 in 진행 (see 04). | Product log (each 이름표 has a jump key)      |
+| Field      | Type                                                                                                     | Meaning                                                                                                                        | Source                                        |
+| ---------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------- |
+| `labels[]` | Array                                                                                                    | The 이름표 list, in the order of the 이름표 menu.                                                                              | `Reflow` 이름표 menu                          |
+| `.name`    | String                                                                                                   | Name. Unique in the list.                                                                                                      | `Reflow`                                      |
+| `.color`   | One of the eight colors above, or `"none"`                                                               | Color.                                                                                                                         | `Reflow` color row, `LabelColorPicker` README |
+| `.key`     | A `KeyboardEvent.code` string for one letter or digit key, for example `"KeyC"` or `"Digit1"`, or `null` | Jump key that outputs this 이름표 in 진행 (see 04). Matched by physical key, so it works with the Korean IME on (decided, 10). | Product log (each 이름표 has a jump key), 10  |
 
 Defaults: 1절 (teal), 2절 (teal), 3절 (teal), 프리코러스 (green), 후렴 (yellow),
-브리지 (violet), 간주 (gray), 엔딩 (none). Jump keys start empty (proposal). The
-board spells 브릿지 and the design system spells 브리지. This spec follows the
-design system.
+브리지 (violet), 간주 (gray), 엔딩 (none). Jump keys start empty (decided: no
+source gives default keys for ProPresenter's group labels; 10). The board spells
+브릿지 and the design system spells 브리지. This spec follows the design system.
 
 ### 환경설정 (`preferences.json`)
 
@@ -453,12 +453,34 @@ design system.
 
 ### Shortcuts (`shortcuts.json`)
 
-- Store only the shortcuts that differ from the defaults:
-  `{ "bindings": { "<command ID>": [["Ctrl", "1"]] } }`. An empty array means
-  "none".
-- 06 lists the command IDs and default shortcuts.
+Decided on 2026-10-25 (10, "Storage").
 
-Source: `Shortcuts`, `KeyCap` README.
+- Store only the commands whose keys differ from the defaults. Each key is a
+  physical key with its modifiers, so a stored key never depends on the layout
+  or the IME:
+
+  ```json
+  {
+    "format": "llsettings.shortcuts",
+    "schemaVersion": 1,
+    "bindings": {
+      "output.audience": [{"code": "Digit1", "mods": ["ctrl"]}],
+      "show.next": []
+    }
+  }
+  ```
+
+  - `code` is a `KeyboardEvent.code` value. `mods` holds `"ctrl"`, `"alt"`, and
+    `"shift"`, in that order.
+  - An empty array means "no key".
+  - Keep bindings for command IDs this version doesn't know, so a newer
+    version's keys survive.
+  - A binding that fails validation is dropped and logged, and the command falls
+    back to its default.
+
+- 10 lists the command IDs and their default keys.
+
+Source: `Shortcuts`, `KeyCap` README, 10.
 
 ### Bible (`bible.json`)
 

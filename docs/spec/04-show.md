@@ -50,7 +50,11 @@ Source: `Main` decisions "진행 화면은 절충안" and "작업 공간 세 개
 - Clicking a row only selects it. The operator outputs by clicking a 장 in the
   장 panel.
 - In the list, the up and down arrow keys move between rows (skipping headers).
-  Home and End go to the first and last row.
+  Home and End go to the first and last row. ← → Space Page Up Page Down still
+  output the next and previous 장 while the list has focus (10, focus
+  precedence).
+- Ctrl ↓ and Ctrl ↑ select the next and previous item that can output and open
+  it in the 장 panel, without outputting (다음 항목, 이전 항목; decided, 10).
 - 진행 rows don't show details such as the 장 count (`ShowH`). 준비 rows do (see
   05).
 
@@ -148,25 +152,39 @@ service needs no confirmation), product log version 63.
 
 ### Keyboard
 
-| Key                           | Action                                 | Source                                   |
-| ----------------------------- | -------------------------------------- | ---------------------------------------- |
-| Arrow keys                    | Move the selected tile in the grid     | `SlideThumbnail` README                  |
-| Enter, Space (grid has focus) | Output the selected tile               | `SlideThumbnail` README                  |
-| → or Space                    | Output the next 장                     | `Shortcuts`                              |
-| ←                             | Output the previous 장                 | `Shortcuts`                              |
-| 이름표 jump key               | Jump to that 이름표's 장 and output it | Product log (each 이름표 has a jump key) |
+The shortcut part of 10 is decided (2026-10-25): shortcuts follow ProPresenter
+where it has a key or a behavior, and 10's choice applies where no ProPresenter
+source was found.
 
+| Key                    | Action                          | Basis                                                                         |
+| ---------------------- | ------------------------------- | ----------------------------------------------------------------------------- |
+| ↑, ↓ (grid has focus)  | Move the selected tile by a row | `SlideThumbnail` README, narrowed by 10 (focus precedence rule 5)             |
+| Enter (grid has focus) | Output the selected tile        | `SlideThumbnail` README                                                       |
+| →, Space, Page Down    | Output the next 장              | Follows ProPresenter for → and Space; Page Down for presentation remotes (10) |
+| ←, Page Up             | Output the previous 장          | Follows ProPresenter for ←; Page Up for presentation remotes (10)             |
+| 이름표 jump key        | Output that 이름표's 장         | Follows ProPresenter's group hot keys (10)                                    |
+
+- → ← Space Page Up Page Down output the next and previous 장 even while the 장
+  grid or the 예배 순서 list has focus, as ProPresenter does after a click on a
+  slide. The grid keeps only ↑, ↓, and Enter (10, "Focus precedence").
+- A mouse click on a button or tile in 진행 doesn't take keyboard focus, so
+  these keys keep working after the operator clicks a 매크로 or a 소품 (10).
 - Next and previous are the tiles after and before the live 장 in the current
-  item's sequence. If there is no live 장, next outputs the first tile of the
-  item open in the 장 panel (proposal).
-- On the last tile, next selects the next item in the 예배 순서 that can output
-  (skipping headers and slots) and outputs its first tile (proposal: guessed
-  ProPresenter behavior). On the first tile, previous does nothing (proposal).
+  item's sequence. If there is no live 장, or the item open in the 장 panel
+  isn't the current item, next outputs the first tile of the item in the 장
+  panel (decided, no ProPresenter source found; 10).
+- On the last tile, next does nothing (decided, no ProPresenter source found;
+  10). Moving into the next item would start it and run its start 매크로. To
+  move on, the operator picks the next item (다음 항목, Ctrl ↓) and presses →. A
+  환경설정 > 진행 setting that lets next move into the next item is part of 10's
+  settings proposal, which is still open. On the first tile, previous does
+  nothing (proposal).
 - An 이름표 jump key outputs the first tile with that 이름표 after the live 장
   in the current item's sequence. If none follows, it outputs the first tile
   with that 이름표 in the sequence (proposal: guessed from ProPresenter group
   hot keys).
-- These keys don't work while a text field has focus.
+- Live commands run once per key press and ignore key repeat (decided, 10).
+- These keys don't work while a text field has focus (10, focus precedence).
 
 ### Editing a song that is on output
 
@@ -506,15 +524,21 @@ Source: `Compact`, `Main` board guide (진행 화면 1366×768), design system R
 
 ## Keyboard summary for 진행
 
-| Key                        | Action                                               | Default comes from                    |
-| -------------------------- | ---------------------------------------------------- | ------------------------------------- |
-| →, Space                   | Next 장                                              | `Shortcuts`                           |
-| ←                          | Previous 장                                          | `Shortcuts`                           |
-| F1 to F7                   | Clear all, lyrics, media, 소품, audio, 메시지, 공지  | `ClearButton` README, `Shortcuts`     |
-| Ctrl Z                     | 되돌림 (undo the last clear)                         | `ClearButton` README, `Shortcuts`     |
-| Ctrl 1                     | Audience screen outputs on or off (proposed reading) | `Shortcuts` "출력 켜기"               |
-| Ctrl 2                     | 무대 화면 output on or off                           | `Shortcuts` "무대 출력 켜기"          |
-| 이름표 jump key            | That 이름표's 장                                     | Product log                           |
-| User-defined Look shortcut | Change to that Look                                  | `Shortcuts` (Look group, no defaults) |
+Decided on 2026-10-25. The full command list, where each command works, and how
+keys are changed are in 10, "Shortcut system".
 
-06 covers changing shortcuts and conflicts.
+| Key                                              | Action                                                          | Basis                                                                    |
+| ------------------------------------------------ | --------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| →, Space, Page Down                              | Next 장                                                         | Follows ProPresenter; Page Down for presentation remotes                 |
+| ←, Page Up                                       | Previous 장                                                     | Follows ProPresenter; Page Up for presentation remotes                   |
+| Ctrl ↓, Ctrl ↑                                   | Select the next or previous item (다음 항목, 이전 항목)         | No ProPresenter source found                                             |
+| Ctrl L                                           | Open the item of the live 장 (출력 중인 항목 열기)              | Follows ProPresenter (Show Triggered Presentation)                       |
+| Alt →, Alt ←                                     | Next or previous background in the media strip's playlist       | Follows ProPresenter (Next and Previous Background)                      |
+| F1 to F7                                         | Clear all, lyrics, media, 소품, audio, 메시지, 공지             | Follows ProPresenter                                                     |
+| Ctrl Z                                           | 되돌림 (undo the last clear)                                    | Follows ProPresenter (Undo)                                              |
+| Ctrl 1                                           | Audience screen outputs (본 화면 and 방송 자막) on or off       | Follows ProPresenter (Toggle Output Screens)                             |
+| Ctrl 2                                           | 무대 화면 output on or off                                      | Follows ProPresenter (Toggle Stage Display Screens)                      |
+| Alt S, Ctrl M, Ctrl Shift C, Ctrl Shift P, Alt C | The 무대, 메시지, 타이머, and 소품 tabs, and the action palette | Follows ProPresenter                                                     |
+| Ctrl Alt B                                       | The Bible field in 퀵 실행                                      | Follows ProPresenter (Open Bibles Mode)                                  |
+| 이름표 jump key (a bare letter or digit)         | That 이름표's 장                                                | Follows ProPresenter (group hot keys); no default keys                   |
+| A key set for a Look, 소품, 매크로, or 타이머    | That object's command                                           | No default keys; follows ProPresenter's Key Mappings for 소품 and 매크로 |

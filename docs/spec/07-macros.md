@@ -59,8 +59,14 @@ ProPresenter).
 
 ### Keyboard
 
-- The arrow keys move between tiles or rows. Enter or Space runs the 매크로.
-  Shift+F10 or the menu key opens the right-click menu.
+- When a tile or row has keyboard focus (through Tab), the arrow keys move
+  between tiles or rows, and Enter or Space runs the 매크로. Shift+F10 or the
+  menu key opens the right-click menu.
+- A mouse click on a tile doesn't give it keyboard focus, so Space after a click
+  still goes to 다음 장 instead of running the 매크로 again (decided; 10, focus
+  precedence).
+- Each 매크로 can have its own shortcut, with no default key (decided; follows
+  ProPresenter's Key Mappings for macros, 10).
 
 Source: `Macros`, `Overlays` 매크로 tab, `MacroTile` README.
 

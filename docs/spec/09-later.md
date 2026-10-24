@@ -143,7 +143,7 @@ No source describes this feature. This section only lists properties of version
   shortcuts.
 - The shortcuts board shows a 퀵 실행 group (검은 화면 Ctrl B, 로고 화면 with no
   shortcut). Version 1 leaves it out (open question).
-- Hook: store shortcuts by command ID (see 02 and 06), so that per-item commands
+- Hook: store shortcuts by command ID (see 02 and 10), so that per-item commands
   such as `quick.<item ID>` can be added later.
 
 Source: product log (진행 screen direction), `Main` decision "단축키",

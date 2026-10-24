@@ -152,7 +152,10 @@ The song editor edits the 라이브러리 song, which is the source for every �
   - The up and down arrow keys move between lines and across blocks.
 - When blocks are inserted, deleted, merged, or moved, rewrite the 장 numbers in
   every 구성 (see 02).
-- Ctrl Z and Ctrl Y undo and redo edits for the current session (proposal).
+- Ctrl Z undoes edits for the current session, and Ctrl Y or Ctrl Shift Z redoes
+  them (decided; Ctrl Y follows ProPresenter, 10).
+- Ctrl Enter splits the block at the cursor, and Ctrl Shift N inserts an empty
+  block after the current one (decided, 10).
 
 ### 이름표 menu
 
@@ -175,11 +178,11 @@ The song editor edits the 라이브러리 song, which is the source for every �
 No board shows where to rename or delete an 이름표 or set its jump key (open
 question). Version 1 adds a right-click menu to each name in the 이름표 menu:
 
-| Item                    | Behavior                                                                                                                    |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| 이름 바꾸기 (rename)    | Renames the 이름표 in the list and rewrites the name in every 라이브러리 song that uses it. Recovery copies apply (see 02). |
-| 바로 가기 키 (jump key) | Sets one letter or digit key. A key that another 이름표 or shortcut uses shows the conflict warning (see 06).               |
-| 삭제 (delete)           | Removes the name from the list only. Songs keep the name, and it draws with no color.                                       |
+| Item                    | Behavior                                                                                                                                                                                                                                   |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 이름 바꾸기 (rename)    | Renames the 이름표 in the list and rewrites the name in every 라이브러리 song that uses it. Recovery copies apply (see 02).                                                                                                                |
+| 바로 가기 키 (jump key) | Sets one letter or digit key, matched by physical key and stored as a code (02). A key that another 이름표 uses shows the conflict warning. Commands never use bare letters or digits, so a jump key can't collide with one (decided, 10). |
+| 삭제 (delete)           | Removes the name from the list only. Songs keep the name, and it draws with no color.                                                                                                                                                      |
 
 ### Preview
 

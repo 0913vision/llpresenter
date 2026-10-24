@@ -11,9 +11,10 @@ Terms: 출력 (output), 장 (slide), 이름표 (label), 본 화면 (main screen)
 
 The full shortcut system and a proposal for the 환경설정 pages are in
 [10-shortcuts-and-settings.md](10-shortcuts-and-settings.md). Its shortcut part
-was decided on 2026-10-25 and replaces the shortcut sections below. Its settings
-part is still a proposal, so this document stays the spec for settings. The
-sections below that 10 replaces or would replace say so in a note.
+was decided on 2026-10-25; "Shortcuts" below states the decided rules and points
+to 10 for the full command list. Its settings part is still a proposal, so this
+document stays the spec for settings. The settings sections that 10 would
+replace say so in a note.
 
 ## The 화면 설정 workspace
 
@@ -269,18 +270,22 @@ bar), `docs/TECH.md` operating rules.
 
 ## Shortcuts
 
-Note: decided on 2026-10-25. "Shortcut system" in 10 replaces "Where shortcuts
-work" and "Default shortcuts" with its focus precedence and full command list,
-and extends the 단축키 page.
+Decided on 2026-10-25 (10, "Shortcut system"). Shortcuts follow ProPresenter
+where it has a key or a behavior; where no ProPresenter source was found, 10's
+choice applies. This section describes the 단축키 page; 10 has the rules and the
+full command list.
 
 ### The 단축키 page
 
-- Header: "단축키" and 모두 기본값으로 (reset all to defaults).
+- Header: "단축키" and 모두 기본값으로 (reset all to defaults), which asks in a
+  confirmation dialog because it can't be undone (10).
 - A search field with the placeholder "명령, 키" (command, key), and a filter:
   전체 (all), 바꾼 것 (changed, with a count), 겹침 (conflicts, with an amber
   count).
-- A table with the columns 명령 (command) and 단축키 (shortcut), grouped by
-  area.
+- A table with the columns 명령 (command) and 단축키 (shortcut), grouped as in
+  10's command list, with a group for 이름표 jump keys. Editing a jump key here
+  edits the 이름표 list (05). Each Look, 소품, 매크로, and 타이머 has its own
+  row under its group.
 - A bar at the bottom shows the selected command, its default ("기본값 없음", no
   default), and the buttons 기본값으로 (reset to default) and 지우기 (remove the
   shortcut). Here 지우기 is the board's label for removing a shortcut, not a
@@ -290,43 +295,22 @@ and extends the 단축키 page.
 
 - Double-clicking a row, or pressing Enter on it, opens the key field
   (placeholder "키 입력", press keys). The next key combination becomes the
-  shortcut. Esc cancels. Backspace removes the shortcut.
+  shortcut. Esc cancels. Backspace removes the shortcut. The field refuses
+  reserved keys, with the reason in its tooltip (10, "Reserved keys").
 - A shortcut that differs from the default shows its key caps on the selection
   background.
-- If two commands share a combination, both rows show an amber outline and a
-  warning icon. The icon's tooltip reads "<command>과 겹침" (conflicts with the
-  command), for example "출력 켜기와 겹침".
-- While a conflict exists, the command that had the combination first keeps it.
-  The other command doesn't run on that combination until the operator resolves
-  the conflict (proposal).
-- An 이름표 jump key that equals a shortcut also shows as a conflict (proposal).
+- If two commands share a combination, or two 이름표 share a jump key, both rows
+  show an amber outline and a warning icon. The icon's tooltip reads "(명령)과
+  겹침" (conflicts with the command), for example "출력 켜기와 겹침".
+- While a conflict exists, the binding that existed first keeps the key. The
+  other one doesn't run on that key until the operator resolves the conflict
+  (decided, 10).
 
-### Where shortcuts work
+### Where shortcuts work and default keys
 
-- Shortcuts work while the main window has focus. When a text field has focus,
-  typing keys go to the field. F1 to F7 still clear (see 03).
-- Shortcuts don't work in the 환경설정 window, except F1 to F7 (proposal).
-
-### Default shortcuts
-
-The defaults follow ProPresenter where the sources say so (F1 to F7). The
-command IDs are proposals.
-
-| Group  | Command                                       | Command ID (proposal) | Default  |
-| ------ | --------------------------------------------- | --------------------- | -------- |
-| 진행   | 다음 장 (next 장)                             | `show.next`           | →, Space |
-| 진행   | 이전 장 (previous 장)                         | `show.previous`       | ←        |
-| 진행   | 되돌리기 (undo the last clear)                | `clear.undo`          | Ctrl Z   |
-| 지우기 | 모두 (all)                                    | `clear.all`           | F1       |
-| 지우기 | 가사 (lyrics)                                 | `clear.slide`         | F2       |
-| 지우기 | 미디어 (media)                                | `clear.media`         | F3       |
-| 지우기 | 소품                                          | `clear.prop`          | F4       |
-| 지우기 | 오디오 (audio)                                | `clear.audio`         | F5       |
-| 지우기 | 메시지                                        | `clear.message`       | F6       |
-| 지우기 | 공지                                          | `clear.notice`        | F7       |
-| Look   | One command per Look, for example 평상시      | `look.<Look ID>`      | None     |
-| 화면   | 출력 켜기 (audience screen outputs on or off) | `output.audience`     | Ctrl 1   |
-| 화면   | 무대 출력 켜기 (무대 화면 output on or off)   | `output.stage`        | Ctrl 2   |
+10 defines them: the focus precedence (which control gets a key first), the
+reserved keys, conflicts, the stored key format, and the full command list with
+default keys.
 
 - The board shows 평상시 as Ctrl 1, 설교 as Alt 2, and 광고 as Alt 3. These are
   examples of changed shortcuts, and the Ctrl 1 example shows a conflict with
@@ -337,4 +321,4 @@ command IDs are proposals.
 
 Source: `Shortcuts`, `Prefs`, `KeyCap` README, `SegmentedControl` README (filter
 counts), `ClearButton` README, `Main` decision "단축키", product log (퀵 실행
-shortcuts deferred).
+shortcuts deferred), 10.
