@@ -77,19 +77,11 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (a73257a): reviewer (Codex, codex4) Approve, no findings. Lead
+  Approve; the app now has one atomic writer (data-7's), which closes shell-3's
+  follow-up. Rebased by the lead onto local `main` without conflicts.
 
 ## Team member's reply
 
