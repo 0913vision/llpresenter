@@ -78,15 +78,20 @@
   align-items: center;
   gap: var(--space-8);
   min-width: 0;
-  overflow: hidden;
   color: var(--text-2);
   font: var(--type-body);
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+}
+
+.valueText {
+  min-width: 0;
+  overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .valueIcon {
+  flex: none;
   color: var(--text-3);
 }
 

@@ -1,7 +1,7 @@
 import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
-import {describe, expect, it} from 'vitest';
+import {afterEach, describe, expect, it, vi} from 'vitest';
 import {
   Properties,
   PropertyGroup,
@@ -11,6 +11,9 @@ import {
 import {SegmentedControl} from './SegmentedControl';
 import {Switch} from './Switch';
 import {TextField} from './TextField';
+import {hoverForTooltip, resetTooltips} from './tooltipTesting';
+
+afterEach(resetTooltips);
 
 function ScreenSettings(): JSX.Element {
   const [onTop, setOnTop] = useState(false);
@@ -90,6 +93,15 @@ describe('PropertyRow', () => {
   it('groups rows under a named group', () => {
     render(<ScreenSettings />);
     expect(screen.getByRole('group', {name: '안정성'})).toBeDefined();
+  });
+
+  it('cuts a long value off with an ellipsis and shows it in full in a tooltip', async () => {
+    const path = 'D:\\예배 미디어\\배경\\아주 긴 이름의 배경 영상 파일.mp4';
+    render(<PropertyValue label="원본" value={path} />);
+    const text = screen.getByText(path);
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(400);
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(200);
+    expect((await hoverForTooltip(text))?.textContent).toBe(path);
   });
 
   it('shows a read-only value next to its name', () => {

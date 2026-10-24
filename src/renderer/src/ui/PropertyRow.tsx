@@ -1,6 +1,7 @@
 import {useId, type JSX, type MouseEvent, type ReactNode} from 'react';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
+import {TruncatedText} from './TruncatedText';
 import styles from './PropertyRow.module.css';
 
 const GROUP_ICON_SIZE = 12;
@@ -165,7 +166,7 @@ export function PropertyValue({
               className={styles.valueIcon}
             />
           )}
-          {value}
+          <TruncatedText text={value} className={styles.valueText} />
         </span>
         {meta === undefined ? null : (
           <span className={styles.meta}>{meta}</span>
