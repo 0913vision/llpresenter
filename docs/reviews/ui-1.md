@@ -2,7 +2,7 @@
 
 - Team member: `ui`
 - Branch: `feat/ui/form-controls`
-- Base commit (`main`): `5b09a98`
+- Base commit (`main`): `8b5edaa`
 - Last commit: the commit that adds this file (see the review request message)
 - Related brief: `docs/briefs/ui.md`
 
@@ -49,14 +49,27 @@ with the same group titles and specimen labels as the preview cards.
 
 ## Checks run
 
-| Command or test                              | Result                                     |
-| -------------------------------------------- | ------------------------------------------ |
-| `npm run typecheck`                          | Pass                                       |
-| `npm test`                                   | Pass, 25 files, 148 tests                  |
-| `npm run format:check`                       | Pass                                       |
-| `npm run build`                              | Pass; the gallery is not in `out/renderer` |
-| `npm run verify` (from phase 1 on)           | Not on `main` yet                          |
-| Gallery beside the preview cards (see below) | Done for all nine cards                    |
+Since the first request (commit `a4bd5ef`): rebased onto `main` with devops-1,
+fixed the 19 lint errors without exclusions (`ReadonlyArray<T>` for non-simple
+array types, `it.each` with object rows instead of four parameters, no `??` on a
+non-null `textContent`, no returned `any` from a mock, `charAt` instead of
+spreading a string in `korean.ts`, a named `ignore` handler instead of empty
+arrow functions in the gallery), dropped the `afterEach(cleanup)` that
+`test/setup-renderer.ts` now runs, and used `--ring-dot-cut-pressed`.
+
+| Command or test                              | Result                                                                                        |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `npm run verify`, best run                   | Pass, 5 of 5 steps: typecheck, lint, format:check, test:coverage (34 files, 239 tests), build |
+| `npm run verify`, other runs                 | test:coverage failed only from machine load (see below)                                       |
+| `npm run build`                              | Pass; the gallery is not in `out/renderer`                                                    |
+| Gallery beside the preview cards (see below) | Done for all nine cards                                                                       |
+
+Load failures, recorded and not rerun (the "Checks" rule in `CLAUDE.md`): on a
+busy machine `scripts/lint/config.test.ts` ("reports a floating promise") timed
+out at 60 s, and Vitest reported "Failed to start forks worker ... Timeout
+waiting for worker to respond" for up to 14 renderer test files, which then did
+not run. The same files pass in the full run above and in `npx vitest run` (34
+files, 239 tests).
 
 ### Comparison with the preview cards
 
@@ -111,8 +124,7 @@ Differences I kept on purpose, and things the comparison found:
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
-- [ ] `npm run verify` passes (not on `main` yet; typecheck, test, format check,
-      and build pass)
+- [x] `npm run verify` passes (best run; load failures recorded above)
 - [x] `npm run format:check` passes
 - [x] Every new behavior and every bug fix has unit tests
 - [x] Values from outside the process are validated with a schema (none here)
@@ -183,13 +195,9 @@ Differences I kept on purpose, and things the comparison found:
 
 ## Shared contract change requests
 
-All earlier requests are done (`--type-*`, `--motion-*`, `@shared/colors`).
-Small ones for later, not blocking:
-
-1. `--ring-dot-cut-pressed` (`0 0 0 2px var(--bg-raised)`): the output dot ring
-   on a pressed toolbar button. `ToolbarButton.module.css` builds it from a
-   local width today; there is a token for the hover ring only.
-2. The Pretendard file for the card server (item 7 above).
+All requests are done (`--type-*`, `--motion-*`, `@shared/colors`,
+`--ring-dot-cut-pressed`). The Pretendard file for the card server (item 7
+above) is with the lead.
 
 ## Where to look
 
