@@ -100,19 +100,20 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (447cb6a): reviewer (Codex, 0:6) Request changes: D3 crossed parsers
+  that share the `llservice` format, G5 matched computed values against token
+  literals, and G8 required focusable disabled samples against the TextField
+  README.
+- Round 2 (d9adfea): reviewer Request changes: S13 judged a 30-minute record
+  with the 60-minute default, D26 lacked 매크로 payload cases, thresholds
+  without a cited rule were treated as failures, and G6 missed the 퀵 실행 live
+  bar.
+- Round 3 (a9dad85): reviewer (Codex, 0:6) Approve, no findings. Lead Approve.
+  The 매크로 default differences recorded in D26 are decided (spec 07 defaults;
+  data changes the schema). Rebased by the lead onto `main` 159e0de without
+  conflicts.
 
 ## Decisions confirmed by the lead
 
