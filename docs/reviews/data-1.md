@@ -2,7 +2,7 @@
 
 - Team member: `data`
 - Branch: `feat/data/schemas`
-- Base commit (`main`): `8b5edaa`
+- Base commit (`main`): `13d88b1`
 - Last commit: see the commit that adds this file
 - Related brief: `docs/briefs/data.md`
 
@@ -107,16 +107,16 @@ Every format goes through the same two functions:
 
 ## Checks run
 
-`npm run verify` on the commit before this document, on `main` 8b5edaa: every
+`npm run verify` on the commit before this document, on `main` 13d88b1: every
 step passed.
 
-| Command or test                    | Result                                                               |
-| ---------------------------------- | -------------------------------------------------------------------- |
-| `npm run typecheck`                | Passed. Type assertions (`expectTypeOf`) included                    |
-| `npm test`                         | Passed: 24 files, 238 tests (109 in the schemas)                     |
-| `npm run format:check`             | Passed                                                               |
-| `npm run build`                    | Passed                                                               |
-| `npm run verify` (from phase 1 on) | Passed: typecheck, lint, format:check, test:coverage, build (59.6 s) |
+| Command or test                    | Result                                                                |
+| ---------------------------------- | --------------------------------------------------------------------- |
+| `npm run typecheck`                | Passed. Type assertions (`expectTypeOf`) included                     |
+| `npm test`                         | Passed: 27 files, 294 tests (115 in the schemas)                      |
+| `npm run format:check`             | Passed                                                                |
+| `npm run build`                    | Passed                                                                |
+| `npm run verify` (from phase 1 on) | Passed: typecheck, lint, format:check, test:coverage, build (129.7 s) |
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
@@ -270,3 +270,16 @@ data-2 and data-3 have the same gap: their objects and records also use
 `v.looseObject` and `v.record` directly. They switch to `jsonObject` (and a
 record that rejects arrays) when I rebase them onto this branch. The key
 escaping already covers them, because it runs in the shared pipeline.
+
+Round 3, replies to the reviewer's findings:
+
+1. Deep or cyclic data: fixed. `escapeKeys` and `restoreKeys` no longer recurse.
+   `escapeKeys` walks with its own task list and a depth limit of 64 (a NOTE
+   gives the reason), and returns an error result past it. Cyclic data always
+   passes the limit, so it gives the same error. The pipeline turns that result
+   into a `FileError`, so `parseFile` and `serializeFile` still never throw. New
+   tests: unknown JSON nested 1,000 and 200,000 levels deep in a file, a cyclic
+   value passed to `serializeFile`, the exact limit, and a cyclic value passed
+   to `escapeKeys`.
+2. Pollution test: it now checks that `Object.prototype` has no `polluted`
+   property and that a fresh object doesn't inherit one.
