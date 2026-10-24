@@ -218,19 +218,15 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (ac1f253): lead Approve, with the member's decisions confirmed.
+  Reviewer (Codex, codex2) Request changes: an IconButton press reached the row
+  around it, check rows in a list had one Tab stop each and no arrow keys, and
+  read-only NumberField and TextField still reacted to keys.
+- Round 2 (5116f34): reviewer (Codex, codex2) Approve: all three findings fixed
+  and covered by regression tests, no new findings. Lead Approve. Rebased by the
+  lead onto `main` 63d0dbc without conflicts.
 
 ## Team member's reply
 
