@@ -23,11 +23,11 @@ describe('installFakeClock', () => {
     expect(clock.now().getTime() - FAKE_CLOCK_START.getTime()).toBe(1000);
   });
 
-  it('lets promises settle between timers', async () => {
+  it('lets microtasks run between timers', async () => {
     const clock = installFakeClock();
     const fired: string[] = [];
     setTimeout(() => {
-      void Promise.resolve().then(() => {
+      queueMicrotask(() => {
         setTimeout(() => fired.push('chained'), 10);
       });
     }, 10);

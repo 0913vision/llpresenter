@@ -133,8 +133,9 @@ export const lintConfig = defineConfig(
       // above bans.
       '@typescript-eslint/non-nullable-type-assertion-style': 'off',
       // NOTE(0913vision): An unhandled rejection can stop the app during a
-      // service. Every promise must be awaited, returned, or caught.
-      '@typescript-eslint/no-floating-promises': 'error',
+      // service. Every promise must be awaited, returned, or caught, and
+      // `void` doesn't count as handling it.
+      '@typescript-eslint/no-floating-promises': ['error', {ignoreVoid: false}],
       // NOTE(0913vision): A promise passed where a plain callback is expected
       // drops its rejection.
       '@typescript-eslint/no-misused-promises': 'error',
