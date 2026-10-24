@@ -107,3 +107,13 @@ no request has to wait, but a later decision changes code.
 3. **Nit, encoding order (05-prep.md:438).** Fixed: with 자동, a UTF-8 or UTF-16
    byte order mark decides first; without one, the bytes are read as UTF-8 only
    if valid, and otherwise as CP949.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (7bcd799): reviewer (Codex, codex4) Request changes: a 50% font floor
+  couldn't promise that text is never cut, the control monitor rule missed drag
+  and saved assignments, and the encoding order needed the BOM first.
+- Round 2 (97a470e): reviewer (Codex, codex4) Approve with one nit: 03 should
+  call the case that doesn't fit at 1 px an overflow case and qualify "every
+  line always fits". The nit goes into spec's next commit. Lead Approve. Rebased
+  by the lead onto local `main` without conflicts.
