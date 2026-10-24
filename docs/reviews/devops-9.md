@@ -2,7 +2,7 @@
 
 - Team member: `devops`
 - Branch: `fix/devops/load-timeouts`
-- Base commit (`main`): `8c7f370`
+- Base commit (`main`): `2b26d32`
 - Last commit: see the commit that adds this file
 - Related brief: bug M1-7 from qa (major): under load, `test:coverage` fails on
   fixed timeouts and stops pushes to `main`
@@ -89,3 +89,24 @@ idle machine.
 2.  Codex 2: step output goes through `readText`, which sets one UTF-8 decoder
     per stream (`setEncoding('utf8')`). New test: `×` split across two writes
     comes through whole. With per-chunk decoding it read `�� done`.
+
+## Team member's reply (round 2)
+
+1.  Codex 1: `failureLines` now attaches each block's error first and
+    de-duplicates afterward, by the line and its error together. Two different
+    unhandled rejections give two lines,
+    `Unhandled Rejection (TypeError: Cannot read properties of undefined ...)`
+    and `Unhandled Rejection (RangeError: Invalid array length)`. A line seen
+    once without an error (the summary list) and once with one (the details) is
+    still listed once, with its error. New fixture with the two rejections.
+2.  Codex 2: consecutive notable lines form a group, and the first error line
+    within the next six lines goes to every line in the group. Vitest's headings
+    for tests that share one error each carry it now: two `FAIL` headings
+    followed by `Error: Test timed out in 60000ms.` both end with the timeout.
+    New fixture with the grouped timeouts.
+
+Both new tests fail on the round 2 code (2 failed, 14 passed) and pass now.
+Rebased onto `main` at `2b26d32`. `npm run verify` passes at 100% CPU, 199.5 s:
+typecheck 3.9 s, lint 44.1 s, format:check 34.4 s, test:coverage 113.0 s (101
+files, 1054 passed and 1 skipped, no timeouts or worker start failures), build
+4.1 s.
