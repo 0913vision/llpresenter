@@ -1,6 +1,6 @@
 # Review request: `shell-3`
 
-Review range: 667bce9...feat/shell/ui-state-ipc
+Review range: d5b8af9...feat/shell/ui-state-ipc
 
 What to check: round 3 needs the two findings of round 2 ("Team member's reply",
 items 6 and 7): the field-by-field merge in `UiStateStore` (`withLayoutChange`)
@@ -9,7 +9,7 @@ against the `LayoutChange` of data-6, and the timer assertion in
 
 - Team member: `shell`
 - Branch: `feat/shell/ui-state-ipc`
-- Base commit (`main`): `667bce9`
+- Base commit (`main`): `d5b8af9`
 - Last commit: see the commit that adds this file
 - Related brief: the lead's queue (the UI state IPC and the `app.json` store for
   the column widths)
@@ -216,3 +216,9 @@ Round 1 (codex4), answered once:
    follows", and "drops a change with only one of the two widths".
 7. Round 2, finding 2 (nit): "leaves no debounce timer behind after the flush"
    asserts `vi.getTimerCount()` is 0 right after the flush.
+8. Round 3: rebased onto `main` d5b8af9 (shell-5, shell-6, and shell-7 are in
+   it). The one conflict was in `control/App.tsx`: I kept
+   `useClearKeys(workspace)` and the new `columnWidthStore` prop.
+   `npm run verify` on commit `aef9993` passed all five steps in 193.4 s
+   (`typecheck`, `lint`, `format:check`, `test:coverage`, `build`); the later
+   rebase brought only document changes.
