@@ -20,9 +20,9 @@ the panels read an invented sample service (`sampleService.ts`, marked with a
    - Tile selection in the grid: arrows by one and by a row, no wrap, no move
      past a short last row.
    - Next 장: the tile after the live one. With no live 장, the first tile of
-     the open item. After the last tile, the first tile of the next item that
-     can output (skipping headers, slots, and items without tiles). Null at the
-     end of the service.
+     the open item. After the last tile the key stops and does not move on to
+     the next item (the lead's decision; moving on becomes a 환경설정 option
+     later).
    - Previous 장: the tile before the live one, nothing on the first tile.
    - 이름표 jump: the first tile with that label after the live 장, or else the
      first one in the sequence. No key is bound to it yet, because the spec does
@@ -77,8 +77,9 @@ sent real mouse and key events through the Chrome DevTools Protocol at
   the LIVE badge.
 - With nothing focused, the right arrow and Space moved the live 장 forward and
   the left arrow moved it back, one tile each.
-- Two more Space presses after the last tile moved the live 장 to the first tile
-  of the next song, and the LIVE badge moved with it.
+- Before the last-장 fix, two more Space presses moved the live 장 to the first
+  tile of the next song. That behavior was removed in the second commit, and a
+  unit test now covers that the key stops at the last 장.
 - After the run no process of this worktree was left. A screenshot showed the
   list, the grid with 이름표 colors, and the rings as in the design system.
 
@@ -120,8 +121,6 @@ a physical keyboard.
   "focused row" and "open item").
 - `tileForLabel` has tests but no key yet: the spec does not give the 이름표
   jump keys. I need them from the spec owner before I bind them.
-- The `SlideTile` view model has an optional 이름표 color (`labelColor`). Please
-  confirm it matches what data will serve.
 
 ## Shared contract change requests
 
@@ -158,4 +157,12 @@ missing.
 
 ## Team member's reply
 
-1.
+1. Lead finding, last 장: done in commit "fix(show): stop the next-장 key at the
+   last 장 and use the shared 이름표 color type". `nextTile` returns null after
+   the last tile, so the key does nothing there. Tests: "stops at the last tile
+   and does not move on to the next item" in `navigation.test.ts` and "stops
+   after the last tile and does not move on to the next item" in
+   `state/show.test.ts`. The code for moving on (the `rows` field of
+   `SequenceState` and the skip rules) is removed, not hidden behind a flag.
+2. Lead answer 3: `SlideTile.labelColor` is now `LabelColor` from
+   `@shared/colors`, with `none` for no color.
