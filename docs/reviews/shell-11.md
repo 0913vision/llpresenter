@@ -70,19 +70,13 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (383dec8): reviewer (Codex, codex2) Approve with one nit: the
+  layer-only render test would also pass on the old code, so the claim that both
+  tests fail there is wrong; add a case that changes the layers and `canUndo`
+  together or correct the claim. The nit goes into shell's next commit. Lead
+  Approve. Merged onto local `main` without conflicts.
 
 ## Team member's reply
 
