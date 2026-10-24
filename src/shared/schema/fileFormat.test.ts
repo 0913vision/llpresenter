@@ -358,6 +358,32 @@ describe('serializeFile', () => {
     expect(error).toMatchObject({kind: 'invalid', file: FILE});
   });
 
+  it('reports a schema callback that throws as a file error', () => {
+    const throwingFormat: FileFormat<v.GenericSchema> = {
+      ...noteFormat,
+      schema: v.pipe(
+        noteSchema,
+        v.check(() => {
+          throw new Error('callback failed');
+        }),
+      ),
+    };
+    const text = JSON.stringify(note);
+
+    expect(expectFailure(parseFile(throwingFormat, text, FILE))).toEqual({
+      kind: 'invalid',
+      file: FILE,
+      field: '',
+      message: 'callback failed',
+    });
+    expect(expectFailure(serializeFile(throwingFormat, note, FILE))).toEqual({
+      kind: 'invalid',
+      file: FILE,
+      field: '',
+      message: 'callback failed',
+    });
+  });
+
   it('refuses unknown fields that JSON cannot hold', () => {
     const error = expectFailure(
       serializeFile(noteFormat, {...note, size: 1n}, FILE),
