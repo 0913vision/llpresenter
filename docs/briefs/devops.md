@@ -14,6 +14,10 @@ Your job is to make tools enforce the "Quality bar" in `docs/TECH.md`.
 
 ## Tasks
 
+- **First:** rename your branch with `git branch -m rewrite/devops`, then create
+  `.llp/notes.md` as `CLAUDE.md` describes under "Context and compaction".
+  `scripts/session-context.ts` (the SessionStart hook) is the lead's. Keep it
+  working if you change `scripts/`.
 - **`npm run verify`:** Runs the type check, lint, the format check
   (`npm run format:check`), unit tests (with a coverage report), and the build
   in order, and fails if any one of them fails. It must behave the same whether

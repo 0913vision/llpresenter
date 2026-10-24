@@ -74,3 +74,8 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   preload, shared code, and scripts, and `renderer` for the renderer. The lead
   set this up before the UI work starts, so UI members can test components from
   their first commit.
+- 2026-10-24: trial, devops, and ui start at the same time instead of trial
+  first, because the purpose of member sessions is parallel development with
+  each session keeping its own context (user). The shared UI components moved
+  from the lead's share to the ui member. The lead keeps the shell, the data
+  schemas, reviews, and merges.

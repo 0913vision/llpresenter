@@ -18,16 +18,17 @@ Only the lead edits this file. Last updated: October 24, 2026.
 | Name   | Branch           | State                       | Brief                   |
 | ------ | ---------------- | --------------------------- | ----------------------- |
 | lead   | `rewrite`        | Held by the phase 0 session | `docs/briefs/lead.md`   |
-| trial  | `rewrite/trial`  | Not started                 | `docs/briefs/trial.md`  |
-| devops | `rewrite/devops` | Not started                 | `docs/briefs/devops.md` |
+| trial  | `rewrite/trial`  | Started                     | `docs/briefs/trial.md`  |
+| devops | `rewrite/devops` | Started                     | `docs/briefs/devops.md` |
+| ui     | `rewrite/ui`     | Started                     | `docs/briefs/ui.md`     |
 
 ## Next steps
 
-1. Push `rewrite` (the user approved it once the sample lyrics were replaced).
-2. Start trial when the user says so, then devops.
+1. Review the trial, devops, and ui requests as they arrive, with a fresh review
+   agent each time, and merge them fast-forward.
+2. The lead's share: data format schemas in `src/shared/`, column dragging and
+   remembering, then switching the shell to the ui components after `ui-1`.
 3. Bring the open questions in `docs/spec/README.md` to the user.
-4. The rest of the lead's phase 1 share: shared UI parts, dragging and
-   remembering columns, and data format schemas.
 
 ## Review requests
 

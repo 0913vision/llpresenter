@@ -81,6 +81,14 @@ src/
   `scripts` and the dev dependencies in `package.json` (allowed as an exception
   for this bundle only; the lead's review is required).
 
+#### ui member (brief: `docs/briefs/ui.md`)
+
+- The 16 shared design system components (`Button`, `IconButton`,
+  `SegmentedControl`, `ToolbarButton`, `TextField`, `Select`, `Checkbox`,
+  `Switch`, `Slider`, `Menu`, `Tooltip`, `Dialog`, `AlertDialog`, `Panel`,
+  `ListRow`, `StatusMarks`) in `src/renderer/src/ui/`, with tests and a
+  development gallery. Moved from the lead's share so that it runs in parallel.
+
 #### lead
 
 - Pin Electron to 44.9.x and pin every version exactly (`docs/TECH.md`).
@@ -157,6 +165,7 @@ src/
 | lead                | 0 to the end                   | Main repository folder, `rewrite`                                                | Team lead. The session that handled phase 0 continues in this role. Builds the initial scaffold and phase 2 directly, starts team members, reviews, and merges by fast-forward |
 | trial               | 1 (after the initial scaffold) | Own worktree, `rewrite/trial`                                                    | Trial run. Goes once through the flow from review request to fast-forward merge                                                                                                |
 | devops              | 1                              | Own worktree, `rewrite/devops`                                                   | Check command, lint, test configuration, GitHub Actions configuration, soak test script skeleton                                                                               |
+| ui                  | 1                              | Own worktree, `rewrite/ui`                                                       | Shared design system components, their tests, and the gallery                                                                                                                  |
 | Reviewer            | Every review request           | A read-only review agent that the lead starts fresh for each review; later Codex | Independent review and approval                                                                                                                                                |
 | prep, output, tools | 3                              | Own worktree, `rewrite/<name>`                                                   | Feature bundles                                                                                                                                                                |
 | polish              | 4                              | Own worktree, `rewrite/polish`                                                   | Polish                                                                                                                                                                         |

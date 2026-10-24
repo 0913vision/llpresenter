@@ -159,10 +159,15 @@ folders, several copies of the same app can run without colliding.
 | lead    | 5173 | `D:\llp-dev\lead`   |
 | trial   | 5190 | `D:\llp-dev\trial`  |
 | devops  | 5185 | `D:\llp-dev\devops` |
+| ui      | 5186 | `D:\llp-dev\ui`     |
 | prep    | 5181 | `D:\llp-dev\prep`   |
 | output  | 5182 | `D:\llp-dev\output` |
 | tools   | 5183 | `D:\llp-dev\tools`  |
 | polish  | 5184 | `D:\llp-dev\polish` |
+
+The desktop app names a new worktree's branch itself, so each member renames it
+to `rewrite/<name>` first (`git branch -m rewrite/<name>`). The SessionStart
+hook tells sessions apart by that branch name.
 
 ## Windows pitfalls
 

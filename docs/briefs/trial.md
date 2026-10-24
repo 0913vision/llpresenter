@@ -14,6 +14,9 @@ app, review requests, messages, rebasing, and fast-forward merges.
 
 ## Tasks
 
+0. Before anything else, rename your branch with `git branch -m rewrite/trial`,
+   then create `.llp/notes.md` as `CLAUDE.md` describes under "Context and
+   compaction".
 1. Record the worktree information: the path that
    `git rev-parse --show-toplevel` prints and its length in characters,
    `git branch --show-current`, and the base commit
