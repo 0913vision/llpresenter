@@ -23,6 +23,11 @@ const OWN_KEYS_SELECTOR =
   '[role="menu"], [role="dialog"], [role="alertdialog"]';
 const FOCUSABLE_ON_CLICK_SELECTOR = `${EDITABLE_SELECTOR}, [data-slide-grid], [data-service-list], ${OWN_KEYS_SELECTOR}`;
 const CLICKED_CONTROL_SELECTOR = 'button, [role="button"], [role="tab"]';
+const PASSING_PARTS_SELECTOR = '[data-slide-grid], [data-service-list]';
+const PRESS_CONTROL_SELECTOR =
+  'button, [role="button"], [role="switch"], [role="checkbox"], [role="radio"], [role="tab"]';
+const ARROW_CONTROL_SELECTOR = '[role="tab"], [role="radio"]';
+const ARROW_CODES: ReadonlySet<string> = new Set(['ArrowLeft', 'ArrowRight']);
 
 // NOTE(0913vision): Space activates a focused button when it is released, so
 // the key up of a Space that the live handler took must be cancelled too. The
@@ -57,14 +62,28 @@ function isInside(target: EventTarget | null, selector: string): boolean {
   return target instanceof Element && target.closest(selector) !== null;
 }
 
-// NOTE(0913vision): The 장 grid and the 예배 순서 list pass the live keys on,
-// so they are not owners here.
+// NOTE(0913vision): A button, switch, checkbox, radio, or tab that the operator
+// reached with Tab takes Space to press it, and a tab or radio also takes ←
+// and →. The 장 grid and the 예배 순서 list pass those keys on, so their
+// buttons do not count.
+function isTakenByFocusedControl(event: KeyboardEvent): boolean {
+  if (isInside(event.target, PASSING_PARTS_SELECTOR)) return false;
+  if (event.code === SPACE_CODE) {
+    return isInside(event.target, PRESS_CONTROL_SELECTOR);
+  }
+  if (ARROW_CODES.has(event.code)) {
+    return isInside(event.target, ARROW_CONTROL_SELECTOR);
+  }
+  return false;
+}
+
 function belongsToOthers(event: KeyboardEvent): boolean {
   return (
     event.isComposing ||
     isColumnDragActive() ||
     isInside(event.target, EDITABLE_SELECTOR) ||
-    isInside(event.target, OWN_KEYS_SELECTOR)
+    isInside(event.target, OWN_KEYS_SELECTOR) ||
+    isTakenByFocusedControl(event)
   );
 }
 

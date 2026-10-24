@@ -126,6 +126,52 @@ describe('handleShowKey next and previous', () => {
   });
 });
 
+describe('handleShowKey where a focused control takes the key', () => {
+  it.each(['button', 'switch', 'checkbox', 'radio', 'tab'])(
+    'leaves Space to a focused %s so that it presses',
+    role => {
+      const control = appendTo('div', {role, tabindex: '0'});
+      const event = press('Space', {}, control);
+      expect(showState.outputNext).not.toHaveBeenCalled();
+      expect(event.defaultPrevented).toBe(false);
+    },
+  );
+
+  it('leaves Space to a button that has focus and cancels nothing on key up', () => {
+    const button = appendTo('button');
+    const event = press('Space', {}, button);
+    expect(showState.outputNext).not.toHaveBeenCalled();
+    expect(event.defaultPrevented).toBe(false);
+    expect(release('Space', button).defaultPrevented).toBe(false);
+  });
+
+  it('leaves the left and right arrows to a focused tab or radio only', () => {
+    press('ArrowRight', {}, appendTo('div', {role: 'tab'}));
+    press('ArrowLeft', {}, appendTo('div', {role: 'radio'}));
+    expect(showState.outputNext).not.toHaveBeenCalled();
+    expect(showState.outputPrevious).not.toHaveBeenCalled();
+    press('ArrowRight', {}, appendTo('button'));
+    expect(showState.outputNext).toHaveBeenCalledTimes(1);
+  });
+
+  it('still passes the Page keys and the jump keys on from a focused button', () => {
+    press('PageDown', {}, appendTo('button'));
+    press('PageUp', {}, appendTo('button'));
+    press('KeyC', {}, appendTo('button'));
+    expect(showState.outputNext).toHaveBeenCalledTimes(1);
+    expect(showState.outputPrevious).toHaveBeenCalledTimes(1);
+    expect(showState.outputLabel).toHaveBeenCalledTimes(1);
+  });
+
+  it('still takes Space from a button of the 장 grid and the 예배 순서 list', () => {
+    const grid = appendTo('div', {'data-slide-grid': ''});
+    const list = appendTo('div', {'data-service-list': ''});
+    press('Space', {}, grid.appendChild(document.createElement('button')));
+    press('Space', {}, list.appendChild(document.createElement('button')));
+    expect(showState.outputNext).toHaveBeenCalledTimes(2);
+  });
+});
+
 describe('handleShowKey where another part owns the key', () => {
   it('leaves keys to a text field', () => {
     const event = press('Space', {}, appendTo('input'));
