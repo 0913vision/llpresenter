@@ -50,7 +50,17 @@ describe('createLogger', () => {
     log.info('next line');
     await log.flush();
     const text = await readFile(join(dir, 'main.log'), 'utf8');
-    expect(text).toContain('WARN odd value [object Object]');
+    expect(text).toContain(
+      'WARN odd value [detail that JSON cannot represent]',
+    );
     expect(text).toContain('INFO next line');
+  });
+
+  it('writes a bigint detail with its n suffix', async () => {
+    const log = createLogger(dir);
+    log.info('big', 12345678901234567890n);
+    await log.flush();
+    const text = await readFile(join(dir, 'main.log'), 'utf8');
+    expect(text).toContain('INFO big 12345678901234567890n');
   });
 });

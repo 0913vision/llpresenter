@@ -60,7 +60,13 @@ function start(): void {
       win.on('closed', () => {
         control = null;
         disposeIpc();
-        void log.flush().finally(() => app.quit());
+        log.flush().then(
+          () => app.quit(),
+          (error: unknown) => {
+            console.error('failed to flush the log before quitting', error);
+            app.quit();
+          },
+        );
       });
       quitAfterSmokeTest(win, log);
       log.info('started', {

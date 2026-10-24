@@ -24,15 +24,18 @@ export interface LoggerOptions {
 
 type Level = 'info' | 'warn' | 'error';
 
+const UNSERIALIZABLE_DETAIL = '[detail that JSON cannot represent]';
+
 function describeDetail(detail: unknown): string {
   if (detail === undefined) return '';
   if (detail instanceof Error) {
     return ` ${detail.stack ?? `${detail.name}: ${detail.message}`}`;
   }
+  if (typeof detail === 'bigint') return ` ${detail.toString()}n`;
   try {
     return ` ${JSON.stringify(detail)}`;
   } catch {
-    return ` ${String(detail)}`;
+    return ` ${UNSERIALIZABLE_DETAIL}`;
   }
 }
 

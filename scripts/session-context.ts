@@ -121,29 +121,38 @@ function gitSummary(root: string, role: string): string {
   return `${history}\n\n${changedText}`;
 }
 
-function readStdin(): {source?: unknown; cwd?: unknown} {
+interface HookInput {
+  readonly source: string | undefined;
+  readonly cwd: string | undefined;
+}
+
+function stringProperty(value: unknown, key: string): string | undefined {
+  if (typeof value !== 'object' || value === null) return undefined;
+  const field: unknown = Reflect.get(value, key);
+  return typeof field === 'string' ? field : undefined;
+}
+
+function readStdin(): HookInput {
   try {
-    return JSON.parse(readFileSync(0, 'utf8')) as {
-      source?: unknown;
-      cwd?: unknown;
+    const input: unknown = JSON.parse(readFileSync(0, 'utf8'));
+    return {
+      source: stringProperty(input, 'source'),
+      cwd: stringProperty(input, 'cwd'),
     };
   } catch {
-    return {};
+    return {source: undefined, cwd: undefined};
   }
 }
 
 function gatherFacts(): SessionFacts {
   const input = readStdin();
-  const start =
-    typeof input.cwd === 'string'
-      ? input.cwd
-      : (process.env['CLAUDE_PROJECT_DIR'] ?? process.cwd());
+  const start = input.cwd ?? process.env['CLAUDE_PROJECT_DIR'] ?? process.cwd();
   const root = git(start, ['rev-parse', '--show-toplevel']);
   const branch = git(root, ['branch', '--show-current']);
   const notesFile = join(root, NOTES_PATH);
   const notes = readIfPresent(notesFile);
   return {
-    source: typeof input.source === 'string' ? input.source : 'unknown',
+    source: input.source ?? 'unknown',
     branch,
     notes,
     notesUpdated:

@@ -10,13 +10,13 @@ const BACKGROUND = '#0e0e0e';
 
 export const preloadPath = join(__dirname, '../preload/index.js');
 
-export function loadPage(win: BrowserWindow, page: 'index'): void {
+export function loadPage(win: BrowserWindow, page: 'index', log: Logger): void {
   const devServer = process.env['ELECTRON_RENDERER_URL'];
-  if (devServer !== undefined && devServer.length > 0) {
-    void win.loadURL(`${devServer}/${page}.html`);
-  } else {
-    void win.loadFile(join(__dirname, `../renderer/${page}.html`));
-  }
+  const loading =
+    devServer !== undefined && devServer.length > 0
+      ? win.loadURL(`${devServer}/${page}.html`)
+      : win.loadFile(join(__dirname, `../renderer/${page}.html`));
+  loading.catch((error: unknown) => log.error(`failed to load ${page}`, error));
 }
 
 function blockNavigation(win: BrowserWindow): void {
@@ -30,7 +30,7 @@ function reloadAfterCrash(win: BrowserWindow, log: Logger): void {
   win.webContents.on('render-process-gone', (_event, details) => {
     log.error('control window process gone', details);
     if (details.reason !== 'clean-exit' && !win.isDestroyed()) {
-      loadPage(win, 'index');
+      loadPage(win, 'index', log);
     }
   });
 }
@@ -63,6 +63,6 @@ export function createControlWindow(log: Logger): BrowserWindow {
     if (fitsScreen) win.maximize();
     win.show();
   });
-  loadPage(win, 'index');
+  loadPage(win, 'index', log);
   return win;
 }
