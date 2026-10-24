@@ -153,19 +153,19 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (b12fa06): reviewer (Codex, codex4) Request changes: a quit flush
+  could leave a change behind, rounding alone could send widths main rejects,
+  and the atomic write tests never reached the cleanup path.
+- Round 2 (6d6e770): reviewer Request changes: a columns-only change wrote
+  undefined over the widths.
+- Round 3 (7c8dce1): reviewer (Codex, codex5) Approve with one nit: decision
+  text still says LayoutChange needs columns (data-6 supplies it). The nit goes
+  into shell's next commit. Lead Approve. The `src/main/index.ts` wiring
+  (registerUiState before the windows, dispose on quit) comes from output as a
+  separate small request; switching to data-7's shared atomic writer is a
+  follow-up. Merged onto local `main` without conflicts.
 
 ## Team member's reply
 
