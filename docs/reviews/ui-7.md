@@ -2,16 +2,22 @@
 
 - Team member: `ui`
 - Branch: `feat/ui/live-parts`
-- Review range: `99cb546...feat/ui/live-parts` (stacked on ui-4, whose tip is
-  `99cb546`; after ui-4 merges, the range becomes `main...feat/ui/live-parts`)
-- Base commit: `99cb546` (`feat/ui/show-parts`, ui-4)
+- Review range: `77be252...feat/ui/live-parts` (round 1 was
+  `99cb546...feat/ui/live-parts`, stacked on ui-4; ui-4 has merged and round 2
+  sits on `main` with the same patches)
+- Base commit (`main`): `77be252`
+- Round 2, what to check: the three fixes, the nit, and the lead's off dot
+  decision in "Team member's reply", each with the test that fails on the old
+  code; the new token `size-preview-small-max`
 - Last commit: the commit that adds this file (see the review request message)
 - Related brief: `docs/briefs/ui.md`, M2 in `docs/MILESTONES.md`
-- Shared changes: 42 new design tokens in `design/system/project/tokens.json`,
-  regenerated into `design/system/project/tokens.css` and copied into
+- Shared changes: 43 new design tokens (42 in round 1, `size-preview-small-max`
+  in round 2) in `design/system/project/tokens.json`, regenerated into
+  `design/system/project/tokens.css` and copied into
   `src/renderer/src/styles/tokens.css`; a fourth floating layer, `notification`,
-  in `src/renderer/src/ui/layers.ts`; one rule in the reference CSS
-  `design/system/css/30-panel.css` (rebuilt into `bundle.css`)
+  in `src/renderer/src/ui/layers.ts`, and the modal Tab cycle through it (round
+  2); rules in the reference CSS `design/system/css/30-panel.css`, and in round
+  2 `41-previewframe.css` and `13-toolbarbutton.css` (rebuilt into `bundle.css`)
 - What to check: the 지우기 row, the preview frame, and the notification cards
   against their READMEs and `docs/spec/08-problems.md` ("Notifications"); the
   stack rules in `notices.ts`; that the notification layer stays outside a
@@ -83,11 +89,11 @@ Also in this branch:
 
 ## Checks run
 
-| Command or test                              | Result                                                                            |
-| -------------------------------------------- | --------------------------------------------------------------------------------- |
-| `npm run verify`                             | Pass, 5 steps run at once, 158 s (the new verify prints no test counts on a pass) |
-| `npx vitest run --project renderer` (ui)     | Pass, 42 files, 370 tests                                                         |
-| Gallery beside the preview cards (see below) | Done for every card this branch touches, in Chromium (offscreen Electron)         |
+| Command or test                              | Result                                                                                   |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `npm run verify`                             | Pass, 5 steps run at once, 237 s in round 2 (158 s in round 1; no test counts on a pass) |
+| `npx vitest run --project renderer` (ui)     | Pass, 42 files, 378 tests (370 in round 1)                                               |
+| Gallery beside the preview cards (see below) | Done for every card this branch touches, in Chromium (offscreen Electron)                |
 
 ### Comparison with the preview cards
 
@@ -157,20 +163,20 @@ focused:
    appended at the end. The cards never take focus, but Tab reaches their
    buttons before the right column, and the layer stays outside the app root
    that a modal makes inert.
-3. **PreviewFrame remounts the two screens that swap.** The large frame and the
-   small cell are different elements, so the swapped screens draw their
-   `renderScreen` content again; the output side has no motion, so the swap is
-   instant. Its README says so.
+3. **PreviewFrame keeps every screen mounted across swaps** (round 2; the lead
+   decided). Each screen keeps one cell in the same place of the tree, and the
+   grid puts the large one on top; a small cell has its button laid over it. A
+   swap changes only classes, the name row, and that button, so a renderer is
+   never rebuilt and a preview video never restarts. Its README says so.
 4. **ClearUndo draws its own divider**, so `ClearRow` takes only `ClearButton`
    and `ClearUndo` children and needs no divider part.
 5. **Gallery stand-ins** for parts the shell owns: the sample preview screens,
    the status bar around the dots, and the name row under the 준비 preview, each
    with a NOTE.
-6. **The output off dot.** The gallery's "Output off" uses `OutputToggle`, which
-   draws no dot, as the ToolbarButton README says ("No dot (don't draw a gray
-   dot)"). The StatusMarks README ("Dot: off ... Toolbar output button") and its
-   card draw a gray dot there. Which one should win? I can fix the other README
-   in my next branch.
+6. **The output off dot** (round 2; the lead decided). The StatusMarks card
+   wins: an output that is off keeps a `line-strong` dot, so state shows by
+   shape and color. `OutputToggle`, the ToolbarButton README, its card title,
+   and the reference CSS now draw it (reply item 5).
 
 ## Shared contract change requests
 
@@ -207,4 +213,42 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 findings from codex5, all fixed, and the README nit from codex2's review
+of shell-12. Each fix has a test that fails on the old code.
+
+1. An information card that replaced another with the same key kept the old
+   timer. The lifetime now follows the notice object, so a new notice starts its
+   six seconds again; `NotificationStackProps.notices` says to keep each object
+   while its card shows (`3f437ed`). Test with the fake clock: a replacement
+   five seconds in still shows 5.999 seconds later and closes at six.
+2. Tab couldn't reach the notification buttons while a dialog was open.
+   `useModal` now runs Tab through one cycle: the notification cards' buttons
+   (they come first in the page and stay live) and then the topmost modal.
+   Inside either one the browser moves focus as before; between them and at the
+   ends the modal does. A document listener does it, so Tab from a card is
+   handled too; it acts only for the topmost modal (`ModalStack.isTop`) and
+   finds the layer without creating it (`findLayerContainer`) (`0866801`). Test:
+   with a `Dialog` and a `NotificationStack` open, Tab from 만들기 goes 모니터
+   다시 찾기, 창 보기, 알림 닫기, 닫기, 취소, and Shift Tab walks back the same
+   way and wraps to 만들기. The dialog tests still pass.
+3. I didn't add `key={large.id}`: the lead decided the opposite of the remount.
+   CLAUDE.md asks us to reuse what we can and not to rebuild renderers or
+   restart video per change, and shell-12's preview panel already keeps its
+   three renderers across swaps. So `PreviewFrame` now keeps one cell per screen
+   in the same place of the tree, lets the grid put the large one on top, and
+   lays the small cell's button over it instead of around it (`afb8b3c`). Test:
+   with a renderer that records its mounts, two swaps mount and unmount nothing,
+   and the drawn elements are the same nodes. The README and decision 3 say so.
+   In Chromium the gallery section still matches the card, with the two small
+   rows side by side in the narrow form.
+4. Nit: the README said small previews are half the column wide, while shell
+   caps them at 160px so a widened column leaves the height to the large
+   preview. The cap is now the token `size-preview-small-max` (160px), used by
+   `PreviewFrame`, the reference CSS, and the README's size table
+   (`min((width - 10) / 2, 160) × 9/16`) (`afb8b3c`).
+5. The lead's answer to decision 6: `OutputToggle` now draws the StatusMarks off
+   dot (`line-strong`, with the cut ring) on an output that is off, and the
+   ToolbarButton README, its card title, and `13-toolbarbutton.css` say so
+   (`97cbe85`). Test: each state draws exactly one dot of its own tone (`live`,
+   `off`, `warning`); the off case fails on the old code. In Chromium the
+   gallery's "Off" toolbar button now matches the card's dot.
