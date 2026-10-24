@@ -94,8 +94,11 @@ subagent).
    it or replies in the review document with the reason for not addressing it,
    adds new commits, and then starts again from step 2.
 7. **Approve and merge:** When both the lead and the reviewer approve, the lead
-   confirms that the team member's branch sits on the latest `main` and merges
-   it by fast-forward only: `git merge --ff-only <branch>`. If `main` moved in
+   first pulls the version bot's latest commit
+   (`git pull --ff-only origin main`), confirms that the team member's branch
+   sits on the latest `main`, and merges it by fast-forward only:
+   `git merge --ff-only <branch>`. Pushing `main` runs the pre-push check, and
+   GitHub then adds the `Bump version: x.y.z` commit and tag. If `main` moved in
    the meantime, the lead asks the team member to rebase again. If a conflict in
    that rebase changed code, the branch gets reviewed again. If the branch only
    moved up without conflicts, it doesn't.

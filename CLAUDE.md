@@ -158,6 +158,8 @@ full bar is "Quality bar" in `docs/TECH.md`.
   `prep`, `output`, `design`, or `repo`.
 - Don't add a body, a blank line, `Co-Authored-By`, or any other trailer, even
   when a tool adds one by default.
+- The one exception is the version bot on GitHub, whose commits read
+  `Bump version: x.y.z`. Never write that message yourself.
 - Examples: `feat(live): add undo for the last clear`,
   `fix(shell): keep the output dot visible on hover`,
   `docs(spec): describe the service file format`.

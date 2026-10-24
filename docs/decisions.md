@@ -139,9 +139,11 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   PRs for now.
 - 2026-10-24: Version rules (user): the major version goes up only with the
   user's permission. `break`, `feat`, and `refactor` raise the minor version;
-  `fix`, `style`, `chore`, and `docs` raise the patch version. The version goes
-  up on every merge into `main`, not at releases (user): devops-2 builds
-  `npm run land -- <branch>`, which fast-forwards `main`, bumps the version from
-  the merged commits in a commit on `main`, updates `CHANGELOG.md`, and tags
-  `v<x.y.z>`. The merged review request is the unit; members don't open GitHub
-  PRs.
+  `fix`, `style`, `chore`, and `docs` raise the patch version. The version lives
+  only in `package.json`.
+- 2026-10-24: Flow for `main` (user): before a push to `main`, a pre-push hook
+  runs `npm run verify` and blocks the push on failure. After a push to `main`,
+  GitHub Actions runs verify and then a bot commits `Bump version: x.y.z` and
+  tags `vx.y.z`. That commit is the only exception to the commit message format.
+  The lead pulls the bot's commit before the next merge. No scheduled tests for
+  now. devops-2 builds this; the earlier local bump plan is dropped.
