@@ -180,6 +180,22 @@ describe('ClearRow', () => {
     expect([...iconRenders.names].sort()).toEqual(['layers', 'text']);
   });
 
+  it('redraws exactly the buttons that changed when the layers and canUndo change together', () => {
+    setLayers({});
+    render(<ClearRow compact={false} />);
+    iconRenders.names.length = 0;
+    act(() =>
+      useLive.setState({
+        state: {
+          ...emptyLiveState(),
+          layers: {...emptyLayers(), slide},
+          canUndo: true,
+        },
+      }),
+    );
+    expect([...iconRenders.names].sort()).toEqual(['layers', 'text', 'undo']);
+  });
+
   it('follows the live state when a clear becomes undoable and when it is undone', () => {
     setCanUndo(false);
     render(<ClearRow compact={false} />);
