@@ -193,6 +193,50 @@ describe('BackgroundLayerView', () => {
   });
 });
 
+describe('BackgroundLayerView handovers', () => {
+  it('restarts a short clip on its own while the spare still holds the last background', () => {
+    const {view, videos} = setUp();
+    const [older, front] = videos;
+    view.show(STILL_WATER);
+    front.dispatchEvent(new Event('playing'));
+    view.show(WARM_LIGHT);
+    older.dispatchEvent(new Event('playing'));
+    older.dispatchEvent(new Event('ended'));
+    expect(playsOf(older)).toBe(2);
+    expect(playsOf(front)).toBe(1);
+    expect(front.getAttribute('src')).toBe(urlOf('still-water'));
+  });
+
+  it('holds the last frame of the outgoing background while the next one is slow to start', () => {
+    const {view, videos} = setUp();
+    const [incoming, outgoing] = videos;
+    view.show(STILL_WATER);
+    outgoing.dispatchEvent(new Event('playing'));
+    view.show(WARM_LIGHT);
+    outgoing.dispatchEvent(new Event('ended'));
+    expect(playsOf(outgoing)).toBe(1);
+    expect(playsOf(incoming)).toBe(1);
+    incoming.dispatchEvent(new Event('playing'));
+    expect(isShown(incoming)).toBe(true);
+  });
+
+  it('loops a background that was sought near its end before the spare is ready', async () => {
+    const clock = installFakeClock();
+    vi.spyOn(HTMLMediaElement.prototype, 'duration', 'get').mockReturnValue(20);
+    const {view, videos} = setUp();
+    const [spare, front] = videos;
+    view.show({...WARM_LIGHT, startedAt: Date.now() - 19_900});
+    front.dispatchEvent(new Event('loadedmetadata'));
+    front.dispatchEvent(new Event('playing'));
+    front.dispatchEvent(new Event('ended'));
+    expect(playsOf(front)).toBe(2);
+    expect(playsOf(spare)).toBe(0);
+    await clock.advance(BACKGROUND_DISSOLVE_MS);
+    front.dispatchEvent(new Event('ended'));
+    expect(playsOf(spare)).toBe(1);
+  });
+});
+
 describe('startOffsetSeconds', () => {
   const STARTED = 1_000_000;
   const DURATION = 20;

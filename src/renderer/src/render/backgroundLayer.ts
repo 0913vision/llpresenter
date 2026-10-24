@@ -82,6 +82,7 @@ function unload(video: HTMLVideoElement): void {
 export class BackgroundLayerView {
   private readonly element = document.createElement('div');
   private readonly videos: readonly [HTMLVideoElement, HTMLVideoElement];
+  private readonly holding: [string | null, string | null] = [null, null];
   private readonly stopListening: () => void;
   private front: VideoIndex = 0;
   private current: MediaLayer | null = null;
@@ -122,14 +123,15 @@ export class BackgroundLayerView {
     this.cancelSpare();
     this.cancelSeek();
     this.stopListening();
-    for (const video of this.videos) unload(video);
+    this.unloadAt(0);
+    this.unloadAt(1);
     this.element.remove();
   }
 
   private start(media: MediaLayer): void {
     const to = otherOf(this.front);
     const video = this.videos[to];
-    video.src = this.options.mediaUrl(media.mediaId);
+    this.load(to, media.mediaId);
     this.seekOnceLoaded(video, media);
     this.handover = {to, dissolve: true};
     this.play(video);
@@ -155,10 +157,25 @@ export class BackgroundLayerView {
 
   private clearAtOnce(): void {
     this.handover = null;
-    for (const video of this.videos) {
-      hide(video);
-      unload(video);
-    }
+    for (const video of this.videos) hide(video);
+    this.unloadAt(0);
+    this.unloadAt(1);
+  }
+
+  private load(index: VideoIndex, mediaId: string): void {
+    this.videos[index].src = this.options.mediaUrl(mediaId);
+    this.holding[index] = mediaId;
+  }
+
+  private unloadAt(index: VideoIndex): void {
+    unload(this.videos[index]);
+    this.holding[index] = null;
+  }
+
+  private holdsCurrent(index: VideoIndex): boolean {
+    return (
+      this.current !== null && this.holding[index] === this.current.mediaId
+    );
   }
 
   private listen(): () => void {
@@ -205,10 +222,16 @@ export class BackgroundLayerView {
   }
 
   private handleEnded(index: VideoIndex): void {
-    if (index !== this.front || this.current?.loop !== true) return;
+    // NOTE(0913vision): An outgoing background that ends while the next one
+    // starts holds its last frame; only the current background loops.
+    if (index !== this.front || !this.holdsCurrent(index)) return;
+    if (this.current?.loop !== true) return;
     const spareIndex = otherOf(index);
     const spare = this.videos[spareIndex];
-    if (spare.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
+    const spareReady =
+      this.holdsCurrent(spareIndex) &&
+      spare.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA;
+    if (!spareReady) {
       this.restart(this.videos[index]);
       return;
     }
@@ -229,14 +252,14 @@ export class BackgroundLayerView {
 
   private prepareSpare(): void {
     this.spareTimer = null;
-    const spare = this.videos[otherOf(this.front)];
-    hide(spare);
+    const spareIndex = otherOf(this.front);
+    hide(this.videos[spareIndex]);
     if (this.current === null) {
-      unload(spare);
+      this.unloadAt(spareIndex);
       return;
     }
-    spare.pause();
-    spare.src = this.options.mediaUrl(this.current.mediaId);
+    this.videos[spareIndex].pause();
+    this.load(spareIndex, this.current.mediaId);
   }
 
   private restart(video: HTMLVideoElement): void {
