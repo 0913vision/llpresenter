@@ -94,9 +94,10 @@ describe('npm run gallery', () => {
   );
 
   it('resolves imports with the same aliases as the renderer build', () => {
-    expect(electronViteConfig).toMatchObject({
-      renderer: {resolve: {alias: RENDERER_ALIASES}},
-    });
+    expect(electronViteConfig).toHaveProperty(
+      'renderer.resolve.alias',
+      RENDERER_ALIASES,
+    );
   });
 
   it('listens on LLP_DEV_PORT, or 5173 without it', () => {
