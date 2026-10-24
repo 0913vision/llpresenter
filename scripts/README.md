@@ -122,7 +122,9 @@ one sample, spread over several lines:
 
 The judge skips a warm-up (5 minutes, or a twelfth of a shorter run) and splits
 the rest of the requested time into 12 windows. A short run gets fewer windows
-of at least a minute each, and never fewer than 4. The run fails when:
+of at least a minute each, but never fewer than 4, so below about 4.4 minutes
+the windows are shorter than a minute (27.5 seconds for a 2-minute run). The run
+fails when:
 
 - the record covers less than the requested time,
 - a process has fewer than 3 samples in any window, for example because it

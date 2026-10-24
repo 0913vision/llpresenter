@@ -37,8 +37,10 @@ export const DEFAULT_JUDGE_OPTIONS: JudgeOptions = {
 
 /**
  * The default thresholds for a run of another length. The warm-up shrinks with
- * the run, and a short trial run gets fewer windows of at least a minute, so
- * it still has samples to judge.
+ * the run, and a short trial run gets fewer windows of at least a minute each,
+ * so it still has samples to judge. It never gets fewer than four windows,
+ * though: below about 4.4 minutes, the four windows are shorter than a minute
+ * (27.5 seconds for a two-minute run).
  */
 export function judgeOptionsFor(requiredMs: number): JudgeOptions {
   const warmUpMs = Math.min(

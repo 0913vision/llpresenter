@@ -1,5 +1,10 @@
 import {describe, expect, it} from 'vitest';
-import {DEFAULT_JUDGE_OPTIONS, judgeOptionsFor, judgeRun} from './judge.mts';
+import {
+  DEFAULT_JUDGE_OPTIONS,
+  judgeOptionsFor,
+  judgeRun,
+  type JudgeOptions,
+} from './judge.mts';
 import type {SoakSample} from './record.mts';
 
 const MINUTE_MS = 60_000;
@@ -21,6 +26,20 @@ function sampleAt(elapsedMs: number, privateKb: number): SoakSample {
     processes: [{name: 'main', pid: 100, workingSetKb: privateKb, privateKb}],
     outputs: [],
   };
+}
+
+const HIGH_KB = 50 * 1024;
+
+function windowMinutes(index: number): readonly [number, number] {
+  const {warmUpMs, requiredMs, windowCount} = DEFAULT_JUDGE_OPTIONS;
+  const width = (requiredMs - warmUpMs) / windowCount;
+  const start = warmUpMs + index * width;
+  return [start / MINUTE_MS, (start + width) / MINUTE_MS];
+}
+
+function inWindow(minute: number, index: number): boolean {
+  const [start, end] = windowMinutes(index);
+  return minute >= start && minute < end;
 }
 
 function sawtooth(minute: number): number {
@@ -145,15 +164,20 @@ describe('judgeRun', () => {
 
   it('passes flat memory with one high window', () => {
     const verdict = judgeRun(
-      soakRun(m => (m >= 40 && m < 44 ? BASE_KB + 50 * 1024 : BASE_KB)),
+      soakRun(m => BASE_KB + (inWindow(m, 7) ? HIGH_KB : 0)),
     );
+    expect(verdict.memory[0]?.baselinesKb[7]).toBe(BASE_KB + HIGH_KB);
     expect(verdict.memory[0]?.trend).toBe('flat');
   });
 
   it('still fails a steady rise with one high window in it', () => {
     const rise = (m: number): number => (12 * 1024 * m) / 60;
     const verdict = judgeRun(
-      soakRun(m => BASE_KB + rise(m) + (m >= 10 && m < 14 ? 50 * 1024 : 0)),
+      soakRun(m => BASE_KB + rise(m) + (inWindow(m, 1) ? HIGH_KB : 0)),
+    );
+    const [start] = windowMinutes(1);
+    expect(verdict.memory[0]?.baselinesKb[1]).toBeGreaterThanOrEqual(
+      BASE_KB + HIGH_KB + rise(start),
     );
     expect(verdict.memory[0]?.trend).toBe('growing');
   });
@@ -260,6 +284,10 @@ describe('judgeRun', () => {
   });
 });
 
+function windowWidthMs(options: JudgeOptions): number {
+  return (options.requiredMs - options.warmUpMs) / options.windowCount;
+}
+
 describe('judgeOptionsFor', () => {
   it('keeps the defaults for a 60-minute run', () => {
     expect(judgeOptionsFor(60 * MINUTE_MS)).toEqual(DEFAULT_JUDGE_OPTIONS);
@@ -274,8 +302,17 @@ describe('judgeOptionsFor', () => {
     });
   });
 
-  it('never goes below four windows', () => {
-    expect(judgeOptionsFor(2 * MINUTE_MS).windowCount).toBe(4);
+  it('keeps windows of at least a minute while the run allows it', () => {
+    const fiveWindows = judgeOptionsFor(327_273);
+    expect(fiveWindows.windowCount).toBe(5);
+    expect(windowWidthMs(fiveWindows)).toBeGreaterThanOrEqual(MINUTE_MS);
+    expect(judgeOptionsFor(327_272).windowCount).toBe(4);
+  });
+
+  it('never goes below four windows, even when they get shorter than a minute', () => {
+    const twoMinutes = judgeOptionsFor(2 * MINUTE_MS);
+    expect(twoMinutes.windowCount).toBe(4);
+    expect(windowWidthMs(twoMinutes)).toBe(27_500);
   });
 
   it('judges a short flat trial run', () => {
