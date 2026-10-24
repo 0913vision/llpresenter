@@ -70,6 +70,7 @@ function displayRequests(
 export class OutputManager {
   private readonly windows = new Map<string, OutputWindow>();
   private readonly statuses = new Map<string, OutputStatus>();
+  private previousMonitors: ReadonlyMap<string, number> = new Map();
   private stops: ReadonlyArray<() => void> = [];
   private lastOutputs: LiveState['outputs'] | null = null;
   private disposed = false;
@@ -105,6 +106,7 @@ export class OutputManager {
     if (this.disposed) return;
     const surroundings = this.surroundings();
     if (surroundings === null) return;
+    this.rememberMonitors(surroundings.assigned);
     const screens = this.options.screens.list();
     this.lastOutputs = this.options.store.state.outputs;
     const turnOff: string[] = [];
@@ -129,8 +131,15 @@ export class OutputManager {
       requests: displayRequests(screens.list()),
       monitors,
       controlMonitorId: controlMonitor.id,
+      previous: this.previousMonitors,
     });
     return {assigned, controlMonitor};
+  }
+
+  private rememberMonitors(assigned: ReadonlyMap<string, Monitor>): void {
+    this.previousMonitors = new Map(
+      [...assigned].map(([screenId, {id}]) => [screenId, id]),
+    );
   }
 
   private placementFor(

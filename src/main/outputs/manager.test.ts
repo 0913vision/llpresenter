@@ -125,6 +125,18 @@ describe('OutputManager', () => {
     expect(store.state.outputs['main']).toBe(true);
   });
 
+  it('keeps an output on the monitor it found when a look-alike monitor connects', () => {
+    const {store, displays, windows} = setUp();
+    const found = {...PROJECTOR, id: 22, x: 3840};
+    displays.plug(CONTROL, found);
+    store.dispatch(turn(true));
+    const handle = windows.only('main');
+    expect(handle.mode).toMatchObject({bounds: {x: 3840}});
+
+    displays.plug(CONTROL, {...PROJECTOR, id: 44}, found);
+    expect(handle.mode).toMatchObject({kind: 'fullscreen', bounds: {x: 3840}});
+  });
+
   it('turns the output off when its monitor is unplugged and 연결이 끊기면 says off', () => {
     const {store, displays, windows} = setUp([
       screenOn(PROJECTOR, {onDisconnect: 'off'}),
