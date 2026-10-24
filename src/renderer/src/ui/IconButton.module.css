@@ -10,6 +10,7 @@
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--text-2);
+  font: var(--type-label);
   user-select: none;
   transition:
     background-color var(--motion-hover),
