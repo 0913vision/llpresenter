@@ -2,16 +2,17 @@ import {dragColumn, fitToWindow, type DraggableColumn} from './columns';
 import type {ColumnWidthStore} from './columnWidthStore';
 import {defaultColumns, type ColumnWidths, type SizeClass} from './sizeClass';
 
+// NOTE(0913vision): After a resize fits the widths mid-drag, the pointer
+// movement counts from `widthsAtLastFit`. `pointerMoved` stays true when the
+// pointer returns to its first place, because the width on screen can still
+// differ from `widthsAtStart`, and then the operator did change it.
 interface Drag {
   readonly column: DraggableColumn;
-  /** The widths on screen when the drag began. */
-  readonly initial: ColumnWidths;
-  /** The widths that the pointer movement counts from. */
-  start: ColumnWidths;
-  /** The pointer movement that `start` already includes. */
-  baseDelta: number;
-  /** The pointer movement at the last move. */
-  lastDelta: number;
+  readonly widthsAtStart: ColumnWidths;
+  widthsAtLastFit: ColumnWidths;
+  movementAtLastFit: number;
+  lastMovement: number;
+  pointerMoved: boolean;
 }
 
 /** One drag of a column gap. */
@@ -75,10 +76,11 @@ export class ColumnLayout {
     if (this.drag) return undefined;
     const drag: Drag = {
       column,
-      initial: this.shown,
-      start: this.shown,
-      baseDelta: 0,
-      lastDelta: 0,
+      widthsAtStart: this.shown,
+      widthsAtLastFit: this.shown,
+      movementAtLastFit: 0,
+      lastMovement: 0,
+      pointerMoved: false,
     };
     this.drag = drag;
     return {
@@ -92,19 +94,20 @@ export class ColumnLayout {
     if (fitted.left === this.shown.left && fitted.right === this.shown.right) {
       return;
     }
-    drag.start = fitted;
-    drag.baseDelta = drag.lastDelta;
+    drag.widthsAtLastFit = fitted;
+    drag.movementAtLastFit = drag.lastMovement;
     this.display(fitted);
   }
 
   private dragBy(drag: Drag, delta: number): void {
     if (this.drag !== drag) return;
-    drag.lastDelta = delta;
+    drag.lastMovement = delta;
+    if (delta !== 0) drag.pointerMoved = true;
     this.display(
       dragColumn({
         column: drag.column,
-        start: drag.start,
-        delta: delta - drag.baseDelta,
+        start: drag.widthsAtLastFit,
+        delta: delta - drag.movementAtLastFit,
         windowWidth: this.options.windowWidth(),
       }),
     );
@@ -116,7 +119,10 @@ export class ColumnLayout {
     const {column} = drag;
     // NOTE(0913vision): Save only a changed width, so that a click on a gap
     // does not store a width that is shrunk on screen only.
-    if (drag.lastDelta !== 0 && this.shown[column] !== drag.initial[column]) {
+    if (
+      drag.pointerMoved &&
+      this.shown[column] !== drag.widthsAtStart[column]
+    ) {
       this.saved = {...this.saved, [column]: this.shown[column]};
       this.options.store.save(this.sizeClass, this.saved);
     }

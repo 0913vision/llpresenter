@@ -235,6 +235,26 @@ describe('ColumnLayout', () => {
     expect(store.load('normal')).toEqual({left: 400, right: 720});
   });
 
+  it('saves the width on screen when the pointer returns to its first place after a resize', () => {
+    const harness = createHarness('normal', 1920);
+    const {layout, shown, store} = harness;
+    drag(layout, 'right', -220);
+    drag(layout, 'left', 120);
+    expect(store.load('normal')).toEqual({left: 400, right: 700});
+
+    const session = begin(layout, 'right');
+    session.move(-10);
+    expect(shown.at(-1)).toEqual({left: 400, right: 710});
+    harness.setWindowWidth(1600);
+    layout.refit();
+    expect(shown.at(-1)).toEqual({left: 400, right: 624});
+    session.move(0);
+    expect(shown.at(-1)).toEqual({left: 400, right: 614});
+    session.end();
+    expect(store.load('normal')).toEqual({left: 400, right: 614});
+    expect(shown.at(-1)).toEqual({left: 400, right: 614});
+  });
+
   it('fits the widths again when the drag ends after the window grew', () => {
     const harness = createHarness('normal', 1600);
     const {layout, shown, store} = harness;

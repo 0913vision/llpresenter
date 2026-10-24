@@ -106,4 +106,17 @@ missing.
 
 ## Team member's reply
 
-1.
+1. Finding 1 (a changed width with `lastDelta === 0`): fixed. The drag now has a
+   separate `pointerMoved` flag. It becomes true on the first pointer move that
+   is not zero and stays true when the pointer returns to its first place. A
+   drag saves when `pointerMoved` is true and the width on screen differs from
+   the width at the start. A press without a move, and a resize alone, still
+   save nothing. The sequence of the finding is a regression test: "saves the
+   width on screen when the pointer returns to its first place after a resize"
+   (1920 with 400 and 700, drag the right gap by -10, resize to 1600 so the
+   right column is 624, move back to 0 so it is 614, release: 614 is saved and
+   stays).
+2. Finding 2 (TSDoc on the unexported `Drag`): removed. The fields have clearer
+   names (`widthsAtStart`, `widthsAtLastFit`, `movementAtLastFit`,
+   `lastMovement`, `pointerMoved`), and the context that the names cannot carry
+   is one `NOTE(0913vision)` above the interface.
