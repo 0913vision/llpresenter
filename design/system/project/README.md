@@ -158,6 +158,7 @@ The app uses one typeface, Pretendard Variable (`fonts/PretendardVariable.woff2`
 | Problem | `warning` icon or outline, reason in a tooltip |
 
 - Show the keyboard focus ring only on `:focus-visible`. Don't show it when the user clicks with the mouse.
+- In the 진행 workspace, a mouse click moves keyboard focus only into a text field, the 장 grid, or the 예배 순서 list. A click on any other button, toggle, segmented control, slider, tab, or tile does its job and leaves keyboard focus where it was; Tab still moves focus to it. So Space and → after a click on a 매크로 or a 소품 still go to 다음 장 instead of pressing that control again. In 준비 and 화면 설정, a click focuses as usual.
 - Background changes for hover and pressed take 100ms ease-out, menus and tooltips fade over 120ms, and dialogs fade over 160ms. Don't add any other motion. In code, use the tokens `--motion-hover`, `--motion-popover`, and `--motion-dialog` (for example `transition: background-color var(--motion-hover)`).
 - Don't add UI motion to the output screens. Look and the settings decide the transitions when a 장 or a background changes.
 - Under `prefers-reduced-motion`, set all UI motion to 0.

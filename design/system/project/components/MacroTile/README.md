@@ -50,7 +50,8 @@ The last run ring stays white, as in the draft. A macro isn't something that is 
 
 - A click runs the macro at once, without asking for confirmation. After it runs, the last run ring moves to that tile.
 - A right-click opens the macro menu (실행, 이름 바꾸기, 아이콘 바꾸기, 색, 동작 추가 …, 삭제) and keeps that tile selected while the menu is open.
-- The grid and the list are `role="listbox"`, and the items are `role="option"`. The arrow keys move between items, and Enter or Space runs one. Shift + F10 or the menu key opens the right-click menu.
+- The grid and the list are `role="listbox"`, and the items are `role="option"`. While an item has keyboard focus, the arrow keys move between items, and Enter or Space runs one. Shift F10 or the Menu key opens the right-click menu. Keys the tile doesn't use (F1 to F7, Page Up, Page Down, Ctrl and Alt commands) pass on to their commands.
+- In the 진행 workspace, a mouse click runs the macro but doesn't give the tile keyboard focus; only Tab moves keyboard focus into the grid. So Space after a click still goes to 다음 장 instead of running the macro again.
 - Write the name and the schedule in the `aria-label`: "예배 시작, 10:30에 실행".
 - State attributes: last run `data-state="last-run"`, selected `aria-selected="true"`.
 
@@ -61,8 +62,9 @@ The last run ring stays white, as in the draft. A macro isn't something that is 
 
 ## Implementation notes
 
-- `<MacroTile name="찬양" icon="song" color="teal" lastRun selected scheduled="10:30" onRun onContextMenu />`
-- `<MacroRow …same props… actionCount={2} />`, `<MacroGrid>`
+- `<MacroTile name="찬양" icon="song" color="teal" lastRun selected schedule={{kind: 'time', time: '10:30'}} />`; a startup 매크로 has `schedule={{kind: 'startup'}}`.
+- `<MacroRow …same props… actionCount={2} />`
+- `<MacroGrid label="매크로" selected={index} onRun={…} onMenu={…} onNew={…}>` and `<MacroList …>`: a click, Enter, or Space calls `onRun`, a right-click, Shift F10, or the Menu key calls `onMenu`, and the arrow keys move keyboard focus only. `selected` marks the 매크로 being edited or under its menu.
 - Classes: `ll-macro-grid`, `ll-macro`, `ll-macro__tile`, `ll-macro__name`, `ll-macro__clock`, `ll-macro--new`, `ll-macro-row`, `ll-macro-row__swatch`, `ll-macro-row__name`, `ll-macro-row__meta`.
 - The block rules are raised one level to `:is(.ll-root, .ll-preview) .ll-macro` so that they beat the default button text reset (`.ll-root button { color: inherit }`).
 
