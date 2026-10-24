@@ -81,10 +81,12 @@ gains `withParticle` (과 or 와) for "출력 켜기와 겹침".
 
 ## Decisions I made (for the lead to confirm)
 
-1. **PropertyRow** takes its control as a function of the control id
-   (`{id => <Switch id={id} … />}`), so the name is always a real `label for`
-   and a click on it focuses or toggles the control. A row whose control is
-   disabled (`disabled` or `aria-disabled`) draws its name in `text-off`.
+1. **PropertyRow** takes its control as a function of the ids that tie it to the
+   name (`{({controlId}) => <Switch id={controlId} … />}`, and
+   `{({controlId, labelId}) => <SegmentedControl id={controlId} labelledBy={labelId} … />}`
+   for a group control), so the name is always a real `label for` and a click on
+   it focuses or toggles the control. A row whose control is disabled
+   (`disabled` or `aria-disabled`) draws its name in `text-off`.
 2. **ArrangementStrip** handles selection with the arrows, Alt + Left or Right
    to move a chip, and Delete, and asks the caller with `onMove` and `onRemove`.
    Dragging with the pointer is left to the 준비 feature, which shows its state
