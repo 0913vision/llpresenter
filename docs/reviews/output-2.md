@@ -156,19 +156,19 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (4ee5af1): reviewer (Codex, codex2) Request changes: the video could
+  sit above the lyrics, an early loop could replay the outgoing background,
+  media paths had no containment check, shrink to fit stopped at a quarter size,
+  undo resumed at the wrong position, a late reply could render after dispose,
+  the low-fps warning cleared below target, and a nit.
+- Round 2 (20e6ef5): reviewer (Codex, codex5) Request changes: a third
+  background during a dissolve could show black, and a test nit.
+- Round 3 (cbeb453): reviewer (Codex, codex5) Approve, no findings. qa tested
+  the branch in the built app before merge (gapless loop, dissolves, clear and
+  undo, seek after a restart, a 10-minute soak with no trend). Lead Approve.
+  Rebased by the lead onto local `main` without conflicts.
 
 ## Team member's reply
 
