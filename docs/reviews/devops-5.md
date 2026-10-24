@@ -62,3 +62,23 @@ MB per hour drift, and growth that levels off after minute 20.
 2.  Short trial runs (`--minutes 5`) extrapolate a few minutes to a rate per
     hour, so small noise can fail them. They are smoke checks; the verdict that
     counts is the 60-minute run.
+
+## Team member's reply (round 1)
+
+1.  Codex 1: the fit is now the Theil-Sen slope, the median of the slopes
+    between every pair of windows, so one window can't decide it. The judged
+    time is split into 12 windows instead of 6, so the later half has 6 points
+    and one outlier moves only a few of its 15 pair slopes. New tests:
+    - your case (minima at minutes 14, 23, 32, 33, 50, and 60 with the 33 one at
+      150 MB, in 6 windows) is `flat`; it fails with the round 1 fit,
+    - flat memory with one low sample is `flat`,
+    - flat memory with one high window is `flat`,
+    - a steady 12 MB/h rise with one high window is still `growing`.
+2.  Codex 2: a fit without two distinct timestamps returns `unjudged`, which
+    fails the run. New tests: 0, 1, and 2 windows with rising memory are all
+    `unjudged`; they were `flat` before. `judgeOptionsFor` keeps short trial
+    runs judgeable with windows of at least a minute and never fewer than 4,
+    with tests.
+
+The 4 MB/h limit stays, as the lead decided. `scripts/README.md` describes the
+new rule.
