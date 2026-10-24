@@ -1,4 +1,13 @@
-import {useId, type ComponentPropsWithRef, type JSX} from 'react';
+import {
+  useId,
+  useLayoutEffect,
+  useRef,
+  type ComponentPropsWithRef,
+  type FocusEvent,
+  type JSX,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {pressHandler, spaceOnlyKeyHandler} from './press';
@@ -124,5 +133,88 @@ export function CheckRow({
         </span>
       )}
     </label>
+  );
+}
+
+const CHECKBOX = '[role="checkbox"]';
+
+const listKeyTargets: Readonly<
+  Record<
+    string,
+    (boxes: HTMLElement[], index: number) => HTMLElement | undefined
+  >
+> = {
+  ArrowDown: (boxes, index) => boxes[Math.min(index + 1, boxes.length - 1)],
+  ArrowUp: (boxes, index) => boxes[Math.max(index - 1, 0)],
+  Home: boxes => boxes[0],
+  End: boxes => boxes.at(-1),
+};
+
+function checkboxesIn(list: HTMLElement): HTMLElement[] {
+  return [...list.querySelectorAll<HTMLElement>(CHECKBOX)];
+}
+
+/** Leaves one Tab stop in the list: the box last in focus, else the first. */
+function keepOneTabStop(list: HTMLElement, last: HTMLElement | null): void {
+  const boxes = checkboxesIn(list);
+  const stop = last !== null && boxes.includes(last) ? last : boxes[0];
+  for (const box of boxes) box.tabIndex = box === stop ? 0 : -1;
+}
+
+export interface CheckListProps {
+  /** The list name, such as 예배 순서. */
+  readonly label: string;
+  readonly className?: string | undefined;
+  readonly children: ReactNode;
+}
+
+/**
+ * A list of check rows that Tab enters once. The up and down arrows, Home,
+ * and End move between the boxes, and Space toggles the one in focus.
+ */
+export function CheckList({
+  label,
+  className,
+  children,
+}: CheckListProps): JSX.Element {
+  const list = useRef<HTMLDivElement>(null);
+  const lastFocused = useRef<HTMLElement | null>(null);
+
+  useLayoutEffect(() => {
+    if (list.current !== null) {
+      keepOneTabStop(list.current, lastFocused.current);
+    }
+  });
+
+  const onFocus = (event: FocusEvent<HTMLDivElement>): void => {
+    if (!(event.target instanceof HTMLElement)) return;
+    if (!event.target.matches(CHECKBOX)) return;
+    lastFocused.current = event.target;
+    keepOneTabStop(event.currentTarget, event.target);
+  };
+
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
+    const target = listKeyTargets[event.key];
+    if (target === undefined || !(event.target instanceof HTMLElement)) return;
+    event.preventDefault();
+    const boxes = checkboxesIn(event.currentTarget);
+    const current = event.target.closest(CHECKBOX);
+    target(
+      boxes,
+      boxes.findIndex(box => box === current),
+    )?.focus();
+  };
+
+  return (
+    <div
+      ref={list}
+      role="group"
+      aria-label={label}
+      className={className}
+      onFocus={onFocus}
+      onKeyDown={onKeyDown}
+    >
+      {children}
+    </div>
   );
 }

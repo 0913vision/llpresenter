@@ -1,5 +1,6 @@
 import type {JSX} from 'react';
 import {
+  CheckList,
   CheckRow,
   Checkbox,
   type CheckRowProps,
@@ -74,30 +75,32 @@ export function CheckboxSection(): JSX.Element {
       </SpecGroup>
       <SpecGroup title="List rows, 다른 예배에서 가져오기" surface="inset">
         <div style={{width: LIST_WIDTH}}>
-          <Row variant="group" label="예배 전" initial="mixed" />
-          <Row
-            variant="list"
-            icon="film"
-            label="예배 전 카운트다운"
-            initial={false}
-          />
-          <Row variant="list" icon="notice" label="주일 광고" initial />
-          <Row variant="group" label="찬양" initial={false} />
-          <Row
-            variant="list"
-            icon="song"
-            label="만복의 근원 하나님"
-            meta="주일용"
-            initial={false}
-          />
-          <Row
-            variant="list"
-            icon="song"
-            label="내 주를 가까이 하게 함은"
-            meta="기본"
-            disabled
-            initial={false}
-          />
+          <CheckList label="가져올 항목">
+            <Row variant="group" label="예배 전" initial="mixed" />
+            <Row
+              variant="list"
+              icon="film"
+              label="예배 전 카운트다운"
+              initial={false}
+            />
+            <Row variant="list" icon="notice" label="주일 광고" initial />
+            <Row variant="group" label="찬양" initial={false} />
+            <Row
+              variant="list"
+              icon="song"
+              label="만복의 근원 하나님"
+              meta="주일용"
+              initial={false}
+            />
+            <Row
+              variant="list"
+              icon="song"
+              label="내 주를 가까이 하게 함은"
+              meta="기본"
+              disabled
+              initial={false}
+            />
+          </CheckList>
         </div>
       </SpecGroup>
       <SpecGroup title="Rows with a value, 출력 상태 복구" surface="dialog">

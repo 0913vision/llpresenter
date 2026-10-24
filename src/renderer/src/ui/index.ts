@@ -1,7 +1,9 @@
 export {Button, type ButtonProps, type ButtonVariant} from './Button';
 export {
+  CheckList,
   CheckRow,
   Checkbox,
+  type CheckListProps,
   type CheckRowProps,
   type CheckRowVariant,
   type CheckState,

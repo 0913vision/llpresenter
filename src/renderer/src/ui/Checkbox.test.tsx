@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {describe, expect, it, vi} from 'vitest';
 import {
+  CheckList,
   CheckRow,
   Checkbox,
   nextCheckState,
@@ -127,5 +128,63 @@ describe('CheckRow', () => {
     await userEvent.click(screen.getByText('화면 출력'));
     await userEvent.click(box());
     expect(onChange).not.toHaveBeenCalled();
+  });
+});
+
+function ImportList(): JSX.Element {
+  return (
+    <>
+      <CheckList label="가져올 항목">
+        <Row label="예배 전" variant="group" initial="mixed" />
+        <Row label="예배 전 카운트다운" variant="list" />
+        <Row label="주일 광고" variant="list" disabled />
+        <Row label="찬양" variant="group" />
+      </CheckList>
+      <button type="button">가져오기</button>
+    </>
+  );
+}
+
+describe('CheckList', () => {
+  it('is a named group that Tab enters once', async () => {
+    render(<ImportList />);
+    expect(screen.getByRole('group', {name: '가져올 항목'})).toBeDefined();
+    await userEvent.tab();
+    expect(document.activeElement).toBe(box('예배 전'));
+    await userEvent.tab();
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', {name: '가져오기'}),
+    );
+  });
+
+  it('moves between rows with the arrows, Home, and End', async () => {
+    render(<ImportList />);
+    await userEvent.tab();
+    await userEvent.keyboard('{ArrowUp}');
+    expect(document.activeElement).toBe(box('예배 전'));
+    await userEvent.keyboard('{ArrowDown}');
+    expect(document.activeElement).toBe(box('예배 전 카운트다운'));
+    await userEvent.keyboard('{End}');
+    expect(document.activeElement).toBe(box('찬양'));
+    await userEvent.keyboard('{ArrowUp}');
+    expect(document.activeElement).toBe(box('주일 광고'));
+    await userEvent.keyboard('{Home}');
+    expect(document.activeElement).toBe(box('예배 전'));
+  });
+
+  it('toggles the row in focus with Space', async () => {
+    render(<ImportList />);
+    await userEvent.tab();
+    await userEvent.keyboard('{ArrowDown} ');
+    expect(box('예배 전 카운트다운').getAttribute('aria-checked')).toBe('true');
+  });
+
+  it('comes back to the row it left when Tab returns', async () => {
+    render(<ImportList />);
+    await userEvent.tab();
+    await userEvent.keyboard('{End}');
+    await userEvent.tab();
+    await userEvent.tab({shift: true});
+    expect(document.activeElement).toBe(box('찬양'));
   });
 });
