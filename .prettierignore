@@ -2,3 +2,4 @@ out/
 node_modules/
 design/
 package-lock.json
+/electron.vite.config.ts.*.mjs

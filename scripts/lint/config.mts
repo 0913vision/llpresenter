@@ -43,11 +43,25 @@ const BANNED_DEFAULT_EXPORTS = [
   },
 ];
 
+// NOTE(0913vision): electron-vite 6 bundles electron.vite.config.ts into a
+// temporary electron.vite.config.ts.<time>-<hex>.mjs next to it and deletes it
+// after loading. verify builds while it lints, so lint could list that file and
+// then find it gone (ENOENT).
+const ELECTRON_VITE_TEMP_CONFIGS = 'electron.vite.config.ts.*.mjs';
+
 /** The ESLint flat config for the whole repository. */
 export const lintConfig = defineConfig(
   // NOTE(0913vision): ESLint doesn't read .gitignore. These mirror it, and
   // .claude/ keeps the lead's checkout from linting every session worktree.
-  globalIgnores(['out/', 'dist/', 'coverage/', 'design/', '.claude/', '.llp/']),
+  globalIgnores([
+    'out/',
+    'dist/',
+    'coverage/',
+    'design/',
+    '.claude/',
+    '.llp/',
+    ELECTRON_VITE_TEMP_CONFIGS,
+  ]),
   {
     linterOptions: {
       // NOTE(0913vision): Exclusions live in this config only, never in
