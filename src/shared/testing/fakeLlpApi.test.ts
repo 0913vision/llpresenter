@@ -23,4 +23,14 @@ describe('fakeLlpApi', () => {
 
     expect(control).toHaveBeenCalledWith('close');
   });
+
+  it('keeps the defaults of a part that a test passes only partly', async () => {
+    const reportFrameRate = vi.fn();
+
+    const api = fakeLlpApi({output: {reportFrameRate}});
+    api.output.reportFrameRate({screenId: 'main', fps: 60});
+
+    expect(reportFrameRate).toHaveBeenCalledTimes(1);
+    await expect(api.live.get()).resolves.toEqual(emptyLiveState());
+  });
 });
