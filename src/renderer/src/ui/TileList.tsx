@@ -16,6 +16,7 @@ import type {MenuAnchor} from './Menu';
 
 const TILE = '[role="option"]';
 const SPACE = ' ';
+const ENTER = 'Enter';
 const MENU_KEY = 'ContextMenu';
 const SHIFT_MENU_KEY = 'F10';
 
@@ -173,9 +174,12 @@ export function TileList(props: TileListProps): JSX.Element {
     const tile = tileOf(target);
     return tile === null || isDisabled(tile) ? -1 : indexOf(list, tile);
   };
-  const onClick = (event: MouseEvent<HTMLDivElement>): void => {
-    const index = activeIndex(event.currentTarget, event.target);
+  const activate = (list: HTMLElement, target: EventTarget): void => {
+    const index = activeIndex(list, target);
     if (index >= 0) onActivate(index);
+  };
+  const onClick = (event: MouseEvent<HTMLDivElement>): void => {
+    activate(event.currentTarget, event.target);
   };
   const onDoubleClick = (event: MouseEvent<HTMLDivElement>): void => {
     const index = activeIndex(event.currentTarget, event.target);
@@ -206,6 +210,16 @@ export function TileList(props: TileListProps): JSX.Element {
       openMenuFromKey(event);
       return;
     }
+    if (event.key === ENTER) {
+      // NOTE(0913vision): A button clicks on every Enter keydown, held or with
+      // a modifier, so the list cancels that click and presses the tile only
+      // once per plain press (spec 10).
+      event.preventDefault();
+      if (!event.repeat && !hasModifier(event)) {
+        activate(event.currentTarget, event.target);
+      }
+      return;
+    }
     const move = moves[event.key];
     if (move === undefined || hasModifier(event)) return;
     event.preventDefault();
@@ -216,9 +230,14 @@ export function TileList(props: TileListProps): JSX.Element {
     moveTo(list, target);
   };
   const onKeyUp = (event: KeyboardEvent<HTMLDivElement>): void => {
-    // NOTE(0913vision): A button clicks on the Space key's keyup. With `pass`
-    // only that click is cancelled; the keydown still reaches the window.
-    if (spaceKey === 'pass' && event.key === SPACE) event.preventDefault();
+    if (event.key !== SPACE) return;
+    // NOTE(0913vision): A button clicks on the Space key's keyup, even with a
+    // modifier. The list cancels that click and presses the tile itself; with
+    // `pass` it doesn't, and the keydown still reaches the window.
+    event.preventDefault();
+    if (spaceKey === 'press' && !hasModifier(event)) {
+      activate(event.currentTarget, event.target);
+    }
   };
   const onFocus = (event: FocusEvent<HTMLDivElement>): void => {
     if (followsSelection) return;

@@ -112,6 +112,26 @@ describe('TileList', () => {
     expect(onActivate.mock.calls).toEqual([[1], [3]]);
   });
 
+  it('activates once while Enter is held', async () => {
+    const onActivate = vi.fn<(index: number) => void>();
+    render(<Strip onActivate={onActivate} />);
+    tile('푸른 빛').focus();
+    await userEvent.keyboard('{Enter>4/}');
+    expect(onActivate.mock.calls).toEqual([[3]]);
+  });
+
+  it('ignores Enter and Space pressed with a modifier', async () => {
+    const onActivate = vi.fn<(index: number) => void>();
+    render(<Macros onActivate={onActivate} />);
+    screen.getByRole('option', {name: '찬양'}).focus();
+    for (const modifier of ['Control', 'Shift', 'Alt', 'Meta']) {
+      await userEvent.keyboard(`{${modifier}>}{Enter}[Space]{/${modifier}}`);
+    }
+    expect(onActivate).not.toHaveBeenCalled();
+    await userEvent.keyboard('[Space]');
+    expect(onActivate.mock.calls).toEqual([[1]]);
+  });
+
   it('reports a double click on a tile that is not disabled', async () => {
     const onDoubleClick = vi.fn<(index: number) => void>();
     render(<Strip onDoubleClick={onDoubleClick} />);
