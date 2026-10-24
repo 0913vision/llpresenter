@@ -75,6 +75,16 @@ export {
   type PanelTabsProps,
 } from './Panel';
 export {
+  Properties,
+  PropertyColumns,
+  PropertyGroup,
+  PropertyRow,
+  PropertyValue,
+  type PropertiesPlacement,
+  type PropertyRowProps,
+  type PropertyValueProps,
+} from './PropertyRow';
+export {
   SegmentedControl,
   type SegmentOption,
   type SegmentedControlProps,

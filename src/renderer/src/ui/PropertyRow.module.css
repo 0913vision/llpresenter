@@ -1,0 +1,101 @@
+.properties {
+  --property-label-width: var(--size-prop-label);
+  --property-row-height: var(--size-prop-row);
+  --property-gap: var(--space-12);
+  --property-control-max: none;
+  --property-top-label-offset: 7px;
+}
+
+.window {
+  --property-label-width: var(--size-prop-label-wide);
+  --property-row-height: var(--size-prop-row-wide);
+  --property-gap: var(--space-16);
+  --property-control-max: 340px;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--space-24);
+}
+
+.group {
+  padding: var(--space-12) 0 var(--space-8);
+  border-bottom: 1px solid var(--line);
+}
+
+.group:last-child {
+  border-bottom: 0;
+}
+
+.groupTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  margin: 0 0 var(--space-4);
+  color: var(--text-3);
+  font: var(--type-caption-strong);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--property-gap);
+  min-height: var(--property-row-height);
+}
+
+.top {
+  align-items: flex-start;
+  padding: var(--space-4) 0;
+}
+
+.label {
+  flex: 0 0 var(--property-label-width);
+  min-width: 0;
+  color: var(--text-2);
+  font: var(--type-label);
+}
+
+.top .label {
+  padding-top: var(--property-top-label-offset);
+}
+
+.row:has(> .control :is(:disabled, [aria-disabled='true'])) > .label {
+  color: var(--text-off);
+}
+
+.control {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: var(--space-8);
+  min-width: 0;
+  max-width: var(--property-control-max);
+}
+
+.value {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-2);
+  font: var(--type-body);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.valueIcon {
+  color: var(--text-3);
+}
+
+.primary {
+  color: var(--text);
+}
+
+.meta {
+  flex: none;
+  color: var(--text-3);
+  font: var(--type-label);
+}
