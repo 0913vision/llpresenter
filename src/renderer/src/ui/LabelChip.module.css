@@ -11,9 +11,8 @@
 
 .chip {
   --chip-gap-color: var(--bg-panel);
-  --chip-ring-gap: 2px;
+  --chip-ring-gap: var(--space-2);
   --chip-ring: 2px;
-  --chip-focus-offset: 5px;
   --chip-grip-opacity: 0.55;
 
   display: inline-flex;
@@ -61,7 +60,7 @@
 }
 
 .chip:focus-visible {
-  outline-offset: var(--chip-focus-offset);
+  outline-offset: var(--space-focus-outside-ring);
 }
 
 .chip[data-dragging='true'] {
@@ -71,12 +70,11 @@
 
 .drop {
   --chip-drop-width: 2px;
-  --chip-drop-pull: -5px;
 
   flex: none;
   width: var(--chip-drop-width);
   height: var(--size-control-md);
-  margin: 0 var(--chip-drop-pull);
+  margin: 0 calc((var(--space-8) + var(--chip-drop-width)) / -2);
   border-radius: var(--radius-full);
   background: var(--accent);
 }
@@ -105,7 +103,7 @@
 }
 
 .tag {
-  --tag-ring-gap: 2px;
+  --tag-ring-gap: var(--space-2);
   --tag-ring: 1px;
 
   display: inline-flex;
@@ -138,12 +136,10 @@
 }
 
 .swatch {
-  --label-swatch-size: 10px;
-
   display: inline-block;
   flex: none;
-  width: var(--label-swatch-size);
-  height: var(--label-swatch-size);
+  width: var(--size-label-swatch);
+  height: var(--size-label-swatch);
   border-radius: var(--radius-xs);
   background: var(--label-fill);
 }

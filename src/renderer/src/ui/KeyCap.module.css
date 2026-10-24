@@ -6,7 +6,6 @@
 
 .combo {
   --combo-warning-ring: 1px;
-  --combo-warning-offset: 2px;
 
   display: inline-flex;
   align-items: center;
@@ -16,7 +15,7 @@
 
 .combo[data-state='warning'] {
   outline: var(--combo-warning-ring) solid var(--warning);
-  outline-offset: var(--combo-warning-offset);
+  outline-offset: var(--space-2);
 }
 
 .key {

@@ -17,16 +17,14 @@
 }
 
 .swatch {
-  --swatch-size: 24px;
-  --swatch-chip: 16px;
   --swatch-ring: 2px;
 
   display: inline-flex;
   flex: none;
   align-items: center;
   justify-content: center;
-  width: var(--swatch-size);
-  height: var(--swatch-size);
+  width: var(--size-color-swatch);
+  height: var(--size-color-swatch);
   padding: 0;
   border: 0;
   border-radius: var(--radius-md);
@@ -46,8 +44,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--swatch-chip);
-  height: var(--swatch-chip);
+  width: var(--size-color-swatch-chip);
+  height: var(--size-color-swatch-chip);
   border-radius: var(--radius-sm);
   color: var(--text-2);
 }

@@ -3,14 +3,13 @@
   --property-row-height: var(--size-prop-row);
   --property-gap: var(--space-12);
   --property-control-max: none;
-  --property-top-label-offset: 7px;
 }
 
 .window {
   --property-label-width: var(--size-prop-label-wide);
   --property-row-height: var(--size-prop-row-wide);
   --property-gap: var(--space-16);
-  --property-control-max: 340px;
+  --property-control-max: var(--size-prop-control-max);
 }
 
 .columns {
@@ -57,7 +56,7 @@
 }
 
 .top .label {
-  padding-top: var(--property-top-label-offset);
+  padding-top: var(--space-prop-label-top);
 }
 
 .row:has(> .control :is(:disabled, [aria-disabled='true'])) > .label {

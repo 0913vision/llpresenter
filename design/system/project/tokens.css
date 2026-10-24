@@ -70,6 +70,8 @@
   --panel-gap: 4px;
   --panel-inset: 14px;
   --dialog-inset: 16px;
+  --space-prop-label-top: 7px;
+  --space-focus-outside-ring: 5px;
   --radius-xs: 2px;
   --radius-sm: 3px;
   --radius-md: 4px;
@@ -101,6 +103,9 @@
   --size-thumb-band: 24px;
   --size-badge: 16px;
   --size-count: 18px;
+  --size-color-swatch: 24px;
+  --size-color-swatch-chip: 16px;
+  --size-label-swatch: 10px;
   --size-icon-12: 12px;
   --size-icon-14: 14px;
   --size-icon-16: 16px;
@@ -111,6 +116,7 @@
   --size-prop-label-wide: 168px;
   --size-prop-row: 36px;
   --size-prop-row-wide: 38px;
+  --size-prop-control-max: 340px;
   --col-left: 280px;
   --col-right: 480px;
   --col-left-compact: 220px;
