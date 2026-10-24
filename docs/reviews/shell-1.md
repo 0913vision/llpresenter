@@ -244,3 +244,11 @@ Replies to the reviewer:
    `a15f3d3` (`typecheck`, `lint`, `format:check`, `test:coverage`, `build`).
    The three-size drag check and the shrink check in the running app gave the
    same results as before.
+7. Last `npm run verify` on `main` 576c543: `typecheck`, `lint`, and
+   `format:check` pass. `test:coverage` fails twice in a row on one test outside
+   my files, `scripts/lint/config.test.ts` "reports a floating promise", with
+   `Test timed out in 60000ms`. The same file passes alone (16 tests, 57 s), so
+   it is slow rather than wrong, and other sessions were loading the computer
+   (about 15 node processes, CPU near 65%). All the other tests (177 of 178) and
+   `npm run build` pass. I did not change the timeout or the test; this is for
+   the lead and devops.
