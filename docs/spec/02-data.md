@@ -387,8 +387,8 @@ Version 1 has no 퀵 실행 shortcuts (see 09).
 | `.id`, `.name`   | String                                      | ID and name.                                                                                              | `Overlays`                                             |
 | `.icon`          | `"msg"` \| `"user"`                         | List icon.                                                                                                | `Overlays` (차량 이동 uses msg, 영아부 호출 uses user) |
 | `.text`          | String                                      | The sentence. `{blank name}` marks a blank, for example "{차량 번호} 차량 이동 부탁드립니다".             | `Overlays`                                             |
-| `.targets`       | Array of screen IDs, or `"all"`             | Default target screens (proposal).                                                                        | `Overlays` 보낼 화면 (send to)                         |
-| `.duration`      | Seconds, or `null` for 계속 (until cleared) | Default display time (proposal).                                                                          | `Overlays` 표시 시간 (display time)                    |
+| `.targets`       | Array of screen IDs, or `"all"`             | Default target screens (proposal). Optional; absent means `"all"` (04).                                   | `Overlays` 보낼 화면 (send to)                         |
+| `.duration`      | Seconds, or `null` for 계속 (until cleared) | Default display time (proposal). Optional; absent means `null` (04).                                      | `Overlays` 표시 시간 (display time)                    |
 | `stagePresets[]` | Array of strings                            | Preset stage messages, for example 후렴 한 번 더 (chorus once more) or 마지막 후렴 (last chorus).         | `Overlays` 무대 tab. Location is a proposal.           |
 
 ### 공지 sets (`notices.json`)

@@ -336,6 +336,13 @@ after its name, and hides it at 0.
   starts over if 반복 is on, and stops otherwise (proposal).
 - A track is identified by its audio playlist and its position in that playlist,
   so the same file can appear twice in one playlist (proposal).
+- A 매크로's 오디오 action plays one media ID on its own, outside any playlist
+  (07). That track is identified by its media ID alone. It plays once and stops
+  at its end; 반복 doesn't apply. 이전 starts it again from the beginning, 다음
+  stops it, and 일시 정지 and 재생 work as for a playlist track. The bottom of
+  the tab shows its name and position, and no row of the track list is marked
+  (proposal). A 매크로's 오디오 재생 목록 action plays that playlist from its
+  first track, as a playlist track.
 - 이전 (previous) plays the track before the current one; on the first track it
   starts that track again. 다음 (next) plays the next track; on the last track
   it starts the first track if 반복 is on, and stops otherwise (proposal).
@@ -399,6 +406,10 @@ after its name, and hides it at 0.
 - Choosing a template sets the chips and the display time from the template's
   defaults (`targets`, `duration`, 02). Changes in the tab apply to that send
   only and don't change the template (proposal).
+- Both defaults are optional in the file. A template without `targets` starts
+  with 모든 화면 on, and one without `duration` starts with 계속, the same as
+  `null` (proposal). A 메시지 sent from such a template uses those values, so a
+  valid template always gives the same controls and the same send command.
 - 모든 화면 sends to every screen at the moment of sending (proposal).
 - Below, a preview of the finished sentence and 보내기 (send). If a blank is
   empty or no screen is chosen, 보내기 is unavailable, with the reason in a
