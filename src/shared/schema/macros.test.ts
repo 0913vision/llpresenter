@@ -1,4 +1,5 @@
 import {describe, expect, expectTypeOf, it} from 'vitest';
+import {layerKinds} from '../live';
 import type {LookId} from './ids';
 import {
   isKnownMacroAction,
@@ -124,9 +125,25 @@ describe('parseMacros', () => {
       'macros.0.actions.0.layer',
     ],
     [
-      'a prop without a mode',
-      {kind: 'prop', prop: COUNTDOWN_PROP},
+      'an unknown prop mode',
+      {kind: 'prop', prop: COUNTDOWN_PROP, mode: 'flash'},
       'macros.0.actions.0.mode',
+    ],
+    [
+      'a clear of a prop name instead of an id',
+      {kind: 'clearLayer', prop: '로고'},
+      'macros.0.actions.0.prop',
+    ],
+    [
+      'a clear of both a layer and a prop',
+      {kind: 'clearLayer', layer: 'prop', prop: COUNTDOWN_PROP},
+      'macros.0.actions.0',
+    ],
+    ['a clear of nothing', {kind: 'clearLayer'}, 'macros.0.actions.0.layer'],
+    [
+      'message values that are an array',
+      {...everyAction()[6], values: []},
+      'macros.0.actions.0.values',
     ],
     [
       'a played track without media',
@@ -144,9 +161,14 @@ describe('parseMacros', () => {
       'macros.0.actions.0.targets',
     ],
     [
-      'a timer without an operation',
-      {kind: 'timer', timer: ELAPSED_TIMER},
+      'an unknown timer operation',
+      {kind: 'timer', timer: ELAPSED_TIMER, operation: 'stop'},
       'macros.0.actions.0.operation',
+    ],
+    [
+      'a stage layout for a screen name',
+      {kind: 'stageLayout', screen: '무대 화면', layout: STAGE_LAYOUT},
+      'macros.0.actions.0.screen',
     ],
     [
       'a Look name instead of an id',
@@ -161,6 +183,37 @@ describe('parseMacros', () => {
     ['a blank kind', {kind: ''}, 'macros.0.actions.0.kind'],
   ])('rejects %s', (_name, action, field) => {
     expectInvalidField(codec, withActions([action]), field);
+  });
+
+  it('reads the actions spec 07 lets leave out a field', () => {
+    const shortForms = [
+      {kind: 'stageLayout', layout: STAGE_LAYOUT},
+      {kind: 'prop', prop: COUNTDOWN_PROP},
+      {kind: 'timer', timer: ELAPSED_TIMER},
+      {kind: 'clearLayer', prop: COUNTDOWN_PROP},
+    ];
+
+    const loaded = expectSuccess(
+      parseMacros(JSON.stringify(withActions(shortForms)), 'macros.json'),
+    );
+    const written = expectSuccess(serializeMacros(loaded.data, 'macros.json'));
+    const reread: unknown = JSON.parse(written);
+
+    expect(loaded.data.macros[0]?.actions).toEqual([
+      {kind: 'stageLayout', layout: STAGE_LAYOUT},
+      {kind: 'prop', prop: COUNTDOWN_PROP, mode: 'on'},
+      {kind: 'timer', timer: ELAPSED_TIMER, operation: 'start'},
+      {kind: 'clearLayer', prop: COUNTDOWN_PROP},
+    ]);
+    expect(reread).toMatchObject({
+      macros: [{actions: loaded.data.macros[0]?.actions}],
+    });
+  });
+
+  it('reads a clear of every layer kind', () => {
+    for (const layer of layerKinds) {
+      expectRoundTrip(codec, withActions([{kind: 'clearLayer', layer}]));
+    }
   });
 
   it('rejects a tile color of none', () => {
