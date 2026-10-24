@@ -143,19 +143,16 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (3c82510, codex3): Request changes with one finding: the range lookup
+  resolved inherited names such as `constructor` and `__proto__`, so unknown
+  fields with those names were dropped.
+- Round 2 (a2208c7): reviewer (Codex, codex3) Approve with no findings; the
+  data-15 nit in `docs/reviews/data-9.md` is fixed too. Lead Approve; counts
+  outside their spec 10 range are dropped and refused on write, reserved keys
+  and non-bare translation file names are refused, and recovery copies stay at
+  50 or fewer. Rebased by the lead onto local `main` without conflicts.
 
 ## Team member's reply
 
