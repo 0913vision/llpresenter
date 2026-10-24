@@ -1,24 +1,26 @@
 import {contextBridge, ipcRenderer, type IpcRendererEvent} from 'electron';
 import {Channels, type LlpApi, type Unsubscribe} from '@shared/ipc';
-import {emptyLiveState, type LiveState} from '@shared/live';
+import {emptyLiveState} from '@shared/live';
 import type {Result} from '@shared/result';
 import {RENDERER_LOG_LIMITS} from '@shared/schema/ipcPayloads';
 import {parseLiveState} from '@shared/schema/liveState';
 import type {PayloadError} from '@shared/schema/payload';
+import {parseShowService} from '@shared/schema/showService';
 import {parseUiState, type UiState} from '@shared/schema/uiState';
 
 type Parse<T> = (value: unknown) => Result<T, PayloadError>;
 
-function listen(
+function listen<T>(
   channel: string,
-  listener: (state: LiveState) => void,
+  parse: Parse<T>,
+  listener: (value: T) => void,
 ): Unsubscribe {
   const handler = (_event: IpcRendererEvent, value: unknown): void => {
-    const state = parseLiveState(value);
-    if (state.ok) {
-      listener(state.value);
+    const parsed = parse(value);
+    if (parsed.ok) {
+      listener(parsed.value);
     } else {
-      logBadReply(channel, state.error);
+      logBadReply(channel, parsed.error);
     }
   };
   ipcRenderer.on(channel, handler);
@@ -67,12 +69,14 @@ function logBadReply(channel: string, {field, message}: PayloadError): void {
 }
 
 const emptyUiState = (): UiState => ({});
+const noService = (): null => null;
 
 const api: LlpApi = {
   live: {
     get: () => invokeChecked(Channels.liveGet, parseLiveState, emptyLiveState),
     send: command => ipcRenderer.send(Channels.liveCommand, command),
-    subscribe: listener => listen(Channels.liveChanged, listener),
+    subscribe: listener =>
+      listen(Channels.liveChanged, parseLiveState, listener),
   },
   window: {
     control: action => ipcRenderer.send(Channels.windowControl, action),
@@ -87,6 +91,11 @@ const api: LlpApi = {
   output: {
     reportFrameRate: report =>
       ipcRenderer.send(Channels.outputFrameRate, report),
+  },
+  service: {
+    get: () => invokeChecked(Channels.serviceGet, parseShowService, noService),
+    subscribe: listener =>
+      listen(Channels.serviceChanged, parseShowService, listener),
   },
 };
 

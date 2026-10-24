@@ -16,6 +16,10 @@ export function fakeLlpApi(overrides: Partial<LlpApi> = {}): LlpApi {
     ui: {get: () => Promise.resolve({}), setLayout: () => undefined},
     log: {write: () => undefined},
     output: {reportFrameRate: () => undefined},
+    service: {
+      get: () => Promise.resolve(null),
+      subscribe: () => () => undefined,
+    },
     ...overrides,
   };
 }

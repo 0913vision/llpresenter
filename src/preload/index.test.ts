@@ -49,6 +49,21 @@ function isLlpApi(value: unknown): value is LlpApi {
   return typeof value === 'object' && value !== null && 'ui' in value;
 }
 
+function showService(revision: number) {
+  return {
+    revision,
+    id: 'service-1',
+    name: '주일 예배',
+    rows: [{kind: 'song', id: 'item-1', title: '만복의 근원 하나님'}],
+    tiles: {
+      'item-1': [
+        {label: '1절', labelColor: 'teal', lines: ['만복의 근원 하나님']},
+      ],
+    },
+    jumpKeys: {Digit1: '1절'},
+  };
+}
+
 function loggedErrors(): unknown[] {
   return electron.send.mock.calls
     .filter(([channel]) => channel === Channels.logWrite)
@@ -115,6 +130,40 @@ describe('preload', () => {
     expect(loggedErrors()).toHaveLength(1);
     unsubscribe();
     expect(electron.handlers.has(Channels.liveChanged)).toBe(false);
+  });
+
+  it('passes a valid service, and no service, through', async () => {
+    electron.invoke.mockResolvedValueOnce(showService(2));
+    electron.invoke.mockResolvedValueOnce(null);
+
+    await expect(api.service.get()).resolves.toEqual(showService(2));
+    await expect(api.service.get()).resolves.toBeNull();
+    expect(electron.invoke).toHaveBeenCalledWith(Channels.serviceGet);
+    expect(loggedErrors()).toEqual([]);
+  });
+
+  it('logs a malformed or failed service reply and gives no service', async () => {
+    electron.invoke.mockResolvedValueOnce({...showService(2), rows: 'none'});
+    electron.invoke.mockRejectedValueOnce(new Error('no handler'));
+
+    await expect(api.service.get()).resolves.toBeNull();
+    await expect(api.service.get()).resolves.toBeNull();
+    expect(loggedErrors()).toHaveLength(2);
+  });
+
+  it('passes only valid pushed services to a subscriber', () => {
+    const listener = vi.fn();
+    const unsubscribe = api.service.subscribe(listener);
+    const push = electron.handlers.get(Channels.serviceChanged);
+
+    push?.({}, showService(3));
+    push?.({}, null);
+    push?.({}, {...showService(4), revision: -1});
+
+    expect(listener.mock.calls).toEqual([[showService(3)], [null]]);
+    expect(loggedErrors()).toHaveLength(1);
+    unsubscribe();
+    expect(electron.handlers.has(Channels.serviceChanged)).toBe(false);
   });
 
   it('sends layout changes, log entries, and frame rates one way', () => {

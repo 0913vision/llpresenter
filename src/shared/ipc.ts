@@ -1,6 +1,7 @@
 import type {LiveCommand} from './commands';
 import type {LiveState} from './live';
 import type {FrameRateReport, RendererLogEntry} from './schema/ipcPayloads';
+import type {ShowService} from './schema/showService';
 import type {LayoutChange, UiState} from './schema/uiState';
 
 export const Channels = {
@@ -12,6 +13,8 @@ export const Channels = {
   uiLayoutSet: 'ui:layout:set',
   logWrite: 'log:write',
   outputFrameRate: 'output:frame-rate',
+  serviceGet: 'service:get',
+  serviceChanged: 'service:changed',
 } as const;
 
 export type WindowAction = 'minimize' | 'toggle-maximize' | 'close';
@@ -54,5 +57,18 @@ export interface LlpApi {
   readonly output: {
     /** Reports an output window's measured frame rate, once a second. */
     reportFrameRate(report: FrameRateReport): void;
+  };
+  readonly service: {
+    /**
+     * Reads the open 예배 순서 as 진행 shows it, or `null` when none is open.
+     * It waits while the main process reads the data at launch.
+     */
+    get(): Promise<ShowService | null>;
+    /**
+     * Calls the listener when the open 예배 순서 changes, or another one opens.
+     *
+     * @returns A function that removes the listener. Always call it.
+     */
+    subscribe(listener: (service: ShowService | null) => void): Unsubscribe;
   };
 }
