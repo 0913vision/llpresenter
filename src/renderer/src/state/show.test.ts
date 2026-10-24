@@ -1,7 +1,7 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@shared/commands';
 import {emptyLiveState, type LiveState} from '@shared/live';
-import type {LlpApi} from '@shared/ipc';
+import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {useLive} from './live';
 import {
   moveRow,
@@ -16,15 +16,13 @@ import {
 const sent: LiveCommand[] = [];
 
 function installApi(): void {
-  const api: LlpApi = {
+  window.llp = fakeLlpApi({
     live: {
       get: async () => emptyLiveState(),
       send: command => sent.push(command),
       subscribe: () => () => undefined,
     },
-    window: {control: () => undefined},
-  };
-  window.llp = api;
+  });
 }
 
 function setLive(itemId: string, position: number): void {
