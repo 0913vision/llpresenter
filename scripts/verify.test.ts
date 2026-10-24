@@ -1,5 +1,7 @@
+import {spawn} from 'node:child_process';
 import {writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {describe, expect, it} from 'vitest';
 import {isRunning, waitForHungTree, writeHungTree} from '../test/process-trees';
 import {makeTempDir} from '../test/temp-dir';
@@ -218,6 +220,33 @@ describe('exitCodeFor', () => {
       const lint = {step: 'lint', outcome: stoppedOutcome} as const;
       expect(exitCodeFor({results: [lint], failed: lint})).toBe(1);
     }
+  });
+});
+
+describe('verify.mts', () => {
+  it('loads in plain Node and asks to be run through npm', async () => {
+    // NOTE(0913vision): Windows hands Node npm's variables twice, in two
+    // cases, and treats both as one, so every spelling has to go.
+    const env = Object.fromEntries(
+      Object.entries(process.env).filter(
+        ([name]) => name.toLowerCase() !== 'npm_execpath',
+      ),
+    );
+    const child = spawn(
+      process.execPath,
+      [fileURLToPath(new URL('verify.mts', import.meta.url))],
+      {env, stdio: ['ignore', 'ignore', 'pipe'], windowsHide: true},
+    );
+    let stderr = '';
+    child.stderr.setEncoding('utf8');
+    child.stderr.on('data', (text: string) => {
+      stderr += text;
+    });
+    const exitCode = await new Promise<number | null>(resolve => {
+      child.once('close', code => resolve(code));
+    });
+    expect(stderr).toContain('Run this through "npm run verify".');
+    expect(exitCode).toBe(1);
   });
 });
 
