@@ -37,8 +37,10 @@ testing:
 | ID   | Severity | Area and owner              | Title                                                                              | Build     | State                                        |
 | ---- | -------- | --------------------------- | ---------------------------------------------------------------------------------- | --------- | -------------------------------------------- |
 | M1-1 | minor    | Main process wiring, output | A relative `LLP_USER_DATA` throws at load and leaves Electron's error dialog       | `13d88b1` | Open, `fix/output/user-data-path` (output-4) |
-| M1-2 | minor    | Shell, shell                | A resize within one size class during a drag leaves the grid wider than the window | `13d88b1` | Open                                         |
-| M1-3 | minor    | Soak judge, devops          | Steady memory growth under about 13 MB per hour passes a 60-minute soak            | `13d88b1` | Open                                         |
+| M1-2 | minor    | Shell, shell                | A resize within one size class during a drag leaves the grid wider than the window | `13d88b1` | Open, `fix/shell/drag-refit`                 |
+| M1-3 | minor    | Soak judge, devops          | Steady memory growth under about 13 MB per hour passes a 60-minute soak            | `13d88b1` | Open, `fix/devops/soak-slope`                |
+| M1-4 | minor    | Main process wiring, output | Log lines still queued when the app quits are lost                                 | `13d88b1` | Open, `fix/output/log-flush`                 |
+| M1-5 | minor    | Logger, output              | The log's write queue has no cap and writes one line at a time                     | `13d88b1` | Open, `fix/output/log-flush`                 |
 
 ### M1-1: A relative `LLP_USER_DATA` throws at load
 
@@ -100,6 +102,42 @@ testing:
 - A test that would have caught it: a linear 12 MB per hour record must fail; or
   judge the slope over the whole required time.
 
+### M1-4: Log lines queued at quit are lost
+
+- Severity: minor. Only the log is affected, but the log exists to show what
+  happened right before a quit.
+- Area and owner: `src/main/index.ts` (output).
+- Build: `main` at `13d88b1`, version 0.2.0. Found during S9.
+- Steps: From the control window, send 5 malformed live commands and the window
+  action `close` in the same tick. Open `logs\main.log`.
+- Expected: All 5 "dropped a malformed command" warnings are in the file, since
+  the main window's `closed` handler flushes the log before it quits.
+- Actual: 1 of 5 reached the file (1 of 50, 2 of 200). With a backlog of 10,000
+  lines, the app quit in 0.4 s with exit code 0 and dropped the rest. The
+  `window-all-closed` handler calls `app.quit()` at once, so the
+  `log.flush().then(() => app.quit())` in the `closed` handler never finishes.
+- Evidence: `.llp/qa/log-quit.mjs` printed sent and logged pairs of 1 and 1, 5
+  and 1, 50 and 1, and 200 and 2.
+- A test that would have caught it: quit with pending log lines and expect every
+  line on disk.
+
+### M1-5: The log's write queue has no cap
+
+- Severity: minor. Informative under the lead's rule for S9: the output didn't
+  stop.
+- Area and owner: `src/main/log.ts` (output since 2026-10-25).
+- Build: `main` at `13d88b1`, version 0.2.0. Case S9.
+- Steps: Send 10,000 malformed live commands in one burst from the control
+  window, then read the log and the main process heap.
+- Expected: Lists and queues have a cap (`CLAUDE.md`), so a burst of repeated
+  warnings is merged or dropped with a count, and writes are batched.
+- Actual: The logger queues one `appendFile` per line, at about 130 to 300 lines
+  per second here. The main heap goes from 4.1 to 17.3 MB, the lines take 30 to
+  over 70 seconds to reach the file, and a `live.get` round trip right after the
+  burst takes 850 ms.
+- A test that would have caught it: log 10,000 lines with a fake file system and
+  expect a bounded queue and batched writes.
+
 ## Results, pre-freeze run (`13d88b1`)
 
 ### V. Install, checks, CI, and the version bot
@@ -138,20 +176,49 @@ window couldn't reach ran on an emulated viewport, marked "(emulated)".
 
 ### C. Column widths
 
-| Case       | Result         | Note                                                                                                                                                            |
-| ---------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| C1         | pass           | Two gaps, 4 px wide and as high as the work area, cursor `col-resize`, never reached by Tab (40 presses)                                                        |
-| C2         | pass           | Left stops at 400 and 200; the right column stays at 480                                                                                                        |
-| C3         | pass           | Right stops at 720 and 320; the left column doesn't move                                                                                                        |
-| C4         | pass           | At 1280×720 the right column stops at 484 (center 560), then the left column doesn't widen; the center never under 560                                          |
-| C5         | pass           | At 1600: right stops at 720 (center 584), then left at 304 (center 560)                                                                                         |
-| C6         | pass           | With the pointer past the left edge the left column holds 200, past the right edge 400, and the drag ends on release outside                                    |
-| C7         | pass           | No DOM mutation inside the panels during a 50-step drag                                                                                                         |
-| C8         | pass           | A touch drag on the other gap changes nothing during a mouse drag; the right mouse button doesn't start a drag                                                  |
-| C9         | fail           | M1-2                                                                                                                                                            |
-| C10        | not yet merged | The in-memory store has no file; runs with shell-2                                                                                                              |
-| C11        | pass           | normal 350 and 600, narrow 250 and 360, wide 320 and 650; a class without saved widths shows its defaults                                                       |
-| C12        | pass           | At 1599: 400 and 623. At 1280: 384 and 320 (right first), center 560. Back at 1599: 400 and 623                                                                 |
-| C13        | pass           | At 2399: 400 and 720. At 1600: 400 and 624. Back: 400 and 720                                                                                                   |
-| C14 to C21 | not yet merged | shell-2 (`app.json` store): widths live in memory only at `13d88b1`, so a restart shows the defaults, as expected for now                                       |
-| C23        | pass           | 1,000 drags (two rounds of 500 on each gap): DOM nodes 182 and listeners 157 before and after; renderer heap 2.04, 2.09, 1.80 MB; main heap 4.23, 4.35, 4.59 MB |
+| Case       | Result                  | Note                                                                                                                                                                               |
+| ---------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C1         | pass                    | Two gaps, 4 px wide and as high as the work area, cursor `col-resize`, never reached by Tab (40 presses)                                                                           |
+| C2         | pass                    | Left stops at 400 and 200; the right column stays at 480                                                                                                                           |
+| C3         | pass                    | Right stops at 720 and 320; the left column doesn't move                                                                                                                           |
+| C4         | pass                    | At 1280×720 the right column stops at 484 (center 560), then the left column doesn't widen; the center never under 560                                                             |
+| C5         | pass                    | At 1600: right stops at 720 (center 584), then left at 304 (center 560)                                                                                                            |
+| C6         | pass                    | With the pointer past the left edge the left column holds 200, past the right edge 400, and the drag ends on release outside                                                       |
+| C7         | pass                    | No DOM mutation inside the panels during a 50-step drag                                                                                                                            |
+| C8         | pass                    | A touch drag on the other gap changes nothing during a mouse drag; the right mouse button doesn't start a drag                                                                     |
+| C9         | fail                    | M1-2                                                                                                                                                                               |
+| C10        | not yet merged          | The in-memory store has no file; runs with shell-2                                                                                                                                 |
+| C11        | pass                    | normal 350 and 600, narrow 250 and 360, wide 320 and 650; a class without saved widths shows its defaults                                                                          |
+| C12        | pass                    | At 1599: 400 and 623. At 1280: 384 and 320 (right first), center 560. Back at 1599: 400 and 623                                                                                    |
+| C13        | pass                    | At 2399: 400 and 720. At 1600: 400 and 624. Back: 400 and 720                                                                                                                      |
+| C14 to C21 | not yet merged          | shell-2 (`app.json` store): widths live in memory only at `13d88b1`, so a restart shows the defaults, as expected for now                                                          |
+| C22        | pass (emulated scaling) | At 125% (viewport 1284) and 150% (1281): the left column stops at 348 and 345 and the right at 508 and 505, where the center reaches 560 for those widths, and both go down to 200 |
+| C23        | pass                    | 1,000 drags (two rounds of 500 on each gap): DOM nodes 182 and listeners 157 before and after; renderer heap 2.04, 2.09, 1.80 MB; main heap 4.23, 4.35, 4.59 MB                    |
+
+### S. Stability
+
+| Case | Result      | Note                                                                                                                                     |
+| ---- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| S1   | pass        | No `dialog.*` call in any run except the M1-1 probe, which used a relative path on purpose                                               |
+| S2   | pass        | A throw from a main-process timer is logged as `uncaught exception`; no dialog; `live.get` still answers                                 |
+| S3   | pass        | A rejected promise is logged as `unhandled rejection`; the app keeps running                                                             |
+| S4   | pass        | 20 control window crashes: each logged, back in 0.65 to 1.0 s with the 본 화면 output still on, IPC listener counts unchanged, no dialog |
+| S5   | pass        | `https:` and `file:` navigation and `window.open` are blocked; one window                                                                |
+| S6   | pass        | No network request during start and workspace switches                                                                                   |
+| S7   | pass        | A policy starting `default-src 'self'; script-src 'self'`; an inline script added from CDP doesn't run                                   |
+| S8   | pass        | No `require`, `process`, or `module` in the renderer; `window.llp` has `live` (`get`, `send`, `subscribe`) and `window` (`control`)      |
+| S9   | fail        | M1-5 (and M1-4, found here). The last valid toggle decides the state, and the main process stays up                                      |
+| S10  | pass        | One `main.log` in UTF-8 with time, level, message, and detail; `started {"version":"0.2.0","electron":"44.9.3"}`                         |
+| S11  | pass        | Exit code 0 after the close button                                                                                                       |
+| S12  | pass        | Two force-quits, then a normal start with no dialog                                                                                      |
+| S13  | not run yet | Runs at the freeze                                                                                                                       |
+| S14  | not run yet | Needs the `v` tag (devops-2)                                                                                                             |
+
+### D. Data formats
+
+| Case       | Result         | Note                                                                                                                                                                                                                                                 |
+| ---------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1 to D16  | not yet merged | data-1 to data-3                                                                                                                                                                                                                                     |
+| D17        | pass           | On the current hand-written guards (data-4 isn't merged): 9 malformed commands each dropped with a warning; no prototype pollution; the 3 well-formed ones (extra fields, a `__proto__` key, a 1 MB message) are applied; a valid `output.set` works |
+| D18        | pass           | `"exit"`, `null`, and `{}` do nothing; `minimize` works                                                                                                                                                                                              |
+| D20 to D37 | not yet merged | data-1 to data-3                                                                                                                                                                                                                                     |
