@@ -6,10 +6,15 @@ import {parsePayload, payloadObject, type PayloadError} from './payload';
 const id = v.pipe(v.string(), v.nonEmpty());
 const count = v.pipe(v.number(), v.integer(), v.minValue(0));
 
-const layerSchemas = {
+const mediaChoiceEntries = {mediaId: id, loop: v.boolean()};
+
+/** A background media choice, as `media.show` carries it. */
+export const mediaChoiceSchema = v.object(mediaChoiceEntries);
+
+/** The live layers, by kind, as windows receive them and send them. */
+export const layerSchemas = {
   media: v.object({
-    mediaId: id,
-    loop: v.boolean(),
+    ...mediaChoiceEntries,
     startedAt: v.exactOptional(v.pipe(v.number(), v.finite())),
   }),
   slide: v.object({

@@ -1,20 +1,5 @@
-import {
-  isBoolean,
-  isNonEmptyString,
-  isNonNegativeInteger,
-  isNullableString,
-  isRecord,
-  isString,
-  isStringArray,
-  type UnknownRecord,
-} from './guards';
-import {
-  layerKinds,
-  type LayerKind,
-  type MediaChoice,
-  type MessageLayer,
-  type SlideLayer,
-} from './live';
+import type {LayerKind, MediaChoice, MessageLayer, SlideLayer} from './live';
+import {parseLiveCommand} from './schema/liveCommand';
 
 export type ClearTarget = LayerKind | 'all';
 
@@ -36,60 +21,10 @@ export type LiveCommand =
 
 export type LiveCommandType = LiveCommand['type'];
 
-function isLayerKind(value: unknown): value is LayerKind {
-  return isString(value) && layerKinds.some(kind => kind === value);
-}
-
-function isClearTarget(value: unknown): value is ClearTarget {
-  return value === 'all' || isLayerKind(value);
-}
-
-function isSlideLayer(value: unknown): value is SlideLayer {
-  return (
-    isRecord(value) &&
-    isNonEmptyString(value['itemId']) &&
-    isNonNegativeInteger(value['position']) &&
-    isNullableString(value['label']) &&
-    isStringArray(value['lines'])
-  );
-}
-
-function isMediaChoice(value: unknown): value is MediaChoice {
-  return (
-    isRecord(value) &&
-    isNonEmptyString(value['mediaId']) &&
-    isBoolean(value['loop'])
-  );
-}
-
-function isMessageLayer(value: unknown): value is MessageLayer {
-  return (
-    isRecord(value) &&
-    isNonEmptyString(value['messageId']) &&
-    isString(value['text'])
-  );
-}
-
-function hasValidPayload(value: UnknownRecord): boolean {
-  switch (value['type']) {
-    case 'slide.show':
-      return isSlideLayer(value['slide']);
-    case 'media.show':
-      return isMediaChoice(value['media']);
-    case 'message.show':
-      return isMessageLayer(value['message']);
-    case 'layer.clear':
-      return isClearTarget(value['target']);
-    case 'clear.undo':
-      return true;
-    case 'output.set':
-      return isNonEmptyString(value['screenId']) && isBoolean(value['on']);
-    default:
-      return false;
-  }
-}
-
-/** Checks that a value received over IPC is a well-formed command of a known type. */
+/**
+ * Checks that a value received over IPC is a well-formed command of a known
+ * type. Use `parseLiveCommand` to learn which field failed.
+ */
 export function isLiveCommand(value: unknown): value is LiveCommand {
-  return isRecord(value) && hasValidPayload(value);
+  return parseLiveCommand(value).ok;
 }
