@@ -14,6 +14,7 @@ import {SliderSection} from './SliderSection';
 import {StatusMarksSection} from './StatusMarksSection';
 import {SwitchSection} from './SwitchSection';
 import {TextFieldSection} from './TextFieldSection';
+import {ThumbnailSection} from './ThumbnailSection';
 import {ToolbarSection} from './ToolbarSection';
 import styles from './Gallery.module.css';
 
@@ -42,6 +43,7 @@ export const galleryEntries: readonly GalleryEntry[] = [
   {name: 'PropertyRow', Section: PropertySection},
   {name: 'KeyCap', Section: KeyCapSection},
   {name: 'LabelChip', Section: LabelSection},
+  {name: 'SlideThumbnail', Section: ThumbnailSection},
 ];
 
 const COMPONENT_PARAM = 'c';
