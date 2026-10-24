@@ -9,29 +9,29 @@ const count = v.pipe(v.number(), v.integer(), v.minValue(0));
 const mediaChoiceEntries = {mediaId: id, loop: v.boolean()};
 
 /** A background media choice, as `media.show` carries it. */
-export const mediaChoiceSchema = v.object(mediaChoiceEntries);
+export const mediaChoiceSchema = payloadObject(mediaChoiceEntries);
 
 /** The live layers, by kind, as windows receive them and send them. */
 export const layerSchemas = {
-  media: v.object({
+  media: payloadObject({
     ...mediaChoiceEntries,
     startedAt: v.exactOptional(v.pipe(v.number(), v.finite())),
   }),
-  slide: v.object({
+  slide: payloadObject({
     itemId: id,
     position: count,
     label: v.nullable(v.string()),
     lines: v.array(v.string()),
   }),
-  prop: v.object({propId: id}),
-  audio: v.object({mediaId: id}),
-  message: v.object({messageId: id, text: v.string()}),
-  notice: v.object({noticeId: id}),
+  prop: payloadObject({propId: id}),
+  audio: payloadObject({mediaId: id}),
+  message: payloadObject({messageId: id, text: v.string()}),
+  notice: payloadObject({noticeId: id}),
 } satisfies Record<LayerKind, v.GenericSchema>;
 
 const liveStateSchema = payloadObject({
   version: count,
-  layers: v.object({
+  layers: payloadObject({
     media: v.nullable(layerSchemas.media),
     slide: v.nullable(layerSchemas.slide),
     prop: v.nullable(layerSchemas.prop),

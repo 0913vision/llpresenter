@@ -11,6 +11,12 @@ export interface PayloadError {
   readonly message: string;
 }
 
+/** Accepts only a plain object, so an array or a class instance fails first. */
+export const plainObject = v.custom<Readonly<Record<string, unknown>>>(
+  isJsonObject,
+  NOT_AN_OBJECT,
+);
+
 /**
  * An IPC object with these fields. Unknown fields are dropped, and an array is
  * rejected instead of turning into an object.
@@ -18,10 +24,7 @@ export interface PayloadError {
 export function payloadObject<TEntries extends v.ObjectEntries>(
   entries: TEntries,
 ) {
-  return v.pipe(
-    v.custom<Readonly<Record<string, unknown>>>(isJsonObject, NOT_AN_OBJECT),
-    v.object(entries),
-  );
+  return v.pipe(plainObject, v.object(entries));
 }
 
 /**

@@ -85,6 +85,35 @@ describe('parseLiveCommand', () => {
     expect(result.ok ? undefined : result.error.field).toBe(field);
   });
 
+  it('rejects an array or an object whose fields are inherited', () => {
+    const arrayCommand = Object.assign([], {type: 'clear.undo'});
+    const inherited: unknown = Object.create({type: 'clear.undo'});
+
+    expect(parseLiveCommand(arrayCommand).ok).toBe(false);
+    expect(parseLiveCommand(inherited).ok).toBe(false);
+  });
+
+  it('rejects a layer that is an array with the right fields', () => {
+    const media = Object.assign([], {mediaId: 'warm-light', loop: true});
+
+    const result = parseLiveCommand({type: 'media.show', media});
+
+    expect(result.ok ? undefined : result.error.field).toBe('media');
+  });
+
+  it('rejects a hole in the lines, which the old guard let through', () => {
+    const lines: string[] = [];
+    lines[1] = '아멘';
+
+    const result = parseLiveCommand({
+      type: 'slide.show',
+      slide: {itemId: 'a', position: 0, label: null, lines},
+    });
+
+    expect(lines.every(line => typeof line === 'string')).toBe(true);
+    expect(result.ok ? undefined : result.error.field).toBe('slide.lines.0');
+  });
+
   it('rejects values that are not commands', () => {
     for (const value of [null, undefined, 'clear.undo', [], 3]) {
       expect(parseLiveCommand(value).ok).toBe(false);

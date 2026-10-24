@@ -162,7 +162,15 @@ export function jsonRecord<
   );
 }
 
-/** Whether a value is a JSON object: not `null` and not an array. */
+/**
+ * Whether a value is a plain JSON object: not `null`, not an array, and not an
+ * object with a prototype of its own, whose inherited fields would pass for its
+ * own.
+ */
 export function isJsonObject(input: unknown): boolean {
-  return typeof input === 'object' && input !== null && !Array.isArray(input);
+  if (typeof input !== 'object' || input === null || Array.isArray(input)) {
+    return false;
+  }
+  const prototype: unknown = Object.getPrototypeOf(input);
+  return prototype === Object.prototype || prototype === null;
 }
