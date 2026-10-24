@@ -15,6 +15,11 @@ export {
   type CheckboxProps,
 } from './Checkbox';
 export {
+  CLICK_FOCUS_ATTRIBUTE,
+  CLICK_FOCUS_SELECTOR,
+  clickFocusProps,
+} from './clickFocus';
+export {
   Dialog,
   DialogBox,
   DialogField,

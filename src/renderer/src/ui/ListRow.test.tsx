@@ -2,6 +2,7 @@ import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
+import {CLICK_FOCUS_SELECTOR} from './clickFocus';
 import {IconButton} from './IconButton';
 import {
   ListActionRow,
@@ -98,6 +99,14 @@ describe('ListBox and ListRow', () => {
     );
     expect(onSelect).toHaveBeenCalledWith('hymn1');
     expect(selectedTitle()).toBe('hymn1');
+  });
+
+  it('keeps focus on a click in 진행', () => {
+    render(<ServiceOrder />);
+    const row = screen.getByRole('option', {name: '만복의 근원 하나님'});
+    expect(row.closest(CLICK_FOCUS_SELECTOR)).toBe(
+      screen.getByRole('listbox', {name: '예배 순서'}),
+    );
   });
 
   it('moves and selects with the arrows, skipping disabled rows', async () => {

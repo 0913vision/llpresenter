@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 import {classNames} from './classNames';
+import {clickFocusProps} from './clickFocus';
 import {Icon} from './Icon';
 import {pressHandler} from './press';
 import {LiveBadge} from './StatusMarks';
@@ -95,6 +96,7 @@ export function ListBox({
   return (
     <ListBoxContext value={{selected, onSelect}}>
       <div
+        {...clickFocusProps}
         role="listbox"
         aria-label={label}
         tabIndex={selected === undefined ? 0 : -1}
