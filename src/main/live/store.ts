@@ -12,7 +12,15 @@ export class LiveStore {
   private history: LiveHistory;
   private readonly listeners = new Set<LiveListener>();
 
-  constructor(initial: LiveState = emptyLiveState()) {
+  /**
+   * Starts from the initial state.
+   *
+   * @param now - The clock that stamps commands; tests pass a fixed one.
+   */
+  constructor(
+    initial: LiveState = emptyLiveState(),
+    private readonly now: () => number = Date.now,
+  ) {
     this.history = initialHistory(initial);
   }
 
@@ -35,7 +43,7 @@ export class LiveStore {
     command: LiveCommand,
     onListenerError?: (error: unknown) => void,
   ): boolean {
-    const next = applyCommand(this.history, command);
+    const next = applyCommand(this.history, command, this.now());
     if (next === this.history) return false;
     this.history = next;
     this.notify(next.state, onListenerError);

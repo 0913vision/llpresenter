@@ -1,7 +1,14 @@
 import {describe, expect, it} from 'vitest';
 import type {LiveCommand} from '@shared/commands';
 import {emptyLiveState, layerKinds, type SlideLayer} from '@shared/live';
-import {applyCommand, initialHistory, type LiveHistory} from './reducer';
+import {
+  applyCommand as applyAt,
+  initialHistory,
+  type LiveHistory,
+} from './reducer';
+
+const NOW = Date.parse('2026-10-25T10:00:00Z');
+const LATER = NOW + 30_000;
 
 const RANDOM_COMMAND_COUNT = 5000;
 const RANDOM_SEED = 20261024;
@@ -23,6 +30,10 @@ const run = (
   commands: readonly LiveCommand[],
   start: LiveHistory = initialHistory(emptyLiveState()),
 ): LiveHistory => commands.reduce(applyCommand, start);
+
+function applyCommand(history: LiveHistory, command: LiveCommand): LiveHistory {
+  return applyAt(history, command, NOW);
+}
 
 function seededRandom(seed: number): () => number {
   let state = seed;
@@ -143,14 +154,62 @@ describe('applyCommand', () => {
     },
   );
 
-  it('keeps the undo when an output turns on or off', () => {
+  it.each([true, false])('keeps the undo when an output turns %s', on => {
     const cleared = run([
+      {type: 'output.set', screenId: 'main', on: !on},
       {type: 'slide.show', slide: slide(2)},
       {type: 'layer.clear', target: 'all'},
-      {type: 'output.set', screenId: 'main', on: true},
     ]);
-    const restored = applyCommand(cleared, {type: 'clear.undo'});
+    const switched = applyCommand(cleared, {
+      type: 'output.set',
+      screenId: 'main',
+      on,
+    });
+    expect(switched).not.toBe(cleared);
+    expect(switched.undo).toBe(cleared.undo);
+    const restored = applyCommand(switched, {type: 'clear.undo'});
     expect(restored.state.layers.slide?.position).toBe(2);
+  });
+
+  it('stamps a new background with the time of the command', () => {
+    const shown = run([
+      {type: 'media.show', media: {mediaId: 'warm-light', loop: true}},
+    ]);
+    expect(shown.state.layers.media).toEqual({
+      mediaId: 'warm-light',
+      loop: true,
+      startedAt: NOW,
+    });
+    const next = applyAt(
+      shown,
+      {type: 'media.show', media: {mediaId: 'still-water', loop: true}},
+      LATER,
+    );
+    expect(next.state.layers.media?.startedAt).toBe(LATER);
+  });
+
+  it('keeps the same background playing when it is shown again', () => {
+    const cleared = run([
+      {type: 'media.show', media: {mediaId: 'warm-light', loop: true}},
+      {type: 'slide.show', slide: slide(2)},
+      {type: 'layer.clear', target: 'slide'},
+    ]);
+    const again = applyAt(
+      cleared,
+      {type: 'media.show', media: {mediaId: 'warm-light', loop: true}},
+      LATER,
+    );
+    expect(again).toBe(cleared);
+    const stopping = applyAt(
+      cleared,
+      {type: 'media.show', media: {mediaId: 'warm-light', loop: false}},
+      LATER,
+    );
+    expect(stopping.state.layers.media).toEqual({
+      mediaId: 'warm-light',
+      loop: false,
+      startedAt: NOW,
+    });
   });
 
   it('keeps the undo when a clear finds nothing to clear', () => {

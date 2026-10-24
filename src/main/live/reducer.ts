@@ -5,6 +5,7 @@ import {
   type LayerKind,
   type LiveLayers,
   type LiveState,
+  type MediaChoice,
 } from '@shared/live';
 
 export interface LiveHistory {
@@ -41,6 +42,21 @@ function setLayer<K extends LayerKind>(
   return withLayers(history, layers, null);
 }
 
+function showMedia(
+  history: LiveHistory,
+  choice: MediaChoice,
+  now: number,
+): LiveHistory {
+  const current = history.state.layers.media;
+  if (current?.mediaId !== choice.mediaId) {
+    return setLayer(history, 'media', {...choice, startedAt: now});
+  }
+  // NOTE(0913vision): The same background shown again keeps playing from
+  // where it is, so it keeps its start time (docs/spec/03-output.md).
+  if (current.loop === choice.loop) return history;
+  return setLayer(history, 'media', {...current, loop: choice.loop});
+}
+
 function clear(history: LiveHistory, target: LayerKind | 'all'): LiveHistory {
   const layers = history.state.layers;
   if (target === 'all') {
@@ -71,18 +87,21 @@ function setOutput(
  * Applies one command. This is a pure function, so it is tested without
  * Electron.
  *
+ * @param now - The time of the command in milliseconds since the epoch, for
+ * the start time of a new background.
  * @returns The same history object when nothing changed, so callers can skip
  * the broadcast.
  */
 export function applyCommand(
   history: LiveHistory,
   command: LiveCommand,
+  now: number,
 ): LiveHistory {
   switch (command.type) {
     case 'slide.show':
       return setLayer(history, 'slide', command.slide);
     case 'media.show':
-      return setLayer(history, 'media', command.media);
+      return showMedia(history, command.media, now);
     case 'message.show':
       return setLayer(history, 'message', command.message);
     case 'layer.clear':
