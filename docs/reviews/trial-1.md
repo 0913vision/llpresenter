@@ -70,14 +70,20 @@ and `LLP_USER_DATA=D:\llp-dev\trial`, waiting 20 seconds:
 
 ### Messages and rebases (tasks 6 and 7)
 
-| Step | What happened                                                                                                               |
-| ---- | --------------------------------------------------------------------------------------------------------------------------- |
-| 1    | I rebased onto `rewrite` (already at the tip, no change) and sent the request for ff57392 with SendMessage. It arrived.     |
-| 2    | The lead answered "Request changes" (Electron bug on `rewrite`). The answer arrived as a cross-session message.             |
-| 3    | I rebased onto 2f36647 (no conflicts), reran task 4, and sent the request for ada76bb. It arrived.                          |
-| 4    | The lead answered "Approve" and asked for a rebase onto c2775d8. I rebased (no conflicts) and sent the request for de8dc41. |
-| 5    | The lead told me to wait for the reviewer. The reviewer answered "Request changes", relayed by the lead.                    |
-| 6    | I rebased onto 663b0b8 (3 commits replayed, no conflicts), reran all checks, and sent the request again.                    |
+1. I rebased onto `rewrite` 1fd0e7b (no conflicts) and sent the request for
+   ff57392 with SendMessage. It arrived.
+2. The lead answered "Request changes" (Electron bug on `rewrite`). The answer
+   arrived as a cross-session message.
+3. I rebased onto 2f36647 (no conflicts), reran task 4, and sent the request for
+   ada76bb. It arrived.
+4. The lead answered "Approve" and asked for a rebase onto c2775d8. I rebased
+   (no conflicts) and sent the request for de8dc41.
+5. The lead told me to wait for the reviewer. The reviewer answered "Request
+   changes", relayed by the lead.
+6. I rebased onto 663b0b8 (3 commits replayed, no conflicts), reran all checks,
+   and sent the request for 113a7cc.
+7. The lead and the reviewer approved (reviewer round 2 on 113a7cc). This commit
+   only completes the record.
 
 Every message I sent arrived, and every answer came back by the same route
 (cross-session messages through the lead). The hashes of my commits change at
@@ -132,7 +138,7 @@ missing.
      the dev app with its own port and app data folder, the collision check with
      the lead's app, the leftover-process check, and a timed `npm ci`.
 
-Round 1 (5f6ce06):
+Round 1 (ff57392):
 
 - Verdict: Request changes
 - Findings:
@@ -149,6 +155,24 @@ Round 1 (5f6ce06):
      `time npm ci`), since the first number was an estimate.
 
 ## Review: reviewer
+
+- Verdict: Approve
+- Reviewed commit: 113a7cc (detached worktree), range
+  rewrite...docs/trial/workflow-check, base 663b0b8
+- Round 1 findings: all six addressed (header base commit, checks rerun on
+  efcebca with the commit named, npm test recorded as 8 files and 33 tests,
+  tasks 6 and 7 covered, the 2235096 wording and the electron/dist size, the two
+  timestamps).
+- New findings (non-blocking):
+  1. Nit: line 75 says the first rebase changed nothing, but the reflog shows
+     81b19c8 rebased onto 1fd0e7b as ff57392.
+  2. Nit: lines 73-80 hold prose in a wide table; a numbered list reads better
+     in raw Markdown (Google Markdown style guide).
+- Checked and fine: four one-line docs(review) commit messages, ASCII with LF
+  and a final newline, no middle dots or em dashes, only table rows over 80
+  columns.
+
+Round 1 (ff57392):
 
 - Verdict: Request changes
 - Reviewed commit: ada76bb (detached worktree), range
@@ -227,3 +251,6 @@ Replies to the reviewer:
 6. Finding 6: Done. The two timestamps are back in "Install".
 7. Rebase onto 663b0b8 (the latest `rewrite`): succeeded without conflicts, 3
    commits replayed.
+8. Final record (reviewer round 2 nits): the first rebase is now described as
+   onto `rewrite` 1fd0e7b with the request for ff57392, and the messages table
+   is a numbered list. `rewrite` is still at 663b0b8, so no rebase was needed.
