@@ -6,10 +6,10 @@ import type {LyricStyle} from './lyricStyle';
 /** The dissolve between 장 (docs/spec/03-output.md, version 1 default). */
 export const SLIDE_DISSOLVE_MS = 200;
 
-/** Fonts to fall back on when the style's font isn't installed. */
 const FALLBACK_FONTS = "'Pretendard Variable', 'Malgun Gothic', sans-serif";
 
-/** Layout reports whole pixels, so a block that fits exactly can measure a pixel over. */
+// NOTE(0913vision): Layout reports whole pixels, so a block that fits exactly
+// can measure a pixel over.
 const LAYOUT_TOLERANCE_PX = 1;
 
 const NO_BREAK_SPACE = ' ';
@@ -53,7 +53,6 @@ function createPage(style: LyricStyle): Page {
   return {element, block};
 }
 
-/** Writes one row per line, reusing the rows that are already there. */
 function writeLines(block: HTMLElement, lines: readonly string[]): void {
   lines.forEach((line, index) => {
     const row =

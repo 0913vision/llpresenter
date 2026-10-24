@@ -14,8 +14,7 @@ function manualFrames() {
     cancelFrame: (handle: number): void => {
       cancelled.push(handle);
     },
-    /** Draws frames at a steady rate for the given time. */
-    draw(fps: number, milliseconds: number, from = 0): void {
+    drawSteadily(fps: number, milliseconds: number, from = 0): void {
       const step = 1000 / fps;
       for (let time = from; time <= from + milliseconds; time += step) {
         pending?.(time);
@@ -30,7 +29,7 @@ describe('startFrameRateMeter', () => {
     const frames = manualFrames();
     const report = vi.fn<(fps: number) => void>();
     startFrameRateMeter({report, ...frames});
-    frames.draw(60, REPORT_INTERVAL_MS * 2 + 100);
+    frames.drawSteadily(60, REPORT_INTERVAL_MS * 2 + 100);
     expect(report.mock.calls.map(([fps]) => fps)).toEqual([60, 60]);
   });
 
@@ -38,7 +37,7 @@ describe('startFrameRateMeter', () => {
     const frames = manualFrames();
     const report = vi.fn<(fps: number) => void>();
     startFrameRateMeter({report, ...frames});
-    frames.draw(41, REPORT_INTERVAL_MS + 30);
+    frames.drawSteadily(41, REPORT_INTERVAL_MS + 30);
     expect(report).toHaveBeenCalledTimes(1);
     expect(report.mock.calls[0]?.[0]).toBeCloseTo(41, 0);
   });

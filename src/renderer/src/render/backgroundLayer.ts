@@ -39,8 +39,9 @@ function hide(video: HTMLVideoElement): void {
   video.style.zIndex = BACK_LAYER;
 }
 
-/** Stops a video and gives its decoder memory back (docs/TECH.md, memory). */
 function unload(video: HTMLVideoElement): void {
+  // NOTE(0913vision): Removing the source and loading again gives the
+  // decoder memory back (docs/TECH.md, memory).
   video.pause();
   video.removeAttribute('src');
   video.load();
@@ -179,7 +180,6 @@ export class BackgroundLayerView {
     });
   }
 
-  /** Loads the current background into the spare, paused at the start, for the next loop. */
   private prepareSpare(): void {
     this.spareTimer = null;
     const spare = this.videos[otherOf(this.front)];
