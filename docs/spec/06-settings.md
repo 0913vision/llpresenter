@@ -9,6 +9,11 @@ Terms: 출력 (output), 장 (slide), 이름표 (label), 본 화면 (main screen)
 실행 (quick launch), 소품 (prop), 공지 (notice), 메시지 (message), 타이머
 (timer), 라이브러리 (library), 진행 (Show workspace). See 01.
 
+A proposal for the full shortcut system and the 환경설정 pages is in
+[10-shortcuts-and-settings.md](10-shortcuts-and-settings.md). Until the user
+decides, this document stays the spec. The sections below that the proposal
+would replace say so in a note.
+
 ## The 화면 설정 workspace
 
 ### Layout and navigation
@@ -72,6 +77,9 @@ Source: `Screens`, `Looks`, `StageEditor`, `Main` board guide (화면 설정, Lo
 
 ### Screen properties
 
+Note: the proposal in 10 would remove the 절전 막기 row (fixed on while any
+output is on) and make the 항상 위 default depend on the method.
+
 | Group              | Row                                   | Control                                                                           | Behavior                                                                                                                                                   |
 | ------------------ | ------------------------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 화면 (screen)      | 이름 (name)                           | Text field                                                                        | Screen name. Toolbar labels and tooltips use it.                                                                                                           |
@@ -109,6 +117,9 @@ Source: `Screens`, `ScreensNDI`, `PropertyRow` README, `Select` README, product
 log version 56.
 
 ## Look editor
+
+Note: the proposal in 10 would add rows to the lyric style properties (굵기,
+글자 간격, outline and shadow details, 출처 위치).
 
 ### Layout
 
@@ -215,6 +226,9 @@ README (비율 고정, 격자에 맞추기), `SegmentedControl` README.
 
 ## 환경설정 window
 
+Note: the proposal in 10 would replace the page list and most rows of this
+table. See "What this proposal would replace" in 10.
+
 - 환경설정 is a separate window with its own title bar ("환경설정") and a close
   button. It opens from 파일 > 환경설정.
 - The left list has the pages 일반 (general), 출력 (output), 라이브러리, 성경
@@ -253,6 +267,9 @@ Source: `Prefs`, `PropertyRow` README, `MenuBar` README (secondary window title
 bar), `docs/TECH.md` operating rules.
 
 ## Shortcuts
+
+Note: the proposal in 10 would replace "Where shortcuts work" and "Default
+shortcuts" with its full command list, and would extend the 단축키 page.
 
 ### The 단축키 page
 

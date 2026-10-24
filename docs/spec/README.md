@@ -56,17 +56,18 @@ Current boards:
 
 ## Reading order
 
-| File                             | Content                                                                                                                        |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| [01-concepts.md](01-concepts.md) | Terms, principles, windows, workspaces, screens, data objects, and layers. Read this first.                                    |
-| [02-data.md](02-data.md)         | File formats, settings, media list, folder layout, save rules, and the recovery record.                                        |
-| [03-output.md](03-output.md)     | Output windows, output toggles, layers, Looks, 장 and background output, clears and undo, 방송 자막, 무대 화면, lost monitors. |
-| [04-show.md](04-show.md)         | The 진행 workspace: 예배 순서, 장 panel, previews, 진행 도구 tabs, 퀵 실행, media strip, Bible passages, narrow windows.       |
-| [05-prep.md](05-prep.md)         | The 준비 workspace: 라이브러리, song editor, item settings, adding items, new service, import, 틀, text import, media view.    |
-| [06-settings.md](06-settings.md) | 화면 설정, Look editor, stage layout editor, 환경설정, shortcuts.                                                              |
-| [07-macros.md](07-macros.md)     | 매크로, action kinds, collections, start 매크로, and Clear Groups replaced by 매크로.                                          |
-| [08-problems.md](08-problems.md) | Problem states, the output state recovery dialog, notifications, and what must never happen during a service.                  |
-| [09-later.md](09-later.md)       | Deferred features, the hooks version 1 must leave open, and dropped ideas.                                                     |
+| File                                                         | Content                                                                                                                        |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| [01-concepts.md](01-concepts.md)                             | Terms, principles, windows, workspaces, screens, data objects, and layers. Read this first.                                    |
+| [02-data.md](02-data.md)                                     | File formats, settings, media list, folder layout, save rules, and the recovery record.                                        |
+| [03-output.md](03-output.md)                                 | Output windows, output toggles, layers, Looks, 장 and background output, clears and undo, 방송 자막, 무대 화면, lost monitors. |
+| [04-show.md](04-show.md)                                     | The 진행 workspace: 예배 순서, 장 panel, previews, 진행 도구 tabs, 퀵 실행, media strip, Bible passages, narrow windows.       |
+| [05-prep.md](05-prep.md)                                     | The 준비 workspace: 라이브러리, song editor, item settings, adding items, new service, import, 틀, text import, media view.    |
+| [06-settings.md](06-settings.md)                             | 화면 설정, Look editor, stage layout editor, 환경설정, shortcuts.                                                              |
+| [07-macros.md](07-macros.md)                                 | 매크로, action kinds, collections, start 매크로, and Clear Groups replaced by 매크로.                                          |
+| [08-problems.md](08-problems.md)                             | Problem states, the output state recovery dialog, notifications, and what must never happen during a service.                  |
+| [09-later.md](09-later.md)                                   | Deferred features, the hooks version 1 must leave open, and dropped ideas.                                                     |
+| [10-shortcuts-and-settings.md](10-shortcuts-and-settings.md) | Proposal, not yet decided: the full shortcut system and the 환경설정 pages, with ProPresenter research.                        |
 
 ## Conventions
 
@@ -136,6 +137,10 @@ Current boards:
 
 Each row names a conflict or gap, what this spec does for now, and the files it
 affects.
+
+The proposal in [10-shortcuts-and-settings.md](10-shortcuts-and-settings.md)
+would answer rows 2, 12, 14, 19, and 24 if the user accepts it, and lists its
+own open questions.
 
 | #   | Topic                                        | Conflict or gap                                                                                                                                                                                                                                                                                | What this spec does for now                                                                                                   | Files      |
 | --- | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ---------- |
