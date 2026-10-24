@@ -6,17 +6,22 @@ so they behave the same in Git Bash and in PowerShell.
 
 ## `npm run verify`
 
-Runs every check in order and stops at the first one that fails:
+Runs every check at once and waits for all of them:
 
 1.  `typecheck`: TypeScript 7 (`tsc`) on the node and web projects.
 2.  `lint`: ESLint, with no warnings allowed.
-3.  `format:check`: Prettier.
+3.  `format:check`: Prettier, which skips files whose content hasn't changed
+    since its last check (`node_modules/.cache/prettier`).
 4.  `test:coverage`: Vitest with a coverage report in `coverage/`.
 5.  `build`: electron-vite.
 
-It prints a header before each step and a summary at the end. When a step fails,
-the summary names the step and its exit code, and under "What failed" the failed
-tests, Vitest worker start errors, and unhandled errors from its output. That
+The steps read and write separate files, so they don't wait for each other, and
+the run takes about as long as the slowest step. Each step's output is captured.
+When a step finishes, verify prints one `ok` line, or for a failed step
+everything that step printed, between markers. The summary at the end lists the
+steps in the order above, with their times. Its exit code is the first failed
+step's in that order. Under "What failed", the summary lists the failed tests,
+Vitest worker start errors, and unhandled errors from that step's output. That
 tells a busy-machine timeout from a broken test. Rerun the step alone, for
 example `npm run lint`. Team members run it before a review request, and the
 lead runs it before a merge.
