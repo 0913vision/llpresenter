@@ -4,12 +4,13 @@ This report holds the results of the M1 test plan (`docs/qa/m1-plan.md`). The
 lead asked QA to start before the freeze, on what is already merged into `main`,
 so the report has two runs:
 
-| Run         | Build                                                   | Version | State                    |
-| ----------- | ------------------------------------------------------- | ------- | ------------------------ |
-| Pre-freeze  | `main` at `13d88b1`, a clean clone from GitHub          | 0.2.0   | Done                     |
-| Pre-freeze  | `main` at `3afbb50` (ui-1 merged), the same clone       | 0.2.0   | Done (G)                 |
-| Pre-freeze  | `main` at `23e0344` (devops-2, data-1, output-4 merged) | 0.4.1   | Done (V, D, M1-1 retest) |
-| Frozen `m1` | The tag `m1`                                            | -       | Waiting                  |
+| Run         | Build                                                   | Version | State                                               |
+| ----------- | ------------------------------------------------------- | ------- | --------------------------------------------------- |
+| Pre-freeze  | `main` at `13d88b1`, a clean clone from GitHub          | 0.2.0   | Done                                                |
+| Pre-freeze  | `main` at `3afbb50` (ui-1 merged), the same clone       | 0.2.0   | Done (G)                                            |
+| Pre-freeze  | `main` at `23e0344` (devops-2, data-1, output-4 merged) | 0.4.1   | Done (V, D, M1-1 retest)                            |
+| Pre-freeze  | `main` at `9e2496a` (shell-4, devops-6 merged)          | 0.4.1   | Done (M1-2 retest, C regression, `npm run gallery`) |
+| Frozen `m1` | The tag `m1`                                            | -       | Waiting                                             |
 
 At `13d88b1`, `main` holds devops-1 (verify, lint, coverage, CI, soak runner),
 devops-3 (the lint test fix), shell-1 (column dragging and widths per size
