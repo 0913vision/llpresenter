@@ -2,7 +2,14 @@
 
 - Team member: `ui`
 - Branch: `feat/ui/property-parts`
-- Base commit (`main`): `699fe8a`
+- Review range: `699fe8a...feat/ui/property-parts`
+- Base commit (`main`): `699fe8a` (now `caf3511` on `main`, the same patch)
+- Shared changes: six new design tokens in `design/system/project/tokens.json`,
+  regenerated into `design/system/project/tokens.css` and copied into
+  `src/renderer/src/styles/tokens.css` (round 2, finding 4)
+- Round 2, what to check: the five fixes in "Team member's reply", each with the
+  test that fails on the old code; the token names and values; that no 1px or
+  2px line width moved into a token (the lead's rule)
 - Last commit: the commit that adds this file (see the review request message)
 - Related brief: `docs/briefs/ui.md`, M2 in `docs/MILESTONES.md`
 
@@ -41,7 +48,7 @@ gains `withParticle` (과 or 와) for "출력 켜기와 겹침".
 
 | Command or test                              | Result                                                                                   |
 | -------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `npm run verify`                             | Pass, 5 steps, 102 files, 1050 tests (1 skipped under coverage by design, not ui), 151 s |
+| `npm run verify` (round 2)                   | Pass, 5 steps, 102 files, 1058 tests (1 skipped under coverage by design, not ui), 223 s |
 | `npx tsc`, `npx eslint src/renderer/src/ui`  | Pass                                                                                     |
 | `npx vitest run --project renderer` (ui)     | Pass, 30 files, 254 tests                                                                |
 | Gallery beside the preview cards (see below) | Done for all four cards                                                                  |
@@ -123,4 +130,46 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 findings from codex4, all fixed. Each fix has a test that fails on the
+old code; the CSS parts are also checked in Chromium (an offscreen Electron
+window on the plain Vite gallery).
+
+1. A group control had no name, and a press on its name did nothing.
+   `PropertyRow` now gives its control function both ids, `{controlId, labelId}`
+   (`PropertyControlIds`). A field, a switch, or a button takes `controlId`, and
+   the name's `for` works as before. A group control takes `controlId` as its
+   own id and `labelId` as its `aria-labelledby`; `SegmentedControl` gained an
+   `id` prop for that. A press on the name of a control that `for` can't reach
+   (not a button, input, select, textarea, meter, output, or progress) focuses
+   the control's Tab stop (`ac40900`). Tests: the radiogroup is named 종류 after
+   its row, and a press on 종류 focuses the selected segment. In Chromium the
+   gallery's 종류 row behaves the same.
+2. Long values clipped with no tooltip. The value text is now a `TruncatedText`
+   inside the value, which shrinks and ends in an ellipsis, and shows the full
+   value in a tooltip only when it is cut off; the icon keeps its size
+   (`8233452`). Test: a value wider than its box shows the full text in a
+   tooltip. In Chromium a long path computes `text-overflow: ellipsis`, is cut
+   off, and doesn't widen the row.
+3. Removing the last chip left no Tab stop. `ArrangementStrip` now keeps the Tab
+   stop on the last chip when the selection is past the end, and after Delete it
+   selects and focuses the chip that took the removed one's place (the one
+   before it when the last chip went), or the 장 넣기 button when no chip is
+   left (`002635d`). Tests with real removal: End then Delete selects and
+   focuses 후렴 with one Tab stop; Delete on the first chip selects and focuses
+   the next; deleting every chip focuses 장 넣기; a selection past the end keeps
+   the Tab stop on the last chip.
+4. Literal sizes. Six component tokens, named for what they are, now carry the
+   anatomy values of the four modules (`c2198e6`): `size-color-swatch` 24px and
+   `size-color-swatch-chip` 16px (the color rows), `size-label-swatch` 10px (the
+   small 이름표 square), `size-prop-control-max` 340px (a control in a settings
+   window row), `space-prop-label-top` 7px (a name lined up with the first line
+   of a multi-line control), and `space-focus-outside-ring` 5px (the focus
+   outline outside a 2px gap and a 2px ring). The 2px ring gaps and the warning
+   outline offset use the existing `space-2`, and the drop line's pull is
+   derived from the strip gap, `calc((var(--space-8) + 2px) / -2)`. Per the
+   lead, the 1px and 2px line and ring widths stay literal, and the merged ui-1
+   and ui-2 modules follow in ui-4. In Chromium the swatch is still 24x24, its
+   chip 16x16, the 이름표 square 10x10, the window control max 340px, and the
+   drop line margin -5px.
+5. Nit: the icon-only 장 넣기 button now shows its name in the shared Tooltip
+   (`71adccf`). Test on the fake clock: resting on the button shows 장 넣기.
