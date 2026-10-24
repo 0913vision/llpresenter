@@ -7,6 +7,7 @@ import {KeyCapSection} from './KeyCapSection';
 import {LabelSection} from './LabelSection';
 import {MacroSection} from './MacroSection';
 import {MediaSection} from './MediaSection';
+import {NotificationSection} from './NotificationSection';
 import {ListRowSection} from './ListRowSection';
 import {OverlaySection} from './OverlaySection';
 import {PanelSection} from './PanelSection';
@@ -52,6 +53,7 @@ export const galleryEntries: readonly GalleryEntry[] = [
   {name: 'MacroTile', Section: MacroSection},
   {name: 'ClearButton', Section: ClearSection},
   {name: 'PreviewFrame', Section: PreviewSection},
+  {name: 'Notification', Section: NotificationSection},
 ];
 
 const COMPONENT_PARAM = 'c';
