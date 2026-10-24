@@ -118,6 +118,31 @@ describe('applyService', () => {
     });
   });
 
+  it('closes the open item when its row became a header', () => {
+    applyService(serviceOf());
+    openItem('a');
+    applyService(
+      serviceOf({
+        revision: 2,
+        rows: [
+          {kind: 'header', id: 'a', title: 'A'},
+          {kind: 'song', id: 'b', title: 'B'},
+        ],
+      }),
+    );
+    expect(useShow.getState()).toMatchObject({
+      openItemId: null,
+      selectedTile: 0,
+    });
+  });
+
+  it('keeps the open item when its row has a problem', () => {
+    applyService(serviceOf());
+    openItem('b');
+    applyService(serviceOf({revision: 2}));
+    expect(useShow.getState().openItemId).toBe('b');
+  });
+
   it('empties everything when no service is open', () => {
     applyService(serviceOf());
     openItem('a');
@@ -185,6 +210,132 @@ describe('startServiceSync', () => {
     await Promise.resolve();
     await Promise.resolve();
     expect(useShow.getState().serviceName).toBe('pushed');
+  });
+
+  describe('a read that is slower than a push', () => {
+    interface Channel {
+      push: (service: ShowService | null) => void;
+      answer: (service: ShowService | null) => void;
+      fail: (error: Error) => void;
+    }
+
+    function installSlowRead(): Channel {
+      const channel: Channel = {
+        push: () => undefined,
+        answer: () => undefined,
+        fail: () => undefined,
+      };
+      window.llp = fakeLlpApi({
+        service: {
+          get: () =>
+            new Promise((resolve, reject) => {
+              channel.answer = resolve;
+              channel.fail = reject;
+            }),
+          subscribe: listener => {
+            channel.push = listener;
+            return () => undefined;
+          },
+        },
+      });
+      return channel;
+    }
+
+    async function settle(): Promise<void> {
+      await Promise.resolve();
+      await Promise.resolve();
+    }
+
+    it('drops a read of another service after a push', async () => {
+      const channel = installSlowRead();
+      startServiceSync();
+      channel.push(serviceOf({id: 'new', revision: 1, name: 'pushed'}));
+      channel.answer(serviceOf({id: 'old', revision: 9, name: 'read'}));
+      await settle();
+      expect(useShow.getState()).toMatchObject({
+        serviceId: 'new',
+        serviceName: 'pushed',
+      });
+    });
+
+    it('drops a read that has a service after a push of none', async () => {
+      const channel = installSlowRead();
+      startServiceSync();
+      channel.push(null);
+      channel.answer(serviceOf());
+      await settle();
+      expect(useShow.getState().serviceId).toBeNull();
+    });
+
+    it('drops a read of none after a push of a service', async () => {
+      const channel = installSlowRead();
+      startServiceSync();
+      channel.push(serviceOf({name: 'pushed'}));
+      channel.answer(null);
+      await settle();
+      expect(useShow.getState().serviceName).toBe('pushed');
+    });
+
+    it('shows the read when no push came', async () => {
+      const channel = installSlowRead();
+      startServiceSync();
+      channel.answer(serviceOf({name: 'read'}));
+      await settle();
+      expect(useShow.getState().serviceName).toBe('read');
+    });
+  });
+
+  describe('after the sync was stopped', () => {
+    it('ignores a read that resolves later', async () => {
+      let answer: (service: ShowService | null) => void = () => undefined;
+      window.llp = fakeLlpApi({
+        service: {
+          get: () =>
+            new Promise(resolve => {
+              answer = resolve;
+            }),
+        },
+      });
+      startServiceSync()();
+      answer(serviceOf({name: 'late'}));
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(useShow.getState().serviceId).toBeNull();
+    });
+
+    it('ignores a push that is still delivered', () => {
+      let push: (service: ShowService | null) => void = () => undefined;
+      window.llp = fakeLlpApi({
+        service: {
+          subscribe: listener => {
+            push = listener;
+            return () => undefined;
+          },
+        },
+      });
+      startServiceSync()();
+      push(serviceOf());
+      expect(useShow.getState().serviceId).toBeNull();
+    });
+
+    it('keeps the view when a read fails later, and still logs it', async () => {
+      const write = vi.fn();
+      let fail: (error: Error) => void = () => undefined;
+      window.llp = fakeLlpApi({
+        service: {
+          get: () =>
+            new Promise((_resolve, reject) => {
+              fail = reject;
+            }),
+        },
+        log: {write},
+      });
+      applyService(serviceOf());
+      startServiceSync()();
+      fail(new Error('late failure'));
+      await vi.waitFor(() => expect(write).toHaveBeenCalledTimes(1));
+      expect(useShow.getState().serviceName).toBe('주일 예배');
+    });
   });
 
   it('stops listening when the returned function is called', () => {

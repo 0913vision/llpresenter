@@ -28,20 +28,19 @@ import {
 import {sendLive, useLive} from './live';
 
 interface ShowView {
-  /** The revision of the service shown, or null while none is open. */
+  // NOTE(0913vision): The revision is null while no service is open.
   readonly revision: number | null;
   readonly serviceId: string | null;
   readonly serviceName: string;
-  /** The 예배 순서 file is from a newer app version and can't be edited. */
+  // NOTE(0913vision): A read-only service comes from a newer app version.
   readonly readOnly: boolean;
   readonly rows: readonly ServiceRow[];
   readonly tiles: Readonly<Record<ItemId, readonly SlideTile[]>>;
-  /** The item open in the 장 panel. */
   readonly openItemId: ItemId | null;
-  /** The selected tile of the open item. */
   readonly selectedTile: number;
   readonly thumbnailColumns: Readonly<Partial<Record<SizeClass, number>>>;
-  /** 이름표 jump keys: a physical key (`KeyboardEvent.code`) to an 이름표 name. */
+  // NOTE(0913vision): Jump keys map a physical key (`KeyboardEvent.code`) to an
+  // 이름표 name.
   readonly jumpKeys: Readonly<Record<string, string>>;
 }
 
@@ -221,7 +220,8 @@ function keptSelection(
 ): Pick<ShowView, 'openItemId' | 'selectedTile'> {
   const {openItemId, selectedTile} = useShow.getState();
   const stillThere =
-    openItemId !== null && service.rows.some(row => row.id === openItemId);
+    openItemId !== null &&
+    service.rows.some(row => row.id === openItemId && row.kind !== 'header');
   if (!stillThere) return {openItemId: null, selectedTile: 0};
   const last = Math.max(0, (service.tiles[openItemId]?.length ?? 0) - 1);
   return {openItemId, selectedTile: Math.min(selectedTile, last)};
@@ -259,14 +259,31 @@ function logServiceFailure(error: unknown): void {
 }
 
 /**
- * Starts mirroring the open 예배 순서 of the main process.
+ * Starts mirroring the open 예배 순서 of the main process. The first read is
+ * dropped when a push already arrived, because the push is newer, and nothing
+ * changes the state after the returned function was called.
  *
  * @returns A function that stops mirroring. Always call it.
  */
 export function startServiceSync(): () => void {
   const api = window.llp;
   if (api === undefined) return () => undefined;
-  const unsubscribe = api.service.subscribe(applyService);
-  api.service.get().then(applyService, logServiceFailure);
-  return unsubscribe;
+  let stopped = false;
+  let pushed = false;
+  const unsubscribe = api.service.subscribe(service => {
+    if (stopped) return;
+    pushed = true;
+    applyService(service);
+  });
+  api.service.get().then(
+    service => {
+      if (stopped || pushed) return;
+      applyService(service);
+    },
+    (error: unknown) => logServiceFailure(error),
+  );
+  return () => {
+    stopped = true;
+    unsubscribe();
+  };
 }
