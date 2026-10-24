@@ -14,6 +14,7 @@ export const COLUMN_RANGES: Readonly<Record<DraggableColumn, WidthRange>> = {
 };
 export const CENTER_MIN_WIDTH = 560;
 
+// NOTE(0913vision): Must match the `--panel-gap` design token.
 const PANEL_GAP = 4;
 const GAPS_ACROSS_COLUMNS = 4;
 export const FIXED_GAPS_WIDTH = PANEL_GAP * GAPS_ACROSS_COLUMNS;

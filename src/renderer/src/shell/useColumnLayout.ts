@@ -9,7 +9,6 @@ import {ColumnLayout} from './ColumnLayout';
 import type {ColumnDrag} from './ColumnGap';
 import type {ColumnWidthStore} from './columnWidthStore';
 import type {ColumnWidths, SizeClass} from './sizeClass';
-import {sizeClassFor} from './sizeClass';
 
 const LEFT_VARIABLE = '--ll-col-left';
 const RIGHT_VARIABLE = '--ll-col-right';
@@ -24,7 +23,6 @@ function watchWindowResize(layout: ColumnLayout): () => void {
   const onResize = (): void => {
     cancelAnimationFrame(frame);
     frame = requestAnimationFrame(() => {
-      layout.setSizeClass(sizeClassFor(window.innerWidth));
       layout.refit();
     });
   };
@@ -36,11 +34,7 @@ function watchWindowResize(layout: ColumnLayout): () => void {
 }
 
 function dragOn(layout: MutableRefObject<ColumnLayout | null>): ColumnDrag {
-  return {
-    begin: column => layout.current?.beginDrag(column),
-    move: delta => layout.current?.dragBy(delta),
-    end: () => layout.current?.endDrag(),
-  };
+  return {begin: column => layout.current?.beginDrag(column)};
 }
 
 /**

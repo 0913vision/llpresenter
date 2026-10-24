@@ -7,6 +7,12 @@ interface Drag {
   readonly start: ColumnWidths;
 }
 
+/** One drag of a column gap. */
+export interface DragSession {
+  move(delta: number): void;
+  end(): void;
+}
+
 export interface ColumnLayoutOptions {
   readonly store: ColumnWidthStore;
   readonly sizeClass: SizeClass;
@@ -47,30 +53,45 @@ export class ColumnLayout {
     this.display(fitToWindow(this.saved, this.options.windowWidth()));
   }
 
-  beginDrag(column: DraggableColumn): void {
-    this.drag = {column, start: this.shown};
+  /**
+   * Starts a drag, or returns nothing while another drag is in progress. The
+   * session stops working once its drag has ended or has been dropped.
+   */
+  beginDrag(column: DraggableColumn): DragSession | undefined {
+    if (this.drag) return undefined;
+    const drag: Drag = {column, start: this.shown};
+    this.drag = drag;
+    return {
+      move: delta => this.dragBy(drag, delta),
+      end: () => this.endDrag(drag),
+    };
   }
 
-  dragBy(delta: number): void {
-    if (!this.drag) return;
-    const {column, start} = this.drag;
+  private dragBy(drag: Drag, delta: number): void {
+    if (this.drag !== drag) return;
     this.display(
       dragColumn({
-        column,
-        start,
+        column: drag.column,
+        start: drag.start,
         delta,
         windowWidth: this.options.windowWidth(),
       }),
     );
   }
 
-  /** Saves the width of the dragged column and keeps the other saved width. */
-  endDrag(): void {
-    if (!this.drag) return;
-    const {column} = this.drag;
+  /**
+   * Saves the dragged column only if its width changed, keeps the other saved
+   * width, and fits the widths to a window that resized during the drag.
+   */
+  private endDrag(drag: Drag): void {
+    if (this.drag !== drag) return;
     this.drag = null;
-    this.saved = {...this.saved, [column]: this.shown[column]};
-    this.options.store.save(this.sizeClass, this.saved);
+    const {column} = drag;
+    if (this.shown[column] !== drag.start[column]) {
+      this.saved = {...this.saved, [column]: this.shown[column]};
+      this.options.store.save(this.sizeClass, this.saved);
+    }
+    this.refit();
   }
 
   private loadSaved(): ColumnWidths {

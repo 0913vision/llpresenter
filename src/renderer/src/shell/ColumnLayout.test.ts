@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest';
-import {ColumnLayout} from './ColumnLayout';
+import {ColumnLayout, type DragSession} from './ColumnLayout';
+import type {DraggableColumn} from './columns';
 import {
   createMemoryColumnWidthStore,
   type ColumnWidthStore,
@@ -36,6 +37,22 @@ function createHarness(
   };
 }
 
+function begin(layout: ColumnLayout, column: DraggableColumn): DragSession {
+  const session = layout.beginDrag(column);
+  if (!session) throw new Error('The drag did not start');
+  return session;
+}
+
+function drag(
+  layout: ColumnLayout,
+  column: DraggableColumn,
+  delta: number,
+): void {
+  const session = begin(layout, column);
+  session.move(delta);
+  session.end();
+}
+
 describe('ColumnLayout', () => {
   it('shows the defaults of the size class when nothing is saved', () => {
     const {shown} = createHarness('normal', 1920);
@@ -44,36 +61,49 @@ describe('ColumnLayout', () => {
 
   it('follows the pointer while dragging and saves on release', () => {
     const {layout, shown, store} = createHarness('normal', 1920);
-    layout.beginDrag('left');
-    layout.dragBy(40);
+    const session = begin(layout, 'left');
+    session.move(40);
     expect(shown.at(-1)).toEqual({left: 320, right: 480});
     expect(store.load('normal')).toBeUndefined();
-    layout.endDrag();
+    session.end();
     expect(store.load('normal')).toEqual({left: 320, right: 480});
   });
 
   it('measures every move from where the drag started', () => {
     const {layout, shown} = createHarness('normal', 1920);
-    layout.beginDrag('right');
-    layout.dragBy(-30);
-    layout.dragBy(-10);
+    const session = begin(layout, 'right');
+    session.move(-30);
+    session.move(-10);
     expect(shown.at(-1)).toEqual({left: 280, right: 490});
   });
 
-  it('ignores moves and releases without a drag', () => {
+  it('does not start a second drag while one is in progress', () => {
+    const {layout} = createHarness('normal', 1920);
+    begin(layout, 'left');
+    expect(layout.beginDrag('right')).toBeUndefined();
+  });
+
+  it('starts a new drag after the previous one ended', () => {
+    const {layout} = createHarness('normal', 1920);
+    begin(layout, 'left').end();
+    expect(layout.beginDrag('right')).toBeDefined();
+  });
+
+  it('ignores moves and releases of a drag that has ended', () => {
     const {layout, shown, store} = createHarness('normal', 1920);
+    const session = begin(layout, 'left');
+    session.move(40);
+    session.end();
     const before = shown.length;
-    layout.dragBy(100);
-    layout.endDrag();
+    session.move(100);
+    session.end();
     expect(shown).toHaveLength(before);
-    expect(store.load('normal')).toBeUndefined();
+    expect(store.load('normal')).toEqual({left: 320, right: 480});
   });
 
   it('keeps the widths of each size class apart', () => {
     const {layout, shown} = createHarness('normal', 1920);
-    layout.beginDrag('left');
-    layout.dragBy(40);
-    layout.endDrag();
+    drag(layout, 'left', 40);
 
     layout.setSizeClass('wide');
     expect(shown.at(-1)).toEqual(defaultColumns.wide);
@@ -91,9 +121,7 @@ describe('ColumnLayout', () => {
   it('shrinks on screen when the window narrows and restores when it grows', () => {
     const harness = createHarness('normal', 1920);
     const {layout, shown} = harness;
-    layout.beginDrag('right');
-    layout.dragBy(-240);
-    layout.endDrag();
+    drag(layout, 'right', -240);
     expect(shown.at(-1)).toEqual({left: 280, right: 720});
 
     harness.setWindowWidth(1500);
@@ -108,9 +136,7 @@ describe('ColumnLayout', () => {
   it('keeps the saved widths while the screen shows shrunk ones', () => {
     const harness = createHarness('normal', 1920);
     const {layout, shown, store} = harness;
-    layout.beginDrag('right');
-    layout.dragBy(-240);
-    layout.endDrag();
+    drag(layout, 'right', -240);
 
     harness.setWindowWidth(1280);
     layout.refit();
@@ -125,35 +151,81 @@ describe('ColumnLayout', () => {
   it('saves only the dragged column when the other one is shrunk', () => {
     const harness = createHarness('normal', 1920);
     const {layout, store} = harness;
-    layout.beginDrag('right');
-    layout.dragBy(-240);
-    layout.endDrag();
+    drag(layout, 'right', -240);
 
     harness.setWindowWidth(1280);
     layout.refit();
-    layout.beginDrag('left');
-    layout.dragBy(-40);
-    layout.endDrag();
+    drag(layout, 'left', -40);
     expect(store.load('normal')).toEqual({left: 240, right: 720});
+  });
+
+  it('does not overwrite a saved width when a gap is pressed without moving', () => {
+    const harness = createHarness('normal', 1920);
+    const {layout, shown, store} = harness;
+    drag(layout, 'right', -240);
+    drag(layout, 'left', 120);
+
+    harness.setWindowWidth(1600);
+    layout.refit();
+    expect(shown.at(-1)).toEqual({left: 400, right: 624});
+
+    begin(layout, 'right').end();
+    expect(store.load('normal')).toEqual({left: 400, right: 720});
+  });
+
+  it('does not save a drag that returns to the starting width', () => {
+    const {layout, store} = createHarness('normal', 1920);
+    const session = begin(layout, 'left');
+    session.move(40);
+    session.move(0);
+    session.end();
+    expect(store.load('normal')).toBeUndefined();
   });
 
   it('does not refit in the middle of a drag', () => {
     const harness = createHarness('normal', 1920);
     const {layout, shown} = harness;
-    layout.beginDrag('left');
-    layout.dragBy(40);
+    begin(layout, 'left').move(40);
     const before = shown.length;
     layout.refit();
     expect(shown).toHaveLength(before);
   });
 
+  it('fits the widths to a window that resized during the drag when it ends', () => {
+    const harness = createHarness('normal', 1920);
+    const {layout, shown, store} = harness;
+    drag(layout, 'right', -240);
+    drag(layout, 'left', 120);
+
+    const session = begin(layout, 'right');
+    session.move(0);
+    harness.setWindowWidth(1600);
+    layout.refit();
+    expect(shown.at(-1)).toEqual({left: 400, right: 720});
+    session.end();
+    expect(shown.at(-1)).toEqual({left: 400, right: 624});
+    expect(store.load('normal')).toEqual({left: 400, right: 720});
+  });
+
   it('drops a drag when the size class changes', () => {
     const {layout, shown, store} = createHarness('normal', 1920);
-    layout.beginDrag('left');
+    const session = begin(layout, 'left');
     layout.setSizeClass('wide');
-    layout.dragBy(40);
-    layout.endDrag();
+    session.move(40);
+    session.end();
     expect(shown.at(-1)).toEqual(defaultColumns.wide);
     expect(store.load('wide')).toBeUndefined();
+  });
+
+  it('lets a stale session end without touching a newer drag', () => {
+    const {layout, shown} = createHarness('normal', 1920);
+    const stale = begin(layout, 'left');
+    layout.setSizeClass('wide');
+    layout.setSizeClass('normal');
+    const fresh = begin(layout, 'right');
+    stale.move(100);
+    stale.end();
+    fresh.move(-10);
+    expect(shown.at(-1)).toEqual({left: 280, right: 490});
   });
 });

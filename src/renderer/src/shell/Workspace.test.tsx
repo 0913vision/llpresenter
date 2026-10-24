@@ -200,6 +200,107 @@ describe('Workspace column gaps', () => {
     expect(store.load('normal')).toEqual({left: 400, right: 720});
   });
 
+  it('lets only one pointer drag across both gaps', () => {
+    const {container} = render(
+      <Workspace
+        id="show"
+        sizeClass="normal"
+        store={createMemoryColumnWidthStore()}
+      />,
+    );
+    const left = gapOf(container, 'left');
+    const right = gapOf(container, 'right');
+    fireEvent.pointerDown(left, {pointerId: 1, button: 0, clientX: 300});
+    fireEvent.pointerDown(right, {pointerId: 2, button: 0, clientX: 1400});
+    fireEvent.pointerMove(right, {pointerId: 2, clientX: 1300});
+    fireEvent.pointerMove(left, {pointerId: 1, clientX: 340});
+    fireEvent.pointerUp(right, {pointerId: 2, clientX: 1300});
+    fireEvent.pointerMove(left, {pointerId: 1, clientX: 360});
+    expect(left.setPointerCapture).toHaveBeenCalledTimes(1);
+    expect(widthsOf(gridOf(container))).toEqual({
+      left: '340px',
+      right: '480px',
+    });
+  });
+
+  it('ignores a second pointer on the gap that is being dragged', () => {
+    const {container} = render(
+      <Workspace
+        id="show"
+        sizeClass="normal"
+        store={createMemoryColumnWidthStore()}
+      />,
+    );
+    const gap = gapOf(container, 'left');
+    fireEvent.pointerDown(gap, {pointerId: 1, button: 0, clientX: 300});
+    fireEvent.pointerDown(gap, {pointerId: 2, button: 0, clientX: 500});
+    fireEvent.pointerMove(gap, {pointerId: 2, clientX: 600});
+    fireEvent.pointerUp(gap, {pointerId: 2, clientX: 600});
+    fireEvent.pointerMove(gap, {pointerId: 1, clientX: 320});
+    expect(gap.setPointerCapture).toHaveBeenCalledTimes(1);
+    expect(widthsOf(gridOf(container))).toEqual({
+      left: '300px',
+      right: '480px',
+    });
+  });
+
+  it('can drag the other gap after the first drag ends', () => {
+    const {container} = render(
+      <Workspace
+        id="show"
+        sizeClass="normal"
+        store={createMemoryColumnWidthStore()}
+      />,
+    );
+    dragGap(gapOf(container, 'left'), 300, 340);
+    dragGap(gapOf(container, 'right'), 1400, 1350);
+    expect(widthsOf(gridOf(container))).toEqual({
+      left: '320px',
+      right: '530px',
+    });
+  });
+
+  it('keeps a shrunk width unsaved when a gap is clicked without moving', () => {
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation(callback => {
+      callback(0);
+      return 0;
+    });
+    const store = createMemoryColumnWidthStore();
+    const {container} = render(
+      <Workspace id="show" sizeClass="normal" store={store} />,
+    );
+    dragGap(gapOf(container, 'right'), 1400, 1160);
+    dragGap(gapOf(container, 'left'), 300, 420);
+    setWindowWidth(1600);
+    fireEvent(window, new Event('resize'));
+
+    dragGap(gapOf(container, 'right'), 1200, 1200);
+    expect(store.load('normal')).toEqual({left: 400, right: 720});
+  });
+
+  it('fits the columns when the window shrinks during a drag', () => {
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation(callback => {
+      callback(0);
+      return 0;
+    });
+    const store = createMemoryColumnWidthStore();
+    const {container} = render(
+      <Workspace id="show" sizeClass="normal" store={store} />,
+    );
+    dragGap(gapOf(container, 'right'), 1400, 1160);
+    dragGap(gapOf(container, 'left'), 300, 420);
+
+    const gap = gapOf(container, 'left');
+    fireEvent.pointerDown(gap, {pointerId: 1, button: 0, clientX: 400});
+    setWindowWidth(1600);
+    fireEvent(window, new Event('resize'));
+    fireEvent.pointerUp(gap, {pointerId: 1, clientX: 400});
+    expect(widthsOf(gridOf(container))).toEqual({
+      left: '400px',
+      right: '624px',
+    });
+  });
+
   it('removes the resize listener when it unmounts', () => {
     const remove = vi.spyOn(window, 'removeEventListener');
     const {unmount} = render(
