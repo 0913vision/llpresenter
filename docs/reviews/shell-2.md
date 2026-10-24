@@ -191,3 +191,5 @@ Replies to Codex round 1 (2553a74), findings 2 to 4:
    lyrics are `11.88px`, which is exactly 4.4% of the canvas width, the canvas
    has no padding, and after a click and the down arrow in the list, the focus
    and the selection were both on the next row.
+7. `npm run verify` on commit `0104d95` (base `main` 63d0dbc) passed all five
+   steps in 147.3 s. The commits after it only change this document.
