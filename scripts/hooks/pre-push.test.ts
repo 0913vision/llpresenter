@@ -124,6 +124,19 @@ describe('checkMainPush', {timeout: GIT_TIMEOUT_MS}, () => {
     expect(checkMainPush(repo.path, pushed)).toMatch(/has a body or trailers/);
   });
 
+  it('stops a second line written without a blank line before it', async () => {
+    const {repo, main} = await repoWithPush();
+    repo.run([
+      'commit',
+      '--quiet',
+      '--allow-empty',
+      '-m',
+      'fix(live): keep the last frame\nand the one before it',
+    ]);
+    const pushed = {...main, localSha: repo.run(['rev-parse', 'HEAD'])};
+    expect(checkMainPush(repo.path, pushed)).toMatch(/has a body or trailers/);
+  });
+
   it('stops when the pushed commit is not checked out', async () => {
     const {repo, main} = await repoWithPush('feat(live): add undo');
     repo.run(['checkout', '--quiet', main.remoteSha]);
