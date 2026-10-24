@@ -1,3 +1,5 @@
+import {isJsonObject} from '../json.mts';
+
 /** The version of the soak record format that this runner reads. */
 export const RECORD_VERSION = 1;
 
@@ -42,14 +44,8 @@ type Parsed<T> =
   | {readonly ok: true; readonly value: T}
   | {readonly ok: false; readonly reason: string};
 
-type Fields = Readonly<Record<string, unknown>>;
-
 // TODO(0913vision): Switch these checks to valibot (docs/decisions.md) once
 // it is a dependency.
-
-function isFields(value: unknown): value is Fields {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
 
 function isAmount(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0;
@@ -60,7 +56,7 @@ function isName(value: unknown): value is string {
 }
 
 function parseProcess(value: unknown): Parsed<ProcessSample> {
-  if (!isFields(value)) {
+  if (!isJsonObject(value)) {
     return {ok: false, reason: 'a process is not an object'};
   }
   const {name, pid, workingSetKb, privateKb} = value;
@@ -72,7 +68,7 @@ function parseProcess(value: unknown): Parsed<ProcessSample> {
 }
 
 function parseOutput(value: unknown): Parsed<OutputSample> {
-  if (!isFields(value)) {
+  if (!isJsonObject(value)) {
     return {ok: false, reason: 'an output is not an object'};
   }
   const {screen, fps} = value;
@@ -106,7 +102,9 @@ function parseList<T>(
  * @param value - the result of `JSON.parse` on the line
  */
 export function parseSample(value: unknown): Parsed<SoakSample> {
-  if (!isFields(value)) return {ok: false, reason: 'the line is not an object'};
+  if (!isJsonObject(value)) {
+    return {ok: false, reason: 'the line is not an object'};
+  }
   if (value['v'] !== RECORD_VERSION) {
     return {ok: false, reason: `the format version is not ${RECORD_VERSION}`};
   }
