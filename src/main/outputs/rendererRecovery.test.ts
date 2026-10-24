@@ -37,6 +37,8 @@ describe('RendererRecovery', () => {
     expect(recovery.state).toBe('restarting');
     await clock.advance(RELAUNCH_DELAY_MS);
     expect(reload).toHaveBeenCalledTimes(1);
+    expect(recovery.state).toBe('restarting');
+    recovery.pageDrawn();
     expect(recovery.state).toBe('running');
     expect(log.entries[0]).toEqual({
       level: 'error',
@@ -72,19 +74,55 @@ describe('RendererRecovery', () => {
     expect(COOLDOWN_STEPS_MS).toEqual([10_000, 20_000, 40_000, 60_000]);
   });
 
-  it('ends the limit when an attempt runs for a minute', async () => {
+  it('shows the live picture once an attempt draws, and ends the limit after a minute', async () => {
     const {clock, log, reload, recovery} = setUp();
     await crashUntilLimited(recovery, clock);
     await clock.advance(COOLDOWN_STEPS_MS[0] ?? 0);
-    await clock.advance(SURVIVAL_MS);
+    expect(recovery.state).toBe('limited');
+    recovery.pageDrawn();
     expect(recovery.state).toBe('running');
+    expect(log.messages('info')).toContain(
+      'output window restart attempt works',
+    );
+    await clock.advance(SURVIVAL_MS);
     expect(log.messages('info').at(-1)).toBe(
-      'output window running again after the restart limit',
+      'output window restart limit ended',
     );
     recovery.crashed(CRASH);
     expect(recovery.state).toBe('restarting');
     await clock.advance(RELAUNCH_DELAY_MS);
     expect(reload).toHaveBeenCalledTimes(CRASH_LIMIT + 1);
+  });
+
+  it('goes back to the empty picture when an attempt that drew dies within the minute', async () => {
+    const {clock, reload, recovery} = setUp();
+    await crashUntilLimited(recovery, clock);
+    await clock.advance(COOLDOWN_STEPS_MS[0] ?? 0);
+    recovery.pageDrawn();
+    recovery.crashed(CRASH);
+    expect(recovery.state).toBe('limited');
+    await clock.advance((COOLDOWN_STEPS_MS[1] ?? 0) - 1);
+    expect(reload).toHaveBeenCalledTimes(CRASH_LIMIT);
+    await clock.advance(1);
+    expect(reload).toHaveBeenCalledTimes(CRASH_LIMIT + 1);
+  });
+
+  it('starts an attempt at once on 다시 시도, but not while one is in progress', async () => {
+    const {clock, reload, recovery} = setUp();
+    await crashUntilLimited(recovery, clock);
+    recovery.retry();
+    expect(reload).toHaveBeenCalledTimes(CRASH_LIMIT);
+    recovery.retry();
+    recovery.resume();
+    expect(reload).toHaveBeenCalledTimes(CRASH_LIMIT);
+    await clock.advance(COOLDOWN_STEPS_MS[0] ?? 0);
+    expect(reload).toHaveBeenCalledTimes(CRASH_LIMIT);
+  });
+
+  it('does nothing on 다시 시도 when no limit holds', () => {
+    const {reload, recovery} = setUp();
+    recovery.retry();
+    expect(reload).not.toHaveBeenCalled();
   });
 
   it('makes no attempts while paused and tries at once on resume', async () => {
