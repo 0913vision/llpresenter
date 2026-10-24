@@ -44,8 +44,8 @@ for the 진행 도구); (5) one test case that the shell-11 nit asked for.
    layer away because the renderer draws the live layers.
 3. **States.** A screen whose output is off keeps drawing, with a dim name, a
    lighter frame, and the tooltip "본 화면 출력이 꺼져 있습니다". The 방송 자막
-   frame is chroma green when empty (the frame overrides `--output-black`, which
-   the renderer root uses).
+   frame is chroma green when empty (the frame and the renderer's root
+   background are green, and `--output-black` is not overridden).
 4. **Dead code removed.** The spec dropped the next-장 preview, so
    `layersWithNextSlide` and `useNextSlideLayer` (and their tests) are gone, and
    `previewLayers.ts` became `slideLayer.ts`, which only holds `slideLayerOf`.
@@ -106,9 +106,9 @@ previews (three decoders; output plans a `preview` mode), and the amber outline
   needs a renderer that does not exist yet (`TODO` in `ScreenPreview.tsx`).
 - Every preview draws at the renderer's own rate. The 미리보기 rate (30 fps) and
   a muted, lighter video mode are output's follow-up (`mode: 'preview'`).
-- The shrink rule for a short window (the large preview keeps 16:9 and gets
-  smaller) is not built: the panel clips. It needs the real heights of the
-  column, which I will measure with the tools panel next.
+- The shrink rule for a short window is built: the large preview keeps 16:9 and
+  gets smaller, and the small previews are capped at 160 px wide so a wide
+  column cannot make them tall (measured in "Team member's reply").
 
 ## Shared contract change requests
 
@@ -159,8 +159,8 @@ Round 1 (codex2), answered once:
    | --------- | ------------- | ------ | --------- | ----------------- | ------------ |
    | 1280x720  | 322           | 52     | **240**   | 252x142, centered | 64x36 rows   |
    | 1536x864  | 367           | 52     | 339       | 332x187, centered | 64x36 rows   |
-   | 1920x1080 | 497           | 68     | 393       | 452x254, centered | 221x124      |
-   | 2560x1440 | 564           | 68     | 686       | 532x299, centered | 261x147      |
+   | 1920x1080 | 462           | 68     | 428       | 452x254, centered | 160x90       |
+   | 2560x1440 | 507           | 68     | 743       | 532x299, centered | 160x90       |
 
    At 1280x720 the 진행 도구 is exactly 240 and the large frame is smaller than
    its natural size, which is the case the finding is about; the width over
@@ -195,3 +195,31 @@ Round 1 (codex2), answered once:
    and deletes, so it is a race between two steps of the verify run, not a lint
    finding. `npm run lint` alone passed (exit 0) on the same commit. I rebased
    onto `main` 94780dc afterwards and `typecheck` passed again.
+
+Round 2 (codex2), answered once:
+
+1. Finding 1 (1600x720 with the right column at 720 px): reproduced in the
+   running app. The small previews were width driven (341x192 each), so the
+   panel's 290 px were used up and the large frame was 0x0 at 1600x720 (107x60
+   at 1600x800). Fix: a small preview is at most 160 px wide
+   (`--small-max-width` on the panel, `width: min(100%, var(--small-max-width))`
+   on the slot), still 16:9 and still beside each other, and the narrow window's
+   64 px rows are unchanged. The large frame keeps the rest of the height.
+   Measured in the running app (right column 720 px, CSS px):
+
+   | Window    | Preview panel | 진행 도구 | Large frame       | Small frames |
+   | --------- | ------------- | --------- | ----------------- | ------------ |
+   | 1600x720  | 290           | **240**   | 146x82, centered  | 160x90       |
+   | 1600x800  | 370           | **240**   | 288x162, centered | 160x90       |
+   | 1920x1080 | 597           | 293       | 692x389, centered | 160x90       |
+
+   The ratios are 1.778 to 1.780 and both small previews are visible in every
+   row. The four sizes of the first table were measured again after the change
+   with the default column widths; the large frames are the same, and only the
+   small frames and the heights of the panels moved (the table above is
+   updated). A test, `PreviewPanel.layout.test.ts`, guards the three rules that
+   make this work (the width cap on a small preview, the unchanged 64 px row
+   form, and the shrinking 16:9 large frame), since jsdom cannot lay out.
+
+2. Finding 2 (nit): the two lines about `--output-black` and the missing shrink
+   rule are updated.
