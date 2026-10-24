@@ -141,19 +141,26 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (2553a74): lead Request changes: the next-장 key moved into the next
+  item at the last 장; it must stop (the spec proposal's default, a 진행 setting
+  later). Lead answers: numbering as proposed, 이름표 jump keys unbound until
+  spec-1 merges, `labelColor` from `@shared/colors`. Reviewer (Codex, codex2)
+  Request changes: the same last-장 rule, list focus not following the
+  selection, lyrics sized from a padded container, and every thumbnail
+  re-rendering on a change.
+- Round 2 (fd7f2a3): reviewer (Codex, codex2) Approve with two nits: the
+  boundary test in `state/show.test.ts` should also check that the selection
+  stays, and the render-count test in `ShowPanels.test.tsx` should use `act` and
+  expect exactly two row renders. Lead Approve. The lead confirms decisions 1,
+  4, and 5. Decisions 2 and 3 (arrows move the grid selection and Space outputs
+  the focused tile while the grid has focus) are superseded by spec-1, merged
+  since: in 진행, → ← Space Page Up and Page Down go to the live commands even
+  when the 장 grid or a list has focus
+  (`docs/spec/10-shortcuts-and-settings.md`, "Focus precedence"). That change,
+  the 이름표 jump keys, and the two nits go into shell's next branch. Rebased by
+  the lead onto `main` 982823a without conflicts.
 
 ## Team member's reply
 
