@@ -2,7 +2,7 @@
 
 - Team member: `shell`
 - Branch: `fix/shell/drag-refit`
-- Base commit (`main`): `fc0cbc9`
+- Base commit (`main`): `4aa7901`
 - Last commit: see the commit that adds this file
 - Related brief: the lead's message about the bug M1-2 from qa
 
@@ -120,3 +120,6 @@ missing.
    names (`widthsAtStart`, `widthsAtLastFit`, `movementAtLastFit`,
    `lastMovement`, `pointerMoved`), and the context that the names cannot carry
    is one `NOTE(0913vision)` above the interface.
+3. Round 2: rebased onto `main` 4aa7901 without conflicts. `npm run verify` on
+   commit `81d6394` passed all five steps in 187.8 s: `typecheck`, `lint`,
+   `format:check`, `test:coverage`, and `build`.
