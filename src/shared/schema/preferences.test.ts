@@ -110,6 +110,20 @@ describe('the ranges of 환경설정', () => {
     }
   });
 
+  it('keeps unknown fields named like Object members, at every level', () => {
+    const json: unknown = JSON.parse(
+      JSON.stringify({
+        ...HEADER,
+        constructor: 'root',
+        toString: 1,
+        backup: {keep: 5, constructor: true, hasOwnProperty: 'x'},
+        bible: {maxLines: 4, toString: ['a'], valueOf: null},
+      }).replace('"toString":1', '"toString":1,"__proto__":{"a":1}'),
+    );
+
+    expectRoundTrip(codec, json);
+  });
+
   it('refuses to write a count outside its range', () => {
     const written = serializePreferences(
       {...defaultPreferences, backupCopies: 51},

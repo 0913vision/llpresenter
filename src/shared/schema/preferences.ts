@@ -192,21 +192,24 @@ function dropValuesOutOfRange(
   return {content: kept, dropped};
 }
 
+// NOTE(0913vision): Only the range table's own names are looked up, so an
+// unknown field named like an Object member, such as `constructor`, is kept as
+// it is. `Object.fromEntries` keeps every field an own data property.
 function withoutInvalid(
   part: Readonly<Record<string, unknown>>,
   ranges: Readonly<Record<string, v.GenericSchema>>,
   prefix: string,
 ): PrunedContent {
-  const content: Record<string, unknown> = {};
+  const kept: Array<[string, unknown]> = [];
   const dropped: DroppedValue[] = [];
   for (const [key, value] of Object.entries(part)) {
-    const schema = ranges[key];
+    const schema = Object.hasOwn(ranges, key) ? ranges[key] : undefined;
     const checked = schema === undefined ? null : checkPart(schema, value);
     if (checked === null || checked.ok) {
-      content[key] = value;
+      kept.push([key, value]);
     } else {
       dropped.push({field: `${prefix}${key}`, message: checked.error.message});
     }
   }
-  return {content, dropped};
+  return {content: Object.fromEntries(kept), dropped};
 }
