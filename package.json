@@ -2,7 +2,7 @@
   "name": "llpresenter",
   "productName": "LoveLight Presenter",
   "version": "0.2.0",
-  "description": "예배용 다중 화면 가사 출력",
+  "description": "Multi-screen lyrics presentation for worship services",
   "author": "0913vision <0913vision@gmail.com>",
   "private": true,
   "main": "./out/main/index.js",
@@ -11,7 +11,9 @@
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.node.json --composite false && tsc --noEmit -p tsconfig.web.json --composite false",
-    "test": "vitest run"
+    "test": "vitest run",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "devDependencies": {
     "@types/node": "26.6.5",
@@ -20,6 +22,7 @@
     "@vitejs/plugin-react": "6.1.2",
     "electron": "44.9.3",
     "electron-vite": "6.0.0",
+    "prettier": "3.9.10",
     "typescript": "7.0.2",
     "vite": "8.3.5",
     "vitest": "5.0.5"
