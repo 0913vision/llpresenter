@@ -59,7 +59,7 @@ A field for typing text directly. Use it for search, Bible verses in 퀵 실행 
 - 퀵 실행 field: Enter shows that verse. If the verse can't be recognized, show the error ring and give the reason in a tooltip.
 - Number field: the up and down arrows change the value by 1, or by 10 with Shift. When focus leaves, snap an out-of-range value to the nearest valid value.
 - Title field: if the library has a song with the same title, show `aria-invalid="true"` and the error ring, and go to the `ImportSave` confirmation dialog on save.
-- Key input field: when it gets focus, it records the next key combination pressed. Esc cancels, and Backspace removes the shortcut.
+- Key input field: when it gets focus, it records the next key combination pressed, F1 to F7 included, by physical key (`KeyboardEvent.code`). Esc cancels, Backspace removes the shortcut, and Tab or Shift Tab ends the recording and moves focus. A reserved key isn't recorded: the field keeps recording, shows the error ring, and gives the reason in a tooltip (see `KeyCap`). Keys with an empty `code` (한/영, 한자) aren't recorded.
 - Tab order follows the order on screen. Take the clear-text button out of the tab order (`tabindex="-1"`). Esc does the same thing.
 - aria: give a field without a visible name (search, 퀵 실행) an `aria-label`. Mark an error with `aria-invalid="true"`, and link the reason to the tooltip text with `aria-describedby`.
 

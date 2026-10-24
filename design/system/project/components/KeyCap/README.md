@@ -45,14 +45,15 @@ A small box that shows a shortcut as a key. Use it in the shortcut table in Pref
 ## Behavior
 
 - A key is a display that can't be pressed. To change a shortcut, double-click its row or press Enter to open the key recording field.
-- In the key recording field, Esc cancels, Backspace removes the shortcut, and any other combination becomes the shortcut. If the combination is already in use, both rows show a conflict.
+- In the key recording field, Esc cancels, Backspace removes the shortcut, and Tab or Shift Tab ends the recording and moves keyboard focus. A reserved key isn't taken: the field keeps recording, shows the error ring, and gives the reason in a tooltip (the list is "Reserved keys" in `docs/spec/10-shortcuts-and-settings.md`). Any other combination becomes the shortcut, F1 to F7 included. The field records the physical key (`KeyboardEvent.code`) and doesn't record keys with an empty `code` (한/영, 한자). If the combination is already in use, both rows show a conflict.
 - When the user hovers over the conflict icon, a tooltip says what it conflicts with.
 - aria: write keys with `kbd`. Give the conflict icon an `aria-label` with the same text as the tooltip. Give the row of a changed shortcut `aria-description="바꾼 단축키"`.
 
 ## Writing
 
-- Write key names exactly as Windows does: Ctrl, Alt, Shift, Space, Enter, Esc, F1, and → ← ↑ ↓ for arrows. Don't translate them into Korean.
+- Write key names in English, exactly as Windows does: Ctrl, Alt, Shift, Space, Enter, Esc, Tab, Backspace, Delete, Home, End, Page Up, Page Down, F1 to F12, → ← ↑ ↓ for arrows, and a letter or digit as printed on the key (C, 1). Don't translate them into Korean, and never show a Hangul letter (ㅊ for the C key).
 - Write a conflict tooltip as one line, "<명령>과 겹침": "출력 켜기와 겹침", "평상시와 겹침".
+- Write the tooltip of a reserved key as one short phrase, "(용도)에 쓰는 키": Enter "확인과 실행에 쓰는 키", Alt and F10 "메뉴 막대에 쓰는 키", Shift F10 and the Menu key "오른쪽 클릭 메뉴에 쓰는 키", Ctrl X, C, V, A "글자 편집에 쓰는 키", Windows keys "Windows가 쓰는 키", bare letters and digits "이름표 바로 가기에 쓰는 키". Tab, Shift Tab, Esc, and Backspace do their own job in the field and never show this tooltip.
 
 ## Implementation notes
 
