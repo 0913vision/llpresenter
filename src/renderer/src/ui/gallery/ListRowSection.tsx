@@ -1,4 +1,4 @@
-import type {JSX, ReactNode} from 'react';
+import {Fragment, type JSX, type ReactNode} from 'react';
 import {IconButton} from '../IconButton';
 import {
   ListActionRow,
@@ -46,6 +46,101 @@ const rowStates: readonly RowState[] = [
   {label: 'Pressed', pin: 'pressed'},
   {label: 'Focus', pin: 'focus'},
 ];
+
+interface CountedRow {
+  readonly value: string;
+  readonly icon: string;
+  readonly title: string;
+  readonly meta: string;
+}
+
+interface CountedGroup {
+  readonly label: string;
+  readonly rows: readonly CountedRow[];
+}
+
+const prepService: readonly CountedGroup[] = [
+  {
+    label: '예배 전',
+    rows: [
+      {value: 'count', icon: 'film', title: '예배 전 카운트다운', meta: '5:00'},
+      {value: 'notice', icon: 'notice', title: '주일 광고', meta: '6장'},
+    ],
+  },
+  {
+    label: '찬양',
+    rows: [
+      {value: 'hymn0', icon: 'song', title: '이 세상 험하고', meta: '6장'},
+      {value: 'hymn1', icon: 'song', title: '만복의 근원 하나님', meta: '9장'},
+      {
+        value: 'hymn2',
+        icon: 'song',
+        title: '내 주를 가까이 하게 함은',
+        meta: '5장',
+      },
+    ],
+  },
+  {
+    label: '말씀',
+    rows: [
+      {value: 'word', icon: 'book', title: '요한복음 3장 16절', meta: '2장'},
+      {value: 'sermon', icon: 'slides', title: '설교', meta: '12장'},
+    ],
+  },
+];
+
+const mediaLists: readonly CountedGroup[] = [
+  {
+    label: '보관함',
+    rows: [{value: 'all', icon: 'grid', title: '모든 미디어', meta: '42'}],
+  },
+  {
+    label: '재생목록',
+    rows: [
+      {value: 'backgrounds', icon: 'film', title: '배경 영상', meta: '7'},
+      {value: 'loops', icon: 'film', title: '예배 전 반복', meta: '4'},
+      {value: 'notices', icon: 'image', title: '광고 이미지', meta: '6'},
+      {value: 'sermons', icon: 'image', title: '설교 이미지', meta: '8'},
+    ],
+  },
+];
+
+const DROP_AFTER = 'hymn2';
+// NOTE(0913vision): Where the card draws the ghost row over the list, as if
+// the pointer held it there.
+const GHOST_PLACE = {position: 'absolute', left: 44, top: 166} as const;
+
+function CountedList({
+  label,
+  groups,
+  selected,
+  dropAfter,
+}: {
+  readonly label: string;
+  readonly groups: readonly CountedGroup[];
+  readonly selected: string | undefined;
+  readonly dropAfter?: string | undefined;
+}): JSX.Element {
+  return (
+    <ListBox label={label} selected={selected} onSelect={ignore}>
+      {groups.map(group => (
+        <ListGroup key={group.label} label={group.label}>
+          {group.rows.map(row => (
+            <Fragment key={row.value}>
+              <ListRow
+                value={row.value}
+                icon={row.icon}
+                title={row.title}
+                meta={row.meta}
+              />
+              {row.value === dropAfter ? <ListInsertLine /> : null}
+            </Fragment>
+          ))}
+        </ListGroup>
+      ))}
+    </ListBox>
+  );
+}
 
 export function ListRowSection(): JSX.Element {
   return (
@@ -137,6 +232,17 @@ export function ListRowSection(): JSX.Element {
         title="List in a panel: group header 11px 600, padding 10 14 5"
         alignTop
       >
+        <SpecItem label="준비 (counts)" width={PANEL_WIDTH}>
+          <Panel label="예배 순서">
+            <PanelBody variant="list">
+              <CountedList
+                label="예배 순서"
+                groups={prepService}
+                selected="hymn1"
+              />
+            </PanelBody>
+          </Panel>
+        </SpecItem>
         <SpecItem label="진행 (past items, live)" width={PANEL_WIDTH}>
           <Panel label="예배 순서">
             <PanelBody variant="list">
@@ -257,21 +363,40 @@ export function ListRowSection(): JSX.Element {
         title="Drag and drop: drop position 2px accent + 8px ring dot, drag ghost row"
         surface="panel"
       >
-        <SpecItem label="Drop position between rows" width={PANEL_WIDTH}>
-          <div>
-            <ListBox label="예배 순서" selected={undefined} onSelect={ignore}>
-              <ListRow value="a" icon="song" title="만복의 근원 하나님" />
-              <ListInsertLine />
-              <ListRow value="b" icon="song" title="내 주를 가까이 하게 함은" />
-            </ListBox>
+        <SpecItem
+          label="Dragged from the library, dropped after '내 주를 가까이 하게 함은'"
+          width={PANEL_WIDTH}
+        >
+          <div style={{position: 'relative'}}>
+            <Panel label="예배 순서">
+              <PanelBody variant="list">
+                <CountedList
+                  label="예배 순서"
+                  groups={prepService.slice(1)}
+                  selected="hymn1"
+                  dropAfter={DROP_AFTER}
+                />
+              </PanelBody>
+            </Panel>
+            <div style={GHOST_PLACE}>
+              <ListDragGhost
+                icon="song"
+                title="주 하나님 지으신 모든 세계"
+                adding
+              />
+            </div>
           </div>
         </SpecItem>
-        <SpecItem label="Drag ghost row">
-          <ListDragGhost
-            icon="song"
-            title="주 하나님 지으신 모든 세계"
-            adding
-          />
+        <SpecItem label="Media list" width={PANEL_WIDTH}>
+          <Panel label="미디어">
+            <PanelBody variant="list">
+              <CountedList
+                label="미디어"
+                groups={mediaLists}
+                selected="backgrounds"
+              />
+            </PanelBody>
+          </Panel>
         </SpecItem>
       </SpecGroup>
     </Section>

@@ -1,0 +1,23 @@
+/* NOTE(0913vision): A stand-in for the status bar around the dots, as on
+   the preview card; the real status bar belongs to the shell. */
+.statusBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+  height: var(--size-statusbar);
+  padding: 0 var(--space-16);
+  background: var(--bg-app);
+  box-shadow: 0 0 0 1px var(--line);
+  color: var(--text-3);
+  font: var(--type-caption);
+}
+
+.statusBar span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.warn {
+  color: var(--warning);
+}

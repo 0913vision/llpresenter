@@ -255,6 +255,23 @@ export function PanelSection(): JSX.Element {
             </PanelFooter>
           </Panel>
         </SpecItem>
+        <SpecItem label="Thumbnail size only (장 panel)" width={440}>
+          <Panel label="장">
+            <MiniBody />
+            <PanelFooter
+              end={
+                <Slider
+                  label="썸네일 크기"
+                  icon="grid"
+                  min={1}
+                  max={5}
+                  value={3}
+                  onChange={ignore}
+                />
+              }
+            />
+          </Panel>
+        </SpecItem>
       </SpecGroup>
     </Section>
   );
