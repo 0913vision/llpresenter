@@ -54,3 +54,9 @@
 | Command          | Result                                                                                                                                     |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | `npm run verify` | Pass at 100% CPU, 204.9 s wall, every step at once: typecheck 16.6 s, lint 83.3 s, format:check 41.3 s, test:coverage 204.8 s, build 8.3 s |
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (838d244): reviewer (Codex, codex4) Approve with no findings; the tag
+  order, the pre-push check, and the patch bump match the decision. Lead
+  Approve. Rebased by the lead onto local `main` without conflicts.
