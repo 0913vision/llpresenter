@@ -5,8 +5,8 @@ const DIALOG_LAYER = '[data-llp-layer="dialog"]';
 
 /**
  * The open modal surfaces, topmost last. Everything outside the topmost one
- * is inert, except the popover and tooltip layers (so menus opened inside a
- * dialog work).
+ * is inert, except the popover, tooltip, and notification layers (so menus
+ * opened inside a dialog work and notifications stay clickable).
  */
 export class ModalStack {
   private readonly open: HTMLElement[] = [];

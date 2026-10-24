@@ -66,8 +66,8 @@ Shows something the app must report on its own as a card at the top right. A war
 
 ## Implementation notes
 
-- `<NotificationStack compact={isCompact} />` + `notify({ kind: 'warning' | 'info', key: 'screen:stage', icon: 'plug', title: '무대 모니터 연결 끊김', time: '11:24', meta: ['모니터 3', '창으로 표시 중'], actions: [{ icon: 'refresh', label: '모니터 다시 찾기' }, { icon: 'open', label: '창 보기' }] })`. The same `key` replaces the card.
-- Pushing the right column down: measure the height of the lasting warning card stack (ResizeObserver), and set the right column's `padding-top` to that height + 4px. When only information cards are present, it is 0.
+- `<NotificationStack notices={notices} compact={isCompact} onClose={key => …} onWarningHeightChange={height => …} />`. The caller keeps the list: `addNotice(notices, {kind: 'warning' | 'info', key: 'screen:stage', icon: 'plug', title: '무대 모니터 연결 끊김', time: '11:24', meta: ['모니터 3', '창으로 표시 중'], actions: [{icon: 'refresh', label: '모니터 다시 찾기', onSelect}, {icon: 'open', label: '창 보기', onSelect}]})` puts a card on top, replaces the card with the same `key`, and keeps at most 3; `removeNotice(notices, key)` takes one off. An information card calls `onClose` itself after 6 seconds.
+- Pushing the right column down: the stack measures how far the lasting warning cards reach (ResizeObserver) and reports it through `onWarningHeightChange`; set the right column's `padding-top` to that height + 4px. When only information cards are present, it is 0.
 - Keep the notification layer outside the modal's `inert`.
 - Classes: `ll-notice-stack`, `ll-notice-stack--compact`, `ll-notice`, `ll-notice__icon`, `ll-notice__body`, `ll-notice__text`, `ll-notice__head`, `ll-notice__title`, `ll-notice__time`, `ll-notice__meta`, `ll-notice__actions`, `ll-notice__close`. A warning has `data-state="warning"`.
 

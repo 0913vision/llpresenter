@@ -122,6 +122,20 @@ export type {
   MenuSeparator,
 } from './menuModel';
 export {MissingFileMark, missingFileText} from './MissingFile';
+export {
+  addNotice,
+  removeNotice,
+  MAX_NOTICES,
+  type Notice,
+  type NoticeAction,
+  type NoticeKind,
+} from './notices';
+export {
+  NOTICE_LIFETIME_MS,
+  NotificationCard,
+  NotificationStack,
+  type NotificationStackProps,
+} from './Notification';
 export {NumberField, type NumberFieldProps} from './NumberField';
 export {
   OutputToggle,

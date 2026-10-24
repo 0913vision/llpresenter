@@ -1,0 +1,120 @@
+.stack {
+  position: fixed;
+  top: calc(var(--size-menubar) + var(--size-toolbar) + var(--panel-gap));
+  right: var(--panel-gap);
+  z-index: var(--z-notification);
+  display: flex;
+  flex-direction: column;
+  gap: var(--panel-gap);
+  width: var(--col-right);
+}
+
+.compact {
+  top: calc(
+    var(--size-menubar) + var(--size-toolbar-compact) + var(--panel-gap)
+  );
+  width: var(--col-right-compact);
+}
+
+.card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-12);
+  width: 100%;
+  padding: var(--space-12) var(--space-8) var(--space-12) var(--panel-inset);
+  border-radius: var(--radius-2xl);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow-dialog);
+  color: var(--text);
+  animation: appear var(--motion-popover);
+}
+
+.card[data-state='warning'] {
+  box-shadow: var(--bar-warning), var(--shadow-dialog);
+}
+
+.icon {
+  flex: none;
+  color: var(--text-2);
+}
+
+.card[data-state='warning'] .icon {
+  color: var(--warning);
+}
+
+.body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-10);
+  min-width: 0;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-10);
+  min-width: 0;
+}
+
+.title {
+  min-width: 0;
+  overflow: hidden;
+  font: var(--type-title);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.time {
+  flex: none;
+  color: var(--text-3);
+  font: var(--type-label);
+  font-variant-numeric: tabular-nums;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  min-width: 0;
+  color: var(--text-2);
+  font: var(--type-label);
+  white-space: nowrap;
+}
+
+.arrow {
+  color: var(--text-3);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+}
+
+.card .close {
+  flex: none;
+  margin-top: calc(-1 * var(--space-4));
+}
+
+.card .close:hover,
+.card .close:active {
+  background: var(--bg-control-hover);
+}
+
+.card .close:active {
+  color: var(--text);
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+}
