@@ -63,15 +63,15 @@ Acceptance criteria (QA):
 
 Status: planned. Starts as soon as each member's M1 work is merged.
 
-| Task                                                                                                                                                         | Owner (planned)    |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------ |
-| Main-process file store: atomic writes, autosave, recovery copies, backups, the song library and services read through the schemas                           | data               |
-| Output windows: one per screen, display detection, connect and disconnect, relaunch after a crash, output toggles                                            | new member: output |
-| Render a 장 over a looping background video in the 본 화면 output                                                                                            | new member: output |
-| 진행 workspace: 예배 순서 list, 장 panel with thumbnails, click to output, previews, the 지우기 row with F1 to F7 and undo                                   | shell              |
-| Remaining shared components: SlideThumbnail, PreviewFrame, ClearButton, LabelChip, KeyCap, PropertyRow, MediaTile, MacroTile, Notification, LabelColorPicker | ui                 |
-| App-side soak recording, the first UI tests                                                                                                                  | devops             |
-| M1 acceptance testing, then the M2 test plan                                                                                                                 | qa                 |
+| Task                                                                                                                                                         | Owner (planned) |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------- |
+| Main-process file store: atomic writes, autosave, recovery copies, backups, the song library and services read through the schemas                           | data            |
+| Output windows: one per screen, display detection, connect and disconnect, relaunch after a crash, output toggles                                            | output          |
+| Render a 장 over a looping background video in the 본 화면 output                                                                                            | output          |
+| 진행 workspace: 예배 순서 list, 장 panel with thumbnails, click to output, previews, the 지우기 row with F1 to F7 and undo                                   | shell           |
+| Remaining shared components: SlideThumbnail, PreviewFrame, ClearButton, LabelChip, KeyCap, PropertyRow, MediaTile, MacroTile, Notification, LabelColorPicker | ui              |
+| App-side soak recording, the first UI tests                                                                                                                  | devops          |
+| M1 acceptance testing, then the M2 test plan                                                                                                                 | qa              |
 
 Acceptance criteria (QA), from `docs/PLAN.md` phase 2:
 

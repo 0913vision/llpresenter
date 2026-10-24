@@ -152,3 +152,6 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   qa while the others start the next milestone (`docs/MILESTONES.md`). M1 is the
   foundation, M2 the vertical slice, taken over from the lead's phase 2 share
   and split among data, shell, ui, devops, and a new output member.
+- 2026-10-24: The lead manages only (user): plans, briefs, reviews, merges, and
+  coordination. Members write all code, shared contracts included when their
+  brief allows it.

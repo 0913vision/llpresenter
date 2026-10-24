@@ -192,9 +192,12 @@ without exception.
 
 - Work only in your own worktree and branches (`<tag>/<name>/<feature>`, see
   `docs/WORKFLOW.md`), and change only the files your brief lists as yours.
-- Only the lead changes shared files: `package.json`, `package-lock.json`,
-  `src/shared/`, design tokens, `CLAUDE.md`, `docs/STATUS.md`, `docs/PLAN.md`,
-  and `docs/HANDOFF.md`. Ask the lead when you need a change there.
+- Shared files (`package.json`, `package-lock.json`, `src/shared/`, design
+  tokens) change only when your brief or the lead allows it, and every shared
+  change is listed at the top of your review request. The lead alone edits
+  `CLAUDE.md`, `docs/STATUS.md`, `docs/PLAN.md`, `docs/MILESTONES.md`, and
+  `docs/HANDOFF.md`. The lead manages and doesn't write code; members write all
+  code.
 - Use the dev server port and app data folder that your brief assigns (see the
   table in `docs/WORKFLOW.md`).
 - When you finish, write your review request, commit it, send it to the lead
