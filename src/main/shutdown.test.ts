@@ -18,6 +18,7 @@ import {
 class FakeApp implements ShutdownApp {
   quitted = false;
   quitRequests = 0;
+  lockReleased = false;
   private quitting = false;
   private readonly listeners: Array<(event: {preventDefault(): void}) => void> =
     [];
@@ -27,6 +28,10 @@ class FakeApp implements ShutdownApp {
     listener: (event: {preventDefault(): void}) => void,
   ): void {
     this.listeners.push(listener);
+  }
+
+  releaseSingleInstanceLock(): void {
+    this.lockReleased = true;
   }
 
   quit(): void {
@@ -69,6 +74,22 @@ describe('ShutdownCoordinator', () => {
     new ShutdownCoordinator({app, log: createLogger(await makeTempDir())});
     app.quit();
     await vi.waitFor(() => expect(app.quitted).toBe(true));
+  });
+
+  it('releases the single-instance lock only when the shutdown is done', async () => {
+    const app = new FakeApp();
+    const shutdown = new ShutdownCoordinator({
+      app,
+      log: createLogger(await makeTempDir()),
+    });
+    const save = deferred();
+    shutdown.add({name: 'save the UI state', run: () => save.promise});
+    app.quit();
+    await new Promise(resolve => setImmediate(resolve));
+    expect(app.lockReleased).toBe(false);
+    save.resolve();
+    await vi.waitFor(() => expect(app.quitted).toBe(true));
+    expect(app.lockReleased).toBe(true);
   });
 
   it('runs the steps in order, then flushes the log, then quits', async () => {

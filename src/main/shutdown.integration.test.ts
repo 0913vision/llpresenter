@@ -21,6 +21,7 @@ const electron = vi.hoisted(() => {
       if (event === 'before-quit') quitListeners.push(listener);
     },
     removeListener: () => undefined,
+    releaseSingleInstanceLock: () => undefined,
     quit: () => {
       if (state.quitting) return;
       state.quitting = true;

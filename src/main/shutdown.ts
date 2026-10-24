@@ -19,6 +19,7 @@ export interface ShutdownApp {
     listener: (event: {preventDefault(): void}) => void,
   ): unknown;
   quit(): void;
+  releaseSingleInstanceLock(): void;
 }
 
 /** The arguments of the {@link ShutdownCoordinator} constructor. */
@@ -44,8 +45,9 @@ function deadline(ms: number): {expired: Promise<'expired'>; cancel(): void} {
  * the control window, from Electron, or repeated, waits for the same
  * shutdown: the save steps in the order they were added, all within
  * {@link SAVE_LIMIT_MS}, then the log flush within {@link LOG_FLUSH_LIMIT_MS},
- * then the real quit. A step that fails or never ends is logged, and the
- * shutdown carries on, so the app always exits.
+ * then the single-instance lock is released and the app really quits. A step
+ * that fails or never ends is logged, and the shutdown carries on, so the app
+ * always exits.
  */
 export class ShutdownCoordinator {
   private readonly steps: ShutdownStep[] = [];
@@ -107,9 +109,20 @@ export class ShutdownCoordinator {
 
   private quitForReal(): void {
     this.phase = 'done';
+    // NOTE(0913vision): Chromium can take seconds to tear down after the quit.
+    // Releasing the lock first lets the app open again at once (qa, M1-11).
+    this.releaseLock();
     // NOTE(0913vision): Electron ignores a quit made while it is still inside
     // the quit event that was just prevented (qa bug M1-11), so the real quit
     // comes from a later task.
     setImmediate(() => this.options.app.quit());
+  }
+
+  private releaseLock(): void {
+    try {
+      this.options.app.releaseSingleInstanceLock();
+    } catch (error) {
+      console.error('could not release the single-instance lock', error);
+    }
   }
 }

@@ -20,6 +20,7 @@ const fakes = vi.hoisted(() => {
         getVersion: () => '0.0.0',
         isPackaged: true,
         requestSingleInstanceLock: () => true,
+        releaseSingleInstanceLock: vi.fn(),
         quit: vi.fn(),
         exit: vi.fn(),
         on: (event: string, handler: (...args: unknown[]) => void) => {
@@ -96,6 +97,7 @@ function deferred(): {promise: Promise<void>; resolve: () => void} {
 beforeEach(async () => {
   fakes.electron.app.getPath.mockReturnValue(await makeTempDir());
   fakes.electron.app.quit.mockReset();
+  fakes.electron.app.releaseSingleInstanceLock.mockClear();
   fakes.order.length = 0;
   fakes.appHandlers.clear();
   fakes.opened.control = null;
@@ -147,6 +149,7 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     });
     expect(fakes.uiDispose).toHaveBeenCalledTimes(1);
     expect(fakes.storeDispose).toHaveBeenCalledTimes(1);
+    expect(fakes.electron.app.releaseSingleInstanceLock).toHaveBeenCalled();
     expect(beforeQuit().prevented).toBe(false);
   });
 
