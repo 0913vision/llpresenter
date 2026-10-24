@@ -1,3 +1,4 @@
+import {renderHook} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {setColumnDragActive} from '@renderer/state/drag';
 import * as showState from '@renderer/state/show';
@@ -6,6 +7,7 @@ import {
   handleShowKey,
   handleShowKeyUp,
   handleShowMouseDown,
+  useShowKeys,
 } from './shortcuts';
 
 function keyEvent(params: {
@@ -325,5 +327,112 @@ describe('click focus', () => {
     control.focus();
     focusIn(control);
     expect(document.activeElement).toBe(control);
+  });
+});
+
+describe('state that an event may never complete', () => {
+  function mouseDown(target: Element): void {
+    const event = new MouseEvent('mousedown', {
+      button: 0,
+      bubbles: true,
+      cancelable: true,
+    });
+    Object.defineProperty(event, 'target', {value: target});
+    handleShowMouseDown(event);
+  }
+
+  function focusIn(target: Element): void {
+    const event = new FocusEvent('focusin', {bubbles: true});
+    Object.defineProperty(event, 'target', {value: target});
+    handleShowFocusIn(event);
+  }
+
+  function nativeDragFromFocusedButton(): {
+    readonly button: HTMLElement;
+    readonly other: HTMLElement;
+  } {
+    const button = appendTo('button');
+    const other = appendTo('button');
+    button.focus();
+    mouseDown(button);
+    return {button, other};
+  }
+
+  function tabAwayAndBack(button: HTMLElement, other: HTMLElement): void {
+    other.focus();
+    button.focus();
+    focusIn(button);
+  }
+
+  it('does not blur a button that Tab reaches after a native drag from it, on keyboard input', () => {
+    const {button, other} = nativeDragFromFocusedButton();
+    press('Tab');
+    tabAwayAndBack(button, other);
+    expect(document.activeElement).toBe(button);
+  });
+
+  it('forgets the mouse down when the drag ends', () => {
+    const {unmount} = renderHook(() => useShowKeys());
+    const {button, other} = nativeDragFromFocusedButton();
+    window.dispatchEvent(new Event('dragend'));
+    tabAwayAndBack(button, other);
+    expect(document.activeElement).toBe(button);
+    unmount();
+  });
+
+  it('forgets the mouse down when the window loses focus', () => {
+    const {unmount} = renderHook(() => useShowKeys());
+    const {button, other} = nativeDragFromFocusedButton();
+    window.dispatchEvent(new Event('blur'));
+    tabAwayAndBack(button, other);
+    expect(document.activeElement).toBe(button);
+    unmount();
+  });
+
+  it('forgets the mouse down when the listeners are removed', () => {
+    const {unmount} = renderHook(() => useShowKeys());
+    const {button, other} = nativeDragFromFocusedButton();
+    unmount();
+    tabAwayAndBack(button, other);
+    expect(document.activeElement).toBe(button);
+  });
+
+  it('still puts the focus back for a click that is followed by its focus-in', () => {
+    const previous = appendTo('button');
+    previous.focus();
+    const control = appendTo('button');
+    mouseDown(control);
+    control.focus();
+    focusIn(control);
+    expect(document.activeElement).toBe(previous);
+  });
+
+  it('does not cancel a later Space key up after the window lost focus in between', () => {
+    const {unmount} = renderHook(() => useShowKeys());
+    press('Space');
+    window.dispatchEvent(new Event('blur'));
+    expect(release('Space', appendTo('button')).defaultPrevented).toBe(false);
+    unmount();
+  });
+
+  it('does not cancel a key up after the listeners were removed and added again', () => {
+    const first = renderHook(() => useShowKeys());
+    press('Space');
+    first.unmount();
+    const second = renderHook(() => useShowKeys());
+    expect(release('Space', appendTo('button')).defaultPrevented).toBe(false);
+    second.unmount();
+  });
+
+  it('forgets a missed Space release when the next Space press is owned by a text field', () => {
+    press('Space');
+    press('Space', {}, appendTo('input'));
+    expect(release('Space', appendTo('input')).defaultPrevented).toBe(false);
+  });
+
+  it('keeps the flag for the repeats of a held Space', () => {
+    press('Space');
+    press('Space', {repeat: true});
+    expect(release('Space').defaultPrevented).toBe(true);
   });
 });

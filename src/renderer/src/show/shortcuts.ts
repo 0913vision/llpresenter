@@ -40,6 +40,15 @@ interface PendingClick {
 // focus-in handler puts the focus back.
 let pendingClick: PendingClick | null = null;
 
+// NOTE(0913vision): Both flags describe an event that may never come: a mouse
+// down whose focus-in or mouse up does not follow (a native drag), and a Space
+// whose key up is missed (the window lost focus, or the listener was gone).
+// They are cleared whenever such a gap is possible.
+function resetPendingInput(): void {
+  pendingClick = null;
+  spaceTakenOnKeyDown = false;
+}
+
 function hasModifier(event: KeyboardEvent): boolean {
   return event.ctrlKey || event.altKey || event.metaKey || event.shiftKey;
 }
@@ -74,6 +83,8 @@ function physicalKey(event: KeyboardEvent): string {
  * stay inactive during a column drag.
  */
 export function handleShowKey(event: KeyboardEvent): void {
+  pendingClick = null;
+  if (event.code === SPACE_CODE && !event.repeat) spaceTakenOnKeyDown = false;
   if (event.defaultPrevented || hasModifier(event) || belongsToOthers(event)) {
     return;
   }
@@ -141,7 +152,7 @@ export function handleShowFocusIn(event: FocusEvent): void {
   }
 }
 
-function handleShowMouseUp(): void {
+function clearPendingClick(): void {
   pendingClick = null;
 }
 
@@ -152,13 +163,18 @@ export function useShowKeys(): void {
     window.addEventListener('keyup', handleShowKeyUp);
     window.addEventListener('mousedown', handleShowMouseDown);
     window.addEventListener('focusin', handleShowFocusIn);
-    window.addEventListener('mouseup', handleShowMouseUp);
+    window.addEventListener('mouseup', clearPendingClick);
+    window.addEventListener('dragend', clearPendingClick);
+    window.addEventListener('blur', resetPendingInput);
     return () => {
+      resetPendingInput();
       window.removeEventListener('keydown', handleShowKey);
       window.removeEventListener('keyup', handleShowKeyUp);
       window.removeEventListener('mousedown', handleShowMouseDown);
       window.removeEventListener('focusin', handleShowFocusIn);
-      window.removeEventListener('mouseup', handleShowMouseUp);
+      window.removeEventListener('mouseup', clearPendingClick);
+      window.removeEventListener('dragend', clearPendingClick);
+      window.removeEventListener('blur', resetPendingInput);
     };
   }, []);
 }

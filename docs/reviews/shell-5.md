@@ -156,3 +156,21 @@ Round 1 (codex2), answered once:
 7. Round 2: rebased onto `main` b9392d0 without conflicts. `npm run verify` on
    commit `1f7efb0` passed all five steps in 127.9 s: `typecheck`, `lint`,
    `format:check`, `test:coverage`, and `build`.
+
+Round 2 (codex2), answered once:
+
+8. Finding 1 (a mouse down that no focus-in follows): the pending mouse intent
+   is cleared on any key down, on `dragend`, on `mouseup` (as before), on window
+   `blur`, and when the listeners are removed, so a native drag from a button
+   that already had focus cannot leave it set. Tests: "does not blur a button
+   that Tab reaches after a native drag from it, on keyboard input", "forgets
+   the mouse down when the drag ends", "when the window loses focus", and "when
+   the listeners are removed", plus "still puts the focus back for a click that
+   is followed by its focus-in".
+9. Finding 2 (a Space release that never comes): the flag that links a taken
+   Space to its key up is cleared on window `blur`, when the listeners are
+   removed, and by each fresh Space press (a held key's repeats keep it). Tests:
+   "does not cancel a later Space key up after the window lost focus in
+   between", "after the listeners were removed and added again", "forgets a
+   missed Space release when the next Space press is owned by a text field", and
+   "keeps the flag for the repeats of a held Space".
