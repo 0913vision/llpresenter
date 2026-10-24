@@ -211,6 +211,29 @@ describe('ListBox and ListRow', () => {
     expect(onSelect).toHaveBeenCalledWith('count');
   });
 
+  it('passes the list keys on when Ctrl, Alt, Shift, or Meta is held', async () => {
+    const prevented: string[] = [];
+    const listener = (event: KeyboardEvent): void => {
+      if (event.defaultPrevented) prevented.push(event.key);
+    };
+    window.addEventListener('keydown', listener);
+    onTestFinished(() => window.removeEventListener('keydown', listener));
+    const onSelect = vi.fn();
+    render(
+      <ServiceOrder workspace="show" initial="count" onSelect={onSelect} />,
+    );
+    await userEvent.tab();
+    for (const modifier of ['Control', 'Alt', 'Shift', 'Meta']) {
+      await userEvent.keyboard(
+        `{${modifier}>}{ArrowDown}{ArrowUp}{End}{Home}{Enter}{/${modifier}}`,
+      );
+    }
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(prevented).toEqual([]);
+    await userEvent.keyboard('{ArrowDown}');
+    expect(selectedTitle()).toBe('hymn1');
+  });
+
   it('lets Esc and the clear keys pass from an end control', async () => {
     const seen: string[] = [];
     const listener = (event: KeyboardEvent): void => {

@@ -10,6 +10,7 @@ import {
 import {classNames} from './classNames';
 import {clickFocusProps} from './clickFocus';
 import {Icon} from './Icon';
+import {hasModifier} from './modifierKeys';
 import {pressHandler} from './press';
 import {LiveBadge} from './StatusMarks';
 import {titleTooltip, useTooltip} from './Tooltip';
@@ -78,7 +79,8 @@ export interface ListBoxProps {
 /**
  * A list that selects one row. Tab enters it once, on the selected row; the
  * up and down arrows, Home, and End move and select at once, skipping group
- * headers and disabled rows.
+ * headers and disabled rows. Keys with Ctrl, Alt, Shift, or the Windows key
+ * pass on to the window.
  */
 export function ListBox({
   label,
@@ -91,7 +93,7 @@ export function ListBox({
 }: ListBoxProps): JSX.Element {
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
     const target = listKeyTargets[event.key];
-    if (target === undefined) return;
+    if (target === undefined || hasModifier(event)) return;
     event.preventDefault();
     const options = enabledOptions(event.currentTarget);
     const current =
@@ -249,7 +251,8 @@ export function ListRow(props: ListRowProps): JSX.Element {
   const isSelected = selected === value;
   const select = (): void => onSelect(value);
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
-    if (disabled || !workspaceActivationKeys[workspace].has(event.key)) return;
+    if (disabled || hasModifier(event)) return;
+    if (!workspaceActivationKeys[workspace].has(event.key)) return;
     event.preventDefault();
     select();
   };

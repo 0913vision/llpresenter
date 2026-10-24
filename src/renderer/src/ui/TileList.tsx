@@ -13,6 +13,7 @@ import {
 } from 'react';
 import {clickFocusProps} from './clickFocus';
 import type {MenuAnchor} from './Menu';
+import {hasModifier} from './modifierKeys';
 
 const TILE = '[role="option"]';
 const SPACE = ' ';
@@ -98,10 +99,6 @@ export interface FocusArrowsProps extends TileListBaseProps {
 }
 
 export type TileListProps = SelectionArrowsProps | FocusArrowsProps;
-
-function hasModifier(event: KeyboardEvent): boolean {
-  return event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
-}
 
 function isMenuKey(event: KeyboardEvent): boolean {
   if (event.key === MENU_KEY) return true;
@@ -192,7 +189,8 @@ function useSpacePress(
 /**
  * A listbox of tiles that Tab enters once: the 장 grid, the media grid and
  * strip, and the macro grid build on it. It owns the Tab stop of its tiles,
- * so the tiles set no `tabIndex`. Keys with Ctrl, Alt, or Shift pass on.
+ * so the tiles set no `tabIndex`. Keys with Ctrl, Alt, Shift, or the Windows
+ * key pass on.
  */
 export function TileList(props: TileListProps): JSX.Element {
   const {moves, columns, spaceKey, selected, onActivate} = props;
