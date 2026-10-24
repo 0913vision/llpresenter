@@ -179,10 +179,20 @@ folders, several copies of the same app can run without colliding.
 | ui      | 5186 | `D:\llp-dev\ui`     |
 | shell   | 5187 | `D:llp-devshell`    |
 | data    | 5188 | `D:llp-devdata`     |
+| qa      | 5189 | `D:llp-devqa`       |
 | prep    | 5181 | `D:\llp-dev\prep`   |
 | output  | 5182 | `D:\llp-dev\output` |
 | tools   | 5183 | `D:\llp-dev\tools`  |
 | polish  | 5184 | `D:\llp-dev\polish` |
+
+## Milestones and QA
+
+The team works in milestones (`docs/MILESTONES.md`). Each milestone is split
+into tasks with one owner each, built in parallel, then frozen with a tag
+`m<number>`. The qa member tests the tag while everyone else starts the next
+milestone. Bugs come back as `fix/<name>/<bug>` branches and go before new work
+when they are blockers. A milestone closes when QA signs off and the user has
+seen it run.
 
 ## Branch names
 

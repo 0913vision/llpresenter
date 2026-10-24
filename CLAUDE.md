@@ -10,7 +10,8 @@ more than features.
 
 1.  `docs/HANDOFF.md`: current state and every decision made so far.
 2.  `docs/WORKFLOW.md`: roles, briefs, review requests, rebasing, when to clear.
-3.  Your brief: `docs/briefs/<name>.md`.
+3.  Your brief: `docs/briefs/<name>.md`, and the milestone it belongs to in
+    `docs/MILESTONES.md`.
 4.  As needed: `docs/spec/` (behavior and data), `docs/TECH.md` (stack and
     quality bar), `design/system/project/README.md` and the component docs (UI).
 

@@ -24,6 +24,7 @@ Only the lead edits this file. Last updated: October 24, 2026.
 | shell  | `feat/shell/column-resize`     | Started                              | `docs/briefs/shell.md`  |
 | data   | `feat/data/schemas`            | Started                              | `docs/briefs/data.md`   |
 | spec   | `docs/spec/shortcuts-settings` | Started                              | `docs/briefs/spec.md`   |
+| qa     | `docs/qa/m1-plan`              | Started (M1 test plan)               | `docs/briefs/qa.md`     |
 
 ## Next steps
 

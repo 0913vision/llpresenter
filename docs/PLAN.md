@@ -1,5 +1,9 @@
 # Implementation plan
 
+The phases below are carried out as milestones (`docs/MILESTONES.md`): M1 is
+phase 1, M2 is phase 2, and so on. The milestone file has the task split and the
+acceptance criteria.
+
 Every phase ends with the lead's integration test and the user's check. Phases 1
 and 2 set the shared contracts (folder structure, shared types, commands, UI
 parts), so they aren't split. From phase 3 on, the work is split among work

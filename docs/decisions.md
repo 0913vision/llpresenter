@@ -147,3 +147,8 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   tags `vx.y.z`. That commit is the only exception to the commit message format.
   The lead pulls the bot's commit before the next merge. No scheduled tests for
   now. devops-2 builds this; the earlier local bump plan is dropped.
+- 2026-10-24: The team works in milestones with a QA member (user): each
+  milestone is split among members, frozen with a tag `m<number>`, and tested by
+  qa while the others start the next milestone (`docs/MILESTONES.md`). M1 is the
+  foundation, M2 the vertical slice, taken over from the lead's phase 2 share
+  and split among data, shell, ui, devops, and a new output member.
