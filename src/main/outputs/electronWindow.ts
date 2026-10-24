@@ -66,8 +66,8 @@ function listen(win: BrowserWindow, events: OutputWindowEvents): void {
     events.onCloseRequested();
   });
   win.on('page-title-updated', event => event.preventDefault());
-  win.webContents.on('render-process-gone', (_event, details) =>
-    events.onRendererGone(details.reason),
+  win.webContents.on('render-process-gone', (_event, {reason, exitCode}) =>
+    events.onRendererGone({reason, exitCode}),
   );
 }
 
@@ -141,7 +141,6 @@ export function createElectronOutputWindow(
   return {
     ...presentationFor(win, mode),
     reload: () => loadPage(win, page, log),
-    isRendererGone: () => win.webContents.isCrashed(),
     destroy: () => {
       if (!win.isDestroyed()) win.destroy();
     },

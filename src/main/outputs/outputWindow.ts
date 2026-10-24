@@ -1,7 +1,11 @@
 import {sameRect, type Rect} from '../displays/rect';
 import type {Logger} from '../log';
 import type {FullScreenPlacement, ShownPlacement} from './placement';
-import {CRASH_LIMIT, RestartBudget} from './restartBudget';
+import {
+  RendererRecovery,
+  type RendererGoneDetails,
+  type RendererState,
+} from './rendererRecovery';
 import type {OutputScreen} from './screens';
 
 /** The Electron window of one output, reduced to what the output needs. */
@@ -13,12 +17,11 @@ export interface OutputWindowHandle {
   hide(): void;
   /** Loads the page again, in a new renderer process if the old one died. */
   reload(): void;
-  isRendererGone(): boolean;
   destroy(): void;
 }
 
 export interface OutputWindowEvents {
-  readonly onRendererGone: (reason: string) => void;
+  readonly onRendererGone: (details: RendererGoneDetails) => void;
   /** The operator clicked the close button of a window-mode output. */
   readonly onCloseRequested: () => void;
 }
@@ -27,9 +30,6 @@ export type CreateOutputWindowHandle = (
   screen: OutputScreen,
   events: OutputWindowEvents,
 ) => OutputWindowHandle;
-
-/** How long after a renderer crash the page loads again. Spec 08 asks for under 1 second. */
-export const RELAUNCH_DELAY_MS = 100;
 
 /** The arguments of the {@link OutputWindow} constructor. */
 export interface OutputWindowOptions {
@@ -53,17 +53,26 @@ function sameFullScreen(
 /**
  * One screen's output window. It creates the window the first time the output
  * turns on, keeps it across hides, moves it when the placement changes, and
- * restarts its renderer after a crash.
+ * brings its renderer back after crashes.
  */
 export class OutputWindow {
   private handle: OutputWindowHandle | null = null;
   private applied: ShownPlacement | null = null;
   private visible = false;
   private disposed = false;
-  private relaunchTimer: ReturnType<typeof setTimeout> | null = null;
-  private readonly budget = new RestartBudget();
+  private readonly recovery: RendererRecovery;
 
-  constructor(private readonly options: OutputWindowOptions) {}
+  constructor(private readonly options: OutputWindowOptions) {
+    this.recovery = new RendererRecovery({
+      screenId: options.screen.id,
+      reload: () => this.handle?.reload(),
+      log: options.log,
+    });
+  }
+
+  get rendererState(): RendererState {
+    return this.recovery.state;
+  }
 
   /** Shows the window at the placement, or hides it for null. */
   update(placement: ShownPlacement | null): void {
@@ -75,7 +84,7 @@ export class OutputWindow {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
-    this.cancelRelaunch();
+    this.recovery.dispose();
     this.handle?.destroy();
     this.handle = null;
   }
@@ -83,7 +92,7 @@ export class OutputWindow {
   private show(placement: ShownPlacement): void {
     const handle = this.ensureHandle();
     if (!this.visible) {
-      this.retryIfGone(handle);
+      this.recovery.resume();
       this.place(handle, placement);
     } else if (this.changes(placement)) {
       this.place(handle, placement);
@@ -112,52 +121,18 @@ export class OutputWindow {
     if (!this.visible || this.handle === null) return;
     this.handle.hide();
     this.visible = false;
+    this.recovery.pause();
   }
 
   private ensureHandle(): OutputWindowHandle {
     if (this.handle !== null) return this.handle;
     const handle = this.options.createHandle(this.options.screen, {
-      onRendererGone: reason => this.handleRendererGone(reason),
+      onRendererGone: details => {
+        if (!this.disposed) this.recovery.crashed(details);
+      },
       onCloseRequested: this.options.onCloseRequested,
     });
     this.handle = handle;
     return handle;
-  }
-
-  private retryIfGone(handle: OutputWindowHandle): void {
-    if (!handle.isRendererGone()) return;
-    this.options.log.info('reloading a crashed output window', {
-      screen: this.options.screen.id,
-    });
-    this.budget.reset();
-    this.cancelRelaunch();
-    handle.reload();
-  }
-
-  private handleRendererGone(reason: string): void {
-    if (this.disposed) return;
-    const screen = this.options.screen.id;
-    if (!this.budget.recordCrash()) {
-      this.options.log.error(
-        'stopped restarting an output window after repeated crashes',
-        {screen, reason, limit: CRASH_LIMIT},
-      );
-      return;
-    }
-    this.options.log.error('output window process gone, restarting it', {
-      screen,
-      reason,
-    });
-    this.cancelRelaunch();
-    this.relaunchTimer = setTimeout(() => {
-      this.relaunchTimer = null;
-      this.handle?.reload();
-    }, RELAUNCH_DELAY_MS);
-  }
-
-  private cancelRelaunch(): void {
-    if (this.relaunchTimer === null) return;
-    clearTimeout(this.relaunchTimer);
-    this.relaunchTimer = null;
   }
 }

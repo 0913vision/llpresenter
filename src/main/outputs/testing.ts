@@ -50,18 +50,14 @@ export class FakeOutputHandle implements OutputWindowHandle {
     this.rendererGone = false;
   }
 
-  isRendererGone(): boolean {
-    return this.rendererGone;
-  }
-
   destroy(): void {
     this.destroyed = true;
   }
 
   /** Kills the renderer as a crash would. */
-  crash(reason = 'crashed'): void {
+  crash(reason = 'crashed', exitCode = 1): void {
     this.rendererGone = true;
-    this.events.onRendererGone(reason);
+    this.events.onRendererGone({reason, exitCode});
   }
 
   /** Clicks the window's close button. */

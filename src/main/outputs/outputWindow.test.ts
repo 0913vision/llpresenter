@@ -1,8 +1,9 @@
 import {describe, expect, it, vi} from 'vitest';
 import {installFakeClock} from '../../../test/fake-clock';
 import {recordingLogger} from '../displays/testing';
-import {OutputWindow, RELAUNCH_DELAY_MS} from './outputWindow';
+import {OutputWindow} from './outputWindow';
 import type {ShownPlacement} from './placement';
+import {COOLDOWN_STEPS_MS, RELAUNCH_DELAY_MS} from './rendererRecovery';
 import {CRASH_LIMIT} from './restartBudget';
 import {fakeWindows, fullScreenScreen} from './testing';
 
@@ -114,9 +115,9 @@ describe('OutputWindow', () => {
     ]);
   });
 
-  it('stops restarting after repeated crashes and retries when shown again', async () => {
+  it('holds the empty picture after repeated crashes and tries again after the cool-down', async () => {
     const clock = installFakeClock();
-    const {output, windows, log} = setUp();
+    const {output, windows} = setUp();
     output.update(FULL_SCREEN);
     const handle = windows.only('main');
     for (let crash = 0; crash < CRASH_LIMIT; crash += 1) {
@@ -124,17 +125,26 @@ describe('OutputWindow', () => {
       await clock.advance(RELAUNCH_DELAY_MS);
     }
     expect(handle.reloads).toBe(CRASH_LIMIT - 1);
-    expect(handle.isRendererGone()).toBe(true);
-    expect(log.messages('error').at(-1)).toBe(
-      'stopped restarting an output window after repeated crashes',
-    );
+    expect(output.rendererState).toBe('limited');
+    expect(handle.mode.kind).toBe('fullscreen');
+    await clock.advance(COOLDOWN_STEPS_MS[0] ?? 0);
+    expect(handle.reloads).toBe(CRASH_LIMIT);
+  });
 
+  it('stops the attempts while the output is off and tries at once when it turns on', async () => {
+    const clock = installFakeClock();
+    const {output, windows} = setUp();
+    output.update(FULL_SCREEN);
+    const handle = windows.only('main');
+    for (let crash = 0; crash < CRASH_LIMIT; crash += 1) {
+      handle.crash();
+      await clock.advance(RELAUNCH_DELAY_MS);
+    }
     output.update(null);
+    await clock.advance(COOLDOWN_STEPS_MS.at(-1) ?? 0);
+    expect(handle.reloads).toBe(CRASH_LIMIT - 1);
     output.update(FULL_SCREEN);
     expect(handle.reloads).toBe(CRASH_LIMIT);
-    handle.crash();
-    await clock.advance(RELAUNCH_DELAY_MS);
-    expect(handle.reloads).toBe(CRASH_LIMIT + 1);
   });
 
   it('destroys the window and its pending restart on dispose', async () => {
