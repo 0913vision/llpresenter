@@ -71,6 +71,16 @@ Source: `Reflow`, `PrepService`, `AddSongs`, `ListRow` README.
   the initial consonants of the title and of each line, ignoring spaces
   (proposal). For example, "ㅁㅂㅇ" matches "만복의 근원 하나님".
 - Title matches come first, then lyrics matches, each in title order (proposal).
+- Before matching, the query and the song text are both normalized (proposal):
+  Unicode NFC, Latin letters in lowercase, and spaces removed, so "만복의근원"
+  matches "만복의 근원". A query with only spaces matches nothing.
+- The initial consonants are the 19 Hangul initials, including the double ones
+  (ㄲ, ㄸ, ㅃ, ㅆ, ㅉ). ㄱ doesn't match ㄲ. A query that mixes syllables and
+  initials, such as "만ㅂ", matches as plain text only (proposal).
+- An empty query shows every song in title order (the 라이브러리) or closes the
+  result list (the toolbar and quick add).
+- A result gives the song ID, whether the title or the lyrics matched, and for a
+  lyrics match the first matching line (proposal).
 - Keep a title, lyrics, and initial consonant index in memory so that search
   stays fast with thousands of songs (`docs/TECH.md`).
 

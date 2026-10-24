@@ -91,6 +91,19 @@ Source: product log (2026-10-23 product philosophy, 2026-10-24 decisions),
 - Undo of a clear, the recovery record, macro runs, and shortcuts all go through
   the same command path. The same command gives the same result, wherever it
   comes from.
+- A command whose type the main process doesn't know, or whose payload fails its
+  schema, is dropped and logged, and the state doesn't change (`CLAUDE.md`:
+  validate every value from outside the process). A command that names something
+  that no longer exists, such as a deleted Look or 소품, is dropped and logged
+  the same way. Inside a 매크로 or a batch, that one action is skipped and the
+  rest run (07).
+- Each new state carries a number that rises by one with every change. A window
+  that receives a state with a lower number than the one it already has ignores
+  it (proposal).
+- A batch (`live.batch`) is a list of commands that the main process applies in
+  order as one change: it sends one new state, so the screens change once. A
+  매크로 run and an item start with its first 장 go as one batch (03, 07)
+  (proposal).
 
 Source: product log ("How to apply": main-process-owned live state),
 `docs/TECH.md` process structure.

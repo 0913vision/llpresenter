@@ -238,7 +238,28 @@ breaks, the other areas still work. File names and `format` values (proposal):
 | `bible.json`                      | `llsettings.bible`       | Installed translations, recent passages    |
 | `media.json`                      | `llmedia`                | Media list                                 |
 
-On first launch, create any missing file with the defaults below.
+On first launch, create any missing file with its defaults (proposal where the
+sections below don't say otherwise):
+
+| File                 | Defaults                                                                                                                                                |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `screens.json`       | See "Screens" below.                                                                                                                                    |
+| `looks.json`         | See "Looks and lyric styles" below.                                                                                                                     |
+| `stage-layouts.json` | See "Stage layouts" below.                                                                                                                              |
+| `macros.json`        | No 매크로 and no collections. 모든 매크로 isn't stored; it always shows every 매크로 (07).                                                              |
+| `quick.json`         | One item, 검은 화면 (`"black"`).                                                                                                                        |
+| `messages.json`      | No templates. `stagePresets` holds the seven presets of the 무대 tab: 후렴 한 번 더, 마지막 후렴, 처음부터, 천천히, 조금 빠르게, 5분 남음, 마무리 (04). |
+| `notices.json`       | No sets.                                                                                                                                                |
+| `props.json`         | No 소품. The 검은 화면 is built in and isn't stored here (04).                                                                                          |
+| `timers.json`        | No 타이머.                                                                                                                                              |
+| `labels.json`        | See "이름표 list" below.                                                                                                                                |
+| `preferences.json`   | The values in the table below. For the import options: `"blankLine"`, `"bracketLine"`, `"title"`, and `"auto"`, as the UI names show.                   |
+| `shortcuts.json`     | No bindings: every command uses its default key (10).                                                                                                   |
+| `bible.json`         | The two bundled translations, 개역한글 (`default: true`) and KJV, and no recent passages.                                                               |
+| `media.json`         | No media and no playlists.                                                                                                                              |
+
+`app.json` starts with `dataRoot` set to the default data folder, empty
+locations (the defaults), and no other fields.
 
 ### Screens (`screens.json`)
 
@@ -789,9 +810,17 @@ preferred), `docs/HANDOFF.md` (개역한글 and KJV).
 - If a file's `schemaVersion` is higher than the version the app knows, open the
   file read-only. The operator can't edit it. Its row shows a warning icon, with
   the reason in a tooltip (proposal).
-- If `format` is wrong or the JSON is broken, don't touch the file. Skip that
-  file and keep running. Write a log entry and show one warning notification
-  (`docs/TECH.md` storage).
+- If `format` is wrong, the JSON is broken, or the content fails its schema,
+  never lose the file's content. Write a log entry and show one warning
+  notification (`docs/TECH.md` storage). Then:
+  - A song, 예배 순서, or 틀 file is skipped. It doesn't appear in its list, and
+    items that point to a skipped song show the problem state (08).
+  - For an app-wide settings file or the media list, the app loads the newest
+    recovery copy that reads, or else that area's first-launch defaults, and
+    keeps running (proposal). Before the area's next write replaces the file,
+    the app copies the broken file to `(name).broken-(YYYYMMDD-HHmmss).json` in
+    the same folder, so its content stays available. The notification's detail
+    names the area and whether a recovery copy or the defaults were used.
 - Keep unknown fields in every version.
 
 ## Save rules

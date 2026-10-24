@@ -80,6 +80,9 @@ Source: `Macros`, `Overlays` 매크로 tab, `MacroTile` README.
 - Run the actions in list order. Each action is a command that goes through the
   main process like any other command (see 01). Version 1 has no wait or delay
   action (proposal).
+- One run is one batch (01): the main process applies the actions in order and
+  sends one new state, so the screens change once (proposal). A 매크로 that runs
+  another 매크로 adds that 매크로's actions to the same batch.
 - If an action's target no longer exists (for example, a deleted Look), skip
   that action and run the rest. The tile shows the problem state, with the
   missing target in the tooltip (proposal).

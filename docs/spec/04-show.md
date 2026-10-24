@@ -334,9 +334,19 @@ after its name, and hides it at 0.
   페이드 아웃 (fade out), and a volume slider.
 - When a track ends, the next one plays. When the last track ends, the list
   starts over if 반복 is on, and stops otherwise (proposal).
+- A track is identified by its audio playlist and its position in that playlist,
+  so the same file can appear twice in one playlist (proposal).
+- 이전 (previous) plays the track before the current one; on the first track it
+  starts that track again. 다음 (next) plays the next track; on the last track
+  it starts the first track if 반복 is on, and stops otherwise (proposal).
+- 일시 정지 (pause) keeps the position, and 재생 (play) resumes from it. 재생
+  with nothing paused plays the first track of the selected playlist (proposal).
+- 반복 is saved with the playlist (`audioPlaylists[].loop`, 02).
 - 페이드 아웃 lowers the sound over 3 seconds and then stops (proposal).
 - Volume changes live while the operator drags. It applies only to the audio
-  layer, not to the sound of background videos (proposal).
+  layer, not to the sound of background videos (proposal). The range is 0 to
+  100, it starts at 100 at launch, and it isn't saved: it's part of the output
+  state (proposal).
 - Sound plays on the Windows default output device (proposal).
 - The audio clear (F5) stops playback (see 03).
 
@@ -386,6 +396,10 @@ after its name, and hides it at 0.
   방송 자막, each a toggle. Turning on 모든 화면 turns the others off, and
   turning on any other turns 모든 화면 off (proposal).
 - 표시 시간 (display time): 계속 (until cleared), 30초, 1분, 2분.
+- Choosing a template sets the chips and the display time from the template's
+  defaults (`targets`, `duration`, 02). Changes in the tab apply to that send
+  only and don't change the template (proposal).
+- 모든 화면 sends to every screen at the moment of sending (proposal).
 - Below, a preview of the finished sentence and 보내기 (send). If a blank is
   empty or no screen is chosen, 보내기 is unavailable, with the reason in a
   tooltip (proposal).
@@ -408,6 +422,9 @@ after its name, and hides it at 0.
   (proposal).
 - 일시 정지 stops advancing and keeps the current image.
 - Changing the target screens while a 공지 runs applies at once (proposal).
+- The interval, 반복, and the target screens are part of the 공지 set
+  (`notices.json`, 02). Changing them in the tab saves them to the set and
+  applies them to a running 공지 at once (proposal).
 - The 공지 clear (F7) stops the 공지 and takes it down.
 - No board shows where to create a 공지 set or add images (open question).
   Version 1 has a plus button in the tab that makes a 공지 set from a media
@@ -567,7 +584,10 @@ No board shows where search results appear (open question). Version 1 works like
 this:
 
 - In 진행, typing in the toolbar search field opens a list of 라이브러리 songs
-  below the field, matched by title, lyrics, or initial consonants.
+  below the field, matched by title, lyrics, or initial consonants with the
+  rules of 05 "Search". The list shows at most 20 songs, title matches first
+  (proposal). A lyrics match shows its first matching line under the title
+  (proposal).
 - Choosing a song opens it in the 장 panel with the default 구성. It isn't added
   to the 예배 순서. Clicking its 장 outputs them.
 - In 준비, choosing a result selects the song in the 라이브러리 and opens the

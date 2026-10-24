@@ -161,7 +161,9 @@ Source: `Looks`, `Main` decision "설정은 앱 전체에 하나", `ShowH` (tool
 2. If the 장 comes from a different 예배 순서 item, that item starts. If it has
    a start 매크로, the 매크로 runs first, and the 장 then draws over the result,
    for example a new Look or a clear (proposal: this order makes the 장 go out
-   with the new Look).
+   with the new Look). The control window sends the item start (`item.start`)
+   and the 장 output together as one batch (01), so the start 매크로's result
+   and the 장 reach the screens in one change (proposal).
 3. For a song item, the app sets the background (see "Song item background
    rules").
 4. The 장 draws on the lyrics layer of every screen. If the lyrics layer was
