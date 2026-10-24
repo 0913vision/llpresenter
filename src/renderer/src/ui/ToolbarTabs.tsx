@@ -1,8 +1,9 @@
-import type {JSX} from 'react';
+import type {JSX, KeyboardEvent} from 'react';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {useRovingSelection} from './roving';
 import {toolbarIconSize} from './toolbarLook';
+import {titleTooltip, useTooltip} from './Tooltip';
 import styles from './ToolbarButton.module.css';
 
 export interface ToolbarTab<T extends string> {
@@ -22,6 +23,52 @@ export interface ToolbarTabsProps<T extends string> {
   readonly label: string;
   readonly compact?: boolean | undefined;
   readonly className?: string | undefined;
+}
+
+interface TabButtonProps<T extends string> {
+  readonly tab: ToolbarTab<T>;
+  readonly selected: boolean;
+  readonly compact: boolean;
+  readonly tabIndex: 0 | -1;
+  readonly elementRef: (element: HTMLElement | null) => void;
+  readonly onSelect: () => void;
+  readonly onKeyDown: (event: KeyboardEvent) => void;
+}
+
+function TabButton<T extends string>({
+  tab,
+  selected,
+  compact,
+  tabIndex,
+  elementRef,
+  onSelect,
+  onKeyDown,
+}: TabButtonProps<T>): JSX.Element {
+  const {targetProps, tooltip} = useTooltip(titleTooltip(tab.title));
+  return (
+    <>
+      <button
+        {...targetProps}
+        ref={elementRef}
+        type="button"
+        role="tab"
+        aria-selected={selected}
+        aria-disabled={tab.disabled === true ? true : undefined}
+        tabIndex={tabIndex}
+        className={classNames(
+          styles.button,
+          styles.tab,
+          compact && styles.compact,
+        )}
+        onClick={onSelect}
+        onKeyDown={onKeyDown}
+      >
+        <Icon name={tab.icon} size={toolbarIconSize(compact)} />
+        <span className={styles.label}>{tab.label}</span>
+      </button>
+      {tooltip}
+    </>
+  );
 }
 
 /**
@@ -48,30 +95,19 @@ export function ToolbarTabs<T extends string>({
     onChange(tab.value);
   };
 
-  // TODO(0913vision): Draw `title` with Tooltip once ui-2 lands.
   return (
     <div role="tablist" aria-label={label} className={className}>
       {tabs.map((tab, index) => (
-        <button
+        <TabButton
           key={tab.value}
-          ref={roving.refOf(index)}
-          type="button"
-          role="tab"
-          aria-selected={tab.value === value}
-          aria-disabled={tab.disabled === true ? true : undefined}
+          tab={tab}
+          selected={tab.value === value}
+          compact={compact}
           tabIndex={roving.tabIndexOf(index)}
-          title={tab.title}
-          className={classNames(
-            styles.button,
-            styles.tab,
-            compact && styles.compact,
-          )}
-          onClick={() => select(tab)}
+          elementRef={roving.refOf(index)}
+          onSelect={() => select(tab)}
           onKeyDown={event => roving.onKeyDown(index, event)}
-        >
-          <Icon name={tab.icon} size={toolbarIconSize(compact)} />
-          <span className={styles.label}>{tab.label}</span>
-        </button>
+        />
       ))}
     </div>
   );

@@ -2,6 +2,7 @@ import type {CSSProperties, JSX, KeyboardEvent} from 'react';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {sliderKeyValue, sliderPercent} from './sliderValue';
+import {useTooltip} from './Tooltip';
 import styles from './Slider.module.css';
 
 /** The slider width: 120, 96 (narrow window, 진행 도구 volume), or the cell. */
@@ -59,6 +60,7 @@ export function Slider({
   className,
 }: SliderProps): JSX.Element {
   const scale = {min, max, step};
+  const {targetProps, tooltip} = useTooltip({text: title ?? label});
   const trackStyle: TrackStyle = {
     '--slider-value': `${sliderPercent(value, scale)}%`,
   };
@@ -70,7 +72,6 @@ export function Slider({
     if (next !== value) onChange(next);
   };
 
-  // TODO(0913vision): Draw `title` with Tooltip once ui-2 lands.
   const slider = (
     <input
       type="range"
@@ -81,30 +82,29 @@ export function Slider({
       disabled={disabled}
       aria-label={label}
       aria-valuetext={valueText}
-      title={title ?? label}
       style={trackStyle}
       className={classNames(
         styles.slider,
         widthClass[width],
         surface === 'dialog' && styles.onDialog,
-        icon === undefined && className,
       )}
       onChange={event => onChange(Number(event.target.value))}
       onKeyDown={handleKeyDown}
     />
   );
 
-  if (icon === undefined) return slider;
   return (
     <span
+      {...targetProps}
       className={classNames(
         styles.row,
         width === 'block' && styles.blockRow,
         className,
       )}
     >
-      <Icon name={icon} size={ICON_SIZE} />
+      {icon === undefined ? null : <Icon name={icon} size={ICON_SIZE} />}
       {slider}
+      {tooltip}
     </span>
   );
 }

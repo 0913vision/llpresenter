@@ -11,6 +11,7 @@ import {
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {pressHandler, spaceOnlyKeyHandler} from './press';
+import {titleTooltip, useTooltip, withTooltipProps} from './Tooltip';
 import styles from './Checkbox.module.css';
 
 /** On, off, or mixed for a group header with only some items on. */
@@ -40,21 +41,29 @@ export function Checkbox({
   disabled = false,
   className,
   onKeyDown,
+  title,
   ...rest
 }: CheckboxProps): JSX.Element {
+  const {targetProps, tooltip} = useTooltip(titleTooltip(title));
   return (
-    <button
-      {...rest}
-      type="button"
-      role="checkbox"
-      aria-checked={checked}
-      aria-disabled={disabled ? true : undefined}
-      className={classNames(styles.check, className)}
-      onClick={pressHandler(disabled, () => onChange(nextCheckState(checked)))}
-      onKeyDown={spaceOnlyKeyHandler(onKeyDown)}
-    >
-      {checked === true ? <Icon name="check" size={MARK_SIZE} /> : null}
-    </button>
+    <>
+      <button
+        {...rest}
+        {...withTooltipProps(rest, targetProps)}
+        type="button"
+        role="checkbox"
+        aria-checked={checked}
+        aria-disabled={disabled ? true : undefined}
+        className={classNames(styles.check, className)}
+        onClick={pressHandler(disabled, () =>
+          onChange(nextCheckState(checked)),
+        )}
+        onKeyDown={spaceOnlyKeyHandler(onKeyDown)}
+      >
+        {checked === true ? <Icon name="check" size={MARK_SIZE} /> : null}
+      </button>
+      {tooltip}
+    </>
   );
 }
 
@@ -100,10 +109,10 @@ export function CheckRow({
   const labelId = useId();
   const detailId = useId();
   const detail = value ?? meta;
-  // TODO(0913vision): Draw `title` with Tooltip once ui-2 lands.
+  const {targetProps, tooltip} = useTooltip(titleTooltip(title));
   return (
     <label
-      title={title}
+      {...targetProps}
       className={classNames(styles.row, variantClass[variant], className)}
     >
       <Checkbox
@@ -132,6 +141,7 @@ export function CheckRow({
           {meta}
         </span>
       )}
+      {tooltip}
     </label>
   );
 }

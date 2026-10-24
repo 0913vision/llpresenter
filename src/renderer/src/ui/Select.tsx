@@ -8,6 +8,7 @@ import type {MacroColor} from '@shared/colors';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {pressHandler} from './press';
+import {titleTooltip, useTooltip, withTooltipProps} from './Tooltip';
 import type {ControlSize} from './types';
 import styles from './Select.module.css';
 
@@ -93,8 +94,10 @@ export function Select({
   className,
   onClick,
   onKeyDown,
+  title,
   ...rest
 }: SelectProps): JSX.Element {
+  const {targetProps, tooltip} = useTooltip(titleTooltip(title));
   const toggle = (event: MouseEvent<HTMLButtonElement>): void => {
     onClick?.(event);
     onExpandedChange(!expanded);
@@ -107,30 +110,35 @@ export function Select({
     if (!expanded) onExpandedChange(true);
   };
 
-  // TODO(0913vision): Draw `title` with Tooltip once ui-2 lands.
   return (
-    <button
-      {...rest}
-      type="button"
-      aria-haspopup={popup}
-      aria-expanded={expanded}
-      aria-disabled={disabled ? true : undefined}
-      className={classNames(
-        styles.select,
-        size === 'sm' && styles.sm,
-        block && styles.block,
-        lead !== undefined && lead.kind !== 'icon' && styles.withImage,
-        className,
-      )}
-      onClick={pressHandler(disabled, toggle)}
-      onKeyDown={handleKeyDown}
-    >
-      {lead === undefined ? null : <Lead lead={lead} size={size} />}
-      <span className={classNames(styles.value, numeric && styles.numeric)}>
-        {value}
-      </span>
-      {meta === undefined ? null : <span className={styles.meta}>{meta}</span>}
-      <Icon name="down" size={CHEVRON_SIZE} className={styles.chevron} />
-    </button>
+    <>
+      <button
+        {...rest}
+        {...withTooltipProps(rest, targetProps)}
+        type="button"
+        aria-haspopup={popup}
+        aria-expanded={expanded}
+        aria-disabled={disabled ? true : undefined}
+        className={classNames(
+          styles.select,
+          size === 'sm' && styles.sm,
+          block && styles.block,
+          lead !== undefined && lead.kind !== 'icon' && styles.withImage,
+          className,
+        )}
+        onClick={pressHandler(disabled, toggle)}
+        onKeyDown={handleKeyDown}
+      >
+        {lead === undefined ? null : <Lead lead={lead} size={size} />}
+        <span className={classNames(styles.value, numeric && styles.numeric)}>
+          {value}
+        </span>
+        {meta === undefined ? null : (
+          <span className={styles.meta}>{meta}</span>
+        )}
+        <Icon name="down" size={CHEVRON_SIZE} className={styles.chevron} />
+      </button>
+      {tooltip}
+    </>
   );
 }

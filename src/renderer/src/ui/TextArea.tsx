@@ -1,6 +1,7 @@
 import type {ComponentPropsWithoutRef, JSX} from 'react';
 import {classNames} from './classNames';
 import {useFieldReason} from './fieldFrame';
+import {titleTooltip, useTooltip, withTooltipProps} from './Tooltip';
 import styles from './TextField.module.css';
 
 export interface TextAreaProps extends Omit<
@@ -35,19 +36,22 @@ export function TextArea({
     describedBy,
     title,
   });
-  // TODO(0913vision): Draw `title` with Tooltip once ui-2 lands.
+  const {targetProps, tooltip} = useTooltip(titleTooltip(reason.tooltip));
   return (
     <>
       <textarea
         {...rest}
+        {...withTooltipProps(
+          {...rest, 'aria-describedby': reason.describedBy},
+          targetProps,
+        )}
         value={value}
-        title={reason.tooltip}
         aria-invalid={invalid ? true : undefined}
-        aria-describedby={reason.describedBy}
         className={classNames(styles.textarea, className)}
         onChange={event => onChange(event.target.value)}
       />
       {reason.element}
+      {tooltip}
     </>
   );
 }

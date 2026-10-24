@@ -1,7 +1,8 @@
-import type {ComponentPropsWithoutRef, JSX} from 'react';
+import type {ComponentPropsWithoutRef, JSX, KeyboardEvent} from 'react';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {useRovingSelection} from './roving';
+import {titleTooltip, useTooltip} from './Tooltip';
 import type {GroupName} from './types';
 import styles from './SegmentedControl.module.css';
 
@@ -94,6 +95,52 @@ function SegmentContent<T extends string>({
   );
 }
 
+interface SegmentProps<T extends string> {
+  readonly option: SegmentOption<T>;
+  readonly kind: SegmentedKind;
+  readonly selected: boolean;
+  readonly disabled: boolean;
+  readonly tabIndex: 0 | -1;
+  readonly elementRef: (element: HTMLElement | null) => void;
+  readonly onSelect: () => void;
+  readonly onKeyDown: (event: KeyboardEvent) => void;
+}
+
+function Segment<T extends string>({
+  option,
+  kind,
+  selected,
+  disabled,
+  tabIndex,
+  elementRef,
+  onSelect,
+  onKeyDown,
+}: SegmentProps<T>): JSX.Element {
+  const isIcon = option.icon !== undefined;
+  const {targetProps, tooltip} = useTooltip(
+    titleTooltip(option.title ?? (isIcon ? option.label : undefined)),
+  );
+  return (
+    <>
+      <button
+        {...targetProps}
+        ref={elementRef}
+        type="button"
+        {...selectionAttributes(kind, selected)}
+        tabIndex={tabIndex}
+        aria-label={accessibleName(option)}
+        aria-disabled={disabled ? true : undefined}
+        className={classNames(styles.segment, isIcon && styles.iconSegment)}
+        onClick={onSelect}
+        onKeyDown={onKeyDown}
+      >
+        <SegmentContent option={option} />
+      </button>
+      {tooltip}
+    </>
+  );
+}
+
 /** Two to five segments in a sunken track, of which one is selected. */
 export function SegmentedControl<T extends string>({
   options,
@@ -119,37 +166,29 @@ export function SegmentedControl<T extends string>({
     onChange(option.value);
   };
 
-  // TODO(0913vision): Draw `title` with Tooltip once ui-2 lands.
+  const {targetProps, tooltip} = useTooltip(titleTooltip(title));
   return (
     <div
+      {...targetProps}
       role={groupRole[kind]}
       aria-label={label}
       aria-labelledby={labelledBy}
-      title={title}
       className={classNames(styles.track, fill && styles.fill, className)}
     >
-      {options.map((option, index) => {
-        const isIcon = option.icon !== undefined;
-        return (
-          <button
-            key={option.value}
-            ref={roving.refOf(index)}
-            type="button"
-            {...selectionAttributes(kind, option.value === value)}
-            tabIndex={roving.tabIndexOf(index)}
-            aria-label={accessibleName(option)}
-            aria-disabled={
-              disabled || option.disabled === true ? true : undefined
-            }
-            title={option.title ?? (isIcon ? option.label : undefined)}
-            className={classNames(styles.segment, isIcon && styles.iconSegment)}
-            onClick={() => select(option)}
-            onKeyDown={event => roving.onKeyDown(index, event)}
-          >
-            <SegmentContent option={option} />
-          </button>
-        );
-      })}
+      {options.map((option, index) => (
+        <Segment
+          key={option.value}
+          option={option}
+          kind={kind}
+          selected={option.value === value}
+          disabled={disabled || option.disabled === true}
+          tabIndex={roving.tabIndexOf(index)}
+          elementRef={roving.refOf(index)}
+          onSelect={() => select(option)}
+          onKeyDown={event => roving.onKeyDown(index, event)}
+        />
+      ))}
+      {tooltip}
     </div>
   );
 }

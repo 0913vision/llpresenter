@@ -1,6 +1,7 @@
 import type {ComponentPropsWithRef, JSX} from 'react';
 import {classNames} from './classNames';
 import {pressHandler, spaceOnlyKeyHandler} from './press';
+import {titleTooltip, useTooltip, withTooltipProps} from './Tooltip';
 import styles from './Switch.module.css';
 
 export interface SwitchProps extends Omit<
@@ -23,20 +24,25 @@ export function Switch({
   disabled = false,
   className,
   onKeyDown,
+  title,
   ...rest
 }: SwitchProps): JSX.Element {
-  // TODO(0913vision): Draw `title` with Tooltip once ui-2 lands.
+  const {targetProps, tooltip} = useTooltip(titleTooltip(title));
   return (
-    <button
-      {...rest}
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-disabled={disabled ? true : undefined}
-      className={classNames(styles.switch, className)}
-      onClick={pressHandler(disabled, () => onChange(!checked))}
-      onKeyDown={spaceOnlyKeyHandler(onKeyDown)}
-    />
+    <>
+      <button
+        {...rest}
+        {...withTooltipProps(rest, targetProps)}
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-disabled={disabled ? true : undefined}
+        className={classNames(styles.switch, className)}
+        onClick={pressHandler(disabled, () => onChange(!checked))}
+        onKeyDown={spaceOnlyKeyHandler(onKeyDown)}
+      />
+      {tooltip}
+    </>
   );
 }
 
@@ -60,11 +66,12 @@ export function SwitchRow({
   title,
   className,
 }: SwitchRowProps): JSX.Element {
-  // TODO(0913vision): Draw `title` with Tooltip once ui-2 lands.
+  const {targetProps, tooltip} = useTooltip(titleTooltip(title));
   return (
-    <label title={title} className={classNames(styles.row, className)}>
+    <label {...targetProps} className={classNames(styles.row, className)}>
       {label}
       <Switch checked={checked} onChange={onChange} disabled={disabled} />
+      {tooltip}
     </label>
   );
 }

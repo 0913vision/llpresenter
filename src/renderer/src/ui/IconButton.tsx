@@ -7,6 +7,7 @@ import type {
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {pressHandler} from './press';
+import {useTooltip, withTooltipProps, type TooltipContent} from './Tooltip';
 import type {ControlSize} from './types';
 import styles from './IconButton.module.css';
 
@@ -32,8 +33,12 @@ export interface IconButtonProps extends Omit<
 
 const ICON_SIZE = 16;
 
-function tooltipText(label: string, shortcut: string | undefined): string {
-  return shortcut === undefined ? label : `${label} ${shortcut}`;
+function tooltipContent(
+  label: string,
+  shortcut: string | undefined,
+  title: string | undefined,
+): TooltipContent {
+  return title === undefined ? {text: label, shortcut} : {text: title};
 }
 
 /** A square ghost button with only an icon. */
@@ -69,26 +74,31 @@ export function IconButton({
     if (event.key === 'Enter' || event.key === ' ') event.stopPropagation();
     onKeyDown?.(event);
   };
-  // TODO(0913vision): Draw `title` with Tooltip once ui-2 lands.
+  const {targetProps, tooltip} = useTooltip(
+    tooltipContent(label, shortcut, title),
+  );
   return (
-    <button
-      {...rest}
-      type="button"
-      aria-label={label}
-      title={title ?? tooltipText(label, shortcut)}
-      aria-pressed={pressed}
-      aria-haspopup={menu ? 'menu' : undefined}
-      aria-expanded={menu ? expanded : undefined}
-      aria-disabled={disabled ? true : undefined}
-      className={classNames(
-        styles.button,
-        size === 'md' && styles.md,
-        className,
-      )}
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
-    >
-      <Icon name={icon} size={ICON_SIZE} />
-    </button>
+    <>
+      <button
+        {...rest}
+        {...withTooltipProps(rest, targetProps)}
+        type="button"
+        aria-label={label}
+        aria-pressed={pressed}
+        aria-haspopup={menu ? 'menu' : undefined}
+        aria-expanded={menu ? expanded : undefined}
+        aria-disabled={disabled ? true : undefined}
+        className={classNames(
+          styles.button,
+          size === 'md' && styles.md,
+          className,
+        )}
+        onClick={handleClick}
+        onKeyDown={handleKeyDown}
+      >
+        <Icon name={icon} size={ICON_SIZE} />
+      </button>
+      {tooltip}
+    </>
   );
 }

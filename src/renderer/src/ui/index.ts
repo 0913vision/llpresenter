@@ -63,4 +63,10 @@ export {
   type ToolbarTab,
   type ToolbarTabsProps,
 } from './ToolbarTabs';
+export {
+  Tooltip,
+  useTooltip,
+  type TooltipContent,
+  type TooltipProps,
+} from './Tooltip';
 export type {ControlSize, GroupName} from './types';

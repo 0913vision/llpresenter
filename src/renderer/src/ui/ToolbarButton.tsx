@@ -2,6 +2,7 @@ import type {ComponentPropsWithRef, JSX, MouseEvent} from 'react';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {pressHandler} from './press';
+import {titleTooltip, useTooltip, withTooltipProps} from './Tooltip';
 import {TOOLBAR_CHEVRON_SIZE, toolbarIconSize} from './toolbarLook';
 import styles from './ToolbarButton.module.css';
 
@@ -93,39 +94,44 @@ export function ToolbarButton({
   disabled = false,
   className,
   onClick,
+  title,
   ...rest
 }: ToolbarButtonProps): JSX.Element {
+  const {targetProps, tooltip} = useTooltip(titleTooltip(title));
   const labelHidden = compact && iconOnly;
   const press = (event: MouseEvent<HTMLButtonElement>): void => {
     onClick?.(event);
     if (pressed !== undefined) onPressedChange?.(!pressed);
   };
-  // TODO(0913vision): Draw `title` with Tooltip once ui-2 lands.
   return (
-    <button
-      {...rest}
-      type="button"
-      aria-label={labelHidden ? label : undefined}
-      aria-pressed={pressed}
-      aria-haspopup={menu ? 'menu' : undefined}
-      aria-expanded={menu ? expanded : undefined}
-      aria-disabled={disabled ? true : undefined}
-      className={classNames(
-        styles.button,
-        variantClass(pressed, menu),
-        compact && styles.compact,
-        labelHidden && styles.iconOnly,
-        className,
-      )}
-      onClick={pressHandler(disabled, press)}
-    >
-      <Content
-        icon={icon}
-        label={label}
-        compact={compact}
-        labelHidden={labelHidden}
-        menu={menu}
-      />
-    </button>
+    <>
+      <button
+        {...rest}
+        {...withTooltipProps(rest, targetProps)}
+        type="button"
+        aria-label={labelHidden ? label : undefined}
+        aria-pressed={pressed}
+        aria-haspopup={menu ? 'menu' : undefined}
+        aria-expanded={menu ? expanded : undefined}
+        aria-disabled={disabled ? true : undefined}
+        className={classNames(
+          styles.button,
+          variantClass(pressed, menu),
+          compact && styles.compact,
+          labelHidden && styles.iconOnly,
+          className,
+        )}
+        onClick={pressHandler(disabled, press)}
+      >
+        <Content
+          icon={icon}
+          label={label}
+          compact={compact}
+          labelHidden={labelHidden}
+          menu={menu}
+        />
+      </button>
+      {tooltip}
+    </>
   );
 }

@@ -1,15 +1,25 @@
 import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {describe, expect, it, vi} from 'vitest';
+import {afterEach, describe, expect, it, vi} from 'vitest';
 import {IconButton} from './IconButton';
+import {
+  hoverForTooltip,
+  resetTooltips,
+  setupTooltipUser,
+} from './tooltipTesting';
+
+afterEach(resetTooltips);
 
 describe('IconButton', () => {
-  it('is named by its label and shows the shortcut in the tooltip', () => {
+  it('is named by its label and shows the shortcut in the tooltip', async () => {
+    const user = setupTooltipUser();
     render(<IconButton icon="x" label="닫기" size="md" shortcut="Esc" />);
     const button = screen.getByRole('button', {name: '닫기'});
-    expect(button.getAttribute('title')).toBe('닫기 Esc');
     expect(button.hasAttribute('aria-pressed')).toBe(false);
     expect(button.hasAttribute('aria-haspopup')).toBe(false);
+    expect(button.getAttribute('aria-keyshortcuts')).toBe('Escape');
+    const tooltip = await hoverForTooltip(user, button);
+    expect(tooltip?.textContent).toBe('닫기Esc');
   });
 
   it('reports the opposite value on each press of an on/off button', async () => {
@@ -63,12 +73,14 @@ describe('IconButton', () => {
     );
     const button = screen.getByRole('button', {name: '반복'});
     expect(button.getAttribute('aria-disabled')).toBe('true');
-    expect(button.getAttribute('title')).toBe('소리가 꺼져 있습니다');
     await userEvent.tab();
     expect(document.activeElement).toBe(button);
     await userEvent.click(button);
     expect(onClick).not.toHaveBeenCalled();
     expect(onPressedChange).not.toHaveBeenCalled();
+    await userEvent.unhover(button);
+    const tooltip = await hoverForTooltip(setupTooltipUser(), button);
+    expect(tooltip?.textContent).toBe('소리가 꺼져 있습니다');
   });
 });
 

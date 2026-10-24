@@ -2,6 +2,7 @@ import type {ComponentPropsWithRef, JSX, ReactNode} from 'react';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {pressHandler} from './press';
+import {titleTooltip, useTooltip, withTooltipProps} from './Tooltip';
 import type {ControlSize} from './types';
 import styles from './Button.module.css';
 
@@ -41,26 +42,31 @@ export function Button({
   type = 'button',
   className,
   onClick,
+  title,
   children,
   ...rest
 }: ButtonProps): JSX.Element {
-  // TODO(0913vision): Draw `title` with Tooltip once ui-2 lands.
+  const {targetProps, tooltip} = useTooltip(titleTooltip(title));
   return (
-    <button
-      {...rest}
-      type={type}
-      aria-disabled={disabled ? true : undefined}
-      className={classNames(
-        styles.button,
-        variantClass[variant],
-        size === 'md' && styles.md,
-        icon !== undefined && styles.lead,
-        className,
-      )}
-      onClick={pressHandler(disabled, onClick)}
-    >
-      {icon === undefined ? null : <Icon name={icon} size={iconSize[size]} />}
-      {children}
-    </button>
+    <>
+      <button
+        {...rest}
+        {...withTooltipProps(rest, targetProps)}
+        type={type}
+        aria-disabled={disabled ? true : undefined}
+        className={classNames(
+          styles.button,
+          variantClass[variant],
+          size === 'md' && styles.md,
+          icon !== undefined && styles.lead,
+          className,
+        )}
+        onClick={pressHandler(disabled, onClick)}
+      >
+        {icon === undefined ? null : <Icon name={icon} size={iconSize[size]} />}
+        {children}
+      </button>
+      {tooltip}
+    </>
   );
 }

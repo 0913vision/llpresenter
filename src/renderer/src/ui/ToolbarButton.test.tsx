@@ -1,10 +1,17 @@
 import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
-import {describe, expect, it, vi} from 'vitest';
+import {afterEach, describe, expect, it, vi} from 'vitest';
 import {OutputToggle, outputTooltip} from './OutputToggle';
 import {ToolbarButton} from './ToolbarButton';
 import {ToolbarTabs, type ToolbarTab} from './ToolbarTabs';
+import {
+  hoverForTooltip,
+  resetTooltips,
+  setupTooltipUser,
+} from './tooltipTesting';
+
+afterEach(resetTooltips);
 
 type Workspace = 'show' | 'prep' | 'screens';
 
@@ -71,9 +78,11 @@ describe('ToolbarButton', () => {
     );
     const button = screen.getByRole('button', {name: '미디어'});
     expect(button.getAttribute('aria-pressed')).toBe('false');
-    expect(button.getAttribute('title')).toBe('미디어 열기');
     await userEvent.click(button);
     expect(onPressedChange).toHaveBeenCalledWith(true);
+    await userEvent.unhover(button);
+    const tooltip = await hoverForTooltip(setupTooltipUser(), button);
+    expect(tooltip?.textContent).toBe('미디어 열기');
   });
 
   it('keeps the name for aria when the compact form hides it', () => {
@@ -121,7 +130,8 @@ describe('OutputToggle', () => {
     ['warning', 'true', '본 화면: 모니터 2를 찾을 수 없습니다'],
   ] as const)(
     'draws the %s state with aria-pressed %s and its tooltip',
-    (state, pressed, tooltip) => {
+    async (state, pressed, tooltip) => {
+      const user = setupTooltipUser();
       render(
         <OutputToggle
           icon="mplay"
@@ -134,11 +144,12 @@ describe('OutputToggle', () => {
       const button = screen.getByRole('button', {name: '본 화면'});
       expect(button.getAttribute('aria-pressed')).toBe(pressed);
       expect(button.getAttribute('data-state')).toBe(state);
-      expect(button.getAttribute('title')).toBe(tooltip);
+      expect((await hoverForTooltip(user, button))?.textContent).toBe(tooltip);
     },
   );
 
-  it('uses the full screen name in the tooltip', () => {
+  it('uses the full screen name in the tooltip', async () => {
+    const user = setupTooltipUser();
     render(
       <OutputToggle
         icon="mplay"
@@ -149,9 +160,10 @@ describe('OutputToggle', () => {
         onToggle={() => {}}
       />,
     );
-    expect(
-      screen.getByRole('button', {name: '무대'}).getAttribute('title'),
-    ).toBe('무대 화면: 모니터 3을 찾을 수 없습니다');
+    const button = screen.getByRole('button', {name: '무대'});
+    expect((await hoverForTooltip(user, button))?.textContent).toBe(
+      '무대 화면: 모니터 3을 찾을 수 없습니다',
+    );
   });
 
   it('reports a click and ignores it while disabled', async () => {

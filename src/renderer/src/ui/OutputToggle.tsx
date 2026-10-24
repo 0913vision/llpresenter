@@ -5,6 +5,7 @@ import {objectParticle} from './korean';
 import {pressHandler} from './press';
 import {StatusDot} from './StatusMarks';
 import {toolbarIconSize} from './toolbarLook';
+import {useTooltip} from './Tooltip';
 import styles from './ToolbarButton.module.css';
 
 /** The drawn output state: on, off, or turned on with its monitor missing. */
@@ -59,37 +60,42 @@ export function OutputToggle({
   disabled = false,
   className,
 }: OutputToggleProps): JSX.Element {
-  // TODO(0913vision): Draw the tooltip with Tooltip once ui-2 lands.
+  const {targetProps, tooltip} = useTooltip({
+    text: outputTooltip({screenName, target, state}),
+  });
   return (
-    <button
-      type="button"
-      aria-pressed={state !== 'off'}
-      aria-disabled={disabled ? true : undefined}
-      data-state={state}
-      title={outputTooltip({screenName, target, state})}
-      className={classNames(
-        styles.button,
-        styles.output,
-        compact && styles.compact,
-        className,
-      )}
-      onClick={pressHandler(disabled, onToggle)}
-    >
-      <span className={styles.iconSlot}>
-        <Icon
-          name={icon}
-          size={toolbarIconSize(compact)}
-          className={styles.outputIcon}
-        />
-        {state === 'off' ? null : (
-          <StatusDot
-            tone={state === 'warning' ? 'warning' : 'live'}
-            cut
-            className={styles.dot}
-          />
+    <>
+      <button
+        {...targetProps}
+        type="button"
+        aria-pressed={state !== 'off'}
+        aria-disabled={disabled ? true : undefined}
+        data-state={state}
+        className={classNames(
+          styles.button,
+          styles.output,
+          compact && styles.compact,
+          className,
         )}
-      </span>
-      <span className={styles.label}>{label}</span>
-    </button>
+        onClick={pressHandler(disabled, onToggle)}
+      >
+        <span className={styles.iconSlot}>
+          <Icon
+            name={icon}
+            size={toolbarIconSize(compact)}
+            className={styles.outputIcon}
+          />
+          {state === 'off' ? null : (
+            <StatusDot
+              tone={state === 'warning' ? 'warning' : 'live'}
+              cut
+              className={styles.dot}
+            />
+          )}
+        </span>
+        <span className={styles.label}>{label}</span>
+      </button>
+      {tooltip}
+    </>
   );
 }

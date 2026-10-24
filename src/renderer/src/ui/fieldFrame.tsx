@@ -5,6 +5,7 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react';
+import {titleTooltip, useTooltip} from './Tooltip';
 import styles from './TextField.module.css';
 
 export interface FieldFrameProps {
@@ -34,10 +35,11 @@ export function FieldFrame({
     event.preventDefault();
     input.focus();
   };
-  // TODO(0913vision): Draw `title` with Tooltip once ui-2 lands.
+  const {targetProps, tooltip} = useTooltip(titleTooltip(title));
   return (
-    <span className={className} title={title} onMouseDown={focusInput}>
+    <span {...targetProps} className={className} onMouseDown={focusInput}>
       {children}
+      {tooltip}
     </span>
   );
 }

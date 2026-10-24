@@ -1,9 +1,16 @@
 import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
-import {describe, expect, it, vi} from 'vitest';
+import {afterEach, describe, expect, it, vi} from 'vitest';
 import {TextArea} from './TextArea';
 import {TextField, type TextFieldProps} from './TextField';
+import {
+  hoverForTooltip,
+  resetTooltips,
+  setupTooltipUser,
+} from './tooltipTesting';
+
+afterEach(resetTooltips);
 
 type FieldOverrides = Omit<TextFieldProps, 'value' | 'onChange'>;
 
@@ -95,7 +102,8 @@ describe('TextField', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
-  it('marks an invalid value and gives the reason as its description', () => {
+  it('marks an invalid value and gives the reason as its description', async () => {
+    const user = setupTooltipUser();
     render(
       <TextField
         variant="title"
@@ -114,7 +122,7 @@ describe('TextField', () => {
         description: '라이브러리에 같은 제목의 곡이 있습니다',
       }),
     ).toBe(input);
-    expect(input.parentElement?.getAttribute('title')).toBe(
+    expect((await hoverForTooltip(user, input))?.textContent).toBe(
       '라이브러리에 같은 제목의 곡이 있습니다',
     );
   });

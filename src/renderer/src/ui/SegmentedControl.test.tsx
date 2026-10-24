@@ -1,12 +1,19 @@
 import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
-import {describe, expect, it, vi} from 'vitest';
+import {afterEach, describe, expect, it, vi} from 'vitest';
 import {
   SegmentedControl,
   type SegmentOption,
   type SegmentedKind,
 } from './SegmentedControl';
+import {
+  hoverForTooltip,
+  resetTooltips,
+  setupTooltipUser,
+} from './tooltipTesting';
+
+afterEach(resetTooltips);
 
 type Arrangement = 'base' | 'sunday' | 'short';
 
@@ -138,12 +145,14 @@ describe('SegmentedControl', () => {
     );
     const disabled = screen.getByRole('radio', {name: '주일용'});
     expect(disabled.getAttribute('aria-disabled')).toBe('true');
-    expect(disabled.getAttribute('title')).toBe('이유');
     await userEvent.tab();
     await userEvent.keyboard('{ArrowRight}');
     expect(onChange).toHaveBeenLastCalledWith('short');
     await userEvent.click(disabled);
     expect(onChange).toHaveBeenCalledTimes(1);
+    await userEvent.unhover(disabled);
+    const tooltip = await hoverForTooltip(setupTooltipUser(), disabled);
+    expect(tooltip?.textContent).toBe('이유');
   });
 
   it('ignores clicks and keys while the whole group is disabled', async () => {
@@ -159,7 +168,8 @@ describe('SegmentedControl', () => {
     expect(checkedNames()).toEqual(['기본']);
   });
 
-  it('names icon segments by their label and shows counts after names', () => {
+  it('names icon segments by their label and shows counts after names', async () => {
+    const user = setupTooltipUser();
     const {rerender} = render(
       <SegmentedControl
         label="보기"
@@ -173,7 +183,8 @@ describe('SegmentedControl', () => {
       />,
     );
     const grid = screen.getByRole('button', {name: '격자 보기'});
-    expect(grid.getAttribute('title')).toBe('격자 보기');
+    expect((await hoverForTooltip(user, grid))?.textContent).toBe('격자 보기');
+    await user.unhover(grid);
 
     rerender(
       <SegmentedControl
