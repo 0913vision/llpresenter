@@ -162,4 +162,35 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 (codex4), answered once:
+
+1. Finding 1 (`flush()` waits for one write): `flush()` now writes until the
+   store is clean. After a write ends, a change that arrived during it is
+   written next, and so on, so a quit flush ends only when every accepted change
+   is on disk. A failed write is logged and ends the loop (no retry), and the
+   change stays dirty for the next change or flush, so a broken disk cannot keep
+   the quit waiting. After the flush no debounce timer is left. Tests in
+   `uiStateStore.drain.test.ts`, with writes that the test finishes by hand:
+   "writes a change that arrives during the write before the flush ends" (the
+   flush is still pending until the second write ends), "leaves no debounce
+   timer behind after the flush", "drains several changes that arrive one after
+   another", "does not retry a failed write forever, and the flush still ends",
+   and "writes the kept changes again with the next change after a failure".
+2. Finding 2 (a pair that main rejects): `createIpcColumnWidthStore` clamps both
+   widths to `COLUMN_LIMITS` after rounding (through `clamp` and `COLUMN_RANGES`
+   of `columns.ts`). A saved 300/900 still loads as 300/900 and the layout shows
+   300/720; dragging only the left column now sends 350/720, and the store
+   remembers 350/720. Tests: "clamps both widths to their ranges after rounding,
+   as the main process requires" and "sends a valid pair when only one column
+   was dragged from an out-of-range saved width".
+3. Finding 3 (cleanup is not tested): `atomicWrite.test.ts` now fails after the
+   temporary file exists, in the two places that matter. A flush failure (the
+   test replaces `handle.sync`) and a rename failure (the target is a folder
+   that holds a file) each reject, leave the original intact, and leave no
+   temporary file. A flush failure for a file that did not exist creates
+   nothing. A stale temporary file from an earlier crash is overwritten by the
+   next write, and removed when that write fails. The old mkdir test is kept
+   under its true name ("fails before any temporary file exists when the folder
+   cannot be made").
+4. Finding 4 (later): when data-7 lands, I switch `src/main/uiState` to its
+   writer in a small follow-up, as the lead said.

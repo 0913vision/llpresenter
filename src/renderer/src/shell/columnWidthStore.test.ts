@@ -54,6 +54,45 @@ describe('createIpcColumnWidthStore', () => {
     expect(store.load('normal')).toEqual({left: 340, right: 500});
   });
 
+  it('clamps both widths to their ranges after rounding, as the main process requires', () => {
+    const send = vi.fn<(change: LayoutChange) => void>();
+    const store = createIpcColumnWidthStore({}, send);
+    store.save('normal', {left: 399.6, right: 720.4});
+    expect(send).toHaveBeenLastCalledWith({
+      sizeClass: 'normal',
+      left: 400,
+      right: 720,
+    });
+    store.save('normal', {left: 150, right: 100});
+    expect(send).toHaveBeenLastCalledWith({
+      sizeClass: 'normal',
+      left: 200,
+      right: 320,
+    });
+    store.save('normal', {left: 900, right: 2000});
+    expect(send).toHaveBeenLastCalledWith({
+      sizeClass: 'normal',
+      left: 400,
+      right: 720,
+    });
+  });
+
+  it('sends a valid pair when only one column was dragged from an out-of-range saved width', () => {
+    const send = vi.fn<(change: LayoutChange) => void>();
+    const store = createIpcColumnWidthStore(
+      {layout: {normal: {left: 300, right: 900}}},
+      send,
+    );
+    expect(store.load('normal')).toEqual({left: 300, right: 900});
+    store.save('normal', {left: 350, right: 900});
+    expect(send).toHaveBeenCalledWith({
+      sizeClass: 'normal',
+      left: 350,
+      right: 720,
+    });
+    expect(store.load('normal')).toEqual({left: 350, right: 720});
+  });
+
   it('sends whole pixels, because the main process rejects fractions', () => {
     const send = vi.fn<(change: LayoutChange) => void>();
     const store = createIpcColumnWidthStore({}, send);

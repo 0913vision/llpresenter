@@ -100,11 +100,16 @@ export class UiStateStore {
     this.scheduleWrite();
   }
 
-  /** Writes pending changes now. Call it before quitting. */
+  /**
+   * Writes pending changes now, including the changes that arrive while a write
+   * is in flight. Call it before quitting. A failed write is logged and not
+   * retried here, so the call always ends.
+   */
   async flush(): Promise<void> {
     this.cancelTimer();
-    this.writing = this.writing.then(() => this.writeIfDirty());
+    this.writing = this.writing.then(() => this.writeUntilClean());
     await this.writing;
+    this.cancelTimer();
   }
 
   dispose(): void {
@@ -133,20 +138,28 @@ export class UiStateStore {
     this.timer = null;
   }
 
-  private async writeIfDirty(): Promise<void> {
-    if (!this.dirty || !this.fileIsSafeToWrite) return;
+  private async writeUntilClean(): Promise<void> {
+    let saved = true;
+    while (saved && this.dirty && this.fileIsSafeToWrite) {
+      saved = await this.writeOnce();
+    }
+  }
+
+  private async writeOnce(): Promise<boolean> {
     const {file, io, log} = this.options;
     const text = serializeAppConfig(this.config, file);
     if (!text.ok) {
       log.error('could not serialize app.json', text.error);
-      return;
+      return false;
     }
     this.dirty = false;
     try {
       await io.write(file, text.value);
+      return true;
     } catch (error) {
       this.dirty = true;
       log.error('could not save app.json', error);
+      return false;
     }
   }
 }
