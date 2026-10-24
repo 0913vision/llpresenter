@@ -1,0 +1,129 @@
+import {
+  isItemRow,
+  type ItemId,
+  type ItemRow,
+  type ServiceRow,
+  type SlideTile,
+  type TileCursor,
+} from './model';
+
+export type RowKey = 'up' | 'down' | 'home' | 'end';
+export type TileKey = 'left' | 'right' | 'up' | 'down';
+
+export type TilesOf = (itemId: ItemId) => readonly SlideTile[];
+
+function selectableRows(rows: readonly ServiceRow[]): readonly ItemRow[] {
+  return rows.filter(isItemRow);
+}
+
+/**
+ * The row to select after an up, down, Home, or End key. Headers are skipped.
+ * Up and down stop at the ends of the list.
+ */
+export function moveRowSelection(
+  rows: readonly ServiceRow[],
+  current: ItemId | null,
+  key: RowKey,
+): ItemId | null {
+  const items = selectableRows(rows);
+  if (items.length === 0) return null;
+  if (key === 'home') return items[0]?.id ?? null;
+  if (key === 'end') return items.at(-1)?.id ?? null;
+  const at = items.findIndex(item => item.id === current);
+  if (at === -1) return key === 'down' ? (items[0]?.id ?? null) : null;
+  const step = key === 'down' ? 1 : -1;
+  const target = Math.min(Math.max(at + step, 0), items.length - 1);
+  return items[target]?.id ?? null;
+}
+
+/**
+ * The tile index after an arrow key in a grid with the given number of
+ * columns. The selection stays inside the grid and does not wrap around.
+ */
+export function moveTileSelection(params: {
+  readonly count: number;
+  readonly columns: number;
+  readonly index: number;
+  readonly key: TileKey;
+}): number {
+  const {count, columns, index, key} = params;
+  if (count === 0) return 0;
+  const offsets: Readonly<Record<TileKey, number>> = {
+    left: -1,
+    right: 1,
+    up: -columns,
+    down: columns,
+  };
+  const target = index + offsets[key];
+  return target < 0 || target >= count ? index : target;
+}
+
+function isOutputtable(row: ServiceRow, tilesOf: TilesOf): row is ItemRow {
+  return isItemRow(row) && row.kind !== 'slot' && tilesOf(row.id).length > 0;
+}
+
+export interface SequenceState {
+  readonly rows: readonly ServiceRow[];
+  readonly tilesOf: TilesOf;
+  /** The tile on output, or null when no 장 is live. */
+  readonly live: TileCursor | null;
+  /** The item open in the 장 panel, or null when none is open. */
+  readonly openItemId: ItemId | null;
+}
+
+function firstTileOf(itemId: ItemId, tilesOf: TilesOf): TileCursor | null {
+  return tilesOf(itemId).length > 0 ? {itemId, index: 0} : null;
+}
+
+function firstTileAfter(
+  itemId: ItemId,
+  {rows, tilesOf}: SequenceState,
+): TileCursor | null {
+  const at = rows.findIndex(row => row.id === itemId);
+  const next = rows.slice(at + 1).find(row => isOutputtable(row, tilesOf));
+  return next ? firstTileOf(next.id, tilesOf) : null;
+}
+
+/**
+ * The tile that the next-장 key outputs. Without a live 장 it is the first
+ * tile of the open item. After the last tile it is the first tile of the next
+ * item that can output, and null when there is none.
+ */
+export function nextTile(state: SequenceState): TileCursor | null {
+  const {live, openItemId, tilesOf} = state;
+  if (!live) return openItemId ? firstTileOf(openItemId, tilesOf) : null;
+  if (live.index + 1 < tilesOf(live.itemId).length) {
+    return {itemId: live.itemId, index: live.index + 1};
+  }
+  return firstTileAfter(live.itemId, state);
+}
+
+/** The tile that the previous-장 key outputs. Null on the first tile. */
+export function previousTile(state: SequenceState): TileCursor | null {
+  const {live} = state;
+  if (!live || live.index === 0) return null;
+  return {itemId: live.itemId, index: live.index - 1};
+}
+
+/**
+ * The tile that an 이름표 (label) jump key outputs: the first tile with that
+ * label after the live 장, or else the first one with that label in the
+ * sequence.
+ */
+export function tileForLabel(
+  state: SequenceState,
+  label: string,
+): TileCursor | null {
+  const itemId = state.live?.itemId ?? state.openItemId;
+  if (!itemId) return null;
+  const tiles = state.tilesOf(itemId);
+  const after = (state.live?.index ?? -1) + 1;
+  const indexAfter = tiles.findIndex(
+    (tile, index) => index >= after && tile.label === label,
+  );
+  const index =
+    indexAfter === -1
+      ? tiles.findIndex(tile => tile.label === label)
+      : indexAfter;
+  return index === -1 ? null : {itemId, index};
+}

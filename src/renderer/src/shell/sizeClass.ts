@@ -21,3 +21,10 @@ export const defaultColumns: Readonly<Record<SizeClass, ColumnWidths>> = {
   normal: {left: 280, right: 480},
   wide: {left: 320, right: 560},
 };
+
+/** Default thumbnail columns of the 장 grid per size class (design system `Layout`). */
+export const defaultThumbnailColumns: Readonly<Record<SizeClass, number>> = {
+  narrow: 3,
+  normal: 4,
+  wide: 6,
+};

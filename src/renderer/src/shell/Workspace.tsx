@@ -1,7 +1,10 @@
-import {Fragment, type JSX} from 'react';
+import {Fragment, type JSX, type ReactNode} from 'react';
+import {ServiceOrderList} from '@renderer/show/ServiceOrderList';
+import {SlideGrid} from '@renderer/show/SlideGrid';
+import {useSlideShortcuts} from '@renderer/show/shortcuts';
 import {ColumnGap} from './ColumnGap';
 import type {ColumnWidthStore} from './columnWidthStore';
-import type {SizeClass} from './sizeClass';
+import {defaultThumbnailColumns, type SizeClass} from './sizeClass';
 import type {Workspace as WorkspaceId} from './Toolbar';
 import {useColumnLayout} from './useColumnLayout';
 import styles from './Workspace.module.css';
@@ -20,15 +23,37 @@ const panelsByWorkspace: Readonly<
   screens: [['화면'], ['배치'], ['속성']],
 };
 
-function Panel({title}: {readonly title: string}): JSX.Element {
+function Panel({
+  title,
+  children,
+}: {
+  readonly title: string;
+  readonly children?: ReactNode;
+}): JSX.Element {
   return (
     <section className={styles.panel} aria-label={title}>
       <div className={styles.header}>
         <span className={styles.tab}>{title}</span>
       </div>
-      <div className={styles.body} />
+      <div className={styles.body}>{children}</div>
     </section>
   );
+}
+
+function ShowShortcuts(): null {
+  useSlideShortcuts();
+  return null;
+}
+
+function showPanelBody(title: string, sizeClass: SizeClass): ReactNode {
+  switch (title) {
+    case '예배 순서':
+      return <ServiceOrderList />;
+    case '장':
+      return <SlideGrid columns={defaultThumbnailColumns[sizeClass]} />;
+    default:
+      return null;
+  }
 }
 
 /** The three-column frame shared by all workspaces. */
@@ -44,6 +69,7 @@ export function Workspace({
   const {gridRef, drag} = useColumnLayout(sizeClass, store);
   return (
     <main ref={gridRef} className={styles.columns}>
+      {id === 'show' ? <ShowShortcuts /> : null}
       {panelsByWorkspace[id].map((panels, column) => (
         <Fragment key={column}>
           {column > 0 && (
@@ -51,7 +77,9 @@ export function Workspace({
           )}
           <div className={styles.column}>
             {panels.map(title => (
-              <Panel key={title} title={title} />
+              <Panel key={title} title={title}>
+                {id === 'show' ? showPanelBody(title, sizeClass) : null}
+              </Panel>
             ))}
           </div>
         </Fragment>
