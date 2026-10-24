@@ -24,10 +24,11 @@ changed.
 ### Install (task 2)
 
 - `npm ci` exited with code 0 and reported 0 vulnerabilities.
-- Duration: about 70 seconds at most. I started it in the background at 21:37:29
-  and saw it finished by 21:38:50. I did not wrap it in a timer, so the exact
-  value is not known.
-- `node_modules` is 254 MB (104 top-level entries).
+- First run (before the Electron fix): at most about 80 seconds, estimated,
+  `node_modules` 254 MB.
+- Second run (after rebasing onto `rewrite` 2f36647, which downloads Electron):
+  `time npm ci` printed `real 1m19.778s`, exit 0, 0 vulnerabilities.
+  `node_modules` is 623 MB, and `node_modules/electron/dist` exists.
 
 ### Checks (task 3)
 
@@ -39,23 +40,26 @@ changed.
 
 ### Dev app (task 4)
 
-I ran `npm run dev` with `LLP_DEV_PORT=5190` and
-`LLP_USER_DATA=D:\llp-dev\trial`, and waited 20 seconds.
+First run, before the fix: the dev server started on 5190, but Electron failed
+with `Error: Electron uninstall` because `node_modules/electron/dist` was
+missing. The lead fixed this on `rewrite` in 2235096.
 
-- The dev server started at `http://localhost:5190/`, so the port variable
-  works.
-- **The Electron process did not start.** electron-vite failed with
-  `Error: Electron uninstall` (thrown from `getElectronPath`). The package
-  `electron` 44.9.3 is in `node_modules`, but `node_modules/electron/dist` does
-  not exist, so the Electron binary was not downloaded during `npm ci`. I did
-  not try to fix it, as the brief says.
-- The dev command exited by itself after the error. Afterwards no node process
-  from this worktree remained, nothing listened on port 5190, and there were no
-  `electron` processes.
-- `D:\llp-dev\trial` was not created, because the app never started. So
-  `LLP_USER_DATA` is untested.
-- The collision check with the lead's dev app (5173) could not be done. Port
-  5173 was not listening and no Electron was running at that time.
+Second run, after the rebase and the second `npm ci`, with `LLP_DEV_PORT=5190`
+and `LLP_USER_DATA=D:\llp-dev\trial`, waiting 20 seconds:
+
+- The dev server listened on `http://localhost:5190/`.
+- Electron started. The log printed `starting electron app...` and
+  `INFO started {"version":"0.2.0","electron":"44.9.3"}`.
+- `D:\llp-dev\trial` was created and filled with Chromium data, so
+  `LLP_USER_DATA` works.
+- Collision check: while the lead's dev app ran (port 5173, process 52044, with
+  `--user-data-dir="D:\llp-dev\lead"`), both apps ran side by side. The
+  processes of each app had their own `--user-data-dir` (`lead` and `trial`),
+  and the ports 5173 and 5190 were both listening. Nothing collided.
+- Cleanup: I stopped only the processes whose command line contains this
+  worktree path. Afterwards no node or electron process of this worktree was
+  left, port 5190 was no longer listening, and the lead's app was untouched
+  (port 5173 still listening, 3 Electron processes with `D:\llp-dev\lead`).
 
 ## Changed files
 
@@ -65,9 +69,9 @@ I ran `npm run dev` with `LLP_DEV_PORT=5190` and
 
 | Command or test                    | Result                                 |
 | ---------------------------------- | -------------------------------------- |
-| `npm run typecheck`                | Passed                                 |
+| `npm run typecheck`                | Passed (first run, before the fix)     |
 | `npm test`                         | Not run (not in the brief's task list) |
-| `npm run format:check`             | Passed                                 |
+| `npm run format:check`             | Passed (first run, before the fix)     |
 | `npm run verify` (from phase 1 on) | Not available yet                      |
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
@@ -76,18 +80,15 @@ Not applicable. This change is a document only.
 
 ## Decisions I made (for the lead to confirm)
 
-- None. I recorded the Electron failure and did not change anything.
+- None.
 
 ## Shared contract change requests
 
-- Electron's binary is missing after `npm ci`, so the dev app cannot start in a
-  new worktree. Please check whether the install script is blocked (for example
-  by an `ignore-scripts` setting or a failed download) and decide the fix in
-  `package.json` or the setup notes. This affects every member.
+- None. The Electron binary problem I reported is fixed on `rewrite`.
 
 ## Where to look
 
-- The "Dev app" section above, especially the Electron failure.
+- The "Dev app" section above, especially the collision check and cleanup.
 
 ---
 
@@ -98,10 +99,19 @@ missing.
 
 ## Review: lead
 
-- Verdict: Approve / Request changes
+- Verdict: Request changes
 - Findings:
-
-  1.
+  1. The Electron failure is a bug in `rewrite`, not in this branch. Electron 44
+     no longer downloads its binary on install, and electron-vite reads the
+     binary path directly. Fixed on `rewrite` in 2235096
+     (`postinstall: install-electron`), recorded in `docs/decisions.md`.
+     Verified by the lead in a fresh worktree: `npm ci` downloads the binary and
+     `npm run dev` reaches "smoke ok".
+  2. Redo task 4 after rebasing: the dev app with `LLP_DEV_PORT=5190` and
+     `LLP_USER_DATA=D:\llp-dev\trial`, the collision check against the lead's
+     dev app, and the leftover-process check.
+  3. Record the `npm ci` time again with a real timer (for example
+     `time npm ci`), since the first number was an estimate.
 
 ## Review: reviewer
 
@@ -112,4 +122,8 @@ missing.
 
 ## Team member's reply
 
-1.
+1. Finding 1: Acknowledged. Nothing to change in this branch.
+2. Finding 2: Done. I rebased onto `rewrite` 2f36647 (no conflicts), ran
+   `npm ci` again, and redid task 4. See "Dev app (task 4)".
+3. Finding 3: Done. `time npm ci` printed `real 1m19.778s`. See "Install".
+4. Rebase result: `git rebase rewrite` succeeded without conflicts.
