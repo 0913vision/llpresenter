@@ -88,9 +88,10 @@ describe('parseService', () => {
     expect(item === undefined ? undefined : serviceItemKind(item)).toBe(
       'unknown',
     );
-    expect(
-      JSON.parse(expectSuccess(serializeService(service, FILE))).order,
-    ).toEqual([scripture]);
+    const written: unknown = JSON.parse(
+      expectSuccess(serializeService(service, FILE)),
+    );
+    expect(written).toMatchObject({order: [scripture]});
   });
 
   it('keeps unknown fields in items and in the Bible passage', () => {

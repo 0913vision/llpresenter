@@ -42,7 +42,7 @@ export interface LoadedFile<T> {
 export type ReadonlyKnown<T> = T extends
   string | number | boolean | null | undefined
   ? T
-  : T extends readonly (infer Item)[]
+  : T extends ReadonlyArray<infer Item>
     ? ReadonlyArray<ReadonlyKnown<Item>>
     : {
         readonly [

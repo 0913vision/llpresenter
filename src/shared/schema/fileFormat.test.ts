@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import {describe, expect, it} from 'vitest';
+import {isRecord} from '../guards';
 import {parseFile, serializeFile, type FileFormat} from './fileFormat';
 import type {MigrationStep} from './migration';
 import {positiveInteger} from './primitives';
@@ -205,7 +206,8 @@ describe('serializeFile', () => {
       serializeFile(noteFormat, {...shuffled, format: 'llnote'}, FILE),
     );
 
-    expect(Object.keys(JSON.parse(text))).toEqual([
+    const written: unknown = JSON.parse(text);
+    expect(isRecord(written) ? Object.keys(written) : []).toEqual([
       'format',
       'schemaVersion',
       'text',
