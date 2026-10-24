@@ -1,6 +1,7 @@
 import type {LiveCommand} from './commands';
 import type {LiveState} from './live';
 import type {FrameRateReport, RendererLogEntry} from './schema/ipcPayloads';
+import type {OutputStatuses} from './schema/outputStatus';
 import type {ShowService} from './schema/showService';
 import type {LayoutChange, UiState} from './schema/uiState';
 
@@ -15,6 +16,9 @@ export const Channels = {
   outputFrameRate: 'output:frame-rate',
   serviceGet: 'service:get',
   serviceChanged: 'service:changed',
+  outputStatusGet: 'output:status:get',
+  outputStatusChanged: 'output:status:changed',
+  outputRetry: 'output:retry',
 } as const;
 
 export type WindowAction = 'minimize' | 'toggle-maximize' | 'close';
@@ -57,6 +61,20 @@ export interface LlpApi {
   readonly output: {
     /** Reports an output window's measured frame rate, once a second. */
     reportFrameRate(report: FrameRateReport): void;
+    /** Reads the status of every screen's output once. */
+    getStatus(): Promise<OutputStatuses>;
+    /**
+     * Calls the listener whenever a screen's output status changes, with
+     * every screen's status.
+     *
+     * @returns A function that removes the listener. Always call it.
+     */
+    subscribeStatus(listener: (statuses: OutputStatuses) => void): Unsubscribe;
+    /**
+     * 다시 시도: tries the screen's output window again at once while the
+     * restart limit holds.
+     */
+    retry(screenId: string): void;
   };
   readonly service: {
     /**

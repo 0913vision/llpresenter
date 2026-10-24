@@ -9,8 +9,11 @@ describe('fakeLlpApi', () => {
     await expect(api.live.get()).resolves.toEqual(emptyLiveState());
     await expect(api.ui.get()).resolves.toEqual({});
     await expect(api.service.get()).resolves.toBeNull();
+    await expect(api.output.getStatus()).resolves.toEqual({});
     expect(() => {
       api.service.subscribe(() => undefined)();
+      api.output.subscribeStatus(() => undefined)();
+      api.output.retry('main');
       api.log.write({level: 'info', message: 'ok'});
       api.output.reportFrameRate({screenId: 'main', fps: 60});
     }).not.toThrow();
@@ -31,6 +34,6 @@ describe('fakeLlpApi', () => {
     api.output.reportFrameRate({screenId: 'main', fps: 60});
 
     expect(reportFrameRate).toHaveBeenCalledTimes(1);
-    await expect(api.live.get()).resolves.toEqual(emptyLiveState());
+    await expect(api.output.getStatus()).resolves.toEqual({});
   });
 });

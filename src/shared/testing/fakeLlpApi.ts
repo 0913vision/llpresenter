@@ -28,6 +28,9 @@ export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
     log: {write: () => undefined, ...overrides.log},
     output: {
       reportFrameRate: () => undefined,
+      getStatus: () => Promise.resolve({}),
+      subscribeStatus: () => () => undefined,
+      retry: () => undefined,
       ...overrides.output,
     },
     service: {

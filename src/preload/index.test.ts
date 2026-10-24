@@ -167,6 +167,46 @@ describe('preload', () => {
     expect(electron.handlers.has(Channels.serviceChanged)).toBe(false);
   });
 
+  it('passes valid output statuses through and gives none for bad ones', async () => {
+    const statuses = {
+      main: {
+        placement: 'window',
+        renderer: 'restarting',
+        fps: null,
+        fpsLow: false,
+      },
+    };
+    electron.invoke.mockResolvedValueOnce(statuses);
+    electron.invoke.mockResolvedValueOnce({main: {placement: 'hidden'}});
+
+    await expect(api.output.getStatus()).resolves.toEqual(statuses);
+    await expect(api.output.getStatus()).resolves.toEqual({});
+    expect(electron.invoke).toHaveBeenCalledWith(Channels.outputStatusGet);
+    expect(loggedErrors()).toHaveLength(1);
+  });
+
+  it('passes only valid pushed output statuses to a subscriber', () => {
+    const listener = vi.fn();
+    const unsubscribe = api.output.subscribeStatus(listener);
+    const push = electron.handlers.get(Channels.outputStatusChanged);
+
+    push?.({}, {});
+    push?.({}, []);
+
+    expect(listener.mock.calls).toEqual([[{}]]);
+    expect(loggedErrors()).toHaveLength(1);
+    unsubscribe();
+    expect(electron.handlers.has(Channels.outputStatusChanged)).toBe(false);
+  });
+
+  it('sends 다시 시도 for a screen one way', () => {
+    api.output.retry('main');
+
+    expect(electron.send).toHaveBeenCalledWith(Channels.outputRetry, {
+      screenId: 'main',
+    });
+  });
+
   it('sends layout changes, log entries, and frame rates one way', () => {
     const change = {sizeClass: 'normal', left: 280, right: 480} as const;
     const entry = {level: 'error', message: 'render failed'} as const;

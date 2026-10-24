@@ -5,6 +5,10 @@ import type {Result} from '@shared/result';
 import {RENDERER_LOG_LIMITS} from '@shared/schema/ipcPayloads';
 import {parseLiveState} from '@shared/schema/liveState';
 import type {PayloadError} from '@shared/schema/payload';
+import {
+  parseOutputStatuses,
+  type OutputStatuses,
+} from '@shared/schema/outputStatus';
 import {parseShowService} from '@shared/schema/showService';
 import {parseUiState, type UiState} from '@shared/schema/uiState';
 
@@ -70,6 +74,7 @@ function logBadReply(channel: string, {field, message}: PayloadError): void {
 
 const emptyUiState = (): UiState => ({});
 const noService = (): null => null;
+const noStatuses = (): OutputStatuses => ({});
 
 const api: LlpApi = {
   live: {
@@ -91,6 +96,11 @@ const api: LlpApi = {
   output: {
     reportFrameRate: report =>
       ipcRenderer.send(Channels.outputFrameRate, report),
+    getStatus: () =>
+      invokeChecked(Channels.outputStatusGet, parseOutputStatuses, noStatuses),
+    subscribeStatus: listener =>
+      listen(Channels.outputStatusChanged, parseOutputStatuses, listener),
+    retry: screenId => ipcRenderer.send(Channels.outputRetry, {screenId}),
   },
   service: {
     get: () => invokeChecked(Channels.serviceGet, parseShowService, noService),
