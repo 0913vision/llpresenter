@@ -1238,13 +1238,46 @@ For the shortcut part now, and for the settings part once the user decides:
 - Design system (ui): add Page Up, Page Down, Home, End, and Delete to the
   `KeyCap` key names; change the 진행 grid keys in the `SlideThumbnail` README
   (focus precedence rule 5); make buttons and tiles in 진행 not take keyboard
-  focus on a mouse click; and give number fields a step: the seconds fields step
-  by 0.1 (Shift 1), while the `TextField` README defines only 1 and 10.
+  focus on a mouse click; and give number fields a step (see "Design system
+  note: number field steps").
 - Spec: update 02, 03, 04, and 06 as "What this proposal would replace" says,
   and move the answered README open questions.
 - Code: the command registry types and the key matcher go in `src/shared/`,
   which data owns (`docs/MILESTONES.md`, "File ownership"). The member who
   builds shortcuts sends data the shapes first.
+
+### Design system note: number field steps
+
+For the ui member. The `TextField` README says the arrow keys change a number
+field by 1, or by 10 with Shift. That breaks every field with a fractional
+value: the transition and audio seconds in this proposal (0.2 s), and two fields
+that already exist, 줄 간격 in the lyric style (1.4, 06) and 속도 in the media
+properties (1.0×, 05). Proposed addition to the number variant:
+
+- **Step.** A field has a `step` (default 1) and a `largeStep` (default 10 times
+  the step). ↑ and ↓ add or subtract one step, Shift with ↑ or ↓ one large step.
+- **Decimals.** The field shows as many decimals as the step has: step 0.1 shows
+  "0.2", step 0.05 shows "1.40", step 1 shows "10". Tabular numbers and right
+  alignment stay.
+- **Typing.** The field accepts digits, one ".", and a leading "-" when the
+  range allows negatives. When focus leaves, it rounds to the nearest step and
+  then snaps into the range, as the README already says for the range.
+- **No float drift.** Count in whole steps (value divided by step, rounded), so
+  that 0.1 plus 0.2 shows "0.3", never "0.30000000000000004".
+- **Unit.** One short unit outside the field, as today: "초" for seconds. A unit
+  that is part of the value stays attached, such as "%" or "×".
+
+| Field                              | Step | Large step | Range       | Unit |
+| ---------------------------------- | ---- | ---------- | ----------- | ---- |
+| 장 전환 시간, 배경 전환 시간 (10)  | 0.1  | 1          | 0.1 to 3.0  | 초   |
+| 오디오 전환, 페이드 아웃 시간 (10) | 0.1  | 1          | 0 to 10     | 초   |
+| 줄 간격 (06)                       | 0.05 | 0.5        | 0.8 to 3.0  | none |
+| 속도 (05)                          | 0.05 | 0.5        | 0.25 to 4.0 | ×    |
+| 글자 간격 (10)                     | 1    | 10         | -10 to 20   | %    |
+
+- API sketch:
+  `<TextField variant="number" value={0.2} step={0.1} largeStep={1} min={0.1} max={2} unit="초" />`.
+- The ranges for 줄 간격 and 속도 are proposals; 05 and 06 don't give them.
 
 ### Boards this proposal needs
 
