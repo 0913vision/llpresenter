@@ -34,6 +34,10 @@ export type Unsubscribe = () => void;
 /** The API that the preload script exposes to windows as `window.llp`. */
 export interface LlpApi {
   readonly live: {
+    /**
+     * Reads the live state once. Rejects, after logging, when the call fails or
+     * the answer is malformed; a push brings the state later.
+     */
     get(): Promise<LiveState>;
     send(command: LiveCommand): void;
     /**
@@ -47,7 +51,10 @@ export interface LlpApi {
     control(action: WindowAction): void;
   };
   readonly ui: {
-    /** Reads the UI state once, before the first render. */
+    /**
+     * Reads the UI state once, before the first render. Rejects, after logging,
+     * when the call fails or the answer is malformed.
+     */
     get(): Promise<UiState>;
     /**
      * Saves a size class's layout: the column widths when a drag ends, or the
@@ -61,7 +68,10 @@ export interface LlpApi {
   readonly output: {
     /** Reports an output window's measured frame rate, once a second. */
     reportFrameRate(report: FrameRateReport): void;
-    /** Reads the status of every screen's output once. */
+    /**
+     * Reads the status of every screen's output once. Rejects, after logging,
+     * when the call fails or the answer is malformed.
+     */
     getStatus(): Promise<OutputStatuses>;
     /**
      * Calls the listener whenever a screen's output status changes, with
@@ -79,7 +89,9 @@ export interface LlpApi {
   readonly service: {
     /**
      * Reads the open 예배 순서 as 진행 shows it, or `null` when none is open.
-     * It waits while the main process reads the data at launch.
+     * It waits while the main process reads the data at launch. Rejects, after
+     * logging, when the call fails or the answer is malformed, so a failed
+     * read is never taken for "no 예배 순서".
      */
     get(): Promise<ShowService | null>;
     /**

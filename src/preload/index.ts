@@ -1,16 +1,12 @@
 import {contextBridge, ipcRenderer, type IpcRendererEvent} from 'electron';
 import {Channels, type LlpApi, type Unsubscribe} from '@shared/ipc';
-import {emptyLiveState} from '@shared/live';
 import type {Result} from '@shared/result';
 import {RENDERER_LOG_LIMITS} from '@shared/schema/ipcPayloads';
 import {parseLiveState} from '@shared/schema/liveState';
 import type {PayloadError} from '@shared/schema/payload';
-import {
-  parseOutputStatuses,
-  type OutputStatuses,
-} from '@shared/schema/outputStatus';
+import {parseOutputStatuses} from '@shared/schema/outputStatus';
 import {parseShowService} from '@shared/schema/showService';
-import {parseUiState, type UiState} from '@shared/schema/uiState';
+import {parseUiState} from '@shared/schema/uiState';
 
 type Parse<T> = (value: unknown) => Result<T, PayloadError>;
 
@@ -33,20 +29,17 @@ function listen<T>(
   };
 }
 
-// NOTE(0913vision): A failed call or a malformed reply is logged and gives the
-// fallback, so a window never starts from bad data.
-async function invokeChecked<T>(
-  channel: string,
-  parse: Parse<T>,
-  fallback: () => T,
-): Promise<T> {
+// NOTE(0913vision): A failed call or a malformed reply is logged and rejects,
+// so a window never takes a failed read for a real answer, such as "no 예배
+// 순서" or an empty live state, and keeps what it shows until a push.
+async function invokeChecked<T>(channel: string, parse: Parse<T>): Promise<T> {
   const reply = await invokeSafely(channel);
   const parsed = reply.ok ? parse(reply.value) : reply;
   if (parsed.ok) {
     return parsed.value;
   }
   logBadReply(channel, parsed.error);
-  return fallback();
+  throw new Error(`Bad reply on ${channel}: ${describe(parsed.error)}`);
 }
 
 async function invokeSafely(
@@ -61,24 +54,21 @@ async function invokeSafely(
   }
 }
 
-function logBadReply(channel: string, {field, message}: PayloadError): void {
+function logBadReply(channel: string, error: PayloadError): void {
   ipcRenderer.send(Channels.logWrite, {
     level: 'error',
     message: `Ignored a bad reply on ${channel}`,
-    detail: (field === '' ? message : `${field}: ${message}`).slice(
-      0,
-      RENDERER_LOG_LIMITS.detail,
-    ),
+    detail: describe(error).slice(0, RENDERER_LOG_LIMITS.detail),
   });
 }
 
-const emptyUiState = (): UiState => ({});
-const noService = (): null => null;
-const noStatuses = (): OutputStatuses => ({});
+function describe({field, message}: PayloadError): string {
+  return field === '' ? message : `${field}: ${message}`;
+}
 
 const api: LlpApi = {
   live: {
-    get: () => invokeChecked(Channels.liveGet, parseLiveState, emptyLiveState),
+    get: () => invokeChecked(Channels.liveGet, parseLiveState),
     send: command => ipcRenderer.send(Channels.liveCommand, command),
     subscribe: listener =>
       listen(Channels.liveChanged, parseLiveState, listener),
@@ -87,7 +77,7 @@ const api: LlpApi = {
     control: action => ipcRenderer.send(Channels.windowControl, action),
   },
   ui: {
-    get: () => invokeChecked(Channels.uiGet, parseUiState, emptyUiState),
+    get: () => invokeChecked(Channels.uiGet, parseUiState),
     setLayout: change => ipcRenderer.send(Channels.uiLayoutSet, change),
   },
   log: {
@@ -97,13 +87,13 @@ const api: LlpApi = {
     reportFrameRate: report =>
       ipcRenderer.send(Channels.outputFrameRate, report),
     getStatus: () =>
-      invokeChecked(Channels.outputStatusGet, parseOutputStatuses, noStatuses),
+      invokeChecked(Channels.outputStatusGet, parseOutputStatuses),
     subscribeStatus: listener =>
       listen(Channels.outputStatusChanged, parseOutputStatuses, listener),
     retry: screenId => ipcRenderer.send(Channels.outputRetry, {screenId}),
   },
   service: {
-    get: () => invokeChecked(Channels.serviceGet, parseShowService, noService),
+    get: () => invokeChecked(Channels.serviceGet, parseShowService),
     subscribe: listener =>
       listen(Channels.serviceChanged, parseShowService, listener),
   },

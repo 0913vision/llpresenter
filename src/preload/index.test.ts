@@ -85,17 +85,19 @@ describe('preload', () => {
     ['a width that is text', {layout: {normal: {left: 'bad'}}}],
     ['a layout that is an array', {layout: []}],
     ['no reply', undefined],
-  ])('logs a UI state with %s and gives the defaults', async (_name, reply) => {
+  ])('logs a UI state with %s and rejects', async (_name, reply) => {
     electron.invoke.mockResolvedValueOnce(reply);
 
-    await expect(api.ui.get()).resolves.toEqual({});
+    await expect(api.ui.get()).rejects.toThrow(
+      `Bad reply on ${Channels.uiGet}`,
+    );
     expect(loggedErrors()).toEqual([expect.objectContaining({level: 'error'})]);
   });
 
-  it('logs a failed UI state call and gives the defaults', async () => {
+  it('logs a failed UI state call and rejects', async () => {
     electron.invoke.mockRejectedValueOnce(new Error('no handler'));
 
-    await expect(api.ui.get()).resolves.toEqual({});
+    await expect(api.ui.get()).rejects.toThrow('no handler');
     expect(loggedErrors()).toEqual([
       expect.objectContaining({detail: 'no handler'}),
     ]);
@@ -104,18 +106,32 @@ describe('preload', () => {
   it('puts the failing field before the message in the log detail', async () => {
     electron.invoke.mockResolvedValueOnce({layout: {normal: {left: 'bad'}}});
 
-    await api.ui.get();
+    await expect(api.ui.get()).rejects.toThrow('layout.normal.left: ');
 
     expect(JSON.stringify(loggedErrors())).toContain(
       '"detail":"layout.normal.left: ',
     );
   });
 
-  it('logs a malformed live state and gives the empty state', async () => {
+  it('logs a malformed or failed live state reply and rejects', async () => {
     electron.invoke.mockResolvedValueOnce({version: 'one'});
+    electron.invoke.mockRejectedValueOnce(new Error('no handler'));
 
-    await expect(api.live.get()).resolves.toEqual(emptyLiveState());
-    expect(loggedErrors()).toHaveLength(1);
+    await expect(api.live.get()).rejects.toThrow(
+      `Bad reply on ${Channels.liveGet}`,
+    );
+    await expect(api.live.get()).rejects.toThrow('no handler');
+    expect(loggedErrors()).toHaveLength(2);
+  });
+
+  it('passes a valid live state through', async () => {
+    electron.invoke.mockResolvedValueOnce({...emptyLiveState(), version: 4});
+
+    await expect(api.live.get()).resolves.toEqual({
+      ...emptyLiveState(),
+      version: 4,
+    });
+    expect(loggedErrors()).toEqual([]);
   });
 
   it('passes only valid pushed states to a subscriber', () => {
@@ -143,12 +159,14 @@ describe('preload', () => {
     expect(loggedErrors()).toEqual([]);
   });
 
-  it('logs a malformed or failed service reply and gives no service', async () => {
+  it('logs a malformed or failed service reply and rejects, never null', async () => {
     electron.invoke.mockResolvedValueOnce({...showService(2), rows: 'none'});
     electron.invoke.mockRejectedValueOnce(new Error('no handler'));
 
-    await expect(api.service.get()).resolves.toBeNull();
-    await expect(api.service.get()).resolves.toBeNull();
+    await expect(api.service.get()).rejects.toThrow(
+      `Bad reply on ${Channels.serviceGet}: rows`,
+    );
+    await expect(api.service.get()).rejects.toThrow('no handler');
     expect(loggedErrors()).toHaveLength(2);
   });
 
@@ -167,7 +185,7 @@ describe('preload', () => {
     expect(electron.handlers.has(Channels.serviceChanged)).toBe(false);
   });
 
-  it('passes valid output statuses through and gives none for bad ones', async () => {
+  it('passes valid output statuses through and rejects bad ones', async () => {
     const statuses = {
       main: {
         placement: 'window',
@@ -180,7 +198,9 @@ describe('preload', () => {
     electron.invoke.mockResolvedValueOnce({main: {placement: 'hidden'}});
 
     await expect(api.output.getStatus()).resolves.toEqual(statuses);
-    await expect(api.output.getStatus()).resolves.toEqual({});
+    await expect(api.output.getStatus()).rejects.toThrow(
+      `Bad reply on ${Channels.outputStatusGet}`,
+    );
     expect(electron.invoke).toHaveBeenCalledWith(Channels.outputStatusGet);
     expect(loggedErrors()).toHaveLength(1);
   });
