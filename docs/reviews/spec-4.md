@@ -79,12 +79,12 @@ logic") is the lead's file, so I left it as it is.
 
 ## Checks run
 
-| Command or test            | Result                                                                                                                            |
-| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run verify` (round 2) | See below                                                                                                                         |
-| `npm run verify` (round 1) | Pass: typecheck 8.7 s, lint 44.1 s, format:check 12.7 s, test:coverage 87.7 s (21 files, 185 tests), build 10.0 s; 163.2 s in all |
-| Middle dots and em dashes  | None in the changed files (checked with `grep -c`)                                                                                |
-| Bible text in the change   | None; the JSON example uses "..." for all text                                                                                    |
+| Command or test            | Result                                                                                                                                        |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run verify` (round 2) | Pass: typecheck 28.7 s, lint 65.9 s, format:check 23.2 s, test:coverage 232.1 s (57 files, 573 tests, 1 skipped), build 4.4 s; 354.2 s in all |
+| `npm run verify` (round 1) | Pass: typecheck 8.7 s, lint 44.1 s, format:check 12.7 s, test:coverage 87.7 s (21 files, 185 tests), build 10.0 s; 163.2 s in all             |
+| Middle dots and em dashes  | None in the changed files (checked with `grep -c`)                                                                                            |
+| Bible text in the change   | None; the JSON example uses "..." for all text                                                                                                |
 
 ## Decisions I made (for the lead to confirm)
 
