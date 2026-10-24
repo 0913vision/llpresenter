@@ -1,0 +1,191 @@
+.field {
+  --field-number-width: 96px;
+  --field-title-width: 280px;
+  --field-clear-size-sm: 18px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-width: 0;
+  height: var(--size-control-md);
+  padding: 0 var(--space-10);
+  border-radius: var(--radius-md);
+  background: var(--bg-well);
+  color: var(--text-3);
+  font: var(--type-body);
+  vertical-align: middle;
+  cursor: text;
+}
+
+.input {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-overflow: ellipsis;
+  cursor: text;
+}
+
+.input:focus-visible {
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--text-3);
+  opacity: 1;
+}
+
+.sm {
+  gap: var(--space-6);
+  height: var(--size-control-sm);
+  padding: 0 var(--space-8);
+  font: var(--type-label);
+}
+
+.title {
+  width: var(--field-title-width);
+  height: var(--size-control-sm);
+  padding: 0 var(--space-8);
+  font: var(--type-title);
+}
+
+.block {
+  flex: 1 1 auto;
+  width: 100%;
+}
+
+.ring {
+  box-shadow: var(--ring-field);
+}
+
+.number {
+  width: var(--field-number-width);
+}
+
+.number .input {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.affix {
+  flex: none;
+  color: var(--text-3);
+  font: var(--type-caption);
+}
+
+.clear {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-control-xs);
+  height: var(--size-control-xs);
+  margin: 0 calc(var(--space-6) * -1) 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-3);
+  transition:
+    background-color var(--motion-hover),
+    color var(--motion-hover);
+}
+
+.clear:hover {
+  background: var(--bg-raised);
+  color: var(--text);
+}
+
+.sm .clear {
+  width: var(--field-clear-size-sm);
+  height: var(--field-clear-size-sm);
+  margin-right: calc(var(--space-4) * -1);
+}
+
+.field:focus-within {
+  box-shadow: var(--ring-field-focus);
+}
+
+.field:has(> .input[aria-invalid='true']) {
+  box-shadow: var(--ring-field-error);
+}
+
+.field:has(> .input:disabled) {
+  color: var(--text-off);
+}
+
+.input:disabled,
+.input:disabled::placeholder {
+  color: var(--text-off);
+}
+
+.numberRow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.unit {
+  flex: none;
+  color: var(--text-3);
+  font: var(--type-label);
+}
+
+.textarea {
+  --textarea-min-height: 72px;
+  --textarea-max-lines: 8;
+
+  display: block;
+  width: 100%;
+  min-height: var(--textarea-min-height);
+  max-height: calc(
+    var(--textarea-max-lines) * 1lh + var(--space-8) + var(--space-8)
+  );
+  padding: var(--space-8) var(--space-10);
+  border: 0;
+  outline: none;
+  border-radius: var(--radius-md);
+  background: var(--bg-well);
+  color: var(--text);
+  font: var(--type-body);
+  resize: none;
+  overflow: auto;
+  field-sizing: content;
+}
+
+.textarea:focus-visible {
+  outline: none;
+}
+
+.textarea:focus {
+  box-shadow: var(--ring-field-focus);
+}
+
+.textarea[aria-invalid='true'] {
+  box-shadow: var(--ring-field-error);
+}
+
+.textarea::placeholder {
+  color: var(--text-3);
+  opacity: 1;
+}
+
+.textarea:disabled,
+.textarea:disabled::placeholder {
+  color: var(--text-off);
+}
+
+.description {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
