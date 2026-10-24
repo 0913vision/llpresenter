@@ -8,6 +8,7 @@ const ENTRY_TEST_TIMEOUT_MS = 30_000;
 
 const fakes = vi.hoisted(() => {
   const order: string[] = [];
+  const storeOptions: unknown[] = [];
   const opened: {control: unknown} = {control: null};
   const appHandlers = new Map<string, Array<(...args: unknown[]) => void>>();
   return {
@@ -31,7 +32,8 @@ const fakes = vi.hoisted(() => {
     },
     uiDispose: vi.fn<() => Promise<void>>(),
     soakStop: vi.fn<() => Promise<void>>(),
-    storeDispose: vi.fn<() => void>(),
+    storeDispose: vi.fn<() => Promise<void>>(),
+    storeOptions,
     opened,
   };
 });
@@ -45,8 +47,9 @@ vi.mock('./uiState/register', () => ({
 }));
 vi.mock('./soak', () => ({registerSoakRecorder: () => fakes.soakStop}));
 vi.mock('./store/register', () => ({
-  registerStore: () => {
+  registerStore: (options: unknown) => {
     fakes.order.push('data store');
+    fakes.storeOptions.push(options);
     return fakes.storeDispose;
   },
 }));
@@ -104,6 +107,7 @@ beforeEach(async () => {
   fakes.uiDispose.mockReset();
   fakes.soakStop.mockReset();
   fakes.storeDispose.mockReset();
+  fakes.storeOptions.length = 0;
 });
 
 function beforeQuit(): {prevented: boolean} {
@@ -123,6 +127,14 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
   it('reads the UI state before the control window opens', async () => {
     await startMain();
     expect(fakes.order).toEqual(['ui state', 'data store', 'control window']);
+  });
+
+  it('tells the data store whether an output is on', async () => {
+    await startMain();
+
+    expect(fakes.storeOptions).toHaveLength(1);
+    expect(fakes.storeOptions[0]).toHaveProperty('log');
+    expect(fakes.storeOptions[0]).toHaveProperty('isAnyOutputOn');
   });
 
   it('asks to quit when the control window closes', async () => {

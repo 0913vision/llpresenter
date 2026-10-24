@@ -1,5 +1,6 @@
 import {app, type BrowserWindow} from 'electron';
 import {join} from 'node:path';
+import {isAnyOutputOn} from '@shared/live';
 import {LiveStore} from './live/store';
 import {createLogger, flushWithin, type Logger} from './log';
 import {registerIpc} from './ipc';
@@ -73,8 +74,11 @@ function start(): void {
         join(app.getPath('userData'), UI_STATE_FILE),
         log,
       );
-      const disposeStore = registerStore(log);
       const store = new LiveStore();
+      const disposeStore = registerStore({
+        log,
+        isAnyOutputOn: () => isAnyOutputOn(store.state),
+      });
       const disposeIpc = registerIpc(store, log);
       const stopServingMedia = serveMedia({
         resolvePath: findMediaFile,
