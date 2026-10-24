@@ -3,7 +3,7 @@
 - Team member: `output`
 - Branch: `feat/output/prevent-sleep`, stacked on output-1
   (`feat/output/windows`)
-- Base commit (`main`): set when output-1 merges and this branch is rebased
+- Base commit (`main`): `c402184`
 - Last commit: the commit that adds this file
 - Related brief: `docs/briefs/output.md` (task 1, a follow-up named in output-1)
 
@@ -49,10 +49,12 @@ output-2.
 
 ## Checks run
 
-| Command or test  | Result                                                                                                                                                                    |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run verify` | VERIFY_RESULT                                                                                                                                                             |
-| New tests        | One lock while outputs are on, released only after the last one turns off; no change while content changes; release on stop; a lock that fails to start or stop is logged |
+On `e10119e`, on `main` at `c402184`.
+
+| Command or test  | Result                                                                                                                                                                                                                                                                                  |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run verify` | Typecheck, lint, and format check passed. Tests: 757 passed and 1 failed: `test/git-repo.test.ts` (devops, not touched here) timed out at 5.5 s on the busy machine, recorded and not rerun as the rules say. The build step, which verify skipped after the failure, passed on its own |
+| New tests        | One lock while outputs are on, released only after the last one turns off; no change while content changes; release on stop; a lock that fails to start or stop is logged                                                                                                               |
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
