@@ -39,7 +39,7 @@ testing:
 | ID   | Severity | Area and owner              | Title                                                                                      | Build     | State                                   |
 | ---- | -------- | --------------------------- | ------------------------------------------------------------------------------------------ | --------- | --------------------------------------- |
 | M1-1 | minor    | Main process wiring, output | A relative `LLP_USER_DATA` throws at load and leaves Electron's error dialog               | `13d88b1` | Fixed (output-4), verified on `23e0344` |
-| M1-2 | minor    | Shell, shell                | A resize within one size class during a drag leaves the grid wider than the window         | `13d88b1` | Open, `fix/shell/drag-refit`            |
+| M1-2 | minor    | Shell, shell                | A resize within one size class during a drag leaves the grid wider than the window         | `13d88b1` | Fixed (shell-4), verified on `9e2496a`  |
 | M1-3 | minor    | Soak judge, devops          | Steady memory growth under about 13 MB per hour passes a 60-minute soak                    | `13d88b1` | Open, `fix/devops/soak-slope`           |
 | M1-4 | minor    | Main process wiring, output | Log lines still queued when the app quits are lost                                         | `13d88b1` | Open, `fix/output/log-flush`            |
 | M1-5 | minor    | Logger, output              | The log's write queue has no cap and writes one line at a time                             | `13d88b1` | Open, `fix/output/log-flush`            |
@@ -91,6 +91,9 @@ testing:
 - A test that would have caught it: a `ColumnLayout` with a drag in progress, a
   smaller `windowWidth`, then `refit()`; expect the shown widths to fit the
   window.
+- Retest on `9e2496a`: pass. Right after the resize, without a pointer move, the
+  columns show 400, 560, and 624 and nothing reaches past the window. The other
+  C cases pass again on that build.
 
 ### M1-3: Steady memory growth passes the soak judge
 
