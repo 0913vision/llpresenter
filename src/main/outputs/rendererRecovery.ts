@@ -1,4 +1,5 @@
 import type {Logger} from '../log';
+import {DRAW_LIMIT_MS, PageLoad, type LoadFailure} from './pageLoad';
 import {CRASH_LIMIT, RestartBudget} from './restartBudget';
 
 /**
@@ -28,13 +29,6 @@ export const COOLDOWN_STEPS_MS: readonly number[] = [
 /** How long an attempt must run after it draws to end the restart limit. */
 export const SURVIVAL_MS = 60_000;
 
-/**
- * How long a reloaded page may take to draw the live state before the load
- * counts as failed. A reload draws in about a second (docs/spec/08-problems.md);
- * this leaves room for a busy machine without a long blank screen.
- */
-export const DRAW_LIMIT_MS = 10_000;
-
 /** The arguments of the {@link RendererRecovery} constructor. */
 export interface RecoveryOptions {
   readonly screenId: string;
@@ -47,10 +41,20 @@ export interface RecoveryOptions {
 
 type Timer = ReturnType<typeof setTimeout>;
 
-type TimerName =
-  'relaunchTimer' | 'cooldownTimer' | 'survivalTimer' | 'drawTimer';
+type TimerName = 'relaunchTimer' | 'cooldownTimer' | 'survivalTimer';
 
 type LimitPhase = 'none' | 'waiting' | 'attempting';
+
+/**
+ * The page in the window: drawing, loading again, failed to load or draw
+ * (it may still draw late), or gone with its renderer (its reports are
+ * stale). A failure counts only while the page is live or loading.
+ */
+type PageStatus =
+  | {readonly kind: 'live'}
+  | {readonly kind: 'loading'; readonly load: PageLoad}
+  | {readonly kind: 'failed'}
+  | {readonly kind: 'gone'};
 
 function cooldownAfter(failedAttempts: number): number {
   const step = Math.min(failedAttempts, COOLDOWN_STEPS_MS.length - 1);
@@ -63,22 +67,20 @@ function cooldownAfter(failedAttempts: number): number {
  * restart limit holds: the window keeps its empty picture and tries again
  * after a cool-down, one attempt at a time. An attempt that runs a minute after
  * it draws ends the limit. A reload that fails to load or doesn't draw within
- * {@link DRAW_LIMIT_MS} fails like a crash. While the output is off, no attempt
- * starts; turning it on starts one at once, and so does 다시 시도 while the
- * output is on.
+ * {@link DRAW_LIMIT_MS} fails like a crash, once; a page that draws late still
+ * counts as working. While the output is off, no attempt starts; turning it on
+ * starts one at once, and so does 다시 시도 while the output is on.
  */
 export class RendererRecovery {
   private current: RendererState = 'running';
   private phase: LimitPhase = 'none';
+  private page: PageStatus = {kind: 'live'};
   private failedAttempts = 0;
   private paused = false;
-  private awaitingDraw = false;
-  private loadId = 0;
   private readonly budget = new RestartBudget();
   private relaunchTimer: Timer | null = null;
   private cooldownTimer: Timer | null = null;
   private survivalTimer: Timer | null = null;
-  private drawTimer: Timer | null = null;
 
   constructor(private readonly options: RecoveryOptions) {}
 
@@ -88,19 +90,23 @@ export class RendererRecovery {
 
   crashed(details: RendererGoneDetails): void {
     this.report('error', 'output window process gone', details);
-    this.fail();
+    const counts = this.pageCanFail();
+    this.leavePage({kind: 'gone'});
+    if (counts) this.countFailure();
   }
 
-  /** The page drew the output state again, so the live picture is back. */
+  /**
+   * The page drew the output state, so the live picture is back. A page that
+   * draws after its load was counted as failed works too: the reload waiting
+   * for it is dropped.
+   */
   pageDrawn(): void {
-    this.awaitingDraw = false;
-    this.clear('drawTimer');
-    if (this.phase === 'attempting') this.startSurvival();
-    if (this.current === 'running') return;
-    if (this.current === 'limited') {
-      this.report('info', 'output window restart attempt works');
-    }
-    this.setState('running');
+    if (this.page.kind === 'gone') return;
+    this.leavePage({kind: 'live'});
+    this.clear('relaunchTimer');
+    this.clear('cooldownTimer');
+    if (this.phase !== 'none') this.attemptWorks();
+    this.showLivePicture();
   }
 
   /**
@@ -115,7 +121,7 @@ export class RendererRecovery {
   /** The output turned on: like {@link RendererRecovery.retry}. */
   resume(): void {
     this.paused = false;
-    if (this.awaitingDraw) this.startDrawLimit();
+    if (this.page.kind === 'loading') this.page.load.startDrawLimit();
     this.retry();
   }
 
@@ -126,20 +132,26 @@ export class RendererRecovery {
   pause(): void {
     this.paused = true;
     this.clear('cooldownTimer');
-    this.clear('drawTimer');
+    if (this.page.kind === 'loading') this.page.load.stopDrawLimit();
   }
 
   dispose(): void {
-    this.loadId += 1;
+    this.leavePage({kind: 'gone'});
     this.clear('relaunchTimer');
     this.clear('cooldownTimer');
     this.clear('survivalTimer');
-    this.clear('drawTimer');
   }
 
-  private fail(): void {
-    this.awaitingDraw = false;
-    this.clear('drawTimer');
+  private pageCanFail(): boolean {
+    return this.page.kind === 'live' || this.page.kind === 'loading';
+  }
+
+  private leavePage(next: PageStatus): void {
+    if (this.page.kind === 'loading') this.page.load.settle();
+    this.page = next;
+  }
+
+  private countFailure(): void {
     if (this.phase !== 'none') this.failAttempt();
     else if (this.budget.recordCrash()) this.restartQuickly();
     else this.enterLimit();
@@ -196,37 +208,48 @@ export class RendererRecovery {
     this.reload();
   }
 
-  private reload(): void {
-    this.loadId += 1;
-    const id = this.loadId;
-    this.awaitingDraw = true;
-    if (!this.paused) this.startDrawLimit();
-    // NOTE(0913vision): A newer load aborts an older one, whose rejection
-    // then says nothing about the page now loading.
-    this.options.reload().catch((error: unknown) => {
-      if (id === this.loadId) this.loadFailed(error);
-    });
-  }
-
-  private loadFailed(error: unknown): void {
-    this.report('error', 'output window page did not load', {error});
-    this.fail();
-  }
-
-  private startDrawLimit(): void {
-    this.clear('drawTimer');
-    this.drawTimer = setTimeout(() => {
-      this.drawTimer = null;
-      this.report('error', 'output window page did not draw in time', {
-        limitMs: DRAW_LIMIT_MS,
-      });
-      this.fail();
-    }, DRAW_LIMIT_MS);
-  }
-
-  private startSurvival(): void {
+  private attemptWorks(): void {
+    this.phase = 'attempting';
     if (this.survivalTimer !== null) return;
     this.survivalTimer = setTimeout(() => this.endLimit(), SURVIVAL_MS);
+  }
+
+  private reload(): void {
+    const load: PageLoad = new PageLoad(this.options.reload(), failure =>
+      this.loadFailed(load, failure),
+    );
+    this.leavePage({kind: 'loading', load});
+    if (!this.paused) load.startDrawLimit();
+  }
+
+  private loadFailed(load: PageLoad, failure: LoadFailure): void {
+    if (this.page.kind !== 'loading' || this.page.load !== load) return;
+    this.reportLoadFailure(failure);
+    this.page = {kind: 'failed'};
+    this.countFailure();
+  }
+
+  private reportLoadFailure(failure: LoadFailure): void {
+    switch (failure.kind) {
+      case 'rejected':
+        this.report('error', 'output window page did not load', {
+          error: failure.error,
+        });
+        return;
+      case 'not-drawn':
+        this.report('error', 'output window page did not draw in time', {
+          limitMs: DRAW_LIMIT_MS,
+        });
+        return;
+    }
+  }
+
+  private showLivePicture(): void {
+    if (this.current === 'running') return;
+    if (this.current === 'limited') {
+      this.report('info', 'output window restart attempt works');
+    }
+    this.setState('running');
   }
 
   private endLimit(): void {

@@ -1,9 +1,9 @@
 import {describe, expect, it, vi} from 'vitest';
 import {installFakeClock, type FakeClock} from '../../../test/fake-clock';
 import {recordingLogger} from '../displays/testing';
+import {DRAW_LIMIT_MS} from './pageLoad';
 import {
   COOLDOWN_STEPS_MS,
-  DRAW_LIMIT_MS,
   RELAUNCH_DELAY_MS,
   RendererRecovery,
   SURVIVAL_MS,
@@ -21,6 +21,21 @@ function setUp() {
   const reload = vi.fn(() => Promise.resolve());
   const recovery = new RendererRecovery({screenId: 'main', reload, log});
   return {clock, log, reload, recovery};
+}
+
+function rejectableLoad(): {
+  promise: Promise<void>;
+  reject: (error: unknown) => void;
+} {
+  let reject: (error: unknown) => void = () => undefined;
+  const promise = new Promise<void>((_resolve, fail) => {
+    reject = fail;
+  });
+  return {promise, reject};
+}
+
+function countOf(messages: readonly string[], message: string): number {
+  return messages.filter(each => each === message).length;
 }
 
 async function crashUntilLimited(
@@ -189,6 +204,7 @@ describe('RendererRecovery', () => {
       onStateChange: state => changes.push(state),
     });
     await crashUntilLimited(recovery, clock);
+    await clock.advance(COOLDOWN_STEPS_MS[0] ?? 0);
     recovery.pageDrawn();
     recovery.pageDrawn();
     expect(changes).toEqual(['restarting', 'limited', 'running']);
@@ -314,5 +330,96 @@ describe('RendererRecovery', () => {
       'output window page did not draw in time',
     );
     expect(recovery.state).toBe('running');
+  });
+
+  it('counts an attempt once when its load is rejected after it crashed', async () => {
+    const {clock, log, reload, recovery} = setUp();
+    await crashUntilLimited(recovery, clock);
+    const load = rejectableLoad();
+    reload.mockReturnValueOnce(load.promise);
+    await clock.advance(COOLDOWN_STEPS_MS[0] ?? 0);
+    recovery.crashed(CRASH);
+    load.reject(LOAD_ERROR);
+    await clock.advance(0);
+    expect(
+      countOf(log.messages('error'), 'output window restart attempt failed'),
+    ).toBe(1);
+    await clock.advance((COOLDOWN_STEPS_MS[1] ?? 0) - 1);
+    expect(reload).toHaveBeenCalledTimes(CRASH_LIMIT);
+    await clock.advance(1);
+    expect(reload).toHaveBeenCalledTimes(CRASH_LIMIT + 1);
+  });
+
+  it('ignores a rejection that comes after the draw limit, before the next reload', async () => {
+    const {clock, log, reload, recovery} = setUp();
+    const load = rejectableLoad();
+    reload.mockReturnValueOnce(load.promise);
+    recovery.crashed(CRASH);
+    await clock.advance(RELAUNCH_DELAY_MS);
+    await clock.advance(DRAW_LIMIT_MS);
+    load.reject(LOAD_ERROR);
+    await clock.advance(0);
+    expect(log.messages('error')).not.toContain(
+      'output window page did not load',
+    );
+    await clock.advance(RELAUNCH_DELAY_MS);
+    expect(reload).toHaveBeenCalledTimes(2);
+    expect(recovery.state).toBe('restarting');
+  });
+
+  it('counts a crash of a page whose failed attempt already counted only once', async () => {
+    const {clock, log, reload, recovery} = setUp();
+    await crashUntilLimited(recovery, clock);
+    await clock.advance(COOLDOWN_STEPS_MS[0] ?? 0);
+    await clock.advance(DRAW_LIMIT_MS);
+    recovery.crashed(CRASH);
+    expect(
+      countOf(log.messages('error'), 'output window restart attempt failed'),
+    ).toBe(1);
+    await clock.advance((COOLDOWN_STEPS_MS[1] ?? 0) - 1);
+    expect(reload).toHaveBeenCalledTimes(CRASH_LIMIT);
+    await clock.advance(1);
+    expect(reload).toHaveBeenCalledTimes(CRASH_LIMIT + 1);
+  });
+
+  it('keeps a page that draws during the cool-down and ends the limit a minute later', async () => {
+    const {clock, log, reload, recovery} = setUp();
+    await crashUntilLimited(recovery, clock);
+    await clock.advance(COOLDOWN_STEPS_MS[0] ?? 0);
+    await clock.advance(DRAW_LIMIT_MS);
+    expect(recovery.state).toBe('limited');
+    await clock.advance(5 * SECOND);
+    recovery.pageDrawn();
+    expect(recovery.state).toBe('running');
+    await clock.advance(COOLDOWN_STEPS_MS[1] ?? 0);
+    expect(reload).toHaveBeenCalledTimes(CRASH_LIMIT);
+    await clock.advance(SURVIVAL_MS - (COOLDOWN_STEPS_MS[1] ?? 0) - 1);
+    expect(log.messages('info')).not.toContain(
+      'output window restart limit ended',
+    );
+    await clock.advance(1);
+    expect(log.messages('info').at(-1)).toBe(
+      'output window restart limit ended',
+    );
+  });
+
+  it('keeps a page that draws before its quick relaunch', async () => {
+    const {clock, reload, recovery} = setUp();
+    recovery.crashed(CRASH);
+    await clock.advance(RELAUNCH_DELAY_MS);
+    await clock.advance(DRAW_LIMIT_MS);
+    recovery.pageDrawn();
+    await clock.advance(RELAUNCH_DELAY_MS);
+    expect(reload).toHaveBeenCalledTimes(1);
+    expect(recovery.state).toBe('running');
+  });
+
+  it('ignores a frame rate report from a page that crashed', async () => {
+    const {clock, reload, recovery} = setUp();
+    recovery.crashed(CRASH);
+    recovery.pageDrawn();
+    expect(recovery.state).toBe('restarting');
+    await clock.advance(RELAUNCH_DELAY_MS);
+    expect(reload).toHaveBeenCalledTimes(1);
   });
 });
