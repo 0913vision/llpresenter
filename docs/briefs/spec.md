@@ -14,6 +14,17 @@ ProPresenter's settings offer, adapted to this app. Today
 drawn from our own draft board. Research what ProPresenter really does, then
 write a spec proposal that the user can decide on before any design or code.
 
+The user's intent, in their words: fonts were only an example, and ProPresenter
+may not have them. "설정창에 뭐가 있어야 될지는 생각을 해보고 만들어달라는 거야
+... 진짜 프로그램을 만드는 사람 입장에서는 정말 섬세하게 API 하나하나 설정
+하나하나를 다 고민하면서 만든단 말이야." So the settings proposal comes from
+going through every behavior of the app, not from copying ProPresenter. For each
+candidate setting, decide whether an operator should change it, its default,
+range, storage, when it applies, and why; list rejected candidates with reasons,
+including behaviors that stay fixed because a fixed safe behavior is better
+during a service. ProPresenter, EasyWorship, and OBS serve as evidence of what
+operators expect, with sources.
+
 ## Tasks
 
 1. In your worktree, rewrite `.llp/notes.md` for this task. Your branch is
