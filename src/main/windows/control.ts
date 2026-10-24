@@ -1,6 +1,7 @@
 import {BrowserWindow, screen} from 'electron';
 import type {Logger} from '../log';
 import {blockNavigation, loadPage, preloadPath, type PageRequest} from './page';
+import {windowTestOptions, type WindowMode} from './testWindows';
 
 const MIN_WIDTH = 1280;
 const MIN_HEIGHT = 720;
@@ -20,9 +21,17 @@ function reloadAfterCrash(win: BrowserWindow, log: Logger): void {
   });
 }
 
-/** Creates the control window without the Windows title bar; the app's menu bar acts as one. */
-export function createControlWindow(log: Logger): BrowserWindow {
+/**
+ * Creates the control window without the Windows title bar; the app's menu
+ * bar acts as one. In `offscreen` mode it loads and draws but never shows.
+ */
+export function createControlWindow(
+  log: Logger,
+  mode: WindowMode,
+): BrowserWindow {
   const area = screen.getPrimaryDisplay().workAreaSize;
+  const {webPreferences: testPreferences, ...testOptions} =
+    windowTestOptions(mode);
   const win = new BrowserWindow({
     width: Math.max(MIN_WIDTH, Math.min(DEFAULT_WIDTH, area.width)),
     height: Math.max(MIN_HEIGHT, Math.min(DEFAULT_HEIGHT, area.height)),
@@ -32,17 +41,20 @@ export function createControlWindow(log: Logger): BrowserWindow {
     frame: false,
     title: 'LoveLight Presenter',
     backgroundColor: BACKGROUND,
+    ...testOptions,
     webPreferences: {
       preload: preloadPath,
       sandbox: true,
       contextIsolation: true,
       nodeIntegration: false,
       spellcheck: false,
+      ...testPreferences,
     },
   });
   blockNavigation(win);
   reloadAfterCrash(win, log);
   win.once('ready-to-show', () => {
+    if (mode === 'offscreen') return;
     const fitsScreen =
       area.width <= DEFAULT_WIDTH && area.height <= DEFAULT_HEIGHT;
     if (fitsScreen) win.maximize();

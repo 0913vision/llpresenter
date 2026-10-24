@@ -5,6 +5,7 @@ import {DisplayRegistry} from '../displays/registry';
 import {listenToWindows} from '../ipc';
 import type {LiveStore} from '../live/store';
 import type {Logger} from '../log';
+import type {WindowMode} from '../windows/testWindows';
 import {handleFrameRate} from '../rendererMessages';
 import {createDefaultScreenSource} from './defaultScreens';
 import {createElectronWakeLock} from './electronWakeLock';
@@ -18,6 +19,8 @@ export interface OutputContext {
   readonly store: LiveStore;
   readonly control: BrowserWindow;
   readonly log: Logger;
+  /** `offscreen` keeps the output windows off the screen (UI tests). */
+  readonly windowMode: WindowMode;
 }
 
 /**
@@ -30,7 +33,12 @@ export interface OutputContext {
  * @returns A function that closes every output window, stops watching, and
  * lets the display sleep. Calling it again does nothing.
  */
-export function startOutputs({store, control, log}: OutputContext): () => void {
+export function startOutputs({
+  store,
+  control,
+  log,
+  windowMode,
+}: OutputContext): () => void {
   const displays = new DisplayRegistry(createElectronDisplaySource(), log);
   const screens = createDefaultScreenSource(displays);
   const outputs = new OutputManager({
@@ -39,7 +47,7 @@ export function startOutputs({store, control, log}: OutputContext): () => void {
     screens,
     controlBounds: () => (control.isDestroyed() ? null : control.getBounds()),
     createHandle: (screen, events) =>
-      createElectronOutputWindow(screen, events, log),
+      createElectronOutputWindow(screen, events, {log, mode: windowMode}),
     log,
   });
   outputs.start();

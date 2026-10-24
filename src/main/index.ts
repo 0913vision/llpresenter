@@ -12,6 +12,7 @@ import {registerUiState} from './uiState/register';
 import {applyUserDataOverride, type UserDataProblem} from './userData';
 import {createControlWindow} from './windows/control';
 import {registerMediaScheme, serveMedia} from './windows/mediaProtocol';
+import {windowModeFrom, type WindowMode} from './windows/testWindows';
 
 const BAD_ENVIRONMENT_EXIT_CODE = 1;
 const UI_STATE_FILE = 'app.json';
@@ -36,19 +37,28 @@ process.on('unhandledRejection', reason =>
   log.error('unhandled rejection', reason),
 );
 
-function quitAfterSmokeTest(win: BrowserWindow, logger: Logger): void {
+function quitAfterSmokeTest(
+  win: BrowserWindow,
+  logger: Logger,
+  mode: WindowMode,
+): void {
   const delayMs = Number(process.env['LLP_SMOKE_EXIT_MS'] ?? '0');
   if (delayMs <= 0) return;
-  win.once('show', () => {
+  const closeLater = (): void => {
     setTimeout(() => {
       logger.info('smoke ok');
       win.close();
     }, delayMs);
-  });
+  };
+  // NOTE(0913vision): An offscreen window never shows, so the smoke test
+  // waits for it to be ready instead.
+  if (mode === 'offscreen') win.once('ready-to-show', closeLater);
+  else win.once('show', closeLater);
 }
 
 function start(): void {
   let control: BrowserWindow | null = null;
+  const windowMode = windowModeFrom(process.env, app.isPackaged);
 
   app.on('second-instance', () => {
     if (control === null) return;
@@ -79,10 +89,10 @@ function start(): void {
         mediaRoots: dataStore.mediaRoots,
         log,
       });
-      const win = createControlWindow(log);
+      const win = createControlWindow(log, windowMode);
       control = win;
       const stopSoakRecorder = registerSoakRecorder(log);
-      const stopOutputs = startOutputs({store, control: win, log});
+      const stopOutputs = startOutputs({store, control: win, log, windowMode});
       // NOTE(0913vision): Output windows turn a close into "output off", so
       // they are destroyed first, before Electron closes windows to quit.
       shutdown.add({name: 'stop the outputs', run: stopOutputs});
@@ -95,7 +105,7 @@ function start(): void {
         control = null;
         app.quit();
       });
-      quitAfterSmokeTest(win, log);
+      quitAfterSmokeTest(win, log, windowMode);
       log.info('started', {
         version: app.getVersion(),
         electron: process.versions.electron,

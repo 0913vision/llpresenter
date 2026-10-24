@@ -7,6 +7,7 @@ import {
   preloadPath,
   type PageRequest,
 } from '../windows/page';
+import {windowTestOptions, type WindowMode} from '../windows/testWindows';
 import type {OutputWindowEvents, OutputWindowHandle} from './outputWindow';
 import type {OutputScreen} from './screens';
 
@@ -16,12 +17,24 @@ function halfOf({width, height}: Rect): Size {
   return {width: Math.round(width / 2), height: Math.round(height / 2)};
 }
 
-function createBrowserWindow(screen: OutputScreen): BrowserWindow {
+/** What an Electron output window needs besides its screen and events. */
+export interface ElectronOutputWindowOptions {
+  readonly log: Logger;
+  readonly mode: WindowMode;
+}
+
+function createBrowserWindow(
+  screen: OutputScreen,
+  mode: WindowMode,
+): BrowserWindow {
+  const {webPreferences: testPreferences, ...testOptions} =
+    windowTestOptions(mode);
   return new BrowserWindow({
     show: false,
     focusable: false,
     title: screen.name,
     backgroundColor: OUTPUT_BACKGROUND,
+    ...testOptions,
     webPreferences: {
       preload: preloadPath,
       sandbox: true,
@@ -31,6 +44,7 @@ function createBrowserWindow(screen: OutputScreen): BrowserWindow {
       // NOTE(0913vision): An output keeps drawing at full rate even when
       // Windows reports it as covered or in the background.
       backgroundThrottling: false,
+      ...testPreferences,
     },
   });
 }
@@ -57,24 +71,36 @@ function listen(win: BrowserWindow, events: OutputWindowEvents): void {
   );
 }
 
+function keepOffscreen(handle: OutputWindowHandle): OutputWindowHandle {
+  // NOTE(0913vision): An offscreen window loads and draws in memory, but
+  // never shows, takes focus, goes full screen, or stays on top.
+  return {
+    ...handle,
+    showFullScreen: () => undefined,
+    showWindowed: () => undefined,
+    hide: () => undefined,
+  };
+}
+
 /**
  * Creates the hidden Electron window of one output and loads the output page
  * for its screen. It is a framed window that goes full screen, so moving
  * between full screen and window mode never reloads the page. Its close
- * button only reports the request; `destroy` closes it.
+ * button only reports the request; `destroy` closes it. In `offscreen` mode
+ * it never appears.
  */
 export function createElectronOutputWindow(
   screen: OutputScreen,
   events: OutputWindowEvents,
-  log: Logger,
+  {log, mode}: ElectronOutputWindowOptions,
 ): OutputWindowHandle {
-  const win = createBrowserWindow(screen);
+  const win = createBrowserWindow(screen, mode);
   const page: PageRequest = {name: 'output', query: {screen: screen.id}};
   win.removeMenu();
   blockNavigation(win);
   listen(win, events);
   loadPage(win, page, log);
-  return {
+  const handle: OutputWindowHandle = {
     showFullScreen: (monitorBounds, alwaysOnTop) => {
       win.setFocusable(false);
       enterFullScreen(win, monitorBounds);
@@ -95,4 +121,5 @@ export function createElectronOutputWindow(
       if (!win.isDestroyed()) win.destroy();
     },
   };
+  return mode === 'offscreen' ? keepOffscreen(handle) : handle;
 }
