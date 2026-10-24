@@ -12,7 +12,11 @@ export interface WakeLock {
   acquire(): () => void;
 }
 
-/** Holds at most one wake lock: takes it when needed and releases it when not. */
+/**
+ * Holds at most one wake lock: takes it when needed and releases it when not.
+ * A lock whose release fails stays held, and the next update or dispose tries
+ * the release again.
+ */
 export class WakeKeeper {
   private release: (() => void) | null = null;
 
@@ -45,13 +49,17 @@ export class WakeKeeper {
 
   private letGo(): void {
     const release = this.release;
-    this.release = null;
+    if (release === null) return;
     try {
-      release?.();
-      this.log.info('letting the display sleep again');
+      release();
     } catch (error) {
+      // NOTE(0913vision): The lock stays ours, so the next update or dispose
+      // tries again instead of taking a second one.
       this.log.error('could not let the display sleep again', error);
+      return;
     }
+    this.release = null;
+    this.log.info('letting the display sleep again');
   }
 }
 
@@ -71,8 +79,11 @@ export function keepAwakeWhileOutputsOn(
   store: LiveStore,
   keeper: WakeKeeper,
 ): () => void {
-  const update = (state: LiveState): void => keeper.update(anyOutputOn(state));
-  update(store.state);
+  // NOTE(0913vision): A listener before this one can dispatch while a change
+  // is still being announced, so the announced state can be stale. The store's
+  // current state is always the latest.
+  const update = (): void => keeper.update(anyOutputOn(store.state));
+  update();
   const unsubscribe = store.subscribe(update);
   return () => {
     unsubscribe();

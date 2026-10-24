@@ -63,6 +63,24 @@ describe('keepAwakeWhileOutputsOn', () => {
   });
 });
 
+describe('keepAwakeWhileOutputsOn with a nested change', () => {
+  it('takes no lock when an earlier listener turns the output off while "on" is announced', () => {
+    const store = new LiveStore();
+    store.subscribe(state => {
+      if (state.outputs['main'] === true) {
+        store.dispatch({type: 'output.set', screenId: 'main', on: false});
+      }
+    });
+    const {lock, releases} = fakeLock();
+    const keeper = new WakeKeeper(lock, recordingLogger());
+    keepAwakeWhileOutputsOn(store, keeper);
+    store.dispatch({type: 'output.set', screenId: 'main', on: true});
+    expect(store.state.outputs['main']).toBe(false);
+    expect(keeper.held).toBe(false);
+    expect(releases.every(release => release.mock.calls.length > 0)).toBe(true);
+  });
+});
+
 describe('WakeKeeper', () => {
   it('logs a lock it could not take and keeps the app running', () => {
     const log = recordingLogger();
@@ -79,21 +97,44 @@ describe('WakeKeeper', () => {
     expect(log.messages('error')).toEqual(['could not keep the display awake']);
   });
 
-  it('logs a release that fails and counts the lock as released', () => {
+  it('keeps a lock whose release fails and releases it on the next try', () => {
     const log = recordingLogger();
-    const keeper = new WakeKeeper(
-      {
-        acquire: () => () => {
-          throw new Error('already stopped');
-        },
-      },
-      log,
-    );
+    const acquire = vi.fn();
+    const release = vi
+      .fn()
+      .mockImplementationOnce(() => {
+        throw new Error('blocker busy');
+      })
+      .mockImplementation(() => undefined);
+    acquire.mockReturnValue(release);
+    const keeper = new WakeKeeper({acquire}, log);
     keeper.update(true);
     keeper.update(false);
-    expect(keeper.held).toBe(false);
+    expect(keeper.held).toBe(true);
     expect(log.messages('error')).toEqual([
       'could not let the display sleep again',
     ]);
+
+    keeper.update(true);
+    expect(acquire).toHaveBeenCalledTimes(1);
+
+    keeper.update(false);
+    expect(keeper.held).toBe(false);
+    expect(release).toHaveBeenCalledTimes(2);
+  });
+
+  it('tries a failed release again on dispose', () => {
+    const release = vi
+      .fn()
+      .mockImplementationOnce(() => {
+        throw new Error('blocker busy');
+      })
+      .mockImplementation(() => undefined);
+    const keeper = new WakeKeeper({acquire: () => release}, recordingLogger());
+    keeper.update(true);
+    keeper.update(false);
+    keeper.dispose();
+    expect(keeper.held).toBe(false);
+    expect(release).toHaveBeenCalledTimes(2);
   });
 });
