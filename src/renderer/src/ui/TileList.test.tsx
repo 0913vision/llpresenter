@@ -132,6 +132,26 @@ describe('TileList', () => {
     expect(onActivate.mock.calls).toEqual([[1]]);
   });
 
+  it('ignores a Space whose modifier is released before it', async () => {
+    const onActivate = vi.fn<(index: number) => void>();
+    render(<Macros onActivate={onActivate} />);
+    screen.getByRole('option', {name: '찬양'}).focus();
+    await userEvent.keyboard('{Shift>}[Space>]{/Shift}[/Space]');
+    expect(onActivate).not.toHaveBeenCalled();
+  });
+
+  it('presses only on the keyup of a plain Space keydown on the same tile', () => {
+    const onActivate = vi.fn<(index: number) => void>();
+    render(<Macros onActivate={onActivate} />);
+    fireEvent.keyUp(tile('찬양'), {key: ' '});
+    fireEvent.keyDown(tile('찬양'), {key: ' '});
+    fireEvent.keyUp(tile('말씀'), {key: ' '});
+    expect(onActivate).not.toHaveBeenCalled();
+    fireEvent.keyDown(tile('찬양'), {key: ' '});
+    fireEvent.keyUp(tile('찬양'), {key: ' '});
+    expect(onActivate.mock.calls).toEqual([[1]]);
+  });
+
   it('cancels the Space keydown it takes and leaves the one it passes on', () => {
     render(
       <>

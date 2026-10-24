@@ -154,6 +154,41 @@ function useFocusFollowsSelection(
   }, [listRef, selected]);
 }
 
+interface SpaceHandlers {
+  readonly onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void;
+  readonly onKeyUp: (event: KeyboardEvent<HTMLDivElement>) => void;
+}
+
+// NOTE(0913vision): A button clicks on the Space key's keyup, even when the
+// keydown had a modifier, so the list cancels that click. A list that presses
+// with Space presses the tile itself, only on the keyup that ends a plain
+// Space keydown on the same tile.
+function useSpacePress(
+  spaceKey: TileSpaceKey,
+  press: (list: HTMLElement, tile: Element) => void,
+): SpaceHandlers {
+  const pressedTile = useRef<Element | null>(null);
+  return {
+    onKeyDown: event => {
+      if (spaceKey === 'pass') return;
+      if (hasModifier(event)) {
+        pressedTile.current = null;
+        return;
+      }
+      event.preventDefault();
+      if (!event.repeat) pressedTile.current = tileOf(event.target);
+    },
+    onKeyUp: event => {
+      event.preventDefault();
+      const tile = pressedTile.current;
+      pressedTile.current = null;
+      if (tile !== null && tile === tileOf(event.target)) {
+        press(event.currentTarget, tile);
+      }
+    },
+  };
+}
+
 /**
  * A listbox of tiles that Tab enters once: the 장 grid, the media grid and
  * strip, and the macro grid build on it. It owns the Tab stop of its tiles,
@@ -224,22 +259,17 @@ export function TileList(props: TileListProps): JSX.Element {
     if (current < 0 || target < 0 || target >= tilesOf(list).length) return;
     moveTo(list, target);
   };
-  const pressesOnSpace = (event: KeyboardEvent<HTMLDivElement>): boolean =>
-    spaceKey === 'press' && !hasModifier(event);
+  const space = useSpacePress(spaceKey, activate);
   // NOTE(0913vision): Every key the list takes is cancelled on keydown, so the
   // 진행 handler leaves it alone; a Space that the list passes on reaches it.
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
     if (isMenuKey(event)) openMenuFromKey(event);
     else if (event.key === ENTER) pressOnEnter(event);
-    else if (event.key !== SPACE) moveOnArrow(event);
-    else if (pressesOnSpace(event)) event.preventDefault();
+    else if (event.key === SPACE) space.onKeyDown(event);
+    else moveOnArrow(event);
   };
   const onKeyUp = (event: KeyboardEvent<HTMLDivElement>): void => {
-    if (event.key !== SPACE) return;
-    // NOTE(0913vision): A button clicks on the Space key's keyup, even with a
-    // modifier, so the list cancels that click and presses the tile itself.
-    event.preventDefault();
-    if (pressesOnSpace(event)) activate(event.currentTarget, event.target);
+    if (event.key === SPACE) space.onKeyUp(event);
   };
   const onFocus = (event: FocusEvent<HTMLDivElement>): void => {
     if (followsSelection) return;
