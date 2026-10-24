@@ -101,6 +101,7 @@ describe('UiStateStore.flush while a write is in flight', () => {
     started[1]?.finish();
     await flushing;
 
+    expect(vi.getTimerCount()).toBe(0);
     await vi.advanceTimersByTimeAsync(DEBOUNCE_MS * 2);
     expect(started).toHaveLength(2);
   });

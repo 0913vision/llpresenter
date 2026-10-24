@@ -1,8 +1,15 @@
 # Review request: `shell-3`
 
+Review range: 667bce9...feat/shell/ui-state-ipc
+
+What to check: round 3 needs the two findings of round 2 ("Team member's reply",
+items 6 and 7): the field-by-field merge in `UiStateStore` (`withLayoutChange`)
+against the `LayoutChange` of data-6, and the timer assertion in
+`uiStateStore.drain.test.ts`. The earlier findings were confirmed in round 2.
+
 - Team member: `shell`
 - Branch: `feat/shell/ui-state-ipc`
-- Base commit (`main`): `814781b`
+- Base commit (`main`): `667bce9`
 - Last commit: see the commit that adds this file
 - Related brief: the lead's queue (the UI state IPC and the `app.json` store for
   the column widths)
@@ -197,3 +204,15 @@ Round 1 (codex4), answered once:
 5. Round 2: rebased onto `main` 814781b without conflicts. `npm run verify` on
    commit `bd7036f` passed all five steps in 207.1 s: `typecheck`, `lint`,
    `format:check`, `test:coverage`, and `build`.
+6. Round 2, finding 1 (a columns-only change): `withLayoutChange` merges only
+   the fields that a change carries (`left` and `right` as a pair, and
+   `columns`), so a columns-only change no longer writes `undefined` over the
+   widths, and a widths-only change keeps the columns. Existing fields and
+   unknown fields stay. Tests in `uiStateStore.test.ts`: "merges the thumbnail
+   columns alone and keeps the widths and unknown fields", "merges the widths
+   alone and keeps the thumbnail columns", "merges the widths and the columns
+   together", "starts a size class with the columns alone and writes no
+   undefined", "keeps the widths that were set before when a columns change
+   follows", and "drops a change with only one of the two widths".
+7. Round 2, finding 2 (nit): "leaves no debounce timer behind after the flush"
+   asserts `vi.getTimerCount()` is 0 right after the flush.

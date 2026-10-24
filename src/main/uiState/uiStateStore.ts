@@ -33,19 +33,23 @@ function emptyConfig(): AppConfig {
 
 function withLayoutChange(
   config: AppConfig,
-  {sizeClass, left, right}: LayoutChange,
+  {sizeClass, left, right, columns}: LayoutChange,
 ): AppConfig {
   const layout = config.layout ?? {};
-  return {
-    ...config,
-    layout: {...layout, [sizeClass]: {...layout[sizeClass], left, right}},
+  const merged = {
+    ...layout[sizeClass],
+    ...(left === undefined ? {} : {left}),
+    ...(right === undefined ? {} : {right}),
+    ...(columns === undefined ? {} : {columns}),
   };
+  return {...config, layout: {...layout, [sizeClass]: merged}};
 }
 
 /**
  * Keeps the UI state of `app.json` and writes it back. The widths a drag sets
- * are merged into `layout.<size class>`, other fields stay as they are, and a
- * burst of changes becomes one write.
+ * and the thumbnail columns are merged into `layout.<size class>`, field by
+ * field: a change only sets the fields it carries, other fields stay as they
+ * are, and a burst of changes becomes one write.
  *
  * It never replaces a file it could not read: a broken file, or one from a
  * newer app version, stays untouched, and the changes of that session live in
@@ -88,7 +92,7 @@ export class UiStateStore {
     this.config = parsed.value.data;
   }
 
-  /** Merges the widths of a size class. Invalid values are logged and dropped. */
+  /** Merges a layout change into its size class. Invalid values are logged and dropped. */
   setLayout(value: unknown): void {
     const change = parseLayoutChange(value);
     if (!change.ok) {

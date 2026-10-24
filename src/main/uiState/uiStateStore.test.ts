@@ -98,6 +98,68 @@ describe('UiStateStore saving', () => {
     });
   });
 
+  it('merges the thumbnail columns alone and keeps the widths and unknown fields', async () => {
+    const {store, writes} = createHarness(validFile);
+    await store.load();
+    store.setLayout({sizeClass: 'normal', columns: 6});
+    await store.flush();
+    expect(lastWrite(writes)).toMatchObject({
+      songsPath: 'D:\\songs',
+      futureField: {keep: true},
+      layout: {normal: {left: 300, right: 500, columns: 6, extra: 1}},
+    });
+  });
+
+  it('merges the widths alone and keeps the thumbnail columns', async () => {
+    const {store, writes} = createHarness(validFile);
+    await store.load();
+    store.setLayout({sizeClass: 'normal', left: 320, right: 520});
+    await store.flush();
+    expect(lastWrite(writes)).toMatchObject({
+      layout: {normal: {left: 320, right: 520, columns: 5, extra: 1}},
+    });
+  });
+
+  it('merges the widths and the columns together', async () => {
+    const {store, writes} = createHarness(validFile);
+    await store.load();
+    store.setLayout({sizeClass: 'normal', left: 330, right: 530, columns: 7});
+    await store.flush();
+    expect(lastWrite(writes)).toMatchObject({
+      layout: {normal: {left: 330, right: 530, columns: 7, extra: 1}},
+    });
+  });
+
+  it('starts a size class with the columns alone and writes no undefined', async () => {
+    const {store, writes} = createHarness(null);
+    await store.load();
+    store.setLayout({sizeClass: 'wide', columns: 4});
+    await store.flush();
+    expect(lastWrite(writes)).toMatchObject({layout: {wide: {columns: 4}}});
+    expect(writes[0]).not.toContain('undefined');
+    expect(store.state.layout?.wide).toEqual({columns: 4});
+  });
+
+  it('keeps the widths that were set before when a columns change follows', async () => {
+    const {store, writes} = createHarness(null);
+    await store.load();
+    store.setLayout({sizeClass: 'normal', left: 300, right: 500});
+    store.setLayout({sizeClass: 'normal', columns: 5});
+    await store.flush();
+    expect(lastWrite(writes)).toMatchObject({
+      layout: {normal: {left: 300, right: 500, columns: 5}},
+    });
+  });
+
+  it('drops a change with only one of the two widths', async () => {
+    const {store, writes, warnings} = createHarness(validFile);
+    await store.load();
+    store.setLayout({sizeClass: 'normal', left: 320});
+    await store.flush();
+    expect(writes).toHaveLength(0);
+    expect(warnings).toHaveLength(1);
+  });
+
   it('keeps the other size classes', async () => {
     const {store, writes} = createHarness(validFile);
     await store.load();
