@@ -59,6 +59,7 @@ arrow functions in the gallery), dropped the `afterEach(cleanup)` that
 
 | Command or test                              | Result                                                                                        |
 | -------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `npm run verify`, round 2 (on `13d88b1`)     | Pass, 5 of 5 steps, test:coverage 37 files and 298 tests                                      |
 | `npm run verify`, best run                   | Pass, 5 of 5 steps: typecheck, lint, format:check, test:coverage (34 files, 239 tests), build |
 | `npm run verify`, other runs                 | test:coverage failed only from machine load (see below)                                       |
 | `npm run build`                              | Pass; the gallery is not in `out/renderer`                                                    |
