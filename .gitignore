@@ -1,5 +1,6 @@
 node_modules
 out
+coverage
 dist
 *.log
 *.ps1
