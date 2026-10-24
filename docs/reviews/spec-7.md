@@ -9,6 +9,29 @@
 
 ## What changed and why
 
+### Round 2
+
+Codex (codex3) requested changes:
+
+1. **Preview during a restart (finding 1).** 08 had the preview draw the live
+   state while the audience saw the empty picture, against 04's rule. Now one
+   behavior: while a screen's output window restarts or is held at the restart
+   limit, the window and its preview both show the empty picture; both draw the
+   live content again once the page has loaded the output state. 04 states the
+   rule and its one exception (an output the operator turned off keeps its
+   preview picture).
+2. **방송 자막 layers (finding 2).** 04 no longer says the 방송 자막 preview
+   never shows 공지, 소품, or 메시지. The default Look hides them there (03); a
+   Look that turns them on shows them on the screen and in its preview.
+3. **One timer per screen (nit).** 08: each screen has at most one pending
+   attempt and one attempt in progress; 다시 시도 or turning the output on
+   cancels the pending cool-down and starts an attempt at once.
+4. **Key field order (nit).** 10 "Reserved keys" now lists the checks in order:
+   Esc cancels, Backspace alone removes the shortcut, Tab and Shift Tab end the
+   recording and move focus (no keyboard trap), then other reserved keys are
+   refused with the tooltip. Those three rows show "None" in the Tooltip column.
+   "Matching keys" says the same for keys with an empty `code`.
+
 ### Round 1
 
 The lead asked for three changes.
