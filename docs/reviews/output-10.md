@@ -116,19 +116,17 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (6223474, codex4): Request changes with three findings: title bar
+  actions and a second launch could show an offscreen window, and offscreen
+  outputs did not get the size of their placement.
+- Round 2 (6309345): reviewer (Codex, codex4) Approve with one nit: a test in
+  `src/main/ipc.test.ts` leaves `isMaximized` returning `true`; reset it in
+  `beforeEach`. The nit goes into output's next branch. Lead Approve;
+  `LLP_TEST_WINDOWS=offscreen` is the one switch that keeps test windows off the
+  user's screen (lead decision over qa's launcher). Rebased by the lead onto
+  local `main` without conflicts.
 
 ## Team member's reply
 
