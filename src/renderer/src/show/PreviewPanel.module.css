@@ -1,5 +1,6 @@
 .panel {
   --small-max-width: 160px;
+  --z-preview-hit: 1;
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: minmax(0, 1fr) auto;
@@ -31,6 +32,8 @@
 
 .slot {
   min-width: 0;
+  isolation: isolate;
+  pointer-events: none;
 }
 
 .item:not(.large):not(.compact) .slot {
@@ -106,6 +109,7 @@
 
 .hit {
   position: absolute;
+  z-index: var(--z-preview-hit);
   inset: 0;
   padding: 0;
   border: 0;
