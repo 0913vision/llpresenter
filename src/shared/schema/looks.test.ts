@@ -141,9 +141,9 @@ describe('parseLooks', () => {
 
 describe('look types', () => {
   it('keys screen Looks by screen id', () => {
-    expectTypeOf<Look['screens']>().toEqualTypeOf<{
-      readonly [screen: ScreenId]: ScreenLook;
-    }>();
+    expectTypeOf<Look['screens']>().toEqualTypeOf<
+      Readonly<Record<ScreenId, ScreenLook>>
+    >();
     expectTypeOf<ScreenLook['lyricStyle']>().toEqualTypeOf<
       LyricStyleId | undefined
     >();

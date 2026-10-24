@@ -45,8 +45,8 @@ describe('parseShortcuts', () => {
 
 describe('shortcut types', () => {
   it('keeps the command ids as a record', () => {
-    expectTypeOf<ShortcutsFile['bindings']>().toEqualTypeOf<{
-      readonly [command: string]: ReadonlyArray<readonly string[]>;
-    }>();
+    expectTypeOf<ShortcutsFile['bindings']>().toEqualTypeOf<
+      Readonly<Record<string, ReadonlyArray<readonly string[]>>>
+    >();
   });
 });
