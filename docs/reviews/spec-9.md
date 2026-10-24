@@ -101,3 +101,13 @@ request has to wait, but a later decision means a schema change.
    "messages.json": a template without `targets` starts with 모든 화면
    (`"all"`), and one without `duration` starts with 계속 (`null`), so every
    valid template gives the same controls and the same send command.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (554f5c9 and 2df62be): reviewer (Codex, codex4) Request changes:
+  standalone audio from a 매크로 had no identity or end behavior, and message
+  templates had no fallback for a missing target or duration. Lead approved
+  decision 1 (a broken settings file runs from its newest readable recovery copy
+  or the defaults and is copied aside; TECH.md updated).
+- Round 2 (b6dcecd): reviewer (Codex, codex4) Approve, no findings. Lead
+  Approve. Rebased by the lead onto local `main` without conflicts.
