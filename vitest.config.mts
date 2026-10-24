@@ -38,6 +38,7 @@ export default defineConfig({
             'test/**/*.test.ts',
           ],
           environment: 'node',
+          setupFiles: ['test/setup-compile-cache.ts'],
         },
       },
       {
@@ -46,7 +47,7 @@ export default defineConfig({
           name: 'renderer',
           include: ['src/renderer/**/*.test.{ts,tsx}'],
           environment: 'jsdom',
-          setupFiles: ['test/setup-renderer.ts'],
+          setupFiles: ['test/setup-compile-cache.ts', 'test/setup-renderer.ts'],
         },
       },
     ],

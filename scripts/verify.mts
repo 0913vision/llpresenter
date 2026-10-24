@@ -1,6 +1,7 @@
 import {spawnSync} from 'node:child_process';
 import {performance} from 'node:perf_hooks';
 import {pathToFileURL} from 'node:url';
+import {COMPILE_CACHE_DIR} from './compile-cache.mts';
 
 /** The npm scripts that `npm run verify` runs, in order. */
 export const VERIFY_STEPS = [
@@ -110,6 +111,7 @@ function npmRunner(npmCli: string): StepRunner {
     const start = performance.now();
     const child = spawnSync(process.execPath, [npmCli, 'run', step], {
       stdio: 'inherit',
+      env: {...process.env, NODE_COMPILE_CACHE: COMPILE_CACHE_DIR},
     });
     if (child.error !== undefined) {
       console.error(
