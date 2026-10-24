@@ -1,12 +1,12 @@
 import {app, type BrowserWindow} from 'electron';
 import {join} from 'node:path';
 import {isAnyOutputOn} from '@shared/live';
-import {LiveStore} from './live/store';
+import {LiveStore, dispatchLogged} from './live/store';
 import {createLogger, flushWithin, type Logger} from './log';
 import {registerIpc} from './ipc';
 import {startOutputs} from './outputs/start';
 import {LOG_FLUSH_LIMIT_MS, ShutdownCoordinator} from './shutdown';
-import {registerSoakRecorder} from './soak';
+import {registerSoakRecorder, registerSoakScenario} from './soak';
 import {registerStore} from './store/register';
 import {registerUiState} from './uiState/register';
 import {applyUserDataOverride, type UserDataProblem} from './userData';
@@ -95,11 +95,19 @@ function start(): void {
       });
       const win = createControlWindow(log, windowMode);
       control = win;
-      const stopSoakRecorder = registerSoakRecorder(log);
-      const stopOutputs = startOutputs({store, control: win, log, windowMode});
-      // NOTE(0913vision): Output windows turn a close into "output off", so
-      // they are destroyed first, before Electron closes windows to quit.
-      shutdown.add({name: 'stop the outputs', run: stopOutputs});
+      const outputs = startOutputs({store, control: win, log, windowMode});
+      const stopSoakScenario = registerSoakScenario(log, command =>
+        dispatchLogged(store, command, log),
+      );
+      const stopSoakRecorder = registerSoakRecorder(log, {
+        frameRates: outputs.frameRates,
+      });
+      // NOTE(0913vision): The soak scenario stops first, so it changes
+      // nothing while the outputs close. Output windows turn a close into
+      // "output off", so they are destroyed before Electron closes windows to
+      // quit.
+      shutdown.add({name: 'stop the soak scenario', run: stopSoakScenario});
+      shutdown.add({name: 'stop the outputs', run: outputs.stop});
       shutdown.add({name: 'save the UI state', run: () => ui.dispose()});
       shutdown.add({name: 'finish the soak record', run: stopSoakRecorder});
       shutdown.add({name: 'close the data store', run: dataStore.dispose});

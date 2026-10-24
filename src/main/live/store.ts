@@ -1,5 +1,6 @@
 import type {LiveCommand} from '@shared/commands';
 import {emptyLiveState, type LiveState} from '@shared/live';
+import type {Logger} from '../log';
 import {applyCommand, initialHistory, type LiveHistory} from './reducer';
 
 export type LiveListener = (state: LiveState) => void;
@@ -69,4 +70,15 @@ export class LiveStore {
       }
     }
   }
+}
+
+/** Applies a command to the store and logs every listener that throws. */
+export function dispatchLogged(
+  store: LiveStore,
+  command: LiveCommand,
+  log: Logger,
+): void {
+  store.dispatch(command, error =>
+    log.error('live state listener failed', error),
+  );
 }

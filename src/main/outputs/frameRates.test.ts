@@ -23,6 +23,17 @@ function setUp() {
 }
 
 describe('FrameRateTracker', () => {
+  it('lists the last rate of each given screen that has reported, in order', () => {
+    const tracker = new FrameRateTracker(() => true, recordingLogger());
+    tracker.report({screenId: 'stage', fps: 59.9});
+    tracker.report({screenId: 'main', fps: 60});
+    tracker.report({screenId: 'main', fps: 58.2});
+    expect(tracker.reported(['main', 'broadcast', 'stage'])).toEqual([
+      {screen: 'main', fps: 58.2},
+      {screen: 'stage', fps: 59.9},
+    ]);
+  });
+
   it('keeps the last rate of each screen', () => {
     const {tracker} = setUp();
     tracker.report({screenId: 'main', fps: 59.8});

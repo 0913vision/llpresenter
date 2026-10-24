@@ -2,7 +2,7 @@ import {BrowserWindow, ipcMain, type IpcMainEvent} from 'electron';
 import {Channels, windowActions, type WindowAction} from '@shared/ipc';
 import {parseLiveCommand} from '@shared/schema/liveCommand';
 import type {Logger} from './log';
-import type {LiveStore} from './live/store';
+import {dispatchLogged, type LiveStore} from './live/store';
 import {
   WindowLogLimiter,
   handleLogWrite,
@@ -115,9 +115,7 @@ export function registerIpc(
       log.warn('dropped a malformed command', command.error);
       return;
     }
-    store.dispatch(command.value, error =>
-      log.error('live state listener failed', error),
-    );
+    dispatchLogged(store, command.value, log);
   });
   ipcMain.on(Channels.windowControl, controlWindowIn(windowMode, log));
   const stopLogWrites = listenToWindows(

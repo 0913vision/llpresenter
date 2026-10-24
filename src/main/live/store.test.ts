@@ -1,5 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
-import {LiveStore} from './store';
+import {recordingLogger} from '../displays/testing';
+import {LiveStore, dispatchLogged} from './store';
 
 describe('LiveStore', () => {
   it('notifies listeners only when the state changes', () => {
@@ -42,5 +43,24 @@ describe('LiveStore', () => {
     expect(after).toHaveBeenCalledTimes(1);
     expect(errors).toHaveLength(1);
     expect(store.state.outputs['main']).toBe(true);
+  });
+});
+
+describe('dispatchLogged', () => {
+  it('applies the command and logs a listener that throws', () => {
+    const store = new LiveStore();
+    const log = recordingLogger();
+    store.subscribe(() => {
+      throw new Error('listener broke');
+    });
+
+    dispatchLogged(
+      store,
+      {type: 'output.set', screenId: 'main', on: true},
+      log,
+    );
+
+    expect(store.state.outputs).toEqual({main: true});
+    expect(log.messages('error')).toEqual(['live state listener failed']);
   });
 });

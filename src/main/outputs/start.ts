@@ -10,7 +10,7 @@ import {handleFrameRate, handleRetryRequest} from '../rendererMessages';
 import {createDefaultScreenSource} from './defaultScreens';
 import {createElectronWakeLock} from './electronWakeLock';
 import {createElectronOutputWindow} from './electronWindow';
-import {FrameRateTracker} from './frameRates';
+import {FrameRateTracker, type ScreenFrameRate} from './frameRates';
 import {OutputManager} from './manager';
 import {OutputStatusBoard} from './statusBoard';
 import {WakeKeeper, keepAwakeWhileOutputsOn} from './wakeLock';
@@ -47,6 +47,17 @@ function publishStatus({
   ];
 }
 
+/** The outputs while they run. */
+export interface RunningOutputs {
+  /**
+   * Closes every output window, stops watching, and lets the display sleep.
+   * Calling it again does nothing.
+   */
+  readonly stop: () => void;
+  /** The last frame rate of each screen that has reported one. */
+  readonly frameRates: () => readonly ScreenFrameRate[];
+}
+
 /**
  * Starts watching the monitors and the output switches, opens the output
  * windows as outputs turn on, follows their frame rate reports, and publishes
@@ -54,16 +65,13 @@ function publishStatus({
  * handles 다시 시도 (`output:retry`). Call it after the app is ready.
  *
  * Keeps the display awake while any output is on.
- *
- * @returns A function that closes every output window, stops watching, and
- * lets the display sleep. Calling it again does nothing.
  */
 export function startOutputs({
   store,
   control,
   log,
   windowMode,
-}: OutputContext): () => void {
+}: OutputContext): RunningOutputs {
   const displays = new DisplayRegistry(createElectronDisplaySource(), log);
   const screens = createDefaultScreenSource(displays);
   const frameRates = new FrameRateTracker(
@@ -100,9 +108,12 @@ export function startOutputs({
       new WakeKeeper(createElectronWakeLock(), log),
     ),
   ];
-  return () => {
-    for (const stop of stops) stop();
-    outputs.dispose();
-    displays.dispose();
+  return {
+    stop: () => {
+      for (const stop of stops) stop();
+      outputs.dispose();
+      displays.dispose();
+    },
+    frameRates: () => frameRates.reported(screens.list().map(({id}) => id)),
   };
 }

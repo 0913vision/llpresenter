@@ -12,6 +12,12 @@ export const FPS_SETTLE_MS = 2000;
 
 export type FrameRateStatus = 'normal' | 'low';
 
+/** One screen's last reported frame rate. */
+export interface ScreenFrameRate {
+  readonly screen: string;
+  readonly fps: number;
+}
+
 /** A screen's last reported rate and its status. */
 export interface FrameRate {
   readonly fps: number;
@@ -80,6 +86,14 @@ export class FrameRateTracker {
   current(screenId: string): FrameRate | null {
     const rate = this.rates.get(screenId);
     return rate === undefined ? null : {fps: rate.fps, status: rate.status};
+  }
+
+  /** The last rate of each of these screens that has reported, in their order. */
+  reported(screenIds: readonly string[]): readonly ScreenFrameRate[] {
+    return screenIds.flatMap(screen => {
+      const rate = this.rates.get(screen);
+      return rate === undefined ? [] : [{screen, fps: rate.fps}];
+    });
   }
 
   private logChange(

@@ -1,6 +1,8 @@
 import {EventEmitter} from 'node:events';
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
+import type {LiveCommand} from '@shared/commands';
 import {makeTempDir} from '../../test/temp-dir';
+import type {LiveStore} from './live/store';
 
 // NOTE(0913vision): Each test imports the whole main process afresh, which
 // takes several seconds under coverage on a busy machine.
@@ -10,6 +12,11 @@ const fakes = vi.hoisted(() => {
   const order: string[] = [];
   const storeOptions: unknown[] = [];
   const mediaOptions: unknown[] = [];
+  const soakSources: unknown[] = [];
+  const outputContexts: Array<{readonly store: LiveStore}> = [];
+  const scenarioDispatch: {current: ((command: LiveCommand) => void) | null} = {
+    current: null,
+  };
   const opened: {control: unknown} = {control: null};
   const appHandlers = new Map<string, Array<(...args: unknown[]) => void>>();
   return {
@@ -33,6 +40,12 @@ const fakes = vi.hoisted(() => {
     },
     uiDispose: vi.fn<() => Promise<void>>(),
     soakStop: vi.fn<() => Promise<void>>(),
+    soakSources,
+    scenarioStop: vi.fn<() => void>(),
+    scenarioDispatch,
+    outputsStop: vi.fn<() => void>(),
+    outputContexts,
+    frameRates: vi.fn<() => readonly unknown[]>(() => []),
     storeDispose: vi.fn<() => Promise<void>>(),
     storeOptions,
     findMediaFile: vi.fn<(mediaId: string) => Promise<string | null>>(),
@@ -54,7 +67,19 @@ vi.mock('./uiState/register', () => ({
     return {dispose: fakes.uiDispose};
   }),
 }));
-vi.mock('./soak', () => ({registerSoakRecorder: () => fakes.soakStop}));
+vi.mock('./soak', () => ({
+  registerSoakRecorder: (_log: unknown, sources: unknown) => {
+    fakes.soakSources.push(sources);
+    return fakes.soakStop;
+  },
+  registerSoakScenario: (
+    _log: unknown,
+    dispatch: (command: LiveCommand) => void,
+  ) => {
+    fakes.scenarioDispatch.current = dispatch;
+    return fakes.scenarioStop;
+  },
+}));
 vi.mock('./store/register', () => ({
   registerStore: (options: unknown) => {
     fakes.order.push('data store');
@@ -67,7 +92,12 @@ vi.mock('./store/register', () => ({
   },
 }));
 vi.mock('./ipc', () => ({registerIpc: () => () => undefined}));
-vi.mock('./outputs/start', () => ({startOutputs: () => () => undefined}));
+vi.mock('./outputs/start', () => ({
+  startOutputs: (context: {readonly store: LiveStore}) => {
+    fakes.outputContexts.push(context);
+    return {stop: fakes.outputsStop, frameRates: fakes.frameRates};
+  },
+}));
 vi.mock('./windows/mediaProtocol', () => ({
   registerMediaScheme: () => undefined,
   serveMedia: (options: unknown) => {
@@ -125,6 +155,11 @@ beforeEach(async () => {
   fakes.opened.control = null;
   fakes.uiDispose.mockReset();
   fakes.soakStop.mockReset();
+  fakes.soakSources.length = 0;
+  fakes.scenarioStop.mockReset();
+  fakes.scenarioDispatch.current = null;
+  fakes.outputsStop.mockReset();
+  fakes.outputContexts.length = 0;
   fakes.storeDispose.mockReset();
   fakes.storeOptions.length = 0;
   fakes.mediaOptions.length = 0;
@@ -233,6 +268,46 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
 
     expect(fakes.controlWindow.restore).not.toHaveBeenCalled();
     expect(fakes.controlWindow.focus).not.toHaveBeenCalled();
+  });
+
+  it("gives the soak recorder the outputs' frame rates", async () => {
+    await startMain();
+
+    expect(fakes.soakSources).toEqual([{frameRates: fakes.frameRates}]);
+  });
+
+  it('lets the soak scenario change the live state', async () => {
+    await startMain();
+    const store = fakes.outputContexts[0]?.store;
+
+    fakes.scenarioDispatch.current?.({
+      type: 'output.set',
+      screenId: 'main',
+      on: true,
+    });
+
+    expect(store?.state.outputs).toEqual({main: true});
+  });
+
+  it('stops the soak scenario before the outputs when quitting', async () => {
+    const stopped: string[] = [];
+    fakes.scenarioStop.mockImplementation(() => {
+      stopped.push('soak scenario');
+    });
+    fakes.outputsStop.mockImplementation(() => {
+      stopped.push('outputs');
+    });
+    fakes.uiDispose.mockResolvedValue(undefined);
+    fakes.soakStop.mockResolvedValue(undefined);
+    fakes.storeDispose.mockResolvedValue(undefined);
+    await startMain();
+
+    beforeQuit();
+
+    await vi.waitFor(() => {
+      expect(fakes.electron.app.quit).toHaveBeenCalled();
+    });
+    expect(stopped).toEqual(['soak scenario', 'outputs']);
   });
 
   it('quits when the last window closes, through the same shutdown', async () => {
