@@ -104,19 +104,15 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (27eab54): reviewer (Codex, codex3) Request changes: the test checked
+  only hard-coded file names, so a broken URL or a stale font copy would pass.
+  Lead approved keeping a copy in design/system.
+- Round 2 (db0797b): reviewer (Codex, codex3) Approve, no findings: the node
+  test reads the real @font-face URL and compares the font's bytes with the
+  pinned package. Lead Approve; this fixes qa's M1-6. Rebased by the lead onto
+  local `main` without conflicts.
 
 ## Team member's reply
 
