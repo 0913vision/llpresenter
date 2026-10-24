@@ -115,8 +115,61 @@ The SessionStart hook in `.claude/settings.json`. It prints a session's role,
 notes, git state, and `docs/STATUS.md` at every start, resume, and compaction.
 The lead owns it.
 
+## Pre-push check
+
+`npm ci` runs the `prepare` script (`scripts/hooks/install.mts`), which sets
+`core.hooksPath` to `.githooks` in this repository's config, never the global
+one. From then on, git runs `.githooks/pre-push` (Git Bash on Windows) before
+every push. For a push that updates `main`, it stops the push with a one-line
+reason when:
+
+- the pushed commit isn't checked out, or the working tree has changes, because
+  verify runs on the checked-out tree,
+- `origin` has a commit this clone lacks (pull the version bot commit first),
+- a pushed commit message isn't `tag(scope): sentence` or the bot's exact
+  `Bump version: x.y.z`, or has a body or trailers, or
+- `npm run verify` fails.
+
+Pushes of tags and other branches pass without a check.
+
+## Version bot
+
+After `verify` passes on a push to `main`, the `bump` job in `ci.yml` runs
+`node scripts/version/run.mts --before <sha>`. It commits `Bump version: x.y.z`
+as `github-actions[bot]`, tags `vx.y.z` (annotated), and pushes both together
+with the default `GITHUB_TOKEN`. Pushes made with that token don't start another
+run.
+
+- The version lives only in `package.json` and `package-lock.json`, because
+  Electron's `app.getVersion()` reads it.
+- `break`, `feat`, and `refactor` raise the minor version. `fix`, `style`,
+  `chore`, and `docs` raise the patch version. A push with any minor-type commit
+  raises the minor version. A message that breaks the format counts as a patch
+  change.
+- The major version goes up only when someone runs the workflow by hand
+  (`workflow_dispatch`) with `major` checked, after the user approves.
+- The bot counts the commits since the last `v*` tag. Before the first tag, it
+  counts the pushed range, or the whole history when the range is unknown. When
+  only bump commits are new, it does nothing.
+- `Bump version: x.y.z` is the one exception to the commit message format, and
+  only the bot writes it. The script commits only in GitHub Actions.
+- To see the next version locally: `node scripts/version/run.mts --dry-run`.
+
+### Landing on `main` with the bot
+
+The bot adds a commit to `main` on GitHub after each push. Before the next
+merge, the lead brings it in:
+
+```bash
+git pull --ff-only origin main
+```
+
+If the lead merges first, local `main` and `origin/main` diverge, and the
+pre-push check stops the push with "pull the version bot commit first". Merge
+commits and rewriting `main` aren't allowed, so pull before every merge.
+
 ## CI
 
 `.github/workflows/ci.yml` runs `npm ci` and `npm run verify` on Windows when
 `main` is pushed, and on demand (`workflow_dispatch`). It caches npm and the
-Electron download.
+Electron download. The `bump` job above runs after it on `main`.
