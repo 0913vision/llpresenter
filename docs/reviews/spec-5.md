@@ -2,7 +2,7 @@
 
 - Team member: `spec`
 - Branch: `docs/spec/decided-shortcuts`, from `main` (not stacked)
-- Base commit (`main`): `3afbb50`
+- Base commit (`main`): `4aa7901`
 - Shared files changed: none
 - Last commit: see the commit that adds this file
 - Related request: the lead's message of October 25 (M3-W1, second part)
@@ -22,7 +22,7 @@ Codex (codex4) requested changes:
 2. **TextField (nit).** Item 7 of the ui list now names the `TextField` README's
    key input field next to `KeyCap`.
 
-The branch is rebased once onto the latest `main`.
+The branch is rebased once onto `4aa7901`.
 
 ### Round 1
 
