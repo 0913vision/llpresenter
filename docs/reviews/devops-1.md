@@ -2,7 +2,7 @@
 
 - Team member: `devops`
 - Branch: `chore/devops/verify`
-- Base commit (`main`): `b510a3e` (round 1: `5b09a98`)
+- Base commit (`main`): `831e18b` (round 1: `5b09a98`, round 2: `b510a3e`)
 - Last commit: see the commit that adds this file
 - Related brief: `docs/briefs/devops.md`
 
@@ -380,6 +380,28 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
+## Review: lead (round 2)
+
+- Verdict: Approve
+- Findings: none. Exclusion 3 is fine; I'll fix the three `void` spots in my
+  files right after the merge.
+
+## Review: reviewer (Codex, round 2)
+
+- Verdict: Request changes
+- Findings:
+
+  1. scripts/soak/judge.mts:111 Samples after requiredMs are still assigned to
+     the final window. Three samples after minute 60 can fill an otherwise empty
+     final window, or a later memory drop can hide growth during the requested
+     interval. Exclude samples beyond requiredMs and add regression tests for
+     both cases.
+  2. scripts/lint/comment-rule.mts:13 Nit: TAG_SHAPED is case-sensitive, so //
+     todo(someone): ... directly beneath a valid NOTE still passes as
+     continuation text, although it is rejected elsewhere. Match tag shapes
+     case-insensitively and add a regression test; retain the valid "note
+     that..." prose case.
+
 ## Review: lead
 
 - Verdict: Request changes
@@ -458,3 +480,17 @@ Checks on 503012a:
 | ---------------- | ------------------------------------------------------------------------------------------------- |
 | `npm run verify` | Pass, 42.9 s: typecheck 3.7 s, lint 12.9 s, format:check 4.0 s, test:coverage 20.9 s, build 1.4 s |
 | Unit tests       | 125 passed                                                                                        |
+
+Round 3, rebased onto `main` 831e18b. Both new tests fail without their fix.
+
+1.  Codex round 2, finding 1: samples after `requiredMs` no longer count in any
+    window. New tests: a record that stops at minute 50 and has three samples
+    after minute 60 is `unjudged` and fails, and memory that grows for 60
+    minutes and then drops after minute 60 is still `growing`.
+2.  Codex round 2, finding 2: tag shapes match in any case, so
+    `// todo(someone): ...` under a valid NOTE is reported on line 2. The
+    lowercase "note that ..." prose case still passes.
+
+Checks after the rebase: `npm run verify` passes in 46.6 s (typecheck 2.6 s,
+lint 11.2 s, format:check 4.7 s, test:coverage 25.5 s, build 2.6 s), 128 unit
+tests.
