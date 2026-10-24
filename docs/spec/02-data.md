@@ -603,7 +603,8 @@ Rules (proposal):
   개역한글 this also follows the Korean Bible Society's condition to keep the
   text unchanged and name the author (see "Candidate text sources").
 - A verse that a translation leaves out is an empty string, so verse numbers
-  stay aligned with their index.
+  stay aligned with their index. "Omitted verses" says how lookup and display
+  treat it.
 - A file may leave out books (for example a New Testament only file). A
   reference to a missing book shows the error ring with the reason "이 역본에
   없는 책입니다" (this translation doesn't have this book).
@@ -624,27 +625,72 @@ Rules (proposal):
 
 ### Reference grammar (proposal)
 
-The 퀵 실행 Bible field (04) accepts these forms, with or without a space
-between the book and the numbers:
+The 퀵 실행 Bible field (04) accepts these forms. Each form has a colon form and
+a Korean form with 장 and 절; one reference uses one of them throughout, so a
+mixed reference such as "요 3:16-4장 2절" is invalid. Spaces between the book,
+the numbers, and the separators are optional ("요3:16", "요한복음3장16절"), and
+"~" works like "-" ("요 3:16~18").
 
-| Form                              | Example     | Meaning                 |
-| --------------------------------- | ----------- | ----------------------- |
-| Book, chapter                     | 요 3        | The whole chapter       |
-| Book, chapter:verse               | 요 3:16     | One verse               |
-| Book, chapter:verse-verse         | 요 3:16-18  | A range in one chapter  |
-| Book, chapter:verse-chapter:verse | 요 3:16-4:2 | A range across chapters |
+| Form                  | Colon form  | Korean form         | Meaning                      |
+| --------------------- | ----------- | ------------------- | ---------------------------- |
+| Whole chapter         | 요 3        | 요 3장              | Every verse of chapter 3     |
+| One verse             | 요 3:16     | 요 3장 16절         | Verse 16 of chapter 3        |
+| Range in one chapter  | 요 3:16-18  | 요 3장 16-18절      | Verses 16 to 18 of chapter 3 |
+| Range across chapters | 요 3:16-4:2 | 요 3장 16절-4장 2절 | From 3:16 through 4:2        |
 
 - The book part follows "Book matching" in the table above. An exact match wins;
   otherwise one partial match is used; several partial matches go to the
   suggestion list, where the operator picks one (04).
-- A Korean form with 장 and 절 is also accepted, for example "요 3장 16-18절".
-- An end verse past the end of its chapter stops at the chapter's last verse. A
-  start verse or chapter that doesn't exist is invalid, and the field shows the
-  error ring with "알아볼 수 없는 구절입니다" (04).
-- The normalized `ref` of a Bible passage object uses the full Korean book name,
-  for example "요한복음 3:16-18", so the same grammar reads it back.
+- Chapter and verse numbers are whole numbers from 1. Anything else is invalid.
+
+Endpoint and order rules, checked against the chosen translation's file:
+
+| Case                                         | Result                                       | Example (요한복음 has 21 chapters, and its chapter 3 has 36 verses) |
+| -------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------- |
+| The start chapter doesn't exist              | Invalid                                      | 요 22:1                                                             |
+| The start verse doesn't exist in its chapter | Invalid                                      | 요 3:40                                                             |
+| The end verse is before the start verse      | Invalid (reversed)                           | 요 3:18-16                                                          |
+| The end chapter is before the start chapter  | Invalid (reversed)                           | 요 4:2-3:16                                                         |
+| The end chapter doesn't exist                | Invalid                                      | 요 3:16-22:1                                                        |
+| The end verse is past the end of its chapter | The range stops at that chapter's last verse | 요 3:16-99 becomes 요 3:16-36                                       |
+| The end chapter equals the start chapter     | Read as a range in one chapter               | 요 3:16-3:18 becomes 요 3:16-18                                     |
+| The end verse equals the start verse         | Read as one verse                            | 요 3:16-16 becomes 요 3:16                                          |
+
+- An invalid reference shows the error ring with the reason in a tooltip (04):
+  "알아볼 수 없는 구절입니다" (passage not recognized) for a form the grammar
+  doesn't accept, "없는 장입니다" (no such chapter) or "없는 절입니다" (no such
+  verse) for an endpoint that doesn't exist, and "구절 순서가 거꾸로입니다" (the
+  passage is reversed) for a reversed range (proposal for the wording).
+- The normalized `ref` of a Bible passage object uses the colon form and the
+  full Korean book name, after these rules: "요한복음 3", "요한복음 3:16",
+  "요한복음 3:16-18", "요한복음 3:16-4:2". The same grammar reads it back.
 - The reference drawn on a 장 uses the book name in the translation's language:
   요한복음 3:16 for 개역한글, John 3:16 for KJV.
+
+### Omitted verses (proposal)
+
+A translation file keeps an empty string for a verse that the translation leaves
+out, so every other verse keeps its original number. Lookup and display skip
+those verses and never renumber the rest:
+
+- **One verse.** A reference to one omitted verse is invalid, with the reason
+  "이 역본에는 없는 절입니다" (this translation doesn't have this verse) in the
+  tooltip. The operator can choose another translation. The app never outputs a
+  blank 장.
+- **A range or a whole chapter.** The omitted verses are left out, and the
+  others keep their numbers. If verse 3 of a chapter is omitted, "1-5" gives
+  verses 1, 2, 4, and 5, shown with those numbers. The passage's reference keeps
+  the range as typed, 1-5. A range in which every verse is omitted is invalid,
+  with the same reason as one verse.
+- **Splitting into 장.** 나누기 counts only the verses that are there: 한 장에
+  한 절 makes no 장 for an omitted verse; 두 절씩 pairs the verses that are
+  there (1 and 2, then 4 and 5); 길이에 맞춤 just has fewer lines.
+- **References on 장.** With 참조 set to 장마다, each 장 shows the verses it
+  holds by their original numbers: the 장 with verses 4 and 5 shows the range
+  4-5.
+- **Endpoints.** An endpoint that names an omitted verse still counts as an
+  existing verse for the endpoint rules above, because the verse exists in the
+  numbering.
 
 ### Candidate text sources (for the user's choice)
 
