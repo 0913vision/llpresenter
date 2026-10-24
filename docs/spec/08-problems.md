@@ -12,17 +12,17 @@ tools). See 01.
 
 ## Problem states
 
-| Problem                    | Where it shows                                                                                                                         | What keeps working                                      | How the operator fixes it                                                                 | Source                           |
-| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------- |
-| Output monitor lost        | Toolbar button (amber dot and icon), status bar ("무대 화면 창으로 표시 중"), amber outline on the preview frame, warning notification | The output continues in a window on the control monitor | 모니터 다시 찾기 (find monitor again), 창 보기 (show window), or reconnecting the monitor | `Problems`                       |
-| Media file missing         | Media tile, background select in the 장 panel header, 예배 순서 row, 표시 중 row                                                       | The output holds a still frame                          | Clicking the tile, or 다시 연결 (relink)                                                  | `Problems`, `MediaTile` README   |
-| Output window crashed      | Log file. A notification only if the restart fails (proposal).                                                                         | The main process opens the window again                 | Automatic                                                                                 | `docs/TECH.md` process structure |
-| Control window crashed     | Nothing on the outputs                                                                                                                 | The outputs keep their picture                          | The main process reloads the control window (proposal)                                    | `docs/TECH.md`                   |
-| App crashed                | 출력 상태 복구 dialog at the next launch                                                                                               | Songs, services, and settings are already saved         | 복구 (restore) or 새로 시작 (start fresh)                                                 | `Recovery`                       |
-| Frame rate dropped         | Status bar, amber dot and text ("방송 자막 41fps")                                                                                     | Output continues                                        | None in the UI. The cause needs a fix in the app.                                         | `StatusBar` README               |
-| Save failed                | Warning notification "저장할 수 없음" (can't save) (proposal)                                                                          | The content stays in memory                             | 다시 시도 (try again)                                                                     | 02                               |
-| File can't be read         | Warning notification, and a log entry                                                                                                  | The app skips that file and keeps running               | Fix or remove the file                                                                    | `docs/TECH.md` storage           |
-| Song of an item is missing | Warning icon on the 예배 순서 row, tooltip "곡을 찾을 수 없습니다" (song not found). The item has no 장 (proposal).                    | Other items                                             | Fill the item again or delete it                                                          | Proposal                         |
+| Problem                    | Where it shows                                                                                                                         | What keeps working                                                                                                     | How the operator fixes it                                                                 | Source                                      |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------- |
+| Output monitor lost        | Toolbar button (amber dot and icon), status bar ("무대 화면 창으로 표시 중"), amber outline on the preview frame, warning notification | The output continues in a window on the control monitor                                                                | 모니터 다시 찾기 (find monitor again), 창 보기 (show window), or reconnecting the monitor | `Problems`                                  |
+| Media file missing         | Media tile, background select in the 장 panel header, 예배 순서 row, 표시 중 row                                                       | The output holds a still frame                                                                                         | Clicking the tile, or 다시 연결 (relink)                                                  | `Problems`, `MediaTile` README              |
+| Output window crashed      | Log file. After 3 crashes in 60 seconds, a warning notification and an amber outline on the preview frame                              | The main process loads the window again; at the limit, the window shows an empty picture and retries after a cool-down | Automatic, or 다시 시도 (try again)                                                       | `docs/TECH.md` process structure, lead rule |
+| Control window crashed     | Nothing on the outputs                                                                                                                 | The outputs keep their picture                                                                                         | The main process reloads the control window (proposal)                                    | `docs/TECH.md`                              |
+| App crashed                | 출력 상태 복구 dialog at the next launch                                                                                               | Songs, services, and settings are already saved                                                                        | 복구 (restore) or 새로 시작 (start fresh)                                                 | `Recovery`                                  |
+| Frame rate dropped         | Status bar, amber dot and text ("방송 자막 41fps")                                                                                     | Output continues                                                                                                       | None in the UI. The cause needs a fix in the app.                                         | `StatusBar` README                          |
+| Save failed                | Warning notification "저장할 수 없음" (can't save) (proposal)                                                                          | The content stays in memory                                                                                            | 다시 시도 (try again)                                                                     | 02                                          |
+| File can't be read         | Warning notification, and a log entry                                                                                                  | The app skips that file and keeps running                                                                              | Fix or remove the file                                                                    | `docs/TECH.md` storage                      |
+| Song of an item is missing | Warning icon on the 예배 순서 row, tooltip "곡을 찾을 수 없습니다" (song not found). The item has no 장 (proposal).                    | Other items                                                                                                            | Fill the item again or delete it                                                          | Proposal                                    |
 
 ## Lost monitor
 
@@ -89,16 +89,63 @@ README, `Notification` README.
 
 ## Output window crash
 
+### Restarting
+
 - When an output window's renderer process dies (`render-process-gone`), the
-  main process opens the window again on the same target within 1 second and
-  sends it the current output state (proposal for the time). A background plays
-  again from its current position (proposal).
-- Write a log entry. Don't show a notification if the restart works (proposal).
-- If the same output window dies 3 times within one minute, stop restarting it
-  and show the warning notification "본 화면 출력 창을 다시 띄울 수 없음" (can't
-  reopen the main screen output window) with 다시 시도 (try again) (proposal).
+  main process loads the page again in the same window, on the same target, and
+  sends it the current output state. A background plays again from its current
+  position (proposal).
+- The target for the picture to come back is 1 second (proposal). Observation:
+  qa measured about 1.2 seconds in the built app while testing output-1
+  (reported to the lead, October 25, 2026).
+- Write a log entry for every crash, with the reason and the exit code that
+  `render-process-gone` gives. Don't show a notification while restarts work
+  (proposal).
 - Output windows never show error UI of their own. On a drawing error, they keep
   the last good picture.
+
+### The restart limit (lead rule)
+
+If the same output window dies 3 times within 60 seconds, the main process stops
+the quick restarts:
+
+1. The window stays shown, at its place and size, and shows the screen's empty
+   picture: black (`output-black`) for a screen on a monitor or in a window, and
+   the chroma color for the 방송 자막 capture window, which OBS keys out. The
+   audience never sees the desktop, another window, or a white page. Every
+   output window gets this color as its native background when it's created, so
+   the window paints it even while no page is loaded.
+2. The main process logs the limit at error level.
+3. After a cool-down, the main process tries again: it loads the page and sends
+   the current output state. The cool-down is 10 seconds before the first
+   attempt and doubles after each attempt that dies again within 60 seconds, up
+   to 60 seconds (10, 20, 40, 60, 60, and so on) (proposal). A short first wait
+   recovers quickly from a brief cause, such as a graphics driver reset; the
+   longer waits keep a crash that repeats from loading the computer or
+   flickering the screen, and the attempts never stop during a service.
+4. A window that runs 60 seconds without dying ends the limit: the count of
+   crashes and the cool-down start over (proposal).
+
+While the limit holds:
+
+- The warning notification "본 화면 출력 창을 다시 띄울 수 없음" (can't reopen
+  the main screen output window) shows, with the detail "빈 화면으로 표시 중"
+  (showing an empty screen) and the action 다시 시도 (try again). 다시 시도
+  starts an attempt at once; if it dies, the next cool-down follows (proposal).
+- The screen's preview frame gets the amber outline, with the tooltip "출력 창을
+  다시 띄울 수 없어 빈 화면으로 표시 중" (output window can't be reopened,
+  showing an empty screen), because the preview draws the live state while the
+  audience sees the empty picture (proposal).
+- Turning the output off hides the window and stops the attempts. Turning it on
+  again starts an attempt at once.
+- When an attempt works, the warning card turns into the information card "본
+  화면 출력 창 다시 띄움" (main screen output window reopened), which closes
+  after 6 seconds, and the amber outline goes away (proposal).
+- Each attempt, its result, and the end of the limit are logged.
+
+Source: `docs/TECH.md` process structure, the lead's rule in
+`docs/reviews/output-1.md` (round 3), `PreviewFrame` README (warning state),
+`Notification` README.
 
 ## Control window crash (proposal)
 
@@ -198,14 +245,15 @@ Source: `Recovery`, `AlertDialog` README, `Checkbox` README, `Main` decision
 
 ### What uses notifications in version 1
 
-| Event                                         | Kind        |
-| --------------------------------------------- | ----------- |
-| Output monitor disconnected                   | Warning     |
-| Output monitor reconnected                    | Information |
-| Save failed (proposal)                        | Warning     |
-| A file can't be read and was skipped          | Warning     |
-| Backup location unavailable (proposal)        | Warning     |
-| An output window can't be reopened (proposal) | Warning     |
+| Event                                                | Kind        |
+| ---------------------------------------------------- | ----------- |
+| Output monitor disconnected                          | Warning     |
+| Output monitor reconnected                           | Information |
+| Save failed (proposal)                               | Warning     |
+| A file can't be read and was skipped                 | Warning     |
+| Backup location unavailable (proposal)               | Warning     |
+| An output window can't be reopened (proposal)        | Warning     |
+| An output window reopened after the limit (proposal) | Information |
 
 Don't use notifications for problems of one item (they show in place) or for the
 results of the operator's own actions.

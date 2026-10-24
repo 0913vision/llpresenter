@@ -201,9 +201,59 @@ README, `Main` decision "구성대로 진행".
 
 ## Preview panel
 
+ProPresenter's main window has one Preview window at the top right. It shows the
+output of one screen, chosen with the arrow below it (Audience or Stage), and
+the clear buttons sit next to it (ProPresenter 7.5 user guide, pp. 24 to 25).
+This app shows the three screens at once, one large and two small (`ShowH`), and
+each preview follows ProPresenter's rule: it shows what goes out.
+
+### What a preview shows
+
+- Each preview shows what that screen's output shows now: every layer, drawn by
+  the same rendering code with the current Look, the lyric style or stage
+  layout, and the transitions (03). ProPresenter's Preview window likewise shows
+  the output (guide p. 24).
+- A preview follows the live output, never the selection. A click on a 장
+  outputs it (03), so the previews change at the same moment as the outputs.
+  Moving the selected tile with the keyboard, opening another 예배 순서 item in
+  the 장 panel, or opening the Bible panel changes no preview until something
+  goes out. ProPresenter has no step between choosing a slide and showing it: a
+  click shows the slide, and the active slide is outlined in the grid (guide pp.
+  12, 70).
+- No preview shows the next 장 as a separate picture. The next 장 appears only
+  where the stage layout has a next lyrics element: on the 무대 화면 and in its
+  preview (03, "무대 화면 and stage layouts"). ProPresenter does the same: Next
+  Slide is a stage layout object (guide p. 41), and its main window has no next
+  slide preview (guide pp. 24 to 26).
+- A layer that the current Look hides on a screen doesn't show in that screen's
+  preview (03, "Looks"). For example, the 방송 자막 preview never shows 공지,
+  소품, or 메시지.
+- Previews draw at the 미리보기 rate, 30 fps by default (03). A dissolve can
+  look less smooth than on the output; the content is the same.
+
+### Clears in the previews
+
+- A clear removes its layer from the previews at the same moment as from the
+  outputs, at once (03). The other layers stay. For example, after 가사 (F2) the
+  본 화면 preview shows the background without the lyrics.
+- When every layer of a screen is clear, its preview shows the empty picture:
+  black (`output-black`) for the 본 화면 and the 무대 화면, and green for the
+  방송 자막. The 무대 화면 keeps the stage layout elements that no clear
+  touches: the clock, the 타이머, and the stage message (03, "Clear buttons and
+  shortcuts").
+- 되돌림 (Ctrl Z) brings the layer back in the previews and the outputs
+  together.
+- The clear buttons show which layers have something to clear (`ClearButton`
+  README). ProPresenter turns a clear button red when its layer has content
+  (guide p. 25); this app shows it with brightness, because red is only for 출력
+  (design system README).
+
+### Layout and states
+
 - The panel shows one of the three screens large and the other two small. The
   small ones are always in the order 본 화면, 무대 화면, 방송 자막, without the
-  large one.
+  large one. ProPresenter shows one screen at a time; the small previews are
+  this app's addition for several screens (product log, 2026-10-24).
 - Clicking a small preview makes it large and moves the large one to the small
   row, with no transition. The large preview isn't clickable. The app remembers
   which screen was large.
@@ -212,11 +262,18 @@ README, `Main` decision "구성대로 진행".
   to that screen now (for the 무대 화면, the stage layout name). The design
   system calls this spot the "Look name", but the board values are "기본",
   "현재와 다음", and "하단 자막" (open question).
-- A screen whose output is off keeps its picture, with a dim name. A screen with
-  a lost monitor has an amber outline. Tooltips give the reasons.
+- A screen whose output is off keeps its picture and keeps following the live
+  state, so the operator sees what goes out when the output turns on again (03,
+  `PreviewFrame` README). Its name is dim.
+- A screen with a lost monitor, or an output window that can't be reopened, has
+  an amber outline (08). Tooltips give the reasons.
+- A background that froze because its file is missing shows the same still frame
+  as the output, with the marks in 08.
 - The 방송 자막 frame has a green background.
 
-Source: `ShowH`, `PreviewFrame` README, `Problems`.
+Source: `ShowH`, `PreviewFrame` README, `Problems`, ProPresenter 7.5 user guide
+(S4 in 10: Preview window pp. 24 to 26, Grid View p. 12, triggering slides p.
+70, stage layout objects p. 41).
 
 ## Clear row
 

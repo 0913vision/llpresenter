@@ -390,20 +390,23 @@ Rules this precedence replaces or narrows:
 
 ### Reserved keys
 
-The key field doesn't accept these, and its tooltip gives the reason (decided):
+The key field doesn't accept these. It keeps recording, shows the error ring,
+and gives the reason in a tooltip (decided). The tooltip is one short phrase in
+the form "(용도)에 쓰는 키" (the key for a purpose), like the conflict tooltip
+"(명령)과 겹침" of the `KeyCap` README (approved by the lead, 2026-10-25).
 
-| Keys                                                                               | Reason                                                        |
-| ---------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| Tab, Shift Tab                                                                     | Keyboard focus moves                                          |
-| Esc                                                                                | Cancels (dialogs, menus, drags, the key field itself)         |
-| Enter alone                                                                        | Primary button in dialogs, activation in lists                |
-| Backspace alone                                                                    | Removes the shortcut in the key field (`TextField` README)    |
-| Alt alone, F10 alone                                                               | Focus the menu bar (`MenuBar` README)                         |
-| Shift F10, the Menu key                                                            | Open the right-click menu (`Menu` README, 07)                 |
-| Ctrl X, C, V, A                                                                    | Text editing                                                  |
-| Alt F4, Alt Tab, Ctrl Esc, Ctrl Alt Delete, Windows key combinations, Print Screen | Windows owns them                                             |
-| 한/영, 한자, and any key with an empty `code`                                      | Input method keys (S13)                                       |
-| Bare letters and digits                                                            | 이름표 jump keys (set in the 이름표 list or the 이름표 group) |
+| Keys                                                                               | Reason                                                        | Tooltip                    |
+| ---------------------------------------------------------------------------------- | ------------------------------------------------------------- | -------------------------- |
+| Tab, Shift Tab                                                                     | Keyboard focus moves                                          | 포커스 이동에 쓰는 키      |
+| Esc                                                                                | Cancels (dialogs, menus, drags, the key field itself)         | 취소에 쓰는 키             |
+| Enter alone                                                                        | Primary button in dialogs, activation in lists                | 확인과 실행에 쓰는 키      |
+| Backspace alone                                                                    | Removes the shortcut in the key field (`TextField` README)    | 단축키 지우기에 쓰는 키    |
+| Alt alone, F10 alone                                                               | Focus the menu bar (`MenuBar` README)                         | 메뉴 막대에 쓰는 키        |
+| Shift F10, the Menu key                                                            | Open the right-click menu (`Menu` README, 07)                 | 오른쪽 클릭 메뉴에 쓰는 키 |
+| Ctrl X, C, V, A                                                                    | Text editing                                                  | 글자 편집에 쓰는 키        |
+| Alt F4, Alt Tab, Ctrl Esc, Ctrl Alt Delete, Windows key combinations, Print Screen | Windows owns them                                             | Windows가 쓰는 키          |
+| 한/영, 한자, and any key with an empty `code`                                      | Input method keys (S13)                                       | 입력기에 쓰는 키           |
+| Bare letters and digits                                                            | 이름표 jump keys (set in the 이름표 list or the 이름표 group) | 이름표 바로 가기에 쓰는 키 |
 
 ### Conflicts
 

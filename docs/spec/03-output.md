@@ -437,9 +437,10 @@ README, `PreviewFrame` README, `Screens` (연결이 끊기면: 창으로 바꾸�
 
 ## When an output window crashes
 
-If an output window's renderer process dies, the main process opens the window
-again and sends it the current output state, so it draws the same picture again.
-See 08.
+If an output window's renderer process dies, the main process loads the page
+again in the same window and sends it the current output state, so it draws the
+same picture again. After 3 crashes in 60 seconds, the window shows the screen's
+empty picture and the main process retries after a cool-down. See 08.
 
 ## Recording and restoring the output state
 
