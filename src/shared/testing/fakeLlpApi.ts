@@ -1,4 +1,5 @@
-import type {LlpApi} from '../ipc';
+import type {DocumentApi, LlpApi} from '../ipc';
+import type {EditResult} from '../schema/contentEdit';
 import {emptyLiveState} from '../live';
 
 /** The members a test replaces, part by part. */
@@ -38,5 +39,31 @@ export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
       subscribe: () => () => undefined,
       ...overrides.service,
     },
+    content: {edit: () => Promise.resolve(NOT_FOUND), ...overrides.content},
+    songs: {...emptyDocuments(), ...overrides.songs},
+    services: {...emptyDocuments(), ...overrides.services},
+    templates: {...emptyDocuments(), ...overrides.templates},
+  };
+}
+
+const NOT_FOUND: EditResult = {
+  ok: false,
+  error: {
+    reason: 'not-found',
+    message: 'fakeLlpApi has no data',
+    unchangedFiles: [],
+  },
+};
+
+function emptyDocuments<TEntry, TDocument, TChange>(): DocumentApi<
+  TEntry,
+  TDocument,
+  TChange
+> {
+  return {
+    list: () => Promise.resolve([]),
+    get: () => Promise.resolve(null),
+    subscribeList: () => () => undefined,
+    subscribe: () => () => undefined,
   };
 }

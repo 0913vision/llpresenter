@@ -1,6 +1,23 @@
 import {contextBridge, ipcRenderer, type IpcRendererEvent} from 'electron';
-import {Channels, type LlpApi, type Unsubscribe} from '@shared/ipc';
+import {
+  Channels,
+  type DocumentApi,
+  type LlpApi,
+  type Unsubscribe,
+} from '@shared/ipc';
 import type {Result} from '@shared/result';
+import {
+  parseLibrarySongs,
+  parseServiceChange,
+  parseServiceDocument,
+  parseServiceEntries,
+  parseSongChange,
+  parseSongDocument,
+  parseTemplateChange,
+  parseTemplateDocument,
+  parseTemplateEntries,
+} from '@shared/schema/contentDocuments';
+import {parseEditResult} from '@shared/schema/contentEdit';
 import {RENDERER_LOG_LIMITS} from '@shared/schema/ipcPayloads';
 import {parseLiveState} from '@shared/schema/liveState';
 import type {PayloadError} from '@shared/schema/payload';
@@ -32,8 +49,12 @@ function listen<T>(
 // NOTE(0913vision): A failed call or a malformed reply is logged and rejects,
 // so a window never takes a failed read for a real answer, such as "no 예배
 // 순서" or an empty live state, and keeps what it shows until a push.
-async function invokeChecked<T>(channel: string, parse: Parse<T>): Promise<T> {
-  const reply = await invokeSafely(channel);
+async function invokeChecked<T>(
+  channel: string,
+  parse: Parse<T>,
+  ...args: readonly unknown[]
+): Promise<T> {
+  const reply = await invokeSafely(channel, args);
   const parsed = reply.ok ? parse(reply.value) : reply;
   if (parsed.ok) {
     return parsed.value;
@@ -44,9 +65,10 @@ async function invokeChecked<T>(channel: string, parse: Parse<T>): Promise<T> {
 
 async function invokeSafely(
   channel: string,
+  args: readonly unknown[],
 ): Promise<Result<unknown, PayloadError>> {
   try {
-    const value: unknown = await ipcRenderer.invoke(channel);
+    const value: unknown = await ipcRenderer.invoke(channel, ...args);
     return {ok: true, value};
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
@@ -64,6 +86,29 @@ function logBadReply(channel: string, error: PayloadError): void {
 
 function describe({field, message}: PayloadError): string {
   return field === '' ? message : `${field}: ${message}`;
+}
+
+interface DocumentChannels<TEntry, TDocument, TChange> {
+  readonly list: string;
+  readonly listChanged: string;
+  readonly get: string;
+  readonly changed: string;
+  readonly parseList: Parse<readonly TEntry[]>;
+  readonly parseDocument: Parse<TDocument | null>;
+  readonly parseChange: Parse<TChange>;
+}
+
+function documentApi<TEntry, TDocument, TChange>(
+  channels: DocumentChannels<TEntry, TDocument, TChange>,
+): DocumentApi<TEntry, TDocument, TChange> {
+  return {
+    list: () => invokeChecked(channels.list, channels.parseList),
+    get: id => invokeChecked(channels.get, channels.parseDocument, id),
+    subscribeList: listener =>
+      listen(channels.listChanged, channels.parseList, listener),
+    subscribe: listener =>
+      listen(channels.changed, channels.parseChange, listener),
+  };
 }
 
 const api: LlpApi = {
@@ -97,6 +142,36 @@ const api: LlpApi = {
     subscribe: listener =>
       listen(Channels.serviceChanged, parseShowService, listener),
   },
+  content: {
+    edit: edit => invokeChecked(Channels.contentEdit, parseEditResult, edit),
+  },
+  songs: documentApi({
+    list: Channels.songsList,
+    listChanged: Channels.songsListChanged,
+    get: Channels.songsDocumentGet,
+    changed: Channels.songsDocumentChanged,
+    parseList: parseLibrarySongs,
+    parseDocument: parseSongDocument,
+    parseChange: parseSongChange,
+  }),
+  services: documentApi({
+    list: Channels.servicesList,
+    listChanged: Channels.servicesListChanged,
+    get: Channels.servicesDocumentGet,
+    changed: Channels.servicesDocumentChanged,
+    parseList: parseServiceEntries,
+    parseDocument: parseServiceDocument,
+    parseChange: parseServiceChange,
+  }),
+  templates: documentApi({
+    list: Channels.templatesList,
+    listChanged: Channels.templatesListChanged,
+    get: Channels.templatesDocumentGet,
+    changed: Channels.templatesDocumentChanged,
+    parseList: parseTemplateEntries,
+    parseDocument: parseTemplateDocument,
+    parseChange: parseTemplateChange,
+  }),
 };
 
 contextBridge.exposeInMainWorld('llp', api);

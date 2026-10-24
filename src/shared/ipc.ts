@@ -1,4 +1,16 @@
 import type {LiveCommand} from './commands';
+import type {
+  LibrarySong,
+  ServiceChange,
+  ServiceDocument,
+  ServiceEntry,
+  SongChange,
+  SongDocument,
+  TemplateChange,
+  TemplateDocument,
+  TemplateEntry,
+} from './schema/contentDocuments';
+import type {ContentEdit, EditResult} from './schema/contentEdit';
 import type {LiveState} from './live';
 import type {FrameRateReport, RendererLogEntry} from './schema/ipcPayloads';
 import type {OutputStatuses} from './schema/outputStatus';
@@ -19,6 +31,19 @@ export const Channels = {
   outputStatusGet: 'output:status:get',
   outputStatusChanged: 'output:status:changed',
   outputRetry: 'output:retry',
+  contentEdit: 'content:edit',
+  songsList: 'songs:list',
+  songsListChanged: 'songs:list:changed',
+  songsDocumentGet: 'songs:document:get',
+  songsDocumentChanged: 'songs:document:changed',
+  servicesList: 'services:list',
+  servicesListChanged: 'services:list:changed',
+  servicesDocumentGet: 'services:document:get',
+  servicesDocumentChanged: 'services:document:changed',
+  templatesList: 'templates:list',
+  templatesListChanged: 'templates:list:changed',
+  templatesDocumentGet: 'templates:document:get',
+  templatesDocumentChanged: 'templates:document:changed',
 } as const;
 
 export type WindowAction = 'minimize' | 'toggle-maximize' | 'close';
@@ -101,4 +126,50 @@ export interface LlpApi {
      */
     subscribe(listener: (service: ShowService | null) => void): Unsubscribe;
   };
+  readonly content: {
+    /**
+     * Asks the main process to apply an edit and answers how it went. The
+     * window's draft, such as the text being typed, is its own UI state; its
+     * copy of the document changes only on this answer or on a push. Rejects,
+     * after logging, when the call fails or the answer is malformed.
+     */
+    edit(edit: ContentEdit): Promise<EditResult>;
+  };
+  /** The 라이브러리 songs. Each read rejects, after logging, on a failure. */
+  readonly songs: DocumentApi<LibrarySong, SongDocument, SongChange>;
+  /**
+   * The 예배 순서 files, for 준비 and for switching the open one. `service`
+   * above is the open 예배 순서 as 진행 shows it.
+   */
+  readonly services: DocumentApi<ServiceEntry, ServiceDocument, ServiceChange>;
+  readonly templates: DocumentApi<
+    TemplateEntry,
+    TemplateDocument,
+    TemplateChange
+  >;
+}
+
+/** Reading and following one kind of document: songs, 예배 순서, or 틀. */
+export interface DocumentApi<TEntry, TDocument, TChange> {
+  /** The list, as the 라이브러리 or the 예배 순서 list shows it. */
+  list(): Promise<readonly TEntry[]>;
+  /** One document with its revision, or `null` when there is none. */
+  get(id: string): Promise<TDocument | null>;
+  /**
+   * Calls the listener with the whole list whenever an entry is added,
+   * removed, or changes what the list shows; typing lyrics doesn't change it.
+   *
+   * @returns A function that removes the listener. Always call it.
+   */
+  subscribeList(listener: (entries: readonly TEntry[]) => void): Unsubscribe;
+  /**
+   * Calls the listener once for every change the main process applies to a
+   * document, with its new revision. While someone types, that is as often as
+   * the editor sends its updates; a window that shows a document follows only
+   * the one it shows and skips the change whose revision answered its own
+   * edit.
+   *
+   * @returns A function that removes the listener. Always call it.
+   */
+  subscribe(listener: (change: TChange) => void): Unsubscribe;
 }

@@ -10,6 +10,14 @@ describe('fakeLlpApi', () => {
     await expect(api.ui.get()).resolves.toEqual({});
     await expect(api.service.get()).resolves.toBeNull();
     await expect(api.output.getStatus()).resolves.toEqual({});
+    await expect(api.songs.list()).resolves.toEqual([]);
+    await expect(api.services.get('a')).resolves.toBeNull();
+    await expect(
+      api.content.edit({type: 'song.create'}),
+    ).resolves.toMatchObject({
+      ok: false,
+      error: {reason: 'not-found'},
+    });
     expect(() => {
       api.service.subscribe(() => undefined)();
       api.output.subscribeStatus(() => undefined)();

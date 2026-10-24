@@ -1,6 +1,8 @@
+import * as v from 'valibot';
 import {beforeAll, beforeEach, describe, expect, it, vi} from 'vitest';
 import {Channels, type LlpApi} from '@shared/ipc';
 import {emptyLiveState} from '@shared/live';
+import {songIdSchema} from '@shared/schema/ids';
 
 type Handler = (event: unknown, value: unknown) => void;
 
@@ -48,6 +50,8 @@ beforeEach(() => {
 function isLlpApi(value: unknown): value is LlpApi {
   return typeof value === 'object' && value !== null && 'ui' in value;
 }
+
+const SONG_ID = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
 
 function showService(revision: number) {
   return {
@@ -225,6 +229,86 @@ describe('preload', () => {
     expect(electron.send).toHaveBeenCalledWith(Channels.outputRetry, {
       screenId: 'main',
     });
+  });
+
+  it('sends an edit and passes a valid answer through', async () => {
+    const edit = {
+      type: 'song.delete',
+      songId: v.parse(songIdSchema, SONG_ID),
+    } as const;
+    const answer = {ok: true, value: {id: SONG_ID, revision: null}};
+    electron.invoke.mockResolvedValueOnce(answer);
+
+    await expect(api.content.edit(edit)).resolves.toEqual(answer);
+    expect(electron.invoke).toHaveBeenCalledWith(Channels.contentEdit, edit);
+    expect(loggedErrors()).toEqual([]);
+  });
+
+  it('logs a malformed edit answer and rejects', async () => {
+    electron.invoke.mockResolvedValueOnce({ok: true, value: {id: ''}});
+
+    await expect(api.content.edit({type: 'song.create'})).rejects.toThrow(
+      `Bad reply on ${Channels.contentEdit}`,
+    );
+    expect(loggedErrors()).toHaveLength(1);
+  });
+
+  it('reads a song by its id and the list, and rejects a bad answer', async () => {
+    const song = {
+      song: {
+        format: 'llsong',
+        schemaVersion: 1,
+        id: SONG_ID,
+        title: '만복의 근원 하나님',
+        slides: [{lines: ['만복의 근원 하나님']}],
+      },
+      revision: 1,
+      access: 'editable',
+    };
+    electron.invoke.mockResolvedValueOnce(song);
+    electron.invoke.mockResolvedValueOnce(null);
+    electron.invoke.mockResolvedValueOnce([]);
+    electron.invoke.mockResolvedValueOnce({});
+
+    await expect(api.songs.get(SONG_ID)).resolves.toEqual(song);
+    await expect(api.songs.get(SONG_ID)).resolves.toBeNull();
+    await expect(api.services.list()).resolves.toEqual([]);
+    await expect(api.templates.list()).rejects.toThrow(
+      `Bad reply on ${Channels.templatesList}`,
+    );
+    expect(electron.invoke).toHaveBeenCalledWith(
+      Channels.songsDocumentGet,
+      SONG_ID,
+    );
+  });
+
+  it('passes only valid document changes and lists to subscribers', () => {
+    const changes = vi.fn();
+    const lists = vi.fn();
+    const stopChanges = api.songs.subscribe(changes);
+    const stopLists = api.songs.subscribeList(lists);
+
+    electron.handlers.get(Channels.songsDocumentChanged)?.(
+      {},
+      {
+        songId: SONG_ID,
+        document: null,
+      },
+    );
+    electron.handlers.get(Channels.songsDocumentChanged)?.(
+      {},
+      {document: null},
+    );
+    electron.handlers.get(Channels.songsListChanged)?.({}, []);
+    electron.handlers.get(Channels.songsListChanged)?.({}, {});
+
+    expect(changes.mock.calls).toEqual([[{songId: SONG_ID, document: null}]]);
+    expect(lists.mock.calls).toEqual([[[]]]);
+    expect(loggedErrors()).toHaveLength(2);
+    stopChanges();
+    stopLists();
+    expect(electron.handlers.has(Channels.songsDocumentChanged)).toBe(false);
+    expect(electron.handlers.has(Channels.songsListChanged)).toBe(false);
   });
 
   it('sends layout changes, log entries, and frame rates one way', () => {
