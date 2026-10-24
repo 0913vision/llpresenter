@@ -58,6 +58,9 @@ slower instead of failing it.
   TODO, and the code's author fixes it.
 - Modules that Node loads directly use `.mts`, so Node doesn't warn that
   `package.json` has no `"type"` field.
+- Lint and Prettier skip `electron.vite.config.ts.*.mjs`, the temporary file
+  that electron-vite bundles its config into while `build` runs alongside them
+  in `npm run verify`.
 
 ## `npm test` and `npm run test:coverage`
 
