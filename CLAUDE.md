@@ -190,30 +190,37 @@ without exception.
 
 ## Team member rules
 
-- Work only in your own worktree and branches (`<tag>/<name>/<feature>`, see
-  `docs/WORKFLOW.md`), and change only the files your brief lists as yours.
-- Shared files (`package.json`, `package-lock.json`, `src/shared/`, design
-  tokens) change only when your brief or the lead allows it, and every shared
-  change is listed at the top of your review request. The lead alone edits
-  `CLAUDE.md`, `docs/STATUS.md`, `docs/PLAN.md`, `docs/MILESTONES.md`, and
-  `docs/HANDOFF.md`. The lead manages and doesn't write code; members write all
-  code.
-- Use the dev server port and app data folder that your brief assigns (see the
-  table in `docs/WORKFLOW.md`).
-- Create your own branches. While a branch is in review, keep going on the next
-  task in a branch stacked on it (`docs/WORKFLOW.md`, "Stacked branches").
-- When you finish, write your review request, commit it, and send it to the lead
-  with SendMessage.
-- Never sit idle. While you wait for a review, an answer, or CI, move on to the
-  next item in your brief or milestone (the next request, more tests, reading
-  the spec for the next task). Before you end a turn with something still
-  pending outside your session, set yourself a wakeup with the `loop` skill
-  (self-paced, about every 20 to 30 minutes) to check messages, CI, and your
-  branch and carry on, and stop the loop once nothing is pending.
-- Report to the lead with SendMessage whenever something happens: a step done, a
-  blocker, a surprise, a failing check you didn't cause, or no work left. Short
-  and factual. Don't wait to be asked.
-- When you're blocked, ask the lead instead of guessing at a shared contract.
+These rules are fixed until the current milestone is frozen. The lead changes
+the process only at a milestone boundary, never in the middle of one.
+
+- **Your files:** change only the paths that "File ownership" in
+  `docs/MILESTONES.md` gives you. If you need a change in someone else's path,
+  ask its owner (or the lead) with SendMessage; don't edit it yourself.
+- **Shared contracts:** `src/shared/` and `src/preload/` belong to data. To add
+  a type, an IPC channel, or a command, send data the exact shape; data lands it
+  as a small request first, and you build on it after it merges.
+- **Branches:** create your own (`<tag>/<name>/<feature>`). While one is in
+  review, start the next one stacked on it (`docs/WORKFLOW.md`, "Stacked
+  branches").
+- **Checks:** while you work, run the fast checks on your own files. Before a
+  review request, run `npm run verify` once and record the result; failures from
+  machine load in tests you didn't touch are recorded, not rerun.
+- **Review request:** rebase onto the latest `main` once, resolving conflicts
+  yourself (for `package-lock.json`, take `main`'s file and run `npm install`),
+  then send the request line. Don't paste verdicts; the lead records them.
+  Answer review findings once; nits go into your next branch.
+- **Merging:** only the lead merges, one branch at a time, in the order in
+  "Merge queue" in `docs/STATUS.md`. If `main` moved and your branch rebases
+  without conflicts, the lead does it.
+- **Reporting:** send the lead one short message when you send a request, when
+  you finish a task, when you're blocked, and when you have no work left. The
+  lead gives you the next task. Don't wait silently.
+- Use the dev server port and app data folder from the table in
+  `docs/WORKFLOW.md`. Never let a window or an error dialog appear on the user's
+  screen; check scripts with `node --check` before they start Electron.
+- The lead alone edits `CLAUDE.md` and `docs/` outside `docs/spec/`, `docs/qa/`,
+  `docs/plans/`, and your own `docs/reviews/` files. The lead manages and
+  doesn't write code.
 
 ## Context and compaction
 

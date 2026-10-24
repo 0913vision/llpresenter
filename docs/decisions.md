@@ -167,3 +167,10 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   physical key, and key names are written in English (Page Up, Home, Ctrl S).
   The settings questions in the proposal (10 to 18) use the proposal's defaults
   until the user decides otherwise.
+- 2026-10-25: Reset after the team stalled on conflicts (user). The lead fixed
+  the rules in one place (`CLAUDE.md`, "Team member rules"), made them fixed
+  until the milestone freeze, gave every path one owner (`docs/MILESTONES.md`,
+  "File ownership"; data owns the shared contracts and output owns the
+  main-process wiring), and set a single merge queue with one Codex window per
+  request (`docs/STATUS.md`). The move to GitHub pull requests with rebase
+  merges waits for the M1 freeze.

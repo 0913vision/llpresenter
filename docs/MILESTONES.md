@@ -28,6 +28,27 @@ Bug severity: **blocker** (output stops, data loss, crash), **major** (a feature
 in the criteria doesn't work), **minor** (works with a flaw), **cosmetic** (look
 differs from the design system).
 
+## File ownership
+
+One owner per path. Change only your own paths; ask the owner for anything else.
+Every member owns their own `docs/reviews/<name>-<number>.md`, and a member who
+rebases regenerates `package-lock.json` (take `main`'s file, then
+`npm install`).
+
+| Owner  | Paths                                                                                                                                                                                                                                                                       |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| devops | `.github/`, `.githooks/`, `scripts/` (lint, soak, version, verify, and the SessionStart hook), `test/`, `vitest.config.mts`, `eslint.config.mjs`, `tsconfig*.json`, and the `scripts` and `devDependencies` of `package.json`                                               |
+| data   | `src/shared/` (types, commands, IPC channels, schemas), `src/preload/`, `src/main/store/`, and the `dependencies` of `package.json`                                                                                                                                         |
+| ui     | `src/renderer/src/ui/`, `src/renderer/gallery.html`, `src/renderer/src/styles/`, `design/system/`                                                                                                                                                                           |
+| shell  | `src/renderer/src/shell/`, `src/renderer/src/control/`, `src/renderer/src/state/`, `src/renderer/src/show/`, `src/main/uiState/`                                                                                                                                            |
+| output | `src/main/index.ts` (wiring), `src/main/ipc.ts`, `src/main/live/`, `src/main/windows/`, `src/main/displays/`, `src/main/outputs/`, `src/renderer/index.html`, `src/renderer/output.html`, `src/renderer/src/output/`, `src/renderer/src/render/`, `electron.vite.config.ts` |
+| spec   | `docs/spec/`, `docs/plans/`                                                                                                                                                                                                                                                 |
+| qa     | `docs/qa/`                                                                                                                                                                                                                                                                  |
+| lead   | `CLAUDE.md`, `README.md`, the rest of `docs/`, `design/drafts/`, `.claude/`, `.gitignore`, `.prettierrc.json`, `.editorconfig`                                                                                                                                              |
+
+A member who needs a new module wired into the main process exports a
+`register...` function and asks output to call it from `src/main/index.ts`.
+
 ## M1: Foundation
 
 Status: in progress.
