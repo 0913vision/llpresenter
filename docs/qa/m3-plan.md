@@ -64,6 +64,10 @@ no slice handles yet) is tested at the level it ships, and the case says so.
   - Expected: No window is ever visible on a monitor; the title bar actions and
     the output toggle work on the offscreen windows; the second instance quits
     and focuses nothing on screen.
+  - Limit: an offscreen window draws at about 6 frames per second (measured on
+    local `main` at `1d46613`), so no frame rate, dissolve, or loop seam is
+    judged offscreen. Those cases keep QA's invisible launcher, whose windows
+    draw at 60.
   - Source: output-10; `CLAUDE.md` (no window on the user's screen).
 
 ### RG. Live registry (O0)
