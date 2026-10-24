@@ -1,0 +1,26 @@
+.frame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--output-black);
+  box-shadow: 0 0 0 1px var(--line);
+  container-type: inline-size;
+}
+
+.frame[data-state='off'] {
+  box-shadow: 0 0 0 1px var(--line-strong);
+}
+
+.frame[data-state='warning'] {
+  box-shadow: 0 0 0 1px var(--warning);
+}
+
+.chroma {
+  --output-black: var(--chroma);
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+}

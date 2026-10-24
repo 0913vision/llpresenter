@@ -1,4 +1,4 @@
-import type {SlideLayer, LiveLayers} from '@shared/live';
+import type {SlideLayer} from '@shared/live';
 import type {TileCursor} from './model';
 import type {TilesOf} from './navigation';
 
@@ -15,16 +15,4 @@ export function slideLayerOf(
     label: tile.label,
     lines: tile.lines,
   };
-}
-
-/**
- * The layers of the "next" preview: what the screen would show after the
- * next-장 key. Every layer stays as it is now, and only the lyrics change. With
- * no next 장 the lyrics are empty.
- */
-export function layersWithNextSlide(
-  live: LiveLayers,
-  next: SlideLayer | null,
-): LiveLayers {
-  return {...live, slide: next};
 }

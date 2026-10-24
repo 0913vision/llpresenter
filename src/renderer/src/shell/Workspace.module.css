@@ -1,4 +1,5 @@
 .columns {
+  --tools-min-height: 240px;
   flex: 1;
   min-height: 0;
   display: grid;
@@ -63,4 +64,16 @@
 
 .bare {
   flex: none;
+}
+
+.content {
+  flex: 0 1 auto;
+}
+
+.content .body {
+  overflow: hidden;
+}
+
+.rest {
+  flex: 1 0 var(--tools-min-height);
 }

@@ -1,5 +1,6 @@
 import {Fragment, type JSX, type ReactNode} from 'react';
 import {ClearRow} from '@renderer/show/ClearRow';
+import {PreviewPanel} from '@renderer/show/PreviewPanel';
 import {ServiceOrderList} from '@renderer/show/ServiceOrderList';
 import {
   SlidePanelBody,
@@ -32,9 +33,19 @@ interface PanelParts {
   // NOTE(0913vision): `bare` draws its content without the panel around it,
   // as the 지우기 row does.
   readonly bare?: ReactNode;
+  // NOTE(0913vision): `content` sizes the panel to its content, and it shrinks
+  // before `rest` does. `rest` takes the height that is left, at least the
+  // height of the 진행 도구.
+  readonly size?: 'content' | 'rest';
   readonly body?: ReactNode;
   readonly meta?: ReactNode;
   readonly footer?: ReactNode;
+}
+
+function panelClass(size: PanelParts['size']): string {
+  if (size === 'content') return `${styles.panel} ${styles.content}`;
+  if (size === 'rest') return `${styles.panel} ${styles.rest}`;
+  return `${styles.panel}`;
 }
 
 function Panel({
@@ -46,7 +57,7 @@ function Panel({
 }): JSX.Element {
   if (parts.bare) return <div className={styles.bare}>{parts.bare}</div>;
   return (
-    <section className={styles.panel} aria-label={title}>
+    <section className={panelClass(parts.size)} aria-label={title}>
       <div className={styles.header}>
         <span className={styles.tab}>{title}</span>
         {parts.meta}
@@ -68,6 +79,13 @@ function showPanelParts(title: string, sizeClass: SizeClass): PanelParts {
   switch (title) {
     case '예배 순서':
       return {body: <ServiceOrderList />};
+    case '미리보기':
+      return {
+        size: 'content',
+        body: <PreviewPanel compact={sizeClass === 'narrow'} />,
+      };
+    case '진행 도구':
+      return {size: 'rest'};
     case '지우기':
       return {bare: <ClearRow compact={sizeClass === 'narrow'} />};
     case '장':

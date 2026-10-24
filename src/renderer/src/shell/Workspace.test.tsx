@@ -5,6 +5,13 @@ import * as showState from '@renderer/state/show';
 import {createMemoryColumnWidthStore} from './columnWidthStore';
 import {Workspace} from './Workspace';
 
+vi.mock('@renderer/render/outputRenderer', () => ({
+  OutputRenderer: class {
+    render = vi.fn();
+    dispose = vi.fn();
+  },
+}));
+
 const POINTER_ID = 1;
 
 function setWindowWidth(width: number): void {
@@ -392,6 +399,26 @@ describe('Workspace column gaps', () => {
     fireEvent.keyDown(document.body, {code: 'Space', key: ' '});
     expect(next).toHaveBeenCalledTimes(1);
     expect(slider.tabIndex).toBe(0);
+  });
+
+  it('shows the preview panel in the 진행 workspace and nowhere else', () => {
+    const show = render(
+      <Workspace
+        id="show"
+        sizeClass="normal"
+        store={createMemoryColumnWidthStore()}
+      />,
+    );
+    expect(show.container.querySelector('[data-screen="main"]')).not.toBeNull();
+    show.unmount();
+    const prep = render(
+      <Workspace
+        id="prep"
+        sizeClass="normal"
+        store={createMemoryColumnWidthStore()}
+      />,
+    );
+    expect(prep.container.querySelector('[data-screen="main"]')).toBeNull();
   });
 
   it('removes the resize listener when it unmounts', () => {

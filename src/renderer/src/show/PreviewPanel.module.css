@@ -1,0 +1,115 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  padding: var(--panel-inset);
+}
+
+.caption {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin-top: var(--space-10);
+  min-width: 0;
+}
+
+.name {
+  font: var(--type-label-strong);
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.target {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-width: 0;
+  overflow: hidden;
+  font: var(--type-label);
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
+.look {
+  margin-left: auto;
+  font: var(--type-label);
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
+.large[data-state='off'] .name {
+  color: var(--text-off);
+}
+
+.smalls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-10);
+}
+
+.smallRows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+}
+
+.small {
+  display: block;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.small:hover > div:first-child {
+  box-shadow: 0 0 0 1px var(--line-control);
+}
+
+.small:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.smallCaption {
+  display: flex;
+  gap: var(--space-6);
+  margin-top: var(--space-6);
+  min-width: 0;
+  font: var(--type-caption);
+}
+
+.smallName {
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.smallTarget {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-3);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.small[data-state='off'] .smallName {
+  color: var(--text-off);
+}
+
+.compact {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.compact > div:first-child {
+  flex: none;
+  width: 64px;
+}
+
+.compact .smallCaption {
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: 0;
+}
