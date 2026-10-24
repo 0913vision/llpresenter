@@ -221,20 +221,19 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Team member's reply
-
-1.
+- Round 1 (d3edc45): reviewer (Codex, codex3) Request changes: missing commands
+  (media import, 무대 메시지, messages), no focus precedence between 매크로
+  tiles and live keys, and settings kept by reference without defaults or
+  ranges. A fourth nit was cut off.
+- Round 2 (57de899): spec added the missing commands and a table of actions
+  without a command, a seven-step focus precedence with the rules it replaces,
+  and the full settings inventory; the user's shortcut decision is applied to
+  every row. Reviewer (Codex, codex3) Approve with two nits: the Page Up and
+  Page Down row at line 1259 credits ProPresenter although the command rows say
+  no source was found, and the window rules should require
+  `Menu.setApplicationMenu(null)`. The nits go into spec's next branch. Lead
+  Approve, and the lead confirms decisions 1 to 9 as written (5 to 8 stay open
+  for the user, with the proposal's defaults in the meantime). Rebased by the
+  lead onto `main` 5cfd4f4 without conflicts.
