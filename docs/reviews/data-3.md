@@ -1,10 +1,17 @@
 # Review request: `data-3`
 
 - Team member: `data`
-- Branch: `feat/data/show-tools`
-- Base commit (`main`): set when `data-2` merges and this branch is rebased
+- Branch: `feat/data/show-tools`, stacked on `data-2` (`feat/data/settings`)
+- Base commit (`main`): `4aa7901`
 - Last commit: see the commit that adds this file
 - Related brief: `docs/briefs/data.md`
+
+Shared changes (all in `src/shared/schema/`, which data owns):
+
+- New: `macros.ts`, `quick.ts`, `messages.ts`, `notices.ts`, `props.ts`,
+  `timers.ts`, `preferences.ts`, `kinds.ts`, `biblePassage.ts`, and their tests.
+- Changed: `service.ts`, `looks.ts`, `textStyle.ts`, `ids.ts`, `primitives.ts`
+  (`positiveSeconds`), and `shortcuts.ts` (reserved keys).
 
 ## What changed and why
 
@@ -26,7 +33,7 @@ format in `docs/spec/02-data.md` has a schema, a `parse` that never throws, a
 Each module also exports its `parse` and `serialize` functions, for example
 `parseMacros` and `serializeMacros`.
 
-Shared changes:
+Shared module changes:
 
 - `kinds.ts`: `kindsWithUnknown` picks the schema of an object by its `kind`
   value, so issues point at the right field. An object of a kind this version
@@ -51,19 +58,21 @@ Shared changes:
 
 ## Checks run
 
-On the commit before this document, on top of `data-2`.
+`npm run verify` on the commit before this document, on `main` 4aa7901 with
+`data-2` below it: every step passed. The one skipped test belongs to another
+member's suite.
 
-| Command or test                    | Result                                           |
-| ---------------------------------- | ------------------------------------------------ |
-| `npm run typecheck`                | Passed. Type assertions included                 |
-| `npm test`                         | Passed: 28 files, 254 tests (217 in the schemas) |
-| `npm run format:check`             | Passed                                           |
-| `npm run build`                    | Passed                                           |
-| `npm run verify` (from phase 1 on) | Run after the rebase onto `main` with devops-1   |
+| Command or test                    | Result                                                                |
+| ---------------------------------- | --------------------------------------------------------------------- |
+| `npm run typecheck`                | Passed. Type assertions included                                      |
+| `npm test`                         | Passed: 71 files, 750 tests and 1 skipped (295 in the schemas)        |
+| `npm run format:check`             | Passed                                                                |
+| `npm run build`                    | Passed                                                                |
+| `npm run verify` (from phase 1 on) | Passed: typecheck, lint, format:check, test:coverage, build (216.2 s) |
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
-- [ ] `npm run verify` passes: run after the rebase.
+- [x] `npm run verify` passes
 - [x] `npm run format:check` passes
 - [x] Every new behavior and every bug fix has unit tests
 - [x] Values from outside the process are validated with a schema
@@ -93,22 +102,36 @@ On the commit before this document, on top of `data-2`.
    `defaultPreferences` and `withPreferenceDefaults` keep the defaults in one
    place.
 4. Other first-launch defaults belong to the phase 2 store.
+5. From qa's comparison with spec 07 (the spec wins):
+   - `stageLayout.screen` is optional; without it the action changes the 무대
+     화면. The code that runs the action resolves which screen that is.
+   - `prop.mode` is optional with the default `on`, and `timer.operation` is
+     optional with the default `start`. Reading fills in the default, so the
+     file holds the value from the next write on.
+   - `clearLayer` names either a layer kind or one 소품 by its id (spec 07's
+     proposal for the board's 지우기 카운트다운), never both.
+   - `message` keeps all four fields required.
+6. Reading `shortcuts.json` also drops a binding to a key that spec 10 reserves
+   (focus, cancel, text editing, and Windows keys) and reports it, so the app
+   never runs with one bound from a hand-edited file.
+7. Every object and record rejects arrays (`jsonObject`, `jsonRecord`), and
+   durations and intervals are `Seconds`, as in `data-2`.
 
 The action fields, as approved:
 
 | `kind`          | Fields                                                                                                     |
 | --------------- | ---------------------------------------------------------------------------------------------------------- |
 | `look`          | `look`                                                                                                     |
-| `stageLayout`   | `screen`, `layout`                                                                                         |
+| `stageLayout`   | `layout`, and `screen` (optional; the 무대 화면 when absent)                                               |
 | `clearAll`      |                                                                                                            |
-| `clearLayer`    | `layer`: one of `layerKinds`                                                                               |
+| `clearLayer`    | `layer` (one of `layerKinds`), or `prop` (one 소품 to turn off)                                            |
 | `media`         | `media`                                                                                                    |
-| `prop`          | `prop`, `mode`: `on`, `off`, or `toggle`                                                                   |
+| `prop`          | `prop`, `mode`: `on` (default), `off`, or `toggle`                                                         |
 | `message`       | `template`, `values` (blank name to text), `targets` (screen ids or `all`), `duration` (seconds or `null`) |
 | `notice`        | `notice`                                                                                                   |
 | `audio`         | `operation`: `play` (with `media`), `fadeOut`, or `stop`                                                   |
 | `audioPlaylist` | `playlist`                                                                                                 |
-| `timer`         | `timer`, `operation`: `start`, `pause`, or `reset`                                                         |
+| `timer`         | `timer`, `operation`: `start` (default), `pause`, or `reset`                                               |
 | `macro`         | `macro`                                                                                                    |
 
 ## Decisions I made (for the lead to confirm)
