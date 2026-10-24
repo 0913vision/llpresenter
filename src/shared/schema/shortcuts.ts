@@ -49,8 +49,8 @@ interface ReservedKey {
 
 // NOTE(0913vision): "Keys that never become shortcuts" in
 // docs/spec/10-shortcuts-and-settings.md: focus, cancel, text editing, and
-// Windows keys. The key field refuses them; reading drops them too, in case a
-// file was edited by hand.
+// Windows keys. The binding schema refuses them, so writing fails on one and
+// reading drops one, in case a file was edited by hand.
 const RESERVED_KEYS: readonly ReservedKey[] = [
   {code: 'Tab', mods: []},
   {code: 'Tab', mods: ['shift']},
@@ -96,6 +96,10 @@ const keyBindingSchema = v.pipe(
   v.check(
     ({code, mods}) => mods.length > 0 || !CHARACTER_KEY.test(code),
     'A letter or digit without a modifier is a label jump key, not a shortcut',
+  ),
+  v.check(
+    binding => !isReservedKey(binding),
+    'The key is reserved for focus, editing, or Windows',
   ),
 );
 
@@ -177,23 +181,23 @@ function bindingProblem(command: string, keys: unknown): DroppedValue | null {
     return {field, message: name.error.message};
   }
   const checked = checkPart(bindingListSchema, keys);
-  if (!checked.ok) {
-    const inner = checked.error.field;
-    return {
-      field: inner === '' ? field : `${field}.${inner}`,
-      message: checked.error.message,
-    };
+  if (checked.ok) {
+    return null;
   }
-  const reserved = checked.value.findIndex(isReservedKey);
-  return reserved === -1
-    ? null
-    : {
-        field: `${field}.${reserved}`,
-        message: 'The key is reserved for focus, editing, or Windows',
-      };
+  const inner = checked.error.field;
+  return {
+    field: inner === '' ? field : `${field}.${inner}`,
+    message: checked.error.message,
+  };
 }
 
-function isReservedKey({code, mods}: KeyBinding): boolean {
+function isReservedKey({
+  code,
+  mods,
+}: {
+  readonly code: string;
+  readonly mods: readonly KeyModifier[];
+}): boolean {
   return RESERVED_KEYS.some(
     reserved =>
       reserved.code === code &&

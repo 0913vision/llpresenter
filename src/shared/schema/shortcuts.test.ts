@@ -167,6 +167,25 @@ describe('parseShortcuts', () => {
   });
 });
 
+describe('writing reserved keys', () => {
+  it.each([
+    ['Tab', {code: 'Tab', mods: []}],
+    ['Ctrl V', {code: 'KeyV', mods: ['ctrl']}],
+    ['Print Screen with any modifier', {code: 'PrintScreen', mods: ['alt']}],
+  ] as const)('refuses to write the reserved key %s', (_name, key) => {
+    const shortcuts = load({}).data;
+
+    const written = serializeShortcuts(
+      {...shortcuts, bindings: {'clear.all': [{code: 'F1', mods: []}, key]}},
+      'shortcuts.json',
+    );
+
+    expect(written.ok ? null : written.error.field).toBe(
+      'bindings.clear.all.1',
+    );
+  });
+});
+
 describe('shortcut types', () => {
   it('stores the physical key and the modifiers', () => {
     expectTypeOf<KeyBinding>().toEqualTypeOf<{
