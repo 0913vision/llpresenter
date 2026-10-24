@@ -206,6 +206,35 @@ describe('failureLines', () => {
     ]);
   });
 
+  it('keeps two different unhandled rejections apart', () => {
+    const output = [
+      '⎯⎯⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯⎯',
+      "TypeError: Cannot read properties of undefined (reading 'x')",
+      ' ❯ src/a.ts:3:1',
+      '',
+      '⎯⎯⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯⎯',
+      'RangeError: Invalid array length',
+      ' ❯ src/b.ts:9:5',
+    ].join('\n');
+    expect(failureLines(output)).toEqual([
+      "Unhandled Rejection (TypeError: Cannot read properties of undefined (reading 'x'))",
+      'Unhandled Rejection (RangeError: Invalid array length)',
+    ]);
+  });
+
+  it('gives grouped failures their shared error', () => {
+    const output = [
+      ' FAIL  |node| test/a.test.ts > first',
+      ' FAIL  |node| test/a.test.ts > second',
+      'Error: Test timed out in 60000ms.',
+      ' ❯ test/a.test.ts:3:1',
+    ].join('\n');
+    expect(failureLines(output)).toEqual([
+      'FAIL  |node| test/a.test.ts > first (Error: Test timed out in 60000ms.)',
+      'FAIL  |node| test/a.test.ts > second (Error: Test timed out in 60000ms.)',
+    ]);
+  });
+
   it('finds nothing in a clean run', () => {
     expect(failureLines(' ✓ |node| scripts/verify.test.ts (9 tests)')).toEqual(
       [],

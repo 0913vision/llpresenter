@@ -86,12 +86,49 @@ function cleanLine(line: string): string {
   return line.replace(SEPARATOR, '').trim();
 }
 
-function errorAfter(lines: readonly string[], index: number): string | null {
-  for (const line of lines.slice(index + 1, index + 1 + LOOKAHEAD_LINES)) {
-    if (NOTABLE_LINE.test(line)) return null;
-    if (ERROR_MESSAGE.test(line)) return cleanLine(line);
+interface Failure {
+  readonly line: string;
+  readonly error: string | null;
+}
+
+// NOTE(0913vision): Vitest prints tests that failed the same way as
+// consecutive FAIL lines followed by one error, so the error belongs to the
+// whole group of notable lines before it.
+function groupFailures(lines: readonly string[]): Failure[] {
+  const failures: Failure[] = [];
+  let group: string[] = [];
+  let linesAfterGroup = 0;
+  const closeGroup = (error: string | null): void => {
+    for (const line of group) failures.push({line, error});
+    group = [];
+    linesAfterGroup = 0;
+  };
+  for (const line of lines) {
+    if (NOTABLE_LINE.test(line)) {
+      if (linesAfterGroup > 0) closeGroup(null);
+      group.push(cleanLine(line));
+    } else if (group.length > 0) {
+      linesAfterGroup += 1;
+      if (ERROR_MESSAGE.test(line)) closeGroup(cleanLine(line));
+      else if (linesAfterGroup >= LOOKAHEAD_LINES) closeGroup(null);
+    }
   }
-  return null;
+  closeGroup(null);
+  return failures;
+}
+
+function distinctFailures(failures: readonly Failure[]): Failure[] {
+  const withError = new Set(
+    failures.filter(f => f.error !== null).map(f => f.line),
+  );
+  const seen = new Set<string>();
+  return failures.filter(failure => {
+    if (failure.error === null && withError.has(failure.line)) return false;
+    const key = JSON.stringify([failure.line, failure.error]);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 /**
@@ -103,18 +140,9 @@ function errorAfter(lines: readonly string[], index: number): string | null {
  */
 export function failureLines(output: string): string[] {
   const lines = stripVTControlCharacters(output).split(/\r?\n/);
-  const errorByLine = new Map<string, string | null>();
-  for (const [index, line] of lines.entries()) {
-    if (!NOTABLE_LINE.test(line)) continue;
-    const notable = cleanLine(line);
-    errorByLine.set(
-      notable,
-      errorByLine.get(notable) ?? errorAfter(lines, index),
-    );
-  }
-  return [...errorByLine]
+  return distinctFailures(groupFailures(lines))
     .slice(0, MAX_FAILURE_LINES)
-    .map(([line, error]) => (error === null ? line : `${line} (${error})`));
+    .map(({line, error}) => (error === null ? line : `${line} (${error})`));
 }
 
 /**
