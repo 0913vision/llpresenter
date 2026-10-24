@@ -1,5 +1,11 @@
 import {resolve} from 'node:path';
-import {defineConfig} from 'vitest/config';
+import {configDefaults, defineConfig} from 'vitest/config';
+
+/**
+ * Renderer tests that need Node's APIs, such as one that reads the design
+ * system's files, run in the node project instead of jsdom.
+ */
+export const RENDERER_NODE_TESTS = 'src/renderer/**/*.node.test.ts';
 
 export default defineConfig({
   resolve: {
@@ -46,6 +52,7 @@ export default defineConfig({
             'src/shared/**/*.test.ts',
             'scripts/**/*.test.ts',
             'test/**/*.test.ts',
+            RENDERER_NODE_TESTS,
           ],
           environment: 'node',
           setupFiles: ['test/setup-compile-cache.ts'],
@@ -56,6 +63,7 @@ export default defineConfig({
         test: {
           name: 'renderer',
           include: ['src/renderer/**/*.test.{ts,tsx}'],
+          exclude: [...configDefaults.exclude, RENDERER_NODE_TESTS],
           environment: 'jsdom',
           setupFiles: ['test/setup-compile-cache.ts', 'test/setup-renderer.ts'],
         },
