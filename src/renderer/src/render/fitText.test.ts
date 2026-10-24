@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {MIN_FONT_SHARE, fitFontSize} from './fitText';
+import {fitFontSize} from './fitText';
 
 describe('fitFontSize', () => {
   it('keeps the style size when the text fits', () => {
@@ -13,13 +13,17 @@ describe('fitFontSize', () => {
     expect(fitFontSize(84, size => size <= 83)).toBe(83);
   });
 
-  it('stops at the smallest size when nothing fits', () => {
-    expect(fitFontSize(84, () => false)).toBe(84 * MIN_FONT_SHARE);
+  it('keeps shrinking an oversized 장 below a quarter of the style size until it fits', () => {
+    expect(fitFontSize(84, size => size <= 3)).toBe(3);
+  });
+
+  it('gives the smallest size when nothing fits', () => {
+    expect(fitFontSize(84, () => false)).toBe(1);
   });
 
   it('tries only a few sizes', () => {
     const fits = vi.fn((size: number) => size <= 50);
     fitFontSize(84, fits);
-    expect(fits.mock.calls.length).toBeLessThanOrEqual(8);
+    expect(fits.mock.calls.length).toBeLessThanOrEqual(9);
   });
 });

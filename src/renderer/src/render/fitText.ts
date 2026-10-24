@@ -1,10 +1,10 @@
-/** The smallest size a 장 shrinks to, as a share of its style size. */
-export const MIN_FONT_SHARE = 0.25;
+/** The smallest size the search tries; text that doesn't fit even here gets it. */
+const MIN_FONT_SIZE = 1;
 
 /**
  * Finds the largest whole-pixel font size, at most `size`, at which the text
- * fits. A 장 is never split, so text that fits at no size gets the smallest
- * size (docs/spec/03-output.md, drawing text).
+ * fits. A 장 is never split, so the font keeps shrinking until every line fits
+ * (docs/spec/03-output.md, drawing text).
  *
  * @param fits - Lays the text out at a size and tells whether it fits.
  */
@@ -13,7 +13,7 @@ export function fitFontSize(
   fits: (size: number) => boolean,
 ): number {
   if (fits(size)) return size;
-  let fitting = Math.max(1, Math.floor(size * MIN_FONT_SHARE));
+  let fitting = MIN_FONT_SIZE;
   if (!fits(fitting)) return fitting;
   let tooLarge = Math.ceil(size);
   while (tooLarge - fitting > 1) {
