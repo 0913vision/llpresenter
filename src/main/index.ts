@@ -3,15 +3,15 @@ import {join} from 'node:path';
 import {LiveStore} from './live/store';
 import {createLogger, type Logger} from './log';
 import {registerIpc} from './ipc';
+import {applyUserDataOverride, type UserDataProblem} from './userData';
 import {createControlWindow} from './windows/control';
 
-// NOTE(0913vision): Several sessions run the app at once during development,
-// so LLP_USER_DATA moves the app data folder and, with it, the single-instance
-// lock.
-const userData = process.env['LLP_USER_DATA'];
-if (userData !== undefined && userData.length > 0) {
-  app.setPath('userData', userData);
-}
+const BAD_ENVIRONMENT_EXIT_CODE = 1;
+
+const userDataProblem = applyUserDataOverride(
+  process.env['LLP_USER_DATA'],
+  path => app.setPath('userData', path),
+);
 
 const log = createLogger(join(app.getPath('userData'), 'logs'), {
   echo: !app.isPackaged,
@@ -77,5 +77,14 @@ function start(): void {
     .catch((error: unknown) => log.error('failed to start', error));
 }
 
-if (app.requestSingleInstanceLock()) start();
+// NOTE(0913vision): With a bad LLP_USER_DATA, the app quits instead of using
+// the default folder, which another session or the real app data may hold.
+function quitForBadUserData(problem: UserDataProblem): void {
+  log.error('LLP_USER_DATA is not a usable app data folder; quitting', problem);
+  const exit = (): void => app.exit(BAD_ENVIRONMENT_EXIT_CODE);
+  log.flush().then(exit, exit);
+}
+
+if (userDataProblem !== null) quitForBadUserData(userDataProblem);
+else if (app.requestSingleInstanceLock()) start();
 else app.quit();
