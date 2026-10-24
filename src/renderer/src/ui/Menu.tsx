@@ -12,6 +12,7 @@ import {createPortal} from 'react-dom';
 import {placeFloating} from './floating';
 import {layerContainer} from './layers';
 import {handleMenuKey, type MenuCloseReason} from './menuKeys';
+import {modalStack} from './modalStack';
 import {
   hasLeadSlot,
   isRunnable,
@@ -351,6 +352,7 @@ export function Menu({
       : null,
   );
   const [place] = useState(() => anchorPlace(anchor));
+  const [overModal] = useState(() => modalStack.isOpen);
 
   useEffect(
     () => () => {
@@ -360,7 +362,7 @@ export function Menu({
   );
 
   return createPortal(
-    <>
+    <div className={styles.layer} data-over-modal={overModal ? '' : undefined}>
       <div
         className={styles.catcher}
         onPointerDown={event => {
@@ -379,7 +381,7 @@ export function Menu({
         minWidth={minWidth}
         autoFocus
       />
-    </>,
+    </div>,
     layerContainer('popover'),
   );
 }

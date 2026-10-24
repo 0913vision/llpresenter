@@ -2,6 +2,7 @@ import {
   cloneElement,
   useEffect,
   useId,
+  useState,
   useSyncExternalStore,
   type FocusEvent,
   type JSX,
@@ -12,6 +13,7 @@ import {
 import {createPortal} from 'react-dom';
 import {placeFloating} from './floating';
 import {layerContainer} from './layers';
+import {modalStack} from './modalStack';
 import {placeTooltip, viewportSize} from './placement';
 import {tooltipController} from './tooltipController';
 import styles from './Tooltip.module.css';
@@ -81,6 +83,7 @@ function TooltipSurface({
   readonly target: HTMLElement;
   readonly content: TooltipContent;
 }): JSX.Element {
+  const [overModal] = useState(() => modalStack.isOpen);
   const place = (element: HTMLElement | null): void => {
     if (element === null) return;
     placeFloating(element, size =>
@@ -89,7 +92,13 @@ function TooltipSurface({
   };
 
   return (
-    <div ref={place} id={id} role="tooltip" className={styles.tooltip}>
+    <div
+      ref={place}
+      id={id}
+      role="tooltip"
+      className={styles.tooltip}
+      data-over-modal={overModal ? '' : undefined}
+    >
       {content.text}
       {content.shortcut === undefined ? null : (
         <span className={styles.key}>{content.shortcut}</span>

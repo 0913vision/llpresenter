@@ -20,6 +20,10 @@
   animation: appear var(--motion-popover);
 }
 
+.tooltip[data-over-modal] {
+  z-index: var(--z-tooltip-over-modal);
+}
+
 .key {
   margin-left: var(--space-8);
   color: var(--text-3);

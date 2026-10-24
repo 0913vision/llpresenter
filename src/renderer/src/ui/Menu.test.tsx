@@ -166,7 +166,9 @@ describe('Menu', () => {
     await userEvent.keyboard('{Tab}');
     expect(onClose).toHaveBeenLastCalledWith('tab');
     await openMenu();
-    const catcher = document.querySelector('[data-llp-layer="popover"] > div');
+    const catcher = document.querySelector(
+      '[data-llp-layer="popover"] > div > div',
+    );
     if (catcher === null) throw new Error('No click catcher');
     await userEvent.pointer({keys: '[MouseLeft>]', target: catcher});
     expect(onClose).toHaveBeenLastCalledWith('outside');

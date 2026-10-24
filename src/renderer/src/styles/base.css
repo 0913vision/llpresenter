@@ -1,6 +1,13 @@
 @import 'pretendard/dist/web/variable/pretendardvariable.css';
 @import './tokens.css';
 
+:root {
+  /* NOTE(0913vision): A menu or tooltip that opens inside a dialog must show
+     over it, yet stay below notifications (--z-notification). */
+  --z-popover-over-modal: calc(var(--z-dialog) + 1);
+  --z-tooltip-over-modal: calc(var(--z-dialog) + 2);
+}
+
 *,
 *::before,
 *::after {
