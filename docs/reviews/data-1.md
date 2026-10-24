@@ -2,7 +2,7 @@
 
 - Team member: `data`
 - Branch: `feat/data/schemas`
-- Base commit (`main`): `7d46151`
+- Base commit (`main`): `8b5edaa`
 - Last commit: see the commit that adds this file
 - Related brief: `docs/briefs/data.md`
 
@@ -10,7 +10,8 @@ Shared changes (allowed by the brief and the lead):
 
 - `package.json`, `package-lock.json`: valibot 1.5.0 in `dependencies`.
 - `src/shared/result.ts` (new): the `Result` type.
-- `src/shared/schema/` (new): the file pipeline and the schemas.
+- `src/shared/schema/` (new): the file pipeline, the schemas, and `safeKeys.ts`,
+  which keeps keys that valibot drops.
 
 ## What changed and why
 
@@ -106,25 +107,20 @@ Every format goes through the same two functions:
 
 ## Checks run
 
-On the commit before this document. `npm run verify` ran on `main` 8b623b3; the
-later `main` commits change only documents.
+`npm run verify` on the commit before this document, on `main` 8b5edaa: every
+step passed.
 
-| Command or test                    | Result                                                                                                                                          |
-| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run typecheck`                | Passed. Type assertions (`expectTypeOf`) included                                                                                               |
-| `npm test`                         | 224 of 225 tests passed (96 in the schemas). See the note below                                                                                 |
-| `npm run format:check`             | Passed                                                                                                                                          |
-| `npm run build`                    | Passed                                                                                                                                          |
-| `npm run verify` (from phase 1 on) | typecheck, lint, and format:check passed; test:coverage failed only on the note below; build passed when run alone. Schema coverage 98.8% lines |
-
-The one failure is `scripts/lint/config.test.ts` ("reports a floating promise"),
-which isn't part of this change. It timed out at 60 s while the machine was busy
-(84 s in the full run, 109 s alone). The lead said devops is fixing it and that
-this single failure doesn't block the request.
+| Command or test                    | Result                                                               |
+| ---------------------------------- | -------------------------------------------------------------------- |
+| `npm run typecheck`                | Passed. Type assertions (`expectTypeOf`) included                    |
+| `npm test`                         | Passed: 24 files, 238 tests (109 in the schemas)                     |
+| `npm run format:check`             | Passed                                                               |
+| `npm run build`                    | Passed                                                               |
+| `npm run verify` (from phase 1 on) | Passed: typecheck, lint, format:check, test:coverage, build (59.6 s) |
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
-- [ ] `npm run verify` passes: all but the known lint test timeout above.
+- [x] `npm run verify` passes
 - [x] `npm run format:check` passes
 - [x] Every new behavior and every bug fix has unit tests
 - [x] Values from outside the process are validated with a schema
@@ -253,3 +249,24 @@ Replies to the lead:
 5. Coverage showed two untested branches, now tested in "test a non-object
    service item": a service item that isn't an object, and a schema without
    `schemaVersion`.
+
+Round 2, replies to the reviewer's findings:
+
+1. Keys named `__proto__`, `prototype`, and `constructor`: fixed. valibot drops
+   them on purpose (prototype pollution). `safeKeys.ts` now escapes them before
+   every schema check, with a one-to-one prefix, and gives them their own names
+   back afterwards as own data properties, in their original order. Nothing is
+   ever assigned through `__proto__`. The tests cover the root, nested known
+   objects, nested unknown values, a song's slides and 구성, the error path, and
+   that the prototype stays `Object.prototype`.
+2. Arrays as objects: fixed. Every object in the schemas is now `jsonObject`,
+   which rejects an array before `v.looseObject` sees it. Tests cover
+   `layout: []`, `layout.normal: []`, a slide that is an array, and a nested
+   object in the file pipeline.
+3. Unknown field inside the Bible passage: the test now adds one inside `bible`
+   and checks it after writing and reading back.
+
+data-2 and data-3 have the same gap: their objects and records also use
+`v.looseObject` and `v.record` directly. They switch to `jsonObject` (and a
+record that rejects arrays) when I rebase them onto this branch. The key
+escaping already covers them, because it runs in the shared pipeline.
