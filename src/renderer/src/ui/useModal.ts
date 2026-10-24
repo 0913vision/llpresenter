@@ -1,5 +1,10 @@
-import {useEffect, type KeyboardEvent, type RefObject} from 'react';
+import {
+  useEffect,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type RefObject,
+} from 'react';
 import {isComposing} from './ime';
+import {findLayerContainer} from './layers';
 import {modalStack} from './modalStack';
 
 const TABBABLE = [
@@ -75,30 +80,64 @@ function focusInitial(surface: HTMLElement, initialFocus: InitialFocus): void {
   (primary ?? tabbableElements(surface)[0] ?? surface).focus();
 }
 
-function wrapTab(event: KeyboardEvent, surface: HTMLElement): void {
-  const tabbable = tabbableElements(surface);
-  const first = tabbable[0];
-  const last = tabbable.at(-1);
-  if (first === undefined || last === undefined) {
-    event.preventDefault();
-    return;
-  }
+// NOTE(0913vision): The notification cards stay live above a modal and come
+// first in the page, so Tab cycles through their buttons and then the modal.
+function focusCycle(surface: HTMLElement): HTMLElement[] {
+  const notifications = findLayerContainer('notification');
+  return [
+    ...(notifications === null ? [] : tabbableElements(notifications)),
+    ...tabbableElements(surface),
+  ];
+}
+
+function cycleTarget(
+  cycle: readonly HTMLElement[],
+  active: Element | null,
+  backward: boolean,
+): {readonly next: HTMLElement | undefined; readonly wraps: boolean} {
+  const index = cycle.findIndex(element => element === active);
+  if (index < 0) return {next: backward ? cycle.at(-1) : cycle[0], wraps: true};
+  const nextIndex = index + (backward ? -1 : 1);
+  const wraps = nextIndex < 0 || nextIndex >= cycle.length;
+  return {next: cycle.at(nextIndex % cycle.length), wraps};
+}
+
+// NOTE(0913vision): Inside the cards or inside the modal the browser moves
+// focus as usual; between the two and at the ends of the cycle the modal does.
+function moveInFocusCycle(event: KeyboardEvent, surface: HTMLElement): void {
   const active = document.activeElement;
-  if (event.shiftKey && (active === first || !surface.contains(active))) {
-    event.preventDefault();
-    last.focus();
-  } else if (
-    !event.shiftKey &&
-    (active === last || !surface.contains(active))
-  ) {
-    event.preventDefault();
-    first.focus();
-  }
+  const {next, wraps} = cycleTarget(
+    focusCycle(surface),
+    active,
+    event.shiftKey,
+  );
+  const staysInside =
+    !wraps &&
+    next !== undefined &&
+    active !== null &&
+    surface.contains(active) === surface.contains(next);
+  if (staysInside) return;
+  event.preventDefault();
+  next?.focus();
+}
+
+function useTabCycle(surface: RefObject<HTMLElement | null>): void {
+  useEffect(() => {
+    const element = surface.current;
+    if (element === null) return undefined;
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key !== 'Tab' || event.defaultPrevented) return;
+      if (modalStack.isTop(element)) moveInFocusCycle(event, element);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [surface]);
 }
 
 /**
  * The behavior every modal shares: everything behind it is inert, focus
- * starts inside it and cycles there, Enter and Esc press its buttons, and
+ * starts inside it and cycles there and through the notification cards,
+ * Enter and Esc press its buttons, and
  * focus goes back to where it was when the modal closes. The F1 to F7
  * 지우기 keys pass through, so the screens can still be cleared.
  *
@@ -109,7 +148,7 @@ export function useModal({
   onEscape,
   onEnter,
   initialFocus,
-}: ModalOptions): (event: KeyboardEvent<HTMLElement>) => void {
+}: ModalOptions): (event: ReactKeyboardEvent<HTMLElement>) => void {
   useEffect(() => {
     const element = surface.current;
     if (element === null) return undefined;
@@ -126,14 +165,10 @@ export function useModal({
       if (opener?.isConnected === true) opener.focus();
     };
   }, [surface, initialFocus]);
+  useTabCycle(surface);
 
   return event => {
-    const element = surface.current;
-    if (element === null) return;
     switch (event.key) {
-      case 'Tab':
-        wrapTab(event, element);
-        return;
       case 'Escape':
         if (
           event.defaultPrevented ||

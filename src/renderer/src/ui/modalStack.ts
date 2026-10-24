@@ -28,6 +28,11 @@ export class ModalStack {
     return this.open.length > 0;
   }
 
+  /** Whether this modal is the topmost one, the one that takes the keys. */
+  isTop(modal: HTMLElement): boolean {
+    return this.open.at(-1) === modal;
+  }
+
   private apply(): void {
     for (const element of this.madeInert) element.removeAttribute(INERT);
     this.madeInert.clear();

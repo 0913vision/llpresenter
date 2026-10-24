@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {installFakeClock} from '../../../../test/fake-clock';
+import {Dialog} from './Dialog';
 import {modalStack} from './modalStack';
 import {
   NOTICE_LIFETIME_MS,
@@ -165,6 +166,36 @@ describe('NotificationStack', () => {
     expect(onClose).not.toHaveBeenCalled();
     await letTimePass(clock, 1);
     expect(onClose.mock.calls).toEqual([['screen:main']]);
+  });
+
+  it('joins the Tab cycle of an open dialog, before the dialog', async () => {
+    render(
+      <>
+        <NotificationStack notices={[lost]} onClose={() => {}} />
+        <Dialog
+          title="새 예배"
+          size="s"
+          onCancel={() => {}}
+          primary={{label: '만들기', onSelect: () => {}}}
+        >
+          본문
+        </Dialog>
+      </>,
+    );
+    const button = (name: string): HTMLElement =>
+      screen.getByRole('button', {name});
+    const order = ['모니터 다시 찾기', '창 보기', '알림 닫기', '닫기', '취소'];
+    button('만들기').focus();
+    for (const name of order) {
+      await userEvent.tab();
+      expect(document.activeElement).toBe(button(name));
+    }
+    for (const name of order.toReversed().slice(1)) {
+      await userEvent.tab({shift: true});
+      expect(document.activeElement).toBe(button(name));
+    }
+    await userEvent.tab({shift: true});
+    expect(document.activeElement).toBe(button('만들기'));
   });
 
   it('takes a closed card off', async () => {

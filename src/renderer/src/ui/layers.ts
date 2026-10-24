@@ -13,14 +13,17 @@ const layerAtStart: Readonly<Record<LayerName, boolean>> = {
   notification: true,
 };
 
+/** Returns the container of a floating layer if it was made already. */
+export function findLayerContainer(name: LayerName): HTMLElement | null {
+  return document.querySelector<HTMLElement>(`[${LAYER_ATTRIBUTE}="${name}"]`);
+}
+
 /**
  * Returns the container of a floating layer, creating it on first use. The
  * containers live as long as the window, one per layer.
  */
 export function layerContainer(name: LayerName): HTMLElement {
-  const existing = document.querySelector<HTMLElement>(
-    `[${LAYER_ATTRIBUTE}="${name}"]`,
-  );
+  const existing = findLayerContainer(name);
   if (existing !== null) return existing;
   const container = document.createElement('div');
   container.setAttribute(LAYER_ATTRIBUTE, name);
