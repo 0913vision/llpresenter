@@ -70,6 +70,12 @@ export {
   type MenuProps,
   type MenuSearch,
 } from './Menu';
+export {
+  menuButtonProps,
+  openOnArrowDown,
+  type MenuButtonProps,
+  type MenuButtonState,
+} from './menuButton';
 export type {
   MenuCheckKind,
   MenuEntry,
