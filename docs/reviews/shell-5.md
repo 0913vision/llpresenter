@@ -1,8 +1,14 @@
 # Review request: `shell-5`
 
+Review range: f72d3eb...feat/shell/show-keys
+
+What to check: round 3 only needs the two state-reset findings of round 2 ("Team
+member's reply", items 8 and 9) against `show/shortcuts.ts` and its test: every
+place where the pending click or the taken-Space flag can outlive its event.
+
 - Team member: `shell`
 - Branch: `feat/shell/show-keys`
-- Base commit (`main`): `b9392d0`
+- Base commit (`main`): `f72d3eb`
 - Last commit: see the commit that adds this file
 - Related brief: the lead's queue item 3 (진행 keys per spec-1)
 
@@ -174,3 +180,7 @@ Round 2 (codex2), answered once:
    between", "after the listeners were removed and added again", "forgets a
    missed Space release when the next Space press is owned by a text field", and
    "keeps the flag for the repeats of a held Space".
+10. Round 3: rebased onto `main` f72d3eb without conflicts. `npm run verify` on
+    the same commits (on the base just before) passed all five steps in 377.0 s
+    (`typecheck`, `lint`, `format:check`, `test:coverage`, `build`), and after
+    the last rebase I ran `typecheck` and the renderer tests again.
