@@ -2,7 +2,7 @@
 
 - Team member: `devops`
 - Branch: `chore/devops/verify`
-- Base commit (`main`): `5b09a98`
+- Base commit (`main`): `b510a3e` (round 1: `5b09a98`)
 - Last commit: see the commit that adds this file
 - Related brief: `docs/briefs/devops.md`
 
@@ -166,16 +166,22 @@ ESLint exited with code 1 and 24 errors.
 
 ### Spots in existing code excluded from lint
 
-As the brief says, I didn't change these files. Each exclusion is one rule for
-one file, in `scripts/lint/legacy-exclusions.mts`, with a TODO:
+As the brief says, I didn't change these files. Each exclusion is as narrow as
+possible, in `scripts/lint/legacy-exclusions.mts`, with a TODO:
 
 1.  `scripts/session-context.ts:126` (`readStdin`): `JSON.parse(...) as {...}`
     breaks `consistent-type-assertions`. Validate the input instead.
 2.  `src/main/log.ts:35` (`formatDetail`): `String(detail)` on an `unknown` that
     `JSON.stringify` rejected breaks `no-base-to-string`. Handle that case
     explicitly.
+3.  `src/main/index.ts:63` (`void log.flush().finally(...)`) and
+    `src/main/windows/control.ts:16` and `:18` (`void win.loadURL(...)`,
+    `void win.loadFile(...)`), found in round 2: `void` no longer counts as
+    handling a promise. For these two files only, `no-floating-promises` keeps
+    `ignoreVoid: true`, so a promise without `void` is still reported. Catch and
+    log the rejections instead.
 
-Everything else on `main` at 5b09a98 passes, including `src/shared/colors.ts`.
+Everything else on `main` at b510a3e passes, including `src/shared/colors.ts`.
 
 ### Vitest
 
@@ -376,18 +382,79 @@ missing.
 
 ## Review: lead
 
-- Verdict: Approve / Request changes
+- Verdict: Request changes
 - Findings:
 
-  1.
+  1. Agree with the reviewer's findings 1 to 3. Fix each with a regression test.
+  2. Your decisions 1 to 9 are confirmed (no-magic-numbers off,
+     stylisticTypeChecked with the listed exceptions, test-file relaxations, the
+     comment rule rejecting `@ts-expect-error` and `prettier-ignore`, CSS
+     comments unchecked, actions pinned to release tags, no coverage thresholds
+     yet, verify stopping at the first failure, the soak thresholds as
+     constants).
+  3. Shared requests: I'll fix the two excluded spots in my code and point
+     CLAUDE.md and README at `npm run verify` right after the merge.
 
-## Review: reviewer
+## Review: reviewer (Codex)
 
-- Verdict: Approve / Request changes
+- Verdict: Request changes
 - Findings:
 
-  1.
+  1. scripts/lint/config.mts:137 no-floating-promises retains its default
+     ignoreVoid: true, allowing void save() without rejection handling. This
+     bypasses the brief's unhandled-promise ban. Set ignoreVoid: false and add
+     regression tests for unhandled and caught promises.
+  2. scripts/soak/judge.mts:95 Windows use each process's observed span, while
+     longEnough checks only the final timestamp. Eighteen flat samples confined
+     to minutes 59-60 can therefore pass as a 60-minute run. Anchor windows to
+     the required observation interval and test truncated records and processes
+     that disappear early.
+  3. scripts/lint/comment-rule.mts:77 Continuation handling accepts malformed
+     new tags. For example, // TODO(someone): ... immediately below a valid NOTE
+     passes without checking its owner. Validate tag-shaped lines before
+     accepting continuation text, and add adjacent-tag regression tests.
+  4. scripts/soak/judge.mts:6 Nit: This private constant has a TSDoc comment,
+     although CLAUDE.md permits TSDoc only on exported APIs. Remove the
+     redundant comment.
 
 ## Team member's reply
 
-1.
+Round 2, rebased onto `main` b510a3e. Each fix has regression tests, and I
+checked that the new tests fail without the fix.
+
+1.  Reviewer 1 (32b107a): `no-floating-promises` now has `ignoreVoid: false`.
+    The new `scripts/lint/config.test.ts` runs ESLint with the real config on
+    code snippets (16 cases). It reports a floating promise and `void save()`,
+    and accepts `await`, `return`, `.catch(log)`, and `.then(ok, log)`. It also
+    turns the round 1 deliberate violations (`any`, `!`, `as`, a missed switch
+    case, a plain comment, broken TSDoc, an unused variable, a conditional hook,
+    `.only`, and a disable comment) into regression tests. The TypeScript
+    project service only knows files on disk, so each snippet borrows the path
+    of an existing file and is linted in its place; the files never change. On
+    `main`, `ignoreVoid: false` flags three spots in two files, now listed as
+    exclusion 3 above. My own `fake-clock.test.ts` used `void` and now uses
+    `queueMicrotask` instead.
+2.  Reviewer 2 (503012a): the windows now cover `warmUpMs` to `requiredMs`, not
+    the span a process was sampled in. New tests: 18 flat samples in minutes 59
+    to 60 fail (`unjudged`), a 30-minute record of a 60-minute run fails (too
+    short and `unjudged`), and a process that disappears after 30 minutes fails
+    while the main process stays `flat`. Anchoring the windows exposed that
+    `--minutes 5` could never be judged, because the 5-minute warm-up filled the
+    whole run. `judgeOptionsFor` now caps the warm-up at a twelfth of the run (5
+    minutes for 60), with tests. `scripts/README.md` describes the new rules.
+3.  Reviewer 3 (8473fc3): a line shaped like a tag (`NOTE` or `TODO` followed by
+    `(` or `:`) never continues a NOTE, so it must be a valid tag itself. New
+    cases: `// TODO(someone): ...` under a valid NOTE and `// NOTE: ...` under a
+    valid TODO are reported on line 2, a plain line under such a line is
+    reported too, and a valid TODO under a valid NOTE passes. A continuation
+    line that starts with the word "note" in lowercase still passes.
+4.  Reviewer 4 (503012a): removed the TSDoc from the private
+    `COVERAGE_TOLERANCE_MS`. No other top-level TSDoc in my files sits on
+    something that isn't exported.
+
+Checks on 503012a:
+
+| Command          | Result                                                                                            |
+| ---------------- | ------------------------------------------------------------------------------------------------- |
+| `npm run verify` | Pass, 42.9 s: typecheck 3.7 s, lint 12.9 s, format:check 4.0 s, test:coverage 20.9 s, build 1.4 s |
+| Unit tests       | 125 passed                                                                                        |
