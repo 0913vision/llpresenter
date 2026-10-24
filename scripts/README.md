@@ -105,19 +105,34 @@ that it wrote. Run `npm run build` first.
 - `npm run soak -- --judge path/to/soak.jsonl`: judges an existing record
   without starting the app.
 
-The runner starts Electron with these environment variables. In the app,
-`registerSoakRecorder` (`src/main/soak/`) reads them once the app is ready. It
-samples `app.getAppMetrics()` every 10 seconds, appends one line per sample, and
-quits after `LLP_SOAK_EXIT_MS`, once every queued line is written. It names
-renderers by their page: `index.html` is `control`, and
-`output.html?screen=<id>` is `output:<id>`. The test scenario (looping video and
-장 changes) and the output frame rates come with output's M2 work.
+Before the app starts, the runner makes the background clip and a media library
+that lists it in the new `LLP_USER_DATA` folder:
 
-| Variable           | Meaning                                                                                                                                                 |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `LLP_USER_DATA`    | A new temp folder, so the run never touches real data                                                                                                   |
-| `LLP_SOAK_RECORD`  | The record file to append to; setting it turns on the test scenario                                                                                     |
-| `LLP_SOAK_EXIT_MS` | When the app quits on its own: whole milliseconds, 1 to 2,147,483,647. Empty or unset keeps it running; another value is logged and nothing is recorded |
+- The clip maker (`scripts/soak/clip/main.mts`) runs in Electron, in a window
+  that is never shown and draws offscreen. It draws 300 frames of moving lights
+  at 1920×1080, encodes them with WebCodecs (VP8, 4 Mbps), and gives each frame
+  its exact time, so the clip has no gaps that would look like a hitch at the
+  loop point. `scripts/soak/webm.mts` wraps the frames in a 10-second WebM with
+  its duration, which MediaRecorder leaves out. The maker then plays and seeks
+  the file in Chromium before it reports the clip.
+- `LoveLight/미디어/soak-loop.webm` holds the clip, and
+  `LoveLight/설정/media.json` lists it with `end: loop` and `fit: fill`.
+
+The runner then starts Electron with these environment variables. In the app,
+`registerSoakRecorder` (`src/main/soak/`) samples `app.getAppMetrics()` and each
+output's frame rate every 10 seconds, appends one line per sample, and quits
+after `LLP_SOAK_EXIT_MS`, once every queued line is written. It names renderers
+by their page: `index.html` is `control`, and `output.html?screen=<id>` is
+`output:<id>`. `registerSoakScenario` plays the test scenario: the looping
+background, the 본 화면 on, and the next of 12 invented 장 every 5 seconds.
+
+| Variable            | Meaning                                                                                                                                                 |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `LLP_USER_DATA`     | A new temp folder, so the run never touches real data                                                                                                   |
+| `LLP_SOAK_RECORD`   | The record file to append to; setting it turns on the test scenario                                                                                     |
+| `LLP_SOAK_EXIT_MS`  | When the app quits on its own: whole milliseconds, 1 to 2,147,483,647. Empty or unset keeps it running; another value is logged and nothing is recorded |
+| `LLP_SOAK_MEDIA_ID` | The background clip's media id; a value that isn't one is logged, and the scenario runs without a background                                            |
+| `LLP_TEST_WINDOWS`  | `offscreen`: every window stays off the user's screen (output's switch)                                                                                 |
 
 The record is JSON Lines: one sample per line, flushed as it's written. Here is
 one sample, spread over several lines:

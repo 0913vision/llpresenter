@@ -1,6 +1,7 @@
 import {resolve} from 'node:path';
 import {describe, expect, it} from 'vitest';
-import {parseSoakArgs} from './run.mts';
+import {SOAK_MEDIA_ID} from './media.mts';
+import {parseSoakArgs, soakEnvironment} from './run.mts';
 
 describe('parseSoakArgs', () => {
   it('runs the app for 60 minutes by default', () => {
@@ -30,4 +31,23 @@ describe('parseSoakArgs', () => {
       expect(command.kind === 'usage' ? command.message : '').toMatch(/Usage:/);
     },
   );
+});
+
+describe('soakEnvironment', () => {
+  it('passes the run, the background, and the offscreen windows to the app', () => {
+    const run = {
+      userData: 'D:/tmp/llp-soak-1',
+      recordPath: 'D:/tmp/llp-soak-1/soak.jsonl',
+      durationMs: 1_200_000,
+      mediaId: SOAK_MEDIA_ID,
+    };
+    expect(soakEnvironment(run, {PATH: 'C:/Windows'})).toEqual({
+      PATH: 'C:/Windows',
+      LLP_USER_DATA: 'D:/tmp/llp-soak-1',
+      LLP_SOAK_RECORD: 'D:/tmp/llp-soak-1/soak.jsonl',
+      LLP_SOAK_EXIT_MS: '1200000',
+      LLP_SOAK_MEDIA_ID: SOAK_MEDIA_ID,
+      LLP_TEST_WINDOWS: 'offscreen',
+    });
+  });
 });

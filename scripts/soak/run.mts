@@ -7,6 +7,7 @@ import {join, resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {parseArgs} from 'node:util';
 import {judgeOptionsFor, judgeRun} from './judge.mts';
+import {makeSoakClip, prepareSoakMedia} from './media.mts';
 import {parseRecord} from './record.mts';
 import {formatReport} from './report.mts';
 
@@ -19,6 +20,7 @@ const USAGE_EXIT_CODE = 2;
 const REPO_ROOT = resolve(import.meta.dirname, '..', '..');
 const BUILT_MAIN = join(REPO_ROOT, 'out', 'main', 'index.js');
 const RECORD_FILE_NAME = 'soak.jsonl';
+const TEST_WINDOWS_OFFSCREEN = 'offscreen';
 
 /** What the soak runner was asked to do. */
 export type SoakCommand =
@@ -85,19 +87,46 @@ function electronBinary(): string {
   return exported;
 }
 
+/** Where one soak run keeps its files, and how long the app runs. */
+export interface SoakRun {
+  readonly userData: string;
+  readonly recordPath: string;
+  readonly durationMs: number;
+  readonly mediaId: string;
+}
+
+/**
+ * The variables the app starts with for a soak run. `LLP_TEST_WINDOWS` keeps
+ * every window off the user's screen.
+ */
+export function soakEnvironment(
+  run: SoakRun,
+  base: NodeJS.ProcessEnv = process.env,
+): NodeJS.ProcessEnv {
+  return {
+    ...base,
+    LLP_USER_DATA: run.userData,
+    LLP_SOAK_RECORD: run.recordPath,
+    LLP_SOAK_EXIT_MS: String(run.durationMs),
+    LLP_SOAK_MEDIA_ID: run.mediaId,
+    LLP_TEST_WINDOWS: TEST_WINDOWS_OFFSCREEN,
+  };
+}
+
 async function runApp(minutes: number): Promise<string> {
   const userData = await mkdtemp(join(tmpdir(), 'llp-soak-'));
   const recordPath = join(userData, RECORD_FILE_NAME);
   const durationMs = minutes * MS_PER_MINUTE;
+  const electron = electronBinary();
+  console.log(`Making the soak clip in ${userData}`);
+  const mediaId = await prepareSoakMedia(userData, file =>
+    makeSoakClip(electron, file, userData),
+  );
   console.log(`Running the app for ${minutes} min. Record: ${recordPath}`);
-  const child = spawn(electronBinary(), [REPO_ROOT], {
+  const child = spawn(electron, [REPO_ROOT], {
     stdio: 'inherit',
-    env: {
-      ...process.env,
-      LLP_USER_DATA: userData,
-      LLP_SOAK_RECORD: recordPath,
-      LLP_SOAK_EXIT_MS: String(durationMs),
-    },
+    windowsHide: true,
+    env: soakEnvironment({userData, recordPath, durationMs, mediaId}),
   });
   let timedOut = false;
   const watchdog = setTimeout(() => {
