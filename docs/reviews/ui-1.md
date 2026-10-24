@@ -233,4 +233,21 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 findings from codex2, all fixed, each with a test that fails on the old
+code:
+
+1. IconButton presses reached the row around it. The button now stops click
+   propagation before the disabled guard, and stops Enter and Space key events
+   too, because a row selects on those keys as well (`89cb189`). Test: an
+   IconButton inside a clickable, key-handling row, both enabled and disabled;
+   the row gets no click, Enter, or Space.
+2. Check rows in a list had a Tab stop each and no arrow keys. New `CheckList`
+   (exported) wraps the rows of a list: Tab enters it once, on the box last in
+   focus or the first one; ArrowUp, ArrowDown, Home, and End move between the
+   boxes (disabled boxes included, so their tooltip can explain them); Space
+   toggles the box in focus (`1c6c2b2`). The gallery's list uses it. Tests: one
+   Tab stop, arrows and ends, Space, and returning to the last box after leaving
+   with Tab.
+3. Read-only fields changed on keys. NumberField ignores the arrow keys and
+   Enter while `readOnly`, and TextField ignores Esc on a read-only search field
+   (`fca6f45`). Tests for both.
