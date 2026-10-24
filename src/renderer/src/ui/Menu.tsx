@@ -9,8 +9,7 @@ import {
   type RefObject,
 } from 'react';
 import {createPortal} from 'react-dom';
-import {classNames} from './classNames';
-import {useFloatingPoint} from './floating';
+import {placeFloating} from './floating';
 import {layerContainer} from './layers';
 import {handleMenuKey, type MenuCloseReason} from './menuKeys';
 import {
@@ -228,7 +227,6 @@ function MenuSurface(props: SurfaceProps): JSX.Element {
   const baseId = useId();
   const surface = useRef<HTMLDivElement>(null);
   const nav = useMenuNavigation({entries, surface, onClose, onBack});
-  const point = useFloatingPoint(surface, place, nav.items.length);
   const itemId = (index: number): string => `${baseId}-item-${index}`;
   const activeId = nav.pointed >= 0 ? itemId(nav.pointed) : undefined;
 
@@ -258,8 +256,6 @@ function MenuSurface(props: SurfaceProps): JSX.Element {
     );
   };
   const style: CSSProperties = {
-    left: point?.x ?? 0,
-    top: point?.y ?? 0,
     width: props.width,
     minWidth: props.minWidth,
     maxHeight: maxPopoverHeight(viewportSize()),
@@ -268,13 +264,16 @@ function MenuSurface(props: SurfaceProps): JSX.Element {
   return (
     <>
       <div
-        ref={surface}
+        ref={element => {
+          surface.current = element;
+          if (element !== null) placeFloating(element, place);
+        }}
         id={baseId}
         role="menu"
         aria-label={label}
         aria-activedescendant={search === undefined ? activeId : undefined}
         tabIndex={-1}
-        className={classNames(styles.menu, point === null && styles.measuring)}
+        className={styles.menu}
         style={style}
         onKeyDown={nav.onKeyDown}
         onPointerEnter={props.onPointerEnter}
@@ -317,7 +316,7 @@ function Submenu({
   const place = (size: Size): Point => {
     const itemBox = element.getBoundingClientRect();
     const menuBox = parent.current?.getBoundingClientRect() ?? itemBox;
-    return placeSubmenu(itemBox, menuBox, size, viewportSize());
+    return placeSubmenu({item: itemBox, menu: menuBox}, size, viewportSize());
   };
   return (
     <MenuSurface

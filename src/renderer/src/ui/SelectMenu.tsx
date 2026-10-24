@@ -20,7 +20,7 @@ export interface SelectMenuProps<T extends string> extends Omit<
   SelectProps,
   'value' | 'expanded' | 'onExpandedChange' | 'onChange' | 'ref'
 > {
-  readonly options: readonly SelectOption<T>[];
+  readonly options: ReadonlyArray<SelectOption<T>>;
   readonly value: T | undefined;
   readonly onChange: (value: T) => void;
   /** The text on the button; defaults to the current choice, or 없음. */
@@ -32,7 +32,7 @@ export interface SelectMenuProps<T extends string> extends Omit<
 const NO_VALUE = '없음';
 
 function optionEntries<T extends string>(
-  options: readonly SelectOption<T>[],
+  options: ReadonlyArray<SelectOption<T>>,
   value: T | undefined,
   onChange: (value: T) => void,
 ): readonly MenuEntry[] {

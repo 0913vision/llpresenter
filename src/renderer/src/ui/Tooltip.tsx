@@ -2,7 +2,6 @@ import {
   cloneElement,
   useEffect,
   useId,
-  useRef,
   useSyncExternalStore,
   type FocusEvent,
   type JSX,
@@ -11,8 +10,7 @@ import {
   type ReactNode,
 } from 'react';
 import {createPortal} from 'react-dom';
-import {classNames} from './classNames';
-import {useFloatingPoint} from './floating';
+import {placeFloating} from './floating';
 import {layerContainer} from './layers';
 import {placeTooltip, viewportSize} from './placement';
 import {tooltipController} from './tooltipController';
@@ -83,21 +81,15 @@ function TooltipSurface({
   readonly target: HTMLElement;
   readonly content: TooltipContent;
 }): JSX.Element {
-  const surface = useRef<HTMLDivElement>(null);
-  const point = useFloatingPoint(
-    surface,
-    size => placeTooltip(target.getBoundingClientRect(), size, viewportSize()),
-    `${content.text}|${content.shortcut ?? ''}|${content.sub ?? ''}`,
-  );
+  const place = (element: HTMLElement | null): void => {
+    if (element === null) return;
+    placeFloating(element, size =>
+      placeTooltip(target.getBoundingClientRect(), size, viewportSize()),
+    );
+  };
 
   return (
-    <div
-      ref={surface}
-      id={id}
-      role="tooltip"
-      className={classNames(styles.tooltip, point === null && styles.measuring)}
-      style={{left: point?.x ?? 0, top: point?.y ?? 0}}
-    >
+    <div ref={place} id={id} role="tooltip" className={styles.tooltip}>
       {content.text}
       {content.shortcut === undefined ? null : (
         <span className={styles.key}>{content.shortcut}</span>

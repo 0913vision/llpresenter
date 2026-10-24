@@ -10,7 +10,14 @@ import {
   ListSlot,
 } from '../ListRow';
 import {Panel, PanelBody} from '../Panel';
-import {Section, SpecGroup, SpecItem, Stateful, type SpecPin} from './Spec';
+import {
+  ignore,
+  Section,
+  SpecGroup,
+  SpecItem,
+  Stateful,
+  type SpecPin,
+} from './Spec';
 
 const PANEL_WIDTH = 280;
 
@@ -22,7 +29,7 @@ function OneRowList({
   readonly children: ReactNode;
 }): JSX.Element {
   return (
-    <ListBox label="목록" selected={selected} onSelect={() => {}}>
+    <ListBox label="목록" selected={selected} onSelect={ignore}>
       {children}
     </ListBox>
   );
@@ -119,7 +126,7 @@ export function ListRowSection(): JSX.Element {
             icon="prop"
             title="로고 화면"
             pressed
-            onPress={() => {}}
+            onPress={ignore}
           />
         </SpecItem>
         <SpecItem label="Empty slot" width={PANEL_WIDTH}>
@@ -193,7 +200,7 @@ export function ListRowSection(): JSX.Element {
                     <ListActionRow
                       icon="monitor"
                       title="검은 화면"
-                      onPress={() => {}}
+                      onPress={ignore}
                     />
                     <ListActionRow
                       icon="prop"
@@ -205,7 +212,7 @@ export function ListRowSection(): JSX.Element {
                       icon="timer"
                       title="시작 카운트다운"
                       pressed={false}
-                      onPress={() => {}}
+                      onPress={ignore}
                     />
                   </>
                 )}
@@ -252,7 +259,7 @@ export function ListRowSection(): JSX.Element {
       >
         <SpecItem label="Drop position between rows" width={PANEL_WIDTH}>
           <div>
-            <ListBox label="예배 순서" selected={undefined} onSelect={() => {}}>
+            <ListBox label="예배 순서" selected={undefined} onSelect={ignore}>
               <ListRow value="a" icon="song" title="만복의 근원 하나님" />
               <ListInsertLine />
               <ListRow value="b" icon="song" title="내 주를 가까이 하게 함은" />

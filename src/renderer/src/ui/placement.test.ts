@@ -77,14 +77,15 @@ describe('placeSubmenu', () => {
 
   it('overlaps the parent by 4px and lines up the first item', () => {
     expect(
-      placeSubmenu(item, menu, {width: 180, height: 120}, viewport),
+      placeSubmenu({item, menu}, {width: 180, height: 120}, viewport),
     ).toEqual({x: 296, y: 84});
   });
 
   it('opens on the left when there is no room on the right', () => {
     const farRight = {left: 1000, top: 50, width: 200, height: 300};
     expect(
-      placeSubmenu(item, farRight, {width: 180, height: 120}, viewport).x,
+      placeSubmenu({item, menu: farRight}, {width: 180, height: 120}, viewport)
+        .x,
     ).toBe(824);
   });
 });

@@ -47,13 +47,15 @@ function right(box: Box): number {
   return box.left + box.width;
 }
 
+/** A floating surface that opens beside an anchor, `gap` away from it. */
+interface Opening {
+  readonly anchor: Box;
+  readonly height: number;
+  readonly gap: number;
+}
+
 /** Below the box if it fits, else above it, else pinned inside the window. */
-function belowOrAbove(
-  anchor: Box,
-  height: number,
-  viewport: Size,
-  gap: number,
-): number {
+function belowOrAbove({anchor, height, gap}: Opening, viewport: Size): number {
   const below = bottom(anchor) + gap;
   if (below + height <= viewport.height - WINDOW_EDGE) return below;
   const above = anchor.top - gap - height;
@@ -77,7 +79,10 @@ export function placeTooltip(
       : target.left + (target.width - tooltip.width) / 2;
   return {
     x: keepInside(x, tooltip.width, viewport.width),
-    y: belowOrAbove(target, tooltip.height, viewport, TOOLTIP_GAP),
+    y: belowOrAbove(
+      {anchor: target, height: tooltip.height, gap: TOOLTIP_GAP},
+      viewport,
+    ),
   };
 }
 
@@ -88,7 +93,10 @@ export function placeTooltip(
 export function placeBelow(anchor: Box, popover: Size, viewport: Size): Point {
   return {
     x: keepInside(anchor.left, popover.width, viewport.width),
-    y: belowOrAbove(anchor, popover.height, viewport, POPOVER_GAP),
+    y: belowOrAbove(
+      {anchor, height: popover.height, gap: POPOVER_GAP},
+      viewport,
+    ),
   };
 }
 
@@ -117,11 +125,11 @@ export function placeAtPoint(
  * with the same overlap when there is no room on the right.
  */
 export function placeSubmenu(
-  parentItem: Box,
-  parentMenu: Box,
+  parent: {readonly item: Box; readonly menu: Box},
   submenu: Size,
   viewport: Size,
 ): Point {
+  const {item: parentItem, menu: parentMenu} = parent;
   const onRight = right(parentMenu) - SUBMENU_OVERLAP;
   const onLeft = parentMenu.left + SUBMENU_OVERLAP - submenu.width;
   const fitsRight = onRight + submenu.width <= viewport.width - WINDOW_EDGE;

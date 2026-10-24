@@ -15,12 +15,19 @@ import {
 } from '../Panel';
 import {SelectMenu} from '../SelectMenu';
 import {Slider} from '../Slider';
-import {Section, SpecGroup, SpecItem, Stateful, type SpecPin} from './Spec';
+import {
+  ignore,
+  Section,
+  SpecGroup,
+  SpecItem,
+  Stateful,
+  type SpecPin,
+} from './Spec';
 import warmLight from '../../../../../design/system/upload/Media/warm-light.jpg';
 
 type Tool = 'showing' | 'audio' | 'stage' | 'timer' | 'message';
 
-const tools: readonly PanelTab<Tool>[] = [
+const tools: ReadonlyArray<PanelTab<Tool>> = [
   {value: 'showing', label: '표시 중', count: 3},
   {value: 'audio', label: '오디오'},
   {value: 'stage', label: '무대'},
@@ -53,7 +60,7 @@ function SingleTab({
         <PanelTabs
           tabs={[{value: 'only', label, disabled}]}
           value={selected ? 'only' : 'none'}
-          onChange={() => {}}
+          onChange={ignore}
         />
       </PanelHeader>
       <MiniBody />
@@ -104,7 +111,7 @@ function ServiceHeader({
         <PanelTabs
           tabs={[{value: 'order', label: '예배 순서'}]}
           value="order"
-          onChange={() => {}}
+          onChange={ignore}
         />
         <Stateful<boolean> initial={state.expanded ?? false}>
           {(expanded, setExpanded) => (
@@ -140,7 +147,7 @@ export function PanelSection(): JSX.Element {
               <PanelTabs
                 tabs={[{value: 'library', label: '라이브러리'}]}
                 value="library"
-                onChange={() => {}}
+                onChange={ignore}
               />
               <PanelMeta>128</PanelMeta>
               <PanelActions>
@@ -240,7 +247,7 @@ export function PanelSection(): JSX.Element {
                   min={1}
                   max={5}
                   value={3}
-                  onChange={() => {}}
+                  onChange={ignore}
                 />
               }
             >

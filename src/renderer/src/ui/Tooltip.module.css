@@ -20,11 +20,6 @@
   animation: appear var(--motion-popover);
 }
 
-.measuring {
-  visibility: hidden;
-  animation: none;
-}
-
 .key {
   margin-left: var(--space-8);
   color: var(--text-3);

@@ -31,12 +31,6 @@
   outline: none;
 }
 
-.measuring {
-  opacity: 0;
-  pointer-events: none;
-  animation: none;
-}
-
 .scroll {
   display: flex;
   flex-direction: column;

@@ -12,7 +12,7 @@ import {SegmentedControl} from '../SegmentedControl';
 import {Switch} from '../Switch';
 import {TextField} from '../TextField';
 import {Tooltip} from '../Tooltip';
-import {Section, SpecGroup, SpecItem, Stateful} from './Spec';
+import {ignore, Section, SpecGroup, SpecItem, Stateful} from './Spec';
 
 const fileMenu: readonly MenuEntry[] = [
   {kind: 'item', id: 'new', label: '새 예배', meta: 'Ctrl N'},
@@ -185,7 +185,7 @@ function NewServiceDialog({
         title: '이름을 적어야 만들 수 있습니다',
       }}
       aside={
-        <ListBox label="틀" selected="sunday" onSelect={() => {}} inset>
+        <ListBox label="틀" selected="sunday" onSelect={ignore} inset>
           <ListGroup label="틀">
             <ListRow
               value="sunday"
@@ -218,7 +218,7 @@ function NewServiceDialog({
       <DialogBox
         title="예배 순서"
         meta="항목 3개"
-        checkAll={{checked: 'mixed', onChange: () => {}}}
+        checkAll={{checked: 'mixed', onChange: ignore}}
       >
         <CheckRow
           variant="list"
@@ -226,21 +226,21 @@ function NewServiceDialog({
           label="만복의 근원 하나님"
           meta="주일용"
           checked
-          onChange={() => {}}
+          onChange={ignore}
         />
         <CheckRow
           variant="list"
           icon="song"
           label="내 주를 가까이 하게 함은"
           checked={false}
-          onChange={() => {}}
+          onChange={ignore}
         />
         <CheckRow
           variant="list"
           icon="notice"
           label="주일 광고"
           checked
-          onChange={() => {}}
+          onChange={ignore}
         />
       </DialogBox>
     </Dialog>
@@ -269,11 +269,11 @@ function ImportTextDialog({
                 {value: 'lines', label: '줄 수'},
               ]}
               value="blank"
-              onChange={() => {}}
+              onChange={ignore}
             />
           </DialogField>
           <DialogField label="이름표 인식">
-            <Switch checked onChange={() => {}} />
+            <Switch checked onChange={ignore} />
           </DialogField>
         </>
       }
@@ -415,21 +415,21 @@ export function OverlaySection(): JSX.Element {
                         label="화면 출력"
                         value="본 화면, 무대 화면, 방송 자막"
                         checked
-                        onChange={() => {}}
+                        onChange={ignore}
                       />
                       <CheckRow
                         icon="slides"
                         label="마지막 장"
                         value="만복의 근원 하나님  2 / 9"
                         checked
-                        onChange={() => {}}
+                        onChange={ignore}
                       />
                       <CheckRow
                         icon="layers"
                         label="표시 중이던 항목"
                         value="메시지 1, 소품 1, 무대 메시지 1"
                         checked={false}
-                        onChange={() => {}}
+                        onChange={ignore}
                       />
                     </>
                   ),

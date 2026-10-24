@@ -144,7 +144,7 @@ function PanelTabButton<T extends string>({
 }
 
 export interface PanelTabsProps<T extends string> {
-  readonly tabs: readonly PanelTab<T>[];
+  readonly tabs: ReadonlyArray<PanelTab<T>>;
   readonly value: T;
   readonly onChange: (value: T) => void;
 }
