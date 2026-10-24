@@ -1,13 +1,14 @@
 # Review request: `output-2`
 
-Review range: `97e76ef...feat/output/render` (round 2). Check the round 1
+Review range: `6559a9b...feat/output/render` (round 3). Check the round 1
 findings against "Team member's reply", the output path against
 `docs/spec/03-output.md` (layers, drawing text, background playback, undo), and
 the media file boundary in `src/main/windows/`.
 
 - Team member: `output`
 - Branch: `feat/output/render`
-- Base commit (`main`): `97e76ef` (round 2; round 1 was on `b9392d0`)
+- Base commit (`main`): `6559a9b` (round 3; round 2 was on `97e76ef`, round 1 on
+  `b9392d0`)
 - Last commit: the commit that adds this file
 - Related brief: `docs/briefs/output.md` (task 2), milestone M2
 
@@ -63,6 +64,9 @@ on the 본 화면, with clears and undo reflected in the same call.
 - Tests next to each, and `docs/reviews/output-2.md` (new)
 
 ## Checks run
+
+Round 3: `npm run verify` passed on `1133b0d`, rebased onto `main` at `6559a9b`
+without conflicts: 5 steps in 241.4 s, 139 test files and 1,506 tests.
 
 Round 2: `npm run verify` passed on `a46f48e` (findings 1 to 8, rebased onto
 `main` at `97e76ef` without conflicts): 5 steps in 222.2 s, 113 test files and
@@ -222,3 +226,18 @@ From qa's pre-merge run: an `AbortError` from `play()` interrupted by our own
 pause or source change was logged at error level. `ceb399e` treats that one
 rejection as expected; other play failures are still reported. Test: an
 interrupted play during a clear reports nothing.
+
+Round 2 findings (codex5):
+
+1. **A third background during the dissolve (`backgroundLayer.ts:134`)**: fixed
+   in `42daff5`. Before a background loads into the other video, any dissolve
+   still running ends at once: the front video loses its `dissolving` class, so
+   it is fully opaque, and the video about to be reused is hidden (no `shown`,
+   back z-index) before its source changes. No black can show under the front,
+   and the next background fades in fresh when it plays. Regression test: A,
+   then B playing and dissolving, then C at once: the reused video is hidden and
+   holds C, B is opaque, and C fades in with `dissolving` on top when it plays.
+   It fails on the old code (the reused video stayed shown).
+2. **Nit, the late reply test (`liveFeed.test.ts:84`)**: split in `1133b0d` into
+   two tests with fresh promises: a state that arrives after stop, and a failure
+   that arrives after stop.
