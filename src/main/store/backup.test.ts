@@ -1,6 +1,6 @@
-import {mkdir, readdir, readFile} from 'node:fs/promises';
+import {mkdir, readdir, readFile, rm, symlink} from 'node:fs/promises';
 import {join} from 'node:path';
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, onTestFinished} from 'vitest';
 import {makeTempDir} from '../../../test/temp-dir';
 import {
   backupFolderName,
@@ -13,8 +13,8 @@ import {resolveLocations, type DataLocations} from './locations';
 import {writeJson} from './testFiles';
 
 const NOW = new Date(2026, 9, 25, 7, 58, 0);
-const NOW_NAME = '2026-10-25 07-58-00';
-const YESTERDAY_NAME = '2026-10-24 21-00-00';
+const NOW_NAME = '2026-10-25 075800';
+const YESTERDAY_NAME = '2026-10-24 210000';
 
 async function dataLocations(): Promise<DataLocations> {
   const folder = await makeTempDir();
@@ -45,7 +45,7 @@ describe('backupFolderName', () => {
   it('names a backup after the local time', () => {
     expect(backupFolderName(NOW)).toBe(NOW_NAME);
     expect(backupFolderName(new Date(2027, 0, 2, 3, 4, 5))).toBe(
-      '2027-01-02 03-04-05',
+      '2027-01-02 030405',
     );
   });
 });
@@ -72,18 +72,72 @@ describe('runBackup', () => {
 
   it('keeps the newest backups and removes cut-off ones, and nothing else', async () => {
     const locations = await dataLocations();
-    const older = ['2026-10-20 07-00-00', '2026-10-21 07-00-00'];
-    for (const name of [...older, '2026-10-22 07-00-00.partial', '내 백업']) {
+    const older = ['2026-10-20 070000', '2026-10-21 070000'];
+    for (const name of [...older, '2026-10-22 070000.partial', '내 백업']) {
       await mkdir(join(locations.backups, name), {recursive: true});
     }
 
     await runBackup({locations, keep: 2, now: NOW});
 
     expect(await backupNames(locations)).toEqual([
-      '2026-10-21 07-00-00',
+      '2026-10-21 070000',
       NOW_NAME,
       '내 백업',
     ]);
+  });
+
+  it('leaves files, links, and other names alone when it deletes old backups', async () => {
+    const locations = await dataLocations();
+    const elsewhere = await makeTempDir();
+    await writeJson(join(elsewhere, 'keep.txt'), 'not a backup');
+    const link = join(locations.backups, '2026-10-03 070000');
+    await mkdir(join(locations.backups, '2026-13-40 250000'), {
+      recursive: true,
+    });
+    await writeJson(join(locations.backups, '2026-10-01 070000'), 'a file');
+    await writeJson(join(locations.backups, '2026-10-02 070000.partial'), 'x');
+    await symlink(elsewhere, link, 'junction');
+    onTestFinished(() => rm(link, {force: true}));
+
+    await runBackup({locations, keep: 1, now: NOW});
+
+    expect(await backupNames(locations)).toEqual([
+      '2026-10-01 070000',
+      '2026-10-02 070000.partial',
+      '2026-10-03 070000',
+      NOW_NAME,
+      '2026-13-40 250000',
+    ]);
+    expect(await readdir(elsewhere)).toEqual(['keep.txt']);
+  });
+
+  it('copies what a linked data folder holds, so the backup stands alone', async () => {
+    const folder = await makeTempDir();
+    const original = join(folder, 'songs');
+    const link = join(folder, 'songs-link');
+    await writeJson(join(original, 'a.llsong'), {title: 'a'});
+    await symlink(original, link, 'junction');
+    onTestFinished(() => rm(link, {force: true}));
+    const {locations} = resolveLocations(
+      {songsPath: link},
+      {documents: join(folder, 'unused'), developmentFolder: folder},
+    );
+
+    await runBackup({locations, keep: 30, now: NOW});
+    await rm(original, {recursive: true, force: true});
+
+    const copy = join(locations.backups, NOW_NAME, '곡', 'a.llsong');
+    expect(await readFile(copy, 'utf8')).toBe('{"title":"a"}');
+  });
+
+  it('fails when a file stands where a data folder should be', async () => {
+    const locations = await dataLocations();
+    await writeJson(locations.songs, 'a file where the folder should be');
+
+    const backup = await runBackup({locations, keep: 30, now: NOW});
+
+    expect(backup.ok).toBe(false);
+    expect(await backupNames(locations)).toEqual([]);
   });
 
   it('keeps at least one backup whatever the count says', async () => {
@@ -122,6 +176,19 @@ describe('lastBackupTime', () => {
     });
   });
 
+  it('counts only folders with a valid time as backups', async () => {
+    const locations = await dataLocations();
+    await writeJson(join(locations.backups, '2026-10-25 060000'), 'a file');
+    await mkdir(join(locations.backups, '2026-02-30 060000'), {
+      recursive: true,
+    });
+
+    expect(await lastBackupTime(locations.backups)).toEqual({
+      ok: true,
+      value: null,
+    });
+  });
+
   it('has none for an empty or missing backup location', async () => {
     const locations = await dataLocations();
 
@@ -145,7 +212,7 @@ describe('Backups', () => {
 
   it('backs up once a day at launch', async () => {
     const locations = await dataLocations();
-    await mkdir(join(locations.backups, '2026-10-25 06-00-00'), {
+    await mkdir(join(locations.backups, '2026-10-25 060000'), {
       recursive: true,
     });
 

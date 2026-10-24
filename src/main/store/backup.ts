@@ -1,15 +1,14 @@
-import {cp, mkdir, rename, rm} from 'node:fs/promises';
+import {cp, mkdir, readdir, rename, rm, stat} from 'node:fs/promises';
 import {join} from 'node:path';
 import type {Result} from '@shared/result';
 import type {Preferences} from '@shared/schema/preferences';
 import type {WriteProblem} from './atomicWrite';
 import {isMissingFile} from './fsErrors';
 import {FOLDER_NAMES, type DataLocations} from './locations';
-import {listFolder} from './readFiles';
 
 const PARTIAL_SUFFIX = '.partial';
 const KEEP_LIMITS = {min: 1, max: 365} as const;
-const BACKUP_NAME = /^(\d{4})-(\d{2})-(\d{2}) (\d{2})-(\d{2})-(\d{2})$/;
+const BACKUP_NAME = /^(\d{4})-(\d{2})-(\d{2}) (\d{2})(\d{2})(\d{2})$/;
 const BACKED_UP_FOLDERS = [
   'songs',
   'services',
@@ -31,6 +30,13 @@ export type BackupOutcome =
   | {readonly kind: 'done'; readonly backup: BackupDone}
   | {readonly kind: 'skipped'; readonly reason: BackupSkipReason}
   | {readonly kind: 'failed'; readonly problem: WriteProblem};
+
+interface BackupFolders {
+  /** Complete backups, oldest first. */
+  readonly complete: readonly string[];
+  /** Backups that were cut off before they were renamed. */
+  readonly partial: readonly string[];
+}
 
 export interface BackupRun {
   readonly locations: DataLocations;
@@ -138,22 +144,22 @@ export async function runBackup({
 export async function lastBackupTime(
   backupsFolder: string,
 ): Promise<Result<Date | null, WriteProblem>> {
-  const names = await listFolder(backupsFolder);
-  if (!names.ok) {
-    return {
-      ok: false,
-      error: {file: backupsFolder, message: names.error.message},
-    };
+  const folders = await backupFolders(backupsFolder);
+  if (!folders.ok) {
+    return folders;
   }
-  const newest = names.value.filter(isBackupName).at(-1);
+  const newest = folders.value.complete.at(-1);
   return {ok: true, value: newest === undefined ? null : backupTime(newest)};
 }
 
-/** A backup folder's name: the local time, so names sort in time order. */
+/**
+ * A backup folder's name: the local time as `YYYY-MM-DD HHmmss`, so names
+ * sort in time order (spec 02, "Automatic backup").
+ */
 export function backupFolderName(time: Date): string {
   const date = [time.getFullYear(), time.getMonth() + 1, time.getDate()];
   const clock = [time.getHours(), time.getMinutes(), time.getSeconds()];
-  return `${date.map(twoDigits).join('-')} ${clock.map(twoDigits).join('-')}`;
+  return `${date.map(twoDigits).join('-')} ${clock.map(twoDigits).join('')}`;
 }
 
 async function copyDataFolders(
@@ -167,18 +173,35 @@ async function copyDataFolders(
   }
 }
 
+// NOTE(0913vision): Links are copied as what they point to, so a backup never
+// depends on the data it backs up. Only a source folder that doesn't exist,
+// such as 틀 before the first 틀, is skipped; any other failure fails the
+// backup, so an incomplete one never counts.
 async function copyFolder(source: string, target: string): Promise<void> {
+  if (!(await isExistingFolder(source))) {
+    return;
+  }
+  await cp(source, target, {
+    recursive: true,
+    dereference: true,
+    errorOnExist: true,
+    force: false,
+    preserveTimestamps: true,
+  });
+}
+
+async function isExistingFolder(path: string): Promise<boolean> {
   try {
-    await cp(source, target, {
-      recursive: true,
-      errorOnExist: true,
-      force: false,
-      preserveTimestamps: true,
-    });
-  } catch (error: unknown) {
-    if (!isMissingFile(error)) {
-      throw error;
+    const stats = await stat(path);
+    if (!stats.isDirectory()) {
+      throw new Error(`Expected a folder: ${path}`);
     }
+    return true;
+  } catch (error: unknown) {
+    if (isMissingFile(error)) {
+      return false;
+    }
+    throw error;
   }
 }
 
@@ -197,26 +220,21 @@ async function failedBackup(
   }
 }
 
-// NOTE(0913vision): Only names this module writes are ever deleted, so a
-// folder the operator put in the backup location is never touched. Every
-// leftover `.partial` is from a backup cut off earlier, because backups run
-// one at a time.
 async function deleteOldBackups(
   backupsFolder: string,
   keep: number,
 ): Promise<readonly WriteProblem[]> {
-  const names = await listFolder(backupsFolder);
-  if (!names.ok) {
-    return [{file: backupsFolder, message: names.error.message}];
+  const folders = await backupFolders(backupsFolder);
+  if (!folders.ok) {
+    return [folders.error];
   }
-  const complete = names.value.filter(isBackupName);
+  const {complete, partial} = folders.value;
   const extra = complete.slice(
     0,
     Math.max(0, complete.length - keepCount(keep)),
   );
-  const partials = names.value.filter(isPartialName);
   const problems: WriteProblem[] = [];
-  for (const name of [...extra, ...partials]) {
+  for (const name of [...extra, ...partial]) {
     const folder = join(backupsFolder, name);
     try {
       await rm(folder, {recursive: true, force: true});
@@ -227,13 +245,40 @@ async function deleteOldBackups(
   return problems;
 }
 
+// NOTE(0913vision): Only real folders whose names this module writes count, so
+// a file, a link, or a folder the operator put in the backup location is never
+// read as a backup or deleted. Every leftover `.partial` is from a backup cut
+// off earlier, because backups run one at a time.
+async function backupFolders(
+  backupsFolder: string,
+): Promise<Result<BackupFolders, WriteProblem>> {
+  try {
+    const folders = (await readdir(backupsFolder, {withFileTypes: true}))
+      .filter(entry => entry.isDirectory())
+      .map(entry => entry.name)
+      .sort();
+    return {
+      ok: true,
+      value: {
+        complete: folders.filter(isBackupName),
+        partial: folders.filter(isPartialName),
+      },
+    };
+  } catch (error: unknown) {
+    return isMissingFile(error)
+      ? {ok: true, value: {complete: [], partial: []}}
+      : {ok: false, error: {file: backupsFolder, message: messageOf(error)}};
+  }
+}
+
 function keepCount(keep: number): number {
   const whole = Number.isFinite(keep) ? Math.floor(keep) : KEEP_LIMITS.min;
   return Math.min(KEEP_LIMITS.max, Math.max(KEEP_LIMITS.min, whole));
 }
 
 function isBackupName(name: string): boolean {
-  return BACKUP_NAME.test(name);
+  const time = backupTime(name);
+  return time !== null && backupFolderName(time) === name;
 }
 
 function isPartialName(name: string): boolean {
@@ -244,9 +289,15 @@ function isPartialName(name: string): boolean {
 }
 
 // NOTE(0913vision): A date and time without an offset is local time, which is
-// how the name was written.
-function backupTime(name: string): Date {
-  return new Date(name.replace(BACKUP_NAME, '$1-$2-$3T$4:$5:$6'));
+// how the name was written. A name like 2026-13-40 makes an invalid date, and a
+// valid date that doesn't write back to the same name is refused by
+// `isBackupName`.
+function backupTime(name: string): Date | null {
+  if (!BACKUP_NAME.test(name)) {
+    return null;
+  }
+  const time = new Date(name.replace(BACKUP_NAME, '$1-$2-$3T$4:$5:$6'));
+  return Number.isNaN(time.getTime()) ? null : time;
 }
 
 function isSameDay(a: Date, b: Date): boolean {
