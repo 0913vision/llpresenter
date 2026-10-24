@@ -1,6 +1,6 @@
 # Review request: `shell-14`
 
-Review range: 8e0d3b3...feat/shell/service-data
+Review range: 342a9b8...feat/shell/service-data
 
 What to check: that 진행 shows the service from `window.llp.service` and no
 longer an invented sample; that an older revision of the same service is
@@ -11,7 +11,7 @@ warning icon, tooltips, and read-only mark follow the row problems of
 
 - Team member: `shell`
 - Branch: `feat/shell/service-data`
-- Base commit (`main`): `8e0d3b3`
+- Base commit (`main`): `342a9b8`
 - Last commit: see the commit that adds this file
 - Related brief: `docs/spec/` (the `ShowService` view model in `src/shared`)
 
@@ -138,3 +138,6 @@ Round 1 (codex2), answered once:
 
 `npm run verify` on commit `df3d2f1` (base `main` 8e0d3b3) passed all five steps
 in 201.3 s: `typecheck`, `lint`, `format:check`, `test:coverage`, and `build`.
+
+I rebased onto `main` 342a9b8 afterwards (ui-4 and the shell-13 approvals);
+`typecheck` passed again, and the rebase had no conflicts.
