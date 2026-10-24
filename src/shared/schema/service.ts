@@ -85,7 +85,11 @@ const serviceItemSchema = v.lazy(itemSchemaFor);
 
 const orderSchema = listWithUniqueIds(serviceItemSchema);
 
-const serviceSchema = jsonObject({
+/**
+ * A 예배 순서 as its file holds it. A value from another process goes through
+ * `checkPart`, which handles keys the way a file read does.
+ */
+export const serviceSchema = jsonObject({
   format: v.literal(SERVICE_FORMAT),
   schemaVersion: positiveInteger,
   id: serviceIdSchema,
@@ -94,7 +98,8 @@ const serviceSchema = jsonObject({
   order: orderSchema,
 });
 
-const templateSchema = jsonObject({
+/** A 틀 as its file holds it, checked like {@link serviceSchema}. */
+export const templateSchema = jsonObject({
   format: v.literal(SERVICE_FORMAT),
   schemaVersion: positiveInteger,
   id: templateIdSchema,

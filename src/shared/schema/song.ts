@@ -26,14 +26,17 @@ const slideSchema = jsonObject({
   lines: v.array(v.string()),
 });
 
-const arrangementSchema = jsonObject({
-  name: v.pipe(
-    nonBlankText,
-    v.notValue(
-      DEFAULT_ARRANGEMENT_NAME,
-      `"${DEFAULT_ARRANGEMENT_NAME}" is the default arrangement's name`,
-    ),
+/** A stored 구성 name: not blank, and never the default 구성's name. */
+export const arrangementNameSchema = v.pipe(
+  nonBlankText,
+  v.notValue(
+    DEFAULT_ARRANGEMENT_NAME,
+    `"${DEFAULT_ARRANGEMENT_NAME}" is the default arrangement's name`,
   ),
+);
+
+const arrangementSchema = jsonObject({
+  name: arrangementNameSchema,
   slides: v.array(positiveInteger),
 });
 
@@ -46,7 +49,11 @@ const arrangementsSchema = v.pipe(
   ),
 );
 
-const songSchema = v.pipe(
+/**
+ * A song as its file holds it. A value from another process goes through
+ * `checkPart`, which handles keys the way a file read does.
+ */
+export const songSchema = v.pipe(
   jsonObject({
     format: v.literal('llsong'),
     schemaVersion: positiveInteger,
