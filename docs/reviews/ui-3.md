@@ -1,8 +1,8 @@
 # Review request: `ui-3`
 
 - Team member: `ui`
-- Branch: `feat/ui/property-parts` (stacked on `feat/ui/overlays`, ui-2)
-- Base commit (`main`): filled in when sent, after ui-2 merges
+- Branch: `feat/ui/property-parts`
+- Base commit (`main`): `699fe8a`
 - Last commit: the commit that adds this file (see the review request message)
 - Related brief: `docs/briefs/ui.md`, M2 in `docs/MILESTONES.md`
 
@@ -28,16 +28,23 @@ gains `withParticle` (과 or 와) for "출력 켜기와 겹침".
   `labelInk.ts`, `korean.ts`, and the exports in `index.ts`.
 - `src/renderer/src/ui/gallery/`: sections for PropertyRow, KeyCap, and the
   label parts.
+- `src/renderer/src/ui/Menu.test.tsx`: the ui-2 round 2 nit from codex4. The
+  resize test now gives the opener and the menu a size and checks that the menu
+  moves to its new left and top (flips above, moves left), not only its maximum
+  height (`eb8378b`).
+- The ui-2 rule of TSDoc on exported APIs only also holds here: the private
+  label chip helpers lost theirs, and the color row props are exported as
+  `SwatchRowProps`, because the picker props derive from them (`5c2c3e5`).
 - No shared files, no configuration, no `package.json`.
 
 ## Checks run
 
-| Command or test                              | Result                    |
-| -------------------------------------------- | ------------------------- |
-| `npm run verify`                             | Filled in when sent       |
-| `npx tsc`, `npx eslint src/renderer/src/ui`  | Pass                      |
-| `npx vitest run --project renderer` (ui)     | Pass, 30 files, 254 tests |
-| Gallery beside the preview cards (see below) | Done for all four cards   |
+| Command or test                              | Result                                                                                   |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `npm run verify`                             | Pass, 5 steps, 102 files, 1050 tests (1 skipped under coverage by design, not ui), 151 s |
+| `npx tsc`, `npx eslint src/renderer/src/ui`  | Pass                                                                                     |
+| `npx vitest run --project renderer` (ui)     | Pass, 30 files, 254 tests                                                                |
+| Gallery beside the preview cards (see below) | Done for all four cards                                                                  |
 
 ### Comparison with the preview cards
 
@@ -50,7 +57,7 @@ gains `withParticle` (과 or 와) for "출력 켜기와 겹침".
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
-- [ ] `npm run verify` passes (filled in when sent)
+- [x] `npm run verify` passes
 - [x] `npm run format:check` passes
 - [x] Every new behavior has unit tests
 - [x] Values from outside the process are validated with a schema (none here)
