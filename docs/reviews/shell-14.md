@@ -136,4 +136,5 @@ Round 1 (codex2), answered once:
 
 ## Verify result
 
-See the end of this file after the next run.
+`npm run verify` on commit `df3d2f1` (base `main` 8e0d3b3) passed all five steps
+in 201.3 s: `typecheck`, `lint`, `format:check`, `test:coverage`, and `build`.
