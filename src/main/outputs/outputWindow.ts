@@ -74,6 +74,11 @@ export class OutputWindow {
     return this.recovery.state;
   }
 
+  /** The page drew the output state after a (re)load. */
+  pageDrawn(): void {
+    this.recovery.pageDrawn();
+  }
+
   /** Shows the window at the placement, or hides it for null. */
   update(placement: ShownPlacement | null): void {
     if (this.disposed) return;

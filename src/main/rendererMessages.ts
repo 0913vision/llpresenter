@@ -1,9 +1,9 @@
 import {
   parseFrameRateReport,
   parseRendererLogEntry,
+  type FrameRateReport,
 } from '@shared/schema/ipcPayloads';
 import type {Logger} from './log';
-import type {FrameRateTracker} from './outputs/frameRates';
 
 /** A window's web contents id, which tells windows apart. */
 export type WindowId = number;
@@ -97,9 +97,9 @@ export function handleLogWrite(
   };
 }
 
-/** Passes an output window's frame rate to the tracker. A malformed report is dropped and reported. */
+/** Passes an output window's frame rate report on. A malformed report is dropped and reported. */
 export function handleFrameRate(
-  tracker: FrameRateTracker,
+  receive: (report: FrameRateReport) => void,
   log: Logger,
 ): MessageHandler {
   return value => {
@@ -108,6 +108,6 @@ export function handleFrameRate(
       log.warn('dropped a malformed frame rate report', parsed.error);
       return;
     }
-    tracker.report(parsed.value);
+    receive(parsed.value);
   };
 }

@@ -86,6 +86,14 @@ export class OutputManager {
     this.sync();
   }
 
+  /**
+   * A screen's page drew the output state, so a window that restarted shows
+   * the live picture again. Its first frame rate report is the sign.
+   */
+  pageDrawn(screenId: string): void {
+    this.windows.get(screenId)?.pageDrawn();
+  }
+
   /** Destroys every output window and stops listening. Call it before the app quits. */
   dispose(): void {
     if (this.disposed) return;

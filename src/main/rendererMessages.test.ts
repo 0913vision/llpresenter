@@ -55,7 +55,10 @@ describe('handleFrameRate', () => {
   it('passes a valid report to the tracker', () => {
     const log = recordingLogger();
     const tracker = new FrameRateTracker(() => true, log);
-    handleFrameRate(tracker, log)({screenId: 'main', fps: 59.9}, WINDOW);
+    handleFrameRate(report => tracker.report(report), log)(
+      {screenId: 'main', fps: 59.9},
+      WINDOW,
+    );
     expect(tracker.current('main')).toEqual({fps: 59.9, status: 'normal'});
   });
 
@@ -66,7 +69,7 @@ describe('handleFrameRate', () => {
   ])('drops a malformed report: %j', value => {
     const log = recordingLogger();
     const tracker = new FrameRateTracker(() => true, log);
-    handleFrameRate(tracker, log)(value, WINDOW);
+    handleFrameRate(report => tracker.report(report), log)(value, WINDOW);
     expect(tracker.current('main')).toBeNull();
     expect(log.messages('warn')).toEqual([
       'dropped a malformed frame rate report',

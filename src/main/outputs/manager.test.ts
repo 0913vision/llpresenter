@@ -15,6 +15,8 @@ import {LiveStore} from '../live/store';
 import {createDefaultScreenSource} from './defaultScreens';
 import {OutputManager, type MonitorFeed} from './manager';
 import {OUTPUT_WINDOW_SIZE} from './placement';
+import {COOLDOWN_STEPS_MS, RELAUNCH_DELAY_MS} from './rendererRecovery';
+import {CRASH_LIMIT} from './restartBudget';
 import type {OutputScreen, ScreenSource} from './screens';
 import {fakeWindows, fullScreenScreen} from './testing';
 
@@ -256,5 +258,26 @@ describe('OutputManager', () => {
     });
     manager.dispose();
     displays.dispose();
+  });
+
+  it("tells a restarted window when its page drew, and ignores other screens' reports", async () => {
+    const clock = installFakeClock();
+    const {store, windows, log, manager} = setUp();
+    store.dispatch(turn(true));
+    const handle = windows.only('main');
+    for (let crash = 0; crash < CRASH_LIMIT; crash += 1) {
+      handle.crash();
+      await clock.advance(RELAUNCH_DELAY_MS);
+    }
+    await clock.advance(COOLDOWN_STEPS_MS[0] ?? 0);
+    manager.pageDrawn('stage');
+    expect(log.messages('info')).not.toContain(
+      'output window restart attempt works',
+    );
+    manager.pageDrawn('main');
+    expect(log.messages('info')).toContain(
+      'output window restart attempt works',
+    );
+    manager.dispose();
   });
 });

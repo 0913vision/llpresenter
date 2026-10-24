@@ -57,7 +57,10 @@ export function startOutputs({
   );
   const stopFrameRates = listenToWindows(
     Channels.outputFrameRate,
-    handleFrameRate(frameRates, log),
+    handleFrameRate(report => {
+      frameRates.report(report);
+      outputs.pageDrawn(report.screenId);
+    }, log),
   );
   const stopKeepingAwake = keepAwakeWhileOutputsOn(
     store,
