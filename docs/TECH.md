@@ -1,148 +1,237 @@
-# 기술 결정
+# Technical decisions
 
-이 앱은 예배 중에 멈추면 안 됩니다. 모든 기술 선택은 "예배 중에 출력이 끊기지 않는가"를 먼저 따집니다. 새 기능, 새 라이브러리, 버전 올리기는 이 문서와 `docs/decisions.md`에 이유를 남긴 뒤에 합니다.
+This app must not stop during a service. Every technical choice first asks:
+"Does the output keep running during a service?" Before you add a feature, add a
+library, or upgrade a version, record the reason in this document and in
+`docs/decisions.md`.
 
-## 원칙
+## Principles
 
-1. **출력이 먼저입니다.** 출력 창은 조작 창, 파일 저장, 가져오기, 미디어 분석 같은 다른 일 때문에 멈추지 않아야 합니다. 무거운 일은 출력과 다른 프로세스에서 합니다.
-2. **의존성은 적게, 버전은 정확히 고정합니다.** `package.json`에 `^` 없이 정확한 버전을 적고, `package-lock.json`을 커밋합니다. 버전 올리기는 예배가 없는 주에, 점검표(아래)를 거쳐 합니다.
-3. **필요할 때 정합니다.** 아직 쓰지 않는 기능(NDI, PowerPoint, 악보, 카메라)의 라이브러리는 그 단계에서 짧은 시험(spike)으로 고릅니다. 고를 때 기준은 아래 "의존성 추가 기준"입니다.
-4. **확장은 등록부로 합니다.** 새 내용 종류, 출력 대상, 매크로 동작, 가져오기 형식, 입력 장치는 정해진 등록부에 하나를 더하는 것으로 끝나야 합니다. 기존 코드를 고쳐 끼워 넣지 않습니다.
-5. **인터넷 없이 동작합니다.** 예배 중에는 네트워크에 기대지 않습니다. 성경 본문과 글꼴은 앱에 넣습니다. 업데이트는 사용자가 누를 때만 하고, 예배 중에는 하지 않습니다.
+1. **Output comes first.** Output windows must never stop because of other work,
+   such as the control window, saving files, importing, or analyzing media. Do
+   heavy work in a process other than the output.
+2. **Keep dependencies few and pin exact versions.** Write exact versions in
+   `package.json`, without `^`, and commit `package-lock.json`. Upgrade versions
+   only in a week without a service, after the checklist below.
+3. **Decide when it's needed.** For features we don't use yet (NDI, PowerPoint,
+   sheet music, camera), choose the library in that phase with a short spike.
+   Choose by "Criteria for adding a dependency" below.
+4. **Extend through registries.** A new content type, output target, macro
+   action, import format, or input device must take only one new entry in its
+   registry. Don't change existing code to wedge it in.
+5. **Work without the internet.** Don't rely on the network during a service.
+   Bundle the Bible text and fonts with the app. Update only when the user
+   clicks, and never during a service.
 
-## 스택
+## Stack
 
-| 영역 | 선택 | 버전 정책 | 이유 |
-| --- | --- | --- | --- |
-| 앱 틀 | Electron | 44.9.x로 고정(1단계에서 45.0.0에서 내림) | 45.0.0은 2026년 10월 21일에 나온 첫 판입니다. 44는 9번째 패치까지 나와 지원 기간 안에 있습니다. 45는 패치가 몇 번 나온 뒤, 예배 없는 주에 점검표를 거쳐 올립니다 |
-| 빌드 | electron-vite 6, Vite 8 | 정확히 고정 | 메인, 프리로드, 화면을 한 설정으로 빌드합니다. 실행 중 안정성과는 관계없는 도구입니다 |
-| 언어 | TypeScript 7, strict | 정확히 고정 | 타입 검사만 합니다. 다른 도구가 7을 지원하지 않으면 그 도구만 따로 정합니다 |
-| 화면 | React 19 | 정확히 고정 | |
-| 스타일 | CSS Modules와 디자인 토큰(`tokens.css`의 CSS 변수) | | UI 라이브러리를 쓰지 않고 디자인 시스템 컴포넌트를 직접 만듭니다. 모양을 정확히 맞추고, 바깥 라이브러리의 변경에 흔들리지 않기 위해서입니다 |
-| 화면 쪽 상태 | Zustand 5 | 정확히 고정 | 메인이 보낸 출력 상태의 사본과 화면 안의 상태(고른 줄, 열린 메뉴)만 둡니다 |
-| 패널 크기 조절 | react-resizable-panels 4 | 1단계에서 직접 만들지 비교 | 열 사이 끌기와 크기 구간별 기억이 필요합니다 |
-| 글꼴 | Pretendard Variable(OFL), 앱에 포함 | | |
-| 아이콘 | Phosphor Regular(MIT) 86개, `design/system/upload/Icons/` | 1단계에서 넣는 방식 결정(SVG를 컴포넌트로) | 디자인 시스템과 같은 묶음만 씁니다 |
-| 데이터 검사 | 작은 스키마 검사 라이브러리 하나(zod 계열) | 1단계에서 결정 | 파일을 읽을 때 형식을 검사합니다 |
-| 기록 | 회전하는 로그 파일 하나(electron-log 계열) | 1단계에서 결정 | 예배 뒤에 무슨 일이 있었는지 볼 수 있게 합니다 |
-| 단위 시험 | Vitest | 1단계에서 추가 | 모델, 변환, 출력 상태 처리 |
-| 화면 시험 | Playwright의 Electron 지원 | 2단계에서 추가 | 곡 열기, 출력, 지우기 같은 핵심 흐름 |
+| Area            | Choice                                                          | Version policy                                            | Reason                                                                                                                                                                                                     |
+| --------------- | --------------------------------------------------------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| App framework   | Electron                                                        | Pinned to 44.9.x (lowered from 45.0.0 in phase 1)         | 45.0.0 is the first release, out on October 21, 2026. 44 has reached its ninth patch and is within its support period. Upgrade to 45 after a few patches, in a week without a service, after the checklist |
+| Build           | electron-vite 6, Vite 8                                         | Pinned exactly                                            | Builds main, preload, and renderer with one configuration. It's a tool that doesn't affect runtime stability                                                                                               |
+| Language        | TypeScript 7, strict                                            | Pinned exactly                                            | Used for type checking only. If another tool doesn't support 7, decide on that tool separately                                                                                                             |
+| UI              | React 19                                                        | Pinned exactly                                            |                                                                                                                                                                                                            |
+| Styling         | CSS Modules and design tokens (CSS variables in `tokens.css`)   |                                                           | We build the design system components ourselves instead of using a UI library, to match the look exactly and to stay unaffected by changes in outside libraries                                            |
+| Renderer state  | Zustand 5                                                       | Pinned exactly                                            | Holds only the copy of the live output state that the main process sends and the state inside the window (selected row, open menu)                                                                         |
+| Panel resizing  | react-resizable-panels 4                                        | Compare with building it ourselves in phase 1             | We need dragging between columns and remembering sizes per window size range                                                                                                                               |
+| Font            | Pretendard Variable (OFL), bundled with the app                 |                                                           |                                                                                                                                                                                                            |
+| Icons           | Phosphor Regular (MIT), 86 icons, `design/system/upload/Icons/` | Decide how to include them in phase 1 (SVG as components) | Use only the same set as the design system                                                                                                                                                                 |
+| Data validation | One small schema validation library (zod family)                | Decide in phase 1                                         | Validates formats when files are read                                                                                                                                                                      |
+| Logging         | One rotating log file (electron-log family)                     | Decide in phase 1                                         | Lets us see what happened after a service                                                                                                                                                                  |
+| Formatting      | Prettier with Google `gts` defaults (`.prettierrc.json`)        | Pinned exactly                                            | Formats code, CSS, JSON, and Markdown the same way in every session. Settings are in `CLAUDE.md`                                                                                                           |
+| Unit tests      | Vitest                                                          | Add in phase 1                                            | Models, conversions, live output state handling                                                                                                                                                            |
+| UI tests        | Playwright's Electron support                                   | Add in phase 2                                            | Core flows such as opening a song, output, and clearing                                                                                                                                                    |
 
-## 프로세스 구조
+## Process structure
 
+The diagram uses the app's Korean names for the workspaces, the screens, and the
+예배 순서 (service order, the item list of one service). The workspaces are 진행
+(Show), 준비 (Prep), and 화면 설정 (Screen settings). The screens are 본 화면
+(main screen), 무대 화면 (stage screen), and 방송 자막 (broadcast captions).
+
+```text
+Main process
+  Live output state store (the single source of truth) ← runs commands in order
+  File store (songs, 예배 순서, settings, media list, autosave, backups)
+  Display management (finds monitors, detects connects and disconnects)
+  Output window management (one window per screen; relaunches a crashed
+    window and restores its state)
+  Recovery record (writes the live output state to disk at short intervals)
+Control window (renderer): 진행, 준비, 화면 설정
+Output windows (renderer): 본 화면, 무대 화면, 방송 자막 capture window, each
+  separate
+Utility process (utilityProcess): media analysis, import conversion, later
+  NDI sending
 ```
-메인 프로세스
-  출력 상태 저장소(유일한 원본) ← 명령을 순서대로 처리
-  파일 저장소(곡, 예배 순서, 설정, 미디어 목록, 자동 저장, 백업)
-  화면 관리(모니터 찾기, 연결과 빠짐 감지)
-  출력 창 관리(화면마다 창 하나, 죽으면 다시 띄우고 상태 복원)
-  복구 기록(출력 상태를 짧은 간격으로 디스크에 씀)
-조작 창(렌더러): 진행, 준비, 화면 설정
-출력 창(렌더러): 본 화면, 무대 화면, 방송 자막 캡처 창, 각자 따로
-보조 프로세스(utilityProcess): 미디어 분석, 가져오기 변환, 나중에 NDI 보내기
-```
 
-- 조작 창과 출력 창은 출력 상태를 고치지 않습니다. 명령(`{ type, payload }`)을 메인에 보내고, 메인이 처리한 새 상태(판 번호 포함)를 모든 창에 보냅니다.
-- 명령은 하나씩 순서대로 처리합니다. 그래서 되돌림, 기록, 복구가 같은 길을 씁니다.
-- 출력 창은 대화상자를 띄우지 않습니다. 출력 창에서 난 오류는 기록만 하고 마지막 정상 화면을 유지합니다.
-- 출력 창 프로세스가 죽으면(`render-process-gone`) 메인이 다시 띄우고 현재 상태를 보냅니다. 조작 창은 상태 표시줄과 알림으로만 알립니다.
-- 네이티브 모듈(NDI 등)은 보조 프로세스 안에서만 씁니다. 네이티브 코드가 죽어도 출력 창과 메인은 살아 있게 합니다.
+- The control window and the output windows don't change the live output state.
+  They send commands (`{type, payload}`) to the main process, and the main
+  process sends the new state it produced (with a revision number) to every
+  window.
+- Commands run one at a time, in order. That way undo, logging, and recovery
+  share the same path.
+- Output windows never open dialogs. An error in an output window is only
+  logged, and the window keeps the last good frame.
+- When an output window process dies (`render-process-gone`), the main process
+  relaunches it and sends the current state. The control window reports it only
+  in the status bar and with a notification.
+- Native modules (NDI and others) run only inside the utility process. If native
+  code crashes, the output windows and the main process stay alive.
 
-## 등록부 (확장 지점)
+## Registries (extension points)
 
-| 등록부 | v1에 넣는 것 | 나중에 더할 것 |
-| --- | --- | --- |
-| 내용 종류(장 안에 그리는 것) | 가사, 성경 구절, 텍스트 | 악보, 카메라 입력 요소 |
-| 층 | 배경 미디어, 장, 소품, 오디오, 메시지, 공지 | |
-| 출력 대상 | 모니터 창, 캡처용 창 | NDI |
-| 매크로 동작 | 매크로 보드의 동작 팔레트에 있는 것 | 카메라 입력 켜기 같은 새 동작 |
-| 가져오기 형식 | 텍스트 파일, 클립보드 텍스트 | PowerPoint |
-| 입력 장치 | (없음) | 카메라(USB 캡처, NDI 입력) |
-| 미디어 종류 | 영상, 그림, 오디오 | 비디오 입력 |
+| Registry                                         | In v1                                                 | Later                                        |
+| ------------------------------------------------ | ----------------------------------------------------- | -------------------------------------------- |
+| Content types (what's drawn inside a 장 (slide)) | Lyrics, Bible verses, text                            | Sheet music, camera input elements           |
+| Layers                                           | Background media, 장, props, audio, messages, notices |                                              |
+| Output targets                                   | Monitor windows, capture window                       | NDI                                          |
+| Macro actions                                    | The actions in the action palette of the macro board  | New actions, such as turning on camera input |
+| Import formats                                   | Text files, clipboard text                            | PowerPoint                                   |
+| Input devices                                    | (None)                                                | Cameras (USB capture, NDI input)             |
+| Media types                                      | Video, images, audio                                  | Video input                                  |
 
-각 등록부는 종류 이름, 데이터 형식(스키마), 그리는 쪽(렌더러), 편집하는 쪽(속성 칸)을 한 묶음으로 등록합니다.
+Each registry entry registers a type name, a data format (schema), a renderer
+(the drawing side), and an editor (property fields) as one bundle.
 
-## 저장
+## Storage
 
-- 곡(`.llsong`)과 예배 순서(`.llservice`)는 JSON 파일입니다. 앱 전체 설정도 JSON 파일입니다. 형식은 `docs/spec/02-data.md`.
-- 쓸 때는 임시 파일에 쓰고 디스크에 확정한 뒤 원래 이름으로 바꿉니다. 중간에 전원이 나가도 파일이 반쯤 쓰인 채 남지 않습니다.
-- 파일마다 이전 판을 몇 개(제안: 5개) 백업으로 남깁니다.
-- 모든 파일에 형식 버전을 넣고, 읽을 때 옛 판을 새 판으로 바꿉니다(migration). 모르는 필드는 지우지 않고 그대로 씁니다.
-- 읽다가 형식이 틀리면 원본을 건드리지 않고, 그 파일만 빼고 나머지로 계속 돌며 알림으로 알립니다.
-- 라이브러리가 수천 곡이 돼도 빠르게 찾도록 제목, 가사, 초성 색인을 메모리에 둡니다(3단계에서 방식 결정).
+- Songs (`.llsong`) and 예배 순서 (`.llservice`) are JSON files. App-wide
+  settings are JSON files too. The formats are in `docs/spec/02-data.md`.
+- To write a file, write a temporary file, flush it to disk, then rename it to
+  the original name. A power cut in the middle never leaves a half-written file.
+- Keep a few earlier versions of each file as backups (proposal: 5).
+- Every file carries a format version, and reading converts old versions to the
+  new one (migration). Unknown fields aren't deleted; they're written back as
+  they are.
+- If a file has a bad format, don't touch the original. Skip only that file,
+  keep running with the rest, and report it in a notification.
+- To keep search fast even with thousands of songs in the library, keep an index
+  of titles, lyrics, and initial consonants in memory (phase 3 decides the
+  method).
 
-## 미디어
+## Media
 
-- 영상은 Chromium의 영상 재생을 씁니다. 반복 배경은 영상 두 개를 번갈아 써서 끊김 없이 이어 붙입니다. 다음 배경은 미리 불러 둡니다.
-- 지원 형식은 1단계 시험으로 정합니다(제안: H.264 MP4, VP9 WebM). 가져올 때 형식과 길이를 확인하고, 재생할 수 없는 파일은 그때 알립니다.
-- 하드웨어 가속을 켭니다. 출력 창의 프레임을 재서 상태 표시줄에 보입니다.
+- Video uses Chromium's video playback. A looping background alternates between
+  two video elements so that it joins without a gap. The next background is
+  loaded ahead of time.
+- A phase 1 test decides the supported formats (proposal: H.264 MP4, VP9 WebM).
+  Check the format and duration on import, and report files that can't play at
+  that point.
+- Turn on hardware acceleration. Measure the output window frame rate and show
+  it in the status bar.
 
-## 품질 기준
+## Quality bar
 
-모든 리뷰 요청은 아래를 지켜야 승인됩니다. 리뷰 문서 양식(`docs/reviews/_template.md`)에 같은 점검 칸이 있습니다.
+A review request is approved only when it meets everything below. The review
+template (`docs/reviews/_template.md`) has the same checklist.
 
-### 런타임 오류를 막는 법
+### Preventing runtime errors
 
-- TypeScript strict에 더해 `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`를 켭니다(1단계).
-- `any`, 검사를 피하는 타입 단언, `!`를 쓰지 않습니다. lint로 막습니다.
-- 파일, IPC 메시지, 클립보드, 미디어 정보처럼 바깥에서 오는 값은 스키마로 검사합니다. 검사에 실패하면 그 값만 버리고 기록합니다.
-- 실패할 수 있는 일(파일 읽기, 미디어 열기, 모니터 찾기)은 결과 타입(성공 또는 이유 있는 실패)으로 돌려주고, 예외를 IPC 너머로 던지지 않습니다.
-- 메인 프로세스는 처리하지 못한 예외와 거부를 잡아 기록하고 계속 돕니다. 조작 창의 화면 부품은 오류 경계(error boundary)로 감싸 한 부품의 오류가 창 전체를 지우지 않게 합니다.
-- 출력 창은 그리기 중 오류가 나도 마지막 정상 화면을 유지합니다.
+- On top of TypeScript strict mode, turn on `noUncheckedIndexedAccess` and
+  `exactOptionalPropertyTypes` (phase 1).
+- Don't use `any`, type assertions that bypass checks, or `!`. Lint blocks them.
+- Validate values that come from outside, such as files, IPC messages, the
+  clipboard, and media metadata, with a schema. When validation fails, drop only
+  that value and log it.
+- Return the result of work that can fail (reading files, opening media, finding
+  monitors) as a result type (success, or failure with a reason). Never throw
+  exceptions across IPC.
+- The main process catches and logs unhandled exceptions and rejections, and
+  keeps running. Wrap the UI parts of the control window in error boundaries, so
+  that an error in one part doesn't blank the whole window.
+- Output windows keep the last good frame even when rendering throws an error.
 
-### 시험
+### Tests
 
-- 데이터 모델, 형식 변환과 옛 판 바꾸기, 가져오기 변환, 출력 상태 처리, 매크로 실행, 자동 저장과 복구는 단위 시험이 반드시 있습니다.
-- 버그를 고칠 때는 그 버그를 다시 만드는 시험을 먼저 넣습니다.
-- 출력 상태 처리는 "명령 순서를 넣으면 기대한 상태가 나온다"는 형태로 시험합니다. 무작위 명령 순서로 상태가 깨지지 않는지 보는 시험도 둡니다.
-- 시험은 빠르게(전체 단위 시험 1분 안), 서로 독립적으로, 실제 사용자 폴더를 건드리지 않게(임시 폴더) 씁니다.
-- 핵심 흐름은 화면 시험(Playwright Electron)으로 2단계부터 자동으로 확인합니다.
+- The data model, format conversion and migration, import conversion, live
+  output state handling, macro execution, and autosave and recovery must have
+  unit tests.
+- When you fix a bug, first add a test that reproduces it.
+- Test live output state handling in the form "given a sequence of commands, the
+  expected state comes out." Also add a test that random command sequences don't
+  break the state.
+- Write tests that are fast (the whole unit suite runs in under 1 minute),
+  independent of each other, and that never touch real user folders (use
+  temporary folders).
+- From phase 2 on, UI tests (Playwright Electron) check the core flows
+  automatically.
 
-### 메모리
+### Memory
 
-- 등록한 것은 반드시 풉니다: 이벤트 구독, 타이머, IPC 수신, `URL.createObjectURL`, 영상과 오디오 요소, 창, 보조 프로세스.
-- 출력 창의 영상 요소는 정해진 개수(반복 배경용 두 개와 다음 배경 하나)를 다시 쓰고, 다 쓴 영상은 원본을 비워(`src` 제거, `load()`) 디코더 메모리를 돌려줍니다.
-- 썸네일과 미리보기 그림은 보이는 크기로 줄여 만들고, 크기 상한이 있는 캐시에 둡니다.
-- 로그, 되돌림 기록, 최근 항목 같은 목록에는 상한을 둡니다.
-- 오래 돌리기 시험에서 메인, 조작 창, 출력 창의 메모리를 따로 기록합니다. 60분 동안 계속 늘면 실패입니다.
+- Release everything you register: event subscriptions, timers, IPC listeners,
+  `URL.createObjectURL` results, video and audio elements, windows, and utility
+  processes.
+- Output windows reuse a fixed number of video elements (two for the looping
+  background and one for the next background). When a video is done, clear its
+  source (remove `src`, then call `load()`) to give back decoder memory.
+- Make thumbnails and preview images at their displayed size, and keep them in a
+  cache with a size cap.
+- Cap the size of lists such as logs, undo history, and recent items.
+- Soak tests record the memory of the main process, the control window, and the
+  output windows separately. If memory keeps growing for 60 minutes, the test
+  fails.
 
-### 성능
+### Performance
 
-- 장을 눌러 출력 창에 보이기까지 한 프레임 안에 끝나는 것을 목표로 합니다(측정해서 기록).
-- 출력 창은 60fps를 유지해야 합니다. 상태 표시줄의 fps가 떨어지면 원인을 찾습니다.
-- 메인 프로세스에서 동기 파일 읽기와 쓰기를 하지 않습니다(시작할 때 설정 읽기 제외).
-- 조작 창은 필요한 부분만 다시 그립니다. 상태 저장소에서 필요한 값만 고르고, 긴 목록(라이브러리, 미디어)은 보이는 부분만 그립니다.
-- 무거운 일(가져오기 변환, 미디어 분석, 검색 색인 만들기)은 보조 프로세스나 작은 조각으로 나눠 합니다.
+- Aim to show a 장 in the output window within one frame of the click (measure
+  and record it).
+- Output windows must hold 60 fps. If the fps in the status bar drops, find the
+  cause.
+- Don't read or write files synchronously in the main process (except reading
+  settings at startup).
+- The control window re-renders only what's needed. Select only the values you
+  need from the state store, and render only the visible part of long lists
+  (library, media).
+- Move heavy work (import conversion, media analysis, building the search index)
+  to the utility process, or split it into small chunks.
 
-## 확인하는 방법
+### Code health
 
-- **단위 시험:** 데이터 모델, 형식 변환, 가져오기 변환, 출력 상태 처리(명령을 넣으면 기대한 상태가 나오는가).
-- **화면 시험:** 2단계부터 핵심 흐름을 자동으로 돌립니다.
-- **오래 돌리기:** 2단계부터 단계마다 실제 모니터로 60분 동안 반복 영상과 장 넘김을 자동으로 돌리고, 메모리와 프레임 변화를 기록합니다.
-- **장애 시험:** 출력 창 프로세스 강제 종료, 모니터 뽑기, 저장 중 앱 강제 종료, 미디어 파일 지우기, 잘못된 곡 파일 넣기. 각각 복구되는지 확인합니다.
-- **버전 올리기 점검표:** 타입 검사와 단위 시험 통과, 화면 시험 통과, 오래 돌리기 60분, 장애 시험, 출력 창 프레임 비교. 하나라도 나빠지면 올리지 않습니다.
+- Follow the clean code rules, the comment rules, and the modern language
+  features in `CLAUDE.md`. Reviewers request changes when a rule is broken.
+- `npm run format:check` passes.
 
-## 의존성 추가 기준
+## Verification
 
-새 라이브러리는 아래를 모두 만족하고 `docs/decisions.md`에 적은 뒤에만 추가합니다.
+- **Unit tests:** the data model, format conversion, import conversion, and live
+  output state handling (given commands, does the expected state come out).
+- **UI tests:** from phase 2 on, run the core flows automatically.
+- **Soak test:** from phase 2 on, in every phase, run looping video and 장
+  changes automatically for 60 minutes on real monitors, and record changes in
+  memory and frame rate.
+- **Failure tests:** force-quit an output window process, unplug a monitor,
+  force-quit the app while it saves, delete a media file, and load a broken song
+  file. Check that the app recovers from each.
+- **Version upgrade checklist:** the type check and unit tests pass, the UI
+  tests pass, a 60-minute soak test, the failure tests, and an output window
+  frame rate comparison. If anything gets worse, don't upgrade.
 
-- 꾸준히 관리되고(최근 1년 안에 판이 나옴) 사용권이 이 프로젝트에 맞습니다.
-- 출력 경로에 들어가면 순수 JavaScript여야 합니다. 네이티브 모듈은 보조 프로세스 안에서만 씁니다.
-- 우리 코드에서 작은 감싸개(wrapper) 하나 뒤에 둡니다. 나중에 바꿀 때 감싸개만 고치면 되게 합니다.
-- 같은 일을 몇십 줄로 직접 할 수 있으면 직접 합니다.
+## Criteria for adding a dependency
 
-## 운영 규칙
+Add a new library only when it meets all of the following, you've recorded it in
+`docs/decisions.md`, and the lead has approved it.
 
-- 예배 전날과 예배 당일에는 새 판을 깔지 않습니다.
-- 자동 업데이트를 하지 않습니다. 새 판은 사용자가 직접 깝니다.
-- 비정상 종료 기록은 이 컴퓨터에만 남깁니다(바깥으로 보내지 않음).
+- It's actively maintained (a release within the last year), and its license
+  fits this project.
+- If it's in the output path, it must be pure JavaScript. Native modules run
+  only inside the utility process.
+- It sits behind one small wrapper in our code, so that replacing it later means
+  changing only the wrapper.
+- If we can do the same thing in a few dozen lines, we do it ourselves.
 
-## 나중에 정할 것
+## Operating rules
 
-| 항목 | 정할 단계 |
-| --- | --- |
-| 초성 검색 방식 | 3단계(prep) |
-| 성경 데이터 형식과 copible 로직 옮기기 | 3단계(tools) |
-| NDI 보내기 연결(네이티브 모듈 후보 비교) | 5단계 |
-| 설치 파일 만들기 | 5단계 |
-| PowerPoint 읽기, 악보 그리기, 카메라 입력 | 각 기능 단계 |
+- Don't install a new version on the day before a service or on the day of a
+  service.
+- There are no automatic updates. The user installs new versions by hand.
+- Crash records stay on this computer only (they're never sent out).
+
+## To be decided
+
+| Item                                                    | Phase                     |
+| ------------------------------------------------------- | ------------------------- |
+| Initial consonant search method                         | Phase 3 (prep)            |
+| Bible data format and porting the copible logic         | Phase 3 (tools)           |
+| NDI sending (comparing native module candidates)        | Phase 5                   |
+| Building the installer                                  | Phase 5                   |
+| PowerPoint reading, sheet music rendering, camera input | The phase of each feature |

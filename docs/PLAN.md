@@ -1,103 +1,166 @@
-# 구현 계획
+# Implementation plan
 
-단계마다 끝에 마스터의 통합 시험과 사용자 확인을 거칩니다. 1, 2단계는 공용 약속(폴더 구조, 공유 타입, 명령, 화면 부품)을 정하는 일이라 나누지 않고, 3단계부터 작업 세션으로 나눕니다. 진행 상황은 `docs/STATUS.md`에 있습니다.
+Every phase ends with the lead's integration test and the user's check. Phases 1
+and 2 set the shared contracts (folder structure, shared types, commands, UI
+parts), so they aren't split. From phase 3 on, the work is split among work
+sessions. Progress is tracked in `docs/STATUS.md`.
 
-## 폴더 구조 (1단계에서 확정)
+## Folder structure (settled in phase 1)
 
-```
+The tree uses the app's Korean names: the workspaces 진행 (Show), 준비 (Prep),
+and 화면 설정 (Screen settings), the 예배 순서 (service order), the 틀
+(template), and the 진행 도구 (show tools).
+
+```text
 src/
-  main/              메인 프로세스
-    live/            출력 상태 저장소, 명령 처리, 되돌림, 복구 기록
-    store/           파일 저장소(곡, 예배 순서, 틀, 설정, 미디어 목록), 자동 저장, 백업
-    displays/        모니터 찾기, 연결과 빠짐 감지
-    outputs/         출력 창 관리(화면마다 창 하나)
-    import/          가져오기 변환
-    media/           미디어 분석
-    macros/          매크로 실행
+  main/              Main process
+    live/            Live output state store, command handling, undo,
+                     recovery record
+    store/           File store (songs, 예배 순서, 틀, settings, media list),
+                     autosave, backups
+    displays/        Finding monitors, detecting connects and disconnects
+    outputs/         Output window management (one window per screen)
+    import/          Import conversion
+    media/           Media analysis
+    macros/          Macro execution
   preload/
-  shared/            공용 타입, 명령과 IPC 약속, 파일 스키마 (마스터 소유)
+  shared/            Shared types, command and IPC contracts, file schemas
+                     (owned by the lead)
   renderer/src/
-    ui/              디자인 시스템 컴포넌트 (1단계에서 만들고 이후 마스터 승인으로만 바꿈)
-    shell/           앱 틀: 메뉴줄, 툴바, 상태 표시줄, 3열 배치, 창 크기 구간, 열 끌기
-    show/            진행 작업 공간 (tools/ 아래에 진행 도구 탭)
-    prep/            준비 작업 공간
-    screens/         화면 설정 작업 공간
-    settings/        환경설정, 단축키 창
-    output/          출력 창 화면
-    render/          출력 그리기(층, 내용 종류 등록부)
-    state/           화면 쪽 상태
+    ui/              Design system components (built in phase 1; changed
+                     later only with the lead's approval)
+    shell/           App shell: menu bar, toolbar, status bar, three-column
+                     layout, window size ranges, column dragging
+    show/            진행 workspace (진행 도구 tabs under tools/)
+    prep/            준비 workspace
+    screens/         화면 설정 workspace
+    settings/        Settings and shortcut windows
+    output/          Output window UI
+    render/          Output rendering (layers, content type registry)
+    state/           Renderer state
 ```
 
-## 단계
+## Phases
 
-### 0단계: 인수인계 (끝남)
+### Phase 0: Handoff (done)
 
-- rewrite를 비운 상태로 시작합니다. 첫 커밋에는 옛 코드가 없고 문서 세트(`CLAUDE.md`, `docs/`), 시안과 디자인 시스템 원본(`design/`), 저장소 규칙(`.gitattributes`, `.gitignore`)만 있습니다. 옛 코드는 main과 git 기록에 그대로 남습니다.
-- 시안 전에 만든 초기 골격은 로컬 보관 브랜치 `archive/prototype-2026-10`에 있습니다(올리지 않음). 초반 틀을 짤 때 쓸 만한 것만 가져옵니다.
+- `rewrite` starts empty. The first commit has no old code. It has only the
+  document set (`CLAUDE.md`, `docs/`), the draft and design system sources
+  (`design/`), and the repository rules (`.gitattributes`, `.gitignore`). The
+  old code stays in `main` and in the git history.
+- The early skeleton built before the drafts is in the local archive branch
+  `archive/prototype-2026-10` (not pushed). When you build the initial scaffold,
+  take only what's useful from it.
 
-### 1단계: 기반 (lead가 초반 틀을 먼저, 그 위에서 팀원)
+### Phase 1: Foundation (the lead builds the initial scaffold first, then team members build on it)
 
-1. **초반 틀(lead):** 아래 lead 몫 중 폴더 구조, 설정과 버전 고정, 공용 약속(`src/shared/`), 디자인 토큰, 앱 틀의 뼈대, 개발 환경 변수를 먼저 만들어 rewrite에 커밋하고 push합니다. 팀원은 모두 이 커밋에서 시작합니다.
-2. **시험 운전(trial):** 초반 틀 위에서 `docs/briefs/trial.md`로 팀 방식을 한 번 돌려 봅니다.
-3. **devops와 lead의 나머지 몫:** 동시에 진행합니다.
+1. **Initial scaffold (lead):** From the lead's share below, the lead first
+   builds the folder structure, the configuration and version pinning, the
+   shared contracts (`src/shared/`), the design tokens, the app shell skeleton,
+   and the dev environment variables, then commits them to `rewrite` and pushes.
+   Every team member starts from this commit.
+2. **Trial run (trial):** On top of the initial scaffold, trial runs the team
+   workflow once with `docs/briefs/trial.md`.
+3. **devops and the rest of the lead's share:** These run in parallel.
 
-**devops 팀원(전달 문서 `docs/briefs/devops.md`)**
+#### devops member (brief: `docs/briefs/devops.md`)
 
-- `npm run verify` 하나로 타입 검사, lint, 단위 시험, 빌드를 모두 돌리게 합니다. 리뷰 요청 전과 합치기 전에 같은 명령을 씁니다.
-- lint 설정(검사를 피하는 타입 단언, `any`, `!`, 안 푼 구독 같은 규칙), Vitest 설정과 시험 도우미(임시 폴더, 가짜 시계), 시험 범위(coverage) 보고.
-- GitHub Actions 설정(Windows 실행기에서 `npm ci`와 `npm run verify`)을 저장소에 넣어 둡니다. GitHub에 올리는 일은 사용자가 요청할 때만 하므로, 올리기 전까지는 로컬 `npm run verify`가 CI 역할을 합니다.
-- 2단계에 쓸 오래 돌리기 스크립트(60분 동안 장 넘김과 반복 영상을 돌리며 프로세스별 메모리와 출력 fps를 기록)의 틀.
-- 소유: `.github/`, `scripts/`, lint와 Vitest 설정 파일, `package.json`의 `scripts`와 개발용 의존성(이 묶음만 예외로 허락, 팀장 리뷰 필수).
+- Make `npm run verify` run the type check, lint, format check, unit tests, and
+  build in one command. Use the same command before a review request and before
+  a merge.
+- Lint configuration (rules against type assertions that bypass checks, `any`,
+  `!`, unreleased subscriptions, and similar), including rules that enforce the
+  comment rules and TSDoc syntax. Vitest configuration and test helpers
+  (temporary folders, a fake clock), and coverage reports.
+- GitHub Actions configuration (`npm ci` and `npm run verify` on a Windows
+  runner), stored in the repository. Pushing to GitHub happens only when the
+  user asks, so until then the local `npm run verify` acts as CI.
+- The skeleton of the soak test script for phase 2 (runs 장 (slide) changes and
+  looping video for 60 minutes and records per-process memory and output fps).
+- Owns: `.github/`, `scripts/`, the lint and Vitest configuration files, and
+  `scripts` and the dev dependencies in `package.json` (allowed as an exception
+  for this bundle only; the lead's review is required).
 
-**lead**
+#### lead
 
-- Electron을 44.9.x로 고정하고 버전을 모두 정확히 고정합니다(`docs/TECH.md`).
-- 위 폴더 구조로 다시 짭니다. 초기 골격(`src/`)에서 쓸 만한 것(설정 파일, 출력 상태 저장소의 생각)만 옮깁니다.
-- 공용 약속: 데이터 형식 스키마(`.llsong`, `.llservice`, 설정), 출력 상태 타입, 명령 목록, IPC 통로.
-- 디자인 토큰(`design/system/project/tokens.css`)을 앱에 넣고, 디자인 시스템 컴포넌트 30개 중 앱 틀과 공용 부품을 만듭니다(Button, IconButton, SegmentedControl, TextField, Select, Checkbox, Switch, Slider, Menu, Tooltip, Dialog, AlertDialog, Panel, ListRow, StatusMarks, MenuBar, Toolbar, ToolbarButton, StatusBar).
-- 앱 틀: 세 작업 공간 전환, 3열 배치, 창 크기 구간 세 개, 열 끌기와 기억, 최소 창 크기.
-- 개발 환경: 개발 서버 포트와 앱 데이터 폴더를 환경 변수로 받기(`docs/WORKFLOW.md` 배정표), 로그 파일, 처리하지 못한 예외 기록.
-- 공용 부품과 출력 상태 처리의 단위 시험.
-- **완료 기준:** 비어 있는 세 작업 공간이 디자인 시스템대로 뜨고, 1280×720, 1920×1080, 2560×1440에서 배치가 규칙대로 바뀝니다. `npm run verify`가 통과합니다.
+- Pin Electron to 44.9.x and pin every version exactly (`docs/TECH.md`).
+- Restructure into the folder structure above. Move only what's useful from the
+  early skeleton (`src/`): the configuration files and the idea behind the live
+  output state store.
+- Shared contracts: data format schemas (`.llsong`, `.llservice`, settings),
+  live output state types, the command list, and the IPC channels.
+- Bring the design tokens (`design/system/project/tokens.css`) into the app, and
+  build the app shell and the shared parts among the 30 design system components
+  (`Button`, `IconButton`, `SegmentedControl`, `TextField`, `Select`,
+  `Checkbox`, `Switch`, `Slider`, `Menu`, `Tooltip`, `Dialog`, `AlertDialog`,
+  `Panel`, `ListRow`, `StatusMarks`, `MenuBar`, `Toolbar`, `ToolbarButton`,
+  `StatusBar`).
+- App shell: switching among the three workspaces, the three-column layout, the
+  three window size ranges, dragging and remembering column sizes, and the
+  minimum window size.
+- Dev environment: take the dev server port and the app data folder from
+  environment variables (assignment table in `docs/WORKFLOW.md`), a log file,
+  and logging of unhandled exceptions.
+- Unit tests for the shared parts and the live output state handling.
+- **Done when:** the three empty workspaces appear as the design system
+  specifies, and the layout changes by the rules at 1280×720, 1920×1080, and
+  2560×1440. `npm run verify` passes.
 
-### 2단계: 한 줄 관통 (lead)
+### Phase 2: Vertical slice (lead)
 
-- 곡 파일 하나 읽기 → 예배 순서 → 진행 화면 썸네일 → 클릭 → 본 화면 출력 창에 가사와 반복 배경 영상.
-- 지우기 F1부터 F7, 되돌림, 출력 켜고 끄기, 모니터 연결과 빠짐 처리, 출력 창이 죽으면 다시 띄우기, 출력 상태 복구 기록.
-- 화면 시험(Playwright) 첫 판, 오래 돌리기 스크립트.
-- **완료 기준:** 실제 모니터 두 대로 60분 연속 출력(영상 반복, 장 넘김)에서 끊김과 메모리 증가가 없고, 장애 시험(출력 창 강제 종료, 모니터 뽑기, 앱 강제 종료)에서 복구됩니다.
+- Read one song file → 예배 순서 → thumbnails in 진행 → click → lyrics and a
+  looping background video in the 본 화면 (main screen) output window.
+- 지우기 (clear) F1 to F7, undo, turning output on and off, handling monitor
+  connects and disconnects, relaunching a crashed output window, and the live
+  output state recovery record.
+- The first version of the UI tests (Playwright) and the soak test script.
+- **Done when:** 60 minutes of continuous output (looping video, 장 changes) on
+  two real monitors shows no stutter and no memory growth, and the app recovers
+  in the failure tests (force-quitting an output window, unplugging a monitor,
+  force-quitting the app).
 
-### 3단계: 기능 묶음 (작업 세션 셋, 동시에)
+### Phase 3: Feature bundles (three work sessions, in parallel)
 
-| 세션 | 범위 | 소유 경로(제안) |
-| --- | --- | --- |
-| prep | 라이브러리와 검색(초성 포함), 곡 편집기, 이름표와 이름표 목록, 구성 프리셋, 예배 순서 항목 설정, 곡 넣기, 새 예배, 틀, 다른 예배에서 가져오기, 예배 순서 바꾸기, 텍스트와 클립보드 가져오기 | `renderer/src/prep/`, `main/store/`의 곡과 예배 순서 부분, `main/import/` |
-| output | 화면 설정(화면 구성, 모니터 배치, 테스트 패턴), Look과 Look 편집, 무대 화면과 무대 배치 편집, 방송 자막 캡처 창, 메시지, 공지, 소품, 타이머 층 그리기, 출력 상태 복구 창 | `renderer/src/screens/`, `renderer/src/output/`, `renderer/src/render/`, `main/outputs/`, `main/displays/` |
-| tools | 진행 도구 8개 탭, 미디어 작업 공간과 미디어 줄, 오디오, 매크로(동작 팔레트, 시작할 때 매크로), 퀵 실행, 성경 구절 | `renderer/src/show/tools/`, `main/media/`, `main/macros/` |
+| Session | Scope                                                                                                                                                                                                                                                                                                | Owned paths (proposal)                                                                                     |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| prep    | Library and search (including initial consonants), song editor, 이름표 (label) and the 이름표 list, 구성 (arrangement) presets, 예배 순서 item settings, adding songs, new service, 틀, importing from another service, switching 예배 순서, text and clipboard import                               | `renderer/src/prep/`, the song and 예배 순서 parts of `main/store/`, `main/import/`                        |
+| output  | 화면 설정 (screen configuration, monitor layout, test pattern), Looks and the Look editor, the 무대 화면 (stage screen) and the stage layout editor, the 방송 자막 (broadcast captions) capture window, rendering the message, notice, prop, and timer layers, the live output state recovery dialog | `renderer/src/screens/`, `renderer/src/output/`, `renderer/src/render/`, `main/outputs/`, `main/displays/` |
+| tools   | The 8 tabs of 진행 도구, the media workspace and the media strip, audio, macros (action palette, start macro), 퀵 실행 (quick run), Bible verses                                                                                                                                                     | `renderer/src/show/tools/`, `main/media/`, `main/macros/`                                                  |
 
-- 공용 약속(`src/shared/`)을 바꿀 일은 마스터에게 요청하고, 마스터가 rewrite에 먼저 반영한 뒤 각 브랜치를 리베이스합니다.
-- **완료 기준:** 각 묶음의 명세(`docs/spec/`) 항목이 동작하고, 그 묶음의 단위 시험과 화면 시험이 통과합니다. 마스터의 통합 뒤 오래 돌리기 60분을 다시 통과합니다.
-- (선택) Codex를 읽기 전용 외부 검토자로 붙여 병합 전 브랜치를 검토합니다.
+- Changes to the shared contracts (`src/shared/`) go to the lead as requests.
+  The lead lands them on `rewrite` first, and then each branch is rebased onto
+  it.
+- **Done when:** the spec (`docs/spec/`) items of each bundle work, and that
+  bundle's unit tests and UI tests pass. After the lead integrates the bundles,
+  the 60-minute soak test passes again.
+- (Optional) Add Codex as a read-only outside reviewer that reviews branches
+  before they're merged.
 
-### 4단계: 다듬기 (polish 세션)
+### Phase 4: Polish (polish session)
 
-- 환경설정, 단축키 편집과 겹침 경고, 좁은 창과 넓은 창 세부, 문제 상황 알림(모니터 빠짐, 미디어 없음), 접근성(키보드 이동, 포커스), 성능.
-- **완료 기준:** 디자인 시스템과 명세의 모든 항목을 점검표로 확인하고, 예배 리허설 한 번을 실제로 해 봅니다.
+- Settings, shortcut editing with conflict warnings, details for narrow and wide
+  windows, problem notifications (monitor disconnected, media missing),
+  accessibility (keyboard navigation, focus), and performance.
+- **Done when:** every item in the design system and the spec is checked against
+  a checklist, and one real service rehearsal is done.
 
-### 5단계: 나중 기능
+### Phase 5: Later features
 
-- NDI 출력(알파 채널), 설치 파일, PowerPoint 가져오기, 악보 표시, 카메라 입력. 각각 시험(spike)으로 방식을 정한 뒤 들어갑니다.
+- NDI output (alpha channel), an installer, PowerPoint import, sheet music
+  display, and camera input. For each one, decide the approach with a spike
+  before you start.
 
-## 세션
+## Sessions
 
-| 이름 | 단계 | 위치와 브랜치 | 하는 일 |
-| --- | --- | --- | --- |
-| lead | 0부터 끝까지 | 저장소 본 폴더, rewrite | 팀장. 0단계를 맡은 세션이 이어서 맡습니다. 초반 틀과 2단계를 직접 하고, 팀원을 띄우고 리뷰하고 빨리 감기로 합칩니다 |
-| trial | 1(초반 틀 뒤) | 자기 worktree, rewrite/trial | 시험 운전. 리뷰 요청부터 빨리 감기 합치기까지 한 번 돌려 봅니다 |
-| devops | 1 | 자기 worktree, rewrite/devops | 검사 명령, lint, 시험 설정, GitHub Actions 설정, 오래 돌리기 스크립트 틀 |
-| 리뷰어 | 모든 리뷰 요청 | 팀장이 리뷰마다 새로 띄우는 읽기 전용 리뷰 에이전트, 나중에 Codex | 독립 검토와 승인 |
-| prep, output, tools | 3 | 자기 worktree, rewrite/이름 | 기능 묶음 |
-| polish | 4 | 자기 worktree, rewrite/polish | 다듬기 |
-| review (선택) | 3부터 | 읽기 전용, 저렴한 모델 | 병합 전 검토 |
+| Name                | Phase                          | Location and branch                                                              | Role                                                                                                                                                                           |
+| ------------------- | ------------------------------ | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| lead                | 0 to the end                   | Main repository folder, `rewrite`                                                | Team lead. The session that handled phase 0 continues in this role. Builds the initial scaffold and phase 2 directly, starts team members, reviews, and merges by fast-forward |
+| trial               | 1 (after the initial scaffold) | Own worktree, `rewrite/trial`                                                    | Trial run. Goes once through the flow from review request to fast-forward merge                                                                                                |
+| devops              | 1                              | Own worktree, `rewrite/devops`                                                   | Check command, lint, test configuration, GitHub Actions configuration, soak test script skeleton                                                                               |
+| Reviewer            | Every review request           | A read-only review agent that the lead starts fresh for each review; later Codex | Independent review and approval                                                                                                                                                |
+| prep, output, tools | 3                              | Own worktree, `rewrite/<name>`                                                   | Feature bundles                                                                                                                                                                |
+| polish              | 4                              | Own worktree, `rewrite/polish`                                                   | Polish                                                                                                                                                                         |
+| review (optional)   | From 3 on                      | Read-only, low-cost model                                                        | Review before a merge                                                                                                                                                          |
 
-동시에 도는 작업 세션은 셋까지입니다(이 컴퓨터는 메모리 32GB, 논리 코어 8개).
+At most three work sessions run at the same time (this computer has 32 GB of
+memory and 8 logical cores).

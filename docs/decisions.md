@@ -1,17 +1,69 @@
-# 결정 기록
+# Decision log
 
-구현 중에 새로 정한 것을 날짜와 함께 한 줄씩 남깁니다. 제품 결정의 전체 내용은 `docs/HANDOFF.md`와 `docs/spec/`에 있습니다.
+Record each new decision made during implementation as one entry with its date.
+The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
 
-- 2026-10-24: 팀 방식. 팀장(lead)과 팀원(작업 세션). 팀원은 자기 worktree에서 일하고 리뷰 요청을 올리며, 자기 브랜치의 리베이스와 충돌 해결, 리뷰 반영을 스스로 책임집니다. 팀장과 리뷰어가 모두 승인해야 하고, rewrite에는 빨리 감기로만 합칩니다.
-- 2026-10-24: 리뷰어는 Codex를 들이기 전까지 팀장이 리뷰마다 새로 띄우는 읽기 전용 리뷰 에이전트입니다. 그 뒤에는 Codex(읽기 전용)입니다.
-- 2026-10-24: 모든 세션은 권한 확인 생략 모드로 돕니다. 그래서 `CLAUDE.md`에 안전 규칙을 둡니다.
-- 2026-10-24: 저장소의 git 설정에서 긴 경로를 켜고 줄바꿈 자동 변환을 껐습니다. `.gitattributes`로 LF를 고정합니다. 전역 git 설정은 건드리지 않았습니다.
-- 2026-10-24: Electron은 44.9.x로 고정합니다. 45.0.0은 나온 지 사흘 된 첫 판입니다. 1단계에서 바꿉니다.
-- 2026-10-24: rewrite는 비운 상태(문서와 디자인 원본만)로 시작합니다. 시안 전에 만든 초기 골격은 로컬 보관 브랜치 `archive/prototype-2026-10`에 두고, 팀장이 초반 틀을 짤 때 쓸 만한 것만 가져옵니다. 팀원은 초반 틀이 들어간 커밋에서 시작합니다.
-- 2026-10-24: 팀장은 0단계를 맡은 세션이 이어서 맡습니다(사용자 요청).
-- 2026-10-24: GitHub PR은 지금 쓰지 않습니다(`gh` 없음, 팀원 push 금지). devops가 1단계에서 다시 판단합니다.
-- 2026-10-24: CI는 데브옵스 팀원이 만듭니다. 로컬 `npm run verify`가 먼저이고, GitHub Actions가 rewrite push마다 Windows에서 한 번 더 돌립니다.
-- 2026-10-24: GitHub은 백업과 CI에 씁니다(사용자 허락). 팀장만 rewrite를 push하고, 리뷰는 저장소 안의 리뷰 문서로 합니다. 저장소가 공개라서 첫 push 전에 사용자와 확인합니다.
-- 2026-10-24: rewrite는 origin/main(9b23462) 위에서 시작합니다. v1 뒤에 main을 rewrite로 빨리 감기 하기 위해서입니다.
-- 2026-10-24: 다중 레이어 지우기(Clear Groups)는 v1에 넣지 않고 매크로로 대신합니다.
-- 2026-10-24: 커밋 메시지는 한 줄 `tag(scope): <동사 원형으로 시작하는 영어 한 문장>`이고 꼬리말(Co-Authored-By 등)을 붙이지 않습니다(사용자 규칙). 올리기 전이던 첫 커밋들의 메시지도 이 형식으로 바꿨습니다.
+- 2026-10-24: Team workflow. A lead and team members (work sessions). Team
+  members work in their own worktrees and send review requests. They're
+  responsible for rebasing their own branches, resolving conflicts, and
+  addressing reviews. Both the lead and the reviewer must approve, and merges
+  into `rewrite` are fast-forward only.
+- 2026-10-24: Until Codex joins, the reviewer is a read-only review agent that
+  the lead starts fresh for each review. After that, it's Codex (read-only).
+- 2026-10-24: Every session runs with permission prompts turned off. That's why
+  `CLAUDE.md` has safety rules.
+- 2026-10-24: The repository's git configuration turns on long paths and turns
+  off automatic line ending conversion. `.gitattributes` fixes line endings to
+  LF. The global git configuration wasn't touched.
+- 2026-10-24: Pin Electron to 44.9.x. 45.0.0 is a first release, out for three
+  days. Change it in phase 1.
+- 2026-10-24: `rewrite` starts empty (only the documents and the design
+  sources). The early skeleton built before the drafts stays in the local
+  archive branch `archive/prototype-2026-10`, and the lead takes only what's
+  useful from it when building the initial scaffold. Team members start from the
+  commit that contains the initial scaffold.
+- 2026-10-24: The session that handled phase 0 continues as the lead (user
+  request).
+- 2026-10-24: No GitHub PRs for now (no `gh`, and team members don't push).
+  devops reconsiders this in phase 1.
+- 2026-10-24: The devops team member builds CI. The local `npm run verify` comes
+  first, and GitHub Actions runs it once more on Windows for every push to
+  `rewrite`.
+- 2026-10-24: GitHub is used for backup and CI (the user's permission). Only the
+  lead pushes `rewrite`, and reviews happen in review documents in the
+  repository. The repository is public, so confirm with the user before the
+  first push.
+- 2026-10-24: `rewrite` starts from `origin/main` (9b23462), so that `main` can
+  fast-forward to `rewrite` after v1.
+- 2026-10-24: Multi-layer clearing (Clear Groups) isn't in v1. Macros replace
+  it.
+- 2026-10-24: Commit messages are one line,
+  `tag(scope): <one English sentence starting with a base-form verb>`, with no
+  trailer (`Co-Authored-By` or others) (user rule). The tags and examples are in
+  `CLAUDE.md`. The messages of the first commits, which weren't pushed yet, were
+  rewritten in this format.
+- 2026-10-24: Documents, code comments, test names, log messages, and commit
+  messages are in English and follow the Google style guides, or another large
+  company's guide where Google has none (user rule). Product UI strings stay in
+  Korean.
+- 2026-10-24: Comments are minimal: TSDoc, `NOTE(0913vision): ...` for context
+  the code can't show, and `TODO(0913vision): ...` for later work, and nothing
+  else (user rule). The lead picked TSDoc over JSDoc when the user asked for one
+  fixed choice, because the code is TypeScript.
+- 2026-10-24: Prettier 3.9.10 with the `gts` settings formats code, CSS, JSON,
+  and Markdown, and wraps Markdown prose at 80 columns. `design/` is excluded
+  because its scripts generate it. Where Prettier and a style guide disagree on
+  whitespace, Prettier wins.
+- 2026-10-24: Commit tags are the user's break, feat, refactor, style, docs, and
+  chore, plus fix, which the lead added for bug fixes (they are neither features
+  nor refactors).
+- 2026-10-24: Sample lyrics in the repository come from hymn 1 (만복의 근원
+  하나님, public domain), because the repository is public.
+- 2026-10-24: Members rebase only their own branch onto `rewrite`. Nobody
+  rebases `rewrite` itself. `CLAUDE.md` now says the same as `docs/WORKFLOW.md`.
+- 2026-10-24: Every session keeps working notes in `.llp/notes.md` (ignored by
+  git), and a SessionStart hook prints them with the git state after every start
+  and compaction, so a compacted session can carry on (user request).
+- 2026-10-24: The product decisions from the drafts phase moved from the lead's
+  private notes into `docs/product-log.md`, so every session can read the
+  sources that `docs/spec/` cites.

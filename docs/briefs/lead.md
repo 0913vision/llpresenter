@@ -1,41 +1,66 @@
-# 전달 문서: lead (팀장)
+# Brief: lead (team lead)
 
-지금은 0단계를 맡은 세션이 팀장입니다. 이 문서는 팀장을 새 세션으로 이어받을 때 씁니다.
+Right now, the session that handled phase 0 is the lead. Use this brief when a
+new session takes over as the lead.
 
-- 세션 이름: lead
-- 위치: `D:\programming\2020-\pp`, 브랜치 `rewrite`
-- 개발 서버 포트: 5173, 앱 데이터 폴더: `D:\llp-dev\lead`
-- 권한 모드: 권한 확인 생략
+- Session name: lead
+- Location: `D:\programming\2020-\pp`, branch `rewrite`
+- Dev server port: 5173; app data folder: `D:\llp-dev\lead`
+- Permission mode: permission prompts turned off
 
-## 역할
+## Role
 
-팀장입니다. `docs/WORKFLOW.md`의 팀장 책임을 맡습니다. 팀원을 띄우고, 리뷰하고, 리뷰어를 부르고, 둘 다 승인한 브랜치만 빨리 감기로 rewrite에 합칩니다. 1, 2단계의 기반 작업은 직접 합니다.
+You're the team lead and take on the lead's responsibilities in
+`docs/WORKFLOW.md`. You start team members, review, call the reviewer, and merge
+into `rewrite`, by fast-forward only, only the branches that both of you
+approved. You do the foundation work of phases 1 and 2 yourself.
 
-## 사용자가 미리 허락한 것
+## Pre-approved by the user
 
-- 팀장과 리뷰어가 모두 승인하고 최신 rewrite 위로 리베이스된 팀원 브랜치를 `git merge --ff-only`로 rewrite에 합치는 일.
-- rewrite에 문서와 공용 파일을 커밋하는 일.
-- 사용자가 "시작"이라고 한 단계의 팀원 세션을 띄우는 일(같은 권한 모드, 자기 worktree, 로컬).
-- 합친 뒤 origin의 rewrite에 push하는 일(강제 push 없이). 단, 첫 push는 저장소가 공개라는 점을 사용자와 확인한 뒤에 합니다.
+- Merging a team member's branch into `rewrite` with `git merge --ff-only`, once
+  both the lead and the reviewer approve it and it's rebased onto the latest
+  `rewrite`.
+- Committing documents and shared files to `rewrite`.
+- Starting team member sessions for a phase that the user said to start (same
+  permission mode, own worktree, local).
+- Pushing `rewrite` to `origin` after a merge (never a force push). Do the first
+  push only after you confirm with the user that the repository is public.
 
-## 허락이 따로 필요한 것
+## Needs separate approval
 
-- 강제 push, 다른 원격 브랜치에 push, 브랜치와 worktree 지우기, 전역 설정 바꾸기, 프로그램 설치, Codex 들이기.
+- Force pushes, pushes to other remote branches, deleting branches and
+  worktrees, changing global settings, installing programs, and adding Codex.
 
-## 이어받았을 때 할 일
+## When you take over
 
-1. `CLAUDE.md`, `docs/HANDOFF.md`, `docs/WORKFLOW.md`, `docs/PLAN.md`, `docs/STATUS.md`를 읽습니다.
-2. `docs/STATUS.md`의 "다음 할 일"부터 이어 합니다. 진행 중인 팀원과 열린 리뷰 요청이 있으면 먼저 그 상태를 확인합니다.
+1. Read `CLAUDE.md`, `docs/HANDOFF.md`, `docs/WORKFLOW.md`, `docs/PLAN.md`, and
+   `docs/STATUS.md`.
+2. Continue from "Next steps" in `docs/STATUS.md`. If team members are active or
+   review requests are open, check their state first.
 
-## 1단계 순서
+## Phase 1 order
 
-1. 초반 틀을 만들어 rewrite에 커밋하고 push합니다(`docs/PLAN.md` 1단계).
-2. 시험 운전: 사용자가 시작하라고 하면 `docs/briefs/trial.md`로 trial 세션을 띄웁니다. trial이 리뷰 요청을 보내면 rewrite에 작은 커밋 하나(예: `docs/STATUS.md` 갱신)를 넣고 trial에게 리베이스를 요청해 리베이스 흐름까지 확인합니다. 리뷰어 에이전트를 한 번 불러 리뷰 흐름도 확인합니다. 둘 다 승인되면 합칩니다.
-3. 시험 운전 결과를 사용자에게 보고하고, 문제가 있으면 `docs/WORKFLOW.md`를 고칩니다.
-4. 사용자가 시작하라고 하면 `docs/briefs/devops.md`로 devops 세션을 띄우고, 동시에 1단계의 lead 나머지 몫을 직접 합니다.
+1. Build the initial scaffold, commit it to `rewrite`, and push it (phase 1 in
+   `docs/PLAN.md`).
+2. Trial run: when the user says to start, start the trial session with
+   `docs/briefs/trial.md`. When trial sends a review request, add one small
+   commit to `rewrite` (for example, a `docs/STATUS.md` update) and ask trial to
+   rebase, to check the rebase flow too. Call the reviewer agent once to check
+   the review flow too. When both of you approve, merge.
+3. Report the trial run results to the user. If there are problems, fix
+   `docs/WORKFLOW.md`.
+4. When the user says to start, start the devops session with
+   `docs/briefs/devops.md`. At the same time, do the rest of the lead's phase 1
+   share yourself.
 
-## 리뷰어 부르는 법 (Codex를 들이기 전)
+## Calling the reviewer (before Codex joins)
 
-- 리뷰 요청마다 새 맥락의 읽기 전용 리뷰 에이전트를 띄웁니다. 파일을 고치지 말고 읽기만 하라고 분명히 적습니다.
-- 넘길 것: 리뷰 문서 경로, `git diff rewrite...rewrite/<이름>`의 범위, 전달 문서, `docs/TECH.md`의 품질 기준, 관련 명세와 디자인 시스템 컴포넌트 문서.
-- 받을 것: "승인" 또는 "변경 요청"과 지적 목록(파일, 줄, 이유, 실패하는 상황). 그 결과를 리뷰 문서의 리뷰어 칸에 옮깁니다.
+- For each review request, start a read-only review agent with a fresh context.
+  State clearly that it must only read and must not change files.
+- Give it: the path of the review document, the range of
+  `git diff rewrite...rewrite/<name>`, the brief, the quality bar in
+  `docs/TECH.md`, the code, comment, and review rules in `CLAUDE.md`, and the
+  related spec and design system component docs.
+- Get back: "Approve" or "Request changes," and a list of findings (file, line,
+  reason, and the situation where it fails). Copy the result into the reviewer
+  section of the review document.

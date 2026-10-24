@@ -1,6 +1,13 @@
 # ui
 
-디자인 시스템 컴포넌트를 둡니다. 모양, 크기, 상태, 동작은 `design/system/project/components/<이름>/README.md`를 그대로 따르고, 값은 토큰 변수로만 씁니다. 이 폴더의 공용 부품은 팀장 승인 없이 바꾸지 않습니다.
+This folder holds the design system components. Follow
+`design/system/project/components/<name>/README.md` exactly for look, size,
+states, and behavior, and write values only as token variables. Don't change the
+shared parts in this folder without the lead's approval.
 
-- 지금 있는 것: `Icon`(Phosphor Regular 86개, `icons/`, MIT 사용권은 `icons/LICENSE-phosphor.txt`)
-- 1단계에서 만들 것: Button, IconButton, SegmentedControl, TextField, Select, Checkbox, Switch, Slider, Menu, Tooltip, Dialog, AlertDialog, Panel, ListRow, StatusMarks, MenuBar, Toolbar, ToolbarButton, StatusBar
+- Available now: `Icon` (86 Phosphor Regular icons in `icons/`; the MIT license
+  is in `icons/LICENSE-phosphor.txt`).
+- To build in phase 1: `Button`, `IconButton`, `SegmentedControl`, `TextField`,
+  `Select`, `Checkbox`, `Switch`, `Slider`, `Menu`, `Tooltip`, `Dialog`,
+  `AlertDialog`, `Panel`, `ListRow`, `StatusMarks`, `MenuBar`, `Toolbar`,
+  `ToolbarButton`, `StatusBar`.

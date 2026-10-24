@@ -1,105 +1,199 @@
-# 작업 방식
+# Workflow
 
-팀으로 일합니다. 마스터 세션(lead)이 팀장이고, 작업 세션이 팀원입니다. 팀원은 각자 자기 git worktree와 브랜치에서 일하고, 끝나면 팀장에게 리뷰 요청(PR)을 올립니다. 팀장과 리뷰어가 둘 다 승인해야 하며, 통합 브랜치에는 리베이스한 브랜치를 빨리 감기로만 합칩니다.
+We work as a team. The lead session is the team lead, and the work sessions are
+team members. Each team member works in their own git worktree and branch, and
+when the work is done, sends the lead a review request (PR). Both the lead and
+the reviewer must approve, and only rebased branches are merged into the
+integration branch, by fast-forward only.
 
-통합 브랜치는 `rewrite`입니다. 지금은 이 브랜치가 팀의 메인 브랜치 역할을 합니다(`main`에는 2024년 옛 코드가 있습니다). v1이 끝나면 `main`을 `rewrite`로 빨리 감기 합니다.
+The integration branch is `rewrite`. For now, it acts as the team's main branch
+(`main` holds the 2024 code). When v1 is done, we fast-forward `main` to
+`rewrite`.
 
-## 역할
+## Roles
 
-| 누구 | 책임 | 하지 않는 일 |
-| --- | --- | --- |
-| 사용자 | 단계 시작과 끝, 계획에 없는 결정, 팀장과 리뷰어가 합의하지 못한 일의 판정 | |
-| 팀장(lead) | `docs/PLAN.md`와 `docs/STATUS.md` 관리, 공용 약속과 공용 파일 수정, 팀원 세션 띄우기, 전달 문서 쓰기, 리뷰, 리뷰어 부르기, 승인 뒤 합치기, 통합 시험, 사용자 보고 | 팀원의 소유 파일 고치기, 팀원 대신 충돌 풀기 |
-| 팀원(작업 세션) | 전달 문서 범위의 구현, 자기 브랜치를 최신 rewrite 위로 리베이스하고 충돌을 스스로 풀기, 리뷰 요청 쓰기, 리뷰 지적 반영, 질문 | 공용 파일 수정, 다른 브랜치 건드리기, rewrite에 직접 커밋 |
-| 리뷰어 | 리뷰 요청을 읽기만 하고 독립적으로 검토해 승인 또는 변경 요청을 냅니다 | 코드 수정 |
+| Who                        | Responsibilities                                                                                                                                                                                                                                  | Doesn't                                                                            |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| User                       | Starting and ending phases, decisions that aren't in the plan, ruling on what the lead and the reviewer can't agree on                                                                                                                            |                                                                                    |
+| Lead                       | Maintaining `docs/PLAN.md` and `docs/STATUS.md`, changing the shared contracts and shared files, starting team member sessions, writing briefs, reviewing, calling the reviewer, merging after approval, integration tests, reporting to the user | Change a team member's owned files, or resolve conflicts on a team member's behalf |
+| Team member (work session) | Implementing the scope of the brief, rebasing their branch onto the latest `rewrite` and resolving conflicts themselves, writing review requests, addressing review comments, asking questions                                                    | Change shared files, touch other branches, or commit directly to `rewrite`         |
+| Reviewer                   | Only reads review requests, reviews them independently, and gives an approval or a change request                                                                                                                                                 | Change code                                                                        |
 
-리뷰어는 Codex를 들이기 전까지 팀장이 리뷰 요청마다 새 맥락으로 띄우는 읽기 전용 리뷰 에이전트입니다. Codex를 들인 뒤에는 Codex(읽기 전용 실행)가 맡습니다.
+Until Codex joins, the reviewer is a read-only review agent that the lead starts
+with a fresh context for each review request. After Codex joins, Codex (running
+read-only) takes this role.
 
-## 세션 띄우기
+## Starting sessions
 
-- 팀장은 0단계를 맡았던 세션("프로프리젠터 프로젝트 찾기")이 이어서 맡습니다. 이 세션이 끝나거나 맥락이 너무 길어지면 새 세션이 `docs/briefs/lead.md`로 팀장을 이어받습니다.
-- 팀장은 `D:\programming\2020-\pp`(rewrite)에서 권한 확인 생략 모드로 돕니다. 팀원도 같은 모드로 띄웁니다. 모드가 다르면 세션끼리의 메시지가 사용자 승인을 기다리며 멈춥니다.
-- 팀장은 세션 시작 도구로 팀원을 띄웁니다: 새 맥락(fresh), 자기 worktree, 브랜치 `rewrite/<이름>`, 로컬 실행.
-- 팀장은 사용자 메시지로 시작된 차례에서만 새 세션을 바로 띄울 수 있습니다. 팀원이 끝났다는 알림으로 깨어난 차례에서는 제안 카드만 낼 수 있으니, 다음 묶음은 사용자가 "시작"이라고 하거나 카드를 눌러 시작합니다.
-- 띄우기 전에 rewrite에 전달 문서를 커밋합니다. worktree는 rewrite의 마지막 커밋에서 시작합니다.
-- 동시에 도는 팀원은 셋까지입니다.
+- The session that handled phase 0 ("프로프리젠터 프로젝트 찾기", Find the
+  ProPresenter project) continues as the lead. If that session ends or its
+  context grows too long, a new session takes over as the lead with
+  `docs/briefs/lead.md`.
+- The lead runs in `D:\programming\2020-\pp` (`rewrite`) with permission prompts
+  turned off. Team members start in the same mode. If the modes differ, messages
+  between sessions stall while they wait for the user's approval.
+- The lead starts team members with the session start tool: a fresh context,
+  their own worktree, the branch `rewrite/<name>`, and running locally.
+- The lead can start a new session right away only in a turn that a user message
+  started. In a turn woken by a team member's completion notice, the lead can
+  only offer a suggestion card, so the next bundle starts when the user says to
+  start or clicks the card.
+- Before you start a session, commit its brief to `rewrite`. The worktree starts
+  from the last commit on `rewrite`.
+- At most three team members run at the same time.
 
-## 리뷰 요청(PR)의 흐름
+## Review request (PR) flow
 
-1. **구현:** 팀원은 전달 문서의 범위를 구현하고, 의미 있는 단위로 커밋합니다. 커밋 메시지는 `CLAUDE.md`의 규칙대로 한 줄입니다.
-2. **리베이스:** 리뷰를 올리기 전에 자기 worktree에서 `git rebase rewrite`로 최신 rewrite 위에 올립니다. 충돌은 팀원이 스스로 풉니다. 공용 파일에서 충돌이 나면 팀원이 공용 파일을 고친 것이므로, 그 변경을 빼고 팀장에게 요청으로 돌립니다.
-3. **확인:** `npm run typecheck`, `npm test`, 전달 문서에 적힌 화면 시험을 돌리고 결과를 적습니다.
-4. **리뷰 요청:** `docs/reviews/<이름>-<번호>.md`를 `docs/reviews/_template.md` 양식으로 쓰고 커밋합니다(무엇을 왜 바꿨는지, 확인 결과, 스스로 정한 것, 보아 달라는 곳). 그다음 팀장에게 SendMessage로 보냅니다: "리뷰 요청: docs/reviews/<이름>-<번호>.md, 브랜치 rewrite/<이름>, 커밋 <해시>". 그리고 기다립니다.
-5. **리뷰:** 팀장은 `git diff rewrite...rewrite/<이름>`과 실제 동작을 봅니다. 동시에 리뷰어를 불러 같은 범위를 따로 검토하게 합니다. 둘 다 결과를 그 리뷰 문서의 "리뷰" 칸에 적고 "승인" 또는 "변경 요청"을 분명히 씁니다.
-6. **반영:** 변경 요청이 있으면 팀장이 팀원에게 SendMessage로 알립니다. 팀원은 지적마다 반영하거나 반영하지 않는 이유를 리뷰 문서에 답하고, 새 커밋을 올린 뒤 2번부터 다시 합니다.
-7. **승인과 합치기:** 팀장과 리뷰어가 둘 다 승인하면, 팀장은 팀원의 브랜치가 최신 rewrite 위에 있는지 확인하고 빨리 감기로만 합칩니다: `git merge --ff-only rewrite/<이름>`. 그사이 rewrite가 움직였으면 팀원에게 다시 리베이스를 요청합니다. 리베이스에서 충돌이 나 코드가 바뀌었으면 리뷰를 다시 받습니다. 충돌 없이 올라가기만 했으면 다시 받지 않습니다.
-8. **정리:** 팀장은 `docs/STATUS.md`를 갱신하고 커밋합니다. 아직 일하는 다른 팀원에게 "rewrite가 바뀌었다"고 알립니다. 다 쓴 worktree와 브랜치는 사용자 확인 뒤 정리합니다.
+1. **Implement:** The team member implements the scope of the brief and commits
+   in meaningful units. Keep each change small and focused, following Google's
+   engineering practices. Each commit message is one line in the format and with
+   the tags that `CLAUDE.md` defines. Run `npm run format` before you commit.
+2. **Rebase:** Before you send the review request, run `git rebase rewrite` in
+   your own worktree to move your branch onto the latest `rewrite`. The team
+   member resolves conflicts. A conflict in a shared file means that the team
+   member changed a shared file, so drop that change and send it to the lead as
+   a request instead.
+3. **Check:** Run the checks that `CLAUDE.md` lists (now `npm run typecheck`,
+   `npm test`, and `npm run format:check`; from phase 1 on, `npm run verify`)
+   and the UI tests that the brief lists, and record the results. If anything
+   fails, don't send the review request.
+4. **Request a review:** Write `docs/reviews/<name>-<number>.md` from
+   `docs/reviews/_template.md` and commit it. It says what changed and why, the
+   check results, the decisions you made yourself, and where you want the
+   reviewers to look. Then send the lead this message with SendMessage, and
+   wait:
 
-- 합치기는 빨리 감기뿐입니다. 병합 커밋, 스쿼시 병합을 하지 않습니다.
-- rewrite 자체는 리베이스하거나 되돌리지 않습니다.
-- 합친 뒤 팀장은 origin의 rewrite에 push합니다(백업과 CI). 강제 push는 하지 않습니다. 팀원은 push하지 않습니다.
-- 팀장과 리뷰어의 의견이 갈리면 리뷰 문서에 서로의 근거를 적고 한 번 더 논의합니다. 그래도 합의하지 못하면 사용자에게 판정을 받습니다.
+   ```text
+   Review request: docs/reviews/<name>-<number>.md, branch rewrite/<name>, commit <hash>
+   ```
 
-## 질문
+5. **Review:** The lead looks at `git diff rewrite...rewrite/<name>` and at the
+   actual behavior. At the same time, the lead calls the reviewer to review the
+   same range separately. Both reviewers follow Google's engineering practices:
+   approve a change once it improves the overall health of the code, even if it
+   isn't perfect. They check the clean code rules and the comment rules in
+   `CLAUDE.md` and request changes when a rule is broken, and they don't approve
+   changes without tests. Both write their results in their review section of
+   that review document and state clearly "Approve" or "Request changes."
+6. **Address comments:** If changes are requested, the lead tells the team
+   member with SendMessage. For each comment, the team member either addresses
+   it or replies in the review document with the reason for not addressing it,
+   adds new commits, and then starts again from step 2.
+7. **Approve and merge:** When both the lead and the reviewer approve, the lead
+   confirms that the team member's branch sits on the latest `rewrite` and
+   merges it by fast-forward only: `git merge --ff-only rewrite/<name>`. If
+   `rewrite` moved in the meantime, the lead asks the team member to rebase
+   again. If a conflict in that rebase changed code, the branch gets reviewed
+   again. If the branch only moved up without conflicts, it doesn't.
+8. **Clean up:** The lead updates `docs/STATUS.md`, commits it, and tells the
+   other team members who are still working that `rewrite` changed. Finished
+   worktrees and branches are cleaned up after the user confirms.
 
-- 팀원은 언제든 팀장에게 SendMessage로 물을 수 있습니다. 공용 약속(공유 타입, 명령, 스키마, 토큰), 범위, 명세의 빈 곳은 짐작하지 말고 묻습니다.
-- 팀장이 답할 수 없는 것(제품 결정)은 사용자에게 묻고, 답을 `docs/decisions.md`에 남긴 뒤 팀원에게 전합니다.
-- 팀원이 한 차례 일을 마치면 앱이 팀장에게 자동으로 알립니다. 팀장은 그때 메시지와 리뷰 문서를 확인합니다. 보고만 믿지 않고 실제 변경과 시험 결과를 봅니다.
-- 팀장의 지시와 답도 SendMessage로 보냅니다(대상은 그 세션의 `local_...` id).
+- Merges are fast-forward only. Don't create merge commits or squash merges.
+- Never rebase or revert `rewrite` itself.
+- After a merge, the lead pushes `rewrite` to `origin` (for backup and CI).
+  Nobody force-pushes. Team members don't push.
+- If the lead and the reviewer disagree, they write their reasons in the review
+  document and discuss it once more. If they still can't agree, the user
+  decides.
 
-## 문서
+## Questions
 
-| 파일 | 누가 | 내용 |
-| --- | --- | --- |
-| `docs/briefs/<이름>.md` | 팀장 | 전달 문서. 양식 `docs/briefs/_template.md` |
-| `docs/reviews/<이름>-<번호>.md` | 팀원이 쓰고 팀장과 리뷰어가 리뷰 칸을 채움 | 리뷰 요청과 리뷰. 양식 `docs/reviews/_template.md` |
-| `docs/STATUS.md` | 팀장 | 단계, 묶음, 리뷰 요청의 상태 |
-| `docs/decisions.md` | 팀장 | 구현 중 새로 정한 것, 날짜와 함께 한 줄씩 |
+- Team members can ask the lead with SendMessage at any time. Don't guess about
+  shared contracts (shared types, commands, schemas, tokens), scope, or gaps in
+  the spec. Ask.
+- What the lead can't answer (product decisions) goes to the user. The lead
+  records the answer in `docs/decisions.md` and then passes it on to the team
+  member.
+- When a team member finishes a turn, the app notifies the lead automatically.
+  The lead then checks the message and the review document. The lead doesn't
+  rely on the report alone, and looks at the actual changes and test results.
+- The lead's instructions and answers also go by SendMessage (to that session's
+  `local_...` ID).
 
-## 정리(clear) 시점
+## Documents
 
-원칙: 다음 사람이 알아야 할 것이 모두 파일에 있을 때만 비웁니다. 커밋이 끝났고, 문서가 갱신됐고, 기다리는 메시지와 열린 리뷰가 없어야 합니다.
+Write every document in English, following the style guides in `CLAUDE.md`.
 
-| 누구 | 언제 비우나 |
-| --- | --- |
-| 팀장 | 단계가 하나 끝나고 진행 중인 팀원과 열린 리뷰 요청이 없을 때. `docs/STATUS.md`와 `docs/HANDOFF.md`를 갱신하고 커밋한 뒤. 대화가 길어져 자동 요약이 일어나기 전에 |
-| 팀원 | 비우지 않습니다. 묶음 하나에 세션 하나이며, 합친 뒤 보관하고 다음 묶음은 새 세션으로 시작합니다 |
-| 리뷰 에이전트 | 리뷰 요청마다 새로 띄우므로 비울 일이 없습니다 |
+| File                              | Who                                                                              | Contents                                                                |
+| --------------------------------- | -------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `docs/briefs/<name>.md`           | Lead                                                                             | Brief. Template: `docs/briefs/_template.md`                             |
+| `docs/reviews/<name>-<number>.md` | The team member writes it; the lead and the reviewer fill in the review sections | Review request and reviews. Template: `docs/reviews/_template.md`       |
+| `docs/STATUS.md`                  | Lead                                                                             | State of the phases, bundles, and review requests                       |
+| `docs/decisions.md`               | Lead                                                                             | New decisions made during implementation, one entry each, with the date |
 
-지금의 팀장 세션은 Remote Control 중이라 앱 규칙상 비울 수 없습니다. 맥락이 길어지면 자동 요약에 맡기되, 요약 전에 늘 `docs/STATUS.md`와 `docs/HANDOFF.md`를 최신으로 둡니다. 팀장을 새 세션으로 바꿀 때는 그 두 문서와 `docs/briefs/lead.md`로 이어받습니다.
+## When to clear
 
-비운 뒤 첫 메시지는 늘 "CLAUDE.md, docs/HANDOFF.md, docs/STATUS.md를 읽고 이어서 하라"입니다.
+Principle: clear a session only when everything the next person needs to know is
+in files. The commits are done, the documents are updated, and no messages are
+waiting and no reviews are open.
 
-## 포트와 앱 데이터 폴더 배정
+| Who          | When to clear                                                                                                                                                                                                                          |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lead         | When a phase ends and there are no active team members and no open review requests. After updating and committing `docs/STATUS.md` and `docs/HANDOFF.md`. Before the conversation grows long enough to trigger automatic summarization |
+| Team member  | Never. Each bundle gets one session. After the merge, the session is archived, and the next bundle starts in a new session                                                                                                             |
+| Review agent | It's started fresh for each review request, so there's nothing to clear                                                                                                                                                                |
 
-1단계에서 개발 서버 포트(`LLP_DEV_PORT`)와 앱 데이터 폴더(`LLP_USER_DATA`)를 환경 변수로 받게 만듭니다. 앱 데이터 폴더가 다르면 같은 앱을 여러 개 띄워도 서로 부딪치지 않습니다.
+Every session, the lead included, can be compacted (summarized automatically) at
+any time. `CLAUDE.md` under "Context and compaction" says how to survive it:
+keep `.llp/notes.md` current, and the SessionStart hook prints the notes, the
+git state, and `docs/STATUS.md` back after every compaction.
 
-| 세션 | 포트 | 앱 데이터 폴더 |
-| --- | --- | --- |
-| lead | 5173 | `D:\llp-dev\lead` |
-| trial | 5190 | `D:\llp-dev\trial` |
-| devops | 5185 | `D:\llp-dev\devops` |
-| prep | 5181 | `D:\llp-dev\prep` |
-| output | 5182 | `D:\llp-dev\output` |
-| tools | 5183 | `D:\llp-dev\tools` |
-| polish | 5184 | `D:\llp-dev\polish` |
+The current lead session is under Remote Control, so the app's rules don't let
+it be cleared. When its context grows long, rely on compaction, but always keep
+`.llp/notes.md`, `docs/STATUS.md`, and `docs/HANDOFF.md` up to date. When the
+lead moves to a new session, the new session takes over with those two documents
+and `docs/briefs/lead.md`.
 
-## Windows에서 조심할 점
+The first message after a clear is always "Read CLAUDE.md, docs/HANDOFF.md, and
+docs/STATUS.md, then continue."
 
-- 작업 폴더 경로를 짧게 둡니다. 경로가 너무 길면 node가 시작하지 못합니다.
-- 줄바꿈은 `.gitattributes`로 LF로 고정되어 있습니다.
-- 리베이스와 합치기 전에 그 폴더의 개발용 앱과 개발 서버를 끕니다. Windows가 실행 중인 파일을 잠가 git이 실패합니다.
-- 오래 맡길 때는 전원을 연결해 둡니다(배터리일 때 15분 뒤 절전).
-- tmux는 쓰지 않습니다. 세션은 Claude 앱이 띄우고 관리합니다.
+## Port and app data folder assignments
+
+Phase 1 makes the app read the dev server port (`LLP_DEV_PORT`) and the app data
+folder (`LLP_USER_DATA`) from environment variables. With different app data
+folders, several copies of the same app can run without colliding.
+
+| Session | Port | App data folder     |
+| ------- | ---- | ------------------- |
+| lead    | 5173 | `D:\llp-dev\lead`   |
+| trial   | 5190 | `D:\llp-dev\trial`  |
+| devops  | 5185 | `D:\llp-dev\devops` |
+| prep    | 5181 | `D:\llp-dev\prep`   |
+| output  | 5182 | `D:\llp-dev\output` |
+| tools   | 5183 | `D:\llp-dev\tools`  |
+| polish  | 5184 | `D:\llp-dev\polish` |
+
+## Windows pitfalls
+
+- Keep the working folder path short. If the path is too long, node fails to
+  start.
+- `.gitattributes` fixes line endings to LF.
+- Before a rebase or a merge, stop the dev app and the dev server in that
+  folder. Windows locks files that are in use, and git fails.
+- When you leave work running for a long time, keep the computer plugged in (on
+  battery, it sleeps after 15 minutes).
+- Don't use tmux. The Claude app starts and manages the sessions.
 
 ## GitHub
 
-- 저장소: https://github.com/0913vision/llpresenter (공개). 팀장만 rewrite를 push합니다. 첫 push 전에 사용자와 공개 여부를 확인합니다.
-- CI: GitHub Actions가 rewrite에 push될 때 Windows 실행기에서 `npm ci`와 `npm run verify`를 돌립니다(devops가 설정). 로컬 `npm run verify`가 먼저이고, GitHub의 CI는 깨끗한 환경에서 한 번 더 확인하는 역할입니다.
-- 리뷰는 지금 GitHub PR이 아니라 저장소 안의 리뷰 문서(`docs/reviews/`)와 SendMessage로 합니다. 이 컴퓨터에는 GitHub CLI(`gh`)가 없고 팀원은 push하지 않기 때문입니다. GitHub PR을 쓸지는 devops가 1단계에서 다시 판단해 리뷰 문서에 제안하고, 팀장이 정합니다.
-- v1이 끝나면 main을 rewrite로 빨리 감기 합니다. rewrite는 origin/main의 마지막 커밋(9b23462) 위에서 시작했으므로 가능합니다.
+- Repository: https://github.com/0913vision/llpresenter (public). Only the lead
+  pushes `rewrite`. Before the first push, confirm with the user that the
+  repository is public.
+- CI: GitHub Actions runs `npm ci` and `npm run verify` on a Windows runner when
+  `rewrite` is pushed (set up by devops). The local `npm run verify` comes
+  first. CI on GitHub checks once more in a clean environment.
+- For now, reviews happen through review documents in the repository
+  (`docs/reviews/`) and SendMessage, not through GitHub PRs, because this
+  computer has no GitHub CLI (`gh`) and team members don't push. devops
+  reconsiders GitHub PRs in phase 1 and makes a proposal in its review document,
+  and the lead decides.
+- When v1 is done, we fast-forward `main` to `rewrite`. This works because
+  `rewrite` started from the last commit of `origin/main` (9b23462).
 
 ## Codex
 
-- 들이는 시점은 팀장이 사용자와 정합니다(3단계 전후). 설치와 로그인은 사용자가 직접 합니다.
-- 읽기 전용으로만 돌려 코드를 고치지 못하게 하고, 결과를 리뷰 문서의 리뷰어 칸에 옮깁니다.
+- The lead decides with the user when to add Codex (around phase 3). The user
+  installs it and signs in.
+- Run it read-only so that it can't change code, and copy its results into the
+  reviewer section of the review document.

@@ -1,54 +1,79 @@
-# 리뷰 요청: <이름>-<번호>
+# Review request: `<name>-<number>`
 
-- 팀원: <세션 이름>
-- 브랜치: `rewrite/<이름>`
-- 기준 커밋(rewrite): <해시>
-- 마지막 커밋: <해시>
-- 관련 전달 문서: `docs/briefs/<이름>.md`
+- Team member: `<session name>`
+- Branch: `rewrite/<name>`
+- Base commit (`rewrite`): `<hash>`
+- Last commit: `<hash>`
+- Related brief: `docs/briefs/<name>.md`
 
-## 무엇을 왜 바꿨나
+## What changed and why
 
-## 바뀐 파일
+## Changed files
 
-## 확인한 것
+## Checks run
 
-| 명령 또는 시험 | 결과 |
-| --- | --- |
-| `npm run typecheck` | |
-| `npm test` | |
+| Command or test                    | Result |
+| ---------------------------------- | ------ |
+| `npm run typecheck`                |        |
+| `npm test`                         |        |
+| `npm run format:check`             |        |
+| `npm run verify` (from phase 1 on) |        |
 
-## 품질 점검 (`docs/TECH.md`의 품질 기준)
+## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
-- [ ] `npm run verify` 통과
-- [ ] 새 동작과 고친 버그마다 단위 시험이 있음
-- [ ] 바깥에서 오는 값은 스키마로 검사함
-- [ ] `any`, 검사를 피하는 타입 단언, `!`가 없음
-- [ ] 등록한 구독, 타이머, IPC 수신, 영상과 오디오 요소, object URL을 모두 풂
-- [ ] 캐시와 목록에 상한이 있음
-- [ ] 출력 경로에서 예외가 나도 출력이 멈추지 않음
-- [ ] 필요한 부분만 다시 그림(조작 창)
-- [ ] 측정한 성능 값(해당될 때):
+- [ ] `npm run verify` passes
+- [ ] `npm run format:check` passes
+- [ ] Every new behavior and every bug fix has unit tests
+- [ ] Values from outside the process are validated with a schema
+- [ ] No `any`, no type assertions that bypass checks, and no `!`
+- [ ] Every registered subscription, timer, IPC listener, video and audio
+      element, and object URL is released
+- [ ] Caches and lists have size caps
+- [ ] An exception in the output path doesn't stop the output
+- [ ] Only what's needed re-renders (control window)
+- [ ] The clean code rules in `CLAUDE.md` hold: clear names, small functions
+      that do one thing, a single responsibility per module and class, no
+      repetition, named constants instead of magic values, explicit side
+      effects, no silently swallowed errors, and fast, independent, repeatable,
+      and readable tests
+- [ ] Comments follow `CLAUDE.md`: TSDoc only (`/** ... */`),
+      `// NOTE(0913vision): ...`, `// TODO(0913vision): ...`, and nothing else
+      (no other comments and no commented-out code)
+- [ ] The code uses the modern language features that `CLAUDE.md` lists (for
+      example, `const` and `let`, `async` and `await`, optional chaining and
+      `??`, `readonly`, and `satisfies`), except where the Google TypeScript
+      style guide decides otherwise
+- [ ] The change is small and focused, and "What changed and why" describes it
+      clearly
+- [ ] Measured performance values (when relevant):
 
-## 스스로 정한 것 (팀장 확인 필요)
+## Decisions I made (for the lead to confirm)
 
-## 공용 약속 변경 요청
+## Shared contract change requests
 
-## 보아 달라는 곳
+## Where to look
 
 ---
 
-## 리뷰: 팀장
+Reviewers follow Google's engineering practices: approve a change once it
+improves the overall health of the code, even if it isn't perfect. Request
+changes when a clean code rule or a comment rule is broken, or when tests are
+missing.
 
-- 판정: 승인 / 변경 요청
-- 지적:
+## Review: lead
+
+- Verdict: Approve / Request changes
+- Findings:
+
   1.
 
-## 리뷰: 리뷰어
+## Review: reviewer
 
-- 판정: 승인 / 변경 요청
-- 지적:
+- Verdict: Approve / Request changes
+- Findings:
+
   1.
 
-## 팀원의 답
+## Team member's reply
 
 1.

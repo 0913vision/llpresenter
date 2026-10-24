@@ -1,83 +1,155 @@
-# 인수인계
+# Handoff
 
-마지막 갱신: 2026년 10월 24일, 0단계(인수인계) 세션
+Last updated: October 24, 2026, by the phase 0 (handoff) session.
 
-## 무엇을 만드는가
+## What we're building
 
-LoveLight Presenter는 교회 예배용 가사 출력 앱입니다. 운영자는 어두운 방에서 예배를 보며 클릭 한 번으로 여러 화면(본 화면, 무대 화면, 방송 자막)의 내용을 바꿉니다. 반복 재생되는 배경 영상 위에 가사를 장 단위로 띄우고, 화면마다 다른 내용과 글자 배치를 쓰며, 특정 화면이나 모든 화면에 메시지와 공지를 띄웁니다. 기능 수보다 안정성과 매끄러운 조작이 중요합니다. 비영리로 한 교회 안에서만 쓰고 배포 계획은 없습니다.
+LoveLight Presenter is a lyrics app for church services. The operator follows
+the service from a dark room and, with one click, changes what several screens
+show: the 본 화면 (main screen), the 무대 화면 (stage screen), and the 방송 자막
+(broadcast captions). The app shows lyrics one 장 (slide) at a time over a
+looping background video, uses different content and text layout on each screen,
+and shows messages and notices on one screen or on all screens. Stability and
+smooth operation matter more than the number of features. It's non-profit, used
+only inside one church, and there's no plan to distribute it.
 
-## 지금 상태
+## Current state
 
-| 항목 | 상태 | 위치 |
-| --- | --- | --- |
-| UI 시안 | 확정(65판) | [시안 아티팩트](https://claude.ai/artifact/4Z4M7wLUjyxs5iqLzkeXct), 원본 `design/drafts/` |
-| 디자인 시스템 | 확정(3판): 원칙, 토큰, 창 크기 규칙, 컴포넌트 30개 | [디자인 시스템 아티팩트](https://claude.ai/artifact/LDSJg1gwuFymJBuTbVEBQP), 원본 `design/system/` |
-| 기능 명세 | 작성됨 | `docs/spec/` |
-| 기술 결정 | 작성됨 | `docs/TECH.md`, `docs/decisions.md` |
-| 구현 계획과 작업 방식 | 작성됨 | `docs/PLAN.md`, `docs/WORKFLOW.md`, `docs/STATUS.md` |
-| 앱 코드 | 아직 없음. rewrite는 비운 상태로 시작합니다. 시안 전에 만든 초기 골격은 로컬 보관 브랜치 `archive/prototype-2026-10`에 있습니다(모델이 지금 결정과 달라 그대로 쓰지 않음) | 1단계에서 팀장이 초반 틀을 만듭니다 |
+| Item                             | State                                                                                                          | Location                                                                                                |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| UI drafts                        | Final (version 65)                                                                                             | [Drafts artifact](https://claude.ai/artifact/4Z4M7wLUjyxs5iqLzkeXct), source in `design/drafts/`        |
+| Design system                    | Final (version 3): principles, tokens, window size rules, 30 components                                        | [Design system artifact](https://claude.ai/artifact/LDSJg1gwuFymJBuTbVEBQP), source in `design/system/` |
+| Feature spec                     | Written                                                                                                        | `docs/spec/`                                                                                            |
+| Technical decisions              | Written                                                                                                        | `docs/TECH.md`, `docs/decisions.md`                                                                     |
+| Implementation plan and workflow | Written                                                                                                        | `docs/PLAN.md`, `docs/WORKFLOW.md`, `docs/STATUS.md`                                                    |
+| App code                         | Initial frame on `rewrite`: shared live state and commands, main-process store, IPC, logging, and the shell UI | `src/`, progress in `docs/STATUS.md`                                                                    |
 
-두 아티팩트는 사용자 계정에서만 열립니다. 세션은 저장소 안의 사본(`design/`)을 읽습니다.
+Both artifacts open only in the user's account. Sessions read the copies in the
+repository (`design/`).
 
-## 확정된 결정
+## Decisions
 
-### 구조
+### Structure
 
-- 작업 공간은 진행, 준비, 화면 설정 셋입니다. 라이브러리는 준비에만 있고, 진행의 왼쪽 열은 예배 순서와 퀵 실행입니다.
-- 화면은 본 화면, 무대 화면, 방송 자막 셋입니다. 로비 화면은 당분간 쓰지 않습니다.
-- 진행 화면은 프로프리젠터식 배치(아이콘 툴바, 큰 미리보기, 지우기 줄, 탭으로 나눈 진행 도구)에 다른 화면의 작은 미리보기와 표시 중 탭을 더한 절충안입니다.
-- 출력은 프로프리젠터처럼 장을 누르면 바로 나갑니다(대기 후 출력 없음).
-- 출력 상태는 메인 프로세스가 소유하고, 화면마다 Look(어떤 층을 보일지와 가사 스타일)을 둡니다. 지우기는 F1 모두, F2 가사, F3 미디어, F4 소품, F5 오디오, F6 메시지, F7 공지입니다.
-- 다중 레이어 지우기(프로프리젠터의 Clear Groups)는 v1에 없습니다. 여러 층을 한 번에 지우려면 매크로의 지우기 동작을 쓰고, 필요하면 예배 순서 항목의 시작할 때 매크로에 겁니다.
+- There are three workspaces: 진행 (Show), 준비 (Prep), and 화면 설정 (Screen
+  settings). The library exists only in 준비. The left column of 진행 holds the
+  예배 순서 (service order) and 퀵 실행 (quick run).
+- There are three screens: 본 화면, 무대 화면, and 방송 자막. The lobby screen
+  isn't used for now.
+- The 진행 workspace is a compromise: the ProPresenter-style layout (icon
+  toolbar, large preview, 지우기 (clear) row, and 진행 도구 (show tools) split
+  into tabs) plus small previews of the other screens and a 표시 중 (Showing)
+  tab.
+- As in ProPresenter, clicking a 장 outputs it immediately. There's no step that
+  cues content before output.
+- The main process owns the live output state, and each screen has a Look (which
+  layers to show and the lyric style). The 지우기 keys are F1 for everything, F2
+  for lyrics, F3 for media, F4 for props, F5 for audio, F6 for messages, and F7
+  for notices.
+- Multi-layer clearing (ProPresenter's Clear Groups) isn't in v1. To clear
+  several layers at once, use a macro's clear action. If needed, attach that
+  macro to a 예배 순서 item as its start macro.
 
-### 데이터
+### Data
 
-- 곡은 자체 형식 `.llsong`(JSON) 파일 하나입니다. 제목, 장(이름표는 비워도 됨, 줄 목록), 기본 배경 미디어 id, 이름 붙인 구성(arrangements)을 가집니다. 기본 구성은 파일의 장 순서입니다.
-- 이름표 색은 곡 파일이 아니라 앱의 이름표 목록에 저장하며, 사용자가 정한 차분한 색 여덟 가지와 없음 중에서 고릅니다.
-- 예배 순서는 `.llservice` 파일 하나이며 항목만 담습니다(이름, 날짜, 항목). 곡 항목은 곡 id, 구성 이름, 이번 배경, 시작할 때 매크로, 메모를 가집니다.
-- 화면, Look, 무대 배치, 매크로, 퀵 실행, 메시지, 공지, 소품, 타이머는 앱 전체에 하나만 둡니다(프로프리젠터 방식). 예배마다 모습을 바꾸려면 Look을 여러 개 두고 항목의 시작할 때 매크로로 바꿉니다.
-- 저장은 자동입니다(바꿀 때마다). 저장 버튼이 없습니다. 가져온 곡만 편집 후 저장을 눌러야 라이브러리에 들어갑니다.
-- 비정상 종료 뒤에는 마지막 예배 순서가 그대로 열리고, 출력 상태(켜져 있던 화면, 마지막 장, 표시 중이던 항목)만 복구 창에서 묻습니다.
-- 모르는 필드는 보존해서, 나중에 악보 같은 항목을 더해도 기존 파일과 충돌하지 않게 합니다.
+- A song is one file in our own format, `.llsong` (JSON). It holds the title,
+  the 장 (each with a list of lines and an 이름표 (label), which may be empty),
+  the ID of the default background media, and named 구성 (arrangements). The
+  default 구성 is the 장 order in the file.
+- 이름표 colors are stored in the app's 이름표 list, not in song files. You
+  choose from eight muted colors that the user picked, or none.
+- A 예배 순서 is one `.llservice` file and holds only items (name, date, items).
+  A song item holds a song ID, a 구성 name, the background for this service, a
+  start macro, and a memo.
+- Screens, Looks, stage layouts, macros, 퀵 실행, messages, notices, props, and
+  timers exist once for the whole app (the ProPresenter way). To change how the
+  screens look for each service, keep several Looks and switch between them with
+  an item's start macro.
+- Saving is automatic (on every change). There's no 저장 (Save) button. The only
+  exception is an imported song: it enters the library only after you edit it
+  and click 저장.
+- After a crash, the last 예배 순서 opens as it was, and a recovery dialog asks
+  only about the live output state (the screens that were on, the last 장, and
+  the items that were showing).
+- Unknown fields are preserved, so that items added later, such as sheet music,
+  don't conflict with existing files.
 
-### 준비 기능
+### 준비 features
 
-- 새 예배는 빈 예배, 틀(프로프리젠터의 Playlist Template), 지난 예배 중에서 만들고 가져올 항목을 고릅니다.
-- 다른 예배에서 예배 순서 항목만 골라 지금 예배 순서 끝에 더할 수 있습니다(우리 쪽 추가 기능).
-- 예배 순서는 예배 순서 머리글의 이름을 눌러 펼치는 목록에서 바꿉니다.
-- 가져오기는 파일 메뉴의 가져오기 아래에 텍스트 파일, 클립보드 텍스트, PowerPoint 파일(나중)을 따로 둡니다. 파일은 하나씩 가져오고, 불러온 결과에서 버리기나 편집을 고릅니다. 같은 제목이 있으면 제목 칸이 빨간 테두리가 되고, 저장할 때 덮어쓰기, 새 곡으로 저장, 취소를 묻습니다.
+- You create a new service from a blank service, a 틀 (template; ProPresenter's
+  Playlist Template), or a past service, and choose the items to bring in.
+- You can pick 예배 순서 items from another service and add them to the end of
+  the current 예배 순서 (our own addition).
+- You switch 예배 순서 from the list that opens when you click the name in the
+  예배 순서 header.
+- Import has separate entries under 가져오기 (Import) in the 파일 (File) menu:
+  텍스트 파일 (Text file), 클립보드 텍스트 (Clipboard text), and PowerPoint 파일
+  (PowerPoint file, later). Files are imported one at a time, and for each
+  result you choose 버리기 (Discard) or 편집 (Edit). If a song with the same
+  title exists, the title field gets a red border, and saving asks you to choose
+  덮어쓰기 (Overwrite), 새 곡으로 저장 (Save as new song), or 취소 (Cancel).
 
-### 출력과 외부 연결
+### Output and external connections
 
-- 방송 자막은 알파 채널을 켠 NDI로 OBS에 보내는 것이 목표이고, 초록 바탕의 캡처용 창을 예비로 둡니다. 앱 안의 미리보기 바탕은 초록이 기본입니다(검정, 체크 무늬 선택 가능). 앱은 송출을 하지 않습니다. 송출은 OBS가 맡습니다.
-- NDI SDK는 비영리로 한 교회 안에서만 쓰고 배포하지 않는 조건에서 무료로 쓸 수 있습니다. 배포하게 되면 SDK 재배포 조건과 NDI 상표 표기를 다시 확인합니다.
-- 성경 구절은 퀵 실행의 입력 칸에서 바로 찾습니다. 본문은 내장(오프라인)하며, 사용자의 저장소 github.com/0913vision/copible(로컬 `D:\programming\copible`)의 로직을 다시 씁니다. 역본은 개역한글과 KJV로 시작합니다. 개역개정은 대한성서공회 사용 허락을 확인해야 합니다.
+- The goal for 방송 자막 is to send it to OBS over NDI with the alpha channel
+  on. A capture window with a green background is the fallback. The preview
+  background inside the app is green by default (black or a checkerboard can be
+  chosen). The app doesn't broadcast. OBS does the broadcasting.
+- The NDI SDK is free to use on these conditions: non-profit, used only inside
+  one church, and not distributed. If we ever distribute the app, recheck the
+  SDK redistribution terms and the NDI trademark notice.
+- Bible verses are looked up directly in the 퀵 실행 input field. The text is
+  built in (offline), and we reuse the logic in the user's repository
+  github.com/0913vision/copible (local `D:\programming\copible`). Translations
+  start with 개역한글 (Korean Revised Version) and the KJV. For 개역개정 (New
+  Korean Revised Version), we must confirm permission from 대한성서공회 (the
+  Korean Bible Society).
 
-### 디자인
+### Design
 
-- 디자인 시스템이 기준입니다. 파랑은 둘입니다: 선과 포커스는 `accent`(#3d8bf0), 주 버튼 같은 면은 `accent-fill`(#2a70dc). 버튼과 입력 칸 높이는 패널 안 26, 대화상자와 환경설정 30입니다.
-- 창 크기는 세 구간입니다(Windows 배율 적용 후). 좁은 창 1280부터, 보통 창 1600부터, 넓은 창 2400부터. 최소 창은 1280×720입니다.
-- 빨강은 지금 출력 중인 것에만 씁니다.
+- The design system is the reference. There are two blues: `accent` (#3d8bf0)
+  for lines and focus, and `accent-fill` (#2a70dc) for surfaces such as primary
+  buttons. Buttons and input fields are 26 high inside panels and 30 high in
+  dialogs and settings.
+- There are three window size ranges (after Windows scaling): narrow from 1280,
+  normal from 1600, and wide from 2400. The minimum window size is 1280×720.
+- Use red only for what is being output right now.
 
-### 나중으로 미룬 것 (v1 구조는 열어 둠)
+### Deferred (the v1 structure stays open for them)
 
-- 악보 표시(회중 화면용, 방식 미정), PowerPoint 가져오기, NDI 출력, 카메라 입력(프로프리젠터처럼 입력 장치를 앱 전체에 등록하고 미디어, 동작, 장 요소로 쓰게), 설치 파일.
+- Sheet music display (for the congregation screen, method undecided),
+  PowerPoint import, NDI output, camera input (as in ProPresenter, input devices
+  registered app-wide and used as media, actions, and 장 elements), and an
+  installer.
 
-## 사용자 선호
+## User preferences
 
-- 정중한 합니다체로 답합니다. 장난스러운 말투, 가운뎃점, 줄표를 쓰지 않습니다.
-- 흔하고 AI가 만든 것 같은 UI를 싫어합니다. 설명 문구, 쓸데없는 칩과 배지를 넣지 않습니다.
-- 프로프리젠터를 참고했다고 할 때는 실제로 확인한 것만 그렇게 말합니다.
-- 코드보다 시안과 설계를 먼저 확정하고, 실제 화면 크기로 확인한 뒤 진행합니다.
-- 모든 세션은 권한 확인 생략 모드로 돌고, 작업 세션은 각자 worktree에서 일하며 마스터가 리베이스해 합칩니다.
+- Reply in polite Korean (합니다체). Don't use a playful tone. Never use middle
+  dots (·) or em dashes (—) anywhere.
+- The user dislikes common, AI-looking UI. Don't add explanatory text or
+  needless chips and badges.
+- Say that something follows ProPresenter only when you actually checked it.
+- Settle the drafts and the design before code, and check them at real screen
+  sizes before you move on.
+- Every session runs with permission prompts turned off. Work sessions each work
+  in their own worktree and rebase their own branch, and the lead merges their
+  work fast-forward only.
+- The rules for code, comments, formatting, documents, and commit messages are
+  in `CLAUDE.md`. The user set them and expects every session to follow them.
 
-## 열린 질문
+## Open questions
 
-- 개역개정 사용 허락 여부
-- 악보 표시 방식(그림, MusicXML 등)
-- Git for Windows가 2.35.2로 오래됐습니다. 최신으로 올리기를 권합니다(사용자 결정).
-- Codex를 3단계부터 읽기 전용 외부 검토자로 붙일지(급하지 않음)
+- Whether we have permission to use 개역개정.
+- How to show sheet music (images, MusicXML, and so on).
+- Git for Windows is old (2.35.2). We recommend upgrading to the latest version
+  (the user decides).
+- Whether to add Codex as a read-only outside reviewer from phase 3 on (not
+  urgent).
 
-## 이전 기록
+## History
 
-- 0단계까지의 대화와 시안 작업은 Claude 앱의 "프로프리젠터 프로젝트 찾기" 세션에 있고, 이 세션이 팀장을 이어서 맡습니다. 시안과 디자인 시스템 원본은 `design/`에 있으므로 그 세션이 없어도 이어갈 수 있습니다.
+- The conversation and draft work through phase 0 are in the Claude app session
+  "프로프리젠터 프로젝트 찾기" (Find the ProPresenter project), and that session
+  continues as the lead. The draft and design system sources are in `design/`,
+  so work can continue even without that session.
+- The product decisions from the drafts phase are in `docs/product-log.md`.

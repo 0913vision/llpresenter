@@ -1,34 +1,35 @@
-# 진행표
+# Status
 
-팀장만 고칩니다. 마지막 갱신: 2026년 10월 24일
+Only the lead edits this file. Last updated: October 24, 2026.
 
-## 단계
+## Phases
 
-| 단계 | 상태 | 메모 |
-| --- | --- | --- |
-| 0 인수인계 | 끝남 | rewrite를 비우고 문서와 디자인 원본으로 시작 |
-| 1 기반 | 진행 중 | 초반 틀 커밋됨(5d93383). 다음은 trial, 그다음 devops와 lead의 나머지 몫 |
-| 2 한 줄 관통 | 대기 | |
-| 3 기능 묶음 | 대기 | prep, output, tools |
-| 4 다듬기 | 대기 | |
-| 5 나중 기능 | 대기 | |
+| Phase             | State       | Note                                                                                                                  |
+| ----------------- | ----------- | --------------------------------------------------------------------------------------------------------------------- |
+| 0 Handoff         | Done        | `rewrite` started empty, with the documents and the design sources                                                    |
+| 1 Foundation      | In progress | Initial frame, formatter, and session notes hook committed. Next: trial, then devops and the rest of the lead's share |
+| 2 Vertical slice  | Waiting     |                                                                                                                       |
+| 3 Feature bundles | Waiting     | prep, output, tools                                                                                                   |
+| 4 Polish          | Waiting     |                                                                                                                       |
+| 5 Later features  | Waiting     |                                                                                                                       |
 
-## 세션
+## Sessions
 
-| 이름 | 브랜치 | 상태 | 전달 문서 |
-| --- | --- | --- | --- |
-| lead | rewrite | 0단계 세션이 맡음 | `docs/briefs/lead.md` |
-| trial | rewrite/trial | 띄우기 전 | `docs/briefs/trial.md` |
-| devops | rewrite/devops | 띄우기 전 | `docs/briefs/devops.md` |
+| Name   | Branch           | State                       | Brief                   |
+| ------ | ---------------- | --------------------------- | ----------------------- |
+| lead   | `rewrite`        | Held by the phase 0 session | `docs/briefs/lead.md`   |
+| trial  | `rewrite/trial`  | Not started                 | `docs/briefs/trial.md`  |
+| devops | `rewrite/devops` | Not started                 | `docs/briefs/devops.md` |
 
-## 다음 할 일
+## Next steps
 
-1. 기능 명세(`docs/spec/`)를 마무리해 커밋합니다.
-2. 저장소가 공개라는 점(시안 보드의 예시 가사 포함)을 사용자와 확인한 뒤 rewrite를 처음 push합니다.
-3. 사용자가 시작하라고 하면 trial, 그다음 devops를 띄웁니다.
-4. lead의 1단계 나머지 몫: 공용 UI 부품, 열 끌기와 기억, 데이터 형식 스키마.
+1. Push `rewrite` (the user approved it once the sample lyrics were replaced).
+2. Start trial when the user says so, then devops.
+3. Bring the open questions in `docs/spec/README.md` to the user.
+4. The rest of the lead's phase 1 share: shared UI parts, dragging and
+   remembering columns, and data format schemas.
 
-## 리뷰 요청
+## Review requests
 
-| 리뷰 문서 | 팀원 | 팀장 | 리뷰어 | 합침 |
-| --- | --- | --- | --- | --- |
+| Review document | Team member | Lead | Reviewer | Merged |
+| --------------- | ----------- | ---- | -------- | ------ |

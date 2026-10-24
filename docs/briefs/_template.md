@@ -1,42 +1,65 @@
-# 전달 문서: <이름>
+# Brief: `<name>`
 
-- 세션 이름: <이름>
-- 브랜치: `rewrite/<이름>` (자기 worktree)
-- 개발 서버 포트: <포트>, 앱 데이터 폴더: `D:\llp-dev\<이름>`
-- 단계: <단계>
+- Session name: `<name>`
+- Branch: `rewrite/<name>` (own worktree)
+- Dev server port: `<port>`; app data folder: `D:\llp-dev\<name>`
+- Phase: `<phase>`
 
-## 목표
+## Goal
 
-## 할 일
+## Tasks
 
-## 하지 않을 일
+## Out of scope
 
-## 소유 파일 (이것만 고칩니다)
+## Owned files (change only these)
 
-## 읽을 것
+## What to read
 
 - `CLAUDE.md`, `docs/WORKFLOW.md`
-- 명세:
-- 디자인 시스템 컴포넌트:
+- Spec:
+- Design system components:
 
-## 지킬 약속
+## Contracts to follow
 
-- 공용 타입, 명령, 스키마는 `src/shared/`의 것을 씁니다. 바꿀 일이 생기면 팀장에게 요청합니다.
+- Use the shared types, commands, and schemas in `src/shared/`. If one needs to
+  change, ask the lead.
 
-## 허락된 의존성
+## Allowed dependencies
 
-## 완료 기준
+## Done when
 
-## 확인 방법
+## How to verify
 
-## 커밋
+## Commits
 
-- 메시지는 `CLAUDE.md`의 규칙대로 한 줄: `tag(scope): <동사 원형으로 시작하는 영어 한 문장>`. 꼬리말 없음.
+- Write one line only, as `CLAUDE.md` defines:
+  `tag(scope): <one English sentence starting with a base-form verb>`.
+- Use one of these tags:
+  - `break`: breaks existing behavior, a file format, or a shared contract.
+  - `feat`: adds a feature or changes behavior.
+  - `fix`: fixes a bug.
+  - `refactor`: changes structure without changing behavior, including
+    performance work.
+  - `style`: changes appearance without changing behavior (formatting, names,
+    matching UI values to the design system).
+  - `docs`: changes documents only.
+  - `chore`: changes configuration, dependencies, build, CI, or test tooling.
+- The scope is the area you changed, for example `live`, `shell`, `ui`, `store`,
+  `prep`, `output`, `design`, or `repo`.
+- Don't add a body, a blank line, `Co-Authored-By`, or any other trailer, even
+  when a tool adds one by default.
+- Run `npm run format` before you commit.
 
-## 마치면
+## When you finish
 
-1. 최신 rewrite 위로 리베이스하고 충돌을 스스로 풉니다.
-2. 확인 명령을 돌립니다.
-3. `docs/reviews/<이름>-<번호>.md`를 써서 커밋합니다.
-4. 팀장에게 SendMessage로 "리뷰 요청: docs/reviews/<이름>-<번호>.md, 브랜치 rewrite/<이름>, 커밋 <해시>"를 보내고 기다립니다.
-5. 변경 요청이 오면 반영하고 1번부터 다시 합니다.
+1. Rebase onto the latest `rewrite` and resolve conflicts yourself.
+2. Run the checks in "How to verify" and in `CLAUDE.md`. If anything fails,
+   don't send the review request.
+3. Write `docs/reviews/<name>-<number>.md` and commit it.
+4. Send the lead this message with SendMessage, and wait:
+
+   ```text
+   Review request: docs/reviews/<name>-<number>.md, branch rewrite/<name>, commit <hash>
+   ```
+
+5. If changes are requested, address them and start again from step 1.
