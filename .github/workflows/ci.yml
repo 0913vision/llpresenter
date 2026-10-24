@@ -4,6 +4,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      major:
+        description: Raise the major version (only with the user's permission)
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -43,3 +48,33 @@ jobs:
           path: coverage/
           if-no-files-found: ignore
           retention-days: 14
+
+  bump:
+    needs: verify
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24.20.0
+
+      - name: Commit and tag the next version
+        env:
+          BEFORE: ${{ github.event.before }}
+          MAJOR: ${{ inputs.major }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          args=(--before "$BEFORE")
+          if [ "$MAJOR" = 'true' ]; then args+=(--major); fi
+          node scripts/version/run.mts "${args[@]}"
+
+      - name: Push the bump commit and its tag
+        run: git push --atomic --follow-tags origin HEAD:refs/heads/main
