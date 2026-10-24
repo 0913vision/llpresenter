@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import {Icon} from '@renderer/ui/Icon';
+import {Icon, useTooltip} from '@renderer/ui';
 import {
   clearLayer,
   undoClear,
@@ -20,39 +20,51 @@ function ClearButton({
   const name = `${spec.label} 지우기`;
   const classes =
     spec.target === 'all' ? `${styles.button} ${styles.all}` : styles.button;
+  const {targetProps, tooltip} = useTooltip({
+    text: name,
+    shortcut: spec.shortcut,
+  });
   return (
-    <button
-      type="button"
-      className={classes}
-      aria-label={name}
-      aria-keyshortcuts={spec.shortcut}
-      aria-disabled={!active}
-      data-state={active ? undefined : 'off'}
-      title={`${name} ${spec.shortcut}`}
-      onClick={() => clearLayer(spec.target)}
-    >
-      <Icon name={spec.icon} size={compact ? 16 : 18} />
-      {compact ? null : <span className={styles.label}>{spec.label}</span>}
-    </button>
+    <>
+      <button
+        {...targetProps}
+        type="button"
+        className={classes}
+        aria-label={name}
+        aria-disabled={!active}
+        data-state={active ? undefined : 'off'}
+        onClick={() => clearLayer(spec.target)}
+      >
+        <Icon name={spec.icon} size={compact ? 16 : 18} />
+        {compact ? null : <span className={styles.label}>{spec.label}</span>}
+      </button>
+      {tooltip}
+    </>
   );
 }
 
 function UndoButton({compact}: {readonly compact: boolean}): JSX.Element {
   const canUndo = useCanUndo();
+  const {targetProps, tooltip} = useTooltip({
+    text: '되돌리기',
+    shortcut: UNDO_SHORTCUT,
+  });
   return (
-    <button
-      type="button"
-      className={`${styles.button} ${styles.undo}`}
-      aria-label="되돌리기"
-      aria-keyshortcuts="Control+Z"
-      aria-disabled={!canUndo}
-      data-state={canUndo ? undefined : 'off'}
-      title={`되돌리기 ${UNDO_SHORTCUT}`}
-      onClick={undoClear}
-    >
-      <Icon name="undo" size={compact ? 16 : 18} />
-      {compact ? null : <span className={styles.label}>되돌림</span>}
-    </button>
+    <>
+      <button
+        {...targetProps}
+        type="button"
+        className={`${styles.button} ${styles.undo}`}
+        aria-label="되돌리기"
+        aria-disabled={!canUndo}
+        data-state={canUndo ? undefined : 'off'}
+        onClick={undoClear}
+      >
+        <Icon name="undo" size={compact ? 16 : 18} />
+        {compact ? null : <span className={styles.label}>되돌림</span>}
+      </button>
+      {tooltip}
+    </>
   );
 }
 

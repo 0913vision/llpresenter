@@ -3,6 +3,7 @@ import type {ColumnWidthStore} from '@renderer/shell/columnWidthStore';
 import {useClearKeys} from '@renderer/show/clearKeys';
 import {MenuBar} from '@renderer/shell/MenuBar';
 import {StatusBar} from '@renderer/shell/StatusBar';
+import {useShow} from '@renderer/state/show';
 import {Toolbar, type Workspace as WorkspaceId} from '@renderer/shell/Toolbar';
 import {useSizeClass} from '@renderer/shell/useSizeClass';
 import {Workspace} from '@renderer/shell/Workspace';
@@ -14,11 +15,12 @@ export function App({
   readonly columnWidthStore: ColumnWidthStore;
 }): JSX.Element {
   const sizeClass = useSizeClass();
+  const serviceName = useShow(view => view.serviceName);
   const [workspace, setWorkspace] = useState<WorkspaceId>('show');
   useClearKeys(workspace);
   return (
     <div className={styles.app} data-size={sizeClass}>
-      <MenuBar title="LoveLight Presenter" />
+      <MenuBar title={serviceName} />
       <Toolbar
         sizeClass={sizeClass}
         workspace={workspace}

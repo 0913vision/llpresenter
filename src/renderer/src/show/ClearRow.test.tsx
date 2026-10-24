@@ -4,6 +4,7 @@ import type {LiveCommand} from '@shared/commands';
 import {emptyLayers, emptyLiveState, type LiveLayers} from '@shared/live';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {useLive} from '@renderer/state/live';
+import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {hasSomethingToClear} from './clear';
 import {ClearRow} from './ClearRow';
 
@@ -51,6 +52,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  resetTooltips();
   cleanup();
   delete window.llp;
 });
@@ -84,13 +86,21 @@ describe('ClearRow', () => {
     ]);
   });
 
-  it('gives each button its shortcut and a tooltip with it', () => {
+  it('gives each button its shortcut and a tooltip with it', async () => {
     render(<ClearRow compact={false} />);
     const lyrics = screen.getByRole('button', {name: '가사 지우기'});
     expect(lyrics.getAttribute('aria-keyshortcuts')).toBe('F2');
-    expect(lyrics.getAttribute('title')).toBe('가사 지우기 F2');
+    expect(lyrics.hasAttribute('title')).toBe(false);
+    expect((await hoverForTooltip(lyrics))?.textContent).toBe('가사 지우기F2');
+    resetTooltips();
     const undo = screen.getByRole('button', {name: '되돌리기'});
-    expect(undo.getAttribute('title')).toBe('되돌리기 Ctrl Z');
+    expect(undo.getAttribute('aria-keyshortcuts')).toBe('Control+Z');
+    expect((await hoverForTooltip(undo))?.textContent).toBe('되돌리기Ctrl Z');
+  });
+
+  it('uses no native title tooltip', () => {
+    render(<ClearRow compact />);
+    expect(document.querySelectorAll('[title]')).toHaveLength(0);
   });
 
   it('dims a layer with nothing to clear and keeps the button focusable', () => {

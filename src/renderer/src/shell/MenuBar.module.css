@@ -10,9 +10,10 @@
 }
 
 .wordmark {
-  margin-right: var(--space-12);
-  font-size: 13px;
-  font-weight: 700;
+  margin-right: var(--space-14);
+  font: var(--type-band);
+  letter-spacing: -0.01em;
+  color: var(--text);
 }
 
 .menus {
@@ -26,19 +27,35 @@
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  font-size: 12px;
+  color: var(--text-2);
+  font: var(--type-label);
+  transition: background-color 100ms ease-out;
 }
 
 .menu:hover {
   background: var(--bg-raised);
 }
 
+.menu[aria-expanded='true'],
+.menu:active {
+  background: var(--bg-control-hover);
+  color: var(--text);
+}
+
+.menu:focus-visible {
+  outline-offset: 1px;
+}
+
 .title {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 12px;
+  max-width: 36%;
+  overflow: hidden;
+  font: var(--type-label);
   color: var(--text-3);
+  text-overflow: ellipsis;
+  white-space: nowrap;
   pointer-events: none;
 }
 
@@ -61,6 +78,11 @@
 
 .control:hover {
   background: var(--bg-raised);
+}
+
+.control:active {
+  background: var(--bg-control-hover);
+  color: var(--text);
 }
 
 .control:focus-visible {

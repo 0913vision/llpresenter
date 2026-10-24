@@ -9,7 +9,7 @@ import styles from './StatusBar.module.css';
 export function StatusBar(): JSX.Element {
   const outputs = useOutputs();
   return (
-    <footer className={styles.bar}>
+    <footer role="status" className={styles.bar}>
       <span className={styles.spacer} />
       {defaultScreens.map(screen => {
         const on = outputs[screen.id] === true;
