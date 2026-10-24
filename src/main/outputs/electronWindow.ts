@@ -71,36 +71,13 @@ function listen(win: BrowserWindow, events: OutputWindowEvents): void {
   );
 }
 
-function keepOffscreen(handle: OutputWindowHandle): OutputWindowHandle {
-  // NOTE(0913vision): An offscreen window loads and draws in memory, but
-  // never shows, takes focus, goes full screen, or stays on top.
-  return {
-    ...handle,
-    showFullScreen: () => undefined,
-    showWindowed: () => undefined,
-    hide: () => undefined,
-  };
-}
+type OutputPresentation = Pick<
+  OutputWindowHandle,
+  'showFullScreen' | 'showWindowed' | 'hide'
+>;
 
-/**
- * Creates the hidden Electron window of one output and loads the output page
- * for its screen. It is a framed window that goes full screen, so moving
- * between full screen and window mode never reloads the page. Its close
- * button only reports the request; `destroy` closes it. In `offscreen` mode
- * it never appears.
- */
-export function createElectronOutputWindow(
-  screen: OutputScreen,
-  events: OutputWindowEvents,
-  {log, mode}: ElectronOutputWindowOptions,
-): OutputWindowHandle {
-  const win = createBrowserWindow(screen, mode);
-  const page: PageRequest = {name: 'output', query: {screen: screen.id}};
-  win.removeMenu();
-  blockNavigation(win);
-  listen(win, events);
-  loadPage(win, page, log);
-  const handle: OutputWindowHandle = {
+function presentOnScreen(win: BrowserWindow): OutputPresentation {
+  return {
     showFullScreen: (monitorBounds, alwaysOnTop) => {
       win.setFocusable(false);
       enterFullScreen(win, monitorBounds);
@@ -115,11 +92,58 @@ export function createElectronOutputWindow(
       if (!win.isVisible()) win.showInactive();
     },
     hide: () => win.hide(),
+  };
+}
+
+function presentOffscreen(win: BrowserWindow): OutputPresentation {
+  // NOTE(0913vision): An offscreen window takes the size it would have on
+  // screen, so its page lays out the same, but it never shows, takes focus,
+  // goes full screen, or stays on top.
+  return {
+    showFullScreen: monitorBounds => win.setContentBounds(monitorBounds),
+    showWindowed: bounds => {
+      if (bounds !== null) win.setBounds(bounds);
+    },
+    hide: () => undefined,
+  };
+}
+
+function presentationFor(
+  win: BrowserWindow,
+  mode: WindowMode,
+): OutputPresentation {
+  switch (mode) {
+    case 'normal':
+      return presentOnScreen(win);
+    case 'offscreen':
+      return presentOffscreen(win);
+  }
+}
+
+/**
+ * Creates the hidden Electron window of one output and loads the output page
+ * for its screen. It is a framed window that goes full screen, so moving
+ * between full screen and window mode never reloads the page. Its close
+ * button only reports the request; `destroy` closes it. In `offscreen` mode
+ * it never appears, but its page still gets the size of its placement.
+ */
+export function createElectronOutputWindow(
+  screen: OutputScreen,
+  events: OutputWindowEvents,
+  {log, mode}: ElectronOutputWindowOptions,
+): OutputWindowHandle {
+  const win = createBrowserWindow(screen, mode);
+  const page: PageRequest = {name: 'output', query: {screen: screen.id}};
+  win.removeMenu();
+  blockNavigation(win);
+  listen(win, events);
+  loadPage(win, page, log);
+  return {
+    ...presentationFor(win, mode),
     reload: () => loadPage(win, page, log),
     isRendererGone: () => win.webContents.isCrashed(),
     destroy: () => {
       if (!win.isDestroyed()) win.destroy();
     },
   };
-  return mode === 'offscreen' ? keepOffscreen(handle) : handle;
 }
