@@ -68,7 +68,7 @@ interface Header {
   readonly schemaVersion: number;
 }
 
-const BYTE_ORDER_MARK = '﻿';
+const BYTE_ORDER_MARK = '\uFEFF';
 const JSON_INDENT = 2;
 const versionSchema = v.looseObject({schemaVersion: positiveInteger});
 

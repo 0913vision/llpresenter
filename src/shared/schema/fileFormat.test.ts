@@ -105,7 +105,7 @@ describe('parseFile', () => {
   });
 
   it('accepts a byte order mark before the JSON', () => {
-    const text = `﻿${JSON.stringify({format: 'llnote', schemaVersion: 2, text: 'hi'})}`;
+    const text = `\uFEFF${JSON.stringify({format: 'llnote', schemaVersion: 2, text: 'hi'})}`;
 
     expect(expectSuccess(parseFile(noteFormat, text, FILE)).data.text).toBe(
       'hi',
