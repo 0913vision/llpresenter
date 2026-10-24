@@ -1,4 +1,9 @@
-import type {MouseEvent, MouseEventHandler} from 'react';
+import type {
+  KeyboardEvent,
+  KeyboardEventHandler,
+  MouseEvent,
+  MouseEventHandler,
+} from 'react';
 
 /**
  * Returns a click handler that ignores presses while the control is disabled.
@@ -19,5 +24,22 @@ export function pressHandler<T extends Element>(
       return;
     }
     onPress?.(event);
+  };
+}
+
+/**
+ * Returns a key handler for a checkbox or switch, which toggles only on Space.
+ *
+ * @param onKeyDown - The caller's own key handler, called first.
+ */
+export function spaceOnlyKeyHandler<T extends Element>(
+  onKeyDown: KeyboardEventHandler<T> | undefined,
+): KeyboardEventHandler<T> {
+  // NOTE(0913vision): A native button presses on Enter, but checkboxes and
+  // switches toggle only on Space, and Enter belongs to the dialog's primary
+  // button.
+  return (event: KeyboardEvent<T>) => {
+    onKeyDown?.(event);
+    if (event.key === 'Enter') event.preventDefault();
   };
 }

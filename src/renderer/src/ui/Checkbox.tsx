@@ -1,12 +1,7 @@
-import {
-  useId,
-  type ComponentPropsWithRef,
-  type JSX,
-  type KeyboardEvent,
-} from 'react';
+import {useId, type ComponentPropsWithRef, type JSX} from 'react';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
-import {pressHandler} from './press';
+import {pressHandler, spaceOnlyKeyHandler} from './press';
 import styles from './Checkbox.module.css';
 
 /** On, off, or mixed for a group header with only some items on. */
@@ -38,12 +33,6 @@ export function Checkbox({
   onKeyDown,
   ...rest
 }: CheckboxProps): JSX.Element {
-  const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>): void => {
-    onKeyDown?.(event);
-    // NOTE(0913vision): A native button presses on Enter, but a checkbox
-    // toggles only on Space, and Enter belongs to the dialog's primary button.
-    if (event.key === 'Enter') event.preventDefault();
-  };
   return (
     <button
       {...rest}
@@ -53,7 +42,7 @@ export function Checkbox({
       aria-disabled={disabled ? true : undefined}
       className={classNames(styles.check, className)}
       onClick={pressHandler(disabled, () => onChange(nextCheckState(checked)))}
-      onKeyDown={handleKeyDown}
+      onKeyDown={spaceOnlyKeyHandler(onKeyDown)}
     >
       {checked === true ? <Icon name="check" size={MARK_SIZE} /> : null}
     </button>
