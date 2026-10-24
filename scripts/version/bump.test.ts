@@ -18,7 +18,6 @@ const LOCKFILE = {
 };
 
 interface BumpCase {
-  readonly before?: string;
   readonly major?: boolean;
   readonly dryRun?: boolean;
   readonly mayCommit?: boolean;
@@ -43,7 +42,6 @@ async function runBump(
 ): Promise<BumpOutcome> {
   return bumpFromCommits(
     {
-      before: options.before ?? null,
       major: options.major ?? false,
       dryRun: options.dryRun ?? false,
     },
@@ -95,24 +93,20 @@ describe('bumpFromCommits', {timeout: GIT_TIMEOUT_MS}, () => {
     expect((await runBump(repo)).to).toBe('0.3.1');
   });
 
-  it('counts the pushed range before the first tag', async () => {
+  it('still counts a feat push whose run was cancelled before the first tag', async () => {
     const repo = await packageRepo();
     await repo.commit('feat(live): add undo');
-    const before = repo.run(['rev-parse', 'HEAD']);
     await repo.commit('docs(spec): describe undo');
-    expect((await runBump(repo, {before})).bump).toBe('patch');
+    expect(await runBump(repo)).toMatchObject({bump: 'minor', to: '0.3.0'});
   });
 
-  it.each([
-    ['a commit it does not know', 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef'],
-    [
-      'the null commit of a new branch',
-      '0000000000000000000000000000000000000000',
-    ],
-  ])('counts the whole history when before is %s', async (_label, before) => {
+  it('still counts a feat push whose run was cancelled after a tag', async () => {
     const repo = await packageRepo();
+    await repo.commit('fix(live): keep the last frame');
+    await runBump(repo);
     await repo.commit('feat(live): add undo');
-    expect((await runBump(repo, {before})).bump).toBe('minor');
+    await repo.commit('docs(spec): describe undo');
+    expect(await runBump(repo)).toMatchObject({bump: 'minor', to: '0.3.0'});
   });
 
   it('does nothing when only bump commits are new', async () => {

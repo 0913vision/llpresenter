@@ -6,8 +6,7 @@ const FAILURE_EXIT_CODE = 1;
 const USAGE_EXIT_CODE = 2;
 
 const USAGE = [
-  'Usage: node scripts/version/run.mts [--before <sha>] [--major] [--dry-run]',
-  '  --before   the commit main was at before the push (from the workflow)',
+  'Usage: node scripts/version/run.mts [--major] [--dry-run]',
   "  --major    raise the major version (only with the user's permission)",
   '  --dry-run  print the next version without changing anything',
 ].join('\n');
@@ -23,7 +22,6 @@ function readArgs(args: readonly string[]) {
       args: [...args],
       strict: true,
       options: {
-        before: {type: 'string'},
         major: {type: 'boolean', default: false},
         'dry-run': {type: 'boolean', default: false},
       },
@@ -39,11 +37,9 @@ export function parseVersionArgs(args: readonly string[]): VersionCommand {
   if (typeof values === 'string') {
     return {kind: 'usage', message: `${values}\n${USAGE}`};
   }
-  const before = values.before?.trim() ?? '';
   return {
     kind: 'bump',
     request: {
-      before: before === '' ? null : before,
       major: values.major,
       dryRun: values['dry-run'],
     },

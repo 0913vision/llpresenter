@@ -67,14 +67,15 @@ jobs:
 
       - name: Commit and tag the next version
         env:
-          BEFORE: ${{ github.event.before }}
           MAJOR: ${{ inputs.major }}
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          args=(--before "$BEFORE")
-          if [ "$MAJOR" = 'true' ]; then args+=(--major); fi
-          node scripts/version/run.mts "${args[@]}"
+          if [ "$MAJOR" = 'true' ]; then
+            node scripts/version/run.mts --major
+          else
+            node scripts/version/run.mts
+          fi
 
       - name: Push the bump commit and its tag
         run: git push --atomic --follow-tags origin HEAD:refs/heads/main

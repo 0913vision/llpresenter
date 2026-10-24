@@ -17,13 +17,9 @@ import {
 
 const TAG_PREFIX = 'v';
 const VERSION_TAG_PATTERN = 'v[0-9]*';
-const NULL_COMMIT = /^0+$/;
-const SHORT_HASH_LENGTH = 7;
 
 /** What the workflow, or the user with `--dry-run`, asked for. */
 export interface BumpRequest {
-  /** The commit `main` was at before the push, or `null` when unknown. */
-  readonly before: string | null;
   readonly major: boolean;
   readonly dryRun: boolean;
 }
@@ -71,28 +67,13 @@ function latestVersionTag(cwd: string): string | null {
   );
 }
 
-function isKnownCommit(cwd: string, revision: string): boolean {
-  return gitSucceeds(cwd, ['cat-file', '-e', `${revision}^{commit}`]);
-}
-
-/**
- * Counts from the last version tag, so commits from a run that was cancelled
- * or failed are still counted by the next one. Before the first tag, it counts
- * the pushed range, or the whole history when the range is unknown.
- */
-function commitRange(cwd: string, before: string | null): CommitRange {
+// NOTE(0913vision): Every commit that no version tag covers yet counts: those
+// since the last tag, or the whole history before the first one. A run that
+// was cancelled or failed never tags, so the next run still counts its
+// commits.
+function commitRange(cwd: string): CommitRange {
   const tag = latestVersionTag(cwd);
   if (tag !== null) return {revisions: [`${tag}..HEAD`], label: `since ${tag}`};
-  if (
-    before !== null &&
-    !NULL_COMMIT.test(before) &&
-    isKnownCommit(cwd, before)
-  ) {
-    return {
-      revisions: [`${before}..HEAD`],
-      label: `since ${before.slice(0, SHORT_HASH_LENGTH)}`,
-    };
-  }
   return {revisions: ['HEAD'], label: 'in the whole history'};
 }
 
@@ -136,7 +117,7 @@ export async function bumpFromCommits(
   if (!request.dryRun && !env.mayCommit) {
     throw new BumpError('only the version bot commits a bump; use --dry-run');
   }
-  const range = commitRange(env.cwd, request.before);
+  const range = commitRange(env.cwd);
   const messages = readCommitMessages(env.cwd, range.revisions);
   const kinds = messages.map(m => classifySubject(m.subject));
   const current = await currentVersion(env.cwd);

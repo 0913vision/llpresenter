@@ -135,10 +135,9 @@ Pushes of tags and other branches pass without a check.
 ## Version bot
 
 After `verify` passes on a push to `main`, the `bump` job in `ci.yml` runs
-`node scripts/version/run.mts --before <sha>`. It commits `Bump version: x.y.z`
-as `github-actions[bot]`, tags `vx.y.z` (annotated), and pushes both together
-with the default `GITHUB_TOKEN`. Pushes made with that token don't start another
-run.
+`node scripts/version/run.mts`. It commits `Bump version: x.y.z` as
+`github-actions[bot]`, tags `vx.y.z` (annotated), and pushes both together with
+the default `GITHUB_TOKEN`. Pushes made with that token don't start another run.
 
 - The version lives only in `package.json` and `package-lock.json`, because
   Electron's `app.getVersion()` reads it.
@@ -148,8 +147,9 @@ run.
   change.
 - The major version goes up only when someone runs the workflow by hand
   (`workflow_dispatch`) with `major` checked, after the user approves.
-- The bot counts the commits since the last `v*` tag. Before the first tag, it
-  counts the pushed range, or the whole history when the range is unknown. When
+- The bot counts every commit that no version tag covers yet: those since the
+  last `v*` tag, or the whole history before the first tag. A run that was
+  cancelled or failed never tags, so the next run still counts its commits. When
   only bump commits are new, it does nothing.
 - `Bump version: x.y.z` is the one exception to the commit message format, and
   only the bot writes it. The script commits only in GitHub Actions.
