@@ -20,7 +20,11 @@ export class TailBuffer {
   private keptChars = 0;
   private droppedChars = 0;
 
-  constructor(private readonly limit: number) {}
+  private readonly limit: number;
+
+  constructor(limit: number) {
+    this.limit = limit;
+  }
 
   /** Adds the next piece of output and drops whole pieces that fall out. */
   push(text: string): void {

@@ -57,7 +57,12 @@ function stopNotice(
   }
 }
 
+// NOTE(0913vision): Node runs this file by stripping the types, which can't
+// handle parameter properties, so the constructor assigns its fields.
 class StepProcess {
+  private readonly command: StepCommand;
+  private readonly child: StepChild;
+  private readonly resolve: (outcome: StepOutcome) => void;
   private readonly started = performance.now();
   private readonly output = new TailBuffer(MAX_KEPT_OUTPUT_CHARS);
   private readonly failures = new FailureScanner();
@@ -68,10 +73,14 @@ class StepProcess {
   private settled = false;
 
   constructor(
-    private readonly command: StepCommand,
-    private readonly child: StepChild,
-    private readonly resolve: (outcome: StepOutcome) => void,
-  ) {}
+    command: StepCommand,
+    child: StepChild,
+    resolve: (outcome: StepOutcome) => void,
+  ) {
+    this.command = command;
+    this.child = child;
+    this.resolve = resolve;
+  }
 
   watch(): void {
     const {child, command} = this;
