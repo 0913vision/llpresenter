@@ -1,17 +1,22 @@
 import {pathToFileURL} from 'node:url';
-import {git, gitSucceeds} from '../git.mts';
+import {git, tryGit} from '../git.mts';
 
 /** Where the committed hooks live, relative to the repository root. */
 export const HOOKS_PATH = '.githooks';
 
 /**
  * Points this repository's git at the committed hooks, in the repository
- * config only. Outside a git checkout (an unpacked tarball) it does nothing.
+ * config only. Outside a git work tree (an unpacked tarball, a bare
+ * repository) it does nothing.
  *
  * @returns whether the hooks were set
  */
 export function installHooks(cwd: string): boolean {
-  if (!gitSucceeds(cwd, ['rev-parse', '--is-inside-work-tree'])) return false;
+  // NOTE(0913vision): A bare repository exits with 0 and prints false, so the
+  // output must be exactly true.
+  if (tryGit(cwd, ['rev-parse', '--is-inside-work-tree']) !== 'true') {
+    return false;
+  }
   git(cwd, ['config', '--local', 'core.hooksPath', HOOKS_PATH]);
   return true;
 }

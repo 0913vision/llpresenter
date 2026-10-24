@@ -42,3 +42,12 @@ export function git(cwd: string, args: readonly string[]): string {
 export function gitSucceeds(cwd: string, args: readonly string[]): boolean {
   return runGit(cwd, args).status === 0;
 }
+
+/**
+ * Runs git in `cwd` and returns its output without the trailing newline, or
+ * `null` when git exits with an error.
+ */
+export function tryGit(cwd: string, args: readonly string[]): string | null {
+  const result = runGit(cwd, args);
+  return result.status === 0 ? result.stdout.trimEnd() : null;
+}
