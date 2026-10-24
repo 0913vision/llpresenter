@@ -1,0 +1,23 @@
+/* NOTE(0913vision): A stand-in for the name row under the 준비 preview, as on
+   the preview card; the real row belongs to the shell. */
+.caption {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  width: 100%;
+  font: var(--type-label);
+}
+
+.caption b {
+  font: var(--type-label-strong);
+}
+
+.meta {
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.look {
+  margin-left: auto;
+  color: var(--text-3);
+}

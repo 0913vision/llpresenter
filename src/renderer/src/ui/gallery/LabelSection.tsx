@@ -11,6 +11,7 @@ import {
   type ArrangementChip,
 } from '../LabelChip';
 import {LabelColorPicker, MacroColorPicker} from '../LabelColorPicker';
+import styles from './LabelSection.module.css';
 import {
   ignore,
   Section,
@@ -21,6 +22,7 @@ import {
 } from './Spec';
 
 const STRIP_WIDTH = 440;
+const CAPTION_WIDTH = 300;
 
 const songChips: readonly ArrangementChip[] = [
   {key: '1', name: '1절', color: 'teal', number: 1},
@@ -74,7 +76,7 @@ const unnamed: ArrangementChip = {
   number: 4,
 };
 
-const chipStates: readonly ChipState[] = [
+const namedChipStates: readonly ChipState[] = [
   {label: 'Default', chip: teal},
   {label: 'Hover', chip: teal, pin: 'hover'},
   {
@@ -97,6 +99,9 @@ const chipStates: readonly ChipState[] = [
     chip: {key: 'c', name: '후렴', color: 'yellow', number: 3},
     dragging: true,
   },
+];
+
+const unnamedChipStates: readonly ChipState[] = [
   {label: 'No 이름표, number', chip: unnamed},
   {label: 'No 이름표, hover', chip: unnamed, pin: 'hover'},
   {label: 'No 이름표, selected', chip: unnamed, selected: true},
@@ -110,6 +115,36 @@ function OneChip({state}: {readonly state: ChipState}): JSX.Element {
       selected={state.selected === true ? 0 : undefined}
       live={state.live === true ? 0 : undefined}
       draggingIndex={state.dragging === true ? 0 : undefined}
+      onSelect={ignore}
+      onMove={ignore}
+      onRemove={ignore}
+      onInsert={ignore}
+    />
+  );
+}
+
+function ChipStates({
+  states,
+}: {
+  readonly states: readonly ChipState[];
+}): JSX.Element {
+  return (
+    <>
+      {states.map(state => (
+        <SpecItem key={state.label} label={state.label} pin={state.pin}>
+          <OneChip state={state} />
+        </SpecItem>
+      ))}
+    </>
+  );
+}
+
+function InsertOnly(): JSX.Element {
+  return (
+    <ArrangementStrip
+      label="구성"
+      chips={[]}
+      selected={undefined}
       onSelect={ignore}
       onMove={ignore}
       onRemove={ignore}
@@ -132,11 +167,7 @@ export function LabelSection(): JSX.Element {
         </SpecItem>
       </SpecGroup>
       <SpecGroup title="Chip states" surface="panel">
-        {chipStates.map(state => (
-          <SpecItem key={state.label} label={state.label} pin={state.pin}>
-            <OneChip state={state} />
-          </SpecItem>
-        ))}
+        <ChipStates states={namedChipStates} />
         <SpecItem label="Drop position, accent 2px">
           <ArrangementStrip
             label="구성"
@@ -148,6 +179,13 @@ export function LabelSection(): JSX.Element {
             onRemove={ignore}
             onInsert={ignore}
           />
+        </SpecItem>
+        <ChipStates states={unnamedChipStates} />
+        <SpecItem label="Insert">
+          <InsertOnly />
+        </SpecItem>
+        <SpecItem label="Insert, hover" pin="hover">
+          <InsertOnly />
         </SpecItem>
       </SpecGroup>
       <SpecGroup
@@ -182,8 +220,30 @@ export function LabelSection(): JSX.Element {
             picker={{expanded: false, onOpen: ignore}}
           />
         </SpecItem>
+        <SpecItem label="None, hover" pin="hover">
+          <LabelTag
+            name={undefined}
+            color="none"
+            picker={{expanded: false, onOpen: ignore}}
+          />
+        </SpecItem>
+        <SpecItem label="Focus" pin="focus">
+          <LabelTag
+            name="1절"
+            color="teal"
+            picker={{expanded: false, onOpen: ignore}}
+          />
+        </SpecItem>
       </SpecGroup>
       <SpecGroup title="Color swatch 10, preview name row" surface="panel">
+        <SpecItem label="Under the 준비 preview" width={CAPTION_WIDTH}>
+          <span className={styles.caption}>
+            <LabelSwatch color="green" />
+            <b>프리코러스</b>
+            <span className={styles.meta}>5 / 9</span>
+            <span className={styles.look}>기본</span>
+          </span>
+        </SpecItem>
         <SpecItem label="8 colors and none">
           {allColors.map(color => (
             <LabelSwatch key={color} color={color} />
