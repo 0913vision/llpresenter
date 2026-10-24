@@ -59,7 +59,10 @@ function logBadReply(channel: string, {field, message}: PayloadError): void {
   ipcRenderer.send(Channels.logWrite, {
     level: 'error',
     message: `Ignored a bad reply on ${channel}`,
-    detail: `${field}: ${message}`.slice(0, RENDERER_LOG_LIMITS.detail),
+    detail: (field === '' ? message : `${field}: ${message}`).slice(
+      0,
+      RENDERER_LOG_LIMITS.detail,
+    ),
   });
 }
 

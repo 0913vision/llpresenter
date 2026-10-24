@@ -81,8 +81,18 @@ describe('preload', () => {
 
     await expect(api.ui.get()).resolves.toEqual({});
     expect(loggedErrors()).toEqual([
-      expect.objectContaining({detail: ': no handler'}),
+      expect.objectContaining({detail: 'no handler'}),
     ]);
+  });
+
+  it('puts the failing field before the message in the log detail', async () => {
+    electron.invoke.mockResolvedValueOnce({layout: {normal: {left: 'bad'}}});
+
+    await api.ui.get();
+
+    expect(JSON.stringify(loggedErrors())).toContain(
+      '"detail":"layout.normal.left: ',
+    );
   });
 
   it('logs a malformed live state and gives the empty state', async () => {
