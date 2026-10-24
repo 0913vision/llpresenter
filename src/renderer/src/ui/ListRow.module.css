@@ -126,9 +126,12 @@
   color: var(--text-2);
 }
 
-.row[aria-disabled='true'],
-.row[aria-disabled='true'] :is(.icon, .meta) {
+.row[aria-disabled='true'] {
   background: transparent;
+  color: var(--text-off);
+}
+
+.row[aria-disabled='true'] :is(.icon, .meta) {
   color: var(--text-off);
 }
 

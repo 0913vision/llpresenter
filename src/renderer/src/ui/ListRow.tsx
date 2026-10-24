@@ -331,7 +331,7 @@ export function ListSlotBox({
       {icon === undefined ? null : (
         <Icon name={icon} size={ROW_ICON_SIZE} className={styles.icon} />
       )}
-      {label}
+      <span className={styles.title}>{label}</span>
       <span className={styles.slotMark}>{SLOT_MARK}</span>
     </span>
   );
