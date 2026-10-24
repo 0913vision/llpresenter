@@ -1,17 +1,32 @@
 # Review request: `data-12`
 
-Review range: `e0716e6...fix/data/stale-temp-files`
+Review range: `4f15ed0...fix/data/stale-temp-files`
+
+Round 2 changes only: `a87e605...fix/data/stale-temp-files`
 
 - Team member: `data`
-- Branch: `fix/data/stale-temp-files`, stacked on `data-13`
-  (`feat/data/media-library`, e0716e6, in review)
-- Base commit (`main`): `94780dc`
-- Last commit: see the commit that adds this file
+- Branch: `fix/data/stale-temp-files`, on `main` (data-9 and data-13 have
+  merged)
+- Base commit (`main`): `4f15ed0` (round 1: `94780dc` with data-9 and data-13
+  below)
+- Last commit: see the newest commit that changes this file
 - Related brief: qa's F6 precheck of `writeFileAtomically` (through the lead):
   45 kills at real write stages never broke a file, but left 29 hidden
   `.song.llsong.<uuid>.tmp` files that nothing removed.
 
-What to check:
+What to check in round 2:
+
+1.  Finding 1: `TEMPORARY_NAME` in `src/main/store/atomicWrite.ts` requires the
+    version 4 nibble and the RFC 4122 variant bits that `randomUUID()` writes.
+    Tests: `staleTempFiles.test.ts`, the nil, version 1, and other-variant names
+    are neither recognized nor removed.
+2.  Finding 2: the backup's copy filter (`copyFilter` in `backup.ts`) skips
+    every recognized temporary file, whatever its age, apart from what the
+    cleanup may delete. Test: `backup.test.ts`, "leaves the temporary files of
+    writes out of the backup": a fresh leftover stays in 곡 but isn't in the
+    backup.
+
+What to check in round 1:
 
 1.  `src/main/store/staleTempFiles.ts`: only plain files whose names match the
     store's own temporary names, untouched for a minute, are removed. A write
@@ -54,21 +69,19 @@ so the margin is wide; the age check keeps it safe if it ever runs later.
 
 ## Checks run
 
-`npm run verify` on the commit before this document (1d7bb96), on `main` 94780dc
-with `data-9` and `data-13` below it: every step passed (93.9 s, steps at once).
-Coverage: `src/main/store/` 96.4% of lines and 91.7% of branches;
-`staleTempFiles.ts` 91.3% of lines and 76.9% of branches, where the uncovered
-branches are a file that vanishes between the listing and the removal, and a
-removal that fails.
+Round 2: `npm run verify` on the commit before this document's round 2 change
+(d0b1463), on `main` 4f15ed0: every step passed (195.9 s, steps at once).
 
-| Command or test                    | Result                      |
-| ---------------------------------- | --------------------------- |
-| `npm run typecheck`                | Passed (6.9 s)              |
-| `npm run lint`                     | Passed (61.0 s)             |
-| `npm run format:check`             | Passed (25.6 s)             |
-| `npm test`                         | Passed as `test:coverage`   |
-| `npm run build`                    | Passed (3.2 s)              |
-| `npm run verify` (from phase 1 on) | Passed: every step (93.9 s) |
+| Command or test                    | Result                       |
+| ---------------------------------- | ---------------------------- |
+| `npm run typecheck`                | Passed (48.0 s)              |
+| `npm run lint`                     | Passed (87.3 s)              |
+| `npm run format:check`             | Passed (100.2 s)             |
+| `npm test`                         | Passed as `test:coverage`    |
+| `npm run build`                    | Passed (6.0 s)               |
+| `npm run verify` (from phase 1 on) | Passed: every step (195.9 s) |
+
+Round 1 passed on `main` 94780dc with `data-9` and `data-13` below it (93.9 s).
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
@@ -128,4 +141,15 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 findings from codex3, answered in round 2:
+
+1.  Fixed. The pattern now reads
+    `[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}`, the
+    shape `randomUUID()` always makes (version 4, RFC variant). A file named
+    with the nil UUID, a version 1 UUID, or another variant is neither
+    recognized nor removed, even when it is old.
+2.  Fixed. The backup no longer relies on the cleanup: its `cp` filter skips
+    every file whose name `isTemporaryFileName` recognizes, so a fresh leftover
+    after a quick restart, or one the cleanup couldn't remove, stays where it is
+    and never reaches a backup. The filter keeps the development check of data-9
+    round 3 for everything else.
