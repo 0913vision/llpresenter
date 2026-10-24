@@ -9,10 +9,12 @@ interface PendingWrite {
   readonly finish: (result: WriteResult) => void;
 }
 
-/** A write function whose writes finish only when the test says so. */
-function controlledWrites(): {write: WriteFile; pending: PendingWrite[]} {
+function controlledWrites(): {
+  write: WriteFile<string>;
+  pending: PendingWrite[];
+} {
   const pending: PendingWrite[] = [];
-  const write: WriteFile = (file, text) =>
+  const write: WriteFile<string> = (file, text) =>
     new Promise(finish => pending.push({file, text, finish}));
   return {write, pending};
 }
@@ -65,6 +67,24 @@ describe('FileWriter', () => {
     await expect(newest).resolves.toEqual(failure);
   });
 
+  it('keeps one waiting text and one shared result while a write stalls', async () => {
+    const {write, pending} = controlledWrites();
+    const writer = new FileWriter(write);
+    const first = writer.write('a.json', 'edit 0');
+    const waiting = Array.from({length: 1000}, (_value, index) =>
+      writer.write('a.json', `edit ${index + 1}`),
+    );
+    await settle();
+
+    expect(new Set(waiting).size).toBe(1);
+    expect(pending).toHaveLength(1);
+    pending.shift()?.finish(SUCCESS);
+    await settle();
+    expect(pending.map(({text}) => text)).toEqual(['edit 1000']);
+    pending.shift()?.finish(SUCCESS);
+    await expect(Promise.all([first, ...waiting])).resolves.toHaveLength(1001);
+  });
+
   it('writes different files at the same time', async () => {
     const {write, pending} = controlledWrites();
     const writer = new FileWriter(write);
@@ -78,7 +98,9 @@ describe('FileWriter', () => {
   });
 
   it('turns a write function that throws into a failed result', async () => {
-    const writer = new FileWriter(() => Promise.reject(new Error('boom')));
+    const writer = new FileWriter<string>(() =>
+      Promise.reject(new Error('boom')),
+    );
 
     await expect(writer.write('a.json', 'a')).resolves.toEqual({
       ok: false,

@@ -1,36 +1,42 @@
 import type {Result} from '@shared/result';
-import {writeFileAtomically, type WriteProblem} from './atomicWrite';
+import type {WriteProblem} from './atomicWrite';
 
 export type WriteResult = Result<void, WriteProblem>;
 
-/** Writes text to a file and reports how it went. Never throws. */
-export type WriteFile = (file: string, text: string) => Promise<WriteResult>;
+/** Writes a job, such as a text, to a file and reports how it went. */
+export type WriteFile<TJob> = (file: string, job: TJob) => Promise<WriteResult>;
 
-interface QueuedWrite {
-  readonly text: string;
-  readonly waiters: ReadonlyArray<(result: WriteResult) => void>;
+interface QueuedWrite<TJob> {
+  readonly job: TJob;
+  readonly done: Promise<WriteResult>;
+  readonly finish: (result: WriteResult) => void;
 }
 
 /**
- * Runs the writes to each file one at a time. While a write runs, only the
- * newest text for that file waits: a newer text replaces an older waiting one,
- * and both callers get the result of the newer write. So overlapping writes
- * end with the latest content on disk.
+ * Runs the writes to each file one at a time, in the order they were asked
+ * for. While a write runs, only the newest job for that file waits: a newer job
+ * replaces an older waiting one, and both callers share the newer write's
+ * result. So overlapping writes end with the latest content on disk, and a file
+ * never holds more than one waiting job, however often it changes.
  */
-export class FileWriter {
+export class FileWriter<TJob> {
   private readonly running = new Map<string, Promise<void>>();
-  private readonly queued = new Map<string, QueuedWrite>();
+  private readonly queued = new Map<string, QueuedWrite<TJob>>();
 
-  constructor(private readonly writeFile: WriteFile = writeFileAtomically) {}
+  constructor(private readonly writeFile: WriteFile<TJob>) {}
 
-  write(file: string, text: string): Promise<WriteResult> {
-    return new Promise(resolve => {
-      const waiting = this.queued.get(file)?.waiters ?? [];
-      this.queued.set(file, {text, waiters: [...waiting, resolve]});
-      if (!this.running.has(file)) {
-        this.startNext(file);
-      }
-    });
+  write(file: string, job: TJob): Promise<WriteResult> {
+    const waiting = this.queued.get(file);
+    if (waiting !== undefined) {
+      this.queued.set(file, {...waiting, job});
+      return waiting.done;
+    }
+    const queued = queuedWrite(job);
+    this.queued.set(file, queued);
+    if (!this.running.has(file)) {
+      this.startNext(file);
+    }
+    return queued.done;
   }
 
   /** Resolves once every write started or waiting so far has finished. */
@@ -47,19 +53,28 @@ export class FileWriter {
       return;
     }
     this.queued.delete(file);
-    const run = this.writeSafely(file, next.text).then(result => {
-      next.waiters.forEach(resolve => resolve(result));
-      this.startNext(file);
-    });
-    this.running.set(file, run);
+    this.running.set(file, this.run(file, next));
   }
 
-  private async writeSafely(file: string, text: string): Promise<WriteResult> {
+  private async run(file: string, write: QueuedWrite<TJob>): Promise<void> {
+    write.finish(await this.writeSafely(file, write.job));
+    this.startNext(file);
+  }
+
+  private async writeSafely(file: string, job: TJob): Promise<WriteResult> {
     try {
-      return await this.writeFile(file, text);
+      return await this.writeFile(file, job);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       return {ok: false, error: {file, message}};
     }
   }
+}
+
+function queuedWrite<TJob>(job: TJob): QueuedWrite<TJob> {
+  let finish: (result: WriteResult) => void = () => undefined;
+  const done = new Promise<WriteResult>(resolve => {
+    finish = resolve;
+  });
+  return {job, done, finish};
 }
