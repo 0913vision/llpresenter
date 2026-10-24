@@ -29,11 +29,7 @@ describe('Toolbar', () => {
   it('marks the current workspace tab and reports clicks on the others', async () => {
     const onWorkspace = vi.fn();
     render(
-      <Toolbar
-        sizeClass="regular"
-        workspace="show"
-        onWorkspace={onWorkspace}
-      />,
+      <Toolbar sizeClass="normal" workspace="show" onWorkspace={onWorkspace} />,
     );
     const tabs = screen.getAllByRole('tab');
     expect(tabs.map(tab => tab.getAttribute('aria-selected'))).toEqual([
@@ -49,7 +45,7 @@ describe('Toolbar', () => {
     const send = vi.fn();
     installApi(send);
     render(
-      <Toolbar sizeClass="regular" workspace="show" onWorkspace={() => {}} />,
+      <Toolbar sizeClass="normal" workspace="show" onWorkspace={() => {}} />,
     );
     await userEvent.click(screen.getByRole('button', {name: '무대'}));
     expect(send).toHaveBeenCalledWith({
@@ -64,7 +60,7 @@ describe('Toolbar', () => {
       state: {...emptyLiveState(), outputs: {main: true}},
     });
     render(
-      <Toolbar sizeClass="compact" workspace="show" onWorkspace={() => {}} />,
+      <Toolbar sizeClass="narrow" workspace="show" onWorkspace={() => {}} />,
     );
     const main = screen.getByRole('button', {name: '본 화면'});
     expect(main.getAttribute('aria-pressed')).toBe('true');

@@ -32,7 +32,7 @@ interface ButtonLook {
 }
 
 function buttonLook(sizeClass: SizeClass): ButtonLook {
-  const compact = sizeClass === 'compact';
+  const compact = sizeClass === 'narrow';
   return {
     className: compact
       ? `${styles.button} ${styles.compact}`

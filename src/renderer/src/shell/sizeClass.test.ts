@@ -8,18 +8,18 @@ const GAPS_ACROSS_COLUMNS = 4;
 
 describe('sizeClassFor', () => {
   it('switches classes at the boundaries', () => {
-    expect(sizeClassFor(1280)).toBe('compact');
-    expect(sizeClassFor(1536)).toBe('compact');
-    expect(sizeClassFor(1599)).toBe('compact');
-    expect(sizeClassFor(1600)).toBe('regular');
-    expect(sizeClassFor(1920)).toBe('regular');
-    expect(sizeClassFor(2399)).toBe('regular');
+    expect(sizeClassFor(1280)).toBe('narrow');
+    expect(sizeClassFor(1536)).toBe('narrow');
+    expect(sizeClassFor(1599)).toBe('narrow');
+    expect(sizeClassFor(1600)).toBe('normal');
+    expect(sizeClassFor(1920)).toBe('normal');
+    expect(sizeClassFor(2399)).toBe('normal');
     expect(sizeClassFor(2400)).toBe('wide');
     expect(sizeClassFor(2560)).toBe('wide');
   });
 
   it('leaves the center column its minimum width in the smallest window', () => {
-    const {left, right} = defaultColumns.compact;
+    const {left, right} = defaultColumns.narrow;
     const center =
       MIN_WINDOW_WIDTH - left - right - PANEL_GAP * GAPS_ACROSS_COLUMNS;
     expect(center).toBeGreaterThanOrEqual(CENTER_MIN_WIDTH);
