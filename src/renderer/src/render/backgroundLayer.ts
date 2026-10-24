@@ -10,6 +10,31 @@ export interface BackgroundLayerOptions {
   readonly onError: (message: string, error: unknown) => void;
 }
 
+/** A background less than this far along starts from the beginning instead of seeking. */
+export const MIN_SEEK_SECONDS = 0.5;
+
+const MS_PER_SECOND = 1000;
+
+/**
+ * Where a background should be now: the time since it started, wrapped for a
+ * loop and held at the end otherwise, so a window that loads late (a relaunch,
+ * a screen turned on later) shows the same picture as the others
+ * (docs/spec/03-output.md, playback).
+ *
+ * @returns The position in seconds, or 0 to start from the beginning.
+ */
+export function startOffsetSeconds(
+  media: MediaLayer,
+  duration: number,
+  now: number,
+): number {
+  if (media.startedAt === undefined) return 0;
+  if (!Number.isFinite(duration) || duration <= 0) return 0;
+  const elapsed = Math.max(0, (now - media.startedAt) / MS_PER_SECOND);
+  const offset = media.loop ? elapsed % duration : Math.min(elapsed, duration);
+  return offset < MIN_SEEK_SECONDS ? 0 : offset;
+}
+
 type VideoIndex = 0 | 1;
 
 interface Handover {
@@ -62,6 +87,7 @@ export class BackgroundLayerView {
   private current: MediaLayer | null = null;
   private handover: Handover | null = null;
   private spareTimer: ReturnType<typeof setTimeout> | null = null;
+  private stopWaitingToSeek: (() => void) | null = null;
 
   constructor(
     parent: HTMLElement,
@@ -87,12 +113,14 @@ export class BackgroundLayerView {
     this.current = media;
     if (unchanged) return;
     this.cancelSpare();
+    this.cancelSeek();
     if (media === null) this.clearAtOnce();
     else this.start(media);
   }
 
   dispose(): void {
     this.cancelSpare();
+    this.cancelSeek();
     this.stopListening();
     for (const video of this.videos) unload(video);
     this.element.remove();
@@ -102,8 +130,27 @@ export class BackgroundLayerView {
     const to = otherOf(this.front);
     const video = this.videos[to];
     video.src = this.options.mediaUrl(media.mediaId);
+    this.seekOnceLoaded(video, media);
     this.handover = {to, dissolve: true};
     this.play(video);
+  }
+
+  private seekOnceLoaded(video: HTMLVideoElement, media: MediaLayer): void {
+    if (media.startedAt === undefined) return;
+    const onMetadata = (): void => {
+      this.cancelSeek();
+      const offset = startOffsetSeconds(media, video.duration, Date.now());
+      if (offset > 0) video.currentTime = offset;
+    };
+    video.addEventListener('loadedmetadata', onMetadata);
+    this.stopWaitingToSeek = () => {
+      video.removeEventListener('loadedmetadata', onMetadata);
+    };
+  }
+
+  private cancelSeek(): void {
+    this.stopWaitingToSeek?.();
+    this.stopWaitingToSeek = null;
   }
 
   private clearAtOnce(): void {

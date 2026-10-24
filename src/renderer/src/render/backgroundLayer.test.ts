@@ -1,7 +1,12 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import type {MediaLayer} from '@shared/live';
 import {installFakeClock} from '../../../../test/fake-clock';
-import {BACKGROUND_DISSOLVE_MS, BackgroundLayerView} from './backgroundLayer';
+import {
+  BACKGROUND_DISSOLVE_MS,
+  BackgroundLayerView,
+  MIN_SEEK_SECONDS,
+  startOffsetSeconds,
+} from './backgroundLayer';
 import {classes} from './classes';
 
 const WARM_LIGHT: MediaLayer = {mediaId: 'warm-light', loop: true};
@@ -185,5 +190,54 @@ describe('BackgroundLayerView', () => {
     expect(playsOf(videos[0])).toBe(0);
     expect(parent.childElementCount).toBe(0);
     expect(videos[0].hasAttribute('src')).toBe(false);
+  });
+});
+
+describe('startOffsetSeconds', () => {
+  const STARTED = 1_000_000;
+  const DURATION = 20;
+
+  it('wraps the time since the start for a loop', () => {
+    const media = {...WARM_LIGHT, startedAt: STARTED};
+    expect(startOffsetSeconds(media, DURATION, STARTED + 47_000)).toBe(7);
+  });
+
+  it('holds the end of a background that does not loop', () => {
+    const media = {...WARM_LIGHT, loop: false, startedAt: STARTED};
+    expect(startOffsetSeconds(media, DURATION, STARTED + 47_000)).toBe(20);
+  });
+
+  it('starts from the beginning without a start time, a duration, or much time gone', () => {
+    expect(startOffsetSeconds(WARM_LIGHT, DURATION, STARTED)).toBe(0);
+    const media = {...WARM_LIGHT, startedAt: STARTED};
+    expect(startOffsetSeconds(media, Number.NaN, STARTED + 5000)).toBe(0);
+    const justNow = STARTED + MIN_SEEK_SECONDS * 1000 - 1;
+    expect(startOffsetSeconds(media, DURATION, justNow)).toBe(0);
+  });
+});
+
+describe('BackgroundLayerView seeking', () => {
+  it('seeks a background that started earlier once its video knows its length', async () => {
+    const clock = installFakeClock();
+    const seek = vi.spyOn(HTMLMediaElement.prototype, 'currentTime', 'set');
+    vi.spyOn(HTMLMediaElement.prototype, 'duration', 'get').mockReturnValue(20);
+    const {view, videos} = setUp();
+    view.show({...WARM_LIGHT, startedAt: clock.now().getTime() - 47_000});
+    expect(seek).not.toHaveBeenCalled();
+    videos[1].dispatchEvent(new Event('loadedmetadata'));
+    expect(seek).toHaveBeenCalledWith(7);
+    videos[1].dispatchEvent(new Event('loadedmetadata'));
+    expect(seek).toHaveBeenCalledTimes(1);
+  });
+
+  it('drops a pending seek when the background changes first', () => {
+    installFakeClock();
+    const seek = vi.spyOn(HTMLMediaElement.prototype, 'currentTime', 'set');
+    vi.spyOn(HTMLMediaElement.prototype, 'duration', 'get').mockReturnValue(20);
+    const {view, videos} = setUp();
+    view.show({...WARM_LIGHT, startedAt: Date.now() - 47_000});
+    view.show(null);
+    videos[1].dispatchEvent(new Event('loadedmetadata'));
+    expect(seek).not.toHaveBeenCalled();
   });
 });
