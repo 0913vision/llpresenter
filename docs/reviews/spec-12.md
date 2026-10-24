@@ -47,3 +47,10 @@ writer.
 ## Where to look
 
 - 02 "Automatic backup".
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (2c81644): lead Approve. A documents-only change that writes down the
+  lead's decision for data-9 (the last backup time comes from the newest
+  complete backup folder's name, so `app.json` keeps one writer); no Codex
+  round. Merged onto local `main` without conflicts.
