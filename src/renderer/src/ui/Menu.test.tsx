@@ -16,7 +16,9 @@ afterEach(resetTooltips);
 
 const SUBMENU_DELAY_MS = 150;
 const SUBMENU_GRACE_MS = 300;
-const SMALL_WINDOW_HEIGHT = 300;
+const SMALL_WINDOW = {width: 250, height: 500};
+const OPENER_BOX = new DOMRect(100, 400, 80, 30);
+const MENU_BOX = new DOMRect(0, 0, 200, 120);
 
 const twoSubmenus: readonly MenuEntry[] = [
   {
@@ -297,16 +299,23 @@ describe('Menu', () => {
   });
 
   it('fits itself again when the window shrinks, until it closes', async () => {
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
+      function (this: HTMLElement): DOMRect {
+        if (this.getAttribute('role') === 'menu') return MENU_BOX;
+        return this.textContent === '파일' ? OPENER_BOX : new DOMRect();
+      },
+    );
     render(<Harness />);
     await openMenu();
     const menu = screen.getByRole('menu', {name: '파일'});
-    vi.stubGlobal('innerHeight', SMALL_WINDOW_HEIGHT);
+    expect([menu.style.left, menu.style.top]).toEqual(['100px', '434px']);
+    vi.stubGlobal('innerWidth', SMALL_WINDOW.width);
+    vi.stubGlobal('innerHeight', SMALL_WINDOW.height);
     act(() => {
       window.dispatchEvent(new Event('resize'));
     });
-    expect(menu.style.maxHeight).toBe(
-      `${maxPopoverHeight({width: window.innerWidth, height: SMALL_WINDOW_HEIGHT})}px`,
-    );
+    expect(menu.style.maxHeight).toBe(`${maxPopoverHeight(SMALL_WINDOW)}px`);
+    expect([menu.style.left, menu.style.top]).toEqual(['42px', '276px']);
     const removed = vi.spyOn(window, 'removeEventListener');
     await userEvent.keyboard('{Escape}');
     expect(removed).toHaveBeenCalledWith('resize', expect.any(Function));
