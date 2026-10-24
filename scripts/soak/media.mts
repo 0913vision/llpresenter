@@ -1,8 +1,15 @@
-import {spawn} from 'node:child_process';
+import {spawn, type ChildProcessByStdio} from 'node:child_process';
 import {mkdir, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
+import type {Readable} from 'node:stream';
 import {isJsonObject} from '../json.mts';
-import {SOAK_CLIP, type Checked, type ClipOptions} from './clip-frames.mts';
+import {killProcessTree} from '../process-tree.mts';
+import {
+  SOAK_CLIP,
+  type Checked,
+  type ClipOptions,
+  type ClipSummary,
+} from './clip-frames.mts';
 
 /** The soak clip's id in the run's media library. */
 export const SOAK_MEDIA_ID = '5a0c4b3e-7d21-4f6a-9b8c-2e1f0d3c4b5a';
@@ -16,14 +23,10 @@ const MEDIA_LIST_FILE = 'media.json';
 const CLIP_MAKER_DATA = '.clip-maker';
 const CLIP_MAKER_MAIN = join(import.meta.dirname, 'clip', 'main.mts');
 const MS_PER_SECOND = 1000;
-
-/** What the clip maker reports about the clip it made. */
-export interface ClipSummary {
-  readonly file: string;
-  readonly bytes: number;
-  readonly frames: number;
-  readonly durationMs: number;
-}
+// NOTE(0913vision): The clip took 15 s to make at 100% CPU; three minutes ends a
+// stuck encoder or seek without failing a slow machine.
+const CLIP_DEADLINE_MS = 3 * 60 * MS_PER_SECOND;
+const MAX_MAKER_OUTPUT_CHARS = 64 * 1024;
 
 function isCount(value: unknown): value is number {
   return typeof value === 'number' && Number.isInteger(value) && value > 0;
@@ -103,6 +106,73 @@ export async function prepareSoakMedia(
   return SOAK_MEDIA_ID;
 }
 
+/** A command that makes the clip and prints its summary as the last line. */
+export interface ClipMakerCommand {
+  readonly file: string;
+  readonly args: readonly string[];
+  readonly deadlineMs: number;
+}
+
+function summaryFrom(output: string, exitCode: number | null): ClipSummary {
+  const summary = parseClipSummary(output.trim().split('\n').at(-1) ?? '');
+  if (exitCode === 0 && summary.ok) return summary.value;
+  const reason = summary.ok
+    ? `exit code ${exitCode ?? 'none'}`
+    : summary.reason;
+  throw new Error(`the soak clip could not be made: ${reason}`);
+}
+
+function stopMaker(maker: ChildProcessByStdio<null, Readable, null>): void {
+  maker.stdout.destroy();
+  maker.unref();
+  const {pid} = maker;
+  if (pid === undefined) return;
+  killProcessTree(pid).then(
+    result => {
+      if (!result.ok) {
+        console.error(`could not stop the clip maker: ${result.reason}`);
+      }
+    },
+    (error: unknown) => console.error('could not stop the clip maker:', error),
+  );
+}
+
+/**
+ * Runs a clip maker and reads its summary. A maker that runs past
+ * `deadlineMs` is stopped with every process it started, and only the last
+ * 64 KB of what it prints is kept.
+ */
+export function runClipMaker(command: ClipMakerCommand): Promise<ClipSummary> {
+  return new Promise((resolve, reject) => {
+    const maker = spawn(command.file, [...command.args], {
+      stdio: ['ignore', 'pipe', 'inherit'],
+      windowsHide: true,
+    });
+    let output = '';
+    maker.stdout.setEncoding('utf8');
+    maker.stdout.on('data', (text: string) => {
+      output = (output + text).slice(-MAX_MAKER_OUTPUT_CHARS);
+    });
+    const deadline = setTimeout(() => {
+      stopMaker(maker);
+      const seconds = command.deadlineMs / MS_PER_SECOND;
+      reject(new Error(`the clip maker did not finish within ${seconds} s`));
+    }, command.deadlineMs);
+    maker.once('error', error => {
+      clearTimeout(deadline);
+      reject(error);
+    });
+    maker.once('close', exitCode => {
+      clearTimeout(deadline);
+      try {
+        resolve(summaryFrom(output, exitCode));
+      } catch (error) {
+        reject(error instanceof Error ? error : new Error(String(error)));
+      }
+    });
+  });
+}
+
 /**
  * Makes the soak clip with the clip maker (`clip/main.mts`) in Electron. It
  * draws in a window that is never shown and keeps Electron's caches in
@@ -113,28 +183,9 @@ export function makeSoakClip(
   file: string,
   userData: string,
 ): Promise<ClipSummary> {
-  return new Promise((resolve, reject) => {
-    const maker = spawn(
-      electron,
-      [CLIP_MAKER_MAIN, file, join(userData, CLIP_MAKER_DATA)],
-      {stdio: ['ignore', 'pipe', 'inherit'], windowsHide: true},
-    );
-    let output = '';
-    maker.stdout.setEncoding('utf8');
-    maker.stdout.on('data', (text: string) => {
-      output += text;
-    });
-    maker.once('error', reject);
-    maker.once('close', code => {
-      const summary = parseClipSummary(output.trim().split('\n').at(-1) ?? '');
-      if (code === 0 && summary.ok) {
-        resolve(summary.value);
-        return;
-      }
-      const reason = summary.ok
-        ? `exit code ${code ?? 'none'}`
-        : summary.reason;
-      reject(new Error(`the soak clip could not be made: ${reason}`));
-    });
+  return runClipMaker({
+    file: electron,
+    args: [CLIP_MAKER_MAIN, file, join(userData, CLIP_MAKER_DATA)],
+    deadlineMs: CLIP_DEADLINE_MS,
   });
 }
