@@ -6,16 +6,23 @@ import {
   type LiveLayers,
   type LiveState,
   type MediaChoice,
+  type MediaLayer,
 } from '@shared/live';
+
+/** What the last clear took down, and when, so it can be undone. */
+export interface UndoEntry {
+  readonly layers: LiveLayers;
+  readonly clearedAt: number;
+}
 
 export interface LiveHistory {
   readonly state: LiveState;
   /**
-   * The layers right before the last clear, while that clear can still be
-   * undone. Undo has one level, and new content ends it, so an undo never
-   * covers something new (docs/spec/03-output.md, undo).
+   * The last clear, while it can still be undone. Undo has one level, and new
+   * content ends it, so an undo never covers something new
+   * (docs/spec/03-output.md, undo).
    */
-  readonly undo: LiveLayers | null;
+  readonly undo: UndoEntry | null;
 }
 
 export function initialHistory(state: LiveState): LiveHistory {
@@ -25,7 +32,7 @@ export function initialHistory(state: LiveState): LiveHistory {
 function withLayers(
   history: LiveHistory,
   layers: LiveLayers,
-  undo: LiveLayers | null,
+  undo: UndoEntry | null,
 ): LiveHistory {
   const version = history.state.version + 1;
   const canUndo = undo !== null;
@@ -57,19 +64,41 @@ function showMedia(
   return setLayer(history, 'media', {...current, loop: choice.loop});
 }
 
-function clear(history: LiveHistory, target: LayerKind | 'all'): LiveHistory {
+function clear(
+  history: LiveHistory,
+  target: LayerKind | 'all',
+  now: number,
+): LiveHistory {
   const layers = history.state.layers;
+  const undo = {layers, clearedAt: now};
   if (target === 'all') {
     if (!hasAnyLayer(layers)) return history;
-    return withLayers(history, emptyLayers(), layers);
+    return withLayers(history, emptyLayers(), undo);
   }
   if (layers[target] === null) return history;
-  return withLayers(history, {...layers, [target]: null}, layers);
+  return withLayers(history, {...layers, [target]: null}, undo);
 }
 
-function undoClear(history: LiveHistory): LiveHistory {
-  if (history.undo === null) return history;
-  return withLayers(history, history.undo, null);
+function resumedMedia(
+  media: MediaLayer | null,
+  clearedForMs: number,
+): MediaLayer | null {
+  if (media?.startedAt === undefined) return media;
+  return {...media, startedAt: media.startedAt + clearedForMs};
+}
+
+function undoClear(history: LiveHistory, now: number): LiveHistory {
+  const {undo} = history;
+  if (undo === null) return history;
+  // NOTE(0913vision): A background that the clear took down plays again from
+  // where it was cleared, so its start time moves by the time it was down
+  // (docs/spec/03-output.md, undo).
+  const mediaWasCleared =
+    history.state.layers.media === null && undo.layers.media !== null;
+  const media = mediaWasCleared
+    ? resumedMedia(undo.layers.media, now - undo.clearedAt)
+    : undo.layers.media;
+  return withLayers(history, {...undo.layers, media}, null);
 }
 
 function setOutput(
@@ -88,7 +117,7 @@ function setOutput(
  * Electron.
  *
  * @param now - The time of the command in milliseconds since the epoch, for
- * the start time of a new background.
+ * the start time of a background and the time of a clear.
  * @returns The same history object when nothing changed, so callers can skip
  * the broadcast.
  */
@@ -105,9 +134,9 @@ export function applyCommand(
     case 'message.show':
       return setLayer(history, 'message', command.message);
     case 'layer.clear':
-      return clear(history, command.target);
+      return clear(history, command.target, now);
     case 'clear.undo':
-      return undoClear(history);
+      return undoClear(history, now);
     case 'output.set':
       return setOutput(history, command.screenId, command.on);
     default: {

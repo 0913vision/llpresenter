@@ -104,6 +104,38 @@ describe('applyCommand', () => {
     expect(restored.state.version).toBe(cleared.state.version + 1);
   });
 
+  it('plays a cleared background again from where it was cleared', () => {
+    const started = applyAt(
+      initialHistory(emptyLiveState()),
+      {type: 'media.show', media: {mediaId: 'warm-light', loop: true}},
+      NOW,
+    );
+    const cleared = applyAt(
+      started,
+      {type: 'layer.clear', target: 'media'},
+      NOW + 5000,
+    );
+    const restored = applyAt(cleared, {type: 'clear.undo'}, NOW + 15_000);
+    const startedAt = restored.state.layers.media?.startedAt ?? 0;
+    expect(NOW + 15_000 - startedAt).toBe(5000);
+  });
+
+  it('keeps the start time of a background that a lyrics clear left playing', () => {
+    const started = applyAt(
+      run([{type: 'slide.show', slide: slide(2)}]),
+      {type: 'media.show', media: {mediaId: 'warm-light', loop: true}},
+      NOW,
+    );
+    const cleared = applyAt(
+      started,
+      {type: 'layer.clear', target: 'slide'},
+      NOW + 5000,
+    );
+    const restored = applyAt(cleared, {type: 'clear.undo'}, NOW + 15_000);
+    expect(restored.state.layers.media?.startedAt).toBe(NOW);
+    expect(restored.state.layers.slide?.position).toBe(2);
+  });
+
   it('keeps other layers when one layer is cleared', () => {
     const shown = run([
       {type: 'media.show', media: {mediaId: 'warm-light', loop: true}},
