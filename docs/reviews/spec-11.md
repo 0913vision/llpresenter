@@ -37,3 +37,9 @@ None.
 ## Where to look
 
 - 03 "Drawing text", the shrink to fit bullet.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (cc521f2): lead Approve. This is the wording nit from spec-10's round
+  2 (Codex, codex4), with no change to the rule, so it needed no new Codex
+  round. Merged onto local `main` without conflicts.
