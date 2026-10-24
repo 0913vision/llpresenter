@@ -45,6 +45,8 @@ export function startOffsetSeconds(
 
 type VideoIndex = 0 | 1;
 
+const VIDEO_INDEXES: readonly VideoIndex[] = [0, 1];
+
 interface Handover {
   readonly to: VideoIndex;
   readonly dissolve: boolean;
@@ -121,7 +123,7 @@ export class BackgroundLayerView {
     const unchanged = media?.mediaId === this.current?.mediaId;
     this.current = media;
     if (unchanged) {
-      this.loopNativelyInPreview(this.front);
+      this.loopNativelyInPreview();
       return;
     }
     this.cancelSpare();
@@ -144,9 +146,9 @@ export class BackgroundLayerView {
     const video = this.videos[to];
     this.settleFront(to);
     this.load(to, media.mediaId);
-    this.loopNativelyInPreview(to);
     this.seekOnceLoaded(video, media);
     this.handover = {to, dissolve: true};
+    this.loopNativelyInPreview();
     this.play(video);
   }
 
@@ -245,11 +247,19 @@ export class BackgroundLayerView {
     return this.options.mode === 'preview';
   }
 
-  private loopNativelyInPreview(index: VideoIndex): void {
-    // NOTE(0913vision): A preview loops on the one video that shows it. The
-    // loop point may hitch for a frame, which is fine on a small preview and
-    // halves its decoders.
-    this.videos[index].loop = this.isPreview() && this.current?.loop === true;
+  private loopNativelyInPreview(): void {
+    // NOTE(0913vision): A preview loops on the one video that shows, or is
+    // about to show, the current background. The loop point may hitch for a
+    // frame, which is fine on a small preview and halves its decoders. The
+    // outgoing video holds its last frame, as in an output window.
+    const showing = this.handover?.to ?? this.front;
+    for (const index of VIDEO_INDEXES) {
+      this.videos[index].loop =
+        this.isPreview() &&
+        index === showing &&
+        this.holdsCurrent(index) &&
+        this.current?.loop === true;
+    }
   }
 
   private handleEnded(index: VideoIndex): void {
