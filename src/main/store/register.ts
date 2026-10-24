@@ -4,6 +4,7 @@ import type {ShowService} from '@shared/schema/showService';
 import type {Logger} from '../log';
 import {Backups, type BackupOutcome} from './backup';
 import {loadStore, type LoadedStore, type StoreContext} from './fileStore';
+import {LoadingMediaLibrary} from './mediaLibrary';
 import {buildShowService} from './showService';
 
 const FIRST_REVISION = 1;
@@ -17,29 +18,48 @@ export interface StoreRegistration {
   readonly context?: () => StoreContext;
 }
 
+/** What the main process wiring uses of the data store. */
+export interface DataStore {
+  /**
+   * Removes the handler and resolves once the launch backup has ended, so
+   * quitting never cuts a backup off halfway.
+   */
+  readonly dispose: () => Promise<void>;
+  /**
+   * The file of a media id from `media.json`, once the data is read, or
+   * `null` when there is none.
+   */
+  readonly findMediaFile: (mediaId: string) => Promise<string | null>;
+  /** The folders media files may come from; none before the data is read. */
+  readonly mediaRoots: () => readonly string[];
+}
+
 /**
- * Reads the data at launch, answers `service:get` with the open 예배 순서, and
- * then runs the launch backup once. A window that asks before the data is read
- * waits for it. Never throws: a failure, or a data folder that a link leads
- * outside `LLP_USER_DATA`, is logged, and the answer is `null`.
- *
- * @returns A function that removes the handler and resolves once the launch
- *   backup has ended, so quitting never cuts a backup off halfway.
+ * Reads the data at launch, answers `service:get` with the open 예배 순서,
+ * finds media files by id, and then runs the launch backup once. A window that
+ * asks before the data is read waits for it. Never throws: a failure, or a
+ * data folder that a link leads outside `LLP_USER_DATA`, is logged, and the
+ * answer is `null`.
  */
 export function registerStore({
   log,
   isAnyOutputOn,
   context = electronStoreContext,
-}: StoreRegistration): () => Promise<void> {
+}: StoreRegistration): DataStore {
   const loading = readStore(context, log);
   const opening = openShowService(loading, log);
   ipcMain.handle(Channels.serviceGet, () => opening);
   // TODO(0913vision): Push `service:changed` with the next revision when the
   // open 예배 순서, one of its songs, or the 이름표 change.
   const backingUp = backUpAtLaunch(loading, isAnyOutputOn, log);
-  return async () => {
-    ipcMain.removeHandler(Channels.serviceGet);
-    await backingUp;
+  const media = new LoadingMediaLibrary(loading);
+  return {
+    dispose: async () => {
+      ipcMain.removeHandler(Channels.serviceGet);
+      await backingUp;
+    },
+    findMediaFile: media.findFile,
+    mediaRoots: media.roots,
   };
 }
 

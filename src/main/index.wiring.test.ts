@@ -9,6 +9,7 @@ const ENTRY_TEST_TIMEOUT_MS = 30_000;
 const fakes = vi.hoisted(() => {
   const order: string[] = [];
   const storeOptions: unknown[] = [];
+  const mediaOptions: unknown[] = [];
   const opened: {control: unknown} = {control: null};
   const appHandlers = new Map<string, Array<(...args: unknown[]) => void>>();
   return {
@@ -34,6 +35,9 @@ const fakes = vi.hoisted(() => {
     soakStop: vi.fn<() => Promise<void>>(),
     storeDispose: vi.fn<() => Promise<void>>(),
     storeOptions,
+    findMediaFile: vi.fn<(mediaId: string) => Promise<string | null>>(),
+    mediaRoots: vi.fn<() => readonly string[]>(),
+    mediaOptions,
     opened,
   };
 });
@@ -50,14 +54,21 @@ vi.mock('./store/register', () => ({
   registerStore: (options: unknown) => {
     fakes.order.push('data store');
     fakes.storeOptions.push(options);
-    return fakes.storeDispose;
+    return {
+      dispose: fakes.storeDispose,
+      findMediaFile: fakes.findMediaFile,
+      mediaRoots: fakes.mediaRoots,
+    };
   },
 }));
 vi.mock('./ipc', () => ({registerIpc: () => () => undefined}));
 vi.mock('./outputs/start', () => ({startOutputs: () => () => undefined}));
 vi.mock('./windows/mediaProtocol', () => ({
   registerMediaScheme: () => undefined,
-  serveMedia: () => () => undefined,
+  serveMedia: (options: unknown) => {
+    fakes.mediaOptions.push(options);
+    return () => undefined;
+  },
 }));
 vi.mock('./windows/control', () => ({
   createControlWindow: () => {
@@ -108,6 +119,7 @@ beforeEach(async () => {
   fakes.soakStop.mockReset();
   fakes.storeDispose.mockReset();
   fakes.storeOptions.length = 0;
+  fakes.mediaOptions.length = 0;
 });
 
 function beforeQuit(): {prevented: boolean} {
@@ -135,6 +147,20 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     expect(fakes.storeOptions).toHaveLength(1);
     expect(fakes.storeOptions[0]).toHaveProperty('log');
     expect(fakes.storeOptions[0]).toHaveProperty('isAnyOutputOn');
+  });
+
+  it('serves media through the data store lookup', async () => {
+    await startMain();
+
+    expect(fakes.mediaOptions).toHaveLength(1);
+    expect(fakes.mediaOptions[0]).toHaveProperty(
+      'resolvePath',
+      fakes.findMediaFile,
+    );
+    expect(fakes.mediaOptions[0]).toHaveProperty(
+      'mediaRoots',
+      fakes.mediaRoots,
+    );
   });
 
   it('asks to quit when the control window closes', async () => {

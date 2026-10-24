@@ -12,7 +12,6 @@ import {registerUiState} from './uiState/register';
 import {applyUserDataOverride, type UserDataProblem} from './userData';
 import {createControlWindow} from './windows/control';
 import {registerMediaScheme, serveMedia} from './windows/mediaProtocol';
-import type {MediaPathResolver} from './windows/mediaResponse';
 
 const BAD_ENVIRONMENT_EXIT_CODE = 1;
 const UI_STATE_FILE = 'app.json';
@@ -23,11 +22,6 @@ const userDataProblem = applyUserDataOverride(
 );
 
 registerMediaScheme();
-
-// TODO(0913vision): Find media files and their folders through the media
-// library once the file store has it. Until then no media id resolves.
-const findMediaFile: MediaPathResolver = () => Promise.resolve(null);
-const noMediaRoots = (): readonly string[] => [];
 
 const log = createLogger(join(app.getPath('userData'), 'logs'), {
   echo: !app.isPackaged,
@@ -75,14 +69,14 @@ function start(): void {
         log,
       );
       const store = new LiveStore();
-      const disposeStore = registerStore({
+      const dataStore = registerStore({
         log,
         isAnyOutputOn: () => isAnyOutputOn(store.state),
       });
       const disposeIpc = registerIpc(store, log);
       const stopServingMedia = serveMedia({
-        resolvePath: findMediaFile,
-        mediaRoots: noMediaRoots,
+        resolvePath: dataStore.findMediaFile,
+        mediaRoots: dataStore.mediaRoots,
         log,
       });
       const win = createControlWindow(log);
@@ -94,7 +88,7 @@ function start(): void {
       shutdown.add({name: 'stop the outputs', run: stopOutputs});
       shutdown.add({name: 'save the UI state', run: () => ui.dispose()});
       shutdown.add({name: 'finish the soak record', run: stopSoakRecorder});
-      shutdown.add({name: 'close the data store', run: disposeStore});
+      shutdown.add({name: 'close the data store', run: dataStore.dispose});
       shutdown.add({name: 'stop serving media', run: stopServingMedia});
       shutdown.add({name: 'remove the IPC channels', run: disposeIpc});
       win.on('closed', () => {
