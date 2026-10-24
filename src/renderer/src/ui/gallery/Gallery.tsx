@@ -1,6 +1,7 @@
 import type {JSX} from 'react';
 import {ButtonSection} from './ButtonSection';
 import {CheckboxSection} from './CheckboxSection';
+import {ClearSection} from './ClearSection';
 import {IconButtonSection} from './IconButtonSection';
 import {KeyCapSection} from './KeyCapSection';
 import {LabelSection} from './LabelSection';
@@ -48,6 +49,7 @@ export const galleryEntries: readonly GalleryEntry[] = [
   {name: 'SlideThumbnail', Section: ThumbnailSection},
   {name: 'MediaTile', Section: MediaSection},
   {name: 'MacroTile', Section: MacroSection},
+  {name: 'ClearButton', Section: ClearSection},
 ];
 
 const COMPONENT_PARAM = 'c';
