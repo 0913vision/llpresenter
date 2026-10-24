@@ -7,6 +7,9 @@ import {removeStaleTempFiles} from './staleTempFiles';
 import {writeJson} from './testFiles';
 
 const UUID = '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293';
+const NIL_UUID = '00000000-0000-0000-0000-000000000000';
+const VERSION_1_UUID = '3b9d0c52-7e1f-1a2b-8c3d-4e5f60718293';
+const OTHER_VARIANT_UUID = '3b9d0c52-7e1f-4a2b-cc3d-4e5f60718293';
 const OLD_TEMP = `.a.llsong.${UUID}.tmp`;
 const FRESH_TEMP = `.b.llsong.${UUID}.tmp`;
 const NOW = Date.now();
@@ -27,6 +30,9 @@ describe('isTemporaryFileName', () => {
       `a.llsong.${UUID}.tmp`,
       `${OLD_TEMP}.bak`,
       `.a.llsong.${UUID.toUpperCase()}.tmp`,
+      `.a.llsong.${NIL_UUID}.tmp`,
+      `.a.llsong.${VERSION_1_UUID}.tmp`,
+      `.a.llsong.${OTHER_VARIANT_UUID}.tmp`,
     ]) {
       expect(isTemporaryFileName(name)).toBe(false);
     }
@@ -47,6 +53,20 @@ describe('removeStaleTempFiles', () => {
     expect((await readdir(folder)).sort()).toEqual(
       [FRESH_TEMP, 'a.llsong', 'notes.tmp'].sort(),
     );
+  });
+
+  it('leaves files named with UUIDs that random writes never make', async () => {
+    const folder = await makeTempDir();
+    const names = [NIL_UUID, VERSION_1_UUID, OTHER_VARIANT_UUID].map(
+      uuid => `.a.llsong.${uuid}.tmp`,
+    );
+    for (const name of names) {
+      await writeOld(join(folder, name));
+    }
+
+    expect(await removeStaleTempFiles(folder, NOW)).toEqual([]);
+
+    expect((await readdir(folder)).sort()).toEqual([...names].sort());
   });
 
   it('leaves a folder or a link with a temporary name alone', async () => {

@@ -10,7 +10,7 @@ const RENAME_RETRIES = 5;
 const RENAME_RETRY_DELAY_MS = 20;
 const TRANSIENT_RENAME_CODES = new Set(['EPERM', 'EBUSY', 'EACCES']);
 const TEMPORARY_NAME =
-  /^\..+\.[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.tmp$/;
+  /^\..+\.[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.tmp$/;
 
 /** Why a file couldn't be written. The old file, if any, is unchanged. */
 export interface WriteProblem {
@@ -20,7 +20,7 @@ export interface WriteProblem {
 
 /**
  * Whether a file name is one that {@link writeFileAtomically} gives its
- * temporary files: `.<file name>.<random UUID>.tmp`.
+ * temporary files: `.<file name>.<random version 4 UUID>.tmp`.
  */
 export function isTemporaryFileName(name: string): boolean {
   return TEMPORARY_NAME.test(name);
