@@ -53,6 +53,7 @@
   --ring-field-error: inset 0 0 0 1px #d2343a;
   --ring-dot-cut: 0 0 0 2px #0e0e0e;
   --ring-dot-cut-hover: 0 0 0 2px #232323;
+  --ring-dot-cut-pressed: 0 0 0 2px #262626;
 }
 :root {
   --space-2: 2px;
