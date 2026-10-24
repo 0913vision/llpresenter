@@ -85,6 +85,17 @@ describe('RecoveryCopies', () => {
     ]);
   });
 
+  it('keeps at most 50 copies whatever the count says', async () => {
+    const {file, copies, target, copyFolder, advance} = await setUp(1000);
+    for (let version = 0; version < 52; version++) {
+      await writeFile(file, `version ${version}`);
+      await copies.keepPrevious(target);
+      advance(5 * MINUTE_MS);
+    }
+
+    expect(await readdir(copyFolder)).toHaveLength(50);
+  });
+
   it('reports a copy it cannot make', async () => {
     const folder = await makeTempDir();
     const blocker = join(folder, 'blocker');

@@ -1,11 +1,13 @@
 import {copyFile, mkdir, readdir, rm} from 'node:fs/promises';
 import {join} from 'node:path';
 import type {Result} from '@shared/result';
+import {PREFERENCE_LIMITS} from '@shared/schema/preferences';
 import type {WriteProblem} from './atomicWrite';
 import {isMissingFile} from './fsErrors';
 
 const COPY_EXTENSION = '.json';
 const MIN_INTERVAL_MS = 5 * 60 * 1000;
+const MIN_COPIES = 1;
 
 /** The file about to be overwritten, and where its copies belong. */
 export interface RecoveryTarget {
@@ -77,7 +79,7 @@ export class RecoveryCopies {
     const copies = (await readdir(folder))
       .filter(name => name.endsWith(COPY_EXTENSION))
       .sort();
-    const extra = copies.length - Math.max(1, this.options.keep());
+    const extra = copies.length - copiesToKeep(this.options.keep());
     for (const name of copies.slice(0, Math.max(0, extra))) {
       await rm(join(folder, name), {force: true});
     }
@@ -90,6 +92,16 @@ export class RecoveryCopies {
       }
     }
   }
+}
+
+// NOTE(0913vision): 환경설정 checks its own range; this cap still holds if a
+// bad count ever reaches here, so copies never pile up without a limit.
+function copiesToKeep(keep: number): number {
+  const whole = Number.isFinite(keep) ? Math.floor(keep) : MIN_COPIES;
+  return Math.min(
+    PREFERENCE_LIMITS.backupCopies.max,
+    Math.max(MIN_COPIES, whole),
+  );
 }
 
 // NOTE(0913vision): A copy's name is its time with the colons replaced, so the
