@@ -110,9 +110,22 @@ describe('OutputWindow', () => {
     await clock.advance(1);
     expect(handle.reloads).toBe(1);
     expect(handle.mode.kind).toBe('fullscreen');
-    expect(log.messages('error')).toEqual([
-      'output window process gone, restarting it',
-    ]);
+    expect(log.messages('error')).toEqual(['output window process gone']);
+  });
+
+  it('reloads again when the page fails to load after a crash', async () => {
+    const clock = installFakeClock();
+    const {output, windows, log} = setUp();
+    output.update(FULL_SCREEN);
+    const handle = windows.only('main');
+    handle.failNextReload = true;
+    handle.crash();
+    await clock.advance(RELAUNCH_DELAY_MS);
+    expect(log.messages('error')).toContain('output window page did not load');
+    await clock.advance(RELAUNCH_DELAY_MS);
+    expect(handle.reloads).toBe(2);
+    output.pageDrawn();
+    expect(output.rendererState).toBe('running');
   });
 
   it('holds the empty picture after repeated crashes and tries again after the cool-down', async () => {

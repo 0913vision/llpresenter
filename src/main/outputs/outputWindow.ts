@@ -15,8 +15,11 @@ export interface OutputWindowHandle {
   /** Shows the window without taking focus as a normal window, moved to the bounds when given. */
   showWindowed(bounds: Rect | null): void;
   hide(): void;
-  /** Loads the page again, in a new renderer process if the old one died. */
-  reload(): void;
+  /**
+   * Loads the page again, in a new renderer process if the old one died.
+   * Rejects when the page fails to load.
+   */
+  reload(): Promise<void>;
   destroy(): void;
 }
 
@@ -67,7 +70,7 @@ export class OutputWindow {
   constructor(private readonly options: OutputWindowOptions) {
     this.recovery = new RendererRecovery({
       screenId: options.screen.id,
-      reload: () => this.handle?.reload(),
+      reload: () => this.reloadPage(),
       log: options.log,
       ...(options.onRendererState === undefined
         ? {}
@@ -137,6 +140,10 @@ export class OutputWindow {
     this.handle.hide();
     this.visible = false;
     this.recovery.pause();
+  }
+
+  private reloadPage(): Promise<void> {
+    return this.handle?.reload() ?? Promise.resolve();
   }
 
   private ensureHandle(): OutputWindowHandle {

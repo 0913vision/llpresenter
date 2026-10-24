@@ -5,6 +5,7 @@ import {
   blockNavigation,
   loadPage,
   preloadPath,
+  startLoading,
   type PageRequest,
 } from '../windows/page';
 import {windowTestOptions, type WindowMode} from '../windows/testWindows';
@@ -140,7 +141,7 @@ export function createElectronOutputWindow(
   loadPage(win, page, log);
   return {
     ...presentationFor(win, mode),
-    reload: () => loadPage(win, page, log),
+    reload: () => startLoading(win, page),
     destroy: () => {
       if (!win.isDestroyed()) win.destroy();
     },
