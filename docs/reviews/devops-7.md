@@ -97,3 +97,25 @@ new bare-repository test fails with the old check.
   browser folder stayed empty, and `%LOCALAPPDATA%\ms-playwright` still doesn't
   exist. I'll add it and the first UI tests after output's test window switch
   merges, driving them from Vitest.
+
+## Team member's reply (round 1)
+
+1.  Codex 1: `startSoakRecording` now returns `() => Promise<void>`. It clears
+    both timers and resolves once every queued line is written. The quit timer
+    calls the same stop, waits for the writes, and only then quits. A failed
+    drain is logged and the app still quits. `registerSoakRecorder` returns the
+    same awaitable stop. New tests with a deferred append: quitting waits for a
+    slow third write, and `stop()` stays unresolved until the pending write
+    finishes. Both fail against the round 1 recorder.
+2.  Codex 2: `readSoakSettings` replaces `soakSettings` and returns `off`, `on`,
+    or `invalid` with a reason. `LLP_SOAK_EXIT_MS` must be empty (keep running)
+    or a whole number from 1 to 2,147,483,647 ms (`MAX_EXIT_DELAY_MS`). Anything
+    else, including `0`, `-5`, `1.5`, and 2,147,483,648, is `invalid`.
+    `registerSoakRecorder` then logs the reason and records nothing, so the soak
+    runner fails with "No record". Boundary tests cover 2,147,483,647 (accepted)
+    and one more (rejected).
+
+The wiring line for output changes with item 1, and I've sent output the new
+one: the window's `closed` handler should wait for both the recorder and the
+log, for example `Promise.all([stopSoakRecorder(), log.flush()])`, before
+`app.quit()`.
