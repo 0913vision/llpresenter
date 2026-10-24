@@ -34,7 +34,20 @@ export function openOnArrowDown(
 
 /**
  * The props for any button that opens a menu: the popup state for assistive
- * technology, a click that opens and closes it, and ↓ that opens it.
+ * technology, a click that opens and closes it, and ↓ that opens it. An
+ * `IconButton` draws the popup state from its own `menu` and `expanded`
+ * props, so pass those as well.
+ *
+ * @example
+ * ```tsx
+ * <IconButton
+ *   icon="more"
+ *   label="더 보기"
+ *   menu
+ *   expanded={open}
+ *   {...menuButtonProps({expanded: open, onExpandedChange: setOpen})}
+ * />
+ * ```
  */
 export function menuButtonProps(state: MenuButtonState): MenuButtonProps {
   const {expanded, onExpandedChange, disabled = false} = state;

@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {beforeAll, describe, expect, it} from 'vitest';
 import {Button} from './Button';
+import {IconButton} from './IconButton';
 import {Menu} from './Menu';
 import {menuButtonProps} from './menuButton';
 
@@ -42,6 +43,31 @@ function FileMenu({
   );
 }
 
+function MoreMenu(): JSX.Element {
+  const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <IconButton
+        ref={setAnchor}
+        icon="more"
+        label="더 보기"
+        menu
+        expanded={open}
+        {...menuButtonProps({expanded: open, onExpandedChange: setOpen})}
+      />
+      {open && anchor !== null ? (
+        <Menu
+          label="더 보기"
+          entries={[{kind: 'item', id: 'rename', label: '이름 바꾸기'}]}
+          anchor={{kind: 'element', element: anchor}}
+          onClose={() => setOpen(false)}
+        />
+      ) : null}
+    </>
+  );
+}
+
 function fileButton(): HTMLElement {
   return screen.getByRole('button', {name: '파일'});
 }
@@ -64,6 +90,16 @@ describe('menuButtonProps', () => {
     }
     await userEvent.click(fileButton());
     expect(fileButton().getAttribute('aria-expanded')).toBe('true');
+  });
+
+  it('opens a menu from an IconButton that passes its menu and expanded props', async () => {
+    render(<MoreMenu />);
+    const more = screen.getByRole('button', {name: '더 보기'});
+    expect(more.getAttribute('aria-haspopup')).toBe('menu');
+    more.focus();
+    await userEvent.keyboard('{ArrowDown}');
+    expect(screen.getByRole('menu', {name: '더 보기'})).toBeDefined();
+    expect(more.getAttribute('aria-expanded')).toBe('true');
   });
 
   it('opens nothing while the button is disabled', async () => {
