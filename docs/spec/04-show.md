@@ -167,8 +167,11 @@ source was found.
 - → ← Space Page Up Page Down output the next and previous 장 even while the 장
   grid or the 예배 순서 list has focus, as ProPresenter does after a click on a
   slide. The grid keeps only ↑, ↓, and Enter (10, "Focus precedence").
-- A mouse click on a button or tile in 진행 doesn't take keyboard focus, so
-  these keys keep working after the operator clicks a 매크로 or a 소품 (10).
+- A mouse click in 진행 moves keyboard focus only to a text field, the 장 grid,
+  or the 예배 순서 list. A click on any other button or tile, such as a 매크로
+  or a 소품, leaves keyboard focus where it was (10). So after a click on a 장,
+  focus is on the 장 grid and Space outputs the next 장, and after a click on a
+  매크로, Space still outputs the next 장 instead of running the 매크로 again.
 - Next and previous are the tiles after and before the live 장 in the current
   item's sequence. If there is no live 장, or the item open in the 장 panel
   isn't the current item, next outputs the first tile of the item in the 장

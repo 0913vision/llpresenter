@@ -64,7 +64,8 @@ ProPresenter).
   menu key opens the right-click menu.
 - A mouse click on a tile doesn't give it keyboard focus, so Space after a click
   still goes to 다음 장 instead of running the 매크로 again (decided; 10, focus
-  precedence).
+  precedence). In 진행, only text fields, the 장 grid, and the 예배 순서 list
+  take keyboard focus on a click.
 - Each 매크로 can have its own shortcut, with no default key (decided; follows
   ProPresenter's Key Mappings for macros, 10).
 
