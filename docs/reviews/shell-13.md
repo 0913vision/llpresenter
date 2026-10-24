@@ -95,6 +95,17 @@ missing.
 
 - Not reviewed yet.
 
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (3998f1b, codex2): Request changes with two findings and a nit: the
+  input guard blocked Ctrl L in text fields and every command on the slider,
+  item navigation lost the grid focus, and a test passed on the old code.
+- Round 2 (c79a0f4): reviewer (Codex, codex2) Approve with two nits in this
+  document: the summary still says all three keys are ignored in text fields,
+  and "nothing new is registered" leaves out the pointerdown listener of
+  `useKeptFocus`, which is removed on unmount. They go into shell's next branch.
+  Lead Approve. Rebased by the lead onto local `main` without conflicts.
+
 ## Team member's reply
 
 Round 1 (codex2), answered once:
