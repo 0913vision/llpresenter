@@ -2,7 +2,7 @@
 
 - Team member: `shell`
 - Branch: `feat/shell/show-keys`
-- Base commit (`main`): `86f5926`
+- Base commit (`main`): `b9392d0`
 - Last commit: see the commit that adds this file
 - Related brief: the lead's queue item 3 (진행 keys per spec-1)
 
@@ -153,3 +153,6 @@ Round 1 (codex2), answered once:
 5. Finding 5 (nit): the initial selection is set before the render.
 6. Finding 6 (nit): the TSDoc on the private helpers of `shortcuts.ts` is now
    `NOTE(0913vision)` comments, and TSDoc stays on the exported functions only.
+7. Round 2: rebased onto `main` b9392d0 without conflicts. `npm run verify` on
+   commit `1f7efb0` passed all five steps in 127.9 s: `typecheck`, `lint`,
+   `format:check`, `test:coverage`, and `build`.
