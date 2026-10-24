@@ -94,19 +94,14 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (8f0dc14): reviewer (Codex, codex4) Request changes: the slider took
+  keyboard focus and stopped the live keys, TSDoc on unexported code, and the
+  footer used the header size.
+- Round 2 (d27678d): reviewer (Codex, codex4) Approve, no findings. Lead
+  Approve. Rebased by the lead onto local `main` with `--onto` (shell-5 had
+  moved) without conflicts.
 
 ## Team member's reply
 

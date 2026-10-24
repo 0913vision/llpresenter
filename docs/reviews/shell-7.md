@@ -112,19 +112,15 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (fa4b889): reviewer (Codex, codex2) Request changes: Ctrl Z undid a
+  clear in 준비, the editable check missed some fields and blocked others, no
+  IME guard, and a bubbling listener that others could swallow.
+- Round 2 (db6bb1a): reviewer (Codex, codex2) Approve with one nit:
+  `Workspace.tsx:32` TSDoc on an unexported interface. The nit goes into shell's
+  next commit. Lead Approve. Rebased by the lead onto local `main` with `--onto`
+  without conflicts.
 
 ## Team member's reply
 
