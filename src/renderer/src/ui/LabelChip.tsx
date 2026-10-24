@@ -10,6 +10,7 @@ import type {LabelColor} from '@shared/colors';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {labelInk} from './labelInk';
+import {useTooltip} from './Tooltip';
 import styles from './LabelChip.module.css';
 
 const GRIP_SIZE = 14;
@@ -143,6 +144,7 @@ export function ArrangementStrip({
 }: ArrangementStripProps): JSX.Element {
   const chipElements = useRef<Array<HTMLButtonElement | null>>([]);
   const insertButton = useRef<HTMLButtonElement>(null);
+  const insertTooltip = useTooltip({text: INSERT_LABEL});
   const tabStop = Math.min(selected ?? 0, chips.length - 1);
   const focusAfterRemoval = useFocusAfterRemoval(chips.length, index => {
     const target =
@@ -196,6 +198,7 @@ export function ArrangementStrip({
         {dropIndex === chips.length ? <ChipDrop /> : null}
       </div>
       <button
+        {...insertTooltip.targetProps}
         ref={insertButton}
         type="button"
         aria-label={INSERT_LABEL}
@@ -206,6 +209,7 @@ export function ArrangementStrip({
       >
         <Icon name="plus" size={ADD_ICON_SIZE} />
       </button>
+      {insertTooltip.tooltip}
     </div>
   );
 }

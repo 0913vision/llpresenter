@@ -1,7 +1,7 @@
 import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
-import {describe, expect, it, vi} from 'vitest';
+import {afterEach, describe, expect, it, vi} from 'vitest';
 import {
   ArrangementStrip,
   LabelSwatch,
@@ -9,6 +9,9 @@ import {
   type ArrangementChip,
 } from './LabelChip';
 import {labelInk} from './labelInk';
+import {hoverForTooltip, resetTooltips} from './tooltipTesting';
+
+afterEach(resetTooltips);
 
 const chips: readonly ArrangementChip[] = [
   {key: 'a', name: '1절', color: 'teal', number: 1},
@@ -160,6 +163,12 @@ describe('ArrangementStrip', () => {
       />,
     );
     expect(tabStops()).toEqual(['4']);
+  });
+
+  it('names the insert button in a tooltip', async () => {
+    render(<Strip />);
+    const insert = screen.getByRole('button', {name: '장 넣기'});
+    expect((await hoverForTooltip(insert))?.textContent).toBe('장 넣기');
   });
 
   it('asks to insert from a named button', async () => {
