@@ -150,3 +150,22 @@ a local throwaway repository, never to `origin`.
 - `scripts/version/bump.mts`, `commitRange`: the counting rule (decision 1).
 - `scripts/hooks/pre-push.mts`, `checkMainPush`: the order of the checks.
 - `.github/workflows/ci.yml`, the `bump` job: permissions and the push.
+
+## Team member's reply (round 1)
+
+1.  Codex 1 (2f844b5): fixed by dropping the pushed range. The bot now counts
+    every commit that no version tag covers: since the last `v*` tag, or the
+    whole history before the first one. `--before` and the `BEFORE` variable are
+    gone from `run.mts` and `ci.yml`, so a cancelled run can't shrink the range.
+    New tests: a feat push and then a docs push, bumped once, give `minor`
+    (0.3.0), both before the first tag and after one. This replaces decision 1's
+    "before..sha before the first tag" part; the rest of it stands.
+2.  Codex 2 (4d88115): `readCommitMessages` reads the raw message (`%B`). The
+    subject is its first line, and everything after it is the body. New test:
+    `fix(live): keep the last frame` with a second line and no blank line stops
+    the push ("has a body or trailers"). The test fails with the old `%s`
+    reader.
+3.  Codex 3 (2f844b5): the comment on `commitRange` is now a `NOTE(0913vision)`.
+
+Also in this round (ed8694d): `npm install` adds `"hasInstallScript": true` to
+the lockfile because of the new `prepare` script, so the lockfile records it.
