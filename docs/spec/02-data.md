@@ -521,7 +521,6 @@ Source: `Shortcuts`, `KeyCap` README, 10.
 | `previewBig`                                    | The screen ID shown large in the 진행 preview.                                                                         |
 | `macroView`, `macroCollection`                  | View and collection of the 매크로 tab.                                                                                 |
 | `mediaStrip`                                    | Whether the operator left the media strip open. The size class and window height rules apply first.                    |
-| `lastBackupAt`                                  | Time of the last backup.                                                                                               |
 
 ## Media list (`설정\media.json`)
 
@@ -863,9 +862,16 @@ preferred), `docs/HANDOFF.md` (개역한글 and KJV).
 ### Automatic backup
 
 - If 자동 백업 is on, back up once a day, at launch, when no service is running.
-  Copy the song, service, 틀, and settings folders into a `<date time>\` folder
-  in the backup location (proposal). Leave out media files because of their size
-  (proposal).
+  Copy the song, service, 틀, and settings folders into a folder in the backup
+  location named after the backup's start time, `YYYY-MM-DD HHmmss` (proposal).
+  Leave out media files because of their size (proposal).
+- A backup copies into a folder with `.partial` at the end of its name and
+  renames it to the final name only when every file is copied, so a folder
+  without `.partial` is always a complete backup (proposal).
+- The last backup time (마지막 백업 in 환경설정) is the time in the name of the
+  newest complete backup folder; with none, it shows 없음 (none). It isn't
+  stored anywhere, so `app.json` keeps a single writer (lead decision, October
+  25, 2026).
 - 지금 백업 (back up now) runs a backup at once. Keep as many backups as the
   보관 option says (default 30).
 - If the backup location isn't writable (for example, the drive is missing),
