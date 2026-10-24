@@ -1,3 +1,4 @@
+import {useMemo} from 'react';
 import {create} from 'zustand';
 import type {SlideLayer} from '@shared/live';
 import {sizeClasses} from '@shared/schema/appConfig';
@@ -18,6 +19,7 @@ import {
   type SequenceState,
   type TileKey,
 } from '@renderer/show/navigation';
+import {slideLayerOf} from '@renderer/show/previewLayers';
 import {
   sampleJumpKeys,
   sampleRows,
@@ -94,20 +96,9 @@ export function moveTile(key: TileKey, columns: number): void {
   selectTile(index);
 }
 
-function slideLayerOf(cursor: TileCursor): SlideLayer | null {
-  const tile = tilesOf(cursor.itemId)[cursor.index];
-  if (!tile) return null;
-  return {
-    itemId: cursor.itemId,
-    position: cursor.index,
-    label: tile.label,
-    lines: tile.lines,
-  };
-}
-
 /** Outputs a tile and shows it selected in the 장 panel. */
 export function outputTile(cursor: TileCursor): void {
-  const slide = slideLayerOf(cursor);
+  const slide = slideLayerOf(cursor, tilesOf);
   if (!slide) return;
   sendLive({type: 'slide.show', slide});
   useShow.setState({openItemId: cursor.itemId, selectedTile: cursor.index});
@@ -178,4 +169,27 @@ export function seedThumbnailColumns(uiState: UiState): void {
     if (columns !== undefined) saved[sizeClass] = clampColumns(columns);
   }
   useShow.setState({thumbnailColumns: saved});
+}
+
+/**
+ * The 장 that the next-장 key would output, for the "next" preview. It follows
+ * the live 장, the open item, and the tiles, and changes only with them.
+ */
+export function useNextSlideLayer(): SlideLayer | null {
+  const liveItemId = useLive(view => view.state?.layers.slide?.itemId ?? null);
+  const livePosition = useLive(
+    view => view.state?.layers.slide?.position ?? null,
+  );
+  const openItemId = useShow(view => view.openItemId);
+  const tiles = useShow(view => view.tiles);
+  return useMemo(() => {
+    const tilesOfItem = (itemId: ItemId): readonly SlideTile[] =>
+      tiles[itemId] ?? noTiles;
+    const live =
+      liveItemId === null || livePosition === null
+        ? null
+        : {itemId: liveItemId, index: livePosition};
+    const next = nextTile({tilesOf: tilesOfItem, live, openItemId});
+    return next ? slideLayerOf(next, tilesOfItem) : null;
+  }, [liveItemId, livePosition, openItemId, tiles]);
 }
