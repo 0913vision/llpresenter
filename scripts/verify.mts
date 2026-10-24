@@ -1,8 +1,11 @@
-import {spawn} from 'node:child_process';
 import {performance} from 'node:perf_hooks';
 import {pathToFileURL} from 'node:url';
-import {stripVTControlCharacters} from 'node:util';
 import {COMPILE_CACHE_DIR} from './compile-cache.mts';
+import {
+  runStepProcess,
+  type StepCommand,
+  type StepOutcome,
+} from './verify/step-process.mts';
 
 /** The npm scripts that `npm run verify` runs, in the order it reports them. */
 export const VERIFY_STEPS = [
@@ -15,14 +18,6 @@ export const VERIFY_STEPS = [
 
 /** One npm script that verify runs. */
 export type VerifyStep = (typeof VERIFY_STEPS)[number];
-
-/** How one step ended: its exit code or the signal that stopped it, and what it printed. */
-export interface StepOutcome {
-  readonly exitCode: number | null;
-  readonly signal: string | null;
-  readonly milliseconds: number;
-  readonly output: string;
-}
 
 /** One step and how it ended. */
 export interface StepResult {
@@ -39,18 +34,26 @@ export interface VerifyResult {
 /** Runs one step to the end and reports how it ended. */
 export type StepRunner = (step: VerifyStep) => Promise<StepOutcome>;
 
+/** What one verify run needs from the outside. */
+export interface VerifyRun {
+  /** npm's own CLI script, which runs each step with this Node. */
+  readonly npmCli: string;
+  readonly steps: readonly VerifyStep[];
+  readonly stepDeadlineMs: number;
+  readonly interrupt: AbortSignal;
+  readonly console: Pick<Console, 'log' | 'error'>;
+}
+
 const MS_PER_SECOND = 1000;
 const FAILURE_EXIT_CODE = 1;
-const MAX_FAILURE_LINES = 20;
-const MAX_KEPT_OUTPUT_CHARS = 2_000_000;
-const LOOKAHEAD_LINES = 6;
-const NOTABLE_LINE =
-  /^\s*(?:FAIL\s|×\s|Error: \[vitest-pool|Vitest caught \d+ unhandled)|Unhandled (?:Errors?|Rejection)/;
-const ERROR_MESSAGE = /^\s*[A-Za-z]*(?:Error|Exception)\b[^:]*:/;
-const SEPARATOR = /⎯+/g;
+// NOTE(0913vision): The slowest step, test:coverage, took up to 4 minutes on
+// a machine busy with several sessions. Ten minutes ends a hung step without
+// failing a slow one.
+const STEP_DEADLINE_MS = 10 * 60 * MS_PER_SECOND;
+const INTERRUPT_SIGNALS = ['SIGINT', 'SIGTERM', 'SIGHUP', 'SIGBREAK'] as const;
 
 function passed(outcome: StepOutcome): boolean {
-  return outcome.exitCode === 0;
+  return outcome.exitCode === 0 && outcome.stoppedBy === null;
 }
 
 /**
@@ -71,87 +74,23 @@ export async function runSteps(
   return {results, failed: results.find(r => !passed(r.outcome)) ?? null};
 }
 
-function cleanLine(line: string): string {
-  return line.replace(SEPARATOR, '').trim();
-}
-
-interface Failure {
-  readonly line: string;
-  readonly error: string | null;
-}
-
-// NOTE(0913vision): Vitest prints tests that failed the same way as
-// consecutive FAIL lines followed by one error, so the error belongs to the
-// whole group of notable lines before it.
-function groupFailures(lines: readonly string[]): Failure[] {
-  const failures: Failure[] = [];
-  let group: string[] = [];
-  let linesAfterGroup = 0;
-  const closeGroup = (error: string | null): void => {
-    for (const line of group) failures.push({line, error});
-    group = [];
-    linesAfterGroup = 0;
-  };
-  for (const line of lines) {
-    if (NOTABLE_LINE.test(line)) {
-      if (linesAfterGroup > 0) closeGroup(null);
-      group.push(cleanLine(line));
-    } else if (group.length > 0) {
-      linesAfterGroup += 1;
-      if (ERROR_MESSAGE.test(line)) closeGroup(cleanLine(line));
-      else if (linesAfterGroup >= LOOKAHEAD_LINES) closeGroup(null);
-    }
-  }
-  closeGroup(null);
-  return failures;
-}
-
-function distinctFailures(failures: readonly Failure[]): Failure[] {
-  const withError = new Set(
-    failures.filter(f => f.error !== null).map(f => f.line),
-  );
-  const seen = new Set<string>();
-  return failures.filter(failure => {
-    if (failure.error === null && withError.has(failure.line)) return false;
-    const key = JSON.stringify([failure.line, failure.error]);
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
-
-/**
- * Picks the lines that name what failed from a step's output: Vitest's
- * `FAIL` and `×` lines, worker start errors, and the unhandled error and
- * rejection blocks, each with the first error line that follows it (for
- * example "Error: Test timed out in 60000ms."). Without them, a timeout on a
- * busy machine looks the same as a broken test.
- */
-export function failureLines(output: string): string[] {
-  const lines = stripVTControlCharacters(output).split(/\r?\n/);
-  return distinctFailures(groupFailures(lines))
-    .slice(0, MAX_FAILURE_LINES)
-    .map(({line, error}) => (error === null ? line : `${line} (${error})`));
-}
-
-/**
- * Hands a stream's text to `onText` as it arrives. One UTF-8 decoder per
- * stream keeps a character that is split across two chunks (such as `×`)
- * whole.
- */
-export function readText(
-  stream: NodeJS.ReadableStream,
-  onText: (text: string) => void,
-): void {
-  stream.setEncoding('utf8');
-  stream.on('data', (text: string) => onText(text));
-}
-
 function seconds(milliseconds: number): string {
   return `${(milliseconds / MS_PER_SECOND).toFixed(1)} s`;
 }
 
 function howItEnded(outcome: StepOutcome): string {
+  switch (outcome.stoppedBy) {
+    case 'deadline':
+      return `ran too long and was stopped after ${seconds(outcome.milliseconds)}`;
+    case 'interrupt':
+      return 'was stopped because verify was interrupted';
+    case null:
+      break;
+    default: {
+      const unknownReason: never = outcome.stoppedBy;
+      return `was stopped: ${String(unknownReason)}`;
+    }
+  }
   if (outcome.signal !== null) return `was stopped by ${outcome.signal}`;
   return `exited with code ${outcome.exitCode ?? 'unknown'}`;
 }
@@ -191,9 +130,8 @@ export function formatSummary(
   lines.push(
     `verify failed: "npm run ${step}" ${howItEnded(outcome)}. Its output is above.`,
   );
-  const failed = failureLines(outcome.output);
-  if (failed.length > 0) {
-    lines.push('What failed:', ...failed.map(line => `  ${line}`));
+  if (outcome.failureLines.length > 0) {
+    lines.push('What failed:', ...outcome.failureLines.map(l => `  ${l}`));
   }
   lines.push(
     `Fix it, then run "npm run ${step}" alone or "npm run verify" again.`,
@@ -201,10 +139,11 @@ export function formatSummary(
   return lines.join('\n');
 }
 
-function keepTail(text: string): string {
-  return text.length > MAX_KEPT_OUTPUT_CHARS
-    ? text.slice(-MAX_KEPT_OUTPUT_CHARS)
-    : text;
+/** Picks verify's exit code: 0 when every step passed, never 0 otherwise. */
+export function exitCodeFor(result: VerifyResult): number {
+  if (result.failed === null) return 0;
+  const {exitCode} = result.failed.outcome;
+  return exitCode === null || exitCode === 0 ? FAILURE_EXIT_CODE : exitCode;
 }
 
 function stepEnvironment(): NodeJS.ProcessEnv {
@@ -215,36 +154,33 @@ function stepEnvironment(): NodeJS.ProcessEnv {
   return {...process.env, ...color, NODE_COMPILE_CACHE: COMPILE_CACHE_DIR};
 }
 
-function npmRunner(npmCli: string): StepRunner {
-  return step =>
-    new Promise(resolve => {
-      const start = performance.now();
-      let output = '';
-      const keep = (text: string): void => {
-        output = keepTail(output + text);
-      };
-      const child = spawn(process.execPath, [npmCli, 'run', step], {
-        stdio: ['ignore', 'pipe', 'pipe'],
-        env: stepEnvironment(),
-      });
-      readText(child.stdout, keep);
-      readText(child.stderr, keep);
-      const finish = (exitCode: number | null, signal: string | null): void => {
-        const outcome = {
-          exitCode,
-          signal,
-          milliseconds: performance.now() - start,
-          output,
-        };
-        console.log(formatStepReport({step, outcome}));
-        resolve(outcome);
-      };
-      child.once('error', error => {
-        keep(`Could not start "npm run ${step}": ${error.message}\n`);
-        finish(FAILURE_EXIT_CODE, null);
-      });
-      child.once('close', (code, signal) => finish(code, signal));
-    });
+function npmCommand(run: VerifyRun, step: VerifyStep): StepCommand {
+  return {
+    name: `npm run ${step}`,
+    file: process.execPath,
+    args: [run.npmCli, 'run', step],
+    env: stepEnvironment(),
+    deadlineMs: run.stepDeadlineMs,
+    interrupt: run.interrupt,
+  };
+}
+
+/**
+ * Runs the steps at once, prints each step's report as it finishes and the
+ * summary at the end, and returns verify's exit code.
+ */
+export async function verify(run: VerifyRun): Promise<number> {
+  run.console.log(`[verify] running ${run.steps.join(', ')} at once`);
+  const start = performance.now();
+  const result = await runSteps(run.steps, async step => {
+    const outcome = await runStepProcess(npmCommand(run, step));
+    run.console.log(formatStepReport({step, outcome}));
+    return outcome;
+  });
+  const summary = formatSummary(result, performance.now() - start);
+  if (result.failed === null) run.console.log(`\n${summary}`);
+  else run.console.error(`\n${summary}`);
+  return exitCodeFor(result);
 }
 
 async function main(): Promise<void> {
@@ -257,16 +193,20 @@ async function main(): Promise<void> {
     process.exitCode = FAILURE_EXIT_CODE;
     return;
   }
-  console.log(`[verify] running ${VERIFY_STEPS.join(', ')} at once`);
-  const start = performance.now();
-  const result = await runSteps(VERIFY_STEPS, npmRunner(npmCli));
-  const summary = formatSummary(result, performance.now() - start);
-  if (result.failed === null) {
-    console.log(`\n${summary}`);
-    return;
+  const interruption = new AbortController();
+  const interrupt = (): void => interruption.abort();
+  for (const signal of INTERRUPT_SIGNALS) process.on(signal, interrupt);
+  try {
+    process.exitCode = await verify({
+      npmCli,
+      steps: VERIFY_STEPS,
+      stepDeadlineMs: STEP_DEADLINE_MS,
+      interrupt: interruption.signal,
+      console,
+    });
+  } finally {
+    for (const signal of INTERRUPT_SIGNALS) process.off(signal, interrupt);
   }
-  console.error(`\n${summary}`);
-  process.exitCode = result.failed.outcome.exitCode ?? FAILURE_EXIT_CODE;
 }
 
 const entry = process.argv[1];

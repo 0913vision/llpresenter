@@ -1,21 +1,32 @@
-import {PassThrough} from 'node:stream';
-import {finished} from 'node:stream/promises';
+import {writeFile} from 'node:fs/promises';
+import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
+import {isRunning, waitForHungTree, writeHungTree} from '../test/process-trees';
+import {makeTempDir} from '../test/temp-dir';
 import {
-  failureLines,
+  exitCodeFor,
   formatStepReport,
   formatSummary,
-  readText,
   runSteps,
-  type StepOutcome,
+  verify,
+  type VerifyRun,
   type VerifyStep,
 } from './verify.mts';
+import type {StepOutcome} from './verify/step-process.mts';
 
 function outcome(
   exitCode: number | null,
   extra: Partial<StepOutcome> = {},
 ): StepOutcome {
-  return {exitCode, signal: null, milliseconds: 1500, output: '', ...extra};
+  return {
+    exitCode,
+    signal: null,
+    stoppedBy: null,
+    milliseconds: 1500,
+    output: '',
+    failureLines: [],
+    ...extra,
+  };
 }
 
 function later<T>(value: T, ticks: number): Promise<T> {
@@ -140,11 +151,11 @@ describe('formatSummary', () => {
     );
   });
 
-  it('lists what failed from the failed step output', () => {
+  it('lists what failed in the failed step', () => {
     const tests = {
       step: 'test:coverage',
       outcome: outcome(1, {
-        output: ' FAIL  |node| test/git-repo.test.ts > makeTempGitRepo\n',
+        failureLines: ['FAIL  |node| test/git-repo.test.ts > makeTempGitRepo'],
       }),
     } as const;
     expect(formatSummary({results: [tests], failed: tests}, 1000)).toContain(
@@ -165,120 +176,108 @@ describe('formatSummary', () => {
       '"npm run build" was stopped by SIGINT.',
     );
   });
-});
 
-describe('failureLines', () => {
-  const RED = '\x1b[31m';
-  const RESET = '\x1b[39m';
-  const vitestOutput = [
-    ' RUN  v5.0.5 D:/llp',
-    `${RED} FAIL ${RESET} |node| test/git-repo.test.ts > makeTempGitRepo > writes files`,
-    ' ✓ |node| scripts/verify.test.ts (9 tests) 12ms',
-    '   × writes files 5625ms',
-    '⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯',
-    'Error: [vitest-pool]: Failed to start forks worker for test files D:/llp/src/renderer/src/ui/Checkbox.test.tsx',
-    ' FAIL  |node| test/git-repo.test.ts > makeTempGitRepo > writes files',
-    '      Tests  1 failed | 736 passed (737)',
-  ].join('\r\n');
-
-  it('keeps failed tests, worker start errors, and unhandled blocks, once each', () => {
-    expect(failureLines(vitestOutput)).toEqual([
-      'FAIL  |node| test/git-repo.test.ts > makeTempGitRepo > writes files',
-      '× writes files 5625ms',
-      'Unhandled Errors',
-      'Error: [vitest-pool]: Failed to start forks worker for test files D:/llp/src/renderer/src/ui/Checkbox.test.tsx',
-    ]);
-  });
-
-  it('keeps the first error line of each failed test', () => {
-    const output = [
-      ' FAIL  |node| test/a.test.ts > waits',
-      ' FAIL  |node| test/b.test.ts > reads',
-      '',
-      ' FAIL  |node| test/a.test.ts > waits',
-      'Error: Test timed out in 60000ms.',
-      'If this is a long-running test, pass a timeout value as the last argument.',
-      ' ❯ test/a.test.ts:3:1',
-      '',
-      ' FAIL  |node| test/b.test.ts > reads',
-      'AssertionError: expected 1 to be 2 // Object.is equality',
-    ].join('\n');
-    expect(failureLines(output)).toEqual([
-      'FAIL  |node| test/a.test.ts > waits (Error: Test timed out in 60000ms.)',
-      'FAIL  |node| test/b.test.ts > reads (AssertionError: expected 1 to be 2 // Object.is equality)',
-    ]);
-  });
-
-  it('names an unhandled rejection when no test failed', () => {
-    const output = [
-      ' ✓ |node| test/a.test.ts (3 tests) 12ms',
-      '⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯',
-      '',
-      'Vitest caught 1 unhandled error during the test run.',
-      'This might cause false positive tests.',
-      '',
-      '⎯⎯⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯⎯',
-      "TypeError: Cannot read properties of undefined (reading 'x')",
-      ' ❯ src/a.ts:3:1',
-    ].join('\n');
-    expect(failureLines(output)).toEqual([
-      'Unhandled Errors',
-      'Vitest caught 1 unhandled error during the test run.',
-      "Unhandled Rejection (TypeError: Cannot read properties of undefined (reading 'x'))",
-    ]);
-  });
-
-  it('keeps two different unhandled rejections apart', () => {
-    const output = [
-      '⎯⎯⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯⎯',
-      "TypeError: Cannot read properties of undefined (reading 'x')",
-      ' ❯ src/a.ts:3:1',
-      '',
-      '⎯⎯⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯⎯',
-      'RangeError: Invalid array length',
-      ' ❯ src/b.ts:9:5',
-    ].join('\n');
-    expect(failureLines(output)).toEqual([
-      "Unhandled Rejection (TypeError: Cannot read properties of undefined (reading 'x'))",
-      'Unhandled Rejection (RangeError: Invalid array length)',
-    ]);
-  });
-
-  it('gives grouped failures their shared error', () => {
-    const output = [
-      ' FAIL  |node| test/a.test.ts > first',
-      ' FAIL  |node| test/a.test.ts > second',
-      'Error: Test timed out in 60000ms.',
-      ' ❯ test/a.test.ts:3:1',
-    ].join('\n');
-    expect(failureLines(output)).toEqual([
-      'FAIL  |node| test/a.test.ts > first (Error: Test timed out in 60000ms.)',
-      'FAIL  |node| test/a.test.ts > second (Error: Test timed out in 60000ms.)',
-    ]);
-  });
-
-  it('finds nothing in a clean run', () => {
-    expect(failureLines(' ✓ |node| scripts/verify.test.ts (9 tests)')).toEqual(
-      [],
+  it('says when verify stopped a step at its deadline', () => {
+    const tests = {
+      step: 'test:coverage',
+      outcome: outcome(1, {stoppedBy: 'deadline', milliseconds: 600_000}),
+    } as const;
+    expect(formatSummary({results: [tests], failed: tests}, 1000)).toContain(
+      '"npm run test:coverage" ran too long and was stopped after 600.0 s.',
     );
   });
 
-  it('keeps at most twenty lines', () => {
-    const many = Array.from({length: 30}, (_, i) => ` FAIL  test ${i}`);
-    expect(failureLines(many.join('\n'))).toHaveLength(20);
+  it('says when verify was interrupted', () => {
+    const lint = {
+      step: 'lint',
+      outcome: outcome(1, {stoppedBy: 'interrupt'}),
+    } as const;
+    expect(formatSummary({results: [lint], failed: lint}, 1000)).toContain(
+      '"npm run lint" was stopped because verify was interrupted.',
+    );
   });
 });
 
-describe('readText', () => {
-  it('keeps a character whole when it is split across two chunks', async () => {
-    const stream = new PassThrough();
-    const texts: string[] = [];
-    readText(stream, text => texts.push(text));
-    const cross = Buffer.from('× done', 'utf8');
-    stream.write(cross.subarray(0, 1));
-    stream.write(cross.subarray(1));
-    stream.end();
-    await finished(stream);
-    expect(texts.join('')).toBe('× done');
+describe('exitCodeFor', () => {
+  it('is 0 when every step passed', () => {
+    const lint = {step: 'lint', outcome: outcome(0)} as const;
+    expect(exitCodeFor({results: [lint], failed: null})).toBe(0);
+  });
+
+  it("passes on the failed step's exit code", () => {
+    const lint = {step: 'lint', outcome: outcome(2)} as const;
+    expect(exitCodeFor({results: [lint], failed: lint})).toBe(2);
+  });
+
+  it('is never 0 for a stopped step', () => {
+    const stopped = [
+      outcome(null, {signal: 'SIGTERM'}),
+      outcome(0, {stoppedBy: 'deadline'}),
+    ];
+    for (const stoppedOutcome of stopped) {
+      const lint = {step: 'lint', outcome: stoppedOutcome} as const;
+      expect(exitCodeFor({results: [lint], failed: lint})).toBe(1);
+    }
+  });
+});
+
+describe('verify', () => {
+  function recordingRun(
+    npmCli: string,
+    extra: Partial<VerifyRun> = {},
+  ): {run: VerifyRun; printed: string[]} {
+    const printed: string[] = [];
+    const print = (text: string): void => {
+      printed.push(text);
+    };
+    const run: VerifyRun = {
+      npmCli,
+      steps: ['typecheck'],
+      stepDeadlineMs: 600_000,
+      interrupt: new AbortController().signal,
+      console: {log: print, error: print},
+      ...extra,
+    };
+    return {run, printed};
+  }
+
+  it('returns 0 and says so when every step passes', async () => {
+    const npmCli = join(await makeTempDir(), 'passing-npm.cjs');
+    await writeFile(npmCli, 'process.exitCode = 0;');
+    const {run, printed} = recordingRun(npmCli, {
+      steps: ['typecheck', 'build'],
+    });
+    expect(await verify(run)).toBe(0);
+    expect(printed.join('\n')).toContain('verify passed: 2 steps');
+  });
+
+  it('ends a hung step at its deadline and fails', async () => {
+    const npmCli = await writeHungTree(await makeTempDir());
+    const {run, printed} = recordingRun(npmCli, {
+      steps: ['lint'],
+      stepDeadlineMs: 1000,
+    });
+    expect(await verify(run)).not.toBe(0);
+    expect(printed.join('\n')).toContain(
+      'verify failed: "npm run lint" ran too long and was stopped after',
+    );
+  });
+
+  it('stops every running step and its children when interrupted', async () => {
+    const dir = await makeTempDir();
+    const interruption = new AbortController();
+    const {run} = recordingRun(await writeHungTree(dir), {
+      steps: ['lint', 'build'],
+      interrupt: interruption.signal,
+    });
+    const running = verify(run);
+    const trees = await Promise.all(
+      ['lint', 'build'].map(step => waitForHungTree(dir, step)),
+    );
+    interruption.abort();
+    expect(await running).not.toBe(0);
+    for (const pid of trees.flatMap(tree => [tree.parent, tree.child])) {
+      expect(isRunning(pid)).toBe(false);
+    }
   });
 });

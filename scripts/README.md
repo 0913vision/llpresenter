@@ -26,6 +26,14 @@ tells a busy-machine timeout from a broken test. Rerun the step alone, for
 example `npm run lint`. Team members run it before a review request, and the
 lead runs it before a merge.
 
+- Each step has 10 minutes. A step that runs longer fails, and verify ends it
+  with every process it started (`taskkill /t /f`). Ctrl+C does the same for
+  every running step. If a process survives that, verify lets go of its output
+  after 5 seconds, so verify always ends, with a nonzero exit code.
+- Verify keeps the last 2 million characters of each step's output and says how
+  many came before them. "What failed" comes from all of the output, as it
+  arrives.
+
 Tests have 60 seconds each (Vitest's default is 5), and Vitest uses worker
 threads on half the cores, so a machine busy with several sessions makes the run
 slower instead of failing it.
