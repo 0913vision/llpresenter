@@ -13,6 +13,7 @@ const TS_FILES = ['**/*.{ts,tsx,mts,cts}'];
 const RENDERER_FILES = ['src/renderer/**/*.{ts,tsx}'];
 const TEST_FILES = ['**/*.test.{ts,tsx}', 'test/**/*.{ts,tsx}'];
 const TOOL_CONFIG_FILES = ['**/*.config.{ts,mts,mjs}'];
+const SOAK_CLIP_PAGE_FILES = ['scripts/soak/clip/*.js'];
 
 const MAX_PARAMS = 3;
 const MAX_DEPTH = 3;
@@ -232,6 +233,19 @@ export const lintConfig = defineConfig(
       // NOTE(0913vision): `expect(mock.method)` passes a method without
       // calling it.
       '@typescript-eslint/unbound-method': 'off',
+    },
+  },
+  {
+    files: SOAK_CLIP_PAGE_FILES,
+    languageOptions: {
+      // NOTE(0913vision): The soak clip page script runs in Chromium, where
+      // these exist; the clip maker calls the functions it defines.
+      globals: {
+        document: 'readonly',
+        OffscreenCanvas: 'readonly',
+        VideoEncoder: 'readonly',
+        VideoFrame: 'readonly',
+      },
     },
   },
   {
