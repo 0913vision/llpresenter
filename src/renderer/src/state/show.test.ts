@@ -4,9 +4,11 @@ import {emptyLiveState, type LiveState} from '@shared/live';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {useLive} from './live';
 import {
+  jumpLabelFor,
   moveRow,
   moveTile,
   openItem,
+  outputLabel,
   outputNext,
   outputPrevious,
   outputTile,
@@ -69,17 +71,16 @@ describe('show state', () => {
 
   it('moves the selected tile inside the open item', () => {
     openItem('song-morning');
-    moveTile('right', 3);
-    expect(useShow.getState().selectedTile).toBe(1);
-    moveTile('down', 3);
-    expect(useShow.getState().selectedTile).toBe(1);
-    moveTile('left', 3);
-    moveTile('left', 3);
+    moveTile('down', 2);
+    expect(useShow.getState().selectedTile).toBe(2);
+    moveTile('down', 2);
+    expect(useShow.getState().selectedTile).toBe(2);
+    moveTile('up', 2);
     expect(useShow.getState().selectedTile).toBe(0);
   });
 
   it('ignores tile keys when no item is open', () => {
-    moveTile('right', 3);
+    moveTile('down', 2);
     expect(useShow.getState().selectedTile).toBe(0);
   });
 
@@ -126,10 +127,47 @@ describe('show state', () => {
     });
   });
 
-  it('stops after the last tile and does not move on to the next item', () => {
+  it('stops after the last tile, does not move on to the next item, and keeps the selection', () => {
+    openItem('song-morning');
+    outputTile({itemId: 'song-morning', index: 3});
+    sent.length = 0;
     setLive('song-morning', 3);
     outputNext();
     expect(sent).toHaveLength(0);
+    expect(useShow.getState()).toMatchObject({
+      openItemId: 'song-morning',
+      selectedTile: 3,
+    });
+  });
+
+  it('outputs the first tile of another open item with next', () => {
+    setLive('song-morning', 2);
+    openItem('song-river');
+    outputNext();
+    expect(sent[0]).toMatchObject({
+      slide: {itemId: 'song-river', position: 0},
+    });
+  });
+
+  it('outputs an 이름표 after the live 장 and goes back to the first when none follows', () => {
+    openItem('song-morning');
+    setLive('song-morning', 0);
+    outputLabel('후렴');
+    expect(sent[0]).toMatchObject({slide: {position: 1, label: '후렴'}});
+    setLive('song-morning', 3);
+    outputLabel('후렴');
+    expect(sent[1]).toMatchObject({slide: {position: 1, label: '후렴'}});
+  });
+
+  it('sends nothing for an 이름표 the item does not have', () => {
+    openItem('song-morning');
+    outputLabel('브리지');
+    expect(sent).toHaveLength(0);
+  });
+
+  it('knows the 이름표 of a jump key by its physical key', () => {
+    expect(jumpLabelFor('KeyC')).toBe('후렴');
+    expect(jumpLabelFor('KeyZ')).toBeUndefined();
   });
 
   it('outputs the tile before the live one with previous', () => {

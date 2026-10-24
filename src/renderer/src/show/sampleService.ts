@@ -57,3 +57,11 @@ export const sampleTiles: Readonly<Record<ItemId, readonly SlideTile[]>> = {
   countdown: [tile(null)],
   'notice-sunday': [tile(null, '주일 광고')],
 };
+
+// TODO(0913vision): Read the jump keys from `labels.json` (`.key`, stored as a
+// `code`) once the data layer serves the 이름표 list.
+export const sampleJumpKeys: Readonly<Record<string, string>> = {
+  KeyC: '후렴',
+  Digit1: '1절',
+  Digit2: '2절',
+};

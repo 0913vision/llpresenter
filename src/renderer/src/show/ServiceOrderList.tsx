@@ -84,6 +84,7 @@ export function ServiceOrderList(): JSX.Element {
       ref={listRef}
       role="listbox"
       aria-label="예배 순서"
+      data-service-list=""
       className={styles.list}
       onKeyDown={onKeyDown}
     >

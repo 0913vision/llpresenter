@@ -1,4 +1,4 @@
-import {cleanup, fireEvent, render, screen} from '@testing-library/react';
+import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@shared/commands';
 import {emptyLiveState} from '@shared/live';
@@ -123,8 +123,8 @@ describe('ServiceOrderList', () => {
     render(<ServiceOrderList />);
     openItem('song-morning');
     iconRenders.count = 0;
-    openItem('song-river');
-    expect(iconRenders.count).toBeLessThanOrEqual(2);
+    act(() => openItem('song-river'));
+    expect(iconRenders.count).toBe(2);
   });
 
   it('moves between rows with the arrow keys, Home, and End', () => {
@@ -204,27 +204,36 @@ describe('SlideGrid', () => {
     expect(stops).toHaveLength(1);
   });
 
-  it('moves focus with the arrow keys', () => {
+  it('moves focus with the up and down arrows', () => {
     openItem('song-morning');
-    render(<SlideGrid columns={3} />);
-    const [first, second] = screen.getAllByRole('option');
-    if (!first || !second) throw new Error('The tiles are missing');
+    render(<SlideGrid columns={2} />);
+    const [first, , third] = screen.getAllByRole('option');
+    if (!first || !third) throw new Error('The tiles are missing');
     first.focus();
-    fireEvent.keyDown(first, {key: 'ArrowRight'});
-    expect(document.activeElement).toBe(second);
+    fireEvent.keyDown(first, {key: 'ArrowDown'});
+    expect(document.activeElement).toBe(third);
   });
 
-  it('moves the selection with the arrow keys and outputs nothing', () => {
+  it('moves the selection by rows with up and down and outputs nothing', () => {
     openItem('song-morning');
-    render(<SlideGrid columns={3} />);
+    render(<SlideGrid columns={2} />);
     const grid = screen.getByRole('listbox', {name: '장'});
-    fireEvent.keyDown(grid, {key: 'ArrowRight'});
-    fireEvent.keyDown(grid, {key: 'ArrowRight'});
+    fireEvent.keyDown(grid, {key: 'ArrowDown'});
     expect(useShow.getState().selectedTile).toBe(2);
     fireEvent.keyDown(grid, {key: 'ArrowDown'});
     expect(useShow.getState().selectedTile).toBe(2);
-    fireEvent.keyDown(grid, {key: 'ArrowLeft'});
-    expect(useShow.getState().selectedTile).toBe(1);
+    fireEvent.keyDown(grid, {key: 'ArrowUp'});
+    expect(useShow.getState().selectedTile).toBe(0);
     expect(sent).toHaveLength(0);
+  });
+
+  it('leaves the left and right arrows to the next and previous 장', () => {
+    openItem('song-morning');
+    render(<SlideGrid columns={2} />);
+    const grid = screen.getByRole('listbox', {name: '장'});
+    const right = fireEvent.keyDown(grid, {key: 'ArrowRight'});
+    const left = fireEvent.keyDown(grid, {key: 'ArrowLeft'});
+    expect(right && left).toBe(true);
+    expect(useShow.getState().selectedTile).toBe(0);
   });
 });

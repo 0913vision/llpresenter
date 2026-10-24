@@ -11,11 +11,16 @@ import {
   moveTileSelection,
   nextTile,
   previousTile,
+  tileForLabel,
   type RowKey,
   type SequenceState,
   type TileKey,
 } from '@renderer/show/navigation';
-import {sampleRows, sampleTiles} from '@renderer/show/sampleService';
+import {
+  sampleJumpKeys,
+  sampleRows,
+  sampleTiles,
+} from '@renderer/show/sampleService';
 import {sendLive, useLive} from './live';
 
 interface ShowView {
@@ -25,6 +30,8 @@ interface ShowView {
   readonly openItemId: ItemId | null;
   /** The selected tile of the open item. */
   readonly selectedTile: number;
+  /** 이름표 jump keys: a physical key (`KeyboardEvent.code`) to an 이름표 name. */
+  readonly jumpKeys: Readonly<Record<string, string>>;
 }
 
 const noTiles: readonly SlideTile[] = [];
@@ -34,6 +41,7 @@ export const useShow = create<ShowView>(() => ({
   tiles: sampleTiles,
   openItemId: null,
   selectedTile: 0,
+  jumpKeys: sampleJumpKeys,
 }));
 
 export function tilesOf(itemId: ItemId): readonly SlideTile[] {
@@ -107,4 +115,13 @@ export function outputNext(): void {
 
 export function outputPrevious(): void {
   outputIfPresent(previousTile(sequenceState()));
+}
+
+export function jumpLabelFor(code: string): string | undefined {
+  return useShow.getState().jumpKeys[code];
+}
+
+/** Outputs the first tile with an 이름표 after the live 장, or the first in the sequence. */
+export function outputLabel(label: string): void {
+  outputIfPresent(tileForLabel(sequenceState(), label));
 }

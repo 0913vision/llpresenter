@@ -8,7 +8,7 @@ import {
 } from './model';
 
 export type RowKey = 'up' | 'down' | 'home' | 'end';
-export type TileKey = 'left' | 'right' | 'up' | 'down';
+export type TileKey = 'up' | 'down';
 
 export type TilesOf = (itemId: ItemId) => readonly SlideTile[];
 
@@ -37,8 +37,9 @@ export function moveRowSelection(
 }
 
 /**
- * The tile index after an arrow key in a grid with the given number of
- * columns. The selection stays inside the grid and does not wrap around.
+ * The tile index after the up or down arrow in a grid with the given number of
+ * columns. The selection moves by one row, stays inside the grid, and does not
+ * wrap around. ← and → are not grid keys: they output the previous and next 장.
  */
 export function moveTileSelection(params: {
   readonly count: number;
@@ -48,13 +49,7 @@ export function moveTileSelection(params: {
 }): number {
   const {count, columns, index, key} = params;
   if (count === 0) return 0;
-  const offsets: Readonly<Record<TileKey, number>> = {
-    left: -1,
-    right: 1,
-    up: -columns,
-    down: columns,
-  };
-  const target = index + offsets[key];
+  const target = key === 'down' ? index + columns : index - columns;
   return target < 0 || target >= count ? index : target;
 }
 
@@ -71,13 +66,17 @@ function firstTileOf(itemId: ItemId, tilesOf: TilesOf): TileCursor | null {
 }
 
 /**
- * The tile that the next-장 key outputs. Without a live 장 it is the first
- * tile of the open item. After the last tile it is null: the key stops there
- * and does not move on to the next item.
+ * The tile that the next-장 key outputs. When the 장 panel shows an item other
+ * than the live one, or no 장 is live, it is the first tile of the open item.
+ * Otherwise it is the tile after the live one, and null after the last tile:
+ * the key stops there and does not move on to the next item.
  */
 export function nextTile(state: SequenceState): TileCursor | null {
   const {live, openItemId, tilesOf} = state;
-  if (!live) return openItemId ? firstTileOf(openItemId, tilesOf) : null;
+  if (openItemId !== null && live?.itemId !== openItemId) {
+    return firstTileOf(openItemId, tilesOf);
+  }
+  if (!live) return null;
   if (live.index + 1 >= tilesOf(live.itemId).length) return null;
   return {itemId: live.itemId, index: live.index + 1};
 }

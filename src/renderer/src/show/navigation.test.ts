@@ -68,20 +68,14 @@ describe('moveRowSelection', () => {
 describe('moveTileSelection', () => {
   const grid = {count: 7, columns: 3};
 
-  it('moves by one with left and right', () => {
-    expect(moveTileSelection({...grid, index: 3, key: 'right'})).toBe(4);
-    expect(moveTileSelection({...grid, index: 3, key: 'left'})).toBe(2);
-  });
-
   it('moves by one row with up and down', () => {
     expect(moveTileSelection({...grid, index: 3, key: 'down'})).toBe(6);
     expect(moveTileSelection({...grid, index: 4, key: 'up'})).toBe(1);
   });
 
-  it('stays on the first and last tile', () => {
-    expect(moveTileSelection({...grid, index: 0, key: 'left'})).toBe(0);
+  it('stays on the first and last row', () => {
     expect(moveTileSelection({...grid, index: 0, key: 'up'})).toBe(0);
-    expect(moveTileSelection({...grid, index: 6, key: 'right'})).toBe(6);
+    expect(moveTileSelection({...grid, index: 2, key: 'up'})).toBe(2);
     expect(moveTileSelection({...grid, index: 6, key: 'down'})).toBe(6);
   });
 
@@ -91,7 +85,7 @@ describe('moveTileSelection', () => {
 
   it('returns 0 for an empty grid', () => {
     expect(
-      moveTileSelection({count: 0, columns: 3, index: 0, key: 'right'}),
+      moveTileSelection({count: 0, columns: 3, index: 0, key: 'down'}),
     ).toBe(0);
   });
 });
@@ -122,9 +116,17 @@ describe('nextTile', () => {
     expect(nextTile(stateOf({live: {itemId: 'c', index: 0}}))).toBeNull();
   });
 
-  it('uses the live item even when another item is open', () => {
+  it('outputs the first tile of another open item instead of following the live one', () => {
     const live = {itemId: 'b', index: 0};
     expect(nextTile(stateOf({live, openItemId: 'a'}))).toEqual({
+      itemId: 'a',
+      index: 0,
+    });
+  });
+
+  it('follows the live item when it is the open one', () => {
+    const live = {itemId: 'b', index: 0};
+    expect(nextTile(stateOf({live, openItemId: 'b'}))).toEqual({
       itemId: 'b',
       index: 1,
     });

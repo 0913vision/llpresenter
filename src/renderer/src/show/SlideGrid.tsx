@@ -13,8 +13,6 @@ import type {TileKey} from './navigation';
 import styles from './SlideGrid.module.css';
 
 const tileKeys: Readonly<Record<string, TileKey>> = {
-  ArrowLeft: 'left',
-  ArrowRight: 'right',
   ArrowUp: 'up',
   ArrowDown: 'down',
 };

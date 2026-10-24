@@ -1,7 +1,7 @@
 import {Fragment, type JSX, type ReactNode} from 'react';
 import {ServiceOrderList} from '@renderer/show/ServiceOrderList';
 import {SlideGrid} from '@renderer/show/SlideGrid';
-import {useSlideShortcuts} from '@renderer/show/shortcuts';
+import {useShowKeys} from '@renderer/show/shortcuts';
 import {ColumnGap} from './ColumnGap';
 import type {ColumnWidthStore} from './columnWidthStore';
 import {defaultThumbnailColumns, type SizeClass} from './sizeClass';
@@ -41,7 +41,7 @@ function Panel({
 }
 
 function ShowShortcuts(): null {
-  useSlideShortcuts();
+  useShowKeys();
   return null;
 }
 
