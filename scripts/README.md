@@ -81,8 +81,13 @@ that it wrote. Run `npm run build` first.
 - `npm run soak -- --judge path/to/soak.jsonl`: judges an existing record
   without starting the app.
 
-The runner starts Electron with these environment variables. The app side lands
-in phase 2.
+The runner starts Electron with these environment variables. In the app,
+`registerSoakRecorder` (`src/main/soak/`) reads them once the app is ready. It
+samples `app.getAppMetrics()` every 10 seconds, appends one line per sample, and
+quits after `LLP_SOAK_EXIT_MS`. It names renderers by their page: `index.html`
+is `control`, and `output.html?screen=<id>` is `output:<id>`. The test scenario
+(looping video and 장 changes) and the output frame rates come with output's M2
+work.
 
 | Variable           | Meaning                                                             |
 | ------------------ | ------------------------------------------------------------------- |
