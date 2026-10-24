@@ -216,6 +216,22 @@ describe('runBackup', () => {
     expect(await readdir(elsewhere)).toEqual(['keep.txt']);
   });
 
+  it('leaves the temporary files of writes out of the backup', async () => {
+    const locations = await dataLocations();
+    const leftover = '.a.llsong.3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293.tmp';
+    await writeJson(join(locations.songs, 'a.llsong'), {title: 'a'});
+    await writeJson(join(locations.songs, leftover), 'half written');
+
+    await backUp(locations);
+
+    expect(await readdir(join(locations.backups, NOW_NAME, '곡'))).toEqual([
+      'a.llsong',
+    ]);
+    expect((await readdir(locations.songs)).sort()).toEqual(
+      [leftover, 'a.llsong'].sort(),
+    );
+  });
+
   it('fails when a file stands where a data folder should be', async () => {
     const locations = await dataLocations();
     await writeJson(locations.songs, 'a file where the folder should be');

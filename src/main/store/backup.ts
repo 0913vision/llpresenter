@@ -1,8 +1,8 @@
 import {cp, mkdir, readdir, realpath, rename, rm, stat} from 'node:fs/promises';
-import {join} from 'node:path';
+import {basename, join} from 'node:path';
 import type {Result} from '@shared/result';
 import type {Preferences} from '@shared/schema/preferences';
-import type {WriteProblem} from './atomicWrite';
+import {isTemporaryFileName, type WriteProblem} from './atomicWrite';
 import {isMissingFile} from './fsErrors';
 import {
   dataFileFolders,
@@ -191,7 +191,7 @@ async function copyDataFolders(
   target: string,
   developmentFolder: string | null,
 ): Promise<void> {
-  const allowed = await sourceCheck(developmentFolder);
+  const allowed = await copyFilter(developmentFolder);
   for (const name of dataFileFolders) {
     await copyFolder(
       locations[name],
@@ -201,19 +201,22 @@ async function copyDataFolders(
   }
 }
 
-// NOTE(0913vision): Links are copied as what they point to, so in development
-// the real path of every file and folder is checked against `LLP_USER_DATA`
-// before it is copied; a link under 곡 that leads to real data fails the
-// backup.
-async function sourceCheck(
+// NOTE(0913vision): A write's temporary file is never copied: a leftover of a
+// cut-off write, or a write running now, isn't data, even when the launch
+// cleanup leaves it because it is fresh. Links are copied as what they point
+// to, so in development the real path of every file and folder is checked
+// against `LLP_USER_DATA` before it is copied; a link under 곡 that leads to
+// real data fails the backup.
+async function copyFilter(
   developmentFolder: string | null,
 ): Promise<(source: string) => Promise<boolean>> {
-  if (developmentFolder === null) {
-    return () => Promise.resolve(true);
-  }
-  const root = await realpath(developmentFolder);
+  const root =
+    developmentFolder === null ? null : await realpath(developmentFolder);
   return async source => {
-    if (!isInside(await realpath(source), root)) {
+    if (isTemporaryFileName(basename(source))) {
+      return false;
+    }
+    if (root !== null && !isInside(await realpath(source), root)) {
       throw new Error(`Refused: ${source} leads outside LLP_USER_DATA`);
     }
     return true;
