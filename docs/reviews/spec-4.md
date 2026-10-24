@@ -103,3 +103,17 @@ logic") is the lead's file, so I left it as it is.
 - Whether the copyright statements in the source table match their sources.
 - Whether the file format and its validation rules are enough for the tools
   member (M3-T4a) to build the loader and the conversion script.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (150a619): reviewer (Codex, codex3) Request changes: the Korean
+  reference grammar had one example and no endpoint rules, and omitted verses
+  had no lookup or display rule.
+- Round 2 (5b809ce): reviewer (Codex, codex3) Approve with one nit:
+  `02-data.md:652` should compare endpoints as (chapter, verse) pairs and
+  collapse equal verse numbers only within one chapter. The nit goes into
+  spec-8. Lead Approve; the `.llbible` format is ours, copible's book data,
+  matching, and reference parsing are reused, es-hangul stays a proposal, and
+  the text sources wait for the user (`docs/plans/open-decisions.md`, entries 8
+  and 9). The lead updated `docs/TECH.md`'s open item in the same merge. Rebased
+  by the lead onto `main` 5bd039b without conflicts.

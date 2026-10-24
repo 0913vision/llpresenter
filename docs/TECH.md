@@ -228,10 +228,10 @@ Add a new library only when it meets all of the following, you've recorded it in
 
 ## To be decided
 
-| Item                                                    | Phase                     |
-| ------------------------------------------------------- | ------------------------- |
-| Initial consonant search method                         | Phase 3 (prep)            |
-| Bible data format and porting the copible logic         | Phase 3 (tools)           |
-| NDI sending (comparing native module candidates)        | Phase 5                   |
-| Building the installer                                  | Phase 5                   |
-| PowerPoint reading, sheet music rendering, camera input | The phase of each feature |
+| Item                                                          | Phase                             |
+| ------------------------------------------------------------- | --------------------------------- |
+| Initial consonant search method                               | Phase 3 (prep)                    |
+| Bible text sources (format decided in `docs/spec/02-data.md`) | Phase 3 (tools), the user decides |
+| NDI sending (comparing native module candidates)              | Phase 5                           |
+| Building the installer                                        | Phase 5                           |
+| PowerPoint reading, sheet music rendering, camera input       | The phase of each feature         |
