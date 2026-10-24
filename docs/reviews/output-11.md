@@ -163,19 +163,22 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (59509f1, codex4): Request changes with three findings: a reload that
+  failed without a crash left the output blank, a frame-rate report announced
+  running before the live state was drawn, and a retry ran while the output was
+  off.
+- Round 2 (e90483a, codex4): Request changes with two findings: a failed load
+  could be counted twice, and a page that drew late during the cool-down was
+  reloaded anyway.
+- Round 3 (5934cce): reviewer (Codex, codex4) Approve with one nit: the
+  non-exported `PageStatus` in `src/main/outputs/rendererRecovery.ts` has a
+  TSDoc comment; make it a `NOTE(0913vision)` or remove it. The nit goes into
+  output's next branch. Lead Approve; each reload is one page load that settles
+  exactly once, and the output keeps the empty picture after repeated crashes
+  and retries after a growing cool-down. Rebased by the lead onto local `main`
+  without conflicts.
 
 ## Team member's reply
 
