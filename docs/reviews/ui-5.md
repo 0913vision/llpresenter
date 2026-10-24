@@ -2,7 +2,13 @@
 
 - Team member: `ui`
 - Branch: `fix/ui/card-font`
-- Base commit (`main`): `d993147`
+- Review range: `4656e3c...fix/ui/card-font`
+- Base commit (`main`): `4656e3c` (round 1 was on `d993147`; rebased onto main
+  for round 2, which now has devops-12, the node project route for renderer
+  `*.node.test.ts` files)
+- Shared changes: none
+- Round 2, what to check: the finding in "Team member's reply", and that the new
+  test fails when the URL, the file, or its bytes go wrong
 - Last commit: the commit that adds this file (see the review request message)
 - Related brief: `docs/briefs/ui.md`; bug M1-6 from qa
 
@@ -32,16 +38,17 @@ The design system README already says the app uses this one file
 
 - `design/system/project/fonts/PretendardVariable.woff2` (new, 2.0 MB)
 - `design/system/project/fonts/LICENSE.txt` (new)
-- `src/renderer/src/styles/designSystemAssets.test.ts` (new)
+- `src/renderer/src/styles/designSystemAssets.node.test.ts` (new in round 2; it
+  replaces round 1's `designSystemAssets.test.ts`)
 
 ## Checks run
 
-| Command or test                             | Result                                                                                 |
-| ------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `npm run verify`                            | Pass, 5 steps, 89 files, 894 tests (1 skipped under coverage by design, not ui), 175 s |
-| `designSystemAssets.test.ts`                | Pass; fails with the `fonts` folder taken out                                          |
-| Card server, font request                   | `/project/fonts/PretendardVariable.woff2` 200                                          |
-| Button card beside the gallery, in Chromium | 10 of 10 shared labels have the same width                                             |
+| Command or test                             | Result                                                                                   |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `npm run verify` (round 2)                  | Pass, 5 steps, 133 files, 1439 tests (1 skipped under coverage by design, not ui), 242 s |
+| `designSystemAssets.node.test.ts` (round 2) | Pass; fails with other font bytes, a wrong URL in `tokens.css`, or no `fonts` folder     |
+| Card server, font request                   | `/project/fonts/PretendardVariable.woff2` 200                                            |
+| Button card beside the gallery, in Chromium | 10 of 10 shared labels have the same width                                               |
 
 The last check ran in an offscreen Electron window (my own script, `show: false`
 and `offscreen: true`, no show calls), on
@@ -74,15 +81,13 @@ comparisons needed a font injected into the card page; this one injects nothing.
 
 1. **A copy of the font in the design system** rather than pointing the card
    server at `node_modules`. The design system then works on its own, as
-   `tokens.css` and the README expect, also outside this repository. The test
-   doesn't check that the copy matches the package after a `pretendard` upgrade;
-   Vitest replaces CSS with an empty string and renderer tests have no Node file
-   access, so the test checks the files that `tokens.css` names instead. Whoever
-   upgrades `pretendard` copies the new file here too.
-2. **The test lives in `src/renderer/src/styles/`**, the closest path I own that
-   Vitest runs. It lists the design system files with `import.meta.glob` and
-   expects the font and its license. A `NOTE(0913vision)` says why it names the
-   path instead of reading `tokens.css`.
+   `tokens.css` and the README expect, also outside this repository (the lead
+   approved this in round 1). The round 2 test fails when a `pretendard` upgrade
+   leaves the copy behind, so whoever upgrades it copies the new file here too.
+2. **The test runs in the node project** (`*.node.test.ts`, from devops-12),
+   because the renderer project replaces CSS with an empty string and has no
+   Node types. It stays in `src/renderer/src/styles/`, the closest path I own,
+   and reads files from `import.meta.dirname`.
 
 ## Shared contract change requests
 
@@ -90,7 +95,7 @@ None.
 
 ## Where to look
 
-- `src/renderer/src/styles/designSystemAssets.test.ts`
+- `src/renderer/src/styles/designSystemAssets.node.test.ts`
 
 ---
 
@@ -115,4 +120,17 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 finding from codex3, fixed (`2941b3b`):
+
+1. The test checked hard-coded file names. The new
+   `designSystemAssets.node.test.ts` runs in the node project and reads
+   `design/system/project/tokens.css` itself: it finds every `@font-face`,
+   checks that each `src` URL points at a file that exists next to `tokens.css`,
+   and compares the SHA-256 of the "Pretendard Variable" face's file with the
+   pinned package's
+   `node_modules/pretendard/dist/web/variable/woff2/PretendardVariable.woff2`.
+   It also checks that `fonts/LICENSE.txt` holds the SIL Open Font License 1.1
+   text. The round 1 glob test is gone. Checked against broken copies, each put
+   back afterwards: one extra byte in the font fails the hash test; a wrong URL
+   in `tokens.css` fails the file and hash tests; no `fonts` folder fails all
+   three.
