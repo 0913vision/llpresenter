@@ -1,6 +1,6 @@
 # Review request: `shell-15`
 
-Review range: 1d46613...fix/shell/preview-click
+Review range: 6d8332f...fix/shell/preview-click
 
 What to check: that a click on the picture of a small preview reaches the button
 that makes it large, that the large preview and the live picture are not
@@ -8,7 +8,7 @@ changed, and that the CSS test guards the rules that make the click work.
 
 - Team member: `shell`
 - Branch: `fix/shell/preview-click`
-- Base commit (`main`): `1d46613`
+- Base commit (`main`): `6d8332f`
 - Last commit: see the commit that adds this file
 - Related brief: bug M2-3 of qa (a click on a small preview's picture does
   nothing)
@@ -84,3 +84,12 @@ missing.
 ## Verdicts (recorded by the lead at merge)
 
 - Not reviewed yet.
+
+## Verify result
+
+`npm run verify` on commit `88defc7` (base `main` 6d8332f): `typecheck`, `lint`,
+`format:check`, and `build` passed. `test:coverage` had one failure in a test I
+did not touch: `scripts/soak/media.test.ts` > "ends the stalled maker and every
+process it started" (`expected true to be false`), which waits on a real child
+process and failed while the other four steps ran in parallel. The file passes
+alone on the same commit (11 of 11 tests). All other tests passed.
