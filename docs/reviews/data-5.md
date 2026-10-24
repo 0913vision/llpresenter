@@ -1,8 +1,8 @@
 # Review request: `data-5` (data-ipc)
 
 - Team member: `data`
-- Branch: `feat/data/ipc`, stacked on `data-1` (`feat/data/schemas`)
-- Base commit (`main`): `86f5926`
+- Branch: `feat/data/ipc`
+- Base commit (`main`): `4aa7901`
 - Last commit: see the commit that adds this file
 - Related brief: `docs/briefs/data.md`; merge queue #10 in `docs/STATUS.md`
 
@@ -22,6 +22,9 @@ Shared changes:
   permission): `installApi` uses `fakeLlpApi`, with the same behavior.
 - `src/shared/schema/liveState.ts` (new, round 2): checks live states that
   arrive from the main process.
+- `electron.vite.config.ts` (output's file, changed with output's permission,
+  round 3): `build: {externalizeDeps: false}` in the preload block, so the
+  preload bundles valibot and runs sandboxed.
 
 ## What changed and why
 
@@ -62,16 +65,16 @@ For output-2 (output windows):
 
 ## Checks run
 
-`npm run verify` on the commit before this document, on `main` 86f5926 with
-`data-1` below it: every step passed.
+`npm run verify` on the commit before this document, on `main` 4aa7901: every
+step passed. The one skipped test belongs to another member's suite.
 
 | Command or test                    | Result                                                                |
 | ---------------------------------- | --------------------------------------------------------------------- |
 | `npm run typecheck`                | Passed                                                                |
-| `npm test`                         | Passed: 62 files, 630 tests                                           |
+| `npm test`                         | Passed: 64 files, 634 tests and 1 skipped                             |
 | `npm run format:check`             | Passed                                                                |
 | `npm run build`                    | Passed                                                                |
-| `npm run verify` (from phase 1 on) | Passed: typecheck, lint, format:check, test:coverage, build (118.5 s) |
+| `npm run verify` (from phase 1 on) | Passed: typecheck, lint, format:check, test:coverage, build (392.6 s) |
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
@@ -170,3 +173,20 @@ Round 2, reply to the reviewer's finding:
 Also in this round: shell's show workspace landed on `main` with two more tests
 that build a full `LlpApi` by hand. With shell's permission, they now use
 `fakeLlpApi` too.
+
+Round 3, replies to the reviewer's findings:
+
+1. Sandboxed preload: fixed. electron-vite 6 externalized valibot, so the built
+   preload did `require("valibot")`. With output's permission,
+   `electron.vite.config.ts` now sets `build: {externalizeDeps: false}` for the
+   preload, as electron-vite's docs say for sandbox support. The built preload
+   requires only `electron`.
+   - The new test `src/preload/sandbox.test.ts` builds the real preload with the
+     real config into a temporary folder. It runs the bundle in a VM that allows
+     only the modules a sandboxed preload may require (`electron`, `events`,
+     `timers`, `url`) and checks that `window.llp` is exposed.
+   - It failed before the fix ("can't require valibot") and passes now.
+2. Array replies: every IPC payload's root is now `payloadObject`, which rejects
+   arrays and drops unknown fields. A root `[]` for the UI state is logged and
+   gives `{}`, with a test.
+3. The unexported `invokeChecked` has a NOTE instead of TSDoc.
