@@ -1,6 +1,7 @@
 import {sameRect, type Rect} from '../displays/rect';
 import type {Logger} from '../log';
 import type {FullScreenPlacement, ShownPlacement} from './placement';
+import {HANG_TIMEOUT_MS, HangWatch} from './hangWatch';
 import {
   RendererRecovery,
   type RendererGoneDetails,
@@ -20,6 +21,8 @@ export interface OutputWindowHandle {
    * Rejects when the page fails to load.
    */
   reload(): Promise<void>;
+  /** Ends a hung renderer process, so the crash path starts it again. */
+  crashRenderer(): void;
   destroy(): void;
 }
 
@@ -66,6 +69,7 @@ export class OutputWindow {
   private visible = false;
   private disposed = false;
   private readonly recovery: RendererRecovery;
+  private readonly hangWatch = new HangWatch(() => this.handleHang());
 
   constructor(private readonly options: OutputWindowOptions) {
     this.recovery = new RendererRecovery({
@@ -82,9 +86,15 @@ export class OutputWindow {
     return this.recovery.state;
   }
 
-  /** The page drew the output state after a (re)load. */
-  pageDrawn(): void {
+  /**
+   * The page reported its frame rate: it has drawn the output state since its
+   * last load, and it is still drawing.
+   */
+  frameReported(): void {
     this.recovery.pageDrawn();
+    if (this.visible && this.recovery.state === 'running') {
+      this.hangWatch.beat();
+    }
   }
 
   /** 다시 시도: while the restart limit waits, an attempt starts at once. */
@@ -102,6 +112,7 @@ export class OutputWindow {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    this.hangWatch.stop();
     this.recovery.dispose();
     this.handle?.destroy();
     this.handle = null;
@@ -139,6 +150,7 @@ export class OutputWindow {
     if (!this.visible || this.handle === null) return;
     this.handle.hide();
     this.visible = false;
+    this.hangWatch.stop();
     this.recovery.pause();
   }
 
@@ -150,11 +162,20 @@ export class OutputWindow {
     if (this.handle !== null) return this.handle;
     const handle = this.options.createHandle(this.options.screen, {
       onRendererGone: details => {
+        this.hangWatch.stop();
         if (!this.disposed) this.recovery.crashed(details);
       },
       onCloseRequested: this.options.onCloseRequested,
     });
     this.handle = handle;
     return handle;
+  }
+
+  private handleHang(): void {
+    this.options.log.error(
+      'output window stopped drawing; restarting its renderer',
+      {screen: this.options.screen.id, silentForMs: HANG_TIMEOUT_MS},
+    );
+    this.handle?.crashRenderer();
   }
 }

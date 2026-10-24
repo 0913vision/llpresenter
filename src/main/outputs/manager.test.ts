@@ -270,11 +270,11 @@ describe('OutputManager', () => {
       await clock.advance(RELAUNCH_DELAY_MS);
     }
     await clock.advance(COOLDOWN_STEPS_MS[0] ?? 0);
-    manager.pageDrawn('stage');
+    manager.frameReported('stage');
     expect(log.messages('info')).not.toContain(
       'output window restart attempt works',
     );
-    manager.pageDrawn('main');
+    manager.frameReported('main');
     expect(log.messages('info')).toContain(
       'output window restart attempt works',
     );

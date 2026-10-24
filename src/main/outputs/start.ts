@@ -98,7 +98,7 @@ export function startOutputs({
       Channels.outputFrameRate,
       handleFrameRate(report => {
         frameRates.report(report);
-        outputs.pageDrawn(report.screenId);
+        outputs.frameReported(report.screenId);
         board.refresh();
       }, log),
     ),

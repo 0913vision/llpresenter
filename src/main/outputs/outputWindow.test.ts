@@ -4,6 +4,7 @@ import {recordingLogger} from '../displays/testing';
 import {OutputWindow} from './outputWindow';
 import type {ShownPlacement} from './placement';
 import {COOLDOWN_STEPS_MS, RELAUNCH_DELAY_MS} from './rendererRecovery';
+import {HANG_TIMEOUT_MS} from './hangWatch';
 import {CRASH_LIMIT} from './restartBudget';
 import {fakeWindows, fullScreenScreen} from './testing';
 
@@ -172,5 +173,39 @@ describe('OutputWindow', () => {
     expect(handle.reloads).toBe(0);
     output.update(FULL_SCREEN);
     expect(windows.created).toHaveLength(1);
+  });
+
+  it('crashes the renderer of a visible output that stops reporting, so it restarts', async () => {
+    const clock = installFakeClock();
+    const {output, windows, log} = setUp();
+    output.update(FULL_SCREEN);
+    const handle = windows.only('main');
+    output.frameReported();
+    await clock.advance(HANG_TIMEOUT_MS - 1);
+    output.frameReported();
+    await clock.advance(HANG_TIMEOUT_MS - 1);
+    expect(handle.forcedCrashes).toBe(0);
+    await clock.advance(1);
+    expect(handle.forcedCrashes).toBe(1);
+    expect(log.messages('error')).toContain(
+      'output window stopped drawing; restarting its renderer',
+    );
+  });
+
+  it('does not watch a hidden output or one that is restarting', async () => {
+    const clock = installFakeClock();
+    const {output, windows} = setUp();
+    output.update(FULL_SCREEN);
+    const handle = windows.only('main');
+    output.frameReported();
+    output.update(null);
+    await clock.advance(HANG_TIMEOUT_MS * 2);
+    expect(handle.forcedCrashes).toBe(0);
+
+    output.update(FULL_SCREEN);
+    output.frameReported();
+    handle.crash();
+    await clock.advance(HANG_TIMEOUT_MS * 2);
+    expect(handle.forcedCrashes).toBe(0);
   });
 });

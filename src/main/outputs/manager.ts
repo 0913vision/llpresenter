@@ -96,11 +96,11 @@ export class OutputManager {
   }
 
   /**
-   * A screen's page drew the output state, so a window that restarted shows
-   * the live picture again. Its first frame rate report is the sign.
+   * A screen's page reported its frame rate: a window that restarted shows
+   * the live picture again, and a hung page is noticed when the reports stop.
    */
-  pageDrawn(screenId: string): void {
-    this.windows.get(screenId)?.pageDrawn();
+  frameReported(screenId: string): void {
+    this.windows.get(screenId)?.frameReported();
   }
 
   /** 다시 시도 for a screen whose window holds the restart limit. */

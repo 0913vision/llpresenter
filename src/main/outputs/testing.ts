@@ -27,6 +27,7 @@ export class FakeOutputHandle implements OutputWindowHandle {
   reloads = 0;
   /** Makes the next reload fail to load the page. */
   failNextReload = false;
+  forcedCrashes = 0;
   /** Every call that showed the window, in order. */
   readonly placements: FakeMode[] = [];
 
@@ -53,6 +54,10 @@ export class FakeOutputHandle implements OutputWindowHandle {
     if (!this.failNextReload) return Promise.resolve();
     this.failNextReload = false;
     return Promise.reject(new Error('ERR_FAILED'));
+  }
+
+  crashRenderer(): void {
+    this.forcedCrashes += 1;
   }
 
   destroy(): void {

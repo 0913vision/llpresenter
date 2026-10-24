@@ -142,6 +142,9 @@ export function createElectronOutputWindow(
   return {
     ...presentationFor(win, mode),
     reload: () => startLoading(win, page),
+    crashRenderer: () => {
+      if (!win.isDestroyed()) win.webContents.forcefullyCrashRenderer();
+    },
     destroy: () => {
       if (!win.isDestroyed()) win.destroy();
     },
