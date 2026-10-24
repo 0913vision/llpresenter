@@ -6,13 +6,14 @@ import {jsonObject, positiveInteger} from './primitives';
 import {escapeKeys, restoreKeyPath, restoreKeys} from './safeKeys';
 
 /**
- * Why a file couldn't be read or written. `json`: the text isn't JSON.
- * `format`: the file isn't of the expected kind. `invalid`: a field breaks the
- * schema. `newer`: a newer app version wrote the file and its content doesn't
- * fit this version. `migration`: converting an older version failed.
+ * Why a file couldn't be read or written. `read`: the file couldn't be read
+ * from disk. `json`: the text isn't JSON. `format`: the file isn't of the
+ * expected kind. `invalid`: a field breaks the schema. `newer`: a newer app
+ * version wrote the file and its content doesn't fit this version.
+ * `migration`: converting an older version failed.
  */
 export type FileErrorKind =
-  'json' | 'format' | 'invalid' | 'newer' | 'migration';
+  'read' | 'json' | 'format' | 'invalid' | 'newer' | 'migration';
 
 export interface FileError {
   readonly kind: FileErrorKind;
