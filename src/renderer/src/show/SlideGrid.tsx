@@ -41,7 +41,7 @@ function Thumbnail({
       aria-selected={selected}
       aria-label={`${number} ${tile.label ?? ''} ${tile.lines[0] ?? ''}`.trim()}
       data-state={live ? 'live' : undefined}
-      data-color={tile.labelColor ?? undefined}
+      data-color={tile.labelColor === 'none' ? undefined : tile.labelColor}
       className={styles.thumb}
       onClick={() => onOutput(index)}
     >

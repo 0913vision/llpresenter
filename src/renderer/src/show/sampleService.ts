@@ -1,4 +1,5 @@
-import type {ItemId, LabelColor, ServiceRow, SlideTile} from './model';
+import type {LabelColor} from '@shared/colors';
+import type {ItemId, ServiceRow, SlideTile} from './model';
 
 // TODO(0913vision): Replace this invented service with the open 예배 순서 from
 // the data layer once the main process serves it.
@@ -25,7 +26,7 @@ const labelColors: Readonly<Record<string, LabelColor>> = {
 function tile(label: string | null, ...lines: string[]): SlideTile {
   return {
     label,
-    labelColor: label ? (labelColors[label] ?? 'gray') : null,
+    labelColor: label ? (labelColors[label] ?? 'gray') : 'none',
     lines,
   };
 }

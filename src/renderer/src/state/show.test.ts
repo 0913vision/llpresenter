@@ -128,10 +128,10 @@ describe('show state', () => {
     });
   });
 
-  it('goes on to the next item after the last tile', () => {
+  it('stops after the last tile and does not move on to the next item', () => {
     setLive('song-morning', 3);
     outputNext();
-    expect(sent[0]).toMatchObject({slide: {itemId: 'song-river', position: 0}});
+    expect(sent).toHaveLength(0);
   });
 
   it('outputs the tile before the live one with previous', () => {

@@ -58,12 +58,7 @@ export function moveTileSelection(params: {
   return target < 0 || target >= count ? index : target;
 }
 
-function isOutputtable(row: ServiceRow, tilesOf: TilesOf): row is ItemRow {
-  return isItemRow(row) && row.kind !== 'slot' && tilesOf(row.id).length > 0;
-}
-
 export interface SequenceState {
-  readonly rows: readonly ServiceRow[];
   readonly tilesOf: TilesOf;
   /** The tile on output, or null when no 장 is live. */
   readonly live: TileCursor | null;
@@ -75,27 +70,16 @@ function firstTileOf(itemId: ItemId, tilesOf: TilesOf): TileCursor | null {
   return tilesOf(itemId).length > 0 ? {itemId, index: 0} : null;
 }
 
-function firstTileAfter(
-  itemId: ItemId,
-  {rows, tilesOf}: SequenceState,
-): TileCursor | null {
-  const at = rows.findIndex(row => row.id === itemId);
-  const next = rows.slice(at + 1).find(row => isOutputtable(row, tilesOf));
-  return next ? firstTileOf(next.id, tilesOf) : null;
-}
-
 /**
  * The tile that the next-장 key outputs. Without a live 장 it is the first
- * tile of the open item. After the last tile it is the first tile of the next
- * item that can output, and null when there is none.
+ * tile of the open item. After the last tile it is null: the key stops there
+ * and does not move on to the next item.
  */
 export function nextTile(state: SequenceState): TileCursor | null {
   const {live, openItemId, tilesOf} = state;
   if (!live) return openItemId ? firstTileOf(openItemId, tilesOf) : null;
-  if (live.index + 1 < tilesOf(live.itemId).length) {
-    return {itemId: live.itemId, index: live.index + 1};
-  }
-  return firstTileAfter(live.itemId, state);
+  if (live.index + 1 >= tilesOf(live.itemId).length) return null;
+  return {itemId: live.itemId, index: live.index + 1};
 }
 
 /** The tile that the previous-장 key outputs. Null on the first tile. */

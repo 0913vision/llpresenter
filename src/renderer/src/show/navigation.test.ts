@@ -19,7 +19,7 @@ const rows: readonly ServiceRow[] = [
 ];
 
 function tile(label: string | null): SlideTile {
-  return {label, labelColor: null, lines: ['line']};
+  return {label, labelColor: 'none', lines: ['line']};
 }
 
 const tiles: Readonly<Record<ItemId, readonly SlideTile[]>> = {
@@ -31,7 +31,6 @@ const tiles: Readonly<Record<ItemId, readonly SlideTile[]>> = {
 
 function stateOf(overrides: Partial<SequenceState>): SequenceState {
   return {
-    rows,
     tilesOf: itemId => tiles[itemId] ?? [],
     live: null,
     openItemId: null,
@@ -118,20 +117,9 @@ describe('nextTile', () => {
     expect(nextTile(stateOf({live}))).toEqual({itemId: 'a', index: 2});
   });
 
-  it('moves from the last tile to the first tile of the next item that can output', () => {
-    const live = {itemId: 'a', index: 3};
-    expect(nextTile(stateOf({live}))).toEqual({itemId: 'b', index: 0});
-  });
-
-  it('skips headers and slots after the last tile', () => {
-    const live = {itemId: 'a', index: 3};
-    const next = nextTile(stateOf({live}));
-    expect(next?.itemId).not.toBe('slot');
-  });
-
-  it('returns nothing after the last tile of the last item', () => {
-    const live = {itemId: 'c', index: 0};
-    expect(nextTile(stateOf({live}))).toBeNull();
+  it('stops at the last tile and does not move on to the next item', () => {
+    expect(nextTile(stateOf({live: {itemId: 'a', index: 3}}))).toBeNull();
+    expect(nextTile(stateOf({live: {itemId: 'c', index: 0}}))).toBeNull();
   });
 
   it('uses the live item even when another item is open', () => {

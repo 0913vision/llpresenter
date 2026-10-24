@@ -47,8 +47,8 @@ export function liveCursor(): TileCursor | null {
 }
 
 function sequenceState(): SequenceState {
-  const {rows, openItemId} = useShow.getState();
-  return {rows, tilesOf, live: liveCursor(), openItemId};
+  const {openItemId} = useShow.getState();
+  return {tilesOf, live: liveCursor(), openItemId};
 }
 
 /** Opens an item in the 장 panel and selects its first tile. */

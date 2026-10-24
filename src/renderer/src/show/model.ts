@@ -1,3 +1,5 @@
+import type {LabelColor} from '@shared/colors';
+
 /** Id of a row in the 예배 순서 (service order). */
 export type ItemId = string;
 
@@ -17,14 +19,11 @@ export interface ItemRow {
 
 export type ServiceRow = HeaderRow | ItemRow;
 
-export type LabelColor =
-  'teal' | 'green' | 'yellow' | 'orange' | 'rose' | 'violet' | 'slate' | 'gray';
-
 /** One tile of the 장 grid: a 장 at its position in the 구성 (arrangement). */
 export interface SlideTile {
   readonly label: string | null;
-  /** The 이름표 color. Null when the 이름표 has none. */
-  readonly labelColor: LabelColor | null;
+  /** The 이름표 color, or `none` when the 이름표 has no color. */
+  readonly labelColor: LabelColor;
   readonly lines: readonly string[];
 }
 
