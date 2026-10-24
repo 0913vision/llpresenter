@@ -72,3 +72,20 @@ idle machine.
 
 - The parallel verify (devops-8, in progress) builds on this. It also captures
   each step's output, so I'll rebase it onto this once it merges.
+
+## Team member's reply (round 1)
+
+1.  Codex 1: `failureLines` now also recognizes the separator-decorated
+    "Unhandled Errors" and "Unhandled Rejection" headings (separators stripped)
+    and "Vitest caught N unhandled errors". Each notable line keeps the first
+    error line within the next six lines, such as `TypeError: ...` or
+    `Error: Test timed out in 60000ms.`, and stops at the next notable line. A
+    test that appears twice (summary and details) is listed once, with its
+    error. New fixture with only an unhandled rejection: it gives
+    `Unhandled Rejection (TypeError: Cannot read properties of undefined ...)`.
+    This also covers qa's suggestion: a timed-out test reads
+    `FAIL ... > waits (Error: Test timed out in 60000ms.)`, so a timeout shows
+    as one without reading the milliseconds.
+2.  Codex 2: step output goes through `readText`, which sets one UTF-8 decoder
+    per stream (`setEncoding('utf8')`). New test: `×` split across two writes
+    comes through whole. With per-chunk decoding it read `�� done`.
