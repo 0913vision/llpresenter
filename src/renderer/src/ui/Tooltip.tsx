@@ -2,9 +2,7 @@ import {
   cloneElement,
   useEffect,
   useId,
-  useLayoutEffect,
   useRef,
-  useState,
   useSyncExternalStore,
   type FocusEvent,
   type JSX,
@@ -14,8 +12,9 @@ import {
 } from 'react';
 import {createPortal} from 'react-dom';
 import {classNames} from './classNames';
+import {useFloatingPoint} from './floating';
 import {layerContainer} from './layers';
-import {placeTooltip, viewportSize, type Point} from './placement';
+import {placeTooltip, viewportSize} from './placement';
 import {tooltipController} from './tooltipController';
 import styles from './Tooltip.module.css';
 
@@ -85,20 +84,11 @@ function TooltipSurface({
   readonly content: TooltipContent;
 }): JSX.Element {
   const surface = useRef<HTMLDivElement>(null);
-  const [point, setPoint] = useState<Point | null>(null);
-
-  useLayoutEffect(() => {
-    const element = surface.current;
-    if (element === null) return;
-    const {width, height} = element.getBoundingClientRect();
-    setPoint(
-      placeTooltip(
-        target.getBoundingClientRect(),
-        {width, height},
-        viewportSize(),
-      ),
-    );
-  }, [target, content.text, content.shortcut, content.sub]);
+  const point = useFloatingPoint(
+    surface,
+    size => placeTooltip(target.getBoundingClientRect(), size, viewportSize()),
+    `${content.text}|${content.shortcut ?? ''}|${content.sub ?? ''}`,
+  );
 
   return (
     <div
