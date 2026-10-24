@@ -2,8 +2,12 @@
 
 - Team member: `ui`
 - Branch: `feat/ui/show-parts`
-- Review range: `02bb9c0...feat/ui/show-parts`
-- Base commit (`main`): `02bb9c0`
+- Review range: `5916a0b...feat/ui/show-parts` (round 1 was
+  `02bb9c0...feat/ui/show-parts`; round 2 rebased onto `main` without conflicts)
+- Base commit (`main`): `5916a0b`
+- Round 2, what to check: the two fixes in "Team member's reply", each with the
+  test that fails on the old code, and "Shell handoff" against shell's
+  `src/renderer/src/show/shortcuts.ts`
 - Last commit: the commit that adds this file (see the review request message)
 - Related brief: `docs/briefs/ui.md`, M2 in `docs/MILESTONES.md`
 - Shared changes: eleven new design tokens in
@@ -33,8 +37,9 @@ Shared pieces:
 
 - `clickFocus.ts`: `CLICK_FOCUS_SELECTOR` and `clickFocusProps`, the parts that
   keep focus on a mouse click in 진행 (text fields, sliders, menus, dialogs, the
-  장 grid, the 예배 순서 list). Shell's 진행 handler imports it instead of its
-  own list.
+  장 grid, the 예배 순서 list). Shell's 진행 handler still uses its own
+  selectors; "Shell handoff" below says what it changes when it takes these
+  parts.
 - `workspace.ts`: `Workspace` (`show` or `prep`). In 진행 the 장 grid keeps ↑ ↓
   and Enter and leaves ← → Space Page Up Page Down to 다음 장 and 이전 장, and
   the 예배 순서 list (`ListBox workspace="show"`) does the same with ↑ ↓ Home
@@ -67,11 +72,11 @@ README ("States and motion", the 진행 click focus rule).
 
 ## Checks run
 
-| Command or test                              | Result                                                                            |
-| -------------------------------------------- | --------------------------------------------------------------------------------- |
-| `npm run verify`                             | Pass, 5 steps run at once, 192 s (the new verify prints no test counts on a pass) |
-| `npx vitest run --project renderer` (ui)     | Pass, 38 files, 340 tests                                                         |
-| Gallery beside the preview cards (see below) | Done for the three cards, in Chromium (offscreen Electron)                        |
+| Command or test                              | Result                                                                                                         |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `npm run verify`                             | Pass, 5 steps run at once, 274 s in round 2 (192 s in round 1; the new verify prints no test counts on a pass) |
+| `npx vitest run --project renderer` (ui)     | Pass, 38 files, 343 tests (340 in round 1)                                                                     |
+| Gallery beside the preview cards (see below) | Done for the three cards, in Chromium (offscreen Electron)                                                     |
 
 ### Comparison with the preview cards
 
@@ -119,9 +124,11 @@ to the 진행 도구 tab, not to MacroTile.
    `columns: 'auto'` reads the column count of the auto-fill 매크로 grid from
    the layout when an arrow key is pressed.
 2. **Space.** The 장 grid in 진행 and every media list pass Space on (their
-   READMEs don't give it to them): only the button's own click on keyup is
-   cancelled, so the window still sees the keydown. The 장 grid in 준비 and the
-   매크로 lists press with Space, as their READMEs say.
+   READMEs don't give it to them): the window still sees the keydown. The 장
+   grid in 준비 and the 매크로 lists press with Space, as their READMEs say, and
+   cancel its keydown (round 2). In every list the button's own click on Enter
+   and on the Space keyup is cancelled, and the list presses the tile itself,
+   once per plain press (round 2).
 3. **Clicks and activation.** Each list reports indexes, so the caller keeps its
    own ids. A click or Enter on a media tile calls `onActivate`, which the media
    view uses to select and the 진행 strip to send out; on a tile whose file is
@@ -145,6 +152,47 @@ to the 진행 도구 tab, not to MacroTile.
 ## Shared contract change requests
 
 None.
+
+## Shell handoff
+
+Shell's 진행 handler (`src/renderer/src/show/shortcuts.ts`) keeps its own
+selectors today: `FOCUSABLE_ON_CLICK_SELECTOR` and `PASSING_PARTS_SELECTOR` both
+name `[data-slide-grid]` and `[data-service-list]`, the marks of shell's own
+`SlideGrid` and `ServiceOrderList`. The ui parts don't carry those marks. When
+shell moves to `ThumbnailGrid workspace="show"`, `ListBox workspace="show"`,
+`MediaStrip`, and the 매크로 lists, it changes three things:
+
+1. **Click focus.** Replace `FOCUSABLE_ON_CLICK_SELECTOR` with
+   `CLICK_FOCUS_SELECTOR` from `@renderer/ui`. It covers the text fields and
+   sliders (`input`, `textarea`, `select`, `contenteditable`), menus and
+   dialogs, and every part marked with `clickFocusProps`: `ThumbnailGrid` and
+   `ListBox`. `MediaStrip` and the 매크로 lists aren't marked, so a click there
+   leaves the focus where it was, and → and Space still go to 다음 장.
+2. **Keys a part takes.** Every ui list cancels the keydown of each key it takes
+   (`preventDefault`), and `handleShowKey` already returns on
+   `defaultPrevented`. In 진행:
+
+   | Part                     | Takes (keydown cancelled)                         | Passes on to the window                 |
+   | ------------------------ | ------------------------------------------------- | --------------------------------------- |
+   | `ThumbnailGrid` (`show`) | ↑ ↓, Enter (sends out, once per press), menu      | ← → Space Page Up Page Down, digit keys |
+   | `ListBox` (`show`)       | ↑ ↓ Home End, Enter                               | ← → Space Page Up Page Down, digit keys |
+   | `MediaStrip`             | ← →, Enter, menu                                  | Space Page Up Page Down, digit keys     |
+   | `MacroGrid`, `MacroList` | Arrows, Enter, Space (runs, once per press), menu | Page Up Page Down, digit keys           |
+
+   "Menu" is Shift F10 and the Menu key. A held key or a key with a modifier
+   presses nothing. The tile lists also cancel every Space keyup, so a passed
+   Space never clicks a tile; `handleShowKeyUp` needs no change for them.
+
+3. **Space routing.** `isTakenByFocusedControl` treats a focused `button` as
+   taking Space unless it sits inside `PASSING_PARTS_SELECTOR`, and every tile
+   is a `button` with `role="option"`. Replace `PASSING_PARTS_SELECTOR` with
+   `[role="listbox"]`: a ui list that takes Space has already cancelled the
+   keydown, and a list that passes it leaves it to 다음 장. The rows of
+   `ListBox` are not buttons, so the 예배 순서 list passes Space either way; a
+   `ListRow` end button such as 내리기 still takes Space as a button.
+
+`SHORTCUT_RECORDING_SELECTOR` from `@renderer/ui` is the same string as
+`SHORTCUT_RECORDER_SELECTOR` in `clearKeys.ts`, so shell can import it.
 
 ## Where to look
 
@@ -176,4 +224,19 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 findings from codex2, both fixed.
+
+1. A held or modified Enter pressed a tile through the button's own click.
+   `TileList` now cancels that click on every Enter keydown and presses the tile
+   itself only on a plain, first keydown; the Space keyup works the same way, so
+   a modified Space presses nothing either (`2a6438f`). Tests that fail on the
+   old code: a held Enter (four keydowns) presses the tile once; Enter and Space
+   with Control, Shift, Alt, or Meta press nothing on a 매크로 list, and a plain
+   Space still does. While writing the shell handoff I found that a list that
+   presses with Space didn't cancel the keydown, so shell's handler couldn't
+   tell it from a list that passes Space on; it does now (`e30e03e`). Test: the
+   Space keydown is cancelled on a 매크로 tile and not on a media strip tile.
+2. The claim about shell's handler was wrong: it still uses its own selectors.
+   The shared-pieces note now says so, and "Shell handoff" lists what shell
+   changes, including the Space routing of the 장 grid and the media strip. I
+   sent it to shell.
