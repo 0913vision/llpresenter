@@ -2,12 +2,12 @@
 
 - Team member: `ui`
 - Branch: `feat/ui/show-parts`
-- Review range: `5916a0b...feat/ui/show-parts` (round 1 was
-  `02bb9c0...feat/ui/show-parts`; round 2 rebased onto `main` without conflicts)
-- Base commit (`main`): `5916a0b`
-- Round 2, what to check: the two fixes in "Team member's reply", each with the
-  test that fails on the old code, and "Shell handoff" against shell's
-  `src/renderer/src/show/shortcuts.ts`
+- Review range: `636f241...feat/ui/show-parts` (round 1 was
+  `02bb9c0...feat/ui/show-parts` and round 2 `5916a0b...feat/ui/show-parts`;
+  each round rebased onto `main` without conflicts)
+- Base commit (`main`): `636f241`
+- Round 3, what to check: the round 2 finding in "Team member's reply", with the
+  tests that fail on the old code
 - Last commit: the commit that adds this file (see the review request message)
 - Related brief: `docs/briefs/ui.md`, M2 in `docs/MILESTONES.md`
 - Shared changes: eleven new design tokens in
@@ -72,11 +72,11 @@ README ("States and motion", the 진행 click focus rule).
 
 ## Checks run
 
-| Command or test                              | Result                                                                                                         |
-| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `npm run verify`                             | Pass, 5 steps run at once, 274 s in round 2 (192 s in round 1; the new verify prints no test counts on a pass) |
-| `npx vitest run --project renderer` (ui)     | Pass, 38 files, 343 tests (340 in round 1)                                                                     |
-| Gallery beside the preview cards (see below) | Done for the three cards, in Chromium (offscreen Electron)                                                     |
+| Command or test                              | Result                                                                                                     |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `npm run verify`                             | Pass, 5 steps run at once, 297 s in round 3 (274 s in round 2, 192 s in round 1; no test counts on a pass) |
+| `npx vitest run --project renderer` (ui)     | Pass, 38 files, 345 tests (343 in round 2, 340 in round 1)                                                 |
+| Gallery beside the preview cards (see below) | Done for the three cards, in Chromium (offscreen Electron)                                                 |
 
 ### Comparison with the preview cards
 
@@ -229,14 +229,25 @@ Round 1 findings from codex2, both fixed.
 1. A held or modified Enter pressed a tile through the button's own click.
    `TileList` now cancels that click on every Enter keydown and presses the tile
    itself only on a plain, first keydown; the Space keyup works the same way, so
-   a modified Space presses nothing either (`2a6438f`). Tests that fail on the
+   a modified Space presses nothing either (`feb9a86`). Tests that fail on the
    old code: a held Enter (four keydowns) presses the tile once; Enter and Space
    with Control, Shift, Alt, or Meta press nothing on a 매크로 list, and a plain
    Space still does. While writing the shell handoff I found that a list that
    presses with Space didn't cancel the keydown, so shell's handler couldn't
-   tell it from a list that passes Space on; it does now (`e30e03e`). Test: the
+   tell it from a list that passes Space on; it does now (`e5ac1c0`). Test: the
    Space keydown is cancelled on a 매크로 tile and not on a media strip tile.
 2. The claim about shell's handler was wrong: it still uses its own selectors.
    The shared-pieces note now says so, and "Shell handoff" lists what shell
    changes, including the Space routing of the 장 grid and the media strip. I
    sent it to shell.
+
+Round 2 finding from codex5, fixed.
+
+1. A Space keydown with Shift, then Shift released before Space, still ran a
+   매크로: the keyup saw no modifier. A list that presses with Space now notes
+   the tile of a plain, first Space keydown and presses only on the keyup that
+   ends it on the same tile; a modified keydown clears the note, and every Space
+   keyup still cancels the button's own click (`b6fd9e4`). Tests that fail on
+   the old code: Shift down, Space down, Shift up, Space up presses nothing; a
+   keyup with no keydown, and a keyup on another tile than the keydown, press
+   nothing, while a plain press on the same tile still does.
