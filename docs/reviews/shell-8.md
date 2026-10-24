@@ -84,19 +84,14 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (198fc4f): reviewer (Codex, codex2) Approve with two nits: TSDoc on
+  private helpers, and a rendered-control test with Tab and a full Space press.
+  This fixes qa's rule 6 finding from shell-5. The member took both nits and
+  shell-7's TSDoc nit, then moved the branch onto `main` (00e9c31); no new Codex
+  round was needed for nit-only changes. Lead Approve. Merged onto local `main`
+  without conflicts.
 
 ## Team member's reply
 
