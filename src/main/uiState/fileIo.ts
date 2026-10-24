@@ -1,12 +1,15 @@
 import {readFile} from 'node:fs/promises';
-import {writeFileAtomic} from './atomicWrite';
+import {writeFileAtomically} from '../store/atomicWrite';
 import type {UiStateIo} from './uiStateStore';
 
 function isMissingFile(error: unknown): boolean {
   return error instanceof Error && 'code' in error && error.code === 'ENOENT';
 }
 
-/** The real files: a missing file reads as null, and writes are atomic. */
+/**
+ * The real files: a missing file reads as null, and a write is atomic and a
+ * failed one rejects with the reason.
+ */
 export const fileIo: UiStateIo = {
   read: async file => {
     try {
@@ -16,5 +19,8 @@ export const fileIo: UiStateIo = {
       throw error;
     }
   },
-  write: writeFileAtomic,
+  write: async (file, text) => {
+    const written = await writeFileAtomically(file, text);
+    if (!written.ok) throw new Error(written.error.message);
+  },
 };
