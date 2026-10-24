@@ -90,20 +90,12 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Team member's reply
-
-1.
+- Round 1 (90051d1): lead Approve, and the lead confirms decision 1 (quit with
+  exit code 1, because the default folder may belong to another session or to
+  the real app data). Reviewer (Codex, codex2) Approve with one nit:
+  `src/main/index.test.ts:55` reads the log after the mocked exit, which doesn't
+  prove the flush finished before exit; defer the write and check that exit
+  waits for it. The nit goes into output's next branch. Rebased by the lead onto
+  `main` 044d1fa without conflicts.
