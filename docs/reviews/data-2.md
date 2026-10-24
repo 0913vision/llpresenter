@@ -1,10 +1,17 @@
 # Review request: `data-2`
 
 - Team member: `data`
-- Branch: `feat/data/settings`
-- Base commit (`main`): set when `data-1` merges and this branch is rebased
+- Branch: `feat/data/settings`, stacked on `data-1` (`feat/data/schemas`)
+- Base commit (`main`): `63d0dbc`
 - Last commit: see the commit that adds this file
 - Related brief: `docs/briefs/data.md`
+
+Shared changes (all in `src/shared/schema/`, which data owns):
+
+- New: `screens.ts`, `looks.ts`, `stageLayouts.ts`, `labels.ts`, `shortcuts.ts`,
+  `bible.ts`, `mediaList.ts`, `textStyle.ts`, and their tests.
+- Changed: `fileFormat.ts`, `primitives.ts`, `ids.ts`, `service.ts`, and
+  `testHelpers.ts`, as described below.
 
 ## What changed and why
 
@@ -28,12 +35,18 @@ ids, and an empty migration list in version 1.
 Each module's parse and serialize functions are named after it, for example
 `parseScreens` and `serializeScreens`.
 
-Shared changes:
+Changes to the `data-1` modules:
 
-- `primitives.ts` gains `listWithUniqueIds` (an array whose items have unique
-  ids, with the issue on the repeated item), and the number, color, and size
-  primitives the settings need. `service.ts` now uses `listWithUniqueIds` for
-  its items instead of its own check.
+- `primitives.ts` gains `jsonRecord`, a record that rejects arrays like
+  `jsonObject`. Every object and record in the settings schemas uses
+  `jsonObject` or `jsonRecord`, the fix for the array gap that codex2 found in
+  `data-1`. Only the two options inside the Look background's `v.variant` stay
+  `v.looseObject`, because `v.variant` needs plain object schemas; an array
+  fails there anyway, because it has no `kind`.
+- `primitives.ts` also gains `listWithUniqueIds` (an array whose items have
+  unique ids, with the issue on the repeated item), and the number, color, and
+  size primitives the settings need. `service.ts` now uses `listWithUniqueIds`
+  for its items instead of its own check.
 - `ids.ts` gains `LookId`, `LyricStyleId`, `StageLayoutId`, `MediaPlaylistId`,
   `AudioPlaylistId` (UUIDs), and `StageElementId` (a non-blank name, because the
   spec doesn't list stage elements among the UUID ids).
@@ -55,19 +68,20 @@ Shared changes:
 
 ## Checks run
 
-On the commit before this document, on top of `data-1`.
+`npm run verify` on the commit before this document, on `main` 63d0dbc with
+`data-1` below it: every step passed.
 
-| Command or test                    | Result                                           |
-| ---------------------------------- | ------------------------------------------------ |
-| `npm run typecheck`                | Passed. Type assertions included                 |
-| `npm test`                         | Passed: 21 files, 195 tests (158 in the schemas) |
-| `npm run format:check`             | Passed                                           |
-| `npm run build`                    | Passed                                           |
-| `npm run verify` (from phase 1 on) | Run after the rebase onto `main` with devops-1   |
+| Command or test                    | Result                                                                |
+| ---------------------------------- | --------------------------------------------------------------------- |
+| `npm run typecheck`                | Passed. Type assertions included                                      |
+| `npm test`                         | Passed: 34 files, 372 tests (187 in the schemas)                      |
+| `npm run format:check`             | Passed                                                                |
+| `npm run build`                    | Passed                                                                |
+| `npm run verify` (from phase 1 on) | Passed: typecheck, lint, format:check, test:coverage, build (159.5 s) |
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
-- [ ] `npm run verify` passes: run after the rebase.
+- [x] `npm run verify` passes
 - [x] `npm run format:check` passes
 - [x] Every new behavior and every bug fix has unit tests
 - [x] Values from outside the process are validated with a schema
