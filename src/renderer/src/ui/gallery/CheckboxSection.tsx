@@ -74,7 +74,10 @@ export function CheckboxSection(): JSX.Element {
         />
       </SpecGroup>
       <SpecGroup title="List rows, 다른 예배에서 가져오기" surface="inset">
-        <div style={{width: LIST_WIDTH}}>
+        <SpecItem
+          label="Group rows, off, hover, focus, disabled"
+          width={LIST_WIDTH}
+        >
           <CheckList label="가져올 항목">
             <Row variant="group" label="예배 전" initial="mixed" />
             <Row
@@ -95,16 +98,26 @@ export function CheckboxSection(): JSX.Element {
             <Row
               variant="list"
               icon="song"
+              label="주 하나님 지으신 모든 세계"
+              meta="기본"
+              initial
+            />
+            <Row
+              variant="list"
+              icon="song"
               label="내 주를 가까이 하게 함은"
               meta="기본"
               disabled
               initial={false}
             />
           </CheckList>
-        </div>
+        </SpecItem>
       </SpecGroup>
       <SpecGroup title="Rows with a value, 출력 상태 복구" surface="dialog">
-        <div style={{width: DIALOG_WIDTH}}>
+        <SpecItem
+          label="Inside a dialog, row 30, no hover"
+          width={DIALOG_WIDTH}
+        >
           <Row
             icon="mplay"
             label="화면 출력"
@@ -123,7 +136,7 @@ export function CheckboxSection(): JSX.Element {
             value="메시지 1, 소품 1, 무대 메시지 1"
             initial={false}
           />
-        </div>
+        </SpecItem>
       </SpecGroup>
     </Section>
   );
