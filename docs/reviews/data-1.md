@@ -2,7 +2,7 @@
 
 - Team member: `data`
 - Branch: `feat/data/schemas`
-- Base commit (`main`): `13d88b1`
+- Base commit (`main`): `704dd64`
 - Last commit: see the commit that adds this file
 - Related brief: `docs/briefs/data.md`
 
@@ -107,16 +107,16 @@ Every format goes through the same two functions:
 
 ## Checks run
 
-`npm run verify` on the commit before this document, on `main` 13d88b1: every
+`npm run verify` on the commit before this document, on `main` 704dd64: every
 step passed.
 
 | Command or test                    | Result                                                                |
 | ---------------------------------- | --------------------------------------------------------------------- |
 | `npm run typecheck`                | Passed. Type assertions (`expectTypeOf`) included                     |
-| `npm test`                         | Passed: 27 files, 294 tests (115 in the schemas)                      |
+| `npm test`                         | Passed: 47 files, 481 tests (118 in the schemas)                      |
 | `npm run format:check`             | Passed                                                                |
 | `npm run build`                    | Passed                                                                |
-| `npm run verify` (from phase 1 on) | Passed: typecheck, lint, format:check, test:coverage, build (129.7 s) |
+| `npm run verify` (from phase 1 on) | Passed: typecheck, lint, format:check, test:coverage, build (288.5 s) |
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
@@ -283,3 +283,15 @@ Round 3, replies to the reviewer's findings:
    to `escapeKeys`.
 2. Pollution test: it now checks that `Object.prototype` has no `polluted`
    property and that a fresh object doesn't inherit one.
+
+Round 4, reply to the reviewer's finding:
+
+1. Wide data: fixed. The walks push children one at a time, so no spread meets
+   the argument limit. The whole check (escaping, the schema, and restoring) now
+   runs inside the `FileError` boundary. The header and version checks no longer
+   escape the whole file, because they read only `format` and `schemaVersion`,
+   and escaping copies the data only when a key needs it. A file with 200,000
+   unknown array entries and 200,000 unknown keys now reads and writes back in
+   about two seconds. New tests: that file through the pipeline, and a wide
+   array and object with an escaped key through `escapeKeys` and `restoreKeys`.
+   Both have a 30-second timeout, with a NOTE on why.
