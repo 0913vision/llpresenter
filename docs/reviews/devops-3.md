@@ -87,3 +87,9 @@ After (on 1bc72c1, CPU at 100% and 13 node processes while it ran):
   run.
 - One tiny in-memory program for the lint test, so it never builds the project's
   program.
+
+## Verdicts (recorded by the lead at merge)
+
+- Lead: Approve. The worker cap and the timeout fix the load failures without
+  changing any assertion; the full lint-test speedup stays a follow-up.
+- Reviewer (Codex, codex3): Approve, no findings.
