@@ -45,7 +45,9 @@ until the `ui` components merge.
 
 ## Checks run
 
-Pending.
+`npm run verify` on commit `020e239` (stacked on shell-6, `8f0dc14`) passed all
+five steps in 160.1 s: `typecheck`, `lint`, `format:check`, `test:coverage`, and
+`build`.
 
 Tests: `ClearRow.test.tsx` (10: the group and the order, shortcuts and tooltips,
 dim and bright buttons, the all button, the clicks, the undo click, and the
