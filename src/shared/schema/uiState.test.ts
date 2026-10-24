@@ -53,6 +53,32 @@ describe('parseLayoutChange', () => {
   });
 });
 
+describe('parseLayoutChange with thumbnail columns', () => {
+  it('accepts the columns alone, the widths alone, or both', () => {
+    for (const change of [
+      {sizeClass: 'wide', columns: COLUMN_LIMITS.columns.min},
+      {sizeClass: 'wide', columns: COLUMN_LIMITS.columns.max},
+      {sizeClass: 'narrow', left: 220, right: 360},
+      {sizeClass: 'normal', left: 280, right: 480, columns: 4},
+    ]) {
+      expect(parseLayoutChange(change)).toEqual({ok: true, value: change});
+    }
+  });
+
+  it.each([
+    ['nothing to change', {sizeClass: 'wide'}, ''],
+    ['a left width without a right one', {sizeClass: 'wide', left: 300}, ''],
+    ['a right width without a left one', {sizeClass: 'wide', right: 500}, ''],
+    ['one column', {sizeClass: 'wide', columns: 1}, 'columns'],
+    ['nine columns', {sizeClass: 'wide', columns: 9}, 'columns'],
+    ['a fractional column count', {sizeClass: 'wide', columns: 3.5}, 'columns'],
+  ])('rejects %s', (_name, change, field) => {
+    const result = parseLayoutChange(change);
+
+    expect(result.ok ? undefined : result.error.field).toBe(field);
+  });
+});
+
 describe('parseUiState', () => {
   it('accepts an empty state and a saved layout', () => {
     const state = {
