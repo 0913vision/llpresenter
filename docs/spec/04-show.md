@@ -425,7 +425,8 @@ Source: `ShowH`, `Problems`, `MediaTile` README, `Layout` README.
   the 장 panel in the center column.
 - References can use the full book name or its abbreviation, with
   "chapter:verse", "chapter:verse-verse", "chapter:verse-chapter:verse", or a
-  whole chapter (proposal). Reuse the reference parsing logic from copible.
+  whole chapter (proposal). The grammar and the book matching are in 02
+  ("Reference grammar", "What comes from copible").
 
 ### Bible panel
 

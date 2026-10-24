@@ -508,17 +508,205 @@ Source: `Shortcuts`, `KeyCap` README.
 
 ## Bible translations
 
-- Store each translation text as one file in the `bible\` folder of the app data
-  folder. The format follows the offline data of the user's copible repository
-  (`D:\programming\copible`) (open question).
-- Version 1 ships 개역한글 and KJV. 개역한글 is the default. Don't include
-  개역개정 until the Korean Bible Society permits its use.
+- Version 1 bundles 개역한글 and KJV as offline translation files. 개역한글 is
+  the default. Don't include 개역개정 until the Korean Bible Society permits its
+  use.
 - 역본 추가 (add translation) in 환경설정 adds a file in the same format.
   See 06.
+- Every Bible feature works without the network (01). The app never fetches
+  verse text.
 
-Source: `Main` remaining items (Bible translations), `Prefs` 성경, `Bible`,
-product log (copible, offline data preferred), `docs/HANDOFF.md` (개역한글 and
-KJV).
+### What comes from copible
+
+The earlier plan was to follow "the offline data of copible". A read-only look
+at the user's repository (`D:\programming\copible`, last commit on 2025-07-22,
+on 2026-10-25) found no offline Bible text and no file format:
+
+- copible fetches verse text live, one chapter at a time, from the Korean Bible
+  Society website (`https://www.bskorea.or.kr/bible/korbibReadpage.php` with
+  `version=GAE`, in `src/data/bible-crawler.js`). `GAE` is 개역개정, the
+  translation this app excludes. A handoff note in that repository
+  (`Summary.md`) names an older source, holybible.or.kr, with EUC-KR pages.
+- So this app defines its own translation file format (below), and the text of
+  개역한글 and KJV comes from a public-domain source that the user chooses (see
+  "Candidate text sources").
+
+What this app reuses, ported to TypeScript with tests, without copying any text:
+
+| Part              | In copible                                                                                                                                                                                                         | In this app                                                                                        |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| Book metadata     | 66 books with `id`, `korean`, `koreanShort`, `english`, `englishShort`, `testament`, `chapters` (`src/data/bible-metadata.js`)                                                                                     | The same shape ("Book metadata")                                                                   |
+| Book matching     | Exact matches on the four names; partial matches that compare Hangul by its letters (jamo) and also try the input as QWERTY typed with the Korean IME off, with es-hangul (`disassemble`, `convertQwertyToHangul`) | The same rules for the suggestions in the 퀵 실행 Bible field (04)                                 |
+| Reference parsing | One pattern, `/^(.+?)\s*(\d+):(\d+)(?:-(\d+))?$/`: book, chapter, verse, optional end verse                                                                                                                        | An extended grammar ("Reference grammar"), because 04 also needs chapter ranges and whole chapters |
+| Live fetching     | The crawler above                                                                                                                                                                                                  | Not used                                                                                           |
+
+### Book metadata (proposal)
+
+The app bundles one table of the 66 books in code. It isn't a user file.
+
+| Field          | Type               | Meaning                                                                        |
+| -------------- | ------------------ | ------------------------------------------------------------------------------ |
+| `id`           | Integer, 1 to 66   | Canonical order, from 창세기 (1) to 요한계시록 (66). Translation files use it. |
+| `korean`       | String             | Full Korean name, for example 창세기.                                          |
+| `koreanShort`  | String             | Korean abbreviation the operator types, for example 창.                        |
+| `english`      | String             | English name, for example Genesis.                                             |
+| `englishShort` | String             | Three-character English code, lowercase, for example gen.                      |
+| `testament`    | `"old"` \| `"new"` | Testament.                                                                     |
+| `chapters`     | Integer            | Number of chapters.                                                            |
+
+- Verse counts aren't in this table. They come from each translation file,
+  because versification differs between translations (one dataset counts 31,101
+  verses for 개역한글 and 31,102 for KJV).
+
+### Translation file (`.llbible`, proposal)
+
+Each translation is one JSON file in the `bible\` folder of the app data folder.
+It follows the common rules of this document (UTF-8, `format`, `schemaVersion`).
+The example shows the shape only; "..." stands for text.
+
+```json
+{
+  "format": "llbible",
+  "schemaVersion": 1,
+  "id": "krv",
+  "name": "개역한글",
+  "shortName": "개역한글",
+  "language": "ko",
+  "source": {
+    "title": "...",
+    "publisher": "...",
+    "url": "...",
+    "license": "...",
+    "retrieved": "2026-10-25"
+  },
+  "books": [{"id": 1, "chapters": [["...", "..."], ["..."]]}]
+}
+```
+
+| Field                | Type             | Meaning                                                                                                                                    |
+| -------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `format`             | `"llbible"`      | File type.                                                                                                                                 |
+| `schemaVersion`      | Integer          | 1 in version 1.                                                                                                                            |
+| `id`                 | String           | Lowercase, unique among installed translations, for example `krv` (개역한글) or `kjv`. `bible.json` and Bible passage objects refer to it. |
+| `name`               | String           | Name in the translation select, for example 개역한글 or KJV.                                                                               |
+| `shortName`          | String           | Name appended after a reference when 역본 이름 is on (04), for example 개역한글 or KJV.                                                    |
+| `language`           | String (BCP 47)  | `ko`, `en`. It decides the book names in references (below).                                                                               |
+| `source`             | Object           | Where the text comes from: `title`, `publisher`, `url`, `license`, `retrieved` (date). The 성경 page of 환경설정 can show it.              |
+| `books[]`            | Array            | The books the file has, in canonical order.                                                                                                |
+| `books[].id`         | Integer, 1 to 66 | Book ID from "Book metadata".                                                                                                              |
+| `books[].chapters[]` | Array of arrays  | One array per chapter, in order. Each chapter is an array of verse strings; index 0 is verse 1.                                            |
+
+Rules (proposal):
+
+- A verse string is the text exactly as the source gives it, without the verse
+  number or any markup, trimmed at both ends. The app never changes it. For
+  개역한글 this also follows the Korean Bible Society's condition to keep the
+  text unchanged and name the author (see "Candidate text sources").
+- A verse that a translation leaves out is an empty string, so verse numbers
+  stay aligned with their index.
+- A file may leave out books (for example a New Testament only file). A
+  reference to a missing book shows the error ring with the reason "이 역본에
+  없는 책입니다" (this translation doesn't have this book).
+- When the app reads a file, it checks `format`, `schemaVersion`, book IDs from
+  1 to 66 without duplicates and in order, a chapter count equal to "Book
+  metadata" for each book, and non-empty chapters of strings. A file that fails
+  is skipped with one warning notification, and its row on the 성경 page shows
+  the warning icon with the reason (`docs/TECH.md` storage).
+- The app treats translation files as read-only. It never writes one, except
+  when 역본 추가 copies a checked file into `bible\` and adds it to
+  `bible.json`.
+- A file is about 4 to 5 MB (the `Prefs` board shows 4.3MB and 4.2MB). The main
+  process reads the installed files at launch without blocking and keeps them in
+  memory; a lookup never touches the disk.
+- 역본 추가 accepts `.llbible` files only in version 1. Converting other formats
+  (USFM, OSIS, SWORD modules) belongs to a build-time script for the bundled
+  files, not to the app.
+
+### Reference grammar (proposal)
+
+The 퀵 실행 Bible field (04) accepts these forms, with or without a space
+between the book and the numbers:
+
+| Form                              | Example     | Meaning                 |
+| --------------------------------- | ----------- | ----------------------- |
+| Book, chapter                     | 요 3        | The whole chapter       |
+| Book, chapter:verse               | 요 3:16     | One verse               |
+| Book, chapter:verse-verse         | 요 3:16-18  | A range in one chapter  |
+| Book, chapter:verse-chapter:verse | 요 3:16-4:2 | A range across chapters |
+
+- The book part follows "Book matching" in the table above. An exact match wins;
+  otherwise one partial match is used; several partial matches go to the
+  suggestion list, where the operator picks one (04).
+- A Korean form with 장 and 절 is also accepted, for example "요 3장 16-18절".
+- An end verse past the end of its chapter stops at the chapter's last verse. A
+  start verse or chapter that doesn't exist is invalid, and the field shows the
+  error ring with "알아볼 수 없는 구절입니다" (04).
+- The normalized `ref` of a Bible passage object uses the full Korean book name,
+  for example "요한복음 3:16-18", so the same grammar reads it back.
+- The reference drawn on a 장 uses the book name in the translation's language:
+  요한복음 3:16 for 개역한글, John 3:16 for KJV.
+
+### Candidate text sources (for the user's choice)
+
+The user chooses where the bundled text comes from. Nothing has been downloaded.
+Each row gives what the source itself states.
+
+| Translation | Source                         | Where                                                             | Copyright or license, as stated                                                                                                | Format                                                         |
+| ----------- | ------------------------------ | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------- |
+| 개역한글    | CrossWire SWORD module `KorRV` | https://www.crosswire.org/sword/modules/ModInfo.jsp?modName=KorRV | "Public Domain"; "Korean Revised Version 1952/1961 from Wikisource"; version 2.0.1 (2019-01-07)                                | SWORD module (needs a SWORD reader to convert)                 |
+| 개역한글    | Korean Wikisource, 개역한글판  | https://ko.wikisource.org/wiki/개역한글판                         | Public domain notice on the page, with a caution that the work may not be public domain in the United States                   | Wiki pages, one per book                                       |
+| 개역한글    | crizin/bible-db                | https://github.com/crizin/bible-db                                | "Korean Bible Society, Public Domain"; 31,101 verses; text crawled from holybible.or.kr; scripts MIT, data licensed per source | JSONL files, SQLite release                                    |
+| 개역한글    | scrollmapper/bible_databases   | https://github.com/scrollmapper/bible_databases                   | Repository MIT; lists "KorRV: 개역성경"; the README states no copyright for the text itself                                    | SQLite, CSV, JSON, YAML, TXT, and others                       |
+| KJV         | eBible.org, `eng-kjv`          | https://ebible.org/find/details.php?id=eng-kjv                    | "Public Domain"; printing in the United Kingdom needs permission under letters patent (https://ebible.org/kjv/copr.htm)        | USFM, USFX, VPL with SQL, plain text, SWORD module, and others |
+| KJV         | scrollmapper/bible_databases   | https://github.com/scrollmapper/bible_databases                   | Repository MIT; "King James Version (1769) with Strongs Numbers and Morphology and CatchWords"                                 | Same as above; the Strong's markup must be stripped            |
+| KJV         | crizin/bible-db                | https://github.com/crizin/bible-db                                | "scrollmapper (CrossWire/eBible), PD"; 31,102 verses                                                                           | JSONL files, SQLite release                                    |
+
+Copyright status:
+
+- **개역한글.** The Korean Bible Society lists the first publication as July 10,
+  1961, and the end of the economic copyright term as December 31, 2011
+  (https://www.bskorea.or.kr/bbs/content.php?co_id=subpage2_3_4_1). Its FAQ says
+  the text can be used without paying royalties, provided that the moral rights
+  to keep the text unchanged (동일성유지권) and to name the author (성명표시권)
+  are respected
+  (https://www.bskorea.or.kr/bbs/board.php?bo_table=copyright_faq&wr_id=5). The
+  app meets both: it never changes a verse, and `source` names the translation
+  and its publisher.
+- **KJV.** Public domain outside the United Kingdom; in the United Kingdom,
+  printing needs permission under letters patent
+  (https://ebible.org/kjv/copr.htm). The app is used in one church in Korea and
+  isn't distributed.
+
+Proposal: KJV from eBible.org (its USFM is a standard format with a clear
+statement); 개역한글 from the CrossWire `KorRV` module, compared verse by verse
+with a second source (crizin/bible-db) by the conversion script before it's
+used. The user decides.
+
+### Dependency proposal: es-hangul
+
+- copible's book matching uses es-hangul. This app would use it for the same
+  matching, and its `getChoseong` could also serve the 초성 search of the
+  라이브러리 (05).
+- es-hangul 2.4.0 on npm: MIT license, no runtime dependencies, about 148 KB
+  unpacked, last modified on 2026-08-24 (npm registry, read on 2026-10-25), from
+  Toss (https://github.com/toss/es-hangul).
+- It's a proposal only. Adding it needs an entry in `docs/decisions.md` and the
+  lead's approval first (`CLAUDE.md`, `docs/TECH.md`, "Criteria for adding a
+  dependency"). Splitting Hangul syllables into letters takes a few dozen lines
+  and could be written in-house; converting QWERTY input to Hangul is a larger
+  piece of logic, which is the main reason to take the library.
+
+Open questions (also in the README, row 4):
+
+- Which text sources to use (table above).
+- Whether the bundled translation files may be committed to the public
+  repository. Proposal: keep them out of git and have the conversion script
+  build them from a pinned source file at build time, so that no Bible text
+  lands in the repository and nothing is fetched at run time.
+
+Source: read-only look at `D:\programming\copible` (2026-10-25), the sources in
+the table above, `Prefs` 성경, `Bible`, product log (copible, offline data
+preferred), `docs/HANDOFF.md` (개역한글 and KJV).
 
 ## Schema versions and migration
 
