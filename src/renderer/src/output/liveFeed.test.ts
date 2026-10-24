@@ -67,4 +67,25 @@ describe('followLiveState', () => {
     stop();
     expect(listeners.size).toBe(0);
   });
+
+  it('ignores an answer that arrives after it stopped', async () => {
+    let answer: (state: LiveState) => void = () => undefined;
+    let fail: (error: Error) => void = () => undefined;
+    const {live} = fakeLive(
+      new Promise((resolve, reject) => {
+        answer = resolve;
+        fail = reject;
+      }),
+    );
+    const onState = vi.fn<(state: LiveState) => void>();
+    const onError = vi.fn();
+    const stop = followLiveState(live, onState, onError);
+    stop();
+    answer(stateAt(9));
+    fail(new Error('too late'));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(onState).not.toHaveBeenCalled();
+    expect(onError).not.toHaveBeenCalled();
+  });
 });

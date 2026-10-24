@@ -6,7 +6,8 @@ import type {LiveState} from '@shared/live';
  * current one. A state older than the last one is dropped, because the
  * answer to `get` can arrive after a newer change.
  *
- * @returns A function that stops following.
+ * @returns A function that stops following, including an answer to `get`
+ * that is still on its way.
  */
 export function followLiveState(
   live: LlpApi['live'],
@@ -14,14 +15,18 @@ export function followLiveState(
   onError: (message: string, error: unknown) => void,
 ): Unsubscribe {
   let lastVersion = -1;
+  let stopped = false;
   const accept = (state: LiveState): void => {
-    if (state.version <= lastVersion) return;
+    if (stopped || state.version <= lastVersion) return;
     lastVersion = state.version;
     onState(state);
   };
   const unsubscribe = live.subscribe(accept);
   live.get().then(accept, (error: unknown) => {
-    onError('could not read the live state', error);
+    if (!stopped) onError('could not read the live state', error);
   });
-  return unsubscribe;
+  return () => {
+    stopped = true;
+    unsubscribe();
+  };
 }
