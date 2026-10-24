@@ -10,6 +10,7 @@ export const COMMENT_OWNER = '0913vision';
 
 const TAGGED_LINE = new RegExp(`^ (?:NOTE|TODO)\\(${COMMENT_OWNER}\\): \\S`);
 const TAG_ATTEMPT = /^\s*(NOTE|TODO)\b/i;
+const TAG_SHAPED = /^\s*(?:NOTE|TODO)\s*[(:]/;
 const TRIPLE_SLASH_DIRECTIVE = /^\/\s*<reference\s/;
 const TSDOC_MARKER = '*';
 
@@ -45,6 +46,7 @@ function continuesNote(
 ): boolean {
   if (previous === null || comment.type !== 'Line') return false;
   return (
+    !TAG_SHAPED.test(comment.value) &&
     comment.loc.start.line === previous.loc.end.line + 1 &&
     comment.loc.start.column === previous.loc.start.column &&
     startsOwnLine(comment, sourceCode)
@@ -87,7 +89,8 @@ function checkComments(context: Rule.RuleContext): void {
 /**
  * Allows only the comments that `CLAUDE.md` permits: TSDoc block comments,
  * `// NOTE(0913vision): ...`, and `// TODO(0913vision): ...`. Plain `//` lines
- * directly under a NOTE or TODO line, in the same column, continue it.
+ * directly under a NOTE or TODO line, in the same column, continue it. A line
+ * that starts like a tag never continues one; it must be a valid tag itself.
  * Triple-slash directives are left to `@typescript-eslint/triple-slash-reference`.
  */
 export const allowedCommentsRule: Rule.RuleModule = {

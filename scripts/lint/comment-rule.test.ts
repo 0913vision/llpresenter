@@ -35,11 +35,70 @@ ruleTester.run('allowed-comments', allowedCommentsRule, {
       ].join('\n'),
     },
     {
+      name: 'a TODO right under a NOTE',
+      code: [
+        '// NOTE(0913vision): The port is fixed per session.',
+        '// TODO(0913vision): Read it from settings.',
+        'const a = 1;',
+      ].join('\n'),
+    },
+    {
+      name: 'a NOTE whose next line starts with the word note',
+      code: [
+        '// NOTE(0913vision): The rename retries a few times.',
+        '// note that Windows locks open files.',
+        'const a = 1;',
+      ].join('\n'),
+    },
+    {
       name: 'a triple-slash directive',
       code: '/// <reference types="vite/client" />\nexport {};',
     },
   ],
   invalid: [
+    {
+      name: 'a TODO with another owner right under a NOTE',
+      code: [
+        '// NOTE(0913vision): The port is fixed per session.',
+        '// TODO(someone): Read it from settings.',
+        'const a = 1;',
+      ].join('\n'),
+      errors: [
+        {
+          messageId: 'malformedTag',
+          data: {tag: 'TODO', owner: '0913vision'},
+          line: 2,
+        },
+      ],
+    },
+    {
+      name: 'a NOTE without the owner right under a TODO',
+      code: [
+        '// TODO(0913vision): Read the port from settings.',
+        '// NOTE: It is fixed for now.',
+        'const a = 1;',
+      ].join('\n'),
+      errors: [
+        {
+          messageId: 'malformedTag',
+          data: {tag: 'NOTE', owner: '0913vision'},
+          line: 2,
+        },
+      ],
+    },
+    {
+      name: 'a plain line right under a malformed tag line',
+      code: [
+        '// NOTE(0913vision): The port is fixed per session.',
+        '// TODO(someone): Read it from settings',
+        '// and from the command line.',
+        'const a = 1;',
+      ].join('\n'),
+      errors: [
+        {messageId: 'malformedTag', line: 2},
+        {messageId: 'disallowed', line: 3},
+      ],
+    },
     {
       name: 'a plain line comment',
       code: '// increment the counter\nlet a = 1;',
