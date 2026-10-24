@@ -54,6 +54,7 @@ function showService(revision: number) {
     revision,
     id: 'service-1',
     name: '주일 예배',
+    readOnly: false,
     rows: [{kind: 'song', id: 'item-1', title: '만복의 근원 하나님'}],
     tiles: {
       'item-1': [
