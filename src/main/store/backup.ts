@@ -1,10 +1,10 @@
-import {cp, mkdir, readdir, rename, rm, stat} from 'node:fs/promises';
+import {cp, mkdir, readdir, realpath, rename, rm, stat} from 'node:fs/promises';
 import {join} from 'node:path';
 import type {Result} from '@shared/result';
 import type {Preferences} from '@shared/schema/preferences';
 import type {WriteProblem} from './atomicWrite';
 import {isMissingFile} from './fsErrors';
-import {FOLDER_NAMES, type DataLocations} from './locations';
+import {FOLDER_NAMES, isInside, type DataLocations} from './locations';
 
 const PARTIAL_SUFFIX = '.partial';
 const KEEP_LIMITS = {min: 1, max: 365} as const;
@@ -32,9 +32,7 @@ export type BackupOutcome =
   | {readonly kind: 'failed'; readonly problem: WriteProblem};
 
 interface BackupFolders {
-  /** Complete backups, oldest first. */
   readonly complete: readonly string[];
-  /** Backups that were cut off before they were renamed. */
   readonly partial: readonly string[];
 }
 
@@ -43,10 +41,14 @@ export interface BackupRun {
   /** How many backups to keep, 보관; clamped to 1 to 365. */
   readonly keep: number;
   readonly now: Date;
+  /** The `LLP_USER_DATA` folder that nothing copied may lead out of, or `null`. */
+  readonly developmentFolder: string | null;
 }
 
 export interface BackupsOptions {
   readonly locations: DataLocations;
+  /** The `LLP_USER_DATA` folder that nothing copied may lead out of, or `null`. */
+  readonly developmentFolder: string | null;
   /** 자동 백업 and 보관 from 환경설정, read when a backup starts. */
   readonly preferences: () => Preferences['backup'];
   readonly isAnyOutputOn: () => boolean;
@@ -102,6 +104,7 @@ export class Backups {
         locations: this.options.locations,
         keep: this.options.preferences().keep,
         now: this.now(),
+        developmentFolder: this.options.developmentFolder,
       });
       return backup.ok
         ? {kind: 'done', backup: backup.value}
@@ -117,17 +120,23 @@ export class Backups {
  * folder named after the local time, then deletes the oldest backups past
  * `keep`. The copy goes into `<time>.partial` first and is renamed once
  * complete, so a backup cut off halfway never counts. Media files are left out
- * because of their size. Never throws.
+ * because of their size. In development, a link that leads outside
+ * `LLP_USER_DATA` fails the backup. Never throws.
  */
 export async function runBackup({
   locations,
   keep,
   now,
+  developmentFolder,
 }: BackupRun): Promise<Result<BackupDone, WriteProblem>> {
   const folder = join(locations.backups, backupFolderName(now));
   const partial = `${folder}${PARTIAL_SUFFIX}`;
+  const staged = await createStaging(locations.backups, partial);
+  if (!staged.ok) {
+    return {ok: false, error: {file: folder, message: staged.error}};
+  }
   try {
-    await copyDataFolders(locations, partial);
+    await copyDataFolders(locations, partial, developmentFolder);
     await rename(partial, folder);
   } catch (error: unknown) {
     return {ok: false, error: await failedBackup(folder, partial, error)};
@@ -162,22 +171,65 @@ export function backupFolderName(time: Date): string {
   return `${date.map(twoDigits).join('-')} ${clock.map(twoDigits).join('')}`;
 }
 
+// NOTE(0913vision): The staging folder is created, never taken over, so a file
+// or a link already at its name fails the backup and is left as it is. Only a
+// staging folder this run created is ever removed.
+async function createStaging(
+  backupsFolder: string,
+  partial: string,
+): Promise<Result<void, string>> {
+  try {
+    await mkdir(backupsFolder, {recursive: true});
+    await mkdir(partial);
+    return {ok: true, value: undefined};
+  } catch (error: unknown) {
+    return {ok: false, error: messageOf(error)};
+  }
+}
+
 async function copyDataFolders(
   locations: DataLocations,
   target: string,
+  developmentFolder: string | null,
 ): Promise<void> {
-  await rm(target, {recursive: true, force: true});
-  await mkdir(target, {recursive: true});
+  const allowed = await sourceCheck(developmentFolder);
   for (const name of BACKED_UP_FOLDERS) {
-    await copyFolder(locations[name], join(target, FOLDER_NAMES[name]));
+    await copyFolder(
+      locations[name],
+      join(target, FOLDER_NAMES[name]),
+      allowed,
+    );
   }
+}
+
+// NOTE(0913vision): Links are copied as what they point to, so in development
+// the real path of every file and folder is checked against `LLP_USER_DATA`
+// before it is copied; a link under 곡 that leads to real data fails the
+// backup.
+async function sourceCheck(
+  developmentFolder: string | null,
+): Promise<(source: string) => Promise<boolean>> {
+  if (developmentFolder === null) {
+    return () => Promise.resolve(true);
+  }
+  const root = await realpath(developmentFolder);
+  return async source => {
+    if (!isInside(await realpath(source), root)) {
+      throw new Error(`Refused: ${source} leads outside LLP_USER_DATA`);
+    }
+    return true;
+  };
 }
 
 // NOTE(0913vision): Links are copied as what they point to, so a backup never
 // depends on the data it backs up. Only a source folder that doesn't exist,
 // such as 틀 before the first 틀, is skipped; any other failure fails the
 // backup, so an incomplete one never counts.
-async function copyFolder(source: string, target: string): Promise<void> {
+async function copyFolder(
+  source: string,
+  target: string,
+  allowed: (source: string) => Promise<boolean>,
+): Promise<void> {
   if (!(await isExistingFolder(source))) {
     return;
   }
@@ -187,6 +239,7 @@ async function copyFolder(source: string, target: string): Promise<void> {
     errorOnExist: true,
     force: false,
     preserveTimestamps: true,
+    filter: allowed,
   });
 }
 

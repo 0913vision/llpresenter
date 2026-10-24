@@ -96,6 +96,7 @@ async function backUpAtLaunch(
   try {
     const backups = new Backups({
       locations: store.locations,
+      developmentFolder: store.developmentFolder,
       preferences: () => store.preferences.backup,
       isAnyOutputOn,
     });

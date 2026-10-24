@@ -210,7 +210,8 @@ function isAllowed(folder: string, developmentFolder: string | null): boolean {
   return developmentFolder === null || isInside(folder, developmentFolder);
 }
 
-function isInside(folder: string, parent: string): boolean {
+/** Whether a path is a folder's own path or lies inside it, by its text. */
+export function isInside(folder: string, parent: string): boolean {
   const path = relative(parent, folder);
   return path !== '..' && !path.startsWith(`..${sep}`) && !isAbsolute(path);
 }

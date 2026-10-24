@@ -39,6 +39,8 @@ export interface StoreContext extends LocationContext {
 /** Everything the app read at launch, and what it couldn't read. */
 export interface LoadedStore {
   readonly locations: DataLocations;
+  /** The `LLP_USER_DATA` folder every data folder stays inside, or `null`. */
+  readonly developmentFolder: string | null;
   /**
    * The song library, by song id. A song from a newer app version is
    * read-only (`access`).
@@ -101,6 +103,7 @@ export async function loadStore(
     value: {
       ...data,
       locations,
+      developmentFolder: context.developmentFolder,
       openServiceId: chooseOpenService(
         data.services,
         appConfig.config?.lastServiceId,

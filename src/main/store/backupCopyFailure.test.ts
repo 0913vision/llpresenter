@@ -45,6 +45,7 @@ describe('runBackup when a copy fails halfway', () => {
       locations,
       keep: 1,
       now: new Date(2026, 9, 25, 7, 58, 0),
+      developmentFolder: folder,
     });
 
     expect(backup).toMatchObject({

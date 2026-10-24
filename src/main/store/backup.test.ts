@@ -1,5 +1,5 @@
 import {mkdir, readdir, readFile, rm, symlink} from 'node:fs/promises';
-import {join} from 'node:path';
+import {dirname, join} from 'node:path';
 import {describe, expect, it, onTestFinished} from 'vitest';
 import {makeTempDir} from '../../../test/temp-dir';
 import {
@@ -28,12 +28,26 @@ async function backupNames(locations: DataLocations): Promise<string[]> {
   return (await readdir(locations.backups)).sort();
 }
 
+function developmentFolderOf(locations: DataLocations): string {
+  return dirname(locations.dataRoot);
+}
+
+function backUp(locations: DataLocations, keep = 30) {
+  return runBackup({
+    locations,
+    keep,
+    now: NOW,
+    developmentFolder: developmentFolderOf(locations),
+  });
+}
+
 function backups(
   locations: DataLocations,
   options: Partial<BackupsOptions> = {},
 ): Backups {
   return new Backups({
     locations,
+    developmentFolder: developmentFolderOf(locations),
     preferences: () => ({auto: true, keep: 30}),
     isAnyOutputOn: () => false,
     now: () => NOW,
@@ -59,7 +73,7 @@ describe('runBackup', () => {
     await writeJson(join(locations.media, 'video.mp4'), 'large');
     await writeJson(join(locations.recovery, 'song', 'x.json'), 'copy');
 
-    const backup = await runBackup({locations, keep: 30, now: NOW});
+    const backup = await backUp(locations, 30);
 
     const folder = join(locations.backups, NOW_NAME);
     expect(backup).toEqual({ok: true, value: {folder, problems: []}});
@@ -77,7 +91,7 @@ describe('runBackup', () => {
       await mkdir(join(locations.backups, name), {recursive: true});
     }
 
-    await runBackup({locations, keep: 2, now: NOW});
+    await backUp(locations, 2);
 
     expect(await backupNames(locations)).toEqual([
       '2026-10-21 070000',
@@ -99,7 +113,7 @@ describe('runBackup', () => {
     await symlink(elsewhere, link, 'junction');
     onTestFinished(() => rm(link, {force: true}));
 
-    await runBackup({locations, keep: 1, now: NOW});
+    await backUp(locations, 1);
 
     expect(await backupNames(locations)).toEqual([
       '2026-10-01 070000',
@@ -123,18 +137,90 @@ describe('runBackup', () => {
       {documents: join(folder, 'unused'), developmentFolder: folder},
     );
 
-    await runBackup({locations, keep: 30, now: NOW});
+    await backUp(locations, 30);
     await rm(original, {recursive: true, force: true});
 
     const copy = join(locations.backups, NOW_NAME, '곡', 'a.llsong');
     expect(await readFile(copy, 'utf8')).toBe('{"title":"a"}');
   });
 
+  it('fails in development when a link under 곡 leads outside LLP_USER_DATA', async () => {
+    const locations = await dataLocations();
+    const outside = await makeTempDir();
+    await writeJson(join(outside, 'real.llsong'), {title: 'real data'});
+    await writeJson(join(locations.songs, 'a.llsong'), {title: 'a'});
+    const link = join(locations.songs, 'linked');
+    await symlink(outside, link, 'junction');
+    onTestFinished(() => rm(link, {force: true}));
+
+    const backup = await backUp(locations);
+
+    expect(backup.ok ? '' : backup.error.message).toContain(
+      'outside LLP_USER_DATA',
+    );
+    expect(await backupNames(locations)).toEqual([]);
+    expect(await readdir(outside)).toEqual(['real.llsong']);
+  });
+
+  it('follows the same link outside the development setup', async () => {
+    const locations = await dataLocations();
+    const outside = await makeTempDir();
+    await writeJson(join(outside, 'real.llsong'), {title: 'real data'});
+    const link = join(locations.songs, 'linked');
+    await mkdir(locations.songs, {recursive: true});
+    await symlink(outside, link, 'junction');
+    onTestFinished(() => rm(link, {force: true}));
+
+    const backup = await runBackup({
+      locations,
+      keep: 30,
+      now: NOW,
+      developmentFolder: null,
+    });
+
+    expect(backup.ok).toBe(true);
+    const copy = join(
+      locations.backups,
+      NOW_NAME,
+      '곡',
+      'linked',
+      'real.llsong',
+    );
+    expect(await readFile(copy, 'utf8')).toBe('{"title":"real data"}');
+  });
+
+  it('refuses a file at the staging name and leaves it as it is', async () => {
+    const locations = await dataLocations();
+    const staging = join(locations.backups, `${NOW_NAME}.partial`);
+    await writeJson(staging, 'not ours');
+
+    const backup = await backUp(locations);
+
+    expect(backup.ok).toBe(false);
+    expect(await readFile(staging, 'utf8')).toBe('not ours');
+  });
+
+  it('refuses a link at the staging name and leaves it and its target', async () => {
+    const locations = await dataLocations();
+    const elsewhere = await makeTempDir();
+    await writeJson(join(elsewhere, 'keep.txt'), 'not ours');
+    await mkdir(locations.backups, {recursive: true});
+    const staging = join(locations.backups, `${NOW_NAME}.partial`);
+    await symlink(elsewhere, staging, 'junction');
+    onTestFinished(() => rm(staging, {force: true}));
+
+    const backup = await backUp(locations);
+
+    expect(backup.ok).toBe(false);
+    expect(await backupNames(locations)).toEqual([`${NOW_NAME}.partial`]);
+    expect(await readdir(elsewhere)).toEqual(['keep.txt']);
+  });
+
   it('fails when a file stands where a data folder should be', async () => {
     const locations = await dataLocations();
     await writeJson(locations.songs, 'a file where the folder should be');
 
-    const backup = await runBackup({locations, keep: 30, now: NOW});
+    const backup = await backUp(locations, 30);
 
     expect(backup.ok).toBe(false);
     expect(await backupNames(locations)).toEqual([]);
@@ -144,7 +230,7 @@ describe('runBackup', () => {
     const locations = await dataLocations();
     await mkdir(join(locations.backups, YESTERDAY_NAME), {recursive: true});
 
-    await runBackup({locations, keep: 0, now: NOW});
+    await backUp(locations, 0);
 
     expect(await backupNames(locations)).toEqual([NOW_NAME]);
   });
@@ -155,7 +241,7 @@ describe('runBackup', () => {
     const taken = join(locations.backups, NOW_NAME);
     await writeJson(join(taken, 'kept.txt'), 'already here');
 
-    const backup = await runBackup({locations, keep: 30, now: NOW});
+    const backup = await backUp(locations, 30);
 
     expect(backup).toMatchObject({ok: false, error: {file: taken}});
     expect(await backupNames(locations)).toEqual([NOW_NAME]);
