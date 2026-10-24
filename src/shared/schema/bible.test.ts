@@ -73,6 +73,24 @@ describe('parseBible', () => {
     expectInvalidField(codec, {...bibleFile(), ...change}, field);
   });
 
+  it.each([
+    ['in a folder', 'sub/krv.llbible'],
+    ['in a Windows folder', 'sub\\krv.llbible'],
+    ['a step up', '../krv.llbible'],
+    ['with an absolute path', 'C:\\bible\\krv.llbible'],
+    ['with a drive name', 'C:krv.llbible'],
+    ['named after the folder itself', '.'],
+    ['named after the folder above', '..'],
+  ])('rejects a translation file %s', (_name, file) => {
+    const [krv] = bibleFile().translations;
+
+    expectInvalidField(
+      codec,
+      {...bibleFile(), translations: [{...krv, file}]},
+      'translations.0.file',
+    );
+  });
+
   it('rejects two translations with the same id', () => {
     const [krv] = bibleFile().translations;
 

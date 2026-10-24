@@ -17,11 +17,18 @@ import {
   positiveInteger,
 } from './primitives';
 
+// NOTE(0913vision): A translation file always lies in the bible folder, so its
+// name may not name a folder, a drive, or a step up (`docs/spec/02-data.md`).
+const BARE_FILE_NAME = /^(?!\.{1,2}$)[^\\/:]+$/;
+
 const translationSchema = jsonObject({
   id: translationIdSchema,
   name: nonBlankText,
   lang: v.string(),
-  file: nonBlankText,
+  file: v.pipe(
+    nonBlankText,
+    v.regex(BARE_FILE_NAME, 'Expected a file name without a folder'),
+  ),
   default: v.boolean(),
 });
 
