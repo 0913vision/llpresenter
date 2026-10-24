@@ -1,8 +1,25 @@
-import {mkdtemp, readdir, readFile, rm} from 'node:fs/promises';
+import {appendFile, mkdtemp, readdir, readFile, rm} from 'node:fs/promises';
+import type * as FsPromises from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {afterEach, beforeEach, describe, expect, it} from 'vitest';
-import {createLogger} from './log';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import {installFakeClock} from '../../test/fake-clock';
+import {createLogger, flushWithin, type Logger} from './log';
+
+vi.mock('node:fs/promises', async importOriginal => {
+  const actual = await importOriginal<typeof FsPromises>();
+  return {...actual, appendFile: vi.fn(actual.appendFile)};
+});
+
+const BURST_LINES = 10_000;
+const SMALL_CAP = 100;
+const BATCHED_WRITES_AT_MOST = 3;
+const RESPONSIVE_MS = 250;
+
+async function linesOf(file: string): Promise<string[]> {
+  const text = await readFile(file, 'utf8');
+  return text.trimEnd().split(/\r?\n/);
+}
 
 describe('createLogger', () => {
   let dir = '';
@@ -62,5 +79,83 @@ describe('createLogger', () => {
     await log.flush();
     const text = await readFile(join(dir, 'main.log'), 'utf8');
     expect(text).toContain('INFO big 12345678901234567890n');
+  });
+
+  it('merges a line repeated in a row into one line with a count', async () => {
+    const log = createLogger(dir);
+    for (let i = 0; i < 5; i += 1) log.warn('dropped a malformed command', 7);
+    log.warn('dropped a malformed command', 8);
+    await log.flush();
+    const lines = await linesOf(join(dir, 'main.log'));
+    expect(lines).toHaveLength(2);
+    expect(lines[0]).toMatch(
+      /WARN dropped a malformed command 7 \(repeated 5 times\)$/,
+    );
+    expect(lines[1]).toMatch(/WARN dropped a malformed command 8$/);
+  });
+
+  it('keeps a burst under the cap and writes how many lines it dropped', async () => {
+    const log = createLogger(dir, {maxPendingLines: SMALL_CAP});
+    let mostPending = 0;
+    for (let i = 0; i < BURST_LINES; i += 1) {
+      log.warn('dropped a malformed command', i);
+      mostPending = Math.max(mostPending, log.pendingLines);
+    }
+    expect(mostPending).toBeLessThanOrEqual(SMALL_CAP);
+    await log.flush();
+    const lines = await linesOf(join(dir, 'main.log'));
+    const droppedLine = lines.at(-1) ?? '';
+    const dropped = Number(/(\d+) log lines dropped/.exec(droppedLine)?.[1]);
+    expect(lines.length - 1 + dropped).toBe(BURST_LINES);
+    expect(lines.length - 1).toBeLessThanOrEqual(SMALL_CAP + 1);
+  });
+
+  it('writes a burst in a few batches and stays responsive meanwhile', async () => {
+    const log = createLogger(dir);
+    vi.mocked(appendFile).mockClear();
+    for (let i = 0; i < BURST_LINES; i += 1) log.info('line', i);
+    const started = performance.now();
+    await new Promise(resolve => setImmediate(resolve));
+    expect(performance.now() - started).toBeLessThan(RESPONSIVE_MS);
+    await log.flush();
+    expect(vi.mocked(appendFile).mock.calls.length).toBeLessThanOrEqual(
+      BATCHED_WRITES_AT_MOST,
+    );
+    expect(log.pendingLines).toBe(0);
+  });
+
+  it('writes lines logged while a batch is on its way', async () => {
+    const log = createLogger(dir);
+    log.info('first');
+    const flushing = log.flush();
+    log.info('second');
+    await flushing;
+    await log.flush();
+    expect(await linesOf(join(dir, 'main.log'))).toHaveLength(2);
+  });
+});
+
+describe('flushWithin', () => {
+  const stuck: Logger = {
+    info: () => undefined,
+    warn: () => undefined,
+    error: () => undefined,
+    flush: () => new Promise<void>(() => undefined),
+  };
+
+  it('reports a flush that finished in time', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'llp-log-'));
+    const log = createLogger(dir);
+    log.info('last words');
+    expect(await flushWithin(log, 2000)).toBe(true);
+    await rm(dir, {recursive: true, force: true});
+  });
+
+  it('gives up on a stuck disk after the limit and leaves no timer', async () => {
+    const clock = installFakeClock();
+    const result = flushWithin(stuck, 2000);
+    await clock.advance(2000);
+    expect(await result).toBe(false);
+    expect(vi.getTimerCount()).toBe(0);
   });
 });
