@@ -215,19 +215,28 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (6ba0bcd): lead Approve with notes (move `Result` to
+  `src/shared/result.ts`), and the lead confirms decisions 1 to 10. Reviewer
+  (Codex, codex2) Request changes: valibot dropped unknown keys named
+  `__proto__`, `prototype`, and `constructor`; object schemas accepted arrays;
+  the Bible passage round trip didn't test an unknown field inside `bible`.
+- Round 2 (8a4092d): reviewer Request changes: the recursive key escaping could
+  throw on deep or cyclic data.
+- Round 3 (96306a1): reviewer Request changes: spreading wide collections into
+  one `push` could exceed the argument limit, outside the error boundary.
+- Round 4 (db290dc): reviewer (Codex, codex2) Approve with two nits: TSDoc on
+  private helpers in `fileFormat.ts` (use NOTE comments), and a test that a
+  throwing schema callback gives a `FileError` from both parse and serialize.
+  The nits go into data's next branch. Lead Approve.
+- Lead answer to the `app.json` question: when `app.json` fails validation, the
+  store reads only the location fields it can validate, warns once, and never
+  overwrites the broken file, so the operator's songs don't seem to vanish. This
+  goes into the main-process store task.
+- Rebased by the lead onto `main` bb34f81. The lockfile conflict with the
+  version bot was resolved as `CLAUDE.md` says: `main`'s `package-lock.json`,
+  then `npm install`.
 
 ## Team member's reply
 
