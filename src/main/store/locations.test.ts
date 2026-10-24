@@ -1,9 +1,14 @@
+import {mkdir, rm, symlink} from 'node:fs/promises';
 import {join, resolve} from 'node:path';
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, onTestFinished} from 'vitest';
+import {makeTempDir} from '../../../test/temp-dir';
 import {
+  confineLocations,
   DATA_FOLDER_NAME,
   readLocationFields,
   resolveLocations,
+  type DataLocations,
+  type LocationFields,
 } from './locations';
 
 const DOCUMENTS = resolve('/Users/operator/Documents');
@@ -136,5 +141,108 @@ describe('readLocationFields', () => {
         'app.json',
       ).fields,
     ).toEqual({dataRoot: OUTSIDE});
+  });
+});
+
+async function linkFolder(target: string, link: string): Promise<void> {
+  await symlink(target, link, 'junction');
+  onTestFinished(() => rm(link, {force: true}));
+}
+
+function developmentLocations(
+  developmentFolder: string,
+  fields: LocationFields = {},
+): DataLocations {
+  return resolveLocations(fields, {documents: DOCUMENTS, developmentFolder})
+    .locations;
+}
+
+describe('confineLocations', () => {
+  it('passes folders inside LLP_USER_DATA, existing or not yet', async () => {
+    const development = await makeTempDir();
+    await mkdir(join(development, DATA_FOLDER_NAME, '곡'), {recursive: true});
+    const locations = developmentLocations(development);
+
+    expect(await confineLocations(locations, development)).toEqual({
+      ok: true,
+      value: locations,
+    });
+  });
+
+  it('passes a link that stays inside LLP_USER_DATA', async () => {
+    const development = await makeTempDir();
+    const real = join(development, 'real');
+    await mkdir(real);
+    const songs = join(development, 'songs-link');
+    await linkFolder(real, songs);
+
+    const confined = await confineLocations(
+      developmentLocations(development, {songsPath: songs}),
+      development,
+    );
+
+    expect(confined.ok).toBe(true);
+  });
+
+  it('refuses a data folder that is a junction to a folder outside', async () => {
+    const development = await makeTempDir();
+    const outside = await makeTempDir();
+    await linkFolder(outside, join(development, DATA_FOLDER_NAME));
+
+    const confined = await confineLocations(
+      developmentLocations(development),
+      development,
+    );
+
+    expect(confined).toMatchObject({
+      ok: false,
+      error: {field: 'dataRoot', file: join(development, DATA_FOLDER_NAME)},
+    });
+  });
+
+  it('refuses a new folder below a junction that leads outside', async () => {
+    const development = await makeTempDir();
+    const outside = await makeTempDir();
+    const link = join(development, 'link');
+    await linkFolder(outside, link);
+    const songs = join(link, 'not-yet', '곡');
+
+    const confined = await confineLocations(
+      developmentLocations(development, {songsPath: songs}),
+      development,
+    );
+
+    expect(confined).toMatchObject({
+      ok: false,
+      error: {field: 'songs', file: songs},
+    });
+  });
+
+  it('refuses a junction whose target does not exist', async () => {
+    const development = await makeTempDir();
+    const outside = await makeTempDir();
+    await linkFolder(
+      join(outside, 'missing'),
+      join(development, DATA_FOLDER_NAME),
+    );
+
+    const confined = await confineLocations(
+      developmentLocations(development),
+      development,
+    );
+
+    expect(confined.ok).toBe(false);
+  });
+
+  it('checks nothing without a development folder', async () => {
+    const locations = resolveLocations(
+      {},
+      {documents: DOCUMENTS, developmentFolder: null},
+    ).locations;
+
+    expect(await confineLocations(locations, null)).toEqual({
+      ok: true,
+      value: locations,
+    });
   });
 });

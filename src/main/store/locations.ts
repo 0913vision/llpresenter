@@ -1,5 +1,15 @@
-import {isAbsolute, join, relative, resolve} from 'node:path';
+import {lstat, realpath} from 'node:fs/promises';
+import {
+  basename,
+  dirname,
+  isAbsolute,
+  join,
+  relative,
+  resolve,
+  sep,
+} from 'node:path';
 import {isRecord} from '@shared/guards';
+import type {Result} from '@shared/result';
 import {parseAppConfig} from '@shared/schema/appConfig';
 import type {FileError} from '@shared/schema/fileFormat';
 
@@ -17,6 +27,8 @@ const FOLDER_NAMES = {
 } as const;
 
 const BYTE_ORDER_MARK = /^\uFEFF/;
+const LEAVES_DEVELOPMENT_FOLDER =
+  'Refused: a junction or link leads this folder outside LLP_USER_DATA';
 
 /** The `app.json` fields that move the data folders. */
 export const locationFields = [
@@ -42,6 +54,17 @@ export interface DataLocations {
   readonly recovery: string;
   readonly backups: string;
 }
+
+const dataLocationNames = [
+  'dataRoot',
+  'songs',
+  'media',
+  'services',
+  'templates',
+  'settings',
+  'recovery',
+  'backups',
+] as const satisfies ReadonlyArray<keyof DataLocations>;
 
 export interface LocationContext {
   /** The user's Documents folder. */
@@ -104,6 +127,42 @@ export function resolveLocations(
 }
 
 /**
+ * Checks that every data folder stays inside the development folder once
+ * junctions and symbolic links are followed, so a link inside `LLP_USER_DATA`
+ * can never lead a development run to real data. A folder that doesn't exist
+ * yet is checked through its nearest existing parent, and a link whose target
+ * is missing is refused. Call it before any data file is read or written.
+ * Without a development folder, every location passes. Never throws.
+ *
+ * @returns The locations, or the first folder that leads outside, or why a
+ *   folder couldn't be checked.
+ */
+export async function confineLocations(
+  locations: DataLocations,
+  developmentFolder: string | null,
+): Promise<Result<DataLocations, FileError>> {
+  if (developmentFolder === null) {
+    return {ok: true, value: locations};
+  }
+  try {
+    const root = await canonicalPath(developmentFolder);
+    for (const name of dataLocationNames) {
+      const folder = locations[name];
+      if (!isInside(await canonicalPath(folder), root)) {
+        return {ok: false, error: leavesProblem(folder, name)};
+      }
+    }
+    return {ok: true, value: locations};
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return {
+      ok: false,
+      error: {kind: 'invalid', file: developmentFolder, field: '', message},
+    };
+  }
+}
+
+/**
  * Reads the location fields of `app.json`. When the file fails validation, it
  * still keeps each location field that is text, so a broken window layout
  * never sends the app to the wrong data folder.
@@ -130,11 +189,51 @@ function isAllowed(folder: string, developmentFolder: string | null): boolean {
   if (!isAbsolute(folder)) {
     return false;
   }
-  if (developmentFolder === null) {
-    return true;
+  return developmentFolder === null || isInside(folder, developmentFolder);
+}
+
+function isInside(folder: string, parent: string): boolean {
+  const path = relative(parent, folder);
+  return path !== '..' && !path.startsWith(`..${sep}`) && !isAbsolute(path);
+}
+
+// NOTE(0913vision): A folder that doesn't exist yet takes the real path of its
+// nearest existing parent, so a link above it still counts.
+async function canonicalPath(path: string): Promise<string> {
+  try {
+    return await realpath(path);
+  } catch (error: unknown) {
+    const parent = dirname(path);
+    if (!isMissing(error) || parent === path || (await isDanglingLink(path))) {
+      throw error;
+    }
+    return join(await canonicalPath(parent), basename(path));
   }
-  const inside = relative(developmentFolder, folder);
-  return !inside.startsWith('..') && !isAbsolute(inside);
+}
+
+async function isDanglingLink(path: string): Promise<boolean> {
+  try {
+    await lstat(path);
+    return true;
+  } catch (error: unknown) {
+    if (isMissing(error)) {
+      return false;
+    }
+    throw error;
+  }
+}
+
+function isMissing(error: unknown): boolean {
+  return error instanceof Error && 'code' in error && error.code === 'ENOENT';
+}
+
+function leavesProblem(folder: string, name: keyof DataLocations): FileError {
+  return {
+    kind: 'invalid',
+    file: folder,
+    field: name,
+    message: LEAVES_DEVELOPMENT_FOLDER,
+  };
 }
 
 function pickLocationFields(json: unknown): LocationFields {
