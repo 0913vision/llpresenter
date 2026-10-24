@@ -269,6 +269,9 @@ export class BackgroundLayerView {
 
   private play(video: HTMLVideoElement): void {
     video.play().catch((error: unknown) => {
+      // NOTE(0913vision): A play() that our own pause or source change
+      // interrupts rejects with AbortError. That is expected, not a fault.
+      if (error instanceof DOMException && error.name === 'AbortError') return;
       this.options.onError('could not start a background video', error);
     });
   }

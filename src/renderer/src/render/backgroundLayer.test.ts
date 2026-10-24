@@ -179,6 +179,18 @@ describe('BackgroundLayerView', () => {
     });
   });
 
+  it('says nothing when its own pause or source change interrupts a play', async () => {
+    vi.mocked(HTMLMediaElement.prototype.play).mockRejectedValueOnce(
+      new DOMException('The play() request was interrupted', 'AbortError'),
+    );
+    const {view, onError} = setUp();
+    view.show(WARM_LIGHT);
+    view.show(null);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(onError).not.toHaveBeenCalled();
+  });
+
   it('stops listening, unloads its videos, and removes itself on dispose', async () => {
     const clock = installFakeClock();
     const {parent, view, videos} = setUp();
