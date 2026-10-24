@@ -92,6 +92,13 @@ describe('checkMainPush', () => {
     expect(checkMainPush(repo.path, {...main, remoteSha: NULL_SHA})).toBeNull();
   });
 
+  it('lets a tests-only commit through', async () => {
+    const {repo, main} = await repoWithPush(
+      'test(show): cover an empty service',
+    );
+    expect(checkMainPush(repo.path, main)).toBeNull();
+  });
+
   it('lists the commits whose messages break the format', async () => {
     const {repo, main} = await repoWithPush(
       'feat(live): add undo',

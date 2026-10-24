@@ -6,10 +6,11 @@ export const COMMIT_TAGS = [
   'refactor',
   'style',
   'docs',
+  'test',
   'chore',
 ] as const;
 
-/** One of the seven commit tags. */
+/** One of the commit tags. */
 export type CommitTag = (typeof COMMIT_TAGS)[number];
 
 /** A commit subject split into its parts. */

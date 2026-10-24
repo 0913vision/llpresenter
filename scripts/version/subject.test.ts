@@ -15,6 +15,25 @@ describe('parseSubject', () => {
     });
   });
 
+  it('knows the tags of CLAUDE.md, in its order', () => {
+    expect(COMMIT_TAGS).toEqual([
+      'break',
+      'feat',
+      'fix',
+      'refactor',
+      'style',
+      'docs',
+      'test',
+      'chore',
+    ]);
+  });
+
+  it('accepts a tests-only commit', () => {
+    expect(parseSubject('test(show): cover an empty service')?.tag).toBe(
+      'test',
+    );
+  });
+
   it.each(COMMIT_TAGS)('accepts the %s tag', tag => {
     expect(parseSubject(`${tag}(repo): change something`)?.tag).toBe(tag);
   });

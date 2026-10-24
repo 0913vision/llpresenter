@@ -198,9 +198,9 @@ the default `GITHUB_TOKEN`. Pushes made with that token don't start another run.
 - The version lives only in `package.json` and `package-lock.json`, because
   Electron's `app.getVersion()` reads it.
 - `break`, `feat`, and `refactor` raise the minor version. `fix`, `style`,
-  `chore`, and `docs` raise the patch version. A push with any minor-type commit
-  raises the minor version. A message that breaks the format counts as a patch
-  change.
+  `docs`, `test`, and `chore` raise the patch version. A push with any
+  minor-type commit raises the minor version. A message that breaks the format
+  counts as a patch change.
 - The major version goes up only when someone runs the workflow by hand
   (`workflow_dispatch`) with `major` checked, after the user approves.
 - The bot counts every commit that no version tag covers yet: those since the

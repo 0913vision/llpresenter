@@ -31,9 +31,12 @@ describe('pickBump', () => {
     expect(pickBump(kinds(`${tag}(live): change it`), false)).toBe('minor');
   });
 
-  it.each(['fix', 'style', 'chore', 'docs'])('raises the patch for %s', tag => {
-    expect(pickBump(kinds(`${tag}(live): change it`), false)).toBe('patch');
-  });
+  it.each(['fix', 'style', 'chore', 'docs', 'test'])(
+    'raises the patch for %s',
+    tag => {
+      expect(pickBump(kinds(`${tag}(live): change it`), false)).toBe('patch');
+    },
+  );
 
   it('raises the minor when any commit is a minor type', () => {
     const pushed = kinds(
