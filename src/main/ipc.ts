@@ -4,6 +4,7 @@ import type {LiveState} from '@shared/live';
 import {parseLiveCommand} from '@shared/schema/liveCommand';
 import type {Logger} from './log';
 import type {LiveStore} from './live/store';
+import {handleLogWrite, type MessageHandler} from './rendererMessages';
 
 function isWindowAction(value: unknown): value is WindowAction {
   return windowActions.some(action => action === value);
@@ -38,6 +39,24 @@ function controlWindow(event: IpcMainEvent, value: unknown): void {
 }
 
 /**
+ * Passes every value sent on a fire-and-forget channel to the handler, which
+ * validates it.
+ *
+ * @returns A function that stops listening.
+ */
+export function listenToWindows(
+  channel: string,
+  handler: MessageHandler,
+): () => void {
+  const listener = (_event: IpcMainEvent, value: unknown): void =>
+    handler(value);
+  ipcMain.on(channel, listener);
+  return () => {
+    ipcMain.removeListener(channel, listener);
+  };
+}
+
+/**
  * Registers the IPC channels. Every incoming value is validated; invalid
  * values are logged and dropped.
  *
@@ -56,10 +75,12 @@ export function registerIpc(store: LiveStore, log: Logger): () => void {
     );
   });
   ipcMain.on(Channels.windowControl, controlWindow);
+  const stopLogWrites = listenToWindows(Channels.logWrite, handleLogWrite(log));
   const unsubscribe = store.subscribe(state => broadcast(state, log));
 
   return () => {
     unsubscribe();
+    stopLogWrites();
     ipcMain.removeHandler(Channels.liveGet);
     ipcMain.removeAllListeners(Channels.liveCommand);
     ipcMain.removeAllListeners(Channels.windowControl);
