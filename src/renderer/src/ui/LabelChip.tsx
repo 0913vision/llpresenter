@@ -1,4 +1,11 @@
-import {useRef, type JSX, type KeyboardEvent, type MouseEvent} from 'react';
+import {
+  useEffectEvent,
+  useLayoutEffect,
+  useRef,
+  type JSX,
+  type KeyboardEvent,
+  type MouseEvent,
+} from 'react';
 import type {LabelColor} from '@shared/colors';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
@@ -67,6 +74,33 @@ interface ChipKeyActions {
   readonly onRemove: (index: number) => void;
 }
 
+interface PendingFocus {
+  readonly remainingCount: number;
+  readonly chipOrInsert: number | null;
+}
+
+function chipAfterRemoval(index: number, remaining: number): number | null {
+  return remaining === 0 ? null : Math.min(index, remaining - 1);
+}
+
+function useFocusAfterRemoval(
+  count: number,
+  focus: (index: number | null) => void,
+): (pending: PendingFocus) => void {
+  const pendingRef = useRef<PendingFocus | null>(null);
+  const focusPending = useEffectEvent(() => {
+    const pending = pendingRef.current;
+    pendingRef.current = null;
+    if (pending?.remainingCount === count) focus(pending.chipOrInsert);
+  });
+  useLayoutEffect(() => {
+    focusPending();
+  }, [count]);
+  return pending => {
+    pendingRef.current = pending;
+  };
+}
+
 function handleChipKey(
   event: KeyboardEvent,
   index: number,
@@ -108,17 +142,30 @@ export function ArrangementStrip({
   draggingIndex,
 }: ArrangementStripProps): JSX.Element {
   const chipElements = useRef<Array<HTMLButtonElement | null>>([]);
-  const tabStop = selected ?? 0;
+  const insertButton = useRef<HTMLButtonElement>(null);
+  const tabStop = Math.min(selected ?? 0, chips.length - 1);
+  const focusAfterRemoval = useFocusAfterRemoval(chips.length, index => {
+    const target =
+      index === null ? insertButton.current : chipElements.current[index];
+    target?.focus();
+  });
 
   const select = (index: number): void => {
     chipElements.current[index]?.focus();
     if (index !== selected) onSelect(index);
   };
+  const remove = (index: number): void => {
+    const remaining = chips.length - 1;
+    const next = chipAfterRemoval(index, remaining);
+    focusAfterRemoval({remainingCount: remaining, chipOrInsert: next});
+    onRemove(index);
+    if (next !== null) onSelect(next);
+  };
   const onKeyDown = (
     index: number,
     event: KeyboardEvent<HTMLButtonElement>,
   ): void => {
-    const actions = {count: chips.length, select, onMove, onRemove};
+    const actions = {count: chips.length, select, onMove, onRemove: remove};
     if (handleChipKey(event, index, actions)) event.preventDefault();
   };
 
@@ -149,6 +196,7 @@ export function ArrangementStrip({
         {dropIndex === chips.length ? <ChipDrop /> : null}
       </div>
       <button
+        ref={insertButton}
         type="button"
         aria-label={INSERT_LABEL}
         className={styles.add}

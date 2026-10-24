@@ -42,6 +42,29 @@ function Strip({
   );
 }
 
+function RemovableStrip(): JSX.Element {
+  const [shown, setShown] = useState(chips);
+  const [selected, setSelected] = useState(0);
+  return (
+    <ArrangementStrip
+      label="구성"
+      chips={shown}
+      selected={selected}
+      onSelect={setSelected}
+      onMove={() => undefined}
+      onRemove={index => setShown(shown.filter((_, at) => at !== index))}
+      onInsert={() => undefined}
+    />
+  );
+}
+
+function tabStops(): string[] {
+  return screen
+    .getAllByRole('option')
+    .filter(option => option.tabIndex === 0)
+    .map(option => option.textContent);
+}
+
 function selectedChip(): string | null {
   return screen.getByRole('option', {selected: true}).textContent;
 }
@@ -91,6 +114,52 @@ describe('ArrangementStrip', () => {
     await userEvent.tab();
     await userEvent.keyboard('{Delete}');
     expect(onRemove).toHaveBeenCalledWith(0);
+  });
+
+  it('selects and focuses the chip before a removed last chip', async () => {
+    render(<RemovableStrip />);
+    await userEvent.tab();
+    await userEvent.keyboard('{End}{Delete}');
+    expect(selectedChip()).toBe('후렴');
+    expect(document.activeElement).toBe(
+      screen.getByRole('option', {name: '후렴'}),
+    );
+    expect(tabStops()).toEqual(['후렴']);
+  });
+
+  it('selects and focuses the next chip after a removed chip', async () => {
+    render(<RemovableStrip />);
+    await userEvent.tab();
+    await userEvent.keyboard('{Delete}');
+    expect(selectedChip()).toBe('후렴');
+    expect(document.activeElement).toBe(
+      screen.getByRole('option', {name: '후렴'}),
+    );
+  });
+
+  it('gives focus to the insert button once the last chip is gone', async () => {
+    render(<RemovableStrip />);
+    await userEvent.tab();
+    await userEvent.keyboard('{Delete}{Delete}{Delete}');
+    expect(screen.queryAllByRole('option')).toEqual([]);
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', {name: '장 넣기'}),
+    );
+  });
+
+  it('keeps a Tab stop on the last chip when the selection is past the end', () => {
+    render(
+      <ArrangementStrip
+        label="구성"
+        chips={chips}
+        selected={chips.length + 2}
+        onSelect={() => undefined}
+        onMove={() => undefined}
+        onRemove={() => undefined}
+        onInsert={() => undefined}
+      />,
+    );
+    expect(tabStops()).toEqual(['4']);
   });
 
   it('asks to insert from a named button', async () => {
