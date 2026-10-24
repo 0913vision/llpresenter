@@ -4,7 +4,7 @@ import {LiveStore} from './live/store';
 import {createLogger, type Logger} from './log';
 import {registerIpc} from './ipc';
 import {startOutputs} from './outputs/start';
-import {flushLogBeforeQuit} from './quit';
+import {ShutdownCoordinator} from './shutdown';
 import {registerSoakRecorder} from './soak';
 import {registerUiState} from './uiState/register';
 import {applyUserDataOverride, type UserDataProblem} from './userData';
@@ -62,11 +62,8 @@ function start(): void {
   app.on('child-process-gone', (_event, details) =>
     log.error('child process gone', details),
   );
-  // NOTE(0913vision): The control window's close handler quits once the UI
-  // state and the soak record are written. Quitting here as well would cut
-  // those writes short when the last window closes.
-  app.on('window-all-closed', () => undefined);
-  flushLogBeforeQuit(app, log);
+  app.on('window-all-closed', () => app.quit());
+  const shutdown = new ShutdownCoordinator({app, log});
 
   app
     .whenReady()
@@ -87,20 +84,15 @@ function start(): void {
       const stopSoakRecorder = registerSoakRecorder(log);
       const stopOutputs = startOutputs({store, control: win, log});
       // NOTE(0913vision): Output windows turn a close into "output off", so
-      // they must be destroyed before Electron closes windows to quit.
-      app.on('before-quit', stopOutputs);
+      // they are destroyed first, before Electron closes windows to quit.
+      shutdown.add({name: 'stop the outputs', run: stopOutputs});
+      shutdown.add({name: 'save the UI state', run: () => ui.dispose()});
+      shutdown.add({name: 'finish the soak record', run: stopSoakRecorder});
+      shutdown.add({name: 'stop serving media', run: stopServingMedia});
+      shutdown.add({name: 'remove the IPC channels', run: disposeIpc});
       win.on('closed', () => {
         control = null;
-        stopOutputs();
-        stopServingMedia();
-        disposeIpc();
-        Promise.all([ui.dispose(), stopSoakRecorder()]).then(
-          () => app.quit(),
-          (error: unknown) => {
-            log.error('could not finish saving before quitting', error);
-            app.quit();
-          },
-        );
+        app.quit();
       });
       quitAfterSmokeTest(win, log);
       log.info('started', {

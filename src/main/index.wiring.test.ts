@@ -92,44 +92,66 @@ beforeEach(async () => {
   fakes.soakStop.mockReset();
 });
 
+function beforeQuit(): {prevented: boolean} {
+  const event = {
+    prevented: false,
+    preventDefault() {
+      event.prevented = true;
+    },
+  };
+  for (const handler of fakes.appHandlers.get('before-quit') ?? []) {
+    handler(event);
+  }
+  return event;
+}
+
 describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
   it('reads the UI state before the control window opens', async () => {
     await startMain();
     expect(fakes.order).toEqual(['ui state', 'control window']);
   });
 
-  it('quits only after the UI state and the soak record are written', async () => {
+  it('asks to quit when the control window closes', async () => {
+    const control = await startMain();
+    control.emit('closed');
+    expect(fakes.electron.app.quit).toHaveBeenCalledTimes(1);
+  });
+
+  it('holds the quit until the UI state and the soak record are written', async () => {
     const ui = deferred();
     const soak = deferred();
     fakes.uiDispose.mockReturnValue(ui.promise);
     fakes.soakStop.mockReturnValue(soak.promise);
-    const control = await startMain();
-    control.emit('closed');
+    await startMain();
+    expect(beforeQuit().prevented).toBe(true);
+    expect(beforeQuit().prevented).toBe(true);
     ui.resolve();
     await ui.promise;
+    await new Promise(resolve => setImmediate(resolve));
     expect(fakes.electron.app.quit).not.toHaveBeenCalled();
     soak.resolve();
     await vi.waitFor(() => {
-      expect(fakes.electron.app.quit).toHaveBeenCalled();
+      expect(fakes.electron.app.quit).toHaveBeenCalledTimes(1);
     });
+    expect(fakes.uiDispose).toHaveBeenCalledTimes(1);
+    expect(beforeQuit().prevented).toBe(false);
   });
 
   it('still quits when saving fails', async () => {
     fakes.uiDispose.mockRejectedValue(new Error('disk full'));
     fakes.soakStop.mockResolvedValue(undefined);
-    const control = await startMain();
-    control.emit('closed');
+    await startMain();
+    beforeQuit();
     await vi.waitFor(() => {
       expect(fakes.electron.app.quit).toHaveBeenCalled();
     });
   });
 
-  it('leaves quitting to the control window when the last window closes', async () => {
+  it('quits when the last window closes, through the same shutdown', async () => {
     await startMain();
     for (const handler of fakes.appHandlers.get('window-all-closed') ?? []) {
       handler();
     }
-    expect(fakes.appHandlers.get('window-all-closed')).toHaveLength(1);
-    expect(fakes.electron.app.quit).not.toHaveBeenCalled();
+    expect(fakes.electron.app.quit).toHaveBeenCalledTimes(1);
   });
 });
