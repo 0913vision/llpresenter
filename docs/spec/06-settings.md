@@ -71,9 +71,10 @@ Source: `Screens`, `Looks`, `StageEditor`, `Main` board guide (화면 설정, Lo
   패턴 (test pattern).
 - 화면 내용 shows the selected screen's current output.
 - 테스트 패턴 shows color bars and a gray ramp in the preview and on that
-  screen's real output (proposal: like the ProPresenter test pattern). It
-  returns to the content when the operator chooses 화면 내용 or leaves 화면 설정
-  (proposal).
+  screen's real output (proposal: ProPresenter shows a test pattern on the
+  audience screens with Show and removes it with Clear, S4 p. 45; tying it to
+  this preview is our design). It returns to the content when the operator
+  chooses 화면 내용 or leaves 화면 설정 (proposal).
 - The caption shows the screen name, the target and monitor name ("모니터 2
   EPSON 프로젝터"), and the resolution and refresh rate ("1920×1080 60Hz").
 

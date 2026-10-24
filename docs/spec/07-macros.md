@@ -13,9 +13,11 @@ Terms: 출력 (output), 지우기 (clear), 장 (slide), 예배 순서 (service o
 
 - A 매크로 has a name, an icon, a color, and an ordered list of actions. 매크로
   are app-wide settings (see 02).
-- 매크로 live in the 매크로 tab of the 진행 도구. Like ProPresenter, the app has
-  no separate 매크로 editor window. The operator edits 매크로 with the
-  right-click menu and the action palette.
+- 매크로 live in the 매크로 tab of the 진행 도구, as macros live in
+  ProPresenter's Show Controls (S5). The operator edits 매크로 with the
+  right-click menu, as ProPresenter does (S5), and with the action palette (our
+  design; ProPresenter's Action Palette adds actions to slides, S4 p. 83). The
+  app has no separate 매크로 editor window (our design).
 
 Source: `Main` board guide (매크로), `Main` decision "매크로", `Main`
 "프로프리젠터와 다른 점" (매크로 편집), product log (매크로 redrawn after
@@ -67,7 +69,7 @@ ProPresenter).
   precedence). In 진행, only text fields, the 장 grid, and the 예배 순서 list
   take keyboard focus on a click.
 - Each 매크로 can have its own shortcut, with no default key (decided; follows
-  ProPresenter's Key Mappings for macros, 10).
+  ProPresenter's Key Mappings for macros, S2 and S3).
 
 Source: `Macros`, `Overlays` 매크로 tab, `MacroTile` README.
 
@@ -200,8 +202,8 @@ Source: `PrepService` (시작할 때: 찬양 매크로), `Main` decisions "라�
 ## Run at startup (open question)
 
 - The right-click menu has 시작할 때 실행 (run at startup). This spec reads it
-  as running the 매크로 once after the app starts, like ProPresenter's trigger
-  on startup (proposal, open question).
+  as running the 매크로 once after the app starts, like ProPresenter's macros
+  that run "every time ProPresenter loads" (S5) (proposal, open question).
 - Run startup 매크로 in list order, after a normal launch or after the operator
   answers 새로 시작 (start fresh) in the output state recovery dialog. Don't run
   them after 복구 (restore), so that they don't undo the restored state
@@ -219,8 +221,8 @@ Source: `PrepService` (시작할 때: 찬양 매크로), `Main` decisions "라�
 ## Clearing several layers at once
 
 - Version 1 has no button that clears a chosen set of layers at once
-  (ProPresenter's Clear Groups, called "다중 레이어 지우기" here). The user
-  decided this on 2026-10-24.
+  (ProPresenter's Clear Groups, S3 and S7, called "다중 레이어 지우기" here).
+  The user decided this on 2026-10-24.
 - To clear several layers at once, put several 레이어 지우기 actions in a
   매크로. If the clear belongs to a moment in the service, set that 매크로 as
   the start 매크로 of the 예배 순서 item. For example, a 매크로 with 레이어

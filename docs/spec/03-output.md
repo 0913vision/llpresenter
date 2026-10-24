@@ -64,13 +64,14 @@ screen's output on and off. There is no confirmation.
 - Turning an output off keeps the output state (the live 장, background, 소품,
   and so on). Turning it back on shows that content at once. While the output is
   off, the preview keeps showing the same picture.
-- Off means the output window is hidden (proposal: treated like turning off
-  audience screens in ProPresenter). The capture window is hidden too.
+- Off means the output window is hidden (proposal: ProPresenter turns audience
+  and stage screens off from the Preview window, S4 p. 24, and doesn't say what
+  an off screen shows). The capture window is hidden too.
 - Shortcuts: Ctrl 1 turns the audience screen outputs (본 화면 and 방송 자막) on
   and off together, and Ctrl 2 turns the 무대 화면 output on and off (decided;
   follows ProPresenter's Toggle Output Screens and Toggle Stage Display Screens,
-  see 10). If some of those outputs are on and some off, the shortcut turns them
-  all on (proposal).
+  S1; S4 p. 172 for Ctrl 1). If some of those outputs are on and some off, the
+  shortcut turns them all on (proposal).
 - Don't save whether outputs are on. At launch, if the 환경설정 option 켤 때
   화면 출력 (output on launch, default off) is on, turn every screen output on.
   Otherwise start with all outputs off. After a crash, the answer to the output
@@ -144,8 +145,10 @@ Something shows on a screen only if both of these are true (proposal):
 - Hiding by a Look isn't clearing. The content stays in the output state, its
   clear button stays in the "something to clear" state, and changing the Look
   shows it again (proposal).
-- Edits to the current Look in 화면 설정 apply to the output at once (proposal:
-  assumed to match ProPresenter, where Look edits apply live).
+- Edits to the current Look in 화면 설정 apply to the output at once (our
+  design: the Looks pane shows the live Look at the top and saves a preset with
+  Save, S4 pp. 37 to 38, but no ProPresenter source says whether edits apply
+  live).
 
 Source: `Looks`, `Main` decision "설정은 앱 전체에 하나", `ShowH` (toolbar
 "평상시"), `ToolbarButton` README (Look menu), `Shortcuts` (Look group).
@@ -253,8 +256,10 @@ The clear happens at once, with no confirmation, on every screen.
 | F7       | 공지           | The 공지, and stops its rotation                               |
 | Ctrl Z   | 되돌림 (undo)  | Undoes the last clear (see "Undo")                             |
 
-- The order and keys follow ProPresenter: F1 all, F2 lyrics, F3 media, F4 props,
-  F5 audio, F6 messages, F7 announcements.
+- The order and keys follow ProPresenter's current shortcuts: F1 all, F2 lyrics,
+  F3 media, F4 props, F5 audio, F6 messages, F7 announcements (S1). The 7.5
+  guide still lists F3 as Clear Background and F6 as Clear Logo (S4 pp. 25 to
+  26).
 - Clears don't touch: whether outputs are on, the current Look, 타이머 (they
   keep running), stage layouts, the stage message (proposal: the stage message
   comes down from the 진행 도구 무대 tab), and the current item in the 예배
@@ -276,9 +281,9 @@ The clear happens at once, with no confirmation, on every screen.
 ### Clearing several layers at once
 
 Version 1 has no button that clears a chosen set of layers at once
-(ProPresenter's Clear Groups, called "다중 레이어 지우기" in this project).
-Build it as a 매크로 with several clear actions. If needed, set that 매크로 as
-the start 매크로 of a 예배 순서 item. See 07.
+(ProPresenter's Clear Groups, S3 and S7, called "다중 레이어 지우기" in this
+project). Build it as a 매크로 with several clear actions. If needed, set that
+매크로 as the start 매크로 of a 예배 순서 item. See 07.
 
 ### Undo
 

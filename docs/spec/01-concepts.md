@@ -184,24 +184,25 @@ Source: product log (offline Bible data preferred), `docs/TECH.md` principle 5.
 
 - Put a feature that ProPresenter also has in the same place, with the same
   behavior. The table below lists the differences.
-- This spec says "like ProPresenter" only where a source says so. Where this
-  spec guesses the ProPresenter behavior, it marks the guess as a proposal.
+- This spec says "like ProPresenter" only where a source says so, and names the
+  source (README, "Sources"). Where no source was found, it says so, or calls
+  the behavior "our design".
 
-| Topic                 | ProPresenter                                                                                | LoveLight Presenter                                                                                |
-| --------------------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| Services and settings | Playlists hold only items. Screens, Looks, macros, and stage layouts are app-wide settings. | Same.                                                                                              |
-| New service           | Created from a Playlist Template.                                                           | Same. A new service can also start from a past service.                                            |
-| Choosing a service    | The playlist list at the top left.                                                          | A list that opens from the service name in the 예배 순서 header.                                   |
-| Output                | Clicking a slide outputs it at once.                                                        | Same.                                                                                              |
-| Song arrangements     | A song stores several named arrangements. The playlist picks one.                           | Same. The 예배 순서 item picks one.                                                                |
-| Stage screen          | Looks apply only to audience screens. Stage has its own layout editor.                      | Looks also turn stage layers on and off. The layout comes from the stage layout editor.            |
-| Clearing              | Per-layer clears and Clear Groups.                                                          | Seven per-layer clears. To clear several layers at once, use a 매크로.                             |
-| Broadcast output      | NDI output.                                                                                 | NDI is the goal, with the capture window as fallback. Version 1 ships the capture window (see 09). |
-| Macro editing         | Right-click menu and action palette.                                                        | Same.                                                                                              |
-| Bible                 | A separate Bible mode.                                                                      | Search directly in the 퀵 실행 field.                                                              |
-| Crash                 | Saves on every change.                                                                      | Same. On restart, only the output state is restored.                                               |
-| Small screens         | Collapses the sidebar and show controls.                                                    | Same direction, with a separate layout for 1366 x 768.                                             |
-| Camera input          | Inputs are registered in settings (capture devices, SDI, NDI).                              | Added later the same way (see 09).                                                                 |
+| Topic                 | ProPresenter                                                                                                                                         | LoveLight Presenter                                                                                  |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Services and settings | A playlist holds items that reference presentations (S4 p. 17). Screens (p. 32), Looks (p. 37), stage layouts (p. 40), and macros (S5) are app-wide. | Same.                                                                                                |
+| New service           | New Playlist from Template, with headers and placeholders (S19, 7.10 and later).                                                                     | Same. A new service can also start from a past service (our design).                                 |
+| Choosing a service    | The Libraries and Playlists list on the upper left (S4 p. 17).                                                                                       | A list that opens from the service name in the 예배 순서 header (our design).                        |
+| Output                | Clicking a slide outputs it at once (S4 p. 70).                                                                                                      | Same.                                                                                                |
+| Song arrangements     | A song stores several named arrangements, and the playlist stores which one each item uses (S4 pp. 80 to 81).                                        | Same. The 예배 순서 item picks one.                                                                  |
+| Stage screen          | Looks apply only to audience screens (S4 p. 37). Each stage screen gets a layout from the Stage Layout Editor (p. 40).                               | Looks also turn stage layers on and off (our design). The layout comes from the stage layout editor. |
+| Clearing              | Per-layer clears (S4 p. 25) and, since 7.7, Clear Groups (S3, S7).                                                                                   | Seven per-layer clears. To clear several layers at once, use a 매크로.                               |
+| Broadcast output      | NDI output screens (S4 p. 32).                                                                                                                       | NDI is the goal, with the capture window as fallback. Version 1 ships the capture window (see 09).   |
+| Macro editing         | A macro's actions are edited from its right-click menu (S5). The Action Palette adds actions to slides (S4 p. 83).                                   | The same right-click menu, plus an action palette for 매크로 (our design).                           |
+| Bible                 | A separate Bible view (S4 pp. 16, 138).                                                                                                              | Search directly in the 퀵 실행 field (our design).                                                   |
+| Crash                 | Saves every change automatically (S20).                                                                                                              | Same. On restart, only the output state is restored (our design).                                    |
+| Small screens         | The ^ button hides the Libraries and Playlists section (S4 p. 18), and the Media Bin can be hidden (p. 10). No source on a layout for small windows. | A separate layout for 1366 x 768 that collapses the left column (our design).                        |
+| Camera input          | Video inputs (USB, Thunderbolt, SDI, NDI, Syphon) are registered in Preferences > Input (S4 pp. 177 to 180).                                         | Added later the same way (see 09).                                                                   |
 
 Source: `Main` "프로프리젠터와 다른 점", design system principle 2, product log
 ("follow the reference strictly").

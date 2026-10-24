@@ -142,8 +142,10 @@ The song editor edits the 라이브러리 song, which is the source for every �
   right, the lines, edited in place without field chrome.
 - The block that holds the cursor is active. It has a lighter background and a
   blue bar at its left edge.
-- Editing rules (proposal, modeled on the ProPresenter Reflow editor, where an
-  empty line separates slides):
+- Editing rules (proposal, our design: ProPresenter's Reflow editor shows the
+  text on the left and the slides on the right and breaks a slide with Ctrl
+  Enter, S4 p. 74, but no ProPresenter source says that an empty line separates
+  slides):
   - Enter starts a new line in the same block.
   - Enter on an empty line splits the block there. The empty line goes away, and
     the lines after it become a new block.
@@ -153,7 +155,7 @@ The song editor edits the 라이브러리 song, which is the source for every �
 - When blocks are inserted, deleted, merged, or moved, rewrite the 장 numbers in
   every 구성 (see 02).
 - Ctrl Z undoes edits for the current session, and Ctrl Y or Ctrl Shift Z redoes
-  them (decided; Ctrl Y follows ProPresenter, 10).
+  them (decided; Ctrl Y follows ProPresenter, S1).
 - Ctrl Enter splits the block at the cursor, and Ctrl Shift N inserts an empty
   block after the current one (decided, 10).
 
@@ -340,8 +342,8 @@ Source: `NewService`, `ListRow` README.
     children is checked (proposal). The new service becomes the current service.
     The output doesn't change.
   - Two services can share a name and date (proposal).
-- Starting from a 틀 follows ProPresenter's Playlist Template. Starting from a
-  past service is this project's addition.
+- Starting from a 틀 follows ProPresenter's New Playlist from Template (S19).
+  Starting from a past service is this project's addition.
 
 Source: `NewService`, `Main` decision "새 예배", `Dialog` README, `Checkbox`
 README, product log version 63.
@@ -358,8 +360,8 @@ README, product log version 63.
   in source order. A header comes along if it or any of its children is checked,
   so the items keep their group (proposal). Items get new IDs.
 - 가져오기 is unavailable while nothing is checked.
-- This feature isn't in the ProPresenter documentation. It's this project's
-  addition.
+- No ProPresenter source describes copying items from another playlist. It's
+  this project's addition.
 
 Source: `ServiceImport`, `Main` decision "다른 예배에서 골라 가져오기", product
 log versions 61 and 63.

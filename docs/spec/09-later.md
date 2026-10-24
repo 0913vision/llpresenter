@@ -103,9 +103,11 @@ it can be added without restructuring), `Main` decision "1차 버전은 가사�
 ### What it is
 
 - The user plans to add camera input later.
-- ProPresenter registers video inputs (USB capture devices, SDI, NDI) app-wide
-  under Settings > Inputs, and uses them as media bin items, as slide and 매크로
-  actions, and as slide elements. The plan is to add cameras the same way.
+- ProPresenter registers video inputs (USB, Thunderbolt, SDI, NDI, Syphon)
+  app-wide in Preferences > Input (S4 pp. 177 to 180), and uses them in the
+  Media Bin (p. 21), as a slide action (p. 86), as a fill for slide objects (p.
+  61), and on the Video Input layer of a Look (p. 39). The plan is to add
+  cameras the same way.
 
 ### Hooks version 1 must leave open
 
