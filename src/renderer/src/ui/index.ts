@@ -11,6 +11,20 @@ export {
 } from './Checkbox';
 export {Icon, type IconProps, type IconSize} from './Icon';
 export {IconButton, type IconButtonProps} from './IconButton';
+export {
+  Menu,
+  type MenuAnchor,
+  type MenuCloseReason,
+  type MenuProps,
+  type MenuSearch,
+} from './Menu';
+export type {
+  MenuCheckKind,
+  MenuEntry,
+  MenuGroupLabel,
+  MenuItem,
+  MenuSeparator,
+} from './menuModel';
 export {NumberField, type NumberFieldProps} from './NumberField';
 export {
   OutputToggle,
@@ -29,6 +43,11 @@ export {
   type SelectPopup,
   type SelectProps,
 } from './Select';
+export {
+  SelectMenu,
+  type SelectMenuProps,
+  type SelectOption,
+} from './SelectMenu';
 export {
   Slider,
   type SliderProps,
