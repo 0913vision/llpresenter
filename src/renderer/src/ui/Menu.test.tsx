@@ -1,9 +1,10 @@
-import {fireEvent, render, screen} from '@testing-library/react';
+import {act, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, beforeAll, describe, expect, it, vi} from 'vitest';
 import {Menu, type MenuCloseReason, type MenuSearch} from './Menu';
 import type {MenuEntry} from './menuModel';
+import {maxPopoverHeight} from './placement';
 import {installFakeClock} from '../../../../test/fake-clock';
 import {letTimePass, pointAt, resetTooltips} from './tooltipTesting';
 
@@ -14,6 +15,24 @@ beforeAll(() => {
 afterEach(resetTooltips);
 
 const SUBMENU_DELAY_MS = 150;
+const SUBMENU_GRACE_MS = 300;
+const SMALL_WINDOW_HEIGHT = 300;
+
+const twoSubmenus: readonly MenuEntry[] = [
+  {
+    kind: 'item',
+    id: 'import',
+    label: '가져오기',
+    submenu: [{kind: 'item', id: 'text', label: '텍스트 파일'}],
+  },
+  {
+    kind: 'item',
+    id: 'export',
+    label: '내보내기',
+    submenu: [{kind: 'item', id: 'pdf', label: 'PDF'}],
+  },
+  {kind: 'item', id: 'print', label: '인쇄'},
+];
 
 function fileMenu(onSelect: (id: string) => void): readonly MenuEntry[] {
   const item = (id: string, label: string, extra = {}): MenuEntry => ({
@@ -45,10 +64,12 @@ function Harness({
   onSelect = () => {},
   onClose = () => {},
   search,
+  entries,
 }: {
   readonly onSelect?: (id: string) => void;
   readonly onClose?: (reason: MenuCloseReason) => void;
   readonly search?: MenuSearch;
+  readonly entries?: readonly MenuEntry[];
 }): JSX.Element {
   const [opener, setOpener] = useState<HTMLButtonElement | null>(null);
   const [open, setOpen] = useState(false);
@@ -60,7 +81,7 @@ function Harness({
       {open && opener !== null ? (
         <Menu
           label="파일"
-          entries={fileMenu(onSelect)}
+          entries={entries ?? fileMenu(onSelect)}
           anchor={{kind: 'element', element: opener}}
           search={search}
           onClose={reason => {
@@ -214,6 +235,81 @@ describe('Menu', () => {
     expect(screen.queryByRole('menu', {name: '가져오기'})).toBeNull();
     await letTimePass(clock, 1);
     expect(screen.getByRole('menu', {name: '가져오기'})).toBeDefined();
+  });
+
+  it('closes only a submenu that the pointer opened on Esc', async () => {
+    render(<Harness entries={twoSubmenus} />);
+    await openMenu();
+    const root = screen.getByRole('menu', {name: '파일'});
+    const clock = installFakeClock();
+    pointAt(screen.getByRole('menuitem', {name: '가져오기'}));
+    await letTimePass(clock, SUBMENU_DELAY_MS);
+    expect(document.activeElement).toBe(root);
+    fireEvent.keyDown(root, {key: 'Escape'});
+    expect(screen.queryByRole('menu', {name: '가져오기'})).toBeNull();
+    expect(document.activeElement).toBe(root);
+    fireEvent.keyDown(root, {key: 'Escape'});
+    expect(screen.queryByRole('menu')).toBeNull();
+  });
+
+  it('moves focus into the submenu that the pointer enters', async () => {
+    render(<Harness entries={twoSubmenus} />);
+    await openMenu();
+    const clock = installFakeClock();
+    pointAt(screen.getByRole('menuitem', {name: '가져오기'}));
+    await letTimePass(clock, SUBMENU_DELAY_MS);
+    const submenu = screen.getByRole('menu', {name: '가져오기'});
+    pointAt(submenu);
+    expect(document.activeElement).toBe(submenu);
+    fireEvent.keyDown(submenu, {key: 'Escape'});
+    expect(screen.queryByRole('menu', {name: '가져오기'})).toBeNull();
+    expect(document.activeElement).toBe(
+      screen.getByRole('menu', {name: '파일'}),
+    );
+  });
+
+  it('keeps an open submenu while the pointer crosses another parent into it', async () => {
+    render(<Harness entries={twoSubmenus} />);
+    await openMenu();
+    const clock = installFakeClock();
+    pointAt(screen.getByRole('menuitem', {name: '가져오기'}));
+    await letTimePass(clock, SUBMENU_DELAY_MS);
+    pointAt(screen.getByRole('menuitem', {name: '내보내기'}));
+    await letTimePass(clock, SUBMENU_GRACE_MS - 1);
+    pointAt(screen.getByRole('menu', {name: '가져오기'}));
+    await letTimePass(clock, SUBMENU_GRACE_MS * 2);
+    expect(screen.getByRole('menu', {name: '가져오기'})).toBeDefined();
+    expect(screen.queryByRole('menu', {name: '내보내기'})).toBeNull();
+  });
+
+  it('opens the next submenu once the grace period ends', async () => {
+    render(<Harness entries={twoSubmenus} />);
+    await openMenu();
+    const clock = installFakeClock();
+    pointAt(screen.getByRole('menuitem', {name: '가져오기'}));
+    await letTimePass(clock, SUBMENU_DELAY_MS);
+    pointAt(screen.getByRole('menuitem', {name: '내보내기'}));
+    await letTimePass(clock, SUBMENU_GRACE_MS - 1);
+    expect(screen.getByRole('menu', {name: '가져오기'})).toBeDefined();
+    await letTimePass(clock, 1);
+    expect(screen.queryByRole('menu', {name: '가져오기'})).toBeNull();
+    expect(screen.getByRole('menu', {name: '내보내기'})).toBeDefined();
+  });
+
+  it('fits itself again when the window shrinks, until it closes', async () => {
+    render(<Harness />);
+    await openMenu();
+    const menu = screen.getByRole('menu', {name: '파일'});
+    vi.stubGlobal('innerHeight', SMALL_WINDOW_HEIGHT);
+    act(() => {
+      window.dispatchEvent(new Event('resize'));
+    });
+    expect(menu.style.maxHeight).toBe(
+      `${maxPopoverHeight({width: window.innerWidth, height: SMALL_WINDOW_HEIGHT})}px`,
+    );
+    const removed = vi.spyOn(window, 'removeEventListener');
+    await userEvent.keyboard('{Escape}');
+    expect(removed).toHaveBeenCalledWith('resize', expect.any(Function));
   });
 
   it('marks the current choice and names a group', () => {

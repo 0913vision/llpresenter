@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useEffectEvent,
   useId,
   useRef,
   useState,
@@ -78,10 +79,9 @@ function anchorPlace(anchor: MenuAnchor): Place {
   }
 }
 
-/** The submenu timers of one menu, released when the menu closes. */
 function useMenuTimers(): {
   readonly start: (name: TimerName, ms: number, run: () => void) => void;
-  readonly stop: (name: TimerName) => void;
+  readonly stop: (...names: readonly TimerName[]) => void;
 } {
   const timers = useRef(new Map<TimerName, ReturnType<typeof setTimeout>>());
   useEffect(() => {
@@ -91,11 +91,11 @@ function useMenuTimers(): {
       running.clear();
     };
   }, []);
-  const stop = (name: TimerName): void => {
-    const timer = timers.current.get(name);
-    if (timer === undefined) return;
-    clearTimeout(timer);
-    timers.current.delete(name);
+  const stop = (...names: readonly TimerName[]): void => {
+    for (const name of names) {
+      clearTimeout(timers.current.get(name));
+      timers.current.delete(name);
+    }
   };
   const start = (name: TimerName, ms: number, run: () => void): void => {
     stop(name);
@@ -112,8 +112,7 @@ function useMenuTimers(): {
 
 interface OpenSubmenu {
   readonly index: number;
-  /** Whether the submenu takes focus, as it does when opened with keys. */
-  readonly focus: boolean;
+  readonly takesFocus: boolean;
 }
 
 interface MenuNavigation {
@@ -123,17 +122,20 @@ interface MenuNavigation {
   readonly itemElements: RefObject<Array<HTMLDivElement | null>>;
   readonly run: (index: number) => void;
   readonly hover: (index: number) => void;
-  /** Closes the open submenu and gives focus back to this menu. */
-  readonly back: () => void;
-  /** Keeps the submenu open while the pointer is inside it. */
-  readonly enterSubmenu: () => void;
+  readonly closeSubmenu: () => void;
+  readonly keepSubmenuOpen: () => void;
   readonly onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void;
 }
 
-/**
- * The pointed item and the open submenu of one menu, with the keyboard and
- * pointer rules that move them.
- */
+function opensSubmenu(item: MenuItem | undefined): boolean {
+  return item?.submenu !== undefined && isRunnable(item);
+}
+
+function focusMenu(surface: HTMLElement | null): void {
+  if (surface === null || surface.contains(document.activeElement)) return;
+  (surface.querySelector('input') ?? surface).focus({preventScroll: true});
+}
+
 function useMenuNavigation({
   entries,
   surface,
@@ -156,9 +158,9 @@ function useMenuNavigation({
     setPointed(index);
     itemElements.current[index]?.scrollIntoView({block: 'nearest'});
   };
-  const openSubmenu = (index: number, focus: boolean): void => {
-    timers.stop('close');
-    setSubmenu({index, focus});
+  const openSubmenu = (index: number, takesFocus: boolean): void => {
+    timers.stop('open', 'close');
+    setSubmenu({index, takesFocus});
   };
   const run = (index: number): void => {
     const item = items[index];
@@ -173,25 +175,38 @@ function useMenuNavigation({
   const hover = (index: number): void => {
     setPointed(index);
     timers.stop('open');
-    if (submenu !== null && submenu.index !== index) {
-      timers.start('close', SUBMENU_CLOSE_DELAY_MS, () => setSubmenu(null));
+    const opens = opensSubmenu(items[index]);
+    if (submenu === null) {
+      if (opens) {
+        timers.start('open', SUBMENU_OPEN_DELAY_MS, () =>
+          openSubmenu(index, false),
+        );
+      }
+      return;
     }
-    if (items[index]?.submenu !== undefined && isRunnable(items[index])) {
-      timers.start('open', SUBMENU_OPEN_DELAY_MS, () =>
-        openSubmenu(index, false),
-      );
+    if (submenu.index === index) {
+      timers.stop('close');
+      return;
     }
+    // NOTE(0913vision): While a submenu is open, the next one waits for the
+    // close delay, so a pointer that crosses other items on its way into the
+    // open submenu still gets there.
+    timers.start('close', SUBMENU_CLOSE_DELAY_MS, () => {
+      setSubmenu(opens ? {index, takesFocus: false} : null);
+    });
   };
-  const back = (): void => {
+  const closeSubmenu = (): void => {
+    timers.stop('open', 'close');
     setSubmenu(null);
-    surface.current?.focus();
+    focusMenu(surface.current);
   };
-  const enterSubmenu = (): void => {
-    timers.stop('close');
+  const keepSubmenuOpen = (): void => {
+    timers.stop('open', 'close');
     if (submenu !== null) setPointed(submenu.index);
   };
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
-    const actions = {items, pointed, pointTo, run, onBack, onClose};
+    const closeChild = submenu === null ? undefined : closeSubmenu;
+    const actions = {items, pointed, pointTo, run, closeChild, onBack, onClose};
     if (!handleMenuKey(event, actions)) return;
     event.preventDefault();
     event.stopPropagation();
@@ -203,8 +218,8 @@ function useMenuNavigation({
     itemElements,
     run,
     hover,
-    back,
-    enterSubmenu,
+    closeSubmenu,
+    keepSubmenuOpen,
     onKeyDown,
   };
 }
@@ -214,7 +229,6 @@ interface SurfaceProps {
   readonly entries: readonly MenuEntry[];
   readonly place: Place;
   readonly onClose: (reason: MenuCloseReason) => void;
-  /** Closes only this submenu and gives focus back to its parent. */
   readonly onBack?: (() => void) | undefined;
   readonly onPointerEnter?: (() => void) | undefined;
   readonly search?: MenuSearch | undefined;
@@ -232,10 +246,20 @@ function MenuSurface(props: SurfaceProps): JSX.Element {
   const activeId = nav.pointed >= 0 ? itemId(nav.pointed) : undefined;
 
   useEffect(() => {
-    if (!autoFocus) return;
-    const element = surface.current;
-    (element?.querySelector('input') ?? element)?.focus();
+    if (autoFocus) focusMenu(surface.current);
   }, [autoFocus]);
+
+  const fit = (element: HTMLElement): void => {
+    element.style.maxHeight = `${maxPopoverHeight(viewportSize())}px`;
+    placeFloating(element, place);
+  };
+  const refit = useEffectEvent(() => {
+    if (surface.current !== null) fit(surface.current);
+  });
+  useEffect(() => {
+    window.addEventListener('resize', refit);
+    return () => window.removeEventListener('resize', refit);
+  }, []);
 
   const lead = hasLeadSlot(nav.items);
   const renderItem = (item: MenuItem): JSX.Element => {
@@ -256,18 +280,14 @@ function MenuSurface(props: SurfaceProps): JSX.Element {
       />
     );
   };
-  const style: CSSProperties = {
-    width: props.width,
-    minWidth: props.minWidth,
-    maxHeight: maxPopoverHeight(viewportSize()),
-  };
+  const style: CSSProperties = {width: props.width, minWidth: props.minWidth};
 
   return (
     <>
       <div
         ref={element => {
           surface.current = element;
-          if (element !== null) placeFloating(element, place);
+          if (element !== null) fit(element);
         }}
         id={baseId}
         role="menu"
@@ -277,7 +297,10 @@ function MenuSurface(props: SurfaceProps): JSX.Element {
         className={styles.menu}
         style={style}
         onKeyDown={nav.onKeyDown}
-        onPointerEnter={props.onPointerEnter}
+        onPointerEnter={() => {
+          focusMenu(surface.current);
+          props.onPointerEnter?.();
+        }}
       >
         {search === undefined ? null : (
           <MenuSearchField
@@ -293,7 +316,6 @@ function MenuSurface(props: SurfaceProps): JSX.Element {
   );
 }
 
-/** The open submenu of a menu, beside its parent item. */
 function Submenu({
   nav,
   parent,
@@ -325,9 +347,9 @@ function Submenu({
       entries={item.submenu}
       place={place}
       onClose={onClose}
-      onBack={nav.back}
-      onPointerEnter={nav.enterSubmenu}
-      autoFocus={submenu.focus}
+      onBack={nav.closeSubmenu}
+      onPointerEnter={nav.keepSubmenuOpen}
+      autoFocus={submenu.takesFocus}
     />
   );
 }

@@ -16,6 +16,11 @@ export interface MenuKeyActions {
   readonly pointed: number;
   readonly pointTo: (index: number) => void;
   readonly run: (index: number) => void;
+  /**
+   * Closes the submenu this menu has open, also one the pointer opened while
+   * focus stayed here; `undefined` while none is open.
+   */
+  readonly closeChild: (() => void) | undefined;
   /** Closes only this submenu; `undefined` in a top-level menu. */
   readonly onBack: (() => void) | undefined;
   readonly onClose: (reason: MenuCloseReason) => void;
@@ -42,6 +47,16 @@ function isCaretMove(move: MenuMove, inField: boolean): boolean {
   return inField && (move === 'first' || move === 'last');
 }
 
+function closeOneLevel({
+  closeChild,
+  onBack,
+  onClose,
+}: Pick<MenuKeyActions, 'closeChild' | 'onBack' | 'onClose'>): void {
+  if (closeChild !== undefined) closeChild();
+  else if (onBack !== undefined) onBack();
+  else onClose('escape');
+}
+
 /**
  * Handles one key in a menu and reports whether the menu used it. In the
  * search field, keys that edit text stay with the field, and keys of an IME
@@ -52,7 +67,7 @@ export function handleMenuKey(
   actions: MenuKeyActions,
 ): boolean {
   if (isComposing(event)) return false;
-  const {items, pointed, pointTo, run, onBack, onClose} = actions;
+  const {items, pointed, pointTo, run, closeChild, onBack, onClose} = actions;
   const inField = event.target instanceof HTMLInputElement;
   const move = keyMoves[event.key];
   if (move !== undefined && !isCaretMove(move, inField)) {
@@ -76,8 +91,7 @@ export function handleMenuKey(
       onBack();
       return true;
     case 'Escape':
-      if (onBack === undefined) onClose('escape');
-      else onBack();
+      closeOneLevel({closeChild, onBack, onClose});
       return true;
     case 'Tab':
       onClose('tab');
