@@ -42,6 +42,13 @@ export {
   type ArrangementStripProps,
   type LabelTagProps,
 } from './LabelChip';
+export {
+  LabelColorPicker,
+  MacroColorPicker,
+  labelColorNames,
+  type LabelColorPickerProps,
+  type MacroColorPickerProps,
+} from './LabelColorPicker';
 export {labelInk, type LabelInkStyle} from './labelInk';
 export {
   ListActionRow,
