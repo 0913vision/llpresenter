@@ -71,3 +71,34 @@ describe('IconButton', () => {
     expect(onPressedChange).not.toHaveBeenCalled();
   });
 });
+
+describe('IconButton at the end of a row', () => {
+  it.each([false, true])(
+    'keeps clicks, Enter, and Space from the row (disabled: %s)',
+    async disabled => {
+      const onRowClick = vi.fn();
+      const onRowKey = vi.fn();
+      render(
+        <div
+          role="option"
+          aria-selected="false"
+          tabIndex={-1}
+          onClick={onRowClick}
+          onKeyDown={event => {
+            onRowKey(event.key);
+          }}
+        >
+          만복의 근원 하나님
+          <IconButton icon="x" label="내리기" disabled={disabled} />
+        </div>,
+      );
+      const button = screen.getByRole('button', {name: '내리기'});
+      await userEvent.click(button);
+      await userEvent.keyboard('{Enter}');
+      await userEvent.keyboard(' ');
+      expect(onRowClick).not.toHaveBeenCalled();
+      expect(onRowKey).not.toHaveBeenCalledWith('Enter');
+      expect(onRowKey).not.toHaveBeenCalledWith(' ');
+    },
+  );
+});

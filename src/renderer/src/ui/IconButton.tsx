@@ -1,4 +1,9 @@
-import type {ComponentPropsWithRef, JSX, MouseEvent} from 'react';
+import type {
+  ComponentPropsWithRef,
+  JSX,
+  KeyboardEvent,
+  MouseEvent,
+} from 'react';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {pressHandler} from './press';
@@ -45,11 +50,24 @@ export function IconButton({
   className,
   title,
   onClick,
+  onKeyDown,
   ...rest
 }: IconButtonProps): JSX.Element {
   const press = (event: MouseEvent<HTMLButtonElement>): void => {
     onClick?.(event);
     if (pressed !== undefined) onPressedChange?.(!pressed);
+  };
+  const guardedPress = pressHandler(disabled, press);
+  // NOTE(0913vision): An icon button often sits at the end of a list row that
+  // selects on a click, Enter, or Space, so its presses must not reach the
+  // row, even while the button is disabled.
+  const handleClick = (event: MouseEvent<HTMLButtonElement>): void => {
+    event.stopPropagation();
+    guardedPress(event);
+  };
+  const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>): void => {
+    if (event.key === 'Enter' || event.key === ' ') event.stopPropagation();
+    onKeyDown?.(event);
   };
   // TODO(0913vision): Draw `title` with Tooltip once ui-2 lands.
   return (
@@ -67,7 +85,8 @@ export function IconButton({
         size === 'md' && styles.md,
         className,
       )}
-      onClick={pressHandler(disabled, press)}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
     >
       <Icon name={icon} size={ICON_SIZE} />
     </button>
