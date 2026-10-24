@@ -10,6 +10,7 @@ import {
   type CheckRowProps,
   type CheckState,
 } from './Checkbox';
+import {passedKeys, recordWindowKeys} from './windowKeysTesting';
 
 function Row({
   initial = false,
@@ -170,6 +171,15 @@ describe('CheckList', () => {
     expect(document.activeElement).toBe(box('주일 광고'));
     await userEvent.keyboard('{Home}');
     expect(document.activeElement).toBe(box('예배 전'));
+  });
+
+  it('passes the arrows, Home, and End on when a modifier is held', async () => {
+    render(<ImportList />);
+    await userEvent.tab();
+    const keys = recordWindowKeys();
+    await userEvent.keyboard('{Control>}{ArrowDown}{End}{/Control}');
+    expect(document.activeElement).toBe(box('예배 전'));
+    expect(passedKeys(keys)).toEqual(['Control', 'ArrowDown', 'End']);
   });
 
   it('toggles the row in focus with Space', async () => {

@@ -10,6 +10,7 @@ import {
 } from './LabelChip';
 import {labelInk} from './labelInk';
 import {hoverForTooltip, resetTooltips} from './tooltipTesting';
+import {passedKeys, recordWindowKeys} from './windowKeysTesting';
 
 afterEach(resetTooltips);
 
@@ -109,6 +110,31 @@ describe('ArrangementStrip', () => {
     await userEvent.tab();
     await userEvent.keyboard('{Alt>}{ArrowLeft}{ArrowRight}{/Alt}');
     expect(onMove.mock.calls).toEqual([[0, 1]]);
+  });
+
+  it('passes the chip keys on with any modifier but Alt alone', async () => {
+    const onMove = vi.fn();
+    const onRemove = vi.fn();
+    render(<Strip onMove={onMove} onRemove={onRemove} />);
+    await userEvent.tab();
+    const keys = recordWindowKeys();
+    await userEvent.keyboard(
+      '{Control>}{ArrowRight}{Delete}{/Control}{Shift>}{End}{/Shift}' +
+        '{Control>}{Alt>}{ArrowRight}{/Alt}{/Control}',
+    );
+    expect(selectedChip()).toBe('1절');
+    expect(onMove).not.toHaveBeenCalled();
+    expect(onRemove).not.toHaveBeenCalled();
+    expect(passedKeys(keys)).toEqual([
+      'Control',
+      'ArrowRight',
+      'Delete',
+      'Shift',
+      'End',
+      'Control',
+      'Alt',
+      'ArrowRight',
+    ]);
   });
 
   it('takes a chip out with Delete', async () => {

@@ -1,4 +1,5 @@
 import type {KeyboardEvent, MouseEventHandler} from 'react';
+import {hasModifier} from './modifierKeys';
 import {pressHandler} from './press';
 
 const OPEN_KEY = 'ArrowDown';
@@ -28,6 +29,7 @@ export function openOnArrowDown(
   {expanded, onExpandedChange, disabled = false}: MenuButtonState,
 ): void {
   if (event.defaultPrevented || disabled || event.key !== OPEN_KEY) return;
+  if (hasModifier(event)) return;
   event.preventDefault();
   if (!expanded) onExpandedChange(true);
 }

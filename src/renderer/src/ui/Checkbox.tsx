@@ -10,6 +10,7 @@ import {
 } from 'react';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
+import {hasModifier} from './modifierKeys';
 import {pressHandler, spaceOnlyKeyHandler} from './press';
 import {titleTooltip, useTooltip, withTooltipProps} from './Tooltip';
 import styles from './Checkbox.module.css';
@@ -204,7 +205,8 @@ export function CheckList({
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
     const target = listKeyTargets[event.key];
-    if (target === undefined || !(event.target instanceof HTMLElement)) return;
+    if (target === undefined || hasModifier(event)) return;
+    if (!(event.target instanceof HTMLElement)) return;
     event.preventDefault();
     const boxes = checkboxesIn(event.currentTarget);
     const current = event.target.closest(CHECKBOX);

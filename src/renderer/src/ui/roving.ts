@@ -1,4 +1,5 @@
 import {useRef, type KeyboardEvent} from 'react';
+import {hasModifier} from './modifierKeys';
 
 /** A move within a group where only one item takes the Tab stop. */
 export type RovingMove = 'next' | 'previous' | 'first' | 'last';
@@ -92,7 +93,7 @@ export function useRovingSelection<T>({
 
   const onKeyDown = (index: number, event: KeyboardEvent): void => {
     const move = keyMoves[event.key];
-    if (move === undefined) return;
+    if (move === undefined || hasModifier(event)) return;
     event.preventDefault();
     const target = rovingTarget(enabled, index, move);
     if (target === undefined) return;

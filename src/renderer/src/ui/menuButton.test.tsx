@@ -6,6 +6,7 @@ import {Button} from './Button';
 import {IconButton} from './IconButton';
 import {Menu} from './Menu';
 import {menuButtonProps} from './menuButton';
+import {passedKeys, recordWindowKeys} from './windowKeysTesting';
 
 beforeAll(() => {
   Element.prototype.scrollIntoView = () => undefined;
@@ -90,6 +91,22 @@ describe('menuButtonProps', () => {
     }
     await userEvent.click(fileButton());
     expect(fileButton().getAttribute('aria-expanded')).toBe('true');
+  });
+
+  it('leaves ↓ with a modifier to the window', async () => {
+    render(<FileMenu />);
+    fileButton().focus();
+    const keys = recordWindowKeys();
+    await userEvent.keyboard(
+      '{Control>}{ArrowDown}{/Control}{Alt>}{ArrowDown}{/Alt}',
+    );
+    expect(screen.queryByRole('menu')).toBeNull();
+    expect(passedKeys(keys)).toEqual([
+      'Control',
+      'ArrowDown',
+      'Alt',
+      'ArrowDown',
+    ]);
   });
 
   it('opens a menu from an IconButton that passes its menu and expanded props', async () => {

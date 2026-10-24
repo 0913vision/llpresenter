@@ -10,6 +10,7 @@ import type {LabelColor} from '@shared/colors';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {labelInk} from './labelInk';
+import {hasModifier, isAltOnly} from './modifierKeys';
 import {useTooltip} from './Tooltip';
 import styles from './LabelChip.module.css';
 
@@ -109,11 +110,12 @@ function handleChipKey(
 ): boolean {
   const {count, select, onMove, onRemove} = actions;
   const step = moveKeys[event.key];
-  if (event.altKey && step !== undefined) {
+  if (step !== undefined && isAltOnly(event)) {
     const to = index + step;
     if (to >= 0 && to < count) onMove(index, to);
     return true;
   }
+  if (hasModifier(event)) return false;
   if (event.key === 'Delete') {
     onRemove(index);
     return true;

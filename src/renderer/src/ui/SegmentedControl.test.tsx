@@ -8,6 +8,7 @@ import {
   type SegmentedKind,
 } from './SegmentedControl';
 import {pointAway, hoverForTooltip, resetTooltips} from './tooltipTesting';
+import {passedKeys, recordWindowKeys} from './windowKeysTesting';
 
 afterEach(resetTooltips);
 
@@ -125,6 +126,15 @@ describe('SegmentedControl', () => {
     expect(checkedNames()).toEqual(['기본']);
     await userEvent.keyboard('{End}');
     expect(checkedNames()).toEqual(['짧게']);
+  });
+
+  it('passes the arrows, Home, and End on when a modifier is held', async () => {
+    render(<Controlled />);
+    await userEvent.tab();
+    const keys = recordWindowKeys();
+    await userEvent.keyboard('{Control>}{ArrowRight}{End}{/Control}');
+    expect(checkedNames()).toEqual(['기본']);
+    expect(passedKeys(keys)).toEqual(['Control', 'ArrowRight', 'End']);
   });
 
   it('skips a disabled segment and ignores clicks on it', async () => {
