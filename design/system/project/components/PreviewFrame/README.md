@@ -60,8 +60,8 @@ Keep the missing monitor border as it is on hover. A cell with output off shows 
 
 ## Implementation notes
 
-- `<PreviewFrame screens={[main, stage, broadcast]} big="main" compact={sizeClass === 'narrow'} onSwap={(id) => …} />`
-- Each screen: `{ id: 'stage', name: '무대 화면', target: { kind: 'display', label: '모니터 3' }, look: '현재와 다음', state: 'on' | 'off' | 'warning', chroma: false }`
+- `<PreviewFrame screens={[main, stage, broadcast]} big={bigId} compact={sizeClass === 'narrow'} onBigChange={id => …} renderScreen={screen => …} />`; `renderScreen` draws a screen's output (the same renderer as its output window) scaled to the frame. The two screens that swap remount that content.
+- Each screen: `{id, name: '무대 화면', target: {kind: 'display', label: '모니터 3'}, look: '현재와 다음', status, chroma: false}`, where `status` is `{kind: 'on'}`, `{kind: 'off'}`, or `{kind: 'warning', reason: '모니터 3 연결 끊김', detail: '창으로 표시 중'}`. The tooltip says `reason, detail` (or "본 화면 출력이 꺼져 있습니다" when off), and a small cell's name adds the reason: "무대 화면 크게 보기, 모니터 3 연결 끊김".
 - Classes: `ll-monitor`, `ll-monitor--compact`, `ll-monitor__main`, `ll-monitor__frame`, `ll-monitor__frame--chroma`, `ll-monitor__screen`, `ll-monitor__caption`, `ll-monitor__name`, `ll-monitor__target`, `ll-monitor__look`, `ll-monitor__smalls`, `ll-monitor__small`.
 - `.is-hover` and `.is-focus` fix a state in the preview.
 

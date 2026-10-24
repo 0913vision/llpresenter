@@ -145,6 +145,15 @@ export {
   type PanelTabsProps,
 } from './Panel';
 export {
+  PreviewFrame,
+  previewReason,
+  smallPreviewName,
+  type PreviewFrameProps,
+  type PreviewScreen,
+  type PreviewStatus,
+  type PreviewTarget,
+} from './PreviewFrame';
+export {
   Properties,
   PropertyColumns,
   PropertyGroup,

@@ -1,0 +1,155 @@
+import {render, screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import {useState, type JSX} from 'react';
+import {afterEach, describe, expect, it, vi} from 'vitest';
+import {
+  PreviewFrame,
+  previewReason,
+  smallPreviewName,
+  type PreviewScreen,
+} from './PreviewFrame';
+import {hoverForTooltip, resetTooltips} from './tooltipTesting';
+
+afterEach(resetTooltips);
+
+type ScreenName = 'main' | 'stage' | 'broadcast';
+
+const main: PreviewScreen<ScreenName> = {
+  id: 'main',
+  name: '본 화면',
+  target: {kind: 'display', label: '모니터 2'},
+  look: '기본',
+  status: {kind: 'on'},
+};
+const stage: PreviewScreen<ScreenName> = {
+  id: 'stage',
+  name: '무대 화면',
+  target: {kind: 'display', label: '모니터 3'},
+  look: '현재와 다음',
+  status: {
+    kind: 'warning',
+    reason: '모니터 3 연결 끊김',
+    detail: '창으로 표시 중',
+  },
+};
+const broadcast: PreviewScreen<ScreenName> = {
+  id: 'broadcast',
+  name: '방송 자막',
+  target: {kind: 'ndi', label: 'NDI'},
+  look: '하단 자막',
+  status: {kind: 'off'},
+  chroma: true,
+};
+const screens = [main, stage, broadcast];
+
+function Preview({
+  onBigChange = () => {},
+}: {
+  readonly onBigChange?: (id: ScreenName) => void;
+}): JSX.Element {
+  const [big, setBig] = useState<ScreenName>('main');
+  return (
+    <PreviewFrame
+      screens={screens}
+      big={big}
+      onBigChange={id => {
+        setBig(id);
+        onBigChange(id);
+      }}
+      renderScreen={shown => <span>{`${shown.name} 출력`}</span>}
+    />
+  );
+}
+
+function smallNames(): Array<string | null> {
+  return screen
+    .getAllByRole('button')
+    .map(button => button.getAttribute('aria-label'));
+}
+
+describe('PreviewFrame', () => {
+  it('shows one screen large with its name row and the others small', () => {
+    render(<Preview />);
+    expect(screen.getByText('본 화면 출력')).toBeDefined();
+    expect(screen.getByText('기본')).toBeDefined();
+    expect(smallNames()).toEqual([
+      '무대 화면 크게 보기, 모니터 3 연결 끊김',
+      '방송 자막 크게 보기, 출력이 꺼져 있습니다',
+    ]);
+    expect(screen.queryByText('현재와 다음')).toBe(null);
+  });
+
+  it('swaps a small screen in on a click and keeps the small row in order', async () => {
+    const onBigChange = vi.fn<(id: ScreenName) => void>();
+    render(<Preview onBigChange={onBigChange} />);
+    await userEvent.click(
+      screen.getByRole('button', {
+        name: '무대 화면 크게 보기, 모니터 3 연결 끊김',
+      }),
+    );
+    expect(onBigChange).toHaveBeenCalledWith('stage');
+    expect(screen.getByText('현재와 다음')).toBeDefined();
+    expect(smallNames()).toEqual([
+      '본 화면 크게 보기',
+      '방송 자막 크게 보기, 출력이 꺼져 있습니다',
+    ]);
+  });
+
+  it('marks the states and explains them in a tooltip', async () => {
+    render(<Preview />);
+    const warning = screen.getByRole('button', {
+      name: '무대 화면 크게 보기, 모니터 3 연결 끊김',
+    });
+    expect(warning.getAttribute('data-state')).toBe('warning');
+    expect((await hoverForTooltip(warning))?.textContent).toBe(
+      '모니터 3 연결 끊김, 창으로 표시 중',
+    );
+    resetTooltips();
+    const off = screen.getByRole('button', {
+      name: '방송 자막 크게 보기, 출력이 꺼져 있습니다',
+    });
+    expect(off.getAttribute('data-state')).toBe('off');
+    expect((await hoverForTooltip(off))?.textContent).toBe(
+      '방송 자막 출력이 꺼져 있습니다',
+    );
+  });
+
+  it('puts a monitor icon before a display target but none before NDI', async () => {
+    render(<Preview />);
+    const icons = (text: string): number =>
+      screen.getByText(text).querySelectorAll('[aria-hidden="true"]').length;
+    expect(icons('모니터 2')).toBe(1);
+    await userEvent.click(
+      screen.getByRole('button', {
+        name: '방송 자막 크게 보기, 출력이 꺼져 있습니다',
+      }),
+    );
+    expect(icons('NDI')).toBe(0);
+  });
+
+  it('draws the warning icon before the target of a screen in trouble', async () => {
+    render(<Preview />);
+    await userEvent.click(
+      screen.getByRole('button', {
+        name: '무대 화면 크게 보기, 모니터 3 연결 끊김',
+      }),
+    );
+    const target = screen.getAllByText('모니터 3')[0];
+    expect(target?.querySelectorAll('[aria-hidden="true"]')).toHaveLength(1);
+  });
+});
+
+describe('preview texts', () => {
+  it('writes no reason while the output is on', () => {
+    expect(previewReason(main)).toBe(undefined);
+    expect(smallPreviewName(main)).toBe('본 화면 크게 보기');
+  });
+
+  it('writes a warning without a detail as its reason alone', () => {
+    const lost: PreviewScreen<ScreenName> = {
+      ...stage,
+      status: {kind: 'warning', reason: '모니터 3 연결 끊김'},
+    };
+    expect(previewReason(lost)).toBe('모니터 3 연결 끊김');
+  });
+});

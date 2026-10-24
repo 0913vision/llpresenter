@@ -75,6 +75,7 @@
   --space-focus-outside-ring: 5px;
   --space-focus-outside-live-ring: 4px;
   --space-thumb-lyrics-inset: 10%;
+  --space-focus-preview-cell: 3px;
   --radius-xs: 2px;
   --radius-sm: 3px;
   --radius-md: 4px;
@@ -113,6 +114,7 @@
   --size-macro-clock: 20px;
   --size-macro-swatch: 20px;
   --size-hatching-stripe: 6px;
+  --size-preview-compact: 64px;
   --size-badge: 16px;
   --size-count: 18px;
   --size-color-swatch: 24px;

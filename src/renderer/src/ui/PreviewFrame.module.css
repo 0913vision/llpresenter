@@ -1,0 +1,134 @@
+.monitor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  min-width: 0;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  min-width: 0;
+}
+
+.frame {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: var(--aspect-output);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--output-black);
+  box-shadow: 0 0 0 1px var(--line);
+  container-type: inline-size;
+  transition: box-shadow var(--motion-hover);
+}
+
+.chroma {
+  background: var(--chroma);
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+}
+
+.caption {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-width: 0;
+  font: var(--type-label);
+  white-space: nowrap;
+}
+
+.name {
+  color: var(--text);
+  font: var(--type-label-strong);
+}
+
+.target {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-width: 0;
+  color: var(--text-3);
+}
+
+.look {
+  min-width: 0;
+  margin-left: auto;
+  overflow: hidden;
+  color: var(--text-3);
+  text-overflow: ellipsis;
+}
+
+.smalls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-10);
+}
+
+.small {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  text-align: left;
+}
+
+.small .caption {
+  gap: var(--space-6);
+  font: var(--type-caption);
+}
+
+.small .name {
+  color: var(--text-2);
+  font: var(--type-caption);
+}
+
+.small:hover:not([data-state='warning']) .frame {
+  box-shadow: var(--ring-hover);
+}
+
+.small:focus-visible {
+  outline-offset: var(--space-focus-preview-cell);
+}
+
+.compact .small {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.compact .small .frame {
+  flex: none;
+  width: var(--size-preview-compact);
+}
+
+.compact .small .caption {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+[data-state='off'] > .frame {
+  box-shadow: 0 0 0 1px var(--line-strong);
+}
+
+[data-state='off'] .name {
+  color: var(--text-off);
+}
+
+[data-state='warning'] .frame {
+  box-shadow: 0 0 0 1px var(--warning);
+}
+
+[data-state='warning'] .target {
+  color: var(--warning);
+}
