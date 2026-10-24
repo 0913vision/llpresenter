@@ -20,32 +20,65 @@ import {
   nonBlankText,
   nonNegativeInteger,
   percent,
+  pixelCount,
   positiveInteger,
   positiveNumber,
   seconds,
 } from './primitives';
 
-const mediaPropsSchema = jsonObject({
-  end: v.exactOptional(v.picklist(['loop', 'stop'])),
-  in: v.exactOptional(seconds),
-  out: v.exactOptional(seconds),
-  speed: v.exactOptional(positiveNumber),
-  fit: v.exactOptional(v.picklist(['fit', 'fill', 'stretch'])),
-  audio: v.exactOptional(v.boolean()),
-  volume: v.exactOptional(percent),
-});
+interface Range {
+  readonly in?: number;
+  readonly out?: number;
+}
 
-const mediaItemSchema = jsonObject({
-  id: mediaIdSchema,
-  name: v.string(),
-  kind: v.picklist(['video', 'image', 'audio']),
-  file: nonBlankText,
-  size: nonNegativeInteger,
-  duration: v.exactOptional(seconds),
-  width: v.exactOptional(positiveInteger),
-  height: v.exactOptional(positiveInteger),
-  props: v.exactOptional(mediaPropsSchema),
-});
+const mediaPropsSchema = v.pipe(
+  jsonObject({
+    end: v.exactOptional(v.picklist(['loop', 'stop'])),
+    in: v.exactOptional(seconds),
+    out: v.exactOptional(seconds),
+    speed: v.exactOptional(positiveNumber),
+    fit: v.exactOptional(v.picklist(['fit', 'fill', 'stretch'])),
+    audio: v.exactOptional(v.boolean()),
+    volume: v.exactOptional(percent),
+  }),
+  v.forward(
+    v.check(
+      props => startsBeforeItEnds(props),
+      'Expected the range to start before it ends',
+    ),
+    ['out'],
+  ),
+);
+
+const mediaItemSchema = v.pipe(
+  jsonObject({
+    id: mediaIdSchema,
+    name: v.string(),
+    kind: v.picklist(['video', 'image', 'audio']),
+    file: nonBlankText,
+    size: nonNegativeInteger,
+    duration: v.exactOptional(seconds),
+    width: v.exactOptional(pixelCount),
+    height: v.exactOptional(pixelCount),
+    props: v.exactOptional(mediaPropsSchema),
+  }),
+  v.forward(
+    v.check(
+      ({duration, props}) =>
+        isWithin(props?.in, duration, (start, end) => start < end),
+      'Expected the range to start before the media ends',
+    ),
+    ['props', 'in'],
+  ),
+  v.forward(
+    v.check(
+      ({duration, props}) =>
+        isWithin(props?.out, duration, (end, length) => end <= length),
+      'Expected the range to end within the media',
+    ),
+    ['props', 'out'],
+  ),
+);
 
 const playlistSchema = jsonObject({
   id: mediaPlaylistIdSchema,
@@ -104,4 +137,16 @@ export function serializeMediaList(
   file: string,
 ): Result<string, FileError> {
   return serializeFile(mediaListFormat, mediaList, file);
+}
+
+function startsBeforeItEnds({in: start = 0, out: end}: Range): boolean {
+  return end === undefined || start < end;
+}
+
+function isWithin(
+  time: number | undefined,
+  duration: number | undefined,
+  fits: (time: number, duration: number) => boolean,
+): boolean {
+  return time === undefined || duration === undefined || fits(time, duration);
 }

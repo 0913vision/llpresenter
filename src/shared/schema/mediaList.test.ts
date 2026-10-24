@@ -1,5 +1,8 @@
 import {describe, expectTypeOf, it} from 'vitest';
 import type {MediaId} from './ids';
+import type {Percent, Pixels, Seconds} from './primitives';
+import type {Screen} from './screens';
+import type {StageElement} from './stageLayouts';
 import {
   parseMediaList,
   serializeMediaList,
@@ -116,6 +119,37 @@ describe('parseMediaList', () => {
     expectInvalidField(codec, withItem({...warmLight(), ...change}), field);
   });
 
+  it.each([
+    [
+      'a range that ends before it starts',
+      {in: 30, out: 10},
+      'items.0.props.out',
+    ],
+    ['a range with no length', {in: 10, out: 10}, 'items.0.props.out'],
+    ['an end of 0 without a start', {out: 0}, 'items.0.props.out'],
+    ['an end past the duration', {in: 0, out: 70}, 'items.0.props.out'],
+    ['a start at the duration', {in: 62.5, out: undefined}, 'items.0.props.in'],
+  ])('rejects %s', (_name, range, field) => {
+    expectInvalidField(
+      codec,
+      withItem({...warmLight(), props: {...warmLight().props, ...range}}),
+      field,
+    );
+  });
+
+  it('accepts a range that ends at the duration', () => {
+    expectRoundTrip(
+      codec,
+      withItem({...warmLight(), props: {in: 2, out: 62.5}}),
+    );
+  });
+
+  it('accepts any range when the duration is unknown', () => {
+    const {duration: _duration, ...item} = warmLight();
+
+    expectRoundTrip(codec, withItem({...item, props: {in: 100, out: 200}}));
+  });
+
   it('rejects a playlist that holds a path instead of a media id', () => {
     const list = mediaList();
     const [playlist] = list.playlists;
@@ -132,5 +166,16 @@ describe('media list types', () => {
   it('brands media ids', () => {
     expectTypeOf<MediaItem['id']>().toEqualTypeOf<MediaId>();
     expectTypeOf<MediaPlaylist['items']>().toEqualTypeOf<readonly MediaId[]>();
+  });
+
+  it('keeps seconds, percent, and pixels apart', () => {
+    expectTypeOf<MediaItem['duration']>().toEqualTypeOf<Seconds | undefined>();
+    expectTypeOf<MediaItem['width']>().toEqualTypeOf<Pixels | undefined>();
+    expectTypeOf<Screen['edgeMargin']>().toEqualTypeOf<Percent | undefined>();
+    expectTypeOf<StageElement['frame']['x']>().toEqualTypeOf<Pixels>();
+    expectTypeOf<Seconds>().not.toExtend<Percent>();
+    expectTypeOf<Seconds>().not.toExtend<Pixels>();
+    expectTypeOf<Percent>().not.toExtend<Pixels>();
+    expectTypeOf<number>().toExtend<Seconds>();
   });
 });

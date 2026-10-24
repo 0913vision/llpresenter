@@ -11,11 +11,13 @@ import {
 import {stageElementIdSchema, stageLayoutIdSchema} from './ids';
 import type {MigrationStep} from './migration';
 import {
-  finiteNumber,
   hexColor,
   jsonObject,
   listWithUniqueIds,
   nonNegativeNumber,
+  pixelCount,
+  pixelLength,
+  pixelPosition,
   positiveInteger,
 } from './primitives';
 import {textStyleEntries} from './textStyle';
@@ -39,10 +41,10 @@ const elementSchema = jsonObject({
   kind: v.picklist(stageElementKinds),
   show: v.exactOptional(v.picklist(['text', 'image', 'memo'])),
   frame: jsonObject({
-    x: finiteNumber,
-    y: finiteNumber,
-    w: nonNegativeNumber,
-    h: nonNegativeNumber,
+    x: pixelPosition,
+    y: pixelPosition,
+    w: pixelLength,
+    h: pixelLength,
   }),
   text: v.exactOptional(
     jsonObject({...textStyleEntries, autoFit: v.boolean()}),
@@ -60,8 +62,8 @@ const elementSchema = jsonObject({
 const layoutSchema = jsonObject({
   id: stageLayoutIdSchema,
   name: v.string(),
-  width: positiveInteger,
-  height: positiveInteger,
+  width: pixelCount,
+  height: pixelCount,
   elements: listWithUniqueIds(elementSchema),
 });
 

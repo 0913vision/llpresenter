@@ -11,13 +11,15 @@ import {
 import {screenIdSchema} from './ids';
 import type {MigrationStep} from './migration';
 import {
-  finiteNumber,
   jsonObject,
   listWithUniqueIds,
   percent,
+  pixelCount,
+  pixelPosition,
   pixelSize,
   positiveInteger,
   positiveNumber,
+  wholePixelPosition,
 } from './primitives';
 
 const displaySchema = jsonObject({
@@ -25,10 +27,10 @@ const displaySchema = jsonObject({
   name: v.string(),
   number: positiveInteger,
   bounds: jsonObject({
-    x: v.pipe(v.number(), v.integer()),
-    y: v.pipe(v.number(), v.integer()),
-    width: positiveInteger,
-    height: positiveInteger,
+    x: wholePixelPosition,
+    y: wholePixelPosition,
+    width: pixelCount,
+    height: pixelCount,
   }),
   scaleFactor: positiveNumber,
 });
@@ -53,7 +55,7 @@ const screenSchema = jsonObject({
   alwaysOnTop: v.exactOptional(v.boolean()),
   preventSleep: v.exactOptional(v.boolean()),
   edgeMargin: v.exactOptional(percent),
-  offset: v.exactOptional(jsonObject({x: finiteNumber, y: finiteNumber})),
+  offset: v.exactOptional(jsonObject({x: pixelPosition, y: pixelPosition})),
   previewBackground: v.exactOptional(v.picklist(['green', 'black', 'checker'])),
   ndi: v.exactOptional(ndiSchema),
 });

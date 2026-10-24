@@ -24,10 +24,42 @@ export const nonNegativeInteger = v.pipe(
 );
 
 /** A percentage from 0 to 100. */
-export const percent = v.pipe(nonNegativeNumber, v.maxValue(PERCENT_MAX));
+export const percent = v.pipe(
+  nonNegativeNumber,
+  v.maxValue(PERCENT_MAX),
+  v.flavor('Percent'),
+);
 
 /** A time span in seconds. */
-export const seconds = nonNegativeNumber;
+export const seconds = v.pipe(nonNegativeNumber, v.flavor('Seconds'));
+
+/** A position in px, which can be negative. */
+export const pixelPosition = v.pipe(finiteNumber, v.flavor('Pixels'));
+
+/** A length in px. */
+export const pixelLength = v.pipe(nonNegativeNumber, v.flavor('Pixels'));
+
+/** A whole number of px that is more than 0, such as a resolution. */
+export const pixelCount = v.pipe(positiveInteger, v.flavor('Pixels'));
+
+/** A position in whole px, such as a monitor's place on the desktop. */
+export const wholePixelPosition = v.pipe(
+  v.number(),
+  v.integer(),
+  v.flavor('Pixels'),
+);
+
+/**
+ * Seconds. A plain number can become one, but a value of another unit can't, so
+ * the type checker keeps units apart.
+ */
+export type Seconds = v.InferOutput<typeof seconds>;
+
+/** A percentage from 0 to 100, kept apart from other units like {@link Seconds}. */
+export type Percent = v.InferOutput<typeof percent>;
+
+/** Pixels, kept apart from other units like {@link Seconds}. */
+export type Pixels = v.InferOutput<typeof pixelLength>;
 
 export const hexColor = v.pipe(
   v.string(),
@@ -35,8 +67,8 @@ export const hexColor = v.pipe(
 );
 
 export const pixelSize = jsonObject({
-  width: positiveInteger,
-  height: positiveInteger,
+  width: pixelCount,
+  height: pixelCount,
 });
 
 export const nonBlankText = v.pipe(

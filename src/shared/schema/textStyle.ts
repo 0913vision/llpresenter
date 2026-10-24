@@ -16,7 +16,7 @@ export const textStyleEntries = {
     v.minValue(FONT_WEIGHT_MIN),
     v.maxValue(FONT_WEIGHT_MAX),
   ),
-  size: positiveNumber,
+  size: v.pipe(positiveNumber, v.flavor('Pixels')),
   color: hexColor,
   align: v.picklist(['left', 'center']),
   vAlign: v.picklist(['top', 'middle', 'bottom']),
