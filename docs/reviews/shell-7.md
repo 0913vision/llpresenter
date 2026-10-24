@@ -3,8 +3,8 @@
 - Team member: `shell`
 - Branch: `feat/shell/clear-row` (stacked on `feat/shell/show-header`, shell-6,
   which is stacked on `feat/shell/show-keys`, shell-5)
-- Base commit: the last commit of shell-6 (`8f0dc14`). It merges after shell-5
-  and shell-6.
+- Base commit: the last commit of shell-6 round 2 (`d27678d`). It merges after
+  shell-5 and shell-6.
 - Last commit: see the commit that adds this file
 - Related brief: the lead's queue (the 지우기 row)
 
@@ -158,3 +158,6 @@ Round 1 (codex2), answered once:
 6. Also: `ClearRow.test.tsx` builds its API with `fakeLlpApi`, since data-5 is
    on `main`. The branch is restacked onto shell-6 round 2 with
    `git rebase --onto`, without conflicts.
+7. Round 2: `npm run verify` on commit `f033712` (stacked on shell-6 round 2,
+   `d27678d`) passed all five steps in 150.6 s: `typecheck`, `lint`,
+   `format:check`, `test:coverage`, and `build`.
