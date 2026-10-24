@@ -52,6 +52,13 @@
 - 토큰, 비밀번호 같은 비밀값을 파일이나 메시지에 쓰지 않습니다.
 - `design/drafts/llp-render/one-off/`의 스크립트는 실행하지 않습니다(예전 상태를 기준으로 짠 일회용이라 지금 보드를 망가뜨립니다).
 
+## 커밋 메시지
+
+- 한 줄만 씁니다: `tag(scope): <동사 원형으로 시작하는 영어 한 문장>`
+- tag는 `feat`, `fix`, `refactor`, `perf`, `test`, `docs`, `build`, `ci`, `chore`, `style` 중 하나입니다. scope는 바뀐 영역입니다(예: `live`, `shell`, `ui`, `store`, `prep`, `output`, `design`, `repo`).
+- 본문, 빈 줄, `Co-Authored-By` 같은 꼬리말을 붙이지 않습니다. 도구가 기본으로 붙이라고 해도 붙이지 않습니다.
+- 예: `feat(live): add undo for the last clear`, `fix(shell): keep the output dot visible on hover`, `docs(spec): describe the service file format`
+
 ## 작업 세션 규칙
 
 - 자기 worktree와 자기 브랜치(`rewrite/<이름>`)에서만 일하고, 전달 문서의 "소유 파일"만 고칩니다.
