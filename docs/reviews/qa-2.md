@@ -1,8 +1,8 @@
 # Review request: `qa-2`
 
 - Team member: `qa`
-- Branch: `docs/qa/m2-plan`, stacked on `docs/qa/m1-plan` (`qa-1`)
-- Base commit (`main`): `8b5edaa`
+- Branch: `docs/qa/m2-plan`
+- Base commit (`main`): `4aa7901`
 - Last commit: see the commit that adds this file
 - Related brief: `docs/briefs/qa.md` (task 6)
 
@@ -32,13 +32,16 @@ The plan has:
 
 - `docs/qa/m2-plan.md` (new)
 - `docs/reviews/qa-2.md` (new)
+- `docs/qa/m1-plan.md`: D26 expects the 매크로 action defaults the lead decided
+  on 2026-10-25 (a missing screen, mode, or operation takes its default on read;
+  레이어 지우기 also takes one 소품)
 
 ## Checks run
 
-| Command or test        | Result                                      |
-| ---------------------- | ------------------------------------------- |
-| `npm run format:check` | Pass (`npx prettier --check` on both files) |
-| `npm run verify`       | To run once before the request is sent      |
+| Command or test        | Result                                                         |
+| ---------------------- | -------------------------------------------------------------- |
+| `npm run format:check` | Pass                                                           |
+| `npm run verify`       | Pass, exit 0, "verify passed: 5 steps in 165.1 s" on `e150788` |
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
