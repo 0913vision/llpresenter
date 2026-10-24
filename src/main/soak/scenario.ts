@@ -1,7 +1,7 @@
-import * as v from 'valibot';
 import type {LiveCommand} from '@shared/commands';
 import type {SlideLayer} from '@shared/live';
 import {mediaIdSchema} from '@shared/schema/ids';
+import {parsePayload} from '@shared/schema/payload';
 import type {Logger} from '../log';
 import {MAIN_SCREEN_ID} from '../outputs/defaultScreens';
 import {readSoakSettings} from './recorder';
@@ -97,7 +97,7 @@ export function registerSoakScenario(
 function backgroundId(env: NodeJS.ProcessEnv, log: Logger): string | null {
   const text = env['LLP_SOAK_MEDIA_ID'] ?? '';
   if (text === '') return null;
-  if (v.is(mediaIdSchema, text)) return text;
+  if (parsePayload(mediaIdSchema, text).ok) return text;
   log.error(
     'LLP_SOAK_MEDIA_ID is not a media id; the soak scenario runs without a background',
     {value: text},
