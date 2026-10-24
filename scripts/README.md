@@ -52,6 +52,25 @@ it before a merge.
 - `test:coverage` writes a summary to the terminal and an HTML report to
   `coverage/index.html`. CI uploads the report as the `coverage` artifact.
 
+## `npm run gallery`
+
+Serves the component gallery (`src/renderer/gallery.html`) and the renderer with
+plain Vite, without Electron. electron-vite 6.0.0 starts Electron even with
+`--rendererOnly`, so don't use that for the gallery.
+
+```bash
+LLP_DEV_PORT=5186 npm run gallery
+```
+
+- The port comes from `LLP_DEV_PORT` (5173 without it). A port in use fails
+  instead of moving.
+- It listens on `127.0.0.1` only, so the Windows firewall never asks, and it
+  never opens a browser.
+- The aliases (`@shared`, `@renderer`) match the renderer build; a test checks
+  them against `electron.vite.config.ts`.
+- The config is `scripts/gallery/vite.config.mts`. A test starts it under a hook
+  that records any import of `electron` or `electron-vite` and expects none.
+
 ## `npm run soak`
 
 Starts the built app in test mode, waits until it quits, and judges the record
