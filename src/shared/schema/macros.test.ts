@@ -136,7 +136,7 @@ describe('parseMacros', () => {
     ],
     [
       'a clear of both a layer and a prop',
-      {kind: 'clearLayer', layer: 'prop', prop: COUNTDOWN_PROP},
+      {kind: 'clearLayer', layer: 'slide', prop: COUNTDOWN_PROP},
       'macros.0.actions.0',
     ],
     ['a clear of nothing', {kind: 'clearLayer'}, 'macros.0.actions.0.layer'],
