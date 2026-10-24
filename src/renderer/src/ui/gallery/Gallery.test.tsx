@@ -1,5 +1,6 @@
 import {render, screen} from '@testing-library/react';
-import {describe, expect, it} from 'vitest';
+import userEvent from '@testing-library/user-event';
+import {beforeAll, describe, expect, it} from 'vitest';
 import {Gallery, galleryEntries, galleryFilter} from './Gallery';
 
 describe('Gallery', () => {
@@ -16,6 +17,25 @@ describe('Gallery', () => {
     expect(
       screen.getByRole('heading', {level: 2, name: 'Switch'}),
     ).toBeDefined();
+  });
+});
+
+describe('Gallery menu buttons', () => {
+  beforeAll(() => {
+    Element.prototype.scrollIntoView = () => undefined;
+  });
+
+  it('opens the 파일 menu and the service picker with ↓', async () => {
+    render(<Gallery only="Overlays" />);
+    for (const [button, menu] of [
+      ['파일', '파일'],
+      ['주일 예배', '예배 순서'],
+    ] as const) {
+      screen.getByRole('button', {name: button}).focus();
+      await userEvent.keyboard('{ArrowDown}');
+      expect(screen.getByRole('menu', {name: menu})).toBeDefined();
+      await userEvent.keyboard('{Escape}');
+    }
   });
 });
 

@@ -7,6 +7,7 @@ import type {
 import type {MacroColor} from '@shared/colors';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
+import {openOnArrowDown} from './menuButton';
 import {pressHandler} from './press';
 import {titleTooltip, useTooltip, withTooltipProps} from './Tooltip';
 import type {ControlSize} from './types';
@@ -105,9 +106,7 @@ export function Select({
 
   const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>): void => {
     onKeyDown?.(event);
-    if (event.defaultPrevented || disabled || event.key !== 'ArrowDown') return;
-    event.preventDefault();
-    if (!expanded) onExpandedChange(true);
+    openOnArrowDown(event, {expanded, onExpandedChange, disabled});
   };
 
   return (

@@ -6,6 +6,7 @@ import {Dialog, DialogBox, DialogField} from '../Dialog';
 import {IconButton} from '../IconButton';
 import {ListBox, ListGroup, ListRow} from '../ListRow';
 import {Menu, type MenuAnchor} from '../Menu';
+import {menuButtonProps} from '../menuButton';
 import type {MenuEntry} from '../menuModel';
 import {SelectMenu} from '../SelectMenu';
 import {SegmentedControl} from '../SegmentedControl';
@@ -78,9 +79,7 @@ function MenuButton({
     <>
       <Button
         ref={setAnchor}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        onClick={() => setOpen(true)}
+        {...menuButtonProps({expanded: open, onExpandedChange: setOpen})}
       >
         {label}
       </Button>
@@ -103,7 +102,10 @@ function ServicePicker(): JSX.Element {
   const [current, setCurrent] = useState('주일 예배');
   return (
     <>
-      <Button ref={setAnchor} onClick={() => setOpen(true)}>
+      <Button
+        ref={setAnchor}
+        {...menuButtonProps({expanded: open, onExpandedChange: setOpen})}
+      >
         {current}
       </Button>
       {open && anchor !== null ? (

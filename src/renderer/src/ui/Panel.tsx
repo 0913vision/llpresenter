@@ -8,7 +8,7 @@ import {
 } from 'react';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
-import {pressHandler} from './press';
+import {menuButtonProps} from './menuButton';
 import {useRovingSelection} from './roving';
 import {CountBadge} from './StatusMarks';
 import {titleTooltip, useTooltip} from './Tooltip';
@@ -231,22 +231,14 @@ export function PanelSwitch({
   title,
 }: PanelSwitchProps): JSX.Element {
   const {targetProps, tooltip} = useTooltip(titleTooltip(title));
-  const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>): void => {
-    if (disabled || event.key !== 'ArrowDown') return;
-    event.preventDefault();
-    if (!expanded) onExpandedChange(true);
-  };
   return (
     <>
       <button
         {...targetProps}
+        {...menuButtonProps({expanded, onExpandedChange, disabled})}
         type="button"
-        aria-haspopup="menu"
-        aria-expanded={expanded}
         aria-disabled={disabled ? true : undefined}
         className={styles.switch}
-        onClick={pressHandler(disabled, () => onExpandedChange(!expanded))}
-        onKeyDown={onKeyDown}
       >
         {value}
         <Icon name="down" size={SWITCH_CHEVRON_SIZE} />
