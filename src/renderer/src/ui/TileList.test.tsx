@@ -132,6 +132,17 @@ describe('TileList', () => {
     expect(onActivate.mock.calls).toEqual([[1]]);
   });
 
+  it('cancels the Space keydown it takes and leaves the one it passes on', () => {
+    render(
+      <>
+        <Strip />
+        <Macros />
+      </>,
+    );
+    expect(fireEvent.keyDown(tile('새벽 하늘'), {key: ' '})).toBe(true);
+    expect(fireEvent.keyDown(tile('찬양'), {key: ' '})).toBe(false);
+  });
+
   it('reports a double click on a tile that is not disabled', async () => {
     const onDoubleClick = vi.fn<(index: number) => void>();
     render(<Strip onDoubleClick={onDoubleClick} />);
