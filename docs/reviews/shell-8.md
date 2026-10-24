@@ -112,3 +112,7 @@ Round 1 (codex2): Approve with two nits, both taken here.
    2 (`db6bb1a`). The one conflict was in `shortcuts.ts` and its test, because
    shell-5 round 2 rewrote the file; I took the new file and applied this change
    again on top of it.
+4. Round 2 check: `npm run verify` on commit `c28d03f` (stacked on
+   `feat/shell/previews` `900cef4`, which is on shell-7 round 2) passed all five
+   steps in 117.5 s: `typecheck`, `lint`, `format:check`, `test:coverage`, and
+   `build`.
