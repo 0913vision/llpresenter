@@ -12,6 +12,7 @@
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.node.json --composite false && tsc --noEmit -p tsconfig.web.json --composite false",
+    "lint": "eslint --max-warnings 0 .",
     "test": "vitest run",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
