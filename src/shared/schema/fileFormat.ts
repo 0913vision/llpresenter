@@ -277,11 +277,9 @@ function check<TSchema extends v.GenericSchema>(
   return checked.ok ? checked.value : checked;
 }
 
-/**
- * Checks only the top-level fields that `schema` names, without escaping keys.
- * Read nothing from the result but those fields, because valibot drops some
- * unknown keys from it.
- */
+// NOTE(0913vision): checkTopLevel doesn't escape keys, so valibot drops some
+// unknown keys from its result. Read nothing from it but the fields the schema
+// names.
 function checkTopLevel<TSchema extends v.GenericSchema>(
   schema: TSchema,
   input: unknown,
@@ -294,7 +292,7 @@ function checkTopLevel<TSchema extends v.GenericSchema>(
   return checked.ok ? checked.value : checked;
 }
 
-/** The schema check between escaping and restoring keys. It may throw. */
+// NOTE(0913vision): checkEscaped may throw; check runs it inside attempt.
 function checkEscaped<TSchema extends v.GenericSchema>(
   schema: TSchema,
   input: unknown,
