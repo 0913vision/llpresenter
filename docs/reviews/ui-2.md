@@ -184,19 +184,18 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (bab9b18): reviewer (Codex, codex4) Request changes: menus and
+  tooltips sat under an open dialog, RowEnd swallowed Esc and F1 to F7, Enter
+  acted during IME composition, Esc closed the whole menu chain after a hover, a
+  sibling submenu could replace the open one after the pointer arrived, menus
+  didn't follow a resize, and private declarations had TSDoc.
+- Round 2 (d747893): reviewer (Codex, codex5) Approve with one nit: the resize
+  test in `Menu.test.tsx:299` checks max height and listener removal but not the
+  new position. The nit goes into ui's next branch. Lead Approve; ui also fixed
+  the same IME bug in ui-1's search and number fields. Rebased by the lead onto
+  `main` ed51b5a without conflicts.
 
 ## Team member's reply
 
