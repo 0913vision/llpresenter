@@ -1,16 +1,31 @@
 # Review request: `data-11`
 
-Review range: `fda1e94...feat/data/service-channel`
+Review range: `6559a9b...feat/data/service-channel`
+
+Round 2 changes only: `84f2d01...feat/data/service-channel`
 
 - Team member: `data`
-- Branch: `feat/data/service-channel`, stacked on `data-8`
-  (`feat/data/show-service`, fda1e94)
-- Base commit (`main`): `814781b`
-- Last commit: see the commit that adds this file
+- Branch: `feat/data/service-channel`, on `main` (data-8 has merged)
+- Base commit (`main`): `6559a9b` (round 1: `814781b` with data-7 and data-8
+  below)
+- Last commit: see the newest commit that changes this file
 - Related brief: `docs/briefs/data.md`; M2 in `docs/MILESTONES.md`,
   "Main-process file store"
 
-What to check:
+What to check in round 2:
+
+1.  Round 1 had no findings. Round 2 follows `data-8` round 2, where `loadStore`
+    returns a `Result` and refuses a data folder that a junction or link leads
+    outside `LLP_USER_DATA`. `registerStore` (`src/main/store/register.ts`) now
+    logs that error and answers `null`. Test: `register.test.ts`, "logs a data
+    folder that a junction leads outside and answers null".
+2.  The rebase onto `main` with `data-8` round 2 changed one other thing in this
+    branch: the preload test's sample `ShowService` gains `readOnly`, which the
+    contract now requires. `buildShowService` now takes each file's
+    `LoadedFile`, so a read-only song or 예배 순서 reaches 진행 as
+    `newer-version` or `readOnly`.
+
+What to check in round 1:
 
 1.  `src/shared/ipc.ts`: the `service` part of `LlpApi` against shell's shape
     under "Shared changes" below.
@@ -86,22 +101,23 @@ const disposeStore = registerStore(log);
 
 ## Checks run
 
-`npm run verify` on this branch's code (89c4073, before data-8 gained a
-documents-only commit), on `main` 814781b with `data-7` and `data-8` below it:
-every step passed. The one skipped test belongs to another member's suite.
-Coverage: `src/main/store/` 98.5% of lines and 93.4% of branches, `src/preload/`
-94.1% of lines and 90% of branches.
+Round 2: `npm run verify` on the commit before this document's round 2 change
+(dc679c3), on `main` 6559a9b: every step passed. The one skipped test belongs to
+another member's suite. Coverage: `src/main/store/` 98.4% of lines and 93.3% of
+branches, `src/preload/` 94.1% of lines and 90% of branches.
 
 | Command or test                    | Result                                                                |
 | ---------------------------------- | --------------------------------------------------------------------- |
 | `npm run typecheck`                | Passed                                                                |
-| `npm test`                         | Passed: 115 files, 1133 tests and 1 skipped                           |
+| `npm test`                         | Passed: 129 files, 1411 tests and 1 skipped                           |
 | `npm run format:check`             | Passed                                                                |
 | `npm run build`                    | Passed                                                                |
-| `npm run verify` (from phase 1 on) | Passed: typecheck, lint, format:check, test:coverage, build (279.7 s) |
+| `npm run verify` (from phase 1 on) | Passed: typecheck, lint, format:check, test:coverage, build (234.0 s) |
 
-`main` has moved to f72d3eb since. None of its changes touch the files in this
-stack, so the stack rebases without conflicts.
+The first round 2 run, before dc679c3, failed two preload tests: their sample
+`ShowService` had no `readOnly`, which `data-8` round 2 made required. dc679c3
+adds it. Round 1 passed on `main` 814781b with `data-7` and `data-8` below it
+(1133 tests, 279.7 s).
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
@@ -167,4 +183,8 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 had no findings (codex3, Approve). Round 2 adapts `registerStore` to
+`data-8` round 2: `loadStore` returns a `Result` now, and a refused data folder
+logs `refused the data folder` with the problem and answers `null`, without
+reading any data. The preload test's sample `ShowService` gains `readOnly`, the
+field `data-8` round 2 added to the contract.
