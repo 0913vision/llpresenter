@@ -2,7 +2,8 @@
 
 - Team member: `output`
 - Branch: `feat/output/windows`
-- Base commit (`main`): `63d0dbc` (round 2; round 1 was on `8b5edaa`)
+- Base commit (`main`): `4aa7901` (round 3; round 2 was on `63d0dbc`, round 1 on
+  `8b5edaa`)
 - Last commit: the commit that adds this file
 - Related brief: `docs/briefs/output.md` (task 1), milestone M2
 
@@ -84,13 +85,16 @@ Behavior, against the brief and spec 03 and 08:
 
 ## Checks run
 
-Round 2, on `bc0cf7b`, rebased onto `main` at `63d0dbc`.
+Round 3, on `90fe2da`, rebased onto `main` at `4aa7901` (one conflict: the
+`index.ts` imports next to output-4's, both kept).
 
 | Command or test         | Result                                                                                                      |
 | ----------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `npm run verify`        | Passed, 5 steps in 155.8 s: typecheck, lint, format check, 30 test files and 246 tests with coverage, build |
+| `npm run verify`        | Passed, 5 steps in 173.4 s: typecheck, lint, format check, 66 test files and 636 tests with coverage, build |
 | New tests               | 12 files under `src/main/displays/` and `src/main/outputs/`, all passing                                    |
 | The app on two monitors | Not run: the rule is that no window may appear on the user's screen. See "Where to look" for a manual check |
+
+Round 2, on `bc0cf7b` on `main` at `63d0dbc`: verify passed (246 tests).
 
 Round 1, on `b14cc8f` on `main` at `8b5edaa`: verify passed (181 tests).
 
@@ -217,3 +221,16 @@ Round 1 findings (Codex 0:6), each addressed in its own commit:
 3. **Nit, TSDoc on the private `changes()`**: removed in `bc0cf7b`. A
    non-exported helper in `assign.ts` lost its TSDoc the same way; the rule it
    stated moved into the `NOTE` above the passes.
+
+Round 2 finding (Codex 0:6):
+
+1. **Default screen fixed by a failed first read (`start.ts`)**: fixed in
+   `90fe2da`. `createDefaultScreenSource` now takes the display registry and
+   chooses the monitor at the first read that returns monitors, then keeps it,
+   as a saved setting would be. Before that, the 본 화면 is unassigned. A new
+   integration test in `manager.test.ts` runs the real `DisplayRegistry` and the
+   default screen source: the first monitor read fails, the output is turned on,
+   and the retry alone (no display event) puts it full screen on the projector.
+   `defaultScreens.test.ts` checks that the choice waits for monitors and then
+   stays. The fake display source moved to `displays/testing.ts` so both tests
+   use it.
