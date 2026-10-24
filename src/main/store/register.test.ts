@@ -1,4 +1,4 @@
-import {rm, symlink} from 'node:fs/promises';
+import {readdir, rm, symlink} from 'node:fs/promises';
 import {join} from 'node:path';
 import {
   afterEach,
@@ -47,9 +47,9 @@ vi.mock('electron', () => ({
 
 function fakeLog() {
   return {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
+    info: vi.fn<Logger['info']>(),
+    warn: vi.fn<Logger['warn']>(),
+    error: vi.fn<Logger['error']>(),
     flush: () => Promise.resolve(),
   } satisfies Logger;
 }
@@ -63,6 +63,18 @@ async function developmentContext(): Promise<StoreContext> {
   };
 }
 
+const disposers: Array<() => Promise<void>> = [];
+
+function register(
+  log: Logger,
+  context: () => StoreContext,
+  isAnyOutputOn: () => boolean = () => false,
+): () => Promise<void> {
+  const dispose = registerStore({log, isAnyOutputOn, context});
+  disposers.push(dispose);
+  return dispose;
+}
+
 function askForService(): Promise<unknown> {
   return Promise.resolve(electron.handlers.get(Channels.serviceGet)?.());
 }
@@ -72,8 +84,9 @@ beforeEach(() => {
   electron.paths.clear();
 });
 
-afterEach(() => {
+afterEach(async () => {
   vi.unstubAllEnvs();
+  await Promise.all(disposers.splice(0).map(async dispose => dispose()));
 });
 
 describe('registerStore', () => {
@@ -87,21 +100,21 @@ describe('registerStore', () => {
         {id: itemId(1), song: HYMN_ONE_ID},
       ]),
     );
-    const dispose = registerStore(fakeLog(), () => context);
+    const dispose = register(fakeLog(), () => context);
 
     expect(await askForService()).toMatchObject({
       revision: 1,
       id: SUNDAY_ID,
       rows: [{kind: 'song', id: itemId(1), title: '만복의 근원 하나님'}],
     });
-    dispose();
+    await dispose();
     expect(electron.handlers.has(Channels.serviceGet)).toBe(false);
   });
 
   it('answers null when there is no 예배 순서', async () => {
     const context = await developmentContext();
     const log = fakeLog();
-    registerStore(log, () => context);
+    register(log, () => context);
 
     expect(await askForService()).toBeNull();
     expect(log.info).toHaveBeenCalledWith(
@@ -119,7 +132,7 @@ describe('registerStore', () => {
       layout: {normal: {left: 'wide'}},
     });
     const log = fakeLog();
-    registerStore(log, () => context);
+    register(log, () => context);
 
     await askForService();
 
@@ -141,7 +154,7 @@ describe('registerStore', () => {
       ),
     );
     const log = fakeLog();
-    registerStore(log, () => context);
+    register(log, () => context);
 
     await askForService();
 
@@ -158,7 +171,7 @@ describe('registerStore', () => {
     await symlink(outside, link, 'junction');
     onTestFinished(() => rm(link, {force: true}));
     const log = fakeLog();
-    registerStore(log, () => context);
+    register(log, () => context);
 
     expect(await askForService()).toBeNull();
     expect(log.error).toHaveBeenCalledWith(
@@ -168,9 +181,42 @@ describe('registerStore', () => {
     expect(log.info).not.toHaveBeenCalled();
   });
 
+  it('backs up once the data is read, and dispose waits for the backup', async () => {
+    const context = await developmentContext();
+    const log = fakeLog();
+    const dispose = register(log, () => context);
+
+    await askForService();
+    await dispose();
+
+    const backups = await readdir(
+      join(context.appDataFolder, 'LoveLight 백업'),
+    );
+    expect(backups).toHaveLength(1);
+    expect(log.info.mock.calls.map(([message]) => message)).toContain(
+      'backed up the data',
+    );
+  });
+
+  it('skips the launch backup while an output is on', async () => {
+    const context = await developmentContext();
+    const log = fakeLog();
+    const dispose = register(
+      log,
+      () => context,
+      () => true,
+    );
+
+    await dispose();
+
+    expect(log.info).toHaveBeenCalledWith('skipped the launch backup', {
+      reason: 'output-on',
+    });
+  });
+
   it('logs a failure to find the data and answers null', async () => {
     const log = fakeLog();
-    registerStore(log, () => {
+    register(log, () => {
       throw new Error('no documents folder');
     });
 
