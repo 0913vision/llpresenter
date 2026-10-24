@@ -1,10 +1,10 @@
 # LoveLight Presenter
 
-LoveLight Presenter is a Windows Electron app that sends lyrics, Bible
-verses, and announcements to several screens during a church service. We are
-rebuilding it from scratch on the `rewrite` branch. The `main` branch holds the
-2024 code and is reference only. Never stopping during a service matters more
-than features.
+LoveLight Presenter is a Windows Electron app that sends lyrics, Bible verses,
+and announcements to several screens during a church service. We are rebuilding
+it from scratch on the `rewrite` branch. The `main` branch holds the 2024 code
+and is reference only. Never stopping during a service matters more than
+features.
 
 ## Read first
 
@@ -20,15 +20,15 @@ than features.
   `design/system/project/`. When a draft board in `design/drafts/` disagrees,
   the design system wins.
 - Behavior and data: `docs/spec/`.
-- Stack and dependencies: `docs/TECH.md`. Add a dependency only after you
-  record the reason in `docs/decisions.md` and the lead approves it.
-- When ProPresenter has the same feature, follow ProPresenter. Don't claim
-  that something follows ProPresenter unless you checked.
+- Stack and dependencies: `docs/TECH.md`. Add a dependency only after you record
+  the reason in `docs/decisions.md` and the lead approves it.
+- When ProPresenter has the same feature, follow ProPresenter. Don't claim that
+  something follows ProPresenter unless you checked.
 
 ## Language
 
-- Write documents, code comments, test names, log messages, and commit
-  messages in English.
+- Write documents, code comments, test names, log messages, and commit messages
+  in English.
 - Keep product UI strings in Korean. Use the glossary in the design system
   README (출력, 장, 예배 순서, 틀, 구성, 이름표, 지우기, 본 화면, 무대 화면,
   방송 자막, Look, 진행 도구, 퀵 실행).
@@ -39,14 +39,20 @@ than features.
 
 ## Style guides
 
-- Documents: [Google developer documentation style guide](https://developers.google.com/style).
-- Markdown: [Google Markdown style guide](https://google.github.io/styleguide/docguide/style.html).
-- TypeScript: [Google TypeScript style guide](https://google.github.io/styleguide/tsguide.html).
-- React and JSX: [Airbnb React/JSX style guide](https://github.com/airbnb/javascript/tree/master/react),
+- Documents:
+  [Google developer documentation style guide](https://developers.google.com/style).
+- Markdown:
+  [Google Markdown style guide](https://google.github.io/styleguide/docguide/style.html).
+- TypeScript:
+  [Google TypeScript style guide](https://google.github.io/styleguide/tsguide.html).
+- React and JSX:
+  [Airbnb React/JSX style guide](https://github.com/airbnb/javascript/tree/master/react),
   because Google has none.
-- CSS and HTML: [Google HTML/CSS style guide](https://google.github.io/styleguide/htmlcssguide.html).
-- Code review and changes: [Google engineering practices](https://google.github.io/eng-practices/).
-  Keep changes small and focused, and describe them clearly. Reviewers approve a
+- CSS and HTML:
+  [Google HTML/CSS style guide](https://google.github.io/styleguide/htmlcssguide.html).
+- Code review and changes:
+  [Google engineering practices](https://google.github.io/eng-practices/). Keep
+  changes small and focused, and describe them clearly. Reviewers approve a
   change once it improves the overall health of the code, even if it isn't
   perfect.
 - When a guide and Prettier disagree on whitespace, Prettier wins.
@@ -56,7 +62,8 @@ than features.
 - Prettier formats all code, CSS, JSON, and Markdown in the repository. The
   settings in `.prettierrc.json` follow Google's `gts` defaults: 80 columns,
   2-space indentation, single quotes, semicolons, trailing commas, no spaces
-  inside braces, no parentheses around a single arrow parameter.
+  inside braces, no parentheses around a single arrow parameter. Markdown prose
+  wraps at 80 columns.
 - `.editorconfig` sets UTF-8, LF line endings, a final newline, and trimmed
   trailing whitespace.
 - Run `npm run format` before you commit. `npm run format:check` must pass.
@@ -66,9 +73,9 @@ than features.
 
 Keep comments to a minimum. Only these three kinds are allowed:
 
-1.  Documentation comments in [TSDoc](https://tsdoc.org) form (`/** ... */`)
-    on exported APIs, where the name and type don't say enough. Use TSDoc only,
-    not JSDoc: don't repeat types in tags (`@param name - what it is`, not
+1.  Documentation comments in [TSDoc](https://tsdoc.org) form (`/** ... */`) on
+    exported APIs, where the name and type don't say enough. Use TSDoc only, not
+    JSDoc: don't repeat types in tags (`@param name - what it is`, not
     `@param {string} name`), because TypeScript already carries them.
 2.  `// NOTE(0913vision): ...` in English, for context that the code can't
     express (why something is done a certain way, an outside constraint).
@@ -83,35 +90,33 @@ Stability comes before features. Every change must avoid runtime errors, prove
 itself with tests, and keep memory and performance flat over hours of use. The
 full bar is "Quality bar" in `docs/TECH.md`.
 
-- Know and apply these clean code rules in every change. Reviewers check
-  them and request changes when a rule is broken:
+- Know and apply these clean code rules in every change. Reviewers check them
+  and request changes when a rule is broken:
   - Use names that say what a thing is or does, so it needs no comment.
-  - Keep functions small and make each do one thing at one level of
-    abstraction. Prefer few parameters; pass an object when there are more
-    than three.
+  - Keep functions small and make each do one thing at one level of abstraction.
+    Prefer few parameters; pass an object when there are more than three.
   - Give each module and class a single responsibility.
   - Don't repeat yourself. Extract shared logic instead of copying it.
   - Replace magic numbers and strings with named constants or tokens.
-  - Make side effects explicit. A function that reads state doesn't change
-    it.
-  - Keep error handling separate from the main logic, and never swallow an
-    error silently: log it or return it as a result.
+  - Make side effects explicit. A function that reads state doesn't change it.
+  - Keep error handling separate from the main logic, and never swallow an error
+    silently: log it or return it as a result.
   - Leave the code you touch cleaner than you found it.
   - Keep tests fast, independent, repeatable, and readable.
-- Keep code smells to a minimum. Reviewers flag these and ask for a fix:
-  long functions, large classes or modules, long parameter lists, boolean
-  flag parameters, duplicated code, deep nesting (prefer early returns),
-  dead or commented-out code, speculative generality (code for needs that
-  don't exist yet), primitive obsession (use named types for ids, units, and
-  states), feature envy (logic that belongs to another module), and changes
-  that force edits across many unrelated files.
-- Prefer modern language features as long as they don't conflict with the
-  guides above: `const` and `let` (never `var`), ES modules, `async` and
-  `await` over promise chains, optional chaining and `??`, destructuring,
-  `for...of`, template literals, `readonly`, `satisfies`, string literal
-  unions, `Array.prototype.at`, `structuredClone`, and `Object.hasOwn`. Where
-  the Google TypeScript guide decides otherwise, it wins (for example, use
-  TypeScript `private` instead of `#private` fields).
+- Keep code smells to a minimum. Reviewers flag these and ask for a fix: long
+  functions, large classes or modules, long parameter lists, boolean flag
+  parameters, duplicated code, deep nesting (prefer early returns), dead or
+  commented-out code, speculative generality (code for needs that don't exist
+  yet), primitive obsession (use named types for ids, units, and states),
+  feature envy (logic that belongs to another module), and changes that force
+  edits across many unrelated files.
+- Prefer modern language features as long as they don't conflict with the guides
+  above: `const` and `let` (never `var`), ES modules, `async` and `await` over
+  promise chains, optional chaining and `??`, destructuring, `for...of`,
+  template literals, `readonly`, `satisfies`, string literal unions,
+  `Array.prototype.at`, `structuredClone`, and `Object.hasOwn`. Where the Google
+  TypeScript guide decides otherwise, it wins (for example, use TypeScript
+  `private` instead of `#private` fields).
 - Use TypeScript strict mode. Don't use `any`, type assertions that bypass
   checks, or the non-null assertion `!`. Make every `switch` exhaustive.
 - Validate every value from outside the process (files, IPC messages, the
@@ -122,36 +127,35 @@ full bar is "Quality bar" in `docs/TECH.md`.
   Preserve unknown fields.
 - An exception in the output path (output windows, live state handling) must
   never stop the output. Log it and keep the last good state.
-- Every new behavior and every bug fix comes with unit tests. Reviews of
-  changes without tests are not approved.
+- Every new behavior and every bug fix comes with unit tests. Reviews of changes
+  without tests are not approved.
 - Release everything you register: event listeners, timers, IPC listeners,
-  `URL.createObjectURL` results, video and audio elements, windows. Cap the
-  size of every cache and list.
+  `URL.createObjectURL` results, video and audio elements, windows. Cap the size
+  of every cache and list.
 - Output windows run for hours. Create as little as possible per slide (DOM,
   images, video elements) and reuse what you can.
 - Re-render only what changed: use state selectors and memoization, and
   virtualize long lists.
-- Use design token CSS variables (`var(--bg-panel)`) for every color, size,
-  and spacing value in the UI.
+- Use design token CSS variables (`var(--bg-panel)`) for every color, size, and
+  spacing value in the UI.
 
 ## Commit messages
 
-- Write one line only: `tag(scope): <one English sentence starting with a
-base-form verb>`.
+- Write one line only:
+  `tag(scope): <one English sentence starting with a base-form verb>`.
 - Use one of these tags:
   - `break`: breaks existing behavior, a file format, or a shared contract.
   - `feat`: adds a feature or changes behavior.
-  - `fix`: fixes a bug. Kept apart from `feat` so that every fix that goes
-    into a release before a service is easy to find.
+  - `fix`: fixes a bug. Kept apart from `feat` so that every fix that goes into
+    a release before a service is easy to find.
   - `refactor`: changes structure without changing behavior, including
     performance work.
-  - `style`: changes appearance without changing behavior (formatting,
-    names, matching UI values to the design system).
+  - `style`: changes appearance without changing behavior (formatting, names,
+    matching UI values to the design system).
   - `docs`: changes documents only.
-  - `chore`: changes configuration, dependencies, build, CI, or test
-    tooling.
-- The scope is the area you changed, for example `live`, `shell`, `ui`,
-  `store`, `prep`, `output`, `design`, or `repo`.
+  - `chore`: changes configuration, dependencies, build, CI, or test tooling.
+- The scope is the area you changed, for example `live`, `shell`, `ui`, `store`,
+  `prep`, `output`, `design`, or `repo`.
 - Don't add a body, a blank line, `Co-Authored-By`, or any other trailer, even
   when a tool adds one by default.
 - Examples: `feat(live): add undo for the last clear`,
@@ -163,28 +167,28 @@ base-form verb>`.
 Every session runs with permission prompts turned off, so follow these rules
 without exception.
 
-- Team members never run `git push`. Only the lead pushes `rewrite` to
-  `origin` after a merge. Nobody force-pushes or deletes remote branches.
+- Team members never run `git push`. Only the lead pushes `rewrite` to `origin`
+  after a merge. Nobody force-pushes or deletes remote branches.
 - The GitHub repository (0913vision/llpresenter) is public. Never commit
   secrets, personal data, or copyrighted lyrics. Use public-domain text or
   invented sentences for sample lyrics.
 - Never run `reset --hard`, rewrite history, or delete branches on `rewrite`.
-  Members rebase only their own branch onto `rewrite`. Nobody rebases
-  `rewrite` itself.
-- Never change or delete files outside the repository or in another
-  session's worktree.
+  Members rebase only their own branch onto `rewrite`. Nobody rebases `rewrite`
+  itself.
+- Never change or delete files outside the repository or in another session's
+  worktree.
 - Never change global settings (`git config --global`, system settings, the
   registry, global npm packages).
-- Never download and install programs. Add npm dependencies only when your
-  brief allows them.
+- Never download and install programs. Add npm dependencies only when your brief
+  allows them.
 - Never write secrets such as tokens or passwords into files or messages.
 - Never run the scripts in `design/drafts/llp-render/one-off/`. They were
   written against an older state and would break the current boards.
 
 ## Team member rules
 
-- Work only in your own worktree and branch (`rewrite/<name>`), and change
-  only the files your brief lists as yours.
+- Work only in your own worktree and branch (`rewrite/<name>`), and change only
+  the files your brief lists as yours.
 - Only the lead changes shared files: `package.json`, `package-lock.json`,
   `src/shared/`, design tokens, `CLAUDE.md`, `docs/STATUS.md`, `docs/PLAN.md`,
   and `docs/HANDOFF.md`. Ask the lead when you need a change there.
@@ -196,8 +200,8 @@ without exception.
 
 ## Context and compaction
 
-A long conversation gets compacted, and then only a summary of it remains.
-Keep what you need on disk, not in the conversation.
+A long conversation gets compacted, and then only a summary of it remains. Keep
+what you need on disk, not in the conversation.
 
 - Keep working notes in `.llp/notes.md` at your worktree root. Git ignores
   `.llp/`. The SessionStart hook (`scripts/session-context.ts`, set up in
@@ -206,23 +210,23 @@ Keep what you need on disk, not in the conversation.
 - Use these sections: Task, Done, Now, Next, Waiting on, Facts not in the
   repository, Open questions. Rewrite what is stale instead of appending, and
   keep the file under 150 lines.
-- Update the notes when you finish a step, before you send or answer a
-  message, before you wait on anything, and as soon as you learn something
-  that isn't written in the repository: a decision, an agent or session id, a
-  port, the reason behind a choice.
+- Update the notes when you finish a step, before you send or answer a message,
+  before you wait on anything, and as soon as you learn something that isn't
+  written in the repository: a decision, an agent or session id, a port, the
+  reason behind a choice.
 - Write what other sessions need into the repository (`docs/STATUS.md`,
   `docs/decisions.md`, review files), not into your notes.
 - Never put secrets in the notes.
 - After a compaction, read your notes, your brief, and the files you were
   editing before you change anything. Trust the files over the summary.
-- When you write a compaction summary, keep the current step and the next
-  one, uncommitted files, the ids of agents and sessions you are waiting on,
-  the user's decisions in their own words, and open questions.
+- When you write a compaction summary, keep the current step and the next one,
+  uncommitted files, the ids of agents and sessions you are waiting on, the
+  user's decisions in their own words, and open questions.
 
 ## Checks
 
 - Now: `npm run typecheck`, `npm test`, `npm run format:check`.
 - From phase 1 on (built by the devops member): `npm run verify` runs the type
-  check, lint, format check, unit tests, and build. Team members run it before
-  a review request, and the lead runs it before a merge. If anything fails,
-  don't send the review request.
+  check, lint, format check, unit tests, and build. Team members run it before a
+  review request, and the lead runs it before a merge. If anything fails, don't
+  send the review request.
