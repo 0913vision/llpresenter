@@ -44,6 +44,10 @@ vi.mock('./uiState/register', () => ({
 vi.mock('./soak', () => ({registerSoakRecorder: () => fakes.soakStop}));
 vi.mock('./ipc', () => ({registerIpc: () => () => undefined}));
 vi.mock('./outputs/start', () => ({startOutputs: () => () => undefined}));
+vi.mock('./windows/mediaProtocol', () => ({
+  registerMediaScheme: () => undefined,
+  serveMedia: () => () => undefined,
+}));
 vi.mock('./windows/control', () => ({
   createControlWindow: () => {
     fakes.order.push('control window');

@@ -1,10 +1,10 @@
 import {app, type BrowserWindow} from 'electron';
 import {join} from 'node:path';
 import {LiveStore} from './live/store';
-import {createLogger, type Logger} from './log';
+import {createLogger, flushWithin, type Logger} from './log';
 import {registerIpc} from './ipc';
 import {startOutputs} from './outputs/start';
-import {ShutdownCoordinator} from './shutdown';
+import {LOG_FLUSH_LIMIT_MS, ShutdownCoordinator} from './shutdown';
 import {registerSoakRecorder} from './soak';
 import {registerUiState} from './uiState/register';
 import {applyUserDataOverride, type UserDataProblem} from './userData';
@@ -108,7 +108,7 @@ function start(): void {
 function quitForBadUserData(problem: UserDataProblem): void {
   log.error('LLP_USER_DATA is not a usable app data folder; quitting', problem);
   const exit = (): void => app.exit(BAD_ENVIRONMENT_EXIT_CODE);
-  log.flush().then(exit, exit);
+  flushWithin(log, LOG_FLUSH_LIMIT_MS).then(exit, exit);
 }
 
 if (userDataProblem !== null) quitForBadUserData(userDataProblem);
