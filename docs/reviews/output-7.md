@@ -73,19 +73,11 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (0ed09e3): reviewer (Codex, codex5) Approve, no findings. Lead
+  Approve; shell's 되돌림 button can now dim from `LiveState.canUndo`. Rebased
+  by the lead onto `main` 5037428 without conflicts.
 
 ## Team member's reply
 

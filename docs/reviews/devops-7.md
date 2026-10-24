@@ -119,3 +119,15 @@ The wiring line for output changes with item 1, and I've sent output the new
 one: the window's `closed` handler should wait for both the recorder and the
 log, for example `Promise.all([stopSoakRecorder(), log.flush()])`, before
 `app.quit()`.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (2060c09): reviewer (Codex, codex2) Request changes: quitting could
+  lose the last record because the writes weren't drained, and exit delays past
+  the timer limit quit almost at once.
+- Round 2 (3e85b89): reviewer (Codex, codex2) Approve with one nit:
+  `scripts/README.md:96` should say that an empty or unset exit value means keep
+  running. A second window (0:6) also approved round 2 with no findings. The nit
+  goes into devops' next branch. Lead Approve. output wires
+  `registerSoakRecorder` in `src/main/index.ts` next. Rebased by the lead onto
+  `main` 2b26d32 without conflicts.
