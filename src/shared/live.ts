@@ -10,10 +10,20 @@ export const layerKinds = [
 
 export type LayerKind = (typeof layerKinds)[number];
 
-/** The background media. It refers to the media library by id only. */
-export interface MediaLayer {
+/** A background media choice. It refers to the media library by id only. */
+export interface MediaChoice {
   readonly mediaId: string;
   readonly loop: boolean;
+}
+
+/** The background media on output. */
+export interface MediaLayer extends MediaChoice {
+  /**
+   * When this background started, in milliseconds since the epoch on the main
+   * process clock. Absent means the window starts the background from the
+   * beginning.
+   */
+  readonly startedAt?: number;
 }
 
 /** The slide on output: a service item, its position in the arrangement, and what to draw. */

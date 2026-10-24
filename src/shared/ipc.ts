@@ -1,11 +1,17 @@
 import type {LiveCommand} from './commands';
 import type {LiveState} from './live';
+import type {FrameRateReport, RendererLogEntry} from './schema/ipcPayloads';
+import type {LayoutChange, UiState} from './schema/uiState';
 
 export const Channels = {
   liveGet: 'live:get',
   liveCommand: 'live:command',
   liveChanged: 'live:changed',
   windowControl: 'window:control',
+  uiGet: 'ui:get',
+  uiLayoutSet: 'ui:layout:set',
+  logWrite: 'log:write',
+  outputFrameRate: 'output:frame-rate',
 } as const;
 
 export type WindowAction = 'minimize' | 'toggle-maximize' | 'close';
@@ -32,5 +38,18 @@ export interface LlpApi {
   };
   readonly window: {
     control(action: WindowAction): void;
+  };
+  readonly ui: {
+    /** Reads the UI state once, before the first render. */
+    get(): Promise<UiState>;
+    /** Saves the column widths of one size class when a drag ends. */
+    setLayout(change: LayoutChange): void;
+  };
+  readonly log: {
+    write(entry: RendererLogEntry): void;
+  };
+  readonly output: {
+    /** Reports an output window's measured frame rate, once a second. */
+    reportFrameRate(report: FrameRateReport): void;
   };
 }

@@ -2,6 +2,7 @@ import {describe, expect, expectTypeOf, it} from 'vitest';
 import {
   parseAppConfig,
   serializeAppConfig,
+  type AppLayout,
   type ColumnLayout,
   type SizeClass,
 } from './appConfig';
@@ -99,6 +100,7 @@ describe('parseAppConfig', () => {
 describe('app config types', () => {
   it('names the size classes of the design system', () => {
     expectTypeOf<SizeClass>().toEqualTypeOf<'narrow' | 'normal' | 'wide'>();
+    expectTypeOf<keyof AppLayout>().toEqualTypeOf<SizeClass>();
     expectTypeOf<ColumnLayout>().toEqualTypeOf<{
       readonly left?: number;
       readonly right?: number;

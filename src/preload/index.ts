@@ -23,6 +23,17 @@ const api: LlpApi = {
   window: {
     control: action => ipcRenderer.send(Channels.windowControl, action),
   },
+  ui: {
+    get: () => ipcRenderer.invoke(Channels.uiGet),
+    setLayout: change => ipcRenderer.send(Channels.uiLayoutSet, change),
+  },
+  log: {
+    write: entry => ipcRenderer.send(Channels.logWrite, entry),
+  },
+  output: {
+    reportFrameRate: report =>
+      ipcRenderer.send(Channels.outputFrameRate, report),
+  },
 };
 
 contextBridge.exposeInMainWorld('llp', api);

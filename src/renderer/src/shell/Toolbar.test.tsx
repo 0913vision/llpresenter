@@ -3,20 +3,18 @@ import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@shared/commands';
 import {emptyLiveState} from '@shared/live';
-import type {LlpApi} from '@shared/ipc';
+import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {useLive} from '@renderer/state/live';
 import {Toolbar} from './Toolbar';
 
 function installApi(send: (command: LiveCommand) => void): void {
-  const api: LlpApi = {
+  window.llp = fakeLlpApi({
     live: {
       get: async () => emptyLiveState(),
       send,
       subscribe: () => () => undefined,
     },
-    window: {control: () => undefined},
-  };
-  window.llp = api;
+  });
 }
 
 afterEach(() => {

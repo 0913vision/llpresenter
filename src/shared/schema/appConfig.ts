@@ -25,6 +25,9 @@ const columnLayoutSchema = jsonObject({
 
 const sizeClassLayout = v.exactOptional(columnLayoutSchema);
 
+/** The window size classes of the design system `Layout`. */
+export const sizeClasses = ['narrow', 'normal', 'wide'] as const;
+
 const appConfigSchema = jsonObject({
   format: v.literal('llapp'),
   schemaVersion: positiveInteger,
@@ -64,8 +67,7 @@ export type AppConfig = ReadonlyKnown<v.InferOutput<typeof appConfigSchema>>;
 
 export type AppLayout = NonNullable<AppConfig['layout']>;
 
-/** The window size classes of the design system `Layout`. */
-export type SizeClass = keyof AppLayout;
+export type SizeClass = (typeof sizeClasses)[number];
 
 /**
  * The column widths (px) and thumbnail columns that the operator set for one

@@ -11,7 +11,7 @@ import {
 import {
   layerKinds,
   type LayerKind,
-  type MediaLayer,
+  type MediaChoice,
   type MessageLayer,
   type SlideLayer,
 } from './live';
@@ -24,7 +24,7 @@ export type ClearTarget = LayerKind | 'all';
  */
 export type LiveCommand =
   | {readonly type: 'slide.show'; readonly slide: SlideLayer}
-  | {readonly type: 'media.show'; readonly media: MediaLayer}
+  | {readonly type: 'media.show'; readonly media: MediaChoice}
   | {readonly type: 'message.show'; readonly message: MessageLayer}
   | {readonly type: 'layer.clear'; readonly target: ClearTarget}
   | {readonly type: 'clear.undo'}
@@ -54,7 +54,7 @@ function isSlideLayer(value: unknown): value is SlideLayer {
   );
 }
 
-function isMediaLayer(value: unknown): value is MediaLayer {
+function isMediaChoice(value: unknown): value is MediaChoice {
   return (
     isRecord(value) &&
     isNonEmptyString(value['mediaId']) &&
@@ -75,7 +75,7 @@ function hasValidPayload(value: UnknownRecord): boolean {
     case 'slide.show':
       return isSlideLayer(value['slide']);
     case 'media.show':
-      return isMediaLayer(value['media']);
+      return isMediaChoice(value['media']);
     case 'message.show':
       return isMessageLayer(value['message']);
     case 'layer.clear':
