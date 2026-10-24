@@ -35,7 +35,9 @@ logging, its dirty flag, and the quit flush do not change.
 
 ## Checks run
 
-Pending.
+`npm run verify` on commit `0abd391` passed all five steps in 288.5 s:
+`typecheck`, `lint`, `format:check`, `test:coverage`, and `build`. The rebase
+onto `main` 6559a9b afterwards brought other members' changes only.
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
