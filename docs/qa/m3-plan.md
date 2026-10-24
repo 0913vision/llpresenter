@@ -61,9 +61,10 @@ no slice handles yet) is tested at the level it ships, and the case says so.
     process, list every window with its visibility and bounds; use the title
     bar's minimize, maximize, and close; turn an output on; start a second
     instance.
-  - Expected: No window is ever visible on a monitor; the title bar actions and
-    the output toggle work on the offscreen windows; the second instance quits
-    and focuses nothing on screen.
+  - Expected: No window is ever visible on a monitor. Offscreen mode ignores
+    minimize and maximize on purpose, so those two change nothing and show
+    nothing; close quits the app as usual. The output toggle works on the
+    offscreen windows; the second instance quits and focuses nothing on screen.
   - Limit: an offscreen window draws at about 6 frames per second (measured on
     local `main` at `1d46613`), so no frame rate, dissolve, or loop seam is
     judged offscreen. Those cases keep QA's invisible launcher, whose windows
@@ -184,9 +185,12 @@ throw.
     new value.
   - Source: breakdown M3-D1a, M3-D2.
 - **CA8 The preload surface**
-  - Steps: List `window.llp` in the control window and in an output window.
-  - Expected: Only functions, grouped by area; no Node globals; the output
-    window doesn't get 준비 functions it doesn't need (record what it gets).
+  - Steps: List `window.llp` in the control window and in an output window, and
+    send each new message with a wrong shape from both.
+  - Expected: Typed functions only, grouped by area, with no raw channel names
+    and no Node globals; every message is validated, and a wrong shape is
+    dropped and logged, never applied. Both windows share one preload API in
+    wave A (the lead's decision); QA records what each window gets.
   - Source: breakdown M3-D1a; M1 S8.
 
 ### CB. Live command contracts (D1b)

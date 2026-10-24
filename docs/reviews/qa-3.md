@@ -88,3 +88,12 @@ Round 1 (codex5, Request changes), answered in the commit after `2fd1c20`:
    removes, Tab and Shift Tab move focus, all without a tooltip; the other
    reserved keys keep recording with the error ring and the table's tooltip. The
    keys Windows owns can't be sent synthetically and are left to unit tests.
+
+Round 2 (codex4, Request changes), answered in the commit after `626d6c6`:
+
+1. CA8 now checks the agreed surface (typed functions only, every message
+   validated, a wrong shape dropped and logged) and no longer asks to hide 준비
+   functions from output windows; both windows share one preload API in wave A,
+   as the lead decided.
+2. Nit: E1 now says that offscreen mode ignores minimize and maximize on
+   purpose, and keeps the close and visibility checks.
