@@ -1,0 +1,13 @@
+.gap {
+  position: relative;
+  z-index: 1;
+  cursor: col-resize;
+  touch-action: none;
+  user-select: none;
+}
+
+.gap::before {
+  content: '';
+  position: absolute;
+  inset: 0 calc(-1 * var(--space-2));
+}

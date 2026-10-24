@@ -1,10 +1,10 @@
-import type {CSSProperties, JSX} from 'react';
-import {defaultColumns, type SizeClass} from './sizeClass';
+import {Fragment, type JSX} from 'react';
+import {ColumnGap} from './ColumnGap';
+import type {ColumnWidthStore} from './columnWidthStore';
+import type {SizeClass} from './sizeClass';
 import type {Workspace as WorkspaceId} from './Toolbar';
+import {useColumnLayout} from './useColumnLayout';
 import styles from './Workspace.module.css';
-
-// TODO(0913vision): Let users drag the gaps to resize columns and remember the
-// widths per size class.
 
 type ColumnPanels = readonly string[];
 
@@ -31,29 +31,30 @@ function Panel({title}: {readonly title: string}): JSX.Element {
   );
 }
 
-function gridStyle(sizeClass: SizeClass): CSSProperties {
-  const {left, right} = defaultColumns[sizeClass];
-  return {
-    gridTemplateColumns: `${left}px minmax(var(--col-center-min), 1fr) ${right}px`,
-  };
-}
-
 /** The three-column frame shared by all workspaces. */
 export function Workspace({
   id,
   sizeClass,
+  store,
 }: {
   readonly id: WorkspaceId;
   readonly sizeClass: SizeClass;
+  readonly store: ColumnWidthStore;
 }): JSX.Element {
+  const {gridRef, drag} = useColumnLayout(sizeClass, store);
   return (
-    <main className={styles.columns} style={gridStyle(sizeClass)}>
+    <main ref={gridRef} className={styles.columns}>
       {panelsByWorkspace[id].map((panels, column) => (
-        <div key={column} className={styles.column}>
-          {panels.map(title => (
-            <Panel key={title} title={title} />
-          ))}
-        </div>
+        <Fragment key={column}>
+          {column > 0 && (
+            <ColumnGap column={column === 1 ? 'left' : 'right'} drag={drag} />
+          )}
+          <div className={styles.column}>
+            {panels.map(title => (
+              <Panel key={title} title={title} />
+            ))}
+          </div>
+        </Fragment>
       ))}
     </main>
   );

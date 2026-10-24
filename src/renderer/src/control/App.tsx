@@ -1,4 +1,5 @@
 import {useState, type JSX} from 'react';
+import {createMemoryColumnWidthStore} from '@renderer/shell/columnWidthStore';
 import {MenuBar} from '@renderer/shell/MenuBar';
 import {StatusBar} from '@renderer/shell/StatusBar';
 import {Toolbar, type Workspace as WorkspaceId} from '@renderer/shell/Toolbar';
@@ -8,6 +9,7 @@ import styles from './App.module.css';
 
 export function App(): JSX.Element {
   const sizeClass = useSizeClass();
+  const [store] = useState(createMemoryColumnWidthStore);
   const [workspace, setWorkspace] = useState<WorkspaceId>('show');
   return (
     <div className={styles.app} data-size={sizeClass}>
@@ -17,7 +19,7 @@ export function App(): JSX.Element {
         workspace={workspace}
         onWorkspace={setWorkspace}
       />
-      <Workspace id={workspace} sizeClass={sizeClass} />
+      <Workspace id={workspace} sizeClass={sizeClass} store={store} />
       <StatusBar />
     </div>
   );

@@ -2,7 +2,9 @@
   flex: 1;
   min-height: 0;
   display: grid;
-  gap: var(--panel-gap);
+  grid-template-columns:
+    var(--ll-col-left) var(--panel-gap) minmax(var(--col-center-min), 1fr)
+    var(--panel-gap) var(--ll-col-right);
   padding: 0 var(--panel-gap);
 }
 
