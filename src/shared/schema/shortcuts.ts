@@ -40,6 +40,36 @@ const KEY_CODE = new RegExp(
   ].join('|')})$`,
 );
 const CHARACTER_KEY = /^(Key[A-Z]|Digit\d|Numpad\d)$/;
+const ANY_MODIFIERS = 'any';
+
+interface ReservedKey {
+  readonly code: string;
+  readonly mods: readonly KeyModifier[] | typeof ANY_MODIFIERS;
+}
+
+// NOTE(0913vision): "Keys that never become shortcuts" in
+// docs/spec/10-shortcuts-and-settings.md: focus, cancel, text editing, and
+// Windows keys. The key field refuses them; reading drops them too, in case a
+// file was edited by hand.
+const RESERVED_KEYS: readonly ReservedKey[] = [
+  {code: 'Tab', mods: []},
+  {code: 'Tab', mods: ['shift']},
+  {code: 'Tab', mods: ['alt']},
+  {code: 'Escape', mods: []},
+  {code: 'Escape', mods: ['ctrl']},
+  {code: 'Enter', mods: []},
+  {code: 'Backspace', mods: []},
+  {code: 'F10', mods: []},
+  {code: 'F10', mods: ['shift']},
+  {code: 'F4', mods: ['alt']},
+  {code: 'KeyX', mods: ['ctrl']},
+  {code: 'KeyC', mods: ['ctrl']},
+  {code: 'KeyV', mods: ['ctrl']},
+  {code: 'KeyA', mods: ['ctrl']},
+  {code: 'Delete', mods: ['ctrl', 'alt']},
+  {code: 'ContextMenu', mods: ANY_MODIFIERS},
+  {code: 'PrintScreen', mods: ANY_MODIFIERS},
+];
 
 /** The modifiers of a key binding, in the order they are stored. */
 export const keyModifiers = ['ctrl', 'alt', 'shift'] as const;
@@ -147,14 +177,38 @@ function bindingProblem(command: string, keys: unknown): DroppedValue | null {
     return {field, message: name.error.message};
   }
   const checked = checkPart(bindingListSchema, keys);
-  if (checked.ok) {
-    return null;
+  if (!checked.ok) {
+    const inner = checked.error.field;
+    return {
+      field: inner === '' ? field : `${field}.${inner}`,
+      message: checked.error.message,
+    };
   }
-  const inner = checked.error.field;
-  return {
-    field: inner === '' ? field : `${field}.${inner}`,
-    message: checked.error.message,
-  };
+  const reserved = checked.value.findIndex(isReservedKey);
+  return reserved === -1
+    ? null
+    : {
+        field: `${field}.${reserved}`,
+        message: 'The key is reserved for focus, editing, or Windows',
+      };
+}
+
+function isReservedKey({code, mods}: KeyBinding): boolean {
+  return RESERVED_KEYS.some(
+    reserved =>
+      reserved.code === code &&
+      (reserved.mods === ANY_MODIFIERS || sameModifiers(reserved.mods, mods)),
+  );
+}
+
+function sameModifiers(
+  expected: readonly KeyModifier[],
+  actual: readonly KeyModifier[],
+): boolean {
+  return (
+    expected.length === actual.length &&
+    expected.every((mod, index) => actual[index] === mod)
+  );
 }
 
 function isInStoredOrder(mods: readonly KeyModifier[]): boolean {

@@ -87,6 +87,40 @@ describe('parseShortcuts', () => {
     expect(loaded.dropped[0]?.message).not.toBe('');
   });
 
+  it.each([
+    ['Tab', {code: 'Tab', mods: []}],
+    ['Shift Tab', {code: 'Tab', mods: ['shift']}],
+    ['Esc alone', {code: 'Escape', mods: []}],
+    ['Enter alone', {code: 'Enter', mods: []}],
+    ['Ctrl C', {code: 'KeyC', mods: ['ctrl']}],
+    ['Alt F4', {code: 'F4', mods: ['alt']}],
+    ['Ctrl Alt Delete', {code: 'Delete', mods: ['ctrl', 'alt']}],
+    ['Print Screen with any modifier', {code: 'PrintScreen', mods: ['shift']}],
+    ['the Menu key', {code: 'ContextMenu', mods: []}],
+  ])('drops a binding to the reserved key %s', (_name, key) => {
+    const loaded = load({
+      'clear.all': [{code: 'F1', mods: []}, key],
+      'output.stage': [{code: 'Digit2', mods: ['ctrl']}],
+    });
+
+    expect(loaded.data.bindings).toEqual({
+      'output.stage': [{code: 'Digit2', mods: ['ctrl']}],
+    });
+    expect(loaded.dropped.map(({field}) => field)).toEqual([
+      'bindings.clear.all.1',
+    ]);
+  });
+
+  it('keeps keys next to reserved ones', () => {
+    expect(
+      load({
+        'a.b': [{code: 'Escape', mods: ['shift']}],
+        'c.d': [{code: 'KeyC', mods: ['ctrl', 'shift']}],
+        'e.f': [{code: 'Enter', mods: ['ctrl']}],
+      }).dropped,
+    ).toEqual([]);
+  });
+
   it('drops a binding list that is not a list', () => {
     const loaded = load({'clear.all': {code: 'F1', mods: []}});
 
