@@ -2,7 +2,7 @@
 
 - Team member: `qa`
 - Branch: `docs/qa/m1-plan`
-- Base commit (`main`): `7d46151`
+- Base commit (`main`): `8b5edaa`
 - Last commit: see the commit that adds this file
 - Related brief: `docs/briefs/qa.md` (task 2)
 
@@ -36,12 +36,12 @@ The plan has:
 
 ## Checks run
 
-| Command or test        | Result                                                     |
-| ---------------------- | ---------------------------------------------------------- |
-| `npm run typecheck`    | Not run: the change has no code                            |
-| `npm test`             | Not run: the change has no code                            |
-| `npm run format:check` | Pass (`npx prettier --check` on both files)                |
-| `npm run verify`       | Not run: the change has no code (brief: format check only) |
+| Command or test        | Result                                                                                       |
+| ---------------------- | -------------------------------------------------------------------------------------------- |
+| `npm run typecheck`    | Not run: the change has no code                                                              |
+| `npm test`             | Not run: the change has no code                                                              |
+| `npm run format:check` | Pass (`npx prettier --check` on both files)                                                  |
+| `npm run verify`       | Pass, exit 0, on 8ce1abb (before the rebase onto 8b5edaa, which changed only lead documents) |
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
@@ -92,9 +92,6 @@ Questions for the lead:
    the first drag after starting with a broken `app.json` overwrite it, or
    should saving wait until the operator acts in a way the spec defines? The
    plan records the behavior for now.
-6. **`docs/WORKFLOW.md` typo.** The port table shows `D:llp-devshell`,
-   `D:llp-devdata`, and `D:llp-devqa` without backslashes. The briefs have the
-   right paths (`D:\llp-dev\qa`).
 
 ---
 
