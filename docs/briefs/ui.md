@@ -47,8 +47,12 @@ them small, typed, accessible, and well tested.
    server serves it, and the production build leaves it out.
 6. Compare each component in the gallery with its design system preview card,
    side by side, at real size:
-   - Gallery: `LLP_DEV_PORT=5186 npx electron-vite dev --rendererOnly`, then
-     open `http://localhost:5186/gallery.html` in the built-in browser.
+   - Gallery: serve the renderer with plain Vite, never with
+     `electron-vite dev`. electron-vite 6 starts the Electron app even with
+     `--rendererOnly`, and its window appears on the user's screen. Use
+     `npm run gallery` once devops adds it; until then, a Vite config that
+     serves `src/renderer` only, on port 5186. Open
+     `http://localhost:5186/gallery.html` in the built-in browser.
    - Cards: `node design/system/card-server.js 5296`, then open
      `http://localhost:5296/card/<Name>`.
    - Record what you compared, and any difference you kept on purpose, in the
