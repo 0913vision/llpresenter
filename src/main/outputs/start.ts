@@ -7,9 +7,11 @@ import type {LiveStore} from '../live/store';
 import type {Logger} from '../log';
 import {handleFrameRate} from '../rendererMessages';
 import {createDefaultScreenSource} from './defaultScreens';
+import {createElectronWakeLock} from './electronWakeLock';
 import {createElectronOutputWindow} from './electronWindow';
 import {FrameRateTracker} from './frameRates';
 import {OutputManager} from './manager';
+import {WakeKeeper, keepAwakeWhileOutputsOn} from './wakeLock';
 
 /** What the output windows hang on. */
 export interface OutputContext {
@@ -23,8 +25,10 @@ export interface OutputContext {
  * windows as outputs turn on, and follows their frame rate reports. Call it
  * after the app is ready.
  *
- * @returns A function that closes every output window and stops watching.
- * Calling it again does nothing.
+ * Keeps the display awake while any output is on.
+ *
+ * @returns A function that closes every output window, stops watching, and
+ * lets the display sleep. Calling it again does nothing.
  */
 export function startOutputs({store, control, log}: OutputContext): () => void {
   const displays = new DisplayRegistry(createElectronDisplaySource(), log);
@@ -47,7 +51,12 @@ export function startOutputs({store, control, log}: OutputContext): () => void {
     Channels.outputFrameRate,
     handleFrameRate(frameRates, log),
   );
+  const stopKeepingAwake = keepAwakeWhileOutputsOn(
+    store,
+    new WakeKeeper(createElectronWakeLock(), log),
+  );
   return () => {
+    stopKeepingAwake();
     stopFrameRates();
     outputs.dispose();
     displays.dispose();
