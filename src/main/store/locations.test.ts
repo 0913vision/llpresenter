@@ -32,7 +32,7 @@ describe('resolveLocations', () => {
       templates: join(root, '틀'),
       settings: join(root, '설정'),
       recovery: join(root, '.복구 사본'),
-      backups: join(root, '백업'),
+      backups: join(DOCUMENTS, 'LoveLight 백업'),
     });
     expect(ignored).toEqual([]);
   });
@@ -44,6 +44,7 @@ describe('resolveLocations', () => {
     );
 
     expect(locations.dataRoot).toBe(join(DEVELOPMENT, DATA_FOLDER_NAME));
+    expect(locations.backups).toBe(join(DEVELOPMENT, 'LoveLight 백업'));
     const folders = [
       locations.dataRoot,
       locations.songs,

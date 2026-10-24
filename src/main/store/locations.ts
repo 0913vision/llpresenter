@@ -16,14 +16,20 @@ import type {FileError} from '@shared/schema/fileFormat';
 /** The name of the data folder in Documents, and in the development folder. */
 export const DATA_FOLDER_NAME = 'LoveLight';
 
-const FOLDER_NAMES = {
+/**
+ * The name of the backup folder next to the data folder, outside it, so the
+ * backups survive when the data folder is lost or damaged.
+ */
+export const BACKUP_FOLDER_NAME = 'LoveLight 백업';
+
+/** The folders inside the data folder. A backup keeps the same names. */
+export const FOLDER_NAMES = {
   songs: '곡',
   media: '미디어',
   services: '예배',
   templates: '틀',
   settings: '설정',
   recovery: '.복구 사본',
-  backups: '백업',
 } as const;
 
 const BYTE_ORDER_MARK = /^\uFEFF/;
@@ -122,7 +128,10 @@ export function resolveLocations(
       templates: join(dataRoot, FOLDER_NAMES.templates),
       settings: join(dataRoot, FOLDER_NAMES.settings),
       recovery: join(dataRoot, FOLDER_NAMES.recovery),
-      backups: pick('backupPath', join(dataRoot, FOLDER_NAMES.backups)),
+      backups: pick(
+        'backupPath',
+        join(defaultParent(context), BACKUP_FOLDER_NAME),
+      ),
     },
     ignored,
   };
@@ -185,8 +194,12 @@ export function readLocationFields(
   };
 }
 
-function defaultDataRoot({documents, developmentFolder}: LocationContext) {
-  return join(developmentFolder ?? documents, DATA_FOLDER_NAME);
+function defaultDataRoot(context: LocationContext): string {
+  return join(defaultParent(context), DATA_FOLDER_NAME);
+}
+
+function defaultParent({documents, developmentFolder}: LocationContext) {
+  return developmentFolder ?? documents;
 }
 
 function isAllowed(folder: string, developmentFolder: string | null): boolean {
