@@ -24,6 +24,13 @@ function useLiveIndex(itemId: ItemId | null): number | null {
   });
 }
 
+/** The accessible name: the number and the 이름표, a comma, and the first line. */
+function tileName(number: number, {label, lines}: SlideTile): string {
+  const heading = label ? `${number} ${label}` : `${number}`;
+  const firstLine = lines[0];
+  return firstLine ? `${heading}, ${firstLine}` : heading;
+}
+
 const Thumbnail = memo(
   ({
     tile,
@@ -45,7 +52,7 @@ const Thumbnail = memo(
         role="option"
         tabIndex={selected ? 0 : -1}
         aria-selected={selected}
-        aria-label={`${number} ${tile.label ?? ''} ${tile.lines[0] ?? ''}`.trim()}
+        aria-label={tileName(number, tile)}
         data-state={live ? 'live' : undefined}
         data-color={tile.labelColor === 'none' ? undefined : tile.labelColor}
         className={styles.thumb}

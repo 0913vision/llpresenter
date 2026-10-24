@@ -153,7 +153,15 @@ describe('SlideGrid', () => {
     const tiles = screen.getAllByRole('option');
     expect(tiles).toHaveLength(4);
     expect(tiles[1]?.getAttribute('aria-label')).toBe(
-      '2 후렴 함께 불러요 함께 노래해요',
+      '2 후렴, 함께 불러요 함께 노래해요',
+    );
+  });
+
+  it('names a tile without an 이름표 by its number and first line', () => {
+    openItem('psalm-23');
+    render(<SlideGrid columns={3} />);
+    expect(screen.getAllByRole('option')[0]?.getAttribute('aria-label')).toBe(
+      '1, 여호와는 나의 목자시니',
     );
   });
 
