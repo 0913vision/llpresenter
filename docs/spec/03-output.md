@@ -210,10 +210,10 @@ Source: `Looks`, `Main` decision "설정은 앱 전체에 하나", `ShowH` (tool
   wider than the area breaks anywhere (proposal).
 - Shrink to fit: draw at the largest whole px size, no larger than the style's
   size, at which the wrapped lines fit both the width and the allowed height.
-  The size goes down to 1 px if it must, so every line always fits and nothing
-  is cut or runs past the margins (proposal; output-2 builds it this way). Only
-  in the impossible case that the lines don't fit even at 1 px does the text
-  draw at 1 px.
+  The size goes down to 1 px if it must (proposal; output-2 builds it this way).
+  So every line fits, and nothing is cut or runs past the margins, except in the
+  overflow case: when the lines don't fit even at 1 px, the text draws at 1 px
+  and may run past the margins.
 - The operator gets no warning for a 장 that shrinks a lot. The previews in 진행
   and the song editor's preview in 준비 show the size it really draws at (04,
   05), so a 장 that is too long shows there before it goes out (proposal).
