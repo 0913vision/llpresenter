@@ -2,6 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {
   checkFrameTiming,
   checkPlayback,
+  parseClipArgs,
   parseEncodedFrames,
   parsePageOutcome,
   parsePlayback,
@@ -96,11 +97,26 @@ describe('parsePlayback and checkPlayback', () => {
     expect(checkPlayback(playing, OPTIONS)).toEqual({ok: true, value: null});
   });
 
-  it('refuses an incomplete playback report', () => {
-    expect(parsePlayback({duration: 2})).toEqual({
+  it.each([
+    ['without a size', {duration: 2}],
+    ['with a NaN duration', {duration: NaN, width: 1920, height: 1080}],
+    [
+      'with an endless duration',
+      {duration: Infinity, width: 1920, height: 1080},
+    ],
+    ['with no duration', {duration: 0, width: 1920, height: 1080}],
+    ['with a NaN width', {duration: 2, width: NaN, height: 1080}],
+  ])('refuses a playback report %s', (_label, report) => {
+    expect(parsePlayback(report)).toEqual({
       ok: false,
-      reason: 'the playback check is incomplete',
+      reason: 'the playback check needs a finite, positive duration and size',
     });
+  });
+
+  it('refuses a NaN duration even when it skips the parser', () => {
+    expect(
+      checkPlayback({duration: NaN, width: 1920, height: 1080}, OPTIONS),
+    ).toEqual({ok: false, reason: 'the clip plays for NaN s'});
   });
 
   it('refuses a clip that plays for the wrong length', () => {
@@ -133,5 +149,33 @@ describe('parsePageOutcome', () => {
       ok: false,
       reason: 'the page returned no value',
     });
+  });
+});
+
+describe('parseClipArgs', () => {
+  it('reads a clip path and a user data folder', () => {
+    expect(
+      parseClipArgs(['D:/run/soak-loop.webm', 'D:/run/.clip-maker']),
+    ).toEqual({
+      ok: true,
+      value: {file: 'D:/run/soak-loop.webm', userData: 'D:/run/.clip-maker'},
+    });
+  });
+
+  it.each([
+    ['no arguments', []],
+    ['only the clip path', ['D:/run/soak-loop.webm']],
+    ['an extra argument', ['D:/run/a.webm', 'D:/run/data', 'more']],
+  ])('refuses %s', (_label, args) => {
+    expect(parseClipArgs(args)).toEqual({
+      ok: false,
+      reason: `expected a clip path and a user data folder, got ${args.length} arguments`,
+    });
+  });
+
+  it('refuses a path that is not a WebM file, such as its own script', () => {
+    expect(
+      parseClipArgs(['D:/llp/scripts/soak/clip/main.mts', 'D:/run/data']).ok,
+    ).toBe(false);
   });
 });

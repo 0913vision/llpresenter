@@ -5,11 +5,13 @@ import {app, BrowserWindow} from 'electron';
 import {
   checkFrameTiming,
   checkPlayback,
+  parseClipArgs,
   parseEncodedFrames,
   parsePageOutcome,
   parsePlayback,
   SOAK_CLIP,
   type Checked,
+  type ClipSummary,
 } from '../clip-frames.mts';
 import {muxWebm} from '../webm.mts';
 
@@ -17,14 +19,6 @@ const PAGE = join(import.meta.dirname, 'page.html');
 const SCRIPT = join(import.meta.dirname, 'encode.js');
 const MS_PER_SECOND = 1000;
 const FAILURE_EXIT_CODE = 1;
-
-/** What the clip maker prints as its last line, as JSON. */
-interface ClipSummary {
-  readonly file: string;
-  readonly bytes: number;
-  readonly frames: number;
-  readonly durationMs: number;
-}
 
 function unwrap<T>(checked: Checked<T>): T {
   if (!checked.ok) throw new Error(checked.reason);
@@ -93,11 +87,16 @@ async function main(file: string): Promise<void> {
   }
 }
 
-const [file, userData] = process.argv.slice(-2);
-if (file === undefined || userData === undefined) {
-  console.error('Usage: electron main.mts <clip.webm> <user data folder>');
+// NOTE(0913vision): The arguments are read before anything is written or any
+// window is created, so a wrong call ends with nothing changed.
+const args = parseClipArgs(process.argv.slice(2));
+if (!args.ok) {
+  console.error(
+    `Usage: electron main.mts <clip.webm> <user data folder> (${args.reason})`,
+  );
   app.exit(FAILURE_EXIT_CODE);
 } else {
+  const {file, userData} = args.value;
   // NOTE(0913vision): Electron keeps its caches in the user data folder, so it
   // goes to the soak run's temporary folder, not to the user's AppData.
   app.setPath('userData', userData);

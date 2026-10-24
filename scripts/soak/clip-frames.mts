@@ -108,6 +108,10 @@ export function checkFrameTiming(
   return {ok: true, value: null};
 }
 
+function isPositive(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0;
+}
+
 /** What the page saw when it played the finished clip. */
 export interface Playback {
   readonly duration: number;
@@ -121,12 +125,11 @@ export function parsePlayback(value: unknown): Checked<Playback> {
     return {ok: false, reason: 'the page sent no playback check'};
   }
   const {duration, width, height} = value;
-  if (
-    typeof duration !== 'number' ||
-    typeof width !== 'number' ||
-    typeof height !== 'number'
-  ) {
-    return {ok: false, reason: 'the playback check is incomplete'};
+  if (!isPositive(duration) || !isPositive(width) || !isPositive(height)) {
+    return {
+      ok: false,
+      reason: 'the playback check needs a finite, positive duration and size',
+    };
   }
   return {ok: true, value: {duration, width, height}};
 }
@@ -145,7 +148,8 @@ export function checkPlayback(
       reason: `the clip plays at ${playback.width}x${playback.height}`,
     };
   }
-  if (Math.abs(playback.duration - options.seconds) > DURATION_TOLERANCE_S) {
+  const offBy = Math.abs(playback.duration - options.seconds);
+  if (!(offBy <= DURATION_TOLERANCE_S)) {
     return {ok: false, reason: `the clip plays for ${playback.duration} s`};
   }
   return {ok: true, value: null};
@@ -167,4 +171,42 @@ export function parsePageOutcome(outcome: unknown): Checked<unknown> {
     return {ok: false, reason: 'the page returned no value'};
   }
   return {ok: true, value: outcome['value']};
+}
+
+/** What the clip maker reports about the clip it made. */
+export interface ClipSummary {
+  readonly file: string;
+  readonly bytes: number;
+  readonly frames: number;
+  readonly durationMs: number;
+}
+
+/** Where the clip maker writes the clip, and Electron's user data folder. */
+export interface ClipArgs {
+  readonly file: string;
+  readonly userData: string;
+}
+
+const CLIP_EXTENSION = '.webm';
+
+/**
+ * Reads the clip maker's arguments: exactly a `.webm` path to write and a
+ * user data folder, so a missing argument can never make it write over
+ * another file.
+ */
+export function parseClipArgs(args: readonly string[]): Checked<ClipArgs> {
+  const [file, userData] = args;
+  if (args.length !== 2 || file === undefined || userData === undefined) {
+    return {
+      ok: false,
+      reason: `expected a clip path and a user data folder, got ${args.length} arguments`,
+    };
+  }
+  if (!file.toLowerCase().endsWith(CLIP_EXTENSION) || userData === '') {
+    return {
+      ok: false,
+      reason: `expected a ${CLIP_EXTENSION} path and a user data folder`,
+    };
+  }
+  return {ok: true, value: {file, userData}};
 }
