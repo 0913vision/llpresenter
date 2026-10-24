@@ -91,6 +91,7 @@ Every format goes through the same two functions:
 ## Changed files
 
 - `package.json`, `package-lock.json`: valibot 1.5.0.
+- `src/shared/result.ts` (new, allowed by the lead): the `Result` type.
 - `src/shared/schema/`: `fileFormat.ts`, `migration.ts`, `primitives.ts`,
   `ids.ts`, `song.ts`, `service.ts`, `appConfig.ts`, `testHelpers.ts`, and a
   test file for each module except `ids.ts`, `primitives.ts`, and
@@ -163,8 +164,9 @@ All on the commit before this document (5a8d6b4, base `main` 5b09a98).
    `grid` or `list`, from `docs/spec/07-macros.md`.
 9. Service names, header texts, and slot titles may be empty. The spec marks
    them required but sets no length.
-10. `Result` lives in `src/shared/schema/fileFormat.ts`. If the main process and
-    IPC should share one `Result`, it can move to `src/shared/` (lead's file).
+10. `Result` lives in `src/shared/result.ts`, so the main process and IPC can
+    share it. The lead asked for this in the review and allowed this one shared
+    file.
 
 Open questions from `docs/spec/README.md` that touch this request:
 
@@ -221,4 +223,10 @@ missing.
 
 ## Team member's reply
 
-1.
+Replies to the lead:
+
+1. Move `Result` to `src/shared/result.ts`: done in 39a3ac4. The schema modules
+   import it from there.
+2. Write the byte order mark as an escape: done in 453d827, in `fileFormat.ts`
+   and its test. The editor tool had turned the escape into the character
+   itself.
