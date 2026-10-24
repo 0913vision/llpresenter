@@ -1,7 +1,7 @@
 import {BrowserWindow, ipcMain, type IpcMainEvent} from 'electron';
-import {isLiveCommand} from '@shared/commands';
 import {Channels, windowActions, type WindowAction} from '@shared/ipc';
 import type {LiveState} from '@shared/live';
+import {parseLiveCommand} from '@shared/schema/liveCommand';
 import type {Logger} from './log';
 import type {LiveStore} from './live/store';
 
@@ -46,11 +46,12 @@ function controlWindow(event: IpcMainEvent, value: unknown): void {
 export function registerIpc(store: LiveStore, log: Logger): () => void {
   ipcMain.handle(Channels.liveGet, () => store.state);
   ipcMain.on(Channels.liveCommand, (_event, value: unknown) => {
-    if (!isLiveCommand(value)) {
-      log.warn('dropped a malformed command', value);
+    const command = parseLiveCommand(value);
+    if (!command.ok) {
+      log.warn('dropped a malformed command', command.error);
       return;
     }
-    store.dispatch(value, error =>
+    store.dispatch(command.value, error =>
       log.error('live state listener failed', error),
     );
   });
