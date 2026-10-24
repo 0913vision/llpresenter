@@ -10,7 +10,7 @@ import {
 } from 'node:path';
 import {isRecord} from '@shared/guards';
 import type {Result} from '@shared/result';
-import {parseAppConfig} from '@shared/schema/appConfig';
+import {parseAppConfig, type AppConfig} from '@shared/schema/appConfig';
 import type {FileError} from '@shared/schema/fileFormat';
 
 /** The name of the data folder in Documents, and in the development folder. */
@@ -86,6 +86,8 @@ export interface ResolvedLocations {
 /** What `app.json` says about the data folders, even when the file is broken. */
 export interface LocationFieldsRead {
   readonly fields: LocationFields;
+  /** The whole file when it passed validation, or `null`. */
+  readonly config: AppConfig | null;
   /**
    * Why the file failed validation, or `null`. When it is set, the store warns
    * once and never writes over the broken file.
@@ -173,10 +175,12 @@ export function readLocationFields(
 ): LocationFieldsRead {
   const parsed = parseAppConfig(text, file);
   if (parsed.ok) {
-    return {fields: pickLocationFields(parsed.value.data), problem: null};
+    const config = parsed.value.data;
+    return {fields: pickLocationFields(config), config, problem: null};
   }
   return {
     fields: pickLocationFields(parseLoosely(text)),
+    config: null,
     problem: parsed.error,
   };
 }

@@ -98,12 +98,11 @@ describe('readLocationFields', () => {
   const header = {format: 'llapp', schemaVersion: 1};
 
   it('reads the location fields of a valid file', () => {
-    const read = readLocationFields(
-      JSON.stringify({...header, dataRoot: OUTSIDE, mediaStrip: true}),
-      'app.json',
-    );
+    const config = {...header, dataRoot: OUTSIDE, mediaStrip: true};
 
-    expect(read).toEqual({fields: {dataRoot: OUTSIDE}, problem: null});
+    const read = readLocationFields(JSON.stringify(config), 'app.json');
+
+    expect(read).toEqual({fields: {dataRoot: OUTSIDE}, config, problem: null});
   });
 
   it('keeps the location fields of a file that fails validation', () => {
