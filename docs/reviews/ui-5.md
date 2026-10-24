@@ -36,12 +36,12 @@ The design system README already says the app uses this one file
 
 ## Checks run
 
-| Command or test                             | Result                                        |
-| ------------------------------------------- | --------------------------------------------- |
-| `npm run verify`                            | Filled in below                               |
-| `designSystemAssets.test.ts`                | Pass; fails with the `fonts` folder taken out |
-| Card server, font request                   | `/project/fonts/PretendardVariable.woff2` 200 |
-| Button card beside the gallery, in Chromium | 10 of 10 shared labels have the same width    |
+| Command or test                             | Result                                                                                 |
+| ------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `npm run verify`                            | Pass, 5 steps, 89 files, 894 tests (1 skipped under coverage by design, not ui), 175 s |
+| `designSystemAssets.test.ts`                | Pass; fails with the `fonts` folder taken out                                          |
+| Card server, font request                   | `/project/fonts/PretendardVariable.woff2` 200                                          |
+| Button card beside the gallery, in Chromium | 10 of 10 shared labels have the same width                                             |
 
 The last check ran in an offscreen Electron window (my own script, `show: false`
 and `offscreen: true`, no show calls), on
