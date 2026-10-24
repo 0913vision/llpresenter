@@ -15,8 +15,8 @@ leave the layout in a broken state.
 
 ## Tasks
 
-1. In your worktree, start the new branch from the latest `rewrite`:
-   `git switch -c feat/shell/column-resize rewrite`. Rewrite `.llp/notes.md` for
+1. In your worktree, start the new branch from the latest `main`:
+   `git switch -c feat/shell/column-resize main`. Rewrite `.llp/notes.md` for
    this task.
 2. **Align the size class names with the design system** (`refactor(shell)`):
    the code uses `compact` / `regular` / `wide`, while the design system and the
@@ -75,7 +75,7 @@ leave the layout in a broken state.
   under 560, the shrink rule holds when the window narrows, and each size class
   keeps its own widths.
 - Unit tests cover the column logic and the drag hook, and they pass.
-- The review request is merged into `rewrite` by fast-forward.
+- The review request is merged into `main` by fast-forward.
 
 ## How to verify
 
@@ -90,8 +90,8 @@ leave the layout in a broken state.
 
 ## When you finish
 
-Rebase onto the latest `rewrite`, run the checks, write
-`docs/reviews/shell-1.md`, commit it, and send the lead:
+Rebase onto the latest `main`, run the checks, write `docs/reviews/shell-1.md`,
+commit it, and send the lead:
 
 ```text
 Review request: docs/reviews/shell-1.md, branch feat/shell/column-resize, commit <hash>

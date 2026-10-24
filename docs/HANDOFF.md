@@ -15,14 +15,14 @@ only inside one church, and there's no plan to distribute it.
 
 ## Current state
 
-| Item                             | State                                                                                                          | Location                                                                                                |
-| -------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| UI drafts                        | Final (version 65)                                                                                             | [Drafts artifact](https://claude.ai/artifact/4Z4M7wLUjyxs5iqLzkeXct), source in `design/drafts/`        |
-| Design system                    | Final (version 3): principles, tokens, window size rules, 30 components                                        | [Design system artifact](https://claude.ai/artifact/LDSJg1gwuFymJBuTbVEBQP), source in `design/system/` |
-| Feature spec                     | Written                                                                                                        | `docs/spec/`                                                                                            |
-| Technical decisions              | Written                                                                                                        | `docs/TECH.md`, `docs/decisions.md`                                                                     |
-| Implementation plan and workflow | Written                                                                                                        | `docs/PLAN.md`, `docs/WORKFLOW.md`, `docs/STATUS.md`                                                    |
-| App code                         | Initial frame on `rewrite`: shared live state and commands, main-process store, IPC, logging, and the shell UI | `src/`, progress in `docs/STATUS.md`                                                                    |
+| Item                             | State                                                                                                       | Location                                                                                                |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| UI drafts                        | Final (version 65)                                                                                          | [Drafts artifact](https://claude.ai/artifact/4Z4M7wLUjyxs5iqLzkeXct), source in `design/drafts/`        |
+| Design system                    | Final (version 3): principles, tokens, window size rules, 30 components                                     | [Design system artifact](https://claude.ai/artifact/LDSJg1gwuFymJBuTbVEBQP), source in `design/system/` |
+| Feature spec                     | Written                                                                                                     | `docs/spec/`                                                                                            |
+| Technical decisions              | Written                                                                                                     | `docs/TECH.md`, `docs/decisions.md`                                                                     |
+| Implementation plan and workflow | Written                                                                                                     | `docs/PLAN.md`, `docs/WORKFLOW.md`, `docs/STATUS.md`                                                    |
+| App code                         | Initial frame on `main`: shared live state and commands, main-process store, IPC, logging, and the shell UI | `src/`, progress in `docs/STATUS.md`                                                                    |
 
 Both artifacts open only in the user's account. Sessions read the copies in the
 repository (`design/`).

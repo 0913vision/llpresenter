@@ -52,7 +52,7 @@
 
 ## When you finish
 
-1. Rebase onto the latest `rewrite` and resolve conflicts yourself.
+1. Rebase onto the latest `main` and resolve conflicts yourself.
 2. Run the checks in "How to verify" and in `CLAUDE.md`. If anything fails,
    don't send the review request.
 3. Write `docs/reviews/<name>-<number>.md` and commit it.

@@ -2,7 +2,7 @@
 
 LoveLight Presenter is a Windows app that sends lyrics, Bible verses, and
 announcements to several screens during a church service. We are rebuilding it
-from scratch on the `rewrite` branch.
+from scratch on the `main` branch.
 
 - What we're building and where it stands: [`docs/HANDOFF.md`](docs/HANDOFF.md)
 - Feature spec: [`docs/spec/`](docs/spec/)

@@ -6,7 +6,7 @@ Only the lead edits this file. Last updated: October 24, 2026.
 
 | Phase             | State       | Note                                                                                                                  |
 | ----------------- | ----------- | --------------------------------------------------------------------------------------------------------------------- |
-| 0 Handoff         | Done        | `rewrite` started empty, with the documents and the design sources                                                    |
+| 0 Handoff         | Done        | The rewrite started empty, with the documents and the design sources                                                  |
 | 1 Foundation      | In progress | Initial frame, formatter, and session notes hook committed. Next: trial, then devops and the rest of the lead's share |
 | 2 Vertical slice  | Waiting     |                                                                                                                       |
 | 3 Feature bundles | Waiting     | prep, output, tools                                                                                                   |
@@ -17,7 +17,7 @@ Only the lead edits this file. Last updated: October 24, 2026.
 
 | Name   | Branch                      | State                                | Brief                   |
 | ------ | --------------------------- | ------------------------------------ | ----------------------- |
-| lead   | `rewrite`                   | Held by the phase 0 session          | `docs/briefs/lead.md`   |
+| lead   | `main`                      | Held by the phase 0 session          | `docs/briefs/lead.md`   |
 | trial  | `docs/trial/workflow-check` | Merged (24534c6); continues as shell | `docs/briefs/trial.md`  |
 | devops | `chore/devops/verify`       | Started                              | `docs/briefs/devops.md` |
 | ui     | `feat/ui/form-controls`     | Started                              | `docs/briefs/ui.md`     |

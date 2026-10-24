@@ -7,7 +7,7 @@ import {pathToFileURL} from 'node:url';
 export const NOTES_PATH = '.llp/notes.md';
 
 const STATUS_PATH = 'docs/STATUS.md';
-const LEAD_BRANCH = 'rewrite';
+const LEAD_BRANCH = 'main';
 const MEMBER_BRANCH =
   /^(?:break|feat|fix|refactor|style|docs|chore)\/([a-z0-9-]+)\/[a-z0-9-]+$/;
 const MAX_NOTES_CHARS = 12_000;
@@ -25,7 +25,7 @@ export interface SessionFacts {
 }
 
 /**
- * Maps a branch to a session name: `lead` for `rewrite`, the member name for
+ * Maps a branch to a session name: `lead` for `main`, the member name for
  * `<tag>/<name>/<feature>`, or `unknown`.
  */
 export function roleFor(branch: string): string {

@@ -37,7 +37,7 @@ Your job is to make tools enforce the "Quality bar" in `docs/TECH.md`.
   helpers such as creating and deleting temporary folders and a fake clock. Keep
   the whole unit suite under 1 minute.
 - **GitHub Actions configuration (`.github/workflows/ci.yml`):** Runs `npm ci`
-  and `npm run verify` on a Windows runner when `rewrite` is pushed and when
+  and `npm run verify` on a Windows runner when `main` is pushed and when
   someone runs it by hand (`workflow_dispatch`). Caches Electron downloads. The
   lead pushes after merging, so devops, as a team member, doesn't push.
 - **Soak test script skeleton (`scripts/soak/`):** Starts the app in test mode,

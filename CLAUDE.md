@@ -2,9 +2,9 @@
 
 LoveLight Presenter is a Windows Electron app that sends lyrics, Bible verses,
 and announcements to several screens during a church service. We are rebuilding
-it from scratch on the `rewrite` branch. The `main` branch holds the 2024 code
-and is reference only. Never stopping during a service matters more than
-features.
+it from scratch on the `main` branch. The 2024 code is kept as the tag
+`legacy-2024` and is reference only. Never stopping during a service matters
+more than features.
 
 ## Read first
 
@@ -167,13 +167,13 @@ full bar is "Quality bar" in `docs/TECH.md`.
 Every session runs with permission prompts turned off, so follow these rules
 without exception.
 
-- Team members never run `git push`. Only the lead pushes `rewrite` to `origin`
+- Team members never run `git push`. Only the lead pushes `main` to `origin`
   after a merge. Nobody force-pushes or deletes remote branches.
 - The GitHub repository (0913vision/llpresenter) is public. Never commit
   secrets, personal data, or copyrighted lyrics. Use public-domain text or
   invented sentences for sample lyrics.
-- Never run `reset --hard`, rewrite history, or delete branches on `rewrite`.
-  Members rebase only their own branch onto `rewrite`. Nobody rebases `rewrite`
+- Never run `reset --hard`, rewrite history, or delete branches on `main`.
+  Members rebase only their own branch onto `main`. Nobody rebases `main`
   itself.
 - Never change or delete files outside the repository or in another session's
   worktree.

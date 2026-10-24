@@ -115,3 +115,8 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   closed (user). The trial session continues as shell (column resizing) and the
   first reviewer session continues as data (schemas). Both tasks moved from the
   lead's share. Codex is the reviewer.
+- 2026-10-24: `main` is the integration branch (user). The lead manages it, and
+  members' branches are merged into it by fast-forward. `main` was
+  fast-forwarded from the 2024 code (9b23462) to the rewrite (3c3efb7) without a
+  force push, and the 2024 code is kept as the tag `legacy-2024`. The branch
+  `rewrite` is retired and stays on GitHub only as history.

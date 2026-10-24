@@ -18,7 +18,7 @@ const baseFacts: SessionFacts = {
 
 describe('roleFor', () => {
   it('names the lead and the member in a tag/name/feature branch', () => {
-    expect(roleFor('rewrite')).toBe('lead');
+    expect(roleFor('main')).toBe('lead');
     expect(roleFor('feat/ui/form-controls')).toBe('ui');
     expect(roleFor('docs/trial/workflow-check')).toBe('trial');
     expect(roleFor('chore/devops/verify')).toBe('devops');
@@ -30,7 +30,7 @@ describe('roleFor', () => {
     expect(roleFor('wip/ui/button')).toBe('unknown');
     expect(roleFor('feat/UI/button')).toBe('unknown');
     expect(roleFor('team/trial')).toBe('unknown');
-    expect(roleFor('main')).toBe('unknown');
+    expect(roleFor('rewrite')).toBe('unknown');
     expect(roleFor('')).toBe('unknown');
   });
 });

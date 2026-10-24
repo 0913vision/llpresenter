@@ -14,8 +14,8 @@ lead reviews them closely; a mistake here spreads everywhere.
 
 ## Tasks
 
-1. In your worktree, start the new branch from the latest `rewrite`:
-   `git switch -c feat/data/schemas rewrite`. Rewrite `.llp/notes.md` for this
+1. In your worktree, start the new branch from the latest `main`:
+   `git switch -c feat/data/schemas main`. Rewrite `.llp/notes.md` for this
    task.
 2. **Choose the schema library.** `docs/TECH.md` says "one small schema
    validation library (zod family), decide in phase 1". Compare zod and valibot
@@ -70,7 +70,7 @@ lead reviews them closely; a mistake here spreads everywhere.
 
 - Every format in `docs/spec/02-data.md` has a schema, a parse that never
   throws, a serialize, and tests, and the migration hook works.
-- The review request is merged into `rewrite` by fast-forward.
+- The review request is merged into `main` by fast-forward.
 
 ## How to verify
 
@@ -85,8 +85,8 @@ lead reviews them closely; a mistake here spreads everywhere.
 
 ## When you finish
 
-Rebase onto the latest `rewrite`, run the checks, write
-`docs/reviews/data-1.md`, commit it, and send the lead:
+Rebase onto the latest `main`, run the checks, write `docs/reviews/data-1.md`,
+commit it, and send the lead:
 
 ```text
 Review request: docs/reviews/data-1.md, branch feat/data/schemas, commit <hash>

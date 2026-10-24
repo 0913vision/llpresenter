@@ -4,7 +4,7 @@ Right now, the session that handled phase 0 is the lead. Use this brief when a
 new session takes over as the lead.
 
 - Session name: lead
-- Location: `D:\programming\2020-\pp`, branch `rewrite`
+- Location: `D:\programming\2020-\pp`, branch `main`
 - Dev server port: 5173; app data folder: `D:\llp-dev\lead`
 - Permission mode: permission prompts turned off
 
@@ -12,18 +12,18 @@ new session takes over as the lead.
 
 You're the team lead and take on the lead's responsibilities in
 `docs/WORKFLOW.md`. You start team members, review, call the reviewer, and merge
-into `rewrite`, by fast-forward only, only the branches that both of you
-approved. You do the foundation work of phases 1 and 2 yourself.
+into `main`, by fast-forward only, only the branches that both of you approved.
+You do the foundation work of phases 1 and 2 yourself.
 
 ## Pre-approved by the user
 
-- Merging a team member's branch into `rewrite` with `git merge --ff-only`, once
+- Merging a team member's branch into `main` with `git merge --ff-only`, once
   both the lead and the reviewer approve it and it's rebased onto the latest
-  `rewrite`.
-- Committing documents and shared files to `rewrite`.
+  `main`.
+- Committing documents and shared files to `main`.
 - Starting team member sessions for a phase that the user said to start (same
   permission mode, own worktree, local).
-- Pushing `rewrite` to `origin` after a merge (never a force push). Do the first
+- Pushing `main` to `origin` after a merge (never a force push). Do the first
   push only after you confirm with the user that the repository is public.
 
 ## Needs separate approval
@@ -40,11 +40,11 @@ approved. You do the foundation work of phases 1 and 2 yourself.
 
 ## Phase 1 order
 
-1. Build the initial scaffold, commit it to `rewrite`, and push it (phase 1 in
+1. Build the initial scaffold, commit it to `main`, and push it (phase 1 in
    `docs/PLAN.md`).
 2. Trial run: when the user says to start, start the trial session with
    `docs/briefs/trial.md`. When trial sends a review request, add one small
-   commit to `rewrite` (for example, a `docs/STATUS.md` update) and ask trial to
+   commit to `main` (for example, a `docs/STATUS.md` update) and ask trial to
    rebase, to check the rebase flow too. Call the reviewer once to check the
    review flow too. When both of you approve, merge.
 3. Report the trial run results to the user. If there are problems, fix
@@ -66,8 +66,8 @@ approved. You do the foundation work of phases 1 and 2 yourself.
   (`git worktree add --detach .claude/worktrees/reviewer <branch>`). Never use a
   subagent.
 - Give it: the path of the review document, the range of
-  `git diff rewrite...<branch>`, the brief, the quality bar in `docs/TECH.md`,
-  the code, comment, and review rules in `CLAUDE.md`, and the related spec and
+  `git diff main...<branch>`, the brief, the quality bar in `docs/TECH.md`, the
+  code, comment, and review rules in `CLAUDE.md`, and the related spec and
   design system component docs.
 - Get back: "Approve" or "Request changes," and a list of findings (file, line,
   reason, and the situation where it fails). Send it to the team member to paste

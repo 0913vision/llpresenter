@@ -98,7 +98,7 @@ them small, typed, accessible, and well tested.
   gallery and beside its preview card.
 - Each component has tests for its states, keyboard behavior, and callbacks, and
   they pass.
-- Both review requests are merged into `rewrite` by fast-forward.
+- Both review requests are merged into `main` by fast-forward.
 
 ## How to verify
 
@@ -114,7 +114,7 @@ them small, typed, accessible, and well tested.
 
 ## When you finish a batch
 
-1. Rebase onto the latest `rewrite` and resolve conflicts yourself.
+1. Rebase onto the latest `main` and resolve conflicts yourself.
 2. Run the checks above. If anything fails, don't send the review request.
 3. Write `docs/reviews/ui-<number>.md` from `docs/reviews/_template.md` and
    commit it.

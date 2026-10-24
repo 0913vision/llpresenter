@@ -44,10 +44,10 @@ src/
 
 ### Phase 0: Handoff (done)
 
-- `rewrite` starts empty. The first commit has no old code. It has only the
+- The rewrite starts empty. Its first commit has no old code. It has only the
   document set (`CLAUDE.md`, `docs/`), the draft and design system sources
   (`design/`), and the repository rules (`.gitattributes`, `.gitignore`). The
-  old code stays in `main` and in the git history.
+  old code stays in the git history and in the tag `legacy-2024`.
 - The early skeleton built before the drafts is in the local archive branch
   `archive/prototype-2026-10` (not pushed). When you build the initial scaffold,
   take only what's useful from it.
@@ -57,7 +57,7 @@ src/
 1. **Initial scaffold (lead):** From the lead's share below, the lead first
    builds the folder structure, the configuration and version pinning, the
    shared contracts (`src/shared/`), the design tokens, the app shell skeleton,
-   and the dev environment variables, then commits them to `rewrite` and pushes.
+   and the dev environment variables, then commits them to `main` and pushes.
    Every team member starts from this commit.
 2. **Trial run (trial):** On top of the initial scaffold, trial runs the team
    workflow once with `docs/briefs/trial.md`.
@@ -145,8 +145,7 @@ src/
 | tools   | The 8 tabs of 진행 도구, the media workspace and the media strip, audio, macros (action palette, start macro), 퀵 실행 (quick launch), Bible verses                                                                                                                                                  | `renderer/src/show/tools/`, `main/media/`, `main/macros/`                                                  |
 
 - Changes to the shared contracts (`src/shared/`) go to the lead as requests.
-  The lead lands them on `rewrite` first, and then each branch is rebased onto
-  it.
+  The lead lands them on `main` first, and then each branch is rebased onto it.
 - **Done when:** the spec (`docs/spec/`) items of each bundle work, and that
   bundle's unit tests and UI tests pass. After the lead integrates the bundles,
   the 60-minute soak test passes again.
@@ -171,7 +170,7 @@ src/
 
 | Name                | Phase                          | Location and branch                                                                     | Role                                                                                                                                                                           |
 | ------------------- | ------------------------------ | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| lead                | 0 to the end                   | Main repository folder, `rewrite`                                                       | Team lead. The session that handled phase 0 continues in this role. Builds the initial scaffold and phase 2 directly, starts team members, reviews, and merges by fast-forward |
+| lead                | 0 to the end                   | Main repository folder, `main`                                                          | Team lead. The session that handled phase 0 continues in this role. Builds the initial scaffold and phase 2 directly, starts team members, reviews, and merges by fast-forward |
 | trial               | 1 (after the initial scaffold) | Own worktree, `docs/trial/workflow-check`                                               | Trial run. Goes once through the flow from review request to fast-forward merge                                                                                                |
 | devops              | 1                              | Own worktree, `chore/devops/verify`                                                     | Check command, lint, test configuration, GitHub Actions configuration, soak test script skeleton                                                                               |
 | ui                  | 1                              | Own worktree, `feat/ui/<feature>`                                                       | Shared design system components, their tests, and the gallery                                                                                                                  |

@@ -6,9 +6,10 @@ when the work is done, sends the lead a review request (PR). Both the lead and
 the reviewer must approve, and only rebased branches are merged into the
 integration branch, by fast-forward only.
 
-The integration branch is `rewrite`. For now, it acts as the team's main branch
-(`main` holds the 2024 code). When v1 is done, we fast-forward `main` to
-`rewrite`.
+The integration branch is `main`. The lead manages it. Team members work on
+their own branches and send review requests, and the lead merges them into
+`main`. The 2024 code is kept as the tag `legacy-2024`. The old integration
+branch `rewrite` is retired; it stays on GitHub only as history.
 
 ## Roles
 
@@ -16,7 +17,7 @@ The integration branch is `rewrite`. For now, it acts as the team's main branch
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | User                       | Starting and ending phases, decisions that aren't in the plan, ruling on what the lead and the reviewer can't agree on                                                                                                                            |                                                                                    |
 | Lead                       | Maintaining `docs/PLAN.md` and `docs/STATUS.md`, changing the shared contracts and shared files, starting team member sessions, writing briefs, reviewing, calling the reviewer, merging after approval, integration tests, reporting to the user | Change a team member's owned files, or resolve conflicts on a team member's behalf |
-| Team member (work session) | Implementing the scope of the brief, rebasing their branch onto the latest `rewrite` and resolving conflicts themselves, writing review requests, addressing review comments, asking questions                                                    | Change shared files, touch other branches, or commit directly to `rewrite`         |
+| Team member (work session) | Implementing the scope of the brief, rebasing their branch onto the latest `main` and resolving conflicts themselves, writing review requests, addressing review comments, asking questions                                                       | Change shared files, touch other branches, or commit directly to `main`            |
 | Reviewer                   | Only reads review requests, reviews them independently, and gives an approval or a change request                                                                                                                                                 | Change code                                                                        |
 
 The reviewer is Codex (joined on 2026-10-24). It runs in its own tmux window,
@@ -35,13 +36,13 @@ subagent).
   ProPresenter project) continues as the lead. If that session ends or its
   context grows too long, a new session takes over as the lead with
   `docs/briefs/lead.md`.
-- The lead runs in `D:\programming\2020-\pp` (`rewrite`) with permission prompts
+- The lead runs in `D:\programming\2020-\pp` (`main`) with permission prompts
   turned off. Team members start in the same mode. If the modes differ, messages
   between sessions stall while they wait for the user's approval.
 - The lead runs inside tmux and starts each team member as an independent
   interactive Claude Code session in a new tmux window (user rule). Never use
   agent team teammates or background subagents for member work.
-  1. `git worktree add .claude/worktrees/<name> -b <tag>/<name>/<feature> rewrite`
+  1. `git worktree add .claude/worktrees/<name> -b <tag>/<name>/<feature> main`
   2. Write `.llp/start.md` in the worktree: role, brief, branch, and the lead's
      session name for SendMessage.
   3. `tmux new-window -d -n <name> -c '<worktree path>'` (single quotes keep the
@@ -51,8 +52,8 @@ subagent).
      a separate Enter.
   5. Read a member's screen with `tmux capture-pane -p -t 0:<name>`. The user
      can open each session from the phone through Remote Control.
-- Before you start a session, commit its brief to `rewrite`. The worktree starts
-  from the last commit on `rewrite`.
+- Before you start a session, commit its brief to `main`. The worktree starts
+  from the last commit on `main`.
 - At most three team members run at the same time.
 
 ## Review request (PR) flow
@@ -61,11 +62,11 @@ subagent).
    in meaningful units. Keep each change small and focused, following Google's
    engineering practices. Each commit message is one line in the format and with
    the tags that `CLAUDE.md` defines. Run `npm run format` before you commit.
-2. **Rebase:** Before you send the review request, run `git rebase rewrite` in
-   your own worktree to move your branch onto the latest `rewrite`. The team
-   member resolves conflicts. A conflict in a shared file means that the team
-   member changed a shared file, so drop that change and send it to the lead as
-   a request instead.
+2. **Rebase:** Before you send the review request, run `git rebase main` in your
+   own worktree to move your branch onto the latest `main`. The team member
+   resolves conflicts. A conflict in a shared file means that the team member
+   changed a shared file, so drop that change and send it to the lead as a
+   request instead.
 3. **Check:** Run the checks that `CLAUDE.md` lists (now `npm run typecheck`,
    `npm test`, and `npm run format:check`; from phase 1 on, `npm run verify`)
    and the UI tests that the brief lists, and record the results. If anything
@@ -80,7 +81,7 @@ subagent).
    Review request: docs/reviews/<name>-<number>.md, branch <tag>/<name>/<feature>, commit <hash>
    ```
 
-5. **Review:** The lead looks at `git diff rewrite...<branch>` and at the actual
+5. **Review:** The lead looks at `git diff main...<branch>` and at the actual
    behavior. At the same time, the lead calls the reviewer to review the same
    range separately. Both reviewers follow Google's engineering practices:
    approve a change once it improves the overall health of the code, even if it
@@ -93,19 +94,19 @@ subagent).
    it or replies in the review document with the reason for not addressing it,
    adds new commits, and then starts again from step 2.
 7. **Approve and merge:** When both the lead and the reviewer approve, the lead
-   confirms that the team member's branch sits on the latest `rewrite` and
-   merges it by fast-forward only: `git merge --ff-only <branch>`. If `rewrite`
-   moved in the meantime, the lead asks the team member to rebase again. If a
-   conflict in that rebase changed code, the branch gets reviewed again. If the
-   branch only moved up without conflicts, it doesn't.
+   confirms that the team member's branch sits on the latest `main` and merges
+   it by fast-forward only: `git merge --ff-only <branch>`. If `main` moved in
+   the meantime, the lead asks the team member to rebase again. If a conflict in
+   that rebase changed code, the branch gets reviewed again. If the branch only
+   moved up without conflicts, it doesn't.
 8. **Clean up:** The lead updates `docs/STATUS.md`, commits it, and tells the
-   other team members who are still working that `rewrite` changed. Finished
+   other team members who are still working that `main` changed. Finished
    worktrees and branches are cleaned up after the user confirms.
 
 - Merges are fast-forward only. Don't create merge commits or squash merges.
-- Never rebase or revert `rewrite` itself.
-- After a merge, the lead pushes `rewrite` to `origin` (for backup and CI).
-  Nobody force-pushes. Team members don't push.
+- Never rebase or revert `main` itself.
+- After a merge, the lead pushes `main` to `origin` (for backup and CI). Nobody
+  force-pushes. Team members don't push.
 - If the lead and the reviewer disagree, they write their reasons in the review
   document and discuss it once more. If they still can't agree, the user
   decides.
@@ -195,10 +196,10 @@ Branches follow `<tag>/<name>/<feature>` (user rule):
 Rules:
 
 - Always exactly three parts. Git stores a branch as a file, so `feat/ui` and
-  `feat/ui/button` can't both exist, and nothing can live under `rewrite/`.
-- One branch per review request. Start the next one from `rewrite`. If your
+  `feat/ui/button` can't both exist, and nothing can live under `main/`.
+- One branch per review request. Start the next one from `main`. If your
   previous branch is still waiting for review, start from it instead, and rebase
-  onto `rewrite` after it merges.
+  onto `main` after it merges.
 - If a tool names a new worktree's branch itself, rename it first
   (`git branch -m <tag>/<name>/<feature>`). The SessionStart hook tells sessions
   apart by the `<name>` part.
@@ -217,18 +218,18 @@ Rules:
 ## GitHub
 
 - Repository: https://github.com/0913vision/llpresenter (public). Only the lead
-  pushes `rewrite`. Before the first push, confirm with the user that the
+  pushes `main`. Before the first push, confirm with the user that the
   repository is public.
 - CI: GitHub Actions runs `npm ci` and `npm run verify` on a Windows runner when
-  `rewrite` is pushed (set up by devops). The local `npm run verify` comes
-  first. CI on GitHub checks once more in a clean environment.
+  `main` is pushed (set up by devops). The local `npm run verify` comes first.
+  CI on GitHub checks once more in a clean environment.
 - For now, reviews happen through review documents in the repository
   (`docs/reviews/`) and SendMessage, not through GitHub PRs, because this
   computer has no GitHub CLI (`gh`) and team members don't push. devops
   reconsiders GitHub PRs in phase 1 and makes a proposal in its review document,
   and the lead decides.
-- When v1 is done, we fast-forward `main` to `rewrite`. This works because
-  `rewrite` started from the last commit of `origin/main` (9b23462).
+- On 2026-10-24, `main` was fast-forwarded to the rewrite (3c3efb7). It started
+  from the last commit of the 2024 code (9b23462), so no force push was needed.
 
 ## Codex
 
