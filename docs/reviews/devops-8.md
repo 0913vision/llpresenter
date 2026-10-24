@@ -2,26 +2,26 @@
 
 - Team member: `devops`
 - Branch: `refactor/devops/parallel-verify`
-- Review range: `24e53d8...refactor/devops/parallel-verify` (devops-9 is merged,
-  so the branch sits on `main` now)
+- Review range: `db4b2e6...refactor/devops/parallel-verify`
 - Related brief: the lead's request to make `npm run verify` faster, since the
   pre-push hook runs it on every push to `main`
 
 ## What to check
 
-Round 2: the three round 1 findings, answered in "Team member's reply (round 1)"
-at the end.
+Round 3: the three round 2 findings, answered in "Team member's reply (round 2)"
+at the end. Finding 2 is answered by a scope decision of the lead's, not by a
+job object.
 
-1.  `scripts/verify/step-process.mts`: the deadline, the interrupt, the tree
-    kill, and the 5-second release can't leave a timer or a listener behind or
-    resolve twice, and verify always ends. `scripts/process-tree.mts` ends the
-    whole tree on Windows.
-2.  `scripts/verify/failure-scanner.mts` and `scripts/verify/step-output.mts`:
-    "What failed" sees all of the output in bounded memory, and the kept output
-    says how much it dropped.
-3.  `scripts/verify.mts`: step reports print once, outside the process runner;
-    the summary names a deadline or an interrupt; the exit code is never 0 for a
-    stopped step. `main` releases its signal listeners.
+1.  `scripts/verify/step-process.mts`: the release timer starts when stopping
+    starts and waits for nothing else, so a kill that fails, throws, or never
+    ends can't keep verify open. A released step reports `leftRunning`.
+2.  `scripts/process-tree.mts`: `runHelper` stops taskkill after 5 seconds, and
+    the NOTE states what taskkill can't reach.
+3.  `scripts/verify/step-output.mts`: each stream keeps its own unfinished line
+    (`LineSplitter`), and `StepCapture` feeds whole lines to one
+    `FailureScanner`.
+4.  `scripts/verify.mts`: the summary names every step that left a process
+    running, and such a step never passes.
 
 ## Shared changes
 
@@ -97,6 +97,7 @@ The 90 s target needs a quieter machine. The tests alone took 38 s idle at
 | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | `npm run verify` (round 1)               | Pass, 79.6 s wall at 100% CPU: typecheck 24.3 s, lint 47.9 s, format:check 48.0 s, test:coverage 79.6 s, build 8.0 s, all at once         |
 | `npm run verify` (round 2, on `24e53d8`) | Pass, 169.7 s wall at 79 to 100% CPU: typecheck 18.4 s, lint 68.0 s, format:check 56.4 s, test:coverage 169.6 s, build 8.7 s, all at once |
+| `npm run verify` (round 3, on `db4b2e6`) | Pass, 186.1 s wall at 100% CPU: typecheck 15.0 s, lint 101.0 s, format:check 47.8 s, test:coverage 186.1 s, build 8.7 s, all at once      |
 
 ## Decisions I made (for the lead to confirm)
 
@@ -158,3 +159,39 @@ runs `scripts/verify.mts` in plain Node without `npm_execpath`; it fails with a
 parameter property and passes now. On Windows a copy of `process.env` holds
 `npm_execpath` twice (`npm_execpath` and `NPM_EXECPATH`), so the test drops
 every spelling.
+
+## Team member's reply (round 2)
+
+1.  Codex 1, the release waited for the kill. `stop()` now starts the 5-second
+    release timer before it starts the kill, and the release waits for nothing,
+    so a kill that fails, rejects, or never settles still ends the step 5
+    seconds later. The kill runs taskkill through `runHelper`, which stops it
+    after 5 seconds (`spawn`'s `timeout`), so a hung taskkill can't keep
+    verify's event loop alive either. Tests: the three kills (fails, throws,
+    never ends, mocked) each end the step after the release with exit code 1 and
+    `leftRunning`; `runHelper` stops a helper that hangs at 0.5 s and reports
+    one that can't start. On the round 2 code, a kill that throws or never ends
+    left the step waiting forever, because the release timer started only after
+    the kill.
+2.  Codex 2, descendants that outlive their parent. Lead decision for this
+    round: no job object of our own. I measured one (a PowerShell host with C#
+    compiled by `Add-Type`, about 1.2 s per step at 82% CPU), and the lead ruled
+    it too much machinery for a rare case in a dev tool. So verify ends the tree
+    while its root still runs (the deadline and Ctrl+C paths, as before) and
+    keeps the release. When the output stays open after that, the step fails and
+    the summary says
+    `A process started by "npm run <step>" kept running; check Task Manager.`
+    The limit is in a NOTE(0913vision) in `scripts/process-tree.mts`: taskkill
+    /t follows parent ids, and libuv's job object lets grandchildren break away
+    (`JOB_OBJECT_LIMIT_SILENT_BREAKAWAY_OK` in libuv's `src/win/process.c`), so
+    a process below an ended parent, such as one below the cmd.exe that npm
+    starts, is out of reach. Test: a parent that exits while its detached child
+    holds the pipes. The step ends with `leftRunning`, and the child is still
+    running, which documents the limit; the test ends it afterward.
+3.  Codex 3, merged partial lines. Each stream now has its own `LineSplitter`
+    (at most 4096 characters of a line), and `StepCapture` hands whole lines of
+    both streams to one `FailureScanner`. verify's own notices go to the kept
+    output only. Test: an unfinished stdout line, then stderr's `FAIL ...` and
+    its error, then the rest of the stdout line gives the failure with its
+    error. Splitter tests: pieces, a CRLF split across two pieces, and a long
+    line.
