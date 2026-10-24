@@ -4,7 +4,11 @@ import type {LiveState} from '@shared/live';
 import {parseLiveCommand} from '@shared/schema/liveCommand';
 import type {Logger} from './log';
 import type {LiveStore} from './live/store';
-import {handleLogWrite, type MessageHandler} from './rendererMessages';
+import {
+  WindowLogLimiter,
+  handleLogWrite,
+  type MessageHandler,
+} from './rendererMessages';
 
 function isWindowAction(value: unknown): value is WindowAction {
   return windowActions.some(action => action === value);
@@ -48,8 +52,8 @@ export function listenToWindows(
   channel: string,
   handler: MessageHandler,
 ): () => void {
-  const listener = (_event: IpcMainEvent, value: unknown): void =>
-    handler(value);
+  const listener = (event: IpcMainEvent, value: unknown): void =>
+    handler(value, event.sender.id);
   ipcMain.on(channel, listener);
   return () => {
     ipcMain.removeListener(channel, listener);
@@ -75,7 +79,10 @@ export function registerIpc(store: LiveStore, log: Logger): () => void {
     );
   });
   ipcMain.on(Channels.windowControl, controlWindow);
-  const stopLogWrites = listenToWindows(Channels.logWrite, handleLogWrite(log));
+  const stopLogWrites = listenToWindows(
+    Channels.logWrite,
+    handleLogWrite(log, new WindowLogLimiter(log)),
+  );
   const unsubscribe = store.subscribe(state => broadcast(state, log));
 
   return () => {

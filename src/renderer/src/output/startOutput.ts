@@ -1,12 +1,10 @@
 import type {LlpApi} from '@shared/ipc';
 import {mediaUrl} from '@shared/media';
+import {RENDERER_LOG_LIMITS} from '@shared/schema/ipcPayloads';
 import {DEFAULT_LYRIC_STYLE} from '../render/lyricStyle';
 import {OutputRenderer} from '../render/outputRenderer';
 import {startFrameRateMeter} from './frameRateMeter';
 import {followLiveState} from './liveFeed';
-
-/** The longest detail the main process accepts in a window's log line. */
-const MAX_DETAIL_LENGTH = 4000;
 
 /** What an output window runs on. */
 export interface OutputContext {
@@ -22,7 +20,7 @@ function describeError(error: unknown): string {
     error instanceof Error
       ? (error.stack ?? `${error.name}: ${error.message}`)
       : String(error);
-  return text.slice(0, MAX_DETAIL_LENGTH);
+  return text.slice(0, RENDERER_LOG_LIMITS.detail);
 }
 
 function catchUncaughtErrors(report: ErrorReport): () => void {
@@ -49,7 +47,11 @@ function catchUncaughtErrors(report: ErrorReport): () => void {
  */
 export function startOutput({root, api, screenId}: OutputContext): () => void {
   const report: ErrorReport = (message, error) => {
-    api.log.write({level: 'error', message, detail: describeError(error)});
+    api.log.write({
+      level: 'error',
+      message: message.slice(0, RENDERER_LOG_LIMITS.message),
+      detail: describeError(error),
+    });
   };
   const stopCatching = catchUncaughtErrors(report);
   const renderer = new OutputRenderer(root, {
