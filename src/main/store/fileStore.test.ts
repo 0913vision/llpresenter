@@ -1,10 +1,12 @@
 import {rm, symlink} from 'node:fs/promises';
 import {join} from 'node:path';
-import {describe, expect, it, onTestFinished} from 'vitest';
+import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {makeTempDir} from '../../../test/temp-dir';
 import {defaultPreferences} from '@shared/schema/preferences';
+import type {Logger} from '../log';
+import {openAppConfig} from './appConfigFile';
 import {DEFAULT_LABELS} from './defaults';
-import {loadStore, type LoadedStore, type StoreContext} from './fileStore';
+import {loadStore, type LoadedStore} from './fileStore';
 import {DATA_FOLDER_NAME} from './locations';
 import {
   EVENING_ID,
@@ -16,7 +18,13 @@ import {
   writeJson,
 } from './testFiles';
 
-async function developmentContext(): Promise<StoreContext> {
+interface TestFolders {
+  readonly appDataFolder: string;
+  readonly developmentFolder: string;
+  readonly documents: string;
+}
+
+async function developmentContext(): Promise<TestFolders> {
   const folder = await makeTempDir();
   return {
     appDataFolder: folder,
@@ -25,15 +33,32 @@ async function developmentContext(): Promise<StoreContext> {
   };
 }
 
-async function loadedStore(context: StoreContext): Promise<LoadedStore> {
-  const loaded = await loadStore(context);
+function quietLog(): Logger {
+  return {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    flush: () => Promise.resolve(),
+  };
+}
+
+async function load({appDataFolder, ...context}: TestFolders) {
+  const appConfig = await openAppConfig({
+    file: join(appDataFolder, 'app.json'),
+    log: quietLog(),
+  });
+  return loadStore({...context, appConfig});
+}
+
+async function loadedStore(context: TestFolders): Promise<LoadedStore> {
+  const loaded = await load(context);
   if (!loaded.ok) {
     throw new Error(loaded.error.message);
   }
   return loaded.value;
 }
 
-function dataRoot(context: StoreContext): string {
+function dataRoot(context: TestFolders): string {
   return join(context.appDataFolder, DATA_FOLDER_NAME);
 }
 
@@ -49,7 +74,6 @@ describe('loadStore', () => {
     expect(store.labels).toEqual(DEFAULT_LABELS);
     expect(store.preferences).toEqual(defaultPreferences);
     expect(store.openServiceId).toBeNull();
-    expect(store.appConfigBroken).toBe(false);
     expect(store.problems).toEqual([]);
   });
 
@@ -123,7 +147,7 @@ describe('loadStore', () => {
     await symlink(outside, link, 'junction');
     onTestFinished(() => rm(link, {force: true}));
 
-    const loaded = await loadStore(context);
+    const loaded = await load(context);
 
     expect(loaded).toMatchObject({ok: false, error: {field: 'dataRoot'}});
   });
@@ -142,7 +166,7 @@ describe('loadStore', () => {
     ]);
   });
 
-  it('keeps the folders of a broken app.json and marks it broken', async () => {
+  it('keeps the folders of a broken app.json and reports nothing more', async () => {
     const context = await developmentContext();
     const songs = join(context.appDataFolder, 'elsewhere', '곡');
     await writeJson(join(context.appDataFolder, 'app.json'), {
@@ -155,10 +179,7 @@ describe('loadStore', () => {
     const store = await loadedStore(context);
 
     expect(store.locations.songs).toBe(songs);
-    expect(store.appConfigBroken).toBe(true);
-    expect(store.problems).toEqual([
-      expect.objectContaining({kind: 'invalid', field: 'layout.normal.left'}),
-    ]);
+    expect(store.problems).toEqual([]);
   });
 
   it('ignores an app.json folder outside LLP_USER_DATA and reports it', async () => {

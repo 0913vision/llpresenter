@@ -1,0 +1,190 @@
+import {mkdir, readFile, writeFile} from 'node:fs/promises';
+import {join} from 'node:path';
+import * as v from 'valibot';
+import {describe, expect, it, vi} from 'vitest';
+import {serviceIdSchema} from '@shared/schema/ids';
+import {makeTempDir} from '../../../test/temp-dir';
+import type {Logger} from '../log';
+import {openAppConfig} from './appConfigFile';
+import type {WriteResult} from './fileWriter';
+import {SUNDAY_ID, writeJson} from './testFiles';
+
+const SUNDAY = v.parse(serviceIdSchema, SUNDAY_ID);
+
+const BROKEN =
+  'app.json is broken, so the app keeps it as it is and never writes over it';
+const NEWER =
+  'app.json comes from a newer app version, so the app never writes over it';
+
+function fakeLog() {
+  return {
+    info: vi.fn<Logger['info']>(),
+    warn: vi.fn<Logger['warn']>(),
+    error: vi.fn<Logger['error']>(),
+    flush: () => Promise.resolve(),
+  } satisfies Logger;
+}
+
+async function appJson(): Promise<string> {
+  return join(await makeTempDir(), 'app.json');
+}
+
+async function readJson(file: string): Promise<unknown> {
+  return JSON.parse(await readFile(file, 'utf8'));
+}
+
+describe('openAppConfig with a broken app.json (qa C19)', () => {
+  it.each([
+    ['(a) text that is not JSON', 'not json', ''],
+    ['(b) an empty file', '', ''],
+    ['(c) a JSON array', '[]', ''],
+    [
+      '(d) a wrong format',
+      JSON.stringify({format: 'llsong', schemaVersion: 1}),
+      'format',
+    ],
+    [
+      '(e) a left width that is text',
+      JSON.stringify({
+        format: 'llapp',
+        schemaVersion: 1,
+        layout: {normal: {left: 'wide'}},
+      }),
+      'layout.normal.left',
+    ],
+  ])(
+    'logs one warning with the file and the field for %s, and keeps it',
+    async (_name, text, field) => {
+      const file = await appJson();
+      await writeFile(file, text);
+      const log = fakeLog();
+
+      const appConfig = await openAppConfig({file, log});
+      appConfig.change({mediaStrip: true});
+      await appConfig.flush();
+
+      expect(log.warn.mock.calls).toEqual([
+        [BROKEN, expect.objectContaining({file, field})],
+      ]);
+      expect(log.error).not.toHaveBeenCalled();
+      expect(appConfig.isBroken).toBe(true);
+      expect(appConfig.read()).toEqual({mediaStrip: true});
+      expect(await readFile(file, 'utf8')).toBe(text);
+    },
+  );
+
+  it('still uses the location fields of a broken file', async () => {
+    const file = await appJson();
+    const songs = join(file, '..', '곡');
+    await writeJson(file, {
+      format: 'llapp',
+      schemaVersion: 1,
+      songsPath: songs,
+      layout: {normal: {left: 'wide'}},
+    });
+
+    const appConfig = await openAppConfig({file, log: fakeLog()});
+
+    expect(appConfig.locationFields).toEqual({songsPath: songs});
+    expect(appConfig.read()).toEqual({});
+  });
+
+  it('logs one warning for a file it cannot read, and never writes it', async () => {
+    const file = await appJson();
+    await mkdir(file);
+    const log = fakeLog();
+
+    const appConfig = await openAppConfig({file, log});
+    appConfig.change({mediaStrip: true});
+    await appConfig.flush();
+
+    expect(log.warn.mock.calls).toEqual([
+      [BROKEN, expect.objectContaining({file, kind: 'read'})],
+    ]);
+    expect(log.error).not.toHaveBeenCalled();
+  });
+});
+
+describe('openAppConfig', () => {
+  it('shows a file from a newer version and never writes it (qa C19 g)', async () => {
+    const file = await appJson();
+    const newer = {
+      format: 'llapp',
+      schemaVersion: 99,
+      layout: {normal: {left: 280}},
+    };
+    await writeJson(file, newer);
+    const log = fakeLog();
+
+    const appConfig = await openAppConfig({file, log});
+    appConfig.change({layout: {normal: {left: 300}}});
+    await appConfig.flush();
+
+    expect(log.warn.mock.calls).toEqual([[NEWER, {file}]]);
+    expect(appConfig.read()).toEqual({layout: {normal: {left: 300}}});
+    expect(await readJson(file)).toEqual(newer);
+  });
+
+  it('starts empty without a file, and the first change creates it (qa C20)', async () => {
+    const file = join(await makeTempDir(), 'not-yet', 'app.json');
+    const log = fakeLog();
+
+    const appConfig = await openAppConfig({file, log});
+    expect(appConfig.read()).toEqual({});
+    appConfig.change({layout: {normal: {left: 280}}});
+    await appConfig.flush();
+
+    expect(log.warn).not.toHaveBeenCalled();
+    expect(await readJson(file)).toEqual({
+      format: 'llapp',
+      schemaVersion: 1,
+      layout: {normal: {left: 280}},
+    });
+  });
+
+  it('keeps a UI change and a last service change made in a row, and unknown fields', async () => {
+    const file = await appJson();
+    await writeJson(file, {
+      format: 'llapp',
+      schemaVersion: 1,
+      dataRoot: '',
+      theme: 'dark',
+      layout: {normal: {left: 280, extra: 1}},
+    });
+
+    const appConfig = await openAppConfig({file, log: fakeLog()});
+    appConfig.change({mediaStrip: true});
+    appConfig.setLastServiceId(SUNDAY);
+    await appConfig.flush();
+
+    expect(await readJson(file)).toEqual({
+      format: 'llapp',
+      schemaVersion: 1,
+      dataRoot: '',
+      theme: 'dark',
+      layout: {normal: {left: 280, extra: 1}},
+      mediaStrip: true,
+      lastServiceId: SUNDAY_ID,
+    });
+    expect(appConfig.lastServiceId).toBe(SUNDAY_ID);
+  });
+
+  it('saves a burst of changes once, with the last value', async () => {
+    const file = await appJson();
+    const writeText = vi.fn(
+      async (target: string, text: string): Promise<WriteResult> => {
+        await writeFile(target, text);
+        return {ok: true, value: undefined};
+      },
+    );
+
+    const appConfig = await openAppConfig({file, log: fakeLog(), writeText});
+    for (const left of [200, 240, 280]) {
+      appConfig.change({layout: {normal: {left}}});
+    }
+    await appConfig.flush();
+
+    expect(writeText).toHaveBeenCalledTimes(1);
+    expect(await readJson(file)).toMatchObject({layout: {normal: {left: 280}}});
+  });
+});

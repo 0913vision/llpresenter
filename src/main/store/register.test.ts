@@ -12,9 +12,13 @@ import {
 import {Channels} from '@shared/ipc';
 import {makeTempDir} from '../../../test/temp-dir';
 import type {Logger} from '../log';
-import type {StoreContext} from './fileStore';
+import {openAppConfig} from './appConfigFile';
 import {DATA_FOLDER_NAME} from './locations';
-import {electronStoreContext, registerStore} from './register';
+import {
+  electronLocationContext,
+  registerStore,
+  type DataStore,
+} from './register';
 import {
   HYMN_ONE_ID,
   hymnOne,
@@ -54,7 +58,13 @@ function fakeLog() {
   } satisfies Logger;
 }
 
-async function developmentContext(): Promise<StoreContext> {
+interface TestFolders {
+  readonly appDataFolder: string;
+  readonly developmentFolder: string;
+  readonly documents: string;
+}
+
+async function developmentContext(): Promise<TestFolders> {
   const folder = await makeTempDir();
   return {
     appDataFolder: folder,
@@ -65,14 +75,23 @@ async function developmentContext(): Promise<StoreContext> {
 
 const disposers: Array<() => Promise<void>> = [];
 
-function register(
+async function register(
   log: Logger,
-  context: () => StoreContext,
+  {appDataFolder, developmentFolder, documents}: TestFolders,
   isAnyOutputOn: () => boolean = () => false,
-): () => Promise<void> {
-  const {dispose} = registerStore({log, isAnyOutputOn, context});
-  disposers.push(dispose);
-  return dispose;
+): Promise<DataStore> {
+  const appConfig = await openAppConfig({
+    file: join(appDataFolder, 'app.json'),
+    log,
+  });
+  const store = registerStore({
+    log,
+    isAnyOutputOn,
+    appConfig,
+    context: () => ({developmentFolder, documents}),
+  });
+  disposers.push(store.dispose);
+  return store;
 }
 
 function askForService(): Promise<unknown> {
@@ -100,7 +119,7 @@ describe('registerStore', () => {
         {id: itemId(1), song: HYMN_ONE_ID},
       ]),
     );
-    const dispose = register(fakeLog(), () => context);
+    const {dispose} = await register(fakeLog(), context);
 
     expect(await askForService()).toMatchObject({
       revision: 1,
@@ -114,7 +133,7 @@ describe('registerStore', () => {
   it('answers null when there is no 예배 순서', async () => {
     const context = await developmentContext();
     const log = fakeLog();
-    register(log, () => context);
+    await register(log, context);
 
     expect(await askForService()).toBeNull();
     expect(log.info).toHaveBeenCalledWith(
@@ -124,7 +143,7 @@ describe('registerStore', () => {
     expect(log.warn).not.toHaveBeenCalled();
   });
 
-  it('warns once about a broken app.json and logs each problem', async () => {
+  it('warns once about a broken app.json, naming the file and the field', async () => {
     const context = await developmentContext();
     await writeJson(join(context.appDataFolder, 'app.json'), {
       format: 'llapp',
@@ -132,15 +151,17 @@ describe('registerStore', () => {
       layout: {normal: {left: 'wide'}},
     });
     const log = fakeLog();
-    register(log, () => context);
+    await register(log, context);
 
     await askForService();
 
     expect(log.warn.mock.calls).toEqual([
-      ['app.json is broken, so the app never writes over it'],
       [
-        'skipped a data file or a part of one',
-        expect.objectContaining({field: 'layout.normal.left'}),
+        'app.json is broken, so the app keeps it as it is and never writes over it',
+        expect.objectContaining({
+          file: join(context.appDataFolder, 'app.json'),
+          field: 'layout.normal.left',
+        }),
       ],
     ]);
   });
@@ -154,7 +175,7 @@ describe('registerStore', () => {
       ),
     );
     const log = fakeLog();
-    register(log, () => context);
+    await register(log, context);
 
     await askForService();
 
@@ -171,7 +192,7 @@ describe('registerStore', () => {
     await symlink(outside, link, 'junction');
     onTestFinished(() => rm(link, {force: true}));
     const log = fakeLog();
-    register(log, () => context);
+    await register(log, context);
 
     expect(await askForService()).toBeNull();
     expect(log.error).toHaveBeenCalledWith(
@@ -184,7 +205,7 @@ describe('registerStore', () => {
   it('backs up once the data is read, and dispose waits for the backup', async () => {
     const context = await developmentContext();
     const log = fakeLog();
-    const dispose = register(log, () => context);
+    const {dispose} = await register(log, context);
 
     await askForService();
     await dispose();
@@ -211,12 +232,7 @@ describe('registerStore', () => {
       playlists: [],
       audioPlaylists: [],
     });
-    const store = registerStore({
-      log: fakeLog(),
-      isAnyOutputOn: () => true,
-      context: () => context,
-    });
-    disposers.push(store.dispose);
+    const store = await register(fakeLog(), context, () => true);
 
     expect(await store.findMediaFile(mediaId)).toBe(
       join(root, '미디어', '빛.mp4'),
@@ -235,7 +251,7 @@ describe('registerStore', () => {
     await writeJson(leftover, 'half written');
     const twoMinutesAgo = (Date.now() - 120_000) / 1000;
     await utimes(leftover, twoMinutesAgo, twoMinutesAgo);
-    const dispose = register(fakeLog(), () => context);
+    const {dispose} = await register(fakeLog(), context);
 
     await dispose();
 
@@ -253,11 +269,7 @@ describe('registerStore', () => {
   it('skips the launch backup while an output is on', async () => {
     const context = await developmentContext();
     const log = fakeLog();
-    const dispose = register(
-      log,
-      () => context,
-      () => true,
-    );
+    const {dispose} = await register(log, context, () => true);
 
     await dispose();
 
@@ -268,9 +280,19 @@ describe('registerStore', () => {
 
   it('logs a failure to find the data and answers null', async () => {
     const log = fakeLog();
-    register(log, () => {
-      throw new Error('no documents folder');
+    const appConfig = await openAppConfig({
+      file: join(await makeTempDir(), 'app.json'),
+      log,
     });
+    const store = registerStore({
+      log,
+      isAnyOutputOn: () => false,
+      appConfig,
+      context: () => {
+        throw new Error('no documents folder');
+      },
+    });
+    disposers.push(store.dispose);
 
     expect(await askForService()).toBeNull();
     expect(log.error).toHaveBeenCalledWith(
@@ -280,14 +302,13 @@ describe('registerStore', () => {
   });
 });
 
-describe('electronStoreContext', () => {
+describe('electronLocationContext', () => {
   it('uses the folders Electron gives and LLP_USER_DATA', () => {
     electron.paths.set('userData', join('D:', 'llp-dev', 'data'));
     electron.paths.set('documents', join('C:', 'Users', 'me', 'Documents'));
     vi.stubEnv('LLP_USER_DATA', join('D:', 'llp-dev', 'data'));
 
-    expect(electronStoreContext()).toEqual({
-      appDataFolder: join('D:', 'llp-dev', 'data'),
+    expect(electronLocationContext()).toEqual({
       documents: join('C:', 'Users', 'me', 'Documents'),
       developmentFolder: join('D:', 'llp-dev', 'data'),
     });
@@ -295,9 +316,9 @@ describe('electronStoreContext', () => {
 
   it('has no development folder when LLP_USER_DATA is unset or empty', () => {
     vi.stubEnv('LLP_USER_DATA', undefined);
-    expect(electronStoreContext().developmentFolder).toBeNull();
+    expect(electronLocationContext().developmentFolder).toBeNull();
 
     vi.stubEnv('LLP_USER_DATA', '');
-    expect(electronStoreContext().developmentFolder).toBeNull();
+    expect(electronLocationContext().developmentFolder).toBeNull();
   });
 });

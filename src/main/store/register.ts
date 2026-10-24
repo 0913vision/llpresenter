@@ -3,8 +3,13 @@ import {Channels} from '@shared/ipc';
 import type {ShowService} from '@shared/schema/showService';
 import type {Logger} from '../log';
 import {Backups, type BackupOutcome} from './backup';
-import {loadStore, type LoadedStore, type StoreContext} from './fileStore';
-import {dataFileFolders} from './locations';
+import {
+  loadStore,
+  type AppConfigView,
+  type LoadedStore,
+  type StoreContext,
+} from './fileStore';
+import {dataFileFolders, type LocationContext} from './locations';
 import {LoadingMediaLibrary} from './mediaLibrary';
 import {buildShowService} from './showService';
 import {removeStaleTempFiles} from './staleTempFiles';
@@ -16,8 +21,10 @@ export interface StoreRegistration {
   readonly log: Logger;
   /** Whether any output is on. A backup never starts while one is. */
   readonly isAnyOutputOn: () => boolean;
-  /** Where the data is. Electron's folders by default. */
-  readonly context?: () => StoreContext;
+  /** `app.json`, opened once at launch with `openAppConfig`. */
+  readonly appConfig: AppConfigView;
+  /** Where the data folders default to. Electron's folders by default. */
+  readonly context?: () => LocationContext;
 }
 
 /** What the main process wiring uses of the data store. */
@@ -46,9 +53,10 @@ export interface DataStore {
 export function registerStore({
   log,
   isAnyOutputOn,
-  context = electronStoreContext,
+  appConfig,
+  context = electronLocationContext,
 }: StoreRegistration): DataStore {
-  const loading = readStore(context, log);
+  const loading = readStore(() => ({...context(), appConfig}), log);
   const opening = openShowService(loading, log);
   ipcMain.handle(Channels.serviceGet, () => opening);
   // TODO(0913vision): Push `service:changed` with the next revision when the
@@ -65,11 +73,10 @@ export function registerStore({
   };
 }
 
-/** The app data folder, Documents, and the `LLP_USER_DATA` folder if set. */
-export function electronStoreContext(): StoreContext {
+/** Documents, and the `LLP_USER_DATA` folder if set. */
+export function electronLocationContext(): LocationContext {
   const developmentFolder = process.env['LLP_USER_DATA'] ?? '';
   return {
-    appDataFolder: app.getPath('userData'),
     documents: app.getPath('documents'),
     developmentFolder: developmentFolder === '' ? null : developmentFolder,
   };
@@ -173,9 +180,6 @@ function logLoadedStore(store: LoadedStore, log: Logger): void {
     services: store.services.size,
     openServiceId: store.openServiceId,
   });
-  if (store.appConfigBroken) {
-    log.warn('app.json is broken, so the app never writes over it');
-  }
   for (const problem of store.problems.slice(0, MAX_LOGGED_PROBLEMS)) {
     log.warn('skipped a data file or a part of one', problem);
   }

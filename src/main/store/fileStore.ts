@@ -1,4 +1,3 @@
-import {join} from 'node:path';
 import type {Result} from '@shared/result';
 import type {FileError, LoadedFile} from '@shared/schema/fileFormat';
 import {parseLabels, type Label} from '@shared/schema/labels';
@@ -11,6 +10,7 @@ import {
 } from '@shared/schema/preferences';
 import {parseService, type Service} from '@shared/schema/service';
 import {parseSong, type Song} from '@shared/schema/song';
+import type {AppConfigFile} from './appConfigFile';
 import {DEFAULT_LABELS, EMPTY_MEDIA_LIST} from './defaults';
 import {loadFolder} from './library';
 import {
@@ -20,16 +20,12 @@ import {
 } from './mediaLibrary';
 import {
   confineLocations,
-  readLocationFields,
   resolveLocations,
   type DataLocations,
   type LocationContext,
-  type LocationFieldsRead,
 } from './locations';
-import {readTextFile} from './readFiles';
 import {readSettingsFile, settingsLocation} from './settingsFile';
 
-const APP_CONFIG_FILE = 'app.json';
 const LABELS_AREA = 'labels';
 const PREFERENCES_AREA = 'preferences';
 const MEDIA_AREA = 'media';
@@ -38,9 +34,14 @@ const SERVICE_EXTENSION = '.llservice';
 const IGNORED_FOLDER_MESSAGE =
   'Ignored: the folder is not absolute, or it is outside LLP_USER_DATA';
 
+/** What the data store reads of `app.json`, which it opened once at launch. */
+export type AppConfigView = Pick<
+  AppConfigFile,
+  'file' | 'locationFields' | 'lastServiceId'
+>;
+
 export interface StoreContext extends LocationContext {
-  /** The app data folder, which holds `app.json`. */
-  readonly appDataFolder: string;
+  readonly appConfig: AppConfigView;
 }
 
 /** Everything the app read at launch, and what it couldn't read. */
@@ -65,11 +66,6 @@ export interface LoadedStore {
    * one with the latest date, or `null` when there is none.
    */
   readonly openServiceId: string | null;
-  /**
-   * `app.json` couldn't be read or failed validation. The app warns once and
-   * never writes over it.
-   */
-  readonly appConfigBroken: boolean;
   /** Files that were skipped, or parts of files that were dropped. */
   readonly problems: readonly FileError[];
 }
@@ -99,9 +95,11 @@ type DataRead = Pick<
 export async function loadStore(
   context: StoreContext,
 ): Promise<Result<LoadedStore, FileError>> {
-  const appConfigFile = join(context.appDataFolder, APP_CONFIG_FILE);
-  const appConfig = await readAppConfig(appConfigFile);
-  const {locations, ignored} = resolveLocations(appConfig.fields, context);
+  const {appConfig} = context;
+  const {locations, ignored} = resolveLocations(
+    appConfig.locationFields,
+    context,
+  );
   const confined = await confineLocations(locations, context.developmentFolder);
   if (!confined.ok) {
     return confined;
@@ -113,14 +111,9 @@ export async function loadStore(
       ...data,
       locations,
       developmentFolder: context.developmentFolder,
-      openServiceId: chooseOpenService(
-        data.services,
-        appConfig.config?.lastServiceId,
-      ),
-      appConfigBroken: appConfig.problem !== null,
+      openServiceId: chooseOpenService(data.services, appConfig.lastServiceId),
       problems: [
-        ...(appConfig.problem === null ? [] : [appConfig.problem]),
-        ...ignored.map(field => ignoredProblem(appConfigFile, field)),
+        ...ignored.map(field => ignoredProblem(appConfig.file, field)),
         ...data.problems,
       ],
     },
@@ -145,16 +138,6 @@ export function chooseOpenService(
     }
   }
   return newest?.id ?? null;
-}
-
-async function readAppConfig(file: string): Promise<LocationFieldsRead> {
-  const text = await readTextFile(file);
-  if (text.ok) {
-    return text.value === null
-      ? {fields: {}, config: null, problem: null}
-      : readLocationFields(text.value, file);
-  }
-  return {fields: {}, config: null, problem: text.error};
 }
 
 async function readData(
