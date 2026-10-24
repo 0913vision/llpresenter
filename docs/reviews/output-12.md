@@ -104,19 +104,15 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (6594ab3, codex4): Request changes with two findings: a loop change
+  before the incoming video played reached the outgoing one, and the outgoing
+  preview video kept its native loop during a handover.
+- Round 2 (baa00e0): reviewer (Codex, codex4) Approve with no findings. Lead
+  Approve; a preview loops its background natively on the one video that shows
+  the current background, which spares decoders, and the output keeps its own
+  handover. Rebased by the lead onto local `main` without conflicts.
 
 ## Team member's reply
 
