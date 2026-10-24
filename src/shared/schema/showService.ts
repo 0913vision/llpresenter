@@ -9,12 +9,16 @@ import {
   type PayloadError,
 } from './payload';
 
-/** Why a row of the 예배 순서 shows a warning icon. */
+/**
+ * Why a row of the 예배 순서 shows a warning icon. `newer-version`: the song
+ * file comes from a newer app version, so it opens read-only.
+ */
 export const showRowProblems = [
   'missing-song',
   'missing-background',
   'missing-media',
   'unknown-kind',
+  'newer-version',
 ] as const;
 
 const id = v.pipe(v.string(), v.nonEmpty());
@@ -42,6 +46,7 @@ const showServiceSchema = payloadObject({
   revision: v.pipe(v.number(), v.integer(), v.minValue(0)),
   id,
   name: v.string(),
+  readOnly: v.boolean(),
   rows: v.array(showRowSchema),
   tiles: v.pipe(plainObject, v.record(v.string(), v.array(showTileSchema))),
   jumpKeys: v.pipe(plainObject, v.record(v.string(), v.string())),
@@ -50,7 +55,9 @@ const showServiceSchema = payloadObject({
 /**
  * The open 예배 순서 as 진행 shows it. The main process resolves every item,
  * so the renderer never reads song files. `revision` grows on every change,
- * and a window drops one older than what it has.
+ * and a window drops one older than what it has. `readOnly`: the 예배 순서
+ * file comes from a newer app version, so it can't be edited, and 진행 shows
+ * a warning.
  */
 export type ShowService = ReadonlyKnown<
   v.InferOutput<typeof showServiceSchema>

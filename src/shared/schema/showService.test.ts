@@ -6,11 +6,13 @@ function showService() {
     revision: 2,
     id: 'service-1',
     name: '주일 예배',
+    readOnly: false,
     rows: [
       {kind: 'header', id: 'item-1', title: '찬양'},
       {kind: 'song', id: 'item-2', title: '만복의 근원 하나님'},
       {kind: 'song', id: 'item-3', title: '', problem: 'missing-song'},
       {kind: 'unknown', id: 'item-4', title: '', problem: 'unknown-kind'},
+      {kind: 'song', id: 'item-5', title: '새 버전', problem: 'newer-version'},
     ],
     tiles: {
       'item-2': [
@@ -59,6 +61,7 @@ describe('parseShowService', () => {
     ],
     ['tiles that are an array', {tiles: []}, 'tiles'],
     ['a negative revision', {revision: -1}, 'revision'],
+    ['a read-only flag that is text', {readOnly: 'yes'}, 'readOnly'],
   ])('checks %s', (_name, change, field) => {
     const result = parseShowService({...showService(), ...change});
 

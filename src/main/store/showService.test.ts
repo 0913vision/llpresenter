@@ -1,4 +1,6 @@
 import {describe, expect, it} from 'vitest';
+import type {Result} from '@shared/result';
+import type {FileError, LoadedFile} from '@shared/schema/fileFormat';
 import type {Label} from '@shared/schema/labels';
 import {parseService, type Service} from '@shared/schema/service';
 import {parseSong, type Song} from '@shared/schema/song';
@@ -10,23 +12,26 @@ const MISSING_SONG_ID = '0f0f0f0f-0f0f-4f0f-8f0f-0f0f0f0f0f0f';
 const MEDIA_ID = '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293';
 const NOTICE_ID = '5c2e9a10-1b2c-4d3e-9f40-5a6b7c8d9e0f';
 
-function parsedSong(json: unknown): Song {
-  const parsed = parseSong(JSON.stringify(json), 'song.llsong');
+function loaded<T>(parsed: Result<LoadedFile<T>, FileError>): LoadedFile<T> {
   if (!parsed.ok) {
     throw new Error(parsed.error.message);
   }
-  return parsed.value.data;
+  return parsed.value;
 }
 
-function parsedService(order: readonly object[]): Service {
-  const parsed = parseService(
-    JSON.stringify(service(SUNDAY_ID, '2026-11-01T11:00', order)),
-    'service.llservice',
-  );
-  if (!parsed.ok) {
-    throw new Error(parsed.error.message);
-  }
-  return parsed.value.data;
+function loadedSong(json: object): LoadedFile<Song> {
+  return loaded(parseSong(JSON.stringify(json), 'song.llsong'));
+}
+
+function loadedService(
+  order: readonly object[],
+  schemaVersion = 1,
+): LoadedFile<Service> {
+  const json = {
+    ...service(SUNDAY_ID, '2026-11-01T11:00', order),
+    schemaVersion,
+  };
+  return loaded(parseService(JSON.stringify(json), 'service.llservice'));
 }
 
 function build(
@@ -34,8 +39,8 @@ function build(
   labels: readonly Label[] = DEFAULT_LABELS,
 ) {
   return buildShowService({
-    service: parsedService(order),
-    songs: new Map([[HYMN_ONE_ID, parsedSong(hymnOne())]]),
+    service: loadedService(order),
+    songs: new Map([[HYMN_ONE_ID, loadedSong(hymnOne())]]),
     labels,
     revision: 3,
   });
@@ -64,7 +69,12 @@ describe('buildShowService', () => {
       {id: itemId(8), song: MISSING_SONG_ID},
     ]);
 
-    expect(show).toMatchObject({revision: 3, id: SUNDAY_ID, name: '주일 예배'});
+    expect(show).toMatchObject({
+      revision: 3,
+      id: SUNDAY_ID,
+      name: '주일 예배',
+      readOnly: false,
+    });
     expect(show.rows).toEqual([
       {kind: 'header', id: itemId(1), title: '찬양'},
       {kind: 'song', id: itemId(2), title: '만복의 근원 하나님'},
@@ -76,6 +86,28 @@ describe('buildShowService', () => {
       {kind: 'song', id: itemId(8), title: '', problem: 'missing-song'},
     ]);
     expect(Object.keys(show.tiles)).toEqual([itemId(2)]);
+  });
+
+  it('shows files from a newer app version as read-only', () => {
+    const show = buildShowService({
+      service: loadedService([{id: itemId(1), song: HYMN_ONE_ID}], 99),
+      songs: new Map([
+        [HYMN_ONE_ID, loadedSong({...hymnOne(), schemaVersion: 99})],
+      ]),
+      labels: DEFAULT_LABELS,
+      revision: 1,
+    });
+
+    expect(show.readOnly).toBe(true);
+    expect(show.rows).toEqual([
+      {
+        kind: 'song',
+        id: itemId(1),
+        title: '만복의 근원 하나님',
+        problem: 'newer-version',
+      },
+    ]);
+    expect(show.tiles[itemId(1)]).toHaveLength(3);
   });
 
   it('gives a song the tiles of its default order with 이름표 colors', () => {
