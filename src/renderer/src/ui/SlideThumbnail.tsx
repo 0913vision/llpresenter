@@ -1,53 +1,31 @@
-import {
-  memo,
-  useEffect,
-  useRef,
-  type CSSProperties,
-  type FocusEvent,
-  type JSX,
-  type KeyboardEvent,
-  type MouseEvent,
-  type ReactNode,
-} from 'react';
+import {memo, type CSSProperties, type JSX, type ReactNode} from 'react';
 import {NO_LABEL_COLOR, type LabelColor} from '@shared/colors';
 import {classNames} from './classNames';
-import {clickFocusProps} from './clickFocus';
 import {Icon} from './Icon';
 import {labelInk} from './labelInk';
+import {
+  gridMoves,
+  rowMoves,
+  TileList,
+  type TileMoves,
+  type TileSpaceKey,
+} from './TileList';
 import {titleTooltip, useTooltip} from './Tooltip';
 import hatching from './hatching.module.css';
 import type {Workspace} from './workspace';
 import styles from './SlideThumbnail.module.css';
 
 const MISSING_ICON_SIZE = 24;
-const THUMBNAIL = '[role="option"]';
-const SPACE = ' ';
 
-type GridMoves = Readonly<Record<string, (columns: number) => number>>;
-
-const rowMoves: GridMoves = {
-  ArrowUp: columns => -columns,
-  ArrowDown: columns => columns,
-};
-
-const workspaceMoves: Readonly<Record<Workspace, GridMoves>> = {
+const workspaceMoves: Readonly<Record<Workspace, TileMoves>> = {
   show: rowMoves,
-  prep: {...rowMoves, ArrowLeft: () => -1, ArrowRight: () => 1},
+  prep: gridMoves,
 };
 
-function hasModifier(event: KeyboardEvent): boolean {
-  return event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
-}
-
-function thumbnailsOf(grid: HTMLElement): HTMLElement[] {
-  return [...grid.querySelectorAll<HTMLElement>(THUMBNAIL)];
-}
-
-function indexOfTarget(grid: HTMLElement, target: EventTarget): number {
-  const thumbnail =
-    target instanceof Element ? target.closest(THUMBNAIL) : null;
-  return thumbnailsOf(grid).findIndex(element => element === thumbnail);
-}
+const workspaceSpaceKey: Readonly<Record<Workspace, TileSpaceKey>> = {
+  show: 'pass',
+  prep: 'press',
+};
 
 /** The props that both workspaces' 장 grids take. */
 export interface ThumbnailGridBaseProps {
@@ -84,19 +62,6 @@ export type ThumbnailGridProps =
 
 type GridStyle = CSSProperties & Readonly<Record<'--thumb-columns', number>>;
 
-function useFocusFollowsSelection(selected: number | undefined) {
-  const gridRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const grid = gridRef.current;
-    if (selected === undefined || !grid?.contains(document.activeElement)) {
-      return;
-    }
-    const thumbnail = thumbnailsOf(grid)[selected];
-    if (thumbnail !== document.activeElement) thumbnail?.focus();
-  }, [selected]);
-  return gridRef;
-}
-
 /**
  * The 장 grid (`ll-thumb-grid`): a listbox of `SlideThumbnail` items that Tab
  * enters once. The arrow keys move the selection; a click or Enter outputs a
@@ -104,64 +69,23 @@ function useFocusFollowsSelection(selected: number | undefined) {
  * selection, also when 다음 장 moves it.
  */
 export function ThumbnailGrid(props: ThumbnailGridProps): JSX.Element {
-  const {label, columns, selected, onSelect, className, children} = props;
-  const moves = workspaceMoves[props.workspace];
-  const gridRef = useFocusFollowsSelection(selected);
-
-  const activate = (index: number): void => {
-    if (props.workspace === 'show') {
-      props.onOutput(index);
-    } else {
-      onSelect(index);
-    }
-  };
-  const onClick = (event: MouseEvent<HTMLDivElement>): void => {
-    const index = indexOfTarget(event.currentTarget, event.target);
-    if (index >= 0) activate(index);
-  };
-  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
-    const move = moves[event.key];
-    if (move === undefined || hasModifier(event)) return;
-    event.preventDefault();
-    const grid = event.currentTarget;
-    const current = indexOfTarget(grid, event.target);
-    const target = current + move(columns);
-    if (current < 0 || target < 0 || target >= thumbnailsOf(grid).length) {
-      return;
-    }
-    onSelect(target);
-  };
-  const onKeyUp = (event: KeyboardEvent<HTMLDivElement>): void => {
-    // NOTE(0913vision): A button clicks on the Space key's keyup. In 진행 that
-    // Space belongs to 다음 장, so only the click is cancelled; the keydown
-    // still reaches the window handler.
-    if (props.workspace === 'show' && event.key === SPACE) {
-      event.preventDefault();
-    }
-  };
-  const onFocus = (event: FocusEvent<HTMLDivElement>): void => {
-    if (event.target === event.currentTarget) {
-      thumbnailsOf(event.currentTarget)[0]?.focus();
-    }
-  };
+  const {workspace, columns, onSelect} = props;
   const style: GridStyle = {'--thumb-columns': columns};
-
   return (
-    <div
-      {...clickFocusProps}
-      ref={gridRef}
-      role="listbox"
-      aria-label={label}
-      tabIndex={selected === undefined ? 0 : -1}
-      className={classNames(styles.grid, className)}
+    <TileList
+      label={props.label}
+      moves={workspaceMoves[workspace]}
+      columns={columns}
+      spaceKey={workspaceSpaceKey[workspace]}
+      takesClickFocus
+      selected={props.selected}
+      onSelect={onSelect}
+      onActivate={props.workspace === 'show' ? props.onOutput : onSelect}
+      className={classNames(styles.grid, props.className)}
       style={style}
-      onClick={onClick}
-      onKeyDown={onKeyDown}
-      onKeyUp={onKeyUp}
-      onFocus={onFocus}
     >
-      {children}
-    </div>
+      {props.children}
+    </TileList>
   );
 }
 
