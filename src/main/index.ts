@@ -4,6 +4,7 @@ import {LiveStore} from './live/store';
 import {createLogger, type Logger} from './log';
 import {registerIpc} from './ipc';
 import {startOutputs} from './outputs/start';
+import {flushLogBeforeQuit} from './quit';
 import {applyUserDataOverride, type UserDataProblem} from './userData';
 import {createControlWindow} from './windows/control';
 
@@ -50,6 +51,7 @@ function start(): void {
     log.error('child process gone', details),
   );
   app.on('window-all-closed', () => app.quit());
+  flushLogBeforeQuit(app, log);
 
   app
     .whenReady()
@@ -66,13 +68,7 @@ function start(): void {
         control = null;
         stopOutputs();
         disposeIpc();
-        log.flush().then(
-          () => app.quit(),
-          (error: unknown) => {
-            console.error('failed to flush the log before quitting', error);
-            app.quit();
-          },
-        );
+        app.quit();
       });
       quitAfterSmokeTest(win, log);
       log.info('started', {
