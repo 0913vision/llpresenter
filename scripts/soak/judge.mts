@@ -108,7 +108,7 @@ function windowBaselines(
   if (width <= 0) return null;
   const windows = Array.from({length: windowCount}, (): number[] => []);
   for (const {elapsedMs, privateKb} of points) {
-    if (elapsedMs < warmUpMs) continue;
+    if (elapsedMs < warmUpMs || elapsedMs > requiredMs) continue;
     const index = Math.floor((elapsedMs - warmUpMs) / width);
     windows[Math.min(index, windowCount - 1)]?.push(privateKb);
   }

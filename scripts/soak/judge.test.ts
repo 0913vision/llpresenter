@@ -95,6 +95,24 @@ describe('judgeRun', () => {
     expect(verdict.passed).toBe(false);
   });
 
+  it('does not fill an empty last window with samples after the required time', () => {
+    const samples = [
+      ...soakRun(() => BASE_KB, {minutes: 50}),
+      ...soakRun(() => BASE_KB, {fromMinute: 61, minutes: 62}),
+    ];
+    const verdict = judgeRun(samples);
+    expect(verdict.memory[0]?.trend).toBe('unjudged');
+    expect(verdict.passed).toBe(false);
+  });
+
+  it('does not let a drop after the required time hide growth', () => {
+    const samples = [
+      ...soakRun(m => BASE_KB + 1024 * m),
+      ...soakRun(() => BASE_KB, {fromMinute: 61, minutes: 62}),
+    ];
+    expect(judgeRun(samples).memory[0]?.trend).toBe('growing');
+  });
+
   it('fails a process that disappears halfway through', () => {
     const samples = soakRun(() => BASE_KB).map(sample =>
       sample.elapsedMs < 30 * MINUTE_MS
