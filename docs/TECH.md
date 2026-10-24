@@ -103,8 +103,13 @@ Each registry entry registers a type name, a data format (schema), a renderer
 - Every file carries a format version, and reading converts old versions to the
   new one (migration). Unknown fields aren't deleted; they're written back as
   they are.
-- If a file has a bad format, don't touch the original. Skip only that file,
-  keep running with the rest, and report it in a notification.
+- If a song or 예배 순서 file has a bad format, don't touch the original. Skip
+  only that file, keep running with the rest, and report it in a notification.
+- If an app-wide settings file is broken, run that area from its newest readable
+  recovery copy, or else the defaults, and report it. Copy the broken file aside
+  before the next write, so its content is kept (`docs/spec/02-data.md`). A
+  broken `app.json` is never overwritten; only its valid location fields are
+  used.
 - To keep search fast even with thousands of songs in the library, keep an index
   of titles, lyrics, and initial consonants in memory (phase 3 decides the
   method).
