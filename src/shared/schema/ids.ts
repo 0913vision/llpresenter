@@ -26,6 +26,11 @@ export const lyricStyleIdSchema = uuidId('LyricStyleId');
 export const stageLayoutIdSchema = uuidId('StageLayoutId');
 export const mediaPlaylistIdSchema = uuidId('MediaPlaylistId');
 export const audioPlaylistIdSchema = uuidId('AudioPlaylistId');
+export const macroIdSchema = uuidId('MacroId');
+export const propIdSchema = uuidId('PropId');
+export const timerIdSchema = uuidId('TimerId');
+export const messageTemplateIdSchema = uuidId('MessageTemplateId');
+export const quickItemIdSchema = uuidId('QuickItemId');
 
 /** Stage layout elements are named within their layout, so they aren't UUIDs. */
 export const stageElementIdSchema = v.pipe(
@@ -52,5 +57,10 @@ export type LyricStyleId = v.InferOutput<typeof lyricStyleIdSchema>;
 export type StageLayoutId = v.InferOutput<typeof stageLayoutIdSchema>;
 export type MediaPlaylistId = v.InferOutput<typeof mediaPlaylistIdSchema>;
 export type AudioPlaylistId = v.InferOutput<typeof audioPlaylistIdSchema>;
+export type MacroId = v.InferOutput<typeof macroIdSchema>;
+export type PropId = v.InferOutput<typeof propIdSchema>;
+export type TimerId = v.InferOutput<typeof timerIdSchema>;
+export type MessageTemplateId = v.InferOutput<typeof messageTemplateIdSchema>;
+export type QuickItemId = v.InferOutput<typeof quickItemIdSchema>;
 export type StageElementId = v.InferOutput<typeof stageElementIdSchema>;
 export type TranslationId = v.InferOutput<typeof translationIdSchema>;

@@ -20,10 +20,9 @@ import {
   jsonObject,
   jsonRecord,
   listWithUniqueIds,
-  percent,
   positiveInteger,
 } from './primitives';
-import {textStyleEntries} from './textStyle';
+import {lyricTextEntries} from './textStyle';
 
 const optionalLayer = v.exactOptional(v.boolean());
 
@@ -56,11 +55,7 @@ const lookSchema = jsonObject({
 const lyricStyleSchema = jsonObject({
   id: lyricStyleIdSchema,
   name: v.string(),
-  ...textStyleEntries,
-  maxLines: positiveInteger,
-  margin: percent,
-  shadow: v.boolean(),
-  outline: v.boolean(),
+  ...lyricTextEntries,
 });
 
 const looksSchema = jsonObject({

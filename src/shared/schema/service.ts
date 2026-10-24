@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import type {Result} from '../result';
 import {isRecord} from '../guards';
+import {biblePassageSchema} from './biblePassage';
 import {
   parseFile,
   serializeFile,
@@ -16,14 +17,12 @@ import {
   serviceItemIdSchema,
   songIdSchema,
   templateIdSchema,
-  translationIdSchema,
 } from './ids';
 import type {MigrationStep} from './migration';
 import {
   jsonObject,
   listWithUniqueIds,
   localDateTime,
-  nonBlankText,
   positiveInteger,
   timeOfDay,
 } from './primitives';
@@ -50,15 +49,6 @@ const startFields = {
   macro: v.exactOptional(v.string()),
   memo: v.exactOptional(v.string()),
 };
-
-const biblePassageSchema = jsonObject({
-  translation: translationIdSchema,
-  ref: nonBlankText,
-  split: v.picklist(['verse', 'two', 'fit']),
-  reference: v.picklist(['every', 'first', 'none']),
-  verseNumbers: v.boolean(),
-  translationName: v.boolean(),
-});
 
 const itemSchemas = {
   header: jsonObject({...itemFields, header: v.string()}),
@@ -142,10 +132,6 @@ export type Template = ReadonlyKnown<v.InferOutput<typeof templateSchema>>;
  * apart.
  */
 export type ServiceItem = Service['order'][number];
-
-export type BiblePassage = ReadonlyKnown<
-  v.InferOutput<typeof biblePassageSchema>
->;
 
 export function parseService(
   text: string,
