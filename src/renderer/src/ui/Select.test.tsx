@@ -110,7 +110,8 @@ describe('Select', () => {
         onExpandedChange={() => {}}
       />,
     );
-    const tile = screen.getByRole('button').querySelector('[data-color]');
-    expect(tile?.getAttribute('data-color')).toBe('teal');
+    const tile = screen.getByRole('button').firstElementChild;
+    if (!(tile instanceof HTMLElement)) throw new Error('No tile');
+    expect(tile.style.backgroundColor).toBe('var(--label-teal)');
   });
 });

@@ -4,9 +4,9 @@ import type {
   KeyboardEvent,
   MouseEvent,
 } from 'react';
+import type {MacroColor} from '@shared/colors';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
-import {labelColorValue, type LabelColor} from './labelColor';
 import {pressHandler} from './press';
 import type {ControlSize} from './types';
 import styles from './Select.module.css';
@@ -15,7 +15,7 @@ import styles from './Select.module.css';
 export type SelectLead =
   | {readonly kind: 'icon'; readonly icon: string}
   | {readonly kind: 'media'; readonly src: string}
-  | {readonly kind: 'tile'; readonly color: LabelColor; readonly icon: string};
+  | {readonly kind: 'tile'; readonly color: MacroColor; readonly icon: string};
 
 /** What the button opens: a list of choices, or a popover such as a calendar. */
 export type SelectPopup = 'listbox' | 'dialog';
@@ -67,8 +67,7 @@ function Lead({
       return (
         <span
           className={styles.tile}
-          data-color={lead.color}
-          style={{backgroundColor: labelColorValue(lead.color)}}
+          style={{backgroundColor: `var(--label-${lead.color})`}}
         >
           <Icon name={lead.icon} size={TILE_ICON_SIZE} />
         </span>
