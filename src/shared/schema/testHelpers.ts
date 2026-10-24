@@ -1,4 +1,5 @@
-import type {FileError, Result} from './fileFormat';
+import type {Result} from '../result';
+import type {FileError} from './fileFormat';
 
 const UINT32_RANGE = 2 ** 32;
 const HEX_RADIX = 16;

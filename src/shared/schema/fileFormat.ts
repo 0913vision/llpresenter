@@ -1,10 +1,7 @@
 import * as v from 'valibot';
+import type {Result} from '../result';
 import {currentVersion, migrate, type MigrationStep} from './migration';
 import {positiveInteger} from './primitives';
-
-export type Result<T, E> =
-  | {readonly ok: true; readonly value: T}
-  | {readonly ok: false; readonly error: E};
 
 /**
  * Why a file couldn't be read or written. `json`: the text isn't JSON.

@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import type {Result} from '../result';
 import {
   parseFile,
   serializeFile,
@@ -6,7 +7,6 @@ import {
   type FileFormat,
   type LoadedFile,
   type ReadonlyKnown,
-  type Result,
 } from './fileFormat';
 import {mediaIdSchema, songIdSchema} from './ids';
 import type {MigrationStep} from './migration';

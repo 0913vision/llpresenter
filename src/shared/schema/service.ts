@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import type {Result} from '../result';
 import {isRecord} from '../guards';
 import {
   parseFile,
@@ -7,7 +8,6 @@ import {
   type FileFormat,
   type LoadedFile,
   type ReadonlyKnown,
-  type Result,
 } from './fileFormat';
 import {
   mediaIdSchema,
