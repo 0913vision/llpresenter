@@ -1,4 +1,5 @@
 import {join} from 'node:path';
+import type {Result} from '@shared/result';
 import type {FileError, LoadedFile} from '@shared/schema/fileFormat';
 import {parseLabels, type Label} from '@shared/schema/labels';
 import {parseService, type Service} from '@shared/schema/service';
@@ -6,6 +7,7 @@ import {parseSong, type Song} from '@shared/schema/song';
 import {DEFAULT_LABELS} from './defaults';
 import {loadFolder} from './library';
 import {
+  confineLocations,
   readLocationFields,
   resolveLocations,
   type DataLocations,
@@ -30,10 +32,13 @@ export interface StoreContext extends LocationContext {
 /** Everything the app read at launch, and what it couldn't read. */
 export interface LoadedStore {
   readonly locations: DataLocations;
-  /** The song library, by song id. */
-  readonly songs: ReadonlyMap<string, Song>;
-  /** The 예배 순서, by service id. */
-  readonly services: ReadonlyMap<string, Service>;
+  /**
+   * The song library, by song id. A song from a newer app version is
+   * read-only (`access`).
+   */
+  readonly songs: ReadonlyMap<string, LoadedFile<Song>>;
+  /** The 예배 순서, by service id, read-only like the songs. */
+  readonly services: ReadonlyMap<string, LoadedFile<Service>>;
   readonly labels: readonly Label[];
   /**
    * The service 진행 opens: the last opened one when it loaded, otherwise the
@@ -54,35 +59,42 @@ interface LabelsRead {
   readonly problems: readonly FileError[];
 }
 
-/** Reads the data the app needs at launch. Never throws. */
-export async function loadStore(context: StoreContext): Promise<LoadedStore> {
+type DataRead = Pick<LoadedStore, 'songs' | 'services' | 'labels' | 'problems'>;
+
+/**
+ * Reads the data the app needs at launch. In development, it first checks that
+ * no data folder leads outside `LLP_USER_DATA`, and reads nothing when one
+ * does. Never throws.
+ *
+ * @returns The data, or why no data folder may be used.
+ */
+export async function loadStore(
+  context: StoreContext,
+): Promise<Result<LoadedStore, FileError>> {
   const appConfigFile = join(context.appDataFolder, APP_CONFIG_FILE);
   const appConfig = await readAppConfig(appConfigFile);
   const {locations, ignored} = resolveLocations(appConfig.fields, context);
-  const songs = await loadFolder(locations.songs, SONG_EXTENSION, parseSong);
-  const services = await loadFolder(
-    locations.services,
-    SERVICE_EXTENSION,
-    parseService,
-  );
-  const labels = await readLabels(locations);
+  const confined = await confineLocations(locations, context.developmentFolder);
+  if (!confined.ok) {
+    return confined;
+  }
+  const data = await readData(confined.value);
   return {
-    locations,
-    songs: dataOf(songs.items),
-    services: dataOf(services.items),
-    labels: labels.labels,
-    openServiceId: chooseOpenService(
-      services.items,
-      appConfig.config?.lastServiceId,
-    ),
-    appConfigBroken: appConfig.problem !== null,
-    problems: [
-      ...(appConfig.problem === null ? [] : [appConfig.problem]),
-      ...ignored.map(field => ignoredProblem(appConfigFile, field)),
-      ...songs.problems,
-      ...services.problems,
-      ...labels.problems,
-    ],
+    ok: true,
+    value: {
+      ...data,
+      locations,
+      openServiceId: chooseOpenService(
+        data.services,
+        appConfig.config?.lastServiceId,
+      ),
+      appConfigBroken: appConfig.problem !== null,
+      problems: [
+        ...(appConfig.problem === null ? [] : [appConfig.problem]),
+        ...ignored.map(field => ignoredProblem(appConfigFile, field)),
+        ...data.problems,
+      ],
+    },
   };
 }
 
@@ -116,18 +128,28 @@ async function readAppConfig(file: string): Promise<LocationFieldsRead> {
   return {fields: {}, config: null, problem: text.error};
 }
 
+async function readData(locations: DataLocations): Promise<DataRead> {
+  const songs = await loadFolder(locations.songs, SONG_EXTENSION, parseSong);
+  const services = await loadFolder(
+    locations.services,
+    SERVICE_EXTENSION,
+    parseService,
+  );
+  const labels = await readLabels(locations);
+  return {
+    songs: songs.items,
+    services: services.items,
+    labels: labels.labels,
+    problems: [...songs.problems, ...services.problems, ...labels.problems],
+  };
+}
+
 async function readLabels(locations: DataLocations): Promise<LabelsRead> {
   const {data, problems} = await readSettingsFile(
     settingsLocation(locations, LABELS_AREA),
     parseLabels,
   );
   return {labels: data?.labels ?? DEFAULT_LABELS, problems};
-}
-
-function dataOf<T>(
-  items: ReadonlyMap<string, LoadedFile<T>>,
-): ReadonlyMap<string, T> {
-  return new Map([...items].map(([id, loaded]) => [id, loaded.data]));
 }
 
 function ignoredProblem(file: string, field: string): FileError {

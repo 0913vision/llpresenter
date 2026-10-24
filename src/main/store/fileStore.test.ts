@@ -1,8 +1,9 @@
+import {rm, symlink} from 'node:fs/promises';
 import {join} from 'node:path';
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, onTestFinished} from 'vitest';
 import {makeTempDir} from '../../../test/temp-dir';
 import {DEFAULT_LABELS} from './defaults';
-import {loadStore, type StoreContext} from './fileStore';
+import {loadStore, type LoadedStore, type StoreContext} from './fileStore';
 import {DATA_FOLDER_NAME} from './locations';
 import {
   EVENING_ID,
@@ -23,6 +24,14 @@ async function developmentContext(): Promise<StoreContext> {
   };
 }
 
+async function loadedStore(context: StoreContext): Promise<LoadedStore> {
+  const loaded = await loadStore(context);
+  if (!loaded.ok) {
+    throw new Error(loaded.error.message);
+  }
+  return loaded.value;
+}
+
 function dataRoot(context: StoreContext): string {
   return join(context.appDataFolder, DATA_FOLDER_NAME);
 }
@@ -31,7 +40,7 @@ describe('loadStore', () => {
   it('starts empty, with the default 이름표, on the first launch', async () => {
     const context = await developmentContext();
 
-    const store = await loadStore(context);
+    const store = await loadedStore(context);
 
     expect(store.locations.dataRoot).toBe(dataRoot(context));
     expect(store.songs.size).toBe(0);
@@ -58,10 +67,10 @@ describe('loadStore', () => {
       labels: [{name: '후렴', color: 'yellow', key: 'KeyC'}],
     });
 
-    const store = await loadStore(context);
+    const store = await loadedStore(context);
 
-    expect(store.songs.get(HYMN_ONE_ID)?.title).toBe('만복의 근원 하나님');
-    expect(store.services.get(SUNDAY_ID)?.order).toHaveLength(1);
+    expect(store.songs.get(HYMN_ONE_ID)?.data.title).toBe('만복의 근원 하나님');
+    expect(store.services.get(SUNDAY_ID)?.data.order).toHaveLength(1);
     expect(store.labels).toEqual([
       {name: '후렴', color: 'yellow', key: 'KeyC'},
     ]);
@@ -81,14 +90,40 @@ describe('loadStore', () => {
       service(EVENING_ID, '2026-11-01T19:30', []),
     );
 
-    expect((await loadStore(context)).openServiceId).toBe(EVENING_ID);
+    expect((await loadedStore(context)).openServiceId).toBe(EVENING_ID);
 
     await writeJson(join(context.appDataFolder, 'app.json'), {
       format: 'llapp',
       schemaVersion: 1,
       lastServiceId: SUNDAY_ID,
     });
-    expect((await loadStore(context)).openServiceId).toBe(SUNDAY_ID);
+    expect((await loadedStore(context)).openServiceId).toBe(SUNDAY_ID);
+  });
+
+  it('loads a song from a newer app version read-only', async () => {
+    const context = await developmentContext();
+    await writeJson(join(dataRoot(context), '곡', 'a.llsong'), {
+      ...hymnOne(),
+      schemaVersion: 99,
+    });
+
+    const store = await loadedStore(context);
+
+    expect(store.songs.get(HYMN_ONE_ID)?.access).toBe('readOnly');
+    expect(store.problems).toEqual([]);
+  });
+
+  it('reads nothing when a junction leads the data folder outside', async () => {
+    const context = await developmentContext();
+    const outside = await makeTempDir();
+    await writeJson(join(outside, '곡', 'a.llsong'), hymnOne());
+    const link = dataRoot(context);
+    await symlink(outside, link, 'junction');
+    onTestFinished(() => rm(link, {force: true}));
+
+    const loaded = await loadStore(context);
+
+    expect(loaded).toMatchObject({ok: false, error: {field: 'dataRoot'}});
   });
 
   it('skips a broken song and reports it', async () => {
@@ -97,7 +132,7 @@ describe('loadStore', () => {
     await writeJson(join(songs, 'good.llsong'), hymnOne());
     await writeJson(join(songs, 'bad.llsong'), {...hymnOne(), title: ''});
 
-    const store = await loadStore(context);
+    const store = await loadedStore(context);
 
     expect([...store.songs.keys()]).toEqual([HYMN_ONE_ID]);
     expect(store.problems).toEqual([
@@ -115,7 +150,7 @@ describe('loadStore', () => {
       layout: {normal: {left: 'wide'}},
     });
 
-    const store = await loadStore(context);
+    const store = await loadedStore(context);
 
     expect(store.locations.songs).toBe(songs);
     expect(store.appConfigBroken).toBe(true);
@@ -133,7 +168,7 @@ describe('loadStore', () => {
       dataRoot: outside,
     });
 
-    const store = await loadStore(context);
+    const store = await loadedStore(context);
 
     expect(store.locations.dataRoot).toBe(dataRoot(context));
     expect(store.problems).toEqual([
@@ -148,7 +183,7 @@ describe('loadStore', () => {
       '{"labels": ',
     );
 
-    const store = await loadStore(context);
+    const store = await loadedStore(context);
 
     expect(store.labels).toEqual(DEFAULT_LABELS);
     expect(store.problems).toEqual([expect.objectContaining({kind: 'json'})]);
@@ -167,7 +202,7 @@ describe('loadStore', () => {
       },
     );
 
-    const store = await loadStore(context);
+    const store = await loadedStore(context);
 
     expect(store.labels).toEqual([
       {name: '후렴', color: 'yellow', key: 'KeyC'},
@@ -183,7 +218,7 @@ describe('loadStore', () => {
       labels: [{name: '후렴', color: 'yellow', key: 'C'}],
     });
 
-    const store = await loadStore(context);
+    const store = await loadedStore(context);
 
     expect(store.labels).toEqual([{name: '후렴', color: 'yellow', key: null}]);
     expect(store.problems).toEqual([
