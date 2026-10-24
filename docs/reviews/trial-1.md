@@ -2,7 +2,7 @@
 
 - Team member: `trial`
 - Branch: `docs/trial/workflow-check`
-- Base commit (`rewrite`): `b8a189fbb646fdfd4367f1a80ab3d3cb9cb0380e`
+- Base commit (`rewrite`): `c2775d8`
 - Last commit: see the commit that adds this file
 - Related brief: `docs/briefs/trial.md`
 
@@ -99,6 +99,14 @@ missing.
 
 ## Review: lead
 
+- Verdict: Approve
+- Findings:
+  1. All three round-1 findings are addressed: the rerun after the Electron fix,
+     the dev app with its own port and app data folder, the collision check with
+     the lead's app, the leftover-process check, and a timed `npm ci`.
+
+Round 1 (5f6ce06):
+
 - Verdict: Request changes
 - Findings:
   1. The Electron failure is a bug in `rewrite`, not in this branch. Electron 44
@@ -127,3 +135,6 @@ missing.
    `npm ci` again, and redid task 4. See "Dev app (task 4)".
 3. Finding 3: Done. `time npm ci` printed `real 1m19.778s`. See "Install".
 4. Rebase result: `git rebase rewrite` succeeded without conflicts.
+5. Second rebase (brief step 7): I rebased onto `rewrite` c2775d8 (two commits
+   that add design tokens). The base commit is now c2775d8. There were no
+   conflicts, because this branch only touches this document.
