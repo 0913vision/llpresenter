@@ -2,8 +2,8 @@
 
 - Team member: `devops`
 - Branch: `feat/devops/soak-scenario`
-- Review range: `8e0d3b3...feat/devops/soak-scenario` (round 2, rebased onto
-  `main`, which now has data-13 and output-10)
+- Review range: `3329f81...feat/devops/soak-scenario` (round 3, rebased onto
+  `main`)
 - Related brief: the lead's M2 soak task. A 20-minute offscreen soak of a
   looping video plus 장 changes, through the recorder and the judge, with the
   numbers for qa's SK cases. This request prepares it; the run itself waits for
@@ -11,9 +11,9 @@
 
 ## What to check
 
-Round 2: the five round 1 findings, answered in "Team member's reply (round 1)"
-at the end, plus two additions the lead asked for (the inspector flags and the
-`test` branch tag). Round 1's list still applies:
+Round 3: the two round 2 findings, answered in "Team member's reply (round 2)"
+at the end. Round 2 answered round 1 in "Team member's reply (round 1)". Round
+1's list still applies:
 
 1.  `src/main/soak/scenario.ts`: the scenario only runs with a usable soak
     record, validates `LLP_SOAK_MEDIA_ID` as a media id, logs a command that
@@ -155,6 +155,7 @@ cases.
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `npm run verify` (round 1)               | Pass at 77 to 100% CPU, 172.2 s wall, every step at once: typecheck 12.5 s, lint 93.8 s, format:check 43.7 s, test:coverage 172.1 s, build 5.5 s |
 | `npm run verify` (round 2, on `8e0d3b3`) | Pass at 100% CPU, 196.9 s wall, every step at once: typecheck 41.0 s, lint 84.4 s, format:check 107.5 s, test:coverage 196.7 s, build 8.9 s      |
+| `npm run verify` (round 3, on `3329f81`) | Pass at 87 to 100% CPU, 184.0 s wall, every step at once: typecheck 11.9 s, lint 77.2 s, format:check 70.7 s, test:coverage 183.9 s, build 6.9 s |
 
 ## Team member's reply (round 1)
 
@@ -183,13 +184,27 @@ cases.
 
 Added for the lead:
 
-- `soakEnvironment` drops inspector flags (`--inspect`, `--inspect-brk`,
-  `--inspect-port`, `--inspect-wait`, `--inspect-publish-uid`, `--debug-port`)
-  from `NODE_OPTIONS`, under either spelling Windows keeps, because qa measured
-  a main process with an inspector growing 4.9 to 7.9 MB in 30 minutes. The
-  runner itself uses no CDP: the scenario runs in the main process. Tests: mixed
-  flags, a flag that only looks like one, and a `node_options` with only an
-  inspector flag.
+- `soakEnvironment` dropped inspector flags from `NODE_OPTIONS` (round 3: it
+  leaves `NODE_OPTIONS` out instead), because qa measured a main process with an
+  inspector growing 4.9 to 7.9 MB in 30 minutes. The runner itself uses no CDP:
+  the scenario runs in the main process. Tests: mixed flags, a flag that only
+  looks like one, and a `node_options` with only an inspector flag.
 - `scripts/session-context.ts` builds its member branch rule from `COMMIT_TAGS`,
   so a `test/<name>/<feature>` branch shows its role. Test: `test/qa/show-cases`
   is `qa`.
+
+## Team member's reply (round 2)
+
+1.  Codex 1, `NODE_OPTIONS`. Following the lead's call, the soak app now starts
+    without `NODE_OPTIONS` at all, under every spelling, instead of with an
+    edited copy. Nothing the app needs comes from it, and anything in it (an
+    inspector, a heap size) would change what the run measures, so no option
+    parser is needed. The filter and its tests are gone. Tests: `NODE_OPTIONS`,
+    `node_options`, and `Node_Options`, holding a plain `--inspect`, a quoted
+    `"--inspect=9229"`, and a quoted path with two spaces, are all left out, and
+    the other variables stay.
+2.  Codex 2, the hung-tree cleanup. `waitForHungTree` (`test/process-trees.ts`)
+    now registers `onTestFinished` to end both recorded processes, so every test
+    that starts a hung tree ends it, also when an assertion fails or the code's
+    own stop regresses. The two hand-written cleanups in `step-process.test.ts`
+    are gone. After the process tests, no `setInterval` Node process was left.
