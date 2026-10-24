@@ -24,6 +24,10 @@ describe('roleFor', () => {
     expect(roleFor('chore/devops/verify')).toBe('devops');
   });
 
+  it('knows a member on a tests-only branch', () => {
+    expect(roleFor('test/qa/show-cases')).toBe('qa');
+  });
+
   it('calls every other branch unknown', () => {
     expect(roleFor('feat/ui')).toBe('unknown');
     expect(roleFor('feat/ui/button/extra')).toBe('unknown');

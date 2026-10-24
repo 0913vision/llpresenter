@@ -2,14 +2,16 @@ import {execFileSync} from 'node:child_process';
 import {existsSync, readFileSync, statSync} from 'node:fs';
 import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
+import {COMMIT_TAGS} from './version/subject.mts';
 
 /** Each session's working notes, relative to its worktree root. */
 export const NOTES_PATH = '.llp/notes.md';
 
 const STATUS_PATH = 'docs/STATUS.md';
 const LEAD_BRANCH = 'main';
-const MEMBER_BRANCH =
-  /^(?:break|feat|fix|refactor|style|docs|chore)\/([a-z0-9-]+)\/[a-z0-9-]+$/;
+const MEMBER_BRANCH = new RegExp(
+  `^(?:${COMMIT_TAGS.join('|')})/([a-z0-9-]+)/[a-z0-9-]+$`,
+);
 const MAX_NOTES_CHARS = 12_000;
 const MAX_STATUS_LINES = 80;
 const MAX_CHANGED_FILES = 20;
