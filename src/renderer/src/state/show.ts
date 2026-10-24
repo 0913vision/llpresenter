@@ -21,6 +21,10 @@ import {
   sampleRows,
   sampleTiles,
 } from '@renderer/show/sampleService';
+import {
+  defaultThumbnailColumns,
+  type SizeClass,
+} from '@renderer/shell/sizeClass';
 import {sendLive, useLive} from './live';
 
 interface ShowView {
@@ -30,6 +34,8 @@ interface ShowView {
   readonly openItemId: ItemId | null;
   /** The selected tile of the open item. */
   readonly selectedTile: number;
+  /** The thumbnail columns the operator chose, per size class. */
+  readonly thumbnailColumns: Readonly<Partial<Record<SizeClass, number>>>;
   /** 이름표 jump keys: a physical key (`KeyboardEvent.code`) to an 이름표 name. */
   readonly jumpKeys: Readonly<Record<string, string>>;
 }
@@ -41,6 +47,7 @@ export const useShow = create<ShowView>(() => ({
   tiles: sampleTiles,
   openItemId: null,
   selectedTile: 0,
+  thumbnailColumns: {},
   jumpKeys: sampleJumpKeys,
 }));
 
@@ -124,4 +131,28 @@ export function jumpLabelFor(code: string): string | undefined {
 /** Outputs the first tile with an 이름표 after the live 장, or the first in the sequence. */
 export function outputLabel(label: string): void {
   outputIfPresent(tileForLabel(sequenceState(), label));
+}
+
+export const MIN_THUMBNAIL_COLUMNS = 2;
+export const MAX_THUMBNAIL_COLUMNS = 8;
+
+/** The columns of the 장 grid for a size class: the chosen number, or the default. */
+export function useThumbnailColumns(sizeClass: SizeClass): number {
+  return useShow(
+    view =>
+      view.thumbnailColumns[sizeClass] ?? defaultThumbnailColumns[sizeClass],
+  );
+}
+
+export function setThumbnailColumns(
+  sizeClass: SizeClass,
+  columns: number,
+): void {
+  const clamped = Math.min(
+    Math.max(Math.round(columns), MIN_THUMBNAIL_COLUMNS),
+    MAX_THUMBNAIL_COLUMNS,
+  );
+  useShow.setState(view => ({
+    thumbnailColumns: {...view.thumbnailColumns, [sizeClass]: clamped},
+  }));
 }

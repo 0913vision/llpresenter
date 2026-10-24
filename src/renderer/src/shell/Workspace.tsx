@@ -1,10 +1,14 @@
 import {Fragment, type JSX, type ReactNode} from 'react';
 import {ServiceOrderList} from '@renderer/show/ServiceOrderList';
-import {SlideGrid} from '@renderer/show/SlideGrid';
+import {
+  SlidePanelBody,
+  SlidePanelMeta,
+  ThumbnailSizeSlider,
+} from '@renderer/show/SlidePanel';
 import {useShowKeys} from '@renderer/show/shortcuts';
 import {ColumnGap} from './ColumnGap';
 import type {ColumnWidthStore} from './columnWidthStore';
-import {defaultThumbnailColumns, type SizeClass} from './sizeClass';
+import type {SizeClass} from './sizeClass';
 import type {Workspace as WorkspaceId} from './Toolbar';
 import {useColumnLayout} from './useColumnLayout';
 import styles from './Workspace.module.css';
@@ -23,19 +27,31 @@ const panelsByWorkspace: Readonly<
   screens: [['화면'], ['배치'], ['속성']],
 };
 
+interface PanelParts {
+  readonly body?: ReactNode;
+  /** Shown in the header after the tab name. */
+  readonly meta?: ReactNode;
+  /** A row under the body. */
+  readonly footer?: ReactNode;
+}
+
 function Panel({
   title,
-  children,
+  parts,
 }: {
   readonly title: string;
-  readonly children?: ReactNode;
+  readonly parts: PanelParts;
 }): JSX.Element {
   return (
     <section className={styles.panel} aria-label={title}>
       <div className={styles.header}>
         <span className={styles.tab}>{title}</span>
+        {parts.meta}
       </div>
-      <div className={styles.body}>{children}</div>
+      <div className={styles.body}>{parts.body}</div>
+      {parts.footer ? (
+        <div className={styles.footer}>{parts.footer}</div>
+      ) : null}
     </section>
   );
 }
@@ -45,14 +61,18 @@ function ShowShortcuts(): null {
   return null;
 }
 
-function showPanelBody(title: string, sizeClass: SizeClass): ReactNode {
+function showPanelParts(title: string, sizeClass: SizeClass): PanelParts {
   switch (title) {
     case '예배 순서':
-      return <ServiceOrderList />;
+      return {body: <ServiceOrderList />};
     case '장':
-      return <SlideGrid columns={defaultThumbnailColumns[sizeClass]} />;
+      return {
+        body: <SlidePanelBody sizeClass={sizeClass} />,
+        meta: <SlidePanelMeta />,
+        footer: <ThumbnailSizeSlider sizeClass={sizeClass} />,
+      };
     default:
-      return null;
+      return {};
   }
 }
 
@@ -77,9 +97,11 @@ export function Workspace({
           )}
           <div className={styles.column}>
             {panels.map(title => (
-              <Panel key={title} title={title}>
-                {id === 'show' ? showPanelBody(title, sizeClass) : null}
-              </Panel>
+              <Panel
+                key={title}
+                title={title}
+                parts={id === 'show' ? showPanelParts(title, sizeClass) : {}}
+              />
             ))}
           </div>
         </Fragment>
