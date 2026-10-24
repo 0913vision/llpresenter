@@ -257,6 +257,20 @@ describe('serializeFile', () => {
     expect(error).toMatchObject({kind: 'invalid', field: 'schemaVersion'});
   });
 
+  it('refuses data without a schemaVersion even if the schema omits it', () => {
+    const looseFormat: FileFormat<v.GenericSchema> = {
+      format: 'llnote',
+      schema: v.looseObject({format: v.literal('llnote')}),
+      migrations: [],
+    };
+
+    const error = expectFailure(
+      serializeFile(looseFormat, {format: 'llnote'}, FILE),
+    );
+
+    expect(error).toMatchObject({kind: 'invalid', field: 'schemaVersion'});
+  });
+
   it('refuses unknown fields that JSON cannot hold', () => {
     const error = expectFailure(
       serializeFile(noteFormat, {...note, size: 1n}, FILE),

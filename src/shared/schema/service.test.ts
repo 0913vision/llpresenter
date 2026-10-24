@@ -146,6 +146,12 @@ describe('parseService', () => {
     expect(error).toMatchObject({kind: 'invalid', file: FILE, field});
   });
 
+  it('rejects an item that is not an object', () => {
+    const error = expectFailure(parse({...sundayService(), order: ['찬양']}));
+
+    expect(error).toMatchObject({kind: 'invalid', field: 'order.0'});
+  });
+
   it('rejects two items with the same id', () => {
     const service = sundayService();
     const [first, second] = service.order;
