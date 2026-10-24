@@ -31,8 +31,8 @@ Out of scope:
 Section [B](#b-shell-against-the-design-system) checks the shell against the
 design system. M1 doesn't list moving the shell to the ui components as a task,
 and the menu bar and status bar still carry TODOs at the time of writing. The
-lead decides whether failures in that section count for M1 or go to the M2
-backlog.
+lead decided (2026-10-25) that this isn't M1 work: QA runs the cases and records
+their failures as "known, M2 backlog", not as M1 bugs.
 
 ## Build under test
 
@@ -116,22 +116,22 @@ to the monitor height, QA runs the layout cases on an emulated viewport (CDP
 
 The cases refer to these procedures by name.
 
-| Procedure        | What it does                                                                                                                                                                                                                                                                                                                                               |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| P-clone          | `git clone https://github.com/0913vision/llpresenter D:\llp-dev\qa\clone`, `git switch --detach m1`, `npm ci`. Records the time and the exit code.                                                                                                                                                                                                         |
-| P-launch(run)    | Runs the build through the QA launcher with a new `LLP_USER_DATA`, `--remote-debugging-port` (renderer CDP), `--inspect` (main process CDP), `--force-device-scale-factor` for the run's scale, and `--disable-features=CalculateNativeWinOcclusion` so the offscreen window keeps painting. Sets the run's CSS size and waits for the `started` log line. |
-| P-size(w, h)     | Sets the content size from the main process (`BrowserWindow#setContentSize`), waits two animation frames, and reads `innerWidth`, `innerHeight`, `devicePixelRatio`, `data-size`, and the boxes of the menu bar, toolbar, columns, gaps, and status bar through CDP.                                                                                       |
-| P-drag(gap, dx)  | Presses the mouse in the middle of a gap, moves it by `dx` in 10 steps, and releases it, with CDP `Input.dispatchMouseEvent` (Chromium turns these into pointer events). Reads the column boxes after each step.                                                                                                                                           |
-| P-quit           | Closes the main window with the menu bar's close button, waits until every Electron process of the run has exited, and records the exit code and the time.                                                                                                                                                                                                 |
-| P-kill           | `taskkill /F /T /PID <main pid>`, a force-quit as in a crash.                                                                                                                                                                                                                                                                                              |
-| P-restart        | P-quit, then P-launch with the same `LLP_USER_DATA` and scale.                                                                                                                                                                                                                                                                                             |
-| P-gallery        | `LLP_DEV_PORT=5189 npx electron-vite dev --rendererOnly`, then loads `http://localhost:5189/gallery.html` in an offscreen window with CDP. Forces `:hover`, `:active`, and `:focus-visible` with CDP `CSS.forcePseudoState` where the gallery doesn't pin a state.                                                                                         |
-| P-card(name)     | `node design/system/card-server.js 5289`, then loads `http://localhost:5289/card/<name>` the same way.                                                                                                                                                                                                                                                     |
-| P-compare(name)  | For each state in the card, finds the same state in the gallery and compares, at scale 1, the box size, padding, corner radius, background, text color, font (family, size, weight, line height), outline, and shadow from `getComputedStyle` and `getBoundingClientRect`. Saves side-by-side screenshots under `docs/qa/m1/` for each mismatch.           |
-| P-schema         | A Node harness that imports `parse<Format>` and `serialize<Format>` from `src/shared/schema/` at the tag and runs the inputs of section D. It catches any exception and counts it as a failure of the case.                                                                                                                                                |
-| P-mutate(format) | For each field in the format's table in `docs/spec/02-data.md`, on an otherwise valid full sample: removes it (required fields), gives it a value of the wrong type, gives it a value outside its enum or range, and adds an unknown field next to it.                                                                                                     |
-| P-github         | Reads the Actions runs, commits, and tags of `main` through the public GitHub API with WebFetch, and through `git log` and `git show` in the clean clone. Writes nothing to GitHub.                                                                                                                                                                        |
-| P-counters       | Before and after a repeated action: CDP `HeapProfiler.collectGarbage`, then `Runtime.getHeapUsage`, `Memory.getDOMCounters` (documents, nodes, JS event listeners), and `process.memoryUsage()` of the main process through the inspector.                                                                                                                 |
+| Procedure        | What it does                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P-clone          | `git clone https://github.com/0913vision/llpresenter D:\llp-dev\qa\clone`, `git switch --detach m1`, `npm ci`. Records the time and the exit code.                                                                                                                                                                                                                                                                                                                        |
+| P-launch(run)    | Runs the build through the QA launcher with a new `LLP_USER_DATA`, `--remote-debugging-port` (renderer CDP), `--inspect` (main process CDP), `--force-device-scale-factor` for the run's scale, and `--disable-features=CalculateNativeWinOcclusion` so the offscreen window keeps painting. Sets the run's CSS size and waits for the `started` log line.                                                                                                                |
+| P-size(w, h)     | Sets the content size from the main process (`BrowserWindow#setContentSize`), waits two animation frames, and reads `innerWidth`, `innerHeight`, `devicePixelRatio`, `data-size`, and the boxes of the menu bar, toolbar, columns, gaps, and status bar through CDP.                                                                                                                                                                                                      |
+| P-drag(gap, dx)  | Presses the mouse in the middle of a gap, moves it by `dx` in 10 steps, and releases it, with CDP `Input.dispatchMouseEvent` (Chromium turns these into pointer events). Reads the column boxes after each step.                                                                                                                                                                                                                                                          |
+| P-quit           | Closes the main window with the menu bar's close button, waits until every Electron process of the run has exited, and records the exit code and the time.                                                                                                                                                                                                                                                                                                                |
+| P-kill           | `taskkill /F /T /PID <main pid>`, a force-quit as in a crash.                                                                                                                                                                                                                                                                                                                                                                                                             |
+| P-restart        | P-quit, then P-launch with the same `LLP_USER_DATA` and scale.                                                                                                                                                                                                                                                                                                                                                                                                            |
+| P-gallery        | `LLP_DEV_PORT=5189 npx electron-vite dev --rendererOnly`, then loads `http://localhost:5189/gallery.html` in an offscreen window with CDP. Forces `:hover`, `:active`, and `:focus-visible` with CDP `CSS.forcePseudoState` where the gallery doesn't pin a state.                                                                                                                                                                                                        |
+| P-card(name)     | `node design/system/card-server.js 5289`, then loads `http://localhost:5289/card/<name>` the same way.                                                                                                                                                                                                                                                                                                                                                                    |
+| P-compare(name)  | For each state in the card, finds the same state in the gallery and compares, at scale 1 and under the same layout conditions (the gallery sample in a wrapper of the card sample's width, with the same content), the box size, padding, corner radius, background, text color, font (family, size, weight, line height), outline, and shadow from `getComputedStyle` and `getBoundingClientRect`. Saves side-by-side screenshots under `docs/qa/m1/` for each mismatch. |
+| P-schema         | A Node harness that imports `parse<Format>` and `serialize<Format>` from `src/shared/schema/` at the tag and runs the inputs of section D. It catches any exception and counts it as a failure of the case.                                                                                                                                                                                                                                                               |
+| P-mutate(format) | For each field in the format's table in `docs/spec/02-data.md`, on an otherwise valid full sample: removes it (required fields), gives it a value of the wrong type, gives it a value outside its enum or range, and adds an unknown field next to it.                                                                                                                                                                                                                    |
+| P-github         | Reads the Actions runs, commits, and tags of `main` through the public GitHub API with WebFetch, and through `git log` and `git show` in the clean clone. Writes nothing to GitHub.                                                                                                                                                                                                                                                                                       |
+| P-counters       | Before and after a repeated action: CDP `HeapProfiler.collectGarbage`, then `Runtime.getHeapUsage`, `Memory.getDOMCounters` (documents, nodes, JS event listeners), and `process.memoryUsage()` of the main process through the inspector.                                                                                                                                                                                                                                |
 
 ## Recording results
 
@@ -542,9 +542,10 @@ Sources for the whole section: MILESTONES criterion 3; the `Layout` README
   - Expected: The app starts every time with no dialog and logs one entry that
     names the file and the field. (a) to (e) show the defaults. (f) shows widths
     inside the ranges (record whether the schema rejects them or the shell
-    clamps them). The broken file stays as it was at start; record whether the
-    drag then overwrites it, since the spec says not to touch a broken file. (g)
-    opens read-only: the widths show, and the drag doesn't write the file.
+    clamps them). The app never overwrites a broken file on its own: widths
+    dragged in that session stay in memory, the file stays as it was, and one
+    warning is logged (lead decision, 2026-10-25). (g) opens read-only: the
+    widths show, and the drag doesn't write the file.
   - Source: spec 02 "Schema versions and migration"; `docs/TECH.md` "Storage".
 - **C20 No `app.json` yet**
   - Steps: Start with an empty `LLP_USER_DATA` folder, then with a folder path
@@ -599,12 +600,20 @@ Sources for the whole section: MILESTONES criterion 4; `docs/briefs/ui.md` tasks
   - Expected: Every row appears in the gallery, pinned or reachable by forcing
     its pseudo-state.
   - Source: MILESTONES criterion 4.
-- **G5 Token values only**
-  - Steps: In the gallery, collect the computed colors, radii, sizes, and
-    spacing of every element and look each value up in `tokens.json`.
-  - Expected: Every value is a token value.
-  - Source: design system README "Implementation notes"; `CLAUDE.md` (design
-    tokens for every value).
+- **G5 Token references in the authored CSS**
+  - Steps: Read the CSS rules of the ui components as the dev server serves them
+    (`document.styleSheets` in the gallery, which keeps the CSS module source
+    values). List every declaration of a color, size, spacing, radius, border,
+    shadow, font, or transition property whose value isn't built from
+    `var(--…)`. Literals that carry no design value are allowed: `0`, `auto`,
+    `none`, `inherit`, `transparent`, `currentColor`, `100%`, and `1`. The look
+    itself is compared in part (b) of each component case, under the same layout
+    conditions as the card.
+  - Expected: No other literal value. Each one found is listed with its file and
+    rule.
+  - Source: design system README "Implementation notes" ("use only
+    `var(--token-name)` in component CSS"); `CLAUDE.md` (design tokens for every
+    value).
 - **G6 Red only for output**
   - Steps: Scan the computed color, background, outline, and box shadow of every
     element for the `live` color.
@@ -618,11 +627,25 @@ Sources for the whole section: MILESTONES criterion 4; `docs/briefs/ui.md` tasks
     `ring-field-focus` on text fields.
   - Source: design system README "States and motion".
 - **G8 Disabled samples**
-  - Steps: Inspect each disabled sample, hover it, and Tab to it.
-  - Expected: `text-off` text and icons, `opacity` 1, no hover change,
-    `aria-disabled="true"`, still focusable, and a tooltip with the reason.
-  - Source: design system README "States and motion"; `Button`, `IconButton`,
-    and `Tooltip` READMEs.
+  - Steps: Inspect each disabled sample, hover it, try to use it (click, Enter,
+    Space, arrows), and Tab through the page.
+  - Expected: For every component: `text-off` text and icons, `opacity` 1, no
+    hover change, no action, and the reason in a tooltip on hover. Focus and the
+    attribute follow each README:
+    - `aria-disabled="true"` and still focusable, so the tooltip shows on
+      keyboard focus too: Button, IconButton, ToolbarButton (as the `Tooltip`
+      README asks of every disabled button), the segments of a disabled
+      SegmentedControl, and the primary button of an AlertDialog with every
+      check off.
+    - Menu items: `aria-disabled="true"`; the arrows point to them, but Enter
+      and Space don't run them.
+    - TextField: native `disabled` on the input, which Tab skips.
+    - ListRow: `disabled` or `aria-disabled`, either one.
+    - Select, Checkbox, Switch, Slider, and Panel tabs and the service switcher
+      set only the look in their READMEs: record the attribute and whether Tab
+      reaches them.
+  - Source: design system README "States and motion"; the "Behavior" and
+    "Implementation notes" of each component README; `Tooltip` README.
 - **G9 Motion**
   - Steps: Read the transitions of hover backgrounds, menus, tooltips, dialogs,
     and the switch. Then emulate `prefers-reduced-motion: reduce` (CDP
@@ -869,11 +892,14 @@ Common cases:
     and the data equals the input.
   - Source: MILESTONES.
 - **D3 Each parser takes only its own format**
-  - Steps: Parse each sample with every other format's parser.
-  - Expected: A `format` error for every other pair. The `format` values are
+  - Steps: Parse each sample with the parser of every format whose `format`
+    value differs from the sample's.
+  - Expected: A `format` error for every such pair. The `format` values are
     those in spec 02 (`llsong`, `llservice`, `llsettings.screens` and the other
-    settings values, and `llmedia`).
-  - Source: spec 02 "Header fields" and "App-wide settings".
+    settings values, and `llmedia`). Services and 틀 share `llservice`, so their
+    parsers aren't crossed here; D21 and D22 check the date and time rules that
+    tell them apart.
+  - Source: spec 02 "Header fields", "Templates", and "App-wide settings".
 - **D4 Broken JSON**
   - Steps: Empty text, `{`, a trailing comma, a single-quoted string, `NaN`, the
     first half of a valid sample, a valid sample with CRLF line endings, and a
@@ -997,19 +1023,21 @@ says "passes" or "record".
   or a number above the 장 count; a repeated number passes; `arrangements` `[]`
   passes, and so does a 구성 with `slides` `[]` (the spec keeps an empty 구성);
   `updatedAt` without an offset.
-- **D21 `.llservice`**: `name` missing; `date` as in D14; `order` missing or not
-  an array; an item with no kind key, or with two (`header` and `song`); an item
-  with an unknown kind key (`"score": {}`) passes and comes back unchanged; an
-  item `id` that is missing or duplicated. Song items: `song` that isn't a song
-  ID; `arrangement`, `background`, `macro`, and `memo` are optional; `macro`
-  `"찬양"` (a name, as in the `Main` sample) passes; a memo with several lines
-  passes. Slots: `slot` `"song"`, `"bible"`, and `"slides"` pass and `"video"`
-  fails; `title` missing. Bible passages: `split` and `reference` outside their
-  enums; `verseNumbers` that isn't a boolean. Media and 공지 items: an ID that
-  isn't a UUID.
-- **D22 틀**: no `date` passes; `time` as in D14; slot items and filled items
-  (song, media, 공지) pass. Record what the service parser does with a 틀 and
-  what the 틀 parser does with a service.
+- **D21 `.llservice`**: `name` missing; `date` as in D14, missing, or replaced
+  by a `time`; `order` missing or not an array; an item with no kind key, or
+  with two (`header` and `song`); an item with an unknown kind key
+  (`"score": {}`) passes and comes back unchanged; an item `id` that is missing
+  or duplicated. Song items: `song` that isn't a song ID; `arrangement`,
+  `background`, `macro`, and `memo` are optional; `macro` `"찬양"` (a name, as
+  in the `Main` sample) passes; a memo with several lines passes. Slots: `slot`
+  `"song"`, `"bible"`, and `"slides"` pass and `"video"` fails; `title` missing.
+  Bible passages: `split` and `reference` outside their enums; `verseNumbers`
+  that isn't a boolean. Media and 공지 items: an ID that isn't a UUID.
+- **D22 틀**: no `date` passes; `time` (`HH:mm`) as in D14, and no `time`
+  passes; slot items and filled items (song, media, 공지) pass; a 틀 with a
+  `date` (record whether it is kept as an unknown field or refused). On the
+  service side, D21 checks that a service without `date`, or with a `time` in
+  place of `date`, fails with the field `date`.
 - **D23 `screens.json`**: `kind` outside its enum; `method` `"ndi"` passes;
   `"fullscreen"` with and without `display` passes; `display.bounds` missing a
   field; `scaleFactor` 0 or a string; `resolution` with 0 or a negative size;
@@ -1084,7 +1112,7 @@ says "passes" or "record".
 
 ### B. Shell against the design system
 
-The lead decides whether these cases count for M1 (see [Scope](#scope)).
+Failures here are recorded as "known, M2 backlog" (see [Scope](#scope)).
 Sources: `docs/spec/01-concepts.md` "Menu bar", "Toolbar", and "Status bar"; the
 `MenuBar`, `Toolbar`, `ToolbarButton`, and `StatusBar` READMEs.
 

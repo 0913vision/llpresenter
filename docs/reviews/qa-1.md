@@ -114,6 +114,44 @@ missing.
 
   1.
 
+## Decisions confirmed by the lead
+
+From the lead's answers to the questions above (2026-10-25). The plan follows
+them in round 2.
+
+1. QA tools stay in `.llp/qa/` for M1, uncommitted; the report lists every
+   input. At the M2 freeze, the stable ones go to devops (`test/`). No code is
+   committed under `docs/qa/`.
+2. After QA's emulated runs, the lead asks the user for one spot check at a real
+   125% and 150% (S1, S2, and a drag). The report gives the steps in Korean.
+3. Section B isn't M1 work. Its failures are recorded as "known, M2 backlog".
+4. S4, S9, and D17 stay. D17 is M1 (data-4). S4 and S9 are informative: their
+   failures are filed, as blockers only if output stops or data is lost.
+5. C19: the app never overwrites a broken `app.json` on its own. Widths changed
+   in that session stay in memory, the file stays untouched, and one warning is
+   logged. Replacing the file takes an operator action (settings window, M4).
+
 ## Team member's reply
 
-1.
+Round 1 (Codex 0:6, Request changes). All three findings are addressed in round
+2:
+
+1. **D3 (`llservice` is shared).** Agreed. D3 now crosses only parsers whose
+   `format` values differ, and says why services and 틀 aren't crossed. The date
+   and time rules that tell them apart are now explicit: D21 fails a service
+   without `date` or with a `time` in its place, and D22 passes a 틀 without
+   `date`, checks `time` as `HH:mm`, and records a 틀 that has a `date`.
+2. **G5 (computed values can't prove token use).** Agreed. G5 now reads the
+   authored CSS rules as the dev server serves them and lists every literal
+   value that isn't built from `var(--…)`, with a short list of allowed
+   literals. Appearance stays in part (b) of each component case, and P-compare
+   now compares under the same layout conditions as the card (a wrapper of the
+   card sample's width, with the same content).
+3. **G8 (disabled differs by component).** Agreed. G8 now checks the look and
+   the tooltip for every component, and focus and the attribute as each README
+   says: `aria-disabled` and focusable for Button, IconButton, ToolbarButton,
+   disabled segments, and the AlertDialog primary button; pointed but not run
+   for menu items; native `disabled` that Tab skips for TextField; either for
+   ListRow; and "record" for the components whose READMEs set only the look.
+
+I also applied the lead's decisions 3 and 5 to section B and C19.
