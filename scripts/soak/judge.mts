@@ -6,6 +6,8 @@ const KB_PER_MB = 1024;
 
 const COVERAGE_TOLERANCE_MS = MS_PER_MINUTE;
 const MAX_WARM_UP_SHARE = 1 / 12;
+const MIN_WINDOW_COUNT = 4;
+const MIN_WINDOW_MS = MS_PER_MINUTE;
 
 /** Thresholds for judging one soak run. */
 export interface JudgeOptions {
@@ -27,7 +29,7 @@ export interface JudgeOptions {
 export const DEFAULT_JUDGE_OPTIONS: JudgeOptions = {
   requiredMs: 60 * MS_PER_MINUTE,
   warmUpMs: 5 * MS_PER_MINUTE,
-  windowCount: 6,
+  windowCount: 12,
   minSamplesPerWindow: 3,
   maxGrowthKbPerHour: 4 * KB_PER_MB,
   minFps: 58,
@@ -35,14 +37,20 @@ export const DEFAULT_JUDGE_OPTIONS: JudgeOptions = {
 
 /**
  * The default thresholds for a run of another length. The warm-up shrinks with
- * the run, so a short trial run still has samples to judge.
+ * the run, and a short trial run gets fewer windows of at least a minute, so
+ * it still has samples to judge.
  */
 export function judgeOptionsFor(requiredMs: number): JudgeOptions {
   const warmUpMs = Math.min(
     DEFAULT_JUDGE_OPTIONS.warmUpMs,
     requiredMs * MAX_WARM_UP_SHARE,
   );
-  return {...DEFAULT_JUDGE_OPTIONS, requiredMs, warmUpMs};
+  const fitting = Math.floor((requiredMs - warmUpMs) / MIN_WINDOW_MS);
+  const windowCount = Math.max(
+    MIN_WINDOW_COUNT,
+    Math.min(DEFAULT_JUDGE_OPTIONS.windowCount, fitting),
+  );
+  return {...DEFAULT_JUDGE_OPTIONS, requiredMs, warmUpMs, windowCount};
 }
 
 /** Whether one process's memory stayed flat, kept growing, or can't be judged. */
@@ -127,36 +135,33 @@ function windowBaselines(
   return windows.flatMap(w => lowest(w) ?? []);
 }
 
-function average(values: readonly number[]): number {
-  return values.reduce((sum, value) => sum + value, 0) / values.length;
-}
-
-function slopeKbPerHour(points: readonly MemoryPoint[]): number {
-  const hours = points.map(p => p.elapsedMs / MS_PER_HOUR);
-  const meanHour = average(hours);
-  const meanKb = average(points.map(p => p.privateKb));
-  let covariance = 0;
-  let variance = 0;
-  for (const [index, point] of points.entries()) {
-    const offset = (hours[index] ?? meanHour) - meanHour;
-    covariance += offset * (point.privateKb - meanKb);
-    variance += offset * offset;
-  }
-  return variance === 0 ? 0 : covariance / variance;
+// NOTE(0913vision): The Theil-Sen slope, the median of the slopes between
+// every pair of points. One window whose lowest value dips or jumps moves only
+// a few pairs, so it can't make flat memory fail or hide a steady rise.
+function slopeKbPerHour(points: readonly MemoryPoint[]): number | null {
+  const slopes = points.flatMap((from, index) =>
+    points.slice(index + 1).flatMap(to => {
+      const hours = (to.elapsedMs - from.elapsedMs) / MS_PER_HOUR;
+      return hours === 0 ? [] : [(to.privateKb - from.privateKb) / hours];
+    }),
+  );
+  return slopes.length === 0 ? null : median(slopes);
 }
 
 // NOTE(0913vision): Growth must hold over the whole judged time and over its
 // later half. A cache that fills early and then levels off rises overall but
-// not at the end; a leak rises in both.
-function keepsGrowing(
+// not at the end; a leak rises in both. A fit without two distinct times
+// can't be judged.
+function memoryTrend(
   baselines: readonly MemoryPoint[],
   maxKbPerHour: number,
-): boolean {
-  const laterHalf = baselines.slice(Math.floor(baselines.length / 2));
-  return (
-    slopeKbPerHour(baselines) >= maxKbPerHour &&
-    slopeKbPerHour(laterHalf) >= maxKbPerHour
+): MemoryTrend {
+  const overall = slopeKbPerHour(baselines);
+  const later = slopeKbPerHour(
+    baselines.slice(Math.floor(baselines.length / 2)),
   );
+  if (overall === null || later === null) return 'unjudged';
+  return overall >= maxKbPerHour && later >= maxKbPerHour ? 'growing' : 'flat';
 }
 
 function judgeMemory(
@@ -168,9 +173,10 @@ function judgeMemory(
   if (baselines === null) {
     return {name, trend: 'unjudged', baselinesKb: [], growthKbPerHour: null};
   }
-  const trend = keepsGrowing(baselines, options.maxGrowthKbPerHour)
-    ? 'growing'
-    : 'flat';
+  const trend = memoryTrend(baselines, options.maxGrowthKbPerHour);
+  if (trend === 'unjudged') {
+    return {name, trend, baselinesKb: [], growthKbPerHour: null};
+  }
   return {
     name,
     trend,
@@ -217,7 +223,7 @@ function summarizeFps(
 /**
  * Judges a soak record. The run fails when the record is too short, when a
  * process relaunched, or when a process's memory can't be judged or kept
- * growing: the line through each window's lowest value rises at least
+ * growing: the robust slope through each window's lowest value rises at least
  * `maxGrowthKbPerHour`, over the whole judged time and over its later half.
  * Lowest values are used because garbage collection makes memory rise and fall
  * in between. The windows cover the required time,

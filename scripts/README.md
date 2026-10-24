@@ -116,16 +116,20 @@ one sample, spread over several lines:
 - `fps` is the output window's frame rate over the last interval.
 
 The judge skips a warm-up (5 minutes, or a twelfth of a shorter run) and splits
-the rest of the requested time into 6 windows. The run fails when:
+the rest of the requested time into 12 windows. A short run gets fewer windows
+of at least a minute each, and never fewer than 4. The run fails when:
 
 - the record covers less than the requested time,
 - a process has fewer than 3 samples in any window, for example because it
   disappeared partway,
-- a process relaunched (a new `pid` under the same `name`), or
-- a process's memory keeps growing: a straight line fitted through each window's
-  lowest value rises at least 4 MB per hour, both over the whole judged time and
-  over its later half. A cache that fills early and then levels off passes; a
-  leak that starts halfway doesn't.
+- a process relaunched (a new `pid` under the same `name`),
+- a process's memory keeps growing: the slope through each window's lowest value
+  rises at least 4 MB per hour, both over the whole judged time and over its
+  later half. The slope is the median of the slopes between every pair of
+  windows (Theil-Sen), so one window that dips or jumps can't decide it. A cache
+  that fills early and then levels off passes; a leak that starts halfway
+  doesn't, and
+- a fit has fewer than two windows to compare, which can't be judged.
 
 A median frame rate under 58 fps is a warning. Bad record lines are dropped and
 listed.

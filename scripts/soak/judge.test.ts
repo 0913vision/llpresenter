@@ -15,6 +15,14 @@ interface RunShape {
   readonly fps?: number;
 }
 
+function sampleAt(elapsedMs: number, privateKb: number): SoakSample {
+  return {
+    elapsedMs,
+    processes: [{name: 'main', pid: 100, workingSetKb: privateKb, privateKb}],
+    outputs: [],
+  };
+}
+
 function sawtooth(minute: number): number {
   return (minute % 3) * GC_SWING_KB;
 }
@@ -105,6 +113,62 @@ describe('judgeRun', () => {
     );
     expect(verdict.memory[0]?.trend).toBe('growing');
   });
+
+  it('passes flat memory with one low window minimum among six', () => {
+    const minima: ReadonlyArray<readonly [number, number]> = [
+      [14, 200],
+      [23, 200],
+      [32, 200],
+      [33, 150],
+      [50, 200],
+      [60, 200],
+    ];
+    const samples = minima.flatMap(([minute, megabytes]) =>
+      [minute - 0.5, minute - 0.2, minute].map(at => {
+        const kb = (megabytes + (at === minute ? 0 : 1)) * 1024;
+        return sampleAt(at * MINUTE_MS, kb);
+      }),
+    );
+    const verdict = judgeRun(samples, {
+      ...DEFAULT_JUDGE_OPTIONS,
+      windowCount: 6,
+    });
+    expect(verdict.memory[0]?.trend).toBe('flat');
+  });
+
+  it('passes flat memory with one low dip', () => {
+    const verdict = judgeRun(
+      soakRun(m => (m === 33 ? BASE_KB - 50 * 1024 : BASE_KB)),
+    );
+    expect(verdict.memory[0]?.trend).toBe('flat');
+  });
+
+  it('passes flat memory with one high window', () => {
+    const verdict = judgeRun(
+      soakRun(m => (m >= 40 && m < 44 ? BASE_KB + 50 * 1024 : BASE_KB)),
+    );
+    expect(verdict.memory[0]?.trend).toBe('flat');
+  });
+
+  it('still fails a steady rise with one high window in it', () => {
+    const rise = (m: number): number => (12 * 1024 * m) / 60;
+    const verdict = judgeRun(
+      soakRun(m => BASE_KB + rise(m) + (m >= 10 && m < 14 ? 50 * 1024 : 0)),
+    );
+    expect(verdict.memory[0]?.trend).toBe('growing');
+  });
+
+  it.each([0, 1, 2])(
+    'cannot judge memory with %i windows, even when it rises',
+    windowCount => {
+      const verdict = judgeRun(
+        soakRun(m => BASE_KB + 1024 * m),
+        {...DEFAULT_JUDGE_OPTIONS, windowCount},
+      );
+      expect(verdict.memory[0]?.trend).toBe('unjudged');
+      expect(verdict.passed).toBe(false);
+    },
+  );
 
   it('fails a record that is shorter than required', () => {
     const verdict = judgeRun(soakRun(() => BASE_KB, {minutes: 30}));
@@ -201,12 +265,17 @@ describe('judgeOptionsFor', () => {
     expect(judgeOptionsFor(60 * MINUTE_MS)).toEqual(DEFAULT_JUDGE_OPTIONS);
   });
 
-  it('shortens the warm-up for a short trial run', () => {
+  it('shortens the warm-up and the windows for a short trial run', () => {
     expect(judgeOptionsFor(6 * MINUTE_MS)).toEqual({
       ...DEFAULT_JUDGE_OPTIONS,
       requiredMs: 6 * MINUTE_MS,
       warmUpMs: 30_000,
+      windowCount: 5,
     });
+  });
+
+  it('never goes below four windows', () => {
+    expect(judgeOptionsFor(2 * MINUTE_MS).windowCount).toBe(4);
   });
 
   it('judges a short flat trial run', () => {
