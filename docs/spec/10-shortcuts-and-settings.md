@@ -304,8 +304,8 @@ has no ProPresenter source, so this proposal's choice applies.
   The key field and the 단축키 page never show a Hangul letter such as ㅊ for
   the C key.
 - The 한/영 and 한자 keys can't be assigned. On Windows with the Korean layout,
-  Chrome reports an empty `code` for them (S13). The key field ignores any key
-  with an empty `code`.
+  Chrome reports an empty `code` for them (S13). The key field doesn't record a
+  key with an empty `code` (see "Reserved keys").
 - On many Korean keyboards the right Alt key works as 한/영 and the right Ctrl
   key as 한자 (S14, S15). They then don't count as Alt or Ctrl. Every default in
   this proposal works with the left Alt and Ctrl keys (decided).
@@ -390,17 +390,26 @@ Rules this precedence replaces or narrows:
 
 ### Reserved keys
 
-The key field doesn't accept these. It keeps recording, shows the error ring,
-and gives the reason in a tooltip (decided). The tooltip is one short phrase in
-the form "(용도)에 쓰는 키" (the key for a purpose), like the conflict tooltip
-"(명령)과 겹침" of the `KeyCap` README (approved by the lead, 2026-10-25).
+While the key field records, it checks a key press in this order:
+
+1. Esc cancels the recording, and the shortcut stays as it was.
+2. Backspace alone removes the shortcut (`TextField` README).
+3. Tab and Shift Tab end the recording and move keyboard focus, so the field
+   never traps the keyboard.
+4. Any other reserved key below isn't recorded. The field keeps recording, shows
+   the error ring, and gives the reason in a tooltip (decided).
+5. Any other combination becomes the shortcut.
+
+The tooltip is one short phrase in the form "(용도)에 쓰는 키" (the key for a
+purpose), like the conflict tooltip "(명령)과 겹침" of the `KeyCap` README
+(approved by the lead, 2026-10-25).
 
 | Keys                                                                               | Reason                                                        | Tooltip                    |
 | ---------------------------------------------------------------------------------- | ------------------------------------------------------------- | -------------------------- |
-| Tab, Shift Tab                                                                     | Keyboard focus moves                                          | 포커스 이동에 쓰는 키      |
-| Esc                                                                                | Cancels (dialogs, menus, drags, the key field itself)         | 취소에 쓰는 키             |
+| Tab, Shift Tab                                                                     | Keyboard focus moves                                          | None (step 3)              |
+| Esc                                                                                | Cancels (dialogs, menus, drags, the key field itself)         | None (step 1)              |
 | Enter alone                                                                        | Primary button in dialogs, activation in lists                | 확인과 실행에 쓰는 키      |
-| Backspace alone                                                                    | Removes the shortcut in the key field (`TextField` README)    | 단축키 지우기에 쓰는 키    |
+| Backspace alone                                                                    | Removes the shortcut in the key field (`TextField` README)    | None (step 2)              |
 | Alt alone, F10 alone                                                               | Focus the menu bar (`MenuBar` README)                         | 메뉴 막대에 쓰는 키        |
 | Shift F10, the Menu key                                                            | Open the right-click menu (`Menu` README, 07)                 | 오른쪽 클릭 메뉴에 쓰는 키 |
 | Ctrl X, C, V, A                                                                    | Text editing                                                  | 글자 편집에 쓰는 키        |

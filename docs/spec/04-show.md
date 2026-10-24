@@ -209,10 +209,16 @@ each preview follows ProPresenter's rule: it shows what goes out.
 
 ### What a preview shows
 
-- Each preview shows what that screen's output shows now: every layer, drawn by
-  the same rendering code with the current Look, the lyric style or stage
-  layout, and the transitions (03). ProPresenter's Preview window likewise shows
-  the output (guide p. 24).
+- Each preview shows what that screen's output window draws now: every layer,
+  drawn by the same rendering code with the current Look, the lyric style or
+  stage layout, and the transitions (03). ProPresenter's Preview window likewise
+  shows the output (guide p. 24).
+- While a screen's output window restarts after a crash, or is held at the
+  restart limit, the window draws the screen's empty picture, and so does its
+  preview (08). The preview draws the live content again when the window draws
+  it again.
+- The one exception is an output that the operator turned off: its preview keeps
+  the picture (see "Layout and states").
 - A preview follows the live output, never the selection. A click on a 장
   outputs it (03), so the previews change at the same moment as the outputs.
   Moving the selected tile with the keyboard, opening another 예배 순서 item in
@@ -226,8 +232,10 @@ each preview follows ProPresenter's rule: it shows what goes out.
   Slide is a stage layout object (guide p. 41), and its main window has no next
   slide preview (guide pp. 24 to 26).
 - A layer that the current Look hides on a screen doesn't show in that screen's
-  preview (03, "Looks"). For example, the 방송 자막 preview never shows 공지,
-  소품, or 메시지.
+  preview (03, "Looks"). For example, the default Look shows only the background
+  and the lyrics on the 방송 자막 (03), so its preview shows no 공지, 소품, or
+  메시지. A Look that turns those layers on for the 방송 자막 shows them there
+  and in its preview.
 - Previews draw at the 미리보기 rate, 30 fps by default (03). A dissolve can
   look less smooth than on the output; the content is the same.
 
@@ -265,8 +273,8 @@ each preview follows ProPresenter's rule: it shows what goes out.
 - A screen whose output is off keeps its picture and keeps following the live
   state, so the operator sees what goes out when the output turns on again (03,
   `PreviewFrame` README). Its name is dim.
-- A screen with a lost monitor, or an output window that can't be reopened, has
-  an amber outline (08). Tooltips give the reasons.
+- A screen with a lost monitor, or an output window held at the restart limit,
+  has an amber outline (08). Tooltips give the reasons.
 - A background that froze because its file is missing shows the same still frame
   as the output, with the marks in 08.
 - The 방송 자막 frame has a green background.

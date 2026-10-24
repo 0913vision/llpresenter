@@ -98,6 +98,9 @@ README, `Notification` README.
 - The target for the picture to come back is 1 second (proposal). Observation:
   qa measured about 1.2 seconds in the built app while testing output-1
   (reported to the lead, October 25, 2026).
+- While the window restarts, it shows the screen's empty picture, and its
+  preview shows the same picture (04). Both draw the live content again when the
+  page has loaded the output state.
 - Write a log entry for every crash, with the reason and the exit code that
   `render-process-gone` gives. Don't show a notification while restarts work
   (proposal).
@@ -132,15 +135,19 @@ While the limit holds:
   the main screen output window) shows, with the detail "빈 화면으로 표시 중"
   (showing an empty screen) and the action 다시 시도 (try again). 다시 시도
   starts an attempt at once; if it dies, the next cool-down follows (proposal).
-- The screen's preview frame gets the amber outline, with the tooltip "출력 창을
-  다시 띄울 수 없어 빈 화면으로 표시 중" (output window can't be reopened,
-  showing an empty screen), because the preview draws the live state while the
-  audience sees the empty picture (proposal).
+- The screen's preview shows the same empty picture as the window (04), and its
+  frame gets the amber outline, with the tooltip "출력 창을 다시 띄울 수 없어 빈
+  화면으로 표시 중" (output window can't be reopened, showing an empty screen)
+  (proposal).
+- Each screen has at most one pending attempt and one attempt in progress. 다시
+  시도, or turning the output on, cancels the pending cool-down and starts an
+  attempt at once; while an attempt is in progress, it does nothing more.
 - Turning the output off hides the window and stops the attempts. Turning it on
   again starts an attempt at once.
 - When an attempt works, the warning card turns into the information card "본
   화면 출력 창 다시 띄움" (main screen output window reopened), which closes
-  after 6 seconds, and the amber outline goes away (proposal).
+  after 6 seconds, the amber outline goes away, and the preview draws the live
+  content again (proposal).
 - Each attempt, its result, and the end of the limit are logged.
 
 Source: `docs/TECH.md` process structure, the lead's rule in
