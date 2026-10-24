@@ -45,8 +45,8 @@ approved. You do the foundation work of phases 1 and 2 yourself.
 2. Trial run: when the user says to start, start the trial session with
    `docs/briefs/trial.md`. When trial sends a review request, add one small
    commit to `rewrite` (for example, a `docs/STATUS.md` update) and ask trial to
-   rebase, to check the rebase flow too. Call the reviewer agent once to check
-   the review flow too. When both of you approve, merge.
+   rebase, to check the rebase flow too. Call the reviewer once to check the
+   review flow too. When both of you approve, merge.
 3. Report the trial run results to the user. If there are problems, fix
    `docs/WORKFLOW.md`.
 4. When the user says to start, start the devops session with
@@ -55,12 +55,16 @@ approved. You do the foundation work of phases 1 and 2 yourself.
 
 ## Calling the reviewer (before Codex joins)
 
-- For each review request, start a read-only review agent with a fresh context.
-  State clearly that it must only read and must not change files.
+- For each review request, start a fresh reviewer session in a tmux window, the
+  same way as a team member, in a detached worktree at the reviewed commit
+  (`git worktree add --detach .claude/worktrees/reviewer <branch>`). Never use a
+  subagent. Its `.llp/start.md` states that it must only read and must not
+  change files.
 - Give it: the path of the review document, the range of
   `git diff rewrite...<branch>`, the brief, the quality bar in `docs/TECH.md`,
   the code, comment, and review rules in `CLAUDE.md`, and the related spec and
   design system component docs.
 - Get back: "Approve" or "Request changes," and a list of findings (file, line,
-  reason, and the situation where it fails). Copy the result into the reviewer
-  section of the review document.
+  reason, and the situation where it fails), by SendMessage. Send it to the team
+  member to paste into the reviewer section of the review document, then close
+  the reviewer window and remove its worktree.

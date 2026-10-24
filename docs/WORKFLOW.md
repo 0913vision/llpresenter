@@ -19,9 +19,11 @@ The integration branch is `rewrite`. For now, it acts as the team's main branch
 | Team member (work session) | Implementing the scope of the brief, rebasing their branch onto the latest `rewrite` and resolving conflicts themselves, writing review requests, addressing review comments, asking questions                                                    | Change shared files, touch other branches, or commit directly to `rewrite`         |
 | Reviewer                   | Only reads review requests, reviews them independently, and gives an approval or a change request                                                                                                                                                 | Change code                                                                        |
 
-Until Codex joins, the reviewer is a read-only review agent that the lead starts
-with a fresh context for each review request. After Codex joins, Codex (running
-read-only) takes this role.
+Until Codex joins, the reviewer is a separate, read-only Claude Code session
+that the lead starts fresh for each review request, in a tmux window like a team
+member (never a subagent). It runs in a detached worktree at the reviewed commit
+and sends its verdict to the lead with SendMessage. After Codex joins, Codex
+(running read-only) takes this role.
 
 ## Starting sessions
 
@@ -135,11 +137,11 @@ Principle: clear a session only when everything the next person needs to know is
 in files. The commits are done, the documents are updated, and no messages are
 waiting and no reviews are open.
 
-| Who          | When to clear                                                                                                                                                                                                                          |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Lead         | When a phase ends and there are no active team members and no open review requests. After updating and committing `docs/STATUS.md` and `docs/HANDOFF.md`. Before the conversation grows long enough to trigger automatic summarization |
-| Team member  | Never. Each bundle gets one session. After the merge, the session is archived, and the next bundle starts in a new session                                                                                                             |
-| Review agent | It's started fresh for each review request, so there's nothing to clear                                                                                                                                                                |
+| Who         | When to clear                                                                                                                                                                                                                          |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lead        | When a phase ends and there are no active team members and no open review requests. After updating and committing `docs/STATUS.md` and `docs/HANDOFF.md`. Before the conversation grows long enough to trigger automatic summarization |
+| Team member | Never. Each bundle gets one session. After the merge, the session is archived, and the next bundle starts in a new session                                                                                                             |
+| Reviewer    | It's started fresh for each review request, so there's nothing to clear                                                                                                                                                                |
 
 Every session, the lead included, can be compacted (summarized automatically) at
 any time. `CLAUDE.md` under "Context and compaction" says how to survive it:
