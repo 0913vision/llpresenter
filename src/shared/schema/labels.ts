@@ -23,7 +23,6 @@ import {
 
 const JUMP_KEY = /^(Key[A-Z]|Digit\d)$/;
 
-/** A jump key: the `KeyboardEvent.code` of a letter or digit key. */
 const jumpKeySchema = v.nullable(
   v.pipe(
     v.string(),

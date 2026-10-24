@@ -113,6 +113,21 @@ describe('parseLabels', () => {
   });
 });
 
+describe('serializeLabels', () => {
+  it('refuses to write an invalid jump key instead of turning it into none', () => {
+    const labels = expectSuccess(
+      parseLabels(JSON.stringify(defaultLabels()), 'labels.json'),
+    ).data;
+
+    const written = serializeLabels(
+      {...labels, labels: [{name: '후렴', color: 'yellow', key: 'C'}]},
+      'labels.json',
+    );
+
+    expect(written.ok ? undefined : written.error.field).toBe('labels.0.key');
+  });
+});
+
 describe('label types', () => {
   it('uses the shared label colors', () => {
     expectTypeOf<Label['color']>().toEqualTypeOf<LabelColor>();
