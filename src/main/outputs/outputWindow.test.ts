@@ -125,7 +125,7 @@ describe('OutputWindow', () => {
     expect(log.messages('error')).toContain('output window page did not load');
     await clock.advance(RELAUNCH_DELAY_MS);
     expect(handle.reloads).toBe(2);
-    output.pageDrawn();
+    output.frameReported();
     expect(output.rendererState).toBe('running');
   });
 
@@ -190,6 +190,21 @@ describe('OutputWindow', () => {
     expect(log.messages('error')).toContain(
       'output window stopped drawing; restarting its renderer',
     );
+  });
+
+  it('crashes a hung renderer again when the first forced crash does not end it', async () => {
+    const clock = installFakeClock();
+    const {output, windows} = setUp();
+    output.update(FULL_SCREEN);
+    const handle = windows.only('main');
+    output.frameReported();
+    await clock.advance(HANG_TIMEOUT_MS);
+    expect(handle.forcedCrashes).toBe(1);
+    await clock.advance(HANG_TIMEOUT_MS);
+    expect(handle.forcedCrashes).toBe(2);
+    handle.crash();
+    await clock.advance(HANG_TIMEOUT_MS * 2);
+    expect(handle.forcedCrashes).toBe(2);
   });
 
   it('does not watch a hidden output or one that is restarting', async () => {

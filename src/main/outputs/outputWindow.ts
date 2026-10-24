@@ -177,5 +177,8 @@ export class OutputWindow {
       {screen: this.options.screen.id, silentForMs: HANG_TIMEOUT_MS},
     );
     this.handle?.crashRenderer();
+    // NOTE(0913vision): A renderer that survives the forced crash sends no
+    // render-process-gone, so the watch tries again after another timeout.
+    this.hangWatch.beat();
   }
 }
