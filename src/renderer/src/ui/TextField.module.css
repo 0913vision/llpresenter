@@ -68,7 +68,8 @@
   width: var(--field-number-width);
 }
 
-.number .input {
+.number .input,
+.numeric .input {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }

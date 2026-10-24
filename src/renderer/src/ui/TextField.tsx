@@ -30,6 +30,8 @@ export interface TextFieldProps extends Omit<
   readonly clearable?: boolean | undefined;
   /** A short prefix inside the field, such as 시작 or 끝. */
   readonly affix?: string | undefined;
+  /** Right-aligns the value with tabular numbers, for times like 00:30.0. */
+  readonly numeric?: boolean | undefined;
   /** Adds `ring-field`, for a field on `bg-app`. */
   readonly ring?: boolean | undefined;
   /** Fills the width of its cell. */
@@ -51,24 +53,29 @@ const clearIconSize = {sm: 12, md: 14} as const satisfies Record<
   number
 >;
 
+interface FrameLook {
+  readonly size: ControlSize;
+  readonly variant: TextFieldVariant;
+  readonly ring: boolean;
+  readonly block: boolean;
+  readonly numeric: boolean;
+  readonly className: string | undefined;
+}
+
 function frameClass({
   size,
   variant,
   ring,
   block,
+  numeric,
   className,
-}: {
-  readonly size: ControlSize;
-  readonly variant: TextFieldVariant;
-  readonly ring: boolean;
-  readonly block: boolean;
-  readonly className: string | undefined;
-}): string {
+}: FrameLook): string {
   return classNames(
     styles.field,
     variant === 'title' ? styles.title : size === 'sm' && styles.sm,
     ring && styles.ring,
     block && styles.block,
+    numeric && styles.numeric,
     className,
   );
 }
@@ -82,6 +89,7 @@ export function TextField({
   icon,
   clearable = false,
   affix,
+  numeric = false,
   ring = false,
   block = false,
   invalid = false,
@@ -122,7 +130,14 @@ export function TextField({
 
   return (
     <FieldFrame
-      className={frameClass({size, variant, ring, block, className})}
+      className={frameClass({
+        size,
+        variant,
+        ring,
+        block,
+        numeric,
+        className,
+      })}
       title={reason.tooltip}
       inputRef={inputRef}
     >
