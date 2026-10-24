@@ -105,4 +105,21 @@ describe('NumberField', () => {
     await userEvent.keyboard('30%');
     expect(onChange).toHaveBeenLastCalledWith(30);
   });
+
+  it('keeps a read-only value on the arrow keys and Enter', async () => {
+    const onChange = vi.fn();
+    render(
+      <NumberField
+        aria-label="복구 사본"
+        min={1}
+        max={50}
+        value={10}
+        readOnly
+        onChange={onChange}
+      />,
+    );
+    await userEvent.click(screen.getByRole('spinbutton', {name: '복구 사본'}));
+    await userEvent.keyboard('{ArrowUp}{Shift>}{ArrowDown}{/Shift}{Enter}');
+    expect(onChange).not.toHaveBeenCalled();
+  });
 });

@@ -162,6 +162,24 @@ describe('TextField', () => {
     );
     expect(screen.getByText('시작')).toBeDefined();
   });
+
+  it('keeps a read-only search value on Esc', async () => {
+    const onChange = vi.fn();
+    render(
+      <TextField
+        aria-label="폴더"
+        icon="search"
+        clearable
+        readOnly
+        value="D:/예배 자료"
+        onChange={onChange}
+      />,
+    );
+    await userEvent.click(screen.getByRole('textbox', {name: '폴더'}));
+    await userEvent.keyboard('{Escape}');
+    expect(onChange).not.toHaveBeenCalled();
+    expect(screen.queryByRole('button', {name: '검색어 지우기'})).toBeNull();
+  });
 });
 
 describe('TextArea', () => {

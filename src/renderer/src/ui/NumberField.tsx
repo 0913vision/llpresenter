@@ -71,6 +71,7 @@ export function NumberField({
   className,
   onBlur,
   onKeyDown,
+  readOnly = false,
   'aria-describedby': describedBy,
   ...rest
 }: NumberFieldProps): JSX.Element {
@@ -112,7 +113,7 @@ export function NumberField({
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
     onKeyDown?.(event);
-    if (event.defaultPrevented) return;
+    if (event.defaultPrevented || readOnly) return;
     if (event.key === 'Enter') {
       commit();
       return;
@@ -141,6 +142,7 @@ export function NumberField({
         aria-valuetext={shown}
         aria-invalid={invalid ? true : undefined}
         aria-describedby={reason.describedBy}
+        readOnly={readOnly}
         value={draft ?? shown}
         className={styles.input}
         onChange={event => type(event.target.value)}

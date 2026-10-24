@@ -118,7 +118,8 @@ export function TextField({
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
     onKeyDown?.(event);
-    if (event.defaultPrevented || !clearable || event.key !== 'Escape') return;
+    if (event.defaultPrevented || readOnly || !clearable) return;
+    if (event.key !== 'Escape') return;
     event.preventDefault();
     if (value === '') {
       event.currentTarget.blur();
