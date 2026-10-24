@@ -120,8 +120,8 @@ describe('ServiceOrderList', () => {
   });
 
   it('re-renders only the rows whose state changed', () => {
-    render(<ServiceOrderList />);
     openItem('song-morning');
+    render(<ServiceOrderList />);
     iconRenders.count = 0;
     act(() => openItem('song-river'));
     expect(iconRenders.count).toBe(2);

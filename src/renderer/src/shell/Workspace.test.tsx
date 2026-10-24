@@ -1,5 +1,6 @@
 import {cleanup, fireEvent, render} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import {isColumnDragActive} from '@renderer/state/drag';
 import {createMemoryColumnWidthStore} from './columnWidthStore';
 import {Workspace} from './Workspace';
 
@@ -303,6 +304,40 @@ describe('Workspace column gaps', () => {
       left: '400px',
       right: '624px',
     });
+  });
+
+  it('marks a column drag as active from the press to the release', () => {
+    const {container} = render(
+      <Workspace
+        id="show"
+        sizeClass="normal"
+        store={createMemoryColumnWidthStore()}
+      />,
+    );
+    const gap = gapOf(container, 'left');
+    expect(isColumnDragActive()).toBe(false);
+    fireEvent.pointerDown(gap, {pointerId: 1, button: 0, clientX: 300});
+    expect(isColumnDragActive()).toBe(true);
+    fireEvent.pointerUp(gap, {pointerId: 1, clientX: 300});
+    expect(isColumnDragActive()).toBe(false);
+  });
+
+  it('ends the active drag mark when the workspace unmounts in the middle of a drag', () => {
+    const {container, unmount} = render(
+      <Workspace
+        id="show"
+        sizeClass="normal"
+        store={createMemoryColumnWidthStore()}
+      />,
+    );
+    fireEvent.pointerDown(gapOf(container, 'left'), {
+      pointerId: 1,
+      button: 0,
+      clientX: 300,
+    });
+    expect(isColumnDragActive()).toBe(true);
+    unmount();
+    expect(isColumnDragActive()).toBe(false);
   });
 
   it('removes the resize listener when it unmounts', () => {

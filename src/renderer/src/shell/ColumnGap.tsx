@@ -1,4 +1,5 @@
-import {useRef, type JSX, type PointerEvent} from 'react';
+import {useEffect, useRef, type JSX, type PointerEvent} from 'react';
+import {setColumnDragActive} from '@renderer/state/drag';
 import type {DragSession} from './ColumnLayout';
 import type {DraggableColumn} from './columns';
 import styles from './ColumnGap.module.css';
@@ -26,11 +27,19 @@ export function ColumnGap({
 }): JSX.Element {
   const active = useRef<ActiveDrag | null>(null);
 
+  useEffect(
+    () => () => {
+      if (active.current) setColumnDragActive(false);
+    },
+    [],
+  );
+
   const onPointerDown = (event: PointerEvent<HTMLDivElement>): void => {
     if (event.button !== PRIMARY_BUTTON || active.current) return;
     const session = drag.begin(column);
     if (!session) return;
     event.currentTarget.setPointerCapture(event.pointerId);
+    setColumnDragActive(true);
     active.current = {
       session,
       pointerId: event.pointerId,
@@ -46,6 +55,7 @@ export function ColumnGap({
     const current = active.current;
     if (current?.pointerId !== event.pointerId) return;
     active.current = null;
+    setColumnDragActive(false);
     current.session.end();
   };
 

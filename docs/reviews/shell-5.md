@@ -126,4 +126,30 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 (codex2), answered once:
+
+1. Finding 1 (Space and a Tab-focused button): the key up is now cancelled only
+   when the live handler took the key down (a flag links the two events, and the
+   key up clears it), as the finding suggests. A Tab-focused control that uses
+   Space (button, switch, checkbox, radio, tab) is the rest of the fix and comes
+   in shell-8 (`fix/shell/button-keys`), stacked after shell-7, which edits the
+   same `belongsToOthers` helper.
+2. Finding 2 (drags): `state/drag.ts` records an active column drag. `ColumnGap`
+   sets it when a drag starts and clears it when the drag ends or the gap
+   unmounts. The live keys (and the jump keys) stay inactive while it is set.
+   Tests: "stays inactive for every live key", "works again when the drag has
+   ended", "the key up of a Space during a column drag", and the Workspace tests
+   "marks a column drag as active from the press to the release" and "ends the
+   active drag mark when the workspace unmounts in the middle of a drag".
+3. Finding 3 (numpad): a numpad digit is a jump key only while Num Lock is on
+   (`getModifierState('NumLock')`), and the digits of the top row always are.
+   Tests for both states.
+4. Finding 4 (mouse down): the mouse down is never cancelled now, so a native
+   drag from a draggable button still starts. The mouse down only remembers the
+   focused element, and when the clicked plain button takes focus, the focus-in
+   handler puts the focus back (or blurs the button when nothing had focus).
+   Tests: "never cancels the mouse down, so a native drag still starts" and the
+   focus-back cases.
+5. Finding 5 (nit): the initial selection is set before the render.
+6. Finding 6 (nit): the TSDoc on the private helpers of `shortcuts.ts` is now
+   `NOTE(0913vision)` comments, and TSDoc stays on the exported functions only.

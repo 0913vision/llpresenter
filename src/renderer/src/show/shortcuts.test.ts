@@ -1,6 +1,12 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import {setColumnDragActive} from '@renderer/state/drag';
 import * as showState from '@renderer/state/show';
-import {handleShowKey, handleShowKeyUp, handleShowMouseDown} from './shortcuts';
+import {
+  handleShowFocusIn,
+  handleShowKey,
+  handleShowKeyUp,
+  handleShowMouseDown,
+} from './shortcuts';
 
 function keyEvent(params: {
   readonly type: 'keydown' | 'keyup';
@@ -30,6 +36,12 @@ function press(
   return event;
 }
 
+function release(code: string, target: Element = document.body): KeyboardEvent {
+  const event = keyEvent({type: 'keyup', code, target});
+  handleShowKeyUp(event);
+  return event;
+}
+
 function appendTo(tag: string, attributes: Record<string, string> = {}) {
   const element = document.body.appendChild(document.createElement(tag));
   for (const [name, value] of Object.entries(attributes)) {
@@ -45,6 +57,8 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  setColumnDragActive(false);
+  release('Space');
   vi.restoreAllMocks();
   document.body.replaceChildren();
 });
@@ -133,6 +147,32 @@ describe('handleShowKey where another part owns the key', () => {
   );
 });
 
+describe('handleShowKey during a column drag', () => {
+  it('stays inactive for every live key', () => {
+    setColumnDragActive(true);
+    for (const code of [
+      'Space',
+      'ArrowRight',
+      'ArrowLeft',
+      'PageDown',
+      'PageUp',
+      'KeyC',
+    ]) {
+      expect(press(code).defaultPrevented).toBe(false);
+    }
+    expect(showState.outputNext).not.toHaveBeenCalled();
+    expect(showState.outputPrevious).not.toHaveBeenCalled();
+    expect(showState.outputLabel).not.toHaveBeenCalled();
+  });
+
+  it('works again when the drag has ended', () => {
+    setColumnDragActive(true);
+    setColumnDragActive(false);
+    press('Space');
+    expect(showState.outputNext).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('handleShowKey jump keys', () => {
   it('outputs the 이름표 of a bound key and swallows it', () => {
     const event = press('KeyC');
@@ -140,8 +180,19 @@ describe('handleShowKey jump keys', () => {
     expect(event.defaultPrevented).toBe(true);
   });
 
-  it('treats numpad digits as the digits of the top row', () => {
-    press('Numpad1');
+  it('treats numpad digits as the digits of the top row while Num Lock is on', () => {
+    press('Numpad1', {modifierNumLock: true});
+    expect(showState.outputLabel).toHaveBeenCalledWith('1절');
+  });
+
+  it('ignores numpad digits while Num Lock is off', () => {
+    const event = press('Numpad1', {modifierNumLock: false});
+    expect(showState.outputLabel).not.toHaveBeenCalled();
+    expect(event.defaultPrevented).toBe(false);
+  });
+
+  it('still matches the digits of the top row with Num Lock off', () => {
+    press('Digit1', {modifierNumLock: false});
     expect(showState.outputLabel).toHaveBeenCalledWith('1절');
   });
 
@@ -165,36 +216,37 @@ describe('handleShowKey jump keys', () => {
 });
 
 describe('handleShowKeyUp', () => {
-  it('stops Space from pressing a focused button on key up', () => {
-    const event = keyEvent({
-      type: 'keyup',
-      code: 'Space',
-      target: appendTo('button'),
-    });
-    handleShowKeyUp(event);
-    expect(event.defaultPrevented).toBe(true);
+  it('cancels the key up of a Space that the live handler took', () => {
+    press('Space');
+    expect(release('Space').defaultPrevented).toBe(true);
   });
 
-  it('leaves Space to a text field and to other keys', () => {
-    const inField = keyEvent({
-      type: 'keyup',
-      code: 'Space',
-      target: appendTo('input'),
-    });
-    handleShowKeyUp(inField);
-    const other = keyEvent({
-      type: 'keyup',
-      code: 'Enter',
-      target: appendTo('button'),
-    });
-    handleShowKeyUp(other);
-    expect(inField.defaultPrevented).toBe(false);
-    expect(other.defaultPrevented).toBe(false);
+  it('cancels only that one key up', () => {
+    press('Space');
+    release('Space');
+    expect(release('Space').defaultPrevented).toBe(false);
+  });
+
+  it('leaves the key up of a Space that was not taken', () => {
+    press('Space', {}, appendTo('input'));
+    expect(release('Space', appendTo('button')).defaultPrevented).toBe(false);
+  });
+
+  it('leaves the key up of a Space during a column drag', () => {
+    setColumnDragActive(true);
+    press('Space');
+    expect(release('Space').defaultPrevented).toBe(false);
+  });
+
+  it('ignores other keys', () => {
+    press('Space');
+    expect(release('Enter').defaultPrevented).toBe(false);
+    expect(release('Space').defaultPrevented).toBe(true);
   });
 });
 
-describe('handleShowMouseDown', () => {
-  function click(target: Element, button = 0): MouseEvent {
+describe('click focus', () => {
+  function mouseDown(target: Element, button = 0): MouseEvent {
     const event = new MouseEvent('mousedown', {
       button,
       bubbles: true,
@@ -205,29 +257,73 @@ describe('handleShowMouseDown', () => {
     return event;
   }
 
-  it('keeps focus off a clicked button', () => {
-    expect(click(appendTo('button')).defaultPrevented).toBe(true);
-    expect(click(appendTo('div', {role: 'tab'})).defaultPrevented).toBe(true);
+  function focusIn(target: Element): void {
+    const event = new FocusEvent('focusin', {bubbles: true});
+    Object.defineProperty(event, 'target', {value: target});
+    handleShowFocusIn(event);
+  }
+
+  function clickAndFocus(target: HTMLElement, button = 0): void {
+    mouseDown(target, button);
+    target.focus();
+    focusIn(target);
+  }
+
+  it('never cancels the mouse down, so a native drag still starts', () => {
+    const draggable = appendTo('button', {draggable: 'true'});
+    expect(mouseDown(draggable).defaultPrevented).toBe(false);
+    expect(mouseDown(appendTo('button')).defaultPrevented).toBe(false);
   });
 
-  it('lets text fields, the 장 grid, and the 예배 순서 list take focus', () => {
+  it('puts the focus back when a plain button takes it', () => {
+    const previous = appendTo('button');
+    previous.focus();
+    clickAndFocus(appendTo('button'));
+    expect(document.activeElement).toBe(previous);
+  });
+
+  it('blurs the button when nothing else had focus', () => {
+    const control = appendTo('button');
+    clickAndFocus(control);
+    expect(document.activeElement).not.toBe(control);
+  });
+
+  it('keeps the focus where it was when a tab or a role button is clicked', () => {
+    const previous = appendTo('button');
+    previous.focus();
+    clickAndFocus(appendTo('div', {role: 'tab', tabindex: '0'}));
+    expect(document.activeElement).toBe(previous);
+  });
+
+  it('lets text fields, the 장 grid, the 예배 순서 list, and menus take focus', () => {
     const grid = appendTo('div', {'data-slide-grid': ''});
     const list = appendTo('div', {'data-service-list': ''});
-    const tile = grid.appendChild(document.createElement('button'));
-    const row = list.appendChild(document.createElement('button'));
-    expect(click(tile).defaultPrevented).toBe(false);
-    expect(click(row).defaultPrevented).toBe(false);
-    expect(click(appendTo('input')).defaultPrevented).toBe(false);
-  });
-
-  it('lets a menu or a dialog take focus', () => {
     const menu = appendTo('div', {role: 'menu'});
-    const item = menu.appendChild(document.createElement('button'));
-    expect(click(item).defaultPrevented).toBe(false);
+    const targets = [
+      appendTo('input'),
+      grid.appendChild(document.createElement('button')),
+      list.appendChild(document.createElement('button')),
+      menu.appendChild(document.createElement('button')),
+    ];
+    for (const target of targets) {
+      appendTo('button').focus();
+      clickAndFocus(target);
+      expect(document.activeElement).toBe(target);
+    }
   });
 
-  it('ignores other mouse buttons and other elements', () => {
-    expect(click(appendTo('button'), 2).defaultPrevented).toBe(false);
-    expect(click(appendTo('div')).defaultPrevented).toBe(false);
+  it('ignores other mouse buttons', () => {
+    appendTo('button').focus();
+    const control = appendTo('button');
+    clickAndFocus(control, 2);
+    expect(document.activeElement).toBe(control);
+  });
+
+  it('does nothing for a focus change that no mouse down started', () => {
+    appendTo('button').focus();
+    const control = appendTo('button');
+    control.focus();
+    focusIn(control);
+    expect(document.activeElement).toBe(control);
   });
 });
