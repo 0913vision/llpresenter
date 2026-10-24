@@ -2,9 +2,15 @@
 
 - Team member: `data`
 - Branch: `feat/data/schemas`
-- Base commit (`main`): `5b09a98`
+- Base commit (`main`): `7d46151`
 - Last commit: see the commit that adds this file
 - Related brief: `docs/briefs/data.md`
+
+Shared changes (allowed by the brief and the lead):
+
+- `package.json`, `package-lock.json`: valibot 1.5.0 in `dependencies`.
+- `src/shared/result.ts` (new): the `Result` type.
+- `src/shared/schema/` (new): the file pipeline and the schemas.
 
 ## What changed and why
 
@@ -100,19 +106,25 @@ Every format goes through the same two functions:
 
 ## Checks run
 
-All on the commit before this document (5a8d6b4, base `main` 5b09a98).
+On the commit before this document. `npm run verify` ran on `main` 8b623b3; the
+later `main` commits change only documents.
 
-| Command or test                    | Result                                            |
-| ---------------------------------- | ------------------------------------------------- |
-| `npm run typecheck`                | Passed. Type assertions (`expectTypeOf`) included |
-| `npm test`                         | Passed: 14 files, 131 tests (94 in the schemas)   |
-| `npm run format:check`             | Passed                                            |
-| `npm run build`                    | Passed                                            |
-| `npm run verify` (from phase 1 on) | Not available yet (devops)                        |
+| Command or test                    | Result                                                                                                                                          |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run typecheck`                | Passed. Type assertions (`expectTypeOf`) included                                                                                               |
+| `npm test`                         | 224 of 225 tests passed (96 in the schemas). See the note below                                                                                 |
+| `npm run format:check`             | Passed                                                                                                                                          |
+| `npm run build`                    | Passed                                                                                                                                          |
+| `npm run verify` (from phase 1 on) | typecheck, lint, and format:check passed; test:coverage failed only on the note below; build passed when run alone. Schema coverage 98.8% lines |
+
+The one failure is `scripts/lint/config.test.ts` ("reports a floating promise"),
+which isn't part of this change. It timed out at 60 s while the machine was busy
+(84 s in the full run, 109 s alone). The lead said devops is fixing it and that
+this single failure doesn't block the request.
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
-- [ ] `npm run verify` passes: not available yet.
+- [ ] `npm run verify` passes: all but the known lint test timeout above.
 - [x] `npm run format:check` passes
 - [x] Every new behavior and every bug fix has unit tests
 - [x] Values from outside the process are validated with a schema
@@ -225,8 +237,19 @@ missing.
 
 Replies to the lead:
 
-1. Move `Result` to `src/shared/result.ts`: done in 39a3ac4. The schema modules
-   import it from there.
-2. Write the byte order mark as an escape: done in 453d827, in `fileFormat.ts`
-   and its test. The editor tool had turned the escape into the character
-   itself.
+1. Move `Result` to `src/shared/result.ts`: done in "move Result to src/shared".
+   The schema modules import it from there.
+2. Write the byte order mark as an escape: done in "write the byte order mark as
+   an escape", in `fileFormat.ts` and its test. The editor tool had turned the
+   escape into the character itself.
+3. Rebase onto `main` with devops-1 (1298408, then 8b623b3): `package-lock.json`
+   conflicted. I took `main`'s lock file and ran `npm install`, which added
+   valibot back with the same `devOptional` change as before. Nothing else
+   conflicted.
+4. Lint (new with devops-1) reported three problems, fixed in "fix what the
+   type-aware lint rules report": `ReadonlyKnown` now writes
+   `ReadonlyArray<infer Item>`, and two tests read `JSON.parse` output as
+   `unknown` instead of `any`. No lint exclusions.
+5. Coverage showed two untested branches, now tested in "test a non-object
+   service item": a service item that isn't an object, and a schema without
+   `schemaVersion`.
