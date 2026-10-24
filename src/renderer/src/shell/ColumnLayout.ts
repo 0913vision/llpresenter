@@ -24,6 +24,7 @@ export interface ColumnLayoutOptions {
 /**
  * Owns the column widths of the shell: the saved widths of the current size
  * class, the widths on screen, and the drag in progress. It touches no DOM.
+ * Call `refit` once to show the first widths.
  */
 export class ColumnLayout {
   private sizeClass: SizeClass;
@@ -35,7 +36,6 @@ export class ColumnLayout {
     this.sizeClass = options.sizeClass;
     this.saved = this.loadSaved();
     this.shown = this.saved;
-    this.refit();
   }
 
   /** Switches to the saved widths of another size class, or its defaults. */

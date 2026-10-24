@@ -2,7 +2,7 @@ import {
   useLayoutEffect,
   useMemo,
   useRef,
-  type MutableRefObject,
+  useState,
   type RefObject,
 } from 'react';
 import {ColumnLayout} from './ColumnLayout';
@@ -33,10 +33,6 @@ function watchWindowResize(layout: ColumnLayout): () => void {
   };
 }
 
-function dragOn(layout: MutableRefObject<ColumnLayout | null>): ColumnDrag {
-  return {begin: column => layout.current?.beginDrag(column)};
-}
-
 /**
  * Writes the column widths to the grid as CSS variables, so that dragging does
  * not re-render the panels. Returns the grid ref and the drag callbacks for the
@@ -51,30 +47,34 @@ export function useColumnLayout(
 } {
   const gridRef = useRef<HTMLElement | null>(null);
   const layoutRef = useRef<ColumnLayout | null>(null);
-  const sizeClassRef = useRef(sizeClass);
-  sizeClassRef.current = sizeClass;
+  const [firstSizeClass] = useState(sizeClass);
 
   useLayoutEffect(() => {
     const grid = gridRef.current;
     if (!grid) return undefined;
     const layout = new ColumnLayout({
       store,
-      sizeClass: sizeClassRef.current,
+      sizeClass: firstSizeClass,
       windowWidth: () => window.innerWidth,
       show: widths => showOn(grid, widths),
     });
     layoutRef.current = layout;
+    layout.refit();
     const unwatch = watchWindowResize(layout);
     return () => {
       unwatch();
       layoutRef.current = null;
     };
-  }, [store]);
+  }, [store, firstSizeClass]);
 
   useLayoutEffect(() => {
     layoutRef.current?.setSizeClass(sizeClass);
-  }, [sizeClass]);
+    layoutRef.current?.refit();
+  }, [store, sizeClass]);
 
-  const drag = useMemo(() => dragOn(layoutRef), []);
+  const drag = useMemo<ColumnDrag>(
+    () => ({begin: column => layoutRef.current?.beginDrag(column)}),
+    [],
+  );
   return {gridRef, drag};
 }

@@ -27,6 +27,7 @@ function createHarness(
     windowWidth: () => width,
     show: widths => shown.push(widths),
   });
+  layout.refit();
   return {
     layout,
     store,
