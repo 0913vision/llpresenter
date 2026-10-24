@@ -1,6 +1,6 @@
 # Review request: `shell-11`
 
-Review range: 826d4d8...refactor/shell/undo-button
+Review range: 1b710b5...refactor/shell/undo-button
 
 What to check: that `ClearRow` no longer subscribes to `canUndo` (only the new
 `UndoButton` does), so a change of `canUndo` redraws only the undo button and a
@@ -9,7 +9,7 @@ two new tests in `ClearRow.test.tsx` would fail on the old code.
 
 - Team member: `shell`
 - Branch: `refactor/shell/undo-button`
-- Base commit (`main`): `826d4d8`
+- Base commit (`main`): `1b710b5`
 - Last commit: see the commit that adds this file
 - Related brief: the nit of codex2 on shell-9 (`ClearRow.tsx:42`)
 
@@ -29,7 +29,9 @@ has no subscription.
 
 ## Checks run
 
-Pending.
+`npm run verify` on commit `25c7c23` (base `main` 826d4d8) passed all five steps
+in 193.9 s: `typecheck`, `lint`, `format:check`, `test:coverage`, and `build`.
+The rebase onto `main` 1b710b5 afterwards brought other members' changes only.
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
