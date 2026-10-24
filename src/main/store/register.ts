@@ -11,7 +11,8 @@ const MAX_LOGGED_PROBLEMS = 50;
 /**
  * Reads the data at launch and answers `service:get` with the open 예배 순서. A
  * window that asks before the data is read waits for it. Never throws: a
- * failure is logged, and the answer is `null`.
+ * failure, or a data folder that a link leads outside `LLP_USER_DATA`, is
+ * logged, and the answer is `null`.
  *
  * @param context - Where the data is. Electron's folders by default.
  * @returns A function that removes the handler.
@@ -42,9 +43,13 @@ async function openShowService(
   log: Logger,
 ): Promise<ShowService | null> {
   try {
-    const store = await loadStore(context());
-    logLoadedStore(store, log);
-    return showServiceOf(store);
+    const loaded = await loadStore(context());
+    if (!loaded.ok) {
+      log.error('refused the data folder', loaded.error);
+      return null;
+    }
+    logLoadedStore(loaded.value, log);
+    return showServiceOf(loaded.value);
   } catch (error: unknown) {
     log.error('could not read the data folder', error);
     return null;

@@ -1,5 +1,14 @@
+import {rm, symlink} from 'node:fs/promises';
 import {join} from 'node:path';
-import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  onTestFinished,
+  vi,
+} from 'vitest';
 import {Channels} from '@shared/ipc';
 import {makeTempDir} from '../../../test/temp-dir';
 import type {Logger} from '../log';
@@ -140,6 +149,23 @@ describe('registerStore', () => {
     expect(log.warn).toHaveBeenLastCalledWith(
       'skipped 2 more data files or parts of them',
     );
+  });
+
+  it('logs a data folder that a junction leads outside and answers null', async () => {
+    const context = await developmentContext();
+    const outside = await makeTempDir();
+    const link = join(context.appDataFolder, DATA_FOLDER_NAME);
+    await symlink(outside, link, 'junction');
+    onTestFinished(() => rm(link, {force: true}));
+    const log = fakeLog();
+    registerStore(log, () => context);
+
+    expect(await askForService()).toBeNull();
+    expect(log.error).toHaveBeenCalledWith(
+      'refused the data folder',
+      expect.objectContaining({field: 'dataRoot'}),
+    );
+    expect(log.info).not.toHaveBeenCalled();
   });
 
   it('logs a failure to find the data and answers null', async () => {
