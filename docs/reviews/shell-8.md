@@ -3,7 +3,7 @@
 - Team member: `shell`
 - Branch: `fix/shell/button-keys` (stacked on `feat/shell/previews`, which is
   stacked on shell-5, shell-6, and shell-7)
-- Base commit: the last commit of `feat/shell/previews` (`34e23d5`). The two
+- Base commit: the last commit of `feat/shell/previews` (`900cef4`). The two
   fixes below touch only files from shell-5, so they can merge right after it.
 - Last commit: see the commit that adds this file
 - Related brief: qa's finding on shell-5 (rule 6) and the lead's queue
@@ -24,7 +24,7 @@
 
 ## Changed files
 
-- `src/renderer/src/show/shortcuts.ts`, `shortcuts.test.ts`
+- `src/renderer/src/show/shortcuts.ts`, `shortcuts.test.ts`, `ShowKeys.test.tsx`
 - `src/renderer/src/show/SlideGrid.tsx`, `ShowPanels.test.tsx`
 
 ## Checks run
@@ -95,4 +95,20 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 (codex2): Approve with two nits, both taken here.
+
+1. Nit 1 (TSDoc on private helpers): the TSDoc on the private `tileName` in
+   `SlideGrid.tsx` is gone (the name says it). In `shortcuts.ts` the helper of
+   this change (`isTakenByFocusedControl`) carries a `NOTE(0913vision)`, and
+   TSDoc stays on the exported handlers only.
+2. Nit 2 (a rendered control with Tab and a full Space press):
+   `ShowKeys.test.tsx` drives a real DOM with `user-event`. After `Tab` reaches
+   a button, a full Space press (key down, key up, and the click) presses it
+   exactly once and sends no live command. With no control in focus, Space
+   outputs the next 장 once and presses nothing; in a text field it types the
+   space and outputs nothing; and after a mouse click on a button the focus is
+   not on it, so a later Space is next 장.
+3. Restack: shell-8 now sits on the previews branch, which sits on shell-7 round
+   2 (`db6bb1a`). The one conflict was in `shortcuts.ts` and its test, because
+   shell-5 round 2 rewrote the file; I took the new file and applied this change
+   again on top of it.

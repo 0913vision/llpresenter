@@ -24,7 +24,6 @@ function useLiveIndex(itemId: ItemId | null): number | null {
   });
 }
 
-/** The accessible name: the number and the 이름표, a comma, and the first line. */
 function tileName(number: number, {label, lines}: SlideTile): string {
   const heading = label ? `${number} ${label}` : `${number}`;
   const firstLine = lines[0];
