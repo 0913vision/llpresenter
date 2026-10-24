@@ -90,20 +90,10 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Team member's reply
-
-1.
+- Round 1 (4dfd8b6): lead Approve, and the lead confirms decision 1 (a show
+  command that changes nothing keeps the undo). Reviewer (Codex, codex2) Approve
+  with one nit: the output test turns an output on only; cover both directions
+  and check that the undo survives. The nit goes into output's next branch.
+  Merged fast-forward onto `main` 13d88b1.
