@@ -1,7 +1,11 @@
-import {readFile} from 'node:fs/promises';
+import {readFileSync} from 'node:fs';
+import type * as FsPromises from 'node:fs/promises';
 import {join} from 'node:path';
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
+import {MEDIA_SCHEME} from '@shared/media';
 import {makeTempDir} from '../../test/temp-dir';
+
+const WRITE_DELAY_MS = 50;
 
 const electron = vi.hoisted(() => ({
   app: {
@@ -15,9 +19,27 @@ const electron = vi.hoisted(() => ({
     whenReady: vi.fn(() => new Promise<never>(() => undefined)),
   },
   dialog: {showErrorBox: vi.fn()},
+  protocol: {
+    registerSchemesAsPrivileged: vi.fn(),
+    handle: vi.fn(),
+    unhandle: vi.fn(),
+  },
 }));
 
 vi.mock('electron', () => electron);
+
+// NOTE(0913vision): Log writes are held back a little, so a quit that didn't
+// wait for the flush would find the log still empty.
+vi.mock('node:fs/promises', async importOriginal => {
+  const actual = await importOriginal<typeof FsPromises>();
+  return {
+    ...actual,
+    appendFile: async (...args: Parameters<typeof actual.appendFile>) => {
+      await new Promise(resolve => setTimeout(resolve, WRITE_DELAY_MS));
+      return actual.appendFile(...args);
+    },
+  };
+});
 
 const ABSOLUTE =
   process.platform === 'win32' ? 'D:\\llp-dev\\qa' : '/llp-dev/qa';
@@ -37,18 +59,28 @@ async function loadMain(): Promise<void> {
   await import('./index');
 }
 
+let logAtExit: string | null = null;
+
+function readMainLog(): string {
+  const dir = electron.app.getPath('userData');
+  try {
+    return readFileSync(join(dir, 'logs', 'main.log'), 'utf8');
+  } catch {
+    return '';
+  }
+}
+
 beforeEach(async () => {
   const dir = await makeTempDir();
+  logAtExit = null;
   electron.app.getPath.mockReturnValue(dir);
   electron.app.setPath.mockReset();
   electron.app.exit.mockReset();
+  electron.app.exit.mockImplementation(() => {
+    logAtExit = readMainLog();
+  });
   electron.app.requestSingleInstanceLock.mockClear();
 });
-
-async function mainLog(): Promise<string> {
-  const dir = electron.app.getPath('userData');
-  return readFile(join(dir, 'logs', 'main.log'), 'utf8');
-}
 
 describe('main entry with LLP_USER_DATA', () => {
   it('quits with a logged error and no dialog when the path is relative', async () => {
@@ -60,7 +92,7 @@ describe('main entry with LLP_USER_DATA', () => {
     expect(electron.app.setPath).not.toHaveBeenCalled();
     expect(electron.app.requestSingleInstanceLock).not.toHaveBeenCalled();
     expect(electron.dialog.showErrorBox).not.toHaveBeenCalled();
-    expect(await mainLog()).toContain(
+    expect(logAtExit).toContain(
       'LLP_USER_DATA is not a usable app data folder',
     );
   });
@@ -74,7 +106,7 @@ describe('main entry with LLP_USER_DATA', () => {
     await vi.waitFor(() => {
       expect(electron.app.exit).toHaveBeenCalledWith(BAD_ENVIRONMENT_EXIT_CODE);
     });
-    expect(await mainLog()).toContain('Failed to set path');
+    expect(logAtExit).toContain('Failed to set path');
   });
 
   it('moves the folder and starts with a usable path', async () => {
@@ -83,5 +115,13 @@ describe('main entry with LLP_USER_DATA', () => {
     expect(electron.app.setPath).toHaveBeenCalledWith('userData', ABSOLUTE);
     expect(electron.app.requestSingleInstanceLock).toHaveBeenCalled();
     expect(electron.app.exit).not.toHaveBeenCalled();
+  });
+
+  it('registers the media scheme before the app is ready', async () => {
+    vi.stubEnv('LLP_USER_DATA', ABSOLUTE);
+    await loadMain();
+    expect(electron.protocol.registerSchemesAsPrivileged).toHaveBeenCalledWith([
+      expect.objectContaining({scheme: MEDIA_SCHEME}),
+    ]);
   });
 });
