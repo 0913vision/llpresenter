@@ -4,7 +4,7 @@ import {useState, type JSX} from 'react';
 import {describe, expect, it, vi} from 'vitest';
 import {CLICK_FOCUS_SELECTOR} from './clickFocus';
 import type {MenuAnchor} from './Menu';
-import {stripMoves, TileList, type TileListProps} from './TileList';
+import {gridMoves, stripMoves, TileList, type TileListProps} from './TileList';
 
 const NAMES = ['따뜻한 빛', '새벽 하늘', '별빛', '푸른 빛'];
 const BUSY = 2;
@@ -21,6 +21,7 @@ function Strip(handlers: Handlers): JSX.Element {
       moves={stripMoves}
       columns={NAMES.length}
       spaceKey="pass"
+      arrowsMove="selection"
       selected={selected}
       onSelect={setSelected}
       onActivate={handlers.onActivate ?? (() => {})}
@@ -34,12 +35,56 @@ function Strip(handlers: Handlers): JSX.Element {
           role="option"
           aria-selected={index === selected}
           aria-disabled={index === BUSY ? true : undefined}
-          tabIndex={index === selected ? 0 : -1}
         >
           {name}
         </button>
       ))}
     </TileList>
+  );
+}
+
+const MACROS = ['예배 시작', '찬양', '말씀', '광고', '헌금'];
+const ROW_LENGTH = 3;
+const ROW_HEIGHT = 100;
+
+function Macros({
+  onActivate = () => {},
+}: {
+  readonly onActivate?: (index: number) => void;
+}): JSX.Element {
+  return (
+    <>
+      <button type="button">밖</button>
+      <TileList
+        label="매크로"
+        moves={gridMoves}
+        columns="auto"
+        spaceKey="press"
+        arrowsMove="focus"
+        selected={MACROS.length - 1}
+        onActivate={onActivate}
+      >
+        {MACROS.map((name, index) => (
+          <button
+            key={name}
+            type="button"
+            role="option"
+            aria-selected={index === MACROS.length - 1}
+            data-row={Math.floor(index / ROW_LENGTH)}
+          >
+            {name}
+          </button>
+        ))}
+      </TileList>
+    </>
+  );
+}
+
+function layOutInRows(): void {
+  vi.spyOn(HTMLElement.prototype, 'offsetTop', 'get').mockImplementation(
+    function (this: HTMLElement): number {
+      return Number(this.dataset['row'] ?? 0) * ROW_HEIGHT;
+    },
   );
 }
 
@@ -99,6 +144,38 @@ describe('TileList', () => {
       [0, anchor],
       [0, anchor],
     ]);
+  });
+
+  it('keeps one Tab stop that starts on the selected tile', async () => {
+    render(<Strip />);
+    const stops = screen.getAllByRole('option').map(option => option.tabIndex);
+    expect(stops).toEqual([0, -1, -1, -1]);
+  });
+
+  it('moves only focus with focus arrows, and Tab comes back to it', async () => {
+    const onActivate = vi.fn<(index: number) => void>();
+    render(<Macros onActivate={onActivate} />);
+    await userEvent.tab();
+    await userEvent.tab();
+    expect(document.activeElement).toBe(tile('예배 시작'));
+    await userEvent.keyboard('{ArrowRight}{ArrowRight}');
+    expect(document.activeElement).toBe(tile('말씀'));
+    expect(tile('헌금').getAttribute('aria-selected')).toBe('true');
+    await userEvent.tab({shift: true});
+    await userEvent.tab();
+    expect(document.activeElement).toBe(tile('말씀'));
+    await userEvent.keyboard(' ');
+    expect(onActivate).toHaveBeenCalledWith(2);
+  });
+
+  it('reads the column count from the layout with auto columns', async () => {
+    layOutInRows();
+    render(<Macros />);
+    tile('찬양').focus();
+    await userEvent.keyboard('{ArrowDown}');
+    expect(document.activeElement).toBe(tile('헌금'));
+    await userEvent.keyboard('{ArrowUp}');
+    expect(document.activeElement).toBe(tile('찬양'));
   });
 
   it('leaves click focus to the page unless it takes it', () => {

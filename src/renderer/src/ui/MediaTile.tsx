@@ -136,7 +136,6 @@ export const MediaTile = memo((props: MediaTileProps): JSX.Element => {
       aria-label={name}
       aria-selected={selected}
       aria-disabled={copying === undefined ? undefined : true}
-      tabIndex={selected ? 0 : -1}
       data-state={tileState({
         live,
         missing: missingFile !== undefined,
@@ -190,6 +189,7 @@ export function MediaGrid(props: MediaGridProps): JSX.Element {
       moves={gridMoves}
       columns={props.columns}
       spaceKey="pass"
+      arrowsMove="selection"
       selected={props.selected}
       onSelect={props.onSelect}
       onActivate={props.onActivate}
@@ -217,6 +217,7 @@ export function MediaStrip(props: MediaStripProps): JSX.Element {
       moves={stripMoves}
       columns={1}
       spaceKey="pass"
+      arrowsMove="selection"
       selected={props.selected}
       onSelect={props.onSelect}
       onActivate={props.onActivate}

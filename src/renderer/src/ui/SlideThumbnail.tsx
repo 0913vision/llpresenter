@@ -75,6 +75,7 @@ export function ThumbnailGrid(props: ThumbnailGridProps): JSX.Element {
       columns={columns}
       spaceKey={workspaceSpaceKey[workspace]}
       takesClickFocus
+      arrowsMove="selection"
       selected={props.selected}
       onSelect={onSelect}
       onActivate={props.workspace === 'show' ? props.onOutput : onSelect}
@@ -173,7 +174,6 @@ export const SlideThumbnail = memo(
         role="option"
         aria-selected={selected}
         aria-label={thumbnailName({number, label, text})}
-        tabIndex={selected ? 0 : -1}
         data-state={thumbnailState(live, missingFile !== undefined)}
         data-color={labelColor === NO_LABEL_COLOR ? undefined : labelColor}
         className={styles.thumb}

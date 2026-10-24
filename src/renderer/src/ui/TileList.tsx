@@ -1,12 +1,15 @@
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
+  useState,
   type CSSProperties,
   type FocusEvent,
   type JSX,
   type KeyboardEvent,
   type MouseEvent,
   type ReactNode,
+  type RefObject,
 } from 'react';
 import {clickFocusProps} from './clickFocus';
 import type {MenuAnchor} from './Menu';
@@ -44,12 +47,15 @@ export const stripMoves: TileMoves = {
  */
 export type TileSpaceKey = 'press' | 'pass';
 
-export interface TileListProps {
+/** The column count that ↑ and ↓ move by, or `auto` to read it from the layout. */
+export type TileColumns = number | 'auto';
+
+/** The props that every tile list takes. */
+export interface TileListBaseProps {
   /** The list name for assistive technology, such as 장 or 매크로. */
   readonly label: string;
   readonly moves: TileMoves;
-  /** The column count that ↑ and ↓ move by. */
-  readonly columns: number;
+  readonly columns: TileColumns;
   readonly spaceKey: TileSpaceKey;
   /**
    * Takes keyboard focus on a mouse click also in 진행, as the 장 grid does.
@@ -57,13 +63,8 @@ export interface TileListProps {
    * (docs/spec/10-shortcuts-and-settings.md).
    */
   readonly takesClickFocus?: boolean | undefined;
-  /**
-   * The index of the selected tile, which takes the Tab stop. While it is
-   * `undefined`, the list takes the Tab stop and passes focus to the first one.
-   */
+  /** The index of the selected tile. */
   readonly selected: number | undefined;
-  /** An arrow key moved the selection. */
-  readonly onSelect: (index: number) => void;
   /** A click or Enter (and Space with `press`) on a tile that isn't disabled. */
   readonly onActivate: (index: number) => void;
   readonly onDoubleClick?: ((index: number) => void) | undefined;
@@ -74,6 +75,28 @@ export interface TileListProps {
   /** The tiles (`role="option"`), in order; an index counts only these. */
   readonly children: ReactNode;
 }
+
+/**
+ * The arrow keys move the selection, and the selected tile (else the first)
+ * takes the Tab stop. While focus is in the list, it follows the selection,
+ * also when another command moves it.
+ */
+export interface SelectionArrowsProps extends TileListBaseProps {
+  readonly arrowsMove: 'selection';
+  /** An arrow key moved the selection. */
+  readonly onSelect: (index: number) => void;
+}
+
+/**
+ * The arrow keys move only keyboard focus, and the tile last in focus takes
+ * the Tab stop. The selection stays for what the caller uses it for, such as
+ * the tile under a right-click menu.
+ */
+export interface FocusArrowsProps extends TileListBaseProps {
+  readonly arrowsMove: 'focus';
+}
+
+export type TileListProps = SelectionArrowsProps | FocusArrowsProps;
 
 function hasModifier(event: KeyboardEvent): boolean {
   return event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
@@ -100,8 +123,26 @@ function isDisabled(tile: HTMLElement): boolean {
   return tile.getAttribute('aria-disabled') === 'true';
 }
 
-function useFocusFollowsSelection(selected: number | undefined) {
-  const listRef = useRef<HTMLDivElement>(null);
+function columnCount(list: HTMLElement, columns: TileColumns): number {
+  if (columns !== 'auto') return columns;
+  const tiles = tilesOf(list);
+  const firstRowTop = tiles[0]?.offsetTop;
+  const nextRow = tiles.findIndex(tile => tile.offsetTop !== firstRowTop);
+  return nextRow < 0 ? Math.max(tiles.length, 1) : nextRow;
+}
+
+function keepOneTabStop(list: HTMLElement, stop: number): void {
+  const tiles = tilesOf(list);
+  const index = Math.min(stop, tiles.length - 1);
+  for (const [position, tile] of tiles.entries()) {
+    tile.tabIndex = position === index ? 0 : -1;
+  }
+}
+
+function useFocusFollowsSelection(
+  listRef: RefObject<HTMLDivElement | null>,
+  selected: number | undefined,
+): void {
   useEffect(() => {
     const list = listRef.current;
     if (selected === undefined || !list?.contains(document.activeElement)) {
@@ -109,19 +150,24 @@ function useFocusFollowsSelection(selected: number | undefined) {
     }
     const tile = tilesOf(list)[selected];
     if (tile !== document.activeElement) tile?.focus();
-  }, [selected]);
-  return listRef;
+  }, [listRef, selected]);
 }
 
 /**
  * A listbox of tiles that Tab enters once: the 장 grid, the media grid and
- * strip, and the macro grid build on it. The arrow keys move the selection,
- * and while focus is in the list, it follows the selection, also when another
- * command moves it. Keys with Ctrl, Alt, or Shift pass on.
+ * strip, and the macro grid build on it. It owns the Tab stop of its tiles,
+ * so the tiles set no `tabIndex`. Keys with Ctrl, Alt, or Shift pass on.
  */
 export function TileList(props: TileListProps): JSX.Element {
-  const {moves, columns, spaceKey, selected, onSelect, onActivate} = props;
-  const listRef = useFocusFollowsSelection(selected);
+  const {moves, columns, spaceKey, selected, onActivate} = props;
+  const listRef = useRef<HTMLDivElement>(null);
+  const [focusStop, setFocusStop] = useState(0);
+  const followsSelection = props.arrowsMove === 'selection';
+  const tabStop = followsSelection ? (selected ?? 0) : focusStop;
+  useFocusFollowsSelection(listRef, followsSelection ? selected : undefined);
+  useLayoutEffect(() => {
+    if (listRef.current !== null) keepOneTabStop(listRef.current, tabStop);
+  });
 
   const activeIndex = (list: HTMLElement, target: EventTarget): number => {
     const tile = tileOf(target);
@@ -151,6 +197,10 @@ export function TileList(props: TileListProps): JSX.Element {
     event.preventDefault();
     props.onMenu(index, {kind: 'element', element: tile});
   };
+  const moveTo = (list: HTMLElement, target: number): void => {
+    if (props.arrowsMove === 'selection') props.onSelect(target);
+    else tilesOf(list)[target]?.focus();
+  };
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
     if (isMenuKey(event)) {
       openMenuFromKey(event);
@@ -161,9 +211,9 @@ export function TileList(props: TileListProps): JSX.Element {
     event.preventDefault();
     const list = event.currentTarget;
     const current = indexOf(list, tileOf(event.target));
-    const target = current + move(columns);
+    const target = current + move(columnCount(list, columns));
     if (current < 0 || target < 0 || target >= tilesOf(list).length) return;
-    onSelect(target);
+    moveTo(list, target);
   };
   const onKeyUp = (event: KeyboardEvent<HTMLDivElement>): void => {
     // NOTE(0913vision): A button clicks on the Space key's keyup. With `pass`
@@ -171,9 +221,9 @@ export function TileList(props: TileListProps): JSX.Element {
     if (spaceKey === 'pass' && event.key === SPACE) event.preventDefault();
   };
   const onFocus = (event: FocusEvent<HTMLDivElement>): void => {
-    if (event.target === event.currentTarget) {
-      tilesOf(event.currentTarget)[0]?.focus();
-    }
+    if (followsSelection) return;
+    const index = indexOf(event.currentTarget, tileOf(event.target));
+    if (index >= 0) setFocusStop(index);
   };
 
   return (
@@ -182,7 +232,6 @@ export function TileList(props: TileListProps): JSX.Element {
       ref={listRef}
       role="listbox"
       aria-label={props.label}
-      tabIndex={selected === undefined ? 0 : -1}
       className={props.className}
       style={props.style}
       onClick={onClick}
