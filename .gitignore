@@ -4,8 +4,9 @@ dist
 *.log
 *.ps1
 .DS_Store
-# 작업 세션의 worktree와 로컬 산출물
+# Session worktrees, session notes, and local outputs
 .claude/worktrees/
 .claude/settings.local.json
+.llp/
 design/**/shots/
 design/**/logs/

@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON \"$CLAUDE_PROJECT_DIR/scripts/session-context.ts\"",
+            "timeout": 15,
+            "statusMessage": "Loading session notes"
+          }
+        ]
+      }
+    ]
+  }
+}
