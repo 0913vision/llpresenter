@@ -1,8 +1,13 @@
 # Review request: `output-2`
 
+Review range: `97e76ef...feat/output/render` (round 2). Check the round 1
+findings against "Team member's reply", the output path against
+`docs/spec/03-output.md` (layers, drawing text, background playback, undo), and
+the media file boundary in `src/main/windows/`.
+
 - Team member: `output`
 - Branch: `feat/output/render`
-- Base commit (`main`): `b9392d0`
+- Base commit (`main`): `97e76ef` (round 2; round 1 was on `b9392d0`)
 - Last commit: the commit that adds this file
 - Related brief: `docs/briefs/output.md` (task 2), milestone M2
 
@@ -58,6 +63,19 @@ on the 본 화면, with clears and undo reflected in the same call.
 - Tests next to each, and `docs/reviews/output-2.md` (new)
 
 ## Checks run
+
+Round 2: `npm run verify` passed on `a46f48e` (findings 1 to 8, rebased onto
+`main` at `97e76ef` without conflicts): 5 steps in 222.2 s, 113 test files and
+1,178 tests. The last commit, `ceb399e` (qa's log note), changes one `catch` and
+adds one test; its renderer tests, lint, and format pass.
+
+qa ran round 1 (`4ee5af1`) in a built clone on an invisible window before
+review: the loop handover takes one frame with no dark or frozen tick, the 장
+dissolve takes about 0.2 s, the same 장 again makes no DOM change, a 6-line 장
+shrinks, clear and undo work, a killed renderer seeks back to its position, and
+a 10-minute soak shows no growth (a 30-minute run is going).
+
+Round 1:
 
 On `9f0c7e3`, on `main` at `b9392d0`.
 
@@ -151,3 +169,56 @@ missing.
 ## Team member's reply
 
 1.
+
+Round 1 findings (codex2), one commit each:
+
+1. **Video above the lyrics (`backgroundLayer.ts:190`)**: fixed in `a32f577`.
+   `OutputRenderer` now gives each layer a positioned box with its place in the
+   order as its z-index, so each layer is its own stacking context and a video's
+   z-index stays inside the background box. Test: with a playing video (z-index
+   1), the background box's z-index is below the lyrics box's, and the video
+   lives only in the background box.
+2. **The spare still holding the outgoing background
+   (`backgroundLayer.ts:207`)**: fixed in `416889d`. Each video now records the
+   media it holds. A loop hands over only to a spare that holds the current
+   background and is ready; otherwise the front video restarts itself. An
+   `ended` from a video that doesn't hold the current background (the outgoing
+   one during a dissolve or a slow start) is ignored, so it stays on its last
+   frame. Tests: a short clip that ends during the dissolve restarts itself and
+   never plays the old background; the outgoing background ending while the next
+   one is slow to start is ignored; a background sought near its end loops on
+   itself and uses the spare only once it holds the same media.
+3. **Media files outside the media folders (`mediaResponse.ts:125`)**: fixed in
+   `0b1d598`. The handler takes `mediaRoots`, and `realPathInside`
+   (`windows/insideRoots.ts`) resolves the file's real path (links and `..`
+   resolved, the roots too) and accepts it only inside a root; anything else
+   answers 404 and is logged. The placeholder in `index.ts` passes no roots.
+   Tests: an encoded id that climbs out of the folder, a file reached through a
+   junction, the root itself, a missing file, and no roots are all refused.
+4. **The quarter-size floor (`fitText.ts:17`)**: fixed in `b4f6430`. The search
+   now runs down to 1 px, so every line fits; only text that fits at no size
+   gets 1 px. Test: an oversized 장 that fits only at 3 px gets 3 px.
+5. **Undo counted the time spent cleared (`backgroundLayer.ts:33`)**: fixed in
+   `31e9b18`, in the reducer, where the start time lives. The undo entry records
+   when the clear happened, and an undo that brings back a cleared background
+   moves its start time by the time it was down, so it resumes at the clear
+   position. A background that a lyrics clear left playing keeps its start time.
+   Tests: clear at 5 s and undo 10 s later resumes at 5 s; a lyrics clear and
+   undo leave the background's start time alone.
+6. **A late initial reply after stop (`liveFeed.ts:23`)**: fixed in `31a99fa`. A
+   `stopped` flag guards both the state and the error callback. Test: an answer
+   and a rejection that arrive after stop reach neither callback.
+7. **Recovery below the target (`frameRates.ts:25`)**: fixed in `11e9fee`. A low
+   status now needs 2 s at the target (60 fps, within 0.5 fps because the meter
+   reports one decimal) to return to normal; 54 to 59 fps keeps it low, and a
+   normal status still turns low only below 54. Tests: 57 fps stays low, 59.8
+   fps recovers, and 56 fps never turns a normal status low.
+8. **Nit, TSDoc on unexported code**: fixed in `a46f48e`, for
+   `MAX_TRACKED_WINDOWS` (moved into the class doc) and three more I found:
+   `MIN_FONT_SIZE`, `LAYER_ORDER`, and `createLayerBox` (the last two kept as
+   `NOTE(0913vision)` comments).
+
+From qa's pre-merge run: an `AbortError` from `play()` interrupted by our own
+pause or source change was logged at error level. `ceb399e` treats that one
+rejection as expected; other play failures are still reported. Test: an
+interrupted play during a clear reports nothing.
