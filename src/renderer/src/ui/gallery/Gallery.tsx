@@ -4,6 +4,8 @@ import {CheckboxSection} from './CheckboxSection';
 import {IconButtonSection} from './IconButtonSection';
 import {KeyCapSection} from './KeyCapSection';
 import {LabelSection} from './LabelSection';
+import {MacroSection} from './MacroSection';
+import {MediaSection} from './MediaSection';
 import {ListRowSection} from './ListRowSection';
 import {OverlaySection} from './OverlaySection';
 import {PanelSection} from './PanelSection';
@@ -44,6 +46,8 @@ export const galleryEntries: readonly GalleryEntry[] = [
   {name: 'KeyCap', Section: KeyCapSection},
   {name: 'LabelChip', Section: LabelSection},
   {name: 'SlideThumbnail', Section: ThumbnailSection},
+  {name: 'MediaTile', Section: MediaSection},
+  {name: 'MacroTile', Section: MacroSection},
 ];
 
 const COMPONENT_PARAM = 'c';
