@@ -72,7 +72,8 @@ function Swatch({
   );
 }
 
-interface SwatchRowProps<T extends LabelColor> {
+/** The props of a color row; the pickers fill in the colors. */
+export interface SwatchRowProps<T extends LabelColor> {
   readonly colors: readonly T[];
   readonly value: T;
   readonly onChange: (color: T) => void;

@@ -67,7 +67,6 @@ interface ChipKeyActions {
   readonly onRemove: (index: number) => void;
 }
 
-/** Handles one key on a chip and reports whether the strip used it. */
 function handleChipKey(
   event: KeyboardEvent,
   index: number,
@@ -184,7 +183,6 @@ function ChipSlot({showDrop, chip, ...props}: ChipSlotProps): JSX.Element {
   );
 }
 
-/** The 2px drop position between chips while a chip is dragged. */
 function ChipDrop(): JSX.Element {
   return <span aria-hidden="true" className={styles.drop} />;
 }
@@ -200,7 +198,6 @@ interface LabelChipProps {
   readonly onKeyDown: (event: KeyboardEvent<HTMLButtonElement>) => void;
 }
 
-/** A 30px chip of the 구성 strip, painted in its 이름표 color. */
 function LabelChip({
   chip,
   selected,
