@@ -8,12 +8,12 @@ import {emptyLiveState} from '../live';
 export function fakeLlpApi(overrides: Partial<LlpApi> = {}): LlpApi {
   return {
     live: {
-      get: async () => emptyLiveState(),
+      get: () => Promise.resolve(emptyLiveState()),
       send: () => undefined,
       subscribe: () => () => undefined,
     },
     window: {control: () => undefined},
-    ui: {get: async () => ({}), setLayout: () => undefined},
+    ui: {get: () => Promise.resolve({}), setLayout: () => undefined},
     log: {write: () => undefined},
     output: {reportFrameRate: () => undefined},
     ...overrides,
