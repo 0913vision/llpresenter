@@ -45,8 +45,6 @@ describe('parsePreferences', () => {
   it.each([
     ['a language without a translation', {language: 'en'}, 'language'],
     ['a backup group that is an array', {backup: []}, 'backup'],
-    ['zero recovery copies', {backupCopies: 0}, 'backupCopies'],
-    ['a frame rate that is text', {previewFps: '30'}, 'previewFps'],
     [
       'an unlisted source position',
       {bible: {sourcePosition: 'topLeft'}},
@@ -59,6 +57,66 @@ describe('parsePreferences', () => {
     ],
   ])('rejects %s', (_name, change, field) => {
     expectInvalidField(codec, {...HEADER, ...change}, field);
+  });
+});
+
+describe('the ranges of 환경설정', () => {
+  it.each([
+    ['zero recovery copies', {backupCopies: 0}, 'backupCopies'],
+    ['51 recovery copies', {backupCopies: 51}, 'backupCopies'],
+    ['a frame rate that is text', {previewFps: '30'}, 'previewFps'],
+    ['a frame rate the previews lack', {previewFps: 24}, 'previewFps'],
+    ['366 kept backups', {backup: {auto: false, keep: 366}}, 'backup.keep'],
+    ['13 lines per 장', {bible: {maxLines: 13}}, 'bible.maxLines'],
+  ])('drops %s alone and keeps the rest', (_name, change, field) => {
+    const loaded = expectSuccess(
+      parsePreferences(
+        JSON.stringify({...HEADER, showOnLaunch: true, ...change}),
+        'preferences.json',
+      ),
+    );
+
+    expect(loaded.dropped).toEqual([expect.objectContaining({field})]);
+    expect(loaded.data.showOnLaunch).toBe(true);
+    expect(withPreferenceDefaults(loaded.data)).toMatchObject({
+      backupCopies: defaultPreferences.backupCopies,
+      previewFps: defaultPreferences.previewFps,
+      backup: {keep: defaultPreferences.backup.keep},
+      bible: {maxLines: defaultPreferences.bible.maxLines},
+    });
+  });
+
+  it('accepts both ends of every range', () => {
+    for (const ends of [
+      {
+        backupCopies: 3,
+        previewFps: 15,
+        backup: {keep: 1},
+        bible: {maxLines: 1},
+      },
+      {
+        backupCopies: 50,
+        previewFps: 60,
+        backup: {keep: 365},
+        bible: {maxLines: 12},
+      },
+    ]) {
+      const loaded = expectSuccess(
+        parsePreferences(JSON.stringify({...HEADER, ...ends}), 'p.json'),
+      );
+
+      expect(loaded.dropped).toEqual([]);
+      expect(loaded.data).toMatchObject(ends);
+    }
+  });
+
+  it('refuses to write a count outside its range', () => {
+    const written = serializePreferences(
+      {...defaultPreferences, backupCopies: 51},
+      'preferences.json',
+    );
+
+    expect(written.ok ? null : written.error.field).toBe('backupCopies');
   });
 });
 

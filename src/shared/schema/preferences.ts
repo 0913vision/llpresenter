@@ -1,11 +1,15 @@
 import * as v from 'valibot';
+import {isRecord} from '../guards';
 import type {Result} from '../result';
 import {
+  checkPart,
   parseFile,
   serializeFile,
+  type DroppedValue,
   type FileError,
   type FileFormat,
   type LoadedFile,
+  type PrunedContent,
   type ReadonlyKnown,
 } from './fileFormat';
 import type {MigrationStep} from './migration';
@@ -13,28 +17,59 @@ import {jsonObject, positiveInteger} from './primitives';
 
 const PREFERENCES_FORMAT = 'llsettings.preferences';
 
+/** The counts 환경설정 allows (`docs/spec/10-shortcuts-and-settings.md`). */
+export const PREFERENCE_LIMITS = {
+  backupCopies: {min: 3, max: 50},
+  backupKeep: {min: 1, max: 365},
+  bibleMaxLines: {min: 1, max: 12},
+} as const;
+
+/** The frame rates the previews may run at. */
+export const previewFpsChoices = [15, 30, 60] as const;
+
+interface CountLimits {
+  readonly min: number;
+  readonly max: number;
+}
+
 const optionalBoolean = v.exactOptional(v.boolean());
-const optionalCount = v.exactOptional(positiveInteger);
+const backupCopiesSchema = countWithin(PREFERENCE_LIMITS.backupCopies);
+const previewFpsSchema = v.picklist(previewFpsChoices);
+const backupKeepSchema = countWithin(PREFERENCE_LIMITS.backupKeep);
+const bibleMaxLinesSchema = countWithin(PREFERENCE_LIMITS.bibleMaxLines);
+
+const topLevelRanges = {
+  backupCopies: backupCopiesSchema,
+  previewFps: previewFpsSchema,
+};
+
+const groupRanges = {
+  backup: {keep: backupKeepSchema},
+  bible: {maxLines: bibleMaxLinesSchema},
+};
 
 const preferencesSchema = jsonObject({
   format: v.literal(PREFERENCES_FORMAT),
   schemaVersion: positiveInteger,
   language: v.exactOptional(v.picklist(['ko'])),
   onLaunch: v.exactOptional(v.picklist(['lastService'])),
-  backupCopies: optionalCount,
+  backupCopies: v.exactOptional(backupCopiesSchema),
   showOnLaunch: optionalBoolean,
   preventSleep: optionalBoolean,
   alwaysOnTop: optionalBoolean,
   onDisconnect: v.exactOptional(v.picklist(['window', 'off'])),
   hardwareAcceleration: optionalBoolean,
-  previewFps: optionalCount,
+  previewFps: v.exactOptional(previewFpsSchema),
   backup: v.exactOptional(
-    jsonObject({auto: optionalBoolean, keep: optionalCount}),
+    jsonObject({
+      auto: optionalBoolean,
+      keep: v.exactOptional(backupKeepSchema),
+    }),
   ),
   bible: v.exactOptional(
     jsonObject({
       verseNumbers: optionalBoolean,
-      maxLines: optionalCount,
+      maxLines: v.exactOptional(bibleMaxLinesSchema),
       sourcePosition: v.exactOptional(v.picklist(['bottomRight'])),
     }),
   ),
@@ -60,6 +95,7 @@ const preferencesFormat: FileFormat<typeof preferencesSchema> = {
   format: PREFERENCES_FORMAT,
   schema: preferencesSchema,
   migrations: preferencesMigrations,
+  prune: dropValuesOutOfRange,
 };
 
 /**
@@ -130,4 +166,47 @@ export function serializePreferences(
   file: string,
 ): Result<string, FileError> {
   return serializeFile(preferencesFormat, preferences, file);
+}
+
+function countWithin({min, max}: CountLimits) {
+  return v.pipe(positiveInteger, v.minValue(min), v.maxValue(max));
+}
+
+// NOTE(0913vision): A count outside its range drops alone and falls back to
+// its default, so one bad number never runs the whole of 환경설정 from a
+// recovery copy. Writing still refuses it, through the schema.
+function dropValuesOutOfRange(
+  content: Readonly<Record<string, unknown>>,
+): PrunedContent {
+  const top = withoutInvalid(content, topLevelRanges, '');
+  let kept = top.content;
+  const dropped = [...top.dropped];
+  for (const [group, ranges] of Object.entries(groupRanges)) {
+    const part = kept[group];
+    if (isRecord(part)) {
+      const inner = withoutInvalid(part, ranges, `${group}.`);
+      kept = {...kept, [group]: inner.content};
+      dropped.push(...inner.dropped);
+    }
+  }
+  return {content: kept, dropped};
+}
+
+function withoutInvalid(
+  part: Readonly<Record<string, unknown>>,
+  ranges: Readonly<Record<string, v.GenericSchema>>,
+  prefix: string,
+): PrunedContent {
+  const content: Record<string, unknown> = {};
+  const dropped: DroppedValue[] = [];
+  for (const [key, value] of Object.entries(part)) {
+    const schema = ranges[key];
+    const checked = schema === undefined ? null : checkPart(schema, value);
+    if (checked === null || checked.ok) {
+      content[key] = value;
+    } else {
+      dropped.push({field: `${prefix}${key}`, message: checked.error.message});
+    }
+  }
+  return {content, dropped};
 }
