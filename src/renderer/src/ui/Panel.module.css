@@ -173,6 +173,10 @@
   padding: var(--space-4) 0 var(--space-8);
 }
 
+.tools + .list {
+  padding-top: 0;
+}
+
 .flush {
   padding: 0;
 }

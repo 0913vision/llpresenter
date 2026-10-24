@@ -38,6 +38,7 @@
 /* Tool row: one search field row under the header (library, 퀵 실행) */
 .ll-panel__tools { flex: none; display: flex; gap: var(--space-8); padding: var(--space-8) var(--space-8) var(--space-6); }
 .ll-panel__tools > * { flex: 1 1 auto; min-width: 0; }
+.ll-panel__tools + .ll-panel__body--list { padding-top: 0; }
 
 /* Body: only the body scrolls */
 .ll-panel__body { flex: 1 1 auto; min-height: 0; overflow: auto; padding: var(--panel-inset); scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
