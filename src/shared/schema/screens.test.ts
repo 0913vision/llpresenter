@@ -80,6 +80,8 @@ describe('parseScreens', () => {
 
   it.each([
     ['an unknown kind', {kind: 'main'}, 'screens.0.kind'],
+    ['an offset that is an array', {offset: []}, 'screens.0.offset'],
+    ['an NDI block that is an array', {ndi: []}, 'screens.0.ndi'],
     ['an unknown method', {method: 'projector'}, 'screens.0.method'],
     ['an edge margin over 100', {edgeMargin: 120}, 'screens.0.edgeMargin'],
     [

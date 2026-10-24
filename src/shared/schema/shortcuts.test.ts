@@ -32,6 +32,7 @@ describe('parseShortcuts', () => {
 
   it.each([
     ['an empty combination', {'clear.all': [[]]}, 'bindings.clear.all.0'],
+    ['bindings that are an array', [], 'bindings'],
     ['a blank key', {'clear.all': [['Ctrl', ' ']]}, 'bindings.clear.all.0.1'],
     [
       'a combination that is text',

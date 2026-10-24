@@ -10,15 +10,20 @@ import {
   type ReadonlyKnown,
 } from './fileFormat';
 import type {MigrationStep} from './migration';
-import {isFirstWithKey, nonBlankText, positiveInteger} from './primitives';
+import {
+  isFirstWithKey,
+  jsonObject,
+  nonBlankText,
+  positiveInteger,
+} from './primitives';
 
-const labelSchema = v.looseObject({
+const labelSchema = jsonObject({
   name: nonBlankText,
   color: v.picklist([...paletteColors, NO_LABEL_COLOR]),
   key: v.nullable(nonBlankText),
 });
 
-const labelsSchema = v.looseObject({
+const labelsSchema = jsonObject({
   format: v.literal('llsettings.labels'),
   schemaVersion: positiveInteger,
   labels: v.pipe(

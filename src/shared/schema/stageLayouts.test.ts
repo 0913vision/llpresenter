@@ -88,6 +88,8 @@ describe('parseStageLayouts', () => {
 
   it.each([
     ['an unknown kind', {kind: 'video'}, 'layouts.0.elements.0.kind'],
+    ['a box that is an array', {box: []}, 'layouts.0.elements.0.box'],
+    ['a frame that is an array', {frame: []}, 'layouts.0.elements.0.frame'],
     ['an unknown show value', {show: 'chords'}, 'layouts.0.elements.0.show'],
     [
       'a negative width',

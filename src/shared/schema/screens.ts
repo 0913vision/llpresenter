@@ -12,6 +12,7 @@ import {screenIdSchema} from './ids';
 import type {MigrationStep} from './migration';
 import {
   finiteNumber,
+  jsonObject,
   listWithUniqueIds,
   percent,
   pixelSize,
@@ -19,11 +20,11 @@ import {
   positiveNumber,
 } from './primitives';
 
-const displaySchema = v.looseObject({
+const displaySchema = jsonObject({
   id: v.pipe(v.number(), v.integer()),
   name: v.string(),
   number: positiveInteger,
-  bounds: v.looseObject({
+  bounds: jsonObject({
     x: v.pipe(v.number(), v.integer()),
     y: v.pipe(v.number(), v.integer()),
     width: positiveInteger,
@@ -32,7 +33,7 @@ const displaySchema = v.looseObject({
   scaleFactor: positiveNumber,
 });
 
-const ndiSchema = v.looseObject({
+const ndiSchema = jsonObject({
   sourceName: v.exactOptional(v.string()),
   resolution: v.exactOptional(pixelSize),
   fps: v.exactOptional(positiveNumber),
@@ -41,7 +42,7 @@ const ndiSchema = v.looseObject({
   group: v.exactOptional(v.string()),
 });
 
-const screenSchema = v.looseObject({
+const screenSchema = jsonObject({
   id: screenIdSchema,
   name: v.string(),
   kind: v.picklist(['audience', 'stage']),
@@ -52,12 +53,12 @@ const screenSchema = v.looseObject({
   alwaysOnTop: v.exactOptional(v.boolean()),
   preventSleep: v.exactOptional(v.boolean()),
   edgeMargin: v.exactOptional(percent),
-  offset: v.exactOptional(v.looseObject({x: finiteNumber, y: finiteNumber})),
+  offset: v.exactOptional(jsonObject({x: finiteNumber, y: finiteNumber})),
   previewBackground: v.exactOptional(v.picklist(['green', 'black', 'checker'])),
   ndi: v.exactOptional(ndiSchema),
 });
 
-const screensSchema = v.looseObject({
+const screensSchema = jsonObject({
   format: v.literal('llsettings.screens'),
   schemaVersion: positiveInteger,
   screens: listWithUniqueIds(screenSchema),

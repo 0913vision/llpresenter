@@ -13,6 +13,7 @@ import type {MigrationStep} from './migration';
 import {
   finiteNumber,
   hexColor,
+  jsonObject,
   listWithUniqueIds,
   nonNegativeNumber,
   positiveInteger,
@@ -32,22 +33,22 @@ export const stageElementKinds = [
   'stageMessage',
 ] as const;
 
-const elementSchema = v.looseObject({
+const elementSchema = jsonObject({
   id: stageElementIdSchema,
   name: v.string(),
   kind: v.picklist(stageElementKinds),
   show: v.exactOptional(v.picklist(['text', 'image', 'memo'])),
-  frame: v.looseObject({
+  frame: jsonObject({
     x: finiteNumber,
     y: finiteNumber,
     w: nonNegativeNumber,
     h: nonNegativeNumber,
   }),
   text: v.exactOptional(
-    v.looseObject({...textStyleEntries, autoFit: v.boolean()}),
+    jsonObject({...textStyleEntries, autoFit: v.boolean()}),
   ),
   box: v.exactOptional(
-    v.looseObject({
+    jsonObject({
       background: v.exactOptional(hexColor),
       opacity: v.exactOptional(
         v.pipe(nonNegativeNumber, v.maxValue(OPACITY_MAX)),
@@ -56,7 +57,7 @@ const elementSchema = v.looseObject({
   ),
 });
 
-const layoutSchema = v.looseObject({
+const layoutSchema = jsonObject({
   id: stageLayoutIdSchema,
   name: v.string(),
   width: positiveInteger,
@@ -64,7 +65,7 @@ const layoutSchema = v.looseObject({
   elements: listWithUniqueIds(elementSchema),
 });
 
-const stageLayoutsSchema = v.looseObject({
+const stageLayoutsSchema = jsonObject({
   format: v.literal('llsettings.stage'),
   schemaVersion: positiveInteger,
   layouts: listWithUniqueIds(layoutSchema),

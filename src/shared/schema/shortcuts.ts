@@ -9,14 +9,19 @@ import {
   type ReadonlyKnown,
 } from './fileFormat';
 import type {MigrationStep} from './migration';
-import {nonBlankText, positiveInteger} from './primitives';
+import {
+  jsonObject,
+  jsonRecord,
+  nonBlankText,
+  positiveInteger,
+} from './primitives';
 
 const keyCombination = v.pipe(v.array(nonBlankText), v.minLength(1));
 
-const shortcutsSchema = v.looseObject({
+const shortcutsSchema = jsonObject({
   format: v.literal('llsettings.shortcuts'),
   schemaVersion: positiveInteger,
-  bindings: v.record(nonBlankText, v.array(keyCombination)),
+  bindings: jsonRecord(nonBlankText, v.array(keyCombination)),
 });
 
 const shortcutsMigrations: readonly MigrationStep[] = [];

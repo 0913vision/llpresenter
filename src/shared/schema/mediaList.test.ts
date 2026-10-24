@@ -105,6 +105,7 @@ describe('parseMediaList', () => {
 
   it.each([
     ['an unknown kind', {kind: 'input'}, 'items.0.kind'],
+    ['properties that are an array', {props: []}, 'items.0.props'],
     ['an empty file path', {file: ''}, 'items.0.file'],
     ['a fractional size', {size: 1.5}, 'items.0.size'],
     ['a negative duration', {duration: -1}, 'items.0.duration'],

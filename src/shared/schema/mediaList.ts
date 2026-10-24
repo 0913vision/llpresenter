@@ -15,6 +15,7 @@ import {
 } from './ids';
 import type {MigrationStep} from './migration';
 import {
+  jsonObject,
   listWithUniqueIds,
   nonBlankText,
   nonNegativeInteger,
@@ -24,7 +25,7 @@ import {
   seconds,
 } from './primitives';
 
-const mediaPropsSchema = v.looseObject({
+const mediaPropsSchema = jsonObject({
   end: v.exactOptional(v.picklist(['loop', 'stop'])),
   in: v.exactOptional(seconds),
   out: v.exactOptional(seconds),
@@ -34,7 +35,7 @@ const mediaPropsSchema = v.looseObject({
   volume: v.exactOptional(percent),
 });
 
-const mediaItemSchema = v.looseObject({
+const mediaItemSchema = jsonObject({
   id: mediaIdSchema,
   name: v.string(),
   kind: v.picklist(['video', 'image', 'audio']),
@@ -46,20 +47,20 @@ const mediaItemSchema = v.looseObject({
   props: v.exactOptional(mediaPropsSchema),
 });
 
-const playlistSchema = v.looseObject({
+const playlistSchema = jsonObject({
   id: mediaPlaylistIdSchema,
   name: v.string(),
   items: v.array(mediaIdSchema),
 });
 
-const audioPlaylistSchema = v.looseObject({
+const audioPlaylistSchema = jsonObject({
   id: audioPlaylistIdSchema,
   name: v.string(),
   items: v.array(mediaIdSchema),
   loop: v.boolean(),
 });
 
-const mediaListSchema = v.looseObject({
+const mediaListSchema = jsonObject({
   format: v.literal('llmedia'),
   schemaVersion: positiveInteger,
   items: listWithUniqueIds(mediaItemSchema),

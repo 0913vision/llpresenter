@@ -10,9 +10,14 @@ import {
 } from './fileFormat';
 import {translationIdSchema} from './ids';
 import type {MigrationStep} from './migration';
-import {listWithUniqueIds, nonBlankText, positiveInteger} from './primitives';
+import {
+  jsonObject,
+  listWithUniqueIds,
+  nonBlankText,
+  positiveInteger,
+} from './primitives';
 
-const translationSchema = v.looseObject({
+const translationSchema = jsonObject({
   id: translationIdSchema,
   name: nonBlankText,
   lang: v.string(),
@@ -20,12 +25,12 @@ const translationSchema = v.looseObject({
   default: v.boolean(),
 });
 
-const recentPassageSchema = v.looseObject({
+const recentPassageSchema = jsonObject({
   ref: nonBlankText,
   translation: translationIdSchema,
 });
 
-const bibleSchema = v.looseObject({
+const bibleSchema = jsonObject({
   format: v.literal('llsettings.bible'),
   schemaVersion: positiveInteger,
   translations: listWithUniqueIds(translationSchema),

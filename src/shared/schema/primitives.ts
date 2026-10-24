@@ -34,7 +34,7 @@ export const hexColor = v.pipe(
   v.regex(HEX_COLOR, 'Expected a color as #RRGGBB'),
 );
 
-export const pixelSize = v.looseObject({
+export const pixelSize = jsonObject({
   width: positiveInteger,
   height: positiveInteger,
 });
@@ -113,6 +113,17 @@ export function jsonObject<TEntries extends v.ObjectEntries>(
   return v.pipe(
     v.custom<Readonly<Record<string, unknown>>>(isJsonObject, NOT_AN_OBJECT),
     v.looseObject(entries),
+  );
+}
+
+/** A JSON object used as a record. Like {@link jsonObject}, it rejects arrays. */
+export function jsonRecord<
+  TKey extends v.BaseSchema<string, string, v.BaseIssue<unknown>>,
+  TValue extends v.GenericSchema,
+>(key: TKey, value: TValue) {
+  return v.pipe(
+    v.custom<Readonly<Record<string, unknown>>>(isJsonObject, NOT_AN_OBJECT),
+    v.record(key, value),
   );
 }
 

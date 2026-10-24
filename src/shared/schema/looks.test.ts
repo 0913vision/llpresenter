@@ -115,6 +115,21 @@ describe('parseLooks', () => {
     );
   });
 
+  it.each([
+    ['screens that are an array', {screens: []}, 'looks.0.screens'],
+    [
+      'layers that are an array',
+      {screens: {[MAIN_SCREEN]: {layers: []}}},
+      `looks.0.screens.${MAIN_SCREEN}.layers`,
+    ],
+  ])('rejects %s', (_name, change, field) => {
+    expectInvalidField(
+      codec,
+      {...looksFile(), looks: [{...normalLook(), ...change}]},
+      field,
+    );
+  });
+
   it('rejects a screen key that is not a screen id', () => {
     const look = {...normalLook(), screens: {'본 화면': {layers: {}}}};
 

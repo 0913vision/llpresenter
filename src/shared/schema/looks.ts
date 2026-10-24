@@ -17,6 +17,8 @@ import {
 import type {MigrationStep} from './migration';
 import {
   hexColor,
+  jsonObject,
+  jsonRecord,
   listWithUniqueIds,
   percent,
   positiveInteger,
@@ -25,8 +27,8 @@ import {textStyleEntries} from './textStyle';
 
 const optionalLayer = v.exactOptional(v.boolean());
 
-const screenLookSchema = v.looseObject({
-  layers: v.looseObject({
+const screenLookSchema = jsonObject({
+  layers: jsonObject({
     media: optionalLayer,
     slide: optionalLayer,
     notice: optionalLayer,
@@ -45,13 +47,13 @@ const screenLookSchema = v.looseObject({
   ),
 });
 
-const lookSchema = v.looseObject({
+const lookSchema = jsonObject({
   id: lookIdSchema,
   name: v.string(),
-  screens: v.record(screenIdSchema, screenLookSchema),
+  screens: jsonRecord(screenIdSchema, screenLookSchema),
 });
 
-const lyricStyleSchema = v.looseObject({
+const lyricStyleSchema = jsonObject({
   id: lyricStyleIdSchema,
   name: v.string(),
   ...textStyleEntries,
@@ -61,7 +63,7 @@ const lyricStyleSchema = v.looseObject({
   outline: v.boolean(),
 });
 
-const looksSchema = v.looseObject({
+const looksSchema = jsonObject({
   format: v.literal('llsettings.looks'),
   schemaVersion: positiveInteger,
   current: lookIdSchema,
