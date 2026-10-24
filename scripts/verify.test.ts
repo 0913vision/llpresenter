@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {
+  failureLines,
   formatHeader,
   formatSummary,
   runSteps,
@@ -7,18 +8,27 @@ import {
   type VerifyStep,
 } from './verify.mts';
 
-const passing: StepOutcome = {exitCode: 0, signal: null, milliseconds: 1500};
+const passing: StepOutcome = {
+  exitCode: 0,
+  signal: null,
+  milliseconds: 1500,
+  failureLines: [],
+};
 
-function failing(exitCode: number | null, signal: string | null): StepOutcome {
-  return {exitCode, signal, milliseconds: 250};
+function failing(
+  exitCode: number | null,
+  signal: string | null,
+  lines: readonly string[] = [],
+): StepOutcome {
+  return {exitCode, signal, milliseconds: 250, failureLines: lines};
 }
 
 describe('runSteps', () => {
-  it('runs every step in order when all pass', () => {
+  it('runs every step in order when all pass', async () => {
     const ran: string[] = [];
-    const result = runSteps(
+    const result = await runSteps(
       ['typecheck', 'lint', 'build'],
-      (step, position) => {
+      async (step, position) => {
         ran.push(`${position.number}/${position.total} ${step}`);
         return passing;
       },
@@ -32,19 +42,24 @@ describe('runSteps', () => {
     ]);
   });
 
-  it('stops at the first failing step', () => {
+  it('stops at the first failing step', async () => {
     const ran: VerifyStep[] = [];
-    const result = runSteps(['typecheck', 'lint', 'build'], step => {
-      ran.push(step);
-      return step === 'lint' ? failing(2, null) : passing;
-    });
+    const result = await runSteps(
+      ['typecheck', 'lint', 'build'],
+      async step => {
+        ran.push(step);
+        return step === 'lint' ? failing(2, null) : passing;
+      },
+    );
     expect(ran).toEqual(['typecheck', 'lint']);
     expect(result.passed.map(p => p.step)).toEqual(['typecheck']);
     expect(result.failed).toEqual({step: 'lint', outcome: failing(2, null)});
   });
 
-  it('treats a step without an exit code as failed', () => {
-    const result = runSteps(['test:coverage'], () => failing(null, 'SIGTERM'));
+  it('treats a step without an exit code as failed', async () => {
+    const result = await runSteps(['test:coverage'], async () =>
+      failing(null, 'SIGTERM'),
+    );
     expect(result.failed?.step).toBe('test:coverage');
   });
 });
@@ -96,11 +111,67 @@ describe('formatSummary', () => {
     );
   });
 
+  it('lists what failed when the step reported it', () => {
+    const summary = formatSummary(
+      {
+        passed: [],
+        failed: {
+          step: 'test:coverage',
+          outcome: failing(1, null, [
+            'FAIL  |node| test/git-repo.test.ts > makeTempGitRepo > writes files',
+          ]),
+        },
+      },
+      5,
+    );
+    expect(summary).toContain(
+      [
+        'What failed:',
+        '  FAIL  |node| test/git-repo.test.ts > makeTempGitRepo > writes files',
+        'Fix it, then run',
+      ].join('\n'),
+    );
+  });
+
   it('names the signal when a step was stopped', () => {
     const summary = formatSummary(
       {passed: [], failed: {step: 'build', outcome: failing(null, 'SIGINT')}},
       5,
     );
     expect(summary).toContain('"npm run build" was stopped by SIGINT.');
+  });
+});
+
+describe('failureLines', () => {
+  const RED = '\x1b[31m';
+  const RESET = '\x1b[39m';
+  const vitestOutput = [
+    ' RUN  v5.0.5 D:/llp',
+    `${RED} FAIL ${RESET} |node| test/git-repo.test.ts > makeTempGitRepo > writes files`,
+    ' ✓ |node| scripts/verify.test.ts (9 tests) 12ms',
+    '   × writes files 5625ms',
+    '⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯',
+    'Error: [vitest-pool]: Failed to start forks worker for test files D:/llp/src/renderer/src/ui/Checkbox.test.tsx',
+    ' FAIL  |node| test/git-repo.test.ts > makeTempGitRepo > writes files',
+    '      Tests  1 failed | 736 passed (737)',
+  ].join('\r\n');
+
+  it('keeps failed tests and worker start errors, once each', () => {
+    expect(failureLines(vitestOutput)).toEqual([
+      'FAIL  |node| test/git-repo.test.ts > makeTempGitRepo > writes files',
+      '× writes files 5625ms',
+      'Error: [vitest-pool]: Failed to start forks worker for test files D:/llp/src/renderer/src/ui/Checkbox.test.tsx',
+    ]);
+  });
+
+  it('finds nothing in a clean run', () => {
+    expect(failureLines(' ✓ |node| scripts/verify.test.ts (9 tests)')).toEqual(
+      [],
+    );
+  });
+
+  it('keeps at most twenty lines', () => {
+    const many = Array.from({length: 30}, (_, i) => ` FAIL  test ${i}`);
+    expect(failureLines(many.join('\n'))).toHaveLength(20);
   });
 });

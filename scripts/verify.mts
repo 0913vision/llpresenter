@@ -1,6 +1,7 @@
-import {spawnSync} from 'node:child_process';
+import {spawn} from 'node:child_process';
 import {performance} from 'node:perf_hooks';
 import {pathToFileURL} from 'node:url';
+import {stripVTControlCharacters} from 'node:util';
 import {COMPILE_CACHE_DIR} from './compile-cache.mts';
 
 /** The npm scripts that `npm run verify` runs, in order. */
@@ -20,6 +21,8 @@ export interface StepOutcome {
   readonly exitCode: number | null;
   readonly signal: string | null;
   readonly milliseconds: number;
+  /** The lines that say what failed, for a step that failed. */
+  readonly failureLines: readonly string[];
 }
 
 /** Where a step sits in the run, counted from 1. */
@@ -50,23 +53,43 @@ export interface VerifyResult {
 export type StepRunner = (
   step: VerifyStep,
   position: StepPosition,
-) => StepOutcome;
+) => Promise<StepOutcome>;
 
 const MS_PER_SECOND = 1000;
 const FAILURE_EXIT_CODE = 1;
+const MAX_FAILURE_LINES = 20;
+const MAX_KEPT_OUTPUT_CHARS = 2_000_000;
+const FAILURE_LINE =
+  /^\s*(?:FAIL\s|×\s|Error: \[vitest-pool|Unhandled (?:Errors?|Rejection))/;
 
 /** Runs the steps in order and stops at the first one that fails. */
-export function runSteps(
+export async function runSteps(
   steps: readonly VerifyStep[],
   runStep: StepRunner,
-): VerifyResult {
+): Promise<VerifyResult> {
   const passed: PassedStep[] = [];
   for (const [index, step] of steps.entries()) {
-    const outcome = runStep(step, {number: index + 1, total: steps.length});
+    const outcome = await runStep(step, {
+      number: index + 1,
+      total: steps.length,
+    });
     if (outcome.exitCode !== 0) return {passed, failed: {step, outcome}};
     passed.push({step, milliseconds: outcome.milliseconds});
   }
   return {passed, failed: null};
+}
+
+/**
+ * Picks the lines that name what failed from a step's output: Vitest's
+ * `FAIL` and `×` lines, worker start errors, and unhandled errors. Without
+ * them, a timeout on a busy machine looks the same as a broken test.
+ */
+export function failureLines(output: string): string[] {
+  const lines = stripVTControlCharacters(output)
+    .split(/\r?\n/)
+    .filter(line => FAILURE_LINE.test(line))
+    .map(line => line.trim());
+  return [...new Set(lines)].slice(0, MAX_FAILURE_LINES);
 }
 
 function seconds(milliseconds: number): string {
@@ -100,33 +123,65 @@ export function formatSummary(
   lines.push(
     `  FAIL  ${step} (${seconds(outcome.milliseconds)})`,
     `verify failed at step ${result.passed.length + 1}/${totalSteps}: "npm run ${step}" ${howItEnded(outcome)}.`,
+  );
+  if (outcome.failureLines.length > 0) {
+    lines.push('What failed:', ...outcome.failureLines.map(l => `  ${l}`));
+  }
+  lines.push(
     `Fix it, then run "npm run ${step}" alone or "npm run verify" again.`,
   );
   return lines.join('\n');
 }
 
-function npmRunner(npmCli: string): StepRunner {
-  return (step, position) => {
-    console.log(`\n${formatHeader(step, position)}`);
-    const start = performance.now();
-    const child = spawnSync(process.execPath, [npmCli, 'run', step], {
-      stdio: 'inherit',
-      env: {...process.env, NODE_COMPILE_CACHE: COMPILE_CACHE_DIR},
-    });
-    if (child.error !== undefined) {
-      console.error(
-        `Could not start "npm run ${step}": ${child.error.message}`,
-      );
-    }
-    return {
-      exitCode: child.error === undefined ? child.status : FAILURE_EXIT_CODE,
-      signal: child.signal,
-      milliseconds: performance.now() - start,
-    };
-  };
+function keepTail(text: string): string {
+  return text.length > MAX_KEPT_OUTPUT_CHARS
+    ? text.slice(-MAX_KEPT_OUTPUT_CHARS)
+    : text;
 }
 
-function main(): void {
+function stepEnvironment(): NodeJS.ProcessEnv {
+  const color = process.stdout.isTTY ? {FORCE_COLOR: '1'} : {};
+  return {...process.env, ...color, NODE_COMPILE_CACHE: COMPILE_CACHE_DIR};
+}
+
+function npmRunner(npmCli: string): StepRunner {
+  return (step, position) =>
+    new Promise(resolve => {
+      console.log(`\n${formatHeader(step, position)}`);
+      const start = performance.now();
+      let output = '';
+      const child = spawn(process.execPath, [npmCli, 'run', step], {
+        stdio: ['ignore', 'pipe', 'pipe'],
+        env: stepEnvironment(),
+      });
+      // NOTE(0913vision): The output goes straight to the terminal and is
+      // also kept, capped, so the summary can name what failed. FORCE_COLOR
+      // keeps the tools' colors, which they drop when they see a pipe.
+      child.stdout.on('data', (chunk: Buffer) => {
+        process.stdout.write(chunk);
+        output = keepTail(output + chunk.toString());
+      });
+      child.stderr.on('data', (chunk: Buffer) => {
+        process.stderr.write(chunk);
+        output = keepTail(output + chunk.toString());
+      });
+      const finish = (exitCode: number | null, signal: string | null): void => {
+        resolve({
+          exitCode,
+          signal,
+          milliseconds: performance.now() - start,
+          failureLines: exitCode === 0 ? [] : failureLines(output),
+        });
+      };
+      child.once('error', error => {
+        console.error(`Could not start "npm run ${step}": ${error.message}`);
+        finish(FAILURE_EXIT_CODE, null);
+      });
+      child.once('close', (code, signal) => finish(code, signal));
+    });
+}
+
+async function main(): Promise<void> {
   // NOTE(0913vision): npm sets npm_execpath to its own CLI script. Running it
   // with this Node avoids spawning npm.cmd through a shell on Windows, so Git
   // Bash and PowerShell behave the same.
@@ -136,7 +191,7 @@ function main(): void {
     process.exitCode = FAILURE_EXIT_CODE;
     return;
   }
-  const result = runSteps(VERIFY_STEPS, npmRunner(npmCli));
+  const result = await runSteps(VERIFY_STEPS, npmRunner(npmCli));
   const summary = formatSummary(result, VERIFY_STEPS.length);
   if (result.failed === null) {
     console.log(`\n${summary}`);
@@ -148,5 +203,8 @@ function main(): void {
 
 const entry = process.argv[1];
 if (entry !== undefined && import.meta.url === pathToFileURL(entry).href) {
-  main();
+  main().catch((error: unknown) => {
+    console.error('verify failed to run:', error);
+    process.exitCode = FAILURE_EXIT_CODE;
+  });
 }

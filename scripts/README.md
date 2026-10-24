@@ -15,10 +15,15 @@ Runs every check in order and stops at the first one that fails:
 5.  `build`: electron-vite.
 
 It prints a header before each step and a summary at the end. When a step fails,
-the summary names the step and its exit code, and you can rerun that step alone,
-for example `npm run lint`. The whole run takes under a minute on the
-development PC. Team members run it before a review request, and the lead runs
-it before a merge.
+the summary names the step and its exit code, and under "What failed" the failed
+tests, Vitest worker start errors, and unhandled errors from its output. That
+tells a busy-machine timeout from a broken test. Rerun the step alone, for
+example `npm run lint`. Team members run it before a review request, and the
+lead runs it before a merge.
+
+Tests have 60 seconds each (Vitest's default is 5), and Vitest uses worker
+threads on half the cores, so a machine busy with several sessions makes the run
+slower instead of failing it.
 
 ## `npm run lint`
 

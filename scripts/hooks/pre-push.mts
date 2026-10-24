@@ -112,7 +112,9 @@ function main(): void {
     return;
   }
   if (!runVerify()) {
-    console.error('pre-push: push stopped: npm run verify failed on main');
+    console.error(
+      'pre-push: push stopped: npm run verify failed on main; its summary above names the step and the failed tests',
+    );
     process.exitCode = FAILURE_EXIT_CODE;
   }
 }
