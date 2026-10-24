@@ -3,6 +3,7 @@ import {join} from 'node:path';
 import {LiveStore} from './live/store';
 import {createLogger, type Logger} from './log';
 import {registerIpc} from './ipc';
+import {startOutputs} from './outputs/start';
 import {applyUserDataOverride, type UserDataProblem} from './userData';
 import {createControlWindow} from './windows/control';
 
@@ -57,8 +58,13 @@ function start(): void {
       const disposeIpc = registerIpc(store, log);
       const win = createControlWindow(log);
       control = win;
+      const stopOutputs = startOutputs({store, control: win, log});
+      // NOTE(0913vision): Output windows turn a close into "output off", so
+      // they must be destroyed before Electron closes windows to quit.
+      app.on('before-quit', stopOutputs);
       win.on('closed', () => {
         control = null;
+        stopOutputs();
         disposeIpc();
         log.flush().then(
           () => app.quit(),
