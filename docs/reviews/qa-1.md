@@ -155,3 +155,23 @@ Round 1 (Codex 0:6, Request changes). All three findings are addressed in round
    ListRow; and "record" for the components whose READMEs set only the look.
 
 I also applied the lead's decisions 3 and 5 to section B and C19.
+
+Round 2 (Codex 0:6, Request changes). The three round 1 fixes and the B and C19
+decisions were confirmed. The four new findings are addressed in round 3:
+
+1. **S13 (judge for 30 minutes).** Agreed. S13 now runs
+   `npm run soak -- --minutes 30 --judge <record.jsonl>`.
+2. **D26 (매크로 actions).** Agreed. D26 now has a table with a valid payload
+   and invalid payloads for each of the 12 action kinds in spec 07, and the
+   expected error path `macros.<n>.actions.<m>.<parameter>`. Where spec 07 gives
+   a default (the screen of 무대 화면 배치, the mode of 소품, the operation of
+   타이머) or allows one 소품 in 레이어 지우기, a schema that requires the field
+   or refuses the 소품 is recorded as a difference for the lead to decide.
+3. **Thresholds without a source.** Agreed. D17 now counts as malformed only the
+   inputs that the guards' rules reject, and records extra fields, a 1 MB text,
+   and a `__proto__` key as observations (only prototype pollution fails). C23
+   keeps the node and listener baseline (`CLAUDE.md`, release everything) and
+   records the heap numbers. D12 records the parse time. I applied the same rule
+   to two more cases with numbers of my own: S9 (the 100 ms round trip) and W12
+   (the 50 ms long task) now record those values as observations.
+4. **G6 (nit).** Added the 3px `live` bar of a 퀵 실행 row that is on.

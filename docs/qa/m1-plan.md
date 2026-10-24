@@ -393,7 +393,8 @@ system README "Window sizes and layout"; the `Layout` README.
     8px steps at 125% and 150%, and read the layout at each step.
   - Expected: The class changes exactly at 1600 and 2400 in both directions. The
     center is never under 560. Nothing overflows the window (`scrollWidth`
-    equals `clientWidth`). No console error, and no long task over 50 ms.
+    equals `clientWidth`). No console error. Long tasks over 50 ms are recorded
+    as observations.
   - Source: `Layout`; `docs/TECH.md` "Performance".
 - **W13 Same CSS size at another scale**
   - Steps: Compare S1, S4, and S7, and S2, S5, and S8.
@@ -567,10 +568,11 @@ Sources for the whole section: MILESTONES criterion 3; the `Layout` README
 - **C23 Repeated drags stay flat**
   - Steps: S2. P-counters, 500 drags of each gap with a save after each,
     P-counters, then another 500 drags and P-counters.
-  - Expected: DOM nodes and JS event listeners return to the baseline. The JS
-    heap and the main process memory, after garbage collection, end within 1 MB
-    of the baseline and don't grow in the second round. The last width wins in
-    `app.json` (writes run in order).
+  - Expected: DOM nodes and JS event listeners return to the baseline. The last
+    width wins in `app.json` (writes run in order). The JS heap and the main
+    process memory after garbage collection are recorded for each round as
+    observations; growth that continues into the second round is reported to the
+    lead with the numbers, since the sources set no limit for one window.
   - Source: `CLAUDE.md` ("Release everything you register"); `docs/TECH.md`
     "Memory"; spec 02 ("If writes to one file overlap, run them in order").
 
@@ -618,7 +620,8 @@ Sources for the whole section: MILESTONES criterion 4; `docs/briefs/ui.md` tasks
   - Steps: Scan the computed color, background, outline, and box shadow of every
     element for the `live` color.
   - Expected: `live` appears only on the LIVE badge, the live dot, `ring-live`,
-    the dot of an output toggle that is on, and `ring-field-error`.
+    the dot of an output toggle that is on, the 3px `live` bar of a 퀵 실행 row
+    that is on (`ListRow` README), and `ring-field-error`.
   - Source: design system principle 4; spec 01 "Red is only for output".
 - **G7 Focus ring only from the keyboard**
   - Steps: Click each focusable sample with the mouse, then reach it with Tab.
@@ -959,11 +962,11 @@ Common cases:
   - Steps: A song with 10,000 장 (about 10 MB), JSON nested 100,000 levels deep,
     a 1 MB string field, unknown fields named `__proto__` and `constructor`, and
     numbers such as `1e309` and `-0`.
-  - Expected: No exception. The big song parses in under 1 second (record the
-    time). Deep nesting returns an error. `__proto__` changes no prototype:
-    `Object.prototype` stays clean, and the parsed object's prototype is
-    `Object.prototype` (record whether the field is kept). `1e309` is refused
-    wherever the spec expects a number.
+  - Expected: No exception. The time to parse the big song is recorded as an
+    observation, since no requirement sets one. Deep nesting returns an error.
+    `__proto__` changes no prototype: `Object.prototype` stays clean, and the
+    parsed object's prototype is `Object.prototype` (record whether the field is
+    kept). `1e309` is refused wherever the spec expects a number.
   - Source: `CLAUDE.md` ("Validate every value from outside the process");
     `docs/TECH.md` "Preventing runtime errors".
 - **D13 IDs**
@@ -997,14 +1000,16 @@ Common cases:
 - **D17 Live commands are validated**
   - Steps: In S2, send through `window.llp.live.send` from CDP each valid
     command type, then malformed ones: an unknown type, a missing payload,
-    fields of the wrong type, extra fields, an empty `screenId`, a negative
-    `position`, `lines` with a number, a 1 MB text, `null`, a string, an array,
-    and an object with a `__proto__` key. Read `llp.live.get()` and the log
-    after each.
+    fields of the wrong type, an empty `screenId`, a negative `position`,
+    `lines` with a number, `null`, a string, and an array. Then, as
+    observations, three inputs that no rule calls malformed: a valid command
+    with extra fields, a 메시지 with a 1 MB text, and an object with a
+    `__proto__` key. Read `llp.live.get()` and the log after each.
   - Expected: Valid commands change the state as `src/main/live/reducer.ts`
     defines. Each malformed command is dropped with one log warning, the state
     stays the same, the main process throws nothing, and the app stays
-    responsive.
+    responsive. The three observations are recorded (applied or dropped) without
+    a pass or fail, except that no input may change an object's prototype.
   - Source: MILESTONES task data-4; `CLAUDE.md` ("Validate every value ... IPC
     messages").
 - **D18 Window actions are validated**
@@ -1063,7 +1068,31 @@ says "passes" or "record".
   pass; an `icon` outside the design system icon list (record); an action of an
   unknown kind (record whether it is kept like an unknown item); `runOnStartup`
   that isn't a boolean; `schedule` with any content passes; a collection whose
-  `macroIds` names no 매크로 (record).
+  `macroIds` names no 매크로 (record). Each action kind in spec 07 "Action
+  kinds" gets a valid payload and invalid ones, in a 매크로 of the full sample;
+  the JSON names are those of the schema at the tag (record them). Each invalid
+  payload fails with the path `macros.<n>.actions.<m>.<parameter>`:
+
+  | Action (spec 07) | Valid payload                                                                                          | Invalid payloads                                                                                                     |
+  | ---------------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+  | Look 바꾸기      | A Look ID                                                                                              | No Look ID; an ID that isn't a UUID                                                                                  |
+  | 무대 화면 배치   | A stage layout ID, with and without a screen ID (the spec defaults to the 무대 화면)                   | No layout ID; a screen ID that isn't a UUID                                                                          |
+  | 모두 지우기      | No parameters                                                                                          | None (extra fields are kept as unknown fields)                                                                       |
+  | 레이어 지우기    | Each layer: 가사, 미디어, 소품, 오디오, 메시지, 공지; one 소품 by ID (proposal)                        | No layer; a layer outside the list                                                                                   |
+  | 배경 미디어      | A media ID                                                                                             | No media ID; a number                                                                                                |
+  | 소품             | A 소품 ID, with each mode (켜기, 끄기, 바꾸기) and with no mode (the spec defaults to 켜기)            | No 소품 ID; a mode outside the three                                                                                 |
+  | 메시지           | A template ID, blank values, target screens, and a display time                                        | No template ID; blank values that aren't strings; targets that aren't screen IDs or `"all"`; a negative display time |
+  | 공지             | A 공지 set ID                                                                                          | No set ID                                                                                                            |
+  | 오디오           | A track (media ID), 페이드 아웃, and 멈춤                                                              | A track without a media ID; an operation outside the three                                                           |
+  | 오디오 재생 목록 | An audio playlist ID                                                                                   | No playlist ID                                                                                                       |
+  | 타이머           | A 타이머 ID, with each operation (시작, 일시 정지, 처음으로) and with none (the spec defaults to 시작) | No 타이머 ID; an operation outside the three                                                                         |
+  | 매크로           | A 매크로 ID                                                                                            | No 매크로 ID; an ID that isn't a UUID                                                                                |
+
+  Where the spec gives a default (the screen of 무대 화면 배치, the mode of
+  소품, the operation of 타이머) or allows one 소품 in 레이어 지우기, a schema
+  that requires the field or refuses the 소품 is recorded as a difference from
+  the spec, not filed as a bug until the lead decides.
+
 - **D27 `quick.json`**: `kind` outside its enum; `"black"` without `ref` passes;
   `"bible"` with a passage object passes; `"song"` with a passage object fails.
 - **D28 `messages.json`**: `icon` outside its enum; `targets` `"all"` and a list
@@ -1218,10 +1247,10 @@ and "Verification"; `docs/spec/08-problems.md`.
   - Steps: Send 10,000 malformed commands and then 10,000 valid `output.set`
     toggles as fast as possible from the renderer. Time a `llp.live.get()` right
     after, and run P-counters.
-  - Expected: The round trip after the burst takes under 100 ms, memory returns
-    to the baseline after garbage collection, the log stays within its size cap
-    (record the cap and whether it rotates), and the last valid command decides
-    the state.
+  - Expected: The last valid command decides the state, the main process stays
+    up, and queues stay capped (`CLAUDE.md`). The round-trip time after the
+    burst, the memory after garbage collection, and the log size are recorded as
+    observations, since no requirement sets a number.
   - Source: `CLAUDE.md` ("Cap the size of every cache and list"); `docs/TECH.md`
     "Memory".
 - **S10 The log file**
@@ -1243,7 +1272,8 @@ and "Verification"; `docs/spec/08-problems.md`.
   - Steps: A QA script switches the workspace every second, drags a gap every 10
     seconds, and crosses a size class every 30 seconds, for 30 minutes. It
     samples memory every 10 seconds in the soak record format, and
-    `npm run soak -- --judge` judges the record.
+    `npm run soak -- --minutes 30 --judge <record.jsonl>` judges the record
+    against the 30 minutes it covers.
   - Expected: The judge passes (no steady growth), and the console has no error.
   - Source: `docs/TECH.md` "Memory"; `CLAUDE.md` ("keep memory and performance
     flat over hours of use").
