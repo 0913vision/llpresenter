@@ -1,12 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import type {LiveCommand} from '@shared/commands';
 import {emptyLiveState, layerKinds, type SlideLayer} from '@shared/live';
-import {
-  applyCommand,
-  initialHistory,
-  UNDO_LIMIT,
-  type LiveHistory,
-} from './reducer';
+import {applyCommand, initialHistory, type LiveHistory} from './reducer';
 
 const RANDOM_COMMAND_COUNT = 5000;
 const RANDOM_SEED = 20261024;
@@ -17,6 +12,12 @@ const slide = (position: number): SlideLayer => ({
   label: '후렴',
   lines: ['만복의 근원 하나님', '온 백성 찬송 드리고'],
 });
+
+const NEW_CONTENT: readonly LiveCommand[] = [
+  {type: 'slide.show', slide: slide(5)},
+  {type: 'media.show', media: {mediaId: 'still-water', loop: true}},
+  {type: 'message.show', message: {messageId: 'parking', text: '차량 이동'}},
+];
 
 const run = (
   commands: readonly LiveCommand[],
@@ -88,7 +89,7 @@ describe('applyCommand', () => {
     );
     const restored = applyCommand(cleared, {type: 'clear.undo'});
     expect(restored.state.layers).toEqual(shown.state.layers);
-    expect(restored.undo).toHaveLength(0);
+    expect(restored.undo).toBeNull();
     expect(restored.state.version).toBe(cleared.state.version + 1);
   });
 
@@ -107,15 +108,59 @@ describe('applyCommand', () => {
     expect(applyCommand(start, {type: 'clear.undo'})).toBe(start);
   });
 
-  it(`keeps at most ${UNDO_LIMIT} undo entries`, () => {
-    const extra = 15;
-    let history = initialHistory(emptyLiveState());
-    for (let i = 0; i < UNDO_LIMIT + extra; i += 1) {
-      history = applyCommand(history, {type: 'slide.show', slide: slide(i)});
-      history = applyCommand(history, {type: 'layer.clear', target: 'slide'});
-    }
-    expect(history.undo).toHaveLength(UNDO_LIMIT);
-    expect(history.undo.at(-1)?.slide?.position).toBe(UNDO_LIMIT + extra - 1);
+  it('undoes only the last clear, one level deep', () => {
+    const cleared = run([
+      {type: 'media.show', media: {mediaId: 'warm-light', loop: true}},
+      {type: 'slide.show', slide: slide(2)},
+      {type: 'layer.clear', target: 'slide'},
+      {type: 'layer.clear', target: 'media'},
+    ]);
+    const restored = applyCommand(cleared, {type: 'clear.undo'});
+    expect(restored.state.layers.media?.mediaId).toBe('warm-light');
+    expect(restored.state.layers.slide).toBeNull();
+    expect(restored.undo).toBeNull();
+  });
+
+  it('does nothing on an undo right after an undo', () => {
+    const restored = run([
+      {type: 'slide.show', slide: slide(2)},
+      {type: 'layer.clear', target: 'slide'},
+      {type: 'clear.undo'},
+    ]);
+    expect(applyCommand(restored, {type: 'clear.undo'})).toBe(restored);
+  });
+
+  it.each(NEW_CONTENT)(
+    'ends the undo when $type sends new content to any layer',
+    content => {
+      const cleared = run([
+        {type: 'slide.show', slide: slide(2)},
+        {type: 'layer.clear', target: 'slide'},
+      ]);
+      const changed = applyCommand(cleared, content);
+      expect(changed.undo).toBeNull();
+      expect(applyCommand(changed, {type: 'clear.undo'})).toBe(changed);
+    },
+  );
+
+  it('keeps the undo when an output turns on or off', () => {
+    const cleared = run([
+      {type: 'slide.show', slide: slide(2)},
+      {type: 'layer.clear', target: 'all'},
+      {type: 'output.set', screenId: 'main', on: true},
+    ]);
+    const restored = applyCommand(cleared, {type: 'clear.undo'});
+    expect(restored.state.layers.slide?.position).toBe(2);
+  });
+
+  it('keeps the undo when a clear finds nothing to clear', () => {
+    const cleared = run([
+      {type: 'slide.show', slide: slide(2)},
+      {type: 'layer.clear', target: 'slide'},
+    ]);
+    expect(applyCommand(cleared, {type: 'layer.clear', target: 'notice'})).toBe(
+      cleared,
+    );
   });
 
   it('tracks output per screen and ignores repeated values', () => {
@@ -133,13 +178,16 @@ describe('applyCommand', () => {
     expect(off.state.outputs['main']).toBe(false);
   });
 
-  it('never lowers the version or exceeds the undo limit for random commands', () => {
+  it('never lowers the version or keeps an undo past new content for random commands', () => {
     const random = seededRandom(RANDOM_SEED);
     let history = initialHistory(emptyLiveState());
     for (let i = 0; i < RANDOM_COMMAND_COUNT; i += 1) {
-      const next = applyCommand(history, randomCommand(random));
+      const command = randomCommand(random);
+      const next = applyCommand(history, command);
       expect(next.state.version).toBeGreaterThanOrEqual(history.state.version);
-      expect(next.undo.length).toBeLessThanOrEqual(UNDO_LIMIT);
+      if (next !== history && command.type.endsWith('.show')) {
+        expect(next.undo).toBeNull();
+      }
       history = next;
     }
   });

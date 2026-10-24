@@ -7,34 +7,27 @@ import {
   type LiveState,
 } from '@shared/live';
 
-/** How many clears can be undone. Older entries are dropped first. */
-export const UNDO_LIMIT = 20;
-
 export interface LiveHistory {
   readonly state: LiveState;
-  /** The layers right before each clear, most recent last. */
-  readonly undo: readonly LiveLayers[];
+  /**
+   * The layers right before the last clear, while that clear can still be
+   * undone. Undo has one level, and new content ends it, so an undo never
+   * covers something new (docs/spec/03-output.md, undo).
+   */
+  readonly undo: LiveLayers | null;
 }
 
 export function initialHistory(state: LiveState): LiveHistory {
-  return {state, undo: []};
+  return {state, undo: null};
 }
 
 function withLayers(
   history: LiveHistory,
   layers: LiveLayers,
-  undo: readonly LiveLayers[],
+  undo: LiveLayers | null,
 ): LiveHistory {
   const version = history.state.version + 1;
   return {state: {...history.state, version, layers}, undo};
-}
-
-function pushUndo(
-  undo: readonly LiveLayers[],
-  layers: LiveLayers,
-): readonly LiveLayers[] {
-  const next = [...undo, layers];
-  return next.length > UNDO_LIMIT ? next.slice(next.length - UNDO_LIMIT) : next;
 }
 
 function setLayer<K extends LayerKind>(
@@ -44,24 +37,22 @@ function setLayer<K extends LayerKind>(
 ): LiveHistory {
   if (history.state.layers[kind] === value) return history;
   const layers = {...history.state.layers, [kind]: value};
-  return withLayers(history, layers, history.undo);
+  return withLayers(history, layers, null);
 }
 
 function clear(history: LiveHistory, target: LayerKind | 'all'): LiveHistory {
   const layers = history.state.layers;
   if (target === 'all') {
     if (!hasAnyLayer(layers)) return history;
-    return withLayers(history, emptyLayers(), pushUndo(history.undo, layers));
+    return withLayers(history, emptyLayers(), layers);
   }
   if (layers[target] === null) return history;
-  const cleared = {...layers, [target]: null};
-  return withLayers(history, cleared, pushUndo(history.undo, layers));
+  return withLayers(history, {...layers, [target]: null}, layers);
 }
 
 function undoClear(history: LiveHistory): LiveHistory {
-  const previous = history.undo.at(-1);
-  if (previous === undefined) return history;
-  return withLayers(history, previous, history.undo.slice(0, -1));
+  if (history.undo === null) return history;
+  return withLayers(history, history.undo, null);
 }
 
 function setOutput(
