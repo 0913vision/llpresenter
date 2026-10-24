@@ -1,6 +1,6 @@
 import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {useState, type JSX} from 'react';
+import {useEffect, useState, type JSX, type ReactNode} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {
   PreviewFrame,
@@ -44,8 +44,10 @@ const screens = [main, stage, broadcast];
 
 function Preview({
   onBigChange = () => {},
+  renderScreen = shown => <span>{`${shown.name} 출력`}</span>,
 }: {
   readonly onBigChange?: (id: ScreenName) => void;
+  readonly renderScreen?: (shown: PreviewScreen<ScreenName>) => ReactNode;
 }): JSX.Element {
   const [big, setBig] = useState<ScreenName>('main');
   return (
@@ -56,7 +58,7 @@ function Preview({
         setBig(id);
         onBigChange(id);
       }}
-      renderScreen={shown => <span>{`${shown.name} 출력`}</span>}
+      renderScreen={renderScreen}
     />
   );
 }
@@ -95,12 +97,44 @@ describe('PreviewFrame', () => {
     ]);
   });
 
+  it('keeps every screen mounted in its place across swaps', async () => {
+    const lifecycle: string[] = [];
+    function Output({name}: {readonly name: string}): JSX.Element {
+      useEffect(() => {
+        lifecycle.push(`mount ${name}`);
+        return () => {
+          lifecycle.push(`unmount ${name}`);
+        };
+      }, [name]);
+      return <span>{`${name} 출력`}</span>;
+    }
+    render(<Preview renderScreen={shown => <Output name={shown.name} />} />);
+    const stageOutput = screen.getByText('무대 화면 출력');
+    const mainOutput = screen.getByText('본 화면 출력');
+    lifecycle.length = 0;
+    await userEvent.click(
+      screen.getByRole('button', {
+        name: '무대 화면 크게 보기, 모니터 3 연결 끊김',
+      }),
+    );
+    await userEvent.click(
+      screen.getByRole('button', {
+        name: '방송 자막 크게 보기, 출력이 꺼져 있습니다',
+      }),
+    );
+    expect(lifecycle).toEqual([]);
+    expect(screen.getByText('무대 화면 출력')).toBe(stageOutput);
+    expect(screen.getByText('본 화면 출력')).toBe(mainOutput);
+  });
+
   it('marks the states and explains them in a tooltip', async () => {
     render(<Preview />);
     const warning = screen.getByRole('button', {
       name: '무대 화면 크게 보기, 모니터 3 연결 끊김',
     });
-    expect(warning.getAttribute('data-state')).toBe('warning');
+    expect(warning.closest('[data-state]')?.getAttribute('data-state')).toBe(
+      'warning',
+    );
     expect((await hoverForTooltip(warning))?.textContent).toBe(
       '모니터 3 연결 끊김, 창으로 표시 중',
     );
@@ -108,7 +142,7 @@ describe('PreviewFrame', () => {
     const off = screen.getByRole('button', {
       name: '방송 자막 크게 보기, 출력이 꺼져 있습니다',
     });
-    expect(off.getAttribute('data-state')).toBe('off');
+    expect(off.closest('[data-state]')?.getAttribute('data-state')).toBe('off');
     expect((await hoverForTooltip(off))?.textContent).toBe(
       '방송 자막 출력이 꺼져 있습니다',
     );

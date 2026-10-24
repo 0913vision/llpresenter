@@ -19,7 +19,7 @@ The body of the preview panel. It shows one of the three output screens (본 화
 - Screen frame `ll-monitor__frame`: 16:9, corner radius `radius-md`, background `output-black`, border `0 0 0 1px line`. 방송 자막 uses `chroma` (`ll-monitor__frame--chroma`), the same as the capture window background.
 - Screen content `ll-monitor__screen`: the slot where the same renderer as the output window goes, scaled to the frame width (canvas, video, and so on). Look decides the font sizes and colors inside it, and it doesn't use UI tokens. The frame has `container-type: inline-size`, so you can match proportions with `cqw` when you draw it in HTML.
 - Large preview name row `ll-monitor__caption`: `space-10` below the frame. Screen name `label-strong` (12/16/600) `text`, target `label` `text-3` (with a 14px `monitor` icon in front, gap `space-4`), and the Look name at the right end in `label` `text-3`. Gap between items `space-8`. If the target is NDI, write only the text, without the icon.
-- Small preview row `ll-monitor__smalls`: a two-cell grid, gap `space-10`. Each cell `ll-monitor__small` is a button, with a name row `space-6` below the frame (`caption` 11/14, name `text-2`, target `text-3`, gap `space-6`). Don't write the Look name.
+- Small preview row `ll-monitor__smalls`: a two-cell grid, gap `space-10`. Each cell `ll-monitor__small` is a button, with a name row `space-6` below the frame (`caption` 11/14, name `text-2`, target `text-3`, gap `space-6`). Don't write the Look name. A small frame is at most `size-preview-small-max` (160) wide, so a right column widened by the user leaves the height to the large preview.
 - Narrow window (`ll-monitor--compact`): the small previews become rows. Frame width 64px (height 36), gap between frame and text `space-8`, name and target on two lines (gap `space-2`).
 - If the height isn't enough to keep the 진행 도구 (show tools) at 240, the preview panel shrinks. The large frame then keeps 16:9, gets smaller to fit the height, and is centered (see Layout).
 
@@ -27,7 +27,7 @@ The body of the preview panel. It shows one of the three output screens (본 화
 
 | Name | Height | Text | Where to use |
 |---|---|---|---|
-| Default | Large frame = inner column width × 9/16, small frame = (width − 10) / 2 × 9/16 | Name row `label-strong`/`label`, small cells `caption` | Regular and wide windows (right column 480, 560) |
+| Default | Large frame = inner column width × 9/16, small frame = min((width − 10) / 2, 160) × 9/16 | Name row `label-strong`/`label`, small cells `caption` | Regular and wide windows (right column 480, 560) |
 | Narrow window `--compact` | Large frame the same, small cells 36 (frame 64×36) | Same, small cells on two lines | Narrow window (right column 360) |
 
 ## States
@@ -60,7 +60,7 @@ Keep the missing monitor border as it is on hover. A cell with output off shows 
 
 ## Implementation notes
 
-- `<PreviewFrame screens={[main, stage, broadcast]} big={bigId} compact={sizeClass === 'narrow'} onBigChange={id => …} renderScreen={screen => …} />`; `renderScreen` draws a screen's output (the same renderer as its output window) scaled to the frame. The two screens that swap remount that content.
+- `<PreviewFrame screens={[main, stage, broadcast]} big={bigId} compact={sizeClass === 'narrow'} onBigChange={id => …} renderScreen={screen => …} />`; `renderScreen` draws a screen's output (the same renderer as its output window) scaled to the frame. Each screen's content stays mounted across swaps: the app keeps one cell per screen in the same place of the tree and lets the grid put the large one on top, and a small cell has its button laid over it instead of around it. A swap never rebuilds a renderer or restarts a video.
 - Each screen: `{id, name: '무대 화면', target: {kind: 'display', label: '모니터 3'}, look: '현재와 다음', status, chroma: false}`, where `status` is `{kind: 'on'}`, `{kind: 'off'}`, or `{kind: 'warning', reason: '모니터 3 연결 끊김', detail: '창으로 표시 중'}`. The tooltip says `reason, detail` (or "본 화면 출력이 꺼져 있습니다" when off), and a small cell's name adds the reason: "무대 화면 크게 보기, 모니터 3 연결 끊김".
 - Classes: `ll-monitor`, `ll-monitor--compact`, `ll-monitor__main`, `ll-monitor__frame`, `ll-monitor__frame--chroma`, `ll-monitor__screen`, `ll-monitor__caption`, `ll-monitor__name`, `ll-monitor__target`, `ll-monitor__look`, `ll-monitor__smalls`, `ll-monitor__small`.
 - `.is-hover` and `.is-focus` fix a state in the preview.

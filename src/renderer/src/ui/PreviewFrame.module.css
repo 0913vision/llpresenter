@@ -1,12 +1,14 @@
 .monitor {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-10);
   min-width: 0;
 }
 
 .main {
   display: flex;
+  grid-row: 1;
+  grid-column: 1 / -1;
   flex-direction: column;
   gap: var(--space-10);
   min-width: 0;
@@ -64,22 +66,25 @@
   text-overflow: ellipsis;
 }
 
-.smalls {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-10);
-}
-
 .small {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
   min-width: 0;
+}
+
+.small .frame {
+  max-width: var(--size-preview-small-max);
+}
+
+.hit {
+  position: absolute;
+  inset: 0;
   padding: 0;
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
-  text-align: left;
 }
 
 .small .caption {
@@ -96,7 +101,7 @@
   box-shadow: var(--ring-hover);
 }
 
-.small:focus-visible {
+.hit:focus-visible {
   outline-offset: var(--space-focus-preview-cell);
 }
 

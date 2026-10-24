@@ -148,65 +148,58 @@ function Caption<Id extends string>({
   );
 }
 
-function LargePreview<Id extends string>({
-  screen,
-  renderScreen,
-}: {
-  readonly screen: PreviewScreen<Id>;
-  readonly renderScreen: (screen: PreviewScreen<Id>) => ReactNode;
-}): JSX.Element {
-  const {targetProps, tooltip} = useTooltip(
-    titleTooltip(previewReason(screen)),
-  );
-  return (
-    <div
-      onPointerEnter={targetProps.onPointerEnter}
-      onPointerLeave={targetProps.onPointerLeave}
-      data-state={stateOf(screen.status)}
-      className={styles.main}
-    >
-      <Frame screen={screen} renderScreen={renderScreen} />
-      <Caption screen={screen} small={false} />
-      {tooltip}
-    </div>
-  );
-}
+type PreviewRole = 'large' | 'small';
 
-function SmallPreview<Id extends string>({
-  screen,
-  renderScreen,
-  onBigChange,
-}: {
+interface ScreenCellProps<Id extends string> {
   readonly screen: PreviewScreen<Id>;
+  readonly role: PreviewRole;
   readonly renderScreen: (screen: PreviewScreen<Id>) => ReactNode;
   readonly onBigChange: (id: Id) => void;
-}): JSX.Element {
+}
+
+// NOTE(0913vision): A screen keeps one cell in the same place of the tree
+// whichever size it has, and the grid moves the large one to the top. A swap
+// changes only classes, the name row, and the button laid over a small cell,
+// so the output drawn in the frame is never rebuilt and its video never
+// restarts.
+function ScreenCell<Id extends string>({
+  screen,
+  role,
+  renderScreen,
+  onBigChange,
+}: ScreenCellProps<Id>): JSX.Element {
   const {targetProps, tooltip} = useTooltip(
     titleTooltip(previewReason(screen)),
   );
+  const large = role === 'large';
   return (
-    <>
-      <button
-        {...targetProps}
-        type="button"
-        aria-label={smallPreviewName(screen)}
-        data-state={stateOf(screen.status)}
-        className={styles.small}
-        onClick={() => onBigChange(screen.id)}
-      >
-        <Frame screen={screen} renderScreen={renderScreen} />
-        <Caption screen={screen} small />
-      </button>
+    <div
+      onPointerEnter={large ? targetProps.onPointerEnter : undefined}
+      onPointerLeave={large ? targetProps.onPointerLeave : undefined}
+      data-state={stateOf(screen.status)}
+      className={large ? styles.main : styles.small}
+    >
+      <Frame screen={screen} renderScreen={renderScreen} />
+      <Caption screen={screen} small={!large} />
+      {large ? null : (
+        <button
+          {...targetProps}
+          type="button"
+          aria-label={smallPreviewName(screen)}
+          className={styles.hit}
+          onClick={() => onBigChange(screen.id)}
+        />
+      )}
       {tooltip}
-    </>
+    </div>
   );
 }
 
 /**
  * The body of the preview panel (`ll-monitor`): one screen large and the
  * others in a row of small previews, which a click swaps in. The output side
- * has no motion, so screens swap at once; the two screens that swap remount
- * their `renderScreen` content.
+ * has no motion, so screens swap at once, and each screen's `renderScreen`
+ * content stays mounted across swaps.
  */
 export function PreviewFrame<Id extends string>({
   screens,
@@ -215,25 +208,17 @@ export function PreviewFrame<Id extends string>({
   onBigChange,
   renderScreen,
 }: PreviewFrameProps<Id>): JSX.Element {
-  const large = screens.find(screen => screen.id === big);
-  const smalls = screens.filter(screen => screen.id !== big);
   return (
     <div className={classNames(styles.monitor, compact && styles.compact)}>
-      {large === undefined ? null : (
-        <LargePreview screen={large} renderScreen={renderScreen} />
-      )}
-      {smalls.length === 0 ? null : (
-        <div className={styles.smalls}>
-          {smalls.map(screen => (
-            <SmallPreview
-              key={screen.id}
-              screen={screen}
-              renderScreen={renderScreen}
-              onBigChange={onBigChange}
-            />
-          ))}
-        </div>
-      )}
+      {screens.map(screen => (
+        <ScreenCell
+          key={screen.id}
+          screen={screen}
+          role={screen.id === big ? 'large' : 'small'}
+          renderScreen={renderScreen}
+          onBigChange={onBigChange}
+        />
+      ))}
     </div>
   );
 }

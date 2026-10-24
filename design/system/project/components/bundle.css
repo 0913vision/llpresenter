@@ -1056,6 +1056,7 @@
 /* Two small previews: a click swaps places with the large preview. */
 .ll-monitor__smalls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-10); }
 .ll-monitor__small, :is(.ll-root, .ll-preview) .ll-monitor__small { display: flex; flex-direction: column; gap: var(--space-6); min-width: 0; margin: 0; padding: 0; border: 0; border-radius: var(--radius-md); background: transparent; color: inherit; font: inherit; text-align: left; cursor: default; }
+.ll-monitor__small .ll-monitor__frame { max-width: var(--size-preview-small-max); }
 .ll-monitor__small .ll-monitor__caption { gap: var(--space-6); font-size: 11px; line-height: 14px; }
 .ll-monitor__small .ll-monitor__name { color: var(--text-2); font-weight: 400; }
 .ll-monitor__small .ll-monitor__target .ll-i { width: var(--size-icon-12); height: var(--size-icon-12); }
