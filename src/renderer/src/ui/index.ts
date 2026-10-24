@@ -46,6 +46,22 @@ export {
   type OutputToggleProps,
 } from './OutputToggle';
 export {
+  Panel,
+  PanelActions,
+  PanelBody,
+  PanelFooter,
+  PanelHeader,
+  PanelMeta,
+  PanelSwitch,
+  PanelTabs,
+  PanelTitle,
+  Panels,
+  type PanelBodyVariant,
+  type PanelSwitchProps,
+  type PanelTab,
+  type PanelTabsProps,
+} from './Panel';
+export {
   SegmentedControl,
   type SegmentOption,
   type SegmentedControlProps,
@@ -102,4 +118,5 @@ export {
   type TooltipContent,
   type TooltipProps,
 } from './Tooltip';
+export {TruncatedText} from './TruncatedText';
 export type {ControlSize, GroupName} from './types';
