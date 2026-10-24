@@ -1,0 +1,65 @@
+.root {
+  --lyric-shadow-offset: 0.04em;
+  --lyric-shadow-blur: 0.12em;
+  --lyric-shadow-strength: 70%;
+  --lyric-outline-width: 0.04em;
+
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--output-black);
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+}
+
+.video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+}
+
+.dissolving {
+  transition: opacity var(--background-dissolve) linear;
+}
+
+.page {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transition: opacity var(--slide-dissolve) linear;
+}
+
+.instant .page {
+  transition: none;
+}
+
+.shown {
+  opacity: 1;
+}
+
+.block {
+  white-space: pre-wrap;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.shadow .block {
+  text-shadow: 0 var(--lyric-shadow-offset) var(--lyric-shadow-blur)
+    color-mix(
+      in srgb,
+      var(--output-black) var(--lyric-shadow-strength),
+      transparent
+    );
+}
+
+.outline .block {
+  -webkit-text-stroke: var(--lyric-outline-width) var(--output-black);
+  paint-order: stroke fill;
+}

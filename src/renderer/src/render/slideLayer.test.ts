@@ -1,0 +1,146 @@
+import {beforeEach, describe, expect, it, vi} from 'vitest';
+import type {SlideLayer} from '@shared/live';
+import {classes} from './classes';
+import {DEFAULT_LYRIC_STYLE} from './lyricStyle';
+import {SlideLayerView} from './slideLayer';
+
+const VERSE: SlideLayer = {
+  itemId: 'hymn-1',
+  position: 0,
+  label: '1절',
+  lines: ['만복의 근원 하나님', '온 백성 찬송 드리고'],
+};
+
+function setUp() {
+  const parent = document.createElement('div');
+  const view = new SlideLayerView(parent, DEFAULT_LYRIC_STYLE);
+  const pages = (): HTMLElement[] => [
+    ...parent.querySelectorAll<HTMLElement>(`.${classes.page}`),
+  ];
+  const shownPage = (): HTMLElement | undefined =>
+    pages().find(page => page.classList.contains(classes.shown));
+  const shownLines = (): string[] =>
+    [...(shownPage()?.querySelectorAll(`.${classes.block} > div`) ?? [])].map(
+      row => row.textContent,
+    );
+  return {parent, view, pages, shownPage, shownLines};
+}
+
+describe('SlideLayerView', () => {
+  it('draws the lines of a 장 as stored, one row each', () => {
+    const {view, shownLines} = setUp();
+    view.show({...VERSE, lines: ['첫 줄', '', '셋째 줄']});
+    expect(shownLines()).toEqual(['첫 줄', ' ', '셋째 줄']);
+  });
+
+  it('dissolves to the next 장 on the other page and reuses its rows', () => {
+    const {view, pages, shownPage, shownLines} = setUp();
+    view.show(VERSE);
+    const first = shownPage();
+    view.show({...VERSE, position: 1, lines: ['찬송 드리고']});
+    const second = shownPage();
+    expect(second).not.toBe(first);
+    expect(
+      pages().filter(page => page.classList.contains(classes.shown)),
+    ).toHaveLength(1);
+    expect(shownLines()).toEqual(['찬송 드리고']);
+
+    const rows = second?.querySelector(`.${classes.block}`)?.children;
+    const firstRow = rows?.item(0);
+    view.show({...VERSE, position: 2});
+    view.show({...VERSE, position: 3, lines: ['다시', '두 줄']});
+    expect(
+      shownPage()?.querySelector(`.${classes.block}`)?.children.item(0),
+    ).toBe(firstRow);
+  });
+
+  it('leaves the same 장 alone when it is shown again', () => {
+    const {view, shownPage} = setUp();
+    view.show(VERSE);
+    const page = shownPage();
+    view.show({...VERSE, lines: [...VERSE.lines]});
+    expect(shownPage()).toBe(page);
+  });
+
+  it('clears at once without a dissolve', () => {
+    const {parent, view, shownPage} = setUp();
+    view.show(VERSE);
+    view.show(null);
+    expect(shownPage()).toBeUndefined();
+    expect(parent.firstElementChild?.classList.contains(classes.instant)).toBe(
+      true,
+    );
+    view.show(VERSE);
+    expect(parent.firstElementChild?.classList.contains(classes.instant)).toBe(
+      false,
+    );
+  });
+
+  it('applies the lyric style', () => {
+    const {parent, view, shownPage} = setUp();
+    view.show(VERSE);
+    const page = shownPage();
+    const block = page?.querySelector<HTMLElement>(`.${classes.block}`);
+    expect(page?.style.inset).toBe('6%');
+    expect(page?.style.justifyContent).toBe('center');
+    expect(block?.style.fontWeight).toBe('700');
+    expect(block?.style.fontSize).toBe('84px');
+    expect(parent.firstElementChild?.classList.contains(classes.shadow)).toBe(
+      true,
+    );
+  });
+
+  describe('fitting', () => {
+    const LINE_HEIGHT = DEFAULT_LYRIC_STYLE.lineHeight;
+
+    beforeEach(() => {
+      vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(
+        1000,
+      );
+      vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(
+        1800,
+      );
+      vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(0);
+      vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(
+        function (this: HTMLElement) {
+          const size = Number.parseFloat(this.style.fontSize);
+          return Math.ceil(this.children.length * size * LINE_HEIGHT);
+        },
+      );
+    });
+
+    it('keeps the style size for a 장 within the maximum lines', () => {
+      const {view, shownPage} = setUp();
+      view.show(VERSE);
+      const block = shownPage()?.querySelector<HTMLElement>(
+        `.${classes.block}`,
+      );
+      expect(block?.style.fontSize).toBe('84px');
+    });
+
+    it('shrinks a 장 with more lines than the maximum until it fits', () => {
+      const {view, shownPage} = setUp();
+      view.show({...VERSE, lines: ['하나', '둘', '셋', '넷']});
+      const block = shownPage()?.querySelector<HTMLElement>(
+        `.${classes.block}`,
+      );
+      expect(block?.style.fontSize).toBe('42px');
+    });
+
+    it('scales the style size to the screen', () => {
+      const {view, shownPage} = setUp();
+      view.show(VERSE);
+      view.rescale(0.5);
+      const block = shownPage()?.querySelector<HTMLElement>(
+        `.${classes.block}`,
+      );
+      expect(block?.style.fontSize).toBe('42px');
+    });
+  });
+
+  it('removes its element on dispose', () => {
+    const {parent, view} = setUp();
+    view.dispose();
+    expect(parent.childElementCount).toBe(0);
+  });
+});
