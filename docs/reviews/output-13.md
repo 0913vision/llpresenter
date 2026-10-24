@@ -103,19 +103,14 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (49a6fb8): reviewer (Codex, codex4) Approve with no findings. Lead
+  Approve; the soak scenario starts after the outputs and is the first shutdown
+  step, the recorder reads the outputs' frame rates, and the scenario's commands
+  go through the shared `dispatchLogged` so listener errors are logged. The
+  output-11 nit (the `PageStatus` note) is fixed too. Rebased by the lead onto
+  local `main` without conflicts.
 
 ## Team member's reply
 
