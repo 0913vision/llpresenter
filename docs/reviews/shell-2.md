@@ -58,7 +58,9 @@ the panels read an invented sample service (`sampleService.ts`, marked with a
 
 ## Checks run
 
-Pending.
+`npm run verify` on commit `b55a52a` (base `main` 13d88b1, the review document
+is added after it) passed all five steps in 106.9 s: `typecheck`, `lint`,
+`format:check`, `test:coverage`, and `build`.
 
 New tests: `navigation.test.ts` (26), `state/show.test.ts` (11),
 `shortcuts.test.ts` (7), and `ShowPanels.test.tsx` (12).
