@@ -79,6 +79,33 @@ describe('judgeRun', () => {
     expect(verdict.memory[0]?.trend).toBe('flat');
   });
 
+  it('fails a steady rise of 12 MB over the hour', () => {
+    const startKb = 244.9 * 1024;
+    const verdict = judgeRun(
+      soakRun(m => startKb + (12 * 1024 * m) / 60 + sawtooth(m)),
+    );
+    expect(verdict.memory[0]?.trend).toBe('growing');
+    expect(verdict.memory[0]?.growthKbPerHour).toBeCloseTo(12 * 1024, -2);
+    expect(verdict.passed).toBe(false);
+  });
+
+  it('passes flat memory with noise on top of garbage collection', () => {
+    const noise = (m: number): number => (((m * 7919) % 13) - 6) * 300;
+    const verdict = judgeRun(soakRun(m => BASE_KB + sawtooth(m) + noise(m)));
+    expect(verdict.memory[0]?.trend).toBe('flat');
+    expect(
+      Math.abs(verdict.memory[0]?.growthKbPerHour ?? Infinity),
+    ).toBeLessThan(DEFAULT_JUDGE_OPTIONS.maxGrowthKbPerHour);
+    expect(verdict.passed).toBe(true);
+  });
+
+  it('fails a leak of 12 MB per hour that starts halfway', () => {
+    const verdict = judgeRun(
+      soakRun(m => BASE_KB + (12 * 1024 * Math.max(0, m - 30)) / 60),
+    );
+    expect(verdict.memory[0]?.trend).toBe('growing');
+  });
+
   it('fails a record that is shorter than required', () => {
     const verdict = judgeRun(soakRun(() => BASE_KB, {minutes: 30}));
     expect(verdict.longEnough).toBe(false);

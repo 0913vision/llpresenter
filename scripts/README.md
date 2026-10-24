@@ -122,8 +122,10 @@ the rest of the requested time into 6 windows. The run fails when:
 - a process has fewer than 3 samples in any window, for example because it
   disappeared partway,
 - a process relaunched (a new `pid` under the same `name`), or
-- a process's memory keeps growing: its lowest value rises in every window and
-  by at least 10 MB in total.
+- a process's memory keeps growing: a straight line fitted through each window's
+  lowest value rises at least 4 MB per hour, both over the whole judged time and
+  over its later half. A cache that fills early and then levels off passes; a
+  leak that starts halfway doesn't.
 
 A median frame rate under 58 fps is a warning. Bad record lines are dropped and
 listed.

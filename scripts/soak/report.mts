@@ -14,10 +14,19 @@ function megabytes(kilobytes: number): string {
   return `${(kilobytes / KB_PER_MB).toFixed(1)} MB`;
 }
 
-function memoryLine(verdict: MemoryVerdict): string {
+function rate(kilobytesPerHour: number): string {
+  const sign = kilobytesPerHour < 0 ? '-' : '+';
+  return `${sign}${megabytes(Math.abs(kilobytesPerHour))}/h`;
+}
+
+function memoryDetail(verdict: MemoryVerdict): string {
+  if (verdict.growthKbPerHour === null) return 'too few samples';
   const baselines = verdict.baselinesKb.map(megabytes).join(', ');
-  const detail = verdict.trend === 'unjudged' ? 'too few samples' : baselines;
-  return `  ${verdict.trend.padEnd(TREND_COLUMN_WIDTH)}  ${verdict.name}: ${detail}`;
+  return `${rate(verdict.growthKbPerHour)} (${baselines})`;
+}
+
+function memoryLine(verdict: MemoryVerdict): string {
+  return `  ${verdict.trend.padEnd(TREND_COLUMN_WIDTH)}  ${verdict.name}: ${memoryDetail(verdict)}`;
 }
 
 function problemLines(problems: readonly RecordProblem[]): string[] {
@@ -40,7 +49,7 @@ export function formatReport(
 ): string {
   const lines = [
     `Record covers ${minutes(verdict.coveredMs)}${verdict.longEnough ? '' : ' (too short)'}.`,
-    'Memory (lowest private memory per window):',
+    'Memory (rise per hour, then the lowest private memory per window):',
     ...verdict.memory.map(memoryLine),
     ...verdict.relaunches.map(
       r => `Relaunched: ${r.name} came back ${r.count} times.`,

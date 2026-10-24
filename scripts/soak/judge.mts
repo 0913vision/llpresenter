@@ -1,6 +1,7 @@
 import type {SoakSample} from './record.mts';
 
 const MS_PER_MINUTE = 60_000;
+const MS_PER_HOUR = 60 * MS_PER_MINUTE;
 const KB_PER_MB = 1024;
 
 const COVERAGE_TOLERANCE_MS = MS_PER_MINUTE;
@@ -16,8 +17,8 @@ export interface JudgeOptions {
   readonly windowCount: number;
   /** The fewest samples a window needs for its baseline to count. */
   readonly minSamplesPerWindow: number;
-  /** Growth below this over the whole run is noise, even if every window rises. */
-  readonly minGrowthKb: number;
+  /** The steepest rise of the lowest values, per hour, that still counts as flat. */
+  readonly maxGrowthKbPerHour: number;
   /** An output whose median frame rate is below this gets a warning. */
   readonly minFps: number;
 }
@@ -28,7 +29,7 @@ export const DEFAULT_JUDGE_OPTIONS: JudgeOptions = {
   warmUpMs: 5 * MS_PER_MINUTE,
   windowCount: 6,
   minSamplesPerWindow: 3,
-  minGrowthKb: 10 * KB_PER_MB,
+  maxGrowthKbPerHour: 4 * KB_PER_MB,
   minFps: 58,
 };
 
@@ -53,6 +54,8 @@ export interface MemoryVerdict {
   readonly trend: MemoryTrend;
   /** The lowest private memory in each window, oldest first. */
   readonly baselinesKb: readonly number[];
+  /** How fast the lowest values rise over the judged time, or `null` when unjudged. */
+  readonly growthKbPerHour: number | null;
 }
 
 /** How many times a process came back with a new pid. */
@@ -99,32 +102,61 @@ function memorySeries(
   return series;
 }
 
+function lowest(points: readonly MemoryPoint[]): MemoryPoint | undefined {
+  return points.reduce<MemoryPoint | undefined>(
+    (low, point) =>
+      low === undefined || point.privateKb < low.privateKb ? point : low,
+    undefined,
+  );
+}
+
 function windowBaselines(
   points: readonly MemoryPoint[],
   options: JudgeOptions,
-): number[] | null {
+): MemoryPoint[] | null {
   const {warmUpMs, requiredMs, windowCount} = options;
   const width = (requiredMs - warmUpMs) / windowCount;
   if (width <= 0) return null;
-  const windows = Array.from({length: windowCount}, (): number[] => []);
-  for (const {elapsedMs, privateKb} of points) {
-    if (elapsedMs < warmUpMs || elapsedMs > requiredMs) continue;
-    const index = Math.floor((elapsedMs - warmUpMs) / width);
-    windows[Math.min(index, windowCount - 1)]?.push(privateKb);
+  const windows = Array.from({length: windowCount}, (): MemoryPoint[] => []);
+  for (const point of points) {
+    if (point.elapsedMs < warmUpMs || point.elapsedMs > requiredMs) continue;
+    const index = Math.floor((point.elapsedMs - warmUpMs) / width);
+    windows[Math.min(index, windowCount - 1)]?.push(point);
   }
   if (windows.some(w => w.length < options.minSamplesPerWindow)) return null;
-  return windows.map(w => Math.min(...w));
+  return windows.flatMap(w => lowest(w) ?? []);
 }
 
+function average(values: readonly number[]): number {
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function slopeKbPerHour(points: readonly MemoryPoint[]): number {
+  const hours = points.map(p => p.elapsedMs / MS_PER_HOUR);
+  const meanHour = average(hours);
+  const meanKb = average(points.map(p => p.privateKb));
+  let covariance = 0;
+  let variance = 0;
+  for (const [index, point] of points.entries()) {
+    const offset = (hours[index] ?? meanHour) - meanHour;
+    covariance += offset * (point.privateKb - meanKb);
+    variance += offset * offset;
+  }
+  return variance === 0 ? 0 : covariance / variance;
+}
+
+// NOTE(0913vision): Growth must hold over the whole judged time and over its
+// later half. A cache that fills early and then levels off rises overall but
+// not at the end; a leak rises in both.
 function keepsGrowing(
-  baselines: readonly number[],
-  minGrowthKb: number,
+  baselines: readonly MemoryPoint[],
+  maxKbPerHour: number,
 ): boolean {
-  const risesEveryWindow = baselines.every(
-    (value, index) => index === 0 || value > (baselines[index - 1] ?? value),
+  const laterHalf = baselines.slice(Math.floor(baselines.length / 2));
+  return (
+    slopeKbPerHour(baselines) >= maxKbPerHour &&
+    slopeKbPerHour(laterHalf) >= maxKbPerHour
   );
-  const growth = (baselines.at(-1) ?? 0) - (baselines.at(0) ?? 0);
-  return risesEveryWindow && growth >= minGrowthKb;
 }
 
 function judgeMemory(
@@ -133,11 +165,18 @@ function judgeMemory(
   options: JudgeOptions,
 ): MemoryVerdict {
   const baselines = windowBaselines(points, options);
-  if (baselines === null) return {name, trend: 'unjudged', baselinesKb: []};
-  const trend = keepsGrowing(baselines, options.minGrowthKb)
+  if (baselines === null) {
+    return {name, trend: 'unjudged', baselinesKb: [], growthKbPerHour: null};
+  }
+  const trend = keepsGrowing(baselines, options.maxGrowthKbPerHour)
     ? 'growing'
     : 'flat';
-  return {name, trend, baselinesKb: baselines};
+  return {
+    name,
+    trend,
+    baselinesKb: baselines.map(b => b.privateKb),
+    growthKbPerHour: slopeKbPerHour(baselines),
+  };
 }
 
 function countRelaunches(points: readonly MemoryPoint[]): number {
@@ -178,9 +217,10 @@ function summarizeFps(
 /**
  * Judges a soak record. The run fails when the record is too short, when a
  * process relaunched, or when a process's memory can't be judged or kept
- * growing: its lowest value rose in every window and by at least
- * `minGrowthKb` overall. Lowest values are used because garbage collection
- * makes memory rise and fall in between. The windows cover the required time,
+ * growing: the line through each window's lowest value rises at least
+ * `maxGrowthKbPerHour`, over the whole judged time and over its later half.
+ * Lowest values are used because garbage collection makes memory rise and fall
+ * in between. The windows cover the required time,
  * not the time a process happened to be sampled, so a process that is missing
  * from part of the run can't be judged.
  */
