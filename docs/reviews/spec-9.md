@@ -60,12 +60,12 @@ request has to wait, but a later decision means a schema change.
 
 ## Decisions I made (for the lead to confirm)
 
-1. **Broken settings files.** `docs/TECH.md` says not to touch a broken file and
-   to skip it. For a settings area, skipping leaves the app without that area,
-   and the first save would overwrite the broken file anyway. 02 now keeps the
-   content instead: the area runs from the newest readable recovery copy or the
-   defaults, and the broken file is copied aside before the next write. If you
-   agree, `docs/TECH.md` "Storage" needs the same wording (your file).
+1. **Broken settings files** (approved by the lead for app-wide settings files
+   only, October 25). 02 now states three cases, matching `docs/TECH.md`
+   "Storage": songs, 예배 순서, and 틀 aren't touched and are skipped; an
+   app-wide settings file runs from the newest readable recovery copy or the
+   defaults and is copied aside before its next write; a broken `app.json` is
+   never overwritten, and only its valid location fields are used.
 2. **First-launch defaults** that no board shows: 검은 화면 as the only 퀵 실행
    item, the seven stage message presets from the 무대 tab, and no templates,
    sets, 소품, 타이머, or 매크로.

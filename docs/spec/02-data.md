@@ -812,15 +812,21 @@ preferred), `docs/HANDOFF.md` (개역한글 and KJV).
   the reason in a tooltip (proposal).
 - If `format` is wrong, the JSON is broken, or the content fails its schema,
   never lose the file's content. Write a log entry and show one warning
-  notification (`docs/TECH.md` storage). Then:
-  - A song, 예배 순서, or 틀 file is skipped. It doesn't appear in its list, and
-    items that point to a skipped song show the problem state (08).
-  - For an app-wide settings file or the media list, the app loads the newest
-    recovery copy that reads, or else that area's first-launch defaults, and
-    keeps running (proposal). Before the area's next write replaces the file,
-    the app copies the broken file to `(name).broken-(YYYYMMDD-HHmmss).json` in
-    the same folder, so its content stays available. The notification's detail
-    names the area and whether a recovery copy or the defaults were used.
+  notification. What happens next depends on the file (`docs/TECH.md` "Storage",
+  lead decision of October 25, 2026):
+  - **A song, 예배 순서, or 틀 file** isn't touched. It's skipped: it doesn't
+    appear in its list, and items that point to a skipped song show the problem
+    state (08).
+  - **An app-wide settings file** (a file in the table under "App-wide
+    settings") runs its area from the newest recovery copy that reads, or else
+    from that area's first-launch defaults, and the app keeps running. Before
+    the area's next write replaces the file, the app copies the broken file to
+    `(name).broken-(YYYYMMDD-HHmmss).json` in the same folder, so its content
+    stays available. The notification's detail names the area and whether a
+    recovery copy or the defaults were used.
+  - **`app.json`** is never overwritten while it's broken. The app uses only its
+    location fields that are valid, uses the defaults for everything else, and
+    doesn't write the file until it reads again.
 - Keep unknown fields in every version.
 
 ## Save rules
