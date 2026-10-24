@@ -131,10 +131,19 @@ export class BackgroundLayerView {
   private start(media: MediaLayer): void {
     const to = otherOf(this.front);
     const video = this.videos[to];
+    this.settleFront(to);
     this.load(to, media.mediaId);
     this.seekOnceLoaded(video, media);
     this.handover = {to, dissolve: true};
     this.play(video);
+  }
+
+  private settleFront(reused: VideoIndex): void {
+    // NOTE(0913vision): A dissolve still running ends at once: the front video
+    // turns fully opaque before the reused one is hidden and reloaded, so no
+    // black shows under the front and the next background fades in fresh.
+    this.videos[this.front].classList.remove(classes.dissolving);
+    hide(this.videos[reused]);
   }
 
   private seekOnceLoaded(video: HTMLVideoElement, media: MediaLayer): void {

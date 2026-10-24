@@ -249,6 +249,30 @@ describe('BackgroundLayerView handovers', () => {
   });
 });
 
+describe('BackgroundLayerView rapid changes', () => {
+  it('ends a running dissolve before reusing a video for a third background', () => {
+    const {view, videos} = setUp();
+    const [first, second] = videos;
+    view.show(WARM_LIGHT);
+    second.dispatchEvent(new Event('playing'));
+    view.show(STILL_WATER);
+    first.dispatchEvent(new Event('playing'));
+    expect(isShown(second)).toBe(true);
+    expect(first.classList.contains(classes.dissolving)).toBe(true);
+
+    view.show({mediaId: 'morning-sky', loop: true});
+    expect(isShown(second)).toBe(false);
+    expect(second.getAttribute('src')).toBe(urlOf('morning-sky'));
+    expect(isShown(first)).toBe(true);
+    expect(first.classList.contains(classes.dissolving)).toBe(false);
+
+    second.dispatchEvent(new Event('playing'));
+    expect(isShown(second)).toBe(true);
+    expect(second.classList.contains(classes.dissolving)).toBe(true);
+    expect(second.style.zIndex).toBe('1');
+  });
+});
+
 describe('startOffsetSeconds', () => {
   const STARTED = 1_000_000;
   const DURATION = 20;
