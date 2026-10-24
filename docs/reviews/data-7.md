@@ -1,12 +1,31 @@
 # Review request: `data-7`
 
+Review range: `d5b8af9...feat/data/file-store`
+
+Round 2 changes only: `d6087be...feat/data/file-store`
+
 - Team member: `data`
-- Branch: `feat/data/file-store`, stacked on `data-4`
-  (`refactor/data/live-command-schema`)
-- Base commit (`main`): `b9392d0`
-- Last commit: see the commit that adds this file
+- Branch: `feat/data/file-store`, on `main` (data-4 has merged)
+- Base commit (`main`): `d5b8af9` (round 1: `b9392d0`)
+- Last commit: see the newest commit that changes this file
 - Related brief: `docs/briefs/data.md`; M2 in `docs/MILESTONES.md`,
-  "Main-process file store"
+  "Main-process file store"; `docs/spec/02-data.md`, "Save rules"
+
+What to check in round 2:
+
+1.  Finding 1: `src/main/store/saver.ts` runs each file's recovery copy and
+    write as one step through `FileWriter`, in request order. Test:
+    `saver.test.ts`, "writes overlapping saves in order when the first copy is
+    slow".
+2.  Finding 2: `src/main/store/fileWriter.ts` keeps one waiting job and one
+    shared promise per file, and `src/main/store/autosave.ts` runs one save per
+    key and keeps only the newest due one. Tests: `fileWriter.test.ts`, "keeps
+    one waiting text and one shared result while a write stalls";
+    `autosave.test.ts`, the three tests about a stalled save.
+3.  Finding 3: `confineLocations` in `src/main/store/locations.ts` and the
+    junction tests in `locations.test.ts`. The caller that runs it before any
+    read is `loadStore` in `data-8`, which gets that change in its round 2.
+4.  The nits in `recoveryCopies.ts` and `fileWriter.test.ts`.
 
 Changed files outside `src/main/store/`: none. `src/main/store/` is data's.
 
@@ -17,14 +36,14 @@ This one is the write path. The read path, the wiring into the main process, and
 shell's `ShowService` channel follow in `data-8`, and the backups in `data-9`.
 Nothing calls these modules yet.
 
-| Module              | What it does                                                                                                                                                                        |
-| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `atomicWrite.ts`    | `writeFileAtomically`: a temporary file in the same folder, flushed with `fsync`, then renamed over the file. Creates a missing folder. Returns a `Result`, never throws.           |
-| `fileWriter.ts`     | `FileWriter`: writes to one file run one at a time. While one runs, only the newest text waits, and callers of a replaced text get the newer write's result. `idle()` for quitting. |
-| `recoveryCopies.ts` | `RecoveryCopies`: before an overwrite, copies the previous version to `.복구 사본/<kind>/<id>/<time>.json`, at most once per file every 5 minutes, and keeps 환경설정's count.      |
-| `autosave.ts`       | `Autosave`: saves once the changes to a file stop for 0.5 seconds. `flush()` saves what waits and waits for running saves. `dispose()` clears every timer.                          |
-| `locations.ts`      | `resolveLocations` and `readLocationFields`: the data folders from `app.json`, and the location fields of a broken `app.json`.                                                      |
-| `saver.ts`          | `Saver`: keeps a recovery copy, then writes through `FileWriter`.                                                                                                                   |
+| Module              | What it does                                                                                                                                                                                                                                |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `atomicWrite.ts`    | `writeFileAtomically`: a temporary file in the same folder, flushed with `fsync`, then renamed over the file. Creates a missing folder. Returns a `Result`, never throws.                                                                   |
+| `fileWriter.ts`     | `FileWriter<TJob>`: the jobs for one file run one at a time, in order. While one runs, only the newest job waits, and every caller of a replaced job shares the newer job's result. `idle()` for quitting.                                  |
+| `recoveryCopies.ts` | `RecoveryCopies`: before an overwrite, copies the previous version to `.복구 사본/<kind>/<id>/<time>.json`, at most once per file every 5 minutes, and keeps 환경설정's count.                                                              |
+| `autosave.ts`       | `Autosave`: saves once the changes to a file stop for 0.5 seconds, one save per file at a time; a save that comes due meanwhile waits, newest only. `flush()` saves what waits and waits for running saves. `dispose()` clears every timer. |
+| `locations.ts`      | `resolveLocations` and `readLocationFields`: the data folders from `app.json`, and the location fields of a broken `app.json`. `confineLocations`: in development, refuses folders that a junction or link leads outside `LLP_USER_DATA`.   |
+| `saver.ts`          | `Saver`: keeps a recovery copy, then writes atomically, both as one job of a `FileWriter`, so a file's saves run in order.                                                                                                                  |
 
 The spec's save rules, as built:
 
@@ -69,18 +88,21 @@ merges. The differences shell will meet:
 
 ## Checks run
 
-`npm run verify` on the commit before this document, on `main` b9392d0 with
-`data-6` and `data-4` below it: every step passed. The one skipped test belongs
-to another member's suite. Coverage of `src/main/store/`: 98.7% of lines, 91.8%
-of branches.
+Round 2: `npm run verify` on the commit before this document's round 2 change
+(ddf4068), on `main` d5b8af9: every step passed. The one skipped test belongs to
+another member's suite. Coverage of `src/main/store/`: 98.5% of lines, 91.6% of
+branches.
 
 | Command or test                    | Result                                                                |
 | ---------------------------------- | --------------------------------------------------------------------- |
 | `npm run typecheck`                | Passed                                                                |
-| `npm test`                         | Passed: 97 files, 955 tests and 1 skipped (33 in the store)           |
+| `npm test`                         | Passed: 112 files, 1228 tests and 1 skipped (45 in the store)         |
 | `npm run format:check`             | Passed                                                                |
 | `npm run build`                    | Passed                                                                |
-| `npm run verify` (from phase 1 on) | Passed: typecheck, lint, format:check, test:coverage, build (218.4 s) |
+| `npm run verify` (from phase 1 on) | Passed: typecheck, lint, format:check, test:coverage, build (261.9 s) |
+
+Round 1 passed too, on `main` b9392d0 with `data-6` and `data-4` below it (955
+tests, 218.4 s).
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
@@ -149,4 +171,35 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 findings from codex3, answered in round 2:
+
+1.  Fixed (`saver.ts`). `Saver` no longer copies before it queues. It hands the
+    whole save, copy and then write, to a `FileWriter` as one job, so the saves
+    of a file run one at a time in the order asked for, and a copy that finishes
+    late can't let an older text win. `FileWriter` is now generic over the job
+    for that reason. `Saver` takes an options object (`copies`,
+    `reportCopyProblem`, and an optional `writeText` for tests) and has
+    `idle()`. The new test holds the first copy and checks that the writes come
+    out as `older`, then `newer`; on the old code, `newer` was written first.
+2.  Fixed (`fileWriter.ts`, `autosave.ts`). A waiting write now holds one job
+    and one promise. A newer job replaces the job, and every caller gets the
+    same promise, so 1,000 edits during a stalled write keep one entry (the test
+    checks that the returned promises are one object). `Autosave` starts at most
+    one save per key. A save that comes due while the key's save still runs
+    waits in a map with one entry per key, and only the newest runs when the
+    running one ends. `flush` waits for those too, and `dispose` drops them.
+3.  Fixed (`locations.ts`). `confineLocations(locations, developmentFolder)`
+    follows junctions and links with `realpath` and refuses any data folder,
+    default or set in `app.json`, whose real path leaves the real path of
+    `LLP_USER_DATA`. A folder that doesn't exist yet is checked through its
+    nearest existing parent, so a new folder below a junction counts. A junction
+    whose target is missing is refused, because creating folders through it
+    could land outside. Any other error while checking also refuses. It does
+    nothing without a development folder. The tests make real junctions between
+    two temporary folders: the data folder as a junction, a new folder below a
+    junction, a dangling junction, and a link that stays inside, which passes.
+    Nothing in this request reads or writes data yet; `loadStore` in `data-8`
+    calls `confineLocations` before its first read and refuses the whole store
+    when it fails.
+4.  Fixed. `copyName` has a NOTE instead of TSDoc, and `controlledWrites` has no
+    comment.
