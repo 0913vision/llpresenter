@@ -7,14 +7,6 @@
 }
 
 .thumb {
-  --thumb-canvas-aspect: 16 / 9;
-  --thumb-text-size: 4.4cqw;
-  --thumb-text-weight: 700;
-  --thumb-text-line: 1.45;
-  --thumb-text-inset: 10%;
-  --thumb-hover-ring: 0 0 0 1px var(--line-control);
-  --thumb-focus-offset: 4px;
-
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -29,7 +21,7 @@
 }
 
 .thumb:hover {
-  box-shadow: var(--thumb-hover-ring);
+  box-shadow: var(--ring-hover);
 }
 
 .thumb[aria-selected='true'] {
@@ -41,14 +33,14 @@
 }
 
 .thumb:focus-visible {
-  outline-offset: var(--thumb-focus-offset);
+  outline-offset: var(--space-focus-outside-live-ring);
 }
 
 .canvas {
   position: relative;
   display: block;
   width: 100%;
-  aspect-ratio: var(--thumb-canvas-aspect);
+  aspect-ratio: var(--aspect-output);
   overflow: hidden;
   background: var(--output-black);
   container-type: inline-size;
@@ -60,11 +52,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 var(--thumb-text-inset);
+  padding: 0 var(--space-thumb-lyrics-inset);
   color: var(--text-on-fill);
-  font-size: var(--thumb-text-size);
-  font-weight: var(--thumb-text-weight);
-  line-height: var(--thumb-text-line);
+  font: var(--type-thumb-lyrics);
   text-align: center;
   white-space: pre-line;
   word-break: keep-all;

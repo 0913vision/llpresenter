@@ -1,8 +1,9 @@
 .grid {
-  --macro-cell-min: 76px;
-
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(var(--macro-cell-min), 1fr));
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(var(--size-macro-cell-min), 1fr)
+  );
   gap: var(--space-16) var(--space-8);
   justify-items: center;
   align-content: start;
@@ -13,15 +14,11 @@
 }
 
 .macro {
-  --macro-tile-size: 64px;
   --macro-name-lines: 2;
-  --macro-gap-ring: 0 0 0 2px var(--bg-panel);
-  --macro-hover-ring: 0 0 0 3px var(--line-control);
-  --macro-last-run-ring: 0 0 0 4px var(--text);
-  --macro-selected-ring: 0 0 0 4px var(--accent);
-  --macro-focus-offset: 5px;
-  --macro-clock-size: 20px;
-  --macro-clock-offset: -6px;
+  --macro-gap-ring: 0 0 0 var(--space-2) var(--bg-panel);
+  --macro-hover-ring: 0 0 0 calc(var(--space-2) + 1px) var(--line-control);
+  --macro-last-run-ring: 0 0 0 calc(var(--space-2) + 2px) var(--text);
+  --macro-selected-ring: 0 0 0 calc(var(--space-2) + 2px) var(--accent);
 
   display: flex;
   flex-direction: column;
@@ -41,8 +38,8 @@
   flex: none;
   align-items: center;
   justify-content: center;
-  width: var(--macro-tile-size);
-  height: var(--macro-tile-size);
+  width: var(--size-macro-tile);
+  height: var(--size-macro-tile);
   border-radius: var(--radius-tile);
   background: var(--label-fill);
   color: var(--label-ink);
@@ -65,13 +62,13 @@
 
 .clock {
   position: absolute;
-  top: var(--macro-clock-offset);
-  right: var(--macro-clock-offset);
+  top: calc(-1 * var(--space-6));
+  right: calc(-1 * var(--space-6));
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--macro-clock-size);
-  height: var(--macro-clock-size);
+  width: var(--size-macro-clock);
+  height: var(--size-macro-clock);
   border-radius: var(--radius-full);
   background: var(--bg-control);
   box-shadow: var(--macro-gap-ring);
@@ -101,7 +98,7 @@
 
 .macro:focus-visible .tile {
   outline: 2px solid var(--accent);
-  outline-offset: var(--macro-focus-offset);
+  outline-offset: var(--space-focus-outside-ring);
 }
 
 .new {
@@ -126,9 +123,6 @@
 }
 
 .row {
-  --macro-swatch-size: 20px;
-  --macro-row-focus-offset: -2px;
-
   display: flex;
   align-items: center;
   gap: var(--space-10);
@@ -148,8 +142,8 @@
   flex: none;
   align-items: center;
   justify-content: center;
-  width: var(--macro-swatch-size);
-  height: var(--macro-swatch-size);
+  width: var(--size-macro-swatch);
+  height: var(--size-macro-swatch);
   border-radius: var(--radius-md);
   background: var(--label-fill);
   color: var(--label-ink);
@@ -190,5 +184,5 @@
 }
 
 .row:focus-visible {
-  outline-offset: var(--macro-row-focus-offset);
+  outline-offset: calc(-1 * var(--space-2));
 }

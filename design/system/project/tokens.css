@@ -48,6 +48,7 @@
   --shadow-dialog: 0 0 0 1px #3a3a3a, 0 16px 48px rgba(0, 0, 0, 0.6);
   --ring-live: 0 0 0 3px #d2343a;
   --ring-selected: 0 0 0 2px #3d8bf0;
+  --ring-hover: 0 0 0 1px #6e6e6e;
   --ring-field: inset 0 0 0 1px #2b2b2b;
   --ring-field-focus: inset 0 0 0 1px #3d8bf0;
   --ring-field-error: inset 0 0 0 1px #d2343a;
@@ -72,6 +73,8 @@
   --dialog-inset: 16px;
   --space-prop-label-top: 7px;
   --space-focus-outside-ring: 5px;
+  --space-focus-outside-live-ring: 4px;
+  --space-thumb-lyrics-inset: 10%;
   --radius-xs: 2px;
   --radius-sm: 3px;
   --radius-md: 4px;
@@ -101,6 +104,13 @@
   --size-dialog-aside: 260px;
   --size-alert-icon: 40px;
   --size-thumb-band: 24px;
+  --aspect-output: 16 / 9;
+  --size-media-strip-tile: 150px;
+  --size-macro-tile: 64px;
+  --size-macro-cell-min: 76px;
+  --size-macro-clock: 20px;
+  --size-macro-swatch: 20px;
+  --size-hatching-stripe: 6px;
   --size-badge: 16px;
   --size-count: 18px;
   --size-color-swatch: 24px;
@@ -149,6 +159,7 @@
   --type-caption-strong: 600 11px/14px var(--font-ui);
   --type-toolbar-label: 500 11px/14px var(--font-ui);
   --type-micro: 700 10px/12px var(--font-ui);
+  --type-thumb-lyrics: 700 4.4cqw/1.45 var(--font-ui);
 }
 .heading { font-family: var(--font-ui); font-size: 16px; line-height: 22px; font-weight: 600; }
 .title { font-family: var(--font-ui); font-size: 13px; line-height: 18px; font-weight: 600; }
@@ -161,4 +172,5 @@
 .caption-strong { font-family: var(--font-ui); font-size: 11px; line-height: 14px; font-weight: 600; }
 .toolbar-label { font-family: var(--font-ui); font-size: 11px; line-height: 14px; font-weight: 500; }
 .micro { font-family: var(--font-ui); font-size: 10px; line-height: 12px; font-weight: 700; }
+.thumb-lyrics { font-family: var(--font-ui); font-size: 4.4cqw; line-height: 1.45; font-weight: 700; }
 @font-face { font-family: "Pretendard Variable"; src: url("fonts/PretendardVariable.woff2") format("woff2"); font-weight: 45 920; font-display: swap; }
