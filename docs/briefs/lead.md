@@ -58,9 +58,9 @@ approved. You do the foundation work of phases 1 and 2 yourself.
 - For each review request, start a read-only review agent with a fresh context.
   State clearly that it must only read and must not change files.
 - Give it: the path of the review document, the range of
-  `git diff rewrite...team/<name>`, the brief, the quality bar in
-  `docs/TECH.md`, the code, comment, and review rules in `CLAUDE.md`, and the
-  related spec and design system component docs.
+  `git diff rewrite...<branch>`, the brief, the quality bar in `docs/TECH.md`,
+  the code, comment, and review rules in `CLAUDE.md`, and the related spec and
+  design system component docs.
 - Get back: "Approve" or "Request changes," and a list of findings (file, line,
   reason, and the situation where it fails). Copy the result into the reviewer
   section of the review document.

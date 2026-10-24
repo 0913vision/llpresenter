@@ -8,7 +8,8 @@ export const NOTES_PATH = '.llp/notes.md';
 
 const STATUS_PATH = 'docs/STATUS.md';
 const LEAD_BRANCH = 'rewrite';
-const MEMBER_PREFIX = 'team/';
+const MEMBER_BRANCH =
+  /^(?:break|feat|fix|refactor|style|docs|chore)\/([a-z0-9-]+)\/[a-z0-9-]+$/;
 const MAX_NOTES_CHARS = 12_000;
 const MAX_STATUS_LINES = 80;
 const MAX_CHANGED_FILES = 20;
@@ -23,16 +24,13 @@ export interface SessionFacts {
   readonly git: string;
 }
 
-/** Maps a branch to a session name: `lead`, a member name, or `unknown`. */
+/**
+ * Maps a branch to a session name: `lead` for `rewrite`, the member name for
+ * `<tag>/<name>/<feature>`, or `unknown`.
+ */
 export function roleFor(branch: string): string {
   if (branch === LEAD_BRANCH) return 'lead';
-  if (
-    branch.startsWith(MEMBER_PREFIX) &&
-    branch.length > MEMBER_PREFIX.length
-  ) {
-    return branch.slice(MEMBER_PREFIX.length);
-  }
-  return 'unknown';
+  return MEMBER_BRANCH.exec(branch)?.[1] ?? 'unknown';
 }
 
 /** Cuts `text` to at most `max` characters and says how much was left out. */

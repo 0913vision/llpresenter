@@ -9,7 +9,7 @@ import {
 
 const baseFacts: SessionFacts = {
   source: 'startup',
-  branch: 'team/trial',
+  branch: 'docs/trial/workflow-check',
   notes: '# Notes\n\n## Now\n\nWriting the store test.',
   notesUpdated: '2026-10-24T09:00:00.000Z',
   status: '# Status\n\nPhase 1.',
@@ -17,11 +17,19 @@ const baseFacts: SessionFacts = {
 };
 
 describe('roleFor', () => {
-  it('names the lead, members, and anything else', () => {
+  it('names the lead and the member in a tag/name/feature branch', () => {
     expect(roleFor('rewrite')).toBe('lead');
-    expect(roleFor('team/trial')).toBe('trial');
-    expect(roleFor('team/')).toBe('unknown');
-    expect(roleFor('rewrite/trial')).toBe('unknown');
+    expect(roleFor('feat/ui/form-controls')).toBe('ui');
+    expect(roleFor('docs/trial/workflow-check')).toBe('trial');
+    expect(roleFor('chore/devops/verify')).toBe('devops');
+  });
+
+  it('calls every other branch unknown', () => {
+    expect(roleFor('feat/ui')).toBe('unknown');
+    expect(roleFor('feat/ui/button/extra')).toBe('unknown');
+    expect(roleFor('wip/ui/button')).toBe('unknown');
+    expect(roleFor('feat/UI/button')).toBe('unknown');
+    expect(roleFor('team/trial')).toBe('unknown');
     expect(roleFor('main')).toBe('unknown');
     expect(roleFor('')).toBe('unknown');
   });
@@ -39,7 +47,9 @@ describe('truncate', () => {
 describe('buildContext', () => {
   it('names the session and includes its notes, git state, and status', () => {
     const text = buildContext(baseFacts);
-    expect(text).toContain('You are the trial session on branch team/trial');
+    expect(text).toContain(
+      'You are the trial session on branch docs/trial/workflow-check',
+    );
     expect(text).toContain('Writing the store test.');
     expect(text).toContain('updated 2026-10-24T09:00:00.000Z');
     expect(text).toContain('Working tree clean.');

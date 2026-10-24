@@ -1,7 +1,7 @@
 # Brief: `<name>`
 
 - Session name: `<name>`
-- Branch: `team/<name>` (own worktree)
+- Branch: `<tag>/<name>/<feature>` (own worktree; rules in `docs/WORKFLOW.md`)
 - Dev server port: `<port>`; app data folder: `D:\llp-dev\<name>`
 - Phase: `<phase>`
 
@@ -59,7 +59,7 @@
 4. Send the lead this message with SendMessage, and wait:
 
    ```text
-   Review request: docs/reviews/<name>-<number>.md, branch team/<name>, commit <hash>
+   Review request: docs/reviews/<name>-<number>.md, branch <tag>/<name>/<feature>, commit <hash>
    ```
 
 5. If changes are requested, address them and start again from step 1.

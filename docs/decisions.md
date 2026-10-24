@@ -83,3 +83,6 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   can't hold the `rewrite` branch and a `rewrite/<name>` branch at the same
   time, so the earlier name could never be created. Found when the first member
   worktree failed to create.
+- 2026-10-24: Branch names follow `<tag>/<name>/<feature>` (user rule), for
+  example `feat/ui/form-controls`, with exactly three parts. This replaces
+  `team/<name>`, and each review request gets its own branch.

@@ -1,7 +1,8 @@
 # Brief: ui
 
 - Session name: ui
-- Branch: `team/ui` (own worktree)
+- Branches: `feat/ui/form-controls` for `ui-1`, then `feat/ui/overlays` for
+  `ui-2` (own worktree)
 - Dev server port: 5186; app data folder: `D:\llp-dev\ui`
 - Phase: phase 1, in parallel with trial, devops, and the lead
 
@@ -15,15 +16,16 @@ them small, typed, accessible, and well tested.
 
 ## Tasks
 
-1. Before anything else, rename your branch: `git branch -m team/ui`. Then
-   create `.llp/notes.md` as `CLAUDE.md` describes under "Context and
-   compaction".
+1. Before anything else, rename your branch if it has another name:
+   `git branch -m feat/ui/form-controls`. Then create `.llp/notes.md` as
+   `CLAUDE.md` describes under "Context and compaction".
 2. **First batch (review request `ui-1`):** `Button`, `IconButton`,
    `SegmentedControl`, `ToolbarButton`, `TextField`, `Select`, `Checkbox`,
    `Switch`, `Slider`.
-3. **Second batch (review request `ui-2`):** `Menu`, `Tooltip`, `Dialog`,
-   `AlertDialog`, `Panel`, `ListRow`, `StatusMarks`. Start it right after you
-   send `ui-1`. If the lead requests changes to `ui-1`, fix those first.
+3. **Second batch (review request `ui-2`, branch `feat/ui/overlays` started from
+   `feat/ui/form-controls`):** `Menu`, `Tooltip`, `Dialog`, `AlertDialog`,
+   `Panel`, `ListRow`, `StatusMarks`. Start it right after you send `ui-1`. If
+   the lead requests changes to `ui-1`, fix those first.
 4. For each component:
    - Read `design/system/project/components/<Name>/README.md` and
      `preview.html`, and the matching `design/system/css/<nn>-<name>.css`. The
@@ -119,7 +121,7 @@ them small, typed, accessible, and well tested.
 4. Send the lead this message with SendMessage:
 
    ```text
-   Review request: docs/reviews/ui-<number>.md, branch team/ui, commit <hash>
+   Review request: docs/reviews/ui-<number>.md, branch feat/ui/<feature>, commit <hash>
    ```
 
 5. If changes are requested, address them and start again from step 1.
