@@ -1,5 +1,6 @@
 # Review request: `spec-9`
 
+- Review range: `20ffc86...docs/spec/wave-a-readiness`
 - Team member: `spec`
 - Branch: `docs/spec/wave-a-readiness`, from `main` (not stacked)
 - Base commit (`main`): `20ffc86`
