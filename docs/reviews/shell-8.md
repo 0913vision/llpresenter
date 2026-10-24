@@ -1,6 +1,6 @@
 # Review request: `shell-8`
 
-Review range: 7f61168...fix/shell/button-keys
+Review range: 0657236...fix/shell/button-keys
 
 What to check: only the two fixes (a focused control takes Space and the arrows;
 the tile name with a comma) and the two nits of round 1, plus the one comment
@@ -9,7 +9,7 @@ on the previews branch.
 
 - Team member: `shell`
 - Branch: `fix/shell/button-keys`
-- Base commit (`main`): `7f61168`
+- Base commit (`main`): `0657236`
 - Last commit: see the commit that adds this file
 - Related brief: qa's finding on shell-5 (rule 6) and the lead's queue
 
@@ -126,3 +126,7 @@ Round 1 (codex2): Approve with two nits, both taken here.
    without the previews commit. I also took the TSDoc nit of shell-7: the
    comment on the unexported `PanelParts.bare` in `Workspace.tsx` is now a
    `NOTE(0913vision)`.
+6. Final checks: `npm run verify` on commit `f835189` (base `main` d5b8af9)
+   passed all five steps in 247.6 s: `typecheck`, `lint`, `format:check`,
+   `test:coverage`, and `build`. The rebase onto `main` 0657236 afterwards
+   brought shell-3 and document changes only, and `typecheck` passed again.
