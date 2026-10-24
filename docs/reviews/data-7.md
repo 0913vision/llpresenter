@@ -155,19 +155,15 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (6e17be1, restacked as 12c77a9): reviewer (Codex, codex3) Request
+  changes: an older save's recovery copy could overwrite a newer save, waiting
+  saves grew without a bound, and a junction inside LLP_USER_DATA could let a
+  development run write into real data.
+- Round 2 (8936836): reviewer (Codex, codex3) Approve, no findings. Lead
+  Approve. shell's uiState switches to this store's atomic writer in a
+  follow-up. Rebased by the lead onto local `main` without conflicts.
 
 ## Team member's reply
 
