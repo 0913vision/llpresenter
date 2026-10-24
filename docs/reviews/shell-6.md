@@ -35,7 +35,9 @@ of only a body.
 
 ## Checks run
 
-Pending.
+`npm run verify` on commit `3b4379e` (stacked on shell-5, `5e61f69`) passed all
+five steps in 162.0 s: `typecheck`, `lint`, `format:check`, `test:coverage`, and
+`build`.
 
 Tests in `SlidePanel.test.tsx` (10): the header with no item, a non-live item,
 the live position, another live item, and following the open item; the default
