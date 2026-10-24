@@ -4,10 +4,19 @@ import {classes} from './classes';
 /** The dissolve between backgrounds (docs/spec/03-output.md, version 1 default). */
 export const BACKGROUND_DISSOLVE_MS = 500;
 
+/**
+ * Where a renderer draws: an output window, or a small preview in the control
+ * window. A preview keeps one video playing per background, to spare
+ * decoders over long runs.
+ */
+export type RenderMode = 'output' | 'preview';
+
 export interface BackgroundLayerOptions {
   /** The URL that plays a library media file. */
   readonly mediaUrl: (mediaId: string) => string;
   readonly onError: (message: string, error: unknown) => void;
+  /** `output` when absent. */
+  readonly mode?: RenderMode;
 }
 
 /** A background less than this far along starts from the beginning instead of seeking. */
@@ -111,7 +120,10 @@ export class BackgroundLayerView {
   show(media: MediaLayer | null): void {
     const unchanged = media?.mediaId === this.current?.mediaId;
     this.current = media;
-    if (unchanged) return;
+    if (unchanged) {
+      this.loopNativelyInPreview(this.front);
+      return;
+    }
     this.cancelSpare();
     this.cancelSeek();
     if (media === null) this.clearAtOnce();
@@ -132,6 +144,7 @@ export class BackgroundLayerView {
     const video = this.videos[to];
     this.settleFront(to);
     this.load(to, media.mediaId);
+    this.loopNativelyInPreview(to);
     this.seekOnceLoaded(video, media);
     this.handover = {to, dissolve: true};
     this.play(video);
@@ -228,7 +241,19 @@ export class BackgroundLayerView {
     }
   }
 
+  private isPreview(): boolean {
+    return this.options.mode === 'preview';
+  }
+
+  private loopNativelyInPreview(index: VideoIndex): void {
+    // NOTE(0913vision): A preview loops on the one video that shows it. The
+    // loop point may hitch for a frame, which is fine on a small preview and
+    // halves its decoders.
+    this.videos[index].loop = this.isPreview() && this.current?.loop === true;
+  }
+
   private handleEnded(index: VideoIndex): void {
+    if (this.isPreview()) return;
     // NOTE(0913vision): An outgoing background that ends while the next one
     // starts holds its last frame; only the current background loops.
     if (index !== this.front || !this.holdsCurrent(index)) return;
@@ -261,7 +286,7 @@ export class BackgroundLayerView {
     this.spareTimer = null;
     const spareIndex = otherOf(this.front);
     hide(this.videos[spareIndex]);
-    if (this.current === null) {
+    if (this.current === null || this.isPreview()) {
       this.unloadAt(spareIndex);
       return;
     }

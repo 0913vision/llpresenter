@@ -1,5 +1,5 @@
 import type {LiveLayers} from '@shared/live';
-import {BackgroundLayerView} from './backgroundLayer';
+import {BackgroundLayerView, type RenderMode} from './backgroundLayer';
 import {classes} from './classes';
 import {scaleFor, type LyricStyle} from './lyricStyle';
 import {SlideLayerView} from './slideLayer';
@@ -10,6 +10,11 @@ export interface OutputRendererOptions {
   readonly mediaUrl: (mediaId: string) => string;
   /** Receives drawing errors, which never reach the other layers. */
   readonly onError: (message: string, error: unknown) => void;
+  /**
+   * `preview` for a small copy in the control window: a looping background
+   * keeps one video playing instead of two. `output` when absent.
+   */
+  readonly mode?: RenderMode;
 }
 
 // NOTE(0913vision): The layers from the bottom up, as in "Layers and stacking

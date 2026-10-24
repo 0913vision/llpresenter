@@ -4,6 +4,7 @@ import {installFakeClock} from '../../../../test/fake-clock';
 import {
   BACKGROUND_DISSOLVE_MS,
   BackgroundLayerView,
+  type RenderMode,
   MIN_SEEK_SECONDS,
   startOffsetSeconds,
 } from './backgroundLayer';
@@ -37,10 +38,14 @@ beforeEach(() => {
   );
 });
 
-function setUp() {
+function setUp(mode: RenderMode = 'output') {
   const parent = document.createElement('div');
   const onError = vi.fn();
-  const view = new BackgroundLayerView(parent, {mediaUrl: urlOf, onError});
+  const view = new BackgroundLayerView(parent, {
+    mediaUrl: urlOf,
+    onError,
+    mode,
+  });
   const [first, second] = [...parent.querySelectorAll('video')];
   if (first === undefined || second === undefined) {
     throw new Error('expected two video elements');
@@ -278,6 +283,52 @@ describe('BackgroundLayerView rapid changes', () => {
     expect(isShown(second)).toBe(true);
     expect(second.classList.contains(classes.dissolving)).toBe(true);
     expect(second.style.zIndex).toBe('1');
+  });
+});
+
+describe('BackgroundLayerView in a preview', () => {
+  it('loops on the one video that shows the background and lets the other go', async () => {
+    const clock = installFakeClock();
+    const {view, videos} = setUp('preview');
+    const [spare, front] = videos;
+    view.show(WARM_LIGHT);
+    expect(front.loop).toBe(true);
+    front.dispatchEvent(new Event('playing'));
+    await clock.advance(BACKGROUND_DISSOLVE_MS);
+    expect(spare.hasAttribute('src')).toBe(false);
+    front.dispatchEvent(new Event('ended'));
+    expect(playsOf(spare)).toBe(0);
+    expect(playsOf(front)).toBe(1);
+  });
+
+  it('still dissolves to a new background on the other video', async () => {
+    const clock = installFakeClock();
+    const {view, videos} = setUp('preview');
+    const [older, first] = videos;
+    view.show(WARM_LIGHT);
+    first.dispatchEvent(new Event('playing'));
+    await clock.advance(BACKGROUND_DISSOLVE_MS);
+    view.show(STILL_WATER);
+    expect(older.getAttribute('src')).toBe(urlOf('still-water'));
+    expect(older.loop).toBe(true);
+    older.dispatchEvent(new Event('playing'));
+    expect(older.classList.contains(classes.dissolving)).toBe(true);
+    await clock.advance(BACKGROUND_DISSOLVE_MS);
+    expect(first.hasAttribute('src')).toBe(false);
+  });
+
+  it('follows a change of the loop setting on the same background', () => {
+    const {view, videos} = setUp('preview');
+    view.show(WARM_LIGHT);
+    videos[1].dispatchEvent(new Event('playing'));
+    view.show({...WARM_LIGHT, loop: false});
+    expect(videos[1].loop).toBe(false);
+  });
+
+  it('never loops natively in an output window', () => {
+    const {view, videos} = setUp();
+    view.show(WARM_LIGHT);
+    expect(videos[1].loop).toBe(false);
   });
 });
 

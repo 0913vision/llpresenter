@@ -116,4 +116,18 @@ describe('OutputRenderer', () => {
     expect(FakeResizeObserver.instances[0]?.disconnected).toBe(true);
     expect(parent.childElementCount).toBe(0);
   });
+
+  it('passes the preview mode to the background', () => {
+    const parent = document.createElement('div');
+    const renderer = new OutputRenderer(parent, {
+      lyricStyle: DEFAULT_LYRIC_STYLE,
+      mediaUrl: mediaId => `https://media.test/${mediaId}.mp4`,
+      onError: vi.fn(),
+      mode: 'preview',
+    });
+    renderer.render(WITH_SLIDE);
+    const video = parent.querySelector<HTMLVideoElement>('video[src]');
+    expect(video?.loop).toBe(true);
+    renderer.dispose();
+  });
 });
