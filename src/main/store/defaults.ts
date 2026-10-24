@@ -1,4 +1,5 @@
 import type {Label} from '@shared/schema/labels';
+import type {MediaList} from '@shared/schema/mediaList';
 
 /**
  * The 이름표 list before the operator changes it (`docs/spec/02-data.md`,
@@ -14,3 +15,12 @@ export const DEFAULT_LABELS: readonly Label[] = [
   {name: '간주', color: 'gray', key: null},
   {name: '엔딩', color: 'none', key: null},
 ];
+
+/** The media list before the first import: no media and no playlists. */
+export const EMPTY_MEDIA_LIST: MediaList = {
+  format: 'llmedia',
+  schemaVersion: 1,
+  items: [],
+  playlists: [],
+  audioPlaylists: [],
+};

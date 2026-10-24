@@ -227,6 +227,34 @@ describe('loadStore', () => {
     expect(store.problems).toEqual([]);
   });
 
+  it('finds media files from media.json in the media folder', async () => {
+    const context = await developmentContext();
+    const root = dataRoot(context);
+    await writeJson(join(root, '설정', 'media.json'), {
+      format: 'llmedia',
+      schemaVersion: 1,
+      items: [
+        {
+          id: '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293',
+          name: '따뜻한 빛',
+          kind: 'video',
+          file: '따뜻한 빛.mp4',
+          size: 1024,
+        },
+      ],
+      playlists: [],
+      audioPlaylists: [],
+    });
+
+    const store = await loadedStore(context);
+
+    expect(store.media.fileOf('3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293')).toBe(
+      join(root, '미디어', '따뜻한 빛.mp4'),
+    );
+    expect(store.media.roots).toEqual([join(root, '미디어')]);
+    expect(store.problems).toEqual([]);
+  });
+
   it('reports a jump key that labels.json drops', async () => {
     const context = await developmentContext();
     await writeJson(join(dataRoot(context), '설정', 'labels.json'), {

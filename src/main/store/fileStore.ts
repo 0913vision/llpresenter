@@ -2,6 +2,7 @@ import {join} from 'node:path';
 import type {Result} from '@shared/result';
 import type {FileError, LoadedFile} from '@shared/schema/fileFormat';
 import {parseLabels, type Label} from '@shared/schema/labels';
+import {parseMediaList} from '@shared/schema/mediaList';
 import {
   defaultPreferences,
   parsePreferences,
@@ -10,8 +11,13 @@ import {
 } from '@shared/schema/preferences';
 import {parseService, type Service} from '@shared/schema/service';
 import {parseSong, type Song} from '@shared/schema/song';
-import {DEFAULT_LABELS} from './defaults';
+import {DEFAULT_LABELS, EMPTY_MEDIA_LIST} from './defaults';
 import {loadFolder} from './library';
+import {
+  buildMediaLibrary,
+  type MediaLibrary,
+  type MediaLibraryRead,
+} from './mediaLibrary';
 import {
   confineLocations,
   readLocationFields,
@@ -26,6 +32,7 @@ import {readSettingsFile, settingsLocation} from './settingsFile';
 const APP_CONFIG_FILE = 'app.json';
 const LABELS_AREA = 'labels';
 const PREFERENCES_AREA = 'preferences';
+const MEDIA_AREA = 'media';
 const SONG_EXTENSION = '.llsong';
 const SERVICE_EXTENSION = '.llservice';
 const IGNORED_FOLDER_MESSAGE =
@@ -51,6 +58,8 @@ export interface LoadedStore {
   readonly labels: readonly Label[];
   /** 환경설정, with the default for every field the file doesn't set. */
   readonly preferences: Preferences;
+  /** The file of each media id from `media.json`, and the media folders. */
+  readonly media: MediaLibrary;
   /**
    * The service 진행 opens: the last opened one when it loaded, otherwise the
    * one with the latest date, or `null` when there is none.
@@ -77,7 +86,7 @@ interface PreferencesRead {
 
 type DataRead = Pick<
   LoadedStore,
-  'songs' | 'services' | 'labels' | 'preferences' | 'problems'
+  'songs' | 'services' | 'labels' | 'preferences' | 'media' | 'problems'
 >;
 
 /**
@@ -97,7 +106,7 @@ export async function loadStore(
   if (!confined.ok) {
     return confined;
   }
-  const data = await readData(confined.value);
+  const data = await readData(confined.value, context.developmentFolder);
   return {
     ok: true,
     value: {
@@ -148,7 +157,10 @@ async function readAppConfig(file: string): Promise<LocationFieldsRead> {
   return {fields: {}, config: null, problem: text.error};
 }
 
-async function readData(locations: DataLocations): Promise<DataRead> {
+async function readData(
+  locations: DataLocations,
+  developmentFolder: string | null,
+): Promise<DataRead> {
   const songs = await loadFolder(locations.songs, SONG_EXTENSION, parseSong);
   const services = await loadFolder(
     locations.services,
@@ -157,16 +169,19 @@ async function readData(locations: DataLocations): Promise<DataRead> {
   );
   const labels = await readLabels(locations);
   const preferences = await readPreferences(locations);
+  const media = await readMedia(locations, developmentFolder);
   return {
     songs: songs.items,
     services: services.items,
     labels: labels.labels,
     preferences: preferences.preferences,
+    media: media.library,
     problems: [
       ...songs.problems,
       ...services.problems,
       ...labels.problems,
       ...preferences.problems,
+      ...media.problems,
     ],
   };
 }
@@ -191,6 +206,21 @@ async function readPreferences(
       data === null ? defaultPreferences : withPreferenceDefaults(data),
     problems,
   };
+}
+
+async function readMedia(
+  locations: DataLocations,
+  developmentFolder: string | null,
+): Promise<MediaLibraryRead> {
+  const location = settingsLocation(locations, MEDIA_AREA);
+  const {data, problems} = await readSettingsFile(location, parseMediaList);
+  const built = buildMediaLibrary({
+    items: (data ?? EMPTY_MEDIA_LIST).items,
+    mediaFolder: locations.media,
+    developmentFolder,
+    listFile: location.file,
+  });
+  return {library: built.library, problems: [...problems, ...built.problems]};
 }
 
 function ignoredProblem(file: string, field: string): FileError {
