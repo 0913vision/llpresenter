@@ -1,12 +1,31 @@
 # Review request: `data-8`
 
+Review range: `12c77a9...feat/data/show-service`
+
 - Team member: `data`
 - Branch: `feat/data/show-service`, stacked on `data-7` (`feat/data/file-store`,
   12c77a9)
 - Base commit (`main`): `814781b`
 - Last commit: see the commit that adds this file
 - Related brief: `docs/briefs/data.md`; M2 in `docs/MILESTONES.md`,
-  "Main-process file store"
+  "Main-process file store"; `docs/TECH.md`, "Storage"; `docs/spec/02-data.md`,
+  "App-wide settings" and "Save rules"
+
+What to check:
+
+1.  `src/main/store/settingsFile.ts` against the rule in `docs/TECH.md`,
+    "Storage": a broken settings file runs from its newest readable recovery
+    copy, or else the defaults, and is reported; the file itself is never
+    touched.
+2.  `src/main/store/library.ts` and `fileStore.ts`: a broken song or 예배 순서
+    file is skipped and reported, and the rest load; a broken `app.json` only
+    gives its valid location fields.
+3.  `src/main/store/showService.ts`: the rows and tiles against shell's shape in
+    "How 진행 gets its rows" below, and the stable row ids.
+4.  `src/shared/schema/service.ts`: the declared return type of `itemSchemaFor`,
+    and the type tests that guard `ServiceItemOf`.
+5.  Every read returns a result and never throws; every test uses a temporary
+    folder.
 
 ## Shared changes
 
