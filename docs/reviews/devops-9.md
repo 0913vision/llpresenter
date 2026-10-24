@@ -110,3 +110,15 @@ Rebased onto `main` at `2b26d32`. `npm run verify` passes at 100% CPU, 199.5 s:
 typecheck 3.9 s, lint 44.1 s, format:check 34.4 s, test:coverage 113.0 s (101
 files, 1054 passed and 1 skipped, no timeouts or worker start failures), build
 4.1 s.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (8c9aa08): reviewer (Codex, codex3) Request changes: unhandled-only
+  failures produced no "What failed" list, and per-chunk decoding could split a
+  UTF-8 character.
+- Round 2 (c75fdbf): reviewer Request changes: distinct unhandled rejections
+  collapsed into one, and grouped FAIL headings lost their shared error.
+- Round 3 (b2456f5): reviewer (Codex, codex3) Approve, no findings. qa had
+  checked the branch before merge (verify passed under load and named both
+  broken tests). Lead Approve; this fixes qa's M1-7. Rebased by the lead onto
+  local `main` without conflicts.
