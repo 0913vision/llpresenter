@@ -1,13 +1,15 @@
 # Review request: `output-10`
 
-Review range: `00b2492...feat/output/test-windows`. Check that with
+Review range: `5916a0b...feat/output/test-windows` (round 2). Check that with
 `LLP_TEST_WINDOWS=offscreen` no window of the app can appear, take focus, go
 full screen, stay on top, or show in the taskbar, that the variable is ignored
-in a packaged build, and that normal runs are unchanged.
+in a packaged build, and that normal runs are unchanged. For round 2, check the
+three round 1 findings in "Team member's reply": `d1a9a1b` (title bar actions,
+second launch) and `df44746` (offscreen output sizes).
 
 - Team member: `output`
 - Branch: `feat/output/test-windows`
-- Base commit (`main`): `00b2492`
+- Base commit (`main`): `5916a0b` (round 2; round 1 was on `00b2492`)
 - Last commit: the commit that adds this file
 - Related: the lead's request; the shape devops proposed for the Playwright UI
   tests and the soak runs
@@ -31,9 +33,13 @@ user's screen.
 - The control window takes the options and, in `offscreen` mode, skips its
   `ready-to-show` maximize and `show`.
 - The output windows take the options, and in `offscreen` mode their handle
-  never shows, focuses, goes full screen, or goes on top: `showFullScreen`,
-  `showWindowed`, and `hide` do nothing to the window. The rest of the output
-  logic (placement, relaunch, frame rate) runs as usual.
+  never shows, focuses, goes full screen, or goes on top. It still gives the
+  page the size of its placement: the monitor's size for full screen
+  (`setContentBounds`) and the window bounds for window mode (`setBounds`).
+  `hide` does nothing. The rest of the output logic (placement, relaunch, frame
+  rate) runs as usual.
+- In `offscreen` mode the control window's title bar can only close it (minimize
+  and maximize would show it), and a second launch doesn't restore or focus it.
 - `LLP_SMOKE_EXIT_MS` waits for `ready-to-show` in `offscreen` mode, because
   `show` never fires.
 - `src/main/index.ts` reads the mode in `start()` and passes it to the control
@@ -44,12 +50,20 @@ user's screen.
 - `src/main/windows/testWindows.ts` (new),
   `src/main/windows/testWindows.test.ts` (new)
 - `src/main/windows/control.ts`, `src/main/outputs/electronWindow.ts`,
-  `src/main/outputs/start.ts`, `src/main/index.ts`
+  `src/main/outputs/start.ts`, `src/main/index.ts`, `src/main/ipc.ts`
+- `src/main/outputs/electronWindow.test.ts` (new), `src/main/ipc.test.ts`,
+  `src/main/index.wiring.test.ts`
 - `docs/reviews/output-10.md` (new)
 
 ## Checks run
 
-On `1702ea1`, on `main` at `00b2492`.
+Round 2: `npm run verify` passed on `df44746`, on `main` at `5916a0b`: 5 steps
+in 189.5 s. In real Electron, a hidden offscreen window (never visible) has no
+frame, opens at 800×600 when nothing sizes it, and gets exactly the asked page
+size from `setContentBounds` and `setBounds` (1920×1080, 3840×2160, 960×540, by
+`innerWidth`, `innerHeight`, and `capturePage`).
+
+Round 1, on `1702ea1`, on `main` at `00b2492`:
 
 | Command or test  | Result                                                                                                                                                                       |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -61,8 +75,8 @@ On `1702ea1`, on `main` at `00b2492`.
 
 - [x] `npm run verify` passes
 - [x] `npm run format:check` passes
-- [x] Every new behavior and every bug fix has unit tests (the Electron
-      factories stay thin and untested, as before)
+- [x] Every new behavior and every bug fix has unit tests (round 2 adds tests
+      for the output window factory with a fake `BrowserWindow`)
 - [x] Values from outside the process are validated (the variable is compared to
       one exact value)
 - [x] No `any`, no type assertions that bypass checks, and no `!`
@@ -91,7 +105,8 @@ None.
 
 ## Where to look
 
-- `src/main/outputs/electronWindow.ts`, `keepOffscreen`.
+- `src/main/outputs/electronWindow.ts`, `presentOffscreen`.
+- `src/main/ipc.ts`, `controlWindowIn`, and `src/main/index.ts`, `bringBack`.
 - `src/main/windows/control.ts`, the `ready-to-show` handler.
 
 ---
@@ -117,4 +132,21 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 findings (codex4), all fixed:
+
+1. `ipc.ts`: the title bar actions bypassed offscreen mode. Fixed in `d1a9a1b`:
+   `allowsWindowAction(mode, action)` in `testWindows.ts` lets an offscreen
+   window only close; `registerIpc` takes the window mode and logs an ignored
+   action. Tests: `ipc.test.ts` (normal mode minimizes, maximizes, restores, and
+   closes; offscreen ignores minimize and maximize and still closes) and
+   `testWindows.test.ts`.
+2. `index.ts`: a second launch restored and focused the offscreen control
+   window. Fixed in `d1a9a1b`: `bringBack` does nothing in offscreen mode. Tests
+   in `index.wiring.test.ts`: a second launch restores and focuses in normal
+   mode and touches nothing in offscreen mode.
+3. `electronWindow.ts`: offscreen outputs stayed at 800×600. Fixed in `df44746`:
+   each mode has its own presentation. Offscreen full screen sets the content
+   bounds to the monitor, window mode sets the window bounds, and neither shows,
+   focuses, goes full screen, or goes on top; normal mode is unchanged. Tests in
+   the new `electronWindow.test.ts` for both placements in both modes. The real
+   Electron check under "Checks run" confirms the sizes.
