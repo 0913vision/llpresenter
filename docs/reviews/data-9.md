@@ -129,8 +129,9 @@ Other details:
 
 ### Wiring (output)
 
-Output wires the store once, after this merges, as a step of output-9's shutdown
-coordinator:
+Round 3 completed the wiring in `src/main/index.ts`, with output's permission:
+the call below replaced output-9's `registerStore(log)`, and its dispose
+function runs as a step of output-9's shutdown coordinator:
 
 ```ts
 const disposeStore = registerStore({
