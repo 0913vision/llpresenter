@@ -2,7 +2,7 @@
 
 - Team member: `spec`
 - Branch: `docs/spec/open-decisions`, from `main` (not stacked)
-- Base commit (`main`): `4aa7901`
+- Base commit (`main`): `9e2496a`
 - Shared files changed: none
 - Last commit: see the commit that adds this file
 - Related request: the lead's message of October 25 (spec-6, the decision sheet)
@@ -20,8 +20,8 @@ be presented in Korean. `docs/plans/open-decisions.md` (new) collects:
 - 30 entries, sorted by when the answer is needed: M2 (2), M3 by wave A to D and
   the waiting X requests (24), M4 (3), and later (1). Each entry gives the
   question in one sentence, the options, the proposal and why, what it blocks
-  (M3 request IDs from spec-3), the ProPresenter answer with a source, and where
-  the question comes from.
+  (M3 request IDs from `docs/plans/m3-breakdown.md`), the ProPresenter answer
+  with a source, and where the question comes from.
 - A summary table at the top, and a **Batch** mark on 14 low-risk entries that
   the user can accept together.
 - "Already decided": README 1, 2, 3, 4 (version 1 part), 8, and 19, and 10's
@@ -51,10 +51,10 @@ Two findings change a proposal compared with the spec:
 
 ## Checks run
 
-| Command or test           | Result |
-| ------------------------- | ------ |
-| `npm run verify`          |        |
-| Middle dots and em dashes |        |
+| Command or test           | Result                                                                                                                                                                                                                                                 |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `npm run verify`          | Pass on base `4aa7901`: typecheck 7.9 s, lint 102.6 s, format:check 23.7 s, test:coverage 162.5 s (57 files, 573 tests, 1 skipped), build 31.3 s; 327.9 s in all. Then rebased onto `9e2496a` (documents only) and checked the two files with Prettier |
+| Middle dots and em dashes | None in the changed files (checked with `grep -c`)                                                                                                                                                                                                     |
 
 ## Decisions I made (for the lead to confirm)
 
@@ -73,5 +73,5 @@ Two findings change a proposal compared with the spec:
 
 - That every README and 10 question appears once, either as an entry or in
   "Already decided".
-- The "Blocks" lines against the M3 plan (spec-3).
+- The "Blocks" lines against the M3 plan.
 - Entries 20 and 25, where the proposal departs from ProPresenter on purpose.

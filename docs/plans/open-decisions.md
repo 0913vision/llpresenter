@@ -1,7 +1,7 @@
 # Open decisions
 
-Status: for the user's decision. Snapshot of `main` 4aa7901 and the spec
-branches under review (spec-2 to spec-5), October 25, 2026.
+Status: for the user's decision. Snapshot of `main` 9e2496a and the spec
+branches under review (spec-2, spec-4, and spec-5), October 25, 2026.
 
 This sheet collects every question in `docs/spec/` that still needs the user's
 answer: the README open questions (1 to 26), the settings questions of 10 (10 to
@@ -14,8 +14,7 @@ Conventions:
 
 - Entries are sorted by when the answer is needed: M2, then M3 by wave (A to D,
   then the requests that wait for an answer), M4, and later.
-- Task IDs are the requests of the M3 plan (`docs/plans/m3-breakdown.md`,
-  spec-3, under review).
+- Task IDs are the requests of the M3 plan ([m3-breakdown.md](m3-breakdown.md)).
 - "S4 p. N" is a page of the ProPresenter 7.5 user guide. S1 to S18 are the
   sources listed in `docs/spec/10-shortcuts-and-settings.md`.
 - "README N" and "question N" point to the open question tables of
