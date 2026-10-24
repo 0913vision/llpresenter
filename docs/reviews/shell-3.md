@@ -1,9 +1,8 @@
 # Review request: `shell-3`
 
 - Team member: `shell`
-- Branch: `feat/shell/ui-state-ipc` (stacked on `feat/data/ipc`, data-5)
-- Base commit: the last commit of data-5 (`3391430`). It merges after data-1 and
-  data-5.
+- Branch: `feat/shell/ui-state-ipc`
+- Base commit (`main`): `b9392d0` (it has data-5)
 - Last commit: see the commit that adds this file
 - Related brief: the lead's queue (the UI state IPC and the `app.json` store for
   the column widths)
@@ -79,7 +78,9 @@ failure is logged).
 
 ## Checks run
 
-Pending.
+`npm run verify` on commit `613b599` (base `main` b9392d0, which has data-5)
+passed all five steps in 274.5 s: `typecheck`, `lint`, `format:check`,
+`test:coverage`, and `build`.
 
 Tests: `uiStateStore.test.ts` (14: merging, unknown fields, other classes, the
 burst of changes, flush, malformed changes, a failed write, dispose, and the
