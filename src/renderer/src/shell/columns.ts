@@ -1,3 +1,4 @@
+import {COLUMN_LIMITS} from '@shared/schema/uiState';
 import type {ColumnWidths} from './sizeClass';
 
 export type DraggableColumn = 'left' | 'right';
@@ -8,10 +9,8 @@ export interface WidthRange {
 }
 
 /** Column width ranges and the smallest center width, in CSS pixels. */
-export const COLUMN_RANGES: Readonly<Record<DraggableColumn, WidthRange>> = {
-  left: {min: 200, max: 400},
-  right: {min: 320, max: 720},
-};
+export const COLUMN_RANGES: Readonly<Record<DraggableColumn, WidthRange>> =
+  COLUMN_LIMITS;
 export const CENTER_MIN_WIDTH = 560;
 
 // NOTE(0913vision): Must match the `--panel-gap` design token.
