@@ -101,19 +101,14 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (d5ad9bf, restacked by the member as b62f5ea with no change): reviewer
+  (Codex, codex3) Approve with one nit: `src/shared/ipc.ts:45` `setLayout`'s
+  TSDoc mentions only width changes; the member fixed it in data-4. Lead
+  Approve. output sets `canUndo` in the live reducer next, and shell saves the
+  thumbnail column count with `LayoutChange.columns`. Merged onto `main` 54c60fa
+  without conflicts.
 
 ## Team member's reply
 
