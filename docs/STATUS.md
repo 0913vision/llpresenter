@@ -18,9 +18,9 @@ Only the lead edits this file. Last updated: October 24, 2026.
 | Name   | Branch                      | State                       | Brief                   |
 | ------ | --------------------------- | --------------------------- | ----------------------- |
 | lead   | `rewrite`                   | Held by the phase 0 session | `docs/briefs/lead.md`   |
-| trial  | `docs/trial/workflow-check` | Not started                 | `docs/briefs/trial.md`  |
-| devops | `chore/devops/verify`       | Not started                 | `docs/briefs/devops.md` |
-| ui     | `feat/ui/form-controls`     | Not started                 | `docs/briefs/ui.md`     |
+| trial  | `docs/trial/workflow-check` | Started                     | `docs/briefs/trial.md`  |
+| devops | `chore/devops/verify`       | Started                     | `docs/briefs/devops.md` |
+| ui     | `feat/ui/form-controls`     | Started                     | `docs/briefs/ui.md`     |
 
 ## Next steps
 

@@ -32,14 +32,19 @@ read-only) takes this role.
 - The lead runs in `D:\programming\2020-\pp` (`rewrite`) with permission prompts
   turned off. Team members start in the same mode. If the modes differ, messages
   between sessions stall while they wait for the user's approval.
-- The lead starts team members with the session start tool: a fresh context,
-  their own worktree, a branch named `<tag>/<name>/<feature>`, and running
-  locally.
-- The lead can start a new session right away only in a turn that a message
-  typed in the desktop app started. A message sent over Remote Control (from the
-  phone) can't start one. In a turn woken by a team member's completion notice,
-  the lead can only offer a suggestion card, so the next bundle starts when the
-  user says to start or clicks the card.
+- The lead runs inside tmux and starts each team member as an independent
+  interactive Claude Code session in a new tmux window (user rule). Never use
+  agent team teammates or background subagents for member work.
+  1. `git worktree add .claude/worktrees/<name> -b <tag>/<name>/<feature> rewrite`
+  2. Write `.llp/start.md` in the worktree: role, brief, branch, and the lead's
+     session name for SendMessage.
+  3. `tmux new-window -d -n <name> -c '<worktree path>'` (single quotes keep the
+     Windows path intact).
+  4. `tmux send-keys -t 0:<name> "claude --dangerously-skip-permissions --remote-control <name>" Enter`,
+     then send the prompt "Read .llp/start.md in this folder and follow it." and
+     a separate Enter.
+  5. Read a member's screen with `tmux capture-pane -p -t 0:<name>`. The user
+     can open each session from the phone through Remote Control.
 - Before you start a session, commit its brief to `rewrite`. The worktree starts
   from the last commit on `rewrite`.
 - At most three team members run at the same time.
