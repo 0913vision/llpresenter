@@ -113,14 +113,16 @@ function OneTile({
   readonly tile: MediaTileProps;
 }): JSX.Element {
   return (
-    <MediaStrip
+    <MediaGrid
       label={name}
+      columns={1}
       selected={tile.selected === true ? 0 : undefined}
       onSelect={ignore}
       onActivate={ignore}
+      onOutput={ignore}
     >
       <MediaTile {...tile} />
-    </MediaStrip>
+    </MediaGrid>
   );
 }
 

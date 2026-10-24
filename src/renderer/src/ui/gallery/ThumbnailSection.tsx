@@ -13,7 +13,14 @@ import {ignore, Section, SpecGroup, SpecItem, type SpecPin} from './Spec';
 const STATE_WIDTH = 200;
 const COLOR_WIDTH = 160;
 const GRID_PANEL_WIDTH = 920;
-const SIZE_WIDTHS: readonly number[] = [176, 270, 364];
+const sizeSamples: ReadonlyArray<{
+  readonly width: number;
+  readonly label: string;
+}> = [
+  {width: 176, label: 'Width 176, text 7.7px (6 columns)'},
+  {width: 270, label: 'Width 270, text 11.9px (4 columns, regular default)'},
+  {width: 364, label: 'Width 364, text 16px (3 columns)'},
+];
 const SLIDER_MIN = 2;
 const SLIDER_MAX = 8;
 const COLUMN_SUM = 10;
@@ -239,10 +246,10 @@ export function ThumbnailSection(): JSX.Element {
         </SpecItem>
       </SpecGroup>
       <SpecGroup title="Lyric font size = canvas width × 0.044" alignTop>
-        {SIZE_WIDTHS.map(width => (
-          <SpecItem key={width} label={`Width ${width}`} width={width}>
+        {sizeSamples.map(({width, label}) => (
+          <SpecItem key={width} label={label} width={width}>
             <OneThumbnail
-              name={`Width ${width}`}
+              name={label}
               thumbnail={{
                 number: 1,
                 label: '1절',
