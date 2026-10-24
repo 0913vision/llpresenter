@@ -1,12 +1,13 @@
 import {readdir, readFile} from 'node:fs/promises';
-import {join} from 'node:path';
+import {basename, join} from 'node:path';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {makeTempDir} from '../../../test/temp-dir';
-import {writeFileAtomically} from './atomicWrite';
+import {isTemporaryFileName, writeFileAtomically} from './atomicWrite';
 
 const renameFailures = vi.hoisted(() => {
   const codes: string[] = [];
-  return {codes};
+  const renamed: string[] = [];
+  return {codes, renamed};
 });
 
 vi.mock('node:fs/promises', async importOriginal => {
@@ -14,6 +15,7 @@ vi.mock('node:fs/promises', async importOriginal => {
   return {
     ...actual,
     rename: async (from: string, to: string) => {
+      renameFailures.renamed.push(from);
       const code = renameFailures.codes.shift();
       if (code !== undefined) {
         throw Object.assign(new Error(`${code}: locked`), {code});
@@ -25,6 +27,7 @@ vi.mock('node:fs/promises', async importOriginal => {
 
 afterEach(() => {
   renameFailures.codes = [];
+  renameFailures.renamed = [];
 });
 
 describe('writeFileAtomically on a locked file', () => {
@@ -56,5 +59,18 @@ describe('writeFileAtomically on a locked file', () => {
 
     expect(result.ok ? undefined : result.error.message).toContain('ENOSPC');
     expect(renameFailures.codes).toEqual(['EBUSY']);
+  });
+
+  it('gives its temporary file a name the leftover cleanup knows', async () => {
+    const folder = await makeTempDir();
+
+    await writeFileAtomically(join(folder, 'song.llsong'), 'text');
+
+    expect(renameFailures.renamed.map(from => basename(from))).toEqual([
+      expect.stringMatching(/^\.song\.llsong\./),
+    ]);
+    expect(isTemporaryFileName(basename(renameFailures.renamed[0] ?? ''))).toBe(
+      true,
+    );
   });
 });

@@ -4,8 +4,10 @@ import type {ShowService} from '@shared/schema/showService';
 import type {Logger} from '../log';
 import {Backups, type BackupOutcome} from './backup';
 import {loadStore, type LoadedStore, type StoreContext} from './fileStore';
+import {dataFileFolders} from './locations';
 import {LoadingMediaLibrary} from './mediaLibrary';
 import {buildShowService} from './showService';
+import {removeStaleTempFiles} from './staleTempFiles';
 
 const FIRST_REVISION = 1;
 const MAX_LOGGED_PROBLEMS = 50;
@@ -51,12 +53,12 @@ export function registerStore({
   ipcMain.handle(Channels.serviceGet, () => opening);
   // TODO(0913vision): Push `service:changed` with the next revision when the
   // open 예배 순서, one of its songs, or the 이름표 change.
-  const backingUp = backUpAtLaunch(loading, isAnyOutputOn, log);
+  const upkeep = upkeepAtLaunch(loading, isAnyOutputOn, log);
   const media = new LoadingMediaLibrary(loading);
   return {
     dispose: async () => {
       ipcMain.removeHandler(Channels.serviceGet);
-      await backingUp;
+      await upkeep;
     },
     findMediaFile: media.findFile,
     mediaRoots: media.roots,
@@ -104,7 +106,9 @@ async function openShowService(
   }
 }
 
-async function backUpAtLaunch(
+// NOTE(0913vision): Leftover temporary files go before the backup, so a backup
+// never copies them.
+async function upkeepAtLaunch(
   loading: Promise<LoadedStore | null>,
   isAnyOutputOn: () => boolean,
   log: Logger,
@@ -113,6 +117,26 @@ async function backUpAtLaunch(
   if (store === null) {
     return;
   }
+  await removeLeftoverTempFiles(store, log);
+  await backUpAtLaunch(store, isAnyOutputOn, log);
+}
+
+async function removeLeftoverTempFiles(
+  store: LoadedStore,
+  log: Logger,
+): Promise<void> {
+  for (const name of dataFileFolders) {
+    for (const problem of await removeStaleTempFiles(store.locations[name])) {
+      log.warn('could not remove a leftover temporary file', problem);
+    }
+  }
+}
+
+async function backUpAtLaunch(
+  store: LoadedStore,
+  isAnyOutputOn: () => boolean,
+  log: Logger,
+): Promise<void> {
   try {
     const backups = new Backups({
       locations: store.locations,

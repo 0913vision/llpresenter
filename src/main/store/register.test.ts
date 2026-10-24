@@ -1,4 +1,4 @@
-import {readdir, rm, symlink} from 'node:fs/promises';
+import {readdir, rm, symlink, utimes} from 'node:fs/promises';
 import {join} from 'node:path';
 import {
   afterEach,
@@ -223,6 +223,31 @@ describe('registerStore', () => {
     );
     expect(await store.findMediaFile('unknown')).toBeNull();
     expect(store.mediaRoots()).toEqual([join(root, '미디어')]);
+  });
+
+  it('removes temporary files that a cut-off write left, before the backup', async () => {
+    const context = await developmentContext();
+    const songs = join(context.appDataFolder, DATA_FOLDER_NAME, '곡');
+    const leftover = join(
+      songs,
+      '.a.llsong.3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293.tmp',
+    );
+    await writeJson(leftover, 'half written');
+    const twoMinutesAgo = (Date.now() - 120_000) / 1000;
+    await utimes(leftover, twoMinutesAgo, twoMinutesAgo);
+    const dispose = register(fakeLog(), () => context);
+
+    await dispose();
+
+    expect(await readdir(songs)).toEqual([]);
+    const [backup = ''] = await readdir(
+      join(context.appDataFolder, 'LoveLight 백업'),
+    );
+    expect(
+      await readdir(
+        join(context.appDataFolder, 'LoveLight 백업', backup, '곡'),
+      ),
+    ).toEqual([]);
   });
 
   it('skips the launch backup while an output is on', async () => {

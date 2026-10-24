@@ -9,11 +9,21 @@ import type {Result} from '@shared/result';
 const RENAME_RETRIES = 5;
 const RENAME_RETRY_DELAY_MS = 20;
 const TRANSIENT_RENAME_CODES = new Set(['EPERM', 'EBUSY', 'EACCES']);
+const TEMPORARY_NAME =
+  /^\..+\.[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.tmp$/;
 
 /** Why a file couldn't be written. The old file, if any, is unchanged. */
 export interface WriteProblem {
   readonly file: string;
   readonly message: string;
+}
+
+/**
+ * Whether a file name is one that {@link writeFileAtomically} gives its
+ * temporary files: `.<file name>.<random UUID>.tmp`.
+ */
+export function isTemporaryFileName(name: string): boolean {
+  return TEMPORARY_NAME.test(name);
 }
 
 /**
@@ -26,10 +36,7 @@ export async function writeFileAtomically(
   file: string,
   text: string,
 ): Promise<Result<void, WriteProblem>> {
-  const temporary = join(
-    dirname(file),
-    `.${basename(file)}.${randomUUID()}.tmp`,
-  );
+  const temporary = join(dirname(file), temporaryName(file));
   try {
     await mkdir(dirname(file), {recursive: true});
     await writeAndFlush(temporary, text);
@@ -96,4 +103,8 @@ function delay(ms: number): Promise<void> {
 
 function messageOf(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function temporaryName(file: string): string {
+  return `.${basename(file)}.${randomUUID()}.tmp`;
 }
