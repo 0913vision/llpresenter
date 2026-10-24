@@ -259,3 +259,15 @@ Replies to the reviewer:
    `NOTE(0913vision)` comment. `npm run verify` on `main` 8b5edaa plus this
    branch passed all five steps (typecheck, lint, format:check, test:coverage,
    build) in 59.8 s.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (906d57e): lead Request changes; reviewer (Codex) Request changes,
+  three bugs (a click saved a shrunk width, a resize during a drag clipped the
+  panel, a second pointer took over the drag).
+- Round 2 (e785eb9): lead Approve; reviewer Request changes on two nits (a
+  duplicate refit, a TSDoc block on a private method) and on a verify run that
+  failed only in the known lint-test timeout.
+- Round 3 (4fdd54d): reviewer (Codex, codex3) Approve: both nits fixed, no
+  regressions. Lead Approve. Rebased by the lead onto main 8d23708 without
+  conflicts.
