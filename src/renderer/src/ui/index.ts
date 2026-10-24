@@ -138,6 +138,15 @@ export {
   type SelectOption,
 } from './SelectMenu';
 export {
+  SlideThumbnail,
+  ThumbnailGrid,
+  missingFileText,
+  thumbnailName,
+  type SlideThumbnailProps,
+  type ThumbnailGridProps,
+  type ThumbnailWorkspace,
+} from './SlideThumbnail';
+export {
   Slider,
   type SliderProps,
   type SliderSurface,

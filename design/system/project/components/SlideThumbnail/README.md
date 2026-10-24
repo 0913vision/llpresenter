@@ -50,7 +50,10 @@ Hover uses the same 1px `line-control` as the hover of the small previews (ShowH
 ## Behavior
 
 - In the 진행 workspace, a click outputs that 장. In the 준비 workspace, a click only selects it.
-- The grid is `role="listbox"`, and each thumbnail is `role="option"` + `aria-selected`. Tab enters the grid only once (roving tabindex), and the arrow keys move between thumbnails. Enter and Space act as a click.
+- The grid is `role="listbox"`, and each thumbnail is `role="option"` + `aria-selected`. Tab enters the grid only once (roving tabindex), on the selected thumbnail.
+- In the 준비 workspace, the arrow keys move between thumbnails, and Enter and Space act as a click.
+- In the 진행 workspace, the grid keeps only ↑ and ↓ (one row) and Enter (a click). ←, →, Space, Page Up, and Page Down go to 다음 장 and 이전 장 even while the grid has focus, as in ProPresenter (focus precedence, rule 5, in `docs/spec/10-shortcuts-and-settings.md`). Space never presses the focused thumbnail there.
+- The grid takes keyboard focus on a mouse click, also in 진행, where a click on other buttons and tiles leaves focus where it was. While focus is in the grid, it follows the selection, also when 다음 장 moves it.
 - A live 장 has `data-state="live"`, a 장 whose media file is missing has `data-state="warning"`, and one with both has `data-state="live warning"`.
 - Write the `aria-label` in this order: number, 이름표, first line. "2 프리코러스, 저 천사여 찬송하세".
 - Moving the size slider changes only the column count, and the lyric text follows the width.
@@ -63,8 +66,8 @@ Hover uses the same 1px `line-control` as the hover of the small previews (ShowH
 
 ## Implementation notes
 
-- `<SlideThumbnail n={2} label={{ name: '프리코러스', color: 'green' }} text={'저 천사여 찬송하세\n찬송 성부 성자 성령'} media={src} live selected missing onActivate={…} />`
-- `<ThumbnailGrid columns={4}>…</ThumbnailGrid>` → `<div class="ll-thumb-grid" style="--ll-cols: 4">`
+- `<SlideThumbnail number={2} label="프리코러스" labelColor="green" text={'저 천사여 찬송하세\n찬송 성부 성자 성령'} media={src} missingFile={path} live selected />`
+- `<ThumbnailGrid label="장" columns={4} workspace="show" selected={index} onSelect={…} onOutput={…}>…</ThumbnailGrid>` → `<div class="ll-thumb-grid" style="--ll-cols: 4">`. With `workspace="prep"`, a click selects, and there is no `onOutput`.
 - Classes: `ll-thumb`, `ll-thumb__canvas`, `ll-thumb__text`, `ll-thumb__media`, `ll-thumb__missing`, `ll-thumb__band`, `ll-thumb__num`, `ll-thumb__label`, `ll-thumb-grid`.
 - Attributes: `data-color="teal|green|yellow|orange|rose|violet|slate|gray"` (none means no 이름표. `42-labelchip.css` maps the colors), `aria-selected`, `data-state`.
 - `.is-hover` and `.is-focus` fix a state in the preview.
