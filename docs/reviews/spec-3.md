@@ -129,3 +129,16 @@ Round 1:
 - Whether any two tasks of different owners still touch the same file.
 - Whether the acceptance criteria are concrete enough for qa.
 - The waves and the longest chains against how fast M2 frees people.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (a209390): reviewer (Codex, 0:6) Request changes: no output task for
+  the screen backend, a dependency cycle between O8 and S2, tasks in a wave
+  before their dependencies, the registry landing after the contract change,
+  macro batches without an owner for undo, incomplete waiting tasks, and a wrong
+  question number. Lead answers to the six questions are in the plan's "Lead
+  decisions in this plan".
+- Round 2 (34ba6ef): reviewer (Codex, 0:6) Approve, no findings. Lead Approve.
+  The plan is the working plan for M3; the lead updates `docs/PLAN.md` (the old
+  three-session cap) in the same merge. Rebased by the lead onto `main` 6047acf
+  without conflicts.

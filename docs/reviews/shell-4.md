@@ -90,19 +90,14 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (d9cdf7a): reviewer (Codex, codex4) Request changes: after a refit, a
+  drag back to delta 0 skipped the save and the width jumped, and TSDoc sat on
+  fields of an unexported interface.
+- Round 2 (ea5aad2): reviewer (Codex, 0:6; the prompt reached 0:6 instead of
+  codex4) Approve, no findings. Lead Approve. Rebased by the lead onto `main`
+  23e0344 without conflicts.
 
 ## Team member's reply
 

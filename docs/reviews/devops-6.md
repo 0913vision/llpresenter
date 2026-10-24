@@ -71,3 +71,11 @@ from this worktree was running, and I stopped both processes afterwards.
   `electron.vite.config.ts` belongs to output. If output wants one source, it
   can import `RENDERER_ALIASES` from `scripts/gallery/vite.config.mts`.
 - qa's QA-only config can go once this merges.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (b0c2f80): reviewer (Codex, 0:6; the prompt reached 0:6 instead of
+  codex3) Approve with one nit: `scripts/gallery/gallery.test.ts:97` uses
+  `toMatchObject`, so an alias added only to the Electron config passes; compare
+  the full alias maps with `toEqual`. The nit goes into devops' next branch.
+  Lead Approve. Rebased by the lead onto `main` fff7fdd without conflicts.

@@ -140,7 +140,7 @@ src/
   in the failure tests (force-quitting an output window, unplugging a monitor,
   force-quitting the app).
 
-### Phase 3: Feature bundles (three work sessions, in parallel)
+### Phase 3: Feature bundles (in parallel)
 
 | Session | Scope                                                                                                                                                                                                                                                                                                | Owned paths (proposal)                                                                                     |
 | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
@@ -183,5 +183,6 @@ src/
 | polish              | 4                              | Own worktree, `<tag>/polish/<feature>`                                                  | Polish                                                                                                                                                                         |
 | review (optional)   | From 3 on                      | Read-only, low-cost model                                                               | Review before a merge                                                                                                                                                          |
 
-At most three work sessions run at the same time (this computer has 32 GB of
-memory and 8 logical cores).
+The lead runs as many member sessions as the work allows; the user confirmed
+that this computer has room for them. Milestone M3 follows
+`docs/plans/m3-breakdown.md`.
