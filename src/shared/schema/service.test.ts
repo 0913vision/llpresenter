@@ -98,13 +98,19 @@ describe('parseService', () => {
     const service = sundayService();
     const withUnknown = {
       ...service,
-      order: service.order.map(item => ({...item, flag: 'x'})),
+      order: [
+        ...service.order.map(item => ({...item, flag: 'x'})),
+        {id: itemId(7), bible: {...PASSAGE, highlight: 'yellow'}},
+      ],
       theme: 'dark',
     };
 
     const loaded = expectSuccess(parse(withUnknown));
+    const text = expectSuccess(serializeService(loaded.data, FILE));
 
     expect(loaded.data).toEqual(withUnknown);
+    expect(expectSuccess(parseService(text, FILE)).data).toEqual(withUnknown);
+    expect(text).toContain('"highlight": "yellow"');
   });
 
   it.each([
