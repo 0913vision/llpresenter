@@ -9,7 +9,16 @@ import {
   ListRow,
   ListSlot,
 } from '../ListRow';
-import {Panel, PanelBody} from '../Panel';
+import {
+  Panel,
+  PanelActions,
+  PanelBody,
+  PanelHeader,
+  PanelSwitch,
+  PanelTabs,
+  PanelTools,
+} from '../Panel';
+import {TextField} from '../TextField';
 import {
   ignore,
   Section,
@@ -20,6 +29,10 @@ import {
 } from './Spec';
 
 const PANEL_WIDTH = 280;
+const LIST_PANEL_WIDTH = 296;
+// NOTE(0913vision): 검은 화면 comes after the tab, the add button, the verse
+// field, and two rows.
+const QUICK_HOVER_INDEX = 5;
 
 function OneRowList({
   selected,
@@ -142,6 +155,62 @@ function CountedList({
   );
 }
 
+function ListPanel({
+  tab,
+  end,
+  tools,
+  children,
+}: {
+  readonly tab: string;
+  readonly end: ReactNode;
+  readonly tools?: ReactNode;
+  readonly children: ReactNode;
+}): JSX.Element {
+  return (
+    <Panel label={tab}>
+      <PanelHeader>
+        <PanelTabs
+          tabs={[{value: tab, label: tab}]}
+          value={tab}
+          onChange={ignore}
+        />
+        {end}
+      </PanelHeader>
+      {tools === undefined ? null : <PanelTools>{tools}</PanelTools>}
+      <PanelBody variant="list">{children}</PanelBody>
+    </Panel>
+  );
+}
+
+function ServiceOrderPanel({
+  children,
+}: {
+  readonly children: ReactNode;
+}): JSX.Element {
+  return (
+    <ListPanel
+      tab="예배 순서"
+      end={
+        <PanelSwitch
+          value="주일 예배"
+          expanded={false}
+          onExpandedChange={ignore}
+        />
+      }
+    >
+      {children}
+    </ListPanel>
+  );
+}
+
+function AddAction({label}: {readonly label: string}): JSX.Element {
+  return (
+    <PanelActions>
+      <IconButton icon="plus" label={label} />
+    </PanelActions>
+  );
+}
+
 export function ListRowSection(): JSX.Element {
   return (
     <Section title="ListRow">
@@ -232,99 +301,128 @@ export function ListRowSection(): JSX.Element {
         title="List in a panel: group header 11px 600, padding 10 14 5"
         alignTop
       >
-        <SpecItem label="준비 (counts)" width={PANEL_WIDTH}>
-          <Panel label="예배 순서">
-            <PanelBody variant="list">
-              <CountedList
-                label="예배 순서"
-                groups={prepService}
-                selected="hymn1"
-              />
-            </PanelBody>
-          </Panel>
+        <SpecItem label="준비 (counts)" width={LIST_PANEL_WIDTH}>
+          <ServiceOrderPanel>
+            <CountedList
+              label="예배 순서"
+              groups={prepService}
+              selected="hymn1"
+            />
+          </ServiceOrderPanel>
         </SpecItem>
-        <SpecItem label="진행 (past items, live)" width={PANEL_WIDTH}>
-          <Panel label="예배 순서">
-            <PanelBody variant="list">
-              <Stateful<string> initial="hymn1">
-                {(selected, setSelected) => (
-                  <ListBox
-                    label="예배 순서"
-                    selected={selected}
-                    onSelect={setSelected}
-                  >
-                    <ListGroup label="예배 전">
-                      <ListRow
-                        value="count"
-                        icon="film"
-                        title="예배 전 카운트다운"
-                        done
-                      />
-                      <ListRow
-                        value="notice"
-                        icon="notice"
-                        title="주일 광고"
-                        done
-                      />
-                    </ListGroup>
-                    <ListGroup label="찬양">
-                      <ListRow
-                        value="hymn0"
-                        icon="song"
-                        title="이 세상 험하고"
-                        done
-                      />
-                      <ListRow
-                        value="hymn1"
-                        icon="song"
-                        title="만복의 근원 하나님"
-                        live
-                      />
-                      <ListRow
-                        value="hymn2"
-                        icon="song"
-                        title="내 주를 가까이 하게 함은"
-                        meta="5장"
-                        end={<IconButton icon="x" label="내리기" />}
-                      />
-                    </ListGroup>
-                  </ListBox>
-                )}
-              </Stateful>
-            </PanelBody>
-          </Panel>
+        <SpecItem label="진행 (past items, live)" width={LIST_PANEL_WIDTH}>
+          <ServiceOrderPanel>
+            <Stateful<string> initial="hymn1">
+              {(selected, setSelected) => (
+                <ListBox
+                  label="예배 순서"
+                  selected={selected}
+                  onSelect={setSelected}
+                >
+                  <ListGroup label="예배 전">
+                    <ListRow
+                      value="count"
+                      icon="film"
+                      title="예배 전 카운트다운"
+                      done
+                    />
+                    <ListRow
+                      value="notice"
+                      icon="notice"
+                      title="주일 광고"
+                      done
+                    />
+                  </ListGroup>
+                  <ListGroup label="찬양">
+                    <ListRow
+                      value="hymn0"
+                      icon="song"
+                      title="이 세상 험하고"
+                      done
+                    />
+                    <ListRow
+                      value="hymn1"
+                      icon="song"
+                      title="만복의 근원 하나님"
+                      live
+                    />
+                    <ListRow
+                      value="hymn2"
+                      icon="song"
+                      title="내 주를 가까이 하게 함은"
+                    />
+                  </ListGroup>
+                  <ListGroup label="말씀">
+                    <ListRow
+                      value="word"
+                      icon="book"
+                      title="요한복음 3장 16절"
+                    />
+                    <ListRow value="sermon" icon="slides" title="설교" />
+                  </ListGroup>
+                </ListBox>
+              )}
+            </Stateful>
+          </ServiceOrderPanel>
         </SpecItem>
         <SpecItem
           label="퀵 실행 (로고 화면 on, 검은 화면 hover)"
-          width={PANEL_WIDTH}
+          pin="hover"
+          pinIndex={QUICK_HOVER_INDEX}
+          width={LIST_PANEL_WIDTH}
         >
-          <Panel label="퀵 실행">
-            <PanelBody variant="list">
-              <Stateful<boolean> initial>
-                {(logo, setLogo) => (
-                  <>
-                    <ListActionRow
-                      icon="monitor"
-                      title="검은 화면"
-                      onPress={ignore}
-                    />
-                    <ListActionRow
-                      icon="prop"
-                      title="로고 화면"
-                      pressed={logo}
-                      onPress={() => setLogo(!logo)}
-                    />
-                    <ListActionRow
-                      icon="timer"
-                      title="시작 카운트다운"
-                      pressed={false}
-                      onPress={ignore}
-                    />
-                  </>
+          <ListPanel
+            tab="퀵 실행"
+            end={<AddAction label="퀵 실행 추가" />}
+            tools={
+              <Stateful<string> initial="">
+                {(verse, setVerse) => (
+                  <TextField
+                    aria-label="성경 구절"
+                    icon="book"
+                    placeholder="요 3:16, 창 1:1-5"
+                    value={verse}
+                    onChange={setVerse}
+                  />
                 )}
               </Stateful>
-            </PanelBody>
-          </Panel>
+            }
+          >
+            <Stateful<boolean> initial>
+              {(logo, setLogo) => (
+                <>
+                  <ListActionRow
+                    icon="book"
+                    title="요한복음 3장 16절"
+                    onPress={ignore}
+                  />
+                  <ListActionRow
+                    icon="song"
+                    title="주 하나님 지으신 모든 세계"
+                    onPress={ignore}
+                  />
+                  <ListActionRow
+                    icon="monitor"
+                    title="검은 화면"
+                    onPress={ignore}
+                  />
+                  <ListActionRow
+                    icon="prop"
+                    title="로고 화면"
+                    pressed={logo}
+                    onPress={() => setLogo(!logo)}
+                  />
+                  <ListActionRow
+                    icon="timer"
+                    title="시작 카운트다운"
+                    pressed={false}
+                    onPress={ignore}
+                  />
+                  <ListActionRow icon="slides" title="축도" onPress={ignore} />
+                </>
+              )}
+            </Stateful>
+          </ListPanel>
         </SpecItem>
         <SpecItem
           label="List in a dialog: two lines 44px, empty slot"
@@ -365,19 +463,17 @@ export function ListRowSection(): JSX.Element {
       >
         <SpecItem
           label="Dragged from the library, dropped after '내 주를 가까이 하게 함은'"
-          width={PANEL_WIDTH}
+          width={LIST_PANEL_WIDTH}
         >
           <div style={{position: 'relative'}}>
-            <Panel label="예배 순서">
-              <PanelBody variant="list">
-                <CountedList
-                  label="예배 순서"
-                  groups={prepService.slice(1)}
-                  selected="hymn1"
-                  dropAfter={DROP_AFTER}
-                />
-              </PanelBody>
-            </Panel>
+            <ServiceOrderPanel>
+              <CountedList
+                label="예배 순서"
+                groups={prepService.slice(1)}
+                selected="hymn1"
+                dropAfter={DROP_AFTER}
+              />
+            </ServiceOrderPanel>
             <div style={GHOST_PLACE}>
               <ListDragGhost
                 icon="song"
@@ -387,16 +483,14 @@ export function ListRowSection(): JSX.Element {
             </div>
           </div>
         </SpecItem>
-        <SpecItem label="Media list" width={PANEL_WIDTH}>
-          <Panel label="미디어">
-            <PanelBody variant="list">
-              <CountedList
-                label="미디어"
-                groups={mediaLists}
-                selected="backgrounds"
-              />
-            </PanelBody>
-          </Panel>
+        <SpecItem label="Media list" width={LIST_PANEL_WIDTH}>
+          <ListPanel tab="미디어" end={<AddAction label="재생목록 추가" />}>
+            <CountedList
+              label="미디어"
+              groups={mediaLists}
+              selected="backgrounds"
+            />
+          </ListPanel>
         </SpecItem>
       </SpecGroup>
     </Section>
