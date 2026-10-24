@@ -4,7 +4,7 @@ import {pathToFileURL} from 'node:url';
 import {stripVTControlCharacters} from 'node:util';
 import {COMPILE_CACHE_DIR} from './compile-cache.mts';
 
-/** The npm scripts that `npm run verify` runs, in order. */
+/** The npm scripts that `npm run verify` runs, in the order it reports them. */
 export const VERIFY_STEPS = [
   'typecheck',
   'lint',
@@ -16,44 +16,28 @@ export const VERIFY_STEPS = [
 /** One npm script that verify runs. */
 export type VerifyStep = (typeof VERIFY_STEPS)[number];
 
-/** How one step ended: its exit code, or the signal that stopped it. */
+/** How one step ended: its exit code or the signal that stopped it, and what it printed. */
 export interface StepOutcome {
   readonly exitCode: number | null;
   readonly signal: string | null;
   readonly milliseconds: number;
-  /** The lines that say what failed, for a step that failed. */
-  readonly failureLines: readonly string[];
+  readonly output: string;
 }
 
-/** Where a step sits in the run, counted from 1. */
-export interface StepPosition {
-  readonly number: number;
-  readonly total: number;
-}
-
-/** A step that passed and how long it took. */
-export interface PassedStep {
-  readonly step: VerifyStep;
-  readonly milliseconds: number;
-}
-
-/** A step that failed and how it ended. */
-export interface FailedStep {
+/** One step and how it ended. */
+export interface StepResult {
   readonly step: VerifyStep;
   readonly outcome: StepOutcome;
 }
 
-/** The result of a verify run: the steps that passed, then the one that failed. */
+/** Every step's result in step order, and the first one that failed. */
 export interface VerifyResult {
-  readonly passed: readonly PassedStep[];
-  readonly failed: FailedStep | null;
+  readonly results: readonly StepResult[];
+  readonly failed: StepResult | null;
 }
 
-/** Runs one step and reports how it ended. */
-export type StepRunner = (
-  step: VerifyStep,
-  position: StepPosition,
-) => Promise<StepOutcome>;
+/** Runs one step to the end and reports how it ended. */
+export type StepRunner = (step: VerifyStep) => Promise<StepOutcome>;
 
 const MS_PER_SECOND = 1000;
 const FAILURE_EXIT_CODE = 1;
@@ -65,21 +49,26 @@ const NOTABLE_LINE =
 const ERROR_MESSAGE = /^\s*[A-Za-z]*(?:Error|Exception)\b[^:]*:/;
 const SEPARATOR = /⎯+/g;
 
-/** Runs the steps in order and stops at the first one that fails. */
+function passed(outcome: StepOutcome): boolean {
+  return outcome.exitCode === 0;
+}
+
+/**
+ * Starts every step at once and waits for all of them. The steps don't depend
+ * on each other's files, so the run takes about as long as the slowest step.
+ * The first failure in step order decides the result.
+ */
 export async function runSteps(
   steps: readonly VerifyStep[],
   runStep: StepRunner,
 ): Promise<VerifyResult> {
-  const passed: PassedStep[] = [];
-  for (const [index, step] of steps.entries()) {
-    const outcome = await runStep(step, {
-      number: index + 1,
-      total: steps.length,
-    });
-    if (outcome.exitCode !== 0) return {passed, failed: {step, outcome}};
-    passed.push({step, milliseconds: outcome.milliseconds});
-  }
-  return {passed, failed: null};
+  const outcomes = await Promise.all(steps.map(step => runStep(step)));
+  const results = steps.map((step, index): StepResult => {
+    const outcome = outcomes[index];
+    if (outcome === undefined) throw new Error(`no outcome for ${step}`);
+    return {step, outcome};
+  });
+  return {results, failed: results.find(r => !passed(r.outcome)) ?? null};
 }
 
 function cleanLine(line: string): string {
@@ -167,31 +156,44 @@ function howItEnded(outcome: StepOutcome): string {
   return `exited with code ${outcome.exitCode ?? 'unknown'}`;
 }
 
-/** Renders the line printed before a step starts. */
-export function formatHeader(step: VerifyStep, position: StepPosition): string {
-  return `[verify ${position.number}/${position.total}] npm run ${step}`;
+function statusLine({step, outcome}: StepResult): string {
+  const status = passed(outcome) ? 'ok  ' : 'FAIL';
+  return `  ${status}  ${step} (${seconds(outcome.milliseconds)})`;
 }
 
-/** Renders the closing lines that say what passed and where verify stopped. */
+/**
+ * Renders what verify prints when one step finishes: a status line, and for a
+ * failed step everything it printed.
+ */
+export function formatStepReport(result: StepResult): string {
+  const line = statusLine(result);
+  if (passed(result.outcome)) return line;
+  const output = result.outcome.output.trimEnd();
+  return `${line}\n\n--- npm run ${result.step} ---\n${output}\n--- end of npm run ${result.step} ---\n`;
+}
+
+/**
+ * Renders the closing lines: each step in order, then the verdict, with the
+ * lines that name what failed in the first failed step.
+ */
 export function formatSummary(
   result: VerifyResult,
-  totalSteps: number,
+  wallMilliseconds: number,
 ): string {
-  const lines = result.passed.map(
-    ({step, milliseconds}) => `  ok    ${step} (${seconds(milliseconds)})`,
-  );
+  const lines = result.results.map(statusLine);
   if (result.failed === null) {
-    const total = result.passed.reduce((sum, p) => sum + p.milliseconds, 0);
-    lines.push(`verify passed: ${totalSteps} steps in ${seconds(total)}.`);
+    lines.push(
+      `verify passed: ${result.results.length} steps in ${seconds(wallMilliseconds)}.`,
+    );
     return lines.join('\n');
   }
   const {step, outcome} = result.failed;
   lines.push(
-    `  FAIL  ${step} (${seconds(outcome.milliseconds)})`,
-    `verify failed at step ${result.passed.length + 1}/${totalSteps}: "npm run ${step}" ${howItEnded(outcome)}.`,
+    `verify failed: "npm run ${step}" ${howItEnded(outcome)}. Its output is above.`,
   );
-  if (outcome.failureLines.length > 0) {
-    lines.push('What failed:', ...outcome.failureLines.map(l => `  ${l}`));
+  const failed = failureLines(outcome.output);
+  if (failed.length > 0) {
+    lines.push('What failed:', ...failed.map(line => `  ${line}`));
   }
   lines.push(
     `Fix it, then run "npm run ${step}" alone or "npm run verify" again.`,
@@ -206,41 +208,39 @@ function keepTail(text: string): string {
 }
 
 function stepEnvironment(): NodeJS.ProcessEnv {
+  // NOTE(0913vision): Output is captured to keep the steps apart, so the tools
+  // see no terminal. FORCE_COLOR keeps their colors when verify itself runs in
+  // one.
   const color = process.stdout.isTTY ? {FORCE_COLOR: '1'} : {};
   return {...process.env, ...color, NODE_COMPILE_CACHE: COMPILE_CACHE_DIR};
 }
 
 function npmRunner(npmCli: string): StepRunner {
-  return (step, position) =>
+  return step =>
     new Promise(resolve => {
-      console.log(`\n${formatHeader(step, position)}`);
       const start = performance.now();
       let output = '';
+      const keep = (text: string): void => {
+        output = keepTail(output + text);
+      };
       const child = spawn(process.execPath, [npmCli, 'run', step], {
         stdio: ['ignore', 'pipe', 'pipe'],
         env: stepEnvironment(),
       });
-      // NOTE(0913vision): The output goes straight to the terminal and is
-      // also kept, capped, so the summary can name what failed. FORCE_COLOR
-      // keeps the tools' colors, which they drop when they see a pipe.
-      readText(child.stdout, text => {
-        process.stdout.write(text);
-        output = keepTail(output + text);
-      });
-      readText(child.stderr, text => {
-        process.stderr.write(text);
-        output = keepTail(output + text);
-      });
+      readText(child.stdout, keep);
+      readText(child.stderr, keep);
       const finish = (exitCode: number | null, signal: string | null): void => {
-        resolve({
+        const outcome = {
           exitCode,
           signal,
           milliseconds: performance.now() - start,
-          failureLines: exitCode === 0 ? [] : failureLines(output),
-        });
+          output,
+        };
+        console.log(formatStepReport({step, outcome}));
+        resolve(outcome);
       };
       child.once('error', error => {
-        console.error(`Could not start "npm run ${step}": ${error.message}`);
+        keep(`Could not start "npm run ${step}": ${error.message}\n`);
         finish(FAILURE_EXIT_CODE, null);
       });
       child.once('close', (code, signal) => finish(code, signal));
@@ -257,8 +257,10 @@ async function main(): Promise<void> {
     process.exitCode = FAILURE_EXIT_CODE;
     return;
   }
+  console.log(`[verify] running ${VERIFY_STEPS.join(', ')} at once`);
+  const start = performance.now();
   const result = await runSteps(VERIFY_STEPS, npmRunner(npmCli));
-  const summary = formatSummary(result, VERIFY_STEPS.length);
+  const summary = formatSummary(result, performance.now() - start);
   if (result.failed === null) {
     console.log(`\n${summary}`);
     return;

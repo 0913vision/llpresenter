@@ -3,7 +3,7 @@ import {finished} from 'node:stream/promises';
 import {describe, expect, it} from 'vitest';
 import {
   failureLines,
-  formatHeader,
+  formatStepReport,
   formatSummary,
   readText,
   runSteps,
@@ -11,137 +11,159 @@ import {
   type VerifyStep,
 } from './verify.mts';
 
-const passing: StepOutcome = {
-  exitCode: 0,
-  signal: null,
-  milliseconds: 1500,
-  failureLines: [],
-};
-
-function failing(
+function outcome(
   exitCode: number | null,
-  signal: string | null,
-  lines: readonly string[] = [],
+  extra: Partial<StepOutcome> = {},
 ): StepOutcome {
-  return {exitCode, signal, milliseconds: 250, failureLines: lines};
+  return {exitCode, signal: null, milliseconds: 1500, output: '', ...extra};
+}
+
+function later<T>(value: T, ticks: number): Promise<T> {
+  return new Promise(resolve => {
+    let left = ticks;
+    const tick = (): void => {
+      if (left === 0) {
+        resolve(value);
+        return;
+      }
+      left -= 1;
+      queueMicrotask(tick);
+    };
+    tick();
+  });
 }
 
 describe('runSteps', () => {
-  it('runs every step in order when all pass', async () => {
-    const ran: string[] = [];
-    const result = await runSteps(
-      ['typecheck', 'lint', 'build'],
-      async (step, position) => {
-        ran.push(`${position.number}/${position.total} ${step}`);
-        return passing;
-      },
+  it('starts every step before any of them finishes', async () => {
+    const started: VerifyStep[] = [];
+    let finishedSteps = 0;
+    await runSteps(['typecheck', 'lint', 'build'], async step => {
+      started.push(step);
+      expect(finishedSteps).toBe(0);
+      const result = await later(outcome(0), 3);
+      finishedSteps += 1;
+      return result;
+    });
+    expect(started).toEqual(['typecheck', 'lint', 'build']);
+  });
+
+  it('reports the steps in step order, whatever order they finish in', async () => {
+    const result = await runSteps(['typecheck', 'lint', 'build'], step =>
+      later(outcome(0), step === 'typecheck' ? 5 : 1),
     );
-    expect(ran).toEqual(['1/3 typecheck', '2/3 lint', '3/3 build']);
-    expect(result.failed).toBeNull();
-    expect(result.passed.map(p => p.step)).toEqual([
+    expect(result.results.map(r => r.step)).toEqual([
       'typecheck',
       'lint',
       'build',
     ]);
+    expect(result.failed).toBeNull();
   });
 
-  it('stops at the first failing step', async () => {
-    const ran: VerifyStep[] = [];
-    const result = await runSteps(
-      ['typecheck', 'lint', 'build'],
-      async step => {
-        ran.push(step);
-        return step === 'lint' ? failing(2, null) : passing;
-      },
-    );
-    expect(ran).toEqual(['typecheck', 'lint']);
-    expect(result.passed.map(p => p.step)).toEqual(['typecheck']);
-    expect(result.failed).toEqual({step: 'lint', outcome: failing(2, null)});
+  it('picks the first failure in step order, not the first to finish', async () => {
+    const result = await runSteps(['typecheck', 'lint', 'build'], step => {
+      if (step === 'lint') return later(outcome(1), 5);
+      if (step === 'build') return later(outcome(2), 1);
+      return later(outcome(0), 1);
+    });
+    expect(result.failed?.step).toBe('lint');
+    expect(result.failed?.outcome.exitCode).toBe(1);
   });
 
   it('treats a step without an exit code as failed', async () => {
-    const result = await runSteps(['test:coverage'], async () =>
-      failing(null, 'SIGTERM'),
+    const result = await runSteps(['test:coverage'], () =>
+      later(outcome(null, {signal: 'SIGTERM'}), 1),
     );
     expect(result.failed?.step).toBe('test:coverage');
   });
 });
 
-describe('formatHeader', () => {
-  it('names the step and where it sits in the run', () => {
-    expect(formatHeader('lint', {number: 2, total: 5})).toBe(
-      '[verify 2/5] npm run lint',
+describe('formatStepReport', () => {
+  it('prints one line for a step that passed', () => {
+    expect(
+      formatStepReport({step: 'lint', outcome: outcome(0, {output: 'noise'})}),
+    ).toBe('  ok    lint (1.5 s)');
+  });
+
+  it('prints everything a failed step printed, between markers', () => {
+    const report = formatStepReport({
+      step: 'lint',
+      outcome: outcome(1, {output: 'src/a.ts\n  1:1  error  bad\n\n'}),
+    });
+    expect(report).toBe(
+      [
+        '  FAIL  lint (1.5 s)',
+        '',
+        '--- npm run lint ---',
+        'src/a.ts',
+        '  1:1  error  bad',
+        '--- end of npm run lint ---',
+        '',
+      ].join('\n'),
     );
   });
 });
 
 describe('formatSummary', () => {
-  it('lists each passed step with its time and the total', () => {
+  it('lists each step and the wall time when all pass', () => {
     const summary = formatSummary(
       {
-        passed: [
-          {step: 'typecheck', milliseconds: 1500},
-          {step: 'lint', milliseconds: 2500},
+        results: [
+          {step: 'typecheck', outcome: outcome(0)},
+          {step: 'lint', outcome: outcome(0, {milliseconds: 2500})},
         ],
         failed: null,
       },
-      2,
+      2600,
     );
     expect(summary).toBe(
       [
         '  ok    typecheck (1.5 s)',
         '  ok    lint (2.5 s)',
-        'verify passed: 2 steps in 4.0 s.',
+        'verify passed: 2 steps in 2.6 s.',
       ].join('\n'),
     );
   });
 
   it('names the failed step, its exit code, and what to run next', () => {
+    const lint = {step: 'lint', outcome: outcome(1)} as const;
     const summary = formatSummary(
-      {
-        passed: [{step: 'typecheck', milliseconds: 1500}],
-        failed: {step: 'lint', outcome: failing(1, null)},
-      },
-      5,
+      {results: [{step: 'typecheck', outcome: outcome(0)}, lint], failed: lint},
+      3000,
     );
     expect(summary).toBe(
       [
         '  ok    typecheck (1.5 s)',
-        '  FAIL  lint (0.3 s)',
-        'verify failed at step 2/5: "npm run lint" exited with code 1.',
+        '  FAIL  lint (1.5 s)',
+        'verify failed: "npm run lint" exited with code 1. Its output is above.',
         'Fix it, then run "npm run lint" alone or "npm run verify" again.',
       ].join('\n'),
     );
   });
 
-  it('lists what failed when the step reported it', () => {
-    const summary = formatSummary(
-      {
-        passed: [],
-        failed: {
-          step: 'test:coverage',
-          outcome: failing(1, null, [
-            'FAIL  |node| test/git-repo.test.ts > makeTempGitRepo > writes files',
-          ]),
-        },
-      },
-      5,
-    );
-    expect(summary).toContain(
+  it('lists what failed from the failed step output', () => {
+    const tests = {
+      step: 'test:coverage',
+      outcome: outcome(1, {
+        output: ' FAIL  |node| test/git-repo.test.ts > makeTempGitRepo\n',
+      }),
+    } as const;
+    expect(formatSummary({results: [tests], failed: tests}, 1000)).toContain(
       [
         'What failed:',
-        '  FAIL  |node| test/git-repo.test.ts > makeTempGitRepo > writes files',
+        '  FAIL  |node| test/git-repo.test.ts > makeTempGitRepo',
         'Fix it, then run',
       ].join('\n'),
     );
   });
 
   it('names the signal when a step was stopped', () => {
-    const summary = formatSummary(
-      {passed: [], failed: {step: 'build', outcome: failing(null, 'SIGINT')}},
-      5,
+    const build = {
+      step: 'build',
+      outcome: outcome(null, {signal: 'SIGINT'}),
+    } as const;
+    expect(formatSummary({results: [build], failed: build}, 1000)).toContain(
+      '"npm run build" was stopped by SIGINT.',
     );
-    expect(summary).toContain('"npm run build" was stopped by SIGINT.');
   });
 });
 
