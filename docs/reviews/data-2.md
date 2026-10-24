@@ -2,7 +2,7 @@
 
 - Team member: `data`
 - Branch: `feat/data/settings`, stacked on `data-1` (`feat/data/schemas`)
-- Base commit (`main`): `63d0dbc`
+- Base commit (`main`): `fc0cbc9`
 - Last commit: see the commit that adds this file
 - Related brief: `docs/briefs/data.md`
 
@@ -10,8 +10,9 @@ Shared changes (all in `src/shared/schema/`, which data owns):
 
 - New: `screens.ts`, `looks.ts`, `stageLayouts.ts`, `labels.ts`, `shortcuts.ts`,
   `bible.ts`, `mediaList.ts`, `textStyle.ts`, and their tests.
-- Changed: `fileFormat.ts`, `primitives.ts`, `ids.ts`, `service.ts`, and
-  `testHelpers.ts`, as described below.
+- Changed: `fileFormat.ts` (a `prune` hook and `LoadedFile.dropped`, round 2),
+  `primitives.ts`, `ids.ts`, `service.ts`, and `testHelpers.ts`, as described
+  below.
 
 ## What changed and why
 
@@ -68,16 +69,16 @@ Changes to the `data-1` modules:
 
 ## Checks run
 
-`npm run verify` on the commit before this document, on `main` 63d0dbc with
+`npm run verify` on the commit before this document, on `main` fc0cbc9 with
 `data-1` below it: every step passed.
 
 | Command or test                    | Result                                                                |
 | ---------------------------------- | --------------------------------------------------------------------- |
 | `npm run typecheck`                | Passed. Type assertions included                                      |
-| `npm test`                         | Passed: 34 files, 372 tests (187 in the schemas)                      |
+| `npm test`                         | Passed: 54 files, 579 tests (216 in the schemas)                      |
 | `npm run format:check`             | Passed                                                                |
 | `npm run build`                    | Passed                                                                |
-| `npm run verify` (from phase 1 on) | Passed: typecheck, lint, format:check, test:coverage, build (159.5 s) |
+| `npm run verify` (from phase 1 on) | Passed: typecheck, lint, format:check, test:coverage, build (119.1 s) |
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
@@ -175,3 +176,45 @@ missing.
 ## Team member's reply
 
 1.
+
+Round 2, replies to the reviewer's findings (built on
+`docs/spec/10-shortcuts-and-settings.md`):
+
+1. Shortcuts: a binding is now `{code, mods}`. `code` is a `KeyboardEvent` code
+   from a fixed list of code families. The list leaves out modifier keys and the
+   input method keys, which have an empty code; a NOTE says so. `mods` holds
+   `ctrl`, `alt`, and `shift`, each at most once and in that order. Bare letters
+   and digits (numpad digits too) need a modifier, because spec 10 gives them to
+   the 이름표 jump keys. Unknown fields in a binding are kept. The old
+   display-name tests are replaced.
+2. Label jump keys: a key is `Key[A-Z]`, `Digit[0-9]`, or `null`. Tests cover
+   `KeyC`, `Digit1`, and invalid keys (`C`, `1`, `F5`, `Numpad1`, `keyc`, a
+   number, and an empty string).
+3. One bad binding: `FileFormat` has an optional `prune` step that runs before
+   the schema. It drops the parts that may fail alone and reports each one in
+   `LoadedFile.dropped` (`field` and `message`), for the caller to log.
+   - A command whose keys break the schema is dropped, so it falls back to its
+     default. A blank command id is dropped the same way.
+   - A label whose jump key is invalid or missing keeps its other fields and
+     gets `key: null`.
+   - Tests mix valid and invalid bindings and labels.
+   - Writing stays strict, so the app never writes a binding it would drop on
+     the next read.
+4. Media ranges: `in` (default 0) must come before `out`, `in` must come before
+   the end of the media, and `out` must not pass it, when the duration is known.
+   Tests cover a reversed range, an empty range, an end past the duration, a
+   start at the duration, an end exactly at the duration, and an unknown
+   duration.
+5. Units: `Seconds`, `Percent`, and `Pixels` are named types, made with
+   valibot's `flavor`. A plain number becomes one, but a value of one unit
+   doesn't pass as another. They're used for durations and ranges, edge margins,
+   lyric margins, volume, screen and stage positions and sizes, text sizes, and
+   media sizes. Type tests check that the units stay apart.
+
+Not changed here: the `app.json` column widths (`data-1`) and `LayoutChange`
+(`data-5`) are still plain numbers. I'd switch them to `Pixels` in a later
+branch, so the requests under review don't move.
+
+New decision for the lead to confirm: the schema doesn't refuse keys that spec
+10 reserves (Tab, Esc alone, Enter alone, and so on). The key field refuses them
+when the operator records a key; the stored file only has to name real keys.
