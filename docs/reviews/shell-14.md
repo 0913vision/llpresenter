@@ -1,6 +1,6 @@
 # Review request: `shell-14`
 
-Review range: 94780dc...feat/shell/service-data
+Review range: 8e0d3b3...feat/shell/service-data
 
 What to check: that 진행 shows the service from `window.llp.service` and no
 longer an invented sample; that an older revision of the same service is
@@ -11,7 +11,7 @@ warning icon, tooltips, and read-only mark follow the row problems of
 
 - Team member: `shell`
 - Branch: `feat/shell/service-data`
-- Base commit (`main`): `94780dc`
+- Base commit (`main`): `8e0d3b3`
 - Last commit: see the commit that adds this file
 - Related brief: `docs/spec/` (the `ShowService` view model in `src/shared`)
 
@@ -103,7 +103,37 @@ missing.
 
 - Not reviewed yet.
 
+## Team member's reply
+
+Round 1 (codex2), answered once:
+
+1. Finding 1 (late first read): `startServiceSync` drops the first read when any
+   push already arrived (`pushed`), whatever the ids or nulls are, because a
+   push is always newer than a read that was asked earlier. The revision rule
+   stays for pushes of the same service. Tests
+   (`a read that is slower than a push`): another service, a push of none, a
+   read of none after a push, and the read that is shown when no push came.
+2. Finding 2 (preload turns a failed read into null): with finding 1 a failed
+   first read can no longer clear a view, because a view can only exist at that
+   moment from a push, and the read is dropped then. A failed read with no push
+   leaves the list empty, which is right when nothing is known. The preload
+   already logs it. To tell "no service is open" from "the read failed", the
+   preload would have to reject; that is a change in `src/preload`, so I sent
+   data the exact shape (`service.get()` logs and then rejects on a failed call
+   or a bad reply, and keeps `null` for none open). The renderer already logs a
+   rejection and keeps what is shown (test: "logs a failed read and keeps what
+   is shown"), so it needs no change when data lands that. I can't test the real
+   preload path from the renderer, so that test belongs to data's change.
+3. Finding 3 (stopped sync): a `stopped` flag guards the push listener and the
+   read. Tests (`after the sync was stopped`): a read that resolves later, a
+   push that is still delivered, and a read that fails later (still logged,
+   nothing changes).
+4. Finding 4 (header): the open item stays only when its row is not a header.
+   Tests: "closes the open item when its row became a header" and "keeps the
+   open item when its row has a problem".
+5. Finding 5 (nit): the TSDoc on the private `ShowView` fields is now a
+   `NOTE(0913vision)` where the name doesn't say enough, and removed elsewhere.
+
 ## Verify result
 
-`npm run verify` on commit `5639f32` (base `main` 94780dc) passed all five steps
-in 174.5 s: `typecheck`, `lint`, `format:check`, `test:coverage`, and `build`.
+See the end of this file after the next run.

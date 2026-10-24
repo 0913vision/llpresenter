@@ -5,9 +5,10 @@ Review range: 89d0b00...feat/shell/item-keys
 What to check: that Ctrl Down, Ctrl Up, and Ctrl L only select or open an item
 and never send an output command; that they skip headers, empty slots, and items
 without a 장; that a held key may repeat while the 진행 keys still don't; that
-the three keys are ignored in text fields, open menus, IME composition, and
-during a column drag; and that the grid and list `onKeyDown` handlers no longer
-move the selection when Ctrl is held.
+the three keys are ignored in open menus, IME composition, and during a column
+drag, that Ctrl Down and Ctrl Up are also left to text fields while Ctrl L is
+not, and that no command is blocked on the slider; and that the grid and list
+`onKeyDown` handlers no longer move the selection when Ctrl is held.
 
 - Team member: `shell`
 - Branch: `feat/shell/item-keys`
@@ -56,7 +57,8 @@ See "Verify result" at the end of this file.
 - [x] Values from outside the process are validated with a schema (not touched)
 - [x] No `any`, no type assertions that bypass checks, and no `!`
 - [x] Every registered subscription, timer, IPC listener, video and audio
-      element, and object URL is released (nothing new is registered)
+      element, and object URL is released (`useKeptFocus` registers one
+      `pointerdown` listener on the document and removes it on unmount)
 - [x] Caches and lists have size caps (not applicable)
 - [x] An exception in the output path doesn't stop the output (no output command
       is sent by these keys)

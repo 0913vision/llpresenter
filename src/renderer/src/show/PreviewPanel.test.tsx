@@ -8,6 +8,7 @@ import {useLive} from '@renderer/state/live';
 import {showLarge, usePreview} from '@renderer/state/preview';
 import {moveTile, openItem, outputTile, useShow} from '@renderer/state/show';
 import {PreviewPanel} from './PreviewPanel';
+import {seedSampleService} from './testing/sampleService';
 
 interface Instance {
   readonly parent: HTMLElement;
@@ -90,6 +91,7 @@ const slide = {itemId: 'a', position: 0, label: null, lines: ['x']};
 beforeEach(() => {
   instances.list.length = 0;
   usePreview.setState({largeScreenId: 'main'});
+  seedSampleService();
   useShow.setState({openItemId: null, selectedTile: 0});
   useLive.setState({state: null});
   window.llp = fakeLlpApi();
