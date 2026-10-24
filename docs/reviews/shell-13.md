@@ -1,6 +1,6 @@
 # Review request: `shell-13`
 
-Review range: 94780dc...feat/shell/item-keys
+Review range: 4f15ed0...feat/shell/item-keys
 
 What to check: that Ctrl Down, Ctrl Up, and Ctrl L only select or open an item
 and never send an output command; that they skip headers, empty slots, and items
@@ -11,7 +11,7 @@ move the selection when Ctrl is held.
 
 - Team member: `shell`
 - Branch: `feat/shell/item-keys`
-- Base commit (`main`): `94780dc`
+- Base commit (`main`): `4f15ed0`
 - Last commit: see the commit that adds this file
 - Related brief: `docs/spec/10-shortcuts-and-settings.md` (`service.nextItem`,
   `service.previousItem`, `service.revealLive`)
@@ -95,7 +95,37 @@ missing.
 
 - Not reviewed yet.
 
+## Team member's reply
+
+Round 1 (codex2), answered once:
+
+1. Finding 1 (focus guards): the blanket guard is gone. `ownsEveryKey` (an IME
+   composition, a column drag, an open menu or dialog) still stops all keys,
+   which is rule 4 of "Focus precedence". The rest is per command:
+   - Ctrl L works in a text field, because it isn't a text editing key (rule 3).
+   - Ctrl Down and Ctrl Up stay with a text field and a textarea, where they
+     move the caret (`editsText` on the two commands).
+   - A range input (the thumbnail size slider), a checkbox, a radio, and a
+     button are not text fields, so all three commands run there, and a focused
+     control keeps only its own keys (rule 6). The text field selector excludes
+     the non-text input types. Tests: "opens the live item from a text field,
+     but leaves Ctrl arrows to the caret", "runs all three from the thumbnail
+     slider and from a checkbox", and "runs them from a focused button, which
+     keeps only its own keys".
+2. Finding 2 (focus lost on item change): `SlideGrid` now remembers whether the
+   focus is inside it (`useKeptFocus`: focus in sets it, focus out to an element
+   outside clears it, and a pointer press outside clears it), because the
+   browser drops the focus to the body when the focused tile is removed, and
+   nothing else says where it was. After an item change the grid focuses the new
+   selected tile, which is the first one, and sends no output command. Tests:
+   "keeps the focus in the grid when another item replaces the focused tile"
+   (the fourth morning tile to the three-tile river item), "does not take the
+   focus when it was not in the grid", and "does not take the focus back after a
+   press outside the grid".
+3. Finding 3 (nit): the list test now checks the open item and the event after
+   each key, so Down then Up can't pass on the old code. The grid test also
+   checks that the event was left alone.
+
 ## Verify result
 
-`npm run verify` on commit `456526c` (base `main` 94780dc) passed all five steps
-in 216.4 s: `typecheck`, `lint`, `format:check`, `test:coverage`, and `build`.
+See the end of this file after the next run.
