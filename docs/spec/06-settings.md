@@ -9,10 +9,11 @@ Terms: 출력 (output), 장 (slide), 이름표 (label), 본 화면 (main screen)
 실행 (quick launch), 소품 (prop), 공지 (notice), 메시지 (message), 타이머
 (timer), 라이브러리 (library), 진행 (Show workspace). See 01.
 
-A proposal for the full shortcut system and the 환경설정 pages is in
-[10-shortcuts-and-settings.md](10-shortcuts-and-settings.md). Until the user
-decides, this document stays the spec. The sections below that the proposal
-would replace say so in a note.
+The full shortcut system and a proposal for the 환경설정 pages are in
+[10-shortcuts-and-settings.md](10-shortcuts-and-settings.md). Its shortcut part
+was decided on 2026-10-25 and replaces the shortcut sections below. Its settings
+part is still a proposal, so this document stays the spec for settings. The
+sections below that 10 replaces or would replace say so in a note.
 
 ## The 화면 설정 workspace
 
@@ -268,8 +269,9 @@ bar), `docs/TECH.md` operating rules.
 
 ## Shortcuts
 
-Note: the proposal in 10 would replace "Where shortcuts work" and "Default
-shortcuts" with its full command list, and would extend the 단축키 page.
+Note: decided on 2026-10-25. "Shortcut system" in 10 replaces "Where shortcuts
+work" and "Default shortcuts" with its focus precedence and full command list,
+and extends the 단축키 page.
 
 ### The 단축키 page
 

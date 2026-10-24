@@ -1,10 +1,21 @@
 # 10. Shortcuts and settings (proposal)
 
 This document proposes the complete shortcut system and the 환경설정
-(Preferences) window of LoveLight Presenter. It's a proposal for the user to
-decide before any design or code. Until the user decides, 06 stays the spec.
-"What this proposal would replace" near the end lists the rows of 06, 02, and
-the README that change if the user accepts it.
+(Preferences) window of LoveLight Presenter, for the user to decide before any
+design or code. "What this proposal would replace" near the end lists the rows
+of 06, 02, and the README that change once it's accepted.
+
+Decision status:
+
+- **Shortcuts: decided** (user, 2026-10-25, `docs/decisions.md`): "단축키는
+  프로프리젠터를 따르면될듯. 나중에고칠수있으니.. 당연히 영어로 단축키를
+  표시해야함 키 이름은." Where ProPresenter has a default key or a behavior, the
+  app follows it. Where no ProPresenter source was found, the app uses this
+  proposal. Keys are matched by physical key, and key names are written in
+  English. The 단축키 settings can change any key later.
+- **Settings: proposal.** The settings use this proposal's defaults until the
+  user decides otherwise (open questions 10 to 18). Until then, 06 stays the
+  spec for settings.
 
 The proposal comes from two directions:
 
@@ -24,11 +35,17 @@ Terms: 출력 (output), 지우기 (clear), 장 (slide), 예배 순서 (service o
 
 ## Conventions
 
-- Every row in the shortcut and settings tables is a proposal, unless its basis
-  says "Kept". "Kept" means an existing decision in 01 to 09 that this proposal
-  keeps as it is. Prose marks proposals with "(proposal)".
+- Every row in the settings tables is a proposal, unless its basis says "Kept".
+  "Kept" means an existing decision in 01 to 09 that this proposal keeps as it
+  is. Prose marks proposals with "(proposal)".
+- Every row in the shortcut tables is decided (see "Decision status"). Its basis
+  says where the decision comes from.
 - Basis values:
-  - **PP**: follows ProPresenter, with the source.
+  - **Decided, follows ProPresenter**: a shortcut decision where ProPresenter
+    has the key or the behavior, with the source.
+  - **Decided, no ProPresenter source found**: a shortcut decision where no
+    ProPresenter source was found, so this proposal's choice applies.
+  - **PP**: follows ProPresenter, with the source (settings).
   - **PP differs**: ProPresenter does it another way, and the reason column says
     why this app differs.
   - **EW**, **OBS**: follows EasyWorship or OBS Studio, with the source.
@@ -37,8 +54,8 @@ Terms: 출력 (output), 지우기 (clear), 장 (slide), 예배 순서 (service o
 - Version: "1" for version 1, "Later" for after version 1.
 - Sources are cited by ID, for example S1. The list follows.
 - Key names follow the `KeyCap` README: Ctrl, Alt, Shift, Space, Enter, Esc, F1,
-  and → ← ↑ ↓. This proposal adds Page Up, Page Down, Home, End, and Delete
-  (open question 18).
+  and → ← ↑ ↓. This document adds Page Up, Page Down, Home, End, and Delete, in
+  English as Windows writes them (decided, open question 9).
 
 ## Sources
 
@@ -240,13 +257,16 @@ Notes from the current versions (S6):
 
 ## Shortcut system
 
+This section is decided (see "Decision status"). "(decided)" marks a choice that
+has no ProPresenter source, so this proposal's choice applies.
+
 ### Principles
 
 - **One command registry.** Every action that the operator can take from the
   keyboard, a menu, a toolbar, or a 매크로 has one command ID, a Korean name, a
   group, its default keys, and where it works. Shortcuts, menu shortcut text,
   tooltips ("가사 지우기 F2"), and later MIDI and Stream Deck read the same
-  registry. A changed key shows at once in every menu and tooltip (proposal).
+  registry. A changed key shows at once in every menu and tooltip (decided).
 - **Same path as clicks.** A shortcut sends the same command to the main process
   as the button it stands for (01). The result is the same wherever the command
   comes from.
@@ -265,8 +285,8 @@ Notes from the current versions (S6):
   assign one.
 - **Ignore key repeat for live commands.** Holding → must not run through the
   song. Live commands run once per press and ignore repeated `keydown` events
-  (`event.repeat`) (proposal). Editing keys, such as arrows in a text field,
-  keep their repeat.
+  (`event.repeat`) (decided). Editing keys, such as arrows in a text field, keep
+  their repeat.
 
 ### Matching keys with the Korean IME on
 
@@ -288,38 +308,81 @@ Notes from the current versions (S6):
   with an empty `code`.
 - On many Korean keyboards the right Alt key works as 한/영 and the right Ctrl
   key as 한자 (S14, S15). They then don't count as Alt or Ctrl. Every default in
-  this proposal works with the left Alt and Ctrl keys (proposal).
+  this proposal works with the left Alt and Ctrl keys (decided).
 - Numpad digits count as the same digit as the top row while Num Lock is on, so
-  a jump key set to 1 also works from the numpad (proposal).
+  a jump key set to 1 also works from the numpad (decided).
 
 ### Where shortcuts work
 
-| Where the focus is                                 | 지우기 F1 to F7 | 되돌림 (clear undo)                                                      | Other live commands                                                                           | Workspace, tab, and window commands | Editing commands                  |
-| -------------------------------------------------- | --------------- | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- | ----------------------------------- | --------------------------------- |
-| 진행, no text field                                | Yes             | Yes (Ctrl Z)                                                             | Yes                                                                                           | Yes                                 | Not applicable                    |
-| 진행, a list or the 장 grid                        | Yes             | Yes                                                                      | Yes. The grid keeps ↑, ↓, and Enter; lists keep ↑, ↓, Home, End, and Enter (open question 2). | Yes                                 | Not applicable                    |
-| 준비, no text field                                | Yes             | No. Ctrl Z is the edit undo in 준비; the 되돌림 button still works (03). | Only commands with a modifier (Ctrl 1, Ctrl 2, Look keys, item keys)                          | Yes                                 | Yes, in their context             |
-| 화면 설정, no text field                           | Yes             | Yes (Ctrl Z)                                                             | Only commands with a modifier                                                                 | Yes                                 | Yes, in their context             |
-| Any text field                                     | Yes             | No (text undo)                                                           | Only commands with Ctrl or Alt that aren't text editing keys                                  | Yes (Ctrl and Alt commands)         | Text editing keys go to the field |
-| An open menu                                       | Yes             | Yes                                                                      | No                                                                                            | No                                  | No                                |
-| A dialog or confirmation dialog                    | Yes             | Yes                                                                      | No                                                                                            | No                                  | No                                |
-| During a drag                                      | Yes             | Yes                                                                      | No (Esc cancels the drag)                                                                     | No                                  | No                                |
-| The 환경설정 window                                | Yes             | No                                                                       | No                                                                                            | Esc or Ctrl W closes the window     | Not applicable                    |
-| The key field on the 단축키 page, while it records | Recorded        | Recorded                                                                 | Recorded                                                                                      | Recorded                            | Recorded                          |
-| An output window (it shouldn't get focus)          | Yes             | Yes                                                                      | Same as the main window                                                                       | No                                  | No                                |
-| Another app has focus                              | No              | No                                                                       | No                                                                                            | No                                  | No                                |
+#### Focus precedence
+
+A key press goes to the first rule below that claims it. Later rules see only
+the keys that earlier rules pass on.
+
+1. **The key field on the 단축키 page, while it records**, takes every key, F1
+   to F7 included, because the operator opened it on purpose. It closes after
+   one combination.
+2. **지우기 F1 to F7** clear in every other case: with a text field, a menu, or
+   a dialog in focus, and during a drag (03).
+3. **A text field**, including an IME composition, takes every key except F1 to
+   F7 and the commands with Ctrl or Alt that aren't text editing keys.
+4. **An open menu, a dialog, or a drag** takes its own keys (arrows, Enter, Esc,
+   Space). Only F1 to F7 and 되돌림 (Ctrl Z) pass through.
+5. **In 진행, the 장 grid and the 예배 순서 list** take ↑, ↓, and Enter (the
+   list also Home and End), and pass ←, →, Space, Page Up, and Page Down to 다음
+   장 and 이전 장. This is ProPresenter's behavior: after the operator clicks a
+   slide, Space and → fire the next one (S4 p. 70). Decided, follows
+   ProPresenter.
+6. **Any other control with keyboard focus** takes the keys its design system
+   README gives it, for example a 매크로 tile (arrows move, Enter and Space run,
+   07), a button (Enter and Space press), a switch, a segmented control, a
+   slider, or a tab row. Keys the control doesn't use pass on, so F-keys, Page
+   Up, Page Down, jump keys, and modifier commands still work.
+7. **Everything else** goes to the global commands in "Command list".
+
+So that rule 6 never catches a key by surprise, **a mouse click in 진행 doesn't
+move keyboard focus** to the clicked button or tile (decided). Only text fields,
+the 장 grid, and the 예배 순서 list take focus on a click. A control gets
+keyboard focus only through Tab, where the operator expects Space to press it.
+Without this rule, an operator who clicks the 찬양 매크로 and then presses Space
+to go to the next 장 would run the 매크로 again. The focus ring already shows
+only on keyboard focus (design system README, `:focus-visible`).
+
+Rules this precedence replaces or narrows:
+
+| Existing rule                                                                              | Change                                                                                                 |
+| ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `SlideThumbnail` README: arrows move between thumbnails, Enter and Space act as a click    | In 진행, ← → and Space go to 다음 장 and 이전 장; the grid keeps ↑ ↓ and Enter. 준비 keeps the README. |
+| 04 "Keyboard": arrow keys move the selected tile; Enter and Space output the selected tile | Same change as above.                                                                                  |
+| 07 "Keyboard": arrows move between 매크로 tiles, Enter or Space runs the 매크로            | Kept, but it applies only when a tile has keyboard focus, which a mouse click no longer gives.         |
+| Component READMEs for buttons, switches, segmented controls, sliders, and tab rows         | Kept for keyboard focus. A mouse click in 진행 doesn't give them focus.                                |
+
+#### Summary by focus
+
+| Where the focus is                                 | 지우기 F1 to F7 | 되돌림 (clear undo)                                                      | Other live commands                                                                      | Workspace, tab, and window commands | Editing commands                  |
+| -------------------------------------------------- | --------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- | ----------------------------------- | --------------------------------- |
+| 진행, no text field                                | Yes             | Yes (Ctrl Z)                                                             | Yes                                                                                      | Yes                                 | Not applicable                    |
+| 진행, the 장 grid or the 예배 순서 list            | Yes             | Yes                                                                      | Yes. The grid keeps ↑, ↓, and Enter; the list keeps ↑, ↓, Home, End, and Enter (rule 5). | Yes                                 | Not applicable                    |
+| 진행, another control with keyboard focus          | Yes             | Yes                                                                      | Only keys the control doesn't use (rule 6)                                               | Yes                                 | Not applicable                    |
+| 준비, no text field                                | Yes             | No. Ctrl Z is the edit undo in 준비; the 되돌림 button still works (03). | Only commands with a modifier (Ctrl 1, Ctrl 2, Look keys, item keys)                     | Yes                                 | Yes, in their context             |
+| 화면 설정, no text field                           | Yes             | Yes (Ctrl Z)                                                             | Only commands with a modifier                                                            | Yes                                 | Yes, in their context             |
+| Any text field                                     | Yes             | No (text undo)                                                           | Only commands with Ctrl or Alt that aren't text editing keys                             | Yes (Ctrl and Alt commands)         | Text editing keys go to the field |
+| An open menu                                       | Yes             | Yes                                                                      | No                                                                                       | No                                  | No                                |
+| A dialog or confirmation dialog                    | Yes             | Yes                                                                      | No                                                                                       | No                                  | No                                |
+| During a drag                                      | Yes             | Yes                                                                      | No (Esc cancels the drag)                                                                | No                                  | No                                |
+| The 환경설정 window                                | Yes             | No                                                                       | No                                                                                       | Esc or Ctrl W closes the window     | Not applicable                    |
+| The key field on the 단축키 page, while it records | Recorded        | Recorded                                                                 | Recorded                                                                                 | Recorded                            | Recorded                          |
+| An output window (it shouldn't get focus)          | Yes             | Yes                                                                      | Same as the main window                                                                  | No                                  | No                                |
+| Another app has focus                              | No              | No                                                                       | No                                                                                       | No                                  | No                                |
 
 - Bare live keys (→, ←, Space, Page Up, Page Down, jump keys) work only in 진행.
   준비 uses those keys for editing and never affects the output (05).
 - Text editing keys are Ctrl X, C, V, A, Z, Y, Ctrl Shift V, Ctrl Shift Z,
   arrows with Shift or Ctrl, Home, End, Backspace, and Delete. Inside a text
   field they always edit text.
-- In the key field, F1 to F7 are recorded like any other key, because the
-  operator opened the field on purpose. The field closes after one combination
-  (proposal).
 - Output windows never take focus (03). If one gets focus anyway, for example a
   window-method output that the operator clicked, it forwards key presses to the
-  main window's handler, so clears and live keys still work (proposal).
+  main window's handler, so clears and live keys still work (decided).
 - Version 1 has no global shortcuts. Keys work only while the app has focus. OBS
   often runs on the same computer, and system-wide keys would take keys from it.
   OBS itself offers this choice as Hotkey Focus Behavior (S11). Global keys can
@@ -327,7 +390,7 @@ Notes from the current versions (S6):
 
 ### Reserved keys
 
-The key field doesn't accept these, and its tooltip gives the reason (proposal):
+The key field doesn't accept these, and its tooltip gives the reason (decided):
 
 | Keys                                                                               | Reason                                                        |
 | ---------------------------------------------------------------------------------- | ------------------------------------------------------------- |
@@ -356,7 +419,7 @@ The key field doesn't accept these, and its tooltip gives the reason (proposal):
 - Presentation remotes send Page Up, Page Down, a key that alternates F5 and
   Esc, and a period (S16). With these defaults, the remote's arrows go to the
   previous and next 장. Its F5 button clears audio, as F5 does in ProPresenter
-  (S1). See open question 17.
+  (S1). See open question 7.
 
 ### The 단축키 page
 
@@ -368,7 +431,7 @@ The page in 06 stays. This proposal changes these points:
   p. 176).
 - 모두 기본값으로 (reset all) asks in a confirmation dialog, because it can't be
   undone: "단축키를 모두 기본값으로 되돌릴까요?" with 취소 and 되돌리기
-  (proposal; design system principle 6).
+  (decided; design system principle 6).
 - The bottom bar shows the default key of the selected command, as
   ProPresenter's Key Mappings window does (S2). This is already in 06.
 - Per-object commands (each Look, 소품, 매크로, 타이머) appear under their group
@@ -400,7 +463,7 @@ The page in 06 stays. This proposal changes these points:
     version's keys survive (unknown fields, 02).
 
 - `labels.json` stores a jump key as a `code` string, for example `"KeyC"` or
-  `"Digit1"`, instead of a character (proposal).
+  `"Digit1"`, instead of a character (decided).
 - Validate both files with a schema when reading. A binding that fails
   validation is dropped and logged, and the command falls back to its default
   (`docs/TECH.md`).
@@ -415,158 +478,176 @@ workspace. "All" means every workspace of the main window, within the rules of
 
 #### 장 (slide navigation)
 
-| Command   | ID              | Default             | ProPresenter        | Basis and reason                                                                                                                                            | Works in | Ver. |
-| --------- | --------------- | ------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ---- |
-| 다음 장   | `show.next`     | →, Space, Page Down | →, Space (S4 p. 70) | PP for → and Space (Kept, 06). Page Down added: presentation remotes send it (S16), and EasyWorship uses it to go live (S9).                                | 진행     | 1    |
-| 이전 장   | `show.previous` | ←, Page Up          | ←                   | PP (Kept, 06). Page Up for remotes (S16).                                                                                                                   | 진행     | 1    |
-| 첫 장     | `show.first`    | None                | None found          | Ours. EasyWorship uses Home (S9), but Home and End go to the first and last row in a focused list (`ListRow` README). No default keeps both meanings apart. | 진행     | 1    |
-| 마지막 장 | `show.last`     | None                | None found          | Ours, as above (EasyWorship End, S9).                                                                                                                       | 진행     | 1    |
+| Command   | ID              | Default             | ProPresenter        | Basis and reason                                                                                                                                                                          | Works in | Ver. |
+| --------- | --------------- | ------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ---- |
+| 다음 장   | `show.next`     | →, Space, Page Down | →, Space (S4 p. 70) | Decided, follows ProPresenter for → and Space (S4 p. 70; Kept, 06). Page Down: no ProPresenter source found; presentation remotes send it (S16), and EasyWorship uses it to go live (S9). | 진행     | 1    |
+| 이전 장   | `show.previous` | ←, Page Up          | ←                   | Decided, follows ProPresenter for ← (Kept, 06). Page Up: no ProPresenter source found; remotes send it (S16).                                                                             | 진행     | 1    |
+| 첫 장     | `show.first`    | None                | None found          | Decided, no ProPresenter source found. EasyWorship uses Home (S9), but Home and End go to the first and last row of a focused list (`ListRow` README), so no default keeps the two apart. | 진행     | 1    |
+| 마지막 장 | `show.last`     | None                | None found          | Decided, no ProPresenter source found, as above (EasyWorship End, S9).                                                                                                                    | 진행     | 1    |
 
 - When the item open in the 장 panel isn't the current item, 다음 장 outputs the
-  first tile of the item in the 장 panel (proposal, refines 04). This makes
-  "pick the next item, then press →" work. Otherwise 04's rules stay.
+  first tile of the item in the 장 panel (decided, no ProPresenter source found;
+  refines 04). This makes "pick the next item, then press →" work. Otherwise
+  04's rules stay.
 
 #### 예배 순서 (service order navigation)
 
-| Command             | ID                      | Default    | ProPresenter                        | Basis and reason                                                                                                                                 | Works in | Ver. |
-| ------------------- | ----------------------- | ---------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ---- |
-| 다음 항목           | `service.nextItem`      | Ctrl ↓     | None found                          | Ours. Selects the next item that can output (skips headers and slots) and opens it in the 장 panel. It doesn't output, like clicking a row (04). | 진행     | 1    |
-| 이전 항목           | `service.previousItem`  | Ctrl ↑     | None found                          | Ours, as above.                                                                                                                                  | 진행     | 1    |
-| 출력 중인 항목 열기 | `service.revealLive`    | Ctrl L     | Show Triggered Presentation, Ctrl L | PP. Opens the item of the live 장 in the 장 panel after the operator looked at another item (S4 p. 15).                                          | 진행     | 1    |
-| 라이브러리에서 열기 | `service.revealLibrary` | Ctrl Alt L | Reveal in Library, Ctrl Alt L       | PP. Opens the selected song item's 라이브러리 song in the 준비 song editor.                                                                      | All      | 1    |
-| 예배 순서 바꾸기    | `service.switcher`      | None       | None                                | Ours. Opens the service list (04). Rarely needed during a service.                                                                               | All      | 1    |
-| 항목 추가           | `service.quickAdd`      | None       | None                                | Ours. Opens the quick add popover (05).                                                                                                          | All      | 1    |
+| Command             | ID                      | Default    | ProPresenter                        | Basis and reason                                                                                                                                                                                    | Works in | Ver. |
+| ------------------- | ----------------------- | ---------- | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ---- |
+| 다음 항목           | `service.nextItem`      | Ctrl ↓     | None found                          | Decided, no ProPresenter source found (open question 5). Selects the next item that can output (skips headers and slots) and opens it in the 장 panel. It doesn't output, like clicking a row (04). | 진행     | 1    |
+| 이전 항목           | `service.previousItem`  | Ctrl ↑     | None found                          | Decided, no ProPresenter source found, as above.                                                                                                                                                    | 진행     | 1    |
+| 출력 중인 항목 열기 | `service.revealLive`    | Ctrl L     | Show Triggered Presentation, Ctrl L | Decided, follows ProPresenter. Opens the item of the live 장 in the 장 panel after the operator looked at another item (S4 p. 15).                                                                  | 진행     | 1    |
+| 라이브러리에서 열기 | `service.revealLibrary` | Ctrl Alt L | Reveal in Library, Ctrl Alt L       | Decided, follows ProPresenter. Opens the selected song item's 라이브러리 song in the 준비 song editor.                                                                                              | All      | 1    |
+| 예배 순서 바꾸기    | `service.switcher`      | None       | None                                | Decided, no ProPresenter source found. Opens the service list (04). Rarely needed during a service.                                                                                                 | All      | 1    |
+| 항목 추가           | `service.quickAdd`      | None       | None                                | Decided, no ProPresenter source found. Opens the quick add popover (05).                                                                                                                            | All      | 1    |
 
 #### 이름표 jump keys
 
-| Command                          | ID                             | Default                                         | ProPresenter                                           | Basis and reason                                                                                                                            | Works in | Ver. |
-| -------------------------------- | ------------------------------ | ----------------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ---- |
-| One per 이름표, for example 후렴 | Stored in `labels.json` `.key` | Empty (Kept, 02), or the set in open question 4 | Group label hot keys, a single letter (S4 pp. 58, 176) | PP. A bare letter or digit. Pressing it outputs the first tile with that 이름표 after the live 장, or the first in the sequence (Kept, 04). | 진행     | 1    |
+| Command                          | ID                             | Default          | ProPresenter                                           | Basis and reason                                                                                                                                                                                                                                                                                               | Works in | Ver. |
+| -------------------------------- | ------------------------------ | ---------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ---- |
+| One per 이름표, for example 후렴 | Stored in `labels.json` `.key` | Empty (Kept, 02) | Group label hot keys, a single letter (S4 pp. 58, 176) | Decided, follows ProPresenter: one bare letter or digit per group label (S4 pp. 58, 176). No source gives default keys for ProPresenter's group labels, so they start empty (open question 4). Pressing it outputs the first tile with that 이름표 after the live 장, or the first in the sequence (Kept, 04). | 진행     | 1    |
 
 #### 지우기 (clear)
 
-| Command            | ID                  | Default | ProPresenter                         | Basis and reason                                                                       | Works in                                     | Ver. |
-| ------------------ | ------------------- | ------- | ------------------------------------ | -------------------------------------------------------------------------------------- | -------------------------------------------- | ---- |
-| 모두 지우기        | `clear.all`         | F1      | Clear All, F1                        | PP (Kept, 03)                                                                          | All, and the 환경설정 window                 | 1    |
-| 가사 지우기        | `clear.slide`       | F2      | Clear Slide, F2                      | PP (Kept)                                                                              | Same                                         | 1    |
-| 미디어 지우기      | `clear.media`       | F3      | Clear Media, F3                      | PP (Kept). The 7.5 guide calls it Clear Background (S4 p. 25).                         | Same                                         | 1    |
-| 소품 지우기        | `clear.prop`        | F4      | Clear Props, F4                      | PP (Kept)                                                                              | Same                                         | 1    |
-| 오디오 지우기      | `clear.audio`       | F5      | Clear Audio, F5                      | PP (Kept)                                                                              | Same                                         | 1    |
-| 메시지 지우기      | `clear.message`     | F6      | Clear Message, F6                    | PP (Kept). The 7.5 guide had Clear Logo on F6 (S4 p. 25).                              | Same                                         | 1    |
-| 공지 지우기        | `clear.notice`      | F7      | Clear Announcements, F7              | PP (Kept)                                                                              | Same                                         | 1    |
-| 되돌림             | `clear.undo`        | Ctrl Z  | Undo, Ctrl Z                         | Kept (03). Undoes the last clear. In text fields and in 준비, Ctrl Z is the edit undo. | 진행, 화면 설정, dialogs; not in text fields | 1    |
-| 무대 메시지 내리기 | `stage.hideMessage` | None    | Stage message Hide button (S4 p. 42) | Ours (no PP key). Takes the stage message down (04).                                   | All                                          | 1    |
+| Command            | ID                  | Default | ProPresenter                         | Basis and reason                                                                                                                        | Works in                                     | Ver. |
+| ------------------ | ------------------- | ------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- | ---- |
+| 모두 지우기        | `clear.all`         | F1      | Clear All, F1                        | Decided, follows ProPresenter (Kept, 03)                                                                                                | All, and the 환경설정 window                 | 1    |
+| 가사 지우기        | `clear.slide`       | F2      | Clear Slide, F2                      | Decided, follows ProPresenter (Kept)                                                                                                    | Same                                         | 1    |
+| 미디어 지우기      | `clear.media`       | F3      | Clear Media, F3                      | Decided, follows ProPresenter (Kept). The 7.5 guide calls it Clear Background (S4 p. 25).                                               | Same                                         | 1    |
+| 소품 지우기        | `clear.prop`        | F4      | Clear Props, F4                      | Decided, follows ProPresenter (Kept)                                                                                                    | Same                                         | 1    |
+| 오디오 지우기      | `clear.audio`       | F5      | Clear Audio, F5                      | Decided, follows ProPresenter (Kept)                                                                                                    | Same                                         | 1    |
+| 메시지 지우기      | `clear.message`     | F6      | Clear Message, F6                    | Decided, follows ProPresenter (Kept). The 7.5 guide had Clear Logo on F6 (S4 p. 25).                                                    | Same                                         | 1    |
+| 공지 지우기        | `clear.notice`      | F7      | Clear Announcements, F7              | Decided, follows ProPresenter (Kept)                                                                                                    | Same                                         | 1    |
+| 되돌림             | `clear.undo`        | Ctrl Z  | Undo, Ctrl Z                         | Decided, follows ProPresenter (Undo, Ctrl Z, S1; Kept, 03). Undoes the last clear. In text fields and in 준비, Ctrl Z is the edit undo. | 진행, 화면 설정, dialogs; not in text fields | 1    |
+| 무대 메시지 내리기 | `stage.hideMessage` | None    | Stage message Hide button (S4 p. 42) | Decided, no ProPresenter source found (S4 p. 42 shows only a Hide button). Takes the stage message down (04).                           | All                                          | 1    |
 
 - F2 never renames anything, although F2 renames in Windows Explorer. F2 clears
   lyrics here, as in ProPresenter (S1). Renaming uses the right-click menu or a
-  double-click (proposal).
+  double-click (decided).
 
 #### 화면 (screen outputs)
 
-| Command                            | ID                          | Default | ProPresenter                                | Basis and reason                                                                              | Works in | Ver. |
-| ---------------------------------- | --------------------------- | ------- | ------------------------------------------- | --------------------------------------------------------------------------------------------- | -------- | ---- |
-| 청중 화면 출력                     | `output.audience`           | Ctrl 1  | Toggle Output Screens On/Off, Ctrl 1        | PP (Kept, 03 and 06). Turns the 본 화면 and 방송 자막 outputs on or off together (S4 p. 172). | All      | 1    |
-| 무대 화면 출력                     | `output.stage`              | Ctrl 2  | Toggle Stage Display Screens On/Off, Ctrl 2 | PP (Kept)                                                                                     | All      | 1    |
-| (screen name) 출력, one per screen | `output.screen.<screen ID>` | None    | None                                        | Ours. The toolbar has one button per screen. Turns one screen's output on or off.             | All      | 1    |
-| 모니터 다시 찾기                   | `screens.redetect`          | None    | None                                        | Ours. The same action as the notification button (08).                                        | All      | 1    |
-| 크게 보기, one per screen          | `preview.focus.<screen ID>` | None    | None                                        | Ours. Makes that screen the large preview (04).                                               | 진행     | 1    |
+| Command                            | ID                           | Default | ProPresenter                                | Basis and reason                                                                                                         | Works in | Ver. |
+| ---------------------------------- | ---------------------------- | ------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------- | ---- |
+| 청중 화면 출력                     | `output.audience`            | Ctrl 1  | Toggle Output Screens On/Off, Ctrl 1        | Decided, follows ProPresenter (Kept, 03 and 06). Turns the 본 화면 and 방송 자막 outputs on or off together (S4 p. 172). | All      | 1    |
+| 무대 화면 출력                     | `output.stage`               | Ctrl 2  | Toggle Stage Display Screens On/Off, Ctrl 2 | Decided, follows ProPresenter (Kept)                                                                                     | All      | 1    |
+| (screen name) 출력, one per screen | `output.screen.<screen ID>`  | None    | None                                        | Decided, no ProPresenter source found. The toolbar has one button per screen. Turns one screen's output on or off.       | All      | 1    |
+| 모니터 다시 찾기                   | `screens.redetect`           | None    | None                                        | Decided, no ProPresenter source found. The same action as the notification button (08).                                  | All      | 1    |
+| 크게 보기, one per screen          | `preview.focus.<screen ID>`  | None    | None                                        | Decided, no ProPresenter source found. Makes that screen the large preview (04).                                         | 진행     | 1    |
+| 창 보기 (show the fallback window) | `screens.showFallbackWindow` | None    | None                                        | Decided, no ProPresenter source found. The same action as the notification button (03, 08).                              | All      | 1    |
 
 #### Look
 
-| Command                   | ID               | Default | ProPresenter              | Basis and reason                                                                            | Works in | Ver. |
-| ------------------------- | ---------------- | ------- | ------------------------- | ------------------------------------------------------------------------------------------- | -------- | ---- |
-| (Look name), one per Look | `look.<Look ID>` | None    | None documented for Looks | Kept (06). The board's examples (평상시 Ctrl 1, 설교 Alt 2) are the operator's own changes. | All      | 1    |
-| Look 메뉴                 | `look.menu`      | None    | None                      | Ours. Opens the toolbar Look menu.                                                          | All      | 1    |
+| Command                   | ID               | Default | ProPresenter              | Basis and reason                                                                                                                   | Works in | Ver. |
+| ------------------------- | ---------------- | ------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | -------- | ---- |
+| (Look name), one per Look | `look.<Look ID>` | None    | None documented for Looks | Decided, no ProPresenter source found (Kept, 06). The board's examples (평상시 Ctrl 1, 설교 Alt 2) are the operator's own changes. | All      | 1    |
+| Look 메뉴                 | `look.menu`      | None    | None                      | Decided, no ProPresenter source found. Opens the toolbar Look menu.                                                                | All      | 1    |
 
 #### 진행 도구 and live content
 
-| Command                                           | ID                             | Default      | ProPresenter                     | Basis and reason                                                                  | Works in | Ver.  |
-| ------------------------------------------------- | ------------------------------ | ------------ | -------------------------------- | --------------------------------------------------------------------------------- | -------- | ----- |
-| 다음 배경                                         | `media.nextBackground`         | Alt →        | Next Background, Alt →           | PP. Outputs the media after the current background in the media strip's playlist. | 진행     | 1     |
-| 이전 배경                                         | `media.previousBackground`     | Alt ←        | Previous Background, Alt ←       | PP, as above.                                                                     | 진행     | 1     |
-| 표시 중 탭                                        | `tools.showing`                | None         | None                             | Ours. No ProPresenter tab matches.                                                | 진행     | 1     |
-| 오디오 탭                                         | `tools.audio`                  | None         | None in S1                       | Ours.                                                                             | 진행     | 1     |
-| 무대 탭                                           | `tools.stage`                  | Alt S        | Open Stage, Alt S                | PP. Opens the tab and focuses the stage message field (S4 p. 42).                 | 진행     | 1     |
-| 타이머 탭                                         | `tools.timers`                 | Ctrl Shift C | Open Timers, Ctrl Shift C        | PP                                                                                | 진행     | 1     |
-| 메시지 탭                                         | `tools.messages`               | Ctrl M       | Open Messages, Ctrl M            | PP                                                                                | 진행     | 1     |
-| 공지 탭                                           | `tools.notices`                | None         | None                             | Ours.                                                                             | 진행     | 1     |
-| 소품 탭                                           | `tools.props`                  | Ctrl Shift P | Open Props, Ctrl Shift P         | PP                                                                                | 진행     | 1     |
-| 매크로 탭                                         | `tools.macros`                 | None         | None                             | Ours.                                                                             | 진행     | 1     |
-| 동작 팔레트                                       | `tools.actionPalette`          | Alt C        | Open Action Palette, Alt C       | PP                                                                                | 진행     | 1     |
-| 성경 구절 찾기                                    | `bible.focus`                  | Ctrl Alt B   | Open Bibles Mode, Ctrl Alt B     | PP. Focuses the Bible field in 퀵 실행 (04).                                      | 진행     | 1     |
-| 오디오 재생 또는 일시 정지                        | `audio.playPause`              | None         | None in S1                       | Ours. Space is taken by 다음 장.                                                  | All      | 1     |
-| 다음 곡, 이전 곡 (audio track)                    | `audio.next`, `audio.previous` | None         | None                             | Ours.                                                                             | All      | 1     |
-| 오디오 페이드 아웃                                | `audio.fadeOut`                | None         | None                             | Ours. Same as the 페이드 아웃 button (04).                                        | All      | 1     |
-| 공지 일시 정지 또는 재생                          | `notice.pauseResume`           | None         | None                             | Ours (04).                                                                        | All      | 1     |
-| (소품 name), one per 소품                         | `prop.<소품 ID>`               | None         | Key Mappings for Props (S3)      | PP. Turns the 소품 on or off (04). Open question 6.                               | All      | 1     |
-| (매크로 name), one per 매크로                     | `macro.<매크로 ID>`            | None         | Key Mappings for Macros (S3, S6) | PP. Runs the 매크로 (07). Open question 6.                                        | All      | 1     |
-| (타이머 name) 시작 또는 일시 정지, one per 타이머 | `timer.<타이머 ID>.toggle`     | None         | None documented                  | Ours (04). Open question 6.                                                       | All      | 1     |
-| (타이머 name) 처음으로                            | `timer.<타이머 ID>.reset`      | None         | None documented                  | Ours (04).                                                                        | All      | 1     |
-| (퀵 실행 item), one per item                      | `quick.<item ID>`              | None         | None                             | The user deferred 퀵 실행 keys (09). The ID pattern is reserved.                  | All      | Later |
+| Command                                           | ID                             | Default                                       | ProPresenter                                 | Basis and reason                                                                                                                                                                                           | Works in | Ver.  |
+| ------------------------------------------------- | ------------------------------ | --------------------------------------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----- |
+| 다음 배경                                         | `media.nextBackground`         | Alt →                                         | Next Background, Alt →                       | Decided, follows ProPresenter. Outputs the media after the current background in the media strip's playlist.                                                                                               | 진행     | 1     |
+| 이전 배경                                         | `media.previousBackground`     | Alt ←                                         | Previous Background, Alt ←                   | Decided, follows ProPresenter, as above.                                                                                                                                                                   | 진행     | 1     |
+| 표시 중 탭                                        | `tools.showing`                | None                                          | None                                         | Decided, no ProPresenter source found. No ProPresenter tab matches.                                                                                                                                        | 진행     | 1     |
+| 오디오 탭                                         | `tools.audio`                  | None                                          | None in S1                                   | Decided, no ProPresenter source found.                                                                                                                                                                     | 진행     | 1     |
+| 무대 탭                                           | `tools.stage`                  | Alt S                                         | Open Stage, Alt S                            | Decided, follows ProPresenter. Opens the tab and focuses the stage message field (S4 p. 42).                                                                                                               | 진행     | 1     |
+| 타이머 탭                                         | `tools.timers`                 | Ctrl Shift C                                  | Open Timers, Ctrl Shift C                    | Decided, follows ProPresenter                                                                                                                                                                              | 진행     | 1     |
+| 메시지 탭                                         | `tools.messages`               | Ctrl M                                        | Open Messages, Ctrl M                        | Decided, follows ProPresenter                                                                                                                                                                              | 진행     | 1     |
+| 공지 탭                                           | `tools.notices`                | None                                          | None                                         | Decided, no ProPresenter source found.                                                                                                                                                                     | 진행     | 1     |
+| 소품 탭                                           | `tools.props`                  | Ctrl Shift P                                  | Open Props, Ctrl Shift P                     | Decided, follows ProPresenter                                                                                                                                                                              | 진행     | 1     |
+| 매크로 탭                                         | `tools.macros`                 | None                                          | None                                         | Decided, no ProPresenter source found.                                                                                                                                                                     | 진행     | 1     |
+| 동작 팔레트                                       | `tools.actionPalette`          | Alt C                                         | Open Action Palette, Alt C                   | Decided, follows ProPresenter                                                                                                                                                                              | 진행     | 1     |
+| 성경 구절 찾기                                    | `bible.focus`                  | Ctrl Alt B                                    | Open Bibles Mode, Ctrl Alt B                 | Decided, follows ProPresenter. Focuses the Bible field in 퀵 실행 (04).                                                                                                                                    | 진행     | 1     |
+| 오디오 재생 또는 일시 정지                        | `audio.playPause`              | None                                          | None in S1                                   | Decided, no ProPresenter source found. Space is taken by 다음 장.                                                                                                                                          | All      | 1     |
+| 다음 곡, 이전 곡 (audio track)                    | `audio.next`, `audio.previous` | None                                          | None                                         | Decided, no ProPresenter source found.                                                                                                                                                                     | All      | 1     |
+| 오디오 페이드 아웃                                | `audio.fadeOut`                | None                                          | None                                         | Decided, no ProPresenter source found. Same as the 페이드 아웃 button (04).                                                                                                                                | All      | 1     |
+| 공지 일시 정지 또는 재생                          | `notice.pauseResume`           | None                                          | None                                         | Decided, no ProPresenter source found (04).                                                                                                                                                                | All      | 1     |
+| 무대 메시지 보내기                                | `stage.sendMessage`            | Enter in the stage message field              | Stage message Show button (S4 p. 42), no key | Decided, no ProPresenter source found. Same as 보내기 in the 무대 tab (04). Enter is local to the field (04). The command itself has no default, because a global key would send whatever the field holds. | 진행     | 1     |
+| 메시지 보내기                                     | `message.send`                 | Enter in the last blank field of the template | None                                         | Decided, no ProPresenter source found. Same as 보내기 in the 메시지 tab (04), and only while 보내기 is available. Enter is local to the field, like the stage message.                                     | 진행     | 1     |
+| 오디오 반복                                       | `audio.toggleRepeat`           | None                                          | None                                         | Decided, no ProPresenter source found. The 반복 toggle of the 오디오 tab (04).                                                                                                                             | All      | 1     |
+| 새 매크로                                         | `macro.new`                    | None                                          | None                                         | Decided, no ProPresenter source found. The 새 매크로 tile (07).                                                                                                                                            | 진행     | 1     |
+| (소품 name), one per 소품                         | `prop.<소품 ID>`               | None                                          | Key Mappings for Props (S3)                  | Decided, follows ProPresenter. Key Mappings cover Props (S3). Turns the 소품 on or off (04). No default key (open question 6).                                                                             | All      | 1     |
+| (매크로 name), one per 매크로                     | `macro.<매크로 ID>`            | None                                          | Key Mappings for Macros (S3, S6)             | Decided, follows ProPresenter. Key Mappings cover Macros (S3). Runs the 매크로 (07). No default key (open question 6).                                                                                     | All      | 1     |
+| (타이머 name) 시작 또는 일시 정지, one per 타이머 | `timer.<타이머 ID>.toggle`     | None                                          | None documented                              | Decided, no ProPresenter source found (04). No default key (open question 6).                                                                                                                              | All      | 1     |
+| (타이머 name) 처음으로                            | `timer.<타이머 ID>.reset`      | None                                          | None documented                              | Decided, no ProPresenter source found (04).                                                                                                                                                                | All      | 1     |
+| (퀵 실행 item), one per item                      | `quick.<item ID>`              | None                                          | None                                         | The user deferred 퀵 실행 keys (09). The ID pattern is reserved.                                                                                                                                           | All      | Later |
 
 #### 작업 공간 (workspaces)
 
-| Command        | ID                  | Default        | ProPresenter                                     | Basis and reason                                                                                                                                   | Works in | Ver. |
-| -------------- | ------------------- | -------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ---- |
-| 진행           | `workspace.show`    | Ctrl S         | Open Show Mode, Ctrl S                           | PP. The app has no save command (01), so Ctrl S is free. Open question 1.                                                                          | All      | 1    |
-| 준비           | `workspace.prep`    | Ctrl E, Ctrl R | Open Edit Mode, Ctrl E; Open Reflow Mode, Ctrl R | PP. 준비 holds the song editor modeled on the Reflow editor (05). Electron's default reload key is gone (see "Fixed behaviors").                   | All      | 1    |
-| 화면 설정      | `workspace.screens` | Ctrl Alt 1     | Open Configure Screens Window, Ctrl Alt 1        | PP                                                                                                                                                 | All      | 1    |
-| Look 편집      | `workspace.looks`   | Ctrl Shift 1   | Open the Edit Looks Screen, Ctrl Shift 1         | PP (S4 p. 37). Opens 화면 설정 with the Look editor.                                                                                               | All      | 1    |
-| 무대 배치 편집 | `workspace.stage`   | Ctrl 4         | Open Edit Layouts Screen, Ctrl 4                 | PP. Opens 화면 설정 with the stage layout editor.                                                                                                  | All      | 1    |
-| 미디어         | `workspace.media`   | Ctrl Shift V   | Open Media Bin, Ctrl Shift V                     | PP. Opens or closes the media strip in 진행 and the media view in 준비 (01). Inside a text field, Ctrl Shift V stays the plain paste of the field. | All      | 1    |
+| Command        | ID                  | Default        | ProPresenter                                     | Basis and reason                                                                                                                                                              | Works in | Ver. |
+| -------------- | ------------------- | -------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ---- |
+| 진행           | `workspace.show`    | Ctrl S         | Open Show Mode, Ctrl S                           | Decided, follows ProPresenter. The app has no save command (01), so Ctrl S is free. Open question 1.                                                                          | All      | 1    |
+| 준비           | `workspace.prep`    | Ctrl E, Ctrl R | Open Edit Mode, Ctrl E; Open Reflow Mode, Ctrl R | Decided, follows ProPresenter. 준비 holds the song editor modeled on the Reflow editor (05). Electron's default reload key is gone (see "Fixed behaviors").                   | All      | 1    |
+| 화면 설정      | `workspace.screens` | Ctrl Alt 1     | Open Configure Screens Window, Ctrl Alt 1        | Decided, follows ProPresenter                                                                                                                                                 | All      | 1    |
+| Look 편집      | `workspace.looks`   | Ctrl Shift 1   | Open the Edit Looks Screen, Ctrl Shift 1         | Decided, follows ProPresenter (S4 p. 37). Opens 화면 설정 with the Look editor.                                                                                               | All      | 1    |
+| 무대 배치 편집 | `workspace.stage`   | Ctrl 4         | Open Edit Layouts Screen, Ctrl 4                 | Decided, follows ProPresenter. Opens 화면 설정 with the stage layout editor.                                                                                                  | All      | 1    |
+| 미디어         | `workspace.media`   | Ctrl Shift V   | Open Media Bin, Ctrl Shift V                     | Decided, follows ProPresenter. Opens or closes the media strip in 진행 and the media view in 준비 (01). Inside a text field, Ctrl Shift V stays the plain paste of the field. | All      | 1    |
 
 - Switching workspaces never changes the output (01), so these keys are safe to
   press by mistake during a service.
 
 #### 찾기 (search)
 
-| Command | ID             | Default | ProPresenter   | Basis and reason                                                    | Works in | Ver. |
-| ------- | -------------- | ------- | -------------- | ------------------------------------------------------------------- | -------- | ---- |
-| 찾기    | `search.focus` | Ctrl F  | Search, Ctrl F | PP (S1, S8). Focuses the toolbar search field and selects its text. | All      | 1    |
+| Command | ID             | Default | ProPresenter   | Basis and reason                                                                               | Works in | Ver. |
+| ------- | -------------- | ------- | -------------- | ---------------------------------------------------------------------------------------------- | -------- | ---- |
+| 찾기    | `search.focus` | Ctrl F  | Search, Ctrl F | Decided, follows ProPresenter (S1, S8). Focuses the toolbar search field and selects its text. | All      | 1    |
 
 - Esc clears the field, and Esc on an empty field leaves it (Kept, `TextField`
   README).
 
 #### 준비 editing
 
-| Command                    | ID                                              | Default                                   | ProPresenter                | Basis and reason                                                                                                                       | Works in              | Ver. |
-| -------------------------- | ----------------------------------------------- | ----------------------------------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | --------------------- | ---- |
-| 새 곡                      | `library.newSong`                               | Ctrl N                                    | New Presentation, Ctrl N    | PP. Same as 새 곡 in the 라이브러리 header (05). Switches to 준비.                                                                     | All                   | 1    |
-| 텍스트 파일 가져오기       | `import.textFile`                               | Ctrl Shift I                              | Import > File, Ctrl Shift I | PP (05)                                                                                                                                | All                   | 1    |
-| 클립보드 텍스트 가져오기   | `import.clipboard`                              | None                                      | None in S1                  | Ours (05)                                                                                                                              | All                   | 1    |
-| 새 예배                    | `service.new`                                   | None                                      | None                        | Kept (05 says "with the shortcut the operator sets").                                                                                  | All                   | 1    |
-| 다른 예배에서 가져오기     | `service.importItems`                           | None                                      | None                        | Ours (05)                                                                                                                              | All                   | 1    |
-| 지금 예배를 틀로 저장      | `service.saveAsTemplate`                        | None                                      | None                        | Ours (05)                                                                                                                              | All                   | 1    |
-| 실행 취소 (edit undo)      | `edit.undo`                                     | Ctrl Z                                    | Undo, Ctrl Z                | PP. In 준비 and in text fields (03).                                                                                                   | 준비, text fields     | 1    |
-| 다시 실행                  | `edit.redo`                                     | Ctrl Y, Ctrl Shift Z                      | Redo, Ctrl Y                | PP for Ctrl Y. Ctrl Shift Z added because many Windows editors accept it.                                                              | 준비, text fields     | 1    |
-| 장 나누기                  | `editor.splitSlide`                             | Ctrl Enter                                | None                        | EW (S9). Splits the block at the cursor. Enter on an empty line still splits (05).                                                     | Song editor           | 1    |
-| 새 장                      | `editor.newSlide`                               | Ctrl Shift N                              | New Slide, Ctrl Shift N     | PP. Inserts an empty block after the current block.                                                                                    | Song editor           | 1    |
-| 이름표 메뉴                | `editor.labelMenu`                              | None                                      | None                        | Ours. Opens the 이름표 menu of the current block.                                                                                      | Song editor           | 1    |
-| 칩 왼쪽으로, 칩 오른쪽으로 | `arrangement.moveLeft`, `arrangement.moveRight` | Alt ←, Alt →                              | None                        | Kept (05). The chip strip has focus, so these don't reach 다음 배경 (진행 only).                                                       | Chip strip            | 1    |
-| 복제                       | `edit.duplicate`                                | Ctrl D                                    | Duplicate, Ctrl D           | PP. Only where the right-click menu has 복제 (Look, stage layout, 매크로).                                                             | 화면 설정, 매크로 tab | 1    |
-| 삭제                       | `edit.delete`                                   | Delete                                    | Delete                      | PP. Deletes the selection where the spec allows it without confirmation (예배 순서 items, chips). Elsewhere it opens the confirmation. | Lists, chip strip     | 1    |
-| 가져온 곡 저장             | `import.save`                                   | Ctrl S (in the imported song editor only) | None                        | Ours. The only place with a 저장 button. Open question 1.                                                                              | Imported song editor  | 1    |
+| Command                             | ID                                              | Default                                   | ProPresenter                | Basis and reason                                                                                                                                                                                                                                                                                       | Works in                     | Ver.  |
+| ----------------------------------- | ----------------------------------------------- | ----------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------- | ----- |
+| 새 곡                               | `library.newSong`                               | Ctrl N                                    | New Presentation, Ctrl N    | Decided, follows ProPresenter. Same as 새 곡 in the 라이브러리 header (05). Switches to 준비.                                                                                                                                                                                                          | All                          | 1     |
+| 텍스트 파일 가져오기                | `import.textFile`                               | Ctrl Shift I                              | Import > File, Ctrl Shift I | Decided, follows ProPresenter (05)                                                                                                                                                                                                                                                                     | All                          | 1     |
+| 클립보드 텍스트 가져오기            | `import.clipboard`                              | None                                      | None in S1                  | Decided, no ProPresenter source found (05)                                                                                                                                                                                                                                                             | All                          | 1     |
+| 새 예배                             | `service.new`                                   | None                                      | None                        | Decided, no ProPresenter source found (Kept, 05 says "with the shortcut the operator sets").                                                                                                                                                                                                           | All                          | 1     |
+| 다른 예배에서 가져오기              | `service.importItems`                           | None                                      | None                        | Decided, no ProPresenter source found (05)                                                                                                                                                                                                                                                             | All                          | 1     |
+| 지금 예배를 틀로 저장               | `service.saveAsTemplate`                        | None                                      | None                        | Decided, no ProPresenter source found (05)                                                                                                                                                                                                                                                             | All                          | 1     |
+| 실행 취소 (edit undo)               | `edit.undo`                                     | Ctrl Z                                    | Undo, Ctrl Z                | Decided, follows ProPresenter. In 준비 and in text fields (03).                                                                                                                                                                                                                                        | 준비, text fields            | 1     |
+| 다시 실행                           | `edit.redo`                                     | Ctrl Y, Ctrl Shift Z                      | Redo, Ctrl Y                | Decided, follows ProPresenter for Ctrl Y. Ctrl Shift Z added because many Windows editors accept it.                                                                                                                                                                                                   | 준비, text fields            | 1     |
+| 장 나누기                           | `editor.splitSlide`                             | Ctrl Enter                                | None                        | Decided, no ProPresenter source found; follows EasyWorship (S9). Splits the block at the cursor. Enter on an empty line still splits (05).                                                                                                                                                             | Song editor                  | 1     |
+| 새 장                               | `editor.newSlide`                               | Ctrl Shift N                              | New Slide, Ctrl Shift N     | Decided, follows ProPresenter. Inserts an empty block after the current block.                                                                                                                                                                                                                         | Song editor                  | 1     |
+| 이름표 메뉴                         | `editor.labelMenu`                              | None                                      | None                        | Decided, no ProPresenter source found. Opens the 이름표 menu of the current block.                                                                                                                                                                                                                     | Song editor                  | 1     |
+| 칩 왼쪽으로, 칩 오른쪽으로          | `arrangement.moveLeft`, `arrangement.moveRight` | Alt ←, Alt →                              | None                        | Decided, no ProPresenter source found (Kept, 05). The chip strip has focus, so these don't reach 다음 배경 (진행 only).                                                                                                                                                                                | Chip strip                   | 1     |
+| 복제                                | `edit.duplicate`                                | Ctrl D                                    | Duplicate, Ctrl D           | Decided, follows ProPresenter. Only where the right-click menu has 복제 (Look, stage layout, 매크로).                                                                                                                                                                                                  | 화면 설정, 매크로 tab        | 1     |
+| 삭제                                | `edit.delete`                                   | Delete                                    | Delete                      | Decided, follows ProPresenter. Deletes the selection where the spec allows it without confirmation (예배 순서 items, chips). Elsewhere it opens the confirmation.                                                                                                                                      | Lists, chip strip            | 1     |
+| 가져온 곡 저장                      | `import.save`                                   | Ctrl S (in the imported song editor only) | None                        | Decided, no ProPresenter source found. The only place with a 저장 button. Open question 1.                                                                                                                                                                                                             | Imported song editor         | 1     |
+| 미디어 가져오기                     | `media.import`                                  | None                                      | None                        | Decided, no ProPresenter source found. 가져오기 in the media strip and the media view (04, 05). ProPresenter's Import > File (Ctrl Shift I) covers text and presentation files, not media (S4 p. 90), and this app gives Ctrl Shift I to text import. Media import is preparation work, so no default. | All                          | 1     |
+| 새 재생목록, 새 오디오 재생목록     | `media.newPlaylist`, `media.newAudioPlaylist`   | None                                      | None                        | Decided, no ProPresenter source found (05).                                                                                                                                                                                                                                                            | 준비 media view              | 1     |
+| 다시 연결 (relink)                  | `media.relink`                                  | None                                      | None                        | Decided, no ProPresenter source found. Relinks the selected missing media (08).                                                                                                                                                                                                                        | 준비 media view, media strip | 1     |
+| 구성 추가                           | `arrangement.add`                               | None                                      | None                        | Decided, no ProPresenter source found (05).                                                                                                                                                                                                                                                            | Song editor                  | 1     |
+| 장 넣기                             | `arrangement.insertSlide`                       | None                                      | None                        | Decided, no ProPresenter source found. Opens the 장 menu at the end of the chip strip (05).                                                                                                                                                                                                            | Chip strip                   | 1     |
+| 잘라내기, 복사, 붙여넣기, 모두 선택 | (fixed)                                         | Ctrl X, Ctrl C, Ctrl V, Ctrl A            | Same (S1)                   | Decided, follows ProPresenter. Windows text keys; reserved, so they can't be reassigned.                                                                                                                                                                                                               | Text fields, lists           | 1     |
+| PowerPoint 파일 가져오기            | `import.pptx`                                   | None                                      | None                        | Decided, no ProPresenter source found. Unavailable until PowerPoint import (09).                                                                                                                                                                                                                       | All                          | Later |
 
 #### 화면 설정 editing
 
-| Command            | ID                | Default                         | ProPresenter                       | Basis and reason                                        | Works in            | Ver. |
-| ------------------ | ----------------- | ------------------------------- | ---------------------------------- | ------------------------------------------------------- | ------------------- | ---- |
-| 요소 이동          | (editor keys)     | Arrows 1 px, Shift arrows 10 px | None in S1                         | Kept (06)                                               | Stage layout editor | 1    |
-| 요소 삭제          | (editor keys)     | Delete                          | Delete                             | Kept (06)                                               | Stage layout editor | 1    |
-| 화면에 맞춤 (zoom) | `stageEditor.fit` | Ctrl 0                          | Fit Slide into Edit Window, Ctrl 0 | PP (Editor menu). Fits the canvas to the center column. | Stage layout editor | 1    |
+| Command            | ID                       | Default                         | ProPresenter                       | Basis and reason                                                                   | Works in            | Ver. |
+| ------------------ | ------------------------ | ------------------------------- | ---------------------------------- | ---------------------------------------------------------------------------------- | ------------------- | ---- |
+| 요소 이동          | (editor keys)            | Arrows 1 px, Shift arrows 10 px | None in S1                         | Decided, no ProPresenter source found (Kept, 06)                                   | Stage layout editor | 1    |
+| 요소 삭제          | (editor keys)            | Delete                          | Delete                             | Decided, no ProPresenter source found (Kept, 06)                                   | Stage layout editor | 1    |
+| 화면에 맞춤 (zoom) | `stageEditor.fit`        | Ctrl 0                          | Fit Slide into Edit Window, Ctrl 0 | Decided, follows ProPresenter (Editor menu). Fits the canvas to the center column. | Stage layout editor | 1    |
+| 모니터 번호 표시   | `screens.identify`       | None                            | None                               | Decided, no ProPresenter source found (06).                                        | 화면 설정           | 1    |
+| Look 추가          | `look.new`               | None                            | None                               | Decided, no ProPresenter source found (06).                                        | 화면 설정           | 1    |
+| 새 배치            | `stageLayout.new`        | None                            | None                               | Decided, no ProPresenter source found (06).                                        | 화면 설정           | 1    |
+| 요소 추가          | `stageEditor.addElement` | None                            | None                               | Decided, no ProPresenter source found. Opens the element kind menu (06).           | Stage layout editor | 1    |
 
 #### 창 and 메뉴 (windows and menus)
 
-| Command                     | ID                       | Default             | ProPresenter                             | Basis and reason                                                                                            | Works in            | Ver. |
-| --------------------------- | ------------------------ | ------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------- | ---- |
-| 환경설정                    | `app.preferences`        | Ctrl ,              | Open Settings, Ctrl ,                    | PP                                                                                                          | All                 | 1    |
-| 환경설정 page, one per page | `app.preferences.<page>` | None                | Settings pages in Key Mappings (S6 21.1) | PP. Opens 환경설정 at that page, for example 단축키.                                                        | All                 | 1    |
-| 환경설정 닫기               | (window keys)            | Esc, Ctrl W         | None                                     | Ours (Windows convention for a secondary window). Esc first cancels a recording key field.                  | 환경설정 window     | 1    |
-| 종료                        | `app.quit`               | Ctrl Q              | Quit, Ctrl Q                             | PP. Alt F4 on the main window does the same. While any output is on, it asks first (see "Fixed behaviors"). | All                 | 1    |
-| 메뉴 막대                   | (fixed)                  | Alt, F10            | None                                     | Kept (`MenuBar` README). No Alt plus letter access keys.                                                    | Main window         | 1    |
-| 오른쪽 클릭 메뉴            | (fixed)                  | Shift F10, Menu key | None                                     | Kept (`Menu` README, 07)                                                                                    | Where a menu exists | 1    |
-| 로그 폴더 열기              | `app.openLogs`           | None                | None                                     | Ours (01 도움말 menu)                                                                                       | All                 | 1    |
-| 버전 정보                   | `app.about`              | None                | None                                     | Ours (01 도움말 menu). Opens the 정보 page.                                                                 | All                 | 1    |
+| Command                     | ID                                   | Default             | ProPresenter                             | Basis and reason                                                                                                                       | Works in            | Ver. |
+| --------------------------- | ------------------------------------ | ------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ------------------- | ---- |
+| 환경설정                    | `app.preferences`                    | Ctrl ,              | Open Settings, Ctrl ,                    | Decided, follows ProPresenter                                                                                                          | All                 | 1    |
+| 환경설정 page, one per page | `app.preferences.<page>`             | None                | Settings pages in Key Mappings (S6 21.1) | Decided, follows ProPresenter. Opens 환경설정 at that page, for example 단축키.                                                        | All                 | 1    |
+| 환경설정 닫기               | (window keys)                        | Esc, Ctrl W         | None                                     | Decided, no ProPresenter source found (Windows convention for a secondary window). Esc first cancels a recording key field.            | 환경설정 window     | 1    |
+| 종료                        | `app.quit`                           | Ctrl Q              | Quit, Ctrl Q                             | Decided, follows ProPresenter. Alt F4 on the main window does the same. While any output is on, it asks first (see "Fixed behaviors"). | All                 | 1    |
+| 메뉴 막대                   | (fixed)                              | Alt, F10            | None                                     | Decided, no ProPresenter source found (Kept, `MenuBar` README). No Alt plus letter access keys.                                        | Main window         | 1    |
+| 오른쪽 클릭 메뉴            | (fixed)                              | Shift F10, Menu key | None                                     | Decided, no ProPresenter source found (Kept, `Menu` README, 07)                                                                        | Where a menu exists | 1    |
+| 로그 폴더 열기              | `app.openLogs`                       | None                | None                                     | Decided, no ProPresenter source found (01 도움말 menu)                                                                                 | All                 | 1    |
+| 버전 정보                   | `app.about`                          | None                | None                                     | Decided, no ProPresenter source found (01 도움말 menu). Opens the 정보 page.                                                           | All                 | 1    |
+| 최소화, 최대화              | `window.minimize`, `window.maximize` | None                | None                                     | Decided, no ProPresenter source found. The 창 menu items (01). Windows keys (Windows ↓, Windows ↑) already work on the main window.    | Main window         | 1    |
 
 - Dialog keys stay fixed: Enter is the primary button and Esc is 취소 (Kept,
   `Dialog` and `AlertDialog` READMEs).
@@ -576,58 +657,76 @@ workspace. "All" means every workspace of the main window, within the rules of
 
 - MIDI, Stream Deck, and network control (S4 pp. 148 to 150, S8) send the same
   command IDs, so a MIDI map or a Stream Deck profile is a table from an input
-  to a command ID (proposal). Keep IDs stable across versions.
+  to a command ID (decided). Keep IDs stable across versions.
 - 퀵 실행 item keys use `quick.<item ID>` (09).
 - A ProPresenter-style "Show Slide on Stage Display Only" (S1 Ctrl 0) waits
   until the 무대 화면 can show a 장 that the audience screens don't.
+
+#### Actions without a command
+
+These actions have no command ID and no shortcut, for the reason given:
+
+| Action                                                                                               | Reason                                                                                                                                              | How the keyboard reaches it                                                    |
+| ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Outputting one specific 장, media tile, or 공지 image                                                | The target is one item on screen. 다음 장, 이전 장, jump keys, and 다음 배경 cover live navigation.                                                 | The 장 grid with focus, ↑ ↓ and Enter (rule 5); other tiles with Tab and Enter |
+| Selecting a 예배 순서 row                                                                            | Selection isn't output (04).                                                                                                                        | ↑ ↓ in the focused list, or 다음 항목 and 이전 항목                            |
+| Changing a value in a property panel, a Look card, the media properties, or the 메시지 and 공지 tabs | The control holds the value and has its own keys.                                                                                                   | Tab to the control, then its keys                                              |
+| Drag and drop (reordering items, chips, and tiles, files from Explorer)                              | A gesture. The spec gives keyboard moves only to the chip strip (Alt ← and Alt →, 05).                                                              | Chip strip only                                                                |
+| Right-click menu items (이름 바꾸기, 삭제, 아이콘 바꾸기, 색, 모음, 시작할 때 실행, and so on)       | They act on the item under the menu.                                                                                                                | Shift F10 or the Menu key on the focused item (07)                             |
+| Dialog buttons (만들기, 가져오기, 덮어쓰기, 복구, 새로 시작)                                         | They belong to one dialog.                                                                                                                          | Enter for the primary button, Esc for 취소 (fixed)                             |
+| The 다시 시도 button of a save failure notification                                                  | Bound to one notification. Notifications never take focus (08).                                                                                     | None; the app keeps the content in memory until a retry (02)                   |
+| The 테스트 패턴 choice in 화면 설정                                                                  | It changes a real output, and only in 화면 설정 by the operator's choice (08). A global key could put color bars on the projector during a service. | The segmented control in 화면 설정                                             |
+| Bible panel buttons (앞 절 추가, 뒤 절 추가, 예배 순서에 넣기)                                       | They act on the passage in the open Bible panel. 바로 띄우기 is Enter in the Bible field (04).                                                      | Tab and Enter                                                                  |
+| Choosing a search result, a service in the service list, or a suggestion                             | They belong to an open list.                                                                                                                        | ↑ ↓ and Enter (04, `Menu` README)                                              |
 
 ### Default key map
 
 Every default key in one list, to show that no two commands share a key in the
 same place.
 
-| Key                     | Command                                                    | Where                                     |
-| ----------------------- | ---------------------------------------------------------- | ----------------------------------------- |
-| F1 to F7                | 지우기 (모두, 가사, 미디어, 소품, 오디오, 메시지, 공지)    | Everywhere                                |
-| →, Space, Page Down     | 다음 장                                                    | 진행                                      |
-| ←, Page Up              | 이전 장                                                    | 진행                                      |
-| Ctrl ↓, Ctrl ↑          | 다음 항목, 이전 항목                                       | 진행                                      |
-| Alt →, Alt ←            | 다음 배경, 이전 배경                                       | 진행                                      |
-| Alt →, Alt ←            | 칩 오른쪽으로, 칩 왼쪽으로                                 | Chip strip in 준비 (no overlap with 진행) |
-| Ctrl Z                  | 되돌림 (진행, 화면 설정), 실행 취소 (준비 and text fields) | Split by workspace and focus (03)         |
-| Ctrl Y, Ctrl Shift Z    | 다시 실행                                                  | 준비, text fields                         |
-| Ctrl 1, Ctrl 2          | 청중 화면 출력, 무대 화면 출력                             | All                                       |
-| Ctrl Shift 1            | Look 편집                                                  | All                                       |
-| Ctrl Alt 1              | 화면 설정                                                  | All                                       |
-| Ctrl 4                  | 무대 배치 편집                                             | All                                       |
-| Ctrl 0                  | 화면에 맞춤                                                | Stage layout editor                       |
-| Ctrl S                  | 진행 (가져온 곡 저장 in the imported song editor)          | All (open question 1)                     |
-| Ctrl E, Ctrl R          | 준비                                                       | All                                       |
-| Ctrl Shift V            | 미디어 (plain paste inside text fields)                    | All                                       |
-| Ctrl F                  | 찾기                                                       | All                                       |
-| Ctrl L                  | 출력 중인 항목 열기                                        | 진행                                      |
-| Ctrl Alt L              | 라이브러리에서 열기                                        | All                                       |
-| Ctrl M                  | 메시지 탭                                                  | 진행                                      |
-| Ctrl Shift C            | 타이머 탭                                                  | 진행                                      |
-| Ctrl Shift P            | 소품 탭                                                    | 진행                                      |
-| Alt S                   | 무대 탭                                                    | 진행                                      |
-| Alt C                   | 동작 팔레트                                                | 진행                                      |
-| Ctrl Alt B              | 성경 구절 찾기                                             | 진행                                      |
-| Ctrl N                  | 새 곡                                                      | All                                       |
-| Ctrl Shift N            | 새 장                                                      | Song editor                               |
-| Ctrl Enter              | 장 나누기                                                  | Song editor                               |
-| Ctrl Shift I            | 텍스트 파일 가져오기                                       | All                                       |
-| Ctrl D                  | 복제                                                       | Where 복제 exists                         |
-| Delete                  | 삭제                                                       | Lists, chip strip, stage layout editor    |
-| Ctrl ,                  | 환경설정                                                   | All                                       |
-| Ctrl Q, Alt F4          | 종료                                                       | All                                       |
-| Esc, Ctrl W             | 환경설정 닫기                                              | 환경설정 window                           |
-| Bare letters and digits | 이름표 jump keys                                           | 진행                                      |
+| Key                           | Command                                                      | Where                                     |
+| ----------------------------- | ------------------------------------------------------------ | ----------------------------------------- |
+| F1 to F7                      | 지우기 (모두, 가사, 미디어, 소품, 오디오, 메시지, 공지)      | Everywhere                                |
+| →, Space, Page Down           | 다음 장                                                      | 진행                                      |
+| ←, Page Up                    | 이전 장                                                      | 진행                                      |
+| Ctrl ↓, Ctrl ↑                | 다음 항목, 이전 항목                                         | 진행                                      |
+| Alt →, Alt ←                  | 다음 배경, 이전 배경                                         | 진행                                      |
+| Alt →, Alt ←                  | 칩 오른쪽으로, 칩 왼쪽으로                                   | Chip strip in 준비 (no overlap with 진행) |
+| Ctrl Z                        | 되돌림 (진행, 화면 설정), 실행 취소 (준비 and text fields)   | Split by workspace and focus (03)         |
+| Ctrl Y, Ctrl Shift Z          | 다시 실행                                                    | 준비, text fields                         |
+| Ctrl 1, Ctrl 2                | 청중 화면 출력, 무대 화면 출력                               | All                                       |
+| Ctrl Shift 1                  | Look 편집                                                    | All                                       |
+| Ctrl Alt 1                    | 화면 설정                                                    | All                                       |
+| Ctrl 4                        | 무대 배치 편집                                               | All                                       |
+| Ctrl 0                        | 화면에 맞춤                                                  | Stage layout editor                       |
+| Ctrl S                        | 진행 (가져온 곡 저장 in the imported song editor)            | All (open question 1)                     |
+| Ctrl E, Ctrl R                | 준비                                                         | All                                       |
+| Ctrl Shift V                  | 미디어 (plain paste inside text fields)                      | All                                       |
+| Ctrl F                        | 찾기                                                         | All                                       |
+| Ctrl L                        | 출력 중인 항목 열기                                          | 진행                                      |
+| Ctrl Alt L                    | 라이브러리에서 열기                                          | All                                       |
+| Ctrl M                        | 메시지 탭                                                    | 진행                                      |
+| Ctrl Shift C                  | 타이머 탭                                                    | 진행                                      |
+| Ctrl Shift P                  | 소품 탭                                                      | 진행                                      |
+| Alt S                         | 무대 탭                                                      | 진행                                      |
+| Alt C                         | 동작 팔레트                                                  | 진행                                      |
+| Ctrl Alt B                    | 성경 구절 찾기                                               | 진행                                      |
+| Ctrl N                        | 새 곡                                                        | All                                       |
+| Ctrl Shift N                  | 새 장                                                        | Song editor                               |
+| Ctrl Enter                    | 장 나누기                                                    | Song editor                               |
+| Ctrl Shift I                  | 텍스트 파일 가져오기                                         | All                                       |
+| Ctrl D                        | 복제                                                         | Where 복제 exists                         |
+| Delete                        | 삭제                                                         | Lists, chip strip, stage layout editor    |
+| Ctrl ,                        | 환경설정                                                     | All                                       |
+| Ctrl Q, Alt F4                | 종료                                                         | All                                       |
+| Esc, Ctrl W                   | 환경설정 닫기                                                | 환경설정 window                           |
+| Bare letters and digits       | 이름표 jump keys                                             | 진행                                      |
+| Enter (inside the field only) | 무대 메시지 보내기, 메시지 보내기, 바로 띄우기 (Bible field) | Their text fields in 진행                 |
 
-- Ctrl B and Ctrl L stay free of black screen and logo meanings in version 1.
-  EasyWorship uses them that way (S9), and they're natural candidates when the
-  user decides on 퀵 실행 keys (README open question 3). Ctrl L is already
-  ProPresenter's Show Triggered Presentation, which this proposal uses.
+- Ctrl B stays free. EasyWorship uses it for a black screen and Ctrl L for the
+  logo (S9). Here Ctrl L is ProPresenter's Show Triggered Presentation (S1).
+  Ctrl B is a natural candidate for 검은 화면 when the user decides on 퀵 실행
+  keys (README open question 3).
 
 ## Settings
 
@@ -723,15 +822,15 @@ the basis, and the reason.
     can't add screens, so the rows would do nothing (resolves README open
     question 14).
 - Look changes and clears stay instant, as 03 says. Whether clears should fade
-  with the layer's transition is open question 7.
+  with the layer's transition is open question 12.
 
 #### 진행 (Show)
 
-| Group          | Row                                         | Control and range                             | Default | Stored in                             | Applies    | Ver. | Basis                                                                                                   | Reason                                                                                                                                                                                                                            |
-| -------------- | ------------------------------------------- | --------------------------------------------- | ------- | ------------------------------------- | ---------- | ---- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 장 넘기기      | 마지막 장에서 다음 장 (next on the last 장) | Segmented: 멈춤 (stop), 다음 항목 (next item) | 멈춤    | `preferences.json` `show.atLastSlide` | At once    | 1    | Ours. 04 proposed 다음 항목 as a guess about ProPresenter; no source confirms it.                       | Moving into the next item starts it, which can run its start 매크로 and change the Look. A stray → at the end of a song must not do that, so 멈춤 is the safe default. 다음 항목 (Ctrl ↓) then → still moves on. Open question 3. |
-| 오디오 (audio) | 오디오 전환 (audio transition)              | Number, s, 0 to 5, step 0.1                   | 0.5     | `show.audio.transitionSeconds`        | Next track | 1    | PP (the audio bin slider sets the transition between audio files, including start and clear, S4 p. 118) | Used when a track starts, when the next track follows, and by 오디오 지우기 (F5). 03's fixed 0.5 s becomes the default.                                                                                                           |
-| 오디오         | 페이드 아웃 시간 (fade out time)            | Number, s, 0.5 to 10, step 0.5                | 3       | `show.audio.fadeOutSeconds`           | At once    | 1    | Ours (04's value)                                                                                       | The 페이드 아웃 button and the 매크로 action use it. Rooms and music differ.                                                                                                                                                      |
+| Group          | Row                                         | Control and range                             | Default | Stored in                             | Applies    | Ver. | Basis                                                                                                                         | Reason                                                                                                                                                                                                                             |
+| -------------- | ------------------------------------------- | --------------------------------------------- | ------- | ------------------------------------- | ---------- | ---- | ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 장 넘기기      | 마지막 장에서 다음 장 (next on the last 장) | Segmented: 멈춤 (stop), 다음 항목 (next item) | 멈춤    | `preferences.json` `show.atLastSlide` | At once    | 1    | Decided (shortcut decision), no ProPresenter source found: 04 proposed 다음 항목 as a guess, so this proposal's 멈춤 applies. | Moving into the next item starts it, which can run its start 매크로 and change the Look. A stray → at the end of a song must not do that, so 멈춤 is the safe default. 다음 항목 (Ctrl ↓) then → still moves on (open question 3). |
+| 오디오 (audio) | 오디오 전환 (audio transition)              | Number, s, 0 to 5, step 0.1                   | 0.5     | `show.audio.transitionSeconds`        | Next track | 1    | PP (the audio bin slider sets the transition between audio files, including start and clear, S4 p. 118)                       | Used when a track starts, when the next track follows, and by 오디오 지우기 (F5). 03's fixed 0.5 s becomes the default.                                                                                                            |
+| 오디오         | 페이드 아웃 시간 (fade out time)            | Number, s, 0.5 to 10, step 0.5                | 3       | `show.audio.fadeOutSeconds`           | At once    | 1    | Ours (04's value)                                                                                                             | The 페이드 아웃 button and the 매크로 action use it. Rooms and music differ.                                                                                                                                                       |
 
 - Behaviors considered for this page and kept fixed: the 이름표 jump key rule
   (04), ignoring key repeat, dim done items, clicking the live 장 again doesn't
@@ -747,7 +846,7 @@ the basis, and the reason.
 | 백업 (backup)               | 자동 백업 (automatic backup)                  | Switch                                         | On                         | `preferences.json` `backup.auto` (Kept) | Next launch             | 1    | Kept (`Prefs`)                                                    | Backup runs once a day at launch, never during a service (02).                                                                                                                              |
 | 백업                        | 백업 위치 (backup location)                   | Read-only path, 바꾸기, 폴더 열기              | `Documents\LoveLight 백업` | `app.json` `backupPath` (Kept)          | Next backup             | 1    | Kept (`Prefs`); the default is a proposal                         | A second drive or a synced folder protects more than the same disk. 02 left the default open.                                                                                               |
 | 백업                        | 보관 (keep)                                   | Number, 개, 1 to 365                           | 30                         | `backup.keep` (Kept)                    | Next backup             | 1    | Kept (`Prefs`)                                                    | Disk space differs.                                                                                                                                                                         |
-| 백업                        | 마지막 백업 (last backup)                     | Read-only time, 지금 백업 button               |                            | `app.json` `lastBackupAt` (Kept)        | At once                 | 1    | Kept (`Prefs`)                                                    | 지금 백업 is unavailable while any output is on, with the reason in a tooltip, because backups don't run during a service (08) (proposal, open question 16).                                |
+| 백업                        | 마지막 백업 (last backup)                     | Read-only time, 지금 백업 button               |                            | `app.json` `lastBackupAt` (Kept)        | At once                 | 1    | Kept (`Prefs`)                                                    | 지금 백업 is unavailable while any output is on, with the reason in a tooltip, because backups don't run during a service (08) (proposal, open question 18).                                |
 | 복구 사본 (recovery copies) | 파일마다 (per file)                           | Number, 개, 3 to 50                            | 10                         | `backupCopies` (Kept, 02)               | Next save               | 1    | Kept (`Prefs`); moved from 일반                                   | Recovery copies and backups are both about getting data back, so they sit together. A minimum of 3 keeps a safety net.                                                                      |
 
 - When the operator picks a new, empty data folder, the app asks whether to copy
@@ -763,7 +862,7 @@ the basis, and the reason.
 | ----------------------- | ----------------------------------- | ---------------------------------------------------------- | ------------- | ----------------------------------------------------------------- | ---------------------------- | ---- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | 설치된 역본 (installed) | One row per translation, 역본 추가  | Name, language, size, 기본 tag, more menu (기본으로, 삭제) | 개역한글 기본 | `bible.json` `translations[]` (Kept, 02)                          | At once                      | 1    | Kept (`Prefs`), PP (install and remove Bibles, S4 p. 143)                 | Translations differ by church.                                                                 |
 | 새 구절 (new passages)  | 나누기 (split)                      | Select: 한 장에 한 절, 두 절씩, 길이에 맞춤                | 한 장에 한 절 | `preferences.json` `bible.defaults.split`                         | New passages                 | 1    | PP (Break on New Verse, S4 p. 142)                                        | The Bible panel keeps the value per passage (02). This row only sets where new passages start. |
-| 새 구절                 | 참조 (reference)                    | Select: 장마다, 첫 장만, 마지막 장만, 없음                 | 장마다        | `bible.defaults.reference`                                        | New passages                 | 1    | PP (Passage Each, Passage Last, No Reference, S4 p. 142); 첫 장만 from 02 | Adds ProPresenter's "last 장 only" to 02's values (open question 14).                          |
+| 새 구절                 | 참조 (reference)                    | Select: 장마다, 첫 장만, 마지막 장만, 없음                 | 장마다        | `bible.defaults.reference`                                        | New passages                 | 1    | PP (Passage Each, Passage Last, No Reference, S4 p. 142); 첫 장만 from 02 | Adds ProPresenter's "last 장 only" to 02's values (open question 17).                          |
 | 새 구절                 | 절 번호 (verse numbers)             | Switch                                                     | On            | `bible.defaults.verseNumbers` (renamed from `bible.verseNumbers`) | New passages                 | 1    | Kept (`Prefs`), PP (Show Verse Numbers, S4 p. 142)                        |                                                                                                |
 | 새 구절                 | 역본 이름 (translation name)        | Switch                                                     | Off           | `bible.defaults.translationName`                                  | New passages                 | 1    | PP (Display Translation, S4 p. 142)                                       | 04's panel has the toggle. A default saves a click for churches that always show it.           |
 | 새 구절                 | 한 장 최대 줄 수 (max lines per 장) | Number, 줄, 1 to 12                                        | 4             | `bible.maxLines` (Kept)                                           | New passages and 길이에 맞춤 | 1    | Kept (`Prefs`)                                                            | Screen size and font size differ.                                                              |
@@ -791,10 +890,10 @@ the basis, and the reason.
 
 | Group                          | Row                                             | Control and range                                 | Default           | Stored in                               | Applies     | Ver. | Basis                                                                    | Reason                                                                                                                                                                                                                              |
 | ------------------------------ | ----------------------------------------------- | ------------------------------------------------- | ----------------- | --------------------------------------- | ----------- | ---- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 가져오기                       | 미디어 폴더로 복사 (copy into the media folder) | Switch                                            | On                | `preferences.json` `media.copyOnImport` | Next import | 1    | PP differs (Manage Media Automatically, off by default, S4 p. 190)       | Files from a USB drive or a download folder go missing; a copy can't. ProPresenter says the option prevents "accidental broken links" (S4 p. 190). Default on for that reason. Resolves README open question 12 (open question 10). |
+| 가져오기                       | 미디어 폴더로 복사 (copy into the media folder) | Switch                                            | On                | `preferences.json` `media.copyOnImport` | Next import | 1    | PP differs (Manage Media Automatically, off by default, S4 p. 190)       | Files from a USB drive or a download folder go missing; a copy can't. ProPresenter says the option prevents "accidental broken links" (S4 p. 190). Default on for that reason. Resolves README open question 12 (open question 15). |
 | 새 미디어 (new media defaults) | 동영상 끝나면 (video at the end)                | Segmented: 반복, 멈춤                             | 반복              | `media.defaults.end`                    | New imports | 1    | PP (Import tab video playback behavior, loop or stop, S4 p. 174)         | Most imported videos are looping backgrounds. Each media item keeps its own value (05).                                                                                                                                             |
 | 새 미디어                      | 맞춤 (fit)                                      | Segmented: 맞추기, 채우기, 늘리기                 | 채우기            | `media.defaults.fit`                    | New imports | 1    | PP (Import tab scaling behavior, S4 p. 174)                              | A background should cover the screen.                                                                                                                                                                                               |
-| 새 미디어                      | 동영상 소리 (video sound)                       | Switch                                            | Off               | `media.defaults.audio`                  | New imports | 1    | Ours                                                                     | A background loop with music that starts playing during worship is worse than a silent announcement video, which the operator notices while preparing. Open question 9.                                                             |
+| 새 미디어                      | 동영상 소리 (video sound)                       | Switch                                            | Off               | `media.defaults.audio`                  | New imports | 1    | Ours                                                                     | A background loop with music that starts playing during worship is worse than a silent announcement video, which the operator notices while preparing. Open question 14.                                                            |
 | 소리 (sound)                   | 출력 장치 (output device)                       | Select: Windows 기본 장치, then each audio device | Windows 기본 장치 | `media.audioOutput` (`{ id, label }`)   | At once     | 1    | PP (Audio tab Main Output, S4 p. 187)                                    | The audio interface to the mixer often isn't the Windows default device. Audio playback and video sound both use it. 04 used the Windows default only.                                                                              |
 | 소리                           | 미리 듣기 장치 (preview device)                 | Select: Windows 기본 장치, then each audio device | Windows 기본 장치 | `media.previewOutput` (`{ id, label }`) | At once     | 1    | PP (Audio tab Inspector Output, S4 p. 187), OBS (Monitoring Device, S11) | The preview player in the media view can go to headphones instead of the hall.                                                                                                                                                      |
 
@@ -827,16 +926,45 @@ See "Shortcut system". The page lists commands and 이름표 jump keys.
 
 ### Settings on screens, Looks, and objects
 
-These settings already have a home outside 환경설정. This section lists only
-what the proposal adds or changes. Everything else stays as in 06, 05, and 02.
+These settings live outside 환경설정. This section is their complete inventory:
+every row with its control, range, default, storage field (02), and when it
+applies. "Changed" marks what this proposal changes. The other rows keep 06, 05,
+and 02; where those leave a default or a range open, the value here comes from
+the board named in the basis, or is marked as a proposal.
 
 #### Screens (화면 설정)
 
-| Row                       | Change                                                                                                                                                                                                                                           | Basis                                               |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------- |
-| 절전 막기 (prevent sleep) | Removed. Windows sleep is system-wide, so a per-screen value can't work, and turning it off never helps a service. Fixed on while any output is on.                                                                                              | Ours                                                |
-| 항상 위 (always on top)   | Kept per screen. Defaults depend on the method: 전체 화면 on, 창 off, 캡처용 창 off. A window or capture window sits on the control monitor, where "always on top" would cover the controls. The capture window keeps drawing when covered (03). | Kept (06), OBS (Make projectors always on top, S11) |
-| 연결이 끊기면             | Kept per screen.                                                                                                                                                                                                                                 | Kept (06)                                           |
+Stored per screen in `screens.json` `screens[]`.
+
+| Row                                                             | Control and range                                                                                   | Default                                              | Stored in                  | Applies         | Ver.                         | Basis                                                                                                                                                            |
+| --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------- | -------------------------- | --------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 이름 (name)                                                     | Text field; required, unique among screens                                                          | 본 화면, 무대 화면, 방송 자막                        | `.name`                    | At once         | 1                            | Kept (06, `Screens`)                                                                                                                                             |
+| 종류 (kind)                                                     | Segmented: 청중, 무대                                                                               | 본 화면 and 방송 자막 청중, 무대 화면 무대           | `.kind`                    | At once         | 1                            | Kept (06, 02)                                                                                                                                                    |
+| 방식 (method)                                                   | Segmented: 전체 화면, 창, 캡처용 창, NDI (unavailable in version 1, with the reason in a tooltip)   | 본 화면 and 무대 화면 전체 화면, 방송 자막 캡처용 창 | `.method`                  | At once         | 1 (NDI later)                | Kept (06, 02)                                                                                                                                                    |
+| 장치 (device)                                                   | Select of the connected monitors, with the monitor name as the detail; only for 전체 화면           | Unassigned                                           | `.display`                 | At once         | 1                            | Kept (06, 02)                                                                                                                                                    |
+| 해상도 (resolution)                                             | 전체 화면: read-only, the monitor's resolution. 캡처용 창: select of 1920×1080, 1280×720, 3840×2160 | 1920×1080                                            | `.resolution`              | At once         | 1                            | Kept (06, `Screens`)                                                                                                                                             |
+| 주사율 (refresh rate)                                           | Read-only                                                                                           | The monitor's rate                                   | Not stored                 |                 | 1                            | Kept (06, `Screens`)                                                                                                                                             |
+| 연결이 끊기면 (when disconnected)                               | Select: 창으로 바꾸기, 출력 끄기                                                                    | 창으로 바꾸기                                        | `.onDisconnect`            | Next disconnect | 1                            | Kept (06, `Screens`, 03)                                                                                                                                         |
+| 항상 위 (always on top)                                         | Switch                                                                                              | 전체 화면 on; 창 and 캡처용 창 off                   | `.alwaysOnTop`             | At once         | 1                            | Changed: defaults by method. A window or capture window sits on the control monitor, where it would cover the controls (03). OBS (projectors always on top, S11) |
+| 절전 막기 (prevent sleep)                                       | Removed                                                                                             |                                                      | `.preventSleep` is removed |                 |                              | Changed: fixed on while any output is on. Windows sleep is system-wide, so a per-screen value can't work, and turning it off never helps a service.              |
+| 가장자리 여백 (edge margin)                                     | Number field, %, 0 to 20, step 1                                                                    | 0                                                    | `.edgeMargin`              | At once         | 1                            | Kept (06); the default from `Screens` (0%); the range is a proposal                                                                                              |
+| 위치 미세 조정 (position fine-tuning)                           | Two number fields (x, y), px, -200 to 200, step 1                                                   | 0, 0                                                 | `.offset`                  | At once         | 1                            | Kept (06); the default from `Screens` (0, 0); the range is a proposal                                                                                            |
+| 미리보기 배경 (방송 자막 preview background)                    | Segmented: 초록, 검정, 체크 무늬                                                                    | 초록                                                 | `.previewBackground`       | At once         | Later; version 1 stays green | Kept (06, `ScreensNDI`)                                                                                                                                          |
+| NDI: 소스 이름, 해상도, 프레임 수, 알파 채널, 보낼 곳, NDI 그룹 | Text, select, select, switch, select, text                                                          | The `ScreensNDI` values (30fps, alpha on, "public")  | `.ndi`                     | At once         | Later                        | Kept (06, 09)                                                                                                                                                    |
+
+#### Looks
+
+Stored in `looks.json`. Changes to the current Look apply to the output at once
+(06).
+
+| Row                                                                                                                                                          | Control and range          | Default                           | Stored in                       | Ver. | Basis              |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------- | --------------------------------- | ------------------------------- | ---- | ------------------ |
+| Look 이름 (name)                                                                                                                                             | Text; required, unique     | 평상시                            | `looks[].name`                  | 1    | Kept (06, `Looks`) |
+| Layer rows per screen: 본 화면 and 방송 자막 배경 미디어 (방송 자막: 배경), 가사, 공지, 소품, 메시지; 무대 화면 배경 미디어, 가사, 시계, 무대 메시지, 메시지 | A check box each           | The 평상시 values in 02           | `.screens.<screen ID>.layers.*` | 1    | Kept (02, `Looks`) |
+| 가사 스타일 (audience screens)                                                                                                                               | Select of lyric styles     | 본 화면 기본, 방송 자막 하단 자막 | `.lyricStyle`                   | 1    | Kept (`Looks`)     |
+| 무대 배치 (무대 화면)                                                                                                                                        | Select of stage layouts    | 현재와 다음                       | `.stageLayout`                  | 1    | Kept (`Looks`, 03) |
+| 배경 (방송 자막)                                                                                                                                             | Select: 초록, 검정, 미디어 | 초록                              | `.background`                   | 1    | Kept (06)          |
+| 현재 Look (current Look)                                                                                                                                     | The toolbar Look menu      | 평상시                            | `current`                       | 1    | Kept (03)          |
 
 #### Lyric styles and fonts
 
@@ -848,19 +976,33 @@ Where each font setting lives:
 | Lyrics and Bible verses on audience screens | The lyric style that the Look picks for each screen (06)           | PP (themes and text objects, S4 pp. 63 to 65), EW (S10) |
 | 무대 화면 elements                          | Each element's 글자 tab in the stage layout editor (06)            | PP (the Stage Layout Editor, S4 p. 17)                  |
 | 소품 text                                   | The 소품's text style (02)                                         | PP (the Props Editor, S4 p. 48)                         |
-| 메시지                                      | Not defined anywhere yet (open question 8)                         |                                                         |
+| 메시지                                      | Not defined anywhere yet (open question 13)                        |                                                         |
 | 타이머 values                               | Wherever they show: a stage element or a 소품 text                 |                                                         |
 
-Lyric style rows that this proposal adds or changes (the rest stay as in 06):
+Lyric style rows, stored per style in `looks.json` `lyricStyles[]`. The defaults
+are those of the style 기본 on the `Looks` board. Changes apply to the output at
+once (06).
 
-| Row                                  | Control and range                                                                                        | Default                     | Stored in (lyric style in `looks.json`)                   | Ver.  | Basis                                                                                                      | Reason                                                                                                 |
-| ------------------------------------ | -------------------------------------------------------------------------------------------------------- | --------------------------- | --------------------------------------------------------- | ----- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| 굵기 (weight)                        | Select of the weights the chosen family has                                                              | 700                         | `weight` (exists in 02, missing from 06's table)          | 1     | PP (font style, S4 p. 63)                                                                                  | 02 stores it; the editor needs a row.                                                                  |
-| 글자 간격 (letter spacing)           | Number, %, -10 to 20                                                                                     | 0                           | `letterSpacing`                                           | 1     | PP (Tighten and Loosen Character Spacing, S1 Editor menu)                                                  | Korean lyrics in large type often read better slightly tighter.                                        |
-| 외곽선 (outline)                     | Switch, then 두께 (width, px at 1080p, 1 to 10) and 색 (color)                                           | Off; 3 px, black            | `outline` becomes `{ on, width, color }`                  | 1     | PP (Stroke width and color, S4 p. 65), EW (Outline tab, S10)                                               | A fixed outline can't fit both a dark room and a camera picture. Open question 13.                     |
-| 그림자 (shadow)                      | Switch, then 흐림 (blur, px, 0 to 40), 거리 (distance, px, 0 to 20), 불투명도 (opacity, %, 0 to 100), 색 | On; 8 px, 4 px, 60 %, black | `shadow` becomes `{ on, blur, distance, opacity, color }` | 1     | PP (Shadow blur, opacity, color, angle, offset, S4 p. 65), EW (Shadow tab, S10)                            | Same reason. The angle stays fixed (down and right) to keep the controls few.                          |
-| 출처 위치 (Bible reference position) | Select: 오른쪽 아래, 왼쪽 아래, 마지막 줄 다음, 숨김                                                     | 오른쪽 아래                 | `referencePosition`                                       | 1     | Moved from 환경설정 > 성경; PP (a reference text box, or a line at the bottom of the verse box, S4 p. 142) | The lower third on the 방송 자막 and the full 본 화면 need different places.                           |
-| 글자 뒤 상자 (box behind text)       | Switch, color, opacity, padding                                                                          | Off                         | `box`                                                     | Later | PP (Text Background, S4 p. 63)                                                                             | Helps a 하단 자막 over a busy camera picture. Waits until the 방송 자막 style is tried on real output. |
+| Row                                  | Control and range                                                                                        | Default                      | Stored in                                                 | Ver.  | Basis                                                                                                               | Reason for a change                                                                                    |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------- | ---------------------------- | --------------------------------------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| 이름 (name)                          | Text; required, unique                                                                                   | 기본, 현재와 다음, 하단 자막 | `name`                                                    | 1     | Kept (06)                                                                                                           |                                                                                                        |
+| 글꼴 (font)                          | Select: the bundled Pretendard first, then the installed families                                        | Pretendard                   | `font`                                                    | 1     | Kept (06, `Looks`)                                                                                                  |                                                                                                        |
+| 굵기 (weight)                        | Select of the weights the chosen family has                                                              | 700                          | `weight`                                                  | 1     | Changed: new row (`Looks` shows "Pretendard Bold"); PP (font style, S4 p. 63)                                       | 02 stores it; the editor needs a row.                                                                  |
+| 글자색 (text color)                  | Swatch, hex value, color picker                                                                          | #FFFFFF                      | `color`                                                   | 1     | Kept (06, `Looks`)                                                                                                  |                                                                                                        |
+| 크기 (size)                          | Number field, px at 1080p, 12 to 300, step 1                                                             | 84                           | `size`                                                    | 1     | Kept (`Looks`); the range is a proposal                                                                             |                                                                                                        |
+| 줄 간격 (line spacing)               | Number field, 0.8 to 3.0, step 0.05                                                                      | 1.4                          | `lineHeight`                                              | 1     | Kept (`Looks`); the range is a proposal                                                                             |                                                                                                        |
+| 글자 간격 (letter spacing)           | Number field, %, -10 to 20, step 1                                                                       | 0                            | `letterSpacing`                                           | 1     | Changed: new row; PP (Tighten and Loosen Character Spacing, S1 Editor menu)                                         | Korean lyrics in large type often read better slightly tighter.                                        |
+| 가로 정렬 (horizontal alignment)     | Segmented: 왼쪽, 가운데                                                                                  | 가운데                       | `align`                                                   | 1     | Kept (06, `Looks`)                                                                                                  |                                                                                                        |
+| 세로 위치 (vertical position)        | Segmented: 위, 가운데, 아래                                                                              | 가운데                       | `vAlign`                                                  | 1     | Kept (06, `Looks`)                                                                                                  |                                                                                                        |
+| 최대 줄 수 (maximum lines)           | Number field, 1 to 10                                                                                    | 2                            | `maxLines`                                                | 1     | Kept (`Looks`); the range is a proposal                                                                             |                                                                                                        |
+| 여백 (margin)                        | Number field, %, 0 to 30, step 1                                                                         | 6                            | `margin`                                                  | 1     | Kept (`Looks`); the range is a proposal                                                                             |                                                                                                        |
+| 외곽선 (outline)                     | Switch, then 두께 (width, px at 1080p, 1 to 10) and 색 (color)                                           | Off; 3 px, black             | `outline` becomes `{ on, width, color }`                  | 1     | Changed; `Looks` shows off; PP (Stroke width and color, S4 p. 65), EW (Outline tab, S10)                            | A fixed outline can't fit both a dark room and a camera picture. Open question 16.                     |
+| 그림자 (shadow)                      | Switch, then 흐림 (blur, px, 0 to 40), 거리 (distance, px, 0 to 20), 불투명도 (opacity, %, 0 to 100), 색 | On; 8 px, 4 px, 60 %, black  | `shadow` becomes `{ on, blur, distance, opacity, color }` | 1     | Changed; `Looks` shows on; PP (Shadow blur, opacity, color, angle, offset, S4 p. 65), EW (Shadow tab, S10)          | Same reason. The angle stays fixed (down and right) to keep the controls few.                          |
+| 출처 위치 (Bible reference position) | Select: 오른쪽 아래, 왼쪽 아래, 마지막 줄 다음, 숨김                                                     | 오른쪽 아래                  | `referencePosition`                                       | 1     | Changed: moved from 환경설정 > 성경; PP (a reference text box, or a line at the bottom of the verse box, S4 p. 142) | The lower third on the 방송 자막 and the full 본 화면 need different places.                           |
+| 글자 뒤 상자 (box behind text)       | Switch, color, opacity, padding                                                                          | Off                          | `box`                                                     | Later | Changed: new; PP (Text Background, S4 p. 63)                                                                        | Helps a 하단 자막 over a busy camera picture. Waits until the 방송 자막 style is tried on real output. |
+
+- The board shows only 기본. 현재와 다음 and 하단 자막 start as copies of 기본;
+  하단 자막 uses 세로 위치 아래 and 크기 56 (proposal).
 
 Font rules (proposal):
 
@@ -880,20 +1022,88 @@ Font rules (proposal):
   them (S4 pp. 64 to 65), but Korean lyrics don't use case, and lyrics aren't
   right-aligned.
 
-#### Stage layout elements
+#### Stage layouts
 
-| Row                      | Change                                                                                      | Ver. | Basis                                                      |
-| ------------------------ | ------------------------------------------------------------------------------------------- | ---- | ---------------------------------------------------------- |
-| 시계 형식 (clock format) | New property of the 시계 element: Segmented 24시간, 12시간. Default 24시간 (03's proposal). | 1    | PP (24 Hour checkbox on clocks and timers, S4 pp. 69, 126) |
+Stored in `stage-layouts.json`. The element defaults are those of 현재 가사 on
+the `StageEditor` board. Changes apply to the output at once when the layout is
+on the 무대 화면 (06).
+
+| Row                                     | Control and range                                                              | Default                                                   | Stored in                       | Ver. | Basis                                                                        |
+| --------------------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------- | ------------------------------- | ---- | ---------------------------------------------------------------------------- |
+| 배치 이름 (layout name)                 | Text; required, unique                                                         | 현재와 다음                                               | `layouts[].name`                | 1    | Kept (06)                                                                    |
+| 캔버스 크기 (canvas size)               | Read-only                                                                      | 1920 × 1080                                               | `.width`, `.height`             | 1    | Kept (02, `StageEditor`); fixed in version 1 (proposal)                      |
+| 요소 이름 (element name)                | Text                                                                           | The kind's name, for example 현재 가사                    | `..name`                        | 1    | Kept (06)                                                                    |
+| 내용 종류 (content kind)                | Select of the seven kinds                                                      | Set by 요소 추가                                          | `..kind`                        | 1    | Kept (06)                                                                    |
+| 보여 줄 것 (what to show, 장 elements)  | Segmented: 글자, 그림, 메모                                                    | 글자                                                      | `..show`                        | 1    | Kept (06, `StageEditor`)                                                     |
+| X, Y, W, H                              | Number fields, px; X and Y 0 to the canvas size, W and H 20 to the canvas size | Per the default layout (02); 현재 가사 45, 100, 1194, 260 | `..frame`                       | 1    | Kept (06, `StageEditor`); the ranges are a proposal                          |
+| 비율 고정, 격자에 맞추기                | Toggle buttons; the grid is 20 px                                              | Off, off                                                  | Not stored (editor state)       | 1    | Kept (06)                                                                    |
+| Zoom                                    | Read-only percent; 화면에 맞춤 (Ctrl 0)                                        | Fit                                                       | Not stored                      | 1    | Kept (06)                                                                    |
+| 글꼴, 굵기 (font, weight)               | Selects, as in the lyric style                                                 | Pretendard, 700                                           | `..text.font`, `..text.weight`  | 1    | Kept (06, `StageEditor`)                                                     |
+| 크기 (size)                             | Number field, px, 12 to 300, step 1                                            | 72                                                        | `..text.size`                   | 1    | Kept (`StageEditor`); the range is a proposal                                |
+| 글자색 (text color)                     | Swatch, hex value, color picker                                                | #FFFFFF                                                   | `..text.color`                  | 1    | Kept (`StageEditor`)                                                         |
+| 가로 정렬, 세로 정렬                    | Segmented: 왼쪽, 가운데; 위, 가운데, 아래                                      | 왼쪽; 위                                                  | `..text.align`, `..text.vAlign` | 1    | Kept (`StageEditor`)                                                         |
+| 줄 간격 (line spacing)                  | Number field, 0.8 to 3.0, step 0.05                                            | 1.3                                                       | `..text.lineHeight`             | 1    | Kept (`StageEditor`); the range is a proposal                                |
+| 크기 자동 맞춤 (auto-fit size)          | Switch                                                                         | On                                                        | `..text.autoFit`                | 1    | Kept (`StageEditor`)                                                         |
+| 모양 (appearance): 배경색, 불투명도     | Swatch with 없음; number field, %, 0 to 100                                    | 없음; 100                                                 | `..box`                         | 1    | Kept (06 proposal)                                                           |
+| 시계 형식 (clock format, 시계 elements) | Segmented: 24시간, 12시간                                                      | 24시간 (03)                                               | `..clockFormat`                 | 1    | Changed: new row; PP (24 Hour checkbox on clocks and timers, S4 pp. 69, 126) |
+
+#### Media properties
+
+Stored per media item in `media.json` `items[].props`. Changes apply at once,
+and live if the media is on output (05).
+
+| Row                  | Control and range                                                       | Default                         | Stored in                 | Ver. | Basis                                            |
+| -------------------- | ----------------------------------------------------------------------- | ------------------------------- | ------------------------- | ---- | ------------------------------------------------ |
+| 끝나면 (at the end)  | Segmented: 반복, 멈춤                                                   | From 환경설정 > 미디어 (반복)   | `.props.end`              | 1    | Kept (05, `Media`)                               |
+| 구간 (range)         | Two time fields, m:ss.s; the start before the end, both within the file | The whole file                  | `.props.in`, `.props.out` | 1    | Kept (05, `Media`); the default is a proposal    |
+| 속도 (speed)         | Number field, ×, 0.25 to 4.0, step 0.05                                 | 1.0                             | `.props.speed`            | 1    | Kept (05, `Media` 1.0×); the range is a proposal |
+| 맞춤 (fit)           | Segmented: 맞추기, 채우기, 늘리기                                       | From 환경설정 > 미디어 (채우기) | `.props.fit`              | 1    | Kept (05, `Media`)                               |
+| 소리 켜기 (sound on) | Switch                                                                  | From 환경설정 > 미디어 (off)    | `.props.audio`            | 1    | Kept (05); `Media` shows it off                  |
+| 음량 (volume)        | Slider, 0 to 100; unavailable while the sound is off                    | 100                             | `.props.volume`           | 1    | Kept (05, `Media`); the default is a proposal    |
 
 #### Other objects
 
-| Object | Row                                                                                        | Ver.  | Basis                                                 | Reason                                                                                    |
-| ------ | ------------------------------------------------------------------------------------------ | ----- | ----------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| 타이머 | 0 지나면 (past zero): 계속 (keep counting, default), 멈춤 (stop). `timers.json` `.overrun` | 1     | PP (Allows Overrun, S4 p. 122)                        | 04 always counts past 0 with "-". Some 타이머 (a countdown to service start) should stop. |
-| 소품   | 자동 끄기 (auto clear after N seconds)                                                     | Later | PP (Auto-clear Props, version 17, S6)                 | Useful for a short caption; version 1 turns it off with F4 or a click.                    |
-| 소품   | 한 번에 하나 (single prop mode)                                                            | Later | PP (Single Prop Mode, version 17, S6)                 | A 매크로 covers it in version 1.                                                          |
-| 메시지 | Transition                                                                                 | Fixed | PP (one transition shared by all messages, S4 p. 124) | A fade of the 장 transition length. No row.                                               |
+Changes apply at once. The defaults apply when the operator creates the object.
+
+| Object              | Row                                    | Control and range                                                                             | Default                      | Stored in               | Ver.  | Basis                                                                                                                             |
+| ------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------- | ----------------------- | ----- | --------------------------------------------------------------------------------------------------------------------------------- |
+| 메시지 template     | 이름 (name)                            | Text; required                                                                                |                              | `templates[].name`      | 1     | Kept (02)                                                                                                                         |
+| 메시지 template     | 아이콘 (icon)                          | Two icons: msg, user                                                                          | msg                          | `.icon`                 | 1     | Kept (02, `Overlays`)                                                                                                             |
+| 메시지 template     | 문장 (sentence)                        | Text with `{blank}` marks; required                                                           |                              | `.text`                 | 1     | Kept (02)                                                                                                                         |
+| 메시지 template     | 기본 보낼 화면 (default targets)       | Chips: 모든 화면, 본 화면, 무대, 방송 자막                                                    | 모든 화면                    | `.targets`              | 1     | Kept (02); the default is a proposal                                                                                              |
+| 메시지 template     | 기본 표시 시간 (default display time)  | Segmented: 계속, 30초, 1분, 2분                                                               | 계속                         | `.duration`             | 1     | Kept (02, `Overlays`); the default is a proposal                                                                                  |
+| 무대 메시지 presets | One line of text each                  | Text list                                                                                     | The seven `Overlays` presets | `stagePresets[]`        | 1     | Kept (02, `Overlays`)                                                                                                             |
+| 공지 set            | 이름 (name)                            | Text; required                                                                                |                              | `sets[].name`           | 1     | Kept (02)                                                                                                                         |
+| 공지 set            | 이미지 (images)                        | Ordered list of images; at least one                                                          |                              | `.media`                | 1     | Kept (02)                                                                                                                         |
+| 공지 set            | 간격 (interval)                        | Number field, 초, 2 to 60, step 1                                                             | 8                            | `.interval`             | 1     | Kept (02); the default from `Overlays` ("8초"); the range is a proposal                                                           |
+| 공지 set            | 반복 (loop)                            | Toggle                                                                                        | On                           | `.loop`                 | 1     | Kept (02); the default is a proposal                                                                                              |
+| 공지 set            | 보낼 화면 (targets)                    | Chips: 본 화면, 무대, 방송 자막                                                               | 본 화면                      | `.targets`              | 1     | Kept (02); the default is a proposal                                                                                              |
+| 소품                | 이름 (name)                            | Text; required                                                                                |                              | `props[].name`          | 1     | Kept (02)                                                                                                                         |
+| 소품                | 내용 (content)                         | 그림 (an image from the media list) or 글자 (text with the lyric style rows)                  | 그림                         | `.content`              | 1     | Kept (02); the default is a proposal                                                                                              |
+| 소품                | 보낼 화면 (targets)                    | Chips: 본 화면, 무대, 방송 자막                                                               | 본 화면                      | `.targets`              | 1     | Kept (02); the default is a proposal                                                                                              |
+| 소품                | 자동 끄기, 한 번에 하나                | Seconds field; a switch per collection                                                        | Off                          | Not yet in 02           | Later | PP (Auto-clear Props, Single Prop Mode, version 17, S6)                                                                           |
+| 타이머              | 이름 (name)                            | Text; required                                                                                |                              | `timers[].name`         | 1     | Kept (02)                                                                                                                         |
+| 타이머              | 종류 (kind)                            | Select: 시각까지 (countdownTo), 정해진 시간 (countdown), 시각부터 (elapsedFrom), 시계 (clock) | 정해진 시간                  | `.kind`                 | 1     | Kept (02, 04); the names and the default are a proposal                                                                           |
+| 타이머              | 시각 (time)                            | Time field, HH:mm, 24-hour                                                                    | The next full hour           | `.time`                 | 1     | Kept (02); the default is a proposal                                                                                              |
+| 타이머              | 시간 (duration)                        | Duration field, 0:01 to 9:59:59                                                               | 5:00                         | `.duration`             | 1     | Kept (02); the default is a proposal                                                                                              |
+| 타이머              | 0 지나면 (past zero)                   | Segmented: 계속 (keep counting), 멈춤 (stop)                                                  | 계속                         | `.overrun`              | 1     | Changed: new row; PP (Allows Overrun, S4 p. 122). 04 always counts past 0 with "-"; a countdown to the service start should stop. |
+| 매크로              | 이름 (name)                            | Text; up to two lines on a tile                                                               | 새 매크로                    | `.name`                 | 1     | Kept (07)                                                                                                                         |
+| 매크로              | 아이콘 (icon)                          | Grid of design system icons                                                                   | The first icon of the grid   | `.icon`                 | 1     | Kept (07); the default is a proposal                                                                                              |
+| 매크로              | 색 (color)                             | Eight colors, no 없음                                                                         | teal                         | `.color`                | 1     | Kept (07, `MacroTile` README); the default is a proposal                                                                          |
+| 매크로              | 동작 (actions)                         | Ordered list of actions (07)                                                                  | Empty                        | `.actions[]`            | 1     | Kept (07)                                                                                                                         |
+| 매크로              | 시작할 때 실행 (run at startup)        | Checkable menu item                                                                           | Off                          | `.runOnStartup`         | 1     | Kept (07)                                                                                                                         |
+| 매크로              | 예약 (schedule)                        |                                                                                               |                              | `.schedule`             | Later | Kept (07, 09)                                                                                                                     |
+| 매크로 collection   | 이름, 매크로 list                      | Text; membership from the 모음 submenu                                                        |                              | `collections[]`         | 1     | Kept (07)                                                                                                                         |
+| 이름표              | 이름 (name)                            | Text; required, unique                                                                        | The eight defaults (02)      | `labels[].name`         | 1     | Kept (02, 05)                                                                                                                     |
+| 이름표              | 색 (color)                             | Eight colors or 없음                                                                          | Per the defaults (02)        | `.color`                | 1     | Kept (02, 05)                                                                                                                     |
+| 이름표              | 바로 가기 키 (jump key)                | One bare letter or digit, stored as a `code`                                                  | Empty                        | `.key`                  | 1     | Decided (shortcuts); see "이름표 jump keys"                                                                                       |
+| 퀵 실행 item        | 이름 (name)                            | Text; required                                                                                | The target's name            | `items[].name`          | 1     | Kept (02, 04)                                                                                                                     |
+| 퀵 실행 item        | 대상 (target)                          | Set when the item is added: song, Bible passage, 소품, 타이머, 매크로, 검은 화면              |                              | `.kind`, `.ref`         | 1     | Kept (02, 04)                                                                                                                     |
+| Bible passage       | 역본, 나누기, 참조, 절 번호, 역본 이름 | The Bible panel controls (04)                                                                 | From 환경설정 > 성경         | The `bible` object (02) | 1     | Kept (02, 04)                                                                                                                     |
+
+- Not in this inventory: 예배 순서 item fields (구성, background override, start
+  매크로, memo) and song fields. They are service and song content (05, 02), not
+  settings.
 
 ### Remembered state (not settings)
 
@@ -1000,56 +1210,66 @@ migrations.
 
 ## What this proposal would replace
 
-| Place                                                                  | What changes                                                                                                                      |
-| ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| 06 "환경설정 window": the page list                                    | Pages become 일반, 출력, 진행, 라이브러리, 성경, 가져오기, 미디어, 단축키, 정보 (업데이트 waits).                                 |
-| 06 "환경설정 window": 일반 언어, 시작할 때, 자동 저장, 복구 사본, 보고 | Language waits, 시작할 때 becomes fixed, 자동 저장 and 보고 are rejected, 복구 사본 moves to 라이브러리.                          |
-| 06 "환경설정 window": 출력 안정성 row                                  | Removed (fixed prevent sleep; per-screen values in 화면 설정).                                                                    |
-| 06 "환경설정 window": 라이브러리 위치 곡                               | Becomes 데이터 폴더.                                                                                                              |
-| 06 "환경설정 window": 성경 표시 rows                                   | Become defaults for new passages; 출처 위치 moves to the lyric style.                                                             |
-| 06 "환경설정 window": 업데이트 page                                    | Becomes the 정보 page.                                                                                                            |
-| 06 "Screen properties": 절전 막기                                      | Removed.                                                                                                                          |
-| 06 "Look editor": lyric style properties                               | Adds 굵기, 글자 간격, outline and shadow details, 출처 위치.                                                                      |
-| 06 "Shortcuts": "Where shortcuts work" and "Default shortcuts"         | Replaced by "Shortcut system" in this file.                                                                                       |
-| 04 "Keyboard" and "Keyboard summary for 진행"                          | Add Page Down and Page Up, 다음 항목, and the rule for → when another item is open; next on the last 장 becomes the 진행 setting. |
-| 03 "Transitions"                                                       | Fixed defaults become 환경설정 > 출력 > 전환.                                                                                     |
-| 02 "App-wide settings"                                                 | See "Storage changes for 02".                                                                                                     |
-| README open questions 2, 12, 14, 19, 24                                | Answered by this proposal (autosave, media copy, output stability defaults, reports and updates, transitions).                    |
+| Place                                                                  | What changes                                                                                                                                                                                                               |
+| ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 06 "환경설정 window": the page list                                    | Pages become 일반, 출력, 진행, 라이브러리, 성경, 가져오기, 미디어, 단축키, 정보 (업데이트 waits).                                                                                                                          |
+| 06 "환경설정 window": 일반 언어, 시작할 때, 자동 저장, 복구 사본, 보고 | Language waits, 시작할 때 becomes fixed, 자동 저장 and 보고 are rejected, 복구 사본 moves to 라이브러리.                                                                                                                   |
+| 06 "환경설정 window": 출력 안정성 row                                  | Removed (fixed prevent sleep; per-screen values in 화면 설정).                                                                                                                                                             |
+| 06 "환경설정 window": 라이브러리 위치 곡                               | Becomes 데이터 폴더.                                                                                                                                                                                                       |
+| 06 "환경설정 window": 성경 표시 rows                                   | Become defaults for new passages; 출처 위치 moves to the lyric style.                                                                                                                                                      |
+| 06 "환경설정 window": 업데이트 page                                    | Becomes the 정보 page.                                                                                                                                                                                                     |
+| 06 "Screen properties": 절전 막기                                      | Removed.                                                                                                                                                                                                                   |
+| 06 "Look editor": lyric style properties                               | Adds 굵기, 글자 간격, outline and shadow details, 출처 위치.                                                                                                                                                               |
+| 06 "Shortcuts": "Where shortcuts work" and "Default shortcuts"         | Replaced by "Shortcut system" in this file (decided 2026-10-25).                                                                                                                                                           |
+| 04 "Keyboard" and "Keyboard summary for 진행"                          | Decided: add Page Down and Page Up, 다음 항목, and the rule for → when another item is open; ← → and Space in the 장 grid go to the live commands (focus precedence rule 5); next on the last 장 becomes the 진행 setting. |
+| 07 "Keyboard" (매크로 tiles)                                           | Decided: kept, but it applies only to keyboard focus, which a mouse click in 진행 no longer gives (focus precedence).                                                                                                      |
+| `SlideThumbnail` README (design system)                                | Decided: in 진행, ← → and Space go to 다음 장 and 이전 장; the grid keeps ↑ ↓ and Enter.                                                                                                                                   |
+| Design system component behavior in 진행                               | Decided: a mouse click on a button or tile doesn't move keyboard focus; text fields, the 장 grid, and the 예배 순서 list still take it.                                                                                    |
+| 02 `shortcuts.json` and `labels.json`                                  | Decided: keys are stored as `code` values (see "Storage changes for 02").                                                                                                                                                  |
+| 03 "Transitions"                                                       | Fixed defaults become 환경설정 > 출력 > 전환.                                                                                                                                                                              |
+| 02 "App-wide settings"                                                 | See "Storage changes for 02".                                                                                                                                                                                              |
+| README open questions 2, 12, 14, 19, 24                                | Answered by this proposal (autosave, media copy, output stability defaults, reports and updates, transitions).                                                                                                             |
 
 ## Follow-up work
 
-If the user accepts this proposal:
+For the shortcut part now, and for the settings part once the user decides:
 
 - Boards: redraw `Prefs` with the new pages, and `Shortcuts` with the new groups
   and the 이름표 group. Add the new lyric style rows to `Looks` and the clock
   format to `StageEditor`. Draw the quit confirmation dialog.
-- Design system: add Page Up, Page Down, Home, End, and Delete to the `KeyCap`
-  key names, and decide the 진행 grid keys in the `SlideThumbnail` README (open
-  question 2).
+- Design system (ui): add Page Up, Page Down, Home, End, and Delete to the
+  `KeyCap` key names; change the 진행 grid keys in the `SlideThumbnail` README
+  (focus precedence rule 5); and make buttons and tiles in 진행 not take
+  keyboard focus on a mouse click.
 - Spec: update 02, 03, 04, and 06 as "What this proposal would replace" says,
   and move the answered README open questions.
-- Code: the command registry and key matcher in `src/shared/`, built by the
-  member whose brief allows that shared change.
+- Code: the command registry types and the key matcher go in `src/shared/`,
+  which data owns (`docs/MILESTONES.md`, "File ownership"). The member who
+  builds shortcuts sends data the shapes first.
 
 ## Open questions
 
-| #   | Topic                                  | Question                                                                                                                                                                                 | What this proposal does                                                                                                                                       |
-| --- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Ctrl S                                 | ProPresenter uses Ctrl S for Show Mode on Windows (S1). Windows users press Ctrl S to save by habit, and the app has no save.                                                            | Follows ProPresenter: Ctrl S opens 진행. In the imported song editor, the only place with 저장, Ctrl S runs 저장.                                             |
-| 2   | 진행 grid and list keys                | The `SlideThumbnail` README says the arrow keys move between thumbnails, and Enter and Space act as a click. In 진행, → ← and Space are ProPresenter's next and previous (S1, S4 p. 70). | In 진행, → ← Space Page Up Page Down always go to the live commands. The grid keeps ↑, ↓, and Enter. Lists keep their `ListRow` keys. 준비 keeps the READMEs. |
-| 3   | Next on the last 장                    | 04 proposed moving into the next item, as a guess about ProPresenter.                                                                                                                    | A 진행 setting, default 멈춤.                                                                                                                                 |
-| 4   | 이름표 jump key defaults               | 02 starts with no jump keys.                                                                                                                                                             | Keeps them empty. Alternative: 1절 1, 2절 2, 3절 3, 프리코러스 P, 후렴 C, 브리지 B, 간주 I, 엔딩 E (English initials).                                        |
-| 5   | → after picking another item           | 04's next and previous follow the current item.                                                                                                                                          | When the 장 panel shows another item, → outputs its first tile.                                                                                               |
-| 6   | Keys for each 소품, 매크로, and 타이머 | ProPresenter maps keys to Props and Macros (S3). The user deferred 퀵 실행 keys, which are close to these.                                                                               | Includes them in version 1 with no defaults.                                                                                                                  |
-| 7   | Transitions                            | Global like ProPresenter's master transitions (S4 p. 166), or per Look? Should clears fade with the layer's transition?                                                                  | Global in 환경설정 > 출력. Clears and Look changes stay instant (03).                                                                                         |
-| 8   | 메시지 appearance                      | No document says which font, size, position, or background a 메시지 uses.                                                                                                                | Proposes a 메시지 style chosen per screen in the Look, like the lyric style, to be specified after the user decides.                                          |
-| 9   | Sound of new videos                    | Background loops often have music; announcement videos need sound.                                                                                                                       | New videos import with sound off.                                                                                                                             |
-| 10  | Copy media on import                   | ProPresenter's default is off (S4 p. 190). The `Media` board implies copying.                                                                                                            | A switch, default on.                                                                                                                                         |
-| 11  | Prevent sleep                          | The `Prefs` and `Screens` boards show switches.                                                                                                                                          | Removes both switches; always on while any output is on.                                                                                                      |
-| 12  | The 일반 page                          | Language and on launch have one option each.                                                                                                                                             | Hides them; adds launch with Windows.                                                                                                                         |
-| 13  | Outline and shadow detail              | The board shows two switches.                                                                                                                                                            | Adds width and color, and blur, distance, opacity, and color.                                                                                                 |
-| 14  | Bible reference options                | 02 has every, first, and none. ProPresenter has each, last, and none (S4 p. 142).                                                                                                        | Offers all four.                                                                                                                                              |
-| 15  | Stored key format                      | 02 stores display names such as `["Ctrl", "1"]`.                                                                                                                                         | Stores `code` values so that keys don't depend on the layout or the IME.                                                                                      |
-| 16  | 지금 백업 during a service             | 08 forbids automatic backups during a service, but says nothing about a manual one.                                                                                                      | Makes 지금 백업 unavailable while any output is on.                                                                                                           |
-| 17  | Presentation remote F5 button          | Remotes alternate F5 and Esc on one button (S16). F5 clears audio here, as in ProPresenter.                                                                                              | Keeps F5. The operator can move 오디오 지우기 to another key on the 단축키 page.                                                                              |
-| 18  | Key names                              | The `KeyCap` README doesn't name Page Up, Page Down, Home, End, or Delete.                                                                                                               | Uses those English names, as Windows writes them.                                                                                                             |
+Questions 1 to 9 were decided on 2026-10-25 by the shortcut decision (see
+"Decision status"). Questions 10 to 18 stay open; until the user decides, the
+proposal's choice applies.
+
+| #   | Topic                                  | Question                                                                                                                      | State and what applies                                                                                                                                                                        |
+| --- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Ctrl S                                 | ProPresenter uses Ctrl S for Show Mode on Windows (S1). Windows users press Ctrl S to save by habit, and the app has no save. | Decided, follows ProPresenter: Ctrl S opens 진행. In the imported song editor, the only place with 저장, Ctrl S runs 저장 (no ProPresenter source found for that case).                       |
+| 2   | 진행 grid and list keys                | The `SlideThumbnail` README says the arrow keys move between thumbnails, and Enter and Space act as a click.                  | Decided, follows ProPresenter (S4 p. 70): in 진행, → ← Space Page Up Page Down go to the live commands, and focus precedence rule 5 applies. The `SlideThumbnail` README changes (follow-up). |
+| 3   | Next on the last 장                    | 04 proposed moving into the next item, as a guess about ProPresenter.                                                         | Decided, no ProPresenter source found: a 진행 setting, default 멈춤.                                                                                                                          |
+| 4   | 이름표 jump key defaults               | 02 starts with no jump keys.                                                                                                  | Decided, no ProPresenter source found for default group hot keys: they start empty.                                                                                                           |
+| 5   | → after picking another item           | 04's next and previous follow the current item.                                                                               | Decided, no ProPresenter source found: when the 장 panel shows another item, → outputs its first tile.                                                                                        |
+| 6   | Keys for each 소품, 매크로, and 타이머 | ProPresenter maps keys to Props and Macros (S3).                                                                              | Decided, follows ProPresenter for 소품 and 매크로; 타이머 follow the same pattern (no ProPresenter source found). Version 1, no default keys.                                                 |
+| 7   | Presentation remote F5 button          | Remotes alternate F5 and Esc on one button (S16).                                                                             | Decided, follows ProPresenter: F5 stays 오디오 지우기 (S1). The 단축키 page can move it.                                                                                                      |
+| 8   | Stored key format                      | 02 stores display names such as `["Ctrl", "1"]`.                                                                              | Decided: keys are matched and stored by physical key (`code`).                                                                                                                                |
+| 9   | Key names                              | The `KeyCap` README doesn't name Page Up, Page Down, Home, End, or Delete.                                                    | Decided: English, as Windows writes them.                                                                                                                                                     |
+| 10  | Prevent sleep                          | The `Prefs` and `Screens` boards show switches.                                                                               | Open. Proposal: remove both switches; always on while any output is on.                                                                                                                       |
+| 11  | The 일반 page                          | Language and on launch have one option each.                                                                                  | Open. Proposal: hide them; add launch with Windows.                                                                                                                                           |
+| 12  | Transitions                            | Global like ProPresenter's master transitions (S4 p. 166), or per Look? Should clears fade with the layer's transition?       | Open. Proposal: global in 환경설정 > 출력; clears and Look changes stay instant (03).                                                                                                         |
+| 13  | 메시지 appearance                      | No document says which font, size, position, or background a 메시지 uses.                                                     | Open. Proposal: a 메시지 style chosen per screen in the Look, like the lyric style, specified after the user decides.                                                                         |
+| 14  | Sound of new videos                    | Background loops often have music; announcement videos need sound. The `Media` board shows 소리 켜기 off.                     | Open. Proposal: new videos import with sound off.                                                                                                                                             |
+| 15  | Copy media on import                   | ProPresenter's default is off (S4 p. 190). The `Media` board implies copying.                                                 | Open. Proposal: a switch, default on.                                                                                                                                                         |
+| 16  | Outline and shadow detail              | The board shows two switches.                                                                                                 | Open. Proposal: add width and color, and blur, distance, opacity, and color.                                                                                                                  |
+| 17  | Bible reference options                | 02 has every, first, and none. ProPresenter has each, last, and none (S4 p. 142).                                             | Open. Proposal: offer all four.                                                                                                                                                               |
+| 18  | 지금 백업 during a service             | 08 forbids automatic backups during a service, but says nothing about a manual one.                                           | Open. Proposal: 지금 백업 is unavailable while any output is on.                                                                                                                              |
