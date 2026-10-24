@@ -8,20 +8,40 @@ import {
   PropertyRow,
   PropertyValue,
 } from './PropertyRow';
+import {SegmentedControl} from './SegmentedControl';
 import {Switch} from './Switch';
 import {TextField} from './TextField';
 
 function ScreenSettings(): JSX.Element {
   const [onTop, setOnTop] = useState(false);
   const [name, setName] = useState('본 화면');
+  const [kind, setKind] = useState<'audience' | 'stage'>('stage');
   return (
     <Properties>
       <PropertyGroup title="안정성">
         <PropertyRow label="항상 위">
-          {id => <Switch id={id} checked={onTop} onChange={setOnTop} />}
+          {({controlId}) => (
+            <Switch id={controlId} checked={onTop} onChange={setOnTop} />
+          )}
         </PropertyRow>
         <PropertyRow label="이름">
-          {id => <TextField id={id} value={name} onChange={setName} />}
+          {({controlId}) => (
+            <TextField id={controlId} value={name} onChange={setName} />
+          )}
+        </PropertyRow>
+        <PropertyRow label="종류">
+          {({controlId, labelId}) => (
+            <SegmentedControl
+              id={controlId}
+              labelledBy={labelId}
+              options={[
+                {value: 'audience', label: '청중'},
+                {value: 'stage', label: '무대'},
+              ]}
+              value={kind}
+              onChange={setKind}
+            />
+          )}
         </PropertyRow>
         <PropertyValue label="주사율" value="60Hz" />
       </PropertyGroup>
@@ -51,6 +71,19 @@ describe('PropertyRow', () => {
     await userEvent.click(screen.getByText('이름'));
     expect(document.activeElement).toBe(
       screen.getByRole('textbox', {name: '이름'}),
+    );
+  });
+
+  it('names a group control after the row name', () => {
+    render(<ScreenSettings />);
+    expect(screen.getByRole('radiogroup', {name: '종류'})).toBeDefined();
+  });
+
+  it('focuses the Tab stop of a group control from a press on the name', async () => {
+    render(<ScreenSettings />);
+    await userEvent.click(screen.getByText('종류'));
+    expect(document.activeElement).toBe(
+      screen.getByRole('radio', {name: '무대'}),
     );
   });
 

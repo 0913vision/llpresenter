@@ -20,11 +20,12 @@ function ScreenProperties(): JSX.Element {
     <Properties>
       <PropertyGroup title="출력">
         <PropertyRow label="종류">
-          {id => (
+          {({controlId, labelId}) => (
             <Stateful<'audience' | 'stage'> initial="audience">
               {(value, setValue) => (
                 <SegmentedControl
-                  labelledBy={id}
+                  id={controlId}
+                  labelledBy={labelId}
                   fill
                   options={[
                     {value: 'audience', label: '청중'},
@@ -38,11 +39,11 @@ function ScreenProperties(): JSX.Element {
           )}
         </PropertyRow>
         <PropertyRow label="장치">
-          {id => (
+          {({controlId}) => (
             <Stateful<string> initial="2">
               {(value, setValue) => (
                 <SelectMenu
-                  id={id}
+                  id={controlId}
                   block
                   options={[
                     {value: '2', label: '모니터 2', meta: 'EPSON 프로젝터'},
@@ -60,19 +61,27 @@ function ScreenProperties(): JSX.Element {
       </PropertyGroup>
       <PropertyGroup title="안정성">
         <PropertyRow label="항상 위">
-          {id => (
+          {({controlId}) => (
             <Stateful<boolean> initial>
               {(checked, setChecked) => (
-                <Switch id={id} checked={checked} onChange={setChecked} />
+                <Switch
+                  id={controlId}
+                  checked={checked}
+                  onChange={setChecked}
+                />
               )}
             </Stateful>
           )}
         </PropertyRow>
         <PropertyRow label="절전 막기">
-          {id => (
+          {({controlId}) => (
             <Stateful<boolean> initial={false}>
               {(checked, setChecked) => (
-                <Switch id={id} checked={checked} onChange={setChecked} />
+                <Switch
+                  id={controlId}
+                  checked={checked}
+                  onChange={setChecked}
+                />
               )}
             </Stateful>
           )}
@@ -109,11 +118,11 @@ export function PropertySection(): JSX.Element {
               <Properties placement="window">
                 <PropertyGroup title="보고">
                   <PropertyRow label="오류 보고 보내기">
-                    {id => (
+                    {({controlId}) => (
                       <Stateful<boolean> initial>
                         {(checked, setChecked) => (
                           <Switch
-                            id={id}
+                            id={controlId}
                             checked={checked}
                             onChange={setChecked}
                           />
