@@ -195,3 +195,15 @@ every spelling.
     its error, then the rest of the stdout line gives the failure with its
     error. Splitter tests: pieces, a CRLF split across two pieces, and a long
     line.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (61bebae): reviewer (Codex, codex2) Request changes: no deadline for a
+  hung step, early output lost to truncation, and a double report.
+- Round 2 (c8a0ad6): reviewer (Codex, codex4) Request changes: the release timer
+  waited on the kill, orphaned descendants, and mixed partial lines.
+- Round 3 (f8208ac): reviewer (Codex, codex4) Approve, no findings. Lead
+  Approve. Lead scope decision on orphans: kill the tree while its root runs,
+  and report a process that keeps running instead of adding a job-object host
+  (recorded in a NOTE in `scripts/process-tree.mts`). Rebased by the lead onto
+  local `main` without conflicts.
