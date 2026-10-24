@@ -2,9 +2,12 @@ import type {JSX} from 'react';
 import {ButtonSection} from './ButtonSection';
 import {CheckboxSection} from './CheckboxSection';
 import {IconButtonSection} from './IconButtonSection';
+import {KeyCapSection} from './KeyCapSection';
+import {LabelSection} from './LabelSection';
 import {ListRowSection} from './ListRowSection';
 import {OverlaySection} from './OverlaySection';
 import {PanelSection} from './PanelSection';
+import {PropertySection} from './PropertySection';
 import {SegmentedSection} from './SegmentedSection';
 import {SelectSection} from './SelectSection';
 import {SliderSection} from './SliderSection';
@@ -36,6 +39,9 @@ export const galleryEntries: readonly GalleryEntry[] = [
   {name: 'Panel', Section: PanelSection},
   {name: 'ListRow', Section: ListRowSection},
   {name: 'Overlays', Section: OverlaySection},
+  {name: 'PropertyRow', Section: PropertySection},
+  {name: 'KeyCap', Section: KeyCapSection},
+  {name: 'LabelChip', Section: LabelSection},
 ];
 
 const COMPONENT_PARAM = 'c';
