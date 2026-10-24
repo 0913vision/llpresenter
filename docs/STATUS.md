@@ -15,14 +15,15 @@ Only the lead edits this file. Last updated: October 24, 2026.
 
 ## Sessions
 
-| Name   | Branch                      | State                                | Brief                   |
-| ------ | --------------------------- | ------------------------------------ | ----------------------- |
-| lead   | `main`                      | Held by the phase 0 session          | `docs/briefs/lead.md`   |
-| trial  | `docs/trial/workflow-check` | Merged (24534c6); continues as shell | `docs/briefs/trial.md`  |
-| devops | `chore/devops/verify`       | Started                              | `docs/briefs/devops.md` |
-| ui     | `feat/ui/form-controls`     | Started                              | `docs/briefs/ui.md`     |
-| shell  | `feat/shell/column-resize`  | Started                              | `docs/briefs/shell.md`  |
-| data   | `feat/data/schemas`         | Started                              | `docs/briefs/data.md`   |
+| Name   | Branch                         | State                                | Brief                   |
+| ------ | ------------------------------ | ------------------------------------ | ----------------------- |
+| lead   | `main`                         | Held by the phase 0 session          | `docs/briefs/lead.md`   |
+| trial  | `docs/trial/workflow-check`    | Merged (24534c6); continues as shell | `docs/briefs/trial.md`  |
+| devops | `chore/devops/verify`          | Started                              | `docs/briefs/devops.md` |
+| ui     | `feat/ui/form-controls`        | Started                              | `docs/briefs/ui.md`     |
+| shell  | `feat/shell/column-resize`     | Started                              | `docs/briefs/shell.md`  |
+| data   | `feat/data/schemas`            | Started                              | `docs/briefs/data.md`   |
+| spec   | `docs/spec/shortcuts-settings` | Started                              | `docs/briefs/spec.md`   |
 
 ## Next steps
 

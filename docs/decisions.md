@@ -129,3 +129,8 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   Only `src/shared/schema/` imports it, behind `parse<Format>` and
   `serialize<Format>`, so replacing it later touches only that folder. zod
   remains the fallback if valibot stops being maintained.
+- 2026-10-24: The shortcut system and a settings window that covers what
+  ProPresenter's settings offer (fonts included) are planned for implementation
+  later (user). The spec member researches ProPresenter now and writes a
+  proposal (`docs/spec/10-shortcuts-and-settings.md`) for the user to decide
+  before design and code.
