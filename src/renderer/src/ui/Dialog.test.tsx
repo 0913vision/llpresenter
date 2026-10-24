@@ -59,6 +59,12 @@ async function openDialog(): Promise<void> {
   await userEvent.click(screen.getByRole('button', {name: '새 예배'}));
 }
 
+function scrimOf(surface: HTMLElement): HTMLElement {
+  const scrim = surface.parentElement;
+  if (scrim === null) throw new Error('No scrim');
+  return scrim;
+}
+
 function appRoot(): Element {
   const root = screen.getByRole('button', {name: '새 예배'}).parentElement;
   if (root === null) throw new Error('No app root');
@@ -126,6 +132,24 @@ describe('Dialog', () => {
     expect(onCancel).not.toHaveBeenCalled();
     fireEvent.keyDown(name, {key: 'Enter'});
     expect(onCreate).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps focus inside and Esc working after a press on the scrim or its text', async () => {
+    const onCancel = vi.fn();
+    render(<NewService onCancel={onCancel} />);
+    await openDialog();
+    const dialog = screen.getByRole('dialog');
+    const field = document.activeElement;
+    expect(dialog.contains(field)).toBe(true);
+    await userEvent.pointer({keys: '[MouseLeft]', target: scrimOf(dialog)});
+    expect(document.activeElement).toBe(field);
+    await userEvent.pointer({
+      keys: '[MouseLeft]',
+      target: screen.getByRole('heading', {name: '새 예배'}),
+    });
+    expect(document.activeElement).toBe(field);
+    await userEvent.keyboard('{Escape}');
+    expect(onCancel).toHaveBeenCalledTimes(1);
   });
 
   it('keeps Enter in a multiline field', async () => {
@@ -231,6 +255,18 @@ describe('AlertDialog', () => {
   it('cancels with Esc', async () => {
     const onCancel = vi.fn();
     render(<Overwrite onCancel={onCancel} />);
+    await userEvent.keyboard('{Escape}');
+    expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps focus on its button and Esc working after a press on the scrim', async () => {
+    const onCancel = vi.fn();
+    render(<Overwrite onCancel={onCancel} />);
+    const alert = screen.getByRole('alertdialog');
+    await userEvent.pointer({keys: '[MouseLeft]', target: scrimOf(alert)});
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', {name: '덮어쓰기'}),
+    );
     await userEvent.keyboard('{Escape}');
     expect(onCancel).toHaveBeenCalledTimes(1);
   });

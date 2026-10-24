@@ -1,4 +1,4 @@
-import {useId, useRef, type JSX, type ReactNode} from 'react';
+import {useId, useRef, type JSX, type MouseEvent, type ReactNode} from 'react';
 import {createPortal} from 'react-dom';
 import {Button} from './Button';
 import {Checkbox, type CheckState} from './Checkbox';
@@ -104,9 +104,20 @@ function DialogBody({
   );
 }
 
+const FOCUSABLE =
+  'a[href], button, input, select, textarea, [tabindex], [contenteditable="true"]';
+
+function keepFocusInModal(event: MouseEvent<HTMLDivElement>): void {
+  // NOTE(0913vision): A press on the scrim, or on text in the modal, would
+  // move focus to the body, out of reach of the modal's Esc and focus trap.
+  const target = event.target instanceof Element ? event.target : null;
+  if (target?.closest(FOCUSABLE) === null) event.preventDefault();
+}
+
 /**
  * The scrim under the menu bar that centers a modal surface, in the dialog
- * layer.
+ * layer. A press on it, or on anything in the modal that can't take focus,
+ * leaves focus where it was.
  */
 export function ModalScrim({
   children,
@@ -114,7 +125,9 @@ export function ModalScrim({
   readonly children: ReactNode;
 }): JSX.Element {
   return createPortal(
-    <div className={styles.scrim}>{children}</div>,
+    <div className={styles.scrim} onMouseDown={keepFocusInModal}>
+      {children}
+    </div>,
     layerContainer('dialog'),
   );
 }
