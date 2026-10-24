@@ -1,11 +1,9 @@
-import {cleanup, render, screen} from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 import {TextArea} from './TextArea';
 import {TextField, type TextFieldProps} from './TextField';
-
-afterEach(cleanup);
 
 type FieldOverrides = Omit<TextFieldProps, 'value' | 'onChange'>;
 
@@ -70,7 +68,11 @@ describe('TextField', () => {
   it('clears the value with Esc, then releases focus', async () => {
     const onOuterKey = vi.fn();
     render(
-      <div onKeyDown={event => onOuterKey(event.key)}>
+      <div
+        onKeyDown={event => {
+          onOuterKey(event.key);
+        }}
+      >
         <Search initial="은혜" />
       </div>,
     );

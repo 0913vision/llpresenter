@@ -59,7 +59,7 @@ export interface RovingItem<T> {
 }
 
 export interface RovingSelectionOptions<T> {
-  readonly items: readonly RovingItem<T>[];
+  readonly items: ReadonlyArray<RovingItem<T>>;
   readonly value: T;
   readonly onChange: (value: T) => void;
   /** Turns off every move, for a group that is disabled as a whole. */

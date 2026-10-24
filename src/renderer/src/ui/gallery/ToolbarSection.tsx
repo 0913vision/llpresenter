@@ -2,7 +2,14 @@ import type {JSX} from 'react';
 import {OutputToggle, type OutputState} from '../OutputToggle';
 import {ToolbarButton} from '../ToolbarButton';
 import {ToolbarTabs, type ToolbarTab} from '../ToolbarTabs';
-import {Section, SpecGroup, SpecItem, Stateful, type SpecPin} from './Spec';
+import {
+  ignore,
+  Section,
+  SpecGroup,
+  SpecItem,
+  Stateful,
+  type SpecPin,
+} from './Spec';
 
 type Workspace = 'show' | 'prep' | 'screens';
 
@@ -37,7 +44,7 @@ function SingleTab({
       tabs={[tab]}
       value={selected ? tab.value : 'show'}
       compact={compact}
-      onChange={() => {}}
+      onChange={ignore}
     />
   );
 }

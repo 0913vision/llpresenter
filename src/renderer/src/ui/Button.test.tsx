@@ -1,9 +1,7 @@
-import {cleanup, render, screen} from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 import {Button} from './Button';
-
-afterEach(cleanup);
 
 describe('Button', () => {
   it('is a plain button named by its text', () => {

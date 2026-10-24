@@ -1,18 +1,16 @@
-import {cleanup, render, screen} from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 import {
   SegmentedControl,
   type SegmentOption,
   type SegmentedKind,
 } from './SegmentedControl';
 
-afterEach(cleanup);
-
 type Arrangement = 'base' | 'sunday' | 'short';
 
-const arrangements: readonly SegmentOption<Arrangement>[] = [
+const arrangements: ReadonlyArray<SegmentOption<Arrangement>> = [
   {value: 'base', label: '기본'},
   {value: 'sunday', label: '주일용'},
   {value: 'short', label: '짧게'},
@@ -23,7 +21,7 @@ function Controlled({
   onChange = () => {},
   disabled = false,
 }: {
-  readonly options?: readonly SegmentOption<Arrangement>[];
+  readonly options?: ReadonlyArray<SegmentOption<Arrangement>>;
   readonly onChange?: (value: Arrangement) => void;
   readonly disabled?: boolean;
 }): JSX.Element {
@@ -46,7 +44,7 @@ function checkedNames(): string[] {
   return screen
     .getAllByRole('radio')
     .filter(radio => radio.getAttribute('aria-checked') === 'true')
-    .map(radio => radio.textContent ?? '');
+    .map(radio => radio.textContent);
 }
 
 describe('SegmentedControl', () => {
@@ -56,12 +54,27 @@ describe('SegmentedControl', () => {
     expect(checkedNames()).toEqual(['기본']);
   });
 
-  it.each<[SegmentedKind, string, string, string]>([
-    ['tabs', 'tablist', 'tab', 'aria-selected'],
-    ['toggle', 'group', 'button', 'aria-pressed'],
+  it.each<{
+    readonly kind: SegmentedKind;
+    readonly groupRole: string;
+    readonly itemRole: string;
+    readonly stateAttribute: string;
+  }>([
+    {
+      kind: 'tabs',
+      groupRole: 'tablist',
+      itemRole: 'tab',
+      stateAttribute: 'aria-selected',
+    },
+    {
+      kind: 'toggle',
+      groupRole: 'group',
+      itemRole: 'button',
+      stateAttribute: 'aria-pressed',
+    },
   ])(
-    'uses the %s roles and state attribute',
-    (kind, groupRole, itemRole, stateAttribute) => {
+    'uses the $kind roles and state attribute',
+    ({kind, groupRole, itemRole, stateAttribute}) => {
       render(
         <SegmentedControl
           label="보기"

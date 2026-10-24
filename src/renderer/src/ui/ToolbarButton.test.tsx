@@ -1,16 +1,14 @@
-import {cleanup, render, screen} from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 import {OutputToggle, outputTooltip} from './OutputToggle';
 import {ToolbarButton} from './ToolbarButton';
 import {ToolbarTabs, type ToolbarTab} from './ToolbarTabs';
 
-afterEach(cleanup);
-
 type Workspace = 'show' | 'prep' | 'screens';
 
-const workspaceTabs: readonly ToolbarTab<Workspace>[] = [
+const workspaceTabs: ReadonlyArray<ToolbarTab<Workspace>> = [
   {value: 'show', icon: 'slides', label: '진행'},
   {value: 'prep', icon: 'edit', label: '준비'},
   {value: 'screens', icon: 'gear', label: '화면 설정'},

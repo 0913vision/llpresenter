@@ -1,6 +1,6 @@
 import type {JSX} from 'react';
 import {Switch, SwitchRow} from '../Switch';
-import {Section, SpecGroup, SpecItem, Stateful} from './Spec';
+import {ignore, Section, SpecGroup, SpecItem, Stateful} from './Spec';
 
 function Toggle({
   label,
@@ -65,7 +65,7 @@ export function SwitchSection(): JSX.Element {
             checked
             disabled
             title="텍스트 파일에 이름표가 없습니다"
-            onChange={() => {}}
+            onChange={ignore}
           />
         </SpecItem>
       </SpecGroup>

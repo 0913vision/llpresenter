@@ -15,7 +15,7 @@ export interface ToolbarTab<T extends string> {
 }
 
 export interface ToolbarTabsProps<T extends string> {
-  readonly tabs: readonly ToolbarTab<T>[];
+  readonly tabs: ReadonlyArray<ToolbarTab<T>>;
   readonly value: T;
   readonly onChange: (value: T) => void;
   /** The name of the tab list, such as 작업 공간. */

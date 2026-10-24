@@ -22,6 +22,14 @@ function endsWithConsonant(character: string): boolean {
  * 을 after a final consonant (모니터 3을), 를 otherwise (모니터 2를).
  */
 export function objectParticle(word: string): '을' | '를' {
-  const last = [...word].reverse().find(character => READABLE.test(character));
+  const last = lastReadable(word);
   return last !== undefined && endsWithConsonant(last) ? '을' : '를';
+}
+
+function lastReadable(word: string): string | undefined {
+  for (let index = word.length - 1; index >= 0; index--) {
+    const character = word.charAt(index);
+    if (READABLE.test(character)) return character;
+  }
+  return undefined;
 }

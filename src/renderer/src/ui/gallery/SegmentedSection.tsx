@@ -1,24 +1,31 @@
 import type {JSX} from 'react';
 import {SegmentedControl, type SegmentOption} from '../SegmentedControl';
-import {Section, SpecGroup, SpecItem, Stateful, type SpecPin} from './Spec';
+import {
+  ignore,
+  Section,
+  SpecGroup,
+  SpecItem,
+  Stateful,
+  type SpecPin,
+} from './Spec';
 
 type Arrangement = 'base' | 'sunday' | 'short';
 type View = 'grid' | 'list';
 type Filter = 'all' | 'changed' | 'conflict';
 type Mode = 'full' | 'window' | 'capture' | 'ndi';
 
-const arrangements: readonly SegmentOption<Arrangement>[] = [
+const arrangements: ReadonlyArray<SegmentOption<Arrangement>> = [
   {value: 'base', label: '기본'},
   {value: 'sunday', label: '주일용'},
   {value: 'short', label: '짧게'},
 ];
 
-const views: readonly SegmentOption<View>[] = [
+const views: ReadonlyArray<SegmentOption<View>> = [
   {value: 'grid', icon: 'grid', label: '격자 보기'},
   {value: 'list', icon: 'rows', label: '목록 보기'},
 ];
 
-const filters: readonly SegmentOption<Filter>[] = [
+const filters: ReadonlyArray<SegmentOption<Filter>> = [
   {value: 'all', label: '전체'},
   {value: 'changed', label: '바꾼 것', count: 3},
   {
@@ -30,7 +37,7 @@ const filters: readonly SegmentOption<Filter>[] = [
   },
 ];
 
-const modes: readonly SegmentOption<Mode>[] = [
+const modes: ReadonlyArray<SegmentOption<Mode>> = [
   {value: 'full', label: '전체 화면'},
   {value: 'window', label: '창'},
   {value: 'capture', label: '캡처용 창'},
@@ -102,7 +109,7 @@ export function SegmentedSection(): JSX.Element {
             kind="toggle"
             options={views}
             value="list"
-            onChange={() => {}}
+            onChange={ignore}
           />
         </SpecItem>
         <SpecItem label="Hover" pin="hover" pinIndex={1}>
@@ -111,7 +118,7 @@ export function SegmentedSection(): JSX.Element {
             kind="toggle"
             options={views}
             value="grid"
-            onChange={() => {}}
+            onChange={ignore}
           />
         </SpecItem>
         <SpecItem label="Counts, 겹침 in warning">
@@ -131,7 +138,7 @@ export function SegmentedSection(): JSX.Element {
             label="보기"
             options={filters}
             value="changed"
-            onChange={() => {}}
+            onChange={ignore}
           />
         </SpecItem>
       </SpecGroup>

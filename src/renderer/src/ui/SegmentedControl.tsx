@@ -26,7 +26,7 @@ export interface SegmentOption<T extends string> {
 }
 
 export type SegmentedControlProps<T extends string> = GroupName & {
-  readonly options: readonly SegmentOption<T>[];
+  readonly options: ReadonlyArray<SegmentOption<T>>;
   readonly value: T;
   readonly onChange: (value: T) => void;
   readonly kind?: SegmentedKind | undefined;

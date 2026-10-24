@@ -1,7 +1,7 @@
-import {cleanup, render, screen} from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 import {
   CheckRow,
   Checkbox,
@@ -9,8 +9,6 @@ import {
   type CheckRowProps,
   type CheckState,
 } from './Checkbox';
-
-afterEach(cleanup);
 
 function Row({
   initial = false,

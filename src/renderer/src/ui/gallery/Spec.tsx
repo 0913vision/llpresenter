@@ -95,6 +95,11 @@ export function SpecItem({
   );
 }
 
+/** A change handler for specimens that only show a state. */
+export function ignore(): undefined {
+  return undefined;
+}
+
 /** Keeps a specimen's value in local state so that it can be tried out. */
 export function Stateful<T>({
   initial,

@@ -1,8 +1,6 @@
-import {cleanup, render, screen} from '@testing-library/react';
-import {afterEach, describe, expect, it} from 'vitest';
+import {render, screen} from '@testing-library/react';
+import {describe, expect, it} from 'vitest';
 import {Gallery, galleryEntries, galleryFilter} from './Gallery';
-
-afterEach(cleanup);
 
 describe('Gallery', () => {
   it('draws a section for every component', () => {
