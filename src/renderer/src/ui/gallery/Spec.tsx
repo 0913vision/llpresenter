@@ -87,7 +87,10 @@ export function SpecItem({
       data-pin={pin}
       data-pin-index={pin === undefined ? undefined : pinIndex}
     >
-      <div className={styles.row} style={style}>
+      <div
+        className={classNames(styles.row, width !== undefined && styles.fill)}
+        style={style}
+      >
         {children}
       </div>
       <span className={styles.itemLabel}>{label}</span>
