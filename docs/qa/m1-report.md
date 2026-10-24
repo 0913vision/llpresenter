@@ -16,7 +16,7 @@ so the report has several runs:
 | Pre-freeze  | local `main` at `f72d3eb` and `8e114b5` (output-6, data-4, devops-9 merged)          | 0.9.0   | Done (M1-4, M1-5, D17; M1-11 found)                 |
 | Pre-freeze  | local `main` at `c4bbd3a` and `9a63e2b` (ui-6 merged)                                | 0.9.0   | Done (M1-7 and M1-8 to M1-10 retests)               |
 | Pre-merge   | output-9 `bc5bee2` on `c4bbd3a` (the M1-11 fix, and the UI state wiring for shell-3) | 0.9.0   | Done (M1-11, C10, C14, C16 to C21)                  |
-| Frozen `m1` | The tag `m1`                                                                         | -       | Waiting                                             |
+| Frozen `m1` | The tag `m1` (`5af7ac1`), a clean clone with `npm ci`                                | 0.9.0   | Done, signed off (see "Sign-off")                   |
 
 At `13d88b1`, `main` holds devops-1 (verify, lint, coverage, CI, soak runner),
 devops-3 (the lint test fix), shell-1 (column dragging and widths per size
@@ -43,19 +43,20 @@ testing:
 
 ## Bugs
 
-| ID    | Severity | Area and owner              | Title                                                                                            | Build     | State                                                      |
-| ----- | -------- | --------------------------- | ------------------------------------------------------------------------------------------------ | --------- | ---------------------------------------------------------- |
-| M1-1  | minor    | Main process wiring, output | A relative `LLP_USER_DATA` throws at load and leaves Electron's error dialog                     | `13d88b1` | Fixed (output-4), verified on `23e0344`                    |
-| M1-2  | minor    | Shell, shell                | A resize within one size class during a drag leaves the grid wider than the window               | `13d88b1` | Fixed (shell-4), verified on `9e2496a`                     |
-| M1-3  | minor    | Soak judge, devops          | Steady memory growth under about 13 MB per hour passes a 60-minute soak                          | `13d88b1` | Fixed (devops-5), verified on `c402184` and `b9392d0`      |
-| M1-4  | minor    | Main process wiring, output | Log lines still queued when the app quits are lost                                               | `13d88b1` | Fixed (output-6), verified on `f72d3eb`                    |
-| M1-5  | minor    | Logger, output              | The log's write queue has no cap and writes one line at a time                                   | `13d88b1` | Fixed (output-6), verified on `f72d3eb`                    |
-| M1-6  | minor    | Design system cards, ui     | The design system cards render without Pretendard, so card comparisons use a fallback font       | `3afbb50` | Fix in review (ui-5), passes on `27eab54` before merge     |
-| M1-7  | major    | Tests and `verify`, devops  | On a busy computer, test timeouts fail `verify` and stop pushes                                  | `c402184` | Fixed (devops-9), verified on local `c4bbd3a`              |
-| M1-8  | minor    | Dialog and AlertDialog, ui  | A click on the scrim moves focus out of the dialog, and Esc then does nothing                    | `20ffc86` | Fixed (ui-6), verified on local `9a63e2b`                  |
-| M1-9  | minor    | Menu triggers, ui           | The Down arrow doesn't open the 파일 menu button or the service picker                           | `20ffc86` | Fixed (ui-6), verified on local `9a63e2b`                  |
-| M1-10 | minor    | Tooltip with Button, ui     | A Button inside `Tooltip` with a shortcut gets no `aria-keyshortcuts`                            | `20ffc86` | Fixed (ui-6), verified on local `9a63e2b`                  |
-| M1-11 | blocker  | Quit, output                | Closing the app with an empty log queue leaves the process running, so the app can't start again | `f72d3eb` | Fix in review (output-9), passes on `02d872a` before merge |
+| ID    | Severity | Area and owner                | Title                                                                                            | Build     | State                                                 |
+| ----- | -------- | ----------------------------- | ------------------------------------------------------------------------------------------------ | --------- | ----------------------------------------------------- |
+| M1-1  | minor    | Main process wiring, output   | A relative `LLP_USER_DATA` throws at load and leaves Electron's error dialog                     | `13d88b1` | Fixed (output-4), verified on `23e0344`               |
+| M1-2  | minor    | Shell, shell                  | A resize within one size class during a drag leaves the grid wider than the window               | `13d88b1` | Fixed (shell-4), verified on `9e2496a`                |
+| M1-3  | minor    | Soak judge, devops            | Steady memory growth under about 13 MB per hour passes a 60-minute soak                          | `13d88b1` | Fixed (devops-5), verified on `c402184` and `b9392d0` |
+| M1-4  | minor    | Main process wiring, output   | Log lines still queued when the app quits are lost                                               | `13d88b1` | Fixed (output-6), verified on `m1`                    |
+| M1-5  | minor    | Logger, output                | The log's write queue has no cap and writes one line at a time                                   | `13d88b1` | Fixed (output-6), verified on `m1`                    |
+| M1-6  | minor    | Design system cards, ui       | The design system cards render without Pretendard, so card comparisons use a fallback font       | `3afbb50` | Fixed (ui-5), verified on `m1`                        |
+| M1-7  | major    | Tests and `verify`, devops    | On a busy computer, test timeouts fail `verify` and stop pushes                                  | `c402184` | Fixed (devops-9), verified on `m1`                    |
+| M1-8  | minor    | Dialog and AlertDialog, ui    | A click on the scrim moves focus out of the dialog, and Esc then does nothing                    | `20ffc86` | Fixed (ui-6), verified on `m1`                        |
+| M1-9  | minor    | Menu triggers, ui             | The Down arrow doesn't open the 파일 menu button or the service picker                           | `20ffc86` | Fixed (ui-6), verified on `m1`                        |
+| M1-10 | minor    | Tooltip with Button, ui       | A Button inside `Tooltip` with a shortcut gets no `aria-keyshortcuts`                            | `20ffc86` | Fixed (ui-6), verified on `m1`                        |
+| M1-11 | blocker  | Quit, output                  | Closing the app with an empty log queue leaves the process running, so the app can't start again | `f72d3eb` | Fixed (output-9), verified on `m1`                    |
+| M1-12 | minor    | App data file, data and shell | A broken `app.json` logs three warnings instead of one                                           | `m1`      | Open (data owns `app.json`, decision `e5504c4`)       |
 
 ### M1-1: A relative `LLP_USER_DATA` throws at load
 
@@ -327,6 +328,161 @@ testing:
   case above passes again, C14 shows 340 after a restart, and 3 starts right
   after a close open the app, twice while the first process was still tearing
   down (the lock is released before the real quit).
+
+### M1-12: A broken app.json logs three warnings
+
+- Severity: minor (log noise; the behavior is right).
+- Area and owner: the data store (`src/main/store/register.ts`) and the UI state
+  store (`src/main/uiState/`). The lead made the data store the one owner of
+  `app.json` (`docs/decisions.md`, `e5504c4`); shell then moves the UI state
+  onto it.
+- Build: the tag `m1` (`5af7ac1`). Case C19 (a) to (e).
+- Steps: Start with `app.json` holding text that isn't JSON, an empty file, a
+  JSON array, a wrong `format`, or `layout.normal.left` set to `"wide"`.
+- Expected: One warning that names the file and the field (the lead's C19
+  decision).
+- Actual: Three warnings for one file: "app.json is not usable {kind, field,
+  file}" from the UI state store, then "app.json is broken, so the app never
+  writes over it" and "skipped a data file or a part of one {the same error}"
+  from the data store. Everything else in C19 holds: the defaults show, the file
+  is never written, and no dialog opens. Two modules parse `app.json` on their
+  own; only the UI state store writes it today.
+- A test that would have caught it: start the main process with a broken
+  `app.json` and count the warnings that name it.
+
+## Results, frozen `m1` run (`5af7ac1`)
+
+QA checked out the tag in its clean clone, ran `npm ci` (exit 0, 2 min) and
+`npm run verify`, and drove the built app in the invisible QA window (the tag
+predates `LLP_TEST_WINDOWS=offscreen`). The computer ran other sessions at the
+same time, often at 100% CPU.
+
+### V. Install, checks, CI, and the version bot
+
+| Case       | Result    | Note                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ---------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| V1         | pass      | `npm ci` exit 0 in 2 min; Electron present                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| V2         | pass      | `npm ci` sets `core.hooksPath` to `.githooks` in the clone's own config (`prepare`, `--local`)                                                                                                                                                                                                                                                                                                                                                                          |
+| V3 to V5   | pass      | `npm run verify` passed all 5 steps in 157.7 s at 100% CPU; the steps now run at once (devops), and each prints its output as one block                                                                                                                                                                                                                                                                                                                                 |
+| V6         | pass      | Each break fails verify with exit 1 and names its step: typecheck, lint, format:check, test:coverage (with the failing test and its first error line), and build. Since devops runs the steps at once, the other steps still run and report `ok`; the plan expected verify to stop at the broken step, so this case now reads "fails and names the step"                                                                                                                |
+| V7         | pass      | Each of the 13 violations fails with its rule (`no-explicit-any`, `no-non-null-assertion`, `consistent-type-assertions`, `no-floating-promises`, `switch-exhaustiveness-check`, `no-unused-vars`, `llp/allowed-comments` four times, `tsdoc/syntax`, `react-hooks/rules-of-hooks`); a clean file passes                                                                                                                                                                 |
+| V8 to V10  | not rerun | GitHub CI and tags, checked at `13d88b1` and `23e0344`; the lead pushes `m1` and `main` after this run                                                                                                                                                                                                                                                                                                                                                                  |
+| V11, V12   | pass      | The version script on `m1`, on crafted histories: minor for `feat`, `refactor`, and `break`; patch for `fix`, `docs`, `style`, and `chore`; bump commits never count; only bump commits make no bump; `--major` gives 2.0.0                                                                                                                                                                                                                                             |
+| V13 to V17 | pass      | Real pushes only to a scratch bare repository at `m1`: a body, a trailer, a second line, a bad subject, and `Bump version: 1.2` are stopped before verify; a lint break is stopped by verify (320 s); a dirty tree is stopped; a feature branch and a tag go through unchecked; a valid commit plus `Bump version: 9.9.9` goes through after verify passes (229.8 s); a non-fast-forward is rejected. The hook is `#!/bin/sh` calling `node scripts/hooks/pre-push.mts` |
+| V18        | pass      | M1-3 stays fixed: (b) fails "+12.0 MB/h"; (a), (e), and (f) pass; (c) and (d) fail as designed                                                                                                                                                                                                                                                                                                                                                                          |
+
+### W. Window, size classes, and workspaces
+
+| Case      | Result                              | Note                                                                                                                                                      |
+| --------- | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| W1 to W4  | pass                                | S1 to S12 at 100%, 125%, and 150% (emulated): the requested viewport, the class, and the column widths are right with no overflow                         |
+| W5        | pass at 100%; 2 px at 125% and 150% | A 1000×600 request gives 1280×720 at 100%, and 1282×722 and 1280×721 at the emulated scales, the same rounding as before. For the user's spot check below |
+| W6        | pass                                | No Windows title bar; the 30 px menu bar is the top row                                                                                                   |
+| W7        | pass                                | Minimize and maximize are called; close quits                                                                                                             |
+| W8        | pass                                | Opens in 진행; the three tabs keep the same columns at 1280, 1920, and 2560                                                                               |
+| W9 to W11 | pass                                | narrow, normal, narrow at 1599, 1600, 1599; normal, wide, normal at 2399, 2400, 2399; height doesn't decide the class                                     |
+| W12       | pass at 100% and 150%; 2 px at 125% | Two of 322 steps at 125% read a 1282 px viewport for 1280 (emulation rounding)                                                                            |
+| W14       | pass                                | The 본 화면 output stays on across the three workspaces                                                                                                   |
+| W15       | pass                                | The app data folder stays the same                                                                                                                        |
+
+### C. Column widths
+
+| Case                 | Result | Note                                                                                                                                                                                                                                  |
+| -------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C1 to C9, C11 to C13 | pass   | As before; C9 (M1-2) stays fixed                                                                                                                                                                                                      |
+| C10                  | pass   | Nothing is written during a 50-step drag; one atomic write lands 560 ms after the release; a drag that ends at its start writes nothing                                                                                               |
+| C14                  | pass   | After a drag and a close 0 to 200 ms later, the next start shows the saved width                                                                                                                                                      |
+| C15                  | pass   | narrow 240 and 340 and normal 330 and 520, saved at 100%, come back unchanged at 125%                                                                                                                                                 |
+| C16, C17             | pass   | UTF-8, LF, final newline, no byte order mark, parses with the schema; unknown fields survive a save                                                                                                                                   |
+| C18                  | pass   | 20 force-quits 0 to 600 ms after a release: `app.json` always holds the old or the new widths. In a first attempt one start right after a kill didn't open, which fits the killed process still holding the lock; the rerun was clean |
+| C19                  | fail   | M1-12 (three warnings). Otherwise as decided: (a) to (e) start on the defaults and never write the file; (f) is clamped to 200 and 720; (g) shows its widths and doesn't write                                                        |
+| C20, C21             | pass   | A new or missing folder starts on the defaults and the first drag creates `app.json`; a read-only `app.json` logs EPERM, opens no dialog, and the next drag after clearing it writes                                                  |
+| C22, C23             | pass   | As before                                                                                                                                                                                                                             |
+
+### S. Stability
+
+| Case                           | Result             | Note                                                                                                                                                                                                                                                                                                                                    |
+| ------------------------------ | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S1 to S3, S5 to S8, S10 to S12 | pass               | As before. S8: `window.llp` now also has `service` and the output status calls; no Node globals                                                                                                                                                                                                                                         |
+| S4                             | pass (informative) | 20 control window crashes recover in 0.7 to 3.6 s (250 ms at `13d88b1`, before the store and UI state loads); listeners unchanged; no dialog                                                                                                                                                                                            |
+| S9                             | pass (informative) | 20,000 commands take 16.5 s to send; the round trip after them is 126 ms on a CPU at 100%; the last toggle decides the state; the log holds 1,000 waiting lines with a dropped count                                                                                                                                                    |
+| M1-4, M1-5, M1-11              | pass               | Every line logged right before a close reaches the file; the queue caps at 1,000; every close reaches the exit handlers (empty log, 5 to 10,000 lines, double closes, a drag right before the close); a stuck `app.json` rename exits after 3.0 s, a stuck log after 2.0 s, both after 5.2 s; a start right after a close opens the app |
+
+### G. Gallery
+
+| Case                            | Result | Note                                                                                                                                                                                                                                                                                                                                |
+| ------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| G1 to G4, G7, G8, G11, G13, G15 | pass   | Pretendard Variable is the only face, from the bundle; no unnamed control; disabled controls keep `text-off` and opacity 1                                                                                                                                                                                                          |
+| G5                              | pass   | No literal design value; the hits are `border-image-repeat: stretch` from the `border` shorthand, `max-content`, and the 1 px of a screen-reader-only element. One literal: `outline-offset: -2px` on the focused `ListRow` (cosmetic, for ui)                                                                                      |
+| G6                              | pass   | `live` appears only on outputs that are on, error rings, the LIVE badge and dot, 퀵 실행 on, and live 이름표                                                                                                                                                                                                                        |
+| G9                              | pass   | As before                                                                                                                                                                                                                                                                                                                           |
+| G10                             | pass   | No `title` attribute, before or after opening any overlay                                                                                                                                                                                                                                                                           |
+| G12                             | pass   | The only hits are "라이브러리" matching the forbidden "라이브" (a false match)                                                                                                                                                                                                                                                      |
+| G14                             | pass   | Nodes and listeners stay flat over 200 open and close cycles after a layer is set up on first use                                                                                                                                                                                                                                   |
+| G16                             | pass   | Menus and tooltips flip and stay 8 px inside at every edge; the picker scrolls inside a 180 px window                                                                                                                                                                                                                               |
+| G20 to G28 (a), (b)             | pass   | All 131 specimens match their cards with the real font, except two script artifacts (the TextField focus `outline-offset` with no outline, and a number field measured on its wrapper). Slider's `color` differs because a tooltip wrapper now passes `text-3` down; the track uses `--slider-fill`, so nothing renders differently |
+| G20 to G28 (c)                  | pass   | As before; ToolbarButton output tooltips now come from `Tooltip` ("본 화면 출력 끄기 (모니터 2)")                                                                                                                                                                                                                                   |
+| G29 to G35 (a), (b)             | pass   | Panel, ListRow, and StatusMarks match their cards; the opened Dialog, AlertDialog, Menu, and Tooltip match. Gaps: 6 card specimens and a 0 count aren't in the gallery yet (ui-7); the gallery's ListRow panels are 280 wide against the card's 296 (ui-7)                                                                          |
+| G29 to G35 (c)                  | pass   | As in the pre-freeze run with M1-8 to M1-10 fixed. Not testable in the gallery: Shift+F10 (synthetic keys), the AlertDialog primary with all checks off, the Panel `tabpanel` link and the switcher list                                                                                                                            |
+
+### D. Data formats
+
+| Case                       | Result | Note                                                                                                 |
+| -------------------------- | ------ | ---------------------------------------------------------------------------------------------------- |
+| D1 to D16, D20 to D22, D37 | pass   | 176 checks pass, 0 fail, 11 recorded as before                                                       |
+| D17, D18                   | pass   | Nine malformed commands are dropped, each with its field; nothing polluted; window actions as before |
+| D23 to D36                 | pass   | 719 checks pass, 0 fail, 71 recorded as before                                                       |
+
+### B. Shell against the design system (M2 backlog)
+
+- B1: the menu bar is 30 high on `bg-app` with the six menu names and 46×30
+  window buttons with their names. Differences: "LoveLight" is 13 px (12 px in
+  the `MenuBar` README); the menu names are `text` (README: `text-2`); the
+  center shows "LoveLight Presenter" instead of the service name; the window
+  buttons use native `title` tooltips.
+- B2: no `role="menubar"`, no `aria-haspopup`, and the menus don't open yet.
+- B3: the order, the placeholder "곡, 가사, 초성", and no `role="toolbar"` are
+  right; the search input is 376 wide at 1920 and at 1280 (README: 420, and 280
+  in `narrow`).
+- B4: as G23 on the real toolbar; the output buttons follow the live state
+  (W14).
+- B5: 28 high, `caption` `text-3`, 본 화면, 무대 화면, and 방송 자막 in order,
+  no focus; no `role="status"` yet.
+- B6: 15 native `title` tooltips in the window buttons, the toolbar, and the
+  진행 clear row (sent to shell).
+
+### Steps for the user: real display scaling
+
+QA can't change the Windows display scale (a system setting), so these checks
+need the user. Each takes about five minutes per scale.
+
+1. 새 폴더에 `m1`을 받습니다:
+   `git clone --branch m1 https://github.com/0913vision/llpresenter D:\llp-check`
+   후 그 폴더에서 `npm ci`를 실행합니다.
+2. 설정 > 시스템 > 디스플레이에서 배율을 125%로 바꿉니다.
+3. PowerShell에서 `$env:LLP_USER_DATA = 'D:\llp-check-data'`로 시험용 앱 데이터
+   폴더를 정한 뒤, `npm run build`와 `npm run preview`로 앱을 엽니다.
+4. 창 크기를 가장 작게 줄입니다. 화면의 앱 영역이 1280×720보다 작아지지 않는지
+   봅니다(125%에서는 실제 픽셀로 1600×900).
+5. 세 열 사이 경계를 끌어 넓히고 좁혀 봅니다. 가운데 열이 지나치게 좁아지지
+   않고, 글자와 아이콘이 흐리지 않은지 봅니다.
+6. 창을 최대화했다가 되돌립니다. 도구 막대의 단추 모양이 바뀌는 경계(창 너비
+   1600 CSS 픽셀)에서 깨지는 곳이 없는지 봅니다.
+7. 배율 150%로 2에서 6을 반복한 뒤, 배율을 원래 값으로 되돌립니다.
+8. 배율이 다른 모니터가 두 대 있다면, 창을 다른 모니터로 끌어 옮긴 뒤 4와 5를 한
+   번 더 봅니다.
+
+Report anything that looks cut off, blurry, or overlapping, with the scale and
+the window size.
+
+### Sign-off
+
+QA signs off M1 on the tag `m1`: every M1 case passes except C19's warning count
+(M1-12, minor, routed to data and shell) and the 2 px rounding at an emulated
+125% and 150% (W5, W12), which the user's spot check above covers. No blocker or
+major bug is open. Open observations for M2: Electron's teardown after the exit
+handlers (1.5 to 49 s at 100% CPU, to recheck on an idle computer against the 3
+s plus 2 s shutdown limits), the gallery gaps of ui-7, and section B.
 
 ## Results, pre-freeze run (`13d88b1`)
 
