@@ -7,6 +7,8 @@ import {startOutputs} from './outputs/start';
 import {flushLogBeforeQuit} from './quit';
 import {applyUserDataOverride, type UserDataProblem} from './userData';
 import {createControlWindow} from './windows/control';
+import {registerMediaScheme, serveMedia} from './windows/mediaProtocol';
+import type {MediaPathResolver} from './windows/mediaResponse';
 
 const BAD_ENVIRONMENT_EXIT_CODE = 1;
 
@@ -14,6 +16,12 @@ const userDataProblem = applyUserDataOverride(
   process.env['LLP_USER_DATA'],
   path => app.setPath('userData', path),
 );
+
+registerMediaScheme();
+
+// TODO(0913vision): Find media files through the media library once the file
+// store has it. Until then no media id resolves.
+const findMediaFile: MediaPathResolver = () => Promise.resolve(null);
 
 const log = createLogger(join(app.getPath('userData'), 'logs'), {
   echo: !app.isPackaged,
@@ -58,6 +66,7 @@ function start(): void {
     .then(() => {
       const store = new LiveStore();
       const disposeIpc = registerIpc(store, log);
+      const stopServingMedia = serveMedia({resolvePath: findMediaFile, log});
       const win = createControlWindow(log);
       control = win;
       const stopOutputs = startOutputs({store, control: win, log});
@@ -67,6 +76,7 @@ function start(): void {
       win.on('closed', () => {
         control = null;
         stopOutputs();
+        stopServingMedia();
         disposeIpc();
         app.quit();
       });
