@@ -8,8 +8,8 @@ import {
   ThumbnailGrid,
   missingFileText,
   thumbnailName,
-  type ThumbnailWorkspace,
 } from './SlideThumbnail';
+import type {Workspace} from './workspace';
 import {hoverForTooltip, resetTooltips} from './tooltipTesting';
 
 afterEach(resetTooltips);
@@ -19,7 +19,7 @@ const SLIDE_COUNT = 7;
 const lyrics = '만복의 근원 하나님\n온 백성 찬송 드리고';
 
 interface SongGridProps {
-  readonly workspace: ThumbnailWorkspace;
+  readonly workspace: Workspace;
   readonly initial?: number;
   readonly onOutput?: (index: number) => void;
   readonly onSelect?: (index: number) => void;

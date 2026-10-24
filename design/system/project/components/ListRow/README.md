@@ -61,6 +61,7 @@ One row of a list. The base is a 30px row with a 16px type icon, a 13px name, an
 ## Behavior
 
 - A list has `role="listbox"`, and each row has `role="option"` and `aria-selected`. Tab enters the list once, the up and down arrows move between rows, and Home and End go to the first and last rows. Group headers are skipped (a group has `role="group"` + `aria-labelledby`).
+- In the 진행 workspace, the 예배 순서 list keeps ↑, ↓, Home, End, and Enter. ←, →, Space, Page Up, and Page Down go to 다음 장 and 이전 장 even while the list has focus, as in ProPresenter. A click on a row gives the list keyboard focus, also in 진행.
 - A click on a row only selects it. A 예배 순서 row opens the 장 of that item in the 장 panel. For 출력 (output), the user clicks a 장.
 - A click on a 퀵 실행 row runs it at once. An item that turns on and off, such as a logo screen, reports its on state with `aria-pressed`, and a second click turns it off. While it is on, the `live` bar stays on the left.
 - Dragging: moving a row more than 4px starts a drag, and the drop position line snaps to the row boundary closest to the pointer. The spot right under a group header is also a drop position. Esc cancels.
@@ -79,6 +80,7 @@ One row of a list. The base is a 30px row with a 16px type icon, a 13px name, an
 - `<ListRow icon="song" title="만복의 근원 하나님" meta="9장" selected live warning="미디어 파일 없음" />`
 - `<ListRow variant="double" icon="cal" title="주일 예배" sub={['10월 25일 일요일', '항목 12개']} />`
 - `<ListRow toggle pressed icon="prop" title="로고 화면" />` (퀵 실행)
+- `<ListBox label="예배 순서" workspace="show" selected={id} onSelect={…}>…</ListBox>` for the 예배 순서 list of 진행; leave `workspace` out elsewhere, dialogs included.
 - `<ListGroup label="찬양">…</ListGroup>`, `<ListSlot icon="song" label="찬양" />`, `<ListInsertLine />`, `<ListDragGhost icon="song" title="주 하나님 지으신 모든 세계" adding />`
 - Make a row a `button` (or an element with `role="option"`), and give its state with `aria-selected`, `aria-pressed`, `disabled`/`aria-disabled`, and `data-state="live | done | warning"` (separate several values with spaces).
 - Classes: `ll-rowlist`, `ll-rowlist--inset`, `ll-row`, `ll-row--double`, `ll-row--ghost`, `ll-row__icon`, `ll-row__title`, `ll-row__meta`, `ll-row__warn`, `ll-row__lines`, `ll-row__sub`, `ll-row__slot`, `ll-row__slot-mark`, `ll-row__add`, `ll-row-group`, `ll-row-insert`.

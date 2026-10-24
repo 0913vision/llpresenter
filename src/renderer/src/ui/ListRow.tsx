@@ -14,6 +14,7 @@ import {pressHandler} from './press';
 import {LiveBadge} from './StatusMarks';
 import {titleTooltip, useTooltip} from './Tooltip';
 import {TruncatedText} from './TruncatedText';
+import type {Workspace} from './workspace';
 import styles from './ListRow.module.css';
 
 const ROW_ICON_SIZE = 16;
@@ -22,15 +23,23 @@ const ADD_ICON_SIZE = 12;
 const SLOT_MARK = '빈 자리';
 const OPTION = '[role="option"]:not([aria-disabled="true"])';
 const ACTIVATION_KEYS: ReadonlySet<string> = new Set([' ', 'Enter']);
+const workspaceActivationKeys: Readonly<
+  Record<Workspace, ReadonlySet<string>>
+> = {
+  show: new Set(['Enter']),
+  prep: ACTIVATION_KEYS,
+};
 
 interface ListBoxState {
   readonly selected: string | undefined;
   readonly onSelect: (value: string) => void;
+  readonly workspace: Workspace;
 }
 
 const ListBoxContext = createContext<ListBoxState>({
   selected: undefined,
   onSelect: () => undefined,
+  workspace: 'prep',
 });
 
 const listKeyTargets: Readonly<
@@ -57,6 +66,11 @@ export interface ListBoxProps {
   readonly onSelect: (value: string) => void;
   /** The pick list in a dialog: 8px padding and rounded rows. */
   readonly inset?: boolean | undefined;
+  /**
+   * `show` for the 예배 순서 list of 진행, where Space goes on to 다음 장 and
+   * only Enter selects; `prep` (the default) everywhere else, dialogs included.
+   */
+  readonly workspace?: Workspace | undefined;
   readonly className?: string | undefined;
   readonly children: ReactNode;
 }
@@ -71,6 +85,7 @@ export function ListBox({
   selected,
   onSelect,
   inset = false,
+  workspace = 'prep',
   className,
   children,
 }: ListBoxProps): JSX.Element {
@@ -94,7 +109,7 @@ export function ListBox({
     }
   };
   return (
-    <ListBoxContext value={{selected, onSelect}}>
+    <ListBoxContext value={{selected, onSelect, workspace}}>
       <div
         {...clickFocusProps}
         role="listbox"
@@ -228,13 +243,13 @@ export function ListRow(props: ListRowProps): JSX.Element {
     warning,
     disabled = false,
   } = props;
-  const {selected, onSelect} = useContext(ListBoxContext);
+  const {selected, onSelect, workspace} = useContext(ListBoxContext);
   const titleId = useId();
   const {targetProps, tooltip} = useTooltip(titleTooltip(props.reason));
   const isSelected = selected === value;
   const select = (): void => onSelect(value);
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
-    if (disabled || !ACTIVATION_KEYS.has(event.key)) return;
+    if (disabled || !workspaceActivationKeys[workspace].has(event.key)) return;
     event.preventDefault();
     select();
   };

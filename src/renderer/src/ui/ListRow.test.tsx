@@ -13,6 +13,7 @@ import {
   ListSlot,
 } from './ListRow';
 import {pointAway, hoverForTooltip, resetTooltips} from './tooltipTesting';
+import type {Workspace} from './workspace';
 
 afterEach(resetTooltips);
 
@@ -20,16 +21,19 @@ function ServiceOrder({
   initial,
   onSelect = () => {},
   onDismiss = () => {},
+  workspace,
 }: {
   readonly initial?: string;
   readonly onSelect?: (value: string) => void;
   readonly onDismiss?: () => void;
+  readonly workspace?: Workspace;
 }): JSX.Element {
   const [selected, setSelected] = useState<string | undefined>(initial);
   return (
     <ListBox
       label="예배 순서"
       selected={selected}
+      workspace={workspace}
       onSelect={value => {
         setSelected(value);
         onSelect(value);
@@ -176,6 +180,35 @@ describe('ListBox and ListRow', () => {
     screen.getByRole('button', {name: '내리기'}).focus();
     await userEvent.keyboard('{ArrowUp}{Home}{End}');
     expect(onSelect).not.toHaveBeenCalled();
+  });
+
+  it('keeps Enter and the list keys in 진행 and passes Space and ← → on', async () => {
+    const seen: Array<[string, boolean]> = [];
+    const listener = (event: KeyboardEvent): void => {
+      seen.push([event.key, event.defaultPrevented]);
+    };
+    window.addEventListener('keydown', listener);
+    onTestFinished(() => window.removeEventListener('keydown', listener));
+    const onSelect = vi.fn();
+    render(
+      <ServiceOrder workspace="show" initial="count" onSelect={onSelect} />,
+    );
+    await userEvent.tab();
+    await userEvent.keyboard('{ArrowDown}');
+    expect(selectedTitle()).toBe('hymn1');
+    await userEvent.keyboard('{End}{Home}');
+    expect(selectedTitle()).toBe('count');
+    onSelect.mockClear();
+    await userEvent.keyboard(' {ArrowRight}{ArrowLeft}{PageDown}');
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(seen.slice(-4)).toEqual([
+      [' ', false],
+      ['ArrowRight', false],
+      ['ArrowLeft', false],
+      ['PageDown', false],
+    ]);
+    await userEvent.keyboard('{Enter}');
+    expect(onSelect).toHaveBeenCalledWith('count');
   });
 
   it('lets Esc and the clear keys pass from an end control', async () => {

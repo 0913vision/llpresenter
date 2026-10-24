@@ -16,19 +16,12 @@ import {Icon} from './Icon';
 import {labelInk} from './labelInk';
 import {titleTooltip, useTooltip} from './Tooltip';
 import hatching from './hatching.module.css';
+import type {Workspace} from './workspace';
 import styles from './SlideThumbnail.module.css';
 
 const MISSING_ICON_SIZE = 24;
 const THUMBNAIL = '[role="option"]';
 const SPACE = ' ';
-
-/**
- * The workspace a 장 grid sits in, which decides the keys it keeps. In 진행
- * (`show`) the grid keeps ↑, ↓, and Enter and passes ←, →, and Space on to 다음
- * 장 and 이전 장 (docs/spec/10-shortcuts-and-settings.md, rule 5). In 준비
- * (`prep`) every arrow moves, and Enter and Space act as a click.
- */
-export type ThumbnailWorkspace = 'show' | 'prep';
 
 type GridMoves = Readonly<Record<string, (columns: number) => number>>;
 
@@ -37,7 +30,7 @@ const rowMoves: GridMoves = {
   ArrowDown: columns => columns,
 };
 
-const workspaceMoves: Readonly<Record<ThumbnailWorkspace, GridMoves>> = {
+const workspaceMoves: Readonly<Record<Workspace, GridMoves>> = {
   show: rowMoves,
   prep: {...rowMoves, ArrowLeft: () => -1, ArrowRight: () => 1},
 };

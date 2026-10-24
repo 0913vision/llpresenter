@@ -147,7 +147,6 @@ export {
   type SlideThumbnailProps,
   type ThumbnailGridBaseProps,
   type ThumbnailGridProps,
-  type ThumbnailWorkspace,
 } from './SlideThumbnail';
 export {
   Slider,
@@ -191,3 +190,4 @@ export {
 } from './Tooltip';
 export {TruncatedText} from './TruncatedText';
 export type {ControlSize, GroupName} from './types';
+export type {Workspace} from './workspace';
