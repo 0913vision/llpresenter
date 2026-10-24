@@ -6,6 +6,7 @@ import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {DEFAULT_LYRIC_STYLE} from '@renderer/render/lyricStyle';
 import {useLive} from '@renderer/state/live';
 import {showLarge, usePreview} from '@renderer/state/preview';
+import {moveTile, openItem, outputTile, useShow} from '@renderer/state/show';
 import {PreviewPanel} from './PreviewPanel';
 
 interface Instance {
@@ -44,6 +45,10 @@ function created(): readonly Instance[] {
   );
 }
 
+function drawCounts(): readonly number[] {
+  return created().map(instance => instance.render.mock.calls.length);
+}
+
 function setLayers(layers: Partial<LiveLayers>, on: Record<string, boolean>) {
   useLive.setState({
     state: {
@@ -54,12 +59,38 @@ function setLayers(layers: Partial<LiveLayers>, on: Record<string, boolean>) {
   });
 }
 
+function itemOf(container: HTMLElement, screenId: string): HTMLElement {
+  const item = container.querySelector<HTMLElement>(
+    `[data-screen="${screenId}"]`,
+  );
+  if (!item) throw new Error(`The ${screenId} preview is missing`);
+  return item;
+}
+
+function screensWithRole(
+  container: HTMLElement,
+  role: string,
+): ReadonlyArray<string | undefined> {
+  return Array.from(
+    container.querySelectorAll<HTMLElement>(`[data-role="${role}"]`),
+  ).map(item => item.dataset['screen']);
+}
+
+function screenOrder(
+  container: HTMLElement,
+): ReadonlyArray<string | undefined> {
+  return Array.from(
+    container.querySelectorAll<HTMLElement>('[data-screen]'),
+  ).map(item => item.dataset['screen']);
+}
+
 const allOn = {main: true, stage: true, broadcast: true};
 const slide = {itemId: 'a', position: 0, label: null, lines: ['x']};
 
 beforeEach(() => {
   instances.list.length = 0;
   usePreview.setState({largeScreenId: 'main'});
+  useShow.setState({openItemId: null, selectedTile: 0});
   useLive.setState({state: null});
   window.llp = fakeLlpApi();
 });
@@ -73,14 +104,16 @@ describe('PreviewPanel layout', () => {
   it('shows the 본 화면 large and the other two small, in order', () => {
     setLayers({}, allOn);
     const {container} = render(<PreviewPanel compact={false} />);
-    expect(
-      container.querySelector('[data-screen="main"]:not(button)'),
-    ).not.toBeNull();
-    const smalls = screen.getAllByRole('button');
-    expect(smalls.map(button => button.getAttribute('data-screen'))).toEqual([
-      'stage',
-      'broadcast',
-    ]);
+    expect(screensWithRole(container, 'large')).toEqual(['main']);
+    expect(screensWithRole(container, 'small')).toEqual(['stage', 'broadcast']);
+  });
+
+  it('keeps the three previews in the same order in the tree whichever is large', () => {
+    setLayers({}, allOn);
+    const {container} = render(<PreviewPanel compact={false} />);
+    expect(screenOrder(container)).toEqual(['main', 'stage', 'broadcast']);
+    act(() => showLarge('broadcast'));
+    expect(screenOrder(container)).toEqual(['main', 'stage', 'broadcast']);
   });
 
   it('makes a small preview large when it is clicked, and the large one small', () => {
@@ -88,33 +121,29 @@ describe('PreviewPanel layout', () => {
     const {container} = render(<PreviewPanel compact={false} />);
     fireEvent.click(screen.getByRole('button', {name: /무대 화면/}));
     expect(usePreview.getState().largeScreenId).toBe('stage');
-    expect(
-      container.querySelector('[data-screen="stage"]:not(button)'),
-    ).not.toBeNull();
-    expect(
-      screen
-        .getAllByRole('button')
-        .map(button => button.getAttribute('data-screen')),
-    ).toEqual(['main', 'broadcast']);
+    expect(screensWithRole(container, 'large')).toEqual(['stage']);
+    expect(screensWithRole(container, 'small')).toEqual(['main', 'broadcast']);
   });
 
   it('keeps the small ones in the fixed order whichever screen is large', () => {
     setLayers({}, allOn);
     showLarge('broadcast');
-    render(<PreviewPanel compact={false} />);
-    expect(
-      screen
-        .getAllByRole('button')
-        .map(button => button.getAttribute('data-screen')),
-    ).toEqual(['main', 'stage']);
+    const {container} = render(<PreviewPanel compact={false} />);
+    expect(screensWithRole(container, 'small')).toEqual(['main', 'stage']);
   });
 
   it('does not make the large preview a button', () => {
     setLayers({}, allOn);
     const {container} = render(<PreviewPanel compact={false} />);
-    const large = container.querySelector('[data-screen="main"]:not(button)');
-    expect(large?.closest('button')).toBeNull();
+    expect(itemOf(container, 'main').querySelector('button')).toBeNull();
     expect(screen.getAllByRole('button')).toHaveLength(2);
+  });
+
+  it('falls back to the 본 화면 when the large screen is unknown', () => {
+    setLayers({}, allOn);
+    showLarge('gone');
+    const {container} = render(<PreviewPanel compact={false} />);
+    expect(screensWithRole(container, 'large')).toEqual(['main']);
   });
 
   it('writes the screen name, target, and look name under the large preview', () => {
@@ -134,9 +163,51 @@ describe('PreviewPanel layout', () => {
 
   it('uses rows for the small previews in the narrow window form', () => {
     setLayers({}, allOn);
-    render(<PreviewPanel compact />);
-    const small = screen.getAllByRole('button')[0];
+    const {container} = render(<PreviewPanel compact />);
+    const small = container.querySelector('[data-role="small"]');
     expect(small?.className).toContain('compact');
+    expect(container.firstElementChild?.className).toContain('rows');
+  });
+});
+
+describe('PreviewPanel swap', () => {
+  it('builds no renderer, disposes none, and draws nothing again on a swap', () => {
+    setLayers({slide}, allOn);
+    render(<PreviewPanel compact={false} />);
+    const before = created();
+    const counts = drawCounts();
+    fireEvent.click(screen.getByRole('button', {name: /무대 화면/}));
+    fireEvent.click(screen.getByRole('button', {name: /방송 자막/}));
+    expect(created()).toHaveLength(3);
+    expect(created()).toEqual(before);
+    for (const instance of created()) {
+      expect(instance.dispose).not.toHaveBeenCalled();
+    }
+    expect(drawCounts()).toEqual(counts);
+  });
+
+  it('keeps the element that holds each renderer, so a video is not reloaded', () => {
+    setLayers({slide}, allOn);
+    render(<PreviewPanel compact={false} />);
+    const parents = created().map(instance => instance.parent);
+    fireEvent.click(screen.getByRole('button', {name: /방송 자막/}));
+    fireEvent.click(screen.getByRole('button', {name: /본 화면/}));
+    for (const [index, instance] of created().entries()) {
+      expect(instance.parent).toBe(parents[index]);
+      expect(instance.parent.isConnected).toBe(true);
+    }
+  });
+
+  it('keeps drawing the live layers on every renderer after a swap', () => {
+    setLayers({slide}, allOn);
+    render(<PreviewPanel compact={false} />);
+    fireEvent.click(screen.getByRole('button', {name: /무대 화면/}));
+    act(() => setLayers({}, allOn));
+    for (const instance of created()) {
+      expect(instance.render).toHaveBeenLastCalledWith(
+        expect.objectContaining({slide: null}),
+      );
+    }
   });
 });
 
@@ -144,19 +215,18 @@ describe('PreviewPanel states', () => {
   it('dims the name of a screen whose output is off and keeps drawing it', () => {
     setLayers({slide}, {main: false, stage: true, broadcast: true});
     const {container} = render(<PreviewPanel compact={false} />);
-    const large = container.querySelector('[data-screen="main"]:not(button)');
-    expect(large?.getAttribute('data-state')).toBe('off');
-    expect(large?.getAttribute('title')).toBe('본 화면 출력이 꺼져 있습니다');
-    const [first] = created();
-    expect(first?.render).toHaveBeenLastCalledWith(
+    const large = itemOf(container, 'main');
+    expect(large.getAttribute('data-state')).toBe('off');
+    expect(large.getAttribute('title')).toBe('본 화면 출력이 꺼져 있습니다');
+    expect(created()[0]?.render).toHaveBeenLastCalledWith(
       expect.objectContaining({slide}),
     );
   });
 
   it('marks a small preview whose output is off', () => {
     setLayers({}, {main: true, stage: false, broadcast: true});
-    render(<PreviewPanel compact={false} />);
-    const stage = screen.getByRole('button', {name: /무대 화면/});
+    const {container} = render(<PreviewPanel compact={false} />);
+    const stage = itemOf(container, 'stage');
     expect(stage.getAttribute('data-state')).toBe('off');
     expect(stage.getAttribute('title')).toBe('무대 화면 출력이 꺼져 있습니다');
   });
@@ -164,27 +234,42 @@ describe('PreviewPanel states', () => {
   it('treats a screen the live state does not know as off', () => {
     setLayers({}, {});
     const {container} = render(<PreviewPanel compact={false} />);
-    expect(
-      container
-        .querySelector('[data-screen="main"]:not(button)')
-        ?.getAttribute('data-state'),
-    ).toBe('off');
+    expect(itemOf(container, 'main').getAttribute('data-state')).toBe('off');
   });
 
-  it('draws the 방송 자막 frame green', () => {
-    setLayers({}, allOn);
-    showLarge('broadcast');
-    const {container} = render(<PreviewPanel compact={false} />);
-    const frame = container.querySelector(
-      '[data-screen="broadcast"]:not(button) [data-state], [data-screen="broadcast"]:not(button) > div',
-    );
-    expect(frame?.className).toContain('chroma');
-  });
-
-  it('does not make the other frames green', () => {
+  it('draws only the 방송 자막 frame green, and the others black', () => {
     setLayers({}, allOn);
     const {container} = render(<PreviewPanel compact={false} />);
     expect(container.querySelectorAll('[class*="chroma"]')).toHaveLength(1);
+    expect(
+      itemOf(container, 'broadcast').querySelector('[class*="chroma"]'),
+    ).not.toBeNull();
+  });
+
+  it('keeps the green frame on the 방송 자막 after a swap', () => {
+    setLayers({}, allOn);
+    const {container} = render(<PreviewPanel compact={false} />);
+    fireEvent.click(screen.getByRole('button', {name: /방송 자막/}));
+    expect(container.querySelectorAll('[class*="chroma"]')).toHaveLength(1);
+    expect(
+      itemOf(container, 'broadcast').querySelector('[class*="chroma"]'),
+    ).not.toBeNull();
+  });
+
+  it('fits only the large frame into its box', () => {
+    setLayers({}, allOn);
+    const {container} = render(<PreviewPanel compact={false} />);
+    expect(container.querySelectorAll('[class*="fit"]')).toHaveLength(1);
+    expect(
+      itemOf(container, 'main').querySelector('[class*="fit"]'),
+    ).not.toBeNull();
+    fireEvent.click(screen.getByRole('button', {name: /무대 화면/}));
+    expect(
+      itemOf(container, 'stage').querySelector('[class*="fit"]'),
+    ).not.toBeNull();
+    expect(
+      itemOf(container, 'main').querySelector('[class*="fit"]'),
+    ).toBeNull();
   });
 });
 
@@ -229,18 +314,55 @@ describe('PreviewPanel pictures', () => {
     }
   });
 
-  it('does not follow the selection: another open item changes nothing in the pictures', () => {
+  it('does not follow the selection: a real selection change draws and builds nothing', () => {
     setLayers({slide}, allOn);
     render(<PreviewPanel compact={false} />);
-    const callsBefore = created().map(instance => instance.render.mock.calls);
-    act(() => showLarge('stage'));
-    for (const [index, instance] of created().entries()) {
-      expect(instance.render.mock.calls.length).toBeGreaterThanOrEqual(
-        callsBefore[index]?.length ?? 0,
-      );
-      expect(instance.render).toHaveBeenLastCalledWith(
-        expect.objectContaining({slide}),
-      );
+    const before = created();
+    const counts = drawCounts();
+    act(() => openItem('song-river'));
+    act(() => moveTile('down', 2));
+    act(() => openItem('song-morning'));
+    act(() => moveTile('down', 2));
+    expect(useShow.getState().openItemId).toBe('song-morning');
+    expect(created()).toEqual(before);
+    expect(drawCounts()).toEqual(counts);
+    for (const instance of created()) {
+      expect(instance.dispose).not.toHaveBeenCalled();
+    }
+  });
+
+  it('changes only when the live state changes: outputting a tile sends a command and the previews follow the new state', () => {
+    const sent: unknown[] = [];
+    window.llp = fakeLlpApi({
+      live: {
+        get: () => Promise.resolve(emptyLiveState()),
+        send: command => void sent.push(command),
+        subscribe: () => () => undefined,
+      },
+    });
+    setLayers({}, allOn);
+    render(<PreviewPanel compact={false} />);
+    const counts = drawCounts();
+    act(() => outputTile({itemId: 'song-morning', index: 1}));
+    expect(sent).toHaveLength(1);
+    expect(drawCounts()).toEqual(counts);
+    act(() =>
+      setLayers(
+        {
+          slide: {
+            itemId: 'song-morning',
+            position: 1,
+            label: '후렴',
+            lines: [],
+          },
+        },
+        allOn,
+      ),
+    );
+    for (const instance of created()) {
+      expect(instance.render.mock.lastCall?.[0]).toMatchObject({
+        slide: {position: 1},
+      });
     }
   });
 
@@ -257,11 +379,9 @@ describe('PreviewPanel pictures', () => {
     setLayers({}, allOn);
     const {unmount} = render(<PreviewPanel compact={false} />);
     unmount();
-    const before = created().map(instance => instance.render.mock.calls.length);
+    const before = drawCounts();
     act(() => setLayers({slide}, allOn));
-    expect(
-      created().map(instance => instance.render.mock.calls.length),
-    ).toEqual(before);
+    expect(drawCounts()).toEqual(before);
   });
 
   it('sends a drawing error to the main log', () => {

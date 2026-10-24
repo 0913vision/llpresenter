@@ -1,6 +1,12 @@
 # Review request: `shell-12`
 
-Review range: f8dc565...feat/shell/previews
+Review range: 00b2492...feat/shell/previews
+
+What to check in round 2: the four findings and the nit of round 1 ("Team
+member's reply", items 1 to 5): the stable tree of `PreviewPanel` (three
+previews in a fixed order, roles changed by class), the shrink rule in
+`PreviewPanel.module.css` and `ScreenPreview.module.css` with the measurements
+below, and the new tests in `PreviewPanel.test.tsx`.
 
 What to check: (1) the preview panel against `docs/spec/04-show.md`, "Preview
 panel": one large and two small previews in the fixed order, a click swaps with
@@ -16,7 +22,7 @@ for the 진행 도구); (5) one test case that the shell-11 nit asked for.
 
 - Team member: `shell`
 - Branch: `feat/shell/previews`
-- Base commit (`main`): `f8dc565`
+- Base commit (`main`): `00b2492`
 - Last commit: see the commit that adds this file
 - Related brief: the lead's M2 task "previews"
 
@@ -138,4 +144,47 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 (codex2), answered once:
+
+1. Finding 1 (short windows): the panel now follows the Layout shrink rule. The
+   preview panel is as tall as its content and shrinks before anything else, the
+   진행 도구 panel keeps at least 240 px (`--tools-min-height`), and inside the
+   preview the large frame keeps 16:9, takes the largest size that fits its box,
+   and is centered (`width: min(100cqw, 100cqh * 16 / 9)` in a size container
+   with a 16:9 box). The small previews have their own row that never shrinks,
+   so both stay visible. CSS cannot be measured in jsdom, so I measured the
+   running app with real layout (right column, CSS px):
+
+   | Window    | Preview panel | 지우기 | 진행 도구 | Large frame       | Small frames |
+   | --------- | ------------- | ------ | --------- | ----------------- | ------------ |
+   | 1280x720  | 322           | 52     | **240**   | 252x142, centered | 64x36 rows   |
+   | 1536x864  | 367           | 52     | 339       | 332x187, centered | 64x36 rows   |
+   | 1920x1080 | 497           | 68     | 393       | 452x254, centered | 221x124      |
+   | 2560x1440 | 564           | 68     | 686       | 532x299, centered | 261x147      |
+
+   At 1280x720 the 진행 도구 is exactly 240 and the large frame is smaller than
+   its natural size, which is the case the finding is about; the width over
+   height of every large frame is 1.775 to 1.780 (16:9). The structural parts
+   are unit tests: only the large frame gets the `fit` class, and it moves with
+   a swap.
+
+2. Finding 2 (a swap rebuilt a renderer): the three previews are always rendered
+   in the same order and in the same place of the tree, and a swap only changes
+   the role classes, the caption, and the small preview's button (a sibling over
+   the frame). So no renderer is built or disposed and no frame element is
+   replaced. Tests: "builds no renderer, disposes none, and draws nothing again
+   on a swap", "keeps the element that holds each renderer, so a video is not
+   reloaded", "keeps the three previews in the same order in the tree whichever
+   is large", and "keeps drawing the live layers on every renderer after a
+   swap".
+3. Finding 3 (selection test): "does not follow the selection: a real selection
+   change draws and builds nothing" now opens other items and moves the selected
+   tile through the real show state, without outputting, and asserts the same
+   renderer instances, no disposal, and exactly the same draw counts. A second
+   test, "changes only when the live state changes", outputs a tile (a command
+   goes out and nothing draws until the live state arrives), and then checks
+   that every preview draws the new state.
+4. Finding 4 (nit, chroma): the green is only on the frame and on the renderer's
+   root background (`.chroma .screen > div`). `--output-black` is no longer
+   overridden, so the lyric shadows and outlines stay black.
+5. Finding 5 (nit): the comment on `state/preview.ts` is a `NOTE(0913vision)`.

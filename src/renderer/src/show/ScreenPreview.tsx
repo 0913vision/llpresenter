@@ -23,13 +23,17 @@ export type FrameState = 'on' | 'off' | 'warning';
  * @param chroma - Draws the empty picture green, as the 방송 자막 does.
  * @param state - Sets the frame line: lighter for an output that is off, amber
  *   for a lost monitor. The picture is the same in every state.
+ * @param fit - Keeps 16:9 inside the box that holds it, as large as fits, and
+ *   centers it. Without it the frame fills the width of the box.
  */
 export function ScreenPreview({
   chroma,
   state,
+  fit,
 }: {
   readonly chroma: boolean;
   readonly state: FrameState;
+  readonly fit: boolean;
 }): JSX.Element {
   const screenRef = useRef<HTMLDivElement>(null);
 
@@ -53,9 +57,12 @@ export function ScreenPreview({
     };
   }, []);
 
+  const classes = [styles.frame];
+  if (chroma) classes.push(styles.chroma);
+  if (fit) classes.push(styles.fit);
   return (
     <div
-      className={chroma ? `${styles.frame} ${styles.chroma}` : styles.frame}
+      className={classes.join(' ')}
       data-state={state === 'on' ? undefined : state}
     >
       <div ref={screenRef} className={styles.screen} />

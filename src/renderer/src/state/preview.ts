@@ -1,6 +1,7 @@
 import {create} from 'zustand';
 
-/** The screen whose preview is large. The other two are small. */
+// NOTE(0913vision): The screen whose preview is large at the start. The other
+// two are small.
 const DEFAULT_LARGE_SCREEN_ID = 'main';
 
 interface PreviewView {

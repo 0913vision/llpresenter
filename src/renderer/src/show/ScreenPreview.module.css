@@ -8,6 +8,11 @@
   container-type: inline-size;
 }
 
+.fit {
+  width: min(100cqw, calc(100cqh * 16 / 9));
+  margin: 0 auto;
+}
+
 .frame[data-state='off'] {
   box-shadow: 0 0 0 1px var(--line-strong);
 }
@@ -17,7 +22,11 @@
 }
 
 .chroma {
-  --output-black: var(--chroma);
+  background: var(--chroma);
+}
+
+.chroma .screen > div {
+  background: var(--chroma);
 }
 
 .screen {
