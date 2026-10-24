@@ -81,8 +81,8 @@ What to check in round 1:
 
 `registerStore` changes from `registerStore(log, context?)` to
 `registerStore({log, isAnyOutputOn, context?})`, and its dispose function now
-returns a promise. Nothing calls it yet; output wires it once after this merges
-(below).
+returns a promise. Round 3 updates its one caller, `src/main/index.ts`, with
+output's permission (see the top of this document).
 
 ## What changed and why
 
