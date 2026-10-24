@@ -208,19 +208,17 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (b60149b, codex5): Request changes: a held or modified Enter or Space
+  pressed a tile, and the tiles needed a written handoff to shell.
+- Round 2 (790e88a, codex5): Request changes with one finding: Shift+Space with
+  Shift released first still pressed a tile at the keyup.
+- Round 3 (a5ea44b): reviewer (Codex, codex5) Approve with no findings. Lead
+  Approve; a tile is pressed once per plain Enter, or at the keyup of a plain
+  Space keydown on the same tile, and shell adopts these parts through the
+  "Shell handoff" section. Rebased by the lead onto local `main` without
+  conflicts.
 
 ## Team member's reply
 
