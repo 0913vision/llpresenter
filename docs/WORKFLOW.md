@@ -173,6 +173,8 @@ folders, several copies of the same app can run without colliding.
 | trial   | 5190 | `D:\llp-dev\trial`  |
 | devops  | 5185 | `D:\llp-dev\devops` |
 | ui      | 5186 | `D:\llp-dev\ui`     |
+| shell   | 5187 | `D:llp-devshell`    |
+| data    | 5188 | `D:llp-devdata`     |
 | prep    | 5181 | `D:\llp-dev\prep`   |
 | output  | 5182 | `D:\llp-dev\output` |
 | tools   | 5183 | `D:\llp-dev\tools`  |

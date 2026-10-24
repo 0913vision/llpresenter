@@ -89,6 +89,15 @@ src/
   `ListRow`, `StatusMarks`) in `src/renderer/src/ui/`, with tests and a
   development gallery. Moved from the lead's share so that it runs in parallel.
 
+#### shell and data members (briefs: `docs/briefs/shell.md`, `docs/briefs/data.md`)
+
+- shell: column dragging, clamping, the shrink rule, and widths remembered per
+  size class (design system `Layout`).
+- data: the schema library choice and the typed schemas, parsers, and migration
+  hooks for every file format in `docs/spec/02-data.md`.
+- Both moved from the lead's share so that more work runs in parallel. The lead
+  reviews them as shared contracts.
+
 #### lead
 
 - Pin Electron to 44.9.x and pin every version exactly (`docs/TECH.md`).

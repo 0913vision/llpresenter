@@ -15,12 +15,14 @@ Only the lead edits this file. Last updated: October 24, 2026.
 
 ## Sessions
 
-| Name   | Branch                      | State                       | Brief                   |
-| ------ | --------------------------- | --------------------------- | ----------------------- |
-| lead   | `rewrite`                   | Held by the phase 0 session | `docs/briefs/lead.md`   |
-| trial  | `docs/trial/workflow-check` | Started                     | `docs/briefs/trial.md`  |
-| devops | `chore/devops/verify`       | Started                     | `docs/briefs/devops.md` |
-| ui     | `feat/ui/form-controls`     | Started                     | `docs/briefs/ui.md`     |
+| Name   | Branch                      | State                                | Brief                   |
+| ------ | --------------------------- | ------------------------------------ | ----------------------- |
+| lead   | `rewrite`                   | Held by the phase 0 session          | `docs/briefs/lead.md`   |
+| trial  | `docs/trial/workflow-check` | Merged (24534c6); continues as shell | `docs/briefs/trial.md`  |
+| devops | `chore/devops/verify`       | Started                              | `docs/briefs/devops.md` |
+| ui     | `feat/ui/form-controls`     | Started                              | `docs/briefs/ui.md`     |
+| shell  | `feat/shell/column-resize`  | Started                              | `docs/briefs/shell.md`  |
+| data   | `feat/data/schemas`         | Started                              | `docs/briefs/data.md`   |
 
 ## Next steps
 
@@ -32,5 +34,6 @@ Only the lead edits this file. Last updated: October 24, 2026.
 
 ## Review requests
 
-| Review document | Team member | Lead | Reviewer | Merged |
-| --------------- | ----------- | ---- | -------- | ------ |
+| Review document           | Team member | Lead    | Reviewer                           | Merged  |
+| ------------------------- | ----------- | ------- | ---------------------------------- | ------- |
+| `docs/reviews/trial-1.md` | trial       | Approve | Approve (Claude reviewer, round 2) | 24534c6 |

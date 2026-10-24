@@ -111,3 +111,7 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
 - 2026-10-24: `tsconfig.node.json` includes `test/**/*` (shared test helpers)
   and sets `rewriteRelativeImportExtensions`, so scripts that Node runs directly
   can import siblings as `./x.ts`.
+- 2026-10-24: Members that finish a brief get the next one instead of being
+  closed (user). The trial session continues as shell (column resizing) and the
+  first reviewer session continues as data (schemas). Both tasks moved from the
+  lead's share. Codex is the reviewer.
