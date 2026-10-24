@@ -1,0 +1,17 @@
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow: hidden;
+  background: var(--output-black);
+  cursor: none;
+  user-select: none;
+}
+
+#root {
+  position: relative;
+}
