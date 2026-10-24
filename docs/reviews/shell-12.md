@@ -128,19 +128,19 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (codex2): Request changes with five findings: short windows hid the
+  large preview, a swap rebuilt a renderer, the selection test, and two nits
+  (chroma green, comment form).
+- Round 2 (codex2): Request changes: at 1600x720 with a 720 px right column the
+  large frame was 0x0; one nit on two README lines.
+- Round 3 (61e544e): reviewer (Codex, codex2) Approve with one nit: the
+  PreviewFrame README still says half-width small previews while the 160 px cap
+  applies at every height. The README is ui's file, so the nit goes to ui-7
+  round 2. Lead Approve; the previews keep their three renderers across swaps,
+  which is now also the rule for PreviewFrame (lead decision on ui-7 finding 3).
+  Rebased by the lead onto local `main` without conflicts.
 
 ## Team member's reply
 
