@@ -88,6 +88,7 @@ export type {
   MenuItem,
   MenuSeparator,
 } from './menuModel';
+export {MissingFileMark, missingFileText} from './MissingFile';
 export {NumberField, type NumberFieldProps} from './NumberField';
 export {
   OutputToggle,
@@ -140,7 +141,6 @@ export {
 export {
   SlideThumbnail,
   ThumbnailGrid,
-  missingFileText,
   thumbnailName,
   type PrepThumbnailGridProps,
   type ShowThumbnailGridProps,

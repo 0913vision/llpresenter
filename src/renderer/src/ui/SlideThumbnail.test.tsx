@@ -3,12 +3,8 @@ import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import {CLICK_FOCUS_SELECTOR} from './clickFocus';
-import {
-  SlideThumbnail,
-  ThumbnailGrid,
-  missingFileText,
-  thumbnailName,
-} from './SlideThumbnail';
+import {SlideThumbnail, ThumbnailGrid, thumbnailName} from './SlideThumbnail';
+import {missingFileText} from './MissingFile';
 import type {Workspace} from './workspace';
 import {hoverForTooltip, resetTooltips} from './tooltipTesting';
 

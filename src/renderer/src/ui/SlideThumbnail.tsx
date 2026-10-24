@@ -1,8 +1,8 @@
 import {memo, type CSSProperties, type JSX, type ReactNode} from 'react';
 import {NO_LABEL_COLOR, type LabelColor} from '@shared/colors';
 import {classNames} from './classNames';
-import {Icon} from './Icon';
 import {labelInk} from './labelInk';
+import {MissingFileMark, missingFileText} from './MissingFile';
 import {
   gridMoves,
   rowMoves,
@@ -11,11 +11,8 @@ import {
   type TileSpaceKey,
 } from './TileList';
 import {titleTooltip, useTooltip} from './Tooltip';
-import hatching from './hatching.module.css';
 import type {Workspace} from './workspace';
 import styles from './SlideThumbnail.module.css';
-
-const MISSING_ICON_SIZE = 24;
 
 const workspaceMoves: Readonly<Record<Workspace, TileMoves>> = {
   show: rowMoves,
@@ -120,11 +117,6 @@ export function thumbnailName({
   return firstLine === '' ? head : `${head}, ${firstLine}`;
 }
 
-/** The text of the missing file tooltip. */
-export function missingFileText(path: string): string {
-  return `파일을 찾을 수 없습니다: ${path}`;
-}
-
 function thumbnailState(live: boolean, missing: boolean): string | undefined {
   const states = [live && 'live', missing && 'warning'].filter(
     state => typeof state === 'string',
@@ -140,9 +132,7 @@ function Canvas({
   if (missingFile !== undefined) {
     return (
       <span className={styles.canvas}>
-        <span className={classNames(styles.missing, hatching.hatching)}>
-          <Icon name="filex" size={MISSING_ICON_SIZE} />
-        </span>
+        <MissingFileMark />
       </span>
     );
   }

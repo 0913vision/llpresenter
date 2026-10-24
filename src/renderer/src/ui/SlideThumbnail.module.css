@@ -79,15 +79,6 @@
   object-fit: cover;
 }
 
-.missing {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--warning);
-}
-
 .band {
   display: flex;
   align-items: center;

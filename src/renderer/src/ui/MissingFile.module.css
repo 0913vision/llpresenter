@@ -1,9 +1,15 @@
-.hatching {
+.mark {
   --hatching-stripe: 6px;
 
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: repeating-linear-gradient(
     135deg,
     var(--bg-inset) 0 var(--hatching-stripe),
     var(--bg-well) var(--hatching-stripe) calc(var(--hatching-stripe) * 2)
   );
+  color: var(--warning);
 }
