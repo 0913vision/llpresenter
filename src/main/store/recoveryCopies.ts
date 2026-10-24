@@ -2,6 +2,7 @@ import {copyFile, mkdir, readdir, rm} from 'node:fs/promises';
 import {join} from 'node:path';
 import type {Result} from '@shared/result';
 import type {WriteProblem} from './atomicWrite';
+import {isMissingFile} from './fsErrors';
 
 const COPY_EXTENSION = '.json';
 const MIN_INTERVAL_MS = 5 * 60 * 1000;
@@ -95,8 +96,4 @@ export class RecoveryCopies {
 // names are valid on Windows and sort in time order.
 function copyName(time: number): string {
   return `${new Date(time).toISOString().replaceAll(':', '-')}${COPY_EXTENSION}`;
-}
-
-function isMissingFile(error: unknown): boolean {
-  return error instanceof Error && 'code' in error && error.code === 'ENOENT';
 }

@@ -12,6 +12,7 @@ import {isRecord} from '@shared/guards';
 import type {Result} from '@shared/result';
 import {parseAppConfig, type AppConfig} from '@shared/schema/appConfig';
 import type {FileError} from '@shared/schema/fileFormat';
+import {isMissingFile} from './fsErrors';
 
 /** The name of the data folder in Documents, and in the development folder. */
 export const DATA_FOLDER_NAME = 'LoveLight';
@@ -221,7 +222,11 @@ async function canonicalPath(path: string): Promise<string> {
     return await realpath(path);
   } catch (error: unknown) {
     const parent = dirname(path);
-    if (!isMissing(error) || parent === path || (await isDanglingLink(path))) {
+    if (
+      !isMissingFile(error) ||
+      parent === path ||
+      (await isDanglingLink(path))
+    ) {
       throw error;
     }
     return join(await canonicalPath(parent), basename(path));
@@ -233,15 +238,11 @@ async function isDanglingLink(path: string): Promise<boolean> {
     await lstat(path);
     return true;
   } catch (error: unknown) {
-    if (isMissing(error)) {
+    if (isMissingFile(error)) {
       return false;
     }
     throw error;
   }
-}
-
-function isMissing(error: unknown): boolean {
-  return error instanceof Error && 'code' in error && error.code === 'ENOENT';
 }
 
 function leavesProblem(folder: string, name: keyof DataLocations): FileError {

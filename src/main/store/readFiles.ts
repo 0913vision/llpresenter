@@ -1,6 +1,7 @@
 import {readdir, readFile} from 'node:fs/promises';
 import type {Result} from '@shared/result';
 import type {FileError, LoadedFile} from '@shared/schema/fileFormat';
+import {isMissingFile} from './fsErrors';
 
 /** Reads one file's text the way the schemas do. Never throws. */
 export type ParseFile<T> = (
@@ -18,7 +19,7 @@ export async function readTextFile(
   try {
     return {ok: true, value: await readFile(file, 'utf8')};
   } catch (error: unknown) {
-    return isMissing(error)
+    return isMissingFile(error)
       ? {ok: true, value: null}
       : {ok: false, error: readProblem(file, error)};
   }
@@ -51,7 +52,7 @@ export async function listFolder(
   try {
     return {ok: true, value: (await readdir(folder)).sort()};
   } catch (error: unknown) {
-    return isMissing(error)
+    return isMissingFile(error)
       ? {ok: true, value: []}
       : {ok: false, error: readProblem(folder, error)};
   }
@@ -60,8 +61,4 @@ export async function listFolder(
 function readProblem(file: string, error: unknown): FileError {
   const message = error instanceof Error ? error.message : String(error);
   return {kind: 'read', file, field: '', message};
-}
-
-function isMissing(error: unknown): boolean {
-  return error instanceof Error && 'code' in error && error.code === 'ENOENT';
 }
