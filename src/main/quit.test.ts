@@ -10,8 +10,12 @@ import {
   type QuittingApp,
 } from './quit';
 
+// NOTE(0913vision): The fake quits like Electron: a quit made while a
+// will-quit is being handled is ignored, and after a prevented will-quit only a
+// quit from a later task gets through (qa bug M1-11).
 class FakeApp implements QuittingApp {
   quitted = false;
+  private quitting = false;
   private readonly listeners: Array<(event: {preventDefault(): void}) => void> =
     [];
 
@@ -23,9 +27,17 @@ class FakeApp implements QuittingApp {
   }
 
   quit(): void {
+    if (this.quitting) return;
+    this.quitting = true;
     const event = new QuitEvent();
     for (const listener of this.listeners) listener(event);
-    if (!event.prevented) this.quitted = true;
+    if (!event.prevented) {
+      this.quitted = true;
+      return;
+    }
+    setImmediate(() => {
+      this.quitting = false;
+    });
   }
 }
 
@@ -53,6 +65,30 @@ describe('flushLogBeforeQuit', () => {
     expect(console.error).not.toHaveBeenCalled();
   });
 
+  it('quits when nothing is waiting in the log', async () => {
+    const dir = await makeTempDir();
+    const log = createLogger(dir);
+    const app = new FakeApp();
+    flushLogBeforeQuit(app, log);
+    app.quit();
+    await vi.waitFor(() => expect(app.quitted).toBe(true));
+  });
+
+  it('quits even when quit is asked for again and again while it flushes', async () => {
+    const dir = await makeTempDir();
+    const log = createLogger(dir);
+    const app = new FakeApp();
+    flushLogBeforeQuit(app, log);
+    log.info('last line');
+    app.quit();
+    app.quit();
+    await new Promise(resolve => setImmediate(resolve));
+    app.quit();
+    await vi.waitFor(() => expect(app.quitted).toBe(true));
+    const text = await readFile(join(dir, 'main.log'), 'utf8');
+    expect(text).toContain('last line');
+  });
+
   it('quits anyway once the limit passes on a stuck disk', async () => {
     const clock = installFakeClock();
     vi.spyOn(console, 'error').mockReturnValue(undefined);
@@ -68,6 +104,7 @@ describe('flushLogBeforeQuit', () => {
     await clock.advance(QUIT_FLUSH_LIMIT_MS - 1);
     expect(app.quitted).toBe(false);
     await clock.advance(1);
+    await clock.runAll();
     expect(app.quitted).toBe(true);
     expect(console.error).toHaveBeenCalledTimes(1);
   });
@@ -105,6 +142,7 @@ describe('flushLogBeforeQuit', () => {
     app.quit();
     expect(app.quitted).toBe(false);
     await clock.advance(500);
+    await clock.runAll();
     expect(app.quitted).toBe(true);
     expect(vi.getTimerCount()).toBe(0);
   });

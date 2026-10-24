@@ -28,7 +28,10 @@ export function flushLogBeforeQuit(
       console.error('quitting before the log reached the disk', problem);
     }
     state = 'flushed';
-    app.quit();
+    // NOTE(0913vision): Electron ignores a quit made while it is still inside
+    // the will-quit that was just prevented, and an empty log flushes that
+    // soon. Quitting from a later task waits until Electron has returned.
+    setImmediate(() => app.quit());
   };
   app.on('will-quit', event => {
     if (state === 'flushed') return;
