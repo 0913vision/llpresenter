@@ -186,7 +186,7 @@ function RowEnd({children}: {readonly children: ReactNode}): JSX.Element {
       className={styles.end}
       onClick={event => event.stopPropagation()}
       onKeyDown={event => {
-        if (isRowKey(event.key)) event.stopPropagation();
+        if (isRowKey(event.key) && !hasModifier(event)) event.stopPropagation();
       }}
     >
       {children}

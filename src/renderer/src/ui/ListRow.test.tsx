@@ -13,6 +13,7 @@ import {
   ListSlot,
 } from './ListRow';
 import {pointAway, hoverForTooltip, resetTooltips} from './tooltipTesting';
+import {passedKeys, recordWindowKeys} from './windowKeysTesting';
 import type {Workspace} from './workspace';
 
 afterEach(resetTooltips);
@@ -180,6 +181,21 @@ describe('ListBox and ListRow', () => {
     screen.getByRole('button', {name: '내리기'}).focus();
     await userEvent.keyboard('{ArrowUp}{Home}{End}');
     expect(onSelect).not.toHaveBeenCalled();
+  });
+
+  it('passes keys with a modifier on from an end control', async () => {
+    const onSelect = vi.fn();
+    render(<ServiceOrder initial="hymn1" onSelect={onSelect} />);
+    screen.getByRole('button', {name: '내리기'}).focus();
+    const keys = recordWindowKeys();
+    await userEvent.keyboard('{Control>}{ArrowDown}{ArrowUp}{Home}{/Control}');
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(passedKeys(keys)).toEqual([
+      'Control',
+      'ArrowDown',
+      'ArrowUp',
+      'Home',
+    ]);
   });
 
   it('keeps Enter and the list keys in 진행 and passes Space and ← → on', async () => {

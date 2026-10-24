@@ -108,4 +108,24 @@ describe('IconButton at the end of a row', () => {
       expect(onRowKey).not.toHaveBeenCalledWith(' ');
     },
   );
+
+  it('lets Enter and Space with a modifier reach the row', async () => {
+    const onRowKey = vi.fn();
+    render(
+      <div
+        role="option"
+        aria-selected="false"
+        tabIndex={-1}
+        onKeyDown={event => {
+          onRowKey(event.key);
+        }}
+      >
+        만복의 근원 하나님
+        <IconButton icon="x" label="내리기" />
+      </div>,
+    );
+    screen.getByRole('button', {name: '내리기'}).focus();
+    await userEvent.keyboard('{Shift>}{Enter} {/Shift}');
+    expect(onRowKey.mock.calls).toEqual([['Shift'], ['Enter'], [' ']]);
+  });
 });

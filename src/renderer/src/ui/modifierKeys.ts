@@ -13,3 +13,8 @@ export interface ModifierState {
 export function hasModifier(event: ModifierState): boolean {
   return event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
 }
+
+/** Whether Alt is the only modifier held, as for moving a 구성 chip. */
+export function isAltOnly(event: ModifierState): boolean {
+  return event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey;
+}

@@ -6,6 +6,7 @@ import type {
 } from 'react';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
+import {hasModifier} from './modifierKeys';
 import {pressHandler} from './press';
 import {useTooltip, withTooltipProps, type TooltipContent} from './Tooltip';
 import type {ControlSize} from './types';
@@ -71,7 +72,8 @@ export function IconButton({
     guardedPress(event);
   };
   const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>): void => {
-    if (event.key === 'Enter' || event.key === ' ') event.stopPropagation();
+    const rowKey = event.key === 'Enter' || event.key === ' ';
+    if (rowKey && !hasModifier(event)) event.stopPropagation();
     onKeyDown?.(event);
   };
   const {targetProps, tooltip} = useTooltip(
