@@ -1,6 +1,10 @@
 import {join} from 'node:path';
 import type {Result} from '@shared/result';
-import type {DroppedValue, FileError} from '@shared/schema/fileFormat';
+import type {
+  DroppedValue,
+  FileError,
+  LoadedFile,
+} from '@shared/schema/fileFormat';
 import type {DataLocations} from './locations';
 import {listFolder, loadFile, type ParseFile} from './readFiles';
 
@@ -26,7 +30,7 @@ export interface SettingsRead<T> {
 
 interface RecoveryCopy<T> {
   readonly file: string;
-  readonly data: T;
+  readonly loaded: LoadedFile<T>;
 }
 
 /**
@@ -83,18 +87,19 @@ async function runFromCopy<T>(
   if (copy.value === null) {
     return {data: null, problems: [withFallback(problem, DEFAULTS_FALLBACK)]};
   }
-  const fallback = `running from the recovery copy ${copy.value.file}`;
+  const {file, loaded} = copy.value;
+  const fallback = `running from the recovery copy ${file}`;
   return {
-    data: copy.value.data,
-    problems: [withFallback(problem, fallback)],
+    data: loaded.data,
+    problems: [
+      withFallback(problem, fallback),
+      ...loaded.dropped.map(dropped => droppedProblem(file, dropped)),
+    ],
   };
 }
 
-/**
- * The newest copy that passes the schema, `null` when none does, or why the
- * copies folder couldn't be read. Copy names are times, so they sort in time
- * order.
- */
+// NOTE(0913vision): Copy names are times, so sorting them by name sorts them
+// in time order, and the newest copy that passes the schema wins.
 async function newestReadableCopy<T>(
   folder: string,
   parse: ParseFile<T>,
@@ -110,7 +115,7 @@ async function newestReadableCopy<T>(
     const file = join(folder, name);
     const loaded = await loadFile(file, parse);
     if (loaded.ok && loaded.value !== null) {
-      return {ok: true, value: {file, data: loaded.value.data}};
+      return {ok: true, value: {file, loaded: loaded.value}};
     }
   }
   return {ok: true, value: null};

@@ -105,6 +105,23 @@ describe('readSettingsFile', () => {
     expect(await readFile(location.file, 'utf8')).toBe(BROKEN_JSON);
   });
 
+  it('reports the parts of the chosen copy that were dropped, with its path', async () => {
+    const location = await tempLocation();
+    const copy = join(location.copies, NEWER_COPY);
+    await writeJson(location.file, BROKEN_JSON);
+    await writeJson(copy, labelsFile('후렴', 'C'));
+
+    const read = await readSettingsFile(location, parseLabels);
+
+    expect(read.data?.labels).toEqual([
+      {name: '후렴', color: 'teal', key: null},
+    ]);
+    expect(read.problems).toMatchObject([
+      {kind: 'json', file: location.file},
+      {kind: 'invalid', file: copy, field: 'labels.0.key'},
+    ]);
+  });
+
   it('passes over a copy that is broken too', async () => {
     const location = await tempLocation();
     await writeJson(location.file, BROKEN_JSON);
