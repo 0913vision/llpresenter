@@ -2,12 +2,37 @@
 
 - Team member: `spec`
 - Branch: `docs/spec/bible-format`, from `main` (not stacked)
-- Base commit (`main`): `63d0dbc`
+- Base commit (`main`): `4aa7901`
 - Shared files changed: none
 - Last commit: see the commit that adds this file
 - Related request: the lead's message of October 25 (M3-W1, first part)
 
 ## What changed and why
+
+### Round 2
+
+Codex (codex3) requested changes. Round 2 changes only `docs/spec/02-data.md`:
+
+1. **Reference grammar (finding 1).** Every form now has a colon form and a
+   Korean form with examples: whole chapter (요 3, 요 3장), one verse (요 3:16,
+   요 3장 16절), a range in one chapter (요 3:16-18, 요 3장 16-18절), and a
+   range across chapters (요 3:16-4:2, 요 3장 16절-4장 2절). Mixed forms are
+   invalid; spaces are optional; "~" works like "-". A new table gives the
+   endpoint and order rules with examples: a start chapter or start verse that
+   doesn't exist, a reversed range in one chapter or across chapters, an end
+   chapter that doesn't exist (all invalid), an end verse past its chapter
+   (clamped), and equal endpoints (normalized). Each invalid case has its
+   tooltip reason.
+2. **Omitted verses (finding 2).** A new "Omitted verses" section: a reference
+   to one omitted verse is invalid with its own reason, so a blank 장 never goes
+   out; a range or chapter leaves omitted verses out and keeps the original
+   numbers (1, 2, 4, 5 for 1-5 without verse 3); 나누기 counts only the verses
+   that are there; 장마다 references show each 장's verses by original number;
+   an omitted verse still counts as existing for the endpoint rules.
+
+The branch is rebased once onto `4aa7901`.
+
+### Round 1
 
 A read-only look at the user's copible repository found that it has no offline
 Bible text and no file format: it fetches 개역개정 live from the Korean Bible
@@ -54,11 +79,12 @@ logic") is the lead's file, so I left it as it is.
 
 ## Checks run
 
-| Command or test           | Result                                                                                                                            |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run verify`          | Pass: typecheck 8.7 s, lint 44.1 s, format:check 12.7 s, test:coverage 87.7 s (21 files, 185 tests), build 10.0 s; 163.2 s in all |
-| Middle dots and em dashes | None in the changed files (checked with `grep -c`)                                                                                |
-| Bible text in the change  | None; the JSON example uses "..." for all text                                                                                    |
+| Command or test            | Result                                                                                                                            |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run verify` (round 2) | See below                                                                                                                         |
+| `npm run verify` (round 1) | Pass: typecheck 8.7 s, lint 44.1 s, format:check 12.7 s, test:coverage 87.7 s (21 files, 185 tests), build 10.0 s; 163.2 s in all |
+| Middle dots and em dashes  | None in the changed files (checked with `grep -c`)                                                                                |
+| Bible text in the change   | None; the JSON example uses "..." for all text                                                                                    |
 
 ## Decisions I made (for the lead to confirm)
 
