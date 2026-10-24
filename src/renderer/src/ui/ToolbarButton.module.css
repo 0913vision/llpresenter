@@ -3,7 +3,6 @@
   --toolbar-dot-size: 6px;
   --toolbar-dot-top: -3px;
   --toolbar-dot-right: -4px;
-  --toolbar-dot-cut-width: 2px;
 
   position: relative;
   display: inline-flex;
@@ -109,7 +108,7 @@
 }
 
 .button:not([aria-disabled='true']):active .dot {
-  box-shadow: 0 0 0 var(--toolbar-dot-cut-width) var(--bg-raised);
+  box-shadow: var(--ring-dot-cut-pressed);
 }
 
 .button[aria-disabled='true'] {
