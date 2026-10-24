@@ -34,3 +34,9 @@
 | Command          | Result                                                                                                                                   |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | `npm run verify` | Pass, 169.8 s: typecheck 8.1 s, lint 38.1 s, format:check 43.4 s, test:coverage 75.5 s (88 files, 904 passed and 1 skipped), build 4.7 s |
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (f88b9d5): reviewer (Codex, codex5) Approve, no findings. Lead
+  Approve; this closes devops-5's two nits. Rebased by the lead onto local
+  `main` without conflicts.

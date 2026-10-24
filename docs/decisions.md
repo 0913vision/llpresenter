@@ -174,3 +174,14 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   main-process wiring), and set a single merge queue with one Codex window per
   request (`docs/STATUS.md`). The move to GitHub pull requests with rebase
   merges waits for the M1 freeze.
+
+## 2026-10-25: Fewer pushes, one-line Codex requests
+
+- The lead pushes `main` to GitHub only at a milestone freeze or when a feature
+  bundle is complete, not after every merge (user decision). Local `main` stays
+  the integration branch for the team.
+- A Codex window gets one line that points at the review document and
+  `docs/reviews/CODEX.md`; the review document carries the review range and what
+  to check (user decision).
+- A documents-only review request runs `npm run format:check` instead of the
+  full `npm run verify`, to cut machine load.
