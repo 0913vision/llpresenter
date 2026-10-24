@@ -91,10 +91,10 @@ The lead asked for three changes.
 2. **The cool-down: 10, 20, 40, then 60 seconds.** A short first wait recovers
    quickly from a brief cause; doubling keeps a repeating crash from loading the
    computer or flickering; the 60-second cap keeps trying during a service.
-3. **The amber outline on the preview frame at the limit.** The preview draws
-   the live state while the audience sees an empty picture, so the operator
-   needs a mark in the place they watch. It reuses the `PreviewFrame` warning
-   state.
+3. **The amber outline on the preview frame at the limit.** Since round 2, the
+   window and its preview both show the empty picture, and the amber outline
+   marks the failure in the place the operator watches, so an empty preview
+   isn't mistaken for a clear. It reuses the `PreviewFrame` warning state.
 4. **Turning the output on and off still works at the limit:** off stops the
    attempts, and on starts one at once. This keeps output-1's retry as a manual
    path next to 다시 시도.
