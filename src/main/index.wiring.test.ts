@@ -47,6 +47,7 @@ const fakes = vi.hoisted(() => {
     outputContexts,
     frameRates: vi.fn<() => readonly unknown[]>(() => []),
     storeDispose: vi.fn<() => Promise<void>>(),
+    appConfig: {flush: vi.fn<() => Promise<void>>()},
     storeOptions,
     findMediaFile: vi.fn<(mediaId: string) => Promise<string | null>>(),
     mediaRoots: vi.fn<() => readonly string[]>(),
@@ -79,6 +80,12 @@ vi.mock('./soak', () => ({
     fakes.scenarioDispatch.current = dispatch;
     return fakes.scenarioStop;
   },
+}));
+vi.mock('./store/appConfigFile', () => ({
+  openAppConfig: vi.fn(async () => {
+    fakes.order.push('app.json');
+    return fakes.appConfig;
+  }),
 }));
 vi.mock('./store/register', () => ({
   registerStore: (options: unknown) => {
@@ -161,6 +168,7 @@ beforeEach(async () => {
   fakes.outputsStop.mockReset();
   fakes.outputContexts.length = 0;
   fakes.storeDispose.mockReset();
+  fakes.appConfig.flush.mockReset();
   fakes.storeOptions.length = 0;
   fakes.mediaOptions.length = 0;
 });
@@ -187,7 +195,12 @@ function beforeQuit(): {prevented: boolean} {
 describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
   it('reads the UI state before the control window opens', async () => {
     await startMain();
-    expect(fakes.order).toEqual(['ui state', 'data store', 'control window']);
+    expect(fakes.order).toEqual([
+      'app.json',
+      'ui state',
+      'data store',
+      'control window',
+    ]);
   });
 
   it('tells the data store whether an output is on', async () => {
@@ -196,6 +209,28 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     expect(fakes.storeOptions).toHaveLength(1);
     expect(fakes.storeOptions[0]).toHaveProperty('log');
     expect(fakes.storeOptions[0]).toHaveProperty('isAnyOutputOn');
+  });
+
+  it('gives the data store the app.json it opened first', async () => {
+    await startMain();
+
+    expect(fakes.storeOptions[0]).toHaveProperty('appConfig', fakes.appConfig);
+  });
+
+  it('saves app.json on quit, after the UI state', async () => {
+    const ui = deferred();
+    fakes.uiDispose.mockReturnValue(ui.promise);
+    fakes.soakStop.mockResolvedValue(undefined);
+    await startMain();
+
+    beforeQuit();
+    await new Promise(resolve => setImmediate(resolve));
+    expect(fakes.appConfig.flush).not.toHaveBeenCalled();
+    ui.resolve();
+
+    await vi.waitFor(() => {
+      expect(fakes.appConfig.flush).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('serves media through the data store lookup', async () => {

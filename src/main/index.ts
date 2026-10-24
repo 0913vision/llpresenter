@@ -7,6 +7,7 @@ import {registerIpc} from './ipc';
 import {startOutputs} from './outputs/start';
 import {LOG_FLUSH_LIMIT_MS, ShutdownCoordinator} from './shutdown';
 import {registerSoakRecorder, registerSoakScenario} from './soak';
+import {openAppConfig} from './store/appConfigFile';
 import {registerStore} from './store/register';
 import {registerUiState} from './uiState/register';
 import {applyUserDataOverride, type UserDataProblem} from './userData';
@@ -78,6 +79,10 @@ function start(): void {
   app
     .whenReady()
     .then(async () => {
+      const appConfig = await openAppConfig({
+        file: join(app.getPath('userData'), UI_STATE_FILE),
+        log,
+      });
       const ui = await registerUiState(
         join(app.getPath('userData'), UI_STATE_FILE),
         log,
@@ -86,6 +91,7 @@ function start(): void {
       const dataStore = registerStore({
         log,
         isAnyOutputOn: () => isAnyOutputOn(store.state),
+        appConfig,
       });
       const disposeIpc = registerIpc(store, log, windowMode);
       const stopServingMedia = serveMedia({
@@ -109,6 +115,7 @@ function start(): void {
       shutdown.add({name: 'stop the soak scenario', run: stopSoakScenario});
       shutdown.add({name: 'stop the outputs', run: outputs.stop});
       shutdown.add({name: 'save the UI state', run: () => ui.dispose()});
+      shutdown.add({name: 'save app.json', run: () => appConfig.flush()});
       shutdown.add({name: 'finish the soak record', run: stopSoakRecorder});
       shutdown.add({name: 'close the data store', run: dataStore.dispose});
       shutdown.add({name: 'stop serving media', run: stopServingMedia});
