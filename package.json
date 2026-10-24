@@ -8,6 +8,7 @@
   "main": "./out/main/index.js",
   "scripts": {
     "postinstall": "install-electron",
+    "prepare": "node scripts/hooks/install.mts",
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
