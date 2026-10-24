@@ -36,9 +36,8 @@ the open 예배 순서 as `ShowService` (`service:get`, `service:changed`).
   fixture with `seedSampleService()`. Tests that relied on the old initial state
   now seed it in `beforeEach`.
 
-The main process serves `service:get` only after output wires `registerStore`
-into `src/main/index.ts`. Until then `get()` has no handler in the real app, and
-the read is logged as an error and the list stays empty.
+The main process already serves `service:get` (`registerStore` is wired in
+`src/main/index.ts`). I have not yet checked the list in the real app.
 
 ## Changed files
 
@@ -74,7 +73,7 @@ See "Verify result" at the end of this file.
 - [x] The code uses the modern language features that `CLAUDE.md` lists
 - [x] The change is small and focused
 - [ ] Measured performance values (not measured)
-- [ ] Checked in the real app (no `service:get` handler until output wires it)
+- [ ] Checked in the real app (not yet)
 
 ## Decisions I made (for the lead to confirm)
 
