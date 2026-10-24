@@ -97,19 +97,13 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (e186235): reviewer (Codex, codex3) Approve with no findings. Lead
+  Approve; `live.get`, `ui.get`, `output.getStatus`, and `service.get` log and
+  reject a failed or malformed read instead of answering a fallback, and
+  `service.get` still answers a real `null`. Every caller already handles a
+  rejection. Rebased by the lead onto local `main` without conflicts.
 
 ## Team member's reply
 

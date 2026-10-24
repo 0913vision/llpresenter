@@ -83,7 +83,9 @@ missing.
 
 ## Verdicts (recorded by the lead at merge)
 
-- Not reviewed yet.
+- Round 1 (d715971): reviewer (Codex, codex2) Approve with no findings. Lead
+  Approve; fixes qa's M2-3, so a click on a small preview's picture swaps it.
+  Rebased by the lead onto local `main` without conflicts.
 
 ## Verify result
 
