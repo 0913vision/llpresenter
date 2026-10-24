@@ -197,19 +197,14 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (3cbe689, docs head fda1e94): reviewer (Codex, codex3) Request
+  changes: newer-version files lost their read-only state on the way to
+  ShowService, a recovery copy's dropped fields weren't reported, and two nits.
+- Round 2 (54760e5): reviewer (Codex, codex3) Approve, no findings. loadStore
+  now checks folder containment before any read and fails closed. Lead Approve.
+  Rebased by the lead onto local `main` without conflicts.
 
 ## Team member's reply
 
