@@ -69,7 +69,6 @@ export function useColumnLayout(
 
   useLayoutEffect(() => {
     layoutRef.current?.setSizeClass(sizeClass);
-    layoutRef.current?.refit();
   }, [store, sizeClass]);
 
   const drag = useMemo<ColumnDrag>(

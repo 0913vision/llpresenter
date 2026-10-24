@@ -79,14 +79,12 @@ export class ColumnLayout {
     );
   }
 
-  /**
-   * Saves the dragged column only if its width changed, keeps the other saved
-   * width, and fits the widths to a window that resized during the drag.
-   */
   private endDrag(drag: Drag): void {
     if (this.drag !== drag) return;
     this.drag = null;
     const {column} = drag;
+    // NOTE(0913vision): Save only a changed width, so that a click on a gap
+    // does not store a width that is shrunk on screen only.
     if (this.shown[column] !== drag.start[column]) {
       this.saved = {...this.saved, [column]: this.shown[column]};
       this.options.store.save(this.sizeClass, this.saved);
