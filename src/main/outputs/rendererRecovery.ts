@@ -45,11 +45,9 @@ type TimerName = 'relaunchTimer' | 'cooldownTimer' | 'survivalTimer';
 
 type LimitPhase = 'none' | 'waiting' | 'attempting';
 
-/**
- * The page in the window: drawing, loading again, failed to load or draw
- * (it may still draw late), or gone with its renderer (its reports are
- * stale). A failure counts only while the page is live or loading.
- */
+// NOTE(0913vision): A page that failed to load or draw may still draw late,
+// and a page gone with its renderer can only send stale reports. A failure
+// counts only while the page is live or loading.
 type PageStatus =
   | {readonly kind: 'live'}
   | {readonly kind: 'loading'; readonly load: PageLoad}
