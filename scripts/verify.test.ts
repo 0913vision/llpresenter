@@ -1,8 +1,11 @@
+import {PassThrough} from 'node:stream';
+import {finished} from 'node:stream/promises';
 import {describe, expect, it} from 'vitest';
 import {
   failureLines,
   formatHeader,
   formatSummary,
+  readText,
   runSteps,
   type StepOutcome,
   type VerifyStep,
@@ -156,11 +159,50 @@ describe('failureLines', () => {
     '      Tests  1 failed | 736 passed (737)',
   ].join('\r\n');
 
-  it('keeps failed tests and worker start errors, once each', () => {
+  it('keeps failed tests, worker start errors, and unhandled blocks, once each', () => {
     expect(failureLines(vitestOutput)).toEqual([
       'FAIL  |node| test/git-repo.test.ts > makeTempGitRepo > writes files',
       '× writes files 5625ms',
+      'Unhandled Errors',
       'Error: [vitest-pool]: Failed to start forks worker for test files D:/llp/src/renderer/src/ui/Checkbox.test.tsx',
+    ]);
+  });
+
+  it('keeps the first error line of each failed test', () => {
+    const output = [
+      ' FAIL  |node| test/a.test.ts > waits',
+      ' FAIL  |node| test/b.test.ts > reads',
+      '',
+      ' FAIL  |node| test/a.test.ts > waits',
+      'Error: Test timed out in 60000ms.',
+      'If this is a long-running test, pass a timeout value as the last argument.',
+      ' ❯ test/a.test.ts:3:1',
+      '',
+      ' FAIL  |node| test/b.test.ts > reads',
+      'AssertionError: expected 1 to be 2 // Object.is equality',
+    ].join('\n');
+    expect(failureLines(output)).toEqual([
+      'FAIL  |node| test/a.test.ts > waits (Error: Test timed out in 60000ms.)',
+      'FAIL  |node| test/b.test.ts > reads (AssertionError: expected 1 to be 2 // Object.is equality)',
+    ]);
+  });
+
+  it('names an unhandled rejection when no test failed', () => {
+    const output = [
+      ' ✓ |node| test/a.test.ts (3 tests) 12ms',
+      '⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯',
+      '',
+      'Vitest caught 1 unhandled error during the test run.',
+      'This might cause false positive tests.',
+      '',
+      '⎯⎯⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯⎯',
+      "TypeError: Cannot read properties of undefined (reading 'x')",
+      ' ❯ src/a.ts:3:1',
+    ].join('\n');
+    expect(failureLines(output)).toEqual([
+      'Unhandled Errors',
+      'Vitest caught 1 unhandled error during the test run.',
+      "Unhandled Rejection (TypeError: Cannot read properties of undefined (reading 'x'))",
     ]);
   });
 
@@ -173,5 +215,19 @@ describe('failureLines', () => {
   it('keeps at most twenty lines', () => {
     const many = Array.from({length: 30}, (_, i) => ` FAIL  test ${i}`);
     expect(failureLines(many.join('\n'))).toHaveLength(20);
+  });
+});
+
+describe('readText', () => {
+  it('keeps a character whole when it is split across two chunks', async () => {
+    const stream = new PassThrough();
+    const texts: string[] = [];
+    readText(stream, text => texts.push(text));
+    const cross = Buffer.from('× done', 'utf8');
+    stream.write(cross.subarray(0, 1));
+    stream.write(cross.subarray(1));
+    stream.end();
+    await finished(stream);
+    expect(texts.join('')).toBe('× done');
   });
 });

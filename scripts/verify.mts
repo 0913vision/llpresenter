@@ -59,8 +59,11 @@ const MS_PER_SECOND = 1000;
 const FAILURE_EXIT_CODE = 1;
 const MAX_FAILURE_LINES = 20;
 const MAX_KEPT_OUTPUT_CHARS = 2_000_000;
-const FAILURE_LINE =
-  /^\s*(?:FAIL\s|×\s|Error: \[vitest-pool|Unhandled (?:Errors?|Rejection))/;
+const LOOKAHEAD_LINES = 6;
+const NOTABLE_LINE =
+  /^\s*(?:FAIL\s|×\s|Error: \[vitest-pool|Vitest caught \d+ unhandled)|Unhandled (?:Errors?|Rejection)/;
+const ERROR_MESSAGE = /^\s*[A-Za-z]*(?:Error|Exception)\b[^:]*:/;
+const SEPARATOR = /⎯+/g;
 
 /** Runs the steps in order and stops at the first one that fails. */
 export async function runSteps(
@@ -79,17 +82,52 @@ export async function runSteps(
   return {passed, failed: null};
 }
 
+function cleanLine(line: string): string {
+  return line.replace(SEPARATOR, '').trim();
+}
+
+function errorAfter(lines: readonly string[], index: number): string | null {
+  for (const line of lines.slice(index + 1, index + 1 + LOOKAHEAD_LINES)) {
+    if (NOTABLE_LINE.test(line)) return null;
+    if (ERROR_MESSAGE.test(line)) return cleanLine(line);
+  }
+  return null;
+}
+
 /**
  * Picks the lines that name what failed from a step's output: Vitest's
- * `FAIL` and `×` lines, worker start errors, and unhandled errors. Without
- * them, a timeout on a busy machine looks the same as a broken test.
+ * `FAIL` and `×` lines, worker start errors, and the unhandled error and
+ * rejection blocks, each with the first error line that follows it (for
+ * example "Error: Test timed out in 60000ms."). Without them, a timeout on a
+ * busy machine looks the same as a broken test.
  */
 export function failureLines(output: string): string[] {
-  const lines = stripVTControlCharacters(output)
-    .split(/\r?\n/)
-    .filter(line => FAILURE_LINE.test(line))
-    .map(line => line.trim());
-  return [...new Set(lines)].slice(0, MAX_FAILURE_LINES);
+  const lines = stripVTControlCharacters(output).split(/\r?\n/);
+  const errorByLine = new Map<string, string | null>();
+  for (const [index, line] of lines.entries()) {
+    if (!NOTABLE_LINE.test(line)) continue;
+    const notable = cleanLine(line);
+    errorByLine.set(
+      notable,
+      errorByLine.get(notable) ?? errorAfter(lines, index),
+    );
+  }
+  return [...errorByLine]
+    .slice(0, MAX_FAILURE_LINES)
+    .map(([line, error]) => (error === null ? line : `${line} (${error})`));
+}
+
+/**
+ * Hands a stream's text to `onText` as it arrives. One UTF-8 decoder per
+ * stream keeps a character that is split across two chunks (such as `×`)
+ * whole.
+ */
+export function readText(
+  stream: NodeJS.ReadableStream,
+  onText: (text: string) => void,
+): void {
+  stream.setEncoding('utf8');
+  stream.on('data', (text: string) => onText(text));
 }
 
 function seconds(milliseconds: number): string {
@@ -157,13 +195,13 @@ function npmRunner(npmCli: string): StepRunner {
       // NOTE(0913vision): The output goes straight to the terminal and is
       // also kept, capped, so the summary can name what failed. FORCE_COLOR
       // keeps the tools' colors, which they drop when they see a pipe.
-      child.stdout.on('data', (chunk: Buffer) => {
-        process.stdout.write(chunk);
-        output = keepTail(output + chunk.toString());
+      readText(child.stdout, text => {
+        process.stdout.write(text);
+        output = keepTail(output + text);
       });
-      child.stderr.on('data', (chunk: Buffer) => {
-        process.stderr.write(chunk);
-        output = keepTail(output + chunk.toString());
+      readText(child.stderr, text => {
+        process.stderr.write(text);
+        output = keepTail(output + text);
       });
       const finish = (exitCode: number | null, signal: string | null): void => {
         resolve({
