@@ -154,6 +154,7 @@ full bar is "Quality bar" in `docs/TECH.md`.
   - `style`: changes appearance without changing behavior (formatting, names,
     matching UI values to the design system).
   - `docs`: changes documents only.
+  - `test`: adds or changes tests only, with no change to the code they test.
   - `chore`: changes configuration, dependencies, build, CI, or test tooling.
 - The scope is the area you changed, for example `live`, `shell`, `ui`, `store`,
   `prep`, `output`, `design`, or `repo`.

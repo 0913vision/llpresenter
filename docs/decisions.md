@@ -185,3 +185,9 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   to check (user decision).
 - A documents-only review request runs `npm run format:check` instead of the
   full `npm run verify`, to cut machine load.
+
+## 2026-10-25: `test` is a commit tag
+
+- `test(scope): ...` is allowed for commits that add or change tests only (user
+  decision). The version bot treats it as a patch change, like `chore` and
+  `docs`.
