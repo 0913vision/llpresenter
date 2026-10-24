@@ -2,7 +2,7 @@
 
 - Team member: `output`
 - Branch: `feat/output/windows`
-- Base commit (`main`): `8b5edaa`
+- Base commit (`main`): `63d0dbc` (round 2; round 1 was on `8b5edaa`)
 - Last commit: the commit that adds this file
 - Related brief: `docs/briefs/output.md` (task 1), milestone M2
 
@@ -84,13 +84,15 @@ Behavior, against the brief and spec 03 and 08:
 
 ## Checks run
 
-On `b14cc8f`, rebased onto `main` at `8b5edaa`.
+Round 2, on `bc0cf7b`, rebased onto `main` at `63d0dbc`.
 
 | Command or test         | Result                                                                                                      |
 | ----------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `npm run verify`        | Passed, 5 steps in 61.1 s: typecheck, lint, format check, 27 test files and 181 tests with coverage, build  |
+| `npm run verify`        | Passed, 5 steps in 155.8 s: typecheck, lint, format check, 30 test files and 246 tests with coverage, build |
 | New tests               | 12 files under `src/main/displays/` and `src/main/outputs/`, all passing                                    |
 | The app on two monitors | Not run: the rule is that no window may appear on the user's screen. See "Where to look" for a manual check |
+
+Round 1, on `b14cc8f` on `main` at `8b5edaa`: verify passed (181 tests).
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
@@ -190,4 +192,28 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 findings (Codex 0:6), each addressed in its own commit:
+
+1. **Look-alike monitors (`assign.ts`)**: fixed in `78dc22d`. Every pass after
+   the saved id now assigns a monitor only when it is the screen's single
+   candidate and no other screen wants it in the same pass; an ambiguous match
+   is rejected and the screen falls back to a window. A new pass right after the
+   saved id keeps each screen on the monitor it had at the last assignment (the
+   manager remembers it), so two outputs on monitors of the same model stay put
+   when the ids change. The control monitor and monitors taken by a stronger
+   match stay excluded. Regression tests: one of two same-model monitors
+   unplugged after the ids changed (the other output keeps its monitor), the ids
+   changing while both are plugged in, two monitors that nothing tells apart,
+   two screens saved at the same position, and a manager test where a look-alike
+   monitor connects next to an output's monitor.
+2. **Stale list after an empty or failed read (`registry.ts`)**: fixed in
+   `b554701`. An empty or failed read keeps the last list and schedules another
+   read after `DISPLAY_RETRY_MS` (1 second), until a read works. The settle
+   timer and the retry share one cancellable pending read, released on
+   `dispose`, and a display event replaces a pending retry. A failing streak is
+   logged once, and recovery is logged once. Tests: recovery from an empty read
+   without another display event, recovery from a failed read at start, and
+   dispose cancelling a pending retry.
+3. **Nit, TSDoc on the private `changes()`**: removed in `bc0cf7b`. A
+   non-exported helper in `assign.ts` lost its TSDoc the same way; the rule it
+   stated moved into the `NOTE` above the passes.
