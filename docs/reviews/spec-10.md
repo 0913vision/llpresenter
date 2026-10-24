@@ -1,15 +1,23 @@
 # Review request: `spec-10`
 
-- Review range: `814781b...docs/spec/wave-b-readiness`
+- Review range: `d5b8af9...docs/spec/wave-b-readiness`
 - Team member: `spec`
 - Branch: `docs/spec/wave-b-readiness`, from `main` (not stacked)
-- Base commit (`main`): `814781b`
+- Base commit (`main`): `d5b8af9`
 - Shared files changed: none
 - Last commit: see the commit that adds this file
 - Related request: the lead's message of October 25 (spec-10, M3 wave B
   readiness)
 
 ## What changed and why
+
+### Round 2
+
+The branch is rebased onto `main` `d5b8af9`, which holds spec-5 and spec-8. Two
+conflicts were resolved by keeping both sides: the undo sentence in 05 (spec-5's
+decided keys plus this request's per-song history) and the test pattern bullet
+in 06 (spec-8's source wording plus this request's pattern layout). Round 2 adds
+one commit; see "Team member's reply".
 
 ### Round 1
 
@@ -56,25 +64,46 @@ no request has to wait, but a later decision changes code.
 
 ## Checks run
 
-| Command or test           | Result                                                                                                                                                                                                                                                  |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run verify`          | Pass on base `20ffc86`: typecheck 11.5 s, lint 45.7 s, format:check 128.4 s, test:coverage 150.1 s (98 files, 1014 tests, 1 skipped), build 12.9 s; 348.6 s in all. Then rebased onto `814781b`, which changes no file in `docs/spec/` or `docs/plans/` |
-| Middle dots and em dashes | None in the changed files (checked with `grep -c`)                                                                                                                                                                                                      |
+| Command or test                  | Result                                                                                                                                                                                                                                                  |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run format:check` (round 2) | Pass on base `d5b8af9` (a documents-only round runs only this check)                                                                                                                                                                                    |
+| `npm run verify` (round 1)       | Pass on base `20ffc86`: typecheck 11.5 s, lint 45.7 s, format:check 128.4 s, test:coverage 150.1 s (98 files, 1014 tests, 1 skipped), build 12.9 s; 348.6 s in all. Then rebased onto `814781b`, which changes no file in `docs/spec/` or `docs/plans/` |
+| Middle dots and em dashes        | None in the changed files (checked with `grep -c`)                                                                                                                                                                                                      |
 
 ## Decisions I made (for the lead to confirm)
 
-1. **Shrink to fit stops at half the style size** and then lets the text run
-   past the margins rather than cutting it. Lyrics on screen matter more than
-   the margin.
-2. **The control monitor isn't offered** as a full screen device, so a misclick
-   in 화면 설정 can't cover the control window during a service.
+1. **Shrink to fit goes down to 1 px** (round 2), as output-2 builds it, so
+   every line always fits; the previews show the real size instead of a warning.
+2. **The control monitor never shows a full screen output** on any path (round
+   2): the select and the drop target leave it out, and a saved assignment whose
+   monitor holds the main window shows in a window until the main window leaves,
+   so a misplaced output can't cover the control window during a service.
 3. **The edit undo in 진행** is the 편집 menu's 실행 취소, because Ctrl Z there
    belongs to the clear undo (spec-5).
-4. **Merge note:** the new 06 test pattern bullet sits right after the line that
-   spec-8 rewrites; if spec-8 merges first, I resolve that one hunk when I
-   rebase.
+4. **Merge note:** the 06 test pattern hunk next to spec-8's line was resolved
+   in the round 2 rebase.
 
 ## Where to look
 
 - 03 "Drawing text", which O4's tests come from.
 - 03 and 06 for the correction values, which O9b's tests come from.
+
+## Team member's reply
+
+### Round 1 findings (codex4)
+
+1. **Font floor (03-output.md:208).** Fixed in 03 "Drawing text": the size goes
+   down to 1 px, as output-2's `fitFontSize` does, so every line fits and
+   nothing is cut or runs past the margins. The operator gets no warning; the
+   진행 previews and the song editor's preview show the real size before the 장
+   goes out.
+2. **Control monitor on every path (06-settings.md:74).** Fixed in 06 "Display
+   layout": the control monitor is the one with the largest part of the main
+   window. The 장치 select leaves it out, and its box takes no dropped screen. A
+   saved assignment stays as it is; while the main window is on that monitor, at
+   launch or after the operator moves it there, the output shows in a 960 x 540
+   window with an amber mark and the tooltip "모니터 2에 컨트롤 창이 있어 창으로
+   표시 중", and goes back to full screen when the main window leaves.
+3. **Nit, encoding order (05-prep.md:438).** Fixed: with 자동, a UTF-8 or UTF-16
+   byte order mark decides first; without one, the bytes are read as UTF-8 only
+   if valid, and otherwise as CP949.
