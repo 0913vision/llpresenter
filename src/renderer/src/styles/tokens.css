@@ -1,0 +1,142 @@
+/* 디자인 시스템 토큰. design/system/project/tokens.css에서 가져왔습니다. 여기서 고치지 말고 그쪽을 고친 뒤 다시 가져옵니다(@font-face 줄은 뺌). */
+:root, [data-theme="dark"] {
+  --bg-app: #0e0e0e;
+  --bg-sunken: #0b0b0b;
+  --bg-well: #121212;
+  --bg-panel: #1c1c1c;
+  --bg-inset: #1a1a1a;
+  --bg-dialog: #1f1f1f;
+  --bg-control-off: var(--bg-dialog);
+  --bg-toolbar-hover: #232323;
+  --bg-raised: #262626;
+  --bg-control: #2a2a2a;
+  --bg-control-hover: #333333;
+  --line: #2b2b2b;
+  --line-strong: #3a3a3a;
+  --line-control: #6e6e6e;
+  --text: #ececec;
+  --text-2: #b4b4b4;
+  --text-3: #8c8c8c;
+  --text-off: #6e6e6e;
+  --text-on-fill: #ffffff;
+  --text-on-label: #101010;
+  --text-on-selection: #b4c6e0;
+  --accent: #3d8bf0;
+  --accent-fill: #2a70dc;
+  --accent-fill-hover: #2566cc;
+  --selection: #1f4170;
+  --live: #d2343a;
+  --live-tint: #3a1416;
+  --warning: #e3a23b;
+  --warning-tint: #33280f;
+  --ok: #3dbb6b;
+  --ok-tint: #16301f;
+  --chroma: #00b140;
+  --output-black: #000000;
+  --scrim: rgba(0, 0, 0, 0.6);
+  --scrim-strong: rgba(0, 0, 0, 0.72);
+  --label-teal: #5fb8c2;
+  --label-green: #8fbf7a;
+  --label-yellow: #d6b35f;
+  --label-orange: #d68f5f;
+  --label-rose: #d07a8a;
+  --label-violet: #a99ae0;
+  --label-slate: #7d8fd6;
+  --label-gray: #a3a3a3;
+  --label-none: var(--bg-control);
+  --shadow-popover: 0 0 0 1px #3a3a3a, 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-dialog: 0 0 0 1px #3a3a3a, 0 16px 48px rgba(0, 0, 0, 0.6);
+  --ring-live: 0 0 0 3px #d2343a;
+  --ring-selected: 0 0 0 2px #3d8bf0;
+  --ring-field: inset 0 0 0 1px #2b2b2b;
+  --ring-field-focus: inset 0 0 0 1px #3d8bf0;
+  --ring-field-error: inset 0 0 0 1px #d2343a;
+  --ring-dot-cut: 0 0 0 2px #0e0e0e;
+  --ring-dot-cut-hover: 0 0 0 2px #232323;
+}
+:root {
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-6: 6px;
+  --space-8: 8px;
+  --space-10: 10px;
+  --space-12: 12px;
+  --space-14: 14px;
+  --space-16: 16px;
+  --space-18: 18px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --panel-gap: 4px;
+  --panel-inset: 14px;
+  --dialog-inset: 16px;
+  --radius-xs: 2px;
+  --radius-sm: 3px;
+  --radius-md: 4px;
+  --radius-lg: 5px;
+  --radius-xl: 6px;
+  --radius-2xl: 8px;
+  --radius-tile: 14px;
+  --radius-full: 9999px;
+  --size-menubar: 30px;
+  --size-toolbar: 56px;
+  --size-toolbar-compact: 40px;
+  --size-statusbar: 28px;
+  --size-panel-header: 34px;
+  --size-panel-footer: 32px;
+  --size-control-xs: 22px;
+  --size-control-sm: 26px;
+  --size-control-md: 30px;
+  --size-row: 30px;
+  --size-row-menu: 28px;
+  --size-row-double: 44px;
+  --size-toolbar-button: 48px;
+  --size-toolbar-button-compact: 32px;
+  --size-clear-button: 52px;
+  --size-clear-button-compact: 40px;
+  --size-dialog-header: 44px;
+  --size-dialog-footer: 52px;
+  --size-dialog-aside: 260px;
+  --size-alert-icon: 40px;
+  --size-thumb-band: 24px;
+  --size-badge: 16px;
+  --size-count: 18px;
+  --size-icon-12: 12px;
+  --size-icon-14: 14px;
+  --size-icon-16: 16px;
+  --size-icon-18: 18px;
+  --size-icon-24: 24px;
+  --size-icon-28: 28px;
+  --size-prop-label: 84px;
+  --size-prop-label-wide: 168px;
+  --size-prop-row: 36px;
+  --size-prop-row-wide: 38px;
+  --col-left: 280px;
+  --col-right: 480px;
+  --col-left-compact: 220px;
+  --col-right-compact: 360px;
+  --col-left-wide: 320px;
+  --col-right-wide: 560px;
+  --col-center-min: 560px;
+  --dialog-s: 460px;
+  --dialog-m: 600px;
+  --dialog-l: 820px;
+  --dialog-xl: 1080px;
+  --window-min-width: 1280px;
+  --window-min-height: 720px;
+  --z-popover: 100;
+  --z-tooltip: 200;
+  --z-dialog: 300;
+  --z-notification: 400;
+  --font-ui: "Pretendard Variable", Pretendard, "Segoe UI", "Malgun Gothic", sans-serif;
+}
+.heading { font-family: var(--font-ui); font-size: 16px; line-height: 22px; font-weight: 600; }
+.title { font-family: var(--font-ui); font-size: 13px; line-height: 18px; font-weight: 600; }
+.body { font-family: var(--font-ui); font-size: 13px; line-height: 18px; font-weight: 400; }
+.body-strong { font-family: var(--font-ui); font-size: 13px; line-height: 18px; font-weight: 600; }
+.label { font-family: var(--font-ui); font-size: 12px; line-height: 16px; font-weight: 400; }
+.label-strong { font-family: var(--font-ui); font-size: 12px; line-height: 16px; font-weight: 600; }
+.band { font-family: var(--font-ui); font-size: 12px; line-height: 16px; font-weight: 700; }
+.caption { font-family: var(--font-ui); font-size: 11px; line-height: 14px; font-weight: 400; }
+.caption-strong { font-family: var(--font-ui); font-size: 11px; line-height: 14px; font-weight: 600; }
+.toolbar-label { font-family: var(--font-ui); font-size: 11px; line-height: 14px; font-weight: 500; }
+.micro { font-family: var(--font-ui); font-size: 10px; line-height: 12px; font-weight: 700; }

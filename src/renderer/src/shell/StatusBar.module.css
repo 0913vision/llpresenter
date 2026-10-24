@@ -1,0 +1,33 @@
+.bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-18);
+  height: var(--size-statusbar);
+  padding: 0 var(--space-18);
+  background: var(--bg-app);
+  color: var(--text-3);
+  font-size: 11px;
+  line-height: 14px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.off {
+  color: var(--text-off);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--ok);
+}

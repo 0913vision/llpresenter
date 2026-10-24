@@ -1,0 +1,143 @@
+.bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  height: var(--size-toolbar);
+  padding: 0 var(--space-4);
+}
+
+.barCompact {
+  height: var(--size-toolbar-compact);
+}
+
+.group {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  min-width: 64px;
+  height: var(--size-toolbar-button);
+  padding: 0 var(--space-8);
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--text);
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 500;
+  transition: background-color 100ms ease-out;
+}
+
+.button:hover {
+  background: var(--bg-toolbar-hover);
+}
+
+.compact {
+  flex-direction: row;
+  gap: var(--space-6);
+  min-width: 0;
+  height: var(--size-toolbar-button-compact);
+  padding: 0 var(--space-10) 0 var(--space-8);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+}
+
+.tab {
+  color: var(--text-3);
+}
+
+.tab[aria-selected='true'] {
+  background: var(--bg-raised);
+  color: var(--text);
+}
+
+.divider {
+  flex: none;
+  width: 1px;
+  height: 24px;
+  margin: 0 var(--space-4);
+  background: var(--line);
+}
+
+.center {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  width: 420px;
+  max-width: 100%;
+  height: var(--size-control-md);
+  padding: 0 var(--space-10);
+  border-radius: var(--radius-md);
+  background: var(--bg-well);
+  box-shadow: var(--ring-field);
+  color: var(--text-3);
+}
+
+.search:focus-within {
+  box-shadow: var(--ring-field-focus);
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+}
+
+.search input::placeholder {
+  color: var(--text-3);
+}
+
+.look {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.chevron {
+  color: var(--text-3);
+}
+
+.output[data-state='off'] {
+  color: var(--text-off);
+}
+
+.outputIcon {
+  position: relative;
+  display: inline-flex;
+}
+
+.dot {
+  position: absolute;
+  top: -3px;
+  right: -4px;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--live);
+  box-shadow: var(--ring-dot-cut);
+}
+
+.button:hover .dot {
+  box-shadow: var(--ring-dot-cut-hover);
+}
