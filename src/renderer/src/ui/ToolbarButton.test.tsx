@@ -125,7 +125,7 @@ describe('OutputToggle', () => {
     ['off', 'false', '본 화면 출력 켜기 (모니터 2)'],
     ['warning', 'true', '본 화면: 모니터 2를 찾을 수 없습니다'],
   ] as const)(
-    'draws the %s state with aria-pressed %s and its tooltip',
+    'draws the %s state with aria-pressed %s, its dot, and its tooltip',
     async (state, pressed, tooltip) => {
       render(
         <OutputToggle
@@ -139,6 +139,10 @@ describe('OutputToggle', () => {
       const button = screen.getByRole('button', {name: '본 화면'});
       expect(button.getAttribute('aria-pressed')).toBe(pressed);
       expect(button.getAttribute('data-state')).toBe(state);
+      const dots = button.querySelectorAll('[data-tone]');
+      expect([...dots].map(dot => dot.getAttribute('data-tone'))).toEqual([
+        state,
+      ]);
       expect((await hoverForTooltip(button))?.textContent).toBe(tooltip);
     },
   );

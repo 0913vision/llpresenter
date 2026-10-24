@@ -85,13 +85,7 @@ export function OutputToggle({
             size={toolbarIconSize(compact)}
             className={styles.outputIcon}
           />
-          {state === 'off' ? null : (
-            <StatusDot
-              tone={state === 'warning' ? 'warning' : 'live'}
-              cut
-              className={styles.dot}
-            />
-          )}
+          <StatusDot tone={state} cut className={styles.dot} />
         </span>
         <span className={styles.label}>{label}</span>
       </button>

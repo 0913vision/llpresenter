@@ -258,7 +258,7 @@
 .ll-tbtn:not(:disabled, [aria-disabled="true"]):is(:hover, .is-hover) .ll-tbtn__dot { box-shadow: 0 0 0 2px var(--bg-toolbar-hover); }
 .ll-tbtn:not(:disabled, [aria-disabled="true"]):is(:active, .is-active, [aria-expanded="true"]) .ll-tbtn__dot { box-shadow: 0 0 0 2px var(--bg-raised); }
 .ll-tbtn.ll-tbtn--output:is([data-state="off"], [aria-pressed="false"]) { color: var(--text-off); }
-.ll-tbtn.ll-tbtn--output:is([data-state="off"], [aria-pressed="false"]) .ll-tbtn__dot { display: none; }
+.ll-tbtn.ll-tbtn--output:is([data-state="off"], [aria-pressed="false"]) .ll-tbtn__dot { background: var(--line-strong); }
 .ll-tbtn.ll-tbtn--output[data-state="warning"] .ll-tbtn__icon > .ll-i { color: var(--warning); }
 .ll-tbtn.ll-tbtn--output[data-state="warning"] .ll-tbtn__dot { background: var(--warning); }
 

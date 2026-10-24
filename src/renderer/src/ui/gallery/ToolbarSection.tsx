@@ -240,7 +240,7 @@ export function ToolbarSection(): JSX.Element {
           <ToolbarButton icon="layers" label="평상시" menu disabled />
         </SpecItem>
       </SpecGroup>
-      <SpecGroup title="Screen output: on has a 6px live dot (ring-dot-cut), off has no dot, no monitor has a warning icon and dot">
+      <SpecGroup title="Screen output: on has a 6px live dot (ring-dot-cut), off a line-strong dot, no monitor a warning icon and dot">
         {outputs.map(spec => (
           <OutputItem
             key={spec.label}
