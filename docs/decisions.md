@@ -161,3 +161,9 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   merge time and batches its own document commits; reviewers approve when only
   nits remain, which the author fixes in the next branch; the lead records the
   verdicts in the review document at merge time.
+- 2026-10-25: Shortcuts follow ProPresenter (user), since they can be changed
+  later in the 단축키 settings. Where ProPresenter has a default or a behavior,
+  use it; where it has none, use the spec proposal. Shortcuts are matched by
+  physical key, and key names are written in English (Page Up, Home, Ctrl S).
+  The settings questions in the proposal (10 to 18) use the proposal's defaults
+  until the user decides otherwise.
