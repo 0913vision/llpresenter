@@ -129,6 +129,9 @@
   --z-tooltip: 200;
   --z-dialog: 300;
   --z-notification: 400;
+  --motion-hover: 100ms ease-out;
+  --motion-popover: 120ms ease-out;
+  --motion-dialog: 160ms ease-out;
   --font-ui:
     'Pretendard Variable', Pretendard, 'Segoe UI', 'Malgun Gothic', sans-serif;
   --type-heading: 600 16px/22px var(--font-ui);

@@ -11,7 +11,7 @@ for (const t of j.color.tokens) lines.push(`  --${t.name}: ${ref(val(t.value))};
 for (const t of j.shadow.tokens) lines.push(`  --${t.name}: ${val(t.value)};`)
 lines.push('}')
 lines.push(':root {')
-for (const fam of ['spacing', 'radius', 'size', 'zIndex']) for (const t of j[fam].tokens) lines.push(`  --${t.name}: ${t.value};`)
+for (const fam of ['spacing', 'radius', 'size', 'zIndex', 'motion']) for (const t of j[fam].tokens) lines.push(`  --${t.name}: ${t.value};`)
 for (const [k, v] of Object.entries(j.type.families)) lines.push(`  --font-${k}: ${v};`)
 for (const g of j.type.groups) for (const s of g.styles) lines.push(`  --type-${s.name}: ${s.fontWeight} ${s.fontSize}/${s.lineHeight} var(--font-${s.family || g.family});`)
 lines.push('}')

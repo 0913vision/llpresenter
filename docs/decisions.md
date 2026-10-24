@@ -95,3 +95,7 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   `tokens.json`. Components use `font: var(--type-label)` instead of the global
   classes, which CSS modules can't compose safely (asked by ui). Named
   `--type-*` so it doesn't collide with the family variables `--font-*`.
+- 2026-10-24: The three UI motion values from the design system README are
+  tokens: `--motion-hover` (100ms ease-out), `--motion-popover` (120ms
+  ease-out), and `--motion-dialog` (160ms ease-out), generated from a new
+  `motion` family in `tokens.json` (asked by ui).

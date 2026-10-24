@@ -158,7 +158,7 @@ The app uses one typeface, Pretendard Variable (`fonts/PretendardVariable.woff2`
 | Problem | `warning` icon or outline, reason in a tooltip |
 
 - Show the keyboard focus ring only on `:focus-visible`. Don't show it when the user clicks with the mouse.
-- Background changes for hover and pressed take 100ms ease-out, menus and tooltips fade over 120ms, and dialogs fade over 160ms. Don't add any other motion.
+- Background changes for hover and pressed take 100ms ease-out, menus and tooltips fade over 120ms, and dialogs fade over 160ms. Don't add any other motion. In code, use the tokens `--motion-hover`, `--motion-popover`, and `--motion-dialog` (for example `transition: background-color var(--motion-hover)`).
 - Don't add UI motion to the output screens. Look and the settings decide the transitions when a 장 or a background changes.
 - Under `prefers-reduced-motion`, set all UI motion to 0.
 
