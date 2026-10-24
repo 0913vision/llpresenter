@@ -1,0 +1,145 @@
+.button {
+  --toolbar-min-width: 64px;
+  --toolbar-dot-size: 6px;
+  --toolbar-dot-top: -3px;
+  --toolbar-dot-right: -4px;
+  --toolbar-dot-cut-width: 2px;
+
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  min-width: 0;
+  height: var(--size-toolbar-button);
+  padding: 0 var(--space-8);
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--text);
+  font: var(--type-toolbar-label);
+  white-space: nowrap;
+  user-select: none;
+  transition:
+    background-color var(--motion-hover),
+    color var(--motion-hover);
+}
+
+.iconSlot {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.chevron {
+  color: var(--text-3);
+}
+
+.label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.button:not([aria-disabled='true'], [aria-selected='true']):hover {
+  background: var(--bg-toolbar-hover);
+}
+
+.button:not([aria-disabled='true']):is(:active, [aria-expanded='true']) {
+  background: var(--bg-raised);
+}
+
+.tab {
+  width: var(--toolbar-min-width);
+  padding: 0;
+  color: var(--text-3);
+}
+
+.tab[aria-selected='true'] {
+  background: var(--bg-raised);
+  color: var(--text);
+}
+
+.menu {
+  padding: 0 var(--space-12);
+}
+
+.toggle {
+  min-width: var(--toolbar-min-width);
+  color: var(--text-3);
+}
+
+.toggle[aria-pressed='true'] {
+  color: var(--text);
+}
+
+.output {
+  min-width: var(--toolbar-min-width);
+}
+
+.output[data-state='off'] {
+  color: var(--text-off);
+}
+
+.output[data-state='warning'] .outputIcon {
+  color: var(--warning);
+}
+
+.dot {
+  position: absolute;
+  top: var(--toolbar-dot-top);
+  right: var(--toolbar-dot-right);
+  width: var(--toolbar-dot-size);
+  height: var(--toolbar-dot-size);
+  border-radius: var(--radius-full);
+  background: var(--live);
+  box-shadow: var(--ring-dot-cut);
+  transition: box-shadow var(--motion-hover);
+}
+
+.output[data-state='warning'] .dot {
+  background: var(--warning);
+}
+
+.button:not([aria-disabled='true']):hover .dot {
+  box-shadow: var(--ring-dot-cut-hover);
+}
+
+.button:not([aria-disabled='true']):active .dot {
+  box-shadow: 0 0 0 var(--toolbar-dot-cut-width) var(--bg-raised);
+}
+
+.button[aria-disabled='true'] {
+  background: transparent;
+  color: var(--text-off);
+}
+
+.button[aria-disabled='true'] .chevron {
+  color: var(--text-off);
+}
+
+.compact {
+  flex-direction: row;
+  gap: var(--space-6);
+  height: var(--size-toolbar-button-compact);
+  padding: 0 var(--space-10) 0 var(--space-8);
+  font: var(--type-label);
+}
+
+.compact:is(.tab, .toggle, .output) {
+  width: auto;
+  min-width: 0;
+}
+
+.compact.menu {
+  padding: 0 var(--space-6) 0 var(--space-8);
+}
+
+.compact.iconOnly {
+  width: var(--size-toolbar-button-compact);
+  min-width: 0;
+  padding: 0;
+}
