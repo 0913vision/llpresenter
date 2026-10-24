@@ -106,19 +106,13 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (5cd540b): reviewer (Codex, codex2) Approve with one nit:
+  `ClearRow.tsx:42` subscribes to `canUndo` in the row, so all seven clear
+  buttons rerender when undo availability changes; move the selector into an
+  undo-button component. The nit goes into shell's next branch. Lead Approve.
+  Rebased by the lead onto local `main` without conflicts.
 
 ## Team member's reply
 
