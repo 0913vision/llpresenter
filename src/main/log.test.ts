@@ -138,13 +138,18 @@ describe('createLogger', () => {
     const paused = new Promise<void>(resolve => {
       release = resolve;
     });
+    let markStarted: () => void = () => undefined;
+    const started = new Promise<void>(resolve => {
+      markStarted = resolve;
+    });
     vi.mocked(appendFile).mockImplementationOnce(async (...args) => {
+      markStarted();
       await paused;
       return realAppend?.(...args);
     });
     log.info('first');
     const flushing = log.flush();
-    await vi.waitFor(() => expect(appendFile).toHaveBeenCalled());
+    await started;
     log.info('second');
     release();
     await flushing;
