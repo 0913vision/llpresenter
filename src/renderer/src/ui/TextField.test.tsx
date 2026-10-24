@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react';
+import {fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
@@ -86,6 +86,12 @@ describe('TextField', () => {
     expect(onOuterKey).not.toHaveBeenCalled();
     await userEvent.keyboard('{Escape}');
     expect(document.activeElement).not.toBe(searchBox());
+  });
+
+  it('leaves Esc to the IME while Korean input is composed', async () => {
+    render(<Search initial="은혜" />);
+    fireEvent.keyDown(searchBox(), {key: 'Escape', isComposing: true});
+    expect(searchBox().value).toBe('은혜');
   });
 
   it('leaves Esc alone when it is not a search field', async () => {

@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react';
+import {fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, beforeAll, describe, expect, it, vi} from 'vitest';
@@ -272,5 +272,28 @@ describe('Menu', () => {
     expect(onSearch).toHaveBeenCalledWith('주');
     await userEvent.keyboard('{ArrowDown}{Enter}');
     expect(onSelect).toHaveBeenCalledWith('open');
+  });
+
+  it('leaves the keys of a Korean composition to the IME', async () => {
+    const onSelect = vi.fn();
+    const onClose = vi.fn();
+    render(
+      <Harness
+        onSelect={onSelect}
+        onClose={onClose}
+        search={{value: '', onChange: () => {}}}
+      />,
+    );
+    await openMenu();
+    const field = screen.getByRole('combobox', {name: '검색'});
+    fireEvent.keyDown(field, {key: 'ArrowDown', isComposing: true});
+    fireEvent.keyDown(field, {key: 'Enter', isComposing: true});
+    fireEvent.keyDown(field, {key: 'Escape', isComposing: true});
+    const pointed = field.getAttribute('aria-activedescendant') ?? '';
+    expect(document.getElementById(pointed)?.textContent).toBe('새 예배Ctrl N');
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+    fireEvent.keyDown(field, {key: 'Enter'});
+    expect(onSelect).toHaveBeenCalledWith('new');
   });
 });

@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react';
+import {fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {describe, expect, it, vi} from 'vitest';
@@ -95,6 +95,16 @@ describe('NumberField', () => {
     await userEvent.keyboard('0{Enter}');
     expect(onChange).toHaveBeenLastCalledWith(1);
     expect(spin().value).toBe('1');
+  });
+
+  it('leaves Enter to the IME while input is composed', async () => {
+    const onChange = vi.fn();
+    render(<Copies onChange={onChange} />);
+    await userEvent.tripleClick(spin());
+    await userEvent.keyboard('0');
+    fireEvent.keyDown(spin(), {key: 'Enter', isComposing: true});
+    expect(spin().value).toBe('0');
+    expect(onChange).not.toHaveBeenCalled();
   });
 
   it('shows an attached suffix and reads values with it', async () => {

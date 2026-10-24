@@ -1,4 +1,5 @@
 import type {KeyboardEvent} from 'react';
+import {isComposing} from './ime';
 import {
   movePointer,
   typeaheadTarget,
@@ -43,12 +44,14 @@ function isCaretMove(move: MenuMove, inField: boolean): boolean {
 
 /**
  * Handles one key in a menu and reports whether the menu used it. In the
- * search field, keys that edit text stay with the field.
+ * search field, keys that edit text stay with the field, and keys of an IME
+ * composition stay with the IME.
  */
 export function handleMenuKey(
   event: KeyboardEvent,
   actions: MenuKeyActions,
 ): boolean {
+  if (isComposing(event)) return false;
   const {items, pointed, pointTo, run, onBack, onClose} = actions;
   const inField = event.target instanceof HTMLInputElement;
   const move = keyMoves[event.key];

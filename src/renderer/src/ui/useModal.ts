@@ -1,4 +1,5 @@
 import {useEffect, type KeyboardEvent, type RefObject} from 'react';
+import {isComposing} from './ime';
 import {modalStack} from './modalStack';
 
 const TABBABLE = [
@@ -134,13 +135,20 @@ export function useModal({
         wrapTab(event, element);
         return;
       case 'Escape':
-        if (event.defaultPrevented || onEscape === undefined) return;
+        if (
+          event.defaultPrevented ||
+          onEscape === undefined ||
+          isComposing(event)
+        ) {
+          return;
+        }
         event.preventDefault();
         onEscape();
         return;
       case 'Enter':
         if (
           onEnter === undefined ||
+          isComposing(event) ||
           !(event.target instanceof Element) ||
           !enterPressesPrimary(event.target, event.defaultPrevented)
         ) {

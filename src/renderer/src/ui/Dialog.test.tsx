@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react';
+import {fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {describe, expect, it, vi} from 'vitest';
@@ -110,6 +110,21 @@ describe('Dialog', () => {
     await openDialog();
     await userEvent.click(screen.getByRole('textbox', {name: '이름'}));
     await userEvent.keyboard('{Enter}');
+    expect(onCreate).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves Enter and Esc to the IME while Korean input is composed', async () => {
+    const onCreate = vi.fn();
+    const onCancel = vi.fn();
+    render(<NewService onCreate={onCreate} onCancel={onCancel} />);
+    await openDialog();
+    const name = screen.getByRole('textbox', {name: '이름'});
+    fireEvent.keyDown(name, {key: 'Enter', isComposing: true});
+    fireEvent.keyDown(name, {key: 'Process'});
+    fireEvent.keyDown(name, {key: 'Escape', isComposing: true});
+    expect(onCreate).not.toHaveBeenCalled();
+    expect(onCancel).not.toHaveBeenCalled();
+    fireEvent.keyDown(name, {key: 'Enter'});
     expect(onCreate).toHaveBeenCalledTimes(1);
   });
 

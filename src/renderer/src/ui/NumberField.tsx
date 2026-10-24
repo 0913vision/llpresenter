@@ -7,6 +7,7 @@ import {
 } from 'react';
 import {classNames} from './classNames';
 import {FieldFrame, useFieldReason} from './fieldFrame';
+import {isComposing} from './ime';
 import {
   clampNumber,
   formatNumberText,
@@ -114,6 +115,7 @@ export function NumberField({
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
     onKeyDown?.(event);
     if (event.defaultPrevented || readOnly) return;
+    if (isComposing(event)) return;
     if (event.key === 'Enter') {
       commit();
       return;
