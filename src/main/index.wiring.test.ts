@@ -30,6 +30,7 @@ const fakes = vi.hoisted(() => {
     },
     uiDispose: vi.fn<() => Promise<void>>(),
     soakStop: vi.fn<() => Promise<void>>(),
+    storeDispose: vi.fn<() => void>(),
     opened,
   };
 });
@@ -42,6 +43,12 @@ vi.mock('./uiState/register', () => ({
   }),
 }));
 vi.mock('./soak', () => ({registerSoakRecorder: () => fakes.soakStop}));
+vi.mock('./store/register', () => ({
+  registerStore: () => {
+    fakes.order.push('data store');
+    return fakes.storeDispose;
+  },
+}));
 vi.mock('./ipc', () => ({registerIpc: () => () => undefined}));
 vi.mock('./outputs/start', () => ({startOutputs: () => () => undefined}));
 vi.mock('./windows/mediaProtocol', () => ({
@@ -94,6 +101,7 @@ beforeEach(async () => {
   fakes.opened.control = null;
   fakes.uiDispose.mockReset();
   fakes.soakStop.mockReset();
+  fakes.storeDispose.mockReset();
 });
 
 function beforeQuit(): {prevented: boolean} {
@@ -112,7 +120,7 @@ function beforeQuit(): {prevented: boolean} {
 describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
   it('reads the UI state before the control window opens', async () => {
     await startMain();
-    expect(fakes.order).toEqual(['ui state', 'control window']);
+    expect(fakes.order).toEqual(['ui state', 'data store', 'control window']);
   });
 
   it('asks to quit when the control window closes', async () => {
@@ -138,6 +146,7 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
       expect(fakes.electron.app.quit).toHaveBeenCalledTimes(1);
     });
     expect(fakes.uiDispose).toHaveBeenCalledTimes(1);
+    expect(fakes.storeDispose).toHaveBeenCalledTimes(1);
     expect(beforeQuit().prevented).toBe(false);
   });
 

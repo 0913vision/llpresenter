@@ -6,6 +6,7 @@ import {registerIpc} from './ipc';
 import {startOutputs} from './outputs/start';
 import {LOG_FLUSH_LIMIT_MS, ShutdownCoordinator} from './shutdown';
 import {registerSoakRecorder} from './soak';
+import {registerStore} from './store/register';
 import {registerUiState} from './uiState/register';
 import {applyUserDataOverride, type UserDataProblem} from './userData';
 import {createControlWindow} from './windows/control';
@@ -72,6 +73,7 @@ function start(): void {
         join(app.getPath('userData'), UI_STATE_FILE),
         log,
       );
+      const disposeStore = registerStore(log);
       const store = new LiveStore();
       const disposeIpc = registerIpc(store, log);
       const stopServingMedia = serveMedia({
@@ -88,6 +90,7 @@ function start(): void {
       shutdown.add({name: 'stop the outputs', run: stopOutputs});
       shutdown.add({name: 'save the UI state', run: () => ui.dispose()});
       shutdown.add({name: 'finish the soak record', run: stopSoakRecorder});
+      shutdown.add({name: 'close the data store', run: disposeStore});
       shutdown.add({name: 'stop serving media', run: stopServingMedia});
       shutdown.add({name: 'remove the IPC channels', run: disposeIpc});
       win.on('closed', () => {

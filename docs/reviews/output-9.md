@@ -48,17 +48,19 @@ output-6 still makes a quit request during the flush wait for the same flush.
   and passes.
 - The shutdown runs the steps in the order they were added: stop the outputs
   (output windows turn a close into "output off", so they go first), save the UI
-  state, finish the soak record, stop serving media, and remove the IPC
-  channels. A step that throws is logged and the next one runs. All the steps
-  together get `SAVE_LIMIT_MS` (3 s); when the limit passes, the step still
-  waiting is logged and the shutdown carries on. Then the log flush gets
-  `LOG_FLUSH_LIMIT_MS` (2 s). So the app exits within about 5 s whatever hangs.
+  state, finish the soak record, close the data store, stop serving media, and
+  remove the IPC channels. A step that throws is logged and the next one runs.
+  All the steps together get `SAVE_LIMIT_MS` (3 s); when the limit passes, the
+  step still waiting is logged and the shutdown carries on. Then the log flush
+  gets `LOG_FLUSH_LIMIT_MS` (2 s). So the app exits within about 5 s whatever
+  hangs.
 - The control window's close handler only calls `app.quit()`, and
   `window-all-closed` quits again, because the coordinator now holds both.
   `flushLogBeforeQuit` (`src/main/quit.ts`) is gone. The bad `LLP_USER_DATA`
   exit also bounds its log flush with `flushWithin` (`f489c18`).
-- data-11's `registerStore` isn't wired here: data-9 changes its call, so data
-  asked to wire it once after data-9; it becomes a shutdown step then.
+- data-11's `registerStore(log)` is wired next to the UI state (the lead's
+  call), with "close the data store" as a shutdown step. data-9 will change that
+  one call to its options object in its own branch.
 
 ## Changed files
 
@@ -151,10 +153,10 @@ Round 1 findings (codex5), both fixed in `e9e80f3` by one shutdown coordinator:
 
 1. **A quit already under way couldn't be held (`index.ts:78`)**: all quit
    requests now meet in `before-quit`, where the coordinator prevents them until
-   its one shutdown is done (UI state, soak record, and the other steps, then
-   the log flush); a repeated request waits for the same shutdown. Test: the
-   whole sequence with a deferred soak stop, in `shutdown.test.ts` and through
-   the real entry in `index.wiring.test.ts`.
+   its one shutdown is done (UI state, soak record, data store, and the other
+   steps, then the log flush); a repeated request waits for the same shutdown.
+   Test: the whole sequence with a deferred soak stop, in `shutdown.test.ts` and
+   through the real entry in `index.wiring.test.ts`.
 2. **No deadline on the saves (`index.ts:82`)**: the steps share a 3-second
    limit; when it passes, the waiting step is logged and the shutdown goes on to
    the log flush (2 seconds), then quits. Tests: a step that never resolves, and
