@@ -1,0 +1,70 @@
+/* NOTE(0913vision): These stand in for the output renderer inside a preview
+   frame. A Look sets the sizes and colors of real output, not the UI tokens,
+   so these copy the preview card's sample screens as they are. */
+.picture {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lyrics {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8%;
+  color: var(--text-on-fill);
+  font-size: 4.2cqw;
+  font-weight: 700;
+  line-height: 1.42;
+  text-align: center;
+  white-space: pre-line;
+  word-break: keep-all;
+}
+
+.stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 2.6cqw;
+  padding: 3.5cqw 4cqw 0;
+  color: var(--text-on-fill);
+  font-size: 4cqw;
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: pre-line;
+}
+
+.stageBar {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  height: 5.3cqw;
+  padding: 0 3.5cqw;
+  background: var(--warning);
+  color: var(--text-on-label);
+  font-size: 2.4cqw;
+  font-weight: 700;
+}
+
+.caption {
+  position: absolute;
+  right: 10%;
+  bottom: 10%;
+  left: 10%;
+  padding: 1.3cqw 2.6cqw;
+  background: rgba(0, 0, 0, 0.82);
+  color: var(--text-on-fill);
+  font-size: 2.65cqw;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+  white-space: pre-line;
+}

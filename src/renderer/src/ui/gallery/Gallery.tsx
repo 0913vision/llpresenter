@@ -10,6 +10,7 @@ import {MediaSection} from './MediaSection';
 import {ListRowSection} from './ListRowSection';
 import {OverlaySection} from './OverlaySection';
 import {PanelSection} from './PanelSection';
+import {PreviewSection} from './PreviewSection';
 import {PropertySection} from './PropertySection';
 import {SegmentedSection} from './SegmentedSection';
 import {SelectSection} from './SelectSection';
@@ -50,6 +51,7 @@ export const galleryEntries: readonly GalleryEntry[] = [
   {name: 'MediaTile', Section: MediaSection},
   {name: 'MacroTile', Section: MacroSection},
   {name: 'ClearButton', Section: ClearSection},
+  {name: 'PreviewFrame', Section: PreviewSection},
 ];
 
 const COMPONENT_PARAM = 'c';
