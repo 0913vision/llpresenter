@@ -1,5 +1,6 @@
+import {expect} from 'vitest';
 import type {Result} from '../result';
-import type {FileError} from './fileFormat';
+import type {FileError, LoadedFile} from './fileFormat';
 
 const UINT32_RANGE = 2 ** 32;
 const HEX_RADIX = 16;
@@ -18,6 +19,35 @@ export function expectFailure<T>(result: Result<T, FileError>): FileError {
     throw new Error(`Expected failure, got ${JSON.stringify(result.value)}`);
   }
   return result.error;
+}
+
+/** A format's parse and serialize functions, for the shared test steps. */
+export interface FileCodec<T> {
+  readonly parse: (
+    text: string,
+    file: string,
+  ) => Result<LoadedFile<T>, FileError>;
+  readonly serialize: (data: T, file: string) => Result<string, FileError>;
+}
+
+const TEST_FILE = 'test.json';
+
+/** Expects the JSON to parse unchanged and to be written back unchanged. */
+export function expectRoundTrip<T>(codec: FileCodec<T>, json: unknown): void {
+  const loaded = expectSuccess(codec.parse(JSON.stringify(json), TEST_FILE));
+  expect(loaded.data).toEqual(json);
+  const text = expectSuccess(codec.serialize(loaded.data, TEST_FILE));
+  expect(JSON.parse(text)).toEqual(json);
+}
+
+/** Expects the JSON to fail the schema at the given field. */
+export function expectInvalidField<T>(
+  codec: FileCodec<T>,
+  json: unknown,
+  field: string,
+): void {
+  const error = expectFailure(codec.parse(JSON.stringify(json), TEST_FILE));
+  expect(error).toMatchObject({kind: 'invalid', field});
 }
 
 /** A seeded random source (mulberry32), so property loops repeat exactly. */

@@ -20,8 +20,8 @@ import {
 } from './ids';
 import type {MigrationStep} from './migration';
 import {
-  isFirstWithKey,
   jsonObject,
+  listWithUniqueIds,
   localDateTime,
   nonBlankText,
   positiveInteger,
@@ -93,13 +93,7 @@ const mixedItemSchema = v.never('An item has more than one kind key');
 
 const serviceItemSchema = v.lazy(itemSchemaFor);
 
-const orderSchema = v.pipe(
-  v.array(serviceItemSchema),
-  v.checkItems(
-    (_item, index, items) => isFirstWithKey(items, index, ({id}) => id),
-    'Another item already has this id',
-  ),
-);
+const orderSchema = listWithUniqueIds(serviceItemSchema);
 
 const serviceSchema = jsonObject({
   format: v.literal(SERVICE_FORMAT),

@@ -5,10 +5,39 @@ const LOCAL_DATE_TIME =
 const TIME_OF_DAY = /^([01]\d|2[0-3]):[0-5]\d$/;
 const DATE_LENGTH = 'YYYY-MM-DD'.length;
 const NOT_AN_OBJECT = 'Invalid type: Expected Object';
+const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
+const PERCENT_MAX = 100;
+const DUPLICATE_ID_MESSAGE = 'Another item already has this id';
 
 export const positiveInteger = v.pipe(v.number(), v.integer(), v.minValue(1));
 
 export const nonNegativeNumber = v.pipe(v.number(), v.finite(), v.minValue(0));
+
+export const positiveNumber = v.pipe(v.number(), v.finite(), v.gtValue(0));
+
+export const finiteNumber = v.pipe(v.number(), v.finite());
+
+export const nonNegativeInteger = v.pipe(
+  v.number(),
+  v.integer(),
+  v.minValue(0),
+);
+
+/** A percentage from 0 to 100. */
+export const percent = v.pipe(nonNegativeNumber, v.maxValue(PERCENT_MAX));
+
+/** A time span in seconds. */
+export const seconds = nonNegativeNumber;
+
+export const hexColor = v.pipe(
+  v.string(),
+  v.regex(HEX_COLOR, 'Expected a color as #RRGGBB'),
+);
+
+export const pixelSize = v.looseObject({
+  width: positiveInteger,
+  height: positiveInteger,
+});
 
 export const nonBlankText = v.pipe(
   v.string(),
@@ -49,6 +78,19 @@ export function isFirstWithKey<TItem>(
   return (
     item !== undefined &&
     items.findIndex(other => key(other) === key(item)) === index
+  );
+}
+
+/** An array whose items each have an `id`, with no id used twice. */
+export function listWithUniqueIds<
+  TItem extends v.GenericSchema<unknown, {readonly id: unknown}>,
+>(item: TItem) {
+  return v.pipe(
+    v.array(item),
+    v.checkItems(
+      (_item, index, items) => isFirstWithKey(items, index, ({id}) => id),
+      DUPLICATE_ID_MESSAGE,
+    ),
   );
 }
 

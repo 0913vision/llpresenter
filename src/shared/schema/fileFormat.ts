@@ -39,7 +39,8 @@ export interface LoadedFile<T> {
 /**
  * The known fields of parsed data, read-only at every level. Unknown fields
  * stay on the objects at runtime, so spreading an object keeps them, but they
- * don't show in the type.
+ * don't show in the type. Records keep their index signature, because their
+ * values have a type.
  */
 export type ReadonlyKnown<T> = T extends
   string | number | boolean | null | undefined
@@ -48,9 +49,15 @@ export type ReadonlyKnown<T> = T extends
     ? ReadonlyArray<ReadonlyKnown<Item>>
     : {
         readonly [
-          Key in keyof T as string extends Key ? never : Key
+          Key in keyof T as IsUnknownField<T, Key> extends true ? never : Key
         ]: ReadonlyKnown<T[Key]>;
       };
+
+type IsUnknownField<T, Key extends keyof T> = string extends Key
+  ? unknown extends T[Key]
+    ? true
+    : false
+  : false;
 
 export interface FileFormat<TSchema extends v.GenericSchema> {
   /** The value of the `format` field. */

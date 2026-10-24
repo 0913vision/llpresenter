@@ -21,6 +21,17 @@ export const mediaIdSchema = uuidId('MediaId');
 export const noticeSetIdSchema = uuidId('NoticeSetId');
 export const screenIdSchema = uuidId('ScreenId');
 export const macroCollectionIdSchema = uuidId('MacroCollectionId');
+export const lookIdSchema = uuidId('LookId');
+export const lyricStyleIdSchema = uuidId('LyricStyleId');
+export const stageLayoutIdSchema = uuidId('StageLayoutId');
+export const mediaPlaylistIdSchema = uuidId('MediaPlaylistId');
+export const audioPlaylistIdSchema = uuidId('AudioPlaylistId');
+
+/** Stage layout elements are named within their layout, so they aren't UUIDs. */
+export const stageElementIdSchema = v.pipe(
+  nonBlankText,
+  v.brand('StageElementId'),
+);
 
 /** Bible translation ids name a bundled or added file, so they aren't UUIDs. */
 export const translationIdSchema = v.pipe(
@@ -36,4 +47,10 @@ export type MediaId = v.InferOutput<typeof mediaIdSchema>;
 export type NoticeSetId = v.InferOutput<typeof noticeSetIdSchema>;
 export type ScreenId = v.InferOutput<typeof screenIdSchema>;
 export type MacroCollectionId = v.InferOutput<typeof macroCollectionIdSchema>;
+export type LookId = v.InferOutput<typeof lookIdSchema>;
+export type LyricStyleId = v.InferOutput<typeof lyricStyleIdSchema>;
+export type StageLayoutId = v.InferOutput<typeof stageLayoutIdSchema>;
+export type MediaPlaylistId = v.InferOutput<typeof mediaPlaylistIdSchema>;
+export type AudioPlaylistId = v.InferOutput<typeof audioPlaylistIdSchema>;
+export type StageElementId = v.InferOutput<typeof stageElementIdSchema>;
 export type TranslationId = v.InferOutput<typeof translationIdSchema>;
