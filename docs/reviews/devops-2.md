@@ -169,3 +169,15 @@ a local throwaway repository, never to `origin`.
 
 Also in this round (ed8694d): `npm install` adds `"hasInstallScript": true` to
 the lockfile because of the new `prepare` script, so the lockfile records it.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (12be037): lead Approve, and the lead confirms decisions 1 to 5.
+  Reviewer (Codex, codex3) Request changes: a cancelled run before the first tag
+  could lose commits from the count, `%s` let a two-line message without a blank
+  line through the hook, and an unexported function had TSDoc.
+- Round 2 (905aa3a): reviewer (Codex, codex3) Approve with one nit:
+  `scripts/hooks/install.mts:14` should check that
+  `git rev-parse --is-inside-work-tree` prints exactly `true` (a bare repository
+  exits 0 with `false`), with a test. The nit goes into devops' next branch.
+  Lead Approve. Rebased by the lead onto `main` fc0cbc9 without conflicts.
