@@ -212,7 +212,11 @@ function check<TSchema extends v.GenericSchema>(
   input: unknown,
   kind: FileErrorKind,
 ): Result<v.InferOutput<TSchema>, Problem> {
-  const result = v.safeParse(schema, escapeKeys(input), {abortEarly: true});
+  const escaped = escapeKeys(input);
+  if (!escaped.ok) {
+    return fail({kind: 'invalid', field: '', message: escaped.error});
+  }
+  const result = v.safeParse(schema, escaped.value, {abortEarly: true});
   if (result.success) {
     restoreKeys(result.output);
     return succeed(result.output);

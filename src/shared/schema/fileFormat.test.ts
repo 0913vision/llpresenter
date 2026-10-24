@@ -207,6 +207,18 @@ describe('parseFile', () => {
     });
   });
 
+  it.each([
+    ['nested deeper than the limit', 1_000],
+    ['nested deeper than the stack', 200_000],
+  ])('reports unknown JSON %s as a file error', (_name, depth) => {
+    const text =
+      '{"format":"llnote","schemaVersion":2,"text":"hi","deep":' +
+      `${'['.repeat(depth)}${']'.repeat(depth)}}`;
+
+    expect(() => parseFile(noteFormat, text, FILE)).not.toThrow();
+    expect(expectFailure(parseFile(noteFormat, text, FILE)).file).toBe(FILE);
+  });
+
   it('never throws, whatever the text is', () => {
     const random = new TestRandom(7);
     const pieces = ['{', '}', '[', ']', '"', ':', ',', 'format', 'llnote', '1'];
@@ -301,6 +313,15 @@ describe('serializeFile', () => {
     );
 
     expect(error).toMatchObject({kind: 'invalid', field: 'schemaVersion'});
+  });
+
+  it('refuses data that refers to itself instead of throwing', () => {
+    const cyclic: Record<string, unknown> = {...note};
+    cyclic['self'] = cyclic;
+
+    const error = expectFailure(serializeFile(noteFormat, cyclic, FILE));
+
+    expect(error).toMatchObject({kind: 'invalid', file: FILE});
   });
 
   it('refuses unknown fields that JSON cannot hold', () => {
