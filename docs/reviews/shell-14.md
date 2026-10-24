@@ -141,3 +141,16 @@ in 201.3 s: `typecheck`, `lint`, `format:check`, `test:coverage`, and `build`.
 
 I rebased onto `main` 342a9b8 afterwards (ui-4 and the shell-13 approvals);
 `typecheck` passed again, and the rebase had no conflicts.
+
+Round 2 (codex2), answered once:
+
+1. The remaining finding (the preload turned a failed read into null): data
+   landed the change as data-16, so every read of the preload (`live.get`,
+   `ui.get`, `output.getStatus`, `service.get`) logs and rejects on a failed or
+   malformed reply, and `service.get` still resolves a real null for "no 예배
+   순서 is open". This branch is stacked on it. `startServiceSync` keeps what is
+   shown when the read rejects (the preload has logged it, so the renderer no
+   longer logs it a second time), and a real null still clears the view.
+   `state/servicePreload.test.ts` runs the sync against the real preload with
+   `electron` mocked: a rejected call and a malformed reply keep the view and
+   log one error, a real null clears it, and a valid reply is shown.
