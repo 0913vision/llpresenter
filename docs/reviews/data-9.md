@@ -215,19 +215,19 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (c06948c): reviewer (Codex, codex3) Request changes: links copied as
+  links, a partial copy could be marked complete and prune good backups, and
+  plain files counted as backups. Lead decisions before the work: the last
+  backup time comes from the newest complete folder name, and the default
+  location is outside the data folder.
+- Round 2 (1ff71d3): reviewer Request changes: a nested junction could copy real
+  data into a development backup, and staging collisions were deleted.
+- Round 3 (695901b): reviewer (Codex, codex3) Approve with one nit: the review
+  doc still says registerStore has no caller. Lead Approve. The registerStore
+  call in `src/main/index.ts` changed with output's permission. Rebased by the
+  lead onto local `main` without conflicts.
 
 ## Team member's reply
 
