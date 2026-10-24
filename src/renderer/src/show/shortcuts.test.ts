@@ -234,6 +234,38 @@ describe('handleShowKey item keys', () => {
     expect(showState.outputNext).not.toHaveBeenCalled();
   });
 
+  it('opens the live item from a text field, but leaves Ctrl arrows to the caret', () => {
+    const input = appendTo('input');
+    const textarea = appendTo('textarea');
+    const live = press('KeyL', {ctrlKey: true}, input);
+    const down = press('ArrowDown', {ctrlKey: true}, textarea);
+    const up = press('ArrowUp', {ctrlKey: true}, input);
+    expect(showState.revealLiveItem).toHaveBeenCalledTimes(1);
+    expect(live.defaultPrevented).toBe(true);
+    expect(showState.openNextItem).not.toHaveBeenCalled();
+    expect(showState.openPreviousItem).not.toHaveBeenCalled();
+    expect(down.defaultPrevented).toBe(false);
+    expect(up.defaultPrevented).toBe(false);
+  });
+
+  it('runs all three from the thumbnail slider and from a checkbox', () => {
+    const slider = appendTo('input', {type: 'range'});
+    const checkbox = appendTo('input', {type: 'checkbox'});
+    press('ArrowDown', {ctrlKey: true}, slider);
+    press('ArrowUp', {ctrlKey: true}, slider);
+    press('KeyL', {ctrlKey: true}, slider);
+    press('ArrowDown', {ctrlKey: true}, checkbox);
+    expect(showState.openNextItem).toHaveBeenCalledTimes(2);
+    expect(showState.openPreviousItem).toHaveBeenCalledTimes(1);
+    expect(showState.revealLiveItem).toHaveBeenCalledTimes(1);
+  });
+
+  it('runs them from a focused button, which keeps only its own keys', () => {
+    const button = appendTo('button');
+    press('ArrowDown', {ctrlKey: true}, button);
+    expect(showState.openNextItem).toHaveBeenCalledTimes(1);
+  });
+
   it('leaves the keys to a text field, an open menu, an IME composition, and a drag', () => {
     press('ArrowDown', {ctrlKey: true}, appendTo('input'));
     press('KeyL', {ctrlKey: true}, appendTo('div', {role: 'menu'}));

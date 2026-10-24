@@ -10,6 +10,7 @@ import {moveTile, outputTile, useShow} from '@renderer/state/show';
 import {useLive} from '@renderer/state/live';
 import type {ItemId, SlideTile} from './model';
 import type {TileKey} from './navigation';
+import {useKeptFocus} from './useKeptFocus';
 import styles from './SlideGrid.module.css';
 
 const tileKeys: Readonly<Record<string, TileKey>> = {
@@ -79,11 +80,12 @@ export function SlideGrid({columns}: {readonly columns: number}): JSX.Element {
   const liveIndex = useLiveIndex(openItemId);
   const gridRef = useRef<HTMLDivElement>(null);
 
+  const {isInside, onFocus, onBlur} = useKeptFocus(gridRef);
+
   useEffect(() => {
-    const grid = gridRef.current;
-    if (!grid?.contains(document.activeElement)) return;
-    grid.querySelector<HTMLElement>('[tabindex="0"]')?.focus();
-  }, [selectedTile]);
+    if (!isInside()) return;
+    gridRef.current?.querySelector<HTMLElement>('[tabindex="0"]')?.focus();
+  }, [isInside, openItemId, selectedTile]);
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
     if (event.ctrlKey || event.altKey || event.metaKey) return;
@@ -109,6 +111,8 @@ export function SlideGrid({columns}: {readonly columns: number}): JSX.Element {
       className={styles.grid}
       style={{gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`}}
       onKeyDown={onKeyDown}
+      onFocus={onFocus}
+      onBlur={onBlur}
     >
       {tiles?.map((tile, index) => (
         <Thumbnail

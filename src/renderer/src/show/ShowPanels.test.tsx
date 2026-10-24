@@ -131,9 +131,12 @@ describe('ServiceOrderList', () => {
     openItem('song-morning');
     render(<ServiceOrderList />);
     const list = screen.getByRole('listbox', {name: '예배 순서'});
-    fireEvent.keyDown(list, {key: 'ArrowDown', ctrlKey: true});
-    fireEvent.keyDown(list, {key: 'ArrowUp', ctrlKey: true});
+    const down = fireEvent.keyDown(list, {key: 'ArrowDown', ctrlKey: true});
     expect(useShow.getState().openItemId).toBe('song-morning');
+    expect(down).toBe(true);
+    const up = fireEvent.keyDown(list, {key: 'ArrowUp', ctrlKey: true});
+    expect(useShow.getState().openItemId).toBe('song-morning');
+    expect(up).toBe(true);
   });
 
   it('moves between rows with the arrow keys, Home, and End', () => {
@@ -234,11 +237,48 @@ describe('SlideGrid', () => {
   it('leaves Ctrl Down to the item commands instead of moving the selection', () => {
     openItem('song-morning');
     render(<SlideGrid columns={2} />);
-    fireEvent.keyDown(screen.getByRole('listbox', {name: '장'}), {
-      key: 'ArrowDown',
-      ctrlKey: true,
-    });
+    const notPrevented = fireEvent.keyDown(
+      screen.getByRole('listbox', {name: '장'}),
+      {key: 'ArrowDown', ctrlKey: true},
+    );
+    expect(notPrevented).toBe(true);
     expect(useShow.getState().selectedTile).toBe(0);
+  });
+
+  it('keeps the focus in the grid when another item replaces the focused tile', () => {
+    openItem('song-morning');
+    render(<SlideGrid columns={2} />);
+    const tiles = screen.getAllByRole('option');
+    act(() => useShow.setState({selectedTile: 3}));
+    tiles[3]?.focus();
+    expect(document.activeElement).toBe(tiles[3]);
+    act(() => openItem('song-river'));
+    const next = screen.getAllByRole('option');
+    expect(next).toHaveLength(3);
+    expect(document.activeElement).toBe(next[0]);
+    expect(sent).toHaveLength(0);
+  });
+
+  it('does not take the focus when it was not in the grid', () => {
+    openItem('song-morning');
+    render(<SlideGrid columns={2} />);
+    act(() => openItem('song-river'));
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  it('does not take the focus back after a press outside the grid', () => {
+    openItem('song-morning');
+    render(
+      <>
+        <button type="button">outside</button>
+        <SlideGrid columns={2} />
+      </>,
+    );
+    screen.getAllByRole('option')[1]?.focus();
+    fireEvent.pointerDown(screen.getByRole('button', {name: 'outside'}));
+    screen.getAllByRole('option')[1]?.blur();
+    act(() => openItem('song-river'));
+    expect(document.activeElement).toBe(document.body);
   });
 
   it('moves the selection by rows with up and down and outputs nothing', () => {

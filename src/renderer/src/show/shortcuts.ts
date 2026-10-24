@@ -20,20 +20,39 @@ const SPACE_CODE = 'Space';
 
 // NOTE(0913vision): Command ids of docs/spec/10-shortcuts-and-settings.md. They
 // select or open an item and output nothing, so a held key may repeat.
+// `editsText` marks the Ctrl arrows, which move the caret in a text field.
 const ITEM_COMMANDS: ReadonlyArray<{
   readonly id: string;
   readonly code: string;
+  readonly editsText: boolean;
   readonly run: () => void;
 }> = [
-  {id: 'service.nextItem', code: 'ArrowDown', run: () => openNextItem()},
-  {id: 'service.previousItem', code: 'ArrowUp', run: () => openPreviousItem()},
-  {id: 'service.revealLive', code: 'KeyL', run: () => revealLiveItem()},
+  {
+    id: 'service.nextItem',
+    code: 'ArrowDown',
+    editsText: true,
+    run: () => openNextItem(),
+  },
+  {
+    id: 'service.previousItem',
+    code: 'ArrowUp',
+    editsText: true,
+    run: () => openPreviousItem(),
+  },
+  {
+    id: 'service.revealLive',
+    code: 'KeyL',
+    editsText: false,
+    run: () => revealLiveItem(),
+  },
 ];
 const NUMPAD_DIGIT = /^Numpad(\d)$/;
 const NUM_LOCK = 'NumLock';
 const PRIMARY_BUTTON = 0;
 
 const EDITABLE_SELECTOR = 'input, textarea, select, [contenteditable="true"]';
+const TEXT_FIELD_SELECTOR =
+  'textarea, [contenteditable="true"], input:not([type="range"], [type="checkbox"], [type="radio"], [type="button"], [type="submit"], [type="reset"], [type="color"], [type="file"], [type="image"])';
 const OWN_KEYS_SELECTOR =
   '[role="menu"], [role="dialog"], [role="alertdialog"]';
 const FOCUSABLE_ON_CLICK_SELECTOR = `${EDITABLE_SELECTOR}, [data-slide-grid], [data-service-list], ${OWN_KEYS_SELECTOR}`;
@@ -96,14 +115,26 @@ function isTakenByFocusedControl(event: KeyboardEvent): boolean {
   return false;
 }
 
-function belongsToOthers(event: KeyboardEvent): boolean {
+function ownsEveryKey(event: KeyboardEvent): boolean {
   return (
     event.isComposing ||
     isColumnDragActive() ||
-    isInside(event.target, EDITABLE_SELECTOR) ||
-    isInside(event.target, OWN_KEYS_SELECTOR) ||
-    isTakenByFocusedControl(event)
+    isInside(event.target, OWN_KEYS_SELECTOR)
   );
+}
+
+function belongsToFocusedControl(event: KeyboardEvent): boolean {
+  return (
+    isInside(event.target, EDITABLE_SELECTOR) || isTakenByFocusedControl(event)
+  );
+}
+
+function runItemCommand(event: KeyboardEvent): void {
+  const command = ITEM_COMMANDS.find(item => item.code === event.code);
+  if (command === undefined) return;
+  if (command.editsText && isInside(event.target, TEXT_FIELD_SELECTOR)) return;
+  event.preventDefault();
+  command.run();
 }
 
 // NOTE(0913vision): Numpad digits count as the digits of the top row only while
@@ -123,15 +154,12 @@ function physicalKey(event: KeyboardEvent): string {
 export function handleShowKey(event: KeyboardEvent): void {
   pendingClick = null;
   if (event.code === SPACE_CODE && !event.repeat) spaceTakenOnKeyDown = false;
-  if (event.defaultPrevented || belongsToOthers(event)) return;
+  if (event.defaultPrevented || ownsEveryKey(event)) return;
   if (isControlOnly(event)) {
-    const command = ITEM_COMMANDS.find(item => item.code === event.code);
-    if (command === undefined) return;
-    event.preventDefault();
-    command.run();
+    runItemCommand(event);
     return;
   }
-  if (hasModifier(event)) return;
+  if (hasModifier(event) || belongsToFocusedControl(event)) return;
   const isNext = NEXT_CODES.has(event.code);
   const isPrevious = PREVIOUS_CODES.has(event.code);
   if (isNext || isPrevious) {
