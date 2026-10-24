@@ -6,19 +6,9 @@ export const MAIN_SCREEN_ID = 'main';
 
 const MAIN_SCREEN_NAME = '본 화면';
 
-// TODO(0913vision): Read the screens from screens.json once the settings store
-// exists, and delete this default.
-/**
- * A fixed screen list until the settings store exists: the 본 화면 in full
- * screen on the first monitor that isn't the primary one, or unassigned when
- * there is no such monitor. The other values are the 환경설정 defaults in
- * docs/spec/02-data.md.
- */
-export function createDefaultScreenSource(
-  monitors: readonly Monitor[],
-): ScreenSource {
+function mainScreenFor(monitors: readonly Monitor[]): OutputScreen {
   const target = monitors.find(monitor => !monitor.primary);
-  const main: OutputScreen = {
+  return {
     id: MAIN_SCREEN_ID,
     name: MAIN_SCREEN_NAME,
     method: 'fullscreen',
@@ -29,6 +19,29 @@ export function createDefaultScreenSource(
     onDisconnect: 'window',
     alwaysOnTop: true,
   };
-  const screens = [main];
-  return {list: () => screens};
+}
+
+// TODO(0913vision): Read the screens from screens.json once the settings store
+// exists, and delete this default.
+/**
+ * A fixed screen list until the settings store exists: the 본 화면 in full
+ * screen on the first monitor that isn't the primary one, or unassigned when
+ * there is no such monitor. The monitor is chosen at the first successful
+ * monitor read and kept, as a saved setting would be. Until then the 본 화면
+ * is unassigned. The other values are the 환경설정 defaults in
+ * docs/spec/02-data.md.
+ */
+export function createDefaultScreenSource(displays: {
+  readonly monitors: readonly Monitor[];
+}): ScreenSource {
+  let chosen: readonly OutputScreen[] | null = null;
+  return {
+    list: () => {
+      if (chosen !== null) return chosen;
+      const {monitors} = displays;
+      if (monitors.length === 0) return [mainScreenFor(monitors)];
+      chosen = [mainScreenFor(monitors)];
+      return chosen;
+    },
+  };
 }

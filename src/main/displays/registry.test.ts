@@ -1,49 +1,7 @@
 import {describe, expect, it, vi} from 'vitest';
 import {installFakeClock} from '../../../test/fake-clock';
-import type {DisplayInfo} from './monitor';
-import {
-  DISPLAY_RETRY_MS,
-  DISPLAY_SETTLE_MS,
-  DisplayRegistry,
-  type DisplaySource,
-} from './registry';
-import {displayInfo, recordingLogger} from './testing';
-
-class FakeDisplaySource implements DisplaySource {
-  displays: readonly DisplayInfo[];
-  failure: Error | null = null;
-  private readonly watchers = new Set<() => void>();
-
-  constructor(...displays: readonly DisplayInfo[]) {
-    this.displays = displays;
-  }
-
-  get watcherCount(): number {
-    return this.watchers.size;
-  }
-
-  read(): readonly DisplayInfo[] {
-    if (this.failure !== null) throw this.failure;
-    return this.displays;
-  }
-
-  watch(listener: () => void): () => void {
-    this.watchers.add(listener);
-    return () => {
-      this.watchers.delete(listener);
-    };
-  }
-
-  /** Changes the monitors and fires one display event. */
-  change(...displays: readonly DisplayInfo[]): void {
-    this.displays = displays;
-    this.emit();
-  }
-
-  emit(): void {
-    for (const watcher of this.watchers) watcher();
-  }
-}
+import {DISPLAY_RETRY_MS, DISPLAY_SETTLE_MS, DisplayRegistry} from './registry';
+import {FakeDisplaySource, displayInfo, recordingLogger} from './testing';
 
 const control = displayInfo({id: 1, primary: true});
 const projector = displayInfo({id: 2, x: 1920});

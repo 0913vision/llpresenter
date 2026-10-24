@@ -1,13 +1,18 @@
 import {describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@shared/commands';
+import {installFakeClock} from '../../../test/fake-clock';
 import type {Monitor} from '../displays/monitor';
+import {DISPLAY_RETRY_MS, DisplayRegistry} from '../displays/registry';
 import {
+  FakeDisplaySource,
+  displayInfo,
   monitorById,
   monitorsOf,
   recordingLogger,
   type DisplaySpec,
 } from '../displays/testing';
 import {LiveStore} from '../live/store';
+import {createDefaultScreenSource} from './defaultScreens';
 import {OutputManager, type MonitorFeed} from './manager';
 import {OUTPUT_WINDOW_SIZE} from './placement';
 import type {OutputScreen, ScreenSource} from './screens';
@@ -218,5 +223,38 @@ describe('OutputManager', () => {
     expect(displays.listenerCount).toBe(0);
     store.dispatch(turn(false));
     expect(windows.only('main').mode.kind).toBe('fullscreen');
+  });
+
+  it('goes full screen on the projector once a failed first monitor read recovers', async () => {
+    const clock = installFakeClock();
+    const source = new FakeDisplaySource(
+      displayInfo(CONTROL),
+      displayInfo(PROJECTOR),
+    );
+    source.failure = new Error('display service starting');
+    const log = recordingLogger();
+    const displays = new DisplayRegistry(source, log);
+    const store = new LiveStore();
+    const windows = fakeWindows();
+    const manager = new OutputManager({
+      store,
+      displays,
+      screens: createDefaultScreenSource(displays),
+      controlBounds: () => CONTROL_WINDOW,
+      createHandle: windows.create,
+      log,
+    });
+    manager.start();
+    store.dispatch(turn(true));
+
+    source.failure = null;
+    await clock.advance(DISPLAY_RETRY_MS);
+    expect(windows.only('main').mode).toEqual({
+      kind: 'fullscreen',
+      bounds: PROJECTOR_BOUNDS,
+      alwaysOnTop: true,
+    });
+    manager.dispose();
+    displays.dispose();
   });
 });

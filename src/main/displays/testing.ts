@@ -1,6 +1,7 @@
 import type {Logger} from '../log';
 import {numberMonitors, type DisplayInfo, type Monitor} from './monitor';
 import type {Size} from './rect';
+import type {DisplaySource} from './registry';
 
 export const FULL_HD: Size = {width: 1920, height: 1080};
 
@@ -80,4 +81,41 @@ export function recordingLogger(): RecordingLogger {
     error: record('error'),
     flush: () => Promise.resolve(),
   };
+}
+
+/** A display source whose monitors and failures a test controls. */
+export class FakeDisplaySource implements DisplaySource {
+  displays: readonly DisplayInfo[];
+  failure: Error | null = null;
+  private readonly watchers = new Set<() => void>();
+
+  constructor(...displays: readonly DisplayInfo[]) {
+    this.displays = displays;
+  }
+
+  get watcherCount(): number {
+    return this.watchers.size;
+  }
+
+  read(): readonly DisplayInfo[] {
+    if (this.failure !== null) throw this.failure;
+    return this.displays;
+  }
+
+  watch(listener: () => void): () => void {
+    this.watchers.add(listener);
+    return () => {
+      this.watchers.delete(listener);
+    };
+  }
+
+  /** Changes the monitors and fires one display event. */
+  change(...displays: readonly DisplayInfo[]): void {
+    this.displays = displays;
+    this.emit();
+  }
+
+  emit(): void {
+    for (const watcher of this.watchers) watcher();
+  }
 }

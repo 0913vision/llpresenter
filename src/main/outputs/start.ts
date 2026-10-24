@@ -26,7 +26,7 @@ export function startOutputs({store, control, log}: OutputContext): () => void {
   const outputs = new OutputManager({
     store,
     displays,
-    screens: createDefaultScreenSource(displays.monitors),
+    screens: createDefaultScreenSource(displays),
     controlBounds: () => (control.isDestroyed() ? null : control.getBounds()),
     createHandle: (screen, events) =>
       createElectronOutputWindow(screen, events, log),
