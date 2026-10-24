@@ -1,17 +1,38 @@
 # Review request: `data-8`
 
-Review range: `12c77a9...feat/data/show-service`
+Review range: `cc521f2...feat/data/show-service`
+
+Round 2 changes only: `d49de59...feat/data/show-service`
 
 - Team member: `data`
-- Branch: `feat/data/show-service`, stacked on `data-7` (`feat/data/file-store`,
-  12c77a9)
-- Base commit (`main`): `814781b`
-- Last commit: see the commit that adds this file
+- Branch: `feat/data/show-service`, on `main` (data-7 has merged)
+- Base commit (`main`): `cc521f2` (round 1: `814781b` with data-7 below)
+- Last commit: see the newest commit that changes this file
 - Related brief: `docs/briefs/data.md`; M2 in `docs/MILESTONES.md`,
   "Main-process file store"; `docs/TECH.md`, "Storage"; `docs/spec/02-data.md`,
-  "App-wide settings" and "Save rules"
+  "App-wide settings", "Schema versions and migration", and "Save rules"
 
-What to check:
+What to check in round 2:
+
+1.  Finding 1: `LoadedStore.songs` and `services` keep each `LoadedFile`, with
+    its `access`. `buildShowService` marks a song row from a newer app version
+    with `newer-version`, and sets `ShowService.readOnly` for a newer 예배 순서
+    file. Tests: `fileStore.test.ts`, "loads a song from a newer app version
+    read-only"; `showService.test.ts`, "shows files from a newer app version as
+    read-only".
+2.  Finding 2: `settingsFile.ts` reports the dropped parts of the recovery copy
+    that runs, with the copy's path. Test: "reports the parts of the chosen copy
+    that were dropped, with its path".
+3.  Finding 3: `ServiceItemOf` distributes over a union, with a type test in
+    `service.test.ts`.
+4.  The nits: NOTE comments instead of TSDoc on the private helpers.
+5.  Also new, from data-7's round 1 finding 3: `loadStore` calls
+    `confineLocations` before it reads any data folder, and returns an error
+    instead of the data when a junction or link leads a folder outside
+    `LLP_USER_DATA`. Test: "reads nothing when a junction leads the data folder
+    outside".
+
+What to check in round 1:
 
 1.  `src/main/store/settingsFile.ts` against the rule in `docs/TECH.md`,
     "Storage": a broken settings file runs from its newest readable recovery
@@ -43,6 +64,10 @@ Each of these is in `src/shared/`, which data owns:
       `ServiceItem` lost the fields of each kind. Type tests guard it.
 3.  `src/shared/schema/fileFormat.ts`: a new `FileErrorKind`, `read`, for a file
     that couldn't be read from disk. No code switches on the kind.
+4.  Round 2: `ShowService` gains `readOnly`, and `showRowProblems` gains
+    `newer-version`, for files from a newer app version (`docs/spec/02-data.md`,
+    "Schema versions and migration"). Nothing uses `ShowService` yet; shell
+    builds on it after this merges.
 
 ## What changed and why
 
@@ -85,6 +110,8 @@ How 진행 gets its rows (shell's shape):
 - A media or 공지 item shows an empty title for now, because the media list and
   the 공지 sets aren't read yet.
 - An item of a kind this version doesn't know shows `unknown-kind`.
+- A song from a newer app version shows its title and tiles with
+  `newer-version`, and a 예배 순서 from a newer version sets `readOnly`.
 - A song item's tiles follow its 구성. A 장 that repeats gets a tile each time.
   An empty 구성, or one the song doesn't have, falls back to the file order.
 
@@ -100,18 +127,21 @@ How 진행 gets its rows (shell's shape):
 
 ## Checks run
 
-`npm run verify` on the commit before this document (9d44b6d), on `main` 814781b
-with `data-7` below it: every step passed. The one skipped test belongs to
-another member's suite. Coverage of `src/main/store/`: 98.3% of lines, 92.9% of
+Round 2: `npm run verify` on the commit before this document's round 2 change
+(89c178e), on `main` cc521f2: every step passed. The one skipped test belongs to
+another member's suite. Coverage of `src/main/store/`: 98.3% of lines, 92.7% of
 branches.
 
-| Command or test                    | Result                                                                 |
-| ---------------------------------- | ---------------------------------------------------------------------- |
-| `npm run typecheck`                | Passed                                                                 |
-| `npm test`                         | Passed: 114 files, 1123 tests and 1 skipped (105 in the changed files) |
-| `npm run format:check`             | Passed                                                                 |
-| `npm run build`                    | Passed                                                                 |
-| `npm run verify` (from phase 1 on) | Passed: typecheck, lint, format:check, test:coverage, build (241.5 s)  |
+| Command or test                    | Result                                                                |
+| ---------------------------------- | --------------------------------------------------------------------- |
+| `npm run typecheck`                | Passed                                                                |
+| `npm test`                         | Passed: 124 files, 1356 tests and 1 skipped                           |
+| `npm run format:check`             | Passed                                                                |
+| `npm run build`                    | Passed                                                                |
+| `npm run verify` (from phase 1 on) | Passed: typecheck, lint, format:check, test:coverage, build (162.3 s) |
+
+Round 1 passed too, on `main` 814781b with `data-7` below it (1123 tests, 241.5
+s).
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
@@ -183,4 +213,26 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 findings from codex3, answered in round 2:
+
+1.  Fixed. `LoadedStore.songs` and `services` now hold the `LoadedFile` of each
+    file, so `access`, `sourceVersion`, and `dropped` reach every caller.
+    `buildShowService` takes them: a song from a newer app version keeps its
+    title and tiles, and its row gets the new problem `newer-version`, which
+    shows the warning icon. A 예배 순서 from a newer version sets the new
+    `ShowService.readOnly`. The tests use files with `schemaVersion` 99 that
+    still fit the current schema, which is what makes a file read-only.
+2.  Fixed. When a settings file runs from a recovery copy, the copy's dropped
+    parts are reported after the file's problem, each with the copy's path. The
+    test drops an invalid jump key from the chosen copy.
+3.  Fixed. `ServiceItemOf` is a distributive conditional type now, so
+    `ServiceItemOf<'song' | 'header'>` is the union of both item types. A type
+    test checks it.
+4.  Fixed. `newestReadableCopy`, `arrangementOrder`, and `jumpKeysOf` have NOTE
+    comments with the reason instead of TSDoc.
+
+Also in round 2, because of data-7's round 1 finding 3: `loadStore` checks the
+data folders with `confineLocations` right after it works them out from
+`app.json`, and reads no songs, 예배 순서, or settings when one leads outside
+`LLP_USER_DATA`. It returns a `Result` now; data-11's `registerStore` logs the
+error and answers `null` (data-11 round 2).
