@@ -1,5 +1,5 @@
 import {describe, expect, expectTypeOf, it} from 'vitest';
-import type {ServiceItemId} from './ids';
+import type {MediaId, ServiceItemId, SongId} from './ids';
 import {
   parseService,
   parseTemplate,
@@ -7,8 +7,10 @@ import {
   serializeTemplate,
   serviceItemKind,
   serviceItemKinds,
+  isItemOfKind,
   type ServiceItem,
   type ServiceItemKind,
+  type ServiceItemOf,
 } from './service';
 import {expectFailure, expectSuccess, TestRandom} from './testHelpers';
 
@@ -238,7 +240,24 @@ describe('parseTemplate', () => {
   });
 });
 
+describe('isItemOfKind', () => {
+  it('narrows an item to its kind', () => {
+    const service = expectSuccess(parse(sundayService())).data;
+
+    const songs = service.order.filter(item => isItemOfKind(item, 'song'));
+
+    expect(songs.map(({song}) => song)).toEqual([SONG_ID]);
+  });
+});
+
 describe('service types', () => {
+  it('keeps every item kind in the union', () => {
+    expectTypeOf<ServiceItemOf<'song'>['song']>().toEqualTypeOf<SongId>();
+    expectTypeOf<ServiceItemOf<'header'>['header']>().toEqualTypeOf<string>();
+    expectTypeOf<ServiceItemOf<'media'>['media']>().toEqualTypeOf<MediaId>();
+    expectTypeOf<ServiceItemOf<'notice'>>().not.toBeNever();
+  });
+
   it('brands item ids and names every kind', () => {
     expectTypeOf<ServiceItem['id']>().toEqualTypeOf<ServiceItemId>();
     expectTypeOf(serviceItemKind).returns.toEqualTypeOf<

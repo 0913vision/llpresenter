@@ -161,6 +161,20 @@ export function serializeTemplate(
   return serializeFile(templateFormat, template, file);
 }
 
+/** The items of one kind, such as `ServiceItemOf<'song'>`. */
+export type ServiceItemOf<TKind extends ServiceItemKind> = Extract<
+  ServiceItem,
+  Readonly<Record<TKind, unknown>>
+>;
+
+/** Whether an item is of a kind, so its fields can be read with their types. */
+export function isItemOfKind<TKind extends ServiceItemKind>(
+  item: ServiceItem,
+  kind: TKind,
+): item is ServiceItemOf<TKind> {
+  return serviceItemKind(item) === kind;
+}
+
 /** The kind of an item, or `unknown` for a kind this version doesn't know. */
 export function serviceItemKind(
   item: ServiceItem,
@@ -168,7 +182,15 @@ export function serviceItemKind(
   return kindKeysOf(item)[0] ?? 'unknown';
 }
 
-function itemSchemaFor(input: unknown) {
+// NOTE(0913vision): The declared return type keeps TypeScript from folding the
+// item schemas into the unknown item schema, which has fewer fields, when it
+// infers the type from the return statements.
+function itemSchemaFor(
+  input: unknown,
+):
+  | (typeof itemSchemas)[ServiceItemKind]
+  | typeof unknownItemSchema
+  | typeof mixedItemSchema {
   const [kind, ...others] = kindKeysOf(input);
   if (others.length > 0) {
     return mixedItemSchema;
