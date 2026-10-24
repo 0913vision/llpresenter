@@ -125,19 +125,15 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (a87e605, codex3): Request changes with two findings: the name matcher
+  accepted every UUID shape, and backups copied the temporary files that cleanup
+  left behind.
+- Round 2 (686576e): reviewer (Codex, codex2) Approve with no findings. Lead
+  Approve; only version 4 UUID names that atomic writes make are removed, and no
+  backup copies a temporary file. Rebased by the lead onto local `main` without
+  conflicts.
 
 ## Team member's reply
 
