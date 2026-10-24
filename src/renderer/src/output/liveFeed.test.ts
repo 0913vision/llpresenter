@@ -68,24 +68,37 @@ describe('followLiveState', () => {
     expect(listeners.size).toBe(0);
   });
 
-  it('ignores an answer that arrives after it stopped', async () => {
-    let answer: (state: LiveState) => void = () => undefined;
-    let fail: (error: Error) => void = () => undefined;
-    const {live} = fakeLive(
-      new Promise((resolve, reject) => {
-        answer = resolve;
-        fail = reject;
-      }),
-    );
+  function deferred() {
+    let resolve: (state: LiveState) => void = () => undefined;
+    let reject: (error: Error) => void = () => undefined;
+    const promise = new Promise<LiveState>((onResolve, onReject) => {
+      resolve = onResolve;
+      reject = onReject;
+    });
+    return {promise, resolve, reject};
+  }
+
+  it('ignores a state that arrives after it stopped', async () => {
+    const reply = deferred();
+    const {live} = fakeLive(reply.promise);
     const onState = vi.fn<(state: LiveState) => void>();
-    const onError = vi.fn();
-    const stop = followLiveState(live, onState, onError);
+    const stop = followLiveState(live, onState, vi.fn());
     stop();
-    answer(stateAt(9));
-    fail(new Error('too late'));
-    await Promise.resolve();
+    reply.resolve(stateAt(9));
+    await reply.promise;
     await Promise.resolve();
     expect(onState).not.toHaveBeenCalled();
+  });
+
+  it('ignores a failure that arrives after it stopped', async () => {
+    const reply = deferred();
+    const {live} = fakeLive(reply.promise);
+    const onError = vi.fn();
+    const stop = followLiveState(live, vi.fn(), onError);
+    stop();
+    reply.reject(new Error('too late'));
+    await reply.promise.catch(() => undefined);
+    await Promise.resolve();
     expect(onError).not.toHaveBeenCalled();
   });
 });
