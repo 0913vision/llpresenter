@@ -5,6 +5,7 @@ import type {Rect} from '../displays/rect';
 import type {LiveStore} from '../live/store';
 import type {Logger} from '../log';
 import {OutputWindow, type CreateOutputWindowHandle} from './outputWindow';
+import type {RendererState} from './rendererRecovery';
 import {planPlacement, type Placement} from './placement';
 import type {OutputScreen, ScreenSource} from './screens';
 
@@ -31,6 +32,14 @@ export interface OutputManagerOptions {
   readonly controlBounds: () => Rect | null;
   readonly createHandle: CreateOutputWindowHandle;
   readonly log: Logger;
+  /** Hears every change of a screen's placement or renderer state. */
+  readonly onStatusChange?: () => void;
+}
+
+/** How one screen's output shows and what its renderer is doing. */
+export interface ScreenOutputState {
+  readonly placement: OutputStatus;
+  readonly renderer: RendererState;
 }
 
 interface Surroundings {
@@ -92,6 +101,24 @@ export class OutputManager {
    */
   pageDrawn(screenId: string): void {
     this.windows.get(screenId)?.pageDrawn();
+  }
+
+  /** 다시 시도 for a screen whose window holds the restart limit. */
+  retry(screenId: string): void {
+    this.windows.get(screenId)?.retry();
+  }
+
+  /** The placement and renderer state of every screen in the list. */
+  screenStates(): ReadonlyMap<string, ScreenOutputState> {
+    return new Map(
+      this.options.screens.list().map(({id}) => [
+        id,
+        {
+          placement: this.statuses.get(id) ?? 'off',
+          renderer: this.windows.get(id)?.rendererState ?? 'running',
+        },
+      ]),
+    );
   }
 
   /** Destroys every output window and stops listening. Call it before the app quits. */
@@ -181,6 +208,7 @@ export class OutputManager {
       createHandle: this.options.createHandle,
       onCloseRequested: () => this.turnOff(screen.id),
       log: this.options.log,
+      onRendererState: () => this.options.onStatusChange?.(),
     });
     this.windows.set(screen.id, output);
     return output;
@@ -205,6 +233,7 @@ export class OutputManager {
   private report(screenId: string, status: OutputStatus): void {
     if ((this.statuses.get(screenId) ?? 'off') === status) return;
     this.statuses.set(screenId, status);
+    this.options.onStatusChange?.();
     const detail = {screen: screenId, status};
     if (status === 'monitorMissing') {
       this.options.log.warn('output monitor missing', detail);

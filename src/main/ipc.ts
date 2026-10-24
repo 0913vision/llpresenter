@@ -1,6 +1,5 @@
 import {BrowserWindow, ipcMain, type IpcMainEvent} from 'electron';
 import {Channels, windowActions, type WindowAction} from '@shared/ipc';
-import type {LiveState} from '@shared/live';
 import {parseLiveCommand} from '@shared/schema/liveCommand';
 import type {Logger} from './log';
 import type {LiveStore} from './live/store';
@@ -15,15 +14,35 @@ function isWindowAction(value: unknown): value is WindowAction {
   return windowActions.some(action => action === value);
 }
 
-function broadcast(state: LiveState, log: Logger): void {
+/** Sends a value to every open window on a channel; a window that fails is logged and skipped. */
+export function sendToWindows(
+  channel: string,
+  value: unknown,
+  log: Logger,
+): void {
   for (const win of BrowserWindow.getAllWindows()) {
     if (win.isDestroyed() || win.webContents.isDestroyed()) continue;
     try {
-      win.webContents.send(Channels.liveChanged, state);
+      win.webContents.send(channel, value);
     } catch (error) {
-      log.warn('could not send the live state to a window', error);
+      log.warn(`could not send ${channel} to a window`, error);
     }
   }
+}
+
+/**
+ * Answers every `invoke` on a channel with the current value.
+ *
+ * @returns A function that stops answering.
+ */
+export function answerWindows(
+  channel: string,
+  answer: () => unknown,
+): () => void {
+  ipcMain.handle(channel, answer);
+  return () => {
+    ipcMain.removeHandler(channel);
+  };
 }
 
 function runWindowAction(win: BrowserWindow, action: WindowAction): void {
@@ -105,7 +124,9 @@ export function registerIpc(
     Channels.logWrite,
     handleLogWrite(log, new WindowLogLimiter(log)),
   );
-  const unsubscribe = store.subscribe(state => broadcast(state, log));
+  const unsubscribe = store.subscribe(state =>
+    sendToWindows(Channels.liveChanged, state, log),
+  );
 
   return () => {
     unsubscribe();

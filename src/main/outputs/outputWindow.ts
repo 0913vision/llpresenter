@@ -37,6 +37,8 @@ export interface OutputWindowOptions {
   readonly createHandle: CreateOutputWindowHandle;
   readonly onCloseRequested: () => void;
   readonly log: Logger;
+  /** Hears every change of the renderer state. */
+  readonly onRendererState?: (state: RendererState) => void;
 }
 
 function sameFullScreen(
@@ -67,6 +69,9 @@ export class OutputWindow {
       screenId: options.screen.id,
       reload: () => this.handle?.reload(),
       log: options.log,
+      ...(options.onRendererState === undefined
+        ? {}
+        : {onStateChange: options.onRendererState}),
     });
   }
 
@@ -77,6 +82,11 @@ export class OutputWindow {
   /** The page drew the output state after a (re)load. */
   pageDrawn(): void {
     this.recovery.pageDrawn();
+  }
+
+  /** 다시 시도: while the restart limit waits, an attempt starts at once. */
+  retry(): void {
+    this.recovery.retry();
   }
 
   /** Shows the window at the placement, or hides it for null. */

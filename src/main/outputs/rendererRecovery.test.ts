@@ -153,4 +153,19 @@ describe('RendererRecovery', () => {
     recovery.dispose();
     expect(vi.getTimerCount()).toBe(0);
   });
+
+  it('announces each change of its state once', async () => {
+    const clock = installFakeClock();
+    const changes: string[] = [];
+    const recovery = new RendererRecovery({
+      screenId: 'main',
+      reload: vi.fn(),
+      log: recordingLogger(),
+      onStateChange: state => changes.push(state),
+    });
+    await crashUntilLimited(recovery, clock);
+    recovery.pageDrawn();
+    recovery.pageDrawn();
+    expect(changes).toEqual(['restarting', 'limited', 'running']);
+  });
 });

@@ -1,4 +1,4 @@
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 import {recordingLogger} from './displays/testing';
 import {FrameRateTracker} from './outputs/frameRates';
 import {
@@ -6,6 +6,7 @@ import {
   WindowLogLimiter,
   handleFrameRate,
   handleLogWrite,
+  handleRetryRequest,
 } from './rendererMessages';
 
 const WINDOW = 7;
@@ -130,4 +131,25 @@ describe('WindowLogLimiter', () => {
     }
     expect(log.entries).toHaveLength(WINDOW_LOG_LINES_PER_SECOND);
   });
+});
+
+describe('handleRetryRequest', () => {
+  it('passes the screen of a valid request on', () => {
+    const retry = vi.fn();
+    handleRetryRequest(retry, recordingLogger())({screenId: 'main'}, WINDOW);
+    expect(retry).toHaveBeenCalledWith('main');
+  });
+
+  it.each([null, {}, {screenId: ''}, {screenId: 7}])(
+    'drops a malformed request: %j',
+    value => {
+      const retry = vi.fn();
+      const log = recordingLogger();
+      handleRetryRequest(retry, log)(value, WINDOW);
+      expect(retry).not.toHaveBeenCalled();
+      expect(log.messages('warn')).toEqual([
+        'dropped a malformed retry request',
+      ]);
+    },
+  );
 });

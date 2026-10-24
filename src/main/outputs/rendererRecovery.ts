@@ -33,6 +33,8 @@ export interface RecoveryOptions {
   readonly screenId: string;
   readonly reload: () => void;
   readonly log: Logger;
+  /** Hears every change of {@link RendererRecovery.state}. */
+  readonly onStateChange?: (state: RendererState) => void;
 }
 
 type Timer = ReturnType<typeof setTimeout>;
@@ -82,7 +84,7 @@ export class RendererRecovery {
     if (this.current === 'limited') {
       this.report('info', 'output window restart attempt works');
     }
-    this.current = 'running';
+    this.setState('running');
   }
 
   /**
@@ -112,7 +114,7 @@ export class RendererRecovery {
   }
 
   private restartQuickly(details: RendererGoneDetails): void {
-    this.current = 'restarting';
+    this.setState('restarting');
     this.report('error', 'output window process gone, restarting it', details);
     this.clear('relaunchTimer');
     this.relaunchTimer = setTimeout(() => {
@@ -122,7 +124,7 @@ export class RendererRecovery {
   }
 
   private enterLimit(details: RendererGoneDetails): void {
-    this.current = 'limited';
+    this.setState('limited');
     this.failedAttempts = 0;
     this.clear('relaunchTimer');
     this.report(
@@ -134,7 +136,7 @@ export class RendererRecovery {
   }
 
   private failAttempt(details: RendererGoneDetails): void {
-    this.current = 'limited';
+    this.setState('limited');
     this.clear('survivalTimer');
     this.failedAttempts += 1;
     this.report('error', 'output window restart attempt failed', {
@@ -170,6 +172,12 @@ export class RendererRecovery {
     this.failedAttempts = 0;
     this.budget.reset();
     this.report('info', 'output window restart limit ended');
+  }
+
+  private setState(state: RendererState): void {
+    if (state === this.current) return;
+    this.current = state;
+    this.options.onStateChange?.(state);
   }
 
   private clear(timer: TimerName): void {

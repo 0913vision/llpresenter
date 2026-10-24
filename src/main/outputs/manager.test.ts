@@ -280,4 +280,41 @@ describe('OutputManager', () => {
     );
     manager.dispose();
   });
+
+  it("reports each screen's placement and renderer state, and announces changes", async () => {
+    const clock = installFakeClock();
+    const store = new LiveStore();
+    const windows = fakeWindows();
+    const onStatusChange = vi.fn();
+    const manager = new OutputManager({
+      store,
+      displays: new FakeMonitorFeed(monitorsOf(CONTROL, PROJECTOR)),
+      screens: new FakeScreenSource([screenOn(PROJECTOR)]),
+      controlBounds: () => CONTROL_WINDOW,
+      createHandle: windows.create,
+      log: recordingLogger(),
+      onStatusChange,
+    });
+    manager.start();
+    expect(manager.screenStates().get('main')).toEqual({
+      placement: 'off',
+      renderer: 'running',
+    });
+    store.dispatch(turn(true));
+    expect(onStatusChange).toHaveBeenCalledTimes(1);
+    expect(manager.screenStates().get('main')?.placement).toBe('fullscreen');
+
+    const handle = windows.only('main');
+    for (let crash = 0; crash < CRASH_LIMIT; crash += 1) {
+      handle.crash();
+      await clock.advance(RELAUNCH_DELAY_MS);
+    }
+    expect(manager.screenStates().get('main')?.renderer).toBe('limited');
+    expect(onStatusChange.mock.calls.length).toBeGreaterThan(1);
+
+    const reloadsBefore = handle.reloads;
+    manager.retry('main');
+    expect(handle.reloads).toBe(reloadsBefore + 1);
+    manager.dispose();
+  });
 });
