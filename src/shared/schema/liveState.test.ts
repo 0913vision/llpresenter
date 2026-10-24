@@ -19,6 +19,7 @@ function busyState(): LiveState {
       notice: {noticeId: 'sunday'},
     },
     outputs: {main: true, stage: false},
+    canUndo: true,
   };
 }
 
@@ -47,6 +48,8 @@ describe('parseLiveState', () => {
     ['a negative version', {version: -1}, 'version'],
     ['a missing layer', {layers: {media: null}}, 'layers.slide'],
     ['outputs that are not booleans', {outputs: {main: 'on'}}, 'outputs.main'],
+    ['no undo flag', {canUndo: undefined}, 'canUndo'],
+    ['an undo flag that is text', {canUndo: 'yes'}, 'canUndo'],
   ])('rejects %s', (_name, change, field) => {
     const result = parseLiveState({...busyState(), ...change});
 

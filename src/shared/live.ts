@@ -67,6 +67,8 @@ export interface LiveState {
   readonly layers: LiveLayers;
   /** Output on or off per screen id. A missing screen is off. */
   readonly outputs: Readonly<Record<string, boolean>>;
+  /** Whether the last clear can be undone, so the 되돌림 button can dim. */
+  readonly canUndo: boolean;
 }
 
 export function emptyLayers(): LiveLayers {
@@ -81,7 +83,7 @@ export function emptyLayers(): LiveLayers {
 }
 
 export function emptyLiveState(): LiveState {
-  return {version: 0, layers: emptyLayers(), outputs: {}};
+  return {version: 0, layers: emptyLayers(), outputs: {}, canUndo: false};
 }
 
 export function hasAnyLayer(layers: LiveLayers): boolean {

@@ -35,6 +35,7 @@ const liveStateSchema = payloadObject({
     notice: v.nullable(layerSchemas.notice),
   }),
   outputs: v.record(v.string(), v.boolean()),
+  canUndo: v.boolean(),
 });
 
 /**
