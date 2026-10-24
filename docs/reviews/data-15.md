@@ -122,19 +122,14 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (bcec49d): reviewer (Codex, codex3) Approve with one nit: the Wiring
+  section of `docs/reviews/data-9.md` still says output wires the store "after
+  this merges", though round 3 already updated the caller. The nit goes into
+  data's next branch. Lead Approve; `MediaLayer.startedAt` is required in the
+  shared contract, and the edits in output's and shell's tests were made with
+  their permission. Rebased by the lead onto local `main` without conflicts.
 
 ## Team member's reply
 
