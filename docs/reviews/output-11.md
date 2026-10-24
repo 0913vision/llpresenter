@@ -1,6 +1,9 @@
 # Review request: `output-11`
 
-Review range: `94780dc...feat/output/restart-cooldown`. Check the output window
+Review range: `4e2501e...feat/output/restart-cooldown` (round 2). For round 2,
+check the three round 1 findings in "Team member's reply": `72469c2` (failed or
+undrawn loads, retries while off), `d444b45` (the frame rate report only after
+the first live state is drawn), and `a242a71` (tests). Check the output window
 crash rules against `docs/spec/08-problems.md` ("Output window crash", "The
 restart limit"): quick restarts, the empty picture at the limit, the cool-down
 of 10, 20, 40, then 60 seconds, one pending and one running attempt, the end of
@@ -11,7 +14,7 @@ outline, and the status bar frame rate.
 
 - Team member: `output`
 - Branch: `feat/output/restart-cooldown`
-- Base commit (`main`): `94780dc`
+- Base commit (`main`): `4e2501e` (round 2; round 1 was on `94780dc`)
 - Last commit: the commit that adds this file
 - Related: the lead's restart-limit rule; spec-7 (08 and 04); data-10's channels
 
@@ -30,16 +33,23 @@ output window after 3 crashes in 60 seconds and left it with a dead renderer.
 - After 3 crashes in 60 seconds, the restart limit holds: the window stays shown
   at its place with the empty picture, the limit is logged at error level, and
   an attempt follows after a cool-down of 10 s, then 20, 40, and 60 s for each
-  attempt that dies again. An attempt that runs 60 s without dying ends the
+  attempt that fails again. An attempt that runs 60 s after it draws ends the
   limit and resets the count.
+- A reload fails like a crash when its page doesn't load (the load is rejected)
+  or doesn't draw within 10 s: a quick reload counts toward the limit, and an
+  attempt goes back to the cool-down. While the output is off, a page has no
+  time limit to draw; turning it on gives it the full 10 s.
 - There is at most one pending and one running attempt. Turning the output on,
-  and 다시 시도, cancel the pending cool-down and start an attempt at once;
-  while an attempt runs, they do nothing more. Turning the output off stops the
-  attempts.
+  and 다시 시도 while it is on, cancel the pending cool-down and start an
+  attempt at once; while an attempt runs, they do nothing more. Turning the
+  output off stops the attempts, and 다시 시도 does nothing until it turns on
+  again.
 - The renderer state is `running`, `restarting` (a quick reload), or `limited`
   (the limit holds), and it returns to `running` only when the reloaded page has
   drawn the output state. Its first frame rate report is the sign (spec-7 round
-  2: the window and its preview show the empty picture until then).
+  2: the window and its preview show the empty picture until then). The output
+  page starts its frame rate meter only after it has drawn the first live state,
+  so a report always means the state is on screen.
 
 **The output status (`statusBoard.ts`, `start.ts`).** `OutputStatusBoard` builds
 data-10's `OutputStatuses` from the manager (each screen's placement and
@@ -58,11 +68,23 @@ and `answerWindows`.
 - `src/main/outputs/outputWindow.ts`, `manager.ts`, `electronWindow.ts`,
   `start.ts`, `testing.ts`, and tests
 - `src/main/rendererMessages.ts`, `src/main/ipc.ts`, and tests
+- `src/main/windows/page.ts` (`startLoading`),
+  `src/renderer/src/output/startOutput.ts`, and its test (round 2)
 - `docs/reviews/output-11.md` (new)
 
 ## Checks run
 
-On `11f6c0c`, on `main` at `94780dc`.
+Round 2: `npm run verify` passed on `a242a71`, on `main` at `4e2501e`: 5 steps
+in 181.6 s. New round 2 tests: a quick reload whose load is rejected reloads
+again; an attempt whose load is rejected goes back to the cool-down and a later
+attempt ends the limit; an attempt that doesn't draw in 10 s fails; quick
+reloads that never draw reach the limit; the limit ends only a minute after the
+draw; a replaced load's rejection is ignored; a hidden page has no draw limit;
+다시 시도 while off starts nothing until the output turns on; the output page
+reports no frame rate while the live state is on its way or never arrives; a
+failed page load reaches the recovery through the Electron handle.
+
+Round 1, on `11f6c0c`, on `main` at `94780dc`:
 
 | Command or test  | Result                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -79,7 +101,7 @@ On `11f6c0c`, on `main` at `94780dc`.
       request, with data-10's parser)
 - [x] No `any`, no type assertions that bypass checks, and no `!`
 - [x] Every registered subscription, timer, IPC listener, video and audio
-      element, and object URL is released (the three recovery timers, the status
+      element, and object URL is released (the four recovery timers, the status
       channels, and the board's listener)
 - [x] Caches and lists have size caps (one status per screen)
 - [x] An exception in the output path doesn't stop the output
@@ -95,11 +117,14 @@ On `11f6c0c`, on `main` at `94780dc`.
 ## Decisions I made (for the lead to confirm)
 
 1. The first frame rate report after a reload is the sign that the page drew; it
-   arrives about a second after the page starts. A dedicated "drawn" message
-   would be faster but needs a new channel.
-2. The status goes to every window, like the live state. Output windows ignore
+   arrives about a second after the page draws the first live state. A dedicated
+   "drawn" message would be faster but needs a new channel.
+2. A reloaded page gets 10 s (`DRAW_LIMIT_MS`) to draw. A reload draws in about
+   a second (qa measured 1.2 s); 10 s leaves room for a busy machine without a
+   long blank screen.
+3. The status goes to every window, like the live state. Output windows ignore
    it.
-3. The 방송 자막 capture window's chroma background comes with the capture
+4. The 방송 자막 capture window's chroma background comes with the capture
    method; today every output window's native background is black.
 
 ## Shared contract change requests
@@ -108,8 +133,9 @@ None.
 
 ## Where to look
 
-- `src/main/outputs/rendererRecovery.ts`: `crashed`, `pageDrawn`, `retry`, and
-  the limit phases.
+- `src/main/outputs/rendererRecovery.ts`: `crashed`, `pageDrawn`, `retry`,
+  `reload`, `fail`, and the limit phases.
+- `src/renderer/src/output/startOutput.ts`, where the meter starts.
 - `src/main/outputs/start.ts`, `publishStatus`.
 
 ---
@@ -135,4 +161,27 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 findings (codex4), all fixed:
+
+1. `rendererRecovery.ts`: a reload that failed without `render-process-gone`
+   still ended the limit after 60 s and left the output blank. Fixed in
+   `72469c2`: the handle's `reload()` now returns the load promise
+   (`startLoading` in `page.ts`), and a rejected load or one that doesn't draw
+   within `DRAW_LIMIT_MS` fails like a crash: a quick reload counts toward the
+   limit, and an attempt goes back to the cool-down. The survival minute starts
+   when the attempt draws, so only a drawn attempt ends the limit. A load id
+   ignores the rejection of a load that a newer one replaced. Tests in
+   `rendererRecovery.test.ts`, `outputWindow.test.ts`, and
+   `electronWindow.test.ts` (`a242a71`).
+2. `start.ts`: a frame rate report didn't prove that the live state loaded.
+   Fixed in `d444b45`: the output page starts its frame rate meter only after it
+   has drawn the first live state, so the first report means the state is on
+   screen. Tests in `startOutput.test.ts` with a delayed and a failed state
+   answer.
+3. `rendererRecovery.ts`: `retry()` ignored a paused output. Fixed in `72469c2`:
+   다시 시도 does nothing while the output is off; turning it on starts one
+   attempt. Test: three requests while off start nothing, and resume starts
+   exactly one.
+
+From the output-10 review: `ipc.test.ts` now resets `isMaximized` before each
+test (`a242a71`).
