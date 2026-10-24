@@ -1,0 +1,39 @@
+.button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-control-sm);
+  height: var(--size-control-sm);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-2);
+  user-select: none;
+  transition:
+    background-color var(--motion-hover),
+    color var(--motion-hover);
+}
+
+.md {
+  width: var(--size-control-md);
+  height: var(--size-control-md);
+}
+
+.button:not([aria-disabled='true']):hover {
+  background: var(--bg-raised);
+}
+
+.button:not([aria-disabled='true']):active,
+.button:not([aria-disabled='true']):is(
+    [aria-pressed='true'],
+    [aria-expanded='true']
+  ) {
+  background: var(--bg-control-hover);
+  color: var(--text);
+}
+
+.button[aria-disabled='true'] {
+  color: var(--text-off);
+}
