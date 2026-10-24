@@ -16,6 +16,7 @@ export default defineConfig({
   },
   preload: {
     resolve: {alias: shared},
+    build: {externalizeDeps: false},
   },
   renderer: {
     resolve: {
