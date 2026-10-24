@@ -1,19 +1,43 @@
 # Review request: `data-9`
 
-Review range: `02bb9c0...feat/data/backups`
+Review range: `94780dc...feat/data/backups`
 
-Round 2 changes only: `374a810...feat/data/backups`
+Round 3 changes only: `283b7e5...feat/data/backups`
+
+Changed outside data's paths, with output's permission: `src/main/index.ts` (the
+`registerStore` call takes `{log, isAnyOutputOn}` and moves below the
+`LiveStore` it reads) and `src/main/index.wiring.test.ts` (its mock records the
+options, and a test checks them).
 
 - Team member: `data`
 - Branch: `feat/data/backups`
-- Base commit (`main`): `02bb9c0` (round 1: `db4b2e6`)
+- Base commit (`main`): `94780dc` (round 2: `02bb9c0`, round 1: `db4b2e6`)
 - Last commit: see the newest commit that changes this file
 - Related brief: `docs/briefs/data.md`; M2 in `docs/MILESTONES.md`,
   "Main-process file store"; `docs/spec/02-data.md`, "Automatic backup";
   `docs/spec/10-shortcuts-and-settings.md`, the 백업 rows of 라이브러리;
   `docs/spec/08-problems.md` (no automatic backup during a service)
 
-What to check in round 2:
+What to check in round 3:
+
+1.  Round 2 finding 1: in development, `copyFolder` passes `cp` a filter that
+    checks the real path of every file and folder against the real path of
+    `LLP_USER_DATA` before it is copied, and throws for one outside, which fails
+    the backup. `LoadedStore.developmentFolder` carries the folder to the
+    backup. Tests: "fails in development when a link under 곡 leads outside
+    LLP_USER_DATA" (two temporary folders) and "follows the same link outside
+    the development setup".
+2.  Round 2 finding 2: `createStaging` creates `<time>.partial` with a plain
+    `mkdir`, so anything already at that name fails the backup and stays as it
+    is; nothing is removed first. Only a staging folder this run created is
+    removed after a failure. Tests: "refuses a file at the staging name and
+    leaves it as it is" and "refuses a link at the staging name and leaves it
+    and its target".
+3.  Round 2 finding 3: the `BackupFolders` fields have no TSDoc.
+4.  The `registerStore` call in `src/main/index.ts`, now that output-9 has
+    merged.
+
+What to check in round 2 (done):
 
 1.  Finding 1: `copyFolder` in `src/main/store/backup.ts` copies with
     `dereference`, so a linked data folder is copied as its contents. Test:
@@ -126,22 +150,23 @@ shutdown.add({name: 'close the data store', run: disposeStore});
 
 ## Checks run
 
-Round 2: `npm run verify` on the commit before this document's round 2 change
-(78c60d8), on `main` 02bb9c0: every step passed (167.8 s, steps at once).
-Coverage: `src/main/store/` 96.4% of lines and 91.7% of branches; `backup.ts`
-93.5% of lines and 86.7% of branches, where the uncovered lines are the cleanup
+Round 3: `npm run verify` on the commit before this document's round 3 change
+(3453bd3), on `main` 94780dc: every step passed (149.5 s, steps at once).
+Coverage: `src/main/store/` 96.5% of lines and 91.9% of branches; `backup.ts`
+94.3% of lines and 88.2% of branches, where the uncovered lines are the cleanup
 failures (a `.partial` or an old backup that can't be deleted).
 
 | Command or test                    | Result                       |
 | ---------------------------------- | ---------------------------- |
-| `npm run typecheck`                | Passed (37.3 s)              |
-| `npm run lint`                     | Passed (91.1 s)              |
-| `npm run format:check`             | Passed (95.9 s)              |
+| `npm run typecheck`                | Passed (38.0 s)              |
+| `npm run lint`                     | Passed (89.7 s)              |
+| `npm run format:check`             | Passed (68.6 s)              |
 | `npm test`                         | Passed as `test:coverage`    |
-| `npm run build`                    | Passed (9.4 s)               |
-| `npm run verify` (from phase 1 on) | Passed: every step (167.8 s) |
+| `npm run build`                    | Passed (9.1 s)               |
+| `npm run verify` (from phase 1 on) | Passed: every step (149.5 s) |
 
-Round 1 passed on `main` db4b2e6 (1571 tests, 346.0 s).
+Round 2 passed on `main` 02bb9c0 (167.8 s), and round 1 on `main` db4b2e6 (1571
+tests, 346.0 s).
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
@@ -205,6 +230,31 @@ missing.
   1.
 
 ## Team member's reply
+
+Round 2 findings from codex3, answered in round 3:
+
+1.  Fixed. With `dereference`, a link deep inside a data folder could lead out
+    of `LLP_USER_DATA`, since `confineLocations` checks only the configured
+    folders. In development, `cp` now gets a filter that resolves the real path
+    of every source entry and fails the backup when it lies outside the real
+    path of `LLP_USER_DATA`. The test puts a junction under 곡 that leads to a
+    second temporary folder: the backup fails, no backup or `.partial` folder is
+    left, and the outside folder is untouched. Without a development folder,
+    links are followed as before, which another test shows.
+2.  Fixed. The staging folder is created, not taken over: the backup location is
+    created with `recursive`, then `<time>.partial` with a plain `mkdir`, which
+    fails when anything is already there. That failure returns at once, so the
+    cleanup never runs; the cleanup only removes a staging folder this run
+    created. The tests put a file, then a junction, at the staging name and
+    check that each stays, and that the junction's target keeps its file.
+3.  Fixed. The fields lost their TSDoc; the NOTE on `backupFolders` explains
+    both lists.
+
+Also in round 3: output-9 merged with `registerStore(log)` in
+`src/main/index.ts`. With output's permission, the call now passes
+`{log, isAnyOutputOn: () => isAnyOutputOn(store.state)}` and sits below the
+`LiveStore`, so main keeps type-checking when this merges. The shutdown step is
+unchanged and awaits the dispose promise. The wiring test checks the options.
 
 Round 1 findings from codex3, answered in round 2:
 
