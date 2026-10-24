@@ -177,19 +177,14 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (e10cfd3): reviewer (Codex, 0:6) Approve with one nit:
+  `macros.test.ts:139` uses the invalid layer `'prop'` in the both-targets case;
+  use `'props'` with a valid 소품 ID so the test checks only the exclusion rule.
+  The nit goes into data's next branch. Lead Approve; the 매크로 defaults and
+  the reserved-key pruning follow the lead's decisions. Rebased by the lead onto
+  `main` a9d6b6e without conflicts.
 
 ## Team member's reply
 

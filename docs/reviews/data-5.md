@@ -133,19 +133,19 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (6101a4f): reviewer (Codex, codex3) Request changes: the preload
+  passed the `ui.get` reply through without a schema.
+- Round 2 (3391430): reviewer Request changes: the sandboxed preload couldn't
+  load valibot as an external package, so `window.llp` was never exposed; a root
+  `[]` reply became `{}`; TSDoc on an unexported helper.
+- Round 3 (fbc27da): reviewer (Codex, codex3) Approve, no findings. qa checked
+  the branch in the built app (`window.llp` under the sandbox, bad replies
+  logged and defaulted): pass. Lead Approve. The member rebased it onto `main`
+  c402184 (c31fa56; one conflict in `primitives.ts`, both sides kept). The
+  main-process `log:write` handler comes with output-2, validated, capped, and
+  rate-limited.
 
 ## Team member's reply
 

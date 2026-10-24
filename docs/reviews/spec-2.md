@@ -84,3 +84,11 @@ decided on in spec-1 round 2.
 - Whether the step note is enough for the ui member to change the `TextField`
   README and component.
 - The resolved "Follow-up work" bullets.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (381d854): reviewer (Codex, codex3) Request changes: grouped step rows
+  contradicted the settings rows, ImportText's delimiter field was missing, and
+  a decided question was listed as open.
+- Round 2 (81a462d): reviewer (Codex, codex3) Approve, no findings. Lead
+  Approve. Rebased by the lead onto `main` 5922438 without conflicts.
