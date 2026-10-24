@@ -96,12 +96,18 @@ one sample, spread over several lines:
 - Memory comes from `app.getAppMetrics()` in KB.
 - `fps` is the output window's frame rate over the last interval.
 
-The run fails when the record covers less than the requested time, when a
-process relaunched (a new `pid` under the same `name`), or when a process's
-memory keeps growing. The judge skips the first 5 minutes and splits the rest
-into 6 windows. Memory keeps growing when its lowest value rises in every window
-and by at least 10 MB in total. A median frame rate under 58 fps is a warning.
-Bad record lines are dropped and listed.
+The judge skips a warm-up (5 minutes, or a twelfth of a shorter run) and splits
+the rest of the requested time into 6 windows. The run fails when:
+
+- the record covers less than the requested time,
+- a process has fewer than 3 samples in any window, for example because it
+  disappeared partway,
+- a process relaunched (a new `pid` under the same `name`), or
+- a process's memory keeps growing: its lowest value rises in every window and
+  by at least 10 MB in total.
+
+A median frame rate under 58 fps is a warning. Bad record lines are dropped and
+listed.
 
 ## `session-context.ts`
 

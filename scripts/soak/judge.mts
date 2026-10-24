@@ -3,8 +3,8 @@ import type {SoakSample} from './record.mts';
 const MS_PER_MINUTE = 60_000;
 const KB_PER_MB = 1024;
 
-/** How close to the required length the record must reach. */
 const COVERAGE_TOLERANCE_MS = MS_PER_MINUTE;
+const MAX_WARM_UP_SHARE = 1 / 12;
 
 /** Thresholds for judging one soak run. */
 export interface JudgeOptions {
@@ -12,7 +12,7 @@ export interface JudgeOptions {
   readonly requiredMs: number;
   /** Samples before this are startup and are not judged. */
   readonly warmUpMs: number;
-  /** How many equal time windows the judged span is split into. */
+  /** How many equal windows the time from `warmUpMs` to `requiredMs` is split into. */
   readonly windowCount: number;
   /** The fewest samples a window needs for its baseline to count. */
   readonly minSamplesPerWindow: number;
@@ -31,6 +31,18 @@ export const DEFAULT_JUDGE_OPTIONS: JudgeOptions = {
   minGrowthKb: 10 * KB_PER_MB,
   minFps: 58,
 };
+
+/**
+ * The default thresholds for a run of another length. The warm-up shrinks with
+ * the run, so a short trial run still has samples to judge.
+ */
+export function judgeOptionsFor(requiredMs: number): JudgeOptions {
+  const warmUpMs = Math.min(
+    DEFAULT_JUDGE_OPTIONS.warmUpMs,
+    requiredMs * MAX_WARM_UP_SHARE,
+  );
+  return {...DEFAULT_JUDGE_OPTIONS, requiredMs, warmUpMs};
+}
 
 /** Whether one process's memory stayed flat, kept growing, or can't be judged. */
 export type MemoryTrend = 'flat' | 'growing' | 'unjudged';
@@ -91,14 +103,14 @@ function windowBaselines(
   points: readonly MemoryPoint[],
   options: JudgeOptions,
 ): number[] | null {
-  const judged = points.filter(p => p.elapsedMs >= options.warmUpMs);
-  const start = judged.at(0)?.elapsedMs ?? 0;
-  const width = ((judged.at(-1)?.elapsedMs ?? 0) - start) / options.windowCount;
+  const {warmUpMs, requiredMs, windowCount} = options;
+  const width = (requiredMs - warmUpMs) / windowCount;
   if (width <= 0) return null;
-  const windows = Array.from({length: options.windowCount}, (): number[] => []);
-  for (const {elapsedMs, privateKb} of judged) {
-    const index = Math.floor((elapsedMs - start) / width);
-    windows[Math.min(index, options.windowCount - 1)]?.push(privateKb);
+  const windows = Array.from({length: windowCount}, (): number[] => []);
+  for (const {elapsedMs, privateKb} of points) {
+    if (elapsedMs < warmUpMs) continue;
+    const index = Math.floor((elapsedMs - warmUpMs) / width);
+    windows[Math.min(index, windowCount - 1)]?.push(privateKb);
   }
   if (windows.some(w => w.length < options.minSamplesPerWindow)) return null;
   return windows.map(w => Math.min(...w));
@@ -168,7 +180,9 @@ function summarizeFps(
  * process relaunched, or when a process's memory can't be judged or kept
  * growing: its lowest value rose in every window and by at least
  * `minGrowthKb` overall. Lowest values are used because garbage collection
- * makes memory rise and fall in between.
+ * makes memory rise and fall in between. The windows cover the required time,
+ * not the time a process happened to be sampled, so a process that is missing
+ * from part of the run can't be judged.
  */
 export function judgeRun(
   samples: readonly SoakSample[],

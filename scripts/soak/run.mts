@@ -6,7 +6,7 @@ import {tmpdir} from 'node:os';
 import {join, resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {parseArgs} from 'node:util';
-import {DEFAULT_JUDGE_OPTIONS, judgeRun} from './judge.mts';
+import {judgeOptionsFor, judgeRun} from './judge.mts';
 import {parseRecord} from './record.mts';
 import {formatReport} from './report.mts';
 
@@ -133,10 +133,7 @@ async function judgeRecord(
     return false;
   }
   const {samples, problems} = parseRecord(await readFile(recordPath, 'utf8'));
-  const verdict = judgeRun(samples, {
-    ...DEFAULT_JUDGE_OPTIONS,
-    requiredMs: minutes * MS_PER_MINUTE,
-  });
+  const verdict = judgeRun(samples, judgeOptionsFor(minutes * MS_PER_MINUTE));
   console.log(formatReport(verdict, problems));
   return verdict.passed;
 }

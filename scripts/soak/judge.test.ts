@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {DEFAULT_JUDGE_OPTIONS, judgeRun} from './judge.mts';
+import {DEFAULT_JUDGE_OPTIONS, judgeOptionsFor, judgeRun} from './judge.mts';
 import type {SoakSample} from './record.mts';
 
 const MINUTE_MS = 60_000;
@@ -8,6 +8,7 @@ const BASE_KB = 200_000;
 const GC_SWING_KB = 8_000;
 
 interface RunShape {
+  readonly fromMinute?: number;
   readonly minutes?: number;
   readonly everyMs?: number;
   readonly pidAt?: (minute: number) => number;
@@ -22,10 +23,15 @@ function soakRun(
   privateKbAt: (minute: number) => number,
   shape: RunShape = {},
 ): SoakSample[] {
-  const {minutes = 60, everyMs = SAMPLE_EVERY_MS, pidAt = () => 100} = shape;
+  const {
+    fromMinute = 0,
+    minutes = 60,
+    everyMs = SAMPLE_EVERY_MS,
+    pidAt = () => 100,
+  } = shape;
   const samples: SoakSample[] = [];
   for (
-    let elapsedMs = 0;
+    let elapsedMs = fromMinute * MINUTE_MS;
     elapsedMs <= minutes * MINUTE_MS;
     elapsedMs += everyMs
   ) {
@@ -76,6 +82,41 @@ describe('judgeRun', () => {
   it('fails a record that is shorter than required', () => {
     const verdict = judgeRun(soakRun(() => BASE_KB, {minutes: 30}));
     expect(verdict.longEnough).toBe(false);
+    expect(verdict.memory[0]?.trend).toBe('unjudged');
+    expect(verdict.passed).toBe(false);
+  });
+
+  it('fails a record whose samples all sit in the last minute', () => {
+    const verdict = judgeRun(
+      soakRun(() => BASE_KB, {fromMinute: 59, everyMs: 3_500}),
+    );
+    expect(verdict.longEnough).toBe(true);
+    expect(verdict.memory[0]?.trend).toBe('unjudged');
+    expect(verdict.passed).toBe(false);
+  });
+
+  it('fails a process that disappears halfway through', () => {
+    const samples = soakRun(() => BASE_KB).map(sample =>
+      sample.elapsedMs < 30 * MINUTE_MS
+        ? {
+            ...sample,
+            processes: [
+              ...sample.processes,
+              {
+                name: 'output:main',
+                pid: 7,
+                workingSetKb: BASE_KB,
+                privateKb: BASE_KB,
+              },
+            ],
+          }
+        : sample,
+    );
+    const verdict = judgeRun(samples);
+    expect(verdict.memory.map(m => [m.name, m.trend])).toEqual([
+      ['main', 'flat'],
+      ['output:main', 'unjudged'],
+    ]);
     expect(verdict.passed).toBe(false);
   });
 
@@ -107,5 +148,24 @@ describe('judgeRun', () => {
     expect(judgeRun(samples).fps).toEqual([
       {screen: 'main', medianFps: 50, lowestFps: 50, belowTarget: true},
     ]);
+  });
+});
+
+describe('judgeOptionsFor', () => {
+  it('keeps the defaults for a 60-minute run', () => {
+    expect(judgeOptionsFor(60 * MINUTE_MS)).toEqual(DEFAULT_JUDGE_OPTIONS);
+  });
+
+  it('shortens the warm-up for a short trial run', () => {
+    expect(judgeOptionsFor(6 * MINUTE_MS)).toEqual({
+      ...DEFAULT_JUDGE_OPTIONS,
+      requiredMs: 6 * MINUTE_MS,
+      warmUpMs: 30_000,
+    });
+  });
+
+  it('judges a short flat trial run', () => {
+    const samples = soakRun(() => BASE_KB, {minutes: 5, everyMs: 10_000});
+    expect(judgeRun(samples, judgeOptionsFor(5 * MINUTE_MS)).passed).toBe(true);
   });
 });
