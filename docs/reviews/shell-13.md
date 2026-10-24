@@ -1,6 +1,6 @@
 # Review request: `shell-13`
 
-Review range: 4f15ed0...feat/shell/item-keys
+Review range: 89d0b00...feat/shell/item-keys
 
 What to check: that Ctrl Down, Ctrl Up, and Ctrl L only select or open an item
 and never send an output command; that they skip headers, empty slots, and items
@@ -11,7 +11,7 @@ move the selection when Ctrl is held.
 
 - Team member: `shell`
 - Branch: `feat/shell/item-keys`
-- Base commit (`main`): `4f15ed0`
+- Base commit (`main`): `89d0b00`
 - Last commit: see the commit that adds this file
 - Related brief: `docs/spec/10-shortcuts-and-settings.md` (`service.nextItem`,
   `service.previousItem`, `service.revealLive`)
@@ -128,4 +128,5 @@ Round 1 (codex2), answered once:
 
 ## Verify result
 
-See the end of this file after the next run.
+`npm run verify` on commit `31b71d4` (base `main` 89d0b00) passed all five steps
+in 158.0 s: `typecheck`, `lint`, `format:check`, `test:coverage`, and `build`.
