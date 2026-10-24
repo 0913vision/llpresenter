@@ -2,7 +2,7 @@
 
 - Team member: `shell`
 - Branch: `fix/shell/drag-refit`
-- Base commit (`main`): `3afbb50`
+- Base commit (`main`): `fc0cbc9`
 - Last commit: see the commit that adds this file
 - Related brief: the lead's message about the bug M1-2 from qa
 
@@ -31,7 +31,10 @@ of the drag. So a width that only the window resize shrank is never saved.
 
 ## Checks run
 
-Pending.
+`npm run verify` on the fix commit (base `main` 3afbb50) passed all five steps
+in 92.4 s: `typecheck`, `lint`, `format:check`, `test:coverage`, and `build`.
+After the final rebase onto `main` fc0cbc9 I ran `typecheck` and the shell tests
+again.
 
 New and changed tests in `ColumnLayout.test.ts`: "leaves the widths alone during
 a drag when they still fit", "fits the widths at once when the window narrows
