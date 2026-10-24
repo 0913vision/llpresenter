@@ -1,8 +1,8 @@
 # Review request: `ui-2`
 
 - Team member: `ui`
-- Branch: `feat/ui/overlays` (stacked on `feat/ui/form-controls`, ui-1)
-- Base commit (`main`): filled in when sent, after ui-1 merges
+- Branch: `feat/ui/overlays`
+- Base commit (`main`): `3afbb50`
 - Last commit: the commit that adds this file (see the review request message)
 - Related brief: `docs/briefs/ui.md`
 
@@ -51,7 +51,7 @@ components (buttons that open each menu, dialog, and tooltip).
 
 | Command or test                              | Result                                            |
 | -------------------------------------------- | ------------------------------------------------- |
-| `npm run verify`                             | Filled in when sent                               |
+| `npm run verify`                             | Pass, 5 steps, 50 files, 459 tests                |
 | `npx tsc`, `npx eslint src/renderer/src/ui`  | Pass                                              |
 | `npx vitest run --project renderer` (ui)     | Pass, 26 files, 218 tests                         |
 | Gallery beside the preview cards (see below) | Done for all seven cards                          |
@@ -91,7 +91,7 @@ Found and fixed this way:
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
-- [ ] `npm run verify` passes (filled in when sent)
+- [x] `npm run verify` passes
 - [x] `npm run format:check` passes
 - [x] Every new behavior and every bug fix has unit tests (the two CSS fixes
       above were found and checked in Electron; jsdom applies no CSS)
