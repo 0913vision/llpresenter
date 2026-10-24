@@ -111,10 +111,7 @@ describe('runStepProcess', () => {
           interrupt: interruption.signal,
         }),
       );
-      const pids = await waitForHungTree(dir, 'tree');
-      onTestFinished(async () => {
-        await killProcessTree(pids.parent);
-      });
+      await waitForHungTree(dir, 'tree');
       interruption.abort();
       await vi.advanceTimersByTimeAsync(STOP_GRACE_MS);
       const outcome = await running;
@@ -139,9 +136,6 @@ describe('runStepProcess', () => {
       }),
     );
     const pids = await waitForHungTree(dir, 'tree');
-    onTestFinished(async () => {
-      await killProcessTree(pids.child);
-    });
     await vi.waitFor(() => {
       expect(isRunning(pids.parent)).toBe(false);
     });

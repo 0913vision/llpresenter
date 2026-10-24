@@ -1,6 +1,7 @@
 import {readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
-import {vi} from 'vitest';
+import {onTestFinished, vi} from 'vitest';
+import {killProcessTree} from '../scripts/process-tree.mts';
 
 /** The two processes of a hung tree. */
 export interface HungTreePids {
@@ -71,15 +72,30 @@ async function readPids(path: string): Promise<HungTreePids> {
   return {parent, child};
 }
 
-/** Waits until the hung tree started with `name` has both processes running. */
-export function waitForHungTree(
+async function endTree(pids: HungTreePids): Promise<void> {
+  for (const pid of [pids.parent, pids.child]) {
+    const result = await killProcessTree(pid);
+    if (!result.ok) {
+      throw new Error(`could not end process ${pid}: ${result.reason}`);
+    }
+  }
+}
+
+/**
+ * Waits until the hung tree started with `name` has both processes running.
+ * Both are ended when the test finishes, also when it fails, so a test whose
+ * own stop doesn't work can't leave them behind.
+ */
+export async function waitForHungTree(
   dir: string,
   name: string,
 ): Promise<HungTreePids> {
-  return vi.waitFor(() => readPids(join(dir, name + PIDS_SUFFIX)), {
+  const pids = await vi.waitFor(() => readPids(join(dir, name + PIDS_SUFFIX)), {
     timeout: WAIT_TIMEOUT_MS,
     interval: WAIT_INTERVAL_MS,
   });
+  onTestFinished(() => endTree(pids));
+  return pids;
 }
 
 /** Says whether a process with this id is still running. */
