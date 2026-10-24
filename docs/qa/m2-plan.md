@@ -640,8 +640,9 @@ READMEs.
   - Source: spec 01; spec 08.
 - **P12 Long lists stay fast**
   - Steps: A service with 200 items and a song with 150 장; scroll and click.
-  - Expected: No long task over 50 ms; only visible tiles render (or the count
-    stays reasonable; record the DOM node count).
+  - Expected: Only the visible rows and tiles render (`CLAUDE.md`, virtualize
+    long lists). Long tasks over 50 ms and the DOM node count are recorded as
+    observations.
   - Source: `CLAUDE.md` ("virtualize long lists"); `docs/TECH.md`.
 
 ### X. Failure recovery
@@ -794,12 +795,14 @@ Sources: MILESTONES criterion 3; `docs/TECH.md` "Memory" and "Verification";
     watches the first and last minutes).
   - Source: MILESTONES criterion 3; `docs/PLAN.md` phase 2.
 - **SK4 4K load**
-  - Steps: SK2 for 20 minutes with `loop-4k.webm` on FM4.
-  - Expected: Record the fps and memory; the judge passes.
+  - Steps: SK2 for 20 minutes with `loop-4k.webm` on FM4, judged with
+    `npm run soak -- --minutes 20 --judge <record.jsonl>`.
+  - Expected: The judge passes. The fps and memory are recorded.
   - Source: `docs/TECH.md` "Media".
 - **SK5 Clears and outputs in the soak**
   - Steps: A 30-minute run that also presses a random clear and undo every 10
-    seconds and toggles an output every minute.
+    seconds and toggles an output every minute, judged with
+    `npm run soak -- --minutes 30 --judge <record.jsonl>`.
   - Expected: The judge passes.
   - Source: `docs/TECH.md` ("keep memory and performance flat over hours of
     use").
