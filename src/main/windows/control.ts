@@ -1,28 +1,13 @@
 import {BrowserWindow, screen} from 'electron';
-import {join} from 'node:path';
 import type {Logger} from '../log';
+import {blockNavigation, loadPage, preloadPath, type PageRequest} from './page';
 
 const MIN_WIDTH = 1280;
 const MIN_HEIGHT = 720;
 const DEFAULT_WIDTH = 1920;
 const DEFAULT_HEIGHT = 1080;
 const BACKGROUND = '#0e0e0e';
-
-export const preloadPath = join(__dirname, '../preload/index.js');
-
-export function loadPage(win: BrowserWindow, page: 'index', log: Logger): void {
-  const devServer = process.env['ELECTRON_RENDERER_URL'];
-  const loading =
-    devServer !== undefined && devServer.length > 0
-      ? win.loadURL(`${devServer}/${page}.html`)
-      : win.loadFile(join(__dirname, `../renderer/${page}.html`));
-  loading.catch((error: unknown) => log.error(`failed to load ${page}`, error));
-}
-
-function blockNavigation(win: BrowserWindow): void {
-  win.webContents.on('will-navigate', event => event.preventDefault());
-  win.webContents.setWindowOpenHandler(() => ({action: 'deny'}));
-}
+const CONTROL_PAGE: PageRequest = {name: 'index'};
 
 function reloadAfterCrash(win: BrowserWindow, log: Logger): void {
   // NOTE(0913vision): The main process keeps the live state, so reloading the
@@ -30,7 +15,7 @@ function reloadAfterCrash(win: BrowserWindow, log: Logger): void {
   win.webContents.on('render-process-gone', (_event, details) => {
     log.error('control window process gone', details);
     if (details.reason !== 'clean-exit' && !win.isDestroyed()) {
-      loadPage(win, 'index', log);
+      loadPage(win, CONTROL_PAGE, log);
     }
   });
 }
@@ -63,6 +48,6 @@ export function createControlWindow(log: Logger): BrowserWindow {
     if (fitsScreen) win.maximize();
     win.show();
   });
-  loadPage(win, 'index', log);
+  loadPage(win, CONTROL_PAGE, log);
   return win;
 }
