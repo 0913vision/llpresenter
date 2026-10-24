@@ -1,5 +1,10 @@
 import {describe, expect, it} from 'vitest';
-import {windowModeFrom, windowTestOptions} from './testWindows';
+import type {WindowAction} from '@shared/ipc';
+import {
+  allowsWindowAction,
+  windowModeFrom,
+  windowTestOptions,
+} from './testWindows';
 
 describe('windowModeFrom', () => {
   it('opens windows offscreen in development when asked', () => {
@@ -34,5 +39,25 @@ describe('windowTestOptions', () => {
 
   it('adds nothing in normal mode', () => {
     expect(windowTestOptions('normal')).toEqual({});
+  });
+});
+
+describe('allowsWindowAction', () => {
+  it.each<WindowAction>(['minimize', 'toggle-maximize', 'close'])(
+    'runs %s in normal mode',
+    action => {
+      expect(allowsWindowAction('normal', action)).toBe(true);
+    },
+  );
+
+  it.each<WindowAction>(['minimize', 'toggle-maximize'])(
+    'never runs %s on an offscreen window, which it would show',
+    action => {
+      expect(allowsWindowAction('offscreen', action)).toBe(false);
+    },
+  );
+
+  it('still closes an offscreen window', () => {
+    expect(allowsWindowAction('offscreen', 'close')).toBe(true);
   });
 });

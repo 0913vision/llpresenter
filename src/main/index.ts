@@ -56,15 +56,19 @@ function quitAfterSmokeTest(
   else win.once('show', closeLater);
 }
 
+function bringBack(win: BrowserWindow | null, mode: WindowMode): void {
+  // NOTE(0913vision): A second launch never shows an offscreen control
+  // window.
+  if (win === null || mode === 'offscreen') return;
+  if (win.isMinimized()) win.restore();
+  win.focus();
+}
+
 function start(): void {
   let control: BrowserWindow | null = null;
   const windowMode = windowModeFrom(process.env, app.isPackaged);
 
-  app.on('second-instance', () => {
-    if (control === null) return;
-    if (control.isMinimized()) control.restore();
-    control.focus();
-  });
+  app.on('second-instance', () => bringBack(control, windowMode));
   app.on('child-process-gone', (_event, details) =>
     log.error('child process gone', details),
   );
@@ -83,7 +87,7 @@ function start(): void {
         log,
         isAnyOutputOn: () => isAnyOutputOn(store.state),
       });
-      const disposeIpc = registerIpc(store, log);
+      const disposeIpc = registerIpc(store, log, windowMode);
       const stopServingMedia = serveMedia({
         resolvePath: dataStore.findMediaFile,
         mediaRoots: dataStore.mediaRoots,

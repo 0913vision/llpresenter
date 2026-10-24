@@ -1,3 +1,5 @@
+import type {WindowAction} from '@shared/ipc';
+
 /**
  * How the app's windows open. `offscreen` is for UI tests and soak runs: every
  * window draws into memory and never appears, takes focus, goes full screen,
@@ -43,4 +45,16 @@ export function windowTestOptions(mode: WindowMode): WindowTestOptions {
         webPreferences: {offscreen: true},
       };
   }
+}
+
+/**
+ * Whether the control window's title bar may run the action in this mode.
+ * Minimizing or maximizing shows a hidden window, so an offscreen window only
+ * closes.
+ */
+export function allowsWindowAction(
+  mode: WindowMode,
+  action: WindowAction,
+): boolean {
+  return mode === 'normal' || action === 'close';
 }

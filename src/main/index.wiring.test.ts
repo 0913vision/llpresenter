@@ -39,6 +39,11 @@ const fakes = vi.hoisted(() => {
     mediaRoots: vi.fn<() => readonly string[]>(),
     mediaOptions,
     opened,
+    controlWindow: {
+      isMinimized: vi.fn(() => true),
+      restore: vi.fn(),
+      focus: vi.fn(),
+    },
   };
 });
 
@@ -73,7 +78,7 @@ vi.mock('./windows/mediaProtocol', () => ({
 vi.mock('./windows/control', () => ({
   createControlWindow: () => {
     fakes.order.push('control window');
-    const win = new EventEmitter();
+    const win = Object.assign(new EventEmitter(), fakes.controlWindow);
     fakes.opened.control = win;
     return win;
   },
@@ -112,6 +117,9 @@ beforeEach(async () => {
   fakes.electron.app.getPath.mockReturnValue(await makeTempDir());
   fakes.electron.app.quit.mockReset();
   fakes.electron.app.releaseSingleInstanceLock.mockClear();
+  fakes.electron.app.isPackaged = true;
+  fakes.controlWindow.restore.mockClear();
+  fakes.controlWindow.focus.mockClear();
   fakes.order.length = 0;
   fakes.appHandlers.clear();
   fakes.opened.control = null;
@@ -121,6 +129,12 @@ beforeEach(async () => {
   fakes.storeOptions.length = 0;
   fakes.mediaOptions.length = 0;
 });
+
+function launchAgain(): void {
+  for (const handler of fakes.appHandlers.get('second-instance') ?? []) {
+    handler();
+  }
+}
 
 function beforeQuit(): {prevented: boolean} {
   const event = {
@@ -199,6 +213,26 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     await vi.waitFor(() => {
       expect(fakes.electron.app.quit).toHaveBeenCalled();
     });
+  });
+
+  it('restores and focuses the control window on a second launch', async () => {
+    await startMain();
+
+    launchAgain();
+
+    expect(fakes.controlWindow.restore).toHaveBeenCalledTimes(1);
+    expect(fakes.controlWindow.focus).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps an offscreen control window hidden on a second launch', async () => {
+    fakes.electron.app.isPackaged = false;
+    vi.stubEnv('LLP_TEST_WINDOWS', 'offscreen');
+    await startMain();
+
+    launchAgain();
+
+    expect(fakes.controlWindow.restore).not.toHaveBeenCalled();
+    expect(fakes.controlWindow.focus).not.toHaveBeenCalled();
   });
 
   it('quits when the last window closes, through the same shutdown', async () => {

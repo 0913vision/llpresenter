@@ -9,6 +9,7 @@ import {
   handleLogWrite,
   type MessageHandler,
 } from './rendererMessages';
+import {allowsWindowAction, type WindowMode} from './windows/testWindows';
 
 function isWindowAction(value: unknown): value is WindowAction {
   return windowActions.some(action => action === value);
@@ -25,10 +26,8 @@ function broadcast(state: LiveState, log: Logger): void {
   }
 }
 
-function controlWindow(event: IpcMainEvent, value: unknown): void {
-  const win = BrowserWindow.fromWebContents(event.sender);
-  if (win === null || !isWindowAction(value)) return;
-  switch (value) {
+function runWindowAction(win: BrowserWindow, action: WindowAction): void {
+  switch (action) {
     case 'minimize':
       win.minimize();
       return;
@@ -40,6 +39,23 @@ function controlWindow(event: IpcMainEvent, value: unknown): void {
       win.close();
       return;
   }
+}
+
+function controlWindowIn(
+  mode: WindowMode,
+  log: Logger,
+): (event: IpcMainEvent, value: unknown) => void {
+  return (event, value) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win === null || !isWindowAction(value)) return;
+    if (!allowsWindowAction(mode, value)) {
+      log.info('ignored a window action on an offscreen window', {
+        action: value,
+      });
+      return;
+    }
+    runWindowAction(win, value);
+  };
 }
 
 /**
@@ -64,9 +80,15 @@ export function listenToWindows(
  * Registers the IPC channels. Every incoming value is validated; invalid
  * values are logged and dropped.
  *
+ * @param windowMode - In `offscreen` mode the title bar can only close the
+ * control window, so it never shows.
  * @returns A function that removes everything this registered.
  */
-export function registerIpc(store: LiveStore, log: Logger): () => void {
+export function registerIpc(
+  store: LiveStore,
+  log: Logger,
+  windowMode: WindowMode,
+): () => void {
   ipcMain.handle(Channels.liveGet, () => store.state);
   ipcMain.on(Channels.liveCommand, (_event, value: unknown) => {
     const command = parseLiveCommand(value);
@@ -78,7 +100,7 @@ export function registerIpc(store: LiveStore, log: Logger): () => void {
       log.error('live state listener failed', error),
     );
   });
-  ipcMain.on(Channels.windowControl, controlWindow);
+  ipcMain.on(Channels.windowControl, controlWindowIn(windowMode, log));
   const stopLogWrites = listenToWindows(
     Channels.logWrite,
     handleLogWrite(log, new WindowLogLimiter(log)),
