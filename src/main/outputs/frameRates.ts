@@ -22,8 +22,24 @@ interface ScreenRate extends FrameRate {
   readonly disagreeingSince: number | null;
 }
 
-function observedStatus(fps: number): FrameRateStatus {
-  return fps < TARGET_FPS * (1 - LOW_FPS_SHARE) ? 'low' : 'normal';
+// NOTE(0913vision): The meter reports one decimal and a 60 Hz screen measures
+// 59.9 to 60.1, so a rate this close to the target counts as at the target.
+const TARGET_TOLERANCE_FPS = 0.5;
+
+function isLow(fps: number): boolean {
+  return fps < TARGET_FPS * (1 - LOW_FPS_SHARE);
+}
+
+function isAtTarget(fps: number): boolean {
+  return fps >= TARGET_FPS - TARGET_TOLERANCE_FPS;
+}
+
+function argueForChange(status: FrameRateStatus, fps: number): boolean {
+  return status === 'normal' ? isLow(fps) : isAtTarget(fps);
+}
+
+function otherStatus(status: FrameRateStatus): FrameRateStatus {
+  return status === 'normal' ? 'low' : 'normal';
 }
 
 /**
@@ -46,7 +62,7 @@ export class FrameRateTracker {
     if (!this.isKnownScreen(screenId)) return;
     const previous = this.rates.get(screenId);
     const status = previous?.status ?? 'normal';
-    if (observedStatus(fps) === status) {
+    if (!argueForChange(status, fps)) {
       this.rates.set(screenId, {fps, status, disagreeingSince: null});
       return;
     }
@@ -55,12 +71,9 @@ export class FrameRateTracker {
       this.rates.set(screenId, {fps, status, disagreeingSince: since});
       return;
     }
-    this.rates.set(screenId, {
-      fps,
-      status: observedStatus(fps),
-      disagreeingSince: null,
-    });
-    this.logChange(screenId, fps);
+    const changed = otherStatus(status);
+    this.rates.set(screenId, {fps, status: changed, disagreeingSince: null});
+    this.logChange(screenId, changed, fps);
   }
 
   /** The last rate and status of a screen, or null before its first report. */
@@ -69,9 +82,13 @@ export class FrameRateTracker {
     return rate === undefined ? null : {fps: rate.fps, status: rate.status};
   }
 
-  private logChange(screenId: string, fps: number): void {
+  private logChange(
+    screenId: string,
+    status: FrameRateStatus,
+    fps: number,
+  ): void {
     const detail = {screen: screenId, fps};
-    if (observedStatus(fps) === 'low') {
+    if (status === 'low') {
       this.log.warn('output frame rate low', detail);
       return;
     }

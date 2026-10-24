@@ -63,4 +63,20 @@ describe('FrameRateTracker', () => {
     tracker.report({screenId: 'nowhere', fps: 60});
     expect(tracker.current('nowhere')).toBeNull();
   });
+
+  it('stays low at a rate that is no longer low but still under the target', () => {
+    const {tracker, reportFor} = setUp();
+    reportFor(LOW_FPS, FPS_SETTLE_MS);
+    reportFor(57, FPS_SETTLE_MS * 3);
+    expect(tracker.current('main')?.status).toBe('low');
+    reportFor(59.8, FPS_SETTLE_MS);
+    expect(tracker.current('main')?.status).toBe('normal');
+  });
+
+  it('never turns low at a rate a little under the target', () => {
+    const {tracker, log, reportFor} = setUp();
+    reportFor(56, FPS_SETTLE_MS * 3);
+    expect(tracker.current('main')?.status).toBe('normal');
+    expect(log.entries).toEqual([]);
+  });
 });
