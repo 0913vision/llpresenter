@@ -1,0 +1,85 @@
+.badge {
+  --badge-tracking: 0.04em;
+
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  height: var(--size-badge);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--live);
+  color: var(--text-on-fill);
+  font: var(--type-micro);
+  letter-spacing: var(--badge-tracking);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.dot {
+  --dot-size: 6px;
+
+  display: inline-block;
+  flex: none;
+  width: var(--dot-size);
+  height: var(--dot-size);
+  border-radius: var(--radius-full);
+  background: var(--line-strong);
+  vertical-align: middle;
+}
+
+.dot[data-tone='ok'] {
+  background: var(--ok);
+}
+
+.dot[data-tone='warning'] {
+  background: var(--warning);
+}
+
+.dot[data-tone='live'] {
+  background: var(--live);
+}
+
+.cut {
+  box-shadow: var(--ring-dot-cut);
+}
+
+.count {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--size-count);
+  height: var(--size-count);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--selection);
+  color: var(--text-on-selection);
+  font: var(--type-caption-strong);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.progress {
+  --progress-height: 4px;
+  --progress-min-width: 24px;
+
+  position: relative;
+  display: block;
+  min-width: var(--progress-min-width);
+  height: var(--progress-height);
+  overflow: hidden;
+  border-radius: var(--radius-xs);
+  background: var(--line-strong);
+}
+
+.bar {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+}
+
+.playback .bar {
+  background: var(--text);
+}

@@ -36,6 +36,16 @@ export {
   type SliderWidth,
 } from './Slider';
 export {
+  CountBadge,
+  LiveBadge,
+  Progress,
+  StatusDot,
+  type DotTone,
+  type ProgressProps,
+  type ProgressVariant,
+  type StatusDotProps,
+} from './StatusMarks';
+export {
   Switch,
   SwitchRow,
   type SwitchProps,
