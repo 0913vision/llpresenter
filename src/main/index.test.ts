@@ -7,6 +7,10 @@ import {makeTempDir} from '../../test/temp-dir';
 
 const WRITE_DELAY_MS = 50;
 
+// NOTE(0913vision): Each test imports the whole main process afresh, which
+// takes several seconds under coverage on a busy machine.
+const ENTRY_TEST_TIMEOUT_MS = 30_000;
+
 const electron = vi.hoisted(() => ({
   app: {
     setPath: vi.fn<(name: string, path: string) => void>(),
@@ -82,46 +86,54 @@ beforeEach(async () => {
   electron.app.requestSingleInstanceLock.mockClear();
 });
 
-describe('main entry with LLP_USER_DATA', () => {
-  it('quits with a logged error and no dialog when the path is relative', async () => {
-    vi.stubEnv('LLP_USER_DATA', 'D:llp-devqa');
-    await loadMain();
-    await vi.waitFor(() => {
-      expect(electron.app.exit).toHaveBeenCalledWith(BAD_ENVIRONMENT_EXIT_CODE);
+describe(
+  'main entry with LLP_USER_DATA',
+  {timeout: ENTRY_TEST_TIMEOUT_MS},
+  () => {
+    it('quits with a logged error and no dialog when the path is relative', async () => {
+      vi.stubEnv('LLP_USER_DATA', 'D:llp-devqa');
+      await loadMain();
+      await vi.waitFor(() => {
+        expect(electron.app.exit).toHaveBeenCalledWith(
+          BAD_ENVIRONMENT_EXIT_CODE,
+        );
+      });
+      expect(electron.app.setPath).not.toHaveBeenCalled();
+      expect(electron.app.requestSingleInstanceLock).not.toHaveBeenCalled();
+      expect(electron.dialog.showErrorBox).not.toHaveBeenCalled();
+      expect(logAtExit).toContain(
+        'LLP_USER_DATA is not a usable app data folder',
+      );
     });
-    expect(electron.app.setPath).not.toHaveBeenCalled();
-    expect(electron.app.requestSingleInstanceLock).not.toHaveBeenCalled();
-    expect(electron.dialog.showErrorBox).not.toHaveBeenCalled();
-    expect(logAtExit).toContain(
-      'LLP_USER_DATA is not a usable app data folder',
-    );
-  });
 
-  it('quits the same way when Electron refuses the path', async () => {
-    vi.stubEnv('LLP_USER_DATA', ABSOLUTE);
-    electron.app.setPath.mockImplementation(() => {
-      throw new Error('Failed to set path');
+    it('quits the same way when Electron refuses the path', async () => {
+      vi.stubEnv('LLP_USER_DATA', ABSOLUTE);
+      electron.app.setPath.mockImplementation(() => {
+        throw new Error('Failed to set path');
+      });
+      await loadMain();
+      await vi.waitFor(() => {
+        expect(electron.app.exit).toHaveBeenCalledWith(
+          BAD_ENVIRONMENT_EXIT_CODE,
+        );
+      });
+      expect(logAtExit).toContain('Failed to set path');
     });
-    await loadMain();
-    await vi.waitFor(() => {
-      expect(electron.app.exit).toHaveBeenCalledWith(BAD_ENVIRONMENT_EXIT_CODE);
+
+    it('moves the folder and starts with a usable path', async () => {
+      vi.stubEnv('LLP_USER_DATA', ABSOLUTE);
+      await loadMain();
+      expect(electron.app.setPath).toHaveBeenCalledWith('userData', ABSOLUTE);
+      expect(electron.app.requestSingleInstanceLock).toHaveBeenCalled();
+      expect(electron.app.exit).not.toHaveBeenCalled();
     });
-    expect(logAtExit).toContain('Failed to set path');
-  });
 
-  it('moves the folder and starts with a usable path', async () => {
-    vi.stubEnv('LLP_USER_DATA', ABSOLUTE);
-    await loadMain();
-    expect(electron.app.setPath).toHaveBeenCalledWith('userData', ABSOLUTE);
-    expect(electron.app.requestSingleInstanceLock).toHaveBeenCalled();
-    expect(electron.app.exit).not.toHaveBeenCalled();
-  });
-
-  it('registers the media scheme before the app is ready', async () => {
-    vi.stubEnv('LLP_USER_DATA', ABSOLUTE);
-    await loadMain();
-    expect(electron.protocol.registerSchemesAsPrivileged).toHaveBeenCalledWith([
-      expect.objectContaining({scheme: MEDIA_SCHEME}),
-    ]);
-  });
-});
+    it('registers the media scheme before the app is ready', async () => {
+      vi.stubEnv('LLP_USER_DATA', ABSOLUTE);
+      await loadMain();
+      expect(
+        electron.protocol.registerSchemesAsPrivileged,
+      ).toHaveBeenCalledWith([expect.objectContaining({scheme: MEDIA_SCHEME})]);
+    });
+  },
+);
