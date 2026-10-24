@@ -1,6 +1,6 @@
 # Review request: `output-9`
 
-Review range: `d1a0b97...fix/output/quit-hang` (round 2). Check the round 1
+Review range: `f8dc565...fix/output/quit-hang` (round 3). Check the round 1
 findings against "Team member's reply": every quit request, from the control
 window, from Electron, or repeated, now waits for one shutdown in
 `src/main/shutdown.ts` with one deadline for the saves and one for the log, and
@@ -10,15 +10,23 @@ of this request (the lead's call).
 
 - Team member: `output`
 - Branch: `fix/output/quit-hang`
-- Base commit (`main`): `d1a0b97` (round 2; round 1 was on `c4bbd3a`)
+- Base commit (`main`): `f8dc565` (round 3; round 2 was on `d1a0b97`, round 1 on
+  `c4bbd3a`)
 - Last commit: the commit that adds this file
 - Related: qa bug M1-11 (blocker); shell-3's `registerUiState`; devops-7's
   `registerSoakRecorder`
 
 ## Changes outside my paths
 
-None. `src/main/index.ts` and `src/main/quit.ts` are mine. The wiring calls
-shell's `src/main/uiState/register.ts` and devops' `src/main/soak/` as they are.
+- `src/main/uiState/register.ts` and its test (shell's files, with shell's
+  permission): the module's own `before-quit` guard and its `flushedBeforeQuit`
+  flag are gone, because the shutdown now calls `dispose()` and awaits it.
+  `dispose()` is unchanged. The two tests of the guard and the `app` part of the
+  Electron mock are removed.
+
+Otherwise none. `src/main/index.ts` and `src/main/quit.ts` are mine. The wiring
+calls shell's `src/main/uiState/register.ts` and devops' `src/main/soak/` as
+they are.
 
 ## What changed and why
 
@@ -70,6 +78,9 @@ output-6 still makes a quit request during the flush wait for the same flush.
 - `docs/reviews/output-9.md` (new)
 
 ## Checks run
+
+Round 3: `npm run verify` passed on the last commit before this document, on
+`main` at `f8dc565` (5 steps in 141.0 s).
 
 Round 2: `npm run verify` passed on the coordinator commits rebased onto `main`
 at `db4b2e6`: 5 steps in 241.4 s, 145 test files and 1,556 tests. After the last
@@ -161,3 +172,22 @@ Round 1 findings (codex5), both fixed in `e9e80f3` by one shutdown coordinator:
    limit; when it passes, the waiting step is logged and the shutdown goes on to
    the log flush (2 seconds), then quits. Tests: a step that never resolves, and
    a log flush that never resolves, both still quit.
+
+Round 2 finding (codex5), and the same hang that qa found with a stuck rename of
+`app.json`:
+
+1. **The UI state's own quit guard (`index.ts:91`)**: fixed in `27df95e`.
+   `registerUiState` no longer listens to `before-quit` at all (shell agreed and
+   allowed the change in its files); the shutdown awaits its `dispose()` within
+   the save limit, so the coordinator is the only quit hook. New integration
+   test, `shutdown.integration.test.ts`: the real `registerUiState` and the real
+   coordinator share one Electron-like app, a layout change is pending, and the
+   `app.json` write never ends; the app still quits after the save limit and
+   logs which step it waited for. It fails with the old guard (checked by
+   restoring the old file).
+
+From qa's round 2 run: a start right after the exit could find the
+single-instance lock still held while Chromium tears down. `30b0361` releases
+the lock right before the real quit, after the saves and the log flush. Tests:
+the lock is released only when the shutdown is done (`shutdown.test.ts`), and
+through the real entry (`index.wiring.test.ts`).
