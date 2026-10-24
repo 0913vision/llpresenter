@@ -2,13 +2,18 @@
 
 - Team member: `devops`
 - Branch: `feat/devops/soak-scenario`
-- Review range: `94780dc...feat/devops/soak-scenario`
+- Review range: `8e0d3b3...feat/devops/soak-scenario` (round 2, rebased onto
+  `main`, which now has data-13 and output-10)
 - Related brief: the lead's M2 soak task. A 20-minute offscreen soak of a
   looping video plus 장 changes, through the recorder and the judge, with the
   numbers for qa's SK cases. This request prepares it; the run itself waits for
   two pieces (see "Not run yet").
 
 ## What to check
+
+Round 2: the five round 1 findings, answered in "Team member's reply (round 1)"
+at the end, plus two additions the lead asked for (the inspector flags and the
+`test` branch tag). Round 1's list still applies:
 
 1.  `src/main/soak/scenario.ts`: the scenario only runs with a usable soak
     record, validates `LLP_SOAK_MEDIA_ID` as a media id, logs a command that
@@ -103,15 +108,11 @@ the scenario turns it on. `index.wiring.test.ts` mocks `./soak` and needs
 
 ## Not run yet
 
-The 20-minute soak waits for two pieces that the lead has asked for:
-
-1.  data's media wiring. Today `findMediaFile` returns `null`, so no video
-    plays.
-2.  output's `LLP_TEST_WINDOWS=offscreen` switch. Without it, the 본 화면 opens
-    as a visible window on a one-monitor PC.
-
-Once both are on `main`, I run `npm run soak -- --minutes 20` and add the
-numbers here for qa's SK cases.
+data-13 (the media lookup) and output-10 (`LLP_TEST_WINDOWS=offscreen`) are on
+`main` now. The 20-minute soak still needs output's two wiring lines in
+`src/main/index.ts` ("Wiring for output"), which output lands once this merges.
+Then I run `npm run soak -- --minutes 20` and add the numbers here for qa's SK
+cases.
 
 ## Tests
 
@@ -150,6 +151,45 @@ numbers here for qa's SK cases.
 
 ## Checks run
 
-| Command          | Result                                                                                                                                           |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `npm run verify` | Pass at 77 to 100% CPU, 172.2 s wall, every step at once: typecheck 12.5 s, lint 93.8 s, format:check 43.7 s, test:coverage 172.1 s, build 5.5 s |
+| Command                                  | Result                                                                                                                                           |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `npm run verify` (round 1)               | Pass at 77 to 100% CPU, 172.2 s wall, every step at once: typecheck 12.5 s, lint 93.8 s, format:check 43.7 s, test:coverage 172.1 s, build 5.5 s |
+| `npm run verify` (round 2, on `8e0d3b3`) | Pass at 100% CPU, 196.9 s wall, every step at once: typecheck 41.0 s, lint 84.4 s, format:check 107.5 s, test:coverage 196.7 s, build 8.9 s      |
+
+## Team member's reply (round 1)
+
+1.  Codex 1, `slice(-2)`. `parseClipArgs` (`clip-frames.mts`) takes exactly two
+    arguments, a `.webm` path and a user data folder, and `main.mts` reads them
+    first, before it sets a path, writes a file, or creates a window. A call
+    with only an output path now prints the usage and exits 1 with nothing
+    created; I ran it to check. Tests: no arguments, one, three, and the
+    script's own path as the clip.
+2.  Codex 2, the clip maker's deadline and output. `runClipMaker` stops the
+    maker after 3 minutes (the clip took 15 s at 100% CPU) with every process it
+    started (`killProcessTree`), lets go of its output, and rejects. It keeps
+    only the last 64 KB of what the maker prints. Tests with real processes: a
+    stalled maker is stopped at its deadline, and a hung tree behind it ends
+    (parent and child); 5 MB of output before the summary still resolves; a
+    failing maker rejects.
+3.  Codex 3, NaN. `parsePlayback` requires a finite, positive duration, width,
+    and height, and `checkPlayback` refuses a duration whose difference isn't
+    within the tolerance, so NaN fails there too. Tests: NaN, Infinity, and 0
+    durations, a NaN width, and NaN straight into `checkPlayback`.
+4.  Codex 4, valibot in main. `registerSoakScenario` checks `LLP_SOAK_MEDIA_ID`
+    with the shared `parsePayload(mediaIdSchema, value)`; nothing in
+    `src/main/soak/` imports valibot.
+5.  Codex 5, nit. `ClipSummary` is one exported type in `clip-frames.mts`, used
+    by the maker and the runner; the TSDoc on the private copy went with it.
+
+Added for the lead:
+
+- `soakEnvironment` drops inspector flags (`--inspect`, `--inspect-brk`,
+  `--inspect-port`, `--inspect-wait`, `--inspect-publish-uid`, `--debug-port`)
+  from `NODE_OPTIONS`, under either spelling Windows keeps, because qa measured
+  a main process with an inspector growing 4.9 to 7.9 MB in 30 minutes. The
+  runner itself uses no CDP: the scenario runs in the main process. Tests: mixed
+  flags, a flag that only looks like one, and a `node_options` with only an
+  inspector flag.
+- `scripts/session-context.ts` builds its member branch rule from `COMMIT_TAGS`,
+  so a `test/<name>/<feature>` branch shows its role. Test: `test/qa/show-cases`
+  is `qa`.
