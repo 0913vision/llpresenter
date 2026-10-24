@@ -50,5 +50,10 @@
     "react-dom": "19.3.1",
     "valibot": "1.5.0",
     "zustand": "5.0.16"
+  },
+  "overrides": {
+    "eslint-plugin-tsdoc": {
+      "@typescript-eslint/utils": "8.72.0"
+    }
   }
 }
