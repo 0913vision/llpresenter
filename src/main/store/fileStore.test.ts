@@ -2,6 +2,7 @@ import {rm, symlink} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, onTestFinished} from 'vitest';
 import {makeTempDir} from '../../../test/temp-dir';
+import {defaultPreferences} from '@shared/schema/preferences';
 import {DEFAULT_LABELS} from './defaults';
 import {loadStore, type LoadedStore, type StoreContext} from './fileStore';
 import {DATA_FOLDER_NAME} from './locations';
@@ -46,6 +47,7 @@ describe('loadStore', () => {
     expect(store.songs.size).toBe(0);
     expect(store.services.size).toBe(0);
     expect(store.labels).toEqual(DEFAULT_LABELS);
+    expect(store.preferences).toEqual(defaultPreferences);
     expect(store.openServiceId).toBeNull();
     expect(store.appConfigBroken).toBe(false);
     expect(store.problems).toEqual([]);
@@ -208,6 +210,21 @@ describe('loadStore', () => {
       {name: '후렴', color: 'yellow', key: 'KeyC'},
     ]);
     expect(store.problems).toEqual([expect.objectContaining({kind: 'json'})]);
+  });
+
+  it('reads 환경설정 with the defaults for the fields it leaves out', async () => {
+    const context = await developmentContext();
+    await writeJson(join(dataRoot(context), '설정', 'preferences.json'), {
+      format: 'llsettings.preferences',
+      schemaVersion: 1,
+      backup: {keep: 5},
+    });
+
+    const store = await loadedStore(context);
+
+    expect(store.preferences.backup).toEqual({auto: true, keep: 5});
+    expect(store.preferences.previewFps).toBe(defaultPreferences.previewFps);
+    expect(store.problems).toEqual([]);
   });
 
   it('reports a jump key that labels.json drops', async () => {

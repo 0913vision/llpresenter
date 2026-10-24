@@ -2,6 +2,12 @@ import {join} from 'node:path';
 import type {Result} from '@shared/result';
 import type {FileError, LoadedFile} from '@shared/schema/fileFormat';
 import {parseLabels, type Label} from '@shared/schema/labels';
+import {
+  defaultPreferences,
+  parsePreferences,
+  withPreferenceDefaults,
+  type Preferences,
+} from '@shared/schema/preferences';
 import {parseService, type Service} from '@shared/schema/service';
 import {parseSong, type Song} from '@shared/schema/song';
 import {DEFAULT_LABELS} from './defaults';
@@ -19,6 +25,7 @@ import {readSettingsFile, settingsLocation} from './settingsFile';
 
 const APP_CONFIG_FILE = 'app.json';
 const LABELS_AREA = 'labels';
+const PREFERENCES_AREA = 'preferences';
 const SONG_EXTENSION = '.llsong';
 const SERVICE_EXTENSION = '.llservice';
 const IGNORED_FOLDER_MESSAGE =
@@ -40,6 +47,8 @@ export interface LoadedStore {
   /** The 예배 순서, by service id, read-only like the songs. */
   readonly services: ReadonlyMap<string, LoadedFile<Service>>;
   readonly labels: readonly Label[];
+  /** 환경설정, with the default for every field the file doesn't set. */
+  readonly preferences: Preferences;
   /**
    * The service 진행 opens: the last opened one when it loaded, otherwise the
    * one with the latest date, or `null` when there is none.
@@ -59,7 +68,15 @@ interface LabelsRead {
   readonly problems: readonly FileError[];
 }
 
-type DataRead = Pick<LoadedStore, 'songs' | 'services' | 'labels' | 'problems'>;
+interface PreferencesRead {
+  readonly preferences: Preferences;
+  readonly problems: readonly FileError[];
+}
+
+type DataRead = Pick<
+  LoadedStore,
+  'songs' | 'services' | 'labels' | 'preferences' | 'problems'
+>;
 
 /**
  * Reads the data the app needs at launch. In development, it first checks that
@@ -136,11 +153,18 @@ async function readData(locations: DataLocations): Promise<DataRead> {
     parseService,
   );
   const labels = await readLabels(locations);
+  const preferences = await readPreferences(locations);
   return {
     songs: songs.items,
     services: services.items,
     labels: labels.labels,
-    problems: [...songs.problems, ...services.problems, ...labels.problems],
+    preferences: preferences.preferences,
+    problems: [
+      ...songs.problems,
+      ...services.problems,
+      ...labels.problems,
+      ...preferences.problems,
+    ],
   };
 }
 
@@ -150,6 +174,20 @@ async function readLabels(locations: DataLocations): Promise<LabelsRead> {
     parseLabels,
   );
   return {labels: data?.labels ?? DEFAULT_LABELS, problems};
+}
+
+async function readPreferences(
+  locations: DataLocations,
+): Promise<PreferencesRead> {
+  const {data, problems} = await readSettingsFile(
+    settingsLocation(locations, PREFERENCES_AREA),
+    parsePreferences,
+  );
+  return {
+    preferences:
+      data === null ? defaultPreferences : withPreferenceDefaults(data),
+    problems,
+  };
 }
 
 function ignoredProblem(file: string, field: string): FileError {
