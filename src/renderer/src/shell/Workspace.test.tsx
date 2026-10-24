@@ -278,7 +278,7 @@ describe('Workspace column gaps', () => {
     expect(store.load('normal')).toEqual({left: 400, right: 720});
   });
 
-  it('fits the columns when the window shrinks during a drag', () => {
+  it('fits the columns at once when the window shrinks during a drag', () => {
     vi.spyOn(window, 'requestAnimationFrame').mockImplementation(callback => {
       callback(0);
       return 0;
@@ -294,6 +294,10 @@ describe('Workspace column gaps', () => {
     fireEvent.pointerDown(gap, {pointerId: 1, button: 0, clientX: 400});
     setWindowWidth(1600);
     fireEvent(window, new Event('resize'));
+    expect(widthsOf(gridOf(container))).toEqual({
+      left: '400px',
+      right: '624px',
+    });
     fireEvent.pointerUp(gap, {pointerId: 1, clientX: 400});
     expect(widthsOf(gridOf(container))).toEqual({
       left: '400px',
