@@ -17,7 +17,8 @@
     "test:coverage": "vitest run --coverage",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "verify": "node scripts/verify.mts"
+    "verify": "node scripts/verify.mts",
+    "soak": "node scripts/soak/run.mts"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
