@@ -1,6 +1,6 @@
 # Review request: `shell-9`
 
-Review range: 568bbe4...feat/shell/undo-and-columns
+Review range: c4bbd3a...feat/shell/undo-and-columns
 
 What to check: (1) the 되돌림 button against `LiveState.canUndo` (dimmed and
 silent when nothing can be undone, bright and sending `clear.undo` otherwise)
@@ -14,7 +14,7 @@ fix of a document nit in `docs/reviews/shell-3.md`.
 
 - Team member: `shell`
 - Branch: `feat/shell/undo-and-columns`
-- Base commit (`main`): `568bbe4`
+- Base commit (`main`): `c4bbd3a`
 - Last commit: see the commit that adds this file
 - Related brief: the lead's queue (canUndo and the saved thumbnail columns)
 
@@ -49,7 +49,9 @@ fix of a document nit in `docs/reviews/shell-3.md`.
 
 ## Checks run
 
-Pending.
+`npm run verify` on commit `614f533` (base `main` 568bbe4) passed all five steps
+in 272.9 s: `typecheck`, `lint`, `format:check`, `test:coverage`, and `build`.
+The rebase onto `main` c4bbd3a afterwards brought other members' changes only.
 
 ### Running app (port 5187)
 
