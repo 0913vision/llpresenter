@@ -191,3 +191,17 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
 - `test(scope): ...` is allowed for commits that add or change tests only (user
   decision). The version bot treats it as a patch change, like `chore` and
   `docs`.
+
+## 2026-10-25: One owner of `app.json`
+
+- The data store (`src/main/store/`) is the only module that reads, validates,
+  and writes `app.json` (lead decision, from qa's bug M1-12). It parses the file
+  once, logs one warning that names the file and the field when the file is
+  broken, keeps unknown fields, and runs writes in order.
+- The UI state store (`src/main/uiState/`) stops parsing `app.json`. It reads
+  and changes its fields (`layout`, `previewBig`, `macroView`,
+  `macroCollection`, `mediaStrip`) through the data store's interface, and the
+  data store writes `dataRoot`, the locations, and `lastServiceId` the same way.
+  Two whole-file writers would overwrite each other's fields.
+- Data lands the interface and the single warning first; shell then moves
+  `uiState` onto it.
