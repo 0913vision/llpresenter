@@ -2,7 +2,8 @@
 
 - Team member: `shell`
 - Branch: `feat/shell/show-header` (stacked on `feat/shell/show-keys`, shell-5)
-- Base commit: the last commit of shell-5 (`5e61f69`). It merges after shell-5.
+- Base commit: the last commit of shell-5 round 2 (`7ae5576`). It merges after
+  shell-5.
 - Last commit: see the commit that adds this file
 - Related brief: the lead's queue (the 썸네일 크기 slider and the 장 panel
   header)
@@ -130,3 +131,6 @@ Round 1 (codex4), answered once:
    px).
 4. Restack: rebased onto the new shell-5 (round 2, `7ae5576`) with
    `git rebase --onto`, without conflicts.
+5. Round 2: `npm run verify` on commit `431db21` (stacked on shell-5 round 2,
+   `7ae5576`) passed all five steps in 179.8 s: `typecheck`, `lint`,
+   `format:check`, `test:coverage`, and `build`.
