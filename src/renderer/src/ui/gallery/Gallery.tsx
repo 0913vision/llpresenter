@@ -15,7 +15,8 @@ import {ToolbarSection} from './ToolbarSection';
 import styles from './Gallery.module.css';
 
 interface GalleryEntry {
-  /** The design system component name, as in `/card/<name>`. */
+  // NOTE(0913vision): The design system component name, so that `?c=<name>`
+  // and the card server's `/card/<name>` name the same component.
   readonly name: string;
   readonly Section: () => JSX.Element;
 }

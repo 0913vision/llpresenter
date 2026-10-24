@@ -164,7 +164,6 @@ function checkboxesIn(list: HTMLElement): HTMLElement[] {
   return [...list.querySelectorAll<HTMLElement>(CHECKBOX)];
 }
 
-/** Leaves one Tab stop in the list: the box last in focus, else the first. */
 function keepOneTabStop(list: HTMLElement, last: HTMLElement | null): void {
   const boxes = checkboxesIn(list);
   const stop = last !== null && boxes.includes(last) ? last : boxes[0];

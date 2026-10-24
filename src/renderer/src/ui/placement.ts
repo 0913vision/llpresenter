@@ -47,14 +47,12 @@ function right(box: Box): number {
   return box.left + box.width;
 }
 
-/** A floating surface that opens beside an anchor, `gap` away from it. */
 interface Opening {
   readonly anchor: Box;
   readonly height: number;
   readonly gap: number;
 }
 
-/** Below the box if it fits, else above it, else pinned inside the window. */
 function belowOrAbove({anchor, height, gap}: Opening, viewport: Size): number {
   const below = bottom(anchor) + gap;
   if (below + height <= viewport.height - WINDOW_EDGE) return below;

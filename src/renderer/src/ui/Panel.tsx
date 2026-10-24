@@ -17,8 +17,7 @@ import styles from './Panel.module.css';
 
 const SWITCH_CHEVRON_SIZE = 12;
 
-/** Gives the tabs and the tab panel of one panel matching ids. */
-const PanelIds = createContext<string>('panel');
+const PanelIdBase = createContext<string>('panel');
 
 function tabId(base: string, value: string): string {
   return `${base}-tab-${value}`;
@@ -64,14 +63,14 @@ export function Panel({
 }): JSX.Element {
   const base = useId();
   return (
-    <PanelIds value={base}>
+    <PanelIdBase value={base}>
       <section
         aria-label={label}
         className={classNames(styles.panel, className)}
       >
         {children}
       </section>
-    </PanelIds>
+    </PanelIdBase>
   );
 }
 
@@ -117,7 +116,7 @@ function PanelTabButton<T extends string>({
   onSelect,
   onKeyDown,
 }: PanelTabButtonProps<T>): JSX.Element {
-  const base = useContext(PanelIds);
+  const base = useContext(PanelIdBase);
   const {targetProps, tooltip} = useTooltip(titleTooltip(tab.title));
   return (
     <>
@@ -297,7 +296,7 @@ export function PanelBody({
   readonly className?: string | undefined;
   readonly children: ReactNode;
 }): JSX.Element {
-  const base = useContext(PanelIds);
+  const base = useContext(PanelIdBase);
   return (
     <div
       role={tab === undefined ? undefined : 'tabpanel'}
