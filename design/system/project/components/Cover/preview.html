@@ -1,0 +1,51 @@
+<!-- @dsCard height=288 -->
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>LoveLight</title>
+<style>
+  html, body { margin: 0; }
+  .cover { position: relative; width: 960px; height: 288px; overflow: hidden; background: var(--bg-panel); font-family: var(--font-ui); }
+  .cover svg { position: absolute; left: 0; top: 0; }
+  .cv { fill: var(--output-black); rx: var(--radius-md); }
+  .band { rx: var(--radius-xs); }
+  .teal { fill: var(--label-teal); }
+  .green { fill: var(--label-green); }
+  .yellow { fill: var(--label-yellow); }
+  .slate { fill: var(--label-slate); }
+  .none { fill: var(--label-none); }
+  .chip { rx: var(--radius-sm); }
+  .live { fill: none; stroke: var(--live); stroke-width: 3; rx: 5px; }
+  .name { position: absolute; left: 40px; bottom: 64px; margin: 0; font-size: 80px; line-height: 0.95; font-weight: 700; letter-spacing: -0.02em; color: var(--text); }
+  .tagline { position: absolute; left: 42px; bottom: 36px; margin: 0; max-width: 440px; font-size: 13px; line-height: 18px; color: var(--text-3); }
+</style>
+</head>
+<body>
+<div class="cover">
+<svg width="960" height="288" viewBox="0 0 960 288" aria-hidden="true">
+<!--
+  블록: output-black 썸네일 캔버스 두 장(220 × 124, 16:9), 그 아래 이름표 띠(label-teal, label-green, 높이 size-thumb-band 24에서 28로 키움), 구성 칩 줄(label-teal, label-green, label-yellow, label-slate, label-none, 높이 28)
+  배치: 진행 화면의 썸네일 격자와 준비 화면의 구성 칩 줄을 그대로 쌓고, 오른쪽 끝에서 잘려 나가게 둠. 바탕은 bg-panel
+  무늬: "geometric, modular, dense UI" 줄. 이 시스템이 가장 많이 반복하는 모양이 이름표 띠가 달린 16:9 썸네일과 칩이라서, 그것을 타일로 씀. 첫 캔버스에 ring-live(live 3px)
+  간격과 모서리: 썸네일 사이 space-12, 줄 사이 space-16, 칩 사이 panel-gap 4, 캔버스 radius-md 4, 띠 radius-xs 2, 칩 radius-sm 3
+-->
+<rect class="cv" x="508" y="24" width="220" height="124"></rect>
+<rect class="live" x="506.5" y="22.5" width="223" height="155"></rect>
+<rect class="band teal" x="508" y="148" width="220" height="28"></rect>
+<rect class="cv" x="740" y="24" width="220" height="124"></rect>
+<rect class="band green" x="740" y="148" width="220" height="28"></rect>
+<rect class="chip teal" x="508" y="192" width="96" height="28"></rect>
+<rect class="chip green" x="608" y="192" width="132" height="28"></rect>
+<rect class="chip yellow" x="744" y="192" width="72" height="28"></rect>
+<rect class="chip green" x="820" y="192" width="132" height="28"></rect>
+<rect class="chip yellow" x="956" y="192" width="72" height="28"></rect>
+<rect class="chip slate" x="508" y="224" width="72" height="28"></rect>
+<rect class="chip yellow" x="584" y="224" width="72" height="28"></rect>
+<rect class="chip none" x="660" y="224" width="96" height="28"></rect>
+</svg>
+<p class="name">LoveLight</p>
+<p class="tagline">예배 중 한 번의 클릭이 틀리지 않게</p>
+</div>
+</body>
+</html>

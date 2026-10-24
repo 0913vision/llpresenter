@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>다중 레이어 지우기</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:"Pretendard Variable";src:url("/_blob/44ae4219c075570535882b3a34ea3567") format("woff2");font-weight:45 920;font-display:swap}
+body{margin:0;background:#0e0e0e}
+button,input{font:inherit;cursor:default}
+input::placeholder{color:#8c8c8c}
+.hv:hover{background:#262626}
+.hvc:hover{background:#333333}
+.tb:hover{background:#232323}
+.tbd{box-shadow:0 0 0 2px #0e0e0e}
+.tb:hover .tbd{box-shadow:0 0 0 2px #232323}
+.th{box-shadow:none}
+.th:hover{box-shadow:0 0 0 1px #6e6e6e}
+.th[data-state=selected],.th[data-state=selected]:hover{box-shadow:0 0 0 2px #3d8bf0}
+.th[data-state=live],.th[data-state=live]:hover{box-shadow:0 0 0 3px #d2343a}
+.pvf{box-shadow:0 0 0 1px #2b2b2b}
+.pv:hover .pvf{box-shadow:0 0 0 1px #6e6e6e}
+.pvf[data-state=warning],.pv:hover .pvf[data-state=warning]{box-shadow:0 0 0 1px #e3a23b}
+.mt .mtt{box-shadow:none}
+.mt:hover .mtt{box-shadow:0 0 0 2px #1c1c1c,0 0 0 3px #6e6e6e}
+.mt[data-state=last-run] .mtt{box-shadow:0 0 0 2px #1c1c1c,0 0 0 4px #ececec}
+.mt[aria-selected=true] .mtt{box-shadow:0 0 0 2px #1c1c1c,0 0 0 4px #3d8bf0}
+.mtn:hover .mtt{background:#262626}
+input[type=range]{--ll-value:50%;-webkit-appearance:none;appearance:none;box-sizing:border-box;width:120px;height:16px;margin:0;padding:0;border:0;background:transparent;vertical-align:middle}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:9999px;background:linear-gradient(to right,#ececec 0 var(--ll-value),#3a3a3a var(--ll-value) 100%)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;box-sizing:border-box;width:12px;height:12px;margin-top:-4px;border:0;border-radius:50%;background:#ececec}
+input[type=range]:disabled::-webkit-slider-runnable-track{background:linear-gradient(to right,#6e6e6e 0 var(--ll-value),#3a3a3a var(--ll-value) 100%)}
+input[type=range]:disabled::-webkit-slider-thumb{background:#6e6e6e}
+.i{display:inline-block;flex:none;width:16px;height:16px;background-color:currentColor;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain}
+.i12{width:12px;height:12px}
+.i14{width:14px;height:14px}
+.i18{width:18px;height:18px}
+.i24{width:24px;height:24px}
+.i28{width:28px;height:28px}
+.i-song{-webkit-mask-image:url("/_blob/092e6bd96c603ecacf1c00ad0bbf748e");mask-image:url("/_blob/092e6bd96c603ecacf1c00ad0bbf748e")}
+.i-film{-webkit-mask-image:url("/_blob/d12ba04335e89ec2ac23de5b5dadf567");mask-image:url("/_blob/d12ba04335e89ec2ac23de5b5dadf567")}
+.i-image{-webkit-mask-image:url("/_blob/9d15cc9d2c473dc54657232c2c22a8c1");mask-image:url("/_blob/9d15cc9d2c473dc54657232c2c22a8c1")}
+.i-notice{-webkit-mask-image:url("/_blob/6b2eac21a222b4c93acf292071cab142");mask-image:url("/_blob/6b2eac21a222b4c93acf292071cab142")}
+.i-book{-webkit-mask-image:url("/_blob/e3e503de1d6d5ad2610069e5d01528c1");mask-image:url("/_blob/e3e503de1d6d5ad2610069e5d01528c1")}
+.i-msg{-webkit-mask-image:url("/_blob/e02523b5ae105efe6c86fc720a501e57");mask-image:url("/_blob/e02523b5ae105efe6c86fc720a501e57")}
+.i-prop{-webkit-mask-image:url("/_blob/68b060ad4ffc69c1338360ba8efe8a1f");mask-image:url("/_blob/68b060ad4ffc69c1338360ba8efe8a1f")}
+.i-audio{-webkit-mask-image:url("/_blob/dc05560aeb38844764508b2df7d96d6c");mask-image:url("/_blob/dc05560aeb38844764508b2df7d96d6c")}
+.i-monitor{-webkit-mask-image:url("/_blob/4596f5b35b01b97a40839716be255a9c");mask-image:url("/_blob/4596f5b35b01b97a40839716be255a9c")}
+.i-mplay{-webkit-mask-image:url("/_blob/031f927502f663ccac998d6fe5b98b1d");mask-image:url("/_blob/031f927502f663ccac998d6fe5b98b1d")}
+.i-capture{-webkit-mask-image:url("/_blob/a02b5557a5163772bc93ea2c2cb50327");mask-image:url("/_blob/a02b5557a5163772bc93ea2c2cb50327")}
+.i-search{-webkit-mask-image:url("/_blob/bbe74be6639a3b46c8c1503c6202be21");mask-image:url("/_blob/bbe74be6639a3b46c8c1503c6202be21")}
+.i-gear{-webkit-mask-image:url("/_blob/69e70c0d7363ab992c10c8d1b137af7a");mask-image:url("/_blob/69e70c0d7363ab992c10c8d1b137af7a")}
+.i-plus{-webkit-mask-image:url("/_blob/60593869febedd0f7cc96739b15ff702");mask-image:url("/_blob/60593869febedd0f7cc96739b15ff702")}
+.i-down{-webkit-mask-image:url("/_blob/fdede3cf9294bdfffe2831e4985b91ba");mask-image:url("/_blob/fdede3cf9294bdfffe2831e4985b91ba")}
+.i-right{-webkit-mask-image:url("/_blob/5249c813e7ba012f5c569e3c397de778");mask-image:url("/_blob/5249c813e7ba012f5c569e3c397de778")}
+.i-loop{-webkit-mask-image:url("/_blob/4afb40c8c3a4a9342611dfa4bc802b9a");mask-image:url("/_blob/4afb40c8c3a4a9342611dfa4bc802b9a")}
+.i-text{-webkit-mask-image:url("/_blob/fad9bd8182817dd8386ba2d9a4144a8a");mask-image:url("/_blob/fad9bd8182817dd8386ba2d9a4144a8a")}
+.i-undo{-webkit-mask-image:url("/_blob/a2058ad29839212362f1def041dbadbc");mask-image:url("/_blob/a2058ad29839212362f1def041dbadbc")}
+.i-folder{-webkit-mask-image:url("/_blob/236c73aa5600731e48757a0cf05cfe42");mask-image:url("/_blob/236c73aa5600731e48757a0cf05cfe42")}
+.i-x{-webkit-mask-image:url("/_blob/20ff3492ea768cacd467480e386ad17b");mask-image:url("/_blob/20ff3492ea768cacd467480e386ad17b")}
+.i-min{-webkit-mask-image:url("/_blob/8d63b8e1ce9257fb14f3127e569bfdd9");mask-image:url("/_blob/8d63b8e1ce9257fb14f3127e569bfdd9")}
+.i-max{-webkit-mask-image:url("/_blob/dfd093184afe9416f5bb254275395bb4");mask-image:url("/_blob/dfd093184afe9416f5bb254275395bb4")}
+.i-slides{-webkit-mask-image:url("/_blob/bedc5702dad0889627007797be138a91");mask-image:url("/_blob/bedc5702dad0889627007797be138a91")}
+.i-saved{-webkit-mask-image:url("/_blob/01da7eed53f9c4eb05f356a971869f1a");mask-image:url("/_blob/01da7eed53f9c4eb05f356a971869f1a")}
+.i-layers{-webkit-mask-image:url("/_blob/26735e490823c1caf40a326325857fb0");mask-image:url("/_blob/26735e490823c1caf40a326325857fb0")}
+.i-edit{-webkit-mask-image:url("/_blob/02e581d39b6e4686773acdbad7de4894");mask-image:url("/_blob/02e581d39b6e4686773acdbad7de4894")}
+.i-grid{-webkit-mask-image:url("/_blob/12440a2e5cf9c86989e4e10cb96385b0");mask-image:url("/_blob/12440a2e5cf9c86989e4e10cb96385b0")}
+.i-timer{-webkit-mask-image:url("/_blob/6b75efeb960a461bd13cd9f112aaa22e");mask-image:url("/_blob/6b75efeb960a461bd13cd9f112aaa22e")}
+.i-check{-webkit-mask-image:url("/_blob/9a89a2bff58b8395511703929514cb66");mask-image:url("/_blob/9a89a2bff58b8395511703929514cb66")}
+.i-grip{-webkit-mask-image:url("/_blob/adf12ef1071c6732b8adbd90b6b53029");mask-image:url("/_blob/adf12ef1071c6732b8adbd90b6b53029")}
+.i-more{-webkit-mask-image:url("/_blob/741a7bdb89a46c2b08b7993aef3595f9");mask-image:url("/_blob/741a7bdb89a46c2b08b7993aef3595f9")}
+.i-clock{-webkit-mask-image:url("/_blob/d849921f7532c4b3289a2b95beeddf24");mask-image:url("/_blob/d849921f7532c4b3289a2b95beeddf24")}
+.i-aleft{-webkit-mask-image:url("/_blob/c6adb26fe5c36eb302e8d78c2a71d02c");mask-image:url("/_blob/c6adb26fe5c36eb302e8d78c2a71d02c")}
+.i-acenter{-webkit-mask-image:url("/_blob/3916f14042df5bfa323beb82d7a4e10f");mask-image:url("/_blob/3916f14042df5bfa323beb82d7a4e10f")}
+.i-play{-webkit-mask-image:url("/_blob/dbc6266bf70afbe4c6a251234322ef84");mask-image:url("/_blob/dbc6266bf70afbe4c6a251234322ef84")}
+.i-pause{-webkit-mask-image:url("/_blob/75fca11ec9e9b1e77a2ee975bb6246ce");mask-image:url("/_blob/75fca11ec9e9b1e77a2ee975bb6246ce")}
+.i-playf{-webkit-mask-image:url("/_blob/7ff7f54d7e72c5d0a1e12cdd55d0dea9");mask-image:url("/_blob/7ff7f54d7e72c5d0a1e12cdd55d0dea9")}
+.i-pausef{-webkit-mask-image:url("/_blob/d105a8b2a530bc1e1e68c176c7f2afcc");mask-image:url("/_blob/d105a8b2a530bc1e1e68c176c7f2afcc")}
+.i-prev{-webkit-mask-image:url("/_blob/2de47db7bef436a4c73f50e02224a23b");mask-image:url("/_blob/2de47db7bef436a4c73f50e02224a23b")}
+.i-next{-webkit-mask-image:url("/_blob/9d17be870f23412d5273180a3aaa24d0");mask-image:url("/_blob/9d17be870f23412d5273180a3aaa24d0")}
+.i-send{-webkit-mask-image:url("/_blob/eb64b09fc82162120a1d36b708635a52");mask-image:url("/_blob/eb64b09fc82162120a1d36b708635a52")}
+.i-user{-webkit-mask-image:url("/_blob/c79c250b176fd30d1be7cfb0da5923e1");mask-image:url("/_blob/c79c250b176fd30d1be7cfb0da5923e1")}
+.i-warn{-webkit-mask-image:url("/_blob/0d34555750cd45ff01b4f5120b0ea2f8");mask-image:url("/_blob/0d34555750cd45ff01b4f5120b0ea2f8")}
+.i-macro{-webkit-mask-image:url("/_blob/721f34ba44aa8d9f4882bf2349cd2ac2");mask-image:url("/_blob/721f34ba44aa8d9f4882bf2349cd2ac2")}
+.i-eye{-webkit-mask-image:url("/_blob/48ce504b81032937bed7f9e546bbfa7a");mask-image:url("/_blob/48ce504b81032937bed7f9e546bbfa7a")}
+.i-eyeoff{-webkit-mask-image:url("/_blob/401f27618db8ad33e140decf9eed462d");mask-image:url("/_blob/401f27618db8ad33e140decf9eed462d")}
+.i-lock{-webkit-mask-image:url("/_blob/0882cf9f3620cf9ce560199d63609905");mask-image:url("/_blob/0882cf9f3620cf9ce560199d63609905")}
+.i-sliders{-webkit-mask-image:url("/_blob/89efa017d50b55fda0f8bf041e0f1e02");mask-image:url("/_blob/89efa017d50b55fda0f8bf041e0f1e02")}
+.i-wave{-webkit-mask-image:url("/_blob/363e645b929d957e1ed2d4f640cef5db");mask-image:url("/_blob/363e645b929d957e1ed2d4f640cef5db")}
+.i-cal{-webkit-mask-image:url("/_blob/9cbee7fd30cf3885c1738a4536ea7ef6");mask-image:url("/_blob/9cbee7fd30cf3885c1738a4536ea7ef6")}
+.i-rows{-webkit-mask-image:url("/_blob/8bbcc101a537d6fc78bc97267bd1bd34");mask-image:url("/_blob/8bbcc101a537d6fc78bc97267bd1bd34")}
+.i-link{-webkit-mask-image:url("/_blob/3f9809c521bcc49b863e2d7df3c0e7d5");mask-image:url("/_blob/3f9809c521bcc49b863e2d7df3c0e7d5")}
+.i-pray{-webkit-mask-image:url("/_blob/a94d767ef65baf4d297ba94950a8f7da");mask-image:url("/_blob/a94d767ef65baf4d297ba94950a8f7da")}
+.i-coins{-webkit-mask-image:url("/_blob/b39548d084b8f75aa903bff9ea27ee4e");mask-image:url("/_blob/b39548d084b8f75aa903bff9ea27ee4e")}
+.i-mic{-webkit-mask-image:url("/_blob/30ccef2a951169492c795ce4c2a09b24");mask-image:url("/_blob/30ccef2a951169492c795ce4c2a09b24")}
+.i-note{-webkit-mask-image:url("/_blob/46708e306efe909ebdd9d6d8a329ee6a");mask-image:url("/_blob/46708e306efe909ebdd9d6d8a329ee6a")}
+.i-stop{-webkit-mask-image:url("/_blob/abcd41b6ae1ed0dd1d6883e914a2063b");mask-image:url("/_blob/abcd41b6ae1ed0dd1d6883e914a2063b")}
+.i-sun{-webkit-mask-image:url("/_blob/2c8c0f1009c85cb856b86bc27d182e78");mask-image:url("/_blob/2c8c0f1009c85cb856b86bc27d182e78")}
+.i-eraser{-webkit-mask-image:url("/_blob/692dfe138a87aa771a652dee17c0471c");mask-image:url("/_blob/692dfe138a87aa771a652dee17c0471c")}
+.i-open{-webkit-mask-image:url("/_blob/5703b0bac8933bc9900033165c277ef2");mask-image:url("/_blob/5703b0bac8933bc9900033165c277ef2")}
+.i-warning{-webkit-mask-image:url("/_blob/fceec591119a8a5f4c070b3fba6760db");mask-image:url("/_blob/fceec591119a8a5f4c070b3fba6760db")}
+.i-plug{-webkit-mask-image:url("/_blob/cbb1592b8aa6edfcd80b90b521176e1f");mask-image:url("/_blob/cbb1592b8aa6edfcd80b90b521176e1f")}
+.i-filex{-webkit-mask-image:url("/_blob/5f65ad0963702fec4f2926c2ea0aff5f");mask-image:url("/_blob/5f65ad0963702fec4f2926c2ea0aff5f")}
+.i-refresh{-webkit-mask-image:url("/_blob/65eab3caa918183bad8610df67e6cb1a");mask-image:url("/_blob/65eab3caa918183bad8610df67e6cb1a")}
+.i-history{-webkit-mask-image:url("/_blob/a867801907f14d2b022e45d364e06eaf");mask-image:url("/_blob/a867801907f14d2b022e45d364e06eaf")}
+.i-folderopen{-webkit-mask-image:url("/_blob/d80725a49f82b68bc28c744977e85e15");mask-image:url("/_blob/d80725a49f82b68bc28c744977e85e15")}
+.i-download{-webkit-mask-image:url("/_blob/22d2befe43764b57b2eab33c0c88cbc2");mask-image:url("/_blob/22d2befe43764b57b2eab33c0c88cbc2")}
+.i-upload{-webkit-mask-image:url("/_blob/51b9b4232855ad8e062a46611b595f65");mask-image:url("/_blob/51b9b4232855ad8e062a46611b595f65")}
+.i-filetext{-webkit-mask-image:url("/_blob/20270d968b2a045648f3e2350399f8a7");mask-image:url("/_blob/20270d968b2a045648f3e2350399f8a7")}
+.i-fileppt{-webkit-mask-image:url("/_blob/92f9c6698a3333e8099348783ca1980b");mask-image:url("/_blob/92f9c6698a3333e8099348783ca1980b")}
+.i-keyboard{-webkit-mask-image:url("/_blob/05eda8a4cfecb57f7571d27f7d3661c1");mask-image:url("/_blob/05eda8a4cfecb57f7571d27f7d3661c1")}
+.i-laptop{-webkit-mask-image:url("/_blob/182116a97452f14985196942e50d63ed");mask-image:url("/_blob/182116a97452f14985196942e50d63ed")}
+.i-copy{-webkit-mask-image:url("/_blob/5e5f4aa71701fa4a852863d3a50eb63e");mask-image:url("/_blob/5e5f4aa71701fa4a852863d3a50eb63e")}
+.i-calplus{-webkit-mask-image:url("/_blob/f387fc743a44bd67dede0acfbba31e8e");mask-image:url("/_blob/f387fc743a44bd67dede0acfbba31e8e")}
+.i-trash{-webkit-mask-image:url("/_blob/bddecde2de4f2a3d3147ba33f66c6d73");mask-image:url("/_blob/bddecde2de4f2a3d3147ba33f66c6d73")}
+.i-checkc{-webkit-mask-image:url("/_blob/0139b06cc10282e835092bea17c7dde9");mask-image:url("/_blob/0139b06cc10282e835092bea17c7dde9")}
+.i-info{-webkit-mask-image:url("/_blob/55cb2afabbc41bf4c15197306afc7e5a");mask-image:url("/_blob/55cb2afabbc41bf4c15197306afc7e5a")}
+.i-textaa{-webkit-mask-image:url("/_blob/fe07d775a12a51d8ac4242d9a8b15db4");mask-image:url("/_blob/fe07d775a12a51d8ac4242d9a8b15db4")}
+.i-frame{-webkit-mask-image:url("/_blob/fdbaf2404af13384af4a18f43d43ab8f");mask-image:url("/_blob/fdbaf2404af13384af4a18f43d43ab8f")}
+.i-translate{-webkit-mask-image:url("/_blob/1dcabf18a0c6913f37de4f9a9becc02f");mask-image:url("/_blob/1dcabf18a0c6913f37de4f9a9becc02f")}
+.i-arrow{-webkit-mask-image:url("/_blob/b34cca8935965d99e7938be79c5846fa");mask-image:url("/_blob/b34cca8935965d99e7938be79c5846fa")}
+.i-bookmark{-webkit-mask-image:url("/_blob/d05a22072fff73b94ff7c858bbd282c2");mask-image:url("/_blob/d05a22072fff73b94ff7c858bbd282c2")}
+.i-listplus{-webkit-mask-image:url("/_blob/aa29172410c2dcde66e3e6c8c557dc44");mask-image:url("/_blob/aa29172410c2dcde66e3e6c8c557dc44")}
+.i-drives{-webkit-mask-image:url("/_blob/bec23bbf58a0b70c5abca248cf8e3b00");mask-image:url("/_blob/bec23bbf58a0b70c5abca248cf8e3b00")}
+.i-plugs{-webkit-mask-image:url("/_blob/b78ff4652eda39bb8565f8699dcbb313");mask-image:url("/_blob/b78ff4652eda39bb8565f8699dcbb313")}
+</style>
+</helmet>
+<div style="width: 1204px; height: 552px; box-sizing: border-box; padding: 16px; display: flex; align-items: flex-start; gap: 32px; background: #0e0e0e; color: #ececec; font-family: 'Pretendard Variable', Pretendard, sans-serif; font-size: 13px; line-height: 18px; word-break: keep-all; -webkit-font-smoothing: antialiased; overflow: hidden">
+
+<div style="position: relative; flex: none; width: 480px; height: 520px">
+<section style="display: flex; flex-direction: column; gap: 6px; padding: 8px; background: #1c1c1c; border-radius: 5px" aria-label="지우기">
+<div style="display: flex; align-items: center; gap: 4px">
+<sc-for list="{{ clears }}" as="c" hint-placeholder-count="7">
+<button type="button" class="hvc" title="{{ c.label }}" style="flex: {{ c.flex }}; height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 0; border-radius: 4px; background: {{ c.bg }}; color: {{ c.fg }}; font-size: 11px; font-weight: 600">
+<span class="i i18 i-{{ c.icon }}"></span>{{ c.label }}
+</button>
+</sc-for>
+<span style="flex: none; width: 1px; height: 32px; margin: 0 4px; background: #2b2b2b"></span>
+<button type="button" class="hvc" style="flex: 1; height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 0; border-radius: 4px; background: #232323; color: #ececec; font-size: 11px; font-weight: 600"><span class="i i18 i-undo"></span>되돌림</button>
+</div>
+<div style="display: flex; align-items: center; gap: 4px">
+<sc-for list="{{ groups }}" as="g" hint-placeholder-count="2">
+<button type="button" class="hvc" aria-expanded="{{ g.open }}" style="flex: 1; height: 26px; display: flex; align-items: center; justify-content: center; gap: 6px; border: 0; border-radius: 4px; background: {{ g.bg }}; color: #ececec; font-size: 12px; font-weight: 600"><span class="i i14 i-{{ g.icon }}" style="color: {{ g.tint }}"></span>{{ g.name }}</button>
+</sc-for>
+<button type="button" class="hv" aria-label="다중 레이어 지우기 추가" title="다중 레이어 지우기 추가" style="flex: none; width: 26px; height: 26px; box-sizing: border-box; border: 1px dashed #6e6e6e; border-radius: 4px; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i14 i-plus"></span></button>
+</div>
+</section>
+<div role="menu" aria-label="예배 끝" style="position: absolute; left: 300px; top: 98px; width: 190px; padding: 6px; box-sizing: border-box; border-radius: 6px; background: #262626; box-shadow: 0 0 0 1px #3a3a3a, 0 8px 24px rgba(0, 0, 0, 0.5)">
+<button type="button" role="menuitem" class="hvc" style="display: flex; align-items: center; width: 100%; height: 28px; padding: 0 8px; border: 0; border-radius: 4px; background: transparent; color: #ececec; font-size: 13px; text-align: left">실행</button>
+<button type="button" role="menuitem" class="hvc" style="display: flex; align-items: center; width: 100%; height: 28px; padding: 0 8px; border: 0; border-radius: 4px; background: #333333; color: #ececec; font-size: 13px; text-align: left">다중 레이어 지우기 설정</button>
+<div style="height: 1px; margin: 4px 2px; background: #3a3a3a"></div>
+<button type="button" role="menuitem" class="hvc" style="display: flex; align-items: center; width: 100%; height: 28px; padding: 0 8px; border: 0; border-radius: 4px; background: transparent; color: #ececec; font-size: 13px; text-align: left">삭제</button>
+</div>
+</div>
+
+<section role="dialog" aria-label="다중 레이어 지우기 설정" style="flex: none; width: 660px; height: 520px; display: flex; flex-direction: column; background: #1f1f1f; border-radius: 8px; box-shadow: 0 0 0 1px #3a3a3a, 0 16px 48px rgba(0, 0, 0, 0.6); overflow: hidden">
+<div style="flex: none; height: 44px; box-sizing: border-box; display: flex; align-items: center; padding: 0 8px 0 16px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 13px; font-weight: 600">다중 레이어 지우기 설정</span>
+<button type="button" class="hv" aria-label="닫기" title="닫기" style="margin-left: auto; width: 30px; height: 30px; border: 0; border-radius: 4px; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i-x"></span></button>
+</div>
+<div style="flex: 1; min-height: 0; display: flex">
+<div style="flex: none; width: 220px; display: flex; flex-direction: column; border-right: 1px solid #2b2b2b">
+<div style="flex: none; height: 36px; display: flex; align-items: center; padding: 0 8px">
+<button type="button" class="hv" aria-label="추가" title="추가" style="width: 26px; height: 26px; border: 0; border-radius: 4px; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i-plus"></span></button>
+</div>
+<ul style="margin: 0; padding: 0 0 8px; list-style: none">
+<sc-for list="{{ groupList }}" as="g" hint-placeholder-count="3">
+<li><button type="button" class="hv" style="display: flex; align-items: center; gap: 10px; width: 100%; height: 30px; padding: 0 14px; border: 0; background: {{ g.rowBg }}; color: #ececec; text-align: left; font-size: 13px"><span class="i i-{{ g.icon }}" style="color: {{ g.tint }}"></span><span style="flex: 1">{{ g.name }}</span><span style="font-size: 11px; color: {{ g.subColor }}">{{ g.sub }}</span></button></li>
+</sc-for>
+</ul>
+</div>
+<div style="flex: 1; min-width: 0; padding: 12px 18px 16px; display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; gap: 12px; height: 40px">
+<span style="flex: 0 0 76px; font-size: 12px; color: #b4b4b4">이름</span>
+<span style="flex: 1; display: flex; align-items: center; height: 30px; padding: 0 10px; border-radius: 4px; background: #121212; font-size: 13px">예배 끝</span>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; height: 40px">
+<span style="flex: 0 0 76px; font-size: 12px; color: #b4b4b4">아이콘</span>
+<button type="button" class="hvc" style="display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px 0 10px; border: 0; border-radius: 4px; background: #2a2a2a; color: #ececec; font-size: 13px"><span class="i i-stop"></span><span class="i i12 i-down" style="color: #8c8c8c"></span></button>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; height: 40px">
+<span style="flex: 0 0 76px; font-size: 12px; color: #b4b4b4">색 입히기</span>
+<span role="checkbox" aria-checked="true" style="flex: none; width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #2a70dc; display: inline-flex; align-items: center; justify-content: center; color: #fff"><span class="i i12 i-check"></span></span>
+<span role="radiogroup" aria-label="색" style="display: flex"><sc-for list="{{ tints }}" as="t" hint-placeholder-count="8"><span role="radio" class="hvc" aria-checked="{{ t.checked }}" aria-label="{{ t.name }}" title="{{ t.name }}" style="flex: none; width: 24px; height: 24px; box-sizing: border-box; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; box-shadow: {{ t.ring }}"><span style="width: 16px; height: 16px; border-radius: 3px; background: {{ t.color }}"></span></span></sc-for></span>
+</div>
+<div style="margin-top: 10px; padding-top: 14px; border-top: 1px solid #2b2b2b">
+<p style="margin: 0 0 8px; font-size: 12px; font-weight: 600">지울 것</p>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 16px">
+<sc-for list="{{ layers }}" as="y" hint-placeholder-count="8">
+<div style="display: flex; align-items: center; gap: 10px; height: 30px">
+<span role="checkbox" aria-checked="{{ y.checked }}" style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: {{ y.boxBg }}; box-shadow: inset 0 0 0 1px {{ y.boxLine }}; display: inline-flex; align-items: center; justify-content: center; color: #fff"><sc-if value="{{ y.on }}" hint-placeholder-val="{{ true }}"><span class="i i12 i-check"></span></sc-if></span>
+<span class="i i-{{ y.icon }}" style="color: {{ y.iconColor }}"></span>
+<span style="flex: 1; color: {{ y.fg }}">{{ y.name }}</span>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</div>
+<div style="flex: none; height: 52px; display: flex; align-items: center; gap: 8px; padding: 0 16px; border-top: 1px solid #2b2b2b">
+<button type="button" class="hv" style="height: 30px; padding: 0 14px; border: 0; border-radius: 4px; background: transparent; color: #b4b4b4; font-size: 13px">삭제</button>
+<button type="button" style="margin-left: auto; height: 30px; padding: 0 14px; border: 0; border-radius: 4px; background: #2a70dc; color: #fff; font-size: 13px; font-weight: 600">완료</button>
+</div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1204,"height":552}}'>
+class Component extends DCLogic {
+renderVals() {
+const pal = { green: '#8fbf7a', teal: '#5fb8c2', slate: '#7d8fd6', yellow: '#d6b35f', orange: '#d68f5f', rose: '#d07a8a', violet: '#a99ae0', gray: '#a3a3a3' };
+const names = { green: '초록', teal: '청록', slate: '남색', yellow: '노랑', orange: '주황', rose: '분홍', violet: '보라', gray: '회색' };
+const clear = (label, icon, active, flex) => ({ label: label, icon: icon, flex: flex || 1, bg: active ? '#2a2a2a' : '#1f1f1f', fg: active ? '#ececec' : '#6e6e6e' });
+const layer = (icon, name, on) => ({ icon: icon, name: name, on: on, checked: on ? 'true' : 'false', boxBg: on ? '#2a70dc' : '#121212', boxLine: on ? 'transparent' : '#6e6e6e', fg: '#ececec', iconColor: '#b4b4b4' });
+return {
+clears: [clear('모두', 'layers', true, 1.4), clear('가사', 'text', true), clear('미디어', 'image', true), clear('소품', 'prop', true), clear('오디오', 'audio', false), clear('메시지', 'msg', true), clear('공지', 'notice', false)],
+groups: [
+{ name: '찬양 끝', icon: 'eraser', tint: pal.teal, bg: '#2a2a2a', open: 'false' },
+{ name: '예배 끝', icon: 'stop', tint: pal.violet, bg: '#333333', open: 'true' }
+],
+groupList: [
+{ name: '모두 지우기', icon: 'layers', tint: '#b4b4b4', sub: '기본', subColor: '#8c8c8c', rowBg: 'transparent' },
+{ name: '찬양 끝', icon: 'eraser', tint: pal.teal, sub: '', subColor: '#8c8c8c', rowBg: 'transparent' },
+{ name: '예배 끝', icon: 'stop', tint: pal.violet, sub: '', subColor: '#b4c6e0', rowBg: '#1f4170' }
+],
+tints: ['teal', 'green', 'yellow', 'orange', 'rose', 'violet', 'slate', 'gray'].map((k) => ({ name: names[k], color: pal[k], checked: k === 'violet' ? 'true' : 'false', ring: k === 'violet' ? 'inset 0 0 0 2px #ececec' : 'none' })),
+layers: [
+layer('text', '가사', true), layer('image', '배경 미디어', true),
+layer('msg', '메시지', true), layer('notice', '공지', true),
+layer('monitor', '무대 메시지', true), layer('prop', '소품', false),
+layer('audio', '음악', false), layer('wave', '효과음', false)
+]
+};
+}
+}
+</script>
+</body>
+</html>

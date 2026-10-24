@@ -1,0 +1,21 @@
+/* 23 Switch: 30×18 켜고 끄는 스위치(ll-switch)와 이름이 붙은 줄(ll-switch-row) */
+.ll-switch, :is(.ll-root, .ll-preview) .ll-switch {
+  box-sizing: border-box; flex: none; position: relative; display: inline-block;
+  width: 30px; height: 18px; margin: 0; padding: 0; border: 0; border-radius: var(--radius-full);
+  background: var(--line-strong); vertical-align: middle; transition: background-color 100ms ease-out;
+}
+.ll-switch::after {
+  content: ""; position: absolute; top: var(--space-2); left: var(--space-2); width: 14px; height: 14px;
+  border-radius: var(--radius-full); background: var(--text); transition: transform 100ms ease-out;
+}
+.ll-switch[aria-checked="true"] { background: var(--accent-fill); }
+.ll-switch[aria-checked="true"]::after { transform: translateX(12px); }
+.ll-switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.ll-switch:disabled { background: var(--bg-control); }
+.ll-switch:disabled::after { background: var(--text-off); }
+
+/* 이름 + 스위치(텍스트 가져오기의 설정 줄). 이름을 눌러도 바뀐다 */
+.ll-switch-row { display: inline-flex; align-items: center; gap: var(--space-10); font-family: var(--font-ui); font-size: 12px; line-height: 16px; color: var(--text-2); }
+.ll-switch-row:has(> .ll-switch:disabled) { color: var(--text-off); }
+
+@media (prefers-reduced-motion: reduce) { .ll-switch, .ll-switch::after { transition: none; } }

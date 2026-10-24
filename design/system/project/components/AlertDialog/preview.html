@@ -1,0 +1,83 @@
+<!-- @dsCard group="떠 있는 창" height=740 -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>AlertDialog</title>
+<style>
+  html, body { margin: 0; }
+  /* 미리보기 전용: 막 위에 띄운 바탕과 치수 메모 */
+  .pv-back { box-sizing: border-box; display: flex; align-items: flex-start; gap: 24px; width: 920px; padding: 28px; border-radius: var(--radius-lg); background: var(--bg-panel); background-image: linear-gradient(var(--scrim), var(--scrim)); }
+  .pv-alert { animation: none; max-height: none; }
+  .pv-notes { display: flex; flex-direction: column; gap: 8px; padding-top: 2px; }
+  .pv-note { font-size: 11px; line-height: 14px; color: var(--text-2); }
+  .pv-note b { color: var(--text); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="ll-preview">
+
+  <div class="ll-spec-title">질문 하나: dialog-s 460, 안쪽 20 20 16, 아이콘 칸 40, 제목 heading, 부가 정보 label text-3, 버튼 줄 위 20</div>
+  <div class="pv-back">
+    <section class="ll-alert pv-alert" role="alertdialog" aria-modal="true" aria-labelledby="pv-a1-t" aria-describedby="pv-a1-d">
+      <div class="ll-alert__head">
+        <span class="ll-alert__icon" aria-hidden="true"><span class="ll-i ll-i-24 ll-i-song"></span></span>
+        <div class="ll-alert__text">
+          <h2 class="ll-alert__title" id="pv-a1-t">‘만복의 근원 하나님’ 곡이 이미 있습니다. 덮어쓸까요?</h2>
+          <p class="ll-alert__meta" id="pv-a1-d">라이브러리 곡 4장, 10월 20일 수정</p>
+        </div>
+      </div>
+      <div class="ll-alert__actions">
+        <button class="ll-btn ll-btn--md ll-alert__cancel">취소</button>
+        <button class="ll-btn ll-btn--md">새 곡으로 저장</button>
+        <button class="ll-btn ll-btn--md ll-btn--primary is-focus">덮어쓰기</button>
+      </div>
+    </section>
+    <div class="pv-notes">
+      <span class="pv-note"><b>아이콘 칸</b> 40×40 bg-panel radius-lg, 아이콘 24 text-2</span>
+      <span class="pv-note"><b>아이콘과 글자 사이</b> 14, 제목과 부가 정보 사이 2</span>
+      <span class="pv-note"><b>버튼</b> md 30, 사이 8. [취소]는 왼쪽 끝</span>
+      <span class="pv-note"><b>처음 포커스</b> 주 버튼. Enter = 덮어쓰기, Esc = 취소</span>
+    </div>
+  </div>
+
+  <div class="ll-spec-title">고를 상태가 붙은 확인 창: dialog-m 600, 같은 머리 묶음 + 목록 구획(위 1px 선, 묶음 이름, 30px 체크 줄) + 버튼 줄</div>
+  <div class="pv-back">
+    <section class="ll-alert ll-alert--list pv-alert" role="alertdialog" aria-modal="true" aria-labelledby="pv-a2-t" aria-describedby="pv-a2-d">
+      <div class="ll-alert__head">
+        <span class="ll-alert__icon" aria-hidden="true"><span class="ll-i ll-i-24 ll-i-history"></span></span>
+        <div class="ll-alert__text">
+          <h2 class="ll-alert__title" id="pv-a2-t">출력 상태 복구</h2>
+          <p class="ll-alert__meta" id="pv-a2-d"><span>비정상 종료</span><span>10월 25일 오전 11:26</span></p>
+        </div>
+      </div>
+      <div class="ll-alert__list">
+        <p class="ll-row-group" id="pv-a2-g">복구할 상태</p>
+        <div role="group" aria-labelledby="pv-a2-g">
+          <label class="ll-check-row"><button type="button" class="ll-check" role="checkbox" aria-checked="true"><span class="ll-i ll-i-check"></span></button><span class="ll-i ll-i-mplay ll-check-row__icon"></span><span class="ll-check-row__text ll-check-row__text--fixed">화면 출력</span><span class="ll-check-row__value">본 화면, 무대 화면, 방송 자막</span></label>
+          <label class="ll-check-row"><button type="button" class="ll-check" role="checkbox" aria-checked="true"><span class="ll-i ll-i-check"></span></button><span class="ll-i ll-i-slides ll-check-row__icon"></span><span class="ll-check-row__text ll-check-row__text--fixed">마지막 장</span><span class="ll-check-row__value">만복의 근원 하나님 2 / 9</span></label>
+          <label class="ll-check-row"><button type="button" class="ll-check is-focus" role="checkbox" aria-checked="false"><span class="ll-i ll-i-check"></span></button><span class="ll-i ll-i-layers ll-check-row__icon"></span><span class="ll-check-row__text ll-check-row__text--fixed">표시 중이던 항목</span><span class="ll-check-row__value">메시지 1, 소품 1, 무대 메시지 1</span></label>
+        </div>
+      </div>
+      <div class="ll-alert__actions">
+        <button class="ll-btn ll-btn--md">새로 시작</button>
+        <button class="ll-btn ll-btn--md ll-btn--primary">복구</button>
+      </div>
+    </section>
+    <div class="pv-notes">
+      <span class="pv-note"><b>목록 구획</b> 머리 묶음 아래 16, 위 1px line</span>
+      <span class="pv-note"><b>묶음 이름</b> 11px 600 text-3, 위 10 아래 5</span>
+      <span class="pv-note"><b>체크 줄</b> 30, 이름 칸 168, 값 label text-3</span>
+      <span class="pv-note"><b>[취소]가 없는 창</b> 버튼은 모두 오른쪽. Esc = 새로 시작</span>
+    </div>
+  </div>
+
+  <div class="ll-spec-title">버튼 줄 배치</div>
+  <div class="ll-spec">
+    <div class="ll-spec-item"><div class="ll-alert__actions" style="width: 420px; margin: 0"><button class="ll-btn ll-btn--md ll-alert__cancel">취소</button><button class="ll-btn ll-btn--md">새 곡으로 저장</button><button class="ll-btn ll-btn--md ll-btn--primary">덮어쓰기</button></div><span class="ll-spec-label">[취소] … [다른 선택] [주 버튼]</span></div>
+    <div class="ll-spec-item"><div class="ll-alert__actions" style="width: 420px; margin: 0"><button class="ll-btn ll-btn--md ll-alert__cancel">취소</button><button class="ll-btn ll-btn--md ll-btn--primary">덮어쓰기</button></div><span class="ll-spec-label">[취소] … [주 버튼]</span></div>
+  </div>
+
+</div>
+</body>
+</html>

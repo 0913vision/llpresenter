@@ -1,0 +1,106 @@
+<!-- @dsCard group="진행 요소" height=600 -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>StatusMarks</title>
+<style>
+  .row { display: flex; gap: 24px; align-items: flex-start; }
+  .col { display: flex; flex-direction: column; gap: 12px; }
+  .w280 { width: 280px; flex: none; }
+  .w420 { width: 420px; flex: none; }
+  .status { display: flex; align-items: center; gap: 18px; height: 28px; padding: 0 18px; background: var(--bg-app); box-shadow: 0 0 0 1px var(--line); font-size: 11px; line-height: 14px; color: var(--text-3); }
+  .status span { display: inline-flex; align-items: center; gap: 6px; }
+  .status .warn { color: var(--warning); }
+  .on-icon { position: relative; display: inline-flex; color: var(--text); }
+  .on-icon .ll-dot { position: absolute; right: -4px; top: -3px; }
+  .tb { display: inline-flex; flex-direction: column; align-items: center; gap: 4px; width: 64px; padding: 8px 0 6px; border-radius: var(--radius-lg); background: var(--bg-app); color: var(--text); font-size: 11px; line-height: 14px; font-weight: 500; }
+  .tb.off { color: var(--text-off); }
+  .bar200 { width: 200px; }
+</style>
+</head>
+<body>
+<div class="ll-preview">
+
+  <div class="row">
+    <div class="col">
+      <div class="ll-spec-title">LIVE 배지, ll-badge ll-badge--live</div>
+      <div class="ll-spec">
+        <div class="ll-spec-item"><span class="ll-badge ll-badge--live">LIVE</span><span class="ll-spec-label">16, micro, live</span></div>
+      </div>
+      <section class="ll-panel w280" aria-label="예배 순서">
+        <div class="ll-panel__header"><div class="ll-panel__tabs"><span class="ll-panel__tab" role="tab" aria-selected="true">예배 순서</span></div></div>
+        <div class="ll-panel__body--list">
+          <button type="button" class="ll-row" data-state="done"><span class="ll-i ll-row__icon ll-i-song"></span><span class="ll-row__title">이 세상 험하고</span></button>
+          <button type="button" class="ll-row" aria-selected="true"><span class="ll-i ll-row__icon ll-i-song"></span><span class="ll-row__title">만복의 근원 하나님</span><span class="ll-badge ll-badge--live">LIVE</span></button>
+          <button type="button" class="ll-row"><span class="ll-i ll-row__icon ll-i-song"></span><span class="ll-row__title">내 주를 가까이 하게 함은</span></button>
+        </div>
+      </section>
+    </div>
+
+    <div class="col">
+      <div class="ll-spec-title">상태 점, ll-dot 6px</div>
+      <div class="ll-spec">
+        <div class="ll-spec-item"><span class="ll-dot ll-dot--ok"></span><span class="ll-spec-label">ok</span></div>
+        <div class="ll-spec-item"><span class="ll-dot ll-dot--warning"></span><span class="ll-spec-label">warning</span></div>
+        <div class="ll-spec-item"><span class="ll-dot ll-dot--live"></span><span class="ll-spec-label">live</span></div>
+        <div class="ll-spec-item"><span class="ll-dot ll-dot--off"></span><span class="ll-spec-label">off</span></div>
+        <div class="ll-spec-item">
+          <span class="tb"><span class="on-icon"><span class="ll-i ll-i-18 ll-i-mplay"></span><span class="ll-dot ll-dot--live ll-dot--cut"></span></span>본 화면</span>
+          <span class="ll-spec-label">아이콘 위, --cut</span>
+        </div>
+        <div class="ll-spec-item">
+          <span class="tb off"><span class="on-icon"><span class="ll-i ll-i-18 ll-i-capture"></span><span class="ll-dot ll-dot--off ll-dot--cut"></span></span>방송 자막</span>
+          <span class="ll-spec-label">출력 꺼짐</span>
+        </div>
+      </div>
+      <div class="ll-spec">
+        <div class="ll-spec-item">
+          <div class="status w420"><span><span class="ll-dot ll-dot--ok"></span>본 화면 60fps</span><span class="warn" title="모니터 3 연결 끊김, 창으로 표시 중"><span class="ll-dot ll-dot--warning"></span>무대 화면</span><span><span class="ll-dot ll-dot--ok"></span>방송 자막 60fps</span></div>
+          <span class="ll-spec-label">상태 표시줄</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <div class="ll-spec-title">개수 배지, ll-count 18</div>
+      <div class="ll-spec">
+        <div class="ll-spec-item"><span class="ll-count">3</span><span class="ll-spec-label">한 자리</span></div>
+        <div class="ll-spec-item"><span class="ll-count">12</span><span class="ll-spec-label">두 자리</span></div>
+      </div>
+      <section class="ll-panel w280" aria-label="진행 도구">
+        <div class="ll-panel__header"><div class="ll-panel__tabs">
+          <span class="ll-panel__tab" role="tab" aria-selected="true">표시 중<span class="ll-count">3</span></span>
+          <span class="ll-panel__tab" role="tab">오디오</span>
+          <span class="ll-panel__tab" role="tab">무대</span>
+        </div></div>
+        <div class="ll-panel__body--list">
+          <div class="ll-row"><span class="ll-i ll-row__icon ll-i-msg"></span><span class="ll-row__title">12가 3456 차량 이동 부탁드립니다</span><span class="ll-row__meta">0:42</span></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="col">
+      <div class="ll-spec-title">진행 막대, ll-progress 4, 막대 width %</div>
+      <div class="ll-spec">
+        <div class="ll-spec-item bar200"><span class="ll-progress bar200" role="progressbar" aria-valuenow="0"><span class="ll-progress__bar" style="width: 0%"></span></span><span class="ll-spec-label">0%</span></div>
+        <div class="ll-spec-item bar200"><span class="ll-progress bar200" role="progressbar" aria-valuenow="62"><span class="ll-progress__bar" style="width: 62%"></span></span><span class="ll-spec-label">62%, 복사 중 (accent)</span></div>
+      </div>
+      <div class="ll-spec">
+        <div class="ll-spec-item bar200"><span class="ll-progress bar200" role="progressbar" aria-valuenow="100"><span class="ll-progress__bar" style="width: 100%"></span></span><span class="ll-spec-label">100%</span></div>
+        <div class="ll-spec-item bar200"><span class="ll-progress ll-progress--playback bar200" role="progressbar" aria-valuenow="38" aria-valuetext="1:24 / 3:42"><span class="ll-progress__bar" style="width: 38%"></span></span><span class="ll-spec-label">재생 위치, --playback (text)</span></div>
+      </div>
+      <div class="ll-spec">
+        <div class="ll-spec-item" style="width: 200px">
+          <button type="button" class="ll-media" data-state="busy" aria-disabled="true"><span class="ll-media__frame"><img class="ll-media__img" src="/_blob/c73e39734966be2aeb0284b0d8bfaeea" alt=""><span class="ll-media__busy">62%<span class="ll-progress" role="progressbar" aria-valuenow="62"><span class="ll-progress__bar" style="width: 62%"></span></span></span></span><span class="ll-media__name">부활절 배경.mp4</span></button>
+          <span class="ll-spec-label">미디어 칸 안</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

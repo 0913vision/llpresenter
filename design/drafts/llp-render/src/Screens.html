@@ -1,0 +1,214 @@
+@@HEAD:화면 설정@@
+<div style="width: 1920px; height: 1080px; display: flex; flex-direction: column; background: #0e0e0e; color: #ececec; font-family: 'Pretendard Variable', Pretendard, sans-serif; font-size: 13px; line-height: 18px; word-break: keep-all; -webkit-font-smoothing: antialiased; overflow: hidden">
+
+@@MENUBAR@@
+
+@@TOOLBAR:screens@@
+
+<div style="flex: 1; min-height: 0; display: flex; gap: 4px; padding: 0 4px">
+
+<div style="flex: 0 0 280px; display: flex; flex-direction: column; gap: 4px">
+<section style="flex: none; display: flex; flex-direction: column; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-label="화면">
+<div style="flex: none; box-sizing: border-box; height: 34px; display: flex; align-items: center; padding: 0 8px 0 14px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 12px; font-weight: 600; line-height: 31px; border-bottom: 2px solid #ececec">화면</span>
+<button type="button" class="hv" aria-label="화면 추가" style="margin-left: auto; width: 26px; height: 26px; border: 0; border-radius: 4px; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i-plus"></span></button>
+</div>
+<ul style="margin: 0; padding: 0 0 8px; list-style: none">
+<sc-for list="{{ screens }}" as="s" hint-placeholder-count="5">
+<li>
+<sc-if value="{{ s.isHeader }}" hint-placeholder-val="{{ false }}">
+<p style="margin: 0; padding: 10px 14px 5px; font-size: 11px; line-height: 14px; font-weight: 600; color: #8c8c8c">{{ s.label }}</p>
+</sc-if>
+<sc-if value="{{ s.isItem }}" hint-placeholder-val="{{ true }}">
+<button type="button" class="hv" style="display: flex; align-items: center; gap: 10px; width: 100%; height: 44px; padding: 0 14px; border: 0; background: {{ s.bg }}; color: #ececec; text-align: left">
+<span style="display: inline-flex; color: {{ s.iconColor }}">
+<sc-if value="{{ s.isMain }}" hint-placeholder-val="{{ true }}"><span class="i i-mplay"></span></sc-if>
+<sc-if value="{{ s.isStage }}" hint-placeholder-val="{{ false }}"><span class="i i-monitor"></span></sc-if>
+<sc-if value="{{ s.isCapture }}" hint-placeholder-val="{{ false }}"><span class="i i-capture"></span></sc-if>
+</span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 13px">{{ s.name }}</span>
+<span style="font-size: 11px; line-height: 14px; color: {{ s.subColor }}">{{ s.target }}</span>
+</span>
+<span style="width: 6px; height: 6px; border-radius: 50%; background: #3dbb6b" aria-label="정상"></span>
+</button>
+</sc-if>
+</li>
+</sc-for>
+</ul>
+</section>
+
+<section style="flex: 1; min-height: 0; display: flex; flex-direction: column; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-label="Look">
+<div style="flex: none; box-sizing: border-box; height: 34px; display: flex; align-items: center; padding: 0 8px 0 14px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 12px; font-weight: 600; line-height: 31px; border-bottom: 2px solid #ececec">Look</span>
+<button type="button" class="hv" aria-label="Look 추가" style="margin-left: auto; width: 26px; height: 26px; border: 0; border-radius: 4px; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i-plus"></span></button>
+</div>
+<ul style="margin: 0; padding: 4px 0 8px; list-style: none">
+<sc-for list="{{ looks }}" as="l" hint-placeholder-count="4">
+<li><button type="button" class="hv" style="display: flex; align-items: center; gap: 10px; width: 100%; height: 30px; padding: 0 14px; border: 0; background: {{ l.bg }}; color: #ececec; text-align: left; font-size: 13px">
+<span class="i i-layers" style="color: {{ l.iconColor }}"></span>
+<span style="flex: 1">{{ l.name }}</span>
+<sc-if value="{{ l.inUse }}" hint-placeholder-val="{{ false }}"><span style="height: 18px; padding: 0 6px; border-radius: 3px; background: {{ l.chipBg }}; color: #ececec; font-size: 11px; line-height: 18px">사용 중</span></sc-if>
+</button></li>
+</sc-for>
+</ul>
+</section>
+</div>
+
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<section style="flex: none; display: flex; flex-direction: column; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-label="출력 배치">
+<div style="flex: none; box-sizing: border-box; height: 34px; display: flex; align-items: center; padding: 0 8px 0 14px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 12px; font-weight: 600; line-height: 31px; border-bottom: 2px solid #ececec">출력 배치</span>
+<button type="button" class="hvc" style="margin-left: auto; display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px 0 8px; border: 0; border-radius: 4px; background: #2a2a2a; color: #ececec; font-size: 12px"><span class="i i14 i-monitor"></span>모니터 번호 표시</button>
+</div>
+<div style="height: 300px; display: flex; align-items: center; justify-content: center; background: #161616">
+<div style="display: flex; align-items: flex-start; gap: 56px">
+<div style="display: flex; align-items: flex-start; gap: 6px">
+<sc-for list="{{ displays }}" as="d" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 10px">
+<div style="position: relative; width: {{ d.w }}; height: {{ d.h }}; box-sizing: border-box; border-radius: 3px; background: {{ d.bg }}; box-shadow: inset 0 0 0 {{ d.ringW }} {{ d.ring }}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px">
+<span style="position: absolute; left: 10px; top: 6px; font-size: 20px; line-height: 24px; font-weight: 700; color: {{ d.numColor }}; font-variant-numeric: tabular-nums">{{ d.num }}</span>
+<span style="font-size: 13px; font-weight: 600; color: {{ d.labelColor }}">{{ d.screen }}</span>
+<span style="font-size: 11px; color: #8c8c8c; font-variant-numeric: tabular-nums">{{ d.res }}</span>
+</div>
+<span style="font-size: 11px; color: #8c8c8c">{{ d.name }}</span>
+</div>
+</sc-for>
+</div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 10px">
+<div style="width: 154px; height: 87px; box-sizing: border-box; border: 1px dashed #6e6e6e; border-radius: 3px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px">
+<span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 2px; background: #00b140"></span>방송 자막</span>
+<span style="font-size: 11px; color: #8c8c8c; font-variant-numeric: tabular-nums">1920×1080</span>
+</div>
+<span style="font-size: 11px; color: #8c8c8c">NDI</span>
+</div>
+</div>
+</div>
+</section>
+
+<section style="flex: 1; min-height: 0; display: flex; flex-direction: column; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-label="출력 미리보기">
+<div style="flex: none; box-sizing: border-box; height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 8px 0 14px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 12px; font-weight: 600; line-height: 31px; border-bottom: 2px solid #ececec">출력 미리보기</span>
+<span style="margin-left: auto; display: flex; padding: 2px; border-radius: 5px; background: #121212">
+<button type="button" style="height: 22px; padding: 0 10px; border: 0; border-radius: 3px; background: transparent; color: #8c8c8c; font-size: 12px">화면 내용</button>
+<button type="button" aria-pressed="true" style="height: 22px; padding: 0 10px; border: 0; border-radius: 3px; background: #333333; color: #ececec; font-size: 12px">테스트 패턴</button>
+</span>
+</div>
+<div style="flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 14px">
+<div style="position: relative; height: 100%; aspect-ratio: 16 / 9; overflow: hidden; background-color: #1a1a1a; background-image: linear-gradient(#2e2e2e 1px, transparent 1px), linear-gradient(90deg, #2e2e2e 1px, transparent 1px); background-size: 6.25% 11.111%; background-position: -1px -1px; box-shadow: inset 0 0 0 2px #ececec">
+<span style="position: absolute; left: 50%; top: 50%; height: 88%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; box-shadow: inset 0 0 0 2px #8c8c8c"></span>
+<span style="position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: #5c5c5c"></span>
+<span style="position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #5c5c5c"></span>
+<span style="position: absolute; left: 22%; right: 22%; top: 40%; height: 20%; display: flex">
+<sc-for list="{{ bars }}" as="b" hint-placeholder-count="7"><span style="flex: 1; background: {{ b }}"></span></sc-for>
+</span>
+<span style="position: absolute; left: 22%; right: 22%; top: 60%; height: 6%; display: flex">
+<sc-for list="{{ ramp }}" as="g" hint-placeholder-count="8"><span style="flex: 1; background: {{ g }}"></span></sc-for>
+</span>
+<span style="position: absolute; left: 24px; top: 20px; font-size: 22px; line-height: 28px; font-weight: 700; color: #ececec">본 화면</span>
+<span style="position: absolute; left: 24px; top: 52px; display: flex; gap: 10px; font-size: 14px; color: #b4b4b4"><span>모니터 2</span><span>EPSON 프로젝터</span></span>
+<span style="position: absolute; right: 24px; bottom: 20px; display: flex; gap: 10px; font-size: 14px; color: #b4b4b4; font-variant-numeric: tabular-nums"><span>1920×1080</span><span>60Hz</span></span>
+</div>
+</div>
+</section>
+</div>
+
+<div style="flex: 0 0 480px; display: flex; flex-direction: column; gap: 4px">
+<section style="flex: 1; min-height: 0; display: flex; flex-direction: column; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-label="속성">
+<div style="flex: none; box-sizing: border-box; height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 8px 0 14px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 12px; font-weight: 600; line-height: 31px; border-bottom: 2px solid #ececec">속성</span>
+<span style="font-size: 12px; color: #8c8c8c">본 화면</span>
+</div>
+<div style="padding: 4px 14px 14px">
+<sc-for list="{{ groups }}" as="g" hint-placeholder-count="4">
+<div style="padding: 12px 0 8px; border-bottom: 1px solid #2b2b2b">
+<p style="margin: 0 0 4px; font-size: 11px; line-height: 14px; font-weight: 600; color: #8c8c8c">{{ g.title }}</p>
+<sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="3">
+<div style="display: flex; align-items: center; gap: 12px; height: 36px">
+<span style="flex: 0 0 84px; font-size: 12px; color: #b4b4b4">{{ r.label }}</span>
+<sc-if value="{{ r.isInput }}" hint-placeholder-val="{{ false }}"><span style="flex: 1; display: flex; align-items: center; height: 30px; padding: 0 10px; border-radius: 4px; background: #121212; font-size: 13px">{{ r.value }}</span></sc-if>
+<sc-if value="{{ r.isSelect }}" hint-placeholder-val="{{ true }}"><button type="button" class="hvc" style="flex: 1; display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px 0 10px; border: 0; border-radius: 4px; background: #2a2a2a; color: #ececec; font-size: 13px; text-align: left"><span style="flex: 1">{{ r.value }}</span><span style="color: #b4b4b4; font-size: 12px">{{ r.note }}</span><span class="i i12 i-down" style="color: #8c8c8c"></span></button></sc-if>
+<sc-if value="{{ r.isSeg }}" hint-placeholder-val="{{ false }}"><span style="flex: 1; display: flex; padding: 2px; border-radius: 5px; background: #121212"><sc-for list="{{ r.options }}" as="o" hint-placeholder-count="3"><button type="button" style="flex: 1; height: 22px; padding: 0 8px; border: 0; border-radius: 3px; background: {{ o.bg }}; color: {{ o.fg }}; font-size: 12px">{{ o.label }}</button></sc-for></span></sc-if>
+<sc-if value="{{ r.isSwitch }}" hint-placeholder-val="{{ false }}"><span style="flex: 1; display: flex"><span role="switch" aria-checked="{{ r.checked }}" style="position: relative; width: 30px; height: 18px; border-radius: 9px; background: {{ r.track }}"><span style="position: absolute; top: 2px; left: {{ r.knob }}; width: 14px; height: 14px; border-radius: 50%; background: #ececec"></span></span></span></sc-if>
+<sc-if value="{{ r.isStepper }}" hint-placeholder-val="{{ false }}"><span style="flex: 1; display: flex; gap: 8px"><span style="width: 96px; display: flex; align-items: center; justify-content: flex-end; height: 30px; padding: 0 10px; box-sizing: border-box; border-radius: 4px; background: #121212; font-size: 13px; font-variant-numeric: tabular-nums">{{ r.value }}</span></span></sc-if>
+<sc-if value="{{ r.isText }}" hint-placeholder-val="{{ false }}"><span style="flex: 1; font-size: 13px; color: #b4b4b4; font-variant-numeric: tabular-nums">{{ r.value }}</span></sc-if>
+</div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+</section>
+</div>
+
+</div>
+
+@@FOOTER@@
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1920,"height":1080}}'>
+class Component extends DCLogic {
+renderVals() {
+const header = (label) => ({ isHeader: true, isItem: false, label: label });
+const scr = (name, kind, target, sel) => ({
+isHeader: false, isItem: true, name: name, target: target,
+isMain: kind === 'main', isStage: kind === 'stage', isCapture: kind === 'capture',
+bg: sel ? '#1f4170' : 'transparent', iconColor: sel ? '#ececec' : '#b4b4b4', subColor: sel ? '#b4c6e0' : '#8c8c8c'
+});
+const look = (name, inUse) => ({ name: name, inUse: inUse, bg: 'transparent', iconColor: '#8c8c8c', chipBg: '#2a2a2a' });
+const disp = (num, name, screen, res, w, h, state) => ({
+num: num, name: name, screen: screen, res: res, w: w + 'px', h: h + 'px',
+bg: state === 'sel' ? '#1d2b3e' : (state === 'control' ? '#1f1f1f' : '#262626'),
+ring: state === 'sel' ? '#3d8bf0' : '#3a3a3a', ringW: state === 'sel' ? '2px' : '1px',
+numColor: state === 'sel' ? 'rgba(127, 176, 240, 0.55)' : 'rgba(255, 255, 255, 0.16)',
+labelColor: state === 'control' ? '#8c8c8c' : '#ececec'
+});
+const seg = (labels, active) => labels.map((l, i) => ({ label: l, bg: i === active ? '#333333' : 'transparent', fg: i === active ? '#ececec' : '#8c8c8c' }));
+const row = (label, kind, value, extra) => Object.assign({
+label: label, value: value || '', note: '',
+isInput: kind === 'input', isSelect: kind === 'select', isSeg: kind === 'seg', isSwitch: kind === 'switch', isStepper: kind === 'stepper', isText: kind === 'text'
+}, extra || {});
+const sw = (on) => ({ checked: on ? 'true' : 'false', track: on ? '#2a70dc' : '#3a3a3a', knob: on ? '14px' : '2px' });
+return {
+screens: [
+header('청중'),
+scr('본 화면', 'main', '모니터 2', true),
+scr('방송 자막', 'capture', 'NDI', false),
+header('무대'),
+scr('무대 화면', 'stage', '모니터 3', false)
+],
+looks: [look('평상시', true), look('설교', false), look('광고', false), look('영상만', false)],
+displays: [
+disp(1, 'DELL U2723QE', '컨트롤', '2560×1440', 205, 115, 'control'),
+disp(2, 'EPSON 프로젝터', '본 화면', '1920×1080', 154, 87, 'sel'),
+disp(3, '무대 모니터', '무대 화면', '1920×1080', 154, 87, 'normal')
+],
+bars: ['#c0c0c0', '#c0c000', '#00c0c0', '#00c000', '#c000c0', '#c00000', '#0000c0'],
+ramp: ['#000000', '#242424', '#494949', '#6d6d6d', '#929292', '#b6b6b6', '#dbdbdb', '#ffffff'],
+groups: [
+{ title: '화면', rows: [
+row('이름', 'input', '본 화면'),
+row('종류', 'seg', '', { options: seg(['청중', '무대'], 0) })
+] },
+{ title: '출력', rows: [
+row('방식', 'seg', '', { options: seg(['전체 화면', '창', '캡처용 창', 'NDI'], 0) }),
+row('장치', 'select', '모니터 2', { note: 'EPSON 프로젝터' }),
+row('해상도', 'select', '1920×1080'),
+row('주사율', 'text', '60Hz')
+] },
+{ title: '안정성', rows: [
+row('연결이 끊기면', 'select', '창으로 바꾸기'),
+row('항상 위', 'switch', '', sw(true)),
+row('절전 막기', 'switch', '', sw(true))
+] },
+{ title: '보정', rows: [
+row('가장자리 여백', 'stepper', '0%'),
+row('위치 미세 조정', 'stepper', '0, 0')
+] }
+]
+};
+}
+}
+</script>
+</body>
+</html>

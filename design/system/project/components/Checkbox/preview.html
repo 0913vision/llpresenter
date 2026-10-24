@@ -1,0 +1,54 @@
+<!-- @dsCard group="입력" height=630 -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Checkbox</title>
+</head>
+<body>
+<div class="ll-preview">
+
+  <div class="ll-spec-title">상자 16×16</div>
+  <div class="ll-on-panel">
+    <div class="ll-spec">
+      <div class="ll-spec-item"><button type="button" class="ll-check" role="checkbox" aria-checked="false" aria-label="꺼짐"><span class="ll-i ll-i-check"></span></button><span class="ll-spec-label">꺼짐</span></div>
+      <div class="ll-spec-item"><button type="button" class="ll-check" role="checkbox" aria-checked="true" aria-label="켜짐"><span class="ll-i ll-i-check"></span></button><span class="ll-spec-label">켜짐</span></div>
+      <div class="ll-spec-item"><button type="button" class="ll-check" role="checkbox" aria-checked="mixed" aria-label="일부"><span class="ll-i ll-i-check"></span></button><span class="ll-spec-label">일부</span></div>
+      <div class="ll-spec-item"><button type="button" class="ll-check is-focus" role="checkbox" aria-checked="false" aria-label="포커스"><span class="ll-i ll-i-check"></span></button><span class="ll-spec-label">포커스</span></div>
+      <div class="ll-spec-item"><button type="button" class="ll-check is-focus" role="checkbox" aria-checked="true" aria-label="켜짐 포커스"><span class="ll-i ll-i-check"></span></button><span class="ll-spec-label">켜짐, 포커스</span></div>
+      <div class="ll-spec-item"><button type="button" class="ll-check" role="checkbox" aria-checked="false" aria-label="쓸 수 없음" disabled><span class="ll-i ll-i-check"></span></button><span class="ll-spec-label">쓸 수 없음, 꺼짐</span></div>
+      <div class="ll-spec-item"><button type="button" class="ll-check" role="checkbox" aria-checked="true" aria-label="쓸 수 없음 켜짐" disabled><span class="ll-i ll-i-check"></span></button><span class="ll-spec-label">쓸 수 없음, 켜짐</span></div>
+      <div class="ll-spec-item"><button type="button" class="ll-check" role="checkbox" aria-checked="mixed" aria-label="쓸 수 없음 일부" disabled><span class="ll-i ll-i-check"></span></button><span class="ll-spec-label">쓸 수 없음, 일부</span></div>
+    </div>
+  </div>
+
+  <div class="ll-spec" style="align-items: flex-start">
+    <div class="ll-spec-item">
+      <div class="ll-spec-title">목록 줄, 다른 예배에서 가져오기</div>
+      <div style="box-sizing: border-box; width: 440px; padding: 4px 0 8px; border-radius: 5px; background: var(--bg-inset); box-shadow: inset 0 0 0 1px var(--line)">
+        <label class="ll-check-row ll-check-row--list ll-check-row--group"><button type="button" class="ll-check" role="checkbox" aria-checked="mixed"><span class="ll-i ll-i-check"></span></button><span class="ll-check-row__text">예배 전</span></label>
+        <label class="ll-check-row ll-check-row--list"><button type="button" class="ll-check" role="checkbox" aria-checked="false"><span class="ll-i ll-i-check"></span></button><span class="ll-i ll-i-film ll-check-row__icon"></span><span class="ll-check-row__text">예배 전 카운트다운</span></label>
+        <label class="ll-check-row ll-check-row--list is-hover"><button type="button" class="ll-check" role="checkbox" aria-checked="true"><span class="ll-i ll-i-check"></span></button><span class="ll-i ll-i-notice ll-check-row__icon"></span><span class="ll-check-row__text">주일 광고</span></label>
+        <label class="ll-check-row ll-check-row--list ll-check-row--group"><button type="button" class="ll-check" role="checkbox" aria-checked="false"><span class="ll-i ll-i-check"></span></button><span class="ll-check-row__text">찬양</span></label>
+        <label class="ll-check-row ll-check-row--list"><button type="button" class="ll-check" role="checkbox" aria-checked="false"><span class="ll-i ll-i-check"></span></button><span class="ll-i ll-i-song ll-check-row__icon"></span><span class="ll-check-row__text">만복의 근원 하나님</span><span class="ll-check-row__meta">주일용</span></label>
+        <label class="ll-check-row ll-check-row--list"><button type="button" class="ll-check is-focus" role="checkbox" aria-checked="true"><span class="ll-i ll-i-check"></span></button><span class="ll-i ll-i-song ll-check-row__icon"></span><span class="ll-check-row__text">주 하나님 지으신 모든 세계</span><span class="ll-check-row__meta">기본</span></label>
+        <label class="ll-check-row ll-check-row--list"><button type="button" class="ll-check" role="checkbox" aria-checked="false" disabled><span class="ll-i ll-i-check"></span></button><span class="ll-i ll-i-song ll-check-row__icon"></span><span class="ll-check-row__text">내 주를 가까이 하게 함은</span><span class="ll-check-row__meta">기본</span></label>
+      </div>
+      <span class="ll-spec-label">묶음 줄, 꺼짐, 마우스 올림, 포커스, 쓸 수 없음</span>
+    </div>
+
+    <div class="ll-spec-item">
+      <div class="ll-spec-title">값이 붙는 줄, 출력 상태 복구</div>
+      <div style="box-sizing: border-box; width: 452px; padding: 0 20px 10px; border-radius: 8px; background: var(--bg-dialog)">
+        <p style="margin: 0; padding: 12px 0 6px; font-size: 11px; line-height: 14px; font-weight: 600; color: var(--text-3)">복구할 상태</p>
+        <label class="ll-check-row"><button type="button" class="ll-check" role="checkbox" aria-checked="true"><span class="ll-i ll-i-check"></span></button><span class="ll-i ll-i-mplay ll-check-row__icon"></span><span class="ll-check-row__text ll-check-row__text--fixed">화면 출력</span><span class="ll-check-row__value">본 화면, 무대 화면, 방송 자막</span></label>
+        <label class="ll-check-row"><button type="button" class="ll-check" role="checkbox" aria-checked="true"><span class="ll-i ll-i-check"></span></button><span class="ll-i ll-i-slides ll-check-row__icon"></span><span class="ll-check-row__text ll-check-row__text--fixed">마지막 장</span><span class="ll-check-row__value">만복의 근원 하나님  2 / 9</span></label>
+        <label class="ll-check-row"><button type="button" class="ll-check" role="checkbox" aria-checked="false"><span class="ll-i ll-i-check"></span></button><span class="ll-i ll-i-layers ll-check-row__icon"></span><span class="ll-check-row__text ll-check-row__text--fixed">표시 중이던 항목</span><span class="ll-check-row__value">메시지 1, 소품 1, 무대 메시지 1</span></label>
+      </div>
+      <span class="ll-spec-label">대화상자 안, 줄 30, hover 없음</span>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

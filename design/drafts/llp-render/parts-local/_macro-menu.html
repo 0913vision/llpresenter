@@ -1,0 +1,37 @@
+<div style="position: relative; flex: none; width: 480px; height: 548px">
+@@PANEL@@
+<div role="menu" aria-label="예배 시작" style="position: absolute; left: 56px; top: 118px; width: 210px; padding: 6px; box-sizing: border-box; border-radius: 6px; background: #262626; box-shadow: 0 0 0 1px #3a3a3a, 0 8px 24px rgba(0, 0, 0, 0.5)">
+<sc-for list="{{ menu }}" as="it" hint-placeholder-count="14">
+<sc-if value="{{ it.isSep }}" hint-placeholder-val="{{ false }}"><div style="height: 1px; margin: 4px 2px; background: #3a3a3a"></div></sc-if>
+<sc-if value="{{ it.isRow }}" hint-placeholder-val="{{ true }}"><button type="button" role="menuitem" class="hv" style="display: flex; align-items: center; gap: 10px; width: 100%; height: 28px; padding: 0 8px; border: 0; border-radius: 4px; background: {{ it.bg }}; color: {{ it.fg }}; font-size: 13px; text-align: left"><span style="flex: 1">{{ it.label }}</span><sc-if value="{{ it.hasSub }}" hint-placeholder-val="{{ false }}"><span class="i i12 i-right" style="color: #8c8c8c"></span></sc-if></button></sc-if>
+<sc-if value="{{ it.isColors }}" hint-placeholder-val="{{ false }}"><div role="radiogroup" aria-label="색" style="display: flex; align-items: center; gap: 5px; height: 32px; padding: 0 8px"><span style="margin-right: 6px; font-size: 13px">색</span><sc-for list="{{ colors }}" as="c" hint-placeholder-count="8"><span role="radio" aria-checked="{{ c.checked }}" aria-label="{{ c.name }}" style="width: 16px; height: 16px; border-radius: 4px; background: {{ c.color }}; box-shadow: 0 0 0 2px #262626, 0 0 0 {{ c.ringW }} #ececec"></span></sc-for></div></sc-if>
+</sc-for>
+</div>
+<div role="menu" aria-label="동작 추가" style="position: absolute; left: 262px; top: 252px; width: 196px; padding: 6px; box-sizing: border-box; border-radius: 6px; background: #262626; box-shadow: 0 0 0 1px #3a3a3a, 0 8px 24px rgba(0, 0, 0, 0.5)">
+<sc-for list="{{ addMenu }}" as="a" hint-placeholder-count="10">
+<button type="button" role="menuitem" class="hv" style="display: flex; align-items: center; gap: 10px; width: 100%; height: 28px; padding: 0 8px; border: 0; border-radius: 4px; background: {{ a.bg }}; color: #ececec; font-size: 13px; text-align: left"><span class="i i-{{ a.icon }}" style="color: #b4b4b4"></span><span style="flex: 1">{{ a.label }}</span><span class="i i12 i-right" style="color: #8c8c8c"></span></button>
+</sc-for>
+</div>
+</div>
+
+<section aria-label="동작 팔레트" style="flex: none; width: 260px; height: 548px; display: flex; flex-direction: column; background: #1f1f1f; border-radius: 8px; box-shadow: 0 0 0 1px #3a3a3a, 0 12px 32px rgba(0, 0, 0, 0.5); overflow: hidden">
+<div style="flex: none; height: 36px; display: flex; align-items: center; padding: 0 6px 0 14px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 12px; font-weight: 600">동작 팔레트</span>
+<button type="button" class="hv" aria-label="닫기" style="margin-left: auto; width: 26px; height: 26px; border: 0; border-radius: 4px; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i14 i-x"></span></button>
+</div>
+<div style="flex: none; padding: 8px 8px 4px">
+<span style="display: flex; align-items: center; gap: 10px; height: 28px; padding: 0 6px; border-radius: 4px; background: #121212; color: #8c8c8c"><span class="i i14 i-search"></span><input aria-label="동작 찾기" placeholder="동작 찾기" style="flex: 1; min-width: 0; height: 26px; padding: 0; border: 0; background: transparent; color: #ececec; font-size: 12px"></span>
+</div>
+<div style="flex: 1; min-height: 0; overflow: hidden; padding-bottom: 6px">
+<sc-for list="{{ palette }}" as="g" hint-placeholder-count="5">
+<p style="margin: 0; padding: 10px 14px 4px; font-size: 11px; line-height: 14px; font-weight: 600; color: #8c8c8c">{{ g.title }}</p>
+<sc-for list="{{ g.items }}" as="p" hint-placeholder-count="2">
+<div class="hv" style="display: flex; align-items: center; gap: 10px; height: 28px; padding: 0 14px 0 8px; cursor: grab">
+<span class="i i14 i-grip" style="color: #5c5c5c"></span>
+<span class="i i-{{ p.icon }}" style="color: #b4b4b4"></span>
+<span style="font-size: 12px">{{ p.label }}</span>
+</div>
+</sc-for>
+</sc-for>
+</div>
+</section>

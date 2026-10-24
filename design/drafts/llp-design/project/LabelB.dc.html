@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>이름표 B</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:"Pretendard Variable";src:url("/_blob/44ae4219c075570535882b3a34ea3567") format("woff2");font-weight:45 920;font-display:swap}
+body{margin:0;background:#0e0e0e}
+a{color:#7fb0f0}a:hover{color:#a8c9f5}
+button,input{font:inherit;cursor:default}
+.hvc:hover{background:#333333}
+.i{display:inline-block;flex:none;width:16px;height:16px;background-color:currentColor;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain}
+.i14{width:14px;height:14px}
+.i-grid{-webkit-mask-image:url("/_blob/12440a2e5cf9c86989e4e10cb96385b0");mask-image:url("/_blob/12440a2e5cf9c86989e4e10cb96385b0")}
+.i-rows{-webkit-mask-image:url("/_blob/8bbcc101a537d6fc78bc97267bd1bd34");mask-image:url("/_blob/8bbcc101a537d6fc78bc97267bd1bd34")}
+</style>
+</helmet>
+<div style="width: 1100px; height: 400px; box-sizing: border-box; padding: 18px; background: #0e0e0e; color: #ececec; font-family: 'Pretendard Variable', Pretendard, sans-serif; font-size: 13px; line-height: 18px; word-break: keep-all; -webkit-font-smoothing: antialiased">
+<section style="height: 100%; display: flex; flex-direction: column; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-label="슬라이드">
+<div style="flex: none; height: 34px; display: flex; align-items: stretch; padding: 0 10px 0 12px; border-bottom: 1px solid #2b2b2b">
+<button type="button" style="padding: 0 2px; margin-right: 18px; border: 0; border-bottom: 2px solid #ececec; background: transparent; color: #ececec; font-size: 12px; font-weight: 600">만복의 근원 하나님</button>
+<button type="button" style="padding: 0 2px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: #8c8c8c; font-size: 12px; font-weight: 500">내 주를 가까이 하게 함은</button>
+<span style="margin-left: auto; display: flex; align-items: center; gap: 12px">
+<span style="display: flex; padding: 2px; border-radius: 5px; background: #121212">
+<button type="button" aria-label="격자" aria-pressed="true" style="width: 26px; height: 22px; border: 0; border-radius: 3px; background: #333333; color: #ececec; display: inline-flex; align-items: center; justify-content: center"><span class="i i14 i-grid"></span></button>
+<button type="button" aria-label="목록" aria-pressed="false" style="width: 26px; height: 22px; border: 0; border-radius: 3px; background: transparent; color: #8c8c8c; display: inline-flex; align-items: center; justify-content: center"><span class="i i14 i-rows"></span></button>
+</span>
+<input type="range" min="1" max="6" step="1" value="5" aria-label="썸네일 크기" style="width: 96px; accent-color: #ececec">
+</span>
+</div>
+<div style="flex: 1; min-height: 0; overflow: hidden; padding: 16px">
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px 12px">
+<sc-for list="{{ slides }}" as="s" hint-placeholder-count="4">
+<button type="button" style="display: flex; flex-direction: column; padding: 0; border: 0; border-radius: 4px; background: transparent; box-shadow: 0 0 0 2px {{ s.ring }}; overflow: hidden; text-align: left; color: inherit">
+<span style="position: relative; display: flex; align-items: center; justify-content: center; aspect-ratio: 16 / 9; width: 100%; box-sizing: border-box; padding: 0 10%; background: #000; color: #fff; font-size: 12px; line-height: 1.45; font-weight: 700; text-align: center; white-space: pre-line">{{ s.text }}<sc-if value="{{ s.live }}" hint-placeholder-val="{{ false }}"><span style="position: absolute; left: 6px; top: 6px; height: 16px; padding: 0 5px; border-radius: 3px; background: #d2343a; color: #fff; font-size: 10px; line-height: 16px; font-weight: 700; letter-spacing: 0.04em">LIVE</span></sc-if><sc-if value="{{ s.next }}" hint-placeholder-val="{{ false }}"><span style="position: absolute; left: 6px; top: 6px; height: 16px; padding: 0 5px; border-radius: 3px; background: rgba(0, 0, 0, 0.7); box-shadow: inset 0 0 0 1px #8c8c8c; color: #ececec; font-size: 10px; line-height: 16px; font-weight: 700">다음</span></sc-if></span>
+<span style="display: flex; align-items: center; gap: 8px; height: 24px; padding: 0 8px; background: #262626; font-size: 12px; white-space: nowrap; overflow: hidden">
+<span style="font-size: 11px; color: #8c8c8c; font-variant-numeric: tabular-nums">{{ s.n }}</span>
+<sc-if value="{{ s.hasLabel }}" hint-placeholder-val="{{ true }}"><span style="width: 7px; height: 7px; border-radius: 50%; background: {{ s.dot }}" aria-hidden="true"></span></sc-if>
+<span style="font-weight: 600; color: #d6d6d6; overflow: hidden; text-overflow: ellipsis">{{ s.label }}</span>
+</span>
+</button>
+</sc-for>
+</div>
+</div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1100,"height":400}}'>
+class Component extends DCLogic {
+renderVals() {
+const dot = (label) => {
+if (/절$/.test(label)) return '#5fb8c2';
+if (label === '후렴') return '#d6a35f';
+if (label === '브릿지') return '#b39ce3';
+return '#8c8c8c';
+};
+const lyrics = [
+'만복의 근원 하나님\n온 백성 찬송 드리고',
+'저 천사여 찬송하세\n찬송 성부 성자 성령',
+'찬송 성부 성자 성령\n아멘',
+'찬송 성부 성자 성령\n만복의 근원 하나님'
+];
+const labels = ['1절', '프리코러스', '후렴', ''];
+const live = 1;
+return {
+slides: lyrics.map((text, i) => ({ n: i + 1, text: text, label: labels[i], hasLabel: !!labels[i], dot: dot(labels[i]), live: i === live, next: i === live + 1, ring: i === live ? '#d2343a' : 'transparent' }))
+};
+}
+}
+</script>
+</body>
+</html>

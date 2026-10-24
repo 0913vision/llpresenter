@@ -1,0 +1,185 @@
+@@HEAD:가사 가져오기@@
+<div style="position: relative; width: 1920px; height: 1080px; display: flex; flex-direction: column; background: #0e0e0e; color: #ececec; font-family: 'Pretendard Variable', Pretendard, sans-serif; font-size: 13px; line-height: 18px; word-break: keep-all; -webkit-font-smoothing: antialiased; overflow: hidden">
+
+@@MENUBAR@@
+
+@@TOOLBAR:prep@@
+
+<div style="flex: 1; min-height: 0; display: flex; gap: 4px; padding: 0 4px" aria-hidden="true">
+<div style="flex: 0 0 280px; display: flex; flex-direction: column; gap: 4px">
+<section style="flex: none; height: 430px; background: #1c1c1c; border-radius: 5px; overflow: hidden">
+<div style="height: 34px; display: flex; align-items: center; padding: 0 14px; border-bottom: 1px solid #2b2b2b"><span style="font-size: 12px; font-weight: 600; line-height: 32px; border-bottom: 2px solid #ececec">예배 순서</span><span style="margin-left: 10px; font-size: 12px; color: #8c8c8c">주일 예배</span></div>
+<sc-for list="{{ bgOrder }}" as="b" hint-placeholder-count="8"><div style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px; color: #ececec"><span class="i i-song" style="color: #b4b4b4"></span>{{ b }}</div></sc-for>
+</section>
+<section style="flex: 1; background: #1c1c1c; border-radius: 5px; overflow: hidden">
+<div style="height: 34px; display: flex; align-items: center; padding: 0 14px; border-bottom: 1px solid #2b2b2b"><span style="font-size: 12px; font-weight: 600; line-height: 32px; border-bottom: 2px solid #ececec">라이브러리</span><span style="margin-left: 10px; font-size: 12px; color: #8c8c8c">128</span></div>
+<sc-for list="{{ bgLibrary }}" as="b" hint-placeholder-count="12"><div style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px; color: #ececec"><span class="i i-song" style="color: #b4b4b4"></span>{{ b }}</div></sc-for>
+</section>
+</div>
+<section style="flex: 1; background: #1c1c1c; border-radius: 5px; overflow: hidden">
+<div style="height: 34px; display: flex; align-items: center; padding: 0 14px; border-bottom: 1px solid #2b2b2b"><span style="font-size: 13px; font-weight: 600">만복의 근원 하나님</span><span style="margin-left: 10px; font-size: 12px; color: #8c8c8c">4장</span></div>
+<sc-for list="{{ bgBlocks }}" as="b" hint-placeholder-count="4"><div style="display: flex; gap: 16px; padding: 14px; border-bottom: 1px solid #262626; font-size: 17px; line-height: 28px"><span style="flex: 0 0 120px; padding-left: 34px"><span style="display: inline-block; height: 24px; padding: 0 8px; border-radius: 3px; background: {{ b.color }}; color: #101010; font-size: 12px; line-height: 24px; font-weight: 700">{{ b.label }}</span></span><span style="white-space: pre-line">{{ b.text }}</span></div></sc-for>
+</section>
+<div style="flex: 0 0 480px; display: flex; flex-direction: column; gap: 4px">
+<section style="flex: none; height: 344px; background: #1c1c1c; border-radius: 5px; overflow: hidden">
+<div style="height: 34px; display: flex; align-items: center; padding: 0 14px; border-bottom: 1px solid #2b2b2b"><span style="font-size: 12px; font-weight: 600; line-height: 32px; border-bottom: 2px solid #ececec">미리보기</span></div>
+<div style="margin: 14px; aspect-ratio: 16 / 9; border-radius: 3px; overflow: hidden"><img src="/_blob/e96d6204449f1e44237721b22d7463c9" alt="" style="width: 100%; height: 100%; object-fit: cover"></div>
+</section>
+<section style="flex: 1; background: #1c1c1c; border-radius: 5px"></section>
+</div>
+</div>
+
+@@FOOTER@@
+
+<div style="position: absolute; inset: 0; background: rgba(0, 0, 0, 0.6)"></div>
+
+<section role="dialog" aria-label="가사 가져오기" style="position: absolute; left: 340px; top: 140px; width: 1240px; height: 800px; display: flex; flex-direction: column; background: #1f1f1f; border-radius: 8px; box-shadow: 0 0 0 1px #3a3a3a, 0 20px 48px rgba(0, 0, 0, 0.6); overflow: hidden">
+<div style="flex: none; height: 48px; display: flex; align-items: center; gap: 10px; padding: 0 8px 0 18px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 14px; font-weight: 600">가사 가져오기</span>
+<span style="font-size: 12px; color: #8c8c8c">파일 4개</span>
+<button type="button" class="hv" aria-label="파일 추가" style="margin-left: auto; display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px 0 8px; border: 0; border-radius: 4px; background: transparent; color: #b4b4b4; font-size: 12px"><span class="i i14 i-plus"></span>파일 추가</button>
+<button type="button" class="hv" aria-label="닫기" style="width: 30px; height: 30px; border: 0; border-radius: 4px; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i-x"></span></button>
+</div>
+
+<div style="flex: 1; min-height: 0; display: flex">
+
+<div style="flex: 0 0 340px; display: flex; flex-direction: column; border-right: 1px solid #2b2b2b">
+<ul style="flex: none; margin: 0; padding: 6px 0; list-style: none; border-bottom: 1px solid #2b2b2b">
+<sc-for list="{{ files }}" as="f" hint-placeholder-count="4">
+<li><button type="button" class="hv" style="display: flex; align-items: center; gap: 12px; width: 100%; height: 48px; padding: 0 14px 0 18px; border: 0; background: {{ f.bg }}; color: #ececec; text-align: left">
+<span style="display: inline-flex; color: {{ f.iconColor }}"><sc-if value="{{ f.isTxt }}" hint-placeholder-val="{{ true }}"><span class="i i18 i-filetext"></span></sc-if><sc-if value="{{ f.isPpt }}" hint-placeholder-val="{{ false }}"><span class="i i18 i-fileppt"></span></sc-if></span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 13px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">{{ f.name }}</span>
+<span style="font-size: 11px; line-height: 14px; color: {{ f.subColor }}; font-variant-numeric: tabular-nums">{{ f.subA }}</span>
+</span>
+<sc-if value="{{ f.conflict }}" hint-placeholder-val="{{ false }}"><span class="i i14 i-warning" style="color: #e3a23b" title="라이브러리에 있음"></span></sc-if>
+</button></li>
+</sc-for>
+</ul>
+
+<div style="flex: 1; min-height: 0; padding: 4px 18px 14px">
+<sc-for list="{{ optionGroups }}" as="g" hint-placeholder-count="2">
+<div style="padding: 12px 0 6px; border-bottom: 1px solid #262626">
+<p style="margin: 0 0 4px; font-size: 11px; line-height: 14px; font-weight: 600; color: #8c8c8c">{{ g.title }}</p>
+<sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="4">
+<div style="display: flex; align-items: center; gap: 12px; height: 36px">
+<span style="flex: 0 0 92px; font-size: 12px; color: #b4b4b4">{{ r.label }}</span>
+<sc-if value="{{ r.isSeg }}" hint-placeholder-val="{{ true }}"><span style="flex: 1; display: flex; padding: 2px; border-radius: 5px; background: #121212"><sc-for list="{{ r.options }}" as="o" hint-placeholder-count="3"><button type="button" style="flex: 1; height: 24px; padding: 0; border: 0; border-radius: 3px; background: {{ o.bg }}; color: {{ o.fg }}; font-size: 12px">{{ o.label }}</button></sc-for></span></sc-if>
+<sc-if value="{{ r.isNumber }}" hint-placeholder-val="{{ false }}"><span style="width: 96px; display: flex; align-items: center; justify-content: flex-end; height: 28px; padding: 0 10px; box-sizing: border-box; border-radius: 4px; background: #121212; font-size: 13px; font-variant-numeric: tabular-nums">{{ r.value }}</span></sc-if>
+<sc-if value="{{ r.isSwitch }}" hint-placeholder-val="{{ false }}"><span style="flex: 1; display: flex; align-items: center; gap: 10px"><span role="switch" aria-checked="{{ r.checked }}" style="position: relative; flex: none; width: 30px; height: 18px; border-radius: 9px; background: {{ r.track }}"><span style="position: absolute; top: 2px; left: {{ r.knob }}; width: 14px; height: 14px; border-radius: 50%; background: #fff"></span></span></span></sc-if>
+</div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+</div>
+
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+<div style="flex: none; height: 52px; display: flex; align-items: center; gap: 12px; padding: 0 18px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 12px; color: #b4b4b4">제목</span>
+<span style="width: 360px; display: flex; align-items: center; height: 30px; padding: 0 10px; box-sizing: border-box; border-radius: 4px; background: #121212; font-size: 14px">만복의 근원 하나님</span>
+</div>
+<div style="flex: none; height: 48px; display: flex; align-items: center; gap: 10px; padding: 0 18px; background: #262217; border-bottom: 1px solid #3a3322">
+<span class="i i-warning" style="color: #e3a23b"></span>
+<span style="font-size: 13px; color: #ececec">라이브러리에 있음</span>
+<span style="font-size: 12px; color: #b4b4b4; font-variant-numeric: tabular-nums">4장</span>
+<span style="font-size: 12px; color: #8c8c8c; font-variant-numeric: tabular-nums">10월 20일 수정</span>
+<span style="margin-left: auto; display: flex; padding: 2px; border-radius: 5px; background: #121212"><sc-for list="{{ conflict }}" as="o" hint-placeholder-count="3"><button type="button" style="height: 24px; padding: 0 12px; border: 0; border-radius: 3px; background: {{ o.bg }}; color: {{ o.fg }}; font-size: 12px">{{ o.label }}</button></sc-for></span>
+</div>
+<div style="flex: 1; min-height: 0; display: flex">
+<div style="flex: 0 0 380px; display: flex; flex-direction: column; border-right: 1px solid #2b2b2b; background: #191919">
+<p style="flex: none; margin: 0; height: 34px; display: flex; align-items: center; padding: 0 18px; font-size: 11px; font-weight: 600; color: #8c8c8c">파일 내용</p>
+<div style="flex: 1; min-height: 0; padding: 0 0 12px; font-size: 13px; line-height: 24px">
+<sc-for list="{{ raw }}" as="l" hint-placeholder-count="16">
+<div style="display: flex; gap: 14px; padding: 0 18px; background: {{ l.bg }}">
+<span style="flex: 0 0 18px; text-align: right; font-size: 11px; color: #5c5c5c; font-variant-numeric: tabular-nums">{{ l.n }}</span>
+<sc-if value="{{ l.isLabel }}" hint-placeholder-val="{{ false }}"><span style="color: {{ l.color }}; font-weight: 600">{{ l.text }}</span></sc-if>
+<sc-if value="{{ l.isText }}" hint-placeholder-val="{{ true }}"><span style="color: {{ l.fg }}; font-weight: {{ l.weight }}">{{ l.text }}</span></sc-if>
+</div>
+</sc-for>
+</div>
+</div>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+<p style="flex: none; margin: 0; height: 34px; display: flex; align-items: center; padding: 0 18px; font-size: 11px; font-weight: 600; color: #8c8c8c">장 4</p>
+<div style="flex: 1; min-height: 0; padding: 0 0 12px">
+<sc-for list="{{ blocks }}" as="b" hint-placeholder-count="4">
+<div style="display: flex; align-items: flex-start; gap: 14px; padding: 12px 18px; border-bottom: 1px solid #2b2b2b">
+<span style="flex: 0 0 18px; padding-top: 4px; font-size: 12px; line-height: 18px; color: #8c8c8c; text-align: right; font-variant-numeric: tabular-nums">{{ b.n }}</span>
+<span style="flex: 0 0 104px; padding-top: 2px"><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 3px; background: {{ b.chipBg }}; color: {{ b.chipFg }}; font-size: 12px; font-weight: 700">{{ b.label }}</span></span>
+<span style="flex: 1; min-width: 0; font-size: 15px; line-height: 26px; white-space: pre-line">{{ b.text }}</span>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div style="flex: none; height: 60px; display: flex; align-items: center; gap: 8px; padding: 0 18px; border-top: 1px solid #2b2b2b">
+<button type="button" class="hvc" style="margin-left: auto; height: 32px; padding: 0 16px; border: 0; border-radius: 4px; background: #2a2a2a; color: #ececec; font-size: 13px">취소</button>
+<button type="button" style="height: 32px; padding: 0 18px; border: 0; border-radius: 4px; background: #3d8bf0; color: #fff; font-size: 13px; font-weight: 600">4곡 가져오기</button>
+</div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1920,"height":1080}}'>
+class Component extends DCLogic {
+renderVals() {
+const pal = { teal: '#5fb8c2', green: '#8fbf7a', yellow: '#d6b35f' };
+const seg = (labels, active) => labels.map((l, i) => ({ label: l, bg: i === active ? '#333333' : 'transparent', fg: i === active ? '#ececec' : '#8c8c8c' }));
+const sw = (on) => ({ checked: on ? 'true' : 'false', track: on ? '#3d8bf0' : '#3a3a3a', knob: on ? '14px' : '2px' });
+const file = (name, kind, sub, sel, conflict) => ({
+name: name, subA: sub, conflict: conflict, isTxt: kind === 'txt', isPpt: kind === 'ppt',
+bg: sel ? '#1f4170' : 'transparent', iconColor: sel ? '#ececec' : '#b4b4b4', subColor: sel ? '#b4c6e0' : '#8c8c8c',
+chipBg: conflict ? '#3a2f17' : (sel ? '#2c5594' : '#2a2a2a'), chipFg: conflict ? '#e3a23b' : '#ececec'
+});
+const rawLines = [
+['만복의 근원 하나님', 'title'], ['', ''],
+['[1절]', 'teal'], ['만복의 근원 하나님', ''], ['온 백성 찬송 드리고', ''], ['', ''],
+['[프리코러스]', 'green'], ['저 천사여 찬송하세', ''], ['찬송 성부 성자 성령', ''], ['', ''],
+['[후렴]', 'yellow'], ['찬송 성부 성자 성령', ''], ['아멘', ''], ['', ''],
+['찬송 성부 성자 성령', ''], ['만복의 근원 하나님', '']
+];
+return {
+bgOrder: ['예배 전 카운트다운', '주일 광고', '이 세상 험하고', '만복의 근원 하나님', '내 주를 가까이 하게 함은', '요한복음 3장 16절', '설교', '축도'],
+bgLibrary: ['거리마다 기쁨으로', '나 같은 죄인 살리신', '나를 향한 주의 사랑', '내 주를 가까이 하게 함은', '송축해 내 영혼', '십자가 그 사랑', '예수 사랑하심은', '만복의 근원 하나님', '은혜 아니면', '이 세상 험하고', '주 하나님 지으신 모든 세계', '하나님 은혜'],
+bgBlocks: [
+{ label: '1절', color: pal.teal, text: '만복의 근원 하나님\n온 백성 찬송 드리고' },
+{ label: '프리코러스', color: pal.green, text: '저 천사여 찬송하세\n찬송 성부 성자 성령' },
+{ label: '후렴', color: pal.yellow, text: '찬송 성부 성자 성령\n아멘' }
+],
+files: [
+file('만복의 근원 하나님.txt', 'txt', '4장', true, true),
+file('은혜 아니면.txt', 'txt', '5장', false, false),
+file('주님 다시 오실 때까지.txt', 'txt', '6장', false, false),
+file('10월 찬양.pptx', 'ppt', '슬라이드 18장', false, false)
+],
+optionGroups: [
+{ title: '텍스트', rows: [
+{ label: '장 나누기', isSeg: true, options: seg(['빈 줄', '줄 수', '기호'], 0) },
+{ label: '한 장 최대', isNumber: true, value: '2줄' },
+{ label: '제목', isSeg: true, options: seg(['첫 줄', '파일 이름'], 0) },
+Object.assign({ label: '이름표 인식', isSwitch: true }, sw(true))
+] },
+{ title: 'PowerPoint', rows: [
+{ label: '가져올 내용', isSeg: true, options: seg(['글자', '그림'], 0) }
+] }
+],
+conflict: seg(['덮어쓰기', '새 곡으로', '건너뛰기'], 1),
+raw: rawLines.map((l, i) => ({
+n: i + 1, text: l[0] || ' ', isLabel: !!pal[l[1]], isText: !pal[l[1]], color: pal[l[1]] || '',
+fg: l[1] === 'title' ? '#ececec' : '#cfcfcf', weight: l[1] === 'title' ? 700 : 400, bg: 'transparent'
+})),
+blocks: [
+{ n: 1, label: '1절', chipBg: pal.teal, chipFg: '#101010', text: '만복의 근원 하나님\n온 백성 찬송 드리고' },
+{ n: 2, label: '프리코러스', chipBg: pal.green, chipFg: '#101010', text: '저 천사여 찬송하세\n찬송 성부 성자 성령' },
+{ n: 3, label: '후렴', chipBg: pal.yellow, chipFg: '#101010', text: '찬송 성부 성자 성령\n아멘' },
+{ n: 4, label: '이름표', chipBg: '#2a2a2a', chipFg: '#8c8c8c', text: '찬송 성부 성자 성령\n만복의 근원 하나님' }
+]
+};
+}
+}
+</script>
+</body>
+</html>

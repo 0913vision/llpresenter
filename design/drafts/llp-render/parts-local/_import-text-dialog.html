@@ -1,0 +1,35 @@
+<section role="dialog" aria-label="텍스트 가져오기" style="position: absolute; left: 470px; top: 326px; width: 980px; height: 428px; display: flex; flex-direction: column; background: #1f1f1f; border-radius: 8px; box-shadow: 0 0 0 1px #3a3a3a, 0 20px 48px rgba(0, 0, 0, 0.6); overflow: hidden">
+<div style="flex: none; height: 48px; display: flex; align-items: center; gap: 12px; padding: 0 8px 0 18px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 14px; font-weight: 600">텍스트 가져오기</span>
+<span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #8c8c8c"><span class="i i14 i-filetext"></span>만복의 근원 하나님.txt</span>
+<button type="button" class="hv" aria-label="닫기" style="margin-left: auto; width: 30px; height: 30px; border: 0; border-radius: 4px; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i-x"></span></button>
+</div>
+
+<div style="flex: none; height: 52px; display: flex; align-items: center; gap: 28px; padding: 0 18px; border-bottom: 1px solid #2b2b2b">
+<span style="display: flex; align-items: center; gap: 10px"><span style="font-size: 12px; color: #b4b4b4">장 나누기</span><span style="display: flex; padding: 2px; border-radius: 5px; background: #121212"><sc-for list="{{ split }}" as="o" hint-placeholder-count="3"><button type="button" style="height: 24px; padding: 0 12px; border: 0; border-radius: 3px; background: {{ o.bg }}; color: {{ o.fg }}; font-size: 12px">{{ o.label }}</button></sc-for></span></span>
+<span style="display: flex; align-items: center; gap: 10px"><span style="font-size: 12px; color: #b4b4b4">한 장에</span><span style="width: 56px; display: flex; align-items: center; justify-content: flex-end; height: 28px; padding: 0 10px; box-sizing: border-box; border-radius: 4px; background: #121212; font-size: 13px; font-variant-numeric: tabular-nums">1</span></span>
+<span style="display: flex; align-items: center; gap: 10px"><span style="font-size: 12px; color: #b4b4b4">이름표 인식</span><span role="switch" aria-checked="true" style="position: relative; width: 30px; height: 18px; border-radius: 9px; background: #3d8bf0"><span style="position: absolute; top: 2px; left: 14px; width: 14px; height: 14px; border-radius: 50%; background: #fff"></span></span></span>
+</div>
+
+<div style="flex: none; height: 52px; display: flex; align-items: center; gap: 12px; padding: 0 18px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 12px; color: #b4b4b4">제목</span>
+<span title="라이브러리에 같은 제목의 곡이 있습니다" style="width: 340px; display: flex; align-items: center; height: 30px; padding: 0 10px; box-sizing: border-box; border-radius: 4px; background: #121212; box-shadow: inset 0 0 0 1px #d2343a; font-size: 13px">만복의 근원 하나님</span>
+</div>
+
+<div style="flex: 1; min-height: 0; padding: 12px 18px 18px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 11px; font-weight: 600; color: #8c8c8c; font-variant-numeric: tabular-nums">장 4</span>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 12px">
+<sc-for list="{{ slides }}" as="s" hint-placeholder-count="4">
+<div style="display: flex; flex-direction: column; border-radius: 4px; overflow: hidden">
+<span style="display: flex; align-items: center; justify-content: center; aspect-ratio: 16 / 9; width: 100%; box-sizing: border-box; padding: 0 10%; background: #000; color: #fff; font-size: 11px; line-height: 1.45; font-weight: 700; text-align: center; white-space: pre-line">{{ s.text }}</span>
+<span style="display: flex; align-items: center; gap: 8px; height: 24px; padding: 0 8px; background: {{ s.barBg }}; color: {{ s.barFg }}; font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden"><span style="font-variant-numeric: tabular-nums">{{ s.n }}</span><span>{{ s.label }}</span></span>
+</div>
+</sc-for>
+</div>
+</div>
+
+<div style="flex: none; height: 56px; display: flex; align-items: center; gap: 8px; padding: 0 18px; border-top: 1px solid #2b2b2b">
+<button type="button" class="hvc" style="margin-left: auto; height: 32px; padding: 0 14px; border: 0; border-radius: 4px; background: #2a2a2a; color: #ececec; font-size: 13px">버리기</button>
+<button type="button" style="height: 32px; padding: 0 18px; border: 0; border-radius: 4px; background: #3d8bf0; color: #fff; font-size: 13px; font-weight: 600">편집</button>
+</div>
+</section>

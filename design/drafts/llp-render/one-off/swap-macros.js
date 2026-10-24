@@ -1,0 +1,20 @@
+// Overlays.html의 매크로 탭 내용을 Macros.html의 격자 보기로 바꾼다.
+const fs = require('fs')
+const src = fs.readFileSync('src/Macros.html', 'utf8')
+let ov = fs.readFileSync('src/Overlays.html', 'utf8')
+const gridStart = src.indexOf('<div style="flex: none; height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 8px 0 14px">')
+const gridEnd = src.indexOf('</section>', gridStart)
+const grid = src.slice(gridStart, gridEnd)
+const oldStart = ov.indexOf('<div style="flex: 1; min-height: 0; padding: 12px 14px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; align-content: start">')
+const oldEnd = ov.indexOf('</section>', oldStart)
+if (gridStart < 0 || oldStart < 0) throw new Error('marker not found')
+ov = ov.slice(0, oldStart) + grid + ov.slice(oldEnd)
+const dataStart = ov.indexOf('macros: [')
+const dataEnd = ov.indexOf(']\n};', dataStart) + 1
+const sdStart = src.indexOf('macros: [')
+const sdEnd = src.indexOf('\n],\ncolors', sdStart) + 3
+ov = ov.slice(0, dataStart) + src.slice(sdStart, sdEnd - 1) + ov.slice(dataEnd)
+const helpers = src.slice(src.indexOf("const pal = {"), src.indexOf("const labels = ["))
+ov = ov.replace("const labels = ['표시 중'", helpers + "const labels = ['표시 중'")
+fs.writeFileSync('src/Overlays.html', ov)
+console.log('ok')

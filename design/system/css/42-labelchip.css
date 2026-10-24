@@ -1,0 +1,46 @@
+/* 42 LabelChip: 구성 줄의 칩(30), 가사 블록의 작은 이름표(22), 색 견본(10). 이름표 색 연결도 여기서 한다 */
+
+/* 이름표 색: data-color="teal|green|yellow|orange|rose|violet|slate|gray", 없으면 이름표 없음 */
+.ll-thumb, .ll-chip, .ll-tag, .ll-label-swatch, .ll-macro, .ll-macro-row { --ll-label: var(--label-none); --ll-label-fg: var(--label-gray); }
+:is(.ll-thumb, .ll-chip, .ll-tag, .ll-label-swatch, .ll-macro, .ll-macro-row)[data-color] { --ll-label-fg: var(--text-on-label); }
+:is(.ll-thumb, .ll-chip, .ll-tag, .ll-label-swatch, .ll-macro, .ll-macro-row)[data-color="teal"] { --ll-label: var(--label-teal); }
+:is(.ll-thumb, .ll-chip, .ll-tag, .ll-label-swatch, .ll-macro, .ll-macro-row)[data-color="green"] { --ll-label: var(--label-green); }
+:is(.ll-thumb, .ll-chip, .ll-tag, .ll-label-swatch, .ll-macro, .ll-macro-row)[data-color="yellow"] { --ll-label: var(--label-yellow); }
+:is(.ll-thumb, .ll-chip, .ll-tag, .ll-label-swatch, .ll-macro, .ll-macro-row)[data-color="orange"] { --ll-label: var(--label-orange); }
+:is(.ll-thumb, .ll-chip, .ll-tag, .ll-label-swatch, .ll-macro, .ll-macro-row)[data-color="rose"] { --ll-label: var(--label-rose); }
+:is(.ll-thumb, .ll-chip, .ll-tag, .ll-label-swatch, .ll-macro, .ll-macro-row)[data-color="violet"] { --ll-label: var(--label-violet); }
+:is(.ll-thumb, .ll-chip, .ll-tag, .ll-label-swatch, .ll-macro, .ll-macro-row)[data-color="slate"] { --ll-label: var(--label-slate); }
+:is(.ll-thumb, .ll-chip, .ll-tag, .ll-label-swatch, .ll-macro, .ll-macro-row)[data-color="gray"] { --ll-label: var(--label-gray); }
+
+/* 구성 줄 */
+.ll-chip-strip { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-8); }
+.ll-chip, :is(.ll-root, .ll-preview) .ll-chip { --ll-chip-gap: var(--bg-panel); box-sizing: border-box; display: inline-flex; align-items: center; gap: var(--space-6); height: var(--size-control-md); margin: 0; padding: 0 var(--space-10) 0 var(--space-6); border: 0; border-radius: var(--radius-sm); background: var(--ll-label); color: var(--ll-label-fg); font: inherit; font-size: 12px; line-height: 16px; font-weight: 700; white-space: nowrap; cursor: default; transition: background-color 100ms ease-out, box-shadow 100ms ease-out; }
+.ll-chip__grip { opacity: 0.55; }
+.ll-chip:hover, .ll-chip.is-hover { cursor: grab; }
+.ll-chip:hover .ll-chip__grip, .ll-chip.is-hover .ll-chip__grip { opacity: 1; }
+.ll-chip:not([data-color]):hover, .ll-chip:not([data-color]).is-hover { background: var(--bg-control-hover); }
+/* 색 칩 위에서도 보이도록 2px 틈(패널 색)을 두고 고리를 그린다 */
+.ll-chip[aria-selected="true"] { box-shadow: 0 0 0 2px var(--ll-chip-gap), 0 0 0 4px var(--accent); }
+.ll-chip[data-state~="live"] { box-shadow: 0 0 0 2px var(--ll-chip-gap), 0 0 0 4px var(--live); }
+.ll-chip:focus-visible, .ll-preview .ll-chip.is-focus { outline: 2px solid var(--accent); outline-offset: 5px; }
+.ll-chip.is-dragging { box-shadow: var(--shadow-popover); cursor: grabbing; }
+.ll-chip.is-dragging .ll-chip__grip { opacity: 1; }
+/* 놓을 자리: 칩 사이 틈 가운데의 2px accent 막대. 틈을 늘리지 않게 좌우를 당긴다 */
+.ll-chip-drop { flex: none; width: 2px; height: var(--size-control-md); margin: 0 -5px; border-radius: var(--radius-full); background: var(--accent); }
+.ll-chip-add, :is(.ll-root, .ll-preview) .ll-chip-add { box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; width: var(--size-control-md); height: var(--size-control-md); margin: 0; padding: 0; border: 1px dashed var(--line-control); border-radius: var(--radius-sm); background: transparent; color: var(--text-2); cursor: default; transition: background-color 100ms ease-out; }
+.ll-chip-add:hover, .ll-chip-add.is-hover { background: var(--bg-raised); }
+.ll-chip-add:active, .ll-chip-add.is-active { background: var(--bg-control-hover); color: var(--text); }
+.ll-chip-add:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* 작은 이름표 22: 가사 블록 왼쪽, 목록 안. 버튼이면 아래 화살표를 붙여 이름표 고르기를 연다 */
+.ll-tag, :is(.ll-root, .ll-preview) .ll-tag { box-sizing: border-box; display: inline-flex; align-items: center; gap: var(--space-6); height: var(--size-control-xs); margin: 0; padding: 0 var(--space-8); border: 0; border-radius: var(--radius-sm); background: var(--ll-label); color: var(--ll-label-fg); font: inherit; font-size: 12px; line-height: 16px; font-weight: 700; white-space: nowrap; vertical-align: middle; cursor: default; transition: background-color 100ms ease-out; }
+button.ll-tag, :is(.ll-root, .ll-preview) button.ll-tag { padding-right: var(--space-6); }
+.ll-tag:not([data-color]):is(button):hover, .ll-tag:not([data-color]).is-hover { background: var(--bg-control-hover); }
+.ll-tag[aria-expanded="true"] { box-shadow: 0 0 0 2px var(--bg-panel), 0 0 0 3px var(--text); }
+.ll-tag:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* 색 견본 10: 미리보기 이름 줄처럼 글자 옆에 색만 보일 때 */
+.ll-label-swatch { display: inline-block; flex: none; width: 10px; height: 10px; border-radius: var(--radius-xs); background: var(--ll-label); }
+.ll-label-swatch:not([data-color]) { background: transparent; box-shadow: inset 0 0 0 1px var(--line-control); }
+
+@media (prefers-reduced-motion: reduce) { .ll-chip, .ll-chip-add, .ll-tag { transition: none; } }

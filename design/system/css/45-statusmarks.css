@@ -1,0 +1,21 @@
+/* 45 StatusMarks: LIVE 배지, 상태 점, 개수 배지, 진행 막대. 다른 컴포넌트가 이 클래스 이름을 그대로 쓴다 */
+
+/* LIVE 배지: 16px, micro 글자 */
+.ll-badge { box-sizing: border-box; display: inline-flex; flex: none; align-items: center; height: var(--size-badge); padding: 0 var(--space-4); border-radius: var(--radius-sm); font-size: 10px; line-height: 12px; font-weight: 700; letter-spacing: 0.04em; white-space: nowrap; vertical-align: middle; }
+.ll-badge--live { background: var(--live); color: var(--text-on-fill); }
+
+/* 상태 점 6px. 아이콘 위에 얹을 때는 ll-dot--cut(2px bg-app 고리)을 더한다 */
+.ll-dot { display: inline-block; flex: none; width: 6px; height: 6px; border-radius: var(--radius-full); background: var(--line-strong); vertical-align: middle; }
+.ll-dot--ok { background: var(--ok); }
+.ll-dot--warning { background: var(--warning); }
+.ll-dot--live { background: var(--live); }
+.ll-dot--off { background: var(--line-strong); }
+.ll-dot--cut { box-shadow: var(--ring-dot-cut); }
+
+/* 개수 배지 18px: 패널 탭(표시 중 3) 옆 */
+.ll-count { box-sizing: border-box; display: inline-flex; flex: none; align-items: center; justify-content: center; min-width: var(--size-count); height: var(--size-count); padding: 0 var(--space-4); border-radius: var(--radius-sm); background: var(--selection); color: var(--text-on-selection); font-size: 11px; line-height: 14px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; vertical-align: middle; }
+
+/* 진행 막대 4px: 길이는 ll-progress__bar의 width(%)로 */
+.ll-progress { position: relative; box-sizing: border-box; display: block; height: 4px; min-width: 24px; border-radius: var(--radius-xs); background: var(--line-strong); overflow: hidden; }
+.ll-progress__bar { display: block; width: 0; height: 100%; border-radius: inherit; background: var(--accent); }
+.ll-progress--playback .ll-progress__bar { background: var(--text); }

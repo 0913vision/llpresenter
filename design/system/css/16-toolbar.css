@@ -1,0 +1,18 @@
+/* 16 Toolbar: 메뉴줄 아래 56px 줄(좁은 창 40). 버튼은 ll-tbtn, 검색 칸은 ll-field. 여기서는 배치, 구분선, 검색 칸 너비만 정한다 */
+.ll-toolbar {
+  box-sizing: border-box; display: flex; flex: none; align-items: center; gap: var(--space-6);
+  height: var(--size-toolbar); min-width: 0; padding: 0 var(--space-4); background: var(--bg-app);
+}
+.ll-toolbar__group { display: flex; flex: none; align-items: center; gap: var(--space-6); }
+.ll-toolbar__center { display: flex; flex: 1 1 0; justify-content: center; min-width: 0; }
+.ll-toolbar__divider { flex: none; width: 1px; height: 24px; margin: 0 var(--space-8); background: var(--line); }
+
+/* 검색 칸: `ll-field ll-field--ring`(md 30)에 이 클래스를 더한다. 너비 420, 자리가 모자라면 줄어든다 */
+.ll-toolbar__search.ll-toolbar__search { width: 420px; max-width: 100%; }
+.ll-toolbar__search input::-webkit-search-decoration,
+.ll-toolbar__search input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; display: none; }
+
+/* 좁은 창 */
+.ll-toolbar.ll-toolbar--compact { height: var(--size-toolbar-compact); }
+.ll-toolbar--compact .ll-toolbar__divider { margin: 0 var(--space-4); }
+.ll-toolbar--compact .ll-toolbar__search.ll-toolbar__search { width: 280px; }

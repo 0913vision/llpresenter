@@ -1,0 +1,99 @@
+<!-- @dsCard group="진행 요소" height=1120 -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>MediaTile</title>
+<style>
+  .w200 { width: 200px; }
+  .box { width: 920px; }
+  .states .ll-spec { align-items: flex-start; }
+  .folder { display: inline-flex; align-items: center; gap: 6px; margin-left: 16px; font-size: 12px; color: var(--text-2); }
+  .folder .ll-i { color: var(--text-3); }
+</style>
+</head>
+<body>
+<div class="ll-preview">
+
+  <div class="ll-spec-title">상태</div>
+  <div class="ll-on-panel box states">
+    <div class="ll-spec">
+      <div class="ll-spec-item w200">
+        <button type="button" class="ll-media"><span class="ll-media__frame"><img class="ll-media__img" src="/_blob/a52f8166b3e4175cb8ae640545551821" alt=""><span class="ll-media__dur"><span class="ll-i ll-i-12 ll-i-loop"></span>0:30</span></span><span class="ll-media__name">따뜻한 빛</span></button>
+        <span class="ll-spec-label">기본, 반복 영상</span>
+      </div>
+      <div class="ll-spec-item w200">
+        <button type="button" class="ll-media is-hover"><span class="ll-media__frame"><img class="ll-media__img" src="/_blob/7fd58e28ed28567de79a19e6f230dadc" alt=""><span class="ll-media__dur"><span class="ll-i ll-i-12 ll-i-loop"></span>0:45</span></span><span class="ll-media__name">푸른 빛줄기</span></button>
+        <span class="ll-spec-label">마우스 올림, 1px line-control</span>
+      </div>
+      <div class="ll-spec-item w200">
+        <button type="button" class="ll-media" aria-selected="true"><span class="ll-media__frame"><img class="ll-media__img" src="/_blob/c73e39734966be2aeb0284b0d8bfaeea" alt=""><span class="ll-media__dur"><span class="ll-i ll-i-12 ll-i-loop"></span>1:00</span></span><span class="ll-media__name">새벽 하늘</span></button>
+        <span class="ll-spec-label">고름, ring-selected</span>
+      </div>
+      <div class="ll-spec-item w200">
+        <button type="button" class="ll-media" data-state="live"><span class="ll-media__frame"><img class="ll-media__img" src="/_blob/a52f8166b3e4175cb8ae640545551821" alt=""><span class="ll-media__dur"><span class="ll-i ll-i-12 ll-i-loop"></span>0:30</span></span><span class="ll-media__name">따뜻한 빛</span></button>
+        <span class="ll-spec-label">출력 중, ring-live</span>
+      </div>
+    </div>
+    <div class="ll-spec" style="margin-top: 20px">
+      <div class="ll-spec-item w200">
+        <button type="button" class="ll-media is-focus"><span class="ll-media__frame"><img class="ll-media__img" src="/_blob/de4bf9ac8dca0a9408c67dbd597d641d" alt=""><span class="ll-media__dur"><span class="ll-i ll-i-12 ll-i-loop"></span>0:30</span></span><span class="ll-media__name">별빛</span></button>
+        <span class="ll-spec-label">포커스</span>
+      </div>
+      <div class="ll-spec-item w200">
+        <button type="button" class="ll-media"><span class="ll-media__frame"><img class="ll-media__img" src="/_blob/7fd58e28ed28567de79a19e6f230dadc" alt=""><span class="ll-media__dur">5:00</span></span><span class="ll-media__name">예배 전 카운트다운</span></button>
+        <span class="ll-spec-label">한 번 재생 영상</span>
+      </div>
+      <div class="ll-spec-item w200">
+        <button type="button" class="ll-media"><span class="ll-media__frame"><img class="ll-media__img" src="/_blob/c73e39734966be2aeb0284b0d8bfaeea" alt=""></span><span class="ll-media__name">11월 1일 광고</span></button>
+        <span class="ll-spec-label">그림, 길이 없음</span>
+      </div>
+      <div class="ll-spec-item w200">
+        <button type="button" class="ll-media" data-state="busy" aria-disabled="true" title="복사 중 62%"><span class="ll-media__frame"><img class="ll-media__img" src="/_blob/de4bf9ac8dca0a9408c67dbd597d641d" alt=""><span class="ll-media__busy">62%<span class="ll-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="62" aria-label="부활절 배경.mp4 복사"><span class="ll-progress__bar" style="width: 62%"></span></span></span></span><span class="ll-media__name">부활절 배경.mp4</span></button>
+        <span class="ll-spec-label">복사 중</span>
+      </div>
+    </div>
+    <div class="ll-spec" style="margin-top: 20px">
+      <div class="ll-spec-item w200">
+        <button type="button" class="ll-media" data-state="warning" title="파일을 찾을 수 없습니다: D:\예배 미디어\배경\따뜻한 빛.mp4"><span class="ll-media__frame"><span class="ll-media__missing"><span class="ll-i ll-i-24 ll-i-filex"></span></span></span><span class="ll-media__name">따뜻한 빛</span></button>
+        <span class="ll-spec-label">파일 없음, warning</span>
+      </div>
+      <div class="ll-spec-item w200">
+        <button type="button" class="ll-media" data-state="live warning" title="파일을 찾을 수 없습니다: D:\예배 미디어\배경\따뜻한 빛.mp4"><span class="ll-media__frame"><span class="ll-media__missing"><span class="ll-i ll-i-24 ll-i-filex"></span></span></span><span class="ll-media__name">따뜻한 빛</span></button>
+        <span class="ll-spec-label">출력 중 + 파일 없음</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="ll-spec-title">미디어 화면, 격자 열 수는 크기 슬라이더, 틈 세로 16 가로 12</div>
+  <section class="ll-panel box" aria-label="배경 영상">
+    <div class="ll-panel__header"><span class="ll-panel__title"><span class="ll-panel__title-text">배경 영상</span><span class="ll-panel__meta">5</span></span></div>
+    <div class="ll-panel__body">
+      <div class="ll-media-grid" style="--ll-cols: 5" role="listbox" aria-label="배경 영상">
+        <button type="button" class="ll-media" role="option" aria-selected="true"><span class="ll-media__frame"><img class="ll-media__img" src="/_blob/a52f8166b3e4175cb8ae640545551821" alt=""><span class="ll-media__dur"><span class="ll-i ll-i-12 ll-i-loop"></span>0:30</span></span><span class="ll-media__name">따뜻한 빛</span></button>
+        <button type="button" class="ll-media" role="option"><span class="ll-media__frame"><img class="ll-media__img" src="/_blob/7fd58e28ed28567de79a19e6f230dadc" alt=""><span class="ll-media__dur"><span class="ll-i ll-i-12 ll-i-loop"></span>0:45</span></span><span class="ll-media__name">푸른 빛줄기</span></button>
+        <button type="button" class="ll-media" role="option"><span class="ll-media__frame"><img class="ll-media__img" src="/_blob/c73e39734966be2aeb0284b0d8bfaeea" alt=""><span class="ll-media__dur"><span class="ll-i ll-i-12 ll-i-loop"></span>1:00</span></span><span class="ll-media__name">새벽 하늘</span></button>
+        <button type="button" class="ll-media" role="option"><span class="ll-media__frame"><img class="ll-media__img" src="/_blob/de4bf9ac8dca0a9408c67dbd597d641d" alt=""><span class="ll-media__dur"><span class="ll-i ll-i-12 ll-i-loop"></span>0:30</span></span><span class="ll-media__name">별빛</span></button>
+        <button type="button" class="ll-media" role="option" data-state="busy" aria-disabled="true"><span class="ll-media__frame"><img class="ll-media__img" src="/_blob/c73e39734966be2aeb0284b0d8bfaeea" alt=""><span class="ll-media__busy">62%<span class="ll-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="62" aria-label="부활절 배경.mp4 복사"><span class="ll-progress__bar" style="width: 62%"></span></span></span></span><span class="ll-media__name">부활절 배경.mp4</span></button>
+      </div>
+    </div>
+    <div class="ll-panel__footer"><span>5개</span><span>2.1GB</span><span class="ll-panel__footer-end"><span class="ll-slider-row"><span class="ll-i ll-i-grid"></span><input type="range" class="ll-slider" min="2" max="8" step="1" value="5" style="--ll-value: 50%" aria-label="썸네일 크기"></span></span></div>
+  </section>
+
+  <div class="ll-spec-title">진행 화면 미디어 줄, 칸 너비 150 고정, 한 줄, 넘치면 가로로 스크롤</div>
+  <section class="ll-panel box" aria-label="미디어">
+    <div class="ll-panel__header"><div class="ll-panel__tabs"><span class="ll-panel__tab" role="tab" aria-selected="true">미디어</span></div><span class="folder"><span class="ll-i ll-i-14 ll-i-folder"></span>배경 영상</span></div>
+    <div class="ll-panel__body">
+      <div class="ll-media-strip" role="listbox" aria-label="배경 영상">
+        <button type="button" class="ll-media" role="option" data-state="live"><span class="ll-media__frame"><img class="ll-media__img" src="/_blob/a52f8166b3e4175cb8ae640545551821" alt=""><span class="ll-media__dur"><span class="ll-i ll-i-12 ll-i-loop"></span>0:30</span></span><span class="ll-media__name">따뜻한 빛</span></button>
+        <button type="button" class="ll-media" role="option"><span class="ll-media__frame"><img class="ll-media__img" src="/_blob/7fd58e28ed28567de79a19e6f230dadc" alt=""><span class="ll-media__dur"><span class="ll-i ll-i-12 ll-i-loop"></span>0:45</span></span><span class="ll-media__name">푸른 빛줄기</span></button>
+        <button type="button" class="ll-media" role="option"><span class="ll-media__frame"><img class="ll-media__img" src="/_blob/c73e39734966be2aeb0284b0d8bfaeea" alt=""><span class="ll-media__dur"><span class="ll-i ll-i-12 ll-i-loop"></span>1:00</span></span><span class="ll-media__name">새벽 하늘</span></button>
+        <button type="button" class="ll-media" role="option"><span class="ll-media__frame"><img class="ll-media__img" src="/_blob/de4bf9ac8dca0a9408c67dbd597d641d" alt=""><span class="ll-media__dur"><span class="ll-i ll-i-12 ll-i-loop"></span>0:30</span></span><span class="ll-media__name">별빛</span></button>
+        <button type="button" class="ll-media" role="option" data-state="warning" title="파일을 찾을 수 없습니다: D:\예배 미디어\배경\물결.mp4"><span class="ll-media__frame"><span class="ll-media__missing"><span class="ll-i ll-i-24 ll-i-filex"></span></span></span><span class="ll-media__name">물결</span></button>
+      </div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

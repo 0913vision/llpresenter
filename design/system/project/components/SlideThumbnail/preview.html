@@ -1,0 +1,119 @@
+<!-- @dsCard group="진행 요소" height=1520 -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>SlideThumbnail</title>
+<style>
+  .ll-preview .w200 { width: 200px; }
+  .ll-preview .w160 { width: 160px; }
+  .ll-preview .w176 { width: 176px; }
+  .ll-preview .w270 { width: 270px; }
+  .ll-preview .w364 { width: 364px; }
+  .grid-panel { width: 920px; }
+</style>
+</head>
+<body>
+<div class="ll-preview">
+
+  <div class="ll-spec-title">상태</div>
+  <div class="ll-spec">
+    <div class="ll-spec-item">
+      <button type="button" class="ll-thumb w200" data-color="teal">
+        <span class="ll-thumb__canvas"><span class="ll-thumb__text">만복의 근원 하나님<br>온 백성 찬송 드리고</span></span>
+        <span class="ll-thumb__band"><span class="ll-thumb__num">1</span><span class="ll-thumb__label">1절</span></span>
+      </button>
+      <span class="ll-spec-label">기본</span>
+    </div>
+    <div class="ll-spec-item">
+      <button type="button" class="ll-thumb w200 is-hover" data-color="green">
+        <span class="ll-thumb__canvas"><span class="ll-thumb__text">저 천사여 찬송하세<br>찬송 성부 성자 성령</span></span>
+        <span class="ll-thumb__band"><span class="ll-thumb__num">2</span><span class="ll-thumb__label">프리코러스</span></span>
+      </button>
+      <span class="ll-spec-label">마우스 올림, 1px line-control</span>
+    </div>
+    <div class="ll-spec-item">
+      <button type="button" class="ll-thumb w200" data-color="yellow" aria-selected="true">
+        <span class="ll-thumb__canvas"><span class="ll-thumb__text">찬송 성부 성자 성령<br>아멘</span></span>
+        <span class="ll-thumb__band"><span class="ll-thumb__num">3</span><span class="ll-thumb__label">후렴</span></span>
+      </button>
+      <span class="ll-spec-label">고름, ring-selected</span>
+    </div>
+    <div class="ll-spec-item">
+      <button type="button" class="ll-thumb w200" data-state="live" data-color="green">
+        <span class="ll-thumb__canvas"><span class="ll-thumb__text">저 천사여 찬송하세<br>찬송 성부 성자 성령</span></span>
+        <span class="ll-thumb__band"><span class="ll-thumb__num">5</span><span class="ll-thumb__label">프리코러스</span></span>
+      </button>
+      <span class="ll-spec-label">출력 중, ring-live</span>
+    </div>
+    <div class="ll-spec-item">
+      <button type="button" class="ll-thumb w200 is-focus">
+        <span class="ll-thumb__canvas"><span class="ll-thumb__text">찬송 성부 성자 성령<br>만복의 근원 하나님</span></span>
+        <span class="ll-thumb__band"><span class="ll-thumb__num">4</span></span>
+      </button>
+      <span class="ll-spec-label">포커스, 이름표 없음</span>
+    </div>
+    <div class="ll-spec-item">
+      <button type="button" class="ll-thumb w200">
+        <span class="ll-thumb__canvas"><img class="ll-thumb__media" src="/_blob/c73e39734966be2aeb0284b0d8bfaeea" alt=""></span>
+        <span class="ll-thumb__band"><span class="ll-thumb__num">3</span></span>
+      </button>
+      <span class="ll-spec-label">미디어 장(주일 광고)</span>
+    </div>
+    <div class="ll-spec-item">
+      <button type="button" class="ll-thumb w200" data-state="warning" title="파일을 찾을 수 없습니다: D:\예배 미디어\광고\11월 1일 광고.png">
+        <span class="ll-thumb__canvas"><span class="ll-thumb__missing"><span class="ll-i ll-i-24 ll-i-filex"></span></span></span>
+        <span class="ll-thumb__band"><span class="ll-thumb__num">4</span></span>
+      </button>
+      <span class="ll-spec-label">미디어 파일 없음</span>
+    </div>
+    <div class="ll-spec-item">
+      <button type="button" class="ll-thumb w200" data-state="live warning" title="파일을 찾을 수 없습니다: D:\예배 미디어\광고\11월 1일 광고.png">
+        <span class="ll-thumb__canvas"><span class="ll-thumb__missing"><span class="ll-i ll-i-24 ll-i-filex"></span></span></span>
+        <span class="ll-thumb__band"><span class="ll-thumb__num">4</span></span>
+      </button>
+      <span class="ll-spec-label">출력 중 + 파일 없음</span>
+    </div>
+  </div>
+
+  <div class="ll-spec-title">이름표 색 8가지와 이름표 없음, 띠 band 12/700</div>
+  <div class="ll-spec">
+    <div class="ll-spec-item"><span class="ll-thumb w160" data-color="teal"><span class="ll-thumb__canvas"><span class="ll-thumb__text">만복의 근원 하나님</span></span><span class="ll-thumb__band"><span class="ll-thumb__num">1</span><span class="ll-thumb__label">1절</span></span></span><span class="ll-spec-label">teal</span></div>
+    <div class="ll-spec-item"><span class="ll-thumb w160" data-color="green"><span class="ll-thumb__canvas"><span class="ll-thumb__text">저 천사여 찬송하세</span></span><span class="ll-thumb__band"><span class="ll-thumb__num">2</span><span class="ll-thumb__label">프리코러스</span></span></span><span class="ll-spec-label">green</span></div>
+    <div class="ll-spec-item"><span class="ll-thumb w160" data-color="yellow"><span class="ll-thumb__canvas"><span class="ll-thumb__text">찬송 성부 성자 성령</span></span><span class="ll-thumb__band"><span class="ll-thumb__num">3</span><span class="ll-thumb__label">후렴</span></span></span><span class="ll-spec-label">yellow</span></div>
+    <div class="ll-spec-item"><span class="ll-thumb w160" data-color="orange"><span class="ll-thumb__canvas"><span class="ll-thumb__text">만복의 근원 하나님</span></span><span class="ll-thumb__band"><span class="ll-thumb__num">4</span><span class="ll-thumb__label">태그</span></span></span><span class="ll-spec-label">orange</span></div>
+    <div class="ll-spec-item"><span class="ll-thumb w160" data-color="rose"><span class="ll-thumb__canvas"><span class="ll-thumb__text">내 주를 가까이 하게 함은</span></span><span class="ll-thumb__band"><span class="ll-thumb__num">1</span><span class="ll-thumb__label">인트로</span></span></span><span class="ll-spec-label">rose</span></div>
+    <div class="ll-spec-item"><span class="ll-thumb w160" data-color="violet"><span class="ll-thumb__canvas"><span class="ll-thumb__text">아멘</span></span><span class="ll-thumb__band"><span class="ll-thumb__num">6</span><span class="ll-thumb__label">브리지</span></span></span><span class="ll-spec-label">violet</span></div>
+    <div class="ll-spec-item"><span class="ll-thumb w160" data-color="slate"><span class="ll-thumb__canvas"><span class="ll-thumb__text">찬송 성부 성자 성령</span></span><span class="ll-thumb__band"><span class="ll-thumb__num">9</span><span class="ll-thumb__label">엔딩</span></span></span><span class="ll-spec-label">slate</span></div>
+    <div class="ll-spec-item"><span class="ll-thumb w160" data-color="gray"><span class="ll-thumb__canvas"><span class="ll-thumb__text">주 하나님 지으신 모든 세계</span></span><span class="ll-thumb__band"><span class="ll-thumb__num">5</span><span class="ll-thumb__label">간주</span></span></span><span class="ll-spec-label">gray</span></div>
+    <div class="ll-spec-item"><span class="ll-thumb w160"><span class="ll-thumb__canvas"><span class="ll-thumb__text">만복의 근원 하나님</span></span><span class="ll-thumb__band"><span class="ll-thumb__num">4</span></span></span><span class="ll-spec-label">없음, label-none + label-gray</span></div>
+  </div>
+
+  <div class="ll-spec-title">가사 글자 크기 = 캔버스 너비 × 0.044</div>
+  <div class="ll-spec">
+    <div class="ll-spec-item"><span class="ll-thumb w176" data-color="teal"><span class="ll-thumb__canvas"><span class="ll-thumb__text">만복의 근원 하나님<br>온 백성 찬송 드리고</span></span><span class="ll-thumb__band"><span class="ll-thumb__num">1</span><span class="ll-thumb__label">1절</span></span></span><span class="ll-spec-label">너비 176, 글자 7.7px (6열)</span></div>
+    <div class="ll-spec-item"><span class="ll-thumb w270" data-color="teal"><span class="ll-thumb__canvas"><span class="ll-thumb__text">만복의 근원 하나님<br>온 백성 찬송 드리고</span></span><span class="ll-thumb__band"><span class="ll-thumb__num">1</span><span class="ll-thumb__label">1절</span></span></span><span class="ll-spec-label">너비 270, 글자 11.9px (4열, 보통 창 기본)</span></div>
+    <div class="ll-spec-item"><span class="ll-thumb w364" data-color="teal"><span class="ll-thumb__canvas"><span class="ll-thumb__text">만복의 근원 하나님<br>온 백성 찬송 드리고</span></span><span class="ll-thumb__band"><span class="ll-thumb__num">1</span><span class="ll-thumb__label">1절</span></span></span><span class="ll-spec-label">너비 364, 글자 16px (3열)</span></div>
+  </div>
+
+  <div class="ll-spec-title">격자, 열 수는 크기 슬라이더(2–8열), 틈 세로 16 가로 12, 안쪽 panel-inset 14</div>
+  <section class="ll-panel grid-panel" aria-label="슬라이드">
+    <div class="ll-panel__header"><span class="ll-panel__title"><span class="ll-panel__title-text">만복의 근원 하나님</span><span class="ll-panel__meta">5 / 9</span></span></div>
+    <div class="ll-panel__body">
+    <div class="ll-thumb-grid" style="--ll-cols: 4">
+      <button type="button" class="ll-thumb" data-color="teal"><span class="ll-thumb__canvas"><span class="ll-thumb__text">만복의 근원 하나님<br>온 백성 찬송 드리고</span></span><span class="ll-thumb__band"><span class="ll-thumb__num">1</span><span class="ll-thumb__label">1절</span></span></button>
+      <button type="button" class="ll-thumb" data-color="green"><span class="ll-thumb__canvas"><span class="ll-thumb__text">저 천사여 찬송하세<br>찬송 성부 성자 성령</span></span><span class="ll-thumb__band"><span class="ll-thumb__num">2</span><span class="ll-thumb__label">프리코러스</span></span></button>
+      <button type="button" class="ll-thumb" data-color="yellow"><span class="ll-thumb__canvas"><span class="ll-thumb__text">찬송 성부 성자 성령<br>아멘</span></span><span class="ll-thumb__band"><span class="ll-thumb__num">3</span><span class="ll-thumb__label">후렴</span></span></button>
+      <button type="button" class="ll-thumb"><span class="ll-thumb__canvas"><span class="ll-thumb__text">찬송 성부 성자 성령<br>만복의 근원 하나님</span></span><span class="ll-thumb__band"><span class="ll-thumb__num">4</span></span></button>
+      <button type="button" class="ll-thumb" data-color="green" data-state="live"><span class="ll-thumb__canvas"><span class="ll-thumb__text">저 천사여 찬송하세<br>찬송 성부 성자 성령</span></span><span class="ll-thumb__band"><span class="ll-thumb__num">5</span><span class="ll-thumb__label">프리코러스</span></span></button>
+      <button type="button" class="ll-thumb" data-color="yellow" aria-selected="true"><span class="ll-thumb__canvas"><span class="ll-thumb__text">찬송 성부 성자 성령<br>아멘</span></span><span class="ll-thumb__band"><span class="ll-thumb__num">6</span><span class="ll-thumb__label">후렴</span></span></button>
+      <button type="button" class="ll-thumb"><span class="ll-thumb__canvas"><span class="ll-thumb__text">찬송 성부 성자 성령<br>만복의 근원 하나님</span></span><span class="ll-thumb__band"><span class="ll-thumb__num">7</span></span></button>
+      <button type="button" class="ll-thumb" data-color="yellow"><span class="ll-thumb__canvas"><span class="ll-thumb__text">찬송 성부 성자 성령<br>아멘</span></span><span class="ll-thumb__band"><span class="ll-thumb__num">8</span><span class="ll-thumb__label">후렴</span></span></button>
+    </div>
+    </div>
+    <div class="ll-panel__footer"><span class="ll-panel__footer-end"><span class="ll-slider-row"><span class="ll-i ll-i-grid"></span><input type="range" class="ll-slider" min="2" max="8" step="1" value="6" style="--ll-value: 66.7%" aria-label="썸네일 크기"></span></span></div>
+  </section>
+
+</div>
+</body>
+</html>

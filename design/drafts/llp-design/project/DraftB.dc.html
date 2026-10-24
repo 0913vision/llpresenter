@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>시안 B 대기 송출 2단</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:"Pretendard Variable";src:url("/_blob/44ae4219c075570535882b3a34ea3567") format("woff2");font-weight:45 920;font-display:swap}
+body{margin:0;background:#161513}
+a{color:#7fb0e6}a:hover{color:#a9cbf0}
+input::placeholder{color:#8a8886}
+button{font:inherit;cursor:default}
+</style>
+</helmet>
+<div style="min-height: 900px; display: flex; flex-direction: column; background: #161513; color: #cccac8; font-family: 'Pretendard Variable', Pretendard, sans-serif; font-size: 13px; line-height: 18px; word-break: keep-all">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; min-height: 44px; padding: 8px 16px; box-sizing: border-box; background: #1d1c1a; border-bottom: 1px solid #413f3e">
+<span style="font-weight: 600; color: #f0eeec">LoveLight</span>
+<span style="font-size: 12px; color: #8a8886">주일 예배</span>
+<div style="flex: 1 1 280px; display: flex; justify-content: flex-end">
+<label for="search-b" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">검색</label>
+<input id="search-b" type="search" placeholder="곡 찾기" style="width: 100%; max-width: 280px; height: 28px; box-sizing: border-box; padding: 0 10px; background: #242321; border: 1px solid #413f3e; border-radius: 4px; color: #cccac8; font: inherit; font-size: 13px">
+</div>
+<button type="button" aria-pressed="true" style="display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 12px; background: #242321; border: 1px solid #d33a3c; border-radius: 4px; color: #f0eeec; font-size: 12px; font-weight: 500"><span style="width: 6px; height: 6px; border-radius: 50%; background: #d33a3c"></span>송출 중 · 화면 2개</button>
+</header>
+
+<div style="flex: 1; display: flex; flex-wrap: wrap; min-height: 0">
+
+<nav style="flex: 0 0 240px; height: 856px; display: flex; flex-direction: column; border-right: 1px solid #413f3e" aria-label="예배 순서와 미디어">
+<div style="display: flex; gap: 2px; padding: 4px; background: #1d1c1a; border-bottom: 1px solid #343331" role="tablist">
+<button type="button" role="tab" aria-selected="true" style="flex: 1; height: 24px; border: 0; border-radius: 3px; background: #343331; color: #f0eeec; font-size: 12px; font-weight: 500">예배 순서</button>
+<button type="button" role="tab" aria-selected="false" style="flex: 1; height: 24px; border: 0; border-radius: 3px; background: transparent; color: #a6a4a2; font-size: 12px; font-weight: 500">미디어</button>
+</div>
+<ol style="margin: 0; padding: 8px 0; list-style: none; display: flex; flex-direction: column">
+<sc-for list="{{ cues }}" as="q" hint-placeholder-count="6">
+<li>
+<button type="button" style="display: flex; align-items: flex-start; gap: 10px; width: 100%; padding: 8px 12px; border: 0; border-left: 2px solid {{ q.mark }}; background: {{ q.bg }}; color: {{ q.fg }}; text-align: left; font-size: 13px">
+<span style="min-width: 16px; font-size: 11px; line-height: 18px; color: #8a8886; font-variant-numeric: tabular-nums; text-align: right">{{ q.n }}</span>
+<span style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+<span style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis">{{ q.title }}</span>
+<span style="font-size: 11px; line-height: 14px; color: #8a8886">{{ q.meta }}</span>
+</span>
+</button>
+</li>
+</sc-for>
+</ol>
+</nav>
+
+<main style="flex: 999 1 560px; min-width: 0; height: 856px; display: flex; flex-direction: column">
+<section style="display: flex; flex-wrap: wrap; align-items: stretch; gap: 16px; padding: 16px; background: #0f0e0d; border-bottom: 1px solid #413f3e" aria-label="대기와 송출">
+<figure style="flex: 1 1 280px; margin: 0; display: flex; flex-direction: column; gap: 8px">
+<figcaption style="display: flex; align-items: center; gap: 8px; font-size: 12px">
+<span style="padding: 0 6px; border-radius: 2px; background: #5bbd74; color: #0f0e0d; font-size: 11px; line-height: 16px; font-weight: 600">대기</span>
+<span style="color: #a6a4a2">Chorus · 3 / 4</span>
+</figcaption>
+<div style="aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; padding: 0 32px; background: #22302f; border: 2px solid #5bbd74; border-radius: 4px; color: #fff; font-size: 17px; line-height: 25px; font-weight: 700; text-align: center; white-space: pre-line">찬송 성부 성자 성령
+아멘</div>
+</figure>
+<div style="flex: 0 0 112px; display: flex; flex-direction: column; justify-content: center; gap: 8px">
+<button type="button" style="height: 72px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; background: #242321; border: 1px solid #565553; border-radius: 4px; color: #f0eeec; font-size: 14px; font-weight: 600">송출<span style="font-size: 11px; font-weight: 500; color: #a6a4a2">Space</span></button>
+<p style="margin: 0; text-align: center; font-size: 11px; line-height: 15px; color: #8a8886">전환 · 디졸브 0.3초</p>
+</div>
+<figure style="flex: 1 1 280px; margin: 0; display: flex; flex-direction: column; gap: 8px">
+<figcaption style="display: flex; align-items: center; gap: 8px; font-size: 12px">
+<span style="padding: 0 6px; border-radius: 2px; background: #d33a3c; color: #fff; font-size: 11px; line-height: 16px; font-weight: 600">송출 중</span>
+<span style="color: #a6a4a2">Pre-chorus · 2 / 4 · 본 화면</span>
+</figcaption>
+<div style="aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; padding: 0 32px; background: #22302f; border: 2px solid #d33a3c; border-radius: 4px; color: #fff; font-size: 17px; line-height: 25px; font-weight: 700; text-align: center; white-space: pre-line">저 천사여 찬송하세
+찬송 성부 성자 성령</div>
+</figure>
+</section>
+<div style="display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; background: #1d1c1a; border-bottom: 1px solid #343331">
+<h1 style="margin: 0; font-size: 12px; font-weight: 600; color: #f0eeec">만복의 근원 하나님</h1>
+<span style="font-size: 12px; color: #8a8886">누르면 대기에 올라가요 · 두 번 누르면 바로 송출</span>
+</div>
+<div style="flex: 1; min-height: 0; overflow: auto; padding: 12px">
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 8px">
+<sc-for list="{{ slides }}" as="s" hint-placeholder-count="4">
+<button type="button" style="display: flex; flex-direction: column; padding: 0; background: #1d1c1a; border: 1px solid {{ s.border }}; box-shadow: 0 0 0 1px {{ s.ring }}; border-radius: 4px; overflow: hidden; text-align: left; color: inherit">
+<span style="display: flex; align-items: center; justify-content: center; aspect-ratio: 16 / 9; width: 100%; box-sizing: border-box; padding: 0 14px; background: #000; color: #fff; font-size: 9px; line-height: 14px; font-weight: 700; text-align: center; white-space: pre-line">{{ s.text }}</span>
+<span style="display: flex; align-items: center; gap: 8px; height: 24px; padding: 0 8px; border-top: 1px solid #343331; border-left: 3px solid {{ s.color }}">
+<span style="font-size: 11px; color: #8a8886; font-variant-numeric: tabular-nums">{{ s.n }}</span>
+<span style="font-size: 12px; font-weight: 500; color: {{ s.color }}">{{ s.group }}</span>
+<sc-if value="{{ s.hasTag }}" hint-placeholder-val="{{ false }}"><span style="margin-left: auto; padding: 0 4px; border-radius: 2px; background: {{ s.tagBg }}; color: {{ s.tagFg }}; font-size: 11px; line-height: 16px; font-weight: 600">{{ s.tag }}</span></sc-if>
+</span>
+</button>
+</sc-for>
+</div>
+</div>
+</main>
+
+<aside style="flex: 0 0 300px; height: 856px; display: flex; flex-direction: column; border-left: 1px solid #413f3e" aria-label="레이어와 출력 화면">
+<div style="display: flex; align-items: center; height: 32px; padding: 0 12px; background: #1d1c1a; border-bottom: 1px solid #343331">
+<h2 style="margin: 0; font-size: 12px; font-weight: 600; color: #cccac8">레이어</h2>
+</div>
+<ul style="margin: 0; padding: 0; list-style: none">
+<sc-for list="{{ layers }}" as="l" hint-placeholder-count="3">
+<li style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid #343331">
+<span style="width: 6px; height: 6px; border-radius: 50%; background: {{ l.dot }}" aria-hidden="true"></span>
+<span style="display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0">
+<span style="font-weight: 500; color: #f0eeec">{{ l.name }}</span>
+<span style="font-size: 12px; color: #8a8886; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">{{ l.content }}</span>
+</span>
+<button type="button" style="height: 28px; padding: 0 10px; background: #242321; border: 1px solid #413f3e; border-radius: 4px; color: #cccac8; font-size: 12px">지우기 <span style="color: #8a8886">{{ l.key }}</span></button>
+</li>
+</sc-for>
+</ul>
+<div style="padding: 12px">
+<button type="button" style="width: 100%; height: 44px; background: #242321; border: 1px solid #d33a3c; border-radius: 4px; color: #f0eeec; font-size: 13px; font-weight: 600">모두 지우기 <span style="font-weight: 500; color: #a6a4a2">F1</span></button>
+</div>
+<div style="display: flex; align-items: center; height: 32px; padding: 0 12px; margin-top: auto; background: #1d1c1a; border-top: 1px solid #413f3e; border-bottom: 1px solid #343331">
+<h2 style="margin: 0; font-size: 12px; font-weight: 600; color: #cccac8">출력 화면</h2>
+</div>
+<ul style="margin: 0; padding: 8px 12px 12px; list-style: none; display: flex; flex-direction: column; gap: 10px">
+<li style="display: flex; gap: 10px; align-items: center">
+<span style="flex: 0 0 104px; aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; background: #22302f; border: 1px solid #343331; border-radius: 3px; color: #fff; font-size: 5px; line-height: 8px; font-weight: 700; text-align: center; white-space: pre-line">저 천사여 찬송하세
+찬송 성부 성자 성령</span>
+<span style="display: flex; flex-direction: column; gap: 2px"><span style="color: #f0eeec">본 화면</span><span style="font-size: 12px; color: #8a8886">모니터 2 · 영상 + 가사</span></span>
+</li>
+<li style="display: flex; gap: 10px; align-items: center">
+<span style="flex: 0 0 104px; aspect-ratio: 16 / 9; box-sizing: border-box; padding: 5px 6px; background: #000; border: 1px solid #343331; border-radius: 3px; color: #fff; font-size: 5px; line-height: 7px; font-weight: 600; white-space: pre-line">저 천사여 찬송하세
+찬송 성부 성자 성령</span>
+<span style="display: flex; flex-direction: column; gap: 2px"><span style="color: #f0eeec">무대 화면</span><span style="font-size: 12px; color: #8a8886">창 모드 · 현재 / 다음</span></span>
+</li>
+</ul>
+</aside>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+const G = { verse: '#63bbc0', pre: '#9eb579', chorus: '#cba36d' };
+const cue = (n, title, meta, state) => {
+const s = state || 'idle';
+return {
+n: n, title: title, meta: meta,
+mark: s === 'live' ? '#d33a3c' : 'transparent',
+bg: s === 'live' ? '#1d1c1a' : 'transparent',
+fg: s === 'done' ? '#8a8886' : (s === 'live' ? '#f0eeec' : '#cccac8')
+};
+};
+const slide = (n, group, color, text, state) => {
+const live = state === 'live';
+const next = state === 'next';
+return {
+n: n, group: group, color: color, text: text,
+border: live ? '#d33a3c' : (next ? '#5bbd74' : '#343331'),
+ring: live ? '#d33a3c' : (next ? '#5bbd74' : 'transparent'),
+hasTag: live || next,
+tag: live ? 'LIVE' : '대기',
+tagBg: live ? '#d33a3c' : '#5bbd74',
+tagFg: live ? '#fff' : '#0f0e0d'
+};
+};
+return {
+cues: [
+cue(1, '예배 전 영상', '영상', 'done'),
+cue(2, '이 세상 험하고', '찬양 · 4장', 'done'),
+cue(3, '만복의 근원 하나님', '찬양 · 4장', 'live'),
+cue(4, '설교 본문', '말씀'),
+cue(5, '광고', '슬라이드'),
+cue(6, '축도', '슬라이드')
+],
+slides: [
+slide(1, 'Verse', G.verse, '만복의 근원 하나님\n온 백성 찬송 드리고'),
+slide(2, 'Pre-chorus', G.pre, '저 천사여 찬송하세\n찬송 성부 성자 성령', 'live'),
+slide(3, 'Chorus', G.chorus, '찬송 성부 성자 성령\n아멘', 'next'),
+slide(4, '', G.chorus, '찬송 성부 성자 성령\n만복의 근원 하나님')
+],
+layers: [
+{ name: '메시지', content: '비어 있음', key: 'F6', dot: '#565553' },
+{ name: '가사', content: '만복의 근원 하나님 · 2 / 4', key: 'F2', dot: '#d33a3c' },
+{ name: '미디어', content: '배경 영상 1 · 반복', key: 'F3', dot: '#d33a3c' }
+]
+};
+}
+}
+</script>
+</body>
+</html>

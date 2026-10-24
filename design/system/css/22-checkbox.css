@@ -1,0 +1,41 @@
+/* 22 Checkbox: 16px 체크 상자(ll-check)와 줄 전체가 눌리는 체크 줄(ll-check-row) */
+.ll-check, :is(.ll-root, .ll-preview) .ll-check {
+  box-sizing: border-box; flex: none; position: relative; display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; margin: 0; padding: 0; border: 0; border-radius: var(--radius-sm);
+  background: var(--bg-well); box-shadow: inset 0 0 0 1px var(--line-control); color: var(--text-on-fill);
+  vertical-align: middle;
+}
+.ll-check > .ll-i { display: none; width: var(--size-icon-12); height: var(--size-icon-12); }
+.ll-check[aria-checked="true"], .ll-check[aria-checked="mixed"] { background: var(--accent-fill); box-shadow: none; }
+.ll-check[aria-checked="true"] > .ll-i { display: inline-block; }
+.ll-check[aria-checked="mixed"]::after { content: ""; width: 8px; height: 2px; border-radius: 1px; background: currentColor; }
+.ll-check:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.ll-check:disabled { box-shadow: inset 0 0 0 1px var(--line-strong); color: var(--text-off); }
+.ll-check:disabled[aria-checked="true"], .ll-check:disabled[aria-checked="mixed"] { background: var(--bg-control); box-shadow: none; }
+
+/* 체크 줄: 30px, 상자와 다음 것 사이 10px. label로 감싸 줄 어디를 눌러도 바뀐다 */
+.ll-check-row {
+  box-sizing: border-box; display: flex; align-items: center; gap: var(--space-10);
+  min-width: 0; height: var(--size-row); padding: 0;
+  font-family: var(--font-ui); font-size: 13px; line-height: 18px; color: var(--text);
+  transition: background-color 100ms ease-out;
+}
+.ll-check-row__icon { flex: none; width: var(--size-icon-16); height: var(--size-icon-16); color: var(--text-2); }
+.ll-check-row__text { flex: 0 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.ll-check-row__text--fixed { flex: 0 0 168px; }
+.ll-check-row__value { flex: 1 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 12px; line-height: 16px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.ll-check-row__meta { flex: none; margin-left: auto; font-size: 11px; line-height: 14px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+
+/* 목록 안의 줄: 좌우 14px, hover bg-raised */
+.ll-check-row--list { padding: 0 var(--space-14); }
+.ll-check-row--list:hover, .ll-check-row--list.is-hover { background: var(--bg-raised); }
+/* 묶음 머리글 줄(트리의 부모) */
+.ll-check-row--group { font-size: 11px; line-height: 14px; font-weight: 600; color: var(--text-3); }
+
+.ll-check-row:has(> .ll-check:disabled) { color: var(--text-off); }
+.ll-check-row--list:has(> .ll-check:disabled):hover { background: transparent; }
+.ll-check-row:has(> .ll-check:disabled) .ll-check-row__icon,
+.ll-check-row:has(> .ll-check:disabled) .ll-check-row__value,
+.ll-check-row:has(> .ll-check:disabled) .ll-check-row__meta { color: var(--text-off); }
+
+@media (prefers-reduced-motion: reduce) { .ll-check-row { transition: none; } }

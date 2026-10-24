@@ -1,0 +1,23 @@
+/* 11 IconButton: 아이콘만 있는 투명 버튼. sm 26×26(기본) / md 30×30, 아이콘 16 */
+.ll-iconbtn, :is(.ll-root, .ll-preview) .ll-iconbtn {
+  box-sizing: border-box; display: inline-flex; flex: none; align-items: center; justify-content: center;
+  width: var(--size-control-sm); height: var(--size-control-sm); margin: 0; padding: 0;
+  border: 0; border-radius: var(--radius-md); background: transparent; color: var(--text-2);
+  font-family: var(--font-ui); font-size: 12px; line-height: 16px;
+  cursor: default; user-select: none; -webkit-user-select: none;
+  transition: background-color 100ms ease-out, color 100ms ease-out;
+}
+.ll-iconbtn .ll-i { width: var(--size-icon-16); height: var(--size-icon-16); }
+.ll-iconbtn.ll-iconbtn--md { width: var(--size-control-md); height: var(--size-control-md); }
+
+.ll-iconbtn:not(:disabled, [aria-disabled="true"]):is(:hover, .is-hover) { background: var(--bg-raised); }
+/* 누름, 켜짐(aria-pressed), 메뉴가 열림(aria-expanded) */
+.ll-iconbtn:not(:disabled, [aria-disabled="true"]):is(:active, .is-active),
+.ll-iconbtn.ll-iconbtn:is([aria-pressed="true"], [aria-expanded="true"]) { background: var(--bg-control-hover); color: var(--text); }
+
+.ll-iconbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.ll-iconbtn:focus:not(:focus-visible) { outline: none; }
+
+.ll-iconbtn.ll-iconbtn:is(:disabled, [aria-disabled="true"]) { background: transparent; color: var(--text-off); }
+
+@media (prefers-reduced-motion: reduce) { .ll-iconbtn, :is(.ll-root, .ll-preview) .ll-iconbtn { transition: none; } }

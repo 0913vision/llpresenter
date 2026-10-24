@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>문제 상황: 다시 시작</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:"Pretendard Variable";src:url("/_blob/44ae4219c075570535882b3a34ea3567") format("woff2");font-weight:45 920;font-display:swap}
+body{margin:0;background:#0e0e0e}
+button,input{font:inherit;cursor:default}
+input::placeholder{color:#8c8c8c}
+.hv:hover{background:#262626}
+.hvc:hover{background:#333333}
+.tb:hover{background:#232323}
+.tbd{box-shadow:0 0 0 2px #0e0e0e}
+.tb:hover .tbd{box-shadow:0 0 0 2px #232323}
+.th{box-shadow:none}
+.th:hover{box-shadow:0 0 0 1px #6e6e6e}
+.th[data-state=selected],.th[data-state=selected]:hover{box-shadow:0 0 0 2px #3d8bf0}
+.th[data-state=live],.th[data-state=live]:hover{box-shadow:0 0 0 3px #d2343a}
+.pvf{box-shadow:0 0 0 1px #2b2b2b}
+.pv:hover .pvf{box-shadow:0 0 0 1px #6e6e6e}
+.pvf[data-state=warning],.pv:hover .pvf[data-state=warning]{box-shadow:0 0 0 1px #e3a23b}
+.mt .mtt{box-shadow:none}
+.mt:hover .mtt{box-shadow:0 0 0 2px #1c1c1c,0 0 0 3px #6e6e6e}
+.mt[data-state=last-run] .mtt{box-shadow:0 0 0 2px #1c1c1c,0 0 0 4px #ececec}
+.mt[aria-selected=true] .mtt{box-shadow:0 0 0 2px #1c1c1c,0 0 0 4px #3d8bf0}
+.mtn:hover .mtt{background:#262626}
+input[type=range]{--ll-value:50%;-webkit-appearance:none;appearance:none;box-sizing:border-box;width:120px;height:16px;margin:0;padding:0;border:0;background:transparent;vertical-align:middle}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:9999px;background:linear-gradient(to right,#ececec 0 var(--ll-value),#3a3a3a var(--ll-value) 100%)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;box-sizing:border-box;width:12px;height:12px;margin-top:-4px;border:0;border-radius:50%;background:#ececec}
+input[type=range]:disabled::-webkit-slider-runnable-track{background:linear-gradient(to right,#6e6e6e 0 var(--ll-value),#3a3a3a var(--ll-value) 100%)}
+input[type=range]:disabled::-webkit-slider-thumb{background:#6e6e6e}
+.i{display:inline-block;flex:none;width:16px;height:16px;background-color:currentColor;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain}
+.i12{width:12px;height:12px}
+.i14{width:14px;height:14px}
+.i18{width:18px;height:18px}
+.i24{width:24px;height:24px}
+.i28{width:28px;height:28px}
+.i-song{-webkit-mask-image:url("/_blob/092e6bd96c603ecacf1c00ad0bbf748e");mask-image:url("/_blob/092e6bd96c603ecacf1c00ad0bbf748e")}
+.i-film{-webkit-mask-image:url("/_blob/d12ba04335e89ec2ac23de5b5dadf567");mask-image:url("/_blob/d12ba04335e89ec2ac23de5b5dadf567")}
+.i-image{-webkit-mask-image:url("/_blob/9d15cc9d2c473dc54657232c2c22a8c1");mask-image:url("/_blob/9d15cc9d2c473dc54657232c2c22a8c1")}
+.i-notice{-webkit-mask-image:url("/_blob/6b2eac21a222b4c93acf292071cab142");mask-image:url("/_blob/6b2eac21a222b4c93acf292071cab142")}
+.i-book{-webkit-mask-image:url("/_blob/e3e503de1d6d5ad2610069e5d01528c1");mask-image:url("/_blob/e3e503de1d6d5ad2610069e5d01528c1")}
+.i-msg{-webkit-mask-image:url("/_blob/e02523b5ae105efe6c86fc720a501e57");mask-image:url("/_blob/e02523b5ae105efe6c86fc720a501e57")}
+.i-prop{-webkit-mask-image:url("/_blob/68b060ad4ffc69c1338360ba8efe8a1f");mask-image:url("/_blob/68b060ad4ffc69c1338360ba8efe8a1f")}
+.i-audio{-webkit-mask-image:url("/_blob/dc05560aeb38844764508b2df7d96d6c");mask-image:url("/_blob/dc05560aeb38844764508b2df7d96d6c")}
+.i-monitor{-webkit-mask-image:url("/_blob/4596f5b35b01b97a40839716be255a9c");mask-image:url("/_blob/4596f5b35b01b97a40839716be255a9c")}
+.i-mplay{-webkit-mask-image:url("/_blob/031f927502f663ccac998d6fe5b98b1d");mask-image:url("/_blob/031f927502f663ccac998d6fe5b98b1d")}
+.i-capture{-webkit-mask-image:url("/_blob/a02b5557a5163772bc93ea2c2cb50327");mask-image:url("/_blob/a02b5557a5163772bc93ea2c2cb50327")}
+.i-search{-webkit-mask-image:url("/_blob/bbe74be6639a3b46c8c1503c6202be21");mask-image:url("/_blob/bbe74be6639a3b46c8c1503c6202be21")}
+.i-gear{-webkit-mask-image:url("/_blob/69e70c0d7363ab992c10c8d1b137af7a");mask-image:url("/_blob/69e70c0d7363ab992c10c8d1b137af7a")}
+.i-plus{-webkit-mask-image:url("/_blob/60593869febedd0f7cc96739b15ff702");mask-image:url("/_blob/60593869febedd0f7cc96739b15ff702")}
+.i-down{-webkit-mask-image:url("/_blob/fdede3cf9294bdfffe2831e4985b91ba");mask-image:url("/_blob/fdede3cf9294bdfffe2831e4985b91ba")}
+.i-right{-webkit-mask-image:url("/_blob/5249c813e7ba012f5c569e3c397de778");mask-image:url("/_blob/5249c813e7ba012f5c569e3c397de778")}
+.i-loop{-webkit-mask-image:url("/_blob/4afb40c8c3a4a9342611dfa4bc802b9a");mask-image:url("/_blob/4afb40c8c3a4a9342611dfa4bc802b9a")}
+.i-text{-webkit-mask-image:url("/_blob/fad9bd8182817dd8386ba2d9a4144a8a");mask-image:url("/_blob/fad9bd8182817dd8386ba2d9a4144a8a")}
+.i-undo{-webkit-mask-image:url("/_blob/a2058ad29839212362f1def041dbadbc");mask-image:url("/_blob/a2058ad29839212362f1def041dbadbc")}
+.i-folder{-webkit-mask-image:url("/_blob/236c73aa5600731e48757a0cf05cfe42");mask-image:url("/_blob/236c73aa5600731e48757a0cf05cfe42")}
+.i-x{-webkit-mask-image:url("/_blob/20ff3492ea768cacd467480e386ad17b");mask-image:url("/_blob/20ff3492ea768cacd467480e386ad17b")}
+.i-min{-webkit-mask-image:url("/_blob/8d63b8e1ce9257fb14f3127e569bfdd9");mask-image:url("/_blob/8d63b8e1ce9257fb14f3127e569bfdd9")}
+.i-max{-webkit-mask-image:url("/_blob/dfd093184afe9416f5bb254275395bb4");mask-image:url("/_blob/dfd093184afe9416f5bb254275395bb4")}
+.i-slides{-webkit-mask-image:url("/_blob/bedc5702dad0889627007797be138a91");mask-image:url("/_blob/bedc5702dad0889627007797be138a91")}
+.i-saved{-webkit-mask-image:url("/_blob/01da7eed53f9c4eb05f356a971869f1a");mask-image:url("/_blob/01da7eed53f9c4eb05f356a971869f1a")}
+.i-layers{-webkit-mask-image:url("/_blob/26735e490823c1caf40a326325857fb0");mask-image:url("/_blob/26735e490823c1caf40a326325857fb0")}
+.i-edit{-webkit-mask-image:url("/_blob/02e581d39b6e4686773acdbad7de4894");mask-image:url("/_blob/02e581d39b6e4686773acdbad7de4894")}
+.i-grid{-webkit-mask-image:url("/_blob/12440a2e5cf9c86989e4e10cb96385b0");mask-image:url("/_blob/12440a2e5cf9c86989e4e10cb96385b0")}
+.i-timer{-webkit-mask-image:url("/_blob/6b75efeb960a461bd13cd9f112aaa22e");mask-image:url("/_blob/6b75efeb960a461bd13cd9f112aaa22e")}
+.i-check{-webkit-mask-image:url("/_blob/9a89a2bff58b8395511703929514cb66");mask-image:url("/_blob/9a89a2bff58b8395511703929514cb66")}
+.i-grip{-webkit-mask-image:url("/_blob/adf12ef1071c6732b8adbd90b6b53029");mask-image:url("/_blob/adf12ef1071c6732b8adbd90b6b53029")}
+.i-more{-webkit-mask-image:url("/_blob/741a7bdb89a46c2b08b7993aef3595f9");mask-image:url("/_blob/741a7bdb89a46c2b08b7993aef3595f9")}
+.i-clock{-webkit-mask-image:url("/_blob/d849921f7532c4b3289a2b95beeddf24");mask-image:url("/_blob/d849921f7532c4b3289a2b95beeddf24")}
+.i-aleft{-webkit-mask-image:url("/_blob/c6adb26fe5c36eb302e8d78c2a71d02c");mask-image:url("/_blob/c6adb26fe5c36eb302e8d78c2a71d02c")}
+.i-acenter{-webkit-mask-image:url("/_blob/3916f14042df5bfa323beb82d7a4e10f");mask-image:url("/_blob/3916f14042df5bfa323beb82d7a4e10f")}
+.i-play{-webkit-mask-image:url("/_blob/dbc6266bf70afbe4c6a251234322ef84");mask-image:url("/_blob/dbc6266bf70afbe4c6a251234322ef84")}
+.i-pause{-webkit-mask-image:url("/_blob/75fca11ec9e9b1e77a2ee975bb6246ce");mask-image:url("/_blob/75fca11ec9e9b1e77a2ee975bb6246ce")}
+.i-playf{-webkit-mask-image:url("/_blob/7ff7f54d7e72c5d0a1e12cdd55d0dea9");mask-image:url("/_blob/7ff7f54d7e72c5d0a1e12cdd55d0dea9")}
+.i-pausef{-webkit-mask-image:url("/_blob/d105a8b2a530bc1e1e68c176c7f2afcc");mask-image:url("/_blob/d105a8b2a530bc1e1e68c176c7f2afcc")}
+.i-prev{-webkit-mask-image:url("/_blob/2de47db7bef436a4c73f50e02224a23b");mask-image:url("/_blob/2de47db7bef436a4c73f50e02224a23b")}
+.i-next{-webkit-mask-image:url("/_blob/9d17be870f23412d5273180a3aaa24d0");mask-image:url("/_blob/9d17be870f23412d5273180a3aaa24d0")}
+.i-send{-webkit-mask-image:url("/_blob/eb64b09fc82162120a1d36b708635a52");mask-image:url("/_blob/eb64b09fc82162120a1d36b708635a52")}
+.i-user{-webkit-mask-image:url("/_blob/c79c250b176fd30d1be7cfb0da5923e1");mask-image:url("/_blob/c79c250b176fd30d1be7cfb0da5923e1")}
+.i-warn{-webkit-mask-image:url("/_blob/0d34555750cd45ff01b4f5120b0ea2f8");mask-image:url("/_blob/0d34555750cd45ff01b4f5120b0ea2f8")}
+.i-macro{-webkit-mask-image:url("/_blob/721f34ba44aa8d9f4882bf2349cd2ac2");mask-image:url("/_blob/721f34ba44aa8d9f4882bf2349cd2ac2")}
+.i-eye{-webkit-mask-image:url("/_blob/48ce504b81032937bed7f9e546bbfa7a");mask-image:url("/_blob/48ce504b81032937bed7f9e546bbfa7a")}
+.i-eyeoff{-webkit-mask-image:url("/_blob/401f27618db8ad33e140decf9eed462d");mask-image:url("/_blob/401f27618db8ad33e140decf9eed462d")}
+.i-lock{-webkit-mask-image:url("/_blob/0882cf9f3620cf9ce560199d63609905");mask-image:url("/_blob/0882cf9f3620cf9ce560199d63609905")}
+.i-sliders{-webkit-mask-image:url("/_blob/89efa017d50b55fda0f8bf041e0f1e02");mask-image:url("/_blob/89efa017d50b55fda0f8bf041e0f1e02")}
+.i-wave{-webkit-mask-image:url("/_blob/363e645b929d957e1ed2d4f640cef5db");mask-image:url("/_blob/363e645b929d957e1ed2d4f640cef5db")}
+.i-cal{-webkit-mask-image:url("/_blob/9cbee7fd30cf3885c1738a4536ea7ef6");mask-image:url("/_blob/9cbee7fd30cf3885c1738a4536ea7ef6")}
+.i-rows{-webkit-mask-image:url("/_blob/8bbcc101a537d6fc78bc97267bd1bd34");mask-image:url("/_blob/8bbcc101a537d6fc78bc97267bd1bd34")}
+.i-link{-webkit-mask-image:url("/_blob/3f9809c521bcc49b863e2d7df3c0e7d5");mask-image:url("/_blob/3f9809c521bcc49b863e2d7df3c0e7d5")}
+.i-pray{-webkit-mask-image:url("/_blob/a94d767ef65baf4d297ba94950a8f7da");mask-image:url("/_blob/a94d767ef65baf4d297ba94950a8f7da")}
+.i-coins{-webkit-mask-image:url("/_blob/b39548d084b8f75aa903bff9ea27ee4e");mask-image:url("/_blob/b39548d084b8f75aa903bff9ea27ee4e")}
+.i-mic{-webkit-mask-image:url("/_blob/30ccef2a951169492c795ce4c2a09b24");mask-image:url("/_blob/30ccef2a951169492c795ce4c2a09b24")}
+.i-note{-webkit-mask-image:url("/_blob/46708e306efe909ebdd9d6d8a329ee6a");mask-image:url("/_blob/46708e306efe909ebdd9d6d8a329ee6a")}
+.i-stop{-webkit-mask-image:url("/_blob/abcd41b6ae1ed0dd1d6883e914a2063b");mask-image:url("/_blob/abcd41b6ae1ed0dd1d6883e914a2063b")}
+.i-sun{-webkit-mask-image:url("/_blob/2c8c0f1009c85cb856b86bc27d182e78");mask-image:url("/_blob/2c8c0f1009c85cb856b86bc27d182e78")}
+.i-eraser{-webkit-mask-image:url("/_blob/692dfe138a87aa771a652dee17c0471c");mask-image:url("/_blob/692dfe138a87aa771a652dee17c0471c")}
+.i-open{-webkit-mask-image:url("/_blob/5703b0bac8933bc9900033165c277ef2");mask-image:url("/_blob/5703b0bac8933bc9900033165c277ef2")}
+.i-warning{-webkit-mask-image:url("/_blob/fceec591119a8a5f4c070b3fba6760db");mask-image:url("/_blob/fceec591119a8a5f4c070b3fba6760db")}
+.i-plug{-webkit-mask-image:url("/_blob/cbb1592b8aa6edfcd80b90b521176e1f");mask-image:url("/_blob/cbb1592b8aa6edfcd80b90b521176e1f")}
+.i-filex{-webkit-mask-image:url("/_blob/5f65ad0963702fec4f2926c2ea0aff5f");mask-image:url("/_blob/5f65ad0963702fec4f2926c2ea0aff5f")}
+.i-refresh{-webkit-mask-image:url("/_blob/65eab3caa918183bad8610df67e6cb1a");mask-image:url("/_blob/65eab3caa918183bad8610df67e6cb1a")}
+.i-history{-webkit-mask-image:url("/_blob/a867801907f14d2b022e45d364e06eaf");mask-image:url("/_blob/a867801907f14d2b022e45d364e06eaf")}
+.i-folderopen{-webkit-mask-image:url("/_blob/d80725a49f82b68bc28c744977e85e15");mask-image:url("/_blob/d80725a49f82b68bc28c744977e85e15")}
+.i-download{-webkit-mask-image:url("/_blob/22d2befe43764b57b2eab33c0c88cbc2");mask-image:url("/_blob/22d2befe43764b57b2eab33c0c88cbc2")}
+.i-upload{-webkit-mask-image:url("/_blob/51b9b4232855ad8e062a46611b595f65");mask-image:url("/_blob/51b9b4232855ad8e062a46611b595f65")}
+.i-filetext{-webkit-mask-image:url("/_blob/20270d968b2a045648f3e2350399f8a7");mask-image:url("/_blob/20270d968b2a045648f3e2350399f8a7")}
+.i-fileppt{-webkit-mask-image:url("/_blob/92f9c6698a3333e8099348783ca1980b");mask-image:url("/_blob/92f9c6698a3333e8099348783ca1980b")}
+.i-keyboard{-webkit-mask-image:url("/_blob/05eda8a4cfecb57f7571d27f7d3661c1");mask-image:url("/_blob/05eda8a4cfecb57f7571d27f7d3661c1")}
+.i-laptop{-webkit-mask-image:url("/_blob/182116a97452f14985196942e50d63ed");mask-image:url("/_blob/182116a97452f14985196942e50d63ed")}
+.i-copy{-webkit-mask-image:url("/_blob/5e5f4aa71701fa4a852863d3a50eb63e");mask-image:url("/_blob/5e5f4aa71701fa4a852863d3a50eb63e")}
+.i-calplus{-webkit-mask-image:url("/_blob/f387fc743a44bd67dede0acfbba31e8e");mask-image:url("/_blob/f387fc743a44bd67dede0acfbba31e8e")}
+.i-trash{-webkit-mask-image:url("/_blob/bddecde2de4f2a3d3147ba33f66c6d73");mask-image:url("/_blob/bddecde2de4f2a3d3147ba33f66c6d73")}
+.i-checkc{-webkit-mask-image:url("/_blob/0139b06cc10282e835092bea17c7dde9");mask-image:url("/_blob/0139b06cc10282e835092bea17c7dde9")}
+.i-info{-webkit-mask-image:url("/_blob/55cb2afabbc41bf4c15197306afc7e5a");mask-image:url("/_blob/55cb2afabbc41bf4c15197306afc7e5a")}
+.i-textaa{-webkit-mask-image:url("/_blob/fe07d775a12a51d8ac4242d9a8b15db4");mask-image:url("/_blob/fe07d775a12a51d8ac4242d9a8b15db4")}
+.i-frame{-webkit-mask-image:url("/_blob/fdbaf2404af13384af4a18f43d43ab8f");mask-image:url("/_blob/fdbaf2404af13384af4a18f43d43ab8f")}
+.i-translate{-webkit-mask-image:url("/_blob/1dcabf18a0c6913f37de4f9a9becc02f");mask-image:url("/_blob/1dcabf18a0c6913f37de4f9a9becc02f")}
+.i-arrow{-webkit-mask-image:url("/_blob/b34cca8935965d99e7938be79c5846fa");mask-image:url("/_blob/b34cca8935965d99e7938be79c5846fa")}
+.i-bookmark{-webkit-mask-image:url("/_blob/d05a22072fff73b94ff7c858bbd282c2");mask-image:url("/_blob/d05a22072fff73b94ff7c858bbd282c2")}
+.i-listplus{-webkit-mask-image:url("/_blob/aa29172410c2dcde66e3e6c8c557dc44");mask-image:url("/_blob/aa29172410c2dcde66e3e6c8c557dc44")}
+.i-drives{-webkit-mask-image:url("/_blob/bec23bbf58a0b70c5abca248cf8e3b00");mask-image:url("/_blob/bec23bbf58a0b70c5abca248cf8e3b00")}
+.i-plugs{-webkit-mask-image:url("/_blob/b78ff4652eda39bb8565f8699dcbb313");mask-image:url("/_blob/b78ff4652eda39bb8565f8699dcbb313")}
+</style>
+</helmet>
+<div style="position: relative; width: 1920px; height: 1080px; display: flex; flex-direction: column; background: #0e0e0e; color: #ececec; font-family: 'Pretendard Variable', Pretendard, sans-serif; font-size: 13px; line-height: 18px; word-break: keep-all; -webkit-font-smoothing: antialiased; overflow: hidden">
+
+<div style="position: relative; flex: none; height: 30px; display: flex; align-items: center; padding-left: 12px; background: #0e0e0e">
+<span style="margin-right: 14px; font-size: 12px; font-weight: 700; letter-spacing: -0.01em">LoveLight</span>
+<nav style="display: flex; font-size: 12px; color: #b4b4b4" aria-label="메뉴">
+<button type="button" class="hv" style="height: 24px; padding: 0 9px; border: 0; border-radius: 3px; background: transparent; color: inherit">파일</button>
+<button type="button" class="hv" style="height: 24px; padding: 0 9px; border: 0; border-radius: 3px; background: transparent; color: inherit">편집</button>
+<button type="button" class="hv" style="height: 24px; padding: 0 9px; border: 0; border-radius: 3px; background: transparent; color: inherit">보기</button>
+<button type="button" class="hv" style="height: 24px; padding: 0 9px; border: 0; border-radius: 3px; background: transparent; color: inherit">출력</button>
+<button type="button" class="hv" style="height: 24px; padding: 0 9px; border: 0; border-radius: 3px; background: transparent; color: inherit">창</button>
+<button type="button" class="hv" style="height: 24px; padding: 0 9px; border: 0; border-radius: 3px; background: transparent; color: inherit">도움말</button>
+</nav>
+<span style="position: absolute; left: 50%; transform: translateX(-50%); font-size: 12px; color: #8c8c8c">주일 예배</span>
+<span style="margin-left: auto; display: flex">
+<button type="button" class="hv" aria-label="최소화" style="width: 46px; height: 30px; border: 0; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i14 i-min"></span></button>
+<button type="button" class="hv" aria-label="최대화" style="width: 46px; height: 30px; border: 0; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i14 i-max"></span></button>
+<button type="button" class="hv" aria-label="닫기" style="width: 46px; height: 30px; border: 0; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i14 i-x"></span></button>
+</span>
+</div>
+
+<header style="flex: none; height: 56px; display: flex; align-items: center; gap: 6px; padding: 0 4px">
+<button type="button" class="tb" aria-pressed="true" style="width: 64px; height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 0; border-radius: 5px; background: #262626; color: #ececec; font-size: 11px; font-weight: 500"><span class="i i18 i-slides"></span>진행</button>
+<button type="button" class="tb" style="width: 64px; height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 0; border-radius: 5px; background: transparent; color: #8c8c8c; font-size: 11px; font-weight: 500"><span class="i i18 i-edit"></span>준비</button>
+<button type="button" class="tb" style="width: 64px; height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 0; border-radius: 5px; background: transparent; color: #8c8c8c; font-size: 11px; font-weight: 500"><span class="i i18 i-gear"></span>화면 설정</button>
+<span style="width: 1px; height: 24px; margin: 0 8px; background: #2b2b2b"></span>
+<button type="button" class="tb" style="width: 64px; height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 0; border-radius: 5px; background: transparent; color: #8c8c8c; font-size: 11px; font-weight: 500"><span class="i i18 i-film"></span>미디어</button>
+<div style="flex: 1; display: flex; justify-content: center">
+<span style="display: flex; align-items: center; gap: 8px; width: 420px; height: 30px; padding: 0 10px; box-sizing: border-box; border-radius: 4px; background: #121212; box-shadow: inset 0 0 0 1px #2b2b2b; color: #8c8c8c"><span class="i i-search"></span><input aria-label="검색" placeholder="곡, 가사, 초성" style="flex: 1; min-width: 0; height: 28px; padding: 0; border: 0; background: transparent; color: #ececec; font-size: 13px"></span>
+</div>
+<button type="button" class="tb" style="height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 0 12px; border: 0; border-radius: 5px; background: transparent; color: #ececec; font-size: 11px; font-weight: 500"><span style="display: inline-flex; align-items: center; gap: 4px"><span class="i i18 i-layers"></span><span class="i i12 i-down" style="color: #8c8c8c"></span></span>평상시</button>
+<span style="width: 1px; height: 24px; margin: 0 8px; background: #2b2b2b"></span>
+<button type="button" class="tb" aria-pressed="false" title="본 화면 출력 켜기" style="min-width: 64px; height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 0 8px; border: 0; border-radius: 5px; background: transparent; color: #6e6e6e; font-size: 11px; font-weight: 500"><span style="position: relative; display: inline-flex"><span class="i i18 i-mplay"></span></span>본 화면</button>
+<button type="button" class="tb" aria-pressed="false" title="무대 출력 켜기" style="min-width: 64px; height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 0 8px; border: 0; border-radius: 5px; background: transparent; color: #6e6e6e; font-size: 11px; font-weight: 500"><span style="position: relative; display: inline-flex"><span class="i i18 i-mplay"></span></span>무대</button>
+<button type="button" class="tb" aria-pressed="false" title="방송 자막 출력 켜기" style="min-width: 64px; height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 0 8px; border: 0; border-radius: 5px; background: transparent; color: #6e6e6e; font-size: 11px; font-weight: 500"><span style="position: relative; display: inline-flex"><span class="i i18 i-capture"></span></span>방송 자막</button>
+</header>
+
+<div style="flex: 1; min-height: 0; display: flex; gap: 4px; padding: 0 4px">
+<div style="flex: 0 0 280px; display: flex; flex-direction: column; gap: 4px">
+<section style="flex: 1; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-hidden="true">
+<div style="box-sizing: border-box; height: 34px; display: flex; align-items: center; padding: 0 8px 0 14px; border-bottom: 1px solid #2b2b2b"><span style="font-size: 12px; font-weight: 600; line-height: 31px; border-bottom: 2px solid #ececec">예배 순서</span></div>
+</section>
+<section style="flex: 0 0 300px; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-hidden="true">
+<div style="box-sizing: border-box; height: 34px; display: flex; align-items: center; padding: 0 8px 0 14px; border-bottom: 1px solid #2b2b2b"><span style="font-size: 12px; font-weight: 600; line-height: 31px; border-bottom: 2px solid #ececec">퀵 실행</span></div>
+</section>
+</div>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<section style="flex: 1; background: #1c1c1c; border-radius: 5px" aria-hidden="true"></section>
+<section style="flex: 0 0 170px; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-hidden="true">
+<div style="box-sizing: border-box; height: 34px; display: flex; align-items: center; padding: 0 8px 0 14px; border-bottom: 1px solid #2b2b2b"><span style="font-size: 12px; font-weight: 600; line-height: 31px; border-bottom: 2px solid #ececec">미디어</span></div>
+</section>
+</div>
+<div style="flex: 0 0 480px; display: flex; flex-direction: column; gap: 4px">
+<section style="flex: 0 0 499px; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-hidden="true">
+<div style="box-sizing: border-box; height: 34px; display: flex; align-items: center; padding: 0 8px 0 14px; border-bottom: 1px solid #2b2b2b"><span style="font-size: 12px; font-weight: 600; line-height: 31px; border-bottom: 2px solid #ececec">미리보기</span></div>
+<div style="margin: 14px; aspect-ratio: 16 / 9; border-radius: 4px; background: #000; box-shadow: 0 0 0 1px #2b2b2b"></div>
+</section>
+<section style="flex: 0 0 68px; background: #1c1c1c; border-radius: 5px" aria-hidden="true"></section>
+<section style="flex: 1; background: #1c1c1c; border-radius: 5px" aria-hidden="true"></section>
+</div>
+</div>
+
+<footer style="flex: none; height: 28px; display: flex; align-items: center; gap: 18px; padding: 0 18px; font-size: 11px; color: #8c8c8c">
+<span style="margin-left: auto; display: inline-flex; align-items: center; gap: 6px; color: #6e6e6e">본 화면</span>
+<span style="display: inline-flex; align-items: center; gap: 6px; color: #6e6e6e">무대 화면</span>
+<span style="display: inline-flex; align-items: center; gap: 6px; color: #6e6e6e">방송 자막</span>
+</footer>
+
+<div style="position: absolute; left: 0; right: 0; top: 30px; bottom: 0; background: rgba(0, 0, 0, 0.6)"></div>
+
+<section role="dialog" aria-label="출력 상태 복구" style="position: absolute; left: 50%; top: calc(50% + 15px); transform: translate(-50%, -50%); width: 600px; display: flex; flex-direction: column; background: #1f1f1f; border-radius: 8px; box-shadow: 0 0 0 1px #3a3a3a, 0 16px 48px rgba(0, 0, 0, 0.6); overflow: hidden">
+<div style="display: flex; align-items: flex-start; gap: 14px; padding: 20px 20px 16px">
+<span style="flex: none; width: 40px; height: 40px; border-radius: 5px; background: #1c1c1c; display: inline-flex; align-items: center; justify-content: center; color: #b4b4b4"><span class="i i24 i-history"></span></span>
+<span style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 16px; line-height: 22px; font-weight: 600">출력 상태 복구</span>
+<span style="display: flex; gap: 10px; font-size: 12px; color: #8c8c8c; font-variant-numeric: tabular-nums"><span>비정상 종료</span><span>10월 25일 오전 11:26</span></span>
+</span>
+</div>
+
+<div style="padding: 0 20px">
+<p style="margin: 0; padding: 10px 0 5px; border-top: 1px solid #2b2b2b; font-size: 11px; line-height: 14px; font-weight: 600; color: #8c8c8c">복구할 상태</p>
+<sc-for list="{{ restore }}" as="r" hint-placeholder-count="4">
+<div style="display: flex; align-items: center; gap: 10px; height: 30px">
+<span role="checkbox" aria-checked="true" style="flex: none; width: 16px; height: 16px; border-radius: 3px; background: #2a70dc; display: inline-flex; align-items: center; justify-content: center; color: #fff"><span class="i i12 i-check"></span></span>
+<span style="display: inline-flex; color: #b4b4b4">
+<sc-if value="{{ r.isOrder }}" hint-placeholder-val="{{ true }}"><span class="i i-rows"></span></sc-if>
+<sc-if value="{{ r.isOut }}" hint-placeholder-val="{{ false }}"><span class="i i-mplay"></span></sc-if>
+<sc-if value="{{ r.isSlide }}" hint-placeholder-val="{{ false }}"><span class="i i-slides"></span></sc-if>
+<sc-if value="{{ r.isOver }}" hint-placeholder-val="{{ false }}"><span class="i i-layers"></span></sc-if>
+</span>
+<span style="flex: 0 0 168px; font-size: 13px">{{ r.label }}</span>
+<span style="flex: 1; min-width: 0; font-size: 12px; color: #8c8c8c; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-variant-numeric: tabular-nums">{{ r.value }}</span>
+</div>
+</sc-for>
+</div>
+
+<div style="display: flex; align-items: center; gap: 8px; padding: 20px 20px 16px">
+<button type="button" class="hvc" style="margin-left: auto; height: 30px; padding: 0 14px; border: 0; border-radius: 4px; background: #2a2a2a; color: #ececec; font-size: 13px">새로 시작</button>
+<button type="button" style="height: 30px; padding: 0 14px; border: 0; border-radius: 4px; background: #2a70dc; color: #fff; font-size: 13px; font-weight: 600">복구</button>
+</div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1920,"height":1080}}'>
+class Component extends DCLogic {
+renderVals() {
+const r = (kind, label, value) => ({ isOrder: kind === 'order', isOut: kind === 'out', isSlide: kind === 'slide', isOver: kind === 'over', label: label, value: value });
+return {
+restore: [
+r('out', '화면 출력', '본 화면, 무대 화면, 방송 자막'),
+r('slide', '마지막 장', '만복의 근원 하나님  2 / 9'),
+r('over', '표시 중이던 항목', '메시지 1, 소품 1, 무대 메시지 1')
+]
+};
+}
+}
+</script>
+</body>
+</html>

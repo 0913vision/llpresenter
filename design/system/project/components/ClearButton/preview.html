@@ -1,0 +1,87 @@
+<!-- @dsCard group="버튼" height=600 -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>ClearButton</title>
+<style>
+.pv-group { display: flex; flex-direction: column; gap: 12px; }
+</style>
+</head>
+<body>
+<div class="ll-preview">
+
+<div class="pv-group">
+<div class="ll-spec-title">지우기 줄, 보통 창(열 480), 안쪽 8, 사이 4, 모두는 1.4배</div>
+<div class="ll-spec">
+<div class="ll-spec-item">
+<div class="ll-clear-row" role="group" aria-label="지우기" style="width: var(--col-right)">
+<button type="button" class="ll-clear ll-clear--all" aria-label="모두 지우기" aria-keyshortcuts="F1" title="모두 지우기 F1"><span class="ll-i ll-i-layers"></span><span class="ll-clear__label">모두</span></button>
+<button type="button" class="ll-clear" aria-label="가사 지우기" aria-keyshortcuts="F2" title="가사 지우기 F2"><span class="ll-i ll-i-text"></span><span class="ll-clear__label">가사</span></button>
+<button type="button" class="ll-clear" aria-label="미디어 지우기" aria-keyshortcuts="F3" title="미디어 지우기 F3"><span class="ll-i ll-i-image"></span><span class="ll-clear__label">미디어</span></button>
+<button type="button" class="ll-clear" aria-label="소품 지우기" aria-keyshortcuts="F4" title="소품 지우기 F4"><span class="ll-i ll-i-prop"></span><span class="ll-clear__label">소품</span></button>
+<button type="button" class="ll-clear" aria-label="오디오 지우기" aria-keyshortcuts="F5" title="오디오 지우기 F5" data-state="off" aria-disabled="true"><span class="ll-i ll-i-audio"></span><span class="ll-clear__label">오디오</span></button>
+<button type="button" class="ll-clear" aria-label="메시지 지우기" aria-keyshortcuts="F6" title="메시지 지우기 F6"><span class="ll-i ll-i-msg"></span><span class="ll-clear__label">메시지</span></button>
+<button type="button" class="ll-clear" aria-label="공지 지우기" aria-keyshortcuts="F7" title="공지 지우기 F7" data-state="off" aria-disabled="true"><span class="ll-i ll-i-notice"></span><span class="ll-clear__label">공지</span></button>
+<span class="ll-clear-row__divider"></span>
+<button type="button" class="ll-clear ll-clear--undo" aria-label="되돌리기" aria-keyshortcuts="Control+Z" title="되돌리기 Ctrl Z"><span class="ll-i ll-i-undo"></span><span class="ll-clear__label">되돌림</span></button>
+</div>
+<span class="ll-spec-label">출력 중, 오디오와 공지는 지울 것 없음</span></div>
+<div class="ll-spec-item">
+<div class="ll-clear-row" role="group" aria-label="지우기" style="width: var(--col-right)">
+<button type="button" class="ll-clear ll-clear--all" aria-label="모두 지우기" aria-keyshortcuts="F1" title="모두 지우기 F1" data-state="off" aria-disabled="true"><span class="ll-i ll-i-layers"></span><span class="ll-clear__label">모두</span></button>
+<button type="button" class="ll-clear" aria-label="가사 지우기" aria-keyshortcuts="F2" title="가사 지우기 F2" data-state="off" aria-disabled="true"><span class="ll-i ll-i-text"></span><span class="ll-clear__label">가사</span></button>
+<button type="button" class="ll-clear" aria-label="미디어 지우기" aria-keyshortcuts="F3" title="미디어 지우기 F3" data-state="off" aria-disabled="true"><span class="ll-i ll-i-image"></span><span class="ll-clear__label">미디어</span></button>
+<button type="button" class="ll-clear" aria-label="소품 지우기" aria-keyshortcuts="F4" title="소품 지우기 F4" data-state="off" aria-disabled="true"><span class="ll-i ll-i-prop"></span><span class="ll-clear__label">소품</span></button>
+<button type="button" class="ll-clear" aria-label="오디오 지우기" aria-keyshortcuts="F5" title="오디오 지우기 F5" data-state="off" aria-disabled="true"><span class="ll-i ll-i-audio"></span><span class="ll-clear__label">오디오</span></button>
+<button type="button" class="ll-clear" aria-label="메시지 지우기" aria-keyshortcuts="F6" title="메시지 지우기 F6" data-state="off" aria-disabled="true"><span class="ll-i ll-i-msg"></span><span class="ll-clear__label">메시지</span></button>
+<button type="button" class="ll-clear" aria-label="공지 지우기" aria-keyshortcuts="F7" title="공지 지우기 F7" data-state="off" aria-disabled="true"><span class="ll-i ll-i-notice"></span><span class="ll-clear__label">공지</span></button>
+<span class="ll-clear-row__divider"></span>
+<button type="button" class="ll-clear ll-clear--undo" aria-label="되돌리기" aria-keyshortcuts="Control+Z" title="되돌리기 Ctrl Z"><span class="ll-i ll-i-undo"></span><span class="ll-clear__label">되돌림</span></button>
+</div>
+<span class="ll-spec-label">모두 지운 뒤, 되돌림만 쓸 수 있음</span></div>
+</div>
+</div>
+
+<div class="pv-group">
+<div class="ll-spec-title">버튼 하나, 52, 아이콘 18 위 caption-strong</div>
+<div class="ll-spec ll-on-panel">
+<div class="ll-spec-item"><div style="display: flex; width: 60px"><button type="button" class="ll-clear" aria-label="가사 지우기" aria-keyshortcuts="F2" title="가사 지우기 F2"><span class="ll-i ll-i-text"></span><span class="ll-clear__label">가사</span></button></div><span class="ll-spec-label">지울 것 있음</span></div>
+<div class="ll-spec-item"><div style="display: flex; width: 60px"><button type="button" class="ll-clear is-hover" aria-label="가사 지우기" aria-keyshortcuts="F2" title="가사 지우기 F2"><span class="ll-i ll-i-text"></span><span class="ll-clear__label">가사</span></button></div><span class="ll-spec-label">마우스 올림</span></div>
+<div class="ll-spec-item"><div style="display: flex; width: 60px"><button type="button" class="ll-clear is-active" aria-label="가사 지우기" aria-keyshortcuts="F2" title="가사 지우기 F2"><span class="ll-i ll-i-text"></span><span class="ll-clear__label">가사</span></button></div><span class="ll-spec-label">누름</span></div>
+<div class="ll-spec-item"><div style="display: flex; width: 60px"><button type="button" class="ll-clear is-focus" aria-label="가사 지우기" aria-keyshortcuts="F2" title="가사 지우기 F2"><span class="ll-i ll-i-text"></span><span class="ll-clear__label">가사</span></button></div><span class="ll-spec-label">포커스</span></div>
+<div class="ll-spec-item"><div style="display: flex; width: 60px"><button type="button" class="ll-clear" aria-label="가사 지우기" aria-keyshortcuts="F2" title="가사 지우기 F2" data-state="off" aria-disabled="true"><span class="ll-i ll-i-text"></span><span class="ll-clear__label">가사</span></button></div><span class="ll-spec-label">지울 것 없음</span></div>
+<div class="ll-spec-item"><div style="display: flex; width: 60px"><button type="button" class="ll-clear is-hover" aria-label="가사 지우기" aria-keyshortcuts="F2" title="가사 지우기 F2" data-state="off" aria-disabled="true"><span class="ll-i ll-i-text"></span><span class="ll-clear__label">가사</span></button></div><span class="ll-spec-label">없음 + 마우스 올림</span></div>
+<div class="ll-spec-item"><div style="display: flex; width: 60px"><button type="button" class="ll-clear ll-clear--undo" aria-label="되돌리기" aria-keyshortcuts="Control+Z" title="되돌리기 Ctrl Z"><span class="ll-i ll-i-undo"></span><span class="ll-clear__label">되돌림</span></button></div><span class="ll-spec-label">되돌림</span></div>
+<div class="ll-spec-item"><div style="display: flex; width: 60px"><button type="button" class="ll-clear ll-clear--undo is-hover" aria-label="되돌리기" aria-keyshortcuts="Control+Z" title="되돌리기 Ctrl Z"><span class="ll-i ll-i-undo"></span><span class="ll-clear__label">되돌림</span></button></div><span class="ll-spec-label">되돌림 마우스 올림</span></div>
+<div class="ll-spec-item"><div style="display: flex; width: 60px"><button type="button" class="ll-clear ll-clear--undo" aria-label="되돌리기" aria-keyshortcuts="Control+Z" title="되돌리기 Ctrl Z" data-state="off" aria-disabled="true"><span class="ll-i ll-i-undo"></span><span class="ll-clear__label">되돌림</span></button></div><span class="ll-spec-label">되돌릴 것 없음</span></div>
+</div>
+<div class="ll-spec">
+<div class="ll-spec-item"><span class="ll-tooltip">가사 지우기<span class="ll-tooltip__key">F2</span></span><span class="ll-spec-label">툴팁, 이름과 단축키</span></div>
+<div class="ll-spec-item"><span class="ll-tooltip">모두 지우기<span class="ll-tooltip__key">F1</span></span><span class="ll-spec-label">모두</span></div>
+<div class="ll-spec-item"><span class="ll-tooltip">되돌리기<span class="ll-tooltip__key">Ctrl Z</span></span><span class="ll-spec-label">되돌림</span></div>
+</div>
+</div>
+
+<div class="pv-group">
+<div class="ll-spec-title">좁은 창, 열 360, 버튼 40, 아이콘 16만, 안쪽 6</div>
+<div class="ll-spec">
+<div class="ll-spec-item">
+<div class="ll-clear-row ll-clear-row--compact" role="group" aria-label="지우기" style="width: var(--col-right-compact)">
+<button type="button" class="ll-clear ll-clear--all" aria-label="모두 지우기" aria-keyshortcuts="F1" title="모두 지우기 F1"><span class="ll-i ll-i-layers"></span><span class="ll-clear__label">모두</span></button>
+<button type="button" class="ll-clear" aria-label="가사 지우기" aria-keyshortcuts="F2" title="가사 지우기 F2"><span class="ll-i ll-i-text"></span><span class="ll-clear__label">가사</span></button>
+<button type="button" class="ll-clear" aria-label="미디어 지우기" aria-keyshortcuts="F3" title="미디어 지우기 F3"><span class="ll-i ll-i-image"></span><span class="ll-clear__label">미디어</span></button>
+<button type="button" class="ll-clear" aria-label="소품 지우기" aria-keyshortcuts="F4" title="소품 지우기 F4"><span class="ll-i ll-i-prop"></span><span class="ll-clear__label">소품</span></button>
+<button type="button" class="ll-clear" aria-label="오디오 지우기" aria-keyshortcuts="F5" title="오디오 지우기 F5" data-state="off" aria-disabled="true"><span class="ll-i ll-i-audio"></span><span class="ll-clear__label">오디오</span></button>
+<button type="button" class="ll-clear" aria-label="메시지 지우기" aria-keyshortcuts="F6" title="메시지 지우기 F6"><span class="ll-i ll-i-msg"></span><span class="ll-clear__label">메시지</span></button>
+<button type="button" class="ll-clear" aria-label="공지 지우기" aria-keyshortcuts="F7" title="공지 지우기 F7" data-state="off" aria-disabled="true"><span class="ll-i ll-i-notice"></span><span class="ll-clear__label">공지</span></button>
+<span class="ll-clear-row__divider"></span>
+<button type="button" class="ll-clear ll-clear--undo" aria-label="되돌리기" aria-keyshortcuts="Control+Z" title="되돌리기 Ctrl Z"><span class="ll-i ll-i-undo"></span><span class="ll-clear__label">되돌림</span></button>
+</div>
+<span class="ll-spec-label">이름은 툴팁과 aria-label로</span></div>
+</div>
+</div>
+
+</div>
+</body>
+</html>

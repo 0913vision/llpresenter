@@ -1,0 +1,580 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-10-23T13:40:00Z"
+  },
+  "title": "LoveLight Presenter 시안",
+  "launch": {
+    "view": "canvas",
+    "page": "v2"
+  },
+  "pages": [
+    {
+      "id": "v2",
+      "name": "시안"
+    },
+    {
+      "id": "backup",
+      "name": "백업"
+    }
+  ],
+  "boards": {
+    "Main.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 7500,
+      "title": "진행 보고",
+      "expand": "fill",
+      "page": "v2"
+    },
+    "ShowH.dc.html": {
+      "x": 1360,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "진행 화면",
+      "is_interactive": true,
+      "page": "v2"
+    },
+    "Reflow.dc.html": {
+      "x": 3360,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "준비 화면: 라이브러리 곡",
+      "page": "v2"
+    },
+    "Screens.dc.html": {
+      "x": 7360,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "화면 설정",
+      "page": "v2"
+    },
+    "Looks.dc.html": {
+      "x": 9360,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "Look 편집",
+      "page": "v2"
+    },
+    "Overlays.dc.html": {
+      "x": 1360,
+      "y": 1500,
+      "w": 2000,
+      "h": 830,
+      "title": "진행 도구",
+      "page": "v2"
+    },
+    "Outputs.dc.html": {
+      "x": 5300,
+      "y": 1500,
+      "w": 1920,
+      "h": 860,
+      "title": "세 화면의 실제 출력",
+      "page": "v2"
+    },
+    "ShowE.dc.html": {
+      "x": 1360,
+      "y": 2600,
+      "w": 1920,
+      "h": 1080,
+      "title": "진행 화면 이전 안",
+      "is_interactive": true,
+      "page": "backup"
+    },
+    "ShowP.dc.html": {
+      "x": 3360,
+      "y": 2600,
+      "w": 1920,
+      "h": 1080,
+      "title": "진행 화면 프로프리젠터식 배치",
+      "is_interactive": true,
+      "page": "backup"
+    },
+    "LabelPicker.dc.html": {
+      "x": 5360,
+      "y": 2600,
+      "w": 820,
+      "h": 720,
+      "title": "이름표와 색 고르기 1차",
+      "page": "backup"
+    },
+    "ReflowV1.dc.html": {
+      "x": 1360,
+      "y": 3900,
+      "w": 1920,
+      "h": 1080,
+      "title": "준비 화면 1차",
+      "page": "backup"
+    },
+    "ScreensV1.dc.html": {
+      "x": 3360,
+      "y": 3900,
+      "w": 1920,
+      "h": 1080,
+      "title": "화면 설정과 Look 1차",
+      "page": "backup"
+    },
+    "OverlaysV1.dc.html": {
+      "x": 5360,
+      "y": 3900,
+      "w": 1920,
+      "h": 1080,
+      "title": "메시지, 공지, 소품 1차",
+      "page": "backup"
+    },
+    "OutputsV1.dc.html": {
+      "x": 7360,
+      "y": 3900,
+      "w": 1920,
+      "h": 1080,
+      "title": "네 화면의 실제 출력 1차",
+      "page": "backup"
+    },
+    "LabelA.dc.html": {
+      "x": 1360,
+      "y": 1400,
+      "w": 1100,
+      "h": 400,
+      "title": "이름표 A 색 없이 글자만",
+      "page": "backup"
+    },
+    "LabelB.dc.html": {
+      "x": 2540,
+      "y": 1400,
+      "w": 1100,
+      "h": 400,
+      "title": "이름표 B 색 점 하나",
+      "page": "backup"
+    },
+    "LabelC.dc.html": {
+      "x": 3720,
+      "y": 1400,
+      "w": 1100,
+      "h": 400,
+      "title": "이름표 C 구간 머리글",
+      "page": "backup"
+    },
+    "ShowF.dc.html": {
+      "x": 7440,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "F 대기 후 송출 2차",
+      "is_interactive": true,
+      "page": "backup"
+    },
+    "Sheets.dc.html": {
+      "x": 9440,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "악보 연결 (보류)",
+      "page": "backup"
+    },
+    "OutputsSheet.dc.html": {
+      "x": 11440,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "찬송가 Look 출력 (보류)",
+      "page": "backup"
+    },
+    "DraftA.dc.html": {
+      "x": 1360,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "시안 A 클래식 3열",
+      "expand": "fill",
+      "page": "backup"
+    },
+    "DraftB.dc.html": {
+      "x": 2880,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "시안 B 대기 송출 2단",
+      "expand": "fill",
+      "page": "backup"
+    },
+    "DraftC.dc.html": {
+      "x": 4400,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "시안 C 가사 목록과 화면 매트릭스",
+      "expand": "fill",
+      "page": "backup"
+    },
+    "DraftD.dc.html": {
+      "x": 5920,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "시안 D 내용 카드와 화면별 현재 다음",
+      "expand": "fill",
+      "page": "backup"
+    },
+    "PrepService.dc.html": {
+      "x": 5360,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "준비 화면: 예배 순서 항목",
+      "page": "v2"
+    },
+    "Macros.dc.html": {
+      "x": 3440,
+      "y": 1500,
+      "w": 1780,
+      "h": 580,
+      "title": "매크로",
+      "page": "v2"
+    },
+    "MacrosV1.dc.html": {
+      "x": 9360,
+      "y": 3900,
+      "w": 1504,
+      "h": 658,
+      "title": "매크로 1차 (편집 창)",
+      "page": "backup"
+    },
+    "Problems.dc.html": {
+      "x": 1360,
+      "y": 2900,
+      "w": 1920,
+      "h": 1080,
+      "title": "문제 상황: 진행 중",
+      "page": "v2"
+    },
+    "Recovery.dc.html": {
+      "x": 3360,
+      "y": 2900,
+      "w": 1920,
+      "h": 1080,
+      "title": "문제 상황: 다시 시작",
+      "page": "v2"
+    },
+    "Compact.dc.html": {
+      "x": 5360,
+      "y": 2900,
+      "w": 1366,
+      "h": 768,
+      "title": "진행 화면 1366×768",
+      "page": "v2"
+    },
+    "Bible.dc.html": {
+      "x": 1360,
+      "y": 4300,
+      "w": 1920,
+      "h": 1080,
+      "title": "성경 구절 띄우기",
+      "page": "v2"
+    },
+    "NewService.dc.html": {
+      "x": 1360,
+      "y": 7100,
+      "w": 1920,
+      "h": 1080,
+      "title": "새 예배 만들기",
+      "page": "v2"
+    },
+    "AddSongs.dc.html": {
+      "x": 3360,
+      "y": 4300,
+      "w": 1920,
+      "h": 1080,
+      "title": "예배 순서에 곡 넣기: 끌어 넣기",
+      "page": "v2"
+    },
+    "Media.dc.html": {
+      "x": 14200,
+      "y": 4300,
+      "w": 1920,
+      "h": 1080,
+      "title": "미디어 가져오기와 재생목록",
+      "page": "v2"
+    },
+    "StageEditor.dc.html": {
+      "x": 1360,
+      "y": 5700,
+      "w": 1920,
+      "h": 1080,
+      "title": "무대 화면 배치 편집",
+      "page": "v2"
+    },
+    "Prefs.dc.html": {
+      "x": 3360,
+      "y": 5700,
+      "w": 1040,
+      "h": 800,
+      "title": "환경설정",
+      "page": "v2",
+      "is_interactive": true
+    },
+    "Shortcuts.dc.html": {
+      "x": 4480,
+      "y": 5700,
+      "w": 1040,
+      "h": 800,
+      "title": "단축키 설정",
+      "page": "v2"
+    },
+    "CueTake.dc.html": {
+      "x": 1360,
+      "y": 5300,
+      "w": 1920,
+      "h": 1080,
+      "title": "대기 후 출력 비교안",
+      "page": "backup",
+      "is_interactive": true
+    },
+    "PrepArrange.dc.html": {
+      "x": 3360,
+      "y": 5300,
+      "w": 1920,
+      "h": 1080,
+      "title": "구성 불러오기 비교안",
+      "page": "backup"
+    },
+    "ScreensNDI.dc.html": {
+      "x": 5600,
+      "y": 5700,
+      "w": 1920,
+      "h": 1080,
+      "title": "화면 설정: 방송 자막 NDI",
+      "page": "v2"
+    },
+    "ClearGroups.dc.html": {
+      "x": 9360,
+      "y": 5300,
+      "w": 1204,
+      "h": 552,
+      "title": "다중 레이어 지우기 비교안",
+      "page": "backup"
+    },
+    "AddSongsQuick.dc.html": {
+      "x": 5360,
+      "y": 4300,
+      "w": 1920,
+      "h": 1080,
+      "title": "예배 순서에 곡 넣기: 빠른 추가",
+      "page": "v2"
+    },
+    "ImportText.dc.html": {
+      "x": 8200,
+      "y": 4300,
+      "w": 1920,
+      "h": 1080,
+      "title": "텍스트 가져오기",
+      "page": "v2"
+    },
+    "ImportMenu.dc.html": {
+      "x": 7360,
+      "y": 4300,
+      "w": 760,
+      "h": 420,
+      "title": "파일 메뉴",
+      "page": "v2"
+    },
+    "ImportV1.dc.html": {
+      "x": 11000,
+      "y": 3900,
+      "w": 1920,
+      "h": 1080,
+      "title": "가사 가져오기 1차",
+      "page": "backup"
+    },
+    "ImportConflict.dc.html": {
+      "x": 13000,
+      "y": 3900,
+      "w": 1920,
+      "h": 1080,
+      "title": "같은 곡이 있을 때 1차",
+      "page": "backup"
+    },
+    "ImportEdit.dc.html": {
+      "x": 10200,
+      "y": 4300,
+      "w": 1920,
+      "h": 1080,
+      "title": "가져온 곡 편집",
+      "page": "v2"
+    },
+    "ImportSave.dc.html": {
+      "x": 12200,
+      "y": 4300,
+      "w": 1920,
+      "h": 1080,
+      "title": "저장할 때 같은 곡이 있으면",
+      "page": "v2"
+    },
+    "ServiceOpen.dc.html": {
+      "x": 5360,
+      "y": 5300,
+      "w": 1920,
+      "h": 1080,
+      "title": "예배 열기 (예배 파일안)",
+      "page": "backup"
+    },
+    "ServiceImport.dc.html": {
+      "x": 5360,
+      "y": 7100,
+      "w": 1920,
+      "h": 1080,
+      "title": "다른 예배에서 가져오기",
+      "page": "v2"
+    },
+    "ServiceSwitch.dc.html": {
+      "x": 3360,
+      "y": 7100,
+      "w": 1920,
+      "h": 1080,
+      "title": "예배 순서 바꾸기",
+      "page": "v2"
+    },
+    "ServiceImportScene.dc.html": {
+      "x": 7360,
+      "y": 5300,
+      "w": 1920,
+      "h": 1080,
+      "title": "다른 예배에서 가져오기 (예배 파일안)",
+      "page": "backup"
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "ShowH.dc.html",
+    "Reflow.dc.html",
+    "PrepService.dc.html",
+    "Screens.dc.html",
+    "Looks.dc.html",
+    "Overlays.dc.html",
+    "Macros.dc.html",
+    "Outputs.dc.html",
+    "Problems.dc.html",
+    "Recovery.dc.html",
+    "Compact.dc.html",
+    "Bible.dc.html",
+    "NewService.dc.html",
+    "ServiceSwitch.dc.html",
+    "ServiceImport.dc.html",
+    "AddSongs.dc.html",
+    "AddSongsQuick.dc.html",
+    "ImportMenu.dc.html",
+    "ImportText.dc.html",
+    "ImportEdit.dc.html",
+    "ImportSave.dc.html",
+    "Media.dc.html",
+    "StageEditor.dc.html",
+    "Prefs.dc.html",
+    "Shortcuts.dc.html",
+    "CueTake.dc.html",
+    "PrepArrange.dc.html",
+    "ServiceOpen.dc.html",
+    "ServiceImportScene.dc.html",
+    "ScreensNDI.dc.html",
+    "ClearGroups.dc.html",
+    "ShowE.dc.html",
+    "ShowP.dc.html",
+    "LabelPicker.dc.html",
+    "ReflowV1.dc.html",
+    "ScreensV1.dc.html",
+    "OverlaysV1.dc.html",
+    "OutputsV1.dc.html",
+    "MacrosV1.dc.html",
+    "ImportV1.dc.html",
+    "ImportConflict.dc.html",
+    "LabelA.dc.html",
+    "LabelB.dc.html",
+    "LabelC.dc.html",
+    "ShowF.dc.html",
+    "Sheets.dc.html",
+    "OutputsSheet.dc.html",
+    "DraftA.dc.html",
+    "DraftB.dc.html",
+    "DraftC.dc.html",
+    "DraftD.dc.html"
+  ],
+  "notes": {
+    "rowMain": {
+      "x": 1360,
+      "y": -300,
+      "text": "작업 공간",
+      "kind": "title1",
+      "maxW": 9920,
+      "page": "v2"
+    },
+    "rowDetail": {
+      "x": 1360,
+      "y": 1200,
+      "text": "진행 도구와 출력",
+      "kind": "title1",
+      "maxW": 5860,
+      "page": "v2"
+    },
+    "draftsTitle": {
+      "x": 1360,
+      "y": -300,
+      "text": "이전 초안과 보류",
+      "kind": "title1",
+      "maxW": 12000,
+      "page": "backup"
+    },
+    "replacedTitle": {
+      "x": 1360,
+      "y": 2300,
+      "text": "이번에 바뀐 안",
+      "kind": "title1",
+      "maxW": 7920,
+      "page": "backup"
+    },
+    "rowExtra1": {
+      "x": 1360,
+      "y": 2600,
+      "text": "문제 상황과 작은 화면",
+      "kind": "title1",
+      "maxW": 5366,
+      "page": "v2"
+    },
+    "rowExtra2": {
+      "x": 1360,
+      "y": 4000,
+      "text": "준비 기능",
+      "kind": "title1",
+      "maxW": 14760,
+      "page": "v2"
+    },
+    "rowExtra3": {
+      "x": 1360,
+      "y": 5400,
+      "text": "무대 배치, 환경설정, NDI",
+      "kind": "title1",
+      "maxW": 6160,
+      "page": "v2"
+    },
+    "decidedTitle": {
+      "x": 1360,
+      "y": 5000,
+      "text": "결정 후 뺀 비교안",
+      "kind": "title1",
+      "maxW": 9204,
+      "page": "backup"
+    },
+    "rowService": {
+      "x": 1360,
+      "y": 6800,
+      "text": "예배 순서 만들기와 가져오기",
+      "kind": "title1",
+      "maxW": 5920,
+      "page": "v2"
+    }
+  },
+  "designSystems": []
+}

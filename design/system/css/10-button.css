@@ -1,0 +1,35 @@
+/* 10 Button: 글자 버튼. 변형 보조(기본) / 주 / 투명, 크기 sm 26(기본) / md 30 */
+/* 00-base의 `.ll-root button { font: inherit; color: inherit }`(특이도 0,1,1)보다 앞서도록
+   블록 규칙은 `.ll-root .ll-btn`으로 한 단 올리고, 변형은 `.ll-btn.ll-btn--x`로 쓴다. */
+.ll-btn, :is(.ll-root, .ll-preview) .ll-btn {
+  box-sizing: border-box; display: inline-flex; flex: none; align-items: center; justify-content: center; gap: var(--space-6);
+  height: var(--size-control-sm); min-width: 0; margin: 0; padding: 0 var(--space-10);
+  border: 0; border-radius: var(--radius-md); background: var(--bg-control); color: var(--text);
+  font-family: var(--font-ui); font-size: 12px; line-height: 16px; font-weight: 400;
+  white-space: nowrap; text-decoration: none; cursor: default; user-select: none; -webkit-user-select: none;
+  transition: background-color 100ms ease-out, color 100ms ease-out;
+}
+.ll-btn .ll-i { width: var(--size-icon-14); height: var(--size-icon-14); }
+.ll-btn.ll-btn--lead { padding-left: var(--space-8); }
+
+.ll-btn.ll-btn--md { gap: var(--space-8); height: var(--size-control-md); padding: 0 var(--space-14); font-size: 13px; line-height: 18px; }
+.ll-btn.ll-btn--md .ll-i { width: var(--size-icon-16); height: var(--size-icon-16); }
+.ll-btn.ll-btn--md.ll-btn--lead { padding-left: var(--space-12); }
+
+.ll-btn.ll-btn--primary { background: var(--accent-fill); color: var(--text-on-fill); font-weight: 600; }
+.ll-btn.ll-btn--ghost { background: transparent; color: var(--text-2); }
+
+/* 마우스 올림과 누름: 쓸 수 있을 때만 */
+.ll-btn:not(:disabled, [aria-disabled="true"]):is(:hover, .is-hover, :active, .is-active) { background: var(--bg-control-hover); }
+.ll-btn.ll-btn--primary:not(:disabled, [aria-disabled="true"]):is(:hover, .is-hover, :active, .is-active) { background: var(--accent-fill-hover); }
+.ll-btn.ll-btn--ghost:not(:disabled, [aria-disabled="true"]):is(:hover, .is-hover) { background: var(--bg-raised); }
+.ll-btn.ll-btn--ghost:not(:disabled, [aria-disabled="true"]):is(:active, .is-active) { background: var(--bg-control-hover); color: var(--text); }
+
+.ll-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.ll-btn:focus:not(:focus-visible) { outline: none; }
+
+/* 쓸 수 없음: 글자와 아이콘만 text-off. 주 버튼은 보조 버튼 바탕으로 내린다 */
+.ll-btn:is(:disabled, [aria-disabled="true"]) { color: var(--text-off); }
+.ll-btn.ll-btn--primary:is(:disabled, [aria-disabled="true"]) { background: var(--bg-control); }
+
+@media (prefers-reduced-motion: reduce) { .ll-btn, :is(.ll-root, .ll-preview) .ll-btn { transition: none; } }

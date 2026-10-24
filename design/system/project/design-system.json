@@ -1,0 +1,675 @@
+{
+  "v": 3,
+  "layout": "files",
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-10-24T06:33:19Z"
+  },
+  "title": "LoveLight 디자인 시스템",
+  "namespace": "LoveLight",
+  "libraries": [],
+  "sections": {},
+  "groups": [
+    "Icons",
+    "Media"
+  ],
+  "assetGroups": {
+    "Icons": {
+      "name": "Icons",
+      "tile": "xs",
+      "order": [
+        "song.svg",
+        "film.svg",
+        "image.svg",
+        "notice.svg",
+        "book.svg",
+        "msg.svg",
+        "prop.svg",
+        "audio.svg",
+        "monitor.svg",
+        "mplay.svg",
+        "capture.svg",
+        "search.svg",
+        "gear.svg",
+        "plus.svg",
+        "down.svg",
+        "right.svg",
+        "loop.svg",
+        "text.svg",
+        "undo.svg",
+        "folder.svg",
+        "x.svg",
+        "min.svg",
+        "max.svg",
+        "slides.svg",
+        "saved.svg",
+        "layers.svg",
+        "edit.svg",
+        "grid.svg",
+        "timer.svg",
+        "check.svg",
+        "grip.svg",
+        "more.svg",
+        "clock.svg",
+        "aleft.svg",
+        "acenter.svg",
+        "play.svg",
+        "pause.svg",
+        "playf.svg",
+        "pausef.svg",
+        "prev.svg",
+        "next.svg",
+        "send.svg",
+        "user.svg",
+        "warn.svg",
+        "macro.svg",
+        "eye.svg",
+        "eyeoff.svg",
+        "lock.svg",
+        "sliders.svg",
+        "wave.svg",
+        "cal.svg",
+        "rows.svg",
+        "link.svg",
+        "pray.svg",
+        "coins.svg",
+        "mic.svg",
+        "note.svg",
+        "stop.svg",
+        "sun.svg",
+        "eraser.svg",
+        "open.svg",
+        "warning.svg",
+        "plug.svg",
+        "filex.svg",
+        "refresh.svg",
+        "history.svg",
+        "folderopen.svg",
+        "download.svg",
+        "upload.svg",
+        "filetext.svg",
+        "fileppt.svg",
+        "keyboard.svg",
+        "laptop.svg",
+        "copy.svg",
+        "calplus.svg",
+        "trash.svg",
+        "checkc.svg",
+        "info.svg",
+        "textaa.svg",
+        "frame.svg",
+        "translate.svg",
+        "arrow.svg",
+        "bookmark.svg",
+        "listplus.svg",
+        "drives.svg",
+        "plugs.svg"
+      ],
+      "files": {
+        "acenter.svg": {
+          "name": "acenter.svg",
+          "blob": "dc586adce069fb5647646c5bff32909b",
+          "size": 296,
+          "type": "image/svg+xml"
+        },
+        "aleft.svg": {
+          "name": "aleft.svg",
+          "blob": "49a3e59a72a70a69eb8d7ba8fb1e0fa8",
+          "size": 298,
+          "type": "image/svg+xml"
+        },
+        "arrow.svg": {
+          "name": "arrow.svg",
+          "blob": "f8181b88991635d418f3630c1a11fd26",
+          "size": 251,
+          "type": "image/svg+xml"
+        },
+        "audio.svg": {
+          "name": "audio.svg",
+          "blob": "6f9eba02b7f60b3d408bd399c9e52874",
+          "size": 520,
+          "type": "image/svg+xml"
+        },
+        "book.svg": {
+          "name": "book.svg",
+          "blob": "c506403821b64a08d85828eab7c403b0",
+          "size": 568,
+          "type": "image/svg+xml"
+        },
+        "bookmark.svg": {
+          "name": "bookmark.svg",
+          "blob": "36d4e5dad18138588702f09b5fdee88e",
+          "size": 279,
+          "type": "image/svg+xml"
+        },
+        "cal.svg": {
+          "name": "cal.svg",
+          "blob": "2879aa56243e82cc1be304319dfbe35d",
+          "size": 333,
+          "type": "image/svg+xml"
+        },
+        "calplus.svg": {
+          "name": "calplus.svg",
+          "blob": "31291a43762b4e8d03865d3040c834f9",
+          "size": 446,
+          "type": "image/svg+xml"
+        },
+        "capture.svg": {
+          "name": "capture.svg",
+          "blob": "f6830888c3b6428b1ba34f52c0a8a624",
+          "size": 464,
+          "type": "image/svg+xml"
+        },
+        "check.svg": {
+          "name": "check.svg",
+          "blob": "9447ff3ca99fc0c29b49e544f82b6557",
+          "size": 221,
+          "type": "image/svg+xml"
+        },
+        "checkc.svg": {
+          "name": "checkc.svg",
+          "blob": "9d47bb43f6cbaa5650611c7dc6879df6",
+          "size": 345,
+          "type": "image/svg+xml"
+        },
+        "clock.svg": {
+          "name": "clock.svg",
+          "blob": "038f964992addf173b8f5c55c07f2ffa",
+          "size": 293,
+          "type": "image/svg+xml"
+        },
+        "coins.svg": {
+          "name": "coins.svg",
+          "blob": "f02dcb60f53b134be126e02ceb0e8e51",
+          "size": 783,
+          "type": "image/svg+xml"
+        },
+        "copy.svg": {
+          "name": "copy.svg",
+          "blob": "39180f4adc1151a68d52ab6b029c5245",
+          "size": 285,
+          "type": "image/svg+xml"
+        },
+        "down.svg": {
+          "name": "down.svg",
+          "blob": "60110bb79fbda1733bd330110edf6db2",
+          "size": 220,
+          "type": "image/svg+xml"
+        },
+        "download.svg": {
+          "name": "download.svg",
+          "blob": "eb7f3bc9527eb74b4fc5eb6156f8f0f5",
+          "size": 323,
+          "type": "image/svg+xml"
+        },
+        "drives.svg": {
+          "name": "drives.svg",
+          "blob": "6ea5d9005b924b46ec46c4c37445cd59",
+          "size": 424,
+          "type": "image/svg+xml"
+        },
+        "edit.svg": {
+          "name": "edit.svg",
+          "blob": "324b356b0805218b738a42752b651369",
+          "size": 354,
+          "type": "image/svg+xml"
+        },
+        "eraser.svg": {
+          "name": "eraser.svg",
+          "blob": "51d54f4e444e1393cbce729905fefa3f",
+          "size": 423,
+          "type": "image/svg+xml"
+        },
+        "eye.svg": {
+          "name": "eye.svg",
+          "blob": "5bc6541886db0475102625688b9aa832",
+          "size": 707,
+          "type": "image/svg+xml"
+        },
+        "eyeoff.svg": {
+          "name": "eyeoff.svg",
+          "blob": "a7795cdfbd59ddb7d8cdbd6670169cb6",
+          "size": 1006,
+          "type": "image/svg+xml"
+        },
+        "fileppt.svg": {
+          "name": "fileppt.svg",
+          "blob": "fe0788113636977e0351bb63b7008ca6",
+          "size": 633,
+          "type": "image/svg+xml"
+        },
+        "filetext.svg": {
+          "name": "filetext.svg",
+          "blob": "38d20d6e5b54f75a6c535e3d96d0cbf4",
+          "size": 422,
+          "type": "image/svg+xml"
+        },
+        "filex.svg": {
+          "name": "filex.svg",
+          "blob": "35ede0989ac5263a4804b7b78c1909ce",
+          "size": 498,
+          "type": "image/svg+xml"
+        },
+        "film.svg": {
+          "name": "film.svg",
+          "blob": "e819f9ddad6b15e6b4681a297d5e8f24",
+          "size": 369,
+          "type": "image/svg+xml"
+        },
+        "folder.svg": {
+          "name": "folder.svg",
+          "blob": "bac1e6f5b66b1062239054c98462c386",
+          "size": 310,
+          "type": "image/svg+xml"
+        },
+        "folderopen.svg": {
+          "name": "folderopen.svg",
+          "blob": "a2a520f21d50e4de6514e6263e87c97e",
+          "size": 429,
+          "type": "image/svg+xml"
+        },
+        "frame.svg": {
+          "name": "frame.svg",
+          "blob": "e0143802d321364429c058e9dee818ea",
+          "size": 357,
+          "type": "image/svg+xml"
+        },
+        "gear.svg": {
+          "name": "gear.svg",
+          "blob": "4ea9f1c0bbef4a6fc1dd3e7a9aa7f956",
+          "size": 1468,
+          "type": "image/svg+xml"
+        },
+        "grid.svg": {
+          "name": "grid.svg",
+          "blob": "f30555798416d74f0961a2128d0e9d86",
+          "size": 558,
+          "type": "image/svg+xml"
+        },
+        "grip.svg": {
+          "name": "grip.svg",
+          "blob": "34bc0d0d6e33dc47330c718c33169c06",
+          "size": 373,
+          "type": "image/svg+xml"
+        },
+        "history.svg": {
+          "name": "history.svg",
+          "blob": "0755bf1e987b8afed621613b410e373a",
+          "size": 415,
+          "type": "image/svg+xml"
+        },
+        "image.svg": {
+          "name": "image.svg",
+          "blob": "c3896c737da6fa6874d5c299893f5dc3",
+          "size": 406,
+          "type": "image/svg+xml"
+        },
+        "info.svg": {
+          "name": "info.svg",
+          "blob": "9bda41268939e72e901fe6a89378274c",
+          "size": 354,
+          "type": "image/svg+xml"
+        },
+        "keyboard.svg": {
+          "name": "keyboard.svg",
+          "blob": "69ae181ca89c1e8848f7aba849c459bc",
+          "size": 519,
+          "type": "image/svg+xml"
+        },
+        "laptop.svg": {
+          "name": "laptop.svg",
+          "blob": "05bb758753cd86921a7621411792d22f",
+          "size": 398,
+          "type": "image/svg+xml"
+        },
+        "layers.svg": {
+          "name": "layers.svg",
+          "blob": "69b26c7ad31deeb76e60a4b07a886108",
+          "size": 489,
+          "type": "image/svg+xml"
+        },
+        "link.svg": {
+          "name": "link.svg",
+          "blob": "5e104f290f274a926e5a74d2ce50f396",
+          "size": 514,
+          "type": "image/svg+xml"
+        },
+        "listplus.svg": {
+          "name": "listplus.svg",
+          "blob": "e7bb82db496dcbb662c053ca96d7b9d6",
+          "size": 347,
+          "type": "image/svg+xml"
+        },
+        "lock.svg": {
+          "name": "lock.svg",
+          "blob": "c443e09eb847732801934337ad7a74b8",
+          "size": 281,
+          "type": "image/svg+xml"
+        },
+        "loop.svg": {
+          "name": "loop.svg",
+          "blob": "bf8083484af9e8457185b0ca396414ec",
+          "size": 479,
+          "type": "image/svg+xml"
+        },
+        "macro.svg": {
+          "name": "macro.svg",
+          "blob": "d2a3b166b1e315aa7ae60e5466876083",
+          "size": 382,
+          "type": "image/svg+xml"
+        },
+        "max.svg": {
+          "name": "max.svg",
+          "blob": "0d7fe9895e33ed770920939136cd3869",
+          "size": 222,
+          "type": "image/svg+xml"
+        },
+        "mic.svg": {
+          "name": "mic.svg",
+          "blob": "6ae9b428849888fd94ebed5cb44e8db0",
+          "size": 586,
+          "type": "image/svg+xml"
+        },
+        "min.svg": {
+          "name": "min.svg",
+          "blob": "da68f48c4fca46dd0d7884882cdc38e0",
+          "size": 169,
+          "type": "image/svg+xml"
+        },
+        "monitor.svg": {
+          "name": "monitor.svg",
+          "blob": "dd9e61338692586ed24c7c8e6ae0494f",
+          "size": 335,
+          "type": "image/svg+xml"
+        },
+        "more.svg": {
+          "name": "more.svg",
+          "blob": "83c88d16d5da8726f59055a6ba61b2ba",
+          "size": 243,
+          "type": "image/svg+xml"
+        },
+        "mplay.svg": {
+          "name": "mplay.svg",
+          "blob": "c8e6b2e05ebdde2bb841c53f9c968fac",
+          "size": 445,
+          "type": "image/svg+xml"
+        },
+        "msg.svg": {
+          "name": "msg.svg",
+          "blob": "77386f47fb0fe5dd3de80db85c897730",
+          "size": 418,
+          "type": "image/svg+xml"
+        },
+        "next.svg": {
+          "name": "next.svg",
+          "blob": "e3a5013dc81a76f4a66b36a373eb7744",
+          "size": 281,
+          "type": "image/svg+xml"
+        },
+        "note.svg": {
+          "name": "note.svg",
+          "blob": "2374eb5c5f9ca3ae71cf8153dc19b28c",
+          "size": 438,
+          "type": "image/svg+xml"
+        },
+        "notice.svg": {
+          "name": "notice.svg",
+          "blob": "7db5c41f4bd32543cdd6cc96c59989af",
+          "size": 423,
+          "type": "image/svg+xml"
+        },
+        "open.svg": {
+          "name": "open.svg",
+          "blob": "e62a71c87a6fb4159e475e750aa445e2",
+          "size": 353,
+          "type": "image/svg+xml"
+        },
+        "pause.svg": {
+          "name": "pause.svg",
+          "blob": "c70eba6cf7bf9accbe2b7807af9233f5",
+          "size": 326,
+          "type": "image/svg+xml"
+        },
+        "pausef.svg": {
+          "name": "pausef.svg",
+          "blob": "1585e48486a99c8c617f0980661f481b",
+          "size": 293,
+          "type": "image/svg+xml"
+        },
+        "play.svg": {
+          "name": "play.svg",
+          "blob": "37b4d4c4b11228d589459651d715e218",
+          "size": 299,
+          "type": "image/svg+xml"
+        },
+        "playf.svg": {
+          "name": "playf.svg",
+          "blob": "fa7d2a6090dd1430c9f53c1059d75f03",
+          "size": 296,
+          "type": "image/svg+xml"
+        },
+        "plug.svg": {
+          "name": "plug.svg",
+          "blob": "f9eb9bc32c1c77ef72a010f3c0a9d382",
+          "size": 529,
+          "type": "image/svg+xml"
+        },
+        "plugs.svg": {
+          "name": "plugs.svg",
+          "blob": "d9ebf6a7bea36559118599b993e78096",
+          "size": 954,
+          "type": "image/svg+xml"
+        },
+        "plus.svg": {
+          "name": "plus.svg",
+          "blob": "5a8a9566e617b9b45b41b437548cc705",
+          "size": 218,
+          "type": "image/svg+xml"
+        },
+        "pray.svg": {
+          "name": "pray.svg",
+          "blob": "ca487e25113041e3772bf7656d4866cf",
+          "size": 729,
+          "type": "image/svg+xml"
+        },
+        "prev.svg": {
+          "name": "prev.svg",
+          "blob": "30e09a680ab59cae18a50ff78cc2c0b6",
+          "size": 297,
+          "type": "image/svg+xml"
+        },
+        "prop.svg": {
+          "name": "prop.svg",
+          "blob": "b9223d1656089bbe203c673f4f7b5827",
+          "size": 458,
+          "type": "image/svg+xml"
+        },
+        "refresh.svg": {
+          "name": "refresh.svg",
+          "blob": "7ae010fcd32ec11714213a3f6cbc5fbf",
+          "size": 302,
+          "type": "image/svg+xml"
+        },
+        "right.svg": {
+          "name": "right.svg",
+          "blob": "b44a5c3c7a1606ddde86fcabab083547",
+          "size": 225,
+          "type": "image/svg+xml"
+        },
+        "rows.svg": {
+          "name": "rows.svg",
+          "blob": "45662a1149a36a58149642a9b07192c1",
+          "size": 335,
+          "type": "image/svg+xml"
+        },
+        "saved.svg": {
+          "name": "saved.svg",
+          "blob": "ff11200820506097b3b32f87e9752a85",
+          "size": 415,
+          "type": "image/svg+xml"
+        },
+        "search.svg": {
+          "name": "search.svg",
+          "blob": "2f00849afdf95b7e0ddef97e7c580eaf",
+          "size": 249,
+          "type": "image/svg+xml"
+        },
+        "send.svg": {
+          "name": "send.svg",
+          "blob": "3b7dd205346f0f6d0a5e89f47b192b3f",
+          "size": 435,
+          "type": "image/svg+xml"
+        },
+        "sliders.svg": {
+          "name": "sliders.svg",
+          "blob": "d23d537b947200b860721d9d97f6fd48",
+          "size": 366,
+          "type": "image/svg+xml"
+        },
+        "slides.svg": {
+          "name": "slides.svg",
+          "blob": "9f59766bdfe970cdf3829e4b2f57e1e1",
+          "size": 311,
+          "type": "image/svg+xml"
+        },
+        "song.svg": {
+          "name": "song.svg",
+          "blob": "1e420fe8ed8fd6949367eb44496c8416",
+          "size": 346,
+          "type": "image/svg+xml"
+        },
+        "stop.svg": {
+          "name": "stop.svg",
+          "blob": "c6d22069e448dd83c50ed87799593015",
+          "size": 222,
+          "type": "image/svg+xml"
+        },
+        "sun.svg": {
+          "name": "sun.svg",
+          "blob": "5946de7e9665fa35094fff692ae672b5",
+          "size": 642,
+          "type": "image/svg+xml"
+        },
+        "text.svg": {
+          "name": "text.svg",
+          "blob": "c091e7f3f808fef654bd3aae6a1ebfb9",
+          "size": 244,
+          "type": "image/svg+xml"
+        },
+        "textaa.svg": {
+          "name": "textaa.svg",
+          "blob": "22037f07e116c11eb63bc955ae3ebc94",
+          "size": 568,
+          "type": "image/svg+xml"
+        },
+        "timer.svg": {
+          "name": "timer.svg",
+          "blob": "ea2c4f1a243914b743a68534f2b3bc7b",
+          "size": 357,
+          "type": "image/svg+xml"
+        },
+        "translate.svg": {
+          "name": "translate.svg",
+          "blob": "339490b9220fe95a59b97924ed543ceb",
+          "size": 616,
+          "type": "image/svg+xml"
+        },
+        "trash.svg": {
+          "name": "trash.svg",
+          "blob": "45a553e391d53363140df89f97db1657",
+          "size": 397,
+          "type": "image/svg+xml"
+        },
+        "undo.svg": {
+          "name": "undo.svg",
+          "blob": "afa619e84186abd1bc0042d9a60a9b5f",
+          "size": 331,
+          "type": "image/svg+xml"
+        },
+        "upload.svg": {
+          "name": "upload.svg",
+          "blob": "225d37f5cceee9a75139cbe16c1b56b8",
+          "size": 330,
+          "type": "image/svg+xml"
+        },
+        "user.svg": {
+          "name": "user.svg",
+          "blob": "f9386edc3a1b85a4710c4e4c9cedd15e",
+          "size": 346,
+          "type": "image/svg+xml"
+        },
+        "warn.svg": {
+          "name": "warn.svg",
+          "blob": "16b3bc1497068b597562c9df976daf38",
+          "size": 300,
+          "type": "image/svg+xml"
+        },
+        "warning.svg": {
+          "name": "warning.svg",
+          "blob": "8e86b854cf5f9e7439a31de32d23f8c9",
+          "size": 549,
+          "type": "image/svg+xml"
+        },
+        "wave.svg": {
+          "name": "wave.svg",
+          "blob": "58bcaf06cc5f29d0ecbe6496e4b3d690",
+          "size": 386,
+          "type": "image/svg+xml"
+        },
+        "x.svg": {
+          "name": "x.svg",
+          "blob": "b4d6030c7d0161f90dd1089f681b82e5",
+          "size": 290,
+          "type": "image/svg+xml"
+        }
+      }
+    },
+    "Media": {
+      "name": "Media",
+      "tile": "m",
+      "order": [
+        "warm-light.jpg",
+        "blue-rays.jpg",
+        "dawn-sky.jpg",
+        "starlight.jpg"
+      ],
+      "files": {
+        "warm-light.jpg": {
+          "name": "warm-light.jpg",
+          "blob": "a52f8166b3e4175cb8ae640545551821",
+          "size": 101314,
+          "type": "image/jpeg"
+        },
+        "blue-rays.jpg": {
+          "name": "blue-rays.jpg",
+          "blob": "7fd58e28ed28567de79a19e6f230dadc",
+          "size": 71288,
+          "type": "image/jpeg"
+        },
+        "dawn-sky.jpg": {
+          "name": "dawn-sky.jpg",
+          "blob": "c73e39734966be2aeb0284b0d8bfaeea",
+          "size": 67097,
+          "type": "image/jpeg"
+        },
+        "starlight.jpg": {
+          "name": "starlight.jpg",
+          "blob": "de4bf9ac8dca0a9408c67dbd597d641d",
+          "size": 81853,
+          "type": "image/jpeg"
+        }
+      }
+    }
+  },
+  "blobs": {},
+  "docs": {
+    "readme": "project/README.md",
+    "sections": []
+  },
+  "lastChange": {
+    "by": "Claude",
+    "at": "2026-10-24T06:44:04Z",
+    "via": "Claude Code",
+    "note": "시안에서 토큰, 원칙, 창 크기 규칙, 컴포넌트 30개를 확정해 처음 만듦"
+  }
+}

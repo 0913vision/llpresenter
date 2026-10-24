@@ -1,0 +1,50 @@
+/* 15 MenuBar: 창 맨 위 30px 줄. 앱 이름, 메뉴, 가운데 예배 이름, 창 조절 버튼. 창 제목줄을 겸한다 */
+.ll-menubar {
+  box-sizing: border-box; position: relative; display: flex; flex: none; align-items: center;
+  height: var(--size-menubar); min-width: 0; padding-left: var(--space-12);
+  background: var(--bg-app); color: var(--text);
+  font-family: var(--font-ui); font-size: 12px; line-height: 16px;
+  user-select: none; -webkit-user-select: none; -webkit-app-region: drag;
+}
+.ll-menubar__brand { flex: none; margin-right: var(--space-14); font-size: 12px; line-height: 16px; font-weight: 700; letter-spacing: -0.01em; color: var(--text); }
+.ll-menubar__menus { display: flex; flex: none; align-items: center; -webkit-app-region: no-drag; }
+
+.ll-menubar__item, :is(.ll-root, .ll-preview) .ll-menubar__item {
+  box-sizing: border-box; display: inline-flex; align-items: center; height: 24px; margin: 0; padding: 0 9px;
+  border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--text-2);
+  font-family: var(--font-ui); font-size: 12px; line-height: 16px; font-weight: 400; white-space: nowrap;
+  cursor: default; transition: background-color 100ms ease-out, color 100ms ease-out;
+}
+.ll-menubar__item:is(:hover, .is-hover) { background: var(--bg-raised); }
+.ll-menubar__item.ll-menubar__item:is(:active, .is-active, [aria-expanded="true"]) { background: var(--bg-control-hover); color: var(--text); }
+
+/* 가운데 예배 이름: 창 너비의 가운데. 메뉴나 창 조절 버튼과 겹치지 않게 너비를 줄인다 */
+.ll-menubar__title {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); max-width: 36%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 12px; line-height: 16px; font-weight: 400; color: var(--text-3); pointer-events: none;
+}
+
+.ll-menubar__controls { display: flex; flex: none; margin-left: auto; -webkit-app-region: no-drag; }
+.ll-menubar__win, :is(.ll-root, .ll-preview) .ll-menubar__win {
+  box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;
+  width: 46px; height: var(--size-menubar); margin: 0; padding: 0;
+  border: 0; border-radius: 0; background: transparent; color: var(--text-2);
+  cursor: default; transition: background-color 100ms ease-out, color 100ms ease-out;
+}
+.ll-menubar__win .ll-i { width: var(--size-icon-14); height: var(--size-icon-14); }
+.ll-menubar__win:is(:hover, .is-hover) { background: var(--bg-raised); }
+.ll-menubar__win.ll-menubar__win:is(:active, .is-active) { background: var(--bg-control-hover); color: var(--text); }
+
+.ll-menubar__item:focus-visible, .ll-menubar__win:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* 창 맨 위 가장자리에서 고리가 잘리지 않게 창 조절 버튼은 안쪽으로 그린다 */
+.ll-menubar__win:focus-visible, .ll-preview .ll-menubar__win.is-focus { outline-offset: -2px; }
+.ll-menubar__item:focus:not(:focus-visible), .ll-menubar__win:focus:not(:focus-visible) { outline: none; }
+
+/* 보조 창(환경설정)의 제목줄: 메뉴 없이 왼쪽에 창 이름, 닫기 하나 */
+.ll-menubar.ll-menubar--window { padding-left: var(--space-14); }
+.ll-menubar__name { flex: none; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--text); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ll-menubar__item, :is(.ll-root, .ll-preview) .ll-menubar__item, .ll-menubar__win, :is(.ll-root, .ll-preview) .ll-menubar__win { transition: none; }
+}

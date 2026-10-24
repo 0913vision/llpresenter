@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>시안 A 클래식 3열</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:"Pretendard Variable";src:url("/_blob/44ae4219c075570535882b3a34ea3567") format("woff2");font-weight:45 920;font-display:swap}
+body{margin:0;background:#161513}
+a{color:#7fb0e6}a:hover{color:#a9cbf0}
+input::placeholder{color:#8a8886}
+button{font:inherit;cursor:default}
+</style>
+</helmet>
+<div style="min-height: 900px; display: flex; flex-direction: column; background: #161513; color: #cccac8; font-family: 'Pretendard Variable', Pretendard, sans-serif; font-size: 13px; line-height: 18px; word-break: keep-all">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; min-height: 44px; padding: 8px 16px; box-sizing: border-box; background: #1d1c1a; border-bottom: 1px solid #413f3e">
+<span style="font-weight: 600; color: #f0eeec">LoveLight</span>
+<div style="display: flex; padding: 2px; gap: 2px; background: #161513; border: 1px solid #343331; border-radius: 4px" role="group" aria-label="모드">
+<button type="button" aria-pressed="true" style="height: 24px; padding: 0 12px; border: 0; border-radius: 3px; background: #343331; color: #f0eeec; font-size: 12px; font-weight: 500">송출</button>
+<button type="button" aria-pressed="false" style="height: 24px; padding: 0 12px; border: 0; border-radius: 3px; background: transparent; color: #a6a4a2; font-size: 12px; font-weight: 500">편집</button>
+<button type="button" aria-pressed="false" style="height: 24px; padding: 0 12px; border: 0; border-radius: 3px; background: transparent; color: #a6a4a2; font-size: 12px; font-weight: 500">가사 정리</button>
+</div>
+<div style="flex: 1 1 280px; display: flex; justify-content: center">
+<label for="search-a" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">검색</label>
+<input id="search-a" type="search" placeholder="곡 제목, 가사, 초성으로 찾기" style="width: 100%; max-width: 420px; height: 28px; box-sizing: border-box; padding: 0 10px; background: #242321; border: 1px solid #413f3e; border-radius: 4px; color: #cccac8; font: inherit; font-size: 13px">
+</div>
+<div style="display: flex; gap: 16px; font-size: 12px">
+<span><span style="color: #a6a4a2">본 화면</span> <span style="color: #8a8886">모니터 2</span></span>
+<span><span style="color: #a6a4a2">무대 화면</span> <span style="color: #8a8886">창 모드</span></span>
+</div>
+<button type="button" aria-pressed="true" style="display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 12px; background: #242321; border: 1px solid #d33a3c; border-radius: 4px; color: #f0eeec; font-size: 12px; font-weight: 500"><span style="width: 6px; height: 6px; border-radius: 50%; background: #d33a3c"></span>송출 중</button>
+</header>
+
+<div style="flex: 1; display: flex; flex-wrap: wrap; min-height: 0">
+
+<nav style="flex: 0 0 248px; height: 856px; display: flex; flex-direction: column; border-right: 1px solid #413f3e" aria-label="예배 순서와 라이브러리">
+<div style="display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; background: #1d1c1a; border-bottom: 1px solid #343331">
+<h2 style="margin: 0; font-size: 12px; font-weight: 600; color: #cccac8">예배 순서</h2>
+<span style="font-size: 12px; color: #8a8886">주일 예배</span>
+</div>
+<ol style="margin: 0; padding: 4px 0; list-style: none">
+<sc-for list="{{ playlist }}" as="row" hint-placeholder-count="7">
+<li>
+<sc-if value="{{ row.isHeader }}" hint-placeholder-val="{{ false }}">
+<p style="margin: 0; padding: 10px 12px 4px; font-size: 11px; line-height: 14px; font-weight: 600; color: #8a8886">{{ row.label }}</p>
+</sc-if>
+<sc-if value="{{ row.isItem }}" hint-placeholder-val="{{ true }}">
+<button type="button" style="display: flex; align-items: center; gap: 8px; width: 100%; height: 28px; padding: 0 12px; border: 0; background: {{ row.bg }}; color: {{ row.fg }}; text-align: left; font-size: 13px">
+<span style="min-width: 14px; text-align: right; font-size: 11px; color: #8a8886; font-variant-numeric: tabular-nums">{{ row.n }}</span>
+<span style="flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">{{ row.title }}</span>
+<sc-if value="{{ row.live }}" hint-placeholder-val="{{ false }}"><span style="width: 6px; height: 6px; border-radius: 50%; background: #d33a3c" aria-label="송출 중"></span></sc-if>
+</button>
+</sc-if>
+</li>
+</sc-for>
+</ol>
+<div style="display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; margin-top: 8px; background: #1d1c1a; border-top: 1px solid #413f3e; border-bottom: 1px solid #343331">
+<h2 style="margin: 0; font-size: 12px; font-weight: 600; color: #cccac8">라이브러리</h2>
+<span style="font-size: 12px; color: #8a8886">2곡</span>
+</div>
+<ul style="margin: 0; padding: 4px 0; list-style: none">
+<li><button type="button" style="display: flex; align-items: center; width: 100%; height: 28px; padding: 0 12px; border: 0; background: transparent; color: #cccac8; text-align: left; font-size: 13px">이 세상 험하고</button></li>
+<li><button type="button" style="display: flex; align-items: center; width: 100%; height: 28px; padding: 0 12px; border: 0; background: transparent; color: #cccac8; text-align: left; font-size: 13px">만복의 근원 하나님</button></li>
+</ul>
+</nav>
+
+<main style="flex: 999 1 560px; min-width: 0; height: 856px; display: flex; flex-direction: column">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; min-height: 32px; padding: 4px 12px; box-sizing: border-box; background: #1d1c1a; border-bottom: 1px solid #343331">
+<h1 style="margin: 0; font-size: 12px; font-weight: 600; color: #f0eeec">만복의 근원 하나님</h1>
+<span style="font-size: 12px; color: #8a8886">4장</span>
+<div style="margin-left: auto; display: flex; gap: 4px" aria-label="부르는 순서">
+<sc-for list="{{ arrangement }}" as="tok" hint-placeholder-count="4">
+<span style="height: 20px; padding: 0 8px; display: inline-flex; align-items: center; background: #242321; border-left: 3px solid {{ tok.color }}; border-radius: 2px; font-size: 11px; font-weight: 500; color: {{ tok.color }}">{{ tok.label }}</span>
+</sc-for>
+</div>
+</div>
+<div style="flex: 1; min-height: 0; overflow: auto; padding: 12px">
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px">
+<sc-for list="{{ slides }}" as="s" hint-placeholder-count="4">
+<button type="button" style="display: flex; flex-direction: column; padding: 0; background: #1d1c1a; border: 1px solid {{ s.border }}; box-shadow: 0 0 0 1px {{ s.ring }}; border-radius: 4px; overflow: hidden; text-align: left; color: inherit">
+<span style="display: flex; align-items: center; justify-content: center; aspect-ratio: 16 / 9; width: 100%; box-sizing: border-box; padding: 0 16px; background: #000; color: #fff; font-size: 10px; line-height: 15px; font-weight: 700; text-align: center; white-space: pre-line">{{ s.text }}</span>
+<span style="display: flex; align-items: center; gap: 8px; height: 24px; padding: 0 8px; border-top: 1px solid #343331; border-left: 3px solid {{ s.color }}">
+<span style="font-size: 11px; color: #8a8886; font-variant-numeric: tabular-nums">{{ s.n }}</span>
+<span style="font-size: 12px; font-weight: 500; color: {{ s.color }}">{{ s.group }}</span>
+<sc-if value="{{ s.live }}" hint-placeholder-val="{{ false }}"><span style="margin-left: auto; padding: 0 4px; border-radius: 2px; background: #d33a3c; color: #fff; font-size: 11px; line-height: 16px; font-weight: 600; letter-spacing: 0.04em">LIVE</span></sc-if>
+</span>
+</button>
+</sc-for>
+</div>
+</div>
+<section style="flex: 0 0 208px; display: flex; flex-direction: column; border-top: 1px solid #413f3e" aria-label="미디어">
+<div style="display: flex; align-items: center; gap: 4px; height: 32px; padding: 0 12px; background: #1d1c1a; border-bottom: 1px solid #343331">
+<h2 style="margin: 0 8px 0 0; font-size: 12px; font-weight: 600; color: #cccac8">미디어</h2>
+<button type="button" aria-pressed="true" style="height: 22px; padding: 0 8px; border: 0; border-radius: 3px; background: #343331; color: #f0eeec; font-size: 12px">영상</button>
+<button type="button" aria-pressed="false" style="height: 22px; padding: 0 8px; border: 0; border-radius: 3px; background: transparent; color: #a6a4a2; font-size: 12px">이미지</button>
+<button type="button" aria-pressed="false" style="height: 22px; padding: 0 8px; border: 0; border-radius: 3px; background: transparent; color: #a6a4a2; font-size: 12px">오디오</button>
+</div>
+<div style="display: flex; gap: 8px; padding: 12px; overflow-x: auto">
+<sc-for list="{{ media }}" as="m" hint-placeholder-count="3">
+<button type="button" style="flex: 0 0 176px; display: flex; flex-direction: column; gap: 6px; padding: 0; border: 0; background: transparent; color: inherit; text-align: left">
+<span style="display: block; aspect-ratio: 16 / 9; width: 100%; background: {{ m.swatch }}; border-radius: 4px; box-shadow: 0 0 0 2px {{ m.ring }}"></span>
+<span style="font-size: 12px; color: #cccac8">{{ m.name }}</span>
+</button>
+</sc-for>
+</div>
+</section>
+</main>
+
+<aside style="flex: 0 0 360px; height: 856px; display: flex; flex-direction: column; border-left: 1px solid #413f3e" aria-label="송출 화면">
+<div style="display: flex; align-items: center; height: 32px; padding: 0 12px; background: #1d1c1a; border-bottom: 1px solid #343331">
+<h2 style="margin: 0; font-size: 12px; font-weight: 600; color: #cccac8">송출 화면</h2>
+</div>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 16px; padding: 12px; overflow: auto">
+<figure style="margin: 0">
+<div style="position: relative; aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; padding: 0 28px; background: #22302f; border: 1px solid #343331; border-radius: 4px; color: #fff; font-size: 15px; line-height: 22px; font-weight: 700; text-align: center; white-space: pre-line">저 천사여 찬송하세
+찬송 성부 성자 성령</div>
+<figcaption style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 12px"><span>본 화면</span><span style="color: #8a8886">모니터 2 · 배경 영상 1</span></figcaption>
+</figure>
+<figure style="margin: 0">
+<div style="aspect-ratio: 16 / 9; display: flex; flex-direction: column; justify-content: space-between; padding: 14px 16px; box-sizing: border-box; background: #000; border: 1px solid #343331; border-radius: 4px">
+<p style="margin: 0; color: #fff; font-size: 15px; line-height: 20px; font-weight: 600; white-space: pre-line">저 천사여 찬송하세
+찬송 성부 성자 성령</p>
+<p style="margin: 0; padding-top: 8px; border-top: 1px solid #343331; color: #a6a4a2; font-size: 11px; line-height: 15px">다음 · 찬송 성부 성자 성령</p>
+</div>
+<figcaption style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 12px"><span>무대 화면</span><span style="color: #8a8886">창 모드 · 배경 없음</span></figcaption>
+</figure>
+</div>
+<div style="border-top: 1px solid #413f3e">
+<div style="display: flex; align-items: center; height: 32px; padding: 0 12px; background: #1d1c1a; border-bottom: 1px solid #343331">
+<h2 style="margin: 0; font-size: 12px; font-weight: 600; color: #cccac8">지우기</h2>
+</div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 12px">
+<sc-for list="{{ clears }}" as="c" hint-placeholder-count="4">
+<button type="button" style="position: relative; height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; background: #242321; border: 1px solid #413f3e; border-top: 2px solid {{ c.bar }}; border-radius: 4px; color: {{ c.fg }}; font-size: 12px; font-weight: 500">
+<span>{{ c.label }}</span>
+<span style="font-size: 11px; color: #8a8886">{{ c.key }}</span>
+</button>
+</sc-for>
+</div>
+</div>
+</aside>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+const G = { verse: '#63bbc0', pre: '#9eb579', chorus: '#cba36d' };
+const row = (n, title, opts) => Object.assign({ isItem: true, isHeader: false, n: n, title: title, live: false, bg: 'transparent', fg: '#cccac8' }, opts || {});
+const header = (label) => ({ isHeader: true, isItem: false, label: label });
+const slide = (n, group, color, text, live) => ({
+n: n, group: group, color: color, text: text, live: !!live,
+border: live ? '#d33a3c' : '#343331', ring: live ? '#d33a3c' : 'transparent'
+});
+return {
+playlist: [
+header('찬양'),
+row(1, '이 세상 험하고'),
+row(2, '만복의 근원 하나님', { live: true, bg: '#152f4b', fg: '#f0eeec' }),
+header('말씀'),
+row(3, '설교 본문'),
+header('광고'),
+row(4, '광고')
+],
+arrangement: [
+{ label: 'Verse', color: G.verse },
+{ label: 'Pre', color: G.pre },
+{ label: 'Chorus', color: G.chorus },
+{ label: 'Chorus', color: G.chorus }
+],
+slides: [
+slide(1, 'Verse', G.verse, '만복의 근원 하나님\n온 백성 찬송 드리고'),
+slide(2, 'Pre-chorus', G.pre, '저 천사여 찬송하세\n찬송 성부 성자 성령', true),
+slide(3, 'Chorus', G.chorus, '찬송 성부 성자 성령\n아멘'),
+slide(4, '', G.chorus, '찬송 성부 성자 성령\n만복의 근원 하나님')
+],
+media: [
+{ name: '배경 영상 1', swatch: '#22302f', ring: '#d33a3c' },
+{ name: '배경 영상 2', swatch: '#2c2633', ring: 'transparent' },
+{ name: '로고', swatch: '#242321', ring: 'transparent' }
+],
+clears: [
+{ label: '모두', key: 'F1', bar: '#d33a3c', fg: '#f0eeec' },
+{ label: '가사', key: 'F2', bar: '#d33a3c', fg: '#f0eeec' },
+{ label: '미디어', key: 'F3', bar: '#d33a3c', fg: '#f0eeec' },
+{ label: '메시지', key: 'F6', bar: '#413f3e', fg: '#a6a4a2' }
+]
+};
+}
+}
+</script>
+</body>
+</html>

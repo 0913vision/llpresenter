@@ -1,0 +1,30 @@
+/* 25 LabelColorPicker: 이름표 색 고르기(ll-swatches, ll-swatch) */
+.ll-swatches { display: flex; align-items: center; gap: 0; font-family: var(--font-ui); }
+.ll-swatches--menu { padding: var(--space-2) var(--space-4); }
+.ll-swatches__label { flex: none; margin: 0 var(--space-4); font-size: 13px; line-height: 18px; color: var(--text); }
+
+.ll-swatch, :is(.ll-root, .ll-preview) .ll-swatch {
+  box-sizing: border-box; flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; margin: 0; padding: 0; border: 0; border-radius: var(--radius-md);
+  background: transparent; transition: background-color 100ms ease-out;
+}
+.ll-swatch__chip {
+  box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; border-radius: var(--radius-sm); background: var(--label-none); color: var(--text-2);
+}
+.ll-swatch__chip .ll-i { width: var(--size-icon-12); height: var(--size-icon-12); }
+.ll-swatch:hover, .ll-swatch.is-hover { background: var(--bg-control-hover); }
+.ll-swatch[aria-checked="true"] { box-shadow: inset 0 0 0 2px var(--text); }
+.ll-swatch:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.ll-swatch--none .ll-swatch__chip { background: var(--label-none); box-shadow: inset 0 0 0 1px var(--line-control); }
+.ll-swatch--teal .ll-swatch__chip { background: var(--label-teal); }
+.ll-swatch--green .ll-swatch__chip { background: var(--label-green); }
+.ll-swatch--yellow .ll-swatch__chip { background: var(--label-yellow); }
+.ll-swatch--orange .ll-swatch__chip { background: var(--label-orange); }
+.ll-swatch--rose .ll-swatch__chip { background: var(--label-rose); }
+.ll-swatch--violet .ll-swatch__chip { background: var(--label-violet); }
+.ll-swatch--slate .ll-swatch__chip { background: var(--label-slate); }
+.ll-swatch--gray .ll-swatch__chip { background: var(--label-gray); }
+
+@media (prefers-reduced-motion: reduce) { .ll-swatch { transition: none; } }

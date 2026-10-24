@@ -1,0 +1,90 @@
+@@HEAD:문제 상황: 다시 시작@@
+<div style="position: relative; width: 1920px; height: 1080px; display: flex; flex-direction: column; background: #0e0e0e; color: #ececec; font-family: 'Pretendard Variable', Pretendard, sans-serif; font-size: 13px; line-height: 18px; word-break: keep-all; -webkit-font-smoothing: antialiased; overflow: hidden">
+
+@@MENUBAR@@
+
+@@TOOLBAR:showOff@@
+
+<div style="flex: 1; min-height: 0; display: flex; gap: 4px; padding: 0 4px">
+<div style="flex: 0 0 280px; display: flex; flex-direction: column; gap: 4px">
+<section style="flex: 1; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-hidden="true">
+<div style="box-sizing: border-box; height: 34px; display: flex; align-items: center; padding: 0 8px 0 14px; border-bottom: 1px solid #2b2b2b"><span style="font-size: 12px; font-weight: 600; line-height: 31px; border-bottom: 2px solid #ececec">예배 순서</span></div>
+</section>
+<section style="flex: 0 0 300px; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-hidden="true">
+<div style="box-sizing: border-box; height: 34px; display: flex; align-items: center; padding: 0 8px 0 14px; border-bottom: 1px solid #2b2b2b"><span style="font-size: 12px; font-weight: 600; line-height: 31px; border-bottom: 2px solid #ececec">퀵 실행</span></div>
+</section>
+</div>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<section style="flex: 1; background: #1c1c1c; border-radius: 5px" aria-hidden="true"></section>
+<section style="flex: 0 0 170px; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-hidden="true">
+<div style="box-sizing: border-box; height: 34px; display: flex; align-items: center; padding: 0 8px 0 14px; border-bottom: 1px solid #2b2b2b"><span style="font-size: 12px; font-weight: 600; line-height: 31px; border-bottom: 2px solid #ececec">미디어</span></div>
+</section>
+</div>
+<div style="flex: 0 0 480px; display: flex; flex-direction: column; gap: 4px">
+<section style="flex: 0 0 499px; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-hidden="true">
+<div style="box-sizing: border-box; height: 34px; display: flex; align-items: center; padding: 0 8px 0 14px; border-bottom: 1px solid #2b2b2b"><span style="font-size: 12px; font-weight: 600; line-height: 31px; border-bottom: 2px solid #ececec">미리보기</span></div>
+<div style="margin: 14px; aspect-ratio: 16 / 9; border-radius: 4px; background: #000; box-shadow: 0 0 0 1px #2b2b2b"></div>
+</section>
+<section style="flex: 0 0 68px; background: #1c1c1c; border-radius: 5px" aria-hidden="true"></section>
+<section style="flex: 1; background: #1c1c1c; border-radius: 5px" aria-hidden="true"></section>
+</div>
+</div>
+
+<footer style="flex: none; height: 28px; display: flex; align-items: center; gap: 18px; padding: 0 18px; font-size: 11px; color: #8c8c8c">
+<span style="margin-left: auto; display: inline-flex; align-items: center; gap: 6px; color: #6e6e6e">본 화면</span>
+<span style="display: inline-flex; align-items: center; gap: 6px; color: #6e6e6e">무대 화면</span>
+<span style="display: inline-flex; align-items: center; gap: 6px; color: #6e6e6e">방송 자막</span>
+</footer>
+
+<div style="position: absolute; left: 0; right: 0; top: 30px; bottom: 0; background: rgba(0, 0, 0, 0.6)"></div>
+
+<section role="dialog" aria-label="출력 상태 복구" style="position: absolute; left: 50%; top: calc(50% + 15px); transform: translate(-50%, -50%); width: 600px; display: flex; flex-direction: column; background: #1f1f1f; border-radius: 8px; box-shadow: 0 0 0 1px #3a3a3a, 0 16px 48px rgba(0, 0, 0, 0.6); overflow: hidden">
+<div style="display: flex; align-items: flex-start; gap: 14px; padding: 20px 20px 16px">
+<span style="flex: none; width: 40px; height: 40px; border-radius: 5px; background: #1c1c1c; display: inline-flex; align-items: center; justify-content: center; color: #b4b4b4"><span class="i i24 i-history"></span></span>
+<span style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 16px; line-height: 22px; font-weight: 600">출력 상태 복구</span>
+<span style="display: flex; gap: 10px; font-size: 12px; color: #8c8c8c; font-variant-numeric: tabular-nums"><span>비정상 종료</span><span>10월 25일 오전 11:26</span></span>
+</span>
+</div>
+
+<div style="padding: 0 20px">
+<p style="margin: 0; padding: 10px 0 5px; border-top: 1px solid #2b2b2b; font-size: 11px; line-height: 14px; font-weight: 600; color: #8c8c8c">복구할 상태</p>
+<sc-for list="{{ restore }}" as="r" hint-placeholder-count="4">
+<div style="display: flex; align-items: center; gap: 10px; height: 30px">
+<span role="checkbox" aria-checked="true" style="flex: none; width: 16px; height: 16px; border-radius: 3px; background: #2a70dc; display: inline-flex; align-items: center; justify-content: center; color: #fff"><span class="i i12 i-check"></span></span>
+<span style="display: inline-flex; color: #b4b4b4">
+<sc-if value="{{ r.isOrder }}" hint-placeholder-val="{{ true }}"><span class="i i-rows"></span></sc-if>
+<sc-if value="{{ r.isOut }}" hint-placeholder-val="{{ false }}"><span class="i i-mplay"></span></sc-if>
+<sc-if value="{{ r.isSlide }}" hint-placeholder-val="{{ false }}"><span class="i i-slides"></span></sc-if>
+<sc-if value="{{ r.isOver }}" hint-placeholder-val="{{ false }}"><span class="i i-layers"></span></sc-if>
+</span>
+<span style="flex: 0 0 168px; font-size: 13px">{{ r.label }}</span>
+<span style="flex: 1; min-width: 0; font-size: 12px; color: #8c8c8c; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-variant-numeric: tabular-nums">{{ r.value }}</span>
+</div>
+</sc-for>
+</div>
+
+<div style="display: flex; align-items: center; gap: 8px; padding: 20px 20px 16px">
+<button type="button" class="hvc" style="margin-left: auto; height: 30px; padding: 0 14px; border: 0; border-radius: 4px; background: #2a2a2a; color: #ececec; font-size: 13px">새로 시작</button>
+<button type="button" style="height: 30px; padding: 0 14px; border: 0; border-radius: 4px; background: #2a70dc; color: #fff; font-size: 13px; font-weight: 600">복구</button>
+</div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1920,"height":1080}}'>
+class Component extends DCLogic {
+renderVals() {
+const r = (kind, label, value) => ({ isOrder: kind === 'order', isOut: kind === 'out', isSlide: kind === 'slide', isOver: kind === 'over', label: label, value: value });
+return {
+restore: [
+r('out', '화면 출력', '본 화면, 무대 화면, 방송 자막'),
+r('slide', '마지막 장', '만복의 근원 하나님  2 / 9'),
+r('over', '표시 중이던 항목', '메시지 1, 소품 1, 무대 메시지 1')
+]
+};
+}
+}
+</script>
+</body>
+</html>

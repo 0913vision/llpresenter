@@ -1,0 +1,26 @@
+/* 27 PropertyRow: 속성 칸의 묶음(ll-prop-group)과 줄(ll-prop). 이름 칸 너비는 놓인 곳(패널, 창)이 정한다 */
+.ll-props { font-family: var(--font-ui); }
+.ll-prop-group { padding: var(--space-12) 0 var(--space-8); border-bottom: 1px solid var(--line); }
+.ll-prop-group:last-child { border-bottom: 0; }
+.ll-prop-group__title { display: flex; align-items: center; gap: var(--space-6); margin: 0 0 var(--space-4); font-size: 11px; line-height: 14px; font-weight: 600; color: var(--text-3); }
+.ll-prop-group__title .ll-i { width: var(--size-icon-12); height: var(--size-icon-12); }
+
+.ll-prop { display: flex; align-items: center; gap: var(--space-12); min-height: var(--size-prop-row); }
+.ll-prop__label { flex: 0 0 var(--size-prop-label); min-width: 0; font-size: 12px; line-height: 16px; color: var(--text-2); }
+.ll-prop:has(> .ll-prop__control :disabled) > .ll-prop__label { color: var(--text-off); }
+.ll-prop__control { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: var(--space-8); }
+.ll-prop__value { min-width: 0; display: inline-flex; align-items: center; gap: var(--space-8); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 13px; line-height: 18px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.ll-prop__value .ll-i { flex: none; width: var(--size-icon-14); height: var(--size-icon-14); color: var(--text-3); }
+.ll-prop__value--primary { color: var(--text); }
+.ll-prop__meta { flex: none; font-size: 12px; line-height: 16px; color: var(--text-3); }
+/* 여러 줄 조작이 오면 이름을 첫 줄에 맞춘다 */
+.ll-prop--top { align-items: flex-start; padding: var(--space-4) 0; }
+.ll-prop--top .ll-prop__label { padding-top: 7px; }
+
+/* 창(환경설정): 이름 168, 사이 16, 조작 칸 340, 줄 38 */
+.ll-props--window .ll-prop { gap: var(--space-16); min-height: var(--size-prop-row-wide); }
+.ll-props--window .ll-prop__label { flex-basis: var(--size-prop-label-wide); }
+.ll-props--window .ll-prop__control { flex: 0 1 340px; }
+
+/* 두 단(Look 편집의 글자 속성): 단 사이 24 */
+.ll-prop-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--space-24); }

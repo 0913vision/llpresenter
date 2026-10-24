@@ -1,0 +1,106 @@
+<!-- @dsCard group="버튼" height=720 -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Button</title>
+<style>
+.pv-group { display: flex; flex-direction: column; gap: 12px; }
+.pv-sheet { box-sizing: border-box; display: flex; align-items: center; gap: var(--space-8); padding: var(--space-16); border-radius: var(--radius-2xl); background: var(--bg-dialog); box-shadow: var(--shadow-dialog); }
+.pv-strip { box-sizing: border-box; display: flex; align-items: center; gap: var(--space-8); height: var(--size-panel-header); padding: 0 var(--space-8) 0 var(--space-14); border-radius: var(--radius-lg); background: var(--bg-panel); }
+.pv-strip-title { font-size: 12px; line-height: 16px; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="ll-preview">
+
+<div class="pv-group">
+<div class="ll-spec-title">주 버튼, md 30</div>
+<div class="ll-spec">
+<div class="ll-spec-item"><button type="button" class="ll-btn ll-btn--primary ll-btn--md">만들기</button><span class="ll-spec-label">기본</span></div>
+<div class="ll-spec-item"><button type="button" class="ll-btn ll-btn--primary ll-btn--md is-hover">만들기</button><span class="ll-spec-label">마우스 올림</span></div>
+<div class="ll-spec-item"><button type="button" class="ll-btn ll-btn--primary ll-btn--md is-active">만들기</button><span class="ll-spec-label">누름</span></div>
+<div class="ll-spec-item"><button type="button" class="ll-btn ll-btn--primary ll-btn--md is-focus">만들기</button><span class="ll-spec-label">포커스</span></div>
+<div class="ll-spec-item"><button type="button" class="ll-btn ll-btn--primary ll-btn--md" aria-disabled="true">만들기</button><span class="ll-spec-label">쓸 수 없음</span></div>
+</div>
+</div>
+
+<div class="pv-group">
+<div class="ll-spec-title">주 버튼, sm 26</div>
+<div class="ll-spec">
+<div class="ll-spec-item"><button type="button" class="ll-btn ll-btn--primary">저장</button><span class="ll-spec-label">기본</span></div>
+<div class="ll-spec-item"><button type="button" class="ll-btn ll-btn--primary is-hover">저장</button><span class="ll-spec-label">마우스 올림</span></div>
+<div class="ll-spec-item"><button type="button" class="ll-btn ll-btn--primary is-active">저장</button><span class="ll-spec-label">누름</span></div>
+<div class="ll-spec-item"><button type="button" class="ll-btn ll-btn--primary is-focus">저장</button><span class="ll-spec-label">포커스</span></div>
+<div class="ll-spec-item"><button type="button" class="ll-btn ll-btn--primary" aria-disabled="true">저장</button><span class="ll-spec-label">쓸 수 없음</span></div>
+</div>
+</div>
+
+<div class="pv-group">
+<div class="ll-spec-title">보조 버튼, md 30</div>
+<div class="ll-spec">
+<div class="ll-spec-item"><button type="button" class="ll-btn ll-btn--md">새 곡으로 저장</button><span class="ll-spec-label">기본</span></div>
+<div class="ll-spec-item"><button type="button" class="ll-btn ll-btn--md is-hover">새 곡으로 저장</button><span class="ll-spec-label">마우스 올림</span></div>
+<div class="ll-spec-item"><button type="button" class="ll-btn ll-btn--md is-active">새 곡으로 저장</button><span class="ll-spec-label">누름</span></div>
+<div class="ll-spec-item"><button type="button" class="ll-btn ll-btn--md is-focus">새 곡으로 저장</button><span class="ll-spec-label">포커스</span></div>
+<div class="ll-spec-item"><button type="button" class="ll-btn ll-btn--md" aria-disabled="true">새 곡으로 저장</button><span class="ll-spec-label">쓸 수 없음</span></div>
+</div>
+</div>
+
+<div class="pv-group">
+<div class="ll-spec-title">보조 버튼, sm 26, 앞 아이콘 14</div>
+<div class="ll-spec">
+<div class="ll-spec-item"><button type="button" class="ll-btn ll-btn--lead"><span class="ll-i ll-i-edit"></span>라이브러리 곡 편집</button><span class="ll-spec-label">기본</span></div>
+<div class="ll-spec-item"><button type="button" class="ll-btn ll-btn--lead is-hover"><span class="ll-i ll-i-edit"></span>라이브러리 곡 편집</button><span class="ll-spec-label">마우스 올림</span></div>
+<div class="ll-spec-item"><button type="button" class="ll-btn ll-btn--lead is-active"><span class="ll-i ll-i-edit"></span>라이브러리 곡 편집</button><span class="ll-spec-label">누름</span></div>
+<div class="ll-spec-item"><button type="button" class="ll-btn ll-btn--lead is-focus"><span class="ll-i ll-i-edit"></span>라이브러리 곡 편집</button><span class="ll-spec-label">포커스</span></div>
+<div class="ll-spec-item"><button type="button" class="ll-btn ll-btn--lead" aria-disabled="true"><span class="ll-i ll-i-edit"></span>라이브러리 곡 편집</button><span class="ll-spec-label">쓸 수 없음</span></div>
+</div>
+</div>
+
+<div class="pv-group">
+<div class="ll-spec-title">투명 버튼, md 30, 앞 아이콘 16</div>
+<div class="ll-spec">
+<div class="ll-spec-item"><button type="button" class="ll-btn ll-btn--ghost ll-btn--md ll-btn--lead"><span class="ll-i ll-i-plus"></span>역본 추가</button><span class="ll-spec-label">기본</span></div>
+<div class="ll-spec-item"><button type="button" class="ll-btn ll-btn--ghost ll-btn--md ll-btn--lead is-hover"><span class="ll-i ll-i-plus"></span>역본 추가</button><span class="ll-spec-label">마우스 올림</span></div>
+<div class="ll-spec-item"><button type="button" class="ll-btn ll-btn--ghost ll-btn--md ll-btn--lead is-active"><span class="ll-i ll-i-plus"></span>역본 추가</button><span class="ll-spec-label">누름</span></div>
+<div class="ll-spec-item"><button type="button" class="ll-btn ll-btn--ghost ll-btn--md ll-btn--lead is-focus"><span class="ll-i ll-i-plus"></span>역본 추가</button><span class="ll-spec-label">포커스</span></div>
+<div class="ll-spec-item"><button type="button" class="ll-btn ll-btn--ghost ll-btn--md ll-btn--lead" aria-disabled="true"><span class="ll-i ll-i-plus"></span>역본 추가</button><span class="ll-spec-label">쓸 수 없음</span></div>
+</div>
+</div>
+
+<div class="pv-group">
+<div class="ll-spec-title">크기 비교</div>
+<div class="ll-spec">
+<div class="ll-spec-item"><button type="button" class="ll-btn">버리기</button><span class="ll-spec-label">sm 글자만, 좌우 10</span></div>
+<div class="ll-spec-item"><button type="button" class="ll-btn ll-btn--lead"><span class="ll-i ll-i-plus"></span>가져오기</button><span class="ll-spec-label">sm 앞 아이콘, 왼쪽 8</span></div>
+<div class="ll-spec-item"><button type="button" class="ll-btn ll-btn--ghost ll-btn--lead"><span class="ll-i ll-i-plus"></span>지금 예배를 틀로 저장</button><span class="ll-spec-label">sm 투명</span></div>
+<div class="ll-spec-item"><button type="button" class="ll-btn ll-btn--md">지금 백업</button><span class="ll-spec-label">md 글자만, 좌우 14</span></div>
+<div class="ll-spec-item"><button type="button" class="ll-btn ll-btn--md ll-btn--lead"><span class="ll-i ll-i-undo"></span>모두 기본값으로</button><span class="ll-spec-label">md 앞 아이콘, 왼쪽 12</span></div>
+</div>
+</div>
+
+<div class="ll-spec">
+<div class="ll-spec-item">
+<div class="pv-sheet" style="width: var(--dialog-s)">
+<button type="button" class="ll-btn ll-btn--md">취소</button>
+<span style="flex: 1"></span>
+<button type="button" class="ll-btn ll-btn--md">새 곡으로 저장</button>
+<button type="button" class="ll-btn ll-btn--md ll-btn--primary">덮어쓰기</button>
+</div>
+<span class="ll-spec-label">확인 창 버튼 줄, md, 사이 8, 주 버튼은 맨 오른쪽 하나</span>
+</div>
+<div class="ll-spec-item">
+<div class="pv-strip" style="width: 360px">
+<span class="pv-strip-title">만복의 근원 하나님</span>
+<span style="flex: 1"></span>
+<button type="button" class="ll-btn">버리기</button>
+<button type="button" class="ll-btn ll-btn--primary">저장</button>
+</div>
+<span class="ll-spec-label">패널 머리글 안, sm</span>
+</div>
+</div>
+
+</div>
+</body>
+</html>

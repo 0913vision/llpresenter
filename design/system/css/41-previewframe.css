@@ -1,0 +1,40 @@
+/* 41 PreviewFrame: 미리보기 패널 몸통. 큰 미리보기 하나 + 작은 미리보기 둘. 패널 몸통이 panel-inset 14를 준다 */
+.ll-monitor { display: flex; flex-direction: column; gap: var(--space-10); min-width: 0; }
+.ll-monitor__main { display: flex; flex-direction: column; gap: var(--space-10); min-width: 0; }
+
+/* 화면 틀: 출력 렌더러를 줄여 넣는 16:9 자리 */
+.ll-monitor__frame { position: relative; display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: var(--radius-md); overflow: hidden; background: var(--output-black); box-shadow: 0 0 0 1px var(--line); container-type: inline-size; transition: box-shadow 100ms ease-out; }
+.ll-monitor__frame--chroma { background: var(--chroma); }
+.ll-monitor__screen { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; object-fit: cover; }
+
+/* 큰 미리보기 아래 이름 줄: 이름 label-strong, 대상과 Look은 label text-3 */
+.ll-monitor__caption { display: flex; align-items: center; gap: var(--space-8); min-width: 0; font-size: 12px; line-height: 16px; white-space: nowrap; }
+.ll-monitor__name { color: var(--text); font-weight: 600; }
+.ll-monitor__target { display: inline-flex; align-items: center; gap: var(--space-4); min-width: 0; color: var(--text-3); }
+.ll-monitor__target .ll-i { width: var(--size-icon-14); height: var(--size-icon-14); }
+.ll-monitor__look { margin-left: auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--text-3); }
+
+/* 작은 미리보기 두 칸: 누르면 큰 미리보기와 자리를 바꾼다 */
+.ll-monitor__smalls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-10); }
+.ll-monitor__small, :is(.ll-root, .ll-preview) .ll-monitor__small { display: flex; flex-direction: column; gap: var(--space-6); min-width: 0; margin: 0; padding: 0; border: 0; border-radius: var(--radius-md); background: transparent; color: inherit; font: inherit; text-align: left; cursor: default; }
+.ll-monitor__small .ll-monitor__caption { gap: var(--space-6); font-size: 11px; line-height: 14px; }
+.ll-monitor__small .ll-monitor__name { color: var(--text-2); font-weight: 400; }
+.ll-monitor__small .ll-monitor__target .ll-i { width: var(--size-icon-12); height: var(--size-icon-12); }
+.ll-monitor__small:hover .ll-monitor__frame, .ll-monitor__small.is-hover .ll-monitor__frame { box-shadow: 0 0 0 1px var(--line-control); }
+.ll-monitor__small:focus-visible, .ll-preview .ll-monitor__small.is-focus { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* 좁은 창: 작은 미리보기를 64px 썸네일 줄로 */
+.ll-monitor--compact .ll-monitor__small { flex-direction: row; align-items: center; gap: var(--space-8); }
+.ll-monitor--compact .ll-monitor__small .ll-monitor__frame { flex: none; width: 64px; }
+.ll-monitor--compact .ll-monitor__small .ll-monitor__caption { flex-direction: column; align-items: flex-start; gap: var(--space-2); }
+.ll-monitor--compact .ll-monitor__small .ll-monitor__look { display: none; }
+
+/* 상태: 출력 꺼짐(이름 text-off, 틀 line-strong), 모니터 빠짐(대상 warning + 경고 아이콘, 틀 warning) */
+.ll-monitor [data-state="off"] .ll-monitor__frame { box-shadow: 0 0 0 1px var(--line-strong); }
+.ll-monitor [data-state="off"] .ll-monitor__name { color: var(--text-off); }
+.ll-monitor [data-state="warning"] .ll-monitor__frame { box-shadow: 0 0 0 1px var(--warning); }
+.ll-monitor [data-state="warning"] .ll-monitor__target { color: var(--warning); }
+/* 꺼진 칸에도 마우스 올림은 보인다. 경고 테두리는 마우스를 올려도 그대로 둔다 */
+.ll-monitor__small[data-state="off"]:hover .ll-monitor__frame, .ll-monitor__small[data-state="off"].is-hover .ll-monitor__frame { box-shadow: 0 0 0 1px var(--line-control); }
+
+@media (prefers-reduced-motion: reduce) { .ll-monitor__frame { transition: none; } }

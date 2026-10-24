@@ -1,0 +1,83 @@
+@@HEAD:세 화면의 실제 출력@@
+<div style="width: 1920px; height: 860px; box-sizing: border-box; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 20px; background: #0e0e0e; color: #ececec; font-family: 'Pretendard Variable', Pretendard, sans-serif; font-size: 13px; line-height: 18px; word-break: keep-all; -webkit-font-smoothing: antialiased; overflow: hidden">
+
+<div style="flex: none; display: flex; align-items: center; gap: 12px">
+<span style="height: 16px; padding: 0 4px; border-radius: 3px; background: #d2343a; color: #fff; font-size: 10px; line-height: 16px; font-weight: 700; letter-spacing: 0.04em">LIVE</span>
+<span style="font-size: 16px; font-weight: 600">만복의 근원 하나님</span>
+<span style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #b4b4b4"><span style="width: 10px; height: 10px; border-radius: 2px; background: #8fbf7a"></span>프리코러스</span>
+<span style="font-size: 13px; color: #8c8c8c; font-variant-numeric: tabular-nums">2 / 9</span>
+<span style="margin-left: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #b4b4b4"><span class="i i-layers"></span>평상시</span>
+</div>
+
+<div style="flex: 1; min-height: 0; display: grid; grid-template-columns: 1253px 579px; gap: 24px">
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="height: 20px; display: flex; align-items: center; gap: 10px">
+<span style="font-size: 13px; font-weight: 600">본 화면</span>
+<span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #8c8c8c"><span class="i i14 i-monitor"></span>모니터 2</span>
+<span style="margin-left: auto; display: flex; gap: 4px"><sc-for list="{{ mainLayers }}" as="l" hint-placeholder-count="4"><span style="height: 20px; padding: 0 7px; border-radius: 3px; background: #1c1c1c; color: #b4b4b4; font-size: 11px; line-height: 20px">{{ l }}</span></sc-for></span>
+</div>
+<div style="position: relative; width: 1253px; height: 705px; overflow: hidden; background: #000; box-shadow: 0 0 0 1px #2b2b2b">
+<img src="/_blob/e96d6204449f1e44237721b22d7463c9" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
+<div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 0 8%; color: #fff; font-size: 55px; line-height: 77px; font-weight: 700; text-align: center; white-space: pre-line; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55)">{{ lyric }}</div>
+<span style="position: absolute; right: 40px; top: 32px; font-size: 15px; font-weight: 700; letter-spacing: 0.08em; color: rgba(255, 255, 255, 0.72)">LOVELIGHT</span>
+<div style="position: absolute; left: 0; right: 0; bottom: 0; height: 50px; display: flex; align-items: center; padding: 0 40px; background: rgba(0, 0, 0, 0.8); color: #fff; font-size: 20px; font-weight: 600">12가 3456 차량 이동 부탁드립니다</div>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="height: 20px; display: flex; align-items: center; gap: 10px">
+<span style="font-size: 13px; font-weight: 600">무대 화면</span>
+<span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #8c8c8c"><span class="i i14 i-monitor"></span>모니터 3</span>
+<span style="margin-left: auto; display: flex; gap: 4px"><sc-for list="{{ stageLayers }}" as="l" hint-placeholder-count="3"><span style="height: 20px; padding: 0 7px; border-radius: 3px; background: #1c1c1c; color: #b4b4b4; font-size: 11px; line-height: 20px">{{ l }}</span></sc-for></span>
+</div>
+<div style="position: relative; width: 579px; height: 326px; overflow: hidden; background: #000; box-shadow: 0 0 0 1px #2b2b2b">
+<div style="position: absolute; left: 26px; right: 26px; top: 22px; display: flex; justify-content: space-between; gap: 16px">
+<div>
+<p style="margin: 0 0 6px; display: flex; align-items: center; gap: 6px; font-size: 11px; line-height: 14px; font-weight: 700; color: #8fbf7a"><span style="width: 8px; height: 8px; border-radius: 2px; background: #8fbf7a"></span>프리코러스</p>
+<p style="margin: 0; color: #fff; font-size: 25px; line-height: 34px; font-weight: 700; white-space: pre-line">{{ lyric }}</p>
+</div>
+<div style="text-align: right">
+<p style="margin: 0; font-size: 30px; line-height: 34px; font-weight: 700; font-variant-numeric: tabular-nums">11:24</p>
+<p style="margin: 4px 0 0; font-size: 11px; color: #8c8c8c; font-variant-numeric: tabular-nums">예배 경과 00:54</p>
+</div>
+</div>
+<div style="position: absolute; left: 26px; right: 26px; top: 128px; padding-top: 14px; border-top: 1px solid #333333">
+<p style="margin: 0 0 6px; display: flex; align-items: center; gap: 6px; font-size: 11px; line-height: 14px; font-weight: 700; color: #8c8c8c">다음<span style="width: 8px; height: 8px; margin-left: 4px; border-radius: 2px; background: #d6b35f"></span><span style="color: #d6b35f">후렴</span></p>
+<p style="margin: 0; color: #9a9a9a; font-size: 19px; line-height: 27px; font-weight: 600; white-space: pre-line">{{ next }}</p>
+</div>
+<div style="position: absolute; left: 0; right: 0; bottom: 0; height: 40px; display: flex; align-items: center; padding: 0 26px; background: #e3a23b; color: #111; font-size: 17px; font-weight: 700">후렴 한 번 더</div>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="height: 20px; display: flex; align-items: center; gap: 10px">
+<span style="font-size: 13px; font-weight: 600">방송 자막</span>
+<span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #8c8c8c"><span class="i i14 i-capture"></span>NDI</span>
+<span style="margin-left: auto; display: flex; gap: 4px"><sc-for list="{{ bcLayers }}" as="l" hint-placeholder-count="2"><span style="height: 20px; padding: 0 7px; border-radius: 3px; background: #1c1c1c; color: #b4b4b4; font-size: 11px; line-height: 20px">{{ l }}</span></sc-for></span>
+</div>
+<div style="position: relative; width: 579px; height: 326px; overflow: hidden; background: #00b140; box-shadow: 0 0 0 1px #2b2b2b">
+<div style="position: absolute; left: 10%; right: 10%; bottom: 9%; padding: 10px 18px; background: rgba(0, 0, 0, 0.82); color: #fff; font-size: 17px; line-height: 25px; font-weight: 600; text-align: center; white-space: pre-line">{{ lyric }}</div>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1920,"height":860}}'>
+class Component extends DCLogic {
+renderVals() {
+return {
+lyric: '저 천사여 찬송하세\n찬송 성부 성자 성령',
+next: '찬송 성부 성자 성령\n아멘',
+mainLayers: ['배경 미디어', '가사', '소품', '메시지'],
+stageLayers: ['현재와 다음', '시계', '무대 메시지'],
+bcLayers: ['하단 자막']
+};
+}
+}
+</script>
+</body>
+</html>

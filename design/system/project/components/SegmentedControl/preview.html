@@ -1,0 +1,88 @@
+<!-- @dsCard group="버튼" height=440 -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>SegmentedControl</title>
+<style>
+.pv-group { display: flex; flex-direction: column; gap: 12px; }
+.pv-panel { box-sizing: border-box; border-radius: var(--radius-lg); background: var(--bg-panel); overflow: hidden; }
+.pv-head { box-sizing: border-box; display: flex; align-items: center; gap: var(--space-10); height: var(--size-panel-header); padding: 0 var(--space-8) 0 var(--space-14); border-bottom: 1px solid var(--line); }
+.pv-tab { font-size: 12px; line-height: 32px; font-weight: 600; border-bottom: 2px solid var(--text); }
+.pv-strong { font-size: 12px; line-height: 16px; font-weight: 600; }
+.pv-prop { display: flex; flex-direction: column; padding: var(--space-8) var(--space-14); }
+.pv-prop-row { display: flex; align-items: center; gap: var(--space-12); height: 36px; }
+.pv-prop-name { flex: 0 0 72px; font-size: 12px; line-height: 16px; color: var(--text-2); }
+</style>
+</head>
+<body>
+<div class="ll-preview">
+
+<div class="pv-group">
+<div class="ll-spec-title">글자 항목, 항목 22, 바닥 홈 26</div>
+<div class="ll-spec ll-on-panel">
+<div class="ll-spec-item">
+<span class="ll-seg" role="radiogroup" aria-label="구성"><button type="button" class="ll-seg__item" role="radio" aria-checked="true">기본</button><button type="button" class="ll-seg__item" role="radio" aria-checked="false">주일용</button><button type="button" class="ll-seg__item" role="radio" aria-checked="false">짧게</button></span>
+<span class="ll-spec-label">기본</span></div>
+<div class="ll-spec-item">
+<span class="ll-seg" role="radiogroup" aria-label="구성"><button type="button" class="ll-seg__item" role="radio" aria-checked="true">기본</button><button type="button" class="ll-seg__item is-hover" role="radio" aria-checked="false">주일용</button><button type="button" class="ll-seg__item" role="radio" aria-checked="false">짧게</button></span>
+<span class="ll-spec-label">주일용에 마우스 올림</span></div>
+<div class="ll-spec-item">
+<span class="ll-seg" role="radiogroup" aria-label="구성"><button type="button" class="ll-seg__item" role="radio" aria-checked="true">기본</button><button type="button" class="ll-seg__item is-active" role="radio" aria-checked="false">주일용</button><button type="button" class="ll-seg__item" role="radio" aria-checked="false">짧게</button></span>
+<span class="ll-spec-label">누름</span></div>
+<div class="ll-spec-item">
+<span class="ll-seg" role="radiogroup" aria-label="구성"><button type="button" class="ll-seg__item is-focus" role="radio" aria-checked="true">기본</button><button type="button" class="ll-seg__item" role="radio" aria-checked="false" tabindex="-1">주일용</button><button type="button" class="ll-seg__item" role="radio" aria-checked="false" tabindex="-1">짧게</button></span>
+<span class="ll-spec-label">포커스</span></div>
+<div class="ll-spec-item">
+<span class="ll-seg" role="radiogroup" aria-label="구성"><button type="button" class="ll-seg__item" role="radio" aria-checked="true" aria-disabled="true">기본</button><button type="button" class="ll-seg__item" role="radio" aria-checked="false" aria-disabled="true">주일용</button><button type="button" class="ll-seg__item" role="radio" aria-checked="false" aria-disabled="true">짧게</button></span>
+<span class="ll-spec-label">쓸 수 없음</span></div>
+</div>
+</div>
+
+<div class="pv-group">
+<div class="ll-spec-title">아이콘 항목, 22×28, 아이콘 14, 개수가 있는 항목</div>
+<div class="ll-spec ll-on-panel">
+<div class="ll-spec-item">
+<span class="ll-seg" role="group" aria-label="보기"><button type="button" class="ll-seg__item ll-seg__item--icon" aria-label="격자 보기" title="격자 보기" aria-pressed="true"><span class="ll-i ll-i-grid"></span></button><button type="button" class="ll-seg__item ll-seg__item--icon" aria-label="목록 보기" title="목록 보기" aria-pressed="false"><span class="ll-i ll-i-rows"></span></button></span>
+<span class="ll-spec-label">격자 보기</span></div>
+<div class="ll-spec-item">
+<span class="ll-seg" role="group" aria-label="보기"><button type="button" class="ll-seg__item ll-seg__item--icon" aria-label="격자 보기" aria-pressed="false"><span class="ll-i ll-i-grid"></span></button><button type="button" class="ll-seg__item ll-seg__item--icon" aria-label="목록 보기" aria-pressed="true"><span class="ll-i ll-i-rows"></span></button></span>
+<span class="ll-spec-label">목록 보기</span></div>
+<div class="ll-spec-item">
+<span class="ll-seg" role="group" aria-label="보기"><button type="button" class="ll-seg__item ll-seg__item--icon" aria-label="격자 보기" aria-pressed="true"><span class="ll-i ll-i-grid"></span></button><button type="button" class="ll-seg__item ll-seg__item--icon is-hover" aria-label="목록 보기" aria-pressed="false"><span class="ll-i ll-i-rows"></span></button></span>
+<span class="ll-spec-label">마우스 올림</span></div>
+<div class="ll-spec-item">
+<span class="ll-seg" role="radiogroup" aria-label="보기"><button type="button" class="ll-seg__item" role="radio" aria-checked="true">전체</button><button type="button" class="ll-seg__item" role="radio" aria-checked="false">바꾼 것<span class="ll-seg__count">3</span></button><button type="button" class="ll-seg__item" role="radio" aria-checked="false" title="겹치는 단축키 1개">겹침<span class="ll-seg__count ll-seg__count--warning">1</span></button></span>
+<span class="ll-spec-label">개수, 겹침은 warning</span></div>
+<div class="ll-spec-item">
+<span class="ll-seg" role="radiogroup" aria-label="보기"><button type="button" class="ll-seg__item" role="radio" aria-checked="false">전체</button><button type="button" class="ll-seg__item" role="radio" aria-checked="true">바꾼 것<span class="ll-seg__count">3</span></button><button type="button" class="ll-seg__item" role="radio" aria-checked="false">겹침<span class="ll-seg__count ll-seg__count--warning">1</span></button></span>
+<span class="ll-spec-label">바꾼 것을 고름</span></div>
+</div>
+</div>
+
+<div class="ll-spec">
+<div class="ll-spec-item">
+<div class="pv-panel" style="width: 400px">
+<div class="pv-prop">
+<div class="pv-prop-row"><span class="pv-prop-name">종류</span><span class="ll-seg ll-seg--fill" role="radiogroup" aria-label="종류"><button type="button" class="ll-seg__item" role="radio" aria-checked="true">청중</button><button type="button" class="ll-seg__item" role="radio" aria-checked="false">무대</button></span></div>
+<div class="pv-prop-row"><span class="pv-prop-name">방식</span><span class="ll-seg ll-seg--fill" role="radiogroup" aria-label="방식"><button type="button" class="ll-seg__item" role="radio" aria-checked="true">전체 화면</button><button type="button" class="ll-seg__item" role="radio" aria-checked="false">창</button><button type="button" class="ll-seg__item" role="radio" aria-checked="false">캡처용 창</button><button type="button" class="ll-seg__item" role="radio" aria-checked="false">NDI</button></span></div>
+<div class="pv-prop-row"><span class="pv-prop-name">맞춤</span><span class="ll-seg ll-seg--fill" role="radiogroup" aria-label="맞춤"><button type="button" class="ll-seg__item" role="radio" aria-checked="false">맞추기</button><button type="button" class="ll-seg__item" role="radio" aria-checked="true">채우기</button><button type="button" class="ll-seg__item" role="radio" aria-checked="false">늘리기</button></span></div>
+</div>
+</div>
+<span class="ll-spec-label">속성 칸을 채우는 형태, 항목 너비를 똑같이 나눔, 좌우 8</span>
+</div>
+<div class="ll-spec-item" style="gap: 8px">
+<div class="pv-panel" style="width: 420px">
+<div class="pv-head"><span class="pv-tab">미리보기</span><span style="flex: 1"></span>
+<span class="ll-seg" role="tablist" aria-label="미리 볼 화면"><button type="button" class="ll-seg__item" role="tab" aria-selected="true">본 화면</button><button type="button" class="ll-seg__item" role="tab" aria-selected="false">무대</button><button type="button" class="ll-seg__item" role="tab" aria-selected="false">방송 자막</button></span></div>
+<div class="pv-head" style="height: 44px; border-bottom: 0"><span class="pv-strong">구성</span>
+<span class="ll-seg" role="radiogroup" aria-label="구성"><button type="button" class="ll-seg__item" role="radio" aria-checked="true">기본</button><button type="button" class="ll-seg__item" role="radio" aria-checked="false">주일용</button><button type="button" class="ll-seg__item" role="radio" aria-checked="false">짧게</button></span>
+<button type="button" class="ll-iconbtn" aria-label="구성 추가" title="구성 추가"><span class="ll-i ll-i-plus"></span></button></div>
+</div>
+<span class="ll-spec-label">패널 머리글 안, 화면 탭(aria-selected), 구성 고르기(radio)</span>
+</div>
+</div>
+
+</div>
+</body>
+</html>

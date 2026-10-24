@@ -1,0 +1,183 @@
+@@HEAD:환경설정@@
+<div style="width: 1040px; height: 800px; display: flex; flex-direction: column; background: #1c1c1c; color: #ececec; font-family: 'Pretendard Variable', Pretendard, sans-serif; font-size: 13px; line-height: 18px; word-break: keep-all; -webkit-font-smoothing: antialiased; overflow: hidden">
+
+<div style="flex: none; height: 30px; display: flex; align-items: center; padding-left: 14px; background: #0e0e0e">
+<span style="font-size: 12px; font-weight: 600">환경설정</span>
+<button type="button" class="hv" aria-label="닫기" style="margin-left: auto; width: 46px; height: 30px; border: 0; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i14 i-x"></span></button>
+</div>
+
+<div style="flex: 1; min-height: 0; display: flex">
+
+<nav aria-label="환경설정 항목" style="flex: 0 0 200px; padding: 8px 0; background: #181818; border-right: 1px solid #2b2b2b">
+<sc-for list="{{ nav }}" as="n" hint-placeholder-count="7">
+<button type="button" class="hv" onClick="{{ n.go }}" aria-current="{{ n.current }}" style="display: flex; align-items: center; gap: 10px; width: 100%; height: 30px; padding: 0 14px; border: 0; background: {{ n.bg }}; color: #ececec; text-align: left; font-size: 13px">
+<span class="i i-{{ n.icon }}" style="color: {{ n.iconColor }}"></span>{{ n.label }}</button>
+</sc-for>
+</nav>
+
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+
+<sc-if value="{{ isForm }}" hint-placeholder-val="{{ true }}">
+<div style="flex: none; padding: 18px 24px 2px">
+<span style="font-size: 16px; line-height: 22px; font-weight: 600">{{ sectionTitle }}</span>
+</div>
+<div style="flex: 1; min-height: 0; overflow: hidden; padding: 0 24px 16px">
+<sc-for list="{{ groups }}" as="g" hint-placeholder-count="3">
+<div style="padding: 12px 0 8px; border-bottom: 1px solid #2b2b2b">
+<p style="margin: 0 0 4px; font-size: 11px; line-height: 14px; font-weight: 600; color: #8c8c8c">{{ g.title }}</p>
+<sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="3">
+<div style="display: flex; align-items: center; gap: 16px; min-height: 38px">
+<span style="flex: 0 0 168px; font-size: 12px; color: #b4b4b4">{{ r.label }}</span>
+<span style="flex: 0 0 340px; display: flex; align-items: center; gap: 8px">
+<sc-if value="{{ r.isSelect }}" hint-placeholder-val="{{ true }}"><button type="button" class="hvc" style="flex: 1; display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px 0 10px; border: 0; border-radius: 4px; background: #2a2a2a; color: #ececec; font-size: 13px; text-align: left"><span style="flex: 1">{{ r.value }}</span><span class="i i12 i-down" style="color: #8c8c8c"></span></button></sc-if>
+<sc-if value="{{ r.isSeg }}" hint-placeholder-val="{{ false }}"><span style="flex: 1; display: flex; padding: 2px; border-radius: 5px; background: #121212"><sc-for list="{{ r.options }}" as="o" hint-placeholder-count="2"><button type="button" style="flex: 1; height: 22px; padding: 0 8px; border: 0; border-radius: 3px; background: {{ o.bg }}; color: {{ o.fg }}; font-size: 12px">{{ o.label }}</button></sc-for></span></sc-if>
+<sc-if value="{{ r.isSwitch }}" hint-placeholder-val="{{ false }}"><span role="switch" aria-checked="{{ r.checked }}" style="position: relative; width: 30px; height: 18px; border-radius: 9px; background: {{ r.track }}"><span style="position: absolute; top: 2px; left: {{ r.knob }}; width: 14px; height: 14px; border-radius: 50%; background: #ececec"></span></span></sc-if>
+<sc-if value="{{ r.isStepper }}" hint-placeholder-val="{{ false }}"><span style="width: 96px; display: flex; align-items: center; justify-content: flex-end; height: 30px; padding: 0 10px; box-sizing: border-box; border-radius: 4px; background: #121212; font-size: 13px; font-variant-numeric: tabular-nums">{{ r.value }}</span><span style="font-size: 12px; color: #8c8c8c">{{ r.unit }}</span></sc-if>
+<sc-if value="{{ r.isText }}" hint-placeholder-val="{{ false }}"><span style="flex: 1; display: flex; align-items: center; gap: 8px; font-size: 13px; color: #b4b4b4; font-variant-numeric: tabular-nums"><sc-if value="{{ r.dot }}" hint-placeholder-val="{{ false }}"><span style="width: 6px; height: 6px; border-radius: 50%; background: {{ r.dot }}"></span></sc-if>{{ r.value }}</span></sc-if>
+<sc-if value="{{ r.isPath }}" hint-placeholder-val="{{ false }}"><span style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 10px; border-radius: 4px; background: #121212; font-size: 13px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis"><span class="i i-folder" style="color: #8c8c8c"></span>{{ r.value }}</span><button type="button" class="hvc" style="flex: none; height: 30px; padding: 0 14px; border: 0; border-radius: 4px; background: #2a2a2a; color: #ececec; font-size: 13px">바꾸기</button></sc-if>
+<sc-if value="{{ r.hasButton }}" hint-placeholder-val="{{ false }}"><button type="button" class="hvc" style="flex: none; height: 30px; padding: 0 14px; border: 0; border-radius: 4px; background: #2a2a2a; color: #ececec; font-size: 13px">{{ r.button }}</button></sc-if>
+</span>
+</div>
+</sc-for>
+<sc-for list="{{ g.items }}" as="v" hint-placeholder-count="0">
+<div style="display: flex; align-items: center; gap: 12px; max-width: 524px; height: 38px; border-top: 1px solid #2b2b2b">
+<span class="i i-book" style="color: #b4b4b4"></span>
+<span style="flex: 0 0 140px; font-size: 13px">{{ v.name }}</span>
+<span style="flex: 0 0 80px; font-size: 12px; color: #8c8c8c">{{ v.lang }}</span>
+<span style="flex: 1; font-size: 12px; color: #8c8c8c; font-variant-numeric: tabular-nums">{{ v.size }}</span>
+<sc-if value="{{ v.isDefault }}" hint-placeholder-val="{{ false }}"><span style="height: 18px; padding: 0 6px; border-radius: 3px; background: #1f4170; color: #b4c6e0; font-size: 11px; line-height: 18px">기본</span></sc-if>
+<button type="button" class="hv" aria-label="{{ v.more }}" style="width: 26px; height: 26px; border: 0; border-radius: 4px; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i-more"></span></button>
+</div>
+</sc-for>
+<sc-if value="{{ g.hasAdd }}" hint-placeholder-val="{{ false }}"><button type="button" class="hv" style="display: flex; align-items: center; gap: 8px; height: 30px; margin: 4px 0 0 -12px; padding: 0 14px 0 12px; border: 0; border-radius: 4px; background: transparent; color: #b4b4b4; font-size: 13px"><span class="i i-plus"></span>{{ g.addLabel }}</button></sc-if>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ isKeys }}" hint-placeholder-val="{{ false }}">
+<div style="flex: none; padding: 18px 24px 12px; display: flex; align-items: center; gap: 12px">
+<span style="font-size: 16px; line-height: 22px; font-weight: 600">단축키</span>
+<button type="button" class="hvc" style="margin-left: auto; display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 14px 0 12px; border: 0; border-radius: 4px; background: #2a2a2a; color: #ececec; font-size: 13px"><span class="i i-undo"></span>모두 기본값으로</button>
+</div>
+<div style="flex: none; display: flex; align-items: center; gap: 10px; padding: 0 24px 10px">
+<span style="flex: 1; display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 10px; border-radius: 4px; background: #121212; color: #8c8c8c"><span class="i i-search"></span><input aria-label="명령 찾기" placeholder="명령, 키" style="flex: 1; min-width: 0; height: 28px; padding: 0; border: 0; background: transparent; color: #ececec; font-size: 13px"></span>
+<span style="display: flex; padding: 2px; border-radius: 5px; background: #121212">
+<sc-for list="{{ filters }}" as="f" hint-placeholder-count="3"><button type="button" style="display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 10px; border: 0; border-radius: 3px; background: {{ f.bg }}; color: {{ f.fg }}; font-size: 12px">{{ f.label }}<sc-if value="{{ f.hasCount }}" hint-placeholder-val="{{ false }}"><span style="font-size: 11px; line-height: 14px; color: {{ f.countFg }}; font-variant-numeric: tabular-nums">{{ f.count }}</span></sc-if></button></sc-for>
+</span>
+</div>
+<div style="flex: none; display: flex; align-items: center; height: 28px; margin: 0 24px; padding: 0 12px; border-bottom: 1px solid #2b2b2b; font-size: 11px; font-weight: 600; color: #8c8c8c">
+<span style="flex: 1">명령</span>
+<span style="flex: 0 0 300px">단축키</span>
+</div>
+<div style="flex: 1; min-height: 0; overflow: hidden; margin: 0 24px">
+<sc-for list="{{ keyGroups }}" as="g" hint-placeholder-count="4">
+<p style="margin: 0; padding: 10px 12px 4px; font-size: 11px; line-height: 14px; font-weight: 600; color: #8c8c8c">{{ g.title }}</p>
+<sc-for list="{{ g.rows }}" as="k" hint-placeholder-count="4">
+<div style="display: flex; align-items: center; height: 30px; padding: 0 12px; border-radius: 4px; background: {{ k.bg }}">
+<span style="flex: 1; display: flex; align-items: center; gap: 8px; font-size: 13px">{{ k.name }}</span>
+<span style="flex: 0 0 300px; display: flex; align-items: center; gap: 10px">
+<sc-if value="{{ k.isKeys }}" hint-placeholder-val="{{ true }}"><sc-for list="{{ k.combos }}" as="c" hint-placeholder-count="1"><span style="display: inline-flex; align-items: center; gap: 4px; border-radius: 4px; outline: 1px solid {{ k.ring }}; outline-offset: 2px"><sc-for list="{{ c }}" as="key" hint-placeholder-count="1"><span style="min-width: 22px; height: 18px; padding: 0 6px; box-sizing: border-box; border-radius: 3px; background: {{ k.keyBg }}; color: #ececec; font-size: 11px; line-height: 18px; font-weight: 600; text-align: center; font-variant-numeric: tabular-nums">{{ key }}</span></sc-for></span></sc-for></sc-if>
+<sc-if value="{{ k.isEmpty }}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; color: #8c8c8c">없음</span></sc-if>
+<sc-if value="{{ k.isEditing }}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; align-items: center; gap: 6px; width: 160px; height: 26px; padding: 0 8px; box-sizing: border-box; border-radius: 4px; background: #121212; box-shadow: inset 0 0 0 1px #3d8bf0; font-size: 12px; color: #8c8c8c"><span style="width: 1px; height: 14px; background: #ececec"></span>키 입력</span></sc-if>
+<sc-if value="{{ k.hasConflict }}" hint-placeholder-val="{{ false }}"><span title="{{ k.conflict }}" style="display: inline-flex; color: #e3a23b"><span class="i i14 i-warning"></span></span></sc-if>
+</span>
+</div>
+</sc-for>
+</sc-for>
+</div>
+<div style="flex: none; height: 52px; display: flex; align-items: center; gap: 12px; padding: 0 24px; border-top: 1px solid #2b2b2b">
+<span style="font-size: 13px; font-weight: 600">로고 화면</span>
+<span style="font-size: 12px; color: #8c8c8c">기본값</span>
+<span style="font-size: 12px; color: #b4b4b4">없음</span>
+<button type="button" class="hvc" style="margin-left: auto; height: 30px; padding: 0 14px; border: 0; border-radius: 4px; background: #2a2a2a; color: #ececec; font-size: 13px">기본값으로</button>
+<button type="button" class="hvc" style="height: 30px; padding: 0 14px; border: 0; border-radius: 4px; background: #2a2a2a; color: #ececec; font-size: 13px">지우기</button>
+</div>
+</sc-if>
+
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1040,"height":800}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = { sec: 'general' };
+}
+renderVals() {
+const sec = this.state.sec;
+const navDef = [['general', '일반', 'gear'], ['output', '출력', 'mplay'], ['library', '라이브러리', 'folder'], ['bible', '성경', 'book'], ['import', '가져오기', 'download'], ['keys', '단축키', 'keyboard'], ['update', '업데이트', 'refresh']];
+const nav = navDef.map((n) => ({
+label: n[1], icon: n[2], current: n[0] === sec ? 'page' : 'false',
+bg: n[0] === sec ? '#1f4170' : 'transparent', iconColor: n[0] === sec ? '#ececec' : '#8c8c8c',
+go: () => this.setState({ sec: n[0] })
+}));
+const base = { isSelect: false, isSeg: false, isSwitch: false, isStepper: false, isText: false, isPath: false, hasButton: false, value: '', unit: '', dot: '' };
+const sel = (label, value) => Object.assign({}, base, { label: label, isSelect: true, value: value });
+const seg = (label, labels, active) => Object.assign({}, base, { label: label, isSeg: true, options: labels.map((l, i) => ({ label: l, bg: i === active ? '#333333' : 'transparent', fg: i === active ? '#ececec' : '#8c8c8c' })) });
+const sw = (label, on) => Object.assign({}, base, { label: label, isSwitch: true, checked: on ? 'true' : 'false', track: on ? '#2a70dc' : '#3a3a3a', knob: on ? '14px' : '2px' });
+const step = (label, value, unit) => Object.assign({}, base, { label: label, isStepper: true, value: value, unit: unit || '' });
+const text = (label, value, extra) => Object.assign({}, base, { label: label, isText: true, value: value }, extra || {});
+const path = (label, value) => Object.assign({}, base, { label: label, isPath: true, value: value });
+const group = (title, rows, extra) => Object.assign({ title: title, rows: rows, items: [], hasAdd: false, addLabel: '' }, extra || {});
+const sections = {
+general: ['일반', [
+group('앱', [sel('언어', '한국어'), sel('시작할 때', '마지막 예배 열기')]),
+group('저장', [sel('자동 저장', '1분마다'), step('복구 사본', '10', '개')]),
+group('보고', [sw('오류 보고 보내기', true), sw('사용 통계 보내기', false)])
+]],
+output: ['출력', [
+group('시작', [sw('켤 때 화면 출력', false)]),
+group('안정성', [sw('출력 중 절전 막기', true), sw('출력 창 항상 위', true), sel('화면 연결이 끊기면', '창으로 바꾸기')]),
+group('성능', [sw('하드웨어 가속', true), sel('미리보기', '30fps')])
+]],
+library: ['라이브러리', [
+group('위치', [path('곡', 'D:\\LoveLight\\곡'), path('미디어', 'D:\\LoveLight\\미디어')]),
+group('백업', [sw('자동 백업', true), path('백업 위치', 'E:\\LoveLight 백업'), step('보관', '30', '개'), Object.assign(text('마지막 백업', '오늘 07:58'), { hasButton: true, button: '지금 백업' })])
+]],
+bible: ['성경', [
+group('설치된 역본', [], { items: [
+{ name: '개역한글', lang: '한국어', size: '4.3MB', isDefault: true, more: '개역한글 메뉴' },
+{ name: 'KJV', lang: '영어', size: '4.2MB', isDefault: false, more: 'KJV 메뉴' }
+], hasAdd: true, addLabel: '역본 추가' }),
+group('표시', [sw('절 번호', true), step('한 장 최대 줄 수', '4', '줄'), sel('출처 위치', '오른쪽 아래')])
+]],
+import: ['가져오기', [
+group('txt', [sel('장 나누기', '빈 줄'), sel('이름표', '대괄호 줄'), sel('첫 줄', '제목'), sel('글자 인코딩', '자동')]),
+group('pptx', [sel('슬라이드 하나', '장 하나'), sw('배경 이미지 가져오기', false)])
+]],
+update: ['업데이트', [
+group('버전', [text('현재 버전', '1.0.0'), Object.assign(text('마지막 확인', '오늘 08:12', { dot: '#3dbb6b' }), { hasButton: true, button: '지금 확인' })]),
+group('받기', [sw('자동 확인', true), seg('채널', ['정식', '미리 보기'], 0), sw('예배 중에는 미루기', true)])
+]]
+};
+const k = (name, combos, extra) => Object.assign({
+name: name, combos: combos, isKeys: combos.length > 0, isEmpty: combos.length === 0, isEditing: false,
+hasConflict: false, conflict: '', custom: false, ring: 'transparent', bg: 'transparent'
+}, extra || {}, { keyBg: extra && extra.custom && !extra.hasConflict ? '#1f4170' : '#2a2a2a' });
+const conflictRow = { hasConflict: true, conflict: '출력 켜기와 겹침', ring: '#e3a23b', custom: true };
+const keyGroups = [
+{ title: '진행', rows: [k('다음 장', [['→'], ['Space']]), k('이전 장', [['←']]), k('되돌리기', [['Ctrl', 'Z']])] },
+{ title: '지우기', rows: [k('모두', [['F1']]), k('가사', [['F2']]), k('미디어', [['F3']]), k('소품', [['F4']]), k('오디오', [['F5']]), k('메시지', [['F6']]), k('공지', [['F7']])] },
+{ title: 'Look', rows: [k('평상시', [['Ctrl', '1']], conflictRow), k('설교', [['Alt', '2']], { custom: true }), k('광고', [['Alt', '3']], { custom: true })] },
+{ title: '퀵 실행', rows: [k('검은 화면', [['Ctrl', 'B']]), k('로고 화면', [], { isEmpty: false, isEditing: true, bg: '#1f4170' })] },
+{ title: '화면', rows: [k('출력 켜기', [['Ctrl', '1']], { hasConflict: true, conflict: '평상시와 겹침', ring: '#e3a23b' }), k('무대 출력 켜기', [['Ctrl', '2']])] }
+];
+const current = sections[sec] || sections.general;
+return {
+nav: nav,
+isForm: sec !== 'keys', isKeys: sec === 'keys',
+sectionTitle: current[0], groups: current[1],
+filters: [
+{ label: '전체', bg: '#333333', fg: '#ececec', hasCount: false },
+{ label: '바꾼 것', bg: 'transparent', fg: '#8c8c8c', hasCount: true, count: '3', countFg: '#8c8c8c' },
+{ label: '겹침', bg: 'transparent', fg: '#8c8c8c', hasCount: true, count: '1', countFg: '#e3a23b' }
+],
+keyGroups: keyGroups
+};
+}
+}
+</script>
+</body>
+</html>

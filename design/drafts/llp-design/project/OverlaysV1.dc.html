@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>메시지 공지 소품</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:"Pretendard Variable";src:url("/_blob/44ae4219c075570535882b3a34ea3567") format("woff2");font-weight:45 920;font-display:swap}
+body{margin:0;background:#0e0e0e}
+a{color:#7fb0f0}a:hover{color:#a8c9f5}
+button,input{font:inherit;cursor:default}
+.hv:hover{background:#262626}
+.hvc:hover{background:#333333}
+.i{display:inline-block;flex:none;width:16px;height:16px;background-color:currentColor;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain}
+.i14{width:14px;height:14px}
+.i-msg{-webkit-mask-image:url("/_blob/e02523b5ae105efe6c86fc720a501e57");mask-image:url("/_blob/e02523b5ae105efe6c86fc720a501e57")}
+.i-user{-webkit-mask-image:url("/_blob/c79c250b176fd30d1be7cfb0da5923e1");mask-image:url("/_blob/c79c250b176fd30d1be7cfb0da5923e1")}
+.i-monitor{-webkit-mask-image:url("/_blob/4596f5b35b01b97a40839716be255a9c");mask-image:url("/_blob/4596f5b35b01b97a40839716be255a9c")}
+.i-edit{-webkit-mask-image:url("/_blob/02e581d39b6e4686773acdbad7de4894");mask-image:url("/_blob/02e581d39b6e4686773acdbad7de4894")}
+.i-plus{-webkit-mask-image:url("/_blob/60593869febedd0f7cc96739b15ff702");mask-image:url("/_blob/60593869febedd0f7cc96739b15ff702")}
+.i-check{-webkit-mask-image:url("/_blob/9a89a2bff58b8395511703929514cb66");mask-image:url("/_blob/9a89a2bff58b8395511703929514cb66")}
+.i-send{-webkit-mask-image:url("/_blob/eb64b09fc82162120a1d36b708635a52");mask-image:url("/_blob/eb64b09fc82162120a1d36b708635a52")}
+.i-x{-webkit-mask-image:url("/_blob/20ff3492ea768cacd467480e386ad17b");mask-image:url("/_blob/20ff3492ea768cacd467480e386ad17b")}
+.i-loop{-webkit-mask-image:url("/_blob/4afb40c8c3a4a9342611dfa4bc802b9a");mask-image:url("/_blob/4afb40c8c3a4a9342611dfa4bc802b9a")}
+.i-clock{-webkit-mask-image:url("/_blob/d849921f7532c4b3289a2b95beeddf24");mask-image:url("/_blob/d849921f7532c4b3289a2b95beeddf24")}
+.i-down{-webkit-mask-image:url("/_blob/fdede3cf9294bdfffe2831e4985b91ba");mask-image:url("/_blob/fdede3cf9294bdfffe2831e4985b91ba")}
+.i-grip{-webkit-mask-image:url("/_blob/adf12ef1071c6732b8adbd90b6b53029");mask-image:url("/_blob/adf12ef1071c6732b8adbd90b6b53029")}
+</style>
+</helmet>
+<div style="width: 1920px; height: 1080px; display: flex; gap: 4px; padding: 4px; box-sizing: border-box; background: #0e0e0e; color: #ececec; font-family: 'Pretendard Variable', Pretendard, sans-serif; font-size: 13px; line-height: 18px; word-break: keep-all; -webkit-font-smoothing: antialiased; overflow: hidden">
+
+<section style="flex: 0 0 628px; display: flex; flex-direction: column; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-label="메시지">
+<div style="flex: none; height: 34px; display: flex; align-items: center; padding: 0 8px 0 12px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 12px; font-weight: 600; line-height: 32px; border-bottom: 2px solid #ececec">메시지</span>
+</div>
+
+<div style="padding: 16px 16px 0">
+<p style="margin: 0 0 8px; font-size: 11px; font-weight: 600; color: #8c8c8c">틀</p>
+<ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 2px">
+<li><button type="button" class="hv" style="display: flex; align-items: center; gap: 10px; width: 100%; height: 40px; padding: 0 10px; border: 0; border-radius: 4px; background: #262626; color: #ececec; text-align: left"><span class="i i-msg" style="color: #b4b4b4"></span><span style="width: 120px; font-size: 13px; font-weight: 600">차량 이동</span><span style="flex: 1; font-size: 12px; color: #8c8c8c"><span style="padding: 1px 5px; border-radius: 3px; background: #1f3350; color: #9cc3f5">차량 번호</span> 차량 이동 부탁드립니다</span></button></li>
+<li><button type="button" class="hv" style="display: flex; align-items: center; gap: 10px; width: 100%; height: 40px; padding: 0 10px; border: 0; border-radius: 4px; background: transparent; color: #ececec; text-align: left"><span class="i i-user" style="color: #b4b4b4"></span><span style="width: 120px; font-size: 13px">영아부 호출</span><span style="flex: 1; font-size: 12px; color: #8c8c8c">영아부 <span style="padding: 1px 5px; border-radius: 3px; background: #1f3350; color: #9cc3f5">번호</span>번 부모님 와 주세요</span></button></li>
+<li><button type="button" class="hv" style="display: flex; align-items: center; gap: 10px; width: 100%; height: 40px; padding: 0 10px; border: 0; border-radius: 4px; background: transparent; color: #ececec; text-align: left"><span class="i i-monitor" style="color: #b4b4b4"></span><span style="width: 120px; font-size: 13px">무대 전달</span><span style="flex: 1; display: flex; align-items: center; gap: 8px; font-size: 12px; color: #8c8c8c"><span style="padding: 1px 5px; border-radius: 3px; background: #1f3350; color: #9cc3f5">내용</span><span style="margin-left: auto; height: 18px; padding: 0 6px; border-radius: 3px; background: #2a2a2a; color: #b4b4b4; font-size: 11px; line-height: 18px">무대 화면</span></span></button></li>
+<li><button type="button" class="hv" style="display: flex; align-items: center; gap: 10px; width: 100%; height: 40px; padding: 0 10px; border: 0; border-radius: 4px; background: transparent; color: #8c8c8c; text-align: left"><span class="i i-plus"></span><span style="font-size: 13px">새 틀</span></button></li>
+</ul>
+</div>
+
+<div style="margin: 16px 16px 0; padding-top: 16px; border-top: 1px solid #2b2b2b; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; gap: 12px">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 6px">
+<label for="m-car" style="font-size: 12px; color: #b4b4b4">차량 번호</label>
+<input id="m-car" value="12가 3456" style="height: 32px; padding: 0 10px; box-sizing: border-box; border: 0; border-radius: 4px; background: #121212; box-shadow: inset 0 0 0 1px #3d8bf0; color: #ececec; font-size: 13px">
+</div>
+<div style="flex: 0 0 236px; display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 12px; color: #b4b4b4">표시 시간</span>
+<span style="display: flex; padding: 2px; border-radius: 5px; background: #121212">
+<button type="button" style="flex: 1; height: 28px; border: 0; border-radius: 3px; background: transparent; color: #8c8c8c; font-size: 12px">계속</button>
+<button type="button" style="flex: 1; height: 28px; border: 0; border-radius: 3px; background: transparent; color: #8c8c8c; font-size: 12px">30초</button>
+<button type="button" aria-pressed="true" style="flex: 1; height: 28px; border: 0; border-radius: 3px; background: #333333; color: #ececec; font-size: 12px">1분</button>
+<button type="button" style="flex: 1; height: 28px; border: 0; border-radius: 3px; background: transparent; color: #8c8c8c; font-size: 12px">2분</button>
+</span>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="display: flex; align-items: center; font-size: 12px; color: #b4b4b4">보낼 화면<span style="margin-left: auto; display: flex; padding: 2px; border-radius: 5px; background: #121212"><button type="button" style="height: 22px; padding: 0 10px; border: 0; border-radius: 3px; background: transparent; color: #8c8c8c; font-size: 12px">모든 화면</button><button type="button" aria-pressed="true" style="height: 22px; padding: 0 10px; border: 0; border-radius: 3px; background: #333333; color: #ececec; font-size: 12px">선택</button></span></span>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+<button type="button" style="display: flex; flex-direction: column; gap: 6px; padding: 8px; border: 0; border-radius: 5px; background: #1f2a3a; box-shadow: inset 0 0 0 1px #3d8bf0; color: inherit; text-align: left">
+<span style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600"><span style="width: 16px; height: 16px; border-radius: 3px; background: #3d8bf0; display: inline-flex; align-items: center; justify-content: center; color: #fff"><span class="i i14 i-check"></span></span>본 화면<span style="margin-left: auto; font-size: 11px; font-weight: 500; color: #9cc3f5">아래 띠</span></span>
+<span style="position: relative; display: block; aspect-ratio: 16 / 9; border-radius: 3px; overflow: hidden; background: #000">
+<img src="/_blob/e96d6204449f1e44237721b22d7463c9" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
+<span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 0 20px; color: #fff; font-size: 11px; line-height: 15px; font-weight: 700; text-align: center; white-space: pre-line">저 천사여 찬송하세
+찬송 성부 성자 성령</span>
+<span style="position: absolute; left: 0; right: 0; bottom: 0; height: 16px; display: flex; align-items: center; padding: 0 8px; background: rgba(0, 0, 0, 0.8); color: #fff; font-size: 8px; font-weight: 600">12가 3456 차량 이동 부탁드립니다</span>
+</span>
+</button>
+<button type="button" style="display: flex; flex-direction: column; gap: 6px; padding: 8px; border: 0; border-radius: 5px; background: #1f2a3a; box-shadow: inset 0 0 0 1px #3d8bf0; color: inherit; text-align: left">
+<span style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600"><span style="width: 16px; height: 16px; border-radius: 3px; background: #3d8bf0; display: inline-flex; align-items: center; justify-content: center; color: #fff"><span class="i i14 i-check"></span></span>로비<span style="margin-left: auto; font-size: 11px; font-weight: 500; color: #9cc3f5">위 띠</span></span>
+<span style="position: relative; display: block; aspect-ratio: 16 / 9; border-radius: 3px; overflow: hidden; background: #000">
+<img src="/_blob/d1b8a9aff7ace0602402185e984ac8c7" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
+<span style="position: absolute; left: 14px; bottom: 16px; display: flex; flex-direction: column; gap: 3px"><span style="font-size: 12px; line-height: 14px; font-weight: 700; color: #fff">새가족 환영회</span><span style="font-size: 8px; color: #c9d6df">예배 후 2층 카페</span></span>
+<span style="position: absolute; left: 0; right: 0; top: 0; height: 16px; display: flex; align-items: center; padding: 0 8px; background: #d2343a; color: #fff; font-size: 8px; font-weight: 700">12가 3456 차량 이동 부탁드립니다</span>
+</span>
+</button>
+<button type="button" style="display: flex; flex-direction: column; gap: 6px; padding: 8px; border: 0; border-radius: 5px; background: #222222; color: inherit; text-align: left">
+<span style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: #8c8c8c"><span style="width: 16px; height: 16px; border-radius: 3px; box-shadow: inset 0 0 0 1px #4a4a4a"></span>무대 화면</span>
+<span style="position: relative; display: block; aspect-ratio: 16 / 9; border-radius: 3px; overflow: hidden; background: #000; opacity: 0.45; padding: 10px 12px; box-sizing: border-box">
+<span style="display: block; color: #fff; font-size: 11px; line-height: 15px; font-weight: 700; white-space: pre-line">저 천사여 찬송하세
+찬송 성부 성자 성령</span>
+</span>
+</button>
+<button type="button" style="display: flex; flex-direction: column; gap: 6px; padding: 8px; border: 0; border-radius: 5px; background: #222222; color: inherit; text-align: left">
+<span style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: #8c8c8c"><span style="width: 16px; height: 16px; border-radius: 3px; box-shadow: inset 0 0 0 1px #4a4a4a"></span>방송 자막</span>
+<span style="position: relative; display: block; aspect-ratio: 16 / 9; border-radius: 3px; overflow: hidden; background: #00b140; opacity: 0.45">
+<span style="position: absolute; left: 10%; right: 10%; bottom: 11%; padding: 4px 8px; background: rgba(0, 0, 0, 0.82); color: #fff; font-size: 8px; line-height: 12px; font-weight: 600; text-align: center">저 천사여 찬송하세</span>
+</span>
+</button>
+</div>
+</div>
+
+<button type="button" class="hvc" style="height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 4px; background: #3d8bf0; color: #fff; font-size: 13px; font-weight: 600"><span class="i i-send"></span>보내기<span style="font-size: 11px; font-weight: 500; color: rgba(255, 255, 255, 0.75)">Enter</span></button>
+</div>
+
+<div style="margin: 18px 16px 0; padding-top: 14px; border-top: 1px solid #2b2b2b">
+<p style="margin: 0 0 8px; font-size: 11px; font-weight: 600; color: #8c8c8c">표시 중</p>
+<div style="display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 10px; border-radius: 4px; background: #222222">
+<span class="i i-monitor" style="color: #b4b4b4"></span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px">
+<span style="display: flex; align-items: center; gap: 8px; font-size: 12px"><span style="flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">후렴 한 번 더</span><span style="height: 18px; padding: 0 6px; border-radius: 3px; background: #2a2a2a; color: #b4b4b4; font-size: 11px; line-height: 18px">무대 화면</span></span>
+<span style="height: 2px; border-radius: 1px; background: #e3a23b"></span>
+</span>
+<span style="width: 34px; text-align: right; font-size: 11px; color: #8c8c8c">계속</span>
+<button type="button" class="hv" aria-label="내리기" style="width: 26px; height: 26px; border: 0; border-radius: 4px; background: transparent; color: #8c8c8c; display: inline-flex; align-items: center; justify-content: center"><span class="i i14 i-x"></span></button>
+</div>
+</div>
+</section>
+
+<section style="flex: 0 0 628px; display: flex; flex-direction: column; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-label="공지">
+<div style="flex: none; height: 34px; display: flex; align-items: center; padding: 0 8px 0 12px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 12px; font-weight: 600; line-height: 32px; border-bottom: 2px solid #ececec">공지</span>
+</div>
+
+<div style="padding: 16px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: center; gap: 10px">
+<button type="button" class="hvc" style="display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 10px; border: 0; border-radius: 4px; background: #2a2a2a; color: #ececec; font-size: 13px; font-weight: 600">주일 광고<span class="i i14 i-down" style="color: #8c8c8c"></span></button>
+<span style="font-size: 12px; color: #8c8c8c">6장</span>
+<span style="margin-left: auto; display: inline-flex; align-items: center; gap: 8px">
+<span style="height: 16px; padding: 0 5px; border-radius: 3px; background: #d2343a; color: #fff; font-size: 10px; line-height: 16px; font-weight: 700; letter-spacing: 0.04em">LIVE</span>
+<span style="height: 18px; padding: 0 6px; border-radius: 3px; background: #2a2a2a; color: #b4b4b4; font-size: 11px; line-height: 18px">로비</span>
+</span>
+</div>
+
+<div style="position: relative; aspect-ratio: 16 / 9; border-radius: 4px; overflow: hidden; background: #000; box-shadow: 0 0 0 1px #2b2b2b">
+<img src="/_blob/d1b8a9aff7ace0602402185e984ac8c7" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
+<div style="position: absolute; left: 44px; bottom: 52px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: #9fc3dc">NEW FAMILY</span>
+<span style="font-size: 34px; line-height: 40px; font-weight: 700; color: #fff">새가족 환영회</span>
+<span style="font-size: 15px; color: #c9d6df">예배 후 2층 카페에서 기다리고 있어요</span>
+</div>
+<div style="position: absolute; left: 44px; right: 44px; bottom: 22px; display: flex; gap: 6px">
+<span style="flex: 1; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, 0.85)"></span>
+<span style="flex: 1; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, 0.85)"></span>
+<span style="flex: 1; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, 0.85)"></span>
+<span style="flex: 1; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, 0.25)"></span>
+<span style="flex: 1; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, 0.25)"></span>
+<span style="flex: 1; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, 0.25)"></span>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{ notices }}" as="n" hint-placeholder-count="6">
+<button type="button" style="display: flex; flex-direction: column; gap: 5px; padding: 0; border: 0; background: transparent; color: inherit; text-align: left">
+<span style="position: relative; display: block; aspect-ratio: 16 / 9; border-radius: 3px; overflow: hidden; background: #000; box-shadow: 0 0 0 2px {{ n.ring }}">
+<img src="{{ n.src }}" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
+<span style="position: absolute; left: 6px; bottom: 6px; right: 6px; font-size: 8px; line-height: 10px; font-weight: 700; color: #fff">{{ n.title }}</span>
+</span>
+<span style="display: flex; font-size: 11px; color: #8c8c8c; font-variant-numeric: tabular-nums"><span>{{ n.n }}</span><span style="margin-left: auto">{{ n.sec }}</span></span>
+</button>
+</sc-for>
+</div>
+
+<div style="display: flex; flex-direction: column; border-top: 1px solid #2b2b2b">
+<div style="display: flex; align-items: center; gap: 12px; min-height: 44px; border-bottom: 1px solid #2b2b2b">
+<span style="width: 120px; font-size: 12px; color: #b4b4b4">보낼 화면</span>
+<span style="display: flex; gap: 6px; flex-wrap: wrap">
+<span style="display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 8px 0 6px; border-radius: 4px; background: #1f2a3a; box-shadow: inset 0 0 0 1px #3d8bf0; font-size: 12px"><span class="i i14 i-check" style="color: #9cc3f5"></span>로비</span>
+<span style="display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 8px 0 6px; border-radius: 4px; background: #1f2a3a; box-shadow: inset 0 0 0 1px #3d8bf0; font-size: 12px"><span class="i i14 i-clock" style="color: #9cc3f5"></span>본 화면<span style="color: #9cc3f5">예배 전</span></span>
+<span style="display: inline-flex; align-items: center; height: 24px; padding: 0 8px; border-radius: 4px; box-shadow: inset 0 0 0 1px #3a3a3a; color: #8c8c8c; font-size: 12px">무대 화면</span>
+<span style="display: inline-flex; align-items: center; height: 24px; padding: 0 8px; border-radius: 4px; box-shadow: inset 0 0 0 1px #3a3a3a; color: #8c8c8c; font-size: 12px">방송 자막</span>
+</span>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; min-height: 44px; border-bottom: 1px solid #2b2b2b">
+<span style="width: 120px; font-size: 12px; color: #b4b4b4">장 넘김</span>
+<span style="font-size: 12px; font-variant-numeric: tabular-nums">8초</span>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; min-height: 44px; border-bottom: 1px solid #2b2b2b">
+<span style="width: 120px; font-size: 12px; color: #b4b4b4">전환</span>
+<span style="font-size: 12px">디졸브</span>
+<span style="font-size: 12px; color: #8c8c8c; font-variant-numeric: tabular-nums">0.8초</span>
+<span style="margin-left: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: #b4b4b4"><span class="i i-loop" style="color: #7fb0f0"></span>반복</span>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; min-height: 44px">
+<span style="width: 120px; font-size: 12px; color: #b4b4b4">본 화면 종료</span>
+<span style="font-size: 12px">카운트다운 끝</span>
+</div>
+</div>
+</div>
+</section>
+
+<section style="flex: 1; min-width: 0; display: flex; flex-direction: column; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-label="소품">
+<div style="flex: none; height: 34px; display: flex; align-items: center; padding: 0 8px 0 12px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 12px; font-weight: 600; line-height: 32px; border-bottom: 2px solid #ececec">소품</span>
+<button type="button" class="hv" aria-label="소품 추가" style="margin-left: auto; width: 26px; height: 26px; border: 0; border-radius: 4px; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i-plus"></span></button>
+</div>
+<ul style="margin: 0; padding: 8px 0; list-style: none">
+<sc-for list="{{ props }}" as="p" hint-placeholder-count="4">
+<li style="display: flex; align-items: center; gap: 12px; padding: 8px 14px; background: {{ p.bg }}">
+<span class="i i14 i-grip" style="color: #5c5c5c"></span>
+<span style="position: relative; flex: 0 0 112px; aspect-ratio: 16 / 9; border-radius: 3px; overflow: hidden; background: #000; box-shadow: 0 0 0 1px #2b2b2b">
+<sc-if value="{{ p.isLogo }}" hint-placeholder-val="{{ true }}"><span style="position: absolute; right: 7px; top: 6px; font-size: 6px; font-weight: 700; letter-spacing: 0.06em; color: rgba(255, 255, 255, 0.75)">LOVELIGHT</span></sc-if>
+<sc-if value="{{ p.isLower }}" hint-placeholder-val="{{ false }}"><span style="position: absolute; left: 8px; bottom: 9px; display: flex; flex-direction: column; gap: 1px; padding: 3px 6px; border-left: 2px solid #ececec; background: rgba(0, 0, 0, 0.75)"><span style="font-size: 6px; font-weight: 700; color: #fff">요한복음 3장 16절</span><span style="font-size: 4px; color: #c9c9c9">설교 본문</span></span></sc-if>
+<sc-if value="{{ p.isTimer }}" hint-placeholder-val="{{ false }}"><span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums">04:32</span></sc-if>
+<sc-if value="{{ p.isQr }}" hint-placeholder-val="{{ false }}"><span style="position: absolute; right: 8px; bottom: 8px; width: 18px; height: 18px; background-color: #fff; background-image: repeating-linear-gradient(90deg, #000 0 2px, #fff 2px 4px), repeating-linear-gradient(0deg, #000 0 2px, transparent 2px 4px); background-blend-mode: multiply"></span><span style="position: absolute; left: 8px; bottom: 10px; font-size: 6px; font-weight: 600; color: #fff">온라인 헌금</span></sc-if>
+</span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 13px; font-weight: 600">{{ p.name }}</span>
+<span style="display: flex; gap: 4px; flex-wrap: wrap">
+<sc-for list="{{ p.targets }}" as="tg" hint-placeholder-count="2">
+<span style="height: 18px; padding: 0 6px; border-radius: 3px; background: #2a2a2a; color: #b4b4b4; font-size: 11px; line-height: 18px">{{ tg }}</span>
+</sc-for>
+</span>
+</span>
+<span style="font-size: 11px; color: #8c8c8c">{{ p.pos }}</span>
+<span role="switch" aria-checked="{{ p.on }}" style="position: relative; flex: none; width: 30px; height: 18px; border-radius: 9px; background: {{ p.trackBg }}"><span style="position: absolute; top: 2px; left: {{ p.knobLeft }}; width: 14px; height: 14px; border-radius: 50%; background: #fff"></span></span>
+</li>
+</sc-for>
+</ul>
+
+<div style="margin: 8px 16px 0; padding-top: 16px; border-top: 1px solid #2b2b2b; display: flex; flex-direction: column; gap: 12px">
+<span style="font-size: 13px; font-weight: 600">설교 본문 자막</span>
+<div style="position: relative; aspect-ratio: 16 / 9; border-radius: 4px; overflow: hidden; background: #0a0a0a; box-shadow: 0 0 0 1px #2b2b2b">
+<span style="position: absolute; left: 5%; right: 5%; top: 5%; bottom: 5%; border: 1px dashed #3a3a3a"></span>
+<span style="position: absolute; left: 5%; bottom: 9%; display: flex; flex-direction: column; gap: 4px; padding: 10px 16px; border-left: 3px solid #ececec; background: rgba(0, 0, 0, 0.8); box-shadow: 0 0 0 1px #3d8bf0">
+<span style="font-size: 20px; line-height: 24px; font-weight: 700; color: #fff">요한복음 3장 16절</span>
+<span style="font-size: 12px; color: #c9c9c9">설교 본문</span>
+</span>
+<span style="position: absolute; left: calc(5% - 4px); bottom: calc(9% - 4px); width: 8px; height: 8px; background: #3d8bf0"></span>
+<span style="position: absolute; right: 10px; top: 8px; font-size: 11px; color: #6e6e6e">안전 영역 5%</span>
+</div>
+<div style="display: flex; gap: 8px">
+<span style="display: flex; padding: 2px; border-radius: 5px; background: #121212">
+<button type="button" aria-pressed="true" style="height: 26px; padding: 0 10px; border: 0; border-radius: 3px; background: #333333; color: #ececec; font-size: 12px">아래 왼쪽</button>
+<button type="button" style="height: 26px; padding: 0 10px; border: 0; border-radius: 3px; background: transparent; color: #8c8c8c; font-size: 12px">아래 가운데</button>
+<button type="button" style="height: 26px; padding: 0 10px; border: 0; border-radius: 3px; background: transparent; color: #8c8c8c; font-size: 12px">위 오른쪽</button>
+</span>
+<span style="margin-left: auto; display: flex; gap: 6px">
+<span style="display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px 0 8px; border-radius: 4px; background: #1f2a3a; box-shadow: inset 0 0 0 1px #3d8bf0; font-size: 12px"><span class="i i14 i-check" style="color: #9cc3f5"></span>방송 자막</span>
+<span style="display: inline-flex; align-items: center; height: 30px; padding: 0 10px; border-radius: 4px; box-shadow: inset 0 0 0 1px #3a3a3a; color: #8c8c8c; font-size: 12px">본 화면</span>
+</span>
+</div>
+</div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1920,"height":1080}}'>
+class Component extends DCLogic {
+renderVals() {
+const prop = (name, kind, targets, pos, on, selected) => ({
+name: name, targets: targets, pos: pos, on: on ? 'true' : 'false',
+isLogo: kind === 'logo', isLower: kind === 'lower', isTimer: kind === 'timer', isQr: kind === 'qr',
+trackBg: on ? '#3d8bf0' : '#3a3a3a', knobLeft: on ? '14px' : '2px',
+bg: selected ? '#232323' : 'transparent'
+});
+const notice = (n, title, src, sec, current) => ({ n: n, title: title, src: src, sec: sec, ring: current ? '#d2343a' : 'transparent' });
+return {
+props: [
+prop('로고', 'logo', ['본 화면'], '위 오른쪽', true, false),
+prop('설교 본문 자막', 'lower', ['방송 자막'], '아래 왼쪽', false, true),
+prop('예배 시작 카운트다운', 'timer', ['본 화면', '로비'], '가운데', false, false),
+prop('온라인 헌금 안내', 'qr', ['로비'], '아래 오른쪽', false, false)
+],
+notices: [
+notice(1, '주일 예배 안내', '/_blob/a26fea38dfbc6c6a6ebbe467c651a3bf', '8초', false),
+notice(2, '수요 기도회', '/_blob/85c85c8365a93673f8757a855a5ae71e', '8초', false),
+notice(3, '새가족 환영회', '/_blob/d1b8a9aff7ace0602402185e984ac8c7', '8초', true),
+notice(4, '청년부 수련회', '/_blob/2d2d8c67d2ffaa44a487a3a2155fce60', '8초', false),
+notice(5, '주차 안내', '/_blob/e03760b0e6da8968216000a548f05339', '8초', false),
+notice(6, '온라인 예배', '/_blob/18a41d6fa76a5bf859efd17846f95d68', '8초', false)
+]
+};
+}
+}
+</script>
+</body>
+</html>

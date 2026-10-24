@@ -1,0 +1,58 @@
+<!-- @dsCard group="입력" height=410 -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Slider</title>
+</head>
+<body>
+<div class="ll-preview">
+
+  <div class="ll-spec-title">슬라이더, 줄 4, 손잡이 12</div>
+  <div class="ll-on-panel">
+    <div class="ll-spec">
+      <div class="ll-spec-item"><input type="range" class="ll-slider" min="1" max="5" step="1" value="3" style="--ll-value: 50%" aria-label="썸네일 크기"><span class="ll-spec-label">기본</span></div>
+      <div class="ll-spec-item"><input type="range" class="ll-slider" min="1" max="5" step="1" value="1" style="--ll-value: 0%" aria-label="썸네일 크기"><span class="ll-spec-label">맨 왼쪽</span></div>
+      <div class="ll-spec-item"><input type="range" class="ll-slider" min="1" max="5" step="1" value="5" style="--ll-value: 100%" aria-label="썸네일 크기"><span class="ll-spec-label">맨 오른쪽</span></div>
+      <div class="ll-spec-item"><input type="range" class="ll-slider is-focus" min="1" max="5" step="1" value="3" style="--ll-value: 50%" aria-label="썸네일 크기"><span class="ll-spec-label">포커스</span></div>
+      <div class="ll-spec-item"><input type="range" class="ll-slider" min="0" max="100" value="40" style="--ll-value: 40%" aria-label="음량" disabled><span class="ll-spec-label">쓸 수 없음</span></div>
+    </div>
+  </div>
+
+  <div class="ll-spec-title">놓이는 곳</div>
+  <div class="ll-spec">
+    <div class="ll-spec-item">
+      <div style="box-sizing: border-box; width: 360px; height: 32px; display: flex; align-items: center; justify-content: flex-end; padding: 0 14px; border-radius: 0 0 5px 5px; background: var(--bg-panel); box-shadow: inset 0 1px 0 var(--line)">
+        <span class="ll-slider-row"><span class="ll-i ll-i-grid"></span><input type="range" class="ll-slider" min="1" max="5" step="1" value="2" style="--ll-value: 25%" aria-label="썸네일 크기"></span>
+      </div>
+      <span class="ll-spec-label">진행 화면 장 격자 아래, 120</span>
+    </div>
+    <div class="ll-spec-item">
+      <div style="box-sizing: border-box; width: 240px; height: 32px; display: flex; align-items: center; justify-content: flex-end; padding: 0 14px; border-radius: 0 0 5px 5px; background: var(--bg-panel); box-shadow: inset 0 1px 0 var(--line)">
+        <span class="ll-slider-row"><span class="ll-i ll-i-grid"></span><input type="range" class="ll-slider ll-slider--compact" min="1" max="5" step="1" value="2" style="--ll-value: 25%" aria-label="썸네일 크기"></span>
+      </div>
+      <span class="ll-spec-label">좁은 창, 96</span>
+    </div>
+    <div class="ll-spec-item">
+      <div style="box-sizing: border-box; width: 240px; height: 40px; display: flex; align-items: center; justify-content: flex-end; padding: 0 14px; border-radius: 5px; background: var(--bg-panel)">
+        <span class="ll-slider-row"><span class="ll-i ll-i-audio"></span><input type="range" class="ll-slider ll-slider--compact" min="0" max="100" value="70" style="--ll-value: 70%" aria-label="음량" aria-valuetext="70%"></span>
+      </div>
+      <span class="ll-spec-label">진행 도구 오디오, 음량 96</span>
+    </div>
+  </div>
+  <div class="ll-spec">
+    <div class="ll-spec-item">
+      <div class="ll-props" style="box-sizing: border-box; width: 452px; padding: 0 14px; border-radius: 5px; background: var(--bg-panel)">
+        <div class="ll-prop-group">
+          <p class="ll-prop-group__title">소리</p>
+          <div class="ll-prop"><label class="ll-prop__label" for="sw-snd">소리 켜기</label><span class="ll-prop__control"><button type="button" id="sw-snd" class="ll-switch" role="switch" aria-checked="false"></button></span></div>
+          <div class="ll-prop"><label class="ll-prop__label" for="sl-vol">음량</label><span class="ll-prop__control"><span class="ll-slider-row" style="flex: 1"><span class="ll-i ll-i-audio"></span><input type="range" id="sl-vol" class="ll-slider ll-slider--block" min="0" max="100" value="0" style="--ll-value: 0%" disabled></span></span></div>
+        </div>
+      </div>
+      <span class="ll-spec-label">미디어 속성, 칸 너비만큼, 소리가 꺼져 있어 쓸 수 없음</span>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

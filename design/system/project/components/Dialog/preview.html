@@ -1,0 +1,155 @@
+<!-- @dsCard group="떠 있는 창" height=1746 -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Dialog</title>
+<style>
+  html, body { margin: 0; }
+  /* 미리보기 전용: 0.3배로 줄인 1920×1080 창, 실제 크기 대화상자 옆의 치수 표 */
+  .pv-win { position: relative; width: 576px; height: 324px; border-radius: var(--radius-md); background: var(--bg-app); overflow: hidden; box-shadow: 0 0 0 1px var(--line); }
+  .pv-win__bar { position: absolute; left: 0; right: 0; top: 0; height: 9px; background: var(--bg-app); }
+  .pv-win__line { position: absolute; left: 0; right: 0; top: 9px; height: 0; border-top: 1px dashed var(--accent); }
+  .pv-win__p { position: absolute; top: 27px; bottom: 1px; border-radius: 2px; background: var(--bg-panel); }
+  .pv-win__scrim { position: absolute; left: 0; right: 0; top: 9px; bottom: 0; background: var(--scrim); }
+  .pv-win__dlg { position: absolute; left: 50%; top: calc(9px + (315px - 210px) / 2); width: 246px; height: 210px; transform: translateX(-50%); border-radius: 3px; background: var(--bg-dialog); box-shadow: var(--shadow-dialog); }
+  .pv-win__dlg::before { content: ""; position: absolute; left: 0; right: 0; top: 13px; border-top: 1px solid var(--line); }
+  .pv-win__dlg::after { content: ""; position: absolute; left: 0; right: 0; bottom: 16px; border-top: 1px solid var(--line); }
+  .pv-win__tag { position: absolute; font-size: 11px; line-height: 14px; color: var(--text-2); white-space: nowrap; }
+  .pv-sizes { display: flex; flex-direction: column; gap: 10px; }
+  .pv-size { display: flex; align-items: center; gap: 12px; }
+  .pv-size__bar { height: 22px; border-radius: 3px; background: var(--bg-dialog); box-shadow: 0 0 0 1px var(--line-strong); }
+  .pv-size__t { font-size: 11px; line-height: 14px; color: var(--text-2); white-space: nowrap; }
+  .pv-size__t b { color: var(--text); font-weight: 600; }
+  .pv-anat { position: relative; display: flex; gap: 12px; }
+  .pv-notes { position: relative; width: 88px; flex: none; }
+  .pv-note { position: absolute; left: 0; font-size: 11px; line-height: 14px; color: var(--text-3); }
+  .pv-note::before { content: ""; position: absolute; left: -12px; top: 7px; width: 8px; border-top: 1px solid var(--line-control); }
+  .pv-dlg { animation: none; max-height: none; }
+  .pv-hdr { width: 220px; border-radius: var(--radius-2xl); background: var(--bg-dialog); box-shadow: var(--shadow-dialog); overflow: hidden; }
+  .pv-hdr .ll-dialog__header { border-bottom: 0; }
+</style>
+</head>
+<body>
+<div class="ll-preview">
+
+  <div class="ll-spec-title">막은 메뉴줄(30) 아래부터, 대화상자는 막 가운데. 너비는 네 가지</div>
+  <div class="ll-spec" style="align-items: center; gap: 16px 32px">
+    <div class="ll-spec-item">
+      <div class="pv-win" aria-hidden="true">
+        <div class="pv-win__bar"></div>
+        <div class="pv-win__p" style="left: 1px; width: 84px"></div>
+        <div class="pv-win__p" style="left: 86px; right: 146px"></div>
+        <div class="pv-win__p" style="right: 1px; width: 144px"></div>
+        <div class="pv-win__scrim"></div>
+        <div class="pv-win__dlg"></div>
+        <div class="pv-win__line"></div>
+        <span class="pv-win__tag" style="right: 8px; top: 14px; color: var(--accent)">막은 메뉴줄 30 아래부터</span>
+      </div>
+      <span class="ll-spec-label">1920×1080 창을 0.3배로: 메뉴줄은 덮지 않음</span>
+    </div>
+    <div class="pv-sizes">
+      <div class="pv-size"><span class="pv-size__bar" style="width: 138px"></span><span class="pv-size__t"><b>s 460</b> 확인 창</span></div>
+      <div class="pv-size"><span class="pv-size__bar" style="width: 180px"></span><span class="pv-size__t"><b>m 600</b> 출력 상태 복구</span></div>
+      <div class="pv-size"><span class="pv-size__bar" style="width: 246px"></span><span class="pv-size__t"><b>l 820</b> 새 예배, 다른 예배에서 가져오기</span></div>
+      <div class="pv-size"><span class="pv-size__bar" style="width: 324px"></span><span class="pv-size__t"><b>xl 1080</b> 텍스트 가져오기</span></div>
+      <span class="ll-spec-label">같은 0.3배. 창이 좁으면 너비 = 창 − 32, 높이는 창 − 64까지</span>
+    </div>
+  </div>
+
+  <div class="ll-spec-title">새 예배: dialog-l, 두 칸 몸통, 입력 줄, 바닥글 (실제 크기)</div>
+  <div class="pv-anat">
+    <section class="ll-dialog ll-dialog--l pv-dlg" role="dialog" aria-modal="true" aria-labelledby="pv-ns-title" style="height: 560px">
+      <header class="ll-dialog__header">
+        <h2 class="ll-dialog__title" id="pv-ns-title">새 예배</h2>
+        <button class="ll-dialog__close" aria-label="닫기"><span class="ll-i ll-i-x"></span></button>
+      </header>
+      <div class="ll-dialog__body ll-dialog__body--split">
+        <div class="ll-dialog__aside">
+          <div class="ll-rowlist--inset" role="listbox" aria-label="예배">
+            <button class="ll-row"><span class="ll-i ll-i-plus ll-row__icon"></span><span class="ll-row__title">빈 예배</span></button>
+            <p class="ll-row-group">틀</p>
+            <button class="ll-row ll-row--double" role="option" aria-selected="true"><span class="ll-i ll-i-layers ll-row__icon"></span><span class="ll-row__lines"><span class="ll-row__title">주일 예배</span><span class="ll-row__sub"><span>항목 9개</span></span></span></button>
+            <button class="ll-row ll-row--double" role="option" aria-selected="false"><span class="ll-i ll-i-layers ll-row__icon"></span><span class="ll-row__lines"><span class="ll-row__title">수요 예배</span><span class="ll-row__sub"><span>항목 7개</span></span></span></button>
+            <button class="ll-row ll-row--double" role="option" aria-selected="false"><span class="ll-i ll-i-layers ll-row__icon"></span><span class="ll-row__lines"><span class="ll-row__title">금요 기도회</span><span class="ll-row__sub"><span>항목 6개</span></span></span></button>
+            <p class="ll-row-group">지난 예배</p>
+            <button class="ll-row ll-row--double" role="option" aria-selected="false"><span class="ll-i ll-i-cal ll-row__icon"></span><span class="ll-row__lines"><span class="ll-row__title">주일 예배</span><span class="ll-row__sub"><span>10월 25일 일요일</span><span>항목 12개</span></span></span></button>
+            <button class="ll-row ll-row--double" role="option" aria-selected="false"><span class="ll-i ll-i-cal ll-row__icon"></span><span class="ll-row__lines"><span class="ll-row__title">수요 예배</span><span class="ll-row__sub"><span>10월 21일 수요일</span><span>항목 8개</span></span></span></button>
+          </div>
+          <div class="ll-dialog__aside-foot"><button class="ll-btn ll-btn--ghost ll-btn--lead"><span class="ll-i ll-i-plus"></span>지금 예배를 틀로 저장</button></div>
+        </div>
+        <div class="ll-dialog__main">
+          <section class="ll-dialog__box" aria-label="예배 순서">
+            <div class="ll-dialog__box-header"><button type="button" class="ll-check" role="checkbox" aria-checked="true" aria-label="예배 순서 모두"><span class="ll-i ll-i-check"></span></button><span>예배 순서</span><span class="ll-dialog__box-meta">항목 9개</span></div>
+            <div class="ll-dialog__box-body">
+              <label class="ll-check-row ll-check-row--list ll-check-row--group"><button type="button" class="ll-check" role="checkbox" aria-checked="true"><span class="ll-i ll-i-check"></span></button><span class="ll-check-row__text">예배 전</span></label>
+              <label class="ll-check-row ll-check-row--list"><button type="button" class="ll-check" role="checkbox" aria-checked="true"><span class="ll-i ll-i-check"></span></button><span class="ll-i ll-i-film ll-check-row__icon"></span><span class="ll-check-row__text">예배 전 카운트다운</span></label>
+              <label class="ll-check-row ll-check-row--list"><button type="button" class="ll-check" role="checkbox" aria-checked="true"><span class="ll-i ll-i-check"></span></button><span class="ll-i ll-i-notice ll-check-row__icon"></span><span class="ll-check-row__text">주일 광고</span></label>
+              <label class="ll-check-row ll-check-row--list ll-check-row--group"><button type="button" class="ll-check" role="checkbox" aria-checked="true"><span class="ll-i ll-i-check"></span></button><span class="ll-check-row__text">찬양</span></label>
+              <label class="ll-check-row ll-check-row--list"><button type="button" class="ll-check" role="checkbox" aria-checked="true"><span class="ll-i ll-i-check"></span></button><span class="ll-row__slot"><span class="ll-i ll-i-song ll-row__icon"></span><span class="ll-row__title">찬양</span><span class="ll-row__slot-mark">빈 자리</span></span></label>
+              <label class="ll-check-row ll-check-row--list"><button type="button" class="ll-check" role="checkbox" aria-checked="true"><span class="ll-i ll-i-check"></span></button><span class="ll-row__slot"><span class="ll-i ll-i-song ll-row__icon"></span><span class="ll-row__title">찬양</span><span class="ll-row__slot-mark">빈 자리</span></span></label>
+              <label class="ll-check-row ll-check-row--list ll-check-row--group"><button type="button" class="ll-check" role="checkbox" aria-checked="true"><span class="ll-i ll-i-check"></span></button><span class="ll-check-row__text">말씀</span></label>
+              <label class="ll-check-row ll-check-row--list"><button type="button" class="ll-check" role="checkbox" aria-checked="true"><span class="ll-i ll-i-check"></span></button><span class="ll-row__slot"><span class="ll-i ll-i-book ll-row__icon"></span><span class="ll-row__title">성경 구절</span><span class="ll-row__slot-mark">빈 자리</span></span></label>
+              <label class="ll-check-row ll-check-row--list"><button type="button" class="ll-check" role="checkbox" aria-checked="true"><span class="ll-i ll-i-check"></span></button><span class="ll-row__slot"><span class="ll-i ll-i-slides ll-row__icon"></span><span class="ll-row__title">설교</span><span class="ll-row__slot-mark">빈 자리</span></span></label>
+              <label class="ll-check-row ll-check-row--list ll-check-row--group"><button type="button" class="ll-check" role="checkbox" aria-checked="true"><span class="ll-i ll-i-check"></span></button><span class="ll-check-row__text">마무리</span></label>
+              <label class="ll-check-row ll-check-row--list"><button type="button" class="ll-check" role="checkbox" aria-checked="true"><span class="ll-i ll-i-check"></span></button><span class="ll-i ll-i-slides ll-check-row__icon"></span><span class="ll-check-row__text">축도</span></label>
+            </div>
+          </section>
+        </div>
+      </div>
+      <div class="ll-dialog__bar">
+        <label class="ll-dialog__field"><span class="ll-dialog__field-label">이름</span><span class="ll-field is-focus" style="width: 220px"><input class="ll-field__input" value="주일 예배"></span></label>
+        <div class="ll-dialog__field"><span class="ll-dialog__field-label">날짜</span><button type="button" class="ll-select" aria-haspopup="dialog" aria-expanded="false"><span class="ll-i ll-i-cal ll-select__icon"></span><span class="ll-select__value ll-num">11월 1일 일요일</span><span class="ll-i ll-i-down ll-select__chevron"></span></button></div>
+        <div class="ll-dialog__field"><span class="ll-dialog__field-label">시간</span><button type="button" class="ll-select" aria-haspopup="listbox" aria-expanded="false"><span class="ll-i ll-i-clock ll-select__icon"></span><span class="ll-select__value ll-num">오전 11:00</span><span class="ll-i ll-i-down ll-select__chevron"></span></button></div>
+      </div>
+      <footer class="ll-dialog__footer">
+        <button class="ll-btn ll-btn--md">취소</button>
+        <button class="ll-btn ll-btn--md ll-btn--primary">만들기</button>
+      </footer>
+    </section>
+    <div class="pv-notes" aria-hidden="true">
+      <span class="pv-note" style="top: 15px">머리글 44<br>닫기 30×30</span>
+      <span class="pv-note" style="top: 70px">왼쪽 260<br>안쪽 8</span>
+      <span class="pv-note" style="top: 140px">오른쪽<br>안쪽 16<br>상자 bg-inset</span>
+      <span class="pv-note" style="top: 475px">입력 줄 52<br>사이 20</span>
+      <span class="pv-note" style="top: 527px">바닥글 52<br>버튼 md</span>
+    </div>
+  </div>
+
+  <div class="ll-spec-title">머리글: 부제, 닫기 버튼 상태</div>
+  <div class="ll-spec">
+    <div class="ll-spec-item">
+      <div class="pv-hdr" style="width: 600px"><header class="ll-dialog__header"><h2 class="ll-dialog__title">텍스트 가져오기</h2><span class="ll-dialog__subtitle"><span class="ll-i ll-i-14 ll-i-filetext"></span>만복의 근원 하나님.txt</span><button class="ll-dialog__close" aria-label="닫기"><span class="ll-i ll-i-x"></span></button></header></div>
+      <span class="ll-spec-label">제목 + 부제(파일 이름)</span>
+    </div>
+  </div>
+  <div class="ll-spec">
+    <div class="ll-spec-item"><div class="pv-hdr"><header class="ll-dialog__header"><h2 class="ll-dialog__title">새 예배</h2><button class="ll-dialog__close" aria-label="닫기"><span class="ll-i ll-i-x"></span></button></header></div><span class="ll-spec-label">닫기 기본</span></div>
+    <div class="ll-spec-item"><div class="pv-hdr"><header class="ll-dialog__header"><h2 class="ll-dialog__title">새 예배</h2><button class="ll-dialog__close is-hover" aria-label="닫기"><span class="ll-i ll-i-x"></span></button></header></div><span class="ll-spec-label">마우스 올림</span></div>
+    <div class="ll-spec-item"><div class="pv-hdr"><header class="ll-dialog__header"><h2 class="ll-dialog__title">새 예배</h2><button class="ll-dialog__close is-active" aria-label="닫기"><span class="ll-i ll-i-x"></span></button></header></div><span class="ll-spec-label">누름</span></div>
+    <div class="ll-spec-item"><div class="pv-hdr"><header class="ll-dialog__header"><h2 class="ll-dialog__title">새 예배</h2><button class="ll-dialog__close is-focus" aria-label="닫기"><span class="ll-i ll-i-x"></span></button></header></div><span class="ll-spec-label">포커스</span></div>
+  </div>
+
+  <div class="ll-spec-title">입력 줄: 머리글 아래(옵션) 또는 바닥글 위(이름, 날짜, 시간)</div>
+  <div class="ll-spec">
+    <div class="ll-spec-item">
+      <div class="pv-hdr" style="width: 820px">
+        <div class="ll-dialog__bar ll-dialog__bar--top" style="border-bottom: 0">
+          <div class="ll-dialog__field"><span class="ll-dialog__field-label">장 나누기</span><span class="ll-seg" role="radiogroup" aria-label="장 나누기"><button type="button" class="ll-seg__item" role="radio" aria-checked="true">빈 줄</button><button type="button" class="ll-seg__item" role="radio" aria-checked="false">줄 바꿈</button><button type="button" class="ll-seg__item" role="radio" aria-checked="false">기호</button></span></div>
+          <div class="ll-dialog__field"><span class="ll-dialog__field-label">한 장에</span><span class="ll-field ll-field--num"><input class="ll-field__input" aria-label="한 장에 줄 수" value="1"></span></div>
+          <div class="ll-dialog__field"><span class="ll-dialog__field-label">이름표 인식</span><button type="button" class="ll-switch" role="switch" aria-checked="true" aria-label="이름표 인식"></button></div>
+        </div>
+      </div>
+      <span class="ll-spec-label">위 옵션 줄 (텍스트 가져오기)</span>
+    </div>
+  </div>
+
+  <div class="ll-spec-title">바닥글: md 버튼, 오른쪽 정렬, 사이 8, [취소] … [주 버튼]</div>
+  <div class="ll-spec">
+    <div class="ll-spec-item"><div class="pv-hdr" style="width: 440px"><footer class="ll-dialog__footer" style="border-top: 0"><button class="ll-btn ll-btn--md">취소</button><button class="ll-btn ll-btn--md ll-btn--primary">가져오기</button></footer></div><span class="ll-spec-label">다른 예배에서 가져오기</span></div>
+    <div class="ll-spec-item"><div class="pv-hdr" style="width: 440px"><footer class="ll-dialog__footer" style="border-top: 0"><button class="ll-btn ll-btn--md">버리기</button><button class="ll-btn ll-btn--md ll-btn--primary">편집</button></footer></div><span class="ll-spec-label">텍스트 가져오기</span></div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,111 @@
+/* 00 공통: 글꼴과 바탕, 버튼 초기화, 포커스, 아이콘, 미리보기 도구 */
+.ll-root, .ll-preview { font-family: var(--font-ui); font-size: 13px; line-height: 18px; color: var(--text); -webkit-font-smoothing: antialiased; font-synthesis: none; }
+/* 초기화는 :where()로 특이도를 0으로 두어 컴포넌트 규칙이 늘 이기게 한다 */
+:where(.ll-root, .ll-preview) :where(button, input, textarea, select) { font: inherit; color: inherit; margin: 0; cursor: default; }
+:where(.ll-root, .ll-preview) :where(input, textarea)::placeholder { color: var(--text-3); }
+.ll-num { font-variant-numeric: tabular-nums; }
+
+/* 키보드 포커스: 모든 조작 요소에 같은 고리 */
+.ll-focusable:focus-visible, .ll-preview .is-focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* 아이콘: Phosphor Regular를 마스크로 칠하므로 글자색(currentColor)을 따른다 */
+.ll-i { display: inline-block; flex: none; width: var(--size-icon-16); height: var(--size-icon-16); background-color: currentColor; -webkit-mask: var(--ll-i) center / contain no-repeat; mask: var(--ll-i) center / contain no-repeat; }
+.ll-i-12 { width: var(--size-icon-12); height: var(--size-icon-12); }
+.ll-i-14 { width: var(--size-icon-14); height: var(--size-icon-14); }
+.ll-i-18 { width: var(--size-icon-18); height: var(--size-icon-18); }
+.ll-i-24 { width: var(--size-icon-24); height: var(--size-icon-24); }
+.ll-i-28 { width: var(--size-icon-28); height: var(--size-icon-28); }
+.ll-i-acenter { --ll-i: url("/_blob/dc586adce069fb5647646c5bff32909b"); }
+.ll-i-aleft { --ll-i: url("/_blob/49a3e59a72a70a69eb8d7ba8fb1e0fa8"); }
+.ll-i-arrow { --ll-i: url("/_blob/f8181b88991635d418f3630c1a11fd26"); }
+.ll-i-audio { --ll-i: url("/_blob/6f9eba02b7f60b3d408bd399c9e52874"); }
+.ll-i-book { --ll-i: url("/_blob/c506403821b64a08d85828eab7c403b0"); }
+.ll-i-bookmark { --ll-i: url("/_blob/36d4e5dad18138588702f09b5fdee88e"); }
+.ll-i-cal { --ll-i: url("/_blob/2879aa56243e82cc1be304319dfbe35d"); }
+.ll-i-calplus { --ll-i: url("/_blob/31291a43762b4e8d03865d3040c834f9"); }
+.ll-i-capture { --ll-i: url("/_blob/f6830888c3b6428b1ba34f52c0a8a624"); }
+.ll-i-check { --ll-i: url("/_blob/9447ff3ca99fc0c29b49e544f82b6557"); }
+.ll-i-checkc { --ll-i: url("/_blob/9d47bb43f6cbaa5650611c7dc6879df6"); }
+.ll-i-clock { --ll-i: url("/_blob/038f964992addf173b8f5c55c07f2ffa"); }
+.ll-i-coins { --ll-i: url("/_blob/f02dcb60f53b134be126e02ceb0e8e51"); }
+.ll-i-copy { --ll-i: url("/_blob/39180f4adc1151a68d52ab6b029c5245"); }
+.ll-i-down { --ll-i: url("/_blob/60110bb79fbda1733bd330110edf6db2"); }
+.ll-i-download { --ll-i: url("/_blob/eb7f3bc9527eb74b4fc5eb6156f8f0f5"); }
+.ll-i-drives { --ll-i: url("/_blob/6ea5d9005b924b46ec46c4c37445cd59"); }
+.ll-i-edit { --ll-i: url("/_blob/324b356b0805218b738a42752b651369"); }
+.ll-i-eraser { --ll-i: url("/_blob/51d54f4e444e1393cbce729905fefa3f"); }
+.ll-i-eye { --ll-i: url("/_blob/5bc6541886db0475102625688b9aa832"); }
+.ll-i-eyeoff { --ll-i: url("/_blob/a7795cdfbd59ddb7d8cdbd6670169cb6"); }
+.ll-i-fileppt { --ll-i: url("/_blob/fe0788113636977e0351bb63b7008ca6"); }
+.ll-i-filetext { --ll-i: url("/_blob/38d20d6e5b54f75a6c535e3d96d0cbf4"); }
+.ll-i-filex { --ll-i: url("/_blob/35ede0989ac5263a4804b7b78c1909ce"); }
+.ll-i-film { --ll-i: url("/_blob/e819f9ddad6b15e6b4681a297d5e8f24"); }
+.ll-i-folder { --ll-i: url("/_blob/bac1e6f5b66b1062239054c98462c386"); }
+.ll-i-folderopen { --ll-i: url("/_blob/a2a520f21d50e4de6514e6263e87c97e"); }
+.ll-i-frame { --ll-i: url("/_blob/e0143802d321364429c058e9dee818ea"); }
+.ll-i-gear { --ll-i: url("/_blob/4ea9f1c0bbef4a6fc1dd3e7a9aa7f956"); }
+.ll-i-grid { --ll-i: url("/_blob/f30555798416d74f0961a2128d0e9d86"); }
+.ll-i-grip { --ll-i: url("/_blob/34bc0d0d6e33dc47330c718c33169c06"); }
+.ll-i-history { --ll-i: url("/_blob/0755bf1e987b8afed621613b410e373a"); }
+.ll-i-image { --ll-i: url("/_blob/c3896c737da6fa6874d5c299893f5dc3"); }
+.ll-i-info { --ll-i: url("/_blob/9bda41268939e72e901fe6a89378274c"); }
+.ll-i-keyboard { --ll-i: url("/_blob/69ae181ca89c1e8848f7aba849c459bc"); }
+.ll-i-laptop { --ll-i: url("/_blob/05bb758753cd86921a7621411792d22f"); }
+.ll-i-layers { --ll-i: url("/_blob/69b26c7ad31deeb76e60a4b07a886108"); }
+.ll-i-link { --ll-i: url("/_blob/5e104f290f274a926e5a74d2ce50f396"); }
+.ll-i-listplus { --ll-i: url("/_blob/e7bb82db496dcbb662c053ca96d7b9d6"); }
+.ll-i-lock { --ll-i: url("/_blob/c443e09eb847732801934337ad7a74b8"); }
+.ll-i-loop { --ll-i: url("/_blob/bf8083484af9e8457185b0ca396414ec"); }
+.ll-i-macro { --ll-i: url("/_blob/d2a3b166b1e315aa7ae60e5466876083"); }
+.ll-i-max { --ll-i: url("/_blob/0d7fe9895e33ed770920939136cd3869"); }
+.ll-i-mic { --ll-i: url("/_blob/6ae9b428849888fd94ebed5cb44e8db0"); }
+.ll-i-min { --ll-i: url("/_blob/da68f48c4fca46dd0d7884882cdc38e0"); }
+.ll-i-monitor { --ll-i: url("/_blob/dd9e61338692586ed24c7c8e6ae0494f"); }
+.ll-i-more { --ll-i: url("/_blob/83c88d16d5da8726f59055a6ba61b2ba"); }
+.ll-i-mplay { --ll-i: url("/_blob/c8e6b2e05ebdde2bb841c53f9c968fac"); }
+.ll-i-msg { --ll-i: url("/_blob/77386f47fb0fe5dd3de80db85c897730"); }
+.ll-i-next { --ll-i: url("/_blob/e3a5013dc81a76f4a66b36a373eb7744"); }
+.ll-i-note { --ll-i: url("/_blob/2374eb5c5f9ca3ae71cf8153dc19b28c"); }
+.ll-i-notice { --ll-i: url("/_blob/7db5c41f4bd32543cdd6cc96c59989af"); }
+.ll-i-open { --ll-i: url("/_blob/e62a71c87a6fb4159e475e750aa445e2"); }
+.ll-i-pause { --ll-i: url("/_blob/c70eba6cf7bf9accbe2b7807af9233f5"); }
+.ll-i-pausef { --ll-i: url("/_blob/1585e48486a99c8c617f0980661f481b"); }
+.ll-i-play { --ll-i: url("/_blob/37b4d4c4b11228d589459651d715e218"); }
+.ll-i-playf { --ll-i: url("/_blob/fa7d2a6090dd1430c9f53c1059d75f03"); }
+.ll-i-plug { --ll-i: url("/_blob/f9eb9bc32c1c77ef72a010f3c0a9d382"); }
+.ll-i-plugs { --ll-i: url("/_blob/d9ebf6a7bea36559118599b993e78096"); }
+.ll-i-plus { --ll-i: url("/_blob/5a8a9566e617b9b45b41b437548cc705"); }
+.ll-i-pray { --ll-i: url("/_blob/ca487e25113041e3772bf7656d4866cf"); }
+.ll-i-prev { --ll-i: url("/_blob/30e09a680ab59cae18a50ff78cc2c0b6"); }
+.ll-i-prop { --ll-i: url("/_blob/b9223d1656089bbe203c673f4f7b5827"); }
+.ll-i-refresh { --ll-i: url("/_blob/7ae010fcd32ec11714213a3f6cbc5fbf"); }
+.ll-i-right { --ll-i: url("/_blob/b44a5c3c7a1606ddde86fcabab083547"); }
+.ll-i-rows { --ll-i: url("/_blob/45662a1149a36a58149642a9b07192c1"); }
+.ll-i-saved { --ll-i: url("/_blob/ff11200820506097b3b32f87e9752a85"); }
+.ll-i-search { --ll-i: url("/_blob/2f00849afdf95b7e0ddef97e7c580eaf"); }
+.ll-i-send { --ll-i: url("/_blob/3b7dd205346f0f6d0a5e89f47b192b3f"); }
+.ll-i-sliders { --ll-i: url("/_blob/d23d537b947200b860721d9d97f6fd48"); }
+.ll-i-slides { --ll-i: url("/_blob/9f59766bdfe970cdf3829e4b2f57e1e1"); }
+.ll-i-song { --ll-i: url("/_blob/1e420fe8ed8fd6949367eb44496c8416"); }
+.ll-i-stop { --ll-i: url("/_blob/c6d22069e448dd83c50ed87799593015"); }
+.ll-i-sun { --ll-i: url("/_blob/5946de7e9665fa35094fff692ae672b5"); }
+.ll-i-text { --ll-i: url("/_blob/c091e7f3f808fef654bd3aae6a1ebfb9"); }
+.ll-i-textaa { --ll-i: url("/_blob/22037f07e116c11eb63bc955ae3ebc94"); }
+.ll-i-timer { --ll-i: url("/_blob/ea2c4f1a243914b743a68534f2b3bc7b"); }
+.ll-i-translate { --ll-i: url("/_blob/339490b9220fe95a59b97924ed543ceb"); }
+.ll-i-trash { --ll-i: url("/_blob/45a553e391d53363140df89f97db1657"); }
+.ll-i-undo { --ll-i: url("/_blob/afa619e84186abd1bc0042d9a60a9b5f"); }
+.ll-i-upload { --ll-i: url("/_blob/225d37f5cceee9a75139cbe16c1b56b8"); }
+.ll-i-user { --ll-i: url("/_blob/f9386edc3a1b85a4710c4e4c9cedd15e"); }
+.ll-i-warn { --ll-i: url("/_blob/16b3bc1497068b597562c9df976daf38"); }
+.ll-i-warning { --ll-i: url("/_blob/8e86b854cf5f9e7439a31de32d23f8c9"); }
+.ll-i-wave { --ll-i: url("/_blob/58bcaf06cc5f29d0ecbe6496e4b3d690"); }
+.ll-i-x { --ll-i: url("/_blob/b4d6030c7d0161f90dd1089f681b82e5"); }
+
+/* 미리보기 도구 (앱 코드에는 옮기지 않는다) */
+.ll-preview { box-sizing: border-box; padding: 20px; background: var(--bg-app); display: flex; flex-direction: column; gap: 20px; }
+.ll-spec { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 24px; }
+.ll-spec-item { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.ll-spec-label { font-size: 11px; line-height: 14px; color: var(--text-3); white-space: nowrap; }
+.ll-spec-title { font-size: 12px; line-height: 16px; font-weight: 600; color: var(--text-2); }
+.ll-on-panel { box-sizing: border-box; padding: 14px; border-radius: var(--radius-lg); background: var(--bg-panel); }

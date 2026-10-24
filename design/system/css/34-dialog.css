@@ -1,0 +1,49 @@
+/* 34 대화상자: 막, 머리글, 위 옵션 줄, 몸통(한 칸, 두 칸), 입력 줄, 바닥글, 너비 s/m/l/xl */
+
+/* 막: 메뉴줄 아래부터 덮는다. 창이 작으면 좌우 16씩 남긴다 */
+.ll-scrim { position: fixed; left: 0; right: 0; top: var(--size-menubar); bottom: 0; box-sizing: border-box; display: flex; align-items: center; justify-content: center; padding: 0 var(--space-16); background: var(--scrim); z-index: var(--z-dialog); animation: ll-dialog-in 160ms ease-out; }
+
+.ll-dialog { box-sizing: border-box; display: flex; flex-direction: column; width: var(--dialog-m); max-width: calc(100vw - 32px); max-height: calc(100vh - 64px); border-radius: var(--radius-2xl); background: var(--bg-dialog); box-shadow: var(--shadow-dialog); color: var(--text); overflow: hidden; color-scheme: dark; animation: ll-dialog-in 160ms ease-out; }
+.ll-dialog * { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
+.ll-dialog--s { width: var(--dialog-s); }
+.ll-dialog--m { width: var(--dialog-m); }
+.ll-dialog--l { width: var(--dialog-l); }
+.ll-dialog--xl { width: var(--dialog-xl); }
+
+/* 머리글 44: 제목(title), 부제(파일 이름 등), 닫기 30×30 */
+.ll-dialog__header { flex: none; box-sizing: border-box; display: flex; align-items: center; gap: var(--space-12); height: var(--size-dialog-header); padding: 0 var(--space-8) 0 var(--dialog-inset); border-bottom: 1px solid var(--line); }
+.ll-dialog__title { margin: 0; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 13px; line-height: 18px; font-weight: 600; }
+.ll-dialog__subtitle { display: inline-flex; align-items: center; gap: var(--space-6); min-width: 0; overflow: hidden; white-space: nowrap; font-size: 12px; line-height: 16px; color: var(--text-3); }
+.ll-dialog__close, :is(.ll-root, .ll-preview) .ll-dialog__close { flex: none; display: inline-flex; align-items: center; justify-content: center; width: var(--size-control-md); height: var(--size-control-md); margin-left: auto; padding: 0; border: 0; border-radius: var(--radius-md); background: transparent; color: var(--text-2); cursor: default; transition: background-color 100ms ease-out; }
+.ll-dialog__close:hover, .ll-dialog__close.is-hover { background: var(--bg-raised); }
+.ll-dialog__close:active, .ll-dialog__close.is-active { background: var(--bg-control-hover); color: var(--text); }
+.ll-dialog__close:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* 입력 줄 52: 머리글 아래(옵션) 또는 바닥글 위(이름, 날짜, 시간). 항목 사이 20, 이름과 컨트롤 사이 10 */
+.ll-dialog__bar { flex: none; box-sizing: border-box; display: flex; align-items: center; gap: var(--space-20); height: var(--size-dialog-footer); padding: 0 var(--dialog-inset); border-top: 1px solid var(--line); white-space: nowrap; }
+.ll-dialog__bar--top { border-top: 0; border-bottom: 1px solid var(--line); }
+.ll-dialog__field { display: flex; align-items: center; gap: var(--space-10); min-width: 0; }
+.ll-dialog__field-label { flex: none; font-size: 12px; line-height: 16px; color: var(--text-2); }
+
+/* 몸통: 안쪽 16, 넘치면 몸통만 스크롤 */
+.ll-dialog__body { flex: 1 1 auto; min-height: 0; overflow: auto; padding: var(--dialog-inset); }
+/* 두 칸: 왼쪽 260 고르기 목록 + 오른쪽 내용 */
+.ll-dialog__body--split { display: flex; padding: 0; overflow: hidden; }
+.ll-dialog__aside { flex: 0 0 var(--size-dialog-aside); box-sizing: border-box; display: flex; flex-direction: column; min-height: 0; overflow-y: auto; border-right: 1px solid var(--line); }
+.ll-dialog__aside-foot { flex: none; margin-top: auto; padding: 0 var(--space-8) var(--space-8); }
+.ll-dialog__main { flex: 1 1 auto; min-width: 0; min-height: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: var(--space-12); padding: var(--dialog-inset); overflow: auto; }
+
+/* 몸통 안 목록 상자: bg-inset, 1px line, 머리글 34 */
+.ll-dialog__box { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; border-radius: var(--radius-lg); background: var(--bg-inset); box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; --ll-insert-bg: var(--bg-inset); }
+.ll-dialog__box-header { flex: none; box-sizing: border-box; display: flex; align-items: center; gap: var(--space-10); height: var(--size-panel-header); padding: 0 var(--panel-inset); border-bottom: 1px solid var(--line); font-size: 12px; line-height: 16px; font-weight: 600; }
+.ll-dialog__box-meta { margin-left: auto; font-weight: 400; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.ll-dialog__box-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: var(--space-4) 0 var(--space-8); }
+
+/* 바닥글 52: md 버튼 오른쪽 정렬, 사이 8. [취소] … [주 버튼] */
+.ll-dialog__footer { flex: none; box-sizing: border-box; display: flex; align-items: center; justify-content: flex-end; gap: var(--space-8); height: var(--size-dialog-footer); padding: 0 var(--dialog-inset); border-top: 1px solid var(--line); }
+
+@keyframes ll-dialog-in { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .ll-scrim, .ll-dialog { animation: none; }
+  .ll-dialog__close { transition: none; }
+}

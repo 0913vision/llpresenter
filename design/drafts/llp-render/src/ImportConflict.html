@@ -1,0 +1,117 @@
+@@HEAD:같은 곡이 있을 때@@
+<div style="position: relative; width: 1920px; height: 1080px; display: flex; flex-direction: column; background: #0e0e0e; color: #ececec; font-family: 'Pretendard Variable', Pretendard, sans-serif; font-size: 13px; line-height: 18px; word-break: keep-all; -webkit-font-smoothing: antialiased; overflow: hidden">
+
+@@MENUBAR@@
+
+@@TOOLBAR:prep@@
+
+<div style="flex: 1; min-height: 0; display: flex; gap: 4px; padding: 0 4px" aria-hidden="true">
+<div style="flex: 0 0 280px; display: flex; flex-direction: column; gap: 4px">
+<section style="flex: none; height: 430px; background: #1c1c1c; border-radius: 5px; overflow: hidden">
+<div style="height: 34px; display: flex; align-items: center; padding: 0 14px; border-bottom: 1px solid #2b2b2b"><span style="font-size: 12px; font-weight: 600; line-height: 32px; border-bottom: 2px solid #ececec">예배 순서</span><span style="margin-left: 10px; font-size: 12px; color: #8c8c8c">주일 예배</span></div>
+<sc-for list="{{ bgOrder }}" as="b" hint-placeholder-count="8"><div style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px; color: #ececec"><span class="i i-song" style="color: #b4b4b4"></span>{{ b }}</div></sc-for>
+</section>
+<section style="flex: 1; background: #1c1c1c; border-radius: 5px; overflow: hidden">
+<div style="height: 34px; display: flex; align-items: center; padding: 0 14px; border-bottom: 1px solid #2b2b2b"><span style="font-size: 12px; font-weight: 600; line-height: 32px; border-bottom: 2px solid #ececec">라이브러리</span><span style="margin-left: 10px; font-size: 12px; color: #8c8c8c">128</span></div>
+<sc-for list="{{ bgLibrary }}" as="b" hint-placeholder-count="12"><div style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px; color: #ececec"><span class="i i-song" style="color: #b4b4b4"></span>{{ b }}</div></sc-for>
+</section>
+</div>
+<section style="flex: 1; background: #1c1c1c; border-radius: 5px; overflow: hidden">
+<div style="height: 34px; display: flex; align-items: center; padding: 0 14px; border-bottom: 1px solid #2b2b2b"><span style="font-size: 13px; font-weight: 600">만복의 근원 하나님</span><span style="margin-left: 10px; font-size: 12px; color: #8c8c8c">4장</span></div>
+<sc-for list="{{ bgBlocks }}" as="b" hint-placeholder-count="4"><div style="display: flex; gap: 16px; padding: 14px; border-bottom: 1px solid #262626; font-size: 17px; line-height: 28px"><span style="flex: 0 0 120px; padding-left: 34px"><span style="display: inline-block; height: 24px; padding: 0 8px; border-radius: 3px; background: {{ b.color }}; color: #101010; font-size: 12px; line-height: 24px; font-weight: 700">{{ b.label }}</span></span><span style="white-space: pre-line">{{ b.text }}</span></div></sc-for>
+</section>
+<div style="flex: 0 0 480px; display: flex; flex-direction: column; gap: 4px">
+<section style="flex: none; height: 344px; background: #1c1c1c; border-radius: 5px; overflow: hidden">
+<div style="height: 34px; display: flex; align-items: center; padding: 0 14px; border-bottom: 1px solid #2b2b2b"><span style="font-size: 12px; font-weight: 600; line-height: 32px; border-bottom: 2px solid #ececec">미리보기</span></div>
+<div style="margin: 14px; aspect-ratio: 16 / 9; border-radius: 3px; overflow: hidden"><img src="/_blob/e96d6204449f1e44237721b22d7463c9" alt="" style="width: 100%; height: 100%; object-fit: cover"></div>
+</section>
+<section style="flex: 1; background: #1c1c1c; border-radius: 5px"></section>
+</div>
+</div>
+
+@@FOOTER@@
+
+<div style="position: absolute; inset: 0; background: rgba(0, 0, 0, 0.6)"></div>
+
+<section role="dialog" aria-label="텍스트 가져오기" style="position: absolute; left: 470px; top: 326px; width: 980px; height: 428px; display: flex; flex-direction: column; background: #1f1f1f; border-radius: 8px; box-shadow: 0 0 0 1px #3a3a3a, 0 20px 48px rgba(0, 0, 0, 0.6); overflow: hidden">
+<div style="flex: none; height: 48px; display: flex; align-items: center; gap: 12px; padding: 0 8px 0 18px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 14px; font-weight: 600">텍스트 가져오기</span>
+<span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #8c8c8c"><span class="i i14 i-filetext"></span>만복의 근원 하나님.txt</span>
+<span style="margin-left: auto; font-size: 12px; color: #8c8c8c; font-variant-numeric: tabular-nums">1 / 3</span>
+<button type="button" class="hv" aria-label="닫기" style="width: 30px; height: 30px; border: 0; border-radius: 4px; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i-x"></span></button>
+</div>
+
+<div style="flex: none; height: 52px; display: flex; align-items: center; gap: 28px; padding: 0 18px; border-bottom: 1px solid #2b2b2b">
+<span style="display: flex; align-items: center; gap: 10px"><span style="font-size: 12px; color: #b4b4b4">장 나누기</span><span style="display: flex; padding: 2px; border-radius: 5px; background: #121212"><sc-for list="{{ split }}" as="o" hint-placeholder-count="3"><button type="button" style="height: 24px; padding: 0 12px; border: 0; border-radius: 3px; background: {{ o.bg }}; color: {{ o.fg }}; font-size: 12px">{{ o.label }}</button></sc-for></span></span>
+<span style="display: flex; align-items: center; gap: 10px"><span style="font-size: 12px; color: #b4b4b4">한 장에</span><span style="width: 56px; display: flex; align-items: center; justify-content: flex-end; height: 28px; padding: 0 10px; box-sizing: border-box; border-radius: 4px; background: #121212; font-size: 13px; font-variant-numeric: tabular-nums">1</span></span>
+<span style="display: flex; align-items: center; gap: 10px"><span style="font-size: 12px; color: #b4b4b4">이름표 인식</span><span role="switch" aria-checked="true" style="position: relative; width: 30px; height: 18px; border-radius: 9px; background: #3d8bf0"><span style="position: absolute; top: 2px; left: 14px; width: 14px; height: 14px; border-radius: 50%; background: #fff"></span></span></span>
+</div>
+
+<div style="flex: none; height: 52px; display: flex; align-items: center; gap: 12px; padding: 0 18px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 12px; color: #b4b4b4">제목</span>
+<span style="width: 340px; display: flex; align-items: center; height: 30px; padding: 0 10px; box-sizing: border-box; border-radius: 4px; background: #121212; font-size: 13px">만복의 근원 하나님</span>
+</div>
+
+<div style="flex: 1; min-height: 0; padding: 12px 18px 18px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 11px; font-weight: 600; color: #8c8c8c; font-variant-numeric: tabular-nums">장 4</span>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 12px">
+<sc-for list="{{ slides }}" as="s" hint-placeholder-count="4">
+<div style="display: flex; flex-direction: column; border-radius: 4px; overflow: hidden">
+<span style="display: flex; align-items: center; justify-content: center; aspect-ratio: 16 / 9; width: 100%; box-sizing: border-box; padding: 0 10%; background: #000; color: #fff; font-size: 11px; line-height: 1.45; font-weight: 700; text-align: center; white-space: pre-line">{{ s.text }}</span>
+<span style="display: flex; align-items: center; gap: 8px; height: 24px; padding: 0 8px; background: {{ s.barBg }}; color: {{ s.barFg }}; font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden"><span style="font-variant-numeric: tabular-nums">{{ s.n }}</span><span>{{ s.label }}</span></span>
+</div>
+</sc-for>
+</div>
+</div>
+
+<div style="flex: none; height: 56px; display: flex; align-items: center; gap: 8px; padding: 0 18px; border-top: 1px solid #2b2b2b">
+<button type="button" class="hvc" style="display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px 0 10px; border: 0; border-radius: 4px; background: #2a2a2a; color: #ececec; font-size: 13px"><span class="i i14 i-edit"></span>편집</button>
+<button type="button" class="hvc" style="margin-left: auto; height: 32px; padding: 0 14px; border: 0; border-radius: 4px; background: #2a2a2a; color: #ececec; font-size: 13px">건너뛰기</button>
+<button type="button" style="height: 32px; padding: 0 18px; border: 0; border-radius: 4px; background: #3d8bf0; color: #fff; font-size: 13px; font-weight: 600">가져오기</button>
+</div>
+</section>
+<div style="position: absolute; inset: 0; background: rgba(0, 0, 0, 0.35)"></div>
+<section role="alertdialog" aria-label="같은 제목의 곡" style="position: absolute; left: 740px; top: 466px; width: 440px; padding: 20px 20px 16px; box-sizing: border-box; background: #262626; border-radius: 8px; box-shadow: 0 0 0 1px #3a3a3a, 0 20px 48px rgba(0, 0, 0, 0.6)">
+<div style="display: flex; align-items: flex-start; gap: 14px">
+<span style="flex: none; width: 36px; height: 36px; border-radius: 8px; background: #1c1c1c; box-shadow: inset 0 0 0 1px #3a3a3a; display: inline-flex; align-items: center; justify-content: center; color: #b4b4b4"><span class="i i18 i-song"></span></span>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; padding-top: 1px">
+<p style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 600">‘만복의 근원 하나님’ 곡이 라이브러리에 이미 있습니다</p>
+<p style="margin: 0; font-size: 12px; line-height: 16px; color: #8c8c8c; font-variant-numeric: tabular-nums">라이브러리 곡 4장, 10월 20일 수정</p>
+</div>
+</div>
+<div style="display: flex; align-items: center; gap: 8px; margin-top: 20px">
+<button type="button" class="hvc" style="margin-left: auto; height: 30px; padding: 0 14px; border: 0; border-radius: 4px; background: #333333; color: #ececec; font-size: 13px">건너뛰기</button>
+<button type="button" class="hvc" style="height: 30px; padding: 0 14px; border: 0; border-radius: 4px; background: #333333; color: #ececec; font-size: 13px">바꾸기</button>
+<button type="button" style="height: 30px; padding: 0 16px; border: 0; border-radius: 4px; background: #3d8bf0; color: #fff; font-size: 13px; font-weight: 600">둘 다 유지</button>
+</div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1920,"height":1080}}'>
+class Component extends DCLogic {
+renderVals() {
+const pal = { teal: '#5fb8c2', green: '#8fbf7a', yellow: '#d6b35f' };
+const seg = (labels, active) => labels.map((l, i) => ({ label: l, bg: i === active ? '#333333' : 'transparent', fg: i === active ? '#ececec' : '#8c8c8c' }));
+const slide = (n, label, color, text) => ({ n: n, label: label, text: text, barBg: color || '#2a2a2a', barFg: color ? '#101010' : '#a3a3a3' });
+return {
+bgOrder: ['예배 전 카운트다운', '주일 광고', '이 세상 험하고', '만복의 근원 하나님', '내 주를 가까이 하게 함은', '요한복음 3장 16절', '설교', '축도'],
+bgLibrary: ['거리마다 기쁨으로', '나 같은 죄인 살리신', '나를 향한 주의 사랑', '내 주를 가까이 하게 함은', '송축해 내 영혼', '십자가 그 사랑', '예수 사랑하심은', '만복의 근원 하나님', '은혜 아니면', '이 세상 험하고', '주 하나님 지으신 모든 세계', '하나님 은혜'],
+bgBlocks: [
+{ label: '1절', color: pal.teal, text: '만복의 근원 하나님\n온 백성 찬송 드리고' },
+{ label: '프리코러스', color: pal.green, text: '저 천사여 찬송하세\n찬송 성부 성자 성령' },
+{ label: '후렴', color: pal.yellow, text: '찬송 성부 성자 성령\n아멘' }
+],
+split: seg(['빈 줄', '줄 바꿈', '기호'], 0),
+slides: [
+slide(1, '1절', pal.teal, '만복의 근원 하나님\n온 백성 찬송 드리고'),
+slide(2, '프리코러스', pal.green, '저 천사여 찬송하세\n찬송 성부 성자 성령'),
+slide(3, '후렴', pal.yellow, '찬송 성부 성자 성령\n아멘'),
+slide(4, '', null, '찬송 성부 성자 성령\n만복의 근원 하나님')
+]
+};
+}
+}
+</script>
+</body>
+</html>

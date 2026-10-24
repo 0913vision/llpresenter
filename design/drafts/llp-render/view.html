@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>board</title>
+<style>html,body{margin:0}#stage{transform-origin:0 0}</style>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+// .dc.html 보드를 sc-for / sc-if / {{ }} 규칙대로 그리는 최소 렌더러.
+const params = new URLSearchParams(location.search)
+const file = params.get('f') || 'ShowH.dc.html'
+const fit = params.get('fit') !== '0'
+
+function evalExpr(expr, scope) {
+  try { return new Function('__s', 'with (__s) { return (' + expr + ') }')(scope) } catch (e) { console.warn('expr', expr, e); return undefined }
+}
+const whole = /^\s*\{\{([\s\S]+?)\}\}\s*$/
+function interp(text, scope) {
+  return text.replace(/\{\{([\s\S]+?)\}\}/g, (_, e) => { const v = evalExpr(e, scope); return v == null ? '' : String(v) })
+}
+
+class DCLogic {
+  constructor(props) { this.props = props || {}; this.state = {} }
+  setState(patch) {
+    Object.assign(this.state, typeof patch === 'function' ? patch(this.state) : patch)
+    window.__rerender()
+  }
+}
+
+function renderNodes(nodes, scope, parent, svg) {
+  for (const n of nodes) {
+    if (n.nodeType === 3) { parent.appendChild(document.createTextNode(interp(n.textContent, scope))); continue }
+    if (n.nodeType !== 1) continue
+    const tag = n.tagName.toLowerCase()
+    if (tag === 'sc-for') {
+      const list = evalExpr(n.getAttribute('list').match(whole)[1], scope) || []
+      const as = n.getAttribute('as') || 'item'
+      list.forEach((item, i) => renderNodes(n.childNodes, Object.assign(Object.create(scope), { [as]: item, $index: i }), parent, svg))
+      continue
+    }
+    if (tag === 'sc-if') {
+      if (evalExpr(n.getAttribute('value').match(whole)[1], scope)) renderNodes(n.childNodes, scope, parent, svg)
+      continue
+    }
+    if (tag === 'helmet') continue
+    const isSvg = svg || tag === 'svg'
+    const el = isSvg ? document.createElementNS('http://www.w3.org/2000/svg', n.tagName) : document.createElement(tag)
+    for (const a of n.attributes) {
+      if (a.name.startsWith('hint-')) continue
+      const m = a.value.match(whole)
+      if (/^on[a-z]+$/i.test(a.name)) {
+        const fn = m ? evalExpr(m[1], scope) : null
+        if (typeof fn === 'function') {
+          const ev = a.name.slice(2).toLowerCase()
+          el.addEventListener(ev, fn)
+          if (ev === 'change') el.addEventListener('input', fn)
+        }
+        continue
+      }
+      const v = interp(a.value, scope)
+      el.setAttribute(a.name, v)
+      if (a.name === 'value' && 'value' in el) el.value = v
+    }
+    renderNodes(n.childNodes, scope, el, isSvg)
+    parent.appendChild(el)
+  }
+}
+
+;(async () => {
+  const src = await (await fetch('/project/' + file)).text()
+  const doc = new DOMParser().parseFromString(src, 'text/html')
+  document.title = doc.title
+  const helmet = doc.querySelector('helmet')
+  if (helmet) for (const s of helmet.querySelectorAll('style')) { const st = document.createElement('style'); st.textContent = s.textContent; document.head.appendChild(st) }
+  const scriptEl = doc.querySelector('script[data-dc-script]')
+  const props = JSON.parse(scriptEl.getAttribute('data-props') || '{}')
+  const preview = props.$preview || { width: 1920, height: 1080 }
+  delete props.$preview
+  const Component = new Function('DCLogic', scriptEl.textContent + '\nreturn Component')(DCLogic)
+  const inst = new Component(props)
+  const root = doc.querySelector('x-dc')
+  const stage = document.getElementById('stage')
+  stage.style.width = preview.width + 'px'
+  window.__rerender = () => {
+    const vals = inst.renderVals ? inst.renderVals() : {}
+    stage.textContent = ''
+    renderNodes(root.childNodes, Object.assign({}, props, vals), stage, false)
+  }
+  window.__dc = inst
+  window.__rerender()
+  const scale = () => { if (fit) stage.style.transform = 'scale(' + Math.min(1, innerWidth / preview.width) + ')' }
+  addEventListener('resize', scale); scale()
+  document.fonts.ready.then(() => { document.body.dataset.ready = '1' })
+})()
+</script>
+</body>
+</html>

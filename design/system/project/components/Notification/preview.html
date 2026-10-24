@@ -1,0 +1,148 @@
+<!-- @dsCard group="떠 있는 창" height=911 -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Notification</title>
+<style>
+  html, body { margin: 0; }
+  /* 미리보기 전용: 실제 너비(480) 카드와 0.24배로 줄인 1920×1080 창 */
+  .pv-col { display: flex; flex-direction: column; gap: 4px; width: 480px; }
+  .pv-notice { animation: none; }
+  .pv-win { position: relative; width: 442px; height: 249px; border-radius: var(--radius-md); background: var(--bg-app); overflow: hidden; box-shadow: 0 0 0 1px var(--line); }
+  .pv-win__p { position: absolute; border-radius: 1px; background: var(--bg-panel); }
+  .pv-win__card { position: absolute; right: 1px; top: 22px; width: 110px; height: 25px; border-radius: 2px; background: var(--bg-raised); box-shadow: inset 2px 0 0 var(--warning), 0 0 0 1px var(--line-strong); }
+  .pv-win__card--info { box-shadow: var(--shadow-popover); }
+  .pv-win__prev { position: absolute; right: 4px; width: 104px; height: 58px; border-radius: 1px; background: var(--output-black); box-shadow: 0 0 0 1px var(--line); }
+  .pv-win__tag { position: absolute; font-size: 11px; line-height: 14px; color: var(--text-2); white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="ll-preview">
+
+  <div class="ll-spec-title">카드: 오른쪽 열 너비(480, 좁은 창 360), bg-raised, radius-2xl, 안쪽 12 8 12 14</div>
+  <div class="ll-spec" style="align-items: flex-start">
+    <div class="ll-spec-item">
+      <div class="pv-col">
+        <section class="ll-notice pv-notice" role="alert" data-state="warning" aria-labelledby="pv-n1">
+          <span class="ll-i ll-i-18 ll-i-plug ll-notice__icon" aria-hidden="true"></span>
+          <div class="ll-notice__body">
+            <div class="ll-notice__text">
+              <div class="ll-notice__head"><span class="ll-notice__title" id="pv-n1">무대 모니터 연결 끊김</span><span class="ll-notice__time">11:24</span></div>
+              <div class="ll-notice__meta"><span>모니터 3</span><span class="ll-i ll-i-12 ll-i-arrow" aria-label="에서"></span><span>창으로 표시 중</span></div>
+            </div>
+            <div class="ll-notice__actions">
+              <button class="ll-btn ll-btn--lead"><span class="ll-i ll-i-refresh"></span>모니터 다시 찾기</button>
+              <button class="ll-btn ll-btn--lead"><span class="ll-i ll-i-open"></span>창 보기</button>
+            </div>
+          </div>
+          <button class="ll-notice__close" aria-label="알림 닫기"><span class="ll-i ll-i-x"></span></button>
+        </section>
+      </div>
+      <span class="ll-spec-label">경고: 해결될 때까지 남음 (모니터 빠짐)</span>
+    </div>
+    <div class="ll-spec-item">
+      <div class="pv-col" style="width: 360px">
+        <section class="ll-notice pv-notice" role="status" aria-labelledby="pv-n2">
+          <span class="ll-i ll-i-18 ll-i-monitor ll-notice__icon" aria-hidden="true"></span>
+          <div class="ll-notice__body">
+            <div class="ll-notice__text">
+              <div class="ll-notice__head"><span class="ll-notice__title" id="pv-n2">무대 모니터 다시 연결됨</span><span class="ll-notice__time">11:26</span></div>
+              <div class="ll-notice__meta"><span>모니터 3</span></div>
+            </div>
+          </div>
+          <button class="ll-notice__close" aria-label="알림 닫기"><span class="ll-i ll-i-x"></span></button>
+        </section>
+      </div>
+      <span class="ll-spec-label">정보: 6초 뒤 닫힘 (좁은 창 너비 360)</span>
+    </div>
+  </div>
+
+  <div class="ll-spec-title">상태</div>
+  <div class="ll-spec" style="align-items: flex-start">
+    <div class="ll-spec-item">
+      <div class="pv-col">
+        <section class="ll-notice pv-notice" role="alert" data-state="warning">
+          <span class="ll-i ll-i-18 ll-i-plug ll-notice__icon" aria-hidden="true"></span>
+          <div class="ll-notice__body">
+            <div class="ll-notice__text">
+              <div class="ll-notice__head"><span class="ll-notice__title">무대 모니터 연결 끊김</span><span class="ll-notice__time">11:24</span></div>
+              <div class="ll-notice__meta"><span>모니터 3</span><span class="ll-i ll-i-12 ll-i-arrow"></span><span>창으로 표시 중</span></div>
+            </div>
+            <div class="ll-notice__actions">
+              <button class="ll-btn ll-btn--lead is-focus"><span class="ll-i ll-i-refresh"></span>모니터 다시 찾기</button>
+              <button class="ll-btn ll-btn--lead is-hover"><span class="ll-i ll-i-open"></span>창 보기</button>
+            </div>
+          </div>
+          <button class="ll-notice__close is-hover" aria-label="알림 닫기"><span class="ll-i ll-i-x"></span></button>
+        </section>
+      </div>
+      <span class="ll-spec-label">동작 포커스, 동작과 닫기 마우스 올림</span>
+    </div>
+    <div class="ll-spec-item">
+      <div class="pv-col" style="width: 360px">
+        <section class="ll-notice pv-notice" role="status">
+          <span class="ll-i ll-i-18 ll-i-monitor ll-notice__icon" aria-hidden="true"></span>
+          <div class="ll-notice__body">
+            <div class="ll-notice__text">
+              <div class="ll-notice__head"><span class="ll-notice__title">무대 모니터 다시 연결됨</span><span class="ll-notice__time">11:26</span></div>
+              <div class="ll-notice__meta"><span>모니터 3</span></div>
+            </div>
+          </div>
+          <button class="ll-notice__close is-focus" aria-label="알림 닫기"><span class="ll-i ll-i-x"></span></button>
+        </section>
+      </div>
+      <span class="ll-spec-label">닫기 포커스</span>
+    </div>
+  </div>
+
+  <div class="ll-spec-title">자리: 툴바 아래 4px, 창 오른쪽 4px. 남는 경고는 오른쪽 열을 내려 미리보기를 가리지 않고, 정보는 위에 떠서 6초 뒤 닫힘</div>
+  <div class="ll-spec" style="align-items: flex-start; gap: 16px">
+    <div class="ll-spec-item">
+      <div class="pv-win" aria-hidden="true">
+        <div class="pv-win__p" style="left: 1px; top: 21px; width: 64px; bottom: 8px"></div>
+        <div class="pv-win__p" style="left: 66px; top: 21px; right: 112px; bottom: 8px"></div>
+        <div class="pv-win__card" style="top: 21px"></div>
+        <div class="pv-win__p" style="right: 1px; top: 47px; width: 110px; height: 80px"></div>
+        <div class="pv-win__prev" style="top: 58px"></div>
+        <div class="pv-win__p" style="right: 1px; top: 128px; width: 110px; bottom: 8px"></div>
+        <span class="pv-win__tag" style="left: 72px; top: 30px">경고 카드가 오른쪽 열 맨 위를 차지</span>
+        <span class="pv-win__tag" style="left: 72px; top: 64px">미리보기는 카드 높이 + 4만큼 내려감</span>
+      </div>
+      <span class="ll-spec-label">경고 (해결될 때까지)</span>
+    </div>
+    <div class="ll-spec-item">
+      <div class="pv-win" aria-hidden="true">
+        <div class="pv-win__p" style="left: 1px; top: 21px; width: 64px; bottom: 8px"></div>
+        <div class="pv-win__p" style="left: 66px; top: 21px; right: 112px; bottom: 8px"></div>
+        <div class="pv-win__p" style="right: 1px; top: 21px; width: 110px; height: 80px"></div>
+        <div class="pv-win__prev" style="top: 32px"></div>
+        <div class="pv-win__p" style="right: 1px; top: 102px; width: 110px; bottom: 8px"></div>
+        <div class="pv-win__card pv-win__card--info" style="top: 21px; height: 15px"></div>
+        <span class="pv-win__tag" style="left: 72px; top: 30px">정보 카드는 미리보기 위에 뜸</span>
+        <span class="pv-win__tag" style="left: 72px; top: 48px">6초 뒤 닫힘, 포인터가 올라가 있으면 기다림</span>
+      </div>
+      <span class="ll-spec-label">정보 (잠깐)</span>
+    </div>
+  </div>
+
+  <div class="ll-spec-title">쌓기: 새 알림이 위, 사이 4px, 최대 3개</div>
+  <div class="pv-col">
+    <section class="ll-notice pv-notice" role="status">
+      <span class="ll-i ll-i-18 ll-i-monitor ll-notice__icon" aria-hidden="true"></span>
+      <div class="ll-notice__body"><div class="ll-notice__text"><div class="ll-notice__head"><span class="ll-notice__title">본 화면 모니터 다시 연결됨</span><span class="ll-notice__time">11:25</span></div><div class="ll-notice__meta"><span>모니터 2</span></div></div></div>
+      <button class="ll-notice__close" aria-label="알림 닫기"><span class="ll-i ll-i-x"></span></button>
+    </section>
+    <section class="ll-notice pv-notice" role="alert" data-state="warning">
+      <span class="ll-i ll-i-18 ll-i-plug ll-notice__icon" aria-hidden="true"></span>
+      <div class="ll-notice__body">
+        <div class="ll-notice__text"><div class="ll-notice__head"><span class="ll-notice__title">무대 모니터 연결 끊김</span><span class="ll-notice__time">11:24</span></div><div class="ll-notice__meta"><span>모니터 3</span><span class="ll-i ll-i-12 ll-i-arrow"></span><span>창으로 표시 중</span></div></div>
+        <div class="ll-notice__actions"><button class="ll-btn ll-btn--lead"><span class="ll-i ll-i-refresh"></span>모니터 다시 찾기</button><button class="ll-btn ll-btn--lead"><span class="ll-i ll-i-open"></span>창 보기</button></div>
+      </div>
+      <button class="ll-notice__close" aria-label="알림 닫기"><span class="ll-i ll-i-x"></span></button>
+    </section>
+  </div>
+
+</div>
+</body>
+</html>

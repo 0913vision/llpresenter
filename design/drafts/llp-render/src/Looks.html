@@ -1,0 +1,212 @@
+@@HEAD:Look 편집@@
+<div style="width: 1920px; height: 1080px; display: flex; flex-direction: column; background: #0e0e0e; color: #ececec; font-family: 'Pretendard Variable', Pretendard, sans-serif; font-size: 13px; line-height: 18px; word-break: keep-all; -webkit-font-smoothing: antialiased; overflow: hidden">
+
+@@MENUBAR@@
+
+@@TOOLBAR:screens@@
+
+<div style="flex: 1; min-height: 0; display: flex; gap: 4px; padding: 0 4px">
+
+<div style="flex: 0 0 280px; display: flex; flex-direction: column; gap: 4px">
+<section style="flex: none; display: flex; flex-direction: column; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-label="화면">
+<div style="flex: none; box-sizing: border-box; height: 34px; display: flex; align-items: center; padding: 0 8px 0 14px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 12px; font-weight: 600; line-height: 31px; border-bottom: 2px solid #ececec">화면</span>
+<button type="button" class="hv" aria-label="화면 추가" style="margin-left: auto; width: 26px; height: 26px; border: 0; border-radius: 4px; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i-plus"></span></button>
+</div>
+<ul style="margin: 0; padding: 0 0 8px; list-style: none">
+<sc-for list="{{ screens }}" as="s" hint-placeholder-count="5">
+<li>
+<sc-if value="{{ s.isHeader }}" hint-placeholder-val="{{ false }}">
+<p style="margin: 0; padding: 10px 14px 5px; font-size: 11px; line-height: 14px; font-weight: 600; color: #8c8c8c">{{ s.label }}</p>
+</sc-if>
+<sc-if value="{{ s.isItem }}" hint-placeholder-val="{{ true }}">
+<button type="button" class="hv" style="display: flex; align-items: center; gap: 10px; width: 100%; height: 44px; padding: 0 14px; border: 0; background: transparent; color: #ececec; text-align: left">
+<span style="display: inline-flex; color: #b4b4b4">
+<sc-if value="{{ s.isMain }}" hint-placeholder-val="{{ true }}"><span class="i i-mplay"></span></sc-if>
+<sc-if value="{{ s.isStage }}" hint-placeholder-val="{{ false }}"><span class="i i-monitor"></span></sc-if>
+<sc-if value="{{ s.isCapture }}" hint-placeholder-val="{{ false }}"><span class="i i-capture"></span></sc-if>
+</span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 13px">{{ s.name }}</span>
+<span style="font-size: 11px; line-height: 14px; color: #8c8c8c">{{ s.target }}</span>
+</span>
+<span style="width: 6px; height: 6px; border-radius: 50%; background: #3dbb6b" aria-label="정상"></span>
+</button>
+</sc-if>
+</li>
+</sc-for>
+</ul>
+</section>
+
+<section style="flex: 1; min-height: 0; display: flex; flex-direction: column; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-label="Look">
+<div style="flex: none; box-sizing: border-box; height: 34px; display: flex; align-items: center; padding: 0 8px 0 14px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 12px; font-weight: 600; line-height: 31px; border-bottom: 2px solid #ececec">Look</span>
+<button type="button" class="hv" aria-label="Look 추가" style="margin-left: auto; width: 26px; height: 26px; border: 0; border-radius: 4px; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i-plus"></span></button>
+</div>
+<ul style="margin: 0; padding: 4px 0 8px; list-style: none">
+<sc-for list="{{ looks }}" as="l" hint-placeholder-count="4">
+<li><button type="button" class="hv" style="display: flex; align-items: center; gap: 10px; width: 100%; height: 30px; padding: 0 14px; border: 0; background: {{ l.bg }}; color: #ececec; text-align: left; font-size: 13px">
+<span class="i i-layers" style="color: {{ l.iconColor }}"></span>
+<span style="flex: 1">{{ l.name }}</span>
+<sc-if value="{{ l.inUse }}" hint-placeholder-val="{{ false }}"><span style="height: 18px; padding: 0 6px; border-radius: 3px; background: {{ l.chipBg }}; color: #ececec; font-size: 11px; line-height: 18px">사용 중</span></sc-if>
+</button></li>
+</sc-for>
+</ul>
+</section>
+</div>
+
+<section style="flex: 1; min-width: 0; display: flex; flex-direction: column; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-label="Look 편집">
+<div style="flex: none; box-sizing: border-box; height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 8px 0 14px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 12px; font-weight: 600; line-height: 31px; border-bottom: 2px solid #ececec">Look</span>
+<span style="font-size: 12px; color: #ececec">평상시</span>
+<span style="height: 18px; padding: 0 6px; border-radius: 3px; background: #2a2a2a; color: #ececec; font-size: 11px; line-height: 18px">사용 중</span>
+<button type="button" class="hvc" style="margin-left: auto; height: 26px; padding: 0 10px; border: 0; border-radius: 4px; background: #2a2a2a; color: #ececec; font-size: 12px">복제</button>
+</div>
+
+<div style="flex: 1; min-height: 0; padding: 14px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+<sc-for list="{{ cards }}" as="c" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; border-radius: 5px; background: #212121; box-shadow: inset 0 0 0 1px #2b2b2b; overflow: hidden">
+<div style="height: 40px; display: flex; align-items: center; gap: 10px; padding: 0 12px">
+<span style="display: inline-flex; color: #b4b4b4">
+<sc-if value="{{ c.isMain }}" hint-placeholder-val="{{ true }}"><span class="i i-mplay"></span></sc-if>
+<sc-if value="{{ c.isStage }}" hint-placeholder-val="{{ false }}"><span class="i i-monitor"></span></sc-if>
+<sc-if value="{{ c.isBc }}" hint-placeholder-val="{{ false }}"><span class="i i-capture"></span></sc-if>
+</span>
+<span style="font-size: 13px; font-weight: 600">{{ c.name }}</span>
+<span style="margin-left: auto; font-size: 12px; color: #8c8c8c">{{ c.target }}</span>
+</div>
+<div style="padding: 0 12px">
+<div style="position: relative; aspect-ratio: 16 / 9; border-radius: 4px; overflow: hidden; background: {{ c.bg }}; box-shadow: 0 0 0 1px #2b2b2b">
+<sc-if value="{{ c.isMain }}" hint-placeholder-val="{{ true }}">
+<img src="/_blob/e96d6204449f1e44237721b22d7463c9" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
+<div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 0 40px; color: #fff; font-size: 21px; line-height: 30px; font-weight: 700; text-align: center; white-space: pre-line; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6)">{{ lyric }}</div>
+<span style="position: absolute; right: 16px; top: 12px; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: rgba(255, 255, 255, 0.72)">LOVELIGHT</span>
+<div style="position: absolute; left: 0; right: 0; bottom: 0; height: 26px; display: flex; align-items: center; padding: 0 16px; background: rgba(0, 0, 0, 0.8); color: #fff; font-size: 12px; font-weight: 600">12가 3456 차량 이동 부탁드립니다</div>
+</sc-if>
+<sc-if value="{{ c.isStage }}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; display: flex; flex-direction: column; padding: 18px 20px 0">
+<div style="display: flex; justify-content: space-between; gap: 12px"><p style="margin: 0; color: #fff; font-size: 19px; line-height: 27px; font-weight: 700; white-space: pre-line">{{ lyric }}</p><span style="font-size: 19px; line-height: 27px; font-weight: 700; font-variant-numeric: tabular-nums">11:24</span></div>
+<p style="margin: 14px 0 0; padding-top: 10px; border-top: 1px solid #333333; color: #9a9a9a; font-size: 13px; line-height: 19px; font-weight: 600; white-space: pre-line">{{ next }}</p>
+</div>
+<div style="position: absolute; left: 0; right: 0; bottom: 0; height: 26px; display: flex; align-items: center; padding: 0 20px; background: #e3a23b; color: #111; font-size: 12px; font-weight: 700">후렴 한 번 더</div>
+</sc-if>
+<sc-if value="{{ c.isBc }}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; left: 10%; right: 10%; bottom: 9%; padding: 8px 14px; background: rgba(0, 0, 0, 0.82); color: #fff; font-size: 14px; line-height: 20px; font-weight: 600; text-align: center; white-space: pre-line">{{ lyric }}</div>
+</sc-if>
+</div>
+</div>
+<ul style="margin: 0; padding: 8px 0; list-style: none">
+<sc-for list="{{ c.layers }}" as="y" hint-placeholder-count="5">
+<li style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px">
+<span role="checkbox" aria-checked="{{ y.checked }}" style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: {{ y.boxBg }}; box-shadow: inset 0 0 0 1px {{ y.boxLine }}; display: inline-flex; align-items: center; justify-content: center; color: #fff"><sc-if value="{{ y.on }}" hint-placeholder-val="{{ true }}"><span class="i i12 i-check"></span></sc-if></span>
+<span style="display: inline-flex; color: {{ y.iconColor }}">
+<sc-if value="{{ y.isMedia }}" hint-placeholder-val="{{ true }}"><span class="i i-image"></span></sc-if>
+<sc-if value="{{ y.isText }}" hint-placeholder-val="{{ false }}"><span class="i i-text"></span></sc-if>
+<sc-if value="{{ y.isNotice }}" hint-placeholder-val="{{ false }}"><span class="i i-notice"></span></sc-if>
+<sc-if value="{{ y.isProp }}" hint-placeholder-val="{{ false }}"><span class="i i-prop"></span></sc-if>
+<sc-if value="{{ y.isMsg }}" hint-placeholder-val="{{ false }}"><span class="i i-msg"></span></sc-if>
+<sc-if value="{{ y.isClock }}" hint-placeholder-val="{{ false }}"><span class="i i-clock"></span></sc-if>
+<sc-if value="{{ y.isStageMsg }}" hint-placeholder-val="{{ false }}"><span class="i i-monitor"></span></sc-if>
+</span>
+<span style="flex: 1; color: {{ y.fg }}">{{ y.name }}</span>
+<sc-if value="{{ y.hasSelect }}" hint-placeholder-val="{{ false }}"><button type="button" class="hvc" style="display: inline-flex; align-items: center; gap: 8px; height: 26px; padding: 0 6px 0 8px; border: 0; border-radius: 4px; background: #2a2a2a; color: #ececec; font-size: 12px"><sc-if value="{{ y.swatch }}" hint-placeholder-val="{{ false }}"><span style="width: 10px; height: 10px; border-radius: 2px; background: {{ y.swatch }}"></span></sc-if>{{ y.select }}<span class="i i12 i-down" style="color: #8c8c8c"></span></button></sc-if>
+</li>
+</sc-for>
+</ul>
+</div>
+</sc-for>
+</div>
+
+<div style="flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 12px; padding-top: 14px; border-top: 1px solid #2b2b2b">
+<div style="display: flex; align-items: center; gap: 14px">
+<span style="font-size: 12px; font-weight: 600">가사 스타일</span>
+<span style="display: flex; padding: 2px; border-radius: 5px; background: #121212">
+<sc-for list="{{ styles }}" as="s" hint-placeholder-count="3"><button type="button" style="height: 22px; padding: 0 10px; border: 0; border-radius: 3px; background: {{ s.bg }}; color: {{ s.fg }}; font-size: 12px">{{ s.name }}</button></sc-for>
+</span>
+</div>
+<div style="display: flex; gap: 20px">
+<div style="position: relative; flex: none; width: 448px; aspect-ratio: 16 / 9; border-radius: 4px; overflow: hidden; background: #000; box-shadow: 0 0 0 1px #2b2b2b">
+<img src="/_blob/e96d6204449f1e44237721b22d7463c9" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.85">
+<span style="position: absolute; left: 6%; right: 6%; top: 10.7%; bottom: 10.7%; border: 1px dashed rgba(255, 255, 255, 0.35)"></span>
+<div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 0 36px; color: #fff; font-size: 19px; line-height: 27px; font-weight: 700; text-align: center; white-space: pre-line; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6)">{{ lyric }}</div>
+</div>
+<div style="flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; align-content: start">
+<sc-for list="{{ fields }}" as="f" hint-placeholder-count="10">
+<div style="display: flex; align-items: center; gap: 12px; height: 36px">
+<span style="flex: 0 0 84px; font-size: 12px; color: #b4b4b4">{{ f.label }}</span>
+<sc-if value="{{ f.isSelect }}" hint-placeholder-val="{{ true }}"><button type="button" class="hvc" style="flex: 1; display: flex; align-items: center; height: 30px; padding: 0 8px 0 10px; border: 0; border-radius: 4px; background: #2a2a2a; color: #ececec; font-size: 13px; text-align: left"><span style="flex: 1">{{ f.value }}</span><span class="i i12 i-down" style="color: #8c8c8c"></span></button></sc-if>
+<sc-if value="{{ f.isNumber }}" hint-placeholder-val="{{ false }}"><span style="width: 96px; display: flex; align-items: center; justify-content: flex-end; height: 30px; padding: 0 10px; box-sizing: border-box; border-radius: 4px; background: #121212; font-size: 13px; font-variant-numeric: tabular-nums">{{ f.value }}</span></sc-if>
+<sc-if value="{{ f.isColor }}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 10px 0 6px; border-radius: 4px; background: #121212; font-size: 13px; font-variant-numeric: tabular-nums"><span style="width: 16px; height: 16px; border-radius: 3px; background: {{ f.color }}; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.3)"></span>{{ f.value }}</span></sc-if>
+<sc-if value="{{ f.isSeg }}" hint-placeholder-val="{{ false }}"><span style="display: flex; padding: 2px; border-radius: 5px; background: #121212"><sc-for list="{{ f.options }}" as="o" hint-placeholder-count="3"><button type="button" aria-label="{{ o.label }}" style="min-width: 28px; height: 22px; padding: 0 {{ o.padX }}; border: 0; border-radius: 3px; background: {{ o.bg }}; color: {{ o.fg }}; font-size: 12px; display: inline-flex; align-items: center; justify-content: center"><sc-if value="{{ o.isLeft }}" hint-placeholder-val="{{ false }}"><span class="i i14 i-aleft"></span></sc-if><sc-if value="{{ o.isCenter }}" hint-placeholder-val="{{ false }}"><span class="i i14 i-acenter"></span></sc-if><sc-if value="{{ o.isWord }}" hint-placeholder-val="{{ true }}">{{ o.label }}</sc-if></button></sc-for></span></sc-if>
+<sc-if value="{{ f.isSwitch }}" hint-placeholder-val="{{ false }}"><span role="switch" aria-checked="{{ f.checked }}" style="position: relative; width: 30px; height: 18px; border-radius: 9px; background: {{ f.track }}"><span style="position: absolute; top: 2px; left: {{ f.knob }}; width: 14px; height: 14px; border-radius: 50%; background: #ececec"></span></span></sc-if>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+</div>
+
+@@FOOTER@@
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1920,"height":1080}}'>
+class Component extends DCLogic {
+renderVals() {
+const header = (label) => ({ isHeader: true, isItem: false, label: label });
+const scr = (name, kind, target) => ({ isHeader: false, isItem: true, name: name, target: target, isMain: kind === 'main', isStage: kind === 'stage', isCapture: kind === 'capture' });
+const look = (name, inUse, sel) => ({ name: name, inUse: inUse, bg: sel ? '#1f4170' : 'transparent', iconColor: sel ? '#ececec' : '#8c8c8c', chipBg: sel ? '#2c5594' : '#2a2a2a' });
+const layer = (kind, name, on, select, swatch) => ({
+isMedia: kind === 'media', isText: kind === 'text', isNotice: kind === 'notice', isProp: kind === 'prop', isMsg: kind === 'msg', isClock: kind === 'clock', isStageMsg: kind === 'stagemsg',
+name: name, on: on, checked: on ? 'true' : 'false',
+boxBg: on ? '#2a70dc' : '#121212', boxLine: on ? 'transparent' : '#6e6e6e',
+fg: on ? '#ececec' : '#8c8c8c', iconColor: on ? '#b4b4b4' : '#6e6e6e',
+hasSelect: !!select, select: select || '', swatch: swatch || ''
+});
+const seg = (labels, active, icons) => labels.map((l, i) => ({
+label: l, bg: i === active ? '#333333' : 'transparent', fg: i === active ? '#ececec' : '#8c8c8c',
+isLeft: icons && l === '왼쪽', isCenter: icons && l === '가운데', isWord: !icons, padX: icons ? '0' : '10px'
+}));
+const field = (label, kind, value, extra) => Object.assign({
+label: label, value: value || '', isSelect: kind === 'select', isNumber: kind === 'number', isColor: kind === 'color', isSeg: kind === 'seg', isSwitch: kind === 'switch'
+}, extra || {});
+const sw = (on) => ({ checked: on ? 'true' : 'false', track: on ? '#2a70dc' : '#3a3a3a', knob: on ? '14px' : '2px' });
+return {
+screens: [header('청중'), scr('본 화면', 'main', '모니터 2'), scr('방송 자막', 'capture', 'NDI'), header('무대'), scr('무대 화면', 'stage', '모니터 3')],
+looks: [look('평상시', true, true), look('설교', false, false), look('광고', false, false), look('영상만', false, false)],
+lyric: '저 천사여 찬송하세\n찬송 성부 성자 성령',
+next: '찬송 성부 성자 성령\n아멘',
+cards: [
+{ name: '본 화면', target: '모니터 2', isMain: true, isStage: false, isBc: false, bg: '#000', layers: [
+layer('media', '배경 미디어', true), layer('text', '가사', true, '기본'), layer('notice', '공지', false), layer('prop', '소품', true), layer('msg', '메시지', true)
+] },
+{ name: '무대 화면', target: '모니터 3', isMain: false, isStage: true, isBc: false, bg: '#000', layers: [
+layer('media', '배경 미디어', false), layer('text', '가사', true, '현재와 다음'), layer('clock', '시계', true), layer('stagemsg', '무대 메시지', true), layer('msg', '메시지', false)
+] },
+{ name: '방송 자막', target: 'NDI', isMain: false, isStage: false, isBc: true, bg: '#00b140', layers: [
+layer('media', '배경', true, '초록', '#00b140'), layer('text', '가사', true, '하단 자막'), layer('notice', '공지', false), layer('prop', '소품', false), layer('msg', '메시지', false)
+] }
+],
+styles: seg(['기본', '현재와 다음', '하단 자막'], 0).map((s, i) => Object.assign(s, { name: ['기본', '현재와 다음', '하단 자막'][i] })),
+fields: [
+field('글꼴', 'select', 'Pretendard Bold'),
+field('글자색', 'color', '#FFFFFF', { color: '#ffffff' }),
+field('크기', 'number', '84'),
+field('줄 간격', 'number', '1.4'),
+field('가로 정렬', 'seg', '', { options: seg(['왼쪽', '가운데'], 1, true) }),
+field('세로 위치', 'seg', '', { options: seg(['위', '가운데', '아래'], 1) }),
+field('최대 줄 수', 'number', '2'),
+field('여백', 'number', '6%'),
+field('그림자', 'switch', '', sw(true)),
+field('외곽선', 'switch', '', sw(false))
+]
+};
+}
+}
+</script>
+</body>
+</html>

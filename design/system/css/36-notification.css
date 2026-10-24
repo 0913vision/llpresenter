@@ -1,0 +1,32 @@
+/* 36 알림: 오른쪽 열 위의 알림 카드(모니터 빠짐 같은 경고, 다시 연결됨 같은 정보)와 쌓는 자리 */
+
+/* 자리: 툴바 아래 4px, 창 오른쪽 4px, 너비는 오른쪽 열과 같다 */
+.ll-notice-stack { position: fixed; top: calc(var(--size-menubar) + var(--size-toolbar) + var(--panel-gap)); right: var(--panel-gap); box-sizing: border-box; display: flex; flex-direction: column; gap: var(--panel-gap); width: var(--col-right); z-index: var(--z-notification); }
+.ll-notice-stack--compact { top: calc(var(--size-menubar) + var(--size-toolbar-compact) + var(--panel-gap)); width: var(--col-right-compact); }
+
+/* 카드 */
+.ll-notice { box-sizing: border-box; display: flex; align-items: flex-start; gap: var(--space-12); width: 100%; padding: var(--space-12) var(--space-8) var(--space-12) var(--panel-inset); border-radius: var(--radius-2xl); background: var(--bg-raised); box-shadow: var(--shadow-dialog); color: var(--text); animation: ll-notice-in 120ms ease-out; }
+.ll-notice[data-state="warning"] { box-shadow: inset 3px 0 0 var(--warning), var(--shadow-dialog); }
+.ll-notice__icon { flex: none; color: var(--text-2); }
+.ll-notice[data-state="warning"] .ll-notice__icon { color: var(--warning); }
+
+.ll-notice__body { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: var(--space-10); }
+.ll-notice__text { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.ll-notice__head { display: flex; align-items: baseline; gap: var(--space-10); min-width: 0; }
+.ll-notice__title { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 13px; line-height: 18px; font-weight: 600; }
+.ll-notice__time { flex: none; font-size: 12px; line-height: 16px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.ll-notice__meta { display: flex; align-items: center; gap: var(--space-10); min-width: 0; font-size: 12px; line-height: 16px; color: var(--text-2); white-space: nowrap; }
+.ll-notice__meta .ll-i { color: var(--text-3); }
+.ll-notice__actions { display: flex; flex-wrap: wrap; gap: var(--space-6); }
+
+/* 닫기: sm 아이콘 버튼 26×26, 제목 줄 가운데에 맞춘다 */
+.ll-notice__close, :is(.ll-root, .ll-preview) .ll-notice__close { flex: none; display: inline-flex; align-items: center; justify-content: center; width: var(--size-control-sm); height: var(--size-control-sm); margin-top: calc(-1 * var(--space-4)); padding: 0; border: 0; border-radius: var(--radius-md); background: transparent; color: var(--text-2); cursor: default; transition: background-color 100ms ease-out; }
+.ll-notice__close:hover, .ll-notice__close.is-hover { background: var(--bg-control-hover); }
+.ll-notice__close:active, .ll-notice__close.is-active { background: var(--bg-control-hover); color: var(--text); }
+.ll-notice__close:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+@keyframes ll-notice-in { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .ll-notice { animation: none; }
+  .ll-notice__close { transition: none; }
+}

@@ -1,0 +1,297 @@
+@@HEAD:다른 예배에서 가져오기@@
+<div style="position: relative; width: 1920px; height: 1080px; display: flex; flex-direction: column; background: #0e0e0e; color: #ececec; font-family: 'Pretendard Variable', Pretendard, sans-serif; font-size: 13px; line-height: 18px; word-break: keep-all; -webkit-font-smoothing: antialiased; overflow: hidden">
+
+@@MENUBAR@@
+
+@@TOOLBAR:prep@@
+
+<div style="flex: 1; min-height: 0; display: flex; gap: 4px; padding: 0 4px">
+
+<div style="flex: 0 0 280px; display: flex; flex-direction: column; gap: 4px">
+<section style="flex: none; display: flex; flex-direction: column; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-label="예배 순서">
+<div style="flex: none; box-sizing: border-box; height: 34px; display: flex; align-items: center; padding: 0 8px 0 14px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 12px; font-weight: 600; line-height: 31px; border-bottom: 2px solid #ececec">예배 순서</span>
+<button type="button" class="hv" aria-haspopup="menu" style="margin-left: 4px; display: inline-flex; align-items: center; gap: 4px; height: 26px; padding: 0 4px 0 6px; border: 0; border-radius: 4px; background: transparent; color: #8c8c8c; font-size: 12px">주일 예배<span class="i i12 i-down"></span></button>
+<button type="button" class="hv" aria-label="항목 추가" style="margin-left: auto; width: 26px; height: 26px; border: 0; border-radius: 4px; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i-plus"></span></button>
+</div>
+<ol style="margin: 0; padding: 4px 0 8px; list-style: none">
+<sc-for list="{{ playlist }}" as="p" hint-placeholder-count="12">
+<li>
+<sc-if value="{{ p.isHeader }}" hint-placeholder-val="{{ false }}">
+<p style="margin: 0; padding: 10px 14px 5px; font-size: 11px; line-height: 14px; font-weight: 600; color: #8c8c8c">{{ p.label }}</p>
+</sc-if>
+<sc-if value="{{ p.isItem }}" hint-placeholder-val="{{ true }}">
+<button type="button" class="hv" style="display: flex; align-items: center; gap: 10px; width: 100%; height: 30px; padding: 0 14px; border: 0; background: {{ p.bg }}; color: #ececec; text-align: left; font-size: 13px">
+<span style="display: inline-flex; color: {{ p.iconColor }}">
+<sc-if value="{{ p.isSong }}" hint-placeholder-val="{{ true }}"><span class="i i-song"></span></sc-if>
+<sc-if value="{{ p.isFilm }}" hint-placeholder-val="{{ false }}"><span class="i i-film"></span></sc-if>
+<sc-if value="{{ p.isNotice }}" hint-placeholder-val="{{ false }}"><span class="i i-notice"></span></sc-if>
+<sc-if value="{{ p.isBook }}" hint-placeholder-val="{{ false }}"><span class="i i-book"></span></sc-if>
+<sc-if value="{{ p.isSlides }}" hint-placeholder-val="{{ false }}"><span class="i i-slides"></span></sc-if>
+</span>
+<span style="flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">{{ p.title }}</span>
+<span style="font-size: 11px; color: {{ p.countColor }}; font-variant-numeric: tabular-nums">{{ p.count }}</span>
+</button>
+</sc-if>
+</li>
+</sc-for>
+</ol>
+</section>
+
+<section style="flex: 1; min-height: 0; display: flex; flex-direction: column; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-label="라이브러리">
+<div style="flex: none; box-sizing: border-box; height: 34px; display: flex; align-items: center; padding: 0 8px 0 14px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 12px; font-weight: 600; line-height: 31px; border-bottom: 2px solid #ececec">라이브러리</span>
+<span style="margin-left: 10px; font-size: 12px; color: #8c8c8c; font-variant-numeric: tabular-nums">128</span>
+<button type="button" class="hv" aria-label="새 곡" style="margin-left: auto; width: 26px; height: 26px; border: 0; border-radius: 4px; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i-plus"></span></button>
+</div>
+<div style="flex: none; padding: 8px 8px 6px">
+<span style="display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 10px; border-radius: 4px; background: #121212; color: #8c8c8c"><span class="i i-search"></span><input aria-label="라이브러리 검색" placeholder="제목, 가사, 초성" style="flex: 1; min-width: 0; height: 28px; padding: 0; border: 0; background: transparent; color: #ececec; font-size: 13px"></span>
+</div>
+<ul style="flex: 1; min-height: 0; margin: 0; padding: 0 0 8px; list-style: none; overflow: hidden">
+<sc-for list="{{ library }}" as="l" hint-placeholder-count="14">
+<li><button type="button" class="hv" style="display: flex; align-items: center; gap: 10px; width: 100%; height: 30px; padding: 0 14px; border: 0; background: transparent; color: #ececec; text-align: left; font-size: 13px">
+<span class="i i-song" style="color: #b4b4b4"></span>
+<span style="flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">{{ l.title }}</span>
+<span style="font-size: 11px; color: #8c8c8c; font-variant-numeric: tabular-nums">{{ l.count }}</span>
+</button></li>
+</sc-for>
+</ul>
+</section>
+</div>
+
+<section style="flex: 1; min-width: 0; display: flex; flex-direction: column; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-label="예배 순서 항목">
+<div style="flex: none; box-sizing: border-box; height: 34px; display: flex; align-items: center; padding: 0 8px 0 14px; border-bottom: 1px solid #2b2b2b">
+<span style="display: flex; align-items: baseline; gap: 10px"><span style="font-size: 13px; font-weight: 600">만복의 근원 하나님</span><span style="font-size: 12px; color: #8c8c8c; font-variant-numeric: tabular-nums">9장</span></span>
+<span style="margin-left: 12px; display: inline-flex; align-items: center; gap: 6px; height: 20px; padding: 0 7px; border-radius: 3px; background: #262626; color: #b4b4b4; font-size: 11px"><span class="i i12 i-slides"></span>주일 예배</span>
+<button type="button" class="hvc" style="margin-left: auto; display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px 0 8px; border: 0; border-radius: 4px; background: #2a2a2a; color: #ececec; font-size: 12px"><span class="i i14 i-edit"></span>라이브러리 곡 편집</button>
+</div>
+
+<div style="flex: none; padding: 12px 14px 14px; border-bottom: 1px solid #2b2b2b; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 10px; height: 26px">
+<span style="font-size: 12px; font-weight: 600">구성</span>
+<button type="button" class="hvc" aria-haspopup="menu" style="display: inline-flex; align-items: center; gap: 8px; height: 26px; padding: 0 6px 0 8px; border: 0; border-radius: 4px; background: #2a2a2a; color: #ececec; font-size: 12px">주일용<span class="i i12 i-down" style="color: #8c8c8c"></span></button>
+</div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+<sc-for list="{{ sequence }}" as="q" hint-placeholder-count="9">
+<button type="button" class="hvc" style="display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px 0 6px; border: 0; border-radius: 3px; background: {{ q.bg }}; box-shadow: {{ q.ring }}; color: {{ q.fg }}; font-size: 12px; font-weight: 700">
+<span class="i i14 i-grip" style="opacity: 0.55"></span>{{ q.label }}
+</button>
+</sc-for>
+<button type="button" class="hv" aria-label="장 넣기" style="width: 30px; height: 30px; box-sizing: border-box; border: 1px dashed #6e6e6e; border-radius: 3px; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i14 i-plus"></span></button>
+</div>
+</div>
+
+<div style="flex: 1; min-height: 0; overflow: hidden; padding: 14px">
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px 12px">
+<sc-for list="{{ thumbs }}" as="s" hint-placeholder-count="9">
+<button type="button" class="th" data-state="{{ s.state }}" style="container-type: inline-size; display: flex; flex-direction: column; padding: 0; border: 0; border-radius: 4px; background: transparent; overflow: hidden; text-align: left; color: inherit">
+<span style="display: flex; align-items: center; justify-content: center; aspect-ratio: 16 / 9; width: 100%; box-sizing: border-box; padding: 0 10%; background: #000; color: #fff; font-size: 4.4cqw; line-height: 1.45; font-weight: 700; text-align: center; white-space: pre-line">{{ s.text }}</span>
+<span style="display: flex; align-items: center; gap: 8px; height: 24px; padding: 0 8px; background: {{ s.barBg }}; color: {{ s.barFg }}; font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden">
+<span style="font-variant-numeric: tabular-nums">{{ s.n }}</span>
+<span style="overflow: hidden; text-overflow: ellipsis">{{ s.label }}</span>
+</span>
+</button>
+</sc-for>
+</div>
+</div>
+<div style="flex: none; height: 32px; display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 0 14px; border-top: 1px solid #2b2b2b">
+<span class="i i14 i-grid" style="color: #8c8c8c"></span>
+<input type="range" min="2" max="8" step="1" value="6" aria-label="썸네일 크기" style="width: 120px; --ll-value: 66.7%">
+</div>
+</section>
+
+<div style="flex: 0 0 480px; display: flex; flex-direction: column; gap: 4px">
+<section style="flex: none; display: flex; flex-direction: column; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-label="미리보기">
+<div style="flex: none; box-sizing: border-box; height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 8px 0 14px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 12px; font-weight: 600; line-height: 31px; border-bottom: 2px solid #ececec">미리보기</span>
+<span style="margin-left: auto; display: flex; padding: 2px; border-radius: 5px; background: #121212">
+<sc-for list="{{ previewTabs }}" as="t" hint-placeholder-count="3"><button type="button" style="height: 22px; padding: 0 10px; border: 0; border-radius: 3px; background: {{ t.bg }}; color: {{ t.fg }}; font-size: 12px">{{ t.label }}</button></sc-for>
+</span>
+</div>
+<div style="padding: 14px; display: flex; flex-direction: column; gap: 10px">
+<div style="position: relative; aspect-ratio: 16 / 9; border-radius: 4px; overflow: hidden; background: #000; box-shadow: 0 0 0 1px #2b2b2b">
+<img src="/_blob/e96d6204449f1e44237721b22d7463c9" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
+<div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 0 36px; color: #fff; font-size: 19px; line-height: 27px; font-weight: 700; text-align: center; white-space: pre-line; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6)">{{ current }}</div>
+</div>
+<div style="display: flex; align-items: center; gap: 8px; font-size: 12px"><span style="width: 10px; height: 10px; border-radius: 2px; background: #8fbf7a"></span><span style="font-weight: 600">프리코러스</span><span style="color: #8c8c8c; font-variant-numeric: tabular-nums">5 / 9</span><span style="margin-left: auto; color: #8c8c8c">기본</span></div>
+</div>
+</section>
+
+<section style="flex: 1; min-height: 0; display: flex; flex-direction: column; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-label="항목 설정">
+<div style="flex: none; box-sizing: border-box; height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 8px 0 14px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 12px; font-weight: 600; line-height: 31px; border-bottom: 2px solid #ececec">항목 설정</span>
+</div>
+<div style="padding: 4px 14px 14px">
+<div style="padding: 12px 0 8px; border-bottom: 1px solid #2b2b2b">
+<p style="margin: 0 0 4px; font-size: 11px; line-height: 14px; font-weight: 600; color: #8c8c8c">원본</p>
+<div style="display: flex; align-items: center; gap: 12px; height: 36px">
+<span style="flex: 0 0 84px; font-size: 12px; color: #b4b4b4">곡</span>
+<span style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; font-size: 13px"><span class="i i14 i-link" style="color: #8c8c8c"></span>만복의 근원 하나님<span style="font-size: 12px; color: #8c8c8c">라이브러리</span></span>
+<button type="button" class="hv" aria-label="라이브러리 곡 열기" style="width: 26px; height: 26px; border: 0; border-radius: 4px; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i-open"></span></button>
+</div>
+</div>
+<div style="padding: 12px 0 8px; border-bottom: 1px solid #2b2b2b">
+<p style="margin: 0 0 4px; font-size: 11px; line-height: 14px; font-weight: 600; color: #8c8c8c">이번 예배</p>
+<div style="display: flex; align-items: center; gap: 12px; height: 36px">
+<span style="flex: 0 0 84px; font-size: 12px; color: #b4b4b4">배경</span>
+<button type="button" class="hvc" style="flex: 1; display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px 0 5px; border: 0; border-radius: 4px; background: #2a2a2a; color: #ececec; font-size: 13px; text-align: left"><img src="/_blob/e96d6204449f1e44237721b22d7463c9" alt="" style="width: 36px; height: 20px; object-fit: cover; border-radius: 2px"><span style="flex: 1">따뜻한 빛</span><span style="font-size: 12px; color: #b4b4b4">곡 기본값</span><span class="i i12 i-down" style="color: #8c8c8c"></span></button>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; height: 36px">
+<span style="flex: 0 0 84px; font-size: 12px; color: #b4b4b4">시작할 때</span>
+<button type="button" class="hvc" style="flex: 1; display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px 0 5px; border: 0; border-radius: 4px; background: #2a2a2a; color: #ececec; font-size: 13px; text-align: left"><span style="width: 20px; height: 20px; border-radius: 4px; background: #5fb8c2; display: inline-flex; align-items: center; justify-content: center; color: #101010"><span class="i i14 i-song"></span></span><span style="flex: 1">찬양</span><span style="font-size: 12px; color: #b4b4b4">매크로</span><span class="i i12 i-down" style="color: #8c8c8c"></span></button>
+</div>
+</div>
+<div style="padding: 12px 0 0">
+<p style="margin: 0 0 8px; display: flex; align-items: center; gap: 6px; font-size: 11px; line-height: 14px; font-weight: 600; color: #8c8c8c"><span class="i i12 i-note"></span>메모</p>
+<div style="min-height: 72px; padding: 8px 10px; box-sizing: border-box; border-radius: 4px; background: #121212; font-size: 13px; line-height: 18px; white-space: pre-line">마지막 후렴은 천천히
+인도자 신호 보고 끝내기</div>
+</div>
+</div>
+</section>
+</div>
+
+</div>
+
+@@FOOTER@@
+
+<div aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 30px; bottom: 0; background: rgba(0, 0, 0, 0.6)"></div>
+<section role="dialog" aria-label="다른 예배에서 가져오기" style="position: absolute; left: 50%; top: calc(50% + 15px); width: 820px; height: 700px; transform: translate(-50%, -50%); display: flex; flex-direction: column; background: #1f1f1f; border-radius: 8px; box-shadow: 0 0 0 1px #3a3a3a, 0 16px 48px rgba(0, 0, 0, 0.6); overflow: hidden">
+<div style="flex: none; box-sizing: border-box; height: 44px; display: flex; align-items: center; padding: 0 8px 0 16px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 13px; font-weight: 600">다른 예배에서 가져오기</span>
+<button type="button" class="hv" aria-label="닫기" style="margin-left: auto; width: 30px; height: 30px; border: 0; border-radius: 4px; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i-x"></span></button>
+</div>
+<div style="flex: 1; min-height: 0; display: flex">
+<div role="listbox" aria-label="예배" style="flex: 0 0 260px; display: flex; flex-direction: column; padding: 8px; box-sizing: border-box; border-right: 1px solid #2b2b2b">
+<p style="margin: 0; padding: 10px 10px 5px; font-size: 11px; line-height: 14px; font-weight: 600; color: #8c8c8c">틀</p>
+<button type="button" role="option" aria-selected="false" class="hv" style="flex: none; display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 10px; border: 0; border-radius: 5px; background: transparent; color: #ececec; text-align: left">
+<span class="i i-layers" style="flex: none; color: #b4b4b4"></span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 13px">주일 예배</span>
+<span style="display: flex; gap: 8px; font-size: 11px; line-height: 14px; color: #8c8c8c; font-variant-numeric: tabular-nums"><span>항목 9개</span></span>
+</span>
+</button>
+<button type="button" role="option" aria-selected="false" class="hv" style="flex: none; display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 10px; border: 0; border-radius: 5px; background: transparent; color: #ececec; text-align: left">
+<span class="i i-layers" style="flex: none; color: #b4b4b4"></span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 13px">수요 예배</span>
+<span style="display: flex; gap: 8px; font-size: 11px; line-height: 14px; color: #8c8c8c; font-variant-numeric: tabular-nums"><span>항목 7개</span></span>
+</span>
+</button>
+<button type="button" role="option" aria-selected="false" class="hv" style="flex: none; display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 10px; border: 0; border-radius: 5px; background: transparent; color: #ececec; text-align: left">
+<span class="i i-layers" style="flex: none; color: #b4b4b4"></span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 13px">금요 기도회</span>
+<span style="display: flex; gap: 8px; font-size: 11px; line-height: 14px; color: #8c8c8c; font-variant-numeric: tabular-nums"><span>항목 6개</span></span>
+</span>
+</button>
+<p style="margin: 0; padding: 10px 10px 5px; font-size: 11px; line-height: 14px; font-weight: 600; color: #8c8c8c">지난 예배</p>
+<button type="button" role="option" aria-selected="true" class="hv" style="flex: none; display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 10px; border: 0; border-radius: 5px; background: #1f4170; color: #ececec; text-align: left">
+<span class="i i-cal" style="flex: none; color: #ececec"></span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 13px">주일 예배</span>
+<span style="display: flex; gap: 8px; font-size: 11px; line-height: 14px; color: #b4c6e0; font-variant-numeric: tabular-nums"><span>10월 25일 일요일</span><span>항목 12개</span></span>
+</span>
+</button>
+<button type="button" role="option" aria-selected="false" class="hv" style="flex: none; display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 10px; border: 0; border-radius: 5px; background: transparent; color: #ececec; text-align: left">
+<span class="i i-cal" style="flex: none; color: #b4b4b4"></span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 13px">수요 예배</span>
+<span style="display: flex; gap: 8px; font-size: 11px; line-height: 14px; color: #8c8c8c; font-variant-numeric: tabular-nums"><span>10월 21일 수요일</span><span>항목 8개</span></span>
+</span>
+</button>
+<button type="button" role="option" aria-selected="false" class="hv" style="flex: none; display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 10px; border: 0; border-radius: 5px; background: transparent; color: #ececec; text-align: left">
+<span class="i i-cal" style="flex: none; color: #b4b4b4"></span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 13px">주일 예배</span>
+<span style="display: flex; gap: 8px; font-size: 11px; line-height: 14px; color: #8c8c8c; font-variant-numeric: tabular-nums"><span>10월 18일 일요일</span><span>항목 11개</span></span>
+</span>
+</button>
+<button type="button" role="option" aria-selected="false" class="hv" style="flex: none; display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 10px; border: 0; border-radius: 5px; background: transparent; color: #ececec; text-align: left">
+<span class="i i-cal" style="flex: none; color: #b4b4b4"></span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 13px">수요 예배</span>
+<span style="display: flex; gap: 8px; font-size: 11px; line-height: 14px; color: #8c8c8c; font-variant-numeric: tabular-nums"><span>10월 14일 수요일</span><span>항목 7개</span></span>
+</span>
+</button>
+</div>
+<div style="flex: 1; min-width: 0; display: flex; gap: 12px; padding: 16px">
+<section aria-label="예배 순서" style="flex: 1; min-width: 0; display: flex; flex-direction: column; border-radius: 5px; background: #1a1a1a; box-shadow: inset 0 0 0 1px #2b2b2b; overflow: hidden">
+<div style="flex: none; box-sizing: border-box; height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 14px; border-bottom: 1px solid #2b2b2b"><span role="checkbox" aria-checked="mixed" style="flex: none; width: 16px; height: 16px; border-radius: 3px; background: #2a70dc; display: inline-flex; align-items: center; justify-content: center"><span style="width: 8px; height: 2px; border-radius: 1px; background: #fff"></span></span><span style="font-size: 12px; font-weight: 600">예배 순서</span><span style="margin-left: auto; font-size: 12px; color: #8c8c8c; font-variant-numeric: tabular-nums">항목 12개</span></div>
+<ol style="margin: 0; padding: 0 0 8px; list-style: none">
+<li style="display: flex; align-items: center; gap: 10px; height: 30px; margin-top: 4px; padding: 0 14px; font-size: 11px; font-weight: 600; color: #8c8c8c"><span role="checkbox" aria-checked="mixed" style="flex: none; width: 16px; height: 16px; border-radius: 3px; background: #2a70dc; display: inline-flex; align-items: center; justify-content: center"><span style="width: 8px; height: 2px; border-radius: 1px; background: #fff"></span></span><span>예배 전</span></li>
+<li style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px; font-size: 13px; color: #ececec"><span role="checkbox" aria-checked="false" style="flex: none; width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #121212; box-shadow: inset 0 0 0 1px #6e6e6e"></span><span class="i i-film" style="flex: none; color: #b4b4b4"></span><span style="flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">예배 전 카운트다운</span></li>
+<li style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px; font-size: 13px; color: #ececec"><span role="checkbox" aria-checked="true" style="flex: none; width: 16px; height: 16px; border-radius: 3px; background: #2a70dc; display: inline-flex; align-items: center; justify-content: center; color: #fff"><span class="i i12 i-check"></span></span><span class="i i-notice" style="flex: none; color: #b4b4b4"></span><span style="flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">주일 광고</span></li>
+<li style="display: flex; align-items: center; gap: 10px; height: 30px; margin-top: 4px; padding: 0 14px; font-size: 11px; font-weight: 600; color: #8c8c8c"><span role="checkbox" aria-checked="false" style="flex: none; width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #121212; box-shadow: inset 0 0 0 1px #6e6e6e"></span><span>찬양</span></li>
+<li style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px; font-size: 13px; color: #ececec"><span role="checkbox" aria-checked="false" style="flex: none; width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #121212; box-shadow: inset 0 0 0 1px #6e6e6e"></span><span class="i i-song" style="flex: none; color: #b4b4b4"></span><span style="flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">만복의 근원 하나님</span><span style="font-size: 11px; color: #8c8c8c">주일용</span></li>
+<li style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px; font-size: 13px; color: #ececec"><span role="checkbox" aria-checked="false" style="flex: none; width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #121212; box-shadow: inset 0 0 0 1px #6e6e6e"></span><span class="i i-song" style="flex: none; color: #b4b4b4"></span><span style="flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">주 하나님 지으신 모든 세계</span><span style="font-size: 11px; color: #8c8c8c">기본</span></li>
+<li style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px; font-size: 13px; color: #ececec"><span role="checkbox" aria-checked="false" style="flex: none; width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #121212; box-shadow: inset 0 0 0 1px #6e6e6e"></span><span class="i i-song" style="flex: none; color: #b4b4b4"></span><span style="flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">내 주를 가까이 하게 함은</span><span style="font-size: 11px; color: #8c8c8c">짧게</span></li>
+<li style="display: flex; align-items: center; gap: 10px; height: 30px; margin-top: 4px; padding: 0 14px; font-size: 11px; font-weight: 600; color: #8c8c8c"><span role="checkbox" aria-checked="false" style="flex: none; width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #121212; box-shadow: inset 0 0 0 1px #6e6e6e"></span><span>말씀</span></li>
+<li style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px; font-size: 13px; color: #ececec"><span role="checkbox" aria-checked="false" style="flex: none; width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #121212; box-shadow: inset 0 0 0 1px #6e6e6e"></span><span class="i i-book" style="flex: none; color: #b4b4b4"></span><span style="flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">요한복음 3:16-18</span></li>
+<li style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px; font-size: 13px; color: #ececec"><span role="checkbox" aria-checked="false" style="flex: none; width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #121212; box-shadow: inset 0 0 0 1px #6e6e6e"></span><span class="i i-slides" style="flex: none; color: #b4b4b4"></span><span style="flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">설교: 하나님의 사랑</span></li>
+<li style="display: flex; align-items: center; gap: 10px; height: 30px; margin-top: 4px; padding: 0 14px; font-size: 11px; font-weight: 600; color: #8c8c8c"><span role="checkbox" aria-checked="false" style="flex: none; width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #121212; box-shadow: inset 0 0 0 1px #6e6e6e"></span><span>봉헌</span></li>
+<li style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px; font-size: 13px; color: #ececec"><span role="checkbox" aria-checked="false" style="flex: none; width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #121212; box-shadow: inset 0 0 0 1px #6e6e6e"></span><span class="i i-pray" style="flex: none; color: #b4b4b4"></span><span style="flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">헌금 기도</span></li>
+<li style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px; font-size: 13px; color: #ececec"><span role="checkbox" aria-checked="false" style="flex: none; width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #121212; box-shadow: inset 0 0 0 1px #6e6e6e"></span><span class="i i-song" style="flex: none; color: #b4b4b4"></span><span style="flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">내게 있는 모든 것을</span><span style="font-size: 11px; color: #8c8c8c">기본</span></li>
+<li style="display: flex; align-items: center; gap: 10px; height: 30px; margin-top: 4px; padding: 0 14px; font-size: 11px; font-weight: 600; color: #8c8c8c"><span role="checkbox" aria-checked="mixed" style="flex: none; width: 16px; height: 16px; border-radius: 3px; background: #2a70dc; display: inline-flex; align-items: center; justify-content: center"><span style="width: 8px; height: 2px; border-radius: 1px; background: #fff"></span></span><span>마무리</span></li>
+<li style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px; font-size: 13px; color: #ececec"><span role="checkbox" aria-checked="true" style="flex: none; width: 16px; height: 16px; border-radius: 3px; background: #2a70dc; display: inline-flex; align-items: center; justify-content: center; color: #fff"><span class="i i12 i-check"></span></span><span class="i i-notice" style="flex: none; color: #b4b4b4"></span><span style="flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">새가족 환영회</span></li>
+<li style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px; font-size: 13px; color: #ececec"><span role="checkbox" aria-checked="false" style="flex: none; width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #121212; box-shadow: inset 0 0 0 1px #6e6e6e"></span><span class="i i-song" style="flex: none; color: #b4b4b4"></span><span style="flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">나 같은 죄인 살리신</span><span style="font-size: 11px; color: #8c8c8c">기본</span></li>
+<li style="display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 14px; font-size: 13px; color: #ececec"><span role="checkbox" aria-checked="false" style="flex: none; width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px; background: #121212; box-shadow: inset 0 0 0 1px #6e6e6e"></span><span class="i i-slides" style="flex: none; color: #b4b4b4"></span><span style="flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">축도</span></li>
+</ol>
+</section>
+</div>
+</div>
+<div style="flex: none; box-sizing: border-box; height: 52px; display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 0 16px; border-top: 1px solid #2b2b2b">
+<button type="button" class="hvc" style="height: 30px; padding: 0 14px; border: 0; border-radius: 4px; background: #2a2a2a; color: #ececec; font-size: 13px">취소</button>
+<button type="button" style="height: 30px; padding: 0 14px; border: 0; border-radius: 4px; background: #2a70dc; color: #fff; font-size: 13px; font-weight: 600">가져오기</button>
+</div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1920,"height":1080}}'>
+class Component extends DCLogic {
+renderVals() {
+const lyrics = [
+'만복의 근원 하나님\n온 백성 찬송 드리고',
+'저 천사여 찬송하세\n찬송 성부 성자 성령',
+'찬송 성부 성자 성령\n아멘',
+'찬송 성부 성자 성령\n만복의 근원 하나님'
+];
+const labels = [['1절', '#5fb8c2'], ['프리코러스', '#8fbf7a'], ['후렴', '#d6b35f'], ['', null]];
+const order = [0, 1, 2, 3, 1, 2, 3, 2, 3];
+const selected = 4;
+const sequence = order.map((k, i) => ({
+label: labels[k][0] || String(k + 1),
+bg: labels[k][1] || '#2a2a2a', fg: labels[k][1] ? '#101010' : '#a3a3a3',
+ring: i === selected ? '0 0 0 2px #1c1c1c, 0 0 0 4px #3d8bf0' : 'none'
+}));
+const thumbs = order.map((k, i) => ({
+n: i + 1, text: lyrics[k], label: labels[k][0],
+barBg: labels[k][1] || '#2a2a2a', barFg: labels[k][1] ? '#101010' : '#a3a3a3',
+state: i === selected ? 'selected' : ''
+}));
+const item = (title, kind, count, sel) => ({
+isHeader: false, isItem: true, title: title, count: count,
+isSong: kind === 'song', isFilm: kind === 'film', isNotice: kind === 'notice', isBook: kind === 'book', isSlides: kind === 'slides',
+bg: sel ? '#1f4170' : 'transparent', iconColor: sel ? '#ececec' : '#b4b4b4', countColor: sel ? '#b4c6e0' : '#8c8c8c'
+});
+const header = (label) => ({ isHeader: true, isItem: false, label: label });
+return {
+sequence: sequence, thumbs: thumbs, current: lyrics[order[selected]],
+previewTabs: ['본 화면', '무대', '방송 자막'].map((t, i) => ({ label: t, bg: i === 0 ? '#333333' : 'transparent', fg: i === 0 ? '#ececec' : '#8c8c8c' })),
+playlist: [
+header('예배 전'), item('예배 전 카운트다운', 'film', '5:00'), item('주일 광고', 'notice', '6장'),
+header('찬양'), item('이 세상 험하고', 'song', '6장'), item('만복의 근원 하나님', 'song', '9장', true), item('내 주를 가까이 하게 함은', 'song', '5장'),
+header('말씀'), item('요한복음 3장 16절', 'book', '2장'), item('설교', 'slides', '12장'),
+header('마무리'), item('주 하나님 지으신 모든 세계', 'song', '4장'), item('축도', 'notice', '1장')
+],
+library: [
+['거리마다 기쁨으로', '7장'], ['나 같은 죄인 살리신', '4장'], ['나를 향한 주의 사랑', '6장'], ['내 주를 가까이 하게 함은', '5장'],
+['송축해 내 영혼', '6장'], ['십자가 그 사랑', '5장'], ['예수 사랑하심은', '4장'], ['만복의 근원 하나님', '4장'],
+['은혜 아니면', '5장'], ['이 세상 험하고', '4장'], ['주 하나님 지으신 모든 세계', '4장'], ['주님 다시 오실 때까지', '6장'],
+['주의 친절한 팔에 안기세', '4장'], ['하나님 은혜', '5장']
+].map((l) => ({ title: l[0], count: l[1] }))
+};
+}
+}
+</script>
+</body>
+</html>

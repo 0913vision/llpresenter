@@ -1,0 +1,247 @@
+@@HEAD:진행 화면 1366×768@@
+<div style="width: 1366px; height: 768px; display: flex; flex-direction: column; background: #0e0e0e; color: #ececec; font-family: 'Pretendard Variable', Pretendard, sans-serif; font-size: 13px; line-height: 18px; word-break: keep-all; -webkit-font-smoothing: antialiased; overflow: hidden">
+
+@@MENUBAR@@
+
+<header style="flex: none; height: 40px; display: flex; align-items: center; gap: 6px; padding: 0 4px">
+<sc-for list="{{ modes }}" as="m" hint-placeholder-count="3">
+<button type="button" class="tb" aria-pressed="{{ m.pressed }}" style="display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px 0 8px; border: 0; border-radius: 5px; background: {{ m.bg }}; color: {{ m.fg }}; font-size: 12px; font-weight: 400">
+<sc-if value="{{ m.isShow }}" hint-placeholder-val="{{ true }}"><span class="i i-slides"></span></sc-if>
+<sc-if value="{{ m.isPrep }}" hint-placeholder-val="{{ false }}"><span class="i i-edit"></span></sc-if>
+<sc-if value="{{ m.isScreens }}" hint-placeholder-val="{{ false }}"><span class="i i-gear"></span></sc-if>
+{{ m.label }}</button>
+</sc-for>
+<span style="width: 1px; height: 24px; margin: 0 4px; background: #2b2b2b"></span>
+<button type="button" class="tb" aria-label="미디어" title="미디어 열기" aria-pressed="false" style="width: 32px; height: 32px; border: 0; border-radius: 5px; background: transparent; color: #8c8c8c; display: inline-flex; align-items: center; justify-content: center"><span class="i i-film"></span></button>
+<div style="flex: 1; display: flex; justify-content: center">
+<span style="display: flex; align-items: center; gap: 8px; width: 280px; height: 30px; padding: 0 10px; box-sizing: border-box; border-radius: 4px; background: #121212; box-shadow: inset 0 0 0 1px #2b2b2b; color: #8c8c8c"><span class="i i-search"></span><input aria-label="검색" placeholder="곡, 가사, 초성" style="flex: 1; min-width: 0; height: 28px; padding: 0; border: 0; background: transparent; color: #ececec; font-size: 13px"></span>
+</div>
+<button type="button" class="tb" style="display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 6px 0 8px; border: 0; border-radius: 5px; background: transparent; color: #ececec; font-size: 12px"><span class="i i-layers"></span>평상시<span class="i i12 i-down" style="color: #8c8c8c"></span></button>
+<span style="width: 1px; height: 24px; margin: 0 4px; background: #2b2b2b"></span>
+<sc-for list="{{ outs }}" as="o" hint-placeholder-count="3">
+<button type="button" class="tb" aria-pressed="true" title="{{ o.title }}" style="display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px 0 8px; border: 0; border-radius: 5px; background: transparent; color: #ececec; font-size: 12px">
+<span style="position: relative; display: inline-flex"><sc-if value="{{ o.isCapture }}" hint-placeholder-val="{{ false }}"><span class="i i-capture"></span></sc-if><sc-if value="{{ o.isMonitor }}" hint-placeholder-val="{{ true }}"><span class="i i-mplay"></span></sc-if><span class="tbd" style="position: absolute; right: -4px; top: -3px; width: 6px; height: 6px; border-radius: 50%; background: #d2343a"></span></span>{{ o.label }}</button>
+</sc-for>
+</header>
+
+<div style="flex: 1; min-height: 0; display: flex; gap: 4px; padding: 0 4px">
+
+<div style="flex: 0 0 220px; display: flex; flex-direction: column; gap: 4px">
+<section style="flex: 1; min-height: 0; display: flex; flex-direction: column; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-label="예배 순서">
+<div style="flex: none; height: 34px; box-sizing: border-box; display: flex; align-items: center; padding: 0 8px 0 14px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 12px; font-weight: 600; line-height: 31px; border-bottom: 2px solid #ececec">예배 순서</span>
+<button type="button" class="hv" aria-haspopup="menu" style="margin-left: 4px; min-width: 0; display: inline-flex; align-items: center; gap: 4px; height: 26px; padding: 0 4px 0 6px; border: 0; border-radius: 4px; background: transparent; color: #8c8c8c; font-size: 12px; white-space: nowrap">주일 예배<span class="i i12 i-down"></span></button>
+<button type="button" class="hv" aria-label="항목 추가" style="margin-left: auto; margin-right: 8px; width: 26px; height: 26px; border: 0; border-radius: 4px; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i-plus"></span></button>
+<button type="button" class="hv" aria-label="사이드바 접기" title="사이드바 접기" style="width: 26px; height: 26px; border: 0; border-radius: 4px; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i-arrow" style="transform: rotate(180deg)"></span></button>
+</div>
+<ol style="flex: 1; min-height: 0; margin: 0; padding: 4px 0 8px; list-style: none; overflow: hidden">
+<sc-for list="{{ playlist }}" as="p" hint-placeholder-count="12">
+<li>
+<sc-if value="{{ p.isHeader }}" hint-placeholder-val="{{ false }}">
+<p style="margin: 0; padding: 10px 14px 5px; font-size: 11px; line-height: 14px; font-weight: 600; color: #8c8c8c">{{ p.label }}</p>
+</sc-if>
+<sc-if value="{{ p.isItem }}" hint-placeholder-val="{{ true }}">
+<button type="button" class="hv" style="display: flex; align-items: center; gap: 10px; width: 100%; height: 30px; padding: 0 14px; border: 0; background: {{ p.bg }}; color: {{ p.fg }}; text-align: left; font-size: 13px">
+<span style="display: inline-flex; color: {{ p.iconColor }}">
+<sc-if value="{{ p.isSong }}" hint-placeholder-val="{{ true }}"><span class="i i-song"></span></sc-if>
+<sc-if value="{{ p.isFilm }}" hint-placeholder-val="{{ false }}"><span class="i i-film"></span></sc-if>
+<sc-if value="{{ p.isNotice }}" hint-placeholder-val="{{ false }}"><span class="i i-notice"></span></sc-if>
+<sc-if value="{{ p.isBook }}" hint-placeholder-val="{{ false }}"><span class="i i-book"></span></sc-if>
+<sc-if value="{{ p.isSlides }}" hint-placeholder-val="{{ false }}"><span class="i i-slides"></span></sc-if>
+</span>
+<span style="flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">{{ p.title }}</span>
+<sc-if value="{{ p.isLive }}" hint-placeholder-val="{{ false }}"><span style="height: 16px; padding: 0 4px; border-radius: 3px; background: #d2343a; color: #fff; font-size: 10px; line-height: 16px; font-weight: 700; letter-spacing: 0.04em">LIVE</span></sc-if>
+</button>
+</sc-if>
+</li>
+</sc-for>
+</ol>
+</section>
+<section style="flex: none; display: flex; flex-direction: column; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-label="퀵 실행">
+<div style="flex: none; height: 34px; box-sizing: border-box; display: flex; align-items: center; padding: 0 8px 0 14px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 12px; font-weight: 600; line-height: 31px; border-bottom: 2px solid #ececec">퀵 실행</span>
+<button type="button" class="hv" aria-label="퀵 실행 추가" style="margin-left: auto; width: 26px; height: 26px; border: 0; border-radius: 4px; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i-plus"></span></button>
+</div>
+<div style="padding: 8px 8px 6px">
+<span style="display: flex; align-items: center; gap: 6px; height: 26px; padding: 0 8px; border-radius: 4px; background: #121212; color: #8c8c8c"><span class="i i14 i-book"></span><input aria-label="성경 구절" placeholder="요 3:16" style="flex: 1; min-width: 0; height: 24px; padding: 0; border: 0; background: transparent; color: #ececec; font-size: 12px"></span>
+</div>
+<ul style="margin: 0; padding: 0 0 8px; list-style: none">
+<sc-for list="{{ quick }}" as="q" hint-placeholder-count="5">
+<li><button type="button" class="hv" style="position: relative; display: flex; align-items: center; gap: 10px; width: 100%; height: 30px; padding: 0 14px; border: 0; background: {{ q.bg }}; color: {{ q.fg }}; text-align: left; font-size: 13px">
+<span style="display: inline-flex; color: {{ q.iconColor }}">
+<sc-if value="{{ q.isBook }}" hint-placeholder-val="{{ false }}"><span class="i i-book"></span></sc-if>
+<sc-if value="{{ q.isSong }}" hint-placeholder-val="{{ false }}"><span class="i i-song"></span></sc-if>
+<sc-if value="{{ q.isBlack }}" hint-placeholder-val="{{ false }}"><span class="i i-monitor"></span></sc-if>
+<sc-if value="{{ q.isLogo }}" hint-placeholder-val="{{ false }}"><span class="i i-prop"></span></sc-if>
+<sc-if value="{{ q.isTimer }}" hint-placeholder-val="{{ true }}"><span class="i i-timer"></span></sc-if>
+</span>
+<span style="flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">{{ q.name }}</span>
+<span style="position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: {{ q.bar }}"></span>
+</button></li>
+</sc-for>
+</ul>
+</section>
+</div>
+
+<section style="flex: 1; min-width: 0; display: flex; flex-direction: column; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-label="슬라이드">
+<div style="flex: none; height: 34px; box-sizing: border-box; display: flex; align-items: center; padding: 0 8px 0 14px; border-bottom: 1px solid #2b2b2b">
+<span style="display: flex; align-items: baseline; gap: 8px; min-width: 0"><span style="font-size: 13px; font-weight: 600; white-space: nowrap">만복의 근원 하나님</span><span style="font-size: 12px; color: #8c8c8c; font-variant-numeric: tabular-nums">2 / 9</span></span>
+<button type="button" class="hvc" style="margin-left: auto; display: inline-flex; align-items: center; gap: 8px; height: 26px; padding: 0 6px 0 3px; border: 0; border-radius: 4px; background: #2a2a2a; color: #ececec; font-size: 12px"><img src="/_blob/e96d6204449f1e44237721b22d7463c9" alt="" style="width: 36px; height: 20px; object-fit: cover; border-radius: 2px">따뜻한 빛<span class="i i12 i-down" style="color: #8c8c8c"></span></button>
+</div>
+<div style="flex: 1; min-height: 0; overflow: hidden; padding: 14px">
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px 12px">
+<sc-for list="{{ slides }}" as="s" hint-placeholder-count="9">
+<button type="button" class="th" data-state="{{ s.state }}" style="display: flex; flex-direction: column; padding: 0; border: 0; border-radius: 4px; background: transparent; overflow: hidden; text-align: left; color: inherit">
+<span style="display: flex; align-items: center; justify-content: center; aspect-ratio: 16 / 9; width: 100%; box-sizing: border-box; padding: 0 10%; background: #000; color: #fff; font-size: {{ thumbFont }}; line-height: 1.45; font-weight: 700; text-align: center; white-space: pre-line">{{ s.text }}</span>
+<span style="display: flex; align-items: center; gap: 8px; height: 24px; padding: 0 8px; background: {{ s.barBg }}; color: {{ s.barFg }}; font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden">
+<span style="font-variant-numeric: tabular-nums">{{ s.n }}</span>
+<span style="overflow: hidden; text-overflow: ellipsis">{{ s.label }}</span>
+</span>
+</button>
+</sc-for>
+</div>
+</div>
+<div style="flex: none; height: 32px; box-sizing: border-box; display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 0 14px; border-top: 1px solid #2b2b2b">
+<span class="i i14 i-grid" style="color: #8c8c8c"></span>
+<input type="range" min="2" max="8" step="1" value="7" aria-label="썸네일 크기" style="width: 96px; --ll-value: 83.3%">
+</div>
+</section>
+
+<div style="flex: 0 0 360px; display: flex; flex-direction: column; gap: 4px">
+<section style="flex: none; display: flex; flex-direction: column; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-label="미리보기">
+<div style="flex: none; height: 34px; box-sizing: border-box; display: flex; align-items: center; gap: 10px; padding: 0 8px 0 14px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 12px; font-weight: 600; line-height: 31px; border-bottom: 2px solid #ececec">미리보기</span>
+</div>
+<div style="padding: 14px; display: flex; flex-direction: column; gap: 10px">
+<div style="position: relative; aspect-ratio: 16 / 9; border-radius: 4px; overflow: hidden; background: #000; box-shadow: 0 0 0 1px #2b2b2b">
+<img src="/_blob/e96d6204449f1e44237721b22d7463c9" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
+<div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 0 26px; color: #fff; font-size: 14px; line-height: 20px; font-weight: 700; text-align: center; white-space: pre-line; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6)">{{ liveText }}</div>
+<span style="position: absolute; right: 10px; top: 8px; font-size: 7px; font-weight: 700; letter-spacing: 0.08em; color: rgba(255, 255, 255, 0.72)">LOVELIGHT</span>
+<div style="position: absolute; left: 0; right: 0; bottom: 0; height: 18px; display: flex; align-items: center; padding: 0 10px; background: rgba(0, 0, 0, 0.8); color: #fff; font-size: 9px; font-weight: 600">12가 3456 차량 이동 부탁드립니다</div>
+</div>
+<div style="display: flex; align-items: center; gap: 8px; font-size: 12px"><span style="font-weight: 600">본 화면</span><span style="display: inline-flex; align-items: center; gap: 4px; color: #8c8c8c"><span class="i i14 i-monitor"></span>모니터 2</span><span style="margin-left: auto; color: #8c8c8c">기본</span></div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+<button type="button" class="pv" style="display: flex; align-items: center; gap: 8px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: inherit; text-align: left">
+<span class="pvf" style="position: relative; flex: none; width: 64px; aspect-ratio: 16 / 9; border-radius: 4px; overflow: hidden; background: #000">
+<span style="position: absolute; left: 4px; top: 3px; right: 4px; color: #fff; font-size: 4px; line-height: 6px; font-weight: 700; white-space: pre-line">{{ liveText }}</span>
+<span style="position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: #e3a23b"></span>
+</span>
+<span style="display: flex; flex-direction: column; gap: 2px; font-size: 11px; line-height: 14px"><span style="color: #b4b4b4">무대 화면</span><span style="color: #8c8c8c">모니터 3</span></span>
+</button>
+<button type="button" class="pv" style="display: flex; align-items: center; gap: 8px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: inherit; text-align: left">
+<span class="pvf" style="position: relative; flex: none; width: 64px; aspect-ratio: 16 / 9; border-radius: 4px; overflow: hidden; background: #00b140">
+<span style="position: absolute; left: 10%; right: 10%; bottom: 10%; height: 7px; background: rgba(0, 0, 0, 0.82)"></span>
+</span>
+<span style="display: flex; flex-direction: column; gap: 2px; font-size: 11px; line-height: 14px"><span style="color: #b4b4b4">방송 자막</span><span style="color: #8c8c8c">NDI</span></span>
+</button>
+</div>
+</div>
+</section>
+
+<section style="flex: none; display: flex; align-items: center; gap: 4px; padding: 6px; background: #1c1c1c; border-radius: 5px" aria-label="지우기">
+<sc-for list="{{ clears }}" as="c" hint-placeholder-count="7">
+<button type="button" class="hvc" aria-label="{{ c.label }} 지우기" title="{{ c.label }} 지우기 {{ c.key }}" style="flex: {{ c.flex }}; height: 40px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 4px; background: {{ c.bg }}; color: {{ c.fg }}">
+<span style="display: inline-flex">
+<sc-if value="{{ c.isAll }}" hint-placeholder-val="{{ false }}"><span class="i i-layers"></span></sc-if>
+<sc-if value="{{ c.isSlide }}" hint-placeholder-val="{{ true }}"><span class="i i-text"></span></sc-if>
+<sc-if value="{{ c.isMedia }}" hint-placeholder-val="{{ false }}"><span class="i i-image"></span></sc-if>
+<sc-if value="{{ c.isProp }}" hint-placeholder-val="{{ false }}"><span class="i i-prop"></span></sc-if>
+<sc-if value="{{ c.isAudio }}" hint-placeholder-val="{{ false }}"><span class="i i-audio"></span></sc-if>
+<sc-if value="{{ c.isMsg }}" hint-placeholder-val="{{ false }}"><span class="i i-msg"></span></sc-if>
+<sc-if value="{{ c.isNotice }}" hint-placeholder-val="{{ false }}"><span class="i i-notice"></span></sc-if>
+</span>
+</button>
+</sc-for>
+<span style="flex: none; width: 1px; height: 24px; margin: 0 2px; background: #2b2b2b"></span>
+<button type="button" class="hvc" aria-label="되돌리기" title="되돌리기 Ctrl Z" style="flex: 1; height: 40px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 4px; background: #232323; color: #ececec"><span class="i i-undo"></span></button>
+</section>
+
+<section style="flex: 1; min-height: 0; display: flex; flex-direction: column; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-label="진행 도구">
+<div style="flex: none; height: 34px; box-sizing: border-box; display: flex; align-items: stretch; gap: 18px; padding: 0 8px 0 14px; border-bottom: 1px solid #2b2b2b">
+<sc-for list="{{ ctrlTabs }}" as="t" hint-placeholder-count="4"><span style="display: inline-flex; align-items: center; gap: 6px; padding: 0 1px; border-bottom: 2px solid {{ t.line }}; color: {{ t.fg }}; font-size: 12px; font-weight: {{ t.weight }}">{{ t.label }}<sc-if value="{{ t.hasCount }}" hint-placeholder-val="{{ false }}"><span style="min-width: 18px; height: 18px; padding: 0 4px; box-sizing: border-box; border-radius: 3px; background: #1f4170; color: #b4c6e0; font-size: 11px; line-height: 18px; font-weight: 600; text-align: center; font-variant-numeric: tabular-nums">{{ t.count }}</span></sc-if></span></sc-for>
+<button type="button" class="hv" aria-haspopup="menu" style="margin-left: auto; align-self: center; display: inline-flex; align-items: center; gap: 4px; height: 26px; padding: 0 6px 0 8px; border: 0; border-radius: 4px; background: transparent; color: #b4b4b4; font-size: 12px">더 보기<span class="i i12 i-down" style="color: #8c8c8c"></span></button>
+</div>
+<ul style="margin: 0; padding: 4px 0; list-style: none">
+<sc-for list="{{ overlays }}" as="o" hint-placeholder-count="3">
+<li style="display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 8px 0 14px">
+<span style="display: inline-flex; color: #b4b4b4">
+<sc-if value="{{ o.isMsg }}" hint-placeholder-val="{{ true }}"><span class="i i-msg"></span></sc-if>
+<sc-if value="{{ o.isProp }}" hint-placeholder-val="{{ false }}"><span class="i i-prop"></span></sc-if>
+<sc-if value="{{ o.isStageMsg }}" hint-placeholder-val="{{ false }}"><span class="i i-monitor"></span></sc-if>
+</span>
+<span style="flex: 1; min-width: 0; font-size: 12px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">{{ o.title }}</span>
+<span style="height: 18px; padding: 0 6px; border-radius: 3px; background: #2a2a2a; color: #b4b4b4; font-size: 11px; line-height: 18px">{{ o.target }}</span>
+<button type="button" class="hv" aria-label="내리기" title="내리기" style="width: 26px; height: 26px; border: 0; border-radius: 4px; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i-x"></span></button>
+</li>
+</sc-for>
+</ul>
+</section>
+</div>
+</div>
+
+@@FOOTER@@
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1366,"height":768}}'>
+class Component extends DCLogic {
+renderVals() {
+const lyrics = [
+'만복의 근원 하나님\n온 백성 찬송 드리고',
+'저 천사여 찬송하세\n찬송 성부 성자 성령',
+'찬송 성부 성자 성령\n아멘',
+'찬송 성부 성자 성령\n만복의 근원 하나님'
+];
+const labels = [['1절', '#5fb8c2'], ['프리코러스', '#8fbf7a'], ['후렴', '#d6b35f'], ['', null]];
+const seq = [0, 1, 2, 3, 1, 2, 3, 2, 3];
+const live = 1;
+const item = (title, kind, state) => {
+const s = state || 'idle';
+return {
+isHeader: false, isItem: true, title: title, isLive: s === 'live',
+isSong: kind === 'song', isFilm: kind === 'film', isNotice: kind === 'notice', isBook: kind === 'book', isSlides: kind === 'slides',
+bg: s === 'live' ? '#1f4170' : 'transparent', fg: s === 'done' ? '#8c8c8c' : '#ececec',
+iconColor: s === 'live' ? '#ececec' : (s === 'done' ? '#6e6e6e' : '#b4b4b4')
+};
+};
+const header = (label) => ({ isHeader: true, isItem: false, label: label });
+const clearDef = [['all', '모두', 1.4, true], ['slide', '가사', 1, true], ['media', '미디어', 1, true], ['prop', '소품', 1, true], ['audio', '오디오', 1, false], ['msg', '메시지', 1, true], ['notice', '공지', 1, false]];
+const ov = (kind, title, target) => ({ isMsg: kind === 'msg', isProp: kind === 'prop', isStageMsg: kind === 'stage', title: title, target: target });
+return {
+liveText: lyrics[seq[live]],
+thumbFont: ((742 - 2 * 12) / 3 * 0.044).toFixed(1) + 'px',
+modes: [['진행', 'show'], ['준비', 'prep'], ['화면 설정', 'screens']].map((m, i) => ({
+label: m[0], isShow: m[1] === 'show', isPrep: m[1] === 'prep', isScreens: m[1] === 'screens',
+pressed: i === 0 ? 'true' : 'false', bg: i === 0 ? '#262626' : 'transparent', fg: i === 0 ? '#ececec' : '#8c8c8c'
+})),
+outs: [['본 화면', false, '본 화면 출력 끄기 (모니터 2)'], ['무대', false, '무대 화면 출력 끄기 (모니터 3)'], ['방송 자막', true, '방송 자막 출력 끄기 (NDI)']].map((o) => ({ label: o[0], isCapture: o[1], isMonitor: !o[1], title: o[2] })),
+slides: seq.map((k, i) => ({
+n: i + 1, text: lyrics[k], label: labels[k][0],
+barBg: labels[k][1] || '#2a2a2a', barFg: labels[k][1] ? '#101010' : '#a3a3a3',
+state: i === live ? 'live' : 'idle'
+})),
+playlist: [
+header('예배 전'), item('예배 전 카운트다운', 'film', 'done'), item('주일 광고', 'notice', 'done'),
+header('찬양'), item('이 세상 험하고', 'song', 'done'), item('만복의 근원 하나님', 'song', 'live'), item('내 주를 가까이 하게 함은', 'song'),
+header('말씀'), item('요한복음 3장 16절', 'book'), item('설교', 'slides'),
+header('마무리'), item('주 하나님 지으신 모든 세계', 'song'), item('축도', 'notice')
+],
+quick: [
+['요한복음 3장 16절', 'book', false], ['주 하나님 지으신 모든 세계', 'song', false], ['검은 화면', 'black', false],
+['로고 화면', 'logo', true], ['시작 카운트다운', 'timer', false]
+].map((q) => ({
+name: q[0], isBook: q[1] === 'book', isSong: q[1] === 'song', isBlack: q[1] === 'black', isLogo: q[1] === 'logo', isTimer: q[1] === 'timer',
+bg: q[2] ? '#333333' : 'transparent', fg: '#ececec', iconColor: q[2] ? '#ececec' : '#b4b4b4', bar: q[2] ? '#d2343a' : 'transparent'
+})),
+clears: clearDef.map((c) => ({
+label: c[1], key: { all: 'F1', slide: 'F2', media: 'F3', prop: 'F4', audio: 'F5', msg: 'F6', notice: 'F7' }[c[0]], flex: c[2], isAll: c[0] === 'all', isSlide: c[0] === 'slide', isMedia: c[0] === 'media', isProp: c[0] === 'prop', isAudio: c[0] === 'audio', isMsg: c[0] === 'msg', isNotice: c[0] === 'notice',
+bg: c[3] ? '#2a2a2a' : '#1f1f1f', fg: c[3] ? '#ececec' : '#6e6e6e'
+})),
+ctrlTabs: ['표시 중', '무대'].map((t, i) => ({ label: t, line: i === 0 ? '#ececec' : 'transparent', fg: i === 0 ? '#ececec' : '#8c8c8c', weight: 600, hasCount: i === 0, count: '3' })),
+overlays: [ov('msg', '12가 3456 차량 이동 부탁드립니다', '본 화면'), ov('stage', '후렴 한 번 더', '무대'), ov('prop', '로고', '본 화면')]
+};
+}
+}
+</script>
+</body>
+</html>

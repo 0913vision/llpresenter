@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>준비 화면</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:"Pretendard Variable";src:url("/_blob/44ae4219c075570535882b3a34ea3567") format("woff2");font-weight:45 920;font-display:swap}
+body{margin:0;background:#0e0e0e}
+a{color:#7fb0f0}a:hover{color:#a8c9f5}
+button,input{font:inherit;cursor:default}
+input::placeholder{color:#8c8c8c}
+.hv:hover{background:#262626}
+.hvc:hover{background:#333333}
+.i{display:inline-block;flex:none;width:16px;height:16px;background-color:currentColor;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain}
+.i14{width:14px;height:14px}
+.i-song{-webkit-mask-image:url("/_blob/092e6bd96c603ecacf1c00ad0bbf748e");mask-image:url("/_blob/092e6bd96c603ecacf1c00ad0bbf748e")}
+.i-film{-webkit-mask-image:url("/_blob/d12ba04335e89ec2ac23de5b5dadf567");mask-image:url("/_blob/d12ba04335e89ec2ac23de5b5dadf567")}
+.i-notice{-webkit-mask-image:url("/_blob/6b2eac21a222b4c93acf292071cab142");mask-image:url("/_blob/6b2eac21a222b4c93acf292071cab142")}
+.i-book{-webkit-mask-image:url("/_blob/e3e503de1d6d5ad2610069e5d01528c1");mask-image:url("/_blob/e3e503de1d6d5ad2610069e5d01528c1")}
+.i-slides{-webkit-mask-image:url("/_blob/bedc5702dad0889627007797be138a91");mask-image:url("/_blob/bedc5702dad0889627007797be138a91")}
+.i-search{-webkit-mask-image:url("/_blob/bbe74be6639a3b46c8c1503c6202be21");mask-image:url("/_blob/bbe74be6639a3b46c8c1503c6202be21")}
+.i-plus{-webkit-mask-image:url("/_blob/60593869febedd0f7cc96739b15ff702");mask-image:url("/_blob/60593869febedd0f7cc96739b15ff702")}
+.i-down{-webkit-mask-image:url("/_blob/fdede3cf9294bdfffe2831e4985b91ba");mask-image:url("/_blob/fdede3cf9294bdfffe2831e4985b91ba")}
+.i-grip{-webkit-mask-image:url("/_blob/adf12ef1071c6732b8adbd90b6b53029");mask-image:url("/_blob/adf12ef1071c6732b8adbd90b6b53029")}
+.i-more{-webkit-mask-image:url("/_blob/741a7bdb89a46c2b08b7993aef3595f9");mask-image:url("/_blob/741a7bdb89a46c2b08b7993aef3595f9")}
+.i-saved{-webkit-mask-image:url("/_blob/01da7eed53f9c4eb05f356a971869f1a");mask-image:url("/_blob/01da7eed53f9c4eb05f356a971869f1a")}
+.i-image{-webkit-mask-image:url("/_blob/9d15cc9d2c473dc54657232c2c22a8c1");mask-image:url("/_blob/9d15cc9d2c473dc54657232c2c22a8c1")}
+.i-x{-webkit-mask-image:url("/_blob/20ff3492ea768cacd467480e386ad17b");mask-image:url("/_blob/20ff3492ea768cacd467480e386ad17b")}
+.i-min{-webkit-mask-image:url("/_blob/8d63b8e1ce9257fb14f3127e569bfdd9");mask-image:url("/_blob/8d63b8e1ce9257fb14f3127e569bfdd9")}
+.i-max{-webkit-mask-image:url("/_blob/dfd093184afe9416f5bb254275395bb4");mask-image:url("/_blob/dfd093184afe9416f5bb254275395bb4")}
+</style>
+</helmet>
+<div style="width: 1920px; height: 1080px; display: flex; flex-direction: column; background: #0e0e0e; color: #ececec; font-family: 'Pretendard Variable', Pretendard, sans-serif; font-size: 13px; line-height: 18px; word-break: keep-all; -webkit-font-smoothing: antialiased; overflow: hidden">
+
+<div style="position: relative; flex: none; height: 30px; display: flex; align-items: center; padding-left: 12px; background: #0b0b0b">
+<span style="margin-right: 14px; font-size: 12px; font-weight: 700; letter-spacing: -0.01em">LoveLight</span>
+<nav style="display: flex; font-size: 12px; color: #b4b4b4" aria-label="메뉴">
+<button type="button" class="hv" style="height: 24px; padding: 0 9px; border: 0; border-radius: 3px; background: transparent; color: inherit">파일</button>
+<button type="button" class="hv" style="height: 24px; padding: 0 9px; border: 0; border-radius: 3px; background: transparent; color: inherit">편집</button>
+<button type="button" class="hv" style="height: 24px; padding: 0 9px; border: 0; border-radius: 3px; background: transparent; color: inherit">보기</button>
+<button type="button" class="hv" style="height: 24px; padding: 0 9px; border: 0; border-radius: 3px; background: transparent; color: inherit">출력</button>
+<button type="button" class="hv" style="height: 24px; padding: 0 9px; border: 0; border-radius: 3px; background: transparent; color: inherit">창</button>
+<button type="button" class="hv" style="height: 24px; padding: 0 9px; border: 0; border-radius: 3px; background: transparent; color: inherit">도움말</button>
+</nav>
+<span style="position: absolute; left: 50%; transform: translateX(-50%); font-size: 12px; color: #8c8c8c">주일 예배</span>
+<span style="margin-left: auto; display: flex">
+<button type="button" class="hv" aria-label="최소화" style="width: 46px; height: 30px; border: 0; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i14 i-min"></span></button>
+<button type="button" class="hv" aria-label="최대화" style="width: 46px; height: 30px; border: 0; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i14 i-max"></span></button>
+<button type="button" class="hv" aria-label="닫기" style="width: 46px; height: 30px; border: 0; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i14 i-x"></span></button>
+</span>
+</div>
+
+<div style="flex: none; height: 40px; display: flex; align-items: stretch; gap: 24px; padding: 0 16px">
+<nav style="display: flex; gap: 24px" aria-label="작업 공간">
+<button type="button" style="padding: 0 2px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: #8c8c8c; font-size: 13px; font-weight: 500">진행</button>
+<button type="button" aria-current="page" style="padding: 0 2px; border: 0; border-bottom: 2px solid #ececec; background: transparent; color: #ececec; font-size: 13px; font-weight: 600">준비</button>
+<button type="button" style="padding: 0 2px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: #8c8c8c; font-size: 13px; font-weight: 500">화면 설정</button>
+</nav>
+<span style="margin-left: auto; display: flex; align-items: center; gap: 10px">
+<span style="font-size: 12px; color: #8c8c8c">화면 4개</span>
+<button type="button" role="switch" aria-checked="false" class="hvc" style="display: inline-flex; align-items: center; gap: 10px; height: 28px; padding: 0 6px 0 12px; border: 0; border-radius: 4px; background: #2a2a2a; color: #ececec; font-size: 12px; font-weight: 600">출력<span style="position: relative; width: 30px; height: 18px; border-radius: 9px; background: #3a3a3a"><span style="position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff"></span></span></button>
+</span>
+</div>
+
+<div style="flex: 1; min-height: 0; display: flex; gap: 4px; padding: 0 4px">
+
+<div style="flex: 0 0 300px; display: flex; flex-direction: column; gap: 4px">
+
+<section style="flex: 1; min-height: 0; display: flex; flex-direction: column; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-label="예배 순서">
+<div style="flex: none; height: 34px; display: flex; align-items: center; padding: 0 6px 0 12px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 12px; font-weight: 600; line-height: 32px; border-bottom: 2px solid #ececec">예배 순서</span>
+<span style="margin-left: auto; display: flex; align-items: center">
+<button type="button" class="hv" aria-label="항목 추가" style="width: 26px; height: 26px; border: 0; border-radius: 4px; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i-plus"></span></button>
+<button type="button" class="hv" aria-label="더 보기" style="width: 26px; height: 26px; border: 0; border-radius: 4px; background: transparent; color: #b4b4b4; display: inline-flex; align-items: center; justify-content: center"><span class="i i-more"></span></button>
+</span>
+</div>
+<div style="flex: none; padding: 14px 14px 8px">
+<p style="margin: 0; font-size: 15px; line-height: 20px; font-weight: 600">주일 예배</p>
+<p style="margin: 2px 0 0; font-size: 12px; color: #8c8c8c">10월 25일 오전 11시</p>
+</div>
+<ol style="flex: 1; min-height: 0; margin: 0; padding: 0 0 8px; list-style: none; overflow: hidden">
+<sc-for list="{{ service }}" as="p" hint-placeholder-count="12">
+<li>
+<sc-if value="{{ p.isHeader }}" hint-placeholder-val="{{ false }}">
+<p style="margin: 0; padding: 12px 14px 6px 34px; font-size: 11px; line-height: 14px; font-weight: 600; color: #8c8c8c">{{ p.label }}</p>
+</sc-if>
+<sc-if value="{{ p.isItem }}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px 0 6px; background: {{ p.bg }}; box-shadow: {{ p.drop }}">
+<span class="i i14 i-grip" style="color: #4a4a4a"></span>
+<span style="display: inline-flex; color: {{ p.iconColor }}; margin-right: 4px">
+<sc-if value="{{ p.isSong }}" hint-placeholder-val="{{ true }}"><span class="i i-song"></span></sc-if>
+<sc-if value="{{ p.isFilm }}" hint-placeholder-val="{{ false }}"><span class="i i-film"></span></sc-if>
+<sc-if value="{{ p.isNotice }}" hint-placeholder-val="{{ false }}"><span class="i i-notice"></span></sc-if>
+<sc-if value="{{ p.isBook }}" hint-placeholder-val="{{ false }}"><span class="i i-book"></span></sc-if>
+<sc-if value="{{ p.isSlides }}" hint-placeholder-val="{{ false }}"><span class="i i-slides"></span></sc-if>
+</span>
+<span style="flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 13px; color: {{ p.fg }}">{{ p.title }}</span>
+<span style="font-size: 11px; color: {{ p.metaColor }}; font-variant-numeric: tabular-nums">{{ p.meta }}</span>
+</div>
+</sc-if>
+</li>
+</sc-for>
+</ol>
+</section>
+
+<section style="flex: 0 0 360px; display: flex; flex-direction: column; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-label="라이브러리">
+<div style="flex: none; height: 34px; display: flex; align-items: center; padding: 0 6px 0 12px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 12px; font-weight: 600; line-height: 32px; border-bottom: 2px solid #ececec">라이브러리</span>
+<span style="margin-left: 10px; font-size: 11px; color: #8c8c8c; font-variant-numeric: tabular-nums">128</span>
+<button type="button" class="hvc" style="margin-left: auto; display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px 0 8px; border: 0; border-radius: 4px; background: #2a2a2a; color: #ececec; font-size: 12px"><span class="i i14 i-plus"></span>새 곡</button>
+</div>
+<div style="padding: 10px 12px 6px">
+<label for="lib-q" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">곡 찾기</label>
+<span style="display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 10px; border-radius: 4px; background: #121212; color: #8c8c8c"><span class="i i14 i-search"></span><input id="lib-q" placeholder="제목, 가사, 초성" style="flex: 1; min-width: 0; height: 28px; padding: 0; border: 0; background: transparent; color: #ececec; font-size: 13px"></span>
+</div>
+<ul style="margin: 0; padding: 0 0 8px; list-style: none; overflow: hidden">
+<sc-for list="{{ library }}" as="s" hint-placeholder-count="8">
+<li><button type="button" class="hv" style="display: flex; align-items: center; gap: 10px; width: 100%; height: 32px; padding: 0 14px; border: 0; background: transparent; color: #cccccc; text-align: left; font-size: 13px"><span class="i i-song" style="color: #8c8c8c"></span><span style="flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">{{ s.title }}</span><span style="font-size: 11px; color: #8c8c8c; font-variant-numeric: tabular-nums">{{ s.meta }}</span></button></li>
+</sc-for>
+</ul>
+</section>
+
+</div>
+
+<section style="flex: 0 0 700px; display: flex; flex-direction: column; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-label="곡 편집">
+<div style="flex: none; height: 34px; display: flex; align-items: center; gap: 8px; padding: 0 8px 0 12px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 12px; font-weight: 600; line-height: 32px; border-bottom: 2px solid #ececec">곡 편집</span>
+<span style="margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: #8c8c8c"><span class="i i14 i-saved"></span>저장됨</span>
+</div>
+<div style="flex: none; padding: 14px 16px; border-bottom: 1px solid #2b2b2b; display: flex; flex-direction: column; gap: 6px">
+<label for="r-title" style="font-size: 12px; color: #b4b4b4">제목</label>
+<input id="r-title" value="만복의 근원 하나님" style="height: 34px; padding: 0 10px; box-sizing: border-box; border: 0; border-radius: 4px; background: #121212; color: #ececec; font-size: 15px; font-weight: 600">
+</div>
+<div style="flex: 1; min-height: 0; overflow: hidden; background: #161616">
+<ol style="margin: 0; padding: 14px 0; list-style: none; font-size: 16px; line-height: 28px">
+<sc-for list="{{ lines }}" as="l" hint-placeholder-count="15">
+<li style="display: flex; align-items: center; min-height: 28px; background: {{ l.bg }}">
+<span style="flex: 0 0 52px; padding-right: 14px; box-sizing: border-box; text-align: right; font-size: 11px; color: #5c5c5c; font-variant-numeric: tabular-nums">{{ l.n }}</span>
+<sc-if value="{{ l.isLabel }}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 3px; background: {{ l.labelBg }}; color: #101010; font-size: 12px; font-weight: 700">{{ l.text }}</span></sc-if>
+<sc-if value="{{ l.isText }}" hint-placeholder-val="{{ true }}"><span style="color: #ececec">{{ l.text }}</span><sc-if value="{{ l.caret }}" hint-placeholder-val="{{ false }}"><span style="display: inline-block; width: 2px; height: 20px; margin-left: 1px; background: #3d8bf0"></span></sc-if></sc-if>
+</li>
+</sc-for>
+</ol>
+</div>
+<div style="flex: none; height: 30px; display: flex; align-items: center; gap: 16px; padding: 0 14px; border-top: 1px solid #2b2b2b; font-size: 11px; color: #8c8c8c; font-variant-numeric: tabular-nums">
+<span>줄 14</span>
+<span>열 12</span>
+<span style="margin-left: auto">장 4</span>
+</div>
+</section>
+
+<section style="flex: 1; min-width: 0; display: flex; flex-direction: column; background: #1c1c1c; border-radius: 5px; overflow: hidden" aria-label="장 미리보기">
+<div style="flex: none; height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 12px; border-bottom: 1px solid #2b2b2b">
+<span style="font-size: 12px; font-weight: 600; line-height: 32px; border-bottom: 2px solid #ececec">장</span>
+<span style="font-size: 11px; color: #8c8c8c; font-variant-numeric: tabular-nums">4</span>
+<span style="margin-left: auto; display: flex; align-items: center; gap: 12px">
+<button type="button" class="hvc" style="display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 8px 0 10px; border: 0; border-radius: 4px; background: #2a2a2a; color: #b4b4b4; font-size: 12px">기준<span style="color: #ececec">본 화면</span><span class="i i14 i-down"></span></button>
+<input type="range" min="1" max="6" step="1" value="4" aria-label="썸네일 크기" style="width: 96px; accent-color: #ececec">
+</span>
+</div>
+
+<div style="flex: none; display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #2b2b2b">
+<span style="width: 40px; font-size: 12px; color: #b4b4b4">배경</span>
+<img src="/_blob/e96d6204449f1e44237721b22d7463c9" alt="" style="width: 72px; height: 40px; object-fit: cover; border-radius: 3px; box-shadow: 0 0 0 1px #2b2b2b">
+<span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px; font-weight: 600">따뜻한 빛</span><span style="font-size: 11px; color: #8c8c8c; font-variant-numeric: tabular-nums">영상 0:30</span></span>
+<span style="margin-left: auto; display: flex; gap: 6px">
+<button type="button" class="hvc" style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px 0 8px; border: 0; border-radius: 4px; background: #2a2a2a; color: #ececec; font-size: 12px"><span class="i i14 i-image"></span>바꾸기</button>
+<button type="button" class="hvc" style="height: 28px; padding: 0 10px; border: 0; border-radius: 4px; background: #2a2a2a; color: #b4b4b4; font-size: 12px">없음</button>
+</span>
+</div>
+
+<div style="flex: 1; min-height: 0; overflow-y: auto; padding: 16px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px 12px; align-content: start">
+<sc-for list="{{ slides }}" as="s" hint-placeholder-count="4">
+<div style="display: flex; flex-direction: column; border-radius: 4px; overflow: hidden; box-shadow: 0 0 0 {{ s.ringW }} {{ s.ring }}">
+<span style="position: relative; display: block; aspect-ratio: 16 / 9; background: #000; overflow: hidden">
+<img src="/_blob/e96d6204449f1e44237721b22d7463c9" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
+<span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 0 10%; color: #fff; font-size: 12px; line-height: 1.45; font-weight: 700; text-align: center; white-space: pre-line; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6)">{{ s.text }}</span>
+</span>
+<button type="button" class="hvc" style="display: flex; align-items: center; gap: 7px; height: 22px; padding: 0 7px; border: 0; background: {{ s.barBg }}; color: {{ s.barFg }}; font-size: 11px; font-weight: 700; text-align: left">
+<span style="font-variant-numeric: tabular-nums">{{ s.n }}</span>
+<span style="flex: 1">{{ s.label }}</span>
+<span class="i i14 i-down" style="opacity: 0.6"></span>
+</button>
+</div>
+</sc-for>
+</div>
+</section>
+
+</div>
+
+<footer style="flex: none; height: 28px; display: flex; align-items: center; gap: 18px; padding: 0 14px; font-size: 11px; color: #8c8c8c">
+<span style="display: inline-flex; align-items: center; gap: 6px"><span class="i i14 i-saved"></span>23:41 저장됨</span>
+</footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1920,"height":1080}}'>
+class Component extends DCLogic {
+renderVals() {
+const labelColor = (label) => {
+if (!label) return null;
+if (/절$/.test(label)) return '#5fb8c2';
+if (label === '프리코러스') return '#a5bd72';
+if (label === '후렴') return '#d6a35f';
+if (label === '브릿지') return '#b39ce3';
+return '#b3ada6';
+};
+const lyrics = [
+'만복의 근원 하나님\n온 백성 찬송 드리고',
+'저 천사여 찬송하세\n찬송 성부 성자 성령',
+'찬송 성부 성자 성령\n아멘',
+'찬송 성부 성자 성령\n만복의 근원 하나님'
+];
+const labels = ['1절', '프리코러스', '후렴', ''];
+const current = 3;
+let n = 0;
+const lines = [];
+lyrics.forEach((text, i) => {
+const band = i === current ? '#1b2230' : 'transparent';
+if (labels[i]) lines.push({ n: ++n, isLabel: true, isText: false, text: labels[i], labelBg: labelColor(labels[i]), bg: band, caret: false });
+const rows = text.split('\n');
+rows.forEach((row, r) => lines.push({ n: ++n, isLabel: false, isText: true, text: row, bg: band, caret: i === current && r === rows.length - 1 }));
+if (i < lyrics.length - 1) lines.push({ n: ++n, isLabel: false, isText: true, text: '', bg: 'transparent', caret: false });
+});
+const slides = lyrics.map((text, i) => {
+const color = labelColor(labels[i]);
+return {
+n: i + 1, text: text, label: labels[i] || '이름표 없음',
+barBg: color || '#2a2a2a', barFg: color ? '#101010' : '#8c8c8c',
+ring: i === current ? '#3d8bf0' : '#2b2b2b', ringW: i === current ? '2px' : '1px'
+};
+});
+const item = (title, meta, kind, state) => {
+const s = state || 'idle';
+return {
+isHeader: false, isItem: true, title: title, meta: meta,
+isSong: kind === 'song', isFilm: kind === 'film', isNotice: kind === 'notice', isBook: kind === 'book', isSlides: kind === 'slides',
+bg: s === 'sel' ? '#1f4170' : 'transparent',
+fg: '#ececec',
+iconColor: s === 'sel' ? '#ececec' : '#b4b4b4',
+metaColor: s === 'sel' ? '#c7d9f3' : '#8c8c8c',
+drop: s === 'drop' ? 'inset 0 2px 0 #3d8bf0' : 'none'
+};
+};
+const header = (label) => ({ isHeader: true, isItem: false, label: label });
+const song = (title, meta) => ({ title: title, meta: meta });
+return {
+lines: lines,
+slides: slides,
+service: [
+header('예배 전'),
+item('예배 전 카운트다운', '5:00', 'film'),
+item('주일 광고', '6장', 'notice'),
+header('찬양'),
+item('이 세상 험하고', '4장', 'song'),
+item('만복의 근원 하나님', '4장', 'song', 'sel'),
+item('내 주를 가까이 하게 함은', '5장', 'song', 'drop'),
+header('말씀'),
+item('요한복음 3장 16절', '2장', 'book'),
+item('설교', '12장', 'slides'),
+header('마무리'),
+item('주 하나님 지으신 모든 세계', '4장', 'song'),
+item('축도', '1장', 'notice')
+],
+library: [
+song('거리마다 기쁨으로', '7장'),
+song('나를 향한 주님의 사랑', '6장'),
+song('내 주를 가까이 하게 함은', '5장'),
+song('송축해 내 영혼', '6장'),
+song('만복의 근원 하나님', '4장'),
+song('이 세상 험하고', '4장'),
+song('주 하나님 지으신 모든 세계', '4장'),
+song('하나님 은혜는', '5장')
+]
+};
+}
+}
+</script>
+</body>
+</html>
