@@ -26,6 +26,15 @@ export {
 export {Icon, type IconProps, type IconSize} from './Icon';
 export {IconButton, type IconButtonProps} from './IconButton';
 export {
+  KeyCombo,
+  KeyList,
+  KeyText,
+  conflictText,
+  formatShortcut,
+  type KeyComboProps,
+  type KeyComboState,
+} from './KeyCap';
+export {
   ListActionRow,
   ListBox,
   ListDragGhost,

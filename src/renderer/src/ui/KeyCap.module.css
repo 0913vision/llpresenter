@@ -1,0 +1,57 @@
+.list {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-10);
+}
+
+.combo {
+  --combo-warning-ring: 1px;
+  --combo-warning-offset: 2px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  border-radius: var(--radius-md);
+}
+
+.combo[data-state='warning'] {
+  outline: var(--combo-warning-ring) solid var(--warning);
+  outline-offset: var(--combo-warning-offset);
+}
+
+.key {
+  display: inline-block;
+  flex: none;
+  min-width: var(--size-control-xs);
+  height: var(--size-count);
+  padding: 0 var(--space-6);
+  border-radius: var(--radius-sm);
+  background: var(--bg-control);
+  color: var(--text);
+  font: var(--type-caption-strong);
+  line-height: var(--size-count);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.combo[data-state='changed'] .key {
+  background: var(--selection);
+}
+
+.warn {
+  display: inline-flex;
+  flex: none;
+  color: var(--warning);
+}
+
+.empty {
+  color: var(--text-3);
+  font: var(--type-label);
+}
+
+.text {
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

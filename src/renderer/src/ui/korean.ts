@@ -22,8 +22,20 @@ function endsWithConsonant(character: string): boolean {
  * 을 after a final consonant (모니터 3을), 를 otherwise (모니터 2를).
  */
 export function objectParticle(word: string): '을' | '를' {
+  return endsInConsonant(word) ? '을' : '를';
+}
+
+/**
+ * Returns the particle "and, with" that follows `word` when it is read aloud:
+ * 과 after a final consonant (평상시 출력과), 와 otherwise (출력 켜기와).
+ */
+export function withParticle(word: string): '과' | '와' {
+  return endsInConsonant(word) ? '과' : '와';
+}
+
+function endsInConsonant(word: string): boolean {
   const last = lastReadable(word);
-  return last !== undefined && endsWithConsonant(last) ? '을' : '를';
+  return last !== undefined && endsWithConsonant(last);
 }
 
 function lastReadable(word: string): string | undefined {
