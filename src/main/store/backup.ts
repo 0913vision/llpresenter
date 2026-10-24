@@ -4,17 +4,16 @@ import type {Result} from '@shared/result';
 import type {Preferences} from '@shared/schema/preferences';
 import type {WriteProblem} from './atomicWrite';
 import {isMissingFile} from './fsErrors';
-import {FOLDER_NAMES, isInside, type DataLocations} from './locations';
+import {
+  dataFileFolders,
+  FOLDER_NAMES,
+  isInside,
+  type DataLocations,
+} from './locations';
 
 const PARTIAL_SUFFIX = '.partial';
 const KEEP_LIMITS = {min: 1, max: 365} as const;
 const BACKUP_NAME = /^(\d{4})-(\d{2})-(\d{2}) (\d{2})(\d{2})(\d{2})$/;
-const BACKED_UP_FOLDERS = [
-  'songs',
-  'services',
-  'templates',
-  'settings',
-] as const satisfies ReadonlyArray<keyof DataLocations>;
 
 /** A finished backup, and the old backups it couldn't delete. */
 export interface BackupDone {
@@ -193,7 +192,7 @@ async function copyDataFolders(
   developmentFolder: string | null,
 ): Promise<void> {
   const allowed = await sourceCheck(developmentFolder);
-  for (const name of BACKED_UP_FOLDERS) {
+  for (const name of dataFileFolders) {
     await copyFolder(
       locations[name],
       join(target, FOLDER_NAMES[name]),

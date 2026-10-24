@@ -62,6 +62,14 @@ export interface DataLocations {
   readonly backups: string;
 }
 
+/** The folders of the data files the app writes, and backs up. */
+export const dataFileFolders = [
+  'songs',
+  'services',
+  'templates',
+  'settings',
+] as const satisfies ReadonlyArray<keyof DataLocations>;
+
 const dataLocationNames = [
   'dataRoot',
   'songs',
