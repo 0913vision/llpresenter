@@ -67,3 +67,10 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
 - 2026-10-24: The product decisions from the drafts phase moved from the lead's
   private notes into `docs/product-log.md`, so every session can read the
   sources that `docs/spec/` cites.
+- 2026-10-24: Renderer tests run in jsdom with Testing Library (`jsdom`,
+  `@testing-library/react`, `@testing-library/dom`, and
+  `@testing-library/user-event`, all MIT, development only, each release at
+  least two weeks old). Vitest runs two projects: `node` for the main process,
+  preload, shared code, and scripts, and `renderer` for the renderer. The lead
+  set this up before the UI work starts, so UI members can test components from
+  their first commit.

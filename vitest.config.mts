@@ -1,8 +1,8 @@
 import {resolve} from 'node:path';
 import {defineConfig} from 'vitest/config';
 
-// TODO(0913vision): The devops member extends this with coverage, test
-// helpers, and separate main and renderer projects.
+// TODO(0913vision): The devops member extends this with coverage and test
+// helpers.
 export default defineConfig({
   resolve: {
     alias: {
@@ -11,7 +11,28 @@ export default defineConfig({
     },
   },
   test: {
-    include: ['src/**/*.test.ts', 'scripts/**/*.test.ts'],
-    environment: 'node',
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: 'node',
+          include: [
+            'src/main/**/*.test.ts',
+            'src/preload/**/*.test.ts',
+            'src/shared/**/*.test.ts',
+            'scripts/**/*.test.ts',
+          ],
+          environment: 'node',
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: 'renderer',
+          include: ['src/renderer/**/*.test.{ts,tsx}'],
+          environment: 'jsdom',
+        },
+      },
+    ],
   },
 });

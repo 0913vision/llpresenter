@@ -28,10 +28,9 @@ Your job is to make tools enforce the "Quality bar" in `docs/TECH.md`.
   `// NOTE(0913vision): ...`, and `// TODO(0913vision): ...`. Also checks TSDoc
   syntax (for example, with `eslint-plugin-tsdoc`). Consider Google's `gts`
   package if it works with TypeScript 7. Otherwise, write equivalent rules.
-- **Vitest:** The initial scaffold already has a minimal configuration
-  (`vitest.config.mts`) and five test files. Extend them: coverage reports,
-  helpers such as creating and deleting temporary folders and a fake clock, and
-  a configuration that runs main process code and renderer code separately. Keep
+- **Vitest:** `vitest.config.mts` already runs two projects, `node` and
+  `renderer` (jsdom with Testing Library). Extend it with coverage reports and
+  helpers such as creating and deleting temporary folders and a fake clock. Keep
   the whole unit suite under 1 minute.
 - **GitHub Actions configuration (`.github/workflows/ci.yml`):** Runs `npm ci`
   and `npm run verify` on a Windows runner when `rewrite` is pushed and when
