@@ -24,6 +24,7 @@ function outcome(
     exitCode,
     signal: null,
     stoppedBy: null,
+    leftRunning: false,
     milliseconds: 1500,
     output: '',
     failureLines: [],
@@ -198,6 +199,25 @@ describe('formatSummary', () => {
       '"npm run lint" was stopped because verify was interrupted.',
     );
   });
+
+  it('names every step that left a process running', () => {
+    const left = {leftRunning: true, stoppedBy: 'interrupt'} as const;
+    const lint = {step: 'lint', outcome: outcome(1, left)} as const;
+    const build = {step: 'build', outcome: outcome(1, left)} as const;
+    const summary = formatSummary(
+      {
+        results: [lint, {step: 'typecheck', outcome: outcome(0)}, build],
+        failed: lint,
+      },
+      1000,
+    );
+    expect(summary).toContain(
+      [
+        'A process started by "npm run lint" kept running; check Task Manager.',
+        'A process started by "npm run build" kept running; check Task Manager.',
+      ].join('\n'),
+    );
+  });
 });
 
 describe('exitCodeFor', () => {
@@ -215,6 +235,7 @@ describe('exitCodeFor', () => {
     const stopped = [
       outcome(null, {signal: 'SIGTERM'}),
       outcome(0, {stoppedBy: 'deadline'}),
+      outcome(0, {leftRunning: true}),
     ];
     for (const stoppedOutcome of stopped) {
       const lint = {step: 'lint', outcome: stoppedOutcome} as const;

@@ -9,22 +9,26 @@ export interface HungTreePids {
 }
 
 const HUNG_TREE_FILE = 'hung-tree.cjs';
+const ORPHANING_TREE_FILE = 'orphaning-tree.cjs';
 const PIDS_SUFFIX = '.pids';
 const WAIT_TIMEOUT_MS = 30_000;
 const WAIT_INTERVAL_MS = 50;
 
-const HUNG_TREE_SOURCE = `
+function treeSource(childOptions: string, parentEnd: string): string {
+  return `
 const {spawn} = require('node:child_process');
 const {writeFileSync} = require('node:fs');
 const {join} = require('node:path');
 const child = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], {
   stdio: 'inherit',
   windowsHide: true,
+  ${childOptions}
 });
 const name = process.argv.at(-1);
 writeFileSync(join(__dirname, name + '${PIDS_SUFFIX}'), process.pid + ' ' + child.pid);
-setInterval(() => {}, 1000);
+${parentEnd}
 `;
+}
 
 /**
  * Writes a Node script into `dir` that starts a child that never ends, then
@@ -36,7 +40,21 @@ setInterval(() => {}, 1000);
  */
 export async function writeHungTree(dir: string): Promise<string> {
   const path = join(dir, HUNG_TREE_FILE);
-  await writeFile(path, HUNG_TREE_SOURCE);
+  await writeFile(path, treeSource('', 'setInterval(() => {}, 1000);'));
+  return path;
+}
+
+/**
+ * Writes a Node script into `dir` like {@link writeHungTree}, except that the
+ * parent ends right after it writes the ids. Its child is detached, so it
+ * outlives the parent and keeps the output pipes open, out of taskkill's
+ * reach. The test must end the child itself.
+ *
+ * @returns the script's path
+ */
+export async function writeOrphaningTree(dir: string): Promise<string> {
+  const path = join(dir, ORPHANING_TREE_FILE);
+  await writeFile(path, treeSource('detached: true,', 'process.exit(0);'));
   return path;
 }
 

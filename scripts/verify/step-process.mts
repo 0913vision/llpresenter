@@ -2,8 +2,7 @@ import {spawn, type ChildProcessByStdio} from 'node:child_process';
 import {performance} from 'node:perf_hooks';
 import type {Readable} from 'node:stream';
 import {killProcessTree} from '../process-tree.mts';
-import {FailureScanner} from './failure-scanner.mts';
-import {readText, TailBuffer} from './step-output.mts';
+import {readText, StepCapture} from './step-output.mts';
 
 /** Why verify stopped a step before it ended on its own. */
 export type StopReason = 'deadline' | 'interrupt';
@@ -13,6 +12,11 @@ export interface StepOutcome {
   readonly exitCode: number | null;
   readonly signal: string | null;
   readonly stoppedBy: StopReason | null;
+  /**
+   * True when a process that the step started kept its output open after
+   * verify stopped it, so verify let go of the output without seeing it end.
+   */
+  readonly leftRunning: boolean;
   readonly milliseconds: number;
   /** The end of what the step printed, at most two million characters. */
   readonly output: string;
@@ -34,9 +38,10 @@ export interface StepCommand {
 const FAILURE_EXIT_CODE = 1;
 const MAX_KEPT_OUTPUT_CHARS = 2_000_000;
 const MS_PER_SECOND = 1000;
-// NOTE(0913vision): A process that survives taskkill can keep the step's pipes
-// open. After this long, verify lets go of them, so it always ends.
-const CLOSE_GRACE_MS = 5000;
+// NOTE(0913vision): Counted from the moment verify starts to stop a step, and
+// waiting for nothing else, so a kill that hangs or fails can't keep verify
+// from ending.
+const STOP_GRACE_MS = 5000;
 
 type StepChild = ChildProcessByStdio<null, Readable, Readable>;
 
@@ -64,12 +69,12 @@ class StepProcess {
   private readonly child: StepChild;
   private readonly resolve: (outcome: StepOutcome) => void;
   private readonly started = performance.now();
-  private readonly output = new TailBuffer(MAX_KEPT_OUTPUT_CHARS);
-  private readonly failures = new FailureScanner();
+  private readonly capture = new StepCapture(MAX_KEPT_OUTPUT_CHARS);
   private readonly onInterrupt = (): void => this.stop('interrupt');
   private deadline: NodeJS.Timeout | null = null;
-  private closeGrace: NodeJS.Timeout | null = null;
+  private stopGrace: NodeJS.Timeout | null = null;
   private stoppedBy: StopReason | null = null;
+  private leftRunning = false;
   private settled = false;
 
   constructor(
@@ -83,9 +88,9 @@ class StepProcess {
   }
 
   watch(): void {
-    const {child, command} = this;
-    readText(child.stdout, text => this.keep(text));
-    readText(child.stderr, text => this.keep(text));
+    const {child, command, capture} = this;
+    readText(child.stdout, text => capture.stdout(text));
+    readText(child.stderr, text => capture.stderr(text));
     child.once('error', error => this.failToStart(error));
     child.once('close', (code, signal) => this.settle(code, signal));
     this.deadline = setTimeout(() => this.stop('deadline'), command.deadlineMs);
@@ -93,14 +98,9 @@ class StepProcess {
     if (command.interrupt.aborted) this.stop('interrupt');
   }
 
-  private keep(text: string): void {
-    this.output.push(text);
-    this.failures.push(text);
-  }
-
   private failToStart(error: Error): void {
-    this.keep(
-      `[verify could not start ${this.command.name}: ${error.message}]\n`,
+    this.capture.note(
+      `[verify could not start ${this.command.name}: ${error.message}]`,
     );
     this.settle(FAILURE_EXIT_CODE, null);
   }
@@ -109,27 +109,30 @@ class StepProcess {
     if (this.settled || this.stoppedBy !== null) return;
     this.stoppedBy = reason;
     const {name, deadlineMs} = this.command;
-    this.keep(`\n${stopNotice(name, reason, deadlineMs)}\n`);
+    this.capture.note(stopNotice(name, reason, deadlineMs));
+    this.stopGrace = setTimeout(() => this.release(), STOP_GRACE_MS);
     this.killTree().catch((error: unknown) => {
-      this.keep(`[verify could not stop ${name}: ${String(error)}]\n`);
+      this.capture.note(`[verify could not stop ${name}: ${String(error)}]`);
     });
   }
 
   private async killTree(): Promise<void> {
     const {pid} = this.child;
-    if (pid !== undefined) {
-      const result = await killProcessTree(pid);
-      if (!result.ok) {
-        this.keep(
-          `[verify could not stop all of ${this.command.name}: ${result.reason}]\n`,
-        );
-      }
+    if (pid === undefined) return;
+    const result = await killProcessTree(pid);
+    if (!result.ok) {
+      this.capture.note(
+        `[verify could not stop all of ${this.command.name}: ${result.reason}]`,
+      );
     }
-    if (this.settled) return;
-    this.closeGrace = setTimeout(() => this.release(), CLOSE_GRACE_MS);
   }
 
   private release(): void {
+    if (this.settled) return;
+    this.leftRunning = true;
+    this.capture.note(
+      `[verify let go of ${this.command.name}, but a process it started kept running]`,
+    );
     this.child.stdout.destroy();
     this.child.stderr.destroy();
     this.child.unref();
@@ -140,15 +143,15 @@ class StepProcess {
     if (this.settled) return;
     this.settled = true;
     if (this.deadline !== null) clearTimeout(this.deadline);
-    if (this.closeGrace !== null) clearTimeout(this.closeGrace);
+    if (this.stopGrace !== null) clearTimeout(this.stopGrace);
     this.command.interrupt.removeEventListener('abort', this.onInterrupt);
     this.resolve({
       exitCode,
       signal,
       stoppedBy: this.stoppedBy,
+      leftRunning: this.leftRunning,
       milliseconds: performance.now() - this.started,
-      output: this.output.text(),
-      failureLines: this.failures.finish(),
+      ...this.capture.finish(),
     });
   }
 }

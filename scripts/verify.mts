@@ -53,7 +53,9 @@ const STEP_DEADLINE_MS = 10 * 60 * MS_PER_SECOND;
 const INTERRUPT_SIGNALS = ['SIGINT', 'SIGTERM', 'SIGHUP', 'SIGBREAK'] as const;
 
 function passed(outcome: StepOutcome): boolean {
-  return outcome.exitCode === 0 && outcome.stoppedBy === null;
+  return (
+    outcome.exitCode === 0 && outcome.stoppedBy === null && !outcome.leftRunning
+  );
 }
 
 /**
@@ -134,9 +136,19 @@ export function formatSummary(
     lines.push('What failed:', ...outcome.failureLines.map(l => `  ${l}`));
   }
   lines.push(
+    ...leftRunningLines(result),
     `Fix it, then run "npm run ${step}" alone or "npm run verify" again.`,
   );
   return lines.join('\n');
+}
+
+function leftRunningLines(result: VerifyResult): string[] {
+  return result.results
+    .filter(({outcome}) => outcome.leftRunning)
+    .map(
+      ({step}) =>
+        `A process started by "npm run ${step}" kept running; check Task Manager.`,
+    );
 }
 
 /** Picks verify's exit code: 0 when every step passed, never 0 otherwise. */

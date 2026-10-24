@@ -1,9 +1,7 @@
 import {stripVTControlCharacters} from 'node:util';
 
 const MAX_FAILURE_LINES = 20;
-const MAX_LINE_CHARS = 4096;
 const LOOKAHEAD_LINES = 6;
-const LINE_BREAK = /\r?\n/;
 const NOTABLE_LINE =
   /^\s*(?:FAIL\s|×\s|Error: \[vitest-pool|Vitest caught \d+ unhandled)|Unhandled (?:Errors?|Rejection)/;
 const ERROR_MESSAGE = /^\s*[A-Za-z]*(?:Error|Exception)\b[^:]*:/;
@@ -23,35 +21,26 @@ function formatFailure({line, error}: Failure): string {
 }
 
 /**
- * Picks the lines that name what failed from a step's output while it
- * arrives: Vitest's `FAIL` and `×` lines, worker start errors, and the
+ * Picks the lines that name what failed from a step's output, line by line
+ * as it arrives: Vitest's `FAIL` and `×` lines, worker start errors, and the
  * unhandled error and rejection blocks, each with the first error line that
  * follows it (for example "Error: Test timed out in 60000ms."). It keeps at
  * most twenty, each once, so it sees all of the output in bounded memory even
  * when the kept output is cut.
  */
 export class FailureScanner {
-  private partialLine = '';
   private group: string[] = [];
   private linesAfterGroup = 0;
   private readonly failures: Failure[] = [];
 
-  /** Reads the next piece of output, which may end in the middle of a line. */
-  push(text: string): void {
-    const lines = (this.partialLine + text).split(LINE_BREAK);
-    this.partialLine = (lines.pop() ?? '').slice(0, MAX_LINE_CHARS);
-    for (const line of lines) this.scan(line.slice(0, MAX_LINE_CHARS));
-  }
-
-  /** Reads the unfinished last line and returns what failed. */
+  /** Returns what failed in the lines read so far. */
   finish(): string[] {
-    this.scan(this.partialLine);
-    this.partialLine = '';
     this.closeGroup(null);
     return this.failures.map(formatFailure);
   }
 
-  private scan(rawLine: string): void {
+  /** Reads the next whole line of output. */
+  readLine(rawLine: string): void {
     const line = stripVTControlCharacters(rawLine);
     if (NOTABLE_LINE.test(line)) {
       if (this.linesAfterGroup > 0) this.closeGroup(null);

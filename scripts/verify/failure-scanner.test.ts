@@ -3,7 +3,7 @@ import {FailureScanner} from './failure-scanner.mts';
 
 function scanAll(output: string): string[] {
   const scanner = new FailureScanner();
-  scanner.push(output);
+  for (const line of output.split(/\r?\n/)) scanner.readLine(line);
   return scanner.finish();
 }
 
@@ -106,30 +106,13 @@ describe('FailureScanner', () => {
     expect(scanAll(many.join('\n'))).toHaveLength(20);
   });
 
-  it('finds the same lines when the output arrives in pieces', () => {
+  it('keeps an early failure when a million lines follow', () => {
     const scanner = new FailureScanner();
-    for (const piece of vitestOutput.match(/[\s\S]{1,7}/g) ?? []) {
-      scanner.push(piece);
-    }
-    expect(scanner.finish()).toEqual(scanAll(vitestOutput));
-  });
-
-  it('keeps an early failure when megabytes of output follow', () => {
-    const scanner = new FailureScanner();
-    scanner.push(' FAIL  |node| test/a.test.ts > early\n');
-    scanner.push('Error: early failure\n');
-    const filler = `${'x'.repeat(99)}\n`.repeat(650);
-    for (let i = 0; i < 50; i += 1) scanner.push(filler);
+    scanner.readLine(' FAIL  |node| test/a.test.ts > early');
+    scanner.readLine('Error: early failure');
+    for (let i = 0; i < 1_000_000; i += 1) scanner.readLine('progress');
     expect(scanner.finish()).toEqual([
       'FAIL  |node| test/a.test.ts > early (Error: early failure)',
     ]);
-  });
-
-  it('reads only the start of a very long line', () => {
-    const scanner = new FailureScanner();
-    scanner.push(` FAIL  test ${'y'.repeat(10_000)}`);
-    const [line] = scanner.finish();
-    expect(line?.length).toBeLessThan(5000);
-    expect(line?.startsWith('FAIL  test y')).toBe(true);
   });
 });

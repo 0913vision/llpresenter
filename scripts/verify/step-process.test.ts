@@ -4,18 +4,26 @@ import {
   isRunning,
   waitForHungTree,
   writeHungTree,
+  writeOrphaningTree,
 } from '../../test/process-trees';
 import {makeTempDir} from '../../test/temp-dir';
-import {killProcessTree} from '../process-tree.mts';
+import {killProcessTree, type KillResult} from '../process-tree.mts';
 import {runStepProcess, type StepCommand} from './step-process.mts';
 
 vi.mock(import('../process-tree.mts'), async importOriginal => {
   const actual = await importOriginal();
-  return {killProcessTree: vi.fn(actual.killProcessTree)};
+  return {...actual, killProcessTree: vi.fn(actual.killProcessTree)};
 });
 
 const TEN_MINUTES_MS = 600_000;
-const CLOSE_GRACE_MS = 5000;
+const STOP_GRACE_MS = 5000;
+
+function useFakeTimeouts(): void {
+  vi.useFakeTimers({toFake: ['setTimeout', 'clearTimeout']});
+  onTestFinished(() => {
+    vi.useRealTimers();
+  });
+}
 
 function nodeCommand(
   args: readonly string[],
@@ -75,33 +83,73 @@ describe('runStepProcess', () => {
     expect(isRunning(pids.child)).toBe(false);
   });
 
-  it('lets go of a tree that survives the kill, so it still ends', async () => {
-    vi.useFakeTimers({toFake: ['setTimeout', 'clearTimeout']});
-    onTestFinished(() => {
-      vi.useRealTimers();
-    });
-    vi.mocked(killProcessTree).mockResolvedValueOnce({
-      ok: false,
-      reason: 'access denied',
-    });
+  const survivingKills = [
+    {
+      how: 'fails',
+      kill: async (): Promise<KillResult> => ({
+        ok: false,
+        reason: 'access denied',
+      }),
+    },
+    {
+      how: 'throws',
+      kill: (): Promise<KillResult> =>
+        Promise.reject(new Error('taskkill broke')),
+    },
+    {how: 'never ends', kill: (): Promise<KillResult> => new Promise(() => {})},
+  ];
+
+  it.each(survivingKills)(
+    'lets go of a tree when the kill $how, and says a process kept running',
+    async ({kill}) => {
+      useFakeTimeouts();
+      vi.mocked(killProcessTree).mockImplementationOnce(kill);
+      const dir = await makeTempDir();
+      const interruption = new AbortController();
+      const running = runStepProcess(
+        nodeCommand([await writeHungTree(dir), 'tree'], {
+          interrupt: interruption.signal,
+        }),
+      );
+      const pids = await waitForHungTree(dir, 'tree');
+      onTestFinished(async () => {
+        await killProcessTree(pids.parent);
+      });
+      interruption.abort();
+      await vi.advanceTimersByTimeAsync(STOP_GRACE_MS);
+      const outcome = await running;
+      expect(outcome).toMatchObject({
+        exitCode: 1,
+        stoppedBy: 'interrupt',
+        leftRunning: true,
+      });
+      expect(outcome.output).toContain(
+        '[verify let go of step, but a process it started kept running]',
+      );
+    },
+  );
+
+  it('reports a child that outlives its parent and keeps the output open', async () => {
+    useFakeTimeouts();
     const dir = await makeTempDir();
     const interruption = new AbortController();
     const running = runStepProcess(
-      nodeCommand([await writeHungTree(dir), 'tree'], {
+      nodeCommand([await writeOrphaningTree(dir), 'tree'], {
         interrupt: interruption.signal,
       }),
     );
     const pids = await waitForHungTree(dir, 'tree');
     onTestFinished(async () => {
-      await killProcessTree(pids.parent);
+      await killProcessTree(pids.child);
+    });
+    await vi.waitFor(() => {
+      expect(isRunning(pids.parent)).toBe(false);
     });
     interruption.abort();
-    await vi.advanceTimersByTimeAsync(CLOSE_GRACE_MS);
+    await vi.advanceTimersByTimeAsync(STOP_GRACE_MS);
     const outcome = await running;
-    expect(outcome.exitCode).toBe(1);
-    expect(outcome.output).toContain(
-      '[verify could not stop all of step: access denied]',
-    );
+    expect(outcome.leftRunning).toBe(true);
+    expect(isRunning(pids.child)).toBe(true);
   });
 
   it('keeps an early failure when the kept output is cut', async () => {
