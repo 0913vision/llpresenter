@@ -25,6 +25,17 @@ export interface FileError {
 /** A file from a newer app version opens read-only. */
 export type FileAccess = 'editable' | 'readOnly';
 
+/**
+ * A part of a file that broke the schema and was dropped, while the rest of
+ * the file loaded. The caller logs it, and the dropped part falls back to its
+ * default.
+ */
+export interface DroppedValue {
+  /** Dot path of the dropped part, such as `bindings.show.next`. */
+  readonly field: string;
+  readonly message: string;
+}
+
 export interface LoadedFile<T> {
   readonly data: T;
   readonly access: FileAccess;
@@ -34,6 +45,13 @@ export interface LoadedFile<T> {
    * copy before the first write.
    */
   readonly sourceVersion: number;
+  readonly dropped: readonly DroppedValue[];
+}
+
+/** File content after the parts that may fail alone were checked. */
+export interface PrunedContent {
+  readonly content: Readonly<Record<string, unknown>>;
+  readonly dropped: readonly DroppedValue[];
 }
 
 /**
@@ -65,6 +83,13 @@ export interface FileFormat<TSchema extends v.GenericSchema> {
   /** The schema of the current version. Every object in it is loose. */
   readonly schema: TSchema;
   readonly migrations: readonly MigrationStep[];
+  /**
+   * Drops the parts that may fail alone, such as one shortcut, before the
+   * schema checks the rest. Without it, any broken part rejects the file.
+   */
+  readonly prune?: (
+    content: Readonly<Record<string, unknown>>,
+  ) => PrunedContent;
 }
 
 type Problem = Omit<FileError, 'file'>;
@@ -125,9 +150,13 @@ function load<TSchema extends v.GenericSchema>(
   if (!upgraded.ok) {
     return upgraded;
   }
+  const pruned = prune(format, upgraded.value);
+  if (!pruned.ok) {
+    return pruned;
+  }
   const checked = check(
     format.schema,
-    upgraded.value,
+    pruned.value.content,
     isNewer ? 'newer' : 'invalid',
   );
   if (!checked.ok) {
@@ -137,7 +166,32 @@ function load<TSchema extends v.GenericSchema>(
     data: checked.value,
     access: isNewer ? 'readOnly' : 'editable',
     sourceVersion: schemaVersion,
+    dropped: pruned.value.dropped,
   });
+}
+
+function prune<TSchema extends v.GenericSchema>(
+  format: FileFormat<TSchema>,
+  content: Readonly<Record<string, unknown>>,
+): Result<PrunedContent, Problem> {
+  const {prune: dropFailedParts} = format;
+  return dropFailedParts === undefined
+    ? succeed({content, dropped: []})
+    : attempt(() => dropFailedParts(content), 'invalid');
+}
+
+/**
+ * Checks one part of a file against a schema, with the same key handling as a
+ * whole file. For `prune` functions. Never throws.
+ */
+export function checkPart<TSchema extends v.GenericSchema>(
+  schema: TSchema,
+  value: unknown,
+): Result<v.InferOutput<TSchema>, DroppedValue> {
+  const checked = check(schema, value, 'invalid');
+  return checked.ok
+    ? checked
+    : fail({field: checked.error.field, message: checked.error.message});
 }
 
 function write<TSchema extends v.GenericSchema>(

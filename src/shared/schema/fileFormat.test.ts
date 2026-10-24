@@ -46,6 +46,7 @@ describe('parseFile', () => {
       data: {format: 'llnote', schemaVersion: 2, text: 'hi'},
       access: 'editable',
       sourceVersion: 2,
+      dropped: [],
     });
   });
 
@@ -110,6 +111,7 @@ describe('parseFile', () => {
       data: {format: 'llnote', schemaVersion: 2, text: 'hi', extra: 1},
       access: 'editable',
       sourceVersion: 1,
+      dropped: [],
     });
   });
 
