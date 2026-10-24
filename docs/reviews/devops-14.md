@@ -64,3 +64,10 @@ files, so it can list the temporary file and then find it gone: `ENOENT`.
 | Command          | Result                                                                                                                                      |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | `npm run verify` | Pass at 100% CPU, 161.7 s wall, every step at once: typecheck 23.8 s, lint 74.6 s, format:check 102.5 s, test:coverage 161.6 s, build 8.8 s |
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (217ad44): reviewer (Codex, codex4) Approve, no findings. Lead
+  Approve; lint and the format check ignore electron-vite's temporary config, so
+  the parallel steps no longer race. `.prettierignore` counts as devops'
+  tooling. Rebased by the lead onto local `main` without conflicts.
