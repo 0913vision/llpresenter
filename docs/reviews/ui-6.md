@@ -101,19 +101,14 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (9699bcd): reviewer (Codex, codex4) Approve with one nit:
+  `menuButton.ts:39` needs an IconButton composition example and test, since
+  IconButton overrides the forwarded aria attributes and callers must also pass
+  its `menu` and `expanded` props. The nit goes into ui's next branch. Lead
+  Approve; this fixes qa's M1-8, M1-9, and M1-10. Rebased by the lead onto local
+  `main` without conflicts.
 
 ## Team member's reply
 
