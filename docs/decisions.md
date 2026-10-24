@@ -120,3 +120,12 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   fast-forwarded from the 2024 code (9b23462) to the rewrite (3c3efb7) without a
   force push, and the 2024 code is kept as the tag `legacy-2024`. The branch
   `rewrite` is retired and stays on GitHub only as history.
+- 2026-10-24: The schema library is valibot 1.5.0 (proposed by data, approved by
+  the lead). For the song schema it was the smallest of zod, zod/mini, valibot,
+  and arktype (2.7 KB gzip against 8.4, 24.6, and 45.9 KB), passed TypeScript 7
+  with the repository's options, keeps unknown fields at every level with
+  `looseObject`, supports brands and exact optional fields, and puts the field
+  path and the received value in its messages. It has no dependencies (MIT).
+  Only `src/shared/schema/` imports it, behind `parse<Format>` and
+  `serialize<Format>`, so replacing it later touches only that folder. zod
+  remains the fallback if valibot stops being maintained.
