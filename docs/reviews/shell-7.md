@@ -128,4 +128,33 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 (codex2), answered once:
+
+1. Finding 1 (Ctrl Z in 준비): `handleClearKey` and `useClearKeys` take the
+   workspace on screen, and Ctrl Z undoes a clear only in 진행 and 화면 설정. In
+   준비 it is left alone, as the edit undo. `App` passes its workspace, and the
+   listener follows it. Tests: "undoes the last clear in the show and screens
+   workspaces", "is the edit undo in 준비 and does not undo a clear", and
+   "follows the workspace on screen".
+2. Finding 2 (text editing against other controls): the check is now text entry:
+   a `textarea`, anything `contenteditable` except `false` (so `true`, the empty
+   value, and `plaintext-only`), and an `input` of a text type (text, search,
+   url, tel, email, password, number, and the date and time types, and an input
+   without a type). A range slider, checkbox, radio, button input, select, and
+   button are not text entry, so Ctrl Z undoes a clear from them. Both lists are
+   tests.
+3. Finding 3 (IME): Ctrl Z is left alone while `isComposing` is true. F1 to F7
+   still clear during a composition. Tests for both.
+4. Finding 4 (capture phase): the listener is added in the capture phase, so a
+   field or popup handler below it cannot consume F1 to F7 first. Test: "clears
+   with F2 even when a handler below it consumes the key" (a real input with a
+   keydown handler that calls `preventDefault` and `stopPropagation`). A field
+   that records a shortcut is the exception: any element inside
+   `[data-shortcut-recording]` is left alone, for both the F keys and Ctrl Z.
+   That attribute name is my choice, because no component sets it yet; the
+   settings page must set it while the key field records. Please confirm the
+   name with whoever builds that page.
+5. Finding 5 (nit): the TSDoc on the private `defaultCodes` is gone.
+6. Also: `ClearRow.test.tsx` builds its API with `fakeLlpApi`, since data-5 is
+   on `main`. The branch is restacked onto shell-6 round 2 with
+   `git rebase --onto`, without conflicts.

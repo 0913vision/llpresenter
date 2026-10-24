@@ -2,7 +2,7 @@ import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 import type {LiveCommand} from '@shared/commands';
 import {emptyLayers, emptyLiveState, type LiveLayers} from '@shared/live';
-import type {LlpApi} from '@shared/ipc';
+import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {useLive} from '@renderer/state/live';
 import {hasSomethingToClear} from './clear';
 import {ClearRow} from './ClearRow';
@@ -10,15 +10,13 @@ import {ClearRow} from './ClearRow';
 const sent: LiveCommand[] = [];
 
 function installApi(): void {
-  const api: LlpApi = {
+  window.llp = fakeLlpApi({
     live: {
       get: async () => emptyLiveState(),
       send: command => sent.push(command),
       subscribe: () => () => undefined,
     },
-    window: {control: () => undefined},
-  };
-  window.llp = api;
+  });
 }
 
 function setLayers(layers: Partial<LiveLayers>): void {

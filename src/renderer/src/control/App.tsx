@@ -9,10 +9,10 @@ import {Workspace} from '@renderer/shell/Workspace';
 import styles from './App.module.css';
 
 export function App(): JSX.Element {
-  useClearKeys();
   const sizeClass = useSizeClass();
   const [store] = useState(createMemoryColumnWidthStore);
   const [workspace, setWorkspace] = useState<WorkspaceId>('show');
+  useClearKeys(workspace);
   return (
     <div className={styles.app} data-size={sizeClass}>
       <MenuBar title="LoveLight Presenter" />
