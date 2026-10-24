@@ -1,16 +1,31 @@
 # Review request: `data-14`
 
-Review range: `94780dc...fix/data/settings-limits`
+Review range: `636f241...fix/data/settings-limits`
+
+Round 2 changes only: `3c82510...fix/data/settings-limits`
 
 - Team member: `data`
 - Branch: `fix/data/settings-limits`
-- Base commit (`main`): `94780dc`
-- Last commit: see the commit that adds this file
+- Base commit (`main`): `636f241` (round 1: `94780dc`)
+- Last commit: see the newest commit that changes this file
 - Related brief: qa's observations on the settings schemas (through the lead,
   October 25); `docs/spec/10-shortcuts-and-settings.md`, the 환경설정 tables and
   "Keys that never become shortcuts"; `docs/spec/02-data.md`, "Bible"
 
-What to check:
+What to check in round 2:
+
+0.  The same branch fixes codex3's nit from `data-15` in
+    `docs/reviews/data-9.md`: the Wiring section describes the completed wiring.
+
+1.  `withoutInvalid` in `src/shared/schema/preferences.ts` looks a field up in
+    the range table only when the table has it as an own name (`Object.hasOwn`),
+    and builds the kept fields with `Object.fromEntries`, so each stays an own
+    data property, `__proto__` included. Test: `preferences.test.ts`, "keeps
+    unknown fields named like Object members, at every level" (`constructor`,
+    `toString`, `hasOwnProperty`, `valueOf`, and `__proto__`, at the root and
+    inside `backup` and `bible`). It fails on the round 1 code.
+
+What to check in round 1:
 
 1.  `src/shared/schema/preferences.ts`: the ranges against spec 10:
     - 복구 사본 3 to 50;
@@ -73,17 +88,22 @@ migration, and is a task of its own.
 
 ## Checks run
 
-`npm run verify` on the commit before this document (2c65575), on `main`
-94780dc: every step passed (78.2 s, steps at once).
+Round 2: `npm run verify` on the commit before this document's round 2 change
+(a222aa2), on `main` 636f241: every step passed (237.8 s, steps at once). A
+first run failed one test of `liveState.test.ts` because a stopped earlier run
+was still testing the tree while it was rebased; it was rerun on its own and
+passed, and the full run above is clean.
 
-| Command or test                    | Result                      |
-| ---------------------------------- | --------------------------- |
-| `npm run typecheck`                | Passed (6.7 s)              |
-| `npm run lint`                     | Passed (51.3 s)             |
-| `npm run format:check`             | Passed (28.5 s)             |
-| `npm test`                         | Passed as `test:coverage`   |
-| `npm run build`                    | Passed (2.9 s)              |
-| `npm run verify` (from phase 1 on) | Passed: every step (78.2 s) |
+| Command or test                    | Result                       |
+| ---------------------------------- | ---------------------------- |
+| `npm run typecheck`                | Passed (61.8 s)              |
+| `npm run lint`                     | Passed (100.4 s)             |
+| `npm run format:check`             | Passed (99.6 s)              |
+| `npm test`                         | Passed as `test:coverage`    |
+| `npm run build`                    | Passed (14.3 s)              |
+| `npm run verify` (from phase 1 on) | Passed: every step (237.8 s) |
+
+Round 1 passed on `main` 94780dc (78.2 s).
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
@@ -139,4 +159,12 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 finding from codex3, answered in round 2:
+
+1.  Fixed. `ranges[key]` read inherited names, so an unknown field called
+    `constructor` or `toString` met `Object` or `Object.prototype.toString` as
+    its "schema", failed, and was dropped; and `content[key] = value` set the
+    prototype for `__proto__` instead of keeping the field. The lookup is
+    guarded with `Object.hasOwn`, and the kept fields go through
+    `Object.fromEntries`, which defines own data properties. The new round-trip
+    test covers the root and both groups, and fails on the round 1 code.
