@@ -1,4 +1,11 @@
-import {appendFile, mkdtemp, readdir, readFile, rm} from 'node:fs/promises';
+import {
+  appendFile,
+  mkdtemp,
+  readdir,
+  readFile,
+  rm,
+  writeFile,
+} from 'node:fs/promises';
 import type * as FsPromises from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -124,14 +131,54 @@ describe('createLogger', () => {
     expect(log.pendingLines).toBe(0);
   });
 
-  it('writes lines logged while a batch is on its way', async () => {
+  it('writes a line logged while a write is under way, before the first flush settles', async () => {
     const log = createLogger(dir);
+    const realAppend = vi.mocked(appendFile).getMockImplementation();
+    let release: () => void = () => undefined;
+    const paused = new Promise<void>(resolve => {
+      release = resolve;
+    });
+    vi.mocked(appendFile).mockImplementationOnce(async (...args) => {
+      await paused;
+      return realAppend?.(...args);
+    });
     log.info('first');
     const flushing = log.flush();
+    await vi.waitFor(() => expect(appendFile).toHaveBeenCalled());
     log.info('second');
+    release();
     await flushing;
+    const lines = await linesOf(join(dir, 'main.log'));
+    expect(lines.map(line => line.split(' ').at(-1))).toEqual([
+      'first',
+      'second',
+    ]);
+  });
+
+  it('does not merge a repeat across a dropped line', async () => {
+    const log = createLogger(dir, {maxPendingLines: 1});
+    log.info('A');
+    log.info('B');
+    log.info('A');
     await log.flush();
-    expect(await linesOf(join(dir, 'main.log'))).toHaveLength(2);
+    const lines = await linesOf(join(dir, 'main.log'));
+    expect(lines).toHaveLength(2);
+    expect(lines[0]).toMatch(/INFO A$/);
+    expect(lines[1]).toMatch(/WARN 2 log lines dropped/);
+  });
+
+  it('drops and reports a batch it cannot write, and still settles', async () => {
+    const errors = vi.spyOn(console, 'error').mockReturnValue(undefined);
+    const blocker = join(dir, 'blocker');
+    await writeFile(blocker, 'not a folder');
+    const log = createLogger(join(blocker, 'logs'));
+    log.info('lost');
+    await log.flush();
+    log.info('lost too');
+    await log.flush();
+    expect(errors).toHaveBeenCalledTimes(2);
+    expect(errors.mock.calls[0]?.[0]).toBe('could not write 1 log lines');
+    expect(log.pendingLines).toBe(0);
   });
 });
 

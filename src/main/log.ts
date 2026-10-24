@@ -121,7 +121,9 @@ class RotatingFileLogger implements FileLogger {
 
   private enqueueUnlessMerged(level: Level, text: string): Entry | null {
     const last = this.pending.at(-1);
-    if (last?.level === level && last.text === text) {
+    // NOTE(0913vision): After a dropped line, the last waiting line is no
+    // longer the one before, so a repeat of it isn't merged.
+    if (this.dropped === 0 && last?.level === level && last.text === text) {
       this.pending[this.pending.length - 1] = {
         ...last,
         repeats: last.repeats + 1,
@@ -150,9 +152,13 @@ class RotatingFileLogger implements FileLogger {
   }
 
   private async drain(): Promise<void> {
+    // NOTE(0913vision): Yielding once first lets a burst of lines logged in
+    // one go land in a single batch.
+    await Promise.resolve();
     while (this.hasWork()) {
-      await this.writeNextBatch().catch((error: unknown) => {
-        console.error('could not write the log', error);
+      const lines = this.takeBatch();
+      await this.writeBatch(lines).catch((error: unknown) => {
+        console.error(`could not write ${lines.length} log lines`, error);
       });
     }
   }
@@ -167,12 +173,10 @@ class RotatingFileLogger implements FileLogger {
     return entries.map(formatEntry);
   }
 
-  private async writeNextBatch(): Promise<void> {
-    // NOTE(0913vision): The batch is taken after the first await, so a burst
-    // of lines logged in one go lands in a single batch.
+  private async writeBatch(lines: readonly string[]): Promise<void> {
     let used = await this.currentSize();
     let chunk = '';
-    for (const line of this.takeBatch()) {
+    for (const line of lines) {
       const bytes = Buffer.byteLength(line);
       if (used > 0 && used + bytes > this.settings.maxBytes) {
         await this.append(chunk);
