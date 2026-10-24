@@ -75,3 +75,11 @@ Two findings change a proposal compared with the spec:
   "Already decided".
 - The "Blocks" lines against the M3 plan.
 - Entries 20 and 25, where the proposal departs from ProPresenter on purpose.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (550e01f): lead Approve. The Codex request never reached its window (a
+  tmux delivery fault), and the sheet is a documents-only list of open questions
+  for the user, so the lead reviewed it alone. The lead already presented its
+  summary to the user; the proposals apply until the user answers. Merged onto
+  local `main` without conflicts.
