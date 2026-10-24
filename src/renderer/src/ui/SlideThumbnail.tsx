@@ -56,7 +56,8 @@ function indexOfTarget(grid: HTMLElement, target: EventTarget): number {
   return thumbnailsOf(grid).findIndex(element => element === thumbnail);
 }
 
-interface GridBaseProps {
+/** The props that both workspaces' 장 grids take. */
+export interface ThumbnailGridBaseProps {
   /** The grid name for assistive technology, such as 장. */
   readonly label: string;
   /** The column count, 2 to 8, from the panel's size slider. */
@@ -73,17 +74,20 @@ interface GridBaseProps {
   readonly children: ReactNode;
 }
 
-interface ShowGridProps extends GridBaseProps {
+/** The 장 grid of 진행, where a click or Enter outputs a 장. */
+export interface ShowThumbnailGridProps extends ThumbnailGridBaseProps {
   readonly workspace: 'show';
   /** A click or Enter outputs that 장. */
   readonly onOutput: (index: number) => void;
 }
 
-interface PrepGridProps extends GridBaseProps {
+/** The 장 grid of 준비, where a click or Enter only selects. */
+export interface PrepThumbnailGridProps extends ThumbnailGridBaseProps {
   readonly workspace: 'prep';
 }
 
-export type ThumbnailGridProps = ShowGridProps | PrepGridProps;
+export type ThumbnailGridProps =
+  ShowThumbnailGridProps | PrepThumbnailGridProps;
 
 type GridStyle = CSSProperties & Readonly<Record<'--thumb-columns', number>>;
 

@@ -142,7 +142,10 @@ export {
   ThumbnailGrid,
   missingFileText,
   thumbnailName,
+  type PrepThumbnailGridProps,
+  type ShowThumbnailGridProps,
   type SlideThumbnailProps,
+  type ThumbnailGridBaseProps,
   type ThumbnailGridProps,
   type ThumbnailWorkspace,
 } from './SlideThumbnail';
