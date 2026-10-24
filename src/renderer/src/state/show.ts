@@ -250,14 +250,6 @@ export function applyService(service: ShowService | null): void {
   });
 }
 
-function logServiceFailure(error: unknown): void {
-  window.llp?.log.write({
-    level: 'error',
-    message: 'could not read the open service',
-    detail: error instanceof Error ? (error.stack ?? error.message) : '',
-  });
-}
-
 /**
  * Starts mirroring the open 예배 순서 of the main process. The first read is
  * dropped when a push already arrived, because the push is newer, and nothing
@@ -280,7 +272,9 @@ export function startServiceSync(): () => void {
       if (stopped || pushed) return;
       applyService(service);
     },
-    (error: unknown) => logServiceFailure(error),
+    // NOTE(0913vision): The preload logs a failed or malformed read before it
+    // rejects, so the view just stays as it is.
+    () => undefined,
   );
   return () => {
     stopped = true;

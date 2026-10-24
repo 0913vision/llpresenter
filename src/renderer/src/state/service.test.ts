@@ -318,8 +318,7 @@ describe('startServiceSync', () => {
       expect(useShow.getState().serviceId).toBeNull();
     });
 
-    it('keeps the view when a read fails later, and still logs it', async () => {
-      const write = vi.fn();
+    it('keeps the view when a read fails later', async () => {
       let fail: (error: Error) => void = () => undefined;
       window.llp = fakeLlpApi({
         service: {
@@ -328,12 +327,12 @@ describe('startServiceSync', () => {
               fail = reject;
             }),
         },
-        log: {write},
       });
       applyService(serviceOf());
       startServiceSync()();
       fail(new Error('late failure'));
-      await vi.waitFor(() => expect(write).toHaveBeenCalledTimes(1));
+      await Promise.resolve();
+      await Promise.resolve();
       expect(useShow.getState().serviceName).toBe('주일 예배');
     });
   });
@@ -345,16 +344,14 @@ describe('startServiceSync', () => {
     expect(unsubscribe).toHaveBeenCalledTimes(1);
   });
 
-  it('logs a failed read and keeps what is shown', async () => {
-    const write = vi.fn();
+  it('keeps what is shown when the read fails', async () => {
     window.llp = fakeLlpApi({
       service: {get: () => Promise.reject(new Error('no service'))},
-      log: {write},
     });
     applyService(serviceOf());
     startServiceSync();
-    await vi.waitFor(() => expect(write).toHaveBeenCalledTimes(1));
-    expect(write.mock.lastCall?.[0]).toMatchObject({level: 'error'});
+    await Promise.resolve();
+    await Promise.resolve();
     expect(useShow.getState().serviceName).toBe('주일 예배');
   });
 });
