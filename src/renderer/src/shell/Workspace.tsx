@@ -1,4 +1,5 @@
 import {Fragment, type JSX, type ReactNode} from 'react';
+import {ClearRow} from '@renderer/show/ClearRow';
 import {ServiceOrderList} from '@renderer/show/ServiceOrderList';
 import {
   SlidePanelBody,
@@ -21,13 +22,15 @@ const panelsByWorkspace: Readonly<
   show: [
     ['예배 순서', '퀵 실행'],
     ['장', '미디어'],
-    ['미리보기', '진행 도구'],
+    ['미리보기', '지우기', '진행 도구'],
   ],
   prep: [['예배 순서', '라이브러리'], ['편집'], ['항목 설정']],
   screens: [['화면'], ['배치'], ['속성']],
 };
 
 interface PanelParts {
+  /** Draws the body as it is, without the panel, as the 지우기 row does. */
+  readonly bare?: ReactNode;
   readonly body?: ReactNode;
   readonly meta?: ReactNode;
   readonly footer?: ReactNode;
@@ -40,6 +43,7 @@ function Panel({
   readonly title: string;
   readonly parts: PanelParts;
 }): JSX.Element {
+  if (parts.bare) return <div className={styles.bare}>{parts.bare}</div>;
   return (
     <section className={styles.panel} aria-label={title}>
       <div className={styles.header}>
@@ -63,6 +67,8 @@ function showPanelParts(title: string, sizeClass: SizeClass): PanelParts {
   switch (title) {
     case '예배 순서':
       return {body: <ServiceOrderList />};
+    case '지우기':
+      return {bare: <ClearRow compact={sizeClass === 'narrow'} />};
     case '장':
       return {
         body: <SlidePanelBody sizeClass={sizeClass} />,
