@@ -10,7 +10,7 @@ export const COMMENT_OWNER = '0913vision';
 
 const TAGGED_LINE = new RegExp(`^ (?:NOTE|TODO)\\(${COMMENT_OWNER}\\): \\S`);
 const TAG_ATTEMPT = /^\s*(NOTE|TODO)\b/i;
-const TAG_SHAPED = /^\s*(?:NOTE|TODO)\s*[(:]/;
+const TAG_SHAPED = /^\s*(?:NOTE|TODO)\s*[(:]/i;
 const TRIPLE_SLASH_DIRECTIVE = /^\/\s*<reference\s/;
 const TSDOC_MARKER = '*';
 

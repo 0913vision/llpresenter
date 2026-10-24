@@ -72,6 +72,21 @@ ruleTester.run('allowed-comments', allowedCommentsRule, {
       ],
     },
     {
+      name: 'a lowercase todo with another owner right under a NOTE',
+      code: [
+        '// NOTE(0913vision): The port is fixed per session.',
+        '// todo(someone): Read it from settings.',
+        'const a = 1;',
+      ].join('\n'),
+      errors: [
+        {
+          messageId: 'malformedTag',
+          data: {tag: 'TODO', owner: '0913vision'},
+          line: 2,
+        },
+      ],
+    },
+    {
       name: 'a NOTE without the owner right under a TODO',
       code: [
         '// TODO(0913vision): Read the port from settings.',
