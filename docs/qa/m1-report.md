@@ -43,19 +43,19 @@ testing:
 
 ## Bugs
 
-| ID    | Severity | Area and owner              | Title                                                                                            | Build     | State                                                                                 |
-| ----- | -------- | --------------------------- | ------------------------------------------------------------------------------------------------ | --------- | ------------------------------------------------------------------------------------- |
-| M1-1  | minor    | Main process wiring, output | A relative `LLP_USER_DATA` throws at load and leaves Electron's error dialog                     | `13d88b1` | Fixed (output-4), verified on `23e0344`                                               |
-| M1-2  | minor    | Shell, shell                | A resize within one size class during a drag leaves the grid wider than the window               | `13d88b1` | Fixed (shell-4), verified on `9e2496a`                                                |
-| M1-3  | minor    | Soak judge, devops          | Steady memory growth under about 13 MB per hour passes a 60-minute soak                          | `13d88b1` | Fixed (devops-5), verified on `c402184` and `b9392d0`                                 |
-| M1-4  | minor    | Main process wiring, output | Log lines still queued when the app quits are lost                                               | `13d88b1` | Fixed (output-6), verified on `f72d3eb`                                               |
-| M1-5  | minor    | Logger, output              | The log's write queue has no cap and writes one line at a time                                   | `13d88b1` | Fixed (output-6), verified on `f72d3eb`                                               |
-| M1-6  | minor    | Design system cards, ui     | The design system cards render without Pretendard, so card comparisons use a fallback font       | `3afbb50` | Fix in review (ui-5), passes on `27eab54` before merge                                |
-| M1-7  | major    | Tests and `verify`, devops  | On a busy computer, test timeouts fail `verify` and stop pushes                                  | `c402184` | Fixed (devops-9), verified on local `c4bbd3a`                                         |
-| M1-8  | minor    | Dialog and AlertDialog, ui  | A click on the scrim moves focus out of the dialog, and Esc then does nothing                    | `20ffc86` | Fixed (ui-6), verified on local `9a63e2b`                                             |
-| M1-9  | minor    | Menu triggers, ui           | The Down arrow doesn't open the 파일 menu button or the service picker                           | `20ffc86` | Fixed (ui-6), verified on local `9a63e2b`                                             |
-| M1-10 | minor    | Tooltip with Button, ui     | A Button inside `Tooltip` with a shortcut gets no `aria-keyshortcuts`                            | `20ffc86` | Fixed (ui-6), verified on local `9a63e2b`                                             |
-| M1-11 | blocker  | Quit, output                | Closing the app with an empty log queue leaves the process running, so the app can't start again | `f72d3eb` | Fix in review (output-9): fixed in rounds 1 and 2; round 3 removes a second quit hold |
+| ID    | Severity | Area and owner              | Title                                                                                            | Build     | State                                                      |
+| ----- | -------- | --------------------------- | ------------------------------------------------------------------------------------------------ | --------- | ---------------------------------------------------------- |
+| M1-1  | minor    | Main process wiring, output | A relative `LLP_USER_DATA` throws at load and leaves Electron's error dialog                     | `13d88b1` | Fixed (output-4), verified on `23e0344`                    |
+| M1-2  | minor    | Shell, shell                | A resize within one size class during a drag leaves the grid wider than the window               | `13d88b1` | Fixed (shell-4), verified on `9e2496a`                     |
+| M1-3  | minor    | Soak judge, devops          | Steady memory growth under about 13 MB per hour passes a 60-minute soak                          | `13d88b1` | Fixed (devops-5), verified on `c402184` and `b9392d0`      |
+| M1-4  | minor    | Main process wiring, output | Log lines still queued when the app quits are lost                                               | `13d88b1` | Fixed (output-6), verified on `f72d3eb`                    |
+| M1-5  | minor    | Logger, output              | The log's write queue has no cap and writes one line at a time                                   | `13d88b1` | Fixed (output-6), verified on `f72d3eb`                    |
+| M1-6  | minor    | Design system cards, ui     | The design system cards render without Pretendard, so card comparisons use a fallback font       | `3afbb50` | Fix in review (ui-5), passes on `27eab54` before merge     |
+| M1-7  | major    | Tests and `verify`, devops  | On a busy computer, test timeouts fail `verify` and stop pushes                                  | `c402184` | Fixed (devops-9), verified on local `c4bbd3a`              |
+| M1-8  | minor    | Dialog and AlertDialog, ui  | A click on the scrim moves focus out of the dialog, and Esc then does nothing                    | `20ffc86` | Fixed (ui-6), verified on local `9a63e2b`                  |
+| M1-9  | minor    | Menu triggers, ui           | The Down arrow doesn't open the 파일 menu button or the service picker                           | `20ffc86` | Fixed (ui-6), verified on local `9a63e2b`                  |
+| M1-10 | minor    | Tooltip with Button, ui     | A Button inside `Tooltip` with a shortcut gets no `aria-keyshortcuts`                            | `20ffc86` | Fixed (ui-6), verified on local `9a63e2b`                  |
+| M1-11 | blocker  | Quit, output                | Closing the app with an empty log queue leaves the process running, so the app can't start again | `f72d3eb` | Fix in review (output-9), passes on `02d872a` before merge |
 
 ### M1-1: A relative `LLP_USER_DATA` throws at load
 
@@ -321,6 +321,12 @@ testing:
   flush limit. With a rename to `app.json` that never settles, the app never
   exits: `registerUiState` still holds `before-quit` until its own flush ends.
   Codex found the same; round 3 removes that hold, and QA rechecks it.
+- Round 3 (`02d872a`): pass. A stuck `app.json` rename exits at the 3 s save
+  limit (3,022 ms from the close to the exit handlers), a stuck log append at
+  the 2 s flush limit (2,015 ms), and both together at 5,037 ms. Every close
+  case above passes again, C14 shows 340 after a restart, and 3 starts right
+  after a close open the app, twice while the first process was still tearing
+  down (the lock is released before the real quit).
 
 ## Results, pre-freeze run (`13d88b1`)
 
