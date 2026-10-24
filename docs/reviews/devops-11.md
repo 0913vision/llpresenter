@@ -61,3 +61,9 @@ work from other members.
 | Command          | Result                                                                                                                                                              |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `npm run verify` | Pass at 100% CPU, 144.7 s: typecheck 3.7 s, lint 37.0 s, format:check 17.9 s, test:coverage 82.9 s (102 files, 1076 passed and 1 skipped, no timeouts), build 3.2 s |
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (624e1ef): reviewer (Codex, codex2) Approve, no findings. Lead
+  Approve; it also closes devops-7's README nit. CI's verify job runs on
+  windows-latest from the next push. Merged onto local `main` without conflicts.
