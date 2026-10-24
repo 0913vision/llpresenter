@@ -10,6 +10,8 @@ so the report has two runs:
 | Pre-freeze  | `main` at `3afbb50` (ui-1 merged), the same clone       | 0.2.0   | Done (G)                                            |
 | Pre-freeze  | `main` at `23e0344` (devops-2, data-1, output-4 merged) | 0.4.1   | Done (V, D, M1-1 retest)                            |
 | Pre-freeze  | `main` at `9e2496a` (shell-4, devops-6 merged)          | 0.4.1   | Done (M1-2 retest, C regression, `npm run gallery`) |
+| Pre-freeze  | `main` at `c402184` (output-1, data-2, devops-5 merged) | 0.4.2   | Done (output-1, M1-3 retest)                        |
+| Pre-freeze  | `main` at `b9392d0` (data-5, data-3, spec-2 merged)     | 0.5.0   | Done (D1 to D37, data-5, output-1, M1-3)            |
 | Frozen `m1` | The tag `m1`                                            | -       | Waiting                                             |
 
 At `13d88b1`, `main` holds devops-1 (verify, lint, coverage, CI, soak runner),
@@ -37,14 +39,15 @@ testing:
 
 ## Bugs
 
-| ID   | Severity | Area and owner              | Title                                                                                      | Build     | State                                   |
-| ---- | -------- | --------------------------- | ------------------------------------------------------------------------------------------ | --------- | --------------------------------------- |
-| M1-1 | minor    | Main process wiring, output | A relative `LLP_USER_DATA` throws at load and leaves Electron's error dialog               | `13d88b1` | Fixed (output-4), verified on `23e0344` |
-| M1-2 | minor    | Shell, shell                | A resize within one size class during a drag leaves the grid wider than the window         | `13d88b1` | Fixed (shell-4), verified on `9e2496a`  |
-| M1-3 | minor    | Soak judge, devops          | Steady memory growth under about 13 MB per hour passes a 60-minute soak                    | `13d88b1` | Open, `fix/devops/soak-slope`           |
-| M1-4 | minor    | Main process wiring, output | Log lines still queued when the app quits are lost                                         | `13d88b1` | Open, `fix/output/log-flush`            |
-| M1-5 | minor    | Logger, output              | The log's write queue has no cap and writes one line at a time                             | `13d88b1` | Open, `fix/output/log-flush`            |
-| M1-6 | minor    | Design system cards, ui     | The design system cards render without Pretendard, so card comparisons use a fallback font | `3afbb50` | Open (ui)                               |
+| ID   | Severity | Area and owner              | Title                                                                                      | Build     | State                                                 |
+| ---- | -------- | --------------------------- | ------------------------------------------------------------------------------------------ | --------- | ----------------------------------------------------- |
+| M1-1 | minor    | Main process wiring, output | A relative `LLP_USER_DATA` throws at load and leaves Electron's error dialog               | `13d88b1` | Fixed (output-4), verified on `23e0344`               |
+| M1-2 | minor    | Shell, shell                | A resize within one size class during a drag leaves the grid wider than the window         | `13d88b1` | Fixed (shell-4), verified on `9e2496a`                |
+| M1-3 | minor    | Soak judge, devops          | Steady memory growth under about 13 MB per hour passes a 60-minute soak                    | `13d88b1` | Fixed (devops-5), verified on `c402184` and `b9392d0` |
+| M1-4 | minor    | Main process wiring, output | Log lines still queued when the app quits are lost                                         | `13d88b1` | Open, `fix/output/log-flush`                          |
+| M1-5 | minor    | Logger, output              | The log's write queue has no cap and writes one line at a time                             | `13d88b1` | Open, `fix/output/log-flush`                          |
+| M1-6 | minor    | Design system cards, ui     | The design system cards render without Pretendard, so card comparisons use a fallback font | `3afbb50` | Fix in review (ui-5, `fix/ui/card-font`)              |
+| M1-7 | major    | Tests and `verify`, devops  | On a busy computer, test timeouts fail `verify` and stop pushes                            | `c402184` | Fix in review (devops-9, `fix/devops/load-timeouts`)  |
 
 ### M1-1: A relative `LLP_USER_DATA` throws at load
 
@@ -113,6 +116,9 @@ testing:
   passes a 60-minute run, which is about 40 MB over a 3-hour service day.
 - A test that would have caught it: a linear 12 MB per hour record must fail; or
   judge the slope over the whole required time.
+- Retest on `c402184` and again on `b9392d0` (devops-5 merged): pass. The judge
+  fails the record ("growing output:main: +12.0 MB/h", "Soak test failed."), and
+  the other five V18 records give the same verdicts as before.
 
 ### M1-4: Log lines queued at quit are lost
 
@@ -167,6 +173,31 @@ testing:
   both measure 110.4 px.
 - A check that would have caught it: the card server, or a test, fails when a
   `url()` in `tokens.css` points at a missing file.
+
+### M1-7: Test timeouts on a busy computer stop pushes
+
+- Severity: major (the lead's call). Any push to `main` can fail when other
+  sessions build and test on the same computer.
+- Area and owner: the Vitest settings and `test/git-repo.test.ts` (devops).
+- Build: local `main` at `c402184`, the push that the pre-push hook stopped,
+  fetched read-only into the QA clone. The failure has the same shape as the
+  lead's hook failure.
+- Steps: Run `npm run test:coverage` while several sessions build and test on
+  this computer.
+- Expected: `verify` fails only for real failures, so a busy computer doesn't
+  stop a push (`docs/TECH.md` aims for under a minute, but the gate mustn't
+  depend on load).
+- Actual: Exit 1 after 420.9 s: 1 failed, 736 passed, 1 skipped, and 2 unhandled
+  errors. `makeTempGitRepo` "writes files and commits them with the given
+  subject" timed out at its 5000 ms limit (5625 ms; the file took 12.6 s), and
+  "[vitest-pool]: Failed to start forks worker ... Timeout waiting for worker to
+  respond" hit `Checkbox.test.tsx` and `Gallery.test.tsx`. The same suite took
+  38 s on an idle computer at `13d88b1`.
+- A test that would have caught it: run `verify` with the CPU held busy (devops
+  did this for the fix: it passed at 100% CPU with all 74 files).
+- Fix in review: devops-9 runs Vitest in worker threads, gives tests and hooks
+  60 s, and has the `verify` summary list what failed (FAIL lines, pool errors,
+  unhandled rejections), so a timeout and a broken test look different.
 
 ## Results, pre-freeze run (`13d88b1`)
 
@@ -287,10 +318,64 @@ viewer. The cards had Pretendard added in QA's scratch clone (see M1-6).
 
 ### D. Data formats
 
-| Case            | Result         | Note                                                                                                                                                                                                                                                                                                                                                                                     |
-| --------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| D1 to D16       | pass           | On `23e0344` for the four formats data-1 merged (song, service, 틀, `app.json`): 176 checks pass, 0 fail. D1: the four parsers and serializers; the other 14 formats wait for data-2 and data-3. D12 records: a 5.4 MB song parses in 40 ms; nesting deeper than 64 levels returns an error; `__proto__`, `constructor`, and `prototype` are kept as own fields and pollute nothing      |
-| D17             | pass           | On the current hand-written guards (data-4 isn't merged): 9 malformed commands each dropped with a warning; no prototype pollution; the 3 well-formed ones (extra fields, a `__proto__` key, a 1 MB message) are applied; a valid `output.set` works                                                                                                                                     |
-| D18             | pass           | `"exit"`, `null`, and `{}` do nothing; `minimize` works                                                                                                                                                                                                                                                                                                                                  |
-| D20 to D22, D37 | pass           | Every listed rule fails with its field or passes as the plan says. The lead confirmed the recorded items as designed: an empty service name and an empty header are allowed; an item with no known kind key is kept; a 틀 with a `date` keeps it as an unknown field; `app.json` takes any non-negative width and positive column count, and the shell clamps; the 64-level limit stands |
-| D23 to D36      | not yet merged | data-2 and data-3                                                                                                                                                                                                                                                                                                                                                                        |
+| Case            | Result | Note                                                                                                                                                                                                                                                                                                                                                                                            |
+| --------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1 to D16       | pass   | On `23e0344` for the four formats data-1 merged (song, service, 틀, `app.json`): 176 checks pass, 0 fail; the same 176 pass again on `b9392d0`. D1: all 18 parsers and serializers exist on `b9392d0`. D12 records: a 5.4 MB song parses in 40 to 80 ms; nesting deeper than 64 levels returns an error; `__proto__`, `constructor`, and `prototype` are kept as own fields and pollute nothing |
+| D17             | pass   | On the current hand-written guards (data-4 isn't merged): 9 malformed commands each dropped with a warning; no prototype pollution; the 3 well-formed ones (extra fields, a `__proto__` key, a 1 MB message) are applied; a valid `output.set` works                                                                                                                                            |
+| D18             | pass   | `"exit"`, `null`, and `{}` do nothing; `minimize` works                                                                                                                                                                                                                                                                                                                                         |
+| D20 to D22, D37 | pass   | Every listed rule fails with its field or passes as the plan says. The lead confirmed the recorded items as designed: an empty service name and an empty header are allowed; an item with no known kind key is kept; a 틀 with a `date` keeps it as an unknown field; `app.json` takes any non-negative width and positive column count, and the shell clamps; the 64-level limit stands        |
+| D23 to D36      | pass   | On `b9392d0` for the 14 settings formats of data-2 and data-3: 719 checks pass, 0 fail, and 71 are recorded (below). Each format also passes the shared checks D2 to D7, D9 to D11, and D16 (6,000 mutated files against all 14 parsers, each result written back: nothing throws)                                                                                                              |
+
+Recorded on `b9392d0` (D23 to D36), for the lead to confirm or correct:
+
+- No module exports defaults for screens, Looks, stage layouts, or 이름표, so
+  the default checks of D23, D24, D25, and D32 wait for the code that creates
+  the files. `defaultPreferences` equals the spec 02 table (D33).
+- An unknown 매크로 action kind and an unknown 퀵 실행 item kind are kept as
+  they are, like unknown 예배 순서 items (D21). The plan's D27 expected a
+  failure for a `kind` outside its enum; QA counts the kept item as designed.
+  Unknown 타이머 kinds, 소품 content kinds, background kinds, screen kinds and
+  methods, and media kinds fail the file instead.
+- D26: a 소품 action without `mode` reads as `on`, and a 타이머 action without
+  `operation` reads as `start`; both are written on the next save. A 무대 화면
+  배치 action without `screen` stays without it. An 오디오 action without
+  `operation`, and a `clearLayer` action with both a layer and a 소품, fail. An
+  icon outside the icon list, a collection that names no 매크로, and a 매크로
+  that runs itself pass.
+- D32: a bad `key` (`""`, `"Ctrl+A"`, `"c"`, `"F5"`, `"Numpad1"`, `7`, or no
+  key) loads as `null` and is listed in `dropped`, and the rest of the file
+  loads (spec 10). Two 이름표 with the same key pass.
+- D34: each of 23 bad bindings (a string, the `[["Ctrl", "1"]]` form of the 02
+  example, bare letters and digits, modifiers out of order or repeated, a
+  modifier key as the code, and the reserved keys Tab, Shift Tab, Esc, Enter,
+  Ctrl C, Ctrl V, Alt F4, F10, Print Screen, and Ctrl Alt Delete) drops only its
+  command, which is listed in `dropped`. Unknown command IDs are kept, and so
+  are the IDs `__proto__`, `constructor`, and `prototype`, as own keys that
+  pollute nothing. Two commands with the same key pass, since conflicts belong
+  to the store (spec 10).
+- D35: two default translations, none, 11 recents, a recent that names no
+  installed translation, and a `file` with a path separator, `..\..\`, or a
+  drive letter all pass.
+- D36: kind `"input"` fails; `in` after `out` and `in` equal to `out` fail at
+  `items.0.props.out`; a playlist item that names no media, and an audio item in
+  a video playlist, pass.
+- D23: `edgeMargin` -1 and 101 fail (0 to 100). D24: a `current` that names no
+  Look, `#3D8BF0`, and weights 50 and 1000 pass; weight 650.5 fails. D28:
+  `targets` `[]`, `duration` 0, and a blank with no closing brace pass.
+
+Observations for the owners, not filed as bugs because no code reads these files
+yet:
+
+- `serializeShortcuts` writes a reserved key, such as Tab, that the next read
+  drops. The key field refuses reserved keys (spec 10), so only a code bug would
+  write one.
+- `preferences.json` takes any positive `previewFps`, `backupCopies`,
+  `backup.keep`, and `bible.maxLines` (1000, 100000, and 50 pass). Spec 10
+  proposes 15, 30, or 60 fps, 3 to 50 copies, 1 to 365 backups, and 1 to 12
+  lines, but its settings part is still a proposal. Whatever the file says, the
+  code that keeps recovery copies and backups needs a cap.
+- `bible.json` `file` takes a path that climbs out of the folder or is absolute,
+  where spec 02 says a file name. The code that opens a translation should keep
+  it inside the translations folder.
+- Spec 02 "Shortcuts" still shows `[["Ctrl", "1"]]`, while spec 10 decided
+  `{code, mods}` and the schema follows spec 10.

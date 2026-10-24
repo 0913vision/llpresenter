@@ -77,6 +77,21 @@ the same invisible harness. The results went to the owners as review input.
 | data-5 (`feat/data/ipc`)         | `fbc27da` | `window.llp` exists under the sandbox (live, window, ui, log, output; no Node globals; the preload requires only `electron`). Malformed `live.get` and `ui.get` replies, a missing `ui:get` handler, and a malformed `live:changed` broadcast give the defaults or are dropped, each with an "Ignored a bad reply" message on `log:write`. The main handler for `log:write` comes with output-2                                                                                                                                                                                                                                                |
 | output-1 (`feat/output/windows`) | `510bc2c` | With a fake second monitor: on and off reuse one window and renderer (20 cycles); the output page reads the live state; a killed renderer comes back in about 1.2 s with the state (recorded against 08's proposed 1 s); a crash while off comes back hidden; restarts stop after 3 crashes in a minute; unplug moves the output to a window on the control monitor and replug brings it back; three failed display reads recover through the 1 s retry; with one monitor, the 본 화면 opens windowed. After the restart limit, the window stays shown (the lead: black background, logged, retried after a cool-down in output's next branch) |
 
+After the merge, QA ran the same checks on `main`:
+
+- output-1 on `c402184` and again on `b9392d0`: the same results as before
+  merge. A killed renderer came back in 0.9 to 1.2 s.
+- data-5 on `b9392d0`: the same results as before merge. A malformed
+  `live:changed` broadcast is logged once per subscriber, because each
+  `subscribe` checks the state on its own. The app has one subscriber per
+  window, so that is one line.
+- Quit with a 본 화면 shown (record): the app's own quit path, from closing the
+  window to the main process's exit handlers, takes 12 to 25 ms (once 546 ms).
+  Electron's process teardown after that took 0.7 to 6.9 s on this busy
+  computer, with the browser and GPU processes still running meanwhile. In the
+  M2 run, QA rechecks it on an idle computer and checks whether a launch during
+  the teardown opens the app.
+
 Skipped because they need a visible window, for the M2 run with the user: real
 full screen on a second monitor, always on top over other apps, the hidden
 cursor over a full screen output, and a real cable unplug.
