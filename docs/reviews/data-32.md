@@ -111,13 +111,17 @@ retrying a reported failure. `register.test.ts` exercises the actual IPC and
 restart path; `settingsChannels.test.ts` covers shutdown during an accepted
 edit.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-Pending.
-
-## Review: reviewer
-
-Pending.
+- Round 1 (464d9df): reviewer (Claude, trial-97) Approve. Nit for the next data
+  branch: `src/main/store/contentStore.ts` `renameLabelFiles` writes the
+  affected songs one by one inside the content-edit queue, so renaming a common
+  label (후렴) holds every other edit behind the whole set. Measure a rename
+  that touches 1,000 songs and record it; if it is long, keep the labels-first
+  order but let the song writes go through the existing autosave and persistence
+  queues after memory is updated. Lead Approve. Written by the Codex session
+  that took over data's work. Rebased by the lead onto local `main` without
+  conflicts.
 
 ## Team member's reply
 
