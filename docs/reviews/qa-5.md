@@ -47,15 +47,11 @@ None.
 The known gaps in `docs/qa/m2-check.md`, against the explanation and
 measurements in `docs/reviews/output-15.md`.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict:
-- Findings:
-
-## Review: reviewer
-
-- Verdict:
-- Findings:
+- Round 1 (e6d7ab1): reviewer (Codex, codex2) Approve with no findings. Lead
+  Approve; the check sheet no longer warns about M2-5, fixed by output-15.
+  Rebased by the lead onto local `main` without conflicts.
 
 ## Team member's reply
 
