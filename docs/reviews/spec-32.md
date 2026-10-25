@@ -65,3 +65,14 @@ binding the host and selection callbacks. The workspace regression preserves
 position/count, forwards problems, and keeps this control in 진행. The
 controller's persistence and output race tests are in spec-31. No Electron
 process, visible window, soak, or memory measurement was started.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (6054fb4): reviewer (Claude, trial-97) Approve. Two nits for the next
+  spec branch: `SongBackgroundControl.tsx` `Picture` preloads the video preview
+  with `preload="auto"`; `preload="metadata"` is enough for one paused frame.
+  The background menu lists every non-audio media item (up to 10,000); add the
+  Menu's search as the service picker does. Lead Approve. Written by the Codex
+  session that took over spec's work, under the lead's exception for shell's
+  paths. Rebased by the lead onto local `main` without conflicts. M3-S1a is
+  complete apart from the relink action (P6a).
