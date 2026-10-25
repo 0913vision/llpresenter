@@ -104,13 +104,16 @@ the current file lookup, and broadcasts before waiting on persistence.
 guards. `register.test.ts` exercises these paths with the existing service and
 settings handlers in place.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-Pending.
-
-## Review: reviewer
-
-Pending.
+- Round 1 (396c3da): reviewer (Claude, trial-97) Approve with no findings: media
+  paths stay inside the allowed media roots; edits are revision checked; delete
+  keeps the file bytes; import, relink, and cancel answer an explicit
+  unavailable error until prep's P6a connects; every list is capped. A `newer`
+  original now stays read-only when an older recovery copy loads, in the media
+  and the settings loaders. Lead Approve. Written by the Codex session that took
+  over data's work. Rebased by the lead onto local `main` without conflicts.
+  M3-D2 is complete.
 
 ## Team member's reply
 
