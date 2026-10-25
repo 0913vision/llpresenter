@@ -5,7 +5,8 @@ Review range: `3a83ee2...feat/spec/song-background`
 - Team member: `spec`
 - Branch: `feat/spec/song-background`, from `main` (not stacked)
 - Base commit (`main`): `3a83ee2`
-- Code commit: `db99866`
+- Code commit: `2f95e4d`
+- Review round: 2
 - Last commit: the commit completing this review request
 - Task: `.llp/task.md`, M2 song background acceptance
 - Ownership exception: the lead granted the song-row shared schema, main-side
@@ -90,7 +91,7 @@ The implementation is separated in the requested order:
 The branch was rebased onto `main` once before final verification; it was
 already up to date at `3a83ee2`.
 
-## Checks run
+## Round 1 checks run
 
 | Check                                                     | Result                                                     |
 | --------------------------------------------------------- | ---------------------------------------------------------- |
@@ -122,7 +123,7 @@ alone after the fix. Final typecheck, targeted lint, formatting, build, and
 native sample checks also passed and are recorded separately. Logs:
 `.llp/spec17/verify.log` and `coverage-after-fix.log`.
 
-## QA sample check
+## Round 1 QA sample check
 
 The ignored runner copies `docs/qa/m2-check/sample` into a fresh isolated user
 data folder and launches the built application with
@@ -185,3 +186,43 @@ Please review the missing-file recheck at item activation, pending-output
 cancellation, and preservation of media identity and start time. File
 availability can still change after a successful check; the existing output
 renderer's last-frame/error handling continues to own a loss during playback.
+
+## Round 2 response
+
+Correction commit: `2f95e4d`, following the round 1 request at `83db1e5`.
+
+1. Refreshed slide validation now precedes both live commands. After applying
+   the returned projection, the renderer resolves the requested slide and
+   returns immediately if it no longer exists. Neither media nor lyrics change
+   for a removed tile. The regression starts with live lyrics and another
+   background, holds the service lookup, removes the requested third tile from
+   the returned projection, and asserts that no command is sent and the complete
+   live state retains its identity.
+2. Feed finalization now returns another refresh when work became pending in the
+   gap after `flush()` completed. The original promise adopts that refresh, so
+   existing callers and the late caller all await the drained work. The disposed
+   guard still suppresses new work during shutdown. The regression queues a
+   refresh in a microtask from the first push, placing it before the old
+   finalizer. It blocks the next background check, asserts that neither caller
+   has completed, then releases the check and verifies the latest projection at
+   revision 3.
+
+Both new regressions failed against round 1 code before the fixes: the removed
+slide sent `media.show`, and the late refresh never started its background
+check. With the fixes, the focused regression and integration checks pass.
+
+### Round 2 checks
+
+| Check                                                    | Result                       |
+| -------------------------------------------------------- | ---------------------------- |
+| Feed, background activation, store registration, preview | Pass: 4 files, 69 tests      |
+| `npm run typecheck`                                      | Pass                         |
+| Targeted ESLint                                          | Pass                         |
+| Formatting and `git diff --check`                        | Pass                         |
+| `npm run verify`, once for round 2                       | Pass: all 5 steps in 158.5 s |
+
+Round 2 verification ran exactly once on `2f95e4d`, with
+`LLP_TEST_WINDOWS=offscreen`: typecheck 8.5 s, lint 86.4 s, format check 39.8 s,
+coverage 158.5 s, and build 7.5 s. All five steps passed in 158.5 s. Log:
+`.llp/spec17/verify-round-2.log`. Only this review's result recording and
+formatting followed verification; no source changed afterward.
