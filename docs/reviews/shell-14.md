@@ -139,7 +139,7 @@ Round 1 (codex2), answered once:
 `npm run verify` on commit `df3d2f1` (base `main` 8e0d3b3) passed all five steps
 in 201.3 s: `typecheck`, `lint`, `format:check`, `test:coverage`, and `build`.
 
-I rebased onto `main` ccbf48a afterwards (ui-4 and the shell-13 approvals);
+I rebased onto `main` 342a9b8 afterwards (ui-4 and the shell-13 approvals);
 `typecheck` passed again, and the rebase had no conflicts.
 
 Round 2 (codex2), answered once:
