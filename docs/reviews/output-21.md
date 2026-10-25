@@ -85,9 +85,18 @@ least five minutes apart.
   HDMI unplug check is deferred until the user is awake, as the lead requested.
 - Full green GitHub CI is required. There is no GPU exception.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-## Review: reviewer
+- Round 1 (Claude, trial-97): Request changes: the placement relied on
+  `leave-full-screen` arriving after Windows restores the pre-full-screen bounds
+  (unproven), and a missing leave event would defer the windowed placement and
+  the reconnect forever.
+- Round 2 (fef8651): reviewer (Claude, trial-97) Approve. Nit, only if the
+  user's HDMI recheck still finds the window at the right edge: keep watching
+  `move` and `resize` until about the display settle plus a margin (about 1 s)
+  instead of stopping at `BOUNDS_RECHECK_MS` (100 ms). Lead Approve. Written by
+  the Codex session that took over output's work. Rebased by the lead onto local
+  `main` without conflicts.
 
 ## Team member's reply
 
