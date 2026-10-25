@@ -1,5 +1,9 @@
 # M2 checkpoint notes
 
+Latest result: [the 60-minute run 3](#soak-run-3-60-minutes-sk2-workload) fails
+on GPU growth. All other processes are flat in the full assessment and the last
+30 minutes. Run 2 remains below as historical evidence.
+
 ## Soak run 2: 20 minutes after output-15
 
 **Failed.** The existing judge reports growing private memory in `main`, `gpu`,
@@ -104,3 +108,121 @@ Raw record SHA-256:
 `b5d3559eb96a05ad29c46a27dbdfc9c03a379d7446142efc3a1d3c3c4e31ef52`. The parser
 and judge results were saved from the tested source before the documentation
 branch was rebased for review. Evidence remains local and is not committed.
+
+## Soak run 3: 60 minutes (SK2 workload)
+
+**Failed on GPU memory growth.** The official 60-minute judge reports every
+other process as flat. The separate last-30-minute assessment also reports GPU
+growth. Main output fps has median and minimum 60 in both assessments. There
+were no process relaunches, dropped record lines, or app warnings or errors.
+
+### Build and method
+
+- Tested local main snapshot `b7c61e3fd283b6ccba6f542bdad088bf1e436356`, version
+  `0.12.0`.
+- Recording ran on October 25, 2026, from 17:26:57 to 18:26:57 KST. Including
+  clip preparation, the runner ran from 17:26:34 to 18:26:57. The app quit
+  normally; the runner returned exit code 1 for the failed judgement.
+- Built that snapshot, then ran exactly one `npm run soak -- --minutes 60`. The
+  unchanged devops scenario loops a generated 5,013,551-byte, 1920x1080 VP8
+  clip, 300 frames over 10 seconds, on the main output. It cycles through 12
+  invented slides, changing slides every 5 seconds, as in run 2.
+- Every launch used `LLP_TEST_WINDOWS=offscreen`. No inspector, CDP, forced GC,
+  heap flags, QA window wrapper, or app patch was used. The runner removed every
+  spelling of `NODE_OPTIONS`. This QA session ran no heavy checks during
+  recording. Process-local `TEMP` and `TMP` kept all generated data under the
+  ignored `.llp/qa/soak-3/` in this worktree.
+- Two real monitors were detected at 100%: primary 3440x1440 at (0, 0),
+  secondary 1920x1080 at (3440, 222). The main output had `fullscreen` placement
+  on the secondary monitor while its window stayed offscreen.
+- 359 valid 10-second samples cover 3,593,136 ms, or 59.886 minutes, within the
+  judge's 60-second coverage tolerance. Each process has one unchanged PID
+  across all samples.
+
+The official judgement uses the unchanged 60-minute settings: 5-minute warm-up,
+12 windows over minutes 5 to 60, at least 3 samples per window, and a 4 MiB/h
+growth threshold. Rates are Theil-Sen slopes through each window's lowest
+private-memory value, using KB/1024 as in the judge.
+
+For the requested late assessment, select elapsed times from 30:00 to 60:00 and
+subtract 30 minutes from their timestamps. Judge those 180 samples with zero
+additional warm-up and six 5-minute windows, retaining the other thresholds. The
+selected record covers 29.886 minutes. This supplementary assessment does not
+change the official verdict. In each assessment, `growing` requires both the
+selected-period slope and its later-half slope to reach 4 MiB/h.
+
+### Full and last-30-minute trends
+
+| Process                                | Official full judge | Full rise (MiB/h) | Last 30 judge | Last 30 rise (MiB/h) |
+| -------------------------------------- | ------------------- | ----------------- | ------------- | -------------------- |
+| `main`                                 | flat                | +2.38             | flat          | +0.86                |
+| `gpu`                                  | growing             | +8.77             | growing       | +13.18               |
+| `control`                              | flat                | +1.64             | flat          | -0.96                |
+| `output:main`                          | flat                | +8.69             | flat          | +0.71                |
+| `utility:network.mojom.NetworkService` | flat                | +0.00             | flat          | +0.00                |
+
+The output renderer's positive full-period slope does not make it `growing`
+under the existing rule because its later-half slope is below the threshold. Its
+six late window minima are 99.93, 99.92, 99.94, 100.00, 100.12, and 100.17 MiB.
+Main and output did not sustain above-threshold growth in the last 30 minutes of
+this run.
+
+GPU growth remains in the late assessment. Its six late window minima are
+449.34, 452.63, 452.54, 452.60, 452.57, and 474.22 MiB. The first and last late
+samples are 450.07 and 474.88 MiB, a 24.81 MiB endpoint increase. GPU stepped
+from about 453 to 475 MiB near minute 52, so the remaining failure cannot be
+attributed solely to initial warm-up. Its allocation-level cause and
+normal-window behavior were not investigated in this task.
+
+### Sampled peaks
+
+Values are MiB. These are 10-second sampled maxima, including warm-up in the
+full-run columns, rather than continuous allocation peaks.
+
+| Process                                | Full private peak | Last 30 private peak | Full working-set peak | Last 30 working-set peak |
+| -------------------------------------- | ----------------- | -------------------- | --------------------- | ------------------------ |
+| `main`                                 | 87.4              | 87.4                 | 118.3                 | 118.3                    |
+| `gpu`                                  | 474.9             | 474.9                | 349.2                 | 349.2                    |
+| `control`                              | 137.0             | 133.6                | 273.1                 | 270.5                    |
+| `output:main`                          | 101.1             | 101.1                | 185.6                 | 185.6                    |
+| `utility:network.mojom.NetworkService` | 12.6              | 12.0                 | 48.3                  | 48.0                     |
+
+Main ranged from 76.2 to 87.4 MiB across all samples. The earlier multi-gigabyte
+main-process swing did not recur in these samples. The tested judge has no
+separate peak-memory failure gate.
+
+### Frame rates, cleanup, and scope
+
+| Output and assessment            | Median fps | Lowest fps | Below-target warning |
+| -------------------------------- | ---------- | ---------- | -------------------- |
+| `main`, full judge after warm-up | 60.0       | 60.0       | No                   |
+| `main`, last 30 minutes          | 60.0       | 60.0       | No                   |
+
+PIDs were main 48224, GPU 38540, control 26944, output 49512, and network 50580.
+No PID changed, and all five were gone after normal shutdown.
+
+This is the requested SK2 memory workload and existing recorder. Fps values are
+offscreen observations; visible stutter, stage output, independent frame
+capture, and start/end DOM counters were not assessed. GPU growth keeps the
+memory criterion open. No app code changed and no further run started. The lead
+can route the GPU evidence for investigation.
+
+### Record and logs
+
+All paths are under
+`D:\programming\2020-\pp\.claude\worktrees\qa\.llp\qa\soak-3\`:
+
+| Evidence                                                       | Relative path                   |
+| -------------------------------------------------------------- | ------------------------------- |
+| Raw record                                                     | `llp-soak-bdbomO/soak.jsonl`    |
+| App log                                                        | `llp-soak-bdbomO/logs/main.log` |
+| Runner/app console and official verdict                        | `runner.log`                    |
+| Command, tested commit, start/end, exit                        | `launch.json`                   |
+| Both verdicts, options, peaks, endpoints, PIDs, media metadata | `analysis.json`                 |
+| Original full judgement                                        | `judge.txt`                     |
+| Supplementary last-30-minute judgement                         | `judge-last-30.txt`             |
+
+Raw record SHA-256:
+`a8b4a39089841d97fd7706b6c2795e071ee1ba6113730b255ba69313da00a651`. Both
+assessments were extracted from the tested source before rebasing the
+documentation branch. Raw evidence remains local and is not committed.
