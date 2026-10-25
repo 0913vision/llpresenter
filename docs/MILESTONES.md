@@ -35,16 +35,19 @@ Every member owns their own `docs/reviews/<name>-<number>.md`, and a member who
 rebases regenerates `package-lock.json` (take `main`'s file, then
 `npm install`).
 
-| Owner  | Paths                                                                                                                                                                                                                                                                                          |
-| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| devops | `.github/`, `.githooks/`, `scripts/` (lint, soak, version, verify, gallery, and the SessionStart hook), `src/main/soak/`, `test/`, `vitest.config.mts`, `eslint.config.mjs`, `tsconfig*.json`, and the `scripts` and `devDependencies` of `package.json`                                       |
-| data   | `src/shared/` (types, commands, IPC channels, schemas), `src/preload/`, `src/main/store/`, and the `dependencies` of `package.json`                                                                                                                                                            |
-| ui     | `src/renderer/src/ui/`, `src/renderer/gallery.html`, `src/renderer/src/styles/`, `design/system/`                                                                                                                                                                                              |
-| shell  | `src/renderer/src/shell/`, `src/renderer/src/control/`, `src/renderer/src/state/`, `src/renderer/src/show/`, `src/main/uiState/`                                                                                                                                                               |
-| output | `src/main/index.ts` (wiring), `src/main/log.ts`, `src/main/ipc.ts`, `src/main/live/`, `src/main/windows/`, `src/main/displays/`, `src/main/outputs/`, `src/renderer/index.html`, `src/renderer/output.html`, `src/renderer/src/output/`, `src/renderer/src/render/`, `electron.vite.config.ts` |
-| spec   | `docs/spec/`, `docs/plans/`                                                                                                                                                                                                                                                                    |
-| qa     | `docs/qa/`                                                                                                                                                                                                                                                                                     |
-| lead   | `CLAUDE.md`, `README.md`, the rest of `docs/`, `design/drafts/`, `.claude/`, `.gitignore`, `.prettierrc.json`, `.editorconfig`                                                                                                                                                                 |
+| Owner   | Paths                                                                                                                                                                                                                                                                                          |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| devops  | `.github/`, `.githooks/`, `scripts/` (lint, soak, version, verify, gallery, and the SessionStart hook), `src/main/soak/`, `test/`, `vitest.config.mts`, `eslint.config.mjs`, `tsconfig*.json`, and the `scripts` and `devDependencies` of `package.json`                                       |
+| data    | `src/shared/` (types, commands, IPC channels, schemas), `src/preload/`, `src/main/store/`, `src/main/search/`, `src/main/import/`, and the `dependencies` of `package.json`                                                                                                                    |
+| ui      | `src/renderer/src/ui/`, `src/renderer/gallery.html`, `src/renderer/src/styles/`, `design/system/`                                                                                                                                                                                              |
+| shell   | `src/renderer/src/shell/`, `src/renderer/src/control/`, `src/renderer/src/state/`, `src/renderer/src/show/` (except `tools/`, `quick/`, `bible/`), `src/main/uiState/`                                                                                                                         |
+| output  | `src/main/index.ts` (wiring), `src/main/log.ts`, `src/main/ipc.ts`, `src/main/live/`, `src/main/windows/`, `src/main/displays/`, `src/main/outputs/`, `src/renderer/index.html`, `src/renderer/output.html`, `src/renderer/src/output/`, `src/renderer/src/render/`, `electron.vite.config.ts` |
+| spec    | `docs/spec/`, `docs/plans/`                                                                                                                                                                                                                                                                    |
+| qa      | `docs/qa/`                                                                                                                                                                                                                                                                                     |
+| prep    | `src/renderer/src/prep/`, `src/main/media/` (from the M2 freeze; no member yet, Codex members work here under one-feature lead exceptions)                                                                                                                                                     |
+| screens | `src/renderer/src/screens/` (from the M2 freeze; output takes it if no member joins)                                                                                                                                                                                                           |
+| tools   | `src/renderer/src/show/tools/`, `src/renderer/src/show/quick/`, `src/renderer/src/show/bible/`, `src/main/macros/`, `src/main/bible/` (from the M2 freeze; no member yet)                                                                                                                      |
+| lead    | `CLAUDE.md`, `README.md`, the rest of `docs/`, `design/drafts/`, `.claude/`, `.gitignore`, `.prettierrc.json`, `.editorconfig`                                                                                                                                                                 |
 
 A member who needs a new module wired into the main process exports a
 `register...` function and asks output to call it from `src/main/index.ts`.
@@ -83,10 +86,11 @@ Acceptance criteria (QA):
 
 ## M2: Vertical slice
 
-Status: in progress. Output windows, rendering, the file store, the 진행 keys,
-header, clear row, and previews are merged or in review; open: the media library
-lookup, backups, the offscreen test switch, ui-4 and ui-7, the soak run, and the
-run with the user on real monitors.
+Status: frozen on October 26, 2026 as tag `m2` (at 3d8a38b, the build the user
+checked on real monitors). The 60-minute two-monitor run, the force-quit check,
+and two HDMI unplug checks passed (`docs/qa/m2-notes.md`). The one open
+criterion, GPU process memory growth (bug M2-8, about +10 MiB/h), moved to M3 by
+the user's decision (`docs/decisions.md`, October 25).
 
 | Task                                                                                                                                                         | Owner (planned) |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------- |
@@ -118,8 +122,9 @@ Acceptance criteria (QA), from `docs/PLAN.md` phase 2:
 
 ## M3: Feature bundles
 
-Status: planned. The prep, output, and tools bundles from `docs/PLAN.md` phase
-3, split among the members by area.
+Status: in progress since the M2 freeze; the plan and its requests are in
+`docs/plans/m3-breakdown.md`, and M2-8 is carried into it. The prep, output, and
+tools bundles from `docs/PLAN.md` phase 3, split among the members by area.
 
 ## M4: Polish, settings, and shortcuts
 
