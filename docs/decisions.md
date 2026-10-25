@@ -330,3 +330,18 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   `src/main/import/`. UTF-8 and UTF-16 stay on the strict built-in decoder.
   Output that would contain replacement characters is rejected, never returned
   as lyrics.
+
+## 2026-10-26: A 구성 never loses lyrics through a split or merge
+
+- Spec 02 defines how 구성 (arrangement) references follow an inserted, deleted,
+  or moved 슬라이드, but not a split or a merge in the song editor. The lead
+  decides, after ui-21's review: a split or a merge never drops lyrics from a
+  구성.
+- Split (Enter on an empty line, or a paste with blank lines): every reference
+  to the split 슬라이드 expands to all its parts in order (a 구성 `[1, 3, 3]`
+  whose 슬라이드 3 splits into 3 and 4 becomes `[1, 3, 4, 3, 4]`).
+- Merge (Backspace at the start of a block): references to the removed block map
+  to the merged block, and an adjacent duplicate that the merge creates
+  collapses into one (`[2, 3]` becomes `[2]` when 3 merges into 2; a 구성 `[3]`
+  becomes `[2]`).
+- Only deleting a 슬라이드 removes its references, as spec 02 says.
