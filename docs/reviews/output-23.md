@@ -201,3 +201,17 @@ The branch was rebased onto main including data-35 immediately before the round
 2 push, without conflicts. GitHub full verify passed on the round 2 code,
 including coverage tests and build. The final documentation-only HEAD run is
 linked in the round 2 review request.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (Claude, trial-97): Request changes: the overlay slices imported
+  valibot outside `src/shared/schema/`, and the output renderer imported the
+  notice clock from `src/main/`.
+- Round 2 (9bc2b87): reviewer (Claude, trial-97) Approve: both fixed on
+  data-35's helpers and `src/shared/noticeClock.ts`; clear, undo, and expiry
+  traced (a cleared 메시지 keeps its remaining time, a 공지 resumes on its
+  image). Lead Approve, including the lead-allowed changes to data's
+  `liveActions.test.ts` and shell's `PreviewPanel.tsx` and `ScreenPreview.tsx`.
+  The 60-minute overlay soak is deferred to qa (scenario above). Written by the
+  Codex session that took over output's work. Rebased by the lead onto local
+  `main` without conflicts. M3-O6a is complete apart from the soak.
