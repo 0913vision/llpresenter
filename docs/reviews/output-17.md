@@ -111,15 +111,14 @@ weaken the pixel regression.
 - [x] No product behavior, shared contracts, dependencies, or unowned files
       change.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: pending
-- Findings:
-
-## Review: reviewer
-
-- Verdict: pending
-- Findings:
+- Round 1 (c6a2de9): reviewer (Codex, codex3) Approve with no findings. Lead
+  Approve; the transparent PNG pixel test gives Electron's start its own
+  120-second deadline apart from the 30-second pixel check, and waits for
+  Electron to close on failure and timeout, so a full parallel `verify` passes
+  (twice in a row, 92.5 s and 92.7 s). The proposal to move Electron tests to a
+  separate serial step is noted for devops. Fast-forward merge.
 
 ## Team member's reply
 
