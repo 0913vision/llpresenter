@@ -1,6 +1,6 @@
 # Review request: `shell-14`
 
-Review range: 342a9b8...feat/shell/service-data
+Review range: ccbf48a...feat/shell/service-data
 
 What to check: that 진행 shows the service from `window.llp.service` and no
 longer an invented sample; that an older revision of the same service is
@@ -11,7 +11,7 @@ warning icon, tooltips, and read-only mark follow the row problems of
 
 - Team member: `shell`
 - Branch: `feat/shell/service-data`
-- Base commit (`main`): `342a9b8`
+- Base commit (`main`): `ccbf48a`
 - Last commit: see the commit that adds this file
 - Related brief: `docs/spec/` (the `ShowService` view model in `src/shared`)
 
@@ -139,7 +139,7 @@ Round 1 (codex2), answered once:
 `npm run verify` on commit `df3d2f1` (base `main` 8e0d3b3) passed all five steps
 in 201.3 s: `typecheck`, `lint`, `format:check`, `test:coverage`, and `build`.
 
-I rebased onto `main` 342a9b8 afterwards (ui-4 and the shell-13 approvals);
+I rebased onto `main` ccbf48a afterwards (ui-4 and the shell-13 approvals);
 `typecheck` passed again, and the rebase had no conflicts.
 
 Round 2 (codex2), answered once:
@@ -154,3 +154,7 @@ Round 2 (codex2), answered once:
    `state/servicePreload.test.ts` runs the sync against the real preload with
    `electron` mocked: a rejected call and a malformed reply keep the view and
    log one error, a real null clears it, and a valid reply is shown.
+
+Round 3 checks: I rebased onto `main` ccbf48a (data-16 and shell-15 are in it).
+`npm run verify` on commit `4832e1e` passed all five steps in 225.4 s:
+`typecheck`, `lint`, `format:check`, `test:coverage`, and `build`.
