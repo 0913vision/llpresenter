@@ -26,8 +26,13 @@ import {Saver} from './saver';
 import {removeStaleTempFiles} from './staleTempFiles';
 import {settingsNames} from '@shared/schema/settingsDocuments';
 import {settingsLocation} from './settingsFile';
-import {openSettingsStore, type SettingsProblemListener} from './settingsStore';
-import {registerSettingsReads} from './settingsChannels';
+import {
+  openSettingsStore,
+  type SettingsProblemListener,
+  type SettingsReader,
+  type SettingsStore,
+} from './settingsStore';
+import {registerSettingsChannels} from './settingsChannels';
 
 const MAX_LOGGED_PROBLEMS = 50;
 
@@ -35,6 +40,7 @@ interface OpenedContent {
   readonly content: ContentStore;
   readonly feed: OpenServiceFeed;
   readonly search: SongSearchIndex;
+  readonly removeSettings: () => void;
 }
 
 export interface StoreRegistration {
@@ -49,6 +55,7 @@ export interface StoreRegistration {
 
 /** What the main process wiring uses of the data store. */
 export interface DataStore {
+  readonly settings: Promise<SettingsReader | null>;
   readonly subscribeSettingsProblems: (
     listener: SettingsProblemListener,
   ) => () => void;
@@ -82,18 +89,20 @@ export function registerStore({
   context = electronLocationContext,
 }: StoreRegistration): DataStore {
   const loading = readStore(() => ({...context(), appConfig}), log);
-  const opened = openContent(loading, log);
   const settings = loading
     .then(store => (store === null ? null : openSettingsStore(store, log)))
     .catch((error: unknown) => {
       log.error('could not open app-wide settings', error);
       return null;
     });
-  const settingsChannels = registerSettingsReads(settings, log);
+  const opened = openContent(loading, log, settings);
+  const settingsChannels = registerSettingsChannels(settings, log);
   ipcMain.handle(Channels.serviceGet, async () => currentService(opened));
   ipcMain.handle(Channels.preferencesGet, async () => {
-    await settings;
-    return (await loading)?.preferences ?? defaultPreferences;
+    const ready = await settings;
+    return (
+      ready?.preferences() ?? (await loading)?.preferences ?? defaultPreferences
+    );
   });
   const removeContentChannels = registerContentChannels(contentOf(opened), log);
   const removeSearch = registerLibrarySearch(
@@ -103,6 +112,7 @@ export function registerStore({
   const upkeep = upkeepAtLaunch(loading, isAnyOutputOn, log);
   const media = new LoadingMediaLibrary(loading);
   return {
+    settings,
     subscribeSettingsProblems: settingsChannels.subscribe,
     dispose: async () => {
       await settingsChannels.dispose();
@@ -112,6 +122,7 @@ export function registerStore({
       removeSearch();
       await upkeep;
       const ready = await opened;
+      ready?.removeSettings();
       await ready?.feed.dispose();
       try {
         await ready?.content.flush();
@@ -155,13 +166,14 @@ async function readStore(
 async function openContent(
   loading: Promise<LoadedStore | null>,
   log: Logger,
+  settings: Promise<SettingsStore | null>,
 ): Promise<OpenedContent | null> {
   const store = await loading;
   if (store === null) {
     return null;
   }
   try {
-    return await createContent(store, log);
+    return await createContent(store, log, await settings);
   } catch (error: unknown) {
     log.error('could not open the songs and 예배 순서', error);
     return null;
@@ -171,13 +183,15 @@ async function openContent(
 async function createContent(
   store: LoadedStore,
   log: Logger,
+  settings: SettingsStore | null,
 ): Promise<OpenedContent> {
   const search = await buildSongSearchIndex(
     [...store.songs.values()].map(({data}) => data),
   );
   const copies = new RecoveryCopies({
     folder: store.locations.recovery,
-    keep: () => store.preferences.backupCopies,
+    keep: () =>
+      settings?.preferences().backupCopies ?? store.preferences.backupCopies,
   });
   const saver = new Saver({
     copies,
@@ -211,15 +225,30 @@ async function createContent(
   feed = new OpenServiceFeed(
     {
       serviceId: store.openServiceId,
-      labels: store.labels,
+      get labels() {
+        const document = settings?.get('labels');
+        return document?.name === 'labels'
+          ? document.value.labels
+          : store.labels;
+      },
       content,
       backgroundOf: id => store.media.backgroundOf(id),
     },
     service => broadcast(Channels.serviceChanged, service, log),
     error => log.error('could not refresh the open 예배 순서', error),
   );
+  const removeSettings =
+    settings?.subscribe(document => {
+      if (document.name === 'labels') {
+        feed
+          .refresh()
+          .catch((error: unknown) =>
+            log.error('could not refresh labels in the open service', error),
+          );
+      }
+    }) ?? (() => undefined);
   await feed.refresh();
-  return {content, feed, search};
+  return {content, feed, search, removeSettings};
 }
 
 async function currentService(opened: Promise<OpenedContent | null>) {

@@ -13,8 +13,12 @@ describe('settings problem subscriptions', () => {
     },
   } as const;
 
-  it('replays one event per skipped file, deduplicates a listener, and releases it', () => {
-    const store = new SettingsStore(new Map(), [problem], recordingLogger());
+  it('replays one event per skipped file, deduplicates a listener, and releases it', async () => {
+    const store = new SettingsStore({
+      documents: new Map(),
+      problems: [problem],
+      log: recordingLogger(),
+    });
     const listener = vi.fn();
     const remove = store.subscribeProblems(listener);
     store.subscribeProblems(listener);
@@ -23,16 +27,20 @@ describe('settings problem subscriptions', () => {
     remove();
     expect(store.listenerCount).toBe(0);
     store.subscribeProblems(listener);
-    store.dispose();
+    await store.dispose();
     expect(store.listenerCount).toBe(0);
     const late = vi.fn();
     store.subscribeProblems(late);
     expect(late).not.toHaveBeenCalled();
   });
 
-  it('keeps a failing listener from preventing later listeners', () => {
+  it('keeps a failing listener from preventing later listeners', async () => {
     const log = recordingLogger();
-    const store = new SettingsStore(new Map(), [problem], log);
+    const store = new SettingsStore({
+      documents: new Map(),
+      problems: [problem],
+      log,
+    });
     store.subscribeProblems(() => {
       throw new Error('listener failed');
     });
@@ -40,6 +48,6 @@ describe('settings problem subscriptions', () => {
     store.subscribeProblems(listener);
     expect(listener).toHaveBeenCalledWith(problem);
     expect(log.messages('error')).toEqual(['settings problem listener failed']);
-    store.dispose();
+    await store.dispose();
   });
 });

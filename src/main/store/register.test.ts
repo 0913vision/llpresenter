@@ -135,6 +135,148 @@ afterEach(async () => {
 });
 
 describe('registerStore', () => {
+  it('pushes a settings edit before the disk answer and retains current extensions across restart', async () => {
+    const context = await developmentContext();
+    const file = join(
+      context.appDataFolder,
+      DATA_FOLDER_NAME,
+      '설정',
+      'messages.json',
+    );
+    const template = {
+      id: HYMN_ONE_ID,
+      name: 'Before',
+      icon: 'msg',
+      text: 'Old invented message',
+    };
+    const base = {
+      format: 'llsettings.messages',
+      schemaVersion: 1,
+      stagePresets: [],
+    };
+    await writeJson(file, {
+      ...base,
+      templates: [
+        {...template, targets: 'all', duration: null, future: 'kept'},
+      ],
+      future: {enabled: true},
+    });
+    const first = await register(fakeLog(), context, () => true);
+    await ask(Channels.settingsGet, {name: 'messages'});
+    electron.send.mockClear();
+    const updated = {...template, name: 'After', text: 'New invented message'};
+    const expected = {
+      ...base,
+      templates: [{...updated, future: 'kept'}],
+      future: {enabled: true},
+    };
+    const pending = ask(Channels.settingsEdit, {
+      type: 'settings.update',
+      name: 'messages',
+      value: {...base, templates: [updated]},
+      baseRevision: 1,
+    });
+    await Promise.resolve();
+    expect(electron.send).toHaveBeenCalledWith(Channels.settingsChanged, {
+      name: 'messages',
+      value: expected,
+      revision: 2,
+      access: 'editable',
+    });
+    expect(await pending).toEqual({
+      ok: true,
+      value: {id: 'messages', revision: 2},
+    });
+    expect(JSON.parse(await readFile(file, 'utf8'))).toEqual(expected);
+    await first.dispose();
+    await register(fakeLog(), context, () => true);
+    expect(await ask(Channels.settingsGet, {name: 'messages'})).toEqual({
+      name: 'messages',
+      value: expected,
+      revision: 1,
+      access: 'editable',
+    });
+  });
+
+  it('reads and pushes normalized preferences from the edited canonical document', async () => {
+    const context = await developmentContext();
+    const file = join(
+      context.appDataFolder,
+      DATA_FOLDER_NAME,
+      '설정',
+      'preferences.json',
+    );
+    const value = {format: 'llsettings.preferences', schemaVersion: 1};
+    await writeJson(file, {
+      ...value,
+      show: {showClearUndoButton: false, future: 'kept'},
+    });
+    await register(fakeLog(), context, () => true);
+    await ask(Channels.settingsGet, {name: 'preferences'});
+    const pending = ask(Channels.settingsEdit, {
+      type: 'settings.update',
+      name: 'preferences',
+      value: {...value, show: {showClearUndoButton: true}},
+      baseRevision: 1,
+    });
+    await Promise.resolve();
+    const normalized = await ask(Channels.preferencesGet);
+    expect(parsePreferencesValue(normalized).ok).toBe(true);
+    expect(normalized).toMatchObject({
+      show: {showClearUndoButton: true, future: 'kept'},
+      backupCopies: 10,
+    });
+    expect(electron.send).toHaveBeenCalledWith(
+      Channels.preferencesChanged,
+      normalized,
+    );
+    expect(await pending).toEqual({
+      ok: true,
+      value: {id: 'preferences', revision: 2},
+    });
+  });
+
+  it('refuses invalid edits and newer settings without mutating or broadcasting them', async () => {
+    const context = await developmentContext();
+    const file = join(
+      context.appDataFolder,
+      DATA_FOLDER_NAME,
+      '설정',
+      'messages.json',
+    );
+    const value = {
+      format: 'llsettings.messages',
+      schemaVersion: 2,
+      templates: [],
+      stagePresets: [],
+      future: true,
+    };
+    await writeJson(file, value);
+    const store = await register(fakeLog(), context, () => true);
+    await ask(Channels.settingsGet, {name: 'messages'});
+    electron.send.mockClear();
+    expect(
+      await ask(Channels.settingsEdit, {
+        type: 'settings.update',
+        name: '../app',
+        value,
+        baseRevision: 1,
+      }),
+    ).toMatchObject({ok: false, error: {reason: 'invalid'}});
+    expect(
+      await ask(Channels.settingsEdit, {
+        type: 'settings.update',
+        name: 'messages',
+        value,
+        baseRevision: 1,
+      }),
+    ).toMatchObject({ok: false, error: {reason: 'read-only'}});
+    expect(electron.send).not.toHaveBeenCalled();
+    expect(JSON.parse(await readFile(file, 'utf8'))).toEqual(value);
+    await store.dispose();
+    expect(electron.handlers.has(Channels.settingsEdit)).toBe(false);
+  });
+
   it('creates every missing settings file with valid defaults and serves revisioned reads', async () => {
     const context = await developmentContext();
     await register(fakeLog(), context, () => true);

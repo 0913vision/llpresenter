@@ -33,6 +33,10 @@ interface RecoveryCopy<T> {
   readonly loaded: LoadedFile<T>;
 }
 
+export function settingsFileName(area: string): string {
+  return `${area}${SETTINGS_FILE_EXTENSION}`;
+}
+
 /**
  * Where the settings file of an area is, such as `labels` for
  * `설정/labels.json`, with its copies in `.복구 사본/settings/labels`.
@@ -42,7 +46,7 @@ export function settingsLocation(
   area: string,
 ): SettingsLocation {
   return {
-    file: join(locations.settings, `${area}${SETTINGS_FILE_EXTENSION}`),
+    file: join(locations.settings, settingsFileName(area)),
     copies: join(locations.recovery, SETTINGS_COPY_KIND, area),
   };
 }
