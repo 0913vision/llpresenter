@@ -79,7 +79,12 @@ missing.
 
 ## Verdicts (recorded by the lead at merge)
 
-- Not reviewed yet.
+- Round 1 (e6a9e29): reviewer (Codex, codex2) Approve with no findings. Lead
+  Approve; shell's user-visible strings use 슬라이드 instead of 장 (user
+  feedback row 2), so the 진행 tab reads "슬라이드 | 미디어" and the header
+  count reads "슬라이드 4개" in the README count format (lead confirmed).
+  English comments and test names follow in shell's next branch. Fast-forward
+  merge.
 
 ## Verify result
 
