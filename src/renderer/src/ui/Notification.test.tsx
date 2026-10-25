@@ -198,6 +198,27 @@ describe('NotificationStack', () => {
     expect(document.activeElement).toBe(button('만들기'));
   });
 
+  it('cancels the open dialog once on Esc from a card, and the card stays', async () => {
+    const onCancel = vi.fn();
+    render(
+      <>
+        <NotificationStack notices={[lost]} onClose={() => {}} />
+        <Dialog
+          title="새 예배"
+          size="s"
+          onCancel={onCancel}
+          primary={{label: '만들기', onSelect: () => {}}}
+        >
+          본문
+        </Dialog>
+      </>,
+    );
+    screen.getByRole('button', {name: '창 보기'}).focus();
+    await userEvent.keyboard('{Escape}');
+    expect(onCancel).toHaveBeenCalledOnce();
+    expect(screen.getByRole('alert')).toBeDefined();
+  });
+
   it('takes a closed card off', async () => {
     render(<Stack initial={[lost, back]} />);
     await userEvent.click(

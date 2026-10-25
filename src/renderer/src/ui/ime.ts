@@ -8,5 +8,10 @@ const IME_PROCESS_KEY = 'Process';
  * on them: Enter confirms the text and Esc cancels it.
  */
 export function isComposing(event: KeyboardEvent): boolean {
-  return event.nativeEvent.isComposing || event.key === IME_PROCESS_KEY;
+  return isComposingKey(event.nativeEvent);
+}
+
+/** The same check for a key event from the DOM, outside React. */
+export function isComposingKey(event: globalThis.KeyboardEvent): boolean {
+  return event.isComposing || event.key === IME_PROCESS_KEY;
 }

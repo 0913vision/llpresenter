@@ -1,9 +1,10 @@
 import {
   useEffect,
+  useEffectEvent,
   type KeyboardEvent as ReactKeyboardEvent,
   type RefObject,
 } from 'react';
-import {isComposing} from './ime';
+import {isComposing, isComposingKey} from './ime';
 import {findLayerContainer} from './layers';
 import {modalStack} from './modalStack';
 
@@ -121,13 +122,42 @@ function moveInFocusCycle(event: KeyboardEvent, surface: HTMLElement): void {
   next?.focus();
 }
 
-function useTabCycle(surface: RefObject<HTMLElement | null>): void {
+function isOnNotificationCard(target: EventTarget | null): boolean {
+  const notifications = findLayerContainer('notification');
+  return (
+    notifications !== null &&
+    target instanceof Node &&
+    notifications.contains(target)
+  );
+}
+
+// NOTE(0913vision): The notification cards sit outside the modal, so the keys
+// the modal owns while focus is on a card come here: Tab cycles, and Esc does
+// what [취소] does (the cards themselves never close with Esc).
+function useKeysFromNotificationCards(
+  surface: RefObject<HTMLElement | null>,
+  onEscape: (() => void) | undefined,
+): void {
+  const escape = useEffectEvent((): boolean => {
+    if (onEscape === undefined) return false;
+    onEscape();
+    return true;
+  });
   useEffect(() => {
     const element = surface.current;
     if (element === null) return undefined;
     const onKeyDown = (event: KeyboardEvent): void => {
-      if (event.key !== 'Tab' || event.defaultPrevented) return;
-      if (modalStack.isTop(element)) moveInFocusCycle(event, element);
+      if (event.defaultPrevented || !modalStack.isTop(element)) return;
+      if (event.key === 'Tab') {
+        moveInFocusCycle(event, element);
+      } else if (
+        event.key === 'Escape' &&
+        !isComposingKey(event) &&
+        isOnNotificationCard(event.target) &&
+        escape()
+      ) {
+        event.preventDefault();
+      }
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
@@ -165,7 +195,7 @@ export function useModal({
       if (opener?.isConnected === true) opener.focus();
     };
   }, [surface, initialFocus]);
-  useTabCycle(surface);
+  useKeysFromNotificationCards(surface, onEscape);
 
   return event => {
     switch (event.key) {
