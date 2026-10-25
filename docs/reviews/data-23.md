@@ -125,20 +125,11 @@ report. No local full verify was run.
 
 ---
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Team member's reply
-
-1.
+- Round 1 (d434655): reviewer (Codex, codex2) Approve with no findings. Lead
+  Approve. Nit for the next data branch: `LibrarySearchRequest.limit` has no
+  upper bound and an absent limit returns every match; cap it (for example 200)
+  so that one IPC reply stays bounded (CLAUDE.md, cap every list). Written by
+  the Codex session that took over data's work. Rebased by the lead onto local
+  `main` without conflicts.

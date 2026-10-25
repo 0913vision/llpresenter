@@ -87,20 +87,10 @@ alongside it without replacing this read or making `ui.get()` own a copy.
 
 ---
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Team member's reply
-
-1.
+- Round 1 (2079d1b): reviewer (Codex, codex3) Approve with no findings. Lead
+  Approve: `preferences.get()` returns normalized preferences with
+  `show.showClearUndoButton` false by default, the prerequisite for spec-18.
+  Written by the Codex session that took over data's work. Rebased by the lead
+  onto local `main` after data-23 without conflicts.
