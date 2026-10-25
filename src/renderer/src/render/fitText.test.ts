@@ -2,7 +2,7 @@ import {describe, expect, it, vi} from 'vitest';
 import {fitFontSize} from './fitText';
 
 describe('fitFontSize', () => {
-  it('uses a whole pixel size no larger than a scaled fractional style size', () => {
+  it('floors a scaled fractional style size and keeps the one-pixel minimum', () => {
     expect(fitFontSize((85 * 2) / 3, () => true)).toBe(56);
     expect(fitFontSize(0.5, () => true)).toBe(1);
   });

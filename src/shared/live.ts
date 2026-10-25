@@ -3,6 +3,7 @@ import type {
   ActiveProp,
   NoticePlayback,
 } from './schema/overlayState';
+import type {LookId} from './schema/ids';
 export type {
   ActiveMessage,
   ActiveProp,
@@ -76,6 +77,8 @@ export interface LiveLayers {
 
 /** The live output state. The main process owns it; windows receive copies. */
 export interface LiveState {
+  /** The selected Look; absent or null uses the saved current Look. */
+  readonly lookId?: LookId | null;
   readonly stageMessage?: string | null;
   /** Increases by one on every change. Windows drop states older than the one they have. */
   readonly version: number;

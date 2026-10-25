@@ -24,6 +24,25 @@ function busyState(): LiveState {
 }
 
 describe('parseLiveState', () => {
+  it.each([null, '00000000-0000-4000-8000-000000000004'])(
+    'preserves an optional current Look %s',
+    lookId => {
+      const state = {...emptyLiveState(), lookId};
+      expect(parseLiveState(state)).toEqual({ok: true, value: state});
+    },
+  );
+
+  it.each([
+    undefined,
+    '',
+    'main',
+    'a'.repeat(37),
+    '00000000-0000-1000-8000-000000000004',
+    ['00000000-0000-4000-8000-000000000004'],
+  ])('rejects an invalid current Look %j', lookId => {
+    const result = parseLiveState({...emptyLiveState(), lookId});
+    expect(result.ok ? undefined : result.error.field).toBe('lookId');
+  });
   it('accepts an empty state and a state with every layer', () => {
     expect(parseLiveState(emptyLiveState())).toEqual({
       ok: true,

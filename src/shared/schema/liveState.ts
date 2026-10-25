@@ -3,6 +3,7 @@ import type {LayerKind, LiveState} from '../live';
 import type {Result} from '../result';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
 import {nonBlankText} from './primitives';
+import {lookIdSchema} from './ids';
 import {
   activeMessagesSchema,
   activePropsSchema,
@@ -43,6 +44,7 @@ export const layerSchemas = {
 } satisfies Record<LayerKind, v.GenericSchema>;
 
 const liveStateSchema = payloadObject({
+  lookId: v.exactOptional(v.nullable(lookIdSchema)),
   stageMessage: v.exactOptional(v.nullable(nonBlankText)),
   version: count,
   layers: payloadObject({

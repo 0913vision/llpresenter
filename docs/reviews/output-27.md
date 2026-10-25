@@ -2,11 +2,24 @@
 
 - Team member: `output`
 - Branch: `feat/output/look-slice`
-- Base and range: updated after rebasing.
-- Scope: M3-O4 rendering groundwork and the output-26 shutdown-marker nit.
+- Base: `cc86fbfe` (`main`); range: `cc86fbfe..feat/output/look-slice`.
+- Scope: M3-O4 part 1, lyric rendering and additive Look contracts, plus the
+  output-26 shutdown-marker nit.
 - CI: pending the branch push.
 
 ## Changes
+
+`LiveState.lookId` is an optional, nullable branded Look UUID. Older states
+without it still parse unchanged. Explicit `undefined`, non-v4 IDs, malformed
+values and IDs longer than 36 characters are rejected. No existing field or
+command is removed or changed.
+
+The main-only `selectLook` port validates its input, checks that the saved Look
+exists and uses the settings store's revisioned writer to change only
+`looks.current`. It preserves unknown fields, uses the latest revision for
+concurrent selections and skips a repeated selection without writing. Read-only
+files, unavailable settings, disposal and save errors return classified results.
+The existing writer's debounce is reused; there is no new cache or list.
 
 Lyric shadow and outline switches now use spec 03's fixed reference values: 3 px
 outline, 4 px shadow offset down and right, 8 px blur and 60% opacity. The pixel
@@ -42,12 +55,31 @@ not claim a more precise diagnosis than the available evidence supports.
   switch values, line-count refitting and 720p/1080p/2160p behavior.
 - `src/main/index.ts`: the shutdown-marker NOTE and honest launch diagnostic.
 
-No shared, preload, store, shell or UI file is changed.
+## Changes outside my paths
+
+- `src/shared/live.ts`: additive optional `lookId` field for the active Look.
+- `src/shared/schema/liveState.ts`: validate and retain the new optional field.
+- `src/shared/schema/liveState.test.ts`: valid and invalid states, including
+  legacy omission and the existing 36-character UUID cap.
+- `src/shared/schema/ids.ts`: a Result-returning Look ID parser so main does not
+  import the schema library outside `src/shared/schema/`.
+- `src/main/store/settingsAccess.ts`: a main-only selection port backed by the
+  existing settings writer, preserving the read-only reader interface.
+- `src/main/store/settingsLookSelection.test.ts`: real in-memory settings-store
+  coverage for selection, revision, preservation and failure handling.
+- `src/main/store/register.ts`: expose the selection port to the live backend.
+
+These are the additive Look contracts assigned to output by the lead's 07:00
+queue change. No preload, shell or UI file is changed.
 
 ## Verification
 
-- 106 tests across six relevant files passed in 3.53 seconds. Typecheck,
+- 143 tests across nine relevant files passed in 4.47 seconds. Typecheck,
   targeted ESLint after Prettier and whitespace checks passed.
+- The new port tests cover two concurrent selections with sequential revisions,
+  one debounced write, preserved nested unknown fields, repeated selection,
+  malformed and missing IDs, read-only settings, disposal during loading,
+  unavailable settings and a failed save that retains the in-memory change.
 - Five regressions failed against the actual old slide/fit implementations:
   reference effects at three resolutions, immediate style changes and whole
   pixel sizing. The old files were restored in `finally`, then the corrected
@@ -57,11 +89,11 @@ No shared, preload, store, shell or UI file is changed.
 
 ## Following work
 
-This is the independent rendering portion of O4. The Look slice, active Look in
-live state, saved `looks.current` selection, visibility masks and live output
-wiring follow data's `LiveState.lookId` and `selectLook` port. The lead assigned
-those contracts to data after its recovery record contract. When the recovery
-contract merges, O8 takes priority, then O4 continues.
+This request provides O4's renderer groundwork and its additive contracts. The
+Look slice, visibility masks and live output wiring follow in the next O4
+request; this request does not claim the complete O4 acceptance. When data-42's
+recovery record contract merges, O8 takes priority, then O4 continues. The close
+handshake is no longer in output's queue; data owns it as data-44.
 
 ## Review
 

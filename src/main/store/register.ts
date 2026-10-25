@@ -168,6 +168,7 @@ export function registerStore({
     media,
     mediaBackend: mediaChannels.port,
     readSettings: settingsAccess.readSettings,
+    selectLook: settingsAccess.selectLook,
     subscribeSettingsChanges: settingsAccess.subscribeSettingsChanges,
     subscribeSettingsProblems: settingsChannels.subscribe,
     dispose: async () => {

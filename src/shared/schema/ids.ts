@@ -70,6 +70,11 @@ export type AppFlushRequestId = v.InferOutput<typeof appFlushRequestIdSchema>;
 export type StageElementId = v.InferOutput<typeof stageElementIdSchema>;
 export type TranslationId = v.InferOutput<typeof translationIdSchema>;
 
+/** Validates a main-process Look selection without throwing. UUIDs are exactly 36 characters. */
+export function parseLookId(value: unknown) {
+  return parsePayload(lookIdSchema, value);
+}
+
 /** Brands a generated song UUID; throws unless it is lowercase version 4. */
 export function createSongId(uuid: string): SongId {
   return v.parse(songIdSchema, uuid);
