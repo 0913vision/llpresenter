@@ -72,15 +72,13 @@ None.
 - Scope: this is the requested offscreen recorder workload, not a complete
   visible-stutter or DOM-counter SK2 sign-off.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict:
-- Findings:
-
-## Review: reviewer
-
-- Verdict:
-- Findings:
+- Round 1 (3d038b6): reviewer (Codex, codex3) Approve with no findings. Lead
+  Approve; the 60-minute soak on `main` b7c61e3 shows main, control, and output
+  flat in the later half and 60 fps throughout, so the 20-minute trends were
+  warm-up; the GPU process kept rising (+13.18 MiB/h in the later half, peak
+  474.9 MiB), filed as bug M2-8 for analysis. Fast-forward merge.
 
 ## Team member's reply
 
