@@ -1,6 +1,15 @@
 # M2 checkpoint notes
 
-Latest result:
+Latest HDMI result: the
+[morning recheck after output-21](#morning-hdmi-recheck-after-output-21)
+confirms initial non-topmost placement directly behind control, preserved
+playback/PIDs, and automatic BenQ full screen with always on top restored. **The
+complete placement expectation does not pass:** the settled fallback is 31 DIP
+left of the current work-area center (M2-9). Direct adjacency is observed
+initially, then lost after a later control-focus event; output stays below
+control. Spec 03 steps 2 and 3 and the reconnect notification remain unchecked.
+
+Earlier results:
 [the real-monitor run 4](#run-4-60-minutes-on-the-real-benq-monitor) also fails
 on GPU private-memory growth. Native GPU dedicated-memory counters rise as well.
 The dedicated force-quit/restart check passes. The app's exit at the end of the
@@ -533,3 +542,146 @@ App record SHA-256:
 `8c8e9cf0cb96c77f7a2ebbe3d4a162cf94c91b7e5824202a04fd153faa8cea51`. Native
 record SHA-256:
 `cbd186dc1fad97d962ad453c879199989b7b327c610d023b4b8173e09b5bb9cd`.
+
+## Morning HDMI recheck after output-21
+
+**Partial pass, with a remaining centering defect (M2-9).** On the October 26
+morning recheck, the output was non-topmost and directly behind control before
+the settled monitor-list log, then became a 960x540 window. It kept the same
+lyrics, looping video, windows, and five Electron PIDs. Reconnection restored
+BenQ full screen and always on top, independently confirmed within about 3.1
+seconds of the recorded display-added event. The stable fallback was 31 DIP left
+of the current work-area center. Initial direct adjacency was later lost when
+control gained focus, but every sampled fallback stayed below control. These
+results do not establish a complete pass against spec 03 after spec-20.
+
+### Build, scenario, and recording
+
+- Tested exactly `3d8a38b406d1870072babff416e4e2a6bc9ee06f` (output-21 merged),
+  app version `0.13.0`, built with `npm ci` and `npm run build` in
+  `D:\llp-dev\m2-run`. The clone stayed detached at that commit. Eleven built
+  file hashes were checked before launch; no app source or built code was
+  patched. The newer documentation branch base is not the tested app build.
+- Same data folder: `D:\llp-dev\m2-run\.llp\real-run\user-data`.
+  `샘플 주일 예배` was open with the first slide of `새벽을 여는 노래` and its
+  1280x720, 12-second looping background video. The user authorized visible
+  windows and physically unplugged/replugged HDMI. No display simulation, soak,
+  or memory measurements were performed.
+- At readiness (`20:09:22.183Z`, 05:09:22 KST), control was on the primary
+  TFG34Q14WQ at Electron bounds `(791, 180, 1920, 1080)`, native outer bounds
+  `(783, 180, 1936, 1088)`. BenQ GW2780 output was full screen at
+  `(3440, 222, 1920, 1080)`, always on top and not focused. Both displays used
+  scale factor 1.
+- Hidden recorders collected 561 app snapshots (560 with both windows) and 566
+  native snapshots at a nominal 1 s interval. Native ordering uses
+  `GetWindow(GW_HWNDPREV)` and checks both the immediate predecessor and the
+  nearest visible, nonminimized predecessor against control. Enumeration order
+  alone is not used to infer stacking. Native bounds, work area, topmost flag,
+  foreground state, overlap, PIDs, and the app's playback/log were recorded.
+- Human-reported cable times were 05:15:10 and 05:16:56 KST. Recorded Electron
+  events were earlier: removed at `20:14:40.510Z` and added at `20:16:53.167Z`
+  on October 25 UTC (05:14:40.510 and 05:16:53.167 KST on October 26). Timing
+  below uses these event observations; their separation was 132.657 s.
+- App recording ended at `20:18:40.186Z`, about 107 s after display-added and 75
+  s after the lead's reconnect message was received. An explicit stop file
+  requested the normal control-window close. App exit was 0 at `20:18:47.776Z`;
+  native recorder exit was 0 at `20:18:48.103Z`. A subsequent process check
+  found no clone Electron process or original recorder remaining.
+
+### Spec 03 after spec-20 and the lead's expected behavior
+
+Source:
+[monitor disconnect behavior](../spec/03-output.md#when-a-monitor-disconnects-during-output)
+and the lead's morning recheck instructions in `.llp/task.md`.
+
+| Expectation                                                                                                                                            | Result                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Drop always on top and place directly behind control before monitor-list settle, without activating either window                                      | Observed pass at the first native sample wholly after the recorded removal callback: `20:14:40.661Z` to `20:14:40.789Z`, before the settled-list log at `20:14:40.834Z`. Output was non-topmost, control was its immediate raw and visible predecessor, and neither app window was foreground. The output still occupied the primary full-screen rectangle at that point. Sampling does not prove every instant of the immediate path.                                                        |
+| Become a 960x540 window on the control monitor, retaining content and playback                                                                         | Pass for window size, monitor, and content. First native window sample at `20:14:41.361Z` was `(2480, 492, 960, 540)`, directly behind control, non-topmost and unfocused. By `20:14:42.198Z` it was `(1240, 450, 960, 540)`. The initial right-edge rectangle did not persist.                                                                                                                                                                                                               |
+| Center the fallback on the control monitor's work area                                                                                                 | **Fail, M2-9.** The stable native/Electron rectangle was `(1240, 450, 960, 540)`. Work area had returned to `(62, 0, 3378, 1440)`, whose expected center placement is `(1271, 450, 960, 540)`. It remained 31 DIP left until reconnect.                                                                                                                                                                                                                                                       |
+| Keep the fallback directly behind control, non-topmost, without taking focus                                                                           | Direct placement initially confirmed in 12 of 131 native fallback samples, through `20:14:53Z`. After a control-focus event at `20:14:54.082Z`, neither predecessor test remained true; the native distance to control became 6, later 4. All 131 fallback samples still placed output below control, never above it, and non-topmost. Output was never sampled focused/foreground. Continuous direct adjacency is not established as a pass; the later focus event's cause was not recorded. |
+| Restore BenQ full screen and configured always on top                                                                                                  | Pass. Full-screen event at `20:16:55.840Z` (+2.673 s), always-on-top event at `20:16:55.842Z`, and status log at `20:16:55.843Z`. The independent native sample ending `20:16:56.234Z` (+3.067 s) confirms the BenQ rectangle, no window caption, topmost true, above control, and not foreground.                                                                                                                                                                                            |
+| Keep the same output, playback state, and PIDs                                                                                                         | Pass at sample resolution. Output window ID 2/HWND 132932 and control ID 1/HWND 7802552 were unchanged. All five process IDs below were unchanged. All 559 app samples from readiness retained one identical slide/media/output-on state and lyric text, with an active, unpaused, ready video and no media error. Video time advanced during disconnect and across reconnect; its start anchor stayed `1792958960039`.                                                                       |
+| Spec 03 step 2, amber toolbar button, status text and amber preview outline; step 3, warning and its actions; reconnect notification closing after 6 s | **Not checked.** The notification host is not in M2. No pass or failure is inferred for those UI steps.                                                                                                                                                                                                                                                                                                                                                                                       |
+
+### Placement, focus, and overlap limits
+
+The initial planned work area briefly covered the whole primary display
+`(0, 0, 3440, 1440)`. Its center for a 960x540 window is `(1240, 450)`. The app
+logged the restored work area `(62, 0, 3378, 1440)` at `20:14:41.793Z`, but the
+window retained the earlier center through reconnect. This is an observed
+sequence, not a proven code-level cause.
+
+The stable fallback lies entirely inside control's outer rectangle, with a
+518,400 px geometric intersection. Its native z-order remained below control, so
+this overlap does not show output covering control. There is no independent
+native sample showing a topmost primary output after the recorded removal
+callback. One app row started at `20:14:39.192Z`, before that callback, and
+finished at `20:14:40.565Z`; it mixes an earlier topmost/window read with later
+playback/event data and cannot prove a topmost overlap after the callback.
+
+Control was not foreground in the immediate demotion/fallback samples. It
+received focus at `20:14:54.082Z`, about 13.6 s after the recorded removal, and
+remained foreground until reconnect. The recorder did not capture user input, so
+it cannot attribute this later activation to the app or the operator. No
+output-focus event was recorded. Do not interpret loss of direct adjacency after
+that focus event as proof that initial demotion failed.
+
+### M2-9: Fallback keeps an obsolete work-area center
+
+- Severity: minor; area/owner: output window placement, output.
+- Build: `3d8a38b`, version `0.13.0`; observed once in this physical recheck.
+- Steps: with the described primary display and its 62 px left taskbar/work-area
+  inset, show BenQ full-screen output with looping video and a lyric slide;
+  physically disconnect BenQ HDMI and wait for the primary work area to settle.
+- Expected: a 960x540 fallback centered on the current control work area, at
+  `(1271, 450)`, behind control with always on top off.
+- Actual: the initial right-edge fallback corrected to `(1240, 450)`, then
+  stayed 31 DIP left of the current work-area center. Playback, non-topmost
+  state, and relative ordering below control were retained.
+- Suggested regression coverage for the owner: a fullscreen-exit fallback whose
+  work area changes again after the first settled list, including a taskbar
+  inset; verify the final native bounds against the latest work area.
+
+### Logs, PIDs, and evidence
+
+| Process              | Before and after PID |
+| -------------------- | -------------------- |
+| Main                 | 41928                |
+| GPU                  | 43124                |
+| Network utility      | 34456                |
+| Control renderer     | 30188                |
+| Main output renderer | 51788                |
+
+No app error, crash, renderer-gone, or child-process-gone entry was recorded.
+There were two warnings: the expected monitor-missing warning at `20:14:41.221Z`
+and a low-frame-rate warning (12.9 fps) at `20:16:55.915Z` during reconnect. The
+app reported recovery to its target at `20:16:58.919Z` (73 fps). This functional
+recheck did not independently measure BenQ scan-out fps; the earlier
+primary-cadence meter limitation still applies. Advancing one-second video
+samples do not rule out a short visual stutter or flash.
+
+App start-time gaps peaked at 2.785 s (capture-completion gaps at 2.742 s).
+Native capture gaps peaked at 2.386 s. One native append failed because the file
+was in use at `20:14:49.236Z`; recording resumed on the next interval. There
+were no app-recorder errors. The app and native snapshots are not atomic with
+each other or internally across awaited playback reads, so timing claims use
+event timestamps and conservative native confirmation where available.
+
+Local evidence directory:
+`D:\llp-dev\m2-run\.llp\hdmi-recheck\run-2026-10-25T20-09-06-070Z\`.
+
+| Evidence                                                                    | File                                                                                          |
+| --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| App windows, monitors, PIDs, live state, playback, events and log additions | `record.jsonl`                                                                                |
+| Native rectangles, work areas, topmost/foreground flags and true z-order    | `native-windows.jsonl`                                                                        |
+| Parsed transitions, checks, errors and raw-record hashes                    | `analysis.json`                                                                               |
+| App log and console including normal shutdown                               | `app-events.log`, `app-console.log`                                                           |
+| Single dropped native append                                                | `native-errors.jsonl`                                                                         |
+| Readiness and human-reported cable times                                    | `ready.json`, `lead-markers.jsonl`, `reconnect-confirmation.json`                             |
+| Explicit normal close, app/recorder exits, no remaining processes           | `stop.request`, `app-exit.json`, `recorder-finished.json`, `native-exit.json`, `cleanup.json` |
+
+App record SHA-256:
+`fddb16f100b6cc65f61f383e1ff83e9c06d620b3785921748cbee5670360cdd0`. Native
+record SHA-256:
+`9411f82566ca92a04c8184414e73d5654228746467dcb8c6cb4f6793f29709f2`.
