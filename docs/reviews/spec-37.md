@@ -1,10 +1,10 @@
-Review range: `feat/spec/show-media-strip...feat/spec/media-strip-panel`
+Review range: `140563b4...feat/spec/media-strip-panel`
 
 # Review request: `spec-37`
 
 - Team member: `spec`
 - Branch: `feat/spec/media-strip-panel`
-- Stack: spec-36, media feeds and preview slot
+- Base commit: `140563b4`, main after spec-36 and output-25
 - Review round: 1
 - Task: M3-S1b media strip display panel
 - Ownership exception: shell's show renderer paths; no new UI edits
@@ -27,7 +27,8 @@ Previews are muted, paused, metadata-only video or async images. A tile leaving
 the rendered range releases its video's source. Source revisions remount the
 preview so a stale failure cannot mark a replacement. The host memoizes each
 picture element; selection or LIVE changes keep the video and source intact. The
-controller's missing callback is stable to preserve that memoization.
+controller's missing callback is stable to preserve that memoization. Carried
+spec-36's naming nit by using UNNAMED_MEDIA for the warning fallback.
 
 The default choice is 전체 미디어. Playlist rows follow their stored order and
 exclude audio. A deleted playlist falls back to 전체 미디어. Active copy jobs
