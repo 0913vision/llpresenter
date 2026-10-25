@@ -2,8 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
-  pull_request:
+    branches: ['**']
   workflow_dispatch:
     inputs:
       major:
@@ -18,17 +17,17 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-# NOTE(0913vision): The user decided that verification ends before the push
-# (docs/decisions.md, "Verification before the push, only the bump after it"):
-# the pre-push hook passes main only after npm run verify, so a push to main
-# runs only the bump. A pull request still runs verify here.
+# NOTE(0913vision): The October 25 user decision moves branch verification to
+# GitHub runners. Main keeps its local pre-push check and only bumps here.
 jobs:
   verify:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'push' && github.ref != 'refs/heads/main'
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@v7.1.0
         with:
@@ -56,7 +55,7 @@ jobs:
           retention-days: 14
 
   bump:
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:

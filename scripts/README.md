@@ -23,8 +23,10 @@ steps in the order above, with their times. Its exit code is the first failed
 step's in that order. Under "What failed", the summary lists the failed tests,
 Vitest worker start errors, and unhandled errors from that step's output. That
 tells a busy-machine timeout from a broken test. Rerun the step alone, for
-example `npm run lint`. Team members run it before a review request, and the
-lead runs it before a merge.
+example `npm run lint`. Branch pushes run verification on GitHub-hosted Windows
+runners. The lead reads the branch result before merging and checks that its
+head SHA is the commit under review. The hook keeps the local stamp rule for
+pushes to `main`.
 
 - When every step passes, verify writes `.llp/verify-stamp.json` (Git ignores
   `.llp/`): the tree of the checked-out commit, whether the working tree was
@@ -196,8 +198,10 @@ The lead owns it.
 `npm ci` runs the `prepare` script (`scripts/hooks/install.mts`), which sets
 `core.hooksPath` to `.githooks` in this repository's config, never the global
 one. From then on, git runs `.githooks/pre-push` (Git Bash on Windows) before
-every push. For a push that updates `main`, it stops the push with a one-line
-reason when:
+every push. For every branch except `main`, it checks commit messages only;
+verification runs on GitHub after the push. These branches can be pushed from a
+different or dirty checkout. For a push that updates `main`, it stops the push
+with a one-line reason when:
 
 - the pushed commit isn't checked out, or the working tree has changes, because
   verify runs on the checked-out tree,
@@ -212,7 +216,8 @@ the hook prints `pre-push: verify skipped: ...` then. Otherwise it prints why it
 runs verify (no stamp, another tree, or uncommitted changes during that run) and
 runs it.
 
-Pushes of tags and other branches pass without a check.
+The hook checks every branch in a mixed push before running main's verify. Tags
+and branch deletions pass without a check.
 
 ## Version bot
 
@@ -252,12 +257,42 @@ commits and rewriting `main` aren't allowed, so pull before every merge.
 
 ## CI
 
-Verification ends on our side before a push (`docs/decisions.md`, "Verification
-before the push, only the bump after it"). So `.github/workflows/ci.yml` runs:
+The October 25 user decision moves heavy branch verification to GitHub-hosted
+runners. `.github/workflows/ci.yml` runs:
 
-- on a push to `main`, and on demand (`workflow_dispatch`, with the `major`
-  input): only the `bump` job above. The pre-push check has already passed
-  `npm run verify` for what is pushed.
-- on a pull request: `npm ci` and `npm run verify` on `windows-latest` (each new
-  default Windows image), with npm and the Electron download cached, and the
-  coverage report as an artifact.
+- On a push to any branch except `main`: `npm ci` and `npm run verify` on
+  `windows-latest`, with npm and the Electron download cached, and the coverage
+  report uploaded as an artifact. The job has read-only repository permission,
+  doesn't pass repository secrets, and doesn't persist checkout credentials.
+- On a push to `main`: only the `bump` job above. Main's pre-push hook retains
+  the local verification stamp rule.
+- On demand (`workflow_dispatch`, with the `major` input) on `main`: only the
+  bump. Manual runs on other branches skip both jobs.
+
+Only one run per branch can be active; a new push cancels the previous run for
+that branch. Tag pushes and pull request events don't start runs.
+
+### Read a branch's latest result
+
+```bash
+node scripts/ci/status.mts chore/devops/verify-stamp
+```
+
+This reads this public repository's GitHub REST API without a token, GitHub CLI,
+or other authentication. It requests only the latest `push` run of `ci.yml` for
+the supplied branch and prints JSON with `status`, `conclusion`, `headSha`, and
+`url`. A request has a 15-second timeout and isn't retried. Main's result
+describes the bump job, not a verification run.
+
+| Exit code | Meaning                                                               |
+| --------- | --------------------------------------------------------------------- |
+| 0         | The latest run completed successfully                                 |
+| 1         | The run completed with any other conclusion, including cancellation   |
+| 2         | The latest run is queued, running, or waiting                         |
+| 3         | No push run exists for this branch                                    |
+| 4         | Bad arguments, a request failure (including rate limits), or bad JSON |
+
+Compare `headSha` with the commit under review before accepting success. Right
+after a push, the API can still return a previous run until the new one appears.
+No previous success is substituted for a queued, failed, or cancelled latest
+run. Anonymous API requests have a shared rate limit, so check on demand.

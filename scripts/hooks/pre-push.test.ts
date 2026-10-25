@@ -1,4 +1,4 @@
-import {describe, expect, it} from 'vitest';
+import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {makeTempGitRepo, type TempGitRepo} from '../../test/git-repo';
 import {STAMP_PATH} from '../verify/stamp.mts';
 import {
@@ -6,6 +6,7 @@ import {
   decideVerify,
   findMainUpdate,
   parseRefUpdates,
+  runPrePush,
   type RefUpdate,
 } from './pre-push.mts';
 
@@ -51,7 +52,7 @@ describe('findMainUpdate', () => {
     ['a tag', [update('refs/tags/v0.3.0')]],
     ['another branch', [update('refs/heads/feat/ui/form-controls')]],
     ['deleting main', [update('refs/heads/main', NULL_SHA)]],
-  ])('lets %s through without a check', (_label, updates) => {
+  ])('does not select %s', (_label, updates) => {
     expect(findMainUpdate(updates)).toBeNull();
   });
 });
@@ -64,6 +65,7 @@ interface PushedRepo {
 async function repoWithPush(...subjects: string[]): Promise<PushedRepo> {
   const repo = await makeTempGitRepo();
   await repo.commit('chore(repo): start the project', {
+    '.gitignore': '.llp/\n',
     'README.md': '# Test\n',
   });
   const remoteSha = repo.run(['rev-parse', 'HEAD']);
@@ -170,6 +172,129 @@ describe('checkMainPush', () => {
     expect(checkMainPush(repo.path, {...main, remoteSha: botCommit})).toMatch(
       /pull the version bot commit first/,
     );
+  });
+});
+
+describe('runPrePush', () => {
+  beforeEach(() => {
+    vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  });
+
+  function branchUpdate(main: RefUpdate): RefUpdate {
+    return {
+      ...main,
+      localRef: 'refs/heads/chore/devops/branch-ci',
+      remoteRef: 'refs/heads/chore/devops/branch-ci',
+    };
+  }
+
+  it('checks only messages for another branch, even with a different dirty checkout', async () => {
+    const {repo, main} = await repoWithPush('feat(live): add undo');
+    repo.run(['checkout', '--quiet', main.remoteSha]);
+    await repo.write({'README.md': '# Changed\n'});
+    const verify = vi.fn(() => true);
+    expect(runPrePush(repo.path, [branchUpdate(main)], verify)).toBe(0);
+    expect(verify).not.toHaveBeenCalled();
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining('branch verify runs in GitHub Actions'),
+    );
+  });
+
+  it('rejects invalid messages on another branch without running verify', async () => {
+    const {repo, main} = await repoWithPush('Update stuff');
+    const verify = vi.fn(() => true);
+    expect(runPrePush(repo.path, [branchUpdate(main)], verify)).toBe(1);
+    expect(verify).not.toHaveBeenCalled();
+    expect(console.error).toHaveBeenCalledWith(
+      expect.stringContaining('"Update stuff"'),
+    );
+  });
+
+  it('rejects a branch commit with a body', async () => {
+    const {repo, main} = await repoWithPush();
+    repo.run([
+      'commit',
+      '--quiet',
+      '--allow-empty',
+      '-m',
+      'fix(live): keep the last frame',
+      '-m',
+      'Extra line',
+    ]);
+    const branch = {
+      ...branchUpdate(main),
+      localSha: repo.run(['rev-parse', 'HEAD']),
+    };
+    const verify = vi.fn(() => true);
+    expect(runPrePush(repo.path, [branch], verify)).toBe(1);
+    expect(verify).not.toHaveBeenCalled();
+  });
+
+  it('checks new branch commits without checking history already on the remote', async () => {
+    const {repo, main} = await repoWithPush('Old remote message');
+    repo.run(['update-ref', 'refs/remotes/origin/main', main.localSha]);
+    await repo.commit('chore(ci): verify branches on GitHub');
+    const branch = {
+      ...branchUpdate(main),
+      localSha: repo.run(['rev-parse', 'HEAD']),
+      remoteSha: NULL_SHA,
+    };
+    const verify = vi.fn(() => true);
+    expect(runPrePush(repo.path, [branch], verify)).toBe(0);
+    expect(verify).not.toHaveBeenCalled();
+  });
+
+  it.each([true, false])(
+    'runs main verification without a stamp and returns its result (%s)',
+    async passes => {
+      const {repo, main} = await repoWithPush('feat(live): add undo');
+      const verify = vi.fn(() => passes);
+      expect(runPrePush(repo.path, [main], verify)).toBe(passes ? 0 : 1);
+      expect(verify).toHaveBeenCalledOnce();
+    },
+  );
+
+  it('skips main verification when a clean stamp covers the pushed tree', async () => {
+    const {repo, main} = await repoWithPush('feat(live): add undo');
+    await repo.write({
+      [STAMP_PATH]: JSON.stringify({
+        v: 1,
+        tree: repo.run(['rev-parse', `${main.localSha}^{tree}`]),
+        clean: true,
+        verifiedAt: '2026-10-25T03:00:00.000Z',
+      }),
+    });
+    const verify = vi.fn(() => true);
+    expect(runPrePush(repo.path, [main], verify)).toBe(0);
+    expect(verify).not.toHaveBeenCalled();
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining('verify skipped'),
+    );
+  });
+
+  it('checks every branch before starting main verification in a mixed push', async () => {
+    const {repo, main} = await repoWithPush('feat(live): add undo');
+    await repo.commit('Bad branch message');
+    const branch = {
+      ...branchUpdate(main),
+      localSha: repo.run(['rev-parse', 'HEAD']),
+    };
+    repo.run(['checkout', '--quiet', main.localSha]);
+    const verify = vi.fn(() => true);
+    expect(runPrePush(repo.path, [main, branch], verify)).toBe(1);
+    expect(verify).not.toHaveBeenCalled();
+  });
+
+  it('ignores tags and branch deletions without reading git or running verify', () => {
+    const verify = vi.fn(() => true);
+    const updates = [
+      update('refs/tags/v0.3.0'),
+      update('refs/heads/main', NULL_SHA),
+      update('refs/heads/chore/devops/old', NULL_SHA),
+    ];
+    expect(runPrePush('', updates, verify)).toBe(0);
+    expect(verify).not.toHaveBeenCalled();
   });
 });
 

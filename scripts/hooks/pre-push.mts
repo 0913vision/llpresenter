@@ -31,8 +31,8 @@ export function parseRefUpdates(input: string): RefUpdate[] {
 }
 
 /**
- * Finds the update that pushes commits to `main`. Tags, other branches, and
- * deleting `main` pass without a check.
+ * Finds the update that pushes commits to `main`, ignoring tags, other
+ * branches, and deletions.
  */
 export function findMainUpdate(
   updates: readonly RefUpdate[],
@@ -63,6 +63,13 @@ function badMessages(cwd: string, update: RefUpdate): string[] {
   );
 }
 
+function checkCommitMessages(cwd: string, update: RefUpdate): string | null {
+  const bad = badMessages(cwd, update);
+  return bad.length > 0
+    ? `fix these commit messages first: ${bad.join(', ')}`
+    : null;
+}
+
 /**
  * Checks a push to `main` before verify runs, so verify tests exactly what is
  * pushed.
@@ -87,11 +94,7 @@ export function checkMainPush(cwd: string, update: RefUpdate): string | null {
   if (!fastForward) {
     return 'main on origin has commits this push lacks; pull the version bot commit first';
   }
-  const bad = badMessages(cwd, update);
-  if (bad.length > 0) {
-    return `fix these commit messages first: ${bad.join(', ')}`;
-  }
-  return null;
+  return checkCommitMessages(cwd, update);
 }
 
 /** Whether the hook runs verify for a push, and why. */
@@ -132,30 +135,58 @@ function runVerify(): boolean {
   );
 }
 
-function main(): void {
-  const update = findMainUpdate(parseRefUpdates(readFileSync(0, 'utf8')));
-  if (update === null) return;
-  const cwd = process.cwd();
-  const problem = checkMainPush(cwd, update);
-  if (problem !== null) {
-    console.error(`pre-push: push stopped: ${problem}`);
-    process.exitCode = FAILURE_EXIT_CODE;
-    return;
+/** Checks every pushed branch's messages and verifies only a main update. */
+export function runPrePush(
+  cwd: string,
+  updates: readonly RefUpdate[],
+  verify: () => boolean = runVerify,
+): number {
+  const branches = updates.filter(
+    update =>
+      update.remoteRef.startsWith('refs/heads/') &&
+      !NULL_COMMIT.test(update.localSha),
+  );
+  for (const update of branches) {
+    const problem =
+      update.remoteRef === MAIN_REF
+        ? checkMainPush(cwd, update)
+        : checkCommitMessages(cwd, update);
+    if (problem !== null) {
+      console.error(`pre-push: push stopped: ${problem}`);
+      return FAILURE_EXIT_CODE;
+    }
+  }
+  const update = findMainUpdate(branches);
+  if (update === null) {
+    if (branches.length > 0) {
+      console.log(
+        'pre-push: commit messages passed; branch verify runs in GitHub Actions',
+      );
+    }
+    return 0;
   }
   const decision = decideVerify(cwd, update);
   if (decision.kind === 'skip') {
     console.log(
       `pre-push: verify skipped: this tree passed npm run verify on a clean tree at ${decision.stamp.verifiedAt}`,
     );
-    return;
+    return 0;
   }
   console.log(`pre-push: running npm run verify: ${decision.reason}`);
-  if (!runVerify()) {
+  if (!verify()) {
     console.error(
       'pre-push: push stopped: npm run verify failed on main; its summary above names the step and the failed tests',
     );
-    process.exitCode = FAILURE_EXIT_CODE;
+    return FAILURE_EXIT_CODE;
   }
+  return 0;
+}
+
+function main(): void {
+  process.exitCode = runPrePush(
+    process.cwd(),
+    parseRefUpdates(readFileSync(0, 'utf8')),
+  );
 }
 
 const entry = process.argv[1];
