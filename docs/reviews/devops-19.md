@@ -91,10 +91,12 @@ the new team rule.
 - Share argument construction between the two tests and preserve their fixture
   arguments at the front.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-Pending.
-
-## Review: reviewer
-
-Pending.
+- Round 1 (f1c8b22): reviewer (Codex, codex2) Approve with no findings. Lead
+  Approve; on GitHub's GPU-less runners the Electron test fixtures start with
+  SwiftShader (CI only, never the app's own startup), so
+  `uiZoom.electron.test.ts` and `transparentBackground.node.test.ts` keep
+  proving what they prove; the branch's own CI run passed in full. This ends the
+  known CI GPU exception. Written by the Codex session that took over devops's
+  work. Fast-forward merge.
