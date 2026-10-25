@@ -216,3 +216,13 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   records. The commit message check always runs.
 - A pull request, when we use them, runs `verify` on GitHub; the merge then only
   bumps.
+
+## 2026-10-25: A user check build inside every milestone
+
+- Every milestone has at least one point where the user launches the app and
+  tries it (user request). The lead cuts `main` as a tag `mN-checkK` after
+  `verify`, pushes it, and qa smoke-tests the tag and writes the Korean steps
+  with sample data (invented or public-domain lyrics only).
+- The first one is `m2-check1`, cut at 13:17 on October 25 for the user's check
+  between 15:00 and 16:00. From M3 on, the milestone plan names its check
+  points.
