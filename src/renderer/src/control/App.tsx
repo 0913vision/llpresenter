@@ -17,7 +17,7 @@ export function App({
   const sizeClass = useSizeClass();
   const serviceName = useShow(view => view.serviceName);
   const [workspace, setWorkspace] = useState<WorkspaceId>('show');
-  useClearKeys(workspace);
+  useClearKeys();
   return (
     <div className={styles.app} data-size={sizeClass}>
       <MenuBar title={serviceName} />

@@ -84,8 +84,6 @@ export const clearButtons: readonly ClearButtonSpec[] = [
   },
 ];
 
-export const UNDO_SHORTCUT = 'Ctrl Z';
-
 /** Whether a layer, or any layer for 모두, holds something to clear. */
 export function hasSomethingToClear(
   layers: LiveLayers,

@@ -6,7 +6,7 @@ import {
   useCanUndo,
   useSomethingToClear,
 } from '@renderer/state/clear';
-import {clearButtons, UNDO_SHORTCUT, type ClearButtonSpec} from './clear';
+import {clearButtons, type ClearButtonSpec} from './clear';
 import styles from './ClearRow.module.css';
 
 function ClearButton({
@@ -45,10 +45,7 @@ function ClearButton({
 
 function UndoButton({compact}: {readonly compact: boolean}): JSX.Element {
   const canUndo = useCanUndo();
-  const {targetProps, tooltip} = useTooltip({
-    text: '되돌리기',
-    shortcut: UNDO_SHORTCUT,
-  });
+  const {targetProps, tooltip} = useTooltip({text: '되돌리기'});
   return (
     <>
       <button

@@ -1,6 +1,10 @@
-import {act, cleanup, render, screen} from '@testing-library/react';
+import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import type {LiveCommand} from '@shared/commands';
+import {emptyLiveState} from '@shared/live';
+import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {createMemoryColumnWidthStore} from '@renderer/shell/columnWidthStore';
+import {useLive} from '@renderer/state/live';
 import {applyService} from '@renderer/state/show';
 import {
   sampleService,
@@ -28,6 +32,8 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   applyService(null);
+  useLive.setState({state: null});
+  delete window.llp;
 });
 
 describe('App menu bar title', () => {
@@ -43,5 +49,28 @@ describe('App menu bar title', () => {
     render(<App columnWidthStore={createMemoryColumnWidthStore()} />);
     expect(titleOfMenuBar()).toBe('');
     expect(screen.queryByText('LoveLight Presenter')).toBeNull();
+  });
+});
+
+describe('App clear keys', () => {
+  it('clears with F2 in 진행 but never undoes a clear with Ctrl Z', () => {
+    const sent: LiveCommand[] = [];
+    window.llp = fakeLlpApi({live: {send: command => sent.push(command)}});
+    const base = emptyLiveState();
+    useLive.setState({
+      state: {
+        ...base,
+        canUndo: true,
+        layers: {
+          ...base.layers,
+          slide: {itemId: 'song', position: 0, label: null, lines: ['x']},
+        },
+      },
+    });
+    render(<App columnWidthStore={createMemoryColumnWidthStore()} />);
+    fireEvent.keyDown(document.body, {code: 'KeyZ', ctrlKey: true});
+    expect(sent).toEqual([]);
+    fireEvent.keyDown(document.body, {code: 'F2'});
+    expect(sent).toEqual([{type: 'layer.clear', target: 'slide'}]);
   });
 });

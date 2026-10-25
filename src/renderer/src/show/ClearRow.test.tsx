@@ -92,10 +92,13 @@ describe('ClearRow', () => {
     expect(lyrics.getAttribute('aria-keyshortcuts')).toBe('F2');
     expect(lyrics.hasAttribute('title')).toBe(false);
     expect((await hoverForTooltip(lyrics))?.textContent).toBe('가사 지우기F2');
-    resetTooltips();
+  });
+
+  it('gives the undo button a tooltip with its name and no shortcut', async () => {
+    render(<ClearRow compact={false} />);
     const undo = screen.getByRole('button', {name: '되돌리기'});
-    expect(undo.getAttribute('aria-keyshortcuts')).toBe('Control+Z');
-    expect((await hoverForTooltip(undo))?.textContent).toBe('되돌리기Ctrl Z');
+    expect(undo.hasAttribute('aria-keyshortcuts')).toBe(false);
+    expect((await hoverForTooltip(undo))?.textContent).toBe('되돌리기');
   });
 
   it('uses no native title tooltip', () => {
