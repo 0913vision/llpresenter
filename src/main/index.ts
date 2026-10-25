@@ -3,6 +3,7 @@ import {join} from 'node:path';
 import {isAnyOutputOn} from '@shared/live';
 import {registerTextImport} from './import/register';
 import {LiveStore, dispatchLogged} from './live/store';
+import {startOverlays} from './live/overlays';
 import {createLogger, flushWithin, type Logger} from './log';
 import {registerIpc} from './ipc';
 import {startOutputs} from './outputs/start';
@@ -94,6 +95,11 @@ function start(): void {
         appConfig,
       });
       const disposeIpc = registerIpc(store, log, windowMode);
+      const stopOverlays = startOverlays({
+        store,
+        settings: dataStore.settings,
+        log,
+      });
       const stopServingMedia = serveMedia({
         resolvePath: dataStore.findMediaFile,
         mediaRoots: dataStore.mediaRoots,
@@ -119,6 +125,7 @@ function start(): void {
       // quit.
       shutdown.add({name: 'stop the soak scenario', run: stopSoakScenario});
       shutdown.add({name: 'stop text import', run: stopTextImport});
+      shutdown.add({name: 'stop overlays', run: stopOverlays});
       shutdown.add({name: 'stop the outputs', run: outputs.stop});
       shutdown.add({name: 'save the UI state', run: () => ui.dispose()});
       shutdown.add({name: 'stop UI zoom', run: () => zoom.dispose()});

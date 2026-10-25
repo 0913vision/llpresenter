@@ -7,7 +7,7 @@ import {ScreenPreview} from './ScreenPreview';
 import styles from './PreviewPanel.module.css';
 
 function renderScreen(screen: PreviewScreen<string>): JSX.Element {
-  return <ScreenPreview chroma={screen.chroma === true} />;
+  return <ScreenPreview screenId={screen.id} chroma={screen.chroma === true} />;
 }
 
 /** The live monitoring panel. Selecting a screen never sends an output command. */

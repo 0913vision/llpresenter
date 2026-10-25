@@ -1,5 +1,11 @@
 import type {ClearTarget} from '@shared/commands';
-import {emptyLayers, hasAnyLayer, type MediaLayer} from '@shared/live';
+import {
+  emptyLayers,
+  hasAnyLayer,
+  type MediaLayer,
+  type MessageLayer,
+  type NoticeLayer,
+} from '@shared/live';
 import {withLayers, type LiveHistory} from '../history';
 import {defineSlice} from '../slice';
 
@@ -37,7 +43,49 @@ function undoClear(history: LiveHistory, now: number): LiveHistory {
   const media = mediaWasCleared
     ? resumedMedia(undo.layers.media, now - undo.clearedAt)
     : undo.layers.media;
-  return withLayers(history, {...undo.layers, media}, null);
+  const elapsed = Math.max(0, now - undo.clearedAt);
+  const message =
+    history.state.layers.message === null
+      ? resumedMessages(undo.layers.message, elapsed)
+      : undo.layers.message;
+  const notice =
+    history.state.layers.notice === null
+      ? resumedNotice(undo.layers.notice, elapsed)
+      : undo.layers.notice;
+  return withLayers(history, {...undo.layers, media, message, notice}, null);
+}
+
+function resumedMessages(
+  layer: MessageLayer | null,
+  elapsed: number,
+): MessageLayer | null {
+  if (layer?.items === undefined) return layer;
+  return {
+    ...layer,
+    items: layer.items.map(item => ({
+      ...item,
+      startedAt: item.startedAt + elapsed,
+      expiresAt: item.expiresAt === null ? null : item.expiresAt + elapsed,
+    })),
+  };
+}
+
+function resumedNotice(
+  layer: NoticeLayer | null,
+  elapsed: number,
+): NoticeLayer | null {
+  if (layer?.playback === undefined) return layer;
+  return {
+    ...layer,
+    playback: {
+      ...layer.playback,
+      startedAt: layer.playback.startedAt + elapsed,
+      pausedAt:
+        layer.playback.pausedAt === null
+          ? null
+          : layer.playback.pausedAt + elapsed,
+    },
+  };
 }
 
 /** Clears layers and undoes the last clear, one level deep. */

@@ -8,6 +8,7 @@ import {defineSlice} from './slice';
 import {SliceRegistry} from './sliceRegistry';
 import {batchSlice} from './slices/batch';
 import {outputsSlice} from './slices/outputs';
+import {MissingLiveTargetError} from './commandErrors';
 
 const MISSING_LOOK_ID = parse(
   lookIdSchema,
@@ -45,7 +46,10 @@ function populatedStore() {
 
 describe('live batches', () => {
   it('skips a missing target, logs it once, and keeps applying and notifying after errors', () => {
-    const missing = new Error('The requested Look no longer exists');
+    const missing = new MissingLiveTargetError({
+      kind: 'Look',
+      id: MISSING_LOOK_ID,
+    });
     const missingTarget = defineSlice({
       commands: ['look.set'],
       initial: {},
@@ -80,8 +84,45 @@ describe('live batches', () => {
     expect(store.state.outputs).toEqual({main: true, stage: true});
     expect(store.state.version).toBe(1);
     expect(log.messages('warn')).toEqual(['skipped live command']);
-    expect(log.entries[0]?.detail).toEqual({type: 'look.set', error: missing});
+    expect(log.entries[0]?.detail).toEqual({
+      type: 'look.set',
+      reason: 'missing-target',
+      target: missing.target,
+    });
     expect(log.messages('error')).toEqual(['live state listener failed']);
+    expect(listener).toHaveBeenCalledExactlyOnceWith(store.state);
+  });
+
+  it('logs an unexpected reducer exception as an error and still applies the other children', () => {
+    const failure = new Error('Unexpected reducer failure');
+    const broken = defineSlice({
+      commands: ['look.set'],
+      initial: {},
+      reduce: () => {
+        throw failure;
+      },
+    });
+    const registry = new SliceRegistry([batchSlice, outputsSlice, broken]);
+    const store = new LiveStore(undefined, () => 100, registry);
+    const log = recordingLogger();
+    const listener = vi.fn();
+    store.subscribe(listener);
+    dispatchLogged(
+      store,
+      {
+        type: 'live.batch',
+        commands: [
+          {type: 'output.set', screenId: 'main', on: true},
+          {type: 'look.set', lookId: MISSING_LOOK_ID},
+          {type: 'output.set', screenId: 'stage', on: true},
+        ],
+      },
+      log,
+    );
+    expect(log.messages('warn')).toEqual([]);
+    expect(log.messages('error')).toEqual(['live command failed']);
+    expect(log.entries[0]?.detail).toEqual({type: 'look.set', error: failure});
+    expect(store.state.outputs).toEqual({main: true, stage: true});
     expect(listener).toHaveBeenCalledExactlyOnceWith(store.state);
   });
 

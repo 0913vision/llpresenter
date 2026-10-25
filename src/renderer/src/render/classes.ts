@@ -10,6 +10,7 @@ export const classes = {
   layer: classOf('layer'),
   video: classOf('video'),
   image: classOf('image'),
+  overlayImage: classOf('overlayImage'),
   dissolving: classOf('dissolving'),
   page: classOf('page'),
   instant: classOf('instant'),

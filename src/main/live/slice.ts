@@ -5,6 +5,14 @@ import type {
 } from '@shared/commands';
 import type {LiveLayers, LiveState} from '@shared/live';
 import type {LiveHistory} from './history';
+import type {SettingsReader} from '../store/settingsStore';
+import type {MessageId} from '@shared/schema/ids';
+
+export interface SliceInputs {
+  readonly now: number;
+  readonly settings?: SettingsReader;
+  readonly nextMessageId?: () => MessageId;
+}
 
 /** The commands of the given types. */
 export type CommandOf<T extends LiveCommandType> = Extract<
@@ -18,8 +26,7 @@ export type SliceInitial = Omit<Partial<LiveState>, 'layers'> & {
 };
 
 /** The command time and the same registry path for a transaction's children. */
-export interface SliceContext {
-  readonly now: number;
+export interface SliceContext extends SliceInputs {
   readonly apply: (
     history: LiveHistory,
     command: SingleLiveCommand,

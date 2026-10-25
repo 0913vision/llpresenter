@@ -3,6 +3,8 @@ import {emptyLayers} from '@shared/live';
 import {mediaUrl} from '@shared/media';
 import {DEFAULT_LYRIC_STYLE} from '@renderer/render/lyricStyle';
 import {OutputRenderer} from '@renderer/render/outputRenderer';
+import {followRenderScreen} from '@renderer/render/screenIdentity';
+import type {RenderScreen} from '@renderer/render/layer';
 import {useLive} from '@renderer/state/live';
 import styles from './ScreenPreview.module.css';
 
@@ -21,8 +23,10 @@ function reportDrawingError(message: string, error: unknown): void {
  * @param chroma - Draws the empty picture green, as the 방송 자막 does.
  */
 export function ScreenPreview({
+  screenId,
   chroma,
 }: {
+  readonly screenId: string;
   readonly chroma: boolean;
 }): JSX.Element {
   const screenRef = useRef<HTMLDivElement>(null);
@@ -38,17 +42,36 @@ export function ScreenPreview({
       onError: reportDrawingError,
       mode: 'preview',
     });
-    const draw = (): void =>
-      renderer.render(useLive.getState().state?.layers ?? noLayers);
+    let identity: RenderScreen | undefined;
+    const draw = (): void => {
+      const state = useLive.getState().state;
+      renderer.render(state?.layers ?? noLayers, {
+        ...(identity === undefined ? {} : {screen: identity}),
+        stageMessage: state?.stageMessage ?? null,
+      });
+    };
+    const stopScreen =
+      window.llp === undefined
+        ? () => undefined
+        : followRenderScreen({
+            settings: window.llp.settings,
+            id: screenId,
+            onError: reportDrawingError,
+            receive: next => {
+              identity = next;
+              draw();
+            },
+          });
     draw();
     const unsubscribe = useLive.subscribe((next, previous) => {
       if (next.state !== previous.state) draw();
     });
     return () => {
       unsubscribe();
+      stopScreen();
       renderer.dispose();
     };
-  }, []);
+  }, [screenId]);
 
   const classes = [styles.screen];
   if (chroma) classes.push(styles.chroma);

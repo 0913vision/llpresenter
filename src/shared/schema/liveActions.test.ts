@@ -1,5 +1,8 @@
 import {describe, expect, it, vi} from 'vitest';
 import {dispatchLogged, LiveStore} from '../../main/live/store';
+import {SliceRegistry} from '../../main/live/sliceRegistry';
+import {contentSlice} from '../../main/live/slices/content';
+import {clearSlice} from '../../main/live/slices/clear';
 import {interruptsSongOutput, isLiveCommand} from '../commands';
 import {parseLiveCommand} from './liveCommand';
 import {expectSuccess} from './testHelpers';
@@ -114,8 +117,12 @@ describe('M3 live action contracts', () => {
     }
   });
 
-  it('logs every unsupported action and preserves state, undo, and listeners', () => {
-    const store = new LiveStore();
+  it('logs actions absent from its registry and preserves state, undo, and listeners', () => {
+    const store = new LiveStore(
+      undefined,
+      Date.now,
+      new SliceRegistry([contentSlice, clearSlice]),
+    );
     store.dispatch({
       type: 'message.show',
       message: {messageId: 'old', text: 'Old'},

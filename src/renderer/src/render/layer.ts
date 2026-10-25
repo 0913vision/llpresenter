@@ -1,6 +1,17 @@
 import type {LiveLayers} from '@shared/live';
 import type {RenderMode} from './backgroundLayer';
 import type {LyricStyle} from './lyricStyle';
+import type {ScreenId} from '@shared/schema/ids';
+
+export interface RenderScreen {
+  readonly id: ScreenId;
+  readonly kind: 'audience' | 'stage';
+}
+
+export interface RenderFrame {
+  readonly screen?: RenderScreen;
+  readonly stageMessage?: string | null;
+}
 
 export interface RenderLayerOptions {
   readonly lyricStyle: LyricStyle;
@@ -14,7 +25,7 @@ export interface RenderLayerOptions {
 
 /** One persistent layer instance, owned and released by its output renderer. */
 export interface RenderLayer {
-  render(layers: LiveLayers): void;
+  render(layers: LiveLayers, frame?: RenderFrame): void;
   rescale?(scale: number): void;
   dispose(): void;
 }

@@ -3,6 +3,9 @@ import {mediaUrl} from '@shared/media';
 import {RENDERER_LOG_LIMITS} from '@shared/schema/ipcPayloads';
 import {DEFAULT_LYRIC_STYLE} from '../render/lyricStyle';
 import {OutputRenderer} from '../render/outputRenderer';
+import type {RenderScreen} from '../render/layer';
+import type {LiveState} from '@shared/live';
+import {followRenderScreen} from '../render/screenIdentity';
 import {startFrameRateMeter} from './frameRateMeter';
 import {followLiveState} from './liveFeed';
 
@@ -59,6 +62,24 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
     mediaUrl,
     onError: report,
   });
+  let screen: RenderScreen | undefined;
+  let latest: LiveState | null = null;
+  const draw = (): void => {
+    if (latest === null) return;
+    renderer.render(latest.layers, {
+      ...(screen === undefined ? {} : {screen}),
+      stageMessage: latest.stageMessage ?? null,
+    });
+  };
+  const stopScreen = followRenderScreen({
+    settings: api.settings,
+    id: screenId,
+    onError: report,
+    receive: next => {
+      screen = next;
+      draw();
+    },
+  });
   let stopMeter: (() => void) | null = null;
   const reportFrameRates = (): void => {
     stopMeter ??= startFrameRateMeter({
@@ -71,7 +92,8 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
   const stopFollowing = followLiveState(
     api.live,
     state => {
-      renderer.render(state.layers);
+      latest = state;
+      draw();
       reportFrameRates();
     },
     report,
@@ -79,6 +101,7 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
   return () => {
     stopMeter?.();
     stopFollowing();
+    stopScreen();
     renderer.dispose();
     stopCatching();
   };

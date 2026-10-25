@@ -16,7 +16,7 @@ export const batchSlice = defineSlice({
         current = {...next, undo};
       } else {
         current = next;
-        if (next.undo === null) undo = null;
+        if (undo !== null) undo = next.undo;
       }
     }
     return current === history

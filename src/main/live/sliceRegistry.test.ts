@@ -25,7 +25,7 @@ describe('SliceRegistry', () => {
       }),
     ]);
     const history = initialHistory(emptyLiveState());
-    expect(registry.run(history, {type: 'clear.undo'}, 42)).toEqual({
+    expect(registry.run(history, {type: 'clear.undo'}, {now: 42})).toEqual({
       history,
       skipped: [{type: 'clear.undo', reason: 'failed', error}],
     });

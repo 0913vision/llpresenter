@@ -1,6 +1,11 @@
 import type {LiveLayers} from '@shared/live';
 import {classes} from './classes';
-import type {RegisteredLayer, RenderLayer, RenderLayerOptions} from './layer';
+import type {
+  RegisteredLayer,
+  RenderLayer,
+  RenderLayerOptions,
+  RenderFrame,
+} from './layer';
 import {renderLayers} from './layers';
 import {scaleFor} from './lyricStyle';
 
@@ -44,9 +49,10 @@ export class OutputRenderer {
     this.rescale();
   }
 
-  render(layers: LiveLayers): void {
+  render(layers: LiveLayers, frame?: RenderFrame): void {
+    if (this.disposed) return;
     for (const {kind, view} of this.layers) {
-      this.attempt(kind, 'draw', () => view.render(layers));
+      this.attempt(kind, 'draw', () => view.render(layers, frame));
     }
   }
 

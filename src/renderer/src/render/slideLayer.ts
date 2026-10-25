@@ -41,17 +41,36 @@ function createPage(style: LyricStyle): Page {
   const element = document.createElement('div');
   const block = document.createElement('div');
   element.className = classes.page;
+  block.className = classes.block;
+  const page = {element, block};
+  applyStyle(page, style);
+  element.append(block);
+  return page;
+}
+
+function applyStyle({element, block}: Page, style: LyricStyle): void {
   element.style.inset = `${style.margin}%`;
   element.style.justifyContent = JUSTIFY[style.vAlign];
   element.style.textAlign = style.align;
-  block.className = classes.block;
   block.style.fontFamily = `'${style.font}', ${FALLBACK_FONTS}`;
   block.style.fontWeight = String(style.weight);
   block.style.lineHeight = String(style.lineHeight);
   block.style.color = style.color;
-  element.append(block);
-  return {element, block};
 }
+
+const STYLE_FIELDS = [
+  'font',
+  'weight',
+  'size',
+  'color',
+  'lineHeight',
+  'align',
+  'vAlign',
+  'maxLines',
+  'margin',
+  'shadow',
+  'outline',
+] as const satisfies ReadonlyArray<keyof LyricStyle>;
 
 function writeLines(block: HTMLElement, lines: readonly string[]): void {
   lines.forEach((line, index) => {
@@ -76,7 +95,7 @@ export class SlideLayerView {
 
   constructor(
     parent: HTMLElement,
-    private readonly style: LyricStyle,
+    private style: LyricStyle,
   ) {
     this.element.className = classes.layer;
     this.element.classList.toggle(classes.shadow, style.shadow);
@@ -106,6 +125,16 @@ export class SlideLayerView {
     next.element.classList.add(classes.shown);
     this.pages[this.front].element.classList.remove(classes.shown);
     this.front = back;
+  }
+
+  /** Applies a changed text style in place, without replacing pages or dissolving. */
+  setStyle(style: LyricStyle): void {
+    if (STYLE_FIELDS.every(key => this.style[key] === style[key])) return;
+    this.style = style;
+    this.element.classList.toggle(classes.shadow, style.shadow);
+    this.element.classList.toggle(classes.outline, style.outline);
+    for (const page of this.pages) applyStyle(page, style);
+    this.rescale(this.scale);
   }
 
   /** Lays the 장 out again at a new screen scale, without a dissolve. */

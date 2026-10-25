@@ -1,10 +1,21 @@
 import type {LiveCommand} from '@shared/commands';
 import {emptyLiveState, type LiveState} from '@shared/live';
 import type {LiveHistory} from './history';
-import {isLiveSlice, type LiveSlice, type SliceContext} from './slice';
+import {MissingLiveTargetError} from './commandErrors';
+import {
+  isLiveSlice,
+  type LiveSlice,
+  type SliceContext,
+  type SliceInputs,
+} from './slice';
 
 export type SkippedLiveCommand =
   | {readonly type: LiveCommand['type']; readonly reason: 'unhandled'}
+  | {
+      readonly type: LiveCommand['type'];
+      readonly reason: 'missing-target';
+      readonly error: MissingLiveTargetError;
+    }
   | {
       readonly type: LiveCommand['type'];
       readonly reason: 'failed';
@@ -58,16 +69,22 @@ export class SliceRegistry {
    * the command.
    */
   apply(history: LiveHistory, command: LiveCommand, now: number): LiveHistory {
-    const result = this.run(history, command, now);
-    const failure = result.skipped.find(problem => problem.reason === 'failed');
-    if (failure?.reason === 'failed') {
+    const result = this.run(history, command, {now});
+    const failure = result.skipped.find(
+      problem => problem.reason !== 'unhandled',
+    );
+    if (failure) {
       throw new Error('live reducer failed', {cause: failure.error});
     }
     return result.history;
   }
 
   /** Collects skipped children without exposing any intermediate state to listeners. */
-  run(history: LiveHistory, command: LiveCommand, now: number): LiveReduction {
+  run(
+    history: LiveHistory,
+    command: LiveCommand,
+    inputs: SliceInputs,
+  ): LiveReduction {
     const skipped: SkippedLiveCommand[] = [];
     const apply = (before: LiveHistory, next: LiveCommand): LiveHistory => {
       const slice = this.byCommand.get(next.type);
@@ -78,11 +95,15 @@ export class SliceRegistry {
       try {
         return slice.apply(before, next, context);
       } catch (error) {
-        skipped.push({type: next.type, reason: 'failed', error});
+        skipped.push(
+          error instanceof MissingLiveTargetError
+            ? {type: next.type, reason: 'missing-target', error}
+            : {type: next.type, reason: 'failed', error},
+        );
         return before;
       }
     };
-    const context: SliceContext = {now, apply};
+    const context: SliceContext = {...inputs, apply};
     return {history: apply(history, command), skipped};
   }
 }

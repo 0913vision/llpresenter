@@ -9,6 +9,9 @@ import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {classes} from '../render/classes';
 import {SlideLayerView} from '../render/slideLayer';
 import {startOutput} from './startOutput';
+import {MAIN, overlaySettings} from '../../../main/live/testing/overlays';
+import {LiveStore} from '../../../main/live/store';
+import type {SettingsDocument} from '@shared/schema/settingsDocuments';
 
 const SHOWING: LiveState = {
   ...emptyLiveState(),
@@ -56,6 +59,9 @@ function setUp(live: Partial<LlpApi['live']> = {}) {
   const logs: RendererLogEntry[] = [];
   const rates: FrameRateReport[] = [];
   const api = fakeLlpApi({
+    settings: {
+      get: () => Promise.resolve(overlaySettings().reader.get('screens')),
+    },
     live: {
       get: () => Promise.resolve(SHOWING),
       send: () => undefined,
@@ -70,6 +76,49 @@ function setUp(live: Partial<LlpApi['live']> = {}) {
 }
 
 describe('startOutput', () => {
+  it('routes an overlay after screen settings resolve and releases both feeds on stop', async () => {
+    const settings = overlaySettings();
+    const store = new LiveStore();
+    store.connectSettings(settings.reader);
+    store.dispatch({
+      type: 'message.send',
+      text: 'Targeted output',
+      targets: [MAIN],
+      duration: 30,
+    });
+    const root = document.createElement('div');
+    const stopLive = vi.fn();
+    const stopScreens = vi.fn();
+    let resolve: (document: SettingsDocument) => void = () => undefined;
+    const api = fakeLlpApi({
+      live: {
+        get: () => Promise.resolve(store.state),
+        subscribe: () => stopLive,
+      },
+      settings: {
+        get: () =>
+          new Promise(done => {
+            resolve = done;
+          }),
+        subscribe: () => stopScreens,
+      },
+    });
+    const stop = startOutput({root, api, screenId: 'main'});
+    await Promise.resolve();
+    const message = () =>
+      root
+        .querySelector('[data-layer="message"]')
+        ?.querySelector(`.${classes.shown}`)?.textContent ?? null;
+    expect(message()).toBeNull();
+    resolve(settings.reader.get('screens'));
+    await Promise.resolve();
+    expect(message()).toBe('Targeted output');
+    stop();
+    expect(stopLive).toHaveBeenCalledTimes(1);
+    expect(stopScreens).toHaveBeenCalledTimes(1);
+    expect(root.children).toHaveLength(0);
+  });
+
   it('draws the current live state', async () => {
     const {root} = setUp();
     await vi.waitFor(() => {
