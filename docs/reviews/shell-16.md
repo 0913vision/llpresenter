@@ -1,6 +1,6 @@
 # Review request: `shell-16`
 
-Review range: 4b72a17...refactor/shell/ui-parts
+Review range: efd0a29...refactor/shell/ui-parts
 
 What to check: that the 장 grid and the 예배 순서 list are the ui
 `ThumbnailGrid` (`show`) and `ListBox` (`show`) with the same behavior for the
@@ -10,7 +10,7 @@ another item replaces the focused tile; and that the dead move helpers are gone.
 
 - Team member: `shell`
 - Branch: `refactor/shell/ui-parts`
-- Base commit (`main`): `4b72a17`
+- Base commit (`main`): `efd0a29`
 - Last commit: see the commit that adds this file
 - Related brief: "Shell handoff" in `docs/reviews/ui-4.md`
 
@@ -101,9 +101,9 @@ missing.
 
 ## Verify result
 
-`npm run verify` on commit `7ef1531` (base `main` 4b72a17): `typecheck`, `lint`,
-`format:check`, and `build` passed. `test:coverage` had one failure, the known
-one on `main` since devops-13 (devops fixes it as devops-17):
-`scripts/soak/media.test.ts`
+`npm run verify` on commit `7ef1531` (base `main` 4b72a17, then rebased onto
+efd0a29): `typecheck`, `lint`, `format:check`, and `build` passed.
+`test:coverage` had one failure, the known one on `main` since devops-13 (devops
+fixes it as devops-17): `scripts/soak/media.test.ts`
 
 > "ends the stalled maker and every process it started". All other tests passed.
