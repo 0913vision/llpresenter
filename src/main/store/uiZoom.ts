@@ -58,8 +58,11 @@ export function registerUiZoom(
       throw new Error('Invalid UI zoom command');
     }
     const percent = changedZoom(config.uiZoomPercent, command.value);
-    if (percent !== config.uiZoomPercent) {
+    const changed = percent !== config.uiZoomPercent;
+    if (changed) {
       config.setUiZoomPercent(percent);
+    }
+    if (changed || command.value.type === 'ui.zoomReset') {
       for (const control of controls.values()) control.apply();
     }
     return percent;

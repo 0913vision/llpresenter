@@ -11,8 +11,9 @@ and reject. No live command or output-rendering contract changes.
 The lead's `.llp/task.md` grants one-feature permission for output's control
 window/startup code and shell's zoom-key handling. The changes to those paths
 are limited to zoom wiring, its tests, and the control App's overflow fallback
-required by the zoomed-viewport rule. Menus, layout reset, and the settings
-window remain outside this request.
+required by the zoomed-viewport rule. Round 2 also removes the control window's
+native menu, whose default zoom roles bypass the renderer. Product menu UI,
+layout reset, and the settings window remain outside this request.
 
 - Team member: data
 - Branch: `feat/data/ui-zoom`
@@ -41,6 +42,13 @@ explicitly attached control windows receive updates or may invoke the zoom
 channels. An output sender is rejected and logged. A failed isolation attempt
 never applies a factor, and a failed native application is logged without
 throwing into startup or the live path.
+
+The control window removes its native menu before attaching zoom or loading the
+page. Frameless windows otherwise retain Electron's default menu accelerators,
+whose zoom roles change the native level without the main-owned percentage.
+Reset always reapplies the stored 100% factor to every attached control,
+including when that percentage is unchanged, so Ctrl 0 also repairs native
+drift. An unchanged reset does not schedule a redundant config save.
 
 Electron's default zoom policy shares a zoom level by origin. The pinned
 Electron 44 supports `setZoomMode('isolated')`, which separates the control web
@@ -86,9 +94,14 @@ shared app config. Window destruction also releases its registration.
   focus/IME rules, and listener lifetime.
 - `src/renderer/src/control/App.tsx`, its test, and `App.module.css`: all
   workspace integration, effective viewport, and overflow recovery.
+- `src/main/windows/uiZoom.electron.test.ts` and main/renderer `uiZoom`
+  fixtures: a real Electron regression using the production window, zoom
+  registration, preload, and renderer keyboard hook.
 - This review document. No output-window or output-renderer source changed.
 
 ## Checks run
+
+The following results describe round 1. Round 2 results follow below.
 
 | Command or test                                               | Result                                             |
 | ------------------------------------------------------------- | -------------------------------------------------- |
@@ -122,6 +135,33 @@ It verified:
 Local native-check log: `.llp/ui-zoom-smoke-rebased.log`; result artifact:
 `.llp/ui-zoom-smoke-result.json`. The normal unit tests are committed; these
 local diagnostic artifacts stay ignored.
+
+### Round 2
+
+- Focused zoom-store, control-window, and Electron tests: passed, 3 files and 16
+  tests. The two added unit assertions failed against round 1 code.
+- Typecheck: passed. Changed-file ESLint: passed after correcting the fixture's
+  rejection callback type and two multiline conditional blocks.
+- `npm run format`: passed before the code commit.
+- `npm run verify`: pending the single round 2 run after rebase.
+
+The committed Electron test builds isolated fixture bundles in a test temp
+directory, checks the main bundle with `node --check`, and launches only with
+`LLP_TEST_WINDOWS=offscreen`. It installs actual native zoom menu roles before
+creating the production control window. During synthetic composition, native
+Ctrl Minus and Ctrl Equal remain unconsumed by the key hook, while the native
+factor stays 1 and both IPC and `app.json` stay 100. It then sets the native
+factor to 0.8 while keeping the stored value 100 and sends native Ctrl 0;
+factor, IPC, and disk recover to 1/100/100. The final Ctrl Minus remains at the
+lower bound. All windows stay hidden and the test awaits process-tree cleanup.
+
+The injected native-drift check failed against the old reset code with native
+factor 0.8 and logical/disk value 100. Synthetic offscreen input does not
+reproduce Windows' physical IME/menu dispatch; the window unit test also checks
+that the native menu is removed before attachment and page load.
+
+Round 2 logs: `.llp/data20-r2-focused.log`, `.llp/data20-r2-lint.log`,
+`.llp/data20-r2-typecheck.log`, and `.llp/verify-data20-r2-codex.log`.
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
@@ -192,4 +232,10 @@ missing.
 
 ## Team member's reply
 
-1.
+1. Round 1 native-menu bypass: removed the control window's native menu before
+   zoom registration and page load, which removes the default zoom-role
+   accelerators. Reset now reapplies the factor to every attached control even
+   when the stored value is already 100. Added unit regressions and the
+   committed real Electron regression described above, including composition,
+   actual native factor, IPC value, persisted value, and reset from native
+   drift. The renderer continues yielding IME composition keys to the field.

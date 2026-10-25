@@ -9,6 +9,7 @@ const electron = await vi.hoisted(async () => {
     readonly webContents = new EventEmitter();
     readonly maximize = vi.fn();
     readonly show = vi.fn();
+    readonly removeMenu = vi.fn();
 
     constructor(readonly options: unknown) {
       super();
@@ -46,6 +47,10 @@ describe('createControlWindow', () => {
     const zoom = {attachControl: vi.fn()};
     createControlWindow(recordingLogger(), 'offscreen', zoom);
     const win = lastWindow();
+    expect(win.removeMenu).toHaveBeenCalledOnce();
+    expect(win.removeMenu.mock.invocationCallOrder[0]).toBeLessThan(
+      zoom.attachControl.mock.invocationCallOrder[0] ?? Infinity,
+    );
     expect(zoom.attachControl).toHaveBeenCalledWith(win.webContents);
     expect(zoom.attachControl.mock.invocationCallOrder[0]).toBeLessThan(
       vi.mocked(loadPage).mock.invocationCallOrder.at(-1) ?? Infinity,

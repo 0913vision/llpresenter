@@ -72,6 +72,22 @@ async function ask(
 }
 
 describe('control UI zoom', () => {
+  it('reapplies reset to every control even when the stored value is already 100', async () => {
+    const {control, zoom, config} = await setUp(100);
+    const second = new Control(2);
+    zoom.attachControl(second);
+    control.setZoomFactor.mockClear();
+    second.setZoomFactor.mockClear();
+
+    await expect(
+      ask(Channels.uiZoomChange, control.id, {type: 'ui.zoomReset'}),
+    ).resolves.toBe(100);
+
+    expect(control.setZoomFactor).toHaveBeenCalledExactlyOnceWith(1);
+    expect(second.setZoomFactor).toHaveBeenCalledExactlyOnceWith(1);
+    expect(config.uiZoomPercent).toBe(100);
+  });
+
   it('applies stored zoom after isolation and reapplies it after navigation', async () => {
     const {control, config} = await setUp(150);
     expect(control.setZoomMode).toHaveBeenCalledWith('isolated');

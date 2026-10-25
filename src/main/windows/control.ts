@@ -57,6 +57,9 @@ export function createControlWindow(
       ...testPreferences,
     },
   });
+  // NOTE(0913vision): Frameless windows retain native menu accelerators,
+  // whose zoom roles would bypass the renderer's IME and shortcut rules.
+  win.removeMenu();
   discardTestFrames(win.webContents, mode);
   zoom.attachControl(win.webContents);
   blockNavigation(win);
