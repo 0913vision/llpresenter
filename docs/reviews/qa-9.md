@@ -7,7 +7,8 @@ Review range: `09dcac2...docs/qa/m2-run`
 - Base commit (`main`): `09dcac2e3135640311b507afe311db301652fe0c`
 - Last commit: see the review request message
 - Task: the lead's replaced `.llp/task.md` and the explicit follow-up about the
-  tool-caused close and a fresh before/after-hash force-quit check
+  tool-caused close, fresh before/after-hash force-quit check, and the
+  subsequent user-operated HDMI unplug/reconnect check
 - Tested app: `51b9e625498241d3ae3ea63a4d56abb47f527bb7`, version `0.13.0`
 
 ## What changed and why
@@ -19,6 +20,12 @@ with a visible BenQ output: app GPU private-memory slopes are +10.26/+8.69
 MiB/h. Native private bytes and dedicated GPU counters also rise late. All other
 processes pass the app's flat-memory judgement.
 
+The physical HDMI follow-up preserves playback and PIDs, switches to a primary
+monitor window, and automatically returns to BenQ full screen. Native geometry
+confirms return within about 1.3 seconds of recorded detection. The report also
+records a temporary topmost output over control and the stable fallback's
+partial rectangle overlap, with the measurement limits stated explicitly.
+
 The app's hour-end close was caused by QA's cleanup tool, not an observed app
 crash: exit 4294967295 at 12:48:20.210Z after helper metadata serialization
 failed. The preserved pre-exit app log has no error/crash/renderer-gone entry.
@@ -29,7 +36,7 @@ the same service opens with outputs off, and the final app closes normally.
 ## Changed files
 
 - `docs/qa/m2-notes.md`: run 4, measurements, cleanup incident, recovery check,
-  limitations, and exact evidence paths.
+  physical HDMI recovery, operator-window overlap, limitations, and evidence.
 - `docs/reviews/qa-9.md`: this review request.
 
 ## Checks run
@@ -48,6 +55,14 @@ the same service opens with outputs off, and the final app closes normally.
 | Prettier on changed documents and diff check | Pass                                                                                        |
 | Full local verify                            | Not run, only fast local checks under the current workflow                                  |
 | Branch push and GitHub CI                    | Run URL and result accompany the request; task notes the known GPU-runner failure exception |
+
+### HDMI follow-up checks
+
+| Check                               | Result                                                                                                                   |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| User-operated removal and reconnect | Core recovery pass; same renderer/content/video; automatic BenQ full-screen return; control overlap observation recorded |
+| Recorder                            | 737 app plus 737 native snapshots; no recorder error; nominal 1 s, maximum app interval 3.170 s                          |
+| Errors and cleanup                  | Expected monitor-missing warning only; no crash/error/PID change; app and native recorder exit 0                         |
 
 ## Quality checklist
 
@@ -68,7 +83,12 @@ report. No copyrighted lyrics or personal app content is included.
    failure evidence. Use the fresh, explicit before/after force-quit sequence
    for the M2 clean-restart result, not the tool's failed end metadata.
 4. Report the app's 144/143 fps meter without claiming independent scan-out or a
-   continuous human stutter assessment. Cable unplug remains for the user.
+   continuous human stutter assessment.
+5. Keep the HDMI recovery result separate from operator-window overlap. The
+   initial topmost primary output covered control, and the steady fallback
+   geometrically overlaps its right edge. Do not infer exact persistent pixel
+   occlusion from native enumeration order or claim no brief stutter from
+   one-second samples with a 3.170-second maximum gap.
 
 ## Shared contract change requests
 
@@ -81,6 +101,8 @@ None.
 - The timestamp, exit code, preserved app log, and cleanup cause of the close
   the user saw.
 - Fresh force-quit manifests and their matching last service ID.
+- Actual monitor/window transitions, measured restoration delay, playback
+  identity and PID preservation, and the control-window overlap observation.
 
 ## Review: lead
 
@@ -94,4 +116,6 @@ None.
 
 ## Team member's reply
 
-None yet.
+Added the lead-authorized physical HDMI follow-up after the user unplugged and
+reconnected the BenQ. Continued recording beyond 60 seconds after reconnection,
+then stopped the recorder and closed the app normally. No app code changed.

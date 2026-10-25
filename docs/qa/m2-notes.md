@@ -4,8 +4,10 @@ Latest result:
 [the real-monitor run 4](#run-4-60-minutes-on-the-real-benq-monitor) also fails
 on GPU private-memory growth. Native GPU dedicated-memory counters rise as well.
 The dedicated force-quit/restart check passes. The app's exit at the end of the
-hour was caused by QA's tool cleanup, not an observed app crash. Runs 2 and 3
-remain below as historical evidence.
+hour was caused by QA's tool cleanup, not an observed app crash. The
+[physical HDMI follow-up](#physical-hdmi-unplug-and-reconnect-follow-up) passes
+output recovery and sampled playback continuity, with a control-window overlap
+observation. Runs 2 and 3 remain below as historical evidence.
 
 ## Soak run 2: 20 minutes after output-15
 
@@ -395,8 +397,8 @@ force-quit check using the same data folder:
 scope. An initial preparation assertion incorrectly counted section headers as
 selectable song rows; that helper-only error was corrected before the dedicated
 baseline/output-on/force/restart sequence. Its evidence is retained. All clone
-Electron processes were checked gone afterwards. No monitor unplug was
-attempted; that remains the user's later check.
+Electron processes were checked gone afterwards. No monitor unplug was attempted
+during run 4; the subsequent physical check is recorded below.
 
 ### Evidence paths
 
@@ -420,3 +422,95 @@ worktrees and excluded from Git:
 Original record SHA-256:
 `6b8ad2c5ab997ce9ae4195c19f80fdded65352584be8faa0c9a5855053ee6665`. System CSV
 SHA-256: `9773e15026a2cecdefbaab6599fbaf46f261c63ff1e906db7bffbc25e29f9086`.
+
+## Physical HDMI unplug and reconnect follow-up
+
+**Output recovery and sampled playback continuity pass against spec 03.** The
+same output and renderer moved to a 960x540 window on the primary monitor when
+the BenQ disappeared, and returned automatically to BenQ full screen when it
+reconnected. All five Electron PIDs stayed unchanged. There was no crash or
+error. **Operator-window overlap was observed**, including a brief topmost
+output on the primary monitor before the smaller fallback window settled.
+
+### Setup and method
+
+- Same built clone and runtime snapshot as run 4: main `51b9e62`, version
+  `0.13.0`, `D:\llp-dev\m2-run`, and the same `.llp/real-run/user-data` folder.
+  No soak variables were set. The user explicitly authorized visible app windows
+  and physically removed/reinserted the HDMI cable; QA did not simulate display
+  removal.
+- `샘플 주일 예배` was open, with the first slide of `새벽을 여는 노래` over its
+  12-second looping video. Control was visible at `(760, 180, 1920, 1080)` on
+  TFG34Q14WQ; output was visible/full screen at `(3440, 222, 1920, 1080)` on
+  BenQ GW2780. Ready was confirmed at `13:09:13.202Z` before the user acted.
+- Hidden recorders targeted one-second intervals. There are 737 app/inspector
+  snapshots and 737 independent native window snapshots. They record window
+  bounds, visibility, assigned monitor, process PIDs, video state/time, live
+  content, display events, and new app log lines. Inspector access was only for
+  this functional follow-up, not the memory run.
+- The lead reported the physical unplug at 22:15:51 KST and reconnection at
+  22:18:41. Recorded OS events occurred earlier than these message markers:
+  `13:15:30.174Z` removed and `13:18:29.323Z` added. Timing below uses the
+  recorded events, not an assumed exact match to the lead's reported clock. The
+  detected disconnected interval was 179.149 seconds.
+- Recording continued through `13:21:27.205Z`, more than 60 seconds after
+  reconnection. The app closed normally at `13:21:28.507Z`, exit 0; the native
+  recorder exited 0 at `13:21:29.143Z`. No clone Electron or recorder process
+  remained afterwards.
+
+### Spec 03 checks
+
+Source:
+[When a monitor disconnects during output](../spec/03-output.md#when-a-monitor-disconnects-during-output).
+
+| Check                                                   | Observed result                                                                                                                                                                                                                                                                                                                                                                            |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Move the same output to a window on the control monitor | Pass. Window ID 2 and renderer PID 54948 remained. First sampled stable fallback was `13:15:31.201Z`, 1.027 s after the recorded removal, at `(2480, 492, 960, 540)` on the primary monitor. It was visible, not full screen, not topmost, and not focused.                                                                                                                                |
+| Keep lyrics and video playback                          | Pass in the samples. Lyrics, slide identity, media ID, `outputs.main=true`, and media `startedAt=1792933751169` stayed unchanged after ready. All 735 post-ready samples had an active, unpaused decoded video with no media error. There were no repeated adjacent video times during the detected disconnect; normal 12-second wraps continued.                                          |
+| Return to full screen on the same BenQ                  | Pass. Display ID 1102585166 returned. The app logged its updated monitor list at `13:18:29.644Z` and full-screen status at `13:18:29.788Z`, a 0.144 s status transition.                                                                                                                                                                                                                   |
+| Verify the actual returned window and delay             | First app snapshot beginning after the display-added event verified BenQ full screen at `13:18:30.221Z`, 0.898 s after that event. The first independent native snapshot after the event verified the same full 1920x1080 bounds at `13:18:30.580Z`, 1.257 s after it. Treat visible recovery as confirmed within about 1.3 s of recorded detection, not a subsecond scan-out measurement. |
+| Crash, renderer loss, or unexpected error               | None recorded. One expected warning at `13:15:31.055Z`: `output monitor missing`, status `monitorMissing`. No ERROR/FATAL/crash/renderer-gone/child-process-gone or recorder-error entry occurred.                                                                                                                                                                                         |
+| Preserve processes                                      | Pass. Main 55944, GPU 55052, control renderer 57116, output renderer 54948, network utility 23596 before and after. The same PID set appears throughout post-ready recording.                                                                                                                                                                                                              |
+
+The longest app-record interval was 3.170 seconds during display
+reconfiguration, despite the nominal one-second schedule. Video time advanced
+and no reset or paused state was observed, but these samples cannot rule out a
+short visual stutter or flash inside a sampling gap. Notification-card and
+toolbar-color presentation were not asserted by this recorder; the notification
+host remains outside the earlier M2 slice.
+
+### Control-window overlap
+
+At `13:15:30.204Z`, before the 960x540 fallback settled, the output was sampled
+on the primary monitor at `(0, 0, 1920, 1080)`, still full screen and topmost.
+The native snapshot at `13:15:30.254Z` confirms those bounds, while control
+remained visible at native outer bounds `(752, 180, 1936, 1088)`. Their
+intersection was 1,051,200 pixels. Thus a topmost output temporarily covered a
+large portion of control for approximately one sampled interval.
+
+The stable fallback also intersected the control window's right edge: 200x540
+pixels using Electron bounds, or 208x540 (112,320 pixels) using native outer
+bounds. It remained non-topmost and unfocused. The recorder's
+`WindowsInNativeZOrder` field contains native enumeration order, not an
+additional independently measured stacking/occlusion check. Persistent fallback
+overlap is established geometrically; its exact pixel occlusion was not
+captured. This operator-UI observation should be reviewed separately from the
+successful content/playback recovery. No placement fix was attempted.
+
+### Evidence
+
+Local evidence is under `D:\llp-dev\m2-run\.llp\unplug\`:
+
+| Evidence                                                                       | Relative path                                                 |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------- |
+| Per-second app windows, monitors, PIDs, playback, live state and log additions | `record.jsonl`                                                |
+| Independent native windows and overlap rectangles                              | `native-windows.jsonl`                                        |
+| Parsed phases, measured delays, playback and PID checks                        | `analysis.json`                                               |
+| App log lines for this run, including removal, warning, and restored output    | `app-events.log`, `app-console.log`                           |
+| Human-reported cable times and readiness                                       | `lead-markers.jsonl`, `ready.json`                            |
+| Normal exit and recorder shutdown                                              | `app-exit.json`, `native-exit.json`, `recorder-finished.json` |
+
+App record SHA-256:
+`8c8e9cf0cb96c77f7a2ebbe3d4a162cf94c91b7e5824202a04fd153faa8cea51`. Native
+record SHA-256:
+`cbd186dc1fad97d962ad453c879199989b7b327c610d023b4b8173e09b5bb9cd`.
