@@ -89,8 +89,15 @@ measurement was started locally.
   discarded after dispatch. No new listeners, timers, or persistent caches.
 - The final document head is checked too before the review request.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-## Review: reviewer
+- Round 1 (dbc7061): reviewer (Claude, trial-97) Approve. Nit for the next
+  output branch: `src/main/live/store.ts:111` logs every failed batch child as
+  `warn('skipped live command')`; give a missing target its own reason at warn
+  and log other exceptions with `log.error`, so a slice bug stands out and T3a
+  can show the expected skips. Lead Approve, including the test-only change to
+  data's `liveBatch.test.ts` under the lead's exception. Written by the Codex
+  session that took over output's work. Rebased by the lead onto local `main`
+  without conflicts. M3-O10 is complete.
 
 ## Team member's reply
