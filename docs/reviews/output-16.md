@@ -9,8 +9,8 @@
   [image-background finding F2](../qa/m2-check/smoke.md), and the lead's batch
   in `.llp/task.md`.
 - Shared contract changes: none.
-- Status: prepared; review request held by the unrelated verification failure
-  described below.
+- Status: ready; the lead confirmed the unrelated test failure as a known load
+  failure under `docs/WORKFLOW.md`.
 
 ## What changed and why
 
@@ -87,18 +87,18 @@ fixture unchanged.
 
 ## Checks run
 
-| Command or test                                  | Result                                                                 |
-| ------------------------------------------------ | ---------------------------------------------------------------------- |
-| New image cases with the old background renderer | Expected failure: 18 failed, 29 passed                                 |
-| Fixed background renderer                        | Pass: 47 tests                                                         |
-| Scoped renderer/output tests, two workers        | Pass: 7 files, 86 tests                                                |
-| `npm run typecheck`                              | Pass                                                                   |
-| ESLint on changed TypeScript files               | Pass                                                                   |
-| `npm run lint` after the braces correction       | Pass                                                                   |
-| `npm run build`                                  | Pass                                                                   |
-| Offscreen app image/video/clear/undo check       | Pass: 6.231 s, exit 0                                                  |
-| `npm run format` and `npm run format:check`      | Pass                                                                   |
-| `npm run verify`                                 | Fail: own lint error corrected; unrelated process-test failure remains |
+| Command or test                                  | Result                                                                                                 |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| New image cases with the old background renderer | Expected failure: 18 failed, 29 passed                                                                 |
+| Fixed background renderer                        | Pass: 47 tests                                                                                         |
+| Scoped renderer/output tests, two workers        | Pass: 7 files, 86 tests                                                                                |
+| `npm run typecheck`                              | Pass                                                                                                   |
+| ESLint on changed TypeScript files               | Pass                                                                                                   |
+| `npm run lint` after the braces correction       | Pass                                                                                                   |
+| `npm run build`                                  | Pass                                                                                                   |
+| Offscreen app image/video/clear/undo check       | Pass: 6.231 s, exit 0                                                                                  |
+| `npm run format` and `npm run format:check`      | Pass                                                                                                   |
+| `npm run verify`                                 | Exit 1: own lint error corrected; remaining test failure is a known load failure confirmed by the lead |
 
 The full verification ran once after the conflict-free rebase. Typecheck (8.8
 s), formatting (9.0 s), and build (3.1 s) passed. Lint failed because Prettier
@@ -114,10 +114,12 @@ teardown also reported
 `could not end process 43264: taskkill exited with code 255`. That PID was no
 longer running when checked after the test.
 
-This exact test is not identified as an allowed flaky test in the repository, so
-`docs/WORKFLOW.md` blocks the review request until the lead or devops resolves
-or classifies it. The files belong to devops and were left unchanged. The full
-verify was not repeated. Raw output is `.llp/image-background/verify.log`.
+The lead subsequently ran `scripts/verify.test.ts` alone on main: all 20 tests
+passed. The lead classified the failure above as load-related in an untouched
+file and instructed output to record it as a known load failure and request
+review. This meets the known-failure exception in `docs/WORKFLOW.md`. The files
+belong to devops and were left unchanged. The full verify was not repeated. Raw
+output is `.llp/image-background/verify.log`.
 
 ## Decisions and scope
 
@@ -135,7 +137,8 @@ verify was not repeated. Raw output is `.llp/image-background/verify.log`.
 
 ## Quality checklist
 
-- [ ] Full verification and formatting pass.
+- [x] Required checks complete; the full verify's known load failure is
+      documented with the lead's 20-of-20 isolated check. Formatting passes.
 - [x] Image regressions fail on the old renderer and pass with the fix.
 - [x] Output and preview paths, failed loads, transitions, and cleanup covered.
 - [x] Fixed element count; no new cache, timer, object URL, or dependency.
