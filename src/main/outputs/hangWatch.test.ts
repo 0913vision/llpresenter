@@ -93,4 +93,38 @@ describe('HangWatch', () => {
     expect(onSilentButAnswering).not.toHaveBeenCalled();
     expect(vi.getTimerCount()).toBe(0);
   });
+
+  it('keeps one ping in flight through repeated retries and stops', async () => {
+    const {clock, ping, onHung, watch} = setUp(null);
+    onHung.mockImplementation(() => watch.beat());
+    watch.beat();
+    await clock.advance(5 * (FRAME_SILENCE_MS + ANSWER_LIMIT_MS));
+    expect(onHung).toHaveBeenCalledTimes(5);
+    watch.stop();
+    watch.beat();
+    await clock.advance(FRAME_SILENCE_MS + ANSWER_LIMIT_MS);
+    expect(onHung).toHaveBeenCalledTimes(6);
+    expect(ping).toHaveBeenCalledTimes(1);
+  });
+
+  it('takes a late answer to the ping in flight for a later question', async () => {
+    const {clock, onHung, onSilentButAnswering, watch} = setUp(
+      ANSWER_LIMIT_MS + FRAME_SILENCE_MS + SECOND,
+    );
+    onHung.mockImplementation(() => watch.beat());
+    watch.beat();
+    await clock.advance(2 * (FRAME_SILENCE_MS + ANSWER_LIMIT_MS));
+    expect(onHung).toHaveBeenCalledTimes(1);
+    expect(onSilentButAnswering).toHaveBeenCalledTimes(1);
+  });
+
+  it('pings a replaced page again', async () => {
+    const {clock, ping, watch} = setUp(null);
+    watch.beat();
+    await clock.advance(FRAME_SILENCE_MS);
+    watch.pageReplaced();
+    watch.beat();
+    await clock.advance(FRAME_SILENCE_MS);
+    expect(ping).toHaveBeenCalledTimes(2);
+  });
 });

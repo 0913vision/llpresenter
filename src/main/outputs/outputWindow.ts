@@ -184,7 +184,7 @@ export class OutputWindow {
     const handle = this.options.createHandle(this.options.screen, {
       onRendererGone: details => {
         this.drewSinceLoad = false;
-        this.hangWatch.stop();
+        this.hangWatch.pageReplaced();
         if (!this.disposed) this.recovery.crashed(details);
       },
       onCloseRequested: this.options.onCloseRequested,

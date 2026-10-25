@@ -29,12 +29,13 @@ export interface HangWatchOptions {
  * page is alive but not drawing, which is reported, and the watch checks again
  * after the next silence. Output windows get no input, so Electron's own
  * `unresponsive` event, which Chromium raises from its input hang monitor,
- * may never fire for them.
+ * may never fire for them. A page has at most one ping in flight: a later
+ * question waits for it.
  */
 export class HangWatch {
   private silenceTimer: ReturnType<typeof setTimeout> | null = null;
   private answerTimer: ReturnType<typeof setTimeout> | null = null;
-  private question = 0;
+  private pingInFlight: symbol | null = null;
   private silenceReported = false;
 
   constructor(private readonly options: HangWatchOptions) {}
@@ -47,9 +48,17 @@ export class HangWatch {
   }
 
   stop(): void {
-    this.question += 1;
     this.clearSilence();
     this.clearAnswer();
+  }
+
+  /**
+   * The page's renderer was replaced. A ping to the old one never settles, so
+   * the new page gets its own.
+   */
+  pageReplaced(): void {
+    this.stop();
+    this.pingInFlight = null;
   }
 
   private waitForSilence(): void {
@@ -60,21 +69,28 @@ export class HangWatch {
   }
 
   private ask(): void {
-    this.question += 1;
-    const asked = this.question;
     this.answerTimer = setTimeout(() => {
       this.answerTimer = null;
-      this.question += 1;
       this.options.onHung();
     }, ANSWER_LIMIT_MS);
+    if (this.pingInFlight === null) this.ping();
+  }
+
+  private ping(): void {
+    const ping = Symbol('ping');
+    this.pingInFlight = ping;
     // NOTE(0913vision): A ping that fails (the page is gone or loading) counts
     // as no answer, and the answer limit decides.
     this.options.ping().then(
-      () => {
-        if (asked === this.question) this.answered();
-      },
-      () => undefined,
+      () => this.pingSettled(ping, true),
+      () => this.pingSettled(ping, false),
     );
+  }
+
+  private pingSettled(ping: symbol, answered: boolean): void {
+    if (this.pingInFlight !== ping) return;
+    this.pingInFlight = null;
+    if (answered && this.answerTimer !== null) this.answered();
   }
 
   private answered(): void {

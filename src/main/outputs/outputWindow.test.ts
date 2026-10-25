@@ -271,6 +271,27 @@ describe('OutputWindow', () => {
     expect(handle.forcedCrashes).toBe(0);
   });
 
+  it('keeps one ping in flight to a hung page through retries and hide and show', async () => {
+    const clock = installFakeClock();
+    const {output, windows} = setUp();
+    output.update(FULL_SCREEN);
+    const handle = windows.only('main');
+    handle.answerAfterMs = null;
+    output.frameReported();
+    await clock.advance(3 * (FRAME_SILENCE_MS + ANSWER_LIMIT_MS));
+    output.update(null);
+    output.update(FULL_SCREEN);
+    await clock.advance(2 * (FRAME_SILENCE_MS + ANSWER_LIMIT_MS));
+    expect(handle.forcedCrashes).toBe(5);
+    expect(handle.pings).toBe(1);
+
+    handle.crash();
+    await clock.advance(RELAUNCH_DELAY_MS);
+    output.frameReported();
+    await clock.advance(FRAME_SILENCE_MS);
+    expect(handle.pings).toBe(2);
+  });
+
   it('does not watch a hidden output or one that is restarting', async () => {
     const clock = installFakeClock();
     const {output, windows} = setUp();
