@@ -24,7 +24,6 @@ function LargeCaption({screen}: {readonly screen: ScreenSummary}): JSX.Element {
         <Icon name="laptop" size={14} />
         {screen.target}
       </span>
-      <span className={styles.look}>{screen.lookName}</span>
     </div>
   );
 }

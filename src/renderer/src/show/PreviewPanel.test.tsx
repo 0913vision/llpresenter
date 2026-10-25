@@ -149,19 +149,20 @@ describe('PreviewPanel layout', () => {
     expect(screensWithRole(container, 'large')).toEqual(['main']);
   });
 
-  it('writes the screen name, target, and look name under the large preview', () => {
+  it('writes the screen name and target under the large and the small previews', () => {
     setLayers({}, allOn);
     render(<PreviewPanel compact={false} />);
     expect(screen.getByText('본 화면')).toBeTruthy();
     expect(screen.getByText('모니터 2')).toBeTruthy();
-    expect(screen.getByText('기본')).toBeTruthy();
+    expect(screen.getByText('NDI')).toBeTruthy();
   });
 
-  it('writes only the name and target under a small preview, not the look name', () => {
+  it('writes no Look or stage layout name until the screen settings exist', () => {
     setLayers({}, allOn);
     render(<PreviewPanel compact={false} />);
-    expect(screen.getByText('NDI')).toBeTruthy();
-    expect(screen.queryByText('하단 자막')).toBeNull();
+    for (const name of ['기본', '현재와 다음', '하단 자막']) {
+      expect(screen.queryByText(name)).toBeNull();
+    }
   });
 
   it('uses rows for the small previews in the narrow window form', () => {

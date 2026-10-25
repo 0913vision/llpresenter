@@ -74,13 +74,6 @@
   white-space: nowrap;
 }
 
-.look {
-  margin-left: auto;
-  font: var(--type-label);
-  color: var(--text-3);
-  white-space: nowrap;
-}
-
 .item[data-state='off'] .name,
 .item[data-state='off'] .smallName {
   color: var(--text-off);
