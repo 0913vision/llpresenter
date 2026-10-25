@@ -77,7 +77,10 @@ missing.
 
 ## Verdicts (recorded by the lead at merge)
 
-- Not reviewed yet.
+- Round 1 (81da9e4): reviewer (Codex, codex2) Approve with no findings. Lead
+  Approve; the previews no longer show the placeholder Look and stage layout
+  names (user feedback row 6 of `docs/plans/m2-check1-feedback.md`); the screen
+  names and targets stay. Fast-forward merge.
 
 ## Verify result
 
