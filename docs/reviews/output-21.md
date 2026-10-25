@@ -2,12 +2,12 @@
 
 - Team member: `output`
 - Branch: `fix/output/fallback-window`
-- Base: `6f04e7619ae8129132104e49abf2d302f242268d`
-- Verified code head: `811307f3e596ec62be08b5532dc04c5e5afc96d3`
-- Range: `6f04e76...fix/output/fallback-window`
-- Task: the fallback-window fix inserted before D2 part 2.
+- Base: `5234318452661ec630c824fd8a67f4268b00ce7f`
+- Verified code head: `43531dec4ff59de1a1b6142623b57c89426bd1f6`
+- Range: `5234318...fix/output/fallback-window`
+- Task: the M2 fallback-window fix, before M3-O10.
 - Code CI:
-  [40200727992](https://github.com/0913vision/llpresenter/actions/runs/40200727992),
+  [40203847027](https://github.com/0913vision/llpresenter/actions/runs/40203847027),
   success. The final document head is checked too before the request.
 
 ## What changed and why
@@ -46,14 +46,16 @@ being demoted.
   settled-list recovery, fake source, and source/registry tests.
 - `src/main/outputs/`: placement and ordering adapter, control-window wiring,
   affected-window demotion, fake handle/feed, and regression tests.
-- Source and tests: 12 files, 573 insertions and 48 deletions.
+- Source and tests: 15 files, 1015 insertions and 52 deletions. Round 2 is the
+  focused delta `656d073..43531de`: 6 files, 511 insertions and 46 deletions,
+  including this reply and the native CI fixture.
 - No shared/preload contracts or other team's files changed.
 
 ## Checks run
 
 | Check                                                | Result                                                            |
 | ---------------------------------------------------- | ----------------------------------------------------------------- |
-| Focused display/output tests                         | 6 files, 79/79 passed, 0.469 s                                    |
+| Focused display/output tests                         | 6 files, 85/85 passed, 0.960 s; native CI test skipped            |
 | New bounds and ordering cases against old adapter    | Both failed as expected                                           |
 | Immediate-removal case against old manager           | Failed as expected, 0 demotions instead of 1; restored in finally |
 | `npm run typecheck`                                  | Passed                                                            |
@@ -61,7 +63,7 @@ being demoted.
 | `npm run format`, `npm run format:check`, diff check | Passed                                                            |
 | Rebase onto main                                     | Completed without conflicts                                       |
 | Own branch push                                      | Passed                                                            |
-| GitHub code CI                                       | Success, run 40200727992                                          |
+| GitHub code CI                                       | Success, run 40203847027                                          |
 | Local full verify                                    | Not run, per the lead's rule                                      |
 
 All local tests use fake Electron windows and timers. No real Electron process
@@ -79,8 +81,8 @@ least five minutes apart.
   Both unrelated outputs and another output whose demotion fails are covered.
 - Check fullscreen-exit cancellation, subscription disposal, and both early
   reconnect and fullscreen/fallback/fullscreen always-on-top restoration.
-- The real Windows restore is modeled with the recorded old/clamped positions; a
-  visible real-monitor check is deferred under the overnight restriction.
+- Native fullscreen exit is measured on the GitHub Windows runner. The actual
+  HDMI unplug check is deferred until the user is awake, as the lead requested.
 - Full green GitHub CI is required. There is no GPU exception.
 
 ## Review: lead
@@ -113,3 +115,27 @@ test skipped, typecheck and targeted lint passed, and the native fixture's
 bundle and syntax check passed without launching Electron. Six new cases all
 failed against the round 1 adapter, which was restored in finally. No local full
 verify, visible window, soak, or memory measurement ran.
+
+## Round 2 native Windows measurements
+
+[CI run 40203847027](https://github.com/0913vision/llpresenter/actions/runs/40203847027)
+passed at code head `43531de`. The existing
+[coverage artifact 12603380229](https://github.com/0913vision/llpresenter/actions/runs/40203847027/artifacts/12603380229)
+contains `native-fullscreen-order.log`. Successful verify steps suppress their
+stdout, so the test also saves this diagnostic in the coverage artifact.
+
+| Observation, in recorded order       | x   | y   | Width | Height |
+| ------------------------------------ | --- | --- | ----- | ------ |
+| Before fullscreen exit               | 0   | 0   | 1024  | 768    |
+| During `leave-full-screen`           | 192 | 180 | 640   | 360    |
+| After `setFullScreen(false)` returns | 192 | 180 | 640   | 360    |
+| Next event-loop turn                 | 192 | 180 | 640   | 360    |
+| Settled                              | 192 | 180 | 640   | 360    |
+
+The leave event ran synchronously before the call returned. The bounds were
+already restored when that event ran and stayed the same afterwards in this
+probe. It did not reproduce a restore after the event; it did not disconnect a
+physical monitor. The fix handles either ordering and a missing event without
+relying on that timing assumption. The same real-window fixture passed its
+planned-bounds assertion and fullscreen/always-on-top reconnect assertion. The
+real HDMI recheck remains scheduled for when the user is awake.
