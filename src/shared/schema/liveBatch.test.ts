@@ -1,5 +1,7 @@
 import {describe, expect, it, vi} from 'vitest';
 import {dispatchLogged, LiveStore} from '../../main/live/store';
+import {SliceRegistry} from '../../main/live/sliceRegistry';
+import {outputsSlice} from '../../main/live/slices/outputs';
 import {interruptsSongOutput, isLiveCommand} from '../commands';
 import {
   MAX_LIVE_BATCH_COMMANDS,
@@ -95,8 +97,9 @@ describe('live batch contracts', () => {
     expect(parseLiveCommandRequest({type: 'timer.start'}).ok).toBe(false);
   });
 
-  it('does not dispatch batch children until a transaction slice exists', () => {
-    const store = new LiveStore();
+  it('does not dispatch batch children when its registry has no transaction slice', () => {
+    const registry = new SliceRegistry([outputsSlice]);
+    const store = new LiveStore(undefined, undefined, registry);
     const command = expectSuccess(
       parseLiveCommand({
         type: 'live.batch',
