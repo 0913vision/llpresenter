@@ -1,8 +1,9 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import type {SlideLayer} from '@shared/live';
 import {classes} from './classes';
-import {DEFAULT_LYRIC_STYLE} from './lyricStyle';
+import {DEFAULT_LYRIC_STYLE, scaleFor} from './lyricStyle';
 import {SlideLayerView} from './slideLayer';
+import {OUTPUT_TRANSITIONS} from './transitions';
 
 const VERSE: SlideLayer = {
   itemId: 'hymn-1',
@@ -27,6 +28,90 @@ function setUp() {
 }
 
 describe('SlideLayerView', () => {
+  it.each([
+    [1280, 720],
+    [1920, 1080],
+    [3840, 2160],
+  ])(
+    'scales reference-pixel effects for %s by %s without following font shrink',
+    (width, height) => {
+      const {parent, view} = setUp();
+      view.rescale(scaleFor(width, height));
+      const element = parent.firstElementChild;
+      if (!(element instanceof HTMLElement)) {
+        throw new Error('Missing lyric layer');
+      }
+      const scale = scaleFor(width, height);
+      expect(element.style.getPropertyValue('--lyric-shadow-offset')).toBe(
+        `${4 * scale}px`,
+      );
+      expect(element.style.getPropertyValue('--lyric-shadow-blur')).toBe(
+        `${8 * scale}px`,
+      );
+      expect(element.style.getPropertyValue('--lyric-outline-width')).toBe(
+        `${3 * scale}px`,
+      );
+      expect(element.style.getPropertyValue('--lyric-shadow-strength')).toBe(
+        '60%',
+      );
+      view.setStyle({...DEFAULT_LYRIC_STYLE, size: 12});
+      expect(element.style.getPropertyValue('--lyric-outline-width')).toBe(
+        `${3 * scale}px`,
+      );
+    },
+  );
+
+  it('applies changed styles immediately to retained pages and restores the slide dissolve for new content', () => {
+    const {parent, view, pages, shownPage} = setUp();
+    view.show(VERSE);
+    const before = pages();
+    const current = shownPage();
+    view.setStyle({
+      ...DEFAULT_LYRIC_STYLE,
+      font: 'Missing "Display" Font',
+      size: 60,
+      weight: 400,
+      lineHeight: 1.8,
+      maxLines: 3,
+      color: '#123456',
+      align: 'left',
+      vAlign: 'bottom',
+      margin: 10,
+      shadow: false,
+      outline: true,
+    });
+    expect(pages()).toEqual(before);
+    expect(shownPage()).toBe(current);
+    expect(parent.firstElementChild?.classList.contains(classes.instant)).toBe(
+      true,
+    );
+    expect(parent.firstElementChild?.classList.contains(classes.shadow)).toBe(
+      false,
+    );
+    expect(parent.firstElementChild?.classList.contains(classes.outline)).toBe(
+      true,
+    );
+    for (const page of pages()) {
+      const block = page.querySelector<HTMLElement>(`.${classes.block}`);
+      expect(page.style.inset).toBe('10%');
+      expect(page.style.justifyContent).toBe('flex-end');
+      expect(page.style.textAlign).toBe('left');
+      expect(block?.style.fontFamily).toContain('Pretendard Variable');
+      expect(block?.style.fontWeight).toBe('400');
+      expect(block?.style.lineHeight).toBe('1.8');
+      expect(block?.style.color).toBe('rgb(18, 52, 86)');
+    }
+    view.show({...VERSE, position: 1});
+    expect(parent.firstElementChild?.classList.contains(classes.instant)).toBe(
+      false,
+    );
+    expect(
+      (parent.firstElementChild instanceof HTMLElement
+        ? parent.firstElementChild.style
+        : undefined
+      )?.getPropertyValue('--slide-dissolve'),
+    ).toBe(`${OUTPUT_TRANSITIONS.slideMs}ms`);
+  });
   it('draws the lines of a 장 as stored, one row each', () => {
     const {view, shownLines} = setUp();
     view.show({...VERSE, lines: ['첫 줄', '', '셋째 줄']});
@@ -135,6 +220,37 @@ describe('SlideLayerView', () => {
         `.${classes.block}`,
       );
       expect(block?.style.fontSize).toBe('42px');
+    });
+
+    it.each([
+      [1280, 720, 56],
+      [3840, 2160, 168],
+    ])(
+      'keeps text proportions on %s by %s output',
+      (width, height, expected) => {
+        const {view, shownPage} = setUp();
+        view.show(VERSE);
+        view.rescale(scaleFor(width, height));
+        expect(
+          shownPage()?.querySelector<HTMLElement>(`.${classes.block}`)?.style
+            .fontSize,
+        ).toBe(`${expected}px`);
+      },
+    );
+
+    it('refits all original lines when the maximum line count changes', () => {
+      const {view, shownPage, shownLines} = setUp();
+      view.show({...VERSE, lines: ['One', 'Two', 'Three', 'Four']});
+      const page = shownPage();
+      expect(
+        page?.querySelector<HTMLElement>(`.${classes.block}`)?.style.fontSize,
+      ).toBe('42px');
+      view.setStyle({...DEFAULT_LYRIC_STYLE, maxLines: 4});
+      expect(shownPage()).toBe(page);
+      expect(shownLines()).toEqual(['One', 'Two', 'Three', 'Four']);
+      expect(
+        page?.querySelector<HTMLElement>(`.${classes.block}`)?.style.fontSize,
+      ).toBe('84px');
     });
   });
 

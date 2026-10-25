@@ -1,12 +1,21 @@
 import type {SlideLayer} from '@shared/live';
 import {fitFontSize} from './fitText';
 import {classes} from './classes';
-import type {LyricStyle} from './lyricStyle';
+import {LYRIC_EFFECTS, type LyricStyle} from './lyricStyle';
+import {OUTPUT_TRANSITIONS} from './transitions';
 
 /** The dissolve between 장 (docs/spec/03-output.md, version 1 default). */
-export const SLIDE_DISSOLVE_MS = 200;
+export const SLIDE_DISSOLVE_MS = OUTPUT_TRANSITIONS.slideMs;
 
-const FALLBACK_FONTS = "'Pretendard Variable', 'Malgun Gothic', sans-serif";
+const FALLBACK_FONTS = "'Pretendard Variable', sans-serif";
+
+function fontFamilyFor(font: string): string {
+  const escaped = font.replace(
+    /["\\\p{Cc}]/gu,
+    character => `\\${character.charCodeAt(0).toString(16)} `,
+  );
+  return `"${escaped}", ${FALLBACK_FONTS}`;
+}
 
 // NOTE(0913vision): Layout reports whole pixels, so a block that fits exactly
 // can measure a pixel over.
@@ -52,7 +61,7 @@ function applyStyle({element, block}: Page, style: LyricStyle): void {
   element.style.inset = `${style.margin}%`;
   element.style.justifyContent = JUSTIFY[style.vAlign];
   element.style.textAlign = style.align;
-  block.style.fontFamily = `'${style.font}', ${FALLBACK_FONTS}`;
+  block.style.fontFamily = fontFamilyFor(style.font);
   block.style.fontWeight = String(style.weight);
   block.style.lineHeight = String(style.lineHeight);
   block.style.color = style.color;
@@ -105,6 +114,7 @@ export class SlideLayerView {
       `${SLIDE_DISSOLVE_MS}ms`,
     );
     this.pages = [createPage(style), createPage(style)];
+    this.rescale(1);
     this.element.append(this.pages[0].element, this.pages[1].element);
     parent.append(this.element);
   }
@@ -131,6 +141,7 @@ export class SlideLayerView {
   setStyle(style: LyricStyle): void {
     if (STYLE_FIELDS.every(key => this.style[key] === style[key])) return;
     this.style = style;
+    this.element.classList.add(classes.instant);
     this.element.classList.toggle(classes.shadow, style.shadow);
     this.element.classList.toggle(classes.outline, style.outline);
     for (const page of this.pages) applyStyle(page, style);
@@ -140,6 +151,22 @@ export class SlideLayerView {
   /** Lays the 장 out again at a new screen scale, without a dissolve. */
   rescale(scale: number): void {
     this.scale = scale;
+    this.element.style.setProperty(
+      '--lyric-shadow-offset',
+      `${LYRIC_EFFECTS.shadowOffset * scale}px`,
+    );
+    this.element.style.setProperty(
+      '--lyric-shadow-blur',
+      `${LYRIC_EFFECTS.shadowBlur * scale}px`,
+    );
+    this.element.style.setProperty(
+      '--lyric-shadow-strength',
+      `${LYRIC_EFFECTS.shadowOpacity * 100}%`,
+    );
+    this.element.style.setProperty(
+      '--lyric-outline-width',
+      `${LYRIC_EFFECTS.outlineWidth * scale}px`,
+    );
     if (this.current !== null) this.fit(this.pages[this.front]);
   }
 

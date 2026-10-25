@@ -1,9 +1,10 @@
 import type {MediaLayer} from '@shared/live';
 import {loadBackgroundImage} from './backgroundImage';
 import {classes} from './classes';
+import {OUTPUT_TRANSITIONS} from './transitions';
 
 /** The dissolve between backgrounds (docs/spec/03-output.md, version 1 default). */
-export const BACKGROUND_DISSOLVE_MS = 500;
+export const BACKGROUND_DISSOLVE_MS = OUTPUT_TRANSITIONS.backgroundMs;
 
 /**
  * Where a renderer draws: an output window, or a small preview in the control

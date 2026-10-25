@@ -1,9 +1,4 @@
 .root {
-  --lyric-shadow-offset: 0.04em;
-  --lyric-shadow-blur: 0.12em;
-  --lyric-shadow-strength: 70%;
-  --lyric-outline-width: 0.04em;
-
   position: absolute;
   inset: 0;
   overflow: hidden;
@@ -64,7 +59,8 @@
 }
 
 .shadow .block {
-  text-shadow: 0 var(--lyric-shadow-offset) var(--lyric-shadow-blur)
+  text-shadow: var(--lyric-shadow-offset) var(--lyric-shadow-offset)
+    var(--lyric-shadow-blur)
     color-mix(
       in srgb,
       var(--output-black) var(--lyric-shadow-strength),

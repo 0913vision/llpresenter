@@ -2,6 +2,18 @@ import {describe, expect, it, vi} from 'vitest';
 import {fitFontSize} from './fitText';
 
 describe('fitFontSize', () => {
+  it('uses a whole pixel size no larger than a scaled fractional style size', () => {
+    expect(fitFontSize((85 * 2) / 3, () => true)).toBe(56);
+    expect(fitFontSize(0.5, () => true)).toBe(1);
+  });
+
+  it('bounds an overflowing scale and converges for large reference sizes', () => {
+    expect(Number.isSafeInteger(fitFontSize(Infinity, () => true))).toBe(true);
+    const fits = vi.fn((size: number) => size <= 37);
+    expect(fitFontSize(Number.MAX_VALUE, fits)).toBe(37);
+    expect(fits.mock.calls.length).toBeLessThanOrEqual(55);
+    expect(fitFontSize(NaN, () => true)).toBe(1);
+  });
   it('keeps the style size when the text fits', () => {
     const fits = vi.fn(() => true);
     expect(fitFontSize(84, fits)).toBe(84);

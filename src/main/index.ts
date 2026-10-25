@@ -89,7 +89,18 @@ function start(): void {
         log,
       });
       if (session.crashed) {
-        log.warn('previous session did not exit cleanly; starting in standby');
+        // NOTE(0913vision): SAVE_LIMIT_MS can expire before marker cleanup,
+        // so a normal quit with a slow save is indistinguishable from a crash.
+        log.warn(
+          'previous session marker remains after a crash or incomplete shutdown; starting in standby',
+          {
+            possibleCauses: [
+              'crash',
+              'save-limit-expired',
+              'marker-cleanup-failed',
+            ],
+          },
+        );
       }
       const appConfig = await openAppConfig({
         file: join(app.getPath('userData'), UI_STATE_FILE),

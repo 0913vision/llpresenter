@@ -38,6 +38,14 @@ export const DEFAULT_LYRIC_STYLE: LyricStyle = {
 /** The screen size that lyric style sizes are written for. */
 export const REFERENCE_SCREEN = {width: 1920, height: 1080} as const;
 
+/** Fixed switch values from spec 03 and 10, in reference-screen pixels. */
+export const LYRIC_EFFECTS = {
+  outlineWidth: 3,
+  shadowOffset: 4,
+  shadowBlur: 8,
+  shadowOpacity: 0.6,
+} as const;
+
 /** The factor that turns reference px into px on a screen of this size. */
 export function scaleFor(width: number, height: number): number {
   return Math.min(

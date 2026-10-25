@@ -11,12 +11,16 @@ export function fitFontSize(
   size: number,
   fits: (size: number) => boolean,
 ): number {
-  if (fits(size)) return size;
+  const bounded = Number.isNaN(size)
+    ? MIN_FONT_SIZE
+    : Math.min(size, Number.MAX_SAFE_INTEGER);
+  const maximum = Math.max(MIN_FONT_SIZE, Math.floor(bounded));
+  if (fits(maximum)) return maximum;
   let fitting = MIN_FONT_SIZE;
   if (!fits(fitting)) return fitting;
-  let tooLarge = Math.ceil(size);
+  let tooLarge = maximum;
   while (tooLarge - fitting > 1) {
-    const middle = Math.floor((fitting + tooLarge) / 2);
+    const middle = fitting + Math.floor((tooLarge - fitting) / 2);
     if (fits(middle)) fitting = middle;
     else tooLarge = middle;
   }
