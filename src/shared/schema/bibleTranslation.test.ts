@@ -107,10 +107,15 @@ describe('Bible translation files', () => {
       'source.retrieved',
     ],
     [{...sample, source: {...sample.source, url: 'not a URL'}}, 'source.url'],
+    [
+      {...sample, source: {...sample.source, url: 'ftp://example.com/text'}},
+      'source.url',
+    ],
     [{...sample, books: [{id: 0, chapters: [['Text']]}]}, 'books.0.id'],
     [{...sample, books: [{id: 67, chapters: [['Text']]}]}, 'books.0.id'],
     [{...sample, books: [{id: 1.5, chapters: [['Text']]}]}, 'books.0.id'],
     [{...sample, books: [{id: 1, chapters: [[]]}]}, 'books.0.chapters.0'],
+    [{...sample, books: [{id: 1, chapters: []}]}, 'books.0.chapters'],
     [{...sample, books: [{id: 1, chapters: [[5]]}]}, 'books.0.chapters.0.0'],
     [{...sample, books: [{id: 1, chapters: ['Text']}]}, 'books.0.chapters.0'],
     [
@@ -141,7 +146,7 @@ describe('Bible translation files', () => {
     const value = {
       ...sample,
       source: {...sample.source, retrieved: '2024-02-29'},
-      books: [{id: 1, chapters: []}],
+      books: [{id: 1, chapters: [['Invented sentence']]}],
     };
     expect(expectSuccess(parse(value)).data).toEqual(value);
   });

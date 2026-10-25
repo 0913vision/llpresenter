@@ -26,7 +26,10 @@ const retrievedDate = v.pipe(
 
 const bookSchema = jsonObject({
   id: v.pipe(positiveInteger, v.maxValue(LAST_BOOK_ID)),
-  chapters: v.array(v.pipe(v.array(v.string()), v.minLength(1))),
+  chapters: v.pipe(
+    v.array(v.pipe(v.array(v.string()), v.minLength(1))),
+    v.minLength(1),
+  ),
 });
 
 const bibleTranslationSchema = jsonObject({
@@ -48,7 +51,11 @@ const bibleTranslationSchema = jsonObject({
   source: jsonObject({
     title: nonBlankText,
     publisher: nonBlankText,
-    url: v.pipe(v.string(), v.url()),
+    url: v.pipe(
+      v.string(),
+      v.url(),
+      v.regex(/^https?:/i, 'Expected an HTTP or HTTPS source URL'),
+    ),
     license: nonBlankText,
     retrieved: retrievedDate,
   }),
