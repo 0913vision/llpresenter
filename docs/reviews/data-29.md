@@ -1,4 +1,4 @@
-﻿# Review request: data-29
+# Review request: data-29
 
 - Team member: data
 - Branch: `feat/data/bible-contract`

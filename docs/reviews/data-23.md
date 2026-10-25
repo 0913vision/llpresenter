@@ -1,4 +1,4 @@
-﻿# Review request: data-23
+# Review request: data-23
 
 Shared changes: library search, decoded text-import input and draft results, and
 the custom song-drag payload. New preload functions validate requests and

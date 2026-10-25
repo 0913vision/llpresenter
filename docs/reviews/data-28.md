@@ -1,4 +1,4 @@
-﻿# Review request: data-28
+# Review request: data-28
 
 - Team member: data
 - Branch: `feat/data/text-import`

@@ -1,4 +1,4 @@
-﻿# Review request: `devops-18`
+# Review request: `devops-18`
 
 - Team member: `devops`
 - Branch: `chore/devops/verify-stamp`
