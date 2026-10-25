@@ -2,11 +2,12 @@ import {useEffect, useRef, useState, type JSX} from 'react';
 import {createServiceItemId} from '@shared/schema/ids';
 import {openItem, useShow} from '@renderer/state/show';
 import {useLive} from '@renderer/state/live';
-import {ListBox, ListGroup, ListRow, Menu} from '@renderer/ui';
+import {ListBox, ListGroup, ListInsertLine, ListRow, Menu} from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import type {Workspace} from '@renderer/ui/workspace';
 import {useServiceOrderEditing} from './useServiceOrderEditing';
+import {serviceOrderRowId, useServiceOrderDrag} from './useServiceOrderDrag';
 import type {ItemKind, RowProblem, ServiceRow} from './model';
 import styles from './ServiceOrderList.module.css';
 
@@ -61,15 +62,20 @@ function useLiveItemId(): string | null {
 function ItemRows({
   items,
   liveItemId,
+  editable,
+  insertBefore,
 }: {
   readonly items: readonly ServiceRow[];
   readonly liveItemId: string | null;
+  readonly editable: boolean;
+  readonly insertBefore: string | null | undefined;
 }): JSX.Element {
   return (
     <>
       {items.map(row =>
         row.kind === 'header' ? null : (
-          <div key={row.id} data-order-id={row.id}>
+          <div key={row.id} data-order-id={row.id} draggable={editable}>
+            {insertBefore === row.id ? <ListInsertLine /> : null}
             <ListRow
               value={row.id}
               title={row.title}
@@ -90,13 +96,6 @@ function logProblem(notice: Notice): void {
   console.error('Service order edit failed:', notice.key);
 }
 
-function serviceOrderRowId(target: EventTarget): string | null {
-  return target instanceof Element
-    ? (target.closest<HTMLElement>('[data-order-id]')?.dataset['orderId'] ??
-        null)
-    : null;
-}
-
 /** The main-owned 예배 순서 list shared by 진행 and 준비. */
 export function ServiceOrderList({
   workspace = 'show',
@@ -114,6 +113,26 @@ export function ServiceOrderList({
   const readOnly = useShow(view => view.readOnly);
   const editing = useServiceOrderEditing(serviceId, onProblem);
   const editable = !readOnly && !editing.busy && window.llp !== undefined;
+  const {insertBefore, dragProps} = useServiceOrderDrag({
+    enabled: editable,
+    rows,
+    onMove: (source, before) =>
+      editing.run((edits, id) =>
+        edits.move(
+          id,
+          createServiceItemId(source),
+          before === null ? null : createServiceItemId(before),
+        ),
+      ),
+    onCopy: (songId, before) =>
+      editing.run((edits, id) =>
+        edits.insertSong(
+          id,
+          songId,
+          before === null ? null : createServiceItemId(before),
+        ),
+      ),
+  });
   const [menu, setMenu] = useState<{
     id: string;
     serviceId: string | null;
@@ -132,6 +151,7 @@ export function ServiceOrderList({
       ref={listRef}
       className={styles.list}
       aria-busy={editing.busy}
+      {...dragProps}
       onContextMenu={event => {
         const id = serviceOrderRowId(event.target);
         if (id === null) return;
@@ -170,16 +190,25 @@ export function ServiceOrderList({
               key={group.id}
               items={group.items}
               liveItemId={liveItemId}
+              editable={editable}
+              insertBefore={insertBefore}
             />
           ) : (
-            <div key={group.id} data-order-id={group.id}>
+            <div key={group.id} data-order-id={group.id} draggable={editable}>
+              {insertBefore === group.id ? <ListInsertLine /> : null}
               <ListGroup label={group.label}>
-                <ItemRows items={group.items} liveItemId={liveItemId} />
+                <ItemRows
+                  items={group.items}
+                  liveItemId={liveItemId}
+                  editable={editable}
+                  insertBefore={insertBefore}
+                />
               </ListGroup>
             </div>
           ),
         )}
       </ListBox>
+      {insertBefore === null ? <ListInsertLine /> : null}
       {menu?.serviceId === serviceId ? (
         <Menu
           label="예배 순서 항목 메뉴"

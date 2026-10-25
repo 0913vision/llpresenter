@@ -8,6 +8,7 @@ import {
   createServiceItemId,
   createSongId,
 } from '@shared/schema/ids';
+import {SONG_DRAG_MIME} from '@shared/schema/songDrag';
 import {emptyLiveState} from '@shared/live';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {applyService, useShow} from '@renderer/state/show';
@@ -113,6 +114,16 @@ function setup(workspace: 'show' | 'prep' = 'show', readOnly = false) {
   };
 }
 
+function transfer(payload = '') {
+  return {
+    types: payload === '' ? [] : [SONG_DRAG_MIME],
+    effectAllowed: 'none',
+    dropEffect: 'none',
+    setData: vi.fn(),
+    getData: () => payload,
+  };
+}
+
 beforeEach(() => {
   applyService(null);
   useLive.setState({state: null, lastSlideItemId: null});
@@ -167,7 +178,39 @@ describe('service panel editing', () => {
     await screen.findByRole('option', {name: '첫 곡'});
   });
 
-  it('disables read-only deletion', async () => {
+  it('reorders songs and headers, using the list tail to append', async () => {
+    const {api, send, list, ids} = setup();
+    const dataTransfer = transfer();
+    fireEvent.dragStart(screen.getByRole('option', {name: '다음 곡'}), {
+      dataTransfer,
+    });
+    fireEvent.dragOver(screen.getByText('제목'), {dataTransfer});
+    expect(dataTransfer.dropEffect).toBe('move');
+    fireEvent.drop(screen.getByText('제목'), {dataTransfer});
+    await waitFor(() => expect(ids()).toEqual([lastId, headerId, firstId]));
+    fireEvent.dragStart(screen.getByText('제목'), {dataTransfer});
+    fireEvent.drop(list(), {dataTransfer});
+    await waitFor(() => expect(ids()).toEqual([lastId, firstId, headerId]));
+    expect(api.content.edit).toHaveBeenCalledTimes(2);
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it('copies validated library song drops and ignores unrelated or malformed data', async () => {
+    const {api, send, ids} = setup('prep');
+    const target = screen.getByRole('option', {name: '첫 곡'});
+    fireEvent.drop(target, {dataTransfer: transfer('not json')});
+    fireEvent.drop(target, {dataTransfer: transfer()});
+    expect(api.content.edit).not.toHaveBeenCalled();
+    const dataTransfer = transfer(JSON.stringify({kind: 'song', songId}));
+    fireEvent.dragOver(target, {dataTransfer});
+    expect(dataTransfer.dropEffect).toBe('copy');
+    fireEvent.drop(target, {dataTransfer});
+    await waitFor(() => expect(ids()).toHaveLength(4));
+    expect(ids()[1]).not.toBe(firstId);
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it('disables read-only deletion and drops', async () => {
     const {api} = setup('show', true);
     const target = screen.getByRole('option', {name: '첫 곡'});
     fireEvent.contextMenu(target);
@@ -176,6 +219,9 @@ describe('service panel editing', () => {
         'aria-disabled',
       ),
     ).toBe('true');
+    fireEvent.drop(target, {
+      dataTransfer: transfer(JSON.stringify({kind: 'song', songId})),
+    });
     expect(api.content.edit).not.toHaveBeenCalled();
   });
 
