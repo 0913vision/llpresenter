@@ -21,7 +21,7 @@ import type {
   ShowLibrarySongRequest,
 } from './schema/showLibrarySong';
 import type {ServiceOpenRequest} from './schema/serviceOpen';
-import type {LayoutChange, UiState} from './schema/uiState';
+import type {LayoutChange, MediaStripChange, UiState} from './schema/uiState';
 import type {Preferences} from './schema/preferences';
 import type {
   SettingsDocument,
@@ -62,6 +62,7 @@ export const Channels = {
   windowControl: 'window:control',
   uiGet: 'ui:get',
   uiLayoutSet: 'ui:layout:set',
+  uiMediaStripSet: 'ui:media-strip:set',
   uiZoomGet: 'ui:zoom:get',
   uiZoomChange: 'ui:zoom:change',
   logWrite: 'log:write',
@@ -149,9 +150,11 @@ export interface LlpApi {
     get(): Promise<UiState>;
     /**
      * Saves a size class's layout: the column widths when a drag ends, or the
-     * thumbnail scale percentage when the size control commits.
+     * thumbnail scale percentage, or sidebar state.
      */
     setLayout(change: LayoutChange): void;
+    /** Saves the media strip choice through the single app.json writer. */
+    setMediaStrip(change: MediaStripChange): void;
     /** Reads the computer-local UI zoom percentage (100 to 200, step 10). */
     getZoom(): Promise<number>;
     /** Applies one clamped zoom command in main; rejects after logging on failure. */

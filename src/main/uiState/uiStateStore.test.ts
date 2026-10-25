@@ -40,9 +40,41 @@ describe('UiStateStore state', () => {
     expect(createHarness().store.state).toEqual({});
   });
 
-  it('gives the layout of the fields and nothing else of them', () => {
+  it('gives layout and media visibility without other UI fields', () => {
     const {store} = createHarness({layout, mediaStrip: true});
-    expect(store.state).toEqual({layout});
+    expect(store.state).toEqual({layout, mediaStrip: true});
+  });
+});
+
+describe('panel visibility state', () => {
+  it('merges sidebar state alone without changing widths or other size classes', () => {
+    const {store} = createHarness({layout});
+    store.setLayout({sizeClass: 'normal', leftCollapsed: true});
+    store.setLayout({sizeClass: 'normal', leftCollapsed: false});
+    expect(store.state).toEqual({
+      layout: {...layout, normal: {...layout.normal, leftCollapsed: false}},
+    });
+  });
+
+  it('hands only the media boolean to the single writer, including false', () => {
+    const {store, changes} = createHarness({
+      layout,
+      mediaStrip: true,
+      macroView: 'list',
+    });
+    store.setMediaStrip({visible: false});
+    expect(changes).toEqual([{mediaStrip: false}]);
+    expect(store.state).toEqual({layout, mediaStrip: false});
+  });
+
+  it('drops malformed media messages without changing state', () => {
+    const {store, changes, warnings} = createHarness({mediaStrip: true});
+    for (const value of [null, [], {}, {visible: 'false'}, {visible: 0}]) {
+      store.setMediaStrip(value);
+    }
+    expect(changes).toEqual([]);
+    expect(warnings).toHaveLength(5);
+    expect(store.state).toEqual({mediaStrip: true});
   });
 });
 

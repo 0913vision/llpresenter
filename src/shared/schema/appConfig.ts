@@ -19,6 +19,7 @@ import {
 } from './primitives';
 
 const columnLayoutSchema = jsonObject({
+  leftCollapsed: v.exactOptional(v.boolean()),
   left: v.exactOptional(nonNegativeNumber),
   right: v.exactOptional(nonNegativeNumber),
   columns: v.exactOptional(positiveInteger),
@@ -76,7 +77,7 @@ export type AppLayout = NonNullable<AppConfig['layout']>;
 export type SizeClass = (typeof sizeClasses)[number];
 
 /**
- * The column widths (px), thumbnail scale (%), and legacy thumbnail columns
+ * The sidebar state, column widths (px), thumbnail scale (%), and legacy columns
  * saved for one size class. An absent value means the class default. The
  * shell clamps the values to their ranges when reading them.
  */

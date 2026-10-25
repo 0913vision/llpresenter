@@ -27,6 +27,7 @@ function integerIn({min, max}: IntegerRange) {
 const layoutChangeSchema = v.pipe(
   payloadObject({
     sizeClass: v.picklist(sizeClasses),
+    leftCollapsed: v.exactOptional(v.boolean()),
     left: integerIn(COLUMN_LIMITS.left),
     right: integerIn(COLUMN_LIMITS.right),
     thumbnailScalePercent: integerIn(COLUMN_LIMITS.thumbnailScalePercent),
@@ -36,21 +37,35 @@ const layoutChangeSchema = v.pipe(
     'Expected the left and right widths together',
   ),
   v.check(
-    ({left, thumbnailScalePercent}) =>
-      left !== undefined || thumbnailScalePercent !== undefined,
-    'Expected the column widths, the thumbnail scale, or both',
+    ({left, thumbnailScalePercent, leftCollapsed}) =>
+      left !== undefined ||
+      thumbnailScalePercent !== undefined ||
+      leftCollapsed !== undefined,
+    'Expected column widths, thumbnail scale, or sidebar state',
   ),
 );
 
 const uiStateSchema = payloadObject({
   layout: v.exactOptional(appLayoutSchema),
+  mediaStrip: v.exactOptional(v.boolean()),
 });
+
+const mediaStripChangeSchema = payloadObject({visible: v.boolean()});
 
 /**
  * The UI part of `app.json` that the control window reads once before its
  * first render. A missing or broken file gives `{}`.
  */
-export type UiState = Pick<AppConfig, 'layout'>;
+export type UiState = Pick<AppConfig, 'layout' | 'mediaStrip'>;
+
+/** One boolean choice; no collection or unconstrained numeric payload. */
+export type MediaStripChange = Readonly<
+  v.InferOutput<typeof mediaStripChangeSchema>
+>;
+
+export function parseMediaStripChange(value: unknown) {
+  return parsePayload(mediaStripChangeSchema, value);
+}
 
 /** Checks a `ui:get` reply on the receiving side. Never throws. */
 export function parseUiState(value: unknown): Result<UiState, PayloadError> {
@@ -59,8 +74,8 @@ export function parseUiState(value: unknown): Result<UiState, PayloadError> {
 
 /**
  * A change to one size class's layout: the left and right widths together,
- * sent when a drag ends, and the thumbnail scale percentage. A message holds
- * one of the two or both; main keeps fields the message omits.
+ * sent when a drag ends, the thumbnail scale percentage, or sidebar state.
+ * Main keeps fields the message omits and still requires paired widths.
  */
 export type LayoutChange = Readonly<v.InferOutput<typeof layoutChangeSchema>>;
 

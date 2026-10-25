@@ -38,7 +38,7 @@ import {
   parseServiceOpenRequest,
   parseServiceOpenReply,
 } from '@shared/schema/serviceOpen';
-import {parseUiState} from '@shared/schema/uiState';
+import {parseMediaStripChange, parseUiState} from '@shared/schema/uiState';
 import {parseUiZoomPercent} from '@shared/schema/uiZoom';
 import {parsePreferencesValue} from '@shared/schema/preferences';
 import {
@@ -209,6 +209,14 @@ const api: LlpApi = {
   ui: {
     get: () => invokeChecked(Channels.uiGet, parseUiState),
     setLayout: change => ipcRenderer.send(Channels.uiLayoutSet, change),
+    setMediaStrip: change => {
+      const parsed = parseMediaStripChange(change);
+      if (!parsed.ok) {
+        logBadValue('request', Channels.uiMediaStripSet, parsed.error);
+        return;
+      }
+      ipcRenderer.send(Channels.uiMediaStripSet, parsed.value);
+    },
     getZoom: () => invokeChecked(Channels.uiZoomGet, parseUiZoomPercent),
     changeZoom: command =>
       invokeChecked(Channels.uiZoomChange, parseUiZoomPercent, command),

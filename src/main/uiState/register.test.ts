@@ -83,5 +83,24 @@ describe('registerUiState', () => {
     registration.dispose();
     expect(handlers.handle.has(Channels.uiGet)).toBe(false);
     expect(handlers.on.has(Channels.uiLayoutSet)).toBe(false);
+    expect(handlers.on.has(Channels.uiMediaStripSet)).toBe(false);
+  });
+
+  it('saves media and sidebar state through the shared fields', () => {
+    const {fields, changes} = fieldsOf({});
+    registerUiState(fields, log);
+    handlers.on.get(Channels.uiMediaStripSet)?.({}, {visible: false});
+    handlers.on.get(Channels.uiLayoutSet)?.(
+      {},
+      {sizeClass: 'narrow', leftCollapsed: true},
+    );
+    expect(changes).toEqual([
+      {mediaStrip: false},
+      {layout: {narrow: {leftCollapsed: true}}},
+    ]);
+    expect(handlers.handle.get(Channels.uiGet)?.({})).toEqual({
+      mediaStrip: false,
+      layout: {narrow: {leftCollapsed: true}},
+    });
   });
 });

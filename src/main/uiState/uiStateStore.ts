@@ -1,5 +1,9 @@
 import type {AppLayout} from '@shared/schema/appConfig';
-import {parseLayoutChange, type UiState} from '@shared/schema/uiState';
+import {
+  parseLayoutChange,
+  parseMediaStripChange,
+  type UiState,
+} from '@shared/schema/uiState';
 import type {Logger} from '../log';
 import type {UiStateFields} from '../store/appConfigFile';
 import {withLayoutChange} from './layout';
@@ -19,8 +23,11 @@ export class UiStateStore {
 
   /** The UI state for the control window. */
   get state(): UiState {
-    const {layout} = this.options.fields.read();
-    return layout ? {layout} : {};
+    const {layout, mediaStrip} = this.options.fields.read();
+    return {
+      ...(layout === undefined ? {} : {layout}),
+      ...(mediaStrip === undefined ? {} : {mediaStrip}),
+    };
   }
 
   /**
@@ -38,5 +45,18 @@ export class UiStateStore {
       change.value,
     );
     this.options.fields.change({layout});
+  }
+
+  /** Saves only the validated media strip choice, retaining other app fields. */
+  setMediaStrip(value: unknown): void {
+    const change = parseMediaStripChange(value);
+    if (!change.ok) {
+      this.options.log.warn(
+        'dropped a malformed media strip change',
+        change.error,
+      );
+      return;
+    }
+    this.options.fields.change({mediaStrip: change.value.visible});
   }
 }

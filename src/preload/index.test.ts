@@ -48,6 +48,44 @@ vi.mock('electron', () => ({
 
 let api: LlpApi;
 
+describe('panel visibility boundary', () => {
+  it('accepts media and sidebar state and validates the UI read', async () => {
+    api.ui.setMediaStrip({visible: false});
+    api.ui.setLayout({sizeClass: 'narrow', leftCollapsed: true});
+    expect(electron.send).toHaveBeenCalledWith(Channels.uiMediaStripSet, {
+      visible: false,
+    });
+    expect(electron.send).toHaveBeenCalledWith(Channels.uiLayoutSet, {
+      sizeClass: 'narrow',
+      leftCollapsed: true,
+    });
+    const state = {mediaStrip: false, layout: {narrow: {leftCollapsed: true}}};
+    electron.invoke.mockResolvedValueOnce(state);
+    await expect(api.ui.get()).resolves.toEqual(state);
+    electron.invoke.mockResolvedValueOnce({mediaStrip: 'false'});
+    await expect(api.ui.get()).rejects.toThrow();
+    electron.invoke.mockResolvedValueOnce({
+      layout: {narrow: {leftCollapsed: 'true'}},
+    });
+    await expect(api.ui.get()).rejects.toThrow();
+  });
+
+  it('drops and logs malformed media requests before IPC', () => {
+    for (const value of [null, [], {}, {visible: 'false'}]) {
+      Reflect.apply(api.ui.setMediaStrip, undefined, [value]);
+    }
+    expect(electron.send).not.toHaveBeenCalledWith(
+      Channels.uiMediaStripSet,
+      expect.anything(),
+    );
+    expect(electron.send).toHaveBeenCalledTimes(4);
+    expect(electron.send).toHaveBeenCalledWith(
+      Channels.logWrite,
+      expect.objectContaining({level: 'error'}),
+    );
+  });
+});
+
 describe('standalone library song read', () => {
   it('validates requests and replies including song identity and null', async () => {
     const songId = createSongId('10000000-0000-4000-8000-000000000001');

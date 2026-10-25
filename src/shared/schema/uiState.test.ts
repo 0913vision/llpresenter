@@ -3,6 +3,7 @@ import {
   COLUMN_LIMITS,
   isLayoutChange,
   parseLayoutChange,
+  parseMediaStripChange,
   parseUiState,
   type LayoutChange,
 } from './uiState';
@@ -117,10 +118,66 @@ describe('parseLayoutChange with thumbnail scale', () => {
     }
   });
 
-  it('exposes only widths and scale in the command type', () => {
+  it('exposes widths, scale, and sidebar state in the command type', () => {
     expectTypeOf<keyof LayoutChange>().toEqualTypeOf<
-      'sizeClass' | 'left' | 'right' | 'thumbnailScalePercent'
+      'sizeClass' | 'left' | 'right' | 'thumbnailScalePercent' | 'leftCollapsed'
     >();
+  });
+});
+
+describe('panel visibility changes', () => {
+  it.each([true, false])(
+    'accepts a boolean media choice and sidebar state %s alone or with existing fields',
+    value => {
+      expect(parseMediaStripChange({visible: value, ignored: 1})).toEqual({
+        ok: true,
+        value: {visible: value},
+      });
+      for (const sizeClass of ['narrow', 'normal', 'wide']) {
+        for (const fields of [
+          {},
+          {left: 280, right: 480, thumbnailScalePercent: 100},
+        ]) {
+          const change = {sizeClass, leftCollapsed: value, ...fields};
+          expect(parseLayoutChange(change)).toEqual({ok: true, value: change});
+        }
+        const state = {
+          mediaStrip: value,
+          layout: {[sizeClass]: {leftCollapsed: value}},
+        };
+        expect(parseUiState(state)).toEqual({ok: true, value: state});
+      }
+    },
+  );
+
+  it.each([undefined, null, 0, 'true', [], {}])(
+    'rejects invalid visibility %j',
+    value => {
+      expect(parseMediaStripChange({visible: value}).ok).toBe(false);
+      expect(
+        parseLayoutChange({sizeClass: 'normal', leftCollapsed: value}).ok,
+      ).toBe(false);
+      expect(parseUiState({mediaStrip: value}).ok).toBe(false);
+      expect(parseUiState({layout: {normal: {leftCollapsed: value}}}).ok).toBe(
+        false,
+      );
+    },
+  );
+
+  it.each([null, [], true, 'false', 1])(
+    'rejects a non-object media change %j',
+    value => {
+      expect(parseMediaStripChange(value).ok).toBe(false);
+    },
+  );
+
+  it('keeps the paired-width rule when sidebar state is included', () => {
+    for (const widths of [{left: 280}, {right: 480}]) {
+      expect(
+        parseLayoutChange({sizeClass: 'normal', leftCollapsed: true, ...widths})
+          .ok,
+      ).toBe(false);
+    }
   });
 });
 

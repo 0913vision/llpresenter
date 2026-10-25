@@ -5,6 +5,7 @@ import {serviceIdSchema} from '@shared/schema/ids';
 import {testId} from '@shared/schema/testHelpers';
 import {makeTempDir} from '../../../test/temp-dir';
 import type {Logger} from '../log';
+import {UiStateStore} from '../uiState/uiStateStore';
 import {openAppConfig} from './appConfigFile';
 import type {WriteResult} from './fileWriter';
 import {SUNDAY_ID, writeJson} from './testFiles';
@@ -106,6 +107,35 @@ describe('openAppConfig with a broken app.json (qa C19)', () => {
 });
 
 describe('openAppConfig', () => {
+  it('keeps panel visibility, layout, service, zoom, and unknown fields through the single writer', async () => {
+    const file = await appJson();
+    const config = {
+      format: 'llapp',
+      schemaVersion: 1,
+      future: {keep: true},
+      layout: {normal: {left: 280, right: 480, extra: true}},
+    };
+    await writeJson(file, config);
+    const log = fakeLog();
+    const appConfig = await openAppConfig({file, log});
+    const ui = new UiStateStore({fields: appConfig, log});
+    ui.setMediaStrip({visible: false});
+    ui.setLayout({sizeClass: 'normal', leftCollapsed: true});
+    appConfig.setLastServiceId(SUNDAY);
+    appConfig.setUiZoomPercent(120);
+    await appConfig.flush();
+    expect(await readJson(file)).toEqual({
+      ...config,
+      mediaStrip: false,
+      lastServiceId: SUNDAY_ID,
+      uiZoomPercent: 120,
+      layout: {normal: {...config.layout.normal, leftCollapsed: true}},
+    });
+    const reopened = await openAppConfig({file, log});
+    expect(new UiStateStore({fields: reopened, log}).state).toEqual(ui.state);
+    reopened.dispose();
+    appConfig.dispose();
+  });
   it('reads the default zoom without a stored value and saves zoom with UI and service edits', async () => {
     const file = await appJson();
     const config = {

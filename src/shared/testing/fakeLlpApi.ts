@@ -32,6 +32,7 @@ export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
     ui: {
       get: () => Promise.resolve({}),
       setLayout: () => undefined,
+      setMediaStrip: () => undefined,
       getZoom: () => Promise.resolve(UI_ZOOM.defaultPercent),
       changeZoom: () => Promise.resolve(UI_ZOOM.defaultPercent),
       ...overrides.ui,

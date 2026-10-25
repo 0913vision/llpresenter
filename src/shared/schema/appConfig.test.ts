@@ -24,7 +24,7 @@ function fullConfig() {
     lastServiceId: SERVICE_ID,
     layout: {
       narrow: {left: 220, right: 360, columns: 3, thumbnailScalePercent: 123},
-      normal: {left: 312.5, right: 480},
+      normal: {left: 312.5, right: 480, leftCollapsed: true},
       wide: {columns: 6},
     },
     previewBig: SCREEN_ID,
@@ -154,6 +154,7 @@ describe('app config types', () => {
     expectTypeOf<SizeClass>().toEqualTypeOf<'narrow' | 'normal' | 'wide'>();
     expectTypeOf<keyof AppLayout>().toEqualTypeOf<SizeClass>();
     expectTypeOf<ColumnLayout>().toEqualTypeOf<{
+      readonly leftCollapsed?: boolean;
       readonly left?: number;
       readonly right?: number;
       readonly columns?: number;
@@ -161,3 +162,13 @@ describe('app config types', () => {
     }>();
   });
 });
+
+it.each(['true', 0, null, [], {}])(
+  'rejects an invalid stored sidebar state %j',
+  leftCollapsed => {
+    const error = expectFailure(
+      parse({...fullConfig(), layout: {narrow: {leftCollapsed}}}),
+    );
+    expect(error).toMatchObject({field: 'layout.narrow.leftCollapsed'});
+  },
+);
