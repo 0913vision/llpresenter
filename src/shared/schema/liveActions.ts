@@ -13,10 +13,9 @@ import {
   timerIdSchema,
 } from './ids';
 import {messageDurationSchema} from './messages';
+import {messageTargetsSchema} from './overlayState';
 import {plainObject} from './payload';
 import {nonBlankText, nonNegativeInteger, percent} from './primitives';
-
-const MAX_MESSAGE_TARGETS = 200;
 
 const audioSourceSchema = v.pipe(
   plainObject,
@@ -57,18 +56,7 @@ export const liveActionOptions = [
   v.object({
     type: v.literal('message.send'),
     text: nonBlankText,
-    targets: v.union([
-      v.literal('all'),
-      v.pipe(
-        v.array(screenIdSchema),
-        v.minLength(1),
-        v.maxLength(MAX_MESSAGE_TARGETS),
-        v.check(
-          targets => new Set(targets).size === targets.length,
-          'Another target already has this screen id',
-        ),
-      ),
-    ]),
+    targets: messageTargetsSchema,
     duration: messageDurationSchema,
   }),
   v.object({type: v.literal('timer.start'), timerId: timerIdSchema}),

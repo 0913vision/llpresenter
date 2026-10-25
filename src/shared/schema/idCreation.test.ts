@@ -5,6 +5,7 @@ import {
   createSongId,
   createTemplateId,
   createMediaId,
+  createMessageId,
   createMediaPlaylistId,
   createAudioPlaylistId,
 } from './ids';
@@ -16,6 +17,7 @@ const factories = {
   template: createTemplateId,
   item: createServiceItemId,
   media: createMediaId,
+  message: createMessageId,
   mediaPlaylist: createMediaPlaylistId,
   audioPlaylist: createAudioPlaylistId,
 };

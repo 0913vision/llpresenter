@@ -1,3 +1,14 @@
+import type {
+  ActiveMessage,
+  ActiveProp,
+  NoticePlayback,
+} from './schema/overlayState';
+export type {
+  ActiveMessage,
+  ActiveProp,
+  NoticePlayback,
+} from './schema/overlayState';
+
 /** Layer kinds from bottom to top. Each screen's Look decides which ones it shows. */
 export const layerKinds = [
   'media',
@@ -36,6 +47,7 @@ export interface SlideLayer {
 
 export interface PropLayer {
   readonly propId: string;
+  readonly items?: readonly ActiveProp[];
 }
 
 export interface AudioLayer {
@@ -45,10 +57,12 @@ export interface AudioLayer {
 export interface MessageLayer {
   readonly messageId: string;
   readonly text: string;
+  readonly items?: readonly ActiveMessage[];
 }
 
 export interface NoticeLayer {
   readonly noticeId: string;
+  readonly playback?: NoticePlayback;
 }
 
 export interface LiveLayers {
@@ -62,6 +76,7 @@ export interface LiveLayers {
 
 /** The live output state. The main process owns it; windows receive copies. */
 export interface LiveState {
+  readonly stageMessage?: string | null;
   /** Increases by one on every change. Windows drop states older than the one they have. */
   readonly version: number;
   readonly layers: LiveLayers;

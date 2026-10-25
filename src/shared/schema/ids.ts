@@ -18,6 +18,7 @@ export const serviceIdSchema = uuidId('ServiceId');
 export const templateIdSchema = uuidId('TemplateId');
 export const serviceItemIdSchema = uuidId('ServiceItemId');
 export const mediaIdSchema = uuidId('MediaId');
+export const messageIdSchema = uuidId('MessageId');
 export const noticeSetIdSchema = uuidId('NoticeSetId');
 export const screenIdSchema = uuidId('ScreenId');
 export const macroCollectionIdSchema = uuidId('MacroCollectionId');
@@ -49,6 +50,7 @@ export type ServiceId = v.InferOutput<typeof serviceIdSchema>;
 export type TemplateId = v.InferOutput<typeof templateIdSchema>;
 export type ServiceItemId = v.InferOutput<typeof serviceItemIdSchema>;
 export type MediaId = v.InferOutput<typeof mediaIdSchema>;
+export type MessageId = v.InferOutput<typeof messageIdSchema>;
 export type NoticeSetId = v.InferOutput<typeof noticeSetIdSchema>;
 export type ScreenId = v.InferOutput<typeof screenIdSchema>;
 export type MacroCollectionId = v.InferOutput<typeof macroCollectionIdSchema>;
@@ -88,6 +90,11 @@ export function createServiceItemId(uuid: string): ServiceItemId {
 /** Brands a reserved media or copy-job UUID; throws unless it is version 4. */
 export function createMediaId(uuid: string): MediaId {
   return v.parse(mediaIdSchema, uuid);
+}
+
+/** Brands the UUID of one active message, separately from a saved template. */
+export function createMessageId(uuid: string): MessageId {
+  return v.parse(messageIdSchema, uuid);
 }
 
 export function createMediaPlaylistId(uuid: string): MediaPlaylistId {

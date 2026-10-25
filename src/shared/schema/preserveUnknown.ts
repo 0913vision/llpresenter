@@ -132,7 +132,12 @@ function merge(schema: unknown, current: unknown, update: unknown): unknown {
   return Object.fromEntries([...kept, ...changed]);
 }
 
-/** Preserves unknown fields on retained objects; omitted known fields and deleted items stay removed. */
+/**
+ * Preserves unknown fields on retained objects; omitted known fields and deleted
+ * items stay removed. Without stable IDs, matching by name or position can move
+ * unknown fields to another item if one edit both renames and reorders items.
+ * Prefer stable IDs when a format gains them.
+ */
 export function preserveUnknownFields(
   schema: v.GenericSchema,
   current: unknown,

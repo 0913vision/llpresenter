@@ -2,6 +2,11 @@ import * as v from 'valibot';
 import type {LayerKind, LiveState} from '../live';
 import type {Result} from '../result';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
+import {
+  activeMessagesSchema,
+  activePropsSchema,
+  noticePlaybackSchema,
+} from './overlayState';
 
 const id = v.pipe(v.string(), v.nonEmpty());
 const count = v.pipe(v.number(), v.integer(), v.minValue(0));
@@ -23,13 +28,21 @@ export const layerSchemas = {
     label: v.nullable(v.string()),
     lines: v.array(v.string()),
   }),
-  prop: payloadObject({propId: id}),
+  prop: payloadObject({propId: id, items: v.exactOptional(activePropsSchema)}),
   audio: payloadObject({mediaId: id}),
-  message: payloadObject({messageId: id, text: v.string()}),
-  notice: payloadObject({noticeId: id}),
+  message: payloadObject({
+    messageId: id,
+    text: v.string(),
+    items: v.exactOptional(activeMessagesSchema),
+  }),
+  notice: payloadObject({
+    noticeId: id,
+    playback: v.exactOptional(noticePlaybackSchema),
+  }),
 } satisfies Record<LayerKind, v.GenericSchema>;
 
 const liveStateSchema = payloadObject({
+  stageMessage: v.exactOptional(v.nullable(v.string())),
   version: count,
   layers: payloadObject({
     media: v.nullable(layerSchemas.media),

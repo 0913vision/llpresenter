@@ -5,6 +5,7 @@ import type {Result} from '../result';
 import {layerSchemas, mediaChoiceSchema} from './liveState';
 import {liveActionOptions} from './liveActions';
 import {screenCommandOptions} from './screenCommands';
+import {messageExpirySchema} from './overlayState';
 import {checkPart} from './fileFormat';
 import {
   parsePayload,
@@ -18,6 +19,7 @@ export const MAX_LIVE_BATCH_COMMANDS = 256;
 const singleCommandOptions = [
   ...liveActionOptions,
   ...screenCommandOptions,
+  messageExpirySchema,
   v.object({type: v.literal('slide.show'), slide: layerSchemas.slide}),
   v.object({type: v.literal('media.show'), media: mediaChoiceSchema}),
   v.object({type: v.literal('message.show'), message: layerSchemas.message}),

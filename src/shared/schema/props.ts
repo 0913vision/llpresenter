@@ -13,17 +13,19 @@ import type {MigrationStep} from './migration';
 import {jsonObject, listWithUniqueIds, positiveInteger} from './primitives';
 import {lyricTextEntries} from './textStyle';
 
+export const propContentSchema = v.variant('kind', [
+  v.looseObject({kind: v.literal('image'), media: mediaIdSchema}),
+  v.looseObject({
+    kind: v.literal('text'),
+    text: v.string(),
+    style: jsonObject(lyricTextEntries),
+  }),
+]);
+
 const propSchema = jsonObject({
   id: propIdSchema,
   name: v.string(),
-  content: v.variant('kind', [
-    v.looseObject({kind: v.literal('image'), media: mediaIdSchema}),
-    v.looseObject({
-      kind: v.literal('text'),
-      text: v.string(),
-      style: jsonObject(lyricTextEntries),
-    }),
-  ]),
+  content: propContentSchema,
   targets: v.array(screenIdSchema),
 });
 

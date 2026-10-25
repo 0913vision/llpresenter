@@ -2,6 +2,7 @@ import type {LayerKind, MediaChoice, MessageLayer, SlideLayer} from './live';
 import {parseLiveCommand} from './schema/liveCommand';
 import type {LiveAction} from './schema/liveActions';
 import type {ScreenCommand} from './schema/screenCommands';
+import type {MessageExpiry} from './schema/overlayState';
 
 export type ClearTarget = LayerKind | 'all';
 
@@ -12,6 +13,7 @@ export type ClearTarget = LayerKind | 'all';
 export type SingleLiveCommand =
   | LiveAction
   | ScreenCommand
+  | MessageExpiry
   | {readonly type: 'slide.show'; readonly slide: SlideLayer}
   | {readonly type: 'media.show'; readonly media: MediaChoice}
   | {readonly type: 'message.show'; readonly message: MessageLayer}
@@ -54,6 +56,7 @@ export function interruptsSongOutput(command: LiveCommand): boolean {
     case 'notice.pause':
     case 'notice.stop':
     case 'message.send':
+    case 'message.expire':
     case 'timer.start':
     case 'timer.pause':
     case 'timer.reset':
