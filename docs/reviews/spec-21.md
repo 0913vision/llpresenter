@@ -1,90 +1,117 @@
-# Contract request: `spec-21`
+﻿Review range: `bdb7558...feat/spec/bible-data`
+
+# Review request: `spec-21`
 
 - Team member: `spec`
-- Branch: `feat/spec/bible-data`, from `main` at `a79e817`
+- Branch: `feat/spec/bible-data`, from `main` (not stacked)
+- Base commit (`main`): `bdb7558`
+- Code commit: `4320011`
 - Task: `.llp/task.md`, M3-T4a Bible data
-- Status: Waiting for the shared translation-file contract, before
-  implementation
 - Ownership exception: new `src/main/bible/` only
 
-## Missing contract
+## What changed and why
 
-`src/shared/schema/bible.ts` describes the installed-translation list and recent
-passages in `bible.json`, with format `llsettings.bible`.
-`src/shared/schema/biblePassage.ts` describes a passage's selection and display
-options. Neither describes the `.llbible` text file required by
-[spec 02, Bible translations](../spec/02-data.md#bible-translations).
+Main now has an offline Bible-data API for loading installed translations,
+matching book names, resolving references, and maintaining recent passages. Both
+`요 3:16-18` and `요 3장 16-18절` resolve to `요한복음 3:16-18` with three
+verses. Unknown or invalid references return a reason instead of throwing or
+reading the network.
 
-The task explicitly requires stopping and reporting a missing shared contract.
-No runtime implementation or shared-file changes have been made.
+The requested shared file contract was delivered by data-29 and merged at
+`f05634e`. This implementation imports `BibleTranslationFile` and
+`parseBibleTranslation`; it does not change shared contracts or preload.
 
-## Requested data-owned API
+## Loading and lifetime
 
-Suggested module: `src/shared/schema/bibleTranslation.ts`. Use the existing
-`TranslationId`, `ReadonlyKnown`, `Result`, `LoadedFile`, and `FileError` types.
-The shape below describes the known fields; retain unknown JSON fields using the
-existing file-format conventions.
+`loadBibleLibrary({folder, translations, onProblem})` takes the installed
+`Translation` entries from the existing settings contract. It reads their
+`.llbible` files asynchronously, in order, through the merged parser. Main then
+checks each book's chapter count against the 66-book table and checks that verse
+strings already have the required trimmed form. Validation yields to the event
+loop between books. The shared JSON/schema parser remains synchronous.
 
-```ts
-export type BibleTranslationFile = ReadonlyKnown<{
-  format: 'llbible';
-  schemaVersion: number;
-  id: TranslationId;
-  name: string;
-  shortName: string;
-  language: string;
-  source: {
-    title: string;
-    publisher: string;
-    url: string;
-    license: string;
-    retrieved: string;
-  };
-  books: Array<{
-    id: number;
-    chapters: string[][];
-  }>;
-}>;
+Each rejected file emits one `FileError` through `onProblem`, the main-side
+notification hook, and loading continues with the next translation. This
+includes missing files, unsupported names, non-regular files, structural schema
+failures, chapter counts, untrimmed verses, and installed-ID mismatches.
+Duplicate installed IDs keep the first entry and report the duplicate.
 
-export function parseBibleTranslation(
-  text: string,
-  file: string,
-): Result<LoadedFile<BibleTranslationFile>, FileError>;
-```
+Valid files stay in memory, preserving unknown fields and original verse text.
+Lookup never reads disk. The loader does not rewrite translations, and
+`BibleLibrary.clear()` releases its entries. No watcher, timer, worker, network
+request, or new dependency was introduced.
 
-Required structural checks from spec 02:
+## Book matching
 
-- `format` is `llbible`; current `schemaVersion` is 1, with the common
-  file-version and unknown-field handling.
-- `id` is a nonblank lowercase translation identifier, retaining the existing
-  `TranslationId` brand. Do not change the existing settings-file contract.
-- `name` and `shortName` name the translation; `language` is a BCP 47 tag.
-  Source fields carry the metadata in the spec, with `retrieved` a date in
-  `YYYY-MM-DD` form.
-- Book IDs are integers from 1 through 66 in strictly increasing order. Books
-  may be absent, so a partial translation is valid.
-- A book has an ordered array of chapters. Each chapter is a nonempty array of
-  strings. An empty verse string is allowed for an omitted verse. Preserve verse
-  text rather than trimming, renumbering, or otherwise rewriting it.
+The table contains all 66 books, their four names, testament, and chapter
+counts. Metadata facts and matching flow were checked read-only against
+`D:\programming\copible\src\data\bible-metadata.js`, `bible-search.js`, and
+`BibleSearchForm.js`, as required by the decision and spec 02.
 
-The main-side loader will also check that each book's chapter count equals the
-66-book metadata assigned to `src/main/bible/`, and that verse strings already
-have the required trimmed form. Keeping these checks in the loader avoids a
-shared module depending on main-process metadata. It will skip a failed file and
-emit one problem event using the existing `FileError` shape, and check installed
-translation identities when assembling the collection.
+Matching first prefers an exact full or abbreviated Korean or English name.
+Otherwise it compares normalized text and decomposed Hangul letters, including
+an alternative made from Korean QWERTY key mappings. This supports unfinished
+syllables and IME-off input without an additional package. `창`, `창세`, and
+`ckd` complete to 창세기. Several matches remain choices in canonical order,
+capped at eight. Partial matching follows copible's substring behavior: `베`
+offers 에베소서, 베드로전서, and 베드로후서. Exact `요` selects 요한복음.
 
-No serializer or new IPC channel is requested: translations are read-only, and
-this task can expose a main-side API and problem callback. Existing
-`RecentPassage` supplies the recent-list entry shape.
+## Reference rules
 
-## Remaining work after the contract merges
+- Accept whole chapters, one verse, same-chapter ranges, and cross-chapter
+  ranges in colon or Korean syntax. Optional spaces and `~` are supported; mixed
+  syntax, nonpositive numbers, and unsafe integers are rejected.
+- Resolve exact book names or a unique partial match; an ambiguous name returns
+  suggestions and a reason. Missing books, chapters, start verses, unavailable
+  translations, and reversed ranges also return reasons.
+- Clamp an excessive end verse to the last verse of its chapter. Normalize equal
+  endpoints to one verse and equal endpoint chapters to a short range. Preserve
+  cross-chapter ranges even when their verse numbers coincide.
+- Keep omitted verses as empty strings in the loaded file, skip them in the
+  returned passage, and retain original verse numbers and the requested span. A
+  single omitted verse or an entirely omitted span returns the omitted-verse
+  reason.
+- Store normalized references with the full Korean book name. Display uses
+  Korean for a `ko` language tag and English otherwise, including KJV.
 
-- Read-only asynchronous `.llbible` loading and invalid-file problem events.
-- The 66-book metadata and copible-style name matching.
-- Reference grammar, normalization, endpoint checks, and omitted verses.
-- A bounded, deduplicated recent list using the existing settings shape.
-- Invented-text tests, fast local checks, own-branch push, and fully green CI.
+## Recent passages and integration boundary
 
-This is a contract request, not an implementation review request. No Bible text
-was crawled or added, and no app window was started.
+`recentPassages` bounds and deduplicates existing history when it is read.
+`rememberPassage` moves a successfully resolved passage to the front after
+output or insertion, deduplicating by normalized reference plus translation.
+Both return at most ten entries and preserve existing unknown fields without
+mutating the input.
+
+These are main-side APIs within the granted `src/main/bible/` scope. The caller
+supplies the folder and installed settings, connects `onProblem` to
+notifications, and persists the returned recent list through settings. Startup
+registration, renderer panels, and their IPC bridge are integration work for the
+consuming task; this request does not add them.
+
+## Checks run
+
+| Check                                               | Result                                                                       |
+| --------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Bible loader, matching, reference, and recent tests | Pass: 4 files, 71 tests                                                      |
+| Node TypeScript check (`tsconfig.node.json`)        | Pass                                                                         |
+| Changed-file ESLint                                 | Pass                                                                         |
+| Changed-file Prettier and `git diff --check`        | Pass                                                                         |
+| Local full `npm run verify`                         | Not run, per the CI workflow                                                 |
+| GitHub branch CI                                    | Exact submitted HEAD's run URL and result are recorded in the request report |
+
+Tests cover every metadata name, required lookup examples, all grammar forms,
+normalization round trips, endpoints, omitted verses, ambiguity, IME-off keys,
+invalid-file events, identity checks, text preservation, disk-free lookups,
+cleanup, and recent-list limits. All verse fixtures are invented; no Bible text
+was crawled or added. No app window, soak, or memory measurement was started.
+Local evidence: `.llp/spec21/focused-final.log`.
+
+## Changed files
+
+- New `src/main/bible/`: metadata, matching, references, loader, recents, and
+  their tests with invented fixtures.
+- `docs/reviews/spec-21.md`.
+
+The branch was rebased onto main at `bdb7558` before the final push. A fully
+green CI run of the submitted HEAD is required. Its URL and result are recorded
+in the request report, avoiding another unverified commit for CI metadata.
