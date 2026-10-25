@@ -5,7 +5,10 @@
 - Base: `5415e336ab55ccab2f798d58c59f9a02e2dfd815` (data-38 merged)
 - Range: `5415e33...feat/output/live-screen-settings`
 - Scope: M3-O9a saved screen subscriptions and sleep lifecycle.
-- CI: pending the branch push.
+- CI: pending the branch push. The first data-38 run
+  [40228008084](https://github.com/0913vision/llpresenter/actions/runs/40228008084)
+  passed coverage, build, typecheck and formatting, but failed lint on a missing
+  brace in the new test. The brace was corrected before the next push.
 
 ## Changes
 

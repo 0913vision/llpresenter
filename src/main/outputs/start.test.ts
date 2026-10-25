@@ -142,8 +142,9 @@ describe('saved output backend', () => {
       screenId: MAIN,
       screen: {...main, method: 'window'},
     });
-    if (!command.ok || command.value.type !== 'screen.settings.apply')
+    if (!command.ok || command.value.type !== 'screen.settings.apply') {
       throw new Error('Invalid resync fixture');
+    }
     const read = settings.reader.get.bind(settings.reader);
     const saved = settingsDocument('screens', {
       screens: [
