@@ -5,12 +5,11 @@ import {parsePayload, payloadObject, type PayloadError} from './payload';
 
 /**
  * The ranges of the design system `Layout`: the left and right column widths
- * (px), thumbnail scale (%), and legacy number of thumbnail columns.
+ * (px) and thumbnail scale (%).
  */
 export const COLUMN_LIMITS = {
   left: {min: 200, max: 400},
   right: {min: 320, max: 720},
-  columns: {min: 2, max: 8},
   thumbnailScalePercent: {min: 50, max: 200},
 } as const;
 
@@ -30,7 +29,6 @@ const layoutChangeSchema = v.pipe(
     sizeClass: v.picklist(sizeClasses),
     left: integerIn(COLUMN_LIMITS.left),
     right: integerIn(COLUMN_LIMITS.right),
-    columns: integerIn(COLUMN_LIMITS.columns),
     thumbnailScalePercent: integerIn(COLUMN_LIMITS.thumbnailScalePercent),
   }),
   v.check(
@@ -38,11 +36,9 @@ const layoutChangeSchema = v.pipe(
     'Expected the left and right widths together',
   ),
   v.check(
-    ({left, columns, thumbnailScalePercent}) =>
-      left !== undefined ||
-      columns !== undefined ||
-      thumbnailScalePercent !== undefined,
-    'Expected column widths, thumbnail scale, or legacy thumbnail columns',
+    ({left, thumbnailScalePercent}) =>
+      left !== undefined || thumbnailScalePercent !== undefined,
+    'Expected the column widths, the thumbnail scale, or both',
   ),
 );
 
@@ -63,8 +59,8 @@ export function parseUiState(value: unknown): Result<UiState, PayloadError> {
 
 /**
  * A change to one size class's layout: the left and right widths together,
- * sent when a drag ends, the thumbnail scale percentage, or legacy thumbnail
- * columns during the shell transition. Main keeps fields the message omits.
+ * sent when a drag ends, and the thumbnail scale percentage. A message holds
+ * one of the two or both; main keeps fields the message omits.
  */
 export type LayoutChange = Readonly<v.InferOutput<typeof layoutChangeSchema>>;
 

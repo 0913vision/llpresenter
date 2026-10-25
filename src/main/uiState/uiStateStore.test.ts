@@ -91,9 +91,28 @@ describe('UiStateStore setLayout', () => {
     expect(warnings).toHaveLength(5);
   });
 
-  it('still takes the old thumbnail columns while the contract carries them', () => {
-    const {store, changes} = createHarness();
+  it('drops and logs legacy column changes without changing the saved layout', () => {
+    const {store, changes, warnings} = createHarness({layout});
     store.setLayout({sizeClass: 'normal', columns: 3});
-    expect(changes).toEqual([{layout: {normal: {columns: 3}}}]);
+    expect(changes).toEqual([]);
+    expect(store.state).toEqual({layout});
+    expect(warnings).toEqual(['dropped a malformed layout change']);
+  });
+
+  it('keeps saved legacy columns when a scale command also carries obsolete columns', () => {
+    const {store, changes} = createHarness({layout});
+    store.setLayout({
+      sizeClass: 'normal',
+      thumbnailScalePercent: 123,
+      columns: 3,
+    });
+    expect(changes).toEqual([
+      {
+        layout: {
+          ...layout,
+          normal: {...layout.normal, thumbnailScalePercent: 123},
+        },
+      },
+    ]);
   });
 });

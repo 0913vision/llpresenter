@@ -1,9 +1,10 @@
-import {describe, expect, it} from 'vitest';
+import {describe, expect, expectTypeOf, it} from 'vitest';
 import {
   COLUMN_LIMITS,
   isLayoutChange,
   parseLayoutChange,
   parseUiState,
+  type LayoutChange,
 } from './uiState';
 
 describe('parseLayoutChange', () => {
@@ -53,42 +54,21 @@ describe('parseLayoutChange', () => {
   });
 });
 
-describe('parseLayoutChange with thumbnail columns', () => {
-  it('accepts the columns alone, the widths alone, or both', () => {
-    for (const change of [
-      {sizeClass: 'wide', columns: COLUMN_LIMITS.columns.min},
-      {sizeClass: 'wide', columns: COLUMN_LIMITS.columns.max},
-      {sizeClass: 'narrow', left: 220, right: 360},
-      {sizeClass: 'normal', left: 280, right: 480, columns: 4},
-    ]) {
-      expect(parseLayoutChange(change)).toEqual({ok: true, value: change});
-    }
-  });
-
+describe('parseLayoutChange with thumbnail scale', () => {
   it.each([
     ['nothing to change', {sizeClass: 'wide'}, ''],
     ['a left width without a right one', {sizeClass: 'wide', left: 300}, ''],
     ['a right width without a left one', {sizeClass: 'wide', right: 500}, ''],
-    ['one column', {sizeClass: 'wide', columns: 1}, 'columns'],
-    ['nine columns', {sizeClass: 'wide', columns: 9}, 'columns'],
-    ['a fractional column count', {sizeClass: 'wide', columns: 3.5}, 'columns'],
+    ['legacy columns alone', {sizeClass: 'wide', columns: 3}, ''],
   ])('rejects %s', (_name, change, field) => {
     const result = parseLayoutChange(change);
 
     expect(result.ok ? undefined : result.error.field).toBe(field);
   });
-});
-
-describe('parseLayoutChange with thumbnail scale', () => {
-  it('accepts whole percentages in every size class, alone or with widths and legacy columns', () => {
+  it('accepts whole percentages in every size class, alone or with widths', () => {
     for (const sizeClass of ['narrow', 'normal', 'wide']) {
       for (const thumbnailScalePercent of [50, 100, 123, 200]) {
-        for (const fields of [
-          {},
-          {left: 280, right: 480},
-          {columns: 4},
-          {left: 280, right: 480, columns: 4},
-        ]) {
+        for (const fields of [{}, {left: 280, right: 480}]) {
           const change = {sizeClass, thumbnailScalePercent, ...fields};
           expect(parseLayoutChange(change)).toEqual({ok: true, value: change});
         }
@@ -97,13 +77,12 @@ describe('parseLayoutChange with thumbnail scale', () => {
   });
 
   it.each([49, 201, 100.5, 0, -1, '100', null, NaN, Infinity])(
-    'rejects invalid scale %j even alongside valid legacy columns or widths',
+    'rejects invalid scale %j even alongside valid widths',
     thumbnailScalePercent => {
       const result = parseLayoutChange({
         sizeClass: 'normal',
         left: 280,
         right: 480,
-        columns: 4,
         thumbnailScalePercent,
       });
       expect(result.ok ? undefined : result.error.field).toBe(
@@ -124,13 +103,24 @@ describe('parseLayoutChange with thumbnail scale', () => {
     }
   });
 
-  it('still validates legacy columns when a scale is present', () => {
-    const result = parseLayoutChange({
-      sizeClass: 'normal',
-      thumbnailScalePercent: 100,
-      columns: 9,
-    });
-    expect(result.ok ? undefined : result.error.field).toBe('columns');
+  it('drops legacy columns alongside a valid scale, widths, or both', () => {
+    for (const fields of [
+      {thumbnailScalePercent: 123},
+      {left: 280, right: 480},
+      {left: 280, right: 480, thumbnailScalePercent: 123},
+    ]) {
+      const change = {sizeClass: 'normal', ...fields};
+      expect(parseLayoutChange({...change, columns: 3})).toEqual({
+        ok: true,
+        value: change,
+      });
+    }
+  });
+
+  it('exposes only widths and scale in the command type', () => {
+    expectTypeOf<keyof LayoutChange>().toEqualTypeOf<
+      'sizeClass' | 'left' | 'right' | 'thumbnailScalePercent'
+    >();
   });
 });
 
