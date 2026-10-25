@@ -1,4 +1,6 @@
 import {readFile, writeFile} from 'node:fs/promises';
+import {spawn} from 'node:child_process';
+import {once} from 'node:events';
 import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {parseMediaList} from '../../src/shared/schema/mediaList';
@@ -8,7 +10,11 @@ import {
   writeHungTree,
 } from '../../test/process-trees';
 import {makeTempDir} from '../../test/temp-dir';
-import {KILL_TIMEOUT_MS} from '../process-tree.mts';
+import {
+  KILL_TIMEOUT_MS,
+  killProcessTree,
+  type KillResult,
+} from '../process-tree.mts';
 import {
   parseClipSummary,
   prepareSoakMedia,
@@ -17,6 +23,19 @@ import {
   soakMediaList,
 } from './media.mts';
 import type {ClipSummary} from './clip-frames.mts';
+
+// NOTE(0913vision): spawn passes through and only records the processes it
+// starts, so a test can wait for the clip maker's own close event. Its
+// overloads don't fit the typed mock factory, hence the module name form.
+vi.mock('node:child_process', async importOriginal => {
+  const actual = await importOriginal<typeof import('node:child_process')>();
+  return {...actual, spawn: vi.fn(actual.spawn)};
+});
+
+vi.mock(import('../process-tree.mts'), async importOriginal => {
+  const actual = await importOriginal();
+  return {...actual, killProcessTree: vi.fn(actual.killProcessTree)};
+});
 
 const EXIT_POLL_MS = 50;
 
@@ -119,6 +138,47 @@ describe('runClipMaker', () => {
         deadlineMs: 500,
       }),
     ).rejects.toThrow('the clip maker did not finish within 0.5 s');
+  });
+
+  it('rejects a late maker only once its stop is done, whatever closes first', async () => {
+    vi.useFakeTimers({toFake: ['setTimeout', 'clearTimeout']});
+    onTestFinished(() => {
+      vi.useRealTimers();
+    });
+    let finishStop = (): void => undefined;
+    vi.mocked(killProcessTree).mockImplementationOnce(pid => {
+      process.kill(pid);
+      return new Promise<KillResult>(resolve => {
+        finishStop = () => resolve({ok: true});
+      });
+    });
+    let settled = false;
+    const running = runClipMaker({
+      file: process.execPath,
+      args: ['-e', 'setInterval(() => {}, 1000)'],
+      deadlineMs: 1000,
+    });
+    const outcome = running.then(
+      () => {
+        settled = true;
+        return 'resolved';
+      },
+      (error: unknown) => {
+        settled = true;
+        return error instanceof Error ? error.message : 'other';
+      },
+    );
+    const started = vi.mocked(spawn).mock.results.at(-1);
+    if (started?.type !== 'return') throw new Error('the maker did not start');
+    const maker = started.value;
+    const closed = once(maker, 'close');
+    await vi.advanceTimersByTimeAsync(1000);
+    await closed;
+    expect(settled).toBe(false);
+    finishStop();
+    await expect(outcome).resolves.toBe(
+      'the clip maker did not finish within 1 s',
+    );
   });
 
   it('ends the stalled maker and every process it started', async () => {
