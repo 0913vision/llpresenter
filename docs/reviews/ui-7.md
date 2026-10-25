@@ -2,13 +2,13 @@
 
 - Team member: `ui`
 - Branch: `feat/ui/live-parts`
-- Review range: `77be252...feat/ui/live-parts` (round 1 was
-  `99cb546...feat/ui/live-parts`, stacked on ui-4; ui-4 has merged and round 2
-  sits on `main` with the same patches)
-- Base commit (`main`): `77be252`
-- Round 2, what to check: the three fixes, the nit, and the lead's off dot
-  decision in "Team member's reply", each with the test that fails on the old
-  code; the new token `size-preview-small-max`
+- Review range: `4b72a17...feat/ui/live-parts` (round 1 was
+  `99cb546...feat/ui/live-parts`, stacked on ui-4, and round 2
+  `77be252...feat/ui/live-parts`; each later round rebased onto `main` without
+  conflicts, so the hashes in the round 2 reply are the rebased ones)
+- Base commit (`main`): `4b72a17`
+- Round 3, what to check: the round 2 finding in "Team member's reply", with the
+  test that fails on the old code
 - Last commit: the commit that adds this file (see the review request message)
 - Related brief: `docs/briefs/ui.md`, M2 in `docs/MILESTONES.md`
 - Shared changes: 43 new design tokens (42 in round 1, `size-preview-small-max`
@@ -89,11 +89,11 @@ Also in this branch:
 
 ## Checks run
 
-| Command or test                              | Result                                                                                   |
-| -------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `npm run verify`                             | Pass, 5 steps run at once, 237 s in round 2 (158 s in round 1; no test counts on a pass) |
-| `npx vitest run --project renderer` (ui)     | Pass, 42 files, 378 tests (370 in round 1)                                               |
-| Gallery beside the preview cards (see below) | Done for every card this branch touches, in Chromium (offscreen Electron)                |
+| Command or test                              | Result                                                                                                                                                                                                                                                                    |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run verify`                             | Round 3: 4 of 5 steps pass (274 s); `test:coverage` fails only on the known `main` failure in `scripts/soak/media.test.ts` ("ends the stalled maker and every process it started", fixed by devops-17), 2045 other tests pass. Round 2: pass, 237 s; round 1: pass, 158 s |
+| `npx vitest run --project renderer` (ui)     | Pass, 42 files, 386 tests (378 in round 2, 370 in round 1)                                                                                                                                                                                                                |
+| Gallery beside the preview cards (see below) | Done for every card this branch touches, in Chromium (offscreen Electron)                                                                                                                                                                                                 |
 
 ### Comparison with the preview cards
 
@@ -136,7 +136,8 @@ focused:
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
-- [x] `npm run verify` passes
+- [ ] `npm run verify` passes (round 3: 4 of 5 steps; `test:coverage` fails only
+      on the known soak test, see "Checks run")
 - [x] `npm run format:check` passes
 - [x] Every new behavior has unit tests
 - [x] Values from outside the process are validated with a schema (none here)
@@ -219,7 +220,7 @@ of shell-12. Each fix has a test that fails on the old code.
 1. An information card that replaced another with the same key kept the old
    timer. The lifetime now follows the notice object, so a new notice starts its
    six seconds again; `NotificationStackProps.notices` says to keep each object
-   while its card shows (`3f437ed`). Test with the fake clock: a replacement
+   while its card shows (`c6ce292`). Test with the fake clock: a replacement
    five seconds in still shows 5.999 seconds later and closes at six.
 2. Tab couldn't reach the notification buttons while a dialog was open.
    `useModal` now runs Tab through one cycle: the notification cards' buttons
@@ -227,7 +228,7 @@ of shell-12. Each fix has a test that fails on the old code.
    Inside either one the browser moves focus as before; between them and at the
    ends the modal does. A document listener does it, so Tab from a card is
    handled too; it acts only for the topmost modal (`ModalStack.isTop`) and
-   finds the layer without creating it (`findLayerContainer`) (`0866801`). Test:
+   finds the layer without creating it (`findLayerContainer`) (`7028cc0`). Test:
    with a `Dialog` and a `NotificationStack` open, Tab from 만들기 goes 모니터
    다시 찾기, 창 보기, 알림 닫기, 닫기, 취소, and Shift Tab walks back the same
    way and wraps to 만들기. The dialog tests still pass.
@@ -236,7 +237,7 @@ of shell-12. Each fix has a test that fails on the old code.
    restart video per change, and shell-12's preview panel already keeps its
    three renderers across swaps. So `PreviewFrame` now keeps one cell per screen
    in the same place of the tree, lets the grid put the large one on top, and
-   lays the small cell's button over it instead of around it (`afb8b3c`). Test:
+   lays the small cell's button over it instead of around it (`d763a09`). Test:
    with a renderer that records its mounts, two swaps mount and unmount nothing,
    and the drawn elements are the same nodes. The README and decision 3 say so.
    In Chromium the gallery section still matches the card, with the two small
@@ -245,10 +246,24 @@ of shell-12. Each fix has a test that fails on the old code.
    caps them at 160px so a widened column leaves the height to the large
    preview. The cap is now the token `size-preview-small-max` (160px), used by
    `PreviewFrame`, the reference CSS, and the README's size table
-   (`min((width - 10) / 2, 160) × 9/16`) (`afb8b3c`).
+   (`min((width - 10) / 2, 160) × 9/16`) (`d763a09`).
 5. The lead's answer to decision 6: `OutputToggle` now draws the StatusMarks off
    dot (`line-strong`, with the cut ring) on an output that is off, and the
    ToolbarButton README, its card title, and `13-toolbarbutton.css` say so
-   (`97cbe85`). Test: each state draws exactly one dot of its own tone (`live`,
+   (`b067930`). Test: each state draws exactly one dot of its own tone (`live`,
    `off`, `warning`); the off case fails on the old code. In Chromium the
    gallery's "Off" toolbar button now matches the card's dot.
+
+Round 2 finding from codex5, fixed.
+
+1. After Tab moved focus onto a notification card, Esc no longer cancelled the
+   open dialog: the key went from the card straight to the window. The document
+   listener that runs the Tab cycle now also takes an Esc that comes from a
+   notification card, isn't part of an IME composition, and that nothing handled
+   yet, and runs the topmost modal's [취소] (`onEscape`) once; it acts only for
+   the topmost modal, and a modal without `onEscape` leaves the key alone. The
+   card itself still never closes with Esc (`docs/spec/08-problems.md`).
+   `isComposingKey` in `ime.ts` is the same IME check for a DOM event
+   (`cfed1ea`). Test that fails on the old code: with a `Dialog` and a
+   `NotificationStack` open and 창 보기 in focus, Esc calls `onCancel` once and
+   the warning card stays.
