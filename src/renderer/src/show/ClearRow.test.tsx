@@ -1,11 +1,19 @@
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
-import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  onTestFinished,
+  vi,
+} from 'vitest';
 import type {LiveCommand} from '@shared/commands';
 import type {LlpApi} from '@shared/ipc';
 import {defaultPreferences} from '@shared/schema/preferences';
 import {emptyLayers, emptyLiveState, type LiveLayers} from '@shared/live';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
-import {useLive} from '@renderer/state/live';
+import {startLiveSync, useLive} from '@renderer/state/live';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {hasSomethingToClear} from './clear';
 import {ClearRow} from './ClearRow';
@@ -46,8 +54,16 @@ function installApi(showClearUndoButton?: boolean): LlpApi {
 }
 
 async function renderWithUndo(compact = false) {
-  installApi(true);
+  const api = installApi(true);
+  const firstState = emptyLiveState();
+  const firstRead = Promise.resolve(firstState);
+  vi.spyOn(api.live, 'get').mockReturnValue(firstRead);
   const result = render(<ClearRow compact={compact} />);
+  onTestFinished(startLiveSync());
+  await act(async () => {
+    await firstRead;
+  });
+  expect(useLive.getState().state).toBe(firstState);
   await screen.findByRole('button', {name: '되돌리기'});
   return result;
 }
@@ -231,8 +247,8 @@ describe('ClearRow', () => {
   });
 
   it('sends clear.undo from the undo button while there is something to undo', async () => {
-    setCanUndo(true);
     await renderWithUndo();
+    act(() => setCanUndo(true));
     const undo = screen.getByRole('button', {name: '되돌리기'});
     expect(undo.getAttribute('aria-disabled')).toBe('false');
     expect(undo.getAttribute('data-state')).toBeNull();
@@ -241,8 +257,8 @@ describe('ClearRow', () => {
   });
 
   it('dims the undo button and sends nothing when there is nothing to undo', async () => {
-    setCanUndo(false);
     await renderWithUndo();
+    act(() => setCanUndo(false));
     const undo = screen.getByRole('button', {name: '되돌리기'});
     expect(undo.getAttribute('aria-disabled')).toBe('true');
     expect(undo.getAttribute('data-state')).toBe('off');
@@ -252,15 +268,29 @@ describe('ClearRow', () => {
   });
 
   it('dims the undo button before the first live state arrives', async () => {
-    await renderWithUndo();
+    const api = installApi(true);
+    const firstState = emptyLiveState();
+    let finish: () => void = () => undefined;
+    vi.spyOn(api.live, 'get').mockImplementation(
+      () =>
+        new Promise(resolve => {
+          finish = () => resolve(firstState);
+        }),
+    );
+    render(<ClearRow compact={false} />);
+    onTestFinished(startLiveSync());
+    await screen.findByRole('button', {name: '되돌리기'});
+    expect(useLive.getState().state).toBeNull();
     expect(
       screen.getByRole('button', {name: '되돌리기'}).getAttribute('data-state'),
     ).toBe('off');
+    await act(async () => finish());
+    expect(useLive.getState().state).toBe(firstState);
   });
 
   it('redraws only the undo button when canUndo changes', async () => {
-    setCanUndo(false);
     await renderWithUndo();
+    act(() => setCanUndo(false));
     iconRenders.names.length = 0;
     act(() => setCanUndo(true));
     expect(iconRenders.names).toEqual(['undo']);
@@ -275,8 +305,8 @@ describe('ClearRow', () => {
   });
 
   it('redraws exactly the buttons that changed when the layers and canUndo change together', async () => {
-    setLayers({});
     await renderWithUndo();
+    act(() => setLayers({}));
     iconRenders.names.length = 0;
     act(() =>
       useLive.setState({
@@ -291,8 +321,8 @@ describe('ClearRow', () => {
   });
 
   it('follows the live state when a clear becomes undoable and when it is undone', async () => {
-    setCanUndo(false);
     await renderWithUndo();
+    act(() => setCanUndo(false));
     const undo = screen.getByRole('button', {name: '되돌리기'});
     act(() => setCanUndo(true));
     expect(undo.getAttribute('data-state')).toBeNull();
