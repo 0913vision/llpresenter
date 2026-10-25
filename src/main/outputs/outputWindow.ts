@@ -177,7 +177,10 @@ export class OutputWindow {
     if (placement.kind === 'window') {
       return (
         this.applied?.kind !== 'window' ||
-        !!this.applied.alwaysOnTop !== !!placement.alwaysOnTop
+        !!this.applied.alwaysOnTop !== !!placement.alwaysOnTop ||
+        (placement.reason === 'monitorMissing' &&
+          (this.applied.reason !== 'monitorMissing' ||
+            !sameRect(this.applied.bounds, placement.bounds)))
       );
     }
     return !sameFullScreen(this.applied, placement);
@@ -192,11 +195,16 @@ export class OutputWindow {
       handle.showFullScreen(placement.bounds, placement.alwaysOnTop);
       return;
     }
-    // NOTE(0913vision): A window that is already in window mode keeps the
-    // bounds the operator may have dragged it to.
-    const alreadyWindowed = this.applied?.kind === 'window';
+    // NOTE(0913vision): Normal windows keep an operator's placement. A lost
+    // monitor fallback follows later work-area changes as Windows settles.
+    const previous = this.applied?.kind === 'window' ? this.applied : null;
+    const keepOperatorBounds =
+      previous !== null &&
+      (placement.reason === 'method' ||
+        (previous.reason === 'monitorMissing' &&
+          sameRect(previous.bounds, placement.bounds)));
     handle.showWindowed(
-      alreadyWindowed ? null : placement.bounds,
+      keepOperatorBounds ? null : placement.bounds,
       placement.alwaysOnTop ?? false,
     );
   }

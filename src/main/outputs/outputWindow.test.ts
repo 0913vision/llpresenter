@@ -34,6 +34,25 @@ function setUp() {
 }
 
 describe('OutputWindow', () => {
+  it('recenters a lost-monitor fallback when the work area settles again', () => {
+    const {output, windows} = setUp();
+    output.update(FULL_SCREEN);
+    output.update({
+      ...FALLBACK,
+      bounds: {x: 1240, y: 450, width: 960, height: 540},
+    });
+    const handle = windows.only('main');
+    const final = {
+      ...FALLBACK,
+      bounds: {x: 1271, y: 450, width: 960, height: 540},
+    };
+    output.update(final);
+    expect(handle.mode).toEqual({kind: 'window', bounds: final.bounds});
+    output.update({...final});
+    expect(handle.placements).toHaveLength(3);
+    expect(handle.reloads).toBe(0);
+    output.dispose();
+  });
   it('updates always on top in window and capture modes without resetting an operator-moved window', () => {
     const {output, windows} = setUp();
     output.update({...FALLBACK, reason: 'method'});

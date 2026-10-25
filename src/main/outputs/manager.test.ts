@@ -126,6 +126,41 @@ function setUpRemoval(
 }
 
 describe('OutputManager', () => {
+  it('replans a fallback after a later work-area change without replacing its page', async () => {
+    const clock = installFakeClock();
+    const {source, displays, windows, manager} = setUpRemoval([
+      screenOn(PROJECTOR),
+    ]);
+    const primary = {
+      ...displayInfo(CONTROL),
+      bounds: {x: 0, y: 0, width: 3440, height: 1440},
+      workArea: {x: 0, y: 0, width: 3440, height: 1440},
+    };
+    source.remove(PROJECTOR.id);
+    source.change(primary);
+    await clock.advance(DISPLAY_SETTLE_MS);
+    const handle = windows.only('main');
+    expect(handle.mode).toMatchObject({
+      kind: 'window',
+      bounds: {x: 1240, y: 450},
+    });
+    source.change({
+      ...primary,
+      workArea: {x: 62, y: 0, width: 3378, height: 1440},
+    });
+    await clock.advance(DISPLAY_SETTLE_MS);
+    expect(handle.mode).toMatchObject({
+      kind: 'window',
+      bounds: {x: 1271, y: 450},
+    });
+    expect(windows.created).toHaveLength(1);
+    expect(handle.reloads).toBe(0);
+    expect(manager.screenStates().get('main')?.placement).toBe(
+      'monitorMissing',
+    );
+    manager.dispose();
+    displays.dispose();
+  });
   it('runs capture without consuming its saved monitor and closes only that output', () => {
     const {store, windows, manager} = setUp([
       screenOn(PROJECTOR, {id: 'capture', method: 'capture'}),

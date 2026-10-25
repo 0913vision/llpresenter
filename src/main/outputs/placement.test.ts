@@ -8,6 +8,21 @@ const controlMonitor = monitorById(monitors, 1);
 const projector = monitorById(monitors, 2);
 
 describe('planPlacement', () => {
+  it('centers fallback bounds in a work area offset by a left taskbar', () => {
+    const placement = planPlacement({
+      screen: fullScreenScreen(),
+      monitor: null,
+      controlMonitor: {
+        ...controlMonitor,
+        workArea: {x: 62, y: 0, width: 1858, height: 1080},
+      },
+    });
+    expect(placement).toEqual({
+      kind: 'window',
+      reason: 'monitorMissing',
+      bounds: {x: 511, y: 270, ...OUTPUT_WINDOW_SIZE},
+    });
+  });
   it.each(['fullscreen', 'window', 'capture'] as const)(
     'uses the method default and honors an explicit always-on-top choice for %s',
     method => {
