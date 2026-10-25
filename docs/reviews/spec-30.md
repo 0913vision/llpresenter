@@ -62,3 +62,10 @@ refusal, applied disk failure, and rejected reads/writes. Fixtures contain
 invented data. No Electron process, visible window, soak, or memory measurement
 was started. The report records the exact submitted HEAD's green CI result
 without adding an unverified metadata commit.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (05b5326): reviewer (Claude, trial-97) Approve with no findings. Lead
+  Approve. Written by the Codex session that took over spec's work, under the
+  lead's exception for shell's paths. Rebased by the lead onto local `main`
+  without conflicts.
