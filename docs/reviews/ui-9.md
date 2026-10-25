@@ -49,7 +49,8 @@ a plain ↓ still moves to the next row.
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
-- [x] `npm run verify` passes
+- [ ] `npm run verify` passes (round 2: 4 of 5 steps; `test:coverage` fails only
+      on the known soak test, see "Checks run")
 - [x] `npm run format:check` passes
 - [x] Every new behavior has unit tests
 - [x] Values from outside the process are validated with a schema (none here)
