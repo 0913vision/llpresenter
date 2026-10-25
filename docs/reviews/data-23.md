@@ -1,4 +1,4 @@
-# Review request: data-23
+﻿# Review request: data-23
 
 Shared changes: library search, decoded text-import input and draft results, and
 the custom song-drag payload. New preload functions validate requests and
@@ -7,9 +7,9 @@ prep's later requests.
 
 - Team member: data
 - Branch: `feat/data/library-contracts`
-- Base commit (`main`): `505ab189a2241b35e8b1a6ac53395ce42db838c4`
-- Last code commit: `ee99115`
-- Review range: `505ab18...feat/data/library-contracts`
+- Base commit (`main`): `ff365049e0e0be39ded27e10cc962530b581062b`
+- Last code commit: `b63950d`
+- Review range: `ff36504...feat/data/library-contracts`
 - Task: M3-D1a-2, `docs/plans/m3-breakdown.md`
 - Behavior: spec 05 search/text import/drag, spec 04 toolbar search, spec 02
   song fields
@@ -79,42 +79,35 @@ exposed.
 
 ## Checks run
 
-| Check                                               | Result                                                      |
-| --------------------------------------------------- | ----------------------------------------------------------- |
-| Typecheck                                           | Passed, including after rebase                              |
-| Focused schema/preferences/song/preload/fake tests  | Passed: 7 files, 145 tests                                  |
-| Final focused search/import/drag/preload/fake tests | Passed: 5 files, 100 tests                                  |
-| Changed-file ESLint                                 | Passed after safe unknown handling in tests                 |
-| Format                                              | Passed before code commits                                  |
-| Rebase onto main                                    | Once, without conflicts, at `505ab18`                       |
-| Local full verify                                   | Not run, per the lead's updated CI rule                     |
-| GitHub CI, source commit `ee99115`                  | 4 of 5 steps passed; two lead-confirmed runner GPU failures |
+| Check                                               | Result                                                  |
+| --------------------------------------------------- | ------------------------------------------------------- |
+| Typecheck                                           | Passed, including after rebase                          |
+| Focused schema/preferences/song/preload/fake tests  | Passed: 7 files, 145 tests                              |
+| Final focused search/import/drag/preload/fake tests | Passed: 5 files, 100 tests                              |
+| Changed-file ESLint                                 | Passed after safe unknown handling in tests             |
+| Format                                              | Passed before code commits                              |
+| Rebase onto main                                    | Refreshed for devops-19 at `ff36504`, without conflicts |
+| Local full verify                                   | Not run, per the lead's updated CI rule                 |
+| GitHub CI, tested head `62b5746`                    | Passed: fully green after devops-19                     |
 
 Source verification run:
-[GitHub CI](https://github.com/0913vision/llpresenter/actions/runs/40188852233).
+[GitHub CI](https://github.com/0913vision/llpresenter/actions/runs/40190412105).
 The final review-head CI URL and result are included in the request report.
 Local fast-check logs are `.llp/data23-*.log`.
 
-### Known CI environment failure
+### CI after devops-19
 
-The source run passed typecheck (9.6 s), lint (64.0 s), format check (40.8 s),
-and build (4.2 s). Coverage ended in 163.7 s with 219 files and 2,572 tests
-passed, one test skipped, and only these two failures:
-
-- `src/main/windows/uiZoom.electron.test.ts`
-- `src/renderer/src/render/transparentBackground.node.test.ts`
-
-Both Electron processes exited with `GPU process isn't usable. Goodbye.` before
-their checks could finish. On 2026-10-25, the lead confirmed that GitHub runners
-have no GPU and authorized this exact two-test exception until devops-19 merges.
-No other failure is covered. Neither fixture changes in this request. The
-original source-run result and URL remain recorded above; its job log is
-`.llp/data23-ci-source-job.log`.
+The run above verifies head `62b5746`, including the current source and
+SwiftShader support from main. It completed successfully. Earlier runs before
+devops-19 failed in inherited Electron fixtures because GitHub runners had no
+GPU; that temporary exception is retired and is not used for this request. The
+final review-head run must also be fully green and is recorded in the request
+report. No local full verify was run.
 
 ## Quality checklist
 
-- [x] CI result recorded with the lead-confirmed GPU exception; the final
-      review-head CI result is included in the request report.
+- [x] Source CI is fully green; final review-head CI is recorded in the request
+      report.
 - [x] New requests, replies, and drag data have valid/invalid tests.
 - [x] Malformed requests and replies are logged and rejected at preload.
 - [x] The preload stays typed; file-shaped fields retain unknown data safely.
