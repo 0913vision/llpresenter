@@ -80,19 +80,17 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (codex2): Request changes with one finding: `RowEnd` still stopped
+  modified arrow keys, so Ctrl Up and Ctrl Down never reached the window from an
+  end button.
+- Round 2 (a9160cd): reviewer (Codex, codex3) Approve with one nit: the
+  checklist marks `npm run verify` as passing although round 2 records 4 of 5
+  steps (the known soak test failure, fixed by devops-17). The nit goes into
+  ui's next branch. Lead Approve; lists, rows, check lists, segment groups, menu
+  buttons, and the 구성 chips pass on keys with a modifier, so the 진행 item
+  keys reach shell. Rebased by the lead onto local `main` without conflicts.
 
 ## Team member's reply
 
