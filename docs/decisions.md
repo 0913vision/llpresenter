@@ -226,3 +226,13 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
 - The first one is `m2-check1`, cut at 13:17 on October 25 for the user's check
   between 15:00 and 16:00. From M3 on, the milestone plan names its check
   points.
+
+## 2026-10-25: A hung output is restarted only when it stops answering
+
+- An output that is on and has drawn sends frame-rate reports. After 5 s without
+  one (`FRAME_SILENCE_MS`), the main process pings the page's main thread; only
+  a page that doesn't answer within 10 s (`ANSWER_LIMIT_MS`) is crashed on
+  purpose, so the restart rules of output-11 reload it and count it toward the
+  restart limit (lead decision, output-14). A page that answers but draws
+  nothing is logged, never restarted, because a wrong restart blanks a live
+  output during a service. Spec 08 takes this rule when spec next changes.

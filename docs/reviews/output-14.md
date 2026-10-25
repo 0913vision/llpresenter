@@ -193,19 +193,21 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (codex4): Request changes with one finding, plus three lead findings:
+  showing an output again didn't rearm the watch; the lead asked for a second
+  signal before a forced crash, a longer named wait, and the covered window and
+  sleeping display behavior.
+- Round 2 (codex4): Request changes with one finding: a ping that never settles
+  was started again on every retry, without a bound.
+- Round 3 (e8cf59a): reviewer (Codex, codex2) Approve with no findings. Lead
+  Approve; after `FRAME_SILENCE_MS` (5 s) without a frame report the main
+  process pings the page's main thread, and only a page that doesn't answer
+  within `ANSWER_LIMIT_MS` (10 s) is crashed so output-11's recovery reloads it.
+  A page that answers but draws nothing is logged, never crashed. At most one
+  ping is in flight per page. The first-load draw limit follows in a small
+  branch. Rebased by the lead onto local `main` without conflicts.
 
 ## Team member's reply
 
