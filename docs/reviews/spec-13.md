@@ -8,7 +8,7 @@ Review range: `0f5b01c...docs/spec/m2-check1`
 - Shared files changed: none; documents only in `docs/spec/` and this review
 - Behavior/settings commit: `bf6868c`
 - Separate terminology commit: `3fa94fd`
-- Last commit: the commit that adds this review
+- Last commit: the round 2 follow-up commit
 - Task: `.llp/task.md`; M2 check 1 feedback rows 2, 3, and 7 to 11
 
 ## What changed and why
@@ -25,7 +25,7 @@ which choices still need confirmation. It changes no app code or design files.
 | 9: slide size           | Continuous thumbnail width, synchronized % field, proposed 50% to 200%, default 100%, field/key step 1 percentage point. Baseline 100% fits 3/4/6 columns by size class. Store `layout.<sizeClass>.thumbnailScalePercent` in `app.json`, replacing column-count control.                         | 04 slide grid; 10 "Thumbnail size"; 02 local state                                                                       |
 | 11: UI zoom             | Add UI 확대, UI 축소, UI 확대 초기화 (Ctrl +, Ctrl -, Ctrl 0). Proposed 100% to 200%, step 10 percentage points, default 100%, local `app.json` `uiZoomPercent`. Applies to main and 환경설정 windows; output rendering stays native.                                                            | 10 일반 table, commands, physical-key aliases, and "UI zoom and layout recovery"; 01 and 06 pointers                     |
 | 10: layout reset        | Propose 보기 > 화면 배치 초기화 without a default key. Confirm before restoring main window bounds, UI zoom, all size-class column widths, and thumbnail percentages. Preserve live output and screen configuration.                                                                             | 10 "UI zoom and layout recovery"; 01 보기 menu                                                                           |
-| 2: terminology          | Rename 378 slide meanings of 장 across all 11 spec files, including the glossary, to 슬라이드. Attached counts such as 9장 become 슬라이드 9개. Preserve Bible chapters and unrelated words.                                                                                                     | Separate commit `3fa94fd`; 01 glossary; 02 Bible grammar                                                                 |
+| 2: terminology          | Rename 377 slide meanings of 장 across all 11 spec files, including the glossary, to 슬라이드. Attached counts such as 9장 become 슬라이드 9개. Preserve Bible chapters and unrelated words.                                                                                                     | Separate commit `3fa94fd`; 01 glossary; 02 Bible grammar                                                                 |
 
 The setting tables give storage, range, default, application timing, and
 reasons. The slider mapping preserves tile width across row wrapping, so
@@ -62,15 +62,15 @@ recording keep their precedence.
 
 ## Checks run
 
-| Check                               | Result                                                                                                                                           |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `npm run format:check`              | Pass on the rebased branch (base `0f5b01c`); all matched files use Prettier style                                                                |
-| `npm run verify`                    | Not run, as instructed for documents-only work                                                                                                   |
-| `git diff --check`                  | Pass                                                                                                                                             |
-| Terminology audit                   | 378 replacements; Bible reference examples and unrelated word counts preserved; remaining 장 occurrences have chapter or unrelated-word meanings |
-| Shortcut/settings consistency audit | Pass: clear undo unbound, edit Ctrl Z, canvas fit unbound, UI zoom keys and setting fields present                                               |
-| Middle dots and em dashes           | None in all spec files and this review                                                                                                           |
-| Rebase                              | Rebased once onto `main` at `0f5b01c`, no conflicts                                                                                              |
+| Check                               | Result                                                                                                                                         |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run format:check`              | Pass on the rebased branch (base `0f5b01c`); all matched files use Prettier style                                                              |
+| `npm run verify`                    | Not run, as instructed for documents-only work                                                                                                 |
+| `git diff --check`                  | Pass                                                                                                                                           |
+| Terminology audit                   | 377 slide terms renamed after restoring one misclassified chapter delimiter in round 2; chapter/verse references and unrelated words preserved |
+| Shortcut/settings consistency audit | Pass: clear undo unbound, edit Ctrl Z, canvas fit unbound, UI zoom keys and setting fields present                                             |
+| Middle dots and em dashes           | None in all spec files and this review                                                                                                         |
+| Rebase                              | Rebased once onto `main` at `0f5b01c`, no conflicts                                                                                            |
 
 No unit tests or app launch: this request changes the specification only. The
 implementation owners must test their corresponding behavior changes.
@@ -104,3 +104,34 @@ implementation owners must test their corresponding behavior changes.
 
 Review the behavior/settings commit first, then the terminology commit. Table
 padding and line wrapping account for much of the full-range diff.
+
+## Team member's reply (round 2)
+
+1. Restored the chapter delimiter 장 in 02 "Reference grammar": the Korean
+   reference form uses 장 and 절. The first rename incorrectly treated that bare
+   delimiter as a slide term; protecting reference examples alone did not catch
+   it. Rechecked Bible-related passages in all 11 spec files against pre-rename
+   commit `bf6868c`: the grammar, chapter/verse separators, numeric references,
+   error messages, and Psalm references keep their original meanings. The
+   grammar section now matches that commit except for the intended "reference
+   drawn on a 슬라이드" wording. Existing examples such as 요 3장,
+   요한복음3장16절, the cross-chapter forms, and 시편 23:1-6 are unchanged. The
+   audit also searched 1장 and 23편; neither occurred in the pre-rename spec or
+   the revised spec. Slide display options such as 한 슬라이드에 한 절 still use
+   슬라이드 intentionally. The corrected net count is 377 slide terms, not 378.
+2. Aligned Ctrl Y / Ctrl Shift Z in 10 "Default key map" with `edit.redo`:
+   editable lists (including 진행), 준비 edits, and text fields. The command
+   row's scope stays unchanged.
+
+### Round 2 checks
+
+| Check                           | Result                                                                                                                                           |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `npm run format:check`          | Pass (round 2)                                                                                                                                   |
+| Bible-reference comparison      | Pass: all 11 spec files, full reference grammar, 42 reference occurrences, numbered verses/Psalms, and protected words match the pre-rename spec |
+| Redo command and summary scopes | Pass: both include editable lists, Prep edits, and text fields                                                                                   |
+| `git diff --check`              | Pass                                                                                                                                             |
+| `npm run verify`                | Not run, documents-only request                                                                                                                  |
+
+Review range remains `0f5b01c...docs/spec/m2-check1`. Round 2 changes follow
+`b4393f8` and are limited to 02, 10, and this review reply.

@@ -750,7 +750,7 @@ same place.
 | Alt →, Alt ←                  | 다음 배경, 이전 배경                                         | 진행                                                           |
 | Alt →, Alt ←                  | 칩 오른쪽으로, 칩 왼쪽으로                                   | Chip strip in 준비 (no overlap with 진행)                      |
 | Ctrl Z                        | 실행 취소 (edit undo only)                                   | Editable lists, 준비 edits, text fields; no clear undo         |
-| Ctrl Y, Ctrl Shift Z          | 다시 실행                                                    | 준비, text fields                                              |
+| Ctrl Y, Ctrl Shift Z          | 다시 실행                                                    | Editable lists, 준비 edits, text fields                        |
 | Ctrl 1, Ctrl 2                | 청중 화면 출력, 무대 화면 출력                               | All                                                            |
 | Ctrl Shift 1                  | Look 편집                                                    | All                                                            |
 | Ctrl Alt 1                    | 화면 설정                                                    | All                                                            |

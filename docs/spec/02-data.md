@@ -674,10 +674,10 @@ Rules (proposal):
 ### Reference grammar (proposal)
 
 The 퀵 실행 Bible field (04) accepts these forms. Each form has a colon form and
-a Korean form with 슬라이드 and 절; one reference uses one of them throughout,
-so a mixed reference such as "요 3:16-4장 2절" is invalid. Spaces between the
-book, the numbers, and the separators are optional ("요3:16",
-"요한복음3장16절"), and "~" works like "-" ("요 3:16~18").
+a Korean form with 장 and 절; one reference uses one of them throughout, so a
+mixed reference such as "요 3:16-4장 2절" is invalid. Spaces between the book,
+the numbers, and the separators are optional ("요3:16", "요한복음3장16절"), and
+"~" works like "-" ("요 3:16~18").
 
 | Form                  | Colon form  | Korean form         | Meaning                      |
 | --------------------- | ----------- | ------------------- | ---------------------------- |
