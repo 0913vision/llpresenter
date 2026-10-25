@@ -1,12 +1,8 @@
 import type {LiveCommand} from '@shared/commands';
 import type {LiveState} from '@shared/live';
 import type {Logger} from '../log';
-import {
-  applyCommand,
-  initialHistory,
-  liveSlices,
-  type LiveHistory,
-} from './reducer';
+import {initialHistory, liveSlices, type LiveHistory} from './reducer';
+import type {SliceRegistry, SkippedLiveCommand} from './sliceRegistry';
 
 export type LiveListener = (state: LiveState) => void;
 
@@ -24,10 +20,11 @@ export class LiveStore {
    * @param now - The clock that stamps commands; tests pass a fixed one.
    */
   constructor(
-    initial: LiveState = liveSlices.initialState(),
+    initial?: LiveState,
     private readonly now: () => number = Date.now,
+    private readonly slices: SliceRegistry = liveSlices,
   ) {
-    this.history = initialHistory(initial);
+    this.history = initialHistory(initial ?? slices.initialState());
   }
 
   get state(): LiveState {
@@ -38,20 +35,38 @@ export class LiveStore {
     return this.listeners.size;
   }
 
+  handles(type: string): boolean {
+    return this.slices.handles(type);
+  }
+
   /**
    * Applies a command and notifies listeners when the state changed.
    *
    * @param onListenerError - Receives errors thrown by listeners, which never
    * reach other listeners or the state.
+   * @param onSkipped - Receives one diagnostic per unsupported or failed command.
    * @returns Whether the state changed.
    */
   dispatch(
     command: LiveCommand,
     onListenerError?: (error: unknown) => void,
+    onSkipped?: (problem: SkippedLiveCommand) => void,
   ): boolean {
-    const next = applyCommand(this.history, command, this.now());
-    if (next === this.history) return false;
+    const {history: next, skipped} = this.slices.run(
+      this.history,
+      command,
+      this.now(),
+    );
+    const changed = next !== this.history;
     this.history = next;
+    for (const problem of skipped) {
+      try {
+        onSkipped?.(problem);
+      } catch (error) {
+        onListenerError?.(error);
+      }
+    }
+    if (!changed) return false;
     this.notify(next.state, onListenerError);
     return true;
   }
@@ -83,11 +98,22 @@ export function dispatchLogged(
   command: LiveCommand,
   log: Logger,
 ): void {
-  if (!liveSlices.handles(command.type)) {
+  if (!store.handles(command.type)) {
     log.warn('unhandled live command', {type: command.type});
     return;
   }
-  store.dispatch(command, error =>
-    log.error('live state listener failed', error),
+  store.dispatch(
+    command,
+    error => log.error('live state listener failed', error),
+    problem => {
+      if (problem.reason === 'unhandled') {
+        log.warn('unhandled live command', {type: problem.type});
+      } else {
+        log.warn('skipped live command', {
+          type: problem.type,
+          error: problem.error,
+        });
+      }
+    },
   );
 }

@@ -1,7 +1,20 @@
 import type {LiveCommand} from '@shared/commands';
 import {emptyLiveState, type LiveState} from '@shared/live';
 import type {LiveHistory} from './history';
-import {isLiveSlice, type LiveSlice} from './slice';
+import {isLiveSlice, type LiveSlice, type SliceContext} from './slice';
+
+export type SkippedLiveCommand =
+  | {readonly type: LiveCommand['type']; readonly reason: 'unhandled'}
+  | {
+      readonly type: LiveCommand['type'];
+      readonly reason: 'failed';
+      readonly error: unknown;
+    };
+
+export interface LiveReduction {
+  readonly history: LiveHistory;
+  readonly skipped: readonly SkippedLiveCommand[];
+}
 
 /**
  * The slices of the live reducer, one per command type. A command type that no
@@ -45,8 +58,32 @@ export class SliceRegistry {
    * the command.
    */
   apply(history: LiveHistory, command: LiveCommand, now: number): LiveHistory {
-    const slice = this.byCommand.get(command.type);
-    return slice === undefined ? history : slice.apply(history, command, now);
+    const result = this.run(history, command, now);
+    const failure = result.skipped.find(problem => problem.reason === 'failed');
+    if (failure?.reason === 'failed') {
+      throw new Error('live reducer failed', {cause: failure.error});
+    }
+    return result.history;
+  }
+
+  /** Collects skipped children without exposing any intermediate state to listeners. */
+  run(history: LiveHistory, command: LiveCommand, now: number): LiveReduction {
+    const skipped: SkippedLiveCommand[] = [];
+    const apply = (before: LiveHistory, next: LiveCommand): LiveHistory => {
+      const slice = this.byCommand.get(next.type);
+      if (slice === undefined) {
+        skipped.push({type: next.type, reason: 'unhandled'});
+        return before;
+      }
+      try {
+        return slice.apply(before, next, context);
+      } catch (error) {
+        skipped.push({type: next.type, reason: 'failed', error});
+        return before;
+      }
+    };
+    const context: SliceContext = {now, apply};
+    return {history: apply(history, command), skipped};
   }
 }
 

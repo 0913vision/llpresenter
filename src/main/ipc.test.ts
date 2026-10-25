@@ -7,6 +7,13 @@ import type {Logger} from './log';
 type Listener = (event: unknown, value: unknown) => void;
 
 const electron = vi.hoisted(() => ({
+  windows: new Set<{
+    isDestroyed: () => boolean;
+    webContents: {
+      isDestroyed: () => boolean;
+      send: (channel: string, value: unknown) => void;
+    };
+  }>(),
   listeners: new Map<string, (event: unknown, value: unknown) => void>(),
   window: {
     minimize: vi.fn(),
@@ -32,7 +39,7 @@ vi.mock('electron', () => ({
     },
   },
   BrowserWindow: {
-    getAllWindows: () => [],
+    getAllWindows: () => [...electron.windows],
     fromWebContents: () => electron.window,
   },
 }));
@@ -55,11 +62,61 @@ function sendWindowAction(value: unknown): void {
 }
 
 beforeEach(() => {
+  electron.windows.clear();
   electron.listeners.clear();
   electron.window.isMaximized.mockReturnValue(false);
 });
 
 describe('registerIpc live commands', () => {
+  it('skips malformed batch children and sends each window exactly one final live state', () => {
+    const store = new LiveStore();
+    const log = fakeLog();
+    const sends = [vi.fn(), vi.fn()];
+    for (const send of sends) {
+      electron.windows.add({
+        isDestroyed: () => false,
+        webContents: {isDestroyed: () => false, send},
+      });
+    }
+    const dispose = registerIpc(store, log, 'offscreen');
+    sendCommand({
+      type: 'live.batch',
+      commands: [
+        {type: 'output.set', screenId: 'main', on: true},
+        {type: 'layer.clear', target: 'missing'},
+        {type: 'output.set', screenId: 'stage', on: true},
+      ],
+    });
+    expect(store.state.outputs).toEqual({main: true, stage: true});
+    expect(log.warn).toHaveBeenCalledExactlyOnceWith(
+      'dropped a malformed command',
+      expect.objectContaining({field: 'commands.1.target'}),
+    );
+    for (const send of sends) {
+      expect(send).toHaveBeenCalledExactlyOnceWith(
+        Channels.liveChanged,
+        store.state,
+      );
+    }
+    dispose();
+    expect(store.listenerCount).toBe(0);
+    expect(electron.listeners.has(Channels.liveCommand)).toBe(false);
+  });
+
+  it('rejects an invalid batch envelope without applying any command', () => {
+    const store = new LiveStore();
+    const dispatch = vi.spyOn(store, 'dispatch');
+    const log = fakeLog();
+    const dispose = registerIpc(store, log, 'offscreen');
+    sendCommand({type: 'live.batch', commands: 'invalid'});
+    expect(dispatch).not.toHaveBeenCalled();
+    expect(log.warn).toHaveBeenCalledWith(
+      'dropped a malformed command',
+      expect.objectContaining({field: 'commands'}),
+    );
+    dispose();
+  });
+
   it('dispatches the parsed command, without fields it does not declare', () => {
     const store = new LiveStore();
     const dispatch = vi.spyOn(store, 'dispatch');

@@ -6,9 +6,10 @@ slice is a new module; no command list or central reducer switch changes.
 
 Export a `defineSlice({commands, initial, reduce})` value. `commands` names the
 shared command types owned by the module. `reduce` receives only those variants
-of `LiveCommand`, the current `LiveHistory`, and the command time. Extending the
-shared union does not widen existing slice reducer inputs. A command cannot be
-owned by two slices; duplicate ownership fails registry construction.
+of `LiveCommand`, the current `LiveHistory`, and a context with the command time
+and the registry dispatcher for batch children. Extending the shared union does
+not widen existing slice reducer inputs. A command cannot be owned by two
+slices; duplicate ownership fails registry construction.
 
 `initial` supplies this slice's default state fields. Individual `layers` fields
 merge with the other defaults. An explicit starting state supplied to LiveStore
@@ -18,6 +19,18 @@ existing `history.ts` helpers preserve versioning and clear undo semantics.
 See `slices/content.ts`, `slices/clear.ts`, and `slices/outputs.ts`. They retain
 the existing command behavior. Add a shared command contract through data before
 implementing its slice.
+
+The batch slice uses `context.apply` to reduce each child through the same
+registry, without intermediate store notifications. A changed batch advances the
+version once. Its clears retain the first clear snapshot while it remains valid;
+new content still ends undo as it does for individual commands. Empty or
+unchanged batches retain the current state and undo without broadcasting.
+
+`SliceRegistry.run` returns skipped-command diagnostics with the resulting
+history. The application dispatch logs every skipped child. A slice reports a
+missing target by throwing before changing its immutable input; the next child
+continues. The pure `apply` helper rethrows failed reductions for its caller
+instead of silently discarding their errors.
 
 IPC validation remains in `ipc.ts`. All application dispatch goes through
 `dispatchLogged`, which logs an unsupported type as `unhandled live command` and

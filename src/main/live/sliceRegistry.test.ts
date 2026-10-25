@@ -13,6 +13,27 @@ const fixtureSlice = defineSlice({
 });
 
 describe('SliceRegistry', () => {
+  it('returns a failed command diagnostic and keeps the pure apply error observable', () => {
+    const error = new Error('missing target');
+    const registry = new SliceRegistry([
+      defineSlice({
+        commands: ['clear.undo'],
+        initial: {},
+        reduce: () => {
+          throw error;
+        },
+      }),
+    ]);
+    const history = initialHistory(emptyLiveState());
+    expect(registry.run(history, {type: 'clear.undo'}, 42)).toEqual({
+      history,
+      skipped: [{type: 'clear.undo', reason: 'failed', error}],
+    });
+    expect(() => registry.apply(history, {type: 'clear.undo'}, 42)).toThrow(
+      'live reducer failed',
+    );
+  });
+
   it('collects slices while ignoring helper exports and matches command names exactly', () => {
     const registry = registryOf({
       './module.ts': {fixtureSlice, helper: () => 0},
@@ -77,7 +98,7 @@ describe('SliceRegistry', () => {
       slice.apply(
         history,
         {type: 'output.set', screenId: 'main', on: true},
-        42,
+        {now: 42, apply: current => current},
       ),
     ).toBe(history);
     expect(reduce).not.toHaveBeenCalled();

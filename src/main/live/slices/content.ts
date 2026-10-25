@@ -21,7 +21,7 @@ function showMedia(
 export const contentSlice = defineSlice({
   commands: ['slide.show', 'media.show', 'message.show'],
   initial: {layers: {slide: null, media: null, message: null}},
-  reduce: (history, command, now) => {
+  reduce: (history, command, {now}) => {
     switch (command.type) {
       case 'slide.show':
         return setLayer(history, 'slide', command.slide);

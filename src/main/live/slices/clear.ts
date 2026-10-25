@@ -44,7 +44,7 @@ function undoClear(history: LiveHistory, now: number): LiveHistory {
 export const clearSlice = defineSlice({
   commands: ['layer.clear', 'clear.undo'],
   initial: {canUndo: false},
-  reduce: (history, command, now) => {
+  reduce: (history, command, {now}) => {
     switch (command.type) {
       case 'layer.clear':
         return clear(history, command.target, now);

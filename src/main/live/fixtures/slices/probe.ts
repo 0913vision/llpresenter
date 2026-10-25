@@ -3,7 +3,7 @@ import {defineSlice} from '../../slice';
 export const probeSlice = defineSlice({
   commands: ['output.set'],
   initial: {outputs: {'fixture-loaded': true}},
-  reduce: (history, command, now) => ({
+  reduce: (history, command, {now}) => ({
     ...history,
     state: {
       ...history.state,

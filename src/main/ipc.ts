@@ -1,6 +1,6 @@
 import {BrowserWindow, ipcMain, type IpcMainEvent} from 'electron';
 import {Channels, windowActions, type WindowAction} from '@shared/ipc';
-import {parseLiveCommand} from '@shared/schema/liveCommand';
+import {parseLiveCommandRequest} from '@shared/schema/liveCommand';
 import type {Logger} from './log';
 import {dispatchLogged, type LiveStore} from './live/store';
 import {
@@ -110,12 +110,15 @@ export function registerIpc(
 ): () => void {
   ipcMain.handle(Channels.liveGet, () => store.state);
   ipcMain.on(Channels.liveCommand, (_event, value: unknown) => {
-    const command = parseLiveCommand(value);
+    const command = parseLiveCommandRequest(value);
     if (!command.ok) {
       log.warn('dropped a malformed command', command.error);
       return;
     }
-    dispatchLogged(store, command.value, log);
+    for (const error of command.value.rejected) {
+      log.warn('dropped a malformed command', error);
+    }
+    dispatchLogged(store, command.value.command, log);
   });
   ipcMain.on(Channels.windowControl, controlWindowIn(windowMode, log));
   const stopLogWrites = listenToWindows(

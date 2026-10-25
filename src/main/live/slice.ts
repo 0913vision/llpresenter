@@ -1,4 +1,8 @@
-import type {LiveCommand, LiveCommandType} from '@shared/commands';
+import type {
+  LiveCommand,
+  LiveCommandType,
+  SingleLiveCommand,
+} from '@shared/commands';
 import type {LiveLayers, LiveState} from '@shared/live';
 import type {LiveHistory} from './history';
 
@@ -13,6 +17,15 @@ export type SliceInitial = Omit<Partial<LiveState>, 'layers'> & {
   readonly layers?: Partial<LiveLayers>;
 };
 
+/** The command time and the same registry path for a transaction's children. */
+export interface SliceContext {
+  readonly now: number;
+  readonly apply: (
+    history: LiveHistory,
+    command: SingleLiveCommand,
+  ) => LiveHistory;
+}
+
 /** The initial state and reducer for a bounded set of command types. */
 export interface SliceDefinition<T extends LiveCommandType> {
   /** The command types this slice handles. No other slice may handle them. */
@@ -23,12 +36,12 @@ export interface SliceDefinition<T extends LiveCommandType> {
    * Applies one of its commands. Returns the same history object when nothing
    * changed, so the store can skip the broadcast.
    *
-   * @param now - The time of the command in milliseconds since the epoch.
+   * @param context - The command time and child-command dispatcher.
    */
   readonly reduce: (
     history: LiveHistory,
     command: CommandOf<T>,
-    now: number,
+    context: SliceContext,
   ) => LiveHistory;
 }
 
@@ -40,7 +53,11 @@ export interface LiveSlice {
   readonly commands: readonly LiveCommandType[];
   readonly initial: SliceInitial;
   /** Applies a command of its types; any other command leaves the history as it is. */
-  apply(history: LiveHistory, command: LiveCommand, now: number): LiveHistory;
+  apply(
+    history: LiveHistory,
+    command: LiveCommand,
+    context: SliceContext,
+  ): LiveHistory;
 }
 
 /**
@@ -56,8 +73,8 @@ export function defineSlice<T extends LiveCommandType>(
     [SLICE]: true,
     commands: definition.commands,
     initial: definition.initial,
-    apply: (history, command, now) =>
-      handles(command) ? definition.reduce(history, command, now) : history,
+    apply: (history, command, context) =>
+      handles(command) ? definition.reduce(history, command, context) : history,
   };
 }
 
