@@ -119,6 +119,52 @@ describe('NumberField', () => {
     },
   );
 
+  it.each([
+    {
+      initial: 1,
+      step: 0.1,
+      largeStep: 0.25,
+      key: 'ArrowUp',
+      expected: 1.25,
+      text: '1.25',
+    },
+    {
+      initial: 1,
+      step: 0.1,
+      largeStep: 0.25,
+      key: 'ArrowDown',
+      expected: 0.75,
+      text: '0.75',
+    },
+    {
+      initial: 0.7,
+      step: 0.07,
+      largeStep: undefined,
+      key: 'ArrowUp',
+      expected: 1.4,
+      text: '1.40',
+    },
+  ])(
+    'keeps increment precision for step $step and largeStep $largeStep with $key',
+    async ({initial, step, largeStep, key, expected, text}) => {
+      const onChange = vi.fn();
+      render(
+        <DecimalField
+          initial={initial}
+          step={step}
+          largeStep={largeStep}
+          onChange={onChange}
+        />,
+      );
+      spin().focus();
+      await userEvent.keyboard(`{Shift>}{${key}}{/Shift}`);
+      expect(onChange).toHaveBeenCalledExactlyOnceWith(expected);
+      expect(spin().value).toBe(text);
+      expect(spin().getAttribute('aria-valuenow')).toBe(String(expected));
+      expect(spin().getAttribute('aria-valuetext')).toBe(text);
+    },
+  );
+
   it('steps from the nearest whole step rather than retaining an offset', async () => {
     render(<DecimalField initial={0.26} step={0.1} />);
     spin().focus();

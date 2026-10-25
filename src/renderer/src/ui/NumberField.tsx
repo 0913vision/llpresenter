@@ -69,7 +69,7 @@ export function NumberField({
   min,
   max,
   step = 1,
-  largeStep = step * DEFAULT_LARGE_STEP_MULTIPLIER,
+  largeStep = roundNumberToStep(step * DEFAULT_LARGE_STEP_MULTIPLIER, step),
   updateOn = 'change',
   unit,
   suffix = '',
@@ -119,10 +119,10 @@ export function NumberField({
     setDraft(null);
   };
 
-  const stepBy = (steps: number): void => {
+  const stepBy = (direction: 1 | -1, increment: number): void => {
     const base = parseNumberText(draft ?? shown, suffix) ?? value;
     const snapped = roundNumberToStep(base, step);
-    report(stepNumber(snapped, {step, steps, range}));
+    report(stepNumber(snapped, {step: increment, steps: direction, range}));
     setDraft(null);
   };
 
@@ -144,7 +144,7 @@ export function NumberField({
     const direction = arrowSteps[event.key];
     if (direction === undefined) return;
     event.preventDefault();
-    stepBy(direction * (event.shiftKey ? largeStep / step : 1));
+    stepBy(direction, event.shiftKey ? largeStep : step);
   };
 
   const field = (
