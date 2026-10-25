@@ -41,7 +41,9 @@ export function ScreenPreview({
     const draw = (): void =>
       renderer.render(useLive.getState().state?.layers ?? noLayers);
     draw();
-    const unsubscribe = useLive.subscribe(draw);
+    const unsubscribe = useLive.subscribe((next, previous) => {
+      if (next.state !== previous.state) draw();
+    });
     return () => {
       unsubscribe();
       renderer.dispose();
