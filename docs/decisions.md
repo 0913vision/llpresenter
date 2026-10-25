@@ -248,3 +248,9 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   it and works offline.
 - The crawl runs once on the user's computer, slowly, within what the site
   allows. It is M3 T4a work (tools, wave B).
+- For the implementation, copible is the reference for two behaviors (user): (1)
+  splitting a passage that doesn't fit on one screen into several slides marked
+  [계속]; (2) the Bible reference field: typing 창 completes to 창세기, a prefix
+  that matches several books (베) lets the operator pick one with the keyboard,
+  so a reference is entered in a few keys. T4a and T4b study copible's flow
+  before they build these.
