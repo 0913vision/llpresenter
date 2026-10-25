@@ -6,8 +6,9 @@
 - Code head: `f96e489c4915804470d4d462d6517d9da56612df`
 - Range: `c2c364d...feat/output/overlays`
 - Task: M3-O6a, built on data-31 (`be5a043`). O6b timers stay out of scope.
-- GitHub CI: the first run failed in two wiring tests, described below. The
-  corrected branch must pass in full before the review request.
+- Code CI:
+  [40216281222](https://github.com/0913vision/llpresenter/actions/runs/40216281222),
+  **success** at `e9bc31d468f952638ed02a4d58ac1b4d5f900d73`.
 
 ## What changed and why
 
@@ -100,6 +101,8 @@ unmount.
   adding registered modules. No shared test configuration or cache was changed.
 - No local full verify, Electron process, visible window, memory measurement or
   soak was run tonight. Full verify runs on GitHub.
+- GitHub full verify passed on the corrected code, including coverage tests and
+  build. The documentation-only final HEAD run is linked in the review request.
 
 ### Initial CI failure and correction
 
