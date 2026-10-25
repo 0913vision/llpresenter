@@ -86,14 +86,16 @@ export function selectTile(index: number): void {
 
 function startServiceItem(itemId: ItemId): void {
   const live = useLive.getState();
-  if ((live.lastSlideItemId ?? live.state?.layers.slide?.itemId) === itemId)
-    {return;}
+  if ((live.lastSlideItemId ?? live.state?.layers.slide?.itemId) === itemId) {
+    return;
+  }
   if (
     !useShow
       .getState()
       .rows.some(row => row.id === itemId && row.kind !== 'header')
-  )
-    {return;}
+  ) {
+    return;
+  }
   const id = v.safeParse(serviceItemIdSchema, itemId);
   if (id.success) sendLive({type: 'item.start', itemId: id.output});
 }
