@@ -76,7 +76,10 @@ missing.
 
 ## Verdicts (recorded by the lead at merge)
 
-- Not reviewed yet.
+- Round 1 (d0165a0): reviewer (Codex, codex2) Approve with no findings. Lead
+  Approve; 진행 already passed `workspace="show"` to the list and the slide
+  grid, so ui-12 hides their focus outline there (user feedback row 3); this
+  request adds two tests that fail without it. Fast-forward merge.
 
 ## Verify result
 
