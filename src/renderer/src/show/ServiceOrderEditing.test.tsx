@@ -130,6 +130,28 @@ beforeEach(() => {
 });
 
 describe('service panel editing', () => {
+  it('shows the chosen arrangement count in prep and refreshes it with the projection', () => {
+    const {view, onProblem} = setup('prep');
+    expect(screen.getAllByText('슬라이드 0개')).toHaveLength(2);
+    act(() =>
+      useShow.setState({
+        tiles: {
+          [firstId]: [
+            {label: null, labelColor: 'none', lines: ['Invented words']},
+            {
+              label: null,
+              labelColor: 'none',
+              lines: ['Repeated arrangement slide'],
+            },
+          ],
+        },
+      }),
+    );
+    expect(screen.getByText('슬라이드 2개')).toBeDefined();
+    view.rerender(<ServiceOrderList workspace="show" onProblem={onProblem} />);
+    expect(screen.queryByText('슬라이드 2개')).toBeNull();
+  });
+
   it.each(['show', 'prep'] as const)(
     'deletes and undoes in %s without touching live output',
     async workspace => {
@@ -155,9 +177,9 @@ describe('service panel editing', () => {
       fireEvent.contextMenu(screen.getByRole('option', {name: '첫 곡'}));
       await user.click(await screen.findByRole('menuitem', {name: '삭제'}));
       await waitFor(() => expect(ids()).toEqual([headerId, lastId]));
-      fireEvent.keyDown(list(), {key: 'z', ctrlKey: true});
+      fireEvent.keyDown(list(), {key: 'ㅋ', code: 'KeyZ', ctrlKey: true});
       await screen.findByRole('option', {name: '첫 곡'});
-      fireEvent.keyDown(list(), {key: 'y', ctrlKey: true});
+      fireEvent.keyDown(list(), {key: 'ㅛ', code: 'KeyY', ctrlKey: true});
       await waitFor(() => expect(ids()).toEqual([headerId, lastId]));
       expect(api.content.edit).toHaveBeenCalledTimes(3);
       expect(useLive.getState().state?.layers.slide?.lines).toEqual([
@@ -174,7 +196,7 @@ describe('service panel editing', () => {
     await waitFor(() => expect(ids()).toEqual([headerId, lastId]));
     view.unmount();
     render(<ServiceOrderList workspace="prep" />);
-    fireEvent.keyDown(list(), {key: 'z', ctrlKey: true});
+    fireEvent.keyDown(list(), {key: 'z', code: 'KeyZ', ctrlKey: true});
     await screen.findByRole('option', {name: '첫 곡'});
   });
 
@@ -250,5 +272,18 @@ describe('service panel editing', () => {
     expect(onOpenPrep).toHaveBeenCalledWith(lastId);
     expect(send).not.toHaveBeenCalled();
     expect(useShow.getState().openItemId).toBeNull();
+  });
+
+  it('logs the cause of a local edit-dispatch failure and reports it to the host', async () => {
+    const {api, onProblem} = setup();
+    const log = vi.spyOn(api.log, 'write');
+    act(() => useShow.setState({serviceId: 'invalid-id'}));
+    fireEvent.contextMenu(screen.getByRole('option', {name: '첫 곡'}));
+    await userEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
+    await waitFor(() => expect(onProblem).toHaveBeenCalled());
+    expect(log.mock.calls[0]?.[0].message).toBe(
+      'Could not edit the service order',
+    );
+    expect(log.mock.calls[0]?.[0].detail).toBeTruthy();
   });
 });

@@ -51,7 +51,12 @@ export function useServiceOrderEditing(
           time: new Date().toTimeString().slice(0, 5),
         });
       }
-    } catch {
+    } catch (cause) {
+      api.log.write({
+        level: 'error',
+        message: 'Could not edit the service order',
+        detail: cause instanceof Error ? cause.message : String(cause),
+      });
       onProblem({
         key: 'service-order:request',
         kind: 'warning',

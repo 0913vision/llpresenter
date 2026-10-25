@@ -8,6 +8,7 @@ import type {Notice} from '@renderer/ui/notices';
 import type {Workspace} from '@renderer/ui/workspace';
 import {useServiceOrderEditing} from './useServiceOrderEditing';
 import {serviceOrderRowId, useServiceOrderDrag} from './useServiceOrderDrag';
+import {useMediaDurations} from './useMediaDurations';
 import type {ItemKind, RowProblem, ServiceRow} from './model';
 import styles from './ServiceOrderList.module.css';
 
@@ -64,12 +65,17 @@ function ItemRows({
   liveItemId,
   editable,
   insertBefore,
+  workspace,
+  durations,
 }: {
   readonly items: readonly ServiceRow[];
   readonly liveItemId: string | null;
   readonly editable: boolean;
   readonly insertBefore: string | null | undefined;
+  readonly workspace: Workspace;
+  readonly durations: Readonly<Record<string, string>>;
 }): JSX.Element {
+  const tiles = useShow(view => view.tiles);
   return (
     <>
       {items.map(row =>
@@ -81,6 +87,13 @@ function ItemRows({
               title={row.title}
               icon={iconByKind[row.kind]}
               live={row.id === liveItemId}
+              meta={
+                workspace !== 'prep'
+                  ? undefined
+                  : ['song', 'bible', 'notice'].includes(row.kind)
+                    ? `슬라이드 ${tiles[row.id]?.length ?? 0}개`
+                    : durations[row.id]
+              }
               warning={
                 row.problem === undefined ? undefined : problemTips[row.problem]
               }
@@ -112,6 +125,11 @@ export function ServiceOrderList({
   const serviceId = useShow(view => view.serviceId);
   const readOnly = useShow(view => view.readOnly);
   const editing = useServiceOrderEditing(serviceId, onProblem);
+  const durations = useMediaDurations(
+    serviceId,
+    workspace === 'prep' && rows.some(row => row.kind === 'media'),
+    onProblem,
+  );
   const editable = !readOnly && !editing.busy && window.llp !== undefined;
   const {insertBefore, dragProps} = useServiceOrderDrag({
     enabled: editable,
@@ -167,14 +185,14 @@ export function ServiceOrderList({
           !event.ctrlKey ||
           event.altKey ||
           event.metaKey ||
-          !['z', 'y'].includes(event.key.toLowerCase())
+          !['KeyZ', 'KeyY'].includes(event.code)
         ) {
           return;
         }
         event.preventDefault();
         event.stopPropagation();
         if (!editable || event.repeat) return;
-        const redo = event.key.toLowerCase() === 'y' || event.shiftKey;
+        const redo = event.code === 'KeyY' || event.shiftKey;
         editing.run((edits, id) => (redo ? edits.redo(id) : edits.undo(id)));
       }}
     >
@@ -192,6 +210,8 @@ export function ServiceOrderList({
               liveItemId={liveItemId}
               editable={editable}
               insertBefore={insertBefore}
+              workspace={workspace}
+              durations={durations}
             />
           ) : (
             <div key={group.id} data-order-id={group.id} draggable={editable}>
@@ -202,6 +222,8 @@ export function ServiceOrderList({
                   liveItemId={liveItemId}
                   editable={editable}
                   insertBefore={insertBefore}
+                  workspace={workspace}
+                  durations={durations}
                 />
               </ListGroup>
             </div>
