@@ -3,10 +3,11 @@
 - Team member: `output`
 - Branch: `feat/output/overlays`
 - Base: `d74de593a52e5ec83443ce98519193db01e6d500`
-- Code head: `08144843bc35c5a5fcfd5e774223f2c7cf96fe53`
+- Code head: `7c44968c9ca9047bff6300f75dc3f36830156236`
 - Range: `d74de59...feat/output/overlays`
 - Task: M3-O6a, built on data-31 (`be5a043`). O6b timers stay out of scope.
-- GitHub CI: pending the branch run; the result will be recorded here.
+- GitHub CI: the first run failed in two wiring tests, described below. The
+  corrected branch must pass in full before the review request.
 
 ## What changed and why
 
@@ -53,6 +54,8 @@ unmount.
 ## Changed files
 
 - `src/main/index.ts`: start overlays and stop them before closing settings.
+- `src/main/index.wiring.test.ts`: provide settings in the mocked data store,
+  check the overlay registration context and shutdown before the data store.
 - `src/main/live/{slice,sliceRegistry,store}.ts`: per-store settings and
   generated ids in the slice context, plus classified skipped-command logging.
 - `src/main/live/commandErrors.ts`, `messageState.ts`, `noticeClock.ts`,
@@ -96,6 +99,20 @@ unmount.
   adding registered modules. No shared test configuration or cache was changed.
 - No local full verify, Electron process, visible window, memory measurement or
   soak was run tonight. Full verify runs on GitHub.
+
+### Initial CI failure and correction
+
+[Run 40215422092](https://github.com/0913vision/llpresenter/actions/runs/40215422092)
+failed with 21 assertions in two existing wiring test files, with 3,417 tests
+passing and one skipped. These failures were caused by this integration, not
+environment noise. The main entry test's data-store mock lacked `settings`,
+preventing startup. Its fixture now supplies the promise, and a new wiring test
+checks that overlays receive it and stop before the data store closes. The
+preview tests expected the original one-argument renderer call before screen
+identity is available. That call remains intact; the screen frame is passed once
+identity resolves. No additional shell test file was modified. Both existing
+wiring files plus the new real-preview integration tests pass locally: 48 tests
+across three files in 3.55 seconds. Typecheck and targeted lint pass.
 
 ## Implementation choices and remaining integration
 
