@@ -171,6 +171,10 @@ describe('runClipMaker', () => {
     const started = vi.mocked(spawn).mock.results.at(-1);
     if (started?.type !== 'return') throw new Error('the maker did not start');
     const maker = started.value;
+    onTestFinished(() => {
+      finishStop();
+      if (maker.exitCode === null && maker.signalCode === null) maker.kill();
+    });
     const closed = once(maker, 'close');
     await vi.advanceTimersByTimeAsync(1000);
     await closed;
