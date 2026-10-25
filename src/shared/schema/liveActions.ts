@@ -87,13 +87,7 @@ export const liveActionOptions = [
   v.object({type: v.literal('item.start'), itemId: serviceItemIdSchema}),
 ] as const;
 
-/**
- * Stage layout without a screen targets the stage screen, until the next Look.
- * A null stage message takes it down. Notice start without a position resumes
- * the active paused set, or starts a new set at zero. Audio play without a
- * source resumes paused audio; callers supply a playlist source otherwise.
- * Fade out uses the three-second operator action; volume is a live percentage.
- */
+/** A live action for a content layer, Look, stage, audio, macro, or item. */
 export type LiveAction = ReadonlyKnown<v.InferOutput<typeof liveActionSchema>>;
 
 export const liveActionSchema = v.pipe(

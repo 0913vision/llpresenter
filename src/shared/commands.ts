@@ -40,6 +40,8 @@ export function interruptsSongOutput(command: LiveCommand): boolean {
       return true;
     case 'layer.clear':
       return ['all', 'slide', 'media'].includes(command.target);
+    case 'live.batch':
+      return command.commands.some(interruptsSongOutput);
     case 'message.show':
     case 'output.set':
     case 'look.set':
@@ -61,7 +63,6 @@ export function interruptsSongOutput(command: LiveCommand): boolean {
     case 'audio.volume.set':
     case 'macro.run':
     case 'item.start':
-    case 'live.batch':
       return false;
     default: {
       const unhandled: never = command;

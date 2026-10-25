@@ -1,7 +1,53 @@
 import {describe, expect, it} from 'vitest';
-import {interruptsSongOutput, isLiveCommand} from './commands';
+import {
+  interruptsSongOutput,
+  isLiveCommand,
+  type SingleLiveCommand,
+} from './commands';
 
 describe('isLiveCommand', () => {
+  it('interrupts pending song navigation when any batch child interrupts it', () => {
+    const children: readonly SingleLiveCommand[] = [
+      {
+        type: 'slide.show',
+        slide: {itemId: 'a', position: 0, label: null, lines: []},
+      },
+      {type: 'media.show', media: {mediaId: 'a', loop: false}},
+      {type: 'clear.undo'},
+      {type: 'layer.clear', target: 'all'},
+      {type: 'layer.clear', target: 'slide'},
+      {type: 'layer.clear', target: 'media'},
+    ];
+    for (const child of children) {
+      expect(
+        interruptsSongOutput({
+          type: 'live.batch',
+          commands: [
+            {type: 'output.set', screenId: 'main', on: true},
+            child,
+            {type: 'message.show', message: {messageId: 'a', text: ''}},
+          ],
+        }),
+      ).toBe(true);
+    }
+  });
+
+  it('does not interrupt pending song navigation for empty or unrelated batches', () => {
+    expect(interruptsSongOutput({type: 'live.batch', commands: []})).toBe(
+      false,
+    );
+    expect(
+      interruptsSongOutput({
+        type: 'live.batch',
+        commands: [
+          {type: 'output.set', screenId: 'main', on: true},
+          {type: 'message.show', message: {messageId: 'a', text: ''}},
+          {type: 'layer.clear', target: 'message'},
+        ],
+      }),
+    ).toBe(false);
+  });
+
   it('preserves the classification of existing song-output interruptions', () => {
     expect(interruptsSongOutput({type: 'clear.undo'})).toBe(true);
     expect(
