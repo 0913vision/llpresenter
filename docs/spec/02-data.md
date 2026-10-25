@@ -903,28 +903,34 @@ preferred), `docs/HANDOFF.md` (개역한글 and KJV).
   status bar doesn't change (proposal).
 - A save failure never affects the output.
 
-## What isn't saved, and the recovery record
+## What isn't saved, and the recovery snapshot
 
 Don't put the output state in song, service, or settings files. Instead, the
 main process writes it to the recovery record each time it changes. You can
 batch these writes to once per second (proposal).
 
-Content of `recovery\live.json` (proposal):
+`recovery\live.json` uses the `llrecovery` file format, schema version 1. Its
+`state` is a complete validated `LiveState` snapshot, alongside the service ID.
+It keeps the captured live content, including the actual slide lines, rather
+than only the references needed to reconstruct it from song or Bible files.
+Output removes audio and timer state before writing the snapshot.
 
-| Field                 | Meaning                                                                            | Row in the recovery dialog                 |
-| --------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------ |
-| `savedAt`             | Write time                                                                         | The time in the dialog's details           |
-| `outputs`             | Screen ID to output on or off                                                      | 화면 출력 (screen output)                  |
-| `serviceId`, `itemId` | Current service and current item                                                   | 마지막 슬라이드 (last 슬라이드)            |
-| `slide`               | The live 슬라이드: song ID or Bible reference, 구성 name, position in the sequence | 마지막 슬라이드                            |
-| `media`               | Current background media ID                                                        | 마지막 슬라이드 (proposal)                 |
-| `props`               | IDs of the 소품 that are on                                                        | 표시 중이던 항목 (items that were showing) |
-| `messages`            | 메시지 that are showing: template ID, blank values, target screens, time left      | 표시 중이던 항목                           |
-| `stageMessage`        | Stage message text                                                                 | 표시 중이던 항목                           |
-| `notice`              | 공지 set ID, current image position, targets, paused                               | 표시 중이던 항목                           |
-| `stageLayouts`        | Stage screen ID to current stage layout ID                                         | 표시 중이던 항목 (proposal)                |
-| `timers`              | 타이머 ID to state, start time, time left                                          | Not restored (proposal)                    |
-| `audio`               | Audio that was playing                                                             | Not restored (proposal)                    |
+| Field or excluded state | Meaning                                                                                        | Row in the recovery dialog                 |
+| ----------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| `format`                | `llrecovery`                                                                                   | Not displayed                              |
+| `schemaVersion`         | `1`                                                                                            | Not displayed                              |
+| `savedAt`               | Write time                                                                                     | The time in the dialog's details           |
+| `serviceId`             | Current service ID, or `null` when no service is open                                          | 마지막 슬라이드 (last 슬라이드)            |
+| `state`                 | Full `LiveState` snapshot; its fields provide the three restore rows                           | See the rows below                         |
+| `state.outputs`         | Screen ID to output on or off                                                                  | 화면 출력 (screen output)                  |
+| `state.layers.slide`    | Complete live 슬라이드: source item ID, position, label, and displayed lines                   | 마지막 슬라이드                            |
+| `state.layers.media`    | Background media choice, loop setting, and playback start time                                 | 마지막 슬라이드 (proposal)                 |
+| `state.layers.prop`     | Complete active 소품 layer, including captured item payloads when present                      | 표시 중이던 항목 (items that were showing) |
+| `state.layers.message`  | Complete active 메시지 layer, including displayed text and captured item payloads when present | 표시 중이던 항목                           |
+| `state.stageMessage`    | Captured stage message text when present                                                       | 표시 중이던 항목                           |
+| `state.layers.notice`   | Complete active 공지 layer, including captured playback state when present                     | 표시 중이던 항목                           |
+| Timer state             | Excluded before writing; running timers are not recorded for restart                           | Not restored                               |
+| `state.layers.audio`    | Cleared before writing; audio playback is not recorded for restart                             | Not restored                               |
 
 - Create `recovery\session.lock` at launch and delete it on a clean exit. If the
   file exists at launch, treat the last exit as a crash and open the output
