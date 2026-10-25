@@ -69,3 +69,17 @@ couldn't tell which session they came from.
 ## Checks run
 
 See "Tests".
+
+## Team member's reply (round 1)
+
+1.  Codex 1, a test that proves the order. New test "rejects a late maker only
+    once its stop is done, whatever closes first". `killProcessTree` is mocked
+    for one call. It ends the maker's process right away, so the maker closes,
+    and returns a promise that the test settles by hand. `spawn` is a
+    pass-through mock, so the test waits for that maker's real `close` event
+    before it checks the outcome. Then it checks that `runClipMaker` is still
+    pending, settles the stop, and expects the rejection "the clip maker did not
+    finish within 1 s". No timing window decides the result. It fails on the
+    round 1 base, which rejected before the stop, and it fails without the close
+    guard, which rejects with "the soak clip could not be made" (1 failed each).
+    It passes with this branch, three runs in a row.
