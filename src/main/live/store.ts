@@ -6,6 +6,7 @@ import type {Logger} from '../log';
 import type {SettingsReader} from '../store/settingsStore';
 import {initialHistory, liveSlices, type LiveHistory} from './reducer';
 import type {SliceRegistry, SkippedLiveCommand} from './sliceRegistry';
+import type {SliceInputs} from './slice';
 
 export type LiveListener = (state: LiveState) => void;
 
@@ -17,6 +18,7 @@ export class LiveStore {
   private history: LiveHistory;
   private readonly listeners = new Set<LiveListener>();
   private settings: SettingsReader | undefined;
+  private resyncScreen: SliceInputs['resyncScreen'];
 
   /**
    * Starts from the initial state.
@@ -51,6 +53,15 @@ export class LiveStore {
     };
   }
 
+  connectScreenSettings(
+    resync: NonNullable<SliceInputs['resyncScreen']>,
+  ): () => void {
+    this.resyncScreen = resync;
+    return () => {
+      if (this.resyncScreen === resync) this.resyncScreen = undefined;
+    };
+  }
+
   /**
    * Applies a command and notifies listeners when the state changed.
    *
@@ -68,6 +79,9 @@ export class LiveStore {
       now: this.now(),
       ...(this.settings === undefined ? {} : {settings: this.settings}),
       nextMessageId: () => createMessageId(randomUUID()),
+      ...(this.resyncScreen === undefined
+        ? {}
+        : {resyncScreen: this.resyncScreen}),
     });
     const changed = next !== this.history;
     this.history = next;

@@ -1,13 +1,16 @@
 import {MAX_TARGET_SCREENS} from '@shared/schema/overlayState';
 import type {Screen} from '@shared/schema/screens';
+import type {ScreenId} from '@shared/schema/ids';
 import type {SettingsReader} from '../store/settingsStore';
 import type {Logger} from '../log';
+import {MissingLiveTargetError} from '../live/commandErrors';
 import {outputStateKeys} from './identity';
 import type {OutputScreen, ScreenSource} from './screens';
 
 export interface SettingsScreens extends ScreenSource {
   readonly ready: boolean;
   subscribe(listener: () => void): () => void;
+  resync(screenId: ScreenId): void;
   dispose(): void;
 }
 
@@ -48,6 +51,7 @@ class SavedScreenSource implements SettingsScreens {
   private reader: SettingsReader | null = null;
   private current: readonly OutputScreen[] = [];
   private disposed = false;
+  private pending = false;
   private unsubscribe: (() => void) | null = null;
   private readonly listeners = new Set<() => void>();
 
@@ -87,6 +91,21 @@ class SavedScreenSource implements SettingsScreens {
     return () => {
       this.listeners.delete(listener);
     };
+  }
+
+  resync(screenId: ScreenId): void {
+    if (this.disposed || this.reader === null) {
+      throw new Error('Output settings are not ready');
+    }
+    if (!savedScreens(this.reader).some(screen => screen.id === screenId)) {
+      throw new MissingLiveTargetError({kind: 'screen', id: screenId});
+    }
+    if (this.pending) return;
+    this.pending = true;
+    queueMicrotask(() => {
+      this.pending = false;
+      this.refresh();
+    });
   }
 
   dispose(): void {

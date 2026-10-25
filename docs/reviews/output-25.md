@@ -2,8 +2,8 @@
 
 - Team member: `output`
 - Branch: `feat/output/live-screen-settings`
-- Base: `98080f62097110806d98fb2416e20613347f4c0f`
-- Range: `98080f6...feat/output/live-screen-settings`
+- Base: `5415e336ab55ccab2f798d58c59f9a02e2dfd815` (data-38 merged)
+- Range: `5415e33...feat/output/live-screen-settings`
 - Scope: M3-O9a saved screen subscriptions and sleep lifecycle.
 - CI: pending the branch push.
 
@@ -28,6 +28,14 @@ and system while any output is on, and releases after the last output turns off
 or is removed, or on shutdown. No new power preference is introduced. The
 output-21 fallback behavior and its deadlines are unchanged.
 
+The data-38 `screen.settings.apply` command accepts only `screenId`. Resync
+reads the saved screen through D2, warns for missing IDs, and coalesces refresh
+work into one microtask after the live transaction. Extra proposed settings are
+stripped by the shared boundary parser. Resync cannot apply temporary settings
+or overwrite a batch result. The command leaves live history unchanged; the
+queued refresh reads the latest live state. Disposal releases its store callback
+and prevents queued work from reaching windows.
+
 ## Changed files
 
 - `src/main/outputs/{settingsScreens,identity}.ts`: capped saved screen feed,
@@ -37,6 +45,8 @@ output-21 fallback behavior and its deadlines are unchanged.
   bounded frame-rate cache.
 - `src/main/live/slices/outputs.ts`: atomic canonical and alias flags, missing
   target handling and removal of obsolete keys.
+- `src/main/live/{slice,store}.ts` and `slices/screenSettings.ts`: disposable
+  main-process resync callback and command handler.
 - `src/main/index.ts` and `index.wiring.test.ts`: D2 settings promise wiring.
 - `src/renderer/src/render/screenIdentity.ts` and its test: stable identity
   while methods, kinds and order change.
@@ -50,8 +60,8 @@ There is no shared or preload change. The permitted test-only
 
 ## Verification
 
-- After rebasing, 176 tests across 14 relevant files passed in 3.50 seconds.
-  Typecheck, targeted ESLint, Prettier and whitespace checks passed.
+- After rebasing onto data-38, 180 tests across 14 relevant files passed in 3.94
+  seconds. Typecheck, targeted ESLint, Prettier and whitespace checks passed.
 - Both alias regressions failed against the actual old output reducer and
   renderer resolver. The old resolver selected the stage UUID for `main` after
   method changes; the old reducer omitted the canonical UUID. Corrected files
@@ -65,14 +75,12 @@ There is no shared or preload change. The permitted test-only
   visible window, full verify, soak or memory run was started. Full verify is
   delegated to GitHub Windows CI.
 
-## Following request
+## Scope and review focus
 
-To keep requests near the requested size, explicit `screen.settings.apply`
-resync handling follows as a separate O9a request before the close handshake.
-Automatic application already follows saved settings here. The lead's decision
-remains saved settings only; unsaved payloads must never override D2. Data-38
-will simplify that command to `{type, screenId}`. No temporary settings state or
-shared contract change is introduced here.
+Per the lead's data-38 merge instruction, resync is included in this request.
+Review the transaction boundary, saved-only reads and resource cleanup. The
+subsequent close handshake is separate. No shared contract or dependency is
+introduced here; the deferred soak and real HDMI recheck remain for daytime.
 
 ## Review
 

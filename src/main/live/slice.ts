@@ -6,13 +6,14 @@ import type {
 import type {LiveLayers, LiveState} from '@shared/live';
 import type {LiveHistory} from './history';
 import type {SettingsReader} from '../store/settingsStore';
-import type {MessageId} from '@shared/schema/ids';
+import type {MessageId, ScreenId} from '@shared/schema/ids';
 import type {PayloadError} from '@shared/schema/payload';
 
 export interface SliceInputs {
   readonly now: number;
   readonly settings?: SettingsReader;
   readonly nextMessageId?: () => MessageId;
+  readonly resyncScreen?: (screenId: ScreenId) => void;
 }
 
 /** The commands of the given types. */

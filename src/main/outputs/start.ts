@@ -111,6 +111,7 @@ export function startOutputs({
     log,
     onStatusChange: () => board.refresh(),
   });
+  const releaseResync = store.connectScreenSettings(id => screens.resync(id));
   const stopNormalizing = screens.subscribe(() => {
     frameRates.retain(screens.list().map(({id}) => id));
     const commands = screens.list().flatMap(({id}) => {
@@ -129,6 +130,7 @@ export function startOutputs({
   });
   outputs.start();
   const stops = [
+    releaseResync,
     () => disconnectSettings?.(),
     stopNormalizing,
     screens.subscribe(() => board.refresh()),

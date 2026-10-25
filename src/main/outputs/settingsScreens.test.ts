@@ -2,10 +2,29 @@ import {describe, expect, it, vi} from 'vitest';
 import {MAX_TARGET_SCREENS} from '@shared/schema/overlayState';
 import type {SettingsReader} from '../store/settingsStore';
 import {recordingLogger} from '../displays/testing';
-import {overlaySettings, settingsDocument} from '../live/testing/overlays';
+import {
+  MAIN,
+  overlaySettings,
+  settingsDocument,
+} from '../live/testing/overlays';
 import {createSettingsScreenSource} from './settingsScreens';
 
 describe('saved output screens', () => {
+  it('discards a queued resync on dispose', async () => {
+    const settings = overlaySettings();
+    const source = createSettingsScreenSource(
+      Promise.resolve(settings.reader),
+      recordingLogger(),
+    );
+    await Promise.resolve();
+    const changed = vi.fn();
+    source.subscribe(changed);
+    source.resync(MAIN);
+    source.dispose();
+    await Promise.resolve();
+    expect(changed).not.toHaveBeenCalled();
+    expect(settings.listeners.size).toBe(0);
+  });
   it('keeps the last good configuration on read failure and releases listeners', async () => {
     const settings = overlaySettings();
     const get = vi.fn(settings.reader.get);

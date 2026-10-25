@@ -1,6 +1,7 @@
 import {BrowserWindow} from 'electron';
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import {Channels} from '@shared/ipc';
+import {parseLiveCommand} from '@shared/schema/liveCommand';
 import type {SettingsReader} from '../store/settingsStore';
 import type {MessageHandler} from '../rendererMessages';
 import {
@@ -133,6 +134,71 @@ async function loaded() {
 }
 
 describe('saved output backend', () => {
+  it('reads saved settings by ID for resync and coalesces refreshes after the live transaction', async () => {
+    const {settings, store, log, running, windows} = setup();
+    await loaded();
+    const command = parseLiveCommand({
+      type: 'screen.settings.apply',
+      screenId: MAIN,
+      screen: {...main, method: 'window'},
+    });
+    if (!command.ok || command.value.type !== 'screen.settings.apply')
+      throw new Error('Invalid resync fixture');
+    const read = settings.reader.get.bind(settings.reader);
+    const saved = settingsDocument('screens', {
+      screens: [
+        {...main, method: 'capture', resolution: {width: 1280, height: 720}},
+      ],
+    });
+    const get = vi
+      .spyOn(settings.reader, 'get')
+      .mockImplementation(name => (name === 'screens' ? saved : read(name)));
+    const broadcasts = vi.fn();
+    store.subscribe(broadcasts);
+    dispatchLogged(
+      store,
+      {
+        type: 'live.batch',
+        commands: [
+          command.value,
+          command.value,
+          {type: 'output.set', screenId: MAIN, on: true},
+        ],
+      },
+      log,
+    );
+    expect(broadcasts).toHaveBeenCalledTimes(1);
+    expect(windows.only(MAIN).mode.kind).toBe('fullscreen');
+    get.mockClear();
+    await loaded();
+    expect(get.mock.calls.filter(([name]) => name === 'screens')).toHaveLength(
+      1,
+    );
+    expect(store.state.outputs[MAIN]).toBe(true);
+    expect(windows.only(MAIN).mode).toMatchObject({
+      kind: 'capture',
+      bounds: {width: 1280, height: 720},
+    });
+    expect(broadcasts).toHaveBeenCalledTimes(1);
+    const before = store.state;
+    dispatchLogged(
+      store,
+      {type: 'screen.settings.apply', screenId: STAGE},
+      log,
+    );
+    expect(store.state).toBe(before);
+    expect(log.entries.at(-1)).toMatchObject({
+      level: 'warn',
+      detail: {reason: 'missing-target', target: {kind: 'screen', id: STAGE}},
+    });
+    running.stop();
+    dispatchLogged(store, command.value, log);
+    expect(log.entries.at(-1)).toMatchObject({
+      level: 'error',
+      message: 'live command failed',
+    });
+  });
+
   it('applies method, monitor, resolution and always-on-top changes to the same window', async () => {
     const {save, store, windows} = setup();
     await loaded();
