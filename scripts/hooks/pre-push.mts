@@ -2,6 +2,7 @@ import {spawnSync} from 'node:child_process';
 import {readFileSync} from 'node:fs';
 import {pathToFileURL} from 'node:url';
 import {git, gitSucceeds} from '../git.mts';
+import {readStamp, type VerifyStamp} from '../verify/stamp.mts';
 import {readCommitMessages} from '../version/commits.mts';
 import {classifySubject} from '../version/subject.mts';
 
@@ -93,6 +94,36 @@ export function checkMainPush(cwd: string, update: RefUpdate): string | null {
   return null;
 }
 
+/** Whether the hook runs verify for a push, and why. */
+export type VerifyDecision =
+  | {readonly kind: 'skip'; readonly stamp: VerifyStamp}
+  | {readonly kind: 'run'; readonly reason: string};
+
+/**
+ * Skips verify only when the stamp says the pushed commit's tree already
+ * passed `npm run verify` on a clean working tree. Anything else runs it.
+ */
+export function decideVerify(cwd: string, update: RefUpdate): VerifyDecision {
+  const tree = git(cwd, ['rev-parse', `${update.localSha}^{tree}`]);
+  const stamp = readStamp(cwd);
+  if (stamp === null) {
+    return {kind: 'run', reason: 'no passing verify is recorded'};
+  }
+  if (stamp.tree !== tree) {
+    return {
+      kind: 'run',
+      reason: 'the last passing verify checked another tree',
+    };
+  }
+  if (!stamp.clean) {
+    return {
+      kind: 'run',
+      reason: 'the last passing verify ran with uncommitted changes',
+    };
+  }
+  return {kind: 'skip', stamp};
+}
+
 function runVerify(): boolean {
   // NOTE(0913vision): One command string, because Node 24 warns about
   // arguments passed through a shell. The shell finds npm.cmd on Windows.
@@ -111,6 +142,14 @@ function main(): void {
     process.exitCode = FAILURE_EXIT_CODE;
     return;
   }
+  const decision = decideVerify(cwd, update);
+  if (decision.kind === 'skip') {
+    console.log(
+      `pre-push: verify skipped: this tree passed npm run verify on a clean tree at ${decision.stamp.verifiedAt}`,
+    );
+    return;
+  }
+  console.log(`pre-push: running npm run verify: ${decision.reason}`);
   if (!runVerify()) {
     console.error(
       'pre-push: push stopped: npm run verify failed on main; its summary above names the step and the failed tests',

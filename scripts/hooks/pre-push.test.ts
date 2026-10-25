@@ -1,7 +1,9 @@
 import {describe, expect, it} from 'vitest';
 import {makeTempGitRepo, type TempGitRepo} from '../../test/git-repo';
+import {STAMP_PATH} from '../verify/stamp.mts';
 import {
   checkMainPush,
+  decideVerify,
   findMainUpdate,
   parseRefUpdates,
   type RefUpdate,
@@ -168,5 +170,59 @@ describe('checkMainPush', () => {
     expect(checkMainPush(repo.path, {...main, remoteSha: botCommit})).toMatch(
       /pull the version bot commit first/,
     );
+  });
+});
+
+describe('decideVerify', () => {
+  async function writeStamp(
+    repo: TempGitRepo,
+    fields: {readonly tree: string; readonly clean: boolean},
+  ): Promise<void> {
+    await repo.write({
+      [STAMP_PATH]: JSON.stringify({
+        v: 1,
+        ...fields,
+        verifiedAt: '2026-10-25T03:00:00.000Z',
+      }),
+    });
+  }
+
+  it('skips verify for a tree that passed on a clean tree', async () => {
+    const {repo, main} = await repoWithPush('feat(live): add undo');
+    const tree = repo.run(['rev-parse', `${main.localSha}^{tree}`]);
+    await writeStamp(repo, {tree, clean: true});
+    expect(decideVerify(repo.path, main)).toMatchObject({
+      kind: 'skip',
+      stamp: {tree, clean: true},
+    });
+  });
+
+  it('runs verify when the last pass checked another tree', async () => {
+    const {repo, main} = await repoWithPush('feat(live): add undo');
+    await writeStamp(repo, {tree: 'b'.repeat(40), clean: true});
+    expect(decideVerify(repo.path, main)).toEqual({
+      kind: 'run',
+      reason: 'the last passing verify checked another tree',
+    });
+  });
+
+  it('runs verify when the last pass had uncommitted changes', async () => {
+    const {repo, main} = await repoWithPush('feat(live): add undo');
+    const tree = repo.run(['rev-parse', `${main.localSha}^{tree}`]);
+    await writeStamp(repo, {tree, clean: false});
+    expect(decideVerify(repo.path, main)).toEqual({
+      kind: 'run',
+      reason: 'the last passing verify ran with uncommitted changes',
+    });
+  });
+
+  it('runs verify without a stamp, or with one it cannot read', async () => {
+    const {repo, main} = await repoWithPush('feat(live): add undo');
+    expect(decideVerify(repo.path, main)).toEqual({
+      kind: 'run',
+      reason: 'no passing verify is recorded',
+    });
+    await repo.write({[STAMP_PATH]: '{"v": 1, "tree": '});
+    expect(decideVerify(repo.path, main).kind).toBe('run');
   });
 });
