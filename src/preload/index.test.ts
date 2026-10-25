@@ -19,6 +19,7 @@ import {
 } from '@shared/schema/ids';
 import {testId} from '@shared/schema/testHelpers';
 import {defaultPreferences} from '@shared/schema/preferences';
+import {UI_ZOOM_FACTOR} from '@shared/schema/uiZoom';
 
 type Handler = (event: unknown, value: unknown) => void;
 
@@ -27,9 +28,11 @@ const electron = vi.hoisted(() => ({
   handlers: new Map<string, (event: unknown, value: unknown) => void>(),
   send: vi.fn(),
   invoke: vi.fn(),
+  getZoomFactor: vi.fn<() => unknown>(() => 1),
 }));
 
 vi.mock('electron', () => ({
+  webFrame: {getZoomFactor: electron.getZoomFactor},
   contextBridge: {
     exposeInMainWorld: (key: string, api: unknown) => {
       electron.exposed.set(key, api);
@@ -48,6 +51,41 @@ vi.mock('electron', () => ({
 }));
 
 let api: LlpApi;
+
+describe('actual control-window zoom factor', () => {
+  it.each([UI_ZOOM_FACTOR.min, 1.2, UI_ZOOM_FACTOR.max])(
+    'reads bounded native factor %s synchronously',
+    factor => {
+      electron.getZoomFactor.mockReturnValueOnce(factor);
+      expect(api.ui.getZoomFactor()).toBe(factor);
+      expect(electron.invoke).not.toHaveBeenCalled();
+      expect(electron.send).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([NaN, Infinity, 0.9, 2.1, '1.2', null])(
+    'logs invalid native factor %j and defaults safely',
+    factor => {
+      electron.getZoomFactor.mockReturnValueOnce(factor);
+      expect(api.ui.getZoomFactor()).toBe(UI_ZOOM_FACTOR.default);
+      expect(electron.send).toHaveBeenCalledWith(
+        Channels.logWrite,
+        expect.objectContaining({level: 'error'}),
+      );
+    },
+  );
+
+  it('logs a native read failure and defaults safely', () => {
+    electron.getZoomFactor.mockImplementationOnce(() => {
+      throw new Error('Invented native zoom failure');
+    });
+    expect(api.ui.getZoomFactor()).toBe(UI_ZOOM_FACTOR.default);
+    expect(electron.send).toHaveBeenCalledWith(
+      Channels.logWrite,
+      expect.objectContaining({level: 'error'}),
+    );
+  });
+});
 
 describe('panel visibility boundary', () => {
   it('accepts media and sidebar state and validates the UI read', async () => {
@@ -144,6 +182,7 @@ beforeAll(async () => {
 beforeEach(() => {
   electron.send.mockClear();
   electron.invoke.mockReset();
+  electron.getZoomFactor.mockReset().mockReturnValue(UI_ZOOM_FACTOR.default);
 });
 
 function isLlpApi(value: unknown): value is LlpApi {

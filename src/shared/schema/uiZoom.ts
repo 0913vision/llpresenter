@@ -9,6 +9,25 @@ export const UI_ZOOM = {
   defaultPercent: 100,
 } as const;
 
+const PERCENT_PER_FACTOR = 100;
+export const UI_ZOOM_FACTOR = {
+  min: UI_ZOOM.min / PERCENT_PER_FACTOR,
+  max: UI_ZOOM.max / PERCENT_PER_FACTOR,
+  default: UI_ZOOM.defaultPercent / PERCENT_PER_FACTOR,
+} as const;
+
+const uiZoomFactorSchema = v.pipe(
+  v.number(),
+  v.finite(),
+  v.minValue(UI_ZOOM_FACTOR.min),
+  v.maxValue(UI_ZOOM_FACTOR.max),
+);
+
+/** Checks the actual browser zoom factor without operating system scaling. */
+export function parseUiZoomFactor(value: unknown) {
+  return parsePayload(uiZoomFactorSchema, value);
+}
+
 export const uiZoomPercentSchema = v.pipe(
   v.number(),
   v.integer(),

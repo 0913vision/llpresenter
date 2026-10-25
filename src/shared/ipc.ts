@@ -157,6 +157,8 @@ export interface LlpApi {
     setMediaStrip(change: MediaStripChange): void;
     /** Reads the computer-local UI zoom percentage (100 to 200, step 10). */
     getZoom(): Promise<number>;
+    /** Reads this window's actual zoom factor synchronously, bounded to 1 to 2. */
+    getZoomFactor(): number;
     /** Applies one clamped zoom command in main; rejects after logging on failure. */
     changeZoom(command: UiZoomCommand): Promise<number>;
   };

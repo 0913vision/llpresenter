@@ -1,7 +1,7 @@
 import type {DocumentApi, LlpApi} from '../ipc';
 import type {EditResult} from '../schema/contentEdit';
 import {emptyLiveState} from '../live';
-import {UI_ZOOM} from '../schema/uiZoom';
+import {UI_ZOOM, UI_ZOOM_FACTOR} from '../schema/uiZoom';
 import {defaultPreferences} from '../schema/preferences';
 import type {MediaDocument} from '../schema/mediaEdit';
 
@@ -34,6 +34,7 @@ export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
       setLayout: () => undefined,
       setMediaStrip: () => undefined,
       getZoom: () => Promise.resolve(UI_ZOOM.defaultPercent),
+      getZoomFactor: () => UI_ZOOM_FACTOR.default,
       changeZoom: () => Promise.resolve(UI_ZOOM.defaultPercent),
       ...overrides.ui,
     },

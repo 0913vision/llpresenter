@@ -1,4 +1,9 @@
-import {contextBridge, ipcRenderer, type IpcRendererEvent} from 'electron';
+import {
+  contextBridge,
+  ipcRenderer,
+  webFrame,
+  type IpcRendererEvent,
+} from 'electron';
 import {
   Channels,
   type DocumentApi,
@@ -39,7 +44,11 @@ import {
   parseServiceOpenReply,
 } from '@shared/schema/serviceOpen';
 import {parseMediaStripChange, parseUiState} from '@shared/schema/uiState';
-import {parseUiZoomPercent} from '@shared/schema/uiZoom';
+import {
+  parseUiZoomFactor,
+  parseUiZoomPercent,
+  UI_ZOOM_FACTOR,
+} from '@shared/schema/uiZoom';
 import {parsePreferencesValue} from '@shared/schema/preferences';
 import {
   parseSettingsDocument,
@@ -151,6 +160,24 @@ function describe({field, message}: PayloadError): string {
   return field === '' ? message : `${field}: ${message}`;
 }
 
+function currentZoomFactor(): number {
+  let parsed: Result<number, PayloadError>;
+  try {
+    parsed = parseUiZoomFactor(webFrame.getZoomFactor());
+  } catch (cause) {
+    parsed = {
+      ok: false,
+      error: {
+        field: '',
+        message: cause instanceof Error ? cause.message : String(cause),
+      },
+    };
+  }
+  if (parsed.ok) return parsed.value;
+  logBadValue('reply', 'webFrame.getZoomFactor', parsed.error);
+  return UI_ZOOM_FACTOR.default;
+}
+
 interface DocumentChannels<TEntry, TDocument, TChange> {
   readonly list: string;
   readonly listChanged: string;
@@ -218,6 +245,7 @@ const api: LlpApi = {
       ipcRenderer.send(Channels.uiMediaStripSet, parsed.value);
     },
     getZoom: () => invokeChecked(Channels.uiZoomGet, parseUiZoomPercent),
+    getZoomFactor: currentZoomFactor,
     changeZoom: command =>
       invokeChecked(Channels.uiZoomChange, parseUiZoomPercent, command),
   },

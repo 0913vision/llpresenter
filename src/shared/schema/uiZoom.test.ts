@@ -1,9 +1,28 @@
 import {describe, expect, it} from 'vitest';
 import {parseAppConfig, serializeAppConfig} from './appConfig';
-import {parseUiZoomCommand, parseUiZoomPercent, UI_ZOOM} from './uiZoom';
+import {
+  parseUiZoomCommand,
+  parseUiZoomFactor,
+  parseUiZoomPercent,
+  UI_ZOOM,
+  UI_ZOOM_FACTOR,
+} from './uiZoom';
 import {expectSuccess} from './testHelpers';
 
 describe('UI zoom contract', () => {
+  it.each([UI_ZOOM_FACTOR.min, 1.2, UI_ZOOM_FACTOR.max])(
+    'accepts actual browser factor %s',
+    factor => {
+      expect(parseUiZoomFactor(factor)).toEqual({ok: true, value: factor});
+    },
+  );
+
+  it.each([undefined, null, 0.9, 2.1, NaN, Infinity, '1.2', [], {}])(
+    'rejects invalid browser factor %j',
+    factor => {
+      expect(parseUiZoomFactor(factor).ok).toBe(false);
+    },
+  );
   it.each(Array.from({length: 11}, (_, index) => 100 + index * 10))(
     'accepts %i percent',
     percent => {
