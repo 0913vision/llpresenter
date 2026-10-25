@@ -78,7 +78,12 @@ missing.
 
 ## Verdicts (recorded by the lead at merge)
 
-- Not reviewed yet.
+- Round 1 (89d16cd): reviewer (Codex, codex2) Approve with one nit: both video
+  elements stay allocated and the spare is unloaded after the dissolve, so the
+  document should say the second video is loaded only during a dissolve. The nit
+  goes into shell's next branch. Lead Approve; fixes qa's M2-4, so the three
+  previews draw in output-12's preview mode. Rebased by the lead onto local
+  `main` without conflicts.
 
 ## Verify result
 
