@@ -2,11 +2,11 @@
 
 - Team member: `output`
 - Branch: `feat/output/overlays`
-- Base: `c2c364d0c3f1c31d894d173e334b36137023517d`
-- Code head: `f96e489c4915804470d4d462d6517d9da56612df`
-- Range: `c2c364d...feat/output/overlays`
+- Base: `4efee4ba9086662dd2d8fa8163a262c2376b27b4`
+- Code head: `97846147ece51169e1e4a9e405048ba78bee7e62`
+- Range: `4efee4b...feat/output/overlays`
 - Task: M3-O6a, built on data-31 (`be5a043`). O6b timers stay out of scope.
-- Code CI:
+- Round 1 code CI:
   [40216281222](https://github.com/0913vision/llpresenter/actions/runs/40216281222),
   **success** at `e9bc31d468f952638ed02a4d58ac1b4d5f900d73`.
 
@@ -59,10 +59,11 @@ unmount.
   check the overlay registration context and shutdown before the data store.
 - `src/main/live/{slice,sliceRegistry,store}.ts`: per-store settings and
   generated ids in the slice context, plus classified skipped-command logging.
-- `src/main/live/commandErrors.ts`, `messageState.ts`, `noticeClock.ts`,
-  `messageExpiry.ts`, `overlayRefresh.ts`, `overlays.ts`: target failures, pure
-  state/clock helpers and bounded lifecycle services. `noticeClock.ts` has no
-  platform imports and is shared with the renderer rather than copied.
+- `src/main/live/commandErrors.ts`, `messageState.ts`, `messageExpiry.ts`,
+  `overlayRefresh.ts`, `overlays.ts`: target failures, pure state helpers and
+  bounded lifecycle services. Main and renderer import the clock and timer limit
+  from data-35's `src/shared/noticeClock.ts`; the round 1 main-process copy has
+  been deleted.
 - `src/main/live/slices/{messages,notices,props,stageMessage}.ts`: new slices.
 - `src/main/live/slices/{clear,batch}.ts`: overlay clock restoration and pruning
   of an expired message in grouped undo.
@@ -162,3 +163,36 @@ Run this for 60 minutes later, when the user permits output and measurement:
 Per-screen replacement, expiry versus undo, notice resume/edit clocks, image
 handover, pooled prop cleanup, and the two explicitly authorized cross-owner
 changes. The long soak remains a QA follow-up, not a claimed result.
+
+## Round 2 reply
+
+1. **Validation boundary and classified skip.** Rebased onto main with data-35.
+   The three overlay slices use `parseActiveMessages`, `parseActiveProps` and
+   `parseNoticePlayback` from `shared/schema/overlayState.ts`. A rejected Result
+   returns `context.reject(error)`, which records an `invalid-overlay` skip for
+   that command and returns its original history. No validation exception is
+   thrown. Dispatch warns once with the field and message; unexpected exceptions
+   still use `log.error`. Batch siblings continue, one final state is published,
+   and invalid-only batches retain the exact state and undo without notifying.
+   The pure reducer helper also returns the unchanged history for this known
+   rejection. Test and fixture imports of Valibot were removed as well, so no
+   file in `src/main/live/` imports the validation library directly.
+2. **Shared clock boundary.** Main expiry scheduling, the notice slice and
+   tests, and the renderer notice layer import `@shared/noticeClock`. Deleted
+   `src/main/live/noticeClock.ts`; no production renderer imports a main module.
+   Existing rotation, pause/resume, final-image and timer-cleanup regressions
+   exercise the same shared implementation from both processes.
+
+New regressions cover all three rejected overlay types within one batch,
+classification and warning count, a valid following sibling, unchanged live
+layers, retained undo, an invalid-only batch with no notification, and the pure
+helper's nonthrowing rejection. The three old throwing validation paths were
+temporarily restored with the shared clock import retained: the new combined
+regression failed because those paths logged errors. The corrected files were
+restored in `finally` and the focused tests pass. No shared or shell source was
+changed for round 2.
+
+Round 2 focused checks: 52 tests across five files passed in 2.99 seconds, with
+typecheck and targeted ESLint passing. Formatting and whitespace checks passed.
+The branch was rebased onto main including data-35 immediately before the round
+2 push, without conflicts. Round 2 CI will be recorded after the branch run.
