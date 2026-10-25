@@ -97,7 +97,26 @@ export function registerStore({
       return null;
     });
   const opened = openContent(loading, log, settings);
-  const settingsChannels = registerSettingsChannels(settings, log);
+  const settingsChannels = registerSettingsChannels(
+    settings,
+    log,
+    async edit => {
+      const [readyContent, readySettings] = await Promise.all([
+        opened,
+        settings,
+      ]);
+      if (readyContent === null || readySettings === null) {
+        return {
+          ok: false,
+          error: {
+            reason: 'not-found',
+            message: 'The label list is unavailable',
+          },
+        };
+      }
+      return readyContent.content.renameLabel(readySettings, edit);
+    },
+  );
   const settingsAccess = createSettingsAccess(settings, log);
   ipcMain.handle(Channels.serviceGet, async () => currentService(opened));
   ipcMain.handle(Channels.preferencesGet, async () => {

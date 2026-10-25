@@ -17,6 +17,7 @@ import {shortcutsSchema} from './shortcuts';
 import {stageLayoutsSchema} from './stageLayouts';
 import {timersSchema} from './timers';
 import {preserveUnknownFields} from './preserveUnknown';
+import {nonBlankText} from './primitives';
 
 /** Shared metadata for settings and the separately edited media list. */
 export function settingsDocumentSchema<
@@ -98,23 +99,36 @@ function updateSchema<TName extends string, TValue extends v.GenericSchema>(
   });
 }
 
+const settingsUpdateSchema = v.variant('name', [
+  updateSchema('screens', schemas.screens),
+  updateSchema('looks', schemas.looks),
+  updateSchema('stage-layouts', schemas['stage-layouts']),
+  updateSchema('macros', schemas.macros),
+  updateSchema('quick', schemas.quick),
+  updateSchema('messages', schemas.messages),
+  updateSchema('notices', schemas.notices),
+  updateSchema('props', schemas.props),
+  updateSchema('timers', schemas.timers),
+  updateSchema('labels', schemas.labels),
+  updateSchema('bible', schemas.bible),
+  updateSchema('preferences', schemas.preferences),
+  updateSchema('shortcuts', schemas.shortcuts),
+]);
+
+const labelRenameSchema = v.pipe(
+  v.object({
+    type: v.literal('labels.rename'),
+    name: v.literal('labels'),
+    from: nonBlankText,
+    to: nonBlankText,
+    baseRevision: revisionSchema,
+  }),
+  v.check(edit => edit.from !== edit.to, 'Expected another label name'),
+);
+
 const settingsEditSchema = v.pipe(
   plainObject,
-  v.variant('name', [
-    updateSchema('screens', schemas.screens),
-    updateSchema('looks', schemas.looks),
-    updateSchema('stage-layouts', schemas['stage-layouts']),
-    updateSchema('macros', schemas.macros),
-    updateSchema('quick', schemas.quick),
-    updateSchema('messages', schemas.messages),
-    updateSchema('notices', schemas.notices),
-    updateSchema('props', schemas.props),
-    updateSchema('timers', schemas.timers),
-    updateSchema('labels', schemas.labels),
-    updateSchema('bible', schemas.bible),
-    updateSchema('preferences', schemas.preferences),
-    updateSchema('shortcuts', schemas.shortcuts),
-  ]),
+  v.variant('type', [settingsUpdateSchema, labelRenameSchema]),
 );
 
 /** File names without paths. Media uses its own commands and read boundary. */
@@ -127,6 +141,9 @@ export type SettingsDocument = ReadonlyKnown<
 >;
 export type SettingsEdit = ReadonlyKnown<
   v.InferOutput<typeof settingsEditSchema>
+>;
+export type LabelRename = ReadonlyKnown<
+  v.InferOutput<typeof labelRenameSchema>
 >;
 
 export function parseSettingsReadRequest(value: unknown) {
@@ -161,6 +178,12 @@ export function mergeSettingsDocument(
   current: SettingsDocument,
   edit: SettingsEdit,
 ) {
+  if (edit.type !== 'settings.update') {
+    return {
+      ok: false,
+      error: {field: 'type', message: 'Expected a whole-file settings update'},
+    } as const;
+  }
   if (current.name !== edit.name) {
     return {
       ok: false,

@@ -48,8 +48,13 @@ export class SettingsPersistence {
   }
 
   async flush(): Promise<void> {
-    await this.autosave.flush();
+    await this.savePending();
     await this.persistence.flush();
+  }
+
+  /** Starts accepted writes immediately and leaves failed writes queued for a later retry. */
+  async savePending(): Promise<void> {
+    await this.autosave.flush();
   }
 
   dispose(): void {

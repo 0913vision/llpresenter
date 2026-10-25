@@ -247,6 +247,24 @@ describe('preload', () => {
     expect(loggedErrors()).toEqual([]);
   });
 
+  it('sends a checked global label rename and rejects a blank destination before IPC', async () => {
+    const edit = {
+      type: 'labels.rename',
+      name: 'labels',
+      from: 'Before',
+      to: 'After',
+      baseRevision: 1,
+    } as const;
+    const result = {ok: true, value: {id: 'labels', revision: 2}};
+    electron.invoke.mockResolvedValueOnce(result);
+    await expect(api.settings.edit(edit)).resolves.toEqual(result);
+    await expect(api.settings.edit({...edit, to: ' '})).rejects.toThrow(
+      'Bad request on',
+    );
+    expect(electron.invoke.mock.calls).toEqual([[Channels.settingsEdit, edit]]);
+    expect(loggedErrors()).toHaveLength(1);
+  });
+
   it('reads media, edits the list, and starts imports through checked calls', async () => {
     const edit = {type: 'media.delete', mediaId: MEDIA_ID} as const;
     const result = {ok: true, value: {id: MEDIA_ID, revision: 2}};

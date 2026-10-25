@@ -4,6 +4,7 @@ import type {EditResult} from '@shared/schema/contentEdit';
 import {
   parseSettingsEdit,
   parseSettingsReadRequest,
+  type LabelRename,
 } from '@shared/schema/settingsDocuments';
 import type {Logger} from '../log';
 import {broadcast} from './contentChannels';
@@ -18,9 +19,11 @@ const UNAVAILABLE: EditResult = {
 export function registerSettingsChannels(
   loading: Promise<SettingsStore | null>,
   log: Logger,
+  renameLabel?: (edit: LabelRename) => Promise<EditResult>,
 ) {
   let disposed = false;
   let closing: Promise<void> | null = null;
+  let renaming: Promise<void> = Promise.resolve();
   const ready = loading.catch((error: unknown) => {
     log.error('could not open settings channels', error);
     return null;
@@ -60,7 +63,20 @@ export function registerSettingsChannels(
         };
       }
       const store = await ready;
-      return disposed || store === null ? UNAVAILABLE : store.apply(edit.value);
+      if (disposed || store === null) return UNAVAILABLE;
+      if (edit.value.type !== 'labels.rename') return store.apply(edit.value);
+      const rename = edit.value;
+      const result = renaming
+        .then(() => renameLabel?.(rename) ?? UNAVAILABLE)
+        .catch((error: unknown): EditResult => {
+          log.error('could not rename a label', error);
+          return {
+            ok: false,
+            error: {reason: 'invalid', message: 'Could not rename the label'},
+          };
+        });
+      renaming = result.then(() => undefined);
+      return result;
     },
   );
   return {
@@ -91,6 +107,7 @@ export function registerSettingsChannels(
       removeChanges?.();
       closing = (async () => {
         await changes;
+        await renaming;
         await (await ready)?.dispose();
       })();
       return closing;

@@ -136,6 +136,11 @@ export class SettingsStore {
     await this.saves?.flush();
   }
 
+  /** Starts accepted edits now so a cross-file edit can save this file first. */
+  async savePending(): Promise<void> {
+    await this.saves?.savePending();
+  }
+
   /** Stops subscriptions immediately and finishes every accepted write before releasing timers. */
   dispose(): Promise<void> {
     this.disposed = true;
@@ -146,6 +151,11 @@ export class SettingsStore {
   }
 
   private update(edit: SettingsEdit): Promise<EditResult> {
+    if (edit.type !== 'settings.update') {
+      return Promise.resolve(
+        refuse('invalid', 'A global label rename requires the content store'),
+      );
+    }
     const saving = this.options.saving;
     const saves = this.saves;
     if (this.disposed || saving === undefined || saves === null) {

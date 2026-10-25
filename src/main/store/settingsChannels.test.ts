@@ -3,6 +3,7 @@ import {Channels} from '@shared/ipc';
 import {recordingLogger} from '../displays/testing';
 import {registerSettingsChannels} from './settingsChannels';
 import {SettingsStore} from './settingsStore';
+import type {EditResult} from '@shared/schema/contentEdit';
 
 type Handler = (event: unknown, value: unknown) => unknown;
 const handlers = vi.hoisted(() => new Map<string, Handler>());
@@ -22,6 +23,49 @@ function handler(channel: string): Handler {
 }
 
 describe('settings channel lifetime', () => {
+  it('finishes an accepted rename before closing its settings store', async () => {
+    const log = recordingLogger();
+    const store = new SettingsStore({documents: new Map(), problems: [], log});
+    const dispose = vi.spyOn(store, 'dispose');
+    let release: (result: EditResult) => void = () => undefined;
+    let began: () => void = () => undefined;
+    const started = new Promise<void>(resolve => {
+      began = resolve;
+    });
+    const rename = vi.fn(async (): Promise<EditResult> => {
+      began();
+      return new Promise<EditResult>(resolve => {
+        release = resolve;
+      });
+    });
+    const channels = registerSettingsChannels(
+      Promise.resolve(store),
+      log,
+      rename,
+    );
+    onTestFinished(() => {
+      release({ok: true, value: {id: 'labels', revision: 2}});
+      return channels.dispose();
+    });
+    const pending = handler(Channels.settingsEdit)(
+      {},
+      {
+        type: 'labels.rename',
+        name: 'labels',
+        from: 'Before',
+        to: 'After',
+        baseRevision: 1,
+      },
+    );
+    await started;
+    const closing = channels.dispose();
+    expect(handlers.size).toBe(0);
+    expect(dispose).not.toHaveBeenCalled();
+    release({ok: true, value: {id: 'labels', revision: 2}});
+    expect(await pending).toMatchObject({ok: true});
+    await closing;
+    expect(dispose).toHaveBeenCalledOnce();
+  });
   it('rejects pending reads and edits after closing and cancels late problem subscriptions', async () => {
     const log = recordingLogger();
     const store = new SettingsStore({documents: new Map(), problems: [], log});

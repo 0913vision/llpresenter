@@ -136,6 +136,77 @@ afterEach(async () => {
 });
 
 describe('registerStore', () => {
+  it('renames a label through settings IPC, pushes the changed songs, and retains the files across restart', async () => {
+    const context = await developmentContext();
+    const root = join(context.appDataFolder, DATA_FOLDER_NAME);
+    const labelFile = join(root, '설정', 'labels.json');
+    await writeJson(labelFile, {
+      format: 'llsettings.labels',
+      schemaVersion: 1,
+      labels: [{name: 'Before', color: 'teal', key: null, future: 'kept'}],
+      future: 'kept',
+    });
+    const ids = [itemId(1), itemId(2)];
+    for (const [index, id] of ids.entries()) {
+      await writeJson(join(root, '곡', `${id}.llsong`), {
+        format: 'llsong',
+        schemaVersion: 1,
+        id,
+        title: `Invented song ${index}`,
+        slides: [{label: 'Before', lines: ['Invented line'], future: 'kept'}],
+      });
+    }
+    const first = await register(fakeLog(), context, () => true);
+    await ask(Channels.settingsGet, {name: 'labels'});
+    const rename = {
+      type: 'labels.rename',
+      name: 'labels',
+      from: 'Before',
+      to: 'After',
+      baseRevision: 1,
+    };
+    expect(
+      await ask(Channels.settingsEdit, {...rename, to: ' '}),
+    ).toMatchObject({ok: false, error: {reason: 'invalid'}});
+    electron.send.mockClear();
+    expect(await ask(Channels.settingsEdit, rename)).toEqual({
+      ok: true,
+      value: {id: 'labels', revision: 2},
+    });
+    expect(electron.send).toHaveBeenCalledWith(
+      Channels.settingsChanged,
+      expect.objectContaining({name: 'labels', revision: 2}),
+    );
+    for (const id of ids) {
+      expect(electron.send).toHaveBeenCalledWith(
+        Channels.songsDocumentChanged,
+        {songId: id, document: await ask(Channels.songsDocumentGet, id)},
+      );
+    }
+    expect(await ask(Channels.settingsEdit, rename)).toMatchObject({
+      ok: false,
+      error: {reason: 'stale'},
+    });
+    expect(JSON.parse(await readFile(labelFile, 'utf8'))).toMatchObject({
+      future: 'kept',
+      labels: [{name: 'After', future: 'kept'}],
+    });
+    await first.dispose();
+    await register(fakeLog(), context, () => true);
+    expect(await ask(Channels.settingsGet, {name: 'labels'})).toMatchObject({
+      revision: 1,
+      value: {labels: [{name: 'After'}]},
+    });
+    for (const id of ids) {
+      expect(await ask(Channels.songsDocumentGet, id)).toMatchObject({
+        revision: 1,
+        song: {slides: [{label: 'After', future: 'kept'}]},
+      });
+      expect(
+        JSON.parse(await readFile(join(root, '곡', `${id}.llsong`), 'utf8')),
+      ).toMatchObject({slides: [{label: 'After'}]});
+    }
+  });
   it('pushes a settings edit before the disk answer and retains current extensions across restart', async () => {
     const context = await developmentContext();
     const file = join(

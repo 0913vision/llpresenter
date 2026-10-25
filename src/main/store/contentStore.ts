@@ -32,6 +32,11 @@ import {
   type Template,
 } from '@shared/schema/service';
 import {serializeSong, type Song} from '@shared/schema/song';
+import {
+  parseSettingsEdit,
+  type LabelRename,
+} from '@shared/schema/settingsDocuments';
+import type {SettingsStore} from './settingsStore';
 import type {Logger} from '../log';
 import {Autosave} from './autosave';
 import {
@@ -141,15 +146,103 @@ export class ContentStore {
 
   /** Applies an edit and answers how it went. Never throws. */
   apply(edit: ContentEdit): Promise<EditResult> {
-    const applied = this.editing
-      .then(() => this.applyEdit(edit))
-      .catch((error: unknown) => {
-        this.options.log.error('could not apply a content edit', error);
-        const message = error instanceof Error ? error.message : String(error);
-        return refuse('invalid', message);
-      });
+    return this.enqueue(() => this.applyEdit(edit));
+  }
+
+  /** Renames an app-wide label and every matching slide, saving settings before songs in ID order. */
+  renameLabel(settings: SettingsStore, edit: LabelRename): Promise<EditResult> {
+    return this.enqueue(() => this.renameLabelFiles(settings, edit));
+  }
+
+  private enqueue(
+    work: () => EditResult | Promise<EditResult>,
+  ): Promise<EditResult> {
+    const applied = this.editing.then(work).catch((error: unknown) => {
+      this.options.log.error('could not apply a content edit', error);
+      const message = error instanceof Error ? error.message : String(error);
+      return refuse('invalid', message);
+    });
     this.editing = applied.then(() => undefined);
     return applied;
+  }
+
+  private async renameLabelFiles(
+    settings: SettingsStore,
+    edit: LabelRename,
+  ): Promise<EditResult> {
+    await this.autosave.flush();
+    const current = settings.get('labels');
+    if (current.name !== 'labels') {
+      return refuse('not-found', 'The label list is unavailable');
+    }
+    if (current.access === 'readOnly') {
+      return refuse('read-only', 'A newer app version wrote the label list');
+    }
+    if (current.revision !== edit.baseRevision) {
+      return refuse(
+        'stale',
+        `The label list is at revision ${current.revision}`,
+      );
+    }
+    if (!current.value.labels.some(label => label.name === edit.from)) {
+      return refuse('not-found', 'The label no longer exists');
+    }
+    if (current.value.labels.some(label => label.name === edit.to)) {
+      return refuse('invalid', 'Another label already has this name');
+    }
+    const affected = this.songs
+      .all()
+      .filter(song => song.data.slides.some(slide => slide.label === edit.from))
+      .sort((a, b) => a.data.id.localeCompare(b.data.id));
+    if (affected.some(song => song.access === 'readOnly')) {
+      return refuse('read-only', 'A newer app version wrote an affected song');
+    }
+    const update = parseSettingsEdit({
+      type: 'settings.update',
+      name: 'labels',
+      baseRevision: current.revision,
+      value: {
+        ...current.value,
+        labels: current.value.labels.map(label =>
+          label.name === edit.from ? {...label, name: edit.to} : label,
+        ),
+      },
+    });
+    if (!update.ok) return refuse('invalid', update.error.message);
+    const savedLabels = settings.apply(update.value);
+    const next = settings.get('labels');
+    if (next.revision === current.revision) return savedLabels;
+    const changed = affected.map(song =>
+      this.songs.replace(song, {
+        ...song.data,
+        slides: song.data.slides.map(slide =>
+          slide.label === edit.from ? {...slide, label: edit.to} : slide,
+        ),
+      }),
+    );
+    for (const song of changed) this.announceSongDocument(song.data.id);
+    await settings.savePending();
+    const labelResult = await savedLabels;
+    const written: Written[] = [];
+    for (const song of changed) written.push(await this.write(SONG, song));
+    const songsResult = answer(
+      {id: 'labels', revision: next.revision},
+      written,
+    );
+    if (labelResult.ok) return songsResult;
+    if (labelResult.error.reason !== 'write-failed') return labelResult;
+    return {
+      ok: false,
+      error: {
+        ...labelResult.error,
+        unchangedFiles: [
+          ...labelResult.error.unchangedFiles,
+          ...(songsResult.ok || songsResult.error.reason !== 'write-failed'
+            ? []
+            : songsResult.error.unchangedFiles),
+        ],
+      },
+    };
   }
 
   private async applyEdit(edit: ContentEdit): Promise<EditResult> {
@@ -541,8 +634,12 @@ export class ContentStore {
   }
 
   private announceSong(songId: SongId): void {
-    this.options.events.songChanged({songId, document: this.song(songId)});
+    this.announceSongDocument(songId);
     this.announceLists();
+  }
+
+  private announceSongDocument(songId: SongId): void {
+    this.options.events.songChanged({songId, document: this.song(songId)});
   }
 
   private announceService(serviceId: ServiceId): void {
