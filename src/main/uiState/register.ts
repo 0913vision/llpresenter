@@ -1,39 +1,36 @@
 import {ipcMain} from 'electron';
 import {Channels} from '@shared/ipc';
 import type {Logger} from '../log';
-import {fileIo} from './fileIo';
+import type {UiStateFields} from '../store/appConfigFile';
 import {UiStateStore} from './uiStateStore';
 
 export interface UiStateRegistration {
-  /** Removes the channels and writes pending changes. */
-  dispose(): Promise<void>;
+  /** Removes the channels. */
+  dispose(): void;
 }
 
 /**
- * Reads `app.json` and registers the UI state channels (`ui:get` and
- * `ui:layout:set`). Call it before the control window opens, so that the
- * window finds its state. The app's shutdown calls `dispose()` to write the
- * pending changes before it quits.
+ * Registers the UI state channels (`ui:get` and `ui:layout:set`) on the UI
+ * fields of `app.json`. Call it before the control window opens, so that the
+ * window finds its state. The data store saves the file, and the app's
+ * shutdown saves it before quitting, so `dispose()` only removes the channels.
  *
- * @param file - The path of `app.json`.
+ * @param fields - The UI fields of the data store's `app.json`.
  */
-export async function registerUiState(
-  file: string,
+export function registerUiState(
+  fields: UiStateFields,
   log: Logger,
-): Promise<UiStateRegistration> {
-  const store = new UiStateStore({file, io: fileIo, log});
-  await store.load();
+): UiStateRegistration {
+  const store = new UiStateStore({fields, log});
   ipcMain.handle(Channels.uiGet, () => store.state);
   ipcMain.on(Channels.uiLayoutSet, (_event, value: unknown) =>
     store.setLayout(value),
   );
 
   return {
-    dispose: async () => {
+    dispose: () => {
       ipcMain.removeHandler(Channels.uiGet);
       ipcMain.removeAllListeners(Channels.uiLayoutSet);
-      store.dispose();
-      await store.flush();
     },
   };
 }

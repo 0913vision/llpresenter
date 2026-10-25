@@ -1,6 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
 import {Channels} from '@shared/ipc';
-import {makeTempDir} from '../../test/temp-dir';
 import {recordingLogger} from './displays/testing';
 import {ShutdownCoordinator} from './shutdown';
 
@@ -56,19 +55,16 @@ const electron = vi.hoisted(() => {
 });
 
 vi.mock('electron', () => ({app: electron.app, ipcMain: electron.ipcMain}));
-vi.mock('./uiState/fileIo', () => ({
-  fileIo: {
-    read: () => Promise.resolve(null),
-    write: () => new Promise<void>(() => undefined),
-  },
-}));
 
 const {registerUiState} = await import('./uiState/register');
 
 describe('shutdown with the real UI state registration', () => {
-  it('quits after the save limit when writing app.json never ends', async () => {
+  it('quits after the save limit when saving app.json never ends', async () => {
     const log = recordingLogger();
-    const ui = await registerUiState(`${await makeTempDir()}/app.json`, log);
+    const ui = registerUiState(
+      {read: () => ({}), change: () => undefined},
+      log,
+    );
     electron.ipcHandlers.get(Channels.uiLayoutSet)?.(
       {},
       {sizeClass: 'narrow', left: 220, right: 360},
@@ -80,6 +76,10 @@ describe('shutdown with the real UI state registration', () => {
       logFlushLimitMs: SHORT_LIMIT_MS,
     });
     shutdown.add({name: 'save the UI state', run: () => ui.dispose()});
+    shutdown.add({
+      name: 'save app.json',
+      run: () => new Promise<void>(() => undefined),
+    });
     electron.app.quit();
     await vi.waitFor(() => expect(electron.state.quitted).toBe(true));
     expect(log.messages('error')).toContain(

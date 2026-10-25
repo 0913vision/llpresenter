@@ -1,169 +1,42 @@
-import {
-  parseAppConfig,
-  serializeAppConfig,
-  type AppConfig,
-} from '@shared/schema/appConfig';
-import {
-  parseLayoutChange,
-  type LayoutChange,
-  type UiState,
-} from '@shared/schema/uiState';
+import type {AppLayout} from '@shared/schema/appConfig';
+import {parseLayoutChange, type UiState} from '@shared/schema/uiState';
 import type {Logger} from '../log';
-
-const DEFAULT_DEBOUNCE_MS = 500;
-
-/** Reads and writes the `app.json` text. */
-export interface UiStateIo {
-  /** Resolves to null when the file does not exist. */
-  read(file: string): Promise<string | null>;
-  /** Replaces the file in one step. */
-  write(file: string, text: string): Promise<void>;
-}
+import type {UiStateFields} from '../store/appConfigFile';
+import {withLayoutChange} from './layout';
 
 export interface UiStateStoreOptions {
-  readonly file: string;
-  readonly io: UiStateIo;
+  readonly fields: UiStateFields;
   readonly log: Logger;
-  readonly debounceMs?: number;
-}
-
-function emptyConfig(): AppConfig {
-  return {format: 'llapp', schemaVersion: 1};
-}
-
-function withLayoutChange(
-  config: AppConfig,
-  {sizeClass, left, right, columns}: LayoutChange,
-): AppConfig {
-  const layout = config.layout ?? {};
-  const merged = {
-    ...layout[sizeClass],
-    ...(left === undefined ? {} : {left}),
-    ...(right === undefined ? {} : {right}),
-    ...(columns === undefined ? {} : {columns}),
-  };
-  return {...config, layout: {...layout, [sizeClass]: merged}};
 }
 
 /**
- * Keeps the UI state of `app.json` and writes it back. The widths a drag sets
- * and the thumbnail columns are merged into `layout.<size class>`, field by
- * field: a change only sets the fields it carries, other fields stay as they
- * are, and a burst of changes becomes one write.
- *
- * It never replaces a file it could not read: a broken file, or one from a
- * newer app version, stays untouched, and the changes of that session live in
- * memory only.
+ * The UI state of the control window, kept in the UI fields of `app.json`.
+ * The data store owns the file: this class never reads, parses, or writes it,
+ * it only reads the fields and hands over the changed ones.
  */
 export class UiStateStore {
-  private config: AppConfig = emptyConfig();
-  private fileIsSafeToWrite = true;
-  private dirty = false;
-  private timer: ReturnType<typeof setTimeout> | null = null;
-  private writing: Promise<void> = Promise.resolve();
-
   constructor(private readonly options: UiStateStoreOptions) {}
 
   /** The UI state for the control window. */
   get state(): UiState {
-    const {layout} = this.config;
+    const {layout} = this.options.fields.read();
     return layout ? {layout} : {};
   }
 
-  async load(): Promise<void> {
-    const {file, io, log} = this.options;
-    let text: string | null;
-    try {
-      text = await io.read(file);
-    } catch (error) {
-      this.keepFileUntouched('could not read app.json', error);
-      return;
-    }
-    if (text === null) return;
-    const parsed = parseAppConfig(text, file);
-    if (!parsed.ok) {
-      this.keepFileUntouched('app.json is not usable', parsed.error);
-      return;
-    }
-    if (parsed.value.access === 'readOnly') {
-      log.warn('app.json comes from a newer app version', {file});
-      this.fileIsSafeToWrite = false;
-    }
-    this.config = parsed.value.data;
-  }
-
-  /** Merges a layout change into its size class. Invalid values are logged and dropped. */
+  /**
+   * Merges a layout change into its size class, field by field. Invalid values
+   * are logged and dropped.
+   */
   setLayout(value: unknown): void {
     const change = parseLayoutChange(value);
     if (!change.ok) {
       this.options.log.warn('dropped a malformed layout change', change.error);
       return;
     }
-    this.config = withLayoutChange(this.config, change.value);
-    this.dirty = true;
-    this.scheduleWrite();
-  }
-
-  /**
-   * Writes pending changes now, including the changes that arrive while a write
-   * is in flight. Call it before quitting. A failed write is logged and not
-   * retried here, so the call always ends.
-   */
-  async flush(): Promise<void> {
-    this.cancelTimer();
-    this.writing = this.writing.then(() => this.writeUntilClean());
-    await this.writing;
-    this.cancelTimer();
-  }
-
-  dispose(): void {
-    this.cancelTimer();
-  }
-
-  private keepFileUntouched(message: string, detail: unknown): void {
-    this.options.log.warn(message, detail);
-    this.fileIsSafeToWrite = false;
-  }
-
-  private scheduleWrite(): void {
-    if (!this.fileIsSafeToWrite) return;
-    this.cancelTimer();
-    this.timer = setTimeout(() => {
-      this.timer = null;
-      this.flush().catch((error: unknown) =>
-        this.options.log.error('could not save app.json', error),
-      );
-    }, this.options.debounceMs ?? DEFAULT_DEBOUNCE_MS);
-  }
-
-  private cancelTimer(): void {
-    if (this.timer === null) return;
-    clearTimeout(this.timer);
-    this.timer = null;
-  }
-
-  private async writeUntilClean(): Promise<void> {
-    let saved = true;
-    while (saved && this.dirty && this.fileIsSafeToWrite) {
-      saved = await this.writeOnce();
-    }
-  }
-
-  private async writeOnce(): Promise<boolean> {
-    const {file, io, log} = this.options;
-    const text = serializeAppConfig(this.config, file);
-    if (!text.ok) {
-      log.error('could not serialize app.json', text.error);
-      return false;
-    }
-    this.dirty = false;
-    try {
-      await io.write(file, text.value);
-      return true;
-    } catch (error) {
-      this.dirty = true;
-      log.error('could not save app.json', error);
-      return false;
-    }
+    const layout: AppLayout = withLayoutChange(
+      this.options.fields.read().layout,
+      change.value,
+    );
+    this.options.fields.change({layout});
   }
 }

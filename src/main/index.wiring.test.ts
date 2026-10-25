@@ -63,7 +63,7 @@ const fakes = vi.hoisted(() => {
 
 vi.mock('electron', () => fakes.electron);
 vi.mock('./uiState/register', () => ({
-  registerUiState: vi.fn(async () => {
+  registerUiState: vi.fn(() => {
     fakes.order.push('ui state');
     return {dispose: fakes.uiDispose};
   }),

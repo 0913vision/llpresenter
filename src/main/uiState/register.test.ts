@@ -1,8 +1,6 @@
-import {mkdtemp, readFile, rm, writeFile} from 'node:fs/promises';
-import {tmpdir} from 'node:os';
-import {join} from 'node:path';
-import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, describe, expect, it, vi} from 'vitest';
 import {Channels} from '@shared/ipc';
+import type {UiFields, UiStateFields} from '../store/appConfigFile';
 import type {Logger} from '../log';
 
 type Handler = (event: unknown, value?: unknown) => unknown;
@@ -32,68 +30,58 @@ const log: Logger = {
   flush: () => Promise.resolve(),
 };
 
-let dir = '';
-let file = '';
+function fieldsOf(initial: UiFields): {
+  readonly fields: UiStateFields;
+  readonly changes: UiFields[];
+} {
+  let current = initial;
+  const changes: UiFields[] = [];
+  return {
+    fields: {
+      read: () => current,
+      change: next => {
+        current = {...current, ...next};
+        changes.push(next);
+      },
+    },
+    changes,
+  };
+}
 
-beforeEach(async () => {
-  dir = await mkdtemp(join(tmpdir(), 'llp-ui-state-'));
-  file = join(dir, 'app.json');
-});
-
-afterEach(async () => {
+afterEach(() => {
   handlers.handle.clear();
   handlers.on.clear();
-  await rm(dir, {recursive: true, force: true});
 });
 
 describe('registerUiState', () => {
-  it('answers ui:get with the saved layout', async () => {
-    await writeFile(
-      file,
-      JSON.stringify({
-        format: 'llapp',
-        schemaVersion: 1,
-        layout: {wide: {left: 320, right: 560}},
-      }),
-    );
-    await registerUiState(file, log);
-    const get = handlers.handle.get(Channels.uiGet);
-    expect(get?.({})).toEqual({layout: {wide: {left: 320, right: 560}}});
+  it('answers ui:get with the layout of the fields', () => {
+    const layout = {wide: {left: 320, right: 560}};
+    registerUiState(fieldsOf({layout}).fields, log);
+    expect(handlers.handle.get(Channels.uiGet)?.({})).toEqual({layout});
   });
 
-  it('answers ui:get with an empty state when there is no file', async () => {
-    await registerUiState(file, log);
+  it('answers ui:get with an empty state when the fields have no layout', () => {
+    registerUiState(fieldsOf({}).fields, log);
     expect(handlers.handle.get(Channels.uiGet)?.({})).toEqual({});
   });
 
-  it('writes a layout change to the file when it is disposed', async () => {
-    const registration = await registerUiState(file, log);
+  it('hands a layout change to the fields, and ui:get then shows it', () => {
+    const {fields, changes} = fieldsOf({});
+    registerUiState(fields, log);
     handlers.on.get(Channels.uiLayoutSet)?.(
       {},
-      {sizeClass: 'narrow', left: 220, right: 360},
+      {sizeClass: 'normal', left: 260, right: 480},
     );
-    await registration.dispose();
-    expect(JSON.parse(await readFile(file, 'utf8'))).toMatchObject({
-      format: 'llapp',
-      layout: {narrow: {left: 220, right: 360}},
+    expect(changes).toEqual([{layout: {normal: {left: 260, right: 480}}}]);
+    expect(handlers.handle.get(Channels.uiGet)?.({})).toEqual({
+      layout: {normal: {left: 260, right: 480}},
     });
   });
 
-  it('removes its channels when it is disposed', async () => {
-    const registration = await registerUiState(file, log);
-    await registration.dispose();
+  it('removes its channels when it is disposed', () => {
+    const registration = registerUiState(fieldsOf({}).fields, log);
+    registration.dispose();
     expect(handlers.handle.has(Channels.uiGet)).toBe(false);
     expect(handlers.on.has(Channels.uiLayoutSet)).toBe(false);
-  });
-
-  it('leaves a broken file as it is', async () => {
-    await writeFile(file, '{ broken');
-    const registration = await registerUiState(file, log);
-    handlers.on.get(Channels.uiLayoutSet)?.(
-      {},
-      {sizeClass: 'narrow', left: 220, right: 360},
-    );
-    await registration.dispose();
-    expect(await readFile(file, 'utf8')).toBe('{ broken');
   });
 });

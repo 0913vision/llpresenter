@@ -1,295 +1,87 @@
-import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import {describe, expect, it} from 'vitest';
+import type {AppLayout} from '@shared/schema/appConfig';
+import type {UiFields, UiStateFields} from '../store/appConfigFile';
 import type {Logger} from '../log';
-import {UiStateStore, type UiStateIo} from './uiStateStore';
-
-const FILE = 'app.json';
-const DEBOUNCE_MS = 500;
+import {UiStateStore} from './uiStateStore';
 
 interface Harness {
   readonly store: UiStateStore;
-  readonly writes: string[];
+  readonly changes: UiFields[];
   readonly warnings: string[];
-  readonly errors: string[];
 }
 
-function createHarness(
-  initial: string | null,
-  options: {readonly writeFails?: boolean; readonly readFails?: boolean} = {},
-): Harness {
-  const writes: string[] = [];
+function createHarness(initial: UiFields = {}): Harness {
+  let current = initial;
+  const changes: UiFields[] = [];
   const warnings: string[] = [];
-  const errors: string[] = [];
-  const io: UiStateIo = {
-    read: () =>
-      options.readFails
-        ? Promise.reject(new Error('read failed'))
-        : Promise.resolve(initial),
-    write: (_file, text) => {
-      if (options.writeFails) return Promise.reject(new Error('write failed'));
-      writes.push(text);
-      return Promise.resolve();
+  const fields: UiStateFields = {
+    read: () => current,
+    change: next => {
+      current = {...current, ...next};
+      changes.push(next);
     },
   };
   const log: Logger = {
     info: () => undefined,
     warn: message => void warnings.push(message),
-    error: message => void errors.push(message),
+    error: () => undefined,
     flush: () => Promise.resolve(),
   };
-  const store = new UiStateStore({file: FILE, io, log});
-  return {store, writes, warnings, errors};
+  return {store: new UiStateStore({fields, log}), changes, warnings};
 }
 
-function lastWrite(writes: readonly string[]): unknown {
-  const text = writes.at(-1);
-  if (text === undefined) throw new Error('Nothing was written');
-  return JSON.parse(text);
-}
+const layout: AppLayout = {
+  normal: {left: 300, right: 500, columns: 5},
+  wide: {left: 320, right: 560},
+};
 
-const validFile = JSON.stringify({
-  format: 'llapp',
-  schemaVersion: 1,
-  songsPath: 'D:\\songs',
-  futureField: {keep: true},
-  layout: {normal: {left: 300, right: 500, columns: 5, extra: 1}},
-});
-
-const change = (left: number, right = 480): unknown => ({
-  sizeClass: 'normal',
-  left,
-  right,
-});
-
-beforeEach(() => {
-  vi.useFakeTimers();
-});
-
-afterEach(() => {
-  vi.useRealTimers();
-});
-
-describe('UiStateStore loading', () => {
-  it('gives an empty state when the file does not exist', async () => {
-    const {store, warnings} = createHarness(null);
-    await store.load();
-    expect(store.state).toEqual({});
-    expect(warnings).toHaveLength(0);
+describe('UiStateStore state', () => {
+  it('gives an empty state when there is no layout', () => {
+    expect(createHarness().store.state).toEqual({});
   });
 
-  it('gives the saved layout of a valid file', async () => {
-    const {store} = createHarness(validFile);
-    await store.load();
-    expect(store.state.layout?.normal).toMatchObject({left: 300, right: 500});
+  it('gives the layout of the fields and nothing else of them', () => {
+    const {store} = createHarness({layout, mediaStrip: true});
+    expect(store.state).toEqual({layout});
   });
 });
 
-describe('UiStateStore saving', () => {
-  it('merges a change into its size class and keeps every other field', async () => {
-    const {store, writes} = createHarness(validFile);
-    await store.load();
-    store.setLayout(change(350));
-    await store.flush();
-
-    expect(writes).toHaveLength(1);
-    expect(lastWrite(writes)).toMatchObject({
-      songsPath: 'D:\\songs',
-      futureField: {keep: true},
-      layout: {normal: {left: 350, right: 480, columns: 5, extra: 1}},
-    });
+describe('UiStateStore setLayout', () => {
+  it('hands the merged layout to the fields', () => {
+    const {store, changes} = createHarness({layout});
+    store.setLayout({sizeClass: 'normal', left: 260, right: 480});
+    const merged = {...layout, normal: {left: 260, right: 480, columns: 5}};
+    expect(changes).toEqual([{layout: merged}]);
+    expect(store.state).toEqual({layout: merged});
   });
 
-  it('merges the thumbnail columns alone and keeps the widths and unknown fields', async () => {
-    const {store, writes} = createHarness(validFile);
-    await store.load();
-    store.setLayout({sizeClass: 'normal', columns: 6});
-    await store.flush();
-    expect(lastWrite(writes)).toMatchObject({
-      songsPath: 'D:\\songs',
-      futureField: {keep: true},
-      layout: {normal: {left: 300, right: 500, columns: 6, extra: 1}},
-    });
+  it('merges the thumbnail columns alone and keeps the widths', () => {
+    const {store, changes} = createHarness({layout});
+    store.setLayout({sizeClass: 'wide', columns: 7});
+    expect(changes).toEqual([
+      {layout: {...layout, wide: {left: 320, right: 560, columns: 7}}},
+    ]);
   });
 
-  it('merges the widths alone and keeps the thumbnail columns', async () => {
-    const {store, writes} = createHarness(validFile);
-    await store.load();
-    store.setLayout({sizeClass: 'normal', left: 320, right: 520});
-    await store.flush();
-    expect(lastWrite(writes)).toMatchObject({
-      layout: {normal: {left: 320, right: 520, columns: 5, extra: 1}},
-    });
+  it('starts a layout when the fields have none', () => {
+    const {store, changes} = createHarness();
+    store.setLayout({sizeClass: 'narrow', columns: 3});
+    expect(changes).toEqual([{layout: {narrow: {columns: 3}}}]);
   });
 
-  it('merges the widths and the columns together', async () => {
-    const {store, writes} = createHarness(validFile);
-    await store.load();
-    store.setLayout({sizeClass: 'normal', left: 330, right: 530, columns: 7});
-    await store.flush();
-    expect(lastWrite(writes)).toMatchObject({
-      layout: {normal: {left: 330, right: 530, columns: 7, extra: 1}},
-    });
+  it('changes only the layout, so the other UI fields stay as they are', () => {
+    const {store, changes} = createHarness({layout, macroView: 'list'});
+    store.setLayout({sizeClass: 'normal', columns: 2});
+    expect(Object.keys(changes[0] ?? {})).toEqual(['layout']);
   });
 
-  it('starts a size class with the columns alone and writes no undefined', async () => {
-    const {store, writes} = createHarness(null);
-    await store.load();
-    store.setLayout({sizeClass: 'wide', columns: 4});
-    await store.flush();
-    expect(lastWrite(writes)).toMatchObject({layout: {wide: {columns: 4}}});
-    expect(writes[0]).not.toContain('undefined');
-    expect(store.state.layout?.wide).toEqual({columns: 4});
-  });
-
-  it('keeps the widths that were set before when a columns change follows', async () => {
-    const {store, writes} = createHarness(null);
-    await store.load();
-    store.setLayout({sizeClass: 'normal', left: 300, right: 500});
-    store.setLayout({sizeClass: 'normal', columns: 5});
-    await store.flush();
-    expect(lastWrite(writes)).toMatchObject({
-      layout: {normal: {left: 300, right: 500, columns: 5}},
-    });
-  });
-
-  it('drops a change with only one of the two widths', async () => {
-    const {store, writes, warnings} = createHarness(validFile);
-    await store.load();
-    store.setLayout({sizeClass: 'normal', left: 320});
-    await store.flush();
-    expect(writes).toHaveLength(0);
-    expect(warnings).toHaveLength(1);
-  });
-
-  it('keeps the other size classes', async () => {
-    const {store, writes} = createHarness(validFile);
-    await store.load();
-    store.setLayout({sizeClass: 'wide', left: 320, right: 560});
-    await store.flush();
-    expect(lastWrite(writes)).toMatchObject({
-      layout: {
-        normal: {left: 300, right: 500},
-        wide: {left: 320, right: 560},
-      },
-    });
-  });
-
-  it('creates the file content when the file did not exist', async () => {
-    const {store, writes} = createHarness(null);
-    await store.load();
-    store.setLayout(change(300));
-    await store.flush();
-    expect(lastWrite(writes)).toMatchObject({
-      format: 'llapp',
-      schemaVersion: 1,
-      layout: {normal: {left: 300, right: 480}},
-    });
-  });
-
-  it('writes a burst of changes once, after the debounce time', async () => {
-    const {store, writes} = createHarness(validFile);
-    await store.load();
-    store.setLayout(change(310));
-    store.setLayout(change(320));
-    store.setLayout(change(330));
-    await vi.advanceTimersByTimeAsync(DEBOUNCE_MS - 1);
-    expect(writes).toHaveLength(0);
-    await vi.advanceTimersByTimeAsync(1);
-    expect(writes).toHaveLength(1);
-    expect(lastWrite(writes)).toMatchObject({
-      layout: {normal: {left: 330}},
-    });
-  });
-
-  it('writes pending changes at once when flushed, and only once', async () => {
-    const {store, writes} = createHarness(validFile);
-    await store.load();
-    store.setLayout(change(310));
-    await store.flush();
-    await vi.advanceTimersByTimeAsync(DEBOUNCE_MS * 2);
-    expect(writes).toHaveLength(1);
-  });
-
-  it('writes nothing when nothing changed', async () => {
-    const {store, writes} = createHarness(validFile);
-    await store.load();
-    await store.flush();
-    expect(writes).toHaveLength(0);
-  });
-
-  it('drops and logs a change that is out of range or malformed', async () => {
-    const {store, writes, warnings} = createHarness(validFile);
-    await store.load();
+  it('drops and logs a change that is malformed, out of range, or half a pair', () => {
+    const {store, changes, warnings} = createHarness({layout});
     store.setLayout({sizeClass: 'normal', left: 100, right: 480});
-    store.setLayout({sizeClass: 'huge', left: 300, right: 480});
+    store.setLayout({sizeClass: 'normal', left: 300});
+    store.setLayout({sizeClass: 'huge', columns: 3});
     store.setLayout('nope');
-    await store.flush();
-    expect(writes).toHaveLength(0);
-    expect(warnings).toHaveLength(3);
-    expect(store.state.layout?.normal).toMatchObject({left: 300});
-  });
-
-  it('logs a failed write without throwing', async () => {
-    const {store, errors} = createHarness(validFile, {writeFails: true});
-    await store.load();
-    store.setLayout(change(310));
-    await expect(store.flush()).resolves.toBeUndefined();
-    expect(errors).toEqual(['could not save app.json']);
-  });
-
-  it('stops the timer when it is disposed', async () => {
-    const {store, writes} = createHarness(validFile);
-    await store.load();
-    store.setLayout(change(310));
-    store.dispose();
-    await vi.advanceTimersByTimeAsync(DEBOUNCE_MS * 2);
-    expect(writes).toHaveLength(0);
-  });
-});
-
-describe('UiStateStore with a file it must not replace', () => {
-  const unusable: ReadonlyArray<readonly [string, string]> = [
-    ['text that is not JSON', '{ broken'],
-    ['a file of another kind', JSON.stringify({format: 'other'})],
-    [
-      'a field that breaks the schema',
-      JSON.stringify({format: 'llapp', schemaVersion: 1, songsPath: 5}),
-    ],
-    [
-      'a newer schema version',
-      JSON.stringify({
-        format: 'llapp',
-        schemaVersion: 99,
-        layout: {normal: {left: 300, right: 500}},
-      }),
-    ],
-  ];
-
-  it.each(unusable)('never writes %s', async (_name, text) => {
-    const {store, writes, warnings} = createHarness(text);
-    await store.load();
-    store.setLayout(change(310));
-    await store.flush();
-    await vi.advanceTimersByTimeAsync(DEBOUNCE_MS * 2);
-    expect(writes).toHaveLength(0);
-    expect(warnings).toHaveLength(1);
-  });
-
-  it('keeps the changes of the session in memory', async () => {
-    const {store} = createHarness('{ broken');
-    await store.load();
-    expect(store.state).toEqual({});
-    store.setLayout(change(310));
-    expect(store.state.layout?.normal).toMatchObject({left: 310, right: 480});
-  });
-
-  it('does not write when the file cannot be read', async () => {
-    const {store, writes, warnings} = createHarness(validFile, {
-      readFails: true,
-    });
-    await store.load();
-    store.setLayout(change(310));
-    await store.flush();
-    expect(writes).toHaveLength(0);
-    expect(warnings).toEqual(['could not read app.json']);
+    expect(changes).toEqual([]);
+    expect(warnings).toHaveLength(4);
   });
 });

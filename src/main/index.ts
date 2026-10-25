@@ -83,10 +83,7 @@ function start(): void {
         file: join(app.getPath('userData'), UI_STATE_FILE),
         log,
       });
-      const ui = await registerUiState(
-        join(app.getPath('userData'), UI_STATE_FILE),
-        log,
-      );
+      const ui = registerUiState(appConfig, log);
       const store = new LiveStore();
       const dataStore = registerStore({
         log,
