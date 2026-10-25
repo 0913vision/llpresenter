@@ -12,6 +12,7 @@ import {emptyLiveState} from '@shared/live';
 import {createMediaId, createMediaPlaylistId} from '@shared/schema/ids';
 import {
   parseMediaDocument,
+  type MediaDocument,
   type MediaImportProgress,
 } from '@shared/schema/mediaEdit';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
@@ -26,7 +27,7 @@ function id(index: number) {
   );
 }
 
-function fixture(count = 3) {
+function fixture(count = 3, kind?: 'video') {
   const parsed = parseMediaDocument({
     name: 'media',
     revision: 1,
@@ -38,9 +39,11 @@ function fixture(count = 3) {
         id: id(index + 1),
         name: `미디어 ${index}`,
         size: 1,
-        kind: index === 1 ? 'video' : index === 2 ? 'audio' : 'image',
+        kind: kind ?? (index === 1 ? 'video' : index === 2 ? 'audio' : 'image'),
         file: `invented-${index}`,
-        ...(index === 1 ? {duration: 90, props: {end: 'stop'}} : {}),
+        ...(kind === 'video' || index === 1
+          ? {duration: 90, props: {end: 'stop'}}
+          : {}),
       })),
       playlists: [
         {
@@ -54,12 +57,17 @@ function fixture(count = 3) {
   });
   if (!parsed.ok) throw new Error('Invalid invented strip fixture');
   let progress: (job: MediaImportProgress) => void = () => undefined;
+  let push: (document: MediaDocument) => void = () => undefined;
   const send = vi.fn();
   const report = vi.fn();
   const api = fakeLlpApi({
     live: {send},
     media: {
       get: async () => parsed.value,
+      subscribe: listener => {
+        push = listener;
+        return () => undefined;
+      },
       subscribeImports: listener => {
         progress = listener;
         return () => undefined;
@@ -72,11 +80,27 @@ function fixture(count = 3) {
     api,
     send,
     report,
+    document: parsed.value,
+    push: (document: MediaDocument) => push(document),
     progress: (job: MediaImportProgress) => progress(job),
   };
 }
 
 beforeEach(() => {
+  const readStyle = window.getComputedStyle.bind(window);
+  vi.spyOn(globalThis, 'getComputedStyle').mockImplementation(
+    (element, pseudo) => {
+      if (element.getAttribute('role') === 'listbox') {
+        const css = document.createElement('div').style;
+        css.setProperty('--size-media-strip-tile', '150px');
+        css.columnGap = '12px';
+        css.paddingLeft = '4px';
+        return css;
+      }
+      return readStyle(element, pseudo);
+    },
+  );
+  vi.spyOn(Element.prototype, 'clientWidth', 'get').mockReturnValue(480);
   vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(
     () => undefined,
   );
@@ -263,4 +287,76 @@ it('windows a thousand-item row and navigates to an unmounted item with the keyb
   });
   unmount();
   expect(disconnect).toHaveBeenCalledOnce();
+});
+
+it('caps video elements at eight in a wide measured viewport and gives none to overscan tiles', async () => {
+  const {report} = fixture(100, 'video');
+  const {container} = render(<ShowMediaPanel onProblem={report} />);
+  await screen.findByRole('option', {name: '미디어 0'});
+  expect(container.querySelectorAll('video')).toHaveLength(3);
+  expect(
+    screen.getByRole('option', {name: '미디어 4'}).querySelector('video'),
+  ).toBeNull();
+  const strip = screen.getByRole('listbox', {name: '미디어'});
+  Object.defineProperty(strip, 'clientWidth', {
+    value: 3440,
+    configurable: true,
+  });
+  fireEvent.scroll(strip);
+  expect(container.querySelectorAll('video')).toHaveLength(8);
+  strip.scrollLeft = 20 * 162 + 75;
+  fireEvent.scroll(strip);
+  expect(container.querySelectorAll('video')).toHaveLength(8);
+  expect(
+    screen.getByRole('option', {name: '미디어 16'}).querySelector('video'),
+  ).toBeNull();
+  expect(
+    screen.getByRole('option', {name: '미디어 20'}).querySelector('video'),
+  ).not.toBeNull();
+  strip.scrollLeft = 20 * 162 + 155;
+  fireEvent.scroll(strip);
+  expect(container.querySelectorAll('video')).toHaveLength(8);
+  expect(
+    screen.getByRole('option', {name: '미디어 20'}).querySelector('video'),
+  ).toBeNull();
+  expect(
+    screen.getByRole('option', {name: '미디어 21'}).querySelector('video'),
+  ).not.toBeNull();
+});
+
+it('keeps a video across unrelated document changes and replaces it only when its file changes', async () => {
+  const {report, push, document: original} = fixture();
+  const {container} = render(<ShowMediaPanel onProblem={report} />);
+  await screen.findByRole('option', {name: '미디어 1'});
+  const video = container.querySelector('video');
+  if (!video) throw new Error('Missing video preview');
+  const renamed = parseMediaDocument({
+    ...original,
+    revision: 2,
+    value: {
+      ...original.value,
+      items: original.value.items.map(item =>
+        item.id === id(1) ? {...item, name: '새 이름'} : item,
+      ),
+    },
+  });
+  if (!renamed.ok) throw new Error('Invalid renamed fixture');
+  act(() => push(renamed.value));
+  expect(container.querySelector('video')).toBe(video);
+  expect(video.pause).not.toHaveBeenCalled();
+  const relinked = parseMediaDocument({
+    ...renamed.value,
+    revision: 3,
+    value: {
+      ...renamed.value.value,
+      items: renamed.value.value.items.map(item =>
+        item.id === id(2) ? {...item, file: 'relinked.mp4'} : item,
+      ),
+    },
+  });
+  if (!relinked.ok) throw new Error('Invalid relinked fixture');
+  act(() => push(relinked.value));
+  expect(container.querySelector('video')).not.toBe(video);
+  expect(video.getAttribute('src')).toBeNull();
+  expect(video.pause).toHaveBeenCalledOnce();
 });

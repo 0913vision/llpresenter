@@ -97,12 +97,22 @@ export function ShowMediaPanel({
               media.activate(entry.item.id);
             }
           }}
-          tile={index => {
+          isVideo={index => {
+            const entry = entries[index];
+            return (
+              entry?.kind === 'media' &&
+              entry.item.kind === 'video' &&
+              entry.copying === undefined &&
+              !media.missing.has(entry.item.id)
+            );
+          }}
+          tile={(index, {videoPreview}) => {
             const entry = entries[index];
             return entry ? (
               <MediaStripTile
                 key={entry.id}
                 entry={entry}
+                videoPreview={videoPreview}
                 revision={media.document?.revision ?? 0}
                 missing={
                   entry.kind === 'media' && media.missing.has(entry.item.id)

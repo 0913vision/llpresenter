@@ -20,7 +20,7 @@ export function MediaPreview({
       element.removeAttribute('src');
       element.load();
     };
-  }, [item.id, item.kind]);
+  }, []);
   return item.kind === 'image' ? (
     <img
       className={styles.preview}

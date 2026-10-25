@@ -9,7 +9,7 @@ import {sendLive} from '@renderer/state/live';
 import type {Notice} from '@renderer/ui/notices';
 import {updateActiveCopies, type CopyJob} from './mediaCopyJobs';
 
-const UNNAMED_MEDIA = '이름 없는 미디어';
+export const UNNAMED_MEDIA = '이름 없는 미디어';
 
 function warningNotice(
   key: string,

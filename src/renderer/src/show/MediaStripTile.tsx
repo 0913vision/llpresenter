@@ -4,6 +4,7 @@ import type {MediaItem} from '@shared/schema/mediaList';
 import {MediaTile} from '@renderer/ui';
 import type {CopyJob} from './mediaCopyJobs';
 import {MediaPreview} from './MediaPreview';
+import {UNNAMED_MEDIA} from './useMediaStrip';
 
 export type StripEntry =
   | {
@@ -30,6 +31,7 @@ export const MediaStripTile = memo(
     live,
     selected,
     onMissing,
+    videoPreview,
   }: {
     readonly entry: StripEntry;
     readonly revision: number;
@@ -37,17 +39,21 @@ export const MediaStripTile = memo(
     readonly live: boolean;
     readonly selected: boolean;
     readonly onMissing: (id: MediaId, revision: number) => void;
+    readonly videoPreview: boolean;
   }): JSX.Element => {
     const picture = useMemo(
       () =>
-        entry.kind === 'media' && !missing && entry.copying === undefined ? (
+        entry.kind === 'media' &&
+        !missing &&
+        entry.copying === undefined &&
+        (entry.item.kind !== 'video' || videoPreview) ? (
           <MediaPreview
-            key={`${entry.item.id}:${revision}`}
+            key={`${entry.item.id}:${entry.item.kind}:${entry.item.file}`}
             item={entry.item}
             onError={() => onMissing(entry.item.id, revision)}
           />
         ) : undefined,
-      [entry, missing, onMissing, revision],
+      [entry, missing, onMissing, revision, videoPreview],
     );
     if (entry.kind === 'copy') {
       return (
@@ -57,7 +63,7 @@ export const MediaStripTile = memo(
     const {item} = entry;
     return (
       <MediaTile
-        name={item.name || '이름 없는 미디어'}
+        name={item.name || UNNAMED_MEDIA}
         picture={picture}
         duration={item.kind === 'video' ? duration(item.duration) : undefined}
         loop={item.props?.end !== 'stop'}

@@ -12,6 +12,7 @@ import styles from './ShowMediaPanel.module.css';
 
 const OVERSCAN = 4;
 const INITIAL_TILES = 6;
+const MAX_PREVIEW_VIDEOS = 8;
 const OPTIONS = '[role="option"]';
 
 /** Keeps the horizontal strip's DOM and previews bounded by the viewport. */
@@ -20,17 +21,28 @@ export function WindowedMediaStrip({
   selected,
   onSelect,
   onActivate,
+  isVideo,
   tile,
 }: {
   readonly count: number;
   readonly selected: number | undefined;
   readonly onSelect: (index: number) => void;
   readonly onActivate: (index: number) => void;
-  readonly tile: (index: number) => ReactNode;
+  readonly isVideo: (index: number) => boolean;
+  readonly tile: (
+    index: number,
+    options: {readonly videoPreview: boolean},
+  ) => ReactNode;
 }): JSX.Element {
   const viewport = useRef<HTMLDivElement | null>(null);
   const focusNext = useRef<number | null>(null);
-  const [view, setView] = useState({left: 0, width: 0, stride: 1, gap: 0});
+  const [view, setView] = useState({
+    left: 0,
+    width: 0,
+    stride: 1,
+    gap: 0,
+    inset: 0,
+  });
   const measure = useCallback(() => {
     const list =
       viewport.current?.querySelector<HTMLElement>('[role="listbox"]');
@@ -44,12 +56,14 @@ export function WindowedMediaStrip({
       width: list.clientWidth,
       stride: width + gap,
       gap,
+      inset: Number.parseFloat(css.paddingLeft) || 0,
     };
     setView(current =>
       current.left === next.left &&
       current.width === next.width &&
       current.stride === next.stride &&
-      current.gap === next.gap
+      current.gap === next.gap &&
+      current.inset === next.inset
         ? current
         : next,
     );
@@ -76,6 +90,18 @@ export function WindowedMediaStrip({
     Math.min(Math.floor(view.left / view.stride) - OVERSCAN, count - visible),
   );
   const end = Math.min(count, start + visible + OVERSCAN * 2);
+  const videoPreviews = new Set<number>();
+  for (
+    let index = start;
+    view.width > 0 && index < end && videoPreviews.size < MAX_PREVIEW_VIDEOS;
+    index++
+  ) {
+    const left = view.inset + index * view.stride;
+    const right = left + view.stride - view.gap;
+    if (right > view.left && left < view.left + view.width && isVideo(index)) {
+      videoPreviews.add(index);
+    }
+  }
   useLayoutEffect(() => {
     const list =
       viewport.current?.querySelector<HTMLElement>('[role="listbox"]');
@@ -143,7 +169,11 @@ export function WindowedMediaStrip({
             style={{width: start * view.stride - view.gap}}
           />
         ) : null}
-        {Array.from({length: end - start}, (_, offset) => tile(start + offset))}
+        {Array.from({length: end - start}, (_, offset) =>
+          tile(start + offset, {
+            videoPreview: videoPreviews.has(start + offset),
+          }),
+        )}
         {end < count ? (
           <span
             aria-hidden="true"
