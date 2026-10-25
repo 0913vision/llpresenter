@@ -233,3 +233,22 @@ cover a valid Look id, null, an older record without it, and an invalid id.
 ## Reviewer
 
 Pending.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (Claude, trial-97): Request changes: the record's caps were stricter
+  than the live state, so a valid live state could be unsaveable.
+- Round 2 (Claude, trial-97): Request changes: the admission check ran the full
+  schema and a stringify over the whole state per child and per broadcast on the
+  output path.
+- Round 3 (e7e6432c): reviewer (Claude, trial-97) Approve: one check per
+  top-level dispatch, a cheap size bound with an exact count only when needed,
+  schema-only preload; heavy 256-child batch 2,261.48 to 5.85 ms, preload 7.85
+  to 0.38 ms. Required follow-up for the next data request (lead decision, the
+  output path): when the final check of a nested dispatch fails, reject the
+  whole dispatch instead of the per-child retry, which still costs about 2.26 s
+  on a heavy state. Nit: split the screen resync into a synchronous check and a
+  deferred refresh through `context.defer`, so the registry needs no per-port
+  memo. Lead Approve; the `break` tag on the limits commit stands. Written by
+  the Codex session that took over data's work. Rebased by the lead onto local
+  `main` without conflicts.
