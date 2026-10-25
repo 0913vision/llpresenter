@@ -346,3 +346,9 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   collapses into one (`[2, 3]` becomes `[2]` when 3 merges into 2; a 구성 `[3]`
   becomes `[2]`).
 - Only deleting a 슬라이드 removes its references, as spec 02 says.
+
+## 2026-10-26: Dragging a 예배 순서 header moves its whole section
+
+- Dragging a header in the 예배 순서 moves the header together with its items up
+  to the next header, as one section (user decision, confirming the lead's
+  default in spec-28; spec 04 and 05 didn't say).
