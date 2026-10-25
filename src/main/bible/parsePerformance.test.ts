@@ -1,3 +1,5 @@
+import {mkdir, writeFile} from 'node:fs/promises';
+import {join, resolve} from 'node:path';
 import {expect, it} from 'vitest';
 import {parseBibleTranslation} from '@shared/schema/bibleTranslation';
 import {BIBLE_BOOKS} from './books';
@@ -60,5 +62,3 @@ it('measures the median of three warmed full-size parses independently of file I
     ),
   ).toBe(FULL_TRANSLATION_VERSES);
 });
-import {mkdir, writeFile} from 'node:fs/promises';
-import {join, resolve} from 'node:path';
