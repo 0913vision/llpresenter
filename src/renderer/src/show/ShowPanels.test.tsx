@@ -69,6 +69,12 @@ vi.mock('@renderer/ui/Icon', () => ({
 }));
 
 describe('ServiceOrderList', () => {
+  it('is a 진행 list, whose rows draw no keyboard focus outline', () => {
+    render(<ServiceOrderList />);
+    const list = screen.getByRole('listbox', {name: '예배 순서'});
+    expect(list.dataset['workspace']).toBe('show');
+  });
+
   it('shows headers as text and items as options', () => {
     render(<ServiceOrderList />);
     expect(screen.getByText('찬양')).toBeTruthy();
@@ -249,6 +255,13 @@ describe('ServiceOrderList', () => {
 });
 
 describe('SlideGrid', () => {
+  it('is a 진행 grid, whose slides draw no keyboard focus outline', () => {
+    openItem('song-morning');
+    render(<SlideGrid columns={2} />);
+    const grid = screen.getByRole('listbox', {name: '슬라이드'});
+    expect(grid.dataset['workspace']).toBe('show');
+  });
+
   it('shows nothing when no item is open', () => {
     render(<SlideGrid columns={3} />);
     expect(screen.queryAllByRole('option')).toHaveLength(0);
