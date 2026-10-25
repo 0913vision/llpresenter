@@ -33,6 +33,7 @@ import {
   type SettingsStore,
 } from './settingsStore';
 import {registerSettingsChannels} from './settingsChannels';
+import {createSettingsAccess, type SettingsAccess} from './settingsAccess';
 
 const MAX_LOGGED_PROBLEMS = 50;
 
@@ -54,7 +55,7 @@ export interface StoreRegistration {
 }
 
 /** What the main process wiring uses of the data store. */
-export interface DataStore {
+export interface DataStore extends SettingsAccess {
   readonly settings: Promise<SettingsReader | null>;
   readonly subscribeSettingsProblems: (
     listener: SettingsProblemListener,
@@ -97,6 +98,7 @@ export function registerStore({
     });
   const opened = openContent(loading, log, settings);
   const settingsChannels = registerSettingsChannels(settings, log);
+  const settingsAccess = createSettingsAccess(settings, log);
   ipcMain.handle(Channels.serviceGet, async () => currentService(opened));
   ipcMain.handle(Channels.preferencesGet, async () => {
     const ready = await settings;
@@ -113,8 +115,11 @@ export function registerStore({
   const media = new LoadingMediaLibrary(loading);
   return {
     settings,
+    readSettings: settingsAccess.readSettings,
+    subscribeSettingsChanges: settingsAccess.subscribeSettingsChanges,
     subscribeSettingsProblems: settingsChannels.subscribe,
     dispose: async () => {
+      settingsAccess.dispose();
       await settingsChannels.dispose();
       ipcMain.removeHandler(Channels.serviceGet);
       ipcMain.removeHandler(Channels.preferencesGet);

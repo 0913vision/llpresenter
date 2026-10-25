@@ -17,6 +17,7 @@ import {parsePreferencesValue} from '@shared/schema/preferences';
 import {
   parseSettingsDocument,
   settingsNames,
+  type SettingsDocument,
 } from '@shared/schema/settingsDocuments';
 import {parseLibrarySearchResult} from '@shared/schema/librarySearch';
 import {makeTempDir} from '../../../test/temp-dir';
@@ -162,7 +163,14 @@ describe('registerStore', () => {
       future: {enabled: true},
     });
     const first = await register(fakeLog(), context, () => true);
+    const mainChanges: SettingsDocument[] = [];
+    const removeMainChanges = first.subscribeSettingsChanges(document =>
+      mainChanges.push(document),
+    );
     await ask(Channels.settingsGet, {name: 'messages'});
+    expect(await first.readSettings('messages')).toEqual(
+      await ask(Channels.settingsGet, {name: 'messages'}),
+    );
     electron.send.mockClear();
     const updated = {...template, name: 'After', text: 'New invented message'};
     const expected = {
@@ -187,6 +195,8 @@ describe('registerStore', () => {
       ok: true,
       value: {id: 'messages', revision: 2},
     });
+    expect(mainChanges).toEqual([await first.readSettings('messages')]);
+    removeMainChanges();
     expect(JSON.parse(await readFile(file, 'utf8'))).toEqual(expected);
     await first.dispose();
     await register(fakeLog(), context, () => true);
