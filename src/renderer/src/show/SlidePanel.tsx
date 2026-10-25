@@ -40,7 +40,9 @@ export function SlidePanelMeta(): JSX.Element | null {
   });
   if (title === undefined) return null;
   const position =
-    livePosition === null ? `${count}장` : `${livePosition + 1} / ${count}`;
+    livePosition === null
+      ? `슬라이드 ${count}개`
+      : `${livePosition + 1} / ${count}`;
   return (
     <span className={styles.meta}>
       <span className={styles.name}>{title}</span>

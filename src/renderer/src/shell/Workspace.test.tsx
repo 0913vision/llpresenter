@@ -403,6 +403,19 @@ describe('Workspace column gaps', () => {
     expect(slider.tabIndex).toBe(0);
   });
 
+  it('names the slide panel of the 진행 workspace 슬라이드', () => {
+    render(
+      <Workspace
+        id="show"
+        sizeClass="normal"
+        store={createMemoryColumnWidthStore()}
+      />,
+    );
+    expect(screen.getByRole('region', {name: '슬라이드'})).toBeTruthy();
+    expect(screen.getByRole('listbox', {name: '슬라이드'})).toBeTruthy();
+    expect(screen.queryByRole('region', {name: '장'})).toBeNull();
+  });
+
   it('shows the preview panel in the 진행 workspace and nowhere else', () => {
     const show = render(
       <Workspace

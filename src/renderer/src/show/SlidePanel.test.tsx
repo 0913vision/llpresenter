@@ -50,11 +50,11 @@ describe('SlidePanelMeta', () => {
     expect(container.textContent).toBe('');
   });
 
-  it('shows the item name and the 장 count when the item is not live', () => {
+  it('shows the item name and the slide count when the item is not live', () => {
     openItem('song-morning');
     render(<SlidePanelMeta />);
     expect(screen.getByText('아침이 밝아 오네')).toBeTruthy();
-    expect(screen.getByText('4장')).toBeTruthy();
+    expect(screen.getByText('슬라이드 4개')).toBeTruthy();
   });
 
   it('shows the live position of the open item', () => {
@@ -68,7 +68,7 @@ describe('SlidePanelMeta', () => {
     openItem('song-morning');
     setLiveSlide('song-river', 0);
     render(<SlidePanelMeta />);
-    expect(screen.getByText('4장')).toBeTruthy();
+    expect(screen.getByText('슬라이드 4개')).toBeTruthy();
   });
 
   it('follows the open item', () => {
@@ -76,7 +76,7 @@ describe('SlidePanelMeta', () => {
     render(<SlidePanelMeta />);
     act(() => openItem('song-river'));
     expect(screen.getByText('맑은 시냇물')).toBeTruthy();
-    expect(screen.getByText('3장')).toBeTruthy();
+    expect(screen.getByText('슬라이드 3개')).toBeTruthy();
   });
 });
 
@@ -123,7 +123,7 @@ describe('ThumbnailSizeSlider', () => {
         <ThumbnailSizeSlider sizeClass="normal" />
       </>,
     );
-    const grid = screen.getByRole('listbox', {name: '장'});
+    const grid = screen.getByRole('listbox', {name: '슬라이드'});
     expect(grid.style.getPropertyValue('--thumb-columns')).toBe('4');
     fireEvent.change(screen.getByRole('slider'), {target: {value: '7'}});
     expect(grid.style.getPropertyValue('--thumb-columns')).toBe('3');

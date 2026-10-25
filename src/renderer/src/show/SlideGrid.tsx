@@ -45,7 +45,7 @@ export function SlideGrid({columns}: {readonly columns: number}): JSX.Element {
     >
       <ThumbnailGrid
         workspace="show"
-        label="장"
+        label="슬라이드"
         columns={columns}
         selected={tiles === undefined ? undefined : selectedTile}
         onSelect={selectTile}

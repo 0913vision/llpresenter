@@ -275,7 +275,7 @@ describe('SlideGrid', () => {
   it('sets the number of columns', () => {
     openItem('song-morning');
     render(<SlideGrid columns={6} />);
-    const grid = screen.getByRole('listbox', {name: '장'});
+    const grid = screen.getByRole('listbox', {name: '슬라이드'});
     expect(grid.style.getPropertyValue('--thumb-columns')).toBe('6');
   });
 
@@ -333,7 +333,7 @@ describe('SlideGrid', () => {
     openItem('song-morning');
     render(<SlideGrid columns={2} />);
     const notPrevented = fireEvent.keyDown(
-      screen.getByRole('listbox', {name: '장'}),
+      screen.getByRole('listbox', {name: '슬라이드'}),
       {key: 'ArrowDown', ctrlKey: true},
     );
     expect(notPrevented).toBe(true);
@@ -416,7 +416,7 @@ describe('SlideGrid', () => {
   it('leaves the left and right arrows to the next and previous 장', () => {
     openItem('song-morning');
     render(<SlideGrid columns={2} />);
-    const grid = screen.getByRole('listbox', {name: '장'});
+    const grid = screen.getByRole('listbox', {name: '슬라이드'});
     const right = fireEvent.keyDown(grid, {key: 'ArrowRight'});
     const left = fireEvent.keyDown(grid, {key: 'ArrowLeft'});
     expect(right && left).toBe(true);

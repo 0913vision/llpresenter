@@ -23,7 +23,7 @@ const panelsByWorkspace: Readonly<
 > = {
   show: [
     ['예배 순서', '퀵 실행'],
-    ['장', '미디어'],
+    ['슬라이드', '미디어'],
     ['미리보기', '지우기', '진행 도구'],
   ],
   prep: [['예배 순서', '라이브러리'], ['편집'], ['항목 설정']],
@@ -89,7 +89,7 @@ function showPanelParts(title: string, sizeClass: SizeClass): PanelParts {
       return {size: 'rest'};
     case '지우기':
       return {bare: <ClearRow compact={sizeClass === 'narrow'} />};
-    case '장':
+    case '슬라이드':
       return {
         body: <SlidePanelBody sizeClass={sizeClass} />,
         meta: <SlidePanelMeta />,
