@@ -312,3 +312,21 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   only, slide changes only, the combination) with a three-hour run, to find what
   grows and whether it levels off. A cause in the app gets a fix; a Chromium or
   driver cache that levels off gets a recorded ceiling instead.
+
+## 2026-10-25: `iconv-lite` decodes CP949 text imports
+
+- Text import (spec 05, "Reading the text") falls back to CP949 for files
+  without a BOM that aren't valid UTF-8. Node's built-in `TextDecoder` accepts
+  the `windows-949` label but decodes it as EUC-KR, so CP949 extended Hangul
+  (for example `94 EE`, 뷁) throws or comes out corrupted (data-28, measured on
+  Node 24.20.0 with ICU 78.3; Node issue
+  [61041](https://github.com/nodejs/node/issues/61041) lists EUC-KR among the
+  incorrect legacy decoders).
+- The lead approves `iconv-lite` at exactly `0.7.3` (released 2026-07-03, MIT,
+  pure JavaScript, one dependency `safer-buffer`) against "Criteria for adding a
+  dependency" in `docs/TECH.md`: maintained, licensed, outside the output path,
+  and a CP949 table is far more than a few dozen lines.
+- It is used only by the main-process import decoder, behind one wrapper in
+  `src/main/import/`. UTF-8 and UTF-16 stay on the strict built-in decoder.
+  Output that would contain replacement characters is rejected, never returned
+  as lyrics.
