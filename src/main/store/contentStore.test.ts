@@ -434,6 +434,29 @@ describe('ContentStore 구성 edits across files', () => {
     });
   });
 
+  it('leaves references in a newer-version service untouched during a 구성 rename', async () => {
+    const {store, files, events} = setUp([
+      {
+        ...serviceFile(SUNDAY_ID, [
+          {id: itemId(1), song: HYMN_ONE_ID, arrangement: '주일용'},
+        ]),
+        access: 'readOnly',
+      },
+    ]);
+    const before = store.service(SUNDAY);
+
+    await store.apply({
+      type: 'song.arrangement.rename',
+      songId: SONG,
+      from: '주일용',
+      to: '짧게',
+    });
+
+    expect(store.service(SUNDAY)).toEqual(before);
+    expect(files.written).toEqual([join(locations.songs, 'hymn.llsong')]);
+    expect(events.serviceChanged).not.toHaveBeenCalled();
+  });
+
   it('refuses a rename to a name the song has, or from one it lacks', async () => {
     const {store} = setUp(picks());
 
