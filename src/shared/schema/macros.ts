@@ -3,6 +3,7 @@ import {paletteColors} from '../colors';
 import {isRecord} from '../guards';
 import {layerKinds} from '../live';
 import type {Result} from '../result';
+
 import {
   parseFile,
   serializeFile,
@@ -34,6 +35,15 @@ import {
   nonBlankText,
   positiveInteger,
 } from './primitives';
+
+export const MACRO_FILE_LIMITS = {
+  macros: 1000,
+  collections: 200,
+  actions: 256,
+  collectionItems: 1000,
+  parameters: 200,
+  targets: 200,
+} as const;
 
 /** The 매크로 action kinds of `docs/spec/07-macros.md`. */
 export const macroActionKinds = [
@@ -85,8 +95,21 @@ const actionSchemas = {
   message: jsonObject({
     kind: v.literal('message'),
     template: messageTemplateIdSchema,
-    values: jsonRecord(v.string(), v.string()),
-    targets: messageTargetsSchema,
+    values: v.pipe(
+      jsonRecord(v.string(), v.string()),
+      v.check(
+        values => Object.keys(values).length <= MACRO_FILE_LIMITS.parameters,
+        'Too many message values',
+      ),
+    ),
+    targets: v.pipe(
+      messageTargetsSchema,
+      v.check(
+        targets =>
+          targets === 'all' || targets.length <= MACRO_FILE_LIMITS.targets,
+        'Too many message targets',
+      ),
+    ),
     duration: messageDurationSchema,
   }),
   notice: jsonObject({kind: v.literal('notice'), notice: noticeSetIdSchema}),
@@ -118,7 +141,10 @@ const macroSchema = jsonObject({
   name: v.string(),
   icon: nonBlankText,
   color: v.picklist(paletteColors),
-  actions: v.array(kindsWithUnknown(macroActionKinds, actionSchemas, {})),
+  actions: v.pipe(
+    v.array(kindsWithUnknown(macroActionKinds, actionSchemas, {})),
+    v.maxLength(MACRO_FILE_LIMITS.actions),
+  ),
   runOnStartup: v.exactOptional(v.boolean()),
   schedule: v.exactOptional(jsonObject({})),
 });
@@ -126,14 +152,23 @@ const macroSchema = jsonObject({
 const collectionSchema = jsonObject({
   id: macroCollectionIdSchema,
   name: v.string(),
-  macroIds: v.array(macroIdSchema),
+  macroIds: v.pipe(
+    v.array(macroIdSchema),
+    v.maxLength(MACRO_FILE_LIMITS.collectionItems),
+  ),
 });
 
 export const macrosSchema = jsonObject({
   format: v.literal('llsettings.macros'),
   schemaVersion: positiveInteger,
-  macros: listWithUniqueIds(macroSchema),
-  collections: listWithUniqueIds(collectionSchema),
+  macros: v.pipe(
+    listWithUniqueIds(macroSchema),
+    v.maxLength(MACRO_FILE_LIMITS.macros),
+  ),
+  collections: v.pipe(
+    listWithUniqueIds(collectionSchema),
+    v.maxLength(MACRO_FILE_LIMITS.collections),
+  ),
 });
 
 const macrosMigrations: readonly MigrationStep[] = [];

@@ -95,6 +95,10 @@ export function parseServiceItemId(value: unknown) {
   return parsePayload(serviceItemIdSchema, value);
 }
 
+export function parseMacroId(value: unknown) {
+  return parsePayload(macroIdSchema, value);
+}
+
 /** Brands a reserved media or copy-job UUID; throws unless it is version 4. */
 export function createMediaId(uuid: string): MediaId {
   return v.parse(mediaIdSchema, uuid);
