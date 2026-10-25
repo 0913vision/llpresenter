@@ -1,13 +1,14 @@
 # Review request: `qa-8`
 
-Review range: `722fc6e...docs/qa/m2-check2`
+Review range: `505ab18...docs/qa/m2-check2`
 
 - Team member: `qa`
 - Branch: `docs/qa/m2-check2`
-- Base commit (`main`): `722fc6e8b6a4c8a51f8234c471a6f8a6cd6ec83e`
-- Last commit: see the commit that adds this file
+- Base commit (`main`): `505ab189a2241b35e8b1a6ac53395ce42db838c4`
+- Last commit: see the review request message
 - Related brief: `docs/briefs/qa.md`; the replaced `.llp/task.md`
-- Tested app snapshot: the same local-main commit, version `0.12.0`
+- Tested app snapshot: local main `722fc6e8b6a4c8a51f8234c471a6f8a6cd6ec83e`,
+  version `0.12.0`; native runtime checks were not repeated after the rebase.
 - Milestone scope reference: `docs/MILESTONES.md` on main `4d66230`, with the
   October 25 M2 restart clarification; the app snapshot above was not retested.
 
@@ -56,13 +57,21 @@ fixture README's obsolete claim that song clicks cannot show backgrounds.
 | App force-quit/restart                           | Observed clean restart, same service open and outputs off; manual output resumed in the follow-up; dialog belongs to M3                           |
 | Captures at 1280x720 and 1920x1080               | Visually inspected; video/image backgrounds, new header and preview row appear                                                                    |
 | Offscreen safety and cleanup                     | All observed windows hidden, unfocused, offscreen, not native fullscreen or always-on-top; no show/focus/fullscreen events; test instances closed |
-| `npm run format:check`                           | Pass                                                                                                                                              |
-| `npm run verify`                                 | Not run, task explicitly requests documents-only format check                                                                                     |
+| `npm run format:check`                           | Passed before the branch-CI workflow change                                                                                                       |
+| Prettier checks on owned docs and sample JSON    | Pass after rebase                                                                                                                                 |
+| Local `npm run verify`                           | Not run; the new workflow requires only fast checks on owned files locally                                                                        |
+| GitHub CI                                        | Exact-head run URL and result accompany the review request message after pushing this branch                                                      |
 
 The tag is the lead's later publication step. This smoke used local main and the
 updated fixture, not an unpublished remote `m2-check2` tag. Physical cable
 changes, a new 60-minute real-hardware run, and Task Manager observation remain
 for the user. The prior GPU growth finding is not cleared by this short smoke.
+
+The branch was rebased onto main `505ab18` to adopt the required branch-push CI,
+status script, and member pre-push hook. The app snapshot above remains the
+runtime evidence. CI verifies the rebased request's exact head on GitHub; no
+full verify is run locally. Its run URL and result are reported outside this
+file so recording them does not change the head being verified.
 
 ## Known gaps and milestone scope
 
