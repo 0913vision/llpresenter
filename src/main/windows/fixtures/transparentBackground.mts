@@ -2,6 +2,12 @@ import {ok} from 'node:assert/strict';
 import {isAbsolute} from 'node:path';
 import {app, BrowserWindow, type WebContentsPaintEventParams} from 'electron';
 import {watchPixelFixture} from './pixelFixtureLifecycle.mts';
+import {
+  PIXEL_CHANNEL_TOLERANCE,
+  waitForCompositedPixels,
+  type ExpectedPixels,
+  type PixelSample,
+} from './compositedPixels.mts';
 
 const CHECK_INTERVAL_MS = 10;
 const PICTURE_VALUE = 200;
@@ -56,12 +62,15 @@ async function waitForPictures(win: BrowserWindow): Promise<void> {
   }
 }
 
-async function pixels(win: BrowserWindow) {
+async function pixels(win: BrowserWindow): Promise<PixelSample> {
   await win.webContents.executeJavaScript(
     'new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))',
   );
   const image = await win.webContents.capturePage();
   const {width, height} = image.getSize();
+  if (width === 0 || height === 0) {
+    return {transparent: [], translucent: [], opaque: []};
+  }
   const at = (x: number): number[] => [
     ...image
       .crop({x, y: Math.floor(height / 2), width: 1, height: 1})
@@ -81,9 +90,20 @@ function expectPixel(
   phase: string,
 ): void {
   ok(
-    pixel.length === 3 && pixel.every(value => Math.abs(value - expected) <= 1),
+    pixel.length === 3 &&
+      pixel.every(
+        value => Math.abs(value - expected) <= PIXEL_CHANNEL_TOLERANCE,
+      ),
     `${phase}: expected ${expected}, received ${pixel.join(', ')}`,
   );
+}
+
+function compositedPixels(
+  win: BrowserWindow,
+  expected: ExpectedPixels,
+  phase: string,
+): Promise<PixelSample> {
+  return waitForCompositedPixels({capture: () => pixels(win), expected, phase});
 }
 
 function releaseFrame({texture}: WebContentsPaintEventParams): void {
@@ -120,13 +140,31 @@ async function checkMode(
       await win.webContents.executeJavaScript(
         `document.getElementById('incoming').style.opacity = '${opacity}'`,
       );
-      const sample = await pixels(win);
+      const sample = await compositedPixels(
+        win,
+        {
+          transparent: PICTURE_VALUE * (1 - opacity) + background * opacity,
+          translucent:
+            PICTURE_VALUE * (1 - opacity) +
+            ((PICTURE_VALUE + background) / 2) * opacity,
+          opaque: PICTURE_VALUE,
+        },
+        `${mode} opacity ${opacity}`,
+      );
       samples.push({opacity, ...sample});
     }
     await win.webContents.executeJavaScript(
       "document.getElementById('outgoing').remove()",
     );
-    const after = await pixels(win);
+    const after = await compositedPixels(
+      win,
+      {
+        transparent: background,
+        translucent: (PICTURE_VALUE + background) / 2,
+        opaque: PICTURE_VALUE,
+      },
+      `${mode} after outgoing removal`,
+    );
     console.log(JSON.stringify({mode, samples, after}));
     for (const sample of samples) {
       const expected =
