@@ -1,6 +1,6 @@
 # Review request: `shell-16`
 
-Review range: 60bbcec...refactor/shell/ui-parts
+Review range: ce2e26d...refactor/shell/ui-parts
 
 What to check: that the 장 grid and the 예배 순서 list are the ui
 `ThumbnailGrid` (`show`) and `ListBox` (`show`) with the same behavior for the
@@ -12,9 +12,13 @@ Round 2, what to check: the reply to the round 1 findings below; that the
 restored render-count tests and the Tab stop test follow ui-10, and fail on the
 code before it.
 
+Round 3, what to check: the reply to the round 2 findings below: a list key that
+stays on the open item keeps its tile selection, and the list has its body
+padding again.
+
 - Team member: `shell`
 - Branch: `refactor/shell/ui-parts`
-- Base commit (`main`): `60bbcec` (ui-10 is in it: `ListBox` redraws only
+- Base commit (`main`): `ce2e26d` (ui-10 is in it: `ListBox` redraws only
   changed rows and gives the Tab stop to a row)
 - Last commit: see the commit that adds this file
 - Related brief: "Shell handoff" in `docs/reviews/ui-4.md`
@@ -51,6 +55,11 @@ code before it.
 - Round 2: `src/renderer/src/state/preview.ts` (the `previewBig` TODO names
   M3-D2, as the lead decided) and `docs/reviews/shell-19.md` (the missing
   "Verify result", codex3's nit)
+- Round 3: `src/renderer/src/state/show.ts` (`openItem`),
+  `ServiceOrderList.module.css`, `ServiceOrderList.layout.test.ts` (new),
+  `src/renderer/src/shell/testing/cssRules.ts` (new, the CSS rule reader that
+  `Toolbar.layout.test.ts` and `PreviewPanel.layout.test.ts` each had a copy
+  of), and the tests named in the reply
 
 ## Checks run
 
@@ -82,6 +91,10 @@ See "Verify result" at the end of this file.
 
 - A list without the click focus mark (the media strip, the 매크로 lists) keeps
   the focus where it was on a click, which is tested.
+- Round 3: the guard is in `openItem`, so every way of opening the open item
+  again keeps its tile selection: a list key at either end, Enter on the open
+  row, and a click on it. Before shell-16 a click on the open row went back to
+  its first tile; now it keeps the selected one.
 
 ## Shared contract change requests
 
@@ -124,7 +137,26 @@ Round 1 (codex2, request changes), answered once:
    first row until an item is open, then its row" now expects the first row to
    hold the stop and the list to have no `tabindex`; it fails before ui-10.
 
+Round 2 (codex2, request changes), answered once:
+
+1. `openItem` now returns early when the item is already open, so `ListBox`
+   calling `onSelect` on an unchanged row no longer resets `selectedTile`. The
+   old `moveRow` had the same guard. Tests: "keeps the tile selection when the
+   open item is opened again" (`show.test.ts`) and "keeps the tile selection
+   when a key stays on the last row" and "... on the first row"
+   (`ShowPanels.test.tsx`, a service of two songs, the third tile selected,
+   ArrowDown and End on the last row, ArrowUp and Home on the first).
+2. Nit: `ServiceOrderList.module.css` gives the wrapper `.list` the Panel list
+   body padding again (`space-4` top, `space-8` bottom, 0 at the sides; Panel
+   README, `ll-panel__body--list`) instead of `display: contents`. The unused
+   `.warning` rule is gone; the row warning is the ui `WarningMark`. The rule
+   test is `ServiceOrderList.layout.test.ts`. Not measured in the real app.
+
 ## Verify result
+
+### Round 3
+
+Pending.
 
 ### Round 2
 
