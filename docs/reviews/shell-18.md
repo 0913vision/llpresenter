@@ -1,6 +1,6 @@
 # Review request: `shell-18`
 
-Review range: 5536536...fix/shell/preview-mode
+Review range: bd622bf...fix/shell/preview-mode
 
 What to check: that every preview renderer is created with the `preview` mode of
 output-12, so a looping background keeps one video instead of two, and that the
@@ -8,7 +8,7 @@ test would fail without it.
 
 - Team member: `shell`
 - Branch: `fix/shell/preview-mode`
-- Base commit (`main`): `5536536`
+- Base commit (`main`): `bd622bf`
 - Last commit: see the commit that adds this file
 - Related brief: bug M2-4 of qa (three previews keep six video decoders)
 
@@ -79,3 +79,8 @@ missing.
 ## Verdicts (recorded by the lead at merge)
 
 - Not reviewed yet.
+
+## Verify result
+
+`npm run verify` on commit `88f0e3b` (base `main` bd622bf) passed all five steps
+in 239.7 s: `typecheck`, `lint`, `format:check`, `test:coverage`, and `build`.
