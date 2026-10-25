@@ -84,3 +84,16 @@ export function createTemplateId(uuid: string): TemplateId {
 export function createServiceItemId(uuid: string): ServiceItemId {
   return v.parse(serviceItemIdSchema, uuid);
 }
+
+/** Brands a reserved media or copy-job UUID; throws unless it is version 4. */
+export function createMediaId(uuid: string): MediaId {
+  return v.parse(mediaIdSchema, uuid);
+}
+
+export function createMediaPlaylistId(uuid: string): MediaPlaylistId {
+  return v.parse(mediaPlaylistIdSchema, uuid);
+}
+
+export function createAudioPlaylistId(uuid: string): AudioPlaylistId {
+  return v.parse(audioPlaylistIdSchema, uuid);
+}

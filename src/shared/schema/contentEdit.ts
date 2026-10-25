@@ -87,12 +87,12 @@ const contentEditSchema = v.pipe(
   v.variant('type', [...songEditSchemas, ...serviceEditSchemas]),
 );
 
-const editSuccessSchema = payloadObject({
+export const editSuccessSchema = payloadObject({
   id: v.pipe(v.string(), v.nonEmpty()),
   revision: v.nullable(revisionSchema),
 });
 
-const editFailureSchema = v.variant('reason', [
+export const editFailureSchema = v.variant('reason', [
   v.object({reason: v.picklist(editRefusalReasons), message: v.string()}),
   v.object({
     reason: v.literal('write-failed'),

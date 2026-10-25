@@ -31,7 +31,7 @@ interface Range {
   readonly out?: number;
 }
 
-const mediaPropsSchema = v.pipe(
+export const mediaPropsSchema = v.pipe(
   jsonObject({
     end: v.exactOptional(v.picklist(['loop', 'stop'])),
     in: v.exactOptional(seconds),
@@ -80,20 +80,20 @@ const mediaItemSchema = v.pipe(
   ),
 );
 
-const playlistSchema = jsonObject({
+export const playlistSchema = jsonObject({
   id: mediaPlaylistIdSchema,
   name: v.string(),
   items: v.array(mediaIdSchema),
 });
 
-const audioPlaylistSchema = jsonObject({
+export const audioPlaylistSchema = jsonObject({
   id: audioPlaylistIdSchema,
   name: v.string(),
   items: v.array(mediaIdSchema),
   loop: v.boolean(),
 });
 
-const mediaListSchema = jsonObject({
+export const mediaListSchema = jsonObject({
   format: v.literal('llmedia'),
   schemaVersion: positiveInteger,
   items: listWithUniqueIds(mediaItemSchema),

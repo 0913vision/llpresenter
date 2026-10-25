@@ -4,6 +4,9 @@ import {
   createServiceItemId,
   createSongId,
   createTemplateId,
+  createMediaId,
+  createMediaPlaylistId,
+  createAudioPlaylistId,
 } from './ids';
 
 const UUID = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
@@ -12,6 +15,9 @@ const factories = {
   service: createServiceId,
   template: createTemplateId,
   item: createServiceItemId,
+  media: createMediaId,
+  mediaPlaylist: createMediaPlaylistId,
+  audioPlaylist: createAudioPlaylistId,
 };
 
 describe.each(Object.entries(factories))(
