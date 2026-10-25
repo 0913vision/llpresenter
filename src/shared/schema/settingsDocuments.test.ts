@@ -4,6 +4,7 @@ import {
   parseSettingsEdit,
   parseSettingsReadRequest,
   parseSettingsReply,
+  mergeSettingsDocument,
   settingsNames,
   type SettingsName,
 } from './settingsDocuments';
@@ -54,6 +55,265 @@ const fixtures = {
 >;
 
 describe('app-wide settings contracts', () => {
+  it.each(settingsNames)(
+    'preserves current unknown fields when editing %s',
+    name => {
+      const current = expectSuccess(
+        parseSettingsDocument({
+          name,
+          value: {...fixtures[name], future: {kept: true}},
+          revision: 1,
+          access: 'editable',
+        }),
+      );
+      const edit = expectSuccess(
+        parseSettingsEdit({
+          type: 'settings.update',
+          name,
+          value: fixtures[name],
+          baseRevision: 1,
+        }),
+      );
+      expect(expectSuccess(mergeSettingsDocument(current, edit))).toMatchObject(
+        {revision: 2, value: {future: {kept: true}}},
+      );
+    },
+  );
+
+  it('retains nested preference extensions while deleting omitted known options', () => {
+    const current = expectSuccess(
+      parseSettingsDocument({
+        name: 'preferences',
+        value: {
+          ...fixtures.preferences,
+          show: {showClearUndoButton: true, future: {kept: true}},
+        },
+        revision: 1,
+        access: 'editable',
+      }),
+    );
+    const edit = expectSuccess(
+      parseSettingsEdit({
+        type: 'settings.update',
+        name: 'preferences',
+        value: {...fixtures.preferences, show: {}},
+        baseRevision: 1,
+      }),
+    );
+    const next = expectSuccess(mergeSettingsDocument(current, edit));
+    expect(next.value).toMatchObject({show: {future: {kept: true}}});
+    expect(next.value).toHaveProperty('show', {future: {kept: true}});
+  });
+
+  it('matches reordered objects by id and removes deleted records and known optional fields', () => {
+    const other = 'a41e0c52-7e1f-4a2b-8c3d-4e5f60718293';
+    const first = {
+      id: ID,
+      name: 'First',
+      kind: 'audience',
+      method: 'window',
+      alwaysOnTop: true,
+      offset: {x: 1, y: 2, future: 'offset'},
+      future: 'first',
+    };
+    const second = {
+      id: other,
+      name: 'Second',
+      kind: 'stage',
+      method: 'window',
+      future: 'second',
+    };
+    const current = expectSuccess(
+      parseSettingsDocument({
+        name: 'screens',
+        value: {...fixtures.screens, screens: [first, second]},
+        revision: 1,
+        access: 'editable',
+      }),
+    );
+    const edit = expectSuccess(
+      parseSettingsEdit({
+        type: 'settings.update',
+        name: 'screens',
+        value: {
+          ...fixtures.screens,
+          screens: [
+            {id: other, name: 'Renamed', kind: 'stage', method: 'window'},
+            {
+              id: ID,
+              name: 'First',
+              kind: 'audience',
+              method: 'window',
+              offset: {x: 3, y: 4},
+            },
+          ],
+        },
+        baseRevision: 1,
+      }),
+    );
+    const next = expectSuccess(mergeSettingsDocument(current, edit));
+    expect(next.value).toHaveProperty('screens', [
+      {...second, name: 'Renamed'},
+      {
+        id: ID,
+        name: 'First',
+        kind: 'audience',
+        method: 'window',
+        offset: {x: 3, y: 4, future: 'offset'},
+        future: 'first',
+      },
+    ]);
+  });
+
+  it('keeps unknown variant fields without restoring the previous variant payload', () => {
+    const base = {id: ID, name: 'Example', icon: 'macro', color: 'teal'};
+    const current = expectSuccess(
+      parseSettingsDocument({
+        name: 'macros',
+        value: {
+          ...fixtures.macros,
+          macros: [
+            {
+              ...base,
+              actions: [
+                {kind: 'audio', operation: 'play', media: ID, future: 'kept'},
+              ],
+            },
+          ],
+        },
+        revision: 1,
+        access: 'editable',
+      }),
+    );
+    const edit = expectSuccess(
+      parseSettingsEdit({
+        type: 'settings.update',
+        name: 'macros',
+        value: {
+          ...fixtures.macros,
+          macros: [{...base, actions: [{kind: 'audio', operation: 'stop'}]}],
+        },
+        baseRevision: 1,
+      }),
+    );
+    expect(
+      expectSuccess(mergeSettingsDocument(current, edit)).value,
+    ).toHaveProperty('macros.0.actions', [
+      {kind: 'audio', operation: 'stop', future: 'kept'},
+    ]);
+  });
+
+  it('preserves nested record extensions while removing deleted dynamic keys', () => {
+    const other = 'a41e0c52-7e1f-4a2b-8c3d-4e5f60718293';
+    const current = expectSuccess(
+      parseSettingsDocument({
+        name: 'looks',
+        value: {
+          ...fixtures.looks,
+          looks: [
+            {
+              id: ID,
+              name: 'Example',
+              screens: {
+                [ID]: {
+                  layers: {slide: true, future: 1},
+                  lyricStyle: ID,
+                  future: 'kept',
+                },
+                [other]: {layers: {media: true}, future: 'deleted'},
+              },
+            },
+          ],
+        },
+        revision: 1,
+        access: 'editable',
+      }),
+    );
+    const edit = expectSuccess(
+      parseSettingsEdit({
+        type: 'settings.update',
+        name: 'looks',
+        value: {
+          ...fixtures.looks,
+          looks: [
+            {
+              id: ID,
+              name: 'Example',
+              screens: {[ID]: {layers: {slide: false}}},
+            },
+          ],
+        },
+        baseRevision: 1,
+      }),
+    );
+    expect(
+      expectSuccess(mergeSettingsDocument(current, edit)).value,
+    ).toHaveProperty('looks.0.screens', {
+      [ID]: {layers: {slide: false, future: 1}, future: 'kept'},
+    });
+  });
+
+  it('keeps extensions on renamed labels and matches recent passages without transferring them to a new passage', () => {
+    const labels = expectSuccess(
+      parseSettingsDocument({
+        name: 'labels',
+        value: {
+          ...fixtures.labels,
+          labels: [{name: 'Old', color: 'teal', key: null, future: true}],
+        },
+        revision: 1,
+        access: 'editable',
+      }),
+    );
+    const labelEdit = expectSuccess(
+      parseSettingsEdit({
+        type: 'settings.update',
+        name: 'labels',
+        value: {
+          ...fixtures.labels,
+          labels: [{name: 'New', color: 'teal', key: null}],
+        },
+        baseRevision: 1,
+      }),
+    );
+    expect(
+      expectSuccess(mergeSettingsDocument(labels, labelEdit)).value,
+    ).toHaveProperty('labels.0.future', true);
+    const current = expectSuccess(
+      parseSettingsDocument({
+        name: 'bible',
+        value: {
+          ...fixtures.bible,
+          recents: [
+            {ref: 'Example 1:1', translation: 'example', future: 'kept'},
+          ],
+        },
+        revision: 1,
+        access: 'editable',
+      }),
+    );
+    const edit = expectSuccess(
+      parseSettingsEdit({
+        type: 'settings.update',
+        name: 'bible',
+        value: {
+          ...fixtures.bible,
+          recents: [
+            {ref: 'Example 2:1', translation: 'example'},
+            {ref: 'Example 1:1', translation: 'example'},
+          ],
+        },
+        baseRevision: 1,
+      }),
+    );
+    expect(
+      expectSuccess(mergeSettingsDocument(current, edit)).value,
+    ).toHaveProperty('recents', [
+      {ref: 'Example 2:1', translation: 'example'},
+      {ref: 'Example 1:1', translation: 'example', future: 'kept'},
+    ]);
+  });
+
   it.each(settingsNames)(
     'reads and edits %s with its file schema and revision',
     name => {

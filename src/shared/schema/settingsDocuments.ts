@@ -16,6 +16,7 @@ import {screensSchema} from './screens';
 import {shortcutsSchema} from './shortcuts';
 import {stageLayoutsSchema} from './stageLayouts';
 import {timersSchema} from './timers';
+import {preserveUnknownFields} from './preserveUnknown';
 
 /** Shared metadata for settings and the separately edited media list. */
 export function settingsDocumentSchema<
@@ -153,4 +154,23 @@ export function parseSettingsReply(
 
 export function parseSettingsEdit(value: unknown) {
   return checkPart(settingsEditSchema, value);
+}
+
+/** Applies a whole-file edit while retaining unrecognized fields from the current document. */
+export function mergeSettingsDocument(
+  current: SettingsDocument,
+  edit: SettingsEdit,
+) {
+  if (current.name !== edit.name) {
+    return {
+      ok: false,
+      error: {field: 'name', message: 'The edit names another settings file'},
+    } as const;
+  }
+  return parseSettingsDocument({
+    name: edit.name,
+    value: preserveUnknownFields(schemas[edit.name], current.value, edit.value),
+    access: current.access,
+    revision: current.revision + 1,
+  });
 }
