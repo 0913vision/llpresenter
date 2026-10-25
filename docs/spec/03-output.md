@@ -460,13 +460,19 @@ stage layers on and off).
 
 ### When a monitor disconnects during output
 
-When the monitor of a full screen output that is on disconnects:
+When the monitor of a full screen output that is on disconnects, immediately
+disable always on top for the affected output window and put it behind the
+control window without taking focus. This happens on the disconnect event
+itself, before the 300 ms monitor-list settle wait (`DISPLAY_SETTLE_MS`). The
+settle wait only plans the window's placement; the relocated full screen output
+stays behind the controls while monitors settle.
 
 1. If the screen's 연결이 끊기면 (when disconnected) setting is 창으로 바꾸기
-   (switch to a window), move the same output into a window on the control
-   monitor and keep drawing. Content and playback position don't break.
-   - Place the fallback behind the control window without taking focus, and
-     disable always on top for the fallback.
+   (switch to a window), after the settle wait move the same output into a
+   window on the control monitor and keep drawing. Content and playback position
+   don't break.
+   - Keep the fallback behind the control window without taking focus and with
+     always on top disabled.
    - Use `placement.ts`'s `OUTPUT_WINDOW_SIZE` (960 x 540 DIP, shrunk to fit
      when needed), centered on the control monitor's work area.
 2. That screen's toolbar button shows the monitor missing state (amber dot and
@@ -478,11 +484,6 @@ When the monitor of a full screen output that is on disconnects:
    - 모니터 다시 찾기: read the monitor list again at once, and match the saved
      monitor again.
    - 창 보기: bring the fallback window in front of the control window.
-
-A short full screen flash on the control monitor immediately after unplugging is
-expected. Windows moves the window before the app receives the monitor change.
-The app's 300 ms settle wait (`DISPLAY_SETTLE_MS`) lets the monitor list
-stabilize before applying the fallback placement.
 
 If the screen's 연결이 끊기면 setting is to turn the output off instead, turn
 that screen's output off and show the same warning notification (proposal).
