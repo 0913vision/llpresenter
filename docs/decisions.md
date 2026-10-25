@@ -352,3 +352,20 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
 - Dragging a header in the 예배 순서 moves the header together with its items up
   to the next header, as one section (user decision, confirming the lead's
   default in spec-28; spec 04 and 05 didn't say).
+
+## 2026-10-26: Ownership works like code owners, and additive contracts go in the request
+
+- File ownership no longer gates edits. Any member may change any path their
+  request needs, lists the changes outside their own paths with the reason in
+  the review document, and the review checks them against that path owner's
+  rules, as code owners do in a pull request (user decision; members had to stop
+  and ask the lead more than twenty times in one night for one-line wiring
+  changes).
+- Additive shared contracts (a new type, an optional field, a new IPC channel or
+  command) go in the member's own request with schemas, valid and invalid tests,
+  and caps in data's conventions. A change that alters or removes an existing
+  contract is tagged `break` and goes to data first (user decision; about ten
+  contract-only data requests blocked other members overnight).
+- Changes in someone else's area stay limited to what the request needs; a
+  larger change there is that owner's request. `CLAUDE.md`, "Your files" and
+  "Shared contracts", and `docs/MILESTONES.md`, "File ownership", say this.

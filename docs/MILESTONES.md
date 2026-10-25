@@ -30,10 +30,12 @@ differs from the design system).
 
 ## File ownership
 
-One owner per path. Change only your own paths; ask the owner for anything else.
-Every member owns their own `docs/reviews/<name>-<number>.md`, and a member who
-rebases regenerates `package-lock.json` (take `main`'s file, then
-`npm install`).
+One owner per path, like code owners: the owner keeps the path's rules, and
+reviews check every change there against them. Any member may change any path
+their request needs and lists changes outside their own paths in the review
+document (`CLAUDE.md`, "Your files"; user decision, October 26). Every member
+owns their own `docs/reviews/<name>-<number>.md`, and a member who rebases
+regenerates `package-lock.json` (take `main`'s file, then `npm install`).
 
 | Owner   | Paths                                                                                                                                                                                                                                                                                          |
 | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -49,8 +51,9 @@ rebases regenerates `package-lock.json` (take `main`'s file, then
 | tools   | `src/renderer/src/show/tools/`, `src/renderer/src/show/quick/`, `src/renderer/src/show/bible/`, `src/main/macros/`, `src/main/bible/` (from the M2 freeze; no member yet)                                                                                                                      |
 | lead    | `CLAUDE.md`, `README.md`, the rest of `docs/`, `design/drafts/`, `.claude/`, `.gitignore`, `.prettierrc.json`, `.editorconfig`                                                                                                                                                                 |
 
-A member who needs a new module wired into the main process exports a
-`register...` function and asks output to call it from `src/main/index.ts`.
+A member who adds a main-process module exports a `register...` function and
+adds its call and its disposal to `src/main/index.ts` and the wiring test in the
+same request, listed under "Changes outside my paths".
 
 ## M1: Foundation
 

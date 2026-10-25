@@ -203,12 +203,18 @@ without exception.
 These rules are fixed until the current milestone is frozen. The lead changes
 the process only at a milestone boundary, never in the middle of one.
 
-- **Your files:** change only the paths that "File ownership" in
-  `docs/MILESTONES.md` gives you. If you need a change in someone else's path,
-  ask its owner (or the lead) with SendMessage; don't edit it yourself.
-- **Shared contracts:** `src/shared/` and `src/preload/` belong to data. To add
-  a type, an IPC channel, or a command, send data the exact shape; data lands it
-  as a small request first, and you build on it after it merges.
+- **Your files:** "File ownership" in `docs/MILESTONES.md` names who keeps each
+  path, like code owners: the owner's rules apply to every change there, and the
+  review checks them. You may change any path your request needs without asking
+  first. List every change outside your own paths, with the reason, under
+  "Changes outside my paths" in the review document. Keep those changes to what
+  the request needs; a larger change in someone else's area is that owner's
+  request.
+- **Shared contracts:** `src/shared/` and `src/preload/` are kept by data.
+  Additive changes (a new type, an optional field, a new IPC channel or command)
+  go in your own request, with schemas, valid and invalid tests, and caps,
+  following data's conventions. A change that alters or removes an existing
+  contract is tagged `break` and goes to data first.
 - **Branches:** create your own (`<tag>/<name>/<feature>`). While one is in
   review, start the next one stacked on it (`docs/WORKFLOW.md`, "Stacked
   branches").
