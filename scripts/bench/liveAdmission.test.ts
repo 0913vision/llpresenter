@@ -6,7 +6,10 @@ import type {LiveCommand} from '../../src/shared/commands';
 import {emptyLiveState, type LiveState} from '../../src/shared/live';
 import {parseLiveState} from '../../src/shared/schema/liveState';
 import {LiveStore} from '../../src/main/live/store';
-import {SliceRegistry} from '../../src/main/live/sliceRegistry';
+import {
+  SliceRegistry,
+  type SkippedLiveCommand,
+} from '../../src/main/live/sliceRegistry';
 import {batchSlice} from '../../src/main/live/slices/batch';
 import {outputsSlice} from '../../src/main/live/slices/outputs';
 
@@ -106,7 +109,7 @@ function measure(name: string, iterations: number, run: () => void) {
 
 describe('manual live admission cost', () => {
   it.skipIf(process.env['LLP_LIVE_BENCH'] !== '1')(
-    'measures dispatches, 256-child batches, and the preload parser',
+    'measures dispatches, passing and failing 256-child batches, and the preload parser',
     () => {
       const results = [];
       const fixtures = {typical: typicalState(), heavy: heavyState()};
@@ -117,6 +120,17 @@ describe('manual live admission cost', () => {
           screenId: 'main',
           on: i % 2 === 1,
         })),
+      };
+      const failingBatch: LiveCommand = {
+        type: 'live.batch',
+        commands: [
+          ...Array.from({length: 255}, (_, i) => ({
+            type: 'output.set' as const,
+            screenId: 'main',
+            on: i % 2 === 1,
+          })),
+          {type: 'output.set', screenId: uuid(999), on: true},
+        ],
       };
       for (const [name, state] of Object.entries(fixtures)) {
         const store = new LiveStore(
@@ -148,6 +162,22 @@ describe('manual live admission cost', () => {
           state.version + 4 + SAMPLES * (dispatchIterations + batchIterations),
         );
       }
+      const rejecting = new LiveStore(
+        fixtures.heavy,
+        () => 100,
+        new SliceRegistry([outputsSlice, batchSlice]),
+      );
+      let rejections = 0;
+      const countRejection = (problem: SkippedLiveCommand) => {
+        if (problem.reason === 'invalid-overlay') rejections++;
+      };
+      results.push(
+        measure('heavy:failingBatch256', 1, () => {
+          rejecting.dispatch(failingBatch, undefined, countRejection);
+        }),
+      );
+      expect(rejections).toBe(2 + SAMPLES);
+      expect(rejecting.state.outputs).not.toHaveProperty(uuid(999));
       const phase = process.env['LLP_LIVE_BENCH_PHASE'] ?? 'unspecified';
       const report = {
         phase,
@@ -163,9 +193,7 @@ describe('manual live admission cost', () => {
         results,
       };
       writeFileSync(
-        phase === 'round2-before'
-          ? '.llp/data42-before-cost.json'
-          : '.llp/data42-after-cost.json',
+        `.llp/live-admission-${phase}.json`,
         JSON.stringify(report, null, 2),
       );
     },
