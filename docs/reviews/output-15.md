@@ -177,15 +177,16 @@ Check the measurement table first, then `windowTestOptions` and
 paint releases its texture before the next paint, including after a reload, and
 that destruction removes the listener.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: pending
-- Findings:
-
-## Review: reviewer
-
-- Verdict: pending
-- Findings:
+- Round 1 (de5058d): reviewer (Codex, codex3) Approve with no findings. Lead
+  Approve; fixes bug M2-5. The swing came from offscreen test windows passing
+  each 1080p frame to the main process as a bitmap (7.91 MiB), not from the
+  media handler: with the same looping video the main process peaked at 679.91
+  MiB with bitmap frames and 82.57 MiB with GPU shared textures released at
+  once, and twelve interrupted loads closed all twelve streams. Normal windows
+  never had the problem. Written by the Codex session that took over output's
+  work after the power loss. Fast-forward merge.
 
 ## Team member's reply
 
