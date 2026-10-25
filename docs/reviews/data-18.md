@@ -1,19 +1,40 @@
 # Review request: `data-18`
 
-Review range: `e186235...feat/data/content-contracts`
+Review range: `5536536...feat/data/content-contracts`
+
+Round 2 changes only: `6dac9fc...feat/data/content-contracts`
 
 - Team member: `data`
-- Branch: `feat/data/content-contracts`, stacked on `data-16`
-  (`fix/data/service-get-rejects`, e186235, in review), because both change
-  `src/preload/index.ts`
-- Base commit (`main`): `0e180a1`
-- Last commit: see the commit that adds this file
+- Branch: `feat/data/content-contracts`, on `main` (data-16 has merged)
+- Base commit (`main`): `5536536` (round 1: `0e180a1` with data-16 below)
+- Last commit: see the newest commit that changes this file
 - Related brief: `docs/plans/m3-breakdown.md`, "M3-D1a, D1b, D1c Contracts"
   (D1a-1: songs, 예배 순서, and 틀); the lead's design answer of October 25
   (whole documents with a base revision, cross-file commands, revisions on every
   push); spec 01 (command path), 02 (file formats), 04, 05
 
-What to check:
+What to check in round 2:
+
+1.  Finding 1: `EditFailure` is a variant on `reason`. A refusal (`stale`,
+    `not-found`, `read-only`, `duplicate-title`, `invalid`) has only a message,
+    because nothing changed. `write-failed` carries `applied`, the
+    `{id, revision}` the edit produced in memory, and at least one entry in
+    `unchangedFiles` (02, "Save failures": the content stays in memory). Tests:
+    `contentEdit.test.ts` (accepted with `applied`, rejected without it or
+    without a file) and the preload test "keeps the applied result of an edit
+    whose save failed".
+2.  Finding 2: `service.importItems` takes
+    `from: {kind: 'service', id} | {kind: 'template', id}`, and `index` is gone:
+    spec 05, "Importing from another service", lists 틀 and 지난 예배 as sources
+    and appends the checked items to the end of the current service, in source
+    order, with new ids. Tests: valid imports from both kinds; an unknown kind,
+    a 틀 id that isn't a UUID, and the old `fromServiceId` shape fail.
+3.  Finding 3: every change schema checks that a non-null document carries the
+    id the change names (`document.song.id === songId`, and the same for 예배
+    순서 and 틀). Tests: `contentDocuments.test.ts` for all three kinds, and the
+    preload subscription test drops a song push with another id.
+
+What to check in round 1:
 
 1.  `src/shared/schema/contentEdit.ts`: the `ContentEdit` union (dotted types,
     like `LiveCommand`) and `EditResult`. Every edit has a schema; a wrong shape
@@ -48,21 +69,21 @@ All in data's paths:
 
 ### The edits (`content:edit`)
 
-| Type                                | Payload                                          | What the main process does (data-19)                                                                 |
-| ----------------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| `song.create`                       | none                                             | A song "새 곡" (or the next free "새 곡 N") with one blank 장 (05, "New song")                       |
-| `song.update`                       | `song`, `baseRevision`                           | Applies the known fields over the stored file, so unknown fields survive                             |
-| `song.delete`                       | `songId`                                         | Deletes the file; items that use it show `missing-song` (05, "Deleting a song")                      |
-| `song.arrangement.rename`           | `songId`, `from`, `to`                           | Renames the 구성 and rewrites every 예배 순서 item that picks it (05, "구성 row")                    |
-| `song.arrangement.delete`           | `songId`, `name`                                 | Deletes the 구성; items that picked it play 기본 (05, "구성 row")                                    |
-| `service.create`                    | `name`, `date`, `templateId` or `null`           | A new 예배 순서, from a 틀 or empty (05, "New service")                                              |
-| `service.update`, `template.update` | the document, `baseRevision`                     | As `song.update`                                                                                     |
-| `service.delete`, `template.delete` | the id                                           | Deletes the file                                                                                     |
-| `service.importItems`               | `serviceId`, `fromServiceId`, `itemIds`, `index` | Copies the items with new ids into the 예배 순서 at the index (05, "Importing from another service") |
-| `service.saveAsTemplate`            | `serviceId`, `name`                              | A new 틀 from the 예배 순서 (05, "Saving the current service as a 틀")                               |
+| Type                                | Payload                                              | What the main process does (data-19)                                                                             |
+| ----------------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `song.create`                       | none                                                 | A song "새 곡" (or the next free "새 곡 N") with one blank 장 (05, "New song")                                   |
+| `song.update`                       | `song`, `baseRevision`                               | Applies the known fields over the stored file, so unknown fields survive                                         |
+| `song.delete`                       | `songId`                                             | Deletes the file; items that use it show `missing-song` (05, "Deleting a song")                                  |
+| `song.arrangement.rename`           | `songId`, `from`, `to`                               | Renames the 구성 and rewrites every 예배 순서 item that picks it (05, "구성 row")                                |
+| `song.arrangement.delete`           | `songId`, `name`                                     | Deletes the 구성; items that picked it play 기본 (05, "구성 row")                                                |
+| `service.create`                    | `name`, `date`, `templateId` or `null`               | A new 예배 순서, from a 틀 or empty (05, "New service")                                                          |
+| `service.update`, `template.update` | the document, `baseRevision`                         | As `song.update`                                                                                                 |
+| `service.delete`, `template.delete` | the id                                               | Deletes the file                                                                                                 |
+| `service.importItems`               | `serviceId`, `from` (a 예배 순서 or a 틀), `itemIds` | Appends copies of the items, in source order and with new ids, to the end (05, "Importing from another service") |
+| `service.saveAsTemplate`            | `serviceId`, `name`                                  | A new 틀 from the 예배 순서 (05, "Saving the current service as a 틀")                                           |
 
 The answer, `EditResult`, is either `{id, revision}` (the new revision, or
-`null` after a delete) or a failure with a `reason`:
+`null` after a delete) or a failure with a `reason`. A refusal changes nothing:
 
 - `stale`: the document's revision moved past `baseRevision` (another window's
   edit, or a cross-file command such as a 구성 rename that rewrote this 예배
@@ -71,9 +92,11 @@ The answer, `EditResult`, is either `{id, revision}` (the new revision, or
 - `not-found`, `read-only` (a file from a newer app version), `duplicate-title`
   (05: titles are unique), `invalid` (a rule the schema can't see, such as an
   item id that already exists).
-- `write-failed`: the edit is applied and kept in memory, and `unchangedFiles`
-  names the files that couldn't be written; they are saved again later and
-  reported as a save failure (02, "Save failures").
+- `write-failed` isn't a refusal: the edit is applied and kept in memory,
+  `applied` holds its `{id, revision}`, so a window still knows the song it
+  created and can match its own push, and `unchangedFiles` names the files that
+  couldn't be written; they are saved again later and reported as a save failure
+  (02, "Save failures").
 
 ### Revisions and pushes
 
@@ -107,7 +130,8 @@ The answer, `EditResult`, is either `{id, revision}` (the new revision, or
   file in memory, then writes the files one at a time, the song (or the document
   named in the edit) first, then the affected 예배 순서 in id order. Each write
   is atomic. If a write fails, the rest are still written, the answer is
-  `write-failed` with the files that didn't change, and each failure is logged.
+  `write-failed` with the applied result and the files that didn't change, and
+  each failure is logged.
 
 ### Naming
 
@@ -125,22 +149,34 @@ Edits are dotted types inside one channel, as live commands are inside
 
 ## Checks run
 
-`npm run verify` on the commit before this document (25e6db2), on `main` 0e180a1
-with `data-16` below it: every step passed (187.3 s, steps at once). The soak
-test failure known on `main` since devops-13 didn't occur on this base.
+Round 2: `npm run verify` on the commit before this document's round 2 change
+(dff9c49), on `main` 5536536, steps at once: every step passed except
+`test:coverage`, which failed on two tests outside this change:
 
-| Command or test                    | Result                       |
-| ---------------------------------- | ---------------------------- |
-| `npm run typecheck`                | Passed (16.1 s)              |
-| `npm run lint`                     | Passed (85.7 s)              |
-| `npm run format:check`             | Passed (87.2 s)              |
-| `npm test`                         | Passed as `test:coverage`    |
-| `npm run build`                    | Passed (6.5 s)               |
-| `npm run verify` (from phase 1 on) | Passed: every step (187.3 s) |
+- `scripts/soak/media.test.ts`, "ends the stalled maker and every process it
+  started": the failure known on `main` since devops-13 (devops-17 fixes it).
+- `src/main/index.test.ts`, "quits with a logged error and no dialog when the
+  path is relative": it timed out at 30 s while the machine was busy (the format
+  check alone took 233.8 s in this run). This change doesn't touch the main
+  entry.
+
+Every test in the files this change touches passed.
+
+| Command or test                    | Result                                                 |
+| ---------------------------------- | ------------------------------------------------------ |
+| `npm run typecheck`                | Passed (52.5 s)                                        |
+| `npm run lint`                     | Passed (125.8 s)                                       |
+| `npm run format:check`             | Passed (233.8 s)                                       |
+| `npm test`                         | Failed on the two tests above only, as `test:coverage` |
+| `npm run build`                    | Passed (22.5 s)                                        |
+| `npm run verify` (from phase 1 on) | Failed on `test:coverage` only (295.4 s)               |
+
+Round 1 passed on `main` 0e180a1 with `data-16` below it (187.3 s).
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
-- [x] `npm run verify` passes
+- [ ] `npm run verify` passes: every step except the two tests outside this
+      change named under "Checks run"
 - [x] `npm run format:check` passes
 - [x] Every new behavior and every bug fix has unit tests: every edit type,
       valid and invalid; the answers; the reads and pushes; the preload path.
@@ -200,4 +236,19 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 findings from codex5, answered in round 2:
+
+1.  Fixed. A `write-failed` answer now carries `applied`, the `{id, revision}`
+    the edit produced, next to `unchangedFiles` (at least one). This follows 02,
+    "Save failures": the content stays in memory and the save is retried, so the
+    edit did happen and the window needs its result. The refusals keep only a
+    message.
+2.  Fixed. `service.importItems` takes `from`, a 예배 순서 or a 틀 by id.
+    Following 05, "Importing from another service" (sources: 틀 and 지난 예배;
+    the checked items are appended to the end, in source order, with new ids),
+    `index` is gone.
+3.  Fixed. The song, 예배 순서, and 틀 change schemas refuse a document whose id
+    differs from the change's id, reported at `document`, so a subscriber that
+    filters by the id gets that document only.
+
+4.
