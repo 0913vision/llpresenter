@@ -11,6 +11,7 @@ import {
 } from '../../../main/windows/fixtures/pixelFixtureLifecycle.mts';
 import {runStepProcess} from '../../../../scripts/verify/step-process.mts';
 import {makeTempDir} from '../../../../test/temp-dir';
+import {electronTestArgs} from '../../../../test/electron-launch';
 
 const FIXTURE_ROOT = resolve('src/renderer/src/render/fixtures');
 const FIXTURE_MAIN = resolve(
@@ -61,11 +62,11 @@ it(
       runStepProcess({
         name: 'transparent PNG regression',
         file: binary,
-        args: [
+        args: electronTestArgs([
           FIXTURE_MAIN,
           join(outDir, 'transparentBackground.html'),
           userData,
-        ],
+        ]),
         env: {...env, LLP_TEST_WINDOWS: 'offscreen'},
         deadlineMs: PIXEL_FIXTURE_PROCESS_DEADLINE_MS,
         interrupt,

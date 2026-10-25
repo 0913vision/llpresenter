@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react';
 import {build} from 'vite';
 import {expect, it, onTestFinished} from 'vitest';
 import {makeTempDir} from '../../../test/temp-dir';
+import {electronTestArgs} from '../../../test/electron-launch';
 import {runStepProcess} from '../../../scripts/verify/step-process.mts';
 
 const STARTUP_MS = 120_000;
@@ -97,7 +98,7 @@ it(
     const running = runStepProcess({
       name: 'UI zoom Electron regression',
       file: binary,
-      args: [main, userData],
+      args: electronTestArgs([main, userData]),
       env: {...env, LLP_TEST_WINDOWS: 'offscreen'},
       deadlineMs: PROCESS_MS,
       interrupt: abort.signal,
