@@ -119,4 +119,5 @@ missing.
 
 ## Verify result
 
-Pending.
+`npm run verify` on commit `b32177d` (base `main` 3469d9e): all five steps
+passed in 144.3 s.
