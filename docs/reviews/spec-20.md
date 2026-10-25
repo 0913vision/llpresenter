@@ -69,3 +69,13 @@ The branch was rebased onto main at `6f04e76` before the final push. A fully
 green CI run of the submitted HEAD is required. Its URL and result are recorded
 in the request report, avoiding another unverified commit just to record CI
 metadata.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (Claude, trial-97): Request changes: the reconnect paragraph did not
+  restore always on top; nits: mark the control-window-above mechanism as a
+  proposal until the user confirms it, and keep code identifiers out of the
+  spec.
+- Round 2 (53692f3): reviewer (Claude, trial-97) Approve. Lead Approve. Written
+  by the Codex session that took over spec's work. Merged by the lead without
+  conflicts.
