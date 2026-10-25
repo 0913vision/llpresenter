@@ -109,13 +109,17 @@ write answer. `SettingsPersistence.writePending` resolves burst callers with the
 latest write. `loadSettingsArea` protects each load independently.
 `mergeSettingsDocument` applies server-side preservation and final validation.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-Pending.
-
-## Review: reviewer
-
-Pending.
+- Round 1 (6168f5a): reviewer (Claude, trial-97) Approve. Nit for the next data
+  branch: `src/shared/schema/preserveUnknown.ts` matches unknown fields by
+  `name` or by position when there is no stable id, so a rename and a reorder in
+  one edit can move an unknown field to the wrong item; say so in the TSDoc and
+  prefer stable ids when a format gets them. The helper reads valibot's schema
+  object shape, so valibot stays pinned exactly (it is, at 1.5.0) and the
+  13-format tests guard an upgrade. Lead Approve. Written by the Codex session
+  that took over data's work. Rebased by the lead onto local `main` without
+  conflicts. M3-D2 part 2 is complete.
 
 ## Team member's reply
 
