@@ -76,15 +76,15 @@ invented sentences and example metadata.
    matching preview's corruption policy. It is not accepted as a retained source
    only to fail on the next call.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: pending
-- Findings:
-
-## Review: reviewer
-
-- Verdict: pending
-- Findings:
+- Round 1 (93af0a9): reviewer (Claude, trial-97) Approve. Nits for the next data
+  branch: `src/shared/schema/bibleTranslation.ts:29` add `v.minLength(1)` to a
+  book's chapters; `:51` allow only `http:` and `https:` source URLs, with a
+  test for a rejected scheme; optionally replace the hand-written BCP 47 grammar
+  in `languageTag.ts` with `Intl.getCanonicalLocales`. Lead Approve. Written by
+  the Codex session that took over data's work. Rebased by the lead onto local
+  `main` without conflicts.
 
 ## Team member's reply
 
