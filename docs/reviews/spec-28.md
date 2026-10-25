@@ -89,3 +89,12 @@ process, visible window, soak, or memory measurement was started.
 
 The slide header and service picker remain assigned S1a follow-ups. The picker
 is being wired on merged data-33 in a separate branch. S1b is excluded.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (3399e18): reviewer (Claude, trial-97) Approve with no findings. Lead
+  Approve. The header drag that moves the header with its rows as one section is
+  a lead default (spec 04 and 05 are silent) that the user confirms on
+  October 26. Written by the Codex session that took over spec's work, under the
+  lead's exception for shell's paths. Rebased by the lead onto local `main`
+  without conflicts.
