@@ -12,6 +12,7 @@ import {
 } from './MediaTile';
 import {missingFileText} from './MissingFile';
 import {hoverForTooltip, resetTooltips} from './tooltipTesting';
+import styles from './MediaTile.module.css';
 
 afterEach(resetTooltips);
 
@@ -91,6 +92,9 @@ describe('MediaTile', () => {
     expect(video?.muted).toBe(true);
     expect(video?.autoplay).toBe(false);
     expect(video?.preload).toBe('metadata');
+    if (!video?.parentElement) throw new Error('Missing preview fill wrapper');
+    expect(video.parentElement.className).toBe(styles.picture);
+    expect(video.parentElement.parentElement?.tagName).toBe('SPAN');
     expect(option.textContent).toBe('0:30새 영상');
     rerender(<MediaTile name="새 영상" picture={picture} missingFile={PATH} />);
     expect(option.querySelector('video')).toBeNull();

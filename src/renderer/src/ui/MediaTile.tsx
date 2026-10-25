@@ -24,7 +24,10 @@ export function copyingText(percent: number): string {
 export interface MediaTileProps {
   /** The file name without its extension, such as 따뜻한 빛. */
   readonly name: string;
-  /** An image URL or a host-owned preview element, such as a paused video. */
+  /**
+   * An image URL or a host-owned preview element, such as a paused video.
+   * Keep element values stable with useMemo so this memoized tile can skip work.
+   */
   readonly picture?: string | ReactElement | undefined;
   /** The length of a video as minutes:seconds, such as 0:30; none for an image. */
   readonly duration?: string | undefined;
@@ -115,8 +118,8 @@ function Frame(props: MediaTileProps): JSX.Element {
     <span className={styles.frame}>
       {typeof picture === 'string' ? (
         <img className={styles.picture} src={picture} alt="" decoding="async" />
-      ) : (
-        picture
+      ) : picture === undefined ? null : (
+        <span className={styles.picture}>{picture}</span>
       )}
       {copying === undefined && duration !== undefined ? (
         <Duration duration={duration} loop={loop} />

@@ -1,21 +1,27 @@
-import {useEffect, useEffectEvent, useRef, useState} from 'react';
+﻿import {useEffect, useEffectEvent, useRef, useState} from 'react';
 import type {MediaId} from '@shared/schema/ids';
 import type {
   MediaDocument,
   MediaImportProgress,
 } from '@shared/schema/mediaEdit';
-import {MEDIA_LIMITS} from '@shared/schema/mediaList';
 import {sendLive} from '@renderer/state/live';
 import type {Notice} from '@renderer/ui/notices';
+import {updateActiveCopies, type CopyJob} from './mediaCopyJobs';
 
-export const MEDIA_IMPORT_UNAVAILABLE =
-  '현재 버전에서는 미디어 파일을 가져올 수 없음';
-export const MEDIA_RELINK_UNAVAILABLE =
-  '현재 버전에서는 미디어 파일을 다시 연결할 수 없음';
-type CopyJob = Extract<
-  MediaImportProgress,
-  {phase: 'queued' | 'copying' | 'analysing'}
->;
+function warningNotice(
+  key: string,
+  title: string,
+  meta?: readonly string[],
+): Notice {
+  return {
+    key,
+    kind: 'warning',
+    icon: 'warning',
+    title,
+    time: new Date().toTimeString().slice(0, 5),
+    meta,
+  };
+}
 
 /** Follows the strip's documents and active copies; unmount releases both feeds. */
 export function useMediaStrip(onProblem: (notice: Notice) => void) {
@@ -28,21 +34,26 @@ export function useMediaStrip(onProblem: (notice: Notice) => void) {
   const alive = useRef(false);
   const reportFromFeed = useEffectEvent(onProblem);
 
-  const problem = (cause: 'relink' | 'output', detail?: string): void => {
-    if (!alive.current) return;
-    const titles = {
-      relink: '미디어 다시 연결할 수 없음',
-      output: '미디어 출력 실패',
-    };
-    onProblem({
-      key: `media-strip:${cause}`,
-      kind: 'warning',
-      icon: 'warning',
-      title: titles[cause],
-      time: new Date().toTimeString().slice(0, 5),
-      ...(detail ? {meta: [detail]} : {}),
-    });
-  };
+  const receiveProgress = useEffectEvent(
+    (progress: MediaImportProgress): void => {
+      const changed = updateActiveCopies(activeJobs.current, progress);
+      if (progress.phase === 'failed') {
+        reportFromFeed(
+          warningNotice(
+            `media-strip:copy:${progress.mediaId}`,
+            '미디어 복사 실패',
+            [progress.fileName],
+          ),
+        );
+        window.llp?.log.write({
+          level: 'error',
+          message: 'Media copy failed',
+          detail: progress.message,
+        });
+      }
+      if (changed) setJobs([...activeJobs.current.values()]);
+    },
+  );
 
   useEffect(() => {
     const api = window.llp;
@@ -61,53 +72,26 @@ export function useMediaStrip(onProblem: (notice: Notice) => void) {
     const stopMedia = api.media.subscribe(accept);
     const pending = activeJobs.current;
     const stopImports = api.media.subscribeImports(progress => {
-      if (!active) return;
-      if (
-        progress.phase === 'queued' ||
-        progress.phase === 'copying' ||
-        progress.phase === 'analysing'
-      ) {
-        if (
-          pending.has(progress.mediaId) ||
-          pending.size < MEDIA_LIMITS.items
-        ) {
-          pending.set(progress.mediaId, progress);
-        }
-      } else {
-        pending.delete(progress.mediaId);
-        if (progress.phase === 'failed') {
-          reportFromFeed({
-            key: `media-strip:copy:${progress.mediaId}`,
-            kind: 'warning',
-            icon: 'warning',
-            title: '미디어 복사 실패',
-            time: new Date().toTimeString().slice(0, 5),
-            meta: [progress.fileName],
-          });
-          api.log.write({
-            level: 'error',
-            message: 'Media copy failed',
-            detail: progress.message,
-          });
-        }
-      }
-      setJobs([...pending.values()]);
+      if (active) receiveProgress(progress);
     });
-    api.media.get().then(accept, (cause: unknown) => {
-      api.log.write({
-        level: 'error',
-        message: 'Could not load the media strip',
-        detail: cause instanceof Error ? cause.message : String(cause),
-      });
-      if (active && canonical.current === null) {
-        reportFromFeed({
-          key: 'media-strip:load',
-          kind: 'warning',
-          icon: 'warning',
-          title: '미디어 불러오기 실패',
-          time: new Date().toTimeString().slice(0, 5),
+    const read = async (): Promise<void> => {
+      try {
+        accept(await api.media.get());
+      } catch (cause) {
+        api.log.write({
+          level: 'error',
+          message: 'Could not load the media strip',
+          detail: cause instanceof Error ? cause.message : String(cause),
         });
+        if (active && canonical.current === null) {
+          reportFromFeed(
+            warningNotice('media-strip:load', '미디어 불러오기 실패'),
+          );
+        }
       }
+    };
+    read().catch((cause: unknown) => {
+      console.error('Media strip load callback failed:', cause);
     });
     return () => {
       active = false;
@@ -134,7 +118,11 @@ export function useMediaStrip(onProblem: (notice: Notice) => void) {
     const item = canonical.current?.value.items.find(item => item.id === id);
     if (!item || item.kind === 'audio') return;
     if (missingIds.current.has(id)) {
-      problem('relink', MEDIA_RELINK_UNAVAILABLE);
+      onProblem(
+        warningNotice('media-strip:relink', '미디어 다시 연결할 수 없음', [
+          item.name || '이름 없는 미디어',
+        ]),
+      );
       return;
     }
     try {
@@ -148,7 +136,7 @@ export function useMediaStrip(onProblem: (notice: Notice) => void) {
         message: 'Could not output the strip media',
         detail: cause instanceof Error ? cause.message : String(cause),
       });
-      problem('output');
+      onProblem(warningNotice('media-strip:output', '미디어 출력 실패'));
     }
   };
   return {document, jobs, missing, markMissing, activate};

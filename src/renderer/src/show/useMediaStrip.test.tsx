@@ -166,7 +166,10 @@ it('blocks an active copy and releases it on completion, cancellation, or failur
   );
   expect(result.current.jobs).toHaveLength(0);
   expect(report).toHaveBeenCalledWith(
-    expect.objectContaining({title: '미디어 복사 실패'}),
+    expect.objectContaining({
+      title: '미디어 복사 실패',
+      meta: ['invented.mp4'],
+    }),
   );
   expect(log).toHaveBeenCalledWith(
     expect.objectContaining({detail: 'Invented copy cause'}),
@@ -182,7 +185,10 @@ it('marks only current preview failures and keeps missing backgrounds off output
   expect(result.current.missing.has(image)).toBe(true);
   expect(send).not.toHaveBeenCalled();
   expect(report).toHaveBeenCalledWith(
-    expect.objectContaining({title: '미디어 다시 연결할 수 없음'}),
+    expect.objectContaining({
+      title: '미디어 다시 연결할 수 없음',
+      meta: ['새 빛'],
+    }),
   );
   act(() => push(mediaDocument(2)));
   act(() => result.current.markMissing(image, 1));
