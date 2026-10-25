@@ -2,10 +2,10 @@
 
 - Team member: data
 - Branch: `feat/data/screen-recovery-contracts`
-- Stacked base: `11ec9cbd8ef0bfcd23d8fb759fccc67d64b20467` (data-26)
-- Last source commit: `c51855f365bbc4bec3b4142973b21fac659fd5b9`
-- Review range: `11ec9cb...feat/data/screen-recovery-contracts`
-- Main base: `09dcac2e3135640311b507afe311db301652fe0c`
+- Stacked base: `7da54c7feb98ce8d9c70152f2d2c87c295135179` (data-26 round 2)
+- Last source commit: `6d49bda684ab14bc4db6a7d89b805c7524ea70ee`
+- Review range: `7da54c7...feat/data/screen-recovery-contracts`
+- Main base: `ed365ffca35f7ae339cb01c56e9430d22e9e11af`
 - Related brief: `.llp/task.md`, M3-D1c in `docs/plans/m3-breakdown.md`
 
 ## What changed and why
@@ -43,14 +43,15 @@ refusal distinct from a transport or schema failure.
 | Command or test                                              | Result                                                              |
 | ------------------------------------------------------------ | ------------------------------------------------------------------- |
 | `npm run typecheck`                                          | Passed                                                              |
-| Targeted Vitest, nine files                                  | 182 tests passed                                                    |
+| Original targeted Vitest, nine files                         | 182 tests passed                                                    |
+| Restack targeted Vitest, six files                           | 112 tests passed, including unchanged shell tests                   |
 | ESLint on changed TypeScript files                           | Passed                                                              |
 | `npm run format` and `git diff --check`                      | Passed                                                              |
 | `git range-diff` after stacking on the data-26 review commit | Both source changes identical                                       |
 | Local `npm run verify`                                       | Not run, per lead instruction                                       |
 | GitHub full verification                                     | Source run passed; final HEAD result accompanies the review request |
 
-Source CI: **passed**, verified with `node scripts/ci/status.mts`:
+Original source CI: **passed**, verified with `node scripts/ci/status.mts`:
 https://github.com/0913vision/llpresenter/actions/runs/40195613279 for
 `c51855f365bbc4bec3b4142973b21fac659fd5b9`.
 
@@ -102,8 +103,8 @@ M3-O9a/O9b own screen command slices and monitor overlays.
 
 Review the recovery schema's relational checks, preload's transport/refusal
 distinction, and the real-store unsupported-command regression. The branch was
-stacked on data-26 and checked against main once; its lower branch ref was not
-rewritten. Original source commits survived restacking with identical patches.
+stacked on data-26 and checked against main once. It is now restacked on the
+round 2 data-26 response; the final HEAD run is linked in the restack request.
 
 ## Review: lead
 
@@ -117,4 +118,10 @@ rewritten. Original source commits survived restacking with identical patches.
 
 ## Team member's reply
 
-Pending review.
+### Restack after data-26 round 1
+
+Restack on data-26's batch interruption fix. The switch conflict was resolved by
+retaining `live.batch`'s child-based classification and adding only the three
+screen command cases to the false group. The screen and recovery contracts and
+preload behavior are unchanged. The restack request includes the fast-check
+results and a fully green CI run of this final HEAD.
