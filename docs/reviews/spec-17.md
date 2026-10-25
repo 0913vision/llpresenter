@@ -1,30 +1,26 @@
-# Contract request: `spec-17`
+Review range: `3a83ee2...feat/spec/song-background`
+
+# Review request: `spec-17`
 
 - Team member: `spec`
-- Branch: `feat/spec/song-background`, from `main`
+- Branch: `feat/spec/song-background`, from `main` (not stacked)
 - Base commit (`main`): `3a83ee2`
-- Task: `.llp/task.md`, song background on slide output
-- State: waiting for the lead before implementation
+- Code commit: `db99866`
+- Last commit: the commit completing this review request
+- Task: `.llp/task.md`, M2 song background acceptance
+- Ownership exception: the lead granted the song-row shared schema, main-side
+  show projection and loading wiring, and renderer show/state paths for this
+  feature. No live command or on-disk format changed.
 
-## Why the existing projection needs a field
+## What changed and why
 
-`ShowService` carries rows, slide tiles, and jump keys, but no song-item
-background. `buildShowService` drops both the service item's background override
-and the song's default background. The renderer cannot select the resolved
-background from this projection.
+Clicking a song item's slide previously sent only lyrics, so M2's first
+acceptance path showed them over black. The open-service projection now carries
+an optional resolved background on song rows. Entering that item sends the
+existing `media.show` command before `slide.show`.
 
-The document APIs can read the raw song and service, but they expose neither the
-media playback settings nor the file's availability. Rebuilding the projection
-in the renderer would also duplicate the main process's resolution and revision
-handling. `LiveStore` currently has no content-store resolver.
-
-The task explicitly says to stop and report the exact shape before changing a
-shared contract. No application code has been changed.
-
-## Requested shared shape
-
-Add one optional field to song rows in `ShowService`, validated by
-`src/shared/schema/showService.ts`:
+The shared field is additive and validated using the existing media-choice
+schema:
 
 ```ts
 readonly background?: {
@@ -33,56 +29,159 @@ readonly background?: {
 };
 ```
 
-This is the existing `MediaChoice` shape. Validate the ID and boolean at the IPC
-boundary. Existing rows without the field remain valid. Other row kinds must not
-acquire automatic song-background behavior. No live command, IPC channel, or
-on-disk format change is requested.
+Other row kinds do not retain that field at the schema boundary. The feature
+uses the existing preload service API and live commands.
 
-The data owner would populate this field in the main-side show projection:
+## Projection and missing files
 
-- Resolve `item.background ?? song.background`. An invalid or missing override
-  must not silently fall back to the song's default.
-- Use the resolved media's existing playback-end setting for `loop`, including
-  its documented default.
-- Include the field only when the selected background can be served from an
-  allowed media location. A missing entry, missing file, or refused file keeps
-  the field absent and sets the existing row problem `missing-background`.
-- With no configured background, omit the field without a missing-background
-  problem. A missing song continues to use `missing-song`.
-- Changes to the resolved background or its availability must participate in the
-  show projection's revision and push behavior.
+The main process resolves `item.background ?? song.background`. An unavailable
+item override does not fall back to the song default. The selected visual media
+must resolve to a real regular file inside an allowed media root; audio, unknown
+IDs, missing files, directories, and refused paths produce no choice. The
+media's `props.end` determines looping, defaulting to loop unless it is `stop`.
 
-The projection work needs the data owner's `src/main/store/` paths, including
-`showService.ts`, `openServiceFeed.ts`, and their data-loading wiring and tests.
-These paths are outside this task's current ownership exception. The lead can
-have the data owner land this small prerequisite, or explicitly extend the
-exception to its implementation and tests.
+A configured unavailable background sets the existing `missing-background` row
+problem and omits the choice. Lyrics remain available. An item without any
+configured background has neither a choice nor that warning. A missing song
+continues to show `missing-song`.
 
-## Implementation after the prerequisite
+The feed checks availability at startup, on content changes, and on every
+`service:get`. A meaningful choice or problem change advances its revision and
+pushes the new projection. Concurrent refreshes coalesce, each selected media ID
+is checked once per build, superseded builds cannot publish, and disposal waits
+for in-flight checks while suppressing later pushes.
 
-Use the existing `media.show` command when entering a song item with an
-available background, followed by the existing `slide.show` command. Preserve
-the background for another slide of the same item, a backgroundless item, a
-Bible slide, or quick launch. The existing main-side `showMedia` already keeps
-`startedAt` for the same media ID, so the feature must retain and test that
-behavior.
+The renderer refreshes the projection when entering a song with a configured or
+previously missing background. Thus a file deleted after launch keeps the
+current media and shows the existing row warning when the item is activated, as
+spec 04 and spec 08 require. No missing-file notification is added.
 
-For a background missing at activation, keep the current media and output the
-lyrics, with the existing row warning. Check the availability again at
-activation if the projected value can have become stale; the existing media
-serving path already rejects unknown, missing, and out-of-root files. The
-implementation must cover this failure without clearing the current media.
+## Output rules and pending work
 
-Tests will cover override precedence, default background, no background,
-same-media continuity, same-item navigation, quick launch, Bible slides, and
-missing media. The offscreen check will use a private copy of
-`docs/qa/m2-check/sample`. Run the full verification once after implementation.
+- A new song item uses its projected override or default choice.
+- Identical media and loop settings send no redundant `media.show`; the playing
+  media object and `startedAt` stay unchanged. A loop-setting change can still
+  use the existing reducer, which preserves the same media's start time.
+- An item without a background keeps the current media.
+- Same-item clicks, next/previous slides, and label navigation keep the media.
+  The last nonnull slide item is retained through a lyrics or all-layer clear,
+  so re-outputting that item does not start it again.
+- Bible and quick-launch slides do not acquire song-item background behavior.
+- A newer slide request, a content-changing live command, or a service switch
+  cancels an older pending activation. Turning an output on while a lookup is
+  pending still allows the requested song to appear.
 
-## Checks so far
+A service lookup has a named 2 s deadline. Failure or timeout logs the problem
+and outputs lyrics over the current media. The deadline timer always clears, and
+a late reply cannot switch media. This bound keeps a stalled file lookup from
+indefinitely withholding the requested lyrics. The ordinary path awaits fresh
+availability before sending background and lyrics in order.
 
-- Read the task, output and problem rules, current projection, preload API, live
-  reducer, media lookup/serving path, and QA sample configuration.
-- Created the requested branch from clean `main` at `3a83ee2`.
-- Only this contract request and ignored working notes changed.
-- Full verification and the native sample check have not run: implementation is
-  waiting for the task's explicit shared-contract stop point.
+## Commits
+
+The implementation is separated in the requested order:
+
+1. `fdc92d7`: optional shared contract and schema tests (`feat`).
+2. `6a7dbce`: projection, media-file resolution, loading wiring, and tests.
+3. `fdb1e82`: renderer activation and regression tests.
+4. `db99866`: keep command tracking changes from redrawing previews before the
+   mirrored live state changes.
+
+The branch was rebased onto `main` once before final verification; it was
+already up to date at `3a83ee2`.
+
+## Checks run
+
+| Check                                                     | Result                                                     |
+| --------------------------------------------------------- | ---------------------------------------------------------- |
+| Shared schema                                             | Pass: 16 tests                                             |
+| Projection, media library, feed, register, file store     | Pass: 5 files, 53 tests                                    |
+| Renderer activation, service sync, show keys, slide panel | Pass: 6 files, 82 tests                                    |
+| `npm run typecheck`                                       | Pass on final source after the preview fix                 |
+| Targeted ESLint                                           | Pass on shared, projection, and renderer changes           |
+| Formatting and `git diff --check`                         | Pass on changed files                                      |
+| Actual QA sample, offscreen                               | Pass on final build: 14.41 s, exit 0, no remaining process |
+| `npm run verify`, once                                    | Exit 1: preview regression; corrected checks below         |
+
+Tests cover default and override precedence, an unavailable override without
+fallback, loop/stop settings, missing/returned files, refused roots and links,
+same-media continuity using the real `LiveStore`, backgroundless items,
+same-item navigation and clear/re-output, Bible/quick launch, lookup failure and
+timeout, cancellation, and out-of-order replies.
+
+The one full verify passed typecheck (4.7 s), lint (80.3 s), formatting (41.8
+s), and build (3.4 s), but coverage failed (124.8 s): one existing preview
+assertion saw three extra draws immediately after sending a slide command. The
+new command-tracking metadata notified the raw preview subscription while the
+mirrored main-process state was unchanged. This was a real regression.
+
+The fix filters that subscription by mirrored state identity. The unchanged
+failing test now passes, along with the background tests (2 files, 46 tests).
+The full verify was not repeated. The entire coverage suite passed when run
+alone after the fix. Final typecheck, targeted lint, formatting, build, and
+native sample checks also passed and are recorded separately. Logs:
+`.llp/spec17/verify.log` and `coverage-after-fix.log`.
+
+## QA sample check
+
+The ignored runner copies `docs/qa/m2-check/sample` into a fresh isolated user
+data folder and launches the built application with
+`LLP_TEST_WINDOWS=offscreen`. It drives real service-row and slide DOM clicks
+through the normal preload API, turns on the real main output, and checks the
+output renderer.
+
+The check asserts decoded video with the sample lyrics, advancing playback and
+an actual loop without another live command, an unchanged start time through
+same-item navigation and the backgroundless second song, the third song's still
+image, and preservation of that image when the first song's video file is moved
+away in the private copy. The missing-background row problem must then appear.
+The runner restores the moved file and destroys every window before exit.
+
+Native scripts are syntax-checked before launch. The runner additionally
+disables focus on every hidden window and fails if any window is shown. The
+parent owns and awaits the Electron process tree with a bounded deadline.
+Results and the output capture stay under ignored `.llp/spec17/`; the checked-in
+sample is unchanged.
+
+Final native result: `exitCode: 0`, `stoppedBy: null`, `leftRunning: false`.
+Evidence: `.llp/spec17/sample-check.json`, `sample-result.json`, and
+`sample-output.png`. The capture was visually inspected. During harness setup,
+two attempts exposed incorrect harness assumptions about the focusable flag and
+the two-player loop implementation; those attempts closed cleanly. The corrected
+harness passed on the final built source.
+
+Post-fix validation on `db99866`:
+
+- `npm run test:coverage` alone passed all 216 files: 2,429 tests passed and one
+  was skipped, in 105.14 s. Statements 92.48%, branches 89.33%, functions
+  93.14%, and lines 93.29%.
+- The entire typecheck passed. Targeted lint and formatting passed on the
+  correction, and the previous full lint and format checks passed on the
+  unchanged feature files.
+- A fresh application build and the corrected native sample check passed on the
+  final source. Native duration was 14.405 s; Electron exited normally with no
+  remaining process.
+- Exactly one full verify ran. Its preview regression was fixed and the full
+  coverage suite passed afterward. No full verify retry or test exclusion was
+  used, and no source changed after these final checks.
+
+## Changed files
+
+- `src/shared/schema/showService.ts` and its tests.
+- `src/main/store/showService.ts`, `openServiceFeed.ts`, `mediaLibrary.ts`,
+  `register.ts`, and their tests.
+- `src/renderer/src/show/model.ts` and `ScreenPreview.tsx`.
+- `src/renderer/src/state/live.ts`, `show.ts`, and `songBackground.test.ts`.
+- `docs/reviews/spec-17.md`.
+
+## Quality and review focus
+
+No dependencies, new live commands, or new file formats were introduced. IPC
+continues to validate the optional choice. The feed retains the last good
+projection on an unexpected rebuild error. Added timers have bounded lifetimes;
+there are no new persistent subscriptions or file watchers.
+
+Please review the missing-file recheck at item activation, pending-output
+cancellation, and preservation of media identity and start time. File
+availability can still change after a successful check; the existing output
+renderer's last-frame/error handling continues to own a loss during playback.
