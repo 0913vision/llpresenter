@@ -134,19 +134,15 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (ce1128c): reviewer (Codex, codex2) Approve with no findings. Lead
+  Approve; the layout size class entry stores `thumbnailScalePercent` (clamped
+  on read) and `LayoutChange` accepts it next to `columns` during the transition
+  (lead decision), so shell switches in shell-24 and data drops `columns` from
+  `LayoutChange` afterwards. The verify failure was a load timeout in a devops
+  test the change doesn't touch. Rebased by the lead onto local `main` after
+  data-20, without conflicts.
 
 ## Team member's reply
 
