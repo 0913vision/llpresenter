@@ -1,0 +1,236 @@
+{
+  "previews": [
+    {
+      "names": [
+        "본 화면",
+        "무대 화면",
+        "방송 자막"
+      ],
+      "selected": "무대 화면 미리보기",
+      "large": "무대 화면",
+      "pictures": 4,
+      "markers": 0,
+      "slots": [
+        {
+          "x": 38,
+          "y": 472.25,
+          "width": 145.328125
+        },
+        {
+          "x": 191.328125,
+          "y": 472.25,
+          "width": 145.328125
+        },
+        {
+          "x": 344.65625,
+          "y": 472.25,
+          "width": 145.328125
+        }
+      ]
+    },
+    {
+      "names": [
+        "본 화면",
+        "무대 화면",
+        "방송 자막"
+      ],
+      "selected": "무대 화면 미리보기",
+      "large": "무대 화면",
+      "pictures": 3,
+      "markers": 1,
+      "slots": [
+        {
+          "x": 542,
+          "y": 472.25,
+          "width": 145.328125
+        },
+        {
+          "x": 695.328125,
+          "y": 472.25,
+          "width": 145.328125
+        },
+        {
+          "x": 848.65625,
+          "y": 472.25,
+          "width": 145.328125
+        }
+      ]
+    }
+  ],
+  "headers": {
+    "heights": [
+      34,
+      34,
+      52
+    ],
+    "longNames": [
+      {
+        "clipped": true,
+        "overflow": "ellipsis",
+        "fullTitle": true
+      },
+      {
+        "clipped": true,
+        "overflow": "ellipsis",
+        "fullTitle": true
+      }
+    ]
+  },
+  "type-today": {
+    "viewport": {
+      "width": 1920,
+      "height": 1080,
+      "scale": 1
+    },
+    "body": "13px / 18px \"Pretendard Variable\", Pretendard, \"Segoe UI\", \"Malgun Gothic\", sans-serif",
+    "belowTwelve": [
+      {
+        "text": "진행",
+        "size": "11px"
+      },
+      {
+        "text": "준비",
+        "size": "11px"
+      },
+      {
+        "text": "화면 설정",
+        "size": "11px"
+      },
+      {
+        "text": "미디어",
+        "size": "11px"
+      },
+      {
+        "text": "평상시",
+        "size": "11px"
+      },
+      {
+        "text": "본 화면",
+        "size": "11px"
+      },
+      {
+        "text": "무대",
+        "size": "11px"
+      },
+      {
+        "text": "방송 자막",
+        "size": "11px"
+      },
+      {
+        "text": "예배 전",
+        "size": "11px"
+      },
+      {
+        "text": "찬양",
+        "size": "11px"
+      },
+      {
+        "text": "LIVE",
+        "size": "10px"
+      },
+      {
+        "text": "말씀",
+        "size": "11px"
+      },
+      {
+        "text": "마무리",
+        "size": "11px"
+      },
+      {
+        "text": "무대 화면",
+        "size": "11px"
+      },
+      {
+        "text": "모니터 3",
+        "size": "11px"
+      },
+      {
+        "text": "방송 자막",
+        "size": "11px"
+      },
+      {
+        "text": "NDI",
+        "size": "11px"
+      },
+      {
+        "text": "모두",
+        "size": "11px"
+      },
+      {
+        "text": "가사",
+        "size": "11px"
+      },
+      {
+        "text": "미디어",
+        "size": "11px"
+      },
+      {
+        "text": "소품",
+        "size": "11px"
+      },
+      {
+        "text": "오디오",
+        "size": "11px"
+      },
+      {
+        "text": "메시지",
+        "size": "11px"
+      },
+      {
+        "text": "공지",
+        "size": "11px"
+      },
+      {
+        "text": "되돌림",
+        "size": "11px"
+      },
+      {
+        "text": "본 화면",
+        "size": "11px"
+      },
+      {
+        "text": "무대 화면",
+        "size": "11px"
+      },
+      {
+        "text": "방송 자막",
+        "size": "11px"
+      }
+    ],
+    "row": "13px / 18px \"Pretendard Variable\", Pretendard, \"Segoe UI\", \"Malgun Gothic\", sans-serif",
+    "panelTab": "600 12px / 16px \"Pretendard Variable\", Pretendard, \"Segoe UI\", \"Malgun Gothic\", sans-serif",
+    "badge": [
+      "700 10px / 12px \"Pretendard Variable\", Pretendard, \"Segoe UI\", \"Malgun Gothic\", sans-serif"
+    ]
+  },
+  "type-windows": {
+    "viewport": {
+      "width": 1920,
+      "height": 1080,
+      "scale": 1
+    },
+    "body": "14px / 20px \"Pretendard Variable\", Pretendard, \"Segoe UI\", \"Malgun Gothic\", sans-serif",
+    "belowTwelve": [],
+    "row": "14px / 20px \"Pretendard Variable\", Pretendard, \"Segoe UI\", \"Malgun Gothic\", sans-serif",
+    "panelTab": "600 14px / 20px \"Pretendard Variable\", Pretendard, \"Segoe UI\", \"Malgun Gothic\", sans-serif",
+    "badge": [
+      "12px / 16px \"Pretendard Variable\", Pretendard, \"Segoe UI\", \"Malgun Gothic\", sans-serif"
+    ]
+  },
+  "pair": [
+    {
+      "loaded": true,
+      "naturalWidth": 1920,
+      "naturalHeight": 1080,
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "loaded": true,
+      "naturalWidth": 1920,
+      "naturalHeight": 1080,
+      "width": 1920,
+      "height": 1080
+    }
+  ]
+}

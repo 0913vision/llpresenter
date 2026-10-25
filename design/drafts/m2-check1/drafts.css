@@ -1,0 +1,284 @@
+.board {
+  padding: var(--space-24) var(--space-24) var(--space-20);
+  font: var(--type-body);
+}
+
+.board h1,
+.type-pair h1 {
+  margin: 0;
+  font: var(--type-heading);
+}
+
+.board h2 {
+  margin: 0 0 var(--space-16);
+  font: var(--type-body-strong);
+}
+
+.board p {
+  margin: var(--space-8) 0;
+  color: var(--text-2);
+  font: var(--type-label);
+}
+
+.board-heading {
+  margin-bottom: var(--space-24);
+}
+.preview-board {
+  width: 1032px;
+}
+.preview-options {
+  display: grid;
+  grid-template-columns: 480px 480px;
+  gap: var(--space-24);
+}
+.draft-option {
+  min-width: 0;
+}
+.preview-draft {
+  width: 480px;
+}
+.preview-body {
+  padding: var(--space-14);
+}
+.large-picture {
+  overflow: hidden;
+  border-radius: var(--radius-md);
+}
+.draft-picture {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: var(--aspect-output);
+  overflow: hidden;
+  background: var(--output-black);
+  color: var(--text-on-fill);
+  container-type: inline-size;
+}
+.picture-lyrics {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 6cqw;
+  line-height: 1.4;
+  font-weight: 600;
+}
+.draft-picture[data-draft-picture='무대 화면'] .picture-lyrics {
+  bottom: 32%;
+  font-size: 6.4cqw;
+}
+.picture-next {
+  position: absolute;
+  bottom: 8%;
+  left: 8%;
+  color: var(--text-2);
+  font-size: 3.6cqw;
+  line-height: 1.4;
+}
+.draft-picture[data-draft-picture='방송 자막'] {
+  background: var(--chroma);
+}
+.draft-picture[data-draft-picture='방송 자막'] .picture-lyrics {
+  top: 60%;
+  font-size: 4.8cqw;
+  line-height: 1.2;
+}
+.large-caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--size-control-md);
+  padding: 0 var(--space-10);
+  background: var(--bg-sunken);
+  font: var(--type-label);
+}
+.large-caption strong {
+  font-weight: 600;
+}
+.large-caption > span {
+  color: var(--text-3);
+}
+.screen-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-8);
+  margin-top: var(--space-12);
+}
+.screen-slot {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--bg-sunken);
+  color: var(--text-2);
+  overflow: hidden;
+}
+.screen-slot[aria-pressed='true'] {
+  box-shadow: var(--ring-selected);
+  color: var(--text);
+}
+.slot-caption {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  height: var(--size-control-sm);
+  font: var(--type-label);
+  white-space: nowrap;
+}
+.slot-caption > span {
+  color: var(--accent);
+}
+.selected-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: var(--aspect-output);
+  background: var(--bg-app);
+  color: var(--accent);
+}
+.selected-marker > span {
+  transform: rotate(-90deg);
+}
+.board .board-footnote {
+  margin-top: var(--space-24);
+  color: var(--text-3);
+}
+.header-board {
+  width: 936px;
+}
+.header-options {
+  display: grid;
+  grid-template-columns: repeat(3, 280px);
+  gap: var(--space-24);
+}
+.header-capture {
+  height: 400px;
+}
+.service-draft {
+  height: 100%;
+}
+.current-service-header,
+.service-header {
+  display: flex;
+  flex: none;
+  align-items: stretch;
+  height: var(--size-panel-header);
+  padding: 0 var(--panel-inset);
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-panel);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+.current-service-header > span {
+  display: flex;
+  align-items: center;
+  border-bottom: 2px solid var(--text);
+  font: var(--type-label-strong);
+}
+.service-switch {
+  min-width: 0;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+.service-name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-width: 0;
+  max-width: 100%;
+  font: var(--type-heading);
+}
+.service-name > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.service-name > span:last-child {
+  flex: none;
+  color: var(--text-2);
+}
+.service-header.single .service-switch {
+  border-bottom: 2px solid var(--text);
+}
+.service-header.stacked {
+  height: var(--size-clear-button);
+  padding-top: var(--space-6);
+  padding-bottom: var(--space-6);
+}
+.service-header.stacked .service-switch {
+  gap: var(--space-2);
+}
+.service-category {
+  color: var(--text-3);
+  font: var(--type-label);
+}
+.board .long-name-label {
+  margin-top: var(--space-20);
+}
+.type-workspace {
+  width: 1920px;
+  height: 1080px;
+}
+:root[data-scale='windows'] {
+  --type-heading: 600 18px/24px var(--font-ui);
+  --type-title: 600 14px/20px var(--font-ui);
+  --type-body: 400 14px/20px var(--font-ui);
+  --type-body-strong: 600 14px/20px var(--font-ui);
+  --type-label: 400 12px/16px var(--font-ui);
+  --type-label-strong: 600 14px/20px var(--font-ui);
+  --type-band: 600 14px/20px var(--font-ui);
+  --type-caption: 400 12px/16px var(--font-ui);
+  --type-caption-strong: 600 14px/20px var(--font-ui);
+  --type-toolbar-label: 400 12px/16px var(--font-ui);
+  --type-micro: 400 12px/16px var(--font-ui);
+}
+:root[data-scale='windows'] body {
+  font: var(--type-body);
+}
+:root[data-scale='windows'] [data-draft-tab] {
+  font: var(--type-label-strong);
+}
+:root[data-scale='windows'] footer[role='status'] {
+  font: var(--type-caption);
+}
+.type-pair {
+  display: grid;
+  grid-template-columns: 1920px 1920px;
+  width: 3840px;
+}
+.type-pair h1 {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-24);
+}
+.type-pair img {
+  display: block;
+  width: 1920px;
+  height: 1080px;
+}
+.index-board nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  margin-top: var(--space-24);
+}
+.index-board a {
+  color: var(--accent);
+}
+:root[data-page='previews'] body,
+:root[data-page='headers'] body,
+:root[data-page='index'] body {
+  overflow: auto;
+}

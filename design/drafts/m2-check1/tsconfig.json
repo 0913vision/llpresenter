@@ -1,0 +1,5 @@
+{
+  "extends": "../../../tsconfig.web.json",
+  "compilerOptions": {"composite": false, "noEmit": true},
+  "include": ["drafts.tsx", "../../../src/preload/*.d.ts"]
+}
