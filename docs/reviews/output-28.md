@@ -4,7 +4,10 @@
 - Branch: `feat/output/look-state`
 - Base: `2d2b6078` (`main`); range: `2d2b6078..feat/output/look-state`.
 - Scope: M3-O4 part 2, main Look state and saved selection, plus output-27 nits.
-- CI: pending the branch push.
+- Code CI:
+  [Windows verification passed](https://github.com/0913vision/llpresenter/actions/runs/40240794628)
+  at `deb4b17e`. The documentation-only head containing this result is pushed
+  and checked again before the review request.
 
 ## Changes
 
