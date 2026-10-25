@@ -11,6 +11,7 @@ export interface BlockSnapshot {
   readonly selection: BlockSelection;
 }
 
+/** Editor actions: `split` is Ctrl Enter, and `insert` is Ctrl Shift N. */
 export type BlockCommand =
   | {
       readonly type: 'text';

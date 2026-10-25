@@ -187,6 +187,24 @@ describe('song block edits', () => {
     },
   );
 
+  it('expands every Ctrl Enter reference when splitting inside a line', () => {
+    const original = {
+      ...song(),
+      arrangements: [{name: '반복', slides: [1, 3, 3]}],
+    };
+    const next = editBlocks(
+      blockSnapshot(original, {block: 2, start: 2, end: 2}),
+      {type: 'split'},
+    );
+    expect(next.song.slides.slice(2).map(item => item.lines)).toEqual([
+      ['th'],
+      ['ird'],
+    ]);
+    expect(next.song.arrangements?.[0]?.slides).toEqual([1, 3, 4, 3, 4]);
+    expect(next.selection).toEqual({block: 3, start: 0, end: 0});
+    expect(original.slides[2]?.lines).toEqual(['third']);
+  });
+
   it('expands paste references to all three parts on every occurrence', () => {
     const original = {
       ...song(),
