@@ -37,7 +37,7 @@ const recentPassageSchema = jsonObject({
   translation: translationIdSchema,
 });
 
-const bibleSchema = jsonObject({
+export const bibleSchema = jsonObject({
   format: v.literal('llsettings.bible'),
   schemaVersion: positiveInteger,
   translations: listWithUniqueIds(translationSchema),

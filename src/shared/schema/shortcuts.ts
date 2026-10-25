@@ -105,7 +105,7 @@ const keyBindingSchema = v.pipe(
 
 const bindingListSchema = v.array(keyBindingSchema);
 
-const shortcutsSchema = jsonObject({
+export const shortcutsSchema = jsonObject({
   format: v.literal('llsettings.shortcuts'),
   schemaVersion: positiveInteger,
   bindings: jsonRecord(nonBlankText, bindingListSchema),

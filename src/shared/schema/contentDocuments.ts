@@ -16,7 +16,7 @@ export const revisionSchema = v.pipe(positiveInteger, v.flavor('Revision'));
 
 export type Revision = v.InferOutput<typeof revisionSchema>;
 
-const accessSchema = v.picklist(['editable', 'readOnly']);
+export const accessSchema = v.picklist(['editable', 'readOnly']);
 
 const songDocumentSchema = payloadObject({
   song: songSchema,

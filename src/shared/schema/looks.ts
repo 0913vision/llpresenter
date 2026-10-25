@@ -58,7 +58,7 @@ const lyricStyleSchema = jsonObject({
   ...lyricTextEntries,
 });
 
-const looksSchema = jsonObject({
+export const looksSchema = jsonObject({
   format: v.literal('llsettings.looks'),
   schemaVersion: positiveInteger,
   current: lookIdSchema,

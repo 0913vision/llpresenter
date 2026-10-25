@@ -58,7 +58,7 @@ export const textImportLabelsSchema = v.picklist(['bracketLine', 'off']);
 export const textImportFirstLineSchema = v.picklist(['title', 'lyrics']);
 export const textImportEncodingSchema = v.picklist(['auto', 'utf-8', 'cp949']);
 
-const preferencesSchema = jsonObject({
+export const preferencesSchema = jsonObject({
   format: v.literal(PREFERENCES_FORMAT),
   schemaVersion: positiveInteger,
   language: v.exactOptional(v.picklist(['ko'])),

@@ -129,7 +129,7 @@ const collectionSchema = jsonObject({
   macroIds: v.array(macroIdSchema),
 });
 
-const macrosSchema = jsonObject({
+export const macrosSchema = jsonObject({
   format: v.literal('llsettings.macros'),
   schemaVersion: positiveInteger,
   macros: listWithUniqueIds(macroSchema),

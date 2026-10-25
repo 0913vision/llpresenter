@@ -35,7 +35,7 @@ const templateSchema = jsonObject({
   duration: v.exactOptional(messageDurationSchema),
 });
 
-const messagesSchema = jsonObject({
+export const messagesSchema = jsonObject({
   format: v.literal('llsettings.messages'),
   schemaVersion: positiveInteger,
   templates: listWithUniqueIds(templateSchema),

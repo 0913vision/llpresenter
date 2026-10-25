@@ -26,7 +26,7 @@ const noticeSetSchema = jsonObject({
   targets: v.array(screenIdSchema),
 });
 
-const noticesSchema = jsonObject({
+export const noticesSchema = jsonObject({
   format: v.literal('llsettings.notices'),
   schemaVersion: positiveInteger,
   sets: listWithUniqueIds(noticeSetSchema),

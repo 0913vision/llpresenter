@@ -67,7 +67,7 @@ const layoutSchema = jsonObject({
   elements: listWithUniqueIds(elementSchema),
 });
 
-const stageLayoutsSchema = jsonObject({
+export const stageLayoutsSchema = jsonObject({
   format: v.literal('llsettings.stage'),
   schemaVersion: positiveInteger,
   layouts: listWithUniqueIds(layoutSchema),

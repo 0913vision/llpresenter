@@ -63,7 +63,7 @@ const itemSchemas = {
   black: jsonObject({...itemFields, kind: v.literal('black')}),
 };
 
-const quickSchema = jsonObject({
+export const quickSchema = jsonObject({
   format: v.literal('llsettings.quick'),
   schemaVersion: positiveInteger,
   items: listWithUniqueIds(

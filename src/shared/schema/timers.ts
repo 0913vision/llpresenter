@@ -39,7 +39,7 @@ const timerSchema = v.variant('kind', [
   v.looseObject({...timerFields, kind: v.literal('clock')}),
 ]);
 
-const timersSchema = jsonObject({
+export const timersSchema = jsonObject({
   format: v.literal('llsettings.timers'),
   schemaVersion: positiveInteger,
   timers: listWithUniqueIds(timerSchema),

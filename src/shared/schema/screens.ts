@@ -60,7 +60,7 @@ const screenSchema = jsonObject({
   ndi: v.exactOptional(ndiSchema),
 });
 
-const screensSchema = jsonObject({
+export const screensSchema = jsonObject({
   format: v.literal('llsettings.screens'),
   schemaVersion: positiveInteger,
   screens: listWithUniqueIds(screenSchema),

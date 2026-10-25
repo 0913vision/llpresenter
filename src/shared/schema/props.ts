@@ -27,7 +27,7 @@ const propSchema = jsonObject({
   targets: v.array(screenIdSchema),
 });
 
-const propsSchema = jsonObject({
+export const propsSchema = jsonObject({
   format: v.literal('llsettings.props'),
   schemaVersion: positiveInteger,
   props: listWithUniqueIds(propSchema),

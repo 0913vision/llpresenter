@@ -36,7 +36,7 @@ const labelSchema = jsonObject({
   key: jumpKeySchema,
 });
 
-const labelsSchema = jsonObject({
+export const labelsSchema = jsonObject({
   format: v.literal('llsettings.labels'),
   schemaVersion: positiveInteger,
   labels: v.pipe(
