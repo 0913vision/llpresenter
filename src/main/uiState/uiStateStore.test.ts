@@ -80,15 +80,20 @@ describe('UiStateStore setLayout', () => {
     expect(Object.keys(changes[0] ?? {})).toEqual(['layout']);
   });
 
-  it('drops and logs a change that is malformed, out of range, half a pair, or the old columns', () => {
+  it('drops and logs a change that is malformed, out of range, or half a pair', () => {
     const {store, changes, warnings} = createHarness({layout});
     store.setLayout({sizeClass: 'normal', left: 100, right: 480});
     store.setLayout({sizeClass: 'normal', left: 300});
     store.setLayout({sizeClass: 'huge', thumbnailScalePercent: 100});
     store.setLayout({sizeClass: 'normal', thumbnailScalePercent: 201});
-    store.setLayout({sizeClass: 'normal', columns: 3});
     store.setLayout('nope');
     expect(changes).toEqual([]);
-    expect(warnings).toHaveLength(6);
+    expect(warnings).toHaveLength(5);
+  });
+
+  it('still takes the old thumbnail columns while the contract carries them', () => {
+    const {store, changes} = createHarness();
+    store.setLayout({sizeClass: 'normal', columns: 3});
+    expect(changes).toEqual([{layout: {normal: {columns: 3}}}]);
   });
 });
