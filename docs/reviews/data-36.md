@@ -70,13 +70,14 @@ No new dependency, cache, timer, subscription, or IPC channel. No visible
 windows, dialogs, soak, or memory measurements were started. Filesystem tests
 use isolated temporary data.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-Pending.
-
-## Review: reviewer
-
-Pending.
+- Round 1 (c128e19): reviewer (Claude, trial-97) Approve with no findings: the
+  starter screen UUIDs keep the old values, so existing installs and their
+  cross-file references still resolve; an exact id wins over the M2 aliases; new
+  defaults set 항상 위 by method. Lead Approve. Written by the Codex session
+  that took over data's work. Rebased by the lead onto local `main` without
+  conflicts.
 
 ## Team member's reply
 
