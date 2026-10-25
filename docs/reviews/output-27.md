@@ -104,3 +104,17 @@ handshake is no longer in output's queue; data owns it as data-44.
 ## Review
 
 Awaiting the lead and independent reviewer.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (1dac4e8d): reviewer (Claude, review2-3e) Approve; the additive Look
+  contracts checked as data would. Nits for the next O4 part: the shadow uses 4
+  px on each axis (5.66 px apart) while spec 03 says a 4 px distance (lead: the
+  distance is along the diagonal, so 4 / sqrt(2) per axis, as in ProPresenter's
+  angle and offset); keep `SettingsAccess` read-only and give `selectLook` its
+  own required port; say in the TSDoc that `selectLook` settles after the
+  debounced write; assert the full escaped font family in `slideLayer.test.ts`,
+  with a single-quote case; drop or use the unused `lookMs` and `clearMs`; set
+  `--lyric-shadow-strength` once; one tag per commit. Lead Approve. Written by
+  the Codex session that took over output's work. Rebased by the lead onto local
+  `main` without conflicts.
