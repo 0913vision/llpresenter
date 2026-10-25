@@ -16,6 +16,10 @@ import type {LiveState} from './live';
 import type {FrameRateReport, RendererLogEntry} from './schema/ipcPayloads';
 import type {OutputStatuses} from './schema/outputStatus';
 import type {ShowService} from './schema/showService';
+import type {
+  ShowLibrarySong,
+  ShowLibrarySongRequest,
+} from './schema/showLibrarySong';
 import type {ServiceOpenRequest} from './schema/serviceOpen';
 import type {LayoutChange, UiState} from './schema/uiState';
 import type {Preferences} from './schema/preferences';
@@ -82,6 +86,7 @@ export const Channels = {
   templatesDocumentGet: 'templates:document:get',
   templatesDocumentChanged: 'templates:document:changed',
   librarySearch: 'library:search',
+  libraryShowSong: 'library:show-song',
   textImportRead: 'import:text:read',
   textImportPreview: 'import:text:preview',
   preferencesGet: 'preferences:get',
@@ -258,6 +263,7 @@ export interface LlpApi {
   readonly library: {
     /** Searches main's index; rejects and logs malformed requests or replies. */
     search(request: LibrarySearchRequest): Promise<LibrarySearchResult>;
+    showSong(request: ShowLibrarySongRequest): Promise<ShowLibrarySong | null>;
   };
   readonly textImport: {
     /** Reads decoded text; a null success means the file dialog was cancelled. */

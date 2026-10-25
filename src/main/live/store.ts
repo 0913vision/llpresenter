@@ -4,10 +4,9 @@ import {createMessageId} from '@shared/schema/ids';
 import type {LiveState} from '@shared/live';
 import type {Logger} from '../log';
 import type {SettingsReader} from '../store/settingsStore';
-import type {MacroCommandPort} from '../macros/types';
 import {initialHistory, liveSlices, type LiveHistory} from './reducer';
 import type {SliceRegistry, SkippedLiveCommand} from './sliceRegistry';
-import type {SliceInputs} from './slice';
+import type {MacroCommandPort, SliceInputs} from './slice';
 
 export type LiveListener = (state: LiveState) => void;
 

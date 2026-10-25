@@ -157,7 +157,10 @@ class MacroCompiler {
     } else if (resolution.kind === 'macro') {
       this.nested(resolution.macroId, location, chain);
     } else {
-      for (const command of resolution.commands) this.emit(command, location);
+      for (const command of resolution.commands) {
+        if (this.limited) return;
+        this.emit(command, location);
+      }
     }
   }
 
@@ -194,7 +197,13 @@ class MacroCompiler {
 
   private emit(command: SingleLiveCommand, location: ActionLocation): void {
     if (this.commands.length >= MAX_LIVE_BATCH_COMMANDS) {
-      throw new Error('Macro command budget exceeded');
+      this.limited = true;
+      this.report({
+        ...location,
+        reason: 'command-limit',
+        message: 'Macro command budget exceeded',
+      });
+      return;
     }
     const parsed = parseLiveCommand(command);
     if (!parsed.ok) {

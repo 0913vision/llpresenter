@@ -9,6 +9,7 @@ import {
 } from 'vitest';
 import {Channels, type LlpApi} from '@shared/ipc';
 import {emptyLiveState} from '@shared/live';
+import {createSongId} from '@shared/schema/ids';
 import {
   songIdSchema,
   createAppFlushRequestId,
@@ -46,6 +47,51 @@ vi.mock('electron', () => ({
 }));
 
 let api: LlpApi;
+
+describe('standalone library song read', () => {
+  it('validates requests and replies including song identity and null', async () => {
+    const songId = createSongId('10000000-0000-4000-8000-000000000001');
+    const shown = {
+      songId,
+      songRevision: 2,
+      title: 'Invented',
+      readOnly: false,
+      tiles: [{label: null, labelColor: 'none', lines: ['Invented line']}],
+      jumpKeys: {},
+    };
+    electron.invoke
+      .mockResolvedValueOnce(shown)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({
+        ...shown,
+        songId: '10000000-0000-4000-8000-000000000002',
+      })
+      .mockResolvedValueOnce({...shown, songRevision: 0})
+      .mockRejectedValueOnce(new Error('Library unavailable'));
+    await expect(api.library.showSong({songId})).resolves.toEqual(shown);
+    await expect(api.library.showSong({songId})).resolves.toBeNull();
+    await expect(api.library.showSong({songId})).rejects.toThrow('songId');
+    await expect(api.library.showSong({songId})).rejects.toThrow(
+      'songRevision',
+    );
+    await expect(api.library.showSong({songId})).rejects.toThrow(
+      'Library unavailable',
+    );
+    expect(electron.invoke).toHaveBeenCalledWith(Channels.libraryShowSong, {
+      songId,
+    });
+    electron.invoke.mockClear();
+    const malformed: unknown = Reflect.apply(api.library.showSong, undefined, [
+      {songId: 'bad'},
+    ]);
+    await expect(malformed).rejects.toThrow('Bad request');
+    expect(electron.invoke).not.toHaveBeenCalled();
+    expect(electron.send).toHaveBeenCalledWith(
+      Channels.logWrite,
+      expect.anything(),
+    );
+  });
+});
 
 beforeAll(async () => {
   await import('./index');

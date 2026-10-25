@@ -15,7 +15,7 @@ export function fillMacroMessage(
   const filled = template.text.replace(
     /\{([^{}]+)\}/gu,
     (match: string, name: string, offset: number) => {
-      const value = values[name];
+      const value = Object.hasOwn(values, name) ? values[name] : undefined;
       if (value === undefined || value.trim() === '') {
         throw new Error(
           `Missing message value: ${name.slice(0, MAX_BLANK_NAME_IN_ERROR)}`,

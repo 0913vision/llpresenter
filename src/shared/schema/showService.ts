@@ -44,7 +44,7 @@ const showRowSchema = v.pipe(
   ]),
 );
 
-const showTileSchema = payloadObject({
+export const showTileSchema = payloadObject({
   label: v.nullable(v.string()),
   labelColor: v.picklist([...paletteColors, NO_LABEL_COLOR]),
   lines: v.array(v.string()),

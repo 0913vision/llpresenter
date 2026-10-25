@@ -39,10 +39,12 @@ import {registerSettingsChannels} from './settingsChannels';
 import {createSettingsAccess, type SettingsAccess} from './settingsAccess';
 import {registerServiceChannels} from './serviceChannels';
 import type {AppConfigFile} from './appConfigFile';
+import {registerLibrarySong, type LibrarySongSources} from './librarySong';
 
 const MAX_LOGGED_PROBLEMS = 50;
 
 interface OpenedContent {
+  readonly library: LibrarySongSources;
   readonly content: ContentStore;
   readonly feed: OpenServiceFeed;
   readonly search: SongSearchIndex;
@@ -152,6 +154,10 @@ export function registerStore({
     opened.then(ready => ready?.search ?? null),
     log,
   );
+  const removeLibrarySong = registerLibrarySong(
+    opened.then(ready => ready?.library ?? null),
+    log,
+  );
   const upkeep = upkeepAtLaunch(loading, isAnyOutputOn, log);
   const mediaLibrary = new LoadingMediaLibrary(
     media.then(store => (store === null ? null : {media: store})),
@@ -174,6 +180,7 @@ export function registerStore({
       ipcMain.removeHandler(Channels.preferencesGet);
       removeContentChannels();
       removeSearch();
+      removeLibrarySong();
       await upkeep;
       const ready = await opened;
       ready?.removeSettings();
@@ -288,20 +295,24 @@ async function createContent(
     },
     log,
   });
+  const library: LibrarySongSources = {
+    song: id => content.song(id),
+    get labels() {
+      const document = settings?.get('labels');
+      return document?.name === 'labels' ? document.value.labels : store.labels;
+    },
+    backgroundOf: id => media?.backgroundOf(id) ?? store.media.backgroundOf(id),
+  };
   feed = new OpenServiceFeed(
     {
       get serviceId() {
         return content.openServiceId;
       },
       get labels() {
-        const document = settings?.get('labels');
-        return document?.name === 'labels'
-          ? document.value.labels
-          : store.labels;
+        return library.labels;
       },
       content,
-      backgroundOf: id =>
-        media?.backgroundOf(id) ?? store.media.backgroundOf(id),
+      backgroundOf: library.backgroundOf,
     },
     service => broadcast(Channels.serviceChanged, service, log),
     error => log.error('could not refresh the open 예배 순서', error),
@@ -329,7 +340,7 @@ async function createContent(
     removeMedia();
   };
   await feed.refresh();
-  return {content, feed, search, removeSettings};
+  return {content, feed, search, removeSettings, library};
 }
 
 async function contentOf(

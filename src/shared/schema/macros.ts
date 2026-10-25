@@ -3,7 +3,6 @@ import {paletteColors} from '../colors';
 import {isRecord} from '../guards';
 import {layerKinds} from '../live';
 import type {Result} from '../result';
-
 import {
   parseFile,
   serializeFile,

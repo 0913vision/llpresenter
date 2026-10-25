@@ -140,6 +140,112 @@ afterEach(async () => {
 });
 
 describe('registerStore', () => {
+  it('reads the latest standalone song revision and returns null after deletion', async () => {
+    const context = await developmentContext();
+    const root = join(context.appDataFolder, DATA_FOLDER_NAME);
+    const song = {
+      format: 'llsong',
+      schemaVersion: 1,
+      id: itemId(82),
+      title: 'Standalone editable song',
+      slides: [{lines: ['Before']}],
+    };
+    await writeJson(join(root, '곡', `${song.id}.llsong`), song);
+    const store = await register(fakeLog(), context, () => true);
+    expect(
+      await ask(Channels.libraryShowSong, {songId: song.id}),
+    ).toMatchObject({songRevision: 1});
+    expect(
+      await ask(Channels.contentEdit, {
+        type: 'song.update',
+        baseRevision: 1,
+        song: {...song, title: 'After edit', slides: [{lines: ['After']}]},
+      }),
+    ).toMatchObject({ok: true});
+    expect(
+      await ask(Channels.libraryShowSong, {songId: song.id}),
+    ).toMatchObject({
+      songRevision: 2,
+      title: 'After edit',
+      tiles: [{lines: ['After']}],
+    });
+    expect(
+      await ask(Channels.contentEdit, {type: 'song.delete', songId: song.id}),
+    ).toMatchObject({ok: true});
+    expect(await ask(Channels.libraryShowSong, {songId: song.id})).toBeNull();
+    await store.dispose();
+  });
+  it('projects a standalone song, rechecks its background file, and leaves the service unchanged', async () => {
+    const context = await developmentContext();
+    const root = join(context.appDataFolder, DATA_FOLDER_NAME);
+    const mediaId = createMediaId(itemId(80));
+    const songId = itemId(81);
+    const songFile = join(root, '곡', `${songId}.llsong`);
+    const mediaFile = join(root, '미디어', 'standalone.webm');
+    await writeJson(mediaFile, 'Invented media bytes');
+    await writeJson(join(root, '설정', 'media.json'), {
+      format: 'llmedia',
+      schemaVersion: 1,
+      items: [
+        {
+          id: mediaId,
+          name: 'Standalone background',
+          kind: 'video',
+          file: 'standalone.webm',
+          size: 20,
+          props: {end: 'stop'},
+        },
+      ],
+      playlists: [],
+      audioPlaylists: [],
+    });
+    await writeJson(songFile, {
+      format: 'llsong',
+      schemaVersion: 2,
+      id: songId,
+      title: 'Standalone invented song',
+      background: mediaId,
+      slides: [{label: 'Verse', lines: ['First']}, {lines: ['Second']}],
+      arrangements: [{name: 'Other', slides: [2, 1, 2]}],
+      future: 'kept',
+    });
+    const store = await register(fakeLog(), context, () => true);
+    const before = await askForService();
+    const content = await store.content;
+    const serviceId = content?.openServiceId;
+    const shown = await ask(Channels.libraryShowSong, {songId});
+    expect(shown).toMatchObject({
+      songId,
+      songRevision: 1,
+      readOnly: true,
+      problem: 'newer-version',
+      tiles: [{lines: ['First']}, {lines: ['Second']}],
+      background: {mediaId, loop: false},
+    });
+    expect(
+      await ask(Channels.libraryShowSong, {songId: itemId(99)}),
+    ).toBeNull();
+    await rm(mediaFile);
+    const missing = await ask(Channels.libraryShowSong, {songId});
+    expect(missing).toMatchObject({
+      readOnly: true,
+      problem: 'missing-background',
+    });
+    expect(missing).not.toHaveProperty('background');
+    expect(await askForService()).toEqual(before);
+    expect(content?.openServiceId).toBe(serviceId);
+    expect(
+      electron.send.mock.calls.some(
+        ([channel]) => channel === Channels.liveChanged,
+      ),
+    ).toBe(false);
+    expect(JSON.parse(await readFile(songFile, 'utf8'))).toHaveProperty(
+      'future',
+      'kept',
+    );
+    await store.dispose();
+    expect(electron.handlers.has(Channels.libraryShowSong)).toBe(false);
+  });
   it('refreshes the open service from edited media and leaves deleted media bytes intact', async () => {
     const context = await developmentContext();
     const root = join(context.appDataFolder, DATA_FOLDER_NAME);

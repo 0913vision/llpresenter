@@ -9,9 +9,8 @@ import {contentSlice} from '../live/slices/content';
 import {macrosSlice} from '../live/slices/macros';
 import {propsSlice} from '../live/slices/props';
 import {screenSettingsSlice} from '../live/slices/screenSettings';
-import type {LiveSlice} from '../live/slice';
-import {MacroRunner} from './runner';
-import type {MacroCommandPort} from './types';
+import type {LiveSlice, MacroCommandPort} from '../live/slice';
+import {MacroRunner, MAX_LOGGED_MACRO_PROBLEMS} from './runner';
 import {environment, findMacro, IDS, macro, uuid} from './testing';
 
 function harness(
@@ -62,6 +61,19 @@ function harness(
 }
 
 describe('macro live execution', () => {
+  it('reports skipped actions in one bounded warning with the total count', () => {
+    const {store, runner, log, id} = harness(
+      Array.from({length: 12}, () => ({kind: 'look', look: uuid(99)})),
+    );
+    dispatchLogged(store, {type: 'macro.run', macroId: id}, log);
+    expect(log.messages('warn')).toEqual(['skipped macro actions']);
+    expect(log.entries[0]).toHaveProperty('detail.count', 12);
+    expect(log.entries[0]).toHaveProperty(
+      'detail.problems.length',
+      MAX_LOGGED_MACRO_PROBLEMS,
+    );
+    expect(runner.lastRun?.problems).toHaveLength(12);
+  });
   it('keeps the screen resync port and settings reader when the macro runtime is released', () => {
     const {store, runner, id, catalog, log, releaseMacros} = harness(
       [],
@@ -103,10 +115,12 @@ describe('macro live execution', () => {
       dispatchLogged(store, command.value, log);
       expect(store.state).toBe(before);
       expect(log.entries).toHaveLength(1);
+      expect(log.messages('error')).toEqual([]);
+      expect(log.messages('warn')).toHaveLength(1);
       expect(log.entries[0]).toHaveProperty(
         'message',
         macroId === 'invalid-id'
-          ? 'live command failed'
+          ? 'skipped invalid item start macro'
           : 'skipped live command',
       );
     },
@@ -154,10 +168,14 @@ describe('macro live execution', () => {
       message: null,
     });
     const problem = log.entries.find(
-      entry => entry.message === 'skipped macro action',
+      entry => entry.message === 'skipped macro actions',
     );
-    expect(problem).toHaveProperty('detail.reason', 'missing-target');
-    expect(problem).toHaveProperty('detail.target', {
+    expect(problem).toHaveProperty('detail.count', 1);
+    expect(problem).toHaveProperty(
+      'detail.problems.0.reason',
+      'missing-target',
+    );
+    expect(problem).toHaveProperty('detail.problems.0.target', {
       kind: 'look',
       id: uuid(99),
     });

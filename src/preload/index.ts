@@ -31,6 +31,10 @@ import type {PayloadError} from '@shared/schema/payload';
 import {parseOutputStatuses} from '@shared/schema/outputStatus';
 import {parseShowService} from '@shared/schema/showService';
 import {
+  parseShowLibrarySongRequest,
+  parseShowLibrarySongReply,
+} from '@shared/schema/showLibrarySong';
+import {
   parseServiceOpenRequest,
   parseServiceOpenReply,
 } from '@shared/schema/serviceOpen';
@@ -318,6 +322,15 @@ const api: LlpApi = {
       listen(Channels.mediaImportChanged, parseMediaImportProgress, listener),
   },
   library: {
+    showSong: request =>
+      invokeRequest(
+        {
+          channel: Channels.libraryShowSong,
+          request: parseShowLibrarySongRequest,
+          reply: value => parseShowLibrarySongReply(request.songId, value),
+        },
+        request,
+      ),
     search: request =>
       invokeRequest(
         {

@@ -63,7 +63,7 @@ function tilesOf(
     }
     const song = songs.get(item.song);
     if (song !== undefined) {
-      tiles[item.id] = songTiles(item, song.data, colors);
+      tiles[item.id] = songTiles(song.data, colors, item.arrangement);
     }
   }
   return tiles;
@@ -132,12 +132,12 @@ function songRow(
   };
 }
 
-function songTiles(
-  item: ServiceItemOf<'song'>,
+export function songTiles(
   song: Song,
   colors: ReadonlyMap<string, LabelColor>,
+  arrangement?: string,
 ): ShowTile[] {
-  return arrangementOrder(song, item.arrangement).flatMap(number => {
+  return arrangementOrder(song, arrangement).flatMap(number => {
     const slide = song.slides[number - 1];
     return slide === undefined ? [] : [tileOf(slide, colors)];
   });
@@ -170,7 +170,7 @@ function tileOf(
 
 // NOTE(0913vision): When two 이름표 share a jump key, the one listed first in
 // the 이름표 menu keeps it.
-function jumpKeysOf(labels: readonly Label[]): Record<string, string> {
+export function jumpKeysOf(labels: readonly Label[]): Record<string, string> {
   const keys: Record<string, string> = {};
   for (const {name, key} of labels) {
     if (key !== null && !Object.hasOwn(keys, key)) {

@@ -9,7 +9,9 @@ import {
 import type {SongId} from '@shared/schema/ids';
 import type {Notice, NoticeAction} from '@renderer/ui/notices';
 
-export type LibraryApi = Pick<LlpApi, 'songs' | 'library' | 'content'>;
+export type LibraryApi = Pick<LlpApi, 'songs' | 'content'> & {
+  readonly library: Pick<LlpApi['library'], 'search'>;
+};
 
 export interface LibrarySelection {
   readonly document: SongDocument;

@@ -3,13 +3,15 @@ import {parseMacroId} from '@shared/schema/ids';
 import type {ServiceItem} from '@shared/schema/service';
 import type {MediaList} from '@shared/schema/mediaList';
 import type {LiveHistory} from '../live/history';
-import type {CommandOf, SliceContext} from '../live/slice';
+import type {CommandOf, MacroCommandPort, SliceContext} from '../live/slice';
 import type {Logger} from '../log';
 import type {SettingsReader} from '../store/settingsStore';
 import {readMacroCatalog} from './catalog';
 import {compileMacro} from './compiler';
 import {requireMacroTarget} from './actions';
-import type {ActionContext, MacroCommandPort, MacroPlan} from './types';
+import type {ActionContext, MacroPlan} from './types';
+
+export const MAX_LOGGED_MACRO_PROBLEMS = 5;
 
 export interface MacroRunnerOptions {
   readonly settings: SettingsReader;
@@ -55,10 +57,15 @@ export class MacroRunner implements MacroCommandPort {
       supports: this.options.supports,
     });
     this.latest = plan;
-    for (const problem of plan.problems) {
-      if (problem.reason !== 'unsupported-command') {
-        this.options.log.warn('skipped macro action', problem);
-      }
+    const problems = plan.problems.filter(
+      problem => problem.reason !== 'unsupported-command',
+    );
+    if (problems.length > 0) {
+      this.options.log.warn('skipped macro actions', {
+        macroId: id,
+        count: problems.length,
+        problems: problems.slice(0, MAX_LOGGED_MACRO_PROBLEMS),
+      });
     }
     return context.apply(history, {
       type: 'live.batch',
@@ -83,7 +90,14 @@ export class MacroRunner implements MacroCommandPort {
     );
     if (!('macro' in item)) return undefined;
     const parsed = parseMacroId(item.macro);
-    if (!parsed.ok) throw new Error('Item start macro ID is invalid');
+    if (!parsed.ok) {
+      this.options.log.warn('skipped invalid item start macro', {
+        itemId,
+        reason: 'invalid-action',
+        error: parsed.error,
+      });
+      return undefined;
+    }
     return parsed.value;
   }
 }

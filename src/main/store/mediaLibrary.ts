@@ -1,6 +1,7 @@
 import {dirname, isAbsolute, resolve} from 'node:path';
 import {stat} from 'node:fs/promises';
 import type {MediaChoice} from '@shared/live';
+import {mediaLoops} from '@shared/mediaEndRule';
 import type {Result} from '@shared/result';
 import type {FileError} from '@shared/schema/fileFormat';
 import type {MediaItem} from '@shared/schema/mediaList';
@@ -109,7 +110,7 @@ export function buildMediaLibrary({
     if (item.kind !== 'audio') {
       choices.set(item.id, {
         mediaId: item.id,
-        loop: item.props?.end !== 'stop',
+        loop: mediaLoops(item),
       });
     }
     if (!isInside(placed.value, mediaFolder)) {

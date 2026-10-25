@@ -3,6 +3,20 @@ import {fillMacroMessage, MAX_MACRO_MESSAGE_CHARACTERS} from './messageText';
 import {environment} from './testing';
 
 describe('macro message rendering', () => {
+  it('requires own blank values instead of inherited object properties', () => {
+    const {catalog} = environment();
+    const template = catalog.messages.templates[0];
+    if (template === undefined) throw new Error('No template');
+    expect(() =>
+      fillMacroMessage({...template, text: '{toString}'}, {}),
+    ).toThrow('Missing message value: toString');
+    expect(
+      fillMacroMessage(
+        {...template, text: '{toString}'},
+        {toString: 'Own value'},
+      ),
+    ).toBe('Own value');
+  });
   it('uses literal values, replaces repeated blanks, and rejects missing or blank values', () => {
     const {catalog} = environment();
     const template = catalog.messages.templates[0];

@@ -75,6 +75,7 @@ export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
       ...overrides.media,
     },
     library: {
+      showSong: () => Promise.resolve(null),
       search: ({query}) => Promise.resolve({query, matches: []}),
       ...overrides.library,
     },

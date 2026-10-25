@@ -4,7 +4,14 @@ import type {LiveHistory} from './history';
 import type {SettingsReader} from '../store/settingsStore';
 import type {MessageId, ScreenId} from '@shared/schema/ids';
 import type {PayloadError} from '@shared/schema/payload';
-import type {MacroCommandPort} from '../macros/types';
+
+export interface MacroCommandPort {
+  run(
+    history: LiveHistory,
+    command: CommandOf<'macro.run' | 'item.start'>,
+    context: SliceContext,
+  ): LiveHistory;
+}
 
 export interface SliceInputs {
   readonly now: number;

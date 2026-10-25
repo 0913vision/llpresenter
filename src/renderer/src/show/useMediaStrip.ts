@@ -1,5 +1,6 @@
 import {useEffect, useEffectEvent, useRef, useState} from 'react';
 import type {MediaId} from '@shared/schema/ids';
+import {mediaLoops} from '@shared/mediaEndRule';
 import type {
   MediaDocument,
   MediaImportProgress,
@@ -128,7 +129,7 @@ export function useMediaStrip(onProblem: (notice: Notice) => void) {
     try {
       sendLive({
         type: 'media.show',
-        media: {mediaId: id, loop: item.props?.end !== 'stop'},
+        media: {mediaId: id, loop: mediaLoops(item)},
       });
     } catch (cause) {
       window.llp?.log.write({

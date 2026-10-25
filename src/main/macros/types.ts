@@ -2,17 +2,7 @@ import type {SingleLiveCommand} from '@shared/commands';
 import type {LiveState, ActiveProp} from '@shared/live';
 import type {Macro, KnownMacroAction} from '@shared/schema/macros';
 import type {MacroId} from '@shared/schema/ids';
-import type {LiveHistory} from '../live/history';
-import type {CommandOf, SliceContext} from '../live/slice';
 import type {MacroCatalog} from './catalog';
-
-export interface MacroCommandPort {
-  run(
-    history: LiveHistory,
-    command: CommandOf<'macro.run' | 'item.start'>,
-    context: SliceContext,
-  ): LiveHistory;
-}
 
 export type MacroProblemReason =
   | 'missing-target'
@@ -21,6 +11,7 @@ export type MacroProblemReason =
   | 'invalid-action'
   | 'cycle'
   | 'depth-limit'
+  | 'command-limit'
   | 'action-limit';
 
 export interface MacroProblem {

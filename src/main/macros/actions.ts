@@ -1,4 +1,5 @@
 import type {SingleLiveCommand} from '@shared/commands';
+import {mediaLoops} from '@shared/mediaEndRule';
 import {MissingLiveTargetError} from '../live/commandErrors';
 import {defineMacroAction, MacroActionRegistry} from './actionRegistry';
 import {fillMacroMessage} from './messageText';
@@ -83,7 +84,7 @@ export const macroActionHandlers = [
       );
       return command({
         type: 'media.show',
-        media: {mediaId: item.id, loop: item.props?.end !== 'stop'},
+        media: {mediaId: item.id, loop: mediaLoops(item)},
       });
     },
   }),

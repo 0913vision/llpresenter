@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {emptyLiveState} from '@shared/live';
+import {vi} from 'vitest';
 import {macroActionKinds} from '@shared/schema/macros';
 import {parseLiveState} from '@shared/schema/liveState';
 import {compileMacro, MACRO_EXECUTION_LIMITS} from './compiler';
@@ -8,6 +9,35 @@ import {macroActionHandlers} from './actions';
 import {environment, findMacro, IDS, macro, uuid} from './testing';
 
 describe('macro compiler', () => {
+  it('stops expansion once the command budget is reached and reports it once', () => {
+    const compile = vi.fn(() => ({
+      kind: 'commands' as const,
+      commands: Array.from({length: 257}, () => ({
+        type: 'layer.clear' as const,
+        target: 'all' as const,
+      })),
+    }));
+    const registry = new MacroActionRegistry([
+      defineMacroAction({kind: 'clearAll', compile}),
+    ]);
+    const {catalog} = environment([
+      macro(IDS.macro, [{kind: 'clearAll'}, {kind: 'clearAll'}]),
+    ]);
+    const plan = compileMacro(
+      {
+        catalog,
+        macro: findMacro(catalog),
+        state: emptyLiveState(),
+        supports: () => true,
+      },
+      registry,
+    );
+    expect(plan.commands).toHaveLength(256);
+    expect(plan.problems.map(problem => problem.reason)).toEqual([
+      'command-limit',
+    ]);
+    expect(compile).toHaveBeenCalledOnce();
+  });
   it('does not project a rejected prop activation into a later toggle after a clear', () => {
     const props = Array.from({length: 65}, (_, index) => ({
       id: uuid(100 + index),
