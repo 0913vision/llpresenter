@@ -77,27 +77,47 @@ const prepService: readonly CountedGroup[] = [
     label: '예배 전',
     rows: [
       {value: 'count', icon: 'film', title: '예배 전 카운트다운', meta: '5:00'},
-      {value: 'notice', icon: 'notice', title: '주일 광고', meta: '6장'},
+      {
+        value: 'notice',
+        icon: 'notice',
+        title: '주일 광고',
+        meta: '슬라이드 6개',
+      },
     ],
   },
   {
     label: '찬양',
     rows: [
-      {value: 'hymn0', icon: 'song', title: '이 세상 험하고', meta: '6장'},
-      {value: 'hymn1', icon: 'song', title: '만복의 근원 하나님', meta: '9장'},
+      {
+        value: 'hymn0',
+        icon: 'song',
+        title: '이 세상 험하고',
+        meta: '슬라이드 6개',
+      },
+      {
+        value: 'hymn1',
+        icon: 'song',
+        title: '만복의 근원 하나님',
+        meta: '슬라이드 9개',
+      },
       {
         value: 'hymn2',
         icon: 'song',
         title: '내 주를 가까이 하게 함은',
-        meta: '5장',
+        meta: '슬라이드 5개',
       },
     ],
   },
   {
     label: '말씀',
     rows: [
-      {value: 'word', icon: 'book', title: '요한복음 3장 16절', meta: '2장'},
-      {value: 'sermon', icon: 'slides', title: '설교', meta: '12장'},
+      {
+        value: 'word',
+        icon: 'book',
+        title: '요한복음 3장 16절',
+        meta: '슬라이드 2개',
+      },
+      {value: 'sermon', icon: 'slides', title: '설교', meta: '슬라이드 12개'},
     ],
   },
 ];
@@ -230,7 +250,7 @@ export function ListRowSection(): JSX.Element {
                 value="hymn"
                 icon="song"
                 title="내 주를 가까이 하게 함은"
-                meta="5장"
+                meta="슬라이드 5개"
               />
             </OneRowList>
           </SpecItem>
@@ -241,7 +261,7 @@ export function ListRowSection(): JSX.Element {
               value="hymn"
               icon="song"
               title="만복의 근원 하나님"
-              meta="9장"
+              meta="슬라이드 9개"
             />
           </OneRowList>
         </SpecItem>
@@ -251,7 +271,7 @@ export function ListRowSection(): JSX.Element {
               value="verse"
               icon="book"
               title="요한복음 3장 16절"
-              meta="2장"
+              meta="슬라이드 2개"
               disabled
               reason="역본 파일을 찾을 수 없습니다"
             />

@@ -7,9 +7,9 @@ A dropdown button that shows the current value and, when clicked, opens a menu o
 - The default background (따뜻한 빛) in the header of the 진행 (Show) workspace and of imported song editing, the 구성 (주일용) in the 준비 (Prep) workspace
 - Background and 시작할 때 (on start, a macro) in item settings
 - Device, resolution, and 연결이 끊기면 (when disconnected) in 화면 설정 (Screen settings) / font in the Look editor / content type in the stage layout
-- Every choice row in Preferences (language, 시작할 때, autosave, 장 (slide) splitting, source position)
+- Every choice row in Preferences (language, 시작할 때, autosave, 슬라이드 (slide) splitting, source position)
 - The date (11월 1일 일요일) and time (오전 11:00) of a new service
-- The Bible version (개역한글) and reference (장마다) for Bible verses
+- The Bible version (개역한글) and reference (슬라이드마다) for Bible verses
 
 ## Where not to use
 
@@ -83,4 +83,4 @@ A dropdown button that shows the current value and, when clicked, opens a menu o
 - Extra info for the Screens device (EPSON 프로젝터) #8c8c8c → `text-2`.
 - NewService date and time: background #262626 → `bg-control`, a 12px arrow added where there was none, icon 14 #8c8c8c → 16 `text-2`, left/right 8/10 → 12/8.
 - ShowH, Reflow, ImportEdit default background (sm): arrow 14 → 12. Compact default background: height 24 → 26, media 32×18 → 36×20, gap 6 → 8.
-- Bible version: icon #8c8c8c → `text-2`, arrow 14 → 12, right 8 → 6. Reference (장마다): height 24 → 26, background #262626 → `bg-control`, left/right 8/6 → 10/6.
+- Bible version: icon #8c8c8c → `text-2`, arrow 14 → 12, right 8 → 6. Reference (슬라이드마다): height 24 → 26, background #262626 → `bg-control`, left/right 8/6 → 10/6.

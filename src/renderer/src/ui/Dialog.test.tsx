@@ -228,7 +228,7 @@ function Overwrite({
     <AlertDialog
       icon="song"
       title="‘만복의 근원 하나님’ 곡이 이미 있습니다. 덮어쓸까요?"
-      meta={['라이브러리 곡 4장, 10월 20일 수정']}
+      meta={['라이브러리 곡 슬라이드 4개, 10월 20일 수정']}
       onCancel={onCancel}
       actions={[
         {label: '새 곡으로 저장', onSelect: () => {}},
@@ -243,7 +243,7 @@ describe('AlertDialog', () => {
     render(<Overwrite />);
     const alert = screen.getByRole('alertdialog', {
       name: '‘만복의 근원 하나님’ 곡이 이미 있습니다. 덮어쓸까요?',
-      description: '라이브러리 곡 4장, 10월 20일 수정',
+      description: '라이브러리 곡 슬라이드 4개, 10월 20일 수정',
     });
     expect(alert.getAttribute('aria-modal')).toBe('true');
     expect(document.activeElement).toBe(

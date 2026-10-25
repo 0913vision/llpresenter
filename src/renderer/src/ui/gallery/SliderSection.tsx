@@ -105,7 +105,7 @@ export function SliderSection(): JSX.Element {
         </SpecItem>
       </SpecGroup>
       <SpecGroup title="Placement" surface="panel">
-        <SpecItem label="Under the 진행 장 grid, 120">
+        <SpecItem label="Under the 진행 슬라이드 grid, 120">
           <Live {...THUMBNAIL} icon="grid" initial={2} />
         </SpecItem>
         <SpecItem label="Narrow window, 96">

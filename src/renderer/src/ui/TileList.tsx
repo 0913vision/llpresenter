@@ -25,7 +25,7 @@ const SHIFT_MENU_KEY = 'F10';
 /** How each arrow key moves the selection, given the column count. */
 export type TileMoves = Readonly<Record<string, (columns: number) => number>>;
 
-/** ↑ and ↓ only, one row at a time: the 장 grid of 진행. */
+/** ↑ and ↓ only, one row at a time: the 슬라이드 grid of 진행. */
 export const rowMoves: TileMoves = {
   ArrowUp: columns => -columns,
   ArrowDown: columns => columns,
@@ -46,7 +46,7 @@ export const stripMoves: TileMoves = {
 
 /**
  * What Space does on a focused tile: press it like Enter, or pass on to the
- * window, where 진행 uses it for 다음 장.
+ * window, where 진행 uses it for 다음 슬라이드.
  */
 export type TileSpaceKey = 'press' | 'pass';
 
@@ -57,13 +57,13 @@ export type TileColumns = number | 'auto';
 export interface TileListBaseProps {
   /** The workspace for the grid's focus appearance; defaults to 준비. */
   readonly workspace?: Workspace | undefined;
-  /** The list name for assistive technology, such as 장 or 매크로. */
+  /** The list name for assistive technology, such as 슬라이드 or 매크로. */
   readonly label: string;
   readonly moves: TileMoves;
   readonly columns: TileColumns;
   readonly spaceKey: TileSpaceKey;
   /**
-   * Takes keyboard focus on a mouse click also in 진행, as the 장 grid does.
+   * Takes keyboard focus on a mouse click also in 진행, as the 슬라이드 grid does.
    * Other tile lists leave focus where it was there
    * (docs/spec/10-shortcuts-and-settings.md).
    */
@@ -190,7 +190,7 @@ function useSpacePress(
 }
 
 /**
- * A listbox of tiles that Tab enters once: the 장 grid, the media grid and
+ * A listbox of tiles that Tab enters once: the 슬라이드 grid, the media grid and
  * strip, and the macro grid build on it. It owns the Tab stop of its tiles,
  * so the tiles set no `tabIndex`. Keys with Ctrl, Alt, Shift, or the Windows
  * key pass on.

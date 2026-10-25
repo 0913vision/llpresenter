@@ -20,7 +20,7 @@ All values are CSS pixels after Windows display scaling (the same as Electron DI
 - From top to bottom: menu bar `size-menubar` (30), toolbar (regular window `size-toolbar` 56, narrow window `size-toolbar-compact` 40), work area, status bar `size-statusbar` (28). The background of the gaps between bars and panels is `bg-app`.
 - Work area: left column, center column, right column. The gaps at the window edges, between columns, and between panels are all `panel-gap` (4). Don't put a gap above or below the work area.
 - Left column: 예배 순서 (service order) (remaining height) + 퀵 실행 (quick launch) (content height). In the 준비 workspace: 예배 순서 + library.
-- Center column: all remaining width, minimum 560. 장 (slide) panel (remaining height) + media strip (170 when open = header 34 + content 136).
+- Center column: all remaining width, minimum 560. 슬라이드 (slide) panel (remaining height) + media strip (170 when open = header 34 + content 136).
 - Right column: preview (content height) + 지우기 (clear) (content height) + 진행 도구 (show tools) (remaining height, minimum 240).
 - If the height runs short and the 진행 도구 would get smaller than 240, the preview panel shrinks. The large preview keeps 16:9, gets smaller to fit the height, and is centered. At 1280×720 (narrow window), this gives preview 306, 지우기 68, and 진행 도구 240.
 
@@ -48,7 +48,7 @@ The column widths of the wide window are `col-left-wide` (320) and `col-right-wi
 
 | State | What changes | Other |
 |---|---|---|
-| Media strip open / closed | Shares the bottom 170 of the center column with the 장 panel / the 장 panel takes it all | The toolbar "미디어" (media) button turns it on and off (`aria-pressed`) |
+| Media strip open / closed | Shares the bottom 170 of the center column with the 슬라이드 panel / the 슬라이드 panel takes it all | The toolbar "미디어" (media) button turns it on and off (`aria-pressed`) |
 | Height under 900 | The media strip starts closed | If the user opens it, keep it open |
 | 진행 도구 would go under 240 | The preview panel shrinks | See Anatomy above |
 | Dragging a column width | Cursor `col-resize` | Save that width when the drag ends |

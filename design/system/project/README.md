@@ -5,7 +5,7 @@ The app has one theme, dark. All values are in `tokens.json`, and each CSS varia
 ## Principles
 
 1. **The screens come first.** Keep the UI dark and quiet. The brightest things on screen must be the 출력 (output) preview and the thumbnails. Pick UI surfaces only from the gray steps between `bg-app` and `bg-control-hover`.
-2. **Follow ProPresenter.** Give a feature that ProPresenter also has the same place and the same behavior as in ProPresenter (a click on a 장 (slide) outputs it at once, the F1 to F7 지우기 (clear) actions, Look, song 구성 (arrangement), screen configuration, stage layout editing, the right-click menu on macros, 예배 순서 (service order) 틀 (template), autosave). When you do something differently, have a reason, and write that reason in this document or in the draft report.
+2. **Follow ProPresenter.** Give a feature that ProPresenter also has the same place and the same behavior as in ProPresenter (a click on a 슬라이드 (slide) outputs it at once, the F1 to F7 지우기 (clear) actions, Look, song 구성 (arrangement), screen configuration, stage layout editing, the right-click menu on macros, 예배 순서 (service order) 틀 (template), autosave). When you do something differently, have a reason, and write that reason in this document or in the draft report.
 3. **Show state with shape and color.** Don't add text, chips, or dots that describe a state. Mark something live only with a `ring-live` outline or a LIVE badge, a problem only with a `warning` icon or outline, and a value that can't be saved only with `ring-field-error`. Put the detailed reason in a tooltip.
 4. **Use red only for 출력.** Use `live` only for what is on the screens right now. Use `accent` for selection and keyboard focus, `accent-fill` for the surface of a primary button, `warning` for problems, and an `ok` dot for a healthy state. Don't use red for warnings or deletion.
 5. **Put emphasis in one place.** Give each window or dialog one primary button, at the far right of the footer. Make every other button a secondary or ghost button.
@@ -54,7 +54,7 @@ Surfaces stack from bottom to top. A surface on top is one step lighter than the
 
 ### 이름표 colors
 
-- An 이름표 is the name of a 장, such as 1절 (verse 1), 프리코러스 (pre-chorus), or 후렴 (chorus). It has the color that the user picked in the 이름표 list: `label-teal`, `label-green`, `label-yellow`, `label-orange`, `label-rose`, `label-violet`, `label-slate`, `label-gray`, or none (`label-none`).
+- An 이름표 is the name of a 슬라이드, such as 1절 (verse 1), 프리코러스 (pre-chorus), or 후렴 (chorus). It has the color that the user picked in the 이름표 list: `label-teal`, `label-green`, `label-yellow`, `label-orange`, `label-rose`, `label-violet`, `label-slate`, `label-gray`, or none (`label-none`).
 - Paint the whole band under a thumbnail and the 구성 chip in that color, and write the text in `text-on-label`. With no color, use `label-gray` text on a `label-none` background.
 - Store 이름표 colors in the app's 이름표 list, not in song files.
 
@@ -96,7 +96,7 @@ The app uses one typeface, Pretendard Variable (`fonts/PretendardVariable.woff2`
 | `toolbar-label` | 12/16/400 | Toolbar button names |
 | `micro` | 12/16/400 | LIVE badge |
 
-- Use `font-variant-numeric: tabular-nums` for numbers that must line up, such as counts, times, and 장 numbers.
+- Use `font-variant-numeric: tabular-nums` for numbers that must line up, such as counts, times, and 슬라이드 numbers.
 - Truncate a name that doesn't fit on one line with an ellipsis, and show the full name in a tooltip. Don't wrap lyrics or song titles onto two lines (two-line list items and macro names are the only exceptions).
 - UI text is at least 12px. This is the Windows 11 type-ramp proposal chosen
   for M2 check 1: body 14/20, caption 12/16, with Pretendard retained.
@@ -164,9 +164,9 @@ The app uses one typeface, Pretendard Variable (`fonts/PretendardVariable.woff2`
 | Problem | `warning` icon or outline, reason in a tooltip |
 
 - Show the keyboard focus ring only on `:focus-visible`. Don't show it when the user clicks with the mouse.
-- In the 진행 workspace, a mouse click moves keyboard focus only into a text field, the 장 grid, or the 예배 순서 list. A click on any other button, toggle, segmented control, slider, tab, or tile does its job and leaves keyboard focus where it was; Tab still moves focus to it. So Space and → after a click on a 매크로 or a 소품 still go to 다음 장 instead of pressing that control again. In 준비 and 화면 설정, a click focuses as usual.
+- In the 진행 workspace, a mouse click moves keyboard focus only into a text field, the 슬라이드 grid, or the 예배 순서 list. A click on any other button, toggle, segmented control, slider, tab, or tile does its job and leaves keyboard focus where it was; Tab still moves focus to it. So Space and → after a click on a 매크로 or a 소품 still go to 다음 슬라이드 instead of pressing that control again. In 준비 and 화면 설정, a click focuses as usual.
 - Background changes for hover and pressed take 100ms ease-out, menus and tooltips fade over 120ms, and dialogs fade over 160ms. Don't add any other motion. In code, use the tokens `--motion-hover`, `--motion-popover`, and `--motion-dialog` (for example `transition: background-color var(--motion-hover)`).
-- Don't add UI motion to the output screens. Look and the settings decide the transitions when a 장 or a background changes.
+- Don't add UI motion to the output screens. Look and the settings decide the transitions when a 슬라이드 or a background changes.
 - Under `prefers-reduced-motion`, set all UI motion to 0.
 
 ## Window sizes and layout
@@ -200,18 +200,19 @@ Sizes are CSS pixels after Windows display scaling is applied. A 1920×1080 scre
 - Don't put explanatory text on screen. Examples removed from the drafts: "넣을 위치" (insert position), "방금 실행" (just ran), "같은 제목" (same title), "원본을 따름" (follows the source), "파일 없음 1" (1 missing file). Show state with shape and color, and reasons in tooltips.
 - Write only the name and the shortcut in a tooltip: "가사 지우기  F2". Don't end it with a period. Write a sentence only to give the reason for a problem: "모니터 2를 찾을 수 없습니다" (Can't find monitor 2).
 - For errors and problems, say what went wrong, and offer the fix as a button ("모니터 다시 찾기", "다시 가져오기"). Don't apologize.
-- Formats: date "10월 25일 일요일", time "오전 11:00", 장 position "2 / 9", count "항목 12개", duration "0:42", screen status "60fps".
+- Formats: date "10월 25일 일요일", time "오전 11:00", 슬라이드 position "2 / 9", counts "슬라이드 9개" and "항목 12개", duration "0:42", screen status "60fps".
+- Keep 장 for Bible chapters: "창세기 1장" and "요한복음 3장 16절". A Bible item's slide count still uses "슬라이드 2개"; it is separate from its chapter and verse reference. Keep unrelated words such as 저장 (save), 장치 (device), and 가장자리 (edge).
 
 ### Glossary
 
 | Use | English gloss | Don't use | Meaning |
 | --- | --- | --- | --- |
 | 출력 | output | 송출, 라이브 | Sending content to the screens |
-| 장 | slide | 슬라이드 | One screen of lyrics or other content |
+| 슬라이드 | slide | 장 (for a slide) | One screen of lyrics or other content; Bible chapter numbers keep 장 |
 | 예배 순서 | service order | 재생목록, 플레이리스트, 큐시트 | The list of items in one service |
 | 틀 | template | 템플릿 | A 예배 순서 that you use to create a new 예배 순서 |
-| 구성 | arrangement | 편곡, 어레인지먼트 | A named 장 order saved in a song (기본, 주일용, 짧게) |
-| 이름표 | label | 그룹, 태그 | The name of a 장, such as 1절, 프리코러스, or 후렴 |
+| 구성 | arrangement | 편곡, 어레인지먼트 | A named 슬라이드 order saved in a song (기본, 주일용, 짧게) |
+| 이름표 | label | 그룹, 태그 | The name of a 슬라이드, such as 1절, 프리코러스, or 후렴 |
 | 지우기 | clear | 삭제 (for 출력), 클리어 | Taking content off the screens. Only removing a file or an item is "삭제" (delete) |
 | 본 화면, 무대 화면, 방송 자막 | main screen, stage screen, broadcast captions | 메인, 스테이지, 송출 화면 | The three output screens |
 | Look | Look | 룩, 레이아웃 | A set that decides which layers each screen shows |

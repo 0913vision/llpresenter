@@ -127,7 +127,7 @@ export function CheckboxSection(): JSX.Element {
             />
             <Row
               icon="slides"
-              label="마지막 장"
+              label="마지막 슬라이드"
               value="만복의 근원 하나님  2 / 9"
               initial
             />

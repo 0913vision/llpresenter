@@ -24,7 +24,7 @@ export interface AlertDialogProps {
   readonly icon: string;
   /** One question, or a noun when the question is clear. */
   readonly title: string;
-  /** The facts needed to decide, such as 라이브러리 곡 4장, 10월 20일 수정. */
+  /** The facts needed to decide, such as 라이브러리 곡 슬라이드 4개, 10월 20일 수정. */
   readonly meta?: readonly string[] | undefined;
   /** [취소] at the left end; Esc presses it. */
   readonly onCancel?: (() => void) | undefined;

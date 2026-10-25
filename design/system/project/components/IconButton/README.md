@@ -15,7 +15,7 @@ A square ghost button with only an icon. Use it for adding in panel headers, 내
 - A group that picks one of two, such as grid view and list view: use the icon segments of SegmentedControl.
 - The toolbar: ToolbarButton. The window control buttons in the menu bar (46×30): MenuBar.
 - Don't make icon buttons with a filled background. Make an important command that runs at once on a click a Button with a text label.
-- The dashed cell that puts a 장 (slide) into an empty slot isn't this component.
+- The dashed cell that puts a 슬라이드 (slide) into an empty slot isn't this component.
 
 ## Anatomy
 

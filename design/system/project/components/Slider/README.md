@@ -1,6 +1,6 @@
 # Slider
 
-A horizontal slider that sets a value by dragging. Use it for the thumbnail size under the 장 (slide) grid and for the volume in 진행 도구 (show tools) and the media properties.
+A horizontal slider that sets a value by dragging. Use it for the thumbnail size under the 슬라이드 (slide) grid and for the volume in 진행 도구 (show tools) and the media properties.
 
 ## Where to use
 

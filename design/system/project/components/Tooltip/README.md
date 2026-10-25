@@ -22,7 +22,7 @@ A small box that briefly shows a name, a shortcut, the reason something is disab
 - Surface `ll-tooltip`: background `bg-raised`, corner radius `radius-md` (4px), shadow `shadow-popover`, padding 5px top and bottom and `space-8` left and right, maximum width 280px. Text that overflows wraps at word boundaries (`keep-all`), and text with no break points, such as a path, breaks anywhere. There is no arrow. Stacking `z-tooltip`.
 - Text: `label` (12/16) `text`.
 - Shortcut `ll-tooltip__key`: `space-8` after the name, `text-3`, tabular numbers, no wrapping. Don't draw a key box (it is the text shortcut from `KeyCap`).
-- Second line `ll-tooltip__sub`: `space-2` above, `text-3`. After the reason, one fact that the user needs to decide (the 장 (slide) count and modified date of the conflicting song, a file path).
+- Second line `ll-tooltip__sub`: `space-2` above, `text-3`. After the reason, one fact that the user needs to decide (the 슬라이드 (slide) count and modified date of the conflicting song, a file path).
 - Position: 6px below the target, centered horizontally on the target. If the target is wider than the tooltip (a text field), align the left edges. If there isn't enough room below, flip it to 6px above the target, and at the side edges of the window, push it 8px inward. Position it from the target's rectangle, not from the pointer position.
 
 ## Sizes and variants
@@ -62,7 +62,7 @@ A small box that briefly shows a name, a shortcut, the reason something is disab
 
 ## Implementation notes
 
-- `<Tooltip content="가사 지우기" shortcut="F2" sub="라이브러리 곡 4장, 10월 20일 수정" placement="bottom"><ClearButton … /></Tooltip>` or `useTooltip(ref, { content, shortcut })`.
+- `<Tooltip content="가사 지우기" shortcut="F2" sub="라이브러리 곡 슬라이드 4개, 10월 20일 수정" placement="bottom"><ClearButton … /></Tooltip>` or `useTooltip(ref, { content, shortcut })`.
 - Draw tooltips in one layer for the whole app (a portal, `z-tooltip`), and keep one timer for the delay and the 300ms grace period.
 - Position from the target's `getBoundingClientRect()`, with a gap of 6, a flip (below → above), and an 8px push from the edges.
 - Classes: `ll-tooltip`, `ll-tooltip__key`, `ll-tooltip__sub`.

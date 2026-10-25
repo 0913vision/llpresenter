@@ -1,6 +1,6 @@
 # LabelChip
 
-A chip that shows a group of 장 (slide) in a song (1절, 프리코러스, 후렴) painted in its 이름표 (label) color. Use it in the 구성 (arrangement) strip and lyric blocks of the 준비 (Prep) workspace, and as a small 이름표 inside lists.
+A chip that shows a group of 슬라이드 (slide) in a song (1절, 프리코러스, 후렴) painted in its 이름표 (label) color. Use it in the 구성 (arrangement) strip and lyric blocks of the 준비 (Prep) workspace, and as a small 이름표 inside lists.
 
 ## Where to use
 
@@ -56,8 +56,8 @@ Hover on a color chip doesn't change the background color. The 이름표 color i
 ## Behavior
 
 - The 구성 strip is `role="listbox"` with `aria-orientation="horizontal"`, and each chip is `role="option"` + `aria-selected`. The arrow keys select chips, and selecting a chip also selects its thumbnail below.
-- Drag a chip to change the order. From the keyboard, Alt + ←/→ moves the selected chip by one place. Delete removes the 장 at that place from the 구성 (it doesn't delete it from the song).
-- Insert (+) opens the 이름표 menu so that the user picks the group to insert. `aria-label="장 넣기"`.
+- Drag a chip to change the order. From the keyboard, Alt + ←/→ moves the selected chip by one place. Delete removes the 슬라이드 at that place from the 구성 (it doesn't delete it from the song).
+- Insert (+) opens the 이름표 menu so that the user picks the group to insert. `aria-label="슬라이드 넣기"`.
 - A picker 이름표 has `aria-haspopup="menu"` and gets `aria-expanded="true"` when open. The menu follows the Menu rules (rule 11).
 - The chip of a live group has `data-state="live"`.
 

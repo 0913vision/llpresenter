@@ -6,7 +6,7 @@ A dialog that closes only when the user finishes or cancels one task. It has a 4
 
 - 새 예배: `dialog-l`, a two-column body (틀 (template) and past services on the left, 예배 순서 (service order) on the right) + an input bar above the footer (name, date, time)
 - 다른 예배에서 가져오기: `dialog-l`, a two-column body
-- 텍스트 가져오기: `dialog-xl`, an option bar under the header (장 나누기, 한 장에, 이름표 인식) + a 장 (slide) preview
+- 텍스트 가져오기: `dialog-xl`, an option bar under the header (슬라이드 나누기, 한 슬라이드에, 이름표 인식) + a 슬라이드 (slide) preview
 
 ## Where not to use
 

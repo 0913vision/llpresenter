@@ -21,7 +21,7 @@ One row of a list. The base is a 30px row with a 16px type icon, a 13px name, an
 - Row `ll-row`: height `size-row` (30px), horizontal padding `panel-inset` (14px), width 100%. It reaches the panel edges and has no corner radius.
   - Icon `ll-row__icon`: 16px `text-2`, `space-10` from the name.
   - Name `ll-row__title`: `body` (13/18) `text`, one line, truncated with an ellipsis.
-  - Extra information `ll-row__meta`: at the right end, `caption` (11/14) `text-3`, tabular numbers. 장 (slide) count ("9장"), duration ("5:00"), count ("42"), 구성 (arrangement) name ("주일용").
+  - Extra information `ll-row__meta`: at the right end, `caption` (11/14) `text-3`, tabular numbers. 슬라이드 (slide) count ("슬라이드 9개"), duration ("5:00"), count ("42"), 구성 (arrangement) name ("주일용").
   - Warning icon `ll-row__warn`: `warning` 14px, color `warning`. After the name, before the LIVE badge. Reason in a tooltip ("미디어 파일 없음").
   - LIVE badge: put `ll-badge ll-badge--live` of `StatusMarks` at the right end. When the badge is present, leave out the extra information.
 - Group header `ll-row-group`: `caption-strong` (11/14/600) `text-3`, padding top `space-10`, left and right 14, bottom 5. It can't be clicked.
@@ -63,8 +63,8 @@ One row of a list. The base is a 30px row with a 16px type icon, a 13px name, an
 
 - `ListBox workspace="show"` keeps keyboard focus without drawing the row's focus outline. Tab entry, arrow selection, and Enter still work. 준비, including the default workspace in a dialog, keeps the normal outline. Controls at a row's end keep their own focus outline in either workspace.
 - A list has `role="listbox"`, and each row has `role="option"` and `aria-selected`. Tab enters the list once, on the selected row or, with none selected, the first row, and Shift Tab leaves it (the list itself never takes focus); the up and down arrows move between rows, and Home and End go to the first and last rows. Group headers are skipped (a group has `role="group"` + `aria-labelledby`).
-- In the 진행 workspace, the 예배 순서 list keeps ↑, ↓, Home, End, and Enter. ←, →, Space, Page Up, and Page Down go to 다음 장 and 이전 장 even while the list has focus, as in ProPresenter. A click on a row gives the list keyboard focus, also in 진행.
-- A click on a row only selects it. A 예배 순서 row opens the 장 of that item in the 장 panel. For 출력 (output), the user clicks a 장.
+- In the 진행 workspace, the 예배 순서 list keeps ↑, ↓, Home, End, and Enter. ←, →, Space, Page Up, and Page Down go to 다음 슬라이드 and 이전 슬라이드 even while the list has focus, as in ProPresenter. A click on a row gives the list keyboard focus, also in 진행.
+- A click on a row only selects it. A 예배 순서 row opens the 슬라이드 of that item in the 슬라이드 panel. For 출력 (output), the user clicks a 슬라이드.
 - A click on a 퀵 실행 row runs it at once. An item that turns on and off, such as a logo screen, reports its on state with `aria-pressed`, and a second click turns it off. While it is on, the `live` bar stays on the left.
 - Dragging: moving a row more than 4px starts a drag, and the drop position line snaps to the row boundary closest to the pointer. The spot right under a group header is also a drop position. Esc cancels.
 - Dropping a song on an empty slot fills that slot and turns it into a regular row.
@@ -73,13 +73,13 @@ One row of a list. The base is a 30px row with a 16px type icon, a 13px name, an
 ## Writing
 
 - Write the name exactly as the item's name: "만복의 근원 하나님", "요한복음 3장 16절". Don't put the type in front (the icon shows the type).
-- Write extra information as numbers and units only: "9장", "5:00", "42". The second line of a two-line item is date, then count: "10월 25일 일요일  항목 12개".
+- Write extra information as compact counts or durations: "슬라이드 9개", "5:00", "42". Keep chapter numbers in Bible titles, such as "요한복음 3장 16절"; a separate "슬라이드 2개" describes that item's slides. The second line of a two-line item is date, then count: "10월 25일 일요일  항목 12개".
 - Don't add the state as text (no "출력 중", "완료", or "재생됨"). Show it only with the LIVE badge, color, and bars.
 - Write an empty slot as the name of the type that goes there and "빈 자리": "찬양 … 빈 자리".
 
 ## Implementation notes
 
-- `<ListRow icon="song" title="만복의 근원 하나님" meta="9장" selected live warning="미디어 파일 없음" />`
+- `<ListRow icon="song" title="만복의 근원 하나님" meta="슬라이드 9개" selected live warning="미디어 파일 없음" />`
 - `<ListRow variant="double" icon="cal" title="주일 예배" sub={['10월 25일 일요일', '항목 12개']} />`
 - `<ListRow toggle pressed icon="prop" title="로고 화면" />` (퀵 실행)
 - `<ListBox label="예배 순서" workspace="show" selected={id} onSelect={…}>…</ListBox>` for the 예배 순서 list of 진행; leave `workspace` out elsewhere, dialogs included.

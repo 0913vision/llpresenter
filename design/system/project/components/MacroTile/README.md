@@ -51,7 +51,7 @@ The last run ring stays white, as in the draft. A macro isn't something that is 
 - A click runs the macro at once, without asking for confirmation. After it runs, the last run ring moves to that tile.
 - A right-click opens the macro menu (실행, 이름 바꾸기, 아이콘 바꾸기, 색, 동작 추가 …, 삭제) and keeps that tile selected while the menu is open.
 - The grid and the list are `role="listbox"`, and the items are `role="option"`. While an item has keyboard focus, the arrow keys move between items, and Enter or Space runs one. Shift F10 or the Menu key opens the right-click menu. Keys the tile doesn't use (F1 to F7, Page Up, Page Down, Ctrl and Alt commands) pass on to their commands.
-- In the 진행 workspace, a mouse click runs the macro but doesn't give the tile keyboard focus; only Tab moves keyboard focus into the grid. So Space after a click still goes to 다음 장 instead of running the macro again.
+- In the 진행 workspace, a mouse click runs the macro but doesn't give the tile keyboard focus; only Tab moves keyboard focus into the grid. So Space after a click still goes to 다음 슬라이드 instead of running the macro again.
 - Write the name and the schedule in the `aria-label`: "예배 시작, 10:30에 실행".
 - State attributes: last run `data-state="last-run"`, selected `aria-selected="true"`.
 

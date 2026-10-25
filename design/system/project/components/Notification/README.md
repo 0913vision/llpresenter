@@ -9,7 +9,7 @@ Shows something the app must report on its own as a card at the top right. A war
 
 ## Where not to use
 
-- A problem with one 장 (slide) or one media item (missing media file): show it in place. Media tiles use `MediaTile`, thumbnails use the missing file look of `SlideThumbnail`, and list rows use the warning icon of `ListRow`. Don't show a notification card.
+- A problem with one 슬라이드 (slide) or one media item (missing media file): show it in place. Media tiles use `MediaTile`, thumbnails use the missing file look of `SlideThumbnail`, and list rows use the warning icon of `ListRow`. Don't show a notification card.
 - The result of something the user just did (cleared, saved): don't show anything. The status bar reports saving with "23:41 저장됨".
 - Something that needs an answer: use `AlertDialog`.
 

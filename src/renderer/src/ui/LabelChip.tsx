@@ -17,10 +17,10 @@ import styles from './LabelChip.module.css';
 const GRIP_SIZE = 14;
 const ADD_ICON_SIZE = 14;
 const CHEVRON_SIZE = 12;
-const INSERT_LABEL = '장 넣기';
+const INSERT_LABEL = '슬라이드 넣기';
 const PICKER_PLACEHOLDER = '이름표';
 
-/** One group of 장 in a 구성: its 이름표 name and color, or its number. */
+/** One group of 슬라이드 in a 구성: its 이름표 name and color, or its number. */
 export interface ArrangementChip {
   /** A stable key for the chip, unique within the strip. */
   readonly key: string;
@@ -45,7 +45,7 @@ export interface ArrangementStripProps {
   readonly onSelect: (index: number) => void;
   /** Alt + Left or Right asks to move a chip one place. */
   readonly onMove: (from: number, to: number) => void;
-  /** Delete asks to take the 장 at that place out of the 구성. */
+  /** Delete asks to take the 슬라이드 at that place out of the 구성. */
   readonly onRemove: (index: number) => void;
   /** The insert button asks to open the 이름표 menu below it. */
   readonly onInsert: (button: HTMLElement) => void;
@@ -127,7 +127,7 @@ function handleChipKey(
 }
 
 /**
- * The 구성 strip: one chip per group in 장 order, then the insert button. The
+ * The 구성 strip: one chip per group in 슬라이드 order, then the insert button. The
  * arrow keys select chips, Alt + Left or Right moves the selected one, and
  * Delete takes it out. Dragging is left to the caller, which draws its state
  * with `dropIndex` and `draggingIndex`.
@@ -284,7 +284,7 @@ function LabelChip({
 }
 
 export interface LabelTagProps {
-  /** The 이름표 name; `undefined` when the 장 has none. */
+  /** The 이름표 name; `undefined` when the 슬라이드 has none. */
   readonly name: string | undefined;
   readonly color: LabelColor;
   /** Makes it a button that opens the 이름표 menu. */

@@ -116,7 +116,7 @@
 | ShowH | 썸네일 슬라이더 6–2열 → 2–8열. 가사 `48/열 수`px → 캔버스 너비 × 0.044. 썸네일 hover 없음 → 1px line-control. 미리보기 틀 모서리 3 → 4, 작은 칸 이름 #cfcfcf → text-2. 미디어 줄: 출력 중 고리 2 → 3px, 이름 #d6d6d6 → text-2, 이름 위 간격 7 → 8, 길이 칩 5 → 6, 반복 아이콘 14 → 12, 바탕 0.72 → scrim-strong, 패널 220 → 170. LIVE 배지 좌우 5 → 4. 툴바 출력 점 7 → 6. 탭 개수 16px 알약(#3a3a3a) → 18px radius 3, selection 바탕 + text-on-selection 11/600 |
 | Compact | 툴바 44 → 40. 상태 표시줄 24 → 28. 썸네일 띠 22/11 → 24/12, 격자 틈 12/10 → 16/12, 패널 안쪽 12 → 14. 작은 미리보기 80 → 64, 사이 8 → 10. LIVE 배지 15/9 → 16/10. 메시지 탭 → 더 보기 안으로. 더 보기 개수 알약 없앰 |
 | PrepService | 칩 모서리 4 → 3, 사이 6 → 8, 고름 흰 1px → 2px 틈(bg-panel) + accent 2px, hover #333 → 손잡이만 불투명, 이름표 없음 글자 #b4b4b4 → label-gray(#a3a3a3), 넣기 점선 #4a4a4a → line-control. 미리보기 틀 3 → 4 |
-| Reflow, ImportEdit, ImportSave | 이름표 칩 24 → 22. 이름표 없음 글자 #8c8c8c → label-gray. 화살표 불투명도 0.7 → 1. 활성 블록의 흰 고리 → 메뉴 열림일 때만. Reflow 장 패널 격자 틈 14/12 → 16/12, 가사 11px → 너비 × 0.044 |
+| Reflow, ImportEdit, ImportSave | 이름표 칩 24 → 22. 이름표 없음 글자 #8c8c8c → label-gray. 화살표 불투명도 0.7 → 1. 활성 블록의 흰 고리 → 메뉴 열림일 때만. Reflow 슬라이드 패널 격자 틈 14/12 → 16/12, 가사 11px → 너비 × 0.044 |
 | ImportText | 이름표 24 → 22 |
 | Problems | 빗금 #1a1a1a/#151515 → bg-inset/bg-well. 칸 안 "다시 연결" 버튼과 "파일 없음" 글자 없앰. "⚠ 창으로 표시 중" → "⚠ 모니터 3"(warning) + 툴팁. 미디어 고리 2 → 3, 미디어 줄 220 → 170 |
 | Media | 격자 틈 18/14 → 16/12. 이름 #cfcfcf → text-2. 길이 칩 20 → 18. 복사 중(불투명도 0.35 + 막 0.45 + 글자) → scrim + 퍼센트. 막대 3px #2b2b2b(바닥 끝) → 4px 진행 막대(안쪽 6) |

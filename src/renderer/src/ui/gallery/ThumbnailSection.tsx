@@ -79,7 +79,7 @@ const thumbnailStates: readonly ThumbnailState[] = [
     pin: 'focus',
   },
   {
-    label: 'Media 장 (Sunday announcement)',
+    label: 'Media 슬라이드 (Sunday announcement)',
     thumbnail: {number: 3, media: dawnSky},
   },
   {
@@ -173,7 +173,7 @@ function TryGrid(): JSX.Element {
       </PanelHeader>
       <PanelBody>
         <ThumbnailGrid
-          label="장"
+          label="슬라이드"
           columns={COLUMN_SUM - size}
           workspace="show"
           selected={selected}

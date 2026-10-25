@@ -57,12 +57,12 @@ A confirmation dialog that the user must answer, with one question, before movin
 
 - End the title with one question: "‘만복의 근원 하나님’ 곡이 이미 있습니다. 덮어쓸까요?" Wrap the object's name in ‘ ’.
 - When it is clear what the dialog asks, write the title as a noun: "출력 상태 복구".
-- Write only the facts needed to decide as extra info: "라이브러리 곡 4장, 10월 20일 수정", "비정상 종료  10월 25일 오전 11:26". Don't write explanatory paragraphs.
+- Write only the facts needed to decide as extra info: "라이브러리 곡 슬라이드 4개, 10월 20일 수정", "비정상 종료  10월 25일 오전 11:26". Don't write explanatory paragraphs.
 - Write buttons as verbs for what happens: "덮어쓰기", "새 곡으로 저장", "복구", "새로 시작". Don't use "예" (Yes), "아니요" (No), or "확인" (OK).
 
 ## Implementation notes
 
-- `<AlertDialog icon="song" title="‘만복의 근원 하나님’ 곡이 이미 있습니다. 덮어쓸까요?" meta={['라이브러리 곡 4장, 10월 20일 수정']} cancel="취소" actions={[{ label: '새 곡으로 저장' }, { label: '덮어쓰기', primary: true }]} />`
+- `<AlertDialog icon="song" title="‘만복의 근원 하나님’ 곡이 이미 있습니다. 덮어쓸까요?" meta={['라이브러리 곡 슬라이드 4개, 10월 20일 수정']} cancel="취소" actions={[{ label: '새 곡으로 저장' }, { label: '덮어쓰기', primary: true }]} />`
 - `<AlertDialog icon="history" title="출력 상태 복구" meta={['비정상 종료', '10월 25일 오전 11:26']} list={{ label: '복구할 상태', items: [{ icon: 'mplay', label: '화면 출력', value: '본 화면, 무대 화면, 방송 자막', checked: true }, …] }} actions={[{ label: '새로 시작', escape: true }, { label: '복구', primary: true }]} />`
 - Classes: `ll-alert`, `ll-alert--list`, `ll-alert__head`, `ll-alert__icon`, `ll-alert__text`, `ll-alert__title`, `ll-alert__meta`, `ll-alert__list`, `ll-alert__actions`, `ll-alert__cancel`.
 

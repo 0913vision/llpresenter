@@ -1,6 +1,6 @@
 # Panel
 
-The basic surface of the window. It has a 34px header (tabs or a title, controls on the right), a scrolling body under it, and an optional 32px footer row. The 예배 순서 (service order), 퀵 실행 (quick launch), library, 장 (slide), media, preview, 진행 도구 (show tools), and item settings panels all use this frame.
+The basic surface of the window. It has a 34px header (tabs or a title, controls on the right), a scrolling body under it, and an optional 32px footer row. The 예배 순서 (service order), 퀵 실행 (quick launch), library, 슬라이드 (slide), media, preview, 진행 도구 (show tools), and item settings panels all use this frame.
 
 ## Where to use
 
@@ -20,7 +20,7 @@ The basic surface of the window. It has a 34px header (tabs or a title, controls
 - Header `ll-panel__header`: height `size-panel-header` (34px, including the 1px bottom line), left `panel-inset` (14px), right `space-8`, a 1px `line` at the bottom.
   - Tab `ll-panel__tab`: `label-strong` (12/16/600). The selected tab is `text`, with a 2px `text` underline right above the header line. Unselected tabs are `text-3`. 18px between tabs (no token, requested). A count badge in a tab is `ll-count` of `StatusMarks`, `space-6` from the name.
   - Count `ll-panel__meta`: `space-10` after a tab or title, `label` (12/16) `text-3`, tabular numbers. For example: 라이브러리 128, 배경 영상 7.
-  - Title `ll-panel__title`: song title `ll-panel__title-text` (`title` 13/18/600) + position or count `ll-panel__meta` ("2 / 9", "9장"). Gap `space-10`, aligned on the text baseline. Truncate a long title with an ellipsis.
+  - Title `ll-panel__title`: song title `ll-panel__title-text` (`title` 13/18/600) + position or count `ll-panel__meta` ("2 / 9", "슬라이드 9개"). Gap `space-10`, aligned on the text baseline. Truncate a long title with an ellipsis.
   - Service switcher `ll-panel__switch`: `space-4` right after the 예배 순서 tab. A ghost sm button: height `size-control-sm` (26px), padding left `space-6` and right `space-4`, `label` (12/16) `text-3`, a 12px `down` arrow, `space-4` between the text and the arrow, radius `radius-md`.
   - Controls on the right `ll-panel__actions`: attached at the right end, `space-8` between controls. Use sm controls only: `IconButton` (26×26), `Button` sm, `Select` sm.
 - Tool row `ll-panel__tools`: one row under the header with a search field or a Bible verse field. Padding top 8, left and right 8, bottom 6. The field fills the row width (`TextField` md). A list body right under it has no top padding.
@@ -34,10 +34,10 @@ The basic surface of the window. It has a 34px header (tabs or a title, controls
 | Tab header | 34 | `label-strong` 12/16/600 | 예배 순서, 퀵 실행, library, media, preview, 진행 도구 |
 | Tab + service switcher | 34 | Tab `label-strong`, switcher `label` `text-3` | 예배 순서 |
 | Tab + count | 34 | `label-strong` + `label` `text-3` | 라이브러리 128 |
-| Title header | 34 | `title` 13/18/600 + `label` `text-3` | 장 panel (만복의 근원 하나님 2 / 9), 예배 순서 item (9장), 배경 영상 7 |
+| Title header | 34 | `title` 13/18/600 + `label` `text-3` | 슬라이드 panel (만복의 근원 하나님 2 / 9), 예배 순서 item (슬라이드 9개), 배경 영상 7 |
 | Tool row | 44 (8 + 30 + 6) | `body` 13/18 | Library search, 퀵 실행 Bible verse |
 | Body | Remaining height | - | Lists (`--list`), thumbnail grid (padding 14) |
-| Footer row | 32 | `caption` 11/14 `text-3` | Count and thumbnail size in the 장 panel and media |
+| Footer row | 32 | `caption` 11/14 `text-3` | Count and thumbnail size in the 슬라이드 panel and media |
 
 ## States
 
@@ -65,7 +65,7 @@ The basic surface of the window. It has a 34px header (tabs or a title, controls
 ## Writing
 
 - Write tab and panel names as short nouns: "예배 순서", "퀵 실행", "라이브러리", "미리보기", "표시 중". Don't add verbs or descriptions.
-- Write a count in a header as a number only, and add a unit only when it isn't clear what is counted: "128", "7", "9장".
+- Write a count in a header as a number only, and add a unit only when it isn't clear what is counted: "128", "7", "슬라이드 9개".
 - Write a position as "current / total", with spaces around the slash: "2 / 9".
 - Don't write help text or state descriptions in a header.
 

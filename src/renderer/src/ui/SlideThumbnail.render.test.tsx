@@ -21,7 +21,7 @@ function SongGrid(): JSX.Element {
   return (
     <ThumbnailGrid
       workspace="prep"
-      label="장"
+      label="슬라이드"
       columns={colors.length}
       selected={selected}
       onSelect={setSelected}

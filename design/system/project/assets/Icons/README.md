@@ -27,7 +27,7 @@ Each file is drawn in one ink (`currentColor`). Shown with `<img>`, an icon appe
 | x.svg | x | Close, remove |
 | min.svg | minus | Minimize window |
 | max.svg | square | Maximize window |
-| slides.svg | slideshow | 장 (slide), sermon |
+| slides.svg | slideshow | 슬라이드 (slide), sermon |
 | saved.svg | cloud-check | Saved |
 | layers.svg | stack | Look, 모두 지우기 (clear all), 틀 (template) |
 | edit.svg | pencil-simple | Edit |

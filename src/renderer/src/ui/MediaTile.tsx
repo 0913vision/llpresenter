@@ -208,7 +208,7 @@ export type MediaStripProps = MediaListProps;
 /**
  * The media strip of 진행 (`ll-media-strip`): one row of 150px tiles that
  * scrolls sideways. A click doesn't take keyboard focus there, so → and Space
- * still go to 다음 장.
+ * still go to 다음 슬라이드.
  */
 export function MediaStrip(props: MediaStripProps): JSX.Element {
   return (

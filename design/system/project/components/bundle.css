@@ -1025,7 +1025,6 @@
 /* The focus ring sits 1px outside the 3px live ring. */
 .ll-thumb:focus-visible, .ll-preview .ll-thumb.is-focus { outline: 2px solid var(--accent); outline-offset: 4px; }
 
-/* Missing 장 media file: hatching + missing file icon. */
 .ll-thumb[data-state~="warning"] .ll-thumb__canvas { background: repeating-linear-gradient(135deg, var(--bg-inset) 0 6px, var(--bg-well) 6px 12px); }
 .ll-thumb[data-state~="warning"] .ll-thumb__media { display: none; }
 .ll-thumb__missing { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; color: var(--warning); }

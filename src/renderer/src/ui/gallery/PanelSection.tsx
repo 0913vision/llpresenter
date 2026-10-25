@@ -170,7 +170,7 @@ export function PanelSection(): JSX.Element {
           </Stateful>
         </SpecItem>
         <SpecItem label="Title + position, dropdown on the right" width={440}>
-          <Panel label="장">
+          <Panel label="슬라이드">
             <PanelHeader>
               <PanelTitle title="만복의 근원 하나님" meta="2 / 9" />
               <PanelActions>
@@ -195,9 +195,9 @@ export function PanelSection(): JSX.Element {
           </Panel>
         </SpecItem>
         <SpecItem label="Title + count, sm button on the right" width={440}>
-          <Panel label="장">
+          <Panel label="슬라이드">
             <PanelHeader>
-              <PanelTitle title="만복의 근원 하나님" meta="9장" />
+              <PanelTitle title="만복의 근원 하나님" meta="슬라이드 9개" />
               <PanelActions>
                 <Button icon="edit">라이브러리 곡 편집</Button>
               </PanelActions>
@@ -255,8 +255,8 @@ export function PanelSection(): JSX.Element {
             </PanelFooter>
           </Panel>
         </SpecItem>
-        <SpecItem label="Thumbnail size only (장 panel)" width={440}>
-          <Panel label="장">
+        <SpecItem label="Thumbnail size only (슬라이드 panel)" width={440}>
+          <Panel label="슬라이드">
             <MiniBody />
             <PanelFooter
               end={

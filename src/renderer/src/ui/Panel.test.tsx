@@ -123,7 +123,7 @@ describe('PanelSwitch', () => {
 describe('PanelTitle and PanelFooter', () => {
   it('shows a title with its position, actions, and footer parts', () => {
     render(
-      <Panel label="장">
+      <Panel label="슬라이드">
         <PanelHeader>
           <PanelTitle title="만복의 근원 하나님" meta="2 / 9" />
           <PanelActions>
@@ -131,14 +131,14 @@ describe('PanelTitle and PanelFooter', () => {
           </PanelActions>
         </PanelHeader>
         <PanelBody>
-          <span>장 목록</span>
+          <span>슬라이드 목록</span>
         </PanelBody>
-        <PanelFooter end={<span>크기</span>}>9장</PanelFooter>
+        <PanelFooter end={<span>크기</span>}>슬라이드 9개</PanelFooter>
       </Panel>,
     );
     expect(screen.getByText('만복의 근원 하나님')).toBeDefined();
     expect(screen.getByText('2 / 9')).toBeDefined();
-    expect(screen.getByText('9장')).toBeDefined();
+    expect(screen.getByText('슬라이드 9개')).toBeDefined();
     expect(screen.getByText('크기')).toBeDefined();
   });
 });

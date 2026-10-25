@@ -54,7 +54,7 @@ function ServiceOrder({
           value="hymn1"
           icon="song"
           title="만복의 근원 하나님"
-          meta="9장"
+          meta="슬라이드 9개"
           live
         />
         <ListRow

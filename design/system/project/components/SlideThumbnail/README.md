@@ -1,12 +1,12 @@
 # SlideThumbnail
 
-A thumbnail that shows one 장 (slide) as a 16:9 output canvas with a 24px 이름표 (label) band. Use it in the 장 grid of the 진행 (Show) workspace and in the 장 list of the 준비 (Prep) workspace.
+A thumbnail that shows one 슬라이드 (slide) as a 16:9 output canvas with a 24px 이름표 (label) band. Use it in the 슬라이드 grid of the 진행 (Show) workspace and in the 슬라이드 list of the 준비 (Prep) workspace.
 
 ## Where to use
 
-- The 장 panel in the 진행 workspace (ShowH, Compact, Problems). A click outputs that 장.
-- A 예배 순서 (service order) item in the 준비 workspace (PrepService). Lay out the 장 in 구성 (arrangement) order.
-- The 장 panel of a library song in the 준비 workspace (Reflow), imported song editing (ImportEdit), and Bible verses (Bible).
+- The 슬라이드 panel in the 진행 workspace (ShowH, Compact, Problems). A click outputs that 슬라이드.
+- A 예배 순서 (service order) item in the 준비 workspace (PrepService). Lay out the 슬라이드 in 구성 (arrangement) order.
+- The 슬라이드 panel of a library song in the 준비 workspace (Reflow), imported song editing (ImportEdit), and Bible verses (Bible).
 
 ## Where not to use
 
@@ -17,8 +17,8 @@ A thumbnail that shows one 장 (slide) as a 16:9 output canvas with a 24px 이�
 ## Anatomy
 
 - Outer element: `button`. Its corner radius `radius-md` (4px) clips the canvas and the band together (`overflow: hidden`). Rings are outer shadows, so they aren't clipped.
-- Canvas: 16:9, background `output-black`. Don't draw the song's default background (background media such as 따뜻한 빛). Fill only an image or video placed in the 장 itself, with `object-fit: cover` (a Sunday announcement 장).
-- Lyrics: text `text-on-fill`, weight 700, line height 1.45, centered, horizontal padding 10%. Keep the line breaks as written in the 장 (`white-space: pre-line`, `word-break: keep-all`).
+- Canvas: 16:9, background `output-black`. Don't draw the song's default background (background media such as 따뜻한 빛). Fill only an image or video placed in the 슬라이드 itself, with `object-fit: cover` (a Sunday announcement 슬라이드).
+- Lyrics: text `text-on-fill`, weight 700, line height 1.45, centered, horizontal padding 10%. Keep the line breaks as written in the 슬라이드 (`white-space: pre-line`, `word-break: keep-all`).
 - Lyric font size = canvas width × 0.044. In CSS, set `container-type: inline-size` on the canvas and `font-size: 4.4cqw` on the text. Don't set a minimum, because the thumbnail must break lines in the same places as the output.
   - The draft ShowH formula `thumbFont = 48 / column count` (px) fits only a center column of 1144 (1116 inside the body). As width ratios, 2 columns 552px→24px (0.0435), 4 columns 270px→12px (0.0444), and 6 columns 176px→8px (0.0455), so a single 0.044 is used.
 - 이름표 band: height `size-thumb-band` (24px), text `band` (12/16/700), left padding `space-8`, gap between number and name `space-8`, number in `tabular-nums`. If the 이름표 has a color, paint the whole band in that color (`label-teal` and so on) with `text-on-label` text. Otherwise use `label-none` with `label-gray` text, and write only the number. Truncate a long name with an ellipsis.
@@ -30,8 +30,8 @@ A thumbnail that shows one 장 (slide) as a 16:9 output canvas with a 24px 이�
 
 | Name | Height | Text | Where to use |
 |---|---|---|---|
-| Lyrics 장 | width × 9/16 + 24 | lyrics width × 0.044 / band `band` | 장 panel in 진행, 예배 순서 items, library song 장 panel |
-| Media 장 | width × 9/16 + 24 | band `band` | A 장 with an image or video (Sunday announcement) |
+| Lyrics 슬라이드 | width × 9/16 + 24 | lyrics width × 0.044 / band `band` | 슬라이드 panel in 진행, 예배 순서 items, library song 슬라이드 panel |
+| Media 슬라이드 | width × 9/16 + 24 | band `band` | A 슬라이드 with an image or video (Sunday announcement) |
 
 The thumbnail itself has no size variants. Its fixed tile width sets its size; integer column tracks remain available for compatibility callers.
 
@@ -45,7 +45,7 @@ The thumbnail itself has no size variants. Its fixed tile width sets its size; i
 | Live | Same | Same | `ring-live` (3px `live`). Takes priority over selected |
 | Focus in 준비 | Same | Same | `outline: 2px solid accent`, `outline-offset: 4px` (outside the live ring) |
 | Focus in 진행 | Same | Same | No keyboard focus outline; selection and live rings remain |
-| 장 media file missing | Hatching (`bg-inset`/`bg-well`, 135°, 6px) | `filex` 24px `warning` in the center | If live, also `ring-live`. The path is in the title tooltip |
+| 슬라이드 media file missing | Hatching (`bg-inset`/`bg-well`, 135°, 6px) | `filex` 24px `warning` in the center | If live, also `ring-live`. The path is in the title tooltip |
 
 Hover uses the same 1px `line-control` as the hover of the small previews (ShowH `.pv:hover`, 1px #6e6e6e). Because it is a gray 1px line, it doesn't get confused with the blue 2px (selected) or the red 3px (live), and it only shows where you can click. On a selected or live thumbnail, hover keeps that ring as it is.
 
@@ -53,12 +53,12 @@ Hover uses the same 1px `line-control` as the hover of the small previews (ShowH
 
 - `ThumbnailGrid.tileWidth` optionally sets a fixed tile width in CSS pixels, normally computed by `thumbnailWidth` from spec-13's percentage. Tiles keep that width across wrapping rather than filling integer column tracks. Row navigation reads the actual layout. Without a valid positive width, the existing `columns` layout remains available for callers that have not adopted the percentage control.
 - In 진행, keyboard focus remains on the thumbnail but draws no focus outline. Tab, arrow movement, Enter, and the live/selection rings still work. 준비 keeps the usual focus outline. `ThumbnailGrid` passes its `workspace` through to the grid; other tile lists default to 준비.
-- In the 진행 workspace, a click outputs that 장. In the 준비 workspace, a click only selects it.
+- In the 진행 workspace, a click outputs that 슬라이드. In the 준비 workspace, a click only selects it.
 - The grid is `role="listbox"`, and each thumbnail is `role="option"` + `aria-selected`. Tab enters the grid only once (roving tabindex), on the selected thumbnail.
 - In the 준비 workspace, the arrow keys move between thumbnails, and Enter and Space act as a click.
-- In the 진행 workspace, the grid keeps only ↑ and ↓ (one row) and Enter (a click). ←, →, Space, Page Up, and Page Down go to 다음 장 and 이전 장 even while the grid has focus, as in ProPresenter (focus precedence, rule 5, in `docs/spec/10-shortcuts-and-settings.md`). Space never presses the focused thumbnail there.
-- The grid takes keyboard focus on a mouse click, also in 진행, where a click on other buttons and tiles leaves focus where it was. While focus is in the grid, it follows the selection, also when 다음 장 moves it.
-- A live 장 has `data-state="live"`, a 장 whose media file is missing has `data-state="warning"`, and one with both has `data-state="live warning"`.
+- In the 진행 workspace, the grid keeps only ↑ and ↓ (one row) and Enter (a click). ←, →, Space, Page Up, and Page Down go to 다음 슬라이드 and 이전 슬라이드 even while the grid has focus, as in ProPresenter (focus precedence, rule 5, in `docs/spec/10-shortcuts-and-settings.md`). Space never presses the focused thumbnail there.
+- The grid takes keyboard focus on a mouse click, also in 진행, where a click on other buttons and tiles leaves focus where it was. While focus is in the grid, it follows the selection, also when 다음 슬라이드 moves it.
+- A live 슬라이드 has `data-state="live"`, a 슬라이드 whose media file is missing has `data-state="warning"`, and one with both has `data-state="live warning"`.
 - Write the `aria-label` in this order: number, 이름표, first line. "2 프리코러스, 저 천사여 찬송하세".
 - Moving the size slider continuously changes the tile width, and the lyric text follows that width. The row wraps when fewer tiles fit.
 
@@ -71,7 +71,7 @@ Hover uses the same 1px `line-control` as the hover of the small previews (ShowH
 ## Implementation notes
 
 - `<SlideThumbnail number={2} label="프리코러스" labelColor="green" text={'저 천사여 찬송하세\n찬송 성부 성자 성령'} media={src} missingFile={path} live selected />`
-- `<ThumbnailGrid label="장" columns={4} tileWidth={thumbnailWidth({gridWidth, columns: 4, gap, scalePercent})} workspace="show" selected={index} onSelect={…} onOutput={…}>…</ThumbnailGrid>`. Use the current size class's baseline columns. With `workspace="prep"`, a click selects, and there is no `onOutput`.
+- `<ThumbnailGrid label="슬라이드" columns={4} tileWidth={thumbnailWidth({gridWidth, columns: 4, gap, scalePercent})} workspace="show" selected={index} onSelect={…} onOutput={…}>…</ThumbnailGrid>`. Use the current size class's baseline columns. With `workspace="prep"`, a click selects, and there is no `onOutput`.
 - Compatibility callers can omit `tileWidth` and keep `<ThumbnailGrid columns={4}>`, which fills four equal tracks. Do not map percentage values to an integer column setting.
 - Classes: `ll-thumb`, `ll-thumb__canvas`, `ll-thumb__text`, `ll-thumb__media`, `ll-thumb__missing`, `ll-thumb__band`, `ll-thumb__num`, `ll-thumb__label`, `ll-thumb-grid`.
 - Attributes: `data-color="teal|green|yellow|orange|rose|violet|slate|gray"` (none means no 이름표. `42-labelchip.css` maps the colors), `aria-selected`, `data-state`.
@@ -81,4 +81,4 @@ Hover uses the same 1px `line-control` as the hover of the small previews (ShowH
 
 - ShowH, PrepService, Problems: discrete size slider → continuous 50%–200% sizing and % field, default 100%. Integer column layout remains for compatibility. Lyrics `48 / column count`px → canvas width × 0.044. No thumbnail hover → 1px `line-control`.
 - Compact: band 22px, 11px → 24px, 12px (`band`), grid gap 12/10 → 16/12, panel padding 12 → 14, lyrics fixed 11px → width × 0.044.
-- Reflow 장 panel: grid gap 14/12 → 16/12, lyrics fixed 11px → width × 0.044.
+- Reflow 슬라이드 panel: grid gap 14/12 → 16/12, lyrics fixed 11px → width × 0.044.

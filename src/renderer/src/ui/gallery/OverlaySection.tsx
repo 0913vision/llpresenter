@@ -263,9 +263,9 @@ function ImportTextDialog({
       primary={{label: '편집', onSelect: onClose}}
       topBar={
         <>
-          <DialogField label="장 나누기">
+          <DialogField label="슬라이드 나누기">
             <SegmentedControl
-              label="장 나누기"
+              label="슬라이드 나누기"
               options={[
                 {value: 'blank', label: '빈 줄'},
                 {value: 'lines', label: '줄 수'},
@@ -280,7 +280,7 @@ function ImportTextDialog({
         </>
       }
     >
-      <p>장 미리보기</p>
+      <p>슬라이드 미리보기</p>
     </Dialog>
   );
 }
@@ -319,7 +319,7 @@ export function OverlaySection(): JSX.Element {
         <SpecItem label="Two lines (error reason + extra info)">
           <Tooltip
             text="라이브러리에 같은 제목의 곡이 있습니다"
-            sub="라이브러리 곡 4장, 10월 20일 수정"
+            sub="라이브러리 곡 슬라이드 4개, 10월 20일 수정"
           >
             <Button>저장</Button>
           </Tooltip>
@@ -386,7 +386,7 @@ export function OverlaySection(): JSX.Element {
               <AlertDialog
                 icon="song"
                 title="‘만복의 근원 하나님’ 곡이 이미 있습니다. 덮어쓸까요?"
-                meta={['라이브러리 곡 4장, 10월 20일 수정']}
+                meta={['라이브러리 곡 슬라이드 4개, 10월 20일 수정']}
                 onCancel={close}
                 actions={[
                   {label: '새 곡으로 저장', onSelect: close},
@@ -421,7 +421,7 @@ export function OverlaySection(): JSX.Element {
                       />
                       <CheckRow
                         icon="slides"
-                        label="마지막 장"
+                        label="마지막 슬라이드"
                         value="만복의 근원 하나님  2 / 9"
                         checked
                         onChange={ignore}

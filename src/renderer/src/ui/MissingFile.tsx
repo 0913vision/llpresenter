@@ -4,7 +4,7 @@ import styles from './MissingFile.module.css';
 
 const MISSING_ICON_SIZE = 24;
 
-/** The tooltip of a 장 or a media tile whose file can't be found. */
+/** The tooltip of a 슬라이드 or a media tile whose file can't be found. */
 export function missingFileText(path: string): string {
   return `파일을 찾을 수 없습니다: ${path}`;
 }

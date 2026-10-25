@@ -23,7 +23,7 @@ describe('withParticle', () => {
     ['출력 켜기', '와'],
     ['평상시', '와'],
     ['가사 지우기', '와'],
-    ['다음 장', '과'],
+    ['다음 슬라이드', '와'],
     ['Ctrl 1', '과'],
   ])('puts %s before the particle %s', (word, particle) => {
     expect(withParticle(word)).toBe(particle);

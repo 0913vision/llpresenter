@@ -4,7 +4,7 @@ A small box that shows a shortcut as a key. Use it in the shortcut table in Pref
 
 ## Where to use
 
-- The shortcut cells of the shortcut table in Preferences > 단축키 (Shortcuts) (다음 장 → Space, 되돌리기 Ctrl Z, 지우기 (clear) F1~F7)
+- The shortcut cells of the shortcut table in Preferences > 단축키 (Shortcuts) (다음 슬라이드 → Space, 되돌리기 Ctrl Z, 지우기 (clear) F1~F7)
 - Marking a shortcut conflict (평상시 and 출력 켜기 are both Ctrl 1)
 - Text shortcuts: tooltips ("되돌리기 Ctrl Z"), the right side of menu items
 

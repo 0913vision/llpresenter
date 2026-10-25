@@ -158,7 +158,7 @@ export interface ListBoxProps {
   /** The pick list in a dialog: 8px padding and rounded rows. */
   readonly inset?: boolean | undefined;
   /**
-   * `show` for the 예배 순서 list of 진행, where Space goes on to 다음 장 and
+   * `show` for the 예배 순서 list of 진행, where Space goes on to 다음 슬라이드 and
    * only Enter selects; `prep` (the default) everywhere else, dialogs included.
    * 진행 keeps keyboard focus without drawing a row focus outline.
    */
@@ -222,7 +222,7 @@ export interface ListRowProps {
   readonly title: string;
   /** A 16px type icon, such as `song`. */
   readonly icon?: string | undefined;
-  /** Extra information at the right end, such as 9장 or 5:00. */
+  /** Extra information at the right end, such as 슬라이드 9개 or 5:00. */
   readonly meta?: string | undefined;
   /** The second line of a two-line item, such as a date and a count. */
   readonly sub?: readonly string[] | undefined;

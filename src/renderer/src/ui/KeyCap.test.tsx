@@ -21,7 +21,7 @@ describe('formatShortcut', () => {
 describe('conflictText', () => {
   it('names the other command with the right particle', () => {
     expect(conflictText('출력 켜기')).toBe('출력 켜기와 겹침');
-    expect(conflictText('다음 장')).toBe('다음 장과 겹침');
+    expect(conflictText('다음 슬라이드')).toBe('다음 슬라이드와 겹침');
   });
 });
 

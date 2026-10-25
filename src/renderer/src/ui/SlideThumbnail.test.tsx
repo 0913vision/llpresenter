@@ -30,7 +30,7 @@ function OutsideSelection({
     <>
       <button type="button">밖</button>
       <ThumbnailGrid
-        label="장"
+        label="슬라이드"
         columns={COLUMNS}
         selected={selected}
         workspace="show"
@@ -69,7 +69,12 @@ function SongGrid({
       selected={index === selected}
     />
   ));
-  const common = {label: '장', columns: COLUMNS, selected, onSelect: select};
+  const common = {
+    label: '슬라이드',
+    columns: COLUMNS,
+    selected,
+    onSelect: select,
+  };
   return (
     <>
       <button type="button">밖</button>
@@ -114,7 +119,7 @@ describe('thumbnailName', () => {
     ).toBe('2 프리코러스, 저 천사여');
   });
 
-  it('leaves out what the 장 does not have', () => {
+  it('leaves out absent slide metadata', () => {
     expect(thumbnailName({number: 4, text: lyrics})).toBe(
       '4, 만복의 근원 하나님',
     );
@@ -127,7 +132,7 @@ describe('SlideThumbnail', () => {
   function renderOne(element: JSX.Element): HTMLElement {
     render(
       <ThumbnailGrid
-        label="장"
+        label="슬라이드"
         columns={COLUMNS}
         selected={undefined}
         workspace="prep"
@@ -155,7 +160,7 @@ describe('SlideThumbnail', () => {
     expect(option.textContent).toBe(`${lyrics}2프리코러스`);
   });
 
-  it('writes only the number for a 장 without an 이름표', () => {
+  it('writes only the number for a slide without a label', () => {
     const option = renderOne(<SlideThumbnail number={4} text={lyrics} />);
     expect(option.getAttribute('data-color')).toBeNull();
     expect(option.textContent).toBe(`${lyrics}4`);
@@ -179,7 +184,7 @@ describe('SlideThumbnail', () => {
     );
   });
 
-  it('draws the media of the 장 without a name of its own', () => {
+  it('draws slide media without a name of its own', () => {
     const option = renderOne(
       <SlideThumbnail number={3} media="blob:announcement" />,
     );
@@ -298,7 +303,7 @@ describe('ThumbnailGrid', () => {
 
   it('sets the column count and takes focus on a click in 진행', () => {
     render(<SongGrid workspace="show" />);
-    const grid = screen.getByRole('listbox', {name: '장'});
+    const grid = screen.getByRole('listbox', {name: '슬라이드'});
     expect(grid.style.getPropertyValue('--thumb-columns')).toBe(`${COLUMNS}`);
     expect(thumbnail(2).closest(CLICK_FOCUS_SELECTOR)).toBe(grid);
   });
@@ -322,7 +327,7 @@ describe('ThumbnailGrid', () => {
   });
 
   describe('in 진행', () => {
-    it('outputs a 장 on a click and on Enter', async () => {
+    it('outputs a slide on a click and on Enter', async () => {
       const user = userEvent.setup();
       const onOutput = vi.fn<(index: number) => void>();
       render(<SongGrid workspace="show" initial={0} onOutput={onOutput} />);
@@ -377,7 +382,7 @@ describe('ThumbnailGrid', () => {
       expect(selectedNumbers()).toEqual(['2']);
     });
 
-    it('moves focus with a selection that 다음 장 changes', () => {
+    it('moves focus when an external selection changes', () => {
       const {rerender} = render(<OutsideSelection selected={0} />);
       thumbnail(1).focus();
       rerender(<OutsideSelection selected={6} />);

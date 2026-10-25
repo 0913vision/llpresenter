@@ -5,7 +5,7 @@ A 16px checkbox for picking several things, and a check row that toggles when yo
 ## Where to use
 
 - 다른 예배에서 가져오기, and the 예배 순서 (service order) of a new service: picking groups (예배 전, 찬양) and items
-- 출력 상태 복구: the states to restore (화면 출력, 마지막 장, 표시 중이던 항목)
+- 출력 상태 복구: the states to restore (화면 출력, 마지막 슬라이드, 표시 중이던 항목)
 - The layer list in the Look editor (visibility)
 
 ## Where not to use
@@ -58,7 +58,7 @@ A 16px checkbox for picking several things, and a check row that toggles when yo
 
 ## Writing
 
-- Write only the name of what is picked as the row name: "화면 출력", "마지막 장", "표시 중이던 항목". Don't write sentences such as "~을 복구합니다" (Restores ~).
+- Write only the name of what is picked as the row name: "화면 출력", "마지막 슬라이드", "표시 중이던 항목". Don't write sentences such as "~을 복구합니다" (Restores ~).
 - In the value, list what is in it now, separated by commas: "본 화면, 무대 화면, 방송 자막".
 
 ## Implementation notes
