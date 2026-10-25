@@ -102,15 +102,18 @@ regression tests make these staging limits explicit.
 In round 1 the branch was rebased once onto `main` after data-23, data-24, and
 data-25 merged. Their reviewed feature branch references were not rewritten.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: pending
-- Findings:
-
-## Review: reviewer
-
-- Verdict: pending
-- Findings:
+- Round 1 (Claude, trial-97): Request changes: `interruptsSongOutput` returned
+  false for `live.batch` whatever it held; nit: the `LiveAction` TSDoc restated
+  spec defaults.
+- Round 2 (9545e45): reviewer (Claude, trial-97) Approve. Nit for the next data
+  branch: give the interruption tests in `src/shared/commands.test.ts` their own
+  `describe('interruptsSongOutput')`. Lead Approve, including the shell one-line
+  wiring exception and `LIBRARY_SEARCH_LIMITS` {default 50, max 200} as the one
+  set of search limits (spec-19 adopts it). Written by the Codex session that
+  took over data's work. Rebased by the lead onto local `main` without
+  conflicts.
 
 ## Team member's reply
 

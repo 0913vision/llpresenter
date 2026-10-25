@@ -106,15 +106,15 @@ distinction, and the real-store unsupported-command regression. The branch was
 stacked on data-26 and checked against main once. It is now restacked on the
 round 2 data-26 response; the final HEAD run is linked in the restack request.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: pending
-- Findings:
-
-## Review: reviewer
-
-- Verdict: pending
-- Findings:
+- Round 1 (ced1df2): reviewer (Claude, trial-97) Approve. Nit for the next data
+  branch: `src/shared/schema/screenCommands.ts:22` and
+  `src/shared/schema/recovery.ts:120` TSDoc restate runtime rules that belong to
+  spec 03 and 08 and the owning slices; keep type comments to what the types
+  are. Lead Approve. Written by the Codex session that took over data's work.
+  Rebased by the lead onto local `main` after data-26 without conflicts. D1b and
+  D1c are complete.
 
 ## Team member's reply
 
