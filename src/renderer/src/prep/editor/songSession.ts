@@ -4,7 +4,7 @@ import type {BlockCommand, BlockSelection} from './blockEdits';
 import {SongHistory, TYPING_PAUSE_MS} from './songHistory';
 import {editorTask} from './editorTask';
 import {normalizeSongTitle, SongTitleDraft} from './songTitle';
-import {arrangementOrder, newArrangement} from './songArrangements';
+import {editedOrder, newArrangement} from './songArrangements';
 import type {MediaId} from '@shared/schema/ids';
 
 interface SessionOptions {
@@ -52,7 +52,7 @@ export class SongSession {
     return this.pickedArrangement;
   }
   get arrangementSlides(): readonly number[] {
-    return arrangementOrder(this.history.snapshot.song, this.arrangement);
+    return editedOrder(this.history.snapshot.song, this.arrangement);
   }
 
   /** Changes the viewed order and ends typing without moving the lyric cursor. */
@@ -196,20 +196,37 @@ export class SongSession {
   renamed(from: string, to: string, document?: SongDocument): void {
     this.history.renameLabel(from, to);
     if (document !== undefined) {
-      if (
-        JSON.stringify(document.song.slides) !==
-          JSON.stringify(this.history.snapshot.song.slides) ||
-        JSON.stringify(document.song.arrangements) !==
-          JSON.stringify(this.history.snapshot.song.arrangements)
-      ) {
-        this.install(document);
-      } else {
-        this.document = document;
-        this.title.accept(document.song.title);
-        if (!this.backgroundEdited) this.background = document.song.background;
-      }
+      this.acceptGlobalEdit(document);
     }
     this.options.changed();
+  }
+
+  /** Applies main's global rename/delete to every local history snapshot. */
+  arrangementChanged(
+    from: string,
+    to: string | undefined,
+    document: SongDocument,
+  ): void {
+    this.history.changeArrangement(from, to);
+    if (this.pickedArrangement === from) this.pickedArrangement = to;
+    this.acceptGlobalEdit(document);
+    this.options.changed();
+  }
+
+  private acceptGlobalEdit(document: SongDocument): void {
+    if (
+      JSON.stringify(document.song.slides) !==
+        JSON.stringify(this.history.snapshot.song.slides) ||
+      JSON.stringify(document.song.arrangements) !==
+        JSON.stringify(this.history.snapshot.song.arrangements)
+    ) {
+      this.install(document);
+    } else {
+      this.document = document;
+      this.title.accept(document.song.title);
+      if (!this.backgroundEdited) this.background = document.song.background;
+      this.reconcileArrangement();
+    }
   }
 
   async flush(): Promise<boolean> {

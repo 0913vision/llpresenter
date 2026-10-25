@@ -54,7 +54,14 @@ export type TileSpaceKey = 'press' | 'pass';
 export type TileColumns = number | 'auto';
 
 /** The props that every tile list takes. */
-export interface TileListBaseProps {
+export interface TileListPosition {
+  /** Zero-based start of a mounted window in the full list. */
+  readonly positionOffset?: number | undefined;
+  readonly setSize?: number | undefined;
+  readonly orientation?: 'horizontal' | 'vertical' | undefined;
+}
+
+export interface TileListBaseProps extends TileListPosition {
   /** The workspace for the grid's focus appearance; defaults to 준비. */
   readonly workspace?: Workspace | undefined;
   /** The list name for assistive technology, such as 슬라이드 or 매크로. */
@@ -201,9 +208,34 @@ export function TileList(props: TileListProps): JSX.Element {
   const [focusStop, setFocusStop] = useState(0);
   const followsSelection = props.arrowsMove === 'selection';
   const tabStop = followsSelection ? (selected ?? 0) : focusStop;
+  const positioned = useRef(false);
   useFocusFollowsSelection(listRef, followsSelection ? selected : undefined);
   useLayoutEffect(() => {
-    if (listRef.current !== null) keepOneTabStop(listRef.current, tabStop);
+    const list = listRef.current;
+    if (list === null) return;
+    keepOneTabStop(list, tabStop);
+    const supplied =
+      props.setSize !== undefined || props.positionOffset !== undefined;
+    if (!supplied && !positioned.current) return;
+    const offset =
+      Number.isInteger(props.positionOffset) &&
+      (props.positionOffset ?? -1) >= 0
+        ? (props.positionOffset ?? 0)
+        : 0;
+    const tiles = tilesOf(list);
+    const total = Number.isInteger(props.setSize)
+      ? Math.max(props.setSize ?? 0, offset + tiles.length)
+      : offset + tiles.length;
+    tiles.forEach((tile, index) => {
+      if (supplied) {
+        tile.setAttribute('aria-posinset', String(offset + index + 1));
+        tile.setAttribute('aria-setsize', String(total));
+      } else {
+        tile.removeAttribute('aria-posinset');
+        tile.removeAttribute('aria-setsize');
+      }
+    });
+    positioned.current = supplied;
   });
 
   const activeIndex = (list: HTMLElement, target: EventTarget): number => {
@@ -285,6 +317,7 @@ export function TileList(props: TileListProps): JSX.Element {
       role="listbox"
       data-workspace={props.workspace ?? 'prep'}
       aria-label={props.label}
+      aria-orientation={props.orientation}
       className={props.className}
       style={props.style}
       onClick={onClick}

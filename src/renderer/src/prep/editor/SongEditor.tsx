@@ -9,6 +9,7 @@ import {
 import {LabelMenu} from './LabelMenu';
 import {SongBlock, type EditorFocus} from './SongBlock';
 import {SongHeader} from './SongHeader';
+import {ArrangementRow} from './ArrangementRow';
 import type {SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';
 import styles from './SongEditor.module.css';
@@ -25,6 +26,7 @@ export function SongEditor({
       {state.session === null ? null : (
         <div key={state.session.document.song.id} className={styles.content}>
           <SongHeader store={store} session={state.session} />
+          <ArrangementRow store={store} session={state.session} />
           <div className={styles.blocks}>
             <SongBlocks store={store} session={state.session} />
           </div>
@@ -43,6 +45,7 @@ function SongBlocks({
 }): JSX.Element {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const {song, selection} = session.history.snapshot;
+  const previousBlock = useRef(selection.block);
   const focus = useRef<EditorFocus>({
     inputs: [],
     requested: false,
@@ -65,6 +68,9 @@ function SongBlocks({
     const owner = focus.current;
     if (owner.composing) return;
     const input = owner.inputs[selection.block];
+    const changedBlock = previousBlock.current !== selection.block;
+    previousBlock.current = selection.block;
+    if (changedBlock) input?.scrollIntoView({block: 'nearest'});
     const ownsFocus =
       document.activeElement instanceof HTMLTextAreaElement &&
       owner.inputs.includes(document.activeElement);

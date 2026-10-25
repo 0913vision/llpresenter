@@ -86,8 +86,48 @@ their own selection; a removed/undone selected name falls back to 기본.
 is one undo step; pending lyric typing saves with it. Undo to an originally
 absent arrangements field removes that field on the wire. Existing split/merge
 remapping applies to created orders. Read-only songs allow viewing and refuse
-creation. The 구성 row and global rename/delete wiring follow in the next small
-request; preview/list rendering remains later P2b work.
+creation. `editedOrder` retains an empty stored order for editing/copying. The
+shared `playbackOrder` follows spec 02 and 진행: a missing or empty selected
+order displays the default file order.
+
+`ArrangementRow` uses the shared segmented control through five choices,
+including 기본, then Select. Right-click, ContextMenu, and Shift F10 manage a
+segment without selecting it. 기본 is protected. Add copies the current order
+and opens a selected name field; blank, reserved, and duplicate names cannot
+save. Read-only songs still permit view selection. Menu/dialog focus returns to
+the opener, or the selected control when rename/delete removed the opener.
+
+Rename and delete flush cached drafts, serialize with global label operations,
+and invoke main's existing `song.arrangement.rename/delete` commands. Main
+rewrites service/template references. Own pushes reconcile the checked song and
+map current/undo/redo snapshots so later lyric undo cannot restore the old name
+or deleted order. Refusal keeps the draft; uncertain transport failure blocks
+editing with explicit reload. Applied write failures report persistence trouble.
+
+## Preview and slide panels
+
+`SongPreviewPanel` draws the selected local block and default background through
+the output renderer in preview mode. The screen selector resolves the current
+Look's lyric style, visibility, and solid/media background for 본 화면, 무대,
+and 방송 자막. Broadcast preview uses its configured green, black, or checker
+background. Newer looks/screens pushes supersede delayed reads. Settings and
+renderer resources are released at unmount. It subscribes to no live layers and
+sends no output commands. The existing renderer has no stage-layout engine yet;
+this panel uses its current lyric-layer support for the stage screen too.
+
+`SongSlidePanel` displays `playbackOrder`, retaining repeated occurrences as
+separate selected positions. A click selects the source block and scrolls it
+into view while keyboard focus stays in the grid. It does not paint the song
+background into thumbnails. The caption uses the source block's file position
+and total, including when the cursor is outside a chosen order.
+
+`VirtualSlides` mounts visible rows plus a small overscan. Arrows, Home, and End
+navigate the full logical order and focus/reveal the target window. Shared
+`ThumbnailGrid` position props supply full-list ARIA positions and count.
+ResizeObserver reads layout and token gaps; the existing 50% to 200% thumbnail
+control determines fixed widths and wrapping. Switching songs resets the virtual
+viewport. The host mounts these panels in the existing right column, with a
+content-height preview and the list filling the remainder.
 
 ## Editing and saving
 

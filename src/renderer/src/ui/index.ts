@@ -257,6 +257,7 @@ export {
   type SelectionArrowsProps,
   type TileColumns,
   type TileListBaseProps,
+  type TileListPosition,
   type TileListProps,
   type TileMoves,
   type TileSpaceKey,

@@ -10,6 +10,7 @@ import {
 } from '@shared/schema/service';
 import type {ShowRow, ShowService, ShowTile} from '@shared/schema/showService';
 import type {Slide, Song} from '@shared/schema/song';
+import {playbackOrder} from '@shared/songOrder';
 
 /** A document's content and whether a newer app version wrote it. */
 type Shown<T> = Pick<LoadedFile<T>, 'data' | 'access'>;
@@ -137,21 +138,10 @@ export function songTiles(
   colors: ReadonlyMap<string, LabelColor>,
   arrangement?: string,
 ): ShowTile[] {
-  return arrangementOrder(song, arrangement).flatMap(number => {
+  return playbackOrder(song, arrangement).flatMap(number => {
     const slide = song.slides[number - 1];
     return slide === undefined ? [] : [tileOf(slide, colors)];
   });
-}
-
-// NOTE(0913vision): An item that names no 구성, one the song doesn't have, or
-// an empty one plays the 장 in file order, so a song item always has tiles.
-function arrangementOrder(song: Song, name: string | undefined) {
-  const chosen = song.arrangements?.find(
-    arrangement => arrangement.name === name,
-  );
-  return chosen !== undefined && chosen.slides.length > 0
-    ? chosen.slides
-    : song.slides.map((_slide, index) => index + 1);
 }
 
 function tileOf(

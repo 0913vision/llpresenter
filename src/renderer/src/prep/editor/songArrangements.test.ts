@@ -2,7 +2,7 @@ import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {SongDocument} from '@shared/schema/contentDocuments';
 import {editorFixture, editorSong} from './editorFixture';
 import {SongEditorStore} from './songEditorStore';
-import {arrangementOrder, newArrangement} from './songArrangements';
+import {editedOrder, newArrangement} from './songArrangements';
 
 function setup(document: SongDocument = editorSong(1)) {
   const fixture = editorFixture();
@@ -46,7 +46,7 @@ describe('song arrangement selection and creation', () => {
       name: '구성 2',
       slides: [],
     });
-    expect(arrangementOrder(value, undefined)).toEqual([1, 2]);
+    expect(editedOrder(value, undefined)).toEqual([1, 2]);
   });
 
   it('coalesces pending lyrics with creation and undoes back to an absent arrangements field', async () => {

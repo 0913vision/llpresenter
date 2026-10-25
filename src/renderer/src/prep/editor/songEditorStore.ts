@@ -152,6 +152,33 @@ export class SongEditorStore {
     });
   }
 
+  renameArrangement(from: string, to: string): Promise<boolean> {
+    return this.editArrangement(from, to);
+  }
+
+  deleteArrangement(name: string): Promise<boolean> {
+    return this.editArrangement(name, undefined);
+  }
+
+  private editArrangement(
+    from: string,
+    to: string | undefined,
+  ): Promise<boolean> {
+    const session =
+      this.active === null ? undefined : this.sessions.get(this.active);
+    if (!this.alive || this.busy || session === undefined || session.readOnly) {
+      return Promise.resolve(false);
+    }
+    if (
+      !session.history.snapshot.song.arrangements?.some(
+        item => item.name === from,
+      )
+    ) {
+      return Promise.resolve(false);
+    }
+    return this.runOperation(() => this.writeArrangement(session, from, to));
+  }
+
   /** Preflight shutdown before unmounting; false keeps a refused draft alive. */
   async flush(): Promise<boolean> {
     await this.operation;
@@ -177,9 +204,67 @@ export class SongEditorStore {
     if (!this.alive || this.busy || this.labels?.access !== 'editable') {
       return Promise.resolve(false);
     }
+    return this.runOperation(() => this.writeLabels(edit));
+  }
+
+  private async writeArrangement(
+    session: SongSession,
+    from: string,
+    to: string | undefined,
+  ): Promise<boolean> {
+    try {
+      const saved = await Promise.all(
+        [...this.sessions.values()].map(item => item.flush()),
+      );
+      if (saved.includes(false)) return false;
+      this.renaming = true;
+      const songId = session.document.song.id;
+      const result = await this.api.content.edit(
+        to === undefined
+          ? {type: 'song.arrangement.delete', songId, name: from}
+          : {type: 'song.arrangement.rename', songId, from, to},
+      );
+      if (!result.ok && result.error.reason !== 'write-failed') {
+        this.problem('구성 변경 실패');
+        return false;
+      }
+      const accepted = await this.acceptArrangement(session, from, to);
+      if (!result.ok) this.problem('구성 파일 저장 실패');
+      return accepted;
+    } catch (error) {
+      console.error('Arrangement edit failed', error);
+      session.blocked = true;
+      this.problem('구성 변경 실패', () =>
+        this.reload(session.document.song.id),
+      );
+      return false;
+    }
+  }
+
+  private async acceptArrangement(
+    session: SongSession,
+    from: string,
+    to: string | undefined,
+  ): Promise<boolean> {
+    const songId = session.document.song.id;
+    const read =
+      this.renamedSongs.get(songId) ?? (await this.api.songs.get(songId));
+    if (this.sessions.get(songId) !== session) return false;
+    const pushed = this.renamedSongs.get(songId);
+    const document =
+      pushed !== undefined && (read === null || pushed.revision > read.revision)
+        ? pushed
+        : read;
+    if (document === null) this.remove(songId);
+    else session.arrangementChanged(from, to, document);
+    this.renamedSongs.delete(songId);
+    return document !== null;
+  }
+
+  private runOperation(task: () => Promise<boolean>): Promise<boolean> {
     this.busy = true;
     this.publish();
-    this.operation = this.writeLabels(edit).finally(() => {
+    this.operation = task().finally(() => {
       this.renaming = false;
       for (const [id, document] of this.renamedSongs) {
         this.sessions.get(id)?.receive(document);

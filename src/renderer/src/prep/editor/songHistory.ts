@@ -57,6 +57,33 @@ export class SongHistory {
     };
   }
 
+  changeArrangement(from: string, to: string | undefined): void {
+    const rewrite = (snapshot: BlockSnapshot): BlockSnapshot => ({
+      ...snapshot,
+      song: {
+        ...snapshot.song,
+        ...(snapshot.song.arrangements === undefined
+          ? {}
+          : {
+              arrangements: snapshot.song.arrangements.flatMap(item =>
+                item.name !== from
+                  ? [item]
+                  : to === undefined
+                    ? []
+                    : [{...item, name: to}],
+              ),
+            }),
+      },
+    });
+    this.endTyping();
+    this.value = rewrite(this.value);
+    for (const snapshots of [this.past, this.future]) {
+      snapshots.forEach((snapshot, index) => {
+        snapshots[index] = rewrite(snapshot);
+      });
+    }
+  }
+
   /** A global rename also updates undo/redo snapshots without adding a step. */
   renameLabel(from: string, to: string): void {
     const rename = (snapshot: BlockSnapshot): BlockSnapshot => {

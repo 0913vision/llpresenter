@@ -1,7 +1,12 @@
 import {Fragment, useSyncExternalStore, type JSX, type ReactNode} from 'react';
 import type {LlpApi} from '@shared/ipc';
 import {LibraryPanel} from '@renderer/prep/library/LibraryPanel';
-import {SongEditor, type SongEditorStore} from '@renderer/prep/editor';
+import {
+  SongEditor,
+  SongPreviewPanel,
+  SongSlidePanel,
+  type SongEditorStore,
+} from '@renderer/prep/editor';
 import {ClearRow} from '@renderer/show/ClearRow';
 import {PreviewPanel} from '@renderer/show/PreviewPanel';
 import {ShowMediaPanel} from '@renderer/show/ShowMediaPanel';
@@ -71,7 +76,13 @@ function Panel({
   readonly parts: PanelParts;
 }): JSX.Element {
   if (parts.embedded) {
-    return <div className={styles.embedded}>{parts.embedded}</div>;
+    return (
+      <div
+        className={`${styles.embedded}${parts.size === 'content' ? ` ${styles.content}` : ''}`}
+      >
+        {parts.embedded}
+      </div>
+    );
   }
   if (parts.bare) return <div className={styles.bare}>{parts.bare}</div>;
   return (
@@ -158,10 +169,12 @@ function prepPanelParts({
   title,
   prep,
   onProblem,
+  sizeClass,
 }: {
   readonly title: string;
   readonly prep: PrepBinding | undefined;
   readonly onProblem: ((notice: Notice) => void) | undefined;
+  readonly sizeClass: SizeClass;
 }): PanelParts {
   if (!prep) return {};
   if (title === '라이브러리') {
@@ -180,6 +193,17 @@ function prepPanelParts({
     };
   }
   if (title === '편집') return {body: <SongEditor store={prep.editor} />};
+  if (title === '미리보기') {
+    return {
+      size: 'content',
+      embedded: <SongPreviewPanel store={prep.editor} />,
+    };
+  }
+  if (title === '슬라이드') {
+    return {
+      embedded: <SongSlidePanel store={prep.editor} sizeClass={sizeClass} />,
+    };
+  }
   return {};
 }
 
@@ -258,7 +282,7 @@ export function Workspace({
                         }
                       : id === 'show'
                         ? showPanelParts(title, sizeClass, onProblem)
-                        : prepPanelParts({title, prep, onProblem})
+                        : prepPanelParts({title, prep, onProblem, sizeClass})
                   }
                 />
               ))}

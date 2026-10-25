@@ -55,6 +55,7 @@ Hover uses the same 1px `line-control` as the hover of the small previews (ShowH
 - In 진행, keyboard focus remains on the thumbnail but draws no focus outline. Tab, arrow movement, Enter, and the live/selection rings still work. 준비 keeps the usual focus outline. `ThumbnailGrid` passes its `workspace` through to the grid; other tile lists default to 준비.
 - In the 진행 workspace, a click outputs that 슬라이드. In the 준비 workspace, a click only selects it.
 - The grid is `role="listbox"`, and each thumbnail is `role="option"` + `aria-selected`. Tab enters the grid only once (roving tabindex), on the selected thumbnail.
+- A windowed host can pass `positionOffset` (zero-based), `setSize`, and `orientation` through `ThumbnailGrid` to `TileList`. The list owns the mounted options' full-list ARIA positions. Omitted position props leave ordinary grids unchanged; the host keeps logical navigation and windowing.
 - In the 준비 workspace, the arrow keys move between thumbnails, and Enter and Space act as a click.
 - In the 진행 workspace, the grid keeps only ↑ and ↓ (one row) and Enter (a click). ←, →, Space, Page Up, and Page Down go to 다음 슬라이드 and 이전 슬라이드 even while the grid has focus, as in ProPresenter (focus precedence, rule 5, in `docs/spec/10-shortcuts-and-settings.md`). Space never presses the focused thumbnail there.
 - The grid takes keyboard focus on a mouse click, also in 진행, where a click on other buttons and tiles leaves focus where it was. While focus is in the grid, it follows the selection, also when 다음 슬라이드 moves it.

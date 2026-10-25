@@ -12,6 +12,7 @@ import {
   type SettingsEdit,
 } from '@shared/schema/settingsDocuments';
 import type {ContentEdit, EditResult} from '@shared/schema/contentEdit';
+import {editorPreviewFixture} from './editorPreviewFixture';
 
 /** Invented source documents for the editor gallery and focused tests. */
 export function editorSong(
@@ -51,6 +52,7 @@ function labelsDocument(document: unknown) {
 
 /** Main's checked revision and push ordering, without disk or output commands. */
 export function editorFixture() {
+  const preview = editorPreviewFixture();
   const first = editorSong(1);
   const second = editorSong(2);
   const documents = new Map(
@@ -120,6 +122,45 @@ export function editorFixture() {
       edit: async edit => {
         await Promise.resolve();
         edits.push(edit);
+        if (
+          edit.type === 'song.arrangement.rename' ||
+          edit.type === 'song.arrangement.delete'
+        ) {
+          const current = documents.get(edit.songId);
+          if (current === undefined) return refuse('not-found');
+          if (current.access === 'readOnly') return refuse('read-only');
+          const from =
+            edit.type === 'song.arrangement.rename' ? edit.from : edit.name;
+          if (!current.song.arrangements?.some(item => item.name === from)) {
+            return refuse('not-found');
+          }
+          if (
+            edit.type === 'song.arrangement.rename' &&
+            current.song.arrangements.some(item => item.name === edit.to)
+          ) {
+            return refuse('invalid');
+          }
+          const parsed = parseSongDocument({
+            ...current,
+            revision: current.revision + 1,
+            song: {
+              ...current.song,
+              arrangements: current.song.arrangements.flatMap(item =>
+                item.name !== from
+                  ? [item]
+                  : edit.type === 'song.arrangement.delete'
+                    ? []
+                    : [{...item, name: edit.to}],
+              ),
+            },
+          });
+          if (!parsed.ok || parsed.value === null) return refuse('invalid');
+          pushSong(parsed.value);
+          return {
+            ok: true,
+            value: {id: edit.songId, revision: parsed.value.revision},
+          };
+        }
         if (edit.type !== 'song.update') return refuse('invalid');
         const current = documents.get(edit.song.id);
         if (current === undefined) return refuse('not-found');
@@ -149,7 +190,14 @@ export function editorFixture() {
       },
     },
     settings: {
-      get: () => Promise.resolve(labels),
+      get: request =>
+        Promise.resolve(
+          request.name === 'looks'
+            ? preview.looks
+            : request.name === 'screens'
+              ? preview.screens
+              : labels,
+        ),
       subscribe: listener => {
         settings.add(listener);
         return () => {
@@ -211,6 +259,9 @@ export function editorFixture() {
     labelEdits,
     pushSong,
     pushList,
+    pushSettings: (document: SettingsDocument): void => {
+      for (const listener of settings) listener(document);
+    },
     removeSong: (id: SongDocument['song']['id']): void => {
       documents.delete(id);
       for (const listener of songs) listener({songId: id, document: null});

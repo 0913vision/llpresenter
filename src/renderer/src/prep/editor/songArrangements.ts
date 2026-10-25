@@ -3,7 +3,7 @@ import type {Arrangement, Song} from '@shared/schema/song';
 const NEW_ARRANGEMENT_PREFIX = '구성';
 
 /** Default order is implicit; named orders retain repeats and empty orders. */
-export function arrangementOrder(
+export function editedOrder(
   song: Song,
   name: string | undefined,
 ): readonly number[] {
@@ -23,6 +23,6 @@ export function newArrangement(
   while (names.has(`${NEW_ARRANGEMENT_PREFIX} ${number}`)) number++;
   return {
     name: `${NEW_ARRANGEMENT_PREFIX} ${number}`,
-    slides: [...arrangementOrder(song, selected)],
+    slides: [...editedOrder(song, selected)],
   };
 }

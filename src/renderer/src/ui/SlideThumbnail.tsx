@@ -9,6 +9,7 @@ import {
   TileList,
   type TileMoves,
   type TileSpaceKey,
+  type TileListPosition,
 } from './TileList';
 import {titleTooltip, useTooltip} from './Tooltip';
 import type {Workspace} from './workspace';
@@ -25,7 +26,7 @@ const workspaceSpaceKey: Readonly<Record<Workspace, TileSpaceKey>> = {
 };
 
 /** The props that both workspaces' 슬라이드 grids take. */
-export interface ThumbnailGridBaseProps {
+export interface ThumbnailGridBaseProps extends TileListPosition {
   /** The grid name for assistive technology, such as 슬라이드. */
   readonly label: string;
   /** Baseline columns for sizing; filled tracks when tileWidth is absent. */
@@ -87,6 +88,9 @@ export function ThumbnailGrid(props: ThumbnailGridProps): JSX.Element {
     <TileList
       workspace={workspace}
       label={props.label}
+      positionOffset={props.positionOffset}
+      setSize={props.setSize}
+      orientation={props.orientation}
       moves={workspaceMoves[workspace]}
       columns={fixedWidth === undefined ? columns : 'auto'}
       spaceKey={workspaceSpaceKey[workspace]}

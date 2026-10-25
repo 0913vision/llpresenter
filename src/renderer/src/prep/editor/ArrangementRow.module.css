@@ -1,0 +1,13 @@
+.row {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  min-height: var(--size-row-double);
+  padding: var(--space-8) var(--space-14);
+  gap: var(--space-10);
+  border-bottom: var(--radius-hairline) solid var(--line);
+}
+.label {
+  font: var(--type-caption-strong);
+}
