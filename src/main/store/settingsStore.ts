@@ -1,4 +1,4 @@
-﻿import {join} from 'node:path';
+import {join} from 'node:path';
 import type {EditRefusalReason, EditResult} from '@shared/schema/contentEdit';
 import {
   mergeSettingsDocument,

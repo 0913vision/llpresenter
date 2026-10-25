@@ -1,4 +1,4 @@
-﻿# Review request: data-25
+# Review request: data-25
 
 Shared changes: revisioned settings-file reads, updates, and subscriptions;
 media-list edits, import jobs, and progress; normalized preference pushes.

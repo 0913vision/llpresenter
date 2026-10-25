@@ -1,4 +1,4 @@
-﻿import {useEffect, useEffectEvent, useRef, useState} from 'react';
+import {useEffect, useEffectEvent, useRef, useState} from 'react';
 import type {MediaId} from '@shared/schema/ids';
 import type {
   MediaDocument,

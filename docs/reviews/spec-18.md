@@ -1,4 +1,4 @@
-﻿Review range: `c0544c7...feat/spec/clear-undo-visibility`
+Review range: `c0544c7...feat/spec/clear-undo-visibility`
 
 # Review request: `spec-18`
 

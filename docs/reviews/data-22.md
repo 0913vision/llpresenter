@@ -1,4 +1,4 @@
-﻿# Review request: data-22
+# Review request: data-22
 
 Shared changes: `LayoutChange` no longer exposes or accepts legacy `columns` as
 a change. It carries paired widths, `thumbnailScalePercent`, or both. Persisted

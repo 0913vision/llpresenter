@@ -1,4 +1,4 @@
-﻿import {useState, useSyncExternalStore, type JSX} from 'react';
+import {useState, useSyncExternalStore, type JSX} from 'react';
 import {createPortal} from 'react-dom';
 import {Icon} from '@renderer/ui/Icon';
 import {LabelColorPicker} from '@renderer/ui/LabelColorPicker';

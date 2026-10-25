@@ -1,4 +1,4 @@
-﻿# Review request: data-24
+# Review request: data-24
 
 Shared changes: optional `preferences.json` field `show.showClearUndoButton`,
 normalized to false, and the typed read-only `preferences.get()` boundary on

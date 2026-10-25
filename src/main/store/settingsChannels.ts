@@ -1,4 +1,4 @@
-﻿import {ipcMain} from 'electron';
+import {ipcMain} from 'electron';
 import {Channels} from '@shared/ipc';
 import type {EditResult} from '@shared/schema/contentEdit';
 import {
