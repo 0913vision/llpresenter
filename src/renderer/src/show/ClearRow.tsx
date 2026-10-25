@@ -1,4 +1,4 @@
-import type {JSX} from 'react';
+import {useEffect, useState, type JSX} from 'react';
 import {Icon, useTooltip} from '@renderer/ui';
 import {
   clearLayer,
@@ -65,7 +65,37 @@ function UndoButton({compact}: {readonly compact: boolean}): JSX.Element {
   );
 }
 
-/** The 지우기 row of the 진행 workspace: one button per layer, and 되돌림. */
+function UndoControls({
+  compact,
+}: {
+  readonly compact: boolean;
+}): JSX.Element | null {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const api = window.llp;
+    if (api === undefined) return undefined;
+    let stopped = false;
+    api.preferences.get().then(
+      preferences => {
+        if (!stopped) setVisible(preferences.show.showClearUndoButton);
+      },
+      // NOTE(0913vision): Preload logs a failed read; keep the default hidden.
+      () => undefined,
+    );
+    return () => {
+      stopped = true;
+    };
+  }, []);
+  if (!visible) return null;
+  return (
+    <>
+      <span className={styles.divider} aria-hidden="true" />
+      <UndoButton compact={compact} />
+    </>
+  );
+}
+
+/** The 지우기 row, with clear undo visible only when its preference is on. */
 export function ClearRow({compact}: {readonly compact: boolean}): JSX.Element {
   return (
     <div
@@ -76,8 +106,7 @@ export function ClearRow({compact}: {readonly compact: boolean}): JSX.Element {
       {clearButtons.map(spec => (
         <ClearButton key={spec.target} spec={spec} compact={compact} />
       ))}
-      <span className={styles.divider} aria-hidden="true" />
-      <UndoButton compact={compact} />
+      <UndoControls compact={compact} />
     </div>
   );
 }
