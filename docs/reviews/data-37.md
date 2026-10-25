@@ -1,4 +1,4 @@
-﻿# Review request: data-37
+# Review request: data-37
 
 - Team member: data
 - Branch: `feat/data/flush-handshake`
@@ -61,6 +61,15 @@ and that runtime timeout are explicitly outside data-37, as requested. No close
 hook, dialog, forced close, editor mutation, or persistence operation is
 introduced by this contract.
 
+### Follow-up test isolation rule
+
+Per the lead's instruction during data-37, the remaining screen-command
+unsupported-dispatch contract test now supplies an explicit empty
+`SliceRegistry`. Its assertion describes that test registry, so a new production
+screen slice can land without changing the schema test. The other data-owned
+unsupported-dispatch tests already use explicit registries. Future contract
+tests will pin their supported or unsupported commands the same way.
+
 ## Changed files
 
 - `src/shared/schema/appFlush.ts`: payload schemas, types, wait bounds, and
@@ -68,6 +77,8 @@ introduced by this contract.
 - `src/shared/schema/appFlush.test.ts`: valid results, normalization, invalid
   payloads, oversized/uppercase IDs, mismatched IDs, and branded helper types.
 - `src/shared/schema/ids.ts`: the flush request ID brand and public constructor.
+- `src/shared/schema/screenCommands.test.ts`: pin unsupported dispatch checks to
+  an explicit test registry, per the lead's new test-isolation rule.
 - `src/shared/ipc.ts`: two channel names and the typed `LlpApi.app` functions.
 - `src/preload/index.ts` and `index.test.ts`: schema-checked receive/send,
   malformed-value logging, normalized payloads, and subscription removal.
@@ -76,6 +87,9 @@ introduced by this contract.
 - `docs/reviews/data-37.md`.
 
 ## Checks run
+
+Additional screen-command, action, and batch registry-isolation contract tests:
+three files, 80 tests passed.
 
 | Check                                                                               | Result                                          |
 | ----------------------------------------------------------------------------------- | ----------------------------------------------- |

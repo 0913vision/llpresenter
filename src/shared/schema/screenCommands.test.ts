@@ -1,5 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import {dispatchLogged, LiveStore} from '../../main/live/store';
+import {SliceRegistry} from '../../main/live/sliceRegistry';
 import {interruptsSongOutput} from '../commands';
 import {parseLiveCommand, parseLiveCommandRequest} from './liveCommand';
 import {expectSuccess} from './testHelpers';
@@ -15,12 +16,12 @@ const commands = [
 
 describe('screen command contracts', () => {
   it.each(commands)(
-    'accepts $type without applying an unsupported slice',
+    'accepts $type and rejects it when absent from the test registry',
     value => {
       const command = expectSuccess(parseLiveCommand(value));
       expect(command).toEqual(value);
       expect(interruptsSongOutput(command)).toBe(false);
-      const store = new LiveStore();
+      const store = new LiveStore(undefined, undefined, new SliceRegistry([]));
       const state = store.state;
       const log = {
         info: vi.fn(),
