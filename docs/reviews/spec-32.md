@@ -1,10 +1,10 @@
-Review range: `50fcab4...feat/spec/song-background-control`
+Review range: `17d18d4...feat/spec/song-background-control`
 
 # Review request: `spec-32`
 
 - Team member: `spec`
 - Branch: `feat/spec/song-background-control`
-- Base: spec-31 at `50fcab4`, pending its merge before submission
+- Base: spec-31 at `17d18d4`, pending its merge before submission
 - Review round: 1
 - Task: `.llp/task.md`, final M3-S1a slide-header control
 - Ownership exception: renderer show and shell paths for S1a
@@ -24,6 +24,10 @@ media, spacing, and type tokens. Its custom lead can show an image or a paused
 video frame through the existing `mediaUrl` protocol. A single muted video does
 not autoplay; its source is released on replacement or unmount. Names truncate
 with the shared full-name tooltip.
+
+The current value and default status are exposed as the button's accessible
+description. The service-name picker also gains ArrowDown opening through the
+shared menu-button helper, matching the new background picker.
 
 Missing backgrounds show the amber mark and 배경 파일을 찾을 수 없음 tooltip. As
 explicitly directed by the lead, 다시 연결 is unavailable with the tooltip 현재
@@ -46,15 +50,15 @@ protected import in `state/show.ts` is untouched.
 
 ## Checks run
 
-| Check                              | Result                                    |
-| ---------------------------------- | ----------------------------------------- |
-| Background control component tests | Pass: seven tests                         |
-| Renderer TypeScript check          | Pass                                      |
-| Changed-file ESLint and Prettier   | Pass                                      |
-| `git diff --check`                 | Pass                                      |
-| Workspace integration tests        | Pending the data-34 connection            |
-| Local full verify                  | Not run, per the lead's rule              |
-| GitHub branch CI                   | Required after the submission gates above |
+| Check                                       | Result                                    |
+| ------------------------------------------- | ----------------------------------------- |
+| Background control and service-picker tests | Pass: 16 tests                            |
+| Renderer TypeScript check                   | Pass                                      |
+| Changed-file ESLint and Prettier            | Pass                                      |
+| `git diff --check`                          | Pass                                      |
+| Workspace integration tests                 | Pending the data-34 connection            |
+| Local full verify                           | Not run, per the lead's rule              |
+| GitHub branch CI                            | Required after the submission gates above |
 
 Tests cover image/video choices and inherited state, ArrowDown opening, audio
 exclusion, removing an override, paused/muted video and resource release,

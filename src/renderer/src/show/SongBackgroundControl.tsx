@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState, type JSX} from 'react';
+import {useEffect, useId, useRef, useState, type JSX} from 'react';
 import {mediaUrl} from '@shared/media';
 import type {MediaId} from '@shared/schema/ids';
 import type {MediaItem} from '@shared/schema/mediaList';
@@ -85,9 +85,12 @@ export function SongBackgroundSelect({
   onChoose,
 }: BackgroundSelectProps): JSX.Element {
   const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
+  const valueId = useId();
+  const defaultDescriptionId = useId();
   const choices = items.filter(item => item.kind !== 'audio');
   const selected = choices.find(item => item.id === selection.mediaId);
   const disabled = readOnly || busy;
+  const expanded = anchor !== null && !disabled;
   const value =
     selected === undefined
       ? selection.mediaId === undefined
@@ -107,8 +110,11 @@ export function SongBackgroundSelect({
       <Button
         className={styles.select}
         aria-label="배경 선택"
+        aria-describedby={
+          selection.inherited ? `${valueId} ${defaultDescriptionId}` : valueId
+        }
         aria-haspopup="menu"
-        aria-expanded={anchor !== null}
+        aria-expanded={expanded}
         aria-busy={busy}
         disabled={disabled}
         title={
@@ -119,7 +125,7 @@ export function SongBackgroundSelect({
         }
         onKeyDown={event =>
           openOnArrowDown(event, {
-            expanded: anchor !== null,
+            expanded,
             disabled,
             onExpandedChange: open =>
               setAnchor(open ? event.currentTarget : null),
@@ -131,9 +137,11 @@ export function SongBackgroundSelect({
         ) : (
           <Icon name={selection.missing ? 'filex' : 'film'} size={ICON_SIZE} />
         )}
-        <TruncatedText text={value} className={styles.name} />
+        <TruncatedText id={valueId} text={value} className={styles.name} />
         {selection.inherited ? (
-          <span className={styles.meta}>곡 기본값</span>
+          <span id={defaultDescriptionId} className={styles.meta}>
+            곡 기본값
+          </span>
         ) : null}
         <Icon name="down" size={CHEVRON_SIZE} />
       </Button>
@@ -194,6 +202,7 @@ export function SongBackgroundControl({
   if (view === null) return null;
   return (
     <SongBackgroundSelect
+      key={`${view.serviceId}:${view.item.id}:${view.readOnly}`}
       items={view.media.value.items}
       selection={{
         mediaId: view.item.background ?? view.song?.song.background,

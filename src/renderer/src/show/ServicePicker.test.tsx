@@ -82,7 +82,7 @@ describe('service picker', () => {
   it('sorts by latest date, checks the current service, filters names, and restores focus on Esc', async () => {
     const {user, stopList} = setup();
     await user.tab();
-    await user.keyboard('{Enter}');
+    await user.keyboard('{ArrowDown}');
     await screen.findAllByRole('menuitemradio');
     expect(document.activeElement).toBe(screen.getByRole('combobox'));
     const rows = screen.getAllByRole('menuitemradio');

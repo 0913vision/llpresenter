@@ -4,6 +4,7 @@ import {Icon} from '@renderer/ui/Icon';
 import {TruncatedText} from '@renderer/ui/TruncatedText';
 import {Menu} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
+import {openOnArrowDown} from '@renderer/ui/menuButton';
 import {useServicePicker} from './useServicePicker';
 import styles from './ServiceOrderHeader.module.css';
 
@@ -40,6 +41,16 @@ export function ServiceOrderHeader({
           setAnchor(event.currentTarget);
           picker.toggle();
         }}
+        onKeyDown={event =>
+          openOnArrowDown(event, {
+            expanded: picker.open,
+            disabled: window.llp === undefined || picker.busy,
+            onExpandedChange: () => {
+              setAnchor(event.currentTarget);
+              picker.toggle();
+            },
+          })
+        }
       >
         <TruncatedText text={name ?? '예배 순서'} className={styles.name} />
         {name === null ? null : (
