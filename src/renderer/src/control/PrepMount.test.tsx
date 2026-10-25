@@ -77,7 +77,7 @@ it('opens the real library editor and preserves typing and undo across workspace
   const fixture = mountPrep();
   await openSong(fixture.first.song.title);
   const editor = fixture.session.editor;
-  expect(fixture.listenerCount()).toBe(5);
+  expect(fixture.listenerCount()).toBe(6);
   const input = screen.getByRole('textbox', {name: '슬라이드 1 가사'});
   fireEvent.focus(input);
   fireEvent.change(input, {target: {value: 'Invented changed line'}});
@@ -85,6 +85,7 @@ it('opens the real library editor and preserves typing and undo across workspace
   await waitFor(() => expect(fixture.edits).toHaveLength(1));
   fireEvent.click(screen.getByRole('tab', {name: '진행'}));
   fireEvent.click(screen.getByRole('tab', {name: '준비'}));
+  expect(fixture.listenerCount()).toBe(6);
   expect(fixture.session.editor).toBe(editor);
   expect(screen.getByRole('textbox', {name: '슬라이드 1 가사'})).toHaveProperty(
     'value',
@@ -116,6 +117,7 @@ it('switches back to service context even when selecting the same service row', 
   fireEvent.click(row);
   expect(screen.queryByRole('textbox', {name: '슬라이드 1 가사'})).toBeNull();
   expect(screen.getByRole('region', {name: '항목 설정'})).toBeDefined();
+  expect(fixture.listenerCount()).toBe(5);
   expect(fixture.send).not.toHaveBeenCalled();
 });
 
