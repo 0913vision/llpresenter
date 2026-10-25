@@ -68,11 +68,13 @@ subagent).
    conflict-free branches at merge time.
 3. **Check:** While you work, run the fast checks on what you changed:
    `npm run typecheck`, `npx eslint <your files>`, and
-   `npx vitest run <your test files>`. Before the review request, run
-   `npm run verify` once. If it fails only in a test you didn't touch that is
-   known to be flaky (the lead keeps the list), record it and send the request;
-   any other failure blocks. Don't rerun the full verify again and again for a
-   clean run.
+   `npx vitest run <your test files>`. Then push your branch
+   (`git push -u origin <branch>`, or `--force-with-lease` after a rebase) and
+   wait for its GitHub CI run: `node scripts/ci/status.mts <branch>` prints the
+   run's status and URL. A green run of your head commit is required; if it
+   fails only in a test you didn't touch that is known to be flaky (the lead
+   keeps the list), record it and send the request; any other failure blocks.
+   Don't run the full `npm run verify` on this computer unless the lead asks.
 4. **Request a review:** Write `docs/reviews/<name>-<number>.md` from
    `docs/reviews/_template.md` and commit it. It says what changed and why, the
    check results, the decisions you made yourself, and where you want the

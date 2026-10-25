@@ -177,8 +177,11 @@ full bar is "Quality bar" in `docs/TECH.md`.
 Every session runs with permission prompts turned off, so follow these rules
 without exception.
 
-- Team members never run `git push`. Only the lead pushes `main` to `origin`
-  after a merge. Nobody force-pushes or deletes remote branches.
+- Team members push only their own branches (`<tag>/<name>/<feature>`) to
+  `origin`, so GitHub's runners verify them; after a rebase they push with
+  `--force-with-lease` to their own branch only. Only the lead pushes `main`,
+  after a merge. Nobody pushes tags, force-pushes `main`, or deletes remote
+  branches.
 - The GitHub repository (0913vision/llpresenter) is public. Never commit
   secrets, personal data, or copyrighted lyrics. Use public-domain text or
   invented sentences for sample lyrics.
@@ -209,9 +212,11 @@ the process only at a milestone boundary, never in the middle of one.
 - **Branches:** create your own (`<tag>/<name>/<feature>`). While one is in
   review, start the next one stacked on it (`docs/WORKFLOW.md`, "Stacked
   branches").
-- **Checks:** while you work, run the fast checks on your own files. Before a
-  review request, run `npm run verify` once and record the result; failures from
-  machine load in tests you didn't touch are recorded, not rerun.
+- **Checks:** while you work, run the fast checks on your own files on this
+  computer. The full `npm run verify` runs on GitHub: push your branch, wait for
+  its CI run (`node scripts/ci/status.mts <branch>`), and put the run's URL and
+  result in the review request. Don't run the full verify locally unless the
+  lead asks.
 - **Review request:** rebase onto the latest `main` once, resolving conflicts
   yourself (for `package-lock.json`, take `main`'s file and run `npm install`),
   then send the request line. Don't paste verdicts; the lead records them.
@@ -258,6 +263,8 @@ what you need on disk, not in the conversation.
 
 - Now: `npm run typecheck`, `npm test`, `npm run format:check`.
 - From phase 1 on (built by the devops member): `npm run verify` runs the type
-  check, lint, format check, unit tests, and build. Team members run it before a
-  review request, and the lead runs it before a merge. If anything fails, don't
-  send the review request.
+  check, lint, format check, unit tests, and build. Since October 25 it runs on
+  GitHub's Windows runners for every pushed branch (not on this computer); a
+  review request needs a green run of its head commit. The lead verifies `main`
+  before pushing it (the pre-push hook skips it when a clean stamp covers the
+  tree), and a push to `main` only bumps the version on GitHub.

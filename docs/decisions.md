@@ -254,3 +254,16 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   that matches several books (베) lets the operator pick one with the keyboard,
   so a reference is entered in a few keys. T4a and T4b study copible's flow
   before they build these.
+
+## 2026-10-25: Branch verification on GitHub runners
+
+- Team members push their own branches to GitHub, and GitHub's Windows runners
+  run `npm run verify` on every pushed branch (user decision; the repository
+  stays public, where these runners are free and unlimited, up to 20 at once).
+  Members run only fast checks on this computer. A review request needs a green
+  run of its head commit (`node scripts/ci/status.mts <branch>`).
+- Members push only their own branches, with `--force-with-lease` after a
+  rebase. Only the lead pushes `main`; nobody pushes tags or force-pushes
+  `main`. A push to `main` only bumps the version (devops-18).
+- The external Windows computer stays a quiet test machine (long soak runs), not
+  a self-hosted runner, because the repository is public.
