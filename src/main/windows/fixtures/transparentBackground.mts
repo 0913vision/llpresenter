@@ -1,22 +1,32 @@
 import {ok} from 'node:assert/strict';
 import {isAbsolute} from 'node:path';
 import {app, BrowserWindow, type WebContentsPaintEventParams} from 'electron';
+import {watchPixelFixture} from './pixelFixtureLifecycle.mts';
 
-const DEADLINE_MS = 25_000;
 const CHECK_INTERVAL_MS = 10;
 const PICTURE_VALUE = 200;
+let exiting = false;
 
 function fail(error: unknown): void {
+  if (exiting) return;
+  exiting = true;
+  deadline.dispose();
   console.error('transparent background regression failed:', error);
-  app.exit(1);
+  try {
+    for (const win of BrowserWindow.getAllWindows()) {
+      win.webContents.removeListener('paint', releaseFrame);
+      win.destroy();
+    }
+  } finally {
+    app.exit(1);
+  }
 }
 
 process.on('uncaughtException', fail);
 process.on('unhandledRejection', fail);
 app.on('window-all-closed', () => undefined);
-const deadline = setTimeout(
-  () => fail(new Error('fixture timed out')),
-  DEADLINE_MS,
+const deadline = watchPixelFixture(phase =>
+  fail(new Error(`fixture ${phase} timed out`)),
 );
 const [page, userData] = process.argv.slice(2);
 if (
@@ -30,7 +40,7 @@ if (
 } else {
   app.setPath('userData', userData);
   run(page).then(() => {
-    clearTimeout(deadline);
+    deadline.dispose();
     app.exit(0);
   }, fail);
 }
@@ -103,6 +113,7 @@ async function checkMode(
   try {
     await win.loadFile(page, {query: {mode}});
     await waitForPictures(win);
+    deadline.checking();
     const samples = [];
     const background = mode === 'preview' ? 32 : 0;
     for (const opacity of [0, 0.5, 1]) {
@@ -147,14 +158,17 @@ async function checkMode(
       `${mode} opaque area after removal`,
     );
   } finally {
-    win.webContents.removeListener('paint', releaseFrame);
-    win.destroy();
+    if (!win.isDestroyed()) {
+      win.webContents.removeListener('paint', releaseFrame);
+      win.destroy();
+    }
   }
 }
 
 async function run(page: string): Promise<void> {
   await app.whenReady();
   await checkMode(page, 'output');
+  deadline.starting();
   await checkMode(page, 'preview');
   console.log('transparent background regression passed');
 }
