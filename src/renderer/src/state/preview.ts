@@ -18,4 +18,6 @@ export function showLarge(screenId: string): void {
 }
 
 // TODO(0913vision): Remember the large screen in `app.json` (`previewBig`)
-// when data allows it in the UI state.
+// once the screens come from `screens.json` with their real ids (M3-D2 in
+// docs/plans/m3-breakdown.md). Never save a placeholder id such as `main`:
+// `previewBig` must be a screen id, so `app.json` would fail its check.
