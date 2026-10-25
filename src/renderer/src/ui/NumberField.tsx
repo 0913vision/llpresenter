@@ -113,8 +113,9 @@ export function NumberField({
   const commit = (): void => {
     if (draft === null) return;
     const typed = parseNumberText(draft, suffix);
-    if (typed !== undefined)
+    if (typed !== undefined) {
       report(clampNumber(roundNumberToStep(typed, step), range));
+    }
     setDraft(null);
   };
 
