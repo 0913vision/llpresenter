@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import {nonBlankText} from './primitives';
+import {parsePayload} from './payload';
 
 const UUID_V4 =
   /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
@@ -85,6 +86,11 @@ export function createTemplateId(uuid: string): TemplateId {
 /** Brands a generated item UUID; throws unless it is lowercase version 4. */
 export function createServiceItemId(uuid: string): ServiceItemId {
   return v.parse(serviceItemIdSchema, uuid);
+}
+
+/** Checks a service item ID received from a view without throwing. */
+export function parseServiceItemId(value: unknown) {
+  return parsePayload(serviceItemIdSchema, value);
 }
 
 /** Brands a reserved media or copy-job UUID; throws unless it is version 4. */

@@ -6,7 +6,7 @@ import {
   propIdSchema,
   screenIdSchema,
 } from './ids';
-import {payloadObject} from './payload';
+import {parsePayload, payloadObject, type PayloadError} from './payload';
 import {
   nonBlankText,
   nonNegativeInteger,
@@ -14,6 +14,7 @@ import {
   positiveSeconds,
 } from './primitives';
 import {propContentSchema} from './props';
+import type {Result} from '../result';
 
 export const MAX_ACTIVE_MESSAGES = 200;
 export const MAX_ACTIVE_PROPS = 64;
@@ -139,3 +140,21 @@ export type NoticePlayback = ReadonlyKnown<
 export type MessageExpiry = ReadonlyKnown<
   v.InferOutput<typeof messageExpirySchema>
 >;
+
+export function parseActiveMessages(
+  value: unknown,
+): Result<readonly ActiveMessage[], PayloadError> {
+  return parsePayload(activeMessagesSchema, value);
+}
+
+export function parseActiveProps(
+  value: unknown,
+): Result<readonly ActiveProp[], PayloadError> {
+  return parsePayload(activePropsSchema, value);
+}
+
+export function parseNoticePlayback(
+  value: unknown,
+): Result<NoticePlayback, PayloadError> {
+  return parsePayload(noticePlaybackSchema, value);
+}

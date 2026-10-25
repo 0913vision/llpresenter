@@ -82,6 +82,11 @@ export const keyCodeSchema = v.pipe(
   v.regex(KEY_CODE, 'Expected a KeyboardEvent code such as KeyC or F5'),
 );
 
+/** Checks a supported shortcut key code without applying reserved-binding rules. */
+export function isKeyCode(value: unknown): value is string {
+  return v.is(keyCodeSchema, value);
+}
+
 const keyBindingSchema = v.pipe(
   jsonObject({
     code: keyCodeSchema,
