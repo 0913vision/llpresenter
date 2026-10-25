@@ -87,3 +87,14 @@ dependency is added.
 Check restoration of false before render, explicit-only writes, independent
 sidebar merges with the old width bounds, the single writer, and feed disposal
 when hiding the strip.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (6c80fefe): reviewer (Claude, trial-97) Approve; the additive contract
+  (`leftCollapsed`, `mediaStrip`, `ui:media-strip:set`) checked as data would.
+  Two nits for the next spec branch: reword `docs/spec/02-data.md:540` so a
+  saved choice wins over the size defaults; and `useMediaStripVisibility.ts`
+  compares `window.innerHeight` in CSS px, which UI zoom shrinks; the lead
+  chooses DIP (`innerHeight` times the zoom factor), with spec 04 saying so.
+  Lead Approve. Written by the Codex session that took over spec's work. Rebased
+  by the lead onto local `main` without conflicts.
