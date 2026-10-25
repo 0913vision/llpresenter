@@ -9,7 +9,6 @@ import styles from './ClearButton.module.css';
 const ROW_NAME = '지우기';
 const UNDO_NAME = '되돌림';
 const UNDO_LABEL = '되돌리기';
-const UNDO_SHORTCUT = 'Ctrl Z';
 const ICON_SIZE: IconSize = 18;
 const COMPACT_ICON_SIZE: IconSize = 16;
 
@@ -43,8 +42,8 @@ const CompactRow = createContext(false);
 
 /**
  * The 지우기 row of the 진행 workspace (`ll-clear-row`): the 지우기 buttons in
- * their order, then 되돌림. `compact` is the narrow window form, with icons
- * only and the names in the tooltips.
+ * their order, then optional 되돌림. `compact` is the narrow window form, with
+ * icons only and the names in the tooltips.
  */
 export function ClearRow({
   compact = false,
@@ -68,7 +67,7 @@ interface ControlProps {
   readonly name: string;
   readonly icon: string;
   readonly label: string;
-  readonly shortcut: string;
+  readonly shortcut: string | undefined;
   readonly available: boolean;
   readonly onPress: () => void;
   readonly className?: string | undefined;
@@ -134,7 +133,7 @@ export interface ClearUndoProps {
   /** Whether a 지우기 can be undone; only the last one can. */
   readonly available: boolean;
   readonly onUndo: () => void;
-  /** The current key, as the shortcut table writes it; Ctrl Z by default. */
+  /** An explicitly assigned key; clear undo has no default shortcut. */
   readonly shortcut?: string | undefined;
 }
 
@@ -142,7 +141,7 @@ export interface ClearUndoProps {
 export function ClearUndo({
   available,
   onUndo,
-  shortcut = UNDO_SHORTCUT,
+  shortcut,
 }: ClearUndoProps): JSX.Element {
   return (
     <>

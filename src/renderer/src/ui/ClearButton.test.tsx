@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react';
+import {fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type {JSX} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
@@ -69,16 +69,55 @@ describe('ClearRow', () => {
     ]);
   });
 
-  it('gives each button its key and shows the name with it in a tooltip', async () => {
+  it('gives each clear button its key and shows it in a tooltip', async () => {
     render(<Row />);
     expect(button('모두 지우기').getAttribute('aria-keyshortcuts')).toBe('F1');
     expect(button('공지 지우기').getAttribute('aria-keyshortcuts')).toBe('F7');
-    expect(button('되돌리기').getAttribute('aria-keyshortcuts')).toBe(
-      'Control+Z',
-    );
     expect((await hoverForTooltip(button('가사 지우기')))?.textContent).toBe(
       '가사 지우기F2',
     );
+  });
+
+  it.each([true, false])(
+    'advertises no default clear undo shortcut when available is %s',
+    async available => {
+      render(<ClearUndo available={available} onUndo={vi.fn()} />);
+      const undo = button('되돌리기');
+      expect(undo.hasAttribute('aria-keyshortcuts')).toBe(false);
+      expect((await hoverForTooltip(undo))?.textContent).toBe('되돌리기');
+    },
+  );
+
+  it('shows only an explicitly supplied clear undo shortcut', async () => {
+    const onUndo = vi.fn();
+    const {rerender} = render(
+      <ClearUndo available onUndo={onUndo} shortcut="Ctrl Shift U" />,
+    );
+    const undo = button('되돌리기');
+    expect(undo.getAttribute('aria-keyshortcuts')).toBe('Control+Shift+U');
+    expect((await hoverForTooltip(undo))?.textContent).toBe(
+      '되돌리기Ctrl Shift U',
+    );
+    rerender(<ClearUndo available onUndo={onUndo} />);
+    expect(undo.hasAttribute('aria-keyshortcuts')).toBe(false);
+    expect(screen.getByRole('tooltip').textContent).toBe('되돌리기');
+  });
+
+  it('passes Ctrl Z through without undoing a clear', () => {
+    const onUndo = vi.fn();
+    const onKeyDown = vi.fn();
+    render(
+      <div onKeyDown={onKeyDown}>
+        <ClearUndo available onUndo={onUndo} />
+      </div>,
+    );
+    const undo = button('되돌리기');
+    undo.focus();
+    expect(
+      fireEvent.keyDown(undo, {key: 'z', code: 'KeyZ', ctrlKey: true}),
+    ).toBe(true);
+    expect(onKeyDown).toHaveBeenCalledOnce();
+    expect(onUndo).not.toHaveBeenCalled();
   });
 
   it('shows a key that the 단축키 page changed', () => {

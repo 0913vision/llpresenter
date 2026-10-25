@@ -22,8 +22,9 @@ A thumbnail that shows one 장 (slide) as a 16:9 output canvas with a 24px 이�
 - Lyric font size = canvas width × 0.044. In CSS, set `container-type: inline-size` on the canvas and `font-size: 4.4cqw` on the text. Don't set a minimum, because the thumbnail must break lines in the same places as the output.
   - The draft ShowH formula `thumbFont = 48 / column count` (px) fits only a center column of 1144 (1116 inside the body). As width ratios, 2 columns 552px→24px (0.0435), 4 columns 270px→12px (0.0444), and 6 columns 176px→8px (0.0455), so a single 0.044 is used.
 - 이름표 band: height `size-thumb-band` (24px), text `band` (12/16/700), left padding `space-8`, gap between number and name `space-8`, number in `tabular-nums`. If the 이름표 has a color, paint the whole band in that color (`label-teal` and so on) with `text-on-label` text. Otherwise use `label-none` with `label-gray` text, and write only the number. Truncate a long name with an ellipsis.
-- Grid (`ll-thumb-grid`): the size slider in the panel's bottom row sets 2–8 columns. Gap `space-16` vertical, `space-12` horizontal. The outer margin is the panel body's `panel-inset` (14). The window size range sets the default column count (narrow window 3, regular 4, wide 6. See Layout).
-  - The slider is "썸네일 크기" (thumbnail size), so moving it right makes thumbnails larger and the columns fewer. The right end is 2 columns and the left end is 8 columns (column count = 10 − slider value, values 2–8).
+- Grid (`ll-thumb-grid`): `ThumbnailSizeControl` in the panel's bottom row sets a continuous percentage from 50% to 200%, default 100%, with a synchronized % field. Gap `space-16` vertical, `space-12` horizontal. The outer margin is the panel body's `panel-inset` (14). The window size range sets the baseline column count (narrow window 3, regular 4, wide 6. See Layout).
+  - `thumbnailWidth` scales the baseline tile width by the percentage and caps it at the usable grid width. Moving the control right makes thumbnails larger; tiles wrap without stretching. The resulting column count follows the available width, not a fixed 2–8 mapping.
+  - Compatibility behavior: callers without a valid positive `tileWidth` can still set integer `columns`. This layout fills equal column tracks; it is not the percentage control.
 
 ## Sizes and variants
 
@@ -32,7 +33,7 @@ A thumbnail that shows one 장 (slide) as a 16:9 output canvas with a 24px 이�
 | Lyrics 장 | width × 9/16 + 24 | lyrics width × 0.044 / band `band` | 장 panel in 진행, 예배 순서 items, library song 장 panel |
 | Media 장 | width × 9/16 + 24 | band `band` | A 장 with an image or video (Sunday announcement) |
 
-The thumbnail itself has no size variants. The column count of the grid sets its size.
+The thumbnail itself has no size variants. Its fixed tile width sets its size; integer column tracks remain available for compatibility callers.
 
 ## States
 
@@ -59,7 +60,7 @@ Hover uses the same 1px `line-control` as the hover of the small previews (ShowH
 - The grid takes keyboard focus on a mouse click, also in 진행, where a click on other buttons and tiles leaves focus where it was. While focus is in the grid, it follows the selection, also when 다음 장 moves it.
 - A live 장 has `data-state="live"`, a 장 whose media file is missing has `data-state="warning"`, and one with both has `data-state="live warning"`.
 - Write the `aria-label` in this order: number, 이름표, first line. "2 프리코러스, 저 천사여 찬송하세".
-- Moving the size slider changes only the column count, and the lyric text follows the width.
+- Moving the size slider continuously changes the tile width, and the lyric text follows that width. The row wraps when fewer tiles fit.
 
 ## Writing
 
@@ -70,13 +71,14 @@ Hover uses the same 1px `line-control` as the hover of the small previews (ShowH
 ## Implementation notes
 
 - `<SlideThumbnail number={2} label="프리코러스" labelColor="green" text={'저 천사여 찬송하세\n찬송 성부 성자 성령'} media={src} missingFile={path} live selected />`
-- `<ThumbnailGrid label="장" columns={4} workspace="show" selected={index} onSelect={…} onOutput={…}>…</ThumbnailGrid>` → `<div class="ll-thumb-grid" style="--ll-cols: 4">`. With `workspace="prep"`, a click selects, and there is no `onOutput`.
+- `<ThumbnailGrid label="장" columns={4} tileWidth={thumbnailWidth({gridWidth, columns: 4, gap, scalePercent})} workspace="show" selected={index} onSelect={…} onOutput={…}>…</ThumbnailGrid>`. Use the current size class's baseline columns. With `workspace="prep"`, a click selects, and there is no `onOutput`.
+- Compatibility callers can omit `tileWidth` and keep `<ThumbnailGrid columns={4}>`, which fills four equal tracks. Do not map percentage values to an integer column setting.
 - Classes: `ll-thumb`, `ll-thumb__canvas`, `ll-thumb__text`, `ll-thumb__media`, `ll-thumb__missing`, `ll-thumb__band`, `ll-thumb__num`, `ll-thumb__label`, `ll-thumb-grid`.
 - Attributes: `data-color="teal|green|yellow|orange|rose|violet|slate|gray"` (none means no 이름표. `42-labelchip.css` maps the colors), `aria-selected`, `data-state`.
 - `.is-hover` and `.is-focus` fix a state in the preview.
 
 ## Changes from the drafts
 
-- ShowH, PrepService, Problems: size slider 1–5 (6–2 columns) → 2–8 columns. Lyrics `48 / column count`px → canvas width × 0.044. No thumbnail hover → 1px `line-control`.
+- ShowH, PrepService, Problems: discrete size slider → continuous 50%–200% sizing and % field, default 100%. Integer column layout remains for compatibility. Lyrics `48 / column count`px → canvas width × 0.044. No thumbnail hover → 1px `line-control`.
 - Compact: band 22px, 11px → 24px, 12px (`band`), grid gap 12/10 → 16/12, panel padding 12 → 14, lyrics fixed 11px → width × 0.044.
 - Reflow 장 panel: grid gap 14/12 → 16/12, lyrics fixed 11px → width × 0.044.

@@ -4,7 +4,7 @@ A horizontal slider that sets a value by dragging. Use it for the thumbnail size
 
 ## Where to use
 
-- The row under the grid (32px) in the 진행 (Show) workspace, the 준비 (Prep) workspace, and media: thumbnail size (five steps, 1~5; 1~3 in library song editing)
+- The row under the grid (32px) in the 진행 (Show) workspace, the 준비 (Prep) workspace, and media: continuous thumbnail size from 50% to 200%, default 100%, with an adjacent % field (`ThumbnailSizeControl`)
 - 진행 도구 audio tab: volume
 - Sound group in the media properties: volume
 
@@ -57,7 +57,7 @@ A horizontal slider that sets a value by dragging. Use it for the thumbnail size
 
 ## Implementation notes
 
-- `<Slider min={1} max={5} step={1} value={size} onChange aria-label="썸네일 크기" icon="grid" />`
+- `<ThumbnailSizeControl value={scalePercent} onChange={setScalePercent} onCommit={saveScalePercent} workspace="show" />`
 - `<Slider compact min={0} max={100} value={70} aria-label="음량" icon="audio" />`
 - Markup: `span.ll-slider-row > span.ll-i + input[type=range].ll-slider[.ll-slider--compact|--block][style="--ll-value: 25%"]`.
 - If the gap color of the focus ring differs from the background (on a dialog), change `--ll-slider-cut` to `var(--bg-dialog)`.
