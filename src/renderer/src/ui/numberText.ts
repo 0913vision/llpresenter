@@ -71,11 +71,12 @@ export function stepNumber(
   return clampNumber(moved, range);
 }
 
-/** Writes step precision, including trailing zeroes, before the suffix. */
+/** Pads to step precision without rounding away digits from the value. */
 export function formatNumberText(
   value: number,
   suffix: string,
   step = 1,
 ): string {
-  return `${value.toFixed(decimalPlaces(step))}${suffix}`;
+  const places = Math.max(decimalPlaces(value), decimalPlaces(step));
+  return `${value.toFixed(places)}${suffix}`;
 }

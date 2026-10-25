@@ -103,4 +103,12 @@ describe('formatNumberText', () => {
     expect(formatNumberText(0.2, '', 0.1)).toBe('0.2');
     expect(formatNumberText(2e-7, '', 1e-7)).toBe('0.0000002');
   });
+
+  it.each([
+    {value: 0.28, step: 0.1, suffix: '', text: '0.28'},
+    {value: -0.28, step: 0.1, suffix: '%', text: '-0.28%'},
+    {value: 0.25, step: 1, suffix: '×', text: '0.25×'},
+  ])('preserves value precision in $text', ({value, step, suffix, text}) => {
+    expect(formatNumberText(value, suffix, step)).toBe(text);
+  });
 });

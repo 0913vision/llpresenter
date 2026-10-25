@@ -43,10 +43,14 @@ function spin(): HTMLInputElement {
 function DecimalField({
   initial,
   onChange,
+  min = -2,
+  max = 2,
   ...props
 }: Pick<NumberFieldProps, 'step' | 'largeStep' | 'updateOn' | 'suffix'> & {
   readonly initial: number;
   readonly onChange?: (value: number) => void;
+  readonly min?: number;
+  readonly max?: number;
 }): JSX.Element {
   const [value, setValue] = useState(initial);
   return (
@@ -54,8 +58,8 @@ function DecimalField({
       <NumberField
         {...props}
         aria-label="복구 사본"
-        min={-2}
-        max={2}
+        min={min}
+        max={max}
         value={value}
         onChange={next => {
           setValue(next);
@@ -155,6 +159,36 @@ describe('NumberField', () => {
     expect(onChange).toHaveBeenLastCalledWith(1.45);
     expect(spin().value).toBe('1.45');
   });
+
+  it.each([
+    {key: 'Enter', min: 0, max: 0.28, typed: '0.27', bound: 0.28, suffix: ''},
+    {key: 'Tab', min: 0, max: 0.28, typed: '0.27', bound: 0.28, suffix: ''},
+    {key: 'Enter', min: 0.12, max: 1, typed: '0.13', bound: 0.12, suffix: '×'},
+    {key: 'Tab', min: 0.12, max: 1, typed: '0.13', bound: 0.12, suffix: '×'},
+  ])(
+    'shows the actual off-grid bound $bound after committing on $key',
+    async ({key, min, max, typed, bound, suffix}) => {
+      const onChange = vi.fn();
+      render(
+        <DecimalField
+          initial={0.2}
+          step={0.1}
+          min={min}
+          max={max}
+          suffix={suffix}
+          updateOn="commit"
+          onChange={onChange}
+        />,
+      );
+      await userEvent.clear(spin());
+      await userEvent.type(spin(), typed);
+      await userEvent.keyboard(`{${key}}`);
+      expect(onChange).toHaveBeenCalledExactlyOnceWith(bound);
+      expect(spin().value).toBe(`${bound}${suffix}`);
+      expect(spin().getAttribute('aria-valuenow')).toBe(String(bound));
+      expect(spin().getAttribute('aria-valuetext')).toBe(`${bound}${suffix}`);
+    },
+  );
 
   it('cancels a commit-mode draft without reporting it on blur', async () => {
     const onChange = vi.fn();
