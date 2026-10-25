@@ -9,8 +9,12 @@ import type {
 import type {Notice} from '@renderer/ui/notices';
 import {SongSession} from './songSession';
 import {editorTask} from './editorTask';
+import {normalizeSongTitle} from './songTitle';
 
-export type EditorApi = Pick<LlpApi, 'songs' | 'content' | 'settings'>;
+export type EditorApi = Pick<
+  LlpApi,
+  'songs' | 'content' | 'settings' | 'media'
+>;
 export type EditorLabels = Extract<SettingsDocument, {name: 'labels'}>;
 interface EditorState {
   readonly session: SongSession | null;
@@ -103,7 +107,9 @@ export class SongEditorStore {
             api: this.api.content,
             isDuplicateTitle: value =>
               this.library.some(
-                entry => entry.id !== document.song.id && entry.title === value,
+                entry =>
+                  entry.id !== document.song.id &&
+                  normalizeSongTitle(entry.title) === value,
               ),
             changed: () => this.publish(),
             problem: () =>

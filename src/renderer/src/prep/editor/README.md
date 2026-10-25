@@ -35,15 +35,26 @@ The 34px header uses the title field and library/service-use tags. Library list
 pushes provide exact-title validation and service names for the usage tooltip; a
 newer push supersedes an older initial list read.
 
-Title edits share the song's one timer/write queue with lyrics. Blank or exact
-duplicate titles show the specified error ring/reason and are not sent. Invalid
-drafts revert on blur; valid drafts save at idle, blur, or Enter. Main's raced
-duplicate refusal marks the field while valid lyrics can still save under the
-canonical title. Own replies retain newer title input, including a return to the
-prior canonical title. Lyric undo preserves the accepted title metadata.
+Title edits share the song's one timer/write queue with lyrics. Titles use trim
+plus NFC before duplicate comparison and saving, including existing library
+titles in the comparison. Raw input remains intact while typing; acknowledgments
+compare the captured raw draft so they cannot delete newly typed spaces. Blank
+or normalized duplicate titles show the error ring/reason and are not sent.
+Invalid drafts revert on blur; valid drafts save at idle, blur, or Enter. Main's
+raced duplicate refusal marks the field while valid lyrics can still save under
+the canonical title. Own replies retain newer title input, including a return to
+the prior canonical title. Lyric undo preserves the accepted title metadata.
 
 Default background, arrangements, and the preview/list follow in later P2b
 requests; preparation-frame mounting belongs to the host.
+
+`SongSession.setBackground(id | undefined)` uses the same queue and retains the
+accepted background through lyric undo. `undefined` removes the field. The
+virtualized `MediaPicker` offers images/videos plus none with 28px menu rows,
+logical keyboard navigation, and at most twelve mounted options. `Select` can
+show a paused video lead and releases its source on change/unmount. Header/media
+subscription wiring follows in ui-26; `EditorApi` now includes the checked
+`media` API already present on `window.llp`.
 
 ## Editing and saving
 

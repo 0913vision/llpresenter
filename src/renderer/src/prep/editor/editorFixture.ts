@@ -129,7 +129,8 @@ export function editorFixture() {
           [...documents.values()].some(
             document =>
               document.song.id !== edit.song.id &&
-              document.song.title === edit.song.title,
+              document.song.title.trim().normalize('NFC') ===
+                edit.song.title.trim().normalize('NFC'),
           )
         ) {
           return refuse('duplicate-title');

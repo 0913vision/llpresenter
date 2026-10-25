@@ -1,8 +1,10 @@
-import type {
-  ComponentPropsWithRef,
-  JSX,
-  KeyboardEvent,
-  MouseEvent,
+import {
+  useEffect,
+  useRef,
+  type ComponentPropsWithRef,
+  type JSX,
+  type KeyboardEvent,
+  type MouseEvent,
 } from 'react';
 import type {MacroColor} from '@shared/colors';
 import {classNames} from './classNames';
@@ -16,7 +18,11 @@ import styles from './Select.module.css';
 /** What comes before the value: an icon, a media image, or a macro tile. */
 export type SelectLead =
   | {readonly kind: 'icon'; readonly icon: string}
-  | {readonly kind: 'media'; readonly src: string}
+  | {
+      readonly kind: 'media';
+      readonly src: string;
+      readonly mediaType?: 'image' | 'video';
+    }
   | {readonly kind: 'tile'; readonly color: MacroColor; readonly icon: string};
 
 /** What the button opens: a list of choices, or a popover such as a calendar. */
@@ -64,7 +70,11 @@ function Lead({
         <Icon name={lead.icon} size={iconSize[size]} className={styles.icon} />
       );
     case 'media':
-      return <img className={styles.media} src={lead.src} alt="" />;
+      return lead.mediaType === 'video' ? (
+        <VideoLead src={lead.src} />
+      ) : (
+        <img className={styles.media} src={lead.src} alt="" />
+      );
     case 'tile':
       return (
         <span
@@ -75,6 +85,31 @@ function Lead({
         </span>
       );
   }
+}
+
+function VideoLead({src}: {readonly src: string}): JSX.Element {
+  const element = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    const video = element.current;
+    if (video === null) return undefined;
+    video.src = src;
+    video.load();
+    return () => {
+      video.pause();
+      video.removeAttribute('src');
+      video.load();
+    };
+  }, [src]);
+  return (
+    <video
+      ref={element}
+      className={styles.media}
+      muted
+      preload="metadata"
+      playsInline
+      aria-hidden="true"
+    />
+  );
 }
 
 /**

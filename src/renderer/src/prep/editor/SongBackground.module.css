@@ -1,0 +1,26 @@
+.control {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-8);
+  color: var(--text-3);
+  font: var(--type-caption);
+}
+.control > button {
+  max-width: var(--size-field-key);
+}
+.picker {
+  width: var(--size-menu-max);
+}
+.viewport {
+  min-height: 0;
+  overflow-y: auto;
+}
+.option {
+  position: absolute;
+  box-sizing: border-box;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+}

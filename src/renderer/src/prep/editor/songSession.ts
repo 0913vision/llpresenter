@@ -3,7 +3,8 @@ import type {SongDocument} from '@shared/schema/contentDocuments';
 import type {BlockCommand, BlockSelection} from './blockEdits';
 import {SongHistory, TYPING_PAUSE_MS} from './songHistory';
 import {editorTask} from './editorTask';
-import {SongTitleDraft} from './songTitle';
+import {normalizeSongTitle, SongTitleDraft} from './songTitle';
+import type {MediaId} from '@shared/schema/ids';
 
 interface SessionOptions {
   readonly document: SongDocument;
@@ -18,6 +19,7 @@ export class SongSession {
   document: SongDocument;
   history: SongHistory;
   title: SongTitleDraft;
+  background: MediaId | undefined;
   blocked = false;
   private dirty = false;
   private writing = false;
@@ -25,6 +27,7 @@ export class SongSession {
   private pending: Promise<boolean> | undefined;
   private incoming: SongDocument | undefined;
   private saveTimer: ReturnType<typeof setTimeout> | undefined;
+  private backgroundEdited = false;
 
   constructor(private readonly options: SessionOptions) {
     this.document = options.document;
@@ -33,6 +36,7 @@ export class SongSession {
       options.document.song.title,
       options.isDuplicateTitle,
     );
+    this.background = options.document.song.background;
   }
 
   get readOnly(): boolean {
@@ -43,7 +47,19 @@ export class SongSession {
   }
 
   private get hasChanges(): boolean {
-    return this.dirty || this.title.changed;
+    return (
+      this.dirty ||
+      this.title.changed ||
+      this.background !== this.document.song.background
+    );
+  }
+
+  setBackground(id: MediaId | undefined): void {
+    if (!this.accepting || this.readOnly || this.background === id) return;
+    this.background = id;
+    this.backgroundEdited = true;
+    this.endTyping();
+    this.options.changed();
   }
 
   editTitle(value: string): void {
@@ -101,7 +117,13 @@ export class SongSession {
 
   receive(document: SongDocument): void {
     if (document.revision <= this.document.revision) return;
-    if (this.dirty || this.title.hasDraft || this.writing || this.blocked) {
+    if (
+      this.dirty ||
+      this.title.hasDraft ||
+      this.backgroundEdited ||
+      this.writing ||
+      this.blocked
+    ) {
       if (document.revision > (this.incoming?.revision ?? 0)) {
         this.incoming = document;
       }
@@ -116,6 +138,8 @@ export class SongSession {
       document.song.title,
       this.options.isDuplicateTitle,
     );
+    this.background = document.song.background;
+    this.backgroundEdited = false;
     this.blocked = false;
     this.dirty = false;
     this.incoming = undefined;
@@ -135,6 +159,7 @@ export class SongSession {
       } else {
         this.document = document;
         this.title.accept(document.song.title);
+        if (!this.backgroundEdited) this.background = document.song.background;
       }
     }
     this.options.changed();
@@ -158,6 +183,8 @@ export class SongSession {
     this.accepting = false;
     this.dirty = false;
     this.title = new SongTitleDraft(this.document.song.title);
+    this.background = this.document.song.background;
+    this.backgroundEdited = false;
   }
 
   private delaySave(): void {
@@ -187,6 +214,9 @@ export class SongSession {
       const lyricsDirty = this.dirty;
       this.dirty = false;
       const draft = this.history.snapshot.song;
+      const titleDraft =
+        this.title.reason === undefined ? this.title.value : undefined;
+      const background = this.background;
       const song = {
         ...draft,
         ...this.document.song,
@@ -196,6 +226,8 @@ export class SongSession {
           ? {}
           : {arrangements: draft.arrangements}),
       };
+      if (background === undefined) delete song.background;
+      else song.background = background;
       try {
         const result = await this.options.api.edit({
           type: 'song.update',
@@ -205,7 +237,7 @@ export class SongSession {
         if (
           !result.ok &&
           result.error.reason === 'duplicate-title' &&
-          song.title !== this.document.song.title
+          song.title !== normalizeSongTitle(this.document.song.title)
         ) {
           this.title.reject(song.title);
           this.dirty ||= lyricsDirty;
@@ -231,7 +263,11 @@ export class SongSession {
             ? this.incoming
             : {...this.document, song, revision: applied.revision};
         this.incoming = undefined;
-        this.title.accept(this.document.song.title, song.title);
+        this.title.accept(this.document.song.title, titleDraft);
+        if (!this.backgroundEdited || this.background === background) {
+          this.background = this.document.song.background;
+          this.backgroundEdited = false;
+        }
         if (!result.ok) this.options.problem();
       } catch {
         return this.fail();

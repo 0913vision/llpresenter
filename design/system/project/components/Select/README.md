@@ -56,6 +56,8 @@ A dropdown button that shows the current value and, when clicked, opens a menu o
 
 ## Behavior
 
+- A media lead can show an image or a muted video's first frame. React callers use `lead: {kind: 'media', src, mediaType: 'video'}` for a video. It loads metadata without autoplay and releases the source on change or unmount; the 36x20 frame is unchanged.
+
 - A click, Enter, Space, or the down arrow opens the menu. Open the menu below the button, aligned to its left edge, and don't make the menu narrower than the button.
 - In the menu, put a check mark in the cell before the current value (`Menu` rule). Choosing a value closes the menu and returns focus to the button. Esc closes it without choosing.
 - The date button opens a calendar popover (`aria-haspopup="dialog"`). All others use `aria-haspopup="listbox"`.
