@@ -164,15 +164,16 @@ None.
 - The remaining clear-undo visibility gap against the feedback's final choice,
   with spec-18 in progress.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict:
-- Findings:
-
-## Review: reviewer
-
-- Verdict:
-- Findings:
+- Round 1 (bab1647): reviewer (Codex, codex2) Approve with no findings. Lead
+  Approve; the Korean sheet for the user's second M2 check (`m2-check2`): what
+  changed since check 1, and the acceptance checks only the user can do (60
+  minutes on two monitors, unplugging the second monitor, force-quitting the
+  app, with force-quit recovery as M2 defines it in `docs/MILESTONES.md`). The
+  sample songs now have backgrounds. The branch's GitHub CI failed only in the
+  two GPU-dependent Electron tests (runners have no GPU, devops-19), accepted
+  for this docs-only change. Fast-forward merge.
 
 ## Team member's reply
 
