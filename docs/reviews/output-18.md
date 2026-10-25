@@ -153,8 +153,16 @@ Review the ScreenCell siblings and grid placement first, then the real-renderer
 lifecycle test and the monitoring-only assertions in PreviewPanel tests. The
 component README records the selected-slot design and responsive behavior.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-## Review: reviewer
+- Round 1 (cb6a3ec): reviewer (Codex, codex3) Approve with no findings. Lead
+  Approve; the user's alternative B from the first M2 check drafts: a fixed row
+  of 본 화면, 무대 화면, and 방송 자막, the selected slot showing a marker
+  instead of a second picture, and the large preview above showing the
+  selection, with three preview renderings and no playback restart on a
+  selection change. Written by the Codex session that took over output's work,
+  with the lead's permission to change ui's `PreviewFrame` and shell's preview
+  panel for this feature. Rebased by the lead onto local `main` without
+  conflicts.
 
 ## Team member's reply
