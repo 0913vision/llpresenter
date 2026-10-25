@@ -138,13 +138,18 @@ Tests use invented messages, macro names, and media metadata. The entry-wiring
 test mocks Electron. New slice discovery uses `--no-fsModuleCache` in local
 focused tests; no shared cache setting is changed.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-Pending.
-
-## Review: reviewer
-
-Pending.
+- Round 1 (Claude, trial-97): Request changes: the pre-callback move, resize,
+  and always-on-top events were missing, and the "keep directly behind" row had
+  no exact state; two nits.
+- Round 2 (0bf8642b): reviewer (Claude, trial-97) Approve. Nit for the next qa
+  document: name the topmost primary rectangle (0, 0, 1920, 1080) and its
+  possible overlap with the control window. Lead Approve, with the lead's
+  reading of "keep directly behind" (placed directly behind and never raised by
+  the app). Bug M2-9 (centering 31 DIP off the work area) goes to output.
+  Written by the Codex session that took over qa's work. Rebased by the lead
+  onto local `main` without conflicts.
 
 ## Team member's reply
 
