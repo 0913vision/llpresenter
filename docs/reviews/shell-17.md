@@ -103,7 +103,16 @@ missing.
 
 ## Verdicts (recorded by the lead at merge)
 
-- Not reviewed yet.
+- Round 1 (codex5): Request changes with one finding and a nit: the service name
+  test also passed on the old code, and a transition repeated the motion token's
+  value.
+- Round 2 (991c0d3): reviewer (Codex, codex5) Approve with no findings. Lead
+  Approve; qa's M1 section B is fixed: the toolbar is built from ui's parts, the
+  search field is 420 px (280 px narrow), the menu bar shows the open service's
+  name, `role="menubar"` sits on the group of six menus (lead decision, since a
+  menubar holds only menu items), native `title` tooltips are replaced by the
+  design system Tooltip, and the status bar has `role="status"`. Rebased by the
+  lead onto local `main` without conflicts.
 
 ## Team member's reply
 
