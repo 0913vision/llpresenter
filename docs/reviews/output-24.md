@@ -6,7 +6,9 @@
 - Code head: `4f45c000ba89166fef8f3c9f053b57dcf4e95ab0`
 - Range: `867f971...feat/output/screen-backend`
 - Scope: M3-O9a part 1, window methods. Settings wiring follows in output-25.
-- CI: pending the branch run.
+- Code CI:
+  [40223573887](https://github.com/0913vision/llpresenter/actions/runs/40223573887),
+  **success** at `3209af45f151d460b67d24763189d34dfd62bcd5`.
 
 ## Changes
 
@@ -52,7 +54,10 @@ because BrowserWindow cannot consume a CSS variable.
   harness and child. It checks 1920 x 1080, 1280 x 720 and 3840 x 2160 client
   bounds and viewport size, disables minimize, covers the output and requires a
   new animation frame. Its deadline and unconditional cleanup remain.
-  `node --check` passed locally; real execution is deferred to CI.
+  `node --check` passed locally. GitHub Windows passed all three sizes, covered
+  frame progression and the existing fullscreen placement proof. The retained
+  `native-fullscreen-order.log` artifact records the exact bounds above. Nothing
+  was launched locally.
 - Covered drawing uses `backgroundThrottling: false`, which Electron documents
   as keeping frames drawn and swapped for the window:
   [BrowserWindow](https://www.electronjs.org/docs/latest/api/browser-window).
@@ -67,10 +72,10 @@ merge message. The existing display-sleep blocker also prevents system sleep; no
 new power-setting switch or dependency is introduced here.
 
 The lead chose data's shared stable starter UUIDs and exact-id-first lookup
-before the settings connection. The current starter capture record explicitly
-inherits `alwaysOnTop: true` from the data defaults factory; data must correct
-that new-file default to false to match spec 10. Saved explicit choices remain
-respected. No data-owned file was changed in this request.
+before the settings connection. The lead also assigned data the correction of
+the starter capture record's inherited `alwaysOnTop: true` to false in data-36,
+for new defaults only. Saved explicit choices remain respected. No data-owned
+file was changed in this request.
 
 Please check client versus outer bounds, native size proof, method transitions,
 always-on-top choices versus fallback safety, and preservation of the output-21
