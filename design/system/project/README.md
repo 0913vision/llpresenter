@@ -224,6 +224,8 @@ Sizes are CSS pixels after Windows display scaling is applied. A 1920×1080 scre
 
 ## Implementation notes
 
+- The preparation song editor uses body 14/20 lyrics, caption 12/16 numbers, and 22px `LabelTag` pickers. Its Reflow layout has 14px insets, 16px gaps, an 18px number gutter, a 120px `size-editor-label` column, and a 2px accent bar on the active block. Lyrics edit without field chrome. The label popup uses `size-menu-max` (320px) so the persistent nine-color row and its name fit; names truncate in the remaining space.
+
 - Load `tokens.css` first in the app, and use only `var(--token-name)` in component CSS. Don't write values directly.
 - Follow `components/bundle.css` and each component document for component classes and state attributes. Express state with `aria-pressed`, `aria-selected`, `aria-checked`, `aria-expanded`, `aria-invalid`, `disabled`, and `data-state` instead of classes.
 - Open the window without the Windows title bar. The menu bar (30px) also serves as the title bar, and the window control buttons are at its right end.

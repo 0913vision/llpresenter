@@ -304,7 +304,7 @@ export function LabelTag({name, color, picker}: LabelTagProps): JSX.Element {
   if (picker === undefined) {
     return (
       <span data-color={color} style={labelInk(color)} className={styles.tag}>
-        {name}
+        <span className={styles.tagName}>{name}</span>
       </span>
     );
   }
@@ -318,7 +318,7 @@ export function LabelTag({name, color, picker}: LabelTagProps): JSX.Element {
       className={classNames(styles.tag, styles.picker)}
       onClick={event => picker.onOpen(event.currentTarget)}
     >
-      {name ?? PICKER_PLACEHOLDER}
+      <span className={styles.tagName}>{name ?? PICKER_PLACEHOLDER}</span>
       <Icon name="down" size={CHEVRON_SIZE} />
     </button>
   );

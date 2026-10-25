@@ -107,6 +107,7 @@
   --tag-ring: 1px;
 
   display: inline-flex;
+  max-width: 100%;
   align-items: center;
   gap: var(--space-6);
   height: var(--size-control-xs);
@@ -123,6 +124,12 @@
 
 .picker {
   padding-right: var(--space-6);
+}
+
+.tagName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .picker[data-color='none']:hover {

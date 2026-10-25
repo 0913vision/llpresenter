@@ -41,6 +41,31 @@ export class SongHistory {
     this.typing = undefined;
   }
 
+  /** A global rename also updates undo/redo snapshots without adding a step. */
+  renameLabel(from: string, to: string): void {
+    const rename = (snapshot: BlockSnapshot): BlockSnapshot => {
+      if (!snapshot.song.slides.some(slide => slide.label === from)) {
+        return snapshot;
+      }
+      return {
+        ...snapshot,
+        song: {
+          ...snapshot.song,
+          slides: snapshot.song.slides.map(slide =>
+            slide.label === from ? {...slide, label: to} : slide,
+          ),
+        },
+      };
+    };
+    this.endTyping();
+    this.value = rename(this.value);
+    for (const snapshots of [this.past, this.future]) {
+      snapshots.forEach((snapshot, index) => {
+        snapshots[index] = rename(snapshot);
+      });
+    }
+  }
+
   apply(command: BlockCommand, time = Date.now()): BlockSnapshot {
     const next = editBlocks(this.value, command);
     if (next.song === this.value.song) {
