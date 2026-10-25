@@ -291,3 +291,18 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   says a display disconnected while ProPresenter is open leaves the output on
   the main monitor, and the operator turns it off with Ctrl+1 or reassigns it
   ([How do I get my output to show on my screens](https://support.renewedvision.com/hc/en-us/articles/360011694234-How-do-I-get-my-output-to-show-on-my-screens)).
+
+## 2026-10-25: M2 closes with the GPU memory growth carried into M3
+
+- The real-monitor 60-minute run (qa-9) reproduced bug M2-8 with a visible
+  window: the GPU process grows about +10 MiB/h (+8.7 MiB/h in the last 30
+  minutes) while the main, control, and output processes stay flat. Code review
+  found no allocation in the app that grows per loop or per slide.
+- The user decided to close M2 without it: M2 freezes once the fallback window
+  fix (output-21) and the run results (qa-9) merge, and M2-8 moves to M3. About
+  40 MiB over a four-hour service doesn't threaten the output; the M2 criterion
+  "no memory growth" is met for every app process except Chromium's GPU process.
+- In M3, the workload is split into offscreen runs (static content, video loop
+  only, slide changes only, the combination) with a three-hour run, to find what
+  grows and whether it levels off. A cause in the app gets a fix; a Chromium or
+  driver cache that levels off gets a recorded ceiling instead.
