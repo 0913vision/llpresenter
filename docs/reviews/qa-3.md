@@ -67,6 +67,20 @@ None.
 - SE1 to SE5 against spec 05 "Search".
 - IA1 to IA4, which aren't in the breakdown.
 
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (codex5): Request changes with four findings: SS3 contradicted spec
+  02's settings recovery rule, RG2 could not reach its slice through the control
+  window, CC2 needed O8's backend from wave C, and US5 expected a tooltip for
+  every reserved key.
+- Round 2 (codex4): Request changes with one finding and a nit: CA8 required
+  hiding 준비 APIs from output windows, which no spec asks for (lead decision:
+  one preload API for every window in wave A), and E1's title bar wording.
+- Round 3 (13de2c1): reviewer (Codex, codex2) Approve with no findings. Lead
+  Approve, with QA's three decisions confirmed: IA1 to IA4 as QA's own wave A
+  integration checks, RG7 and SE7 as observations, and a missing unit test as a
+  finding. Rebased by the lead onto local `main` without conflicts.
+
 ## Team member's reply
 
 Round 1 (codex5, Request changes), answered in the commit after `2fd1c20`:
