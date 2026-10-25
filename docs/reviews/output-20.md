@@ -85,8 +85,16 @@ apart, as required.
   deduplication, and subscription cancellation/cleanup in particular.
 - Full green CI is required; there is no GPU exception.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-## Review: reviewer
+- Round 1 (a3f7664): reviewer (Claude, trial-97) Approve. Two nits for D2 part
+  2: `src/main/store/settingsStore.ts:116` and `:125` throw inside the per-area
+  loop, so one area that fails `parseSettingsDocument` or serialization makes
+  `settings:get` fail for all 13; catch per area, use that area's defaults,
+  report a `SettingsProblem`, and go on. `:97` special-cases the `stage-layouts`
+  format id inline; keep each format id in the `settingsCodecs` table. Lead
+  Approve. Written by the Codex session that took over output's work, under the
+  lead's exception for `src/main/store/`. Rebased by the lead onto local `main`
+  without conflicts.
 
 ## Team member's reply
