@@ -152,7 +152,7 @@ describe('Slider', () => {
     );
   });
 
-  it.each(['pointerUp', 'pointerCancel', 'lostPointerCapture'] as const)(
+  it.each(['pointerUp', 'pointerCancel'] as const)(
     'returns Show focus on %s without needing a commit callback',
     end => {
       render(<FocusSlider workspace="show" />);
@@ -165,6 +165,34 @@ describe('Slider', () => {
       expect(document.activeElement).toBe(before);
       expect(input.value).toBe('74');
       expect(capture).toHaveBeenCalledExactlyOnceWith(1);
+    },
+  );
+
+  it.each([
+    {workspace: 'show' as const, buttons: 1},
+    {workspace: 'prep' as const, buttons: 1},
+    {workspace: 'show' as const, buttons: 0},
+    {workspace: 'prep' as const, buttons: 0},
+  ])(
+    'keeps dragging after early capture loss in $workspace with buttons $buttons',
+    ({workspace, buttons}) => {
+      const onCommit = vi.fn();
+      render(<FocusSlider workspace={workspace} onCommit={onCommit} />);
+      const before = screen.getByRole('button', {name: '앞'});
+      before.focus();
+      const input = slider('음량');
+      startPointer(input);
+      fireEvent.change(input, {target: {value: '50'}});
+      fireEvent.lostPointerCapture(input, {pointerId: 1, buttons});
+      expect(onCommit).not.toHaveBeenCalled();
+      expect(document.activeElement).toBe(input);
+      fireEvent.change(input, {target: {value: '80'}});
+      fireEvent.pointerUp(document.body, {pointerId: 1, buttons: 0});
+      fireEvent.lostPointerCapture(input, {pointerId: 1, buttons: 0});
+      expect(onCommit).toHaveBeenCalledExactlyOnceWith(80);
+      expect(document.activeElement).toBe(
+        workspace === 'show' ? before : input,
+      );
     },
   );
 
