@@ -31,6 +31,14 @@ interface Range {
   readonly out?: number;
 }
 
+/** Bounds for whole-list IPC replies and media import batches. */
+export const MEDIA_LIMITS = {
+  items: 10_000,
+  playlists: 1_000,
+  playlistItems: 10_000,
+  importBatch: 200,
+} as const;
+
 export const mediaPropsSchema = v.pipe(
   jsonObject({
     end: v.exactOptional(v.picklist(['loop', 'stop'])),
@@ -83,22 +91,37 @@ const mediaItemSchema = v.pipe(
 export const playlistSchema = jsonObject({
   id: mediaPlaylistIdSchema,
   name: v.string(),
-  items: v.array(mediaIdSchema),
+  items: v.pipe(
+    v.array(mediaIdSchema),
+    v.maxLength(MEDIA_LIMITS.playlistItems),
+  ),
 });
 
 export const audioPlaylistSchema = jsonObject({
   id: audioPlaylistIdSchema,
   name: v.string(),
-  items: v.array(mediaIdSchema),
+  items: v.pipe(
+    v.array(mediaIdSchema),
+    v.maxLength(MEDIA_LIMITS.playlistItems),
+  ),
   loop: v.boolean(),
 });
 
 export const mediaListSchema = jsonObject({
   format: v.literal('llmedia'),
   schemaVersion: positiveInteger,
-  items: listWithUniqueIds(mediaItemSchema),
-  playlists: listWithUniqueIds(playlistSchema),
-  audioPlaylists: listWithUniqueIds(audioPlaylistSchema),
+  items: v.pipe(
+    listWithUniqueIds(mediaItemSchema),
+    v.maxLength(MEDIA_LIMITS.items),
+  ),
+  playlists: v.pipe(
+    listWithUniqueIds(playlistSchema),
+    v.maxLength(MEDIA_LIMITS.playlists),
+  ),
+  audioPlaylists: v.pipe(
+    listWithUniqueIds(audioPlaylistSchema),
+    v.maxLength(MEDIA_LIMITS.playlists),
+  ),
 });
 
 const mediaListMigrations: readonly MigrationStep[] = [];

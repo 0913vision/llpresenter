@@ -50,6 +50,7 @@ function refuse(reason: EditRefusalReason, message: string): EditResult {
 export class SettingsStore {
   private readonly documents: Map<SettingsName, SettingsDocument>;
   private readonly problemListeners = new Set<SettingsProblemListener>();
+  private readonly problems = new Map<string, SettingsProblem>();
   private readonly listeners = new Set<SettingsListener>();
   private readonly saves: SettingsPersistence | null;
   private disposed = false;
@@ -57,6 +58,7 @@ export class SettingsStore {
 
   constructor(private readonly options: SettingsStoreOptions) {
     this.documents = new Map(options.documents);
+    this.addProblems(options.problems);
     this.saves =
       options.saving === undefined
         ? null
@@ -118,7 +120,7 @@ export class SettingsStore {
     if (this.disposed) return () => undefined;
     if (!this.problemListeners.has(listener)) {
       this.problemListeners.add(listener);
-      for (const problem of this.options.problems) {
+      for (const problem of this.problems.values()) {
         if (!this.problemListeners.has(listener)) break;
         try {
           listener(problem);
@@ -130,6 +132,26 @@ export class SettingsStore {
     return () => {
       this.problemListeners.delete(listener);
     };
+  }
+
+  /** Adds independently loaded media problems to the same bounded startup notification feed. */
+  addProblems(problems: readonly SettingsProblem[]): void {
+    if (this.disposed) return;
+    for (const problem of problems) {
+      if (this.problems.has(problem.file)) continue;
+      if (this.problems.size >= settingsNames.length + 1) {
+        this.options.log.warn('too many app-wide settings problems', problem);
+        continue;
+      }
+      this.problems.set(problem.file, problem);
+      for (const listener of this.problemListeners) {
+        try {
+          listener(problem);
+        } catch (error: unknown) {
+          this.options.log.error('settings problem listener failed', error);
+        }
+      }
+    }
   }
 
   async flush(): Promise<void> {

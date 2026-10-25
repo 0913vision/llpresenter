@@ -20,6 +20,9 @@ import {
 } from './fileStore';
 import {dataFileFolders, type LocationContext} from './locations';
 import {LoadingMediaLibrary} from './mediaLibrary';
+import {openMediaStore} from './mediaLoader';
+import {registerMediaChannels, type MediaBackendPort} from './mediaChannels';
+import type {MediaStore} from './mediaStore';
 import {OpenServiceFeed} from './openServiceFeed';
 import {RecoveryCopies} from './recoveryCopies';
 import {Saver} from './saver';
@@ -60,6 +63,8 @@ export interface StoreRegistration {
 /** What the main process wiring uses of the data store. */
 export interface DataStore extends SettingsAccess {
   readonly settings: Promise<SettingsReader | null>;
+  readonly media: Promise<MediaStore | null>;
+  readonly mediaBackend: MediaBackendPort;
   readonly subscribeSettingsProblems: (
     listener: SettingsProblemListener,
   ) => () => void;
@@ -99,7 +104,20 @@ export function registerStore({
       log.error('could not open app-wide settings', error);
       return null;
     });
-  const opened = openContent(loading, log, settings);
+  const media = loading
+    .then(async store => {
+      if (store === null) return null;
+      const readySettings = await settings;
+      const opened = await openMediaStore(store, readySettings, log);
+      readySettings?.addProblems(opened.problems);
+      return opened.store;
+    })
+    .catch((error: unknown) => {
+      log.error('could not open the media list', error);
+      return null;
+    });
+  const mediaChannels = registerMediaChannels(media, log);
+  const opened = openContent(loading, log, {settings, media});
   const settingsChannels = registerSettingsChannels(
     settings,
     log,
@@ -134,17 +152,23 @@ export function registerStore({
     log,
   );
   const upkeep = upkeepAtLaunch(loading, isAnyOutputOn, log);
-  const media = new LoadingMediaLibrary(loading);
+  const mediaLibrary = new LoadingMediaLibrary(
+    media.then(store => (store === null ? null : {media: store})),
+  );
   return {
     settings,
+    media,
+    mediaBackend: mediaChannels.port,
     readSettings: settingsAccess.readSettings,
     subscribeSettingsChanges: settingsAccess.subscribeSettingsChanges,
     subscribeSettingsProblems: settingsChannels.subscribe,
     dispose: async () => {
       settingsAccess.dispose();
       const serviceClosing = serviceChannels.dispose();
+      const mediaClosing = mediaChannels.dispose();
       await settingsChannels.dispose();
       await serviceClosing;
+      await mediaClosing;
       ipcMain.removeHandler(Channels.preferencesGet);
       removeContentChannels();
       removeSearch();
@@ -159,8 +183,8 @@ export function registerStore({
         ready?.content.dispose();
       }
     },
-    findMediaFile: media.findFile,
-    mediaRoots: media.roots,
+    findMediaFile: mediaLibrary.findFile,
+    mediaRoots: mediaLibrary.roots,
   };
 }
 
@@ -194,14 +218,20 @@ async function readStore(
 async function openContent(
   loading: Promise<LoadedStore | null>,
   log: Logger,
-  settings: Promise<SettingsStore | null>,
+  readers: {
+    readonly settings: Promise<SettingsStore | null>;
+    readonly media: Promise<MediaStore | null>;
+  },
 ): Promise<OpenedContent | null> {
   const store = await loading;
   if (store === null) {
     return null;
   }
   try {
-    return await createContent(store, log, await settings);
+    return await createContent(store, log, {
+      settings: await readers.settings,
+      media: await readers.media,
+    });
   } catch (error: unknown) {
     log.error('could not open the songs and 예배 순서', error);
     return null;
@@ -211,7 +241,13 @@ async function openContent(
 async function createContent(
   store: LoadedStore,
   log: Logger,
-  settings: SettingsStore | null,
+  {
+    settings,
+    media,
+  }: {
+    readonly settings: SettingsStore | null;
+    readonly media: MediaStore | null;
+  },
 ): Promise<OpenedContent> {
   const search = await buildSongSearchIndex(
     [...store.songs.values()].map(({data}) => data),
@@ -262,12 +298,13 @@ async function createContent(
           : store.labels;
       },
       content,
-      backgroundOf: id => store.media.backgroundOf(id),
+      backgroundOf: id =>
+        media?.backgroundOf(id) ?? store.media.backgroundOf(id),
     },
     service => broadcast(Channels.serviceChanged, service, log),
     error => log.error('could not refresh the open 예배 순서', error),
   );
-  const removeSettings =
+  const removeSettingsListener =
     settings?.subscribe(document => {
       if (document.name === 'labels') {
         feed
@@ -277,6 +314,18 @@ async function createContent(
           );
       }
     }) ?? (() => undefined);
+  const removeMedia =
+    media?.subscribe(() => {
+      feed
+        .refresh()
+        .catch((error: unknown) =>
+          log.error('could not refresh media in the open service', error),
+        );
+    }) ?? (() => undefined);
+  const removeSettings = () => {
+    removeSettingsListener();
+    removeMedia();
+  };
   await feed.refresh();
   return {content, feed, search, removeSettings};
 }
@@ -340,7 +389,7 @@ function logLoadedStore(store: LoadedStore, log: Logger): void {
   });
   const problems = store.problems.filter(
     problem =>
-      !settingsNames.some(
+      ![...settingsNames, 'media'].some(
         name => settingsLocation(store.locations, name).file === problem.file,
       ),
   );

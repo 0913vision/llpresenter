@@ -18,10 +18,12 @@ import {
   mediaListSchema,
   mediaPropsSchema,
   playlistSchema,
+  MEDIA_LIMITS,
 } from './mediaList';
 import {payloadObject, plainObject} from './payload';
 import {nonBlankText, percent} from './primitives';
 import {settingsDocumentSchema} from './settingsDocuments';
+import {preserveUnknownFields} from './preserveUnknown';
 
 const playlistRefSchema = v.pipe(
   plainObject,
@@ -85,7 +87,11 @@ const importRequestSchema = payloadObject({
       v.object({kind: v.literal('dialog')}),
       v.object({
         kind: v.literal('files'),
-        paths: v.pipe(v.array(nonBlankText), v.minLength(1)),
+        paths: v.pipe(
+          v.array(nonBlankText),
+          v.minLength(1),
+          v.maxLength(MEDIA_LIMITS.importBatch),
+        ),
       }),
     ]),
   ),
@@ -133,6 +139,7 @@ const mediaEditResultSchema = replySchema(v.nullable(editSuccessSchema));
 const mediaImportResultSchema = replySchema(
   v.pipe(
     v.array(importProgressSchema),
+    v.maxLength(MEDIA_LIMITS.importBatch),
     v.check(
       jobs => new Set(jobs.map(({mediaId}) => mediaId)).size === jobs.length,
       'Another import job already has this media id',
@@ -165,6 +172,15 @@ export type MediaImportResult = Result<
 
 export function parseMediaDocument(value: unknown) {
   return checkPart(mediaDocument, value);
+}
+
+/** Retains current unknown fields on media and playlists identified by their stable IDs. */
+export function mergeMediaDocument(current: MediaDocument, value: unknown) {
+  return parseMediaDocument({
+    ...current,
+    value: preserveUnknownFields(mediaListSchema, current.value, value),
+    revision: current.revision + 1,
+  });
 }
 
 export function parseMediaEdit(value: unknown) {

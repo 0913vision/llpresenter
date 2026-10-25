@@ -14,6 +14,8 @@ import {parseEditResult} from '@shared/schema/contentEdit';
 import {parseSong} from '@shared/schema/song';
 import {parseShowService} from '@shared/schema/showService';
 import {parseServiceDocument} from '@shared/schema/contentDocuments';
+import {createMediaId} from '@shared/schema/ids';
+import {parseMediaDocument} from '@shared/schema/mediaEdit';
 import {parsePreferencesValue} from '@shared/schema/preferences';
 import {
   parseSettingsDocument,
@@ -138,6 +140,171 @@ afterEach(async () => {
 });
 
 describe('registerStore', () => {
+  it('refreshes the open service from edited media and leaves deleted media bytes intact', async () => {
+    const context = await developmentContext();
+    const root = join(context.appDataFolder, DATA_FOLDER_NAME);
+    const mediaId = createMediaId(itemId(1));
+    const songId = itemId(2);
+    const mediaFile = join(root, '미디어', 'invented.webm');
+    await writeJson(mediaFile, 'Invented file bytes');
+    await writeJson(join(root, '설정', 'media.json'), {
+      format: 'llmedia',
+      schemaVersion: 1,
+      items: [
+        {
+          id: mediaId,
+          name: 'Invented media',
+          kind: 'video',
+          file: 'invented.webm',
+          size: 19,
+        },
+      ],
+      playlists: [],
+      audioPlaylists: [],
+    });
+    await writeJson(join(root, '곡', `${songId}.llsong`), {
+      format: 'llsong',
+      schemaVersion: 1,
+      id: songId,
+      title: 'Invented song',
+      background: mediaId,
+      slides: [{lines: ['Invented line']}],
+    });
+    await writeJson(join(root, '예배', `${itemId(3)}.llservice`), {
+      format: 'llservice',
+      schemaVersion: 1,
+      id: itemId(3),
+      name: 'Invented service',
+      date: '2026-10-26T10:00',
+      order: [{id: itemId(4), song: songId}],
+    });
+    await register(fakeLog(), context, () => true);
+    expect(await askForService()).toMatchObject({
+      rows: [{background: {mediaId, loop: true}}],
+    });
+    expect(
+      await ask(Channels.mediaEdit, {
+        type: 'media.properties.update',
+        mediaId,
+        baseRevision: 1,
+        changes: {props: {end: 'stop'}},
+      }),
+    ).toMatchObject({ok: true});
+    expect(await askForService()).toMatchObject({
+      rows: [{background: {mediaId, loop: false}}],
+    });
+    expect(
+      await ask(Channels.mediaEdit, {type: 'media.delete', mediaId}),
+    ).toMatchObject({ok: true});
+    expect(await askForService()).toMatchObject({
+      rows: [{problem: 'missing-background'}],
+    });
+    expect(await readFile(mediaFile, 'utf8')).toBe('Invented file bytes');
+  });
+  it('saves media edits across restart and updates current lookup and roots after relink completion and delete', async () => {
+    const context = await developmentContext();
+    const root = join(context.appDataFolder, DATA_FOLDER_NAME);
+    const id = createMediaId(itemId(1));
+    const file = join(root, '설정', 'media.json');
+    const value = {
+      format: 'llmedia',
+      schemaVersion: 1,
+      future: 'kept',
+      items: [
+        {
+          id,
+          name: 'Before',
+          kind: 'video',
+          file: 'old.webm',
+          size: 10,
+          props: {end: 'loop', future: 'kept'},
+        },
+      ],
+      playlists: [],
+      audioPlaylists: [],
+    };
+    await writeJson(file, value);
+    const first = await register(fakeLog(), context, () => true);
+    const initial = parseMediaDocument(await ask(Channels.mediaGet));
+    if (!initial.ok) throw new Error(initial.error.message);
+    expect(await first.findMediaFile(id)).toBe(
+      join(root, '미디어', 'old.webm'),
+    );
+    electron.send.mockClear();
+    expect(
+      await ask(Channels.mediaEdit, {
+        type: 'media.properties.update',
+        mediaId: id,
+        baseRevision: 1,
+        changes: {name: 'After'},
+      }),
+    ).toMatchObject({ok: true, value: {revision: 2}});
+    expect(electron.send).toHaveBeenCalledWith(
+      Channels.mediaChanged,
+      await ask(Channels.mediaGet),
+    );
+    const media = await first.media;
+    if (media === null) throw new Error('Missing media store');
+    const item = media.get().value.items[0];
+    if (item === undefined) throw new Error('Missing fixture media');
+    expect(
+      (
+        await media.replace({
+          baseRevision: 2,
+          items: [{...item, file: 'new.webm'}],
+        })
+      ).ok,
+    ).toBe(true);
+    expect(await first.findMediaFile(id)).toBe(
+      join(root, '미디어', 'new.webm'),
+    );
+    expect(first.mediaRoots()).toEqual([join(root, '미디어')]);
+    expect(JSON.parse(await readFile(file, 'utf8'))).toHaveProperty(
+      'future',
+      'kept',
+    );
+    expect(JSON.parse(await readFile(file, 'utf8'))).toHaveProperty(
+      'items.0.props.future',
+      'kept',
+    );
+    await first.dispose();
+    const second = await register(fakeLog(), context, () => true);
+    expect(await ask(Channels.mediaGet)).toMatchObject({
+      revision: 1,
+      value: {items: [{name: 'After', file: 'new.webm'}]},
+    });
+    expect(
+      await ask(Channels.mediaEdit, {type: 'media.delete', mediaId: id}),
+    ).toMatchObject({ok: true});
+    expect(await second.findMediaFile(id)).toBeNull();
+  });
+
+  it('creates missing media data and replays one media problem while other settings stay readable', async () => {
+    const context = await developmentContext();
+    const root = join(context.appDataFolder, DATA_FOLDER_NAME);
+    const file = join(root, '설정', 'media.json');
+    const first = await register(fakeLog(), context, () => true);
+    expect(await ask(Channels.mediaGet)).toMatchObject({
+      value: {items: [], playlists: [], audioPlaylists: []},
+    });
+    expect(JSON.parse(await readFile(file, 'utf8'))).toMatchObject({
+      format: 'llmedia',
+    });
+    await first.dispose();
+    await writeJson(file, '{broken media');
+    const second = await register(fakeLog(), context, () => true);
+    const problems: string[] = [];
+    const stop = second.subscribeSettingsProblems(problem =>
+      problems.push(problem.file),
+    );
+    await ask(Channels.mediaGet);
+    expect(await ask(Channels.settingsGet, {name: 'notices'})).toMatchObject({
+      name: 'notices',
+    });
+    expect(problems).toEqual(['media.json']);
+    expect(await readFile(file, 'utf8')).toBe('{broken media');
+    stop();
+  });
   it('saves and switches services, remembers the choice across restart, and sends no live-output change', async () => {
     const context = await developmentContext();
     const root = join(context.appDataFolder, DATA_FOLDER_NAME);
