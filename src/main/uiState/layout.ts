@@ -8,14 +8,14 @@ import type {LayoutChange} from '@shared/schema/uiState';
  */
 export function withLayoutChange(
   layout: AppLayout | undefined,
-  {sizeClass, left, right, columns}: LayoutChange,
+  {sizeClass, left, right, thumbnailScalePercent}: LayoutChange,
 ): AppLayout {
   const current = layout ?? {};
   const merged = {
     ...current[sizeClass],
     ...(left === undefined ? {} : {left}),
     ...(right === undefined ? {} : {right}),
-    ...(columns === undefined ? {} : {columns}),
+    ...(thumbnailScalePercent === undefined ? {} : {thumbnailScalePercent}),
   };
   return {...current, [sizeClass]: merged};
 }

@@ -55,33 +55,40 @@ describe('UiStateStore setLayout', () => {
     expect(store.state).toEqual({layout: merged});
   });
 
-  it('merges the thumbnail columns alone and keeps the widths', () => {
+  it('merges the 슬라이드 size alone and keeps the widths', () => {
     const {store, changes} = createHarness({layout});
-    store.setLayout({sizeClass: 'wide', columns: 7});
+    store.setLayout({sizeClass: 'wide', thumbnailScalePercent: 140});
     expect(changes).toEqual([
-      {layout: {...layout, wide: {left: 320, right: 560, columns: 7}}},
+      {
+        layout: {
+          ...layout,
+          wide: {left: 320, right: 560, thumbnailScalePercent: 140},
+        },
+      },
     ]);
   });
 
   it('starts a layout when the fields have none', () => {
     const {store, changes} = createHarness();
-    store.setLayout({sizeClass: 'narrow', columns: 3});
-    expect(changes).toEqual([{layout: {narrow: {columns: 3}}}]);
+    store.setLayout({sizeClass: 'narrow', thumbnailScalePercent: 60});
+    expect(changes).toEqual([{layout: {narrow: {thumbnailScalePercent: 60}}}]);
   });
 
   it('changes only the layout, so the other UI fields stay as they are', () => {
     const {store, changes} = createHarness({layout, macroView: 'list'});
-    store.setLayout({sizeClass: 'normal', columns: 2});
+    store.setLayout({sizeClass: 'normal', thumbnailScalePercent: 200});
     expect(Object.keys(changes[0] ?? {})).toEqual(['layout']);
   });
 
-  it('drops and logs a change that is malformed, out of range, or half a pair', () => {
+  it('drops and logs a change that is malformed, out of range, half a pair, or the old columns', () => {
     const {store, changes, warnings} = createHarness({layout});
     store.setLayout({sizeClass: 'normal', left: 100, right: 480});
     store.setLayout({sizeClass: 'normal', left: 300});
-    store.setLayout({sizeClass: 'huge', columns: 3});
+    store.setLayout({sizeClass: 'huge', thumbnailScalePercent: 100});
+    store.setLayout({sizeClass: 'normal', thumbnailScalePercent: 201});
+    store.setLayout({sizeClass: 'normal', columns: 3});
     store.setLayout('nope');
     expect(changes).toEqual([]);
-    expect(warnings).toHaveLength(4);
+    expect(warnings).toHaveLength(6);
   });
 });
