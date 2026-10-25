@@ -337,9 +337,10 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   or moved 슬라이드, but not a split or a merge in the song editor. The lead
   decides, after ui-21's review: a split or a merge never drops lyrics from a
   구성.
-- Split (Enter on an empty line, or a paste with blank lines): every reference
-  to the split 슬라이드 expands to all its parts in order (a 구성 `[1, 3, 3]`
-  whose 슬라이드 3 splits into 3 and 4 becomes `[1, 3, 4, 3, 4]`).
+- Every split (Enter on an empty line, Ctrl Enter at the cursor, or a paste with
+  blank lines): every reference to the split 슬라이드 expands to all its parts
+  in order (a 구성 `[1, 3, 3]` whose 슬라이드 3 splits into 3 and 4 becomes
+  `[1, 3, 4, 3, 4]`).
 - Merge (Backspace at the start of a block): references to the removed block map
   to the merged block, and an adjacent duplicate that the merge creates
   collapses into one (`[2, 3]` becomes `[2]` when 3 merges into 2; a 구성 `[3]`

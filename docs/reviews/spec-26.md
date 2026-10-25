@@ -41,3 +41,12 @@ changes no runtime code, schema, or existing insert/delete/move behavior.
 
 The report records the exact submitted HEAD's green CI URL and result without
 adding an unverified metadata commit. No window was started.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (3e834c1): reviewer (Claude, trial-97) Approve. Nit: the split list at
+  `docs/spec/02-data.md:110` names Enter on an empty line and a paste but not
+  Ctrl Enter, which also splits (spec 05, 10); the lead added Ctrl Enter to the
+  decision, and spec adds it to spec 02 in its next request. Lead Approve.
+  Written by the Codex session that took over spec's work. Merged by the lead
+  without conflicts.
