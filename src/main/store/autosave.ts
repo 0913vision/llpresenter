@@ -35,6 +35,17 @@ export class Autosave {
     this.waiting.set(key, {timer, save});
   }
 
+  /** Drops waiting and due callbacks for a file that the caller will save explicitly. */
+  cancelPending(key: string): void {
+    this.cancel(key);
+    this.due.delete(key);
+  }
+
+  /** Waits only for saves already running for this file. */
+  async idle(key: string): Promise<void> {
+    while (this.running.has(key)) await this.running.get(key);
+  }
+
   /**
    * Saves every file that waits now, and resolves when those saves, the ones
    * already running, and the ones that came due meanwhile have finished.

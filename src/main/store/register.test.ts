@@ -13,6 +13,7 @@ import {Channels} from '@shared/ipc';
 import {parseEditResult} from '@shared/schema/contentEdit';
 import {parseSong} from '@shared/schema/song';
 import {parseShowService} from '@shared/schema/showService';
+import {parseServiceDocument} from '@shared/schema/contentDocuments';
 import {parsePreferencesValue} from '@shared/schema/preferences';
 import {
   parseSettingsDocument,
@@ -22,6 +23,7 @@ import {
 import {parseLibrarySearchResult} from '@shared/schema/librarySearch';
 import {makeTempDir} from '../../../test/temp-dir';
 import type {Logger} from '../log';
+import * as atomicWrite from './atomicWrite';
 import {openAppConfig} from './appConfigFile';
 import {DATA_FOLDER_NAME} from './locations';
 import type {SettingsProblemListener} from './settingsStore';
@@ -136,6 +138,133 @@ afterEach(async () => {
 });
 
 describe('registerStore', () => {
+  it('saves and switches services, remembers the choice across restart, and sends no live-output change', async () => {
+    const context = await developmentContext();
+    const root = join(context.appDataFolder, DATA_FOLDER_NAME);
+    const ids = [itemId(1), itemId(2)];
+    const firstId = itemId(1);
+    const secondId = itemId(2);
+    const appFile = join(context.appDataFolder, 'app.json');
+    await writeJson(appFile, {
+      format: 'llapp',
+      schemaVersion: 1,
+      lastServiceId: firstId,
+      uiZoomPercent: 120,
+      future: 'kept',
+    });
+    for (const [index, id] of ids.entries()) {
+      await writeJson(join(root, '예배', `${id}.llservice`), {
+        format: 'llservice',
+        schemaVersion: 1,
+        id,
+        name: `Invented service ${index}`,
+        date: '2026-10-26T10:00',
+        order: [],
+      });
+    }
+    const first = await register(fakeLog(), context, () => true);
+    expect(await askForService()).toMatchObject({id: firstId});
+    expect(await ask(Channels.serviceOpen, {serviceId: itemId(9)})).toBeNull();
+    expect(await askForService()).toMatchObject({id: firstId});
+    const current = await ask(Channels.servicesDocumentGet, firstId);
+    const parsed = parseServiceDocument(current);
+    if (!parsed.ok || parsed.value === null) {
+      throw new Error('Missing fixture service');
+    }
+    await ask(Channels.contentEdit, {
+      type: 'service.update',
+      service: {...parsed.value.service, name: 'Edited current service'},
+      baseRevision: 1,
+    });
+    electron.send.mockClear();
+    expect(
+      await ask(Channels.serviceOpen, {serviceId: secondId}),
+    ).toMatchObject({id: secondId});
+    expect(await askForService()).toMatchObject({id: secondId});
+    expect(
+      JSON.parse(
+        await readFile(join(root, '예배', `${firstId}.llservice`), 'utf8'),
+      ),
+    ).toMatchObject({name: 'Edited current service'});
+    expect(JSON.parse(await readFile(appFile, 'utf8'))).toMatchObject({
+      lastServiceId: secondId,
+      uiZoomPercent: 120,
+      future: 'kept',
+    });
+    expect(electron.send).toHaveBeenCalledWith(
+      Channels.serviceChanged,
+      expect.objectContaining({id: secondId}),
+    );
+    expect(electron.send).not.toHaveBeenCalledWith(
+      Channels.liveChanged,
+      expect.anything(),
+    );
+    await first.dispose();
+    await register(fakeLog(), context, () => true);
+    expect(await askForService()).toMatchObject({id: secondId});
+  });
+
+  it('keeps the current service and saved launch choice when saving its pending edit fails', async () => {
+    const context = await developmentContext();
+    const root = join(context.appDataFolder, DATA_FOLDER_NAME);
+    const firstId = itemId(1);
+    const secondId = itemId(2);
+    const appFile = join(context.appDataFolder, 'app.json');
+    const firstFile = join(root, '예배', `${firstId}.llservice`);
+    await writeJson(appFile, {
+      format: 'llapp',
+      schemaVersion: 1,
+      lastServiceId: firstId,
+    });
+    for (const [index, id] of [firstId, secondId].entries()) {
+      await writeJson(join(root, '예배', `${id}.llservice`), {
+        format: 'llservice',
+        schemaVersion: 1,
+        id,
+        name: `Invented service ${index}`,
+        date: '2026-10-26T10:00',
+        order: [],
+      });
+    }
+    const original = atomicWrite.writeFileAtomically;
+    const write = vi
+      .spyOn(atomicWrite, 'writeFileAtomically')
+      .mockImplementation((file, text) =>
+        file === firstFile
+          ? Promise.resolve({
+              ok: false,
+              error: {file, message: 'Disk unavailable'},
+            })
+          : original(file, text),
+      );
+    await register(fakeLog(), context, () => true);
+    await askForService();
+    const parsed = parseServiceDocument(
+      await ask(Channels.servicesDocumentGet, firstId),
+    );
+    if (!parsed.ok || parsed.value === null) {
+      throw new Error('Missing fixture service');
+    }
+    await ask(Channels.contentEdit, {
+      type: 'service.update',
+      service: {...parsed.value.service, name: 'Unsaved current service'},
+      baseRevision: 1,
+    });
+    expect(await ask(Channels.serviceOpen, {serviceId: secondId})).toBeNull();
+    expect(
+      write.mock.calls.filter(([file]) => file === firstFile),
+    ).toHaveLength(1);
+    expect(await askForService()).toMatchObject({
+      id: firstId,
+      name: 'Unsaved current service',
+    });
+    expect(JSON.parse(await readFile(firstFile, 'utf8'))).toMatchObject({
+      name: 'Invented service 0',
+    });
+    expect(JSON.parse(await readFile(appFile, 'utf8'))).toMatchObject({
+      lastServiceId: firstId,
+    });
+  });
   it('renames a label through settings IPC, pushes the changed songs, and retains the files across restart', async () => {
     const context = await developmentContext();
     const root = join(context.appDataFolder, DATA_FOLDER_NAME);

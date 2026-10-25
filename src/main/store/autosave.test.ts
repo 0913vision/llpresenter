@@ -12,6 +12,75 @@ afterEach(() => {
 });
 
 describe('Autosave', () => {
+  it('waits for one running file without waiting for an unrelated stalled save', async () => {
+    const autosave = new Autosave(vi.fn(), DELAY_MS);
+    let releaseCurrent: () => void = () => undefined;
+    let releaseOther: () => void = () => undefined;
+    autosave.schedule(
+      'current',
+      () =>
+        new Promise<void>(resolve => {
+          releaseCurrent = resolve;
+        }),
+    );
+    autosave.schedule(
+      'other',
+      () =>
+        new Promise<void>(resolve => {
+          releaseOther = resolve;
+        }),
+    );
+    await vi.advanceTimersByTimeAsync(DELAY_MS);
+    try {
+      let currentIdle = false;
+      const idle = autosave.idle('current').then(() => {
+        currentIdle = true;
+      });
+      await vi.advanceTimersByTimeAsync(0);
+      expect(currentIdle).toBe(false);
+      releaseCurrent();
+      await idle;
+      expect(currentIdle).toBe(true);
+    } finally {
+      releaseCurrent();
+      releaseOther();
+      await autosave.flush();
+      autosave.dispose();
+    }
+  });
+  it('cancels a file pending explicit saving while retaining its running job and other files', async () => {
+    let release: () => void = () => undefined;
+    const autosave = new Autosave(vi.fn(), DELAY_MS);
+    autosave.schedule(
+      'current',
+      () =>
+        new Promise<void>(resolve => {
+          release = resolve;
+        }),
+    );
+    await vi.advanceTimersByTimeAsync(DELAY_MS);
+    const due = vi.fn(async () => undefined);
+    const waiting = vi.fn(async () => undefined);
+    const other = vi.fn(async () => undefined);
+    autosave.schedule('current', due);
+    await vi.advanceTimersByTimeAsync(DELAY_MS);
+    autosave.schedule('current', waiting);
+    autosave.schedule('other', other);
+    autosave.cancelPending('current');
+    let finished = false;
+    const flushing = autosave.flush().then(() => {
+      finished = true;
+    });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(finished).toBe(false);
+    expect(other).toHaveBeenCalledOnce();
+    release();
+    await flushing;
+    expect(due).not.toHaveBeenCalled();
+    expect(waiting).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+    autosave.dispose();
+  });
   it('saves once, after the changes stop for the delay', async () => {
     const save = vi.fn(() => Promise.resolve());
     const autosave = new Autosave(vi.fn(), DELAY_MS);

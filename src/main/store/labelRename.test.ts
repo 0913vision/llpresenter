@@ -6,6 +6,7 @@ import {
   type LabelRename,
 } from '@shared/schema/settingsDocuments';
 import {parseSong} from '@shared/schema/song';
+import {createSongId} from '@shared/schema/ids';
 import {expectSuccess} from '@shared/schema/testHelpers';
 import {recordingLogger} from '../displays/testing';
 import {
@@ -122,6 +123,73 @@ function setup({readOnlySong = false, readOnlyLabels = false} = {}) {
 }
 
 describe('global label rename', () => {
+  it('does not recreate a song deleted before its queued rename save starts', async () => {
+    const {content, settings, texts} = setup();
+    const pending = content.renameLabel(settings, rename);
+    await vi.waitFor(() => expect(settings.get('labels').revision).toBe(2));
+    expect(
+      (
+        await content.apply({
+          type: 'song.delete',
+          songId: createSongId(itemId(1)),
+        })
+      ).ok,
+    ).toBe(true);
+    expect((await pending).ok).toBe(true);
+    await content.flush();
+    expect(content.song(itemId(1))).toBeNull();
+    expect(texts.has(join(locations.songs, `${itemId(1)}.llsong`))).toBe(false);
+  });
+  it('accepts a later edit while a renamed song write is held and persists the latest content', async () => {
+    const {content, settings, files, texts} = setup();
+    let release: () => void = () => undefined;
+    let began: () => void = () => undefined;
+    const held = new Promise<void>(resolve => {
+      release = resolve;
+    });
+    const started = new Promise<void>(resolve => {
+      began = resolve;
+    });
+    const file = join(locations.songs, `${itemId(1)}.llsong`);
+    const original = files.write;
+    let first = true;
+    files.write = async request => {
+      if (request.target.file === file && first) {
+        first = false;
+        began();
+        await held;
+      }
+      return original(request);
+    };
+    try {
+      const pending = content.renameLabel(settings, rename);
+      await started;
+      const document = content.song(itemId(1));
+      if (document === null) throw new Error('Missing fixture song');
+      let edited = false;
+      const edit = content
+        .apply({
+          type: 'song.update',
+          song: {...document.song, title: 'Latest invented title'},
+          baseRevision: 2,
+        })
+        .then(result => {
+          expect(result.ok).toBe(true);
+          edited = true;
+        });
+      await vi.waitFor(() => expect(edited).toBe(true));
+      release();
+      expect((await pending).ok).toBe(true);
+      await edit;
+      await content.flush();
+      expect(JSON.parse(texts.get(file) ?? '')).toMatchObject({
+        title: 'Latest invented title',
+        slides: [{label: 'After'}, {}],
+      });
+    } finally {
+      release();
+    }
+  });
   it('drains earlier song autosaves before writing labels and the renamed songs', async () => {
     const {content, settings, files, writes} = setup();
     const document = content.song(itemId(1));

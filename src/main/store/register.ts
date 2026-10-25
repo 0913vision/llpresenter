@@ -34,6 +34,8 @@ import {
 } from './settingsStore';
 import {registerSettingsChannels} from './settingsChannels';
 import {createSettingsAccess, type SettingsAccess} from './settingsAccess';
+import {registerServiceChannels} from './serviceChannels';
+import type {AppConfigFile} from './appConfigFile';
 
 const MAX_LOGGED_PROBLEMS = 50;
 
@@ -49,7 +51,8 @@ export interface StoreRegistration {
   /** Whether any output is on. A backup never starts while one is. */
   readonly isAnyOutputOn: () => boolean;
   /** `app.json`, opened once at launch with `openAppConfig`. */
-  readonly appConfig: AppConfigView;
+  readonly appConfig: AppConfigView &
+    Pick<AppConfigFile, 'setLastServiceId' | 'flush'>;
   /** Where the data folders default to. Electron's folders by default. */
   readonly context?: () => LocationContext;
 }
@@ -118,7 +121,7 @@ export function registerStore({
     },
   );
   const settingsAccess = createSettingsAccess(settings, log);
-  ipcMain.handle(Channels.serviceGet, async () => currentService(opened));
+  const serviceChannels = registerServiceChannels(opened, appConfig, log);
   ipcMain.handle(Channels.preferencesGet, async () => {
     const ready = await settings;
     return (
@@ -139,8 +142,9 @@ export function registerStore({
     subscribeSettingsProblems: settingsChannels.subscribe,
     dispose: async () => {
       settingsAccess.dispose();
+      const serviceClosing = serviceChannels.dispose();
       await settingsChannels.dispose();
-      ipcMain.removeHandler(Channels.serviceGet);
+      await serviceClosing;
       ipcMain.removeHandler(Channels.preferencesGet);
       removeContentChannels();
       removeSearch();
@@ -248,7 +252,9 @@ async function createContent(
   });
   feed = new OpenServiceFeed(
     {
-      serviceId: store.openServiceId,
+      get serviceId() {
+        return content.openServiceId;
+      },
       get labels() {
         const document = settings?.get('labels');
         return document?.name === 'labels'
@@ -273,12 +279,6 @@ async function createContent(
     }) ?? (() => undefined);
   await feed.refresh();
   return {content, feed, search, removeSettings};
-}
-
-async function currentService(opened: Promise<OpenedContent | null>) {
-  const ready = await opened;
-  await ready?.feed.refresh();
-  return ready?.feed.current() ?? null;
 }
 
 async function contentOf(

@@ -62,6 +62,7 @@ import type {WriteResult} from './fileWriter';
 import type {StoredFile} from './library';
 import type {DataLocations} from './locations';
 import type {RecoveryTarget} from './recoveryCopies';
+import {QueuedSaves} from './queuedSaves';
 
 const SCHEMA_VERSION = 1;
 const NEW_SONG_TITLE = '새 곡';
@@ -127,10 +128,13 @@ export class ContentStore {
   private readonly templates: DocumentCollection<Template>;
   private readonly autosave: Autosave;
   private readonly persistence: ContentPersistence;
+  private readonly queuedSaves: QueuedSaves;
   private editing: Promise<void> = Promise.resolve();
   private readonly lastLists = new Map<string, string>();
+  private currentServiceId: string | null;
 
   constructor(private readonly options: ContentStoreOptions) {
+    this.currentServiceId = options.openServiceId ?? null;
     this.songs = new DocumentCollection(options.songs);
     this.services = new DocumentCollection(options.services);
     this.templates = new DocumentCollection(options.templates);
@@ -139,6 +143,7 @@ export class ContentStore {
       (key, error) => options.log.error('could not save a file', {key, error}),
       options.writeDelayMs,
     );
+    this.queuedSaves = new QueuedSaves(this.autosave, options.log);
     this.lastLists.set('songs', JSON.stringify(this.songList()));
     this.lastLists.set('services', JSON.stringify(this.serviceList()));
     this.lastLists.set('templates', JSON.stringify(this.templateList()));
@@ -151,25 +156,83 @@ export class ContentStore {
 
   /** Renames an app-wide label and every matching slide, saving settings before songs in ID order. */
   renameLabel(settings: SettingsStore, edit: LabelRename): Promise<EditResult> {
-    return this.enqueue(() => this.renameLabelFiles(settings, edit));
+    return this.serial(() => this.prepareLabelRename(settings, edit))
+      .then(prepared => ('saved' in prepared ? prepared.saved : prepared))
+      .catch((error: unknown) => this.editFailure(error));
+  }
+
+  get openServiceId(): string | null {
+    return this.currentServiceId;
+  }
+
+  /** Saves the current service before switching, publishing its projection through the callback. */
+  openService(
+    serviceId: ServiceId,
+    publishCurrent: () => Promise<void>,
+  ): Promise<EditResult> {
+    return this.enqueue(async () => {
+      const target = this.services.get(serviceId);
+      if (target === undefined) {
+        return refuse('not-found', 'No service has this id');
+      }
+      const pendingFile =
+        this.currentServiceId === null
+          ? undefined
+          : this.services.get(this.currentServiceId)?.file;
+      const finish =
+        pendingFile === undefined
+          ? () => undefined
+          : this.queuedSaves.take(pendingFile);
+      if (pendingFile !== undefined) await this.autosave.idle(pendingFile);
+      const current =
+        this.currentServiceId === null
+          ? undefined
+          : this.services.get(this.currentServiceId);
+      if (current !== undefined) {
+        if (current.access === 'editable') {
+          const saved = await this.write(SERVICE, current);
+          finish(saved.result);
+          if (!saved.result.ok) {
+            return answer({id: current.data.id, revision: current.revision}, [
+              saved,
+            ]);
+          }
+        } else finish({ok: true, value: undefined});
+        this.announceService(current.data.id);
+        await publishCurrent();
+      }
+      this.currentServiceId = serviceId;
+      return {ok: true, value: {id: serviceId, revision: target.revision}};
+    });
   }
 
   private enqueue(
     work: () => EditResult | Promise<EditResult>,
   ): Promise<EditResult> {
-    const applied = this.editing.then(work).catch((error: unknown) => {
-      this.options.log.error('could not apply a content edit', error);
-      const message = error instanceof Error ? error.message : String(error);
-      return refuse('invalid', message);
-    });
-    this.editing = applied.then(() => undefined);
+    return this.serial(work).catch((error: unknown) => this.editFailure(error));
+  }
+
+  private serial<T>(work: () => T | Promise<T>): Promise<T> {
+    const applied = this.editing.then(work);
+    this.editing = applied.then(
+      () => undefined,
+      () => undefined,
+    );
     return applied;
   }
 
-  private async renameLabelFiles(
+  private editFailure(error: unknown): EditResult {
+    this.options.log.error('could not apply a content edit', error);
+    return refuse(
+      'invalid',
+      error instanceof Error ? error.message : String(error),
+    );
+  }
+
+  private async prepareLabelRename(
     settings: SettingsStore,
     edit: LabelRename,
-  ): Promise<EditResult> {
+  ): Promise<EditResult | {readonly saved: Promise<EditResult>}> {
     await this.autosave.flush();
     const current = settings.get('labels');
     if (current.name !== 'labels') {
@@ -223,25 +286,30 @@ export class ContentStore {
     for (const song of changed) this.announceSongDocument(song.data.id);
     await settings.savePending();
     const labelResult = await savedLabels;
-    const written: Written[] = [];
-    for (const song of changed) written.push(await this.write(SONG, song));
-    const songsResult = answer(
-      {id: 'labels', revision: next.revision},
-      written,
+    const saves = changed.map(song =>
+      this.saveSoon(SONG, this.songs, song.data.id),
     );
-    if (labelResult.ok) return songsResult;
-    if (labelResult.error.reason !== 'write-failed') return labelResult;
     return {
-      ok: false,
-      error: {
-        ...labelResult.error,
-        unchangedFiles: [
-          ...labelResult.error.unchangedFiles,
-          ...(songsResult.ok || songsResult.error.reason !== 'write-failed'
-            ? []
-            : songsResult.error.unchangedFiles),
-        ],
-      },
+      saved: Promise.all(saves).then(written => {
+        const songsResult = answer(
+          {id: 'labels', revision: next.revision},
+          written,
+        );
+        if (labelResult.ok) return songsResult;
+        if (labelResult.error.reason !== 'write-failed') return labelResult;
+        return {
+          ok: false,
+          error: {
+            ...labelResult.error,
+            unchangedFiles: [
+              ...labelResult.error.unchangedFiles,
+              ...(songsResult.ok || songsResult.error.reason !== 'write-failed'
+                ? []
+                : songsResult.error.unchangedFiles),
+            ],
+          },
+        };
+      }),
     };
   }
 
@@ -320,6 +388,7 @@ export class ContentStore {
 
   dispose(): void {
     this.autosave.dispose();
+    this.queuedSaves.dispose();
   }
 
   private async createSong(): Promise<EditResult> {
@@ -354,7 +423,7 @@ export class ContentStore {
       ...kept
     } = checked.value.data;
     const stored = this.songs.replace(checked.value, {...kept, ...song});
-    this.saveSoon(SONG, this.songs, song.id);
+    this.saveLater(SONG, this.songs, song.id);
     this.options.events.songChanged({
       songId: song.id,
       document: this.song(song.id),
@@ -473,13 +542,13 @@ export class ContentStore {
       ...checked.value.data,
       ...service,
     });
-    this.saveSoon(SERVICE, this.services, service.id);
+    this.saveLater(SERVICE, this.services, service.id);
     this.announceService(service.id);
     return {ok: true, value: {id: service.id, revision: stored.revision}};
   }
 
   private async deleteService(serviceId: ServiceId): Promise<EditResult> {
-    if (serviceId === this.options.openServiceId) {
+    if (serviceId === this.currentServiceId) {
       return refuse('invalid', 'The open 예배 순서 cannot be deleted');
     }
     const checked = checkEditable(this.services.get(serviceId));
@@ -567,7 +636,7 @@ export class ContentStore {
       ...kept,
       ...template,
     });
-    this.saveSoon(TEMPLATE, this.templates, template.id);
+    this.saveLater(TEMPLATE, this.templates, template.id);
     this.announceTemplate(template.id);
     return {ok: true, value: {id: template.id, revision: stored.revision}};
   }
@@ -589,22 +658,34 @@ export class ContentStore {
       .some(({data}) => data.title === title && data.id !== songId);
   }
 
-  private saveSoon<T extends {readonly id: string}>(
+  private saveLater<T extends {readonly id: string}>(
     kind: Kind<T>,
     documents: DocumentCollection<T>,
     id: string,
   ): void {
+    this.saveSoon(kind, documents, id).catch((error: unknown) =>
+      this.options.log.error('could not save a queued document', {id, error}),
+    );
+  }
+
+  private saveSoon<T extends {readonly id: string}>(
+    kind: Kind<T>,
+    documents: DocumentCollection<T>,
+    id: string,
+  ): Promise<Written> {
     const stored = documents.get(id);
     if (stored === undefined) {
-      return;
+      return Promise.resolve({file: '', result: {ok: true, value: undefined}});
     }
-    this.autosave.schedule(stored.file, async () => {
-      const latest = documents.get(id);
-      if (latest === undefined) {
-        return;
-      }
-      await this.write(kind, latest);
-    });
+    return this.queuedSaves
+      .schedule(stored.file, async () => {
+        const latest = documents.get(id);
+        if (latest === undefined) {
+          return {ok: true, value: undefined};
+        }
+        return (await this.write(kind, latest)).result;
+      })
+      .then(result => ({file: stored.file, result}));
   }
 
   private async write<T extends {readonly id: string}>(
