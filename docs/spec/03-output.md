@@ -465,6 +465,10 @@ When the monitor of a full screen output that is on disconnects:
 1. If the screen's 연결이 끊기면 (when disconnected) setting is 창으로 바꾸기
    (switch to a window), move the same output into a window on the control
    monitor and keep drawing. Content and playback position don't break.
+   - Place the fallback behind the control window without taking focus, and
+     disable always on top for the fallback.
+   - Use `placement.ts`'s `OUTPUT_WINDOW_SIZE` (960 x 540 DIP, shrunk to fit
+     when needed), centered on the control monitor's work area.
 2. That screen's toolbar button shows the monitor missing state (amber dot and
    icon). The status bar shows "무대 화면 창으로 표시 중" (stage screen showing
    in a window). The screen's frame in the preview gets an amber outline.
@@ -473,7 +477,12 @@ When the monitor of a full screen output that is on disconnects:
    actions are 모니터 다시 찾기 (find monitor again) and 창 보기 (show window).
    - 모니터 다시 찾기: read the monitor list again at once, and match the saved
      monitor again.
-   - 창 보기: bring the fallback window to the front.
+   - 창 보기: bring the fallback window in front of the control window.
+
+A short full screen flash on the control monitor immediately after unplugging is
+expected. Windows moves the window before the app receives the monitor change.
+The app's 300 ms settle wait (`DISPLAY_SETTLE_MS`) lets the monitor list
+stabilize before applying the fallback placement.
 
 If the screen's 연결이 끊기면 setting is to turn the output off instead, turn
 that screen's output off and show the same warning notification (proposal).
@@ -490,7 +499,8 @@ warning notification into the information notification "무대 모니터 다시 
   outputs.
 
 Source: `Problems`, `Notification` README, `ToolbarButton` README, `StatusBar`
-README, `PreviewFrame` README, `Screens` (연결이 끊기면: 창으로 바꾸기).
+README, `PreviewFrame` README, `Screens` (연결이 끊기면: 창으로 바꾸기),
+[2026-10-25 fallback-window decision](../decisions.md#2026-10-25-a-fallback-output-window-goes-behind-the-control-window).
 
 ## When an output window crashes
 
