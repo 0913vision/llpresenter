@@ -1,9 +1,18 @@
-import {beforeAll, beforeEach, describe, expect, it, vi} from 'vitest';
+import {
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  onTestFinished,
+  vi,
+} from 'vitest';
 import {Channels, type LlpApi} from '@shared/ipc';
 import {emptyLiveState} from '@shared/live';
 import {songIdSchema} from '@shared/schema/ids';
 import {testId} from '@shared/schema/testHelpers';
 import {defaultPreferences} from '@shared/schema/preferences';
+import {createMediaId} from '@shared/schema/ids';
 
 type Handler = (event: unknown, value: unknown) => void;
 
@@ -53,6 +62,30 @@ function isLlpApi(value: unknown): value is LlpApi {
 }
 
 const SONG_ID = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
+const MEDIA_ID = createMediaId(SONG_ID);
+const LABELS = {
+  format: 'llsettings.labels',
+  schemaVersion: 1,
+  labels: [],
+} as const;
+const LABELS_DOCUMENT = {
+  name: 'labels',
+  value: LABELS,
+  revision: 1,
+  access: 'editable',
+} as const;
+const MEDIA_DOCUMENT = {
+  name: 'media',
+  value: {
+    format: 'llmedia',
+    schemaVersion: 1,
+    items: [],
+    playlists: [],
+    audioPlaylists: [],
+  },
+  revision: 1,
+  access: 'editable',
+} as const;
 
 function showService(revision: number) {
   return {
@@ -77,6 +110,183 @@ function loggedErrors(): unknown[] {
 }
 
 describe('preload', () => {
+  it('reads and edits named settings with revisions and preserved file fields', async () => {
+    const value = {...LABELS, future: true};
+    const document = {...LABELS_DOCUMENT, value};
+    const edit = {
+      type: 'settings.update',
+      name: 'labels',
+      value,
+      baseRevision: 1,
+    } as const;
+    const result = {ok: true, value: {id: 'labels', revision: 2}};
+    electron.invoke
+      .mockResolvedValueOnce(document)
+      .mockResolvedValueOnce(result);
+    await expect(api.settings.get({name: 'labels'})).resolves.toEqual(document);
+    await expect(api.settings.edit(edit)).resolves.toEqual(result);
+    expect(electron.invoke.mock.calls).toEqual([
+      [Channels.settingsGet, {name: 'labels'}],
+      [Channels.settingsEdit, edit],
+    ]);
+    expect(loggedErrors()).toEqual([]);
+  });
+
+  it('reads media, edits the list, and starts imports through checked calls', async () => {
+    const edit = {type: 'media.delete', mediaId: MEDIA_ID} as const;
+    const result = {ok: true, value: {id: MEDIA_ID, revision: 2}};
+    const request = {source: {kind: 'dialog'}, playlist: null} as const;
+    electron.invoke
+      .mockResolvedValueOnce(MEDIA_DOCUMENT)
+      .mockResolvedValueOnce(result)
+      .mockResolvedValueOnce({ok: true, value: []});
+    await expect(api.media.get()).resolves.toEqual(MEDIA_DOCUMENT);
+    await expect(api.media.edit(edit)).resolves.toEqual(result);
+    await expect(api.media.import(request)).resolves.toEqual({
+      ok: true,
+      value: [],
+    });
+    expect(electron.invoke.mock.calls).toEqual([
+      [Channels.mediaGet],
+      [Channels.mediaEdit, edit],
+      [Channels.mediaImport, request],
+    ]);
+    expect(loggedErrors()).toEqual([]);
+  });
+
+  it('rejects a valid settings document for the wrong requested file', async () => {
+    electron.invoke.mockResolvedValueOnce({
+      name: 'preferences',
+      value: defaultPreferences,
+      revision: 1,
+      access: 'editable',
+    });
+    await expect(api.settings.get({name: 'labels'})).rejects.toThrow(
+      'another settings file',
+    );
+    expect(loggedErrors()).toHaveLength(1);
+  });
+
+  it('drops malformed settings and media requests before transport', async () => {
+    for (const [method, value] of [
+      [api.settings.get, {name: '../preferences'}],
+      [
+        api.settings.edit,
+        {
+          type: 'settings.update',
+          name: 'media',
+          value: MEDIA_DOCUMENT.value,
+          baseRevision: 1,
+        },
+      ],
+      [
+        api.media.edit,
+        {
+          type: 'media.properties.update',
+          mediaId: MEDIA_ID,
+          changes: {props: {speed: 0}},
+          baseRevision: 1,
+        },
+      ],
+      [api.media.import, {source: {kind: 'files', paths: []}, playlist: null}],
+    ] as const) {
+      await expect(Reflect.apply(method, undefined, [value])).rejects.toThrow(
+        'Bad request on',
+      );
+    }
+    expect(electron.invoke).not.toHaveBeenCalled();
+    expect(loggedErrors()).toHaveLength(4);
+  });
+
+  it('rejects malformed media and settings replies without inventing data', async () => {
+    electron.invoke
+      .mockResolvedValueOnce({...MEDIA_DOCUMENT, revision: 0})
+      .mockResolvedValueOnce({
+        ok: false,
+        error: {reason: 'write-failed', message: 'Locked'},
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        value: [
+          {mediaId: MEDIA_ID, fileName: 'a.webm', phase: 'failed', percent: 20},
+        ],
+      })
+      .mockResolvedValueOnce({ok: 'yes'});
+    await expect(api.media.get()).rejects.toThrow('Bad reply on');
+    await expect(
+      api.media.edit({type: 'media.delete', mediaId: MEDIA_ID}),
+    ).rejects.toThrow('Bad reply on');
+    await expect(
+      api.media.import({source: {kind: 'dialog'}, playlist: null}),
+    ).rejects.toThrow('Bad reply on');
+    await expect(
+      api.settings.edit({
+        type: 'settings.update',
+        name: 'labels',
+        value: LABELS,
+        baseRevision: 1,
+      }),
+    ).rejects.toThrow('Bad reply on');
+    expect(loggedErrors()).toHaveLength(4);
+  });
+
+  it('validates settings, normalized preferences, media, and job pushes and releases listeners', () => {
+    const settings = vi.fn();
+    const preferences = vi.fn();
+    const media = vi.fn();
+    const imports = vi.fn();
+    const stops = [
+      api.settings.subscribe(settings),
+      api.preferences.subscribe(preferences),
+      api.media.subscribe(media),
+      api.media.subscribeImports(imports),
+    ];
+    onTestFinished(() => {
+      for (const stop of stops) stop();
+    });
+    const job = {
+      mediaId: MEDIA_ID,
+      fileName: '새 배경.webm',
+      phase: 'copying',
+      percent: 25,
+    };
+    const normalized = {
+      ...defaultPreferences,
+      show: {showClearUndoButton: true},
+    };
+    electron.handlers.get(Channels.settingsChanged)?.({}, LABELS_DOCUMENT);
+    electron.handlers.get(Channels.settingsChanged)?.(
+      {},
+      {...LABELS_DOCUMENT, value: MEDIA_DOCUMENT.value},
+    );
+    electron.handlers.get(Channels.preferencesChanged)?.({}, normalized);
+    electron.handlers.get(Channels.preferencesChanged)?.(
+      {},
+      {...normalized, show: {showClearUndoButton: 'yes'}},
+    );
+    electron.handlers.get(Channels.mediaChanged)?.({}, MEDIA_DOCUMENT);
+    electron.handlers.get(Channels.mediaChanged)?.({}, LABELS_DOCUMENT);
+    electron.handlers.get(Channels.mediaImportChanged)?.({}, job);
+    electron.handlers.get(Channels.mediaImportChanged)?.(
+      {},
+      {...job, percent: 101},
+    );
+    expect(settings.mock.calls).toEqual([[LABELS_DOCUMENT]]);
+    expect(preferences.mock.calls).toEqual([[normalized]]);
+    expect(media.mock.calls).toEqual([[MEDIA_DOCUMENT]]);
+    expect(imports.mock.calls).toEqual([[job]]);
+    expect(loggedErrors()).toHaveLength(4);
+    for (const stop of stops) stop();
+    for (const channel of [
+      Channels.settingsChanged,
+      Channels.preferencesChanged,
+      Channels.mediaChanged,
+      Channels.mediaImportChanged,
+    ]) {
+      expect(electron.handlers.has(channel)).toBe(false);
+    }
+  });
+
   it('reads normalized preferences without exposing a raw settings channel', async () => {
     electron.invoke.mockResolvedValueOnce({
       ...defaultPreferences,

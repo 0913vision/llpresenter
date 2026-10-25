@@ -17,6 +17,24 @@ describe('fakeLlpApi', () => {
     await expect(api.preferences.get()).resolves.toMatchObject({
       show: {showClearUndoButton: false},
     });
+    await expect(api.settings.get({name: 'labels'})).rejects.toThrow(
+      'no settings documents',
+    );
+    await expect(
+      api.settings.edit({
+        type: 'settings.update',
+        name: 'labels',
+        value: {format: 'llsettings.labels', schemaVersion: 1, labels: []},
+        baseRevision: 1,
+      }),
+    ).resolves.toMatchObject({ok: false, error: {reason: 'not-found'}});
+    await expect(api.media.get()).resolves.toMatchObject({
+      name: 'media',
+      value: {items: []},
+    });
+    await expect(
+      api.media.import({source: {kind: 'dialog'}, playlist: null}),
+    ).resolves.toEqual({ok: true, value: []});
     await expect(api.library.search({query: '새', limit: 20})).resolves.toEqual(
       {query: '새', matches: []},
     );
@@ -42,6 +60,10 @@ describe('fakeLlpApi', () => {
     });
     expect(() => {
       api.service.subscribe(() => undefined)();
+      api.settings.subscribe(() => undefined)();
+      api.preferences.subscribe(() => undefined)();
+      api.media.subscribe(() => undefined)();
+      api.media.subscribeImports(() => undefined)();
       api.output.subscribeStatus(() => undefined)();
       api.output.retry('main');
       api.log.write({level: 'info', message: 'ok'});

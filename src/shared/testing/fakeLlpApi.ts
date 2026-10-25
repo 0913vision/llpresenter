@@ -3,6 +3,7 @@ import type {EditResult} from '../schema/contentEdit';
 import {emptyLiveState} from '../live';
 import {UI_ZOOM} from '../schema/uiZoom';
 import {defaultPreferences} from '../schema/preferences';
+import type {MediaDocument} from '../schema/mediaEdit';
 
 /** The members a test replaces, part by part. */
 export type FakeLlpApiParts = {
@@ -49,7 +50,23 @@ export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
     templates: {...emptyDocuments(), ...overrides.templates},
     preferences: {
       get: () => Promise.resolve(defaultPreferences),
+      subscribe: () => () => undefined,
       ...overrides.preferences,
+    },
+    settings: {
+      get: () =>
+        Promise.reject(new Error('fakeLlpApi has no settings documents')),
+      edit: () => Promise.resolve(NOT_FOUND),
+      subscribe: () => () => undefined,
+      ...overrides.settings,
+    },
+    media: {
+      get: () => Promise.resolve(EMPTY_MEDIA),
+      edit: () => Promise.resolve(NOT_FOUND),
+      import: () => Promise.resolve({ok: true, value: []}),
+      subscribe: () => () => undefined,
+      subscribeImports: () => () => undefined,
+      ...overrides.media,
     },
     library: {
       search: ({query}) => Promise.resolve({query, matches: []}),
@@ -72,6 +89,19 @@ const NOT_FOUND: EditResult = {
   error: {
     reason: 'not-found',
     message: 'fakeLlpApi has no data',
+  },
+};
+
+const EMPTY_MEDIA: MediaDocument = {
+  name: 'media',
+  revision: 1,
+  access: 'editable',
+  value: {
+    format: 'llmedia',
+    schemaVersion: 1,
+    items: [],
+    playlists: [],
+    audioPlaylists: [],
   },
 };
 

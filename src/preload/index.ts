@@ -27,6 +27,20 @@ import {parseUiState} from '@shared/schema/uiState';
 import {parseUiZoomPercent} from '@shared/schema/uiZoom';
 import {parsePreferencesValue} from '@shared/schema/preferences';
 import {
+  parseSettingsDocument,
+  parseSettingsEdit,
+  parseSettingsReadRequest,
+  parseSettingsReply,
+} from '@shared/schema/settingsDocuments';
+import {
+  parseMediaDocument,
+  parseMediaEdit,
+  parseMediaEditResult,
+  parseMediaImportRequest,
+  parseMediaImportResult,
+  parseMediaImportProgress,
+} from '@shared/schema/mediaEdit';
+import {
   parseLibrarySearchRequest,
   parseLibrarySearchResult,
 } from '@shared/schema/librarySearch';
@@ -211,6 +225,55 @@ const api: LlpApi = {
   }),
   preferences: {
     get: () => invokeChecked(Channels.preferencesGet, parsePreferencesValue),
+    subscribe: listener =>
+      listen(Channels.preferencesChanged, parsePreferencesValue, listener),
+  },
+  settings: {
+    get: request =>
+      invokeRequest(
+        {
+          channel: Channels.settingsGet,
+          request: parseSettingsReadRequest,
+          reply: value => parseSettingsReply(request.name, value),
+        },
+        request,
+      ),
+    edit: edit =>
+      invokeRequest(
+        {
+          channel: Channels.settingsEdit,
+          request: parseSettingsEdit,
+          reply: parseEditResult,
+        },
+        edit,
+      ),
+    subscribe: listener =>
+      listen(Channels.settingsChanged, parseSettingsDocument, listener),
+  },
+  media: {
+    get: () => invokeChecked(Channels.mediaGet, parseMediaDocument),
+    edit: edit =>
+      invokeRequest(
+        {
+          channel: Channels.mediaEdit,
+          request: parseMediaEdit,
+          reply: parseMediaEditResult,
+        },
+        edit,
+      ),
+    import: request =>
+      invokeRequest(
+        {
+          channel: Channels.mediaImport,
+          request: parseMediaImportRequest,
+          reply: parseMediaImportResult,
+        },
+        request,
+      ),
+    subscribe: listener =>
+      listen(Channels.mediaChanged, parseMediaDocument, listener),
+    subscribeImports: listener =>
+      listen(Channels.mediaImportChanged, parseMediaImportProgress, listener),
   },
   library: {
     search: request =>

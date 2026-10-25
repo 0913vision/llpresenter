@@ -18,6 +18,19 @@ import type {ShowService} from './schema/showService';
 import type {LayoutChange, UiState} from './schema/uiState';
 import type {Preferences} from './schema/preferences';
 import type {
+  SettingsDocument,
+  SettingsEdit,
+  SettingsReadRequest,
+} from './schema/settingsDocuments';
+import type {
+  MediaDocument,
+  MediaEdit,
+  MediaEditResult,
+  MediaImportRequest,
+  MediaImportResult,
+  MediaImportProgress,
+} from './schema/mediaEdit';
+import type {
   LibrarySearchRequest,
   LibrarySearchResult,
 } from './schema/librarySearch';
@@ -62,6 +75,15 @@ export const Channels = {
   textImportRead: 'import:text:read',
   textImportPreview: 'import:text:preview',
   preferencesGet: 'preferences:get',
+  preferencesChanged: 'preferences:changed',
+  settingsGet: 'settings:get',
+  settingsEdit: 'settings:edit',
+  settingsChanged: 'settings:changed',
+  mediaGet: 'media:get',
+  mediaEdit: 'media:edit',
+  mediaChanged: 'media:changed',
+  mediaImport: 'media:import',
+  mediaImportChanged: 'media:import:changed',
 } as const;
 
 export type WindowAction = 'minimize' | 'toggle-maximize' | 'close';
@@ -175,6 +197,40 @@ export interface LlpApi {
      * Rejects and logs a failed call or malformed reply.
      */
     get(): Promise<Preferences>;
+    /**
+     * Follows normalized preference changes without replacing the startup read.
+     * @returns A function that removes the listener. Always call it.
+     */
+    subscribe(listener: (preferences: Preferences) => void): Unsubscribe;
+  };
+  readonly settings: {
+    /** Reads one named settings document with its revision and access. */
+    get(request: SettingsReadRequest): Promise<SettingsDocument>;
+    /** Updates a whole file against its base revision; media has dedicated edits. */
+    edit(edit: SettingsEdit): Promise<EditResult>;
+    /**
+     * Follows each changed settings document with its new revision.
+     * @returns A function that removes the listener. Always call it.
+     */
+    subscribe(listener: (document: SettingsDocument) => void): Unsubscribe;
+  };
+  readonly media: {
+    get(): Promise<MediaDocument>;
+    edit(edit: MediaEdit): Promise<MediaEditResult>;
+    /** Starts copy jobs; an empty success means the file dialog was cancelled. */
+    import(request: MediaImportRequest): Promise<MediaImportResult>;
+    /**
+     * Follows the media list after applied edits, with its revision.
+     * @returns A function that removes the listener. Always call it.
+     */
+    subscribe(listener: (document: MediaDocument) => void): Unsubscribe;
+    /**
+     * Follows one copy job's progress, including failure and cancellation.
+     * @returns A function that removes the listener. Always call it.
+     */
+    subscribeImports(
+      listener: (progress: MediaImportProgress) => void,
+    ): Unsubscribe;
   };
   readonly library: {
     /** Searches main's index; rejects and logs malformed requests or replies. */
