@@ -71,7 +71,9 @@ describe('song editor view', () => {
     const {session, first, documents} = await editorSetup();
     cursor(lyrics(2), 2);
     fireEvent.keyDown(lyrics(2), {key: 'Enter', code: 'Enter', ctrlKey: true});
-    expect(screen.getAllByRole('textbox')).toHaveLength(3);
+    expect(
+      screen.getAllByRole('textbox', {name: /^\uC2AC\uB77C\uC774\uB4DC /}),
+    ).toHaveLength(3);
     expect(session.history.snapshot.song.arrangements?.[0]?.slides).toEqual([
       1, 2, 3, 2, 3,
     ]);
@@ -83,7 +85,9 @@ describe('song editor view', () => {
       ctrlKey: true,
       shiftKey: true,
     });
-    expect(screen.getAllByRole('textbox')).toHaveLength(4);
+    expect(
+      screen.getAllByRole('textbox', {name: /^\uC2AC\uB77C\uC774\uB4DC /}),
+    ).toHaveLength(4);
     expect(document.activeElement).toBe(lyrics(4));
     expect(lyrics(4).value).toBe('');
     await act(() => session.flush());
@@ -96,13 +100,19 @@ describe('song editor view', () => {
     const {user} = await editorSetup();
     cursor(lyrics(), lyrics().value.length);
     await user.keyboard('{Enter}');
-    expect(screen.getAllByRole('textbox')).toHaveLength(2);
+    expect(
+      screen.getAllByRole('textbox', {name: /^\uC2AC\uB77C\uC774\uB4DC /}),
+    ).toHaveLength(2);
     expect(lyrics().value.endsWith('\n')).toBe(true);
     await user.keyboard('{Enter}');
-    expect(screen.getAllByRole('textbox')).toHaveLength(3);
+    expect(
+      screen.getAllByRole('textbox', {name: /^\uC2AC\uB77C\uC774\uB4DC /}),
+    ).toHaveLength(3);
     expect(document.activeElement).toBe(lyrics(2));
     await user.keyboard('{Backspace}');
-    expect(screen.getAllByRole('textbox')).toHaveLength(2);
+    expect(
+      screen.getAllByRole('textbox', {name: /^\uC2AC\uB77C\uC774\uB4DC /}),
+    ).toHaveLength(2);
     expect(document.activeElement).toBe(lyrics());
     expect(lyrics().selectionStart).toBe(lyrics().value.length);
   });

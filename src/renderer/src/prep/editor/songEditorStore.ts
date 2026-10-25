@@ -1,5 +1,5 @@
 import type {LlpApi} from '@shared/ipc';
-import type {SongDocument} from '@shared/schema/contentDocuments';
+import type {LibrarySong, SongDocument} from '@shared/schema/contentDocuments';
 import type {SongId} from '@shared/schema/ids';
 import type {Label} from '@shared/schema/labels';
 import type {
@@ -16,6 +16,8 @@ interface EditorState {
   readonly session: SongSession | null;
   readonly labels: EditorLabels | null;
   readonly busy: boolean;
+  readonly library: readonly LibrarySong[];
+  readonly titleFocus: number;
 }
 
 /** One control window's editor sessions. The host disposes it at window close. */
@@ -30,7 +32,17 @@ export class SongEditorStore {
   private renaming = false;
   private alive = true;
   private operation: Promise<boolean> | undefined;
-  private state: EditorState = {session: null, labels: null, busy: false};
+  private library: readonly LibrarySong[] = [];
+  private libraryVersion = 0;
+  private focusSerial = 0;
+  private titleFocus = 0;
+  private state: EditorState = {
+    session: null,
+    labels: null,
+    busy: false,
+    library: [],
+    titleFocus: 0,
+  };
 
   constructor(
     readonly api: EditorApi,
@@ -52,13 +64,12 @@ export class SongEditorStore {
         } else session.receive(change.document);
       }),
       api.songs.subscribeList(entries => {
-        const ids = new Set(entries.map(entry => entry.id));
-        for (const id of this.sessions.keys()) {
-          if (!ids.has(id)) this.remove(id);
-        }
+        this.libraryVersion++;
+        this.acceptLibrary(entries);
       }),
     ];
     editorTask(this.readLabels());
+    editorTask(this.readLibrary());
   }
 
   readonly getSnapshot = (): EditorState => this.state;
@@ -69,12 +80,18 @@ export class SongEditorStore {
     };
   };
 
-  open(document: SongDocument | null): void {
+  /** Opens a checked source; forward the library's focusTitle after creation. */
+  open(
+    document: SongDocument | null,
+    options: {readonly focusTitle?: boolean} = {},
+  ): void {
     if (!this.alive) return;
     if (this.active !== null && this.active !== document?.song.id) {
       this.sessions.get(this.active)?.endTyping();
     }
     this.active = document?.song.id ?? null;
+    this.titleFocus =
+      document !== null && options.focusTitle === true ? ++this.focusSerial : 0;
     if (document !== null) {
       const session = this.sessions.get(document.song.id);
       if (session !== undefined) session.receive(document);
@@ -84,6 +101,10 @@ export class SongEditorStore {
           new SongSession({
             document,
             api: this.api.content,
+            isDuplicateTitle: value =>
+              this.library.some(
+                entry => entry.id !== document.song.id && entry.title === value,
+              ),
             changed: () => this.publish(),
             problem: () =>
               this.problem('곡 저장 실패', () => this.reload(document.song.id)),
@@ -92,6 +113,14 @@ export class SongEditorStore {
       }
     }
     this.publish();
+  }
+
+  /** Claims a new-song focus request once, including across panel remounts. */
+  consumeTitleFocus(request: number): boolean {
+    if (request === 0 || request !== this.titleFocus) return false;
+    this.titleFocus = 0;
+    this.publish();
+    return true;
   }
 
   updateLabels(labels: readonly Label[]): Promise<boolean> {
@@ -205,6 +234,28 @@ export class SongEditorStore {
     }
   }
 
+  private async readLibrary(): Promise<void> {
+    const version = ++this.libraryVersion;
+    try {
+      const entries = await this.api.songs.list();
+      if (this.alive && version === this.libraryVersion) {
+        this.acceptLibrary(entries);
+      }
+    } catch {
+      this.problem('곡 목록 불러오기 실패', () => this.readLibrary());
+    }
+  }
+
+  private acceptLibrary(entries: readonly LibrarySong[]): void {
+    if (!this.alive) return;
+    this.library = entries;
+    const ids = new Set(entries.map(entry => entry.id));
+    for (const id of this.sessions.keys()) {
+      if (!ids.has(id)) this.remove(id);
+    }
+    this.publish();
+  }
+
   private acceptLabels(document: SettingsDocument): void {
     if (
       this.alive &&
@@ -260,6 +311,8 @@ export class SongEditorStore {
         this.active === null ? null : (this.sessions.get(this.active) ?? null),
       labels: this.labels,
       busy: this.busy,
+      library: this.library,
+      titleFocus: this.titleFocus,
     };
     for (const listener of this.listeners) listener();
   }

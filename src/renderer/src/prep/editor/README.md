@@ -1,11 +1,11 @@
-# Song block editor
+# Song editor
 
-P2a's editor is separate from the library and the preparation frame. The shell
-owns mounting, selection, notifications, and window shutdown:
+The editor is separate from the library and the preparation frame. The host owns
+mounting, selection, notifications, and window shutdown:
 
 ```tsx
 const editor = new SongEditorStore(api, onProblem);
-editor.open(selection.document);
+editor.open(selection.document, {focusTitle: selection.focusTitle});
 // NOTE(0913vision): Render in a panel with a bounded height.
 <SongEditor store={editor} />;
 // NOTE(0913vision): On selection clearing, call editor.open(null).
@@ -25,6 +25,25 @@ unmount and await `dispose`. It removes all subscriptions, completes accepted
 writes, and releases sessions. The host must await it before closing the IPC
 connection. Each session owns at most one deferred-save timer. No output
 commands or global keyboard listeners are registered by this feature.
+
+## Header
+
+Forward `LibrarySelection.focusTitle` in `open` options after creating a song.
+The header consumes it once, focuses and selects the title, and does not refocus
+on a panel remount. Reopening the same song with a fresh request focuses again.
+The 34px header uses the title field and library/service-use tags. Library list
+pushes provide exact-title validation and service names for the usage tooltip; a
+newer push supersedes an older initial list read.
+
+Title edits share the song's one timer/write queue with lyrics. Blank or exact
+duplicate titles show the specified error ring/reason and are not sent. Invalid
+drafts revert on blur; valid drafts save at idle, blur, or Enter. Main's raced
+duplicate refusal marks the field while valid lyrics can still save under the
+canonical title. Own replies retain newer title input, including a return to the
+prior canonical title. Lyric undo preserves the accepted title metadata.
+
+Default background, arrangements, and the preview/list follow in later P2b
+requests; preparation-frame mounting belongs to the host.
 
 ## Editing and saving
 

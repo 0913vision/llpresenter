@@ -75,16 +75,29 @@ export function editorFixture() {
     access: 'editable',
   });
   const refuse = (
-    reason: 'not-found' | 'stale' | 'read-only' | 'invalid',
+    reason: 'not-found' | 'stale' | 'read-only' | 'invalid' | 'duplicate-title',
   ): EditResult => ({ok: false, error: {reason, message: 'Fixture refusal'}});
+  const libraryRows = (): readonly LibrarySong[] =>
+    [...documents.values()].map(({song, access}) => ({
+      id: song.id,
+      title: song.title,
+      slideCount: song.slides.length,
+      access,
+      usedBy: [],
+    }));
+  const pushList = (entries: readonly LibrarySong[] = libraryRows()): void => {
+    for (const listener of lists) listener(entries);
+  };
   const pushSong = (document: NonNullable<SongChange['document']>): void => {
     documents.set(document.song.id, document);
     for (const listener of songs) {
       listener({songId: document.song.id, document});
     }
+    pushList();
   };
   const api = fakeLlpApi({
     songs: {
+      list: () => Promise.resolve(libraryRows()),
       get: id =>
         Promise.resolve(
           [...documents.values()].find(document => document.song.id === id) ??
@@ -112,6 +125,15 @@ export function editorFixture() {
         if (current === undefined) return refuse('not-found');
         if (current.revision !== edit.baseRevision) return refuse('stale');
         if (current.access === 'readOnly') return refuse('read-only');
+        if (
+          [...documents.values()].some(
+            document =>
+              document.song.id !== edit.song.id &&
+              document.song.title === edit.song.title,
+          )
+        ) {
+          return refuse('duplicate-title');
+        }
         const parsed = parseSongDocument({
           ...current,
           song: edit.song,
@@ -187,6 +209,7 @@ export function editorFixture() {
     edits,
     labelEdits,
     pushSong,
+    pushList,
     removeSong: (id: SongDocument['song']['id']): void => {
       documents.delete(id);
       for (const listener of songs) listener({songId: id, document: null});

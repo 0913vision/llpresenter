@@ -8,6 +8,7 @@
 } from 'react';
 import {LabelMenu} from './LabelMenu';
 import {SongBlock, type EditorFocus} from './SongBlock';
+import {SongHeader} from './SongHeader';
 import type {SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';
 import styles from './SongEditor.module.css';
@@ -22,11 +23,12 @@ export function SongEditor({
   return (
     <section aria-label="곡 편집" className={styles.editor}>
       {state.session === null ? null : (
-        <SongBlocks
-          key={state.session.document.song.id}
-          store={store}
-          session={state.session}
-        />
+        <div key={state.session.document.song.id} className={styles.content}>
+          <SongHeader store={store} session={state.session} />
+          <div className={styles.blocks}>
+            <SongBlocks store={store} session={state.session} />
+          </div>
+        </div>
       )}
     </section>
   );

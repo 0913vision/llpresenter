@@ -3,18 +3,21 @@ import type {SongDocument} from '@shared/schema/contentDocuments';
 import type {BlockCommand, BlockSelection} from './blockEdits';
 import {SongHistory, TYPING_PAUSE_MS} from './songHistory';
 import {editorTask} from './editorTask';
+import {SongTitleDraft} from './songTitle';
 
 interface SessionOptions {
   readonly document: SongDocument;
   readonly api: LlpApi['content'];
   readonly changed: () => void;
   readonly problem: () => void;
+  readonly isDuplicateTitle?: (value: string) => boolean;
 }
 
 /** Coalesces typing-group saves and serializes one song's pending writes. */
 export class SongSession {
   document: SongDocument;
   history: SongHistory;
+  title: SongTitleDraft;
   blocked = false;
   private dirty = false;
   private writing = false;
@@ -26,6 +29,10 @@ export class SongSession {
   constructor(private readonly options: SessionOptions) {
     this.document = options.document;
     this.history = new SongHistory(options.document.song);
+    this.title = new SongTitleDraft(
+      options.document.song.title,
+      options.isDuplicateTitle,
+    );
   }
 
   get readOnly(): boolean {
@@ -33,6 +40,28 @@ export class SongSession {
   }
   get saving(): boolean {
     return this.writing;
+  }
+
+  private get hasChanges(): boolean {
+    return this.dirty || this.title.changed;
+  }
+
+  editTitle(value: string): void {
+    if (!this.accepting || this.readOnly) return;
+    this.title.edit(value);
+    if (this.hasChanges || this.writing) this.delaySave();
+    else this.cancelSaveTimer();
+    this.options.changed();
+  }
+
+  finishTitle(): void {
+    this.title.revertInvalid();
+    if (!this.writing && !this.blocked && !this.hasChanges) {
+      if (this.incoming !== undefined) this.install(this.incoming);
+      else this.title.accept(this.document.song.title, this.title.value);
+    }
+    this.endTyping();
+    this.options.changed();
   }
 
   select(selection: BlockSelection): void {
@@ -72,7 +101,7 @@ export class SongSession {
 
   receive(document: SongDocument): void {
     if (document.revision <= this.document.revision) return;
-    if (this.dirty || this.writing || this.blocked) {
+    if (this.dirty || this.title.hasDraft || this.writing || this.blocked) {
       if (document.revision > (this.incoming?.revision ?? 0)) {
         this.incoming = document;
       }
@@ -83,6 +112,10 @@ export class SongSession {
     this.cancelSaveTimer();
     this.document = document;
     this.history = new SongHistory(document.song);
+    this.title = new SongTitleDraft(
+      document.song.title,
+      this.options.isDuplicateTitle,
+    );
     this.blocked = false;
     this.dirty = false;
     this.incoming = undefined;
@@ -99,7 +132,10 @@ export class SongSession {
           JSON.stringify(this.history.snapshot.song.arrangements)
       ) {
         this.install(document);
-      } else this.document = document;
+      } else {
+        this.document = document;
+        this.title.accept(document.song.title);
+      }
     }
     this.options.changed();
   }
@@ -108,7 +144,7 @@ export class SongSession {
     do {
       this.cancelSaveTimer();
       if (!(await this.save())) return false;
-    } while (this.dirty);
+    } while (this.hasChanges);
     return true;
   }
 
@@ -121,6 +157,7 @@ export class SongSession {
     this.cancelSaveTimer();
     this.accepting = false;
     this.dirty = false;
+    this.title = new SongTitleDraft(this.document.song.title);
   }
 
   private delaySave(): void {
@@ -135,7 +172,7 @@ export class SongSession {
 
   private save(): Promise<boolean> {
     if (this.pending !== undefined) return this.pending;
-    if (!this.dirty || this.blocked) return Promise.resolve(!this.blocked);
+    if (!this.hasChanges || this.blocked) return Promise.resolve(!this.blocked);
     this.writing = true;
     this.pending = this.drain().finally(() => {
       this.writing = false;
@@ -146,12 +183,14 @@ export class SongSession {
   }
 
   private async drain(): Promise<boolean> {
-    while (this.dirty && !this.blocked && this.saveTimer === undefined) {
+    while (this.hasChanges && !this.blocked && this.saveTimer === undefined) {
+      const lyricsDirty = this.dirty;
       this.dirty = false;
       const draft = this.history.snapshot.song;
       const song = {
         ...draft,
         ...this.document.song,
+        title: this.title.nextValue,
         slides: draft.slides,
         ...(draft.arrangements === undefined
           ? {}
@@ -163,6 +202,16 @@ export class SongSession {
           song,
           baseRevision: this.document.revision,
         });
+        if (
+          !result.ok &&
+          result.error.reason === 'duplicate-title' &&
+          song.title !== this.document.song.title
+        ) {
+          this.title.reject(song.title);
+          this.dirty ||= lyricsDirty;
+          this.options.changed();
+          continue;
+        }
         const applied = result.ok
           ? result.value
           : result.error.reason === 'write-failed'
@@ -182,6 +231,7 @@ export class SongSession {
             ? this.incoming
             : {...this.document, song, revision: applied.revision};
         this.incoming = undefined;
+        this.title.accept(this.document.song.title, song.title);
         if (!result.ok) this.options.problem();
       } catch {
         return this.fail();
