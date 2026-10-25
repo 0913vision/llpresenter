@@ -1,19 +1,16 @@
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
-import {afterEach, beforeEach, describe, expect, it} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@shared/live';
+import type {LayoutChange} from '@shared/schema/uiState';
+import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {useLive} from '@renderer/state/live';
-import {
-  openItem,
-  setThumbnailColumns,
-  useShow,
-  useThumbnailColumns,
-} from '@renderer/state/show';
+import {openItem, useShow} from '@renderer/state/show';
+import {seedThumbnailScale} from '@renderer/state/thumbnailScale';
 import {seedSampleService} from './testing/sampleService';
-import {
-  SlidePanelBody,
-  SlidePanelMeta,
-  ThumbnailSizeSlider,
-} from './SlidePanel';
+import {SlidePanelBody, SlidePanelMeta, SlideSizeControl} from './SlidePanel';
+
+const GRID_WIDTH = 600;
+const setLayout = vi.fn<(change: LayoutChange) => void>();
 
 function setLiveSlide(itemId: string, position: number): void {
   const base = emptyLiveState();
@@ -28,21 +25,57 @@ function setLiveSlide(itemId: string, position: number): void {
   });
 }
 
-function Columns({
-  sizeClass,
-}: {
-  readonly sizeClass: 'narrow' | 'normal' | 'wide';
-}) {
-  return <output>{useThumbnailColumns(sizeClass)}</output>;
+class FixedWidthObserver implements ResizeObserver {
+  static readonly observers = new Set<FixedWidthObserver>();
+
+  constructor(private readonly callback: ResizeObserverCallback) {}
+
+  observe(target: Element): void {
+    FixedWidthObserver.observers.add(this);
+    const entry: ResizeObserverEntry = {
+      target,
+      contentRect: new DOMRectReadOnly(0, 0, GRID_WIDTH, 0),
+      borderBoxSize: [],
+      contentBoxSize: [],
+      devicePixelContentBoxSize: [],
+    };
+    this.callback([entry], this);
+  }
+
+  unobserve(): void {}
+
+  disconnect(): void {
+    FixedWidthObserver.observers.delete(this);
+  }
+}
+
+function renderPanel(sizeClass: 'narrow' | 'normal' | 'wide') {
+  return render(
+    <>
+      <SlidePanelBody sizeClass={sizeClass} />
+      <SlideSizeControl sizeClass={sizeClass} />
+    </>,
+  );
+}
+
+function gridStyle(): CSSStyleDeclaration {
+  return screen.getByRole('listbox', {name: '슬라이드'}).style;
 }
 
 beforeEach(() => {
   seedSampleService();
-  useShow.setState({openItemId: null, selectedTile: 0, thumbnailColumns: {}});
+  seedThumbnailScale({});
+  setLayout.mockReset();
+  window.llp = fakeLlpApi({ui: {setLayout}});
+  useShow.setState({openItemId: null, selectedTile: 0});
   useLive.setState({state: null});
 });
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+  delete window.llp;
+});
 
 describe('SlidePanelMeta', () => {
   it('shows nothing when no item is open', () => {
@@ -80,52 +113,63 @@ describe('SlidePanelMeta', () => {
   });
 });
 
-describe('thumbnail columns', () => {
-  it('start at the default of each size class', () => {
-    render(
-      <>
-        <Columns sizeClass="narrow" />
-        <Columns sizeClass="normal" />
-        <Columns sizeClass="wide" />
-      </>,
-    );
-    expect(screen.getAllByRole('status').map(node => node.textContent)).toEqual(
-      ['3', '4', '6'],
-    );
+describe('SlidePanelBody', () => {
+  it('fills the columns of its size class until the grid is measured', () => {
+    vi.stubGlobal('ResizeObserver', undefined);
+    openItem('song-morning');
+    renderPanel('wide');
+    expect(gridStyle().getPropertyValue('--thumb-columns')).toBe('6');
+    expect(gridStyle().getPropertyValue('--thumb-width')).toBe('');
   });
 
-  it('are kept per size class and stay between 2 and 8', () => {
-    setThumbnailColumns('normal', 1);
-    expect(useShow.getState().thumbnailColumns.normal).toBe(2);
-    setThumbnailColumns('normal', 20);
-    expect(useShow.getState().thumbnailColumns.normal).toBe(8);
-    setThumbnailColumns('narrow', 5.4);
-    expect(useShow.getState().thumbnailColumns).toEqual({normal: 8, narrow: 5});
+  it('sizes the slides from the measured width, the size class, and the size', () => {
+    vi.stubGlobal('ResizeObserver', FixedWidthObserver);
+    openItem('song-morning');
+    seedThumbnailScale({layout: {normal: {thumbnailScalePercent: 50}}});
+    renderPanel('normal');
+    expect(gridStyle().getPropertyValue('--thumb-width')).toBe('75px');
+  });
+
+  it('stops measuring when it unmounts', () => {
+    vi.stubGlobal('ResizeObserver', FixedWidthObserver);
+    const {unmount} = renderPanel('normal');
+    expect(FixedWidthObserver.observers.size).toBe(1);
+    unmount();
+    expect(FixedWidthObserver.observers.size).toBe(0);
   });
 });
 
-describe('ThumbnailSizeSlider', () => {
-  it('moves right for larger thumbnails, which means fewer columns', () => {
-    render(<ThumbnailSizeSlider sizeClass="normal" />);
-    const slider = screen.getByRole('slider', {name: '썸네일 크기'});
-    expect(slider.getAttribute('value')).toBe('6');
-    fireEvent.change(slider, {target: {value: '8'}});
-    expect(useShow.getState().thumbnailColumns.normal).toBe(2);
-    fireEvent.change(slider, {target: {value: '2'}});
-    expect(useShow.getState().thumbnailColumns.normal).toBe(8);
+describe('SlideSizeControl', () => {
+  it('resizes the slides during a drag and saves the size once it ends', () => {
+    vi.stubGlobal('ResizeObserver', FixedWidthObserver);
+    openItem('song-morning');
+    renderPanel('normal');
+    const slider = screen.getByRole('slider', {name: '슬라이드 크기'});
+    Object.defineProperty(slider, 'setPointerCapture', {value: vi.fn()});
+    expect(gridStyle().getPropertyValue('--thumb-width')).toBe('150px');
+    fireEvent.pointerDown(slider, {pointerId: 1, button: 0});
+    fireEvent.change(slider, {target: {value: '150.5'}});
+    expect(gridStyle().getPropertyValue('--thumb-width')).toBe('225.75px');
+    expect(setLayout).not.toHaveBeenCalled();
+    fireEvent.pointerUp(slider, {pointerId: 1});
+    expect(setLayout).toHaveBeenCalledExactlyOnceWith({
+      sizeClass: 'normal',
+      thumbnailScalePercent: 151,
+    });
+    expect(gridStyle().getPropertyValue('--thumb-width')).toBe('226.5px');
   });
 
-  it('changes only the columns of the grid, which follows the slider', () => {
-    openItem('song-morning');
+  it('keeps a size per size class', () => {
+    seedThumbnailScale({layout: {wide: {thumbnailScalePercent: 80}}});
     render(
       <>
-        <SlidePanelBody sizeClass="normal" />
-        <ThumbnailSizeSlider sizeClass="normal" />
+        <SlideSizeControl sizeClass="normal" />
+        <SlideSizeControl sizeClass="wide" />
       </>,
     );
-    const grid = screen.getByRole('listbox', {name: '슬라이드'});
-    expect(grid.style.getPropertyValue('--thumb-columns')).toBe('4');
-    fireEvent.change(screen.getByRole('slider'), {target: {value: '7'}});
-    expect(grid.style.getPropertyValue('--thumb-columns')).toBe('3');
+    const values = screen
+      .getAllByRole('slider', {name: '슬라이드 크기'})
+      .map(slider => slider.getAttribute('aria-valuetext'));
+    expect(values).toEqual(['100%', '80%']);
   });
 });

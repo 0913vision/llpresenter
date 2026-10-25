@@ -1,7 +1,5 @@
 import {create} from 'zustand';
 import type {ShowService} from '@shared/schema/showService';
-import {sizeClasses} from '@shared/schema/appConfig';
-import {COLUMN_LIMITS, type UiState} from '@shared/schema/uiState';
 import {
   type ItemId,
   type ServiceRow,
@@ -17,10 +15,6 @@ import {
   type SequenceState,
 } from '@renderer/show/navigation';
 import {slideLayerOf} from '@renderer/show/slideLayer';
-import {
-  defaultThumbnailColumns,
-  type SizeClass,
-} from '@renderer/shell/sizeClass';
 import {sendLive, useLive} from './live';
 
 interface ShowView {
@@ -34,7 +28,6 @@ interface ShowView {
   readonly tiles: Readonly<Record<ItemId, readonly SlideTile[]>>;
   readonly openItemId: ItemId | null;
   readonly selectedTile: number;
-  readonly thumbnailColumns: Readonly<Partial<Record<SizeClass, number>>>;
   // NOTE(0913vision): Jump keys map a physical key (`KeyboardEvent.code`) to an
   // 이름표 name.
   readonly jumpKeys: Readonly<Record<string, string>>;
@@ -56,7 +49,6 @@ export const useShow = create<ShowView>(() => ({
   ...noService,
   openItemId: null,
   selectedTile: 0,
-  thumbnailColumns: {},
 }));
 
 export function tilesOf(itemId: ItemId): readonly SlideTile[] {
@@ -115,52 +107,6 @@ export function jumpLabelFor(code: string): string | undefined {
 /** Outputs the first tile with an 이름표 after the live 장, or the first in the sequence. */
 export function outputLabel(label: string): void {
   outputIfPresent(tileForLabel(sequenceState(), label));
-}
-
-export const MIN_THUMBNAIL_COLUMNS = COLUMN_LIMITS.columns.min;
-export const MAX_THUMBNAIL_COLUMNS = COLUMN_LIMITS.columns.max;
-
-function clampColumns(columns: number): number {
-  return Math.min(
-    Math.max(Math.round(columns), MIN_THUMBNAIL_COLUMNS),
-    MAX_THUMBNAIL_COLUMNS,
-  );
-}
-
-function columnsOf(view: ShowView, sizeClass: SizeClass): number {
-  return view.thumbnailColumns[sizeClass] ?? defaultThumbnailColumns[sizeClass];
-}
-
-/** The columns of the 장 grid for a size class: the chosen number, or the default. */
-export function useThumbnailColumns(sizeClass: SizeClass): number {
-  return useShow(view => columnsOf(view, sizeClass));
-}
-
-/**
- * Sets the columns of a size class and sends the new number to the main
- * process, which saves it in `app.json`. A number that is already in effect
- * changes and sends nothing.
- */
-export function setThumbnailColumns(
-  sizeClass: SizeClass,
-  columns: number,
-): void {
-  const clamped = clampColumns(columns);
-  if (clamped === columnsOf(useShow.getState(), sizeClass)) return;
-  useShow.setState(view => ({
-    thumbnailColumns: {...view.thumbnailColumns, [sizeClass]: clamped},
-  }));
-  window.llp?.ui.setLayout({sizeClass, columns: clamped});
-}
-
-/** Takes the saved columns of every size class from the UI state. Sends nothing. */
-export function seedThumbnailColumns(uiState: UiState): void {
-  const saved: Partial<Record<SizeClass, number>> = {};
-  for (const sizeClass of sizeClasses) {
-    const columns = uiState.layout?.[sizeClass]?.columns;
-    if (columns !== undefined) saved[sizeClass] = clampColumns(columns);
-  }
-  useShow.setState({thumbnailColumns: saved});
 }
 
 function openAdjacentItem(direction: 'next' | 'previous'): void {

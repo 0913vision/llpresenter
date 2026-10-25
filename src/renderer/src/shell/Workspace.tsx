@@ -7,7 +7,7 @@ import {ReadOnlyMark} from '@renderer/show/ReadOnlyMark';
 import {
   SlidePanelBody,
   SlidePanelMeta,
-  ThumbnailSizeSlider,
+  SlideSizeControl,
 } from '@renderer/show/SlidePanel';
 import {useShowKeys} from '@renderer/show/shortcuts';
 import {ColumnGap} from './ColumnGap';
@@ -43,6 +43,10 @@ interface PanelParts {
   readonly body?: ReactNode;
   readonly meta?: ReactNode;
   readonly footer?: ReactNode;
+  // NOTE(0913vision): A body whose content sizes itself from the body width
+  // keeps room for the scrollbar, so a scrollbar that appears doesn't narrow
+  // the content, which would make it shorter and hide the scrollbar again.
+  readonly stableScrollbar?: boolean;
 }
 
 function panelClass(size: PanelParts['size']): string {
@@ -65,7 +69,15 @@ function Panel({
         {parts.header ?? <span className={styles.tab}>{title}</span>}
         {parts.meta}
       </div>
-      <div className={styles.body}>{parts.body}</div>
+      <div
+        className={
+          parts.stableScrollbar
+            ? `${styles.body} ${styles.stableScrollbar}`
+            : styles.body
+        }
+      >
+        {parts.body}
+      </div>
       {parts.footer ? (
         <div className={styles.footer}>{parts.footer}</div>
       ) : null}
@@ -99,7 +111,8 @@ function showPanelParts(title: string, sizeClass: SizeClass): PanelParts {
       return {
         body: <SlidePanelBody sizeClass={sizeClass} />,
         meta: <SlidePanelMeta />,
-        footer: <ThumbnailSizeSlider sizeClass={sizeClass} />,
+        footer: <SlideSizeControl sizeClass={sizeClass} />,
+        stableScrollbar: true,
       };
     default:
       return {};

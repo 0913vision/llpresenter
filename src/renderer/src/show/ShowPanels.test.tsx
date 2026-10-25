@@ -257,19 +257,19 @@ describe('ServiceOrderList', () => {
 describe('SlideGrid', () => {
   it('is a 진행 grid, whose slides draw no keyboard focus outline', () => {
     openItem('song-morning');
-    render(<SlideGrid columns={2} />);
+    render(<SlideGrid columns={2} scalePercent={100} />);
     const grid = screen.getByRole('listbox', {name: '슬라이드'});
     expect(grid.dataset['workspace']).toBe('show');
   });
 
   it('shows nothing when no item is open', () => {
-    render(<SlideGrid columns={3} />);
+    render(<SlideGrid columns={3} scalePercent={100} />);
     expect(screen.queryAllByRole('option')).toHaveLength(0);
   });
 
   it('shows one tile per 장 of the 구성, with its number and 이름표', () => {
     openItem('song-morning');
-    render(<SlideGrid columns={3} />);
+    render(<SlideGrid columns={3} scalePercent={100} />);
     const tiles = screen.getAllByRole('option');
     expect(tiles).toHaveLength(4);
     expect(tiles[1]?.getAttribute('aria-label')).toBe(
@@ -279,7 +279,7 @@ describe('SlideGrid', () => {
 
   it('names a tile without an 이름표 by its number and first line', () => {
     openItem('psalm-23');
-    render(<SlideGrid columns={3} />);
+    render(<SlideGrid columns={3} scalePercent={100} />);
     expect(screen.getAllByRole('option')[0]?.getAttribute('aria-label')).toBe(
       '1, 여호와는 나의 목자시니',
     );
@@ -287,14 +287,14 @@ describe('SlideGrid', () => {
 
   it('sets the number of columns', () => {
     openItem('song-morning');
-    render(<SlideGrid columns={6} />);
+    render(<SlideGrid columns={6} scalePercent={100} />);
     const grid = screen.getByRole('listbox', {name: '슬라이드'});
     expect(grid.style.getPropertyValue('--thumb-columns')).toBe('6');
   });
 
   it('outputs a 장 with slide.show when its tile is clicked', () => {
     openItem('song-morning');
-    render(<SlideGrid columns={3} />);
+    render(<SlideGrid columns={3} scalePercent={100} />);
     const tile = screen.getAllByRole('option').at(2);
     if (!tile) throw new Error('The third tile is missing');
     fireEvent.click(tile);
@@ -308,7 +308,7 @@ describe('SlideGrid', () => {
   it('marks only the live tile and only in its own item', () => {
     setLiveSlide('song-morning', 1);
     openItem('song-morning');
-    const {unmount} = render(<SlideGrid columns={3} />);
+    const {unmount} = render(<SlideGrid columns={3} scalePercent={100} />);
     const states = screen
       .getAllByRole('option')
       .map(tile => tile.getAttribute('data-state'));
@@ -316,7 +316,7 @@ describe('SlideGrid', () => {
     unmount();
 
     openItem('song-river');
-    render(<SlideGrid columns={3} />);
+    render(<SlideGrid columns={3} scalePercent={100} />);
     const other = screen
       .getAllByRole('option')
       .map(tile => tile.getAttribute('data-state'));
@@ -325,7 +325,7 @@ describe('SlideGrid', () => {
 
   it('keeps one tab stop on the selected tile', () => {
     openItem('song-morning');
-    render(<SlideGrid columns={3} />);
+    render(<SlideGrid columns={3} scalePercent={100} />);
     const stops = screen
       .getAllByRole('option')
       .filter(tile => tile.tabIndex === 0);
@@ -334,7 +334,7 @@ describe('SlideGrid', () => {
 
   it('moves focus with the up and down arrows', () => {
     openItem('song-morning');
-    render(<SlideGrid columns={2} />);
+    render(<SlideGrid columns={2} scalePercent={100} />);
     const [first, , third] = screen.getAllByRole('option');
     if (!first || !third) throw new Error('The tiles are missing');
     first.focus();
@@ -344,7 +344,7 @@ describe('SlideGrid', () => {
 
   it('leaves Ctrl Down to the item commands instead of moving the selection', () => {
     openItem('song-morning');
-    render(<SlideGrid columns={2} />);
+    render(<SlideGrid columns={2} scalePercent={100} />);
     const notPrevented = fireEvent.keyDown(
       screen.getByRole('listbox', {name: '슬라이드'}),
       {key: 'ArrowDown', ctrlKey: true},
@@ -355,7 +355,7 @@ describe('SlideGrid', () => {
 
   it('keeps the focus in the grid when another item replaces the focused tile', () => {
     openItem('song-morning');
-    render(<SlideGrid columns={2} />);
+    render(<SlideGrid columns={2} scalePercent={100} />);
     const tiles = screen.getAllByRole('option');
     act(() => useShow.setState({selectedTile: 3}));
     tiles[3]?.focus();
@@ -370,7 +370,7 @@ describe('SlideGrid', () => {
   it('keeps the focus in the grid when a service update removes the focused tile of the same item', () => {
     seedSampleService();
     openItem('song-morning');
-    render(<SlideGrid columns={2} />);
+    render(<SlideGrid columns={2} scalePercent={100} />);
     act(() => useShow.setState({selectedTile: 3}));
     screen.getAllByRole('option')[3]?.focus();
     const shorter = sampleService.tiles['song-morning']?.slice(0, 2) ?? [];
@@ -390,7 +390,7 @@ describe('SlideGrid', () => {
 
   it('does not take the focus when it was not in the grid', () => {
     openItem('song-morning');
-    render(<SlideGrid columns={2} />);
+    render(<SlideGrid columns={2} scalePercent={100} />);
     act(() => openItem('song-river'));
     expect(document.activeElement).toBe(document.body);
   });
@@ -400,7 +400,7 @@ describe('SlideGrid', () => {
     render(
       <>
         <button type="button">outside</button>
-        <SlideGrid columns={2} />
+        <SlideGrid columns={2} scalePercent={100} />
       </>,
     );
     screen.getAllByRole('option')[1]?.focus();
@@ -412,7 +412,7 @@ describe('SlideGrid', () => {
 
   it('moves the selection by rows with up and down and outputs nothing', () => {
     openItem('song-morning');
-    render(<SlideGrid columns={2} />);
+    render(<SlideGrid columns={2} scalePercent={100} />);
     const press = (key: string): void => {
       fireEvent.keyDown(document.activeElement ?? document.body, {key});
     };
@@ -428,7 +428,7 @@ describe('SlideGrid', () => {
 
   it('leaves the left and right arrows to the next and previous 장', () => {
     openItem('song-morning');
-    render(<SlideGrid columns={2} />);
+    render(<SlideGrid columns={2} scalePercent={100} />);
     const grid = screen.getByRole('listbox', {name: '슬라이드'});
     const right = fireEvent.keyDown(grid, {key: 'ArrowRight'});
     const left = fireEvent.keyDown(grid, {key: 'ArrowLeft'});

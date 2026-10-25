@@ -426,7 +426,7 @@ describe('Workspace column gaps', () => {
     expect(isColumnDragActive()).toBe(false);
   });
 
-  it('keeps the live keys working after the thumbnail slider is used with the mouse', () => {
+  it('keeps the live keys working after the 슬라이드 size slider is used with the mouse', () => {
     const next = vi
       .spyOn(showState, 'outputNext')
       .mockImplementation(() => undefined);
@@ -443,11 +443,11 @@ describe('Workspace column gaps', () => {
     );
     if (!tile) throw new Error('The selected tile is missing');
     tile.focus();
-    const slider = screen.getByRole('slider', {name: '썸네일 크기'});
+    const slider = screen.getByRole('slider', {name: '슬라이드 크기'});
 
     fireEvent.pointerDown(slider, {pointerId: 1, button: 0});
     slider.focus();
-    fireEvent.change(slider, {target: {value: '7'}});
+    fireEvent.change(slider, {target: {value: '150'}});
     fireEvent.pointerUp(slider, {pointerId: 1});
 
     expect(document.activeElement).toBe(tile);
@@ -469,7 +469,7 @@ describe('Workspace column gaps', () => {
         store={createMemoryColumnWidthStore()}
       />,
     );
-    const slider = screen.getByRole('slider', {name: '썸네일 크기'});
+    const slider = screen.getByRole('slider', {name: '슬라이드 크기'});
     fireEvent.pointerDown(slider, {pointerId: 1, button: 0});
     slider.focus();
     fireEvent.pointerUp(slider, {pointerId: 1});
@@ -477,6 +477,20 @@ describe('Workspace column gaps', () => {
     fireEvent.keyDown(document.body, {code: 'Space', key: ' '});
     expect(next).toHaveBeenCalledTimes(1);
     expect(slider.tabIndex).toBe(0);
+  });
+
+  it('keeps room for the scrollbar in the 슬라이드 panel body only', () => {
+    render(
+      <Workspace
+        id="show"
+        sizeClass="normal"
+        store={createMemoryColumnWidthStore()}
+      />,
+    );
+    const bodyOf = (name: string): string =>
+      screen.getByRole('region', {name}).children[1]?.className ?? '';
+    expect(bodyOf('슬라이드')).toContain('stableScrollbar');
+    expect(bodyOf('예배 순서')).not.toContain('stableScrollbar');
   });
 
   it('names the slide panel of the 진행 workspace 슬라이드', () => {

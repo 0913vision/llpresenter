@@ -1,8 +1,9 @@
 import {useCallback, useEffect, useRef, type JSX} from 'react';
 import {outputTile, selectTile, useShow} from '@renderer/state/show';
 import {useLive} from '@renderer/state/live';
-import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui';
+import {SlideThumbnail, ThumbnailGrid, thumbnailWidth} from '@renderer/ui';
 import type {ItemId} from './model';
+import {useGridMeasure} from './useGridMeasure';
 import {useKeptFocus} from './useKeptFocus';
 import styles from './SlideGrid.module.css';
 
@@ -13,8 +14,20 @@ function useLiveIndex(itemId: ItemId | null): number | null {
   });
 }
 
-/** The 장 grid of the open item. A click outputs a tile. */
-export function SlideGrid({columns}: {readonly columns: number}): JSX.Element {
+const GRID_SELECTOR = '[role="listbox"]';
+
+export interface SlideGridProps {
+  /** The columns of the size class at 100%: 3, 4, or 6. */
+  readonly columns: number;
+  /** The 슬라이드 size in percent, 50 to 200. */
+  readonly scalePercent: number;
+}
+
+/** The 슬라이드 grid of the open item. A click outputs a tile. */
+export function SlideGrid({
+  columns,
+  scalePercent,
+}: SlideGridProps): JSX.Element {
   const openItemId = useShow(view => view.openItemId);
   const selectedTile = useShow(view => view.selectedTile);
   const tiles = useShow(view =>
@@ -23,6 +36,13 @@ export function SlideGrid({columns}: {readonly columns: number}): JSX.Element {
   const liveIndex = useLiveIndex(openItemId);
   const keeperRef = useRef<HTMLDivElement>(null);
   const {isInside, onFocus, onBlur} = useKeptFocus(keeperRef);
+  const {width, gap} = useGridMeasure(keeperRef, GRID_SELECTOR);
+  const tileWidth = thumbnailWidth({
+    gridWidth: width,
+    columns,
+    gap,
+    scalePercent,
+  });
 
   useEffect(() => {
     if (!isInside()) return;
@@ -47,6 +67,7 @@ export function SlideGrid({columns}: {readonly columns: number}): JSX.Element {
         workspace="show"
         label="슬라이드"
         columns={columns}
+        tileWidth={tileWidth}
         selected={tiles === undefined ? undefined : selectedTile}
         onSelect={selectTile}
         onOutput={onOutput}

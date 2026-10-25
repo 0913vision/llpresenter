@@ -50,6 +50,10 @@
   overflow: auto;
 }
 
+.stableScrollbar {
+  scrollbar-gutter: stable;
+}
+
 .footer {
   flex: none;
   display: flex;

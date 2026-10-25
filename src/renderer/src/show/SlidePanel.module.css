@@ -20,8 +20,3 @@
   color: var(--text-3);
   font-variant-numeric: tabular-nums;
 }
-
-.slider {
-  width: 120px;
-  accent-color: var(--accent);
-}
