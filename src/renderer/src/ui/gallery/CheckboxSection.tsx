@@ -118,24 +118,26 @@ export function CheckboxSection(): JSX.Element {
           label="Inside a dialog, row 30, no hover"
           width={DIALOG_WIDTH}
         >
-          <Row
-            icon="mplay"
-            label="화면 출력"
-            value="본 화면, 무대 화면, 방송 자막"
-            initial
-          />
-          <Row
-            icon="slides"
-            label="마지막 장"
-            value="만복의 근원 하나님  2 / 9"
-            initial
-          />
-          <Row
-            icon="layers"
-            label="표시 중이던 항목"
-            value="메시지 1, 소품 1, 무대 메시지 1"
-            initial={false}
-          />
+          <div>
+            <Row
+              icon="mplay"
+              label="화면 출력"
+              value="본 화면, 무대 화면, 방송 자막"
+              initial
+            />
+            <Row
+              icon="slides"
+              label="마지막 장"
+              value="만복의 근원 하나님  2 / 9"
+              initial
+            />
+            <Row
+              icon="layers"
+              label="표시 중이던 항목"
+              value="메시지 1, 소품 1, 무대 메시지 1"
+              initial={false}
+            />
+          </div>
         </SpecItem>
       </SpecGroup>
     </Section>
