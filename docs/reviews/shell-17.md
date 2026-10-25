@@ -1,6 +1,6 @@
 # Review request: `shell-17`
 
-Review range: ccbf48a...fix/shell/design-gaps
+Review range: ffc6833...fix/shell/design-gaps
 
 What to check: that the menu bar, toolbar, status bar, and the 지우기 row now
 follow the design system as listed in the qa M1 report, section B (B1, B2, B3,
@@ -9,8 +9,8 @@ buttons do; and that no native `title` tooltip is left in them.
 
 - Team member: `shell`
 - Branch: `fix/shell/design-gaps`
-- Base commit (`main`): `ccbf48a`, stacked on `feat/shell/service-data`
-  (shell-14) because the menu bar shows the service name that shell-14 provides
+- Base commit (`main`): `ffc6833` (shell-14 is in it; the menu bar shows the
+  service name it provides)
 - Last commit: see the commit that adds this file
 - Related brief: `docs/qa/m1-report.md`, section B
 
@@ -107,5 +107,6 @@ missing.
 
 ## Verify result
 
-`npm run verify` on commit `1236686` (base `main` ccbf48a) passed all five steps
-in 202.6 s: `typecheck`, `lint`, `format:check`, `test:coverage`, and `build`.
+`npm run verify` on commit `1236686` (base `main` ccbf48a, then rebased onto
+ffc6833) passed all five steps in 202.6 s: `typecheck`, `lint`, `format:check`,
+`test:coverage`, and `build`.
