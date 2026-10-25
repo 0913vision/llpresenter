@@ -1,4 +1,4 @@
-import {screen, type Display} from 'electron';
+import {screen, type Display, type Event} from 'electron';
 import type {DisplayInfo} from './monitor';
 import type {DisplaySource} from './registry';
 
@@ -23,13 +23,16 @@ export function createElectronDisplaySource(): DisplaySource {
         .map(display => toDisplayInfo(display, primaryId));
     },
     watch: listener => {
-      screen.on('display-added', listener);
-      screen.on('display-removed', listener);
-      screen.on('display-metrics-changed', listener);
+      const changed = () => listener({kind: 'changed'});
+      const removed = (_event: Event, display: Display) =>
+        listener({kind: 'removed', id: display.id});
+      screen.on('display-added', changed);
+      screen.on('display-removed', removed);
+      screen.on('display-metrics-changed', changed);
       return () => {
-        screen.removeListener('display-added', listener);
-        screen.removeListener('display-removed', listener);
-        screen.removeListener('display-metrics-changed', listener);
+        screen.removeListener('display-added', changed);
+        screen.removeListener('display-removed', removed);
+        screen.removeListener('display-metrics-changed', changed);
       };
     },
   };

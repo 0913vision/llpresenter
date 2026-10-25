@@ -1,7 +1,7 @@
 import type {Logger} from '../log';
 import {numberMonitors, type DisplayInfo, type Monitor} from './monitor';
 import type {Size} from './rect';
-import type {DisplaySource} from './registry';
+import type {DisplayChange, DisplaySource} from './registry';
 
 export const FULL_HD: Size = {width: 1920, height: 1080};
 
@@ -87,7 +87,7 @@ export function recordingLogger(): RecordingLogger {
 export class FakeDisplaySource implements DisplaySource {
   displays: readonly DisplayInfo[];
   failure: Error | null = null;
-  private readonly watchers = new Set<() => void>();
+  private readonly watchers = new Set<(change: DisplayChange) => void>();
 
   constructor(...displays: readonly DisplayInfo[]) {
     this.displays = displays;
@@ -102,7 +102,7 @@ export class FakeDisplaySource implements DisplaySource {
     return this.displays;
   }
 
-  watch(listener: () => void): () => void {
+  watch(listener: (change: DisplayChange) => void): () => void {
     this.watchers.add(listener);
     return () => {
       this.watchers.delete(listener);
@@ -115,7 +115,12 @@ export class FakeDisplaySource implements DisplaySource {
     this.emit();
   }
 
-  emit(): void {
-    for (const watcher of this.watchers) watcher();
+  remove(id: number): void {
+    this.displays = this.displays.filter(display => display.id !== id);
+    this.emit({kind: 'removed', id});
+  }
+
+  emit(change: DisplayChange = {kind: 'changed'}): void {
+    for (const watcher of this.watchers) watcher(change);
   }
 }

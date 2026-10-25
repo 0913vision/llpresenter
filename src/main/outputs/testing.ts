@@ -29,6 +29,7 @@ export class FakeOutputHandle implements OutputWindowHandle {
   failNextReload = false;
   forcedCrashes = 0;
   pings = 0;
+  monitorRemovals = 0;
   /** How long the page takes to answer a ping; null when it never does. */
   answerAfterMs: number | null = 0;
   /** Every call that showed the window, in order. */
@@ -45,6 +46,13 @@ export class FakeOutputHandle implements OutputWindowHandle {
 
   showWindowed(bounds: Rect | null): void {
     this.place({kind: 'window', bounds});
+  }
+
+  prepareForMonitorRemoval(): void {
+    this.monitorRemovals += 1;
+    if (this.mode.kind === 'fullscreen') {
+      this.mode = {...this.mode, alwaysOnTop: false};
+    }
   }
 
   hide(): void {

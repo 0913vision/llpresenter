@@ -7,6 +7,39 @@ const control = displayInfo({id: 1, primary: true});
 const projector = displayInfo({id: 2, x: 1920});
 
 describe('DisplayRegistry', () => {
+  it('reports removal immediately, isolates listener failures, and releases both subscriptions', async () => {
+    const clock = installFakeClock();
+    const source = new FakeDisplaySource(control, projector);
+    const log = recordingLogger();
+    const registry = new DisplayRegistry(source, log);
+    const removed = vi.fn();
+    const settled = vi.fn();
+    registry.subscribeRemoved(() => {
+      throw new Error('removal listener failed');
+    });
+    const stop = registry.subscribeRemoved(removed);
+    registry.subscribe(settled);
+
+    source.remove(projector.id);
+
+    expect(removed).toHaveBeenCalledExactlyOnceWith(projector.id);
+    expect(settled).not.toHaveBeenCalled();
+    expect(registry.monitors).toHaveLength(2);
+    expect(log.messages('error')).toEqual([
+      'a monitor removal listener failed',
+    ]);
+    await clock.advance(DISPLAY_SETTLE_MS);
+    expect(settled).toHaveBeenCalledTimes(1);
+    stop();
+    source.emit({kind: 'removed', id: control.id});
+    expect(removed).toHaveBeenCalledTimes(1);
+    registry.dispose();
+    await clock.runAll();
+    expect(settled).toHaveBeenCalledTimes(1);
+    expect(registry.listenerCount).toBe(0);
+    expect(source.watcherCount).toBe(0);
+  });
+
   it('reads the numbered monitors at start', () => {
     const registry = new DisplayRegistry(
       new FakeDisplaySource(projector, control),

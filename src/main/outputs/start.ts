@@ -88,7 +88,11 @@ export function startOutputs({
     screens,
     controlBounds: () => (control.isDestroyed() ? null : control.getBounds()),
     createHandle: (screen, events) =>
-      createElectronOutputWindow(screen, events, {log, mode: windowMode}),
+      createElectronOutputWindow(screen, events, {
+        log,
+        mode: windowMode,
+        control,
+      }),
     log,
     onStatusChange: () => board.refresh(),
   });

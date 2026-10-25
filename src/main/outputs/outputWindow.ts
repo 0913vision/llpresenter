@@ -15,6 +15,8 @@ export interface OutputWindowHandle {
   showFullScreen(monitorBounds: Rect, alwaysOnTop: boolean): void;
   /** Shows the window without taking focus as a normal window, moved to the bounds when given. */
   showWindowed(bounds: Rect | null): void;
+  /** Drops always on top and places the control directly above this output without focus. */
+  prepareForMonitorRemoval(): void;
   hide(): void;
   /**
    * Loads the page again, in a new renderer process if the old one died.
@@ -116,6 +118,14 @@ export class OutputWindow {
     if (this.disposed) return;
     if (placement === null) this.hide();
     else this.show(placement);
+  }
+
+  prepareForMonitorRemoval(): void {
+    if (this.disposed || !this.visible || this.applied?.kind !== 'fullscreen') {
+      return;
+    }
+    this.applied = null;
+    this.handle?.prepareForMonitorRemoval();
   }
 
   dispose(): void {

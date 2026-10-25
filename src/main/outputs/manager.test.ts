@@ -2,7 +2,12 @@ import {describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@shared/commands';
 import {installFakeClock} from '../../../test/fake-clock';
 import type {Monitor} from '../displays/monitor';
-import {DISPLAY_RETRY_MS, DisplayRegistry} from '../displays/registry';
+import {
+  DISPLAY_RETRY_MS,
+  DISPLAY_SETTLE_MS,
+  DisplayRegistry,
+  type MonitorRemovedListener,
+} from '../displays/registry';
 import {
   FakeDisplaySource,
   displayInfo,
@@ -22,17 +27,25 @@ import {fakeWindows, fullScreenScreen} from './testing';
 
 class FakeMonitorFeed implements MonitorFeed {
   private readonly listeners = new Set<() => void>();
+  private readonly removalListeners = new Set<MonitorRemovedListener>();
 
   constructor(public monitors: readonly Monitor[]) {}
 
   get listenerCount(): number {
-    return this.listeners.size;
+    return this.listeners.size + this.removalListeners.size;
   }
 
   subscribe(listener: () => void): () => void {
     this.listeners.add(listener);
     return () => {
       this.listeners.delete(listener);
+    };
+  }
+
+  subscribeRemoved(listener: MonitorRemovedListener): () => void {
+    this.removalListeners.add(listener);
+    return () => {
+      this.removalListeners.delete(listener);
     };
   }
 
@@ -85,7 +98,102 @@ function setUp(screens: readonly OutputScreen[] = [screenOn(PROJECTOR)]) {
   return {store, displays, source, windows, log, manager};
 }
 
+function setUpRemoval(
+  screens: readonly OutputScreen[] = [
+    screenOn(PROJECTOR),
+    screenOn(STAGE, {id: 'stage'}),
+  ],
+) {
+  const source = new FakeDisplaySource(
+    ...[CONTROL, PROJECTOR, STAGE].map(displayInfo),
+  );
+  const log = recordingLogger();
+  const displays = new DisplayRegistry(source, log);
+  const store = new LiveStore();
+  const windows = fakeWindows();
+  const manager = new OutputManager({
+    store,
+    displays,
+    screens: new FakeScreenSource(screens),
+    controlBounds: () => CONTROL_WINDOW,
+    createHandle: windows.create,
+    log,
+  });
+  manager.start();
+  store.dispatch(turn(true));
+  store.dispatch(turn(true, 'stage'));
+  return {source, displays, store, windows, manager, log};
+}
+
 describe('OutputManager', () => {
+  it('demotes only the removed monitor output before settling and keeps its page running', async () => {
+    const clock = installFakeClock();
+    const {source, displays, store, windows, manager} = setUpRemoval();
+    const main = windows.only('main');
+    const stage = windows.only('stage');
+
+    source.remove(PROJECTOR.id);
+
+    expect(main.monitorRemovals).toBe(1);
+    expect(main.mode).toMatchObject({kind: 'fullscreen', alwaysOnTop: false});
+    expect(stage.monitorRemovals).toBe(0);
+    expect(main.placements).toHaveLength(1);
+    expect(store.state.outputs['main']).toBe(true);
+    store.dispatch(turn(false, 'stage'));
+    await clock.advance(DISPLAY_SETTLE_MS - 1);
+    expect(main.placements).toHaveLength(1);
+    await clock.advance(1);
+
+    expect(main.mode).toEqual({kind: 'window', bounds: FALLBACK_BOUNDS});
+    expect(main.reloads).toBe(0);
+    expect(main.destroyed).toBe(false);
+    expect(windows.created).toHaveLength(2);
+    manager.dispose();
+    expect(displays.listenerCount).toBe(0);
+    displays.dispose();
+    expect(source.watcherCount).toBe(0);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('restores always on top when the removed monitor returns before settling', async () => {
+    const clock = installFakeClock();
+    const {source, displays, windows, manager} = setUpRemoval();
+    const main = windows.only('main');
+
+    source.remove(PROJECTOR.id);
+    source.change(...[CONTROL, PROJECTOR, STAGE].map(displayInfo));
+    await clock.advance(DISPLAY_SETTLE_MS);
+
+    expect(main.mode).toMatchObject({kind: 'fullscreen', alwaysOnTop: true});
+    expect(main.placements).toHaveLength(2);
+    expect(main.reloads).toBe(0);
+    manager.dispose();
+    displays.dispose();
+  });
+
+  it('keeps other outputs running when a demotion fails', () => {
+    installFakeClock();
+    const {source, displays, windows, manager, log} = setUpRemoval([
+      screenOn(PROJECTOR),
+      screenOn(PROJECTOR, {id: 'stage'}),
+    ]);
+    vi.spyOn(
+      windows.only('main'),
+      'prepareForMonitorRemoval',
+    ).mockImplementation(() => {
+      throw new Error('window closed during demotion');
+    });
+    source.remove(PROJECTOR.id);
+    expect(log.messages('error')).toEqual(['could not demote the main output']);
+    expect(windows.only('stage').monitorRemovals).toBe(1);
+    expect(windows.only('stage').mode).toMatchObject({
+      kind: 'fullscreen',
+      alwaysOnTop: false,
+    });
+    manager.dispose();
+    displays.dispose();
+  });
+
   it('opens the output full screen on its monitor when it turns on, and hides it when it turns off', () => {
     const {store, windows} = setUp();
     expect(windows.created).toHaveLength(0);
@@ -126,6 +234,7 @@ describe('OutputManager', () => {
     expect(handle.mode).toMatchObject({
       kind: 'fullscreen',
       bounds: PROJECTOR_BOUNDS,
+      alwaysOnTop: true,
     });
     expect(windows.created).toHaveLength(1);
     expect(handle.reloads).toBe(0);

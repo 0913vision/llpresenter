@@ -27,6 +27,7 @@ function halfOf({width, height}: Rect): Size {
 export interface ElectronOutputWindowOptions {
   readonly log: Logger;
   readonly mode: WindowMode;
+  readonly control: Pick<BrowserWindow, 'isDestroyed' | 'moveAbove'>;
 }
 
 function createBrowserWindow(
@@ -79,25 +80,78 @@ function listen(win: BrowserWindow, events: OutputWindowEvents): void {
 
 type OutputPresentation = Pick<
   OutputWindowHandle,
-  'showFullScreen' | 'showWindowed' | 'hide'
->;
+  'showFullScreen' | 'showWindowed' | 'prepareForMonitorRemoval' | 'hide'
+> & {readonly dispose: () => void};
 
-function presentOnScreen(win: BrowserWindow): OutputPresentation {
+function presentOnScreen(
+  win: BrowserWindow,
+  {control, log}: ElectronOutputWindowOptions,
+): OutputPresentation {
+  let leavingFullScreen = false;
+  let afterLeave: (() => void) | null = null;
+  let unplacedBounds: Rect | null = null;
+  const placeBehindControl = () => {
+    win.setAlwaysOnTop(false);
+    if (!control.isDestroyed()) control.moveAbove(win.getMediaSourceId());
+  };
+  const finishLeaving = () => {
+    leavingFullScreen = false;
+    const place = afterLeave;
+    afterLeave = null;
+    try {
+      place?.();
+    } catch (error) {
+      log.error('could not place the output after leaving full screen', error);
+    }
+  };
+  win.on('leave-full-screen', finishLeaving);
   return {
     showFullScreen: (monitorBounds, alwaysOnTop) => {
-      win.setFocusable(false);
-      enterFullScreen(win, monitorBounds);
-      win.setAlwaysOnTop(alwaysOnTop);
-      if (!win.isVisible()) win.showInactive();
+      unplacedBounds = null;
+      const place = () => {
+        win.setFocusable(false);
+        enterFullScreen(win, monitorBounds);
+        win.setAlwaysOnTop(alwaysOnTop);
+        if (!win.isVisible()) win.showInactive();
+      };
+      afterLeave = null;
+      if (leavingFullScreen) afterLeave = place;
+      else place();
     },
     showWindowed: bounds => {
-      if (win.isFullScreen()) win.setFullScreen(false);
+      if (bounds !== null) unplacedBounds = bounds;
+      const place = () => {
+        win.setFocusable(true);
+        if (unplacedBounds !== null) win.setBounds(unplacedBounds);
+        unplacedBounds = null;
+        if (!win.isVisible()) win.showInactive();
+        placeBehindControl();
+      };
+      afterLeave = null;
       win.setAlwaysOnTop(false);
-      win.setFocusable(true);
-      if (bounds !== null) win.setBounds(bounds);
-      if (!win.isVisible()) win.showInactive();
+      if (leavingFullScreen) afterLeave = place;
+      else if (win.isFullScreen()) {
+        afterLeave = place;
+        leavingFullScreen = true;
+        try {
+          win.setFullScreen(false);
+        } catch (error) {
+          leavingFullScreen = false;
+          afterLeave = null;
+          throw error;
+        }
+      } else place();
     },
-    hide: () => win.hide(),
+    prepareForMonitorRemoval: placeBehindControl,
+    hide: () => {
+      afterLeave = null;
+      win.hide();
+    },
+    dispose: () => {
+      afterLeave = null;
+      unplacedBounds = null;
+      win.removeListener('leave-full-screen', finishLeaving);
+    },
   };
 }
 
@@ -110,17 +164,19 @@ function presentOffscreen(win: BrowserWindow): OutputPresentation {
     showWindowed: bounds => {
       if (bounds !== null) win.setBounds(bounds);
     },
+    prepareForMonitorRemoval: () => undefined,
     hide: () => undefined,
+    dispose: () => undefined,
   };
 }
 
 function presentationFor(
   win: BrowserWindow,
-  mode: WindowMode,
+  options: ElectronOutputWindowOptions,
 ): OutputPresentation {
-  switch (mode) {
+  switch (options.mode) {
     case 'normal':
-      return presentOnScreen(win);
+      return presentOnScreen(win, options);
     case 'offscreen':
       return presentOffscreen(win);
   }
@@ -136,8 +192,9 @@ function presentationFor(
 export function createElectronOutputWindow(
   screen: OutputScreen,
   events: OutputWindowEvents,
-  {log, mode}: ElectronOutputWindowOptions,
+  options: ElectronOutputWindowOptions,
 ): OutputWindowHandle {
+  const {log, mode} = options;
   const win = createBrowserWindow(screen, mode);
   discardTestFrames(win.webContents, mode);
   const page: PageRequest = {name: 'output', query: {screen: screen.id}};
@@ -145,8 +202,10 @@ export function createElectronOutputWindow(
   blockNavigation(win);
   listen(win, events);
   loadPage(win, page, log);
+  const {dispose, ...presentation} = presentationFor(win, options);
+  win.once('closed', dispose);
   return {
-    ...presentationFor(win, mode),
+    ...presentation,
     reload: () => startLoading(win, page),
     crashRenderer: () => {
       if (!win.isDestroyed()) win.webContents.forcefullyCrashRenderer();
@@ -155,6 +214,8 @@ export function createElectronOutputWindow(
       await win.webContents.executeJavaScript(PING_SCRIPT);
     },
     destroy: () => {
+      win.removeListener('closed', dispose);
+      dispose();
       if (!win.isDestroyed()) win.destroy();
     },
   };

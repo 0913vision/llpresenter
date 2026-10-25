@@ -2,6 +2,7 @@ import type {LiveState} from '@shared/live';
 import {assignMonitors, type DisplayRequest} from '../displays/assign';
 import {findControlMonitor, type Monitor} from '../displays/monitor';
 import type {Rect} from '../displays/rect';
+import type {MonitorRemovedListener} from '../displays/registry';
 import type {LiveStore} from '../live/store';
 import type {Logger} from '../log';
 import {OutputWindow, type CreateOutputWindowHandle} from './outputWindow';
@@ -18,6 +19,7 @@ export interface MonitorFeed {
    * @returns A function that removes the listener.
    */
   subscribe(listener: () => void): () => void;
+  subscribeRemoved(listener: MonitorRemovedListener): () => void;
 }
 
 /** How a screen's output shows. */
@@ -80,6 +82,7 @@ export class OutputManager {
   private readonly windows = new Map<string, OutputWindow>();
   private readonly statuses = new Map<string, OutputStatus>();
   private previousMonitors: ReadonlyMap<string, number> = new Map();
+  private readonly unsettledRemovals = new Set<number>();
   private stops: ReadonlyArray<() => void> = [];
   private lastOutputs: LiveState['outputs'] | null = null;
   private disposed = false;
@@ -90,7 +93,11 @@ export class OutputManager {
     const {store, displays} = this.options;
     this.stops = [
       store.subscribe(state => this.handleLiveState(state)),
-      displays.subscribe(() => this.sync()),
+      displays.subscribe(() => {
+        this.unsettledRemovals.clear();
+        this.sync();
+      }),
+      displays.subscribeRemoved(id => this.monitorRemoved(id)),
     ];
     this.sync();
   }
@@ -135,6 +142,22 @@ export class OutputManager {
     // and the reducer keeps the same object then, so the windows stay put.
     if (state.outputs === this.lastOutputs) return;
     this.sync();
+  }
+
+  private monitorRemoved(monitorId: number): void {
+    if (this.disposed) return;
+    for (const [screenId, output] of this.windows) {
+      if (this.previousMonitors.get(screenId) !== monitorId) continue;
+      this.unsettledRemovals.add(monitorId);
+      try {
+        output.prepareForMonitorRemoval();
+      } catch (error) {
+        this.options.log.error(
+          `could not demote the ${screenId} output`,
+          error,
+        );
+      }
+    }
   }
 
   private sync(): void {
@@ -187,6 +210,14 @@ export class OutputManager {
   }
 
   private apply(screen: OutputScreen, placement: Placement | null): void {
+    const monitorId = this.previousMonitors.get(screen.id);
+    if (
+      placement?.kind === 'fullscreen' &&
+      monitorId !== undefined &&
+      this.unsettledRemovals.has(monitorId)
+    ) {
+      return;
+    }
     try {
       this.windowFor(screen).update(
         placement === null || placement.kind === 'off' ? null : placement,

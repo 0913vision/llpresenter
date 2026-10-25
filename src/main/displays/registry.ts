@@ -6,6 +6,9 @@ import {
   type Monitor,
 } from './monitor';
 
+export type DisplayChange =
+  {readonly kind: 'changed'} | {readonly kind: 'removed'; readonly id: number};
+
 /** Where the monitor list comes from: Electron's `screen` in the app, a fake in tests. */
 export interface DisplaySource {
   read(): readonly DisplayInfo[];
@@ -14,10 +17,11 @@ export interface DisplaySource {
    *
    * @returns A function that stops watching.
    */
-  watch(listener: () => void): () => void;
+  watch(listener: (change: DisplayChange) => void): () => void;
 }
 
 export type MonitorListener = (monitors: readonly Monitor[]) => void;
+export type MonitorRemovedListener = (monitorId: number) => void;
 
 /**
  * How long the registry waits for a burst of display events to end before it
@@ -37,17 +41,23 @@ type ReadProblemLevel = 'warn' | 'error';
 export class DisplayRegistry {
   private current: readonly Monitor[] = [];
   private readonly listeners = new Set<MonitorListener>();
+  private readonly removalListeners = new Set<MonitorRemovedListener>();
   private readonly stopWatching: () => void;
   private pendingRead: ReturnType<typeof setTimeout> | null = null;
   private readFailing = false;
+  private removalPending = false;
 
   constructor(
     private readonly source: DisplaySource,
     private readonly log: Logger,
   ) {
-    this.stopWatching = source.watch(() =>
-      this.scheduleRead(DISPLAY_SETTLE_MS),
-    );
+    this.stopWatching = source.watch(change => {
+      if (change.kind === 'removed') {
+        this.removalPending = true;
+        this.notifyRemoved(change.id);
+      }
+      this.scheduleRead(DISPLAY_SETTLE_MS);
+    });
     this.refresh();
   }
 
@@ -56,7 +66,7 @@ export class DisplayRegistry {
   }
 
   get listenerCount(): number {
-    return this.listeners.size;
+    return this.listeners.size + this.removalListeners.size;
   }
 
   /**
@@ -71,6 +81,14 @@ export class DisplayRegistry {
     };
   }
 
+  /** Reports the removed monitor immediately, before waiting for displays to settle. */
+  subscribeRemoved(listener: MonitorRemovedListener): () => void {
+    this.removalListeners.add(listener);
+    return () => {
+      this.removalListeners.delete(listener);
+    };
+  }
+
   /**
    * Reads the monitors now, as 모니터 다시 찾기 (find monitor again) does. An
    * empty or failed read keeps the last list and tries again later.
@@ -82,9 +100,11 @@ export class DisplayRegistry {
       this.scheduleRead(DISPLAY_RETRY_MS);
       return;
     }
-    if (sameMonitors(next, this.current)) return;
+    const changed = !sameMonitors(next, this.current);
+    if (!changed && !this.removalPending) return;
+    this.removalPending = false;
     this.current = next;
-    this.log.info('monitors changed', next);
+    if (changed) this.log.info('monitors changed', next);
     this.notify(next);
   }
 
@@ -92,6 +112,7 @@ export class DisplayRegistry {
     this.cancelPendingRead();
     this.stopWatching();
     this.listeners.clear();
+    this.removalListeners.clear();
   }
 
   private scheduleRead(delayMs: number): void {
@@ -150,6 +171,16 @@ export class DisplayRegistry {
         listener(monitors);
       } catch (error) {
         this.log.error('a monitor listener failed', error);
+      }
+    }
+  }
+
+  private notifyRemoved(monitorId: number): void {
+    for (const listener of this.removalListeners) {
+      try {
+        listener(monitorId);
+      } catch (error) {
+        this.log.error('a monitor removal listener failed', error);
       }
     }
   }

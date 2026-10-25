@@ -1,4 +1,3 @@
-import {EventEmitter} from 'node:events';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import type {Rect} from '../displays/rect';
 import type {Logger} from '../log';
@@ -8,31 +7,33 @@ import {createElectronOutputWindow} from './electronWindow';
 import type {OutputWindowHandle} from './outputWindow';
 import type {OutputScreen} from './screens';
 
-const electron = vi.hoisted(() => {
-  class FakeBrowserWindow {
+const electron = await vi.hoisted(async () => {
+  const {EventEmitter} = await import('node:events');
+  class FakeBrowserWindow extends EventEmitter {
     readonly webContents = Object.assign(new EventEmitter(), {
       isCrashed: vi.fn(() => false),
       executeJavaScript: vi.fn(() => Promise.resolve(0)),
       forcefullyCrashRenderer: vi.fn(),
     });
     readonly setContentBounds = vi.fn();
-    readonly setBounds = vi.fn();
+    readonly setBounds = vi.fn<(bounds: Rect) => void>();
     readonly getBounds = vi.fn(() => ({x: 0, y: 0, width: 800, height: 600}));
+    readonly getMediaSourceId = vi.fn(() => 'window:42:0');
     readonly setFullScreen = vi.fn();
     readonly isFullScreen = vi.fn(() => false);
     readonly setFocusable = vi.fn();
-    readonly setAlwaysOnTop = vi.fn();
+    readonly setAlwaysOnTop = vi.fn<(flag: boolean) => void>();
     readonly isVisible = vi.fn(() => false);
     readonly showInactive = vi.fn();
     readonly show = vi.fn();
     readonly focus = vi.fn();
     readonly hide = vi.fn();
     readonly removeMenu = vi.fn();
-    readonly on = vi.fn();
     readonly isDestroyed = vi.fn(() => false);
     readonly destroy = vi.fn();
 
     constructor(readonly options: unknown) {
+      super();
       created.push(this);
     }
   }
@@ -69,11 +70,23 @@ function fakeLog() {
   } satisfies Logger;
 }
 
-function openOutput(mode: WindowMode): OutputWindowHandle {
+function fakeControl() {
+  return {
+    isDestroyed: vi.fn(() => false),
+    moveAbove: vi.fn<(mediaSourceId: string) => void>(),
+    focus: vi.fn(),
+  };
+}
+
+function openOutput(
+  mode: WindowMode,
+  control = fakeControl(),
+  log = fakeLog(),
+): OutputWindowHandle {
   return createElectronOutputWindow(
     SCREEN,
     {onRendererGone: vi.fn(), onCloseRequested: vi.fn()},
-    {log: fakeLog(), mode},
+    {log, mode, control},
   );
 }
 
@@ -99,6 +112,14 @@ beforeEach(() => {
 });
 
 describe('createElectronOutputWindow offscreen', () => {
+  it('does not change window order on monitor removal in offscreen mode', () => {
+    const control = fakeControl();
+    const output = openOutput('offscreen', control);
+    output.prepareForMonitorRemoval();
+    expect(control.moveAbove).not.toHaveBeenCalled();
+    expectNeverPresented(lastWindow());
+  });
+
   it('opens hidden, out of the taskbar, and drawn in memory at full rate', () => {
     openOutput('offscreen');
 
@@ -207,6 +228,189 @@ describe('createElectronOutputWindow reload', () => {
 });
 
 describe('createElectronOutputWindow normal', () => {
+  it('restores always on top after disconnect, fallback, and fullscreen reconnect', () => {
+    const output = openOutput('normal');
+    const win = lastWindow();
+    output.showFullScreen(MONITOR, true);
+    win.isFullScreen.mockReturnValue(true);
+    output.prepareForMonitorRemoval();
+    output.showWindowed(WINDOW_BOUNDS);
+    win.isFullScreen.mockReturnValue(false);
+    win.emit('leave-full-screen');
+    expect(win.setAlwaysOnTop).toHaveBeenLastCalledWith(false);
+    expect(win.setBounds).toHaveBeenLastCalledWith(WINDOW_BOUNDS);
+
+    output.showFullScreen(MONITOR, true);
+
+    expect(win.setAlwaysOnTop).toHaveBeenLastCalledWith(true);
+    expect(win.setFullScreen).toHaveBeenLastCalledWith(true);
+    expect(win.focus).not.toHaveBeenCalled();
+    output.destroy();
+  });
+
+  it('drops always on top before moving the control above it, immediately and after placement', () => {
+    const control = fakeControl();
+    const output = openOutput('normal', control);
+    const win = lastWindow();
+    const calls: string[] = [];
+    win.setAlwaysOnTop.mockImplementation(flag => calls.push(`top:${flag}`));
+    control.moveAbove.mockImplementation(id => calls.push(`above:${id}`));
+    win.setBounds.mockImplementation(() => {
+      calls.push('bounds');
+    });
+    win.showInactive.mockImplementation(() => calls.push('showInactive'));
+
+    output.prepareForMonitorRemoval();
+    expect(calls).toEqual(['top:false', 'above:window:42:0']);
+    expect(win.hide).not.toHaveBeenCalled();
+    expect(win.setFullScreen).not.toHaveBeenCalled();
+    calls.length = 0;
+    output.showWindowed(WINDOW_BOUNDS);
+    expect(calls).toEqual([
+      'top:false',
+      'bounds',
+      'showInactive',
+      'top:false',
+      'above:window:42:0',
+    ]);
+    expect(win.focus).not.toHaveBeenCalled();
+    expect(win.show).not.toHaveBeenCalled();
+    expect(control.focus).not.toHaveBeenCalled();
+  });
+
+  it('applies planned bounds after Windows restores the pre-fullscreen bounds', () => {
+    const control = fakeControl();
+    const output = openOutput('normal', control);
+    const win = lastWindow();
+    let bounds = {x: 3920, y: 492, width: 960, height: 540};
+    win.setBounds.mockImplementation(next => {
+      bounds = next;
+    });
+    win.isFullScreen.mockReturnValue(true);
+    output.showWindowed(WINDOW_BOUNDS);
+
+    expect(win.setFullScreen).toHaveBeenCalledWith(false);
+    expect(win.setBounds).not.toHaveBeenCalled();
+    expect(control.moveAbove).not.toHaveBeenCalled();
+    expect(bounds).toEqual({x: 3920, y: 492, width: 960, height: 540});
+    bounds = {x: 2480, y: 492, width: 960, height: 540};
+    win.isFullScreen.mockReturnValue(false);
+    win.emit('leave-full-screen');
+
+    expect(bounds).toEqual(WINDOW_BOUNDS);
+    expect(win.setBounds).toHaveBeenCalledExactlyOnceWith(WINDOW_BOUNDS);
+    expect(control.moveAbove).toHaveBeenCalledExactlyOnceWith('window:42:0');
+    expect(win.setAlwaysOnTop).toHaveBeenCalledBefore(control.moveAbove);
+    expect(win.setBounds).toHaveBeenCalledBefore(control.moveAbove);
+    expect(win.showInactive).toHaveBeenCalledBefore(control.moveAbove);
+    expect(win.focus).not.toHaveBeenCalled();
+    expect(control.focus).not.toHaveBeenCalled();
+    expect(win.listenerCount('leave-full-screen')).toBe(1);
+    output.destroy();
+    expect(win.listenerCount('leave-full-screen')).toBe(0);
+  });
+
+  it('places the control directly above a windowed output without focusing either', () => {
+    const control = fakeControl();
+    const output = openOutput('normal', control);
+    const win = lastWindow();
+
+    output.showWindowed(WINDOW_BOUNDS);
+
+    expect(control.moveAbove).toHaveBeenCalledExactlyOnceWith('window:42:0');
+    expect(win.setAlwaysOnTop).toHaveBeenCalledWith(false);
+    expect(win.setAlwaysOnTop).toHaveBeenCalledBefore(control.moveAbove);
+    expect(win.setBounds).toHaveBeenCalledBefore(control.moveAbove);
+    expect(win.focus).not.toHaveBeenCalled();
+    expect(control.focus).not.toHaveBeenCalled();
+  });
+
+  it.each(['hide', 'destroy', 'closed', 'fullscreen'] as const)(
+    'cancels a pending fallback placement on %s',
+    action => {
+      const control = fakeControl();
+      const output = openOutput('normal', control);
+      const win = lastWindow();
+      win.isFullScreen.mockReturnValue(true);
+      output.showWindowed(WINDOW_BOUNDS);
+
+      switch (action) {
+        case 'hide':
+          output.hide();
+          break;
+        case 'destroy':
+          output.destroy();
+          break;
+        case 'closed':
+          win.isDestroyed.mockReturnValue(true);
+          win.emit('closed');
+          break;
+        case 'fullscreen':
+          output.showFullScreen(MONITOR, true);
+          break;
+      }
+      win.isFullScreen.mockReturnValue(false);
+      win.emit('leave-full-screen');
+
+      expect(win.setBounds).not.toHaveBeenCalledWith(WINDOW_BOUNDS);
+      expect(control.moveAbove).not.toHaveBeenCalled();
+      if (action === 'fullscreen') {
+        expect(win.setFullScreen).toHaveBeenLastCalledWith(true);
+        expect(win.setAlwaysOnTop).toHaveBeenLastCalledWith(true);
+      } else expect(win.showInactive).not.toHaveBeenCalled();
+      output.destroy();
+      expect(win.listenerCount('leave-full-screen')).toBe(0);
+      expect(win.listenerCount('closed')).toBe(0);
+    },
+  );
+
+  it('waits for fullscreen exit even when hidden and shown again during the transition', () => {
+    const output = openOutput('normal');
+    const win = lastWindow();
+    win.isFullScreen.mockReturnValue(true);
+    output.showWindowed(WINDOW_BOUNDS);
+    output.hide();
+    win.isFullScreen.mockReturnValue(false);
+    const next = {...WINDOW_BOUNDS, x: 200};
+    output.showWindowed(next);
+    expect(win.setBounds).not.toHaveBeenCalled();
+    win.emit('leave-full-screen');
+    expect(win.setBounds).toHaveBeenCalledExactlyOnceWith(next);
+    output.destroy();
+  });
+
+  it('retains the planned bounds when a fallback is shown again before its first placement', () => {
+    const output = openOutput('normal');
+    const win = lastWindow();
+    win.isFullScreen.mockReturnValue(true);
+    output.showWindowed(WINDOW_BOUNDS);
+    output.hide();
+    win.isFullScreen.mockReturnValue(false);
+    win.emit('leave-full-screen');
+    expect(win.setBounds).not.toHaveBeenCalled();
+    output.showWindowed(null);
+    expect(win.setBounds).toHaveBeenCalledExactlyOnceWith(WINDOW_BOUNDS);
+    output.destroy();
+  });
+
+  it('logs a failed deferred placement instead of throwing from the native event', () => {
+    const log = fakeLog();
+    const output = openOutput('normal', fakeControl(), log);
+    const win = lastWindow();
+    const failure = new Error('window no longer accepts bounds');
+    win.isFullScreen.mockReturnValue(true);
+    output.showWindowed(WINDOW_BOUNDS);
+    win.setBounds.mockImplementation(() => {
+      throw failure;
+    });
+    expect(() => win.emit('leave-full-screen')).not.toThrow();
+    expect(log.error).toHaveBeenCalledExactlyOnceWith(
+      'could not place the output after leaving full screen',
+      failure,
+    );
+    output.destroy();
+  });
+
   it('shows a full screen output on its monitor without taking focus', () => {
     const output = openOutput('normal');
     const win = lastWindow();
