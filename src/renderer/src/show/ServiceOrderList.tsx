@@ -117,10 +117,12 @@ export function ServiceOrderList({
   workspace = 'show',
   onProblem = logProblem,
   onOpenPrep,
+  onOpenItem,
 }: {
   readonly workspace?: Workspace | undefined;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
   readonly onOpenPrep?: ((itemId: string) => void) | undefined;
+  readonly onOpenItem?: (() => void) | undefined;
 }): JSX.Element {
   const rows = useShow(view => view.rows);
   const openItemId = useShow(view => view.openItemId);
@@ -239,7 +241,10 @@ export function ServiceOrderList({
         workspace={workspace}
         label="예배 순서"
         selected={openItemId ?? undefined}
-        onSelect={openItem}
+        onSelect={itemId => {
+          onOpenItem?.();
+          openItem(itemId);
+        }}
       >
         {groupRows(rows).map(group =>
           group.label === undefined ? (

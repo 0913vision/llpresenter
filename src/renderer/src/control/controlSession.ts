@@ -1,0 +1,62 @@
+import type {LlpApi} from '@shared/ipc';
+import {SongEditorStore} from '@renderer/prep/editor';
+import {addNotice, removeNotice, type Notice} from '@renderer/ui/notices';
+
+/** Window-owned editor sessions and their shared notification destination. */
+export class ControlSession {
+  private editorStore: SongEditorStore | undefined;
+  private notices: readonly Notice[] = [];
+  private readonly listeners = new Set<() => void>();
+  private closing: Promise<void> | undefined;
+
+  constructor(readonly api: LlpApi | undefined) {}
+
+  get editor(): SongEditorStore | undefined {
+    return this.editorStore;
+  }
+
+  /** Start from a workspace event, outside React render and its StrictMode probe. */
+  startEditor(): void {
+    if (this.api && !this.editorStore && !this.closing) {
+      this.editorStore = new SongEditorStore(this.api, this.report);
+    }
+  }
+
+  readonly getNotices = (): readonly Notice[] => this.notices;
+  readonly subscribe = (listener: () => void): (() => void) => {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  };
+  readonly report = (notice: Notice): void => {
+    if (this.closing) return;
+    this.notices = addNotice(this.notices, {
+      ...notice,
+      actions: notice.actions?.map(action => ({
+        ...action,
+        onSelect: () => {
+          this.dismiss(notice.key);
+          action.onSelect();
+        },
+      })),
+    });
+    this.publish();
+  };
+  readonly dismiss = (key: string): void => {
+    this.notices = removeNotice(this.notices, key);
+    this.publish();
+  };
+
+  /** Release resources after unmount. The native close flush handshake is separate. */
+  dispose(): Promise<void> {
+    this.closing ??= Promise.resolve().then(() => this.editorStore?.dispose());
+    this.notices = [];
+    this.listeners.clear();
+    return this.closing;
+  }
+
+  private publish(): void {
+    for (const listener of this.listeners) listener();
+  }
+}

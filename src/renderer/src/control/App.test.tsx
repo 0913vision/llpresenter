@@ -12,6 +12,7 @@ import {
   seedSampleService,
 } from '@renderer/show/testing/sampleService';
 import {App} from './App';
+import {ControlSession} from './controlSession';
 
 vi.mock('@renderer/render/outputRenderer', () => ({
   OutputRenderer: class {
@@ -26,12 +27,21 @@ function titleOfMenuBar(): string {
   return title?.textContent ?? '';
 }
 
+const sessions: ControlSession[] = [];
+
+function createSession(): ControlSession {
+  const session = new ControlSession(window.llp);
+  sessions.push(session);
+  return session;
+}
+
 beforeEach(() => {
   applyService(null);
 });
 
-afterEach(() => {
+afterEach(async () => {
   cleanup();
+  await Promise.all(sessions.splice(0).map(session => session.dispose()));
   applyService(null);
   useLive.setState({state: null});
   delete window.llp;
@@ -51,7 +61,12 @@ describe('App menu bar title', () => {
         },
       ],
     });
-    render(<App columnWidthStore={createMemoryColumnWidthStore()} />);
+    render(
+      <App
+        session={createSession()}
+        columnWidthStore={createMemoryColumnWidthStore()}
+      />,
+    );
     fireEvent.contextMenu(screen.getByRole('option', {name: 'Invented row'}));
     fireEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
     expect(await screen.findByText('예배 순서 변경 실패')).toBeDefined();
@@ -62,14 +77,24 @@ describe('App menu bar title', () => {
 
   it('shows the name of the open service and follows a change of it', () => {
     seedSampleService();
-    render(<App columnWidthStore={createMemoryColumnWidthStore()} />);
+    render(
+      <App
+        session={createSession()}
+        columnWidthStore={createMemoryColumnWidthStore()}
+      />,
+    );
     expect(titleOfMenuBar()).toBe('주일 예배');
     act(() => applyService({...sampleService, revision: 2, name: '수요 예배'}));
     expect(titleOfMenuBar()).toBe('수요 예배');
   });
 
   it('shows no name while no service is open', () => {
-    render(<App columnWidthStore={createMemoryColumnWidthStore()} />);
+    render(
+      <App
+        session={createSession()}
+        columnWidthStore={createMemoryColumnWidthStore()}
+      />,
+    );
     expect(titleOfMenuBar()).toBe('');
     expect(screen.queryByText('LoveLight Presenter')).toBeNull();
   });
@@ -90,7 +115,12 @@ describe('App clear keys', () => {
         },
       },
     });
-    render(<App columnWidthStore={createMemoryColumnWidthStore()} />);
+    render(
+      <App
+        session={createSession()}
+        columnWidthStore={createMemoryColumnWidthStore()}
+      />,
+    );
     fireEvent.keyDown(document.body, {code: 'KeyZ', ctrlKey: true});
     expect(sent).toEqual([]);
     fireEvent.keyDown(document.body, {code: 'F2'});
@@ -103,7 +133,12 @@ describe('App UI zoom', () => {
     const changeZoom = vi.fn(() => Promise.resolve(100));
     const send = vi.fn();
     window.llp = fakeLlpApi({ui: {changeZoom}, live: {send}});
-    render(<App columnWidthStore={createMemoryColumnWidthStore()} />);
+    render(
+      <App
+        session={createSession()}
+        columnWidthStore={createMemoryColumnWidthStore()}
+      />,
+    );
     for (const workspace of ['진행', '준비', '화면 설정']) {
       fireEvent.click(screen.getByRole('tab', {name: workspace}));
       fireEvent.keyDown(document.body, {code: 'Equal', ctrlKey: true});
@@ -123,7 +158,10 @@ describe('App UI zoom', () => {
   it('updates the size class from the effective CSS viewport after zoom', () => {
     vi.stubGlobal('innerWidth', 1920);
     const {container} = render(
-      <App columnWidthStore={createMemoryColumnWidthStore()} />,
+      <App
+        session={createSession()}
+        columnWidthStore={createMemoryColumnWidthStore()}
+      />,
     );
     expect(container.firstElementChild?.getAttribute('data-size')).toBe(
       'normal',

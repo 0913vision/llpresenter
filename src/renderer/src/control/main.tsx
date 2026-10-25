@@ -9,18 +9,31 @@ import {
   loadUiState,
 } from '@renderer/shell/loadColumnWidthStore';
 import {App} from './App';
+import {ControlSession} from './controlSession';
 
 const root = document.getElementById('root');
 
 async function start(container: HTMLElement): Promise<void> {
-  startLiveSync();
-  startServiceSync();
+  const stopLive = startLiveSync();
+  const stopService = startServiceSync();
+  const session = new ControlSession(window.llp);
   const uiState = await loadUiState(window.llp);
   seedThumbnailScale(uiState);
   const columnWidthStore = createColumnWidthStore(window.llp, uiState);
-  createRoot(container).render(
+  const reactRoot = createRoot(container);
+  window.addEventListener(
+    'pagehide',
+    () => {
+      reactRoot.unmount();
+      stopLive();
+      stopService();
+      session.dispose().catch((error: unknown) => console.error(error));
+    },
+    {once: true},
+  );
+  reactRoot.render(
     <StrictMode>
-      <App columnWidthStore={columnWidthStore} />
+      <App columnWidthStore={columnWidthStore} session={session} />
     </StrictMode>,
   );
 }

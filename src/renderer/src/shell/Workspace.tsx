@@ -1,4 +1,7 @@
-import {Fragment, type JSX, type ReactNode} from 'react';
+import {Fragment, useSyncExternalStore, type JSX, type ReactNode} from 'react';
+import type {LlpApi} from '@shared/ipc';
+import {LibraryPanel} from '@renderer/prep/library/LibraryPanel';
+import {SongEditor, type SongEditorStore} from '@renderer/prep/editor';
 import {ClearRow} from '@renderer/show/ClearRow';
 import {PreviewPanel} from '@renderer/show/PreviewPanel';
 import {ServiceOrderHeader} from '@renderer/show/ServiceOrderHeader';
@@ -34,6 +37,7 @@ const panelsByWorkspace: Readonly<
 };
 
 interface PanelParts {
+  readonly embedded?: ReactNode;
   // NOTE(0913vision): `bare` draws its content without the panel around it,
   // as the 지우기 row does.
   readonly bare?: ReactNode;
@@ -64,6 +68,9 @@ function Panel({
   readonly title: string;
   readonly parts: PanelParts;
 }): JSX.Element {
+  if (parts.embedded) {
+    return <div className={styles.embedded}>{parts.embedded}</div>;
+  }
   if (parts.bare) return <div className={styles.bare}>{parts.bare}</div>;
   return (
     <section className={panelClass(parts.size)} aria-label={title}>
@@ -124,6 +131,42 @@ function showPanelParts(
   }
 }
 
+interface PrepBinding {
+  readonly api: LlpApi;
+  readonly editor: SongEditorStore;
+}
+
+const noSubscribe = (): (() => void) => () => undefined;
+const ignoreProblem = (): void => undefined;
+
+function prepPanelParts({
+  title,
+  prep,
+  onProblem,
+}: {
+  readonly title: string;
+  readonly prep: PrepBinding | undefined;
+  readonly onProblem: ((notice: Notice) => void) | undefined;
+}): PanelParts {
+  if (!prep) return {};
+  if (title === '라이브러리') {
+    return {
+      embedded: (
+        <LibraryPanel
+          api={prep.api}
+          onProblem={onProblem ?? ignoreProblem}
+          onOpenSong={selection => {
+            // TODO(0913vision): P2b honors focusTitle when its title field lands.
+            prep.editor.open(selection.document);
+          }}
+        />
+      ),
+    };
+  }
+  if (title === '편집') return {body: <SongEditor store={prep.editor} />};
+  return {};
+}
+
 /** The three-column frame shared by all workspaces. */
 export function Workspace({
   id,
@@ -131,6 +174,7 @@ export function Workspace({
   store,
   onProblem,
   onOpenPrep,
+  prep,
   warningHeight = 0,
 }: {
   readonly id: WorkspaceId;
@@ -138,13 +182,22 @@ export function Workspace({
   readonly store: ColumnWidthStore;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
   readonly onOpenPrep?: ((itemId: string) => void) | undefined;
+  readonly prep?: PrepBinding | undefined;
   readonly warningHeight?: number;
 }): JSX.Element {
   const {gridRef, drag} = useColumnLayout(sizeClass, store);
+  const hasSong = useSyncExternalStore(
+    prep?.editor.subscribe ?? noSubscribe,
+    () => Boolean(prep?.editor.getSnapshot().session),
+  );
+  const columns =
+    id === 'prep' && hasSong
+      ? [['예배 순서', '라이브러리'], ['편집'], ['미리보기', '슬라이드']]
+      : panelsByWorkspace[id];
   return (
     <main ref={gridRef} className={styles.columns}>
       {id === 'show' ? <ShowShortcuts /> : null}
-      {panelsByWorkspace[id].map((panels, column) => (
+      {columns.map((panels, column) => (
         <Fragment key={column}>
           {column > 0 && (
             <ColumnGap column={column === 1 ? 'left' : 'right'} drag={drag} />
@@ -170,13 +223,18 @@ export function Workspace({
                             workspace={id}
                             onProblem={onProblem}
                             onOpenPrep={onOpenPrep}
+                            onOpenItem={
+                              id === 'prep'
+                                ? () => prep?.editor.open(null)
+                                : undefined
+                            }
                           />
                         ),
                         meta: <ReadOnlyMark />,
                       }
                     : id === 'show'
                       ? showPanelParts(title, sizeClass, onProblem)
-                      : {}
+                      : prepPanelParts({title, prep, onProblem})
                 }
               />
             ))}

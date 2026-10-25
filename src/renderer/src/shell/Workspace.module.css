@@ -68,6 +68,12 @@
   flex: none;
 }
 
+.embedded {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
 .content {
   flex: 0 1 auto;
 }
