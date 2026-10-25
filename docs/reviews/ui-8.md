@@ -2,10 +2,12 @@
 
 - Team member: `ui`
 - Branch: `feat/ui/gallery-context`
-- Review range: `ed45be2...feat/ui/gallery-context` (stacked on ui-7, whose tip
-  is `ed45be2`; after ui-7 merges, the range becomes
-  `main...feat/ui/gallery-context`)
-- Base commit: `ed45be2` (`feat/ui/live-parts`, ui-7)
+- Review range: `5536536...feat/ui/gallery-context` (round 1 was
+  `ed45be2...feat/ui/gallery-context`, stacked on ui-7; ui-7 has merged and
+  round 2 sits on `main` with the same round 1 patches)
+- Base commit (`main`): `5536536`
+- Round 2, what to check: the finding and the lead's answers in "Team member's
+  reply"; the two nits the lead sent
 - Last commit: the commit that adds this file (see the review request message)
 - Related brief: `docs/briefs/ui.md`, M2 in `docs/MILESTONES.md`
 - Shared changes: none
@@ -82,12 +84,11 @@ Not drawn on purpose:
 
 ## Decisions I made (for the lead to confirm)
 
-1. **Two icon buttons in a panel header.** The Panel README puts `space-8`
-   between header controls, and the IconButton README puts `space-4` between
-   several icon buttons. The gallery wraps the two tools in a stand-in group
-   with `space-4`, as the card does. If the IconButton rule should hold in every
-   panel header, `PanelActions` could close the gap between adjacent icon
-   buttons; I didn't add that without a caller.
+1. **Two icon buttons in a panel header** (round 2; the lead decided). They sit
+   `space-8` apart like every header control (`PanelActions`, as the Panel
+   README says); `space-4` is for a group of icon buttons outside a panel
+   header. The IconButton README and card say so, and the gallery drops its
+   stand-in group.
 
 ## Shared contract change requests
 
@@ -116,4 +117,24 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 finding from codex5, fixed, with the lead's answer to decision 1 and two
+README nits from the lead.
+
+1. The three 출력 상태 복구 rows sat side by side in the specimen's flex row, so
+   their values were squeezed and the fixed-width names overflowed. They now sit
+   in one block inside the specimen, one full-width row each, as on the card
+   (`d7de93f`). In Chromium the three rows stack at 30px, the value column
+   starts where the card's does, and the list rows specimen above is unchanged.
+   The card's "복구할 상태" caption belongs to the dialog that will use these
+   rows, so the gallery doesn't draw it.
+2. Decision 1, the lead's answer: icon buttons in a panel header sit 8px apart
+   (`953cba3`). The gallery's 비율 고정 and 격자에 맞추기 are plain
+   `PanelActions` children now (8px apart in Chromium), the IconButton README
+   keeps 4px for groups outside a panel header, and the card's tool group uses
+   `space-8`.
+3. Nit: the MenuBar README put `role="menubar"` on the whole row, but a menubar
+   may hold only menu items. It now puts it on the group of the six menus
+   (`ll-menubar__menus`), as shell-17 does (`3986106`).
+4. Nit: `docs/reviews/ui-9.md` checked the verify box although round 2 passed
+   four of five steps; the box is unchecked now and points at the known soak
+   failure (`615e7b2`).
