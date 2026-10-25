@@ -39,7 +39,7 @@ warning height to the workspace's right column. Panels mount no local stack.
 ## Remaining S1a work
 
 To keep review slices near the requested size, native reorder and library-drop
-wiring follow in spec-26. Their implementation is staged separately, together
+wiring follow in spec-27. Their implementation is staged separately, together
 with their interaction tests. Done states, 준비 details, the slide header, and
 `item.start` are still assigned follow-up work. S1b remains outside this task.
 The service picker waits for the lead's data-33 merge announcement.
