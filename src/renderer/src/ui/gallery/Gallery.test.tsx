@@ -1,6 +1,6 @@
 import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {beforeAll, describe, expect, it} from 'vitest';
+import {beforeAll, describe, expect, it, vi} from 'vitest';
 import {layerContainer} from '../layers';
 import {Gallery, galleryEntries, galleryFilter} from './Gallery';
 
@@ -34,6 +34,20 @@ describe('Gallery', () => {
     spacing.focus();
     await userEvent.keyboard('{ArrowUp}');
     expect(spacing.getAttribute('aria-valuetext')).toBe('1.45');
+  });
+
+  it('shows a live Show slider that returns pointer focus and remains reachable by Tab', async () => {
+    render(<Gallery only="Slider" />);
+    const note = screen.getByRole('textbox', {name: '진행 메모'});
+    const volume = screen.getByRole('slider', {name: '진행 음량'});
+    Object.defineProperty(volume, 'setPointerCapture', {value: vi.fn()});
+    await userEvent.click(note);
+    await userEvent.click(volume);
+    expect(document.activeElement).toBe(note);
+    await userEvent.tab();
+    expect(document.activeElement).toBe(volume);
+    await userEvent.keyboard('{ArrowRight}');
+    expect(volume.getAttribute('aria-valuetext')).toBe('71%');
   });
 });
 

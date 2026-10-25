@@ -13,9 +13,10 @@ export const clickFocusProps: Readonly<
 /**
  * Matches the parts that take focus on a mouse click in 진행, where a click on
  * any other control leaves focus where it was
- * (docs/spec/10-shortcuts-and-settings.md): text fields and sliders, menus
+ * (docs/spec/10-shortcuts-and-settings.md): text fields and native slider interaction, menus
  * and dialogs, and every part marked with `clickFocusProps`, such as
- * `ThumbnailGrid` and `ListBox`. Test it with `closest` on the click target.
+ * `ThumbnailGrid` and `ListBox`. Show sliders restore the previous focus when
+ * the pointer interaction ends. Test it with `closest` on the click target.
  */
 export const CLICK_FOCUS_SELECTOR = [
   'input',

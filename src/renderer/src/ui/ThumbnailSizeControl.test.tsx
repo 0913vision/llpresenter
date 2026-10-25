@@ -58,6 +58,10 @@ describe('ThumbnailSizeControl', () => {
     const onChange = vi.fn();
     const onCommit = vi.fn();
     render(<Control onChange={onChange} onCommit={onCommit} />);
+    Object.defineProperty(input('slider'), 'setPointerCapture', {
+      value: vi.fn(),
+    });
+    fireEvent.pointerDown(input('slider'));
     fireEvent.change(input('slider'), {target: {value: '123.45'}});
     expect(onChange).toHaveBeenLastCalledWith(123.45);
     expect(input('spinbutton').value).toBe('123%');
@@ -162,6 +166,10 @@ describe('ThumbnailSizeControl', () => {
   it('keeps Prep focus on the slider and finishes cancelled pointer interactions', () => {
     const onCommit = vi.fn();
     render(<Control onCommit={onCommit} />);
+    Object.defineProperty(input('slider'), 'setPointerCapture', {
+      value: vi.fn(),
+    });
+    fireEvent.pointerDown(input('slider'));
     input('slider').focus();
     fireEvent.change(input('slider'), {target: {value: '110.8'}});
     fireEvent.pointerCancel(input('slider'));

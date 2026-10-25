@@ -36,7 +36,10 @@ export interface NumberFieldProps extends Omit<
   readonly max: number;
   /** The change for one press of the up or down arrow. Defaults to 1. */
   readonly step?: number | undefined;
-  /** The change with Shift; defaults to ten times step. */
+  /**
+   * The change with Shift; defaults to ten times step. Use a whole multiple
+   * of step.
+   */
   readonly largeStep?: number | undefined;
   /** `commit` buffers typing until Enter or blur; Escape cancels it. */
   readonly updateOn?: 'change' | 'commit' | undefined;

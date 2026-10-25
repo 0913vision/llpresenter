@@ -1,5 +1,6 @@
 import type {JSX} from 'react';
 import {Slider, type SliderProps} from '../Slider';
+import {TextField} from '../TextField';
 import {ThumbnailSizeControl} from '../ThumbnailSizeControl';
 import {SlideThumbnail, ThumbnailGrid} from '../SlideThumbnail';
 import {
@@ -134,6 +135,37 @@ export function SliderSection(): JSX.Element {
           width={SCALE_EXAMPLE_WIDTH}
         >
           <ScaleExample />
+        </SpecItem>
+      </SpecGroup>
+      <SpecGroup title="Show pointer focus" surface="panel">
+        <SpecItem
+          label="Focus this field, then drag the volume slider"
+          width={220}
+        >
+          <Stateful initial="">
+            {(value, setValue) => (
+              <TextField
+                block
+                size="sm"
+                aria-label="진행 메모"
+                placeholder="메모"
+                value={value}
+                onChange={setValue}
+              />
+            )}
+          </Stateful>
+        </SpecItem>
+        <SpecItem label="Pointer returns focus; Tab keeps keyboard control">
+          <Live
+            label="진행 음량"
+            min={0}
+            max={100}
+            workspace="show"
+            icon="audio"
+            width="compact"
+            initial={70}
+            formatValue={percentText}
+          />
         </SpecItem>
       </SpecGroup>
     </Section>

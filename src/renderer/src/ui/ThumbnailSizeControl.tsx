@@ -1,4 +1,4 @@
-import {useRef, type JSX, type PointerEvent} from 'react';
+import type {JSX} from 'react';
 import {classNames} from './classNames';
 import {NumberField} from './NumberField';
 import {Slider} from './Slider';
@@ -39,34 +39,6 @@ export function ThumbnailSizeControl({
   className,
 }: ThumbnailSizeControlProps): JSX.Element {
   const percentage = clampThumbnailScale(value);
-  const focusBeforeDrag = useRef<Element | null>(null);
-  const rememberFocus = (event: PointerEvent<HTMLSpanElement>): void => {
-    if (workspace !== 'show') return;
-    if (
-      event.target instanceof HTMLInputElement &&
-      event.target.type === 'range'
-    ) {
-      focusBeforeDrag.current = document.activeElement;
-    }
-  };
-  const restoreFocus = (event: PointerEvent<HTMLSpanElement>): void => {
-    if (
-      !(event.target instanceof HTMLInputElement) ||
-      event.target.type !== 'range'
-    ) {
-      return;
-    }
-    const previous = focusBeforeDrag.current;
-    focusBeforeDrag.current = null;
-    if (workspace !== 'show') return;
-    if (
-      previous instanceof HTMLElement &&
-      previous.isConnected &&
-      previous !== document.body
-    ) {
-      previous.focus({preventScroll: true});
-    } else event.target.blur();
-  };
   const finishDrag = (next: number): void => {
     const committed = commitThumbnailScale(next);
     if (committed !== next) onChange(committed);
@@ -82,12 +54,10 @@ export function ThumbnailSizeControl({
       role="group"
       aria-label="슬라이드 크기"
       className={classNames(styles.control, className)}
-      onPointerDownCapture={rememberFocus}
-      onPointerUpCapture={restoreFocus}
-      onPointerCancelCapture={restoreFocus}
     >
       <Slider
         label="슬라이드 크기"
+        workspace={workspace}
         icon="grid"
         min={MIN_THUMBNAIL_SCALE_PERCENT}
         max={MAX_THUMBNAIL_SCALE_PERCENT}

@@ -2,7 +2,9 @@ import type {CSSProperties, JSX, KeyboardEvent} from 'react';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {sliderKeyValue, sliderPercent} from './sliderValue';
+import {useSliderPointer} from './sliderPointer';
 import {useTooltip} from './Tooltip';
+import type {Workspace} from './workspace';
 import styles from './Slider.module.css';
 
 /** The slider width: 120, 96 (narrow window, 진행 도구 volume), or the cell. */
@@ -23,6 +25,8 @@ export interface SliderProps {
   readonly shiftStep?: number | undefined;
   /** Reports when a pointer interaction ends or a key changes the value. */
   readonly onCommit?: ((value: number) => void) | undefined;
+  /** In Show, a pointer interaction returns focus to its previous owner. */
+  readonly workspace?: Workspace | undefined;
   /** The accessible name and tooltip, such as 썸네일 크기 or 음량. */
   readonly label: string;
   /** A leading icon, such as `grid` or `audio`. */
@@ -56,6 +60,7 @@ export function Slider({
   step = 1,
   shiftStep,
   onCommit,
+  workspace = 'prep',
   label,
   icon,
   width = 'regular',
@@ -65,6 +70,7 @@ export function Slider({
   title,
   className,
 }: SliderProps): JSX.Element {
+  const pointerProps = useSliderPointer({workspace, disabled, onCommit});
   const scale = {min, max, step: step === 'any' ? 1 : step};
   const {targetProps, tooltip} = useTooltip({text: title ?? label});
   const trackStyle: TrackStyle = {
@@ -88,6 +94,7 @@ export function Slider({
 
   const slider = (
     <input
+      {...pointerProps}
       type="range"
       min={min}
       max={max}
@@ -104,17 +111,6 @@ export function Slider({
       )}
       onChange={event => onChange(Number(event.target.value))}
       onKeyDown={handleKeyDown}
-      onPointerDown={event => {
-        if (onCommit !== undefined) {
-          event.currentTarget.setPointerCapture(event.pointerId);
-        }
-      }}
-      onPointerUp={event => {
-        if (!disabled) onCommit?.(event.currentTarget.valueAsNumber);
-      }}
-      onPointerCancel={event => {
-        if (!disabled) onCommit?.(event.currentTarget.valueAsNumber);
-      }}
     />
   );
 
