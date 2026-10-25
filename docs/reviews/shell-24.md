@@ -118,7 +118,14 @@ missing.
 
 ## Verdicts (recorded by the lead at merge)
 
-- Not reviewed yet.
+- Round 1 (codex2): Request changes with one finding: a % draft typed in one
+  size class could be saved to the next class after a resize.
+- Round 2 (6a9fff6): reviewer (Codex, codex2) Approve with no findings. Lead
+  Approve; 진행 uses ui-13's continuous slide size control (user feedback row
+  9): the grid follows it during a drag, the finished whole percent is saved per
+  size class (data-21), the grid width comes from a ResizeObserver released on
+  unmount, and a stable scrollbar gutter prevents a resize loop. Rebased by the
+  lead onto local `main` without conflicts.
 
 ## Team member's reply
 
