@@ -8,6 +8,7 @@ import {
   writeHungTree,
 } from '../../test/process-trees';
 import {makeTempDir} from '../../test/temp-dir';
+import {KILL_TIMEOUT_MS} from '../process-tree.mts';
 import {
   parseClipSummary,
   prepareSoakMedia,
@@ -16,6 +17,8 @@ import {
   soakMediaList,
 } from './media.mts';
 import type {ClipSummary} from './clip-frames.mts';
+
+const EXIT_POLL_MS = 50;
 
 const CLIP: ClipSummary = {
   file: 'D:/soak/soak-loop.webm',
@@ -133,10 +136,13 @@ describe('runClipMaker', () => {
     const failed = expect(running).rejects.toThrow('did not finish');
     await vi.advanceTimersByTimeAsync(60_000);
     await failed;
-    await vi.waitFor(() => {
-      expect(isRunning(pids.parent)).toBe(false);
-      expect(isRunning(pids.child)).toBe(false);
-    });
+    await vi.waitFor(
+      () => {
+        expect(isRunning(pids.parent)).toBe(false);
+        expect(isRunning(pids.child)).toBe(false);
+      },
+      {timeout: KILL_TIMEOUT_MS, interval: EXIT_POLL_MS},
+    );
   });
 
   it('reports a maker that fails', async () => {

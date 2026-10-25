@@ -11,7 +11,8 @@ export type HelperResult =
 
 const MS_PER_SECOND = 1000;
 const TASKKILL_NO_SUCH_PROCESS = 128;
-const TASKKILL_TIMEOUT_MS = 5000;
+/** The longest {@link killProcessTree} waits for taskkill. */
+export const KILL_TIMEOUT_MS = 5000;
 
 /**
  * Runs a short helper command, such as taskkill, and stops it after
@@ -48,7 +49,7 @@ async function killOnWindows(pid: number): Promise<KillResult> {
   const result = await runHelper(
     'taskkill',
     ['/pid', String(pid), '/t', '/f'],
-    TASKKILL_TIMEOUT_MS,
+    KILL_TIMEOUT_MS,
   );
   if (result.kind === 'failed') return {ok: false, reason: result.reason};
   if (result.exitCode === 0 || result.exitCode === TASKKILL_NO_SUCH_PROCESS) {

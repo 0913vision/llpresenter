@@ -122,19 +122,30 @@ function summaryFrom(output: string, exitCode: number | null): ClipSummary {
   throw new Error(`the soak clip could not be made: ${reason}`);
 }
 
-function stopMaker(maker: ChildProcessByStdio<null, Readable, null>): void {
+function keepTail(stream: Readable, maxChars: number): () => string {
+  let text = '';
+  stream.setEncoding('utf8');
+  stream.on('data', (piece: string) => {
+    text = (text + piece).slice(-maxChars);
+  });
+  return () => text;
+}
+
+async function stopMaker(
+  maker: ChildProcessByStdio<null, Readable, null>,
+): Promise<void> {
   maker.stdout.destroy();
   maker.unref();
   const {pid} = maker;
   if (pid === undefined) return;
-  killProcessTree(pid).then(
-    result => {
-      if (!result.ok) {
-        console.error(`could not stop the clip maker: ${result.reason}`);
-      }
-    },
-    (error: unknown) => console.error('could not stop the clip maker:', error),
-  );
+  try {
+    const result = await killProcessTree(pid);
+    if (!result.ok) {
+      console.error(`could not stop the clip maker: ${result.reason}`);
+    }
+  } catch (error) {
+    console.error('could not stop the clip maker:', error);
+  }
 }
 
 /**
@@ -148,15 +159,22 @@ export function runClipMaker(command: ClipMakerCommand): Promise<ClipSummary> {
       stdio: ['ignore', 'pipe', 'inherit'],
       windowsHide: true,
     });
-    let output = '';
-    maker.stdout.setEncoding('utf8');
-    maker.stdout.on('data', (text: string) => {
-      output = (output + text).slice(-MAX_MAKER_OUTPUT_CHARS);
-    });
+    const output = keepTail(maker.stdout, MAX_MAKER_OUTPUT_CHARS);
+    let stopping = false;
+    // NOTE(0913vision): The deadline rejects only after the maker's processes
+    // are stopped (taskkill gives up after KILL_TIMEOUT_MS), so a caller that
+    // sees the rejection never races the processes it stops. The close that
+    // the stop causes doesn't count as the maker's own end.
     const deadline = setTimeout(() => {
-      stopMaker(maker);
+      stopping = true;
       const seconds = command.deadlineMs / MS_PER_SECOND;
-      reject(new Error(`the clip maker did not finish within ${seconds} s`));
+      const late = new Error(
+        `the clip maker did not finish within ${seconds} s`,
+      );
+      stopMaker(maker).then(
+        () => reject(late),
+        () => reject(late),
+      );
     }, command.deadlineMs);
     maker.once('error', error => {
       clearTimeout(deadline);
@@ -164,8 +182,9 @@ export function runClipMaker(command: ClipMakerCommand): Promise<ClipSummary> {
     });
     maker.once('close', exitCode => {
       clearTimeout(deadline);
+      if (stopping) return;
       try {
-        resolve(summaryFrom(output, exitCode));
+        resolve(summaryFrom(output(), exitCode));
       } catch (error) {
         reject(error instanceof Error ? error : new Error(String(error)));
       }
