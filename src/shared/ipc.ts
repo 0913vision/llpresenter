@@ -16,6 +16,16 @@ import type {FrameRateReport, RendererLogEntry} from './schema/ipcPayloads';
 import type {OutputStatuses} from './schema/outputStatus';
 import type {ShowService} from './schema/showService';
 import type {LayoutChange, UiState} from './schema/uiState';
+import type {
+  LibrarySearchRequest,
+  LibrarySearchResult,
+} from './schema/librarySearch';
+import type {
+  TextImportReadRequest,
+  TextImportReadResult,
+  TextImportPreviewRequest,
+  TextImportPreviewResult,
+} from './schema/textImport';
 import type {UiZoomCommand} from './schema/uiZoom';
 
 export const Channels = {
@@ -47,6 +57,9 @@ export const Channels = {
   templatesListChanged: 'templates:list:changed',
   templatesDocumentGet: 'templates:document:get',
   templatesDocumentChanged: 'templates:document:changed',
+  librarySearch: 'library:search',
+  textImportRead: 'import:text:read',
+  textImportPreview: 'import:text:preview',
 } as const;
 
 export type WindowAction = 'minimize' | 'toggle-maximize' | 'close';
@@ -154,6 +167,18 @@ export interface LlpApi {
     TemplateDocument,
     TemplateChange
   >;
+  readonly library: {
+    /** Searches main's index; rejects and logs malformed requests or replies. */
+    search(request: LibrarySearchRequest): Promise<LibrarySearchResult>;
+  };
+  readonly textImport: {
+    /** Reads decoded text; a null success means the file dialog was cancelled. */
+    read(request: TextImportReadRequest): Promise<TextImportReadResult>;
+    /** Rebuilds an unsaved draft from retained text and options; never saves. */
+    preview(
+      request: TextImportPreviewRequest,
+    ): Promise<TextImportPreviewResult>;
+  };
 }
 
 /** Reading and following one kind of document: songs, 예배 순서, or 틀. */

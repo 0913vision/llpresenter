@@ -76,6 +76,144 @@ function loggedErrors(): unknown[] {
 }
 
 describe('preload', () => {
+  it('validates and invokes library search with its typed match results', async () => {
+    const result = {
+      query: '새',
+      matches: [
+        {
+          songId: SONG_ID,
+          title: '새 노래',
+          slideCount: 1,
+          match: {kind: 'lyrics', line: '새로운 문장'},
+        },
+      ],
+    };
+    electron.invoke.mockResolvedValueOnce(result);
+    const request = {query: '새', limit: 20, ignored: true};
+    await expect(api.library.search(request)).resolves.toEqual(result);
+    expect(electron.invoke).toHaveBeenCalledWith(Channels.librarySearch, {
+      query: '새',
+      limit: 20,
+    });
+    expect(loggedErrors()).toEqual([]);
+  });
+
+  it('reads import input and previews an unsaved draft without creating a song', async () => {
+    const source = {
+      source: 'file',
+      fileName: '예시.txt',
+      text: '첫째 문장',
+    } as const;
+    const options = {
+      split: 'lineBreak',
+      unitsPerSlide: 2,
+      labels: 'off',
+      firstLine: 'lyrics',
+    } as const;
+    const draft = {title: '', slides: [{lines: ['첫째 문장']}]};
+    electron.invoke
+      .mockResolvedValueOnce({ok: true, value: source})
+      .mockResolvedValueOnce({ok: true, value: draft});
+    await expect(
+      api.textImport.read({source: 'file', encoding: 'auto'}),
+    ).resolves.toEqual({ok: true, value: source});
+    await expect(api.textImport.preview({source, options})).resolves.toEqual({
+      ok: true,
+      value: draft,
+    });
+    expect(electron.invoke.mock.calls).toEqual([
+      [Channels.textImportRead, {source: 'file', encoding: 'auto'}],
+      [Channels.textImportPreview, {source, options}],
+    ]);
+    expect(loggedErrors()).toEqual([]);
+  });
+
+  it('keeps cancelled reads and conversion refusals as typed results', async () => {
+    const failure = {ok: false, error: {reason: 'empty', message: 'No text'}};
+    electron.invoke
+      .mockResolvedValueOnce({ok: true, value: null})
+      .mockResolvedValueOnce(failure);
+    await expect(
+      api.textImport.read({source: 'file', encoding: 'utf-8'}),
+    ).resolves.toEqual({ok: true, value: null});
+    await expect(
+      api.textImport.preview({
+        source: {source: 'clipboard', fileName: null, text: ''},
+        options: {
+          split: 'blankLine',
+          unitsPerSlide: 1,
+          labels: 'off',
+          firstLine: 'lyrics',
+        },
+      }),
+    ).resolves.toEqual(failure);
+    expect(loggedErrors()).toEqual([]);
+  });
+
+  it('drops malformed search and import requests before IPC and logs the field', async () => {
+    for (const [method, value] of [
+      [api.library.search, {query: 1}],
+      [api.textImport.read, {source: 'path', encoding: 'auto'}],
+      [
+        api.textImport.preview,
+        {
+          source: {source: 'clipboard', fileName: null, text: ''},
+          options: {
+            split: 'symbol',
+            unitsPerSlide: 0,
+            labels: 'off',
+            firstLine: 'title',
+          },
+        },
+      ],
+    ] as const) {
+      await expect(Reflect.apply(method, undefined, [value])).rejects.toThrow(
+        'Bad request on',
+      );
+    }
+    expect(electron.invoke).not.toHaveBeenCalled();
+    expect(loggedErrors()).toHaveLength(3);
+    expect(loggedErrors()[0]).toMatchObject({
+      message: `Ignored a bad request on ${Channels.librarySearch}`,
+    });
+    expect(loggedErrors()[0]).toHaveProperty(
+      'detail',
+      expect.stringContaining('query'),
+    );
+  });
+
+  it('logs and rejects malformed search and import replies and invocation failures', async () => {
+    electron.invoke
+      .mockResolvedValueOnce({query: '새', matches: [{songId: SONG_ID}]})
+      .mockResolvedValueOnce({
+        ok: true,
+        value: {source: 'file', fileName: null, text: '예시'},
+      })
+      .mockResolvedValueOnce({ok: true, value: {title: '', slides: []}})
+      .mockRejectedValueOnce(new Error('search unavailable'));
+    await expect(api.library.search({query: '새'})).rejects.toThrow(
+      'Bad reply on',
+    );
+    await expect(
+      api.textImport.read({source: 'clipboard', encoding: 'auto'}),
+    ).rejects.toThrow('Bad reply on');
+    await expect(
+      api.textImport.preview({
+        source: {source: 'clipboard', fileName: null, text: ''},
+        options: {
+          split: 'blankLine',
+          unitsPerSlide: 1,
+          labels: 'off',
+          firstLine: 'lyrics',
+        },
+      }),
+    ).rejects.toThrow('Bad reply on');
+    await expect(api.library.search({query: '새'})).rejects.toThrow(
+      'search unavailable',
+    );
+    expect(loggedErrors()).toHaveLength(4);
+  });
+
   it('reads zoom and sends a typed zoom command through checked invoke', async () => {
     electron.invoke.mockResolvedValueOnce(120).mockResolvedValueOnce(130);
     await expect(api.ui.getZoom()).resolves.toBe(120);

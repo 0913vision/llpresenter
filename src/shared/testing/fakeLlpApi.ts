@@ -46,6 +46,19 @@ export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
     songs: {...emptyDocuments(), ...overrides.songs},
     services: {...emptyDocuments(), ...overrides.services},
     templates: {...emptyDocuments(), ...overrides.templates},
+    library: {
+      search: ({query}) => Promise.resolve({query, matches: []}),
+      ...overrides.library,
+    },
+    textImport: {
+      read: () => Promise.resolve({ok: true, value: null}),
+      preview: () =>
+        Promise.resolve({
+          ok: false,
+          error: {reason: 'empty', message: 'fakeLlpApi has no text'},
+        }),
+      ...overrides.textImport,
+    },
   };
 }
 

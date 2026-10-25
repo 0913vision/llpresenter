@@ -14,6 +14,23 @@ describe('fakeLlpApi', () => {
     await expect(api.output.getStatus()).resolves.toEqual({});
     await expect(api.songs.list()).resolves.toEqual([]);
     await expect(api.services.get('a')).resolves.toBeNull();
+    await expect(api.library.search({query: '새', limit: 20})).resolves.toEqual(
+      {query: '새', matches: []},
+    );
+    await expect(
+      api.textImport.read({source: 'file', encoding: 'auto'}),
+    ).resolves.toEqual({ok: true, value: null});
+    await expect(
+      api.textImport.preview({
+        source: {source: 'clipboard', fileName: null, text: ''},
+        options: {
+          split: 'blankLine',
+          unitsPerSlide: 1,
+          labels: 'off',
+          firstLine: 'lyrics',
+        },
+      }),
+    ).resolves.toMatchObject({ok: false, error: {reason: 'empty'}});
     await expect(
       api.content.edit({type: 'song.create'}),
     ).resolves.toMatchObject({

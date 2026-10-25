@@ -25,6 +25,16 @@ import {parseOutputStatuses} from '@shared/schema/outputStatus';
 import {parseShowService} from '@shared/schema/showService';
 import {parseUiState} from '@shared/schema/uiState';
 import {parseUiZoomPercent} from '@shared/schema/uiZoom';
+import {
+  parseLibrarySearchRequest,
+  parseLibrarySearchResult,
+} from '@shared/schema/librarySearch';
+import {
+  parseTextImportReadRequest,
+  parseTextImportReadResult,
+  parseTextImportPreviewRequest,
+  parseTextImportPreviewResult,
+} from '@shared/schema/textImport';
 
 type Parse<T> = (value: unknown) => Result<T, PayloadError>;
 
@@ -38,7 +48,7 @@ function listen<T>(
     if (parsed.ok) {
       listener(parsed.value);
     } else {
-      logBadReply(channel, parsed.error);
+      logBadValue('reply', channel, parsed.error);
     }
   };
   ipcRenderer.on(channel, handler);
@@ -60,7 +70,7 @@ async function invokeChecked<T>(
   if (parsed.ok) {
     return parsed.value;
   }
-  logBadReply(channel, parsed.error);
+  logBadValue('reply', channel, parsed.error);
   throw new Error(`Bad reply on ${channel}: ${describe(parsed.error)}`);
 }
 
@@ -77,12 +87,34 @@ async function invokeSafely(
   }
 }
 
-function logBadReply(channel: string, error: PayloadError): void {
+function logBadValue(
+  kind: 'request' | 'reply',
+  channel: string,
+  error: PayloadError,
+): void {
   ipcRenderer.send(Channels.logWrite, {
     level: 'error',
-    message: `Ignored a bad reply on ${channel}`,
+    message: `Ignored a bad ${kind} on ${channel}`,
     detail: describe(error).slice(0, RENDERER_LOG_LIMITS.detail),
   });
+}
+
+interface RequestChannel<TRequest, TReply> {
+  readonly channel: string;
+  readonly request: Parse<TRequest>;
+  readonly reply: Parse<TReply>;
+}
+
+async function invokeRequest<TRequest, TReply>(
+  {channel, request: parseRequest, reply}: RequestChannel<TRequest, TReply>,
+  value: TRequest,
+): Promise<TReply> {
+  const parsed = parseRequest(value);
+  if (!parsed.ok) {
+    logBadValue('request', channel, parsed.error);
+    throw new Error(`Bad request on ${channel}: ${describe(parsed.error)}`);
+  }
+  return invokeChecked(channel, reply, parsed.value);
 }
 
 function describe({field, message}: PayloadError): string {
@@ -176,6 +208,37 @@ const api: LlpApi = {
     parseDocument: parseTemplateDocument,
     parseChange: parseTemplateChange,
   }),
+  library: {
+    search: request =>
+      invokeRequest(
+        {
+          channel: Channels.librarySearch,
+          request: parseLibrarySearchRequest,
+          reply: parseLibrarySearchResult,
+        },
+        request,
+      ),
+  },
+  textImport: {
+    read: request =>
+      invokeRequest(
+        {
+          channel: Channels.textImportRead,
+          request: parseTextImportReadRequest,
+          reply: parseTextImportReadResult,
+        },
+        request,
+      ),
+    preview: request =>
+      invokeRequest(
+        {
+          channel: Channels.textImportPreview,
+          request: parseTextImportPreviewRequest,
+          reply: parseTextImportPreviewResult,
+        },
+        request,
+      ),
+  },
 };
 
 contextBridge.exposeInMainWorld('llp', api);
