@@ -76,3 +76,15 @@ service picker waits for the lead's data-33 merge announcement. S1b is excluded.
 
 The report records the exact submitted HEAD's green CI URL and result without
 adding an unverified metadata commit.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (9ae1abc): reviewer (Claude, trial-97) Approve. Two nits for the next
+  S1a part: spec 05:44 asks for the Delete key in 준비 (remove the selected item
+  without confirmation, Ctrl Z restores it); add it while the list has focus,
+  through `edits.remove`. Dragging a header moves only the header, so its rows
+  fall under the previous header; follow spec 04 and 05 if they say how a header
+  drag behaves, otherwise move the header with its rows and record that. Lead
+  Approve. Written by the Codex session that took over spec's work, under the
+  lead's exception for shell's paths. Rebased by the lead onto local `main`
+  without conflicts.
