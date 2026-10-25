@@ -8,11 +8,16 @@ import {
   withPreferenceDefaults,
   type Preferences,
 } from '@shared/schema/preferences';
-import {parseService, type Service} from '@shared/schema/service';
+import {
+  parseService,
+  parseTemplate,
+  type Service,
+  type Template,
+} from '@shared/schema/service';
 import {parseSong, type Song} from '@shared/schema/song';
 import type {AppConfigFile} from './appConfigFile';
 import {DEFAULT_LABELS, EMPTY_MEDIA_LIST} from './defaults';
-import {loadFolder} from './library';
+import {loadFolder, type StoredFile} from './library';
 import {
   buildMediaLibrary,
   type MediaLibrary,
@@ -53,9 +58,11 @@ export interface LoadedStore {
    * The song library, by song id. A song from a newer app version is
    * read-only (`access`).
    */
-  readonly songs: ReadonlyMap<string, LoadedFile<Song>>;
+  readonly songs: ReadonlyMap<string, StoredFile<Song>>;
   /** The 예배 순서, by service id, read-only like the songs. */
-  readonly services: ReadonlyMap<string, LoadedFile<Service>>;
+  readonly services: ReadonlyMap<string, StoredFile<Service>>;
+  /** The 틀, by template id, read-only like the songs. */
+  readonly templates: ReadonlyMap<string, StoredFile<Template>>;
   readonly labels: readonly Label[];
   /** 환경설정, with the default for every field the file doesn't set. */
   readonly preferences: Preferences;
@@ -82,7 +89,13 @@ interface PreferencesRead {
 
 type DataRead = Pick<
   LoadedStore,
-  'songs' | 'services' | 'labels' | 'preferences' | 'media' | 'problems'
+  | 'songs'
+  | 'services'
+  | 'templates'
+  | 'labels'
+  | 'preferences'
+  | 'media'
+  | 'problems'
 >;
 
 /**
@@ -150,18 +163,25 @@ async function readData(
     SERVICE_EXTENSION,
     parseService,
   );
+  const templates = await loadFolder(
+    locations.templates,
+    SERVICE_EXTENSION,
+    parseTemplate,
+  );
   const labels = await readLabels(locations);
   const preferences = await readPreferences(locations);
   const media = await readMedia(locations, developmentFolder);
   return {
     songs: songs.items,
     services: services.items,
+    templates: templates.items,
     labels: labels.labels,
     preferences: preferences.preferences,
     media: media.library,
     problems: [
       ...songs.problems,
       ...services.problems,
+      ...templates.problems,
       ...labels.problems,
       ...preferences.problems,
       ...media.problems,

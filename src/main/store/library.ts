@@ -2,9 +2,14 @@ import {extname, join} from 'node:path';
 import type {FileError, LoadedFile} from '@shared/schema/fileFormat';
 import {listFolder, loadFile, type ParseFile} from './readFiles';
 
+/** A loaded file, and where it is, so that a change saves to the same file. */
+export interface StoredFile<T> extends LoadedFile<T> {
+  readonly file: string;
+}
+
 /** The files of one folder that loaded, by id, and the ones that didn't. */
 export interface LoadedFolder<T> {
-  readonly items: ReadonlyMap<string, LoadedFile<T>>;
+  readonly items: ReadonlyMap<string, StoredFile<T>>;
   readonly problems: readonly FileError[];
 }
 
@@ -24,7 +29,7 @@ export async function loadFolder<T extends {readonly id: string}>(
   if (!names.ok) {
     return {items: new Map(), problems: [names.error]};
   }
-  const items = new Map<string, LoadedFile<T>>();
+  const items = new Map<string, StoredFile<T>>();
   const problems: FileError[] = [];
   for (const name of names.value.filter(name => extname(name) === extension)) {
     const file = join(folder, name);
@@ -41,7 +46,7 @@ export async function loadFolder<T extends {readonly id: string}>(
       problems.push(duplicateProblem(file));
       continue;
     }
-    items.set(id, loaded.value);
+    items.set(id, {...loaded.value, file});
   }
   return {items, problems};
 }
