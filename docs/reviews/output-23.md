@@ -6,6 +6,9 @@
 - Code head: `97846147ece51169e1e4a9e405048ba78bee7e62`
 - Range: `4efee4b...feat/output/overlays`
 - Task: M3-O6a, built on data-31 (`be5a043`). O6b timers stay out of scope.
+- Round 2 code CI:
+  [40219486877](https://github.com/0913vision/llpresenter/actions/runs/40219486877),
+  **success** at `1640f7fbb75f3c386ae4e77915accf94ae0cc9c7`.
 - Round 1 code CI:
   [40216281222](https://github.com/0913vision/llpresenter/actions/runs/40216281222),
   **success** at `e9bc31d468f952638ed02a4d58ac1b4d5f900d73`.
@@ -195,4 +198,6 @@ changed for round 2.
 Round 2 focused checks: 52 tests across five files passed in 2.99 seconds, with
 typecheck and targeted ESLint passing. Formatting and whitespace checks passed.
 The branch was rebased onto main including data-35 immediately before the round
-2 push, without conflicts. Round 2 CI will be recorded after the branch run.
+2 push, without conflicts. GitHub full verify passed on the round 2 code,
+including coverage tests and build. The final documentation-only HEAD run is
+linked in the round 2 review request.
