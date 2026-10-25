@@ -91,15 +91,13 @@ None.
 - The remaining memory findings require owner investigation. This request does
   not ask for M2 acceptance sign-off.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict:
-- Findings:
-
-## Review: reviewer
-
-- Verdict:
-- Findings:
+- Round 1 (3010c99): reviewer (Codex, codex3) Approve with no findings. Lead
+  Approve; the second 20-minute soak on `main` 4bcba7b shows the M2-5 swing gone
+  (main peak 88 MiB) and 60 fps throughout, but the judge fails on small trends
+  in main, GPU, and output (12.7 to 18.8 MB/h). Twenty minutes can't separate
+  growth from warm-up, so qa runs the 60-minute soak next. Fast-forward merge.
 
 ## Team member's reply
 
