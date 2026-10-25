@@ -2,13 +2,13 @@
 
 - Team member: `ui`
 - Branch: `feat/ui/gallery-context`
-- Review range: `5536536...feat/ui/gallery-context` (round 1 was
+- Review range: `da4aae7...feat/ui/gallery-context` (round 1 was
   `ed45be2...feat/ui/gallery-context`, stacked on ui-7; ui-7 has merged and
   round 2 sits on `main` with the same round 1 patches)
-- Base commit (`main`): `5536536`
+- Base commit (`main`): `da4aae7`
 - Round 2, what to check: the finding and the lead's answers in "Team member's
   reply"; the two nits the lead sent
-- Last commit: the commit that adds this file (see the review request message)
+- Last commit: see the review request message
 - Related brief: `docs/briefs/ui.md`, M2 in `docs/MILESTONES.md`
 - Shared changes: none
 - What to check: that each new gallery specimen uses the real part where one
@@ -36,8 +36,31 @@ order):
   Checkbox, and Switch sections, and the CSS modules of the stand-ins
   (`ButtonSection.module.css`, `IconButtonSection.module.css`,
   `SegmentedSection.module.css`).
+- `design/system/project/components/IconButton/README.md` and `preview.html`:
+  the lead's panel header gap decision.
+- `design/system/project/components/MenuBar/README.md`: the menubar group nit.
+- `docs/reviews/ui-9.md`: the historical verify checkbox nit.
 
 ## Checks run
+
+### Round 2
+
+| Command or test                                                | Result                                                                   |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `npm run verify`                                               | Pass, all five steps, 111.7 s, one run with `LLP_TEST_WINDOWS=offscreen` |
+| Gallery and five component test files (`--maxWorkers 2`)       | Pass, six files, 45 tests                                                |
+| Offscreen Chromium comparison after recovering the gallery CSS | Pass, Checkbox row geometry and IconButton header gap match the cards    |
+
+Rebased once onto `main` at `da4aae7`. The three recovery rows each measure 412
+by 30px and start at relative y positions 0, 30, and 60px. Each value column
+starts 230px from its row's left edge, matching the card. All seven list rows
+above remain 440 by 30px and stack at 30px intervals. The two panel header tool
+buttons sit 8px apart, with off and on states matching the card. Inspected the
+full Checkbox and IconButton gallery screenshots. Every window used
+`show: false` and `webPreferences.offscreen: true`; the check and its servers
+have exited.
+
+### Round 1
 
 | Command or test                              | Result                                                                            |
 | -------------------------------------------- | --------------------------------------------------------------------------------- |
@@ -123,18 +146,18 @@ README nits from the lead.
 1. The three 출력 상태 복구 rows sat side by side in the specimen's flex row, so
    their values were squeezed and the fixed-width names overflowed. They now sit
    in one block inside the specimen, one full-width row each, as on the card
-   (`d7de93f`). In Chromium the three rows stack at 30px, the value column
+   (`8b0df36`). In Chromium the three rows stack at 30px, the value column
    starts where the card's does, and the list rows specimen above is unchanged.
    The card's "복구할 상태" caption belongs to the dialog that will use these
    rows, so the gallery doesn't draw it.
 2. Decision 1, the lead's answer: icon buttons in a panel header sit 8px apart
-   (`953cba3`). The gallery's 비율 고정 and 격자에 맞추기 are plain
+   (`c238736`). The gallery's 비율 고정 and 격자에 맞추기 are plain
    `PanelActions` children now (8px apart in Chromium), the IconButton README
    keeps 4px for groups outside a panel header, and the card's tool group uses
    `space-8`.
 3. Nit: the MenuBar README put `role="menubar"` on the whole row, but a menubar
    may hold only menu items. It now puts it on the group of the six menus
-   (`ll-menubar__menus`), as shell-17 does (`3986106`).
+   (`ll-menubar__menus`), as shell-17 does (`48844d5`).
 4. Nit: `docs/reviews/ui-9.md` checked the verify box although round 2 passed
    four of five steps; the box is unchecked now and points at the known soak
-   failure (`615e7b2`).
+   failure (`11e94f5`).
