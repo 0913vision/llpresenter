@@ -280,10 +280,12 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   control monitor's work area. The unplug check found it at the right edge
   instead (Windows restored the pre-full-screen bounds on the lost monitor after
   the app's bounds), a bug for output.
-- The short full screen flash on the control monitor right after the unplug
-  stays: Windows moves the window before the app hears of the change, and the
-  app's 300 ms settle wait (`DISPLAY_SETTLE_MS`) keeps it from reading a
-  half-updated monitor list.
+- Windows moves the full screen window onto the control monitor before the app
+  hears of the change, so the window would cover the controls until the app's
+  300 ms settle wait (`DISPLAY_SETTLE_MS`) ends and it becomes a window. To
+  avoid that, on the disconnect event itself, before the settle wait, the output
+  window drops always on top and goes behind the control window (user decision).
+  The settle wait then only decides the window's placement.
 - ProPresenter has no equivalent to follow: Renewed Vision's support article
   says a display disconnected while ProPresenter is open leaves the output on
   the main monitor, and the operator turns it off with Ctrl+1 or reassigns it
