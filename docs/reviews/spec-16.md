@@ -144,3 +144,12 @@ recording and formatting followed the second full verification.
 - `src/main/windows/fixtures/transparentBackground.mts`: waits at each original
   pixel checkpoint, preserving the native assertions and teardown.
 - `docs/reviews/spec-16.md`.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (eb0d2a2): reviewer (Codex, codex2) Approve with no findings. Lead
+  Approve; the transparent PNG pixel test waits for the composited frame up to a
+  named deadline and reports the last pixels seen, still fails on the CSS before
+  output-16, passed alone five times, and passed a full `verify`. Written by the
+  Codex session that took over spec's work, with the lead's permission to change
+  output's test. Rebased by the lead onto local `main` without conflicts.
