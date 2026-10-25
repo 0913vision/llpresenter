@@ -1,13 +1,44 @@
 # M2 check 1 drafts, part A
 
-Status: proposals for the user to choose. No product source, production tokens,
-or saved user settings changed. Parts B and C have not started.
+Status: the user chose preview B, service header A, and the Windows type scale
+on October 25, 2026. The clear undo button setting defaults to off. No product
+source, production tokens, or saved user settings changed in this drafts
+request. Implementation follows in separate requests.
 
 Request: `.llp/task.md`, part A, covering rows 6, 1, and 11 of
 [`m2-check1-feedback.md`](../../../docs/plans/m2-check1-feedback.md). Baseline:
 local `main` at `3e31e01`. The type comparison renders the actual `App` and its
 components from this baseline, with an invented sample service and an in-memory
 fake API. It never opens an output or connects to live data.
+
+## User choices
+
+The lead relayed these choices on October 25, 2026:
+
+1. **Preview B:** keep the fixed row of 본 화면, 무대 화면, and 방송 자막. Show
+   a marker in the selected small slot and that screen's picture in the large
+   preview above. Keep three preview renderings in total, with stable renderer
+   and video instances across selection changes.
+2. **Service header A:** replace the generic header label with the open
+   service's name. Keep the 34px header and the chosen 16/22 semibold name.
+   Retain the menu bar title, ellipsis for long names, and the full name on
+   hover. The 16/22 service name remains specific to this component when the
+   general heading style changes to 18/24 in the selected type scale.
+3. **Windows type scale:** adopt the proposed mapping below, including body
+   14/20, caption 12/16, and no UI text below 12px. Keep Pretendard. Output
+   pictures continue to scale their contents as described below.
+4. **Clear undo setting:** `지우기 되돌리기 단추 보이기` defaults to off.
+   Enabling the setting shows the 되돌리기 button; it does not restore the
+   removed Ctrl Z binding for clears.
+
+These choices authorize implementation in the UI parts, design tokens, and
+component specifications through separate small requests with tests. The slide
+terminology change remains separate: `장` becomes `슬라이드` only when it means
+a slide. Bible chapter names keep `장`, for example `창세기 1장`.
+
+The alternative boards and original PNGs are preserved as the record of the
+comparison the user chose from. They are not screenshots of the implemented
+choices. The full implementation is outside part A.
 
 ## Research before drawing the preview
 
@@ -55,9 +86,9 @@ output. No recording or streaming control is added.
 
 The current product uses three preview renderers, one large and two small.
 Alternative B would preserve that count; A would add one. These are counts of
-preview renderings, not output windows, GPU processes, or measured savings. If
-selected, implementation must retain existing renderer/video instances and
-change their layout without restarting playback. The static draft does not
+preview renderings, not output windows, GPU processes, or measured savings.
+Implementation of the selected B must retain existing renderer/video instances
+and change their layout without restarting playback. The static draft does not
 implement that lifecycle.
 
 ## Service header alternatives
@@ -149,8 +180,12 @@ Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
 & '.\node_modules\.bin\electron.cmd' 'design/drafts/m2-check1/render.cjs'
 ```
 
-Use this draft commit to reproduce the original baseline. Rebasing onto newer
-product code changes what the current-type capture renders.
+The committed PNGs and checks preserve the original `3e31e01` product baseline,
+captured in local pre-rebase commit `6a5f6e2`. This review branch was
+subsequently rebased onto newer `main`. Running the harness now uses the
+checked-out product source and updates the captures; it does not reproduce that
+historical baseline automatically. Use the committed PNGs to review the user's
+recorded comparison.
 
 The script refuses to run without the offscreen flag. Every window has
 `show: false` and `webPreferences.offscreen: true`. Its Vite server binds only
