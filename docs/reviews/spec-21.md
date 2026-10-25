@@ -141,3 +141,16 @@ Local evidence: `.llp/spec21/round2-focused-final.log`.
 The branch was rebased onto main at `3d8a38b` before the final push. A fully
 green CI run of the submitted HEAD is required. Its URL and result are recorded
 in the request report, avoiding another unverified commit for CI metadata.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (Claude, trial-97): Request changes: the synchronous parse of a
+  full-size translation file had no measurement against the main-thread budget
+  (spec 02: read at launch without blocking).
+- Round 2 (d50a70f): reviewer (Claude, trial-97) Approve: 11.7 to 17.9 ms for a
+  4.6 MB file with 31,102 verses, under the 100 ms budget. Nit for the next spec
+  branch: make the budget test robust on a loaded CI runner (warm up once,
+  assert on the median or best of three runs) and save the CI figure to the
+  coverage artifact. Lead Approve. Written by the Codex session that took over
+  spec's work, under the lead's exception for `src/main/bible/`. Rebased by the
+  lead onto local `main` without conflicts. M3-T4a is complete.
