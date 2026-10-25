@@ -4,6 +4,7 @@ import {LibraryPanel} from '@renderer/prep/library/LibraryPanel';
 import {SongEditor, type SongEditorStore} from '@renderer/prep/editor';
 import {ClearRow} from '@renderer/show/ClearRow';
 import {PreviewPanel} from '@renderer/show/PreviewPanel';
+import {ShowMediaPanel} from '@renderer/show/ShowMediaPanel';
 import {ServiceOrderHeader} from '@renderer/show/ServiceOrderHeader';
 import {ServiceOrderList} from '@renderer/show/ServiceOrderList';
 import {SongBackgroundControl} from '@renderer/show/SongBackgroundControl';
@@ -99,6 +100,10 @@ function ShowShortcuts(): null {
   return null;
 }
 
+function logPanelProblem(notice: Notice): void {
+  console.error('Workspace panel failed:', notice.key);
+}
+
 function showPanelParts(
   title: string,
   sizeClass: SizeClass,
@@ -112,6 +117,10 @@ function showPanelParts(
       };
     case '진행 도구':
       return {size: 'rest'};
+    case '미디어':
+      return {
+        bare: <ShowMediaPanel onProblem={onProblem ?? logPanelProblem} />,
+      };
     case '지우기':
       return {bare: <ClearRow compact={sizeClass === 'narrow'} />};
     case '슬라이드':
@@ -177,6 +186,7 @@ export function Workspace({
   onOpenPrep,
   prep,
   warningHeight = 0,
+  mediaVisible = true,
 }: {
   readonly id: WorkspaceId;
   readonly sizeClass: SizeClass;
@@ -185,6 +195,7 @@ export function Workspace({
   readonly onOpenPrep?: ((itemId: string) => void) | undefined;
   readonly prep?: PrepBinding | undefined;
   readonly warningHeight?: number;
+  readonly mediaVisible?: boolean | undefined;
 }): JSX.Element {
   const {gridRef, drag} = useColumnLayout(sizeClass, store);
   const hasSong = useSyncExternalStore(
@@ -211,34 +222,38 @@ export function Workspace({
                 : undefined
             }
           >
-            {panels.map(title => (
-              <Panel
-                key={title}
-                title={title}
-                parts={
-                  title === '예배 순서' && id !== 'screens'
-                    ? {
-                        header: <ServiceOrderHeader onProblem={onProblem} />,
-                        body: (
-                          <ServiceOrderList
-                            workspace={id}
-                            onProblem={onProblem}
-                            onOpenPrep={onOpenPrep}
-                            onOpenItem={
-                              id === 'prep'
-                                ? () => prep?.editor.open(null)
-                                : undefined
-                            }
-                          />
-                        ),
-                        meta: <ReadOnlyMark />,
-                      }
-                    : id === 'show'
-                      ? showPanelParts(title, sizeClass, onProblem)
-                      : prepPanelParts({title, prep, onProblem})
-                }
-              />
-            ))}
+            {panels
+              .filter(
+                title => id !== 'show' || title !== '미디어' || mediaVisible,
+              )
+              .map(title => (
+                <Panel
+                  key={title}
+                  title={title}
+                  parts={
+                    title === '예배 순서' && id !== 'screens'
+                      ? {
+                          header: <ServiceOrderHeader onProblem={onProblem} />,
+                          body: (
+                            <ServiceOrderList
+                              workspace={id}
+                              onProblem={onProblem}
+                              onOpenPrep={onOpenPrep}
+                              onOpenItem={
+                                id === 'prep'
+                                  ? () => prep?.editor.open(null)
+                                  : undefined
+                              }
+                            />
+                          ),
+                          meta: <ReadOnlyMark />,
+                        }
+                      : id === 'show'
+                        ? showPanelParts(title, sizeClass, onProblem)
+                        : prepPanelParts({title, prep, onProblem})
+                  }
+                />
+              ))}
           </div>
         </Fragment>
       ))}

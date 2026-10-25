@@ -7,6 +7,7 @@ import {openItem, useShow} from '@renderer/state/show';
 import {NotificationStack} from '@renderer/ui/Notification';
 import {Toolbar, type Workspace as WorkspaceId} from '@renderer/shell/Toolbar';
 import {useSizeClass} from '@renderer/shell/useSizeClass';
+import {useMediaStripVisibility} from '@renderer/shell/useMediaStripVisibility';
 import {useUiZoomKeys} from '@renderer/shell/uiZoomKeys';
 import {Workspace} from '@renderer/shell/Workspace';
 import type {ControlSession} from './controlSession';
@@ -20,6 +21,7 @@ export function App({
   readonly session: ControlSession;
 }): JSX.Element {
   const sizeClass = useSizeClass();
+  const mediaStrip = useMediaStripVisibility(sizeClass);
   const serviceName = useShow(view => view.serviceName);
   const [workspace, setWorkspace] = useState<WorkspaceId>('show');
   const notices = useSyncExternalStore(session.subscribe, session.getNotices);
@@ -38,6 +40,10 @@ export function App({
         workspace={workspace}
         onWorkspace={onWorkspace}
         onProblem={session.report}
+        mediaOpen={workspace === 'show' && mediaStrip.visible}
+        onMediaOpenChange={
+          workspace === 'show' ? mediaStrip.setVisible : undefined
+        }
       />
       <Workspace
         id={workspace}
@@ -55,6 +61,7 @@ export function App({
           session.editor?.open(null);
         }}
         warningHeight={warningHeight}
+        mediaVisible={mediaStrip.visible}
       />
       <StatusBar />
       <NotificationStack

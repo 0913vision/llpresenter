@@ -26,6 +26,8 @@ export interface ToolbarProps {
   readonly workspace: Workspace;
   readonly onWorkspace: (workspace: Workspace) => void;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
+  readonly mediaOpen?: boolean | undefined;
+  readonly onMediaOpenChange?: ((open: boolean) => void) | undefined;
 }
 
 function Search(): JSX.Element {
@@ -77,6 +79,8 @@ export function Toolbar({
   workspace,
   onWorkspace,
   onProblem,
+  mediaOpen = false,
+  onMediaOpenChange,
 }: ToolbarProps): JSX.Element {
   const compact = sizeClass === 'narrow';
   const barClass = compact ? `${styles.bar} ${styles.barCompact}` : styles.bar;
@@ -95,9 +99,16 @@ export function Toolbar({
       <ToolbarButton
         icon="film"
         label="미디어"
-        title="미디어"
+        title={
+          onMediaOpenChange
+            ? '미디어'
+            : '현재 작업 공간에서는 미디어를 열 수 없음'
+        }
         compact={compact}
         iconOnly={compact}
+        pressed={mediaOpen}
+        onPressedChange={onMediaOpenChange}
+        disabled={onMediaOpenChange === undefined}
       />
       <Search />
       <LookMenu compact={compact} onProblem={onProblem} />

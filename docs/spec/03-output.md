@@ -473,8 +473,10 @@ while monitors settle.
    (switch to a window), after the settle wait move the same output into a
    window on the control monitor and keep drawing. Content and playback position
    don't break.
-   - Keep the fallback directly behind the control window without taking focus
+   - Place the fallback directly behind the control window without taking focus
      and with always on top disabled, including when only one monitor remains.
+     After placement, the app never raises it automatically or restores this
+     window order when the operator switches windows.
    - Size it to 960 x 540 DIP, shrunk to fit when needed, and center it on the
      control monitor's work area.
 2. That screen's toolbar button shows the monitor missing state (amber dot and
