@@ -1,11 +1,11 @@
-Review range: `d119351...test/spec/bible-budget`
+Review range: `d0a97d3...test/spec/bible-budget`
 
 # Review request: `spec-22`
 
 - Team member: `spec`
 - Branch: `test/spec/bible-budget`, from `main` (not stacked)
-- Base commit (`main`): `d119351`
-- Test commit: `c808856`
+- Base commit (`main`): `d0a97d3`
+- Test commit: `5ff5585`
 - Task: `.llp/task.md`, the spec-21 parse-budget nit
 
 ## What changed and why
@@ -27,28 +27,46 @@ Local measured times were 13.854, 5.535, and 7.836 ms: **median 7.836 ms**.
 Timing excludes fixture generation, serialization, file I/O, artifact writing,
 and assertions. The runtime loader is unchanged.
 
+## ClearRow startup race
+
+The first branch CI run failed in the existing spec-18 test that counts undo
+icon renders, not in the parse budget:
+[run 40206840935](https://github.com/0913vision/llpresenter/actions/runs/40206840935).
+The lead extended this request to fix `ClearRow.test.tsx`, test only.
+
+The undo-render helper now starts live-state synchronization with an explicit
+first-read promise and waits for that state and its React updates before it
+returns. Tests set their desired live state afterwards, before resetting render
+counters or asserting transitions. This removes the startup-read race from all
+tests using the helper. The pre-first-state test now holds that response until
+after its initial assertion, then explicitly settles it. Synchronization is
+unsubscribed at test completion. Runtime ClearRow code is unchanged.
+
 ## Checks run
 
-| Check                                        | Result                                                                       |
-| -------------------------------------------- | ---------------------------------------------------------------------------- |
-| Changed parse-budget test                    | Pass: 1 file, 1 test                                                         |
-| Node TypeScript check (`tsconfig.node.json`) | Pass                                                                         |
-| Changed-file ESLint and Prettier             | Pass                                                                         |
-| `git diff --check`                           | Pass                                                                         |
-| Generated diagnostic JSON inspection         | Pass: all measurements and metadata recorded                                 |
-| Local full verify                            | Not run, per the lead's rule                                                 |
-| GitHub branch CI                             | Exact submitted HEAD's run URL and result are recorded in the request report |
+| Check                                           | Result                                                                       |
+| ----------------------------------------------- | ---------------------------------------------------------------------------- |
+| Changed parse-budget test                       | Pass: 1 file, 1 test                                                         |
+| Node TypeScript check (`tsconfig.node.json`)    | Pass                                                                         |
+| Changed-file ESLint and Prettier                | Pass                                                                         |
+| ClearRow tests                                  | Pass: 1 file, 23 tests                                                       |
+| Renderer TypeScript check (`tsconfig.web.json`) | Pass                                                                         |
+| `git diff --check`                              | Pass                                                                         |
+| Generated diagnostic JSON inspection            | Pass: all measurements and metadata recorded                                 |
+| Local full verify                               | Not run, per the lead's rule                                                 |
+| GitHub branch CI                                | Exact submitted HEAD's run URL and result are recorded in the request report |
 
-Local evidence: `.llp/spec21/robust-budget.log` and
-`coverage/bible-parse-budget.json`. No app window, Electron process, soak, or
-memory measurement was started.
+Local evidence: `.llp/spec21/robust-budget.log`, `.llp/spec22-clear-row.log`,
+and `coverage/bible-parse-budget.json`. No app window, Electron process, soak,
+or memory measurement was started.
 
 ## Changed files
 
 - `src/main/bible/parsePerformance.test.ts`.
+- `src/renderer/src/show/ClearRow.test.tsx`, the lead's test-only exception.
 - `docs/reviews/spec-22.md`.
 
-The branch starts from main at `d119351`. A fully green CI run of the submitted
-HEAD is required. The request report records its URL and result without adding
-another unverified commit for CI metadata. Its coverage artifact contains the CI
-measurements in `bible-parse-budget.json`.
+The branch was rebased onto main at `d0a97d3`. A fully green CI run of the
+submitted HEAD is required. The request report records its URL and result
+without adding another unverified commit for CI metadata. Its coverage artifact
+contains the CI measurements in `bible-parse-budget.json`.
