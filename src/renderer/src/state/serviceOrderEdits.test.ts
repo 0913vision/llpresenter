@@ -187,6 +187,38 @@ describe('service order edits', () => {
     expect(edits.canUndo(serviceId)).toBe(true);
   });
 
+  it('ignores object key order but refuses a later change to an item field', async () => {
+    const {state, edits, ids} = fixture();
+    await edits.move(serviceId, first, null);
+    if (state.document === null) throw new Error('Missing document');
+    state.document = {
+      ...state.document,
+      service: {
+        ...state.document.service,
+        order: state.document.service.order.map(item =>
+          item.id === second
+            ? {futureField: [1, 2], memo: 'Keep this', song: songId, id: second}
+            : item,
+        ),
+      },
+    };
+    expect(await edits.undo(serviceId)).toEqual({ok: true, value: true});
+    expect(ids()).toEqual([first, second, third]);
+    state.document = {
+      ...state.document,
+      service: {
+        ...state.document.service,
+        order: state.document.service.order.map(item =>
+          item.id === second ? {...item, memo: 'Changed independently'} : item,
+        ),
+      },
+    };
+    expect(await edits.redo(serviceId)).toMatchObject({
+      ok: false,
+      error: {reason: 'stale'},
+    });
+  });
+
   it('does not replace an independently changed order during redo', async () => {
     const {state, edits, edit} = fixture();
     await edits.remove(serviceId, second);
@@ -327,7 +359,7 @@ describe('service order edits', () => {
     rejectRead(new Error('IPC failed'));
     expect(await pending).toMatchObject({
       ok: false,
-      error: {reason: 'request-failed'},
+      error: {reason: 'request-failed', message: 'IPC failed'},
     });
     await edits.remove(serviceId, second);
     expect(edit).toHaveBeenCalledTimes(1);

@@ -1,4 +1,5 @@
 import type {LlpApi} from '@shared/ipc';
+import {isRecord} from '@shared/guards';
 import type {Result} from '@shared/result';
 import type {EditFailure} from '@shared/schema/contentEdit';
 import {
@@ -34,8 +35,25 @@ function refuse(reason: 'not-found' | 'read-only' | 'stale', message: string) {
   return {ok: false, error: {reason, message}} as const;
 }
 
-function sameOrder(left: Order, right: Order): boolean {
-  return JSON.stringify(left) === JSON.stringify(right);
+function sameOrder(left: unknown, right: unknown): boolean {
+  if (left === right) return true;
+  if (Array.isArray(left) && Array.isArray(right)) {
+    const rightValues: readonly unknown[] = right;
+    return (
+      left.length === right.length &&
+      left.every((value: unknown, index) =>
+        sameOrder(value, rightValues[index]),
+      )
+    );
+  }
+  if (!isRecord(left) || !isRecord(right)) return false;
+  const keys = Object.keys(left);
+  return (
+    keys.length === Object.keys(right).length &&
+    keys.every(
+      key => Object.hasOwn(right, key) && sameOrder(left[key], right[key]),
+    )
+  );
 }
 
 function insertionIndex(order: Order, beforeId: ServiceItemId | null): number {
@@ -44,7 +62,10 @@ function insertionIndex(order: Order, beforeId: ServiceItemId | null): number {
     : order.findIndex(item => item.id === beforeId);
 }
 
-/** Edits main-owned service orders without access to output commands. */
+/**
+ * Edits main-owned service orders without access to output commands.
+ * A later change to any item's own fields makes undo or redo refuse as stale.
+ */
 export class ServiceOrderEdits {
   private readonly past: HistoryEntry[] = [];
   private readonly future: HistoryEntry[] = [];
@@ -180,10 +201,13 @@ export class ServiceOrderEdits {
         this.record({serviceId, before, after}, action);
       }
       return saved.ok ? {ok: true, value: true} : saved;
-    } catch {
+    } catch (cause) {
       return {
         ok: false,
-        error: {reason: 'request-failed', message: 'The service edit failed'},
+        error: {
+          reason: 'request-failed',
+          message: cause instanceof Error ? cause.message : String(cause),
+        },
       };
     } finally {
       this.busy = false;
