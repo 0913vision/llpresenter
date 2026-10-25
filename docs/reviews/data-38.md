@@ -79,13 +79,14 @@ No new dependency, cache, subscription, timer, or file format migration. No app,
 visible windows, dialogs, soak, or memory measurements were started. New title
 fixtures are invented.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-Pending.
-
-## Review: reviewer
-
-Pending.
+- Round 1 (cf0004c): reviewer (Claude, trial-97) Approve with no findings:
+  `screen.settings.apply` is `{type, screenId}` (a resync of the saved screen;
+  no slice handles it yet, so nothing on main breaks; tagged `break` for the
+  shape change); song titles trim and NFC-normalize for the save, the duplicate
+  check, and 새 곡. Lead Approve. Written by the Codex session that took over
+  data's work. Rebased by the lead onto local `main` without conflicts.
 
 ## Team member's reply
 
