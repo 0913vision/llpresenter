@@ -46,6 +46,7 @@ export class OpenServiceFeed {
     this.pending = true;
     this.refreshing ??= this.flush().finally(() => {
       this.refreshing = null;
+      return this.pending && !this.disposed ? this.refresh() : undefined;
     });
     return this.refreshing;
   }

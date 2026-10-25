@@ -165,6 +165,8 @@ async function outputSongTile({
   if (service !== null && service.id !== serviceId) return;
 
   if (service !== null && service.id === serviceId) applyService(service);
+  const slide = slideLayerOf(cursor, tilesOf);
+  if (!slide) return;
   const row =
     service?.id === serviceId
       ? useShow.getState().rows.find(row => row.id === cursor.itemId)
@@ -178,8 +180,7 @@ async function outputSongTile({
       sendLive({type: 'media.show', media: row.background});
     }
   }
-  const slide = slideLayerOf(cursor, tilesOf);
-  if (slide) sendLive({type: 'slide.show', slide});
+  sendLive({type: 'slide.show', slide});
 }
 
 function outputIfPresent(cursor: TileCursor | null): void {

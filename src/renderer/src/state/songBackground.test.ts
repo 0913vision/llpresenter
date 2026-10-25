@@ -220,6 +220,28 @@ describe('song backgrounds on output', () => {
     );
   });
 
+  it('keeps both live layers when the requested tile disappears during lookup', async () => {
+    sendLive({type: 'media.show', media: {mediaId: 'previous', loop: true}});
+    click('none');
+    const previous = store.state;
+    sent.length = 0;
+    let finish: (value: ShowService) => void = () => undefined;
+    getService.mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          finish = resolve;
+        }),
+    );
+
+    click('one', 2);
+    expect(sent).toEqual([]);
+    finish({...service, revision: 2, tiles: {...service.tiles, one: [tile]}});
+    await vi.waitFor(() => expect(useShow.getState().revision).toBe(2));
+
+    expect(sent).toEqual([]);
+    expect(store.state).toBe(previous);
+  });
+
   it('does not output late after a clear command', async () => {
     let finish: (value: ShowService) => void = () => undefined;
     getService.mockImplementationOnce(

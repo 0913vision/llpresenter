@@ -7,7 +7,9 @@ import {OpenServiceFeed} from './openServiceFeed';
 import type {StoredDocument} from './documents';
 import {service, SUNDAY_ID, HYMN_ONE_ID, hymnOne, itemId} from './testFiles';
 
-async function setUp() {
+async function setUp(
+  backgroundOf: OpenServiceSources['backgroundOf'] = async () => null,
+) {
   const parsed = parseService(
     JSON.stringify(service(SUNDAY_ID, '2026-11-01T11:00', [])),
     'service.llservice',
@@ -29,7 +31,7 @@ async function setUp() {
   const push = vi.fn();
   const report = vi.fn();
   const feed = new OpenServiceFeed(
-    {serviceId: SUNDAY_ID, labels: [], content, backgroundOf: async () => null},
+    {serviceId: SUNDAY_ID, labels: [], content, backgroundOf},
     push,
     report,
   );
@@ -39,6 +41,67 @@ async function setUp() {
 }
 
 describe('OpenServiceFeed', () => {
+  it('drains a refresh queued between flush completion and finalization before either caller resolves', async () => {
+    let finish: (value: MediaChoice | null) => void = () => undefined;
+    const check = new Promise<MediaChoice | null>(resolve => {
+      finish = resolve;
+    });
+    const backgroundOf = vi.fn<OpenServiceSources['backgroundOf']>(() => check);
+    const {feed, content, current, push} = await setUp(backgroundOf);
+    const song = parseSong(
+      JSON.stringify({...hymnOne(), background: itemId(90)}),
+      'song.llsong',
+    );
+    const latest = parseService(
+      JSON.stringify({
+        ...current.data,
+        name: 'Latest',
+        order: [{id: itemId(1), song: HYMN_ONE_ID}],
+      }),
+      'service.llservice',
+    );
+    if (!song.ok || !latest.ok) throw new Error('Invalid test content');
+    content.storedSongs.mockReturnValue(
+      new Map([
+        [HYMN_ONE_ID, {...song.value, file: 'song.llsong', revision: 1}],
+      ]),
+    );
+    content.storedService.mockReturnValue({
+      ...current,
+      data: {...current.data, name: 'First'},
+    });
+    let late = Promise.resolve();
+    let lateDone = false;
+    push.mockImplementationOnce(() =>
+      queueMicrotask(() => {
+        content.storedService.mockReturnValue({
+          ...current,
+          data: latest.value.data,
+        });
+        late = feed.refresh().then(() => {
+          lateDone = true;
+        });
+      }),
+    );
+    let firstDone = false;
+    const first = feed.refresh().then(() => {
+      firstDone = true;
+    });
+    try {
+      await vi.waitFor(() => expect(backgroundOf).toHaveBeenCalledTimes(1));
+      expect(firstDone).toBe(false);
+      expect(lateDone).toBe(false);
+    } finally {
+      finish({mediaId: itemId(90), loop: true});
+      await Promise.all([first, late]);
+      await feed.dispose();
+    }
+    expect(firstDone).toBe(true);
+    expect(lateDone).toBe(true);
+    expect(feed.current()).toMatchObject({revision: 3, name: 'Latest'});
+    expect(push).toHaveBeenCalledTimes(2);
+  });
+
   it('coalesces refreshes and never publishes a superseded background check', async () => {
     const {content, current, push, report} = await setUp();
     const song = parseSong(
