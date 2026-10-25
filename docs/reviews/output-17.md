@@ -2,11 +2,13 @@
 
 - Team member: `output`
 - Branch: `fix/output/transparent-test-startup`
-- Base commit (`main`): pending rebase
-- Review range: pending rebase
+- Base commit (`main`): `36d6719ee03d3618d068de05528fc17c6b10c08d`
+- Code commit: `b881128`
+- Review range: `36d6719...fix/output/transparent-test-startup`
 - Related task: the lead's full verify timed out in the output-16 native pixel
   test after 30 s, while the same test passed alone in about 2 s.
 - Shared contract changes: none.
+- Status: ready; two consecutive full verify runs passed on code `b881128`.
 
 ## What changed and why
 
@@ -33,10 +35,9 @@ complete immediately.
   window, and calls `app.exit(1)` in `finally`, including if window teardown
   throws. Successful runs also cancel the watchdog and exit explicitly.
 - The test owns the process through an abort controller. Both `finally` and
-  `onTestFinished` abort and await the process runner, so a failed assertion or
-  Vitest timeout cannot leave a fixture running. The finish hook is registered
-  after temporary-folder cleanup, so its reverse hook order stops Electron
-  before the folder is removed.
+  `onTestFinished` abort and await the process runner on a failed assertion or
+  Vitest timeout. The finish hook is registered after temporary-folder cleanup,
+  so its reverse hook order stops Electron before the folder is removed.
 - The existing process runner kills the owned process tree on abort or its outer
   deadline. A `leftRunning` result raises a cleanup error rather than being
   ignored. Individual windows still remove the frame listener and are destroyed
@@ -66,12 +67,20 @@ starting additional Electron processes or waiting minutes.
 | `npm run typecheck`                          | Pass                           |
 | Targeted ESLint after formatting             | Pass                           |
 | `npm run format`                             | Pass                           |
-| Full `npm run verify`, consecutive run 1     | Pending                        |
-| Full `npm run verify`, consecutive run 2     | Pending                        |
+| Full `npm run verify`, consecutive run 1     | Pass: all 5 steps, 92.5 s      |
+| Full `npm run verify`, consecutive run 2     | Pass: all 5 steps, 92.7 s      |
 
 The lead explicitly requested two consecutive full verifications for this task,
-overriding the normal one-run limit. Their results will be recorded without
-rerunning until a clean result appears.
+overriding the normal one-run limit. Exactly two invocations ran sequentially on
+the same source. Both used the full default parallel gate and worker count; no
+source changes, skipped assertions, or manual retries occurred between runs.
+Only this review's result recording and formatting followed them.
+
+Run 1: typecheck 5.5 s, lint 51.8 s, format check 6.2 s, coverage tests 92.5 s,
+and build 2.0 s. Run 2: typecheck 4.8 s, lint 52.5 s, format check 10.5 s,
+coverage tests 92.6 s, and build 2.0 s. No step failed in either run. Raw logs
+are `.llp/output-17/verify-1.log` and `.llp/output-17/verify-2.log` in the
+output worktree. The focused check log is `.llp/output-17/tests-focused.log`.
 
 ## Test placement
 
@@ -95,7 +104,7 @@ weaken the pixel regression.
 
 ## Quality checklist
 
-- [ ] Two consecutive full verify runs pass.
+- [x] Two consecutive full verify runs pass.
 - [x] Native pixel assertions remain required and unchanged.
 - [x] Startup, timeout, failed checks, and teardown have regression coverage.
 - [x] Timers, windows, and owned process handles are released.
