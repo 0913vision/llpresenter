@@ -4,6 +4,8 @@ import {layerKinds} from '../live';
 import type {Result} from '../result';
 import {layerSchemas, mediaChoiceSchema} from './liveState';
 import {liveActionOptions} from './liveActions';
+import {screenCommandOptions} from './screenCommands';
+import {checkPart} from './fileFormat';
 import {
   parsePayload,
   payloadObject,
@@ -15,6 +17,7 @@ export const MAX_LIVE_BATCH_COMMANDS = 256;
 
 const singleCommandOptions = [
   ...liveActionOptions,
+  ...screenCommandOptions,
   v.object({type: v.literal('slide.show'), slide: layerSchemas.slide}),
   v.object({type: v.literal('media.show'), media: mediaChoiceSchema}),
   v.object({type: v.literal('message.show'), message: layerSchemas.message}),
@@ -62,7 +65,7 @@ const liveCommandSchema = v.pipe(
 export function parseLiveCommand(
   value: unknown,
 ): Result<LiveCommand, PayloadError> {
-  return parsePayload(liveCommandSchema, value);
+  return checkPart(liveCommandSchema, value);
 }
 
 /** A normalized request plus the indexed errors of skipped batch children. */
@@ -91,7 +94,7 @@ export function parseLiveCommandRequest(
   const commands: Array<v.InferOutput<typeof singleCommandSchema>> = [];
   const rejected: PayloadError[] = [];
   for (const [index, child] of batch.value.commands.entries()) {
-    const parsed = parsePayload(singleCommandSchema, child);
+    const parsed = checkPart(singleCommandSchema, child);
     if (parsed.ok) {
       commands.push(parsed.value);
     } else {

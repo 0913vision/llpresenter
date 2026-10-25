@@ -44,7 +44,7 @@ const ndiSchema = jsonObject({
   group: v.exactOptional(v.string()),
 });
 
-const screenSchema = jsonObject({
+export const screenSchema = jsonObject({
   id: screenIdSchema,
   name: v.string(),
   kind: v.picklist(['audience', 'stage']),

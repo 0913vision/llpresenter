@@ -1,6 +1,7 @@
 import type {LayerKind, MediaChoice, MessageLayer, SlideLayer} from './live';
 import {parseLiveCommand} from './schema/liveCommand';
 import type {LiveAction} from './schema/liveActions';
+import type {ScreenCommand} from './schema/screenCommands';
 
 export type ClearTarget = LayerKind | 'all';
 
@@ -10,6 +11,7 @@ export type ClearTarget = LayerKind | 'all';
  */
 export type SingleLiveCommand =
   | LiveAction
+  | ScreenCommand
   | {readonly type: 'slide.show'; readonly slide: SlideLayer}
   | {readonly type: 'media.show'; readonly media: MediaChoice}
   | {readonly type: 'message.show'; readonly message: MessageLayer}
@@ -63,6 +65,9 @@ export function interruptsSongOutput(command: LiveCommand): boolean {
     case 'audio.volume.set':
     case 'macro.run':
     case 'item.start':
+    case 'screen.testPattern.set':
+    case 'monitors.identify':
+    case 'screen.settings.apply':
       return false;
     default: {
       const unhandled: never = command;
