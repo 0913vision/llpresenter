@@ -5,6 +5,14 @@ import {TextField} from '@renderer/ui/TextField';
 import {editorTask} from './editorTask';
 import type {SongEditorStore} from './songEditorStore';
 
+export const EMPTY_ARRANGEMENT_NAME_REASON =
+  '구성 이름을 적어야 저장할 수 있습니다';
+export const RESERVED_ARRANGEMENT_NAME_REASON =
+  '기본 구성의 이름은 쓸 수 없습니다';
+export const MISSING_ARRANGEMENT_REASON = '구성을 찾을 수 없습니다';
+export const DUPLICATE_ARRANGEMENT_NAME_REASON =
+  '이 곡에 같은 이름의 구성이 있습니다';
+
 /** Validates the exact trimmed names used by main's arrangement commands. */
 export function arrangementNameReason(
   value: string,
@@ -12,12 +20,14 @@ export function arrangementNameReason(
   from: string,
 ): string | undefined {
   const name = value.trim();
-  if (name === '') return '이름을 입력하세요';
+  if (name === '') return EMPTY_ARRANGEMENT_NAME_REASON;
   if (name === DEFAULT_ARRANGEMENT_NAME) {
-    return '기본 구성의 이름은 사용할 수 없습니다';
+    return RESERVED_ARRANGEMENT_NAME_REASON;
   }
-  if (!names.includes(from)) return '구성을 찾을 수 없습니다';
-  if (name !== from && names.includes(name)) return '이미 있는 구성';
+  if (!names.includes(from)) return MISSING_ARRANGEMENT_REASON;
+  if (name !== from && names.includes(name)) {
+    return DUPLICATE_ARRANGEMENT_NAME_REASON;
+  }
   return undefined;
 }
 

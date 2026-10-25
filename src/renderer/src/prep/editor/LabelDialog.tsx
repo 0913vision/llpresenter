@@ -8,14 +8,18 @@ import {shortcutRecordingProps} from '@renderer/ui/shortcutRecording';
 import type {SongEditorStore} from './songEditorStore';
 import {editorTask} from './editorTask';
 
+export const EMPTY_LABEL_NAME_REASON =
+  '이름표 이름을 적어야 저장할 수 있습니다';
+export const DUPLICATE_LABEL_NAME_REASON = '같은 이름의 이름표가 있습니다';
+
 /** The labels file stores unique, nonblank names without trimming old names. */
 export function labelNameReason(
   name: string,
   labels: readonly Label[],
 ): string | undefined {
-  if (name.trim() === '') return '이름을 입력하세요';
+  if (name.trim() === '') return EMPTY_LABEL_NAME_REASON;
   if (labels.some(label => label.name === name.trim())) {
-    return '이미 있는 이름표';
+    return DUPLICATE_LABEL_NAME_REASON;
   }
   return undefined;
 }

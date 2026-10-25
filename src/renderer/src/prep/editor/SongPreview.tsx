@@ -82,6 +82,8 @@ function Picture({
   );
   useLayoutEffect(() => {
     if (parent.current === null) return;
+    // TODO(0913vision): Draw the stage layout on the 무대 화면 once the
+    // renderer has a stage layout engine; until then it shows the lyric layer.
     const view = new OutputRenderer(parent.current, {
       lyricStyle: appearance.style,
       mediaUrl,
