@@ -1,11 +1,12 @@
-﻿Review range: `bdb7558...feat/spec/bible-data`
+Review range: `3d8a38b...feat/spec/bible-data`
 
 # Review request: `spec-21`
 
 - Team member: `spec`
 - Branch: `feat/spec/bible-data`, from `main` (not stacked)
-- Base commit (`main`): `bdb7558`
-- Code commit: `4320011`
+- Base commit (`main`): `3d8a38b`
+- Code and measurement commit: `e70c1c6`
+- Review round: 2
 - Task: `.llp/task.md`, M3-T4a Bible data
 - Ownership exception: new `src/main/bible/` only
 
@@ -40,6 +41,31 @@ Valid files stay in memory, preserving unknown fields and original verse text.
 Lookup never reads disk. The loader does not rewrite translations, and
 `BibleLibrary.clear()` releases its entries. No watcher, timer, worker, network
 request, or new dependency was introduced.
+
+## Round 2 response: full-size parse budget
+
+The new performance test generates one complete translation with all 66 books
+and their real chapter counts, totaling 1,189 chapters. It distributes 31,102
+invented verses across those chapters. The serialized UTF-8 file is **4,607,273
+bytes**, within the requested 4 to 5 MB range.
+
+The timer surrounds a single `parseBibleTranslation` call, including JSON
+parsing and the shared Valibot/file-format validation. Fixture generation,
+serialization, disk I/O, and main-side chapter-count checks are outside this
+parse measurement.
+
+| Measurement                                   | Time      |
+| --------------------------------------------- | --------- |
+| Initial isolated full-file parse              | 11.662 ms |
+| Full-file parse in the final focused test run | 17.863 ms |
+| Main-thread budget                            | 100 ms    |
+
+Both measurements are below the lead's threshold, so the synchronous shared
+parser stays in place. The conditional worker change is not required. The test
+checks file size, book and chapter counts, the total verse count, successful
+parsing, and a parse time below 100 ms. The same budget assertion runs in CI.
+Evidence: `.llp/spec21/round2-parse-baseline.log` and
+`.llp/spec21/round2-focused-final.log`.
 
 ## Book matching
 
@@ -90,21 +116,21 @@ consuming task; this request does not add them.
 
 ## Checks run
 
-| Check                                               | Result                                                                       |
-| --------------------------------------------------- | ---------------------------------------------------------------------------- |
-| Bible loader, matching, reference, and recent tests | Pass: 4 files, 71 tests                                                      |
-| Node TypeScript check (`tsconfig.node.json`)        | Pass                                                                         |
-| Changed-file ESLint                                 | Pass                                                                         |
-| Changed-file Prettier and `git diff --check`        | Pass                                                                         |
-| Local full `npm run verify`                         | Not run, per the CI workflow                                                 |
-| GitHub branch CI                                    | Exact submitted HEAD's run URL and result are recorded in the request report |
+| Check                                                        | Result                                                                       |
+| ------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| Bible loader, matching, reference, recents, and parse budget | Pass: 5 files, 72 tests                                                      |
+| Node TypeScript check (`tsconfig.node.json`)                 | Pass                                                                         |
+| Changed-file ESLint                                          | Pass                                                                         |
+| Changed-file Prettier and `git diff --check`                 | Pass                                                                         |
+| Local full `npm run verify`                                  | Not run, per the CI workflow                                                 |
+| GitHub branch CI                                             | Exact submitted HEAD's run URL and result are recorded in the request report |
 
 Tests cover every metadata name, required lookup examples, all grammar forms,
 normalization round trips, endpoints, omitted verses, ambiguity, IME-off keys,
 invalid-file events, identity checks, text preservation, disk-free lookups,
 cleanup, and recent-list limits. All verse fixtures are invented; no Bible text
 was crawled or added. No app window, soak, or memory measurement was started.
-Local evidence: `.llp/spec21/focused-final.log`.
+Local evidence: `.llp/spec21/round2-focused-final.log`.
 
 ## Changed files
 
@@ -112,6 +138,6 @@ Local evidence: `.llp/spec21/focused-final.log`.
   their tests with invented fixtures.
 - `docs/reviews/spec-21.md`.
 
-The branch was rebased onto main at `bdb7558` before the final push. A fully
+The branch was rebased onto main at `3d8a38b` before the final push. A fully
 green CI run of the submitted HEAD is required. Its URL and result are recorded
 in the request report, avoiding another unverified commit for CI metadata.
