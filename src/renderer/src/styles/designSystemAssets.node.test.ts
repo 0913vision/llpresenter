@@ -51,6 +51,15 @@ const TYPE_SCALE = [
   ['thumb-lyrics', '4.4cqw', '1.45', 700],
 ] as const;
 
+const TYPE_STYLES = TYPE_SCALE.map(
+  ([name, fontSize, lineHeight, fontWeight]) => ({
+    name,
+    fontSize,
+    lineHeight,
+    fontWeight,
+  }),
+);
+
 const designCss = readFileSync(TOKENS_CSS, 'utf8');
 const appCss = readFileSync(
   resolve(REPOSITORY, 'src/renderer/src/styles/tokens.css'),
@@ -88,23 +97,16 @@ describe('chosen Windows type scale', () => {
         groups: [
           {
             family: 'ui',
-            styles: TYPE_SCALE.map(
-              ([name, fontSize, lineHeight, fontWeight]) => ({
-                name,
-                fontSize,
-                lineHeight,
-                fontWeight,
-              }),
-            ),
+            styles: TYPE_STYLES,
           },
         ],
       },
     });
   });
 
-  it.each(TYPE_SCALE)(
-    'ships the chosen %s shorthand and preview class in both CSS copies',
-    (name, size, lineHeight, weight) => {
+  it.each(TYPE_STYLES)(
+    'ships the chosen $name shorthand and preview class in both CSS copies',
+    ({name, fontSize: size, lineHeight, fontWeight: weight}) => {
       for (const css of [designCss, appCss]) {
         expect(css).toContain(
           `--type-${name}: ${weight} ${size}/${lineHeight} var(--font-ui);`,
