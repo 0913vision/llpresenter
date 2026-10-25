@@ -1,0 +1,100 @@
+export interface BibleBook {
+  readonly id: number;
+  readonly korean: string;
+  readonly koreanShort: string;
+  readonly english: string;
+  readonly englishShort: string;
+  readonly testament: 'old' | 'new';
+  readonly chapters: number;
+}
+
+type BookRow = readonly [
+  number,
+  string,
+  string,
+  string,
+  string,
+  'old' | 'new',
+  number,
+];
+
+const rows = [
+  [1, '창세기', '창', 'Genesis', 'gen', 'old', 50],
+  [2, '출애굽기', '출', 'Exodus', 'exo', 'old', 40],
+  [3, '레위기', '레', 'Leviticus', 'lev', 'old', 27],
+  [4, '민수기', '민', 'Numbers', 'num', 'old', 36],
+  [5, '신명기', '신', 'Deuteronomy', 'deu', 'old', 34],
+  [6, '여호수아', '수', 'Joshua', 'jos', 'old', 24],
+  [7, '사사기', '삿', 'Judges', 'jdg', 'old', 21],
+  [8, '룻기', '룻', 'Ruth', 'rut', 'old', 4],
+  [9, '사무엘상', '삼상', '1 Samuel', '1sa', 'old', 31],
+  [10, '사무엘하', '삼하', '2 Samuel', '2sa', 'old', 24],
+  [11, '열왕기상', '왕상', '1 Kings', '1ki', 'old', 22],
+  [12, '열왕기하', '왕하', '2 Kings', '2ki', 'old', 25],
+  [13, '역대상', '대상', '1 Chronicles', '1ch', 'old', 29],
+  [14, '역대하', '대하', '2 Chronicles', '2ch', 'old', 36],
+  [15, '에스라', '스', 'Ezra', 'ezr', 'old', 10],
+  [16, '느헤미야', '느', 'Nehemiah', 'neh', 'old', 13],
+  [17, '에스더', '에', 'Esther', 'est', 'old', 10],
+  [18, '욥기', '욥', 'Job', 'job', 'old', 42],
+  [19, '시편', '시', 'Psalms', 'psa', 'old', 150],
+  [20, '잠언', '잠', 'Proverbs', 'pro', 'old', 31],
+  [21, '전도서', '전', 'Ecclesiastes', 'ecc', 'old', 12],
+  [22, '아가', '아', 'Song of Solomon', 'sng', 'old', 8],
+  [23, '이사야', '사', 'Isaiah', 'isa', 'old', 66],
+  [24, '예레미야', '렘', 'Jeremiah', 'jer', 'old', 52],
+  [25, '예레미야애가', '애', 'Lamentations', 'lam', 'old', 5],
+  [26, '에스겔', '겔', 'Ezekiel', 'eze', 'old', 48],
+  [27, '다니엘', '단', 'Daniel', 'dan', 'old', 12],
+  [28, '호세아', '호', 'Hosea', 'hos', 'old', 14],
+  [29, '요엘', '욜', 'Joel', 'joe', 'old', 3],
+  [30, '아모스', '암', 'Amos', 'amo', 'old', 9],
+  [31, '오바댜', '옵', 'Obadiah', 'oba', 'old', 1],
+  [32, '요나', '욘', 'Jonah', 'jon', 'old', 4],
+  [33, '미가', '미', 'Micah', 'mic', 'old', 7],
+  [34, '나훔', '나', 'Nahum', 'nah', 'old', 3],
+  [35, '하박국', '합', 'Habakkuk', 'hab', 'old', 3],
+  [36, '스바냐', '습', 'Zephaniah', 'zep', 'old', 3],
+  [37, '학개', '학', 'Haggai', 'hag', 'old', 2],
+  [38, '스가랴', '슥', 'Zechariah', 'zec', 'old', 14],
+  [39, '말라기', '말', 'Malachi', 'mal', 'old', 4],
+  [40, '마태복음', '마', 'Matthew', 'mat', 'new', 28],
+  [41, '마가복음', '막', 'Mark', 'mar', 'new', 16],
+  [42, '누가복음', '눅', 'Luke', 'luk', 'new', 24],
+  [43, '요한복음', '요', 'John', 'joh', 'new', 21],
+  [44, '사도행전', '행', 'Acts', 'act', 'new', 28],
+  [45, '로마서', '롬', 'Romans', 'rom', 'new', 16],
+  [46, '고린도전서', '고전', '1 Corinthians', '1co', 'new', 16],
+  [47, '고린도후서', '고후', '2 Corinthians', '2co', 'new', 13],
+  [48, '갈라디아서', '갈', 'Galatians', 'gal', 'new', 6],
+  [49, '에베소서', '엡', 'Ephesians', 'eph', 'new', 6],
+  [50, '빌립보서', '빌', 'Philippians', 'phi', 'new', 4],
+  [51, '골로새서', '골', 'Colossians', 'col', 'new', 4],
+  [52, '데살로니가전서', '살전', '1 Thessalonians', '1th', 'new', 5],
+  [53, '데살로니가후서', '살후', '2 Thessalonians', '2th', 'new', 3],
+  [54, '디모데전서', '딤전', '1 Timothy', '1ti', 'new', 6],
+  [55, '디모데후서', '딤후', '2 Timothy', '2ti', 'new', 4],
+  [56, '디도서', '딛', 'Titus', 'tit', 'new', 3],
+  [57, '빌레몬서', '몬', 'Philemon', 'phm', 'new', 1],
+  [58, '히브리서', '히', 'Hebrews', 'heb', 'new', 13],
+  [59, '야고보서', '약', 'James', 'jas', 'new', 5],
+  [60, '베드로전서', '벧전', '1 Peter', '1pe', 'new', 5],
+  [61, '베드로후서', '벧후', '2 Peter', '2pe', 'new', 3],
+  [62, '요한일서', '요일', '1 John', '1jn', 'new', 5],
+  [63, '요한이서', '요이', '2 John', '2jn', 'new', 1],
+  [64, '요한삼서', '요삼', '3 John', '3jn', 'new', 1],
+  [65, '유다서', '유', 'Jude', 'jud', 'new', 1],
+  [66, '요한계시록', '계', 'Revelation', 'rev', 'new', 22],
+] satisfies readonly BookRow[];
+
+export const BIBLE_BOOKS: readonly BibleBook[] = rows.map(
+  ([id, korean, koreanShort, english, englishShort, testament, chapters]) => ({
+    id,
+    korean,
+    koreanShort,
+    english,
+    englishShort,
+    testament,
+    chapters,
+  }),
+);
