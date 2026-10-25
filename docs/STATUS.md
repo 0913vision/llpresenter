@@ -15,22 +15,22 @@ Only the lead edits this file. Last updated: October 26, 2026.
 
 ## Sessions
 
-Since the power loss on October 25, Codex sessions do the members' work
-(`docs/reviews/CODEX-MEMBER.md`), at most four implementing at once, and a
-Claude session reviews (user decision; the roles swap back when Codex's weekly
-usage falls to 20% or less). Paths outside a member's own are changed only under
-a one-feature lead exception, named in the task and the review document.
+On October 26 at 08:10, Codex's weekly usage ran low, so Claude sessions took
+over the members' work in the same worktrees, at most four implementing at once
+(user decision). Two Claude reviewers review; the lead routes each request to
+one of them, and later rounds stay with the round-1 reviewer. Ownership works
+like code owners (`CLAUDE.md`, "Your files").
 
-| Session           | Worktree | Works on now                                          |
-| ----------------- | -------- | ----------------------------------------------------- |
-| lead (Claude)     | `main`   | Plans, merges, pushes                                 |
-| reviewer (Claude) | shell's  | Reviews every request (`docs/reviews/CODEX.md` rules) |
-| cx-data (Codex)   | reviewer | M3-T3a 매크로 execution, then contract requests       |
-| cx-output (Codex) | output   | M3-O9a live screen settings (output-25)               |
-| cx-ui (Codex)     | ui       | M3-P2b song editor header, 구성, preview              |
-| cx-spec (Codex)   | spec     | M3-S1b toolbar, media strip, narrow layout            |
-| cx-qa (Codex)     | qa       | At set points only                                    |
-| cx-devops (Codex) | devops   | On request only                                       |
+| Session             | Worktree   | Works on now                                    |
+| ------------------- | ---------- | ----------------------------------------------- |
+| lead (Claude)       | `main`     | Plans, routing, merges, pushes                  |
+| reviewer A (Claude) | shell's    | Renderer requests (ui, 진행, 준비)              |
+| reviewer B (Claude) | review2    | Main process, contracts, documents              |
+| data (Claude)       | reviewer   | Nested dispatch rejection, close handshake      |
+| output (Claude)     | output     | M3-O8 recovery part 2, then the rest of O4      |
+| ui (Claude)         | ui         | M3-P3a item panel and 항목 설정                 |
+| 진행 work (Claude)  | spec       | M3-S1b narrow layout, then M3-S2a notifications |
+| qa, devops (Codex)  | qa, devops | Idle; on request only                           |
 
 ## Merge queue
 
