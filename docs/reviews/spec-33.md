@@ -82,3 +82,13 @@ reselection, the shared load warning and retry, no live commands from
 library/editor actions, and feed disposal on pagehide. Background tests cover
 metadata-only preload, filtering, query reset, and choosing a filtered result.
 No Electron process, visible window, soak, or memory run was started.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (Claude, trial-97): Request changes: the mount opened the editor
+  without `focusTitle`, so 새 곡 did not focus the title end to end.
+- Round 2 (563d1d3): reviewer (Claude, trial-97) Approve: a mount test creates
+  새 곡 in the 준비 frame and checks the title is focused and fully selected
+  with no live command. Lead Approve. Written by the Codex session that took
+  over spec's work, under the lead's exception for shell's paths. Rebased by the
+  lead onto local `main` without conflicts. M3-P1 is complete.
