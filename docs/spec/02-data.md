@@ -108,16 +108,16 @@ Rules:
   shift down (implementation requirement). If a 구성 becomes empty, keep it, but
   show it in 진행 like the default 구성 (proposal).
 - Splitting a 슬라이드 expands every reference to it into all its parts, in
-  order. This applies to Enter on an empty line and to pasting text with blank
-  lines. For example, `[1, 3, 3]` becomes `[1, 3, 4, 3, 4]` when 슬라이드 3
-  splits into 3 and 4.
+  order. This applies to every split: Enter on an empty line, Ctrl Enter at the
+  cursor, or pasting text with blank lines. For example, `[1, 3, 3]` becomes
+  `[1, 3, 4, 3, 4]` when 슬라이드 3 splits into 3 and 4.
 - Merging blocks with Backspace at the start of a block maps references to the
   removed block to the merged block. Collapse adjacent duplicates created by
   that merge: `[2, 3]` becomes `[2]` when 3 merges into 2, and `[3]` also
   becomes `[2]`. A split or merge never drops lyrics from a 구성; only deleting
   a 슬라이드 removes its references. See the
   [lead's October 26 decision](../decisions.md#2026-10-26-a-구성-never-loses-lyrics-through-a-split-or-merge)
-  (`f8c38e2`).
+  (`f8c38e2`, amended by `2b5ae57`).
 - Version 1 has no per-슬라이드 images or notes in songs.
 - If a later version adds fields such as a score, version 1 must not remove them
   (unknown fields are kept).

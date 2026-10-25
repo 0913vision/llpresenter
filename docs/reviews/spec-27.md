@@ -1,10 +1,10 @@
-Review range: `b6a2304...feat/spec/service-panel-drag`
+Review range: `2b5ae57...feat/spec/service-panel-drag`
 
 # Review request: `spec-27`
 
 - Team member: `spec`
 - Branch: `feat/spec/service-panel-drag`
-- Base commit: `b6a2304`
+- Base commit: `2b5ae57`
 - Review round: 1
 - Task: `.llp/task.md`, M3-S1a service panel, third slice
 - Stack: started on spec-25, then rebased onto main after its approval
@@ -46,6 +46,10 @@ Service-list undo and redo now use physical `KeyZ` and `KeyY` codes. Tests use
 Korean key values with those codes. The edit-dispatch catch logs its original
 cause through `window.llp.log` before reporting the warning to the host. Also
 corrected spec-25's follow-up number: the lead's added docs task is spec-26.
+
+The spec-26 nit is included: spec 02 now explicitly includes Ctrl Enter at the
+cursor among split triggers and cites the amended decision `2b5ae57`. The rule
+applies to every split, including empty-line Enter and blank-line paste.
 
 ## Checks run
 
