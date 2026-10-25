@@ -81,3 +81,14 @@ preview errors, unavailable import, pointer focus, stable paused video and
 source release, a 1,000-item virtual row, keyboard traversal, accessible
 positions, and observer disposal. They count rendered options rather than
 measuring memory or timing. No Electron process or visible window was started.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (Claude, trial-97): Request changes: live preview videos had no fixed
+  cap (about 29 on a 3440 px strip); four nits.
+- Round 2 (0e529098): reviewer (Claude, trial-97) Approve. Known trade-off until
+  prep's P6a thumbnails (not a bug for qa): on a wide strip, visible video tiles
+  after the eighth show an empty frame until they scroll into the first eight.
+  Lead Approve. Written by the Codex session that took over spec's work, under
+  the lead's exception for shell's paths. Rebased by the lead onto local `main`
+  without conflicts.
