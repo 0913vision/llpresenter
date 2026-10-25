@@ -1,97 +1,77 @@
-# Contract request: `spec-18`
+﻿Review range: `c0544c7...feat/spec/clear-undo-visibility`
+
+# Review request: `spec-18`
 
 - Team member: `spec`
 - Branch: `feat/spec/clear-undo-visibility`, from `main`
-- Base commit (`main`): `4d66230`
-- Task: `.llp/task.md`, hide the clear undo button by default
-- State: waiting at the task's shared-contract stop point
+- Base commit (`main`): `c0544c7`
+- Code commit: `7f5a77d`
+- Last commit: the commit completing this request
+- Task: `.llp/task.md`, clear undo visibility (spec-13, feedback row 7)
+- Ownership exception: the lead granted the clear row and its tests in
+  `src/renderer/src/show/` for this feature.
 
-## Missing preference
+## What changed and why
 
-Spec 10, "Settings to expose", "Show", names the stored preference
-`preferences.json` -> `show.showClearUndoButton`. The task and spec-13's
-recorded user decision establish its default as off.
+The clear row previously always displayed clear undo. The user chose to hide it
+by default and make it available through the setting `preferences.json` ->
+`show.showClearUndoButton`.
 
-`src/shared/schema/preferences.ts` currently has no `show` group and no
-`showClearUndoButton` field. Its unknown-field preservation does not provide a
-validated, typed preference or its default. The task explicitly requires
-stopping before adding a missing preference, so no application code changed.
+The renderer now reads the merged data-24 `preferences.get()` contract, which
+returns complete normalized preferences. Missing settings and explicit false
+keep both the separator and undo button absent. Explicit true shows both. The
+controls also stay hidden while the read is pending, outside Electron, or when a
+read fails. Preload already logs failed or malformed reads.
 
-## Exact stored field requested from data
+The visibility read has local state in `UndoControls`, so showing undo does not
+redraw the seven clear buttons. An unmount guard prevents a late reply from
+updating the removed component. No persistent subscription or timer was added.
+The read runs once per mounted clear row, using data-24's read-only API; the
+future settings editor and preference-change subscriptions remain outside this
+task.
 
-```ts
-readonly show?: {
-  readonly showClearUndoButton?: boolean;
-};
-```
+The existing undo button and `undoClear` behavior are retained: `clear.undo`
+still sends only when the live state permits undo. Visibility never changes
+`canUndo`, the last-clear record, any live layer, or output state. The existing
+regular and compact appearances remain available when the setting is on.
 
-Add the group using the existing preferences-schema conventions:
+## Prerequisite and scope
 
-```ts
-show: v.exactOptional(
-  jsonObject({showClearUndoButton: optionalBoolean}),
-),
-```
+The earlier contract stop was resolved by [data-24](data-24.md), merged at
+`c0544c7`. This branch was rebased onto that main commit before implementation
+and push. Data's actual read returns the complete normalized `Preferences`
+value, rather than the narrow projection initially suggested in this document.
+The renderer consumes that merged shape. No shared schema, preload,
+main-process, state-store, command, or CSS change is part of this request.
 
-The normalized `Preferences` value must contain:
+## Changed files
 
-```ts
-show: {showClearUndoButton: false},
-```
+- `src/renderer/src/show/ClearRow.tsx`: read the preference and conditionally
+  mount the separator and existing undo button.
+- `src/renderer/src/show/ClearRow.test.tsx`: default/false/pending/failure/true
+  coverage and explicit opt-in for existing undo behavior and render-count
+  tests.
+- `docs/reviews/spec-18.md`.
 
-`withPreferenceDefaults` must merge the nested group:
+## Checks run
 
-```ts
-show: {...defaultPreferences.show, ...stored.show},
-```
+| Check                                          | Result                                                                   |
+| ---------------------------------------------- | ------------------------------------------------------------------------ |
+| Clear row, clear state, show panels, show keys | Pass: 4 files, 64 tests                                                  |
+| `npm run typecheck`                            | Pass                                                                     |
+| Changed-file ESLint                            | Pass                                                                     |
+| Changed-file Prettier and `git diff --check`   | Pass                                                                     |
+| Local full `npm run verify`                    | Not run, per the updated CI workflow                                     |
+| GitHub branch CI                               | The request report records the exact submitted HEAD's run URL and result |
 
-An absent preferences file, absent `show`, or absent `showClearUndoButton`
-therefore means false. Explicit false hides the control; explicit true shows it.
-Keep unknown fields intact and use the existing boolean validation and
-preferences-file error handling. This is an additive optional field, with no
-change to `clear.undo`, `canUndo`, or the last-clear record.
+New assertions cover missing/default and explicit false even with `canUndo`
+true, hidden state until an enabled reply arrives, the separator appearing with
+the button, no redraw of unrelated clear buttons, unchanged live-state identity,
+no visibility-driven commands, absent preload, and failed reads. Existing undo
+command, disabled-state, tooltip, live-state following, and compact tests now
+explicitly opt in and continue to pass.
 
-## Renderer read prerequisite
-
-The main data store already loads normalized preferences in `fileStore.ts`, but
-the current preload API exposes no preferences read. `ui.get()` returns the
-layout fields of `app.json`; it must not become a second stored copy of this
-preference.
-
-A minimal read-only boundary for the data owner to provide would be:
-
-```ts
-readonly preferences: {
-  get(): Promise<{
-    readonly show: {readonly showClearUndoButton: boolean};
-  }>;
-};
-```
-
-Suggested channel: `preferences:get`. Its main handler would wait for the
-existing preferences load, return the normalized boolean (false when no usable
-settings loaded), and validate the reply in preload. No settings-write API or
-settings window is needed for this task. A future settings editor can add live
-preference updates through data's contract.
-
-The required schema, defaults, loading/IPC wiring, preload boundary, and their
-tests belong to data and are outside the current exception for
-`src/renderer/src/show/`. Data can land the prerequisite, or the lead can
-explicitly extend the feature exception to those paths.
-
-## Work after the prerequisite
-
-The clear row will show both the separator and undo button only when the
-validated setting is true. Missing or not-yet-loaded settings will hide both.
-Tests will cover the default, explicit false, explicit true, and unchanged
-`clear.undo` behavior when the button is shown. Hiding the button will not clear
-or change undo availability or output state.
-
-## Checks so far
-
-- Created the branch from clean `main` at `4d66230`.
-- Checked spec 10, spec-13's recorded decision, the preferences schema and
-  defaults, main preferences loading, preload API, and clear-row implementation.
-- Only this contract request and ignored working notes changed.
-- Implementation and full verification have not run because the task requires
-  this stop before the missing shared field is added.
+The branch includes devops-19's SwiftShader fix. The temporary GPU exception has
+ended: this review request is sent only after its exact submitted HEAD has a
+fully green CI run. The run URL and result are included in the request report so
+recording the result does not create another unverified commit.
