@@ -96,19 +96,24 @@ describe('saved output screens', () => {
     expect(settings.listeners.size).toBe(0);
   });
 
-  it('reports an unavailable settings connection without leaving startup pending', async () => {
-    const log = recordingLogger();
-    const source = createSettingsScreenSource(
-      Promise.reject(new Error('load failed')),
-      log,
-    );
-    await Promise.resolve();
-    await Promise.resolve();
-    expect(source.ready).toBe(true);
-    expect(source.list()).toEqual([]);
-    expect(log.messages('error')).toEqual([
-      'could not connect output screen settings',
-    ]);
-    source.dispose();
-  });
+  it.each(['refused', 'failed'] as const)(
+    'warns and uses defaults when the settings reader is %s',
+    async reason => {
+      const log = recordingLogger();
+      const source = createSettingsScreenSource(
+        reason === 'refused'
+          ? Promise.resolve(null)
+          : Promise.reject(new Error('load failed')),
+        log,
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(source.ready).toBe(true);
+      expect(source.list()).toMatchObject([{id: 'main', method: 'fullscreen'}]);
+      expect(log.messages('warn')).toEqual([
+        'using built-in output screens because settings are unavailable',
+      ]);
+      source.dispose();
+    },
+  );
 });

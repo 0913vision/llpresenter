@@ -21,15 +21,11 @@ function mainScreenFor(monitors: readonly Monitor[]): OutputScreen {
   };
 }
 
-// TODO(0913vision): Read the screens from screens.json once the settings store
-// exists, and delete this default.
 /**
- * A fixed screen list until the settings store exists: the 본 화면 in full
- * screen on the first monitor that isn't the primary one, or unassigned when
- * there is no such monitor. The monitor is chosen at the first successful
- * monitor read and kept, as a saved setting would be. Until then the 본 화면
- * is unassigned. The other values are the 환경설정 defaults in
- * docs/spec/02-data.md.
+ * Keeps the built-in main output available when saved settings cannot open.
+ * Chooses the first non-primary monitor from the first successful read and
+ * keeps that assignment across later display changes. Without a non-primary
+ * monitor the screen is unassigned and the manager uses a fallback window.
  */
 export function createDefaultScreenSource(displays: {
   readonly monitors: readonly Monitor[];

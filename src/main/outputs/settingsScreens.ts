@@ -5,6 +5,7 @@ import type {SettingsReader} from '../store/settingsStore';
 import type {Logger} from '../log';
 import {MissingLiveTargetError} from '../live/commandErrors';
 import {outputStateKeys} from './identity';
+import {createDefaultScreenSource} from './defaultScreens';
 import type {OutputScreen, ScreenSource} from './screens';
 
 export interface SettingsScreens extends ScreenSource {
@@ -52,38 +53,39 @@ class SavedScreenSource implements SettingsScreens {
   private current: readonly OutputScreen[] = [];
   private disposed = false;
   private pending = false;
+  private usingDefaults = false;
   private unsubscribe: (() => void) | null = null;
   private readonly listeners = new Set<() => void>();
 
   constructor(
     loading: Promise<SettingsReader | null>,
     private readonly log: Logger,
+    private readonly fallback: ScreenSource,
   ) {
     void loading
       .then(reader => {
         if (this.disposed) return;
+        if (reader === null) {
+          this.useDefaults();
+          return;
+        }
         this.reader = reader;
-        this.unsubscribe =
-          reader?.subscribe(document => {
-            if (
-              document.name === 'screens' ||
-              document.name === 'preferences'
-            ) {
-              this.refresh();
-            }
-          }) ?? null;
+        this.unsubscribe = reader.subscribe(document => {
+          if (document.name === 'screens' || document.name === 'preferences') {
+            this.refresh();
+          }
+        });
         this.refresh();
       })
       .catch((error: unknown) => {
         if (this.disposed) return;
-        log.error('could not connect output screen settings', error);
-        this.ready = true;
-        this.notify();
+        this.useDefaults(error);
       });
   }
 
   list(): readonly OutputScreen[] {
-    return this.current;
+    if (this.disposed) return [];
+    return this.usingDefaults ? this.fallback.list() : this.current;
   }
 
   subscribe(listener: () => void): () => void {
@@ -129,6 +131,16 @@ class SavedScreenSource implements SettingsScreens {
     this.notify();
   }
 
+  private useDefaults(error?: unknown): void {
+    this.usingDefaults = true;
+    this.ready = true;
+    this.log.warn(
+      'using built-in output screens because settings are unavailable',
+      error,
+    );
+    this.notify();
+  }
+
   private notify(): void {
     for (const listener of this.listeners) {
       try {
@@ -140,10 +152,11 @@ class SavedScreenSource implements SettingsScreens {
   }
 }
 
-/** Follows saved screen settings and keeps the last good configuration. */
+/** Follows saved settings, keeping defaults available when settings cannot open. */
 export function createSettingsScreenSource(
   loading: Promise<SettingsReader | null>,
   log: Logger,
+  fallback: ScreenSource = createDefaultScreenSource({monitors: []}),
 ): SettingsScreens {
-  return new SavedScreenSource(loading, log);
+  return new SavedScreenSource(loading, log, fallback);
 }

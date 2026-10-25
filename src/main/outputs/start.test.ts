@@ -10,6 +10,7 @@ import {
   recordingLogger,
 } from '../displays/testing';
 import {dispatchLogged, LiveStore} from '../live/store';
+import {startOverlays} from '../live/overlays';
 import {
   CAPTIONS,
   MAIN,
@@ -110,9 +111,11 @@ function setup(loading?: Promise<SettingsReader | null>) {
   settings.update(settingsDocument('screens', {screens: [main]}));
   const store = new LiveStore();
   const log = recordingLogger();
+  const settingsPromise = loading ?? Promise.resolve(settings.reader);
+  const stopOverlays = startOverlays({store, settings: settingsPromise, log});
   const running = startOutputs({
     store,
-    settings: loading ?? Promise.resolve(settings.reader),
+    settings: settingsPromise,
     control: new BrowserWindow({
       show: false,
       webPreferences: {offscreen: true},
@@ -120,12 +123,16 @@ function setup(loading?: Promise<SettingsReader | null>) {
     log,
     windowMode: 'offscreen',
   });
-  onTestFinished(running.stop);
+  const stop = (): void => {
+    running.stop();
+    stopOverlays();
+  };
+  onTestFinished(stop);
   const windows = fakes.windows;
   if (windows === null) throw new Error('Missing windows');
   const save = (screens: readonly object[]): void =>
     settings.update(settingsDocument('screens', {screens}));
-  return {settings, store, log, running, windows, save};
+  return {settings, store, log, running, windows, save, stop, stopOverlays};
 }
 
 async function loaded() {
@@ -134,6 +141,51 @@ async function loaded() {
 }
 
 describe('saved output backend', () => {
+  it.each(['refused', 'failed'] as const)(
+    'keeps the built-in output usable when settings are %s',
+    async reason => {
+      const loading =
+        reason === 'refused'
+          ? Promise.resolve(null)
+          : Promise.reject(new Error('cannot open settings'));
+      const {store, windows, running, log} = setup(loading);
+      store.dispatch({type: 'output.set', screenId: 'main', on: true});
+      await loaded();
+      expect(store.state.outputs.main).toBe(true);
+      const output = windows.only('main');
+      expect(output.mode).toEqual({
+        kind: 'fullscreen',
+        bounds: projector.bounds,
+        alwaysOnTop: true,
+      });
+      expect(log.messages('warn')).toContain(
+        'using built-in output screens because settings are unavailable',
+      );
+      fakes.handlers.get(Channels.outputFrameRate)?.(
+        {screenId: 'main', fps: 60},
+        1,
+      );
+      expect(running.frameRates()).toEqual([{screen: 'main', fps: 60}]);
+      store.dispatch({type: 'output.set', screenId: 'main', on: false});
+      expect(output.mode.kind).toBe('hidden');
+      store.dispatch({type: 'output.set', screenId: 'main', on: true});
+      expect(output.mode.kind).toBe('fullscreen');
+      expect(windows.created).toHaveLength(1);
+    },
+  );
+
+  it('keeps the single settings owner attached when only outputs stop', async () => {
+    const connect = vi.spyOn(LiveStore.prototype, 'connectSettings');
+    const {store, settings, running, stopOverlays} = setup();
+    await loaded();
+    expect(connect).toHaveBeenCalledTimes(1);
+    running.stop();
+    store.dispatch({type: 'output.set', screenId: 'main', on: true});
+    expect(store.state.outputs).toEqual({[MAIN]: true, main: true});
+    stopOverlays();
+    expect(settings.listeners.size).toBe(0);
+    expect(store.listenerCount).toBe(0);
+  });
   it('reads saved settings by ID for resync and coalesces refreshes after the live transaction', async () => {
     const {settings, store, log, running, windows} = setup();
     await loaded();
@@ -281,7 +333,7 @@ describe('saved output backend', () => {
   });
 
   it('releases the last wake lock for removed or unsupported screens even without monitors', async () => {
-    const {settings, store, windows, running, log, save} = setup();
+    const {settings, store, windows, stop, log, save} = setup();
     await loaded();
     save([main, {...main, id: STAGE, method: 'window'}]);
     store.dispatch({
@@ -306,8 +358,8 @@ describe('saved output backend', () => {
       level: 'warn',
       detail: {reason: 'missing-target'},
     });
-    running.stop();
-    running.stop();
+    stop();
+    stop();
     expect(store.listenerCount).toBe(0);
     expect(settings.listeners.size).toBe(0);
     expect(fakes.displays?.watcherCount).toBe(0);

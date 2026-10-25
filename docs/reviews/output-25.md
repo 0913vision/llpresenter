@@ -2,9 +2,10 @@
 
 - Team member: `output`
 - Branch: `feat/output/live-screen-settings`
-- Base: `5415e336ab55ccab2f798d58c59f9a02e2dfd815` (data-38 merged)
-- Range: `5415e33...feat/output/live-screen-settings`
+- Base: `afe945cdf77ee9ded74c29ffc1567b893c84e8fe` (M2 frozen, 0.14.0)
+- Range: `afe945c...feat/output/live-screen-settings`
 - Scope: M3-O9a saved screen subscriptions and sleep lifecycle.
+- Round 2: fallback and review nits addressed; current CI pending.
 - Code head: `6f119f270463c5c26b1079793f18d9c26f31ab6a`
 - Code CI:
   [40228489919](https://github.com/0913vision/llpresenter/actions/runs/40228489919),
@@ -16,7 +17,11 @@ The backend now reads saved `screens.json` through D2 and subscribes to screen
 and preference changes. Method, monitor, capture resolution and always-on-top
 changes update the existing output window and page. Settings changed while an
 output is off also reach its first native window. A failed read keeps the last
-good configuration; startup and subscriptions stop safely on disposal.
+good configuration; startup and subscriptions stop safely on disposal. When the
+settings reader is refused or fails to open, a warning identifies the fallback
+to `createDefaultScreenSource`. Its built-in main output remains usable,
+including queued commands, repeated off/on, frame reports and retries. An
+intentionally empty saved screen list still removes the configured outputs.
 
 Data-36's fixed UUIDs identify outputs regardless of screen order, kind or
 method. The existing toolbar aliases update together with the canonical UUID in
@@ -43,6 +48,8 @@ and prevents queued work from reaching windows.
 
 - `src/main/outputs/{settingsScreens,identity}.ts`: capped saved screen feed,
   method defaults, legacy alias keys, subscription and late-start cleanup.
+- `src/main/outputs/defaultScreens.ts`: retained safety fallback; remove the
+  obsolete TODO and describe its actual monitor selection behavior.
 - `src/main/outputs/{start,manager,outputWindow,screens,frameRates}.ts`: live
   application, retained native windows, deletion cleanup, status routing and
   bounded frame-rate cache.
@@ -50,6 +57,8 @@ and prevents queued work from reaching windows.
   target handling and removal of obsolete keys.
 - `src/main/live/{slice,store}.ts` and `slices/screenSettings.ts`: disposable
   main-process resync callback and command handler.
+- `src/main/live/overlays.ts`: document its sole ownership of the store's
+  settings reader, with an integration regression in `outputs/start.test.ts`.
 - `src/main/index.ts` and `index.wiring.test.ts`: D2 settings promise wiring.
 - `src/renderer/src/render/screenIdentity.ts` and its test: stable identity
   while methods, kinds and order change.
@@ -90,6 +99,33 @@ Per the lead's data-38 merge instruction, resync is included in this request.
 Review the transaction boundary, saved-only reads and resource cleanup. The
 subsequent close handshake is separate. No shared contract or dependency is
 introduced here; the deferred soak and real HDMI recheck remain for daytime.
+
+## Round 2 reply
+
+1. A null reader or rejected settings load now warns and selects the retained
+   built-in screen source. Its monitor choice remains available through display
+   updates, and default IDs route frame reports and retries to the actual
+   window. The stale default-source TODO is removed and its TSDoc is corrected.
+   Both failure modes have source and end-to-end fake-window regressions.
+2. `startOverlays` is the sole owner of `LiveStore.connectSettings`. Output
+   startup only subscribes to the reader. An integration regression starts both
+   lifecycles, asserts one attachment and proves that stopping outputs leaves
+   the reader usable until overlays stop.
+3. The screen slice now documents the deferred, idempotent resync with a NOTE:
+   saved-ID validation runs now, window refresh is coalesced after reduction,
+   and pure `applyCommand` has no callback that can schedule windows. Existing
+   batch and disposal regressions still pass.
+4. The temporary `outputs/identity` import remains as requested, with a NOTE
+   identifying data's planned move beside `resolveOutputScreen` in shared code.
+5. `normalizeOutputFlags` is extracted from startup. It uses each active
+   screen's own aliases, so the legacy default screen also works without a
+   settings reader.
+
+Round 2 fast checks: 203 tests across 16 relevant files passed in 5.60 seconds,
+plus typecheck, targeted ESLint after formatting, Prettier and whitespace
+checks. All five fallback and reader-ownership regressions failed against the
+actual round 1 source/start implementations, which were restored in `finally`;
+the corrected suite then passed. No Electron process or full verify ran locally.
 
 ## Review
 

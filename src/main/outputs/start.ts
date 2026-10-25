@@ -9,7 +9,8 @@ import type {SettingsReader} from '../store/settingsStore';
 import type {WindowMode} from '../windows/testWindows';
 import {handleFrameRate, handleRetryRequest} from '../rendererMessages';
 import {createSettingsScreenSource} from './settingsScreens';
-import {outputStateKeys} from './identity';
+import {createDefaultScreenSource} from './defaultScreens';
+import type {OutputScreen, ScreenSource} from './screens';
 import {createElectronWakeLock} from './electronWakeLock';
 import {createElectronOutputWindow} from './electronWindow';
 import {FrameRateTracker, type ScreenFrameRate} from './frameRates';
@@ -31,21 +32,49 @@ interface StatusPublishing {
   readonly board: OutputStatusBoard;
   readonly outputs: OutputManager;
   readonly log: Logger;
+  readonly screenIdFor: (id: string) => string;
+}
+
+function resolveScreenId(id: string, screens: ScreenSource): string {
+  return (
+    screens
+      .list()
+      .find(screen => screen.id === id || screen.aliases?.includes(id))?.id ??
+    id
+  );
+}
+
+function normalizeOutputFlags(
+  screens: readonly OutputScreen[],
+  store: LiveStore,
+  log: Logger,
+): void {
+  const values = store.state.outputs;
+  const commands = screens.flatMap(({id, aliases = []}) => {
+    const keys = [id, ...aliases];
+    const on = values[id] ?? keys.some(key => values[key] === true);
+    return keys.some(key => (values[key] ?? false) !== on)
+      ? [{type: 'output.set' as const, screenId: id, on}]
+      : [];
+  });
+  if (commands.length > 0) {
+    store.dispatch({type: 'live.batch', commands}, error =>
+      log.error('live state listener failed', error),
+    );
+  }
 }
 
 function publishStatus({
   board,
   outputs,
   log,
+  screenIdFor,
 }: StatusPublishing): Array<() => void> {
   return [
     answerWindows(Channels.outputStatusGet, () => board.snapshot()),
     listenToWindows(
       Channels.outputRetry,
-      handleRetryRequest(
-        screenId => outputs.retry(outputStateKeys(screenId)[0]),
-        log,
-      ),
+      handleRetryRequest(screenId => outputs.retry(screenIdFor(screenId)), log),
     ),
     board.subscribe(statuses =>
       sendToWindows(Channels.outputStatusChanged, statuses, log),
@@ -80,22 +109,20 @@ export function startOutputs({
   windowMode,
 }: OutputContext): RunningOutputs {
   let stopped = false;
-  let disconnectSettings: (() => void) | null = null;
-  const connected = settings.then(reader => {
-    if (!stopped && reader !== null) {
-      disconnectSettings = store.connectSettings(reader);
-    }
-    return reader;
-  });
   const displays = new DisplayRegistry(createElectronDisplaySource(), log);
-  const screens = createSettingsScreenSource(connected, log);
+  const screens = createSettingsScreenSource(
+    settings,
+    log,
+    createDefaultScreenSource(displays),
+  );
+  const screenIdFor = (id: string): string => resolveScreenId(id, screens);
   const frameRates = new FrameRateTracker(
     screenId => screens.list().some(({id}) => id === screenId),
     log,
   );
   const board = new OutputStatusBoard({
     screenStates: () => outputs.screenStates(),
-    frameRate: screenId => frameRates.current(outputStateKeys(screenId)[0]),
+    frameRate: screenId => frameRates.current(screenIdFor(screenId)),
   });
   const outputs = new OutputManager({
     store,
@@ -114,36 +141,23 @@ export function startOutputs({
   const releaseResync = store.connectScreenSettings(id => screens.resync(id));
   const stopNormalizing = screens.subscribe(() => {
     frameRates.retain(screens.list().map(({id}) => id));
-    const commands = screens.list().flatMap(({id}) => {
-      const keys = outputStateKeys(id);
-      const values = store.state.outputs;
-      const on = values[id] ?? keys.some(key => values[key] === true);
-      return keys.some(key => (values[key] ?? false) !== on)
-        ? [{type: 'output.set' as const, screenId: id, on}]
-        : [];
-    });
-    if (commands.length > 0) {
-      store.dispatch({type: 'live.batch', commands}, error =>
-        log.error('live state listener failed', error),
-      );
-    }
+    normalizeOutputFlags(screens.list(), store, log);
   });
   outputs.start();
   const stops = [
     releaseResync,
-    () => disconnectSettings?.(),
     stopNormalizing,
     screens.subscribe(() => board.refresh()),
     listenToWindows(
       Channels.outputFrameRate,
       handleFrameRate(report => {
-        const screenId = outputStateKeys(report.screenId)[0];
+        const screenId = screenIdFor(report.screenId);
         frameRates.report({...report, screenId});
         outputs.frameReported(screenId);
         board.refresh();
       }, log),
     ),
-    ...publishStatus({board, outputs, log}),
+    ...publishStatus({board, outputs, log, screenIdFor}),
     keepAwakeWhileOutputsOn(
       store,
       new WakeKeeper(createElectronWakeLock(), log),

@@ -29,6 +29,8 @@ export function startOverlays({
   void settings
     .then(reader => {
       if (disposed || reader === null) return;
+      // NOTE(0913vision): This lifecycle alone owns the store's reader.
+      // Output subscriptions use it without attaching a second owner.
       releaseSettings = store.connectSettings(reader);
       stopSettings = reader.subscribe(document => {
         if (disposed) return;
