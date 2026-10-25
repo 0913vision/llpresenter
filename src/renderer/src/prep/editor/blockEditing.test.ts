@@ -53,7 +53,7 @@ describe('song block edits', () => {
       );
       expect(next.song.slides).toHaveLength(4);
       expect(next.song.arrangements?.map(item => item.slides)).toEqual([
-        [4, 3, 1, 3],
+        [4, 3, 1, 2, 3],
         [3],
         [],
       ]);
@@ -117,7 +117,7 @@ describe('song block edits', () => {
     }
   });
 
-  it('merges into the previous block and drops deleted references, preserving extensions', () => {
+  it('merges into the previous block and retains its references and extensions', () => {
     const next = editBlocks(
       blockSnapshot(song(), {block: 1, start: 0, end: 0}),
       {type: 'merge'},
@@ -128,8 +128,8 @@ describe('song block edits', () => {
       futureSlide: 1,
     });
     expect(next.song.arrangements?.map(item => item.slides)).toEqual([
-      [2, 1],
-      [],
+      [2, 1, 1],
+      [1],
       [],
     ]);
     expect(next.song).toMatchObject({
@@ -163,7 +163,66 @@ describe('song block edits', () => {
         ['Yd'],
       ]);
       expect(next.selection).toEqual({block: 1, start: 1, end: 1});
-      expect(next.song.arrangements?.[0]?.slides).toEqual([4, 3, 1, 3]);
+      expect(next.song.arrangements?.[0]?.slides).toEqual([4, 3, 1, 2, 3]);
+    },
+  );
+
+  it.each([
+    {references: [1, 3, 3], block: 2, expected: [1, 3, 4, 3, 4]},
+    {references: [1, 1, 2, 3], block: 0, expected: [1, 2, 1, 2, 3, 4]},
+  ])(
+    'expands every split reference in $references',
+    ({references, block, expected}) => {
+      const original = {
+        ...song(),
+        arrangements: [{name: '반복', slides: references}],
+      };
+      const next = editBlocks(
+        blockSnapshot(original, {block, start: 0, end: 0}),
+        {type: 'split'},
+      );
+      expect(next.song.arrangements?.[0]?.slides).toEqual(expected);
+      expect(original.arrangements[0]?.slides).toEqual(references);
+      expect(serializeSong(next.song, 'memory.llsong').ok).toBe(true);
+    },
+  );
+
+  it('expands paste references to all three parts on every occurrence', () => {
+    const original = {
+      ...song(),
+      arrangements: [{name: '반복', slides: [2, 3, 2]}],
+    };
+    const next = editBlocks(
+      blockSnapshot(original, {block: 1, start: 0, end: 6}),
+      {type: 'paste', text: 'one\n\ntwo\n\nthree'},
+    );
+    expect(next.song.arrangements?.[0]?.slides).toEqual([2, 3, 4, 5, 2, 3, 4]);
+  });
+
+  it.each([
+    {references: [2, 3], expected: [2]},
+    {references: [3], expected: [2]},
+    {references: [3, 2], expected: [2]},
+    {references: [1, 3, 1, 2, 3], expected: [1, 2, 1, 2]},
+    {references: [2, 2], expected: [2, 2]},
+    {references: [3, 3], expected: [2, 2]},
+    {references: [2, 3, 2, 3], expected: [2, 2]},
+    {references: [3, 2, 3, 2], expected: [2, 2]},
+    {references: [2, 2, 3, 3], expected: [2, 2, 2]},
+  ])(
+    'maps merge references without removing deliberate repeats: $references',
+    ({references, expected}) => {
+      const original = {
+        ...song(),
+        arrangements: [{name: '반복', slides: references}],
+      };
+      const next = editBlocks(
+        blockSnapshot(original, {block: 2, start: 0, end: 0}),
+        {type: 'merge'},
+      );
+      expect(next.song.arrangements?.[0]?.slides).toEqual(expected);
+      expect(original.arrangements[0]?.slides).toEqual(references);
+      expect(serializeSong(next.song, 'memory.llsong').ok).toBe(true);
     },
   );
 
@@ -248,6 +307,24 @@ describe('song history', () => {
     history.undo();
     type(history, 'different', 1);
     expect(history.canRedo).toBe(false);
+  });
+
+  it('preserves repeated references through split, merge, undo, and redo', () => {
+    const original = {
+      ...song(),
+      arrangements: [{name: '반복', slides: [1, 3, 3]}],
+    };
+    const history = new SongHistory(original);
+    history.select({block: 2, start: 0, end: 0});
+    const before = history.snapshot;
+    const split = history.apply({type: 'split'});
+    expect(split.song.arrangements?.[0]?.slides).toEqual([1, 3, 4, 3, 4]);
+    const merged = history.apply({type: 'merge'});
+    expect(merged.song).toEqual(original);
+    expect(history.undo()).toBe(split);
+    expect(history.undo()).toBe(before);
+    expect(history.redo()).toBe(split);
+    expect(history.redo()).toBe(merged);
   });
 
   it('retains exactly 100 undo steps and keeps song sessions independent', () => {

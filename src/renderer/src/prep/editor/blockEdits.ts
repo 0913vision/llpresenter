@@ -46,14 +46,40 @@ interface Splice {
   readonly selection: BlockSelection;
 }
 
+function remapReferences(
+  references: readonly number[],
+  edit: Splice,
+): readonly number[] {
+  const {at, remove, blocks} = edit;
+  const merging = remove === 2 && blocks.length === 1;
+  const result: number[] = [];
+  for (let index = 0; index < references.length; index++) {
+    const number = references[index];
+    if (number === undefined) continue;
+    if (number <= at) result.push(number);
+    else if (number > at + remove) result.push(number + blocks.length - remove);
+    else {
+      for (let part = 0; part < blocks.length; part++) {
+        result.push(at + part + 1);
+      }
+      const next = references[index + 1];
+      if (
+        merging &&
+        next !== undefined &&
+        next !== number &&
+        next > at &&
+        next <= at + remove
+      ) {
+        index++;
+      }
+    }
+  }
+  return result;
+}
+
 function splice(snapshot: BlockSnapshot, edit: Splice): BlockSnapshot {
   const {song} = snapshot;
   const {at, remove, blocks, selection} = edit;
-  const remap = (number: number): readonly number[] => {
-    if (number <= at) return [number];
-    if (number > at + remove) return [number + blocks.length - remove];
-    return number === at + 1 ? [number] : [];
-  };
   return blockSnapshot(
     {
       ...song,
@@ -67,7 +93,7 @@ function splice(snapshot: BlockSnapshot, edit: Splice): BlockSnapshot {
         : {
             arrangements: song.arrangements.map(arrangement => ({
               ...arrangement,
-              slides: arrangement.slides.flatMap(remap),
+              slides: remapReferences(arrangement.slides, edit),
             })),
           }),
     },
@@ -146,7 +172,8 @@ function paste(snapshot: BlockSnapshot, insertion: string): BlockSnapshot {
 /**
  * Applies a block edit without mutating the song. Splits retain the first
  * block's identity and label; new blocks start unlabeled. Named arrangements
- * keep their existing references, with later slide numbers shifted.
+ * expand split references and map merged blocks to the result, collapsing
+ * adjacent pairs of different merge sources while retaining deliberate repeats.
  */
 export function editBlocks(
   input: BlockSnapshot,
