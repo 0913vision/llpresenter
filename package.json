@@ -18,7 +18,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "format": "prettier --write . --cache --cache-strategy content",
-    "format:check": "prettier --check . --cache --cache-strategy content",
+    "format:check": "node scripts/check-bom.mts && prettier --check . --cache --cache-strategy content",
     "verify": "node scripts/verify.mts",
     "soak": "node scripts/soak/run.mts"
   },

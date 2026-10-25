@@ -48,6 +48,29 @@ Tests have 60 seconds each (Vitest's default is 5), and Vitest uses worker
 threads on half the cores, so a machine busy with several sessions makes the run
 slower instead of failing it.
 
+## UTF-8 without a byte order mark
+
+`npm run format:check` first runs `node scripts/check-bom.mts` on tracked
+Markdown and JSON files, including files such as `package-lock.json` that
+Prettier ignores. A BOM prints the file's path and fails the check. The check
+reads only the first three bytes of each file and doesn't rewrite files.
+ESLint's `unicode-bom: ['error', 'never']` enforces the same rule for code.
+
+In Windows PowerShell 5.1, `Set-Content -Encoding UTF8` writes a BOM and
+`utf8NoBOM` isn't an available encoding name. Write repository text with the
+.NET UTF-8 encoder instead:
+
+```powershell
+$path = Join-Path (Get-Location) 'docs/reviews/example.md'
+$text = "# Example`n"
+[IO.File]::WriteAllText($path, $text, [Text.UTF8Encoding]::new($false))
+```
+
+See Microsoft's
+[PowerShell encoding reference](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_character_encoding?view=powershell-5.1).
+Preserve LF line endings when preparing the text. For an encoding-only cleanup,
+remove the leading `EF BB BF` bytes without decoding and rewriting the body.
+
 ## `npm run lint`
 
 - The config is `scripts/lint/config.mts`. The root `eslint.config.mjs` only
