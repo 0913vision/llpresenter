@@ -34,13 +34,14 @@ icon renders, not in the parse budget:
 [run 40206840935](https://github.com/0913vision/llpresenter/actions/runs/40206840935).
 The lead extended this request to fix `ClearRow.test.tsx`, test only.
 
-The undo-render helper now starts live-state synchronization with an explicit
-first-read promise and waits for that state and its React updates before it
-returns. Tests set their desired live state afterwards, before resetting render
-counters or asserting transitions. This removes the startup-read race from all
-tests using the helper. The pre-first-state test now holds that response until
-after its initial assertion, then explicitly settles it. Synchronization is
-unsubscribed at test completion. Runtime ClearRow code is unchanged.
+The race came from `UndoControls` completing
+`preferences.get().then(setVisible)`: the undo button could mount before its
+subscription was settled. The helper's async `act` now settles this
+preference-driven mount before returning and starting render measurements. It
+also starts and settles a mock first live state. Tests set their desired live
+state afterwards. The pre-first-state test holds that response until after its
+initial assertion, then explicitly settles it. Synchronization is unsubscribed
+at test completion. Runtime ClearRow code is unchanged.
 
 ## Checks run
 
