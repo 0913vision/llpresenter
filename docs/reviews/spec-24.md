@@ -80,3 +80,15 @@ No Electron process, visible window, soak, or memory measurement was started.
 The submitted branch was rebased once onto `main`. The exact submitted HEAD
 requires green GitHub CI; its run URL and result are recorded in the report
 without adding a new unverified commit for CI metadata.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (afa4efb): reviewer (Claude, trial-97) Approve. Two nits for the next
+  S1a part: `src/renderer/src/state/serviceOrderEdits.ts:183` `catch {` drops
+  the cause; pass its message into the result or log it through
+  `window.llp.log`. `:38` compares orders with `JSON.stringify`, which depends
+  on key order; compare structurally or record `after` from the document main
+  holds after the save, and note in the TSDoc that a later change to an item's
+  own fields makes undo refuse with `stale`. Lead Approve. Written by the Codex
+  session that took over spec's work, under the lead's exception for shell's
+  paths. Rebased by the lead onto local `main` without conflicts.
