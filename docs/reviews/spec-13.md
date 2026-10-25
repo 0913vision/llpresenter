@@ -105,6 +105,20 @@ implementation owners must test their corresponding behavior changes.
 Review the behavior/settings commit first, then the terminology commit. Table
 padding and line wrapping account for much of the full-range diff.
 
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (codex3): Request changes with one finding and a nit: the rename
+  turned the Bible chapter delimiter 장 into 슬라이드, and the redo scope
+  summary didn't match the table.
+- Round 2 (1e4afa6): reviewer (Codex, codex3) Approve with no findings. Lead
+  Approve; the spec follows the first M2 check
+  (`docs/plans/m2-check1-feedback.md`): no Ctrl Z for clears (the old claim that
+  ProPresenter undoes clears is corrected), the 되돌리기 button as a setting off
+  by default (user decision), no keyboard focus border in 진행, a continuous
+  slide size slider with a % field, a UI zoom setting, a layout reset proposal,
+  and 슬라이드 instead of 장 for slides while Bible chapters keep 장. Written by
+  the Codex session that took over spec's work. Fast-forward merge.
+
 ## Team member's reply (round 2)
 
 1. Restored the chapter delimiter 장 in 02 "Reference grammar": the Korean
