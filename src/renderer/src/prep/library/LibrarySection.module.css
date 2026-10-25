@@ -1,0 +1,7 @@
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: var(--panel-gap);
+  height: calc(var(--size-row) * 14);
+  max-width: calc(var(--size-row) * 30);
+}

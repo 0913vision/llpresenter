@@ -1,0 +1,22 @@
+.panel {
+  height: 100%;
+}
+
+.body {
+  display: flex;
+  overflow: hidden;
+}
+
+.list {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+.viewport {
+  height: 100%;
+  overflow: auto;
+  padding-bottom: var(--space-8);
+  scrollbar-color: var(--line-strong) transparent;
+  scrollbar-width: thin;
+}
