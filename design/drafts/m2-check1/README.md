@@ -175,6 +175,7 @@ From this worktree in PowerShell, with the existing dependencies:
 ```powershell
 npx --no-install tsc --project design/drafts/m2-check1/tsconfig.json
 node --check design/drafts/m2-check1/render.cjs
+node --test design/drafts/m2-check1/render.test.cjs
 $env:LLP_TEST_WINDOWS = 'offscreen'
 Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
 & '.\node_modules\.bin\electron.cmd' 'design/drafts/m2-check1/render.cjs'
@@ -187,7 +188,11 @@ checked-out product source and updates the captures; it does not reproduce that
 historical baseline automatically. Use the committed PNGs to review the user's
 recorded comparison.
 
-The script refuses to run without the offscreen flag. Every window has
+The script refuses to run without the offscreen flag: it writes a message to
+stderr and exits with code 1 without throwing or scheduling startup. The Node
+bootstrap tests execute the actual CommonJS entry with a fake Electron API;
+missing, empty, and incorrect flag values do not launch Electron. Valid
+offscreen mode still schedules its readiness handler. Every real window has
 `show: false` and `webPreferences.offscreen: true`. Its Vite server binds only
 to `127.0.0.1:5186`; the server and window close when rendering ends. No other
 server, browser, or downloaded program is needed.

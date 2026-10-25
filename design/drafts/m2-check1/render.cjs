@@ -3,7 +3,11 @@ const fs = require('node:fs');
 const path = require('node:path');
 const {app, BrowserWindow} = require('electron');
 
-assert.equal(process.env.LLP_TEST_WINDOWS, 'offscreen');
+if (process.env.LLP_TEST_WINDOWS !== 'offscreen') {
+  console.error('Draft rendering requires LLP_TEST_WINDOWS=offscreen.');
+  app.exit(1);
+  return;
+}
 app.disableHardwareAcceleration();
 app.commandLine.appendSwitch('force-device-scale-factor', '1');
 app.on('window-all-closed', () => {});
