@@ -11,9 +11,9 @@ changes. This is the contract for shell-24, not its main/renderer integration.
   `8d13d7fac067e05a1a590077f1914a36b27b05c5`
 - Stack base (`main`): `56619c66de5ac3e2197b9881f2b1fb63e3e8f74e`
 - Last code commit: `2fe2d15`
-- Incremental review range: `8d13d7f..feat/data/thumbnail-scale`
-- Status: implementation ready; request awaits data-20 merge and verify-failure
-  classification by the lead
+- Incremental review range: `8d13d7f...feat/data/thumbnail-scale`
+- Status: ready for parallel review with data-20 under the lead-confirmed known
+  load-failure exception; data-20 merges first
 - Task: M2 check 1 row 9, the continuous slide-size contract
 - Spec: 10, "Thumbnail size (proposal)", 50% through 200%, whole percentages
 
@@ -74,7 +74,7 @@ fields. Existing main and renderer tests confirm legacy column commands remain
 usable. Local logs use `.llp/data21-*.log`; the verify log is
 `.llp/verify-data21-codex.log`.
 
-### Single full verify result
+### Single full verify result: known load failure
 
 Typecheck passed in 16.8 s, lint in 103.0 s, format check in 31.3 s, and build
 in 4.8 s. Coverage finished in 203.0 s with 210 files passed and one failed:
@@ -89,19 +89,22 @@ could not end process 5344: taskkill did not finish within 5 s (SIGTERM)
 
 No script, process cleanup, test configuration, shell, or native fixture source
 changes in data-21. All changed-contract tests and the inherited Electron zoom
-regression passed. This appears to be a cleanup timeout under load, but the
-exact failure has not been classified as a known exception by the lead. The
-review gate remains open for that classification. The full verify and failed
-test were not rerun. After the run, PID 5344 and its direct children were no
-longer present, so no further termination was needed.
+regression passed. On 2026-10-25, the lead confirmed this taskkill timeout as a
+load failure in an untouched devops test and authorized the data-21 review
+request under the workflow's known-failure exception. The original verify
+failure remains recorded above. The full verify and failed test were not rerun.
+After the run, PID 5344 and its direct children were no longer present, so no
+further termination was needed.
 
-The stack remains on data-20's reviewed head while its round 2 is pending. Per
-the stacked-branch workflow, move this branch onto main after data-20 merges;
-the incremental range above excludes the lower request.
+The lead authorized reviewing data-20 and data-21 in parallel, with data-20
+merging first. This branch stays stacked on data-20's round 2 head for review;
+the incremental range above excludes the lower request. Move this branch onto
+main after data-20 merges.
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
-- [ ] `npm run verify` passes.
+- [x] Single `npm run verify` result recorded; the lead accepted the known load
+      failure above for this review request.
 - [x] `npm run format:check` passes in verify.
 - [x] New schema behavior has unit tests, including old-file compatibility.
 - [x] External file and IPC values pass schemas; validation remains in the
