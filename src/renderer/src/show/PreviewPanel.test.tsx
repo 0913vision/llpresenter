@@ -16,6 +16,7 @@ interface Instance {
     readonly lyricStyle: unknown;
     readonly mediaUrl: unknown;
     readonly onError: (message: string, error: unknown) => void;
+    readonly mode: unknown;
   };
   readonly render: ReturnType<typeof vi.fn>;
   readonly dispose: ReturnType<typeof vi.fn>;
@@ -285,6 +286,16 @@ describe('PreviewPanel pictures', () => {
       expect(instance.options.lyricStyle).toBe(DEFAULT_LYRIC_STYLE);
       expect(instance.options.mediaUrl).toBe(mediaUrl);
     }
+  });
+
+  it('mounts every renderer in the preview mode, so a looping background keeps one video', () => {
+    setLayers({}, allOn);
+    render(<PreviewPanel compact={false} />);
+    expect(created().map(instance => instance.options.mode)).toEqual([
+      'preview',
+      'preview',
+      'preview',
+    ]);
   });
 
   it('draws the live layers on every renderer at once', () => {

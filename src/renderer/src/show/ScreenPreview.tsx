@@ -46,6 +46,7 @@ export function ScreenPreview({
       lyricStyle: DEFAULT_LYRIC_STYLE,
       mediaUrl,
       onError: reportDrawingError,
+      mode: 'preview',
     });
     const draw = (): void =>
       renderer.render(useLive.getState().state?.layers ?? noLayers);
