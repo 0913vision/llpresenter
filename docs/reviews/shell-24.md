@@ -1,15 +1,18 @@
 # Review request: `shell-24`
 
-Review range: 3469d9e...feat/shell/thumbnail-scale
+Review range: 82d38f1...feat/shell/thumbnail-scale
 
 What to check: that the 진행 슬라이드 grid follows the continuous size control
 of ui-13 at once, that only the finished whole percentage is saved per size
 class (`layout.<sizeClass>.thumbnailScalePercent`, data-21), that the grid width
 measurement is released on unmount, and that the old columns are no longer sent.
 
+Round 2, what to check: the reply below; a % draft typed in one size class is
+dropped when the class changes, and the test fails without the fix.
+
 - Team member: `shell`
 - Branch: `feat/shell/thumbnail-scale`
-- Base commit (`main`): `3469d9e` (data-21 is in it)
+- Base commit (`main`): `82d38f1` (data-21 and ui-15 are in it)
 - Last commit: see the commit that adds this file
 - Related brief: row 9 of `docs/plans/m2-check1-feedback.md`; the "Shell
   handoff" in `docs/reviews/ui-13.md`; "Thumbnail size" in
@@ -117,7 +120,26 @@ missing.
 
 - Not reviewed yet.
 
+## Team member's reply
+
+Round 1 (codex2, request changes), answered once:
+
+1. `SlideSizeControl` now keys the ui control by the size class, so a new size
+   class gets a new control: a % draft typed in one class is dropped and can't
+   be saved to the next one, and the callbacks always belong to the control's
+   own class. The test "drops a % draft when the size class changes during the
+   edit" types 150 in narrow, switches to normal, presses Enter, and expects
+   nothing saved and normal still at 100%; it fails without the key. If the %
+   field had the focus, the focus leaves it with the old control, which in 진행
+   leaves the live keys working.
+
 ## Verify result
+
+### Round 2
+
+Pending.
+
+### Round 1
 
 `npm run verify` on commit `b32177d` (base `main` 3469d9e): all five steps
 passed in 144.3 s.
