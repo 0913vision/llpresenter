@@ -50,6 +50,7 @@ Hover uses the same 1px `line-control` as the hover of the small previews (ShowH
 
 ## Behavior
 
+- `ThumbnailGrid.tileWidth` optionally sets a fixed tile width in CSS pixels, normally computed by `thumbnailWidth` from spec-13's percentage. Tiles keep that width across wrapping rather than filling integer column tracks. Row navigation reads the actual layout. Without a valid positive width, the existing `columns` layout remains available for callers that have not adopted the percentage control.
 - In 진행, keyboard focus remains on the thumbnail but draws no focus outline. Tab, arrow movement, Enter, and the live/selection rings still work. 준비 keeps the usual focus outline. `ThumbnailGrid` passes its `workspace` through to the grid; other tile lists default to 준비.
 - In the 진행 workspace, a click outputs that 장. In the 준비 workspace, a click only selects it.
 - The grid is `role="listbox"`, and each thumbnail is `role="option"` + `aria-selected`. Tab enters the grid only once (roving tabindex), on the selected thumbnail.

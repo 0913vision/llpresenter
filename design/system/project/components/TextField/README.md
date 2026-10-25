@@ -57,7 +57,7 @@ A field for typing text directly. Use it for search, Bible verses in 퀵 실행 
 - A click anywhere in the field (icon included) focuses the input.
 - Search field: filter the results on every keystroke. Esc clears the value if there is one, and releases focus if the field is empty. The clear-text button clears the value and keeps focus in the field.
 - 퀵 실행 field: Enter shows that verse. If the verse can't be recognized, show the error ring and give the reason in a tooltip.
-- Number field: the up and down arrows change the value by 1, or by 10 with Shift. When focus leaves, snap an out-of-range value to the nearest valid value.
+- Number field: the up and down arrows change the value by 1, or by 10 with Shift. When focus leaves, snap an out-of-range value to the nearest valid value. `NumberField updateOn="commit"` buffers typing until Enter or blur and lets Escape cancel the draft; the default `change` mode still reports valid typing immediately. Slide-size percentages use commit mode and round at the composed control's commit boundary.
 - Title field: if the library has a song with the same title, show `aria-invalid="true"` and the error ring, and go to the `ImportSave` confirmation dialog on save.
 - Key input field: when it gets focus, it records the next key combination pressed, F1 to F7 included, by physical key (`KeyboardEvent.code`). Esc cancels, Backspace removes the shortcut, and Tab or Shift Tab ends the recording and moves focus. A reserved key isn't recorded: the field keeps recording, shows the error ring, and gives the reason in a tooltip (see `KeyCap`). Keys with an empty `code` (한/영, 한자) aren't recorded.
 - Tab order follows the order on screen. Take the clear-text button out of the tab order (`tabindex="-1"`). Esc does the same thing.

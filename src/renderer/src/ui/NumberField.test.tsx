@@ -7,9 +7,11 @@ import {NumberField} from './NumberField';
 function Copies({
   onChange = () => {},
   suffix,
+  updateOn,
 }: {
   readonly onChange?: (value: number) => void;
   readonly suffix?: string;
+  readonly updateOn?: 'change' | 'commit';
 }): JSX.Element {
   const [value, setValue] = useState(10);
   return (
@@ -20,6 +22,7 @@ function Copies({
         max={50}
         unit="개"
         suffix={suffix}
+        updateOn={updateOn}
         value={value}
         onChange={next => {
           setValue(next);
@@ -38,6 +41,26 @@ function spin(): HTMLInputElement {
 }
 
 describe('NumberField', () => {
+  it('defers valid typing to Enter in commit mode', async () => {
+    const onChange = vi.fn();
+    render(<Copies onChange={onChange} updateOn="commit" />);
+    await userEvent.clear(spin());
+    await userEvent.type(spin(), '25.6');
+    expect(onChange).not.toHaveBeenCalled();
+    await userEvent.keyboard('{Enter}');
+    expect(onChange).toHaveBeenCalledExactlyOnceWith(25.6);
+  });
+
+  it('cancels a commit-mode draft without reporting it on blur', async () => {
+    const onChange = vi.fn();
+    render(<Copies onChange={onChange} updateOn="commit" />);
+    await userEvent.clear(spin());
+    await userEvent.type(spin(), '25');
+    await userEvent.keyboard('{Escape}{Tab}');
+    expect(onChange).not.toHaveBeenCalled();
+    expect(spin().value).toBe('10');
+  });
+
   it('is a spin button that reports its value and range', () => {
     render(<Copies />);
     expect(spin().value).toBe('10');

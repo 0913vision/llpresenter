@@ -216,6 +216,21 @@ export {
   type SliderWidth,
 } from './Slider';
 export {
+  ThumbnailSizeControl,
+  type ThumbnailSizeControlProps,
+} from './ThumbnailSizeControl';
+export {
+  DEFAULT_THUMBNAIL_SCALE_PERCENT,
+  MAX_THUMBNAIL_SCALE_PERCENT,
+  MIN_THUMBNAIL_SCALE_PERCENT,
+  THUMBNAIL_SCALE_SHIFT_STEP,
+  THUMBNAIL_SCALE_STEP,
+  clampThumbnailScale,
+  commitThumbnailScale,
+  thumbnailWidth,
+  type ThumbnailGeometry,
+} from './thumbnailSize';
+export {
   CountBadge,
   LiveBadge,
   Progress,

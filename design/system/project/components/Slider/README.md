@@ -43,6 +43,9 @@ A horizontal slider that sets a value by dragging. Use it for the thumbnail size
 
 ## Behavior
 
+- Slide size uses `ThumbnailSizeControl`: continuous pointer values from 50% to 200%, default 100%, with a synchronized % field. The slider uses `step="any"`; arrows change 1 percentage point, Shift arrows 10. The field displays the nearest whole percent while dragging. Releasing or cancelling the pointer commits the nearest whole percent. The field commits on Enter or blur, clamps and rounds to 1%, and Escape cancels its typed change. These spec-13 defaults are our design, not ProPresenter's documented numeric range.
+- `thumbnailWidth` computes the baseline from usable grid width, the default 3/4/6 columns, and the horizontal token gap, then scales and caps at the usable width. Pass it as `ThumbnailGrid.tileWidth`; tiles wrap at that fixed width and do not stretch to fill a row. Keyboard row movement reads the actual wrapped columns.
+- In 진행, a completed pointer interaction restores the keyboard focus held before dragging the size slider. The % input remains editable and can take focus. 준비 focuses the slider normally. The caller owns the size class, live preview state, measured grid width/gap, and delayed persistence; `onChange` carries continuous previews and `onCommit` carries the completed whole percentage.
 - A click anywhere on the track moves the knob to that point, and the user can keep dragging from there.
 - Keyboard: left/right and up/down arrows move one step, PageUp/PageDown move 10%, Home/End go to the start and the end. For thumbnail size, one step is 1.
 - While the user drags, the grid changes at once for thumbnail size, and the sound changes at once for volume.
@@ -50,7 +53,7 @@ A horizontal slider that sets a value by dragging. Use it for the thumbnail size
 
 ## Writing
 
-- Don't write a value or a description next to the slider. Convey the name with the leading icon, `aria-label`, and a tooltip (tooltips "썸네일 크기", "음량").
+- Slide size shows its % input next to the slider (M2 check 1 row 9); name it "슬라이드 크기". Other sliders keep the value in their tooltip or accessible value and add no adjacent description. Convey the name with the leading icon, `aria-label`, and a tooltip.
 
 ## Implementation notes
 

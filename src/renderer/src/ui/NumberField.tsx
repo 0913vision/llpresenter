@@ -35,6 +35,8 @@ export interface NumberFieldProps extends Omit<
   readonly max: number;
   /** The change for one press of the up or down arrow. Defaults to 1. */
   readonly step?: number | undefined;
+  /** `commit` buffers typing until Enter or blur; Escape cancels it. */
+  readonly updateOn?: 'change' | 'commit' | undefined;
   /** A unit drawn outside the field, such as 개 or 줄. */
   readonly unit?: string | undefined;
   /** A unit that is part of the value, such as `%`. */
@@ -64,6 +66,7 @@ export function NumberField({
   min,
   max,
   step = 1,
+  updateOn = 'change',
   unit,
   suffix = '',
   invalid = false,
@@ -94,7 +97,11 @@ export function NumberField({
   const type = (text: string): void => {
     setDraft(text);
     const typed = parseNumberText(text, suffix);
-    if (typed !== undefined && clampNumber(typed, range) === typed) {
+    if (
+      updateOn === 'change' &&
+      typed !== undefined &&
+      clampNumber(typed, range) === typed
+    ) {
       report(typed);
     }
   };
@@ -116,7 +123,14 @@ export function NumberField({
     onKeyDown?.(event);
     if (event.defaultPrevented || readOnly) return;
     if (isComposing(event)) return;
+    if (event.key === 'Escape' && updateOn === 'commit' && draft !== null) {
+      event.preventDefault();
+      event.stopPropagation();
+      setDraft(null);
+      return;
+    }
     if (event.key === 'Enter') {
+      if (updateOn === 'commit') event.preventDefault();
       commit();
       return;
     }

@@ -30,6 +30,8 @@ export interface ThumbnailGridBaseProps {
   readonly label: string;
   /** The column count, 2 to 8, from the panel's size slider. */
   readonly columns: number;
+  /** Fixed CSS-pixel tile width from thumbnailWidth; omitting it fills columns. */
+  readonly tileWidth?: number | undefined;
   /**
    * The index of the selected thumbnail, which takes the Tab stop. While it is
    * `undefined`, the first thumbnail takes it.
@@ -57,7 +59,10 @@ export interface PrepThumbnailGridProps extends ThumbnailGridBaseProps {
 export type ThumbnailGridProps =
   ShowThumbnailGridProps | PrepThumbnailGridProps;
 
-type GridStyle = CSSProperties & Readonly<Record<'--thumb-columns', number>>;
+interface GridStyle extends CSSProperties {
+  readonly '--thumb-columns': number;
+  readonly '--thumb-width'?: string | undefined;
+}
 
 /**
  * The 장 grid (`ll-thumb-grid`): a listbox of `SlideThumbnail` items that Tab
@@ -68,20 +73,33 @@ type GridStyle = CSSProperties & Readonly<Record<'--thumb-columns', number>>;
  */
 export function ThumbnailGrid(props: ThumbnailGridProps): JSX.Element {
   const {workspace, columns, onSelect} = props;
-  const style: GridStyle = {'--thumb-columns': columns};
+  const fixedWidth =
+    props.tileWidth !== undefined &&
+    Number.isFinite(props.tileWidth) &&
+    props.tileWidth > 0
+      ? props.tileWidth
+      : undefined;
+  const style: GridStyle = {
+    '--thumb-columns': columns,
+    '--thumb-width': fixedWidth === undefined ? undefined : `${fixedWidth}px`,
+  };
   return (
     <TileList
       workspace={workspace}
       label={props.label}
       moves={workspaceMoves[workspace]}
-      columns={columns}
+      columns={fixedWidth === undefined ? columns : 'auto'}
       spaceKey={workspaceSpaceKey[workspace]}
       takesClickFocus
       arrowsMove="selection"
       selected={props.selected}
       onSelect={onSelect}
       onActivate={props.workspace === 'show' ? props.onOutput : onSelect}
-      className={classNames(styles.grid, props.className)}
+      className={classNames(
+        styles.grid,
+        fixedWidth !== undefined && styles.sized,
+        props.className,
+      )}
       style={style}
     >
       {props.children}

@@ -6,6 +6,13 @@
   outline: none;
 }
 
+.sized {
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(0, min(100%, var(--thumb-width)))
+  );
+}
+
 .thumb {
   display: flex;
   flex-direction: column;

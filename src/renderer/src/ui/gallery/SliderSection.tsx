@@ -1,6 +1,13 @@
 import type {JSX} from 'react';
 import {Slider, type SliderProps} from '../Slider';
-import {Section, SpecGroup, SpecItem, Stateful} from './Spec';
+import {ThumbnailSizeControl} from '../ThumbnailSizeControl';
+import {SlideThumbnail, ThumbnailGrid} from '../SlideThumbnail';
+import {
+  DEFAULT_THUMBNAIL_SCALE_PERCENT,
+  thumbnailWidth,
+} from '../thumbnailSize';
+import {ignore, Section, SpecGroup, SpecItem, Stateful} from './Spec';
+import styles from './SliderSection.module.css';
 
 function percentText(value: number): string {
   return `${value}%`;
@@ -14,6 +21,46 @@ const VOLUME = {
   formatValue: percentText,
 } as const;
 const BLOCK_WIDTH = 360;
+const SCALE_EXAMPLE_WIDTH = 440;
+const SCALE_EXAMPLE_COLUMNS = 3;
+const SCALE_EXAMPLE_GAP = 12;
+
+function ScaleExample(): JSX.Element {
+  return (
+    <Stateful initial={DEFAULT_THUMBNAIL_SCALE_PERCENT}>
+      {(value, setValue) => (
+        <div className={styles.example}>
+          <ThumbnailSizeControl
+            value={value}
+            onChange={setValue}
+            onCommit={setValue}
+          />
+          <ThumbnailGrid
+            workspace="prep"
+            label="크기 비교 슬라이드"
+            columns={SCALE_EXAMPLE_COLUMNS}
+            tileWidth={thumbnailWidth({
+              gridWidth: SCALE_EXAMPLE_WIDTH,
+              columns: SCALE_EXAMPLE_COLUMNS,
+              gap: SCALE_EXAMPLE_GAP,
+              scalePercent: value,
+            })}
+            selected={undefined}
+            onSelect={ignore}
+          >
+            {Array.from({length: 6}, (_, index) => (
+              <SlideThumbnail
+                key={index}
+                number={index + 1}
+                text="새로운 노래를 부르리"
+              />
+            ))}
+          </ThumbnailGrid>
+        </div>
+      )}
+    </Stateful>
+  );
+}
 
 function Live({
   initial,
@@ -79,6 +126,14 @@ export function SliderSection(): JSX.Element {
             title="소리가 꺼져 있습니다"
             initial={0}
           />
+        </SpecItem>
+      </SpecGroup>
+      <SpecGroup title="Continuous slide size, spec-13" surface="panel">
+        <SpecItem
+          label="Continuous percentage and fixed-width wrapping"
+          width={SCALE_EXAMPLE_WIDTH}
+        >
+          <ScaleExample />
         </SpecItem>
       </SpecGroup>
     </Section>

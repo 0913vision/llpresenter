@@ -1,0 +1,4 @@
+.example {
+  display: grid;
+  gap: var(--space-16);
+}

@@ -214,6 +214,59 @@ describe('SlideThumbnail', () => {
 });
 
 describe('ThumbnailGrid', () => {
+  it('uses the actual wrapped row when fixed-width tiles change the column count', async () => {
+    const onSelect = vi.fn();
+    function WrappedGrid({
+      tileWidth,
+    }: {
+      readonly tileWidth: number;
+    }): JSX.Element {
+      const [selected, setSelected] = useState(0);
+      return (
+        <ThumbnailGrid
+          label="슬라이드"
+          workspace="prep"
+          columns={4}
+          tileWidth={tileWidth}
+          selected={selected}
+          onSelect={next => {
+            setSelected(next);
+            onSelect(next);
+          }}
+        >
+          {[0, 1, 2, 3].map(index => (
+            <SlideThumbnail
+              key={index}
+              number={index + 1}
+              selected={selected === index}
+            />
+          ))}
+        </ThumbnailGrid>
+      );
+    }
+    const {rerender} = render(<WrappedGrid tileWidth={190.5} />);
+    const options = screen.getAllByRole('option');
+    for (const [index, option] of options.entries()) {
+      Object.defineProperty(option, 'offsetTop', {
+        configurable: true,
+        value: index < 2 ? 0 : 100,
+      });
+    }
+    const first = options[0];
+    if (first === undefined) throw new Error('Missing first thumbnail');
+    first.focus();
+    await userEvent.keyboard('{ArrowDown}');
+    expect(document.activeElement).toBe(options[2]);
+    expect(onSelect).toHaveBeenCalledWith(2);
+    expect(
+      screen.getByRole('listbox').style.getPropertyValue('--thumb-width'),
+    ).toBe('190.5px');
+    rerender(<WrappedGrid tileWidth={0} />);
+    expect(
+      screen.getByRole('listbox').style.getPropertyValue('--thumb-width'),
+    ).toBe('');
+  });
+
   it.each(['show', 'prep'] as const)(
     'keeps Tab, arrow movement, and activation in the %s focus appearance',
     async workspace => {

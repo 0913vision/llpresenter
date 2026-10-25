@@ -17,8 +17,12 @@ export interface SliderProps {
   readonly onChange: (value: number) => void;
   readonly min: number;
   readonly max: number;
-  /** The change for one arrow key press. Defaults to 1. */
-  readonly step?: number | undefined;
+  /** Use `any` for continuous dragging; arrow keys still move by 1. */
+  readonly step?: number | 'any' | undefined;
+  /** An optional step for Shift plus an arrow key. */
+  readonly shiftStep?: number | undefined;
+  /** Reports when a pointer interaction ends or a key changes the value. */
+  readonly onCommit?: ((value: number) => void) | undefined;
   /** The accessible name and tooltip, such as 썸네일 크기 or 음량. */
   readonly label: string;
   /** A leading icon, such as `grid` or `audio`. */
@@ -50,6 +54,8 @@ export function Slider({
   min,
   max,
   step = 1,
+  shiftStep,
+  onCommit,
   label,
   icon,
   width = 'regular',
@@ -59,17 +65,25 @@ export function Slider({
   title,
   className,
 }: SliderProps): JSX.Element {
-  const scale = {min, max, step};
+  const scale = {min, max, step: step === 'any' ? 1 : step};
   const {targetProps, tooltip} = useTooltip({text: title ?? label});
   const trackStyle: TrackStyle = {
     '--slider-value': `${sliderPercent(value, scale)}%`,
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
-    const next = sliderKeyValue(event.key, value, scale);
+    if (disabled) return;
+    const keyScale =
+      event.shiftKey && event.key.startsWith('Arrow') && shiftStep !== undefined
+        ? {...scale, step: shiftStep}
+        : scale;
+    const next = sliderKeyValue(event.key, value, keyScale);
     if (next === undefined) return;
     event.preventDefault();
-    if (next !== value) onChange(next);
+    if (next !== value) {
+      onChange(next);
+      onCommit?.(next);
+    }
   };
 
   const slider = (
@@ -90,6 +104,17 @@ export function Slider({
       )}
       onChange={event => onChange(Number(event.target.value))}
       onKeyDown={handleKeyDown}
+      onPointerDown={event => {
+        if (onCommit !== undefined) {
+          event.currentTarget.setPointerCapture(event.pointerId);
+        }
+      }}
+      onPointerUp={event => {
+        if (!disabled) onCommit?.(event.currentTarget.valueAsNumber);
+      }}
+      onPointerCancel={event => {
+        if (!disabled) onCommit?.(event.currentTarget.valueAsNumber);
+      }}
     />
   );
 
