@@ -31,8 +31,8 @@ more than features.
 - Write documents, code comments, test names, log messages, and commit messages
   in English.
 - Keep product UI strings in Korean. Use the glossary in the design system
-  README (출력, 장, 예배 순서, 틀, 구성, 이름표, 지우기, 본 화면, 무대 화면,
-  방송 자막, Look, 진행 도구, 퀵 실행).
+  README (출력, 슬라이드, 예배 순서, 틀, 구성, 이름표, 지우기, 본 화면, 무대
+  화면, 방송 자막, Look, 진행 도구, 퀵 실행).
 - Reply to the user in polite Korean (합니다체). Don't use a playful tone.
 - Never use middle dots (·) or em dashes (—) anywhere.
 - Don't put explanatory sentences in the UI. Show state with shape and color,
