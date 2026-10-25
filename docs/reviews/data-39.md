@@ -2,8 +2,8 @@
 
 - Team member: data
 - Branch: `feat/data/macro-runner`
-- Base: `afe945cdf77ee9ded74c29ffc1567b893c84e8fe` (`main`)
-- Review range: `afe945c...feat/data/macro-runner`
+- Base: `140563b48f9c8ddbbee451642f0196ce3621fdb6` (`main`)
+- Review range: `140563b4...feat/data/macro-runner`
 - Request: `.llp/task.md`, "Next (from the lead, 04:50)", M3-T3a.
 - Final commit and final HEAD CI URL/result accompany the review request.
 
@@ -148,4 +148,15 @@ Pending.
 
 ## Team member's reply
 
-Pending review.
+Rebased onto main after output-25. The three conflicts retain both the screen
+resync and macro ports, output's settings input, and macro
+registration/disposal. Overlay reader ownership and `normalizeOutputFlags`
+remain as implemented by output-25. A new regression test checks that releasing
+the macro connection leaves the screen resync and settings reader working.
+Affected test results and the rebased HEAD's green CI accompany the report. Per
+the lead, the review nits are carried into data-40.
+
+Affected verification after this rebase: 11 files and 130 tests passed,
+including output startup/flag normalization, screen settings, overlay reader
+lifetime, macro transactions, and entry wiring. Typecheck, scoped ESLint, and
+cache-disabled formatting checks passed.

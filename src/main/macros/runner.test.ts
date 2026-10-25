@@ -8,11 +8,17 @@ import {clearSlice} from '../live/slices/clear';
 import {contentSlice} from '../live/slices/content';
 import {macrosSlice} from '../live/slices/macros';
 import {propsSlice} from '../live/slices/props';
+import {screenSettingsSlice} from '../live/slices/screenSettings';
+import type {LiveSlice} from '../live/slice';
 import {MacroRunner} from './runner';
 import type {MacroCommandPort} from './types';
 import {environment, findMacro, IDS, macro, uuid} from './testing';
 
-function harness(actions: readonly object[], items: readonly object[] = []) {
+function harness(
+  actions: readonly object[],
+  items: readonly object[] = [],
+  extraSlices: readonly LiveSlice[] = [],
+) {
   const env = environment([macro(IDS.macro, actions)]);
   const service = parseService(
     JSON.stringify({
@@ -35,6 +41,7 @@ function harness(actions: readonly object[], items: readonly object[] = []) {
       contentSlice,
       macrosSlice,
       propsSlice,
+      ...extraSlices,
     ]),
   );
   const releaseSettings = store.connectSettings(env.settings);
@@ -51,10 +58,38 @@ function harness(actions: readonly object[], items: readonly object[] = []) {
     releaseSettings();
   });
   const id = findMacro(env.catalog).id;
-  return {...env, store, runner, id};
+  return {...env, store, runner, id, releaseMacros: release};
 }
 
 describe('macro live execution', () => {
+  it('keeps the screen resync port and settings reader when the macro runtime is released', () => {
+    const {store, runner, id, catalog, log, releaseMacros} = harness(
+      [],
+      [],
+      [screenSettingsSlice],
+    );
+    const resync = vi.fn();
+    onTestFinished(store.connectScreenSettings(resync));
+    const parsed = parseLiveCommand({
+      type: 'screen.settings.apply',
+      screenId: IDS.main,
+    });
+    if (!parsed.ok) throw new Error(parsed.error.message);
+    dispatchLogged(store, parsed.value, log);
+    expect(resync).toHaveBeenCalledExactlyOnceWith(IDS.main);
+    dispatchLogged(store, {type: 'macro.run', macroId: id}, log);
+    expect(runner.lastRun?.macroId).toBe(id);
+    releaseMacros();
+    const prop = catalog.props.props[0];
+    if (prop === undefined) throw new Error('Missing prop');
+    expect(store.dispatch({type: 'prop.set', propId: prop.id, on: true})).toBe(
+      true,
+    );
+    expect(store.state.layers.prop?.items?.[0]?.propId).toBe(prop.id);
+    dispatchLogged(store, parsed.value, log);
+    expect(resync).toHaveBeenCalledTimes(2);
+    expect(log.messages('error')).toEqual([]);
+  });
   it.each([uuid(99), 'invalid-id'])(
     'reports a missing or invalid item macro %s without changing output',
     macroId => {
