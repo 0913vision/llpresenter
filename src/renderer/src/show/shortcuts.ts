@@ -71,6 +71,7 @@ let spaceTakenOnKeyDown = false;
 interface PendingClick {
   readonly control: Element;
   readonly previousFocus: Element | null;
+  readonly label: HTMLLabelElement | null;
 }
 
 // NOTE(0913vision): The click focus rule keeps the focus where it was. The
@@ -188,20 +189,25 @@ export function handleShowKeyUp(event: KeyboardEvent): void {
 }
 
 /**
- * Notes a mouse down on a plain button or tab, to keep the keyboard focus where
- * it is. Only text fields, the 장 grid, the 예배 순서 list, and menus and
- * dialogs take focus on a click, so a later Space still means next 장.
+ * Notes a mouse down on a button, tab, or its label, to keep keyboard focus
+ * where it is. Text fields, the slide grid, the service list, menus, and
+ * dialogs take focus on a click, so a later Space still means next slide.
  */
 export function handleShowMouseDown(event: MouseEvent): void {
   pendingClick = null;
   if (event.button !== PRIMARY_BUTTON) return;
   if (isInside(event.target, CLICK_FOCUS_SELECTOR)) return;
-  const control =
-    event.target instanceof Element
-      ? event.target.closest(CLICKED_CONTROL_SELECTOR)
-      : null;
-  if (control) {
-    pendingClick = {control, previousFocus: document.activeElement};
+  if (!(event.target instanceof Element)) return;
+  const directControl = event.target.closest(CLICKED_CONTROL_SELECTOR);
+  const label = event.target.closest('label');
+  const associatedLabel = label instanceof HTMLLabelElement ? label : null;
+  const control = directControl ?? associatedLabel?.control;
+  if (control?.matches(CLICKED_CONTROL_SELECTOR)) {
+    pendingClick = {
+      control,
+      previousFocus: document.activeElement,
+      label: directControl === null ? associatedLabel : null,
+    };
   }
 }
 
@@ -224,7 +230,19 @@ export function handleShowFocusIn(event: FocusEvent): void {
   }
 }
 
-function clearPendingClick(): void {
+function clearPendingClick(event: Event): void {
+  const click = pendingClick;
+  // NOTE(0913vision): A label focuses its control as the click's default
+  // action, after mouseup and the label's own click have bubbled.
+  if (
+    !event.defaultPrevented &&
+    event.target instanceof Node &&
+    click?.label?.contains(event.target) &&
+    (event.type === 'mouseup' ||
+      (event.type === 'click' && !click.control.contains(event.target)))
+  ) {
+    return;
+  }
   pendingClick = null;
 }
 
@@ -236,6 +254,7 @@ export function useShowKeys(): void {
     window.addEventListener('mousedown', handleShowMouseDown);
     window.addEventListener('focusin', handleShowFocusIn);
     window.addEventListener('mouseup', clearPendingClick);
+    window.addEventListener('click', clearPendingClick);
     window.addEventListener('dragend', clearPendingClick);
     window.addEventListener('blur', resetPendingInput);
     return () => {
@@ -245,6 +264,7 @@ export function useShowKeys(): void {
       window.removeEventListener('mousedown', handleShowMouseDown);
       window.removeEventListener('focusin', handleShowFocusIn);
       window.removeEventListener('mouseup', clearPendingClick);
+      window.removeEventListener('click', clearPendingClick);
       window.removeEventListener('dragend', clearPendingClick);
       window.removeEventListener('blur', resetPendingInput);
     };

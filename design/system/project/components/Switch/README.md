@@ -45,6 +45,7 @@ A 30×18 switch that turns on or off a setting that applies the moment you click
 
 - A click or Space toggles it. The new value is saved and applied at once.
 - A click on the name also toggles it (`label for`, or wrapping it in `label`).
+- In 진행, clicking the switch or its name keeps keyboard focus where it was. Tab still focuses the switch and Space toggles it. 준비 and dialogs retain native label focus behavior.
 - The left and right arrows don't toggle it. Tab stops at each switch.
 - aria: `button[role="switch"][aria-checked]`. Link the name to the name text of the row (`label for` or `aria-labelledby`).
 

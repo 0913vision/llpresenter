@@ -1,4 +1,5 @@
 import {renderHook} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {setColumnDragActive} from '@renderer/state/drag';
 import {CLICK_FOCUS_ATTRIBUTE} from '@renderer/ui';
@@ -497,6 +498,102 @@ describe('click focus', () => {
     control.focus();
     focusIn(control);
     expect(document.activeElement).toBe(control);
+  });
+});
+
+describe('label click focus', () => {
+  function labeledButton(association: 'wrapped' | 'for' = 'wrapped') {
+    const label = document.body.appendChild(document.createElement('label'));
+    const text = label.appendChild(document.createElement('span'));
+    text.textContent = 'Name';
+    const control = document.createElement('button');
+    if (association === 'wrapped') label.appendChild(control);
+    else {
+      control.id = 'label-control';
+      label.htmlFor = control.id;
+      document.body.appendChild(control);
+    }
+    return {label, text, control};
+  }
+
+  function dispatchMouse(type: string, target: Element): void {
+    target.dispatchEvent(
+      new MouseEvent(type, {bubbles: true, cancelable: true}),
+    );
+  }
+
+  it.each(['wrapped', 'for'] as const)(
+    'keeps focus through mouseup and the forwarded click of a %s label',
+    async association => {
+      renderHook(() => useShowKeys());
+      const previous = appendTo('button');
+      const {text, control} = labeledButton(association);
+      const clicked = vi.fn();
+      control.addEventListener('click', clicked);
+      previous.focus();
+      await userEvent.click(text);
+      expect(clicked).toHaveBeenCalledOnce();
+      expect(document.activeElement).toBe(previous);
+    },
+  );
+
+  it('clears the label press when release is outside the label', () => {
+    renderHook(() => useShowKeys());
+    appendTo('button').focus();
+    const {text, control} = labeledButton();
+    dispatchMouse('mousedown', text);
+    dispatchMouse('mouseup', document.body);
+    control.focus();
+    expect(document.activeElement).toBe(control);
+  });
+
+  it('clears a cancelled label click before a later focus change', async () => {
+    renderHook(() => useShowKeys());
+    appendTo('button').focus();
+    const {text, control} = labeledButton();
+    text.addEventListener('click', event => event.preventDefault(), {
+      once: true,
+    });
+    await userEvent.click(text);
+    control.focus();
+    expect(document.activeElement).toBe(control);
+  });
+
+  it('clears the pending label press on keyboard input', () => {
+    renderHook(() => useShowKeys());
+    appendTo('button').focus();
+    const {text, control} = labeledButton();
+    dispatchMouse('mousedown', text);
+    dispatchMouse('mouseup', text);
+    document.body.dispatchEvent(
+      new KeyboardEvent('keydown', {code: 'Tab', bubbles: true}),
+    );
+    control.focus();
+    expect(document.activeElement).toBe(control);
+  });
+
+  it('releases the label state and click listener when Show unmounts', () => {
+    const remove = vi.spyOn(window, 'removeEventListener');
+    const {unmount} = renderHook(() => useShowKeys());
+    const {text, control} = labeledButton();
+    appendTo('button').focus();
+    dispatchMouse('mousedown', text);
+    dispatchMouse('mouseup', text);
+    unmount();
+    expect(remove).toHaveBeenCalledWith('click', expect.any(Function));
+    renderHook(() => useShowKeys());
+    control.focus();
+    expect(document.activeElement).toBe(control);
+  });
+
+  it('lets a label still focus its text field', async () => {
+    renderHook(() => useShowKeys());
+    const label = document.body.appendChild(document.createElement('label'));
+    const text = label.appendChild(document.createElement('span'));
+    text.textContent = 'Field';
+    const input = label.appendChild(document.createElement('input'));
+    await userEvent.click(text);
+    expect(document.activeElement).toBe(input);
   });
 });
 

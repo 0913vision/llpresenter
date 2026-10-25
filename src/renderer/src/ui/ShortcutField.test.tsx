@@ -216,6 +216,7 @@ describe('ShortcutField', () => {
 
   it.each<[string, KeyboardEventInit, string]>([
     ['Enter', {}, '확인과 실행에 쓰는 키'],
+    ['NumpadEnter', {}, '확인과 실행에 쓰는 키'],
     ['F10', {}, '메뉴 막대에 쓰는 키'],
     ['F10', {shiftKey: true}, '오른쪽 클릭 메뉴에 쓰는 키'],
     ['ContextMenu', {}, '오른쪽 클릭 메뉴에 쓰는 키'],
@@ -298,7 +299,7 @@ describe('ShortcutField', () => {
     ['ArrowRight', {}, '→'],
     ['PageDown', {}, 'Page Down'],
     ['Space', {}, 'Space'],
-    ['Numpad1', {ctrlKey: true, modifierNumLock: true}, 'Ctrl 1'],
+    ['Numpad1', {ctrlKey: true, modifierNumLock: true}, 'Ctrl Num 1'],
     ['Numpad1', {ctrlKey: true, modifierNumLock: false}, 'Ctrl Num 1'],
     ['Backspace', {ctrlKey: true}, 'Ctrl Backspace'],
     ['KeyC', {shiftKey: true}, 'Shift C'],
@@ -311,6 +312,7 @@ describe('ShortcutField', () => {
       if (binding === undefined || binding === null) {
         throw new Error('No binding recorded');
       }
+      expect(binding.code).toBe(code);
       expect(shortcutNames(binding).join(' ')).toBe(name);
       expect(
         serializeShortcuts(

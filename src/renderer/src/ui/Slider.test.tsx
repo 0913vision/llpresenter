@@ -81,6 +81,30 @@ function startPointer(input: HTMLInputElement): ReturnType<typeof vi.fn> {
 }
 
 describe('Slider', () => {
+  it.each(['ctrlKey', 'altKey', 'metaKey'] as const)(
+    'passes %s arrow combinations to window commands',
+    modifier => {
+      const onChange = vi.fn();
+      render(
+        <Slider
+          label="음량"
+          min={0}
+          max={100}
+          value={50}
+          onChange={onChange}
+        />,
+      );
+      expect(
+        fireEvent.keyDown(screen.getByRole('slider'), {
+          key: 'ArrowUp',
+          code: 'ArrowUp',
+          [modifier]: true,
+        }),
+      ).toBe(true);
+      expect(onChange).not.toHaveBeenCalled();
+    },
+  );
+
   it('is a named slider that fills the track up to its value', async () => {
     render(<ThumbnailSize />);
     expect(slider().value).toBe('2');

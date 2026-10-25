@@ -86,14 +86,10 @@ export function shortcutPress(event: KeyboardEvent): ShortcutPress {
   if (!is(keyCodeSchema, code)) {
     return {kind: 'reject', reason: '지원하지 않는 키'};
   }
-  const digit = /^Numpad(\d)$/.exec(code)?.[1];
   return {
     kind: 'record',
     binding: {
-      code:
-        digit !== undefined && event.getModifierState('NumLock')
-          ? `Digit${digit}`
-          : code,
+      code,
       mods: keyModifiers.filter(mod => ({ctrl, alt, shift})[mod]),
     },
   };
@@ -128,7 +124,7 @@ function reservedReason(event: KeyboardEvent): string | undefined {
     return '오른쪽 클릭 메뉴에 쓰는 키';
   }
   if (code === 'F10' && !ctrl && !alt && !shift) return '메뉴 막대에 쓰는 키';
-  if (code === 'Enter' && !ctrl && !alt && !shift) {
+  if ((code === 'Enter' || code === 'NumpadEnter') && !ctrl && !alt && !shift) {
     return '확인과 실행에 쓰는 키';
   }
   if (ctrl && !alt && !shift && /^Key[XCVA]$/.test(code)) {

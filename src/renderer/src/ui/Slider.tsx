@@ -78,7 +78,7 @@ export function Slider({
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
-    if (disabled) return;
+    if (disabled || event.ctrlKey || event.altKey || event.metaKey) return;
     const keyScale =
       event.shiftKey && event.key.startsWith('Arrow') && shiftStep !== undefined
         ? {...scale, step: shiftStep}
