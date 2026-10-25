@@ -64,3 +64,12 @@ settings write, no check from persisted current or subsequent pushes, slow-read
 ordering, subscription release, failure reporting, reopening after a failure,
 late failure suppression, the limit tooltip, and the disabled browser-only
 button. No Electron process, visible window, soak, or memory run was started.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (139f7dc): reviewer (Claude, trial-97) Approve with no findings: the
+  Look menu sends one `look.set` and shows no check until O4 confirms a Look in
+  the live state (lead decision), with the reason in the tooltip. Lead Approve.
+  Written by the Codex session that took over spec's work, under the lead's
+  exception for shell's paths. Rebased by the lead onto local `main` without
+  conflicts.
