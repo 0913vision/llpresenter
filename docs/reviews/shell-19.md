@@ -85,6 +85,10 @@ See "Verify result" at the end of this file.
 - `previewBig` through the UI state: add it to `UiState` and a
   `ui:preview-big:set` channel with `ui.setPreviewBig(screenId)`. I'll send the
   exact shape to data.
+- Update after the merge: the lead decided that `previewBig` waits for the real
+  screen ids from `screens.json` (M3-D2), so this request is on hold. A
+  placeholder id such as `main` is not a screen id and would make `app.json`
+  fail its check.
 
 ## Where to look
 
@@ -106,3 +110,14 @@ missing.
   and changes its fields through the data store's `UiStateFields` and no longer
   parses or writes `app.json`. The review was resent after the power loss at
   09:48. Rebased by the lead onto local `main` without conflicts.
+
+## Verify result
+
+Added in shell-16 round 2 (codex3's nit). The `npm run verify` run on commit
+`180eff1` stopped in the power loss at 09:48: `build` and `typecheck` had
+passed, and `lint`, `format:check`, and `test:coverage` had not finished. After
+the restart, on the same commit: `npm run typecheck` passed, the `uiState` tests
+and the main tests this request changed passed (5 files, 31 tests), and the
+`shell`, `control`, `state`, and `show` tests passed (26 files, 397 tests). The
+full `npm run verify` ran on shell-16 round 2, whose base contains this request;
+see "Verify result" in `docs/reviews/shell-16.md`.

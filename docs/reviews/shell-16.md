@@ -1,6 +1,6 @@
 # Review request: `shell-16`
 
-Review range: efd0a29...refactor/shell/ui-parts
+Review range: fbfce09...refactor/shell/ui-parts
 
 What to check: that the 장 grid and the 예배 순서 list are the ui
 `ThumbnailGrid` (`show`) and `ListBox` (`show`) with the same behavior for the
@@ -8,9 +8,14 @@ operator; that the 진행 key handler uses the shared ui constants and the Space
 rule of the ui-4 "Shell handoff"; that the focus is still kept in the grid when
 another item replaces the focused tile; and that the dead move helpers are gone.
 
+Round 2, what to check: the reply to the round 1 findings below; that the
+restored render-count tests and the Tab stop test follow ui-10, and fail on the
+code before it.
+
 - Team member: `shell`
 - Branch: `refactor/shell/ui-parts`
-- Base commit (`main`): `efd0a29`
+- Base commit (`main`): `fbfce09` (ui-10 is in it: `ListBox` redraws only
+  changed rows and gives the Tab stop to a row)
 - Last commit: see the commit that adds this file
 - Related brief: "Shell handoff" in `docs/reviews/ui-4.md`
 
@@ -43,6 +48,9 @@ another item replaces the focused tile; and that the dead move helpers are gone.
 - `src/renderer/src/state/show.ts`, `show.test.ts`
 - `src/renderer/src/show/ShowPanels.test.tsx`, `SlidePanel.test.tsx`,
   `PreviewPanel.test.tsx`
+- Round 2: `src/renderer/src/state/preview.ts` (the `previewBig` TODO names
+  M3-D2, as the lead decided) and `docs/reviews/shell-19.md` (the missing
+  "Verify result", codex3's nit)
 
 ## Checks run
 
@@ -62,7 +70,8 @@ See "Verify result" at the end of this file.
       `pointerdown` listener on unmount)
 - [x] Caches and lists have size caps (not applicable)
 - [x] An exception in the output path doesn't stop the output (not touched)
-- [x] Only what's needed re-renders (see the decision below)
+- [x] Only what's needed re-renders (render-count tests for a new open item and
+      a moved live mark)
 - [x] The clean code rules in `CLAUDE.md` hold
 - [x] Comments follow `CLAUDE.md`
 - [x] The code uses the modern language features that `CLAUDE.md` lists
@@ -71,10 +80,6 @@ See "Verify result" at the end of this file.
 
 ## Decisions I made (for the lead to confirm)
 
-- `ListBox` keeps `selected` in a context, so a change of the open item
-  re-renders every row of the 예배 순서 list (a service has tens of rows). The
-  old test "re-renders only the rows whose state changed" is dropped. If that
-  becomes a cost, the fix is in `ListRow` (a memoized row), which is ui's file.
 - A list without the click focus mark (the media strip, the 매크로 lists) keeps
   the focus where it was on a click, which is tested.
 
@@ -84,7 +89,8 @@ See "Verify result" at the end of this file.
 
 ## Where to look
 
-- `SlideGrid.tsx`: the focus effect on `openItemId`.
+- `SlideGrid.tsx`: the focus effect on `openItemId`, `selectedTile`, and the
+  tile count.
 - `ServiceOrderList.tsx`: `groupRows`.
 - `shortcuts.ts`: the two selectors that changed.
 
@@ -99,11 +105,35 @@ missing.
 
 - Not reviewed yet.
 
+## Team member's reply
+
+Round 1 (codex2, request changes), answered once:
+
+1. The grid lost the focus when a service update removed the focused tile of the
+   open item, because the focus effect ran only when the open item changed.
+   `SlideGrid` now also runs it when `selectedTile` or the tile count changes,
+   and still only while the focus is in the grid. Test: "keeps the focus in the
+   grid when a service update removes the focused tile of the same item".
+2. A new open item redrew every row of the 예배 순서 list. ui fixed `ListBox` in
+   ui-10, and the rows here pass `live` and the other values as props, so the
+   memoized `ListRow` skips unchanged rows. The render-count test is back
+   ("redraws only the rows whose open state changed"), and a second one covers a
+   moved live mark. Both fail with the `ListRow.tsx` from before ui-10.
+3. Shift Tab was trapped in the list before anything was selected. Fixed in
+   ui-10: the list itself takes no Tab stop. The test "keeps one tab stop: the
+   first row until an item is open, then its row" now expects the first row to
+   hold the stop and the list to have no `tabindex`; it fails before ui-10.
+
 ## Verify result
+
+### Round 2
+
+Pending.
+
+### Round 1
 
 `npm run verify` on commit `7ef1531` (base `main` 4b72a17, then rebased onto
 efd0a29): `typecheck`, `lint`, `format:check`, and `build` passed.
 `test:coverage` had one failure, the known one on `main` since devops-13 (devops
-fixes it as devops-17): `scripts/soak/media.test.ts`
-
-> "ends the stalled maker and every process it started". All other tests passed.
+fixes it as devops-17): `scripts/soak/media.test.ts` > "ends the stalled maker
+and every process it started". All other tests passed.
