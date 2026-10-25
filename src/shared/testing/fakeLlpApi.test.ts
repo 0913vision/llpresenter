@@ -1,6 +1,7 @@
 import {describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '../live';
 import {fakeLlpApi} from './fakeLlpApi';
+import {createServiceId} from '../schema/ids';
 
 describe('fakeLlpApi', () => {
   it('answers reads with empty states and ignores sends', async () => {
@@ -11,6 +12,11 @@ describe('fakeLlpApi', () => {
     await expect(api.ui.getZoom()).resolves.toBe(100);
     await expect(api.ui.changeZoom({type: 'ui.zoomIn'})).resolves.toBe(100);
     await expect(api.service.get()).resolves.toBeNull();
+    await expect(
+      api.service.open({
+        serviceId: createServiceId('00000000-0000-4000-8000-000000000001'),
+      }),
+    ).resolves.toBeNull();
     await expect(api.output.getStatus()).resolves.toEqual({});
     await expect(api.recovery.summary()).resolves.toBeNull();
     await expect(api.recovery.startFresh()).resolves.toEqual({

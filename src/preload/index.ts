@@ -29,6 +29,10 @@ import {
 import type {PayloadError} from '@shared/schema/payload';
 import {parseOutputStatuses} from '@shared/schema/outputStatus';
 import {parseShowService} from '@shared/schema/showService';
+import {
+  parseServiceOpenRequest,
+  parseServiceOpenReply,
+} from '@shared/schema/serviceOpen';
 import {parseUiState} from '@shared/schema/uiState';
 import {parseUiZoomPercent} from '@shared/schema/uiZoom';
 import {parsePreferencesValue} from '@shared/schema/preferences';
@@ -206,6 +210,15 @@ const api: LlpApi = {
   },
   service: {
     get: () => invokeChecked(Channels.serviceGet, parseShowService),
+    open: request =>
+      invokeRequest(
+        {
+          channel: Channels.serviceOpen,
+          request: parseServiceOpenRequest,
+          reply: value => parseServiceOpenReply(request.serviceId, value),
+        },
+        request,
+      ),
     subscribe: listener =>
       listen(Channels.serviceChanged, parseShowService, listener),
   },

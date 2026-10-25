@@ -41,6 +41,7 @@ export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
     },
     service: {
       get: () => Promise.resolve(null),
+      open: () => Promise.resolve(null),
       subscribe: () => () => undefined,
       ...overrides.service,
     },

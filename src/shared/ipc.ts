@@ -15,6 +15,7 @@ import type {LiveState} from './live';
 import type {FrameRateReport, RendererLogEntry} from './schema/ipcPayloads';
 import type {OutputStatuses} from './schema/outputStatus';
 import type {ShowService} from './schema/showService';
+import type {ServiceOpenRequest} from './schema/serviceOpen';
 import type {LayoutChange, UiState} from './schema/uiState';
 import type {Preferences} from './schema/preferences';
 import type {
@@ -59,6 +60,7 @@ export const Channels = {
   logWrite: 'log:write',
   outputFrameRate: 'output:frame-rate',
   serviceGet: 'service:get',
+  serviceOpen: 'service:open',
   serviceChanged: 'service:changed',
   outputStatusGet: 'output:status:get',
   outputStatusChanged: 'output:status:changed',
@@ -171,6 +173,8 @@ export interface LlpApi {
      * read is never taken for "no 예배 순서".
      */
     get(): Promise<ShowService | null>;
+    /** Saves the current service and opens another without changing live output; null means it stayed open. */
+    open(request: ServiceOpenRequest): Promise<ShowService | null>;
     /**
      * Calls the listener when the open 예배 순서 changes, or another one opens.
      *

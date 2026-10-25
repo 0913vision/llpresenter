@@ -12,7 +12,7 @@ import {emptyLiveState} from '@shared/live';
 import {songIdSchema} from '@shared/schema/ids';
 import {testId} from '@shared/schema/testHelpers';
 import {defaultPreferences} from '@shared/schema/preferences';
-import {createMediaId} from '@shared/schema/ids';
+import {createMediaId, createServiceId} from '@shared/schema/ids';
 
 type Handler = (event: unknown, value: unknown) => void;
 
@@ -695,6 +695,24 @@ describe('preload', () => {
     await expect(api.service.get()).resolves.toBeNull();
     expect(electron.invoke).toHaveBeenCalledWith(Channels.serviceGet);
     expect(loggedErrors()).toEqual([]);
+  });
+
+  it('opens a checked service and rejects a projection for another service', async () => {
+    const serviceId = createServiceId(SONG_ID);
+    const shown = {...showService(2), id: serviceId};
+    electron.invoke
+      .mockResolvedValueOnce(shown)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(showService(3));
+    await expect(api.service.open({serviceId})).resolves.toEqual(shown);
+    await expect(api.service.open({serviceId})).resolves.toBeNull();
+    await expect(api.service.open({serviceId})).rejects.toThrow(
+      `Bad reply on ${Channels.serviceOpen}: id`,
+    );
+    expect(electron.invoke).toHaveBeenCalledWith(Channels.serviceOpen, {
+      serviceId,
+    });
+    expect(loggedErrors()).toHaveLength(1);
   });
 
   it('logs a malformed or failed service reply and rejects, never null', async () => {
