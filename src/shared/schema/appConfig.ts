@@ -22,6 +22,7 @@ const columnLayoutSchema = jsonObject({
   left: v.exactOptional(nonNegativeNumber),
   right: v.exactOptional(nonNegativeNumber),
   columns: v.exactOptional(positiveInteger),
+  thumbnailScalePercent: v.exactOptional(positiveInteger),
 });
 
 const sizeClassLayout = v.exactOptional(columnLayoutSchema);
@@ -75,9 +76,9 @@ export type AppLayout = NonNullable<AppConfig['layout']>;
 export type SizeClass = (typeof sizeClasses)[number];
 
 /**
- * The column widths (px) and thumbnail columns that the operator set for one
- * size class. An absent value means the class default. The shell clamps the
- * values to their ranges.
+ * The column widths (px), thumbnail scale (%), and legacy thumbnail columns
+ * saved for one size class. An absent value means the class default. The
+ * shell clamps the values to their ranges when reading them.
  */
 export type ColumnLayout = NonNullable<AppLayout[SizeClass]>;
 

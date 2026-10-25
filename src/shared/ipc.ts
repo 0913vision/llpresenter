@@ -86,7 +86,8 @@ export interface LlpApi {
     get(): Promise<UiState>;
     /**
      * Saves a size class's layout: the column widths when a drag ends, or the
-     * thumbnail columns when the slider moves.
+     * thumbnail scale percentage when the size control commits. Legacy
+     * thumbnail-column changes remain accepted during the shell transition.
      */
     setLayout(change: LayoutChange): void;
     /** Reads the computer-local UI zoom percentage (100 to 200, step 10). */

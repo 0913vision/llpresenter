@@ -23,7 +23,7 @@ function fullConfig() {
     backupPath: '',
     lastServiceId: SERVICE_ID,
     layout: {
-      narrow: {left: 220, right: 360, columns: 3},
+      narrow: {left: 220, right: 360, columns: 3, thumbnailScalePercent: 123},
       normal: {left: 312.5, right: 480},
       wide: {columns: 6},
     },
@@ -49,6 +49,58 @@ describe('parseAppConfig', () => {
 
     expect(expectSuccess(parse(config)).data).toEqual(config);
   });
+
+  it('round-trips an old layout without adding a scale or converting its columns', () => {
+    const config = {
+      format: 'llapp',
+      schemaVersion: 1,
+      layout: {narrow: {columns: 3}, normal: {left: 300, right: 500}, wide: {}},
+    };
+    const loaded = expectSuccess(parse(config));
+
+    expect(loaded.data).toEqual(config);
+    expect(
+      JSON.parse(expectSuccess(serializeAppConfig(loaded.data, FILE))),
+    ).toEqual(config);
+  });
+
+  it.each([50, 100, 123, 200, 1, 201, 999])(
+    'preserves a positive scale of %i for the shell to clamp on read',
+    thumbnailScalePercent => {
+      const config = {
+        ...fullConfig(),
+        layout: Object.fromEntries(
+          ['narrow', 'normal', 'wide'].map(sizeClass => [
+            sizeClass,
+            {columns: 4, thumbnailScalePercent, future: {enabled: true}},
+          ]),
+        ),
+      };
+      const loaded = expectSuccess(parse(config));
+
+      expect(loaded.data).toEqual(config);
+      expect(
+        JSON.parse(expectSuccess(serializeAppConfig(loaded.data, FILE))),
+      ).toEqual(config);
+    },
+  );
+
+  it.each([0, -1, 50.5, '100', null])(
+    'rejects an invalid stored thumbnail scale %j',
+    thumbnailScalePercent => {
+      const error = expectFailure(
+        parse({
+          ...fullConfig(),
+          layout: {normal: {thumbnailScalePercent}},
+        }),
+      );
+      expect(error).toMatchObject({
+        kind: 'invalid',
+        file: FILE,
+        field: 'layout.normal.thumbnailScalePercent',
+      });
+    },
+  );
 
   it('keeps unknown fields in the file and in each size class', () => {
     const config = fullConfig();
@@ -105,6 +157,7 @@ describe('app config types', () => {
       readonly left?: number;
       readonly right?: number;
       readonly columns?: number;
+      readonly thumbnailScalePercent?: number;
     }>();
   });
 });
