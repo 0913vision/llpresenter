@@ -126,6 +126,12 @@ export function dispatchLogged(
           reason: problem.reason,
           target: problem.error.target,
         });
+      } else if (problem.reason === 'invalid-overlay') {
+        log.warn('skipped live command', {
+          type: problem.type,
+          reason: problem.reason,
+          error: problem.error,
+        });
       } else {
         log.error('live command failed', {
           type: problem.type,

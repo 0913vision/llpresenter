@@ -1,10 +1,5 @@
-import {parse} from 'valibot';
-import {
-  mediaIdSchema,
-  noticeSetIdSchema,
-  propIdSchema,
-  screenIdSchema,
-} from '@shared/schema/ids';
+import {createMediaId} from '@shared/schema/ids';
+import {parseLiveCommand} from '@shared/schema/liveCommand';
 import {
   parseSettingsDocument,
   type SettingsDocument,
@@ -15,15 +10,49 @@ import type {SettingsReader, SettingsListener} from '../../store/settingsStore';
 
 export const overlayUuid = (id: number): string =>
   `00000000-0000-4000-8000-${String(id).padStart(12, '0')}`;
-export const MAIN = parse(screenIdSchema, overlayUuid(1));
-export const CAPTIONS = parse(screenIdSchema, overlayUuid(2));
-export const STAGE = parse(screenIdSchema, overlayUuid(3));
-export const PROP = parse(propIdSchema, overlayUuid(10));
-export const IMAGE_PROP = parse(propIdSchema, overlayUuid(11));
-export const NOTICE = parse(noticeSetIdSchema, overlayUuid(20));
-export const IMAGES = [30, 31, 32].map(id =>
-  parse(mediaIdSchema, overlayUuid(id)),
-);
+export const MAIN = fixtureScreenId(1);
+export const CAPTIONS = fixtureScreenId(2);
+export const STAGE = fixtureScreenId(3);
+export const PROP = fixturePropId(10);
+export const IMAGE_PROP = fixturePropId(11);
+const noticeCommand = parseLiveCommand({
+  type: 'notice.start',
+  noticeId: overlayUuid(20),
+});
+if (!noticeCommand.ok || noticeCommand.value.type !== 'notice.start') {
+  throw new Error('Invalid notice fixture id');
+}
+export const NOTICE = noticeCommand.value.noticeId;
+export const IMAGES = [30, 31, 32].map(id => createMediaId(overlayUuid(id)));
+
+function fixtureScreenId(id: number) {
+  const document = settingsDocument('screens', {
+    screens: [
+      {
+        id: overlayUuid(id),
+        name: 'Fixture',
+        kind: 'audience',
+        method: 'window',
+      },
+    ],
+  });
+  const screen =
+    document.name === 'screens' ? document.value.screens[0] : undefined;
+  if (screen === undefined) throw new Error('Invalid screen fixture id');
+  return screen.id;
+}
+
+function fixturePropId(id: number) {
+  const command = parseLiveCommand({
+    type: 'prop.set',
+    propId: overlayUuid(id),
+    on: true,
+  });
+  if (!command.ok || command.value.type !== 'prop.set') {
+    throw new Error('Invalid prop fixture id');
+  }
+  return command.value.propId;
+}
 export const TEXT_STYLE = {
   font: 'Pretendard',
   weight: 700,

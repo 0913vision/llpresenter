@@ -2,7 +2,7 @@ import {
   MAX_OVERLAY_TIMER_MS,
   nextNoticeChange,
   noticePosition,
-} from '../../../../main/live/noticeClock';
+} from '@shared/noticeClock';
 import {defineLayer} from '../layer';
 import {OverlayImageView} from '../overlayImage';
 import type {NoticePlayback} from '@shared/live';

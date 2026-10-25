@@ -13,6 +13,23 @@ const fixtureSlice = defineSlice({
 });
 
 describe('SliceRegistry', () => {
+  it('returns a classified validation skip without throwing or changing the history', () => {
+    const error = {field: 'items', message: 'Too many items'};
+    const registry = new SliceRegistry([
+      defineSlice({
+        commands: ['clear.undo'],
+        initial: {},
+        reduce: (_history, _command, {reject}) => reject(error),
+      }),
+    ]);
+    const history = initialHistory(emptyLiveState());
+    expect(registry.run(history, {type: 'clear.undo'}, {now: 42})).toEqual({
+      history,
+      skipped: [{type: 'clear.undo', reason: 'invalid-overlay', error}],
+    });
+    expect(registry.apply(history, {type: 'clear.undo'}, 42)).toBe(history);
+  });
+
   it('returns a failed command diagnostic and keeps the pure apply error observable', () => {
     const error = new Error('missing target');
     const registry = new SliceRegistry([
@@ -98,7 +115,7 @@ describe('SliceRegistry', () => {
       slice.apply(
         history,
         {type: 'output.set', screenId: 'main', on: true},
-        {now: 42, apply: current => current},
+        {now: 42, apply: current => current, reject: () => history},
       ),
     ).toBe(history);
     expect(reduce).not.toHaveBeenCalled();

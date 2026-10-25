@@ -1,6 +1,5 @@
-import * as v from 'valibot';
 import type {ActiveMessage, MessageLayer} from '@shared/live';
-import {activeMessagesSchema} from '@shared/schema/overlayState';
+import {parseActiveMessages} from '@shared/schema/overlayState';
 import type {ScreenId} from '@shared/schema/ids';
 import {MissingLiveTargetError} from '../commandErrors';
 import {setLayer, withLayers, type LiveHistory} from '../history';
@@ -71,8 +70,9 @@ function send(
     expiresAt:
       command.duration === null ? null : context.now + command.duration * 1000,
   };
-  const items = v.parse(activeMessagesSchema, [...retained, message]);
-  return setLayer(history, 'message', messageLayer(items));
+  const parsed = parseActiveMessages([...retained, message]);
+  if (!parsed.ok) return context.reject(parsed.error);
+  return setLayer(history, 'message', messageLayer(parsed.value));
 }
 
 function withoutExpired(

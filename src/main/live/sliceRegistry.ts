@@ -1,6 +1,7 @@
 import type {LiveCommand} from '@shared/commands';
 import {emptyLiveState, type LiveState} from '@shared/live';
 import type {LiveHistory} from './history';
+import type {PayloadError} from '@shared/schema/payload';
 import {MissingLiveTargetError} from './commandErrors';
 import {
   isLiveSlice,
@@ -11,6 +12,11 @@ import {
 
 export type SkippedLiveCommand =
   | {readonly type: LiveCommand['type']; readonly reason: 'unhandled'}
+  | {
+      readonly type: LiveCommand['type'];
+      readonly reason: 'invalid-overlay';
+      readonly error: PayloadError;
+    }
   | {
       readonly type: LiveCommand['type'];
       readonly reason: 'missing-target';
@@ -65,13 +71,14 @@ export class SliceRegistry {
   /**
    * Applies a command through its slice.
    *
-   * @returns The same history object when nothing changed or no slice handles
-   * the command.
+   * @returns The same history object when nothing changed, no slice handles the
+   * command, or its proposed overlay fails validation.
    */
   apply(history: LiveHistory, command: LiveCommand, now: number): LiveHistory {
     const result = this.run(history, command, {now});
     const failure = result.skipped.find(
-      problem => problem.reason !== 'unhandled',
+      problem =>
+        problem.reason === 'failed' || problem.reason === 'missing-target',
     );
     if (failure) {
       throw new Error('live reducer failed', {cause: failure.error});
@@ -92,6 +99,14 @@ export class SliceRegistry {
         skipped.push({type: next.type, reason: 'unhandled'});
         return before;
       }
+      const context: SliceContext = {
+        ...inputs,
+        apply,
+        reject: error => {
+          skipped.push({type: next.type, reason: 'invalid-overlay', error});
+          return before;
+        },
+      };
       try {
         return slice.apply(before, next, context);
       } catch (error) {
@@ -103,7 +118,6 @@ export class SliceRegistry {
         return before;
       }
     };
-    const context: SliceContext = {...inputs, apply};
     return {history: apply(history, command), skipped};
   }
 }

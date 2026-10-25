@@ -1,7 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
-import {parse} from 'valibot';
 import type {LiveBatch, LiveCommand} from '@shared/commands';
-import {lookIdSchema} from '@shared/schema/ids';
+import {parseLiveCommand} from '@shared/schema/liveCommand';
 import {recordingLogger} from '../displays/testing';
 import {dispatchLogged, LiveStore} from './store';
 import {defineSlice} from './slice';
@@ -10,10 +9,14 @@ import {batchSlice} from './slices/batch';
 import {outputsSlice} from './slices/outputs';
 import {MissingLiveTargetError} from './commandErrors';
 
-const MISSING_LOOK_ID = parse(
-  lookIdSchema,
-  '00000000-0000-4000-8000-000000000010',
-);
+const missingLook = parseLiveCommand({
+  type: 'look.set',
+  lookId: '00000000-0000-4000-8000-000000000010',
+});
+if (!missingLook.ok || missingLook.value.type !== 'look.set') {
+  throw new Error('Invalid Look fixture id');
+}
+const MISSING_LOOK_ID = missingLook.value.lookId;
 
 const THREE_CLEARS: LiveCommand = {
   type: 'live.batch',

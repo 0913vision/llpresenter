@@ -7,6 +7,7 @@ import type {LiveLayers, LiveState} from '@shared/live';
 import type {LiveHistory} from './history';
 import type {SettingsReader} from '../store/settingsStore';
 import type {MessageId} from '@shared/schema/ids';
+import type {PayloadError} from '@shared/schema/payload';
 
 export interface SliceInputs {
   readonly now: number;
@@ -27,6 +28,8 @@ export type SliceInitial = Omit<Partial<LiveState>, 'layers'> & {
 
 /** The command time and the same registry path for a transaction's children. */
 export interface SliceContext extends SliceInputs {
+  /** Records a validation skip and returns this command's unchanged history. */
+  readonly reject: (error: PayloadError) => LiveHistory;
   readonly apply: (
     history: LiveHistory,
     command: SingleLiveCommand,

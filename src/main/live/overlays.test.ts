@@ -1,19 +1,18 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {parse} from 'valibot';
 import {parseLiveCommand} from '@shared/schema/liveCommand';
-import {propIdSchema, screenIdSchema} from '@shared/schema/ids';
 import {
-  activeMessagesSchema,
-  activePropsSchema,
+  parseActiveMessages,
+  parseActiveProps,
   MAX_ACTIVE_PROPS,
   MAX_NOTICE_IMAGES,
+  MAX_TARGET_SCREENS,
 } from '@shared/schema/overlayState';
 import {recordingLogger} from '../displays/testing';
 import {
   noticePosition,
   nextNoticeChange,
   MAX_OVERLAY_TIMER_MS,
-} from './noticeClock';
+} from '@shared/noticeClock';
 import {startOverlays} from './overlays';
 import {dispatchLogged, LiveStore} from './store';
 import {
@@ -66,6 +65,115 @@ async function setup() {
 }
 
 describe('overlay live state and lifecycle', () => {
+  it('classifies all three invalid overlay children once and continues the batch without losing undo', async () => {
+    const {store, settings, send, message, log} = await setup();
+    send({type: 'prop.set', propId: PROP, on: true});
+    message();
+    send({type: 'notice.start', noticeId: NOTICE});
+    send({type: 'layer.clear', target: 'prop'});
+    settings.update(
+      settingsDocument(
+        'props',
+        {
+          props: [
+            {
+              id: PROP,
+              name: 'Too many targets',
+              content: {kind: 'text', text: 'Fixture', style: TEXT_STYLE},
+              targets: Array.from(
+                {length: MAX_TARGET_SCREENS + 1},
+                (_, index) => overlayUuid(1000 + index),
+              ),
+            },
+          ],
+        },
+        2,
+      ),
+    );
+    const before = store.state;
+    const changed = vi.fn();
+    stops.push(store.subscribe(changed));
+    send({
+      type: 'live.batch',
+      commands: [
+        {
+          type: 'message.send',
+          text: 'Overflow',
+          targets: [MAIN],
+          duration: Number.MAX_SAFE_INTEGER,
+        },
+        {type: 'prop.set', propId: PROP, on: true},
+        {type: 'notice.start', noticeId: NOTICE, position: IMAGES.length},
+        {type: 'stage.message.set', text: 'Accepted sibling'},
+      ],
+    });
+    expect(store.state.layers).toBe(before.layers);
+    expect(store.state.stageMessage).toBe('Accepted sibling');
+    expect(store.state.version).toBe(before.version + 1);
+    expect(store.state.canUndo).toBe(true);
+    expect(changed).toHaveBeenCalledTimes(1);
+    expect(log.entries).toMatchObject([
+      {
+        level: 'warn',
+        message: 'skipped live command',
+        detail: {
+          type: 'message.send',
+          reason: 'invalid-overlay',
+          error: {field: '0.expiresAt'},
+        },
+      },
+      {
+        level: 'warn',
+        message: 'skipped live command',
+        detail: {
+          type: 'prop.set',
+          reason: 'invalid-overlay',
+          error: {field: '0.targets'},
+        },
+      },
+      {
+        level: 'warn',
+        message: 'skipped live command',
+        detail: {
+          type: 'notice.start',
+          reason: 'invalid-overlay',
+          error: {field: 'position'},
+        },
+      },
+    ]);
+    send({type: 'clear.undo'});
+    expect(store.state.layers.prop?.items?.[0]?.propId).toBe(PROP);
+    expect(store.state.layers.message).toBe(before.layers.message);
+    expect(store.state.layers.notice).toBe(before.layers.notice);
+  });
+
+  it('keeps state, undo and listeners unchanged when the entire batch fails overlay validation', async () => {
+    const {store, send, message, log} = await setup();
+    message();
+    send({type: 'layer.clear', target: 'message'});
+    const before = store.state;
+    const changed = vi.fn();
+    stops.push(store.subscribe(changed));
+    send({
+      type: 'live.batch',
+      commands: [
+        {
+          type: 'message.send',
+          text: 'Overflow',
+          targets: [MAIN],
+          duration: Number.MAX_SAFE_INTEGER,
+        },
+        {type: 'notice.start', noticeId: NOTICE, position: IMAGES.length},
+      ],
+    });
+    expect(store.state).toBe(before);
+    expect(changed).not.toHaveBeenCalled();
+    expect(log.entries).toHaveLength(2);
+    expect(log.messages('error')).toEqual([]);
+    send({type: 'clear.undo'});
+    expect(store.state.layers.message?.text).toBe('Fixture message');
+  });
+
   it('retains a legacy message on untouched screens and makes repeated prop and notice starts no-ops', async () => {
     const {store, send, message} = await setup();
     send({
@@ -93,7 +201,7 @@ describe('overlay live state and lifecycle', () => {
     message([MAIN], 30, 'Main');
     const items = store.state.layers.message?.items;
     expect(items).toHaveLength(2);
-    expect(parse(activeMessagesSchema, items)).toEqual(items);
+    expect(parseActiveMessages(items)).toEqual({ok: true, value: items});
     expect(vi.getTimerCount()).toBe(1);
     const changed = vi.fn();
     store.subscribe(changed);
@@ -119,7 +227,7 @@ describe('overlay live state and lifecycle', () => {
     ]);
     const screens = settings.reader.get('screens');
     if (screens.name !== 'screens') throw new Error('Missing screens');
-    const added = parse(screenIdSchema, overlayUuid(99));
+    const added = overlayUuid(99);
     settings.update(
       settingsDocument(
         'screens',
@@ -133,8 +241,8 @@ describe('overlay live state and lifecycle', () => {
       ),
     );
     expect(
-      store.state.layers.message?.items?.some(item =>
-        item.targets.includes(added),
+      store.state.layers.message?.items?.some(
+        item => item.targets !== 'all' && item.targets.some(id => id === added),
       ),
     ).toBe(false);
     for (let count = 0; count < 250; count += 1) {
@@ -341,9 +449,10 @@ describe('overlay live state and lifecycle', () => {
     expect(store.state.layers.prop?.items).toMatchObject([
       {propId: PROP, targets: [STAGE], content: {text: 'Changed'}},
     ]);
-    expect(parse(activePropsSchema, store.state.layers.prop?.items)).toEqual(
-      store.state.layers.prop?.items,
-    );
+    expect(parseActiveProps(store.state.layers.prop?.items)).toEqual({
+      ok: true,
+      value: store.state.layers.prop?.items,
+    });
   });
 
   it('warns for missing targets and continues a batch with the last valid state', async () => {
@@ -365,8 +474,14 @@ describe('overlay live state and lifecycle', () => {
     expect(log.messages('warn')).toEqual([
       'skipped live command',
       'skipped live command',
+      'skipped live command',
     ]);
-    expect(log.messages('error')).toEqual(['live command failed']);
+    expect(log.messages('error')).toEqual([]);
+    expect(log.entries.map(entry => entry.detail)).toMatchObject([
+      {reason: 'missing-target'},
+      {reason: 'missing-target'},
+      {reason: 'invalid-overlay', error: {field: 'position'}},
+    ]);
     expect(store.state.layers.prop?.items).toHaveLength(1);
     expect(store.state.layers.notice).toBeNull();
     expect(store.state.layers.message).toBeNull();
@@ -375,7 +490,7 @@ describe('overlay live state and lifecycle', () => {
   it('caps active props and notice images without replacing the last good state', async () => {
     const {store, settings, send, log} = await setup();
     const props = Array.from({length: MAX_ACTIVE_PROPS + 1}, (_, index) => ({
-      id: parse(propIdSchema, overlayUuid(1000 + index)),
+      id: overlayUuid(1000 + index),
       name: String(index),
       targets: [MAIN],
       content: {kind: 'text', text: 'Bounded', style: TEXT_STYLE},
@@ -409,7 +524,16 @@ describe('overlay live state and lifecycle', () => {
       ),
     );
     expect(store.state.layers.notice).toBe(before);
-    expect(log.messages('error')).toHaveLength(2);
+    expect(log.messages('error')).toHaveLength(0);
+    expect(log.entries).toHaveLength(2);
+    expect(log.entries.map(entry => entry.detail)).toMatchObject([
+      {type: 'prop.set', reason: 'invalid-overlay'},
+      {
+        type: 'notice.start',
+        reason: 'invalid-overlay',
+        error: {field: 'media'},
+      },
+    ]);
   });
 
   it('handles zero and long deadlines and releases timers and listeners on dispose', async () => {

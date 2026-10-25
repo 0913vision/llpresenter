@@ -1,15 +1,14 @@
-import * as v from 'valibot';
-import {noticePlaybackSchema} from '@shared/schema/overlayState';
+import {parseNoticePlayback} from '@shared/schema/overlayState';
 import type {NoticePlayback} from '@shared/live';
 import {MissingLiveTargetError} from '../commandErrors';
 import {setLayer, type LiveHistory} from '../history';
-import {noticePosition} from '../noticeClock';
+import {noticePosition} from '@shared/noticeClock';
 import {defineSlice, type CommandOf, type SliceContext} from '../slice';
 
 function start(
   history: LiveHistory,
   command: CommandOf<'notice.start'>,
-  {settings, now}: SliceContext,
+  {settings, now, reject}: SliceContext,
 ): LiveHistory {
   const document = settings?.get('notices');
   if (document?.name !== 'notices') {
@@ -18,9 +17,6 @@ function start(
   const notice = document.value.sets.find(item => item.id === command.noticeId);
   if (notice === undefined) {
     throw new MissingLiveTargetError({kind: 'notice', id: command.noticeId});
-  }
-  if (notice.media.length === 0) {
-    throw new Error('A notice needs at least one image');
   }
   const old = history.state.layers.notice;
   const previous = old?.noticeId === notice.id ? old.playback : undefined;
@@ -69,9 +65,11 @@ function start(
       pausedAt: null,
     };
   }
+  const parsed = parseNoticePlayback(playback);
+  if (!parsed.ok) return reject(parsed.error);
   return setLayer(history, 'notice', {
     noticeId: notice.id,
-    playback: v.parse(noticePlaybackSchema, playback),
+    playback: parsed.value,
   });
 }
 
