@@ -25,6 +25,10 @@
   opacity: 0;
 }
 
+.image {
+  background: var(--output-black);
+}
+
 .dissolving {
   transition: opacity var(--background-dissolve) linear;
 }

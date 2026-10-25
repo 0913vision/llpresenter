@@ -5,12 +5,12 @@
 - Base commit (`main`): `0f5b01c95009459d777cd81e283e58d3d1092f76`
 - Code commits: `3b3da98`, `91af9ee`
 - Review range: `0f5b01c...fix/output/image-background`
+- Round 2 revision range: `109101b...fix/output/image-background`
 - Related task: bug M2-7, QA's
   [image-background finding F2](../qa/m2-check/smoke.md), and the lead's batch
   in `.llp/task.md`.
 - Shared contract changes: none.
-- Status: ready; the lead confirmed the unrelated test failure as a known load
-  failure under `docs/WORKFLOW.md`.
+- Status: round 2 correction prepared; final verification pending.
 
 ## What changed and why
 
@@ -26,11 +26,14 @@ unsupported-video event and `play()` rejection may arrive in either order; both
 reach the same image attempt without a misleading playback error.
 
 The existing two video elements remain, joined by a fixed pair of image
-elements. Still pictures use the same cover layout and dissolve as video. After
-the dissolve, a still releases the outgoing media and keeps no video source or
-spare decoder. A supported video makes no extra image request. Source
-replacement, clear, and disposal cancel image listeners and release image
-sources. Other layers continue drawing over the background.
+elements. Still pictures use the same cover layout and dissolve as video. The
+image element composites its pixels over `var(--output-black)` before its
+opacity is applied, so transparent areas fade to the output background along
+with the rest of the picture. After the dissolve, a still releases the outgoing
+media and keeps no video source or spare decoder. A supported video makes no
+extra image request. Source replacement, clear, and disposal cancel image
+listeners and release image sources. Other layers continue drawing over the
+background.
 
 ## Tests that fail on the old code
 
@@ -80,10 +83,15 @@ fixture unchanged.
 - `src/renderer/src/render/backgroundImage.ts`: cancellable image load and
   listener cleanup.
 - `src/renderer/src/render/classes.ts`, `layers.module.css`: image class with
-  the existing video layout and opacity rules.
+  the existing video layout and opacity rules, plus an opaque output-background
+  backing for stills.
 - `src/renderer/src/render/backgroundLayer.test.ts`, `outputRenderer.test.ts`:
   image regressions and layer integration.
 - This review document.
+
+Round 2 adds `transparentBackground.node.test.ts` and its renderer and Electron
+fixtures under `src/renderer/src/render/fixtures/` and
+`src/main/windows/fixtures/` for actual pixel-compositing regression coverage.
 
 ## Checks run
 
@@ -165,4 +173,52 @@ a failed replacement keeps the previous picture.
 
 ## Team member's reply
 
-None yet.
+### Round 1 findings (codex2)
+
+1. Transparent PNGs revealed the outgoing picture until it was unloaded. Added
+   `background: var(--output-black)` to `.image`. PNG pixels now composite
+   against the same opaque background as the output root before the image's
+   opacity is applied. The outgoing picture can remain during the dissolve and
+   be unloaded afterward without changing the final pixels. The video handover,
+   dissolve timer, and element lifetime remain as before.
+
+   Fix commit: pending.
+
+   Added a real Electron pixel regression that builds the production CSS in a
+   temporary fixture page. It decodes an original PNG with transparent,
+   half-alpha, and opaque bands. It keeps the outgoing picture visible while
+   sampling incoming opacity 0, 0.5, and 1, then samples again after removing
+   the outgoing picture. Fixed opacity checkpoints avoid machine-load timing
+   dependencies. Both output and preview sizes are checked, and the preview
+   overrides the output-background token to verify that the backing follows it.
+
+   With the old CSS, the transparent pixel remained `[200, 200, 200]` at opacity
+   0.5 and 1, then jumped to `[0, 0, 0]` when the outgoing image was removed.
+   The new test failed at opacity 0.5: expected 100, received 200. After the
+   correction it passes with the following values, within one byte per color
+   channel; the opaque band stays at 200 throughout.
+
+   | Background value | Transparent band at opacity 0 / 0.5 / 1 | Half-alpha band at opacity 0 / 0.5 / 1 | Values after outgoing removal, transparent / half-alpha |
+   | ---------------- | --------------------------------------- | -------------------------------------- | ------------------------------------------------------- |
+   | 0, output size   | 200 / 100 / 0                           | 200 / 150 / 100                        | 0 / 100                                                 |
+   | 32, preview size | 200 / 116 / 32                          | 200 / 158 / 116                        | 32 / 116                                                |
+
+   Every Electron fixture launch requires `LLP_TEST_WINDOWS=offscreen` and uses
+   hidden windows, a syntax check, temporary user data, a deadline, immediate
+   frame-texture release, and window cleanup. No dependency was added. The
+   fixture is separate from the app's renderer entries.
+
+### Round 2 checks
+
+| Check                                                   | Result                                                                       |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| New pixel test against round 1 CSS                      | Expected failure: midpoint 200 instead of 100, followed by cleanup jump to 0 |
+| Scoped renderer/output tests including pixel regression | Pass: 8 files, 87 tests                                                      |
+| `npm run typecheck`                                     | Pass                                                                         |
+| Targeted ESLint after formatting                        | Pass                                                                         |
+| `npm run format`                                        | Pass                                                                         |
+| `npm run verify`                                        | Pending; one run for round 2                                                 |
+
+Local logs: `.llp/image-background-round2/tests-old.log`, `tests-fixed.log`, and
+`lint.log`. The round 1 known-load exception remains documented above; the round
+2 verification result will be recorded separately.
