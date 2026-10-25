@@ -103,6 +103,8 @@ export interface LocationFieldsRead {
   readonly fields: LocationFields;
   /** The whole file when it passed validation, or `null`. */
   readonly config: AppConfig | null;
+  /** A newer app version wrote the file, so it must never be written. */
+  readonly newer: boolean;
   /**
    * Why the file failed validation, or `null`. When it is set, the store warns
    * once and never writes over the broken file.
@@ -194,11 +196,17 @@ export function readLocationFields(
   const parsed = parseAppConfig(text, file);
   if (parsed.ok) {
     const config = parsed.value.data;
-    return {fields: pickLocationFields(config), config, problem: null};
+    return {
+      fields: pickLocationFields(config),
+      config,
+      newer: parsed.value.access === 'readOnly',
+      problem: null,
+    };
   }
   return {
     fields: pickLocationFields(parseLoosely(text)),
     config: null,
+    newer: false,
     problem: parsed.error,
   };
 }

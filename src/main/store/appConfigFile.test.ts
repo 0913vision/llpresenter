@@ -1,15 +1,15 @@
 import {mkdir, readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
-import * as v from 'valibot';
 import {describe, expect, it, vi} from 'vitest';
 import {serviceIdSchema} from '@shared/schema/ids';
+import {testId} from '@shared/schema/testHelpers';
 import {makeTempDir} from '../../../test/temp-dir';
 import type {Logger} from '../log';
 import {openAppConfig} from './appConfigFile';
 import type {WriteResult} from './fileWriter';
 import {SUNDAY_ID, writeJson} from './testFiles';
 
-const SUNDAY = v.parse(serviceIdSchema, SUNDAY_ID);
+const SUNDAY = testId(serviceIdSchema, SUNDAY_ID);
 
 const BROKEN =
   'app.json is broken, so the app keeps it as it is and never writes over it';

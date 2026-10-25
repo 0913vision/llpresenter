@@ -1,3 +1,4 @@
+import * as v from 'valibot';
 import {expect} from 'vitest';
 import type {Result} from '../result';
 import type {FileError, LoadedFile} from './fileFormat';
@@ -90,4 +91,15 @@ export class TestRandom {
     );
     return `${hex(8)}-${hex(4)}-4${hex(3)}-${variant}${hex(3)}-${hex(12)}`;
   }
+}
+
+/**
+ * A branded id for a test, such as a `ServiceId`, from a text that passes the
+ * id's schema. Throws on any other text.
+ */
+export function testId<TSchema extends v.GenericSchema<string>>(
+  schema: TSchema,
+  value: string,
+): v.InferOutput<TSchema> {
+  return v.parse(schema, value);
 }

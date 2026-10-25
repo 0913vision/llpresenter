@@ -103,7 +103,22 @@ describe('readLocationFields', () => {
 
     const read = readLocationFields(JSON.stringify(config), 'app.json');
 
-    expect(read).toEqual({fields: {dataRoot: OUTSIDE}, config, problem: null});
+    expect(read).toEqual({
+      fields: {dataRoot: OUTSIDE},
+      config,
+      newer: false,
+      problem: null,
+    });
+  });
+
+  it('marks a file from a newer app version', () => {
+    const read = readLocationFields(
+      JSON.stringify({...header, schemaVersion: 99}),
+      'app.json',
+    );
+
+    expect(read.newer).toBe(true);
+    expect(read.problem).toBeNull();
   });
 
   it('keeps the location fields of a file that fails validation', () => {

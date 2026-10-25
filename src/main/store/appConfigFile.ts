@@ -1,8 +1,4 @@
-import {
-  parseAppConfig,
-  serializeAppConfig,
-  type AppConfig,
-} from '@shared/schema/appConfig';
+import {serializeAppConfig, type AppConfig} from '@shared/schema/appConfig';
 import type {FileError} from '@shared/schema/fileFormat';
 import type {ServiceId} from '@shared/schema/ids';
 import type {Logger} from '../log';
@@ -171,22 +167,8 @@ async function readConfig(file: string): Promise<OpenedConfig> {
   if (text.value === null) {
     return {config: empty, locationFields: {}, problem: null, newer: false};
   }
-  const {fields} = readLocationFields(text.value, file);
-  const parsed = parseAppConfig(text.value, file);
-  if (!parsed.ok) {
-    return {
-      config: empty,
-      locationFields: fields,
-      problem: parsed.error,
-      newer: false,
-    };
-  }
-  return {
-    config: parsed.value.data,
-    locationFields: fields,
-    problem: null,
-    newer: parsed.value.access === 'readOnly',
-  };
+  const {fields, config, newer, problem} = readLocationFields(text.value, file);
+  return {config: config ?? empty, locationFields: fields, problem, newer};
 }
 
 function logOpenProblem(
