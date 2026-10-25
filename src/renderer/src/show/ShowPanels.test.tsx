@@ -54,7 +54,14 @@ afterEach(() => {
   delete window.llp;
 });
 
-vi.mock('@renderer/ui/Icon', () => ({Icon: () => null}));
+const iconRenders = vi.hoisted((): string[] => []);
+
+vi.mock('@renderer/ui/Icon', () => ({
+  Icon: ({name}: {readonly name: string}): null => {
+    iconRenders.push(name);
+    return null;
+  },
+}));
 
 describe('ServiceOrderList', () => {
   it('shows headers as text and items as options', () => {
@@ -119,18 +126,18 @@ describe('ServiceOrderList', () => {
     expect(screen.getAllByText('LIVE')).toHaveLength(1);
   });
 
-  it('keeps one tab stop: the list until an item is open, then its row', () => {
+  it('keeps one tab stop: the first row until an item is open, then its row', () => {
     render(<ServiceOrderList />);
     const list = screen.getByRole('listbox', {name: '예배 순서'});
-    const rowStops = (): HTMLElement[] =>
-      screen.getAllByRole('option').filter(option => option.tabIndex === 0);
-    expect(list.tabIndex).toBe(0);
-    expect(rowStops()).toHaveLength(0);
+    const rowStops = (): Array<string | null> =>
+      screen
+        .getAllByRole('option')
+        .filter(option => option.tabIndex === 0)
+        .map(row => row.textContent);
+    expect(list.hasAttribute('tabindex')).toBe(false);
+    expect(rowStops()).toEqual([expect.stringContaining('예배 전 카운트다운')]);
     act(() => openItem('song-river'));
-    expect(list.tabIndex).toBe(-1);
-    expect(rowStops().map(row => row.textContent)).toEqual([
-      expect.stringContaining('맑은 시냇물'),
-    ]);
+    expect(rowStops()).toEqual([expect.stringContaining('맑은 시냇물')]);
   });
 
   it('moves focus with the arrow keys so that Enter acts on the focused row', () => {
@@ -150,8 +157,21 @@ describe('ServiceOrderList', () => {
     expect(useShow.getState().openItemId).toBe('song-river');
   });
 
-  // TODO(0913vision): Restore "re-renders only the rows whose state changed"
-  // when ui's ListBox redraws only the rows whose selected or live state changed.
+  it('redraws only the rows whose open state changed', () => {
+    openItem('song-morning');
+    render(<ServiceOrderList />);
+    iconRenders.length = 0;
+    act(() => openItem('psalm-23'));
+    expect(iconRenders.toSorted()).toEqual(['book', 'song']);
+  });
+
+  it('redraws only the rows whose live mark changed', () => {
+    setLiveSlide('song-morning', 0);
+    render(<ServiceOrderList />);
+    iconRenders.length = 0;
+    act(() => setLiveSlide('psalm-23', 0));
+    expect(iconRenders.toSorted()).toEqual(['book', 'song']);
+  });
 
   it('does not take focus when the selection changes from elsewhere', () => {
     render(<ServiceOrderList />);
