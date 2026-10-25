@@ -104,3 +104,8 @@ missing.
 ## Verdicts (recorded by the lead at merge)
 
 - Not reviewed yet.
+
+## Verify result
+
+`npm run verify` on commit `1236686` (base `main` ccbf48a) passed all five steps
+in 202.6 s: `typecheck`, `lint`, `format:check`, `test:coverage`, and `build`.
