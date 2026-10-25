@@ -122,3 +122,13 @@ by this implementation.
 ## Reviewer
 
 Pending.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (79eb15b5): reviewer (Claude, trial-97) Approve with no findings: the
+  projection matches spec-35's shape, writes nothing and sends no live command,
+  and all seven data-39 nits are fixed (the shared `mediaLoops` helper among
+  them). Lead Approve, including the lead-allowed one-line change in shell's
+  `show/useMediaStrip.ts` and the narrowed `LibraryApi` type in
+  `prep/library/useLibrary.ts`. Written by the Codex session that took over
+  data's work. Rebased by the lead onto local `main` without conflicts.
