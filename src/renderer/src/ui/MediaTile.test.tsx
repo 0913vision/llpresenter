@@ -81,6 +81,22 @@ describe('MediaTile', () => {
     expect(option.textContent).toBe('11월 1일 광고');
   });
 
+  it('accepts a paused video element and hides it for a missing file', () => {
+    const picture = <video muted preload="metadata" aria-hidden="true" />;
+    const {rerender} = render(
+      <MediaTile name="새 영상" picture={picture} duration="0:30" loop />,
+    );
+    const option = screen.getByRole('option', {name: '새 영상'});
+    const video = option.querySelector('video');
+    expect(video?.muted).toBe(true);
+    expect(video?.autoplay).toBe(false);
+    expect(video?.preload).toBe('metadata');
+    expect(option.textContent).toBe('0:30새 영상');
+    rerender(<MediaTile name="새 영상" picture={picture} missingFile={PATH} />);
+    expect(option.querySelector('video')).toBeNull();
+    expect(option.getAttribute('data-state')).toBe('warning');
+  });
+
   it('marks live, the missing file, and copying in data-state', () => {
     const {rerender} = render(<MediaTile name="별빛" live />);
     const option = (): HTMLElement => screen.getByRole('option');
@@ -176,5 +192,10 @@ describe('MediaStrip', () => {
     await userEvent.keyboard('{Enter} ');
     expect(onActivate.mock.calls).toEqual([[1], [0]]);
     expect(tile('새벽 하늘').closest(CLICK_FOCUS_SELECTOR)).toBe(null);
+    expect(
+      screen
+        .getByRole('listbox', {name: '미디어'})
+        .getAttribute('data-workspace'),
+    ).toBe('show');
   });
 });

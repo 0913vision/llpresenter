@@ -1,4 +1,10 @@
-import {memo, type CSSProperties, type JSX, type ReactNode} from 'react';
+import {
+  memo,
+  type CSSProperties,
+  type JSX,
+  type ReactElement,
+  type ReactNode,
+} from 'react';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import type {MenuAnchor} from './Menu';
@@ -18,8 +24,8 @@ export function copyingText(percent: number): string {
 export interface MediaTileProps {
   /** The file name without its extension, such as 따뜻한 빛. */
   readonly name: string;
-  /** The URL of the picture: the image itself, or a frame of the video. */
-  readonly picture?: string | undefined;
+  /** An image URL or a host-owned preview element, such as a paused video. */
+  readonly picture?: string | ReactElement | undefined;
   /** The length of a video as minutes:seconds, such as 0:30; none for an image. */
   readonly duration?: string | undefined;
   /** A video that plays in a loop; draws the loop icon before the duration. */
@@ -107,8 +113,10 @@ function Frame(props: MediaTileProps): JSX.Element {
   }
   return (
     <span className={styles.frame}>
-      {picture === undefined ? null : (
+      {typeof picture === 'string' ? (
         <img className={styles.picture} src={picture} alt="" decoding="async" />
+      ) : (
+        picture
       )}
       {copying === undefined && duration !== undefined ? (
         <Duration duration={duration} loop={loop} />
@@ -213,6 +221,7 @@ export type MediaStripProps = MediaListProps;
 export function MediaStrip(props: MediaStripProps): JSX.Element {
   return (
     <TileList
+      workspace="show"
       label={props.label}
       moves={stripMoves}
       columns={1}
