@@ -121,15 +121,17 @@ and stanza behavior, the bounded read loop and handler disposal, and the narrow
 app-entry integration. Rebased onto the latest main immediately before the
 review push; output's existing entry behavior is retained.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: pending
-- Findings:
-
-## Review: reviewer
-
-- Verdict: pending
-- Findings:
+- Round 1 (4c912a7): reviewer (Claude, trial-97) Approve. Two nits for the next
+  data branch: `src/main/import/read.ts:36` allocates 4 MiB + 1 for every read;
+  allocate `Math.min(info.size, TEXT_IMPORT_LIMITS.bytes) + 1`. `read.ts:78`
+  accepts clipboard text with U+FFFD that the preview then rejects as
+  `decode-failed`; reject it at the clipboard read with a fitting reason or
+  accept it for clipboard sources. Lead Approve, including `iconv-lite` 0.7.3
+  (`docs/decisions.md`, c0aa3c9) and the wiring in output's `src/main/index.ts`.
+  Written by the Codex session that took over data's work. Rebased by the lead
+  onto local `main` without conflicts. M3-D3 is complete.
 
 ## Team member's reply
 
