@@ -8,14 +8,19 @@ Review range: `722fc6e...docs/qa/m2-check2`
 - Last commit: see the commit that adds this file
 - Related brief: `docs/briefs/qa.md`; the replaced `.llp/task.md`
 - Tested app snapshot: the same local-main commit, version `0.12.0`
+- Milestone scope reference: `docs/MILESTONES.md` on main `4d66230`, with the
+  October 25 M2 restart clarification; the app snapshot above was not retested.
 
 ## What changed and why
 
 Add the Korean `m2-check2` user sheet for real hardware. It covers a fresh tag
 clone and data copy, the ten requested feedback checks, a 60-minute output run
 with GPU-process memory readings, physical monitor unplug/replug, and app
-force-quit/restart. It separates spec expectations from current observed gaps so
-the user does not count missing recovery as a pass.
+force-quit/restart. The M2 restart check requires a clean launch with data
+intact, the same service open, outputs off, and manual resumption by the
+operator. The output-state recovery dialog belongs to M3 (O8, S2b), so the sheet
+lists it as a known gap outside M2 acceptance. The default-hidden clear-undo
+button remains a known gap being addressed by spec-18.
 
 The second sample song previously had no background. Give it the first song's
 looping video, so both can be used throughout the long run without restarting
@@ -48,7 +53,7 @@ fixture README's obsolete claim that song clicks cannot show backgrounds.
 | Continuous slider and percent field              | Pass after correcting harness suffix parsing, 50-200 range, `step=any`, fractional drag value, 125%, plus focused 140% and 100% checks            |
 | Song video backgrounds                           | Pass, decoded 1280x720 video, 12-second loop with an ended event and buffer handover; same media start time across both songs                     |
 | Image background                                 | Pass, slide click loads complete 1920x1080 PNG with opacity 1 and the correct lyrics                                                              |
-| App force-quit/restart                           | Service and standby outputs pass; output-state recovery fails as F1 below                                                                         |
+| App force-quit/restart                           | Observed clean restart, same service open and outputs off; manual output resumed in the follow-up; dialog belongs to M3                           |
 | Captures at 1280x720 and 1920x1080               | Visually inspected; video/image backgrounds, new header and preview row appear                                                                    |
 | Offscreen safety and cleanup                     | All observed windows hidden, unfocused, offscreen, not native fullscreen or always-on-top; no show/focus/fullscreen events; test instances closed |
 | `npm run format:check`                           | Pass                                                                                                                                              |
@@ -59,39 +64,34 @@ updated fixture, not an unpublished remote `m2-check2` tag. Physical cable
 changes, a new 60-minute real-hardware run, and Task Manager observation remain
 for the user. The prior GPU growth finding is not cleared by this short smoke.
 
-## Findings to route
+## Known gaps and milestone scope
 
-### F1: App force-quit loses output state without the recovery dialog
+### Output-state recovery dialog: M3, O8 and S2b
 
-- Severity: major, an open M2 recovery acceptance path. Owner: output wiring,
-  with data persistence and shell recovery UI.
-- Build: local main `722fc6e`, version `0.12.0`.
-- Steps: open the copied fixture, output slide 3 of the first song over its
-  video on the main screen, wait, force-stop only this test instance's main
-  process and children, then restart with the same `LLP_USER_DATA`.
-- Expected, spec 08 "Crash and restart": reopen the service, keep outputs on
-  standby, show 출력 상태 복구, and allow the last output/slide/background to be
-  restored through 복구.
-- Actual: the service reopens and outputs are off, but there is no dialog. Every
-  live layer is null. Neither `recovery/live.json` nor `recovery/session.lock`
-  exists in the copied app data. Before the kill, main output was on, slide
-  position 2 and the sample video's media ID were present.
-- The sheet states the expected flow and this observed failure separately. No
-  code change was attempted. This request does not close M2 acceptance.
-- Suggested owner regression: persist a live slide/media snapshot, terminate the
-  process without shutdown handlers, restart, and assert recovery standby,
-  dialog data, and the restore/start-fresh outcomes.
+- M2 requires a clean restart after force-quit with data intact, the same 예배
+  순서 open, and all outputs off. The operator resumes by clicking the slide and
+  turning output on. `docs/MILESTONES.md` explicitly reserves the dialog and
+  live-state restoration for M3.
+- On tested main `722fc6e`, the service reopened with outputs off and empty live
+  layers. The follow-up reused the same data and manually showed the first song
+  over its video. No dialog or live-state recovery record was present. These
+  observations do not establish a dialog-related M2 failure.
+- The user sheet asks the operator to check all five service entries, the songs,
+  their slides and media, and manual resumption on the tagged build. Physical
+  monitor checks and the 60-minute run also remain for the user. This request
+  does not close M2 acceptance.
 
-### F2: The feedback's default-hidden clear-undo button is still visible
+### Default-hidden clear-undo button: known gap, spec-18 in progress
 
-- Severity: minor, feedback item 7's remaining setting/visibility work. Owner:
-  shell, with the settings owner.
+- Feedback item 7's remaining setting/visibility work is being addressed by
+  spec-18, as the lead reported. Keep it listed as a known gap in the sheet
+  until the change is integrated and checked.
 - The final choices in `docs/plans/m2-check1-feedback.md` select default off. A
   fresh copied fixture still displays 되돌림 (tooltip and accessible name:
   되돌리기); `ClearRow` renders it unconditionally and the preference control is
   not connected.
 - Ctrl Z removal works. The sheet describes the visible button and the pending
-  setting without claiming default-hidden behavior shipped.
+  spec-18 work without claiming default-hidden behavior shipped.
 
 ## Evidence and harness corrections
 
@@ -104,10 +104,11 @@ An initial script escaped a newline incorrectly in an evaluated expression;
 another assertion used `Number('125%')` instead of parsing the displayed suffix.
 A screenshot follow-up initially searched only aria-label on a toolbar button
 that has visible text. These were harness mistakes; their records are preserved
-separately. The corrected percentage follow-up passes. F1 is the runtime
-failure, independently of those corrections. A native process query also
-confirmed the GPU command line contains `--type=gpu-process` and this test's
-`--user-data-dir`, as the sheet instructs the user to identify it.
+separately. The corrected percentage follow-up passes. The raw recovery-dialog
+assertion in `smoke.json` is false, but checks M3 work and does not fail the M2
+restart criterion. The raw observations are retained. A native process query
+also confirmed the GPU command line contains `--type=gpu-process` and this
+test's `--user-data-dir`, as the sheet instructs the user to identify it.
 
 ## Quality checklist
 
@@ -121,9 +122,8 @@ No shared contract or dependency changed. No middle dots or em dashes.
    background explicit and support a continuous long run across the first two.
 2. Reuse the sample path while instructing a fresh copy from the new tag.
    Existing `m2-check1` tag contents remain immutable.
-3. Keep spec recovery expectations in the user sheet, while prominently labeling
-   the missing dialog as an observed failure. Route the bug rather than changing
-   another member's code or promising recovery that does not run.
+3. Follow the clarified M2 restart criteria and list the M3 recovery dialog as a
+   known gap. Keep the default-hidden undo gap marked spec-18 in progress.
 
 ## Shared contract change requests
 
@@ -132,9 +132,11 @@ None.
 ## Where to look
 
 - The fresh data-copy commands and background instructions in the Korean sheet.
-- Hardware steps against M2 criteria and spec 03/08, especially F1.
+- Hardware steps against M2 criteria and spec 03, including the clean-restart
+  and manual-resume requirements and the M3 dialog scope.
 - The GPU process identification and memory report fields.
-- The remaining clear-undo visibility gap against the feedback's final choice.
+- The remaining clear-undo visibility gap against the feedback's final choice,
+  with spec-18 in progress.
 
 ## Review: lead
 
@@ -148,4 +150,7 @@ None.
 
 ## Team member's reply
 
-None yet.
+Apply the lead's pre-review scope correction: the dialog is M3 work, the M2
+force-quit check covers clean restart and manual resumption, and the default-off
+clear-undo setting is a known gap being addressed by spec-18. No app code
+changed or new runtime run was needed for this documentation correction.
