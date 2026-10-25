@@ -220,19 +220,18 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (codex3): Request changes with one finding: Electron's native zoom
+  accelerators could zoom below 100% during IME composition without changing the
+  stored value, and Ctrl 0 then could not recover.
+- Round 2 (8d13d7f): reviewer (Codex, codex3) Approve with no findings. Lead
+  Approve; UI zoom (user feedback row 11) from 100% to 200% in 10-point steps
+  with Ctrl +, Ctrl -, and Ctrl 0, stored through the data store, applied to the
+  control window only, with the native zoom shortcuts removed. Written by the
+  Codex session that took over data's work, with the lead's permission to change
+  output's control-window code and shell's key handling for this feature.
+  Rebased by the lead onto local `main` without conflicts.
 
 ## Team member's reply
 
