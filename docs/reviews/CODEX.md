@@ -49,7 +49,12 @@ Approve when only nits remain. Reply in exactly this form:
 - Verdict: Approve | Request changes
 - Findings:
   1. file:line problem. suggestion.
+LLPDONE:<name>:<HHMMSS>
 ```
+
+The last line is the marker the lead's watcher looks for: `LLPDONE:`, the review
+name, `:`, and the current local time as six digits (for example
+`LLPDONE:data-26:221240`), on a line of its own and nowhere else.
 
 For round 1, the first line is `• Reviewer verdict for <name>` without the
 round. Mark a finding that doesn't block with `Nit:`.

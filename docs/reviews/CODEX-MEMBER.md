@@ -33,7 +33,14 @@ your turn with a report in exactly this form instead:
 - Branch: <branch> at <commit>
 - Details:
   1. what you did, what you found, what you need
+LLPDONE:<role>:<HHMMSS>
 ```
+
+The last line is the marker the lead's watcher looks for: `LLPDONE:`, your role,
+`:`, and the current local time as six digits (for example `LLPDONE:qa:221240`).
+Print it on a line of its own at the end of every report, and nowhere else. If
+you ask the lead a question instead of reporting, end that message with the same
+marker.
 
 For a review request, put the request line from `docs/WORKFLOW.md` in the
 details (review document, branch, commit, review range, verify result). Then
