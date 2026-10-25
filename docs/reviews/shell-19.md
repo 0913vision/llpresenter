@@ -100,4 +100,9 @@ missing.
 
 ## Verdicts (recorded by the lead at merge)
 
-- Not reviewed yet.
+- Round 1 (180eff1): reviewer (Codex, codex3) Approve with one nit: the "Verify
+  result" section this document refers to is missing. The nit goes into shell's
+  next branch. Lead Approve; fixes the shell half of M1-12, so `uiState` reads
+  and changes its fields through the data store's `UiStateFields` and no longer
+  parses or writes `app.json`. The review was resent after the power loss at
+  09:48. Rebased by the lead onto local `main` without conflicts.
