@@ -226,3 +226,19 @@ Round 2 verification ran exactly once on `2f95e4d`, with
 coverage 158.5 s, and build 7.5 s. All five steps passed in 158.5 s. Log:
 `.llp/spec17/verify-round-2.log`. Only this review's result recording and
 formatting followed verification; no source changed afterward.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (83db1e5, codex2): Request changes with two findings: the background
+  went out before the refreshed 슬라이드 was validated, and a refresh arriving
+  as the feed finished could be lost.
+- Round 2 (fd51325): reviewer (Codex, codex2) Approve with no findings. Lead
+  Approve; closes M2's first acceptance gap: a click on a 슬라이드 of a song
+  item sends that item's background (its override, or the song's default) with
+  the existing `media.show` before `slide.show`; the same media isn't restarted,
+  an item without a background keeps the current one, moving within an item
+  never changes it, and a missing file keeps the current background with the
+  row's warning. The optional `background` field on `ShowService` song rows was
+  approved by the lead before the work. Written by the Codex session that took
+  over spec's work, with the lead's permission to change data's and shell's
+  files for this feature. Fast-forward merge.
