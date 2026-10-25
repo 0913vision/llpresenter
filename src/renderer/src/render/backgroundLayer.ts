@@ -302,8 +302,9 @@ export class BackgroundLayerView {
   private handleError(index: VideoIndex): void {
     if (this.isImage(index)) return;
     const video = this.videos[index];
-    if (video.error?.code === UNSUPPORTED_SOURCE && this.tryImage(index))
+    if (video.error?.code === UNSUPPORTED_SOURCE && this.tryImage(index)) {
       return;
+    }
     if (this.handover !== null && this.videos[this.handover.to] === video) {
       this.handover = null;
     }
