@@ -22,6 +22,10 @@ import {OpenServiceFeed} from './openServiceFeed';
 import {RecoveryCopies} from './recoveryCopies';
 import {Saver} from './saver';
 import {removeStaleTempFiles} from './staleTempFiles';
+import {settingsNames} from '@shared/schema/settingsDocuments';
+import {settingsLocation} from './settingsFile';
+import {openSettingsStore, type SettingsProblemListener} from './settingsStore';
+import {registerSettingsReads} from './settingsChannels';
 
 const MAX_LOGGED_PROBLEMS = 50;
 
@@ -42,6 +46,9 @@ export interface StoreRegistration {
 
 /** What the main process wiring uses of the data store. */
 export interface DataStore {
+  readonly subscribeSettingsProblems: (
+    listener: SettingsProblemListener,
+  ) => () => void;
   /**
    * Removes the handlers and resolves once the launch backup has ended and
    * every change that waits is saved, so quitting never cuts a backup off or
@@ -73,16 +80,25 @@ export function registerStore({
 }: StoreRegistration): DataStore {
   const loading = readStore(() => ({...context(), appConfig}), log);
   const opened = openContent(loading, log);
+  const settings = loading
+    .then(store => (store === null ? null : openSettingsStore(store, log)))
+    .catch((error: unknown) => {
+      log.error('could not open app-wide settings', error);
+      return null;
+    });
+  const settingsChannels = registerSettingsReads(settings, log);
   ipcMain.handle(Channels.serviceGet, async () => currentService(opened));
-  ipcMain.handle(
-    Channels.preferencesGet,
-    async () => (await loading)?.preferences ?? defaultPreferences,
-  );
+  ipcMain.handle(Channels.preferencesGet, async () => {
+    await settings;
+    return (await loading)?.preferences ?? defaultPreferences;
+  });
   const removeContentChannels = registerContentChannels(contentOf(opened), log);
   const upkeep = upkeepAtLaunch(loading, isAnyOutputOn, log);
   const media = new LoadingMediaLibrary(loading);
   return {
+    subscribeSettingsProblems: settingsChannels.subscribe,
     dispose: async () => {
+      await settingsChannels.dispose();
       ipcMain.removeHandler(Channels.serviceGet);
       ipcMain.removeHandler(Channels.preferencesGet);
       removeContentChannels();
@@ -247,10 +263,16 @@ function logLoadedStore(store: LoadedStore, log: Logger): void {
     services: store.services.size,
     openServiceId: store.openServiceId,
   });
-  for (const problem of store.problems.slice(0, MAX_LOGGED_PROBLEMS)) {
+  const problems = store.problems.filter(
+    problem =>
+      !settingsNames.some(
+        name => settingsLocation(store.locations, name).file === problem.file,
+      ),
+  );
+  for (const problem of problems.slice(0, MAX_LOGGED_PROBLEMS)) {
     log.warn('skipped a data file or a part of one', problem);
   }
-  const unlogged = store.problems.length - MAX_LOGGED_PROBLEMS;
+  const unlogged = problems.length - MAX_LOGGED_PROBLEMS;
   if (unlogged > 0) {
     log.warn(`skipped ${unlogged} more data files or parts of them`);
   }

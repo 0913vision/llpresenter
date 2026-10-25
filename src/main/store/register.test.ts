@@ -14,10 +14,15 @@ import {parseEditResult} from '@shared/schema/contentEdit';
 import {parseSong} from '@shared/schema/song';
 import {parseShowService} from '@shared/schema/showService';
 import {parsePreferencesValue} from '@shared/schema/preferences';
+import {
+  parseSettingsDocument,
+  settingsNames,
+} from '@shared/schema/settingsDocuments';
 import {makeTempDir} from '../../../test/temp-dir';
 import type {Logger} from '../log';
 import {openAppConfig} from './appConfigFile';
 import {DATA_FOLDER_NAME} from './locations';
+import type {SettingsProblemListener} from './settingsStore';
 import {
   electronLocationContext,
   registerStore,
@@ -129,6 +134,131 @@ afterEach(async () => {
 });
 
 describe('registerStore', () => {
+  it('creates every missing settings file with valid defaults and serves revisioned reads', async () => {
+    const context = await developmentContext();
+    await register(fakeLog(), context, () => true);
+    for (const name of settingsNames) {
+      const reply = parseSettingsDocument(
+        await ask(Channels.settingsGet, {name}),
+      );
+      expect(reply.ok).toBe(true);
+      const file = join(
+        context.appDataFolder,
+        DATA_FOLDER_NAME,
+        '설정',
+        `${name}.json`,
+      );
+      const value: unknown = JSON.parse(await readFile(file, 'utf8'));
+      if (!reply.ok) throw new Error(reply.error.message);
+      expect(reply.value).toMatchObject({
+        name,
+        value,
+        revision: 1,
+        access: 'editable',
+      });
+      if (reply.value.name === 'screens') {
+        expect(reply.value.value.screens.map(screen => screen.name)).toEqual([
+          '본 화면',
+          '방송 자막',
+          '무대 화면',
+        ]);
+      }
+      if (reply.value.name === 'looks') {
+        expect(reply.value.value.looks[0]?.name).toBe('평상시');
+      }
+      if (reply.value.name === 'stage-layouts') {
+        expect(reply.value.value.layouts[0]?.elements).toHaveLength(7);
+      }
+      if (reply.value.name === 'messages') {
+        expect(reply.value.value.stagePresets).toHaveLength(7);
+      }
+    }
+    expect(await ask(Channels.preferencesGet)).toMatchObject({
+      show: {showClearUndoButton: false},
+    });
+  });
+
+  it('retains existing content, unknown fields and newer read-only access across restart', async () => {
+    const context = await developmentContext();
+    const file = join(
+      context.appDataFolder,
+      DATA_FOLDER_NAME,
+      '설정',
+      'messages.json',
+    );
+    const value = {
+      format: 'llsettings.messages',
+      schemaVersion: 2,
+      templates: [],
+      stagePresets: ['사용자 문구'],
+      future: {enabled: true},
+    };
+    await writeJson(file, value);
+    const first = await register(fakeLog(), context, () => true);
+    expect(await ask(Channels.settingsGet, {name: 'messages'})).toMatchObject({
+      value,
+      access: 'readOnly',
+    });
+    await first.dispose();
+    await register(fakeLog(), context, () => true);
+    expect(await ask(Channels.settingsGet, {name: 'messages'})).toMatchObject({
+      value,
+      access: 'readOnly',
+    });
+    expect(JSON.parse(await readFile(file, 'utf8'))).toEqual(value);
+  });
+
+  it('emits and warns once per broken file, keeps it untouched, and still loads the others', async () => {
+    const context = await developmentContext();
+    const folder = join(context.appDataFolder, DATA_FOLDER_NAME, '설정');
+    await writeJson(join(folder, 'labels.json'), {format: 'wrong'});
+    await writeJson(join(folder, 'looks.json'), {format: 'wrong'});
+    await writeJson(join(folder, 'preferences.json'), {
+      format: 'llsettings.preferences',
+      schemaVersion: 1,
+      backupCopies: 99999,
+      previewFps: 1,
+    });
+    const log = fakeLog();
+    const store = await register(log, context, () => true);
+    const cancelled = vi.fn();
+    store.subscribeSettingsProblems(cancelled)();
+    const listener = vi.fn<SettingsProblemListener>();
+    const unsubscribe = store.subscribeSettingsProblems(listener);
+    await ask(Channels.settingsGet, {name: 'bible'});
+    expect(cancelled).not.toHaveBeenCalled();
+    expect(listener.mock.calls.map(([problem]) => problem.file)).toEqual([
+      'looks.json',
+      'labels.json',
+      'preferences.json',
+    ]);
+    expect(listener.mock.calls[0]?.[0].error).toMatchObject({
+      kind: 'format',
+      file: join(folder, 'looks.json'),
+    });
+    expect(
+      log.warn.mock.calls.filter(
+        ([message]) => message === 'skipped a data file or a part of one',
+      ),
+    ).toHaveLength(3);
+    expect(
+      JSON.parse(await readFile(join(folder, 'looks.json'), 'utf8')),
+    ).toEqual({format: 'wrong'});
+    unsubscribe();
+    await store.dispose();
+    expect(electron.handlers.has(Channels.settingsGet)).toBe(false);
+    const late = vi.fn();
+    store.subscribeSettingsProblems(late);
+    await Promise.resolve();
+    expect(late).not.toHaveBeenCalled();
+  });
+
+  it('refuses malformed settings reads', async () => {
+    await register(fakeLog(), await developmentContext(), () => true);
+    await expect(ask(Channels.settingsGet, {name: '../app'})).rejects.toThrow(
+      'Invalid settings read',
+    );
+  });
   it.each([
     undefined,
     {},
