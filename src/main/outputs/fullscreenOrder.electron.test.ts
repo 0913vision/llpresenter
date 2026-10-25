@@ -1,4 +1,4 @@
-import {mkdir} from 'node:fs/promises';
+import {mkdir, writeFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
 import {join, resolve} from 'node:path';
 import {build} from 'vite';
@@ -74,6 +74,12 @@ it.skipIf(!WINDOWS_CI)(
     onTestFinished(() => fixture.stop());
     try {
       const result = await fixture.running;
+      const coverage = resolve('coverage');
+      await mkdir(coverage, {recursive: true});
+      await writeFile(
+        join(coverage, 'native-fullscreen-order.log'),
+        result.output,
+      );
       console.log(result.output);
       expect(result.exitCode, result.output).toBe(0);
       expect(result.stoppedBy, result.output).toBeNull();
