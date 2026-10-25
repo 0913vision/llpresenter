@@ -41,7 +41,7 @@ export const REFERENCE_SCREEN = {width: 1920, height: 1080} as const;
 /** Fixed switch values from spec 03 and 10, in reference-screen pixels. */
 export const LYRIC_EFFECTS = {
   outlineWidth: 3,
-  shadowOffset: 4,
+  shadowDistance: 4,
   shadowBlur: 8,
   shadowOpacity: 0.6,
 } as const;

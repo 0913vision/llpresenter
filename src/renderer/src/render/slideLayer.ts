@@ -113,6 +113,10 @@ export class SlideLayerView {
       '--slide-dissolve',
       `${SLIDE_DISSOLVE_MS}ms`,
     );
+    this.element.style.setProperty(
+      '--lyric-shadow-strength',
+      `${LYRIC_EFFECTS.shadowOpacity * 100}%`,
+    );
     this.pages = [createPage(style), createPage(style)];
     this.rescale(1);
     this.element.append(this.pages[0].element, this.pages[1].element);
@@ -153,15 +157,11 @@ export class SlideLayerView {
     this.scale = scale;
     this.element.style.setProperty(
       '--lyric-shadow-offset',
-      `${LYRIC_EFFECTS.shadowOffset * scale}px`,
+      `${(LYRIC_EFFECTS.shadowDistance / Math.SQRT2) * scale}px`,
     );
     this.element.style.setProperty(
       '--lyric-shadow-blur',
       `${LYRIC_EFFECTS.shadowBlur * scale}px`,
-    );
-    this.element.style.setProperty(
-      '--lyric-shadow-strength',
-      `${LYRIC_EFFECTS.shadowOpacity * 100}%`,
     );
     this.element.style.setProperty(
       '--lyric-outline-width',

@@ -42,9 +42,10 @@ describe('SlideLayerView', () => {
         throw new Error('Missing lyric layer');
       }
       const scale = scaleFor(width, height);
-      expect(element.style.getPropertyValue('--lyric-shadow-offset')).toBe(
-        `${4 * scale}px`,
+      const axis = Number.parseFloat(
+        element.style.getPropertyValue('--lyric-shadow-offset'),
       );
+      expect(Math.hypot(axis, axis)).toBeCloseTo(4 * scale);
       expect(element.style.getPropertyValue('--lyric-shadow-blur')).toBe(
         `${8 * scale}px`,
       );
@@ -68,7 +69,7 @@ describe('SlideLayerView', () => {
     const current = shownPage();
     view.setStyle({
       ...DEFAULT_LYRIC_STYLE,
-      font: 'Missing "Display" Font',
+      font: `Missing "Display" O'Brien Font`,
       size: 60,
       weight: 400,
       lineHeight: 1.8,
@@ -96,7 +97,9 @@ describe('SlideLayerView', () => {
       expect(page.style.inset).toBe('10%');
       expect(page.style.justifyContent).toBe('flex-end');
       expect(page.style.textAlign).toBe('left');
-      expect(block?.style.fontFamily).toContain('Pretendard Variable');
+      expect(block?.style.fontFamily).toBe(
+        `"Missing \\"Display\\" O'Brien Font", "Pretendard Variable", sans-serif`,
+      );
       expect(block?.style.fontWeight).toBe('400');
       expect(block?.style.lineHeight).toBe('1.8');
       expect(block?.style.color).toBe('rgb(18, 52, 86)');
