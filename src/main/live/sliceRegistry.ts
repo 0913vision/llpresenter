@@ -29,7 +29,11 @@ export class SliceRegistry {
 
   initialState(): LiveState {
     return this.slices.reduce<LiveState>(
-      (state, slice) => ({...state, ...slice.initial}),
+      (state, slice) => ({
+        ...state,
+        ...slice.initial,
+        layers: {...state.layers, ...slice.initial.layers},
+      }),
       emptyLiveState(),
     );
   }

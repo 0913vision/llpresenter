@@ -1,7 +1,12 @@
 import type {LiveCommand} from '@shared/commands';
-import {emptyLiveState, type LiveState} from '@shared/live';
+import type {LiveState} from '@shared/live';
 import type {Logger} from '../log';
-import {applyCommand, initialHistory, type LiveHistory} from './reducer';
+import {
+  applyCommand,
+  initialHistory,
+  liveSlices,
+  type LiveHistory,
+} from './reducer';
 
 export type LiveListener = (state: LiveState) => void;
 
@@ -19,7 +24,7 @@ export class LiveStore {
    * @param now - The clock that stamps commands; tests pass a fixed one.
    */
   constructor(
-    initial: LiveState = emptyLiveState(),
+    initial: LiveState = liveSlices.initialState(),
     private readonly now: () => number = Date.now,
   ) {
     this.history = initialHistory(initial);
@@ -72,12 +77,16 @@ export class LiveStore {
   }
 }
 
-/** Applies a command to the store and logs every listener that throws. */
+/** Rejects unhandled commands and logs every listener that throws. */
 export function dispatchLogged(
   store: LiveStore,
   command: LiveCommand,
   log: Logger,
 ): void {
+  if (!liveSlices.handles(command.type)) {
+    log.warn('unhandled live command', {type: command.type});
+    return;
+  }
   store.dispatch(command, error =>
     log.error('live state listener failed', error),
   );

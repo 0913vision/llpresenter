@@ -1,5 +1,5 @@
 import type {LiveCommand, LiveCommandType} from '@shared/commands';
-import type {LiveState} from '@shared/live';
+import type {LiveLayers, LiveState} from '@shared/live';
 import type {LiveHistory} from './history';
 
 /** The commands of the given types. */
@@ -8,12 +8,17 @@ export type CommandOf<T extends LiveCommandType> = Extract<
   {readonly type: T}
 >;
 
-/** What a slice module declares. */
+/** The state fields initialized by a slice, including individual layers. */
+export type SliceInitial = Omit<Partial<LiveState>, 'layers'> & {
+  readonly layers?: Partial<LiveLayers>;
+};
+
+/** The initial state and reducer for a bounded set of command types. */
 export interface SliceDefinition<T extends LiveCommandType> {
   /** The command types this slice handles. No other slice may handle them. */
   readonly commands: readonly T[];
   /** This slice's part of the initial live state. */
-  readonly initial: Partial<LiveState>;
+  readonly initial: SliceInitial;
   /**
    * Applies one of its commands. Returns the same history object when nothing
    * changed, so the store can skip the broadcast.
@@ -33,7 +38,7 @@ const SLICE = Symbol('live slice');
 export interface LiveSlice {
   readonly [SLICE]: true;
   readonly commands: readonly LiveCommandType[];
-  readonly initial: Partial<LiveState>;
+  readonly initial: SliceInitial;
   /** Applies a command of its types; any other command leaves the history as it is. */
   apply(history: LiveHistory, command: LiveCommand, now: number): LiveHistory;
 }

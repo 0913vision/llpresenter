@@ -1,18 +1,9 @@
 import type {LiveCommand} from '@shared/commands';
 import type {LiveHistory} from './history';
-import {registryOf} from './sliceRegistry';
+import {liveSlices} from './slices';
 
 export {initialHistory, type LiveHistory, type UndoEntry} from './history';
-
-/**
- * The live reducer's slices: every module in `src/main/live/slices/`. A new
- * slice is a new file there; nothing else changes.
- */
-export const liveSlices = registryOf(
-  import.meta.glob<unknown>(['./slices/*.ts', '!./slices/*.test.ts'], {
-    eager: true,
-  }),
-);
+export {liveSlices} from './slices';
 
 /**
  * Applies one command. This is a pure function, so it is tested without

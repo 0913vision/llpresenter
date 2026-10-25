@@ -1,4 +1,4 @@
-import {emptyLayers, type MediaChoice} from '@shared/live';
+import type {MediaChoice} from '@shared/live';
 import {setLayer, type LiveHistory} from '../history';
 import {defineSlice} from '../slice';
 
@@ -20,7 +20,7 @@ function showMedia(
 /** Puts content on a layer: a slide, a background, or a message. */
 export const contentSlice = defineSlice({
   commands: ['slide.show', 'media.show', 'message.show'],
-  initial: {layers: emptyLayers()},
+  initial: {layers: {slide: null, media: null, message: null}},
   reduce: (history, command, now) => {
     switch (command.type) {
       case 'slide.show':

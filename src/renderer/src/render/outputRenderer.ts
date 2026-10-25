@@ -1,64 +1,43 @@
 import type {LiveLayers} from '@shared/live';
-import {BackgroundLayerView, type RenderMode} from './backgroundLayer';
 import {classes} from './classes';
-import {scaleFor, type LyricStyle} from './lyricStyle';
-import {SlideLayerView} from './slideLayer';
+import type {RegisteredLayer, RenderLayer, RenderLayerOptions} from './layer';
+import {renderLayers} from './layers';
+import {scaleFor} from './lyricStyle';
 
-export interface OutputRendererOptions {
-  readonly lyricStyle: LyricStyle;
-  /** The URL that plays a library media file. */
-  readonly mediaUrl: (mediaId: string) => string;
-  /** Receives drawing errors, which never reach the other layers. */
-  readonly onError: (message: string, error: unknown) => void;
-  /**
-   * `preview` for a small copy in the control window: a looping background
-   * keeps one video playing instead of two. `output` when absent.
-   */
-  readonly mode?: RenderMode;
+export type OutputRendererOptions = RenderLayerOptions;
+
+interface ActiveLayer {
+  readonly kind: string;
+  readonly view: RenderLayer;
 }
 
-// NOTE(0913vision): The layers from the bottom up, as in "Layers and stacking
-// order" in docs/spec/03-output.md.
-const LAYER_ORDER = ['background', 'lyrics'] as const;
-
-type LayerName = (typeof LAYER_ORDER)[number];
-
-function createLayerBox(root: HTMLElement, name: LayerName): HTMLElement {
-  // NOTE(0913vision): The z-index makes each layer box its own stacking
-  // context, so nothing inside a layer, such as a video's z-index, can rise
-  // above a higher layer.
+function createLayerBox(
+  root: HTMLElement,
+  layer: RegisteredLayer,
+): HTMLElement {
+  // NOTE(0913vision): Each layer box has its own stacking context, so a video's
+  // z-index cannot rise above a higher layer.
   const box = document.createElement('div');
   box.className = classes.layer;
-  box.style.zIndex = String(LAYER_ORDER.indexOf(name));
-  box.dataset['layer'] = name;
+  box.style.zIndex = String(layer.order);
+  box.dataset['layer'] = layer.kind;
   root.append(box);
   return box;
 }
 
-/**
- * Draws one screen's layers from the live state, bottom up: the background
- * media, then the lyrics. A layer that fails to draw keeps its last picture,
- * and the other layers still draw.
- */
+/** Draws registered layers back to front, keeping a failed layer isolated. */
 export class OutputRenderer {
   private readonly root = document.createElement('div');
-  private readonly background: BackgroundLayerView;
-  private readonly slide: SlideLayerView;
+  private readonly layers: readonly ActiveLayer[];
   private readonly resizeObserver: ResizeObserver;
+  private disposed = false;
 
   constructor(
     parent: HTMLElement,
     private readonly options: OutputRendererOptions,
   ) {
     this.root.className = classes.root;
-    this.background = new BackgroundLayerView(
-      createLayerBox(this.root, 'background'),
-      options,
-    );
-    this.slide = new SlideLayerView(
-      createLayerBox(this.root, 'lyrics'),
-      options.lyricStyle,
-    );
+    this.layers = renderLayers.flatMap(layer => this.createLayer(layer));
     parent.append(this.root);
     this.resizeObserver = new ResizeObserver(() => this.rescale());
     this.resizeObserver.observe(this.root);
@@ -66,30 +45,50 @@ export class OutputRenderer {
   }
 
   render(layers: LiveLayers): void {
-    this.draw('background', () => this.background.show(layers.media));
-    this.draw('lyrics', () => this.slide.show(layers.slide));
+    for (const {kind, view} of this.layers) {
+      this.attempt(kind, 'draw', () => view.render(layers));
+    }
   }
 
   dispose(): void {
+    if (this.disposed) return;
+    this.disposed = true;
     this.resizeObserver.disconnect();
-    this.background.dispose();
-    this.slide.dispose();
+    for (const {kind, view} of this.layers) {
+      this.attempt(kind, 'dispose', () => view.dispose());
+    }
     this.root.remove();
   }
 
-  private draw(layer: string, drawLayer: () => void): void {
+  private createLayer(layer: RegisteredLayer): ActiveLayer[] {
+    const box = createLayerBox(this.root, layer);
     try {
-      drawLayer();
+      return [{kind: layer.kind, view: layer.create(box, this.options)}];
     } catch (error) {
-      this.options.onError(`could not draw the ${layer} layer`, error);
+      box.remove();
+      this.options.onError(`could not create the ${layer.kind} layer`, error);
+      return [];
+    }
+  }
+
+  private attempt(
+    kind: string,
+    operation: 'draw' | 'dispose',
+    action: () => void,
+  ): void {
+    try {
+      action();
+    } catch (error) {
+      this.options.onError(`could not ${operation} the ${kind} layer`, error);
     }
   }
 
   private rescale(): void {
     const {clientWidth, clientHeight} = this.root;
     if (clientWidth === 0 || clientHeight === 0) return;
-    this.draw('lyrics', () =>
-      this.slide.rescale(scaleFor(clientWidth, clientHeight)),
-    );
+    const scale = scaleFor(clientWidth, clientHeight);
+    for (const {kind, view} of this.layers) {
+      this.attempt(kind, 'draw', () => view.rescale?.(scale));
+    }
   }
 }
