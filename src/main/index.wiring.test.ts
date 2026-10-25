@@ -253,6 +253,9 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     fakes.recovery.crashed = true;
     await startMain();
     expect(fakes.outputContexts[0]?.store.state.outputs).toEqual({});
+    expect(fakes.macroContexts).toEqual([
+      expect.objectContaining({launch: 'restore'}),
+    ]);
     beforeQuit();
     await vi.waitFor(() =>
       expect(fakes.recovery.cleanExit).toHaveBeenCalledOnce(),
@@ -269,6 +272,7 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
   });
   it('connects macro execution to the shared live and data stores and stops it before closing data', async () => {
     await startMain();
+    expect(fakes.macroContexts[0]).toHaveProperty('launch', 'normal');
     expect(fakes.macroContexts).toHaveLength(1);
     expect(fakes.macroContexts[0]).toHaveProperty(
       'store',

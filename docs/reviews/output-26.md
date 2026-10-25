@@ -2,7 +2,8 @@
 
 - Team member: `output`
 - Branch: `feat/output/recovery`
-- Base and review range: updated after the final rebase.
+- Base: `f4eba7be376d026a3d41d3bcad24ea7fce39daf7`
+- Range: `f4eba7be...feat/output/recovery`
 - Scope: M3-O8 part 1, session markers; output-25 nits and M2-9.
 - CI: pending the branch push.
 
@@ -10,18 +11,21 @@
 
 Startup opens `recovery/session.lock` after Electron's single-instance lock. An
 existing marker detects an unclean exit and startup keeps the initial empty
-output state. The marker is written atomically with a fresh opaque token. Normal
-shutdown removes it after the data-store save steps and waits for that cleanup
-before releasing Electron's lock. Repeated cleanup shares one promise. Missing,
-changed or unwritable markers are handled without stopping the app; warnings
-identify write/read/delete failures. Cleanup checks the current token using a
-bounded read and leaves a newer launch's token intact.
+output state. Data-39's runner receives restore mode after a crash, so startup
+macros cannot turn outputs on before the recovery decision. Normal launch uses
+normal macro mode. The marker is written atomically with a fresh opaque token.
+Normal shutdown removes it after the data-store save steps and waits for that
+cleanup before releasing Electron's lock. Repeated cleanup shares one promise.
+Missing, changed or unwritable markers are handled without stopping the app;
+warnings identify write/read/delete failures. Cleanup checks the current token
+using a bounded read and leaves a newer launch's token intact.
 
 This request leaves `live.json` untouched. Data is preparing its shared record
 contract from the proposal, as the lead directed. The following O8 requests add
-record persistence and D1c summary/apply/start-fresh handlers after that
-contract and data-39's port are available. This is the session foundation, not
-the whole recovery workflow; no dialog or restore action is introduced here.
+record persistence and D1c summary/apply/start-fresh handlers after the record
+contract is available. Data-39's `startFresh()` port is now merged. This is the
+session foundation, not the whole recovery workflow; no dialog or restore action
+is introduced here.
 
 M2-9 comes from a later work-area change, rather than the centering formula. The
 current planner already uses the work area. `OutputWindow` ignored changed
@@ -49,8 +53,9 @@ No shared, preload, data-store or renderer file is changed.
 
 ## Verification
 
-- 98 tests across eight relevant files passed in 1.60 seconds. Typecheck,
-  targeted ESLint after formatting, Prettier and whitespace checks passed.
+- After the data-39 rebase, 99 tests across eight relevant files passed in 1.31
+  seconds. Typecheck, targeted ESLint after formatting, Prettier and whitespace
+  checks passed.
 - Both M2-9 regressions fail against the actual previous `OutputWindow`: the
   first fallback remains at x=1240 instead of updating to x=1271 after the work
   area changes from `(0,0,3440,1440)` to `(62,0,3378,1440)`. The source was

@@ -130,7 +130,12 @@ function start(): void {
         log,
         windowMode,
       });
-      const macros = registerMacros({store, data: dataStore, log});
+      const macros = registerMacros({
+        store,
+        data: dataStore,
+        log,
+        launch: session.crashed ? 'restore' : 'normal',
+      });
       const stopSoakScenario = registerSoakScenario(log, command =>
         dispatchLogged(store, command, log),
       );
