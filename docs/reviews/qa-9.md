@@ -110,15 +110,17 @@ None.
 - Actual monitor/window transitions, measured restoration delay, playback
   identity and PID preservation, and the control-window overlap observation.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict:
-- Findings:
-
-## Review: reviewer
-
-- Verdict:
-- Findings:
+- Round 1 (Claude, trial-97): Request changes: the HDMI result claimed a pass
+  against spec 03 although steps 2 and 3 and the reconnect notification were not
+  checked; three nits on the last-30 offset, the native private trend, and the
+  fps meter on the 60 Hz BenQ.
+- Round 2 (da84f78): reviewer (Claude, trial-97) Approve. Lead Approve. The user
+  decided on October 25 to close M2 with M2-8 carried into M3
+  (`docs/decisions.md`). The fps observation goes to output. Written by the
+  Codex session that took over qa's work. Rebased by the lead onto local `main`
+  without conflicts.
 
 ## Team member's reply
 
