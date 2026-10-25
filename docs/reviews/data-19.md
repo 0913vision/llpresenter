@@ -167,19 +167,19 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (codex3): Request changes with three findings: a failed recovery copy
+  still deleted the original and answered success, arrangement edits left
+  editable 틀 references unchanged, and two store files imported valibot
+  directly.
+- Round 2 (217e1a4): reviewer (Codex, codex3) Approve with no findings. Lead
+  Approve; the main-process handlers for songs, 예배 순서, and 틀 apply the
+  D1a-1 contracts (base revision with a stale answer, a revision on every push,
+  the write order and partial failure of cross-file commands), keep the original
+  when its recovery copy fails, and update 틀 references on arrangement edits.
+  Written by the Codex session that took over data's work after the power loss.
+  Rebased by the lead onto local `main` without conflicts.
 
 ## Team member's reply
 
