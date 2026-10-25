@@ -75,3 +75,13 @@ The branch includes devops-19's SwiftShader fix. The temporary GPU exception has
 ended: this review request is sent only after its exact submitted HEAD has a
 fully green CI run. The run URL and result are included in the request report so
 recording the result does not create another unverified commit.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (75c9b4d): reviewer (Codex, codex2) Approve with no findings. Lead
+  Approve: the 되돌리기 button and its divider show only when
+  `show.showClearUndoButton` is true; a missing setting, a failed read, or no
+  preload keeps it hidden, and `clear.undo` itself is unchanged (the user chose
+  off by default on October 25). Changes shell's 지우기 row under the lead's
+  one-feature exception. Written by the Codex session that took over spec's
+  work. Rebased by the lead onto local `main` without conflicts.
