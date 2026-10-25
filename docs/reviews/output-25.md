@@ -5,10 +5,10 @@
 - Base: `afe945cdf77ee9ded74c29ffc1567b893c84e8fe` (M2 frozen, 0.14.0)
 - Range: `afe945c...feat/output/live-screen-settings`
 - Scope: M3-O9a saved screen subscriptions and sleep lifecycle.
-- Round 2: fallback and review nits addressed; current CI pending.
-- Code head: `6f119f270463c5c26b1079793f18d9c26f31ab6a`
+- Round 2: fallback and all review nits addressed; code CI passed.
+- Code head: `2ee381658a904fae5ba6ba1cd241045df7eadf0e`
 - Code CI:
-  [40228489919](https://github.com/0913vision/llpresenter/actions/runs/40228489919),
+  [40230819966](https://github.com/0913vision/llpresenter/actions/runs/40230819966),
   **success**, including the complete GitHub Windows verify job.
 
 ## Changes
