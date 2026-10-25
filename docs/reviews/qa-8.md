@@ -60,7 +60,7 @@ fixture README's obsolete claim that song clicks cannot show backgrounds.
 | `npm run format:check`                           | Passed before the branch-CI workflow change                                                                                                       |
 | Prettier checks on owned docs and sample JSON    | Pass after rebase                                                                                                                                 |
 | Local `npm run verify`                           | Not run; the new workflow requires only fast checks on owned files locally                                                                        |
-| GitHub CI                                        | Exact-head run URL and result accompany the review request message after pushing this branch                                                      |
+| GitHub CI                                        | Failure on `d758221`: known runner GPU limitation in two Electron tests; devops-19 owns the fix; lead authorized this docs-only review exception  |
 
 The tag is the lead's later publication step. This smoke used local main and the
 updated fixture, not an unpublished remote `m2-check2` tag. Physical cable
@@ -69,9 +69,26 @@ for the user. The prior GPU growth finding is not cleared by this short smoke.
 
 The branch was rebased onto main `505ab18` to adopt the required branch-push CI,
 status script, and member pre-push hook. The app snapshot above remains the
-runtime evidence. CI verifies the rebased request's exact head on GitHub; no
-full verify is run locally. Its run URL and result are reported outside this
-file so recording them does not change the head being verified.
+runtime evidence. No full verify is run locally.
+
+### GitHub CI result and review exception
+
+[CI run 40188614053](https://github.com/0913vision/llpresenter/actions/runs/40188614053)
+completed with **failure** on `d758221e4d4eb65bbcd8123c346f6723ae11987f`.
+Typecheck, lint, formatting, and build passed. The coverage test step had 2
+failures, 2498 passes, and 1 skipped test:
+
+- `src/main/windows/uiZoom.electron.test.ts`: the Electron GPU process exited
+  repeatedly, ending with `GPU process isn't usable`.
+- `src/renderer/src/render/transparentBackground.node.test.ts`: the GPU process
+  exited and capture failed with `UnknownVizError`.
+
+The lead confirmed the runners lack a GPU for these two Electron tests;
+devops-19 addresses the runner/test configuration. These tests are unchanged by
+this documentation and fixture branch. On October 25, the lead explicitly
+authorized submitting this docs-only review with the recorded CI failure while
+devops-19 is in progress. This follow-up commit records that result and cause;
+the linked run applies to `d758221`, not the later documentation-only head.
 
 ## Known gaps and milestone scope
 
@@ -163,3 +180,7 @@ Apply the lead's pre-review scope correction: the dialog is M3 work, the M2
 force-quit check covers clean restart and manual resumption, and the default-off
 clear-undo setting is a known gap being addressed by spec-18. No app code
 changed or new runtime run was needed for this documentation correction.
+
+Record the CI run and the lead-confirmed GPU runner cause above. Submit this
+docs-only review under the lead's explicit exception while devops-19 fixes the
+two Electron tests.
