@@ -8,7 +8,8 @@ import {
   type ServiceItemId,
   type SongId,
 } from '@shared/schema/ids';
-import type {Service} from '@shared/schema/service';
+import {isItemOfKind, type Service} from '@shared/schema/service';
+import {sectionBoundaryIndex} from '@renderer/show/serviceSections';
 
 const HISTORY_LIMIT = 100;
 type Order = Service['order'];
@@ -99,15 +100,33 @@ export class ServiceOrderEdits {
     beforeId: ServiceItemId | null,
   ) {
     return this.update(serviceId, service => {
-      const item = service.order.find(row => row.id === itemId);
+      const start = service.order.findIndex(row => row.id === itemId);
+      const item = service.order[start];
       if (item === undefined) {
         return refuse('not-found', 'The item no longer exists');
       }
-      if (itemId === beforeId) return {ok: true, value: service.order};
-      const order = service.order.filter(row => row.id !== itemId);
-      const index = insertionIndex(order, beforeId);
+      const nextHeader = isItemOfKind(item, 'header')
+        ? service.order.findIndex(
+            (row, index) => index > start && isItemOfKind(row, 'header'),
+          )
+        : start + 1;
+      const end = nextHeader < 0 ? service.order.length : nextHeader;
+      const moving = service.order.slice(start, end);
+      if (moving.some(row => row.id === beforeId)) {
+        return {ok: true, value: service.order};
+      }
+      const order = [
+        ...service.order.slice(0, start),
+        ...service.order.slice(end),
+      ];
+      const requested = insertionIndex(order, beforeId);
+      const index = isItemOfKind(item, 'header')
+        ? sectionBoundaryIndex(order, requested, row =>
+            isItemOfKind(row, 'header'),
+          )
+        : requested;
       if (index < 0) return refuse('not-found', 'The drop target is gone');
-      order.splice(index, 0, item);
+      order.splice(index, 0, ...moving);
       return {ok: true, value: order};
     });
   }

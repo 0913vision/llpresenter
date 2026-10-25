@@ -212,8 +212,8 @@ describe('service panel editing', () => {
     await waitFor(() => expect(ids()).toEqual([lastId, headerId, firstId]));
     fireEvent.dragStart(screen.getByText('제목'), {dataTransfer});
     fireEvent.drop(list(), {dataTransfer});
-    await waitFor(() => expect(ids()).toEqual([lastId, firstId, headerId]));
-    expect(api.content.edit).toHaveBeenCalledTimes(2);
+    await waitFor(() => expect(ids()).toEqual([lastId, headerId, firstId]));
+    expect(api.content.edit).toHaveBeenCalledTimes(1);
     expect(send).not.toHaveBeenCalled();
   });
 
@@ -272,6 +272,22 @@ describe('service panel editing', () => {
     expect(onOpenPrep).toHaveBeenCalledWith(lastId);
     expect(send).not.toHaveBeenCalled();
     expect(useShow.getState().openItemId).toBeNull();
+  });
+
+  it('deletes the selected prep item with Delete and keeps focus for Ctrl Z', async () => {
+    const {ids, send} = setup('prep');
+    const user = userEvent.setup();
+    const row = screen.getByRole('option', {name: '첫 곡'});
+    await user.click(row);
+    row.focus();
+    await user.keyboard('{Delete}');
+    await waitFor(() => expect(ids()).toEqual([headerId, lastId]));
+    expect(document.activeElement).toBe(
+      screen.getByRole('option', {name: '다음 곡'}),
+    );
+    await user.keyboard('{Control>}z{/Control}');
+    await screen.findByRole('option', {name: '첫 곡'});
+    expect(send).not.toHaveBeenCalled();
   });
 
   it('logs the cause of a local edit-dispatch failure and reports it to the host', async () => {

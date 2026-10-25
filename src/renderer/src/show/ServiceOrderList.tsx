@@ -183,6 +183,7 @@ export function ServiceOrderList({
   return (
     <div
       ref={listRef}
+      tabIndex={-1}
       className={styles.list}
       aria-busy={editing.busy}
       {...dragProps}
@@ -197,6 +198,28 @@ export function ServiceOrderList({
         });
       }}
       onKeyDownCapture={event => {
+        if (
+          workspace === 'prep' &&
+          event.code === 'Delete' &&
+          !event.ctrlKey &&
+          !event.altKey &&
+          !event.metaKey &&
+          !event.shiftKey &&
+          event.target instanceof Node &&
+          listRef.current
+            ?.querySelector('[role="listbox"]')
+            ?.contains(event.target)
+        ) {
+          event.preventDefault();
+          event.stopPropagation();
+          if (editable && !event.repeat && openItemId !== null) {
+            event.currentTarget.focus();
+            editing.run((edits, id) =>
+              edits.remove(id, createServiceItemId(openItemId)),
+            );
+          }
+          return;
+        }
         if (
           !event.ctrlKey ||
           event.altKey ||

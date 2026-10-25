@@ -1,10 +1,12 @@
 import {useRef, useState, type DragEvent} from 'react';
 import type {SongId} from '@shared/schema/ids';
 import {readSongDragData, SONG_DRAG_MIME} from '@shared/schema/songDrag';
+import type {ServiceRow} from './model';
+import {sectionBoundaryIndex} from './serviceSections';
 
 interface DragOptions {
   readonly enabled: boolean;
-  readonly rows: ReadonlyArray<{readonly id: string}>;
+  readonly rows: readonly ServiceRow[];
   readonly onMove: (source: string, before: string | null) => void;
   readonly onCopy: (songId: SongId, before: string | null) => void;
 }
@@ -38,10 +40,16 @@ export function useServiceOrderDrag({
     if (element === null || id === undefined) return null;
     const label = element.querySelector('[role="group"]')?.firstElementChild;
     const rect = (label ?? element).getBoundingClientRect();
-    if (rect.height > 0 && event.clientY >= rect.top + rect.height / 2) {
-      return rows[rows.findIndex(row => row.id === id) + 1]?.id ?? null;
-    }
-    return id;
+    const after =
+      rect.height > 0 && event.clientY >= rect.top + rect.height / 2;
+    const targetIndex = rows.findIndex(row => row.id === id);
+    if (targetIndex < 0) return id;
+    const requested = targetIndex + (after ? 1 : 0);
+    const index =
+      rows.find(row => row.id === dragged.current)?.kind === 'header'
+        ? sectionBoundaryIndex(rows, requested, row => row.kind === 'header')
+        : requested;
+    return rows[index]?.id ?? null;
   };
   const clear = (): void => {
     dragged.current = null;

@@ -107,14 +107,14 @@ function fixture() {
 }
 
 describe('service order edits', () => {
-  it('moves headers, songs, and unknown rows without changing outputs', async () => {
+  it('moves songs and unknown rows without changing outputs', async () => {
     const {edits, ids, send, edit} = fixture();
     expect(await edits.move(serviceId, third, first)).toEqual({
       ok: true,
       value: true,
     });
     expect(ids()).toEqual([third, first, second]);
-    await edits.move(serviceId, first, null);
+    await edits.move(serviceId, second, first);
     expect(ids()).toEqual([third, second, first]);
     await edits.move(serviceId, second, third);
     expect(ids()).toEqual([second, third, first]);
@@ -123,6 +123,42 @@ describe('service order edits', () => {
       'service.update',
       'service.update',
     ]);
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it('moves a header with all rows until the next header and undoes the section move', async () => {
+    const {state, edits, ids, send, edit} = fixture();
+    if (state.document === null) throw new Error('Missing document');
+    const tail = createServiceItemId('20000000-0000-4000-8000-000000000004');
+    const order = [
+      state.document.service.order[0],
+      state.document.service.order[1],
+      {id: third, header: 'Second section'},
+      {id: tail, song: songId},
+    ];
+    if (order[0] === undefined || order[1] === undefined) {
+      throw new Error('Missing rows');
+    }
+    state.document = {
+      ...state.document,
+      service: {
+        ...state.document.service,
+        order: order.filter(item => item !== undefined),
+      },
+    };
+    expect(await edits.move(serviceId, first, second)).toEqual({
+      ok: true,
+      value: false,
+    });
+    expect(edit).not.toHaveBeenCalled();
+    await edits.move(serviceId, first, null);
+    expect(ids()).toEqual([third, tail, first, second]);
+    await edits.undo(serviceId);
+    expect(ids()).toEqual([first, second, third, tail]);
+    await edits.move(serviceId, first, tail);
+    expect(ids()).toEqual([first, second, third, tail]);
+    await edits.move(serviceId, third, second);
+    expect(ids()).toEqual([third, tail, first, second]);
     expect(send).not.toHaveBeenCalled();
   });
 
@@ -189,7 +225,7 @@ describe('service order edits', () => {
 
   it('ignores object key order but refuses a later change to an item field', async () => {
     const {state, edits, ids} = fixture();
-    await edits.move(serviceId, first, null);
+    await edits.move(serviceId, second, null);
     if (state.document === null) throw new Error('Missing document');
     state.document = {
       ...state.document,
@@ -249,7 +285,7 @@ describe('service order edits', () => {
     await edits.undo(serviceId);
     await edits.move(serviceId, first, second);
     expect(edits.canRedo(serviceId)).toBe(true);
-    await edits.move(serviceId, first, null);
+    await edits.move(serviceId, third, first);
     expect(edits.canRedo(serviceId)).toBe(false);
   });
 
@@ -379,7 +415,7 @@ describe('service order edits', () => {
   it('bounds undo and redo to the newest 100 edits', async () => {
     const {edits} = fixture();
     for (let index = 0; index < 105; index++) {
-      await edits.move(serviceId, first, index % 2 === 0 ? null : second);
+      await edits.move(serviceId, second, index % 2 === 0 ? null : first);
     }
     let undone = 0;
     while (edits.canUndo(serviceId)) {
