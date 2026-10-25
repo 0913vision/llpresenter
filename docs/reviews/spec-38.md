@@ -1,62 +1,89 @@
-Review range: `feat/spec/media-strip-panel...feat/spec/media-strip-mount`
+Review range: `589e7b59...feat/spec/media-strip-mount`
 
 # Review request: `spec-38`
 
 - Team member: `spec`
 - Branch: `feat/spec/media-strip-mount`
-- Base: spec-37 round 2, stacked until its approval
-- Task: M3-S1b media strip mount and toolbar toggle
-- Ownership exception: shell's renderer frame paths
+- Base commit: `589e7b59`, main after spec-37 and the ownership rule change
+- Review round: 1
+- Task: M3-S1b media strip mount and saved panel state
 
 ## What changed and why
 
-Mounted the real media strip panel in the 진행 frame and connected the toolbar
-미디어 button. Closing it or leaving 진행 unmounts the panel and releases its
-document/import feeds and previews. Panel problems go to the app's existing
-notification list.
+Mounted the real media panel in 진행 and connected the toolbar 미디어 button.
+Closing it or leaving 진행 unmounts the panel and releases both media feeds and
+its previews. Panel problems go to the app's one notification list.
 
-The strip starts open at heights of at least 900 DIP in normal and wide windows,
-and closed in narrow or shorter windows. Resize follows that default until the
-operator chooses; an explicit choice lasts for this control-window session.
-Switching workspaces preserves that choice. 준비's separate media view remains
-unavailable until P6a.
+Without a saved choice, the strip starts open at heights of at least 900 DIP in
+normal and wide windows, and closed in narrow or shorter windows. Resize follows
+that default until the operator chooses. An explicit choice is saved as
+app.json's existing mediaStrip boolean and restored before the first render; it
+wins the size/height default, including false. Resizes and workspace switches do
+not write the file. A failed send logs its cause and keeps the local choice
+without changing output. 준비's separate media view remains P6a work.
 
-This is the display mount only. Persisting the choice waits for the lead's
-data-41 merge announcement. Left-column collapse and the narrow 더 보기 tabs are
-separate remaining S1b work. Toolbar search uses data-40 in a separate request.
-No shared contract is added here.
+The first commit adds the shared contracts and main/preload path: UiState now
+exposes mediaStrip, ui.setMediaStrip({visible}) updates it, and layout accepts
+an optional leftCollapsed boolean per size class, alone or with existing fields.
+The existing width pair and numeric ranges stay intact. Commands are bounded to
+one media boolean or the three known layout size classes; no collection is
+added. Invalid booleans are rejected, unknown IPC fields are dropped, and file
+fields are preserved with data's existing schemas. These additions are feat.
 
-Also carried the lead's 05:45 documentation request: spec 03 distinguishes the
-initial fallback-window placement from later operator window switches. The app
-never raises the fallback automatically or restores the old window order after
-the operator switches windows. The explicit 창 보기 action is unchanged.
+The main UI store hands both changes to the existing AppConfigFile. There is one
+app.json writer. Tests save panel state alongside service id, zoom, widths, and
+unknown fields and reopen the file to confirm all survived. The narrow collapse
+control and 더 보기 tabs follow separately, using the new layout field. Toolbar
+search uses data-40 in its own requests.
 
-## Changed files
+Also carried the lead's small spec 03 request: the initial fallback placement
+does not make the app raise it automatically or restore the old window order
+after the operator switches windows. The explicit 창 보기 action stays intact.
 
-- `src/renderer/src/control/App.tsx`: window-owned visibility and toolbar/frame
-  binding.
-- `src/renderer/src/shell/Toolbar.tsx`: controlled media toggle, with an
-  unavailable tooltip in workspaces without a handler.
+## Changes outside my paths
+
+These paths are kept by their code owners under the new rule:
+
+- `src/shared/schema/appConfig.ts` and `.test.ts`: optional stored sidebar
+  boolean, old-file compatibility, and valid/invalid tests.
+- `src/shared/schema/uiState.ts` and `.test.ts`: UI read and command schemas,
+  additive types, boolean checks, unchanged numeric bounds and paired widths.
+- `src/shared/ipc.ts`: the typed media visibility method and one new channel.
+- `src/shared/testing/fakeLlpApi.ts`: default no-op for the additive method.
+- `src/preload/index.ts` and `.test.ts`: validate and send the new command,
+  accept saved UI flags, and reject malformed reads/requests with logging.
+- `src/main/uiState/uiStateStore.ts` and `.test.ts`: validate panel changes and
+  merge them through the existing shared app fields.
+- `src/main/uiState/register.ts` and `.test.ts`: register/release the new
+  channel and test both saved flags.
+- `src/main/store/appConfigFile.test.ts`: prove persistence and coexistence
+  through the existing single writer; no data-store implementation is changed.
+- `src/renderer/src/control/main.tsx` and `.test.ts`: pass the loaded state to
+  the app before first render and test that handoff.
+- `src/renderer/src/control/App.tsx`: bind loaded visibility to toolbar/frame.
+- `src/renderer/src/shell/Toolbar.tsx`: controlled media toggle and its
+  unavailable reason outside supported workspaces.
 - `src/renderer/src/shell/Workspace.tsx`: real panel and conditional mount.
-- `src/renderer/src/shell/useMediaStripVisibility.ts`: size/height defaults and
-  explicit session choice; releases its resize listener.
-- `src/renderer/src/control/MediaStripMount.test.tsx`: real mounted panel,
-  defaults, toggling, feed disposal, resizing, workspace switches, and one
-  notification host.
-- `docs/spec/03-output.md`: fallback-window ordering clarification.
-- `docs/reviews/spec-38.md`: this request.
+- `src/renderer/src/shell/useMediaStripVisibility.ts`: size/height defaults,
+  saved choice, explicit-only persistence, and resize listener cleanup.
+- `src/renderer/src/control/MediaStripMount.test.tsx`: mounted defaults,
+  restoration, saving, failed send, feed disposal, resizing, workspace switches,
+  and one notification host.
+
+The spec 03 clarification and this review document are in my own paths. No
+dependency is added.
 
 ## Validation
 
-The last scoped check passed 56 tests across six frame files, plus renderer
-TypeScript, changed-file ESLint, Prettier, and `git diff --check`. The mounted
-tests use a fake API and mocked output renderer; no Electron process or visible
-window is started. No soak, timing, or memory measurement is run.
-
-The final rebased HEAD and its GitHub CI URL/result accompany the review
-request. Full verify runs only on GitHub, per the lead's instruction.
+- Contract/main/preload tests: 163 tests pass in six files.
+- Mounted renderer and startup tests: 60 tests pass in seven files.
+- Both TypeScript checks, changed-file ESLint, Prettier, and diff checks pass.
+- Final submitted HEAD's successful GitHub CI URL accompanies the request.
+- Local full verify is not run, per the lead's rule. No Electron process,
+  visible window, soak, or memory measurement is started.
 
 ## Review focus
 
-Check that hiding the strip disposes its feeds, the app keeps one notice host,
-and explicit choices survive workspace switches and later resize events.
+Check restoration of false before render, explicit-only writes, independent
+sidebar merges with the old width bounds, the single writer, and feed disposal
+when hiding the strip.

@@ -33,7 +33,11 @@ async function start(container: HTMLElement): Promise<void> {
   );
   reactRoot.render(
     <StrictMode>
-      <App columnWidthStore={columnWidthStore} session={session} />
+      <App
+        columnWidthStore={columnWidthStore}
+        session={session}
+        uiState={uiState}
+      />
     </StrictMode>,
   );
 }

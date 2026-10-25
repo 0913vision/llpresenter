@@ -1,4 +1,5 @@
 import {useState, useSyncExternalStore, type JSX} from 'react';
+import type {UiState} from '@shared/schema/uiState';
 import type {ColumnWidthStore} from '@renderer/shell/columnWidthStore';
 import {useClearKeys} from '@renderer/show/clearKeys';
 import {MenuBar} from '@renderer/shell/MenuBar';
@@ -16,12 +17,18 @@ import styles from './App.module.css';
 export function App({
   columnWidthStore,
   session,
+  uiState = {},
 }: {
   readonly columnWidthStore: ColumnWidthStore;
   readonly session: ControlSession;
+  readonly uiState?: UiState | undefined;
 }): JSX.Element {
   const sizeClass = useSizeClass();
-  const mediaStrip = useMediaStripVisibility(sizeClass);
+  const mediaStrip = useMediaStripVisibility(
+    sizeClass,
+    uiState.mediaStrip,
+    session.api,
+  );
   const serviceName = useShow(view => view.serviceName);
   const [workspace, setWorkspace] = useState<WorkspaceId>('show');
   const notices = useSyncExternalStore(session.subscribe, session.getNotices);

@@ -14,6 +14,8 @@ vi.mock('@renderer/state/show', () => ({
 
 it('creates a window session outside render and releases its resources on pagehide once', async () => {
   const fixture = editorFixture();
+  const uiState = {mediaStrip: false, layout: {narrow: {leftCollapsed: true}}};
+  vi.spyOn(fixture.api.ui, 'get').mockResolvedValue(uiState);
   window.llp = fixture.api;
   const container = document.createElement('div');
   container.id = 'root';
@@ -26,11 +28,12 @@ it('creates a window session outside render and releases its resources on pagehi
     const tree: unknown = root.render.mock.calls[0]?.[0];
     if (
       !isValidElement<{children: ReactNode}>(tree) ||
-      !isValidElement<{session: unknown}>(tree.props.children)
+      !isValidElement<{session: unknown; uiState: unknown}>(tree.props.children)
     ) {
       throw new Error('Missing application element');
     }
     const session = tree.props.children.props.session;
+    expect(tree.props.children.props.uiState).toEqual(uiState);
     if (!(session instanceof ControlSession)) {
       throw new Error('Missing control session');
     }

@@ -8,6 +8,7 @@ import {
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@shared/live';
+import type {UiState} from '@shared/schema/uiState';
 import {editorFixture} from '@renderer/prep/editor/editorFixture';
 import {createMemoryColumnWidthStore} from '@renderer/shell/columnWidthStore';
 import {useLive} from '@renderer/state/live';
@@ -23,22 +24,25 @@ vi.mock('@renderer/render/outputRenderer', () => ({
 }));
 
 const sessions: ControlSession[] = [];
-function setup(width = 1920, height = 1080) {
+function setup(width = 1920, height = 1080, uiState: UiState = {}) {
   vi.stubGlobal('innerWidth', width);
   vi.stubGlobal('innerHeight', height);
   const {api} = editorFixture();
   const send = vi.spyOn(api.live, 'send');
+  const save = vi.spyOn(api.ui, 'setMediaStrip');
   window.llp = api;
   const session = new ControlSession(api);
   sessions.push(session);
   return {
     api,
     send,
+    save,
     mount: () =>
       render(
         <App
           session={session}
           columnWidthStore={createMemoryColumnWidthStore()}
+          uiState={uiState}
         />,
       ),
   };
@@ -77,6 +81,26 @@ it.each([
   },
 );
 
+it.each([
+  {width: 2560, height: 1080, visible: false},
+  {width: 1366, height: 768, visible: true},
+])(
+  'restores visible=$visible at $width x $height and saves only an explicit toggle',
+  async ({width, height, visible}) => {
+    const {mount, save} = setup(width, height, {mediaStrip: visible});
+    mount();
+    const button = screen.getByRole('button', {name: '미디어'});
+    expect(button.getAttribute('aria-pressed')).toBe(String(visible));
+    expect(save).not.toHaveBeenCalled();
+    await userEvent.click(button);
+    expect(save).toHaveBeenCalledExactlyOnceWith({visible: !visible});
+    vi.stubGlobal('innerHeight', height + 1);
+    fireEvent.resize(window);
+    expect(button.getAttribute('aria-pressed')).toBe(String(!visible));
+    expect(save).toHaveBeenCalledTimes(1);
+  },
+);
+
 it('unmounts the real panel and both media feeds when toggled off', async () => {
   const {api, send, mount} = setup();
   const stopMedia = vi.fn();
@@ -92,6 +116,24 @@ it('unmounts the real panel and both media feeds when toggled off', async () => 
   await userEvent.click(screen.getByRole('button', {name: '미디어'}));
   await screen.findByRole('region', {name: '미디어'});
   expect(subscribe).toHaveBeenCalledTimes(2);
+  expect(send).not.toHaveBeenCalled();
+});
+
+it('keeps the local choice and logs a failed send without changing output', async () => {
+  const {api, mount, send, save} = setup();
+  const log = vi.spyOn(api.log, 'write');
+  save.mockImplementation(() => {
+    throw new Error('Invented visibility send failure');
+  });
+  mount();
+  await screen.findByRole('region', {name: '미디어'});
+  await userEvent.click(screen.getByRole('button', {name: '미디어'}));
+  expect(screen.queryByRole('region', {name: '미디어'})).toBeNull();
+  expect(log).toHaveBeenCalledWith({
+    level: 'error',
+    message: 'Could not save media strip visibility',
+    detail: 'Invented visibility send failure',
+  });
   expect(send).not.toHaveBeenCalled();
 });
 
