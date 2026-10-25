@@ -219,10 +219,16 @@ soak-judge work from devops-19 is included.
    extension lets Node load the parser directly without bundling; the coverage
    include pattern now counts shared `.mts` modules as well.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-Pending.
-
-## Review: reviewer
-
-Pending.
+- Round 1 (codex3): Request changes with two findings: a failed git capture
+  could leave the previous passing stamp, and the CI status reader imported
+  valibot outside the schema layer.
+- Round 2 (2421186): reviewer (Codex, codex3) Approve with no findings. Lead
+  Approve; the user's October 25 decision: a push to any branch except `main`
+  runs `verify` on GitHub's Windows runner (one run per branch, cancel in
+  progress), a push to `main` only bumps the version, the pre-push hook checks
+  only commit messages for branches and keeps the clean-stamp rule for `main`,
+  and `scripts/ci/status.mts` reads a branch's latest CI result without auth.
+  Written by the Codex session that took over devops's work. Rebased by the lead
+  onto local `main` without conflicts.
