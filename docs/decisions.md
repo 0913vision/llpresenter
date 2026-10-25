@@ -205,3 +205,14 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   Two whole-file writers would overwrite each other's fields.
 - Data lands the interface and the single warning first; shell then moves
   `uiState` onto it.
+
+## 2026-10-25: Verification before the push, only the bump after it
+
+- A push to `main` on GitHub runs only the version bump, never `verify` (user
+  decision). Verification ends on our side before the push, as pull request
+  checks end before a merge.
+- The pre-push hook keeps that guarantee: it runs `npm run verify` unless the
+  pushed commit's tree already passed `verify` on a clean tree, which a stamp
+  records. The commit message check always runs.
+- A pull request, when we use them, runs `verify` on GitHub; the merge then only
+  bumps.
