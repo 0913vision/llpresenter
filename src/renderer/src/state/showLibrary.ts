@@ -5,7 +5,7 @@ import {sendLive, useLive} from './live';
 import {
   beginOutputRequest,
   isOutputRequestCurrent,
-  readSongBackgrounds,
+  withinLookupTimeout,
 } from './showOutput';
 import {useShow, type ShowView} from './showStore';
 
@@ -93,7 +93,7 @@ export async function outputLibraryTile(
   const songId = initial.librarySong.songId;
   let song: ShowLibrarySong | null | undefined;
   try {
-    song = await readSongBackgrounds(() => api.library.showSong({songId}));
+    song = await withinLookupTimeout(() => api.library.showSong({songId}));
   } catch (cause) {
     api.log.write({
       level: 'warn',

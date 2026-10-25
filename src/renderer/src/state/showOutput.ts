@@ -19,7 +19,7 @@ export function isOutputRequestCurrent(
 }
 
 /** Bounds a fresh background lookup and always releases its timer. */
-export async function readSongBackgrounds<T>(
+export async function withinLookupTimeout<T>(
   read: () => Promise<T>,
 ): Promise<T> {
   let timeout: ReturnType<typeof setTimeout> | undefined;

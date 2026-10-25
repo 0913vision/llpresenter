@@ -19,7 +19,7 @@ import {isLibrarySource, outputLibraryTile, tilesForView} from './showLibrary';
 import {
   beginOutputRequest,
   isOutputRequestCurrent,
-  readSongBackgrounds,
+  withinLookupTimeout,
 } from './showOutput';
 import {noService, useShow, type ShowView} from './showStore';
 
@@ -133,7 +133,7 @@ async function outputSongTile({
 }: SongOutput): Promise<void> {
   let service: ShowService | null = null;
   try {
-    service = await readSongBackgrounds(
+    service = await withinLookupTimeout(
       () => window.llp?.service.get() ?? Promise.resolve(null),
     );
   } catch (error: unknown) {
