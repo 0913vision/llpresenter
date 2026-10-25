@@ -272,10 +272,11 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
 
 - When a full screen output's monitor disconnects and the output switches to a
   window on the control monitor (spec 03, "When a monitor disconnects during
-  output"), the window goes behind the control window, without focus and without
-  always on top, so it never covers the controls during a service (user decision
-  after the real-monitor unplug check). The notification's 창 보기 action brings
-  it to the front.
+  output"), the window goes to the back of the window order, behind every
+  window, without focus and without always on top, so it never covers anything
+  during a service, even with one monitor left (user decision after the
+  real-monitor unplug check). It must not raise the control window or any other
+  window. The notification's 창 보기 action brings it to the front.
 - The window keeps the size and the centered position of `placement.ts` on the
   control monitor's work area. The unplug check found it at the right edge
   instead (Windows restored the pre-full-screen bounds on the lost monitor after
@@ -284,8 +285,8 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   hears of the change, so the window would cover the controls until the app's
   300 ms settle wait (`DISPLAY_SETTLE_MS`) ends and it becomes a window. To
   avoid that, on the disconnect event itself, before the settle wait, the output
-  window drops always on top and goes behind the control window (user decision).
-  The settle wait then only decides the window's placement.
+  window drops always on top and goes to the back (user decision). The settle
+  wait then only decides the window's placement.
 - ProPresenter has no equivalent to follow: Renewed Vision's support article
   says a display disconnected while ProPresenter is open leaves the output on
   the main monitor, and the operator turns it off with Ctrl+1 or reassigns it
