@@ -2,12 +2,15 @@
 
 - Team member: `output`
 - Branch: `fix/output/image-background`
-- Base commit (`main`): pending the required rebase
-- Review range: pending rebase
+- Base commit (`main`): `0f5b01c95009459d777cd81e283e58d3d1092f76`
+- Code commits: `3b3da98`, `91af9ee`
+- Review range: `0f5b01c...fix/output/image-background`
 - Related task: bug M2-7, QA's
   [image-background finding F2](../qa/m2-check/smoke.md), and the lead's batch
   in `.llp/task.md`.
 - Shared contract changes: none.
+- Status: prepared; review request held by the unrelated verification failure
+  described below.
 
 ## What changed and why
 
@@ -46,9 +49,9 @@ renderer/output run passed all 86 tests in seven files.
 
 ## Actual app check
 
-Ran the built app entry offscreen with a local copy of QA's original PNG and
-WebM fixture, through the existing preload live API. No windows or dialogs
-appeared. The helper scripts passed `node --check`; the launch set
+Before rebase, ran the built app entry offscreen with a local copy of QA's
+original PNG and WebM fixture, through the existing preload live API. No windows
+or dialogs appeared. The helper scripts passed `node --check`; the launch set
 `LLP_TEST_WINDOWS=offscreen` and `windowsHide`, used an isolated data folder,
 and had a 20 s deadline. It completed in 6.231 s and exited normally.
 
@@ -84,17 +87,37 @@ fixture unchanged.
 
 ## Checks run
 
-| Command or test                                  | Result                                                  |
-| ------------------------------------------------ | ------------------------------------------------------- |
-| New image cases with the old background renderer | Expected failure: 18 failed, 29 passed                  |
-| Fixed background renderer                        | Pass: 47 tests                                          |
-| Scoped renderer/output tests, two workers        | Pass: 7 files, 86 tests                                 |
-| `npm run typecheck`                              | Pass                                                    |
-| ESLint on changed TypeScript files               | Pass                                                    |
-| `npm run build`                                  | Pass                                                    |
-| Offscreen app image/video/clear/undo check       | Pass: 6.231 s, exit 0                                   |
-| `npm run format` and `npm run format:check`      | Pending                                                 |
-| `npm run verify`                                 | Pending; run once after rebase before requesting review |
+| Command or test                                  | Result                                                                 |
+| ------------------------------------------------ | ---------------------------------------------------------------------- |
+| New image cases with the old background renderer | Expected failure: 18 failed, 29 passed                                 |
+| Fixed background renderer                        | Pass: 47 tests                                                         |
+| Scoped renderer/output tests, two workers        | Pass: 7 files, 86 tests                                                |
+| `npm run typecheck`                              | Pass                                                                   |
+| ESLint on changed TypeScript files               | Pass                                                                   |
+| `npm run lint` after the braces correction       | Pass                                                                   |
+| `npm run build`                                  | Pass                                                                   |
+| Offscreen app image/video/clear/undo check       | Pass: 6.231 s, exit 0                                                  |
+| `npm run format` and `npm run format:check`      | Pass                                                                   |
+| `npm run verify`                                 | Fail: own lint error corrected; unrelated process-test failure remains |
+
+The full verification ran once after the conflict-free rebase. Typecheck (8.8
+s), formatting (9.0 s), and build (3.1 s) passed. Lint failed because Prettier
+wrapped an early-return condition without braces. Added the braces and reran the
+scoped renderer/output tests: all 86 passed again. Full-repository
+`npm run lint` and `npm run format:check` both passed after that correction.
+
+Coverage ended after 303.4 s with 200 files passing and one failing: 2,230 tests
+passed, one failed, and one was skipped. The failure is
+`scripts/verify.test.ts` > `verify` > "stops every running step and its children
+when interrupted", at `expect(isRunning(pid)).toBe(false)` on line 330. Its
+teardown also reported
+`could not end process 43264: taskkill exited with code 255`. That PID was no
+longer running when checked after the test.
+
+This exact test is not identified as an allowed flaky test in the repository, so
+`docs/WORKFLOW.md` blocks the review request until the lead or devops resolves
+or classifies it. The files belong to devops and were left unchanged. The full
+verify was not repeated. Raw output is `.llp/image-background/verify.log`.
 
 ## Decisions and scope
 
