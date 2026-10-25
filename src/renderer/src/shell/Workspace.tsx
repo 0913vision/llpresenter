@@ -15,6 +15,7 @@ import {
   SlideSizeControl,
 } from '@renderer/show/SlidePanel';
 import {useShowKeys} from '@renderer/show/shortcuts';
+import {useLibrarySongSync} from '@renderer/show/useLibrarySongSync';
 import type {Notice} from '@renderer/ui/notices';
 import {ColumnGap} from './ColumnGap';
 import type {ColumnWidthStore} from './columnWidthStore';
@@ -95,8 +96,13 @@ function Panel({
   );
 }
 
-function ShowShortcuts(): null {
+function ShowShortcuts({
+  onProblem,
+}: {
+  readonly onProblem: (notice: Notice) => void;
+}): null {
   useShowKeys();
+  useLibrarySongSync(onProblem);
   return null;
 }
 
@@ -208,7 +214,9 @@ export function Workspace({
       : panelsByWorkspace[id];
   return (
     <main ref={gridRef} className={styles.columns}>
-      {id === 'show' ? <ShowShortcuts /> : null}
+      {id === 'show' ? (
+        <ShowShortcuts onProblem={onProblem ?? logPanelProblem} />
+      ) : null}
       {columns.map((panels, column) => (
         <Fragment key={column}>
           {column > 0 && (

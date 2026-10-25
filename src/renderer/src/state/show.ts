@@ -1,6 +1,7 @@
 import {create} from 'zustand';
 import {parseServiceItemId} from '@shared/schema/ids';
 import type {ShowService} from '@shared/schema/showService';
+import type {ShowLibrarySong} from '@shared/schema/showLibrarySong';
 import {
   type ItemId,
   type ServiceRow,
@@ -19,6 +20,7 @@ import {slideLayerOf} from '@renderer/show/slideLayer';
 import {sendLive, useLive} from './live';
 
 interface ShowView {
+  readonly librarySong: ShowLibrarySong | null;
   // NOTE(0913vision): The revision is null while no service is open.
   readonly revision: number | null;
   readonly serviceId: string | null;
@@ -50,12 +52,69 @@ const noService = {
 
 export const useShow = create<ShowView>(() => ({
   ...noService,
+  librarySong: null,
   openItemId: null,
   selectedTile: 0,
 }));
 
 export function tilesOf(itemId: ItemId): readonly SlideTile[] {
+  const song = useShow.getState().librarySong;
+  if (song && itemId === librarySourceId(song.songId)) return song.tiles;
   return useShow.getState().tiles[itemId] ?? noTiles;
+}
+
+/** Namespaces a library source without inventing a service item. */
+export function librarySourceId(songId: ShowLibrarySong['songId']): ItemId {
+  return `library:${songId}`;
+}
+
+/** Selects the open source's tiles without copying either projection. */
+export function shownTiles(view: ShowView): readonly SlideTile[] | undefined {
+  if (view.openItemId === null) return undefined;
+  if (
+    view.librarySong &&
+    view.openItemId === librarySourceId(view.librarySong.songId)
+  ) {
+    return view.librarySong.tiles;
+  }
+  return view.tiles[view.openItemId];
+}
+
+/** Opens a checked library projection without writing a service or output. */
+export function openLibrarySong(song: ShowLibrarySong): void {
+  ++outputRequest;
+  useShow.setState({
+    librarySong: song,
+    openItemId: librarySourceId(song.songId),
+    selectedTile: 0,
+  });
+}
+
+/** Updates only the retained library source; a deleted source leaves output alone. */
+export function refreshLibrarySong(
+  songId: ShowLibrarySong['songId'],
+  song: ShowLibrarySong | null,
+): void {
+  const current = useShow.getState();
+  if (
+    current.librarySong?.songId !== songId ||
+    (song && song.songId !== songId) ||
+    (song && song.songRevision < current.librarySong.songRevision)
+  ) {
+    return;
+  }
+  const selected = current.openItemId === librarySourceId(songId);
+  useShow.setState({
+    librarySong: song,
+    ...(selected
+      ? {
+          openItemId: song ? librarySourceId(songId) : null,
+          selectedTile: song
+            ? Math.min(current.selectedTile, Math.max(0, song.tiles.length - 1))
+            : 0,
+        }
+      : {}),
+  });
 }
 
 /** The tile on output, taken from the live slide layer. */
@@ -108,6 +167,23 @@ export function outputTile(cursor: TileCursor): void {
   const previousItem = live.lastSlideItemId ?? live.state?.layers.slide?.itemId;
   const row = useShow.getState().rows.find(row => row.id === cursor.itemId);
   useShow.setState({openItemId: cursor.itemId, selectedTile: cursor.index});
+  const librarySong = useShow.getState().librarySong;
+  if (
+    librarySong &&
+    cursor.itemId === librarySourceId(librarySong.songId) &&
+    previousItem !== cursor.itemId &&
+    window.llp
+  ) {
+    outputLibraryTile(cursor, request, live.commandVersion).catch(
+      (cause: unknown) =>
+        window.llp?.log.write({
+          level: 'error',
+          message: 'Could not output the library song tile',
+          detail: cause instanceof Error ? cause.message : String(cause),
+        }),
+    );
+    return;
+  }
   if (
     row?.kind === 'song' &&
     previousItem !== cursor.itemId &&
@@ -139,11 +215,11 @@ interface SongOutput {
   readonly serviceId: string | null;
 }
 
-async function readBackgrounds(): Promise<ShowService | null> {
+async function readBackgrounds<T>(read: () => Promise<T>): Promise<T> {
   let timeout: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race([
-      window.llp?.service.get() ?? Promise.resolve(null),
+      read(),
       new Promise<never>((_resolve, reject) => {
         timeout = setTimeout(
           () => reject(new Error('Song background lookup timed out')),
@@ -164,7 +240,9 @@ async function outputSongTile({
 }: SongOutput): Promise<void> {
   let service: ShowService | null = null;
   try {
-    service = await readBackgrounds();
+    service = await readBackgrounds(
+      () => window.llp?.service.get() ?? Promise.resolve(null),
+    );
   } catch (error: unknown) {
     window.llp?.log.write({
       level: 'warn',
@@ -202,6 +280,50 @@ async function outputSongTile({
   sendLive({type: 'slide.show', slide});
 }
 
+async function outputLibraryTile(
+  cursor: TileCursor,
+  request: number,
+  commandVersion: number,
+): Promise<void> {
+  const songId = useShow.getState().librarySong?.songId;
+  if (!songId) return;
+  let song: ShowLibrarySong | null;
+  try {
+    song = await readBackgrounds(
+      () => window.llp?.library.showSong({songId}) ?? Promise.resolve(null),
+    );
+  } catch (cause) {
+    window.llp?.log.write({
+      level: 'warn',
+      message: 'Could not refresh the library song; kept the current output',
+      detail: cause instanceof Error ? cause.message : String(cause),
+    });
+    return;
+  }
+  if (
+    request !== outputRequest ||
+    commandVersion !== useLive.getState().commandVersion ||
+    useShow.getState().librarySong?.songId !== songId ||
+    (song &&
+      song.songRevision < (useShow.getState().librarySong?.songRevision ?? 0))
+  ) {
+    return;
+  }
+  refreshLibrarySong(songId, song);
+  if (!song) return;
+  const slide = slideLayerOf(cursor, tilesOf);
+  if (!slide) return;
+  const current = useLive.getState().state?.layers.media;
+  if (
+    song.background &&
+    (current?.mediaId !== song.background.mediaId ||
+      current.loop !== song.background.loop)
+  ) {
+    sendLive({type: 'media.show', media: song.background});
+  }
+  sendLive({type: 'slide.show', slide});
+}
+
 function outputIfPresent(cursor: TileCursor | null): void {
   if (cursor) outputTile(cursor);
 }
@@ -215,6 +337,11 @@ export function outputPrevious(): void {
 }
 
 export function jumpLabelFor(code: string): string | undefined {
+  const song = useShow.getState().librarySong;
+  const source = liveCursor()?.itemId ?? useShow.getState().openItemId;
+  if (song && source === librarySourceId(song.songId)) {
+    return song.jumpKeys[code];
+  }
   return useShow.getState().jumpKeys[code];
 }
 
@@ -247,6 +374,11 @@ export function openPreviousItem(): void {
 /** 출력 중인 항목 열기: opens the item of the live 장 in the 장 panel. */
 export function revealLiveItem(): void {
   const {rows, openItemId} = useShow.getState();
+  const song = useShow.getState().librarySong;
+  if (song && liveCursor()?.itemId === librarySourceId(song.songId)) {
+    openItem(librarySourceId(song.songId));
+    return;
+  }
   const target = liveItem({rows, live: liveCursor(), current: openItemId});
   if (target !== null) openItem(target);
 }
@@ -262,6 +394,10 @@ function keptSelection(
   service: ShowService,
 ): Pick<ShowView, 'openItemId' | 'selectedTile'> {
   const {openItemId, selectedTile} = useShow.getState();
+  const song = useShow.getState().librarySong;
+  if (song && openItemId === librarySourceId(song.songId)) {
+    return {openItemId, selectedTile};
+  }
   const stillThere =
     openItemId !== null &&
     service.rows.some(row => row.id === openItemId && row.kind !== 'header');
@@ -277,7 +413,14 @@ function keptSelection(
  */
 export function applyService(service: ShowService | null): void {
   if (service === null) {
-    useShow.setState({...noService, openItemId: null, selectedTile: 0});
+    const {librarySong, openItemId, selectedTile} = useShow.getState();
+    const keepLibrary =
+      librarySong && openItemId === librarySourceId(librarySong.songId);
+    useShow.setState({
+      ...noService,
+      openItemId: keepLibrary ? openItemId : null,
+      selectedTile: keepLibrary ? selectedTile : 0,
+    });
     return;
   }
   if (isStale(service)) return;

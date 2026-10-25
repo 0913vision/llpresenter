@@ -20,3 +20,9 @@
   color: var(--text-3);
   font-variant-numeric: tabular-nums;
 }
+
+.warning {
+  display: inline-flex;
+  flex: none;
+  color: var(--warning);
+}

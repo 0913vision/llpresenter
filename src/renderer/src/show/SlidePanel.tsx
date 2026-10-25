@@ -4,15 +4,18 @@ import {
   type SizeClass,
 } from '@renderer/shell/sizeClass';
 import {useLive} from '@renderer/state/live';
-import {useShow} from '@renderer/state/show';
+import {librarySourceId, shownTiles, useShow} from '@renderer/state/show';
 import {
   saveThumbnailScale,
   showThumbnailScale,
   useThumbnailScale,
 } from '@renderer/state/thumbnailScale';
-import {ThumbnailSizeControl} from '@renderer/ui';
+import {Icon, ThumbnailSizeControl} from '@renderer/ui';
+import {useTooltip} from '@renderer/ui/Tooltip';
 import {SlideGrid} from './SlideGrid';
 import styles from './SlidePanel.module.css';
+
+const PROBLEM_ICON_SIZE = 14;
 
 /** The 슬라이드 grid at the size chosen for the current size class. */
 export function SlidePanelBody({
@@ -34,12 +37,26 @@ export function SlidePanelBody({
  */
 export function SlidePanelMeta(): JSX.Element | null {
   const openItemId = useShow(view => view.openItemId);
-  const title = useShow(
-    view => view.rows.find(row => row.id === openItemId)?.title,
+  const source = useShow(view =>
+    view.librarySong && openItemId === librarySourceId(view.librarySong.songId)
+      ? view.librarySong
+      : null,
   );
-  const count = useShow(view =>
-    openItemId === null ? 0 : (view.tiles[openItemId]?.length ?? 0),
+  const reason =
+    source?.problem === 'missing-background'
+      ? '배경 파일을 찾을 수 없음'
+      : source?.readOnly
+        ? '새 버전의 파일이라 읽기 전용으로 엽니다.'
+        : undefined;
+  const {targetProps, tooltip} = useTooltip(
+    reason ? {text: reason} : undefined,
   );
+  const title = useShow(view =>
+    view.librarySong && openItemId === librarySourceId(view.librarySong.songId)
+      ? view.librarySong.title
+      : view.rows.find(row => row.id === openItemId)?.title,
+  );
+  const count = useShow(view => shownTiles(view)?.length ?? 0);
   const livePosition = useLive(view => {
     const slide = view.state?.layers.slide;
     return slide?.itemId === openItemId ? slide.position : null;
@@ -52,6 +69,19 @@ export function SlidePanelMeta(): JSX.Element | null {
   return (
     <span className={styles.meta}>
       <span className={styles.name}>{title}</span>
+      {reason ? (
+        <>
+          <span
+            {...targetProps}
+            role="img"
+            aria-label={reason}
+            className={styles.warning}
+          >
+            <Icon name="warning" size={PROBLEM_ICON_SIZE} />
+          </span>
+          {tooltip}
+        </>
+      ) : null}
       <span className={styles.position}>{position}</span>
     </span>
   );
