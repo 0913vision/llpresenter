@@ -220,19 +220,20 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (codex5): Request changes with three findings: a failed save could not
+  report what was applied, `service.importItems` took only a past service as its
+  source, and change schemas accepted an outer id that differed from the
+  document's.
+- Round 2 (3685623): reviewer (Codex, codex3) Approve with two nits: six
+  document-channel TSDoc comments use singular channel names, and
+  `src/preload/index.test.ts` imports valibot directly. The nits go into data's
+  next branch. Lead Approve; the D1a-1 contracts for songs, 예배 순서, and 틀
+  carry the base revision with a stale answer, a revision on every push, the
+  local draft wording, and the write order and partial failure of cross-file
+  commands (the lead's four conditions). The handlers and their behavior tests
+  follow in data-19. Rebased by the lead onto local `main` without conflicts.
 
 ## Team member's reply
 
