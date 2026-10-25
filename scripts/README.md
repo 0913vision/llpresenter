@@ -26,6 +26,11 @@ tells a busy-machine timeout from a broken test. Rerun the step alone, for
 example `npm run lint`. Team members run it before a review request, and the
 lead runs it before a merge.
 
+- When every step passes, verify writes `.llp/verify-stamp.json` (Git ignores
+  `.llp/`): the tree of the checked-out commit, whether the working tree was
+  clean before and after the run, and when it passed. A run that fails or is
+  stopped leaves no stamp, because verify removes the old one first. The
+  pre-push check reads it.
 - Each step has 10 minutes. A step that runs longer fails, and verify ends it
   with every process it started (`taskkill /t /f`). Ctrl+C does the same for
   every running step. Five seconds after it starts to stop a step, verify lets
@@ -201,11 +206,17 @@ reason when:
   `Bump version: x.y.z`, or has a body or trailers, or
 - `npm run verify` fails.
 
+The message check always runs. Verify doesn't run again when the stamp says the
+pushed commit's tree already passed `npm run verify` on a clean working tree;
+the hook prints `pre-push: verify skipped: ...` then. Otherwise it prints why it
+runs verify (no stamp, another tree, or uncommitted changes during that run) and
+runs it.
+
 Pushes of tags and other branches pass without a check.
 
 ## Version bot
 
-After `verify` passes on a push to `main`, the `bump` job in `ci.yml` runs
+On a push to `main`, the `bump` job in `ci.yml` runs
 `node scripts/version/run.mts`. It commits `Bump version: x.y.z` as
 `github-actions[bot]`, tags `vx.y.z` (annotated), and pushes both together with
 the default `GITHUB_TOKEN`. Pushes made with that token don't start another run.
@@ -241,8 +252,12 @@ commits and rewriting `main` aren't allowed, so pull before every merge.
 
 ## CI
 
-`.github/workflows/ci.yml` runs `npm ci` and `npm run verify`, the same check as
-the pre-push hook, when `main` is pushed and on demand (`workflow_dispatch`). It
-runs on `windows-latest`, so it moves to each new Windows image that GitHub
-makes the default. It caches npm and the Electron download. The `bump` job above
-runs after it on `main`.
+Verification ends on our side before a push (`docs/decisions.md`, "Verification
+before the push, only the bump after it"). So `.github/workflows/ci.yml` runs:
+
+- on a push to `main`, and on demand (`workflow_dispatch`, with the `major`
+  input): only the `bump` job above. The pre-push check has already passed
+  `npm run verify` for what is pushed.
+- on a pull request: `npm ci` and `npm run verify` on `windows-latest` (each new
+  default Windows image), with npm and the Electron download cached, and the
+  coverage report as an artifact.
