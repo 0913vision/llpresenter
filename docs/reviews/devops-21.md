@@ -101,3 +101,13 @@ Pending.
 ## Review: reviewer
 
 Pending.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (f4eba7be): reviewer (Claude, trial-97) Approve: the cleanup touches
+  exactly 13 files, each only losing its leading EF BB BF, and no tracked file
+  has a BOM afterwards. Nit, as a small follow-up when devops is next asked:
+  `scripts/check-bom.mts:7` checks only Markdown and JSON, and ESLint only what
+  it lints; widen it to CSS, HTML, YAML, and SVG, or check every tracked text
+  file. Lead Approve. Written by the Codex session that took over devops's work.
+  Rebased by the lead onto local `main` without conflicts.
