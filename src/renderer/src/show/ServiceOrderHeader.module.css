@@ -7,6 +7,9 @@
   gap: var(--space-8);
   min-width: 0;
   max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
   margin-bottom: calc(-1 * var(--radius-hairline));
   border-bottom: var(--space-2) solid var(--text);
   color: var(--text);

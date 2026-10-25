@@ -154,7 +154,7 @@ export function Workspace({
                 parts={
                   title === '예배 순서' && id !== 'screens'
                     ? {
-                        header: <ServiceOrderHeader />,
+                        header: <ServiceOrderHeader onProblem={onProblem} />,
                         body: (
                           <ServiceOrderList
                             workspace={id}

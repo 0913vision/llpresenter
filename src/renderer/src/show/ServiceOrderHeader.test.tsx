@@ -16,12 +16,12 @@ afterEach(() => {
 });
 
 describe('ServiceOrderHeader', () => {
-  it('shows the open service name with a decorative dropdown arrow', () => {
+  it('shows the open service name and disables the picker outside Electron', () => {
     const {container} = render(<ServiceOrderHeader />);
     expect(screen.getByText(sampleService.name)).toBeDefined();
     expect(screen.queryByText('예배 순서')).toBeNull();
     expect(container.querySelector('[aria-hidden="true"]')).not.toBeNull();
-    expect(screen.queryByRole('button')).toBeNull();
+    expect(screen.getByRole('button').hasAttribute('disabled')).toBe(true);
   });
 
   it('updates when the open service changes without remounting', () => {
@@ -65,14 +65,16 @@ describe('ServiceOrderHeader', () => {
     expect(container.querySelector('[aria-hidden="true"]')).toBeNull();
   });
 
-  it('keeps the service and output unchanged when the inactive title is clicked', () => {
+  it('opens the picker without changing the service or output', async () => {
     const state = emptyLiveState();
     useLive.setState({state});
     const sent: LiveCommand[] = [];
     window.llp = fakeLlpApi({live: {send: command => sent.push(command)}});
     render(<ServiceOrderHeader />);
-    fireEvent.click(screen.getByText(sampleService.name));
-    expect(screen.queryByRole('menu')).toBeNull();
+    await act(async () => {
+      fireEvent.click(screen.getByText(sampleService.name));
+    });
+    expect(screen.getByRole('menu')).toBeDefined();
     expect(screen.getByText(sampleService.name)).toBeDefined();
     expect(sent).toEqual([]);
     expect(useLive.getState().state).toBe(state);

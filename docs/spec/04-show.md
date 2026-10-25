@@ -38,9 +38,7 @@ Source: `Main` decisions "진행 화면은 절충안" and "작업 공간 세 개
 - The panel's accessible name stays "예배 순서". A long service name ends in an
   ellipsis and shows in full on hover. With no service open, the header shows
   "예배 순서" without a down arrow.
-- The service picker comes later. For this header change, the arrow is
-  decorative and clicking the name does nothing. "Service list" below describes
-  the later picker behavior, not functionality of this header yet.
+- Clicking the name opens the service picker described under "Service list".
 - 항목 추가 (add item, plus icon) at the right opens the quick add popover. It
   works as in 준비 (see 05).
 
