@@ -60,7 +60,7 @@ One row of a list. The base is a 30px row with a 16px type icon, a 13px name, an
 
 ## Behavior
 
-- A list has `role="listbox"`, and each row has `role="option"` and `aria-selected`. Tab enters the list once, the up and down arrows move between rows, and Home and End go to the first and last rows. Group headers are skipped (a group has `role="group"` + `aria-labelledby`).
+- A list has `role="listbox"`, and each row has `role="option"` and `aria-selected`. Tab enters the list once, on the selected row or, with none selected, the first row, and Shift Tab leaves it (the list itself never takes focus); the up and down arrows move between rows, and Home and End go to the first and last rows. Group headers are skipped (a group has `role="group"` + `aria-labelledby`).
 - In the 진행 workspace, the 예배 순서 list keeps ↑, ↓, Home, End, and Enter. ←, →, Space, Page Up, and Page Down go to 다음 장 and 이전 장 even while the list has focus, as in ProPresenter. A click on a row gives the list keyboard focus, also in 진행.
 - A click on a row only selects it. A 예배 순서 row opens the 장 of that item in the 장 panel. For 출력 (output), the user clicks a 장.
 - A click on a 퀵 실행 row runs it at once. An item that turns on and off, such as a logo screen, reports its on state with `aria-pressed`, and a second click turns it off. While it is on, the `live` bar stays on the left.

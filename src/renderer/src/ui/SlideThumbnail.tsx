@@ -32,7 +32,7 @@ export interface ThumbnailGridBaseProps {
   readonly columns: number;
   /**
    * The index of the selected thumbnail, which takes the Tab stop. While it is
-   * `undefined`, the grid takes the Tab stop and passes focus to the first one.
+   * `undefined`, the first thumbnail takes it.
    */
   readonly selected: number | undefined;
   /** An arrow key moved the selection; in 준비, also a click, Enter, or Space. */

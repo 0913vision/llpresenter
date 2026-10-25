@@ -1,11 +1,17 @@
 import {
   createContext,
+  memo,
   useContext,
   useId,
-  type FocusEvent,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
   type JSX,
   type KeyboardEvent,
   type ReactNode,
+  type RefObject,
 } from 'react';
 import {classNames} from './classNames';
 import {clickFocusProps} from './clickFocus';
@@ -22,6 +28,7 @@ const ROW_ICON_SIZE = 16;
 const WARN_ICON_SIZE = 14;
 const ADD_ICON_SIZE = 12;
 const SLOT_MARK = '빈 자리';
+const ANY_OPTION = '[role="option"]';
 const OPTION = '[role="option"]:not([aria-disabled="true"])';
 const ACTIVATION_KEYS: ReadonlySet<string> = new Set([' ', 'Enter']);
 const workspaceActivationKeys: Readonly<
@@ -31,14 +38,41 @@ const workspaceActivationKeys: Readonly<
   prep: ACTIVATION_KEYS,
 };
 
+interface SelectionStore {
+  readonly get: () => string | undefined;
+  readonly set: (value: string | undefined) => void;
+  readonly subscribe: (listener: () => void) => () => void;
+}
+
+// NOTE(0913vision): Each row reads only whether it is the selected one, so a
+// selection change redraws the old and the new selected row and no other.
+function createSelectionStore(initial: string | undefined): SelectionStore {
+  let selected = initial;
+  const listeners = new Set<() => void>();
+  return {
+    get: () => selected,
+    set: value => {
+      if (value === selected) return;
+      selected = value;
+      for (const listener of listeners) listener();
+    },
+    subscribe: listener => {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+  };
+}
+
 interface ListBoxState {
-  readonly selected: string | undefined;
+  readonly selection: SelectionStore;
   readonly onSelect: (value: string) => void;
   readonly workspace: Workspace;
 }
 
 const ListBoxContext = createContext<ListBoxState>({
-  selected: undefined,
+  selection: createSelectionStore(undefined),
   onSelect: () => undefined,
   workspace: 'prep',
 });
@@ -58,6 +92,47 @@ const listKeyTargets: Readonly<
 
 function enabledOptions(list: HTMLElement): HTMLElement[] {
   return [...list.querySelectorAll<HTMLElement>(OPTION)];
+}
+
+// NOTE(0913vision): Tab enters the list once, on the selected row or the
+// first row, and Shift Tab leaves it; the list itself never takes focus.
+function keepOneTabStop(list: HTMLElement, selected: string | undefined): void {
+  const enabled = enabledOptions(list);
+  const stop =
+    enabled.find(option => option.dataset['value'] === selected) ?? enabled[0];
+  for (const option of list.querySelectorAll<HTMLElement>(ANY_OPTION)) {
+    option.tabIndex = option === stop ? 0 : -1;
+  }
+}
+
+function useListBoxState(
+  selected: string | undefined,
+  onSelect: (value: string) => void,
+  workspace: Workspace,
+): ListBoxState {
+  const [selection] = useState(() => createSelectionStore(selected));
+  const latestOnSelect = useRef(onSelect);
+  useLayoutEffect(() => {
+    latestOnSelect.current = onSelect;
+    selection.set(selected);
+  });
+  return useMemo(
+    () => ({
+      selection,
+      onSelect: (value: string) => latestOnSelect.current(value),
+      workspace,
+    }),
+    [selection, workspace],
+  );
+}
+
+function useOneTabStop(
+  list: RefObject<HTMLDivElement | null>,
+  selected: string | undefined,
+): void {
+  useLayoutEffect(() => {
+    if (list.current !== null) keepOneTabStop(list.current, selected);
+  });
 }
 
 export interface ListBoxProps {
@@ -91,6 +166,9 @@ export function ListBox({
   className,
   children,
 }: ListBoxProps): JSX.Element {
+  const state = useListBoxState(selected, onSelect, workspace);
+  const listRef = useRef<HTMLDivElement>(null);
+  useOneTabStop(listRef, selected);
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
     const target = listKeyTargets[event.key];
     if (target === undefined || hasModifier(event)) return;
@@ -105,21 +183,15 @@ export function ListBox({
     const value = next.dataset['value'];
     if (value !== undefined) onSelect(value);
   };
-  const onFocus = (event: FocusEvent<HTMLDivElement>): void => {
-    if (event.target === event.currentTarget) {
-      enabledOptions(event.currentTarget)[0]?.focus();
-    }
-  };
   return (
-    <ListBoxContext value={{selected, onSelect, workspace}}>
+    <ListBoxContext value={state}>
       <div
         {...clickFocusProps}
+        ref={listRef}
         role="listbox"
         aria-label={label}
-        tabIndex={selected === undefined ? 0 : -1}
         className={classNames(styles.list, inset && styles.inset, className)}
         onKeyDown={onKeyDown}
-        onFocus={onFocus}
       >
         {children}
       </div>
@@ -236,7 +308,7 @@ function RowContent({
  * One row of a `ListBox`: a 30px row, or a 44px two-line item with `sub`.
  * A click or Space selects it.
  */
-export function ListRow(props: ListRowProps): JSX.Element {
+export const ListRow = memo((props: ListRowProps): JSX.Element => {
   const {
     value,
     sub,
@@ -245,10 +317,13 @@ export function ListRow(props: ListRowProps): JSX.Element {
     warning,
     disabled = false,
   } = props;
-  const {selected, onSelect, workspace} = useContext(ListBoxContext);
+  const {selection, onSelect, workspace} = useContext(ListBoxContext);
+  const isSelected = useSyncExternalStore(
+    selection.subscribe,
+    () => selection.get() === value,
+  );
   const titleId = useId();
   const {targetProps, tooltip} = useTooltip(titleTooltip(props.reason));
-  const isSelected = selected === value;
   const select = (): void => onSelect(value);
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
     if (disabled || hasModifier(event)) return;
@@ -265,7 +340,6 @@ export function ListRow(props: ListRowProps): JSX.Element {
       aria-disabled={disabled ? true : undefined}
       data-value={value}
       data-state={rowState(live, done, warning !== undefined)}
-      tabIndex={isSelected ? 0 : -1}
       className={classNames(styles.row, sub !== undefined && styles.double)}
       onClick={pressHandler(disabled, select)}
       onKeyDown={onKeyDown}
@@ -274,7 +348,7 @@ export function ListRow(props: ListRowProps): JSX.Element {
       {tooltip}
     </div>
   );
-}
+});
 
 export interface ListActionRowProps {
   readonly title: string;

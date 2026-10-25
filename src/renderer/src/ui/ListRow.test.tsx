@@ -134,6 +134,28 @@ describe('ListBox and ListRow', () => {
     expect(document.activeElement?.getAttribute('data-value')).toBe('count');
   });
 
+  it('lets Shift Tab leave the list before anything is selected', async () => {
+    render(
+      <>
+        <button type="button">앞</button>
+        <ServiceOrder />
+        <button type="button">뒤</button>
+      </>,
+    );
+    await userEvent.tab();
+    await userEvent.tab();
+    expect(document.activeElement?.getAttribute('data-value')).toBe('count');
+    await userEvent.tab({shift: true});
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', {name: '앞'}),
+    );
+    await userEvent.tab();
+    await userEvent.tab();
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', {name: '내리기'}),
+    );
+  });
+
   it('does not select a disabled row and gives the reason as a tooltip', async () => {
     const onSelect = vi.fn();
     render(<ServiceOrder onSelect={onSelect} />);
