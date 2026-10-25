@@ -43,7 +43,7 @@ export const layerSchemas = {
   }),
 } satisfies Record<LayerKind, v.GenericSchema>;
 
-const liveStateSchema = payloadObject({
+export const liveStateSchema = payloadObject({
   lookId: v.exactOptional(v.nullable(lookIdSchema)),
   stageMessage: v.exactOptional(v.nullable(nonBlankText)),
   version: count,
