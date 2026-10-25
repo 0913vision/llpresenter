@@ -57,20 +57,51 @@ const templateEntrySchema = payloadObject({
   access: accessSchema,
 });
 
-const songChangeSchema = payloadObject({
-  songId: songIdSchema,
-  document: v.nullable(songDocumentSchema),
-});
+const SAME_ID = 'The document has another id than the change names';
 
-const serviceChangeSchema = payloadObject({
-  serviceId: serviceIdSchema,
-  document: v.nullable(serviceDocumentSchema),
-});
+const songChangeSchema = v.pipe(
+  payloadObject({
+    songId: songIdSchema,
+    document: v.nullable(songDocumentSchema),
+  }),
+  v.forward(
+    v.check(
+      ({songId, document}) => document === null || document.song.id === songId,
+      SAME_ID,
+    ),
+    ['document'],
+  ),
+);
 
-const templateChangeSchema = payloadObject({
-  templateId: templateIdSchema,
-  document: v.nullable(templateDocumentSchema),
-});
+const serviceChangeSchema = v.pipe(
+  payloadObject({
+    serviceId: serviceIdSchema,
+    document: v.nullable(serviceDocumentSchema),
+  }),
+  v.forward(
+    v.check(
+      ({serviceId, document}) =>
+        document === null || document.service.id === serviceId,
+      SAME_ID,
+    ),
+    ['document'],
+  ),
+);
+
+const templateChangeSchema = v.pipe(
+  payloadObject({
+    templateId: templateIdSchema,
+    document: v.nullable(templateDocumentSchema),
+  }),
+  v.forward(
+    v.check(
+      ({templateId, document}) =>
+        document === null || document.template.id === templateId,
+      SAME_ID,
+    ),
+    ['document'],
+  ),
+);
 
 /**
  * A song as a window edits it: the file's content, its revision, and whether

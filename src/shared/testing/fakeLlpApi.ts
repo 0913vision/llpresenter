@@ -51,7 +51,6 @@ const NOT_FOUND: EditResult = {
   error: {
     reason: 'not-found',
     message: 'fakeLlpApi has no data',
-    unchangedFiles: [],
   },
 };
 

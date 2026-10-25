@@ -70,9 +70,16 @@ describe('parseContentEdit', () => {
       {
         type: 'service.importItems',
         serviceId: SERVICE_ID,
-        fromServiceId: OTHER_SERVICE_ID,
+        from: {kind: 'service', id: OTHER_SERVICE_ID},
         itemIds: [ITEM_ID],
-        index: 0,
+      },
+    ],
+    [
+      {
+        type: 'service.importItems',
+        serviceId: SERVICE_ID,
+        from: {kind: 'template', id: TEMPLATE_ID},
+        itemIds: [ITEM_ID],
       },
     ],
     [{type: 'service.saveAsTemplate', serviceId: SERVICE_ID, name: '주일'}],
@@ -119,11 +126,40 @@ describe('parseContentEdit', () => {
       {
         type: 'service.importItems',
         serviceId: SERVICE_ID,
-        fromServiceId: OTHER_SERVICE_ID,
+        from: {kind: 'service', id: OTHER_SERVICE_ID},
         itemIds: [],
-        index: 0,
       },
       'itemIds',
+    ],
+    [
+      'an import from an unknown kind of source',
+      {
+        type: 'service.importItems',
+        serviceId: SERVICE_ID,
+        from: {kind: 'song', id: SONG_ID},
+        itemIds: [ITEM_ID],
+      },
+      'from.kind',
+    ],
+    [
+      'an import from a 틀 without a UUID',
+      {
+        type: 'service.importItems',
+        serviceId: SERVICE_ID,
+        from: {kind: 'template', id: '주일'},
+        itemIds: [ITEM_ID],
+      },
+      'from.id',
+    ],
+    [
+      'an import that names its source the old way',
+      {
+        type: 'service.importItems',
+        serviceId: SERVICE_ID,
+        fromServiceId: OTHER_SERVICE_ID,
+        itemIds: [ITEM_ID],
+      },
+      'from',
     ],
     [
       'a service date without the time',
@@ -201,18 +237,36 @@ describe('parseEditResult', () => {
         error: {
           reason: 'write-failed',
           message: 'disk full',
+          applied: {id: SONG_ID, revision: 2},
           unchangedFiles: ['D:\\LoveLight\\예배\\a.llservice'],
         },
       },
+      {ok: false, error: {reason: 'stale', message: 'revision 3, not 2'}},
     ]) {
       expect(parseEditResult(result)).toEqual({ok: true, value: result});
     }
   });
 
   it.each([
+    ['an unknown reason', {ok: false, error: {reason: 'busy', message: ''}}],
     [
-      'an unknown reason',
-      {ok: false, error: {reason: 'busy', message: '', unchangedFiles: []}},
+      'a write failure without the applied result',
+      {
+        ok: false,
+        error: {reason: 'write-failed', message: '', unchangedFiles: ['a']},
+      },
+    ],
+    [
+      'a write failure without a file',
+      {
+        ok: false,
+        error: {
+          reason: 'write-failed',
+          message: '',
+          applied: {id: SONG_ID, revision: 2},
+          unchangedFiles: [],
+        },
+      },
     ],
     ['a success without an id', {ok: true, value: {id: '', revision: 1}}],
     ['a result that is an array', []],

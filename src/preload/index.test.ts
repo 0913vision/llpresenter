@@ -244,6 +244,23 @@ describe('preload', () => {
     expect(loggedErrors()).toEqual([]);
   });
 
+  it('keeps the applied result of an edit whose save failed', async () => {
+    const answer = {
+      ok: false,
+      error: {
+        reason: 'write-failed',
+        message: 'disk full',
+        applied: {id: SONG_ID, revision: 1},
+        unchangedFiles: ['D:/LoveLight/곡/a.llsong'],
+      },
+    };
+    electron.invoke.mockResolvedValueOnce(answer);
+
+    await expect(api.content.edit({type: 'song.create'})).resolves.toEqual(
+      answer,
+    );
+  });
+
   it('logs a malformed edit answer and rejects', async () => {
     electron.invoke.mockResolvedValueOnce({ok: true, value: {id: ''}});
 
@@ -299,12 +316,29 @@ describe('preload', () => {
       {},
       {document: null},
     );
+    electron.handlers.get(Channels.songsDocumentChanged)?.(
+      {},
+      {
+        songId: '7a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d',
+        document: {
+          song: {
+            format: 'llsong',
+            schemaVersion: 1,
+            id: SONG_ID,
+            title: '만복의 근원 하나님',
+            slides: [{lines: []}],
+          },
+          revision: 1,
+          access: 'editable',
+        },
+      },
+    );
     electron.handlers.get(Channels.songsListChanged)?.({}, []);
     electron.handlers.get(Channels.songsListChanged)?.({}, {});
 
     expect(changes.mock.calls).toEqual([[{songId: SONG_ID, document: null}]]);
     expect(lists.mock.calls).toEqual([[[]]]);
-    expect(loggedErrors()).toHaveLength(2);
+    expect(loggedErrors()).toHaveLength(3);
     stopChanges();
     stopLists();
     expect(electron.handlers.has(Channels.songsDocumentChanged)).toBe(false);

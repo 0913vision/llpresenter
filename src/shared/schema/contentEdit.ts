@@ -9,21 +9,25 @@ import {
   templateIdSchema,
 } from './ids';
 import {payloadObject, plainObject, type PayloadError} from './payload';
-import {localDateTime, nonNegativeInteger} from './primitives';
+import {localDateTime} from './primitives';
 import {serviceSchema, templateSchema} from './service';
 import {arrangementNameSchema, songSchema} from './song';
 
-/** Why an edit wasn't applied, or why some of its files didn't change. */
-export const editFailureReasons = [
+/** Why an edit wasn't applied. */
+export const editRefusalReasons = [
   'stale',
   'not-found',
   'read-only',
   'duplicate-title',
   'invalid',
-  'write-failed',
 ] as const;
 
-export type EditFailureReason = (typeof editFailureReasons)[number];
+export type EditRefusalReason = (typeof editRefusalReasons)[number];
+
+const importSourceSchema = v.variant('kind', [
+  v.object({kind: v.literal('service'), id: serviceIdSchema}),
+  v.object({kind: v.literal('template'), id: templateIdSchema}),
+]);
 
 const songEditSchemas = [
   v.object({type: v.literal('song.create')}),
@@ -62,9 +66,8 @@ const serviceEditSchemas = [
   v.object({
     type: v.literal('service.importItems'),
     serviceId: serviceIdSchema,
-    fromServiceId: serviceIdSchema,
+    from: importSourceSchema,
     itemIds: v.pipe(v.array(serviceItemIdSchema), v.minLength(1)),
-    index: nonNegativeInteger,
   }),
   v.object({
     type: v.literal('service.saveAsTemplate'),
@@ -89,11 +92,15 @@ const editSuccessSchema = payloadObject({
   revision: v.nullable(revisionSchema),
 });
 
-const editFailureSchema = payloadObject({
-  reason: v.picklist(editFailureReasons),
-  message: v.string(),
-  unchangedFiles: v.array(v.string()),
-});
+const editFailureSchema = v.variant('reason', [
+  v.object({reason: v.picklist(editRefusalReasons), message: v.string()}),
+  v.object({
+    reason: v.literal('write-failed'),
+    message: v.string(),
+    applied: editSuccessSchema,
+    unchangedFiles: v.pipe(v.array(v.string()), v.minLength(1)),
+  }),
+]);
 
 const editResultSchema = v.pipe(
   plainObject,
@@ -105,7 +112,9 @@ const editResultSchema = v.pipe(
 
 /**
  * An edit of a song, a 예배 순서, or a 틀 that a window asks the main process
- * to apply over `content:edit`. `*.update` carries the whole document and the
+ * to apply over `content:edit`. `service.importItems` appends copies of the
+ * items, in their source order and with new ids, to the end of the 예배 순서
+ * (`docs/spec/05-prep.md`, "Importing from another service"). `*.update` carries the whole document and the
  * revision it was edited from; the other edits change what they name, and the
  * main process rewrites every file they touch, such as the 예배 순서 items that
  * pick a renamed 구성.
@@ -121,9 +130,12 @@ export type ContentEditType = ContentEdit['type'];
 export type EditSuccess = v.InferOutput<typeof editSuccessSchema>;
 
 /**
- * Why an edit failed. `stale`: the document changed since `baseRevision`, so
- * the window reads it again. `unchangedFiles` lists the files that couldn't
- * be written: the main process kept the edit and saves them again later.
+ * Why an edit failed. A refusal changed nothing; `stale` means the document
+ * changed since `baseRevision`, so the window reads it again. `write-failed`
+ * means the edit was applied and kept in memory, with its result in
+ * `applied`, but the files in `unchangedFiles` couldn't be written; the main
+ * process saves them again later and reports "저장할 수 없음"
+ * (`docs/spec/02-data.md`, "Save failures").
  */
 export type EditFailure = v.InferOutput<typeof editFailureSchema>;
 

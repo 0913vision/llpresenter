@@ -5,6 +5,7 @@ import {
   parseServiceEntries,
   parseSongChange,
   parseSongDocument,
+  parseTemplateChange,
   parseTemplateDocument,
   parseTemplateEntries,
 } from './contentDocuments';
@@ -98,5 +99,40 @@ describe('the change checks', () => {
 
   it('rejects a change without the id', () => {
     expect(parseSongChange({document: null}).ok).toBe(false);
+  });
+
+  it('rejects a change whose document has another id', () => {
+    const other = '7a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d';
+    const service = {
+      format: 'llservice',
+      schemaVersion: 1,
+      id: SERVICE_ID,
+      name: '주일 예배',
+      date: '2026-11-01T11:00',
+      order: [],
+    };
+    const template = {
+      format: 'llservice',
+      schemaVersion: 1,
+      id: TEMPLATE_ID,
+      name: '주일',
+      order: [],
+    };
+
+    expect(
+      parseSongChange({songId: other, document: songDocument()}),
+    ).toMatchObject({ok: false, error: {field: 'document'}});
+    expect(
+      parseServiceChange({
+        serviceId: other,
+        document: {service, revision: 1, access: 'editable'},
+      }),
+    ).toMatchObject({ok: false, error: {field: 'document'}});
+    expect(
+      parseTemplateChange({
+        templateId: other,
+        document: {template, revision: 1, access: 'editable'},
+      }),
+    ).toMatchObject({ok: false, error: {field: 'document'}});
   });
 });
