@@ -1,4 +1,5 @@
 import type {LabelColor} from '@shared/colors';
+import type {MediaChoice} from '@shared/live';
 import type {showRowProblems} from '@shared/schema/showService';
 
 /** Id of a row in the 예배 순서 (service order). */
@@ -21,6 +22,7 @@ export interface ItemRow {
   readonly id: ItemId;
   readonly title: string;
   readonly problem?: RowProblem;
+  readonly background?: MediaChoice;
 }
 
 export type ServiceRow = HeaderRow | ItemRow;

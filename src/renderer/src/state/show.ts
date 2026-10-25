@@ -34,6 +34,8 @@ interface ShowView {
 }
 
 const noTiles: readonly SlideTile[] = [];
+const BACKGROUND_LOOKUP_TIMEOUT_MS = 2000;
+let outputRequest = 0;
 
 const noService = {
   revision: null,
@@ -84,8 +86,100 @@ export function selectTile(index: number): void {
 export function outputTile(cursor: TileCursor): void {
   const slide = slideLayerOf(cursor, tilesOf);
   if (!slide) return;
-  sendLive({type: 'slide.show', slide});
+  const request = ++outputRequest;
+  const live = useLive.getState();
+  const previousItem = live.lastSlideItemId ?? live.state?.layers.slide?.itemId;
+  const row = useShow.getState().rows.find(row => row.id === cursor.itemId);
   useShow.setState({openItemId: cursor.itemId, selectedTile: cursor.index});
+  if (
+    row?.kind === 'song' &&
+    previousItem !== cursor.itemId &&
+    (row.background !== undefined || row.problem === 'missing-background') &&
+    window.llp !== undefined
+  ) {
+    outputSongTile({
+      cursor,
+      request,
+      commandVersion: live.commandVersion,
+      serviceId: useShow.getState().serviceId,
+    }).catch((error: unknown) =>
+      window.llp?.log.write({
+        level: 'error',
+        message: 'Could not output the song tile',
+        detail: error instanceof Error ? error.message : String(error),
+      }),
+    );
+    return;
+  }
+  sendLive({type: 'slide.show', slide});
+}
+
+interface SongOutput {
+  readonly cursor: TileCursor;
+  readonly request: number;
+  readonly commandVersion: number;
+  readonly serviceId: string | null;
+}
+
+async function readBackgrounds(): Promise<ShowService | null> {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      window.llp?.service.get() ?? Promise.resolve(null),
+      new Promise<never>((_resolve, reject) => {
+        timeout = setTimeout(
+          () => reject(new Error('Song background lookup timed out')),
+          BACKGROUND_LOOKUP_TIMEOUT_MS,
+        );
+      }),
+    ]);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function outputSongTile({
+  cursor,
+  request,
+  commandVersion,
+  serviceId,
+}: SongOutput): Promise<void> {
+  let service: ShowService | null = null;
+  try {
+    service = await readBackgrounds();
+  } catch (error: unknown) {
+    window.llp?.log.write({
+      level: 'warn',
+      message: 'Could not refresh the song background; kept the current media',
+      detail: error instanceof Error ? error.message : String(error),
+    });
+  }
+  if (
+    request !== outputRequest ||
+    commandVersion !== useLive.getState().commandVersion ||
+    serviceId !== useShow.getState().serviceId
+  ) {
+    return;
+  }
+
+  if (service !== null && service.id !== serviceId) return;
+
+  if (service !== null && service.id === serviceId) applyService(service);
+  const row =
+    service?.id === serviceId
+      ? useShow.getState().rows.find(row => row.id === cursor.itemId)
+      : undefined;
+  if (row?.kind === 'song' && row.background !== undefined) {
+    const current = useLive.getState().state?.layers.media;
+    if (
+      current?.mediaId !== row.background.mediaId ||
+      current.loop !== row.background.loop
+    ) {
+      sendLive({type: 'media.show', media: row.background});
+    }
+  }
+  const slide = slideLayerOf(cursor, tilesOf);
+  if (slide) sendLive({type: 'slide.show', slide});
 }
 
 function outputIfPresent(cursor: TileCursor | null): void {
