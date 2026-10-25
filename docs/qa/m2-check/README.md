@@ -2,7 +2,8 @@
 
 Copy `sample/` to a new user data folder outside the clone before starting the
 app. Set `LLP_USER_DATA` to the copied folder, which contains both `app.json`
-and `LoveLight/`. Follow [the Korean check sheet](../m2-check.md).
+and `LoveLight/`. Follow [the second Korean check sheet](../m2-check2.md) for
+the current sample. [The first sheet](../m2-check.md) describes `m2-check1`.
 
 The service has five rows: two section headers and three songs. Every lyric is
 invented for this fixture. The first song uses the ten-slide `주일용`
@@ -23,6 +24,8 @@ absolute machine paths, personal data, recovery state, or output enabled at
 launch. The app may create logs, backups, settings, and recovery files in the
 copy. Keep those runtime files out of this fixture.
 
-The current slice does not automatically show a song's background on a slide
-click. QA checks media decoding separately through the existing live command
-API; the user sheet covers the available UI.
+The first two songs share the looping video as their default background. The
+third uses the still image. Entering a song by clicking its slide applies its
+background; moving within a song keeps playback, and consecutive songs with the
+same background do not restart it. The second song gained its explicit video
+background for `m2-check2`; the first tag retains its original fixture.
