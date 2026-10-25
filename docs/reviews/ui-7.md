@@ -198,19 +198,19 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (codex5): Request changes with three findings: a replaced notice kept
+  its old timer, notification buttons were out of the Tab cycle while a dialog
+  was open, and the large preview had no key per screen.
+- Round 2 (codex5): Request changes with one finding: Esc from a notification
+  button no longer cancelled the open dialog.
+- Round 3 (efd0a29): reviewer (Codex, codex5) Approve with no findings. Lead
+  Approve; PreviewFrame keeps every screen mounted across swaps (lead decision
+  on round 1 finding 3, the same rule as shell-12), the small previews are
+  capped at 160 px, the output-off toolbar mark is a gray dot (lead decision),
+  and Esc on a notification card does what 취소 does in the open dialog. Rebased
+  by the lead onto local `main` without conflicts.
 
 ## Team member's reply
 
