@@ -104,6 +104,28 @@ describe('slide-header background control', () => {
     expect(onChoose).toHaveBeenCalledWith(null);
   });
 
+  it('filters media names with the shared menu search and resets the query on reopening', async () => {
+    const {user, onChoose} = setup();
+    const button = screen.getByRole('button', {name: '배경 선택'});
+    await user.click(button);
+    expect(document.activeElement).toBe(screen.getByRole('combobox'));
+    await user.type(screen.getByRole('combobox'), '  고요  ');
+    expect(screen.queryByRole('menuitemradio', {name: image.name})).toBeNull();
+    expect(screen.getByRole('menuitemradio', {name: video.name})).toBeDefined();
+    expect(
+      screen.getByRole('menuitemradio', {name: '곡 기본값'}),
+    ).toBeDefined();
+    expect(onChoose).not.toHaveBeenCalled();
+    await user.keyboard('{Escape}');
+    expect(document.activeElement).toBe(button);
+    await user.click(button);
+    expect(screen.getByRole('combobox')).toHaveProperty('value', '');
+    expect(screen.getAllByRole('menuitemradio')).toHaveLength(3);
+    await user.type(screen.getByRole('combobox'), '고요');
+    await user.click(screen.getByRole('menuitemradio', {name: video.name}));
+    expect(onChoose).toHaveBeenCalledWith(video.id);
+  });
+
   it('keeps the video paused and releases its source when the selection changes', () => {
     const {container, rerender, onChoose} = setup({
       selection: {...selection, mediaId: video.id},
@@ -112,6 +134,7 @@ describe('slide-header background control', () => {
     if (element === null) throw new Error('Missing video thumbnail');
     expect(element.muted).toBe(true);
     expect(element.autoplay).toBe(false);
+    expect(element.preload).toBe('metadata');
     expect(element.getAttribute('src')).toBe(mediaUrl(video.id));
     rerender(
       <SongBackgroundSelect

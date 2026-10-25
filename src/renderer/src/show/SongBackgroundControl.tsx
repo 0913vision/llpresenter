@@ -40,7 +40,7 @@ function Picture({media}: {readonly media: MediaItem}): JSX.Element {
       className={styles.picture}
       src={mediaUrl(media.id)}
       muted
-      preload="auto"
+      preload="metadata"
       aria-hidden="true"
     />
   );
@@ -85,10 +85,18 @@ export function SongBackgroundSelect({
   onChoose,
 }: BackgroundSelectProps): JSX.Element {
   const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
+  const [query, setQuery] = useState('');
   const valueId = useId();
   const defaultDescriptionId = useId();
   const choices = items.filter(item => item.kind !== 'audio');
   const selected = choices.find(item => item.id === selection.mediaId);
+  const searchText = query.normalize('NFC').trim().toLocaleLowerCase('ko');
+  const visible = choices.filter(item =>
+    mediaName(item)
+      .normalize('NFC')
+      .toLocaleLowerCase('ko')
+      .includes(searchText),
+  );
   const disabled = readOnly || busy;
   const expanded = anchor !== null && !disabled;
   const value =
@@ -120,15 +128,18 @@ export function SongBackgroundSelect({
         title={
           readOnly ? '읽기 전용 예배 순서' : busy ? '배경 변경 중' : undefined
         }
-        onClick={event =>
-          setAnchor(anchor === null ? event.currentTarget : null)
-        }
+        onClick={event => {
+          setQuery('');
+          setAnchor(anchor === null ? event.currentTarget : null);
+        }}
         onKeyDown={event =>
           openOnArrowDown(event, {
             expanded,
             disabled,
-            onExpandedChange: open =>
-              setAnchor(open ? event.currentTarget : null),
+            onExpandedChange: open => {
+              setQuery('');
+              setAnchor(open ? event.currentTarget : null);
+            },
           })
         }
       >
@@ -150,6 +161,7 @@ export function SongBackgroundSelect({
           label="배경 선택"
           anchor={{kind: 'element', element: anchor}}
           onClose={() => setAnchor(null)}
+          search={{value: query, onChange: setQuery}}
           entries={[
             {
               kind: 'item',
@@ -162,10 +174,10 @@ export function SongBackgroundSelect({
                 setAnchor(null);
               },
             },
-            ...(choices.length === 0
+            ...(visible.length === 0
               ? []
               : [{kind: 'separator' as const, id: 'media'}]),
-            ...choices.map(item => ({
+            ...visible.map(item => ({
               kind: 'item' as const,
               id: item.id,
               label: mediaName(item),

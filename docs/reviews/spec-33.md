@@ -1,10 +1,10 @@
-Review range: `81cc2b9...feat/spec/prep-mount`
+Review range: `27f1155...feat/spec/prep-mount`
 
 # Review request: `spec-33`
 
 - Team member: `spec`
 - Branch: `feat/spec/prep-mount`
-- Base commit: `81cc2b9`, main after data-34
+- Base commit: `27f1155`, main after spec-32
 - Review round: 1
 - Task: `.llp/task.md`, preparation panel mounting
 - Ownership exception: the lead's shell, control, and show paths for this mount
@@ -34,6 +34,11 @@ Warning height continues to reserve room above the right column.
 No library or editor panel source changed. No shared or preload contract,
 dependency, output command, or native window was added.
 
+Carried the two spec-32 nits: the paused video preview now preloads metadata,
+and the background menu uses the shared Menu search. Media names filter with
+normalized, trimmed, case-insensitive text like the service picker. The song
+default stays available during filtering. Reopening clears the search query.
+
 ## Remaining work
 
 The lead explicitly limited this mount to merged P1 and P2a. P2b adds the title
@@ -50,17 +55,19 @@ or shutdown safety claim is part of this request.
 
 ## Checks run
 
-| Check                                                                  | Result                                 |
-| ---------------------------------------------------------------------- | -------------------------------------- |
-| Preparation host, bootstrap, App, workspace, and service editing tests | Pass: 49 tests in 5 files              |
-| Renderer TypeScript check                                              | Pass                                   |
-| Changed-file ESLint and Prettier                                       | Pass                                   |
-| `git diff --check`                                                     | Pass                                   |
-| Local full verify                                                      | Not run, per the lead's rule           |
-| GitHub branch CI                                                       | Exact submitted HEAD run in the report |
+| Check                                                                              | Result                                 |
+| ---------------------------------------------------------------------------------- | -------------------------------------- |
+| Preparation host, bootstrap, App, workspace, service editing, and background tests | Pass: 59 tests in 7 files              |
+| Renderer TypeScript check                                                          | Pass                                   |
+| Changed-file ESLint and Prettier                                                   | Pass                                   |
+| `git diff --check`                                                                 | Pass                                   |
+| Local full verify                                                                  | Not run, per the lead's rule           |
+| GitHub branch CI                                                                   | Exact submitted HEAD run in the report |
 
 Integration tests use the real P1/P2a panels in StrictMode with invented song
 fixtures. They cover opening and creating a song, lyric save and undo across
 workspace changes, service context on reselection, the shared load warning and
 retry, no live commands from library/editor actions, and feed disposal on
-pagehide. No Electron process, visible window, soak, or memory run was started.
+pagehide. Background tests cover metadata-only preload, filtering, query reset,
+and choosing a filtered result. No Electron process, visible window, soak, or
+memory run was started.
