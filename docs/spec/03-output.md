@@ -291,7 +291,6 @@ The clear happens at once, with no confirmation, on every screen.
 | F5       | 오디오 (audio) | Audio that is playing (proposal: fades out within 0.5 seconds) |
 | F6       | 메시지         | Every 메시지 that is showing                                   |
 | F7       | 공지           | The 공지, and stops its rotation                               |
-| Ctrl Z   | 되돌림 (undo)  | Undoes the last clear (see "Undo")                             |
 
 - The order and keys follow ProPresenter's current shortcuts: F1 all, F2 lyrics,
   F3 media, F4 props, F5 audio, F6 messages, F7 announcements (S1). The 7.5
@@ -310,8 +309,8 @@ The clear happens at once, with no confirmation, on every screen.
   window, with a dialog or a confirmation dialog open, and while a text field
   has focus. The only exception is the key field on the 단축키 page while it
   records (decided; 10, focus precedence).
-- Ctrl Z undoes the last clear in 진행 and 화면 설정, also with a dialog open.
-  In 준비 and in text fields it is the edit undo (see "Undo"; 10).
+- Ctrl Z only undoes edits. It never restores cleared output (decided, M2 check
+  1 row 8; 10).
 - The 내리기 (take down) button on each row of the 진행 도구 표시 중 (Showing)
   tab takes down only that one thing (see 04).
 
@@ -324,8 +323,18 @@ project). Build it as a 매크로 with several clear actions. If needed, set tha
 
 ### Undo
 
-- Undo (the button or Ctrl Z) undoes the last clear, including 모두. It shows
-  again what those layers held just before the clear:
+- 되돌리기 (clear undo) is our optional extension. No checked ProPresenter
+  source documents undoing a clear: S1 lists Undo under Edit, and S21 describes
+  the clear controls without clear undo. The previous claim that Ctrl Z restores
+  a clear like ProPresenter was unsupported. To show cleared lyrics again, the
+  operator re-triggers the slide (M2 check 1 row 8).
+- 환경설정 > 진행 > 지우기 되돌리기 단추 보이기 controls the button. It is off
+  by default (proposal pending user confirmation; M2 check 1 row 7; 10). Turning
+  it on adds a separator and 되돌리기 after 공지 in the clear row. When nothing
+  can be restored, the button is dim and does nothing. The command `clear.undo`
+  has no default key; Ctrl Z never calls it.
+- The optional button undoes the last clear, including 모두. It shows again what
+  those layers held just before the clear:
   - Lyrics: the same 장 becomes the live 장 again.
   - Media: the same media plays again from the position at the moment of the
     clear (proposal).
@@ -341,12 +350,13 @@ project). Build it as a 매크로 with several clear actions. If needed, set tha
   something new).
 - Undo only undoes clears. It doesn't undo clicking a 장, turning outputs on or
   off, or changing the Look.
-- In 준비, while the operator edits text or a list, Ctrl Z is the edit undo. The
-  되돌림 button in the clear row still undoes a clear (decided, 10).
+- Ctrl Z is the edit undo in text fields and editable lists, including 예배 순서
+  edits in 진행. It does nothing where there is no edit to undo (10).
 
-Source: `ClearButton` README, `ShowH` (clear row, 되돌림), `Main` decision "다중
-레이어 지우기는 v1에서 뺌", `Shortcuts` (clear group, 되돌리기 Ctrl Z), `Dialog`
-README, `AlertDialog` README.
+Source: M2 check 1 feedback rows 7 and 8, S1 (Edit Undo), S21 (clear controls),
+`ClearButton` README and `ShowH` (earlier clear row), `Main` decision "다중
+레이어 지우기는 v1에서 뺌", `Dialog` README, `AlertDialog` README. The feedback
+supersedes the drafts' Ctrl Z binding and always-visible undo button.
 
 ## Where 메시지, 공지, 소품, and stage messages go
 

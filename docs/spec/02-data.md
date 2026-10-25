@@ -512,15 +512,21 @@ Source: `Shortcuts`, `KeyCap` README, 10.
 
 ### `app.json` in the app data folder (proposal)
 
-| Field                                           | Meaning                                                                                                                |
-| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `dataRoot`                                      | The data folder.                                                                                                       |
-| `songsPath`, `mediaPath`, `backupPath`          | The 환경설정 song, media, and backup locations. Empty means the default folder under the data folder.                  |
-| `lastServiceId`                                 | The last opened 예배 순서.                                                                                             |
-| `layout.narrow`, `layout.normal`, `layout.wide` | Per size class: the left and right column widths and thumbnail columns that the operator set (design system `Layout`). |
-| `previewBig`                                    | The screen ID shown large in the 진행 preview.                                                                         |
-| `macroView`, `macroCollection`                  | View and collection of the 매크로 tab.                                                                                 |
-| `mediaStrip`                                    | Whether the operator left the media strip open. The size class and window height rules apply first.                    |
+M2 check 1 adds `uiZoomPercent` (100 to 200, step 10 percentage points,
+default 100) for control windows on this computer. 10 defines UI zoom and the
+proposed layout reset, which restores local window bounds, zoom, and all size
+classes' column widths and thumbnail percentages. The data store remains the
+only writer (`docs/decisions.md`, "One owner of app.json").
+
+| Field                                           | Meaning                                                                                                                                                                                                                   |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dataRoot`                                      | The data folder.                                                                                                                                                                                                          |
+| `songsPath`, `mediaPath`, `backupPath`          | The 환경설정 song, media, and backup locations. Empty means the default folder under the data folder.                                                                                                                     |
+| `lastServiceId`                                 | The last opened 예배 순서.                                                                                                                                                                                                |
+| `layout.narrow`, `layout.normal`, `layout.wide` | Per size class: left and right column widths and `thumbnailScalePercent` (50 to 200, whole %, default 100). The continuous slider replaces remembered thumbnail column counts (M2 check 1 row 9; proposal details in 10). |
+| `previewBig`                                    | The screen ID shown large in the 진행 preview.                                                                                                                                                                            |
+| `macroView`, `macroCollection`                  | View and collection of the 매크로 tab.                                                                                                                                                                                    |
+| `mediaStrip`                                    | Whether the operator left the media strip open. The size class and window height rules apply first.                                                                                                                       |
 
 ## Media list (`설정\media.json`)
 

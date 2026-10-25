@@ -81,9 +81,8 @@ Source: `Main` decisions "진행 화면은 절충안" and "작업 공간 세 개
   항목 추가 (proposal: the header has an 항목 추가 button).
 - No board shows the row's right-click menu. Version 1 has "준비에서 열기" (open
   in 준비) and "삭제" (delete) (proposal). Delete works without confirmation,
-  and the edit undo restores the item (proposal). In 진행, Ctrl Z stays the
-  clear undo (03), so the edit undo there is 편집 > 실행 취소 in the menu bar.
-  That menu item always runs the edit undo, in every workspace (proposal).
+  and Ctrl Z or 편집 > 실행 취소 restores the item (proposal). Both always run
+  edit undo and never restore cleared output (M2 check 1 row 8; 03, 10).
 - Deleting or moving the item that is on output doesn't change the output.
 
 Source: `ShowH`, `Compact`, `Problems` (warning icon), `ListRow` README, `Panel`
@@ -139,11 +138,17 @@ service needs no confirmation), product log version 63.
   sequence (from 1) and the 이름표 name, painted in the 이름표 color. Without an
   이름표, the band shows only the number.
 - Clicking a tile outputs that 장 at once (see 03). The live tile has a red
-  ring: only that tile, not other tiles of the same 장. The selected tile has a
-  blue ring.
-- The thumbnail size slider in the footer sets the number of columns (2 to 8).
-  The default depends on the size class (narrow 3, regular 4, wide 6). Save the
-  operator's value per size class.
+  ring: only that tile, not other tiles of the same 장. In 진행, don't draw a
+  keyboard focus border around thumbnails, including after arrow navigation.
+  Keep keyboard focus and activation behavior. In 준비, keep the blue keyboard
+  focus border so selection can move before an edit (decided, M2 check 1 row 3).
+- The footer has a continuous size slider and a synchronized % field (M2 check 1
+  row 9). The proposed range is 50% to 200%, step 1 percentage point for typing
+  and keyboard adjustment, default 100%. Pointer dragging changes the size
+  smoothly without snapping to a column count. At 100%, the baseline fits narrow
+  3, regular 4, or wide 6 columns; thumbnails retain their scaled width when the
+  number of columns changes. Save the percentage per size class, not a column
+  count. 10 defines the mapping, storage, and reasons.
 - Other item kinds:
   - Bible passage: the Bible 장 (see "Bible passages").
   - Media: one media tile. Clicking it outputs that media to the media layer
@@ -253,8 +258,8 @@ each preview follows ProPresenter's rule: it shows what goes out.
   방송 자막. The 무대 화면 keeps the stage layout elements that no clear
   touches: the clock, the 타이머, and the stage message (03, "Clear buttons and
   shortcuts").
-- 되돌림 (Ctrl Z) brings the layer back in the previews and the outputs
-  together.
+- The optional 되돌리기 button brings the cleared layers back in the previews
+  and the outputs together (03). Ctrl Z only undoes edits.
 - The clear buttons show which layers have something to clear (`ClearButton`
   README). ProPresenter turns a clear button red when its layer has content
   (guide p. 25); this app shows it with brightness, because red is only for 출력
@@ -290,8 +295,9 @@ Source: `ShowH`, `PreviewFrame` README, `Problems`, ProPresenter 7.5 user guide
 ## Clear row
 
 The row holds 모두 (all), 가사 (lyrics), 미디어 (media), 소품, 오디오 (audio),
-메시지, 공지, a separator, and 되돌림 (undo), in that order. 03 defines the
-behavior.
+메시지, and 공지, in that order. When 지우기 되돌리기 단추 보이기 is on, append
+a separator and 되돌리기 (undo); the default is off (proposal). 03 defines the
+behavior. Ctrl Z never undoes a clear.
 
 ## 진행 도구
 
@@ -642,7 +648,7 @@ keys are changed are in 10, "Shortcut system".
 | Ctrl L                                           | Open the item of the live 장 (출력 중인 항목 열기)              | Follows ProPresenter (Show Triggered Presentation, S1)                            |
 | Alt →, Alt ←                                     | Next or previous background in the media strip's playlist       | Follows ProPresenter (Next and Previous Background, S1)                           |
 | F1 to F7                                         | Clear all, lyrics, media, 소품, audio, 메시지, 공지             | Follows ProPresenter (S1)                                                         |
-| Ctrl Z                                           | 되돌림 (undo the last clear)                                    | Follows ProPresenter (Undo, S1)                                                   |
+| Ctrl Z                                           | 실행 취소 (edit undo for the 예배 순서 or a text field)         | M2 check 1 row 8; never restores cleared output (03, 10)                          |
 | Ctrl 1                                           | Audience screen outputs (본 화면 and 방송 자막) on or off       | Follows ProPresenter (Toggle Output Screens, S1; S4 p. 172)                       |
 | Ctrl 2                                           | 무대 화면 output on or off                                      | Follows ProPresenter (Toggle Stage Display Screens, S1)                           |
 | Alt S, Ctrl M, Ctrl Shift C, Ctrl Shift P, Alt C | The 무대, 메시지, 타이머, and 소품 tabs, and the action palette | Follows ProPresenter (S1)                                                         |

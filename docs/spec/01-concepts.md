@@ -173,8 +173,9 @@ and 61.
 - Version 1 runs only on Windows. The target is Windows 10 or later (proposal).
 - The main window has no Windows title bar. The menu bar also serves as the
   title bar.
-- All sizes are CSS pixels after Windows display scaling. The app has no zoom of
-  its own.
+- All base sizes are CSS pixels after Windows display scaling. UI zoom scales
+  the control windows from that base, independently of output rendering (10;
+  decided in M2 check 1, row 11).
 - Shortcuts are matched by physical key, so they work with the Korean IME on,
   and their names are written in English as Windows writes them: Ctrl, Alt,
   Shift, Page Up (decided, 10).
@@ -258,13 +259,13 @@ READMEs, `Prefs`.
 - No source lists the items of the other menus. Version 1 has only these items
   (proposal, open question):
 
-  | Menu          | Items                                                                                                                   |
-  | ------------- | ----------------------------------------------------------------------------------------------------------------------- |
-  | 편집 (Edit)   | Undo, redo, cut, copy, paste, delete                                                                                    |
-  | 보기 (View)   | 진행, 준비, 화면 설정, 미디어 (Media)                                                                                   |
-  | 출력 (Output) | 본 화면, 무대 화면, 방송 자막 output on or off (with check marks), separator, list of Looks (check on the current Look) |
-  | 창 (Window)   | Minimize, maximize, 환경설정                                                                                            |
-  | 도움말 (Help) | Version information, open the log folder                                                                                |
+  | Menu          | Items                                                                                                                      |
+  | ------------- | -------------------------------------------------------------------------------------------------------------------------- |
+  | 편집 (Edit)   | Undo, redo, cut, copy, paste, delete                                                                                       |
+  | 보기 (View)   | 진행, 준비, 화면 설정, 미디어 (Media), UI 확대, UI 축소, UI 확대 초기화; 화면 배치 초기화 with confirmation (proposal; 10) |
+  | 출력 (Output) | 본 화면, 무대 화면, 방송 자막 output on or off (with check marks), separator, list of Looks (check on the current Look)    |
+  | 창 (Window)   | Minimize, maximize, 환경설정                                                                                               |
+  | 도움말 (Help) | Version information, open the log folder                                                                                   |
 
 - Menu keyboard behavior follows the design system `MenuBar` and `Menu`
   documents.
@@ -314,10 +315,10 @@ All three workspaces use the same three-column frame (left, center, right). The
 - Switching workspaces never changes the output.
 - All three workspaces share the current service. The 예배 순서 panels in 진행
   and 준비 show the same 예배 순서.
-- F1 to F7 work in every workspace, even with a dialog open, and undo of a clear
-  (Ctrl Z) works in 진행 and 화면 설정 (decided; 10, focus precedence). The
-  `ClearButton` README still says "in the 진행 workspace"; that is a design
-  system follow-up.
+- F1 to F7 work in every workspace, even with a dialog open (10, focus
+  precedence). Ctrl Z only undoes edits. Clear undo has no default key and its
+  optional button is hidden by default (proposal; 03, 10; M2 check 1 rows 7 and
+  8). The `ClearButton` README needs the same scope and button update.
 - The app always opens in the 진행 workspace (proposal).
 
 Source: `Main` decision "작업 공간 세 개", design system README (window sizes

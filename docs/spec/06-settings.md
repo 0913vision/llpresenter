@@ -215,7 +215,8 @@ Source: `Looks`, `Main` board guide (Look 편집), `Checkbox` README,
   요소 추가 (add element, a menu of element kinds). The 16:9 canvas with the
   elements. The selected element has eight handles. A bottom bar has X, Y, W, H
   fields, 비율 고정 (keep aspect ratio), 격자에 맞추기 (snap to grid), and the
-  zoom ("53%").
+  canvas zoom ("53%"). 화면에 맞춤 has no default key; Ctrl 0 resets UI zoom
+  (10; M2 check 1 row 11).
 - Right: the 요소 (element) properties: the element name and 요소 삭제 (delete
   element). The 내용 (content) group: 이름 (name), 내용 종류 (content kind, a
   select such as 현재 장, current 장), and 보여 줄 것 (what to show: 글자 text,
@@ -296,6 +297,11 @@ table. See "What this proposal would replace" in 10.
 
 Source: `Prefs`, `PropertyRow` README, `MenuBar` README (secondary window title
 bar), `docs/TECH.md` operating rules.
+
+M2 check 1 updates the proposal in 10 with 일반 > UI 확대 (default 100%, Ctrl +,
+Ctrl -, Ctrl 0) and 진행 > 지우기 되돌리기 단추 보이기 (proposal, default off).
+The zoom scales control windows; it never changes output rendering. These rows
+supersede the earlier omission from this window.
 
 ## Shortcuts
 
