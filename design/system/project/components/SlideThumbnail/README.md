@@ -42,13 +42,15 @@ The thumbnail itself has no size variants. The column count of the grid sets its
 | Hover | Same | Same | Outer 1px `line-control` |
 | Selected (not live) | Same | Same | `ring-selected` (2px `accent`) |
 | Live | Same | Same | `ring-live` (3px `live`). Takes priority over selected |
-| Focus | Same | Same | `outline: 2px solid accent`, `outline-offset: 4px` (outside the live ring) |
+| Focus in 준비 | Same | Same | `outline: 2px solid accent`, `outline-offset: 4px` (outside the live ring) |
+| Focus in 진행 | Same | Same | No keyboard focus outline; selection and live rings remain |
 | 장 media file missing | Hatching (`bg-inset`/`bg-well`, 135°, 6px) | `filex` 24px `warning` in the center | If live, also `ring-live`. The path is in the title tooltip |
 
 Hover uses the same 1px `line-control` as the hover of the small previews (ShowH `.pv:hover`, 1px #6e6e6e). Because it is a gray 1px line, it doesn't get confused with the blue 2px (selected) or the red 3px (live), and it only shows where you can click. On a selected or live thumbnail, hover keeps that ring as it is.
 
 ## Behavior
 
+- In 진행, keyboard focus remains on the thumbnail but draws no focus outline. Tab, arrow movement, Enter, and the live/selection rings still work. 준비 keeps the usual focus outline. `ThumbnailGrid` passes its `workspace` through to the grid; other tile lists default to 준비.
 - In the 진행 workspace, a click outputs that 장. In the 준비 workspace, a click only selects it.
 - The grid is `role="listbox"`, and each thumbnail is `role="option"` + `aria-selected`. Tab enters the grid only once (roving tabindex), on the selected thumbnail.
 - In the 준비 workspace, the arrow keys move between thumbnails, and Enter and Space act as a click.

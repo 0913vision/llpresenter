@@ -36,6 +36,10 @@
   outline-offset: var(--space-focus-outside-live-ring);
 }
 
+.grid[data-workspace='show'] .thumb:focus-visible {
+  outline: none;
+}
+
 .canvas {
   position: relative;
   display: block;

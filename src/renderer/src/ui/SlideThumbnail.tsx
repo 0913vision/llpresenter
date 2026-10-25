@@ -63,13 +63,15 @@ type GridStyle = CSSProperties & Readonly<Record<'--thumb-columns', number>>;
  * The 장 grid (`ll-thumb-grid`): a listbox of `SlideThumbnail` items that Tab
  * enters once. The arrow keys move the selection; a click or Enter outputs a
  * 장 in 진행 and selects it in 준비. While focus is in the grid, it follows the
- * selection, also when 다음 장 moves it.
+ * selection, also when 다음 장 moves it. 진행 keeps keyboard focus without
+ * drawing its focus outline; 준비 draws it.
  */
 export function ThumbnailGrid(props: ThumbnailGridProps): JSX.Element {
   const {workspace, columns, onSelect} = props;
   const style: GridStyle = {'--thumb-columns': columns};
   return (
     <TileList
+      workspace={workspace}
       label={props.label}
       moves={workspaceMoves[workspace]}
       columns={columns}

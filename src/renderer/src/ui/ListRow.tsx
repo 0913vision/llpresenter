@@ -160,6 +160,7 @@ export interface ListBoxProps {
   /**
    * `show` for the 예배 순서 list of 진행, where Space goes on to 다음 장 and
    * only Enter selects; `prep` (the default) everywhere else, dialogs included.
+   * 진행 keeps keyboard focus without drawing a row focus outline.
    */
   readonly workspace?: Workspace | undefined;
   readonly className?: string | undefined;
@@ -204,6 +205,7 @@ export function ListBox({
         {...clickFocusProps}
         ref={listRef}
         role="listbox"
+        data-workspace={workspace}
         aria-label={label}
         className={classNames(styles.list, inset && styles.inset, className)}
         onKeyDown={onKeyDown}

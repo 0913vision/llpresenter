@@ -91,6 +91,10 @@
   outline-offset: calc(-1 * var(--space-2));
 }
 
+.list[data-workspace='show'] .row:focus-visible {
+  outline: none;
+}
+
 .row[aria-selected='true'] {
   background: var(--selection);
   color: var(--text);

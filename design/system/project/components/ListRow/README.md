@@ -50,7 +50,8 @@ One row of a list. The base is a 30px row with a 16px type icon, a 13px name, an
 | Default | Transparent | Name `text`, icon `text-2`, extra `text-3` | |
 | Hover | `bg-raised` | Unchanged | 100ms ease-out |
 | Pressed | `bg-control-hover` | Extra `text-2` | |
-| Focus | Unchanged | Unchanged | outline 2px `accent`, offset −2px (inside the row) |
+| Focus in 준비 | Unchanged | Unchanged | outline 2px `accent`, offset −2px (inside the row) |
+| Focus in 진행 | Unchanged | Unchanged | No row focus outline; selection and live marks remain |
 | Selected | `selection` | Name and icon `text`, extra and second line `text-on-selection` | `aria-selected="true"`, stays the same on hover |
 | Live | `selection` if selected, otherwise transparent | Unchanged | LIVE badge on the right, `data-state="live"` |
 | Past item | Transparent | Name `text-3`, icon `text-off` | A 예배 순서 item that has already passed in the 진행 (Show) workspace, `data-state="done"` |
@@ -60,6 +61,7 @@ One row of a list. The base is a 30px row with a 16px type icon, a 13px name, an
 
 ## Behavior
 
+- `ListBox workspace="show"` keeps keyboard focus without drawing the row's focus outline. Tab entry, arrow selection, and Enter still work. 준비, including the default workspace in a dialog, keeps the normal outline. Controls at a row's end keep their own focus outline in either workspace.
 - A list has `role="listbox"`, and each row has `role="option"` and `aria-selected`. Tab enters the list once, on the selected row or, with none selected, the first row, and Shift Tab leaves it (the list itself never takes focus); the up and down arrows move between rows, and Home and End go to the first and last rows. Group headers are skipped (a group has `role="group"` + `aria-labelledby`).
 - In the 진행 workspace, the 예배 순서 list keeps ↑, ↓, Home, End, and Enter. ←, →, Space, Page Up, and Page Down go to 다음 장 and 이전 장 even while the list has focus, as in ProPresenter. A click on a row gives the list keyboard focus, also in 진행.
 - A click on a row only selects it. A 예배 순서 row opens the 장 of that item in the 장 panel. For 출력 (output), the user clicks a 장.

@@ -14,6 +14,7 @@ import {
 import {clickFocusProps} from './clickFocus';
 import type {MenuAnchor} from './Menu';
 import {hasModifier} from './modifierKeys';
+import type {Workspace} from './workspace';
 
 const TILE = '[role="option"]';
 const SPACE = ' ';
@@ -54,6 +55,8 @@ export type TileColumns = number | 'auto';
 
 /** The props that every tile list takes. */
 export interface TileListBaseProps {
+  /** The workspace for the grid's focus appearance; defaults to 준비. */
+  readonly workspace?: Workspace | undefined;
   /** The list name for assistive technology, such as 장 or 매크로. */
   readonly label: string;
   readonly moves: TileMoves;
@@ -280,6 +283,7 @@ export function TileList(props: TileListProps): JSX.Element {
       {...(props.takesClickFocus === true ? clickFocusProps : undefined)}
       ref={listRef}
       role="listbox"
+      data-workspace={props.workspace ?? 'prep'}
       aria-label={props.label}
       className={props.className}
       style={props.style}

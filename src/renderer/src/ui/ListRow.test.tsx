@@ -115,6 +115,21 @@ function ChangingRows({change}: {readonly change: RowChange}): JSX.Element {
 }
 
 describe('ListBox and ListRow', () => {
+  it.each(['show', 'prep'] as const)(
+    'keeps Tab entry and arrow selection in the %s focus appearance',
+    async workspace => {
+      const onSelect = vi.fn();
+      render(<ServiceOrder workspace={workspace} onSelect={onSelect} />);
+      expect(screen.getByRole('listbox').dataset['workspace']).toBe(workspace);
+      await userEvent.tab();
+      expect(document.activeElement?.getAttribute('data-value')).toBe('count');
+      await userEvent.keyboard('{ArrowDown}');
+      expect(document.activeElement?.getAttribute('data-value')).toBe('hymn1');
+      expect(selectedTitle()).toBe('hymn1');
+      expect(onSelect).toHaveBeenCalledWith('hymn1');
+    },
+  );
+
   it('is a named list box of named options in named groups', () => {
     render(<ServiceOrder />);
     expect(screen.getByRole('listbox', {name: '예배 순서'})).toBeDefined();

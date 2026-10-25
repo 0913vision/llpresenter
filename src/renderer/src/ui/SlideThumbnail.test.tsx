@@ -214,6 +214,35 @@ describe('SlideThumbnail', () => {
 });
 
 describe('ThumbnailGrid', () => {
+  it.each(['show', 'prep'] as const)(
+    'keeps Tab, arrow movement, and activation in the %s focus appearance',
+    async workspace => {
+      const onOutput = vi.fn();
+      const onSelect = vi.fn();
+      render(
+        <SongGrid
+          workspace={workspace}
+          initial={0}
+          onOutput={onOutput}
+          onSelect={onSelect}
+        />,
+      );
+      expect(screen.getByRole('listbox').dataset['workspace']).toBe(workspace);
+      await userEvent.tab();
+      await userEvent.tab();
+      expect(document.activeElement).toBe(thumbnail(1));
+      await userEvent.keyboard('{ArrowDown}');
+      expect(document.activeElement).toBe(thumbnail(4));
+      expect(selectedNumbers()).toEqual(['4']);
+      await userEvent.keyboard('{Enter}');
+      if (workspace === 'show') expect(onOutput).toHaveBeenCalledWith(3);
+      else {
+        expect(onOutput).not.toHaveBeenCalled();
+        expect(onSelect).toHaveBeenCalledWith(3);
+      }
+    },
+  );
+
   it('sets the column count and takes focus on a click in 진행', () => {
     render(<SongGrid workspace="show" />);
     const grid = screen.getByRole('listbox', {name: '장'});
