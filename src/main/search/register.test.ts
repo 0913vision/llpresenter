@@ -1,5 +1,6 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {Channels} from '@shared/ipc';
+import {LIBRARY_SEARCH_LIMITS} from '@shared/schema/librarySearch';
 import {parseSong} from '@shared/schema/song';
 import type {Logger} from '../log';
 import {hymnOne} from '../store/testFiles';
@@ -63,12 +64,29 @@ describe('registerLibrarySearch', () => {
     });
   });
 
+  it('passes the shared default and maximum through the IPC boundary', async () => {
+    const index = new SongSearchIndex();
+    const search = vi.spyOn(index, 'search');
+    const {ask} = register(Promise.resolve(index));
+    await ask({query: ''});
+    expect(search).toHaveBeenLastCalledWith({
+      query: '',
+      limit: LIBRARY_SEARCH_LIMITS.default,
+    });
+    await ask({query: '', limit: LIBRARY_SEARCH_LIMITS.max});
+    expect(search).toHaveBeenLastCalledWith({
+      query: '',
+      limit: LIBRARY_SEARCH_LIMITS.max,
+    });
+  });
+
   it.each([
     null,
     {},
     {query: 1},
     {query: 'x', limit: 0},
     {query: 'x', limit: 1.5},
+    {query: 'x', limit: LIBRARY_SEARCH_LIMITS.max + 1},
   ])('rejects and logs malformed request %j', async value => {
     const {ask, logger} = register(Promise.resolve(new SongSearchIndex()));
     await expect(ask(value)).rejects.toThrow('Invalid library search request');

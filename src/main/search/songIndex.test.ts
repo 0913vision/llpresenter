@@ -1,7 +1,10 @@
 import {setImmediate} from 'node:timers/promises';
 import {describe, expect, it} from 'vitest';
 import {createSongId} from '@shared/schema/ids';
-import {parseLibrarySearchResult} from '@shared/schema/librarySearch';
+import {
+  LIBRARY_SEARCH_LIMITS,
+  parseLibrarySearchResult,
+} from '@shared/schema/librarySearch';
 import type {Song} from '@shared/schema/song';
 import {buildSongSearchIndex, SongSearchIndex} from './songIndex';
 
@@ -139,16 +142,26 @@ describe('SongSearchIndex', () => {
     ).toEqual([first.id, second.id]);
   });
 
-  it('caps default and excessive limits while honoring smaller requests', async () => {
-    const index = await buildSongSearchIndex(
-      Array.from({length: 150}, (_, n) => song(n, `Song ${n}`)),
-    );
-    expect(index.search({query: 'song'}).matches).toHaveLength(100);
-    expect(index.search({query: 'song', limit: 2}).matches).toHaveLength(2);
-    expect(index.search({query: 'song', limit: 10000}).matches).toHaveLength(
-      100,
-    );
-  });
+  it.each(['song', 'refrain', ''])(
+    'uses the shared default and maximum for query %j',
+    async query => {
+      const index = await buildSongSearchIndex(
+        Array.from({length: LIBRARY_SEARCH_LIMITS.max + 1}, (_, n) =>
+          song(n, `Song ${n}`, ['A shared refrain']),
+        ),
+      );
+      expect(index.search({query}).matches).toHaveLength(
+        LIBRARY_SEARCH_LIMITS.default,
+      );
+      expect(index.search({query, limit: 2}).matches).toHaveLength(2);
+      expect(
+        index.search({query, limit: LIBRARY_SEARCH_LIMITS.max}).matches,
+      ).toHaveLength(LIBRARY_SEARCH_LIMITS.max);
+      expect(
+        index.search({query, limit: LIBRARY_SEARCH_LIMITS.max + 1}).matches,
+      ).toHaveLength(LIBRARY_SEARCH_LIMITS.max);
+    },
+  );
 
   it('yields during a 3000-song build and answers cold and warm queries within 50 ms', async () => {
     const titleShuffleFactor = 7919;
@@ -159,6 +172,7 @@ describe('SongSearchIndex', () => {
       ]),
     );
     let complete = false;
+    const buildStarted = performance.now();
     const loading = buildSongSearchIndex(songs).then(index => {
       complete = true;
       return index;
@@ -166,6 +180,9 @@ describe('SongSearchIndex', () => {
     await setImmediate();
     expect(complete).toBe(false);
     const index = await loading;
+    console.info(
+      `Build 3000 songs: ${(performance.now() - buildStarted).toFixed(3)} ms`,
+    );
     expect(index.size).toBe(3000);
     for (const query of ['ㅅㅎㅊㅇ', 'shared refrain', 'no such text']) {
       const started = performance.now();
@@ -173,7 +190,9 @@ describe('SongSearchIndex', () => {
       const duration = performance.now() - started;
       console.info(`Search 3000 songs (${query}): ${duration.toFixed(3)} ms`);
       expect(duration).toBeLessThan(50);
-      expect(result.matches.length).toBe(query === 'no such text' ? 0 : 100);
+      expect(result.matches.length).toBe(
+        query === 'no such text' ? 0 : LIBRARY_SEARCH_LIMITS.default,
+      );
     }
   });
 });

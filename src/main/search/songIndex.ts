@@ -1,13 +1,13 @@
 import {setImmediate} from 'node:timers/promises';
 import type {SongChange} from '@shared/schema/contentDocuments';
-import type {
-  LibrarySearchMatch,
-  LibrarySearchRequest,
-  LibrarySearchResult,
+import {
+  LIBRARY_SEARCH_LIMITS,
+  type LibrarySearchMatch,
+  type LibrarySearchRequest,
+  type LibrarySearchResult,
 } from '@shared/schema/librarySearch';
 import type {Song} from '@shared/schema/song';
 
-export const MAX_SEARCH_RESULTS = 100;
 export const INDEX_CHUNK_SIZE = 25;
 
 const INITIALS = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';
@@ -101,11 +101,11 @@ export class SongSearchIndex {
 
   search({
     query,
-    limit = MAX_SEARCH_RESULTS,
+    limit = LIBRARY_SEARCH_LIMITS.default,
   }: LibrarySearchRequest): LibrarySearchResult {
     const normalized = normalize(query);
     if (query !== '' && normalized === '') return {query, matches: []};
-    const maximum = Math.min(limit, MAX_SEARCH_RESULTS);
+    const maximum = Math.min(limit, LIBRARY_SEARCH_LIMITS.max);
     const initials = INITIAL_QUERY.test(normalized);
     const titles: LibrarySearchMatch[] = [];
     const lyrics: LibrarySearchMatch[] = [];
