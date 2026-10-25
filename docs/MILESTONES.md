@@ -110,7 +110,11 @@ Acceptance criteria (QA), from `docs/PLAN.md` phase 2:
 - 60 minutes of continuous output (looping video, 장 changes) on two monitors
   shows no stutter and no memory growth (soak test).
 - The app recovers when an output window is force-quit, when a monitor is
-  unplugged, and when the app itself is force-quit.
+  unplugged, and when the app itself is force-quit. In M2, recovering after the
+  app itself is force-quit means it starts again cleanly with its data intact
+  and the same 예배 순서 open, outputs off, so the operator resumes by hand; the
+  출력 상태 복구 dialog that restores the live state comes in M3 (O8, S2b) (lead
+  decision, October 25).
 
 ## M3: Feature bundles
 
