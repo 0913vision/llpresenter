@@ -1,6 +1,5 @@
 import {create} from 'zustand';
-import * as v from 'valibot';
-import {serviceItemIdSchema} from '@shared/schema/ids';
+import {parseServiceItemId} from '@shared/schema/ids';
 import type {ShowService} from '@shared/schema/showService';
 import {
   type ItemId,
@@ -96,8 +95,8 @@ function startServiceItem(itemId: ItemId): void {
   ) {
     return;
   }
-  const id = v.safeParse(serviceItemIdSchema, itemId);
-  if (id.success) sendLive({type: 'item.start', itemId: id.output});
+  const id = parseServiceItemId(itemId);
+  if (id.ok) sendLive({type: 'item.start', itemId: id.value});
 }
 
 /** Outputs a tile and shows it selected in the 장 panel. */

@@ -1,6 +1,5 @@
-import {is} from 'valibot';
 import {
-  keyCodeSchema,
+  isKeyCode,
   keyModifiers,
   type KeyBinding,
 } from '@shared/schema/shortcuts';
@@ -83,7 +82,7 @@ export function shortcutPress(event: KeyboardEvent): ShortcutPress {
   const reason = reservedReason(event);
   if (reason !== undefined) return {kind: 'reject', reason};
   if (/^(Control|Alt|Shift)(Left|Right)$/.test(code)) return {kind: 'modifier'};
-  if (!is(keyCodeSchema, code)) {
+  if (!isKeyCode(code)) {
     return {kind: 'reject', reason: '지원하지 않는 키'};
   }
   return {
