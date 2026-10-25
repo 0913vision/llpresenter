@@ -1,5 +1,6 @@
 import {BrowserWindow, screen} from 'electron';
 import type {Logger} from '../log';
+import type {UiZoomRegistration} from '../store/uiZoom';
 import {blockNavigation, loadPage, preloadPath, type PageRequest} from './page';
 import {
   discardTestFrames,
@@ -32,6 +33,7 @@ function reloadAfterCrash(win: BrowserWindow, log: Logger): void {
 export function createControlWindow(
   log: Logger,
   mode: WindowMode,
+  zoom: Pick<UiZoomRegistration, 'attachControl'>,
 ): BrowserWindow {
   const area = screen.getPrimaryDisplay().workAreaSize;
   const {webPreferences: testPreferences, ...testOptions} =
@@ -56,6 +58,7 @@ export function createControlWindow(
     },
   });
   discardTestFrames(win.webContents, mode);
+  zoom.attachControl(win.webContents);
   blockNavigation(win);
   reloadAfterCrash(win, log);
   win.once('ready-to-show', () => {

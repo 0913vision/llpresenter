@@ -1,6 +1,7 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {recordingLogger} from '../displays/testing';
 import {createControlWindow} from './control';
+import {loadPage} from './page';
 
 const electron = await vi.hoisted(async () => {
   const {EventEmitter} = await import('node:events');
@@ -42,8 +43,13 @@ beforeEach(() => {
 
 describe('createControlWindow', () => {
   it('releases offscreen frames immediately and removes the listener at destruction', () => {
-    createControlWindow(recordingLogger(), 'offscreen');
+    const zoom = {attachControl: vi.fn()};
+    createControlWindow(recordingLogger(), 'offscreen', zoom);
     const win = lastWindow();
+    expect(zoom.attachControl).toHaveBeenCalledWith(win.webContents);
+    expect(zoom.attachControl.mock.invocationCallOrder[0]).toBeLessThan(
+      vi.mocked(loadPage).mock.invocationCallOrder.at(-1) ?? Infinity,
+    );
     expect(win.options).toMatchObject({
       show: false,
       skipTaskbar: true,
@@ -64,7 +70,7 @@ describe('createControlWindow', () => {
   });
 
   it('shows the normal window and does not subscribe to frames', () => {
-    createControlWindow(recordingLogger(), 'normal');
+    createControlWindow(recordingLogger(), 'normal', {attachControl: vi.fn()});
     const win = lastWindow();
     expect(win.options).not.toHaveProperty('webPreferences.offscreen');
     expect(win.webContents.listenerCount('paint')).toBe(0);

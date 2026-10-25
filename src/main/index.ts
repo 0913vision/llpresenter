@@ -9,6 +9,7 @@ import {LOG_FLUSH_LIMIT_MS, ShutdownCoordinator} from './shutdown';
 import {registerSoakRecorder, registerSoakScenario} from './soak';
 import {openAppConfig} from './store/appConfigFile';
 import {registerStore} from './store/register';
+import {registerUiZoom} from './store/uiZoom';
 import {registerUiState} from './uiState/register';
 import {applyUserDataOverride, type UserDataProblem} from './userData';
 import {createControlWindow} from './windows/control';
@@ -84,6 +85,7 @@ function start(): void {
         log,
       });
       const ui = registerUiState(appConfig, log);
+      const zoom = registerUiZoom(appConfig, log);
       const store = new LiveStore();
       const dataStore = registerStore({
         log,
@@ -96,7 +98,7 @@ function start(): void {
         mediaRoots: dataStore.mediaRoots,
         log,
       });
-      const win = createControlWindow(log, windowMode);
+      const win = createControlWindow(log, windowMode, zoom);
       control = win;
       const outputs = startOutputs({store, control: win, log, windowMode});
       const stopSoakScenario = registerSoakScenario(log, command =>
@@ -112,6 +114,7 @@ function start(): void {
       shutdown.add({name: 'stop the soak scenario', run: stopSoakScenario});
       shutdown.add({name: 'stop the outputs', run: outputs.stop});
       shutdown.add({name: 'save the UI state', run: () => ui.dispose()});
+      shutdown.add({name: 'stop UI zoom', run: () => zoom.dispose()});
       shutdown.add({name: 'save app.json', run: () => appConfig.flush()});
       shutdown.add({name: 'finish the soak record', run: stopSoakRecorder});
       shutdown.add({name: 'close the data store', run: dataStore.dispose});

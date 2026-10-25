@@ -39,6 +39,8 @@ const fakes = vi.hoisted(() => {
       },
     },
     uiDispose: vi.fn<() => Promise<void>>(),
+    zoom: {attachControl: vi.fn(), dispose: vi.fn()},
+    zoomForControl: new Array<unknown>(),
     soakStop: vi.fn<() => Promise<void>>(),
     soakSources,
     scenarioStop: vi.fn<() => void>(),
@@ -62,6 +64,12 @@ const fakes = vi.hoisted(() => {
 });
 
 vi.mock('electron', () => fakes.electron);
+vi.mock('./store/uiZoom', () => ({
+  registerUiZoom: vi.fn(() => {
+    fakes.order.push('UI zoom');
+    return fakes.zoom;
+  }),
+}));
 vi.mock('./uiState/register', () => ({
   registerUiState: vi.fn(() => {
     fakes.order.push('ui state');
@@ -113,7 +121,8 @@ vi.mock('./windows/mediaProtocol', () => ({
   },
 }));
 vi.mock('./windows/control', () => ({
-  createControlWindow: () => {
+  createControlWindow: (_log: unknown, _mode: unknown, zoom: unknown) => {
+    fakes.zoomForControl.push(zoom);
     fakes.order.push('control window');
     const win = Object.assign(new EventEmitter(), fakes.controlWindow);
     fakes.opened.control = win;
@@ -161,6 +170,9 @@ beforeEach(async () => {
   fakes.appHandlers.clear();
   fakes.opened.control = null;
   fakes.uiDispose.mockReset();
+  fakes.zoom.attachControl.mockReset();
+  fakes.zoom.dispose.mockReset();
+  fakes.zoomForControl.length = 0;
   fakes.soakStop.mockReset();
   fakes.soakSources.length = 0;
   fakes.scenarioStop.mockReset();
@@ -198,9 +210,21 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     expect(fakes.order).toEqual([
       'app.json',
       'ui state',
+      'UI zoom',
       'data store',
       'control window',
     ]);
+  });
+
+  it('passes the shared zoom registration only to the control window and disposes it before saving app.json', async () => {
+    await startMain();
+    expect(fakes.zoomForControl).toEqual([fakes.zoom]);
+    beforeQuit();
+    await vi.waitFor(() => expect(fakes.appConfig.flush).toHaveBeenCalled());
+    expect(fakes.zoom.dispose).toHaveBeenCalledOnce();
+    expect(fakes.zoom.dispose.mock.invocationCallOrder[0]).toBeLessThan(
+      fakes.appConfig.flush.mock.invocationCallOrder[0] ?? Infinity,
+    );
   });
 
   it('tells the data store whether an output is on', async () => {
