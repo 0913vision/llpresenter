@@ -156,8 +156,9 @@ function prepPanelParts({
           api={prep.api}
           onProblem={onProblem ?? ignoreProblem}
           onOpenSong={selection => {
-            // TODO(0913vision): P2b honors focusTitle when its title field lands.
-            prep.editor.open(selection.document);
+            prep.editor.open(selection.document, {
+              focusTitle: selection.focusTitle,
+            });
           }}
         />
       ),

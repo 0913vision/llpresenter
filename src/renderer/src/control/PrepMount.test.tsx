@@ -119,14 +119,14 @@ it('switches back to service context even when selecting the same service row', 
   expect(fixture.send).not.toHaveBeenCalled();
 });
 
-it('opens a newly created song without sending any output command', async () => {
+it('creates 새 곡 and focuses and selects its title without sending output commands', async () => {
   const fixture = mountPrep();
   await screen.findByRole('option', {name: fixture.first.song.title});
-  const document = editorSong(3);
+  const sourceDocument = editorSong(3);
   const created = {
-    ...document,
+    ...sourceDocument,
     song: {
-      ...document.song,
+      ...sourceDocument.song,
       title: '새 곡',
       slides: [{lines: ['']}],
       arrangements: [],
@@ -147,6 +147,11 @@ it('opens a newly created song without sending any output command', async () => 
     'value',
     '',
   );
+  const title = screen.getByRole('textbox', {name: '곡 제목'});
+  expect(title).toHaveProperty('value', '새 곡');
+  await waitFor(() => expect(document.activeElement).toBe(title));
+  expect(title).toHaveProperty('selectionStart', 0);
+  expect(title).toHaveProperty('selectionEnd', created.song.title.length);
   expect(fixture.send).not.toHaveBeenCalled();
 });
 
