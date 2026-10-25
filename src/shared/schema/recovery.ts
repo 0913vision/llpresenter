@@ -119,12 +119,7 @@ export type RecoverySummary = ReadonlyKnown<
 
 export type RecoveryRowKind = (typeof recoveryRowKinds)[number];
 
-/**
- * The timestamp identifies the offered record; a changed record is stale.
- * Main restores selected rows in outputs, slide, showing order regardless of
- * request order, without item-start or startup macros. Start fresh follows
- * normal launch output preferences and startup macros instead.
- */
+/** The selected restore rows and the timestamp of the offered record. */
 export type RecoveryApply = ReadonlyKnown<v.InferOutput<typeof applySchema>>;
 
 export type RecoveryFailure = Readonly<v.InferOutput<typeof failureSchema>>;

@@ -5,7 +5,7 @@ import {
   type SingleLiveCommand,
 } from './commands';
 
-describe('isLiveCommand', () => {
+describe('interruptsSongOutput', () => {
   it('interrupts pending song navigation when any batch child interrupts it', () => {
     const children: readonly SingleLiveCommand[] = [
       {
@@ -78,7 +78,9 @@ describe('isLiveCommand', () => {
       }),
     ).toBe(false);
   });
+});
 
+describe('isLiveCommand', () => {
   it('accepts well-formed commands', () => {
     const accepted: unknown[] = [
       {type: 'clear.undo'},

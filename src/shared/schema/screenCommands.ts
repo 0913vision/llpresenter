@@ -19,11 +19,7 @@ export const screenCommandSchema = v.pipe(
   v.variant('type', screenCommandOptions),
 );
 
-/**
- * Monitor numbers show for three seconds on every physical monitor. Settings
- * apply a complete configuration to an existing screen's live output only;
- * persistence uses settings.edit. A test pattern never changes content layers.
- */
+/** A live screen diagnostic or configuration command. */
 export type ScreenCommand = ReadonlyKnown<
   v.InferOutput<typeof screenCommandSchema>
 >;
