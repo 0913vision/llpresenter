@@ -5,10 +5,10 @@
 - Base: `5415e336ab55ccab2f798d58c59f9a02e2dfd815` (data-38 merged)
 - Range: `5415e33...feat/output/live-screen-settings`
 - Scope: M3-O9a saved screen subscriptions and sleep lifecycle.
-- CI: pending the branch push. The first data-38 run
-  [40228008084](https://github.com/0913vision/llpresenter/actions/runs/40228008084)
-  passed coverage, build, typecheck and formatting, but failed lint on a missing
-  brace in the new test. The brace was corrected before the next push.
+- Code head: `6f119f270463c5c26b1079793f18d9c26f31ab6a`
+- Code CI:
+  [40228489919](https://github.com/0913vision/llpresenter/actions/runs/40228489919),
+  **success**, including the complete GitHub Windows verify job.
 
 ## Changes
 
@@ -63,6 +63,12 @@ There is no shared or preload change. The permitted test-only
 
 ## Verification
 
+- GitHub Windows full verify passed at the code head linked above. The first
+  data-38 run
+  [40228008084](https://github.com/0913vision/llpresenter/actions/runs/40228008084)
+  passed coverage, build, typecheck and formatting, but failed lint on a missing
+  brace in the new test. The brace was corrected, then formatting and targeted
+  lint were rerun before the successful push.
 - After rebasing onto data-38, 180 tests across 14 relevant files passed in 3.94
   seconds. Typecheck, targeted ESLint, Prettier and whitespace checks passed.
 - Both alias regressions failed against the actual old output reducer and
