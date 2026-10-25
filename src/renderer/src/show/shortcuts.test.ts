@@ -572,6 +572,37 @@ describe('label click focus', () => {
     expect(document.activeElement).toBe(control);
   });
 
+  it.each(['field', 'window'] as const)(
+    'clears a label press before a %s handler swallows keydown',
+    scope => {
+      renderHook(() => useShowKeys());
+      appendTo('button').focus();
+      const {text, control} = labeledButton();
+      dispatchMouse('mousedown', text);
+      dispatchMouse('mouseup', text);
+      const field = appendTo('input');
+      field.focus();
+      const owner = scope === 'field' ? field : window;
+      owner.addEventListener(
+        'keydown',
+        event => {
+          event.preventDefault();
+          event.stopPropagation();
+        },
+        {once: true, capture: scope === 'window'},
+      );
+      field.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          code: 'Tab',
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+      control.focus();
+      expect(document.activeElement).toBe(control);
+    },
+  );
+
   it('releases the label state and click listener when Show unmounts', () => {
     const remove = vi.spyOn(window, 'removeEventListener');
     const {unmount} = renderHook(() => useShowKeys());
@@ -581,6 +612,9 @@ describe('label click focus', () => {
     dispatchMouse('mouseup', text);
     unmount();
     expect(remove).toHaveBeenCalledWith('click', expect.any(Function));
+    expect(remove).toHaveBeenCalledWith('keydown', expect.any(Function), {
+      capture: true,
+    });
     renderHook(() => useShowKeys());
     control.focus();
     expect(document.activeElement).toBe(control);

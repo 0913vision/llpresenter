@@ -249,6 +249,7 @@ function clearPendingClick(event: Event): void {
 /** Listens for the live keys while the 진행 workspace is shown. */
 export function useShowKeys(): void {
   useEffect(() => {
+    window.addEventListener('keydown', clearPendingClick, {capture: true});
     window.addEventListener('keydown', handleShowKey);
     window.addEventListener('keyup', handleShowKeyUp);
     window.addEventListener('mousedown', handleShowMouseDown);
@@ -259,6 +260,7 @@ export function useShowKeys(): void {
     window.addEventListener('blur', resetPendingInput);
     return () => {
       resetPendingInput();
+      window.removeEventListener('keydown', clearPendingClick, {capture: true});
       window.removeEventListener('keydown', handleShowKey);
       window.removeEventListener('keyup', handleShowKeyUp);
       window.removeEventListener('mousedown', handleShowMouseDown);
