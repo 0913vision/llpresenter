@@ -126,19 +126,19 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (9a34d5f): reviewer (Codex, codex3) Approve with two nits:
+  `readLocationFields` already calls `parseAppConfig`, so the file is parsed
+  twice, and the test imports valibot directly. The nits go into data's next
+  branch. Lead Approve; the data store is the one owner of `app.json`
+  (`docs/decisions.md`), parses it once, logs one warning for a broken file, and
+  runs writes in order. The rebase onto output-13 (cb9eab3) changed only the two
+  conflicts in `src/main/index.ts` and its wiring test: the soak scenario stays
+  the first shutdown step, and 'save app.json' follows 'save the UI state'.
+  Rebased by the lead onto local `main` without conflicts. Shell moves `uiState`
+  onto `UiStateFields` next; until then a broken file still logs uiState's
+  warning too.
 
 ## Team member's reply
 
