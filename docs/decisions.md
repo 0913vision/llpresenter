@@ -236,3 +236,15 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   restart limit (lead decision, output-14). A page that answers but draws
   nothing is logged, never restarted, because a wrong restart blanks a live
   output during a service. Spec 08 takes this rule when spec next changes.
+
+## 2026-10-25: Bible text from a one-time crawl, kept out of the repository
+
+- The Bible texts come from a one-time crawl (copible or a similar site) that
+  builds a local database in the format of spec-4 (`docs/spec/02-data.md`,
+  "Bible translations"), for the user's own use only, never redistributed (user
+  decision). This answers questions 8 and 9 of `docs/plans/open-decisions.md`.
+- No crawled text and no database built from it is ever committed to the public
+  repository. The database lives in the user's data folder; the app only reads
+  it and works offline.
+- The crawl runs once on the user's computer, slowly, within what the site
+  allows. It is M3 T4a work (tools, wave B).
