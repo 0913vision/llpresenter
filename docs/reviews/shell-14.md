@@ -101,7 +101,17 @@ missing.
 
 ## Verdicts (recorded by the lead at merge)
 
-- Not reviewed yet.
+- Round 1 (codex2): Request changes with four findings and a nit: a delayed
+  first read could overwrite a newer push, a failed read could clear the view,
+  the first read stayed active after unsubscribing, and a selection survived on
+  a row that became a header.
+- Round 2 (codex2): Request changes with one finding: the preload turned a
+  failed read into `null`, so the view could still be cleared; it needed data's
+  distinct failure (data-16).
+- Round 3 (da2af11): reviewer (Codex, codex2) Approve with no findings. Lead
+  Approve; on data-16 a rejected read keeps the view and a real `null` clears
+  it, tested through the real preload. The two shell-13 nits are fixed too.
+  Rebased by the lead onto local `main` without conflicts.
 
 ## Team member's reply
 
