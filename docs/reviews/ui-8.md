@@ -124,19 +124,17 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (c9526fb, codex5): Request changes with one finding: the three 출력
+  상태 복구 check rows sat side by side inside `SpecItem` instead of three
+  full-width rows.
+- Round 2 (9239dee): reviewer (Codex, codex3) Approve with no findings. Lead
+  Approve; the gallery fills its gaps against the cards (Button, IconButton,
+  SegmentedControl, Checkbox, Switch, and the recovery rows), icon buttons in a
+  panel header sit 8 px apart, and the MenuBar README and ui-9 nits are fixed.
+  Round 2 was finished by the Codex session that took over ui's work after the
+  power loss. Rebased by the lead onto local `main` without conflicts.
 
 ## Team member's reply
 
