@@ -38,3 +38,29 @@ export function parsedTranslation(value: unknown = translationFile()) {
   if (!result.ok) throw new Error(`Invalid fixture: ${result.error.message}`);
   return result.value.data;
 }
+
+export const FULL_TRANSLATION_VERSES = 31_102;
+
+export function fullTranslationText(): string {
+  const chapterCount = BIBLE_BOOKS.reduce(
+    (total, book) => total + book.chapters,
+    0,
+  );
+  const versesPerChapter = Math.floor(FULL_TRANSLATION_VERSES / chapterCount);
+  let remainingExtras = FULL_TRANSLATION_VERSES % chapterCount;
+  return JSON.stringify({
+    ...translationFile([]),
+    books: BIBLE_BOOKS.map(book => ({
+      id: book.id,
+      chapters: Array.from({length: book.chapters}, (_, chapter) => {
+        const count = versesPerChapter + (remainingExtras-- > 0 ? 1 : 0);
+        return Array.from({length: count}, (_, verse) =>
+          `Invented book ${book.id}, chapter ${chapter + 1}, verse ${verse + 1}: `.padEnd(
+            145,
+            'x',
+          ),
+        );
+      }),
+    })),
+  });
+}
