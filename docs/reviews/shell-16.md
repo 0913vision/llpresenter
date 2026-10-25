@@ -156,7 +156,11 @@ Round 2 (codex2, request changes), answered once:
 
 ### Round 3
 
-Pending.
+`npm run verify` on commit `0e5591f` (base `main` ce2e26d): all five steps
+passed in 91.9 s. With `state/show.ts` and `ServiceOrderList.module.css` from
+before the fixes put back in the working tree only, the four new tests fail (the
+`openItem` test, the two list end tests, and the padding rule test); the files
+were restored with `git checkout` afterward.
 
 ### Round 2
 
