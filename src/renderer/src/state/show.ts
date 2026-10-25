@@ -1,4 +1,6 @@
 import {create} from 'zustand';
+import * as v from 'valibot';
+import {serviceItemIdSchema} from '@shared/schema/ids';
 import type {ShowService} from '@shared/schema/showService';
 import {
   type ItemId,
@@ -82,6 +84,20 @@ export function selectTile(index: number): void {
   useShow.setState({selectedTile: index});
 }
 
+function startServiceItem(itemId: ItemId): void {
+  const live = useLive.getState();
+  if ((live.lastSlideItemId ?? live.state?.layers.slide?.itemId) === itemId)
+    {return;}
+  if (
+    !useShow
+      .getState()
+      .rows.some(row => row.id === itemId && row.kind !== 'header')
+  )
+    {return;}
+  const id = v.safeParse(serviceItemIdSchema, itemId);
+  if (id.success) sendLive({type: 'item.start', itemId: id.output});
+}
+
 /** Outputs a tile and shows it selected in the 장 panel. */
 export function outputTile(cursor: TileCursor): void {
   const slide = slideLayerOf(cursor, tilesOf);
@@ -111,6 +127,7 @@ export function outputTile(cursor: TileCursor): void {
     );
     return;
   }
+  startServiceItem(cursor.itemId);
   sendLive({type: 'slide.show', slide});
 }
 
@@ -171,6 +188,7 @@ async function outputSongTile({
     service?.id === serviceId
       ? useShow.getState().rows.find(row => row.id === cursor.itemId)
       : undefined;
+  startServiceItem(cursor.itemId);
   if (row?.kind === 'song' && row.background !== undefined) {
     const current = useLive.getState().state?.layers.media;
     if (

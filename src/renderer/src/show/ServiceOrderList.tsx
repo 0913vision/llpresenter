@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState, type JSX} from 'react';
+import {useEffect, useMemo, useRef, useState, type JSX} from 'react';
 import {createServiceItemId} from '@shared/schema/ids';
 import {openItem, useShow} from '@renderer/state/show';
 import {useLive} from '@renderer/state/live';
@@ -67,6 +67,7 @@ function ItemRows({
   insertBefore,
   workspace,
   durations,
+  done,
 }: {
   readonly items: readonly ServiceRow[];
   readonly liveItemId: string | null;
@@ -74,6 +75,7 @@ function ItemRows({
   readonly insertBefore: string | null | undefined;
   readonly workspace: Workspace;
   readonly durations: Readonly<Record<string, string>>;
+  readonly done: ReadonlySet<string>;
 }): JSX.Element {
   const tiles = useShow(view => view.tiles);
   return (
@@ -87,6 +89,7 @@ function ItemRows({
               title={row.title}
               icon={iconByKind[row.kind]}
               live={row.id === liveItemId}
+              done={done.has(row.id)}
               meta={
                 workspace !== 'prep'
                   ? undefined
@@ -122,6 +125,19 @@ export function ServiceOrderList({
   const rows = useShow(view => view.rows);
   const openItemId = useShow(view => view.openItemId);
   const liveItemId = useLiveItemId();
+  const currentItemId = useLive(
+    view => view.lastSlideItemId ?? view.state?.layers.slide?.itemId,
+  );
+  const started = useLive(view => view.startedItemIds);
+  const done = useMemo(() => {
+    const current = rows.findIndex(row => row.id === currentItemId);
+    return new Set(
+      rows
+        .slice(0, Math.max(0, current))
+        .filter(row => started.has(row.id))
+        .map(row => row.id),
+    );
+  }, [rows, currentItemId, started]);
   const serviceId = useShow(view => view.serviceId);
   const readOnly = useShow(view => view.readOnly);
   const editing = useServiceOrderEditing(serviceId, onProblem);
@@ -212,6 +228,7 @@ export function ServiceOrderList({
               insertBefore={insertBefore}
               workspace={workspace}
               durations={durations}
+              done={done}
             />
           ) : (
             <div key={group.id} data-order-id={group.id} draggable={editable}>
@@ -224,6 +241,7 @@ export function ServiceOrderList({
                   insertBefore={insertBefore}
                   workspace={workspace}
                   durations={durations}
+                  done={done}
                 />
               </ListGroup>
             </div>

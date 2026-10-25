@@ -8,14 +8,28 @@ interface LiveView {
   readonly state: LiveState | null;
   readonly lastSlideItemId: string | null;
   readonly commandVersion: number;
+  readonly startedItemIds: ReadonlySet<string>;
 }
 
 const noOutputs: Readonly<Record<string, boolean>> = {};
+const MAX_STARTED_ITEMS = 10_000;
+
+function rememberItem(ids: ReadonlySet<string>, itemId: string | undefined) {
+  if (itemId === undefined || ids.has(itemId)) return ids;
+  const next = new Set(ids);
+  next.add(itemId);
+  if (next.size > MAX_STARTED_ITEMS) {
+    const oldest = next.values().next().value;
+    if (oldest !== undefined) next.delete(oldest);
+  }
+  return next;
+}
 
 export const useLive = create<LiveView>(() => ({
   state: null,
   lastSlideItemId: null,
   commandVersion: 0,
+  startedItemIds: new Set(),
 }));
 
 function accept(next: LiveState): void {
@@ -24,6 +38,10 @@ function accept(next: LiveState): void {
   useLive.setState(view => ({
     state: next,
     lastSlideItemId: next.layers.slide?.itemId ?? view.lastSlideItemId,
+    startedItemIds: rememberItem(
+      view.startedItemIds,
+      next.layers.slide?.itemId,
+    ),
   }));
 }
 
@@ -48,6 +66,10 @@ export function sendLive(command: LiveCommand): void {
       command.type === 'slide.show'
         ? command.slide.itemId
         : view.lastSlideItemId,
+    startedItemIds:
+      command.type === 'item.start'
+        ? rememberItem(view.startedItemIds, command.itemId)
+        : view.startedItemIds,
   }));
   window.llp?.live.send(command);
 }
