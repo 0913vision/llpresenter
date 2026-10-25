@@ -6,7 +6,7 @@ Review range: `feat/spec/media-strip-mount...feat/spec/library-source`
 - Branch: `feat/spec/library-source`
 - Base: spec-38, stacked until its approval
 - Task: M3-S1b library source state on data-40's merged contract
-- Ownership exception: shell's renderer paths
+- Code owner for the renderer paths: shell
 
 ## What changed and why
 
@@ -33,19 +33,24 @@ releases all three feeds on source replacement or unmount. Only one projection
 is retained. The source can also be reopened by 출력 중인 항목 열기 while it is
 still retained and live.
 
-## Changed files
+## Changes outside my paths
+
+These renderer paths are kept by shell:
 
 - `src/renderer/src/state/show.ts`: separate source state, tile selector,
   guarded output, and source-aware metadata/navigation helpers.
 - `src/renderer/src/show/SlideGrid.tsx` and `SlidePanel.tsx`: consume the source
   tiles and title without creating a fake service row.
+- `src/renderer/src/show/SlidePanel.module.css`: token-based warning icon color
+  for a read-only source or missing background.
 - `src/renderer/src/show/useLibrarySongSync.ts`: scoped projection refresh and
   feed disposal.
 - `src/renderer/src/shell/Workspace.tsx`: mount the source feeds with 진행.
 - `src/renderer/src/state/showLibrary.test.tsx`: source/grid integration,
   unchanged service/output on open, command order, removed-tile regression,
   stale output, deleted/failed reads, revision guards, and feed disposal.
-- `docs/reviews/spec-39.md`: this request.
+
+This review document is in my own path.
 
 ## Validation
 
