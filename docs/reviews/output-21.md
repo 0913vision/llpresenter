@@ -101,8 +101,8 @@ least five minutes apart.
    Windows-only real Electron fixture records `getBounds()` during the leave
    event, after `setFullScreen(false)` returns, on the next turn, and after
    settling. It checks the shared production placement helper and fullscreen
-   reconnect. Native measurements will be recorded from its CI log before the
-   round 2 request. Both the test and child refuse local execution.
+   reconnect. Measurements from its CI coverage artifact are recorded below.
+   Both the test and child refuse local execution.
 2. `FULLSCREEN_EXIT_DEADLINE_MS` bounds the leave-event wait at 500 ms. The
    deadline clears the waiting state and runs the latest pending placement,
    including a fullscreen reconnect. Fake tests omit the leave event and prove
