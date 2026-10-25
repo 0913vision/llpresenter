@@ -140,16 +140,22 @@ focused tests; no shared cache setting is changed.
 
 ## Verdicts (recorded by the lead at merge)
 
-- Round 1 (Claude, trial-97): Request changes: the pre-callback move, resize,
-  and always-on-top events were missing, and the "keep directly behind" row had
-  no exact state; two nits.
-- Round 2 (0bf8642b): reviewer (Claude, trial-97) Approve. Nit for the next qa
-  document: name the topmost primary rectangle (0, 0, 1920, 1080) and its
-  possible overlap with the control window. Lead Approve, with the lead's
-  reading of "keep directly behind" (placed directly behind and never raised by
-  the app). Bug M2-9 (centering 31 DIP off the work area) goes to output.
-  Written by the Codex session that took over qa's work. Rebased by the lead
-  onto local `main` without conflicts.
+- Round 1 (208fedb): reviewer (Claude, trial-97) Approve. Nits for the next data
+  branch: `compiler.ts:196-198` treat the 256-command cap like the action cap
+  (one `action-limit`, then stop); `messageText.ts:18` use
+  `Object.hasOwn(values, name)`; `actions.ts:86` is the third copy of the media
+  end rule, so add the shared helper now; declare `MacroCommandPort` in
+  `live/slice.ts` (the consumer) to break the type cycle with `macros/types`;
+  `runner.ts:86` report an invalid legacy item 매크로 as a warn-level problem;
+  `runner.ts:58-62` one warn line with the count and the first few problems;
+  `src/shared/schema/macros.ts:6` drop the stray blank line. The live store
+  edits were checked closely: dispatch, notify, and history are unchanged.
+- Rebase check (0bf8642b): the branch conflicted with output-25 in
+  `src/main/index.ts`, `live/slice.ts`, and `live/store.ts`; the member resolved
+  it, and the reviewer approved the resolution with a range-diff (only the three
+  conflicts changed, plus one test-only commit). Lead Approve, including the
+  output-file changes under the lead's exception. Written by the Codex session
+  that took over data's work. M3-T3a is complete.
 
 ## Team member's reply
 
