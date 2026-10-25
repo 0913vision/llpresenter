@@ -1,3 +1,4 @@
+import type {WebContentsPaintEventParams} from 'electron';
 import type {WindowAction} from '@shared/ipc';
 
 /**
@@ -17,7 +18,9 @@ const OFFSCREEN_VALUE = 'offscreen';
 export interface WindowTestOptions {
   readonly show?: false;
   readonly skipTaskbar?: true;
-  readonly webPreferences?: {readonly offscreen: true};
+  readonly webPreferences?: {
+    readonly offscreen: {readonly useSharedTexture: true};
+  };
 }
 
 /**
@@ -42,9 +45,30 @@ export function windowTestOptions(mode: WindowMode): WindowTestOptions {
       return {
         show: false,
         skipTaskbar: true,
-        webPreferences: {offscreen: true},
+        webPreferences: {offscreen: {useSharedTexture: true}},
       };
   }
+}
+
+type FrameListener = (event: WebContentsPaintEventParams) => void;
+
+interface FrameSource {
+  on(event: 'paint', listener: FrameListener): void;
+  once(event: 'destroyed', listener: () => void): void;
+  removeListener(event: 'paint', listener: FrameListener): void;
+}
+
+/** Releases unused test frames immediately, without copying them into bitmaps. */
+export function discardTestFrames(
+  contents: FrameSource,
+  mode: WindowMode,
+): void {
+  if (mode !== 'offscreen') return;
+  // NOTE(0913vision): Bitmap frames retain large native allocations until GC.
+  // Shared textures keep rendering active without copying each frame to main.
+  const discard: FrameListener = ({texture}) => texture?.release();
+  contents.on('paint', discard);
+  contents.once('destroyed', () => contents.removeListener('paint', discard));
 }
 
 /**

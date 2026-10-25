@@ -1,6 +1,7 @@
+import {createReadStream} from 'node:fs';
 import {symlink, writeFile} from 'node:fs/promises';
 import {join, relative} from 'node:path';
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 import {mediaUrl} from '@shared/media';
 import {makeTempDir} from '../../../test/temp-dir';
 import {recordingLogger} from '../displays/testing';
@@ -9,6 +10,11 @@ import {
   createMediaHandler,
   parseRange,
 } from './mediaResponse';
+
+vi.mock('node:fs', async importOriginal => {
+  const fs = await importOriginal<typeof import('node:fs')>();
+  return {...fs, createReadStream: vi.fn(fs.createReadStream)};
+});
 
 const CONTENT = '0123456789';
 
@@ -65,6 +71,36 @@ describe('createFileResponse', () => {
     const response = await createFileResponse(await sampleVideo(), 'bytes=20-');
     expect(response.status).toBe(416);
     expect(response.headers.get('content-range')).toBe('bytes */10');
+  });
+
+  it('destroys a partially read range and closes its file on body cancellation', async () => {
+    const path = join(await makeTempDir(), 'large.mp4');
+    const size = 2 * 1024 * 1024;
+    await writeFile(path, Buffer.alloc(size));
+    const response = await createFileResponse(path, 'bytes=0-');
+    const result = vi.mocked(createReadStream).mock.results.at(-1);
+    if (result?.type !== 'return' || response.body === null) {
+      throw new Error('no media stream was created');
+    }
+    const stream = result.value;
+    const reader = response.body.getReader();
+    try {
+      await reader.read();
+      expect(stream.bytesRead).toBeLessThan(size);
+      expect(stream.closed).toBe(false);
+      const closed = new Promise<void>(resolve =>
+        stream.once('close', resolve),
+      );
+      await reader.cancel();
+      expect(stream.destroyed).toBe(true);
+      await closed;
+      expect(stream.closed).toBe(true);
+      expect(stream).toHaveProperty('fd', null);
+    } finally {
+      await reader.cancel();
+      reader.releaseLock();
+      stream.destroy();
+    }
   });
 });
 

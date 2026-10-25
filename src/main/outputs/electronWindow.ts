@@ -8,7 +8,11 @@ import {
   startLoading,
   type PageRequest,
 } from '../windows/page';
-import {windowTestOptions, type WindowMode} from '../windows/testWindows';
+import {
+  discardTestFrames,
+  windowTestOptions,
+  type WindowMode,
+} from '../windows/testWindows';
 import type {OutputWindowEvents, OutputWindowHandle} from './outputWindow';
 import type {OutputScreen} from './screens';
 
@@ -135,6 +139,7 @@ export function createElectronOutputWindow(
   {log, mode}: ElectronOutputWindowOptions,
 ): OutputWindowHandle {
   const win = createBrowserWindow(screen, mode);
+  discardTestFrames(win.webContents, mode);
   const page: PageRequest = {name: 'output', query: {screen: screen.id}};
   win.removeMenu();
   blockNavigation(win);

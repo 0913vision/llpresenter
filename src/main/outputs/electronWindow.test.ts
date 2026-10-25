@@ -1,3 +1,4 @@
+import {EventEmitter} from 'node:events';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import type {Rect} from '../displays/rect';
 import type {Logger} from '../log';
@@ -9,12 +10,11 @@ import type {OutputScreen} from './screens';
 
 const electron = vi.hoisted(() => {
   class FakeBrowserWindow {
-    readonly webContents = {
-      on: vi.fn(),
+    readonly webContents = Object.assign(new EventEmitter(), {
       isCrashed: vi.fn(() => false),
       executeJavaScript: vi.fn(() => Promise.resolve(0)),
       forcefullyCrashRenderer: vi.fn(),
-    };
+    });
     readonly setContentBounds = vi.fn();
     readonly setBounds = vi.fn();
     readonly getBounds = vi.fn(() => ({x: 0, y: 0, width: 800, height: 600}));
@@ -105,8 +105,28 @@ describe('createElectronOutputWindow offscreen', () => {
     expect(lastWindow().options).toMatchObject({
       show: false,
       skipTaskbar: true,
-      webPreferences: {offscreen: true, backgroundThrottling: false},
+      webPreferences: {
+        offscreen: {useSharedTexture: true},
+        backgroundThrottling: false,
+      },
     });
+  });
+
+  it('releases every offscreen frame before receiving the next one', async () => {
+    const output = openOutput('offscreen');
+    const contents = lastWindow().webContents;
+    const release = vi.fn();
+
+    for (let frame = 0; frame < 3; frame += 1) {
+      contents.emit('paint', {texture: {release}});
+      expect(release).toHaveBeenCalledTimes(frame + 1);
+    }
+    await output.reload();
+    contents.emit('paint', {texture: {release}});
+    expect(release).toHaveBeenCalledTimes(4);
+
+    contents.emit('destroyed');
+    expect(contents.listenerCount('paint')).toBe(0);
   });
 
   it('gives a full screen output the size of its monitor without showing it', () => {
@@ -230,5 +250,6 @@ describe('createElectronOutputWindow normal', () => {
     });
     expect(lastWindow().options).not.toHaveProperty('skipTaskbar');
     expect(lastWindow().options).not.toHaveProperty('webPreferences.offscreen');
+    expect(lastWindow().webContents.listenerCount('paint')).toBe(0);
   });
 });

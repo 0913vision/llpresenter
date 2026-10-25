@@ -1,7 +1,11 @@
 import {BrowserWindow, screen} from 'electron';
 import type {Logger} from '../log';
 import {blockNavigation, loadPage, preloadPath, type PageRequest} from './page';
-import {windowTestOptions, type WindowMode} from './testWindows';
+import {
+  discardTestFrames,
+  windowTestOptions,
+  type WindowMode,
+} from './testWindows';
 
 const MIN_WIDTH = 1280;
 const MIN_HEIGHT = 720;
@@ -51,6 +55,7 @@ export function createControlWindow(
       ...testPreferences,
     },
   });
+  discardTestFrames(win.webContents, mode);
   blockNavigation(win);
   reloadAfterCrash(win, log);
   win.once('ready-to-show', () => {

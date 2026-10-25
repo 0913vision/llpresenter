@@ -33,7 +33,7 @@ describe('windowTestOptions', () => {
     expect(windowTestOptions('offscreen')).toEqual({
       show: false,
       skipTaskbar: true,
-      webPreferences: {offscreen: true},
+      webPreferences: {offscreen: {useSharedTexture: true}},
     });
   });
 
