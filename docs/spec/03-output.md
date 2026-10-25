@@ -463,11 +463,11 @@ stage layers on and off).
 When the monitor of a full screen output that is on disconnects, immediately
 disable always on top for the affected output window and place it directly
 behind the control window without activating either window. Move the control
-window directly above the output window using `moveAbove` with the output
-window's media source id. This happens on the disconnect event itself, before
-the 300 ms monitor-list settle wait (`DISPLAY_SETTLE_MS`). The settle wait only
-plans placement; the relocated full screen output stays behind the control
-window while monitors settle.
+window directly above the output window without activation (proposal, pending
+the user's confirmation on October 26). This happens on the disconnect event
+itself, before the 300 ms monitor-list settle wait. The settle wait only plans
+placement; the relocated full screen output stays behind the control window
+while monitors settle.
 
 1. If the screen's 연결이 끊기면 (when disconnected) setting is 창으로 바꾸기
    (switch to a window), after the settle wait move the same output into a
@@ -475,8 +475,8 @@ window while monitors settle.
    don't break.
    - Keep the fallback directly behind the control window without taking focus
      and with always on top disabled, including when only one monitor remains.
-   - Use `placement.ts`'s `OUTPUT_WINDOW_SIZE` (960 x 540 DIP, shrunk to fit
-     when needed), centered on the control monitor's work area.
+   - Size it to 960 x 540 DIP, shrunk to fit when needed, and center it on the
+     control monitor's work area.
 2. That screen's toolbar button shows the monitor missing state (amber dot and
    icon). The status bar shows "무대 화면 창으로 표시 중" (stage screen showing
    in a window). The screen's frame in the preview gets an amber outline.
@@ -491,9 +491,11 @@ If the screen's 연결이 끊기면 setting is to turn the output off instead, t
 that screen's output off and show the same warning notification (proposal).
 
 When the same monitor connects again, move the output window back to full screen
-on that monitor, return the toolbar and status bar to normal, and turn the
-warning notification into the information notification "무대 모니터 다시 연결됨"
-(stage monitor reconnected). It closes after 6 seconds.
+on that monitor. If the screen's 항상 위 setting is on, restore always on top so
+the output is above the control window; otherwise keep always on top off. Return
+the toolbar and status bar to normal, and turn the warning notification into the
+information notification "무대 모니터 다시 연결됨" (stage monitor reconnected).
+It closes after 6 seconds.
 
 - If the output of that screen is off when its monitor disconnects, don't show a
   notification. If the operator then turns the output on, follow steps 1 to 3
