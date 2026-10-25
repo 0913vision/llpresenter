@@ -46,7 +46,7 @@ The 30px row at the top of the window. It holds the app name, the menus, the ser
 ## Behavior
 
 - The whole row is the window drag area (`-webkit-app-region: drag`). Only the menus and the window control buttons are `no-drag`. A double-click on an empty spot toggles between maximize and restore (Windows default behavior).
-- Menus: the row is `role="menubar"`, and each item is `role="menuitem"` + `aria-haspopup="menu"` + `aria-expanded`. A click opens the menu below the item, aligned to its left edge. While one menu is open, hovering another item switches to that menu.
+- Menus: the group of the six menus (`ll-menubar__menus`) is `role="menubar"`, because a menubar may hold only menu items; the row itself has no role. Each item is `role="menuitem"` + `aria-haspopup="menu"` + `aria-expanded`. A click opens the menu below the item, aligned to its left edge. While one menu is open, hovering another item switches to that menu.
 - Keyboard: Alt or F10 focuses the first item, Left and Right arrows move between items, Enter, Space, or Down arrow opens a menu, and Esc closes it and leaves the menu bar. Don't add Alt + underlined letter access keys.
 - Give the window control buttons an `aria-label` (최소화, 최대화, 닫기) and a tooltip with the same name. In a maximized window, change the name to "이전 크기로 복원" (the double-square icon isn't in the icon list yet).
 - The center title isn't clickable. Switch services in the 예배 순서 (service order) panel header.
