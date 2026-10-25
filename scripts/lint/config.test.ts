@@ -47,6 +47,7 @@ const FLOATING_PROMISES = [
 ] as const;
 
 const ACCEPTED_CODE = [
+  ['BOM-free Unicode text', "export const label = '한글';"],
   [
     'an awaited promise',
     `${SAVE}export async function f(): Promise<void> { await save(); }`,
@@ -70,6 +71,7 @@ const ACCEPTED_CODE = [
 ] as const;
 
 const BANNED_CODE = [
+  ['a byte order mark', '\uFEFFexport const value = 1;', 'unicode-bom'],
   [
     'any',
     'export const f = (v: any): number => 1;',

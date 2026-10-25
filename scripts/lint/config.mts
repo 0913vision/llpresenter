@@ -97,6 +97,8 @@ export const lintConfig = defineConfig(
       // NOTE(0913vision): CLAUDE.md allows only TSDoc, NOTE, and TODO
       // comments.
       'llp/allowed-comments': 'error',
+      // NOTE(0913vision): Source files use UTF-8 without a byte order mark.
+      'unicode-bom': ['error', 'never'],
       // NOTE(0913vision): Loose equality coerces types and hides bugs. The
       // Google style guide allows `== null` to cover undefined too.
       eqeqeq: ['error', 'always', {null: 'ignore'}],
