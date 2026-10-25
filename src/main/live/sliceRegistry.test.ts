@@ -115,7 +115,12 @@ describe('SliceRegistry', () => {
       slice.apply(
         history,
         {type: 'output.set', screenId: 'main', on: true},
-        {now: 42, apply: current => current, reject: () => history},
+        {
+          now: 42,
+          apply: current => current,
+          defer: () => undefined,
+          reject: () => history,
+        },
       ),
     ).toBe(history);
     expect(reduce).not.toHaveBeenCalled();

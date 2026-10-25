@@ -13,11 +13,6 @@ import type {ActionContext, MacroPlan} from './types';
 
 export const MAX_LOGGED_MACRO_PROBLEMS = 5;
 
-function observe(context: SliceContext, effect: () => void): void {
-  if (context.defer === undefined) effect();
-  else context.defer(effect);
-}
-
 export interface MacroRunnerOptions {
   readonly settings: SettingsReader;
   readonly media: () => MediaList;
@@ -61,7 +56,9 @@ export class MacroRunner implements MacroCommandPort {
       state: history.state,
       supports: this.options.supports,
     });
-    observe(context, () => this.report(plan));
+    context.defer(() => {
+      this.report(plan);
+    });
     return context.apply(history, {
       type: 'live.batch',
       commands: plan.commands,
@@ -103,13 +100,13 @@ export class MacroRunner implements MacroCommandPort {
     if (!('macro' in item)) return undefined;
     const parsed = parseMacroId(item.macro);
     if (!parsed.ok) {
-      observe(context, () =>
+      context.defer(() => {
         this.options.log.warn('skipped invalid item start macro', {
           itemId,
           reason: 'invalid-action',
           error: parsed.error,
-        }),
-      );
+        });
+      });
       return undefined;
     }
     return parsed.value;

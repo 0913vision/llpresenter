@@ -4,13 +4,13 @@ import type {ScreenId} from '@shared/schema/ids';
 import type {SettingsReader} from '../store/settingsStore';
 import type {Logger} from '../log';
 import {MissingLiveTargetError} from '../live/commandErrors';
+import type {ScreenSettingsPort} from '../live/slice';
 import {outputStateKeys} from './identity';
 import type {OutputScreen, ScreenSource} from './screens';
 
-export interface SettingsScreens extends ScreenSource {
+export interface SettingsScreens extends ScreenSource, ScreenSettingsPort {
   readonly ready: boolean;
   subscribe(listener: () => void): () => void;
-  resync(screenId: ScreenId): void;
   dispose(): void;
 }
 
@@ -94,14 +94,19 @@ class SavedScreenSource implements SettingsScreens {
     };
   }
 
-  resync(screenId: ScreenId): void {
+  requireSaved(screenId: ScreenId): void {
     if (this.disposed || this.reader === null) {
       throw new Error('Output settings are not ready');
     }
     if (!savedScreens(this.reader).some(screen => screen.id === screenId)) {
       throw new MissingLiveTargetError({kind: 'screen', id: screenId});
     }
-    if (this.pending) return;
+  }
+
+  queueRefresh(): void {
+    if (this.disposed || this.pending) return;
+    // NOTE(0913vision): Screen listeners dispatch live commands, so the
+    // refresh waits until the dispatch that queued it has stored its state.
     this.pending = true;
     queueMicrotask(() => {
       this.pending = false;

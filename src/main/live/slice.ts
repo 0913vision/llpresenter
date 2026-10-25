@@ -13,11 +13,24 @@ export interface MacroCommandPort {
   ): LiveHistory;
 }
 
+/** The saved output screens, as `screen.settings.apply` resyncs them. */
+export interface ScreenSettingsPort {
+  /**
+   * Checks the saved settings without changing anything.
+   *
+   * @throws A `MissingLiveTargetError` when no saved screen has the id, or an
+   * error when the settings are not ready.
+   */
+  requireSaved(screenId: ScreenId): void;
+  /** Queues one refresh of the running outputs after the current dispatch. */
+  queueRefresh(): void;
+}
+
 export interface SliceInputs {
   readonly now: number;
   readonly settings?: SettingsReader;
   readonly nextMessageId?: () => MessageId;
-  readonly resyncScreen?: (screenId: ScreenId) => void;
+  readonly screenSettings?: ScreenSettingsPort;
   readonly macros?: MacroCommandPort;
 }
 
@@ -34,8 +47,8 @@ export type SliceInitial = Omit<Partial<LiveState>, 'layers'> & {
 
 /** The command time and the same registry path for a transaction's children. */
 export interface SliceContext extends SliceInputs {
-  /** Defers an observation until this reduction attempt is selected. */
-  readonly defer?: (effect: () => void) => void;
+  /** Defers an effect until the dispatch passes its final admission check. */
+  readonly defer: (effect: () => void) => void;
   /** Records a validation skip and returns this command's unchanged history. */
   readonly reject: (error: PayloadError) => LiveHistory;
   readonly apply: (history: LiveHistory, command: LiveCommand) => LiveHistory;

@@ -105,15 +105,16 @@ describe('macro live execution', () => {
       [],
       [screenSettingsSlice],
     );
-    const resync = vi.fn();
-    onTestFinished(store.connectScreenSettings(resync));
+    const screens = {requireSaved: vi.fn(), queueRefresh: vi.fn()};
+    onTestFinished(store.connectScreenSettings(screens));
     const parsed = parseLiveCommand({
       type: 'screen.settings.apply',
       screenId: IDS.main,
     });
     if (!parsed.ok) throw new Error(parsed.error.message);
     dispatchLogged(store, parsed.value, log);
-    expect(resync).toHaveBeenCalledExactlyOnceWith(IDS.main);
+    expect(screens.requireSaved).toHaveBeenCalledExactlyOnceWith(IDS.main);
+    expect(screens.queueRefresh).toHaveBeenCalledOnce();
     dispatchLogged(store, {type: 'macro.run', macroId: id}, log);
     expect(runner.lastRun?.macroId).toBe(id);
     releaseMacros();
@@ -124,7 +125,8 @@ describe('macro live execution', () => {
     );
     expect(store.state.layers.prop?.items?.[0]?.propId).toBe(prop.id);
     dispatchLogged(store, parsed.value, log);
-    expect(resync).toHaveBeenCalledTimes(2);
+    expect(screens.requireSaved).toHaveBeenCalledTimes(2);
+    expect(screens.queueRefresh).toHaveBeenCalledTimes(2);
     expect(log.messages('error')).toEqual([]);
   });
   it.each([uuid(99), 'invalid-id'])(

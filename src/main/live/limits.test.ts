@@ -23,13 +23,21 @@ import {macrosSlice} from './slices/macros';
 import {screenSettingsSlice} from './slices/screenSettings';
 import * as budget from './stateBudget';
 import * as liveSchema from '@shared/schema/liveState';
-import type {MacroCommandPort} from './slice';
+import type {MacroCommandPort, ScreenSettingsPort} from './slice';
 import {MissingLiveTargetError} from './commandErrors';
 
 const uuid = (index: number) =>
   `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
 const registry = () =>
   new SliceRegistry([batchSlice, outputsSlice, contentSlice, propsSlice]);
+function screenSettingsPort(
+  requireSaved: ScreenSettingsPort['requireSaved'] = () => undefined,
+) {
+  return {
+    requireSaved: vi.fn(requireSaved),
+    queueRefresh: vi.fn<ScreenSettingsPort['queueRefresh']>(),
+  };
+}
 function canSave(state: LiveState) {
   return serializeRecoveryRecord({
     format: 'llrecovery',
@@ -41,7 +49,7 @@ function canSave(state: LiveState) {
 }
 
 describe('live admission limits', () => {
-  it('rejects the whole dispatch after a missing resync target and calls the port once', () => {
+  it('rejects the whole dispatch after a missing resync target and queues no refresh', () => {
     const outputs = Object.fromEntries(
       Array.from({length: LIVE_STATE_LIMITS.outputs}, (_, i) => [
         uuid(i),
@@ -53,10 +61,10 @@ describe('live admission limits', () => {
       () => 0,
       new SliceRegistry([outputsSlice, batchSlice, screenSettingsSlice]),
     );
-    const resync = vi.fn(() => {
+    const screens = screenSettingsPort(() => {
       throw new MissingLiveTargetError({kind: 'screen', id: uuid(999)});
     });
-    const release = store.connectScreenSettings(resync);
+    const release = store.connectScreenSettings(screens);
     const log = recordingLogger();
     const before = store.state;
     dispatchLogged(
@@ -72,7 +80,8 @@ describe('live admission limits', () => {
       ),
       log,
     );
-    expect(resync).toHaveBeenCalledTimes(1);
+    expect(screens.requireSaved).toHaveBeenCalledExactlyOnceWith(uuid(999));
+    expect(screens.queueRefresh).not.toHaveBeenCalled();
     expect(store.state).toBe(before);
     expect(log.messages('warn')).toHaveLength(2);
     expect(log.messages('error')).toEqual([]);
@@ -87,7 +96,7 @@ describe('live admission limits', () => {
     );
     const release = store.connectMacros({
       run: (history, _command, context) => {
-        context.defer?.(() => {
+        context.defer(() => {
           throw new Error('Observer failed');
         });
         return context.apply(history, {
@@ -144,11 +153,16 @@ describe('live admission limits', () => {
     const store = new LiveStore(
       {...emptyLiveState(), outputs},
       () => 0,
-      new SliceRegistry([outputsSlice, batchSlice, macrosSlice]),
+      new SliceRegistry([
+        outputsSlice,
+        batchSlice,
+        macrosSlice,
+        screenSettingsSlice,
+      ]),
     );
     const observed = vi.fn();
     const run = vi.fn<MacroCommandPort['run']>((history, _command, context) => {
-      context.defer?.(observed);
+      context.defer(observed);
       return context.apply(history, {
         type: 'output.set',
         screenId: 'main',
@@ -156,6 +170,8 @@ describe('live admission limits', () => {
       });
     });
     const release = store.connectMacros({run});
+    const screens = screenSettingsPort();
+    const releaseScreens = store.connectScreenSettings(screens);
     const listener = vi.fn();
     const unsubscribe = store.subscribe(listener);
     const before = store.state;
@@ -167,6 +183,7 @@ describe('live admission limits', () => {
           type: 'live.batch',
           commands: [
             {type: 'output.set', screenId: 'stage', on: true},
+            {type: 'screen.settings.apply', screenId: uuid(1)},
             {type: 'macro.run', macroId: uuid(9)},
             {type: 'output.set', screenId: uuid(999), on: true},
           ],
@@ -176,6 +193,8 @@ describe('live admission limits', () => {
     );
     expect(run).toHaveBeenCalledOnce();
     expect(observed).not.toHaveBeenCalled();
+    expect(screens.requireSaved).toHaveBeenCalledExactlyOnceWith(uuid(1));
+    expect(screens.queueRefresh).not.toHaveBeenCalled();
     expect(store.state).toBe(before);
     expect(listener).not.toHaveBeenCalled();
     expect(log.messages('warn')).toEqual(['skipped live command']);
@@ -188,6 +207,7 @@ describe('live admission limits', () => {
     });
     unsubscribe();
     release();
+    releaseScreens();
   });
 
   it('checks a failing 256-child batch nested inside a macro once', () => {

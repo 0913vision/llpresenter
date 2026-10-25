@@ -138,7 +138,7 @@ export function startOutputs({
     log,
     onStatusChange: () => board.refresh(),
   });
-  const releaseResync = store.connectScreenSettings(id => screens.resync(id));
+  const releaseResync = store.connectScreenSettings(screens);
   const stopNormalizing = screens.subscribe(() => {
     frameRates.retain(screens.list().map(({id}) => id));
     normalizeOutputFlags(screens.list(), store, log);

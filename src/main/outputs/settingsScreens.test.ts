@@ -2,8 +2,10 @@ import {describe, expect, it, vi} from 'vitest';
 import {MAX_TARGET_SCREENS} from '@shared/schema/overlayState';
 import type {SettingsReader} from '../store/settingsStore';
 import {recordingLogger} from '../displays/testing';
+import {MissingLiveTargetError} from '../live/commandErrors';
 import {
   MAIN,
+  STAGE,
   overlaySettings,
   settingsDocument,
 } from '../live/testing/overlays';
@@ -23,11 +25,49 @@ describe('saved output screens', () => {
     await Promise.resolve();
     const changed = vi.fn();
     source.subscribe(changed);
-    source.resync(MAIN);
+    source.requireSaved(MAIN);
+    source.queueRefresh();
     source.dispose();
     await Promise.resolve();
     expect(changed).not.toHaveBeenCalled();
     expect(settings.listeners.size).toBe(0);
+    source.queueRefresh();
+    await Promise.resolve();
+    expect(changed).not.toHaveBeenCalled();
+    expect(() => {
+      source.requireSaved(MAIN);
+    }).toThrow('Output settings are not ready');
+  });
+
+  it('checks a saved id without refreshing and coalesces queued refreshes', async () => {
+    const settings = overlaySettings();
+    const source = createSettingsScreenSource(
+      Promise.resolve(settings.reader),
+      recordingLogger(),
+      fallback,
+    );
+    await Promise.resolve();
+    settings.update(
+      settingsDocument('screens', {
+        screens: [
+          {id: MAIN, name: 'Main', kind: 'audience', method: 'fullscreen'},
+        ],
+      }),
+    );
+    const changed = vi.fn();
+    source.subscribe(changed);
+    source.requireSaved(MAIN);
+    expect(() => {
+      source.requireSaved(STAGE);
+    }).toThrow(MissingLiveTargetError);
+    await Promise.resolve();
+    expect(changed).not.toHaveBeenCalled();
+    source.queueRefresh();
+    source.queueRefresh();
+    expect(changed).not.toHaveBeenCalled();
+    await Promise.resolve();
+    expect(changed).toHaveBeenCalledOnce();
+    source.dispose();
   });
   it('keeps the last good configuration on read failure and releases listeners', async () => {
     const settings = overlaySettings();

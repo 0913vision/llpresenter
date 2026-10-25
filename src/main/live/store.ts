@@ -6,7 +6,7 @@ import type {Logger} from '../log';
 import type {SettingsReader} from '../store/settingsStore';
 import {initialHistory, liveSlices, type LiveHistory} from './reducer';
 import type {SliceRegistry, SkippedLiveCommand} from './sliceRegistry';
-import type {MacroCommandPort, SliceInputs} from './slice';
+import type {MacroCommandPort, ScreenSettingsPort} from './slice';
 
 export type LiveListener = (state: LiveState) => void;
 
@@ -18,7 +18,7 @@ export class LiveStore {
   private history: LiveHistory;
   private readonly listeners = new Set<LiveListener>();
   private settings: SettingsReader | undefined;
-  private resyncScreen: SliceInputs['resyncScreen'];
+  private screenSettings: ScreenSettingsPort | undefined;
   private macros: MacroCommandPort | undefined;
 
   /**
@@ -54,12 +54,13 @@ export class LiveStore {
     };
   }
 
-  connectScreenSettings(
-    resync: NonNullable<SliceInputs['resyncScreen']>,
-  ): () => void {
-    this.resyncScreen = resync;
+  /** Attaches the saved output screens; disposal releases only this connection. */
+  connectScreenSettings(screenSettings: ScreenSettingsPort): () => void {
+    this.screenSettings = screenSettings;
     return () => {
-      if (this.resyncScreen === resync) this.resyncScreen = undefined;
+      if (this.screenSettings === screenSettings) {
+        this.screenSettings = undefined;
+      }
     };
   }
 
@@ -89,9 +90,9 @@ export class LiveStore {
       ...(this.settings === undefined ? {} : {settings: this.settings}),
       ...(this.macros === undefined ? {} : {macros: this.macros}),
       nextMessageId: () => createMessageId(randomUUID()),
-      ...(this.resyncScreen === undefined
+      ...(this.screenSettings === undefined
         ? {}
-        : {resyncScreen: this.resyncScreen}),
+        : {screenSettings: this.screenSettings}),
     });
     const changed = next !== this.history;
     this.history = next;
