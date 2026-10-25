@@ -20,3 +20,19 @@ says otherwise. Work starts after the lead sends the next batch.
 
 The user couldn't restart the app at the end; the lead relaunched it with the
 same data, and the same 예배 순서 reopened.
+
+## The user's choices from the drafts
+
+From ui's drafts in `design/drafts/m2-check1/` (branch
+`docs/ui/m2-check1-drafts`), the user chose on October 25, 2026:
+
+- Row 6, the preview panel: alternative B. A fixed row of 본 화면, 무대 화면,
+  and 방송 자막; the selected slot shows a marker instead of a second picture;
+  the large preview above shows the selected screen. Three preview renderings,
+  as today.
+- Row 1, the 예배 순서 panel header: alternative A. The open service's name
+  replaces the header label at the current 34px height, in the 16/22 heading
+  style.
+- Row 11, the type scale: the proposal from Microsoft's Windows 11 type ramp
+  (body 14/20, caption 12/16, nothing under 12px).
+- Row 7, the 되돌리기 button setting: off by default.
