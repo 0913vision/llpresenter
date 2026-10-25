@@ -55,6 +55,10 @@ export function freeTitle(base: string, taken: ReadonlySet<string>): string {
   return `${base} ${number}`;
 }
 
+export function normalizeSongTitle(title: string): string {
+  return title.trim().normalize('NFC');
+}
+
 /** The song with a 구성 renamed, or `null` when it has no 구성 of that name. */
 export function withRenamedArrangement(
   song: Song,

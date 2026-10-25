@@ -152,7 +152,10 @@ function setUp(
     StoredFile<ReturnType<typeof serviceFile>['data']>
   > = [],
   options: Partial<
-    Pick<ContentStoreOptions, 'writeDelayMs' | 'openServiceId' | 'templates'>
+    Pick<
+      ContentStoreOptions,
+      'writeDelayMs' | 'openServiceId' | 'templates' | 'songs'
+    >
   > = {},
 ) {
   const files = fakeFiles();
@@ -184,6 +187,118 @@ function songEdit(title: string, baseRevision: number): ContentEdit {
 }
 
 describe('ContentStore song updates', () => {
+  it('saves and pushes a trimmed NFC title without mutating the submitted song', async () => {
+    const {store, files, events, song} = setUp();
+    const title = '가온 연습';
+    const submitted = {
+      ...song.data,
+      title: ` \t${title.normalize('NFD')}\u00a0\n`,
+    };
+    expect(
+      await store.apply({
+        type: 'song.update',
+        song: submitted,
+        baseRevision: 1,
+      }),
+    ).toMatchObject({ok: true});
+    await store.flush();
+    expect(submitted.title).not.toBe(title);
+    expect(store.song(SONG)).toMatchObject({
+      revision: 2,
+      song: {title, copyright: 'public domain'},
+    });
+    expect(events.songChanged).toHaveBeenLastCalledWith({
+      songId: SONG,
+      document: store.song(SONG),
+    });
+    expect(events.songsListChanged).toHaveBeenLastCalledWith([
+      expect.objectContaining({id: SONG, title}),
+    ]);
+    const text = files.texts.get(song.file);
+    if (text === undefined) throw new Error('The changed song was not saved');
+    const parsed = parseSong(text, song.file);
+    if (!parsed.ok) throw new Error(parsed.error.message);
+    expect(parsed.value.data.title).toBe(title);
+  });
+
+  it.each([
+    {existing: '가온 연습', incoming: ' \t가온 연습\n'},
+    {existing: '가온 연습'.normalize('NFD'), incoming: '가온 연습'},
+    {
+      existing: ` 가온 연습 `.normalize('NFD'),
+      incoming: '\u00a0가온 연습\t'.normalize('NFD'),
+    },
+  ])(
+    'refuses a normalized duplicate of a legacy title %# without changing either song',
+    async ({existing, incoming}) => {
+      const legacy = songFile({...hymnOne(), title: existing});
+      const {store, files, events} = setUp([], {
+        songs: new Map([[HYMN_ONE_ID, legacy]]),
+      });
+      const created = await store.apply({type: 'song.create'});
+      if (!created.ok) throw new Error(created.error.message);
+      const other = store.song(created.value.id);
+      if (other === null) throw new Error('The new song is missing');
+      const written = files.written.length;
+      events.songChanged.mockClear();
+      events.songsListChanged.mockClear();
+      const result = await store.apply({
+        type: 'song.update',
+        song: {...other.song, title: incoming},
+        baseRevision: other.revision,
+      });
+      await store.flush();
+      expect(result).toMatchObject({
+        ok: false,
+        error: {reason: 'duplicate-title'},
+      });
+      expect(store.song(created.value.id)).toEqual(other);
+      expect(store.song(SONG)?.song.title).toBe(existing);
+      expect(files.written).toHaveLength(written);
+      expect(events.songChanged).not.toHaveBeenCalled();
+      expect(events.songsListChanged).not.toHaveBeenCalled();
+    },
+  );
+
+  it('accepts an equivalent title for the same song without pushing a changed library row', async () => {
+    const {store, song, events} = setUp();
+    expect(
+      await store.apply({
+        type: 'song.update',
+        song: {...song.data, title: '가온 연습'},
+        baseRevision: 1,
+      }),
+    ).toMatchObject({ok: true});
+    events.songsListChanged.mockClear();
+    expect(
+      await store.apply({
+        type: 'song.update',
+        song: {...song.data, title: ' 가온 연습 '.normalize('NFD')},
+        baseRevision: 2,
+      }),
+    ).toMatchObject({ok: true});
+    expect(store.song(SONG)).toMatchObject({
+      revision: 3,
+      song: {title: '가온 연습'},
+    });
+    expect(events.songsListChanged).not.toHaveBeenCalled();
+  });
+
+  it('refuses a title that becomes blank before changing revision or scheduling a save', async () => {
+    const {store, song, files, events} = setUp();
+    expect(
+      await store.apply({
+        type: 'song.update',
+        song: {...song.data, title: ' \t\u00a0\n'},
+        baseRevision: 1,
+      }),
+    ).toMatchObject({ok: false, error: {reason: 'invalid'}});
+    await store.flush();
+    expect(store.song(SONG)?.revision).toBe(1);
+    expect(files.written).toEqual([]);
+    expect(events.songChanged).not.toHaveBeenCalled();
+  });
+
   it('applies an update over the stored song, so unknown fields survive', async () => {
     const {store, files, events} = setUp();
     const edited = songFile({...hymnOne(), title: '새 제목'}).data;
@@ -273,6 +388,32 @@ describe('ContentStore song updates', () => {
 });
 
 describe('ContentStore song creation and deletion', () => {
+  it('skips padded and decomposed legacy default titles when naming a new song', async () => {
+    const one = songFile({...hymnOne(), title: ' 새 곡 '.normalize('NFD')});
+    const two = {
+      ...songFile({
+        ...hymnOne(),
+        id: TEMPLATE_ID,
+        title: '\t새 곡 2\u00a0'.normalize('NFD'),
+      }),
+      file: join(locations.songs, 'second.llsong'),
+    };
+    const {store, files} = setUp([], {
+      songs: new Map([
+        [one.data.id, one],
+        [two.data.id, two],
+      ]),
+    });
+    const created = await store.apply({type: 'song.create'});
+    if (!created.ok) throw new Error(created.error.message);
+    expect(store.song(created.value.id)?.song.title).toBe('새 곡 3');
+    expect(store.song(SONG)?.song.title).toBe(one.data.title);
+    expect(files.written).toHaveLength(1);
+    const text = [...files.texts.values()][0];
+    if (text === undefined) throw new Error('The created song was not saved');
+    expect(JSON.parse(text)).toHaveProperty('title', '새 곡 3');
+  });
+
   it('creates 새 곡, then 새 곡 2, each with one blank 장', async () => {
     const {store, files} = setUp();
 

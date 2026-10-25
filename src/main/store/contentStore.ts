@@ -42,6 +42,7 @@ import {Autosave} from './autosave';
 import {
   copiedItems,
   freeTitle,
+  normalizeSongTitle,
   pickedItems,
   withArrangementPicks,
   withoutArrangement,
@@ -393,7 +394,9 @@ export class ContentStore {
 
   private async createSong(): Promise<EditResult> {
     const id = createSongId(randomUUID());
-    const titles = new Set(this.songs.all().map(({data}) => data.title));
+    const titles = new Set(
+      this.songs.all().map(({data}) => normalizeSongTitle(data.title)),
+    );
     const song: Song = {
       format: 'llsong',
       schemaVersion: SCHEMA_VERSION,
@@ -413,8 +416,12 @@ export class ContentStore {
     if (!checked.ok) {
       return checked.error;
     }
-    if (this.hasOtherSongTitled(song.title, song.id)) {
-      return refuse('duplicate-title', `Another song is titled ${song.title}`);
+    const title = normalizeSongTitle(song.title);
+    if (title === '') {
+      return refuse('invalid', 'The song title must not be blank');
+    }
+    if (this.hasOtherSongTitled(title, song.id)) {
+      return refuse('duplicate-title', `Another song is titled ${title}`);
     }
     const {
       background: _background,
@@ -422,14 +429,14 @@ export class ContentStore {
       updatedAt: _updatedAt,
       ...kept
     } = checked.value.data;
-    const stored = this.songs.replace(checked.value, {...kept, ...song});
+    const stored = this.songs.replace(checked.value, {...kept, ...song, title});
     this.saveLater(SONG, this.songs, song.id);
     this.options.events.songChanged({
       songId: song.id,
       document: this.song(song.id),
     });
     if (
-      checked.value.data.title !== song.title ||
+      checked.value.data.title !== title ||
       checked.value.data.slides.length !== song.slides.length
     ) {
       this.announceList(
@@ -655,7 +662,10 @@ export class ContentStore {
   private hasOtherSongTitled(title: string, songId: string): boolean {
     return this.songs
       .all()
-      .some(({data}) => data.title === title && data.id !== songId);
+      .some(
+        ({data}) =>
+          data.id !== songId && normalizeSongTitle(data.title) === title,
+      );
   }
 
   private saveLater<T extends {readonly id: string}>(
