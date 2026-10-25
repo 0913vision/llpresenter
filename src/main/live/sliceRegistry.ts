@@ -4,7 +4,6 @@ import type {LiveHistory} from './history';
 import type {PayloadError} from '@shared/schema/payload';
 import {parseLiveState} from '@shared/schema/liveState';
 import {MAX_LIVE_BATCH_COMMANDS} from '@shared/schema/liveCommand';
-import type {ScreenId} from '@shared/schema/ids';
 import {fitsLiveStateByteBudget} from './stateBudget';
 import {MissingLiveTargetError} from './commandErrors';
 import {
@@ -47,7 +46,6 @@ interface DeferredEffect {
 
 interface ReductionAttempt extends LiveReduction {
   readonly effects: readonly DeferredEffect[];
-  readonly nested: boolean;
 }
 
 function stateProblem(state: LiveState): PayloadError | undefined {
@@ -59,32 +57,6 @@ function stateProblem(state: LiveState): PayloadError | undefined {
         field: '',
         message: 'The live state exceeds its byte budget',
       };
-}
-
-function replayableInputs(inputs: SliceInputs): SliceInputs {
-  const resync = inputs.resyncScreen;
-  if (resync === undefined) return inputs;
-  const results = new Map<ScreenId, {readonly error?: unknown}>();
-  return {
-    ...inputs,
-    resyncScreen: id => {
-      const previous = results.get(id);
-      if (previous !== undefined) {
-        if ('error' in previous) throw previous.error;
-        return;
-      }
-      if (results.size >= MAX_ATTEMPT_EFFECTS) {
-        throw new Error('Too many screen resyncs in one dispatch');
-      }
-      try {
-        resync(id);
-        results.set(id, {});
-      } catch (error: unknown) {
-        results.set(id, {error});
-        throw error;
-      }
-    },
-  };
 }
 
 function selectAttempt(attempt: ReductionAttempt): LiveReduction {
@@ -152,47 +124,37 @@ export class SliceRegistry {
     return result.history;
   }
 
-  /** Collects skipped children without exposing any intermediate state to listeners. */
+  /**
+   * Reduces a command and its children without exposing intermediate state,
+   * then checks the final state once. When that check fails, the whole dispatch
+   * is rejected: the history stays as it was and no deferred observation runs.
+   */
   run(
     history: LiveHistory,
     command: LiveCommand,
     inputs: SliceInputs,
   ): LiveReduction {
-    const ports = replayableInputs(inputs);
-    const attempt = this.reduce(history, command, {
-      inputs: ports,
-      checkChildren: false,
-    });
+    const attempt = this.reduce(history, command, inputs);
     if (attempt.history.state === history.state) return selectAttempt(attempt);
     const error = stateProblem(attempt.history.state);
     if (error === undefined) return selectAttempt(attempt);
-    if (!attempt.nested) {
-      return {
-        history,
-        skipped: [
-          ...attempt.skipped,
-          {type: command.type, reason: 'invalid-overlay', error},
-        ],
-      };
-    }
-    return selectAttempt(
-      this.reduce(history, command, {inputs: ports, checkChildren: true}),
-    );
+    return {
+      history,
+      skipped: [
+        ...attempt.skipped,
+        {type: command.type, reason: 'invalid-overlay', error},
+      ],
+    };
   }
 
   private reduce(
     history: LiveHistory,
     command: LiveCommand,
-    {
-      inputs,
-      checkChildren,
-    }: {readonly inputs: SliceInputs; readonly checkChildren: boolean},
+    inputs: SliceInputs,
   ): ReductionAttempt {
     const skipped: SkippedLiveCommand[] = [];
     const effects: DeferredEffect[] = [];
-    let calls = 0;
     const apply = (before: LiveHistory, next: LiveCommand): LiveHistory => {
-      calls++;
       const slice = this.byCommand.get(next.type);
       if (slice === undefined) {
         skipped.push({type: next.type, reason: 'unhandled'});
@@ -213,12 +175,7 @@ export class SliceRegistry {
         },
       };
       try {
-        const after = slice.apply(before, next, context);
-        if (checkChildren && after.state !== before.state) {
-          const error = stateProblem(after.state);
-          if (error !== undefined) return context.reject(error);
-        }
-        return after;
+        return slice.apply(before, next, context);
       } catch (error) {
         skipped.push(
           error instanceof MissingLiveTargetError
@@ -228,8 +185,7 @@ export class SliceRegistry {
         return before;
       }
     };
-    const after = apply(history, command);
-    return {history: after, skipped, effects, nested: calls > 1};
+    return {history: apply(history, command), skipped, effects};
   }
 }
 

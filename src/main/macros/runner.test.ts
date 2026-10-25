@@ -62,7 +62,7 @@ function harness(
 }
 
 describe('macro live execution', () => {
-  it('reports the selected macro plan once when another child requires admission retry', () => {
+  it('drops the macro report when another child makes the whole dispatch fail admission', () => {
     const {store, runner, log, id} = harness([{kind: 'look', look: uuid(99)}]);
     dispatchLogged(
       store,
@@ -81,11 +81,9 @@ describe('macro live execution', () => {
       },
       log,
     );
-    expect(log.messages('warn')).toEqual([
-      'skipped macro actions',
-      'skipped live command',
-    ]);
-    expect(runner.lastRun?.problems).toHaveLength(1);
+    expect(log.messages('warn')).toEqual(['skipped live command']);
+    expect(log.entries[0]).toHaveProperty('detail.type', 'live.batch');
+    expect(runner.lastRun).toBeNull();
     expect(store.state.layers.message).toBeNull();
   });
   it('reports skipped actions in one bounded warning with the total count', () => {

@@ -32,6 +32,13 @@ missing target by throwing before changing its immutable input; the next child
 continues. The pure `apply` helper rethrows failed reductions for its caller
 instead of silently discarding their errors.
 
+After the reduction, the registry checks the final state once against the live
+state schema and byte budget. When that check fails, the whole dispatch is
+rejected, however deeply its children nest: the history stays as it was, one
+diagnostic names the top-level command, and none of the observations deferred
+through `context.defer` run. A slice defers every effect outside the live state
+this way, so a rejected dispatch leaves nothing behind.
+
 IPC validation remains in `ipc.ts`. All application dispatch goes through
 `dispatchLogged`, which logs an unsupported type as `unhandled live command` and
 rejects it before dispatch. The pure registry and direct store dispatch also

@@ -41,7 +41,7 @@ function canSave(state: LiveState) {
 }
 
 describe('live admission limits', () => {
-  it('keeps a resync failure observable on retry without calling the port again', () => {
+  it('rejects the whole dispatch after a missing resync target and calls the port once', () => {
     const outputs = Object.fromEntries(
       Array.from({length: LIVE_STATE_LIMITS.outputs}, (_, i) => [
         uuid(i),
@@ -134,35 +134,31 @@ describe('live admission limits', () => {
     release();
   });
 
-  it('recompiles against admitted state on the exceptional retry and runs observations only once', () => {
-    const outputs = Object.fromEntries([
-      ...Array.from(
-        {length: LIVE_STATE_LIMITS.outputs},
-        (_, i) => [uuid(i), true] as const,
-      ),
-      ['main', false] as const,
-    ]);
+  it('rejects a whole nested dispatch whose final state fails and runs none of its observations', () => {
+    const outputs = Object.fromEntries(
+      Array.from({length: LIVE_STATE_LIMITS.outputs}, (_, i) => [
+        uuid(i),
+        true,
+      ]),
+    );
     const store = new LiveStore(
       {...emptyLiveState(), outputs},
       () => 0,
-      new SliceRegistry([
-        outputsSlice,
-        batchSlice,
-        macrosSlice,
-        screenSettingsSlice,
-      ]),
+      new SliceRegistry([outputsSlice, batchSlice, macrosSlice]),
     );
     const observed = vi.fn();
     const run = vi.fn<MacroCommandPort['run']>((history, _command, context) => {
-      const on = history.state.outputs[uuid(999)] === true;
-      context.defer?.(() => {
-        observed(on);
+      context.defer?.(observed);
+      return context.apply(history, {
+        type: 'output.set',
+        screenId: 'main',
+        on: true,
       });
-      return context.apply(history, {type: 'output.set', screenId: 'main', on});
     });
-    const releaseMacro = store.connectMacros({run});
-    const resync = vi.fn();
-    const releaseScreen = store.connectScreenSettings(resync);
+    const release = store.connectMacros({run});
+    const listener = vi.fn();
+    const unsubscribe = store.subscribe(listener);
+    const before = store.state;
     const log = recordingLogger();
     dispatchLogged(
       store,
@@ -170,22 +166,70 @@ describe('live admission limits', () => {
         parseLiveCommand({
           type: 'live.batch',
           commands: [
-            {type: 'output.set', screenId: uuid(999), on: true},
-            {type: 'screen.settings.apply', screenId: uuid(1)},
+            {type: 'output.set', screenId: 'stage', on: true},
             {type: 'macro.run', macroId: uuid(9)},
+            {type: 'output.set', screenId: uuid(999), on: true},
           ],
         }),
       ),
       log,
     );
-    expect(run).toHaveBeenCalledTimes(2);
-    expect(observed).toHaveBeenCalledExactlyOnceWith(false);
-    expect(resync).toHaveBeenCalledExactlyOnceWith(uuid(1));
-    expect(store.state.outputs['main']).toBe(false);
+    expect(run).toHaveBeenCalledOnce();
+    expect(observed).not.toHaveBeenCalled();
+    expect(store.state).toBe(before);
+    expect(listener).not.toHaveBeenCalled();
     expect(log.messages('warn')).toEqual(['skipped live command']);
-    releaseMacro();
-    releaseScreen();
+    expect(log.entries[0]).toMatchObject({
+      detail: {
+        type: 'live.batch',
+        reason: 'invalid-overlay',
+        error: {field: 'outputs'},
+      },
+    });
+    unsubscribe();
+    release();
   });
+
+  it('checks a failing 256-child batch nested inside a macro once', () => {
+    const outputs = Object.fromEntries(
+      Array.from({length: LIVE_STATE_LIMITS.outputs}, (_, i) => [
+        uuid(i),
+        true,
+      ]),
+    );
+    const store = new LiveStore(
+      {...emptyLiveState(), outputs},
+      () => 0,
+      new SliceRegistry([outputsSlice, batchSlice, macrosSlice]),
+    );
+    const release = store.connectMacros({
+      run: (history, _command, context) =>
+        context.apply(history, {
+          type: 'live.batch',
+          commands: [
+            ...Array.from({length: 255}, (_, index) => ({
+              type: 'output.set' as const,
+              screenId: 'main',
+              on: index % 2 === 0,
+            })),
+            {type: 'output.set', screenId: uuid(999), on: true},
+          ],
+        }),
+    });
+    const size = vi.spyOn(budget, 'fitsLiveStateByteBudget');
+    const shape = vi.spyOn(liveSchema, 'parseLiveState');
+    const before = store.state;
+    expect(
+      store.dispatch(
+        expectSuccess(parseLiveCommand({type: 'macro.run', macroId: uuid(9)})),
+      ),
+    ).toBe(false);
+    expect(store.state).toBe(before);
+    expect(shape).toHaveBeenCalledOnce();
+    expect(size).not.toHaveBeenCalled();
+    release();
+  });
+
   it('keeps 200 canonical outputs and all aliases saveable, then rejects the next output without notifying', () => {
     const store = new LiveStore(undefined, () => 0, registry());
     const defaults = expectSuccess(
@@ -264,7 +308,7 @@ describe('live admission limits', () => {
     releaseSettings();
   });
 
-  it('skips a byte-overflowing child built from valid commands and continues the same batch', () => {
+  it('rejects a batch whose valid children together overflow the byte budget', () => {
     const slide = {
       itemId: 'item',
       position: 0,
@@ -302,14 +346,20 @@ describe('live admission limits', () => {
       }),
     );
     const store = new LiveStore(initial, () => 0, registry());
+    const before = store.state;
+    const size = vi.spyOn(budget, 'fitsLiveStateByteBudget');
+    const shape = vi.spyOn(liveSchema, 'parseLiveState');
     const log = recordingLogger();
     dispatchLogged(store, command, log);
-    expect(store.state.layers.slide).toBe(slide);
+    expect(store.state).toBe(before);
     expect(store.state.layers.message).toBeNull();
-    expect(store.state.outputs['main']).toBe(true);
-    expect(store.state.version).toBe(1);
+    expect(store.state.outputs).toEqual({});
+    expect(shape).toHaveBeenCalledOnce();
+    expect(size).toHaveBeenCalledOnce();
     expect(log.messages('warn')).toEqual(['skipped live command']);
-    expect(log.entries[0]).toHaveProperty('detail.type', 'message.show');
+    expect(log.entries[0]).toMatchObject({
+      detail: {type: 'live.batch', error: {field: ''}},
+    });
     expect(canSave(store.state)).toBe(true);
   });
 
