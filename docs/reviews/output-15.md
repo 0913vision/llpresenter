@@ -2,8 +2,9 @@
 
 - Team member: `output`
 - Branch: `fix/output/media-memory`
-- Base commit (`main`): pending rebase
-- Review range: pending rebase
+- Base commit (`main`): `da4aae7eed32eb13fb13712caf24d9773fc4c4fe`
+- Code commit: `5c7edcc`
+- Review range: `da4aae7...fix/output/media-memory`
 - Related brief: `docs/briefs/output.md`, bug M2-5, and the lead's instruction
   to measure both candidates before fixing the cause.
 - Shared contract changes: none.
@@ -65,7 +66,8 @@ Two exploratory interruption runs are excluded from the table: renderer `fetch`
 was rejected before the protocol handler ran, and repeating the same video URL
 mostly hit Chromium's cache. The final run used distinct video URLs.
 
-Reproduce with the local harness:
+Reproduce with the local harness from the output worktree:
+`D:\programming\2020-\pp\.claude\worktrees\output`.
 
 ```text
 node .llp/m2-5/run.mjs canvas bitmap
@@ -93,12 +95,12 @@ and normal-window behavior. The partial-range test observes the real Node file
 stream: it is destroyed on reader cancellation, emits `close`, and has a null
 file descriptor. No production injection point was added.
 
-The actual built app ran offscreen for 30 s with the same clip, output enabled,
-and slide changes every 5 s, then exited normally. The recorder's two samples at
-10 and 20 s put main private memory at 79.32 and 79.78 MiB. Both output
-frame-rate readings were 60. These two samples are a wiring check, not a peak
-measurement. The raw record is `.llp/m2-5/app-data/soak.jsonl`, and the app log
-is `.llp/m2-5/app-run.log`.
+Before rebasing, the built app ran offscreen for 30 s with the same clip, output
+enabled, and slide changes every 5 s, then exited normally. The recorder's two
+samples at 10 and 20 s put main private memory at 79.32 and 79.78 MiB. Both
+output frame-rate readings were 60. These two samples are a wiring check, not a
+peak measurement. The raw record is `.llp/m2-5/app-data/soak.jsonl`, and the app
+log is `.llp/m2-5/app-run.log`.
 
 ## Changed files
 
@@ -115,20 +117,31 @@ is `.llp/m2-5/app-run.log`.
 
 ## Checks run
 
-| Command or test                                     | Result                                       |
-| --------------------------------------------------- | -------------------------------------------- |
-| Focused old-code regression run, 4 files, 2 workers | Expected failure: 4 failed, 45 passed        |
-| Same focused run after fix                          | Pass: 49 tests                               |
-| Scoped output tests, 2 workers                      | Pass: 34 files, 327 tests                    |
-| `npm run typecheck`                                 | Pass                                         |
-| ESLint on changed TypeScript files                  | Pending                                      |
-| `npm run build`                                     | Pass                                         |
-| `npm run format` and `npm run format:check`         | Pending                                      |
-| `npm run verify`                                    | Pending, run once immediately before request |
+| Command or test                                     | Result                                                |
+| --------------------------------------------------- | ----------------------------------------------------- |
+| Focused old-code regression run, 4 files, 2 workers | Expected failure: 4 failed, 45 passed                 |
+| Same focused run after fix                          | Pass: 49 tests                                        |
+| Scoped output tests, 2 workers                      | Pass: 34 files, 327 tests                             |
+| `npm run typecheck`                                 | Pass                                                  |
+| ESLint on changed TypeScript files                  | Pass                                                  |
+| `npm run build`                                     | Pass                                                  |
+| `npm run format`                                    | Pass; no changes outside output's owned files         |
+| `npm run format:check`                              | Pass, including in full verification                  |
+| `npm run verify`                                    | Pass: 5 steps in 111.6 s; one invocation after rebase |
 
 The restart check before implementation passed 272 tests but could not start
 four renderer workers. The scoped run above used two workers and completed all
-34 files. The full verification result will be recorded separately.
+34 files. The single full verification above includes the rebased code.
+
+Full verification timings: typecheck 4.7 s, lint 81.7 s, format check 7.4 s,
+coverage tests 111.6 s, and build 4.6 s. No step failed or needed a manual
+rerun. The only subsequent changes are this review's result recording and
+formatting. Raw verification output: `.llp/m2-5/verify.log`.
+
+Rebased once onto `da4aae7`. Resolved the output window test-double conflict by
+keeping main's ping and crash methods on an `EventEmitter`, so both the existing
+hang-handling tests and the new frame-lifetime tests run. The focused run after
+rebase passed all 52 tests in four files.
 
 ## Decisions and limits
 
@@ -148,7 +161,7 @@ four renderer workers. The scoped run above used two workers and completed all
 
 ## Quality checklist
 
-- [ ] `npm run verify` passes and the format check passes.
+- [x] `npm run verify` passes and the format check passes.
 - [x] The regression tests fail on the old code and pass after the fix.
 - [x] Registered frame listeners are removed; textures are released at once.
 - [x] No shared contracts, external input handling, caches, UI, or normal output
