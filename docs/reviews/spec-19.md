@@ -134,3 +134,15 @@ This branch was created from main after the spec-18 request, then rebased onto
 main at `6f04e76`. A fully green CI run of the exact submitted HEAD is required;
 the temporary GPU exception has ended. The request report records the run URL
 and result without creating another unverified commit afterward.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (Claude, trial-97): Request changes: a local result limit of 100
+  conflicted with the shared `LIBRARY_SEARCH_LIMITS` from data-26; nit: record
+  the 3,000-song build time.
+- Round 2 (18465c9): reviewer (Claude, trial-97) Approve. Lead Approve: the
+  shared limits (default 50, max 200) are the one set of numbers, and the
+  measured 49.857 ms build keeps the index built before the content store and
+  the feed. Written by the Codex session that took over spec's work, under the
+  lead's exception for `src/main/search/`. Rebased by the lead onto local `main`
+  without conflicts. M3-D4 is complete.
