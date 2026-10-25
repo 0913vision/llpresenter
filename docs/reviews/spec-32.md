@@ -1,10 +1,11 @@
-Review range: `17d18d4...feat/spec/song-background-control`
+Review range: `867330a...feat/spec/song-background-control`
 
 # Review request: `spec-32`
 
 - Team member: `spec`
 - Branch: `feat/spec/song-background-control`
-- Base: spec-31 at `17d18d4`, pending its merge before submission
+- Base commit: `867330a`, main after spec-31
+- Stack: started on spec-31, then rebased onto main after its approval
 - Review round: 1
 - Task: `.llp/task.md`, final M3-S1a slide-header control
 - Ownership exception: renderer show and shell paths for S1a
