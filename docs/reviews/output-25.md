@@ -133,8 +133,9 @@ the corrected suite then passed. No Electron process or full verify ran locally.
   screen list was empty and no output could turn on; nits.
 - Round 2 (5190d4b): reviewer (Claude, trial-97) Approve: the built-in default
   screens stand in when settings cannot be read (lead decision), tested end to
-  end. Nits for output-26: keep the order of and the screens source in with a
-  NOTE or a test that fails when swapped; is later work, so a TODO, not a NOTE;
-  let tests pass the fallback explicitly. Lead Approve. Written by the Codex
-  session that took over output's work. Rebased by the lead onto local without
-  conflicts. M3-O9a is complete.
+  end. Nits for output-26: keep the order of `startOverlays` and the screens
+  source in `src/main/index.ts` with a NOTE or a test that fails when swapped;
+  `live/slices/outputs.ts:4` is later work, so a TODO, not a NOTE; let tests
+  pass the `settingsScreens.ts` fallback explicitly. Lead Approve. Written by
+  the Codex session that took over output's work. Rebased by the lead onto local
+  `main` without conflicts. M3-O9a is complete.
