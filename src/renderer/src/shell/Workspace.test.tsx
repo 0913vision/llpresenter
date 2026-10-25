@@ -124,7 +124,7 @@ describe('Workspace service header', () => {
     ).toBeDefined();
   });
 
-  it('keeps the existing header of the 준비 workspace', () => {
+  it('mounts the current service header and list in the 준비 workspace', () => {
     render(
       <Workspace
         id="prep"
@@ -133,8 +133,10 @@ describe('Workspace service header', () => {
       />,
     );
     const panel = screen.getByRole('region', {name: '예배 순서'});
-    expect(within(panel).getByText('예배 순서')).toBeDefined();
-    expect(within(panel).queryByText(sampleService.name)).toBeNull();
+    expect(within(panel).getByText(sampleService.name)).toBeDefined();
+    expect(within(panel).getByRole('listbox').dataset['workspace']).toBe(
+      'prep',
+    );
   });
 });
 

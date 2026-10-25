@@ -1,7 +1,12 @@
-import {useEffect, useRef, type JSX} from 'react';
+import {useEffect, useRef, useState, type JSX} from 'react';
+import {createServiceItemId} from '@shared/schema/ids';
 import {openItem, useShow} from '@renderer/state/show';
 import {useLive} from '@renderer/state/live';
-import {ListBox, ListGroup, ListRow} from '@renderer/ui';
+import {ListBox, ListGroup, ListRow, Menu} from '@renderer/ui';
+import type {MenuAnchor} from '@renderer/ui/Menu';
+import type {Notice} from '@renderer/ui/notices';
+import type {Workspace} from '@renderer/ui/workspace';
+import {useServiceOrderEditing} from './useServiceOrderEditing';
 import type {ItemKind, RowProblem, ServiceRow} from './model';
 import styles from './ServiceOrderList.module.css';
 
@@ -64,27 +69,56 @@ function ItemRows({
     <>
       {items.map(row =>
         row.kind === 'header' ? null : (
-          <ListRow
-            key={row.id}
-            value={row.id}
-            title={row.title}
-            icon={iconByKind[row.kind]}
-            live={row.id === liveItemId}
-            warning={
-              row.problem === undefined ? undefined : problemTips[row.problem]
-            }
-          />
+          <div key={row.id} data-order-id={row.id}>
+            <ListRow
+              value={row.id}
+              title={row.title}
+              icon={iconByKind[row.kind]}
+              live={row.id === liveItemId}
+              warning={
+                row.problem === undefined ? undefined : problemTips[row.problem]
+              }
+            />
+          </div>
         ),
       )}
     </>
   );
 }
 
-/** The 예배 순서 list of the 진행 workspace. */
-export function ServiceOrderList(): JSX.Element {
+function logProblem(notice: Notice): void {
+  console.error('Service order edit failed:', notice.key);
+}
+
+function serviceOrderRowId(target: EventTarget): string | null {
+  return target instanceof Element
+    ? (target.closest<HTMLElement>('[data-order-id]')?.dataset['orderId'] ??
+        null)
+    : null;
+}
+
+/** The main-owned 예배 순서 list shared by 진행 and 준비. */
+export function ServiceOrderList({
+  workspace = 'show',
+  onProblem = logProblem,
+  onOpenPrep,
+}: {
+  readonly workspace?: Workspace | undefined;
+  readonly onProblem?: ((notice: Notice) => void) | undefined;
+  readonly onOpenPrep?: ((itemId: string) => void) | undefined;
+}): JSX.Element {
   const rows = useShow(view => view.rows);
   const openItemId = useShow(view => view.openItemId);
   const liveItemId = useLiveItemId();
+  const serviceId = useShow(view => view.serviceId);
+  const readOnly = useShow(view => view.readOnly);
+  const editing = useServiceOrderEditing(serviceId, onProblem);
+  const editable = !readOnly && !editing.busy && window.llp !== undefined;
+  const [menu, setMenu] = useState<{
+    id: string;
+    serviceId: string | null;
+    anchor: MenuAnchor;
+  } | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -94,9 +128,38 @@ export function ServiceOrderList(): JSX.Element {
   }, [openItemId]);
 
   return (
-    <div ref={listRef} className={styles.list}>
+    <div
+      ref={listRef}
+      className={styles.list}
+      aria-busy={editing.busy}
+      onContextMenu={event => {
+        const id = serviceOrderRowId(event.target);
+        if (id === null) return;
+        event.preventDefault();
+        setMenu({
+          id,
+          serviceId,
+          anchor: {kind: 'point', point: {x: event.clientX, y: event.clientY}},
+        });
+      }}
+      onKeyDownCapture={event => {
+        if (
+          !event.ctrlKey ||
+          event.altKey ||
+          event.metaKey ||
+          !['z', 'y'].includes(event.key.toLowerCase())
+        ) {
+          return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        if (!editable || event.repeat) return;
+        const redo = event.key.toLowerCase() === 'y' || event.shiftKey;
+        editing.run((edits, id) => (redo ? edits.redo(id) : edits.undo(id)));
+      }}
+    >
       <ListBox
-        workspace="show"
+        workspace={workspace}
         label="예배 순서"
         selected={openItemId ?? undefined}
         onSelect={openItem}
@@ -109,12 +172,50 @@ export function ServiceOrderList(): JSX.Element {
               liveItemId={liveItemId}
             />
           ) : (
-            <ListGroup key={group.id} label={group.label}>
-              <ItemRows items={group.items} liveItemId={liveItemId} />
-            </ListGroup>
+            <div key={group.id} data-order-id={group.id}>
+              <ListGroup label={group.label}>
+                <ItemRows items={group.items} liveItemId={liveItemId} />
+              </ListGroup>
+            </div>
           ),
         )}
       </ListBox>
+      {menu?.serviceId === serviceId ? (
+        <Menu
+          label="예배 순서 항목 메뉴"
+          anchor={menu.anchor}
+          onClose={() => setMenu(null)}
+          entries={[
+            ...(workspace === 'show' && onOpenPrep !== undefined
+              ? [
+                  {
+                    kind: 'item' as const,
+                    id: 'prep',
+                    label: '준비에서 열기',
+                    onSelect: () => {
+                      onOpenPrep(menu.id);
+                      setMenu(null);
+                    },
+                  },
+                ]
+              : []),
+            {
+              kind: 'item',
+              id: 'delete',
+              label: '삭제',
+              icon: 'trash',
+              danger: true,
+              disabled: !editable,
+              onSelect: () => {
+                editing.run((edits, id) =>
+                  edits.remove(id, createServiceItemId(menu.id)),
+                );
+                setMenu(null);
+              },
+            },
+          ]}
+        />
+      ) : null}
     </div>
   );
 }

@@ -2,6 +2,7 @@ import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@shared/commands';
 import {emptyLiveState} from '@shared/live';
+import {createServiceId, createServiceItemId} from '@shared/schema/ids';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {createMemoryColumnWidthStore} from '@renderer/shell/columnWidthStore';
 import {useLive} from '@renderer/state/live';
@@ -37,6 +38,28 @@ afterEach(() => {
 });
 
 describe('App menu bar title', () => {
+  it('hosts and closes service edit warnings in the shared notice stack', async () => {
+    window.llp = fakeLlpApi();
+    applyService({
+      ...sampleService,
+      id: createServiceId('00000000-0000-4000-8000-000000000001'),
+      rows: [
+        {
+          kind: 'song',
+          title: 'Invented row',
+          id: createServiceItemId('10000000-0000-4000-8000-000000000001'),
+        },
+      ],
+    });
+    render(<App columnWidthStore={createMemoryColumnWidthStore()} />);
+    fireEvent.contextMenu(screen.getByRole('option', {name: 'Invented row'}));
+    fireEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
+    expect(await screen.findByText('예배 순서 변경 실패')).toBeDefined();
+    fireEvent.click(screen.getByRole('button', {name: '알림 닫기'}));
+    expect(screen.queryByText('예배 순서 변경 실패')).toBeNull();
+    expect(screen.getByRole('option', {name: 'Invented row'})).toBeDefined();
+  });
+
   it('shows the name of the open service and follows a change of it', () => {
     seedSampleService();
     render(<App columnWidthStore={createMemoryColumnWidthStore()} />);

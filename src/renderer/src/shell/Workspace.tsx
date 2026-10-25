@@ -10,6 +10,7 @@ import {
   SlideSizeControl,
 } from '@renderer/show/SlidePanel';
 import {useShowKeys} from '@renderer/show/shortcuts';
+import type {Notice} from '@renderer/ui/notices';
 import {ColumnGap} from './ColumnGap';
 import type {ColumnWidthStore} from './columnWidthStore';
 import type {SizeClass} from './sizeClass';
@@ -92,12 +93,6 @@ function ShowShortcuts(): null {
 
 function showPanelParts(title: string, sizeClass: SizeClass): PanelParts {
   switch (title) {
-    case '예배 순서':
-      return {
-        header: <ServiceOrderHeader />,
-        body: <ServiceOrderList />,
-        meta: <ReadOnlyMark />,
-      };
     case '미리보기':
       return {
         size: 'content',
@@ -124,10 +119,16 @@ export function Workspace({
   id,
   sizeClass,
   store,
+  onProblem,
+  onOpenPrep,
+  warningHeight = 0,
 }: {
   readonly id: WorkspaceId;
   readonly sizeClass: SizeClass;
   readonly store: ColumnWidthStore;
+  readonly onProblem?: ((notice: Notice) => void) | undefined;
+  readonly onOpenPrep?: ((itemId: string) => void) | undefined;
+  readonly warningHeight?: number;
 }): JSX.Element {
   const {gridRef, drag} = useColumnLayout(sizeClass, store);
   return (
@@ -138,12 +139,35 @@ export function Workspace({
           {column > 0 && (
             <ColumnGap column={column === 1 ? 'left' : 'right'} drag={drag} />
           )}
-          <div className={styles.column}>
+          <div
+            className={styles.column}
+            style={
+              column === 2 && warningHeight > 0
+                ? {paddingTop: `calc(${warningHeight}px + var(--panel-gap))`}
+                : undefined
+            }
+          >
             {panels.map(title => (
               <Panel
                 key={title}
                 title={title}
-                parts={id === 'show' ? showPanelParts(title, sizeClass) : {}}
+                parts={
+                  title === '예배 순서' && id !== 'screens'
+                    ? {
+                        header: <ServiceOrderHeader />,
+                        body: (
+                          <ServiceOrderList
+                            workspace={id}
+                            onProblem={onProblem}
+                            onOpenPrep={onOpenPrep}
+                          />
+                        ),
+                        meta: <ReadOnlyMark />,
+                      }
+                    : id === 'show'
+                      ? showPanelParts(title, sizeClass)
+                      : {}
+                }
               />
             ))}
           </div>
