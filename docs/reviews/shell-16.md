@@ -1,6 +1,6 @@
 # Review request: `shell-16`
 
-Review range: fbfce09...refactor/shell/ui-parts
+Review range: 60bbcec...refactor/shell/ui-parts
 
 What to check: that the 장 grid and the 예배 순서 list are the ui
 `ThumbnailGrid` (`show`) and `ListBox` (`show`) with the same behavior for the
@@ -14,7 +14,7 @@ code before it.
 
 - Team member: `shell`
 - Branch: `refactor/shell/ui-parts`
-- Base commit (`main`): `fbfce09` (ui-10 is in it: `ListBox` redraws only
+- Base commit (`main`): `60bbcec` (ui-10 is in it: `ListBox` redraws only
   changed rows and gives the Tab stop to a row)
 - Last commit: see the commit that adds this file
 - Related brief: "Shell handoff" in `docs/reviews/ui-4.md`
@@ -128,7 +128,7 @@ Round 1 (codex2, request changes), answered once:
 
 ### Round 2
 
-`npm run verify` on commit `4aef1ae` (base `main` fbfce09): all five steps
+`npm run verify` on commit `4aef1ae` (base `main` 60bbcec): all five steps
 passed in 108.5 s (`typecheck`, `lint`, `format:check`, `test:coverage`, and
 `build`). `ShowPanels.test.tsx` passes (28 tests). With `ListRow.tsx` from
 `efd0a29` (before ui-10) put back in the working tree only, the two render-count
