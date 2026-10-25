@@ -70,3 +70,14 @@ The branch was rebased onto main at `d0a97d3`. A fully green CI run of the
 submitted HEAD is required. The request report records its URL and result
 without adding another unverified commit for CI metadata. Its coverage artifact
 contains the CI measurements in `bible-parse-budget.json`.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (b20e7f2): reviewer (Claude, trial-97) Approve. Nits for the next spec
+  branch: the startup async in the old ClearRow test was `UndoControls`'
+  `preferences.get().then(setVisible)` (`ClearRow.tsx:78`), not `live.get`;
+  correct the cause in this document. Move the `node:fs/promises` and
+  `node:path` imports in `src/main/bible/parsePerformance.test.ts:63` up with
+  the other imports. Lead Approve. Written by the Codex session that took over
+  spec's work; the ClearRow test change was under the lead's exception. Rebased
+  by the lead onto local `main` without conflicts.
