@@ -8,6 +8,9 @@ import {
   settingsDocument,
 } from '../live/testing/overlays';
 import {createSettingsScreenSource} from './settingsScreens';
+import {fullScreenScreen} from './testing';
+
+const fallback = {list: () => [fullScreenScreen()]};
 
 describe('saved output screens', () => {
   it('discards a queued resync on dispose', async () => {
@@ -15,6 +18,7 @@ describe('saved output screens', () => {
     const source = createSettingsScreenSource(
       Promise.resolve(settings.reader),
       recordingLogger(),
+      fallback,
     );
     await Promise.resolve();
     const changed = vi.fn();
@@ -32,6 +36,7 @@ describe('saved output screens', () => {
     const source = createSettingsScreenSource(
       Promise.resolve({...settings.reader, get}),
       log,
+      fallback,
     );
     const changed = vi.fn();
     const stop = source.subscribe(changed);
@@ -73,7 +78,11 @@ describe('saved output screens', () => {
       }),
     };
     const log = recordingLogger();
-    const source = createSettingsScreenSource(Promise.resolve(reader), log);
+    const source = createSettingsScreenSource(
+      Promise.resolve(reader),
+      log,
+      fallback,
+    );
     await Promise.resolve();
     expect(source.ready).toBe(true);
     expect(source.list()).toEqual([]);
@@ -89,7 +98,11 @@ describe('saved output screens', () => {
     const pending = new Promise<SettingsReader>(done => {
       resolve = done;
     });
-    const source = createSettingsScreenSource(pending, recordingLogger());
+    const source = createSettingsScreenSource(
+      pending,
+      recordingLogger(),
+      fallback,
+    );
     source.dispose();
     resolve(settings.reader);
     await Promise.resolve();
@@ -105,6 +118,7 @@ describe('saved output screens', () => {
           ? Promise.resolve(null)
           : Promise.reject(new Error('load failed')),
         log,
+        fallback,
       );
       await Promise.resolve();
       await Promise.resolve();

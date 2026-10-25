@@ -5,7 +5,6 @@ import type {SettingsReader} from '../store/settingsStore';
 import type {Logger} from '../log';
 import {MissingLiveTargetError} from '../live/commandErrors';
 import {outputStateKeys} from './identity';
-import {createDefaultScreenSource} from './defaultScreens';
 import type {OutputScreen, ScreenSource} from './screens';
 
 export interface SettingsScreens extends ScreenSource {
@@ -156,7 +155,7 @@ class SavedScreenSource implements SettingsScreens {
 export function createSettingsScreenSource(
   loading: Promise<SettingsReader | null>,
   log: Logger,
-  fallback: ScreenSource = createDefaultScreenSource({monitors: []}),
+  fallback: ScreenSource,
 ): SettingsScreens {
   return new SavedScreenSource(loading, log, fallback);
 }

@@ -22,6 +22,7 @@ const fakes = vi.hoisted(() => {
   return {
     order,
     overlayContexts: new Array<unknown>(),
+    recovery: {crashed: false, cleanExit: vi.fn<() => Promise<void>>()},
     macroContexts: new Array<unknown>(),
     macrosStop: vi.fn<() => void>(),
     overlaysStop: vi.fn<() => void>(),
@@ -71,6 +72,12 @@ const fakes = vi.hoisted(() => {
 });
 
 vi.mock('electron', () => fakes.electron);
+vi.mock('./live/recovery/session', () => ({
+  openRecoverySession: async () => {
+    fakes.order.push('recovery session');
+    return fakes.recovery;
+  },
+}));
 vi.mock('./macros/register', () => ({
   registerMacros: (context: unknown) => {
     fakes.macroContexts.push(context);
@@ -194,6 +201,8 @@ beforeEach(async () => {
   fakes.controlWindow.focus.mockClear();
   fakes.order.length = 0;
   fakes.overlayContexts.length = 0;
+  fakes.recovery.crashed = false;
+  fakes.recovery.cleanExit.mockReset();
   fakes.macroContexts.length = 0;
   fakes.macrosStop.mockReset();
   fakes.overlaysStop.mockReset();
@@ -237,6 +246,27 @@ function beforeQuit(): {prevented: boolean} {
 }
 
 describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
+  it('starts a crashed session in standby and removes its marker after saving the data store', async () => {
+    const finish = deferred();
+    onTestFinished(finish.resolve);
+    fakes.recovery.cleanExit.mockReturnValue(finish.promise);
+    fakes.recovery.crashed = true;
+    await startMain();
+    expect(fakes.outputContexts[0]?.store.state.outputs).toEqual({});
+    beforeQuit();
+    await vi.waitFor(() =>
+      expect(fakes.recovery.cleanExit).toHaveBeenCalledOnce(),
+    );
+    expect(fakes.storeDispose.mock.invocationCallOrder[0]).toBeLessThan(
+      fakes.recovery.cleanExit.mock.invocationCallOrder[0] ?? Infinity,
+    );
+    expect(fakes.electron.app.releaseSingleInstanceLock).not.toHaveBeenCalled();
+    expect(fakes.electron.app.quit).not.toHaveBeenCalled();
+    finish.resolve();
+    await vi.waitFor(() =>
+      expect(fakes.electron.app.quit).toHaveBeenCalledOnce(),
+    );
+  });
   it('connects macro execution to the shared live and data stores and stops it before closing data', async () => {
     await startMain();
     expect(fakes.macroContexts).toHaveLength(1);
@@ -289,6 +319,7 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
   it('reads the UI state before the control window opens', async () => {
     await startMain();
     expect(fakes.order).toEqual([
+      'recovery session',
       'app.json',
       'ui state',
       'UI zoom',

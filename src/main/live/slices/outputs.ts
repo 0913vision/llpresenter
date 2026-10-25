@@ -1,6 +1,6 @@
 import {defineSlice} from '../slice';
 import {resolveOutputScreen} from '@shared/screens';
-// NOTE(0913vision): Data will move this temporary identity bridge beside
+// TODO(0913vision): Data will move this temporary identity bridge beside
 // resolveOutputScreen in @shared/screens.
 import {outputStateKeys} from '../../outputs/identity';
 import {MissingLiveTargetError} from '../commandErrors';

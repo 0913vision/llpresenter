@@ -5,6 +5,7 @@ import {registerTextImport} from './import/register';
 import {LiveStore, dispatchLogged} from './live/store';
 import {startOverlays} from './live/overlays';
 import {registerMacros} from './macros/register';
+import {openRecoverySession} from './live/recovery/session';
 import {createLogger, flushWithin, type Logger} from './log';
 import {registerIpc} from './ipc';
 import {startOutputs} from './outputs/start';
@@ -83,6 +84,13 @@ function start(): void {
   app
     .whenReady()
     .then(async () => {
+      const session = await openRecoverySession({
+        folder: join(app.getPath('userData'), 'recovery'),
+        log,
+      });
+      if (session.crashed) {
+        log.warn('previous session did not exit cleanly; starting in standby');
+      }
       const appConfig = await openAppConfig({
         file: join(app.getPath('userData'), UI_STATE_FILE),
         log,
@@ -96,6 +104,8 @@ function start(): void {
         appConfig,
       });
       const disposeIpc = registerIpc(store, log, windowMode);
+      // NOTE(0913vision): Register the reader owner before the output source;
+      // their settings promise callbacks run in registration order.
       const stopOverlays = startOverlays({
         store,
         settings: dataStore.settings,
@@ -143,6 +153,10 @@ function start(): void {
       shutdown.add({name: 'close the data store', run: dataStore.dispose});
       shutdown.add({name: 'stop serving media', run: stopServingMedia});
       shutdown.add({name: 'remove the IPC channels', run: disposeIpc});
+      shutdown.add({
+        name: 'finish the recovery session',
+        run: () => session.cleanExit(),
+      });
       win.on('closed', () => {
         control = null;
         app.quit();
