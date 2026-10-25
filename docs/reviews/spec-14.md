@@ -66,3 +66,14 @@ and global tokens are unchanged.
   menu bar keeps the service title.
 - No new dependencies, persistence, IPC, output changes, or general type-scale
   changes are part of this request.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (c3f612e): reviewer (Codex, codex3) Approve with no findings. Lead
+  Approve; the user's alternative A from the first M2 check drafts: the open
+  service's name replaces the 예배 순서 panel's header label at 34 px in the
+  16/22 heading style, with an ellipsis and the full name on hover, and the
+  panel keeps 예배 순서 as its accessible name. The service picker comes later.
+  Written by the Codex session that took over spec's work, with the lead's
+  permission to change shell's `Workspace.tsx` for this feature. Fast-forward
+  merge.
