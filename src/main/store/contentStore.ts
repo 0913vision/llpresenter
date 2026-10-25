@@ -1,6 +1,5 @@
 import {randomUUID} from 'node:crypto';
 import {join} from 'node:path';
-import * as v from 'valibot';
 import type {Result} from '@shared/result';
 import type {
   LibrarySong,
@@ -18,9 +17,9 @@ import type {
 } from '@shared/schema/contentEdit';
 import type {FileError} from '@shared/schema/fileFormat';
 import {
-  serviceIdSchema,
-  songIdSchema,
-  templateIdSchema,
+  createServiceId,
+  createSongId,
+  createTemplateId,
   type ServiceId,
   type SongId,
   type TemplateId,
@@ -29,6 +28,7 @@ import {
   serializeService,
   serializeTemplate,
   type Service,
+  type ServiceItem,
   type Template,
 } from '@shared/schema/service';
 import {serializeSong, type Song} from '@shared/schema/song';
@@ -112,8 +112,8 @@ type Checked<T> = Result<StoredDocument<T>, EditResult>;
  * for. A whole-document update applies over the stored file, so unknown
  * fields survive, and is saved half a second after the last change. An edit
  * that creates, deletes, or touches several files writes them at once, the
- * document it names first, then the 예배 순서 in id order; a failed write
- * keeps the edit in memory and is answered with the files that didn't
+ * document it names first, then 예배 순서 and 틀, each in id order. A failed
+ * write keeps the edit in memory and is answered with the files that didn't
  * change. Every change goes to the windows with its revision.
  */
 export class ContentStore {
@@ -230,7 +230,7 @@ export class ContentStore {
   }
 
   private async createSong(): Promise<EditResult> {
-    const id = v.parse(songIdSchema, randomUUID());
+    const id = createSongId(randomUUID());
     const titles = new Set(this.songs.all().map(({data}) => data.title));
     const song: Song = {
       format: 'llsong',
@@ -319,23 +319,21 @@ export class ContentStore {
     pick: ArrangementPick,
   ): Promise<EditResult> {
     const stored = this.songs.replace(current, changed);
-    const services = this.services
-      .all()
-      .filter(({access}) => access === 'editable')
-      .flatMap(service => {
-        const order = withArrangementPicks(service.data.order, pick);
-        return order === null
-          ? []
-          : [this.services.replace(service, {...service.data, order})];
-      })
-      .sort((a, b) => a.data.id.localeCompare(b.data.id));
+    const services = rewritePicks(this.services, pick);
+    const templates = rewritePicks(this.templates, pick);
     this.announceSong(pick.songId);
     for (const service of services) {
       this.announceService(service.data.id);
     }
+    for (const template of templates) {
+      this.announceTemplate(template.data.id);
+    }
     const written = [await this.write(SONG, stored)];
     for (const service of services) {
       written.push(await this.write(SERVICE, service));
+    }
+    for (const template of templates) {
+      written.push(await this.write(TEMPLATE, template));
     }
     return answer({id: pick.songId, revision: stored.revision}, written);
   }
@@ -350,7 +348,7 @@ export class ContentStore {
     if (template === undefined) {
       return refuse('not-found', `No 틀 has the id ${String(templateId)}`);
     }
-    const id = v.parse(serviceIdSchema, randomUUID());
+    const id = createServiceId(randomUUID());
     const service: Service = {
       format: 'llservice',
       schemaVersion: SCHEMA_VERSION,
@@ -442,7 +440,7 @@ export class ContentStore {
     if (service === undefined) {
       return refuse('not-found', `No 예배 순서 has the id ${serviceId}`);
     }
-    const id = v.parse(templateIdSchema, randomUUID());
+    const id = createTemplateId(randomUUID());
     const time = TIME_OF_DATE.exec(service.data.date)?.[1];
     const template: Template = {
       format: 'llservice',
@@ -594,6 +592,24 @@ export class ContentStore {
       send(value);
     }
   }
+}
+
+function rewritePicks<
+  T extends {readonly id: string; readonly order: readonly ServiceItem[]},
+>(
+  documents: DocumentCollection<T>,
+  pick: ArrangementPick,
+): ReadonlyArray<StoredDocument<T>> {
+  return documents
+    .all()
+    .filter(({access}) => access === 'editable')
+    .flatMap(document => {
+      const order = withArrangementPicks(document.data.order, pick);
+      return order === null
+        ? []
+        : [documents.replace(document, {...document.data, order})];
+    })
+    .sort((a, b) => a.data.id.localeCompare(b.data.id));
 }
 
 function checkEditable<T>(stored: StoredDocument<T> | undefined): Checked<T> {

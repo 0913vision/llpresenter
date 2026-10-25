@@ -1,7 +1,6 @@
 import {randomUUID} from 'node:crypto';
-import * as v from 'valibot';
 import {
-  serviceItemIdSchema,
+  createServiceItemId,
   type ServiceItemId,
   type SongId,
 } from '@shared/schema/ids';
@@ -14,7 +13,7 @@ import type {Song} from '@shared/schema/song';
 
 /** A fresh version 4 id, checked against the schema of its kind. */
 export function newItemId(): ServiceItemId {
-  return v.parse(serviceItemIdSchema, randomUUID());
+  return createServiceItemId(randomUUID());
 }
 
 /** Copies items with new ids, so a copy never shares an id with its source. */

@@ -1,8 +1,9 @@
-import {mkdir, readFile, readdir, writeFile} from 'node:fs/promises';
+import {mkdir, readFile, readdir, rm, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
 import {makeTempDir} from '../../../test/temp-dir';
 import type {Logger} from '../log';
+import {ContentPersistence} from './contentPersistence';
 import {documentFiles} from './documentFiles';
 import {RecoveryCopies} from './recoveryCopies';
 import {Saver} from './saver';
@@ -87,7 +88,46 @@ describe('documentFiles', () => {
     expect(await readFile(join(recovery, name), 'utf8')).toBe('last content');
   });
 
-  it('reports a recovery failure and returns a deletion failure without throwing', async () => {
+  it('preserves a regular file after a recovery failure and retries its deletion', async () => {
+    const folder = await makeTempDir();
+    const target = {
+      file: join(folder, 'song.llsong'),
+      kind: 'song',
+      id: 'song-1',
+    };
+    const recovery = join(folder, 'recovery');
+    await writeFile(target.file, 'last content');
+    await writeFile(recovery, 'blocks the recovery folder');
+    const log = fakeLog();
+    const copies = new RecoveryCopies({folder: recovery, keep: () => 10});
+    const saver = new Saver({copies, reportCopyProblem: vi.fn()});
+    const persistence = new ContentPersistence(
+      documentFiles({saver, copies, log}),
+      log,
+    );
+
+    expect(await persistence.remove(target)).toMatchObject({
+      ok: false,
+      error: {file: target.file},
+    });
+    expect(await readFile(target.file, 'utf8')).toBe('last content');
+    expect(log.warn).toHaveBeenCalledWith(
+      'could not keep a recovery copy',
+      expect.objectContaining({file: target.file}),
+    );
+
+    await rm(recovery);
+    await persistence.flush();
+
+    await expect(readFile(target.file)).rejects.toMatchObject({code: 'ENOENT'});
+    const folderOfCopies = join(recovery, target.kind, target.id);
+    const [name = ''] = await readdir(folderOfCopies);
+    expect(await readFile(join(folderOfCopies, name), 'utf8')).toBe(
+      'last content',
+    );
+  });
+
+  it('returns a deletion failure when the recovery succeeds but the file cannot be removed', async () => {
     const folder = await makeTempDir();
     const file = join(folder, 'a-directory');
     await mkdir(file);
@@ -95,7 +135,7 @@ describe('documentFiles', () => {
     const copies = {
       keepBeforeDelete: vi
         .fn<RecoveryCopies['keepBeforeDelete']>()
-        .mockResolvedValue({ok: false, error: {file, message: 'copy failed'}}),
+        .mockResolvedValue({ok: true, value: undefined}),
     };
     const saver = new Saver({
       copies: {keepPrevious: vi.fn()},
@@ -106,9 +146,6 @@ describe('documentFiles', () => {
     expect(
       await files.remove({file, kind: 'song', id: 'song-1'}),
     ).toMatchObject({ok: false, error: {file}});
-    expect(log.warn).toHaveBeenCalledWith('could not keep a recovery copy', {
-      file,
-      message: 'copy failed',
-    });
+    expect(log.warn).not.toHaveBeenCalled();
   });
 });

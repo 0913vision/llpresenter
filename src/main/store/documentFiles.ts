@@ -13,7 +13,8 @@ export interface DocumentFilesOptions {
 /**
  * Saves documents through the saver, which keeps a recovery copy and writes
  * atomically, and deletes them after keeping a last recovery copy, so a
- * deleted song can still be found in `.복구 사본`. Never throws.
+ * deleted song can still be found in `.복구 사본`. A failed copy keeps the
+ * original and returns a failure for retry. Never throws.
  */
 export function documentFiles({
   saver,
@@ -27,6 +28,7 @@ export function documentFiles({
       const copied = await copies.keepBeforeDelete(target);
       if (!copied.ok) {
         log.warn('could not keep a recovery copy', copied.error);
+        return copied;
       }
       try {
         await rm(target.file, {force: true});

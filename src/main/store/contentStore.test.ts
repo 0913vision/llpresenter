@@ -67,20 +67,23 @@ function serviceFile(id: string, items: readonly object[]) {
   );
 }
 
-function templateFile() {
+function templateFile(
+  items: readonly object[] = [
+    {id: itemId(21), header: '찬양'},
+    {id: itemId(22), slot: 'song', title: '찬양'},
+  ],
+  id = TEMPLATE_ID,
+) {
   return stored(
     parseTemplate,
     {
       format: 'llservice',
       schemaVersion: 1,
-      id: TEMPLATE_ID,
+      id,
       name: '주일',
-      order: [
-        {id: itemId(21), header: '찬양'},
-        {id: itemId(22), slot: 'song', title: '찬양'},
-      ],
+      order: items,
     },
-    join(locations.templates, 'sunday.llservice'),
+    join(locations.templates, `${id}.llservice`),
   );
 }
 
@@ -148,7 +151,9 @@ function setUp(
   services: ReadonlyArray<
     StoredFile<ReturnType<typeof serviceFile>['data']>
   > = [],
-  options: Pick<ContentStoreOptions, 'writeDelayMs' | 'openServiceId'> = {},
+  options: Partial<
+    Pick<ContentStoreOptions, 'writeDelayMs' | 'openServiceId' | 'templates'>
+  > = {},
 ) {
   const files = fakeFiles();
   const events = fakeEvents();
@@ -476,6 +481,204 @@ describe('ContentStore 구성 edits across files', () => {
         to: '짧게',
       }),
     ).toMatchObject({ok: false, error: {reason: 'not-found'}});
+  });
+});
+
+describe('ContentStore 구성 references in 틀', () => {
+  const OTHER_TEMPLATE_ID = 'd74b3f85-ab4c-4d5e-9f60-718293041526';
+  const READONLY_TEMPLATE_ID = 'e85c4096-bc5d-4e6f-8071-829304152637';
+  const matching = (id = TEMPLATE_ID) =>
+    templateFile(
+      [
+        {
+          id: itemId(23),
+          song: HYMN_ONE_ID,
+          arrangement: '주일용',
+          future: {enabled: true},
+        },
+        {id: itemId(24), song: HYMN_ONE_ID, arrangement: '비어 있음'},
+      ],
+      id,
+    );
+
+  it.each(['rename', 'delete'] as const)(
+    'updates a 틀 revision and push on 구성 %s, including future creation and import',
+    async action => {
+      const template = matching();
+      const {store, files, events} = setUp([serviceFile(SUNDAY_ID, [])], {
+        templates: new Map([[TEMPLATE_ID, template]]),
+      });
+      const before = store.template(TEMPLATE);
+      if (before === null) throw new Error('Missing test template');
+
+      const answer = await store.apply(
+        action === 'rename'
+          ? {
+              type: 'song.arrangement.rename',
+              songId: SONG,
+              from: '주일용',
+              to: '짧게',
+            }
+          : {type: 'song.arrangement.delete', songId: SONG, name: '주일용'},
+      );
+
+      expect(answer).toEqual({ok: true, value: {id: SONG, revision: 2}});
+      const after = store.template(TEMPLATE);
+      expect(after?.revision).toBe(2);
+      const picked = after?.template.order[0];
+      if (action === 'rename') {
+        expect(picked).toHaveProperty('arrangement', '짧게');
+      } else {
+        expect(picked).not.toHaveProperty('arrangement');
+      }
+      expect(picked).toHaveProperty('future', {enabled: true});
+      expect(after?.template.order[1]).toHaveProperty(
+        'arrangement',
+        '비어 있음',
+      );
+      expect(files.written).toEqual([
+        join(locations.songs, 'hymn.llsong'),
+        template.file,
+      ]);
+      const saved = parseTemplate(
+        files.texts.get(template.file) ?? '',
+        template.file,
+      );
+      expect(saved.ok && saved.value.data.order).toEqual(after?.template.order);
+      expect(events.templateChanged).toHaveBeenCalledTimes(1);
+      expect(events.templateChanged).toHaveBeenCalledWith({
+        templateId: TEMPLATE,
+        document: after,
+      });
+      expect(events.templatesListChanged).not.toHaveBeenCalled();
+      expect(
+        await store.apply({
+          type: 'template.update',
+          template: before.template,
+          baseRevision: before.revision,
+        }),
+      ).toMatchObject({ok: false, error: {reason: 'stale'}});
+
+      const created = await store.apply({
+        type: 'service.create',
+        name: '틀로 만든 예배',
+        date: '2026-11-08T11:00',
+        templateId: TEMPLATE,
+      });
+      if (!created.ok) throw new Error('Could not create a test service');
+      await store.apply({
+        type: 'service.importItems',
+        serviceId: SUNDAY,
+        from: {kind: 'template', id: TEMPLATE},
+        itemIds: [testId(serviceItemIdSchema, itemId(23))],
+      });
+      const expected = action === 'rename' ? '짧게' : undefined;
+      expect(store.service(created.value.id)?.service.order[0]).toMatchObject({
+        song: HYMN_ONE_ID,
+      });
+      expect(
+        store.service(created.value.id)?.service.order[0],
+      ).not.toHaveProperty('id', itemId(23));
+      for (const item of [
+        store.service(created.value.id)?.service.order[0],
+        store.service(SUNDAY)?.service.order[0],
+      ]) {
+        expect(item).toMatchObject(
+          expected === undefined
+            ? {song: HYMN_ONE_ID}
+            : {arrangement: expected},
+        );
+        if (expected === undefined) {
+          expect(item).not.toHaveProperty('arrangement');
+        }
+      }
+    },
+  );
+
+  it('continues after a failed 틀 write, names it, and retries only that file', async () => {
+    const first = matching();
+    const second = matching(OTHER_TEMPLATE_ID);
+    const {store, files, events, log} = setUp(
+      [
+        serviceFile(SUNDAY_ID, [
+          {id: itemId(1), song: HYMN_ONE_ID, arrangement: '주일용'},
+        ]),
+      ],
+      {
+        templates: new Map([
+          [OTHER_TEMPLATE_ID, second],
+          [TEMPLATE_ID, first],
+        ]),
+      },
+    );
+    files.failing = new Set([first.file]);
+
+    const answer = await store.apply({
+      type: 'song.arrangement.rename',
+      songId: SONG,
+      from: '주일용',
+      to: '짧게',
+    });
+
+    expect(answer).toEqual({
+      ok: false,
+      error: {
+        reason: 'write-failed',
+        message: 'disk full',
+        applied: {id: SONG, revision: 2},
+        unchangedFiles: [first.file],
+      },
+    });
+    expect(files.written).toEqual([
+      join(locations.songs, 'hymn.llsong'),
+      join(locations.services, `${SUNDAY_ID}.llservice`),
+      first.file,
+      second.file,
+    ]);
+    expect(files.texts.has(first.file)).toBe(false);
+    expect(files.texts.get(second.file)).toContain('짧게');
+    expect(store.template(TEMPLATE)?.revision).toBe(2);
+    expect(store.template(OTHER_TEMPLATE_ID)?.revision).toBe(2);
+    expect(events.templateChanged).toHaveBeenCalledTimes(2);
+    expect(log.warn).toHaveBeenCalledTimes(1);
+    files.failing = new Set();
+    await store.flush();
+    expect(files.written).toHaveLength(5);
+    expect(files.written.at(-1)).toBe(first.file);
+    expect(files.texts.get(first.file)).toContain('짧게');
+  });
+
+  it('leaves read-only and unrelated 틀 unchanged and sends no push for them', async () => {
+    const readonly = {
+      ...matching(READONLY_TEMPLATE_ID),
+      access: 'readOnly' as const,
+    };
+    const unrelated = templateFile(undefined, OTHER_TEMPLATE_ID);
+    const changed = matching();
+    const {store, files, events} = setUp([], {
+      templates: new Map([
+        [READONLY_TEMPLATE_ID, readonly],
+        [OTHER_TEMPLATE_ID, unrelated],
+        [TEMPLATE_ID, changed],
+      ]),
+    });
+    const beforeReadonly = store.template(READONLY_TEMPLATE_ID);
+    const beforeUnrelated = store.template(OTHER_TEMPLATE_ID);
+
+    await store.apply({
+      type: 'song.arrangement.rename',
+      songId: SONG,
+      from: '주일용',
+      to: '짧게',
+    });
+
+    expect(store.template(READONLY_TEMPLATE_ID)).toEqual(beforeReadonly);
+    expect(store.template(OTHER_TEMPLATE_ID)).toEqual(beforeUnrelated);
+    expect(events.templateChanged).toHaveBeenCalledTimes(1);
+    expect(files.written).toEqual([
+      join(locations.songs, 'hymn.llsong'),
+      changed.file,
+    ]);
   });
 });
 

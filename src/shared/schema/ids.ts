@@ -64,3 +64,23 @@ export type MessageTemplateId = v.InferOutput<typeof messageTemplateIdSchema>;
 export type QuickItemId = v.InferOutput<typeof quickItemIdSchema>;
 export type StageElementId = v.InferOutput<typeof stageElementIdSchema>;
 export type TranslationId = v.InferOutput<typeof translationIdSchema>;
+
+/** Brands a generated song UUID; throws unless it is lowercase version 4. */
+export function createSongId(uuid: string): SongId {
+  return v.parse(songIdSchema, uuid);
+}
+
+/** Brands a generated service UUID; throws unless it is lowercase version 4. */
+export function createServiceId(uuid: string): ServiceId {
+  return v.parse(serviceIdSchema, uuid);
+}
+
+/** Brands a generated template UUID; throws unless it is lowercase version 4. */
+export function createTemplateId(uuid: string): TemplateId {
+  return v.parse(templateIdSchema, uuid);
+}
+
+/** Brands a generated item UUID; throws unless it is lowercase version 4. */
+export function createServiceItemId(uuid: string): ServiceItemId {
+  return v.parse(serviceItemIdSchema, uuid);
+}
