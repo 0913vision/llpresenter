@@ -107,28 +107,26 @@ export function IconButtonSection(): JSX.Element {
             <PanelHeader>
               <HeaderTab label="무대 배치" />
               <PanelActions>
-                <span className={styles.tools}>
-                  <Stateful<boolean> initial={false}>
-                    {(pressed, setPressed) => (
-                      <IconButton
-                        icon="lock"
-                        label="비율 고정"
-                        pressed={pressed}
-                        onPressedChange={setPressed}
-                      />
-                    )}
-                  </Stateful>
-                  <Stateful<boolean> initial>
-                    {(pressed, setPressed) => (
-                      <IconButton
-                        icon="grid"
-                        label="격자에 맞추기"
-                        pressed={pressed}
-                        onPressedChange={setPressed}
-                      />
-                    )}
-                  </Stateful>
-                </span>
+                <Stateful<boolean> initial={false}>
+                  {(pressed, setPressed) => (
+                    <IconButton
+                      icon="lock"
+                      label="비율 고정"
+                      pressed={pressed}
+                      onPressedChange={setPressed}
+                    />
+                  )}
+                </Stateful>
+                <Stateful<boolean> initial>
+                  {(pressed, setPressed) => (
+                    <IconButton
+                      icon="grid"
+                      label="격자에 맞추기"
+                      pressed={pressed}
+                      onPressedChange={setPressed}
+                    />
+                  )}
+                </Stateful>
               </PanelActions>
             </PanelHeader>
             <div className={styles.emptyRow} />

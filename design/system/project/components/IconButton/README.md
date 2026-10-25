@@ -21,7 +21,7 @@ A square ghost button with only an icon. Use it for adding in panel headers, 내
 
 - Size: sm `size-control-sm` (26×26), md `size-control-md` (30×30). The icon is `size-icon-16` in both sizes.
 - Corner radius `radius-md` (4px), no background, icon `text-2`.
-- In a panel header, place it inside the header's `space-8` right padding. With several buttons, the gap is `space-4`.
+- In a panel header, place it inside the header's `space-8` right padding. Header controls, icon buttons included, sit `space-8` apart (`ll-panel__actions` of Panel). `space-4` is the gap of a group of icon buttons outside a panel header.
 
 ## Sizes and variants
 
