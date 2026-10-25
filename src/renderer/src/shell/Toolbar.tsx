@@ -1,14 +1,14 @@
-import {useState, type JSX} from 'react';
+import type {JSX} from 'react';
 import {sendLive, useOutputs} from '@renderer/state/live';
 import {
   OutputToggle,
-  TextField,
   ToolbarButton,
   ToolbarTabs,
   type ToolbarTab,
 } from '@renderer/ui';
 import {defaultScreens} from './screens';
 import {LookMenu} from './LookMenu';
+import {ToolbarSearch} from './ToolbarSearch';
 import type {Notice} from '@renderer/ui/notices';
 import type {SizeClass} from './sizeClass';
 import styles from './Toolbar.module.css';
@@ -28,24 +28,6 @@ export interface ToolbarProps {
   readonly onProblem?: ((notice: Notice) => void) | undefined;
   readonly mediaOpen?: boolean | undefined;
   readonly onMediaOpenChange?: ((open: boolean) => void) | undefined;
-}
-
-function Search(): JSX.Element {
-  const [query, setQuery] = useState('');
-  return (
-    <div className={styles.center}>
-      <TextField
-        ring
-        clearable
-        icon="search"
-        className={styles.search}
-        placeholder="곡, 가사, 초성"
-        aria-label="검색"
-        value={query}
-        onChange={setQuery}
-      />
-    </div>
-  );
 }
 
 function OutputToggles({compact}: {readonly compact: boolean}): JSX.Element {
@@ -110,7 +92,11 @@ export function Toolbar({
         onPressedChange={onMediaOpenChange}
         disabled={onMediaOpenChange === undefined}
       />
-      <Search />
+      <ToolbarSearch
+        key={workspace}
+        enabled={workspace === 'show'}
+        onProblem={onProblem}
+      />
       <LookMenu compact={compact} onProblem={onProblem} />
       <span className={styles.divider} />
       <OutputToggles compact={compact} />

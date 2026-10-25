@@ -29,15 +29,3 @@
 .barCompact .divider {
   margin: 0 var(--space-4);
 }
-
-.center {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  justify-content: center;
-}
-
-.search {
-  width: var(--toolbar-search-width);
-  max-width: 100%;
-}
