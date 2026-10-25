@@ -118,6 +118,10 @@ dispatcher already accepted `LiveCommand`; no dispatch implementation changes.
 
 ## Checks run
 
+The first CI run passed typecheck, lint, full test coverage, and build, but
+failed formatting of `compiler.test.ts`. The whitespace was corrected and
+checked with Prettier's cache disabled. The final run accompanies the request.
+
 | Check                                                                        | Result                                          |
 | ---------------------------------------------------------------------------- | ----------------------------------------------- |
 | Focused Vitest, including existing live/registry/batch and real store wiring | 12 files, 148 tests passed                      |

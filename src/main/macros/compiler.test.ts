@@ -32,13 +32,11 @@ describe('macro compiler', () => {
         ...empty.layers,
         prop: {
           propId: uuid(100),
-          items: props
-            .slice(0, 64)
-            .map(prop => ({
-              propId: prop.id,
-              content: prop.content,
-              targets: prop.targets,
-            })),
+          items: props.slice(0, 64).map(prop => ({
+            propId: prop.id,
+            content: prop.content,
+            targets: prop.targets,
+          })),
         },
       },
     });
