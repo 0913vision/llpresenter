@@ -135,20 +135,13 @@ Fast-check and CI logs use `.llp/data25-*.log`.
 
 ---
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Team member's reply
-
-1.
+- Round 1 (97fb607): reviewer (Codex, codex3) Approve with no findings. Lead
+  Approve, including the three decisions: whole-file settings updates exclude
+  the media list (its own commands) and `app.json` (its single writer); every
+  other app-wide file shares document metadata and revision checks, with
+  `preferences.get()` kept beside them; copy jobs reserve a media id, and relink
+  paths never come from renderer commands. Written by the Codex session that
+  took over data's work. Rebased by the lead onto local `main` after data-24
+  without conflicts. D1a is complete.
