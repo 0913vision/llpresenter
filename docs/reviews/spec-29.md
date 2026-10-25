@@ -45,11 +45,11 @@ stack. Closing clears the menu's query and entries.
 
 ## Integration boundary
 
-M3-P4 owns the 새 예배, 다른 예배에서 가져오기, and 지금 예배를 틀로 저장
-dialogs and their actions (`m3-breakdown.md`, P4). This S1a slice implements
-service selection. It does not add placeholder dialog actions. P4 can extend the
-existing menu when those dialogs land. The slide-panel header is the remaining
-S1a follow-up; item start and done states are in spec-28.
+Remaining work for prep's M3-P4: 새 예배, 다른 예배에서 가져오기, and 지금
+예배를 틀로 저장 dialogs and their actions (`m3-breakdown.md`, P4). This S1a
+slice implements service selection. It does not add placeholder dialog actions.
+P4 can extend the existing menu when those dialogs land. The slide-panel header
+is the remaining S1a follow-up; item start and done states are in spec-28.
 
 ## Checks run
 
