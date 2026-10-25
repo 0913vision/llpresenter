@@ -1,8 +1,11 @@
 # M2 checkpoint notes
 
-Latest result: [the 60-minute run 3](#soak-run-3-60-minutes-sk2-workload) fails
-on GPU growth. All other processes are flat in the full assessment and the last
-30 minutes. Run 2 remains below as historical evidence.
+Latest result:
+[the real-monitor run 4](#run-4-60-minutes-on-the-real-benq-monitor) also fails
+on GPU private-memory growth. Native GPU dedicated-memory counters rise as well.
+The dedicated force-quit/restart check passes. The app's exit at the end of the
+hour was caused by QA's tool cleanup, not an observed app crash. Runs 2 and 3
+remain below as historical evidence.
 
 ## Soak run 2: 20 minutes after output-15
 
@@ -226,3 +229,194 @@ Raw record SHA-256:
 `a8b4a39089841d97fd7706b6c2795e071ee1ba6113730b255ba69313da00a651`. Both
 assessments were extracted from the tested source before rebasing the
 documentation branch. Raw evidence remains local and is not committed.
+
+## Run 4: 60 minutes on the real BenQ monitor
+
+**M2-8 reproduces with a visible output window.** The unchanged app judge finds
+GPU private-memory growth of +10.26 MiB/h overall and +8.69 MiB/h in the last 30
+minutes. Every other recorded process is flat. Native process private bytes and
+GPU dedicated-memory counters also have positive late trends. The memory
+acceptance criterion remains open; this result does not establish the
+allocation-level cause.
+
+**The QA tool killed the app at 12:48:20.210Z, exit code 4294967295.** Its
+end-of-run metadata serialization failed, entering its cleanup path, which ran
+`Stop-Process -Force` on main PID 49240 and any surviving owned children. This
+was the close the user saw after the hour. It was not a spontaneous app exit.
+The separate, deliberately repeated force-quit check below passes.
+
+### Build, visible output, and measurement
+
+- Tested main `51b9e625498241d3ae3ea63a4d56abb47f527bb7`, version `0.13.0`, on
+  October 25, 2026. Cloned `D:\programming\2020-\pp` to the explicitly
+  authorized `D:\llp-dev\m2-run`; `npm ci` and `npm run build` passed there. No
+  app source or built output was patched. The documentation branch was later
+  rebased independently; it is not the runtime snapshot.
+- User-authorized visible run: 20:48:16 to 21:48:20 KST (`11:48:16.478Z` to
+  `12:48:20.210Z`). The original 1920x1080, 300-frame, 10-second VP8 soak clip
+  is 5,013,551 bytes. The unchanged scenario changes among 12 invented slides
+  every 5 seconds.
+- Used `soakEnvironment` from `scripts/soak/run.mts`, removed
+  `LLP_TEST_WINDOWS`, and launched the real built app directly. There was no
+  inspector, CDP, heap flag, forced GC, or offscreen mode during measurement.
+  `LLP_SOAK_EXIT_MS=3900000` was a 65-minute safety exit; the tool killed the
+  app earlier after the measured hour. Helpers were hidden.
+- The native output window was visible, without a caption, at
+  `(3440, 222, 1920, 1080)` in all 121 checks, matching the right BenQ GW2780 in
+  the app's display log. Primary was TFG34Q14WQ, 3440x1440. Both had scale
+  factor 1. Start, midpoint, and endpoint captures show the lyrics and video.
+- Initial tool limitation: the launcher's `windowsHide` setting suppressed the
+  control window's first show. The output was already visible. At
+  `12:01:15.833Z`, elapsed 12:59, QA used `ShowWindow(SW_SHOWNA)` on its own
+  control window without activation. Both windows were visible thereafter; the
+  last 30 minutes therefore exclude this initial condition. This event is
+  recorded in `control-show.json` and was not an app restart or source patch.
+- The user was allowed to Alt Tab and do light work. Foreground belonged to
+  another process in 120 of 121 snapshots. Other app names and content were not
+  collected. This was a realistic desktop-use condition, not an isolated idle
+  machine. QA ran no full local verify during the hour.
+- PowerShell sampled the run's Electron process tree every 30 seconds:
+  `Get-CimInstance Win32_Process` identified ownership, `Get-Process` supplied
+  `PrivateMemorySize64` and `WorkingSet64`, and `Get-Counter` supplied GPU
+  dedicated/shared bytes. PID roles came from the app record, without attaching
+  a debugger. There are 605 CSV rows over 121 times, with one unchanged PID per
+  role and no missing GPU-process counter samples.
+- The app recorded 360 valid samples, spanning 3,602,765 ms. The fixed
+  0-to-60-minute judgement selects 359 samples through 3,592,759 ms, within the
+  official 60-second tolerance; no line was dropped. The last-30 selection has
+  180 samples and spans 1,792,759 ms after subtracting 30 minutes.
+
+### App judge and frame-rate result
+
+Used the tested `scripts/soak/judge.mts` through the unchanged CLI:
+`node scripts/soak/run.mts --judge .llp/real-run/soak-60min.jsonl --minutes 60`.
+It exits 1 for GPU growth. The default judgement excludes 5 minutes of warm-up,
+uses 12 windows, and applies the 4 MiB/h threshold to robust slopes through
+window minima over both the selected period and its later half. The last-30
+assessment uses six 5-minute windows and no additional warm-up, as in run 3.
+
+| Process                                | PID   | Full judge | Full rise (MiB/h) | Last 30 judge | Last 30 rise (MiB/h) |
+| -------------------------------------- | ----- | ---------- | ----------------- | ------------- | -------------------- |
+| `main`                                 | 49240 | flat       | +2.48             | flat          | +2.07                |
+| `gpu`                                  | 44204 | growing    | +10.26            | growing       | +8.69                |
+| `control`                              | 53768 | flat       | -0.19             | flat          | +0.03                |
+| `output:main`                          | 30116 | flat       | +1.05             | flat          | +1.58                |
+| `utility:network.mojom.NetworkService` | 52368 | flat       | +0.00             | flat          | +0.00                |
+
+GPU's last six minima are 286.21, 289.75, 291.07, 287.13, 289.38, and 291.47
+MiB. The last-30 judgement still classifies it as growing over both halves; the
+result is not based on the final endpoint alone.
+
+| Output period       | Median app fps | Lowest app fps | Relaunches |
+| ------------------- | -------------- | -------------- | ---------- |
+| Full, after warm-up | 144            | 143            | 0          |
+| Last 30 minutes     | 144            | 144            | 0          |
+
+These are the app's `requestAnimationFrame` meter values, not an independent
+scan-out or video-frame-drop measurement. The native video-controller query
+reports a 60 Hz 1920x1080 mode. The captures confirm visible output at the three
+checkpoints; they do not establish a continuous human assessment of stutter.
+
+### Native process trends and sampled peaks
+
+Units are MiB (`bytes / 1048576`) and MiB/h. Unlike the app judge, the native
+tables use an ordinary least-squares fit through all 121 raw samples over the
+hour, including startup, and the 61 samples from minute 30 through 60. Peaks
+include startup and are sampled maxima, not continuous allocation peaks.
+
+| Process                                | Private full rise | Private last 30 rise | Private peak | Working set full rise | Working set last 30 rise | Working set peak |
+| -------------------------------------- | ----------------- | -------------------- | ------------ | --------------------- | ------------------------ | ---------------- |
+| `main`                                 | +1.22             | +1.60                | 97.61        | -24.79                | -41.21                   | 125.98           |
+| `gpu`                                  | +2.94             | +13.06               | 343.02       | -84.00                | -124.81                  | 330.29           |
+| `control`                              | +0.61             | -2.92                | 141.14       | -44.97                | -62.00                   | 266.27           |
+| `output:main`                          | +2.23             | +1.01                | 102.29       | -32.15                | -57.04                   | 180.68           |
+| `utility:network.mojom.NetworkService` | -0.08             | +0.00                | 12.51        | -7.83                 | -14.06                   | 48.20            |
+
+The app's finer 10-second private-memory peaks are main 98.08, GPU 346.24,
+control 141.31, output 102.73, and utility 12.51 MiB. Main's earlier
+multi-gigabyte swing did not recur.
+
+### Native GPU memory counters
+
+Read `\GPU Process Memory(pid_<id>*)\Dedicated Usage` and `Shared Usage`,
+summing valid per-adapter instances for each owned PID. GPU PID 44204 had
+counter data in every system sample. Other Electron PIDs had no matching
+instances, reported as unavailable rather than zero. Raw adapter instances and
+values are preserved in `gpu-counters.jsonl`.
+
+| GPU PID 44204 counter | Full rise (MiB/h) | Last 30 rise (MiB/h) | Full peak (MiB) | Last 30 peak (MiB) |
+| --------------------- | ----------------- | -------------------- | --------------- | ------------------ |
+| Dedicated Usage       | +13.50            | +30.71               | 232.10          | 210.51             |
+| Shared Usage          | +1.42             | +1.19                | 48.27           | 48.27              |
+
+As a supplementary robust check on the raw native samples, Theil-Sen slopes for
+GPU private bytes are +6.63/+8.64 MiB/h over full/last 30 minutes; dedicated
+usage is +19.11/+24.97, and shared usage is +0.80/+0.87. Thus the
+process-private growth in M2-8 is observed with a real window, with a rising
+dedicated-memory trend as well. The falling working set does not mean private
+commit or GPU allocations are flat. The counters fluctuate and do not alone
+prove a specific leak mechanism. Hardware was NVIDIA GeForce RTX 4060 Ti, driver
+32.0.15.6094, with Intel HD Graphics 630 also listed.
+
+### The tool-caused close and separate force-quit check
+
+The hour's close must not be reported as an app crash. After the final sample,
+the PowerShell helper tried to serialize a Hashtable with integer PID keys.
+`ConvertTo-Json` rejected it; the helper's `catch` then force-stopped the app.
+`app-exit.json` records code **4294967295 at 12:48:20.210Z** and
+`monitor-exit.json` records the helper's failure. The last app sample precedes
+that close and covers more than 60 minutes.
+
+`soak-main-before-exit.log` preserves all eight app-log lines before subsequent
+launches. They are all INFO. There are **zero error, warning, crash,
+renderer-gone, or child-process-gone entries before the exit**. Its last line is
+`11:48:17.301Z INFO skipped the launch backup`, reason `output-on`. The file
+SHA-256 is `71622aa8dbbe9209a3512663fa79fe90500053b96d2d917f09c057c875ad44e9`.
+`exit-audit.json` records the scan and the tool-cleanup cause.
+
+Per the lead's follow-up, QA then made one dedicated, baseline-before-kill
+force-quit check using the same data folder:
+
+1. Rewrote and syntax-checked `hash-data.mjs`. Restarted the app without soak
+   variables; the same `샘플 주일 예배` opened with three songs and two section
+   headers, empty live layers, and outputs off.
+2. At `12:53:15.806Z`, hashed nine content files: three songs, one service,
+   media/label JSON, and three media files. Recorded `app.json`'s
+   `lastServiceId` separately; UI-state changes are not content corruption.
+3. Clicked a sample slide, turned main output on, and verified a visible normal
+   full-screen window on the BenQ. At `12:53:18.447Z`, deliberately used
+   `Stop-Process -Force` on main PID 56452 and its owned process tree. All five
+   owned processes ended; exit was 4294967295 at `12:53:18.539Z`.
+4. Restarted from the same folder. The same service opened, outputs were off,
+   and the live layers were empty. At `12:53:20.417Z`, all nine content hashes
+   and `lastServiceId` matched. The final app closed normally, exit 0.
+
+**M2 clean-restart/data-integrity check: pass.** The recovery dialog remains M3
+scope. An initial preparation assertion incorrectly counted section headers as
+selectable song rows; that helper-only error was corrected before the dedicated
+baseline/output-on/force/restart sequence. Its evidence is retained. All clone
+Electron processes were checked gone afterwards. No monitor unplug was
+attempted; that remains the user's later check.
+
+### Evidence paths
+
+All paths are local under `D:\llp-dev\m2-run\.llp\real-run\`, outside team
+worktrees and excluded from Git:
+
+| Evidence                                       | Relative path                                                                  |
+| ---------------------------------------------- | ------------------------------------------------------------------------------ |
+| System CSV, 605 rows                           | `system-samples.csv`                                                           |
+| Original app record, 360 lines                 | `soak.jsonl`                                                                   |
+| Fixed 60-minute selection, 359 lines           | `soak-60min.jsonl`                                                             |
+| Both judgements, native fits, peaks, hashes    | `analysis.json`, `judge.txt`, `judge-last30.txt`                               |
+| Per-adapter GPU counter samples                | `gpu-counters.jsonl`                                                           |
+| Native window checks and three output captures | `windows.jsonl`, `output-1.png`, `output-60.png`, `output-120.png`             |
+| Launch, monitor topology, control-show event   | `launch.json`, `topology.json`, `control-show.json`                            |
+| Tool failure and exact exit                    | `monitor-failure.txt`, `app-exit.json`, `monitor-exit.json`, `exit-audit.json` |
+| Preserved pre-exit app log                     | `soak-main-before-exit.log`                                                    |
+| Dedicated force-quit result and kill metadata  | `force-check-results.json`, `force-check-kill.json`                            |
+| Fresh before/after content hashes              | `force-data-before.json`, `force-data-after.json`                              |
+
+Original record SHA-256:
+`6b8ad2c5ab997ce9ae4195c19f80fdded65352584be8faa0c9a5855053ee6665`. System CSV
+SHA-256: `9773e15026a2cecdefbaab6599fbaf46f261c63ff1e906db7bffbc25e29f9086`.
