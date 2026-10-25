@@ -1,8 +1,15 @@
 import {useCallback, useEffect, useState} from 'react';
 import type {LlpApi} from '@shared/ipc';
+import {UI_ZOOM_FACTOR} from '@shared/schema/uiZoom';
 import type {SizeClass} from './sizeClass';
 
-const DEFAULT_MEDIA_MIN_HEIGHT = 900;
+const DEFAULT_MEDIA_MIN_HEIGHT_DIP = 900;
+
+function windowHeightDip(api: Pick<LlpApi, 'ui'> | undefined): number {
+  return (
+    window.innerHeight * (api?.ui.getZoomFactor() ?? UI_ZOOM_FACTOR.default)
+  );
+}
 
 /** A loaded choice wins defaults; only an operator's change is saved. */
 export function useMediaStripVisibility(
@@ -10,7 +17,7 @@ export function useMediaStripVisibility(
   initial: boolean | undefined,
   api: Pick<LlpApi, 'ui' | 'log'> | undefined,
 ) {
-  const [height, setHeight] = useState(() => window.innerHeight);
+  const [heightDip, setHeightDip] = useState(() => windowHeightDip(api));
   const [choice, setChoice] = useState(initial);
   const setVisible = useCallback(
     (visible: boolean): void => {
@@ -28,13 +35,14 @@ export function useMediaStripVisibility(
     [api],
   );
   useEffect(() => {
-    const resize = (): void => setHeight(window.innerHeight);
+    const resize = (): void => setHeightDip(windowHeightDip(api));
     window.addEventListener('resize', resize);
     return () => window.removeEventListener('resize', resize);
-  }, []);
+  }, [api]);
   return {
     visible:
-      choice ?? (sizeClass !== 'narrow' && height >= DEFAULT_MEDIA_MIN_HEIGHT),
+      choice ??
+      (sizeClass !== 'narrow' && heightDip >= DEFAULT_MEDIA_MIN_HEIGHT_DIP),
     setVisible,
   };
 }

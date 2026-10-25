@@ -537,7 +537,7 @@ only writer (`docs/decisions.md`, "One owner of app.json").
 | `layout.narrow`, `layout.normal`, `layout.wide` | Per size class: left and right column widths and `thumbnailScalePercent` (50 to 200, whole %, default 100). The continuous slider replaces remembered thumbnail column counts (M2 check 1 row 9; proposal details in 10). |
 | `previewBig`                                    | The screen ID shown large in the 진행 preview.                                                                                                                                                                            |
 | `macroView`, `macroCollection`                  | View and collection of the 매크로 tab.                                                                                                                                                                                    |
-| `mediaStrip`                                    | Whether the operator left the media strip open. The size class and window height rules apply first.                                                                                                                       |
+| `mediaStrip`                                    | Saved open or closed choice. When present, it wins over the size class and height defaults. With no saved choice, use the defaults in 04.                                                                                 |
 
 ## Media list (`설정\media.json`)
 

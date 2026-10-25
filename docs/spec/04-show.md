@@ -529,10 +529,13 @@ Source: `ShowH`, `Compact`, `Problems`, `Bible` (퀵 실행 list), `ListRow` REA
 
 ## Media strip
 
-- The toolbar's 미디어 (Media) button opens and closes the strip. It starts open
-  in regular and wide windows, and closed in narrow windows or when the window
-  is shorter than 900. When the operator opens or closes it, the app remembers
-  that.
+- The toolbar's 미디어 (Media) button opens and closes the strip. A saved open
+  or closed choice wins over size defaults, including a saved open choice in a
+  narrow window. With no saved choice, it starts open in regular and wide
+  windows at least 900 DIP high, and closed otherwise.
+  - Measure height in DIP by multiplying the CSS viewport height by the current
+    UI zoom factor: 750 CSS px at 120% zoom is 900 DIP. Opening or closing saves
+    the choice; resizing or changing UI zoom does not overwrite it.
 - Header: "미디어", the media playlist select (for example 배경 영상, background
   videos), and 가져오기 (import). 가져오기 opens a file dialog and adds the
   chosen files to the media list and the current playlist (proposal; the same
@@ -639,7 +642,7 @@ The features are the same. Only the layout differs.
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------- |
 | Toolbar             | Height 40, names to the right of icons, 미디어 as an icon only, search field 280                                                                                                                                         | `Compact`, `Toolbar` README      |
 | Columns             | Left 220, right 360                                                                                                                                                                                                      | `Layout` README                  |
-| Media strip         | Starts closed                                                                                                                                                                                                            | `Compact`                        |
+| Media strip         | Starts closed with no saved choice; a saved open choice wins                                                                                                                                                             | `Compact`                        |
 | 슬라이드 grid       | 3 columns by default                                                                                                                                                                                                     | `Compact`                        |
 | Clear row           | Icons only (names in tooltips), 모두 is 1.4 times as wide                                                                                                                                                                | `Compact`, `ClearButton` README  |
 | 진행 도구 tabs      | 표시 중, 무대, and 더 보기 (more). 더 보기 opens a menu with 오디오, 타이머, 메시지, 공지, 소품, and 매크로. Choosing one shows that tab's content, with 더 보기 shown as the active tab (proposal).                     | `Compact`, `Layout` README       |

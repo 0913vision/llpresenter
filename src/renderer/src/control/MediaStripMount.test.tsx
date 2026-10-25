@@ -91,6 +91,11 @@ it.each([
     mount();
     const button = screen.getByRole('button', {name: '미디어'});
     expect(button.getAttribute('aria-pressed')).toBe(String(visible));
+    if (visible) {
+      expect(await screen.findByRole('region', {name: '미디어'})).toBeDefined();
+    } else {
+      expect(screen.queryByRole('region', {name: '미디어'})).toBeNull();
+    }
     expect(save).not.toHaveBeenCalled();
     await userEvent.click(button);
     expect(save).toHaveBeenCalledExactlyOnceWith({visible: !visible});
@@ -100,6 +105,45 @@ it.each([
     expect(save).toHaveBeenCalledTimes(1);
   },
 );
+
+it.each([
+  {height: 750, factor: 1.2, open: true},
+  {height: 749, factor: 1.2, open: false},
+  {height: 450, factor: 2, open: true},
+])(
+  'uses DIP height at CSS $height and factor $factor',
+  async ({height, factor, open}) => {
+    const {api, mount, save, send} = setup(1920, height);
+    vi.spyOn(api.ui, 'getZoomFactor').mockReturnValue(factor);
+    vi.stubGlobal('devicePixelRatio', 3);
+    mount();
+    expect(
+      screen.getByRole('button', {name: '미디어'}).getAttribute('aria-pressed'),
+    ).toBe(String(open));
+    if (open) {
+      expect(await screen.findByRole('region', {name: '미디어'})).toBeDefined();
+    } else {
+      expect(screen.queryByRole('region', {name: '미디어'})).toBeNull();
+    }
+    expect(save).not.toHaveBeenCalled();
+    expect(send).not.toHaveBeenCalled();
+  },
+);
+
+it('remeasures DIP after zoom and resize without saving a new choice', async () => {
+  const {api, mount, save} = setup(1920, 750);
+  const factor = vi.spyOn(api.ui, 'getZoomFactor').mockReturnValue(1.2);
+  mount();
+  await screen.findByRole('region', {name: '미디어'});
+  factor.mockReturnValue(1.5);
+  vi.stubGlobal('innerHeight', 600);
+  fireEvent.resize(window);
+  expect(screen.getByRole('region', {name: '미디어'})).toBeDefined();
+  vi.stubGlobal('innerHeight', 599);
+  fireEvent.resize(window);
+  expect(screen.queryByRole('region', {name: '미디어'})).toBeNull();
+  expect(save).not.toHaveBeenCalled();
+});
 
 it('unmounts the real panel and both media feeds when toggled off', async () => {
   const {api, send, mount} = setup();
