@@ -71,3 +71,13 @@ started.
 
 The branch was rebased onto main containing data-33. The report records the
 exact submitted HEAD's green CI URL and result without a new metadata commit.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (7981b2a): reviewer (Claude, trial-97) Approve. Nit for the next spec
+  branch: spec 04 "Service list" puts 새 예배, 다른 예배에서 가져오기, and 지금
+  예배를 틀로 저장 below the list; name them as remaining work (prep's P4, on
+  05's flows) in this document and in spec 04, so the spec does not read as
+  complete. Lead Approve. Written by the Codex session that took over spec's
+  work, under the lead's exception for shell's paths. Rebased by the lead onto
+  local `main` without conflicts.
