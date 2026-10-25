@@ -91,10 +91,7 @@ export function LibraryList({
     if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
       return;
     }
-    const current = Math.max(
-      0,
-      rows.findIndex(row => row.song.id === selected),
-    );
+    const current = rows.findIndex(row => row.song.id === selected);
     const targets: Readonly<Record<string, number>> = {
       ArrowDown: current + 1,
       ArrowUp: current - 1,

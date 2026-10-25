@@ -7,7 +7,7 @@ import {
   type LibrarySearchResult,
 } from '@shared/schema/librarySearch';
 import type {SongId} from '@shared/schema/ids';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice, NoticeAction} from '@renderer/ui/notices';
 
 export type LibraryApi = Pick<LlpApi, 'songs' | 'library' | 'content'>;
 
@@ -22,11 +22,26 @@ export interface LibraryRow {
 }
 
 const titles = new Intl.Collator('ko', {numeric: true});
+const problemTitles = {
+  load: '라이브러리 불러오기 실패',
+  search: '라이브러리 검색 실패',
+  open: '곡 열기 실패',
+  missing: '곡을 찾을 수 없습니다',
+  create: '새 곡 만들기 실패',
+  delete: '곡 삭제 실패',
+  save: '곡 파일 저장 실패',
+  change: '곡 변경 실패',
+} as const;
+
+function loadAction(onSelect: () => void): NoticeAction {
+  return {icon: 'refresh', label: '다시 불러오기', onSelect};
+}
 
 /** Owns this panel's reads and edits; main remains the source of song data. */
 export function useLibrary(
   api: LibraryApi,
   onOpenSong: (selection: LibrarySelection) => void,
+  onProblem: (notice: Notice) => void,
 ) {
   const [songs, setSongs] = useState<readonly LibrarySong[]>([]);
   const [query, setQuery] = useState('');
@@ -35,7 +50,10 @@ export function useLibrary(
   const [selected, setSelected] = useState<SongId | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
-  const [problem, setProblem] = useState<Notice | null>(null);
+  const problemHandler = useRef(onProblem);
+  useEffect(() => {
+    problemHandler.current = onProblem;
+  }, [onProblem]);
   const alive = useRef(false);
   const rows = useRef<readonly LibrarySong[]>([]);
   const requests = useRef({list: 0, open: 0});
@@ -44,14 +62,15 @@ export function useLibrary(
   const isActive = useCallback(() => alive.current, []);
 
   const report = useCallback(
-    (title: string) => {
+    (cause: keyof typeof problemTitles, action?: NoticeAction) => {
       if (isActive()) {
-        setProblem({
-          key: 'library',
+        problemHandler.current({
+          key: `library:${cause}`,
           kind: 'warning',
           icon: 'warning',
-          title,
+          title: problemTitles[cause],
           time: new Date().toTimeString().slice(0, 5),
+          ...(action === undefined ? {} : {actions: [action]}),
         });
       }
     },
@@ -86,10 +105,25 @@ export function useLibrary(
     } catch {
       if (isActive() && version === requests.current.list) {
         setLoading(false);
-        report('라이브러리 불러오기 실패');
+        return false;
       }
     }
-  }, [api, accept, report, isActive]);
+    return true;
+  }, [api, accept, isActive]);
+
+  const reload = useCallback(
+    function retryLoad(): void {
+      if (!isActive() || editing.current) return;
+      setLoading(true);
+      readList().then(
+        loaded => {
+          if (!loaded) report('load', loadAction(retryLoad));
+        },
+        () => report('load', loadAction(retryLoad)),
+      );
+    },
+    [isActive, readList, report],
+  );
 
   useEffect(() => {
     alive.current = true;
@@ -108,7 +142,7 @@ export function useLibrary(
       () => {
         if (isActive() && version === pending.list) {
           setLoading(false);
-          report('라이브러리 불러오기 실패');
+          report('load', loadAction(reload));
         }
       },
     );
@@ -119,7 +153,7 @@ export function useLibrary(
       stopList();
       stopSongs();
     };
-  }, [api, accept, report, isActive]);
+  }, [api, accept, report, isActive, reload]);
 
   useEffect(() => {
     if (query === '') return undefined;
@@ -129,7 +163,7 @@ export function useLibrary(
         if (current && result.query === query) setSearch(result);
       },
       () => {
-        if (current) report('라이브러리 검색 실패');
+        if (current) report('search');
       },
     );
     return () => {
@@ -161,22 +195,22 @@ export function useLibrary(
       const document = await api.songs.get(songId);
       if (!isActive() || version !== requests.current.open) return;
       if (document === null) {
-        report('곡을 찾을 수 없습니다');
+        report('missing');
         return;
       }
       onOpenSong({document, focusTitle: false});
     } catch {
-      if (version === requests.current.open) report('곡 열기 실패');
+      if (version === requests.current.open) report('open');
     }
   };
 
   const appliedId = (result: EditResult): string | null => {
     if (result.ok) return result.value.id;
     if (result.error.reason === 'write-failed') {
-      report('곡 파일 저장 실패');
+      report('save');
       return result.error.applied.id;
     }
-    report('곡 변경 실패');
+    report('change');
     return null;
   };
 
@@ -184,7 +218,6 @@ export function useLibrary(
     if (editing.current) return;
     editing.current = true;
     setBusy(true);
-    setProblem(null);
     setQuery('');
     const version = ++requests.current.open;
     opening.current = null;
@@ -193,17 +226,17 @@ export function useLibrary(
       if (!isActive()) return;
       const id = appliedId(result);
       if (id === null) return;
-      await readList();
+      if (!(await readList())) report('load', loadAction(reload));
       const document = await api.songs.get(id);
       if (!isActive() || version !== requests.current.open) return;
       if (document === null) {
-        report('곡을 찾을 수 없습니다');
+        report('missing');
         return;
       }
       setSelected(document.song.id);
       onOpenSong({document, focusTitle: true});
     } catch {
-      report('새 곡 만들기 실패');
+      report('create');
     } finally {
       editing.current = false;
       if (isActive()) setBusy(false);
@@ -219,14 +252,13 @@ export function useLibrary(
     }
     editing.current = true;
     setBusy(true);
-    setProblem(null);
     try {
       const result = await api.content.edit({type: 'song.delete', songId: id});
       if (!isActive() || appliedId(result) === null) return false;
-      await readList();
+      if (!(await readList())) report('load', loadAction(reload));
       return isActive();
     } catch {
-      report('곡 삭제 실패');
+      report('delete');
       return false;
     } finally {
       editing.current = false;
@@ -242,17 +274,9 @@ export function useLibrary(
     selected,
     loading,
     busy,
-    problem,
-    dismissProblem: () => setProblem(null),
     report,
     open,
     create,
     remove,
-    reload: () => {
-      if (editing.current) return;
-      setLoading(true);
-      setProblem(null);
-      readList().catch(() => report('라이브러리 불러오기 실패'));
-    },
   };
 }

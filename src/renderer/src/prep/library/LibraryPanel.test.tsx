@@ -13,9 +13,11 @@ import type {LibrarySearchResult} from '@shared/schema/librarySearch';
 import {LIBRARY_SEARCH_LIMITS} from '@shared/schema/librarySearch';
 import {readSongDragData, SONG_DRAG_MIME} from '@shared/schema/songDrag';
 import {resetTooltips} from '@renderer/ui/tooltipTesting';
+import type {Notice} from '@renderer/ui/notices';
+import {layerContainer} from '@renderer/ui/layers';
 import {fixtureSong, libraryFixture} from './fixture';
 import {LibraryPanel} from './LibraryPanel';
-import {LibrarySection} from './LibrarySection';
+import {LibraryGalleryHost, LibrarySection} from './LibrarySection';
 
 class FixedObserver implements ResizeObserver {
   static readonly instances: FixedObserver[] = [];
@@ -41,24 +43,124 @@ beforeEach(() => {
 
 async function setup(fixture = libraryFixture()) {
   const onOpenSong = vi.fn();
+  const onProblem = vi.fn<(notice: Notice) => void>();
   const result = render(
-    <LibraryPanel api={fixture.api} onOpenSong={onOpenSong} />,
+    <LibraryPanel
+      api={fixture.api}
+      onOpenSong={onOpenSong}
+      onProblem={onProblem}
+    />,
   );
   await screen.findAllByRole('option');
-  return {...result, fixture, onOpenSong, user: userEvent.setup()};
+  return {...result, fixture, onOpenSong, onProblem, user: userEvent.setup()};
 }
 
 describe('library panel', () => {
-  it('reports a failed initial read and retries from its notification', async () => {
+  it('starts ArrowDown at the first row when nothing is selected', async () => {
+    const {onOpenSong} = await setup();
+    fireEvent.keyDown(screen.getByRole('listbox', {name: '라이브러리 곡'}), {
+      key: 'ArrowDown',
+    });
+    const first = screen.getByRole('option', {name: '만복의 근원 하나님'});
+    expect(first.getAttribute('aria-selected')).toBe('true');
+    expect(document.activeElement).toBe(first);
+    await waitFor(() =>
+      expect(onOpenSong).toHaveBeenCalledWith({
+        document: fixtureSong(2, '만복의 근원 하나님'),
+        focusTitle: false,
+      }),
+    );
+  });
+
+  it('lets its gallery host share, replace, and cap notices in one stack', async () => {
     const fixture = libraryFixture();
     vi.spyOn(fixture.api.songs, 'list').mockRejectedValueOnce(
       new Error('Read failed'),
     );
-    render(<LibraryPanel api={fixture.api} onOpenSong={() => undefined} />);
+    render(<LibraryGalleryHost api={fixture.api} />);
+    const user = userEvent.setup();
     await screen.findByText('라이브러리 불러오기 실패');
-    await userEvent.click(screen.getByRole('button', {name: '다시 불러오기'}));
+    await user.click(screen.getByRole('button', {name: '다시 불러오기'}));
     await screen.findByRole('option', {name: '찬송 10'});
-    expect(screen.queryByText('라이브러리 불러오기 실패')).toBeNull();
+    expect(screen.queryByRole('alert')).toBeNull();
+    vi.spyOn(fixture.api.songs, 'get').mockRejectedValue(
+      new Error('Open failed'),
+    );
+    await user.click(screen.getByRole('option', {name: '찬송 10'}));
+    await screen.findByText('곡 열기 실패');
+    await user.click(screen.getByRole('option', {name: '찬송 2'}));
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
+    vi.spyOn(fixture.api.library, 'search').mockRejectedValue(
+      new Error('Search failed'),
+    );
+    const input = screen.getByRole('textbox', {name: '라이브러리 검색'});
+    fireEvent.change(input, {target: {value: 'x'}});
+    await screen.findByText('라이브러리 검색 실패');
+    fireEvent.keyDown(input, {key: 'Escape'});
+    vi.spyOn(fixture.api.content, 'edit').mockRejectedValue(
+      new Error('Edit failed'),
+    );
+    await user.click(screen.getByRole('button', {name: '새 곡'}));
+    await screen.findByText('새 곡 만들기 실패');
+    fireEvent.contextMenu(screen.getByRole('option', {name: '찬송 10'}));
+    await user.click(screen.getByRole('menuitem', {name: '삭제'}));
+    await user.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', {
+        name: '삭제',
+      }),
+    );
+    await screen.findByText('곡 삭제 실패');
+    expect(screen.getAllByRole('alert')).toHaveLength(3);
+    expect(screen.queryByText('곡 열기 실패')).toBeNull();
+    expect(screen.queryByRole('button', {name: '다시 불러오기'})).toBeNull();
+    expect(layerContainer('notification').children).toHaveLength(1);
+  });
+
+  it('hands deletion failures to the host without a reload action', async () => {
+    const {fixture, user, onProblem} = await setup();
+    vi.spyOn(fixture.api.content, 'edit').mockRejectedValue(
+      new Error('Delete failed'),
+    );
+    fireEvent.contextMenu(screen.getByRole('option', {name: '찬송 10'}));
+    await user.click(screen.getByRole('menuitem', {name: '삭제'}));
+    await user.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', {
+        name: '삭제',
+      }),
+    );
+    expect(onProblem.mock.lastCall?.[0]).toMatchObject({
+      key: 'library:delete',
+      title: '곡 삭제 실패',
+    });
+    expect(onProblem.mock.lastCall?.[0]?.actions).toBeUndefined();
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+  it('hands a failed load and its retry action to the host without mounting a stack', async () => {
+    const fixture = libraryFixture();
+    vi.spyOn(fixture.api.songs, 'list').mockRejectedValueOnce(
+      new Error('Read failed'),
+    );
+    const onProblem = vi.fn<(notice: Notice) => void>();
+    render(
+      <LibraryPanel
+        api={fixture.api}
+        onOpenSong={() => undefined}
+        onProblem={onProblem}
+      />,
+    );
+    await waitFor(() => expect(onProblem).toHaveBeenCalledTimes(1));
+    const notice = onProblem.mock.lastCall?.[0];
+    expect(notice).toMatchObject({
+      key: 'library:load',
+      title: '라이브러리 불러오기 실패',
+    });
+    expect(screen.queryByRole('alert')).toBeNull();
+    const action = notice?.actions?.[0];
+    if (!action) throw new Error('Missing host retry action');
+    expect(action.label).toBe('다시 불러오기');
+    act(() => action.onSelect());
+    await screen.findByRole('option', {name: '찬송 10'});
+    expect(onProblem).toHaveBeenCalledTimes(1);
   });
 
   it('prevents duplicate creation while an edit is pending and reports its failure', async () => {
@@ -70,13 +172,17 @@ describe('library panel', () => {
           reject = fail;
         }),
     );
-    const {user, onOpenSong} = await setup(fixture);
+    const {user, onOpenSong, onProblem} = await setup(fixture);
     const create = screen.getByRole('button', {name: '새 곡'});
     await user.click(create);
     await user.click(create);
     expect(edit).toHaveBeenCalledTimes(1);
     await act(async () => reject(new Error('Create failed')));
-    await screen.findByText('새 곡 만들기 실패');
+    expect(onProblem.mock.lastCall?.[0]).toMatchObject({
+      key: 'library:create',
+      title: '새 곡 만들기 실패',
+    });
+    expect(onProblem.mock.lastCall?.[0]?.actions).toBeUndefined();
     expect(create.getAttribute('aria-disabled')).not.toBe('true');
     expect(onOpenSong).not.toHaveBeenCalled();
   });
@@ -220,7 +326,7 @@ describe('library panel', () => {
     act(() =>
       fixture.pushList(fixture.list().map(song => ({...song, usedBy: []}))),
     );
-    expect(screen.getByText('예배 순서 0곳에서 씀')).toBeDefined();
+    expect(screen.queryByText('예배 순서 0곳에서 씀')).toBeNull();
     await user.click(
       within(screen.getByRole('alertdialog')).getByRole('button', {
         name: '삭제',
@@ -277,7 +383,11 @@ describe('library panel', () => {
         }),
     );
     const result = render(
-      <LibraryPanel api={fixture.api} onOpenSong={() => undefined} />,
+      <LibraryPanel
+        api={fixture.api}
+        onOpenSong={() => undefined}
+        onProblem={() => undefined}
+      />,
     );
     const newer = fixture
       .list()

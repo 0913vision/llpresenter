@@ -3,7 +3,7 @@ import type {SongId} from '@shared/schema/ids';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {IconButton} from '@renderer/ui/IconButton';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
-import {NotificationStack} from '@renderer/ui/Notification';
+import type {Notice} from '@renderer/ui/notices';
 import {
   Panel,
   PanelActions,
@@ -22,14 +22,17 @@ export interface LibraryPanelProps {
   readonly api: LibraryApi;
   /** Opens the editor; after creation the host focuses its title field. */
   readonly onOpenSong: (selection: LibrarySelection) => void;
+  /** The workspace host merges problems into its one notification list. */
+  readonly onProblem: (notice: Notice) => void;
 }
 
 /** The independent library panel; the workspace host mounts it beside its editor. */
 export function LibraryPanel({
   api,
   onOpenSong,
+  onProblem,
 }: LibraryPanelProps): JSX.Element {
-  const library = useLibrary(api, onOpenSong);
+  const library = useLibrary(api, onOpenSong, onProblem);
   const [menu, setMenu] = useState<{id: SongId; anchor: MenuAnchor} | null>(
     null,
   );
@@ -52,9 +55,7 @@ export function LibraryPanel({
               label="새 곡"
               disabled={library.busy || library.loading}
               onClick={() => {
-                library
-                  .create()
-                  .catch(() => library.report('새 곡 만들기 실패'));
+                library.create().catch(() => library.report('create'));
               }}
             />
           </PanelActions>
@@ -76,7 +77,7 @@ export function LibraryPanel({
               rows={library.visible}
               selected={library.selected}
               onSelect={id => {
-                library.open(id).catch(() => library.report('곡 열기 실패'));
+                library.open(id).catch(() => library.report('open'));
               }}
               onContextMenu={(event, id) => {
                 event.preventDefault();
@@ -121,7 +122,11 @@ export function LibraryPanel({
         <AlertDialog
           icon="song"
           title={`‘${candidate.title}’ 곡을 삭제할까요?`}
-          meta={[`예배 순서 ${candidate.usedBy.length}곳에서 씀`]}
+          meta={
+            candidate.usedBy.length > 0
+              ? [`예배 순서 ${candidate.usedBy.length}곳에서 씀`]
+              : undefined
+          }
           onCancel={() => setDeleting(null)}
           actions={[
             {
@@ -133,28 +138,11 @@ export function LibraryPanel({
                   removed => {
                     if (removed) setDeleting(null);
                   },
-                  () => library.report('곡 삭제 실패'),
+                  () => library.report('delete'),
                 );
               },
             },
           ]}
-        />
-      ) : null}
-      {library.problem ? (
-        <NotificationStack
-          notices={[
-            {
-              ...library.problem,
-              actions: [
-                {
-                  icon: 'refresh',
-                  label: '다시 불러오기',
-                  onSelect: library.reload,
-                },
-              ],
-            },
-          ]}
-          onClose={library.dismissProblem}
         />
       ) : null}
     </>
