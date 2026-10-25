@@ -14,12 +14,37 @@ import {Icon} from '@renderer/ui/Icon';
 import {classNames} from '@renderer/ui/classNames';
 import {isComposing} from '@renderer/ui/ime';
 import {layerContainer} from '@renderer/ui/layers';
+import {MenuSearchField} from '@renderer/ui/MenuParts';
 import menu from '@renderer/ui/Menu.module.css';
 import {useLabelPopup} from './useLabelPopup';
 import styles from './SongBackground.module.css';
 
 const VISIBLE_ROWS = 8;
 const OVERSCAN = 2;
+const NONE_LABEL = '없음';
+
+function searchName(value: string): string {
+  return value.trim().normalize('NFC').toLocaleLowerCase();
+}
+
+function targetFor(
+  key: string,
+  active: number,
+  count: number,
+): number | undefined {
+  switch (key) {
+    case 'ArrowDown':
+      return (active + 1) % count;
+    case 'ArrowUp':
+      return (active - 1 + count) % count;
+    case 'Home':
+      return 0;
+    case 'End':
+      return count - 1;
+    default:
+      return undefined;
+  }
+}
 
 interface PickerProps {
   readonly anchor: HTMLElement;
@@ -37,10 +62,16 @@ export function MediaPicker({
   onSelect,
   onClose,
 }: PickerProps): JSX.Element {
-  const choices = useMemo(
-    () => [undefined, ...items.filter(item => item.kind !== 'audio')],
-    [items],
-  );
+  const [query, setQuery] = useState('');
+  const choices = useMemo(() => {
+    const term = searchName(query);
+    return [
+      undefined,
+      ...items.filter(
+        item => item.kind !== 'audio' && searchName(item.name).includes(term),
+      ),
+    ];
+  }, [items, query]);
   const [active, setActive] = useState(
     Math.max(
       0,
@@ -62,15 +93,12 @@ export function MediaPicker({
     if (element === null) return;
     const height =
       Number.parseFloat(
-        getComputedStyle(element).getPropertyValue('--size-row-menu') ||
-          getComputedStyle(document.documentElement).getPropertyValue(
-            '--size-row-menu',
-          ),
+        getComputedStyle(element).getPropertyValue('--size-row-menu'),
       ) || 0;
     if (height !== row) setRow(height);
     if (row > 0 && height === row && !initialized.current) {
       initialized.current = true;
-      surface.current?.focus();
+      surface.current?.querySelector('input')?.focus();
       element.scrollTop = active * row;
       setTop(element.scrollTop);
     }
@@ -90,71 +118,40 @@ export function MediaPicker({
     onSelect(choices[index]?.id);
     onClose(true);
   };
+  const filter = (value: string): void => {
+    setQuery(value);
+    setActive(0);
+    if (viewport.current !== null) viewport.current.scrollTop = 0;
+    setTop(0);
+  };
   const keyDown = (event: KeyboardEvent): void => {
     if (isComposing(event)) return;
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      event.stopPropagation();
-      onClose(true);
-      return;
-    }
+    const inField = event.target instanceof HTMLInputElement;
+    if (inField && ['Home', 'End', ' '].includes(event.key)) return;
     const target =
-      event.key === 'ArrowDown'
-        ? (active + 1) % choices.length
-        : event.key === 'ArrowUp'
-          ? (active - 1 + choices.length) % choices.length
-          : event.key === 'Home'
-            ? 0
-            : event.key === 'End'
-              ? choices.length - 1
-              : undefined;
+      inField && event.key === 'ArrowDown'
+        ? active
+        : targetFor(event.key, active, choices.length);
     if (target !== undefined) {
-      event.preventDefault();
-      event.stopPropagation();
       point(target);
-      return;
-    }
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      event.stopPropagation();
+      viewport.current?.focus();
+    } else if (event.key === 'Enter' || event.key === ' ') {
       choose(active);
-      return;
-    }
-    if (
-      event.key.length !== 1 ||
-      event.ctrlKey ||
-      event.altKey ||
-      event.metaKey
-    ) {
-      return;
-    }
-    for (let offset = 1; offset <= choices.length; offset++) {
-      const index = (active + offset) % choices.length;
-      if (
-        (choices[index]?.name ?? '없음')
-          .toLocaleLowerCase()
-          .startsWith(event.key.toLocaleLowerCase())
-      ) {
-        event.preventDefault();
-        point(index);
-        return;
-      }
-    }
+    } else if (event.key === 'Escape') onClose(true);
+    else return;
+    event.preventDefault();
+    event.stopPropagation();
   };
   const start = Math.max(0, Math.floor(row > 0 ? top / row : 0) - OVERSCAN);
   const visible = choices.slice(start, start + VISIBLE_ROWS + OVERSCAN * 2);
+  const activeId =
+    active >= start && active < start + visible.length
+      ? `${id}-${active}`
+      : undefined;
   return createPortal(
     <div className={menu.layer}>
       <div
         ref={surface}
-        role="listbox"
-        aria-label="기본 배경"
-        aria-activedescendant={
-          active >= start && active < start + visible.length
-            ? `${id}-${active}`
-            : undefined
-        }
-        tabIndex={-1}
         className={classNames(menu.menu, styles.picker)}
         onKeyDown={keyDown}
         onBlur={event => {
@@ -166,8 +163,18 @@ export function MediaPicker({
           }
         }}
       >
+        <MenuSearchField
+          search={{value: query, onChange: filter}}
+          menuId={id}
+          activeId={activeId}
+        />
         <div
           ref={viewport}
+          id={id}
+          role="listbox"
+          aria-label="기본 배경"
+          aria-activedescendant={activeId}
+          tabIndex={-1}
           className={styles.viewport}
           style={{maxHeight: `calc(var(--size-row-menu) * ${VISIBLE_ROWS})`}}
           onScroll={event => setTop(event.currentTarget.scrollTop)}
@@ -200,7 +207,7 @@ export function MediaPicker({
                   {item === undefined ? null : (
                     <Icon name={item.kind} size={14} />
                   )}
-                  <span className={menu.label}>{item?.name ?? '없음'}</span>
+                  <span className={menu.label}>{item?.name ?? NONE_LABEL}</span>
                 </button>
               );
             })}

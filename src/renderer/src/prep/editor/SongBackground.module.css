@@ -15,6 +15,7 @@
 .viewport {
   min-height: 0;
   overflow-y: auto;
+  outline: none;
   scrollbar-color: var(--line-strong) transparent;
   scrollbar-width: thin;
 }

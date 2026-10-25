@@ -1,6 +1,8 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 import {createMediaId} from '@shared/schema/ids';
+import type {MediaId} from '@shared/schema/ids';
+import type {MediaItem} from '@shared/schema/mediaList';
 import {parseMediaDocument} from '@shared/schema/mediaEdit';
 import {parseSongDocument} from '@shared/schema/contentDocuments';
 import {editorFixture} from './editorFixture';
@@ -34,12 +36,41 @@ function media(count = 3) {
 }
 
 async function setup(count = 3) {
-  document.documentElement.style.setProperty('--size-row-menu', '28px');
+  const computedStyle = window.getComputedStyle.bind(window);
+  vi.spyOn(window, 'getComputedStyle').mockImplementation(element => {
+    const style = computedStyle(element);
+    const property = style.getPropertyValue.bind(style);
+    vi.spyOn(style, 'getPropertyValue').mockImplementation(name =>
+      name === '--size-row-menu' ? '28px' : property(name),
+    );
+    return style;
+  });
   const fixture = editorFixture();
   const doc = media(count);
   vi.spyOn(fixture.api.media, 'get').mockResolvedValue(doc);
   const value = await editorSetup(fixture);
   return {...value, media: doc};
+}
+
+function renderPicker(
+  items: readonly MediaItem[],
+  onSelect: (id: MediaId | undefined) => void = vi.fn(),
+) {
+  const onClose = vi.fn();
+  render(
+    <MediaPicker
+      anchor={screen.getByRole('button', {name: '다음 패널'})}
+      items={items}
+      selected={undefined}
+      onSelect={onSelect}
+      onClose={onClose}
+    />,
+  );
+  return {
+    search: screen.getByRole('combobox', {name: '검색'}),
+    listbox: screen.getByRole('listbox', {name: '기본 배경'}),
+    onClose,
+  };
 }
 
 describe('song title normalization', () => {
@@ -131,20 +162,11 @@ describe('default song background', () => {
 
   it('keeps a large list virtualized and lets End select its last eligible item', async () => {
     const {session, media} = await setup(2001);
-    render(
-      <MediaPicker
-        anchor={screen.getByRole('button', {name: '다음 패널'})}
-        items={media.value.items}
-        selected={undefined}
-        onSelect={value => session.setBackground(value)}
-        onClose={() => undefined}
-      />,
+    const {listbox} = renderPicker(media.value.items, value =>
+      session.setBackground(value),
     );
     expect(screen.getAllByRole('option').length).toBeLessThanOrEqual(12);
-    const listbox = screen.getByRole('listbox');
-    const viewport = listbox.firstElementChild;
-    if (!(viewport instanceof HTMLElement)) throw new Error('Missing viewport');
-    fireEvent.scroll(viewport, {target: {scrollTop: 28000}});
+    fireEvent.scroll(listbox, {target: {scrollTop: 28000}});
     expect(listbox.getAttribute('aria-activedescendant')).toBeNull();
     fireEvent.keyDown(listbox, {key: 'End'});
     expect(listbox.getAttribute('aria-activedescendant')).toBe(
@@ -154,6 +176,69 @@ describe('default song background', () => {
     fireEvent.keyDown(screen.getByRole('listbox'), {key: 'Enter'});
     await act(() => session.flush());
     expect(session.background).toBe(media.value.items.at(-2)?.id);
+  });
+
+  it('filters Hangul contains matches across Unicode forms without taking IME keys', async () => {
+    const {media} = await setup();
+    const items = media.value.items.map((item, index) => ({
+      ...item,
+      name: (index === 0 ? '푸른 바다' : '하늘 빛').normalize('NFD'),
+    }));
+    const onSelect = vi.fn();
+    const {search, listbox, onClose} = renderPicker(items, onSelect);
+    expect(document.activeElement).toBe(search);
+    fireEvent.compositionStart(search);
+    fireEvent.change(search, {target: {value: '바'}});
+    fireEvent.keyDown(search, {key: 'Enter', isComposing: true});
+    fireEvent.keyDown(search, {key: 'Escape', isComposing: true});
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+    fireEvent.compositionEnd(search, {data: '바다'});
+    fireEvent.change(search, {
+      target: {value: `  ${'바다'.normalize('NFD')}  `},
+    });
+    expect(
+      screen.getAllByRole('option').map(option => option.textContent),
+    ).toEqual(['없음', '푸른 바다'.normalize('NFD')]);
+    for (const key of ['Home', 'End', ' ']) {
+      expect(fireEvent.keyDown(search, {key})).toBe(true);
+    }
+    fireEvent.keyDown(search, {key: 'ArrowDown'});
+    expect(document.activeElement).toBe(listbox);
+    fireEvent.keyDown(listbox, {key: 'ArrowDown'});
+    fireEvent.keyDown(listbox, {key: 'Enter'});
+    expect(onSelect).toHaveBeenCalledExactlyOnceWith(items[0]?.id);
+    expect(onClose).toHaveBeenCalledExactlyOnceWith(true);
+  });
+
+  it('resets and navigates the virtual window over the filtered choices', async () => {
+    const {media} = await setup(2001);
+    const onSelect = vi.fn();
+    const {search, listbox} = renderPicker(media.value.items, onSelect);
+    fireEvent.keyDown(listbox, {key: 'End'});
+    expect(listbox.scrollTop).toBeGreaterThan(0);
+    fireEvent.change(search, {target: {value: '  mEDia 1  '}});
+    expect(listbox.scrollTop).toBe(0);
+    expect(screen.getAllByRole('option')[0]?.textContent).toBe('없음');
+    expect(screen.getByRole('option', {name: 'Media 1'})).toBeDefined();
+    const matches = media.value.items.filter(
+      item => item.kind !== 'audio' && item.name.includes('Media 1'),
+    );
+    fireEvent.keyDown(listbox, {key: 'End'});
+    const last = screen.getByRole('option', {name: 'Media 1999'});
+    expect(listbox.getAttribute('aria-activedescendant')).toBe(last.id);
+    expect(last.getAttribute('aria-posinset')).toBe(String(matches.length + 1));
+    expect(last.getAttribute('aria-setsize')).toBe(String(matches.length + 1));
+    expect(screen.getAllByRole('option').length).toBeLessThanOrEqual(12);
+    fireEvent.keyDown(listbox, {key: 'Enter'});
+    expect(onSelect).toHaveBeenCalledExactlyOnceWith(matches.at(-1)?.id);
+    fireEvent.change(search, {target: {value: 'No matching name'}});
+    expect(listbox.scrollTop).toBe(0);
+    expect(screen.getAllByRole('option')).toHaveLength(1);
+    expect(screen.getByRole('option', {name: '없음'})).toBeDefined();
+    fireEvent.change(search, {target: {value: ''}});
+    fireEvent.keyDown(listbox, {key: 'End'});
+    expect(screen.getByRole('option', {name: 'Media 2000'})).toBeDefined();
   });
 
   it('does not send a queued background after deletion during an in-flight save', async () => {
