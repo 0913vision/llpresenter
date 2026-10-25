@@ -2,9 +2,9 @@
 
 - Team member: `output`
 - Branch: `feat/output/overlays`
-- Base: `d74de593a52e5ec83443ce98519193db01e6d500`
-- Code head: `7c44968c9ca9047bff6300f75dc3f36830156236`
-- Range: `d74de59...feat/output/overlays`
+- Base: `c2c364d0c3f1c31d894d173e334b36137023517d`
+- Code head: `f96e489c4915804470d4d462d6517d9da56612df`
+- Range: `c2c364d...feat/output/overlays`
 - Task: M3-O6a, built on data-31 (`be5a043`). O6b timers stay out of scope.
 - GitHub CI: the first run failed in two wiring tests, described below. The
   corrected branch must pass in full before the review request.
@@ -91,7 +91,8 @@ unmount.
   asynchronous notice failure regression then passed with its file, 7/7.
 - Post-rebase checks: 22 relevant test files passed, 261 tests in 12.63 seconds;
   typecheck and targeted ESLint passed. Rebased again immediately before push to
-  include data-33, with no conflict or changes to the overlay implementation.
+  include data-33, then S1a and the song model before the corrected push, with
+  no conflict or changes to the overlay implementation.
 - The two log regressions were run against the actual base `store.ts` and
   `sliceRegistry.ts`: both failed on the old warning behavior. Files were
   restored in `finally`; the corrected tests pass.
