@@ -1,10 +1,11 @@
 # 04. The 진행 workspace
 
 진행 (Show) is the workspace for the live service. The operator outputs by
-clicking 장 (see 03). This document defines what each 진행 panel shows and does.
-Layout and sizes follow the design system and the `ShowH` and `Compact` boards.
+clicking 슬라이드 (see 03). This document defines what each 진행 panel shows and
+does. Layout and sizes follow the design system and the `ShowH` and `Compact`
+boards.
 
-Terms: 장 (slide), 예배 순서 (service order), 구성 (arrangement), 이름표
+Terms: 슬라이드 (slide), 예배 순서 (service order), 구성 (arrangement), 이름표
 (label), 본 화면 (main screen), 무대 화면 (stage screen), 방송 자막 (broadcast
 captions), 진행 도구 (show tools), 퀵 실행 (quick launch), 소품 (prop), 공지
 (notice), 메시지 (message), 타이머 (timer), 매크로 (macro), 라이브러리
@@ -15,7 +16,7 @@ captions), 진행 도구 (show tools), 퀵 실행 (quick launch), 소품 (prop),
 | Column | Panels, top to bottom                                            | Source                   |
 | ------ | ---------------------------------------------------------------- | ------------------------ |
 | Left   | 예배 순서 (takes the remaining height), 퀵 실행 (content height) | `ShowH`, `Layout` README |
-| Center | 장 panel (remaining height), media strip (when open)             | `ShowH`, `Layout` README |
+| Center | 슬라이드 panel (remaining height), media strip (when open)       | `ShowH`, `Layout` README |
 | Right  | Preview, clear row, 진행 도구 (remaining height, at least 240)   | `ShowH`, `Layout` README |
 
 - 진행 has no 라이브러리. Its left column holds the 예배 순서 and 퀵 실행.
@@ -38,42 +39,44 @@ Source: `Main` decisions "진행 화면은 절충안" and "작업 공간 세 개
 
 ### List
 
-| Row           | Shows                                                                                            | Clicking it                                                             |
-| ------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
-| Header        | Group name, for example 예배 전 (before service), 찬양 (praise), 말씀 (sermon), 마무리 (closing) | Nothing. Headers can't be selected.                                     |
-| Song          | Song icon, song title                                                                            | Selects the row and opens the song's 장 in the 장 panel, in 구성 order. |
-| Bible passage | Book icon, passage name, for example 요한복음 3장 16절                                           | Selects the row and opens the passage's 장 in the 장 panel.             |
-| Media         | Video icon, media name, for example 예배 전 카운트다운                                           | Selects the row and opens one media tile in the 장 panel (proposal).    |
-| 공지          | 공지 icon, 공지 set name, for example 주일 광고                                                  | Selects the row and opens the 공지 images as 장 (proposal).             |
-| Slot          | Icon of the accepted kind, name, dashed box                                                      | Selects the row and leaves the 장 panel empty (proposal).               |
+| Row           | Shows                                                                                            | Clicking it                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| Header        | Group name, for example 예배 전 (before service), 찬양 (praise), 말씀 (sermon), 마무리 (closing) | Nothing. Headers can't be selected.                                                 |
+| Song          | Song icon, song title                                                                            | Selects the row and opens the song's 슬라이드 in the 슬라이드 panel, in 구성 order. |
+| Bible passage | Book icon, passage name, for example 요한복음 3장 16절                                           | Selects the row and opens the passage's 슬라이드 in the 슬라이드 panel.             |
+| Media         | Video icon, media name, for example 예배 전 카운트다운                                           | Selects the row and opens one media tile in the 슬라이드 panel (proposal).          |
+| 공지          | 공지 icon, 공지 set name, for example 주일 광고                                                  | Selects the row and opens the 공지 images as 슬라이드 (proposal).                   |
+| Slot          | Icon of the accepted kind, name, dashed box                                                      | Selects the row and leaves the 슬라이드 panel empty (proposal).                     |
 
-- Clicking a row only selects it. The operator outputs by clicking a 장 in the
-  장 panel.
+- Clicking a row only selects it. The operator outputs by clicking a 슬라이드 in
+  the 슬라이드 panel.
 - In the list, the up and down arrow keys move between rows (skipping headers).
   Home and End go to the first and last row. ← → Space Page Up Page Down still
-  output the next and previous 장 while the list has focus (10, focus
+  output the next and previous 슬라이드 while the list has focus (10, focus
   precedence).
 - Ctrl ↓ and Ctrl ↑ select the next and previous item that can output and open
-  it in the 장 panel, without outputting (다음 항목, 이전 항목; decided, 10).
-- 진행 rows don't show details such as the 장 count (`ShowH`). 준비 rows do (see
-  05).
+  it in the 슬라이드 panel, without outputting (다음 항목, 이전 항목; decided,
+  10).
+- 진행 rows don't show details such as the 슬라이드 count (`ShowH`). 준비 rows
+  do (see 05).
 
 ### Row states
 
 | State     | When                                                                                   | Look                                                   |
 | --------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| Selected  | The item open in the 장 panel                                                          | Selected row background                                |
-| On output | The live 장 came from this item                                                        | LIVE badge at the right                                |
+| Selected  | The item open in the 슬라이드 panel                                                    | Selected row background                                |
+| On output | The live 슬라이드 came from this item                                                  | LIVE badge at the right                                |
 | Done      | The item started at least once since launch and sits above the current item (proposal) | Dim text                                               |
 | Problem   | Something is wrong, for example the song is missing or the background file is missing  | Amber warning icon after the name, reason in a tooltip |
 
 ### Starting an item and its start 매크로
 
-- An item starts at the moment the item that the live 장 comes from changes.
-  Moving between 장 of the same item doesn't start it. Neither does clicking a
-  장 of the same item again after a lyrics clear (proposal).
+- An item starts at the moment the item that the live 슬라이드 comes from
+  changes. Moving between 슬라이드 of the same item doesn't start it. Neither
+  does clicking a 슬라이드 of the same item again after a lyrics clear
+  (proposal).
 - If the item that starts has a start 매크로, run the 매크로 before drawing the
-  장 (see 03 and 07).
+  슬라이드 (see 03 and 07).
 
 ### Editing the 예배 순서 in 진행
 
@@ -102,10 +105,10 @@ README, `Main` decision "구성대로 진행".
   틀). See 05.
 - Choosing another service makes it the current service at once. There is no
   confirmation, even during output.
-  - The output doesn't change. The live 장, background, and 소품 stay on the
-    screens until the operator clicks a 장 in the new service.
-  - If the live 장 came from an item that isn't in the new service, no row shows
-    the LIVE badge.
+  - The output doesn't change. The live 슬라이드, background, and 소품 stay on
+    the screens until the operator clicks a 슬라이드 in the new service.
+  - If the live 슬라이드 came from an item that isn't in the new service, no row
+    shows the LIVE badge.
   - The app remembers the last opened service and opens it on the next launch
     (환경설정 option "시작할 때: 마지막 예배 열기").
 
@@ -113,13 +116,14 @@ Source: `ServiceSwitch`, `Main` decision "예배 순서 바꾸기", `Panel` READ
 (service switcher), `Menu` README, design system principle 6 (opening another
 service needs no confirmation), product log version 63.
 
-## 장 panel
+## 슬라이드 panel
 
 ### Header
 
-- Left: the item name (song title) and a position. If the item in the 장 panel
-  is the current item, show "live 장 position / total", for example "2 / 9".
-  Otherwise, show the 장 count, for example "9장" (proposal).
+- Left: the item name (song title) and a position. If the item in the 슬라이드
+  panel is the current item, show "live 슬라이드 position / total", for example
+  "2 / 9". Otherwise, show the 슬라이드 count, for example "슬라이드 9개"
+  (proposal).
 - Right (song items): the background select. It shows a small image and the name
   of the item's background (the override, or the song's default background).
   Changing it saves the new media as the item's background override (proposal).
@@ -128,20 +132,21 @@ service needs no confirmation), product log version 63.
   없음", background file not found) and a 다시 연결 (relink) button show before
   the select. See 08.
 
-### 장 grid
+### 슬라이드 grid
 
-- For a song item, the grid shows the 장 in the order of the chosen 구성. A 장
-  that appears several times in the 구성 gets several tiles. In the board, a
-  song with 4 장 has a 구성 of 9 tiles.
+- For a song item, the grid shows the 슬라이드 in the order of the chosen 구성.
+  A 슬라이드 that appears several times in the 구성 gets several tiles. In the
+  board, a song with 4 슬라이드 has a 구성 of 9 tiles.
 - A tile is a 16:9 picture with an 이름표 band below it. The picture shows only
-  the 장's lines, not the song's background. The band shows the position in the
-  sequence (from 1) and the 이름표 name, painted in the 이름표 color. Without an
-  이름표, the band shows only the number.
-- Clicking a tile outputs that 장 at once (see 03). The live tile has a red
-  ring: only that tile, not other tiles of the same 장. In 진행, don't draw a
-  keyboard focus border around thumbnails, including after arrow navigation.
-  Keep keyboard focus and activation behavior. In 준비, keep the blue keyboard
-  focus border so selection can move before an edit (decided, M2 check 1 row 3).
+  the 슬라이드's lines, not the song's background. The band shows the position
+  in the sequence (from 1) and the 이름표 name, painted in the 이름표 color.
+  Without an 이름표, the band shows only the number.
+- Clicking a tile outputs that 슬라이드 at once (see 03). The live tile has a
+  red ring: only that tile, not other tiles of the same 슬라이드. In 진행, don't
+  draw a keyboard focus border around thumbnails, including after arrow
+  navigation. Keep keyboard focus and activation behavior. In 준비, keep the
+  blue keyboard focus border so selection can move before an edit (decided, M2
+  check 1 row 3).
 - The footer has a continuous size slider and a synchronized % field (M2 check 1
   row 9). The proposed range is 50% to 200%, step 1 percentage point for typing
   and keyboard adjustment, default 100%. Pointer dragging changes the size
@@ -150,11 +155,11 @@ service needs no confirmation), product log version 63.
   number of columns changes. Save the percentage per size class, not a column
   count. 10 defines the mapping, storage, and reasons.
 - Other item kinds:
-  - Bible passage: the Bible 장 (see "Bible passages").
+  - Bible passage: the Bible 슬라이드 (see "Bible passages").
   - Media: one media tile. Clicking it outputs that media to the media layer
     (proposal).
-  - 공지: the images of the 공지 set, laid out like 장. Clicking one starts the
-    공지 from that image (proposal; same behavior as the 공지 tab).
+  - 공지: the images of the 공지 set, laid out like 슬라이드. Clicking one
+    starts the 공지 from that image (proposal; same behavior as the 공지 tab).
   - Header, slot: no tiles.
 
 ### Keyboard
@@ -167,46 +172,47 @@ source was found.
 | ---------------------- | ------------------------------- | --------------------------------------------------------------------------------------------- |
 | ↑, ↓ (grid has focus)  | Move the selected tile by a row | `SlideThumbnail` README, narrowed by 10 (focus precedence rule 5)                             |
 | Enter (grid has focus) | Output the selected tile        | `SlideThumbnail` README                                                                       |
-| →, Space, Page Down    | Output the next 장              | Follows ProPresenter for → (S1) and Space (S4 p. 70); Page Down for presentation remotes (10) |
-| ←, Page Up             | Output the previous 장          | Follows ProPresenter for ← (S1); Page Up for presentation remotes (10)                        |
-| 이름표 jump key        | Output that 이름표's 장         | Follows ProPresenter's group hot keys (S4 pp. 58, 176; 10)                                    |
+| →, Space, Page Down    | Output the next 슬라이드        | Follows ProPresenter for → (S1) and Space (S4 p. 70); Page Down for presentation remotes (10) |
+| ←, Page Up             | Output the previous 슬라이드    | Follows ProPresenter for ← (S1); Page Up for presentation remotes (10)                        |
+| 이름표 jump key        | Output that 이름표's 슬라이드   | Follows ProPresenter's group hot keys (S4 pp. 58, 176; 10)                                    |
 
-- → ← Space Page Up Page Down output the next and previous 장 even while the 장
-  grid or the 예배 순서 list has focus, as ProPresenter does after a click on a
-  slide (S4 p. 70). The grid keeps only ↑, ↓, and Enter (10, "Focus
+- → ← Space Page Up Page Down output the next and previous 슬라이드 even while
+  the 슬라이드 grid or the 예배 순서 list has focus, as ProPresenter does after
+  a click on a slide (S4 p. 70). The grid keeps only ↑, ↓, and Enter (10, "Focus
   precedence").
-- A mouse click in 진행 moves keyboard focus only to a text field, the 장 grid,
-  or the 예배 순서 list. A click on any other button or tile, such as a 매크로
-  or a 소품, leaves keyboard focus where it was (10). So after a click on a 장,
-  focus is on the 장 grid and Space outputs the next 장, and after a click on a
-  매크로, Space still outputs the next 장 instead of running the 매크로 again.
-- Next and previous are the tiles after and before the live 장 in the current
-  item's sequence. If there is no live 장, or the item open in the 장 panel
-  isn't the current item, next outputs the first tile of the item in the 장
-  panel (decided, no ProPresenter source found; 10).
+- A mouse click in 진행 moves keyboard focus only to a text field, the 슬라이드
+  grid, or the 예배 순서 list. A click on any other button or tile, such as a
+  매크로 or a 소품, leaves keyboard focus where it was (10). So after a click on
+  a 슬라이드, focus is on the 슬라이드 grid and Space outputs the next 슬라이드,
+  and after a click on a 매크로, Space still outputs the next 슬라이드 instead
+  of running the 매크로 again.
+- Next and previous are the tiles after and before the live 슬라이드 in the
+  current item's sequence. If there is no live 슬라이드, or the item open in the
+  슬라이드 panel isn't the current item, next outputs the first tile of the item
+  in the 슬라이드 panel (decided, no ProPresenter source found; 10).
 - On the last tile, next does nothing (decided, no ProPresenter source found;
   10). Moving into the next item would start it and run its start 매크로. To
   move on, the operator picks the next item (다음 항목, Ctrl ↓) and presses →. A
   환경설정 > 진행 setting that lets next move into the next item is part of 10's
   settings proposal, which is still open. On the first tile, previous does
   nothing (proposal).
-- An 이름표 jump key outputs the first tile with that 이름표 after the live 장
-  in the current item's sequence. If none follows, it outputs the first tile
-  with that 이름표 in the sequence (proposal: ProPresenter's hot keys jump to a
-  slide, S4 pp. 58 and 176, but no ProPresenter source says which occurrence of
-  a repeated group).
+- An 이름표 jump key outputs the first tile with that 이름표 after the live
+  슬라이드 in the current item's sequence. If none follows, it outputs the first
+  tile with that 이름표 in the sequence (proposal: ProPresenter's hot keys jump
+  to a slide, S4 pp. 58 and 176, but no ProPresenter source says which
+  occurrence of a repeated group).
 - Live commands run once per key press and ignore key repeat (decided, 10).
 - These keys don't work while a text field has focus (10, focus precedence).
 
 ### Editing a song that is on output
 
 If the operator edits the lyrics of a song on output in 준비, the output screens
-don't change until the next 장 goes out (proposal). The tiles in the 장 panel
-change at once.
+don't change until the next 슬라이드 goes out (proposal). The tiles in the
+슬라이드 panel change at once.
 
-Source: `ShowH` (장 grid, 9 tiles in 구성 order, background select), `Problems`
-(missing background file and 다시 연결), `SlideThumbnail` README, `Slider`
-README, `Main` decision "구성대로 진행".
+Source: `ShowH` (슬라이드 grid, 9 tiles in 구성 order, background select),
+`Problems` (missing background file and 다시 연결), `SlideThumbnail` README,
+`Slider` README, `Main` decision "구성대로 진행".
 
 ## Preview panel
 
@@ -228,18 +234,18 @@ each preview follows ProPresenter's rule: it shows what goes out.
   it again.
 - The one exception is an output that the operator turned off: its preview keeps
   the picture (see "Layout and states").
-- A preview follows the live output, never the selection. A click on a 장
+- A preview follows the live output, never the selection. A click on a 슬라이드
   outputs it (03), so the previews change at the same moment as the outputs.
   Moving the selected tile with the keyboard, opening another 예배 순서 item in
-  the 장 panel, or opening the Bible panel changes no preview until something
-  goes out. ProPresenter has no step between choosing a slide and showing it: a
-  click shows the slide, and the active slide is outlined in the grid (guide pp.
-  12, 70).
-- No preview shows the next 장 as a separate picture. The next 장 appears only
-  where the stage layout has a next lyrics element: on the 무대 화면 and in its
-  preview (03, "무대 화면 and stage layouts"). ProPresenter does the same: Next
-  Slide is a stage layout object (guide p. 41), and its main window has no next
-  slide preview (guide pp. 24 to 26).
+  the 슬라이드 panel, or opening the Bible panel changes no preview until
+  something goes out. ProPresenter has no step between choosing a slide and
+  showing it: a click shows the slide, and the active slide is outlined in the
+  grid (guide pp. 12, 70).
+- No preview shows the next 슬라이드 as a separate picture. The next 슬라이드
+  appears only where the stage layout has a next lyrics element: on the 무대
+  화면 and in its preview (03, "무대 화면 and stage layouts"). ProPresenter does
+  the same: Next Slide is a stage layout object (guide p. 41), and its main
+  window has no next slide preview (guide pp. 24 to 26).
 - A layer that the current Look hides on a screen doesn't show in that screen's
   preview (03, "Looks"). For example, the default Look shows only the background
   and the lyrics on the 방송 자막 (03), so its preview shows no 공지, 소품, or
@@ -431,8 +437,9 @@ after its name, and hides it at 0.
 
 ### 공지
 
-- Top: the 공지 set select (for example 주일 광고), the image count ("6장"), the
-  interval ("8초"), 반복 (repeat), and 일시 정지 (pause) or 재생 (play).
+- Top: the 공지 set select (for example 주일 광고), the image count ("슬라이드
+  6개"), the interval ("8초"), 반복 (repeat), and 일시 정지 (pause) or 재생
+  (play).
 - Middle: the grid of 공지 images. The image that is showing has a red ring.
 - Bottom: 보낼 화면 chips (본 화면, 무대, 방송 자막).
 - Clicking an image shows it at once on the 공지 layer of the target screens,
@@ -484,17 +491,17 @@ README (count badge).
 Clicking a row runs it at once. A toggle item keeps a red bar at the left of its
 row while it's on. Clicking it again turns it off.
 
-| Kind          | Example in the board              | Clicking it                                                                                                                                                    | Toggle             |
-| ------------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
-| Bible passage | 요한복음 3장 16절                 | Opens the passage in the Bible panel and outputs its first 장 (proposal).                                                                                      | No                 |
-| Song          | 주 하나님 지으신 모든 세계        | Opens the song in the 장 panel with the default 구성 and outputs its first 장 (proposal). Doesn't add it to the 예배 순서 or change the background (proposal). | No                 |
-| Black screen  | 검은 화면                         | Turns on or off a built-in 소품 that covers every audience screen with black (proposal).                                                                       | Yes                |
-| 소품          | 로고 화면 (logo screen)           | Turns that 소품 on or off.                                                                                                                                     | Yes                |
-| 타이머        | 시작 카운트다운 (start countdown) | Starts that 타이머, or pauses it if it's running (proposal).                                                                                                   | Yes, while running |
-| 매크로        |                                   | Runs that 매크로 (proposal).                                                                                                                                   | No                 |
+| Kind          | Example in the board              | Clicking it                                                                                                                                                                | Toggle             |
+| ------------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| Bible passage | 요한복음 3장 16절                 | Opens the passage in the Bible panel and outputs its first 슬라이드 (proposal).                                                                                            | No                 |
+| Song          | 주 하나님 지으신 모든 세계        | Opens the song in the 슬라이드 panel with the default 구성 and outputs its first 슬라이드 (proposal). Doesn't add it to the 예배 순서 or change the background (proposal). | No                 |
+| Black screen  | 검은 화면                         | Turns on or off a built-in 소품 that covers every audience screen with black (proposal).                                                                                   | Yes                |
+| 소품          | 로고 화면 (logo screen)           | Turns that 소품 on or off.                                                                                                                                                 | Yes                |
+| 타이머        | 시작 카운트다운 (start countdown) | Starts that 타이머, or pauses it if it's running (proposal).                                                                                                               | Yes, while running |
+| 매크로        |                                   | Runs that 매크로 (proposal).                                                                                                                                               | No                 |
 
-- The board's 축도 (benediction, 장 icon) is read as a short song made in the
-  라이브러리 (proposal, open question).
+- The board's 축도 (benediction, 슬라이드 icon) is read as a short song made in
+  the 라이브러리 (proposal, open question).
 - The black screen sits on the 소품 layer, so the 소품 clear (F4) also takes it
   down (proposal).
 
@@ -503,7 +510,7 @@ row while it's on. Clicking it again turns it off.
 No board shows how to add a 퀵 실행 item (open question). Version 1 works like
 this:
 
-- 퀵 실행 추가 opens a menu: add the item in the 장 panel (a song or Bible
+- 퀵 실행 추가 opens a menu: add the item in the 슬라이드 panel (a song or Bible
   passage), 소품 (submenu), 타이머 (submenu), 매크로 (submenu), 검은 화면.
 - The operator can also drag song and Bible passage rows from the 예배 순서 into
   퀵 실행.
@@ -546,7 +553,7 @@ Source: `ShowH`, `Problems`, `MediaTile` README, `Layout` README.
   1:1-5, 시편 23:1-6). The up and down arrow keys move through them. A click or
   Enter chooses one.
 - As soon as the text is a valid reference, the Bible panel opens in place of
-  the 장 panel in the center column.
+  the 슬라이드 panel in the center column.
 - References can use the full book name or its abbreviation, with
   "chapter:verse", "chapter:verse-verse", "chapter:verse-chapter:verse", or a
   whole chapter (proposal). The grammar and the book matching are in 02
@@ -554,27 +561,29 @@ Source: `ShowH`, `Problems`, `MediaTile` README, `Layout` README.
 
 ### Bible panel
 
-- Header: the passage ("요한복음 3:16-18") and the 장 count ("3장").
+- Header: the passage ("요한복음 3:16-18") and the 슬라이드 count ("슬라이드
+  3개").
 - Settings row: the translation select (개역한글) with 역본 추가 (add
-  translation), 나누기 (split: 한 장에 한 절 one verse per 장, 두 절씩 two
-  verses, 길이에 맞춤 fit to length), 참조 (reference: 장마다 every 장), 절 번호
-  (verse numbers), and 역본 이름 (translation name).
-  - Fit to length fills each 장 with verses up to the 환경설정 option 한 장 최대
-    줄 수 (maximum lines per 장) (proposal).
+  translation), 나누기 (split: 한 슬라이드에 한 절 one verse per 슬라이드, 두
+  절씩 two verses, 길이에 맞춤 fit to length), 참조 (reference: 슬라이드마다
+  every 슬라이드), 절 번호 (verse numbers), and 역본 이름 (translation name).
+  - Fit to length fills each 슬라이드 with verses up to the 환경설정 option 한
+    슬라이드 최대 줄 수 (maximum lines per 슬라이드) (proposal).
   - 참조 decides where the reference (3:16) appears. The board shows only
-    "장마다". The reference text draws at the 환경설정 option 출처 위치
+    "슬라이드마다". The reference text draws at the 환경설정 option 출처 위치
     (reference position, bottom right) (proposal).
   - Turning on 역본 이름 appends the translation name after the reference
     (proposal).
   - 역본 추가 opens the Bible page of 환경설정 (proposal).
-- Bible 장 grid: each 장 shows its verse numbers and text, and the band shows
-  the number and the reference ("3:16"). Clicking a tile outputs that 장 at
-  once. The next and previous keys work within the passage.
-- 화면별 보기 (per-screen view, "1 / 3"): shows how the selected 장 looks on the
-  본 화면 and the 방송 자막, with the screen name, target, and style name.
+- Bible 슬라이드 grid: each 슬라이드 shows its verse numbers and text, and the
+  band shows the number and the reference ("3:16"). Clicking a tile outputs that
+  슬라이드 at once. The next and previous keys work within the passage.
+- 화면별 보기 (per-screen view, "1 / 3"): shows how the selected 슬라이드 looks
+  on the 본 화면 and the 방송 자막, with the screen name, target, and style
+  name.
 - Buttons: 앞 절 추가 (add the previous verse), 뒤 절 추가 (add the next verse),
   예배 순서에 넣기 (add to the 예배 순서), and 바로 띄우기 (show now, outputs
-  the selected 장; the primary button).
+  the selected 슬라이드; the primary button).
 - 예배 순서에 넣기 inserts a Bible passage item after the selected 예배 순서
   item. If the selected row is a Bible passage slot, the passage fills it
   (proposal).
@@ -586,17 +595,17 @@ Source: `ShowH`, `Problems`, `MediaTile` README, `Layout` README.
 - If the reference isn't valid, the field shows an error ring with the reason in
   a tooltip, for example "알아볼 수 없는 구절입니다" (passage not recognized)
   (proposal).
-- Bible 장 go to the lyrics layer and draw with the current Look's lyric style
-  (proposal). Whether the board's 본 화면 style name "말씀" (sermon) is a style
-  only for Bible passages is an open question.
+- Bible 슬라이드 go to the lyrics layer and draw with the current Look's lyric
+  style (proposal). Whether the board's 본 화면 style name "말씀" (sermon) is a
+  style only for Bible passages is an open question.
 - A passage that the operator outputs or adds to the 예배 순서 goes to the front
   of the recent list (up to 10, proposal). A passage that is already in the list
   (same reference and translation) moves to the front instead of appearing
   twice, and the oldest one drops off past 10 (proposal).
 - The "구절" suggestions list matching books in canonical order (창세기 first),
   at most 8 (proposal).
-- Choosing a row in the 예배 순서 closes the Bible panel and returns to the 장
-  panel (proposal).
+- Choosing a row in the 예배 순서 closes the Bible panel and returns to the
+  슬라이드 panel (proposal).
 
 Source: `Bible`, `TextField` README (퀵 실행 field), `Prefs` 성경 (Bible),
 `Main` board guide (성경 구절 띄우기), product log (copible, offline).
@@ -611,8 +620,8 @@ this:
   rules of 05 "Search". The list shows at most 20 songs, title matches first
   (proposal). A lyrics match shows its first matching line under the title
   (proposal).
-- Choosing a song opens it in the 장 panel with the default 구성. It isn't added
-  to the 예배 순서. Clicking its 장 outputs them.
+- Choosing a song opens it in the 슬라이드 panel with the default 구성. It isn't
+  added to the 예배 순서. Clicking its 슬라이드 outputs them.
 - In 준비, choosing a result selects the song in the 라이브러리 and opens the
   song editor (see 05).
 
@@ -625,7 +634,7 @@ The features are the same. Only the layout differs.
 | Toolbar             | Height 40, names to the right of icons, 미디어 as an icon only, search field 280                                                                                                                                         | `Compact`, `Toolbar` README      |
 | Columns             | Left 220, right 360                                                                                                                                                                                                      | `Layout` README                  |
 | Media strip         | Starts closed                                                                                                                                                                                                            | `Compact`                        |
-| 장 grid             | 3 columns by default                                                                                                                                                                                                     | `Compact`                        |
+| 슬라이드 grid       | 3 columns by default                                                                                                                                                                                                     | `Compact`                        |
 | Clear row           | Icons only (names in tooltips), 모두 is 1.4 times as wide                                                                                                                                                                | `Compact`, `ClearButton` README  |
 | 진행 도구 tabs      | 표시 중, 무대, and 더 보기 (more). 더 보기 opens a menu with 오디오, 타이머, 메시지, 공지, 소품, and 매크로. Choosing one shows that tab's content, with 더 보기 shown as the active tab (proposal).                     | `Compact`, `Layout` README       |
 | Small previews      | A row with 64 px pictures, name and target on two lines                                                                                                                                                                  | `Compact`, `PreviewFrame` README |
@@ -642,10 +651,10 @@ keys are changed are in 10, "Shortcut system".
 
 | Key                                              | Action                                                          | Basis                                                                             |
 | ------------------------------------------------ | --------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| →, Space, Page Down                              | Next 장                                                         | Follows ProPresenter (S1; S4 p. 70); Page Down for presentation remotes           |
-| ←, Page Up                                       | Previous 장                                                     | Follows ProPresenter (S1); Page Up for presentation remotes                       |
+| →, Space, Page Down                              | Next 슬라이드                                                   | Follows ProPresenter (S1; S4 p. 70); Page Down for presentation remotes           |
+| ←, Page Up                                       | Previous 슬라이드                                               | Follows ProPresenter (S1); Page Up for presentation remotes                       |
 | Ctrl ↓, Ctrl ↑                                   | Select the next or previous item (다음 항목, 이전 항목)         | No ProPresenter source found                                                      |
-| Ctrl L                                           | Open the item of the live 장 (출력 중인 항목 열기)              | Follows ProPresenter (Show Triggered Presentation, S1)                            |
+| Ctrl L                                           | Open the item of the live 슬라이드 (출력 중인 항목 열기)        | Follows ProPresenter (Show Triggered Presentation, S1)                            |
 | Alt →, Alt ←                                     | Next or previous background in the media strip's playlist       | Follows ProPresenter (Next and Previous Background, S1)                           |
 | F1 to F7                                         | Clear all, lyrics, media, 소품, audio, 메시지, 공지             | Follows ProPresenter (S1)                                                         |
 | Ctrl Z                                           | 실행 취소 (edit undo for the 예배 순서 or a text field)         | M2 check 1 row 8; never restores cleared output (03, 10)                          |
@@ -653,5 +662,5 @@ keys are changed are in 10, "Shortcut system".
 | Ctrl 2                                           | 무대 화면 output on or off                                      | Follows ProPresenter (Toggle Stage Display Screens, S1)                           |
 | Alt S, Ctrl M, Ctrl Shift C, Ctrl Shift P, Alt C | The 무대, 메시지, 타이머, and 소품 tabs, and the action palette | Follows ProPresenter (S1)                                                         |
 | Ctrl Alt B                                       | The Bible field in 퀵 실행                                      | Follows ProPresenter (Open Bibles Mode, S1)                                       |
-| 이름표 jump key (a bare letter or digit)         | That 이름표's 장                                                | Follows ProPresenter (group hot keys, S4 pp. 58, 176); no default keys            |
+| 이름표 jump key (a bare letter or digit)         | That 이름표's 슬라이드                                          | Follows ProPresenter (group hot keys, S4 pp. 58, 176); no default keys            |
 | A key set for a Look, 소품, 매크로, or 타이머    | That object's command                                           | No default keys; follows ProPresenter's Key Mappings for 소품 and 매크로 (S2, S3) |

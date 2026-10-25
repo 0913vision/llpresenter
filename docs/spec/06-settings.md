@@ -4,10 +4,10 @@ This document covers the 화면 설정 (Screen settings) workspace (screens, dis
 layout, test pattern, output method, Look editor, stage layout editor), the
 환경설정 (Preferences) window, and shortcuts.
 
-Terms: 출력 (output), 장 (slide), 이름표 (label), 본 화면 (main screen), 무대
-화면 (stage screen), 방송 자막 (broadcast captions), 진행 도구 (show tools), 퀵
-실행 (quick launch), 소품 (prop), 공지 (notice), 메시지 (message), 타이머
-(timer), 라이브러리 (library), 진행 (Show workspace). See 01.
+Terms: 출력 (output), 슬라이드 (slide), 이름표 (label), 본 화면 (main screen),
+무대 화면 (stage screen), 방송 자막 (broadcast captions), 진행 도구 (show
+tools), 퀵 실행 (quick launch), 소품 (prop), 공지 (notice), 메시지 (message),
+타이머 (timer), 라이브러리 (library), 진행 (Show workspace). See 01.
 
 The full shortcut system and a proposal for the 환경설정 pages are in
 [10-shortcuts-and-settings.md](10-shortcuts-and-settings.md). Its shortcut part
@@ -219,22 +219,22 @@ Source: `Looks`, `Main` board guide (Look 편집), `Checkbox` README,
   (10; M2 check 1 row 11).
 - Right: the 요소 (element) properties: the element name and 요소 삭제 (delete
   element). The 내용 (content) group: 이름 (name), 내용 종류 (content kind, a
-  select such as 현재 장, current 장), and 보여 줄 것 (what to show: 글자 text,
-  그림 image, 메모 memo). Then the tabs 모양 (appearance) and 글자 (text). The
-  글자 tab has 글꼴, 굵기 (weight), 크기, 글자색, 가로 정렬, 세로 정렬, 줄 간격,
-  and 크기 자동 맞춤 (auto-fit size).
+  select such as 현재 슬라이드, current 슬라이드), and 보여 줄 것 (what to show:
+  글자 text, 그림 image, 메모 memo). Then the tabs 모양 (appearance) and 글자
+  (text). The 글자 tab has 글꼴, 굵기 (weight), 크기, 글자색, 가로 정렬, 세로
+  정렬, 줄 간격, and 크기 자동 맞춤 (auto-fit size).
 
 ### Element kinds
 
-| Kind in the 요소 추가 menu (proposal names) | Content                     |
-| ------------------------------------------- | --------------------------- |
-| 현재 가사 (current lyrics)                  | The live 장                 |
-| 다음 가사 (next lyrics)                     | The next 장 in the sequence |
-| 현재 이름표 (current 이름표)                | The live 장's 이름표        |
-| 다음 이름표 (next 이름표)                   | The next 장's 이름표        |
-| 시계 (clock)                                | Current time                |
-| 타이머                                      | A 타이머 value              |
-| 무대 메시지 (stage message)                 | The stage message           |
+| Kind in the 요소 추가 menu (proposal names) | Content                           |
+| ------------------------------------------- | --------------------------------- |
+| 현재 가사 (current lyrics)                  | The live 슬라이드                 |
+| 다음 가사 (next lyrics)                     | The next 슬라이드 in the sequence |
+| 현재 이름표 (current 이름표)                | The live 슬라이드's 이름표        |
+| 다음 이름표 (next 이름표)                   | The next 슬라이드's 이름표        |
+| 시계 (clock)                                | Current time                      |
+| 타이머                                      | A 타이머 value                    |
+| 무대 메시지 (stage message)                 | The stage message                 |
 
 ### Behavior
 
@@ -287,9 +287,9 @@ table. See "What this proposal would replace" in 10.
 | 성경       | 설치된 역본 (installed translations) | One row per translation: name, language, size, a 기본 (default) tag, and a more menu                                                                                   | The more menu has 기본으로 (make default) and 삭제. The default translation can't be deleted (proposal).                                                        | `Prefs`                     |
 | 성경       | 설치된 역본                          | 역본 추가 (add translation)                                                                                                                                            | Opens a file dialog for a translation file. The file format is an open question (see 02).                                                                       | `Prefs`                     |
 | 성경       | 표시 (display)                       | 절 번호 (verse numbers)                                                                                                                                                | Switch, default on.                                                                                                                                             | `Prefs`                     |
-| 성경       | 표시                                 | 한 장 최대 줄 수 (maximum lines per 장)                                                                                                                                | Number field with the unit 줄, default 4.                                                                                                                       | `Prefs`                     |
+| 성경       | 표시                                 | 한 슬라이드 최대 줄 수 (maximum lines per 슬라이드)                                                                                                                    | Number field with the unit 줄, default 4.                                                                                                                       | `Prefs`                     |
 | 성경       | 표시                                 | 출처 위치 (reference position)                                                                                                                                         | Select, default 오른쪽 아래 (bottom right). Other options: 왼쪽 아래 (bottom left), 숨김 (hidden) (proposal).                                                   | `Prefs`                     |
-| 가져오기   | txt                                  | 장 나누기, 이름표, 첫 줄, 글자 인코딩                                                                                                                                  | Selects. Defaults for text import. See 05.                                                                                                                      | `Prefs`                     |
+| 가져오기   | txt                                  | 슬라이드 나누기, 이름표, 첫 줄, 글자 인코딩                                                                                                                            | Selects. Defaults for text import. See 05.                                                                                                                      | `Prefs`                     |
 | 가져오기   | pptx                                 | 슬라이드 하나 (one slide), 배경 이미지 가져오기 (import background images)                                                                                             | Later (see 09). Version 1 hides this group (proposal).                                                                                                          | `Prefs`                     |
 | 단축키     |                                      |                                                                                                                                                                        | See "Shortcuts".                                                                                                                                                | `Shortcuts`                 |
 | 업데이트   | 버전 (version)                       | 현재 버전 (current version)                                                                                                                                            | Read-only value.                                                                                                                                                | `Prefs`                     |

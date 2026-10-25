@@ -1,17 +1,17 @@
 # 03. Output
 
 This document defines the output windows, turning screen outputs on and off,
-layers and Looks, outputting 장 and backgrounds, clearing and undo, the 방송
-자막, the 무대 화면, handling a lost monitor, and recording the output state.
-The main process owns the output state (see 01). Every behavior in this document
-is a command that the main process handles.
+layers and Looks, outputting 슬라이드 and backgrounds, clearing and undo, the
+방송 자막, the 무대 화면, handling a lost monitor, and recording the output
+state. The main process owns the output state (see 01). Every behavior in this
+document is a command that the main process handles.
 
-Terms: 출력 (output), 지우기 (clear), 장 (slide), 예배 순서 (service order),
-구성 (arrangement), 이름표 (label), 본 화면 (main screen), 무대 화면 (stage
-screen), 방송 자막 (broadcast captions), 소품 (prop), 공지 (notice), 메시지
-(message), 타이머 (timer), 매크로 (macro), 진행 도구 (show tools), 퀵 실행
-(quick launch), 진행 (Show workspace), 준비 (Prep workspace), 화면 설정 (Screen
-settings workspace).
+Terms: 출력 (output), 지우기 (clear), 슬라이드 (slide), 예배 순서 (service
+order), 구성 (arrangement), 이름표 (label), 본 화면 (main screen), 무대 화면
+(stage screen), 방송 자막 (broadcast captions), 소품 (prop), 공지 (notice),
+메시지 (message), 타이머 (timer), 매크로 (macro), 진행 도구 (show tools), 퀵
+실행 (quick launch), 진행 (Show workspace), 준비 (Prep workspace), 화면 설정
+(Screen settings workspace).
 
 ## Screens and output windows
 
@@ -71,9 +71,9 @@ screen's output on and off. There is no confirmation.
 - The text in parentheses is the output target name from 화면 설정, for example
   모니터 2 (monitor 2), 캡처용 창, or NDI.
 - Clicking a button in the monitor missing state turns the output off.
-- Turning an output off keeps the output state (the live 장, background, 소품,
-  and so on). Turning it back on shows that content at once. While the output is
-  off, the preview keeps showing the same picture.
+- Turning an output off keeps the output state (the live 슬라이드, background,
+  소품, and so on). Turning it back on shows that content at once. While the
+  output is off, the preview keeps showing the same picture.
 - Off means the output window is hidden (proposal: ProPresenter turns audience
   and stage screens off from the Preview window, S4 p. 24, and doesn't say what
   an off screen shows). The capture window is hidden too.
@@ -148,8 +148,8 @@ screen shows that content.
 
 Something shows on a screen only if both of these are true (proposal):
 
-- It was sent to that screen. 장 and backgrounds go to every screen. 메시지,
-  공지, and 소품 go only to their chosen screens (see 04).
+- It was sent to that screen. 슬라이드 and backgrounds go to every screen.
+  메시지, 공지, and 소품 go only to their chosen screens (see 04).
 - The current Look turns that layer on for that screen.
 
 - Hiding by a Look isn't clearing. The content stays in the output state, its
@@ -163,37 +163,41 @@ Something shows on a screen only if both of these are true (proposal):
 Source: `Looks`, `Main` decision "설정은 앱 전체에 하나", `ShowH` (toolbar
 "평상시"), `ToolbarButton` README (Look menu), `Shortcuts` (Look group).
 
-## Outputting a 장
+## Outputting a 슬라이드
 
-### When the operator clicks a 장
+### When the operator clicks a 슬라이드
 
-1. The 장 becomes the live 장. There is always one live 장 or none.
-2. If the 장 comes from a different 예배 순서 item, that item starts. If it has
-   a start 매크로, the 매크로 runs first, and the 장 then draws over the result,
-   for example a new Look or a clear (proposal: this order makes the 장 go out
-   with the new Look). The control window sends the item start (`item.start`)
-   and the 장 output together as one batch (01), so the start 매크로's result
-   and the 장 reach the screens in one change (proposal).
+1. The 슬라이드 becomes the live 슬라이드. There is always one live 슬라이드 or
+   none.
+2. If the 슬라이드 comes from a different 예배 순서 item, that item starts. If
+   it has a start 매크로, the 매크로 runs first, and the 슬라이드 then draws
+   over the result, for example a new Look or a clear (proposal: this order
+   makes the 슬라이드 go out with the new Look). The control window sends the
+   item start (`item.start`) and the 슬라이드 output together as one batch (01),
+   so the start 매크로's result and the 슬라이드 reach the screens in one change
+   (proposal).
 3. For a song item, the app sets the background (see "Song item background
    rules").
-4. The 장 draws on the lyrics layer of every screen. If the lyrics layer was
-   cleared, it shows again.
+4. The 슬라이드 draws on the lyrics layer of every screen. If the lyrics layer
+   was cleared, it shows again.
 
-- Clicking the live 장 again doesn't redraw it (proposal).
-- A 장 output from outside the 예배 순서 (퀵 실행, Bible passage, toolbar
+- Clicking the live 슬라이드 again doesn't redraw it (proposal).
+- A 슬라이드 output from outside the 예배 순서 (퀵 실행, Bible passage, toolbar
   search) doesn't start a 예배 순서 item. The LIVE badge in the 예배 순서
   disappears (proposal).
 
 ### Drawing text
 
-- Draw the 장's lines with the lyric style: font, weight, size, color, line
-  spacing, horizontal alignment, vertical position, margin, shadow, and outline.
+- Draw the 슬라이드's lines with the lyric style: font, weight, size, color,
+  line spacing, horizontal alignment, vertical position, margin, shadow, and
+  outline.
 - Line breaks are exactly as stored. A line wider than the area wraps at word
   boundaries (proposal).
-- If the 장 has more lines than the style's maximum lines, or the text overflows
-  the area, shrink the font until all lines fit (proposal). Never split the 장.
-- A blank 장 (no lines) can be the live 장. It draws nothing on the lyrics layer
-  (proposal).
+- If the 슬라이드 has more lines than the style's maximum lines, or the text
+  overflows the area, shrink the font until all lines fit (proposal). Never
+  split the 슬라이드.
+- A blank 슬라이드 (no lines) can be the live 슬라이드. It draws nothing on the
+  lyrics layer (proposal).
 - Lyric style sizes are for a 1920 x 1080 screen. Scale them to the screen
   resolution (proposal): every px value of the style (size, outline width,
   shadow blur and distance) is multiplied by the smaller of (screen width
@@ -214,9 +218,10 @@ Source: `Looks`, `Main` decision "설정은 앱 전체에 하나", `ShowH` (tool
   So every line fits, and nothing is cut or runs past the margins, except in the
   overflow case: when the lines don't fit even at 1 px, the text draws at 1 px
   and may run past the margins.
-- The operator gets no warning for a 장 that shrinks a lot. The previews in 진행
-  and the song editor's preview in 준비 show the size it really draws at (04,
-  05), so a 장 that is too long shows there before it goes out (proposal).
+- The operator gets no warning for a 슬라이드 that shrinks a lot. The previews
+  in 진행 and the song editor's preview in 준비 show the size it really draws at
+  (04, 05), so a 슬라이드 that is too long shows there before it goes out
+  (proposal).
 - Until the user decides open decisions entry 26 (outline and shadow detail),
   the switches draw fixed values from 10's defaults: an outline of 3 px, black,
   and a shadow with 8 px blur, 4 px distance down and to the right, 60 %
@@ -225,38 +230,38 @@ Source: `Looks`, `Main` decision "설정은 앱 전체에 하나", `ShowH` (tool
 ### Transitions
 
 - The design system says that Looks and settings decide the transitions when a
-  장 or background changes. No board shows where to set them, and the media
-  properties 전환 (transition) tab has no content (open question).
-- Version 1 defaults (proposal): 장 dissolve in 0.2 seconds, backgrounds
+  슬라이드 or background changes. No board shows where to set them, and the
+  media properties 전환 (transition) tab has no content (open question).
+- Version 1 defaults (proposal): 슬라이드 dissolve in 0.2 seconds, backgrounds
   dissolve in 0.5 seconds, Look changes and clears happen at once.
 
-Source: `ShowH` (clicking a 장 changes all three previews), `Main` decisions
-"출력은 누르면 바로" and "구성대로 진행", `Looks` (lyric style fields),
-`SlideThumbnail` README (line breaks as written), design system README (states
-and motion).
+Source: `ShowH` (clicking a 슬라이드 changes all three previews), `Main`
+decisions "출력은 누르면 바로" and "구성대로 진행", `Looks` (lyric style
+fields), `SlideThumbnail` README (line breaks as written), design system README
+(states and motion).
 
 ## Background media
 
 ### Ways to output a background
 
-| Way                                            | Result                                                                   | Source                                          |
-| ---------------------------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------- |
-| Click a 장 of a song item                      | That item's background (the override, or the song's default background). | `Main` decision "라이브러리와 예배 순서는 따로" |
-| Click a tile in the 진행 media strip           | That media becomes the background at once.                               | `MediaTile` README                              |
-| Double-click a tile in the media view          | That media becomes the background at once.                               | `MediaTile` README                              |
-| 매크로 action "배경 미디어" (background media) | The set media becomes the background.                                    | `Macros`                                        |
-| Click the 장 of a media item in the 예배 순서  | That media goes to the media layer (proposal).                           | `ShowH` (예배 전 카운트다운)                    |
+| Way                                                 | Result                                                                   | Source                                          |
+| --------------------------------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------- |
+| Click a 슬라이드 of a song item                     | That item's background (the override, or the song's default background). | `Main` decision "라이브러리와 예배 순서는 따로" |
+| Click a tile in the 진행 media strip                | That media becomes the background at once.                               | `MediaTile` README                              |
+| Double-click a tile in the media view               | That media becomes the background at once.                               | `MediaTile` README                              |
+| 매크로 action "배경 미디어" (background media)      | The set media becomes the background.                                    | `Macros`                                        |
+| Click the 슬라이드 of a media item in the 예배 순서 | That media goes to the media layer (proposal).                           | `ShowH` (예배 전 카운트다운)                    |
 
 ### Song item background rules
 
-- If the item of the clicked 장 has a background that differs from the current
-  background, switch to it.
+- If the item of the clicked 슬라이드 has a background that differs from the
+  current background, switch to it.
 - If it's the same media as the current background, don't restart it. Keep
   playing. When songs with the same background follow each other, the background
   never breaks.
 - If the item has no background, keep the current background (proposal).
-- These never change the background: moving between 장 in the same item, and 장
-  from 퀵 실행 or a Bible passage (proposal).
+- These never change the background: moving between 슬라이드 in the same item,
+  and 슬라이드 from 퀵 실행 or a Bible passage (proposal).
 
 ### Playback
 
@@ -282,15 +287,15 @@ range, speed, fit, sound), `Looks` (방송 자막 background green), `Problems`.
 The clear row in the right column of 진행, and the shortcuts, clear the screens.
 The clear happens at once, with no confirmation, on every screen.
 
-| Shortcut | Button         | What it clears                                                 |
-| -------- | -------------- | -------------------------------------------------------------- |
-| F1       | 모두 (all)     | Every layer below that has something to clear                  |
-| F2       | 가사 (lyrics)  | The live 장 (lyrics layer). After this, there is no live 장.   |
-| F3       | 미디어 (media) | Background media and media items (media layer)                 |
-| F4       | 소품           | Every 소품 that is on                                          |
-| F5       | 오디오 (audio) | Audio that is playing (proposal: fades out within 0.5 seconds) |
-| F6       | 메시지         | Every 메시지 that is showing                                   |
-| F7       | 공지           | The 공지, and stops its rotation                               |
+| Shortcut | Button         | What it clears                                                           |
+| -------- | -------------- | ------------------------------------------------------------------------ |
+| F1       | 모두 (all)     | Every layer below that has something to clear                            |
+| F2       | 가사 (lyrics)  | The live 슬라이드 (lyrics layer). After this, there is no live 슬라이드. |
+| F3       | 미디어 (media) | Background media and media items (media layer)                           |
+| F4       | 소품           | Every 소품 that is on                                                    |
+| F5       | 오디오 (audio) | Audio that is playing (proposal: fades out within 0.5 seconds)           |
+| F6       | 메시지         | Every 메시지 that is showing                                             |
+| F7       | 공지           | The 공지, and stops its rotation                                         |
 
 - The order and keys follow ProPresenter's current shortcuts: F1 all, F2 lyrics,
   F3 media, F4 props, F5 audio, F6 messages, F7 announcements (S1). The 7.5
@@ -335,7 +340,7 @@ project). Build it as a 매크로 with several clear actions. If needed, set tha
   has no default key; Ctrl Z never calls it.
 - The optional button undoes the last clear, including 모두. It shows again what
   those layers held just before the clear:
-  - Lyrics: the same 장 becomes the live 장 again.
+  - Lyrics: the same 슬라이드 becomes the live 슬라이드 again.
   - Media: the same media plays again from the position at the moment of the
     clear (proposal).
   - 소품 and 공지: the same ones turn on again. A 공지 resumes rotating from the
@@ -345,11 +350,11 @@ project). Build it as a 매크로 with several clear actions. If needed, set tha
   - Audio: the same track plays again from the position at the moment of the
     clear (proposal).
 - After an undo, there is nothing left to undo (one level only).
-- If new content goes to a cleared layer (a new 장, a new background, a new
-  메시지), that clear can no longer be undone (proposal: undo must never cover
-  something new).
-- Undo only undoes clears. It doesn't undo clicking a 장, turning outputs on or
-  off, or changing the Look.
+- If new content goes to a cleared layer (a new 슬라이드, a new background, a
+  new 메시지), that clear can no longer be undone (proposal: undo must never
+  cover something new).
+- Undo only undoes clears. It doesn't undo clicking a 슬라이드, turning outputs
+  on or off, or changing the Look.
 - Ctrl Z is the edit undo in text fields and editable lists, including 예배 순서
   edits in 진행. It does nothing where there is no edit to undo (10).
 
@@ -403,19 +408,19 @@ the window as fallback), `Main` decision "방송 자막은 NDI로", `Screens`,
 
 The 무대 화면 draws the elements of the current stage layout:
 
-| Element (`kind`)                | Draws                                                                                                   |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Current lyrics (`currentSlide`) | The lines of the live 장. Empty after a lyrics clear.                                                   |
-| Next lyrics (`nextSlide`)       | The 장 after the live 장 in the current item's sequence. Empty after the last 장 (proposal).            |
-| Current 이름표 (`currentLabel`) | The live 장's 이름표 name (the board shows "프리코러스").                                               |
-| Next 이름표 (`nextLabel`)       | The next 장's 이름표 name (the board shows "다음 후렴", next chorus).                                   |
-| Clock (`clock`)                 | The current time, for example "11:24" (24-hour, proposal).                                              |
-| 타이머 (`timer`)                | The value of the 타이머 chosen in the 진행 도구 무대 tab (the board shows "예배 경과 00:54", proposal). |
-| Stage message (`stageMessage`)  | The stage message sent from the 무대 tab.                                                               |
+| Element (`kind`)                | Draws                                                                                                          |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Current lyrics (`currentSlide`) | The lines of the live 슬라이드. Empty after a lyrics clear.                                                    |
+| Next lyrics (`nextSlide`)       | The 슬라이드 after the live 슬라이드 in the current item's sequence. Empty after the last 슬라이드 (proposal). |
+| Current 이름표 (`currentLabel`) | The live 슬라이드's 이름표 name (the board shows "프리코러스").                                                |
+| Next 이름표 (`nextLabel`)       | The next 슬라이드's 이름표 name (the board shows "다음 후렴", next chorus).                                    |
+| Clock (`clock`)                 | The current time, for example "11:24" (24-hour, proposal).                                                     |
+| 타이머 (`timer`)                | The value of the 타이머 chosen in the 진행 도구 무대 tab (the board shows "예배 경과 00:54", proposal).        |
+| Stage message (`stageMessage`)  | The stage message sent from the 무대 tab.                                                                      |
 
-- For a 장 element, 보여 줄 것 (what to show) decides the content. 글자 (text)
-  draws the lines. 그림 (image) draws a scaled copy of the picture on the 본
-  화면 (proposal). 메모 (memo) draws the current item's memo (proposal, open
+- For a 슬라이드 element, 보여 줄 것 (what to show) decides the content. 글자
+  (text) draws the lines. 그림 (image) draws a scaled copy of the picture on the
+  본 화면 (proposal). 메모 (memo) draws the current item's memo (proposal, open
   question).
 - An element with 크기 자동 맞춤 (auto-fit size) on shrinks its font until the
   text fits its box.
@@ -499,9 +504,9 @@ empty picture and the main process retries after a cool-down. See 08.
 - The main process writes the output state to the recovery record each time it
   changes (see 02).
 - After a crash, the app opens the last service as it was. The output state
-  recovery dialog asks whether to restore the screen outputs, the last 장, and
-  the items that were showing. Until the operator answers, every screen stays in
-  standby (off). See 08.
+  recovery dialog asks whether to restore the screen outputs, the last 슬라이드,
+  and the items that were showing. Until the operator answers, every screen
+  stays in standby (off). See 08.
 
 ## Previews and frame rate
 

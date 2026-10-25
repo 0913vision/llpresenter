@@ -5,9 +5,10 @@ covers the 매크로 tab, running 매크로, the right-click menu, the action pa
 and action kinds, collections, start 매크로 on 예배 순서 items, and the decision
 to replace Clear Groups with 매크로 in version 1.
 
-Terms: 출력 (output), 지우기 (clear), 장 (slide), 예배 순서 (service order),
-진행 도구 (show tools), Look, 소품 (prop), 공지 (notice), 메시지 (message),
-타이머 (timer), 무대 화면 (stage screen), 준비 (Prep workspace). See 01.
+Terms: 출력 (output), 지우기 (clear), 슬라이드 (slide), 예배 순서 (service
+order), 진행 도구 (show tools), Look, 소품 (prop), 공지 (notice), 메시지
+(message), 타이머 (timer), 무대 화면 (stage screen), 준비 (Prep workspace).
+See 01.
 
 ## What a 매크로 is
 
@@ -65,9 +66,9 @@ ProPresenter).
   between tiles or rows, and Enter or Space runs the 매크로. Shift+F10 or the
   menu key opens the right-click menu.
 - A mouse click on a tile doesn't give it keyboard focus, so Space after a click
-  still goes to 다음 장 instead of running the 매크로 again (decided; 10, focus
-  precedence). In 진행, only text fields, the 장 grid, and the 예배 순서 list
-  take keyboard focus on a click.
+  still goes to 다음 슬라이드 instead of running the 매크로 again (decided; 10,
+  focus precedence). In 진행, only text fields, the 슬라이드 grid, and the 예배
+  순서 list take keyboard focus on a click.
 - Each 매크로 can have its own shortcut, with no default key (decided; follows
   ProPresenter's Key Mappings for macros, S2 and S3).
 
@@ -192,9 +193,9 @@ Source: `Macros` (collection 주일 예배, 8개), `Main` decision "매크로".
 
 - The operator sets a start 매크로 in the 시작할 때 (on start) row of the item
   settings in 준비 (see 05).
-- It runs when the item starts, before the 장 draws (see 03 and 04).
-- It doesn't run when the operator only selects the item, moves between 장 of
-  the same item, or looks at the item in 준비.
+- It runs when the item starts, before the 슬라이드 draws (see 03 and 04).
+- It doesn't run when the operator only selects the item, moves between 슬라이드
+  of the same item, or looks at the item in 준비.
 - Typical uses: change the Look for a section, clear several layers at once, set
   a background, or start a 타이머. To make services look different from each
   other, keep several Looks and switch them with start 매크로.

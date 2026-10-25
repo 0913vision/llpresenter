@@ -5,11 +5,11 @@ app stores. Field names are the names used in the JSON. Fields that appear in
 the source samples keep their names. Fields that the sources don't show are
 marked as proposals.
 
-Terms: 장 (slide), 예배 순서 (service order), 틀 (template), 구성 (arrangement),
-이름표 (label), 라이브러리 (library), 매크로 (macro), 소품 (prop), 공지
-(notice), 메시지 (message), 타이머 (timer), 퀵 실행 (quick launch), 본 화면
-(main screen), 무대 화면 (stage screen), 방송 자막 (broadcast captions). See 01
-for the full list.
+Terms: 슬라이드 (slide), 예배 순서 (service order), 틀 (template), 구성
+(arrangement), 이름표 (label), 라이브러리 (library), 매크로 (macro), 소품
+(prop), 공지 (notice), 메시지 (message), 타이머 (timer), 퀵 실행 (quick launch),
+본 화면 (main screen), 무대 화면 (stage screen), 방송 자막 (broadcast captions).
+See 01 for the full list.
 
 ## Common rules
 
@@ -18,7 +18,7 @@ for the full list.
 | Encoding       | Every file is UTF-8 JSON without a byte order mark.                                                                                                                                                                             | `Main` song file sample                                          |
 | Header fields  | Every file starts with `format` (a string that names the file type) and `schemaVersion` (an integer, 1 in version 1).                                                                                                           | `Main` samples                                                   |
 | IDs            | Songs, 예배 순서, 틀, media, screens, Looks, lyric styles, stage layouts, 매크로, collections, 퀵 실행 items, 메시지 templates, 공지 sets, 소품, 타이머, and 예배 순서 items have a UUID v4 ID in lowercase. Never reuse an ID. | `Main` samples (song and media IDs). The rest is a proposal.     |
-| Unknown fields | When you read a file, keep every unknown field in memory and write it back unchanged. This also applies to nested objects (장, 구성, items).                                                                                    | `Main` song file notes, product log 2026-10-24 (room for scores) |
+| Unknown fields | When you read a file, keep every unknown field in memory and write it back unchanged. This also applies to nested objects (슬라이드, 구성, items).                                                                              | `Main` song file notes, product log 2026-10-24 (room for scores) |
 | Dates          | A service date is local time without a time zone, `YYYY-MM-DDTHH:mm`. Record timestamps such as `updatedAt` are ISO 8601 with a time zone offset (proposal).                                                                    | `Main` service sample                                            |
 | Paths          | Song and service files never contain file paths. They refer to media by ID only. File paths exist only in the media list.                                                                                                       | `Main` song file notes                                           |
 | Line endings   | Files use LF line endings (proposal).                                                                                                                                                                                           |                                                                  |
@@ -82,20 +82,20 @@ Each song is one file.
 }
 ```
 
-| Field                   | Type                        | Required | Meaning                                                                                                     |
-| ----------------------- | --------------------------- | -------- | ----------------------------------------------------------------------------------------------------------- |
-| `format`                | `"llsong"`                  | Yes      | File type.                                                                                                  |
-| `schemaVersion`         | Integer                     | Yes      | 1 in version 1.                                                                                             |
-| `id`                    | String (UUID)               | Yes      | Song ID. A 예배 순서 points to the song with this value.                                                    |
-| `title`                 | String                      | Yes      | Title. It can't be empty. Titles are unique in the 라이브러리 (proposal, see 05).                           |
-| `background`            | String (media ID) or absent | No       | Default background. If absent, outputting the song doesn't change the background (see 03).                  |
-| `slides`                | Array                       | Yes      | The 장 list. This order is the default 구성. A song has at least one 장 (proposal).                         |
-| `slides[].label`        | String                      | No       | 이름표 name. Absent or `""` means no 이름표.                                                                |
-| `slides[].lines`        | Array of strings            | Yes      | The lines that show on the 장. Line breaks are exactly this array. An empty array is a blank 장 (proposal). |
-| `arrangements`          | Array                       | No       | Named 구성. If absent, the song has only the default 구성.                                                  |
-| `arrangements[].name`   | String                      | Yes      | 구성 name. Unique within the song. "기본" (default) is reserved (proposal).                                 |
-| `arrangements[].slides` | Array of integers           | Yes      | The order of 장 numbers, starting at 1. A number can appear more than once.                                 |
-| `updatedAt`             | String (ISO 8601)           | No       | Time of the last edit (proposal). The duplicate title dialog uses it ("10월 20일 수정", edited October 20). |
+| Field                   | Type                        | Required | Meaning                                                                                                                 |
+| ----------------------- | --------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `format`                | `"llsong"`                  | Yes      | File type.                                                                                                              |
+| `schemaVersion`         | Integer                     | Yes      | 1 in version 1.                                                                                                         |
+| `id`                    | String (UUID)               | Yes      | Song ID. A 예배 순서 points to the song with this value.                                                                |
+| `title`                 | String                      | Yes      | Title. It can't be empty. Titles are unique in the 라이브러리 (proposal, see 05).                                       |
+| `background`            | String (media ID) or absent | No       | Default background. If absent, outputting the song doesn't change the background (see 03).                              |
+| `slides`                | Array                       | Yes      | The 슬라이드 list. This order is the default 구성. A song has at least one 슬라이드 (proposal).                         |
+| `slides[].label`        | String                      | No       | 이름표 name. Absent or `""` means no 이름표.                                                                            |
+| `slides[].lines`        | Array of strings            | Yes      | The lines that show on the 슬라이드. Line breaks are exactly this array. An empty array is a blank 슬라이드 (proposal). |
+| `arrangements`          | Array                       | No       | Named 구성. If absent, the song has only the default 구성.                                                              |
+| `arrangements[].name`   | String                      | Yes      | 구성 name. Unique within the song. "기본" (default) is reserved (proposal).                                             |
+| `arrangements[].slides` | Array of integers           | Yes      | The order of 슬라이드 numbers, starting at 1. A number can appear more than once.                                       |
+| `updatedAt`             | String (ISO 8601)           | No       | Time of the last edit (proposal). The duplicate title dialog uses it ("10월 20일 수정", edited October 20).             |
 
 Rules:
 
@@ -103,11 +103,11 @@ Rules:
 - A 구성 belongs to the song, not to any service. A 예배 순서 item picks a 구성
   by name.
 - Don't store 이름표 colors or jump keys in the song file. See the 이름표 list.
-- When you insert, delete, or move a 장, rewrite the 장 numbers in every 구성. A
-  deleted 장 drops out of each 구성, and higher numbers shift down
-  (implementation requirement). If a 구성 becomes empty, keep it, but show it in
-  진행 like the default 구성 (proposal).
-- Version 1 has no per-장 images or notes in songs.
+- When you insert, delete, or move a 슬라이드, rewrite the 슬라이드 numbers in
+  every 구성. A deleted 슬라이드 drops out of each 구성, and higher numbers
+  shift down (implementation requirement). If a 구성 becomes empty, keep it, but
+  show it in 진행 like the default 구성 (proposal).
+- Version 1 has no per-슬라이드 images or notes in songs.
 - If a later version adds fields such as a score, version 1 must not remove them
   (unknown fields are kept).
 
@@ -181,14 +181,14 @@ icon, and don't let the operator output it (proposal).
 
 ### Bible passage object (proposal)
 
-| Field             | Type                               | Meaning                                                                                                   |
-| ----------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `translation`     | String (translation ID)            | Translation.                                                                                              |
-| `ref`             | String                             | Normalized reference, for example "요한복음 3:16-18".                                                     |
-| `split`           | `"verse"` \| `"two"` \| `"fit"`    | 나누기 (split): 한 장에 한 절 (one verse per 장), 두 절씩 (two verses), 길이에 맞춤 (fit to length).      |
-| `reference`       | `"every"` \| `"first"` \| `"none"` | Where the reference shows: every 장, first 장 only, or nowhere. The board shows only "장마다" (every 장). |
-| `verseNumbers`    | Boolean                            | 절 번호 (verse numbers).                                                                                  |
-| `translationName` | Boolean                            | 역본 이름 (translation name).                                                                             |
+| Field             | Type                               | Meaning                                                                                                                           |
+| ----------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `translation`     | String (translation ID)            | Translation.                                                                                                                      |
+| `ref`             | String                             | Normalized reference, for example "요한복음 3:16-18".                                                                             |
+| `split`           | `"verse"` \| `"two"` \| `"fit"`    | 나누기 (split): 한 슬라이드에 한 절 (one verse per 슬라이드), 두 절씩 (two verses), 길이에 맞춤 (fit to length).                  |
+| `reference`       | `"every"` \| `"first"` \| `"none"` | Where the reference shows: every 슬라이드, first 슬라이드 only, or nowhere. The board shows only "슬라이드마다" (every 슬라이드). |
+| `verseNumbers`    | Boolean                            | 절 번호 (verse numbers).                                                                                                          |
+| `translationName` | Boolean                            | 역본 이름 (translation name).                                                                                                     |
 
 ### Slot items
 
@@ -346,7 +346,7 @@ board.
 | `.elements[]`       | Array                                                                                                                | Elements.                                                                                                                         | `StageEditor`                                                                                                                                               |
 | `..id`, `..name`    | String                                                                                                               | Element ID and name, for example 현재 가사 (current lyrics).                                                                      | `StageEditor` 이름 (name)                                                                                                                                   |
 | `..kind`            | `"currentSlide"` \| `"nextSlide"` \| `"currentLabel"` \| `"nextLabel"` \| `"clock"` \| `"timer"` \| `"stageMessage"` | Content kind.                                                                                                                     | `Main` board guide (current lyrics, next lyrics, 이름표, clock, 타이머, stage message), `StageEditor` 내용 종류 (content kind). Value names are a proposal. |
-| `..show`            | `"text"` \| `"image"` \| `"memo"`                                                                                    | 보여 줄 것 (what to show): 글자 (text), 그림 (image), 메모 (memo). 장 elements only.                                              | `StageEditor`                                                                                                                                               |
+| `..show`            | `"text"` \| `"image"` \| `"memo"`                                                                                    | 보여 줄 것 (what to show): 글자 (text), 그림 (image), 메모 (memo). 슬라이드 elements only.                                        | `StageEditor`                                                                                                                                               |
 | `..frame`           | `{ x, y, w, h }`                                                                                                     | Position and size in canvas pixels.                                                                                               | `StageEditor` X, Y, W, H                                                                                                                                    |
 | `..text`            | Object                                                                                                               | `font`, `weight`, `size`, `color`, `align`, `vAlign`, `lineHeight`, `autoFit`.                                                    | `StageEditor` 글자 (text) tab                                                                                                                               |
 | `..box`             | Object                                                                                                               | Values of the 모양 (appearance) tab, for example `background` and `opacity` (proposal). The board doesn't show the tab's content. | `StageEditor` 모양 tab                                                                                                                                      |
@@ -393,14 +393,14 @@ Version 1 has no 퀵 실행 shortcuts (see 09).
 
 ### 공지 sets (`notices.json`)
 
-| Field          | Type                | Meaning                                                  | Source                 |
-| -------------- | ------------------- | -------------------------------------------------------- | ---------------------- |
-| `sets[]`       | Array               | 공지 sets, for example 주일 광고 (Sunday announcements). | `Overlays` 공지 tab    |
-| `.id`, `.name` | String              | ID and name.                                             | `Overlays`             |
-| `.media`       | Array of media IDs  | The images, in order.                                    | `Overlays` (6장)       |
-| `.interval`    | Seconds             | Time between images, for example 8.                      | `Overlays` "8초"       |
-| `.loop`        | Boolean             | Loop.                                                    | `Overlays` loop button |
-| `.targets`     | Array of screen IDs | Target screens.                                          | `Overlays` 보낼 화면   |
+| Field          | Type                | Meaning                                                  | Source                    |
+| -------------- | ------------------- | -------------------------------------------------------- | ------------------------- |
+| `sets[]`       | Array               | 공지 sets, for example 주일 광고 (Sunday announcements). | `Overlays` 공지 tab       |
+| `.id`, `.name` | String              | ID and name.                                             | `Overlays`                |
+| `.media`       | Array of media IDs  | The images, in order.                                    | `Overlays` (슬라이드 6개) |
+| `.interval`    | Seconds             | Time between images, for example 8.                      | `Overlays` "8초"          |
+| `.loop`        | Boolean             | Loop.                                                    | `Overlays` loop button    |
+| `.targets`     | Array of screen IDs | Target screens.                                          | `Overlays` 보낼 화면      |
 
 ### 소품 (`props.json`)
 
@@ -454,9 +454,9 @@ source gives default keys for ProPresenter's group labels; 10). The board spells
 | 라이브러리 | `backup.auto`          | Boolean, true                                | 자동 백업 (automatic backup)                                            | `Prefs`               |
 | 라이브러리 | `backup.keep`          | Integer, 30                                  | 보관 30개 (keep 30)                                                     | `Prefs`               |
 | Bible      | `bible.verseNumbers`   | Boolean, true                                | 절 번호 (verse numbers)                                                 | `Prefs`               |
-| Bible      | `bible.maxLines`       | Integer, 4                                   | 한 장 최대 줄 수 (maximum lines per 장)                                 | `Prefs`               |
+| Bible      | `bible.maxLines`       | Integer, 4                                   | 한 슬라이드 최대 줄 수 (maximum lines per 슬라이드)                     | `Prefs`               |
 | Bible      | `bible.sourcePosition` | `"bottomRight"`                              | 출처 위치: 오른쪽 아래 (reference position: bottom right)               | `Prefs`               |
-| Import     | `import.txt.split`     | `"blankLine"` \| `"lineBreak"` \| `"symbol"` | 장 나누기: 빈 줄 (split: blank line)                                    | `Prefs`, `ImportText` |
+| Import     | `import.txt.split`     | `"blankLine"` \| `"lineBreak"` \| `"symbol"` | 슬라이드 나누기: 빈 줄 (split: blank line)                              | `Prefs`, `ImportText` |
 | Import     | `import.txt.labels`    | `"bracketLine"` \| `"off"`                   | 이름표: 대괄호 줄 (이름표: bracket lines)                               | `Prefs`               |
 | Import     | `import.txt.firstLine` | `"title"` \| `"lyrics"`                      | 첫 줄: 제목 (first line: title)                                         | `Prefs`               |
 | Import     | `import.txt.encoding`  | `"auto"` \| `"utf-8"` \| `"cp949"`           | 글자 인코딩: 자동 (encoding: auto)                                      | `Prefs`               |
@@ -674,10 +674,10 @@ Rules (proposal):
 ### Reference grammar (proposal)
 
 The 퀵 실행 Bible field (04) accepts these forms. Each form has a colon form and
-a Korean form with 장 and 절; one reference uses one of them throughout, so a
-mixed reference such as "요 3:16-4장 2절" is invalid. Spaces between the book,
-the numbers, and the separators are optional ("요3:16", "요한복음3장16절"), and
-"~" works like "-" ("요 3:16~18").
+a Korean form with 슬라이드 and 절; one reference uses one of them throughout,
+so a mixed reference such as "요 3:16-4장 2절" is invalid. Spaces between the
+book, the numbers, and the separators are optional ("요3:16",
+"요한복음3장16절"), and "~" works like "-" ("요 3:16~18").
 
 | Form                  | Colon form  | Korean form         | Meaning                      |
 | --------------------- | ----------- | ------------------- | ---------------------------- |
@@ -716,8 +716,8 @@ verse is one verse.
 - The normalized `ref` of a Bible passage object uses the colon form and the
   full Korean book name, after these rules: "요한복음 3", "요한복음 3:16",
   "요한복음 3:16-18", "요한복음 3:16-4:2". The same grammar reads it back.
-- The reference drawn on a 장 uses the book name in the translation's language:
-  요한복음 3:16 for 개역한글, John 3:16 for KJV.
+- The reference drawn on a 슬라이드 uses the book name in the translation's
+  language: 요한복음 3:16 for 개역한글, John 3:16 for KJV.
 
 ### Omitted verses (proposal)
 
@@ -728,18 +728,19 @@ those verses and never renumber the rest:
 - **One verse.** A reference to one omitted verse is invalid, with the reason
   "이 역본에는 없는 절입니다" (this translation doesn't have this verse) in the
   tooltip. The operator can choose another translation. The app never outputs a
-  blank 장.
+  blank 슬라이드.
 - **A range or a whole chapter.** The omitted verses are left out, and the
   others keep their numbers. If verse 3 of a chapter is omitted, "1-5" gives
   verses 1, 2, 4, and 5, shown with those numbers. The passage's reference keeps
   the range as typed, 1-5. A range in which every verse is omitted is invalid,
   with the same reason as one verse.
-- **Splitting into 장.** 나누기 counts only the verses that are there: 한 장에
-  한 절 makes no 장 for an omitted verse; 두 절씩 pairs the verses that are
-  there (1 and 2, then 4 and 5); 길이에 맞춤 just has fewer lines.
-- **References on 장.** With 참조 set to 장마다, each 장 shows the verses it
-  holds by their original numbers: the 장 with verses 4 and 5 shows the range
-  4-5.
+- **Splitting into 슬라이드.** 나누기 counts only the verses that are there: 한
+  슬라이드에 한 절 makes no 슬라이드 for an omitted verse; 두 절씩 pairs the
+  verses that are there (1 and 2, then 4 and 5); 길이에 맞춤 just has fewer
+  lines.
+- **References on 슬라이드.** With 참조 set to 슬라이드마다, each 슬라이드 shows
+  the verses it holds by their original numbers: the 슬라이드 with verses 4 and
+  5 shows the range 4-5.
 - **Endpoints.** An endpoint that names an omitted verse still counts as an
   existing verse for the endpoint rules above, because the verse exists in the
   numbering.
@@ -899,20 +900,20 @@ batch these writes to once per second (proposal).
 
 Content of `recovery\live.json` (proposal):
 
-| Field                 | Meaning                                                                       | Row in the recovery dialog                 |
-| --------------------- | ----------------------------------------------------------------------------- | ------------------------------------------ |
-| `savedAt`             | Write time                                                                    | The time in the dialog's details           |
-| `outputs`             | Screen ID to output on or off                                                 | 화면 출력 (screen output)                  |
-| `serviceId`, `itemId` | Current service and current item                                              | 마지막 장 (last 장)                        |
-| `slide`               | The live 장: song ID or Bible reference, 구성 name, position in the sequence  | 마지막 장                                  |
-| `media`               | Current background media ID                                                   | 마지막 장 (proposal)                       |
-| `props`               | IDs of the 소품 that are on                                                   | 표시 중이던 항목 (items that were showing) |
-| `messages`            | 메시지 that are showing: template ID, blank values, target screens, time left | 표시 중이던 항목                           |
-| `stageMessage`        | Stage message text                                                            | 표시 중이던 항목                           |
-| `notice`              | 공지 set ID, current image position, targets, paused                          | 표시 중이던 항목                           |
-| `stageLayouts`        | Stage screen ID to current stage layout ID                                    | 표시 중이던 항목 (proposal)                |
-| `timers`              | 타이머 ID to state, start time, time left                                     | Not restored (proposal)                    |
-| `audio`               | Audio that was playing                                                        | Not restored (proposal)                    |
+| Field                 | Meaning                                                                            | Row in the recovery dialog                 |
+| --------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------ |
+| `savedAt`             | Write time                                                                         | The time in the dialog's details           |
+| `outputs`             | Screen ID to output on or off                                                      | 화면 출력 (screen output)                  |
+| `serviceId`, `itemId` | Current service and current item                                                   | 마지막 슬라이드 (last 슬라이드)            |
+| `slide`               | The live 슬라이드: song ID or Bible reference, 구성 name, position in the sequence | 마지막 슬라이드                            |
+| `media`               | Current background media ID                                                        | 마지막 슬라이드 (proposal)                 |
+| `props`               | IDs of the 소품 that are on                                                        | 표시 중이던 항목 (items that were showing) |
+| `messages`            | 메시지 that are showing: template ID, blank values, target screens, time left      | 표시 중이던 항목                           |
+| `stageMessage`        | Stage message text                                                                 | 표시 중이던 항목                           |
+| `notice`              | 공지 set ID, current image position, targets, paused                               | 표시 중이던 항목                           |
+| `stageLayouts`        | Stage screen ID to current stage layout ID                                         | 표시 중이던 항목 (proposal)                |
+| `timers`              | 타이머 ID to state, start time, time left                                          | Not restored (proposal)                    |
+| `audio`               | Audio that was playing                                                             | Not restored (proposal)                    |
 
 - Create `recovery\session.lock` at launch and delete it on a clean exit. If the
   file exists at launch, treat the last exit as a crash and open the output

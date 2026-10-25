@@ -5,10 +5,10 @@ covers the 라이브러리 and search, the song editor, 예배 순서 item setti
 adding items, creating and importing services, saving a 틀, text import, and the
 media view.
 
-Terms: 장 (slide), 예배 순서 (service order), 틀 (template), 구성 (arrangement),
-이름표 (label), 라이브러리 (library), 매크로 (macro), 공지 (notice), 본 화면
-(main screen), 무대 화면 (stage screen), 방송 자막 (broadcast captions), 진행
-(Show workspace), 퀵 실행 (quick launch). See 01.
+Terms: 슬라이드 (slide), 예배 순서 (service order), 틀 (template), 구성
+(arrangement), 이름표 (label), 라이브러리 (library), 매크로 (macro), 공지
+(notice), 본 화면 (main screen), 무대 화면 (stage screen), 방송 자막 (broadcast
+captions), 진행 (Show workspace), 퀵 실행 (quick launch). See 01.
 
 ## Layout
 
@@ -16,9 +16,9 @@ Terms: 장 (slide), 예배 순서 (service order), 틀 (template), 구성 (arran
 | ------ | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------- |
 | Left   | 예배 순서 (remaining height), 라이브러리                                                                                                   | `Reflow`, `PrepService`          |
 | Center | Song editor (when a 라이브러리 song is selected) or 예배 순서 item (when a song item is selected). With 미디어 (Media) on, the media view. | `Reflow`, `PrepService`, `Media` |
-| Right  | Preview and 장 list (song editor), or preview and 항목 설정 (item settings)                                                                | `Reflow`, `PrepService`          |
+| Right  | Preview and 슬라이드 list (song editor), or preview and 항목 설정 (item settings)                                                          | `Reflow`, `PrepService`          |
 
-- The previews in 준비 never affect the output. Clicking a 장 in 준비 only
+- The previews in 준비 never affect the output. Clicking a 슬라이드 in 준비 only
   selects it.
 - The same 라이브러리 song can be open in the song editor while it's on output
   in 진행.
@@ -30,9 +30,9 @@ system README (window sizes and layout).
 
 - The header, service switcher, and 항목 추가 (add item) work as in 진행 (see
   04).
-- Each row shows a detail at the right: the 장 count for songs, Bible passages,
-  and 공지 ("9장"; for a song, the length of the chosen 구성), and the duration
-  for media ("5:00").
+- Each row shows a detail at the right: the 슬라이드 count for songs, Bible
+  passages, and 공지 ("슬라이드 9개"; for a song, the length of the chosen
+  구성), and the duration for media ("5:00").
 - Selecting a song item opens its item settings (see "예배 순서 item settings").
 - No board shows the center panel for other item kinds. Version 1 shows these
   (proposal):
@@ -56,10 +56,11 @@ Source: `Reflow`, `PrepService`, `AddSongs`, `ListRow` README.
 - Header: "라이브러리", the song count ("128"), and 새 곡 (new song, plus icon).
 - Tool row: a search field with the placeholder "제목, 가사, 초성" (title,
   lyrics, initial consonants).
-- Rows: a song icon, the title, and the number of 장 in the file ("4장"). Rows
-  sort by title in Korean alphabetical order (as in the board), compared with
-  the Korean collation of the platform (`Intl.Collator('ko', {numeric: true})`),
-  so "찬송 2" comes before "찬송 10" (proposal).
+- Rows: a song icon, the title, and the number of 슬라이드 in the file
+  ("슬라이드 4개"). Rows sort by title in Korean alphabetical order (as in the
+  board), compared with the Korean collation of the platform
+  (`Intl.Collator('ko', {numeric: true})`), so "찬송 2" comes before "찬송 10"
+  (proposal).
 - Clicking a row selects the song and opens the song editor.
 - Dragging a row to the 예배 순서 adds the song (see "Adding items to the 예배
   순서").
@@ -89,8 +90,8 @@ Source: `Reflow`, `PrepService`, `AddSongs`, `ListRow` README.
 ### New song (proposal)
 
 - 새 곡 creates a song with the title "새 곡" (or "새 곡 2" and so on if that
-  title exists) and one blank 장. It saves at once, selects the song, and puts
-  the focus in the title field.
+  title exists) and one blank 슬라이드. It saves at once, selects the song, and
+  puts the focus in the title field.
 
 ### Deleting a song (proposal)
 
@@ -112,9 +113,10 @@ The song editor edits the 라이브러리 song, which is the source for every �
 
 ### Header
 
-- The title and the 장 count ("4장"), a 라이브러리 tag (folder icon), and "예배
-  순서 2곳" (used in 2 services, link icon). The second tag counts the 예배 순서
-  files that point to the song. Its tooltip lists their names (proposal).
+- The title and the 슬라이드 count ("슬라이드 4개"), a 라이브러리 tag (folder
+  icon), and "예배 순서 2곳" (used in 2 services, link icon). The second tag
+  counts the 예배 순서 files that point to the song. Its tooltip lists their
+  names (proposal).
 - 기본 배경 (default background): a select with a small image and the media
   name. Choosing a media saves it as the song's `background`. The menu also has
   없음 (none).
@@ -132,9 +134,9 @@ The song editor edits the 라이브러리 song, which is the source for every �
 
 - The label "구성" and a segmented control: 기본 (default), then the song's 구성
   names (주일용, 짧게), then 구성 추가 (add 구성, plus icon).
-- Choosing a 구성 shows the 장 list on the right in that order (proposal). The
-  order itself is edited in the 예배 순서 item's chip strip (see "예배 순서 item
-  settings").
+- Choosing a 구성 shows the 슬라이드 list on the right in that order (proposal).
+  The order itself is edited in the 예배 순서 item's chip strip (see "예배 순서
+  item settings").
 - 구성 추가 creates a 구성 that copies the order of the chosen 구성, adds it as
   a new segment, and puts its name into rename mode with the name "구성 1"
   (proposal).
@@ -149,9 +151,9 @@ The song editor edits the 라이브러리 song, which is the source for every �
 
 ### Blocks
 
-- Each block is one 장. On the left, the block number and the 이름표 chip, a
-  button with a down arrow that reads "이름표" when the 장 has none. On the
-  right, the lines, edited in place without field chrome.
+- Each block is one 슬라이드. On the left, the block number and the 이름표 chip,
+  a button with a down arrow that reads "이름표" when the 슬라이드 has none. On
+  the right, the lines, edited in place without field chrome.
 - The block that holds the cursor is active. It has a lighter background and a
   blue bar at its left edge.
 - Editing rules (proposal, our design: ProPresenter's Reflow editor shows the
@@ -164,8 +166,8 @@ The song editor edits the 라이브러리 song, which is the source for every �
   - Backspace at the start of a block merges it into the previous block.
   - Pasting text with blank lines splits it into blocks at the blank lines.
   - The up and down arrow keys move between lines and across blocks.
-- When blocks are inserted, deleted, merged, or moved, rewrite the 장 numbers in
-  every 구성 (see 02).
+- When blocks are inserted, deleted, merged, or moved, rewrite the 슬라이드
+  numbers in every 구성 (see 02).
 - Ctrl Z undoes edits for the current session, and Ctrl Y or Ctrl Shift Z redoes
   them (decided; Ctrl Y follows ProPresenter, S1). Each song has its own history
   while the app runs, up to 100 steps; the oldest step drops off past that.
@@ -184,10 +186,10 @@ The song editor edits the 라이브러리 song, which is the source for every �
   - A separator, then the color row of the current 이름표 (for example "후렴
     색", chorus color): 없음 (none) and the eight colors.
   - A separator, then 새 이름표 (new 이름표).
-- Choosing a name sets the 장's `label` to that name.
+- Choosing a name sets the 슬라이드's `label` to that name.
 - Choosing a color in the color row changes that 이름표's color in the app-wide
-  list at once, and the menu stays open. Every 장 with that 이름표, in every
-  song, changes color.
+  list at once, and the menu stays open. Every 슬라이드 with that 이름표, in
+  every song, changes color.
 - 새 이름표 opens a name field in the menu. Enter adds the name to the end of
   the list with no color and sets it on the block (proposal).
 
@@ -205,14 +207,14 @@ question). Version 1 adds a right-click menu to each name in the 이름표 menu:
 ### Preview
 
 - A segmented control switches between 본 화면, 무대, and 방송 자막. The preview
-  shows the selected 장 drawn with the current Look for that screen.
+  shows the selected 슬라이드 drawn with the current Look for that screen.
 - Caption: the 이름표 color swatch and name, the position ("3 / 4"), and the
   style name ("기본").
 
-### 장 list
+### 슬라이드 list
 
-- Header: "장" and the count. Thumbnails of the 장 in file order, or in the
-  chosen 구성's order (proposal).
+- Header: "슬라이드" and the count. Thumbnails of the 슬라이드 in file order, or
+  in the chosen 구성's order (proposal).
 - Clicking a thumbnail selects that block in the editor and shows it in the
   preview. It never outputs.
 - A thumbnail size slider sits in the footer.
@@ -229,30 +231,31 @@ settings) panel.
 
 ### Item panel (center)
 
-- Header: the song title and the length of the sequence ("9장"), the name of the
-  service the item belongs to ("주일 예배"), and 라이브러리 곡 편집 (edit
-  라이브러리 song). That button opens the source song in the song editor.
+- Header: the song title and the length of the sequence ("슬라이드 9개"), the
+  name of the service the item belongs to ("주일 예배"), and 라이브러리 곡 편집
+  (edit 라이브러리 song). That button opens the source song in the song editor.
 - 구성 row: the label "구성" and a select that shows the chosen 구성 ("주일용").
   The menu lists 기본 and the song's 구성. It also has 새 구성 (new 구성), which
   creates a 구성 in the song as a copy of the current order and chooses it
   (proposal).
 - Chip strip: one chip per position in the sequence. A chip shows the 이름표
-  name in its color, or the 장 number when the 장 has no 이름표, and a grip.
+  name in its color, or the 슬라이드 number when the 슬라이드 has no 이름표, and
+  a grip.
   - Dragging a chip reorders the sequence. Alt+← and Alt+→ move the selected
     chip one place.
-  - Delete removes that position from the 구성. It never removes the 장 from the
-    song.
-  - 장 넣기 (insert 장, plus box) at the end opens a menu of the song's 장, each
-    shown as its 이름표 name or number and its first line (proposal), and
-    appends the chosen 장.
+  - Delete removes that position from the 구성. It never removes the 슬라이드
+    from the song.
+  - 슬라이드 넣기 (insert 슬라이드, plus box) at the end opens a menu of the
+    song's 슬라이드, each shown as its 이름표 name or number and its first line
+    (proposal), and appends the chosen 슬라이드.
   - Selecting a chip also selects the matching thumbnail. The chip of the live
     position has the on-output ring.
   - Chip edits change the chosen 구성 in the song file. So they show in every
     예배 순서 that uses that 구성 (product log version 61, open question).
   - With 기본 chosen, the chips are read-only, with the reason in a tooltip
     (proposal).
-- Thumbnail grid: the 장 in sequence order. Clicking only selects. A thumbnail
-  size slider sits in the footer.
+- Thumbnail grid: the 슬라이드 in sequence order. Clicking only selects. A
+  thumbnail size slider sits in the footer.
 
 ### Preview and 항목 설정 (right)
 
@@ -272,9 +275,9 @@ settings) panel.
 
 | Belongs to the 예배 순서 item (this service only) | Belongs to the 라이브러리 song (every service) |
 | ------------------------------------------------- | ---------------------------------------------- |
-| Which 구성 to use                                 | Lyrics, 장, and 이름표                         |
+| Which 구성 to use                                 | Lyrics, 슬라이드, and 이름표                   |
 | Background override                               | Default background                             |
-| Start 매크로                                      | 구성 names and their 장 orders                 |
+| Start 매크로                                      | 구성 names and their 슬라이드 orders           |
 | Memo                                              | Title                                          |
 
 Source: `PrepService`, `NewService` and `AddSongs` (same panels), `Main`
@@ -302,7 +305,7 @@ Source: `AddSongs`, `ListRow` README.
 - 항목 추가 in the 예배 순서 header opens a popover with a search field ("곡,
   가사, 초성").
 - The 라이브러리 group lists matching songs, with the matching part highlighted
-  and the 장 count. The first result is highlighted.
+  and the 슬라이드 count. The first result is highlighted.
 - The 다른 항목 (other items) group lists 머리글 (header), 빈 자리 (slot), 성경
   구절 (Bible passage), 미디어 (media), and 공지.
 - Enter or a click inserts the song. The item goes at the end of the group
@@ -428,7 +431,7 @@ Source: `ServiceSwitch`, `NewService`, `ImportMenu`, `Main` board guide (예배
   - For clipboard text, if 첫 줄 (first line) is 제목 (title), the first line
     that isn't an 이름표 line becomes the title and leaves the lyrics. If 첫 줄
     is 가사 (lyrics), the title starts empty.
-- 장 나누기 (split) options, set in the dialog's option bar:
+- 슬라이드 나누기 (split) options, set in the dialog's option bar:
 
 | Option               | Unit                                                                                                                                                            |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -436,13 +439,13 @@ Source: `ServiceSwitch`, `NewService`, `ImportMenu`, `Main` board guide (예배
 | 줄 바꿈 (line break) | Each non-empty line                                                                                                                                             |
 | 기호 (symbol)        | Text between delimiter symbols. No board shows where to enter the symbol. Version 1 adds a short field after the option, default "/" (proposal, open question). |
 
-- 한 장에 (per 장) N: the number of units in each 장. The default is 1 for 빈 줄
-  and 2 for 줄 바꿈 (proposal).
+- 한 슬라이드에 (per 슬라이드) N: the number of units in each 슬라이드. The
+  default is 1 for 빈 줄 and 2 for 줄 바꿈 (proposal).
 - 이름표 인식 (detect 이름표): with the 환경설정 option 이름표: 대괄호 줄
   (bracket lines), a line that holds only a bracketed name, such as "[후렴]", is
-  an 이름표 line. The first 장 after it gets that 이름표, and the following 장
-  get none until the next 이름표 line (proposal). An 이름표 line never becomes a
-  lyric line.
+  an 이름표 line. The first 슬라이드 after it gets that 이름표, and the
+  following 슬라이드 get none until the next 이름표 line (proposal). An 이름표
+  line never becomes a lyric line.
   - If the bracketed name matches an 이름표 in the list, use it. Otherwise, use
     the bracketed text as the name, and add it to the 이름표 list with no color
     when the song is saved (proposal). Whether to map English names such as
@@ -453,26 +456,26 @@ Source: `ServiceSwitch`, `NewService`, `ImportMenu`, `Main` board guide (예배
   become spaces. With 자동 encoding, a UTF-8 or UTF-16 byte order mark decides
   first; without one, the bytes are read as UTF-8 only if they are valid UTF-8,
   and otherwise as CP949.
-- 줄 바꿈 respects stanza breaks: a blank line always ends a 장, so 한 장에 2
-  never joins the last line of one stanza with the first line of the next. This
-  follows ProPresenter's import ("with respect for stanza breaks", S4 p. 90 in
-  10).
+- 줄 바꿈 respects stanza breaks: a blank line always ends a 슬라이드, so 한
+  슬라이드에 2 never joins the last line of one stanza with the first line of
+  the next. This follows ProPresenter's import ("with respect for stanza
+  breaks", S4 p. 90 in 10).
 - 기호 splits wherever the symbol appears, inside a line or on its own line. The
   text between two symbols, trimmed, is one unit, and its line breaks stay.
   Empty units are dropped (proposal).
 - An 이름표 line is a line that holds only a name in square brackets, with
   optional spaces: `[ 후렴 ]` gives 후렴. Other brackets, such as "(후렴)", are
-  lyrics. An 이름표 line also ends the current 장, so its 이름표 starts a new 장
-  (proposal).
+  lyrics. An 이름표 line also ends the current 슬라이드, so its 이름표 starts a
+  new 슬라이드 (proposal).
 - The preview updates at once when an option changes.
 
 ### Import dialog
 
 - The dialog is "텍스트 가져오기" (text import). Its subtitle is the file name,
   or "클립보드 텍스트" for clipboard text (proposal).
-- Option bar at the top: 장 나누기, 한 장에, 이름표 인식.
-- Body: the 제목 (title) field, the 장 count ("장 4"), and a 장 preview grid
-  with 이름표 bands.
+- Option bar at the top: 슬라이드 나누기, 한 슬라이드에, 이름표 인식.
+- Body: the 제목 (title) field, the 슬라이드 count ("슬라이드 4"), and a
+  슬라이드 preview grid with 이름표 bands.
 - If the 라이브러리 already has the title, the title field shows the error ring,
   with the tooltip "라이브러리에 같은 제목의 곡이 있습니다". Don't add labels,
   chips, or status text.
@@ -504,13 +507,13 @@ Source: `ServiceSwitch`, `NewService`, `ImportMenu`, `Main` board guide (예배
 | Part    | Content                                                                                          |
 | ------- | ------------------------------------------------------------------------------------------------ |
 | Title   | "‘만복의 근원 하나님’ 곡이 이미 있습니다. 덮어쓸까요?" (This song already exists. Overwrite it?) |
-| Detail  | "라이브러리 곡 4장, 10월 20일 수정" (라이브러리 song, 4 장, edited October 20)                   |
+| Detail  | "라이브러리 곡 슬라이드 4개, 10월 20일 수정" (라이브러리 song, 4 슬라이드, edited October 20)    |
 | Buttons | 취소 (left), 새 곡으로 저장 (save as new song), 덮어쓰기 (overwrite, primary)                    |
 | Keys    | Enter is 덮어쓰기. Esc is 취소.                                                                  |
 
 - The answers:
-  - 덮어쓰기 replaces the existing song's title, 장, background, and 구성 with
-    the imported song's, and keeps the existing song ID so that 예배 순서
+  - 덮어쓰기 replaces the existing song's title, 슬라이드, background, and 구성
+    with the imported song's, and keeps the existing song ID so that 예배 순서
     references stay valid (proposal). 예배 순서 items whose 구성 name no longer
     exists use 기본. The old version stays as a recovery copy (see 02).
   - 새 곡으로 저장 saves a new song with a new ID. Because titles are unique

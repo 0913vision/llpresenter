@@ -5,7 +5,7 @@ hooks that version 1 must leave open so that each feature can come later without
 restructuring. It ends with the ideas that the sources dropped, which aren't
 planned at all.
 
-Terms: 장 (slide), 방송 자막 (broadcast captions), 퀵 실행 (quick launch),
+Terms: 슬라이드 (slide), 방송 자막 (broadcast captions), 퀵 실행 (quick launch),
 매크로 (macro), 라이브러리 (library), 구성 (arrangement). See 01.
 
 ## NDI output
@@ -59,9 +59,10 @@ Source: product log (2026-10-24 NDI update, version 56, version 61 SDK note),
 - 파일 > 가져오기 > PowerPoint 파일 (PowerPoint file) converts a `.pptx` file
   into an `.llsong` song, like the text import.
 - The 환경설정 import page already shows the options: 슬라이드 하나 (one slide)
-  → 장 하나 (one 장), and 배경 이미지 가져오기 (import background images, off).
-- Sermon slide items such as "설교" (12장) in the board samples may come from
-  this import (open question).
+  → 슬라이드 하나 (one 슬라이드), and 배경 이미지 가져오기 (import background
+  images, off).
+- Sermon slide items such as "설교" (슬라이드 12개) in the board samples may
+  come from this import (open question).
 
 ### Hooks version 1 must leave open
 
@@ -78,8 +79,8 @@ Source: product log (2026-10-24: txt and pptx import as converters into
 
 ### What it is
 
-- Scores are for the congregation screen, not for musicians. A 장 shows only as
-  much of the score as the lyrics on that 장.
+- Scores are for the congregation screen, not for musicians. A 슬라이드 shows
+  only as much of the score as the lyrics on that 슬라이드.
 - The method is undecided: images, MusicXML, or other data. The user treats it
   as a separate axis to keep thinking about.
 - Musician features (chords, transposition, arrangement versions for players)
@@ -89,8 +90,8 @@ Source: product log (2026-10-24: txt and pptx import as converters into
 
 - Draw each content kind with its own renderer, registered in a content kind
   registry.
-- Keep unknown song fields, including fields inside each 장, when you save (see
-  02).
+- Keep unknown song fields, including fields inside each 슬라이드, when you save
+  (see 02).
 - Keep media kinds and importers extensible.
 
 Source: product log (2026-10-24: score display deferred past version 1, built so
@@ -116,7 +117,7 @@ it can be added without restructuring), `Main` decision "1차 버전은 가사�
 - Keep media kinds open for a future `"input"` kind (see 02).
 - Keep 매크로 action kinds in a registry, so that "turn on an input" is an
   addition (see 07).
-- Keep 장 element and content kinds in a registry.
+- Keep 슬라이드 element and content kinds in a registry.
 - Let the media layer hold a live video source, not only a file.
 
 Source: product log version 63, `Main` decision "카메라 입력은 나중에", `Main`
