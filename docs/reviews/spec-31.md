@@ -64,3 +64,12 @@ The controller tests cover inherited data, override persistence, live-media-only
 delivery, unchanged lyrics, off-air changes, newer manual media and service
 switches during refresh, refused writes, stale item reads, and feed cleanup. No
 Electron process, visible window, soak, or memory measurement was started.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (2cc892b): reviewer (Claude, trial-97) Approve with no findings: at
+  most one `media.show` for the live item, guarded against service switches,
+  other commands from this window, and manual or 매크로 background changes; no
+  clear or slide command. Lead Approve. Written by the Codex session that took
+  over spec's work, under the lead's exception for shell's paths. Rebased by the
+  lead onto local `main` without conflicts.
