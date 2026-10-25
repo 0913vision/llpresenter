@@ -74,3 +74,14 @@ No shared, preload, data-store or renderer file is changed.
 ## Review
 
 Awaiting the lead and independent reviewer.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (5c367c2d): reviewer (Claude, trial-97) Approve. Nit for output-27:
+  the shutdown coordinator quits after `SAVE_LIMIT_MS` (3 s), so a slow save can
+  end the process before the last step removes `session.lock`, and the next
+  normal launch is treated as a crash (startup 매크로 skipped); that is the safe
+  side, but say so in a NOTE, and log at launch which case left the marker. M2-9
+  is fixed (the fallback is replanned and centered on the work area). Lead
+  Approve. Written by the Codex session that took over output's work. Rebased by
+  the lead onto local `main` without conflicts.
