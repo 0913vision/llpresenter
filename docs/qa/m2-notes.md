@@ -1,13 +1,15 @@
 # M2 checkpoint notes
 
-Latest HDMI result: the
-[morning recheck after output-21](#morning-hdmi-recheck-after-output-21)
-confirms initial non-topmost placement directly behind control, preserved
-playback/PIDs, and automatic BenQ full screen with always on top restored. **The
-complete placement expectation does not pass:** the settled fallback is 31 DIP
-left of the current work-area center (M2-9). Direct adjacency is observed
-initially, then lost after a later control-focus event; output stays below
-control. Spec 03 steps 2 and 3 and the reconnect notification remain unchecked.
+Latest HDMI result: **Partial.** The
+[morning recheck after output-21](#morning-hdmi-recheck-after-output-21) records
+non-topmost placement directly behind control, preserved playback/PIDs, and
+automatic BenQ full screen with always on top restored. Behind-control retention
+is **Pass** under the lead's reading: place the fallback directly behind control
+and never raise it afterwards; adjacency after the operator's own window
+switching is not required. The immediate callback path is **Partial** because
+the topmost-change event precedes the recorded callback and does not establish
+its cause. Work-area centering is **Fail**, 31 DIP left (M2-9). Spec 03 steps 2
+and 3 and the reconnect notification are **Not checked**.
 
 Earlier results:
 [the real-monitor run 4](#run-4-60-minutes-on-the-real-benq-monitor) also fails
@@ -545,15 +547,16 @@ record SHA-256:
 
 ## Morning HDMI recheck after output-21
 
-**Partial pass, with a remaining centering defect (M2-9).** On the October 26
-morning recheck, the output was non-topmost and directly behind control before
-the settled monitor-list log, then became a 960x540 window. It kept the same
-lyrics, looping video, windows, and five Electron PIDs. Reconnection restored
-BenQ full screen and always on top, independently confirmed within about 3.1
-seconds of the recorded display-added event. The stable fallback was 31 DIP left
-of the current work-area center. Initial direct adjacency was later lost when
-control gained focus, but every sampled fallback stayed below control. These
-results do not establish a complete pass against spec 03 after spec-20.
+**Partial.** On the October 26 morning recheck, the output was non-topmost and
+directly behind control before the settled monitor-list log, then became a
+960x540 window. It kept the same lyrics, looping video, windows, and five
+Electron PIDs. Reconnection restored BenQ full screen and always on top,
+independently confirmed within about 3.1 seconds of the recorded display-added
+event. Behind-control retention is Pass under the lead's reading below.
+Work-area centering is Fail (M2-9), with the stable fallback 31 DIP left of the
+current center. The immediate callback path is Partial: earlier window events
+prevent attributing the topmost drop to that callback. UI steps 2 and 3 and the
+reconnect notification are Not checked.
 
 ### Build, scenario, and recording
 
@@ -591,18 +594,31 @@ results do not establish a complete pass against spec 03 after spec-20.
 ### Spec 03 after spec-20 and the lead's expected behavior
 
 Source:
-[monitor disconnect behavior](../spec/03-output.md#when-a-monitor-disconnects-during-output)
-and the lead's morning recheck instructions in `.llp/task.md`.
+[monitor disconnect behavior](../spec/03-output.md#when-a-monitor-disconnects-during-output).
+The lead's expected behavior for this recheck was:
 
-| Expectation                                                                                                                                            | Result                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Drop always on top and place directly behind control before monitor-list settle, without activating either window                                      | Observed pass at the first native sample wholly after the recorded removal callback: `20:14:40.661Z` to `20:14:40.789Z`, before the settled-list log at `20:14:40.834Z`. Output was non-topmost, control was its immediate raw and visible predecessor, and neither app window was foreground. The output still occupied the primary full-screen rectangle at that point. Sampling does not prove every instant of the immediate path.                                                        |
-| Become a 960x540 window on the control monitor, retaining content and playback                                                                         | Pass for window size, monitor, and content. First native window sample at `20:14:41.361Z` was `(2480, 492, 960, 540)`, directly behind control, non-topmost and unfocused. By `20:14:42.198Z` it was `(1240, 450, 960, 540)`. The initial right-edge rectangle did not persist.                                                                                                                                                                                                               |
-| Center the fallback on the control monitor's work area                                                                                                 | **Fail, M2-9.** The stable native/Electron rectangle was `(1240, 450, 960, 540)`. Work area had returned to `(62, 0, 3378, 1440)`, whose expected center placement is `(1271, 450, 960, 540)`. It remained 31 DIP left until reconnect.                                                                                                                                                                                                                                                       |
-| Keep the fallback directly behind control, non-topmost, without taking focus                                                                           | Direct placement initially confirmed in 12 of 131 native fallback samples, through `20:14:53Z`. After a control-focus event at `20:14:54.082Z`, neither predecessor test remained true; the native distance to control became 6, later 4. All 131 fallback samples still placed output below control, never above it, and non-topmost. Output was never sampled focused/foreground. Continuous direct adjacency is not established as a pass; the later focus event's cause was not recorded. |
-| Restore BenQ full screen and configured always on top                                                                                                  | Pass. Full-screen event at `20:16:55.840Z` (+2.673 s), always-on-top event at `20:16:55.842Z`, and status log at `20:16:55.843Z`. The independent native sample ending `20:16:56.234Z` (+3.067 s) confirms the BenQ rectangle, no window caption, topmost true, above control, and not foreground.                                                                                                                                                                                            |
-| Keep the same output, playback state, and PIDs                                                                                                         | Pass at sample resolution. Output window ID 2/HWND 132932 and control ID 1/HWND 7802552 were unchanged. All five process IDs below were unchanged. All 559 app samples from readiness retained one identical slide/media/output-on state and lyric text, with an active, unpaused, ready video and no media error. Video time advanced during disconnect and across reconnect; its start anchor stayed `1792958960039`.                                                                       |
-| Spec 03 step 2, amber toolbar button, status text and amber preview outline; step 3, warning and its actions; reconnect notification closing after 6 s | **Not checked.** The notification host is not in M2. No pass or failure is inferred for those UI steps.                                                                                                                                                                                                                                                                                                                                                                                       |
+> On the unplug, the output leaves always on top and sits directly behind the
+> control window at once; it becomes a 960 x 540 window centered on the control
+> monitor's work area; on the replug it returns to full screen on the BenQ with
+> always on top on again.
+
+The lead clarified the meaning of "keep" for round 2:
+
+> The app places the fallback directly behind the control window and never
+> raises it afterwards; adjacency after the operator's own window switching is
+> not required.
+
+Result labels: Pass, Fail, Partial, Not checked.
+
+| Expectation                                                                                                                                            | Result      | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Drop always on top and place directly behind control on the removal callback, before monitor-list settle, without activating either window             | Partial     | Native sample `20:14:40.661Z` to `20:14:40.789Z`, before the settled-list log at `20:14:40.834Z`, confirms non-topmost output directly behind control, with neither app window foreground. However, move at `20:14:39.234Z`, resize at `20:14:39.326Z`, and always-on-top-changed at `20:14:39.330Z` precede the recorded display-removed callback at `20:14:40.510Z`. The evidence does not attribute the topmost drop to that callback or establish the entire immediate path.                                                            |
+| Become a 960x540 window on the control monitor, retaining content and playback                                                                         | Pass        | First native window sample at `20:14:41.361Z` was `(2480, 492, 960, 540)`, directly behind control, non-topmost and unfocused. By `20:14:42.198Z` it was `(1240, 450, 960, 540)`. The initial right-edge rectangle did not persist.                                                                                                                                                                                                                                                                                                         |
+| Center the fallback on the control monitor's work area                                                                                                 | Fail        | M2-9. The stable native/Electron rectangle was `(1240, 450, 960, 540)`. Work area had returned to `(62, 0, 3378, 1440)`, whose expected center placement is `(1271, 450, 960, 540)`. It remained 31 DIP left until reconnect.                                                                                                                                                                                                                                                                                                               |
+| Keep the fallback directly behind control, non-topmost, without taking focus                                                                           | Pass        | Under the lead's reading above, initial direct placement is confirmed in 12 of 131 native fallback samples, through `20:14:53Z`, until control took focus at `20:14:54.082Z`. After that, the native distance to control was 6, later 4; adjacency after the operator's own window switching is not required. All 131 fallback samples remained below control, never above it and never topmost. Output was never sampled focused/foreground. No app raise is observed; the input source of the later control-focus event was not recorded. |
+| Restore BenQ full screen and configured always on top                                                                                                  | Pass        | Full-screen event at `20:16:55.840Z` (+2.673 s), always-on-top event at `20:16:55.842Z`, and status log at `20:16:55.843Z`. The independent native sample ending `20:16:56.234Z` (+3.067 s) confirms the BenQ rectangle, no window caption, topmost true, above control, and not foreground.                                                                                                                                                                                                                                                |
+| Keep the same output, playback state, and PIDs                                                                                                         | Pass        | At sample resolution, output window ID 2/HWND 132932 and control ID 1/HWND 7802552 were unchanged. All five process IDs below were unchanged. All 559 app samples from readiness retained one identical slide/media/output-on state and lyric text, with an active, unpaused, ready video and no media error. Video time advanced during disconnect and across reconnect; its start anchor stayed `1792958960039`.                                                                                                                          |
+| Spec 03 step 2, amber toolbar button, status text and amber preview outline; step 3, warning and its actions; reconnect notification closing after 6 s | Not checked | The notification host is not in M2. No Pass or Fail is inferred for those UI steps.                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 
 ### Placement, focus, and overlap limits
 
@@ -612,20 +628,34 @@ logged the restored work area `(62, 0, 3378, 1440)` at `20:14:41.793Z`, but the
 window retained the earlier center through reconnect. This is an observed
 sequence, not a proven code-level cause.
 
+The output's recorded move at `20:14:39.234Z`, resize at `20:14:39.326Z`, and
+always-on-top-changed at `20:14:39.330Z` all precede the recorded
+display-removed callback at `20:14:40.510Z`. The topmost-change event did not
+record its new value. Later native samples confirm topmost is off, but these
+events and samples do not attribute the topmost drop to that callback. No causal
+claim about the callback or the entire immediate path is supported.
+
 The stable fallback lies entirely inside control's outer rectangle, with a
 518,400 px geometric intersection. Its native z-order remained below control, so
-this overlap does not show output covering control. There is no independent
-native sample showing a topmost primary output after the recorded removal
-callback. One app row started at `20:14:39.192Z`, before that callback, and
-finished at `20:14:40.565Z`; it mixes an earlier topmost/window read with later
-playback/event data and cannot prove a topmost overlap after the callback.
+this overlap does not show output covering control. No independent native sample
+captured a topmost output overlapping control during this transition, including
+the interval before the recorded removal callback. The native sample from
+`20:14:39.188Z` to `20:14:40.487Z` still reported a topmost output at
+`(3440, 222, 1920, 1080)`, with zero intersection. That does not rule out a
+topmost overlap in the pre-callback interval: one app row started at
+`20:14:39.192Z` and finished at `20:14:40.565Z`, reporting a topmost primary
+rectangle while mixing an earlier window read with later playback/event data.
+Neither recorder provides an atomic view of the transition, so a brief
+pre-callback overlap remains unresolved as well as any unsampled interval.
 
 Control was not foreground in the immediate demotion/fallback samples. It
 received focus at `20:14:54.082Z`, about 13.6 s after the recorded removal, and
 remained foreground until reconnect. The recorder did not capture user input, so
 it cannot attribute this later activation to the app or the operator. No
-output-focus event was recorded. Do not interpret loss of direct adjacency after
-that focus event as proof that initial demotion failed.
+output-focus event was recorded. Under the lead's interpretation, the retention
+check is Pass: the app placed the fallback directly behind control and no app
+raise was observed afterwards. The later loss of adjacency does not change that
+result; adjacency after the operator's own window switching is not required.
 
 ### M2-9: Fallback keeps an obsolete work-area center
 
