@@ -240,7 +240,11 @@ describe('live batches', () => {
   });
 
   it('logs an unsupported child and applies the remaining commands', () => {
-    const store = new LiveStore();
+    const store = new LiveStore(
+      undefined,
+      Date.now,
+      new SliceRegistry([outputsSlice, batchSlice]),
+    );
     const log = recordingLogger();
     dispatchLogged(
       store,

@@ -6,6 +6,7 @@ import {LiveStore, dispatchLogged} from './live/store';
 import {startOverlays} from './live/overlays';
 import {registerMacros} from './macros/register';
 import {openRecoverySession} from './live/recovery/session';
+import {registerLookSelection} from './live/lookSelection';
 import {createLogger, flushWithin, type Logger} from './log';
 import {registerIpc} from './ipc';
 import {startOutputs} from './outputs/start';
@@ -122,6 +123,11 @@ function start(): void {
         settings: dataStore.settings,
         log,
       });
+      const stopLookSelection = registerLookSelection({
+        store,
+        selection: dataStore,
+        log,
+      });
       const stopServingMedia = serveMedia({
         resolvePath: dataStore.findMediaFile,
         mediaRoots: dataStore.mediaRoots,
@@ -161,6 +167,7 @@ function start(): void {
       shutdown.add({name: 'stop text import', run: stopTextImport});
       shutdown.add({name: 'stop macros', run: macros.dispose});
       shutdown.add({name: 'stop overlays', run: stopOverlays});
+      shutdown.add({name: 'stop Look selection', run: stopLookSelection});
       shutdown.add({name: 'stop the outputs', run: outputs.stop});
       shutdown.add({name: 'save the UI state', run: () => ui.dispose()});
       shutdown.add({name: 'stop UI zoom', run: () => zoom.dispose()});

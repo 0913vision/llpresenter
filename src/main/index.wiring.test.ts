@@ -22,6 +22,9 @@ const fakes = vi.hoisted(() => {
   return {
     order,
     overlayContexts: new Array<unknown>(),
+    lookSelectionContexts: new Array<unknown>(),
+    lookSelectionStop: vi.fn<() => void>(),
+    selectLook: vi.fn(),
     recovery: {crashed: false, cleanExit: vi.fn<() => Promise<void>>()},
     macroContexts: new Array<unknown>(),
     macrosStop: vi.fn<() => void>(),
@@ -90,6 +93,12 @@ vi.mock('./live/overlays', () => ({
     return fakes.overlaysStop;
   },
 }));
+vi.mock('./live/lookSelection', () => ({
+  registerLookSelection: (context: unknown) => {
+    fakes.lookSelectionContexts.push(context);
+    return fakes.lookSelectionStop;
+  },
+}));
 vi.mock('./import/register', () => ({
   registerTextImport: (context: unknown) => {
     fakes.textImportContexts.push(context);
@@ -133,6 +142,7 @@ vi.mock('./store/register', () => ({
     fakes.storeOptions.push(options);
     return {
       settings: fakes.settings,
+      selectLook: fakes.selectLook,
       dispose: fakes.storeDispose,
       findMediaFile: fakes.findMediaFile,
       mediaRoots: fakes.mediaRoots,
@@ -201,6 +211,9 @@ beforeEach(async () => {
   fakes.controlWindow.focus.mockClear();
   fakes.order.length = 0;
   fakes.overlayContexts.length = 0;
+  fakes.lookSelectionContexts.length = 0;
+  fakes.lookSelectionStop.mockReset();
+  fakes.selectLook.mockReset();
   fakes.recovery.crashed = false;
   fakes.recovery.cleanExit.mockReset();
   fakes.macroContexts.length = 0;
@@ -318,6 +331,22 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     ]);
     beforeQuit();
     await vi.waitFor(() => expect(fakes.textImportStop).toHaveBeenCalledOnce());
+  });
+
+  it('registers the required Look writer and releases it before closing data', async () => {
+    await startMain();
+    expect(fakes.lookSelectionContexts).toMatchObject([
+      {
+        store: fakes.outputContexts[0]?.store,
+        selection: {selectLook: fakes.selectLook},
+      },
+    ]);
+    beforeQuit();
+    await vi.waitFor(() => expect(fakes.storeDispose).toHaveBeenCalledOnce());
+    expect(fakes.lookSelectionStop).toHaveBeenCalledOnce();
+    expect(fakes.lookSelectionStop.mock.invocationCallOrder[0]).toBeLessThan(
+      fakes.storeDispose.mock.invocationCallOrder[0] ?? Infinity,
+    );
   });
 
   it('reads the UI state before the control window opens', async () => {
