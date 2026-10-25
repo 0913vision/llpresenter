@@ -2,6 +2,7 @@ import * as v from 'valibot';
 import {NO_LABEL_COLOR, paletteColors} from '../colors';
 import type {Result} from '../result';
 import type {ReadonlyKnown} from './fileFormat';
+import {mediaChoiceSchema} from './liveState';
 import {
   parsePayload,
   payloadObject,
@@ -28,7 +29,14 @@ const showRowSchema = v.pipe(
   v.variant('kind', [
     v.object({kind: v.literal('header'), id, title: v.string()}),
     v.object({
-      kind: v.picklist(['song', 'bible', 'media', 'notice', 'slot', 'unknown']),
+      kind: v.literal('song'),
+      id,
+      title: v.string(),
+      problem: v.exactOptional(v.picklist(showRowProblems)),
+      background: v.exactOptional(mediaChoiceSchema),
+    }),
+    v.object({
+      kind: v.picklist(['bible', 'media', 'notice', 'slot', 'unknown']),
       id,
       title: v.string(),
       problem: v.exactOptional(v.picklist(showRowProblems)),
@@ -66,6 +74,7 @@ export type ShowService = ReadonlyKnown<
 /**
  * One row, with the service item's id. Rows of a kind this version doesn't
  * know show a warning and can't be output.
+ * Song rows may carry their resolved, available background as a media choice.
  */
 export type ShowRow = ShowService['rows'][number];
 

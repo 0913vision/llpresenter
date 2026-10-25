@@ -33,6 +33,34 @@ describe('parseShowService', () => {
     expect(parseShowService(null)).toEqual({ok: true, value: null});
   });
 
+  it('keeps an optional background only on song rows', () => {
+    const background = {mediaId: 'media-1', loop: true};
+    const song = {kind: 'song', id: 'song', title: 'Song', background};
+    const bible = {kind: 'bible', id: 'bible', title: 'Passage'};
+    expect(
+      parseShowService({
+        ...showService(),
+        rows: [song, {...bible, background}],
+      }),
+    ).toMatchObject({ok: true, value: {rows: [song, bible]}});
+  });
+
+  it.each([
+    [{mediaId: '', loop: true}, 'mediaId'],
+    [{mediaId: 3, loop: true}, 'mediaId'],
+    [{mediaId: 'media-1'}, 'loop'],
+    [{mediaId: 'media-1', loop: 'true'}, 'loop'],
+    [null, ''],
+  ])('rejects a malformed song background %j', (background, field) => {
+    const result = parseShowService({
+      ...showService(),
+      rows: [{kind: 'song', id: 'song', title: '', background}],
+    });
+    expect(result.ok ? null : result.error.field).toBe(
+      `rows.0.background${field === '' ? '' : `.${field}`}`,
+    );
+  });
+
   it.each([
     [
       'an unknown row kind',
