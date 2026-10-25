@@ -14,6 +14,23 @@ const RENDERER_FILES = ['src/renderer/**/*.{ts,tsx}'];
 const TEST_FILES = ['**/*.test.{ts,tsx}', 'test/**/*.{ts,tsx}'];
 const TOOL_CONFIG_FILES = ['**/*.config.{ts,mts,mjs}'];
 const SOAK_CLIP_PAGE_FILES = ['scripts/soak/clip/*.js'];
+const BOUNDARY_TEST_FILES = ['**/*.test.{ts,tsx}', 'src/**/testing/**'];
+const MAIN_MODULE_FILES = ['src/main/**/*.{ts,tsx,mts,cts,js,mjs,cjs}'];
+const RENDERER_MODULE_FILES = ['src/renderer/**/*.{ts,tsx,mts,cts,js,mjs,cjs}'];
+
+const VALIBOT_IMPORT = {
+  regex: '^valibot(?:/|$)',
+  message: 'Import validation through src/shared/schema/ instead of Valibot.',
+};
+const MAIN_IMPORT = {
+  regex: '^(?:@main(?:/|$)|src/main(?:/|$)|(?:\\.\\./)+(?:src/)?main(?:/|$))',
+  message: 'Renderer modules must use shared contracts instead of src/main/.',
+};
+const RENDERER_IMPORT = {
+  regex:
+    '^(?:@renderer(?:/|$)|src/renderer(?:/|$)|(?:\\.\\./)+(?:src/)?renderer(?:/|$))',
+  message: 'Main modules must use shared contracts instead of src/renderer/.',
+};
 
 const MAX_PARAMS = 3;
 const MAX_DEPTH = 3;
@@ -233,6 +250,45 @@ export const lintConfig = defineConfig(
       // NOTE(0913vision): `expect(mock.method)` passes a method without
       // calling it.
       '@typescript-eslint/unbound-method': 'off',
+    },
+  },
+  {
+    ignores: ['src/shared/schema/**', ...BOUNDARY_TEST_FILES],
+    rules: {
+      // NOTE(0913vision): Keep the validator replaceable behind the schema API.
+      'no-restricted-imports': ['error', {patterns: [VALIBOT_IMPORT]}],
+    },
+  },
+  {
+    files: RENDERER_MODULE_FILES,
+    ignores: BOUNDARY_TEST_FILES,
+    rules: {
+      // NOTE(0913vision): Renderers cross the process boundary through IPC.
+      'no-restricted-imports': [
+        'error',
+        {patterns: [VALIBOT_IMPORT, MAIN_IMPORT]},
+      ],
+    },
+  },
+  {
+    files: MAIN_MODULE_FILES,
+    ignores: BOUNDARY_TEST_FILES,
+    rules: {
+      // NOTE(0913vision): Main must not depend on renderer implementations.
+      'no-restricted-imports': [
+        'error',
+        {patterns: [VALIBOT_IMPORT, RENDERER_IMPORT]},
+      ],
+    },
+  },
+  {
+    files: [
+      'src/main/**/*.test.{ts,tsx}',
+      'src/main/**/testing/**/*.{ts,tsx,mts,cts,js,mjs,cjs}',
+    ],
+    rules: {
+      // NOTE(0913vision): Main tests may use Valibot, but not renderer modules.
+      'no-restricted-imports': ['error', {patterns: [RENDERER_IMPORT]}],
     },
   },
   {

@@ -125,6 +125,138 @@ const DISABLE_COMMENT = [
   'export const v: any = 1;',
 ].join('\n');
 
+const RESTRICTED_IMPORTS = [
+  ['valibot in main', 'src/main/lint-valibot.ts', "import 'valibot';"],
+  [
+    'valibot in renderer',
+    'src/renderer/src/lint-valibot.ts',
+    "import 'valibot';",
+  ],
+  [
+    'valibot in a script',
+    'scripts/lint/probes/import-valibot.ts',
+    "import 'valibot';",
+  ],
+  [
+    'a valibot subpath',
+    'src/main/lint-valibot-subpath.ts',
+    "import 'valibot/internal';",
+  ],
+  [
+    'a valibot type export',
+    'src/main/lint-valibot-type.ts',
+    "export type {GenericSchema} from 'valibot';",
+  ],
+  [
+    'valibot in a general test helper',
+    'test/lint-valibot.ts',
+    "import 'valibot';",
+  ],
+  [
+    'a relative main import',
+    'src/renderer/src/lint-main.ts',
+    "import '../../main/log';",
+  ],
+  [
+    'a main path from the source root',
+    'src/renderer/src/lint-main-root.ts',
+    "import 'src/main/log';",
+  ],
+  [
+    'a main alias',
+    'src/renderer/src/lint-main-alias.ts',
+    "import '@main/log';",
+  ],
+  [
+    'a main type export',
+    'src/renderer/src/lint-main-type.ts',
+    "export type {Logger} from '../../main/log';",
+  ],
+  [
+    'a relative renderer import',
+    'src/main/lint-renderer.ts',
+    "import '../renderer/src/output/main';",
+  ],
+  [
+    'a renderer alias',
+    'src/main/lint-renderer-alias.ts',
+    "import '@renderer/state/live';",
+  ],
+  [
+    'a renderer re-export',
+    'src/main/lint-renderer-export.ts',
+    "export * from '../renderer/src/state/live';",
+  ],
+  [
+    'a renderer import in a main test',
+    'src/main/lint-renderer.test.ts',
+    "import '@renderer/state/live';",
+  ],
+] as const;
+
+const ALLOWED_IMPORTS = [
+  [
+    'valibot in a schema',
+    'src/shared/schema/lint-valibot.ts',
+    "import 'valibot';",
+  ],
+  [
+    'valibot in a nested schema module',
+    'src/shared/schema/probes/lint-valibot.mts',
+    "import 'valibot/internal';",
+  ],
+  [
+    'valibot in a main test',
+    'src/main/lint-valibot.test.ts',
+    "import 'valibot';",
+  ],
+  [
+    'valibot in a renderer test',
+    'src/renderer/src/lint-valibot.test.tsx',
+    "import 'valibot';",
+  ],
+  [
+    'valibot in a main testing helper',
+    'src/main/testing/lint-valibot.ts',
+    "import 'valibot';",
+  ],
+  [
+    'valibot in a renderer testing helper',
+    'src/renderer/src/testing/lint-valibot.ts',
+    "import 'valibot';",
+  ],
+  [
+    'main in a renderer test',
+    'src/renderer/src/lint-main.test.ts',
+    "import '../../main/log';",
+  ],
+  [
+    'main in a renderer testing helper',
+    'src/renderer/src/testing/lint-main.ts',
+    "import '../../../main/log';",
+  ],
+  [
+    'a shared main dependency',
+    'src/main/lint-shared.ts',
+    "import '@shared/ipc';",
+  ],
+  [
+    'a shared renderer dependency',
+    'src/renderer/src/lint-shared.ts',
+    "import '@shared/ipc';",
+  ],
+  [
+    'a local renderer entry',
+    'src/renderer/src/lint-local-main.ts',
+    "import './main';",
+  ],
+  [
+    'a local main renderer helper',
+    'src/main/lint-local-renderer.ts',
+    "import './renderer';",
+  ],
+] as const;
+
 interface Probe {
   readonly label: string;
   readonly path: string;
@@ -145,6 +277,11 @@ const PROBES: readonly Probe[] = [
   ...nodeProbes(FLOATING_PROMISES),
   ...nodeProbes(ACCEPTED_CODE),
   ...nodeProbes(BANNED_CODE),
+  ...[...RESTRICTED_IMPORTS, ...ALLOWED_IMPORTS].map(([label, path, code]) => ({
+    label,
+    path,
+    code,
+  })),
   {
     label: 'a disable comment',
     path: `${NODE_PROBE_DIR}/disable-comment.ts`,
@@ -163,6 +300,9 @@ function probeProgram(probes: readonly Probe[]): ts.Program {
   const base = ts.createCompilerHost(PROBE_OPTIONS);
   const host: ts.CompilerHost = {
     ...base,
+    // NOTE(0913vision): Import probes check syntax, not imported dependencies.
+    resolveModuleNameLiterals: literals =>
+      literals.map(() => ({resolvedModule: undefined})),
     fileExists: path => texts.has(fileKey(path)) || base.fileExists(path),
     readFile: path => texts.get(fileKey(path)) ?? base.readFile(path),
     getSourceFile: (path, languageVersion, ...rest) => {
@@ -226,6 +366,14 @@ describe('the lint config', () => {
 
   it.each(BANNED_CODE)('reports %s', (label, _code, ruleId) => {
     expect(ruleIds(label)).toContain(ruleId);
+  });
+
+  it.each(RESTRICTED_IMPORTS)('rejects %s', label => {
+    expect(ruleIds(label)).toContain('no-restricted-imports');
+  });
+
+  it.each(ALLOWED_IMPORTS)('allows %s', label => {
+    expect(ruleIds(label)).toEqual([]);
   });
 
   it('reports a hook called conditionally', () => {
