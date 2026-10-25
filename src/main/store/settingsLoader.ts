@@ -70,11 +70,9 @@ export async function loadSettingsArea(
           : parsed;
       },
     );
-    access =
-      read.data?.access ??
-      (read.problems.some(problem => problem.kind === 'newer')
-        ? 'readOnly'
-        : access);
+    access = read.problems.some(problem => problem.kind === 'newer')
+      ? 'readOnly'
+      : (read.data?.access ?? access);
     const loaded = read.data;
     const parsed =
       loaded === null
@@ -82,7 +80,7 @@ export async function loadSettingsArea(
         : parseSettingsDocument({
             name,
             value: loaded.data,
-            access: loaded.access,
+            access,
             revision: 1,
           });
     if (!parsed.ok) throw new Error(parsed.error.message);

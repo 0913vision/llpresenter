@@ -9,6 +9,7 @@ import {openAppConfig} from './appConfigFile';
 import {loadStore} from './fileStore';
 import {settingsCodecs} from './settingsCodecs';
 import {openSettingsStore} from './settingsStore';
+import {writeJson} from './testFiles';
 
 vi.mock('@shared/schema/settingsDocuments', async importOriginal => {
   const actual =
@@ -33,6 +34,38 @@ async function setup() {
 }
 
 describe('independent settings area loading', () => {
+  it('does not make an incompatible newer original editable through an older recovery copy', async () => {
+    const {loaded, log} = await setup();
+    const file = join(loaded.locations.settings, 'labels.json');
+    const original = JSON.stringify({
+      format: 'llsettings.labels',
+      schemaVersion: 2,
+      labels: 'future-shape',
+    });
+    await writeJson(file, original);
+    await writeJson(
+      join(
+        loaded.locations.recovery,
+        'settings',
+        'labels',
+        '2026-10-25T09-00-00.000Z.json',
+      ),
+      {format: 'llsettings.labels', schemaVersion: 1, labels: []},
+    );
+    const store = await openSettingsStore(loaded, log);
+    onTestFinished(() => store.dispose());
+    const current = store.get('labels');
+    expect(current.access).toBe('readOnly');
+    expect(
+      await store.apply({
+        type: 'settings.update',
+        name: 'labels',
+        value: {format: 'llsettings.labels', schemaVersion: 1, labels: []},
+        baseRevision: 1,
+      }),
+    ).toMatchObject({ok: false, error: {reason: 'read-only'}});
+    expect(await readFile(file, 'utf8')).toBe(original);
+  });
   it('uses area defaults after document validation throws and continues to later files', async () => {
     const {loaded, log} = await setup();
     const file = join(loaded.locations.settings, 'labels.json');
