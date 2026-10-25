@@ -1,0 +1,88 @@
+# Review request: `output-21`
+
+- Team member: `output`
+- Branch: `fix/output/fallback-window`
+- Base: `6f04e7619ae8129132104e49abf2d302f242268d`
+- Verified code head: `811307f3e596ec62be08b5532dc04c5e5afc96d3`
+- Range: `6f04e76...fix/output/fallback-window`
+- Task: the fallback-window fix inserted before D2 part 2.
+- Code CI:
+  [40200727992](https://github.com/0913vision/llpresenter/actions/runs/40200727992),
+  success. The final document head is checked too before the request.
+
+## What changed and why
+
+The unplug record showed the fallback at x 2480, y 492 instead of the planned
+center. `showWindowed` previously set the planned bounds immediately after
+requesting fullscreen exit. Windows could then restore the old normal bounds
+from the disconnected monitor, overwriting that placement. The output now
+applies the planned bounds after `leave-full-screen`.
+
+Per the lead's decision `dd7212a`, the output first drops always on top and then
+calls `control.moveAbove(output.getMediaSourceId())`. This happens synchronously
+on the affected monitor's `display-removed` event, before the 300 ms settle
+timer, and again after windowed placement. Neither window is focused or
+activated. The fallback keeps drawing and retains its page and video; it is not
+hidden or reloaded. No native API or dependency is added.
+
+The existing settled monitor list still decides the placement. Other output
+switch changes during the wait cannot restore the missing monitor's always on
+top prematurely. A reconnect restores the screen's configured always-on-top
+value. Even a disconnect/reconnect inside one settle interval reapplies it when
+the final monitor list equals the original list.
+
+Only the latest placement is retained while fullscreen exits. Hiding, switching
+back to fullscreen, closing, or destroying cancels an obsolete fallback action.
+An unplaced centered rectangle survives an off/on cycle so the first placement
+still receives its bounds. The single fullscreen listener and its pending action
+are released on destroy or native close. Deferred native-event failures are
+logged; a failed demotion does not prevent another output from being demoted.
+
+## Changed files
+
+- `src/main/displays/`: typed source changes, synchronous removal subscription,
+  settled-list recovery, fake source, and source/registry tests.
+- `src/main/outputs/`: placement and ordering adapter, control-window wiring,
+  affected-window demotion, fake handle/feed, and regression tests.
+- Source and tests: 12 files, 573 insertions and 48 deletions.
+- No shared/preload contracts or other team's files changed.
+
+## Checks run
+
+| Check                                                | Result                                                            |
+| ---------------------------------------------------- | ----------------------------------------------------------------- |
+| Focused display/output tests                         | 6 files, 79/79 passed, 0.469 s                                    |
+| New bounds and ordering cases against old adapter    | Both failed as expected                                           |
+| Immediate-removal case against old manager           | Failed as expected, 0 demotions instead of 1; restored in finally |
+| `npm run typecheck`                                  | Passed                                                            |
+| Targeted ESLint on changed TypeScript files          | Passed                                                            |
+| `npm run format`, `npm run format:check`, diff check | Passed                                                            |
+| Rebase onto main                                     | Completed without conflicts                                       |
+| Own branch push                                      | Passed                                                            |
+| GitHub code CI                                       | Success, run 40200727992                                          |
+| Local full verify                                    | Not run, per the lead's rule                                      |
+
+All local tests use fake Electron windows and timers. No real Electron process
+or visible window was started. There were no display-layout test failures to
+classify. The overnight DP-primary removal and BenQ-only environment is noted;
+there were no soak or memory measurements. CI status requests are spaced at
+least five minutes apart.
+
+## Decisions and review focus
+
+- The control-relative ordering is the lead's explicit choice, replacing the
+  earlier request to put the output below every window. Hiding and native calls
+  remain rejected.
+- Check the call order in the adapter tests and the pre-settle integration test.
+  Both unrelated outputs and another output whose demotion fails are covered.
+- Check fullscreen-exit cancellation, subscription disposal, and both early
+  reconnect and fullscreen/fallback/fullscreen always-on-top restoration.
+- The real Windows restore is modeled with the recorded old/clamped positions; a
+  visible real-monitor check is deferred under the overnight restriction.
+- Full green GitHub CI is required. There is no GPU exception.
+
+## Review: lead
+
+## Review: reviewer
+
+## Team member's reply
