@@ -66,8 +66,11 @@ export function SlideSizeControl({
 }: {
   readonly sizeClass: SizeClass;
 }): JSX.Element {
+  // NOTE(0913vision): The control is new for each size class, so a % draft
+  // typed in one size class is dropped, not saved to the next one.
   return (
     <ThumbnailSizeControl
+      key={sizeClass}
       workspace="show"
       compact={sizeClass === 'narrow'}
       value={useThumbnailScale(sizeClass)}

@@ -159,6 +159,22 @@ describe('SlideSizeControl', () => {
     expect(gridStyle().getPropertyValue('--thumb-width')).toBe('226.5px');
   });
 
+  it('drops a % draft when the size class changes during the edit', () => {
+    const percentField = (): HTMLElement =>
+      screen.getByRole('spinbutton', {name: '슬라이드 크기 백분율'});
+    const {rerender} = render(<SlideSizeControl sizeClass="narrow" />);
+    fireEvent.change(percentField(), {target: {value: '150'}});
+    rerender(<SlideSizeControl sizeClass="normal" />);
+    fireEvent.keyDown(percentField(), {key: 'Enter'});
+    fireEvent.blur(percentField());
+    expect(setLayout).not.toHaveBeenCalled();
+    expect(
+      screen
+        .getByRole('slider', {name: '슬라이드 크기'})
+        .getAttribute('aria-valuetext'),
+    ).toBe('100%');
+  });
+
   it('keeps a size per size class', () => {
     seedThumbnailScale({layout: {wide: {thumbnailScalePercent: 80}}});
     render(
