@@ -2,7 +2,7 @@
 
 - Team member: `devops`
 - Branch: `fix/devops/clip-maker-test-wait`
-- Review range: `ffc6833...fix/devops/clip-maker-test-wait`
+- Review range: `5536536...fix/devops/clip-maker-test-wait`
 - Related brief: the lead's verify on `main` (`6d8332f`) failed in
   `scripts/soak/media.test.ts` > `runClipMaker` > "ends the stalled maker and
   every process it started" (`expected true to be false` at
@@ -83,3 +83,48 @@ See "Tests".
     round 1 base, which rejected before the stop, and it fails without the close
     guard, which rejects with "the soak clip could not be made" (1 failed each).
     It passes with this branch, three runs in a row.
+
+Round 2 checks, on `5536536`: `npm run verify` passes at 99 to 100% CPU in 264.1
+s wall (typecheck 52.2 s, lint 112.0 s, format:check 156.2 s, test:coverage
+264.0 s, build 9.4 s), and no hung-tree process was left.
+
+## Soak run 1
+
+The lead's M2 soak task: 20 minutes offscreen on `main` `ffc6833` with this
+branch, through the recorder and the judge.
+
+- Run: built at 09:07 KST, ran 09:08 to 09:28 KST at 100% CPU while other
+  sessions worked. `npm run soak -- --minutes 20`, with the 1080p clip the
+  runner makes (5,013,551 bytes, 10 s, looping), the 본 화면 on, and a 장 change
+  every 5 seconds. `LLP_TEST_WINDOWS=offscreen`, no inspector, and no
+  `NODE_OPTIONS`.
+- Record: 119 samples over 19.9 minutes. Each process kept one pid, so nothing
+  relaunched. No window appeared, and no Electron process was left after the
+  run.
+- Judge: failed, on the control renderer.
+
+| Process         | Judge   | Rise (MB/h) | Lowest private memory per window                           |
+| --------------- | ------- | ----------- | ---------------------------------------------------------- |
+| main            | flat    | +0.9        | 226, 214, 90, 131, 90, 90, 513, 91, 431, 90, 91, 306       |
+| gpu             | flat    | +41.6       | 563 rising to 576, level from about 7 min                  |
+| network utility | flat    | +0.0        | 11.7 throughout                                            |
+| control         | growing | +21.3       | 188, 188, 191, 196, 194, 196, 194, 194, 195, 196, 194, 195 |
+| output:main     | flat    | +10.0       | 93 rising to 102, level from about 6 min                   |
+
+- control rose from 34 to 188 MB in the first minute, then by about 1 MB per 9
+  minutes. Twenty minutes is short to tell a slow leak from settling; the
+  60-minute run (qa's SK2) decides it.
+- main is flat only by its lowest values. Its private memory swung between about
+  90 MB and 2,841 MB: median 1,166 MB, p90 2,336 MB, 84 of 119 samples above 600
+  MB. The judge reads the lowest value per window, so it didn't catch this. The
+  lead filed it as bug M2-5 for output; devops-19 adds a peak check to the
+  judge.
+- fps, from the output window's own meter: median 60.0, lowest 58. qa notes that
+  offscreen windows can't be judged for frame rate, so this is only an
+  observation.
+- Handles: the record has no handle counts. devops-19 checks whether they can be
+  added cheaply.
+- Files: the record is
+  `C:\Users\visio\AppData\Local\Temp\llp-soak-mcJX6n\soak.jsonl`; the app and
+  runner log is
+  `C:\Users\visio\AppData\Local\Temp\claude\D--programming-2020--pp--claude-worktrees-devops\f503aa8d-eeb6-47c5-86ff-42de7484e4ef\scratchpad\soak20.log`.
