@@ -20,6 +20,7 @@ import {
 import {parseEditResult} from '@shared/schema/contentEdit';
 import {RENDERER_LOG_LIMITS} from '@shared/schema/ipcPayloads';
 import {parseLiveState} from '@shared/schema/liveState';
+import {parseLiveCommandRequest} from '@shared/schema/liveCommand';
 import type {PayloadError} from '@shared/schema/payload';
 import {parseOutputStatuses} from '@shared/schema/outputStatus';
 import {parseShowService} from '@shared/schema/showService';
@@ -162,7 +163,17 @@ function documentApi<TEntry, TDocument, TChange>(
 const api: LlpApi = {
   live: {
     get: () => invokeChecked(Channels.liveGet, parseLiveState),
-    send: command => ipcRenderer.send(Channels.liveCommand, command),
+    send: command => {
+      const parsed = parseLiveCommandRequest(command);
+      if (!parsed.ok) {
+        logBadValue('request', Channels.liveCommand, parsed.error);
+        return;
+      }
+      for (const error of parsed.value.rejected) {
+        logBadValue('request', Channels.liveCommand, error);
+      }
+      ipcRenderer.send(Channels.liveCommand, parsed.value.command);
+    },
     subscribe: listener =>
       listen(Channels.liveChanged, parseLiveState, listener),
   },

@@ -1,6 +1,6 @@
 import {create} from 'zustand';
 import {useShallow} from 'zustand/react/shallow';
-import type {LiveCommand} from '@shared/commands';
+import {interruptsSongOutput, type LiveCommand} from '@shared/commands';
 import type {LiveState} from '@shared/live';
 
 interface LiveView {
@@ -38,24 +38,6 @@ export function startLiveSync(): () => void {
   const unsubscribe = api.live.subscribe(accept);
   api.live.get().then(accept, () => undefined);
   return unsubscribe;
-}
-
-function interruptsSongOutput(command: LiveCommand): boolean {
-  switch (command.type) {
-    case 'slide.show':
-    case 'media.show':
-    case 'clear.undo':
-      return true;
-    case 'layer.clear':
-      return ['all', 'slide', 'media'].includes(command.target);
-    case 'message.show':
-    case 'output.set':
-      return false;
-    default: {
-      const unhandled: never = command;
-      return unhandled;
-    }
-  }
 }
 
 export function sendLive(command: LiveCommand): void {

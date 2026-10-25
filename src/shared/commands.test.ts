@@ -1,7 +1,38 @@
 import {describe, expect, it} from 'vitest';
-import {isLiveCommand} from './commands';
+import {interruptsSongOutput, isLiveCommand} from './commands';
 
 describe('isLiveCommand', () => {
+  it('preserves the classification of existing song-output interruptions', () => {
+    expect(interruptsSongOutput({type: 'clear.undo'})).toBe(true);
+    expect(
+      interruptsSongOutput({
+        type: 'media.show',
+        media: {mediaId: 'a', loop: false},
+      }),
+    ).toBe(true);
+    expect(
+      interruptsSongOutput({
+        type: 'slide.show',
+        slide: {itemId: 'a', position: 0, label: null, lines: []},
+      }),
+    ).toBe(true);
+    for (const target of ['all', 'slide', 'media'] as const) {
+      expect(interruptsSongOutput({type: 'layer.clear', target})).toBe(true);
+    }
+    for (const target of ['prop', 'message', 'notice', 'audio'] as const) {
+      expect(interruptsSongOutput({type: 'layer.clear', target})).toBe(false);
+    }
+    expect(
+      interruptsSongOutput({type: 'output.set', screenId: 'main', on: true}),
+    ).toBe(false);
+    expect(
+      interruptsSongOutput({
+        type: 'message.show',
+        message: {messageId: 'a', text: ''},
+      }),
+    ).toBe(false);
+  });
+
   it('accepts well-formed commands', () => {
     const accepted: unknown[] = [
       {type: 'clear.undo'},

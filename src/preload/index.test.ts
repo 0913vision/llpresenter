@@ -110,6 +110,65 @@ function loggedErrors(): unknown[] {
 }
 
 describe('preload', () => {
+  it('logs skipped batch children and sends only normalized valid children', () => {
+    const child = {type: 'audio.pause'} as const;
+    Reflect.apply(api.live.send, undefined, [
+      {
+        type: 'live.batch',
+        commands: [child, {type: 'unknown'}, {type: 'timer.start'}],
+      },
+    ]);
+    expect(
+      electron.send.mock.calls.filter(
+        ([channel]) => channel === Channels.liveCommand,
+      ),
+    ).toEqual([
+      [Channels.liveCommand, {type: 'live.batch', commands: [child]}],
+    ]);
+    expect(loggedErrors()).toHaveLength(2);
+    expect(loggedErrors()[0]).toHaveProperty(
+      'detail',
+      expect.stringContaining('commands.1.type'),
+    );
+    expect(loggedErrors()[1]).toHaveProperty(
+      'detail',
+      expect.stringContaining('commands.2.timerId'),
+    );
+  });
+
+  it('validates live commands before sending and drops malformed requests', () => {
+    const command = {
+      type: 'audio.play',
+      source: {kind: 'media', mediaId: MEDIA_ID},
+    } as const;
+    api.live.send(command);
+    Reflect.apply(api.live.send, undefined, [{...command, source: []}]);
+    expect(
+      electron.send.mock.calls.filter(
+        ([channel]) => channel === Channels.liveCommand,
+      ),
+    ).toEqual([[Channels.liveCommand, command]]);
+    expect(loggedErrors()).toEqual([
+      expect.objectContaining({
+        message: `Ignored a bad request on ${Channels.liveCommand}`,
+      }),
+    ]);
+  });
+
+  it('supplies a bounded search default and refuses an excessive limit', async () => {
+    electron.invoke.mockResolvedValueOnce({query: '', matches: []});
+    await api.library.search({query: ''});
+    expect(electron.invoke).toHaveBeenCalledWith(Channels.librarySearch, {
+      query: '',
+      limit: 50,
+    });
+    await expect(api.library.search({query: '', limit: 201})).rejects.toThrow(
+      'Bad request on',
+    );
+    expect(electron.invoke).toHaveBeenCalledTimes(1);
+    expect(loggedErrors()).toHaveLength(1);
+  });
+
   it('reads and edits named settings with revisions and preserved file fields', async () => {
     const value = {...LABELS, future: true};
     const document = {...LABELS_DOCUMENT, value};
