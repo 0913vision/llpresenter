@@ -31,9 +31,16 @@ Source: `Main` decisions "진행 화면은 절충안" and "작업 공간 세 개
 
 ### Header
 
-- The tab name "예배 순서", followed by the current service name and a down
-  arrow (the service switcher). Clicking it opens the service list (see "Service
-  list").
+- The open service's name replaces the generic visible label, followed by a down
+  arrow (M2 check 1, chosen alternative A). Keep the 34px header and the
+  component's 16/22 semibold name, even when the general heading style changes
+  to 18/24. The menu bar keeps the service name too.
+- The panel's accessible name stays "예배 순서". A long service name ends in an
+  ellipsis and shows in full on hover. With no service open, the header shows
+  "예배 순서" without a down arrow.
+- The service picker comes later. For this header change, the arrow is
+  decorative and clicking the name does nothing. "Service list" below describes
+  the later picker behavior, not functionality of this header yet.
 - 항목 추가 (add item, plus icon) at the right opens the quick add popover. It
   works as in 준비 (see 05).
 

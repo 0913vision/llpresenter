@@ -1,8 +1,17 @@
-import {cleanup, fireEvent, render, screen} from '@testing-library/react';
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {isColumnDragActive} from '@renderer/state/drag';
 import * as showState from '@renderer/state/show';
-import {seedSampleService} from '@renderer/show/testing/sampleService';
+import {
+  sampleService,
+  seedSampleService,
+} from '@renderer/show/testing/sampleService';
 import {createMemoryColumnWidthStore} from './columnWidthStore';
 import {Workspace} from './Workspace';
 
@@ -60,6 +69,73 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+});
+
+describe('Workspace service header', () => {
+  it.each(['narrow', 'normal', 'wide'] as const)(
+    'shows the service name with the stable panel label at %s size',
+    sizeClass => {
+      render(
+        <Workspace
+          id="show"
+          sizeClass={sizeClass}
+          store={createMemoryColumnWidthStore()}
+        />,
+      );
+      const panel = screen.getByRole('region', {name: '예배 순서'});
+      expect(within(panel).getByText(sampleService.name)).toBeDefined();
+      expect(within(panel).queryByText('예배 순서')).toBeNull();
+      expect(
+        within(panel).getByRole('listbox', {name: '예배 순서'}),
+      ).toBeDefined();
+    },
+  );
+
+  it('uses the generic panel name while no service is open', () => {
+    showState.applyService(null);
+    render(
+      <Workspace
+        id="show"
+        sizeClass="normal"
+        store={createMemoryColumnWidthStore()}
+      />,
+    );
+    const panel = screen.getByRole('region', {name: '예배 순서'});
+    expect(within(panel).getByText('예배 순서')).toBeDefined();
+    expect(within(panel).queryByText(sampleService.name)).toBeNull();
+    expect(within(panel).queryAllByRole('option')).toHaveLength(0);
+  });
+
+  it('keeps the read-only warning beside the service name', () => {
+    showState.applyService({...sampleService, readOnly: true});
+    render(
+      <Workspace
+        id="show"
+        sizeClass="normal"
+        store={createMemoryColumnWidthStore()}
+      />,
+    );
+    const panel = screen.getByRole('region', {name: '예배 순서'});
+    expect(within(panel).getByText(sampleService.name)).toBeDefined();
+    expect(
+      within(panel).getByRole('img', {
+        name: '새 버전의 파일이라 읽기 전용으로 엽니다.',
+      }),
+    ).toBeDefined();
+  });
+
+  it('keeps the existing header of the 준비 workspace', () => {
+    render(
+      <Workspace
+        id="prep"
+        sizeClass="normal"
+        store={createMemoryColumnWidthStore()}
+      />,
+    );
+    const panel = screen.getByRole('region', {name: '예배 순서'});
+    expect(within(panel).getByText('예배 순서')).toBeDefined();
+    expect(within(panel).queryByText(sampleService.name)).toBeNull();
+  });
 });
 
 describe('Workspace column gaps', () => {

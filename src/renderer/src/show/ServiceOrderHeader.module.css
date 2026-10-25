@@ -1,0 +1,25 @@
+.heading {
+  /* NOTE(0913vision): Header A keeps 16/22 when the general heading grows. */
+  --service-name-font: 600 16px/22px var(--font-ui);
+
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-width: 0;
+  max-width: 100%;
+  margin-bottom: calc(-1 * var(--radius-hairline));
+  border-bottom: var(--space-2) solid var(--text);
+  color: var(--text);
+  font: var(--service-name-font);
+}
+
+.name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  color: var(--text-2);
+}

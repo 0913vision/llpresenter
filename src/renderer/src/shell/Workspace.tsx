@@ -1,6 +1,7 @@
 import {Fragment, type JSX, type ReactNode} from 'react';
 import {ClearRow} from '@renderer/show/ClearRow';
 import {PreviewPanel} from '@renderer/show/PreviewPanel';
+import {ServiceOrderHeader} from '@renderer/show/ServiceOrderHeader';
 import {ServiceOrderList} from '@renderer/show/ServiceOrderList';
 import {ReadOnlyMark} from '@renderer/show/ReadOnlyMark';
 import {
@@ -38,6 +39,7 @@ interface PanelParts {
   // before `rest` does. `rest` takes the height that is left, at least the
   // height of the 진행 도구.
   readonly size?: 'content' | 'rest';
+  readonly header?: ReactNode;
   readonly body?: ReactNode;
   readonly meta?: ReactNode;
   readonly footer?: ReactNode;
@@ -60,7 +62,7 @@ function Panel({
   return (
     <section className={panelClass(parts.size)} aria-label={title}>
       <div className={styles.header}>
-        <span className={styles.tab}>{title}</span>
+        {parts.header ?? <span className={styles.tab}>{title}</span>}
         {parts.meta}
       </div>
       <div className={styles.body}>{parts.body}</div>
@@ -79,7 +81,11 @@ function ShowShortcuts(): null {
 function showPanelParts(title: string, sizeClass: SizeClass): PanelParts {
   switch (title) {
     case '예배 순서':
-      return {body: <ServiceOrderList />, meta: <ReadOnlyMark />};
+      return {
+        header: <ServiceOrderHeader />,
+        body: <ServiceOrderList />,
+        meta: <ReadOnlyMark />,
+      };
     case '미리보기':
       return {
         size: 'content',
