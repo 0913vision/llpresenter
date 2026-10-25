@@ -12,6 +12,7 @@ import {
   clampNumber,
   formatNumberText,
   parseNumberText,
+  roundNumberToStep,
   stepNumber,
   type NumberRange,
 } from './numberText';
@@ -35,6 +36,8 @@ export interface NumberFieldProps extends Omit<
   readonly max: number;
   /** The change for one press of the up or down arrow. Defaults to 1. */
   readonly step?: number | undefined;
+  /** The change with Shift; defaults to ten times step. */
+  readonly largeStep?: number | undefined;
   /** `commit` buffers typing until Enter or blur; Escape cancels it. */
   readonly updateOn?: 'change' | 'commit' | undefined;
   /** A unit drawn outside the field, such as 개 or 줄. */
@@ -48,7 +51,7 @@ export interface NumberFieldProps extends Omit<
   readonly className?: string | undefined;
 }
 
-const SHIFT_STEPS = 10;
+const DEFAULT_LARGE_STEP_MULTIPLIER = 10;
 
 const arrowSteps: Readonly<Record<string, 1 | -1>> = {
   ArrowUp: 1,
@@ -57,8 +60,8 @@ const arrowSteps: Readonly<Record<string, 1 | -1>> = {
 
 /**
  * A number field. The up and down arrows change the value by one step, or by
- * ten with Shift, and a value outside the range snaps into it when focus
- * leaves.
+ * largeStep with Shift. Enter and blur round typed values to a whole step,
+ * then clamp to the range.
  */
 export function NumberField({
   value,
@@ -66,6 +69,7 @@ export function NumberField({
   min,
   max,
   step = 1,
+  largeStep = step * DEFAULT_LARGE_STEP_MULTIPLIER,
   updateOn = 'change',
   unit,
   suffix = '',
@@ -88,7 +92,7 @@ export function NumberField({
     title,
   });
   const range: NumberRange = {min, max};
-  const shown = formatNumberText(value, suffix);
+  const shown = formatNumberText(value, suffix, step);
 
   const report = (next: number): void => {
     if (next !== value) onChange(next);
@@ -109,13 +113,14 @@ export function NumberField({
   const commit = (): void => {
     if (draft === null) return;
     const typed = parseNumberText(draft, suffix);
-    if (typed !== undefined) report(clampNumber(typed, range));
+    if (typed !== undefined) report(roundNumberToStep(typed, {step, range}));
     setDraft(null);
   };
 
   const stepBy = (steps: number): void => {
     const base = parseNumberText(draft ?? shown, suffix) ?? value;
-    report(stepNumber(clampNumber(base, range), {step, steps, range}));
+    const snapped = roundNumberToStep(clampNumber(base, range), {step, range});
+    report(stepNumber(snapped, {step, steps, range}));
     setDraft(null);
   };
 
@@ -137,7 +142,7 @@ export function NumberField({
     const direction = arrowSteps[event.key];
     if (direction === undefined) return;
     event.preventDefault();
-    stepBy(direction * (event.shiftKey ? SHIFT_STEPS : 1));
+    stepBy(direction * (event.shiftKey ? largeStep / step : 1));
   };
 
   const field = (

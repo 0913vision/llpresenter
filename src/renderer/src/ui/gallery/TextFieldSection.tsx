@@ -114,6 +114,53 @@ export function TextFieldSection(): JSX.Element {
           />
         </SpecItem>
       </SpecGroup>
+      <SpecGroup title="Decimal steps" surface="panel">
+        <SpecItem label="0.1 step, 1 with Shift, seconds outside">
+          <Stateful initial={0.2}>
+            {(value, setValue) => (
+              <NumberField
+                aria-label="전환 시간"
+                min={0.1}
+                max={2}
+                step={0.1}
+                largeStep={1}
+                unit="초"
+                value={value}
+                onChange={setValue}
+              />
+            )}
+          </Stateful>
+        </SpecItem>
+        <SpecItem label="0.05 step preserves two decimal places">
+          <Stateful initial={1.4}>
+            {(value, setValue) => (
+              <NumberField
+                aria-label="줄 간격"
+                min={0.8}
+                max={3}
+                step={0.05}
+                value={value}
+                onChange={setValue}
+              />
+            )}
+          </Stateful>
+        </SpecItem>
+        <SpecItem label="0.05 step, attached speed suffix">
+          <Stateful initial={1}>
+            {(value, setValue) => (
+              <NumberField
+                aria-label="속도"
+                min={0.25}
+                max={4}
+                step={0.05}
+                suffix="×"
+                value={value}
+                onChange={setValue}
+              />
+            )}
+          </Stateful>
+        </SpecItem>
+      </SpecGroup>
       <SpecGroup title="Number fields and range fields" surface="panel">
         <SpecItem label="Number 96, unit outside the field">
           <Stateful initial={10}>

@@ -19,6 +19,22 @@ describe('Gallery', () => {
       screen.getByRole('heading', {level: 2, name: 'Switch'}),
     ).toBeDefined();
   });
+
+  it('demonstrates live decimal steps and their precision in number fields', async () => {
+    render(<Gallery only="TextField" />);
+    const seconds = screen.getByRole('spinbutton', {name: '전환 시간'});
+    const spacing = screen.getByRole('spinbutton', {name: '줄 간격'});
+    const speed = screen.getByRole('spinbutton', {name: '속도'});
+    expect(seconds.getAttribute('aria-valuetext')).toBe('0.2');
+    expect(spacing.getAttribute('aria-valuetext')).toBe('1.40');
+    expect(speed.getAttribute('aria-valuetext')).toBe('1.00×');
+    seconds.focus();
+    await userEvent.keyboard('{ArrowUp}{Shift>}{ArrowUp}{/Shift}');
+    expect(seconds.getAttribute('aria-valuetext')).toBe('1.3');
+    spacing.focus();
+    await userEvent.keyboard('{ArrowUp}');
+    expect(spacing.getAttribute('aria-valuetext')).toBe('1.45');
+  });
 });
 
 describe('Gallery menu buttons', () => {

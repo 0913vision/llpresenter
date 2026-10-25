@@ -4,6 +4,9 @@ export interface NumberRange {
   readonly max: number;
 }
 
+const DECIMAL_TEXT = /^-?(?:\d+(?:\.\d*)?|\.\d+)$/;
+const MAX_FIXED_DIGITS = 100;
+
 /**
  * Reads the number in a number field's text, ignoring surrounding spaces and
  * the attached suffix (such as `%`). Returns `undefined` when there is none.
@@ -17,7 +20,7 @@ export function parseNumberText(
     suffix !== '' && trimmed.endsWith(suffix)
       ? trimmed.slice(0, -suffix.length).trim()
       : trimmed;
-  if (bare === '') return undefined;
+  if (!DECIMAL_TEXT.test(bare)) return undefined;
   const value = Number(bare);
   return Number.isFinite(value) ? value : undefined;
 }
@@ -28,8 +31,23 @@ export function clampNumber(value: number, {min, max}: NumberRange): number {
 }
 
 function decimalPlaces(value: number): number {
-  const [, fraction = ''] = String(value).split('.');
-  return fraction.length;
+  const [mantissa = '', exponent = '0'] = String(value).split('e');
+  const [, fraction = ''] = mantissa.split('.');
+  return Math.min(
+    MAX_FIXED_DIGITS,
+    Math.max(0, fraction.length - Number(exponent)),
+  );
+}
+
+/** Rounds to the nearest whole step, then clamps to the field's range. */
+export function roundNumberToStep(
+  value: number,
+  {step, range}: {readonly step: number; readonly range: NumberRange},
+): number {
+  const count = value / step;
+  const rounded = Math.round(count + Math.abs(count) * Number.EPSILON);
+  const snapped = Number((rounded * step).toFixed(decimalPlaces(step)));
+  return clampNumber(snapped, range);
 }
 
 /**
@@ -53,7 +71,11 @@ export function stepNumber(
   return clampNumber(moved, range);
 }
 
-/** Writes a value the way a number field shows it, with its suffix. */
-export function formatNumberText(value: number, suffix: string): string {
-  return `${value}${suffix}`;
+/** Writes step precision, including trailing zeroes, before the suffix. */
+export function formatNumberText(
+  value: number,
+  suffix: string,
+  step = 1,
+): string {
+  return `${value.toFixed(decimalPlaces(step))}${suffix}`;
 }

@@ -2,7 +2,7 @@ import {fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {describe, expect, it, vi} from 'vitest';
-import {NumberField} from './NumberField';
+import {NumberField, type NumberFieldProps} from './NumberField';
 
 function Copies({
   onChange = () => {},
@@ -40,15 +40,120 @@ function spin(): HTMLInputElement {
   return input;
 }
 
+function DecimalField({
+  initial,
+  onChange,
+  ...props
+}: Pick<NumberFieldProps, 'step' | 'largeStep' | 'updateOn' | 'suffix'> & {
+  readonly initial: number;
+  readonly onChange?: (value: number) => void;
+}): JSX.Element {
+  const [value, setValue] = useState(initial);
+  return (
+    <>
+      <NumberField
+        {...props}
+        aria-label="복구 사본"
+        min={-2}
+        max={2}
+        value={value}
+        onChange={next => {
+          setValue(next);
+          onChange?.(next);
+        }}
+      />
+      <button type="button">다음</button>
+    </>
+  );
+}
+
 describe('NumberField', () => {
-  it('defers valid typing to Enter in commit mode', async () => {
+  it('defers typing and rounds to the default whole step on Enter', async () => {
     const onChange = vi.fn();
     render(<Copies onChange={onChange} updateOn="commit" />);
     await userEvent.clear(spin());
     await userEvent.type(spin(), '25.6');
     expect(onChange).not.toHaveBeenCalled();
     await userEvent.keyboard('{Enter}');
-    expect(onChange).toHaveBeenCalledExactlyOnceWith(25.6);
+    expect(onChange).toHaveBeenCalledExactlyOnceWith(26);
+  });
+
+  it.each([
+    {initial: 0.2, step: 0.1, suffix: '', text: '0.2'},
+    {initial: 1.4, step: 0.05, suffix: '', text: '1.40'},
+    {initial: 1, step: 0.05, suffix: '×', text: '1.00×'},
+    {initial: 1, step: 1, suffix: '%', text: '1%'},
+  ])('formats step $step as $text', ({initial, step, suffix, text}) => {
+    render(<DecimalField initial={initial} step={step} suffix={suffix} />);
+    expect(spin().value).toBe(text);
+    expect(spin().getAttribute('aria-valuetext')).toBe(text);
+  });
+
+  it('moves repeatedly in decimal steps without accumulating float drift', async () => {
+    const onChange = vi.fn<(value: number) => void>();
+    render(<DecimalField initial={0.2} step={0.1} onChange={onChange} />);
+    spin().focus();
+    await userEvent.keyboard('{ArrowUp}'.repeat(7));
+    expect(spin().value).toBe('0.9');
+    expect(onChange.mock.calls.map(([value]) => value)).toEqual([
+      0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,
+    ]);
+    await userEvent.keyboard('{ArrowDown}'.repeat(7));
+    expect(spin().value).toBe('0.2');
+  });
+
+  it.each([
+    [undefined, '1.90'],
+    [0.2, '1.60'],
+  ])(
+    'uses largeStep %s with Shift from a small-step value',
+    async (largeStep, text) => {
+      render(<DecimalField initial={1.4} step={0.05} largeStep={largeStep} />);
+      spin().focus();
+      await userEvent.keyboard('{Shift>}{ArrowUp}{/Shift}');
+      expect(spin().value).toBe(text);
+    },
+  );
+
+  it('steps from the nearest whole step rather than retaining an offset', async () => {
+    render(<DecimalField initial={0.26} step={0.1} />);
+    spin().focus();
+    await userEvent.keyboard('{ArrowUp}');
+    expect(spin().value).toBe('0.4');
+  });
+
+  it.each(['Enter', 'Tab'])(
+    'rounds deferred decimal typing once on %s',
+    async key => {
+      const onChange = vi.fn();
+      render(
+        <DecimalField
+          initial={0.2}
+          step={0.1}
+          updateOn="commit"
+          onChange={onChange}
+        />,
+      );
+      await userEvent.clear(spin());
+      await userEvent.type(spin(), '0.26');
+      expect(onChange).not.toHaveBeenCalled();
+      await userEvent.keyboard(`{${key}}`);
+      expect(spin().value).toBe('0.3');
+      expect(onChange).toHaveBeenCalledExactlyOnceWith(0.3);
+      if (key === 'Enter') await userEvent.tab();
+      expect(onChange).toHaveBeenCalledOnce();
+    },
+  );
+
+  it('rounds immediate typing at blur and keeps its padded precision', async () => {
+    const onChange = vi.fn();
+    render(<DecimalField initial={1.4} step={0.05} onChange={onChange} />);
+    await userEvent.clear(spin());
+    await userEvent.type(spin(), '1.43');
+    expect(onChange).toHaveBeenLastCalledWith(1.43);
+    await userEvent.tab();
+    expect(onChange).toHaveBeenLastCalledWith(1.45);
+    expect(spin().value).toBe('1.45');
   });
 
   it('cancels a commit-mode draft without reporting it on blur', async () => {
