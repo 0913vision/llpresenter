@@ -84,13 +84,14 @@ The parse-helper return signatures match O6a's validated model types. The two
 renderer diffs contain only imports and the corresponding helper calls. The
 clock is shared arithmetic, without Electron, renderer, or main dependencies.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-Pending.
-
-## Review: reviewer
-
-Pending.
+- Round 1 (1400389): reviewer (Claude, trial-97) Approve with no findings: no
+  production file outside `src/shared/schema/` imports valibot, and the renderer
+  has no production import of `src/main/`. Lead Approve, including the two
+  lead-exception fixes in `state/show.ts` and `ui/shortcutKeys.ts`. Written by
+  the Codex session that took over data's work. Rebased by the lead onto local
+  `main` without conflicts.
 
 ## Team member's reply
 
