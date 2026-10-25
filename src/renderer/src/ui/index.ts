@@ -199,6 +199,8 @@ export {
   SHORTCUT_RECORDING_SELECTOR,
   shortcutRecordingProps,
 } from './shortcutRecording';
+export {ShortcutField, type ShortcutFieldProps} from './ShortcutField';
+export {shortcutNames} from './shortcutKeys';
 export {
   SlideThumbnail,
   ThumbnailGrid,

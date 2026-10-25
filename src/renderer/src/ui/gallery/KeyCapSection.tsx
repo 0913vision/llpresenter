@@ -1,8 +1,17 @@
-import type {JSX} from 'react';
+import {useState, type JSX} from 'react';
+import type {KeyBinding} from '@shared/schema/shortcuts';
+import {Button} from '../Button';
 import {KeyCombo, KeyList, KeyText} from '../KeyCap';
+import {ShortcutField} from '../ShortcutField';
+import {shortcutNames} from '../shortcutKeys';
 import {Section, SpecGroup, SpecItem} from './Spec';
 
 export function KeyCapSection(): JSX.Element {
+  const [recording, setRecording] = useState(false);
+  const [binding, setBinding] = useState<KeyBinding | null>({
+    code: 'F7',
+    mods: [],
+  });
   return (
     <Section title="KeyCap">
       <SpecGroup title="Key, height 18, minimum width 22" surface="dialog">
@@ -30,6 +39,35 @@ export function KeyCapSection(): JSX.Element {
         </SpecItem>
         <SpecItem label="None">
           <KeyList />
+        </SpecItem>
+      </SpecGroup>
+      <SpecGroup title="Live shortcut recording" surface="dialog">
+        <SpecItem label="Recording a key, TextField sm">
+          {recording ? (
+            <ShortcutField
+              aria-label="로고 화면 단축키"
+              onRecord={next => {
+                setBinding(next);
+                setRecording(false);
+              }}
+              onCancel={() => setRecording(false)}
+            />
+          ) : (
+            <Button
+              size="sm"
+              aria-label="단축키 바꾸기"
+              onClick={() => setRecording(true)}
+            >
+              {binding === null ? (
+                <KeyList />
+              ) : (
+                <KeyCombo keys={shortcutNames(binding)} />
+              )}
+            </Button>
+          )}
+        </SpecItem>
+        <SpecItem label="Tab leaves the recorder">
+          <Button size="sm">다음 명령</Button>
         </SpecItem>
       </SpecGroup>
       <SpecGroup title="Text shortcut, no box" surface="dialog">

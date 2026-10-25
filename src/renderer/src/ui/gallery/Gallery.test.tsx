@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react';
+import {fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {beforeAll, describe, expect, it, vi} from 'vitest';
 import {layerContainer} from '../layers';
@@ -48,6 +48,25 @@ describe('Gallery', () => {
     expect(document.activeElement).toBe(volume);
     await userEvent.keyboard('{ArrowRight}');
     expect(volume.getAttribute('aria-valuetext')).toBe('71%');
+  });
+
+  it('records shortcuts, rejects reserved keys, and cancels with native Tab', async () => {
+    render(<Gallery only="KeyCap" />);
+    await userEvent.click(screen.getByRole('button', {name: '단축키 바꾸기'}));
+    const field = screen.getByRole('textbox', {name: '로고 화면 단축키'});
+    expect(document.activeElement).toBe(field);
+    await userEvent.keyboard('{Enter}');
+    expect(field.getAttribute('aria-invalid')).toBe('true');
+    fireEvent.keyDown(field, {code: 'F2', key: 'F2'});
+    expect(
+      screen.getByRole('button', {name: '단축키 바꾸기'}).textContent,
+    ).toBe('F2');
+    await userEvent.click(screen.getByRole('button', {name: '단축키 바꾸기'}));
+    await userEvent.tab();
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', {name: '다음 명령'}),
+    );
+    expect(screen.queryByRole('textbox')).toBeNull();
   });
 });
 
