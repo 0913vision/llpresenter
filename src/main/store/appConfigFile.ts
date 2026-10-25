@@ -1,6 +1,7 @@
 import {serializeAppConfig, type AppConfig} from '@shared/schema/appConfig';
 import type {FileError} from '@shared/schema/fileFormat';
 import type {ServiceId} from '@shared/schema/ids';
+import {UI_ZOOM} from '@shared/schema/uiZoom';
 import type {Logger} from '../log';
 import {writeFileAtomically} from './atomicWrite';
 import {Autosave} from './autosave';
@@ -91,6 +92,15 @@ export class AppConfigFile implements UiStateFields {
 
   get lastServiceId(): string | undefined {
     return this.config.lastServiceId;
+  }
+
+  get uiZoomPercent(): number {
+    return this.config.uiZoomPercent ?? UI_ZOOM.defaultPercent;
+  }
+
+  setUiZoomPercent(percent: number): void {
+    this.config = {...this.config, uiZoomPercent: percent};
+    this.scheduleSave();
   }
 
   /** Whether the file couldn't be read or failed its check. */

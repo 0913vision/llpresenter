@@ -16,6 +16,7 @@ import type {FrameRateReport, RendererLogEntry} from './schema/ipcPayloads';
 import type {OutputStatuses} from './schema/outputStatus';
 import type {ShowService} from './schema/showService';
 import type {LayoutChange, UiState} from './schema/uiState';
+import type {UiZoomCommand} from './schema/uiZoom';
 
 export const Channels = {
   liveGet: 'live:get',
@@ -24,6 +25,8 @@ export const Channels = {
   windowControl: 'window:control',
   uiGet: 'ui:get',
   uiLayoutSet: 'ui:layout:set',
+  uiZoomGet: 'ui:zoom:get',
+  uiZoomChange: 'ui:zoom:change',
   logWrite: 'log:write',
   outputFrameRate: 'output:frame-rate',
   serviceGet: 'service:get',
@@ -86,6 +89,10 @@ export interface LlpApi {
      * thumbnail columns when the slider moves.
      */
     setLayout(change: LayoutChange): void;
+    /** Reads the computer-local UI zoom percentage (100 to 200, step 10). */
+    getZoom(): Promise<number>;
+    /** Applies one clamped zoom command in main; rejects after logging on failure. */
+    changeZoom(command: UiZoomCommand): Promise<number>;
   };
   readonly log: {
     write(entry: RendererLogEntry): void;

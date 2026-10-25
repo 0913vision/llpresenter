@@ -106,6 +106,59 @@ describe('openAppConfig with a broken app.json (qa C19)', () => {
 });
 
 describe('openAppConfig', () => {
+  it('reads the default zoom without a stored value and saves zoom with UI and service edits', async () => {
+    const file = await appJson();
+    const config = {
+      format: 'llapp',
+      schemaVersion: 1,
+      layout: {normal: {left: 280}},
+      future: {keep: true},
+    };
+    await writeJson(file, config);
+    const appConfig = await openAppConfig({file, log: fakeLog()});
+    expect(appConfig.uiZoomPercent).toBe(100);
+
+    appConfig.setUiZoomPercent(120);
+    appConfig.change({mediaStrip: true});
+    appConfig.setLastServiceId(SUNDAY);
+    await appConfig.flush();
+
+    expect(await readJson(file)).toEqual({
+      ...config,
+      uiZoomPercent: 120,
+      mediaStrip: true,
+      lastServiceId: SUNDAY_ID,
+    });
+    expect((await openAppConfig({file, log: fakeLog()})).uiZoomPercent).toBe(
+      120,
+    );
+  });
+
+  it('defaults an invalid zoom without losing the other app fields', async () => {
+    const file = await appJson();
+    await writeJson(file, {
+      format: 'llapp',
+      schemaVersion: 1,
+      uiZoomPercent: 155,
+      mediaStrip: true,
+    });
+    const appConfig = await openAppConfig({file, log: fakeLog()});
+    expect(appConfig.uiZoomPercent).toBe(100);
+    expect(appConfig.isBroken).toBe(false);
+    expect(appConfig.read()).toEqual({mediaStrip: true});
+  });
+
+  it('keeps a broken file untouched while allowing zoom recovery in memory', async () => {
+    const file = await appJson();
+    await writeFile(file, 'broken');
+    const appConfig = await openAppConfig({file, log: fakeLog()});
+    expect(appConfig.uiZoomPercent).toBe(100);
+    appConfig.setUiZoomPercent(110);
+    await appConfig.flush();
+    expect(appConfig.uiZoomPercent).toBe(110);
+    expect(await readFile(file, 'utf8')).toBe('broken');
+  });
+
   it('shows a file from a newer version and never writes it (qa C19 g)', async () => {
     const file = await appJson();
     const newer = {

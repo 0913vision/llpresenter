@@ -24,6 +24,7 @@ import type {PayloadError} from '@shared/schema/payload';
 import {parseOutputStatuses} from '@shared/schema/outputStatus';
 import {parseShowService} from '@shared/schema/showService';
 import {parseUiState} from '@shared/schema/uiState';
+import {parseUiZoomPercent} from '@shared/schema/uiZoom';
 
 type Parse<T> = (value: unknown) => Result<T, PayloadError>;
 
@@ -124,6 +125,9 @@ const api: LlpApi = {
   ui: {
     get: () => invokeChecked(Channels.uiGet, parseUiState),
     setLayout: change => ipcRenderer.send(Channels.uiLayoutSet, change),
+    getZoom: () => invokeChecked(Channels.uiZoomGet, parseUiZoomPercent),
+    changeZoom: command =>
+      invokeChecked(Channels.uiZoomChange, parseUiZoomPercent, command),
   },
   log: {
     write: entry => ipcRenderer.send(Channels.logWrite, entry),

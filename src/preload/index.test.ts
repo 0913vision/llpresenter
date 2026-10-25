@@ -76,6 +76,30 @@ function loggedErrors(): unknown[] {
 }
 
 describe('preload', () => {
+  it('reads zoom and sends a typed zoom command through checked invoke', async () => {
+    electron.invoke.mockResolvedValueOnce(120).mockResolvedValueOnce(130);
+    await expect(api.ui.getZoom()).resolves.toBe(120);
+    await expect(api.ui.changeZoom({type: 'ui.zoomIn'})).resolves.toBe(130);
+    expect(electron.invoke).toHaveBeenCalledWith(Channels.uiZoomGet);
+    expect(electron.invoke).toHaveBeenCalledWith(Channels.uiZoomChange, {
+      type: 'ui.zoomIn',
+    });
+    expect(loggedErrors()).toEqual([]);
+  });
+
+  it('logs and rejects failed or malformed zoom replies', async () => {
+    electron.invoke
+      .mockResolvedValueOnce(105)
+      .mockRejectedValueOnce(new Error('no zoom handler'));
+    await expect(api.ui.getZoom()).rejects.toThrow(
+      `Bad reply on ${Channels.uiZoomGet}`,
+    );
+    await expect(api.ui.changeZoom({type: 'ui.zoomReset'})).rejects.toThrow(
+      'no zoom handler',
+    );
+    expect(loggedErrors()).toHaveLength(2);
+  });
+
   it('passes a valid UI state through', async () => {
     const state = {layout: {normal: {left: 280, right: 480}}};
     electron.invoke.mockResolvedValueOnce(state);

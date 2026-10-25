@@ -1,6 +1,7 @@
 import type {DocumentApi, LlpApi} from '../ipc';
 import type {EditResult} from '../schema/contentEdit';
 import {emptyLiveState} from '../live';
+import {UI_ZOOM} from '../schema/uiZoom';
 
 /** The members a test replaces, part by part. */
 export type FakeLlpApiParts = {
@@ -24,6 +25,8 @@ export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
     ui: {
       get: () => Promise.resolve({}),
       setLayout: () => undefined,
+      getZoom: () => Promise.resolve(UI_ZOOM.defaultPercent),
+      changeZoom: () => Promise.resolve(UI_ZOOM.defaultPercent),
       ...overrides.ui,
     },
     log: {write: () => undefined, ...overrides.log},

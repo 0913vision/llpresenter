@@ -8,6 +8,8 @@ describe('fakeLlpApi', () => {
 
     await expect(api.live.get()).resolves.toEqual(emptyLiveState());
     await expect(api.ui.get()).resolves.toEqual({});
+    await expect(api.ui.getZoom()).resolves.toBe(100);
+    await expect(api.ui.changeZoom({type: 'ui.zoomIn'})).resolves.toBe(100);
     await expect(api.service.get()).resolves.toBeNull();
     await expect(api.output.getStatus()).resolves.toEqual({});
     await expect(api.songs.list()).resolves.toEqual([]);

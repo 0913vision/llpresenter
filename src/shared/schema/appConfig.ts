@@ -10,6 +10,7 @@ import {
 } from './fileFormat';
 import {macroCollectionIdSchema, screenIdSchema, serviceIdSchema} from './ids';
 import type {MigrationStep} from './migration';
+import {UI_ZOOM, uiZoomPercentSchema} from './uiZoom';
 import {
   jsonObject,
   nonNegativeNumber,
@@ -43,6 +44,9 @@ const appConfigSchema = jsonObject({
   mediaPath: v.exactOptional(v.string()),
   backupPath: v.exactOptional(v.string()),
   lastServiceId: v.exactOptional(serviceIdSchema),
+  uiZoomPercent: v.exactOptional(
+    v.fallback(uiZoomPercentSchema, UI_ZOOM.defaultPercent),
+  ),
   layout: v.exactOptional(appLayoutSchema),
   previewBig: v.exactOptional(screenIdSchema),
   macroView: v.exactOptional(v.picklist(['grid', 'list'])),
