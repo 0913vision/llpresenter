@@ -1,12 +1,12 @@
 import {defaultPreferences} from '@shared/schema/preferences';
+import type {Screen} from '@shared/schema/screens';
 import type {SettingsName} from '@shared/schema/settingsDocuments';
+import {STARTER_SCREEN_IDS} from '@shared/screens';
 import {DEFAULT_LABELS} from './defaults';
 
 const uuid = (number: number): string =>
   `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;
-const MAIN = uuid(1);
-const CAPTIONS = uuid(2);
-const STAGE = uuid(3);
+const {main: MAIN, broadcast: CAPTIONS, stage: STAGE} = STARTER_SCREEN_IDS;
 const LOOK = uuid(4);
 const LAYOUT = uuid(5);
 const style = {
@@ -22,13 +22,17 @@ const style = {
   shadow: true,
   outline: false,
 };
-const screen = (id: string, name: string, kind: string) => ({
+const screen = (
+  id: string,
+  name: string,
+  {kind, method}: Pick<Screen, 'kind' | 'method'>,
+) => ({
   id,
   name,
   kind,
-  method: 'fullscreen',
+  method,
   onDisconnect: 'window',
-  alwaysOnTop: true,
+  alwaysOnTop: method === 'fullscreen',
   preventSleep: true,
   edgeMargin: 0,
   offset: {x: 0, y: 0},
@@ -43,14 +47,13 @@ const element = (
 export const settingsDefaults: Readonly<Record<SettingsName, object>> = {
   screens: {
     screens: [
-      screen(MAIN, '본 화면', 'audience'),
+      screen(MAIN, '본 화면', {kind: 'audience', method: 'fullscreen'}),
       {
-        ...screen(CAPTIONS, '방송 자막', 'audience'),
-        method: 'capture',
+        ...screen(CAPTIONS, '방송 자막', {kind: 'audience', method: 'capture'}),
         resolution: {width: 1920, height: 1080},
         previewBackground: 'green',
       },
-      screen(STAGE, '무대 화면', 'stage'),
+      screen(STAGE, '무대 화면', {kind: 'stage', method: 'fullscreen'}),
     ],
   },
   looks: {
