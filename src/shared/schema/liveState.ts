@@ -8,7 +8,6 @@ import {
   liveTextSchema,
   liveNonBlankTextSchema,
   liveOutputsSchema,
-  fitsLiveStateByteBudget,
 } from './liveLimits';
 import {
   activeMessagesSchema,
@@ -75,12 +74,5 @@ export const liveStateSchema = payloadObject({
 export function parseLiveState(
   value: unknown,
 ): Result<LiveState, PayloadError> {
-  const parsed = parsePayload(liveStateSchema, value);
-  if (!parsed.ok) return parsed;
-  return fitsLiveStateByteBudget(value)
-    ? parsed
-    : {
-        ok: false,
-        error: {field: '', message: 'The live state exceeds its byte budget'},
-      };
+  return parsePayload(liveStateSchema, value);
 }

@@ -9,6 +9,7 @@ import {
 } from 'vitest';
 import {Channels, type LlpApi} from '@shared/ipc';
 import {emptyLiveState} from '@shared/live';
+import {LIVE_STATE_LIMITS} from '@shared/schema/liveLimits';
 import {createSongId} from '@shared/schema/ids';
 import {
   songIdSchema,
@@ -198,6 +199,27 @@ function loggedErrors(): unknown[] {
 }
 
 describe('preload', () => {
+  it('validates live broadcasts without serialization or a second byte-budget pass', () => {
+    const listener = vi.fn();
+    const remove = api.live.subscribe(listener);
+    const handler = electron.handlers.get(Channels.liveChanged);
+    if (handler === undefined) throw new Error('Missing live listener');
+    const value = {
+      ...emptyLiveState(),
+      future: 'x'.repeat(LIVE_STATE_LIMITS.bytes),
+    };
+    const stringify = vi.spyOn(JSON, 'stringify');
+    const encode = vi.spyOn(TextEncoder.prototype, 'encode');
+    handler({}, value);
+    const serialized = stringify.mock.calls.length;
+    const encoded = encode.mock.calls.length;
+    stringify.mockRestore();
+    encode.mockRestore();
+    expect(listener).toHaveBeenCalledExactlyOnceWith(emptyLiveState());
+    expect(serialized).toBe(0);
+    expect(encoded).toBe(0);
+    remove();
+  });
   it('validates flush requests, exposes only their payload, and removes the subscription', () => {
     const listener = vi.fn();
     const remove = api.app.subscribeFlushRequests(listener);

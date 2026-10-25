@@ -13,6 +13,11 @@ import type {ActionContext, MacroPlan} from './types';
 
 export const MAX_LOGGED_MACRO_PROBLEMS = 5;
 
+function observe(context: SliceContext, effect: () => void): void {
+  if (context.defer === undefined) effect();
+  else context.defer(effect);
+}
+
 export interface MacroRunnerOptions {
   readonly settings: SettingsReader;
   readonly media: () => MediaList;
@@ -39,7 +44,7 @@ export class MacroRunner implements MacroCommandPort {
     const id =
       command.type === 'macro.run'
         ? command.macroId
-        : this.itemMacro(command.itemId);
+        : this.itemMacro(command.itemId, context);
     if (id === undefined) return history;
     const catalog = readMacroCatalog(
       this.options.settings,
@@ -56,21 +61,25 @@ export class MacroRunner implements MacroCommandPort {
       state: history.state,
       supports: this.options.supports,
     });
+    observe(context, () => this.report(plan));
+    return context.apply(history, {
+      type: 'live.batch',
+      commands: plan.commands,
+    });
+  }
+
+  private report(plan: MacroPlan): void {
     this.latest = plan;
     const problems = plan.problems.filter(
       problem => problem.reason !== 'unsupported-command',
     );
     if (problems.length > 0) {
       this.options.log.warn('skipped macro actions', {
-        macroId: id,
+        macroId: plan.macroId,
         count: problems.length,
         problems: problems.slice(0, MAX_LOGGED_MACRO_PROBLEMS),
       });
     }
-    return context.apply(history, {
-      type: 'live.batch',
-      commands: plan.commands,
-    });
   }
 
   startupIds(): readonly MacroId[] {
@@ -82,7 +91,10 @@ export class MacroRunner implements MacroCommandPort {
       : [];
   }
 
-  private itemMacro(itemId: ServiceItemId): MacroId | undefined {
+  private itemMacro(
+    itemId: ServiceItemId,
+    context: SliceContext,
+  ): MacroId | undefined {
     const item = requireMacroTarget(
       this.options.item(itemId),
       'service-item',
@@ -91,11 +103,13 @@ export class MacroRunner implements MacroCommandPort {
     if (!('macro' in item)) return undefined;
     const parsed = parseMacroId(item.macro);
     if (!parsed.ok) {
-      this.options.log.warn('skipped invalid item start macro', {
-        itemId,
-        reason: 'invalid-action',
-        error: parsed.error,
-      });
+      observe(context, () =>
+        this.options.log.warn('skipped invalid item start macro', {
+          itemId,
+          reason: 'invalid-action',
+          error: parsed.error,
+        }),
+      );
       return undefined;
     }
     return parsed.value;

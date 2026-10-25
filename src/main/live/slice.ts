@@ -34,6 +34,8 @@ export type SliceInitial = Omit<Partial<LiveState>, 'layers'> & {
 
 /** The command time and the same registry path for a transaction's children. */
 export interface SliceContext extends SliceInputs {
+  /** Defers an observation until this reduction attempt is selected. */
+  readonly defer?: (effect: () => void) => void;
   /** Records a validation skip and returns this command's unchanged history. */
   readonly reject: (error: PayloadError) => LiveHistory;
   readonly apply: (history: LiveHistory, command: LiveCommand) => LiveHistory;

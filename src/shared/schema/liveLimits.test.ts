@@ -2,16 +2,8 @@ import {describe, expect, it} from 'vitest';
 import {emptyLiveState} from '../live';
 import {parseLiveCommand, parseLiveCommandRequest} from './liveCommand';
 import {parseLiveState} from './liveState';
-import {
-  LIVE_STATE_LIMITS,
-  LIVE_OUTPUT_ALIASES,
-  LIVE_STATE_BYTE_BUDGET,
-} from './liveLimits';
-import {
-  parseRecoveryRecord,
-  serializeRecoveryRecord,
-  type RecoveryRecord,
-} from './recoveryRecord';
+import {LIVE_STATE_LIMITS, LIVE_OUTPUT_ALIASES} from './liveLimits';
+import {parseRecoveryRecord} from './recoveryRecord';
 import {expectSuccess} from './testHelpers';
 
 const uuid = (index: number) =>
@@ -148,36 +140,5 @@ describe('shared live and recovery limits', () => {
     );
     expect(parseLiveState(state({}, {outputs: withoutAliases})).ok).toBe(false);
     expect(record(state({}, {outputs: withoutAliases})).ok).toBe(false);
-  });
-
-  it('reserves the recovery header at the aggregate live byte budget and rejects one byte more', () => {
-    const base = {...emptyLiveState(), futurePadding: ''};
-    const size = new TextEncoder().encode(
-      `${JSON.stringify({state: base}, null, 2)}\n`,
-    ).byteLength;
-    const atLimit = {
-      ...base,
-      futurePadding: 'x'.repeat(LIVE_STATE_BYTE_BUDGET - size),
-    };
-    expect(parseLiveState(atLimit).ok).toBe(true);
-    expect(
-      parseLiveState({...atLimit, futurePadding: `${atLimit.futurePadding}x`})
-        .ok,
-    ).toBe(false);
-    const saved = expectSuccess(record(atLimit));
-    expect(serializeRecoveryRecord(saved.data).ok).toBe(true);
-    const writable: RecoveryRecord = {
-      format: 'llrecovery',
-      schemaVersion: 1,
-      savedAt: '2026-10-26T00:00:00.000Z',
-      serviceId: null,
-      state: atLimit,
-    };
-    expect(serializeRecoveryRecord(writable).ok).toBe(true);
-    const cyclic: Record<string, unknown> = {};
-    cyclic['self'] = cyclic;
-    expect(parseLiveState({...emptyLiveState(), future: cyclic}).ok).toBe(
-      false,
-    );
   });
 });

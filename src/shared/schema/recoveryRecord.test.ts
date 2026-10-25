@@ -74,6 +74,15 @@ function readState(state: unknown) {
 }
 
 describe('recovery record files', () => {
+  it('preserves main current-Look support, accepts old records without it, and rejects invalid Look ids', () => {
+    for (const fields of [{}, {lookId: null}, {lookId: uuid(4)}]) {
+      const value = {...record(), state: stateWith({}, fields)};
+      expectRoundTrip(codec, value);
+    }
+    expect(
+      expectFailure(readState(stateWith({}, {lookId: 'invalid'}))).field,
+    ).toBe('state.lookId');
+  });
   it('round trips a current record, null service, BOM, and stable JSON', () => {
     expectRoundTrip(codec, record());
     expectRoundTrip(codec, {...record(), serviceId: null});

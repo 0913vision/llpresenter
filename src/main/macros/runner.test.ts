@@ -1,6 +1,7 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {parseLiveCommand} from '@shared/schema/liveCommand';
 import {parseService} from '@shared/schema/service';
+import {LIVE_STATE_LIMITS} from '@shared/schema/liveLimits';
 import {LiveStore, dispatchLogged} from '../live/store';
 import {SliceRegistry} from '../live/sliceRegistry';
 import {batchSlice} from '../live/slices/batch';
@@ -61,6 +62,32 @@ function harness(
 }
 
 describe('macro live execution', () => {
+  it('reports the selected macro plan once when another child requires admission retry', () => {
+    const {store, runner, log, id} = harness([{kind: 'look', look: uuid(99)}]);
+    dispatchLogged(
+      store,
+      {
+        type: 'live.batch',
+        commands: [
+          {type: 'macro.run', macroId: id},
+          {
+            type: 'message.show',
+            message: {
+              messageId: 'invalid',
+              text: 'x'.repeat(LIVE_STATE_LIMITS.textCharacters + 1),
+            },
+          },
+        ],
+      },
+      log,
+    );
+    expect(log.messages('warn')).toEqual([
+      'skipped macro actions',
+      'skipped live command',
+    ]);
+    expect(runner.lastRun?.problems).toHaveLength(1);
+    expect(store.state.layers.message).toBeNull();
+  });
   it('reports skipped actions in one bounded warning with the total count', () => {
     const {store, runner, log, id} = harness(
       Array.from({length: 12}, () => ({kind: 'look', look: uuid(99)})),

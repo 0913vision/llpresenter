@@ -38,16 +38,3 @@ export const liveOutputsSchema = v.pipe(
     'Too many live outputs',
   ),
 );
-
-/** Includes recovery's state indentation and reserves room for its bounded header. */
-export function fitsLiveStateByteBudget(state: unknown): boolean {
-  try {
-    const text = `${JSON.stringify({state}, null, 2)}\n`;
-    return (
-      text.length <= LIVE_STATE_BYTE_BUDGET &&
-      new TextEncoder().encode(text).byteLength <= LIVE_STATE_BYTE_BUDGET
-    );
-  } catch {
-    return false;
-  }
-}
