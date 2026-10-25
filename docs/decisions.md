@@ -267,3 +267,24 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   `main`. A push to `main` only bumps the version (devops-18).
 - The external Windows computer stays a quiet test machine (long soak runs), not
   a self-hosted runner, because the repository is public.
+
+## 2026-10-25: A fallback output window goes behind the control window
+
+- When a full screen output's monitor disconnects and the output switches to a
+  window on the control monitor (spec 03, "When a monitor disconnects during
+  output"), the window goes behind the control window, without focus and without
+  always on top, so it never covers the controls during a service (user decision
+  after the real-monitor unplug check). The notification's 창 보기 action brings
+  it to the front.
+- The window keeps the size and the centered position of `placement.ts` on the
+  control monitor's work area. The unplug check found it at the right edge
+  instead (Windows restored the pre-full-screen bounds on the lost monitor after
+  the app's bounds), a bug for output.
+- The short full screen flash on the control monitor right after the unplug
+  stays: Windows moves the window before the app hears of the change, and the
+  app's 300 ms settle wait (`DISPLAY_SETTLE_MS`) keeps it from reading a
+  half-updated monitor list.
+- ProPresenter has no equivalent to follow: Renewed Vision's support article
+  says a display disconnected while ProPresenter is open leaves the output on
+  the main monitor, and the operator turns it off with Ctrl+1 or reassigns it
+  ([How do I get my output to show on my screens](https://support.renewedvision.com/hc/en-us/articles/360011694234-How-do-I-get-my-output-to-show-on-my-screens)).
