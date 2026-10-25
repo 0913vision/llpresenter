@@ -1,4 +1,5 @@
 import type {LiveCommand} from './commands';
+import type {AppFlushDone, AppFlushRequest} from './schema/appFlush';
 import type {
   LibrarySong,
   ServiceChange,
@@ -49,6 +50,8 @@ import type {
 } from './schema/recovery';
 
 export const Channels = {
+  appFlushRequest: 'app:flush-request',
+  appFlushDone: 'app:flush-done',
   liveGet: 'live:get',
   liveCommand: 'live:command',
   liveChanged: 'live:changed',
@@ -108,6 +111,14 @@ export type Unsubscribe = () => void;
 
 /** The API that the preload script exposes to windows as `window.llp`. */
 export interface LlpApi {
+  readonly app: {
+    /** Returns a function that removes the control window's flush listener. */
+    subscribeFlushRequests(
+      listener: (request: AppFlushRequest) => void,
+    ): Unsubscribe;
+    /** Replies with the editor's flush result for one request. */
+    flushDone(reply: AppFlushDone): void;
+  };
   readonly live: {
     /**
      * Reads the live state once. Rejects, after logging, when the call fails or

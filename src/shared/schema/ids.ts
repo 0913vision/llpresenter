@@ -33,6 +33,7 @@ export const propIdSchema = uuidId('PropId');
 export const timerIdSchema = uuidId('TimerId');
 export const messageTemplateIdSchema = uuidId('MessageTemplateId');
 export const quickItemIdSchema = uuidId('QuickItemId');
+export const appFlushRequestIdSchema = uuidId('AppFlushRequestId');
 
 /** Stage layout elements are named within their layout, so they aren't UUIDs. */
 export const stageElementIdSchema = v.pipe(
@@ -65,6 +66,7 @@ export type PropId = v.InferOutput<typeof propIdSchema>;
 export type TimerId = v.InferOutput<typeof timerIdSchema>;
 export type MessageTemplateId = v.InferOutput<typeof messageTemplateIdSchema>;
 export type QuickItemId = v.InferOutput<typeof quickItemIdSchema>;
+export type AppFlushRequestId = v.InferOutput<typeof appFlushRequestIdSchema>;
 export type StageElementId = v.InferOutput<typeof stageElementIdSchema>;
 export type TranslationId = v.InferOutput<typeof translationIdSchema>;
 
@@ -109,4 +111,9 @@ export function createMediaPlaylistId(uuid: string): MediaPlaylistId {
 
 export function createAudioPlaylistId(uuid: string): AudioPlaylistId {
   return v.parse(audioPlaylistIdSchema, uuid);
+}
+
+/** Brands a new flush-handshake UUID; throws unless it is lowercase version 4. */
+export function createAppFlushRequestId(uuid: string): AppFlushRequestId {
+  return v.parse(appFlushRequestIdSchema, uuid);
 }

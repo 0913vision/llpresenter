@@ -6,6 +6,7 @@ import {
   type Unsubscribe,
 } from '@shared/ipc';
 import type {Result} from '@shared/result';
+import {parseAppFlushDone, parseAppFlushRequest} from '@shared/schema/appFlush';
 import {
   parseLibrarySongs,
   parseServiceChange,
@@ -170,6 +171,18 @@ function documentApi<TEntry, TDocument, TChange>(
 }
 
 const api: LlpApi = {
+  app: {
+    subscribeFlushRequests: listener =>
+      listen(Channels.appFlushRequest, parseAppFlushRequest, listener),
+    flushDone: reply => {
+      const parsed = parseAppFlushDone(reply);
+      if (!parsed.ok) {
+        logBadValue('request', Channels.appFlushDone, parsed.error);
+        return;
+      }
+      ipcRenderer.send(Channels.appFlushDone, parsed.value);
+    },
+  },
   live: {
     get: () => invokeChecked(Channels.liveGet, parseLiveState),
     send: command => {

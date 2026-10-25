@@ -17,6 +17,11 @@ export type FakeLlpApiParts = {
  */
 export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
   return {
+    app: {
+      subscribeFlushRequests: () => () => undefined,
+      flushDone: () => undefined,
+      ...overrides.app,
+    },
     live: {
       get: () => Promise.resolve(emptyLiveState()),
       send: () => undefined,

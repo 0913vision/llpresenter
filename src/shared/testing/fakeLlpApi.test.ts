@@ -1,9 +1,26 @@
 import {describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '../live';
 import {fakeLlpApi} from './fakeLlpApi';
+import {createAppFlushRequestId} from '../schema/ids';
 import {createServiceId} from '../schema/ids';
 
 describe('fakeLlpApi', () => {
+  it('supplies flush defaults and supports a partial app override', () => {
+    const requestId = createAppFlushRequestId(
+      'a41e0c52-7e1f-4a2b-8c3d-4e5f60718293',
+    );
+    const reply = {requestId, result: true};
+    expect(() => {
+      const api = fakeLlpApi();
+      api.app.subscribeFlushRequests(() => undefined)();
+      api.app.flushDone(reply);
+    }).not.toThrow();
+    const flushDone = vi.fn();
+    const api = fakeLlpApi({app: {flushDone}});
+    api.app.subscribeFlushRequests(() => undefined)();
+    api.app.flushDone(reply);
+    expect(flushDone).toHaveBeenCalledExactlyOnceWith(reply);
+  });
   it('answers reads with empty states and ignores sends', async () => {
     const api = fakeLlpApi();
 

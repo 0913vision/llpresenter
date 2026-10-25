@@ -9,10 +9,14 @@ import {
 } from 'vitest';
 import {Channels, type LlpApi} from '@shared/ipc';
 import {emptyLiveState} from '@shared/live';
-import {songIdSchema} from '@shared/schema/ids';
+import {
+  songIdSchema,
+  createAppFlushRequestId,
+  createMediaId,
+  createServiceId,
+} from '@shared/schema/ids';
 import {testId} from '@shared/schema/testHelpers';
 import {defaultPreferences} from '@shared/schema/preferences';
-import {createMediaId, createServiceId} from '@shared/schema/ids';
 
 type Handler = (event: unknown, value: unknown) => void;
 
@@ -110,6 +114,60 @@ function loggedErrors(): unknown[] {
 }
 
 describe('preload', () => {
+  it('validates flush requests, exposes only their payload, and removes the subscription', () => {
+    const listener = vi.fn();
+    const remove = api.app.subscribeFlushRequests(listener);
+    onTestFinished(remove);
+    const handler = electron.handlers.get(Channels.appFlushRequest);
+    if (handler === undefined) {
+      throw new Error('Missing flush request listener');
+    }
+    handler({sender: 'private'}, {requestId: SONG_ID, extra: true});
+    expect(listener).toHaveBeenCalledExactlyOnceWith({requestId: SONG_ID});
+    for (const value of [null, [], {}, {requestId: 'bad'}]) {
+      handler({}, value);
+    }
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(loggedErrors()).toHaveLength(4);
+    remove();
+    expect(electron.handlers.has(Channels.appFlushRequest)).toBe(false);
+  });
+
+  it('sends schema-checked positive and negative flush replies with the request ID', () => {
+    const requestId = createAppFlushRequestId(SONG_ID);
+    for (const result of [true, false]) api.app.flushDone({requestId, result});
+    Reflect.apply(api.app.flushDone, undefined, [
+      {requestId, result: true, extra: true},
+    ]);
+    expect(electron.send.mock.calls).toEqual([
+      [Channels.appFlushDone, {requestId, result: true}],
+      [Channels.appFlushDone, {requestId, result: false}],
+      [Channels.appFlushDone, {requestId, result: true}],
+    ]);
+  });
+
+  it('drops and logs malformed flush replies before IPC', () => {
+    for (const value of [
+      null,
+      [],
+      {requestId: 'bad', result: true},
+      {requestId: SONG_ID},
+      {requestId: SONG_ID, result: 'true'},
+    ]) {
+      Reflect.apply(api.app.flushDone, undefined, [value]);
+    }
+    expect(
+      electron.send.mock.calls.every(
+        ([channel]) => channel === Channels.logWrite,
+      ),
+    ).toBe(true);
+    expect(loggedErrors()).toHaveLength(5);
+    expect(loggedErrors()[0]).toHaveProperty(
+      'message',
+      `Ignored a bad request on ${Channels.appFlushDone}`,
+    );
+  });
+
   it('reads eligible recovery rows and sends checked recovery decisions', async () => {
     const summary = {
       savedAt: '2026-10-25T12:00:00Z',
