@@ -81,3 +81,13 @@ Please check client versus outer bounds, native size proof, method transitions,
 always-on-top choices versus fallback safety, and preservation of the output-21
 disconnect/reconnect behavior. The O6a soak and the fps-meter item stay
 deferred.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (9bf7c46): reviewer (Claude, trial-97) Approve. Nit for output-25:
+  `src/main/outputs/electronWindow.ts` `CAPTURE_BACKGROUND = '#00b140'` repeats
+  the `--chroma` token; read it from the design token data or add a test that it
+  equals `tokens.json`'s `chroma`, so the two cannot drift. No window opens on
+  this PC (the real-window check runs only on the GitHub runner). Lead Approve.
+  Written by the Codex session that took over output's work. Rebased by the lead
+  onto local `main` without conflicts.
