@@ -20,14 +20,16 @@ import {useLive} from './live';
 import {
   applyService,
   jumpLabelFor,
-  librarySourceId,
   openItem,
-  openLibrarySong,
   outputTile,
-  refreshLibrarySong,
   selectTile,
   useShow,
 } from './show';
+import {
+  librarySourceId,
+  openLibrarySong,
+  refreshLibrarySong,
+} from './showLibrary';
 
 const songId = createSongId('10000000-0000-4000-8000-000000000001');
 const mediaId = createMediaId('30000000-0000-4000-8000-000000000001');
@@ -70,6 +72,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
   useShow.setState({librarySong: null});
   applyService(null);
   delete window.llp;
@@ -203,19 +206,136 @@ it('preserves the selected library source through service pushes and clamps refr
   });
 });
 
-it('keeps current output when a source is deleted or its fresh read fails', async () => {
+it('does not output a source whose fresh read confirms deletion', async () => {
   const {api, send} = setup();
-  const read = vi.spyOn(api.library, 'showSong').mockResolvedValueOnce(null);
+  vi.spyOn(api.library, 'showSong').mockResolvedValueOnce(null);
   openLibrarySong(song());
   outputTile({itemId, index: 0});
   await waitFor(() => expect(useShow.getState().librarySong).toBeNull());
   expect(send).not.toHaveBeenCalled();
+});
+
+it.each(['failure', 'timeout'] as const)(
+  'outputs the latest retained tile and keeps media on lookup %s',
+  async mode => {
+    vi.useFakeTimers();
+    const {api, send, showSong} = setup();
+    const log = vi.spyOn(api.log, 'write');
+    let fail: (cause: Error) => void = () => undefined;
+    let finish: (value: ShowLibrarySong) => void = () => undefined;
+    showSong.mockImplementationOnce(
+      () =>
+        new Promise((resolve, reject) => {
+          finish = resolve;
+          fail = reject;
+        }),
+    );
+    openLibrarySong(song());
+    outputTile({itemId, index: 0});
+    refreshLibrarySong(
+      songId,
+      song({
+        songRevision: 2,
+        tiles: [
+          {label: '후렴', labelColor: 'orange', lines: ['갱신된 창작 가사']},
+        ],
+      }),
+    );
+    if (mode === 'failure') {
+      fail(new Error('Invented read failure'));
+      await vi.advanceTimersByTimeAsync(0);
+    } else {
+      await vi.advanceTimersByTimeAsync(1999);
+      expect(send).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(1);
+    }
+    expect(send).toHaveBeenCalledExactlyOnceWith({
+      type: 'slide.show',
+      slide: {itemId, position: 0, label: '후렴', lines: ['갱신된 창작 가사']},
+    });
+    expect(log).toHaveBeenCalledWith(expect.objectContaining({level: 'warn'}));
+    expect(vi.getTimerCount()).toBe(0);
+    finish(song({songRevision: 3}));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(useShow.getState().librarySong?.songRevision).toBe(2);
+  },
+);
+
+it.each(['failure', 'timeout'] as const)(
+  'drops the cached fallback after a newer output on lookup %s',
+  async mode => {
+    vi.useFakeTimers();
+    const {send, showSong} = setup();
+    let fail: (cause: Error) => void = () => undefined;
+    showSong.mockImplementationOnce(
+      () =>
+        new Promise((_resolve, reject) => {
+          fail = reject;
+        }),
+    );
+    openLibrarySong(song());
+    outputTile({itemId, index: 0});
+    outputTile({itemId: 'song-morning', index: 0});
+    if (mode === 'failure') {
+      fail(new Error('Invented read failure'));
+      await vi.advanceTimersByTimeAsync(0);
+    } else {
+      await vi.advanceTimersByTimeAsync(2000);
+    }
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(send.mock.calls[0]?.[0]).toMatchObject({
+      type: 'slide.show',
+      slide: {itemId: 'song-morning'},
+    });
+    expect(vi.getTimerCount()).toBe(0);
+  },
+);
+
+it('does not output a cached tile removed while a failing lookup was pending', async () => {
+  vi.useFakeTimers();
+  const {send, showSong} = setup();
+  let fail: (cause: Error) => void = () => undefined;
+  showSong.mockImplementationOnce(
+    () =>
+      new Promise((_resolve, reject) => {
+        fail = reject;
+      }),
+  );
   openLibrarySong(song());
-  const log = vi.spyOn(api.log, 'write');
-  read.mockRejectedValueOnce(new Error('Invented read failure'));
-  outputTile({itemId, index: 0});
-  await waitFor(() => expect(log).toHaveBeenCalled());
+  outputTile({itemId, index: 1});
+  refreshLibrarySong(songId, song({songRevision: 2, tiles: []}));
+  fail(new Error('Invented read failure'));
+  await vi.advanceTimersByTimeAsync(0);
   expect(send).not.toHaveBeenCalled();
+  expect(vi.getTimerCount()).toBe(0);
+});
+
+it('uses a newer retained tile without applying an older lookup background', async () => {
+  const {send, showSong} = setup();
+  let finish: (value: ShowLibrarySong) => void = () => undefined;
+  showSong.mockImplementationOnce(
+    () =>
+      new Promise(resolve => {
+        finish = resolve;
+      }),
+  );
+  openLibrarySong(song());
+  outputTile({itemId, index: 0});
+  refreshLibrarySong(
+    songId,
+    song({
+      songRevision: 2,
+      tiles: [{label: null, labelColor: 'none', lines: ['최신 창작 가사']}],
+    }),
+  );
+  finish(song());
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1));
+  expect(send).toHaveBeenCalledExactlyOnceWith({
+    type: 'slide.show',
+    slide: {itemId, position: 0, label: null, lines: ['최신 창작 가사']},
+  });
+  expect(useShow.getState().librarySong?.songRevision).toBe(2);
 });
 
 it('refreshes on document feeds, ignores stale responses, and releases all subscriptions', async () => {

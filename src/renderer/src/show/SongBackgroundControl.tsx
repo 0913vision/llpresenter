@@ -9,6 +9,7 @@ import {useTooltip} from '@renderer/ui/Tooltip';
 import {TruncatedText} from '@renderer/ui/TruncatedText';
 import type {Notice} from '@renderer/ui/notices';
 import {useSongBackground} from './useSongBackground';
+import {MISSING_BACKGROUND_TIP} from './problemReasons';
 import styles from './SongBackgroundControl.module.css';
 
 const ICON_SIZE = 14;
@@ -47,7 +48,7 @@ function Picture({media}: {readonly media: MediaItem}): JSX.Element {
 }
 
 function BackgroundWarning(): JSX.Element {
-  const reason = '배경 파일을 찾을 수 없음';
+  const reason = MISSING_BACKGROUND_TIP;
   const {targetProps, tooltip} = useTooltip({text: reason});
   return (
     <>

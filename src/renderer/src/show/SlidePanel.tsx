@@ -4,7 +4,8 @@ import {
   type SizeClass,
 } from '@renderer/shell/sizeClass';
 import {useLive} from '@renderer/state/live';
-import {librarySourceId, shownTiles, useShow} from '@renderer/state/show';
+import {useShow} from '@renderer/state/show';
+import {isLibrarySource, shownTiles} from '@renderer/state/showLibrary';
 import {
   saveThumbnailScale,
   showThumbnailScale,
@@ -13,6 +14,7 @@ import {
 import {Icon, ThumbnailSizeControl} from '@renderer/ui';
 import {useTooltip} from '@renderer/ui/Tooltip';
 import {SlideGrid} from './SlideGrid';
+import {MISSING_BACKGROUND_TIP, READ_ONLY_TIP} from './problemReasons';
 import styles from './SlidePanel.module.css';
 
 const PROBLEM_ICON_SIZE = 14;
@@ -38,21 +40,19 @@ export function SlidePanelBody({
 export function SlidePanelMeta(): JSX.Element | null {
   const openItemId = useShow(view => view.openItemId);
   const source = useShow(view =>
-    view.librarySong && openItemId === librarySourceId(view.librarySong.songId)
-      ? view.librarySong
-      : null,
+    isLibrarySource(view, openItemId) ? view.librarySong : null,
   );
   const reason =
     source?.problem === 'missing-background'
-      ? '배경 파일을 찾을 수 없음'
+      ? MISSING_BACKGROUND_TIP
       : source?.readOnly
-        ? '새 버전의 파일이라 읽기 전용으로 엽니다.'
+        ? READ_ONLY_TIP
         : undefined;
   const {targetProps, tooltip} = useTooltip(
     reason ? {text: reason} : undefined,
   );
   const title = useShow(view =>
-    view.librarySong && openItemId === librarySourceId(view.librarySong.songId)
+    isLibrarySource(view, openItemId)
       ? view.librarySong.title
       : view.rows.find(row => row.id === openItemId)?.title,
   );

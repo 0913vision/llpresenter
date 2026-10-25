@@ -1,10 +1,7 @@
-import {create} from 'zustand';
 import {parseServiceItemId} from '@shared/schema/ids';
 import type {ShowService} from '@shared/schema/showService';
-import type {ShowLibrarySong} from '@shared/schema/showLibrarySong';
 import {
   type ItemId,
-  type ServiceRow,
   type SlideTile,
   type TileCursor,
 } from '@renderer/show/model';
@@ -18,103 +15,18 @@ import {
 } from '@renderer/show/navigation';
 import {slideLayerOf} from '@renderer/show/slideLayer';
 import {sendLive, useLive} from './live';
+import {isLibrarySource, outputLibraryTile, tilesForView} from './showLibrary';
+import {
+  beginOutputRequest,
+  isOutputRequestCurrent,
+  readSongBackgrounds,
+} from './showOutput';
+import {noService, useShow, type ShowView} from './showStore';
 
-interface ShowView {
-  readonly librarySong: ShowLibrarySong | null;
-  // NOTE(0913vision): The revision is null while no service is open.
-  readonly revision: number | null;
-  readonly serviceId: string | null;
-  readonly serviceName: string;
-  // NOTE(0913vision): A read-only service comes from a newer app version.
-  readonly readOnly: boolean;
-  readonly rows: readonly ServiceRow[];
-  readonly tiles: Readonly<Record<ItemId, readonly SlideTile[]>>;
-  readonly openItemId: ItemId | null;
-  readonly selectedTile: number;
-  // NOTE(0913vision): Jump keys map a physical key (`KeyboardEvent.code`) to an
-  // 이름표 name.
-  readonly jumpKeys: Readonly<Record<string, string>>;
-}
-
-const noTiles: readonly SlideTile[] = [];
-const BACKGROUND_LOOKUP_TIMEOUT_MS = 2000;
-let outputRequest = 0;
-
-const noService = {
-  revision: null,
-  serviceId: null,
-  serviceName: '',
-  readOnly: false,
-  rows: [],
-  tiles: {},
-  jumpKeys: {},
-} as const satisfies Partial<ShowView>;
-
-export const useShow = create<ShowView>(() => ({
-  ...noService,
-  librarySong: null,
-  openItemId: null,
-  selectedTile: 0,
-}));
+export {useShow} from './showStore';
 
 export function tilesOf(itemId: ItemId): readonly SlideTile[] {
-  const song = useShow.getState().librarySong;
-  if (song && itemId === librarySourceId(song.songId)) return song.tiles;
-  return useShow.getState().tiles[itemId] ?? noTiles;
-}
-
-/** Namespaces a library source without inventing a service item. */
-export function librarySourceId(songId: ShowLibrarySong['songId']): ItemId {
-  return `library:${songId}`;
-}
-
-/** Selects the open source's tiles without copying either projection. */
-export function shownTiles(view: ShowView): readonly SlideTile[] | undefined {
-  if (view.openItemId === null) return undefined;
-  if (
-    view.librarySong &&
-    view.openItemId === librarySourceId(view.librarySong.songId)
-  ) {
-    return view.librarySong.tiles;
-  }
-  return view.tiles[view.openItemId];
-}
-
-/** Opens a checked library projection without writing a service or output. */
-export function openLibrarySong(song: ShowLibrarySong): void {
-  ++outputRequest;
-  useShow.setState({
-    librarySong: song,
-    openItemId: librarySourceId(song.songId),
-    selectedTile: 0,
-  });
-}
-
-/** Updates only the retained library source; a deleted source leaves output alone. */
-export function refreshLibrarySong(
-  songId: ShowLibrarySong['songId'],
-  song: ShowLibrarySong | null,
-): void {
-  const current = useShow.getState();
-  if (
-    current.librarySong?.songId !== songId ||
-    (song && song.songId !== songId) ||
-    (song && song.songRevision < current.librarySong.songRevision)
-  ) {
-    return;
-  }
-  const selected = current.openItemId === librarySourceId(songId);
-  useShow.setState({
-    librarySong: song,
-    ...(selected
-      ? {
-          openItemId: song ? librarySourceId(songId) : null,
-          selectedTile: song
-            ? Math.min(current.selectedTile, Math.max(0, song.tiles.length - 1))
-            : 0,
-        }
-      : {}),
-  });
+  return tilesForView(useShow.getState(), itemId);
 }
 
 /** The tile on output, taken from the live slide layer. */
@@ -162,15 +74,13 @@ function startServiceItem(itemId: ItemId): void {
 export function outputTile(cursor: TileCursor): void {
   const slide = slideLayerOf(cursor, tilesOf);
   if (!slide) return;
-  const request = ++outputRequest;
+  const request = beginOutputRequest();
   const live = useLive.getState();
   const previousItem = live.lastSlideItemId ?? live.state?.layers.slide?.itemId;
   const row = useShow.getState().rows.find(row => row.id === cursor.itemId);
   useShow.setState({openItemId: cursor.itemId, selectedTile: cursor.index});
-  const librarySong = useShow.getState().librarySong;
   if (
-    librarySong &&
-    cursor.itemId === librarySourceId(librarySong.songId) &&
+    isLibrarySource(useShow.getState(), cursor.itemId) &&
     previousItem !== cursor.itemId &&
     window.llp
   ) {
@@ -215,23 +125,6 @@ interface SongOutput {
   readonly serviceId: string | null;
 }
 
-async function readBackgrounds<T>(read: () => Promise<T>): Promise<T> {
-  let timeout: ReturnType<typeof setTimeout> | undefined;
-  try {
-    return await Promise.race([
-      read(),
-      new Promise<never>((_resolve, reject) => {
-        timeout = setTimeout(
-          () => reject(new Error('Song background lookup timed out')),
-          BACKGROUND_LOOKUP_TIMEOUT_MS,
-        );
-      }),
-    ]);
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
 async function outputSongTile({
   cursor,
   request,
@@ -240,7 +133,7 @@ async function outputSongTile({
 }: SongOutput): Promise<void> {
   let service: ShowService | null = null;
   try {
-    service = await readBackgrounds(
+    service = await readSongBackgrounds(
       () => window.llp?.service.get() ?? Promise.resolve(null),
     );
   } catch (error: unknown) {
@@ -251,8 +144,7 @@ async function outputSongTile({
     });
   }
   if (
-    request !== outputRequest ||
-    commandVersion !== useLive.getState().commandVersion ||
+    !isOutputRequestCurrent(request, commandVersion) ||
     serviceId !== useShow.getState().serviceId
   ) {
     return;
@@ -280,50 +172,6 @@ async function outputSongTile({
   sendLive({type: 'slide.show', slide});
 }
 
-async function outputLibraryTile(
-  cursor: TileCursor,
-  request: number,
-  commandVersion: number,
-): Promise<void> {
-  const songId = useShow.getState().librarySong?.songId;
-  if (!songId) return;
-  let song: ShowLibrarySong | null;
-  try {
-    song = await readBackgrounds(
-      () => window.llp?.library.showSong({songId}) ?? Promise.resolve(null),
-    );
-  } catch (cause) {
-    window.llp?.log.write({
-      level: 'warn',
-      message: 'Could not refresh the library song; kept the current output',
-      detail: cause instanceof Error ? cause.message : String(cause),
-    });
-    return;
-  }
-  if (
-    request !== outputRequest ||
-    commandVersion !== useLive.getState().commandVersion ||
-    useShow.getState().librarySong?.songId !== songId ||
-    (song &&
-      song.songRevision < (useShow.getState().librarySong?.songRevision ?? 0))
-  ) {
-    return;
-  }
-  refreshLibrarySong(songId, song);
-  if (!song) return;
-  const slide = slideLayerOf(cursor, tilesOf);
-  if (!slide) return;
-  const current = useLive.getState().state?.layers.media;
-  if (
-    song.background &&
-    (current?.mediaId !== song.background.mediaId ||
-      current.loop !== song.background.loop)
-  ) {
-    sendLive({type: 'media.show', media: song.background});
-  }
-  sendLive({type: 'slide.show', slide});
-}
-
 function outputIfPresent(cursor: TileCursor | null): void {
   if (cursor) outputTile(cursor);
 }
@@ -337,12 +185,12 @@ export function outputPrevious(): void {
 }
 
 export function jumpLabelFor(code: string): string | undefined {
-  const song = useShow.getState().librarySong;
-  const source = liveCursor()?.itemId ?? useShow.getState().openItemId;
-  if (song && source === librarySourceId(song.songId)) {
-    return song.jumpKeys[code];
+  const view = useShow.getState();
+  const source = liveCursor()?.itemId ?? view.openItemId;
+  if (isLibrarySource(view, source)) {
+    return view.librarySong.jumpKeys[code];
   }
-  return useShow.getState().jumpKeys[code];
+  return view.jumpKeys[code];
 }
 
 /** Outputs the first tile with an 이름표 after the live 장, or the first in the sequence. */
@@ -373,13 +221,13 @@ export function openPreviousItem(): void {
 
 /** 출력 중인 항목 열기: opens the item of the live 장 in the 장 panel. */
 export function revealLiveItem(): void {
-  const {rows, openItemId} = useShow.getState();
-  const song = useShow.getState().librarySong;
-  if (song && liveCursor()?.itemId === librarySourceId(song.songId)) {
-    openItem(librarySourceId(song.songId));
+  const view = useShow.getState();
+  const live = liveCursor();
+  if (live && isLibrarySource(view, live.itemId)) {
+    openItem(live.itemId);
     return;
   }
-  const target = liveItem({rows, live: liveCursor(), current: openItemId});
+  const target = liveItem({rows: view.rows, live, current: view.openItemId});
   if (target !== null) openItem(target);
 }
 
@@ -393,9 +241,9 @@ function isStale(service: ShowService): boolean {
 function keptSelection(
   service: ShowService,
 ): Pick<ShowView, 'openItemId' | 'selectedTile'> {
-  const {openItemId, selectedTile} = useShow.getState();
-  const song = useShow.getState().librarySong;
-  if (song && openItemId === librarySourceId(song.songId)) {
+  const view = useShow.getState();
+  const {openItemId, selectedTile} = view;
+  if (isLibrarySource(view, openItemId)) {
     return {openItemId, selectedTile};
   }
   const stillThere =
@@ -413,9 +261,9 @@ function keptSelection(
  */
 export function applyService(service: ShowService | null): void {
   if (service === null) {
-    const {librarySong, openItemId, selectedTile} = useShow.getState();
-    const keepLibrary =
-      librarySong && openItemId === librarySourceId(librarySong.songId);
+    const view = useShow.getState();
+    const {openItemId, selectedTile} = view;
+    const keepLibrary = isLibrarySource(view, openItemId);
     useShow.setState({
       ...noService,
       openItemId: keepLibrary ? openItemId : null,

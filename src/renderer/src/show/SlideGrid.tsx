@@ -1,10 +1,6 @@
 import {useCallback, useEffect, useRef, type JSX} from 'react';
-import {
-  outputTile,
-  selectTile,
-  shownTiles,
-  useShow,
-} from '@renderer/state/show';
+import {outputTile, selectTile, useShow} from '@renderer/state/show';
+import {shownTiles} from '@renderer/state/showLibrary';
 import {useLive} from '@renderer/state/live';
 import {SlideThumbnail, ThumbnailGrid, thumbnailWidth} from '@renderer/ui';
 import type {ItemId} from './model';
