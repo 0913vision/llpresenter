@@ -461,20 +461,20 @@ stage layers on and off).
 ### When a monitor disconnects during output
 
 When the monitor of a full screen output that is on disconnects, immediately
-disable always on top for the affected output window and send it to the back of
-the window order, behind every other window, without taking focus. This happens
-on the disconnect event itself, before the 300 ms monitor-list settle wait
-(`DISPLAY_SETTLE_MS`). The automatic fallback operation must not raise the
-control window or any other window. The settle wait only plans placement; the
-relocated full screen output stays behind every other window while monitors
-settle.
+disable always on top for the affected output window and place it directly
+behind the control window without activating either window. Move the control
+window directly above the output window using `moveAbove` with the output
+window's media source id. This happens on the disconnect event itself, before
+the 300 ms monitor-list settle wait (`DISPLAY_SETTLE_MS`). The settle wait only
+plans placement; the relocated full screen output stays behind the control
+window while monitors settle.
 
 1. If the screen's 연결이 끊기면 (when disconnected) setting is 창으로 바꾸기
    (switch to a window), after the settle wait move the same output into a
    window on the control monitor and keep drawing. Content and playback position
    don't break.
-   - Keep the fallback at the back of the window order without taking focus and
-     with always on top disabled, including when only one monitor remains.
+   - Keep the fallback directly behind the control window without taking focus
+     and with always on top disabled, including when only one monitor remains.
    - Use `placement.ts`'s `OUTPUT_WINDOW_SIZE` (960 x 540 DIP, shrunk to fit
      when needed), centered on the control monitor's work area.
 2. That screen's toolbar button shows the monitor missing state (amber dot and
