@@ -27,7 +27,7 @@ export function SlideGrid({columns}: {readonly columns: number}): JSX.Element {
   useEffect(() => {
     if (!isInside()) return;
     keeperRef.current?.querySelector<HTMLElement>('[tabindex="0"]')?.focus();
-  }, [isInside, openItemId]);
+  }, [isInside, openItemId, selectedTile, tiles?.length]);
 
   const onOutput = useCallback(
     (index: number): void => {

@@ -150,6 +150,9 @@ describe('ServiceOrderList', () => {
     expect(useShow.getState().openItemId).toBe('song-river');
   });
 
+  // TODO(0913vision): Restore "re-renders only the rows whose state changed"
+  // when ui's ListBox redraws only the rows whose selected or live state changed.
+
   it('does not take focus when the selection changes from elsewhere', () => {
     render(<ServiceOrderList />);
     openItem('song-river');
@@ -289,6 +292,27 @@ describe('SlideGrid', () => {
     const next = screen.getAllByRole('option');
     expect(next).toHaveLength(3);
     expect(document.activeElement).toBe(next[0]);
+    expect(sent).toHaveLength(0);
+  });
+
+  it('keeps the focus in the grid when a service update removes the focused tile of the same item', () => {
+    seedSampleService();
+    openItem('song-morning');
+    render(<SlideGrid columns={2} />);
+    act(() => useShow.setState({selectedTile: 3}));
+    screen.getAllByRole('option')[3]?.focus();
+    const shorter = sampleService.tiles['song-morning']?.slice(0, 2) ?? [];
+    act(() =>
+      applyService({
+        ...sampleService,
+        revision: 2,
+        tiles: {...sampleService.tiles, 'song-morning': shorter},
+      }),
+    );
+    const tiles = screen.getAllByRole('option');
+    expect(tiles).toHaveLength(2);
+    expect(useShow.getState().selectedTile).toBe(1);
+    expect(document.activeElement).toBe(tiles[1]);
     expect(sent).toHaveLength(0);
   });
 
