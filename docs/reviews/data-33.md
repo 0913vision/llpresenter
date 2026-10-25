@@ -117,13 +117,14 @@ reads the newest per-file work when a save starts. The real-disk register test
 checks the remembered service after restart, and the held-write rename test
 checks that later edits remain usable.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-Pending.
-
-## Review: reviewer
-
-Pending.
+- Round 1 (d9a447e): reviewer (Claude, trial-97) Approve with no findings. The
+  data-32 nit is fixed: a rename touching 1,000 songs holds the edit queue 31 ms
+  instead of 8.74 s, with real write results and the labels-first
+  partial-failure report kept. Lead Approve. Written by the Codex session that
+  took over data's work. Rebased by the lead onto local `main` without
+  conflicts.
 
 ## Team member's reply
 
