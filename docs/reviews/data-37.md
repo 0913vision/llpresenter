@@ -106,13 +106,16 @@ stores no request registry or timeout. The sandbox build test verifies the real
 preload bundle runs with the allowed modules. No app, visible windows, dialogs,
 soak, or memory measurements were started.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-Pending.
-
-## Review: reviewer
-
-Pending.
+- Round 1 (b38cd82): reviewer (Claude, trial-97) Approve. Nit for output's
+  handshake request: main accepts `app:flush-done` only from the control
+  window's `webContents`, and the rule for `result: false` is stated and tested.
+  The lead's proposal, for the user to confirm: on false, keep the window open
+  and show a warning with a 그래도 닫기 action, so a refused draft is never
+  dropped silently; a missing reply still closes after the 5 s bound. Lead
+  Approve. Written by the Codex session that took over data's work. Rebased by
+  the lead onto local `main` without conflicts.
 
 ## Team member's reply
 
