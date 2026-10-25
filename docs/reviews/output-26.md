@@ -5,7 +5,10 @@
 - Base: `f4eba7be376d026a3d41d3bcad24ea7fce39daf7`
 - Range: `f4eba7be...feat/output/recovery`
 - Scope: M3-O8 part 1, session markers; output-25 nits and M2-9.
-- CI: pending the branch push.
+- Code head: `23d40a63119c9065c6af592f540b004854c04e40`
+- Code CI:
+  [40234192234](https://github.com/0913vision/llpresenter/actions/runs/40234192234),
+  **success**, including the full GitHub Windows verify job.
 
 ## Changes
 
