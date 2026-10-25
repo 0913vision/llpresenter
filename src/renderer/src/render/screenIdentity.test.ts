@@ -17,6 +17,21 @@ function screens() {
 }
 
 describe('output screen identity', () => {
+  it('keeps aliases on the same UUID after methods, kinds and order change', () => {
+    const {value} = screens();
+    const changed = value.screens.toReversed().map(screen => ({
+      ...screen,
+      kind: 'audience' as const,
+      method: screen.id === MAIN ? ('capture' as const) : ('window' as const),
+    }));
+    expect(resolveRenderScreen('main', changed)).toEqual({
+      id: MAIN,
+      kind: 'audience',
+      method: 'capture',
+    });
+    expect(resolveRenderScreen('captions', changed)?.id).toBe(CAPTIONS);
+    expect(resolveRenderScreen('stage', changed)?.id).toBe(STAGE);
+  });
   it('resolves exact configured ids and the legacy output aliases without guessing unknown ids', () => {
     const {value} = screens();
     expect(resolveRenderScreen(MAIN, value.screens)).toEqual({

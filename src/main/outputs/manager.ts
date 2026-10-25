@@ -102,6 +102,9 @@ export class OutputManager {
         this.sync();
       }),
       displays.subscribeRemoved(id => this.monitorRemoved(id)),
+      ...(this.options.screens.subscribe
+        ? [this.options.screens.subscribe(() => this.sync())]
+        : []),
     ];
     this.sync();
   }
@@ -122,13 +125,13 @@ export class OutputManager {
   /** The placement and renderer state of every screen in the list. */
   screenStates(): ReadonlyMap<string, ScreenOutputState> {
     return new Map(
-      this.options.screens.list().map(({id}) => [
-        id,
-        {
+      this.options.screens.list().flatMap(({id, aliases = []}) => {
+        const state: ScreenOutputState = {
           placement: this.statuses.get(id) ?? 'off',
           renderer: this.windows.get(id)?.rendererState ?? 'running',
-        },
-      ]),
+        };
+        return [id, ...aliases].map(key => [key, state] as const);
+      }),
     );
   }
 
@@ -139,6 +142,9 @@ export class OutputManager {
     for (const stop of this.stops) stop();
     for (const output of this.windows.values()) output.dispose();
     this.windows.clear();
+    this.statuses.clear();
+    this.previousMonitors = new Map();
+    this.unsettledRemovals.clear();
   }
 
   private handleLiveState(state: LiveState): void {
@@ -166,10 +172,12 @@ export class OutputManager {
 
   private sync(): void {
     if (this.disposed) return;
+    const screens = this.options.screens.list();
+    this.removeWindowsNotIn(screens);
+    this.pruneOutputs(screens);
     const surroundings = this.surroundings();
     if (surroundings === null) return;
     this.rememberMonitors(surroundings.assigned);
-    const screens = this.options.screens.list();
     this.lastOutputs = this.options.store.state.outputs;
     const turnOff: string[] = [];
     for (const screen of screens) {
@@ -177,8 +185,29 @@ export class OutputManager {
       this.apply(screen, placement);
       if (placement?.kind === 'off') turnOff.push(screen.id);
     }
-    this.removeWindowsNotIn(screens);
     for (const screenId of turnOff) this.turnOff(screenId);
+  }
+
+  private pruneOutputs(screens: readonly OutputScreen[]): void {
+    if (this.options.screens.ready === false) return;
+    const known = new Set(
+      screens.flatMap(({id, aliases = []}) => [id, ...aliases]),
+    );
+    const unknown = Object.keys(this.options.store.state.outputs).filter(
+      id => !known.has(id),
+    );
+    if (unknown.length === 0) return;
+    this.options.store.dispatch(
+      {
+        type: 'live.batch',
+        commands: unknown.map(screenId => ({
+          type: 'output.set',
+          screenId,
+          on: false,
+        })),
+      },
+      error => this.options.log.error('live state listener failed', error),
+    );
   }
 
   private surroundings(): Surroundings | null {
@@ -225,6 +254,7 @@ export class OutputManager {
     try {
       this.windowFor(screen).update(
         placement === null || placement.kind === 'off' ? null : placement,
+        screen,
       );
     } catch (error) {
       this.options.log.error(
@@ -250,12 +280,15 @@ export class OutputManager {
   }
 
   private removeWindowsNotIn(screens: readonly OutputScreen[]): void {
+    let removed = false;
     for (const [screenId, output] of this.windows) {
       if (screens.some(({id}) => id === screenId)) continue;
       output.dispose();
       this.windows.delete(screenId);
       this.statuses.delete(screenId);
+      removed = true;
     }
+    if (removed) this.options.onStatusChange?.();
   }
 
   private turnOff(screenId: string): void {

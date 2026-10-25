@@ -5,9 +5,11 @@ import {DisplayRegistry} from '../displays/registry';
 import {answerWindows, listenToWindows, sendToWindows} from '../ipc';
 import type {LiveStore} from '../live/store';
 import type {Logger} from '../log';
+import type {SettingsReader} from '../store/settingsStore';
 import type {WindowMode} from '../windows/testWindows';
 import {handleFrameRate, handleRetryRequest} from '../rendererMessages';
-import {createDefaultScreenSource} from './defaultScreens';
+import {createSettingsScreenSource} from './settingsScreens';
+import {outputStateKeys} from './identity';
 import {createElectronWakeLock} from './electronWakeLock';
 import {createElectronOutputWindow} from './electronWindow';
 import {FrameRateTracker, type ScreenFrameRate} from './frameRates';
@@ -18,6 +20,7 @@ import {WakeKeeper, keepAwakeWhileOutputsOn} from './wakeLock';
 /** What the output windows hang on. */
 export interface OutputContext {
   readonly store: LiveStore;
+  readonly settings: Promise<SettingsReader | null>;
   readonly control: BrowserWindow;
   readonly log: Logger;
   /** `offscreen` keeps the output windows off the screen (UI tests). */
@@ -39,7 +42,10 @@ function publishStatus({
     answerWindows(Channels.outputStatusGet, () => board.snapshot()),
     listenToWindows(
       Channels.outputRetry,
-      handleRetryRequest(screenId => outputs.retry(screenId), log),
+      handleRetryRequest(
+        screenId => outputs.retry(outputStateKeys(screenId)[0]),
+        log,
+      ),
     ),
     board.subscribe(statuses =>
       sendToWindows(Channels.outputStatusChanged, statuses, log),
@@ -68,19 +74,28 @@ export interface RunningOutputs {
  */
 export function startOutputs({
   store,
+  settings,
   control,
   log,
   windowMode,
 }: OutputContext): RunningOutputs {
+  let stopped = false;
+  let disconnectSettings: (() => void) | null = null;
+  const connected = settings.then(reader => {
+    if (!stopped && reader !== null) {
+      disconnectSettings = store.connectSettings(reader);
+    }
+    return reader;
+  });
   const displays = new DisplayRegistry(createElectronDisplaySource(), log);
-  const screens = createDefaultScreenSource(displays);
+  const screens = createSettingsScreenSource(connected, log);
   const frameRates = new FrameRateTracker(
     screenId => screens.list().some(({id}) => id === screenId),
     log,
   );
   const board = new OutputStatusBoard({
     screenStates: () => outputs.screenStates(),
-    frameRate: screenId => frameRates.current(screenId),
+    frameRate: screenId => frameRates.current(outputStateKeys(screenId)[0]),
   });
   const outputs = new OutputManager({
     store,
@@ -96,13 +111,33 @@ export function startOutputs({
     log,
     onStatusChange: () => board.refresh(),
   });
+  const stopNormalizing = screens.subscribe(() => {
+    frameRates.retain(screens.list().map(({id}) => id));
+    const commands = screens.list().flatMap(({id}) => {
+      const keys = outputStateKeys(id);
+      const values = store.state.outputs;
+      const on = values[id] ?? keys.some(key => values[key] === true);
+      return keys.some(key => (values[key] ?? false) !== on)
+        ? [{type: 'output.set' as const, screenId: id, on}]
+        : [];
+    });
+    if (commands.length > 0) {
+      store.dispatch({type: 'live.batch', commands}, error =>
+        log.error('live state listener failed', error),
+      );
+    }
+  });
   outputs.start();
   const stops = [
+    () => disconnectSettings?.(),
+    stopNormalizing,
+    screens.subscribe(() => board.refresh()),
     listenToWindows(
       Channels.outputFrameRate,
       handleFrameRate(report => {
-        frameRates.report(report);
-        outputs.frameReported(report.screenId);
+        const screenId = outputStateKeys(report.screenId)[0];
+        frameRates.report({...report, screenId});
+        outputs.frameReported(screenId);
         board.refresh();
       }, log),
     ),
@@ -114,8 +149,11 @@ export function startOutputs({
   ];
   return {
     stop: () => {
+      if (stopped) return;
+      stopped = true;
       for (const stop of stops) stop();
       outputs.dispose();
+      screens.dispose();
       displays.dispose();
     },
     frameRates: () => frameRates.reported(screens.list().map(({id}) => id)),

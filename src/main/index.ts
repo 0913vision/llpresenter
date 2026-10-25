@@ -112,7 +112,13 @@ function start(): void {
         windowMode,
         log,
       });
-      const outputs = startOutputs({store, control: win, log, windowMode});
+      const outputs = startOutputs({
+        store,
+        settings: dataStore.settings,
+        control: win,
+        log,
+        windowMode,
+      });
       const stopSoakScenario = registerSoakScenario(log, command =>
         dispatchLogged(store, command, log),
       );

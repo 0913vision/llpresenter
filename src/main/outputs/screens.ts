@@ -19,9 +19,12 @@ export interface OutputScreen {
   /** Defaults on for full screen and off for other methods; fallback is always off. */
   readonly alwaysOnTop?: boolean;
   readonly resolution?: Size;
+  readonly aliases?: readonly string[];
 }
 
 /** Gives the screens in 화면 설정 order. */
 export interface ScreenSource {
   list(): readonly OutputScreen[];
+  readonly ready?: boolean;
+  subscribe?(listener: () => void): () => void;
 }

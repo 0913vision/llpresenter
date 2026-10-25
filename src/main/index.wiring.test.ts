@@ -235,6 +235,9 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
         settings: fakes.settings,
       }),
     ]);
+    expect(fakes.outputContexts).toEqual([
+      expect.objectContaining({settings: fakes.settings}),
+    ]);
     beforeQuit();
     await vi.waitFor(() => expect(fakes.storeDispose).toHaveBeenCalledOnce());
     expect(fakes.overlaysStop).toHaveBeenCalledOnce();

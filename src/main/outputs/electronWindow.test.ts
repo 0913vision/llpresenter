@@ -5,6 +5,7 @@ import type {Logger} from '../log';
 import {startLoading} from '../windows/page';
 import type {WindowMode} from '../windows/testWindows';
 import {createElectronOutputWindow} from './electronWindow';
+import designTokens from '../../../design/system/project/tokens.json';
 import type {OutputWindowHandle} from './outputWindow';
 import type {OutputScreen} from './screens';
 import {
@@ -279,7 +280,9 @@ describe('createElectronOutputWindow normal', () => {
     const win = lastWindow();
     expect(win.options).toMatchObject({
       show: false,
-      backgroundColor: '#00b140',
+      backgroundColor: designTokens.color.tokens.find(
+        token => token.name === 'chroma',
+      )?.value,
       minimizable: false,
       maximizable: false,
       resizable: false,

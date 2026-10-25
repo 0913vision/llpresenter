@@ -73,6 +73,7 @@ function sameFullScreen(
  * brings its renderer back after crashes.
  */
 export class OutputWindow {
+  private screen: OutputScreen;
   private handle: OutputWindowHandle | null = null;
   private applied: ShownPlacement | null = null;
   private visible = false;
@@ -86,6 +87,7 @@ export class OutputWindow {
   });
 
   constructor(private readonly options: OutputWindowOptions) {
+    this.screen = options.screen;
     this.recovery = new RendererRecovery({
       screenId: options.screen.id,
       reload: () => this.reloadPage(),
@@ -116,7 +118,8 @@ export class OutputWindow {
   }
 
   /** Shows the window at the placement, or hides it for null. */
-  update(placement: ShownPlacement | null): void {
+  update(placement: ShownPlacement | null, screen = this.screen): void {
+    this.screen = screen;
     if (this.disposed) return;
     if (placement === null) this.hide();
     else this.show(placement);
@@ -212,7 +215,7 @@ export class OutputWindow {
 
   private ensureHandle(): OutputWindowHandle {
     if (this.handle !== null) return this.handle;
-    const handle = this.options.createHandle(this.options.screen, {
+    const handle = this.options.createHandle(this.screen, {
       onRendererGone: details => {
         this.drewSinceLoad = false;
         this.hangWatch.pageReplaced();

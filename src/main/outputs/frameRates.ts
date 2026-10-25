@@ -88,6 +88,13 @@ export class FrameRateTracker {
     return rate === undefined ? null : {fps: rate.fps, status: rate.status};
   }
 
+  retain(screenIds: readonly string[]): void {
+    const known = new Set(screenIds);
+    for (const id of this.rates.keys()) {
+      if (!known.has(id)) this.rates.delete(id);
+    }
+  }
+
   /** The last rate of each of these screens that has reported, in their order. */
   reported(screenIds: readonly string[]): readonly ScreenFrameRate[] {
     return screenIds.flatMap(screen => {

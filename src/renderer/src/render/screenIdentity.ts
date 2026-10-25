@@ -1,26 +1,17 @@
 import type {LlpApi} from '@shared/ipc';
 import type {Screen} from '@shared/schema/screens';
 import type {RenderScreen} from './layer';
+import {resolveOutputScreen} from '@shared/screens';
 
-/** Resolves the M2 output aliases until O3 supplies configured screen ids. */
+/** Uses the same configured and starter identities as the main output backend. */
 export function resolveRenderScreen(
   id: string,
   screens: readonly Screen[],
 ): RenderScreen | undefined {
-  const exact = screens.find(screen => screen.id === id);
-  if (exact !== undefined) {
-    return {id: exact.id, kind: exact.kind, method: exact.method};
-  }
-  const alias = screens.find(screen =>
-    id === 'main'
-      ? screen.kind === 'audience' && screen.method !== 'capture'
-      : id === 'captions' || id === 'broadcast'
-        ? screen.kind === 'audience' && screen.method === 'capture'
-        : id === 'stage' && screen.kind === 'stage',
-  );
-  return alias === undefined
+  const screen = resolveOutputScreen(id, screens);
+  return screen === undefined
     ? undefined
-    : {id: alias.id, kind: alias.kind, method: alias.method};
+    : {id: screen.id, kind: screen.kind, method: screen.method};
 }
 
 /** Follows routing identity without letting an old read override a newer edit. */
