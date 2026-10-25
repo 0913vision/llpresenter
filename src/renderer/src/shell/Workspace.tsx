@@ -3,6 +3,7 @@ import {ClearRow} from '@renderer/show/ClearRow';
 import {PreviewPanel} from '@renderer/show/PreviewPanel';
 import {ServiceOrderHeader} from '@renderer/show/ServiceOrderHeader';
 import {ServiceOrderList} from '@renderer/show/ServiceOrderList';
+import {SongBackgroundControl} from '@renderer/show/SongBackgroundControl';
 import {ReadOnlyMark} from '@renderer/show/ReadOnlyMark';
 import {
   SlidePanelBody,
@@ -91,7 +92,11 @@ function ShowShortcuts(): null {
   return null;
 }
 
-function showPanelParts(title: string, sizeClass: SizeClass): PanelParts {
+function showPanelParts(
+  title: string,
+  sizeClass: SizeClass,
+  onProblem: ((notice: Notice) => void) | undefined,
+): PanelParts {
   switch (title) {
     case '미리보기':
       return {
@@ -105,7 +110,12 @@ function showPanelParts(title: string, sizeClass: SizeClass): PanelParts {
     case '슬라이드':
       return {
         body: <SlidePanelBody sizeClass={sizeClass} />,
-        meta: <SlidePanelMeta />,
+        meta: (
+          <>
+            <SlidePanelMeta />
+            <SongBackgroundControl onProblem={onProblem} />
+          </>
+        ),
         footer: <SlideSizeControl sizeClass={sizeClass} />,
         stableScrollbar: true,
       };
@@ -165,7 +175,7 @@ export function Workspace({
                         meta: <ReadOnlyMark />,
                       }
                     : id === 'show'
-                      ? showPanelParts(title, sizeClass)
+                      ? showPanelParts(title, sizeClass, onProblem)
                       : {}
                 }
               />
