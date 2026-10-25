@@ -14,10 +14,11 @@ Existing data formats and IPC payloads are unchanged.
 
 - Team member: data
 - Branch: `feat/data/content-store`
-- Base commit (`main`): `c4339ff6c94e7b980a3ef68dd0e1d49d094291d1`
-- Last code commit: `582e956`
-- Review range: `c4339ff..feat/data/content-store`
-- Round 1 head: `5794476`; round 2 changes: `5794476..feat/data/content-store`
+- Base commit (`main`): `93844fdd32a479aeede04478861428169c815053`
+- Last code commit: `738130d`
+- Review range: `93844fd..feat/data/content-store`
+- Round 1 head: `5794476`, rebased without conflicts to `fc5d22a`.
+- Round 2 changes: `fc5d22a..feat/data/content-store`
 - Related brief: `docs/briefs/data.md`; M3-D1a-1 main-process handlers
 
 ## What changed and why
@@ -90,6 +91,10 @@ same helper in the preload test.
 
 ## Checks run
 
+Round 2 store, schema, and preload tests passed: 53 files and 688 tests. The
+original five regression failures were reproduced before the fixes. Changed
+TypeScript files passed ESLint after correcting two style findings.
+
 | Command or test                                                                 | Result                                                                               |
 | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
 | `npm run typecheck` after rebase                                                | Passed                                                                               |
@@ -100,12 +105,12 @@ same helper in the preload test.
 | Round 2 regression tests before fixes                                           | Five new cases failed on the round 1 implementation                                  |
 | Round 2 typecheck                                                               | Passed                                                                               |
 | Round 2 focused tests                                                           | Passed: 3 files, 67 tests                                                            |
-| `npm run verify` (round 2)                                                      | Pending the single round 2 run                                                       |
+| `npm run verify` (round 2)                                                      | Passed once: all 5 steps, 172.2 s                                                    |
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
-- [ ] `npm run verify` passes for round 2.
-- [ ] `npm run format:check` passes in round 2 verify.
+- [x] `npm run verify` passes for round 2.
+- [x] `npm run format:check` passes in round 2 verify.
 - [x] New behaviors have tests, including stale revisions, a failure in the
       middle, save retry, deletion retry, pending-save deletion, template
       loading, IPC validation and cleanup, and immediate tile updates.
