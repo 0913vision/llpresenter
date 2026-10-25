@@ -1,18 +1,7 @@
-/// <reference types="node" />
-import {readFileSync} from 'node:fs';
-import {resolve} from 'node:path';
 import {describe, expect, it} from 'vitest';
+import {cssRules} from '@renderer/shell/testing/cssRules';
 
-const css = readFileSync(
-  resolve('src/renderer/src/show/PreviewPanel.module.css'),
-  'utf8',
-);
-
-function ruleOf(selector: string): string {
-  const start = css.indexOf(`${selector} {`);
-  if (start < 0) throw new Error(`No rule for ${selector}`);
-  return css.slice(start, css.indexOf('}', start));
-}
+const ruleOf = cssRules('src/renderer/src/show/PreviewPanel.module.css');
 
 describe('PreviewPanel layout rules', () => {
   it('caps the width of a small preview, so a wide column cannot make it tall', () => {
