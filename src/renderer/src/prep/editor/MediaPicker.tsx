@@ -63,15 +63,22 @@ export function MediaPicker({
   onClose,
 }: PickerProps): JSX.Element {
   const [query, setQuery] = useState('');
+  const searchable = useMemo(
+    () =>
+      items
+        .filter(item => item.kind !== 'audio')
+        .map(item => ({item, name: searchName(item.name)})),
+    [items],
+  );
   const choices = useMemo(() => {
     const term = searchName(query);
     return [
       undefined,
-      ...items.filter(
-        item => item.kind !== 'audio' && searchName(item.name).includes(term),
-      ),
+      ...searchable
+        .filter(({name}) => name.includes(term))
+        .map(({item}) => item),
     ];
-  }, [items, query]);
+  }, [searchable, query]);
   const [active, setActive] = useState(
     Math.max(
       0,
@@ -120,7 +127,10 @@ export function MediaPicker({
   };
   const filter = (value: string): void => {
     setQuery(value);
-    setActive(0);
+    const term = searchName(value);
+    setActive(
+      term !== '' && searchable.some(({name}) => name.includes(term)) ? 1 : 0,
+    );
     if (viewport.current !== null) viewport.current.scrollTop = 0;
     setTop(0);
   };
@@ -128,13 +138,9 @@ export function MediaPicker({
     if (isComposing(event)) return;
     const inField = event.target instanceof HTMLInputElement;
     if (inField && ['Home', 'End', ' '].includes(event.key)) return;
-    const target =
-      inField && event.key === 'ArrowDown'
-        ? active
-        : targetFor(event.key, active, choices.length);
+    const target = targetFor(event.key, active, choices.length);
     if (target !== undefined) {
       point(target);
-      viewport.current?.focus();
     } else if (event.key === 'Enter' || event.key === ' ') {
       choose(active);
     } else if (event.key === 'Escape') onClose(true);
@@ -173,8 +179,6 @@ export function MediaPicker({
           id={id}
           role="listbox"
           aria-label="기본 배경"
-          aria-activedescendant={activeId}
-          tabIndex={-1}
           className={styles.viewport}
           style={{maxHeight: `calc(var(--size-row-menu) * ${VISIBLE_ROWS})`}}
           onScroll={event => setTop(event.currentTarget.scrollTop)}

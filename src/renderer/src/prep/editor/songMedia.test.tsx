@@ -1,4 +1,5 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import {describe, expect, it, vi} from 'vitest';
 import {createMediaId} from '@shared/schema/ids';
 import type {MediaId} from '@shared/schema/ids';
@@ -66,8 +67,10 @@ function renderPicker(
       onClose={onClose}
     />,
   );
+  const search = screen.getByRole('combobox', {name: '검색'});
+  if (!(search instanceof HTMLInputElement)) throw new Error('Missing search');
   return {
-    search: screen.getByRole('combobox', {name: '검색'}),
+    search,
     listbox: screen.getByRole('listbox', {name: '기본 배경'}),
     onClose,
   };
@@ -160,20 +163,20 @@ describe('default song background', () => {
     ).toBe(false);
   });
 
-  it('keeps a large list virtualized and lets End select its last eligible item', async () => {
+  it('keeps a large list virtualized and lets Up wrap to its last eligible item', async () => {
     const {session, media} = await setup(2001);
-    const {listbox} = renderPicker(media.value.items, value =>
+    const {search, listbox} = renderPicker(media.value.items, value =>
       session.setBackground(value),
     );
     expect(screen.getAllByRole('option').length).toBeLessThanOrEqual(12);
     fireEvent.scroll(listbox, {target: {scrollTop: 28000}});
-    expect(listbox.getAttribute('aria-activedescendant')).toBeNull();
-    fireEvent.keyDown(listbox, {key: 'End'});
-    expect(listbox.getAttribute('aria-activedescendant')).toBe(
+    expect(search.getAttribute('aria-activedescendant')).toBeNull();
+    fireEvent.keyDown(search, {key: 'ArrowUp'});
+    expect(search.getAttribute('aria-activedescendant')).toBe(
       screen.getByRole('option', {name: 'Media 2000'}).id,
     );
     expect(screen.getAllByRole('option').length).toBeLessThanOrEqual(12);
-    fireEvent.keyDown(screen.getByRole('listbox'), {key: 'Enter'});
+    fireEvent.keyDown(search, {key: 'Enter'});
     await act(() => session.flush());
     expect(session.background).toBe(media.value.items.at(-2)?.id);
   });
@@ -185,7 +188,7 @@ describe('default song background', () => {
       name: (index === 0 ? '푸른 바다' : '하늘 빛').normalize('NFD'),
     }));
     const onSelect = vi.fn();
-    const {search, listbox, onClose} = renderPicker(items, onSelect);
+    const {search, onClose} = renderPicker(items, onSelect);
     expect(document.activeElement).toBe(search);
     fireEvent.compositionStart(search);
     fireEvent.change(search, {target: {value: '바'}});
@@ -203,19 +206,38 @@ describe('default song background', () => {
     for (const key of ['Home', 'End', ' ']) {
       expect(fireEvent.keyDown(search, {key})).toBe(true);
     }
-    fireEvent.keyDown(search, {key: 'ArrowDown'});
-    expect(document.activeElement).toBe(listbox);
-    fireEvent.keyDown(listbox, {key: 'ArrowDown'});
-    fireEvent.keyDown(listbox, {key: 'Enter'});
+    fireEvent.keyDown(search, {key: 'Enter'});
     expect(onSelect).toHaveBeenCalledExactlyOnceWith(items[0]?.id);
     expect(onClose).toHaveBeenCalledExactlyOnceWith(true);
+  });
+
+  it('moves on the first Down while keeping search editable through typing and Backspace', async () => {
+    const user = userEvent.setup();
+    const {media} = await setup(4);
+    const onSelect = vi.fn();
+    const {search, listbox} = renderPicker(media.value.items, onSelect);
+    await user.keyboard('{ArrowDown}');
+    expect(document.activeElement).toBe(search);
+    expect(search.getAttribute('aria-activedescendant')).toBe(
+      screen.getByRole('option', {name: 'Media 1'}).id,
+    );
+    expect(listbox.getAttribute('aria-activedescendant')).toBeNull();
+    await user.keyboard('Media 2');
+    expect(search.value).toBe('Media 2');
+    expect(search.getAttribute('aria-activedescendant')).toBe(
+      screen.getByRole('option', {name: 'Media 2'}).id,
+    );
+    await user.keyboard('{Backspace}');
+    expect(search.value).toBe('Media ');
+    await user.keyboard('3{Enter}');
+    expect(onSelect).toHaveBeenCalledExactlyOnceWith(media.value.items[2]?.id);
   });
 
   it('resets and navigates the virtual window over the filtered choices', async () => {
     const {media} = await setup(2001);
     const onSelect = vi.fn();
     const {search, listbox} = renderPicker(media.value.items, onSelect);
-    fireEvent.keyDown(listbox, {key: 'End'});
+    fireEvent.keyDown(search, {key: 'ArrowUp'});
     expect(listbox.scrollTop).toBeGreaterThan(0);
     fireEvent.change(search, {target: {value: '  mEDia 1  '}});
     expect(listbox.scrollTop).toBe(0);
@@ -224,20 +246,26 @@ describe('default song background', () => {
     const matches = media.value.items.filter(
       item => item.kind !== 'audio' && item.name.includes('Media 1'),
     );
-    fireEvent.keyDown(listbox, {key: 'End'});
+    fireEvent.keyDown(search, {key: 'ArrowUp'});
+    fireEvent.keyDown(search, {key: 'ArrowUp'});
     const last = screen.getByRole('option', {name: 'Media 1999'});
-    expect(listbox.getAttribute('aria-activedescendant')).toBe(last.id);
+    expect(search.getAttribute('aria-activedescendant')).toBe(last.id);
     expect(last.getAttribute('aria-posinset')).toBe(String(matches.length + 1));
     expect(last.getAttribute('aria-setsize')).toBe(String(matches.length + 1));
     expect(screen.getAllByRole('option').length).toBeLessThanOrEqual(12);
-    fireEvent.keyDown(listbox, {key: 'Enter'});
+    fireEvent.keyDown(search, {key: 'Enter'});
     expect(onSelect).toHaveBeenCalledExactlyOnceWith(matches.at(-1)?.id);
     fireEvent.change(search, {target: {value: 'No matching name'}});
     expect(listbox.scrollTop).toBe(0);
     expect(screen.getAllByRole('option')).toHaveLength(1);
-    expect(screen.getByRole('option', {name: '없음'})).toBeDefined();
-    fireEvent.change(search, {target: {value: ''}});
-    fireEvent.keyDown(listbox, {key: 'End'});
+    expect(search.getAttribute('aria-activedescendant')).toBe(
+      screen.getByRole('option', {name: '없음'}).id,
+    );
+    fireEvent.change(search, {target: {value: '   '}});
+    expect(search.getAttribute('aria-activedescendant')).toBe(
+      screen.getByRole('option', {name: '없음'}).id,
+    );
+    fireEvent.keyDown(search, {key: 'ArrowUp'});
     expect(screen.getByRole('option', {name: 'Media 2000'})).toBeDefined();
   });
 

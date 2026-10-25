@@ -53,9 +53,11 @@ accepted background through lyric undo. `undefined` removes the field. The
 virtualized `MediaPicker` offers images/videos plus none with 28px menu rows, an
 IME-safe search field, logical keyboard navigation, and at most twelve mounted
 options. Search uses trim/NFC/lowercase contains matching, always retains none
-first, and resets the virtual window when the query changes. ArrowDown enters
-the list from search; Home/End and Space stay native in search. `Select` can
-show a paused video lead and releases its source on change/unmount. Header/media
+first, and resets the virtual window when the query changes. A nonblank query
+points to the first match; blank/no-match queries point to none. Arrows move the
+pointed result while focus stays in search, with the active descendant only on
+the combobox. Home/End and Space stay native in search. `Select` can show a
+paused video lead and releases its source on change/unmount. Header/media
 subscription wiring follows in ui-26; `EditorApi` now includes the checked
 `media` API already present on `window.llp`.
 
