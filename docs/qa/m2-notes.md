@@ -6,8 +6,9 @@ on GPU private-memory growth. Native GPU dedicated-memory counters rise as well.
 The dedicated force-quit/restart check passes. The app's exit at the end of the
 hour was caused by QA's tool cleanup, not an observed app crash. The
 [physical HDMI follow-up](#physical-hdmi-unplug-and-reconnect-follow-up) passes
-output recovery and sampled playback continuity, with a control-window overlap
-observation. Runs 2 and 3 remain below as historical evidence.
+spec 03 step 1 and the return to full screen, with a control-window overlap
+observation. Steps 2 and 3 and the reconnect notification were not checked; the
+notification host is not in M2. Runs 2 and 3 remain historical evidence.
 
 ## Soak run 2: 20 minutes after output-15
 
@@ -236,10 +237,10 @@ documentation branch. Raw evidence remains local and is not committed.
 
 **M2-8 reproduces with a visible output window.** The unchanged app judge finds
 GPU private-memory growth of +10.26 MiB/h overall and +8.69 MiB/h in the last 30
-minutes. Every other recorded process is flat. Native process private bytes and
-GPU dedicated-memory counters also have positive late trends. The memory
-acceptance criterion remains open; this result does not establish the
-allocation-level cause.
+minutes. Every other recorded process is flat under the app judge. The GPU
+process's native private bytes also rise late (+13.06 MiB/h OLS), as do its
+dedicated-memory counters (+30.71 MiB/h). The memory acceptance criterion
+remains open; this result does not establish the allocation-level cause.
 
 **The QA tool killed the app at 12:48:20.210Z, exit code 4294967295.** Its
 end-of-run metadata serialization failed, entering its cleanup path, which ran
@@ -283,10 +284,14 @@ The separate, deliberately repeated force-quit check below passes.
   dedicated/shared bytes. PID roles came from the app record, without attaching
   a debugger. There are 605 CSV rows over 121 times, with one unchanged PID per
   role and no missing GPU-process counter samples.
-- The app recorded 360 valid samples, spanning 3,602,765 ms. The fixed
-  0-to-60-minute judgement selects 359 samples through 3,592,759 ms, within the
-  official 60-second tolerance; no line was dropped. The last-30 selection has
-  180 samples and spans 1,792,759 ms after subtracting 30 minutes.
+- The app recorded 360 valid samples through 3,602,765 ms after recorder start.
+  The fixed 0-to-60-minute judgement selects 359 samples through 3,592,759 ms,
+  within the official 60-second tolerance; no line was dropped. The last-30
+  selection has 180 samples: the first is at 1,801,464 ms and the last at
+  3,592,759 ms in the original record. Relative to the 30-minute boundary, their
+  offsets are +1,464 ms and +1,792,759 ms. The actual first-to-last sampled span
+  is 1,791,295 ms; the judge's 1,792,759 ms coverage is the last offset from the
+  boundary, not that sampled span.
 
 ### App judge and frame-rate result
 
@@ -314,10 +319,13 @@ result is not based on the final endpoint alone.
 | Full, after warm-up | 144            | 143            | 0          |
 | Last 30 minutes     | 144            | 144            | 0          |
 
-These are the app's `requestAnimationFrame` meter values, not an independent
-scan-out or video-frame-drop measurement. The native video-controller query
-reports a 60 Hz 1920x1080 mode. The captures confirm visible output at the three
-checkpoints; they do not establish a continuous human assessment of stutter.
+**Observation for output:** the app's per-screen fps meter showed 144 while the
+BenQ ran at 60 Hz. The meter followed the primary display's cadence in this run,
+so the status-bar fps for the BenQ output is misleading. Route this observation
+to output; no meter fix was attempted. These `requestAnimationFrame` counts are
+not an independent scan-out or video-frame-drop measurement. The captures
+confirm visible output at the three checkpoints; they do not establish a
+continuous human assessment of stutter.
 
 ### Native process trends and sampled peaks
 
@@ -425,7 +433,8 @@ SHA-256: `9773e15026a2cecdefbaab6599fbaf46f261c63ff1e906db7bffbc25e29f9086`.
 
 ## Physical HDMI unplug and reconnect follow-up
 
-**Output recovery and sampled playback continuity pass against spec 03.** The
+**Spec 03 step 1 and the return to full screen pass.** Steps 2 and 3 and the
+reconnect notification were not checked; the notification host is not in M2. The
 same output and renderer moved to a 960x540 window on the primary monitor when
 the BenQ disappeared, and returned automatically to BenQ full screen when it
 reconnected. All five Electron PIDs stayed unchanged. There was no crash or
@@ -472,12 +481,22 @@ Source:
 | Crash, renderer loss, or unexpected error               | None recorded. One expected warning at `13:15:31.055Z`: `output monitor missing`, status `monitorMissing`. No ERROR/FATAL/crash/renderer-gone/child-process-gone or recorder-error entry occurred.                                                                                                                                                                                         |
 | Preserve processes                                      | Pass. Main 55944, GPU 55052, control renderer 57116, output renderer 54948, network utility 23596 before and after. The same PID set appears throughout post-ready recording.                                                                                                                                                                                                              |
 
+The following spec 03 UI requirements remain **not checked**:
+
+- Step 2: amber toolbar button/dot and icon, monitor-missing status-bar text,
+  and amber preview outline.
+- Step 3: warning notification, including its detail text and the
+  `모니터 다시 찾기` and `창 보기` actions.
+- Reconnect notification: conversion to the information notification and
+  automatic close after 6 seconds.
+
+The notification host is outside M2. The recorded monitor-missing log warning
+does not establish that these UI requirements were checked.
+
 The longest app-record interval was 3.170 seconds during display
 reconfiguration, despite the nominal one-second schedule. Video time advanced
 and no reset or paused state was observed, but these samples cannot rule out a
-short visual stutter or flash inside a sampling gap. Notification-card and
-toolbar-color presentation were not asserted by this recorder; the notification
-host remains outside the earlier M2 slice.
+short visual stutter or flash inside a sampling gap.
 
 ### Control-window overlap
 

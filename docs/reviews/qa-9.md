@@ -6,6 +6,7 @@ Review range: `09dcac2...docs/qa/m2-run`
 - Branch: `docs/qa/m2-run`
 - Base commit (`main`): `09dcac2e3135640311b507afe311db301652fe0c`
 - Last commit: see the review request message
+- Round: 2, documentation corrections after the round 1 review
 - Task: the lead's replaced `.llp/task.md` and the explicit follow-up about the
   tool-caused close, fresh before/after-hash force-quit check, and the
   subsequent user-operated HDMI unplug/reconnect check
@@ -17,14 +18,17 @@ Add real-monitor run 4 to `docs/qa/m2-notes.md`, including the independent
 30-second Windows process/GPU counter CSV, whole-run and last-30-minute trends,
 peaks, app judgement, fps, and the dedicated force-quit result. M2-8 reproduces
 with a visible BenQ output: app GPU private-memory slopes are +10.26/+8.69
-MiB/h. Native private bytes and dedicated GPU counters also rise late. All other
-processes pass the app's flat-memory judgement.
+MiB/h. The GPU process's native private bytes (+13.06 MiB/h OLS) and dedicated
+GPU counters also rise late. All other processes pass the app's flat-memory
+judgement.
 
 The physical HDMI follow-up preserves playback and PIDs, switches to a primary
 monitor window, and automatically returns to BenQ full screen. Native geometry
-confirms return within about 1.3 seconds of recorded detection. The report also
-records a temporary topmost output over control and the stable fallback's
-partial rectangle overlap, with the measurement limits stated explicitly.
+confirms return within about 1.3 seconds of recorded detection. Spec 03 step 1
+and the return to full screen pass. Steps 2 and 3 and the reconnect notification
+were not checked; the notification host is not in M2. The report also records a
+temporary topmost output over control and the stable fallback's partial
+rectangle overlap, with the measurement limits stated explicitly.
 
 The app's hour-end close was caused by QA's cleanup tool, not an observed app
 crash: exit 4294967295 at 12:48:20.210Z after helper metadata serialization
@@ -58,11 +62,11 @@ the same service opens with outputs off, and the final app closes normally.
 
 ### HDMI follow-up checks
 
-| Check                               | Result                                                                                                                   |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| User-operated removal and reconnect | Core recovery pass; same renderer/content/video; automatic BenQ full-screen return; control overlap observation recorded |
-| Recorder                            | 737 app plus 737 native snapshots; no recorder error; nominal 1 s, maximum app interval 3.170 s                          |
-| Errors and cleanup                  | Expected monitor-missing warning only; no crash/error/PID change; app and native recorder exit 0                         |
+| Check                               | Result                                                                                                                                 |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| User-operated removal and reconnect | Spec 03 step 1 and return to full screen pass; steps 2, 3 and reconnect notification not checked; control overlap observation recorded |
+| Recorder                            | 737 app plus 737 native snapshots; no recorder error; nominal 1 s, maximum app interval 3.170 s                                        |
+| Errors and cleanup                  | Expected monitor-missing warning only; no crash/error/PID change; app and native recorder exit 0                                       |
 
 ## Quality checklist
 
@@ -82,8 +86,10 @@ report. No copyrighted lyrics or personal app content is included.
 3. Label the tool-caused end-of-hour kill plainly and retain the unmodified
    failure evidence. Use the fresh, explicit before/after force-quit sequence
    for the M2 clean-restart result, not the tool's failed end metadata.
-4. Report the app's 144/143 fps meter without claiming independent scan-out or a
-   continuous human stutter assessment.
+4. Record output's fps-meter observation: it showed 144 while the BenQ ran at 60
+   Hz, following primary-display cadence and misleading the status bar for that
+   output. Do not claim independent scan-out or a continuous human stutter
+   assessment.
 5. Keep the HDMI recovery result separate from operator-window overlap. The
    initial topmost primary output covered control, and the steady fallback
    geometrically overlaps its right edge. Do not infer exact persistent pixel
@@ -119,3 +125,18 @@ None.
 Added the lead-authorized physical HDMI follow-up after the user unplugged and
 reconnected the BenQ. Continued recording beyond 60 seconds after reconnection,
 then stopped the recorder and closed the app normally. No app code changed.
+
+Round 2 addresses the four round 1 findings:
+
+1. Limit the spec 03 pass to step 1 and the return to full screen. Explicitly
+   list step 2's amber toolbar/status/preview UI, step 3's warning/actions, and
+   the reconnect notification/6-second close as not checked. The notification
+   host is outside M2.
+2. Distinguish the last-30 first offset (+1,464 ms), last offset (+1,792,759
+   ms), and actual sampled span (1,791,295 ms), checked against the preserved
+   record.
+3. Attribute the +13.06 MiB/h native private-byte late trend to the GPU process,
+   not all processes.
+4. Record the misleading 144 fps reading on a 60 Hz BenQ as an output
+   observation following primary-display cadence. No app fix or runtime
+   remeasurement was performed for these documentation corrections.
