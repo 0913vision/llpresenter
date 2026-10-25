@@ -128,7 +128,12 @@ Round 1 (codex2, request changes), answered once:
 
 ### Round 2
 
-Pending.
+`npm run verify` on commit `4aef1ae` (base `main` fbfce09): all five steps
+passed in 108.5 s (`typecheck`, `lint`, `format:check`, `test:coverage`, and
+`build`). `ShowPanels.test.tsx` passes (28 tests). With `ListRow.tsx` from
+`efd0a29` (before ui-10) put back in the working tree only, the two render-count
+tests and the Tab stop test fail; the file was restored with `git checkout`
+afterward.
 
 ### Round 1
 
