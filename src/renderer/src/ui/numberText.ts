@@ -39,15 +39,11 @@ function decimalPlaces(value: number): number {
   );
 }
 
-/** Rounds to the nearest whole step, then clamps to the field's range. */
-export function roundNumberToStep(
-  value: number,
-  {step, range}: {readonly step: number; readonly range: NumberRange},
-): number {
+/** Rounds to the nearest zero-based whole step. */
+export function roundNumberToStep(value: number, step: number): number {
   const count = value / step;
   const rounded = Math.round(count + Math.abs(count) * Number.EPSILON);
-  const snapped = Number((rounded * step).toFixed(decimalPlaces(step)));
-  return clampNumber(snapped, range);
+  return Number((rounded * step).toFixed(decimalPlaces(step)));
 }
 
 /**

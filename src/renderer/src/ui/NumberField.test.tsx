@@ -126,6 +126,69 @@ describe('NumberField', () => {
     expect(spin().value).toBe('0.4');
   });
 
+  it.each([
+    {
+      initial: 0.28,
+      min: 0,
+      max: 0.28,
+      inward: '{ArrowDown}',
+      outward: '{ArrowUp}',
+      expected: 0.2,
+    },
+    {
+      initial: 0.12,
+      min: 0.12,
+      max: 1,
+      inward: '{ArrowUp}',
+      outward: '{ArrowDown}',
+      expected: 0.2,
+    },
+    {
+      initial: 0.28,
+      min: 0,
+      max: 0.28,
+      inward: '{Shift>}{ArrowDown}{/Shift}',
+      outward: '{Shift>}{ArrowUp}{/Shift}',
+      expected: 0.1,
+    },
+    {
+      initial: 0.12,
+      min: 0.12,
+      max: 1,
+      inward: '{Shift>}{ArrowUp}{/Shift}',
+      outward: '{Shift>}{ArrowDown}{/Shift}',
+      expected: 0.3,
+    },
+  ])(
+    'moves from off-grid bound $initial to $expected with $inward',
+    async ({initial, min, max, inward, outward, expected}) => {
+      const onChange = vi.fn();
+      render(
+        <DecimalField
+          initial={initial}
+          min={min}
+          max={max}
+          step={0.1}
+          largeStep={0.2}
+          onChange={onChange}
+        />,
+      );
+      spin().focus();
+      await userEvent.keyboard(outward);
+      expect(onChange).not.toHaveBeenCalled();
+      expect(spin().value).toBe(String(initial));
+      await userEvent.keyboard(inward);
+      expect(onChange).toHaveBeenCalledExactlyOnceWith(expected);
+      expect(spin().value).toBe(String(expected));
+      expect(spin().getAttribute('aria-valuenow')).toBe(String(expected));
+      expect(spin().getAttribute('aria-valuetext')).toBe(String(expected));
+      await userEvent.keyboard(outward);
+      expect(onChange).toHaveBeenLastCalledWith(initial);
+      expect(onChange).toHaveBeenCalledTimes(2);
+      expect(spin().value).toBe(String(initial));
+    },
+  );
+
   it.each(['Enter', 'Tab'])(
     'rounds deferred decimal typing once on %s',
     async key => {

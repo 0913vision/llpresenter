@@ -113,13 +113,14 @@ export function NumberField({
   const commit = (): void => {
     if (draft === null) return;
     const typed = parseNumberText(draft, suffix);
-    if (typed !== undefined) report(roundNumberToStep(typed, {step, range}));
+    if (typed !== undefined)
+      report(clampNumber(roundNumberToStep(typed, step), range));
     setDraft(null);
   };
 
   const stepBy = (steps: number): void => {
     const base = parseNumberText(draft ?? shown, suffix) ?? value;
-    const snapped = roundNumberToStep(clampNumber(base, range), {step, range});
+    const snapped = roundNumberToStep(base, step);
     report(stepNumber(snapped, {step, steps, range}));
     setDraft(null);
   };

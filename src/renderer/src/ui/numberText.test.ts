@@ -45,20 +45,12 @@ describe('roundNumberToStep', () => {
     [0.35, 0.1, 0.4],
     [-0.35, 0.1, -0.3],
   ])('rounds %s to step %s as %s', (value, step, expected) => {
-    expect(roundNumberToStep(value, {step, range: {min: -2, max: 2}})).toBe(
-      expected,
-    );
+    expect(roundNumberToStep(value, step)).toBe(expected);
   });
 
-  it('clamps after step rounding, including bounds outside the step grid', () => {
-    expect(
-      roundNumberToStep(0.27, {
-        step: 0.1,
-        range: {min: 0.25, max: 0.28},
-      }),
-    ).toBe(0.28);
-    expect(roundNumberToStep(-20, {step: 0.1, range})).toBe(0);
-    expect(roundNumberToStep(20, {step: 0.1, range})).toBe(10);
+  it('keeps whole-step bases available for movement from off-grid bounds', () => {
+    expect(roundNumberToStep(0.28, 0.1)).toBe(0.3);
+    expect(roundNumberToStep(0.12, 0.1)).toBe(0.1);
   });
 });
 
@@ -67,6 +59,8 @@ describe('clampNumber', () => {
     expect(clampNumber(-1, range)).toBe(0);
     expect(clampNumber(11, range)).toBe(10);
     expect(clampNumber(5, range)).toBe(5);
+    expect(clampNumber(0.1, {min: 0.12, max: 0.28})).toBe(0.12);
+    expect(clampNumber(0.3, {min: 0.12, max: 0.28})).toBe(0.28);
   });
 });
 
