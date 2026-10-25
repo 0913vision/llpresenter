@@ -104,6 +104,33 @@ describe('loadStore', () => {
     expect(store.problems).toEqual([]);
   });
 
+  it('loads templates separately, preserving their path and unknown item fields', async () => {
+    const context = await developmentContext();
+    const file = join(dataRoot(context), '틀', 'original-name.llservice');
+    await writeJson(file, {
+      format: 'llservice',
+      schemaVersion: 1,
+      id: SUNDAY_ID,
+      name: '주일 틀',
+      time: '11:00',
+      order: [
+        {id: itemId(1), slot: 'song', title: '찬양', future: {enabled: true}},
+      ],
+    });
+    await writeJson(join(dataRoot(context), '틀', 'broken.llservice'), '{');
+
+    const store = await loadedStore(context);
+
+    expect(store.templates.get(SUNDAY_ID)).toMatchObject({
+      file,
+      data: {time: '11:00', order: [{future: {enabled: true}}]},
+    });
+    expect(store.services.size).toBe(0);
+    expect(store.problems).toMatchObject([
+      {file: join(dataRoot(context), '틀', 'broken.llservice'), kind: 'json'},
+    ]);
+  });
+
   it('opens the last opened service, or else the newest one', async () => {
     const context = await developmentContext();
     const services = join(dataRoot(context), '예배');

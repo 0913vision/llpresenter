@@ -49,6 +49,24 @@ export class RecoveryCopies {
     if (this.lastCopyAt.has(target.file)) {
       return {ok: true, value: undefined};
     }
+    return this.keepAt(target, now);
+  }
+
+  /** Keeps the final content before deletion, even after a recent autosave. */
+  keepBeforeDelete(
+    target: RecoveryTarget,
+  ): Promise<Result<void, WriteProblem>> {
+    const now = Math.max(
+      this.now(),
+      (this.lastCopyAt.get(target.file) ?? -1) + 1,
+    );
+    return this.keepAt(target, now);
+  }
+
+  private async keepAt(
+    target: RecoveryTarget,
+    now: number,
+  ): Promise<Result<void, WriteProblem>> {
     try {
       if (await this.copy(target, now)) {
         this.lastCopyAt.set(target.file, now);

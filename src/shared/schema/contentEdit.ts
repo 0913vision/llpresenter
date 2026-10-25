@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import type {Result} from '../result';
 import {revisionSchema} from './contentDocuments';
-import {checkPart} from './fileFormat';
+import {checkPart, type ReadonlyKnown} from './fileFormat';
 import {
   serviceIdSchema,
   serviceItemIdSchema,
@@ -119,7 +119,9 @@ const editResultSchema = v.pipe(
  * main process rewrites every file they touch, such as the 예배 순서 items that
  * pick a renamed 구성.
  */
-export type ContentEdit = v.InferOutput<typeof contentEditSchema>;
+export type ContentEdit = ReadonlyKnown<
+  v.InferOutput<typeof contentEditSchema>
+>;
 
 export type ContentEditType = ContentEdit['type'];
 

@@ -24,6 +24,23 @@ export function copiedItems(
   return items.map(item => ({...item, id: newItemId()}));
 }
 
+/** Includes each selected child's header and keeps the source order (05). */
+export function pickedItems(
+  items: readonly ServiceItem[],
+  wanted: ReadonlySet<string>,
+): readonly ServiceItem[] {
+  const selected = new Set(wanted);
+  let header: ServiceItem | undefined;
+  for (const item of items) {
+    if (isItemOfKind(item, 'header')) {
+      header = item;
+    } else if (wanted.has(item.id) && header !== undefined) {
+      selected.add(header.id);
+    }
+  }
+  return items.filter(({id}) => selected.has(id));
+}
+
 /**
  * The first title of `base`, `base 2`, `base 3`, and so on that no song has
  * (`docs/spec/05-prep.md`, "New song").

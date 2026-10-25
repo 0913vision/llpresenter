@@ -10,10 +10,13 @@ import {
 import type {ShowRow, ShowService, ShowTile} from '@shared/schema/showService';
 import type {Slide, Song} from '@shared/schema/song';
 
-type SongLibrary = ReadonlyMap<string, LoadedFile<Song>>;
+/** A document's content and whether a newer app version wrote it. */
+type Shown<T> = Pick<LoadedFile<T>, 'data' | 'access'>;
+
+type SongLibrary = ReadonlyMap<string, Shown<Song>>;
 
 export interface ShowServiceSources {
-  readonly service: LoadedFile<Service>;
+  readonly service: Shown<Service>;
   /** The song library, by song id. */
   readonly songs: SongLibrary;
   readonly labels: readonly Label[];
@@ -86,7 +89,7 @@ function rowOf(item: ServiceItem, songs: SongLibrary): ShowRow {
   return {kind: 'unknown', id, title: '', problem: 'unknown-kind'};
 }
 
-function songRow(id: string, song: LoadedFile<Song> | undefined): ShowRow {
+function songRow(id: string, song: Shown<Song> | undefined): ShowRow {
   if (song === undefined) {
     return {kind: 'song', id, title: '', problem: 'missing-song'};
   }

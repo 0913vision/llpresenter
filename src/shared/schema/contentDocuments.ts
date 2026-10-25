@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import type {Result} from '../result';
-import {checkPart} from './fileFormat';
+import {checkPart, type ReadonlyKnown} from './fileFormat';
 import {serviceIdSchema, songIdSchema, templateIdSchema} from './ids';
 import {payloadObject, type PayloadError} from './payload';
 import {localDateTime, nonNegativeInteger, positiveInteger} from './primitives';
@@ -107,33 +107,49 @@ const templateChangeSchema = v.pipe(
  * A song as a window edits it: the file's content, its revision, and whether
  * a newer app version wrote it, which makes it read-only.
  */
-export type SongDocument = v.InferOutput<typeof songDocumentSchema>;
+export type SongDocument = ReadonlyKnown<
+  v.InferOutput<typeof songDocumentSchema>
+>;
 
-export type ServiceDocument = v.InferOutput<typeof serviceDocumentSchema>;
+export type ServiceDocument = ReadonlyKnown<
+  v.InferOutput<typeof serviceDocumentSchema>
+>;
 
-export type TemplateDocument = v.InferOutput<typeof templateDocumentSchema>;
+export type TemplateDocument = ReadonlyKnown<
+  v.InferOutput<typeof templateDocumentSchema>
+>;
 
 /**
  * One row of the 라이브러리: what the list shows, and the 예배 순서 that use
  * the song (the "예배 순서 2곳" tag and its tooltip).
  */
-export type LibrarySong = v.InferOutput<typeof librarySongSchema>;
+export type LibrarySong = ReadonlyKnown<
+  v.InferOutput<typeof librarySongSchema>
+>;
 
 /** One 예배 순서 of the list that switches the open one. */
-export type ServiceEntry = v.InferOutput<typeof serviceEntrySchema>;
+export type ServiceEntry = ReadonlyKnown<
+  v.InferOutput<typeof serviceEntrySchema>
+>;
 
-export type TemplateEntry = v.InferOutput<typeof templateEntrySchema>;
+export type TemplateEntry = ReadonlyKnown<
+  v.InferOutput<typeof templateEntrySchema>
+>;
 
 /**
  * A song that changed, with its new revision, or `null` when it was deleted.
  * The window that sent the edit recognizes its own change by the revision in
  * the edit's answer.
  */
-export type SongChange = v.InferOutput<typeof songChangeSchema>;
+export type SongChange = ReadonlyKnown<v.InferOutput<typeof songChangeSchema>>;
 
-export type ServiceChange = v.InferOutput<typeof serviceChangeSchema>;
+export type ServiceChange = ReadonlyKnown<
+  v.InferOutput<typeof serviceChangeSchema>
+>;
 
-export type TemplateChange = v.InferOutput<typeof templateChangeSchema>;
+export type TemplateChange = ReadonlyKnown<
+  v.InferOutput<typeof templateChangeSchema>
+>;
 
 function checker<TSchema extends v.GenericSchema>(schema: TSchema) {
   return (value: unknown): Result<v.InferOutput<TSchema>, PayloadError> =>
@@ -156,13 +172,13 @@ function nullableChecker<TSchema extends v.GenericSchema>(schema: TSchema) {
     value === null ? {ok: true, value: null} : check(value);
 }
 
-/** Checks a `song:document:get` answer: the song, or `null` for none. */
+/** Checks a `songs:document:get` answer: the song, or `null` for none. */
 export const parseSongDocument = nullableChecker(songDocumentSchema);
 
-/** Checks a `service:document:get` answer. */
+/** Checks a `services:document:get` answer. */
 export const parseServiceDocument = nullableChecker(serviceDocumentSchema);
 
-/** Checks a `template:document:get` answer. */
+/** Checks a `templates:document:get` answer. */
 export const parseTemplateDocument = nullableChecker(templateDocumentSchema);
 
 /** Checks a `songs:list` answer or a `songs:list:changed` push. */
@@ -174,11 +190,11 @@ export const parseServiceEntries = listChecker(serviceEntrySchema);
 /** Checks a `templates:list` answer or a `templates:list:changed` push. */
 export const parseTemplateEntries = listChecker(templateEntrySchema);
 
-/** Checks a `song:document:changed` push. */
+/** Checks a `songs:document:changed` push. */
 export const parseSongChange = checker(songChangeSchema);
 
-/** Checks a `service:document:changed` push. */
+/** Checks a `services:document:changed` push. */
 export const parseServiceChange = checker(serviceChangeSchema);
 
-/** Checks a `template:document:changed` push. */
+/** Checks a `templates:document:changed` push. */
 export const parseTemplateChange = checker(templateChangeSchema);

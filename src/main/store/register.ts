@@ -1,8 +1,14 @@
 import {app, ipcMain} from 'electron';
 import {Channels} from '@shared/ipc';
-import type {ShowService} from '@shared/schema/showService';
 import type {Logger} from '../log';
 import {Backups, type BackupOutcome} from './backup';
+import {
+  broadcast,
+  broadcastEvents,
+  registerContentChannels,
+} from './contentChannels';
+import {ContentStore} from './contentStore';
+import {documentFiles} from './documentFiles';
 import {
   loadStore,
   type AppConfigView,
@@ -11,11 +17,17 @@ import {
 } from './fileStore';
 import {dataFileFolders, type LocationContext} from './locations';
 import {LoadingMediaLibrary} from './mediaLibrary';
-import {buildShowService} from './showService';
+import {OpenServiceFeed} from './openServiceFeed';
+import {RecoveryCopies} from './recoveryCopies';
+import {Saver} from './saver';
 import {removeStaleTempFiles} from './staleTempFiles';
 
-const FIRST_REVISION = 1;
 const MAX_LOGGED_PROBLEMS = 50;
+
+interface OpenedContent {
+  readonly content: ContentStore;
+  readonly feed: OpenServiceFeed;
+}
 
 export interface StoreRegistration {
   readonly log: Logger;
@@ -30,8 +42,9 @@ export interface StoreRegistration {
 /** What the main process wiring uses of the data store. */
 export interface DataStore {
   /**
-   * Removes the handler and resolves once the launch backup has ended, so
-   * quitting never cuts a backup off halfway.
+   * Removes the handlers and resolves once the launch backup has ended and
+   * every change that waits is saved, so quitting never cuts a backup off or
+   * loses an edit.
    */
   readonly dispose: () => Promise<void>;
   /**
@@ -44,8 +57,9 @@ export interface DataStore {
 }
 
 /**
- * Reads the data at launch, answers `service:get` with the open 예배 순서,
- * finds media files by id, and then runs the launch backup once. A window that
+ * Reads the data at launch, answers `service:get` with the open 예배 순서 and
+ * pushes it again when it changes, answers the content channels, finds media
+ * files by id, and then runs the launch backup once. A window that
  * asks before the data is read waits for it. Never throws: a failure, or a
  * data folder that a link leads outside `LLP_USER_DATA`, is logged, and the
  * answer is `null`.
@@ -57,16 +71,19 @@ export function registerStore({
   context = electronLocationContext,
 }: StoreRegistration): DataStore {
   const loading = readStore(() => ({...context(), appConfig}), log);
-  const opening = openShowService(loading, log);
-  ipcMain.handle(Channels.serviceGet, () => opening);
-  // TODO(0913vision): Push `service:changed` with the next revision when the
-  // open 예배 순서, one of its songs, or the 이름표 change.
+  const opened = openContent(loading, log);
+  ipcMain.handle(Channels.serviceGet, async () => currentService(opened));
+  const removeContentChannels = registerContentChannels(contentOf(opened), log);
   const upkeep = upkeepAtLaunch(loading, isAnyOutputOn, log);
   const media = new LoadingMediaLibrary(loading);
   return {
     dispose: async () => {
       ipcMain.removeHandler(Channels.serviceGet);
+      removeContentChannels();
       await upkeep;
+      const ready = await opened;
+      await ready?.content.flush();
+      ready?.content.dispose();
     },
     findMediaFile: media.findFile,
     mediaRoots: media.roots,
@@ -100,17 +117,59 @@ async function readStore(
   }
 }
 
-async function openShowService(
+async function openContent(
   loading: Promise<LoadedStore | null>,
   log: Logger,
-): Promise<ShowService | null> {
+): Promise<OpenedContent | null> {
   const store = await loading;
-  try {
-    return store === null ? null : showServiceOf(store);
-  } catch (error: unknown) {
-    log.error('could not build the open 예배 순서', error);
+  if (store === null) {
     return null;
   }
+  try {
+    return createContent(store, log);
+  } catch (error: unknown) {
+    log.error('could not open the songs and 예배 순서', error);
+    return null;
+  }
+}
+
+function createContent(store: LoadedStore, log: Logger): OpenedContent {
+  const copies = new RecoveryCopies({
+    folder: store.locations.recovery,
+    keep: () => store.preferences.backupCopies,
+  });
+  const saver = new Saver({
+    copies,
+    reportCopyProblem: problem =>
+      log.warn('could not keep a recovery copy', problem),
+  });
+  let feed: OpenServiceFeed | null = null;
+  const content = new ContentStore({
+    locations: store.locations,
+    songs: store.songs,
+    services: store.services,
+    templates: store.templates,
+    openServiceId: store.openServiceId,
+    files: documentFiles({saver, copies, log}),
+    events: broadcastEvents(log, () => feed?.refresh()),
+    log,
+  });
+  feed = new OpenServiceFeed(
+    {serviceId: store.openServiceId, labels: store.labels, content},
+    service => broadcast(Channels.serviceChanged, service, log),
+    error => log.error('could not refresh the open 예배 순서', error),
+  );
+  return {content, feed};
+}
+
+async function currentService(opened: Promise<OpenedContent | null>) {
+  return (await opened)?.feed.current() ?? null;
+}
+
+async function contentOf(
+  opened: Promise<OpenedContent | null>,
+): Promise<ContentStore | null> {
+  return (await opened)?.content ?? null;
 }
 
 // NOTE(0913vision): Leftover temporary files go before the backup, so a backup
@@ -155,22 +214,6 @@ async function backUpAtLaunch(
   } catch (error: unknown) {
     log.error('the launch backup failed', error);
   }
-}
-
-function showServiceOf(store: LoadedStore): ShowService | null {
-  const service =
-    store.openServiceId === null
-      ? undefined
-      : store.services.get(store.openServiceId);
-  if (service === undefined) {
-    return null;
-  }
-  return buildShowService({
-    service,
-    songs: store.songs,
-    labels: store.labels,
-    revision: FIRST_REVISION,
-  });
 }
 
 function logLoadedStore(store: LoadedStore, log: Logger): void {

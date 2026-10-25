@@ -1,8 +1,8 @@
-import * as v from 'valibot';
 import {beforeAll, beforeEach, describe, expect, it, vi} from 'vitest';
 import {Channels, type LlpApi} from '@shared/ipc';
 import {emptyLiveState} from '@shared/live';
 import {songIdSchema} from '@shared/schema/ids';
+import {testId} from '@shared/schema/testHelpers';
 
 type Handler = (event: unknown, value: unknown) => void;
 
@@ -234,7 +234,7 @@ describe('preload', () => {
   it('sends an edit and passes a valid answer through', async () => {
     const edit = {
       type: 'song.delete',
-      songId: v.parse(songIdSchema, SONG_ID),
+      songId: testId(songIdSchema, SONG_ID),
     } as const;
     const answer = {ok: true, value: {id: SONG_ID, revision: null}};
     electron.invoke.mockResolvedValueOnce(answer);

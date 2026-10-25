@@ -1,4 +1,4 @@
-import {readdir, rm, symlink, utimes} from 'node:fs/promises';
+import {readdir, readFile, rm, symlink, utimes} from 'node:fs/promises';
 import {join} from 'node:path';
 import {
   afterEach,
@@ -10,6 +10,9 @@ import {
   vi,
 } from 'vitest';
 import {Channels} from '@shared/ipc';
+import {parseEditResult} from '@shared/schema/contentEdit';
+import {parseSong} from '@shared/schema/song';
+import {parseShowService} from '@shared/schema/showService';
 import {makeTempDir} from '../../../test/temp-dir';
 import type {Logger} from '../log';
 import {openAppConfig} from './appConfigFile';
@@ -28,14 +31,23 @@ import {
   writeJson,
 } from './testFiles';
 
-type Handler = () => unknown;
+type Handler = (event: unknown, value: unknown) => unknown;
 
 const electron = vi.hoisted(() => ({
-  handlers: new Map<string, () => unknown>(),
+  handlers: new Map<string, Handler>(),
   paths: new Map<string, string>(),
+  send: vi.fn(),
 }));
 
 vi.mock('electron', () => ({
+  BrowserWindow: {
+    getAllWindows: () => [
+      {
+        isDestroyed: () => false,
+        webContents: {isDestroyed: () => false, send: electron.send},
+      },
+    ],
+  },
   app: {
     getPath: (name: string) => electron.paths.get(name) ?? '',
   },
@@ -95,12 +107,19 @@ async function register(
 }
 
 function askForService(): Promise<unknown> {
-  return Promise.resolve(electron.handlers.get(Channels.serviceGet)?.());
+  return ask(Channels.serviceGet);
+}
+
+function ask(channel: string, value?: unknown): Promise<unknown> {
+  const handler = electron.handlers.get(channel);
+  if (handler === undefined) throw new Error(`Missing handler: ${channel}`);
+  return Promise.resolve(handler({}, value));
 }
 
 beforeEach(() => {
   electron.handlers.clear();
   electron.paths.clear();
+  electron.send.mockReset();
 });
 
 afterEach(async () => {
@@ -109,6 +128,137 @@ afterEach(async () => {
 });
 
 describe('registerStore', () => {
+  it('pushes edited song tiles without a live-state push and flushes before disposal', async () => {
+    const context = await developmentContext();
+    const root = join(context.appDataFolder, DATA_FOLDER_NAME);
+    const file = join(root, '곡', 'original-name.llsong');
+    await writeJson(file, {...hymnOne(), future: {enabled: true}});
+    await writeJson(
+      join(root, '예배', 'open.llservice'),
+      service(SUNDAY_ID, '2026-11-01T11:00', [
+        {id: itemId(1), song: HYMN_ONE_ID},
+      ]),
+    );
+    const store = await register(fakeLog(), context, () => true);
+    const before = parseShowService(await askForService());
+    if (!before.ok || before.value === null) {
+      throw new Error('Missing test service');
+    }
+    const edited = {
+      ...hymnOne(),
+      slides: [{lines: ['새로 편집한 가사']}],
+      arrangements: [],
+    };
+
+    const answer = parseEditResult(
+      await ask(Channels.contentEdit, {
+        type: 'song.update',
+        song: edited,
+        baseRevision: 1,
+      }),
+    );
+    const after = parseShowService(await askForService());
+
+    expect(answer).toMatchObject({
+      ok: true,
+      value: {ok: true, value: {id: HYMN_ONE_ID, revision: 2}},
+    });
+    expect(after).toMatchObject({
+      ok: true,
+      value: {
+        revision: 2,
+        tiles: {[itemId(1)]: [{lines: ['새로 편집한 가사']}]},
+      },
+    });
+    expect(
+      electron.send.mock.calls.filter(
+        ([channel]) => channel === Channels.serviceChanged,
+      ),
+    ).toHaveLength(1);
+    expect(
+      electron.send.mock.calls.some(
+        ([channel]) => channel === Channels.liveChanged,
+      ),
+    ).toBe(false);
+    expect(
+      electron.send.mock.calls.some(
+        ([channel]) => channel === Channels.songsDocumentChanged,
+      ),
+    ).toBe(true);
+    await store.dispose();
+
+    expect(parseSong(await readFile(file, 'utf8'), file)).toMatchObject({
+      ok: true,
+      value: {
+        data: {
+          slides: [{lines: ['새로 편집한 가사']}],
+          future: {enabled: true},
+        },
+      },
+    });
+    expect(electron.handlers.size).toBe(0);
+  });
+
+  it('reads and edits content requested while the data is still loading', async () => {
+    const context = await developmentContext();
+    const store = await register(fakeLog(), context, () => true);
+
+    const created = parseEditResult(
+      await ask(Channels.contentEdit, {type: 'song.create'}),
+    );
+    if (!created.ok || !created.value.ok) {
+      throw new Error('Could not create a test song');
+    }
+    expect(await ask(Channels.songsList)).toMatchObject([
+      {id: created.value.value.id, title: '새 곡'},
+    ]);
+    expect(
+      await ask(Channels.songsDocumentGet, created.value.value.id),
+    ).toMatchObject({revision: 1, access: 'editable'});
+    await store.dispose();
+    expect(electron.handlers.size).toBe(0);
+  });
+
+  it('logs and refuses malformed edits and document ids without changing files', async () => {
+    const context = await developmentContext();
+    const log = fakeLog();
+    await register(log, context, () => true);
+
+    expect(
+      await ask(Channels.contentEdit, {type: 'song.update', song: {}}),
+    ).toMatchObject({ok: false, error: {reason: 'invalid'}});
+    expect(await ask(Channels.songsDocumentGet, '../outside')).toBeNull();
+    expect(await ask(Channels.servicesDocumentGet, 7)).toBeNull();
+    expect(await ask(Channels.templatesDocumentGet, null)).toBeNull();
+    expect(await ask(Channels.songsList)).toEqual([]);
+    expect(log.warn).toHaveBeenCalledTimes(4);
+  });
+
+  it('answers content reads and edits safely when no data folder could be opened', async () => {
+    const log = fakeLog();
+    const appConfig = await openAppConfig({
+      file: join(await makeTempDir(), 'app.json'),
+      log,
+    });
+    const store = registerStore({
+      log,
+      appConfig,
+      isAnyOutputOn: () => false,
+      context: () => {
+        throw new Error('missing data');
+      },
+    });
+    disposers.push(store.dispose);
+
+    expect(
+      await ask(Channels.contentEdit, {type: 'song.create'}),
+    ).toMatchObject({ok: false, error: {reason: 'not-found'}});
+    expect(await ask(Channels.songsList)).toEqual([]);
+    expect(await ask(Channels.servicesList)).toEqual([]);
+    expect(await ask(Channels.templatesList)).toEqual([]);
+    expect(await ask(Channels.songsDocumentGet, HYMN_ONE_ID)).toBeNull();
+  });
+
   it('answers service:get with the open 예배 순서 at its first revision', async () => {
     const context = await developmentContext();
     const root = join(context.appDataFolder, DATA_FOLDER_NAME);
