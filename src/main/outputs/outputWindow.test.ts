@@ -4,7 +4,7 @@ import {recordingLogger} from '../displays/testing';
 import {OutputWindow} from './outputWindow';
 import type {ShownPlacement} from './placement';
 import {COOLDOWN_STEPS_MS, RELAUNCH_DELAY_MS} from './rendererRecovery';
-import {HANG_TIMEOUT_MS} from './hangWatch';
+import {ANSWER_LIMIT_MS, FRAME_SILENCE_MS} from './hangWatch';
 import {CRASH_LIMIT} from './restartBudget';
 import {fakeWindows, fullScreenScreen} from './testing';
 
@@ -175,21 +175,50 @@ describe('OutputWindow', () => {
     expect(windows.created).toHaveLength(1);
   });
 
-  it('crashes the renderer of a visible output that stops reporting, so it restarts', async () => {
+  it('crashes the renderer of a visible output that stops reporting and answering', async () => {
+    const clock = installFakeClock();
+    const {output, windows, log} = setUp();
+    output.update(FULL_SCREEN);
+    const handle = windows.only('main');
+    handle.answerAfterMs = null;
+    output.frameReported();
+    await clock.advance(FRAME_SILENCE_MS - 1);
+    output.frameReported();
+    await clock.advance(FRAME_SILENCE_MS - 1);
+    expect(handle.pings).toBe(0);
+    await clock.advance(1 + ANSWER_LIMIT_MS - 1);
+    expect(handle.pings).toBe(1);
+    expect(handle.forcedCrashes).toBe(0);
+    await clock.advance(1);
+    expect(handle.forcedCrashes).toBe(1);
+    expect(log.messages('error')).toContain(
+      'output window stopped drawing and answering; restarting its renderer',
+    );
+  });
+
+  it('never crashes a slow renderer that answers within the limit', async () => {
+    const clock = installFakeClock();
+    const {output, windows} = setUp();
+    output.update(FULL_SCREEN);
+    const handle = windows.only('main');
+    handle.answerAfterMs = ANSWER_LIMIT_MS - 1;
+    output.frameReported();
+    await clock.advance(10 * (FRAME_SILENCE_MS + ANSWER_LIMIT_MS));
+    expect(handle.pings).toBeGreaterThan(1);
+    expect(handle.forcedCrashes).toBe(0);
+  });
+
+  it('logs a page that answers but reports no frames instead of crashing it', async () => {
     const clock = installFakeClock();
     const {output, windows, log} = setUp();
     output.update(FULL_SCREEN);
     const handle = windows.only('main');
     output.frameReported();
-    await clock.advance(HANG_TIMEOUT_MS - 1);
-    output.frameReported();
-    await clock.advance(HANG_TIMEOUT_MS - 1);
+    await clock.advance(10 * (FRAME_SILENCE_MS + ANSWER_LIMIT_MS));
     expect(handle.forcedCrashes).toBe(0);
-    await clock.advance(1);
-    expect(handle.forcedCrashes).toBe(1);
-    expect(log.messages('error')).toContain(
-      'output window stopped drawing; restarting its renderer',
-    );
+    expect(log.messages('warn')).toEqual([
+      'output window answers but reports no frames',
+    ]);
   });
 
   it('crashes a hung renderer again when the first forced crash does not end it', async () => {
@@ -197,14 +226,49 @@ describe('OutputWindow', () => {
     const {output, windows} = setUp();
     output.update(FULL_SCREEN);
     const handle = windows.only('main');
+    handle.answerAfterMs = null;
     output.frameReported();
-    await clock.advance(HANG_TIMEOUT_MS);
+    await clock.advance(FRAME_SILENCE_MS + ANSWER_LIMIT_MS);
     expect(handle.forcedCrashes).toBe(1);
-    await clock.advance(HANG_TIMEOUT_MS);
+    await clock.advance(FRAME_SILENCE_MS + ANSWER_LIMIT_MS);
     expect(handle.forcedCrashes).toBe(2);
     handle.crash();
-    await clock.advance(HANG_TIMEOUT_MS * 2);
+    await clock.advance(2 * (FRAME_SILENCE_MS + ANSWER_LIMIT_MS));
     expect(handle.forcedCrashes).toBe(2);
+  });
+
+  it('watches a page that drew before again when its output turns on again', async () => {
+    const clock = installFakeClock();
+    const {output, windows} = setUp();
+    output.update(FULL_SCREEN);
+    const handle = windows.only('main');
+    handle.answerAfterMs = null;
+    output.frameReported();
+    output.update(null);
+    await clock.advance(2 * (FRAME_SILENCE_MS + ANSWER_LIMIT_MS));
+    expect(handle.pings).toBe(0);
+    output.update(FULL_SCREEN);
+    await clock.advance(FRAME_SILENCE_MS + ANSWER_LIMIT_MS);
+    expect(handle.forcedCrashes).toBe(1);
+  });
+
+  it('does not watch a page that has not drawn since it loaded', async () => {
+    const clock = installFakeClock();
+    const {output, windows} = setUp();
+    output.update(FULL_SCREEN);
+    const handle = windows.only('main');
+    handle.answerAfterMs = null;
+    await clock.advance(2 * (FRAME_SILENCE_MS + ANSWER_LIMIT_MS));
+    expect(handle.pings).toBe(0);
+
+    output.frameReported();
+    handle.crash();
+    output.update(null);
+    output.update(FULL_SCREEN);
+    await clock.advance(RELAUNCH_DELAY_MS);
+    expect(handle.reloads).toBe(1);
+    await clock.advance(FRAME_SILENCE_MS + ANSWER_LIMIT_MS);
+    expect(handle.forcedCrashes).toBe(0);
   });
 
   it('does not watch a hidden output or one that is restarting', async () => {
@@ -212,15 +276,16 @@ describe('OutputWindow', () => {
     const {output, windows} = setUp();
     output.update(FULL_SCREEN);
     const handle = windows.only('main');
+    handle.answerAfterMs = null;
     output.frameReported();
     output.update(null);
-    await clock.advance(HANG_TIMEOUT_MS * 2);
+    await clock.advance(2 * (FRAME_SILENCE_MS + ANSWER_LIMIT_MS));
     expect(handle.forcedCrashes).toBe(0);
 
     output.update(FULL_SCREEN);
     output.frameReported();
     handle.crash();
-    await clock.advance(HANG_TIMEOUT_MS * 2);
+    await clock.advance(2 * (FRAME_SILENCE_MS + ANSWER_LIMIT_MS));
     expect(handle.forcedCrashes).toBe(0);
   });
 });

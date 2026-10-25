@@ -13,6 +13,7 @@ import type {OutputWindowEvents, OutputWindowHandle} from './outputWindow';
 import type {OutputScreen} from './screens';
 
 const OUTPUT_BACKGROUND = '#000000';
+const PING_SCRIPT = '0';
 
 function halfOf({width, height}: Rect): Size {
   return {width: Math.round(width / 2), height: Math.round(height / 2)};
@@ -144,6 +145,9 @@ export function createElectronOutputWindow(
     reload: () => startLoading(win, page),
     crashRenderer: () => {
       if (!win.isDestroyed()) win.webContents.forcefullyCrashRenderer();
+    },
+    ping: async () => {
+      await win.webContents.executeJavaScript(PING_SCRIPT);
     },
     destroy: () => {
       if (!win.isDestroyed()) win.destroy();

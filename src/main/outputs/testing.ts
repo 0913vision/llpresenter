@@ -28,6 +28,9 @@ export class FakeOutputHandle implements OutputWindowHandle {
   /** Makes the next reload fail to load the page. */
   failNextReload = false;
   forcedCrashes = 0;
+  pings = 0;
+  /** How long the page takes to answer a ping; null when it never does. */
+  answerAfterMs: number | null = 0;
   /** Every call that showed the window, in order. */
   readonly placements: FakeMode[] = [];
 
@@ -58,6 +61,14 @@ export class FakeOutputHandle implements OutputWindowHandle {
 
   crashRenderer(): void {
     this.forcedCrashes += 1;
+  }
+
+  ping(): Promise<void> {
+    this.pings += 1;
+    const delay = this.answerAfterMs;
+    return new Promise(resolve => {
+      if (delay !== null) setTimeout(resolve, delay);
+    });
   }
 
   destroy(): void {

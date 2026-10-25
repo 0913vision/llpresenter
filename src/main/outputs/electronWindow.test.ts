@@ -9,7 +9,12 @@ import type {OutputScreen} from './screens';
 
 const electron = vi.hoisted(() => {
   class FakeBrowserWindow {
-    readonly webContents = {on: vi.fn(), isCrashed: vi.fn(() => false)};
+    readonly webContents = {
+      on: vi.fn(),
+      isCrashed: vi.fn(() => false),
+      executeJavaScript: vi.fn(() => Promise.resolve(0)),
+      forcefullyCrashRenderer: vi.fn(),
+    };
     readonly setContentBounds = vi.fn();
     readonly setBounds = vi.fn();
     readonly getBounds = vi.fn(() => ({x: 0, y: 0, width: 800, height: 600}));
@@ -140,6 +145,35 @@ describe('createElectronOutputWindow offscreen', () => {
     output.hide();
 
     expect(lastWindow().hide).not.toHaveBeenCalled();
+  });
+});
+
+describe('createElectronOutputWindow hang handling', () => {
+  it('pings the page by running a script on its main thread', async () => {
+    const output = openOutput('normal');
+
+    await expect(output.ping()).resolves.toBeUndefined();
+    expect(lastWindow().webContents.executeJavaScript).toHaveBeenCalledTimes(1);
+  });
+
+  it('passes a failed ping on as a rejection', async () => {
+    const output = openOutput('normal');
+    lastWindow().webContents.executeJavaScript.mockRejectedValueOnce(
+      new Error('Object has been destroyed'),
+    );
+
+    await expect(output.ping()).rejects.toThrow('Object has been destroyed');
+  });
+
+  it('crashes the renderer only while the window exists', () => {
+    const output = openOutput('normal');
+    const win = lastWindow();
+
+    output.crashRenderer();
+    win.isDestroyed.mockReturnValue(true);
+    output.crashRenderer();
+
+    expect(win.webContents.forcefullyCrashRenderer).toHaveBeenCalledTimes(1);
   });
 });
 

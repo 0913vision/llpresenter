@@ -1,7 +1,7 @@
 import {sameRect, type Rect} from '../displays/rect';
 import type {Logger} from '../log';
 import type {FullScreenPlacement, ShownPlacement} from './placement';
-import {HANG_TIMEOUT_MS, HangWatch} from './hangWatch';
+import {ANSWER_LIMIT_MS, FRAME_SILENCE_MS, HangWatch} from './hangWatch';
 import {
   RendererRecovery,
   type RendererGoneDetails,
@@ -23,6 +23,11 @@ export interface OutputWindowHandle {
   reload(): Promise<void>;
   /** Ends a hung renderer process, so the crash path starts it again. */
   crashRenderer(): void;
+  /**
+   * Asks the page's main thread for an answer. Resolves when it answers;
+   * never resolves while it is stuck.
+   */
+  ping(): Promise<void>;
   destroy(): void;
 }
 
@@ -68,8 +73,13 @@ export class OutputWindow {
   private applied: ShownPlacement | null = null;
   private visible = false;
   private disposed = false;
+  private drewSinceLoad = false;
   private readonly recovery: RendererRecovery;
-  private readonly hangWatch = new HangWatch(() => this.handleHang());
+  private readonly hangWatch = new HangWatch({
+    ping: () => this.handle?.ping() ?? Promise.resolve(),
+    onHung: () => this.handleHang(),
+    onSilentButAnswering: () => this.reportSilence(),
+  });
 
   constructor(private readonly options: OutputWindowOptions) {
     this.recovery = new RendererRecovery({
@@ -91,10 +101,9 @@ export class OutputWindow {
    * last load, and it is still drawing.
    */
   frameReported(): void {
+    this.drewSinceLoad = true;
     this.recovery.pageDrawn();
-    if (this.visible && this.recovery.state === 'running') {
-      this.hangWatch.beat();
-    }
+    this.watchIfRunning();
   }
 
   /** 다시 시도: while the restart limit waits, an attempt starts at once. */
@@ -127,7 +136,19 @@ export class OutputWindow {
       this.place(handle, placement);
     }
     this.applied = placement;
-    this.visible = true;
+    if (!this.visible) {
+      this.visible = true;
+      this.watchIfRunning();
+    }
+  }
+
+  private watchIfRunning(): void {
+    // NOTE(0913vision): Only a page that has drawn since its last load is
+    // watched. A page that hasn't drawn yet is loading, and the recovery's
+    // draw limit covers a reload.
+    if (!this.visible || !this.drewSinceLoad) return;
+    if (this.recovery.state !== 'running') return;
+    this.hangWatch.beat();
   }
 
   private changes(placement: ShownPlacement): boolean {
@@ -162,6 +183,7 @@ export class OutputWindow {
     if (this.handle !== null) return this.handle;
     const handle = this.options.createHandle(this.options.screen, {
       onRendererGone: details => {
+        this.drewSinceLoad = false;
         this.hangWatch.stop();
         if (!this.disposed) this.recovery.crashed(details);
       },
@@ -171,10 +193,20 @@ export class OutputWindow {
     return handle;
   }
 
+  private reportSilence(): void {
+    this.options.log.warn('output window answers but reports no frames', {
+      screen: this.options.screen.id,
+      silentForMs: FRAME_SILENCE_MS,
+    });
+  }
+
   private handleHang(): void {
     this.options.log.error(
-      'output window stopped drawing; restarting its renderer',
-      {screen: this.options.screen.id, silentForMs: HANG_TIMEOUT_MS},
+      'output window stopped drawing and answering; restarting its renderer',
+      {
+        screen: this.options.screen.id,
+        silentForMs: FRAME_SILENCE_MS + ANSWER_LIMIT_MS,
+      },
     );
     this.handle?.crashRenderer();
     // NOTE(0913vision): A renderer that survives the forced crash sends no
