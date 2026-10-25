@@ -102,3 +102,15 @@ after the lead announces data-41 merged. Search waits separately for data-40.
 
 Fixtures contain invented names and paths. No Electron process, visible window,
 soak, or memory run was started.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (Claude, trial-97): Request changes: a ReactElement picture did not
+  fill the MediaTile slot; the notice meta held an explanatory sentence; nits.
+- Round 2 (4e58efae): reviewer (Claude, trial-97) Approve. Nits:
+  `useMediaStrip.ts:1` starts with a UTF-8 byte order mark (devops strips it
+  with four others and adds a lint rule); `:123` `'이름 없는 미디어'` should be
+  a named constant in the next spec branch. Lead Approve, including the
+  lead-allowed MediaTile and MediaStrip changes in `src/renderer/src/ui/`.
+  Written by the Codex session that took over spec's work. Rebased by the lead
+  onto local `main` without conflicts.
