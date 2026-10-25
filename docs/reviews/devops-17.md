@@ -70,6 +70,19 @@ couldn't tell which session they came from.
 
 See "Tests".
 
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (codex2): Request changes with one finding: the longer polling window
+  also let the old order pass, so the test didn't prove that the maker is
+  rejected only after its stop finishes.
+- Round 2 (794fa15): reviewer (Codex, codex3) Approve with one nit: the new
+  test's teardown doesn't stop its real child process or settle the deferred
+  stop after an early failure. The nit goes into devops's next branch. Lead
+  Approve; a late clip maker is rejected only once its process tree is stopped,
+  and the test waits up to `KILL_TIMEOUT_MS`, which ends the flaky failure on
+  `main` since devops-13. Rebased by the lead onto local `main` without
+  conflicts.
+
 ## Team member's reply (round 1)
 
 1.  Codex 1, a test that proves the order. New test "rejects a late maker only
