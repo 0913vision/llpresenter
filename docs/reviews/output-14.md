@@ -1,17 +1,19 @@
 # Review request: `output-14`
 
-Review range: `7f11119...feat/output/hang-restart` (round 2). For round 2, check
-the lead's three findings and codex4's finding in "Team member's reply", fixed
-in `9ad5985`. Check that a visible, running output whose page has drawn and then
-stops reporting its frame rate for 5 seconds is pinged, that its renderer is
-crashed on purpose only when the page also doesn't answer within 10 seconds, so
-the crash path of output-11 (quick reload, restart limit) brings it back, that a
-page that answers is only logged, and that hidden, restarting, limited, and not
-yet drawn pages are never crashed.
+Review range: `bd622bf...feat/output/hang-restart` (round 3). For round 3, check
+codex4's round 2 finding in "Team member's reply", fixed in `7394779` (one ping
+in flight per page). Round 2's fixes, rebased, are in `e35bec3`. Check that a
+visible, running output whose page has drawn and then stops reporting its frame
+rate for 5 seconds is pinged, that its renderer is crashed on purpose only when
+the page also doesn't answer within 10 seconds, so the crash path of output-11
+(quick reload, restart limit) brings it back, that a page that answers is only
+logged, and that hidden, restarting, limited, and not yet drawn pages are never
+crashed.
 
 - Team member: `output`
 - Branch: `feat/output/hang-restart`
-- Base commit (`main`): `7f11119` (round 2; round 1 was on `a6efbbf`)
+- Base commit (`main`): `bd622bf` (round 3; round 2 was on `7f11119`, round 1 on
+  `a6efbbf`)
 - Last commit: the commit that adds this file
 - Related: the lead's list for output (hang detection after the restart limit);
   output-11 (the crash path it reuses)
@@ -38,6 +40,14 @@ the main process asks the page before it acts.
 - The ping is `webContents.executeJavaScript('0')`: it runs on the page's main
   thread, so it answers while the page is busy but alive and never while the
   thread is stuck. It needs no new IPC channel.
+- A page has at most one ping in flight. A later question, after a retry or
+  after the output turns on again, waits for that ping instead of sending
+  another, so a page that never answers holds one request, not one per retry.
+  Measured in Electron 44.9.3: a ping to a hung page never settles, not even
+  after `forcefullyCrashRenderer` and a reload, while a fresh ping to the new
+  page answers at once. So when the renderer is replaced
+  (`render-process-gone`), the window forgets the old ping and the new page gets
+  its own.
 - `OutputWindow.frameReported()` (was `pageDrawn`) tells the recovery that the
   page drew, marks the page as drawn since its last load, and beats the watch
   while the output is visible and its renderer state is `running`. Turning the
@@ -96,10 +106,20 @@ Sources:
 
 ## Checks run
 
+Round 3: `npm run verify` passed typecheck, lint, format check, and build; tests
+with coverage had 2,097 passing and 1 failing, the same known failure on `main`
+(`scripts/soak/media.test.ts`), on `7394779`, on `main` at `bd622bf`. New round
+3 tests: `hangWatch.test.ts` (a ping that never settles stays the only one
+through five retries, a stop, and a new beat; a late answer to the ping in
+flight answers a later question; a replaced page is pinged again) and
+`outputWindow.test.ts` (a hung page that never answers gets five forced crashes
+through retries and a hide and show with one ping, and its new page after a
+crash gets a new ping).
+
 Round 2: `npm run verify` passed typecheck, lint, format check, and build; tests
 with coverage had 2,041 passing and 1 failing, the known failure on `main` since
 devops-13 (`scripts/soak/media.test.ts`, "ends the stalled maker and every
-process it started"), which devops-17 fixes, on `9ad5985`, on `main` at
+process it started"), which devops-17 fixes, on `e35bec3`, on `main` at
 `7f11119`. New round 2 tests: `hangWatch.test.ts` (a page that never answers is
 hung after the silence and the limit; a slow page answering 1 ms inside the
 limit never is; a page that answers but stays silent is reported once per silent
@@ -130,7 +150,7 @@ Round 1, on `1f52f19`, on `main` at `a6efbbf`:
 - [x] No `any`, no type assertions that bypass checks, and no `!`
 - [x] Every registered subscription, timer, IPC listener, video and audio
       element, and object URL is released (the watch's two timers stop on hide,
-      crash, and dispose, and a late answer is ignored)
+      crash, and dispose; at most one ping per page is in flight)
 - [x] Caches and lists have size caps (no change)
 - [x] An exception in the output path doesn't stop the output (a hung page is
       now restarted, and a busy one is left alone)
@@ -189,7 +209,7 @@ missing.
 
 ## Team member's reply
 
-Round 1 findings, all fixed in `9ad5985` except the lead's third, which follows
+Round 1 findings, all fixed in `e35bec3` except the lead's third, which follows
 after this merges:
 
 1. Lead 1, false positives: a frame silence alone no longer crashes a renderer.
@@ -213,3 +233,16 @@ after this merges:
    drawn since its load stays exempt. Fake-clock test: a page that drew, hung
    while hidden, and sends no reports after its output turns on again is crashed
    15 s later.
+
+Round 2 finding (codex4), fixed in `7394779`:
+
+1. `hangWatch.ts`: every retry started another ping, so a page that never
+   answers and survives the forced crashes collected pending `executeJavaScript`
+   requests. Now a page has at most one ping in flight: a later question waits
+   for it, and its one handler answers whichever question is open when it
+   settles. Crash retries go on as before. Because Electron never settles a ping
+   to a renderer that was crashed and reloaded (measured, see "What changed and
+   why"), the window forgets the old ping when its renderer is replaced, and the
+   new page gets one of its own. Regression tests: a never-settling ping through
+   repeated retries, a stop, and a hide and show stays one ping; a new page
+   after a crash gets a new ping.
