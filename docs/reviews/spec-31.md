@@ -1,10 +1,11 @@
-Review range: `be2c99b...feat/spec/song-background-controller`
+Review range: `4efee4b...feat/spec/song-background-controller`
 
 # Review request: `spec-31`
 
 - Team member: `spec`
 - Branch: `feat/spec/song-background-controller`
-- Base: spec-30 at `be2c99b`, pending its merge before submission
+- Base commit: `4efee4b`, main after spec-30 and data-35
+- Stack: started on spec-30, then rebased onto main after its approval
 - Review round: 1
 - Task: `.llp/task.md`, M3-S1a slide-header background controller
 - Ownership exception: renderer show paths for S1a
