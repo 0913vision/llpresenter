@@ -21,7 +21,7 @@ import styles from './SongBackground.module.css';
 
 const VISIBLE_ROWS = 8;
 const OVERSCAN = 2;
-const NONE_LABEL = '없음';
+export const NONE_LABEL = '없음';
 
 function searchName(value: string): string {
   return value.trim().normalize('NFC').toLocaleLowerCase();
@@ -46,6 +46,8 @@ interface PickerProps {
   readonly anchor: HTMLElement;
   readonly items: readonly MediaItem[];
   readonly selected: MediaId | undefined;
+  readonly query: string;
+  readonly onQueryChange: (value: string) => void;
   readonly onSelect: (id: MediaId | undefined) => void;
   readonly onClose: (restore: boolean) => void;
 }
@@ -55,10 +57,11 @@ export function MediaPicker({
   anchor,
   items,
   selected,
+  query,
+  onQueryChange,
   onSelect,
   onClose,
 }: PickerProps): JSX.Element {
-  const [query, setQuery] = useState('');
   const searchable = useMemo(
     () =>
       items
@@ -75,11 +78,13 @@ export function MediaPicker({
         .map(({item}) => item),
     ];
   }, [searchable, query]);
-  const [active, setActive] = useState(
-    Math.max(
-      0,
-      choices.findIndex(item => item?.id === selected),
-    ),
+  const [active, setActive] = useState(() =>
+    searchName(query) === ''
+      ? Math.max(
+          0,
+          choices.findIndex(item => item?.id === selected),
+        )
+      : Math.min(1, choices.length - 1),
   );
   const [top, setTop] = useState(0);
   const [row, setRow] = useState(0);
@@ -122,7 +127,7 @@ export function MediaPicker({
     onClose(true);
   };
   const filter = (value: string): void => {
-    setQuery(value);
+    onQueryChange(value);
     const term = searchName(value);
     setActive(
       term !== '' && searchable.some(({name}) => name.includes(term)) ? 1 : 0,

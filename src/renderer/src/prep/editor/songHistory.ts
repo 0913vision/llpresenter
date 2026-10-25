@@ -1,4 +1,4 @@
-import type {Song} from '@shared/schema/song';
+import type {Arrangement, Song} from '@shared/schema/song';
 import {
   blockSnapshot,
   editBlocks,
@@ -45,6 +45,18 @@ export class SongHistory {
     this.typing = undefined;
   }
 
+  addArrangement(arrangement: Arrangement): void {
+    this.endTyping();
+    this.remember();
+    this.value = {
+      ...this.value,
+      song: {
+        ...this.value.song,
+        arrangements: [...(this.value.song.arrangements ?? []), arrangement],
+      },
+    };
+  }
+
   /** A global rename also updates undo/redo snapshots without adding a step. */
   renameLabel(from: string, to: string): void {
     const rename = (snapshot: BlockSnapshot): BlockSnapshot => {
@@ -86,11 +98,8 @@ export class SongHistory {
       this.typing?.block === block &&
       time >= this.typing.time &&
       time - this.typing.time < TYPING_PAUSE_MS;
-    if (!grouped) {
-      this.past.push(this.value);
-      if (this.past.length > HISTORY_LIMIT) this.past.shift();
-    }
-    this.future.length = 0;
+    if (!grouped) this.remember();
+    else this.future.length = 0;
     this.typing = typing ? {block, time} : undefined;
     this.value = next;
     return next;
@@ -114,5 +123,11 @@ export class SongHistory {
       this.value = next;
     }
     return this.value;
+  }
+
+  private remember(): void {
+    this.past.push(this.value);
+    if (this.past.length > HISTORY_LIMIT) this.past.shift();
+    this.future.length = 0;
   }
 }

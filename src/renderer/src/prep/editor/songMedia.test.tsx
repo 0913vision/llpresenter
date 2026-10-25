@@ -1,5 +1,6 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import {useState} from 'react';
 import {describe, expect, it, vi} from 'vitest';
 import {createMediaId} from '@shared/schema/ids';
 import type {MediaId} from '@shared/schema/ids';
@@ -50,15 +51,22 @@ function renderPicker(
   onSelect: (id: MediaId | undefined) => void = vi.fn(),
 ) {
   const onClose = vi.fn();
-  render(
-    <MediaPicker
-      anchor={screen.getByRole('button', {name: '다음 패널'})}
-      items={items}
-      selected={undefined}
-      onSelect={onSelect}
-      onClose={onClose}
-    />,
-  );
+  const anchor = screen.getByRole('button', {name: '다음 패널'});
+  function PickerHost() {
+    const [query, setQuery] = useState('');
+    return (
+      <MediaPicker
+        anchor={anchor}
+        items={items}
+        selected={undefined}
+        query={query}
+        onQueryChange={setQuery}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    );
+  }
+  render(<PickerHost />);
   const search = screen.getByRole('combobox', {name: '검색'});
   if (!(search instanceof HTMLInputElement)) throw new Error('Missing search');
   return {

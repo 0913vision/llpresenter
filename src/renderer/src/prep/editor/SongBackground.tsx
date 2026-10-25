@@ -2,7 +2,7 @@ import {useEffect, useId, useMemo, useRef, useState, type JSX} from 'react';
 import type {MediaDocument} from '@shared/schema/mediaEdit';
 import {mediaUrl} from '@shared/media';
 import {Select} from '@renderer/ui/Select';
-import {MediaPicker} from './MediaPicker';
+import {MediaPicker, NONE_LABEL} from './MediaPicker';
 import type {SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';
 import styles from './SongBackground.module.css';
@@ -23,6 +23,7 @@ export function SongBackground({
   }>({doc: null, failed: false});
   const [retry, setRetry] = useState(0);
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  const [query, setQuery] = useState('');
   const trigger = useRef<HTMLButtonElement>(null);
   const id = useId();
   const api = store.api.media;
@@ -38,7 +39,8 @@ export function SongBackground({
       }
     };
     const stop = api.subscribe(accept);
-    api.get().then(accept, () => {
+    api.get().then(accept, (error: unknown) => {
+      console.error('Song background media read failed', error);
       if (alive) {
         setState(current =>
           current.doc === null ? {...current, failed: true} : current,
@@ -81,7 +83,7 @@ export function SongBackground({
         aria-label="기본 배경"
         aria-busy={state.doc === null && !state.failed ? true : undefined}
         size="sm"
-        value={selected?.name ?? (missing ? '미디어 없음' : '없음')}
+        value={selected?.name ?? (missing ? '미디어 없음' : NONE_LABEL)}
         lead={
           selected === undefined
             ? undefined
@@ -98,7 +100,10 @@ export function SongBackground({
           if (state.failed) {
             setState({doc: null, failed: false});
             setRetry(current => current + 1);
-          } else setAnchor(value ? trigger.current : null);
+          } else {
+            if (value) setQuery('');
+            setAnchor(value ? trigger.current : null);
+          }
         }}
       />
       {anchor === null || disabled ? null : (
@@ -107,6 +112,8 @@ export function SongBackground({
           anchor={anchor}
           items={items}
           selected={session.background}
+          query={query}
+          onQueryChange={setQuery}
           onSelect={value => session.setBackground(value)}
           onClose={restore => {
             setAnchor(null);

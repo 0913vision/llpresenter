@@ -67,9 +67,27 @@ on the trigger; loading, read-only song access, and global label operations
 disable it with a reason. Locking closes an open picker and leaves it closed on
 unlock. Media catalog read-only access still allows choosing a song background.
 Missing references remain intact until the user chooses a replacement or none. A
-catalog revision remounts the open picker, clearing its search and active window
-so removed/renamed entries cannot leave stale choices. The title and tags wrap
-at narrow widths; the header stays 34px when one row fits.
+catalog revision rebuilds the open picker window with the raw query owned by
+`SongBackground`. Filtering and the first-match Enter target use the new catalog
+without dropping the search. A fresh opening clears the query. Media read
+failures log their cause before exposing retry. The title and tags wrap at
+narrow widths; the header stays 34px when one row fits.
+
+## Arrangement model
+
+`SongSession.arrangement` is the viewed name, with `undefined` for 기본.
+`arrangementSlides` exposes the selected order, retaining repeated references
+and empty orders. `selectArrangement(name)` finishes pending typing without
+moving the lyric cursor or persisting the view selection. Cached sessions keep
+their own selection; a removed/undone selected name falls back to 기본.
+
+`createArrangement()` copies the selected order, chooses the first unused
+`구성 N` name, selects it, and saves through the same one-write queue. Creation
+is one undo step; pending lyric typing saves with it. Undo to an originally
+absent arrangements field removes that field on the wire. Existing split/merge
+remapping applies to created orders. Read-only songs allow viewing and refuse
+creation. The 구성 row and global rename/delete wiring follow in the next small
+request; preview/list rendering remains later P2b work.
 
 ## Editing and saving
 

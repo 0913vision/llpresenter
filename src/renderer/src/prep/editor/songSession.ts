@@ -4,6 +4,7 @@ import type {BlockCommand, BlockSelection} from './blockEdits';
 import {SongHistory, TYPING_PAUSE_MS} from './songHistory';
 import {editorTask} from './editorTask';
 import {normalizeSongTitle, SongTitleDraft} from './songTitle';
+import {arrangementOrder, newArrangement} from './songArrangements';
 import type {MediaId} from '@shared/schema/ids';
 
 interface SessionOptions {
@@ -28,6 +29,7 @@ export class SongSession {
   private incoming: SongDocument | undefined;
   private saveTimer: ReturnType<typeof setTimeout> | undefined;
   private backgroundEdited = false;
+  private pickedArrangement: string | undefined;
 
   constructor(private readonly options: SessionOptions) {
     this.document = options.document;
@@ -44,6 +46,49 @@ export class SongSession {
   }
   get saving(): boolean {
     return this.writing;
+  }
+
+  get arrangement(): string | undefined {
+    return this.pickedArrangement;
+  }
+  get arrangementSlides(): readonly number[] {
+    return arrangementOrder(this.history.snapshot.song, this.arrangement);
+  }
+
+  /** Changes the viewed order and ends typing without moving the lyric cursor. */
+  selectArrangement(name: string | undefined): void {
+    if (name === this.arrangement) return;
+    if (
+      name !== undefined &&
+      !this.history.snapshot.song.arrangements?.some(item => item.name === name)
+    ) {
+      return;
+    }
+    this.endTyping();
+    this.pickedArrangement = name;
+    this.options.changed();
+  }
+
+  /** Creates a discrete undo step and saves it with any pending lyric draft. */
+  createArrangement(): string | undefined {
+    if (!this.accepting || this.readOnly) return undefined;
+    const value = newArrangement(this.history.snapshot.song, this.arrangement);
+    this.history.addArrangement(value);
+    this.pickedArrangement = value.name;
+    this.dirty = true;
+    this.endTyping();
+    this.options.changed();
+    return value.name;
+  }
+
+  private reconcileArrangement(): void {
+    if (
+      !this.history.snapshot.song.arrangements?.some(
+        item => item.name === this.arrangement,
+      )
+    ) {
+      this.pickedArrangement = undefined;
+    }
   }
 
   private get hasChanges(): boolean {
@@ -100,6 +145,7 @@ export class SongSession {
     if (command === 'undo') this.history.undo();
     else if (command === 'redo') this.history.redo();
     else this.history.apply(command);
+    this.reconcileArrangement();
     if (previous !== this.history.snapshot.song) {
       this.dirty = true;
       if (this.history.inTypingGroup) this.delaySave();
@@ -134,6 +180,7 @@ export class SongSession {
     this.cancelSaveTimer();
     this.document = document;
     this.history = new SongHistory(document.song);
+    this.reconcileArrangement();
     this.title = new SongTitleDraft(
       document.song.title,
       this.options.isDuplicateTitle,
@@ -222,10 +269,9 @@ export class SongSession {
         ...this.document.song,
         title: this.title.nextValue,
         slides: draft.slides,
-        ...(draft.arrangements === undefined
-          ? {}
-          : {arrangements: draft.arrangements}),
       };
+      if (draft.arrangements === undefined) delete song.arrangements;
+      else song.arrangements = draft.arrangements;
       if (background === undefined) delete song.background;
       else song.background = background;
       try {

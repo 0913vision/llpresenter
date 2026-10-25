@@ -34,6 +34,7 @@ function catalog(revision = 1, firstName = '푸른 바다'): MediaDocument {
 }
 
 function backgroundFixture(document = catalog()) {
+  const log = vi.spyOn(console, 'error').mockImplementation(() => {});
   mockMenuRowHeight();
   vi.spyOn(HTMLMediaElement.prototype, 'load').mockImplementation(() => {});
   vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {});
@@ -50,6 +51,7 @@ function backgroundFixture(document = catalog()) {
     ...fixture,
     document,
     get,
+    log,
     listeners,
     push: (value: MediaDocument): void => {
       act(() => {
@@ -136,9 +138,14 @@ describe('song header background connection', () => {
 
   it('retries a failed read and lets Escape return to the header without saving', async () => {
     const fixture = backgroundFixture();
-    fixture.get.mockRejectedValueOnce(new Error('Media read failed'));
+    const cause = new Error('Media read failed');
+    fixture.get.mockRejectedValueOnce(cause);
     const {edits} = await editorSetup(fixture);
     await waitFor(() => expect(trigger().getAttribute('aria-busy')).toBeNull());
+    expect(fixture.log).toHaveBeenCalledWith(
+      'Song background media read failed',
+      cause,
+    );
     fireEvent.click(trigger());
     await waitFor(() => expect(fixture.get).toHaveBeenCalledTimes(2));
     const search = await openPicker();
@@ -206,12 +213,32 @@ describe('song header background connection', () => {
       value: {...fixture.document.value, items: []},
     });
     expect(screen.getAllByRole('option')).toHaveLength(1);
-    expect(screen.getByRole('combobox').getAttribute('value')).toBe('');
+    expect(screen.getByRole('combobox').getAttribute('value')).toBe('바뀐');
     expect(trigger().textContent).toBe('미디어 없음');
     expect(session.background).toBe(fixture.document.value.items[0]?.id);
     fireEvent.click(screen.getByRole('option', {name: '없음'}));
     await act(() => session.flush());
     expect(session.background).toBeUndefined();
+  });
+
+  it('retains the raw query and filtered Enter target across a catalog push', async () => {
+    const fixture = backgroundFixture();
+    const {session} = await editorSetup(fixture);
+    const search = await openPicker();
+    const query = `  ${'바다'.normalize('NFD')}  `;
+    fireEvent.change(search, {target: {value: query}});
+    fixture.push(catalog(2, '저녁 바다'));
+    const refreshed = screen.getByRole('combobox', {name: '검색'});
+    expect(refreshed.getAttribute('value')).toBe(query);
+    expect(document.activeElement).toBe(refreshed);
+    expect(screen.getAllByRole('option').map(item => item.textContent)).toEqual(
+      ['없음', '저녁 바다'],
+    );
+    fireEvent.keyDown(refreshed, {key: 'Enter'});
+    await act(() => session.flush());
+    expect(session.background).toBe(fixture.document.value.items[0]?.id);
+    const reopened = await openPicker();
+    expect(reopened.getAttribute('value')).toBe('');
   });
 
   it('unsubscribes on unmount and ignores its late read after a remount', async () => {
