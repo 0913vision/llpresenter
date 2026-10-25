@@ -84,7 +84,10 @@ missing.
 
 ## Verdicts (recorded by the lead at merge)
 
-- Not reviewed yet.
+- Round 1 (3b11278): reviewer (Codex, codex2) Approve with no findings. Lead
+  Approve; Ctrl Z no longer undoes a clear in 진행 (user feedback row 8: no
+  ProPresenter source undoes a clear), and the 되돌리기 button keeps working
+  without a shortcut in its tooltip. Fast-forward merge.
 
 ## Verify result
 
