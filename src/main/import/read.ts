@@ -33,7 +33,7 @@ async function readOpenedFile(
   if (info.size > TEXT_IMPORT_LIMITS.bytes) {
     return failure('invalid', 'The text file exceeds its size limit');
   }
-  const bytes = Buffer.alloc(TEXT_IMPORT_LIMITS.bytes + 1);
+  const bytes = Buffer.alloc(Math.min(info.size, TEXT_IMPORT_LIMITS.bytes) + 1);
   let size = 0;
   while (size < bytes.length) {
     const {bytesRead} = await file.read(
@@ -47,6 +47,9 @@ async function readOpenedFile(
   }
   if (size > TEXT_IMPORT_LIMITS.bytes) {
     return failure('invalid', 'The text file exceeds its size limit');
+  }
+  if (size > info.size) {
+    return failure('read-failed', 'The text file grew while it was read');
   }
   return {ok: true, value: bytes.subarray(0, size)};
 }
@@ -79,6 +82,12 @@ export async function readTextImport(
       const text = await inputs.readClipboard();
       if (text.length > TEXT_IMPORT_LIMITS.characters) {
         return failure('invalid', 'The clipboard text exceeds its size limit');
+      }
+      if (text.includes('\uFFFD')) {
+        return failure(
+          'decode-failed',
+          'The clipboard text contains replacement characters',
+        );
       }
       if (text.trim() === '') {
         return failure('empty', 'The clipboard has no text');

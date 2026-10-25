@@ -1,6 +1,7 @@
 import {readFile, readdir, writeFile} from 'node:fs/promises';
+import * as files from 'node:fs/promises';
 import {join} from 'node:path';
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {makeTempDir} from '../../../test/temp-dir';
 import {readTextImport, type TextImportInputs} from './read';
 import {TEXT_IMPORT_LIMITS} from './limits';
@@ -14,7 +15,44 @@ function inputs(
   return {chooseFile: async () => path, readClipboard: async () => text};
 }
 
+vi.mock('node:fs/promises', async importOriginal => {
+  const actual = await importOriginal<typeof files>();
+  return {...actual, open: vi.fn(actual.open)};
+});
+
 describe('text import input reads', () => {
+  it('rejects replacement characters when reading the clipboard', async () => {
+    expect(
+      await readTextImport(
+        {source: 'clipboard', encoding: 'auto'},
+        inputs(null, 'Bad\uFFFDtext'),
+      ),
+    ).toMatchObject({ok: false, error: {reason: 'decode-failed'}});
+  });
+
+  it('refuses a file that grows beyond the size used for the read buffer', async () => {
+    const path = join(await makeTempDir(), 'Changed.txt');
+    await writeFile(path, 'More text than the earlier size');
+    const actual = await vi.importActual<typeof files>('node:fs/promises');
+    vi.mocked(files.open).mockImplementationOnce(async () => {
+      const file = await actual.open(path, 'r');
+      const info = await file.stat();
+      info.size = 1;
+      const stat = vi.spyOn(file, 'stat').mockResolvedValueOnce(info);
+      onTestFinished(() => stat.mockRestore());
+      return file;
+    });
+    expect(
+      await readTextImport({source: 'file', encoding: 'auto'}, inputs(path)),
+    ).toMatchObject({
+      ok: false,
+      error: {
+        reason: 'read-failed',
+        message: 'The text file grew while it was read',
+      },
+    });
+  });
+
   it.each(encodedTextSamples)(
     'reads a %s file and builds the same draft',
     async (_name, bytes) => {
