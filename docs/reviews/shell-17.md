@@ -1,6 +1,6 @@
 # Review request: `shell-17`
 
-Review range: efd0a29...fix/shell/design-gaps
+Review range: 5536536...fix/shell/design-gaps
 
 What to check: that the menu bar, toolbar, status bar, and the 지우기 row now
 follow the design system as listed in the qa M1 report, section B (B1, B2, B3,
@@ -9,7 +9,7 @@ buttons do; and that no native `title` tooltip is left in them.
 
 - Team member: `shell`
 - Branch: `fix/shell/design-gaps`
-- Base commit (`main`): `efd0a29` (shell-14 is in it; the menu bar shows the
+- Base commit (`main`): `5536536` (shell-14 is in it; the menu bar shows the
   service name it provides)
 - Last commit: see the commit that adds this file
 - Related brief: `docs/qa/m1-report.md`, section B
@@ -117,4 +117,7 @@ Round 1 (codex5), answered once:
 
 ## Verify result
 
-See the end of this file after the next run.
+`npm run verify` on commit `4b63a15` (base `main` 5536536): `typecheck`, `lint`,
+`format:check`, and `build` passed. `test:coverage` had one failure, the known
+one on `main` (devops-17): `scripts/soak/media.test.ts` > "ends the stalled
+maker and every process it started". All other tests passed.
