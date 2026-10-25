@@ -86,6 +86,7 @@ describe('main Look selection port', () => {
     '',
     'main',
     'a'.repeat(100),
+    `${FIRST}\n`,
     'ABCDEFAB-0000-4000-8000-000000000010',
     [FIRST],
     {id: FIRST},

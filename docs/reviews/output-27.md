@@ -2,10 +2,13 @@
 
 - Team member: `output`
 - Branch: `feat/output/look-slice`
-- Base: `cc86fbfe` (`main`); range: `cc86fbfe..feat/output/look-slice`.
+- Base: `c581dd45` (`main`); range: `c581dd45..feat/output/look-slice`.
 - Scope: M3-O4 part 1, lyric rendering and additive Look contracts, plus the
   output-26 shutdown-marker nit.
-- CI: pending the branch push.
+- Code CI:
+  [Windows verification passed](https://github.com/0913vision/llpresenter/actions/runs/40238729512)
+  at `cba48305`. The final rebased head, including this result and the two UUID
+  boundary tests, is pushed and checked again before the review request.
 
 ## Changes
 
@@ -74,12 +77,15 @@ queue change. No preload, shell or UI file is changed.
 
 ## Verification
 
-- 143 tests across nine relevant files passed in 4.47 seconds. Typecheck,
+- 145 tests across nine relevant files passed in 4.72 seconds. Typecheck,
   targeted ESLint after Prettier and whitespace checks passed.
 - The new port tests cover two concurrent selections with sequential revisions,
   one debounced write, preserved nested unknown fields, repeated selection,
   malformed and missing IDs, read-only settings, disposal during loading,
   unavailable settings and a failed save that retains the in-memory change.
+- Both the live-state field and the main selection port reject a valid UUID
+  followed by a newline. These boundary tests confirmed the existing ID schema
+  already enforces the cap, so the stored ID contract is unchanged.
 - Five regressions failed against the actual old slide/fit implementations:
   reference effects at three resolutions, immediate style changes and whole
   pixel sizing. The old files were restored in `finally`, then the corrected
