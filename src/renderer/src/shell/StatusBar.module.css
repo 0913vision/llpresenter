@@ -7,8 +7,7 @@
   padding: 0 var(--space-18);
   background: var(--bg-app);
   color: var(--text-3);
-  font-size: 11px;
-  line-height: 14px;
+  font: var(--type-caption);
 }
 
 .spacer {

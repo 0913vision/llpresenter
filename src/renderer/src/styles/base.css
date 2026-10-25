@@ -25,9 +25,7 @@ body {
   overflow: hidden;
   background: var(--bg-app);
   color: var(--text);
-  font-family: var(--font-ui);
-  font-size: 13px;
-  line-height: 18px;
+  font: var(--type-body);
   -webkit-font-smoothing: antialiased;
   font-synthesis: none;
   user-select: none;

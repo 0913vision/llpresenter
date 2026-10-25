@@ -36,6 +36,27 @@ function sha256(path: string): string {
 
 const faces = fontFaces(readFileSync(TOKENS_CSS, 'utf8'));
 
+const TYPE_SCALE = [
+  ['heading', '18px', '24px', 600],
+  ['title', '14px', '20px', 600],
+  ['body', '14px', '20px', 400],
+  ['body-strong', '14px', '20px', 600],
+  ['label', '12px', '16px', 400],
+  ['label-strong', '14px', '20px', 600],
+  ['band', '14px', '20px', 600],
+  ['caption', '12px', '16px', 400],
+  ['caption-strong', '14px', '20px', 600],
+  ['toolbar-label', '12px', '16px', 400],
+  ['micro', '12px', '16px', 400],
+  ['thumb-lyrics', '4.4cqw', '1.45', 700],
+] as const;
+
+const designCss = readFileSync(TOKENS_CSS, 'utf8');
+const appCss = readFileSync(
+  resolve(REPOSITORY, 'src/renderer/src/styles/tokens.css'),
+  'utf8',
+);
+
 describe('design system assets', () => {
   it('ships every font file that tokens.css loads', () => {
     expect(faces.length).toBeGreaterThan(0);
@@ -54,5 +75,56 @@ describe('design system assets', () => {
 
   it('ships the OFL text next to the font', () => {
     expect(readFileSync(LICENSE, 'utf8')).toContain(OFL_TITLE);
+  });
+});
+
+describe('chosen Windows type scale', () => {
+  it('keeps the selected scale in the token source without changing output-relative lyrics', () => {
+    const source: unknown = JSON.parse(
+      readFileSync(resolve(PROJECT, 'tokens.json'), 'utf8'),
+    );
+    expect(source).toMatchObject({
+      type: {
+        groups: [
+          {
+            family: 'ui',
+            styles: TYPE_SCALE.map(
+              ([name, fontSize, lineHeight, fontWeight]) => ({
+                name,
+                fontSize,
+                lineHeight,
+                fontWeight,
+              }),
+            ),
+          },
+        ],
+      },
+    });
+  });
+
+  it.each(TYPE_SCALE)(
+    'ships the chosen %s shorthand and preview class in both CSS copies',
+    (name, size, lineHeight, weight) => {
+      for (const css of [designCss, appCss]) {
+        expect(css).toContain(
+          `--type-${name}: ${weight} ${size}/${lineHeight} var(--font-ui);`,
+        );
+        const rule = new RegExp(`\\.${name}\\s*\\{([^}]+)\\}`).exec(css)?.[1];
+        expect(rule).toMatch(new RegExp(`font-size:\\s*${size};`));
+        expect(rule).toMatch(new RegExp(`line-height:\\s*${lineHeight};`));
+        expect(rule).toMatch(new RegExp(`font-weight:\\s*${weight};`));
+      }
+    },
+  );
+
+  it('never ships a UI text token below 12px', () => {
+    const uiToken = /--type-[\w-]+:\s*\d+\s+(\d+(?:\.\d+)?)px\//g;
+    for (const css of [designCss, appCss]) {
+      const sizes = [...css.matchAll(uiToken)].map(([, size = '0']) =>
+        Number(size),
+      );
+      expect(sizes).toHaveLength(TYPE_SCALE.length - 1);
+      expect(sizes.every(size => size >= 12)).toBe(true);
+    }
   });
 });

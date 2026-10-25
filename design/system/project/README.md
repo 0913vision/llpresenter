@@ -84,21 +84,27 @@ The app uses one typeface, Pretendard Variable (`fonts/PretendardVariable.woff2`
 
 | Style | Size/line height/weight | Where to use |
 | --- | --- | --- |
-| `heading` | 16/22/600 | Confirmation dialog titles, Preferences page titles |
-| `title` | 13/18/600 | Dialog headers, the song title in a panel header |
-| `body` | 13/18/400 | Lists, menus, text fields, md buttons |
-| `body-strong` | 13/18/600 | Names to emphasize, md primary buttons |
+| `heading` | 18/24/600 | Confirmation dialog titles, Preferences page titles |
+| `title` | 14/20/600 | Dialog headers, the song title in a panel header |
+| `body` | 14/20/400 | Lists, menus, text fields, md buttons |
+| `body-strong` | 14/20/600 | Names to emphasize, md primary buttons |
 | `label` | 12/16/400 | sm buttons, dropdowns, property names |
-| `label-strong` | 12/16/600 | Panel tabs, sm primary buttons |
-| `band` | 12/16/700 | 이름표 bands on thumbnails, 구성 chips |
-| `caption` | 11/14/400 | Counts, dates, status bar, second lines |
-| `caption-strong` | 11/14/600 | List group headers, 지우기 button names |
-| `toolbar-label` | 11/14/500 | Toolbar button names |
-| `micro` | 10/12/700 | LIVE badge |
+| `label-strong` | 14/20/600 | Panel tabs, sm primary buttons |
+| `band` | 14/20/600 | 이름표 bands on thumbnails, 구성 chips |
+| `caption` | 12/16/400 | Counts, dates, status bar, second lines |
+| `caption-strong` | 14/20/600 | List group headers, 지우기 button names |
+| `toolbar-label` | 12/16/400 | Toolbar button names |
+| `micro` | 12/16/400 | LIVE badge |
 
 - Use `font-variant-numeric: tabular-nums` for numbers that must line up, such as counts, times, and 장 numbers.
 - Truncate a name that doesn't fit on one line with an ellipsis, and show the full name in a tooltip. Don't wrap lyrics or song titles onto two lines (two-line list items and macro names are the only exceptions).
-- Don't create sizes outside this table.
+- UI text is at least 12px. This is the Windows 11 type-ramp proposal chosen
+  for M2 check 1: body 14/20, caption 12/16, with Pretendard retained.
+- These are UI sizes. Lyrics inside thumbnails and output previews keep their
+  output-relative scale; `thumb-lyrics` stays 4.4cqw/1.45/700.
+- The service-order name keeps its separately chosen 16/22/600 component
+  style (header A); it doesn't grow with the general `heading` token.
+- Don't create other sizes outside this table.
 - In code, set a style with its shorthand variable, for example `font: var(--type-label);`. Each style has one (`--type-<style>`). The global classes (`.label` and the rest) are for the previews.
 
 ## Spacing and sizes
