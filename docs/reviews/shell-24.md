@@ -137,7 +137,8 @@ Round 1 (codex2, request changes), answered once:
 
 ### Round 2
 
-Pending.
+`npm run verify` on commit `5e62349` (base `main` 82d38f1): all five steps
+passed in 212.5 s.
 
 ### Round 1
 
