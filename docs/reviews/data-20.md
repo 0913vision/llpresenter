@@ -17,9 +17,11 @@ layout reset, and the settings window remain outside this request.
 
 - Team member: data
 - Branch: `feat/data/ui-zoom`
-- Base commit (`main`): `b7c61e3fd283b6ccba6f542bdad088bf1e436356`
-- Last code commit: `33b2b56`
-- Review range: `b7c61e3..feat/data/ui-zoom`
+- Base commit (`main`): `56619c66de5ac3e2197b9881f2b1fb63e3e8f74e`
+- Last code commit: `a271edc`
+- Review range: `56619c6..feat/data/ui-zoom`
+- Round 2 incremental range: `addda2e..feat/data/ui-zoom` (round 1 was `3e273cb`
+  before rebase; `git range-diff` shows its four commits unchanged)
 - Task: M2 check 1 row 11, UI zoom vertical slice
 - Spec: 10, "UI zoom and layout recovery", focus precedence, physical aliases,
   and the 일반 appearance setting
@@ -143,7 +145,9 @@ local diagnostic artifacts stay ignored.
 - Typecheck: passed. Changed-file ESLint: passed after correcting the fixture's
   rejection callback type and two multiline conditional blocks.
 - `npm run format`: passed before the code commit.
-- `npm run verify`: pending the single round 2 run after rebase.
+- `npm run verify`: passed once after rebase, all 5 steps in 224.0 s. Typecheck
+  7.9 s, lint 137.5 s, format check 25.8 s, coverage tests 223.9 s, build 5.3 s.
+  No checked source changed during or after the run.
 
 The committed Electron test builds isolated fixture bundles in a test temp
 directory, checks the main bundle with `node --check`, and launches only with
