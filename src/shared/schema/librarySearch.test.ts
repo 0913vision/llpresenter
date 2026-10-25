@@ -2,6 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {
   parseLibrarySearchRequest,
   parseLibrarySearchResult,
+  LIBRARY_SEARCH_LIMITS,
 } from './librarySearch';
 import {expectSuccess} from './testHelpers';
 
@@ -20,6 +21,7 @@ describe('library search requests', () => {
     query => {
       expect(expectSuccess(parseLibrarySearchRequest({query}))).toEqual({
         query,
+        limit: LIBRARY_SEARCH_LIMITS.default,
       });
     },
   );
@@ -32,6 +34,15 @@ describe('library search requests', () => {
     ).toEqual({query: '새', limit: 20});
   });
 
+  it.each([1, LIBRARY_SEARCH_LIMITS.max])('accepts the limit %s', limit => {
+    expect(
+      expectSuccess(parseLibrarySearchRequest({query: '', limit})),
+    ).toEqual({
+      query: '',
+      limit,
+    });
+  });
+
   it.each([
     null,
     [],
@@ -41,12 +52,28 @@ describe('library search requests', () => {
     {query: '새', limit: 0},
     {query: '새', limit: 1.5},
     {query: '새', limit: undefined},
+    {query: '새', limit: LIBRARY_SEARCH_LIMITS.max + 1},
+    {query: '새', limit: Infinity},
+    {query: '새', limit: NaN},
   ])('rejects %j', value => {
     expect(parseLibrarySearchRequest(value).ok).toBe(false);
   });
 });
 
 describe('library search results', () => {
+  it('bounds replies even when the sender ignores the request limit', () => {
+    const matches = Array.from(
+      {length: LIBRARY_SEARCH_LIMITS.max + 1},
+      (_, i) => ({
+        ...hit,
+        songId: `00000000-0000-4000-8000-${i.toString(16).padStart(12, '0')}`,
+      }),
+    );
+    expect(parseLibrarySearchResult({query: '', matches}).ok).toBe(false);
+    expect(
+      parseLibrarySearchResult({query: '', matches: matches.slice(1)}).ok,
+    ).toBe(true);
+  });
   it('carries title and lyrics matches with the first original matching line', () => {
     const result = {
       query: '새',

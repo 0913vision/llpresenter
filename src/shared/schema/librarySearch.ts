@@ -4,9 +4,14 @@ import {parsePayload, payloadObject, plainObject} from './payload';
 import {songIdSchema} from './ids';
 import {nonNegativeInteger, positiveInteger} from './primitives';
 
+export const LIBRARY_SEARCH_LIMITS = {default: 50, max: 200} as const;
+
 const librarySearchRequestSchema = payloadObject({
   query: v.string(),
-  limit: v.exactOptional(positiveInteger),
+  limit: v.exactOptional(
+    v.pipe(positiveInteger, v.maxValue(LIBRARY_SEARCH_LIMITS.max)),
+    LIBRARY_SEARCH_LIMITS.default,
+  ),
 });
 
 const librarySearchMatchSchema = payloadObject({
@@ -26,6 +31,7 @@ const librarySearchResultSchema = payloadObject({
   query: v.string(),
   matches: v.pipe(
     v.array(librarySearchMatchSchema),
+    v.maxLength(LIBRARY_SEARCH_LIMITS.max),
     v.check(
       matches =>
         new Set(matches.map(({songId}) => songId)).size === matches.length,
@@ -35,12 +41,15 @@ const librarySearchResultSchema = payloadObject({
 });
 
 /**
- * A query for the main-owned index. An absent limit returns all matches;
- * toolbar callers use 20. Main owns normalization and title-first ordering.
+ * A query for the main-owned index. An absent limit defaults to 50, with a
+ * maximum of 200. Main owns normalization and title-first ordering.
  */
-export type LibrarySearchRequest = Readonly<
+type NormalizedSearchRequest = Readonly<
   v.InferOutput<typeof librarySearchRequestSchema>
 >;
+
+export type LibrarySearchRequest = Omit<NormalizedSearchRequest, 'limit'> &
+  Partial<Pick<NormalizedSearchRequest, 'limit'>>;
 
 /** A lyrics match carries its first matching line, before normalization. */
 export type LibrarySearchMatch = ReadonlyKnown<
