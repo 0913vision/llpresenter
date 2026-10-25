@@ -9,6 +9,7 @@ export const classes = {
   root: classOf('root'),
   layer: classOf('layer'),
   video: classOf('video'),
+  image: classOf('image'),
   dissolving: classOf('dissolving'),
   page: classOf('page'),
   instant: classOf('instant'),

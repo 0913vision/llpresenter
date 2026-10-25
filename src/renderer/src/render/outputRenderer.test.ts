@@ -1,5 +1,6 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLayers, type LiveLayers} from '@shared/live';
+import type {RenderMode} from './backgroundLayer';
 import {classes} from './classes';
 import {DEFAULT_LYRIC_STYLE} from './lyricStyle';
 import {OutputRenderer} from './outputRenderer';
@@ -49,6 +50,43 @@ function setUp() {
 }
 
 describe('OutputRenderer', () => {
+  it.each<RenderMode>(['output', 'preview'])(
+    'draws an image under the lyrics and clears it in the same call in %s mode',
+    async mode => {
+      vi.mocked(HTMLMediaElement.prototype.play).mockRejectedValueOnce(
+        new DOMException('The source is an image', 'NotSupportedError'),
+      );
+      const parent = document.createElement('div');
+      const onError = vi.fn();
+      const renderer = new OutputRenderer(parent, {
+        lyricStyle: DEFAULT_LYRIC_STYLE,
+        mediaUrl: mediaId => `llp-media://media/${mediaId}`,
+        onError,
+        mode,
+      });
+      renderer.render(WITH_SLIDE);
+      await Promise.resolve();
+      const image = parent.querySelector<HTMLImageElement>('img[src]');
+      if (image === null) throw new Error('expected a still background');
+      image.dispatchEvent(new Event('load'));
+      const background = parent.querySelector<HTMLElement>(
+        '[data-layer="background"]',
+      );
+      const lyrics = parent.querySelector<HTMLElement>('[data-layer="lyrics"]');
+      expect(image.classList.contains(classes.shown)).toBe(true);
+      expect(Number(background?.style.zIndex)).toBeLessThan(
+        Number(lyrics?.style.zIndex),
+      );
+      expect(lyrics?.textContent).toContain('만복의 근원');
+      expect(onError).not.toHaveBeenCalled();
+
+      renderer.render({...WITH_SLIDE, media: null});
+      expect(image.classList.contains(classes.shown)).toBe(false);
+      expect(image.hasAttribute('src')).toBe(false);
+      renderer.dispose();
+    },
+  );
+
   it('keeps the playing video under the lyrics in separate stacking contexts', () => {
     const {parent, renderer} = setUp();
     renderer.render(WITH_SLIDE);

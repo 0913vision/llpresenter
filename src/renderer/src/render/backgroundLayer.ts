@@ -1,4 +1,5 @@
 import type {MediaLayer} from '@shared/live';
+import {loadBackgroundImage} from './backgroundImage';
 import {classes} from './classes';
 
 /** The dissolve between backgrounds (docs/spec/03-output.md, version 1 default). */
@@ -23,6 +24,7 @@ export interface BackgroundLayerOptions {
 export const MIN_SEEK_SECONDS = 0.5;
 
 const MS_PER_SECOND = 1000;
+const UNSUPPORTED_SOURCE = 4;
 
 /**
  * Where a background should be now: the time since it started, wrapped for a
@@ -69,9 +71,16 @@ function createVideo(): HTMLVideoElement {
   return video;
 }
 
-function hide(video: HTMLVideoElement): void {
-  video.classList.remove(classes.shown, classes.dissolving);
-  video.style.zIndex = BACK_LAYER;
+function createImage(): HTMLImageElement {
+  const image = document.createElement('img');
+  image.className = classes.image;
+  image.alt = '';
+  return image;
+}
+
+function hide(element: HTMLElement): void {
+  element.classList.remove(classes.shown, classes.dissolving);
+  element.style.zIndex = BACK_LAYER;
 }
 
 function unload(video: HTMLVideoElement): void {
@@ -83,15 +92,18 @@ function unload(video: HTMLVideoElement): void {
 }
 
 /**
- * The background media layer. It keeps two video elements for its whole
- * life: the one on screen and a spare. A looping background hands over to the
- * spare, loaded at the start, the moment the front one ends, so the loop has
- * no gap. A new background starts on the spare and dissolves in over the old
- * one, which then becomes the spare for the new background.
+ * Keeps two reusable videos and two images. A looping video hands over to
+ * the spare, loaded at the start, when the front ends. A new background
+ * starts on the spare and dissolves over the old one.
  */
 export class BackgroundLayerView {
   private readonly element = document.createElement('div');
   private readonly videos: readonly [HTMLVideoElement, HTMLVideoElement];
+  private readonly images: readonly [HTMLImageElement, HTMLImageElement];
+  private readonly stopImages: [(() => void) | null, (() => void) | null] = [
+    null,
+    null,
+  ];
   private readonly holding: [string | null, string | null] = [null, null];
   private readonly stopListening: () => void;
   private front: VideoIndex = 0;
@@ -110,7 +122,8 @@ export class BackgroundLayerView {
       `${BACKGROUND_DISSOLVE_MS}ms`,
     );
     this.videos = [createVideo(), createVideo()];
-    this.element.append(...this.videos);
+    this.images = [createImage(), createImage()];
+    this.element.append(...this.videos, ...this.images);
     this.stopListening = this.listen();
     parent.append(this.element);
   }
@@ -153,11 +166,11 @@ export class BackgroundLayerView {
   }
 
   private settleFront(reused: VideoIndex): void {
-    // NOTE(0913vision): A dissolve still running ends at once: the front video
+    // NOTE(0913vision): A dissolve still running ends at once: the front picture
     // turns fully opaque before the reused one is hidden and reloaded, so no
     // black shows under the front and the next background fades in fresh.
-    this.videos[this.front].classList.remove(classes.dissolving);
-    hide(this.videos[reused]);
+    this.pictureAt(this.front).classList.remove(classes.dissolving);
+    this.hideAt(reused);
   }
 
   private seekOnceLoaded(video: HTMLVideoElement, media: MediaLayer): void {
@@ -179,17 +192,19 @@ export class BackgroundLayerView {
 
   private clearAtOnce(): void {
     this.handover = null;
-    for (const video of this.videos) hide(video);
+    for (const index of VIDEO_INDEXES) this.hideAt(index);
     this.unloadAt(0);
     this.unloadAt(1);
   }
 
   private load(index: VideoIndex, mediaId: string): void {
+    this.clearImage(index);
     this.videos[index].src = this.options.mediaUrl(mediaId);
     this.holding[index] = mediaId;
   }
 
   private unloadAt(index: VideoIndex): void {
+    this.clearImage(index);
     unload(this.videos[index]);
     this.holding[index] = null;
   }
@@ -203,9 +218,11 @@ export class BackgroundLayerView {
   private listen(): () => void {
     const removers = this.videos.flatMap((video, index) => {
       const at: VideoIndex = index === 0 ? 0 : 1;
-      const onPlaying = (): void => this.handlePlaying(at);
+      const onPlaying = (): void => {
+        if (!this.isImage(at)) this.handlePlaying(at);
+      };
       const onEnded = (): void => this.handleEnded(at);
-      const onError = (): void => this.handleError(video);
+      const onError = (): void => this.handleError(at);
       video.addEventListener('playing', onPlaying);
       video.addEventListener('ended', onEnded);
       video.addEventListener('error', onError);
@@ -224,8 +241,8 @@ export class BackgroundLayerView {
     if (this.handover?.to !== index) return;
     const {dissolve} = this.handover;
     this.handover = null;
-    const previous = this.videos[this.front];
-    const next = this.videos[index];
+    const previous = this.pictureAt(this.front);
+    const next = this.pictureAt(index);
     next.style.zIndex = FRONT_LAYER;
     previous.style.zIndex = BACK_LAYER;
     next.classList.toggle(classes.dissolving, dissolve);
@@ -238,8 +255,8 @@ export class BackgroundLayerView {
       );
     } else {
       hide(previous);
-      previous.pause();
-      previous.currentTime = 0;
+      this.videos[otherOf(index)].pause();
+      this.videos[otherOf(index)].currentTime = 0;
     }
   }
 
@@ -256,6 +273,7 @@ export class BackgroundLayerView {
     for (const index of VIDEO_INDEXES) {
       this.videos[index].loop =
         this.isPreview() &&
+        !this.isImage(index) &&
         index === showing &&
         this.holdsCurrent(index) &&
         this.current?.loop === true;
@@ -263,7 +281,7 @@ export class BackgroundLayerView {
   }
 
   private handleEnded(index: VideoIndex): void {
-    if (this.isPreview()) return;
+    if (this.isPreview() || this.isImage(index)) return;
     // NOTE(0913vision): An outgoing background that ends while the next one
     // starts holds its last frame; only the current background loops.
     if (index !== this.front || !this.holdsCurrent(index)) return;
@@ -281,7 +299,11 @@ export class BackgroundLayerView {
     this.play(spare);
   }
 
-  private handleError(video: HTMLVideoElement): void {
+  private handleError(index: VideoIndex): void {
+    if (this.isImage(index)) return;
+    const video = this.videos[index];
+    if (video.error?.code === UNSUPPORTED_SOURCE && this.tryImage(index))
+      return;
     if (this.handover !== null && this.videos[this.handover.to] === video) {
       this.handover = null;
     }
@@ -295,8 +317,8 @@ export class BackgroundLayerView {
   private prepareSpare(): void {
     this.spareTimer = null;
     const spareIndex = otherOf(this.front);
-    hide(this.videos[spareIndex]);
-    if (this.current === null || this.isPreview()) {
+    this.hideAt(spareIndex);
+    if (this.current === null || this.isPreview() || this.isImage(this.front)) {
       this.unloadAt(spareIndex);
       return;
     }
@@ -310,12 +332,59 @@ export class BackgroundLayerView {
   }
 
   private play(video: HTMLVideoElement): void {
+    const src = video.getAttribute('src');
     video.play().catch((error: unknown) => {
+      if (video.getAttribute('src') !== src) return;
       // NOTE(0913vision): A play() that our own pause or source change
       // interrupts rejects with AbortError. That is expected, not a fault.
       if (error instanceof DOMException && error.name === 'AbortError') return;
+      const index: VideoIndex = video === this.videos[0] ? 0 : 1;
+      if (
+        error instanceof DOMException &&
+        error.name === 'NotSupportedError' &&
+        this.tryImage(index)
+      ) {
+        return;
+      }
       this.options.onError('could not start a background video', error);
     });
+  }
+
+  private isImage(index: VideoIndex): boolean {
+    return this.images[index].hasAttribute('src');
+  }
+
+  private pictureAt(index: VideoIndex): HTMLElement {
+    return this.isImage(index) ? this.images[index] : this.videos[index];
+  }
+
+  private hideAt(index: VideoIndex): void {
+    hide(this.videos[index]);
+    hide(this.images[index]);
+  }
+
+  private clearImage(index: VideoIndex): void {
+    this.stopImages[index]?.();
+    this.stopImages[index] = null;
+  }
+
+  private tryImage(index: VideoIndex): boolean {
+    if (this.handover?.to !== index || !this.holdsCurrent(index)) return false;
+    if (this.isImage(index)) return true;
+    const src = this.videos[index].getAttribute('src');
+    if (src === null) return false;
+    this.cancelSeek();
+    unload(this.videos[index]);
+    this.stopImages[index] = loadBackgroundImage(this.images[index], {
+      src,
+      onReady: () => this.handlePlaying(index),
+      onError: () => {
+        this.handover = null;
+        this.options.onError('could not load a background media file', {src});
+      },
+    });
+    this.loopNativelyInPreview();
+    return true;
   }
 
   private cancelSpare(): void {

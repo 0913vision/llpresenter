@@ -15,7 +15,8 @@
   inset: 0;
 }
 
-.video {
+.video,
+.image {
   position: absolute;
   inset: 0;
   width: 100%;
