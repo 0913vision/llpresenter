@@ -10,8 +10,6 @@ type ScreenName = 'main' | 'stage' | 'broadcast';
 const REGULAR_WIDTH = 480;
 const NARROW_WIDTH = 360;
 const CELL_WIDTH = 168;
-const SMALL_ROW_GAP = 10;
-const SMALL_ROW_WIDTH = CELL_WIDTH * 2 + SMALL_ROW_GAP;
 const LYRICS = '저 천사여 찬송하세\n찬송 성부 성자 성령';
 
 const main: PreviewScreen<ScreenName> = {
@@ -145,22 +143,19 @@ export function PreviewSection(): JSX.Element {
   return (
     <Section title="PreviewFrame">
       <SpecGroup title="Regular window, right column 480" alignTop>
-        <SpecItem label="Try a click on a small preview" width={REGULAR_WIDTH}>
+        <SpecItem label="Try a fixed screen slot" width={REGULAR_WIDTH}>
           <TryPreview />
         </SpecItem>
       </SpecGroup>
       <SpecGroup
-        title="Narrow window, right column 360, small previews as 64px rows"
+        title="Narrow window, right column 360, three fixed screen slots"
         alignTop
       >
-        <SpecItem label="Small previews as rows" width={NARROW_WIDTH}>
+        <SpecItem label="The same fixed slot order" width={NARROW_WIDTH}>
           <TryPreview compact />
         </SpecItem>
       </SpecGroup>
-      <SpecGroup
-        title="A click on a small preview swaps places, 무대 화면 large"
-        alignTop
-      >
+      <SpecGroup title="무대 화면 selected, marker in its fixed slot" alignTop>
         <SpecItem label="무대 화면 large" width={REGULAR_WIDTH}>
           <TryPreview initial="stage" />
         </SpecItem>
@@ -171,7 +166,7 @@ export function PreviewSection(): JSX.Element {
             key={state.label}
             label={state.label}
             pin={state.pin}
-            width={SMALL_ROW_WIDTH}
+            width={CELL_WIDTH}
           >
             <OneCell screen={state.screen} />
           </SpecItem>

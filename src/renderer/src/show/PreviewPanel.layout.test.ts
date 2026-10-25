@@ -1,32 +1,53 @@
 import {describe, expect, it} from 'vitest';
 import {cssRules} from '@renderer/shell/testing/cssRules';
 
-const ruleOf = cssRules('src/renderer/src/show/PreviewPanel.module.css');
+const ruleOf = cssRules('src/renderer/src/ui/PreviewFrame.module.css');
 
 describe('PreviewPanel layout rules', () => {
-  it('caps the width of a small preview, so a wide column cannot make it tall', () => {
-    expect(ruleOf('.panel')).toMatch(/--small-max-width: \d+px/);
-    expect(ruleOf('.item:not(.large):not(.compact) .slot')).toContain(
-      'width: min(100%, var(--small-max-width))',
-    );
+  it('puts all slot buttons and unselected pictures on the same fixed row', () => {
+    expect(ruleOf('.hit')).toContain('grid-row: 2');
+    expect(ruleOf('.small')).toContain('grid-row: 2');
+    expect(ruleOf('.main')).toContain('grid-row: 1');
+    expect(ruleOf('.compact')).not.toMatch(/grid-template|flex-direction/);
   });
 
-  it('leaves the 64px row form of the narrow window alone', () => {
-    expect(ruleOf('.compact .slot')).toContain('width: 64px');
+  it('caps both the small pictures and matching marker slots at the same width', () => {
+    for (const selector of ['.small', '.hit']) {
+      expect(ruleOf(selector)).toContain('width: 100%');
+      expect(ruleOf(selector)).toContain(
+        'max-width: var(--size-preview-small-max)',
+      );
+    }
+    expect(ruleOf('.surface')).toContain('aspect-ratio: var(--aspect-output)');
+    expect(ruleOf('.marker')).toContain('aspect-ratio: var(--aspect-output)');
   });
 
   it('lets the large frame shrink and keep 16:9 in the rest of the height', () => {
-    const rule = ruleOf('.large .slot');
+    const rule = ruleOf('.main .surface');
     expect(rule).toContain('flex: 0 1 auto');
-    expect(rule).toContain('aspect-ratio: 16 / 9');
+    expect(rule).toContain('min-height: 0');
     expect(rule).toContain('container-type: size');
+    expect(ruleOf('.fit')).toContain(
+      'width: min(100cqw, calc(100cqh * 16 / 9))',
+    );
   });
 
-  it('lets a click reach the button over a small preview, not the renderer', () => {
-    const slot = ruleOf('.slot');
-    expect(slot).toContain('pointer-events: none');
-    expect(slot).toContain('isolation: isolate');
-    expect(ruleOf('.hit')).toContain('z-index: var(--z-preview-hit)');
-    expect(ruleOf('.panel')).toContain('--z-preview-hit: 1');
+  it('lets a click reach the slot button rather than the renderer', () => {
+    const surface = ruleOf('.surface');
+    expect(surface).toContain('pointer-events: none');
+    expect(surface).toContain('isolation: isolate');
+    expect(ruleOf('.hit')).toContain('z-index: var(--z-slot)');
+    expect(ruleOf('.monitor')).toContain('--z-slot: 1');
+  });
+
+  it('marks selection in blue with an upward arrow and keeps keyboard focus visible', () => {
+    expect(ruleOf('.selected,\n.selected:hover')).toContain(
+      'box-shadow: var(--ring-selected)',
+    );
+    expect(ruleOf('.marker')).toContain('color: var(--accent)');
+    expect(ruleOf('.arrow')).toContain('transform: rotate(-90deg)');
+    expect(ruleOf('.hit:focus-visible')).toContain(
+      'outline: 2px solid var(--accent)',
+    );
   });
 });

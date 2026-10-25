@@ -5,7 +5,6 @@ import {titleTooltip, useTooltip} from './Tooltip';
 import styles from './PreviewFrame.module.css';
 
 const LARGE_ICON_SIZE: IconSize = 14;
-const SMALL_ICON_SIZE: IconSize = 12;
 
 /** Where a screen goes out: a monitor, or NDI (no icon, text only). */
 export interface PreviewTarget {
@@ -40,13 +39,13 @@ export interface PreviewScreen<Id extends string> {
 }
 
 export interface PreviewFrameProps<Id extends string> {
-  /** The screens in their order; the small row keeps it without the large one. */
+  /** The screens in their fixed slot order, including the selected screen. */
   readonly screens: ReadonlyArray<PreviewScreen<Id>>;
   /** The screen shown large. */
   readonly big: Id;
-  /** The narrow window form: small previews as 64px rows. */
+  /** The narrow window form keeps the same horizontal slot order. */
   readonly compact?: boolean | undefined;
-  /** A click on a small preview makes that screen the large one. */
+  /** Selects the large monitoring picture without changing output. */
   readonly onBigChange: (id: Id) => void;
   /** Draws a screen's output, scaled to its frame. */
   readonly renderScreen: (screen: PreviewScreen<Id>) => ReactNode;
@@ -91,20 +90,25 @@ function stateOf(status: PreviewStatus): 'off' | 'warning' | undefined {
 
 function Frame<Id extends string>({
   screen,
+  large,
   renderScreen,
 }: {
   readonly screen: PreviewScreen<Id>;
+  readonly large: boolean;
   readonly renderScreen: (screen: PreviewScreen<Id>) => ReactNode;
 }): JSX.Element {
   return (
-    <span
-      className={classNames(
-        styles.frame,
-        screen.chroma === true && styles.chroma,
-      )}
-    >
-      <span className={styles.screen}>{renderScreen(screen)}</span>
-    </span>
+    <div className={styles.surface}>
+      <div
+        className={classNames(
+          styles.frame,
+          large && styles.fit,
+          screen.chroma === true && styles.chroma,
+        )}
+      >
+        <div className={styles.screen}>{renderScreen(screen)}</div>
+      </div>
+    </div>
   );
 }
 
@@ -118,7 +122,7 @@ function TargetIcon({
   readonly size: IconSize;
 }): JSX.Element | null {
   if (warning) return <Icon name="warning" size={size} />;
-  if (target.kind === 'ndi' || size === SMALL_ICON_SIZE) return null;
+  if (target.kind === 'ndi') return null;
   return <Icon name="monitor" size={size} />;
 }
 
@@ -131,20 +135,22 @@ function Caption<Id extends string>({
 }): JSX.Element {
   const warning = screen.status.kind === 'warning';
   return (
-    <span className={styles.caption}>
+    <div className={styles.caption}>
       <span className={styles.name}>{screen.name}</span>
-      <span className={styles.target}>
-        <TargetIcon
-          target={screen.target}
-          warning={warning}
-          size={small ? SMALL_ICON_SIZE : LARGE_ICON_SIZE}
-        />
-        {screen.target.label}
-      </span>
+      {small ? null : (
+        <span className={styles.target}>
+          <TargetIcon
+            target={screen.target}
+            warning={warning}
+            size={LARGE_ICON_SIZE}
+          />
+          {screen.target.label}
+        </span>
+      )}
       {small || screen.look === undefined ? null : (
         <span className={styles.look}>{screen.look}</span>
       )}
-    </span>
+    </div>
   );
 }
 
@@ -153,18 +159,17 @@ type PreviewRole = 'large' | 'small';
 interface ScreenCellProps<Id extends string> {
   readonly screen: PreviewScreen<Id>;
   readonly role: PreviewRole;
+  readonly column: number;
   readonly renderScreen: (screen: PreviewScreen<Id>) => ReactNode;
   readonly onBigChange: (id: Id) => void;
 }
 
-// NOTE(0913vision): A screen keeps one cell in the same place of the tree
-// whichever size it has, and the grid moves the large one to the top. A swap
-// changes only classes, the name row, and the button laid over a small cell,
-// so the output drawn in the frame is never rebuilt and its video never
-// restarts.
+// NOTE(0913vision): Pictures and slot buttons are persistent siblings. Only
+// grid positions change, so no renderer or playing video is reparented.
 function ScreenCell<Id extends string>({
   screen,
   role,
+  column,
   renderScreen,
   onBigChange,
 }: ScreenCellProps<Id>): JSX.Element {
@@ -173,33 +178,54 @@ function ScreenCell<Id extends string>({
   );
   const large = role === 'large';
   return (
-    <div
-      onPointerEnter={large ? targetProps.onPointerEnter : undefined}
-      onPointerLeave={large ? targetProps.onPointerLeave : undefined}
-      data-state={stateOf(screen.status)}
-      className={large ? styles.main : styles.small}
-    >
-      <Frame screen={screen} renderScreen={renderScreen} />
-      <Caption screen={screen} small={!large} />
-      {large ? null : (
-        <button
-          {...targetProps}
-          type="button"
-          aria-label={smallPreviewName(screen)}
-          className={styles.hit}
-          onClick={() => onBigChange(screen.id)}
-        />
-      )}
+    <>
+      <div
+        onPointerEnter={large ? targetProps.onPointerEnter : undefined}
+        onPointerLeave={large ? targetProps.onPointerLeave : undefined}
+        data-state={stateOf(screen.status)}
+        data-screen={screen.id}
+        data-role={role}
+        className={large ? styles.main : styles.small}
+        style={{gridColumn: large ? '1 / -1' : column}}
+      >
+        <Frame screen={screen} large={large} renderScreen={renderScreen} />
+        <Caption screen={screen} small={!large} />
+      </div>
+      <button
+        {...targetProps}
+        type="button"
+        aria-label={smallPreviewName(screen)}
+        aria-pressed={large}
+        data-preview-slot={screen.id}
+        data-state={stateOf(screen.status)}
+        className={classNames(styles.hit, large && styles.selected)}
+        style={{gridColumn: column}}
+        onClick={() => onBigChange(screen.id)}
+      >
+        {large ? (
+          <>
+            <span
+              className={styles.marker}
+              data-selected-marker={screen.id}
+              aria-hidden="true"
+            >
+              <Icon name="arrow" size={18} className={styles.arrow} />
+            </span>
+            <span className={styles.selectedCaption} aria-hidden="true">
+              <Icon name="check" size={12} />
+              {screen.name}
+            </span>
+          </>
+        ) : null}
+      </button>
       {tooltip}
-    </div>
+    </>
   );
 }
 
 /**
- * The body of the preview panel (`ll-monitor`): one screen large and the
- * others in a row of small previews, which a click swaps in. The output side
- * has no motion, so screens swap at once, and each screen's `renderScreen`
- * content stays mounted across swaps.
+ * One large monitoring picture above a fixed row of screen slots. The selected
+ * slot shows a marker; each screen's single picture stays mounted across swaps.
  */
 export function PreviewFrame<Id extends string>({
   screens,
@@ -209,12 +235,16 @@ export function PreviewFrame<Id extends string>({
   renderScreen,
 }: PreviewFrameProps<Id>): JSX.Element {
   return (
-    <div className={classNames(styles.monitor, compact && styles.compact)}>
-      {screens.map(screen => (
+    <div
+      className={classNames(styles.monitor, compact && styles.compact)}
+      style={{gridTemplateColumns: `repeat(${screens.length}, minmax(0, 1fr))`}}
+    >
+      {screens.map((screen, index) => (
         <ScreenCell
           key={screen.id}
           screen={screen}
           role={screen.id === big ? 'large' : 'small'}
+          column={index + 1}
           renderScreen={renderScreen}
           onBigChange={onBigChange}
         />

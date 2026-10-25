@@ -70,18 +70,28 @@ function smallNames(): Array<string | null> {
 }
 
 describe('PreviewFrame', () => {
-  it('shows one screen large with its name row and the others small', () => {
-    render(<Preview />);
+  it('shows one picture per screen and a selected marker in the fixed three-slot row', () => {
+    const {container} = render(<Preview />);
     expect(screen.getByText('본 화면 출력')).toBeDefined();
     expect(screen.getByText('기본')).toBeDefined();
     expect(smallNames()).toEqual([
+      '본 화면 크게 보기',
       '무대 화면 크게 보기, 모니터 3 연결 끊김',
       '방송 자막 크게 보기, 출력이 꺼져 있습니다',
     ]);
     expect(screen.queryByText('현재와 다음')).toBe(null);
+    expect(container.querySelectorAll('[data-screen]')).toHaveLength(3);
+    const selected = screen.getByRole('button', {pressed: true});
+    expect(selected.dataset['previewSlot']).toBe('main');
+    expect(
+      selected.querySelector('[data-selected-marker="main"]'),
+    ).not.toBeNull();
+    expect(selected.textContent).toBe('본 화면');
+    expect(selected.querySelector('[data-screen]')).toBeNull();
+    expect(screen.getAllByText(/출력$/)).toHaveLength(3);
   });
 
-  it('swaps a small screen in on a click and keeps the small row in order', async () => {
+  it('selects a screen on click and keeps every slot in its original order', async () => {
     const onBigChange = vi.fn<(id: ScreenName) => void>();
     render(<Preview onBigChange={onBigChange} />);
     await userEvent.click(
@@ -93,8 +103,31 @@ describe('PreviewFrame', () => {
     expect(screen.getByText('현재와 다음')).toBeDefined();
     expect(smallNames()).toEqual([
       '본 화면 크게 보기',
+      '무대 화면 크게 보기, 모니터 3 연결 끊김',
       '방송 자막 크게 보기, 출력이 꺼져 있습니다',
     ]);
+    expect(
+      screen.getByRole('button', {pressed: true}).dataset['previewSlot'],
+    ).toBe('stage');
+    expect(screen.queryByText('모니터 2')).toBeNull();
+    expect(screen.queryByText('NDI')).toBeNull();
+  });
+
+  it('keeps all three slots in keyboard order and exposes selection as pressed', async () => {
+    const user = userEvent.setup();
+    render(<Preview />);
+    const buttons = screen.getAllByRole('button');
+    await user.tab();
+    expect(document.activeElement).toBe(buttons[0]);
+    await user.tab();
+    expect(document.activeElement).toBe(buttons[1]);
+    await user.keyboard('{Enter}');
+    expect(buttons[1]?.getAttribute('aria-pressed')).toBe('true');
+    await user.tab();
+    expect(document.activeElement).toBe(buttons[2]);
+    await user.keyboard(' ');
+    expect(buttons[2]?.getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getAllByRole('button', {pressed: true})).toHaveLength(1);
   });
 
   it('keeps every screen mounted in its place across swaps', async () => {
@@ -111,6 +144,7 @@ describe('PreviewFrame', () => {
     render(<Preview renderScreen={shown => <Output name={shown.name} />} />);
     const stageOutput = screen.getByText('무대 화면 출력');
     const mainOutput = screen.getByText('본 화면 출력');
+    const parents = [stageOutput.parentElement, mainOutput.parentElement];
     lifecycle.length = 0;
     await userEvent.click(
       screen.getByRole('button', {
@@ -125,6 +159,9 @@ describe('PreviewFrame', () => {
     expect(lifecycle).toEqual([]);
     expect(screen.getByText('무대 화면 출력')).toBe(stageOutput);
     expect(screen.getByText('본 화면 출력')).toBe(mainOutput);
+    expect([stageOutput.parentElement, mainOutput.parentElement]).toEqual(
+      parents,
+    );
   });
 
   it('marks the states and explains them in a tooltip', async () => {

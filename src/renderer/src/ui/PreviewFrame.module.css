@@ -1,30 +1,49 @@
 .monitor {
+  --z-slot: 1;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-10);
+  grid-template-rows: minmax(0, 1fr) auto;
+  column-gap: var(--space-8);
+  row-gap: var(--space-12);
+  height: 100%;
   min-width: 0;
+  min-height: 0;
 }
 
 .main {
   display: flex;
   grid-row: 1;
-  grid-column: 1 / -1;
   flex-direction: column;
-  gap: var(--space-10);
   min-width: 0;
+  min-height: 0;
+}
+
+.surface {
+  width: 100%;
+  aspect-ratio: var(--aspect-output);
+  isolation: isolate;
+  pointer-events: none;
+}
+
+.main .surface {
+  flex: 0 1 auto;
+  min-height: 0;
+  container-type: size;
 }
 
 .frame {
   position: relative;
-  display: block;
   width: 100%;
   aspect-ratio: var(--aspect-output);
-  border-radius: var(--radius-md);
   overflow: hidden;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
   background: var(--output-black);
   box-shadow: 0 0 0 1px var(--line);
   container-type: inline-size;
-  transition: box-shadow var(--motion-hover);
+}
+
+.fit {
+  width: min(100cqw, calc(100cqh * 16 / 9));
+  margin-inline: auto;
 }
 
 .chroma {
@@ -38,16 +57,24 @@
 
 .caption {
   display: flex;
+  flex: none;
   align-items: center;
   gap: var(--space-8);
+  box-sizing: border-box;
+  height: var(--size-control-md);
   min-width: 0;
+  padding-inline: var(--space-8);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  background: var(--bg-sunken);
   font: var(--type-label);
   white-space: nowrap;
 }
 
 .name {
+  overflow: hidden;
   color: var(--text);
   font: var(--type-label-strong);
+  text-overflow: ellipsis;
 }
 
 .target {
@@ -55,41 +82,30 @@
   align-items: center;
   gap: var(--space-4);
   min-width: 0;
+  margin-left: auto;
   color: var(--text-3);
 }
 
 .look {
   min-width: 0;
-  margin-left: auto;
   overflow: hidden;
   color: var(--text-3);
   text-overflow: ellipsis;
 }
 
 .small {
-  position: relative;
   display: flex;
+  grid-row: 2;
   flex-direction: column;
-  gap: var(--space-6);
+  width: 100%;
+  max-width: var(--size-preview-small-max);
   min-width: 0;
 }
 
-.small .frame {
-  max-width: var(--size-preview-small-max);
-}
-
-.hit {
-  position: absolute;
-  inset: 0;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-md);
-  background: transparent;
-}
-
 .small .caption {
-  gap: var(--space-6);
-  font: var(--type-caption);
+  justify-content: center;
+  height: var(--size-control-sm);
+  padding-inline: var(--space-4);
 }
 
 .small .name {
@@ -97,32 +113,69 @@
   font: var(--type-caption);
 }
 
-.small:hover:not([data-state='warning']) .frame {
+.hit {
+  z-index: var(--z-slot);
+  display: flex;
+  grid-row: 2;
+  flex-direction: column;
+  width: 100%;
+  max-width: var(--size-preview-small-max);
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+}
+
+.hit:hover {
   box-shadow: var(--ring-hover);
 }
 
+.selected,
+.selected:hover {
+  box-shadow: var(--ring-selected);
+}
+
+.marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: var(--aspect-output);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  background: var(--bg-app);
+  color: var(--accent);
+}
+
+.arrow {
+  transform: rotate(-90deg);
+}
+
+.selectedCaption {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  width: 100%;
+  height: var(--size-control-sm);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  background: var(--bg-sunken);
+  color: var(--accent);
+  font: var(--type-caption);
+  white-space: nowrap;
+}
+
 .hit:focus-visible {
+  outline: 2px solid var(--accent);
   outline-offset: var(--space-focus-preview-cell);
 }
 
-.compact .small {
-  flex-direction: row;
-  align-items: center;
-  gap: var(--space-8);
+.compact {
+  row-gap: var(--space-8);
 }
 
-.compact .small .frame {
-  flex: none;
-  width: var(--size-preview-compact);
-}
-
-.compact .small .caption {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-2);
-}
-
-[data-state='off'] > .frame {
+[data-state='off'] .frame {
   box-shadow: 0 0 0 1px var(--line-strong);
 }
 

@@ -139,7 +139,10 @@ describe('PreviewPanel layout', () => {
     setLayers({}, allOn);
     const {container} = render(<PreviewPanel compact={false} />);
     expect(itemOf(container, 'main').querySelector('button')).toBeNull();
-    expect(screen.getAllByRole('button')).toHaveLength(2);
+    expect(screen.getAllByRole('button')).toHaveLength(3);
+    expect(
+      screen.getByRole('button', {pressed: true}).dataset['previewSlot'],
+    ).toBe('main');
   });
 
   it('falls back to the 본 화면 when the large screen is unknown', () => {
@@ -149,12 +152,15 @@ describe('PreviewPanel layout', () => {
     expect(screensWithRole(container, 'large')).toEqual(['main']);
   });
 
-  it('writes the screen name and target under the large and the small previews', () => {
+  it('shows targets only under the large picture and names in all fixed slots', () => {
     setLayers({}, allOn);
     render(<PreviewPanel compact={false} />);
-    expect(screen.getByText('본 화면')).toBeTruthy();
+    expect(screen.getAllByText('본 화면')).toHaveLength(2);
     expect(screen.getByText('모니터 2')).toBeTruthy();
-    expect(screen.getByText('NDI')).toBeTruthy();
+    expect(screen.getByText('무대 화면')).toBeTruthy();
+    expect(screen.getByText('방송 자막')).toBeTruthy();
+    expect(screen.queryByText('모니터 3')).toBeNull();
+    expect(screen.queryByText('NDI')).toBeNull();
   });
 
   it('writes no Look or stage layout name until the screen settings exist', () => {
@@ -165,13 +171,34 @@ describe('PreviewPanel layout', () => {
     }
   });
 
-  it('uses rows for the small previews in the narrow window form', () => {
-    setLayers({}, allOn);
-    const {container} = render(<PreviewPanel compact />);
-    const small = container.querySelector('[data-role="small"]');
-    expect(small?.className).toContain('compact');
-    expect(container.firstElementChild?.className).toContain('rows');
-  });
+  it.each([false, true])(
+    'keeps three fixed slots and one marker across every selection, compact=%s',
+    compact => {
+      const send = vi.fn();
+      window.llp = fakeLlpApi({live: {send}});
+      setLayers({}, allOn);
+      const {container} = render(<PreviewPanel compact={compact} />);
+      for (const id of ['main', 'stage', 'broadcast', 'main']) {
+        const button = container.querySelector(`[data-preview-slot="${id}"]`);
+        if (!button) throw new Error(`Missing fixed slot: ${id}`);
+        fireEvent.click(button);
+        expect(
+          screen
+            .getAllByRole('button')
+            .map(slot => slot.dataset['previewSlot']),
+        ).toEqual(['main', 'stage', 'broadcast']);
+        expect(screensWithRole(container, 'large')).toEqual([id]);
+        expect(
+          container.querySelectorAll('[data-selected-marker]'),
+        ).toHaveLength(1);
+        expect(button.getAttribute('aria-pressed')).toBe('true');
+        expect(button.querySelector('video, img, [data-screen]')).toBeNull();
+        expect(created()).toHaveLength(3);
+      }
+      expect(send).not.toHaveBeenCalled();
+      expect(useLive.getState().state?.outputs).toEqual(allOn);
+    },
+  );
 });
 
 describe('PreviewPanel swap', () => {
@@ -221,7 +248,9 @@ describe('PreviewPanel states', () => {
     const {container} = render(<PreviewPanel compact={false} />);
     const large = itemOf(container, 'main');
     expect(large.getAttribute('data-state')).toBe('off');
-    expect(large.getAttribute('title')).toBe('본 화면 출력이 꺼져 있습니다');
+    expect(
+      screen.getByRole('button', {pressed: true}).getAttribute('aria-label'),
+    ).toBe('본 화면 크게 보기, 출력이 꺼져 있습니다');
     expect(created()[0]?.render).toHaveBeenLastCalledWith(
       expect.objectContaining({slide}),
     );
@@ -232,7 +261,11 @@ describe('PreviewPanel states', () => {
     const {container} = render(<PreviewPanel compact={false} />);
     const stage = itemOf(container, 'stage');
     expect(stage.getAttribute('data-state')).toBe('off');
-    expect(stage.getAttribute('title')).toBe('무대 화면 출력이 꺼져 있습니다');
+    expect(
+      screen.getByRole('button', {
+        name: '무대 화면 크게 보기, 출력이 꺼져 있습니다',
+      }),
+    ).toBeTruthy();
   });
 
   it('treats a screen the live state does not know as off', () => {
@@ -244,7 +277,11 @@ describe('PreviewPanel states', () => {
   it('draws only the 방송 자막 frame green, and the others black', () => {
     setLayers({}, allOn);
     const {container} = render(<PreviewPanel compact={false} />);
-    expect(container.querySelectorAll('[class*="chroma"]')).toHaveLength(1);
+    for (const id of ['main', 'stage']) {
+      expect(
+        itemOf(container, id).querySelector('[class*="chroma"]'),
+      ).toBeNull();
+    }
     expect(
       itemOf(container, 'broadcast').querySelector('[class*="chroma"]'),
     ).not.toBeNull();
@@ -254,7 +291,11 @@ describe('PreviewPanel states', () => {
     setLayers({}, allOn);
     const {container} = render(<PreviewPanel compact={false} />);
     fireEvent.click(screen.getByRole('button', {name: /방송 자막/}));
-    expect(container.querySelectorAll('[class*="chroma"]')).toHaveLength(1);
+    for (const id of ['main', 'stage']) {
+      expect(
+        itemOf(container, id).querySelector('[class*="chroma"]'),
+      ).toBeNull();
+    }
     expect(
       itemOf(container, 'broadcast').querySelector('[class*="chroma"]'),
     ).not.toBeNull();
