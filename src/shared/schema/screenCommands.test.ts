@@ -1,8 +1,10 @@
-import {describe, expect, it, vi} from 'vitest';
+import {describe, expect, expectTypeOf, it, vi} from 'vitest';
 import {dispatchLogged, LiveStore} from '../../main/live/store';
 import {SliceRegistry} from '../../main/live/sliceRegistry';
 import {interruptsSongOutput} from '../commands';
+import type {ScreenId} from './ids';
 import {parseLiveCommand, parseLiveCommandRequest} from './liveCommand';
+import type {ScreenCommand} from './screenCommands';
 import {expectSuccess} from './testHelpers';
 
 const ID = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
@@ -11,7 +13,7 @@ const commands = [
   {type: 'screen.testPattern.set', screenId: ID, on: true},
   {type: 'screen.testPattern.set', screenId: ID, on: false},
   {type: 'monitors.identify'},
-  {type: 'screen.settings.apply', screen},
+  {type: 'screen.settings.apply', screenId: ID},
 ];
 
 describe('screen command contracts', () => {
@@ -38,40 +40,38 @@ describe('screen command contracts', () => {
     },
   );
 
-  it('preserves future configuration fields through both boundary parsers', () => {
-    const future: unknown = JSON.parse(
-      '{"__proto__":{"safe":true},"nested":{"constructor":"future"}}',
-    );
+  it('keeps only the saved screen ID through both boundary parsers and batches', () => {
+    const command = {type: 'screen.settings.apply', screenId: ID};
     const value = {
-      type: 'screen.settings.apply',
-      screen: {...screen, future, edgeMargin: 3, offset: {x: -2.5, y: 4}},
+      ...command,
+      screen: {...screen, name: 'Uncommitted name', edgeMargin: 3},
+      extra: true,
     };
-    expect(expectSuccess(parseLiveCommand(value))).toEqual(value);
+    expect(expectSuccess(parseLiveCommand(value))).toEqual(command);
     expect(expectSuccess(parseLiveCommandRequest(value)).command).toEqual(
-      value,
+      command,
     );
     expect(
       expectSuccess(
         parseLiveCommandRequest({type: 'live.batch', commands: [value]}),
       ).command,
-    ).toEqual({type: 'live.batch', commands: [value]});
+    ).toEqual({type: 'live.batch', commands: [command]});
+    expectTypeOf<
+      Extract<ScreenCommand, {type: 'screen.settings.apply'}>['screenId']
+    >().toEqualTypeOf<ScreenId>();
   });
 
   it.each([
     {type: 'screen.testPattern.set', screenId: 'main', on: true},
     {type: 'screen.testPattern.set', screenId: ID, on: 'yes'},
     {type: 'screen.testPattern.set', screenId: ID},
-    {type: 'screen.settings.apply', screen: {...screen, method: 'remote'}},
-    {type: 'screen.settings.apply', screen: {...screen, edgeMargin: 101}},
-    {
-      type: 'screen.settings.apply',
-      screen: {...screen, offset: {x: Infinity, y: 0}},
-    },
-    {
-      type: 'screen.settings.apply',
-      screen: {...screen, resolution: {width: 0, height: 1080}},
-    },
-    {type: 'screen.settings.apply', screen: Object.assign([], screen)},
+    {type: 'screen.settings.apply'},
+    {type: 'screen.settings.apply', screen},
+    {type: 'screen.settings.apply', screenId: ''},
+    {type: 'screen.settings.apply', screenId: 'main'},
+    {type: 'screen.settings.apply', screenId: 1},
+    {type: 'screen.settings.apply', screenId: [ID]},
+    {type: 'screen.settings.apply', screenId: ID.toUpperCase()},
   ])('rejects malformed screen command %j', value => {
     expect(parseLiveCommand(value).ok).toBe(false);
   });

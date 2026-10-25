@@ -2,7 +2,6 @@ import * as v from 'valibot';
 import type {ReadonlyKnown} from './fileFormat';
 import {screenIdSchema} from './ids';
 import {plainObject} from './payload';
-import {screenSchema} from './screens';
 
 export const screenCommandOptions = [
   v.object({
@@ -11,7 +10,10 @@ export const screenCommandOptions = [
     on: v.boolean(),
   }),
   v.object({type: v.literal('monitors.identify')}),
-  v.object({type: v.literal('screen.settings.apply'), screen: screenSchema}),
+  v.object({
+    type: v.literal('screen.settings.apply'),
+    screenId: screenIdSchema,
+  }),
 ] as const;
 
 export const screenCommandSchema = v.pipe(
