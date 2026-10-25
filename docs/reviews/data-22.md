@@ -96,19 +96,13 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (50d59cd): reviewer (Codex, codex3) Approve with no findings. Lead
+  Approve; `LayoutChange` no longer accepts `columns` now that shell-24 sends
+  only `thumbnailScalePercent`, ending the transition data-21 opened; `columns`
+  in existing files is still preserved. Tagged break because it narrows a shared
+  contract. Fast-forward merge.
 
 ## Team member's reply
 
