@@ -15,7 +15,8 @@ import {
 import {messageDurationSchema} from './messages';
 import {messageTargetsSchema} from './overlayState';
 import {plainObject} from './payload';
-import {nonBlankText, nonNegativeInteger, percent} from './primitives';
+import {nonNegativeInteger, percent} from './primitives';
+import {liveNonBlankTextSchema} from './liveLimits';
 
 const audioSourceSchema = v.pipe(
   plainObject,
@@ -39,7 +40,7 @@ export const liveActionOptions = [
   }),
   v.object({
     type: v.literal('stage.message.set'),
-    text: v.nullable(nonBlankText),
+    text: v.nullable(liveNonBlankTextSchema),
   }),
   v.object({
     type: v.literal('prop.set'),
@@ -55,7 +56,7 @@ export const liveActionOptions = [
   v.object({type: v.literal('notice.stop')}),
   v.object({
     type: v.literal('message.send'),
-    text: nonBlankText,
+    text: liveNonBlankTextSchema,
     targets: messageTargetsSchema,
     duration: messageDurationSchema,
   }),

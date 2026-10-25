@@ -1,6 +1,5 @@
 import * as v from 'valibot';
 import {isRecord} from '../guards';
-import type {LiveState} from '../live';
 import type {Result} from '../result';
 import {
   parseFile,
@@ -12,55 +11,10 @@ import {
 } from './fileFormat';
 import {serviceIdSchema} from './ids';
 import {liveStateSchema} from './liveState';
-import {MAX_TARGET_SCREENS} from './overlayState';
+import {LIVE_STATE_LIMITS} from './liveLimits';
 import {jsonObject, positiveInteger, timestamp} from './primitives';
 
-export const RECOVERY_RECORD_LIMITS = {
-  bytes: 4 * 1024 * 1024,
-  outputs: MAX_TARGET_SCREENS,
-  slideLines: 1000,
-  textCharacters: 4000,
-} as const;
-
-function textsFit(state: LiveState): boolean {
-  const {slide, message, prop} = state.layers;
-  const texts = [
-    state.stageMessage,
-    slide?.label,
-    ...(slide?.lines ?? []),
-    message?.text,
-    ...(message?.items ?? []).map(item => item.text),
-    ...(prop?.items ?? []).flatMap(item =>
-      item.content.kind === 'text' ? [item.content.text] : [],
-    ),
-  ];
-  return texts.every(
-    text =>
-      text == null || text.length <= RECOVERY_RECORD_LIMITS.textCharacters,
-  );
-}
-
-const boundedStateSchema = v.pipe(
-  liveStateSchema,
-  v.forward(
-    v.check(
-      state =>
-        Object.keys(state.outputs).length <= RECOVERY_RECORD_LIMITS.outputs,
-      'Too many saved outputs',
-    ),
-    ['outputs'],
-  ),
-  v.forward(
-    v.check(
-      state =>
-        (state.layers.slide?.lines.length ?? 0) <=
-        RECOVERY_RECORD_LIMITS.slideLines,
-      'Too many saved slide lines',
-    ),
-    ['layers', 'slide'],
-  ),
-  v.check(state => textsFit(state), 'Saved text is too long'),
-);
+export const RECOVERY_RECORD_LIMITS = LIVE_STATE_LIMITS;
 
 function retainUnknownFields(source: unknown, target: unknown): void {
   if (Array.isArray(source) && Array.isArray(target)) {
@@ -89,7 +43,7 @@ function retainUnknownFields(source: unknown, target: unknown): void {
 const fileStateSchema = v.pipe(
   v.unknown(),
   v.rawTransform(({dataset, addIssue, NEVER}) => {
-    const parsed = v.safeParse(boundedStateSchema, dataset.value, {
+    const parsed = v.safeParse(liveStateSchema, dataset.value, {
       abortEarly: true,
     });
     if (!parsed.success) {

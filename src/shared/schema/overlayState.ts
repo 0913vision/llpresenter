@@ -8,13 +8,13 @@ import {
 } from './ids';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
 import {
-  nonBlankText,
   nonNegativeInteger,
   nonNegativeNumber,
   positiveSeconds,
 } from './primitives';
 import {propContentSchema} from './props';
 import type {Result} from '../result';
+import {LIVE_STATE_LIMITS, liveNonBlankTextSchema} from './liveLimits';
 
 export const MAX_ACTIVE_MESSAGES = 200;
 export const MAX_ACTIVE_PROPS = 64;
@@ -43,7 +43,7 @@ export const messageTargetsSchema = v.union([
 export const activeMessageSchema = v.pipe(
   payloadObject({
     messageId: messageIdSchema,
-    text: nonBlankText,
+    text: liveNonBlankTextSchema,
     targets: messageTargetsSchema,
     excludedTargets: overlayScreenIdsSchema,
     startedAt: epochMillisecondsSchema,
@@ -70,7 +70,15 @@ export const activeMessageSchema = v.pipe(
 
 export const activePropSchema = payloadObject({
   propId: propIdSchema,
-  content: propContentSchema,
+  content: v.pipe(
+    propContentSchema,
+    v.check(
+      content =>
+        content.kind !== 'text' ||
+        content.text.length <= LIVE_STATE_LIMITS.textCharacters,
+      'Live prop text is too long',
+    ),
+  ),
   targets: overlayScreenIdsSchema,
 });
 

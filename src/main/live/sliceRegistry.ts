@@ -2,6 +2,7 @@ import type {LiveCommand} from '@shared/commands';
 import {emptyLiveState, type LiveState} from '@shared/live';
 import type {LiveHistory} from './history';
 import type {PayloadError} from '@shared/schema/payload';
+import {parseLiveState} from '@shared/schema/liveState';
 import {MissingLiveTargetError} from './commandErrors';
 import {
   isLiveSlice,
@@ -108,7 +109,12 @@ export class SliceRegistry {
         },
       };
       try {
-        return slice.apply(before, next, context);
+        const after = slice.apply(before, next, context);
+        if (after.state !== before.state) {
+          const checked = parseLiveState(after.state);
+          if (!checked.ok) return context.reject(checked.error);
+        }
+        return after;
       } catch (error) {
         skipped.push(
           error instanceof MissingLiveTargetError

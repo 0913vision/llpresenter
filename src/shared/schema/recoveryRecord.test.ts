@@ -319,7 +319,7 @@ describe('recovery record files', () => {
       expectFailure(
         readState(stateWith({slide: {...slide, lines: [...lines, 'Extra']}})),
       ).field,
-    ).toBe('state.layers.slide');
+    ).toBe('state.layers.slide.lines');
     const long = 'x'.repeat(RECOVERY_RECORD_LIMITS.textCharacters + 1);
     const states = [
       stateWith({}, {stageMessage: long}),
@@ -361,8 +361,16 @@ describe('recovery record files', () => {
         },
       }),
     ];
-    for (const state of states) {
-      expect(expectFailure(readState(state)).field).toBe('state');
+    const fields = [
+      'state.stageMessage',
+      'state.layers.slide.label',
+      'state.layers.slide.lines.0',
+      'state.layers.message.text',
+      'state.layers.message.items.0.text',
+      'state.layers.prop.items.0.content',
+    ];
+    for (const [index, state] of states.entries()) {
+      expect(expectFailure(readState(state)).field).toBe(fields[index]);
     }
     expect(readState(stateWith({}, {stageMessage: long.slice(1)})).ok).toBe(
       true,

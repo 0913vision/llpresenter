@@ -2,8 +2,14 @@ import * as v from 'valibot';
 import type {LayerKind, LiveState} from '../live';
 import type {Result} from '../result';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
-import {nonBlankText} from './primitives';
 import {lookIdSchema} from './ids';
+import {
+  LIVE_STATE_LIMITS,
+  liveTextSchema,
+  liveNonBlankTextSchema,
+  liveOutputsSchema,
+  fitsLiveStateByteBudget,
+} from './liveLimits';
 import {
   activeMessagesSchema,
   activePropsSchema,
@@ -27,14 +33,17 @@ export const layerSchemas = {
   slide: payloadObject({
     itemId: id,
     position: count,
-    label: v.nullable(v.string()),
-    lines: v.array(v.string()),
+    label: v.nullable(liveTextSchema),
+    lines: v.pipe(
+      v.array(liveTextSchema),
+      v.maxLength(LIVE_STATE_LIMITS.slideLines),
+    ),
   }),
   prop: payloadObject({propId: id, items: v.exactOptional(activePropsSchema)}),
   audio: payloadObject({mediaId: id}),
   message: payloadObject({
     messageId: id,
-    text: v.string(),
+    text: liveTextSchema,
     items: v.exactOptional(activeMessagesSchema),
   }),
   notice: payloadObject({
@@ -45,7 +54,7 @@ export const layerSchemas = {
 
 export const liveStateSchema = payloadObject({
   lookId: v.exactOptional(v.nullable(lookIdSchema)),
-  stageMessage: v.exactOptional(v.nullable(nonBlankText)),
+  stageMessage: v.exactOptional(v.nullable(liveNonBlankTextSchema)),
   version: count,
   layers: payloadObject({
     media: v.nullable(layerSchemas.media),
@@ -55,7 +64,7 @@ export const liveStateSchema = payloadObject({
     message: v.nullable(layerSchemas.message),
     notice: v.nullable(layerSchemas.notice),
   }),
-  outputs: v.record(v.string(), v.boolean()),
+  outputs: liveOutputsSchema,
   canUndo: v.boolean(),
 });
 
@@ -66,5 +75,12 @@ export const liveStateSchema = payloadObject({
 export function parseLiveState(
   value: unknown,
 ): Result<LiveState, PayloadError> {
-  return parsePayload(liveStateSchema, value);
+  const parsed = parsePayload(liveStateSchema, value);
+  if (!parsed.ok) return parsed;
+  return fitsLiveStateByteBudget(value)
+    ? parsed
+    : {
+        ok: false,
+        error: {field: '', message: 'The live state exceeds its byte budget'},
+      };
 }
