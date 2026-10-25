@@ -1,6 +1,7 @@
 import {app, type BrowserWindow} from 'electron';
 import {join} from 'node:path';
 import {isAnyOutputOn} from '@shared/live';
+import {registerTextImport} from './import/register';
 import {LiveStore, dispatchLogged} from './live/store';
 import {createLogger, flushWithin, type Logger} from './log';
 import {registerIpc} from './ipc';
@@ -100,6 +101,11 @@ function start(): void {
       });
       const win = createControlWindow(log, windowMode, zoom);
       control = win;
+      const stopTextImport = registerTextImport({
+        control: win,
+        windowMode,
+        log,
+      });
       const outputs = startOutputs({store, control: win, log, windowMode});
       const stopSoakScenario = registerSoakScenario(log, command =>
         dispatchLogged(store, command, log),
@@ -112,6 +118,7 @@ function start(): void {
       // "output off", so they are destroyed before Electron closes windows to
       // quit.
       shutdown.add({name: 'stop the soak scenario', run: stopSoakScenario});
+      shutdown.add({name: 'stop text import', run: stopTextImport});
       shutdown.add({name: 'stop the outputs', run: outputs.stop});
       shutdown.add({name: 'save the UI state', run: () => ui.dispose()});
       shutdown.add({name: 'stop UI zoom', run: () => zoom.dispose()});

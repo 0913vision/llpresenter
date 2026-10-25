@@ -21,6 +21,8 @@ const fakes = vi.hoisted(() => {
   const appHandlers = new Map<string, Array<(...args: unknown[]) => void>>();
   return {
     order,
+    textImportContexts: new Array<unknown>(),
+    textImportStop: vi.fn<() => void>(),
     appHandlers,
     electron: {
       app: {
@@ -64,6 +66,12 @@ const fakes = vi.hoisted(() => {
 });
 
 vi.mock('electron', () => fakes.electron);
+vi.mock('./import/register', () => ({
+  registerTextImport: (context: unknown) => {
+    fakes.textImportContexts.push(context);
+    return fakes.textImportStop;
+  },
+}));
 vi.mock('./store/uiZoom', () => ({
   registerUiZoom: vi.fn(() => {
     fakes.order.push('UI zoom');
@@ -167,6 +175,8 @@ beforeEach(async () => {
   fakes.controlWindow.restore.mockClear();
   fakes.controlWindow.focus.mockClear();
   fakes.order.length = 0;
+  fakes.textImportContexts.length = 0;
+  fakes.textImportStop.mockReset();
   fakes.appHandlers.clear();
   fakes.opened.control = null;
   fakes.uiDispose.mockReset();
@@ -205,6 +215,18 @@ function beforeQuit(): {prevented: boolean} {
 }
 
 describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
+  it('registers text import for the control window and removes its handlers on shutdown', async () => {
+    await startMain();
+    expect(fakes.textImportContexts).toEqual([
+      expect.objectContaining({
+        control: fakes.opened.control,
+        windowMode: 'normal',
+      }),
+    ]);
+    beforeQuit();
+    await vi.waitFor(() => expect(fakes.textImportStop).toHaveBeenCalledOnce());
+  });
+
   it('reads the UI state before the control window opens', async () => {
     await startMain();
     expect(fakes.order).toEqual([
