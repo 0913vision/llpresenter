@@ -1,10 +1,10 @@
-Review range: `212dda70...feat/spec/media-strip-panel`
+Review range: `60bd0f12...feat/spec/media-strip-panel`
 
 # Review request: `spec-37`
 
 - Team member: `spec`
 - Branch: `feat/spec/media-strip-panel`
-- Base commit: `212dda70`, main after devops-21 and ui-25
+- Base commit: `60bd0f12`, main after data-40
 - Review round: 2
 - Task: M3-S1b media strip display panel
 - Ownership exception: shell's show renderer paths; no new UI edits
@@ -50,6 +50,9 @@ regression keeps a video over another item's rename and releases/replaces it
 when its own file changes. Cleanup has an empty dependency list and runs at
 unmount. One exported UNNAMED_MEDIA constant supplies both name fallbacks.
 
+Rebased onto data-40. The tile's loop marker now uses the shared mediaLoops
+helper, matching the media strip controller and main's playback rule.
+
 The imperative ARIA attributes are unchanged; the lead assigned that nit to ui's
 later work. No UI file is changed in this round.
 
@@ -57,9 +60,10 @@ later work. No UI file is changed in this round.
 
 This request supplies the panel, not its workspace mount. The following mount
 will replace the 미디어 placeholder and bind the toolbar toggle. State saving
-waits for the lead's data-41 merge announcement. Search waits for data-40.
-Actual import and relink remain P6a work. No shared, preload, main, prep, or UI
-source is changed here, and no dependency is added.
+waits for the lead's data-41 merge announcement. Toolbar search follows in its
+own request using data-40's merged showSong contract. Actual import and relink
+remain P6a work. No shared, preload, main, prep, or UI source is changed here,
+and no dependency is added.
 
 ## Checks run
 

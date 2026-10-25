@@ -1,4 +1,5 @@
 import {memo, useMemo, type JSX} from 'react';
+import {mediaLoops} from '@shared/mediaEndRule';
 import type {MediaId} from '@shared/schema/ids';
 import type {MediaItem} from '@shared/schema/mediaList';
 import {MediaTile} from '@renderer/ui';
@@ -66,7 +67,7 @@ export const MediaStripTile = memo(
         name={item.name || UNNAMED_MEDIA}
         picture={picture}
         duration={item.kind === 'video' ? duration(item.duration) : undefined}
-        loop={item.props?.end !== 'stop'}
+        loop={mediaLoops(item)}
         copying={entry.copying}
         missingFile={missing ? item.file : undefined}
         live={live}
