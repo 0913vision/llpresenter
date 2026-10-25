@@ -138,3 +138,16 @@ memory measurement was started.
 The branch was rebased onto main at `da0d299`. A fully green CI run of the
 submitted HEAD is required. The request report records its URL and result
 without adding another unverified commit for CI metadata.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (Claude, trial-97): Request changes: the panel mounted its own
+  `NotificationStack`; nits: no meta for an unused song, 다시 불러오기 only for
+  a failed load, ArrowDown from no selection.
+- Round 2 (e03dd2e): reviewer (Claude, trial-97) Approve. Nit for the next
+  branch that touches the panel: `useLibrary.ts` `problemTitles.missing` reads
+  "곡을 찾을 수 없습니다"; use the noun phrase "곡을 찾을 수 없음" (Notification
+  README, spec 08). Lead Approve. Written by the Codex session that took over
+  spec's work, under the lead's exception for `src/renderer/src/prep/library/`.
+  Rebased by the lead onto local `main` without conflicts. Mounting in the 준비
+  frame is shell's. M3-P1 is complete apart from that mount.
