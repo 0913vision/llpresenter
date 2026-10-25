@@ -8,7 +8,9 @@ export function resolveRenderScreen(
   screens: readonly Screen[],
 ): RenderScreen | undefined {
   const exact = screens.find(screen => screen.id === id);
-  if (exact !== undefined) return {id: exact.id, kind: exact.kind};
+  if (exact !== undefined) {
+    return {id: exact.id, kind: exact.kind, method: exact.method};
+  }
   const alias = screens.find(screen =>
     id === 'main'
       ? screen.kind === 'audience' && screen.method !== 'capture'
@@ -16,7 +18,9 @@ export function resolveRenderScreen(
         ? screen.kind === 'audience' && screen.method === 'capture'
         : id === 'stage' && screen.kind === 'stage',
   );
-  return alias === undefined ? undefined : {id: alias.id, kind: alias.kind};
+  return alias === undefined
+    ? undefined
+    : {id: alias.id, kind: alias.kind, method: alias.method};
 }
 
 /** Follows routing identity without letting an old read override a newer edit. */

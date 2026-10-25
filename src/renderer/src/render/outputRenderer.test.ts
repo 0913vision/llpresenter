@@ -5,6 +5,7 @@ import {classes} from './classes';
 import {DEFAULT_LYRIC_STYLE} from './lyricStyle';
 import {OutputRenderer} from './outputRenderer';
 import {SlideLayerView} from './slideLayer';
+import {MAIN} from '../../../main/live/testing/overlays';
 
 class FakeResizeObserver {
   static readonly instances: FakeResizeObserver[] = [];
@@ -50,6 +51,33 @@ function setUp() {
 }
 
 describe('OutputRenderer', () => {
+  it('switches the empty color between chroma and black without replacing the content', () => {
+    const {parent, renderer} = setUp();
+    const frame = {
+      screen: {id: MAIN, kind: 'audience', method: 'capture'},
+    } as const;
+    renderer.render({...emptyLayers(), slide: WITH_SLIDE.slide}, frame);
+    const root = parent.firstElementChild;
+    const shown = parent.querySelector(`.${classes.page}.${classes.shown}`);
+    expect(
+      root instanceof HTMLElement &&
+        root.style.getPropertyValue('--output-background'),
+    ).toBe('var(--chroma)');
+    renderer.render(
+      {...emptyLayers(), slide: WITH_SLIDE.slide},
+      {screen: {...frame.screen, method: 'window'}},
+    );
+    expect(
+      root instanceof HTMLElement &&
+        root.style.getPropertyValue('--output-background'),
+    ).toBe('');
+    expect(parent.firstElementChild).toBe(root);
+    expect(parent.querySelector(`.${classes.page}.${classes.shown}`)).toBe(
+      shown,
+    );
+    renderer.dispose();
+  });
+
   it.each<RenderMode>(['output', 'preview'])(
     'draws an image under the lyrics and clears it in the same call in %s mode',
     async mode => {

@@ -2,10 +2,12 @@ import type {LiveLayers} from '@shared/live';
 import type {RenderMode} from './backgroundLayer';
 import type {LyricStyle} from './lyricStyle';
 import type {ScreenId} from '@shared/schema/ids';
+import type {Screen} from '@shared/schema/screens';
 
 export interface RenderScreen {
   readonly id: ScreenId;
   readonly kind: 'audience' | 'stage';
+  readonly method?: Screen['method'];
 }
 
 export interface RenderFrame {

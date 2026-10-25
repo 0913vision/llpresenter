@@ -7,7 +7,8 @@ export const BOUNDS_RECHECK_MS = 100;
 
 interface BoundsCheck {
   readonly bounds: Rect;
-  readonly afterReapply: () => void;
+  readonly actual: () => Rect;
+  readonly reapply: () => void;
 }
 
 /** Owns deferred fullscreen exit and one bounded correction of restored bounds. */
@@ -70,8 +71,30 @@ export class WindowPlacement {
   }
 
   verifyBounds(bounds: Rect, afterReapply: () => void): void {
+    this.verify({
+      bounds,
+      actual: () => this.win.getBounds(),
+      reapply: () => {
+        this.win.setBounds(bounds);
+        afterReapply();
+      },
+    });
+  }
+
+  verifyContentBounds(bounds: Rect, afterReapply: () => void): void {
+    this.verify({
+      bounds,
+      actual: () => this.win.getContentBounds(),
+      reapply: () => {
+        this.win.setContentBounds(bounds);
+        afterReapply();
+      },
+    });
+  }
+
+  private verify(check: BoundsCheck): void {
     this.clearCheck();
-    this.boundsCheck = {bounds, afterReapply};
+    this.boundsCheck = check;
     this.checkTimer = setTimeout(() => {
       this.correctBounds();
       this.clearCheck();
@@ -111,10 +134,9 @@ export class WindowPlacement {
     const check = this.boundsCheck;
     if (check === null) return;
     try {
-      if (sameRect(this.win.getBounds(), check.bounds)) return;
+      if (sameRect(check.actual(), check.bounds)) return;
       this.clearCheck();
-      this.win.setBounds(check.bounds);
-      check.afterReapply();
+      check.reapply();
     } catch (error) {
       this.clearCheck();
       this.log.error('could not correct restored output bounds', error);

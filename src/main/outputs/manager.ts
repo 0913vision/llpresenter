@@ -52,6 +52,8 @@ interface Surroundings {
 function statusOf(placement: Placement | null): OutputStatus {
   if (placement === null) return 'off';
   switch (placement.kind) {
+    case 'capture':
+      return 'window';
     case 'fullscreen':
       return 'fullscreen';
     case 'window':
@@ -66,8 +68,10 @@ function statusOf(placement: Placement | null): OutputStatus {
 function displayRequests(
   screens: readonly OutputScreen[],
 ): readonly DisplayRequest[] {
-  return screens.flatMap(({id, display}) =>
-    display === null ? [] : [{screenId: id, display}],
+  return screens.flatMap(({id, display, method}) =>
+    method !== 'fullscreen' || display === null
+      ? []
+      : [{screenId: id, display}],
   );
 }
 

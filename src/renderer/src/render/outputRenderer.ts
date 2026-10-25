@@ -36,6 +36,7 @@ export class OutputRenderer {
   private readonly layers: readonly ActiveLayer[];
   private readonly resizeObserver: ResizeObserver;
   private disposed = false;
+  private capture = false;
 
   constructor(
     parent: HTMLElement,
@@ -51,6 +52,13 @@ export class OutputRenderer {
 
   render(layers: LiveLayers, frame?: RenderFrame): void {
     if (this.disposed) return;
+    const capture = frame?.screen?.method === 'capture';
+    if (capture !== this.capture) {
+      this.capture = capture;
+      if (capture) {
+        this.root.style.setProperty('--output-background', 'var(--chroma)');
+      } else this.root.style.removeProperty('--output-background');
+    }
     for (const {kind, view} of this.layers) {
       this.attempt(kind, 'draw', () => view.render(layers, frame));
     }

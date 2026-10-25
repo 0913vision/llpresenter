@@ -126,6 +126,25 @@ function setUpRemoval(
 }
 
 describe('OutputManager', () => {
+  it('runs capture without consuming its saved monitor and closes only that output', () => {
+    const {store, windows, manager} = setUp([
+      screenOn(PROJECTOR, {id: 'capture', method: 'capture'}),
+      screenOn(PROJECTOR),
+    ]);
+    store.dispatch(turn(true, 'capture'));
+    store.dispatch(turn(true));
+    expect(windows.only('capture').mode).toMatchObject({
+      kind: 'capture',
+      bounds: {width: 1920, height: 1080},
+    });
+    expect(windows.only('main').mode.kind).toBe('fullscreen');
+    expect(manager.screenStates().get('capture')?.placement).toBe('window');
+    windows.only('capture').clickClose();
+    expect(store.state.outputs).toMatchObject({capture: false, main: true});
+    expect(windows.only('capture').mode.kind).toBe('hidden');
+    manager.dispose();
+  });
+
   it('demotes only the removed monitor output before settling and keeps its page running', async () => {
     const clock = installFakeClock();
     const {source, displays, store, windows, manager} = setUpRemoval();

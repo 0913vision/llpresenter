@@ -12,6 +12,7 @@ import {startOutput} from './startOutput';
 import {MAIN, overlaySettings} from '../../../main/live/testing/overlays';
 import {LiveStore} from '../../../main/live/store';
 import type {SettingsDocument} from '@shared/schema/settingsDocuments';
+import {settingsDocument} from '../../../main/live/testing/overlays';
 
 const SHOWING: LiveState = {
   ...emptyLiveState(),
@@ -76,6 +77,58 @@ function setUp(live: Partial<LlpApi['live']> = {}) {
 }
 
 describe('startOutput', () => {
+  it('follows capture method changes in place without replacing the live content', async () => {
+    const settings = overlaySettings();
+    const screenDocument = settings.reader.get('screens');
+    if (screenDocument.name !== 'screens') throw new Error('Missing screens');
+    const screens = screenDocument.value.screens;
+    const capture = settingsDocument(
+      'screens',
+      {
+        screens: screens.map(screen =>
+          screen.id === MAIN ? {...screen, method: 'capture'} : screen,
+        ),
+      },
+      2,
+    );
+    let receive: (document: SettingsDocument) => void = () => undefined;
+    const unsubscribe = vi.fn();
+    const root = document.createElement('div');
+    const api = fakeLlpApi({
+      settings: {
+        get: () => Promise.resolve(capture),
+        subscribe: listener => {
+          receive = listener;
+          return unsubscribe;
+        },
+      },
+      live: {
+        get: () =>
+          Promise.resolve({
+            ...SHOWING,
+            layers: {...SHOWING.layers, media: null},
+          }),
+      },
+    });
+    const stop = startOutput({root, api, screenId: MAIN});
+    await Promise.resolve();
+    const output = root.firstElementChild;
+    const text = root.querySelector(`.${classes.shown}`);
+    expect(
+      output instanceof HTMLElement &&
+        output.style.getPropertyValue('--output-background'),
+    ).toBe('var(--chroma)');
+    receive(settingsDocument('screens', {screens}, 3));
+    expect(root.firstElementChild).toBe(output);
+    expect(root.querySelector(`.${classes.shown}`)).toBe(text);
+    expect(
+      output instanceof HTMLElement &&
+        output.style.getPropertyValue('--output-background'),
+    ).toBe('');
+    stop();
+    expect(unsubscribe).toHaveBeenCalledOnce();
+  });
+
   it('routes an overlay after screen settings resolve and releases both feeds on stop', async () => {
     const settings = overlaySettings();
     const store = new LiveStore();

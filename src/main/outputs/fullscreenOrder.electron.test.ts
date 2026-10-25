@@ -87,6 +87,9 @@ it.skipIf(!WINDOWS_CI)(
       expect(result.output).toContain('FULLSCREEN_ORDER ');
       expect(result.output).toContain('after-setFullScreen-return');
       expect(result.output).toContain('native fullscreen placement passed');
+      expect(result.output).toContain(
+        'native capture content and covered frames passed',
+      );
     } finally {
       await fixture.stop();
     }

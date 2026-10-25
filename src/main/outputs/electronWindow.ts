@@ -18,6 +18,7 @@ import type {OutputScreen} from './screens';
 import {WindowPlacement} from './windowPlacement';
 
 const OUTPUT_BACKGROUND = '#000000';
+const CAPTURE_BACKGROUND = '#00b140';
 const PING_SCRIPT = '0';
 
 function halfOf({width, height}: Rect): Size {
@@ -41,7 +42,11 @@ function createBrowserWindow(
     show: false,
     focusable: false,
     title: screen.name,
-    backgroundColor: OUTPUT_BACKGROUND,
+    backgroundColor:
+      screen.method === 'capture' ? CAPTURE_BACKGROUND : OUTPUT_BACKGROUND,
+    minimizable: screen.method !== 'capture',
+    maximizable: screen.method !== 'capture',
+    resizable: screen.method !== 'capture',
     ...testOptions,
     webPreferences: {
       preload: preloadPath,
@@ -81,7 +86,11 @@ function listen(win: BrowserWindow, events: OutputWindowEvents): void {
 
 type OutputPresentation = Pick<
   OutputWindowHandle,
-  'showFullScreen' | 'showWindowed' | 'prepareForMonitorRemoval' | 'hide'
+  | 'showFullScreen'
+  | 'showWindowed'
+  | 'showCapture'
+  | 'prepareForMonitorRemoval'
+  | 'hide'
 > & {readonly dispose: () => void};
 
 function presentOnScreen(
@@ -90,14 +99,25 @@ function presentOnScreen(
 ): OutputPresentation {
   const placement = new WindowPlacement(win, log);
   let unplacedBounds: Rect | null = null;
-  const placeBehindControl = () => {
-    win.setAlwaysOnTop(false);
-    if (!control.isDestroyed()) control.moveAbove(win.getMediaSourceId());
+  const orderWindow = (alwaysOnTop: boolean) => {
+    win.setAlwaysOnTop(alwaysOnTop);
+    if (!alwaysOnTop && !control.isDestroyed()) {
+      control.moveAbove(win.getMediaSourceId());
+    }
+  };
+  const placeBehindControl = () => orderWindow(false);
+  const profile = (method: 'window' | 'capture') => {
+    const normal = method === 'window';
+    win.setBackgroundColor(normal ? OUTPUT_BACKGROUND : CAPTURE_BACKGROUND);
+    win.setMinimizable(normal);
+    win.setMaximizable(normal);
+    win.setResizable(normal);
   };
   return {
     showFullScreen: (monitorBounds, alwaysOnTop) => {
       unplacedBounds = null;
       const place = () => {
+        profile('window');
         win.setFocusable(false);
         enterFullScreen(win, monitorBounds);
         win.setAlwaysOnTop(alwaysOnTop);
@@ -105,20 +125,35 @@ function presentOnScreen(
       };
       placement.fullscreen(place);
     },
-    showWindowed: bounds => {
+    showWindowed: (bounds, alwaysOnTop = false) => {
       if (bounds !== null) unplacedBounds = bounds;
       const place = () => {
+        profile('window');
         win.setFocusable(true);
         if (unplacedBounds !== null) {
           win.setBounds(unplacedBounds);
-          placement.verifyBounds(unplacedBounds, placeBehindControl);
+          placement.verifyBounds(unplacedBounds, () =>
+            orderWindow(alwaysOnTop),
+          );
         }
         unplacedBounds = null;
         if (!win.isVisible()) win.showInactive();
-        placeBehindControl();
+        orderWindow(alwaysOnTop);
       };
       win.setAlwaysOnTop(false);
       placement.windowed(place);
+    },
+    showCapture: (bounds, alwaysOnTop = false) => {
+      unplacedBounds = null;
+      win.setAlwaysOnTop(false);
+      placement.windowed(() => {
+        profile('capture');
+        win.setFocusable(true);
+        win.setContentBounds(bounds);
+        placement.verifyContentBounds(bounds, () => orderWindow(alwaysOnTop));
+        if (!win.isVisible()) win.showInactive();
+        orderWindow(alwaysOnTop);
+      });
     },
     prepareForMonitorRemoval: placeBehindControl,
     hide: () => {
@@ -141,6 +176,7 @@ function presentOffscreen(win: BrowserWindow): OutputPresentation {
     showWindowed: bounds => {
       if (bounds !== null) win.setBounds(bounds);
     },
+    showCapture: bounds => win.setContentBounds(bounds),
     prepareForMonitorRemoval: () => undefined,
     hide: () => undefined,
     dispose: () => undefined,

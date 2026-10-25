@@ -17,7 +17,16 @@ export type FakeMode =
       readonly bounds: Rect;
       readonly alwaysOnTop: boolean;
     }
-  | {readonly kind: 'window'; readonly bounds: Rect | null};
+  | {
+      readonly kind: 'window';
+      readonly bounds: Rect | null;
+      readonly alwaysOnTop?: boolean;
+    }
+  | {
+      readonly kind: 'capture';
+      readonly bounds: Rect;
+      readonly alwaysOnTop?: boolean;
+    };
 
 /** An output window handle that records what it was told to do. */
 export class FakeOutputHandle implements OutputWindowHandle {
@@ -44,8 +53,16 @@ export class FakeOutputHandle implements OutputWindowHandle {
     this.place({kind: 'fullscreen', bounds, alwaysOnTop});
   }
 
-  showWindowed(bounds: Rect | null): void {
-    this.place({kind: 'window', bounds});
+  showWindowed(bounds: Rect | null, alwaysOnTop = false): void {
+    this.place({kind: 'window', bounds, ...(alwaysOnTop ? {alwaysOnTop} : {})});
+  }
+
+  showCapture(bounds: Rect, alwaysOnTop = false): void {
+    this.place({
+      kind: 'capture',
+      bounds,
+      ...(alwaysOnTop ? {alwaysOnTop} : {}),
+    });
   }
 
   prepareForMonitorRemoval(): void {

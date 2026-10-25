@@ -77,6 +77,53 @@ async function probeOrder(win: BrowserWindow): Promise<void> {
   }
 }
 
+async function probeCapture(
+  win: BrowserWindow,
+  position: WindowPlacement,
+  behindControl: () => void,
+): Promise<void> {
+  await win.loadURL(
+    'data:text/html,<body><script>let frames=0;function tick(){document.body.textContent=String(++frames);requestAnimationFrame(tick)}tick()</script>',
+  );
+  const {x, y} = screen.getPrimaryDisplay().workArea;
+  for (const [width, height] of [
+    [1920, 1080],
+    [1280, 720],
+    [3840, 2160],
+  ]) {
+    if (width === undefined || height === undefined) {
+      throw new Error('Invalid capture fixture size');
+    }
+    const bounds = {x, y, width, height};
+    position.windowed(() => {
+      win.setMinimizable(false);
+      win.setMaximizable(false);
+      win.setResizable(false);
+      win.setContentBounds(bounds);
+      position.verifyContentBounds(bounds, behindControl);
+      behindControl();
+    });
+    await delay(EXIT_WAIT_MS);
+    deepEqual(win.getContentBounds(), bounds);
+    deepEqual(
+      await win.webContents.executeJavaScript('[innerWidth, innerHeight]'),
+      [width, height],
+    );
+    equal(win.isMinimizable(), false);
+    const before: unknown = await win.webContents.executeJavaScript(
+      'Number(document.body.textContent)',
+    );
+    const after: unknown = await win.webContents.executeJavaScript(
+      'new Promise(resolve=>requestAnimationFrame(()=>resolve(Number(document.body.textContent))))',
+    );
+    ok(
+      typeof before === 'number' && typeof after === 'number' && after > before,
+    );
+    console.log(`CAPTURE_SIZE ${JSON.stringify(bounds)}`);
+  }
+  console.log('native capture content and covered frames passed');
+}
+
 async function run(): Promise<void> {
   await app.whenReady();
   deadline.checking();
@@ -85,6 +132,7 @@ async function run(): Promise<void> {
   const win = new BrowserWindow({
     show: false,
     focusable: false,
+    webPreferences: {backgroundThrottling: false},
     ...centeredRect(monitor.workArea, {width: 640, height: 360}),
   });
   control.showInactive();
@@ -126,4 +174,7 @@ async function run(): Promise<void> {
   ok(win.isAlwaysOnTop());
   deepEqual(errors, []);
   console.log('native fullscreen placement passed');
+  control.setBounds(monitor.bounds);
+  await probeCapture(win, placement, behindControl);
+  deepEqual(errors, []);
 }

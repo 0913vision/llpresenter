@@ -16,6 +16,12 @@ export type Placement =
       readonly kind: 'window';
       readonly bounds: Rect;
       readonly reason: WindowReason;
+      readonly alwaysOnTop?: boolean;
+    }
+  | {
+      readonly kind: 'capture';
+      readonly bounds: Rect;
+      readonly alwaysOnTop?: boolean;
     }
   | {readonly kind: 'off'};
 
@@ -29,6 +35,7 @@ export type FullScreenPlacement = Extract<Placement, {kind: 'fullscreen'}>;
  * 16:9 quarter of a 1920 x 1080 monitor (proposal).
  */
 export const OUTPUT_WINDOW_SIZE: Size = {width: 960, height: 540};
+export const CAPTURE_WINDOW_SIZE: Size = {width: 1920, height: 1080};
 
 /** The arguments of {@link planPlacement}. */
 export interface PlacementInput {
@@ -38,9 +45,18 @@ export interface PlacementInput {
   readonly controlMonitor: Monitor;
 }
 
-function windowOn(controlMonitor: Monitor, reason: WindowReason): Placement {
+function windowOn(
+  controlMonitor: Monitor,
+  reason: WindowReason,
+  alwaysOnTop = false,
+): Placement {
   const bounds = centeredRect(controlMonitor.workArea, OUTPUT_WINDOW_SIZE);
-  return {kind: 'window', bounds, reason};
+  return {
+    kind: 'window',
+    bounds,
+    reason,
+    ...(alwaysOnTop ? {alwaysOnTop} : {}),
+  };
 }
 
 function whenMonitorMissing(
@@ -66,14 +82,31 @@ export function planPlacement({
   controlMonitor,
 }: PlacementInput): Placement {
   switch (screen.method) {
+    case 'capture': {
+      const size = screen.resolution ?? CAPTURE_WINDOW_SIZE;
+      const {workArea} = controlMonitor;
+      return {
+        kind: 'capture',
+        ...(screen.alwaysOnTop === true ? {alwaysOnTop: true} : {}),
+        bounds: {
+          ...size,
+          x:
+            workArea.x +
+            Math.max(0, Math.round((workArea.width - size.width) / 2)),
+          y:
+            workArea.y +
+            Math.max(0, Math.round((workArea.height - size.height) / 2)),
+        },
+      };
+    }
     case 'window':
-      return windowOn(controlMonitor, 'method');
+      return windowOn(controlMonitor, 'method', screen.alwaysOnTop ?? false);
     case 'fullscreen':
       if (monitor === null) return whenMonitorMissing(screen, controlMonitor);
       return {
         kind: 'fullscreen',
         bounds: monitor.bounds,
-        alwaysOnTop: screen.alwaysOnTop,
+        alwaysOnTop: screen.alwaysOnTop ?? true,
       };
   }
 }

@@ -20,13 +20,23 @@ const electron = await vi.hoisted(async () => {
       executeJavaScript: vi.fn(() => Promise.resolve(0)),
       forcefullyCrashRenderer: vi.fn(),
     });
-    readonly setContentBounds = vi.fn();
+    readonly setContentBounds = vi.fn<(bounds: Rect) => void>();
     readonly setBounds = vi.fn<(bounds: Rect) => void>();
     readonly getBounds = vi.fn(() => ({x: 0, y: 0, width: 800, height: 600}));
+    readonly getContentBounds = vi.fn(() => ({
+      x: 0,
+      y: 0,
+      width: 800,
+      height: 600,
+    }));
     readonly getMediaSourceId = vi.fn(() => 'window:42:0');
     readonly setFullScreen = vi.fn();
     readonly isFullScreen = vi.fn(() => false);
     readonly setFocusable = vi.fn();
+    readonly setMinimizable = vi.fn();
+    readonly setMaximizable = vi.fn();
+    readonly setResizable = vi.fn();
+    readonly setBackgroundColor = vi.fn();
     readonly setAlwaysOnTop = vi.fn<(flag: boolean) => void>();
     readonly isVisible = vi.fn(() => false);
     readonly showInactive = vi.fn();
@@ -119,6 +129,18 @@ beforeEach(() => {
 });
 
 describe('createElectronOutputWindow offscreen', () => {
+  it('sizes capture content without presenting a window or changing its window order', () => {
+    const output = openOutput('offscreen');
+    output.showCapture({x: 0, y: 0, width: 1920, height: 1080});
+    expect(lastWindow().setContentBounds).toHaveBeenCalledWith({
+      x: 0,
+      y: 0,
+      width: 1920,
+      height: 1080,
+    });
+    expectNeverPresented(lastWindow());
+  });
+
   it('does not change window order on monitor removal in offscreen mode', () => {
     const control = fakeControl();
     const output = openOutput('offscreen', control);
@@ -235,6 +257,88 @@ describe('createElectronOutputWindow reload', () => {
 });
 
 describe('createElectronOutputWindow normal', () => {
+  it.each(['window', 'capture'] as const)(
+    'honors an explicit always-on-top choice in %s mode without raising the control',
+    method => {
+      const control = fakeControl();
+      const output = openOutput('normal', control);
+      if (method === 'capture') output.showCapture(WINDOW_BOUNDS, true);
+      else output.showWindowed(WINDOW_BOUNDS, true);
+      expect(lastWindow().setAlwaysOnTop).toHaveBeenLastCalledWith(true);
+      expect(control.moveAbove).not.toHaveBeenCalled();
+    },
+  );
+
+  it('opens a capture window with fixed client size, chroma and drawing enabled while covered', () => {
+    const output = createElectronOutputWindow(
+      {...SCREEN, method: 'capture'},
+      {onRendererGone: vi.fn(), onCloseRequested: vi.fn()},
+      {log: fakeLog(), mode: 'normal', control: fakeControl()},
+    );
+    onTestFinished(() => output.destroy());
+    const win = lastWindow();
+    expect(win.options).toMatchObject({
+      show: false,
+      backgroundColor: '#00b140',
+      minimizable: false,
+      maximizable: false,
+      resizable: false,
+      webPreferences: {backgroundThrottling: false},
+    });
+    output.showCapture(MONITOR);
+    expect(win.setContentBounds).toHaveBeenCalledExactlyOnceWith(MONITOR);
+    expect(win.setBounds).not.toHaveBeenCalled();
+    expect(win.setMinimizable).toHaveBeenLastCalledWith(false);
+    expect(win.setAlwaysOnTop).toHaveBeenLastCalledWith(false);
+    expect(win.showInactive).toHaveBeenCalledOnce();
+    expect(win.focus).not.toHaveBeenCalled();
+  });
+
+  it('waits for fullscreen exit, corrects a late client-size restore once, and restores normal flags', async () => {
+    const clock = installFakeClock();
+    const output = openOutput('normal');
+    const win = lastWindow();
+    let content = WINDOW_BOUNDS;
+    win.getContentBounds.mockImplementation(() => content);
+    win.setContentBounds.mockImplementation(bounds => {
+      content = bounds;
+    });
+    win.isFullScreen.mockReturnValue(true);
+    win.setFullScreen.mockImplementation(() => {
+      win.isFullScreen.mockReturnValue(false);
+      win.emit('leave-full-screen');
+    });
+    output.showCapture(MONITOR);
+    expect(win.setContentBounds).not.toHaveBeenCalled();
+    await clock.advance(0);
+    expect(content).toEqual(MONITOR);
+    content = WINDOW_BOUNDS;
+    await clock.advance(BOUNDS_RECHECK_MS);
+    expect(content).toEqual(MONITOR);
+    expect(win.setContentBounds).toHaveBeenCalledTimes(2);
+    expect(win.getBounds).not.toHaveBeenCalled();
+    output.showWindowed(WINDOW_BOUNDS);
+    expect(win.setMinimizable).toHaveBeenLastCalledWith(true);
+    expect(win.setResizable).toHaveBeenLastCalledWith(true);
+    expect(win.setMaximizable).toHaveBeenLastCalledWith(true);
+    expect(win.setBackgroundColor).toHaveBeenLastCalledWith('#000000');
+    output.showFullScreen(MONITOR, true);
+    expect(win.setAlwaysOnTop).toHaveBeenLastCalledWith(true);
+  });
+
+  it('bounds a missing fullscreen-leave event for capture and releases pending work on dispose', async () => {
+    const clock = installFakeClock();
+    const output = openOutput('normal');
+    const win = lastWindow();
+    win.isFullScreen.mockReturnValue(true);
+    output.showCapture(MONITOR);
+    await clock.advance(FULLSCREEN_EXIT_DEADLINE_MS);
+    expect(win.setContentBounds).toHaveBeenCalledExactlyOnceWith(MONITOR);
+    output.destroy();
+    expect(vi.getTimerCount()).toBe(0);
+    expect(win.listenerCount('leave-full-screen')).toBe(0);
+  });
+
   it('waits past a synchronous leave event and the restore before fullscreen exit returns', async () => {
     const clock = installFakeClock();
     const output = openOutput('normal');

@@ -34,6 +34,52 @@ function setUp() {
 }
 
 describe('OutputWindow', () => {
+  it('updates always on top in window and capture modes without resetting an operator-moved window', () => {
+    const {output, windows} = setUp();
+    output.update({...FALLBACK, reason: 'method'});
+    output.update({...FALLBACK, reason: 'method', alwaysOnTop: true});
+    expect(windows.only('main').mode).toEqual({
+      kind: 'window',
+      bounds: null,
+      alwaysOnTop: true,
+    });
+    const capture = {kind: 'capture', bounds: PROJECTOR} as const;
+    output.update(capture);
+    output.update({...capture, alwaysOnTop: true});
+    expect(windows.only('main').mode).toEqual({...capture, alwaysOnTop: true});
+    output.dispose();
+  });
+
+  it('reuses one window across full screen, capture resolution changes, normal window and hide', () => {
+    const {output, windows} = setUp();
+    output.update(FULL_SCREEN);
+    const capture = {
+      kind: 'capture',
+      bounds: {x: 0, y: 0, width: 1920, height: 1080},
+    } as const;
+    output.update(capture);
+    output.update({...capture, bounds: {...capture.bounds}});
+    const handle = windows.only('main');
+    expect(handle.placements).toHaveLength(2);
+    output.update({
+      ...capture,
+      bounds: {...capture.bounds, width: 1280, height: 720},
+    });
+    expect(handle.mode).toMatchObject({
+      kind: 'capture',
+      bounds: {width: 1280, height: 720},
+    });
+    output.update(FALLBACK);
+    expect(handle.mode).toEqual({kind: 'window', bounds: FALLBACK.bounds});
+    output.update(null);
+    output.update(capture);
+    expect(handle.mode).toEqual(capture);
+    expect(windows.created).toHaveLength(1);
+    expect(handle.reloads).toBe(0);
+    output.dispose();
+    expect(handle.destroyed).toBe(true);
+  });
+
   it('creates no window until the output first turns on', () => {
     const {output, windows} = setUp();
     output.update(null);

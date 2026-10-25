@@ -14,7 +14,9 @@ export interface OutputWindowHandle {
   /** Shows the window without taking focus, full screen on the monitor with these bounds. */
   showFullScreen(monitorBounds: Rect, alwaysOnTop: boolean): void;
   /** Shows the window without taking focus as a normal window, moved to the bounds when given. */
-  showWindowed(bounds: Rect | null): void;
+  showWindowed(bounds: Rect | null, alwaysOnTop?: boolean): void;
+  /** Shows fixed-resolution capture content without minimizing or taking focus. */
+  showCapture(contentBounds: Rect, alwaysOnTop?: boolean): void;
   /** Drops always on top and places the control directly above this output without focus. */
   prepareForMonitorRemoval(): void;
   hide(): void;
@@ -162,11 +164,27 @@ export class OutputWindow {
   }
 
   private changes(placement: ShownPlacement): boolean {
-    if (placement.kind === 'window') return this.applied?.kind !== 'window';
+    if (placement.kind === 'capture') {
+      return (
+        this.applied?.kind !== 'capture' ||
+        !sameRect(this.applied.bounds, placement.bounds) ||
+        !!this.applied.alwaysOnTop !== !!placement.alwaysOnTop
+      );
+    }
+    if (placement.kind === 'window') {
+      return (
+        this.applied?.kind !== 'window' ||
+        !!this.applied.alwaysOnTop !== !!placement.alwaysOnTop
+      );
+    }
     return !sameFullScreen(this.applied, placement);
   }
 
   private place(handle: OutputWindowHandle, placement: ShownPlacement): void {
+    if (placement.kind === 'capture') {
+      handle.showCapture(placement.bounds, placement.alwaysOnTop ?? false);
+      return;
+    }
     if (placement.kind === 'fullscreen') {
       handle.showFullScreen(placement.bounds, placement.alwaysOnTop);
       return;
@@ -174,7 +192,10 @@ export class OutputWindow {
     // NOTE(0913vision): A window that is already in window mode keeps the
     // bounds the operator may have dragged it to.
     const alreadyWindowed = this.applied?.kind === 'window';
-    handle.showWindowed(alreadyWindowed ? null : placement.bounds);
+    handle.showWindowed(
+      alreadyWindowed ? null : placement.bounds,
+      placement.alwaysOnTop ?? false,
+    );
   }
 
   private hide(): void {

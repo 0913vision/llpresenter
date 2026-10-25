@@ -22,6 +22,7 @@ describe('output screen identity', () => {
     expect(resolveRenderScreen(MAIN, value.screens)).toEqual({
       id: MAIN,
       kind: 'audience',
+      method: 'fullscreen',
     });
     expect(resolveRenderScreen('main', value.screens)?.id).toBe(MAIN);
     expect(resolveRenderScreen('captions', value.screens)?.id).toBe(CAPTIONS);
@@ -29,6 +30,7 @@ describe('output screen identity', () => {
     expect(resolveRenderScreen('stage', value.screens)).toEqual({
       id: STAGE,
       kind: 'stage',
+      method: 'fullscreen',
     });
     expect(resolveRenderScreen('unknown', value.screens)).toBeUndefined();
   });

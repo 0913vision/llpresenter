@@ -7,7 +7,7 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background: var(--output-black);
+  background: var(--output-background, var(--output-black));
 }
 
 .layer {
@@ -26,7 +26,7 @@
 }
 
 .image {
-  background: var(--output-black);
+  background: var(--output-background, var(--output-black));
 }
 
 .overlayImage {

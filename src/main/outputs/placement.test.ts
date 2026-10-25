@@ -8,6 +8,56 @@ const controlMonitor = monitorById(monitors, 1);
 const projector = monitorById(monitors, 2);
 
 describe('planPlacement', () => {
+  it.each(['fullscreen', 'window', 'capture'] as const)(
+    'uses the method default and honors an explicit always-on-top choice for %s',
+    method => {
+      const placement = planPlacement({
+        screen: {
+          id: 'fixture',
+          name: 'Fixture',
+          method,
+          display: null,
+          onDisconnect: 'window',
+        },
+        monitor: projector,
+        controlMonitor,
+      });
+      if (placement.kind === 'off') throw new Error('Missing placement');
+      expect(placement.alwaysOnTop ?? false).toBe(method === 'fullscreen');
+      const chosen = planPlacement({
+        screen: fullScreenScreen({method, alwaysOnTop: true}),
+        monitor: projector,
+        controlMonitor,
+      });
+      if (chosen.kind === 'off') throw new Error('Missing placement');
+      expect(chosen.alwaysOnTop).toBe(true);
+      const fallback = planPlacement({
+        screen: fullScreenScreen({alwaysOnTop: true}),
+        monitor: null,
+        controlMonitor,
+      });
+      expect(fallback).not.toHaveProperty('alwaysOnTop', true);
+    },
+  );
+
+  it('keeps capture content at its chosen resolution without requiring or reserving a monitor', () => {
+    for (const resolution of [undefined, {width: 2560, height: 1440}]) {
+      const placement = planPlacement({
+        screen: fullScreenScreen({
+          method: 'capture',
+          alwaysOnTop: false,
+          ...(resolution === undefined ? {} : {resolution}),
+        }),
+        monitor: null,
+        controlMonitor,
+      });
+      expect(placement).toEqual({
+        kind: 'capture',
+        bounds: {x: 0, y: 0, ...(resolution ?? {width: 1920, height: 1080})},
+      });
+    }
+  });
+
   it('puts a full screen output over its whole monitor', () => {
     const placement = planPlacement({
       screen: fullScreenScreen({alwaysOnTop: false}),
