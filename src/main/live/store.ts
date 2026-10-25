@@ -4,6 +4,7 @@ import {createMessageId} from '@shared/schema/ids';
 import type {LiveState} from '@shared/live';
 import type {Logger} from '../log';
 import type {SettingsReader} from '../store/settingsStore';
+import type {MacroCommandPort} from '../macros/types';
 import {initialHistory, liveSlices, type LiveHistory} from './reducer';
 import type {SliceRegistry, SkippedLiveCommand} from './sliceRegistry';
 import type {SliceInputs} from './slice';
@@ -19,6 +20,7 @@ export class LiveStore {
   private readonly listeners = new Set<LiveListener>();
   private settings: SettingsReader | undefined;
   private resyncScreen: SliceInputs['resyncScreen'];
+  private macros: MacroCommandPort | undefined;
 
   /**
    * Starts from the initial state.
@@ -62,6 +64,14 @@ export class LiveStore {
     };
   }
 
+  /** Attaches data-backed macro execution; disposal releases only this connection. */
+  connectMacros(macros: MacroCommandPort): () => void {
+    this.macros = macros;
+    return () => {
+      if (this.macros === macros) this.macros = undefined;
+    };
+  }
+
   /**
    * Applies a command and notifies listeners when the state changed.
    *
@@ -78,6 +88,7 @@ export class LiveStore {
     const {history: next, skipped} = this.slices.run(this.history, command, {
       now: this.now(),
       ...(this.settings === undefined ? {} : {settings: this.settings}),
+      ...(this.macros === undefined ? {} : {macros: this.macros}),
       nextMessageId: () => createMessageId(randomUUID()),
       ...(this.resyncScreen === undefined
         ? {}

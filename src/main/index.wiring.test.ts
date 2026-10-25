@@ -22,6 +22,8 @@ const fakes = vi.hoisted(() => {
   return {
     order,
     overlayContexts: new Array<unknown>(),
+    macroContexts: new Array<unknown>(),
+    macrosStop: vi.fn<() => void>(),
     overlaysStop: vi.fn<() => void>(),
     settings: Promise.resolve(null),
     textImportContexts: new Array<unknown>(),
@@ -69,6 +71,12 @@ const fakes = vi.hoisted(() => {
 });
 
 vi.mock('electron', () => fakes.electron);
+vi.mock('./macros/register', () => ({
+  registerMacros: (context: unknown) => {
+    fakes.macroContexts.push(context);
+    return {dispose: fakes.macrosStop};
+  },
+}));
 vi.mock('./live/overlays', () => ({
   startOverlays: (context: unknown) => {
     fakes.overlayContexts.push(context);
@@ -186,6 +194,8 @@ beforeEach(async () => {
   fakes.controlWindow.focus.mockClear();
   fakes.order.length = 0;
   fakes.overlayContexts.length = 0;
+  fakes.macroContexts.length = 0;
+  fakes.macrosStop.mockReset();
   fakes.overlaysStop.mockReset();
   fakes.textImportContexts.length = 0;
   fakes.textImportStop.mockReset();
@@ -227,6 +237,24 @@ function beforeQuit(): {prevented: boolean} {
 }
 
 describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
+  it('connects macro execution to the shared live and data stores and stops it before closing data', async () => {
+    await startMain();
+    expect(fakes.macroContexts).toHaveLength(1);
+    expect(fakes.macroContexts[0]).toHaveProperty(
+      'store',
+      fakes.outputContexts[0]?.store,
+    );
+    expect(fakes.macroContexts[0]).toHaveProperty(
+      'data.settings',
+      fakes.settings,
+    );
+    beforeQuit();
+    await vi.waitFor(() => expect(fakes.storeDispose).toHaveBeenCalledOnce());
+    expect(fakes.macrosStop).toHaveBeenCalledOnce();
+    expect(fakes.macrosStop.mock.invocationCallOrder[0]).toBeLessThan(
+      fakes.storeDispose.mock.invocationCallOrder[0] ?? Infinity,
+    );
+  });
   it('connects overlay settings to the live store and stops overlays before closing the data store', async () => {
     await startMain();
     expect(fakes.overlayContexts).toEqual([

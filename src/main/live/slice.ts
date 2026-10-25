@@ -1,19 +1,17 @@
-import type {
-  LiveCommand,
-  LiveCommandType,
-  SingleLiveCommand,
-} from '@shared/commands';
+import type {LiveCommand, LiveCommandType} from '@shared/commands';
 import type {LiveLayers, LiveState} from '@shared/live';
 import type {LiveHistory} from './history';
 import type {SettingsReader} from '../store/settingsStore';
 import type {MessageId, ScreenId} from '@shared/schema/ids';
 import type {PayloadError} from '@shared/schema/payload';
+import type {MacroCommandPort} from '../macros/types';
 
 export interface SliceInputs {
   readonly now: number;
   readonly settings?: SettingsReader;
   readonly nextMessageId?: () => MessageId;
   readonly resyncScreen?: (screenId: ScreenId) => void;
+  readonly macros?: MacroCommandPort;
 }
 
 /** The commands of the given types. */
@@ -31,10 +29,7 @@ export type SliceInitial = Omit<Partial<LiveState>, 'layers'> & {
 export interface SliceContext extends SliceInputs {
   /** Records a validation skip and returns this command's unchanged history. */
   readonly reject: (error: PayloadError) => LiveHistory;
-  readonly apply: (
-    history: LiveHistory,
-    command: SingleLiveCommand,
-  ) => LiveHistory;
+  readonly apply: (history: LiveHistory, command: LiveCommand) => LiveHistory;
 }
 
 /** The initial state and reducer for a bounded set of command types. */

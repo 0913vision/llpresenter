@@ -178,7 +178,12 @@ describe('registerStore', () => {
       date: '2026-10-26T10:00',
       order: [{id: itemId(4), song: songId}],
     });
-    await register(fakeLog(), context, () => true);
+    const registered = await register(fakeLog(), context, () => true);
+    const content = await registered.content;
+    expect(content?.openServiceId).toBe(itemId(3));
+    expect(content?.service(itemId(3))?.service.order).toEqual([
+      {id: itemId(4), song: songId},
+    ]);
     expect(await askForService()).toMatchObject({
       rows: [{background: {mediaId, loop: true}}],
     });

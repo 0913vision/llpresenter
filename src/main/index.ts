@@ -4,6 +4,7 @@ import {isAnyOutputOn} from '@shared/live';
 import {registerTextImport} from './import/register';
 import {LiveStore, dispatchLogged} from './live/store';
 import {startOverlays} from './live/overlays';
+import {registerMacros} from './macros/register';
 import {createLogger, flushWithin, type Logger} from './log';
 import {registerIpc} from './ipc';
 import {startOutputs} from './outputs/start';
@@ -119,6 +120,7 @@ function start(): void {
         log,
         windowMode,
       });
+      const macros = registerMacros({store, data: dataStore, log});
       const stopSoakScenario = registerSoakScenario(log, command =>
         dispatchLogged(store, command, log),
       );
@@ -131,6 +133,7 @@ function start(): void {
       // quit.
       shutdown.add({name: 'stop the soak scenario', run: stopSoakScenario});
       shutdown.add({name: 'stop text import', run: stopTextImport});
+      shutdown.add({name: 'stop macros', run: macros.dispose});
       shutdown.add({name: 'stop overlays', run: stopOverlays});
       shutdown.add({name: 'stop the outputs', run: outputs.stop});
       shutdown.add({name: 'save the UI state', run: () => ui.dispose()});

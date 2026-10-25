@@ -62,6 +62,7 @@ export interface StoreRegistration {
 
 /** What the main process wiring uses of the data store. */
 export interface DataStore extends SettingsAccess {
+  readonly content: Promise<ContentStore | null>;
   readonly settings: Promise<SettingsReader | null>;
   readonly media: Promise<MediaStore | null>;
   readonly mediaBackend: MediaBackendPort;
@@ -156,6 +157,7 @@ export function registerStore({
     media.then(store => (store === null ? null : {media: store})),
   );
   return {
+    content: contentOf(opened),
     settings,
     media,
     mediaBackend: mediaChannels.port,
