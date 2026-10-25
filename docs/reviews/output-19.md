@@ -178,8 +178,15 @@ default initialization and logged rejection. Check the content initial fields
 and the module-order regression. On the render side, check the layer contract,
 factories, error isolation, and fixture lifecycle tests.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-## Review: reviewer
+- Round 1 (9f45461): reviewer (Codex, codex3) Approve with no findings. Lead
+  Approve; M3-O0: the live reducer is a registry of slices and the renderer's
+  layers a registry of layers, with no change in behavior, an unknown command
+  rejected and logged with the state and version unchanged, and fixture slice
+  and layer files that work without editing existing files. The branch's CI
+  failed only in the two GPU tests that devops-19 fixed (known at the time).
+  Unblocks data's D1b and D1c. Written by the Codex session that took over
+  output's work. Rebased by the lead onto local `main` without conflicts.
 
 ## Team member's reply
