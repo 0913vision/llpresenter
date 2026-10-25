@@ -32,3 +32,16 @@ export function lyrics(number = 1): HTMLTextAreaElement {
   if (!(input instanceof HTMLTextAreaElement)) throw new Error('No lyrics');
   return input;
 }
+
+/** Supplies the inherited menu row token that jsdom does not resolve. */
+export function mockMenuRowHeight(): void {
+  const computedStyle = window.getComputedStyle.bind(window);
+  vi.spyOn(window, 'getComputedStyle').mockImplementation(element => {
+    const style = computedStyle(element);
+    const property = style.getPropertyValue.bind(style);
+    vi.spyOn(style, 'getPropertyValue').mockImplementation(name =>
+      name === '--size-row-menu' ? '28px' : property(name),
+    );
+    return style;
+  });
+}

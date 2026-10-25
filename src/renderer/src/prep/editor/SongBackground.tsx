@@ -56,6 +56,9 @@ export function SongBackground({
   );
   const selected = items.find(item => item.id === session.background);
   const missing = session.background !== undefined && selected === undefined;
+  const disabled =
+    session.readOnly || busy || (state.doc === null && !state.failed);
+  if (disabled && anchor !== null) setAnchor(null);
   const reason = session.blocked
     ? '저장 오류 해결 필요'
     : session.readOnly
@@ -63,7 +66,7 @@ export function SongBackground({
       : busy
         ? '저장 중'
         : state.failed
-          ? '미디어 불러오기 실패'
+          ? '미디어 불러오기 실패, 클릭하여 다시 시도'
           : state.doc === null
             ? '미디어 불러오는 중'
             : missing
@@ -76,6 +79,7 @@ export function SongBackground({
         ref={trigger}
         id={id}
         aria-label="기본 배경"
+        aria-busy={state.doc === null && !state.failed ? true : undefined}
         size="sm"
         value={selected?.name ?? (missing ? '미디어 없음' : '없음')}
         lead={
@@ -88,10 +92,8 @@ export function SongBackground({
               }
         }
         title={reason}
-        expanded={anchor !== null}
-        disabled={
-          session.readOnly || busy || (state.doc === null && !state.failed)
-        }
+        expanded={anchor !== null && !disabled}
+        disabled={disabled}
         onExpandedChange={value => {
           if (state.failed) {
             setState({doc: null, failed: false});
@@ -99,7 +101,7 @@ export function SongBackground({
           } else setAnchor(value ? trigger.current : null);
         }}
       />
-      {anchor === null ? null : (
+      {anchor === null || disabled ? null : (
         <MediaPicker
           key={state.doc?.revision}
           anchor={anchor}

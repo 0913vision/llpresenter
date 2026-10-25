@@ -45,8 +45,8 @@ raced duplicate refusal marks the field while valid lyrics can still save under
 the canonical title. Own replies retain newer title input, including a return to
 the prior canonical title. Lyric undo preserves the accepted title metadata.
 
-Default background, arrangements, and the preview/list follow in later P2b
-requests; preparation-frame mounting belongs to the host.
+Arrangements and the preview/list follow in later P2b requests;
+preparation-frame mounting belongs to the host.
 
 `SongSession.setBackground(id | undefined)` uses the same queue and retains the
 accepted background through lyric undo. `undefined` removes the field. The
@@ -56,10 +56,20 @@ options. Search uses trim/NFC/lowercase contains matching, always retains none
 first, and resets the virtual window when the query changes. A nonblank query
 points to the first match; blank/no-match queries point to none. Arrows move the
 pointed result while focus stays in search, with the active descendant only on
-the combobox. Home/End and Space stay native in search. `Select` can show a
-paused video lead and releases its source on change/unmount. Header/media
-subscription wiring follows in ui-26; `EditorApi` now includes the checked
-`media` API already present on `window.llp`.
+the combobox. Home/End and Space stay native in search. Up from none wraps to
+the last eligible item, including with a large virtual list. `Select` can show a
+paused video lead and releases its source on change/unmount.
+
+`SongBackground` connects the header to the checked media get/subscription API.
+Newer pushes supersede delayed reads and read failures. Unmount releases the
+subscription and ignores its late replies. A failed initial read exposes retry
+on the trigger; loading, read-only song access, and global label operations
+disable it with a reason. Locking closes an open picker and leaves it closed on
+unlock. Media catalog read-only access still allows choosing a song background.
+Missing references remain intact until the user chooses a replacement or none. A
+catalog revision remounts the open picker, clearing its search and active window
+so removed/renamed entries cannot leave stale choices. The title and tags wrap
+at narrow widths; the header stays 34px when one row fits.
 
 ## Editing and saving
 

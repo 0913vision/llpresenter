@@ -37,10 +37,6 @@ function targetFor(
       return (active + 1) % count;
     case 'ArrowUp':
       return (active - 1 + count) % count;
-    case 'Home':
-      return 0;
-    case 'End':
-      return count - 1;
     default:
       return undefined;
   }

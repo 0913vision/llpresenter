@@ -7,7 +7,7 @@ import type {MediaItem} from '@shared/schema/mediaList';
 import {parseMediaDocument} from '@shared/schema/mediaEdit';
 import {parseSongDocument} from '@shared/schema/contentDocuments';
 import {editorFixture} from './editorFixture';
-import {editorSetup} from './editorTesting';
+import {editorSetup, mockMenuRowHeight} from './editorTesting';
 import {DUPLICATE_TITLE_REASON, SongTitleDraft} from './songTitle';
 import {MediaPicker} from './MediaPicker';
 
@@ -37,15 +37,7 @@ function media(count = 3) {
 }
 
 async function setup(count = 3) {
-  const computedStyle = window.getComputedStyle.bind(window);
-  vi.spyOn(window, 'getComputedStyle').mockImplementation(element => {
-    const style = computedStyle(element);
-    const property = style.getPropertyValue.bind(style);
-    vi.spyOn(style, 'getPropertyValue').mockImplementation(name =>
-      name === '--size-row-menu' ? '28px' : property(name),
-    );
-    return style;
-  });
+  mockMenuRowHeight();
   const fixture = editorFixture();
   const doc = media(count);
   vi.spyOn(fixture.api.media, 'get').mockResolvedValue(doc);
