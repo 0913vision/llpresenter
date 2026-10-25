@@ -21,6 +21,11 @@ import {parseEditResult} from '@shared/schema/contentEdit';
 import {RENDERER_LOG_LIMITS} from '@shared/schema/ipcPayloads';
 import {parseLiveState} from '@shared/schema/liveState';
 import {parseLiveCommandRequest} from '@shared/schema/liveCommand';
+import {
+  parseRecoveryApply,
+  parseRecoveryResult,
+  parseRecoverySummary,
+} from '@shared/schema/recovery';
 import type {PayloadError} from '@shared/schema/payload';
 import {parseOutputStatuses} from '@shared/schema/outputStatus';
 import {parseShowService} from '@shared/schema/showService';
@@ -316,6 +321,21 @@ const api: LlpApi = {
         },
         request,
       ),
+  },
+  recovery: {
+    summary: () =>
+      invokeChecked(Channels.recoverySummary, parseRecoverySummary),
+    apply: request =>
+      invokeRequest(
+        {
+          channel: Channels.recoveryApply,
+          request: parseRecoveryApply,
+          reply: parseRecoveryResult,
+        },
+        request,
+      ),
+    startFresh: () =>
+      invokeChecked(Channels.recoveryStartFresh, parseRecoveryResult),
   },
 };
 

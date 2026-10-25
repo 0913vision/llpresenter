@@ -12,6 +12,14 @@ describe('fakeLlpApi', () => {
     await expect(api.ui.changeZoom({type: 'ui.zoomIn'})).resolves.toBe(100);
     await expect(api.service.get()).resolves.toBeNull();
     await expect(api.output.getStatus()).resolves.toEqual({});
+    await expect(api.recovery.summary()).resolves.toBeNull();
+    await expect(api.recovery.startFresh()).resolves.toEqual({
+      ok: true,
+      value: null,
+    });
+    await expect(
+      api.recovery.apply({savedAt: '2026-10-25T12:00:00Z', rows: ['outputs']}),
+    ).resolves.toMatchObject({ok: false, error: {reason: 'unavailable'}});
     await expect(api.songs.list()).resolves.toEqual([]);
     await expect(api.services.get('a')).resolves.toBeNull();
     await expect(api.preferences.get()).resolves.toMatchObject({

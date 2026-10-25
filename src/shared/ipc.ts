@@ -41,6 +41,11 @@ import type {
   TextImportPreviewResult,
 } from './schema/textImport';
 import type {UiZoomCommand} from './schema/uiZoom';
+import type {
+  RecoveryApply,
+  RecoveryResult,
+  RecoverySummary,
+} from './schema/recovery';
 
 export const Channels = {
   liveGet: 'live:get',
@@ -84,6 +89,9 @@ export const Channels = {
   mediaChanged: 'media:changed',
   mediaImport: 'media:import',
   mediaImportChanged: 'media:import:changed',
+  recoverySummary: 'recovery:summary',
+  recoveryApply: 'recovery:apply',
+  recoveryStartFresh: 'recovery:start-fresh',
 } as const;
 
 export type WindowAction = 'minimize' | 'toggle-maximize' | 'close';
@@ -243,6 +251,14 @@ export interface LlpApi {
     preview(
       request: TextImportPreviewRequest,
     ): Promise<TextImportPreviewResult>;
+  };
+  readonly recovery: {
+    /** Reads eligible restore rows. Null means there is no dialog to show. */
+    summary(): Promise<RecoverySummary>;
+    /** Restores the checked rows of the offered record without start macros. */
+    apply(request: RecoveryApply): Promise<RecoveryResult>;
+    /** Discards crash state and follows normal launch preferences and macros. */
+    startFresh(): Promise<RecoveryResult>;
   };
 }
 

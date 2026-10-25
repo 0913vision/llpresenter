@@ -81,6 +81,19 @@ export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
         }),
       ...overrides.textImport,
     },
+    recovery: {
+      summary: () => Promise.resolve(null),
+      apply: () =>
+        Promise.resolve({
+          ok: false,
+          error: {
+            reason: 'unavailable',
+            message: 'fakeLlpApi has no recovery record',
+          },
+        }),
+      startFresh: () => Promise.resolve({ok: true, value: null}),
+      ...overrides.recovery,
+    },
   };
 }
 

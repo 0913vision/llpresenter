@@ -110,6 +110,62 @@ function loggedErrors(): unknown[] {
 }
 
 describe('preload', () => {
+  it('reads eligible recovery rows and sends checked recovery decisions', async () => {
+    const summary = {
+      savedAt: '2026-10-25T12:00:00Z',
+      rows: [
+        {kind: 'outputs', screens: [{screenId: SONG_ID, name: 'Audience'}]},
+      ],
+    };
+    const success = {ok: true, value: null};
+    const request = {savedAt: summary.savedAt, rows: ['outputs']} as const;
+    electron.invoke
+      .mockResolvedValueOnce(summary)
+      .mockResolvedValueOnce(success)
+      .mockResolvedValueOnce(success);
+    await expect(api.recovery.summary()).resolves.toEqual(summary);
+    await expect(api.recovery.apply(request)).resolves.toEqual(success);
+    await expect(api.recovery.startFresh()).resolves.toEqual(success);
+    expect(electron.invoke.mock.calls).toEqual([
+      [Channels.recoverySummary],
+      [Channels.recoveryApply, request],
+      [Channels.recoveryStartFresh],
+    ]);
+    expect(loggedErrors()).toEqual([]);
+  });
+
+  it('keeps no recovery record and stale decisions distinct from transport errors', async () => {
+    const failure = {
+      ok: false,
+      error: {reason: 'stale', message: 'Read again'},
+    };
+    electron.invoke.mockResolvedValueOnce(null).mockResolvedValueOnce(failure);
+    await expect(api.recovery.summary()).resolves.toBeNull();
+    await expect(
+      api.recovery.apply({savedAt: '2026-10-25T12:00:00Z', rows: ['slide']}),
+    ).resolves.toEqual(failure);
+    expect(loggedErrors()).toEqual([]);
+  });
+
+  it('drops invalid recovery requests before IPC and rejects malformed replies', async () => {
+    await expect(
+      Reflect.apply(api.recovery.apply, undefined, [
+        {savedAt: '2026-10-25T12:00:00Z', rows: []},
+      ]),
+    ).rejects.toThrow('Bad request on');
+    expect(electron.invoke).not.toHaveBeenCalled();
+    electron.invoke
+      .mockResolvedValueOnce({savedAt: 'bad', rows: []})
+      .mockResolvedValueOnce({ok: true})
+      .mockRejectedValueOnce(new Error('missing handler'));
+    await expect(api.recovery.summary()).rejects.toThrow('Bad reply on');
+    await expect(
+      api.recovery.apply({savedAt: '2026-10-25T12:00:00Z', rows: ['slide']}),
+    ).rejects.toThrow('Bad reply on');
+    await expect(api.recovery.startFresh()).rejects.toThrow('Bad reply on');
+    expect(loggedErrors()).toHaveLength(4);
+  });
+
   it('logs skipped batch children and sends only normalized valid children', () => {
     const child = {type: 'audio.pause'} as const;
     Reflect.apply(api.live.send, undefined, [
