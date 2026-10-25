@@ -272,11 +272,17 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
 
 - When a full screen output's monitor disconnects and the output switches to a
   window on the control monitor (spec 03, "When a monitor disconnects during
-  output"), the window goes to the back of the window order, behind every
-  window, without focus and without always on top, so it never covers anything
-  during a service, even with one monitor left (user decision after the
-  real-monitor unplug check). It must not raise the control window or any other
-  window. The notification's 창 보기 action brings it to the front.
+  output"), the window goes behind the control window, without focus and without
+  always on top, so it never covers the controls during a service, even with one
+  monitor left (user decision after the real-monitor unplug check). The
+  notification's 창 보기 action brings it to the front.
+- Electron 44 has no way to send a window to the bottom of every window. The
+  lead chose the Electron-only way: move the control window directly above the
+  output window (`moveAbove` with the output window's media source id), without
+  activating it. Rejected: hiding the window until 창 보기 (a hidden output
+  stops painting, which trips the hang watch, and its video may pause), and a
+  native `SetWindowPos(HWND_BOTTOM)` call (a native dependency for one call).
+  The user confirms this in the morning of October 26.
 - The window keeps the size and the centered position of `placement.ts` on the
   control monitor's work area. The unplug check found it at the right edge
   instead (Windows restored the pre-full-screen bounds on the lost monitor after
