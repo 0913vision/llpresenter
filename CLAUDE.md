@@ -6,6 +6,11 @@ it from scratch on the `main` branch. The 2024 code is kept as the tag
 `legacy-2024` and is reference only. Never stopping during a service matters
 more than features.
 
+**Every message to the user is in Korean (합니다체), with no exception: reports,
+answers, short progress notes, and questions. Messages to team members and to
+Codex stay in English. Before you send anything to the user, check that it is
+Korean.**
+
 ## Read first
 
 1.  `docs/HANDOFF.md`: current state and every decision made so far.
@@ -33,7 +38,8 @@ more than features.
 - Keep product UI strings in Korean. Use the glossary in the design system
   README (출력, 슬라이드, 예배 순서, 틀, 구성, 이름표, 지우기, 본 화면, 무대
   화면, 방송 자막, Look, 진행 도구, 퀵 실행).
-- Reply to the user in polite Korean (합니다체). Don't use a playful tone.
+- Reply to the user in polite Korean (합니다체), every time (see the rule at the
+  top). Don't use a playful tone.
 - Never use middle dots (·) or em dashes (—) anywhere.
 - Don't put explanatory sentences in the UI. Show state with shape and color,
   and give reasons in tooltips.
