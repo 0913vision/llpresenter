@@ -11,7 +11,12 @@ import type {LiveCommand} from '@shared/commands';
 import {emptyLiveState} from '@shared/live';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {useLive} from '@renderer/state/live';
-import {applyService, openItem, useShow} from '@renderer/state/show';
+import {
+  applyService,
+  openItem,
+  selectTile,
+  useShow,
+} from '@renderer/state/show';
 import {sampleService, seedSampleService} from './testing/sampleService';
 import {ServiceOrderList} from './ServiceOrderList';
 import {SlideGrid} from './SlideGrid';
@@ -207,6 +212,40 @@ describe('ServiceOrderList', () => {
     press('End');
     expect(useShow.getState().openItemId).toBe('notice-sunday');
   });
+
+  it.each([
+    {
+      end: 'last',
+      itemId: 'song-river',
+      title: /맑은 시냇물/,
+      keys: ['ArrowDown', 'End'],
+    },
+    {
+      end: 'first',
+      itemId: 'song-morning',
+      title: /아침이 밝아 오네/,
+      keys: ['ArrowUp', 'Home'],
+    },
+  ])(
+    'keeps the tile selection when a key stays on the $end row',
+    ({itemId, title, keys}) => {
+      applyService({
+        ...sampleService,
+        revision: 2,
+        rows: sampleService.rows.filter(row => row.kind === 'song'),
+      });
+      openItem(itemId);
+      selectTile(2);
+      render(<ServiceOrderList />);
+      const row = screen.getByRole('option', {name: title});
+      row.focus();
+      for (const key of keys) fireEvent.keyDown(row, {key});
+      expect(useShow.getState()).toMatchObject({
+        openItemId: itemId,
+        selectedTile: 2,
+      });
+    },
+  );
 });
 
 describe('SlideGrid', () => {

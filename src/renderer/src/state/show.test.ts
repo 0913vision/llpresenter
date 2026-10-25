@@ -64,6 +64,16 @@ describe('show state', () => {
     });
   });
 
+  it('keeps the tile selection when the open item is opened again', () => {
+    openItem('song-morning');
+    selectTile(2);
+    openItem('song-morning');
+    expect(useShow.getState()).toMatchObject({
+      openItemId: 'song-morning',
+      selectedTile: 2,
+    });
+  });
+
   it('selects a tile of the open item without outputting it', () => {
     openItem('song-morning');
     selectTile(2);

@@ -74,8 +74,12 @@ function sequenceState(): SequenceState {
   return {tilesOf, live: liveCursor(), openItemId};
 }
 
-/** Opens an item in the 장 panel and selects its first tile. */
+/**
+ * Opens an item in the 장 panel and selects its first tile. Opening the item
+ * that is already open keeps its tile selection.
+ */
 export function openItem(itemId: ItemId): void {
+  if (useShow.getState().openItemId === itemId) return;
   useShow.setState({openItemId: itemId, selectedTile: 0});
 }
 
