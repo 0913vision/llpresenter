@@ -2,10 +2,9 @@
 
 - Team member: data
 - Branch: `feat/data/live-contracts`
-- Base commit: `09dcac2e3135640311b507afe311db301652fe0c` (`main`, data-25
-  merged)
-- Last source commit: `a960eb6a7fabb4aa33a391600489928acc964219`
-- Review range: `09dcac2...feat/data/live-contracts`
+- Base commit: `ed365ffca35f7ae339cb01c56e9430d22e9e11af` (`main`)
+- Last source commit: `d2360b833e1637701b7cad8bfc96f10ac6947d16`
+- Review range: `ed365ff...feat/data/live-contracts`
 - Related brief: `.llp/task.md`, M3-D1b in `docs/plans/m3-breakdown.md`
 
 ## What changed and why
@@ -24,8 +23,9 @@ batch containing supported children is rejected without applying them.
 Move song-output interruption classification into an exhaustive shared function.
 The lead explicitly allowed the single shell wiring exception in
 `src/renderer/src/state/live.ts` for this request. Existing shell tests are
-unchanged and pass. New commands currently return false; their future slice
-owners must update the classification when they can interrupt song output.
+unchanged and pass. A batch interrupts pending navigation if any child does. New
+leaf commands currently return false; their future slice owners must update the
+classification when they can interrupt song output.
 
 Carry the data-23 nit: search limits default to 50 and cannot exceed 200.
 Replies also reject more than 200 matches. The public request still permits an
@@ -46,14 +46,15 @@ absent limit, while parsing supplies the bounded value before IPC.
 | Command or test                         | Result                                                                    |
 | --------------------------------------- | ------------------------------------------------------------------------- |
 | `npm run typecheck`                     | Passed, including after rebase                                            |
-| Targeted Vitest, seven files            | 171 tests passed                                                          |
+| Round 1 targeted Vitest, seven files    | 171 tests passed                                                          |
+| Round 2 targeted Vitest, three files    | 29 tests passed                                                           |
 | Existing `songBackground.test.ts`       | Included unchanged in the passing run                                     |
 | ESLint on changed TypeScript files      | Passed                                                                    |
 | `npm run format` and `git diff --check` | Passed                                                                    |
 | Local `npm run verify`                  | Not run, per lead instruction                                             |
 | GitHub full verification                | Source run below; final review HEAD result accompanies the review request |
 
-Source CI: **passed**, verified with `node scripts/ci/status.mts`:
+Round 1 source CI: **passed**, verified with `node scripts/ci/status.mts`:
 https://github.com/0913vision/llpresenter/actions/runs/40195156672 for
 `a960eb6a7fabb4aa33a391600489928acc964219`.
 
@@ -98,8 +99,8 @@ strict parser and rejects every batch through the unsupported-command path. O4
 through O7 and tools' macro module implement the other new tags. The new
 regression tests make these staging limits explicit.
 
-The branch was rebased once onto `main` after data-23, data-24, and data-25
-merged. Their reviewed feature branch references were not rewritten.
+In round 1 the branch was rebased once onto `main` after data-23, data-24, and
+data-25 merged. Their reviewed feature branch references were not rewritten.
 
 ## Review: lead
 
@@ -113,4 +114,18 @@ merged. Their reviewed feature branch references were not rewritten.
 
 ## Team member's reply
 
-Pending review.
+### Round 2
+
+1. `interruptsSongOutput` now returns
+   `command.commands.some(interruptsSongOutput)` for `live.batch`. Tests cover
+   each interrupting child (`slide.show`, `media.show`, `clear.undo`, and clear
+   targets all/slide/media), including an unrelated command before it. Empty and
+   unrelated-only batches return false. The existing shell tests remain
+   unchanged and pass.
+2. Shorten `LiveAction` TSDoc to describe the type. Per-action defaults remain
+   in the behavior spec rather than being repeated in the type comment.
+
+Rebased onto main `ed365ff` before the round 2 push. Fast checks above passed;
+the round 2 request links the fully green CI run of the final review HEAD.
+Data-27 follows this response; its restack and final HEAD CI result accompany
+the round 2 request.
