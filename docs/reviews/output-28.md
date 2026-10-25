@@ -82,3 +82,13 @@ handshake belongs to data-44.
 ## Review
 
 Awaiting the lead and independent reviewer.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (53da0f2d): reviewer (Claude, review2-3e) Approve; all output-27 nits
+  resolved. Nits for the next O4 request: test `look.set` before
+  `connectSettings` (alone and in a batch); define and test what a stale
+  `lookId` (a Look deleted in 화면 설정) falls back to; warn in
+  `lookSelection.ts:22` only for reasons other than `write-failed`, which
+  persistence already logs. Lead Approve. Written by the Codex session that took
+  over output's work. Rebased by the lead onto local `main` without conflicts.
