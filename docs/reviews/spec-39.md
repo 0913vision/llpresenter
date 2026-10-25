@@ -120,3 +120,15 @@ successful CI URL accompany the request.
 
 No main, prep, or UI source is changed, and no dependency is added. Toolbar
 result UI and the remaining narrow layout follow separately.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (Claude, trial-97): Request changes: a failed or timed-out showSong
+  read swallowed the operator's output click; two nits.
+- Round 2 (6dd5e687): reviewer (Claude, trial-97) Approve: a failed or timed-out
+  read now outputs the retained tile and keeps the background. Nit for the next
+  spec branch: rename `readSongBackgrounds` in `state/showOutput.ts:22`, which
+  now bounds the library read too (for example `withinLookupTimeout`). Lead
+  Approve, including the additive `ui.getZoomFactor` contract. Written by the
+  Codex session that took over spec's work. Rebased by the lead onto local
+  `main` without conflicts.
