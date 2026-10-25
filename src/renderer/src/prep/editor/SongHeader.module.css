@@ -1,17 +1,19 @@
 .header {
   display: flex;
+  flex-wrap: wrap;
   flex: none;
   align-items: center;
   gap: var(--space-10);
-  height: var(--size-panel-header);
-  padding: 0 var(--space-14);
+  min-height: var(--size-panel-header);
+  padding: var(--space-4) var(--space-14);
+  row-gap: var(--space-4);
   border-bottom: var(--radius-hairline) solid var(--line);
   white-space: nowrap;
 }
 
 .title {
-  flex: 1 1 auto;
-  min-width: 0;
+  flex: 1 1 var(--size-field-title);
+  min-width: var(--size-field-key);
 }
 
 .count,

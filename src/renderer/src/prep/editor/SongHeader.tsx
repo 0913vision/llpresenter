@@ -6,6 +6,7 @@ import {isComposing} from '@renderer/ui/ime';
 import type {SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';
 import styles from './SongHeader.module.css';
+import {SongBackground} from './SongBackground';
 
 /** The library source title and its service usage; edits share the song queue. */
 export function SongHeader({
@@ -81,6 +82,7 @@ export function SongHeader({
           예배 순서 {usedBy.length}곳
         </span>
       </Tooltip>
+      <SongBackground store={store} session={session} busy={state.busy} />
     </header>
   );
 }
