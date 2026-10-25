@@ -45,8 +45,12 @@ export function ScreenPreview({
     let identity: RenderScreen | undefined;
     const draw = (): void => {
       const state = useLive.getState().state;
+      if (identity === undefined) {
+        renderer.render(state?.layers ?? noLayers);
+        return;
+      }
       renderer.render(state?.layers ?? noLayers, {
-        ...(identity === undefined ? {} : {screen: identity}),
+        screen: identity,
         stageMessage: state?.stageMessage ?? null,
       });
     };

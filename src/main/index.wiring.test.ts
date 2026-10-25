@@ -21,6 +21,9 @@ const fakes = vi.hoisted(() => {
   const appHandlers = new Map<string, Array<(...args: unknown[]) => void>>();
   return {
     order,
+    overlayContexts: new Array<unknown>(),
+    overlaysStop: vi.fn<() => void>(),
+    settings: Promise.resolve(null),
     textImportContexts: new Array<unknown>(),
     textImportStop: vi.fn<() => void>(),
     appHandlers,
@@ -66,6 +69,12 @@ const fakes = vi.hoisted(() => {
 });
 
 vi.mock('electron', () => fakes.electron);
+vi.mock('./live/overlays', () => ({
+  startOverlays: (context: unknown) => {
+    fakes.overlayContexts.push(context);
+    return fakes.overlaysStop;
+  },
+}));
 vi.mock('./import/register', () => ({
   registerTextImport: (context: unknown) => {
     fakes.textImportContexts.push(context);
@@ -108,6 +117,7 @@ vi.mock('./store/register', () => ({
     fakes.order.push('data store');
     fakes.storeOptions.push(options);
     return {
+      settings: fakes.settings,
       dispose: fakes.storeDispose,
       findMediaFile: fakes.findMediaFile,
       mediaRoots: fakes.mediaRoots,
@@ -175,6 +185,8 @@ beforeEach(async () => {
   fakes.controlWindow.restore.mockClear();
   fakes.controlWindow.focus.mockClear();
   fakes.order.length = 0;
+  fakes.overlayContexts.length = 0;
+  fakes.overlaysStop.mockReset();
   fakes.textImportContexts.length = 0;
   fakes.textImportStop.mockReset();
   fakes.appHandlers.clear();
@@ -215,6 +227,22 @@ function beforeQuit(): {prevented: boolean} {
 }
 
 describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
+  it('connects overlay settings to the live store and stops overlays before closing the data store', async () => {
+    await startMain();
+    expect(fakes.overlayContexts).toEqual([
+      expect.objectContaining({
+        store: fakes.outputContexts[0]?.store,
+        settings: fakes.settings,
+      }),
+    ]);
+    beforeQuit();
+    await vi.waitFor(() => expect(fakes.storeDispose).toHaveBeenCalledOnce());
+    expect(fakes.overlaysStop).toHaveBeenCalledOnce();
+    expect(fakes.overlaysStop.mock.invocationCallOrder[0]).toBeLessThan(
+      fakes.storeDispose.mock.invocationCallOrder[0] ?? Infinity,
+    );
+  });
+
   it('registers text import for the control window and removes its handlers on shutdown', async () => {
     await startMain();
     expect(fakes.textImportContexts).toEqual([
