@@ -1,8 +1,8 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {parseLatestRun} from '../../src/shared/schema/ciStatus.mts';
 import {
   CI_EXIT_CODES,
   ciExitCode,
-  parseLatestRun,
   reportCiStatus,
   type CiRun,
 } from './status.mts';

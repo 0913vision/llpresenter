@@ -47,6 +47,25 @@ describe('beginStamp', () => {
     expect(existsSync(join(repo.path, STAMP_PATH))).toBe(false);
   });
 
+  it('removes the previous passing stamp even when git state capture fails', async () => {
+    const repo = await cleanRepo();
+    const finish = await beginStamp(repo.path, () => NOW);
+    await finish(0);
+    expect(readStamp(repo.path)?.clean).toBe(true);
+    const headPath = join(repo.path, '.git', 'HEAD');
+    const head = await readFile(headPath, 'utf8');
+    await writeFile(headPath, 'ref: refs/heads/missing\n');
+    try {
+      await expect(beginStamp(repo.path, () => NOW)).rejects.toThrow(
+        'git rev-parse',
+      );
+    } finally {
+      await writeFile(headPath, head);
+    }
+    expect(readStamp(repo.path)).toBeNull();
+    expect(existsSync(join(repo.path, STAMP_PATH))).toBe(false);
+  });
+
   it('records a run with uncommitted changes as not clean', async () => {
     const repo = await cleanRepo();
     await repo.write({'README.md': '# Changed\n'});

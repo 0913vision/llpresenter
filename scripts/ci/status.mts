@@ -1,32 +1,11 @@
 import {pathToFileURL} from 'node:url';
-import * as v from 'valibot';
+import {parseLatestRun, type CiRun} from '../../src/shared/schema/ciStatus.mts';
+
+export type {CiRun} from '../../src/shared/schema/ciStatus.mts';
 
 const API_URL =
   'https://api.github.com/repos/0913vision/llpresenter/actions/workflows/ci.yml/runs';
 const REQUEST_TIMEOUT_MS = 15_000;
-
-const runSchema = v.object({
-  status: v.picklist([
-    'queued',
-    'in_progress',
-    'completed',
-    'waiting',
-    'requested',
-    'pending',
-  ]),
-  conclusion: v.nullable(v.pipe(v.string(), v.minLength(1))),
-  head_sha: v.pipe(v.string(), v.regex(/^[0-9a-f]{40}$/i)),
-  html_url: v.pipe(v.string(), v.url()),
-});
-const responseSchema = v.object({workflow_runs: v.array(runSchema)});
-
-/** The latest push run of ci.yml for the requested branch. */
-export interface CiRun {
-  readonly status: v.InferOutput<typeof runSchema>['status'];
-  readonly conclusion: string | null;
-  readonly headSha: string;
-  readonly url: string;
-}
 
 /** Exit codes distinguish a result from pending, absent, or unreadable runs. */
 export const CI_EXIT_CODES = {
@@ -36,20 +15,6 @@ export const CI_EXIT_CODES = {
   noRun: 3,
   error: 4,
 } as const;
-
-/** Validates the API response; an empty run list returns null. */
-export function parseLatestRun(value: unknown): CiRun | null {
-  const parsed = v.safeParse(responseSchema, value);
-  if (!parsed.success) throw new Error('Invalid GitHub workflow runs response');
-  const run = parsed.output.workflow_runs[0];
-  if (run === undefined) return null;
-  return {
-    status: run.status,
-    conclusion: run.conclusion,
-    headSha: run.head_sha,
-    url: run.html_url,
-  };
-}
 
 /** Only a completed, successful run passes. */
 export function ciExitCode(run: CiRun): number {

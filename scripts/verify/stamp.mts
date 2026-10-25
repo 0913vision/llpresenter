@@ -91,8 +91,8 @@ export async function beginStamp(
   root: string,
   now: () => Date = () => new Date(),
 ): Promise<(exitCode: number) => Promise<void>> {
-  const before = readTreeState(root);
   await rm(join(root, STAMP_PATH), {force: true});
+  const before = readTreeState(root);
   return async exitCode => {
     if (exitCode !== 0) return;
     await writeStamp(root, stampFor(before, readTreeState(root), now()));

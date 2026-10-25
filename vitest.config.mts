@@ -36,7 +36,7 @@ export default defineConfig({
     unstubGlobals: true,
     coverage: {
       provider: 'v8',
-      include: ['src/**/*.{ts,tsx}', 'scripts/**/*.{ts,mts}'],
+      include: ['src/**/*.{ts,tsx,mts}', 'scripts/**/*.{ts,mts}'],
       exclude: ['**/*.test.{ts,tsx}', '**/*.d.ts'],
       reporter: ['text-summary', 'html'],
       reportsDirectory: 'coverage',
