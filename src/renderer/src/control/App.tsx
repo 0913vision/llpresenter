@@ -37,6 +37,7 @@ export function App({
         sizeClass={sizeClass}
         workspace={workspace}
         onWorkspace={onWorkspace}
+        onProblem={session.report}
       />
       <Workspace
         id={workspace}

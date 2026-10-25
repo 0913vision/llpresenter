@@ -8,6 +8,8 @@ import {
   type ToolbarTab,
 } from '@renderer/ui';
 import {defaultScreens} from './screens';
+import {LookMenu} from './LookMenu';
+import type {Notice} from '@renderer/ui/notices';
 import type {SizeClass} from './sizeClass';
 import styles from './Toolbar.module.css';
 
@@ -23,6 +25,7 @@ export interface ToolbarProps {
   readonly sizeClass: SizeClass;
   readonly workspace: Workspace;
   readonly onWorkspace: (workspace: Workspace) => void;
+  readonly onProblem?: ((notice: Notice) => void) | undefined;
 }
 
 function Search(): JSX.Element {
@@ -73,6 +76,7 @@ export function Toolbar({
   sizeClass,
   workspace,
   onWorkspace,
+  onProblem,
 }: ToolbarProps): JSX.Element {
   const compact = sizeClass === 'narrow';
   const barClass = compact ? `${styles.bar} ${styles.barCompact}` : styles.bar;
@@ -96,7 +100,7 @@ export function Toolbar({
         iconOnly={compact}
       />
       <Search />
-      <ToolbarButton icon="layers" label="평상시" compact={compact} menu />
+      <LookMenu compact={compact} onProblem={onProblem} />
       <span className={styles.divider} />
       <OutputToggles compact={compact} />
     </header>

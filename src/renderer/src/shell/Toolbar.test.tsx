@@ -107,9 +107,7 @@ describe('Toolbar design system parts', () => {
     );
     expect(screen.getByRole('button', {name: '미디어'})).toBeTruthy();
     expect(
-      screen
-        .getByRole('button', {name: '평상시'})
-        .getAttribute('aria-haspopup'),
+      screen.getByRole('button', {name: 'Look'}).getAttribute('aria-haspopup'),
     ).toBe('menu');
   });
 
