@@ -60,7 +60,8 @@ const liveCommandSchema = v.pipe(
 /**
  * Checks a command that arrived over IPC. The error names the field that
  * failed, so the main process can log why it dropped the command. Unknown
- * fields are dropped. Never throws.
+ * envelope fields are dropped; screen configurations retain future fields.
+ * Never throws.
  */
 export function parseLiveCommand(
   value: unknown,
