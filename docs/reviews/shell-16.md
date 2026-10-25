@@ -98,3 +98,12 @@ missing.
 ## Verdicts (recorded by the lead at merge)
 
 - Not reviewed yet.
+
+## Verify result
+
+`npm run verify` on commit `7ef1531` (base `main` 4b72a17): `typecheck`, `lint`,
+`format:check`, and `build` passed. `test:coverage` had one failure, the known
+one on `main` since devops-13 (devops fixes it as devops-17):
+`scripts/soak/media.test.ts`
+
+> "ends the stalled maker and every process it started". All other tests passed.
