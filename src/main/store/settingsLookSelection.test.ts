@@ -3,7 +3,7 @@ import {parseSettingsDocument} from '@shared/schema/settingsDocuments';
 import {expectSuccess} from '@shared/schema/testHelpers';
 import {recordingLogger} from '../displays/testing';
 import type {DocumentFiles} from './contentPersistence';
-import {createSettingsAccess} from './settingsAccess';
+import {createLookSelection} from './lookSelection';
 import {SettingsStore, type SettingsReader} from './settingsStore';
 
 const FIRST = '00000000-0000-4000-8000-000000000010';
@@ -43,7 +43,7 @@ function setup(access: 'editable' | 'readOnly' = 'editable') {
       files: {write, remove: async () => ({ok: true, value: undefined})},
     },
   });
-  const port = createSettingsAccess(Promise.resolve(store), log);
+  const port = createLookSelection(Promise.resolve(store), log);
   onTestFinished(async () => {
     port.dispose();
     await store.dispose();
@@ -112,6 +112,71 @@ describe('main Look selection port', () => {
     expect(write).not.toHaveBeenCalled();
   });
 
+  it('refuses a reader without a writer instead of reporting a saved selection', async () => {
+    const {store, write, log} = setup();
+    const reader: SettingsReader = {
+      get: name => store.get(name),
+      preferences: () => store.preferences(),
+      subscribe: listener => store.subscribe(listener),
+    };
+    const port = createLookSelection(Promise.resolve(reader), log);
+    onTestFinished(port.dispose);
+    expect(await port.selectLook(SECOND)).toEqual({
+      ok: false,
+      error: {reason: 'not-found', message: 'Look settings cannot be saved'},
+    });
+    expect(store.get('looks')).toMatchObject({value: {current: FIRST}});
+    expect(write).not.toHaveBeenCalled();
+  });
+
+  it.each(['read', 'write'])(
+    'classifies and logs a thrown %s failure',
+    async operation => {
+      const {store, port, log, write} = setup();
+      const failure = new Error('Unavailable settings');
+      if (operation === 'read') {
+        vi.spyOn(store, 'get').mockImplementationOnce(() => {
+          throw failure;
+        });
+      } else vi.spyOn(store, 'apply').mockRejectedValueOnce(failure);
+      expect(await port.selectLook(SECOND)).toEqual({
+        ok: false,
+        error: {reason: 'invalid', message: 'The Look selection failed'},
+      });
+      expect(log.entries).toContainEqual({
+        level: 'error',
+        message: 'could not select a Look',
+        detail: failure,
+      });
+      expect(write).not.toHaveBeenCalled();
+    },
+  );
+
+  it('applies the saved choice immediately but settles only after the debounced write', async () => {
+    const {store, port, write} = setup();
+    let complete: () => void = () => undefined;
+    write.mockReturnValueOnce(
+      new Promise(resolve => {
+        complete = () => resolve({ok: true, value: undefined});
+      }),
+    );
+    let settled = false;
+    const pending = port.selectLook(SECOND).then(result => {
+      settled = true;
+      return result;
+    });
+    try {
+      await vi.waitFor(() => expect(write).toHaveBeenCalledOnce(), {
+        interval: 1,
+      });
+      expect(store.get('looks')).toMatchObject({value: {current: SECOND}});
+      expect(settled).toBe(false);
+    } finally {
+      complete();
+      expect(await pending).toMatchObject({ok: true});
+    }
+  });
+
   it('respects read-only files', async () => {
     const {store, port, write} = setup('readOnly');
     const before = store.get('looks');
@@ -126,7 +191,7 @@ describe('main Look selection port', () => {
   it('does not select after disposal while loading is pending', async () => {
     const {store, log, write} = setup();
     let finish: (store: SettingsReader) => void = () => undefined;
-    const port = createSettingsAccess(
+    const port = createLookSelection(
       new Promise<SettingsReader>(resolve => {
         finish = resolve;
       }),
@@ -161,15 +226,13 @@ describe('main Look selection port', () => {
       Promise.resolve(null),
       Promise.reject(new Error('load failed')),
     ]) {
-      const port = createSettingsAccess(loading, log);
+      const port = createLookSelection(loading, log);
       expect(await port.selectLook(SECOND)).toMatchObject({
         ok: false,
         error: {reason: 'not-found'},
       });
       port.dispose();
     }
-    expect(log.messages('error')).toContain(
-      'could not open main-side settings access',
-    );
+    expect(log.messages('error')).toContain('could not open Look selection');
   });
 });
