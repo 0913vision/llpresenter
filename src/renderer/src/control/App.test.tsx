@@ -74,3 +74,43 @@ describe('App clear keys', () => {
     expect(sent).toEqual([{type: 'layer.clear', target: 'slide'}]);
   });
 });
+
+describe('App UI zoom', () => {
+  it('keeps zoom active in all workspaces without dispatching a live command', () => {
+    const changeZoom = vi.fn(() => Promise.resolve(100));
+    const send = vi.fn();
+    window.llp = fakeLlpApi({ui: {changeZoom}, live: {send}});
+    render(<App columnWidthStore={createMemoryColumnWidthStore()} />);
+    for (const workspace of ['진행', '준비', '화면 설정']) {
+      fireEvent.click(screen.getByRole('tab', {name: workspace}));
+      fireEvent.keyDown(document.body, {code: 'Equal', ctrlKey: true});
+      fireEvent.keyDown(document.body, {code: 'Minus', ctrlKey: true});
+      fireEvent.keyDown(document.body, {code: 'Digit0', ctrlKey: true});
+    }
+    expect(changeZoom.mock.calls).toEqual(
+      Array.from({length: 3}, () => [
+        [{type: 'ui.zoomIn'}],
+        [{type: 'ui.zoomOut'}],
+        [{type: 'ui.zoomReset'}],
+      ]).flat(),
+    );
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it('updates the size class from the effective CSS viewport after zoom', () => {
+    vi.stubGlobal('innerWidth', 1920);
+    const {container} = render(
+      <App columnWidthStore={createMemoryColumnWidthStore()} />,
+    );
+    expect(container.firstElementChild?.getAttribute('data-size')).toBe(
+      'normal',
+    );
+
+    vi.stubGlobal('innerWidth', 960);
+    fireEvent.resize(window);
+
+    expect(container.firstElementChild?.getAttribute('data-size')).toBe(
+      'narrow',
+    );
+  });
+});

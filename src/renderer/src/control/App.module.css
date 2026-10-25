@@ -1,5 +1,18 @@
 .app {
+  --ll-toolbar-height: var(--size-toolbar);
   display: flex;
   flex-direction: column;
   height: 100%;
+  overflow: auto;
+}
+
+.app[data-size='narrow'] {
+  --ll-toolbar-height: var(--size-toolbar-compact);
+}
+
+.app > main {
+  min-height: calc(
+    var(--window-min-height) - var(--size-menubar) - var(--ll-toolbar-height) -
+      var(--size-statusbar)
+  );
 }

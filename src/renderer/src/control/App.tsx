@@ -6,6 +6,7 @@ import {StatusBar} from '@renderer/shell/StatusBar';
 import {useShow} from '@renderer/state/show';
 import {Toolbar, type Workspace as WorkspaceId} from '@renderer/shell/Toolbar';
 import {useSizeClass} from '@renderer/shell/useSizeClass';
+import {useUiZoomKeys} from '@renderer/shell/uiZoomKeys';
 import {Workspace} from '@renderer/shell/Workspace';
 import styles from './App.module.css';
 
@@ -18,6 +19,7 @@ export function App({
   const serviceName = useShow(view => view.serviceName);
   const [workspace, setWorkspace] = useState<WorkspaceId>('show');
   useClearKeys();
+  useUiZoomKeys();
   return (
     <div className={styles.app} data-size={sizeClass}>
       <MenuBar title={serviceName} />
