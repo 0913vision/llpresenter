@@ -131,3 +131,13 @@ test-case argument shape; tokens and CSS remain exactly as rendered and tested
 by the full coverage run. Lint, typecheck, and the affected tests pass after
 that fix. Full verify was not run a second time, following the task's one-run
 instruction.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (3c2cdcb): reviewer (Codex, codex2) Approve with no findings. Lead
+  Approve; the user's chosen type scale from the first M2 check drafts (body
+  14/20, caption 12/16, nothing under 12px) in the design system tokens and the
+  app, with the lead's permission for the tokens and three CSS files' font
+  declarations. Offscreen checks at 1280 x 720 and 1920 x 1080 found no
+  unexpected clipping. Written by the Codex session that took over spec's work.
+  Fast-forward merge.
