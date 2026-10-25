@@ -86,6 +86,34 @@ function selectedTitle(): string | undefined {
   );
 }
 
+type RowChange = 'remove' | 'disable' | 'enable' | 'insert';
+
+function ChangingRows({change}: {readonly change: RowChange}): JSX.Element {
+  const [changed, setChanged] = useState(false);
+  const showFirst =
+    change === 'remove' ? !changed : change !== 'insert' || changed;
+  const disableFirst =
+    (change === 'disable' && changed) || (change === 'enable' && !changed);
+  return (
+    <ListGroup label="찬양">
+      {showFirst ? (
+        <ListRow value="hymn" title="찬양" disabled={disableFirst} />
+      ) : null}
+      <ListRow
+        value="notice"
+        title="광고"
+        end={
+          <IconButton
+            icon="refresh"
+            label="목록 변경"
+            onClick={() => setChanged(value => !value)}
+          />
+        }
+      />
+    </ListGroup>
+  );
+}
+
 describe('ListBox and ListRow', () => {
   it('is a named list box of named options in named groups', () => {
     render(<ServiceOrder />);
@@ -155,6 +183,42 @@ describe('ListBox and ListRow', () => {
       screen.getByRole('button', {name: '내리기'}),
     );
   });
+
+  it.each([
+    {change: 'remove', first: 'notice'},
+    {change: 'disable', first: 'notice'},
+    {change: 'enable', first: 'hymn'},
+    {change: 'insert', first: 'hymn'},
+  ] as const)(
+    'keeps Tab entry when descendant rows $change without rendering ListBox',
+    async ({change, first}) => {
+      const onSelect = vi.fn();
+      render(
+        <>
+          <button type="button">앞</button>
+          <ListBox label="예배 순서" selected={undefined} onSelect={onSelect}>
+            <ChangingRows change={change} />
+          </ListBox>
+          <button type="button">뒤</button>
+        </>,
+      );
+      await userEvent.click(screen.getByRole('button', {name: '목록 변경'}));
+      await userEvent.click(screen.getByRole('button', {name: '앞'}));
+      await userEvent.tab();
+      const firstRow = screen
+        .getAllByRole('option')
+        .find(row => row.dataset['value'] === first);
+      expect(document.activeElement).toBe(firstRow);
+      expect(
+        screen.getAllByRole('option').filter(row => row.tabIndex === 0),
+      ).toEqual([firstRow]);
+      await userEvent.tab({shift: true});
+      expect(document.activeElement).toBe(
+        screen.getByRole('button', {name: '앞'}),
+      );
+      expect(onSelect).not.toHaveBeenCalled();
+    },
+  );
 
   it('does not select a disabled row and gives the reason as a tooltip', async () => {
     const onSelect = vi.fn();

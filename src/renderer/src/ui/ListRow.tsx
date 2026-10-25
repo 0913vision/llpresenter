@@ -128,11 +128,26 @@ function useListBoxState(
 
 function useOneTabStop(
   list: RefObject<HTMLDivElement | null>,
-  selected: string | undefined,
+  selection: SelectionStore,
 ): void {
   useLayoutEffect(() => {
-    if (list.current !== null) keepOneTabStop(list.current, selected);
-  });
+    const element = list.current;
+    if (element === null) return;
+    const update = (): void => keepOneTabStop(element, selection.get());
+    update();
+    const observer = new MutationObserver(update);
+    observer.observe(element, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['aria-disabled', 'data-value'],
+    });
+    const unsubscribe = selection.subscribe(update);
+    return () => {
+      observer.disconnect();
+      unsubscribe();
+    };
+  }, [list, selection]);
 }
 
 export interface ListBoxProps {
@@ -168,7 +183,7 @@ export function ListBox({
 }: ListBoxProps): JSX.Element {
   const state = useListBoxState(selected, onSelect, workspace);
   const listRef = useRef<HTMLDivElement>(null);
-  useOneTabStop(listRef, selected);
+  useOneTabStop(listRef, state.selection);
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
     const target = listKeyTargets[event.key];
     if (target === undefined || hasModifier(event)) return;
