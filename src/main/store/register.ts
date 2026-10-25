@@ -1,5 +1,6 @@
 import {app, ipcMain} from 'electron';
 import {Channels} from '@shared/ipc';
+import {defaultPreferences} from '@shared/schema/preferences';
 import type {Logger} from '../log';
 import {Backups, type BackupOutcome} from './backup';
 import {
@@ -58,11 +59,11 @@ export interface DataStore {
 
 /**
  * Reads the data at launch, answers `service:get` with the open 예배 순서 and
- * pushes it again when it changes, answers the content channels, finds media
- * files by id, and then runs the launch backup once. A window that
- * asks before the data is read waits for it. Never throws: a failure, or a
+ * pushes it again when it changes, answers content and normalized-preferences
+ * reads, finds media files by id, and then runs the launch backup once. A
+ * window that asks before the data is read waits for it. Never throws: a failure, or a
  * data folder that a link leads outside `LLP_USER_DATA`, is logged, and the
- * answer is `null`.
+ * service answer is `null` and preferences fall back to their defaults.
  */
 export function registerStore({
   log,
@@ -73,12 +74,17 @@ export function registerStore({
   const loading = readStore(() => ({...context(), appConfig}), log);
   const opened = openContent(loading, log);
   ipcMain.handle(Channels.serviceGet, async () => currentService(opened));
+  ipcMain.handle(
+    Channels.preferencesGet,
+    async () => (await loading)?.preferences ?? defaultPreferences,
+  );
   const removeContentChannels = registerContentChannels(contentOf(opened), log);
   const upkeep = upkeepAtLaunch(loading, isAnyOutputOn, log);
   const media = new LoadingMediaLibrary(loading);
   return {
     dispose: async () => {
       ipcMain.removeHandler(Channels.serviceGet);
+      ipcMain.removeHandler(Channels.preferencesGet);
       removeContentChannels();
       await upkeep;
       const ready = await opened;

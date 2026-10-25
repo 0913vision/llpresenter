@@ -2,6 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {
   defaultPreferences,
   parsePreferences,
+  parsePreferencesValue,
   serializePreferences,
   withPreferenceDefaults,
 } from './preferences';
@@ -135,6 +136,29 @@ describe('the ranges of 환경설정', () => {
 });
 
 describe('withPreferenceDefaults', () => {
+  it.each([
+    {},
+    {show: {}},
+    {show: {showClearUndoButton: false}},
+    {show: {showClearUndoButton: true}},
+  ])(
+    'defaults the clear undo preference without replacing stored values: %j',
+    fields => {
+      const stored = parse({...HEADER, ...fields});
+      expect(withPreferenceDefaults(stored).show.showClearUndoButton).toBe(
+        fields.show?.showClearUndoButton ?? false,
+      );
+    },
+  );
+
+  it('preserves unknown show fields in storage and after normalization', () => {
+    const config = {...HEADER, show: {future: {enabled: true}}};
+    expectRoundTrip(codec, config);
+    expect(withPreferenceDefaults(parse(config))).toMatchObject({
+      show: {showClearUndoButton: false, future: {enabled: true}},
+    });
+  });
+
   it('fills a file with only the header with every default', () => {
     expect(withPreferenceDefaults(parse(HEADER))).toEqual(defaultPreferences);
   });
@@ -165,5 +189,29 @@ describe('withPreferenceDefaults', () => {
       theme: 'dark',
       import: {pptx: {a: 1}},
     });
+  });
+});
+
+describe('preferences read boundary', () => {
+  it('returns a normalized value for a valid sparse file-shaped reply', () => {
+    expect(expectSuccess(parsePreferencesValue(HEADER))).toEqual(
+      defaultPreferences,
+    );
+    expect(
+      expectSuccess(
+        parsePreferencesValue({...HEADER, show: {showClearUndoButton: true}}),
+      ).show.showClearUndoButton,
+    ).toBe(true);
+  });
+
+  it.each([
+    null,
+    [],
+    {},
+    {...HEADER, show: []},
+    {...HEADER, show: {showClearUndoButton: 'yes'}},
+    {...HEADER, show: {showClearUndoButton: null}},
+  ])('rejects malformed preferences %j', value => {
+    expect(parsePreferencesValue(value).ok).toBe(false);
   });
 });

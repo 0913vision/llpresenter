@@ -14,6 +14,7 @@ import {
 } from './fileFormat';
 import type {MigrationStep} from './migration';
 import {jsonObject, positiveInteger} from './primitives';
+import type {PayloadError} from './payload';
 
 const PREFERENCES_FORMAT = 'llsettings.preferences';
 
@@ -69,6 +70,7 @@ const preferencesSchema = jsonObject({
   onDisconnect: v.exactOptional(v.picklist(['window', 'off'])),
   hardwareAcceleration: optionalBoolean,
   previewFps: v.exactOptional(previewFpsSchema),
+  show: v.exactOptional(jsonObject({showClearUndoButton: optionalBoolean})),
   backup: v.exactOptional(
     jsonObject({
       auto: optionalBoolean,
@@ -135,6 +137,7 @@ export const defaultPreferences: Preferences = {
   onDisconnect: 'window',
   hardwareAcceleration: true,
   previewFps: 30,
+  show: {showClearUndoButton: false},
   backup: {auto: true, keep: 30},
   bible: {verseNumbers: true, maxLines: 4, sourcePosition: 'bottomRight'},
   import: {
@@ -152,6 +155,7 @@ export function withPreferenceDefaults(stored: PreferencesFile): Preferences {
   return {
     ...defaultPreferences,
     ...stored,
+    show: {...defaultPreferences.show, ...stored.show},
     backup: {...defaultPreferences.backup, ...stored.backup},
     bible: {...defaultPreferences.bible, ...stored.bible},
     import: {
@@ -159,6 +163,16 @@ export function withPreferenceDefaults(stored: PreferencesFile): Preferences {
       txt: {...defaultPreferences.import.txt, ...stored.import?.txt},
     },
   };
+}
+
+/** Checks a preferences read reply and fills the same defaults as main. */
+export function parsePreferencesValue(
+  value: unknown,
+): Result<Preferences, PayloadError> {
+  const parsed = checkPart(preferencesSchema, value);
+  return parsed.ok
+    ? {ok: true, value: withPreferenceDefaults(parsed.value)}
+    : parsed;
 }
 
 export function parsePreferences(

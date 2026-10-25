@@ -3,6 +3,7 @@ import {Channels, type LlpApi} from '@shared/ipc';
 import {emptyLiveState} from '@shared/live';
 import {songIdSchema} from '@shared/schema/ids';
 import {testId} from '@shared/schema/testHelpers';
+import {defaultPreferences} from '@shared/schema/preferences';
 
 type Handler = (event: unknown, value: unknown) => void;
 
@@ -76,6 +77,34 @@ function loggedErrors(): unknown[] {
 }
 
 describe('preload', () => {
+  it('reads normalized preferences without exposing a raw settings channel', async () => {
+    electron.invoke.mockResolvedValueOnce({
+      ...defaultPreferences,
+      show: {showClearUndoButton: true},
+    });
+    await expect(api.preferences.get()).resolves.toMatchObject({
+      show: {showClearUndoButton: true},
+    });
+    expect(electron.invoke).toHaveBeenCalledWith(Channels.preferencesGet);
+    expect(loggedErrors()).toEqual([]);
+  });
+
+  it('logs and rejects malformed or failed preferences reads', async () => {
+    electron.invoke
+      .mockResolvedValueOnce({
+        ...defaultPreferences,
+        show: {showClearUndoButton: 'yes'},
+      })
+      .mockRejectedValueOnce(new Error('preferences unavailable'));
+    await expect(api.preferences.get()).rejects.toThrow(
+      'Bad reply on preferences:get',
+    );
+    await expect(api.preferences.get()).rejects.toThrow(
+      'preferences unavailable',
+    );
+    expect(loggedErrors()).toHaveLength(2);
+  });
+
   it('validates and invokes library search with its typed match results', async () => {
     const result = {
       query: '새',

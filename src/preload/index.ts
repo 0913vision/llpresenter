@@ -25,6 +25,7 @@ import {parseOutputStatuses} from '@shared/schema/outputStatus';
 import {parseShowService} from '@shared/schema/showService';
 import {parseUiState} from '@shared/schema/uiState';
 import {parseUiZoomPercent} from '@shared/schema/uiZoom';
+import {parsePreferencesValue} from '@shared/schema/preferences';
 import {
   parseLibrarySearchRequest,
   parseLibrarySearchResult,
@@ -208,6 +209,9 @@ const api: LlpApi = {
     parseDocument: parseTemplateDocument,
     parseChange: parseTemplateChange,
   }),
+  preferences: {
+    get: () => invokeChecked(Channels.preferencesGet, parsePreferencesValue),
+  },
   library: {
     search: request =>
       invokeRequest(

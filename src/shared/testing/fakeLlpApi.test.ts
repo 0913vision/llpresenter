@@ -14,6 +14,9 @@ describe('fakeLlpApi', () => {
     await expect(api.output.getStatus()).resolves.toEqual({});
     await expect(api.songs.list()).resolves.toEqual([]);
     await expect(api.services.get('a')).resolves.toBeNull();
+    await expect(api.preferences.get()).resolves.toMatchObject({
+      show: {showClearUndoButton: false},
+    });
     await expect(api.library.search({query: '새', limit: 20})).resolves.toEqual(
       {query: '새', matches: []},
     );

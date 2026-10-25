@@ -2,6 +2,7 @@ import type {DocumentApi, LlpApi} from '../ipc';
 import type {EditResult} from '../schema/contentEdit';
 import {emptyLiveState} from '../live';
 import {UI_ZOOM} from '../schema/uiZoom';
+import {defaultPreferences} from '../schema/preferences';
 
 /** The members a test replaces, part by part. */
 export type FakeLlpApiParts = {
@@ -46,6 +47,10 @@ export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
     songs: {...emptyDocuments(), ...overrides.songs},
     services: {...emptyDocuments(), ...overrides.services},
     templates: {...emptyDocuments(), ...overrides.templates},
+    preferences: {
+      get: () => Promise.resolve(defaultPreferences),
+      ...overrides.preferences,
+    },
     library: {
       search: ({query}) => Promise.resolve({query, matches: []}),
       ...overrides.library,

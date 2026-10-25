@@ -16,6 +16,7 @@ import type {FrameRateReport, RendererLogEntry} from './schema/ipcPayloads';
 import type {OutputStatuses} from './schema/outputStatus';
 import type {ShowService} from './schema/showService';
 import type {LayoutChange, UiState} from './schema/uiState';
+import type {Preferences} from './schema/preferences';
 import type {
   LibrarySearchRequest,
   LibrarySearchResult,
@@ -60,6 +61,7 @@ export const Channels = {
   librarySearch: 'library:search',
   textImportRead: 'import:text:read',
   textImportPreview: 'import:text:preview',
+  preferencesGet: 'preferences:get',
 } as const;
 
 export type WindowAction = 'minimize' | 'toggle-maximize' | 'close';
@@ -167,6 +169,13 @@ export interface LlpApi {
     TemplateDocument,
     TemplateChange
   >;
+  readonly preferences: {
+    /**
+     * Waits for the existing settings load and reads normalized preferences.
+     * Rejects and logs a failed call or malformed reply.
+     */
+    get(): Promise<Preferences>;
+  };
   readonly library: {
     /** Searches main's index; rejects and logs malformed requests or replies. */
     search(request: LibrarySearchRequest): Promise<LibrarySearchResult>;

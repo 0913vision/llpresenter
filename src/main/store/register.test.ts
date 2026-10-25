@@ -13,6 +13,7 @@ import {Channels} from '@shared/ipc';
 import {parseEditResult} from '@shared/schema/contentEdit';
 import {parseSong} from '@shared/schema/song';
 import {parseShowService} from '@shared/schema/showService';
+import {parsePreferencesValue} from '@shared/schema/preferences';
 import {makeTempDir} from '../../../test/temp-dir';
 import type {Logger} from '../log';
 import {openAppConfig} from './appConfigFile';
@@ -128,6 +129,75 @@ afterEach(async () => {
 });
 
 describe('registerStore', () => {
+  it.each([
+    undefined,
+    {},
+    {showClearUndoButton: false},
+    {showClearUndoButton: true},
+  ])(
+    'waits for the existing load and returns the normalized show preference %j',
+    async show => {
+      const context = await developmentContext();
+      if (show !== undefined) {
+        await writeJson(
+          join(
+            context.appDataFolder,
+            DATA_FOLDER_NAME,
+            '설정',
+            'preferences.json',
+          ),
+          {format: 'llsettings.preferences', schemaVersion: 1, show},
+        );
+      }
+      const log = fakeLog();
+      await register(log, context, () => true);
+      const [first, second] = await Promise.all([
+        ask(Channels.preferencesGet),
+        ask(Channels.preferencesGet),
+      ]);
+      expect(first).toMatchObject({
+        show: {showClearUndoButton: show?.showClearUndoButton ?? false},
+      });
+      expect(second).toEqual(first);
+      expect(parsePreferencesValue(first).ok).toBe(true);
+      expect(
+        log.info.mock.calls.filter(
+          ([message]) => message === 'read the data folder',
+        ),
+      ).toHaveLength(1);
+    },
+  );
+
+  it('defaults a broken preference without rewriting the original file', async () => {
+    const context = await developmentContext();
+    const file = join(
+      context.appDataFolder,
+      DATA_FOLDER_NAME,
+      '설정',
+      'preferences.json',
+    );
+    await writeJson(file, {
+      format: 'llsettings.preferences',
+      schemaVersion: 1,
+      show: {showClearUndoButton: 'yes'},
+    });
+    const original = await readFile(file, 'utf8');
+    const log = fakeLog();
+    await register(log, context, () => true);
+    expect(await ask(Channels.preferencesGet)).toMatchObject({
+      show: {showClearUndoButton: false},
+    });
+    expect(log.warn).toHaveBeenCalled();
+    expect(await readFile(file, 'utf8')).toBe(original);
+  });
+
+  it('removes the preferences handler on disposal', async () => {
+    const context = await developmentContext();
+    const store = await register(fakeLog(), context, () => true);
+    await store.dispose();
+    expect(electron.handlers.has(Channels.preferencesGet)).toBe(false);
+  });
+
   it('refreshes background choices, missing-file warnings, and revisions on service reads', async () => {
     const context = await developmentContext();
     const root = join(context.appDataFolder, DATA_FOLDER_NAME);
@@ -342,6 +412,9 @@ describe('registerStore', () => {
     await register(log, context);
 
     expect(await askForService()).toBeNull();
+    expect(await ask(Channels.preferencesGet)).toMatchObject({
+      show: {showClearUndoButton: false},
+    });
     expect(log.info).toHaveBeenCalledWith(
       'read the data folder',
       expect.objectContaining({songs: 0, services: 0, openServiceId: null}),
@@ -505,6 +578,9 @@ describe('registerStore', () => {
       'could not read the data folder',
       expect.any(Error),
     );
+    expect(await ask(Channels.preferencesGet)).toMatchObject({
+      show: {showClearUndoButton: false},
+    });
   });
 });
 
