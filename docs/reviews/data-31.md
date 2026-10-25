@@ -112,13 +112,15 @@ legacy fields intact. `settingsAccess.ts` guards startup and disposal. The
 existing register-store disk test now asserts main reads and change delivery
 alongside the renderer push.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-Pending.
-
-## Review: reviewer
-
-Pending.
+- Round 1 (cdf9ccd): reviewer (Claude, trial-97) Approve. Two nits for the next
+  data branch: `src/shared/schema/overlayState.ts:106` add `v.minLength(1)` to
+  `NoticePlayback.targets`, with a test (소품 may stay empty);
+  `src/shared/schema/liveState.ts:45` use `nonBlankText` for `stageMessage` so
+  null is the only way to say there is none. Lead Approve. Written by the Codex
+  session that took over data's work. Rebased by the lead onto local `main`
+  without conflicts.
 
 ## Team member's reply
 
