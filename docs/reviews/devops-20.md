@@ -73,10 +73,11 @@ current team rule.
 - `scripts/lint/config.test.ts`
 - This document
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-Pending.
-
-## Review: reviewer
-
-Pending.
+- Round 1 (afacad6): reviewer (Claude, trial-97) Approve. Nit, kept for the next
+  devops request when one is needed: `no-restricted-imports` does not cover
+  dynamic `import()` expressions; a `no-restricted-syntax` selector on
+  `ImportExpression` with the same patterns plus one probe would close it.
+  Nobody writes those today. Lead Approve. Written by the Codex session that
+  took over devops's work. Merged by the lead without conflicts.
