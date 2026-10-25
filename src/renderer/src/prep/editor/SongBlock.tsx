@@ -103,7 +103,7 @@ export const SongBlock = memo(
           }}
           onBlur={() => {
             focus.current.composing = false;
-            session.history.endTyping();
+            session.endTyping();
           }}
           onCompositionStart={() => {
             focus.current.composing = true;

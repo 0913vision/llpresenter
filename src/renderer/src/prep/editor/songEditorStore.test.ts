@@ -40,11 +40,12 @@ describe('song editor persistence', () => {
     const session = store.getSnapshot().session;
     if (session === null) throw new Error('No session');
     session.edit({type: 'text', text: 'a', start: 1, end: 1});
+    const saved = session.flush();
     await vi.waitFor(() => expect(fixture.edits).toHaveLength(1));
     session.edit({type: 'text', text: 'ab', start: 2, end: 2});
     session.edit({type: 'text', text: 'abc', start: 3, end: 3});
     release();
-    expect(await session.flush()).toBe(true);
+    expect(await saved).toBe(true);
     expect(fixture.edits).toHaveLength(2);
     expect(fixture.edits[1]).toMatchObject({
       baseRevision: 2,
@@ -123,6 +124,7 @@ describe('song editor persistence', () => {
         }),
     );
     text('draft');
+    const saved = session.flush();
     const parsed = parseSongDocument({
       ...first,
       song: {...first.song, title: 'External'},
@@ -140,7 +142,7 @@ describe('song editor persistence', () => {
       ok: true,
       value: {id: first.song.id, revision: applied.value.revision},
     });
-    expect(await session.flush()).toBe(false);
+    expect(await saved).toBe(false);
     expect(session.blocked).toBe(true);
     expect(session.history.snapshot.song.slides[0]?.lines).toEqual(['draft']);
   });
@@ -192,12 +194,14 @@ describe('song editor persistence', () => {
       });
     });
     text('first');
+    const earlier = session.flush();
     await vi.waitFor(() => expect(waiting).toBe(true));
     text('latest');
     const rename = store.renameLabel('1절', '새 절');
     expect(store.getSnapshot().busy).toBe(true);
     expect(labelEdits).toHaveLength(0);
     release();
+    expect(await earlier).toBe(true);
     expect(await rename).toBe(true);
     expect(session.document.song.slides[0]).toMatchObject({
       label: '새 절',

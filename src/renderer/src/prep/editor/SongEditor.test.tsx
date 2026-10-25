@@ -13,6 +13,19 @@ function cursor(input: HTMLTextAreaElement, start: number, end = start): void {
 }
 
 describe('song editor view', () => {
+  it('coalesces typing and flushes when the lyrics field loses focus', async () => {
+    const {edits} = await editorSetup();
+    cursor(lyrics(), 0);
+    for (const value of ['a', 'ab', 'abc']) {
+      fireEvent.change(lyrics(), {target: {value}});
+    }
+    expect(edits).toHaveLength(0);
+    await act(async () => {
+      fireEvent.blur(lyrics());
+      await Promise.resolve();
+    });
+    expect(edits).toHaveLength(1);
+  });
   it.each([
     {key: 'Backspace', code: 'Backspace'},
     {key: 'z', code: 'KeyZ', ctrlKey: true},

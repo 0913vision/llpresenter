@@ -1,7 +1,7 @@
 import type {LlpApi} from '@shared/ipc';
 import type {SongDocument} from '@shared/schema/contentDocuments';
 import type {BlockCommand, BlockSelection} from './blockEdits';
-import {SongHistory} from './songHistory';
+import {SongHistory, TYPING_PAUSE_MS} from './songHistory';
 import {editorTask} from './editorTask';
 
 interface SessionOptions {
@@ -11,7 +11,7 @@ interface SessionOptions {
   readonly problem: () => void;
 }
 
-/** Serializes one song's autosaves while keeping newer local edits visible. */
+/** Coalesces typing-group saves and serializes one song's pending writes. */
 export class SongSession {
   document: SongDocument;
   history: SongHistory;
@@ -21,6 +21,7 @@ export class SongSession {
   private accepting = true;
   private pending: Promise<boolean> | undefined;
   private incoming: SongDocument | undefined;
+  private saveTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor(private readonly options: SessionOptions) {
     this.document = options.document;
@@ -43,6 +44,7 @@ export class SongSession {
     ) {
       return;
     }
+    if (current.block !== selection.block) this.endTyping();
     this.history.select(selection);
     this.options.changed();
   }
@@ -55,14 +57,22 @@ export class SongSession {
     else this.history.apply(command);
     if (previous !== this.history.snapshot.song) {
       this.dirty = true;
-      editorTask(this.flush());
+      if (this.history.inTypingGroup) this.delaySave();
+      else this.endTyping();
     }
     this.options.changed();
   }
 
+  /** Blur and block changes end both the undo group and its deferred save. */
+  endTyping(): void {
+    this.history.endTyping();
+    this.cancelSaveTimer();
+    if (!this.writing) editorTask(this.save());
+  }
+
   receive(document: SongDocument): void {
     if (document.revision <= this.document.revision) return;
-    if (this.writing || this.blocked) {
+    if (this.dirty || this.writing || this.blocked) {
       if (document.revision > (this.incoming?.revision ?? 0)) {
         this.incoming = document;
       }
@@ -70,6 +80,7 @@ export class SongSession {
   }
 
   install(document: SongDocument): void {
+    this.cancelSaveTimer();
     this.document = document;
     this.history = new SongHistory(document.song);
     this.blocked = false;
@@ -93,7 +104,36 @@ export class SongSession {
     this.options.changed();
   }
 
-  flush(): Promise<boolean> {
+  async flush(): Promise<boolean> {
+    do {
+      this.cancelSaveTimer();
+      if (!(await this.save())) return false;
+    } while (this.dirty);
+    return true;
+  }
+
+  close(): Promise<boolean> {
+    this.accepting = false;
+    return this.flush();
+  }
+
+  discard(): void {
+    this.cancelSaveTimer();
+    this.accepting = false;
+    this.dirty = false;
+  }
+
+  private delaySave(): void {
+    this.cancelSaveTimer();
+    this.saveTimer = setTimeout(() => this.endTyping(), TYPING_PAUSE_MS);
+  }
+
+  private cancelSaveTimer(): void {
+    clearTimeout(this.saveTimer);
+    this.saveTimer = undefined;
+  }
+
+  private save(): Promise<boolean> {
     if (this.pending !== undefined) return this.pending;
     if (!this.dirty || this.blocked) return Promise.resolve(!this.blocked);
     this.writing = true;
@@ -105,18 +145,8 @@ export class SongSession {
     return this.pending;
   }
 
-  close(): Promise<boolean> {
-    this.accepting = false;
-    return this.flush();
-  }
-
-  discard(): void {
-    this.accepting = false;
-    this.dirty = false;
-  }
-
   private async drain(): Promise<boolean> {
-    while (this.dirty && !this.blocked) {
+    while (this.dirty && !this.blocked && this.saveTimer === undefined) {
       this.dirty = false;
       const draft = this.history.snapshot.song;
       const song = {
@@ -161,6 +191,7 @@ export class SongSession {
   }
 
   private fail(): false {
+    this.cancelSaveTimer();
     this.blocked = true;
     this.options.problem();
     return false;

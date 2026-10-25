@@ -8,7 +8,7 @@ import {
 } from './blockEdits';
 
 const HISTORY_LIMIT = 100;
-const TYPING_PAUSE_MS = 1000;
+export const TYPING_PAUSE_MS = 1000;
 
 /** One song's session history. The owner keeps it when switching songs. */
 export class SongHistory {
@@ -29,6 +29,10 @@ export class SongHistory {
   }
   get canRedo(): boolean {
     return this.future.length > 0;
+  }
+
+  get inTypingGroup(): boolean {
+    return this.typing !== undefined;
   }
 
   select(selection: BlockSelection): void {

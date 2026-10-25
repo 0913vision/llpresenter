@@ -71,6 +71,9 @@ export class SongEditorStore {
 
   open(document: SongDocument | null): void {
     if (!this.alive) return;
+    if (this.active !== null && this.active !== document?.song.id) {
+      this.sessions.get(this.active)?.endTyping();
+    }
     this.active = document?.song.id ?? null;
     if (document !== null) {
       const session = this.sessions.get(document.song.id);

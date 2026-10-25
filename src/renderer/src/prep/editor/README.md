@@ -23,8 +23,8 @@ mounted. A false result means a draft was refused; keep the window/store alive
 so the warning's reload action and draft remain available. After a true result,
 unmount and await `dispose`. It removes all subscriptions, completes accepted
 writes, and releases sessions. The host must await it before closing the IPC
-connection. No timers, output commands, or global keyboard listeners are
-registered by this feature.
+connection. Each session owns at most one deferred-save timer. No output
+commands or global keyboard listeners are registered by this feature.
 
 ## Editing and saving
 
@@ -38,14 +38,20 @@ its Enter and other command keys. Handled commands stop propagation; the host
 must preserve the focused editor's keyboard precedence.
 
 Saving uses `content.edit` with `song.update` and the last accepted revision.
-Each song has one write in flight and one coalesced newest draft. A main-side
-push before the reply does not reset local input or history. Undo restores
-slides and arrangements, using the current canonical root metadata on save. A
-newer external revision during a write, refusal, or transport error keeps the
-local draft and blocks further edits. The warning offers explicit reload; reload
-discards the local draft/history and reads the current document. An applied
-`write-failed` result keeps the edits and advances the revision, while reporting
-the persistence failure. Main owns retries and recovery files.
+Typing and ordinary Enter wait for the typing-group boundary: a block/song
+change, blur, or 1 second without input. Structural edits and undo/redo save
+immediately. Each song has one write in flight and one coalesced newest draft;
+the previous write's reply does not prematurely save a new typing group.
+Explicit `flush()` and shutdown drain accepted edits without waiting for the
+timer. Flush, reset, deletion, refusal, and disposal clear the timer. A
+main-side push before the reply does not reset local input or history. Undo
+restores slides and arrangements, using the current canonical root metadata on
+save. A newer external revision during deferred typing or a write, refusal, or
+transport error keeps the local draft and blocks further edits. The warning
+offers explicit reload; reload discards the local draft/history and reads the
+current document. An applied `write-failed` result keeps the edits and advances
+the revision, while reporting the persistence failure. Main owns retries and
+recovery files.
 
 ## Labels
 
