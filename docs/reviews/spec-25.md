@@ -74,3 +74,13 @@ started.
 
 The request report records the exact submitted HEAD's green CI URL and result
 without introducing another unverified commit for CI metadata.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (bd8bf37): reviewer (Claude, trial-97) Approve. Two nits for the next
+  S1a part: `src/renderer/src/show/ServiceOrderList.tsx:150` detects Ctrl Z and
+  Ctrl Y from `event.key`; use the physical `event.code` (`KeyZ`, `KeyY`) like
+  the rest of the key handling. `useServiceOrderEditing.ts:54` `catch {` drops
+  the cause; log it. Lead Approve. Written by the Codex session that took over
+  spec's work, under the lead's exception for shell's paths. Rebased by the lead
+  onto local `main` without conflicts.
