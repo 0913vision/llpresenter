@@ -116,7 +116,18 @@ missing.
 
 ## Verdicts (recorded by the lead at merge)
 
-- Not reviewed yet.
+- Round 1 (codex2): Request changes with three findings: grid focus was lost
+  when a service update removed the focused tile, Shift Tab was trapped in a
+  list with nothing selected, and every row redrew on a selection change. The
+  last two were fixed in ui's ListBox (ui-10).
+- Round 2 (codex2): Request changes with one finding and a nit: navigation at a
+  list end reopened the current item and reset its tile selection, and the list
+  lost its body padding.
+- Round 3 (5df29c6): reviewer (Codex, codex2) Approve with no findings. Lead
+  Approve; the 장 grid and the 예배 순서 list are built from ui's parts, only
+  changed rows redraw (render-count tests restored), and a key or a click on the
+  item that is already open keeps its tile selection (lead decision). Rebased by
+  the lead onto local `main` without conflicts.
 
 ## Team member's reply
 
