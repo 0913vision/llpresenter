@@ -161,15 +161,17 @@ cleanup helper, and the transition's choice of picture element. Verify that a
 still never prepares a spare video, a late load cannot revive cleared media, and
 a failed replacement keeps the previous picture.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: pending
-- Findings:
-
-## Review: reviewer
-
-- Verdict: pending
-- Findings:
+- Round 1 (codex2): Request changes with one finding: transparent PNGs showed
+  the old background through the dissolve and then turned black abruptly.
+- Round 2 (bb08444): reviewer (Codex, codex2) Approve with no findings. Lead
+  Approve; fixes bug M2-7 from qa's check run, so image backgrounds show on the
+  output and the previews, composited on the output background before the
+  dissolve (pixel regression test in Electron). The verify failure of round 1
+  was the load-flaky `scripts/verify.test.ts`, which passes alone on `main`.
+  Written by the Codex session that took over output's work. Rebased by the lead
+  onto local `main` without conflicts.
 
 ## Team member's reply
 
