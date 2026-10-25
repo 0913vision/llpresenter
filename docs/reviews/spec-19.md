@@ -1,11 +1,12 @@
-﻿Review range: `ed365ff...feat/spec/search-index`
+Review range: `6f04e76...feat/spec/search-index`
 
 # Review request: `spec-19`
 
 - Team member: `spec`
 - Branch: `feat/spec/search-index`, from `main` (not stacked)
-- Base commit (`main`): `ed365ff`
-- Code commit: `abd14d5`
+- Base commit (`main`): `6f04e76`
+- Code commit: `9e9f39a`
+- Review round: 2
 - Task: `.llp/task.md`, M3-D4 Search index
 - Ownership exception: new `src/main/search/` and the main-side registration and
   event wiring for the merged `library:search` contract.
@@ -63,10 +64,12 @@ waits for the existing content load and index; an unavailable store returns an
 empty result with the original query. Unexpected search errors are logged and
 reject that request, preserving the cause.
 
-Both the default result limit and hard maximum are **100**. A smaller limit,
-such as the toolbar's 20, is honored; a larger supplied limit is clamped. This
-implements the lead's data-23 follow-up and bounds a reply even when the caller
-omits `limit`. No shared schema, preload, or wire shape changed.
+The default result limit is **50** and the maximum is **200**, both read from
+the merged data-26 contract's `LIBRARY_SEARCH_LIMITS`. The index's separate
+100-result constant is removed. A smaller limit, such as the toolbar's 20, is
+honored. The shared parser fills the default for an omitted limit and rejects
+IPC requests above the maximum; a direct index call defensively clamps to that
+same maximum. No shared schema, preload, or wire shape changed in this request.
 
 ## Performance
 
@@ -76,20 +79,37 @@ asserts that each finishes within 50 ms.
 
 | Query                                | Local measured time | Matches returned |
 | ------------------------------------ | ------------------- | ---------------- |
-| First title-initial query `ㅅㅎㅊㅇ` | 0.088 ms            | 100              |
-| Lyric query `shared refrain`         | 1.418 ms            | 100              |
-| No-match query                       | 4.213 ms            | 0                |
+| First title-initial query `ㅅㅎㅊㅇ` | 0.035 ms            | 50               |
+| Lyric query `shared refrain`         | 0.728 ms            | 50               |
+| No-match query                       | 1.662 ms            | 0                |
 
-These timings measure the in-memory query after initial indexing. Startup file
-loading and batch construction are outside this query benchmark. The assertion
-also runs in branch CI. Local evidence: `.llp/spec19/focused-final.log`.
+The same test separately measures the full chunked index build from just before
+calling the builder until its promise resolves: **49.857 ms** for 3,000 songs.
+Fixture generation and file loading are excluded; batch construction and
+event-loop yields are included. This is below the lead's 100 ms threshold, so
+the build remains before content-store and open-service-feed creation. Content
+is still gated behind the build, preventing song edits from racing startup.
+
+The query timings above exclude that build. The 50 ms query assertion also runs
+in branch CI. Local evidence: `.llp/spec19/round2-focused-final.log`.
+
+## Round 2 response
+
+1. Rebased onto main with data-26 merged. Replaced the local result-limit
+   constant with the shared default and maximum. Tests use those constants for
+   title, lyric, and empty queries, small and maximum limits, and defensive
+   clamping. IPC tests cover the shared default, the accepted maximum, and
+   rejection above it.
+2. Added and recorded the separate 3,000-song build measurement above. At 49.857
+   ms, the conditional change to build after `feed.refresh()` is not required.
+   The existing startup gate continues to exclude concurrent edits.
 
 ## Checks run
 
 | Check                                                      | Result                                                                       |
 | ---------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| Index, search IPC, real-store registration, content events | Pass: 4 files, 47 tests                                                      |
-| `npm run typecheck`                                        | Pass                                                                         |
+| Index, search IPC, real-store registration, content events | Pass: 4 files, 55 tests                                                      |
+| Node TypeScript check (`tsconfig.node.json`)               | Pass                                                                         |
 | Changed-file ESLint                                        | Pass                                                                         |
 | Changed-file Prettier and `git diff --check`               | Pass                                                                         |
 | Local full `npm run verify`                                | Not run, per the CI workflow                                                 |
@@ -111,6 +131,6 @@ real-store updates.
 - `docs/reviews/spec-19.md`.
 
 This branch was created from main after the spec-18 request, then rebased onto
-main at `ed365ff`. A fully green CI run of the exact submitted HEAD is required;
+main at `6f04e76`. A fully green CI run of the exact submitted HEAD is required;
 the temporary GPU exception has ended. The request report records the run URL
 and result without creating another unverified commit afterward.
