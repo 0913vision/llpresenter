@@ -81,15 +81,15 @@ None.
 - The lead must merge, publish `m2-check1`, and tell the user it is available
   before the clone command can be used.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict:
-- Findings:
-
-## Review: reviewer
-
-- Verdict:
-- Findings:
+- Round 1 (001aab0): reviewer (Codex, codex2) Approve with no findings. Lead
+  Approve; the sample 사용자 데이터 uses invented lyrics only (checked), the
+  Korean sheet `docs/qa/m2-check.md` is the user's guide for the `m2-check1`
+  check, and the smoke report records two known gaps: the large preview choice
+  isn't remembered (waits for real screen ids, M3-D2) and image backgrounds
+  don't show on the output yet. Written by the Codex session that took over qa's
+  work after the power loss. Fast-forward merge.
 
 ## Team member's reply
 
