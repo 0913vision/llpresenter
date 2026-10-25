@@ -16,7 +16,8 @@ The unplug record showed the fallback at x 2480, y 492 instead of the planned
 center. `showWindowed` previously set the planned bounds immediately after
 requesting fullscreen exit. Windows could then restore the old normal bounds
 from the disconnected monitor, overwriting that placement. The output now
-applies the planned bounds after `leave-full-screen`.
+applies the planned bounds on the next event-loop turn after
+`leave-full-screen`, with a 500 ms exit deadline when the event is missing.
 
 Per the lead's decision `dd7212a`, the output first drops always on top and then
 calls `control.moveAbove(output.getMediaSourceId())`. This happens synchronously
@@ -34,9 +35,10 @@ the final monitor list equals the original list.
 Only the latest placement is retained while fullscreen exits. Hiding, switching
 back to fullscreen, closing, or destroying cancels an obsolete fallback action.
 An unplaced centered rectangle survives an off/on cycle so the first placement
-still receives its bounds. The single fullscreen listener and its pending action
-are released on destroy or native close. Deferred native-event failures are
-logged; a failed demotion does not prevent another output from being demoted.
+still receives its bounds. Fullscreen, move and resize listeners, timers, and
+pending actions are released on destroy or native close. Deferred native-event
+failures are logged; a failed demotion does not prevent another output from
+being demoted.
 
 ## Changed files
 
@@ -86,3 +88,28 @@ least five minutes apart.
 ## Review: reviewer
 
 ## Team member's reply
+
+1. The timing assumption is removed. Even a synchronous `leave-full-screen`
+   queues placement to the next event-loop turn. After placing, a move or resize
+   queues a bounds read; a 100 ms check also covers a restore without either
+   event. A mismatch reapplies the target once, repeats the control-relative
+   ordering, and disarms all checks. The fake covers both a restore inside
+   `setFullScreen(false)` after its synchronous leave event and a later restore.
+   It also proves that later operator moves are left alone. A GitHub
+   Windows-only real Electron fixture records `getBounds()` during the leave
+   event, after `setFullScreen(false)` returns, on the next turn, and after
+   settling. It checks the shared production placement helper and fullscreen
+   reconnect. Native measurements will be recorded from its CI log before the
+   round 2 request. Both the test and child refuse local execution.
+2. `FULLSCREEN_EXIT_DEADLINE_MS` bounds the leave-event wait at 500 ms. The
+   deadline clears the waiting state and runs the latest pending placement,
+   including a fullscreen reconnect. Fake tests omit the leave event and prove
+   that both the windowed request and a later fullscreen request complete by
+   that deadline. Cancellation, native close, and dispose release the queued
+   action, the checks and all three native listeners.
+
+Round 2 local checks: 85/85 focused tests passed in 0.960 s, the one native CI
+test skipped, typecheck and targeted lint passed, and the native fixture's
+bundle and syntax check passed without launching Electron. Six new cases all
+failed against the round 1 adapter, which was restored in finally. No local full
+verify, visible window, soak, or memory measurement ran.

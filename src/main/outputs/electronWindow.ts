@@ -15,6 +15,7 @@ import {
 } from '../windows/testWindows';
 import type {OutputWindowEvents, OutputWindowHandle} from './outputWindow';
 import type {OutputScreen} from './screens';
+import {WindowPlacement} from './windowPlacement';
 
 const OUTPUT_BACKGROUND = '#000000';
 const PING_SCRIPT = '0';
@@ -87,24 +88,12 @@ function presentOnScreen(
   win: BrowserWindow,
   {control, log}: ElectronOutputWindowOptions,
 ): OutputPresentation {
-  let leavingFullScreen = false;
-  let afterLeave: (() => void) | null = null;
+  const placement = new WindowPlacement(win, log);
   let unplacedBounds: Rect | null = null;
   const placeBehindControl = () => {
     win.setAlwaysOnTop(false);
     if (!control.isDestroyed()) control.moveAbove(win.getMediaSourceId());
   };
-  const finishLeaving = () => {
-    leavingFullScreen = false;
-    const place = afterLeave;
-    afterLeave = null;
-    try {
-      place?.();
-    } catch (error) {
-      log.error('could not place the output after leaving full screen', error);
-    }
-  };
-  win.on('leave-full-screen', finishLeaving);
   return {
     showFullScreen: (monitorBounds, alwaysOnTop) => {
       unplacedBounds = null;
@@ -114,43 +103,31 @@ function presentOnScreen(
         win.setAlwaysOnTop(alwaysOnTop);
         if (!win.isVisible()) win.showInactive();
       };
-      afterLeave = null;
-      if (leavingFullScreen) afterLeave = place;
-      else place();
+      placement.fullscreen(place);
     },
     showWindowed: bounds => {
       if (bounds !== null) unplacedBounds = bounds;
       const place = () => {
         win.setFocusable(true);
-        if (unplacedBounds !== null) win.setBounds(unplacedBounds);
+        if (unplacedBounds !== null) {
+          win.setBounds(unplacedBounds);
+          placement.verifyBounds(unplacedBounds, placeBehindControl);
+        }
         unplacedBounds = null;
         if (!win.isVisible()) win.showInactive();
         placeBehindControl();
       };
-      afterLeave = null;
       win.setAlwaysOnTop(false);
-      if (leavingFullScreen) afterLeave = place;
-      else if (win.isFullScreen()) {
-        afterLeave = place;
-        leavingFullScreen = true;
-        try {
-          win.setFullScreen(false);
-        } catch (error) {
-          leavingFullScreen = false;
-          afterLeave = null;
-          throw error;
-        }
-      } else place();
+      placement.windowed(place);
     },
     prepareForMonitorRemoval: placeBehindControl,
     hide: () => {
-      afterLeave = null;
+      placement.cancel();
       win.hide();
     },
     dispose: () => {
-      afterLeave = null;
       unplacedBounds = null;
-      win.removeListener('leave-full-screen', finishLeaving);
+      placement.dispose();
     },
   };
 }
