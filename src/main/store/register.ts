@@ -2,6 +2,8 @@ import {app, ipcMain} from 'electron';
 import {Channels} from '@shared/ipc';
 import {defaultPreferences} from '@shared/schema/preferences';
 import type {Logger} from '../log';
+import {registerLibrarySearch} from '../search/register';
+import {buildSongSearchIndex, type SongSearchIndex} from '../search/songIndex';
 import {Backups, type BackupOutcome} from './backup';
 import {
   broadcast,
@@ -32,6 +34,7 @@ const MAX_LOGGED_PROBLEMS = 50;
 interface OpenedContent {
   readonly content: ContentStore;
   readonly feed: OpenServiceFeed;
+  readonly search: SongSearchIndex;
 }
 
 export interface StoreRegistration {
@@ -93,6 +96,10 @@ export function registerStore({
     return (await loading)?.preferences ?? defaultPreferences;
   });
   const removeContentChannels = registerContentChannels(contentOf(opened), log);
+  const removeSearch = registerLibrarySearch(
+    opened.then(ready => ready?.search ?? null),
+    log,
+  );
   const upkeep = upkeepAtLaunch(loading, isAnyOutputOn, log);
   const media = new LoadingMediaLibrary(loading);
   return {
@@ -102,11 +109,16 @@ export function registerStore({
       ipcMain.removeHandler(Channels.serviceGet);
       ipcMain.removeHandler(Channels.preferencesGet);
       removeContentChannels();
+      removeSearch();
       await upkeep;
       const ready = await opened;
       await ready?.feed.dispose();
-      await ready?.content.flush();
-      ready?.content.dispose();
+      try {
+        await ready?.content.flush();
+      } finally {
+        ready?.search.clear();
+        ready?.content.dispose();
+      }
     },
     findMediaFile: media.findFile,
     mediaRoots: media.roots,
@@ -160,6 +172,9 @@ async function createContent(
   store: LoadedStore,
   log: Logger,
 ): Promise<OpenedContent> {
+  const search = await buildSongSearchIndex(
+    [...store.songs.values()].map(({data}) => data),
+  );
   const copies = new RecoveryCopies({
     folder: store.locations.recovery,
     keep: () => store.preferences.backupCopies,
@@ -170,6 +185,13 @@ async function createContent(
       log.warn('could not keep a recovery copy', problem),
   });
   let feed: OpenServiceFeed | null = null;
+  const events = broadcastEvents(log, () => {
+    feed
+      ?.refresh()
+      .catch((error: unknown) =>
+        log.error('could not refresh the open service', error),
+      );
+  });
   const content = new ContentStore({
     locations: store.locations,
     songs: store.songs,
@@ -177,13 +199,13 @@ async function createContent(
     templates: store.templates,
     openServiceId: store.openServiceId,
     files: documentFiles({saver, copies, log}),
-    events: broadcastEvents(log, () => {
-      feed
-        ?.refresh()
-        .catch((error: unknown) =>
-          log.error('could not refresh the open service', error),
-        );
-    }),
+    events: {
+      ...events,
+      songChanged: change => {
+        search.change(change);
+        events.songChanged(change);
+      },
+    },
     log,
   });
   feed = new OpenServiceFeed(
@@ -197,7 +219,7 @@ async function createContent(
     error => log.error('could not refresh the open 예배 순서', error),
   );
   await feed.refresh();
-  return {content, feed};
+  return {content, feed, search};
 }
 
 async function currentService(opened: Promise<OpenedContent | null>) {

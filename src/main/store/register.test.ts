@@ -18,6 +18,7 @@ import {
   parseSettingsDocument,
   settingsNames,
 } from '@shared/schema/settingsDocuments';
+import {parseLibrarySearchResult} from '@shared/schema/librarySearch';
 import {makeTempDir} from '../../../test/temp-dir';
 import type {Logger} from '../log';
 import {openAppConfig} from './appConfigFile';
@@ -259,6 +260,71 @@ describe('registerStore', () => {
       'Invalid settings read',
     );
   });
+  it('searches the initial library and applies song edits, deletion, and creation before the next search', async () => {
+    const context = await developmentContext();
+    const root = join(context.appDataFolder, DATA_FOLDER_NAME);
+    const original = {
+      ...hymnOne(),
+      title: '새벽의 길',
+      slides: [{lines: ['돌아온 아침빛']}],
+      arrangements: [],
+    };
+    await writeJson(join(root, '곡', 'song.llsong'), original);
+    const store = await register(fakeLog(), context, () => true);
+    const initial = await ask(Channels.librarySearch, {query: '아침빛'});
+    expect(parseLibrarySearchResult(initial)).toMatchObject({
+      ok: true,
+      value: {
+        query: '아침빛',
+        matches: [
+          {
+            songId: HYMN_ONE_ID,
+            title: '새벽의 길',
+            match: {kind: 'lyrics', line: '돌아온 아침빛'},
+          },
+        ],
+      },
+    });
+    const edited = {
+      ...original,
+      title: '바람의 노래',
+      slides: [{lines: ['다시 피어난 햇살']}],
+    };
+    expect(
+      await ask(Channels.contentEdit, {
+        type: 'song.update',
+        song: edited,
+        baseRevision: 1,
+      }),
+    ).toMatchObject({ok: true});
+    expect(await ask(Channels.librarySearch, {query: '햇살'})).toMatchObject({
+      matches: [{title: '바람의 노래'}],
+    });
+    expect(await ask(Channels.librarySearch, {query: '아침빛'})).toMatchObject({
+      matches: [],
+    });
+    expect(
+      await ask(Channels.librarySearch, {query: '새벽의 길'}),
+    ).toMatchObject({matches: []});
+    expect(
+      await ask(Channels.contentEdit, {
+        type: 'song.delete',
+        songId: HYMN_ONE_ID,
+      }),
+    ).toMatchObject({ok: true});
+    expect(await ask(Channels.librarySearch, {query: ''})).toMatchObject({
+      matches: [],
+    });
+    expect(
+      await ask(Channels.contentEdit, {type: 'song.create'}),
+    ).toMatchObject({ok: true});
+    expect(await ask(Channels.librarySearch, {query: '새곡'})).toMatchObject({
+      matches: [{title: '새 곡'}],
+    });
+    await store.dispose();
+    expect(electron.handlers.has(Channels.librarySearch)).toBe(false);
+  });
+
   it.each([
     undefined,
     {},
