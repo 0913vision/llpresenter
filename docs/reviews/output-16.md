@@ -3,14 +3,14 @@
 - Team member: `output`
 - Branch: `fix/output/image-background`
 - Base commit (`main`): `0f5b01c95009459d777cd81e283e58d3d1092f76`
-- Code commits: `3b3da98`, `91af9ee`
+- Code commits: `3b3da98`, `91af9ee`, `23993a6`
 - Review range: `0f5b01c...fix/output/image-background`
 - Round 2 revision range: `109101b...fix/output/image-background`
 - Related task: bug M2-7, QA's
   [image-background finding F2](../qa/m2-check/smoke.md), and the lead's batch
   in `.llp/task.md`.
 - Shared contract changes: none.
-- Status: round 2 correction prepared; final verification pending.
+- Status: round 2 ready; full verification passed all five steps in 93.4 s.
 
 ## What changed and why
 
@@ -93,7 +93,7 @@ Round 2 adds `transparentBackground.node.test.ts` and its renderer and Electron
 fixtures under `src/renderer/src/render/fixtures/` and
 `src/main/windows/fixtures/` for actual pixel-compositing regression coverage.
 
-## Checks run
+## Round 1 checks
 
 | Command or test                                  | Result                                                                                                 |
 | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
@@ -145,8 +145,8 @@ output is `.llp/image-background/verify.log`.
 
 ## Quality checklist
 
-- [x] Required checks complete; the full verify's known load failure is
-      documented with the lead's 20-of-20 isolated check. Formatting passes.
+- [x] Round 2 full verification passes all five steps. Formatting passes. The
+      round 1 known load failure remains documented above.
 - [x] Image regressions fail on the old renderer and pass with the fix.
 - [x] Output and preview paths, failed loads, transitions, and cleanup covered.
 - [x] Fixed element count; no new cache, timer, object URL, or dependency.
@@ -182,7 +182,7 @@ a failed replacement keeps the previous picture.
    be unloaded afterward without changing the final pixels. The video handover,
    dissolve timer, and element lifetime remain as before.
 
-   Fix commit: pending.
+   Fix commit: `23993a6`.
 
    Added a real Electron pixel regression that builds the production CSS in a
    temporary fixture page. It decodes an original PNG with transparent,
@@ -217,8 +217,13 @@ a failed replacement keeps the previous picture.
 | `npm run typecheck`                                     | Pass                                                                         |
 | Targeted ESLint after formatting                        | Pass                                                                         |
 | `npm run format`                                        | Pass                                                                         |
-| `npm run verify`                                        | Pending; one run for round 2                                                 |
+| `npm run verify`                                        | Pass: all 5 steps in 93.4 s, one invocation for round 2                      |
 
-Local logs: `.llp/image-background-round2/tests-old.log`, `tests-fixed.log`, and
-`lint.log`. The round 1 known-load exception remains documented above; the round
-2 verification result will be recorded separately.
+The single round 2 full verification passed: typecheck 5.3 s, lint 58.1 s,
+format check 10.0 s, coverage tests 93.3 s, and build 2.7 s. Wall time was 93.4
+s. No step failed or needed a rerun. Only review-result recording and formatting
+followed the full verification; the source correction is `23993a6`.
+
+Local logs: `.llp/image-background-round2/tests-old.log`, `tests-fixed.log`,
+`lint.log`, and `verify.log`. The round 1 known-load exception remains recorded
+as history; the round 2 run passed without that exception.
