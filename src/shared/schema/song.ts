@@ -21,7 +21,7 @@ import {
 /** The name of the default 구성. It is never stored, so no 구성 may use it. */
 export const DEFAULT_ARRANGEMENT_NAME = '기본';
 
-const slideSchema = jsonObject({
+export const slideSchema = jsonObject({
   label: v.exactOptional(v.string()),
   lines: v.array(v.string()),
 });

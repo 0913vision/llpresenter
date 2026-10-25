@@ -48,6 +48,15 @@ const groupRanges = {
   bible: {maxLines: bibleMaxLinesSchema},
 };
 
+export const textImportSplitSchema = v.picklist([
+  'blankLine',
+  'lineBreak',
+  'symbol',
+]);
+export const textImportLabelsSchema = v.picklist(['bracketLine', 'off']);
+export const textImportFirstLineSchema = v.picklist(['title', 'lyrics']);
+export const textImportEncodingSchema = v.picklist(['auto', 'utf-8', 'cp949']);
+
 const preferencesSchema = jsonObject({
   format: v.literal(PREFERENCES_FORMAT),
   schemaVersion: positiveInteger,
@@ -77,12 +86,10 @@ const preferencesSchema = jsonObject({
     jsonObject({
       txt: v.exactOptional(
         jsonObject({
-          split: v.exactOptional(
-            v.picklist(['blankLine', 'lineBreak', 'symbol']),
-          ),
-          labels: v.exactOptional(v.picklist(['bracketLine', 'off'])),
-          firstLine: v.exactOptional(v.picklist(['title', 'lyrics'])),
-          encoding: v.exactOptional(v.picklist(['auto', 'utf-8', 'cp949'])),
+          split: v.exactOptional(textImportSplitSchema),
+          labels: v.exactOptional(textImportLabelsSchema),
+          firstLine: v.exactOptional(textImportFirstLineSchema),
+          encoding: v.exactOptional(textImportEncodingSchema),
         }),
       ),
     }),

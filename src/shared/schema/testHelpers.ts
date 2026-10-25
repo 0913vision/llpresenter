@@ -8,7 +8,7 @@ const HEX_RADIX = 16;
 const UUID_VARIANT_MIN = 0x8;
 const UUID_VARIANT_MAX = 0xb;
 
-export function expectSuccess<T>(result: Result<T, FileError>): T {
+export function expectSuccess<T, TError>(result: Result<T, TError>): T {
   if (!result.ok) {
     throw new Error(`Expected success, got ${JSON.stringify(result.error)}`);
   }
