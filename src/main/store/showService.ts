@@ -1,4 +1,5 @@
 import {NO_LABEL_COLOR, type LabelColor} from '@shared/colors';
+import type {MediaChoice} from '@shared/live';
 import type {LoadedFile} from '@shared/schema/fileFormat';
 import type {Label} from '@shared/schema/labels';
 import {
@@ -21,6 +22,7 @@ export interface ShowServiceSources {
   readonly songs: SongLibrary;
   readonly labels: readonly Label[];
   readonly revision: number;
+  readonly backgrounds?: ReadonlyMap<string, MediaChoice>;
 }
 
 /**
@@ -34,6 +36,7 @@ export function buildShowService({
   songs,
   labels,
   revision,
+  backgrounds = new Map(),
 }: ShowServiceSources): ShowService {
   const {id, name, order} = service.data;
   return {
@@ -41,7 +44,7 @@ export function buildShowService({
     id,
     name,
     readOnly: service.access === 'readOnly',
-    rows: order.map(item => rowOf(item, songs)),
+    rows: order.map(item => rowOf(item, songs, backgrounds)),
     tiles: tilesOf(order, songs, labels),
     jumpKeys: jumpKeysOf(labels),
   };
@@ -66,13 +69,17 @@ function tilesOf(
   return tiles;
 }
 
-function rowOf(item: ServiceItem, songs: SongLibrary): ShowRow {
+function rowOf(
+  item: ServiceItem,
+  songs: SongLibrary,
+  backgrounds: ReadonlyMap<string, MediaChoice>,
+): ShowRow {
   const {id} = item;
   if (isItemOfKind(item, 'header')) {
     return {kind: 'header', id, title: item.header};
   }
   if (isItemOfKind(item, 'song')) {
-    return songRow(id, songs.get(item.song));
+    return songRow(item, songs.get(item.song), backgrounds);
   }
   if (isItemOfKind(item, 'slot')) {
     return {kind: 'slot', id, title: item.title};
@@ -89,14 +96,40 @@ function rowOf(item: ServiceItem, songs: SongLibrary): ShowRow {
   return {kind: 'unknown', id, title: '', problem: 'unknown-kind'};
 }
 
-function songRow(id: string, song: Shown<Song> | undefined): ShowRow {
+/** The item's override takes precedence even when its media cannot be found. */
+export function songBackgroundId(
+  item: ServiceItemOf<'song'>,
+  song: Song,
+): string | undefined {
+  return item.background ?? song.background;
+}
+
+function songRow(
+  item: ServiceItemOf<'song'>,
+  song: Shown<Song> | undefined,
+  backgrounds: ReadonlyMap<string, MediaChoice>,
+): ShowRow {
+  const {id} = item;
   if (song === undefined) {
     return {kind: 'song', id, title: '', problem: 'missing-song'};
   }
   const {title} = song.data;
-  return song.access === 'readOnly'
-    ? {kind: 'song', id, title, problem: 'newer-version'}
-    : {kind: 'song', id, title};
+  const mediaId = songBackgroundId(item, song.data);
+  const background =
+    mediaId === undefined ? undefined : backgrounds.get(mediaId);
+  const problem =
+    mediaId !== undefined && background === undefined
+      ? 'missing-background'
+      : song.access === 'readOnly'
+        ? 'newer-version'
+        : undefined;
+  return {
+    kind: 'song',
+    id,
+    title,
+    ...(problem === undefined ? {} : {problem}),
+    ...(background === undefined ? {} : {background}),
+  };
 }
 
 function songTiles(

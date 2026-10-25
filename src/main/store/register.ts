@@ -82,6 +82,7 @@ export function registerStore({
       removeContentChannels();
       await upkeep;
       const ready = await opened;
+      await ready?.feed.dispose();
       await ready?.content.flush();
       ready?.content.dispose();
     },
@@ -126,14 +127,17 @@ async function openContent(
     return null;
   }
   try {
-    return createContent(store, log);
+    return await createContent(store, log);
   } catch (error: unknown) {
     log.error('could not open the songs and 예배 순서', error);
     return null;
   }
 }
 
-function createContent(store: LoadedStore, log: Logger): OpenedContent {
+async function createContent(
+  store: LoadedStore,
+  log: Logger,
+): Promise<OpenedContent> {
   const copies = new RecoveryCopies({
     folder: store.locations.recovery,
     keep: () => store.preferences.backupCopies,
@@ -151,19 +155,33 @@ function createContent(store: LoadedStore, log: Logger): OpenedContent {
     templates: store.templates,
     openServiceId: store.openServiceId,
     files: documentFiles({saver, copies, log}),
-    events: broadcastEvents(log, () => feed?.refresh()),
+    events: broadcastEvents(log, () => {
+      feed
+        ?.refresh()
+        .catch((error: unknown) =>
+          log.error('could not refresh the open service', error),
+        );
+    }),
     log,
   });
   feed = new OpenServiceFeed(
-    {serviceId: store.openServiceId, labels: store.labels, content},
+    {
+      serviceId: store.openServiceId,
+      labels: store.labels,
+      content,
+      backgroundOf: id => store.media.backgroundOf(id),
+    },
     service => broadcast(Channels.serviceChanged, service, log),
     error => log.error('could not refresh the open 예배 순서', error),
   );
+  await feed.refresh();
   return {content, feed};
 }
 
 async function currentService(opened: Promise<OpenedContent | null>) {
-  return (await opened)?.feed.current() ?? null;
+  const ready = await opened;
+  await ready?.feed.refresh();
+  return ready?.feed.current() ?? null;
 }
 
 async function contentOf(

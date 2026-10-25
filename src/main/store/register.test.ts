@@ -128,6 +128,62 @@ afterEach(async () => {
 });
 
 describe('registerStore', () => {
+  it('refreshes background choices, missing-file warnings, and revisions on service reads', async () => {
+    const context = await developmentContext();
+    const root = join(context.appDataFolder, DATA_FOLDER_NAME);
+    const mediaId = itemId(90);
+    const video = join(root, '미디어', 'background.webm');
+    await writeJson(video, 'video');
+    await writeJson(join(root, '설정', 'media.json'), {
+      format: 'llmedia',
+      schemaVersion: 1,
+      items: [
+        {
+          id: mediaId,
+          name: 'Background',
+          kind: 'video',
+          file: 'background.webm',
+          size: 5,
+        },
+      ],
+      playlists: [],
+      audioPlaylists: [],
+    });
+    await writeJson(join(root, '곡', 'song.llsong'), {
+      ...hymnOne(),
+      background: mediaId,
+    });
+    await writeJson(
+      join(root, '예배', 'open.llservice'),
+      service(SUNDAY_ID, '2026-11-01T11:00', [
+        {id: itemId(1), song: HYMN_ONE_ID},
+      ]),
+    );
+    await register(fakeLog(), context, () => true);
+
+    expect(await askForService()).toMatchObject({
+      revision: 1,
+      rows: [{background: {mediaId, loop: true}}],
+    });
+    await rm(video);
+    const missing = await askForService();
+    expect(missing).toMatchObject({
+      revision: 2,
+      rows: [{problem: 'missing-background'}],
+    });
+    expect(parseShowService(missing)).toMatchObject({ok: true});
+    await writeJson(video, 'returned');
+    expect(await askForService()).toMatchObject({
+      revision: 3,
+      rows: [{background: {mediaId, loop: true}}],
+    });
+    expect(
+      electron.send.mock.calls.filter(
+        ([channel]) => channel === Channels.serviceChanged,
+      ),
+    ).toHaveLength(2);
+  });
+
   it('pushes edited song tiles without a live-state push and flushes before disposal', async () => {
     const context = await developmentContext();
     const root = join(context.appDataFolder, DATA_FOLDER_NAME);

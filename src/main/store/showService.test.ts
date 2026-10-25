@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import type {Result} from '@shared/result';
+import type {MediaChoice} from '@shared/live';
 import type {FileError, LoadedFile} from '@shared/schema/fileFormat';
 import type {Label} from '@shared/schema/labels';
 import {parseService, type Service} from '@shared/schema/service';
@@ -47,6 +48,59 @@ function build(
 }
 
 describe('buildShowService', () => {
+  it('resolves the item override before the song default without fallback', () => {
+    const defaultMedia = {mediaId: MEDIA_ID, loop: true};
+    const override = {mediaId: itemId(99), loop: false};
+    const backgrounds = new Map<string, MediaChoice>([
+      [MEDIA_ID, defaultMedia],
+      [override.mediaId, override],
+    ]);
+    const project = () =>
+      buildShowService({
+        service: loadedService([
+          {id: itemId(1), song: HYMN_ONE_ID},
+          {id: itemId(2), song: HYMN_ONE_ID, background: override.mediaId},
+        ]),
+        songs: new Map([
+          [HYMN_ONE_ID, loadedSong({...hymnOne(), background: MEDIA_ID})],
+        ]),
+        labels: [],
+        backgrounds,
+        revision: 1,
+      });
+
+    expect(project().rows).toMatchObject([
+      {background: defaultMedia},
+      {background: override},
+    ]);
+    backgrounds.delete(override.mediaId);
+    const missing = project().rows[1];
+    expect(missing).toMatchObject({problem: 'missing-background'});
+    expect(missing).not.toHaveProperty('background');
+  });
+
+  it('marks an unavailable default without removing the lyrics', () => {
+    const show = buildShowService({
+      service: loadedService([{id: itemId(1), song: HYMN_ONE_ID}]),
+      songs: new Map([
+        [HYMN_ONE_ID, loadedSong({...hymnOne(), background: MEDIA_ID})],
+      ]),
+      labels: [],
+      revision: 1,
+    });
+    expect(show.rows[0]).toMatchObject({problem: 'missing-background'});
+    expect(show.rows[0]).not.toHaveProperty('background');
+    expect(show.tiles[itemId(1)]).toHaveLength(3);
+  });
+
+  it('omits the background and warning when neither item nor song has one', () => {
+    expect(build([{id: itemId(1), song: HYMN_ONE_ID}]).rows[0]).toEqual({
+      kind: 'song',
+      id: itemId(1),
+      title: '만복의 근원 하나님',
+    });
+  });
+
   it('makes a row for each item with the item id', () => {
     const show = build([
       {id: itemId(1), header: '찬양'},

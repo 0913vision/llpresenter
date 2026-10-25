@@ -1,8 +1,11 @@
 import {dirname, isAbsolute, resolve} from 'node:path';
+import {stat} from 'node:fs/promises';
+import type {MediaChoice} from '@shared/live';
 import type {Result} from '@shared/result';
 import type {FileError} from '@shared/schema/fileFormat';
 import type {MediaItem} from '@shared/schema/mediaList';
 import {isInside} from './locations';
+import {realPathInside} from '../windows/insideRoots';
 
 const LEAVES_MEDIA_FOLDER =
   'Ignored: a relative file path must stay inside the media folder';
@@ -13,6 +16,8 @@ const OUTSIDE_IN_DEVELOPMENT =
 export interface MediaLibrary {
   /** The file of a media id, or `null` when the list has none for it. */
   fileOf(mediaId: string): string | null;
+  /** A playable visual background, or null for a missing or refused file. */
+  backgroundOf(mediaId: string): Promise<MediaChoice | null>;
   /**
    * The media folder and the folders of media kept outside it. In
    * development, only the media folder, so a development run never serves a
@@ -37,7 +42,11 @@ export interface MediaLibraryRead {
 }
 
 /** No media at all, until the data is read. */
-export const NO_MEDIA: MediaLibrary = {fileOf: () => null, roots: []};
+export const NO_MEDIA: MediaLibrary = {
+  fileOf: () => null,
+  backgroundOf: () => Promise.resolve(null),
+  roots: [],
+};
 
 /**
  * The media library of data that is still being read: a lookup waits for the
@@ -82,6 +91,7 @@ export function buildMediaLibrary({
   listFile,
 }: MediaLibrarySources): MediaLibraryRead {
   const files = new Map<string, string>();
+  const choices = new Map<string, MediaChoice>();
   const roots = new Set([resolve(mediaFolder)]);
   const problems: FileError[] = [];
   items.forEach((item, index) => {
@@ -96,12 +106,33 @@ export function buildMediaLibrary({
       return;
     }
     files.set(item.id, placed.value);
+    if (item.kind !== 'audio') {
+      choices.set(item.id, {
+        mediaId: item.id,
+        loop: item.props?.end !== 'stop',
+      });
+    }
     if (!isInside(placed.value, mediaFolder)) {
       roots.add(dirname(placed.value));
     }
   });
   return {
-    library: {fileOf: mediaId => files.get(mediaId) ?? null, roots: [...roots]},
+    library: {
+      fileOf: mediaId => files.get(mediaId) ?? null,
+      backgroundOf: async mediaId => {
+        const choice = choices.get(mediaId);
+        const file = files.get(mediaId);
+        if (choice === undefined || file === undefined) return null;
+        const real = await realPathInside(file, [...roots]);
+        if (real === null) return null;
+        try {
+          return (await stat(real)).isFile() ? choice : null;
+        } catch {
+          return null;
+        }
+      },
+      roots: [...roots],
+    },
     problems,
   };
 }
