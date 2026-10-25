@@ -1,0 +1,34 @@
+.panel {
+  flex: none;
+}
+
+.body {
+  padding: var(--space-10) var(--panel-inset);
+  overflow: hidden;
+}
+
+.viewport {
+  min-width: 0;
+  min-height: calc(
+    var(--size-media-strip-tile) / (var(--aspect-output)) + var(--space-8) +
+      1lh + var(--space-8)
+  );
+  font: var(--type-label);
+}
+
+.windowed[role='listbox'] {
+  display: flex;
+  scrollbar-width: thin;
+}
+
+.windowed > [role='option'] {
+  flex: 0 0 var(--size-media-strip-tile);
+}
+
+.spacer {
+  flex: none;
+}
+
+.preview {
+  pointer-events: none;
+}

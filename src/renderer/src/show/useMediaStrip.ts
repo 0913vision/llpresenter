@@ -1,4 +1,4 @@
-import {useEffect, useEffectEvent, useRef, useState} from 'react';
+import {useCallback, useEffect, useEffectEvent, useRef, useState} from 'react';
 import type {MediaId} from '@shared/schema/ids';
 import {mediaLoops} from '@shared/mediaEndRule';
 import type {
@@ -8,6 +8,8 @@ import type {
 import {sendLive} from '@renderer/state/live';
 import type {Notice} from '@renderer/ui/notices';
 import {updateActiveCopies, type CopyJob} from './mediaCopyJobs';
+
+const UNNAMED_MEDIA = '이름 없는 미디어';
 
 function warningNotice(
   key: string,
@@ -103,7 +105,7 @@ export function useMediaStrip(onProblem: (notice: Notice) => void) {
     };
   }, []);
 
-  const markMissing = (id: MediaId, revision: number): void => {
+  const markMissing = useCallback((id: MediaId, revision: number): void => {
     if (
       !alive.current ||
       canonical.current?.revision !== revision ||
@@ -113,7 +115,7 @@ export function useMediaStrip(onProblem: (notice: Notice) => void) {
     }
     missingIds.current.add(id);
     setMissing(new Set(missingIds.current));
-  };
+  }, []);
   const activate = (id: MediaId): void => {
     if (!alive.current || activeJobs.current.has(id)) return;
     const item = canonical.current?.value.items.find(item => item.id === id);
@@ -121,7 +123,7 @@ export function useMediaStrip(onProblem: (notice: Notice) => void) {
     if (missingIds.current.has(id)) {
       onProblem(
         warningNotice('media-strip:relink', '미디어 다시 연결할 수 없음', [
-          item.name || '이름 없는 미디어',
+          item.name || UNNAMED_MEDIA,
         ]),
       );
       return;
