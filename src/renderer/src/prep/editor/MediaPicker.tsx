@@ -149,7 +149,11 @@ export function MediaPicker({
         ref={surface}
         role="listbox"
         aria-label="기본 배경"
-        aria-activedescendant={`${id}-${active}`}
+        aria-activedescendant={
+          active >= start && active < start + visible.length
+            ? `${id}-${active}`
+            : undefined
+        }
         tabIndex={-1}
         className={classNames(menu.menu, styles.picker)}
         onKeyDown={keyDown}

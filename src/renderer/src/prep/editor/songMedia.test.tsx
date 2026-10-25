@@ -141,7 +141,15 @@ describe('default song background', () => {
       />,
     );
     expect(screen.getAllByRole('option').length).toBeLessThanOrEqual(12);
-    fireEvent.keyDown(screen.getByRole('listbox'), {key: 'End'});
+    const listbox = screen.getByRole('listbox');
+    const viewport = listbox.firstElementChild;
+    if (!(viewport instanceof HTMLElement)) throw new Error('Missing viewport');
+    fireEvent.scroll(viewport, {target: {scrollTop: 28000}});
+    expect(listbox.getAttribute('aria-activedescendant')).toBeNull();
+    fireEvent.keyDown(listbox, {key: 'End'});
+    expect(listbox.getAttribute('aria-activedescendant')).toBe(
+      screen.getByRole('option', {name: 'Media 2000'}).id,
+    );
     expect(screen.getAllByRole('option').length).toBeLessThanOrEqual(12);
     fireEvent.keyDown(screen.getByRole('listbox'), {key: 'Enter'});
     await act(() => session.flush());
