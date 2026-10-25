@@ -146,6 +146,9 @@ describe('additive overlay state contracts', () => {
       expectSuccess(parseLiveState(state({}, {stageMessage: null}))),
     ).toHaveProperty('stageMessage', null);
     expect(parseLiveState(state({}, {stageMessage: 4})).ok).toBe(false);
+    expect(parseLiveState(state({}, {stageMessage: ''})).ok).toBe(false);
+    expect(parseLiveState(state({}, {stageMessage: ' \n\t'})).ok).toBe(false);
+    expect(parseLiveState(propState([{...prop(), targets: []}])).ok).toBe(true);
   });
 
   it.each([
@@ -194,6 +197,7 @@ describe('additive overlay state contracts', () => {
     ['a zero interval', {...playback(), interval: 0}],
     ['a pause before start', {...playback(), pausedAt: NOW - 1}],
     ['an invalid target', {...playback(), targets: ['stage']}],
+    ['no target screens', {...playback(), targets: []}],
   ])('rejects notice playback with %s', (_name, value) => {
     expect(parseLiveState(noticeState(value)).ok).toBe(false);
   });

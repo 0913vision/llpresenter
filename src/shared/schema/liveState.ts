@@ -2,6 +2,7 @@ import * as v from 'valibot';
 import type {LayerKind, LiveState} from '../live';
 import type {Result} from '../result';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
+import {nonBlankText} from './primitives';
 import {
   activeMessagesSchema,
   activePropsSchema,
@@ -42,7 +43,7 @@ export const layerSchemas = {
 } satisfies Record<LayerKind, v.GenericSchema>;
 
 const liveStateSchema = payloadObject({
-  stageMessage: v.exactOptional(v.nullable(v.string())),
+  stageMessage: v.exactOptional(v.nullable(nonBlankText)),
   version: count,
   layers: payloadObject({
     media: v.nullable(layerSchemas.media),

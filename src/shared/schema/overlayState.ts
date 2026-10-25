@@ -100,7 +100,7 @@ export const noticePlaybackSchema = v.pipe(
     position: nonNegativeInteger,
     interval: positiveSeconds,
     loop: v.boolean(),
-    targets: overlayScreenIdsSchema,
+    targets: v.pipe(overlayScreenIdsSchema, v.minLength(1)),
     startedAt: epochMillisecondsSchema,
     pausedAt: v.nullable(epochMillisecondsSchema),
   }),
