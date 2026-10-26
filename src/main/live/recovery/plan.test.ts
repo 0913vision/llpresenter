@@ -21,13 +21,15 @@ import {
   SERVICE,
   SONG_ITEM,
 } from '../testing/recovery';
-import {planRecovery} from './plan';
+import {lookCommands, planRecovery} from './plan';
 
 const NDI_SCREEN = overlayUuid(40);
 const REMOVED_SCREEN = overlayUuid(41);
 const REMOVED_PROP = overlayUuid(42);
 const MEDIA = createMediaId(overlayUuid(43));
 const FIRST_IMAGE = createMediaId(overlayUuid(30));
+const KEPT_LOOK = overlayUuid(47);
+const DELETED_LOOK = overlayUuid(48);
 
 function sources() {
   const settings = overlaySettings();
@@ -96,7 +98,7 @@ describe('recovery plan', () => {
     ]);
   });
 
-  it('offers the live 슬라이드 by its current tile, with its background', () => {
+  it('offers the live 슬라이드 as it was captured, with its background', () => {
     const record = recoveryRecordOf({
       layers: {
         slide: LIVE_SLIDE,
@@ -116,15 +118,7 @@ describe('recovery plan', () => {
           },
         },
         commands: [
-          {
-            type: 'slide.show',
-            slide: {
-              itemId: SONG_ITEM,
-              position: 3,
-              label: '후렴',
-              lines: ['저 천사여 찬송하세', '찬송 성부 성자 성령'],
-            },
-          },
+          {type: 'slide.show', slide: LIVE_SLIDE},
           {type: 'media.show', media: {mediaId: MEDIA, loop: true}},
         ],
       },
@@ -294,6 +288,26 @@ describe('recovery plan', () => {
         commands: [{type: 'message.show', message: layer}],
       },
     ]);
+  });
+
+  it('applies the recorded Look only while it still exists', () => {
+    const fixture = sources();
+    const look = (id: string, name: string) => ({id, name, screens: {}});
+    fixture.update(
+      settingsDocument('looks', {
+        current: KEPT_LOOK,
+        looks: [look(KEPT_LOOK, 'Kept')],
+        lyricStyles: [],
+      }),
+    );
+    const lookOf = (lookId: string | null) =>
+      lookCommands(recoveryRecordOf({lookId}).state, fixture.settings);
+    expect(lookOf(KEPT_LOOK)).toEqual([{type: 'look.set', lookId: KEPT_LOOK}]);
+    expect(lookOf(DELETED_LOOK)).toEqual([]);
+    expect(lookOf(null)).toEqual([]);
+    expect(lookCommands(recoveryRecordOf({}).state, fixture.settings)).toEqual(
+      [],
+    );
   });
 
   it('lists the rows in the order they are applied', () => {

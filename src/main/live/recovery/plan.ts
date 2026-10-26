@@ -38,10 +38,10 @@ export interface RecoverySources {
 
 /**
  * The rows a recovery record can still restore, in the order spec 08 applies
- * them: outputs, then the live 슬라이드 and its background, then the items
- * that were showing. A row with nothing left to restore is left out. Clocks
- * resume from the record's time: a message keeps the display time it had left
- * and a 공지 restarts from the image it showed.
+ * them: outputs, then the live 슬라이드 as it was captured and its background,
+ * then the items that were showing. A row with nothing left to restore is left
+ * out. Clocks resume from the record's time: a message keeps the display time
+ * it had left and a 공지 restarts from the image it showed.
  */
 export function planRecovery(
   record: RecoveryRecord,
@@ -53,6 +53,19 @@ export function planRecovery(
     showingStep(record, settings),
   ];
   return steps.filter(step => step !== null);
+}
+
+/** The record's Look, which restore applies while it still exists (spec 02). */
+export function lookCommands(
+  {lookId}: LiveState,
+  settings: Pick<SettingsReader, 'get'>,
+): readonly SingleLiveCommand[] {
+  if (lookId == null) return [];
+  const document = settings.get('looks');
+  const exists =
+    document.name === 'looks' &&
+    document.value.looks.some(({id}) => id === lookId);
+  return exists ? [{type: 'look.set', lookId}] : [];
 }
 
 function outputsStep(
@@ -88,21 +101,10 @@ function slideStep(
   if (item === undefined || !isItemOfKind(item, 'song')) return null;
   const song = content.song(item.song)?.song;
   if (song === undefined) return null;
-  const tiles = songTiles(song, NO_LABEL_COLORS, item.arrangement);
-  const tile = tiles[slide.position];
-  if (tile === undefined) return null;
+  const slideCount = songTiles(song, NO_LABEL_COLORS, item.arrangement).length;
+  if (slide.position >= slideCount) return null;
   const media = state.layers.media;
-  const commands: SingleLiveCommand[] = [
-    {
-      type: 'slide.show',
-      slide: {
-        itemId: item.id,
-        position: slide.position,
-        label: tile.label,
-        lines: tile.lines,
-      },
-    },
-  ];
+  const commands: SingleLiveCommand[] = [{type: 'slide.show', slide}];
   if (media !== null) {
     commands.push({
       type: 'media.show',
@@ -117,7 +119,7 @@ function slideStep(
         itemId: item.id,
         title: song.title,
         position: slide.position,
-        slideCount: tiles.length,
+        slideCount,
       },
     },
     commands,
