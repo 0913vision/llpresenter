@@ -60,19 +60,12 @@ against this file avoids duplicating it in production code or widening the
 shared `ListRow` change. The asynchronous assertion describes the condition the
 test actually needs.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (f28582c8): reviewer (Codex, codex5) Approve. Lead Approve; the
+  intermittent `ScreensWorkspace.test.tsx` failure seen on data-60's CI was
+  already fixed on `main` (d5b41dec), and this adds delayed-read coverage and a
+  wait after the click. Fast-forward onto local `main`.
 
 ## Team member's reply
 
