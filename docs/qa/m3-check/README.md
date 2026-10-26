@@ -1,9 +1,16 @@
 # M3 user check fixture
 
-The [Korean user sheet](../m3-check.md) targets `m3-check3` at `9bde04fd`,
-version `0.16.0`. The [smoke report](smoke.md) retains the earlier tagged runs
-and the passing check3 retest of C2-1. These fixtures were added after the app
-tags, so the sheet fetches QA files separately while preserving the app tag.
+The current sample uses the chunked `.llbible` v2 container required by current
+main. Its invented sentences and metadata are unchanged. See the
+[v2 fixture verification](bible-v2.md) for conversion and 진행/준비 checks.
+
+The historical [Korean user sheet](../m3-check.md) targets `m3-check3` at
+`9bde04fd`, version `0.16.0`. It explicitly fetches the `docs/qa/m3-check`
+branch, whose v1 sample is unchanged by the v2 conversion on main. Keep that
+fetch when running the historical tag: its reader expects v1 JSON, not the
+current v2 container. The [smoke report](smoke.md) retains the earlier tagged
+runs and passing check3 retest of C2-1. QA files were added after those app
+tags.
 
 Copy `sample/` to a new user-data folder. Its root must contain `app.json`,
 `bible/`, and `LoveLight/`. Set `LLP_USER_DATA` to that root. Never run against
@@ -28,7 +35,9 @@ the tracked fixture itself.
   labelled as **not Scripture** in the translation metadata and every sentence.
   Only John book positions exist, with 21 chapters, 36 positions in chapter 3,
   and eight positions in each other chapter. It exercises address parsing and
-  display without shipping licensed translations. It is not a Bible dataset.
+  display without shipping licensed translations. It is not a Bible dataset. The
+  current file is a four-byte little-endian header length, a UTF-8 v2 JSON index
+  and UTF-8 chapter blocks, prepared with `npm run bible:convert`.
 - `import/unplayable.webm` is intentionally plain text, kept outside the data
   sample. It tests decoder refusal when an import entry is available. It is
   never registered as media in the sample.

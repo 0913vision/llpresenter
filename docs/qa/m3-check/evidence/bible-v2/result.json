@@ -1,0 +1,48 @@
+{
+  "issue": "M3-UX-02",
+  "testedMain": "cd8f44244ed5ec4abe6c0ca9df1b704b016e1d15",
+  "command": "npm run bible:convert -- .llp/qa14-source-v1.llbible docs/qa/m3-check/sample/bible/sample.llbible",
+  "container": {
+    "schemaVersion": 2,
+    "id": "sample",
+    "books": 1,
+    "chapters": 21,
+    "positions": 196,
+    "metadataPreserved": true,
+    "allTextPreserved": true,
+    "allOffsetsContiguous": true,
+    "headerBytes": 1209,
+    "bodyBytes": 17217,
+    "fileBytes": 18430,
+    "sourceSha256": "02eeac06173db56a1cebe001a358a21bae15b2c9cf415288b0c0aae1a2415912",
+    "outputSha256": "15feb20ed3f1b4cc44f97c2e0abd3b4b5a568756b7b51e14b4e3cd101627dd57"
+  },
+  "smoke": {
+    "reference": "요 3:16-18",
+    "viewport": [1920, 1080, 1],
+    "showCompletion": "요한복음 ",
+    "show": {
+      "heading": ["요한복음 3:16-18", "슬라이드 3개"],
+      "slides": 3,
+      "unavailable": false
+    },
+    "prepCompletion": "요한복음 ",
+    "prepChoices": ["요한복음 3:16-18\n절 3개"],
+    "prepInserted": true,
+    "pass": true
+  },
+  "runtime": {
+    "freshCopy": true,
+    "offscreen": true,
+    "devPort": 5189,
+    "allWindowsHidden": true,
+    "exitCode": 0,
+    "remainingOwnElectronProcesses": 0,
+    "bibleLoadErrors": false
+  },
+  "historicalFixture": {
+    "branch": "docs/qa/m3-check",
+    "schemaVersion": 1,
+    "unchanged": true
+  }
+}
