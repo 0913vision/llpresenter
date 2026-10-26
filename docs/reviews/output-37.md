@@ -132,19 +132,16 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (d3df4373): reviewer (Codex, codex3) Approve, no findings. Lead
+  Approve after reading the output-path code (one external reviewer plus the
+  lead, user decision of October 26): every window call is guarded and logged,
+  the timer is cleared on a repeat press and on dispose, the windows never take
+  focus and pass clicks through, and a monitor whose every spot covers a shown
+  capture window shows no number. The look in spec 06 is the lead's decision.
+  Rebased by the lead onto local `main` without conflicts; typecheck passes.
+  M3-O9b is complete.
 
 ## Team member's reply
 
