@@ -457,6 +457,17 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   자체가 매우 이상해"): the menu entry is 구역 추가 and a new one is named 새
   구역 in rename mode. ProPresenter calls these playlist Headers; the Korean
   name is the user's choice.
+- The Bible reference input has separate fields, 책, 장, 시작절, and 끝절
+  (optional), like copible's form, instead of one text field (user decision:
+  "사람이 -나 :를 치는 건 번거로워"). Tab moves to the next field and is blocked
+  while the value is invalid; Tab in 책 completes the name; changing 시작절
+  clears 끝절; an empty 끝절 means one verse; an 끝절 past the chapter's last
+  verse becomes the last verse. This replaces the single field of the
+  autocomplete decision above.
+- Book candidates list the books whose name or short name starts with the typed
+  text first ("베" gives 베드로전서 and 베드로후서); containment matches such as
+  에베소서 show only when nothing starts with it (user decision). copible lists
+  every containment match in canonical order, so this goes past copible.
 - Turning a screen output off hides its window, so that monitor shows the
   Windows desktop (user decision; Renewed Vision's documents and the 7.5 guide
   don't say what ProPresenter shows, so this is not a ProPresenter rule).
