@@ -1,9 +1,8 @@
 # Review request: `screens-6`
 
 - Team member: `screens`
-- Branch: `feat/screens/monitor-assignment`, stacked on screens-5 round 3
-  (`feat/screens/properties` at `e35eef62`)
-- Base commit: `e35eef62`; rebase onto main after screens-5 merges.
+- Branch: `feat/screens/monitor-assignment`
+- Base commit (`main`): `a89cecfd`
 - Last commit, review range and CI: see the request line.
 - Related brief: `docs/briefs/screens.md`, M3-O1 device assignment.
 
@@ -61,9 +60,8 @@ authorized in the restart handover.
 The request line reports scoped Vitest, ESLint, typecheck after rebase,
 formatting and exact-head GitHub verify. Full verify runs only on GitHub.
 
-While stacked on screens-5 round 3, 154 tests in 16 screens and monitor files
-pass, as do ESLint and typecheck. The final request reports checks after moving
-onto main.
+154 tests in 16 screens and monitor files pass, as do ESLint and typecheck. The
+final request reports checks after rebasing onto main.
 
 Tests cover atomic reassignment, fallback assignments, output off, control
 monitors, older publishers, read-only controls and drops, actual row-to-monitor
