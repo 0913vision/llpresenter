@@ -71,3 +71,12 @@ command, or `showSong` read; a consumed request doesn't replay after a workspace
 switch; and opening a 예배 순서 item cancels a pending library open. The tests
 use invented text and a mocked output renderer. No Electron process, visible
 window, soak, or memory measurement was started.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (e114ded9): reviewer (Codex, codex2) Approve. Nit for the next shell
+  request: the non-exported `PrepBinding` interface in `shell/Workspace.tsx` has
+  TSDoc on `onServiceItemOpen`; remove it or make it a NOTE. Lead Approve.
+  Changes outside 진행's paths (`prep/library/LibraryPanel.tsx`,
+  `useLibrary.ts`) checked against prep's rules. Rebased by the lead onto local
+  `main` without conflicts; typecheck passes.
