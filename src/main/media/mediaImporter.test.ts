@@ -1,5 +1,6 @@
-import {readdir, writeFile} from 'node:fs/promises';
-import {join} from 'node:path';
+import {getEventListeners} from 'node:events';
+import {mkdir, readdir, writeFile} from 'node:fs/promises';
+import {dirname, join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {makeTempDir} from '../../../test/temp-dir';
 import {createMediaId, createMediaPlaylistId} from '@shared/schema/ids';
@@ -12,7 +13,7 @@ import type {MediaItem} from '@shared/schema/mediaList';
 import {expectSuccess} from '@shared/schema/testHelpers';
 import {recordingLogger} from '../displays/testing';
 import {EMPTY_MEDIA_LIST} from '../store/defaults';
-import type {MediaItemsCommit} from '../store/mediaStore';
+import {MediaStore, type MediaItemsCommit} from '../store/mediaStore';
 import type {CopyOptions} from './copyFile';
 import {
   IMPORTED_VIDEO_SOUND,
@@ -255,5 +256,104 @@ describe('media import', () => {
     expect((await importer.import(filesOf([file]), closing.signal)).ok).toBe(
       false,
     );
+  });
+});
+
+describe('media import boundaries', () => {
+  it('keeps an imported file when the media list applies it but fails to save', async () => {
+    const root = await makeTempDir();
+    const folder = join(root, 'media');
+    const store = new MediaStore({
+      document: expectSuccess(
+        parseMediaDocument({
+          name: 'media',
+          revision: 1,
+          access: 'editable',
+          value: EMPTY_MEDIA_LIST,
+        }),
+      ),
+      file: join(root, 'media.json'),
+      mediaFolder: folder,
+      developmentFolder: null,
+      files: {
+        write: request =>
+          Promise.resolve({
+            ok: false,
+            error: {file: request.target.file, message: 'Invented full disk'},
+          }),
+        remove: () => Promise.resolve({ok: true, value: undefined}),
+      },
+      log: recordingLogger(),
+      delayMs: 0,
+    });
+    onTestFinished(() => store.dispose());
+    const reports: MediaImportProgress[] = [];
+    const importer = new MediaImporter({
+      store: () => Promise.resolve(store),
+      report: value => reports.push(value),
+      chooseFiles: () => Promise.resolve([]),
+      createId: () => createMediaId(uuid(1)),
+      log: recordingLogger(),
+    });
+    const source = join(root, 'Kept.png');
+    await writeFile(source, 'invented');
+    await importer.import(filesOf([source]), signal());
+    await ended(reports, 1);
+    expect(reports.at(-1)).toMatchObject({phase: 'complete'});
+    expect(await readdir(folder)).toEqual(['Kept.png']);
+    expect(store.get().value.items.map(({id}) => id)).toEqual([uuid(1)]);
+  });
+
+  it('stops following the shared backend signal when each job ends', async () => {
+    const {importer, reports, source} = await setup();
+    const shared = new AbortController();
+    for (const name of ['h.png', 'i.png', 'j.png']) {
+      await importer.import(filesOf([await source(name)]), shared.signal);
+    }
+    await ended(reports, 3);
+    expect(getEventListeners(shared.signal, 'abort')).toHaveLength(0);
+  });
+
+  it('removes the copy when a cancel wins after the copy and before the list', async () => {
+    let cancel: () => Promise<unknown> = () => Promise.resolve();
+    const copy = vi.fn(async ({to}: CopyOptions) => {
+      await mkdir(dirname(to), {recursive: true});
+      await writeFile(to, 'invented');
+      await cancel();
+      return {ok: true, value: 8} as const;
+    });
+    const {importer, reports, add, media, source} = await setup({copy});
+    cancel = () => importer.cancel(createMediaId(uuid(1)));
+    await importer.import(filesOf([await source('k.mp4')]), signal());
+    await ended(reports, 1);
+    expect(reports.at(-1)).toMatchObject({phase: 'cancelled'});
+    expect(add).not.toHaveBeenCalled();
+    expect(await readdir(media)).toEqual([]);
+  });
+
+  it('refuses a cancel once the item is joining the media list', async () => {
+    const {importer, reports, add, media, source} = await setup();
+    let admit: () => void = () => undefined;
+    add.mockImplementationOnce(
+      commit =>
+        new Promise(resolve => {
+          admit = () => {
+            resolve({
+              ok: true,
+              value: {id: commit.items[0]?.id ?? '', revision: 2},
+            });
+          };
+        }),
+    );
+    await importer.import(filesOf([await source('l.webm')]), signal());
+    await vi.waitFor(() => expect(add).toHaveBeenCalledOnce());
+    expect(await importer.cancel(createMediaId(uuid(1)))).toMatchObject({
+      ok: false,
+      error: {reason: 'invalid'},
+    });
+    admit();
+    await ended(reports, 1);
+    expect(reports.at(-1)).toMatchObject({phase: 'complete'});
+    expect(await readdir(media)).toEqual(['l.webm']);
   });
 });

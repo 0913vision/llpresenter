@@ -58,7 +58,27 @@ interface ImportJob {
   readonly fileName: string;
   readonly playlist: PlaylistRef | null;
   readonly abort: AbortController;
+  /** Stops following the backend's signal once the job ends. */
+  readonly release: () => void;
+  /** Set when the job starts joining the media list; it can't be cancelled after. */
+  admitting: boolean;
 }
+
+type JobOutcome =
+  | {readonly phase: 'complete' | 'cancelled'}
+  | {readonly phase: 'failed'; readonly message: string};
+
+const COMPLETE: JobOutcome = {phase: 'complete'};
+const CANCELLED: JobOutcome = {phase: 'cancelled'};
+
+type Placed =
+  | {
+      readonly ok: true;
+      readonly file: string;
+      readonly size: number;
+      readonly copied: boolean;
+    }
+  | {readonly ok: false; readonly error: string};
 
 function progress(
   job: Pick<ImportJob, 'mediaId' | 'fileName'>,
@@ -144,6 +164,11 @@ export class MediaImporter {
         mediaRefusal('not-found', 'This import already ended'),
       );
     }
+    if (job.admitting) {
+      return Promise.resolve(
+        mediaRefusal('invalid', 'This import is joining the media list'),
+      );
+    }
     job.abort.abort();
     return Promise.resolve({ok: true, value: null});
   }
@@ -164,15 +189,23 @@ export class MediaImporter {
     const mediaId = this.options.createId();
     const kind = mediaKindOf(source);
     if (kind === null) return failed({mediaId, fileName}, 0, UNSUPPORTED);
+    const abort = new AbortController();
+    const stop = (): void => {
+      abort.abort();
+    };
+    signal.addEventListener('abort', stop, {once: true});
     const job: ImportJob = {
       mediaId,
       source,
       kind,
       fileName,
       playlist,
-      abort: new AbortController(),
+      abort,
+      release: () => {
+        signal.removeEventListener('abort', stop);
+      },
+      admitting: false,
     };
-    signal.addEventListener('abort', () => job.abort.abort(), {once: true});
     this.jobs.set(mediaId, job);
     this.queue = this.queue.then(() => this.run(job));
     return progress(job, 'queued', 0);
@@ -186,11 +219,9 @@ export class MediaImporter {
         this.options.report(progress(job, 'copying', value));
       });
       this.options.report(
-        cancelled(job)
-          ? progress(job, 'cancelled', percent)
-          : outcome.ok
-            ? progress(job, 'complete', 100)
-            : failed(job, percent, outcome.error),
+        outcome.phase === 'failed'
+          ? failed(job, percent, outcome.message)
+          : progress(job, outcome.phase, percent),
       );
     } catch (error: unknown) {
       this.options.log.error('media import failed', {
@@ -199,6 +230,7 @@ export class MediaImporter {
       });
       this.options.report(failed(job, percent, COPY_FAILED));
     } finally {
+      job.release();
       this.jobs.delete(job.mediaId);
     }
   }
@@ -206,14 +238,32 @@ export class MediaImporter {
   private async importFile(
     job: ImportJob,
     onPercent: (percent: number) => void,
-  ): Promise<
-    {readonly ok: true} | {readonly ok: false; readonly error: string}
-  > {
-    if (cancelled(job)) return {ok: true};
+  ): Promise<JobOutcome> {
+    if (cancelled(job)) return CANCELLED;
     const store = await this.options.store();
-    if (store === null) return {ok: false, error: NOT_ADDED};
+    if (store === null) return {phase: 'failed', message: NOT_ADDED};
     const placed = await this.place(job, store.folder, onPercent);
-    if (!placed.ok || cancelled(job)) return placed;
+    if (!placed.ok) {
+      return cancelled(job)
+        ? CANCELLED
+        : {phase: 'failed', message: placed.error};
+    }
+    if (cancelled(job)) {
+      await this.removeCopy(placed);
+      return CANCELLED;
+    }
+    return this.admit(job, store, placed);
+  }
+
+  // NOTE(0913vision): The commit boundary. From here the item may already be
+  // in the list (the store applies before it saves), so cancelling is
+  // refused, and a save that failed keeps the file for the list's retry.
+  private async admit(
+    job: ImportJob,
+    store: ImportStore,
+    placed: Extract<Placed, {readonly ok: true}>,
+  ): Promise<JobOutcome> {
+    job.admitting = true;
     const added = await store.add(
       {
         items: [
@@ -226,25 +276,29 @@ export class MediaImporter {
       },
       job.playlist,
     );
-    if (added.ok) return {ok: true};
+    if (added.ok || added.error.reason === 'write-failed') return COMPLETE;
     this.options.log.warn('could not add imported media', added.error);
-    if (placed.copied) await rm(placed.file, {force: true});
-    return {ok: false, error: NOT_ADDED};
+    await this.removeCopy(placed);
+    return {phase: 'failed', message: NOT_ADDED};
+  }
+
+  private async removeCopy(placed: Extract<Placed, {readonly ok: true}>) {
+    if (!placed.copied) return;
+    try {
+      await rm(placed.file, {force: true});
+    } catch (error: unknown) {
+      this.options.log.warn('could not remove an unused media copy', {
+        file: placed.file,
+        error,
+      });
+    }
   }
 
   private async place(
     job: ImportJob,
     folder: string,
     onPercent: (percent: number) => void,
-  ): Promise<
-    | {
-        readonly ok: true;
-        readonly file: string;
-        readonly size: number;
-        readonly copied: boolean;
-      }
-    | {readonly ok: false; readonly error: string}
-  > {
+  ): Promise<Placed> {
     if (!(this.options.copyIntoFolder ?? COPY_IMPORTED_MEDIA)) {
       const {size} = await stat(job.source);
       onPercent(100);
