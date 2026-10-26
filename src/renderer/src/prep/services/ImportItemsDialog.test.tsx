@@ -1,4 +1,4 @@
-import {act, render, screen, waitFor} from '@testing-library/react';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   afterEach,
@@ -10,9 +10,13 @@ import {
   vi,
 } from 'vitest';
 import type {LiveCommand} from '@shared/commands';
-import type {ServiceEntry} from '@shared/schema/contentDocuments';
+import type {
+  ServiceEntry,
+  TemplateDocument,
+  TemplateEntry,
+} from '@shared/schema/contentDocuments';
 import type {ContentEdit, EditResult} from '@shared/schema/contentEdit';
-import {createServiceId} from '@shared/schema/ids';
+import {createServiceId, createTemplateId} from '@shared/schema/ids';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {applyService} from '@renderer/state/show';
 import {sampleService} from '@renderer/show/testing/sampleService';
@@ -52,10 +56,16 @@ function setup({
 } = {}) {
   const edits: ContentEdit[] = [];
   const sent: LiveCommand[] = [];
+  let pushTemplates: (entries: readonly TemplateEntry[]) => void = () =>
+    undefined;
   window.llp = fakeLlpApi({
     templates: {
       list: () => Promise.resolve(templates),
       get: () => Promise.resolve(templateDocument),
+      subscribeList: listener => {
+        pushTemplates = listener;
+        return () => undefined;
+      },
     },
     services: {
       list: () => Promise.resolve(services),
@@ -76,7 +86,15 @@ function setup({
   const onClose = vi.fn();
   const onProblem = vi.fn();
   render(<ImportItemsDialog onClose={onClose} onProblem={onProblem} />);
-  return {edits, sent, onClose, onProblem};
+  return {
+    api: window.llp,
+    edits,
+    sent,
+    onClose,
+    onProblem,
+    pushTemplates: (entries: readonly TemplateEntry[]) =>
+      pushTemplates(entries),
+  };
 }
 
 function row(name: string): HTMLElement {
@@ -159,6 +177,77 @@ describe('ImportItemsDialog', () => {
     expect(edits[0]).toMatchObject({
       from: {kind: 'service', id: ids.past},
       itemIds: [ids.pastSong],
+    });
+  });
+
+  it('keeps the default 틀 and checked items when a rename sorts it after another 틀', async () => {
+    let selectedTemplate = templateDocument;
+    const otherTemplate: TemplateDocument = {
+      ...templateDocument,
+      template: {
+        ...templateDocument.template,
+        id: createTemplateId('30000000-0000-4000-8000-000000000002'),
+        name: '찬양 예배',
+        order: [{id: ids.praise, header: '다른 순서'}],
+      },
+    };
+    const otherEntry: TemplateEntry = {
+      id: otherTemplate.template.id,
+      name: otherTemplate.template.name,
+      access: 'editable',
+    };
+    const {api, edits, onClose, pushTemplates} = setup({
+      templates: [...templateEntries, otherEntry],
+    });
+    vi.spyOn(api.templates, 'get').mockImplementation(id =>
+      Promise.resolve(id === ids.template ? selectedTemplate : otherTemplate),
+    );
+    await userEvent.click(
+      await screen.findByRole('treeitem', {name: titles.first}),
+    );
+    await userEvent.click(row('광고'));
+    fireEvent.contextMenu(screen.getByRole('option', {name: /^주일 예배/}));
+    await userEvent.click(
+      await screen.findByRole('menuitem', {name: '이름 바꾸기'}),
+    );
+    const field = screen.getByRole('textbox', {name: '이름'});
+    await userEvent.clear(field);
+    await userEvent.type(field, '하늘 예배');
+    await userEvent.click(screen.getByRole('button', {name: '바꾸기'}));
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', {name: '이름 바꾸기'})).toBeNull(),
+    );
+    selectedTemplate = {
+      ...templateDocument,
+      template: {...templateDocument.template, name: '하늘 예배'},
+      revision: 2,
+    };
+    act(() =>
+      pushTemplates([
+        otherEntry,
+        {id: ids.template, name: '하늘 예배', access: 'editable', itemCount: 4},
+      ]),
+    );
+    expect(
+      screen
+        .getByRole('option', {name: /^하늘 예배/})
+        .getAttribute('aria-selected'),
+    ).toBe('true');
+    expect(
+      (await screen.findByRole('treeitem', {name: titles.first})).getAttribute(
+        'aria-checked',
+      ),
+    ).toBe('true');
+    expect(row('광고').getAttribute('aria-checked')).toBe('true');
+    expect(row(titles.second).getAttribute('aria-checked')).toBe('false');
+    expect(screen.queryByRole('treeitem', {name: '다른 순서'})).toBeNull();
+    await userEvent.click(importButton());
+    await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
+    expect(edits.at(-1)).toEqual({
+      type: 'service.importItems',
+      serviceId: currentId,
+      from: {kind: 'template', id: ids.template},
+      itemIds: [ids.doxology, ids.closing],
     });
   });
 

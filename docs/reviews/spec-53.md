@@ -6,7 +6,7 @@ Review range: `c7912cfa...feat/spec/rename-delete`
 - Branch: `feat/spec/rename-delete`, rebased onto local `main` after spec-51 and
   spec-52 merged
 - Base commit: `c7912cfa6553958336c56b9ff29705dd2e891bdb`
-- Review round: 2
+- Review round: 3
 - Task: M3-P4c, rename and delete for 틀 and 예배 순서
 - Code owner: prep for `src/renderer/src/prep/services/` (no prep member; lead
   exception for P4)
@@ -56,19 +56,19 @@ service can't be deleted. P4's acceptance: the current service can't be deleted.
 
 `src/renderer/src/prep/services/` belongs to prep. The lead's P4 exception
 covers these service dialogs and their regression tests. No shared contract or
-other owner's implementation changed in round 2.
+other owner's implementation changed in rounds 2 or 3.
 
 ## Validation
 
-| Round 2 check                                                                              | Result                                         |
+| Round 3 check                                                                              | Result                                         |
 | ------------------------------------------------------------------------------------------ | ---------------------------------------------- |
 | `npm run typecheck`                                                                        | Pass                                           |
-| `npx --no-install vitest run --no-fsModuleCache src/renderer/src/prep/services`            | Pass, 9 files and 77 tests                     |
-| `npx --no-install eslint --max-warnings 0 src/renderer/src/prep/services`                  | Pass                                           |
+| `npx --no-install vitest run --no-fsModuleCache src/renderer/src/prep/services`            | Pass, 9 files and 78 tests                     |
+| ESLint on `useImportItems.ts` and `ImportItemsDialog.test.tsx`                             | Pass                                           |
 | `npx --no-install prettier --check src/renderer/src/prep/services docs/reviews/spec-53.md` | Pass                                           |
 | GitHub CI (`npm run verify`)                                                               | Head run URL and result in the request message |
 
-Round 1's services and show run passed 441 tests. The full round 2 verify runs
+Round 1's services and show run passed 441 tests. The full round 3 verify runs
 on GitHub only.
 
 Tests: renaming a 틀 and a past service with the whole document and revision; a
@@ -97,3 +97,10 @@ No Electron process, visible window, soak, or memory measurement was started.
    the write before the flush succeeds. Separate tests confirm a close already
    in progress prevents new reads and writes. All five regression cases fail
    without the fixes.
+3. Round 3: `useImportItems` now stores the automatic source in `chosen`, using
+   the same rule as `useNewService`. Its regression starts with two templates,
+   checks two items in the default, and renames it so it sorts after the other
+   template. The original id stays selected, its checked and unchecked items
+   stay unchanged, and importing sends that id with exactly the checked items.
+   The test fails without the fix because the renamed template loses its
+   selection.
