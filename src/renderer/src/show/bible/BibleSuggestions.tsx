@@ -19,6 +19,7 @@ export interface BibleSuggestion {
   readonly input: string;
   readonly translation: TranslationId | undefined;
   readonly count?: number | undefined;
+  readonly ref?: string | undefined;
 }
 
 export function BibleSuggestions({

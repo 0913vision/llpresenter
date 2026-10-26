@@ -17,15 +17,29 @@ export interface BibleLookupOptions {
   readonly log: Logger;
 }
 
-function suggestions(input: string) {
-  const [, name = '', range = ''] = BOOK_PREFIX.exec(input.trim()) ?? [];
-  return matchBooks(name)
-    .map(book => ({
-      bookId: book.id,
-      name: book.korean,
-      input: `${book.korean} ${range.trim()}`.trim(),
-    }))
-    .filter(suggestion => suggestion.input.length <= BIBLE_LOOKUP_LIMITS.input);
+function suggestions(request: BibleLookupRequest, library: BibleLibrary) {
+  const [, name = '', range = ''] =
+    BOOK_PREFIX.exec(request.input.trim()) ?? [];
+  return matchBooks(name).flatMap(book => {
+    const input = `${book.korean} ${range.trim()}`.trim();
+    if (input.length > BIBLE_LOOKUP_LIMITS.input) return [];
+    const result = library.resolve(request.translation, input);
+    return [
+      {
+        bookId: book.id,
+        name: book.korean,
+        input,
+        ...(result.ok
+          ? {
+              resolved: {
+                ref: result.value.ref,
+                verseCount: result.value.verses.length,
+              },
+            }
+          : {}),
+      },
+    ];
+  });
 }
 
 /** Serializes lazy library reloads and caps requests waiting for disk reads. */
@@ -95,7 +109,7 @@ export class BibleLookupSession {
     const result = this.library.resolve(request.translation, request.input);
     const reply = parseBibleLookupReply(request, {
       ...request,
-      suggestions: suggestions(request.input),
+      suggestions: suggestions(request, this.library),
       result,
     });
     if (!reply.ok) {

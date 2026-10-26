@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import type {ReadonlyKnown} from './fileFormat';
 import {translationIdSchema} from './ids';
 import {parsePayload, payloadObject, plainObject} from './payload';
-import {positiveInteger} from './primitives';
+import {nonBlankText, positiveInteger} from './primitives';
 
 export const BIBLE_LOOKUP_LIMITS = {
   input: 256,
@@ -65,6 +65,15 @@ const replySchema = payloadObject({
         bookId: v.pipe(positiveInteger, v.maxValue(BIBLE_LOOKUP_LIMITS.books)),
         name: referenceText,
         input: referenceText,
+        resolved: v.exactOptional(
+          payloadObject({
+            ref: v.pipe(nonBlankText, v.maxLength(BIBLE_LOOKUP_LIMITS.input)),
+            verseCount: v.pipe(
+              positiveInteger,
+              v.maxValue(BIBLE_LOOKUP_LIMITS.verses),
+            ),
+          }),
+        ),
       }),
     ),
     v.maxLength(BIBLE_LOOKUP_LIMITS.suggestions),

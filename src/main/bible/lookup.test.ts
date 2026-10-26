@@ -66,6 +66,21 @@ async function setup() {
 }
 
 describe('Bible lookup session', () => {
+  it.each(['요 3장 16절', '요 3장 16-18절'])(
+    'returns canonical suggestion identity and counts for %s',
+    async input => {
+      const {session} = await setup();
+      const reply = await session.lookup(request(input));
+      if (!reply.result.ok) throw new Error('Expected a resolved passage');
+      expect(reply.suggestions[0]).toMatchObject({
+        input: input.replace('요 ', '요한복음 '),
+        resolved: {
+          ref: reply.result.value.ref,
+          verseCount: reply.result.value.verses.length,
+        },
+      });
+    },
+  );
   it('drops expanded suggestions past the reply limit without rejecting the lookup', async () => {
     const {session} = await setup();
     const input = `요 3:${' '.repeat(250)}16`;

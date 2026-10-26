@@ -27,6 +27,41 @@ function parsedRequest() {
 }
 
 describe('Bible lookup payloads', () => {
+  it('accepts optional normalized suggestion metadata and strips unknown fields', () => {
+    const suggestion = {
+      ...reply.suggestions[0],
+      resolved: {ref: '요한복음 3:16-18', verseCount: 3, extra: true},
+    };
+    const parsed = parseBibleLookupReply(parsedRequest(), {
+      ...reply,
+      suggestions: [suggestion],
+    });
+    expect(parsed).toMatchObject({
+      ok: true,
+      value: {
+        suggestions: [{resolved: {ref: '요한복음 3:16-18', verseCount: 3}}],
+      },
+    });
+    if (!parsed.ok) throw new Error('Expected valid suggestion metadata');
+    expect(parsed.value.suggestions[0]?.resolved).toEqual({
+      ref: '요한복음 3:16-18',
+      verseCount: 3,
+    });
+  });
+  it.each([
+    {ref: '', verseCount: 1},
+    {ref: 'x'.repeat(BIBLE_LOOKUP_LIMITS.input + 1), verseCount: 1},
+    {ref: '요한복음 3:16', verseCount: 0},
+    {ref: '요한복음 3:16', verseCount: BIBLE_LOOKUP_LIMITS.verses + 1},
+    {ref: '요한복음 3:16'},
+  ])('rejects malformed normalized suggestion metadata %#', resolved => {
+    expect(
+      parseBibleLookupReply(parsedRequest(), {
+        ...reply,
+        suggestions: [{...reply.suggestions[0], resolved}],
+      }).ok,
+    ).toBe(false);
+  });
   it('accepts empty input and strips unknown IPC fields', () => {
     expect(
       parseBibleLookupRequest({...request, input: '', extra: true}),

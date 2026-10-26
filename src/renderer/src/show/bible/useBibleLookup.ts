@@ -20,13 +20,16 @@ export function useBibleLookup({
 }) {
   const [reply, setReply] = useState<BibleLookupReply | null>(null);
   const reader = useRef<LatestLookup | null>(null);
-  const preview = useEffectEvent(onPreview);
+  const accept = useEffectEvent((answer: BibleLookupReply) => {
+    if (answer.input !== input || answer.translation !== translation) return;
+    setReply(answer);
+    if (answer.result.ok) onPreview(answer.result.value);
+  });
   useEffect(() => {
     const lookup = new LatestLookup(
       api,
       answer => {
-        setReply(answer);
-        if (answer.result.ok) preview(answer.result.value);
+        accept(answer);
       },
       (request, error) => {
         console.error('Could not look up a Bible passage', error);

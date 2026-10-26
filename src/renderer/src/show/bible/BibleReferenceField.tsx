@@ -26,42 +26,48 @@ export function BibleReferenceField(
   props: BibleReferenceFieldProps,
 ): JSX.Element {
   const [input, setInput] = useState('');
-  const [chosen, setChosen] = useState<TranslationId | null>(null);
+  const [choice, setChoice] = useState({
+    provided: props.translation,
+    selected: props.translation,
+  });
   const [open, setOpen] = useState(false);
   const [pointedKey, setPointedKey] = useState<string | null>(null);
   const root = useRef<HTMLDivElement>(null);
   const listId = useId();
-  const translation = chosen ?? props.translation;
+  const translation =
+    choice.provided === props.translation ? choice.selected : props.translation;
+  if (choice.provided !== props.translation) {
+    setChoice({provided: props.translation, selected: props.translation});
+  }
   const reply = useBibleLookup({...props, input, translation});
   const suggestions: readonly BibleSuggestion[] = [
     ...(reply?.suggestions.map(book => ({
       key: `book:${book.bookId}`,
       group: '구절',
       input: book.input,
+      ref: book.resolved?.ref,
       translation,
-      count:
-        reply.result.ok && reply.result.value.ref === book.input
-          ? reply.result.value.verses.length
-          : undefined,
+      count: book.resolved?.verseCount,
     })) ?? []),
     ...recentPassages(props.recents).map(recent => ({
       key: `recent:${recent.translation}:${recent.ref}`,
       group: '최근',
       input: recent.ref,
+      ref: recent.ref,
       translation: recent.translation,
     })),
   ];
   const pointed = suggestions.findIndex(item => item.key === pointedKey);
   const point = (index: number): void =>
     setPointedKey(suggestions[index]?.key ?? null);
-  const expanded = open && suggestions.length > 0;
+  const expanded = translation !== undefined && open && suggestions.length > 0;
   const change = (value: string): void => {
     setInput(value);
     setPointedKey(null);
     setOpen(true);
   };
   const choose = (suggestion: BibleSuggestion): void => {
-    setChosen(suggestion.translation ?? null);
+    setChoice({provided: props.translation, selected: suggestion.translation});
     change(suggestion.input);
     setOpen(false);
   };
@@ -94,7 +100,7 @@ export function BibleReferenceField(
     if (
       suggestion &&
       (!reply?.result.ok ||
-        suggestion.input !== reply.result.value.ref ||
+        suggestion.ref !== reply.result.value.ref ||
         suggestion.translation !== translation)
     ) {
       choose(suggestion);

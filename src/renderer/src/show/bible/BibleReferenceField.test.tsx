@@ -12,7 +12,7 @@ beforeEach(() => {
   HTMLElement.prototype.scrollIntoView = vi.fn();
 });
 
-function setup(count = 0) {
+function setup(count = 0, recentTranslation = lookupRequest().translation) {
   const lookup = vi.fn(async (request: BibleLookupRequest) =>
     lookupReply(request),
   );
@@ -21,7 +21,7 @@ function setup(count = 0) {
   const api = {lookup};
   const recents = Array.from({length: count}, (_, index) => ({
     ref: `창세기 1:${index + 1}`,
-    translation: lookupRequest().translation,
+    translation: recentTranslation,
   }));
   const view = render(
     <BibleReferenceField
@@ -44,6 +44,82 @@ function setup(count = 0) {
 }
 
 describe('Bible reference field', () => {
+  it.each(['book', 'recent'])(
+    'honors translation changes and removal after choosing a %s suggestion',
+    async kind => {
+      const view = setup(
+        kind === 'recent' ? 1 : 0,
+        lookupRequest('', 'recent').translation,
+      );
+      if (kind === 'book') await view.user.type(view.field, '요 3:16');
+      else await view.user.click(view.field);
+      await view.user.click(screen.getByRole('option'));
+      await waitFor(() => expect(view.onPreview).toHaveBeenCalled());
+      const input = view.field.value;
+      const other = lookupRequest(input, 'other');
+      let finish: (value: BibleLookupReply) => void = () => undefined;
+      view.lookup.mockReturnValueOnce(
+        new Promise(resolve => {
+          finish = resolve;
+        }),
+      );
+      const rerender = (
+        translation: BibleLookupRequest['translation'] | undefined,
+      ): void =>
+        view.rerender(
+          <BibleReferenceField
+            api={view.api}
+            translation={translation}
+            recents={[]}
+            onPreview={view.onPreview}
+            onShow={view.onShow}
+          />,
+        );
+      rerender(other.translation);
+      expect(view.field.value).toBe(input);
+      fireEvent.keyDown(view.field, {key: 'Enter'});
+      expect(view.onShow).not.toHaveBeenCalled();
+      await act(async () => finish(lookupReply(other)));
+      await view.user.keyboard('{Enter}');
+      expect(view.onShow).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({translation: other.translation}),
+      );
+      rerender(undefined);
+      view.onShow.mockClear();
+      expect(view.field.disabled).toBe(true);
+      fireEvent.keyDown(view.field, {key: 'Enter'});
+      expect(view.onShow).not.toHaveBeenCalled();
+      rerender(lookupRequest().translation);
+      await waitFor(() =>
+        expect(view.onPreview).toHaveBeenLastCalledWith(
+          expect.objectContaining({translation: lookupRequest().translation}),
+        ),
+      );
+      await view.user.keyboard('{Enter}');
+      expect(view.onShow).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({translation: lookupRequest().translation}),
+      );
+    },
+  );
+
+  it.each(['요 3장 16절', '요 3장 16-18절'])(
+    'shows the verse count and outputs a pointed current Korean-format passage %s',
+    async input => {
+      const view = setup();
+      await view.user.type(view.field, input);
+      await waitFor(() => expect(view.onPreview).toHaveBeenCalled());
+      const count = input.includes('-') ? 3 : 1;
+      expect(screen.getByRole('option').textContent).toContain(`${count}절`);
+      expect(screen.getByRole('option').textContent).toContain('요한복음 3장');
+      await view.user.keyboard('{ArrowDown}{Enter}');
+      expect(view.onShow).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({
+          ref: count === 3 ? '요한복음 3:16-18' : '요한복음 3:16',
+        }),
+      );
+      expect(view.field.value).toBe(input);
+    },
+  );
   it('previews valid input without output and sends the passage on Enter', async () => {
     const {field, onShow, onPreview, user} = setup();
     await user.type(field, '요 3:16');
