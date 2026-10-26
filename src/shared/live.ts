@@ -4,6 +4,7 @@ import type {
   NoticePlayback,
 } from './schema/overlayState';
 import type {LookId} from './schema/ids';
+import type {TimerRuns} from './schema/timerState';
 export type {
   ActiveMessage,
   ActiveProp,
@@ -87,6 +88,8 @@ export interface LiveState {
   readonly outputs: Readonly<Record<string, boolean>>;
   /** Whether the last clear can be undone, so the 되돌림 button can dim. */
   readonly canUndo: boolean;
+  /** The started 타이머 by id; clears never touch them. Absent means none started. */
+  readonly timers?: TimerRuns;
 }
 
 export function emptyLayers(): LiveLayers {

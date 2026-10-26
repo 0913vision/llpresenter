@@ -14,6 +14,7 @@ import {
   activePropsSchema,
   noticePlaybackSchema,
 } from './overlayState';
+import {timerRunsSchema} from './timerState';
 
 const id = v.pipe(v.string(), v.nonEmpty());
 const count = v.pipe(v.number(), v.integer(), v.minValue(0));
@@ -65,6 +66,7 @@ export const liveStateSchema = payloadObject({
   }),
   outputs: liveOutputsSchema,
   canUndo: v.boolean(),
+  timers: v.exactOptional(timerRunsSchema),
 });
 
 /**
