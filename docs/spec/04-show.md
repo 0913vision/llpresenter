@@ -672,30 +672,41 @@ that ProPresenter's Edit mode has the same behavior.
 
 ### Finding a passage
 
-- The operator types a reference such as "요 3:16-18" in the 퀵 실행 Bible
-  field.
-- Keep this as one field. Tab while the caret or selection is in the book part
-  completes the full Korean book name and a space ("창" becomes "창세기 ").
-  Exact full names and abbreviations win before partial matches. One candidate
-  is taken immediately; with several, Tab takes the highlighted candidate, or
-  the first one if none is highlighted. Arrow keys move the highlight. The
-  chapter and verse suffix stays, with the caret just after the completed book.
-  Tab in the chapter or verse part and Shift Tab keep normal focus navigation;
-  IME composition keeps its keys. This shared rule also applies to the 준비 항목
-  추가 성경 구절 field (user decision, October 26).
-- A chapter or verse outside its range marks the field with the design system
-  error ring and explains the reason in its tooltip, without a visible sentence
-  beside the field. It blocks output, or insertion from 준비 항목 추가.
-- Suggestions open below the field. The "구절" (passages) group lists matching
-  books, with the range and verse count (요한복음 3:16-18, 요한일서, 요엘). The
-  "최근" (recent) group lists recent passages (창세기 1:1-5, 시편 23:1-6). The
-  up and down arrow keys move through them. A click or Enter chooses one.
-- As soon as the text is a valid reference, the Bible panel opens in place of
-  the 슬라이드 panel in the center column.
-- References can use the full book name or its abbreviation, with
-  "chapter:verse", "chapter:verse-verse", "chapter:verse-chapter:verse", or a
-  whole chapter (proposal). The grammar and the book matching are in 02
-  ("Reference grammar", "What comes from copible").
+- The 퀵 실행 Bible input has four fields, 책, 장, 시작절, and optional 끝절
+  (user decision, October 26). 책 occupies the first row; the three number
+  fields share the next row so they also fit the narrow workspace. The same
+  component is used in 준비 항목 추가 성경 구절.
+- 책 lists every containment match in canonical order, using Korean full and
+  short names by jamo, English names and codes, and IME-off QWERTY input (02).
+  Nothing is highlighted initially. Forward Tab completes an exact match or a
+  sole candidate to the full name and moves to 장. With several candidates and
+  no exact match, Tab stays until an arrow-key selection is made. The selected
+  book wins when the operator explicitly points to one. A click or Enter selects
+  a suggestion before any output.
+- Forward Tab moves through valid 장, 시작절, and 끝절. 장 ranges from 1 to the
+  book's chapter count, 시작절 from 1 to the chapter's last verse, and 끝절 from
+  시작절 to the last verse. An empty 끝절 means one verse. Changing 시작절
+  clears 끝절. Invalid values block Tab and mark only that field with the error
+  ring and a short Korean tooltip reason, with no adjacent sentence. Lookup
+  clamps an oversized 끝절 to the chapter's last verse; Enter also normalizes
+  the displayed end. A reversed end blocks lookup. Shift Tab keeps backward
+  navigation and IME composition keeps its keys.
+- Suggestions open below 책. The 책 group lists all matching books, without the
+  former eight-book cap. 최근 lists up to ten stored passages. Choosing a recent
+  clears the manual fields and previews its original stored range, including
+  whole chapters and cross-chapter ranges. Enter then outputs that selected
+  passage. Editing any field starts a new manual reference.
+- As soon as the fields form a valid reference, the Bible panel opens in place
+  of the 슬라이드 panel in the center column.
+- Enter from any field outputs the current valid passage, as 바로 띄우기 does. A
+  pending lookup, invalid reference, repeated Enter, or composition Enter cannot
+  output. The four fields build a range within one chapter; stored references
+  and recent passages retain the full grammar in 02.
+- 준비 항목 추가 성경 구절 opens a small 성경 구절 dialog with the same fields.
+  Enter inserts the current passage item using the opening's default translation
+  and verse-number preference. 추가 performs the same insertion; it is disabled
+  without a current valid lookup. 취소 forgets the opening and its pending
+  replies. No passage is output from this dialog.
 
 ### Bible panel
 
@@ -739,8 +750,8 @@ that ProPresenter's Edit mode has the same behavior.
   of the recent list (up to 10, proposal). A passage that is already in the list
   (same reference and translation) moves to the front instead of appearing
   twice, and the oldest one drops off past 10 (proposal).
-- The "구절" suggestions list matching books in canonical order (창세기 first),
-  at most 8 (proposal).
+- The 책 suggestions list all matching books in canonical order (창세기 first),
+  bounded by the 66 books.
 - Choosing a row in the 예배 순서 closes the Bible panel and returns to the
   슬라이드 panel (proposal).
 
@@ -775,7 +786,7 @@ The features are the same. Only the layout differs.
 | Clear row           | Icons only (names in tooltips), 모두 is 1.4 times as wide                                                                                                                                                                | `Compact`, `ClearButton` README  |
 | 진행 도구 tabs      | 표시 중, 무대, and 더 보기 (more). 더 보기 opens a menu with 오디오, 타이머, 메시지, 공지, 소품, and 매크로. Choosing one shows that tab's content, with 더 보기 shown as the active tab (proposal).                     | `Compact`, `Layout` README       |
 | Small previews      | A row with 64 px pictures, name and target on two lines                                                                                                                                                                  | `Compact`, `PreviewFrame` README |
-| 퀵 실행 Bible field | Small field, placeholder "요 3:16"                                                                                                                                                                                       | `Compact`                        |
+| 퀵 실행 Bible field | Small fields, placeholders 책, 장, 시작절, 끝절                                                                                                                                                                          | `Compact`                        |
 | 예배 순서 header    | Adds 사이드바 접기 (collapse sidebar). Clicking it collapses the left column. A button at the edge of the collapsed column expands it again (proposal). The app remembers the collapsed state per size class (proposal). | `Compact`                        |
 
 Source: `Compact`, `Main` board guide (진행 화면 1366×768), design system README

@@ -20,8 +20,7 @@ import {NEWER_FILE_REASON} from './ItemArrangement';
 import {fixtureItems, fixtureServiceId, itemFixture} from './itemFixture';
 import {useHeaderRename} from '@renderer/state/headerRename';
 import {ServiceQuickAdd} from './QuickAdd';
-import {resolvePassage} from '../../../../main/bible/reference';
-import {passageSource, translationFile} from '../../../../main/bible/testFiles';
+import {formLookupReply} from '@renderer/show/bible/testing/referenceForm';
 
 afterEach(() => {
   useShow.setState({
@@ -95,20 +94,7 @@ function mockBible(
   });
   const lookup = vi
     .spyOn(api.bible, 'lookup')
-    .mockImplementation(async ({translation, input}) => ({
-      input,
-      translation,
-      suggestions: [],
-      result: {
-        ok: true,
-        value: {
-          translation,
-          ref: '요한복음 3:16',
-          displayRef: '요한복음 3:16',
-          verses: [{chapter: 3, verse: 16, text: '하나님이'}],
-        },
-      },
-    }));
+    .mockImplementation(formLookupReply);
   return {krv, other, lookup};
 }
 
@@ -146,6 +132,35 @@ function setup() {
   const onProblem = vi.fn();
   render(<ServiceQuickAdd onProblem={onProblem} />);
   return {...fixture, search, onProblem, user: userEvent.setup()};
+}
+
+async function openBibleForm(
+  user: ReturnType<typeof userEvent.setup>,
+): Promise<void> {
+  await user.click(screen.getByRole('button', {name: '항목 추가'}));
+  await user.click(await screen.findByRole('menuitem', {name: '성경 구절'}));
+  await waitFor(() =>
+    expect(
+      screen.getByRole<HTMLInputElement>('combobox', {name: '책'}).disabled,
+    ).toBe(false),
+  );
+}
+
+function fillBibleForm(end = ''): void {
+  fireEvent.change(screen.getByRole('combobox', {name: '책'}), {
+    target: {value: '요'},
+  });
+  fireEvent.change(screen.getByRole('textbox', {name: '장'}), {
+    target: {value: '3'},
+  });
+  fireEvent.change(screen.getByRole('textbox', {name: '시작절'}), {
+    target: {value: '16'},
+  });
+  if (end) {
+    fireEvent.change(screen.getByRole('textbox', {name: '끝절'}), {
+      target: {value: end},
+    });
+  }
 }
 
 describe('항목 추가', () => {
@@ -335,207 +350,126 @@ describe('항목 추가', () => {
     expect(service().service.order[3]).not.toHaveProperty('slot');
   });
 
-  it('completes books synchronously with Tab and arrows without inserting a passage', async () => {
+  it('shares completion, blocks ambiguous Tab, and advances to the next field', async () => {
     const {api, user, service} = setup();
-    const {lookup} = mockBible(api);
-    lookup.mockImplementation(() => new Promise(() => undefined));
+    mockBible(api).lookup.mockImplementation(
+      () => new Promise(() => undefined),
+    );
     const length = service().service.order.length;
     await user.click(screen.getByRole('button', {name: '항목 추가'}));
     await user.click(await screen.findByRole('menuitem', {name: '성경 구절'}));
-    const field = screen.getByRole<HTMLInputElement>('combobox', {
-      name: '성경 구절',
+    const field = await screen.findByRole<HTMLInputElement>('combobox', {
+      name: '책',
     });
-    fireEvent.change(field, {target: {value: '창'}});
-    await user.keyboard('{Tab}');
-    expect(field.value).toBe('창세기 ');
-    expect(field.selectionStart).toBe(4);
+    await waitFor(() => expect(field.disabled).toBe(false));
+    fireEvent.change(field, {target: {value: '베'}});
+    field.focus();
+    await user.tab();
     expect(document.activeElement).toBe(field);
-    fireEvent.change(field, {target: {value: '요한'}});
-    await user.keyboard('{ArrowDown}{Tab}');
-    expect(field.value).toBe('요한일서 ');
-    fireEvent.change(field, {target: {value: '창 1:1-5'}});
-    field.setSelectionRange(1, 1);
-    await user.keyboard('{Tab}');
-    expect(field.value).toBe('창세기 1:1-5');
-    expect(field.selectionStart).toBe(4);
+    await user.keyboard('{ArrowDown}{ArrowDown}{Tab}');
+    expect(field.value).toBe('베드로전서');
+    expect(document.activeElement).toBe(
+      screen.getByRole('textbox', {name: '장'}),
+    );
     expect(service().service.order).toHaveLength(length);
-    expect(screen.getByRole('menu', {name: '항목 추가'})).toBeTruthy();
+    expect(screen.getByRole('dialog', {name: '성경 구절'})).toBeTruthy();
   });
 
   it.each([
-    {input: '요 3:16-99', code: 'verse'},
-    {input: '요 3장 35절-4장 9절', code: 'verse'},
-    {input: '요 3:16-22:1', code: 'chapter'},
-  ])(
-    'shows the real resolver endpoint error for $input and cannot insert it',
-    async ({input, code}) => {
+    ['장', '22'],
+    ['시작절', '37'],
+    ['끝절', '15'],
+  ] as const)(
+    'blocks an invalid %s and cannot insert it with Enter or the button',
+    async (label, value) => {
       const {api, user, service} = setup();
-      const {krv, lookup} = mockBible(api);
-      const file = passageSource({...translationFile(), id: krv});
-      const result = await resolvePassage(file, input);
-      expect(result).toMatchObject({ok: false, error: {code}});
-      if (result.ok) throw new Error('Expected an invalid endpoint');
-      const message = result.error.message;
-      lookup.mockImplementation(async ({input, translation}) => ({
-        input,
-        translation,
-        suggestions: [],
-        result: await resolvePassage(file, input),
-      }));
+      mockBible(api);
       const length = service().service.order.length;
-      await user.click(screen.getByRole('button', {name: '항목 추가'}));
-      await user.click(
-        await screen.findByRole('menuitem', {name: '성경 구절'}),
-      );
-      const field = screen.getByRole('combobox', {name: '성경 구절'});
-      fireEvent.change(field, {
-        target: {value: input},
-      });
+      await openBibleForm(user);
+      fillBibleForm();
       await waitFor(() =>
-        expect(field.getAttribute('aria-invalid')).toBe('true'),
+        expect(
+          screen
+            .getByRole('button', {name: '추가'})
+            .getAttribute('aria-disabled'),
+        ).not.toBe('true'),
       );
-      await user.keyboard('{Enter}');
-      expect(service().service.order).toHaveLength(length);
+      const field = screen.getByRole('textbox', {name: label});
+      fireEvent.change(field, {target: {value}});
+      await user.click(field);
+      await user.tab();
+      expect(document.activeElement).toBe(field);
       expect(field.getAttribute('aria-invalid')).toBe('true');
-      await hoverForTooltip(field);
-      expect(screen.getByRole('tooltip').textContent).toContain(message);
-      expect(screen.getByRole('menu', {name: '항목 추가'})).toBeTruthy();
+      await user.keyboard('{Enter}');
+      await user.click(screen.getByRole('button', {name: '추가'}));
+      expect(service().service.order).toHaveLength(length);
     },
   );
 
-  it('looks up a typed reference and inserts the passage with the default settings', async () => {
-    const {api, user, service} = setup();
-    const {krv, lookup} = mockBible(api);
-    await user.click(screen.getByRole('button', {name: '항목 추가'}));
-    await user.click(await screen.findByRole('menuitem', {name: '성경 구절'}));
-    const menu = screen.getByRole('menu', {name: '항목 추가'});
-    expect(screen.getByRole('combobox', {name: '성경 구절'})).toBeDefined();
-    await user.keyboard('요 3:16');
-    const passage = await within(menu).findByRole('menuitem', {
-      name: /요한복음 3:16/u,
-    });
-    expect(passage.textContent).toContain('절 1개');
-    await waitFor(() =>
-      expect(lookup).toHaveBeenLastCalledWith({
-        translation: krv,
-        input: '요 3:16',
-      }),
-    );
-    await user.keyboard('{Enter}');
-    await waitFor(() => expect(service().service.order).toHaveLength(6));
-    expect(service().service.order.at(-1)).toMatchObject({
-      bible: {
-        translation: krv,
-        ref: '요한복음 3:16',
-        split: 'verse',
-        reference: 'every',
-        verseNumbers: true,
-        translationName: false,
-      },
-    });
-    expect(screen.queryByRole('menu')).toBeNull();
-  });
+  it.each(['Enter', 'button'] as const)(
+    'inserts a clamped passage using %s with the opening defaults',
+    async action => {
+      const {api, user, service} = setup();
+      const {krv} = mockBible(api);
+      await openBibleForm(user);
+      fillBibleForm('99');
+      const add = screen.getByRole('button', {name: '추가'});
+      await waitFor(() =>
+        expect(add.getAttribute('aria-disabled')).not.toBe('true'),
+      );
+      if (action === 'Enter') {
+        await user.click(screen.getByRole('textbox', {name: '끝절'}));
+        await user.keyboard('{Enter}');
+      } else await user.click(add);
+      await waitFor(() => expect(service().service.order).toHaveLength(6));
+      expect(service().service.order.at(-1)).toMatchObject({
+        bible: {
+          translation: krv,
+          ref: '요한복음 3:16-36',
+          split: 'verse',
+          reference: 'every',
+          verseNumbers: true,
+          translationName: false,
+        },
+      });
+      expect(screen.queryByRole('dialog')).toBeNull();
+    },
+  );
 
-  it('forgets the answers when it closes and counts only the opening that asked', async () => {
+  it('forgets a closed opening and reads fresh defaults when reopened', async () => {
     const {api, user, service} = setup();
     const defaultTranslation: {current: 'krv' | 'other'} = {current: 'krv'};
-    const {krv, other, lookup} = mockBible(api, defaultTranslation);
-    const asked: Array<{
-      translation: string;
-      answer: (ref: string) => void;
-    }> = [];
-    lookup.mockImplementation(
-      ({translation, input}) =>
+    const {other, lookup} = mockBible(api, defaultTranslation);
+    let finish: () => Promise<void> = async () => undefined;
+    lookup.mockImplementationOnce(
+      request =>
         new Promise(resolve => {
-          asked.push({
-            translation,
-            answer: ref =>
-              resolve({
-                input,
-                translation,
-                suggestions: [],
-                result: {
-                  ok: true,
-                  value: {
-                    translation,
-                    ref,
-                    displayRef: ref,
-                    verses: [{chapter: 3, verse: 16, text: '하나님이'}],
-                  },
-                },
-              }),
-          });
+          finish = async () => resolve(await formLookupReply(request));
         }),
     );
-    await user.click(screen.getByRole('button', {name: '항목 추가'}));
-    await user.click(await screen.findByRole('menuitem', {name: '성경 구절'}));
-    await user.keyboard('요 3:16');
-    await waitFor(() => expect(asked).toHaveLength(1));
-    await user.keyboard('{Escape}');
+    await openBibleForm(user);
+    fillBibleForm();
+    await waitFor(() => expect(lookup).toHaveBeenCalled());
+    await user.click(screen.getByRole('button', {name: '취소'}));
+    await act(finish);
     defaultTranslation.current = 'other';
-    await user.click(screen.getByRole('button', {name: '항목 추가'}));
-    await user.click(await screen.findByRole('menuitem', {name: '성경 구절'}));
-    await user.keyboard('요 3:16');
-    asked[0]?.answer('요한복음 3:16 옛 번역');
+    await openBibleForm(user);
+    expect(
+      screen.getByRole<HTMLInputElement>('combobox', {name: '책'}).value,
+    ).toBe('');
+    fillBibleForm();
     await waitFor(() =>
-      expect(asked.some(request => request.translation === other)).toBe(true),
+      expect(
+        screen
+          .getByRole('button', {name: '추가'})
+          .getAttribute('aria-disabled'),
+      ).not.toBe('true'),
     );
-    const menu = screen.getByRole('menu', {name: '항목 추가'});
-    expect(within(menu).queryByRole('menuitem', {name: /옛 번역/u})).toBeNull();
-    asked
-      .find(request => request.translation === other)
-      ?.answer('요한복음 3:16');
-    const passage = await within(menu).findByRole('menuitem', {
-      name: /요한복음 3:16/u,
-    });
-    await user.click(passage);
+    await user.click(screen.getByRole('button', {name: '추가'}));
     await waitFor(() => expect(service().service.order).toHaveLength(6));
     expect(service().service.order.at(-1)).toMatchObject({
       bible: {translation: other},
     });
-    expect(krv).not.toBe(other);
-  });
-
-  it('looks up only the newest input once a slow lookup is back', async () => {
-    const {api, user} = setup();
-    const {lookup} = mockBible(api);
-    const asked: Array<{input: string; answer: () => void}> = [];
-    lookup.mockImplementation(
-      ({translation, input}) =>
-        new Promise(resolve => {
-          asked.push({
-            input,
-            answer: () =>
-              resolve({
-                input,
-                translation,
-                suggestions: [],
-                result: {
-                  ok: true,
-                  value: {
-                    translation,
-                    ref: '요한복음 3:16',
-                    displayRef: '요한복음 3:16',
-                    verses: [{chapter: 3, verse: 16, text: '하나님이'}],
-                  },
-                },
-              }),
-          });
-        }),
-    );
-    await user.click(screen.getByRole('button', {name: '항목 추가'}));
-    await user.click(await screen.findByRole('menuitem', {name: '성경 구절'}));
-    await waitFor(() => expect(asked).toHaveLength(1));
-    await user.keyboard('요 3:16');
-    expect(asked.map(request => request.input)).toEqual(['']);
-    asked[0]?.answer();
-    await waitFor(() => expect(asked).toHaveLength(2));
-    expect(asked[1]?.input).toBe('요 3:16');
-    asked[1]?.answer();
-    const menu = screen.getByRole('menu', {name: '항목 추가'});
-    expect(
-      await within(menu).findByRole('menuitem', {name: /요한복음 3:16/u}),
-    ).toBeDefined();
   });
 
   it('is unavailable for a read-only service, with the reason', async () => {

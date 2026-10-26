@@ -1,7 +1,5 @@
 import {useEffect, useState, type JSX} from 'react';
 import type {ServiceItem} from '@shared/schema/service';
-import {completeBibleBook} from '@shared/bibleCompletion';
-import {BIBLE_LOOKUP_LIMITS} from '@shared/schema/bibleLookup';
 import type {LibrarySearchMatch} from '@shared/schema/librarySearch';
 import {createServiceItemId, type SongId} from '@shared/schema/ids';
 import {searchRange} from '@shared/searchText';
@@ -14,9 +12,9 @@ import type {MenuEntry} from '@renderer/ui/menuModel';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {NEWER_FILE_REASON} from './ItemArrangement';
 import {otherItemEntries} from './quickAddItems';
-import {bibleEntries, passageItem} from './quickAddBible';
+import {passageItem, type PassageDefaults} from './quickAddBible';
+import {BibleQuickAdd} from './BibleQuickAdd';
 import {quickAddBefore} from './quickAddPosition';
-import {useBibleLookup} from './useBibleLookup';
 import {useOtherSources} from './useOtherSources';
 import {useHeaderRename} from '@renderer/state/headerRename';
 
@@ -105,7 +103,6 @@ export function ServiceQuickAdd({
   const [query, setQuery] = useState('');
   const [typingPassage, setTypingPassage] = useState(false);
   const songs = useQuickAddSongs(open && !typingPassage, query, onProblem);
-  const bible = useBibleLookup(open && typingPassage, query);
   const sources = useOtherSources(open);
   const reason =
     serviceId === null
@@ -125,9 +122,8 @@ export function ServiceQuickAdd({
       ),
     );
   };
-  const insertPassage = (ref: string): void => {
-    if (bible.defaults === null) return;
-    const passage = passageItem(ref, bible.defaults);
+  const insertPassage = (ref: string, defaults: PassageDefaults): void => {
+    const passage = passageItem(ref, defaults);
     insertItem(passage);
   };
   const insertItem = (item: ServiceItem): void => {
@@ -170,43 +166,27 @@ export function ServiceQuickAdd({
           search={{
             value: query,
             onChange: setQuery,
-            placeholder: typingPassage ? '성경 구절' : '곡, 가사, 초성',
-            maxLength: typingPassage ? BIBLE_LOOKUP_LIMITS.input : undefined,
-            invalidReason:
-              typingPassage &&
-              query.trim() !== '' &&
-              bible.reply?.result.ok === false
-                ? bible.reply.result.error.message
-                : undefined,
-            complete: typingPassage
-              ? (start, end, pointedId) =>
-                  completeBibleBook({
-                    input: query,
-                    start,
-                    end,
-                    bookId: Number(pointedId?.split(':')[1]),
-                  })
-              : undefined,
+            placeholder: '곡, 가사, 초성',
           }}
           onClose={() => setOpen(false)}
-          entries={
-            typingPassage
-              ? bibleEntries(bible.reply, insertPassage, {
-                  input: query,
-                  onComplete: setQuery,
-                })
-              : [
-                  ...songEntries(songs, query, insert),
-                  ...otherItemEntries({
-                    ...sources,
-                    onInsert: insertItem,
-                    onBible: () => {
-                      setQuery('');
-                      setTypingPassage(true);
-                    },
-                  }),
-                ]
-          }
+          entries={[
+            ...songEntries(songs, query, insert),
+            ...otherItemEntries({
+              ...sources,
+              onInsert: insertItem,
+              onBible: () => {
+                setQuery('');
+                setOpen(false);
+                setTypingPassage(true);
+              },
+            }),
+          ]}
+        />
+      ) : null}
+      {typingPassage && !disabled ? (
+        <BibleQuickAdd
+          onInsert={insertPassage}
+          onClose={() => setTypingPassage(false)}
         />
       ) : null}
     </>

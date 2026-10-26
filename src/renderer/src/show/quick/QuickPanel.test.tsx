@@ -85,9 +85,7 @@ describe('quick panel integration', () => {
       await act(async () => song.resolve(fixture.song));
       expect(fixture.send).not.toHaveBeenCalled();
       expect(useShow.getState().librarySong).toBeNull();
-      expect(screen.getByRole<HTMLInputElement>('combobox').value).toBe(
-        recent.input,
-      );
+      expect(screen.getByRole<HTMLInputElement>('combobox').value).toBe('');
       await act(async () => passage.resolve(lookupReply(recent)));
       expect(useShow.getState().bibleSource?.passage.ref).toBe(recent.input);
       fireEvent.keyDown(screen.getByRole('combobox'), {key: 'Enter'});
@@ -137,9 +135,7 @@ describe('quick panel integration', () => {
         '검은 화면',
         '새 버전 항목',
       ]);
-      expect(
-        within(panel).getByRole('combobox', {name: '성경 구절'}),
-      ).toBeTruthy();
+      expect(within(panel).getByRole('combobox', {name: '책'})).toBeTruthy();
       expect(
         within(list)
           .getByRole('button', {name: '새 버전 항목'})
@@ -217,7 +213,7 @@ describe('quick panel integration', () => {
     render(<QuickPanel selectionVersion={0} onProblem={vi.fn()} />);
     const field = screen.getByRole<HTMLInputElement>('combobox');
     await waitFor(() => expect(field.disabled).toBe(false));
-    fireEvent.change(field, {target: {value: '요 3:16'}});
+    fireEvent.change(field, {target: {value: '요'}});
     await waitFor(() => expect(fixture.lookup).toHaveBeenCalledOnce());
     fireEvent.click(await screen.findByRole('button', {name: '시작 매크로'}));
     await act(async () => reply.resolve(lookupReply(lookupRequest())));

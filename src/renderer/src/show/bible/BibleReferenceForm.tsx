@@ -1,6 +1,15 @@
-import {useId, useRef, useState, type JSX, type KeyboardEvent} from 'react';
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type JSX,
+  type KeyboardEvent,
+} from 'react';
 import type {LlpApi} from '@shared/ipc';
 import {findBibleBooks} from '@shared/bibleMatching';
+import {recentPassages} from '@shared/bibleRecents';
+import type {RecentPassage} from '@shared/schema/bible';
 import {
   BIBLE_LOOKUP_LIMITS,
   type BibleLookupPassage,
@@ -26,6 +35,8 @@ export interface BibleReferenceFormProps {
   readonly onSubmit: (passage: BibleLookupPassage) => void;
   readonly onIntent?: (() => void) | undefined;
   readonly autoFocus?: boolean;
+  readonly recents?: readonly RecentPassage[];
+  readonly onReady?: (passage: BibleLookupPassage | null) => void;
 }
 
 const NUMBER_PARTS = ['chapter', 'start', 'end'] as const;
@@ -44,40 +55,92 @@ export function BibleReferenceForm(
   const [fields, setFields] = useState(EMPTY_REFERENCE);
   const [open, setOpen] = useState(false);
   const [pointed, setPointed] = useState(-1);
+  const [keyboardPointed, setKeyboardPointed] = useState<number | null>(null);
   const [blocked, setBlocked] = useState<ReferencePart | null>(null);
+  const [recent, setRecent] = useState<{
+    readonly provided: TranslationId | undefined;
+    readonly value: RecentPassage;
+  } | null>(null);
+  if (recent && recent.provided !== props.translation) {
+    setRecent({
+      provided: props.translation,
+      value: {
+        ...recent.value,
+        translation: props.translation ?? recent.value.translation,
+      },
+    });
+  }
+  const selectedRecent = recent?.value;
+  const translation =
+    recent?.provided === props.translation && props.translation !== undefined
+      ? (selectedRecent?.translation ?? props.translation)
+      : props.translation;
   const root = useRef<HTMLDivElement>(null);
   const bookAnchor = useRef<HTMLDivElement>(null);
   const listId = useId();
   const book = selectedBook(fields.book);
   const metadata = useBibleLookup({
     ...props,
+    translation,
     input: book?.korean ?? '',
     onPreview: ignorePreview,
   });
   const bookUnavailable = metadata !== null && metadata.bounds === undefined;
   const state = referenceFieldsState(fields, metadata?.bounds);
-  const reply = useBibleLookup({...props, input: state.input});
+  const reply = useBibleLookup({
+    ...props,
+    translation,
+    input: selectedRecent?.ref ?? state.input,
+  });
   const passage = reply?.result.ok ? reply.result.value : undefined;
+  const onReady = props.onReady;
+  useEffect(() => onReady?.(passage ?? null), [onReady, passage]);
   const books = findBibleBooks(fields.book);
-  const suggestions: readonly BibleSuggestion[] = books.map(candidate => ({
-    key: `book:${candidate.id}`,
-    bookId: candidate.id,
-    group: '책',
-    input: candidate.korean,
-    translation: props.translation,
-  }));
-  const expanded = props.translation !== undefined && open && books.length > 0;
+  const suggestions: readonly BibleSuggestion[] = [
+    ...books.map(candidate => ({
+      key: `book:${candidate.id}`,
+      bookId: candidate.id,
+      group: '책',
+      input: candidate.korean,
+      translation: props.translation,
+    })),
+    ...recentPassages(props.recents ?? []).map(item => ({
+      key: `recent:${item.translation}:${item.ref}`,
+      group: '최근',
+      input: item.ref,
+      ref: item.ref,
+      translation: item.translation,
+    })),
+  ];
+  const expanded =
+    props.translation !== undefined && open && suggestions.length > 0;
   const change = (part: ReferencePart, value: string): void => {
     props.onIntent?.();
+    setRecent(null);
     setFields(previous => changeReferenceField(previous, part, value));
     setBlocked(null);
     if (part === 'book') {
       setPointed(-1);
+      setKeyboardPointed(null);
       setOpen(true);
     }
   };
   const choose = (name: string): void => {
     change('book', name);
+    setOpen(false);
+  };
+  const chooseSuggestion = (item: BibleSuggestion): void => {
+    if (item.ref === undefined || item.translation === undefined) {
+      choose(item.input);
+      return;
+    }
+    props.onIntent?.();
+    setFields(EMPTY_REFERENCE);
+    setRecent({
+      provided: props.translation,
+      value: {ref: item.ref, translation: item.translation},
+    });
+    setPointed(-1);
     setOpen(false);
   };
   const reason = (part: ReferencePart): string | undefined => {
@@ -110,18 +173,19 @@ export function BibleReferenceForm(
       if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
         event.preventDefault();
         setOpen(true);
-        setPointed(previous =>
+        const next =
           event.key === 'ArrowDown'
-            ? Math.min(previous + 1, books.length - 1)
-            : previous < 0
-              ? books.length - 1
-              : Math.max(0, previous - 1),
-        );
+            ? Math.min(pointed + 1, suggestions.length - 1)
+            : pointed < 0
+              ? suggestions.length - 1
+              : Math.max(0, pointed - 1);
+        setPointed(next);
+        setKeyboardPointed(next);
         return;
       }
       if (event.key === 'Tab' && !event.shiftKey) {
         event.preventDefault();
-        const candidate = books[pointed] ?? book;
+        const candidate = books[keyboardPointed ?? -1] ?? book;
         if (!candidate || (candidate.id === book?.id && bookUnavailable)) {
           setBlocked('book');
           return;
@@ -142,9 +206,10 @@ export function BibleReferenceForm(
     event.preventDefault();
     event.stopPropagation();
     if (event.repeat || props.translation === undefined) return;
-    const candidate = part === 'book' && expanded ? books[pointed] : undefined;
+    const candidate =
+      part === 'book' && expanded ? suggestions[pointed] : undefined;
     if (candidate) {
-      choose(candidate.korean);
+      chooseSuggestion(candidate);
       return;
     }
     if (passage) {
@@ -210,8 +275,11 @@ export function BibleReferenceForm(
           anchor={bookAnchor}
           items={suggestions}
           pointed={pointed}
-          onPoint={setPointed}
-          onChoose={item => choose(item.input)}
+          onPoint={index => {
+            setPointed(index);
+            setKeyboardPointed(null);
+          }}
+          onChoose={chooseSuggestion}
           onClose={() => setOpen(false)}
         />
       ) : null}

@@ -1,0 +1,144 @@
+{
+  "date": "2026-10-26T14:15:22.637Z",
+  "environment": {
+    "mode": "offscreen",
+    "devPort": 5193,
+    "data": "isolated invented QA fixture"
+  },
+  "checks": [
+    "Ambiguous book Tab blocked; no initial highlight; arrows then Tab choose and advance",
+    "Four-field preview leaves live state unchanged; Enter sends the passage",
+    "Invalid chapter blocks Tab; end 99 blocks Tab, Enter clamps to 36; changing start clears end",
+    "Prep opens the same four-field form",
+    "Prep form opened and closed, then reopened with empty fields",
+    "Prep 20 start/end cycles clear the end; reversed end blocks Tab, Enter and Add; end 99 inserts a clamped passage on Enter without changing live output",
+    "After insertion, opening and closing Prep twice returns element and listener counts to baseline; edited input nodes are released after dialog unmount"
+  ],
+  "showSelectionCycles": 20,
+  "showSamples": [
+    {
+      "elements": 488,
+      "documents": 30,
+      "nodes": 1738,
+      "jsEventListeners": 552,
+      "usedSize": 6258040,
+      "totalSize": 6852608
+    },
+    {
+      "elements": 488,
+      "documents": 30,
+      "nodes": 1738,
+      "jsEventListeners": 552,
+      "usedSize": 6306444,
+      "totalSize": 7114752
+    },
+    {
+      "elements": 488,
+      "documents": 30,
+      "nodes": 1738,
+      "jsEventListeners": 552,
+      "usedSize": 6375612,
+      "totalSize": 7114752
+    }
+  ],
+  "narrowFields": [
+    {
+      "label": "책",
+      "width": 120,
+      "left": 54,
+      "right": 174
+    },
+    {
+      "label": "장",
+      "width": 38.65625,
+      "left": 34,
+      "right": 72.65625
+    },
+    {
+      "label": "시작절",
+      "width": 38.671875,
+      "left": 94.65625,
+      "right": 133.328125
+    },
+    {
+      "label": "끝절",
+      "width": 38.671875,
+      "left": 155.328125,
+      "right": 194
+    }
+  ],
+  "finished": "2026-10-26T14:15:48.472Z",
+  "prepFieldCycles": 20,
+  "prepSamples": [
+    {
+      "elements": 200,
+      "documents": 16,
+      "nodes": 339,
+      "jsEventListeners": 621,
+      "usedSize": 6202276,
+      "totalSize": 7376896,
+      "embedderHeapUsedSize": 2930520,
+      "backingStorageSize": 1664451
+    },
+    {
+      "elements": 200,
+      "documents": 16,
+      "nodes": 359,
+      "jsEventListeners": 621,
+      "usedSize": 6272280,
+      "totalSize": 7376896,
+      "embedderHeapUsedSize": 2958832,
+      "backingStorageSize": 1664451
+    },
+    {
+      "elements": 200,
+      "documents": 16,
+      "nodes": 379,
+      "jsEventListeners": 621,
+      "usedSize": 6277760,
+      "totalSize": 7376896,
+      "embedderHeapUsedSize": 2971800,
+      "backingStorageSize": 1664451
+    }
+  ],
+  "prepRowsBefore": 7,
+  "prepRowsAfter": 8,
+  "inserted": [
+    {
+      "title": "요한복음 3:16-36",
+      "kind": "bible"
+    }
+  ],
+  "closedPrepSamples": [
+    {
+      "elements": 184,
+      "documents": 16,
+      "nodes": 350,
+      "jsEventListeners": 768,
+      "usedSize": 6227156,
+      "totalSize": 7376896,
+      "embedderHeapUsedSize": 2954192,
+      "backingStorageSize": 1664477
+    },
+    {
+      "elements": 183,
+      "documents": 20,
+      "nodes": 312,
+      "jsEventListeners": 756,
+      "usedSize": 6211040,
+      "totalSize": 7376896,
+      "embedderHeapUsedSize": 3115320,
+      "backingStorageSize": 1664472
+    },
+    {
+      "elements": 183,
+      "documents": 20,
+      "nodes": 312,
+      "jsEventListeners": 756,
+      "usedSize": 6223012,
+      "totalSize": 7376896,
+      "embedderHeapUsedSize": 3112816,
+      "backingStorageSize": 1664472
+    }
+  ]
+}

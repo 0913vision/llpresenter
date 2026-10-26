@@ -7,7 +7,8 @@ import {
 } from '@shared/schema/settingsDocuments';
 import type {BibleLookupPassage} from '@shared/schema/bibleLookup';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
-import {lookupReply, lookupRequest} from './testBible';
+import {lookupRequest} from './testBible';
+import {formLookupReply} from './testing/referenceForm';
 
 export type BibleDocument = Extract<SettingsDocument, {name: 'bible'}>;
 
@@ -69,14 +70,7 @@ export function panelApi() {
       value: {id: 'bible', revision: document.revision},
     });
   });
-  const lookup = vi.fn<LlpApi['bible']['lookup']>(request => {
-    const reply = lookupReply(request);
-    return Promise.resolve(
-      reply.result.ok
-        ? {...reply, result: {ok: true, value: panelPassage()}}
-        : reply,
-    );
-  });
+  const lookup = vi.fn<LlpApi['bible']['lookup']>(formLookupReply);
   const send = vi.fn<(command: LiveCommand) => void>();
   const api = fakeLlpApi({
     live: {send},

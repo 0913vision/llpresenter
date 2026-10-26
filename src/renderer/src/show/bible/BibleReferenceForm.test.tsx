@@ -85,6 +85,18 @@ describe('shared Bible reference form', () => {
     expect(view.onSubmit).not.toHaveBeenCalled();
   });
 
+  it('requires an arrow choice for ambiguous Tab even after pointer hover', async () => {
+    const view = setup();
+    await view.user.type(view.book, '베');
+    fireEvent.mouseMove(screen.getAllByRole('option')[0] ?? view.book);
+    await view.user.tab();
+    expect(document.activeElement).toBe(view.book);
+    expect(view.book.value).toBe('베');
+    await view.user.keyboard('{ArrowDown}{Tab}');
+    expect(view.book.value).toBe('베드로전서');
+    expect(document.activeElement).toBe(view.chapter);
+  });
+
   it('starts without a highlight and blocks ambiguous Tab until an arrow selects a book', async () => {
     const view = setup();
     await view.user.type(view.book, '베');

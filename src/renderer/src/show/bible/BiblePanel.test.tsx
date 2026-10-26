@@ -74,10 +74,10 @@ describe('Bible panel integration', () => {
       />,
     );
     const field = screen.getByRole<HTMLInputElement>('combobox', {
-      name: '성경 구절',
+      name: '책',
     });
     await waitFor(() => expect(field.disabled).toBe(false));
-    fireEvent.change(field, {target: {value: '요 3:16'}});
+    fireEvent.change(field, {target: {value: '요'}});
     await waitFor(() => expect(fixture.lookup).toHaveBeenCalledOnce());
     const service = screen.getByRole('region', {name: '예배 순서'});
     fireEvent.click(within(service).getByRole('option', {selected: true}));
@@ -86,7 +86,7 @@ describe('Bible panel integration', () => {
     expect(screen.queryByRole('region', {name: '성경'})).toBeNull();
     expect(screen.getByRole('region', {name: '슬라이드'})).toBeTruthy();
     expect(
-      screen.getByRole<HTMLInputElement>('combobox', {name: '성경 구절'}).value,
+      screen.getByRole<HTMLInputElement>('combobox', {name: '책'}).value,
     ).toBe('');
     expect(fixture.send).not.toHaveBeenCalled();
   });
@@ -140,10 +140,19 @@ describe('Bible panel integration', () => {
         />,
       );
       const field = screen.getByRole<HTMLInputElement>('combobox', {
-        name: '성경 구절',
+        name: '책',
       });
       await waitFor(() => expect(field.disabled).toBe(false));
-      fireEvent.change(field, {target: {value: '요 3:16-18'}});
+      fireEvent.change(field, {target: {value: '요'}});
+      fireEvent.change(screen.getByRole('textbox', {name: '장'}), {
+        target: {value: '3'},
+      });
+      fireEvent.change(screen.getByRole('textbox', {name: '시작절'}), {
+        target: {value: '16'},
+      });
+      fireEvent.change(screen.getByRole('textbox', {name: '끝절'}), {
+        target: {value: '18'},
+      });
       const panel = await screen.findByRole('region', {name: '성경'});
       expect(within(panel).getByText('슬라이드 3개')).toBeTruthy();
       expect(fixture.send).not.toHaveBeenCalled();
@@ -192,7 +201,7 @@ describe('Bible panel integration', () => {
     );
     const field = screen.getByRole<HTMLInputElement>('combobox');
     await waitFor(() => expect(field.disabled).toBe(false));
-    fireEvent.change(field, {target: {value: '요 3:16'}});
+    fireEvent.change(field, {target: {value: '요'}});
     act(() => openItem('song-morning'));
     await act(async () => finish(lookupReply(lookupRequest())));
     expect(screen.queryByRole('region', {name: '성경'})).toBeNull();
