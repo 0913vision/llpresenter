@@ -43,6 +43,13 @@ Manual three-second audio fade behavior remains separate.
   overlay, stage and output renderer tests: see the request message.
 - Typecheck, build and changed-file lint after formatting: see the request. Full
   verify runs in GitHub Actions.
+- [The first round-2 candidate CI run](https://github.com/0913vision/llpresenter/actions/runs/40368955865)
+  failed two tests. Startup unnecessarily cloned an unchanged explicit state; it
+  now preserves that identity while clearing nonempty temporary metadata. The
+  overlapping-fade test depended on the platform's animation-frame cadence; it
+  now uses an explicit 16 ms scheduler without weakening its gain assertions.
+  Both failures pass in the focused regression run. No failed job was rerun.
+- CI pending for the updated head; the dispatcher checks its exact-head run.
 - Regressions cover malformed timing and effect caps, preserved stored fields,
   monotonic timing, instant defaults, F1 and prop targeting, restore, new
   content, recovery, decoder reuse, held notice rotation, delayed audio delivery
@@ -80,10 +87,10 @@ Manual three-second audio fade behavior remains separate.
 - Both launches quit normally. Measurements and screenshots below are from this
   final check; collected heaps are sampled in both control and output.
 - At iterations 5 and 25, control stays at 1,154 elements, 2,505 CDP nodes and
-  416 listeners. Collected heaps are 5,962,496 to 6,363,868 bytes and 5,935,204
-  to 6,374,436 bytes. Output stays at 774 elements, 1,214 CDP nodes and 10
-  listeners; its heaps are 2,747,396 to 2,849,936 bytes and 2,752,512 to
-  2,851,192 bytes. Five targets remain throughout. This is a short repeated
+  416 listeners. Collected heaps are 5,939,020 to 6,370,380 bytes and 6,095,932
+  to 6,537,612 bytes. Output stays at 774 elements, 1,214 CDP nodes and 10
+  listeners; its heaps are 2,758,468 to 2,838,464 bytes and 2,764,272 to
+  2,851,432 bytes. Five targets remain throughout. This is a short repeated
   flow, not an hours-long soak.
 - An earlier instrumentation run failed a fixed 300 ms overlap probe while the
   preceding frame phase was still drawn. The final check observes the actual

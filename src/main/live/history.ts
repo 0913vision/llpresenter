@@ -30,11 +30,14 @@ export interface LiveHistory {
 
 export function initialHistory(state: LiveState): LiveHistory {
   return {
-    state: {
-      ...state,
-      ...(state.clearToggles?.length ? {clearToggles: []} : {}),
-      ...(state.clearEffects === undefined ? {} : {clearEffects: []}),
-    },
+    state:
+      state.clearToggles?.length || state.clearEffects?.length
+        ? {
+            ...state,
+            ...(state.clearToggles?.length ? {clearToggles: []} : {}),
+            ...(state.clearEffects?.length ? {clearEffects: []} : {}),
+          }
+        : state,
     undo: null,
   };
 }

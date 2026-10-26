@@ -22,9 +22,16 @@ import {OverlayImageView} from './overlayImage';
 import type {RenderScreen} from './layer';
 
 const disposers: Array<() => void> = [];
+const TEST_FRAME_MS = 16;
 beforeEach(() => {
   vi.useFakeTimers();
   vi.setSystemTime(100_000);
+  vi.spyOn(window, 'requestAnimationFrame').mockImplementation(callback =>
+    window.setTimeout(() => callback(performance.now()), TEST_FRAME_MS),
+  );
+  vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(handle =>
+    window.clearTimeout(handle),
+  );
   vi.stubGlobal(
     'ResizeObserver',
     class {
@@ -164,6 +171,7 @@ describe('registered overlay layers', () => {
     });
     render();
     const request = vi.spyOn(globalThis, 'requestAnimationFrame');
+    request.mockClear();
     send({type: 'prop.set', propId: overlayUuid(1064), on: true});
     render();
     const shown = Array.from(box('prop')?.children ?? []).filter(
