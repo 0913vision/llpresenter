@@ -108,6 +108,11 @@ export function parseMacroId(value: unknown) {
   return parsePayload(macroIdSchema, value);
 }
 
+/** Checks a media ID from a URL or a file name without throwing. */
+export function parseMediaId(value: unknown) {
+  return parsePayload(mediaIdSchema, value);
+}
+
 /** Brands a reserved media or copy-job UUID; throws unless it is version 4. */
 export function createMediaId(uuid: string): MediaId {
   return v.parse(mediaIdSchema, uuid);
