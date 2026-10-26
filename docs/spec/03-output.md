@@ -453,6 +453,12 @@ The 무대 화면 draws the elements of the current stage layout:
   question).
 - An element with 크기 자동 맞춤 (auto-fit size) on shrinks its font until the
   text fits its box.
+- The layout's canvas keeps its own size and scales as a whole, centred, to fit
+  the screen; element frames are canvas pixels and text sizes are pixels on a
+  1080-line canvas, as for lyric styles. The clock reads two-digit hours and
+  minutes, such as "09:05". A 무대 화면 with no stage layout, or whose layout is
+  missing (logged once), draws the 장 and the stage message as an audience
+  screen does (proposal).
 - The Look's 무대 화면 card turns the clock, the stage message, 메시지, and
   background media on and off. Turning lyrics off empties the current lyrics,
   next lyrics, and 이름표 elements (proposal).
