@@ -50,6 +50,7 @@ export class MacroRunner implements MacroCommandPort {
       'macro',
       id,
     );
+    context.ranMacro({macroId: macro.id, name: macro.name});
     const plan = compileMacro({
       catalog,
       macro,

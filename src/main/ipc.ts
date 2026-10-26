@@ -128,9 +128,13 @@ export function registerIpc(
   const unsubscribe = store.subscribe(state =>
     sendToWindows(Channels.liveChanged, state, log),
   );
+  const stopProblems = store.subscribeProblems(problem =>
+    sendToWindows(Channels.appProblem, problem, log),
+  );
 
   return () => {
     unsubscribe();
+    stopProblems();
     stopLogWrites();
     ipcMain.removeHandler(Channels.liveGet);
     ipcMain.removeAllListeners(Channels.liveCommand);

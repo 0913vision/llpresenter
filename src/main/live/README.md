@@ -34,10 +34,15 @@ instead of silently discarding their errors.
 
 After the reduction, the registry checks the final state once against the live
 state schema and byte budget. When that check fails, the whole dispatch is
-rejected, however deeply its children nest: the history stays as it was, one
-diagnostic names the top-level command, and none of the observations deferred
-through `context.defer` run. A slice defers every effect outside the live state
-this way, so a rejected dispatch leaves nothing behind.
+rejected, however deeply its children nest: the history stays as it was, and
+none of the observations deferred through `context.defer` run. A slice defers
+every effect outside the live state this way, so a rejected dispatch leaves
+nothing behind. One `dropped` diagnostic, after those of the skipped children,
+names the top-level command and the 매크로 that ran, which the 매크로 runner
+notes through `context.ranMacro` (a skipped child's notes are dropped).
+`dispatchLogged` logs it as `dropped live dispatch` with their ids, and the
+store then reports each 매크로 to the windows as an `app:problem` of kind
+`macro-dropped`, for the 매크로 적용 실패 card.
 
 IPC validation remains in `ipc.ts`. All application dispatch goes through
 `dispatchLogged`, which logs an unsupported type as `unhandled live command` and

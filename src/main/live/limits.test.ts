@@ -11,6 +11,7 @@ import {defaultPreferences} from '@shared/schema/preferences';
 import {MAX_ACTIVE_MESSAGES} from '@shared/schema/overlayState';
 import {serializeRecoveryRecord} from '@shared/schema/recoveryRecord';
 import {expectSuccess} from '@shared/schema/testHelpers';
+import {parseMacroId} from '@shared/schema/ids';
 import {recordingLogger} from '../displays/testing';
 import {settingsDefaults} from '../store/settingsDefaults';
 import {LiveStore, dispatchLogged} from './store';
@@ -162,6 +163,10 @@ describe('live admission limits', () => {
     );
     const observed = vi.fn();
     const run = vi.fn<MacroCommandPort['run']>((history, _command, context) => {
+      context.ranMacro({
+        macroId: expectSuccess(parseMacroId(uuid(9))),
+        name: 'Invented opening',
+      });
       context.defer(observed);
       return context.apply(history, {
         type: 'output.set',
@@ -174,6 +179,8 @@ describe('live admission limits', () => {
     const releaseScreens = store.connectScreenSettings(screens);
     const listener = vi.fn();
     const unsubscribe = store.subscribe(listener);
+    const problems = vi.fn();
+    const stopProblems = store.subscribeProblems(problems);
     const before = store.state;
     const log = recordingLogger();
     dispatchLogged(
@@ -197,15 +204,21 @@ describe('live admission limits', () => {
     expect(screens.queueRefresh).not.toHaveBeenCalled();
     expect(store.state).toBe(before);
     expect(listener).not.toHaveBeenCalled();
-    expect(log.messages('warn')).toEqual(['skipped live command']);
+    expect(log.messages('warn')).toEqual(['dropped live dispatch']);
     expect(log.entries[0]).toMatchObject({
       detail: {
         type: 'live.batch',
-        reason: 'invalid-overlay',
         error: {field: 'outputs'},
+        macroIds: [uuid(9)],
       },
     });
+    expect(problems).toHaveBeenCalledExactlyOnceWith({
+      kind: 'macro-dropped',
+      macroId: uuid(9),
+      name: 'Invented opening',
+    });
     unsubscribe();
+    stopProblems();
     release();
     releaseScreens();
   });
@@ -319,8 +332,10 @@ describe('live admission limits', () => {
     dispatchLogged(store, extra, log);
     expect(store.state).toBe(before);
     expect(listener).not.toHaveBeenCalled();
-    expect(log.messages('warn')).toEqual(['skipped live command']);
-    expect(log.entries[0]).toHaveProperty('detail.error.field', 'outputs');
+    expect(log.messages('warn')).toEqual(['dropped live dispatch']);
+    expect(log.entries[0]).toMatchObject({
+      detail: {error: {field: 'outputs'}, macroIds: []},
+    });
     store.dispatch({type: 'output.set', screenId: 'main', on: false});
     expect(store.state.outputs['main']).toBe(false);
     expect(canSave(store.state)).toBe(true);
@@ -376,7 +391,7 @@ describe('live admission limits', () => {
     expect(store.state.outputs).toEqual({});
     expect(shape).toHaveBeenCalledOnce();
     expect(size).toHaveBeenCalledOnce();
-    expect(log.messages('warn')).toEqual(['skipped live command']);
+    expect(log.messages('warn')).toEqual(['dropped live dispatch']);
     expect(log.entries[0]).toMatchObject({
       detail: {type: 'live.batch', error: {field: ''}},
     });

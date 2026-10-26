@@ -1,5 +1,7 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {parseLiveCommand} from '@shared/schema/liveCommand';
+import {parseServiceItemId} from '@shared/schema/ids';
+import {expectSuccess} from '@shared/schema/testHelpers';
 import {parseService} from '@shared/schema/service';
 import {LIVE_STATE_LIMITS} from '@shared/schema/liveLimits';
 import {LiveStore, dispatchLogged} from '../live/store';
@@ -62,8 +64,10 @@ function harness(
 }
 
 describe('macro live execution', () => {
-  it('drops the macro report when another child makes the whole dispatch fail admission', () => {
+  it('drops the macro report and reports the 매크로 when another child makes the whole dispatch fail admission', () => {
     const {store, runner, log, id} = harness([{kind: 'look', look: uuid(99)}]);
+    const problems = vi.fn();
+    onTestFinished(store.subscribeProblems(problems));
     dispatchLogged(
       store,
       {
@@ -81,10 +85,54 @@ describe('macro live execution', () => {
       },
       log,
     );
-    expect(log.messages('warn')).toEqual(['skipped live command']);
-    expect(log.entries[0]).toHaveProperty('detail.type', 'live.batch');
+    expect(log.messages('warn')).toEqual(['dropped live dispatch']);
+    expect(log.entries[0]).toMatchObject({
+      detail: {type: 'live.batch', macroIds: [id]},
+    });
+    expect(problems).toHaveBeenCalledExactlyOnceWith({
+      kind: 'macro-dropped',
+      macroId: id,
+      name: `Macro ${id}`,
+    });
     expect(runner.lastRun).toBeNull();
     expect(store.state.layers.message).toBeNull();
+  });
+  it('reports the start 매크로 of an item.start whose dispatch is dropped', () => {
+    const {store, log} = harness(
+      [{kind: 'clearLayer', layer: 'media'}],
+      [{id: IDS.item, media: IDS.video, macro: IDS.macro}],
+    );
+    const problems = vi.fn();
+    onTestFinished(store.subscribeProblems(problems));
+    dispatchLogged(
+      store,
+      {
+        type: 'live.batch',
+        commands: [
+          {
+            type: 'item.start',
+            itemId: expectSuccess(parseServiceItemId(IDS.item)),
+          },
+          {
+            type: 'message.show',
+            message: {
+              messageId: 'invalid',
+              text: 'x'.repeat(LIVE_STATE_LIMITS.textCharacters + 1),
+            },
+          },
+        ],
+      },
+      log,
+    );
+    expect(log.entries.at(-1)).toMatchObject({
+      message: 'dropped live dispatch',
+      detail: {macroIds: [IDS.macro]},
+    });
+    expect(problems).toHaveBeenCalledExactlyOnceWith({
+      kind: 'macro-dropped',
+      macroId: IDS.macro,
+      name: `Macro ${IDS.macro}`,
+    });
   });
   it('reports skipped actions in one bounded warning with the total count', () => {
     const {store, runner, log, id} = harness(

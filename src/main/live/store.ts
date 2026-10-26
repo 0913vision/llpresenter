@@ -2,6 +2,7 @@ import type {LiveCommand, SingleLiveCommand} from '@shared/commands';
 import {randomUUID} from 'node:crypto';
 import {createMessageId} from '@shared/schema/ids';
 import {MAX_LIVE_BATCH_COMMANDS} from '@shared/schema/liveCommand';
+import {macroDroppedProblem, type AppProblem} from '@shared/schema/appProblem';
 import type {LiveState} from '@shared/live';
 import type {Logger} from '../log';
 import type {SettingsReader} from '../store/settingsStore';
@@ -12,6 +13,8 @@ import type {MacroCommandPort, ScreenSettingsPort, SliceInputs} from './slice';
 
 export type LiveListener = (state: LiveState) => void;
 
+export type ProblemListener = (problem: AppProblem) => void;
+
 /**
  * The single source of truth for the live state. It doesn't depend on
  * Electron; the IPC layer subscribes to it to reach the windows.
@@ -19,6 +22,7 @@ export type LiveListener = (state: LiveState) => void;
 export class LiveStore {
   private history: LiveHistory;
   private readonly listeners = new Set<LiveListener>();
+  private readonly problemListeners = new Set<ProblemListener>();
   private settings: SettingsReader | undefined;
   private screenSettings: ScreenSettingsPort | undefined;
   private macros: MacroCommandPort | undefined;
@@ -88,7 +92,9 @@ export class LiveStore {
    *
    * @param onListenerError - Receives errors thrown by listeners, which never
    * reach other listeners or the state.
-   * @param onSkipped - Receives one diagnostic per unsupported or failed command.
+   * @param onSkipped - Receives one diagnostic per unsupported or failed command,
+   * and last the one for a dropped dispatch. Each 매크로 that a dropped
+   * dispatch ran then goes to the problem listeners.
    * @returns Whether the state changed.
    */
   dispatch(
@@ -114,6 +120,7 @@ export class LiveStore {
         onListenerError?.(error);
       }
     }
+    this.reportDroppedMacros(skipped, onListenerError);
     if (!changed) return false;
     this.notify(next.state, onListenerError);
     return true;
@@ -124,6 +131,39 @@ export class LiveStore {
     return () => {
       this.listeners.delete(listener);
     };
+  }
+
+  /** Calls the listener for each problem a dispatch reports to the windows. */
+  subscribeProblems(listener: ProblemListener): () => void {
+    this.problemListeners.add(listener);
+    return () => {
+      this.problemListeners.delete(listener);
+    };
+  }
+
+  private reportDroppedMacros(
+    skipped: readonly SkippedLiveCommand[],
+    onListenerError?: (error: unknown) => void,
+  ): void {
+    for (const problem of skipped) {
+      if (problem.reason !== 'dropped') continue;
+      for (const {macroId, name} of problem.macros) {
+        this.notifyProblem(macroDroppedProblem(macroId, name), onListenerError);
+      }
+    }
+  }
+
+  private notifyProblem(
+    problem: AppProblem,
+    onListenerError?: (error: unknown) => void,
+  ): void {
+    for (const listener of this.problemListeners) {
+      try {
+        listener(problem);
+      } catch (error) {
+        onListenerError?.(error);
+      }
+    }
   }
 
   private notify(
@@ -171,6 +211,12 @@ export function dispatchLogged(
           type: problem.type,
           reason: problem.reason,
           error: problem.error,
+        });
+      } else if (problem.reason === 'dropped') {
+        log.warn('dropped live dispatch', {
+          type: problem.type,
+          error: problem.error,
+          macroIds: problem.macros.map(({macroId}) => macroId),
         });
       } else {
         log.error('live command failed', {

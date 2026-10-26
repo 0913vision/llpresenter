@@ -168,6 +168,7 @@ describe('SliceRegistry', () => {
           now: 42,
           apply: current => current,
           defer: () => undefined,
+          ranMacro: () => undefined,
           reject: () => history,
         },
       ),

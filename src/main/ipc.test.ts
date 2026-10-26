@@ -1,5 +1,8 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {Channels} from '@shared/ipc';
+import {macroDroppedProblem, type AppProblem} from '@shared/schema/appProblem';
+import {parseMacroId} from '@shared/schema/ids';
+import {expectSuccess} from '@shared/schema/testHelpers';
 import {registerIpc} from './ipc';
 import {LiveStore} from './live/store';
 import type {Logger} from './log';
@@ -101,6 +104,30 @@ describe('registerIpc live commands', () => {
     dispose();
     expect(store.listenerCount).toBe(0);
     expect(electron.listeners.has(Channels.liveCommand)).toBe(false);
+  });
+
+  it('sends each app problem to every window and stops on dispose', () => {
+    const store = new LiveStore();
+    let report: (problem: AppProblem) => void = () => undefined;
+    const stop = vi.fn();
+    vi.spyOn(store, 'subscribeProblems').mockImplementation(listener => {
+      report = listener;
+      return stop;
+    });
+    const send = vi.fn();
+    electron.windows.add({
+      isDestroyed: () => false,
+      webContents: {isDestroyed: () => false, send},
+    });
+    const dispose = registerIpc(store, fakeLog(), 'normal');
+    const problem = macroDroppedProblem(
+      expectSuccess(parseMacroId('c63a2e74-9a31-4c4d-8e5f-607182930415')),
+      'Invented opening',
+    );
+    report(problem);
+    expect(send).toHaveBeenCalledExactlyOnceWith(Channels.appProblem, problem);
+    dispose();
+    expect(stop).toHaveBeenCalledOnce();
   });
 
   it('rejects an invalid batch envelope without applying any command', () => {

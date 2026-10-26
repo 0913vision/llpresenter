@@ -2,7 +2,7 @@ import type {LiveCommand, LiveCommandType} from '@shared/commands';
 import type {LiveLayers, LiveState} from '@shared/live';
 import type {LiveHistory} from './history';
 import type {SettingsReader} from '../store/settingsStore';
-import type {MessageId, ScreenId} from '@shared/schema/ids';
+import type {MacroId, MessageId, ScreenId} from '@shared/schema/ids';
 import type {PayloadError} from '@shared/schema/payload';
 
 export interface MacroCommandPort {
@@ -11,6 +11,12 @@ export interface MacroCommandPort {
     command: CommandOf<'macro.run' | 'item.start'>,
     context: SliceContext,
   ): LiveHistory;
+}
+
+/** A 매크로 that a dispatch ran, as a dropped dispatch names it. */
+export interface RanMacro {
+  readonly macroId: MacroId;
+  readonly name: string;
 }
 
 /** The saved output screens, as `screen.settings.apply` resyncs them. */
@@ -57,6 +63,11 @@ export interface SliceContext extends SliceInputs {
    * run.
    */
   readonly defer: (effect: () => void) => void;
+  /**
+   * Notes a 매크로 that this command ran, so a dropped dispatch can name it. A
+   * skipped command's notes are dropped with its effects.
+   */
+  readonly ranMacro: (macro: RanMacro) => void;
   /** Records a validation skip and returns this command's unchanged history. */
   readonly reject: (error: PayloadError) => LiveHistory;
   readonly apply: (history: LiveHistory, command: LiveCommand) => LiveHistory;

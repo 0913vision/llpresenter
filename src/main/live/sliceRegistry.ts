@@ -9,6 +9,7 @@ import {MissingLiveTargetError} from './commandErrors';
 import {
   isLiveSlice,
   type LiveSlice,
+  type RanMacro,
   type SliceContext,
   type SliceInputs,
 } from './slice';
@@ -29,6 +30,13 @@ export type SkippedLiveCommand =
       readonly type: LiveCommand['type'];
       readonly reason: 'failed';
       readonly error: unknown;
+    }
+  | {
+      readonly type: LiveCommand['type'];
+      readonly reason: 'dropped';
+      readonly error: PayloadError;
+      /** The 매크로 that the dropped dispatch ran, in order. */
+      readonly macros: readonly RanMacro[];
     };
 
 export interface LiveReduction {
@@ -46,6 +54,44 @@ interface DeferredEffect {
 
 interface ReductionAttempt extends LiveReduction {
   readonly effects: readonly DeferredEffect[];
+  readonly macros: readonly RanMacro[];
+}
+
+interface RecordMark {
+  readonly effects: number;
+  readonly macros: number;
+}
+
+/** What one reduction collects besides its history. */
+class ReductionRecord {
+  readonly skipped: SkippedLiveCommand[] = [];
+  readonly effects: DeferredEffect[] = [];
+  readonly macros: RanMacro[] = [];
+
+  mark(): RecordMark {
+    return {effects: this.effects.length, macros: this.macros.length};
+  }
+
+  /** Records a skipped command and drops the effects and notes it left. */
+  skip(mark: RecordMark, problem: SkippedLiveCommand): void {
+    this.effects.length = mark.effects;
+    this.macros.length = mark.macros;
+    this.skipped.push(problem);
+  }
+
+  defer(type: LiveCommand['type'], run: () => void): void {
+    if (this.effects.length >= MAX_ATTEMPT_EFFECTS) {
+      throw new Error('Too many deferred live observations');
+    }
+    this.effects.push({type, run});
+  }
+
+  ranMacro(macro: RanMacro): void {
+    if (this.macros.length >= MAX_LIVE_BATCH_COMMANDS) {
+      throw new Error('Too many macros in one dispatch');
+    }
+    this.macros.push(macro);
+  }
 }
 
 function stateProblem(state: LiveState): PayloadError | undefined {
@@ -142,7 +188,7 @@ export class SliceRegistry {
       history,
       skipped: [
         ...attempt.skipped,
-        {type: command.type, reason: 'invalid-overlay', error},
+        {type: command.type, reason: 'dropped', error, macros: attempt.macros},
       ],
     };
   }
@@ -152,35 +198,37 @@ export class SliceRegistry {
     command: LiveCommand,
     inputs: SliceInputs,
   ): ReductionAttempt {
-    const skipped: SkippedLiveCommand[] = [];
-    const effects: DeferredEffect[] = [];
+    const record = new ReductionRecord();
     const apply = (before: LiveHistory, next: LiveCommand): LiveHistory => {
       const slice = this.byCommand.get(next.type);
       if (slice === undefined) {
-        skipped.push({type: next.type, reason: 'unhandled'});
+        record.skipped.push({type: next.type, reason: 'unhandled'});
         return before;
       }
-      const effectsBefore = effects.length;
+      const mark = record.mark();
       const context: SliceContext = {
         ...inputs,
         apply,
         defer: effect => {
-          if (effects.length >= MAX_ATTEMPT_EFFECTS) {
-            throw new Error('Too many deferred live observations');
-          }
-          effects.push({type: next.type, run: effect});
+          record.defer(next.type, effect);
+        },
+        ranMacro: macro => {
+          record.ranMacro(macro);
         },
         reject: error => {
-          effects.length = effectsBefore;
-          skipped.push({type: next.type, reason: 'invalid-overlay', error});
+          record.skip(mark, {
+            type: next.type,
+            reason: 'invalid-overlay',
+            error,
+          });
           return before;
         },
       };
       try {
         return slice.apply(before, next, context);
       } catch (error) {
-        effects.length = effectsBefore;
-        skipped.push(
+        record.skip(
+          mark,
           error instanceof MissingLiveTargetError
             ? {type: next.type, reason: 'missing-target', error}
             : {type: next.type, reason: 'failed', error},
@@ -188,7 +236,13 @@ export class SliceRegistry {
         return before;
       }
     };
-    return {history: apply(history, command), skipped, effects};
+    const after = apply(history, command);
+    return {
+      history: after,
+      skipped: record.skipped,
+      effects: record.effects,
+      macros: record.macros,
+    };
   }
 }
 
