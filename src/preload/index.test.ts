@@ -325,7 +325,7 @@ describe('preload', () => {
     ]);
   });
 
-  it('sends 그래도 닫기 without a payload', () => {
+  it('sends 강제로 닫기 without a payload', () => {
     api.app.closeAnyway();
     expect(electron.send.mock.calls).toEqual([[Channels.appCloseAnyway]]);
   });

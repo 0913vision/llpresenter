@@ -4,6 +4,7 @@ import {closeStepAfter} from './closePolicy';
 describe('close policy after a flush', () => {
   it.each([
     ['flushed', 'close'],
+    ['forced', 'close'],
     ['no-reply', 'close'],
     ['refused', 'warn'],
   ] as const)('answers %s with %s', (outcome, step) => {

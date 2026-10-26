@@ -137,7 +137,12 @@ class ControlCloseHandshake implements ControlClose {
 
   private handleCloseAnyway(event: IpcMainEvent): void {
     if (!this.fromControl(event, Channels.appCloseAnyway)) return;
-    if (!this.refused || this.pending !== null) return;
+    if (this.pending !== null) {
+      this.options.log.info('closing the control window before its flush ends');
+      this.pending.settle('forced');
+      return;
+    }
+    if (!this.refused) return;
     this.refused = false;
     this.confirmed = true;
     this.options.log.info('closing the control window after a refused flush');
@@ -192,9 +197,10 @@ class ControlCloseHandshake implements ControlClose {
 /**
  * Makes the control window flush its edits before it closes, whether the
  * close comes from the window or from quitting. A refused flush keeps the
- * window open until the user chooses 그래도 닫기; a missing answer closes
- * after `APP_FLUSH_LIMITS.timeoutMs` (`closeStepAfter`). Only replies from
- * this window's web contents count.
+ * window open until a later close or 강제로 닫기, which also ends a flush that
+ * is still running; a missing answer closes after
+ * `APP_FLUSH_LIMITS.timeoutMs` (`closeStepAfter`). Only messages from this
+ * window's web contents count.
  */
 export function registerControlClose(
   options: ControlCloseOptions,

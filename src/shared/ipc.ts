@@ -134,8 +134,9 @@ export interface LlpApi {
     /** Replies with the editor's flush result for one request. */
     flushDone(reply: AppFlushDone): void;
     /**
-     * 그래도 닫기: closes the control window without another flush, after main
-     * kept it open for a refused one. Main ignores it at any other time.
+     * 강제로 닫기: closes the control window without waiting for its flush, or
+     * without another one after main kept it open for a refusal. Main ignores
+     * it at any other time.
      */
     closeAnyway(): void;
   };

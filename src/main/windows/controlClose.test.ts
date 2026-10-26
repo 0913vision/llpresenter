@@ -118,7 +118,7 @@ describe('control window close handshake', () => {
     expect(control.destroyed).toBe(true);
   });
 
-  it('keeps the window open after a refused flush until 그래도 닫기', async () => {
+  it('keeps the window open after a refused flush until 강제로 닫기', async () => {
     const {control, log, reply} = setup();
     electron.ipcMain.emit(Channels.appCloseAnyway, CONTROL_ID);
     control.close();
@@ -134,6 +134,19 @@ describe('control window close handshake', () => {
     ]);
   });
 
+  it('closes at once on 강제로 닫기 while the flush still runs', async () => {
+    const {control, log, closing} = setup();
+    control.close();
+    const quit = closing.confirmClose();
+    electron.ipcMain.emit(Channels.appCloseAnyway, CONTROL_ID);
+    await expect(quit).resolves.toBe(true);
+    await settled();
+    expect(control.destroyed).toBe(true);
+    expect(log.messages('info')).toEqual([
+      'closing the control window before its flush ends',
+    ]);
+  });
+
   it('asks again on the next close after a refusal', async () => {
     const {control, reply} = setup();
     control.close();
@@ -141,7 +154,6 @@ describe('control window close handshake', () => {
     await settled();
     control.close();
     expect(control.webContents.send).toHaveBeenCalledTimes(2);
-    electron.ipcMain.emit(Channels.appCloseAnyway, CONTROL_ID);
     expect(control.destroyed).toBe(false);
     reply(true, CONTROL_ID, 1);
     await settled();
