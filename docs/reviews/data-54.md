@@ -53,6 +53,10 @@ draws them; this request keeps and serves them.
 - `src/main/store/atomicWrite.ts` and `.test.ts`: bytes.
 - `src/shared/schema/ids.ts`: `parseMediaId`.
 - `src/shared/media.ts` and `.test.ts`: `thumbnailUrl` and `thumbnailIdFromUrl`.
+  The test's analysis token (data-51) and thumbnail id are now low-entropy ids
+  such as `00000000-0000-4000-8000-000000000001`, after a secret scanner flagged
+  the random sample UUID (lead).
+- `src/shared/schema/mediaFiles.test.ts`: the same for its id (data-50).
 - `src/main/windows/mediaResponse.ts` and `.test.ts`: the thumbnail route.
 - `src/main/media/mediaAnalyser.ts`: a thumbnail is a `Uint8Array`.
 - `src/main/media/mediaImporter.ts`, `register.ts`, and their tests: import
