@@ -65,7 +65,7 @@ export function VirtualSlides({
   baseline,
   scale,
 }: {
-  readonly song: Song;
+  readonly song: Pick<Song, 'slides'>;
   readonly numbers: readonly number[];
   readonly labels: readonly Label[];
   readonly selected: number | undefined;
