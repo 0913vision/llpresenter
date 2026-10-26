@@ -1,30 +1,30 @@
 {
   "measurements": [
     {
-      "elements": 399,
-      "heap": 6639552,
+      "elements": 401,
+      "heap": 6831020,
       "documents": 27,
-      "nodes": 1444,
-      "jsEventListeners": 384
+      "nodes": 1446,
+      "jsEventListeners": 385
     },
     {
-      "elements": 399,
-      "heap": 6871404,
+      "elements": 401,
+      "heap": 6993380,
       "documents": 27,
-      "nodes": 1444,
-      "jsEventListeners": 384
+      "nodes": 1446,
+      "jsEventListeners": 385
     },
     {
-      "elements": 399,
-      "heap": 6994360,
+      "elements": 401,
+      "heap": 7136036,
       "documents": 27,
-      "nodes": 1444,
-      "jsEventListeners": 384
+      "nodes": 1446,
+      "jsEventListeners": 385
     }
   ],
   "errors": [],
   "liveUnchanged": true,
   "port": 5193,
   "offscreen": true,
-  "nativePicker": "cancelled by offscreen guard"
+  "nativePicker": "read refused by offscreen guard, failure reported"
 }

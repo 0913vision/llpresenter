@@ -151,7 +151,13 @@ describe('the 파일 menu', () => {
       );
       await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
       await userEvent.click(screen.getByRole('menuitem', {name: '가져오기'}));
-      await userEvent.click(screen.getByRole('menuitem', {name}));
+      const entry = screen.getByRole('menuitem', {
+        name: new RegExp(`^${name}`),
+      });
+      if (source === 'file') {
+        expect(entry.textContent).toContain('Ctrl Shift I');
+      }
+      await userEvent.click(entry);
       expect(onImportText).toHaveBeenCalledExactlyOnceWith(source);
       expect(screen.queryByRole('menu')).toBeNull();
     },
@@ -164,13 +170,15 @@ describe('the 파일 menu', () => {
     await userEvent.click(screen.getByRole('menuitem', {name: '가져오기'}));
     for (const name of ['텍스트 파일', '클립보드 텍스트', 'PowerPoint 파일']) {
       expect(
-        screen.getByRole('menuitem', {name}).getAttribute('aria-disabled'),
+        screen
+          .getByRole('menuitem', {name: new RegExp(`^${name}`)})
+          .getAttribute('aria-disabled'),
       ).toBe('true');
     }
     expect(
       (
         await hoverForTooltip(
-          screen.getByRole('menuitem', {name: '텍스트 파일'}),
+          screen.getByRole('menuitem', {name: /^텍스트 파일/}),
         )
       )?.textContent,
     ).toBe('텍스트 가져오기를 준비 중입니다');

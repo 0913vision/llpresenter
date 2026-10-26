@@ -37,19 +37,21 @@ describe('text import flow', () => {
     });
     const onDone = vi.fn();
     const onEdit = vi.fn();
-    render(
-      <StrictMode>
-        <TextImportFlow
-          api={api}
-          store={f.store}
-          source="file"
-          onDone={onDone}
-          onEdit={onEdit}
-          onProblem={f.problem}
-        />
-      </StrictMode>,
-    );
-    await screen.findByText('슬라이드 1');
+    await act(async () => {
+      render(
+        <StrictMode>
+          <TextImportFlow
+            api={api}
+            store={f.store}
+            source="file"
+            onDone={onDone}
+            onEdit={onEdit}
+            onProblem={f.problem}
+          />
+        </StrictMode>,
+      );
+    });
+    expect(screen.getByText('슬라이드 1')).toBeTruthy();
     expect(read).toHaveBeenCalledExactlyOnceWith({
       source: 'file',
       encoding: 'auto',
