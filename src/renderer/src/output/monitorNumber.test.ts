@@ -4,6 +4,7 @@ import {showMonitorNumber} from './monitorNumber';
 describe('showMonitorNumber', () => {
   it('draws the number alone', () => {
     const root = document.createElement('div');
+    root.append(document.createElement('span'));
     expect(showMonitorNumber(root, '2')).toBe(true);
     expect(root.textContent).toBe('2');
     expect(root.children).toHaveLength(1);

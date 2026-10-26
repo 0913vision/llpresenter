@@ -403,6 +403,16 @@ describe('createElectronOutputWindow normal', () => {
     },
   );
 
+  it('reports where the window is now, and nothing once it is destroyed', () => {
+    const output = openOutput('normal');
+    const win = lastWindow();
+    const moved = {x: 100, y: 50, width: 1280, height: 760};
+    win.getBounds.mockImplementation(() => moved);
+    expect(output.bounds()).toEqual(moved);
+    win.isDestroyed.mockImplementation(() => true);
+    expect(output.bounds()).toBeNull();
+  });
+
   it('opens a capture window with fixed client size, chroma and drawing enabled while covered', () => {
     const output = createElectronOutputWindow(
       {...SCREEN, method: 'capture'},

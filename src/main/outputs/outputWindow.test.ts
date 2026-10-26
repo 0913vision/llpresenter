@@ -109,10 +109,13 @@ describe('OutputWindow', () => {
     const moved = {x: 100, y: 50, width: 1920, height: 1080};
     handle.mode = {kind: 'capture', bounds: moved};
     expect(output.captureArea()).toEqual(moved);
+    vi.spyOn(handle, 'bounds').mockReturnValue(moved);
     output.update(FALLBACK);
     expect(output.captureArea()).toBeNull();
     output.update({kind: 'capture', bounds: PROJECTOR});
     output.update(null);
+    // NOTE(0913vision): A real hidden window still has bounds.
+    expect(handle.bounds()).toEqual(moved);
     expect(output.captureArea()).toBeNull();
     output.update({kind: 'capture', bounds: PROJECTOR});
     output.dispose();
