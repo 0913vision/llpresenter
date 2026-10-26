@@ -123,19 +123,13 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (286dc84d): reviewer (Codex, codex2) Approve, one nit: both playlist
+  creation buttons lack a disabled-reason tooltip (loading, creation in
+  progress, read-only media), as the IconButton rules require; it goes into the
+  next branch. Lead Approve. Rebased by the lead onto local `main` after data-54
+  to data-56 without conflicts; typecheck passes.
 
 ## Team member's reply
 

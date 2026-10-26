@@ -80,3 +80,13 @@ from the 새 예배 dialog with the new 틀 showing in its list; and the command
 unavailable with no open service.
 
 No Electron process, visible window, soak, or memory measurement was started.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (Codex, codex5): Request changes: 덮어쓰기 could delete the old 틀
+  while the new one existed only in memory after `write-failed`, and a success
+  card broke the rule against notices for the operator's own actions.
+- Round 2 (173bc965): reviewer (Codex, codex5) Approve, no findings. Lead
+  Approve; the old 틀 goes only after a plain ok save, which keeps the data-loss
+  rule. Rebased by the lead onto local `main` with spec-51 without conflicts;
+  typecheck passes.

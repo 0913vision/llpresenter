@@ -82,3 +82,12 @@ opening and cancelling their dialogs, with 가져오기 unavailable when no serv
 is open.
 
 No Electron process, visible window, soak, or memory measurement was started.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (Codex, codex2): Request changes: 취소, Esc, and close stayed active
+  during an import, so a result could be dropped while main kept importing.
+- Round 2 (8b6a5c24): reviewer (Codex, codex3, moved from a busy codex2)
+  Approve, no findings. Lead Approve; the 새 예배 dialog got the same wait.
+  Rebased by the lead onto local `main` with spec-52 without conflicts;
+  typecheck passes.
