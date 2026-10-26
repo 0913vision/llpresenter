@@ -25,6 +25,8 @@ export interface OutputWindowHandle {
    * placement work still running when it was asked.
    */
   bringToFront(): void;
+  /** Where the window is now on screen, or null while it never shows. */
+  bounds(): Rect | null;
   hide(): void;
   /**
    * Loads the page again, in a new renderer process if the old one died.
@@ -145,6 +147,14 @@ export class OutputWindow {
       return;
     }
     this.handle?.bringToFront();
+  }
+
+  /** Where a shown capture window is now, which other windows must not cover. */
+  captureArea(): Rect | null {
+    if (this.disposed || !this.visible || this.applied?.kind !== 'capture') {
+      return null;
+    }
+    return this.handle?.bounds() ?? null;
   }
 
   dispose(): void {

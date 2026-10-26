@@ -32,6 +32,12 @@ export interface ScreenSettingsPort {
   queueRefresh(): void;
 }
 
+/** The monitor number windows of 모니터 번호 표시. */
+export interface MonitorNumbersPort {
+  /** Shows each monitor's number for a few seconds, without taking focus. */
+  identify(): void;
+}
+
 export interface SliceInputs {
   readonly now: number;
   /** The monotonic 타이머 clock; absent uses `now`. */
@@ -39,6 +45,7 @@ export interface SliceInputs {
   readonly settings?: SettingsReader;
   readonly nextMessageId?: () => MessageId;
   readonly screenSettings?: ScreenSettingsPort;
+  readonly monitorNumbers?: MonitorNumbersPort;
   readonly macros?: MacroCommandPort;
 }
 

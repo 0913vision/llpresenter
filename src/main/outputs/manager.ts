@@ -130,6 +130,14 @@ export class OutputManager {
     this.windows.get(screenId)?.bringToFront();
   }
 
+  /** Where the shown capture windows are now. */
+  captureAreas(): readonly Rect[] {
+    return [...this.windows.values()].flatMap(output => {
+      const area = output.captureArea();
+      return area === null ? [] : [area];
+    });
+  }
+
   /** The placement and renderer state of every screen in the list. */
   screenStates(): ReadonlyMap<string, ScreenOutputState> {
     return new Map(

@@ -19,6 +19,8 @@ import {createElectronWakeLock} from './electronWakeLock';
 import {createElectronOutputWindow} from './electronWindow';
 import {FrameRateTracker, type ScreenFrameRate} from './frameRates';
 import {OutputManager} from './manager';
+import {MonitorNumbers} from './monitorNumbers';
+import {openNumberWindow} from './numberWindow';
 import {OutputStatusBoard} from './statusBoard';
 import {WakeKeeper, keepAwakeWhileOutputsOn} from './wakeLock';
 
@@ -155,6 +157,18 @@ export function startOutputs({
     onStatusChange: () => board.refresh(),
   });
   const releaseResync = store.connectScreenSettings(screens);
+  const numbers = new MonitorNumbers({
+    monitors: () => displays.monitors,
+    avoid: () => outputs.captureAreas(),
+    // NOTE(0913vision): An offscreen run never shows a window, so 모니터 번호
+    // 표시 opens nothing there.
+    open: spot =>
+      windowMode === 'offscreen'
+        ? {close: () => undefined}
+        : openNumberWindow(spot, log),
+    log,
+  });
+  const releaseNumbers = store.connectMonitorNumbers(numbers);
   const stopNormalizing = screens.subscribe(() => {
     frameRates.retain(screens.list().map(({id}) => id));
     normalizeOutputFlags(screens.list(), store, log);
@@ -162,6 +176,8 @@ export function startOutputs({
   outputs.start();
   const stops = [
     releaseResync,
+    releaseNumbers,
+    () => numbers.dispose(),
     stopNormalizing,
     screens.subscribe(() => board.refresh()),
     listenToWindows(

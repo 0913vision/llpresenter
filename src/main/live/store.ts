@@ -9,7 +9,12 @@ import type {SettingsReader} from '../store/settingsStore';
 import {SYSTEM_CLOCK, type LiveClock} from './clock';
 import {initialHistory, liveSlices, type LiveHistory} from './reducer';
 import type {SliceRegistry, SkippedLiveCommand} from './sliceRegistry';
-import type {MacroCommandPort, ScreenSettingsPort, SliceInputs} from './slice';
+import type {
+  MacroCommandPort,
+  MonitorNumbersPort,
+  ScreenSettingsPort,
+  SliceInputs,
+} from './slice';
 
 export type LiveListener = (state: LiveState) => void;
 
@@ -25,6 +30,7 @@ export class LiveStore {
   private readonly problemListeners = new Set<ProblemListener>();
   private settings: SettingsReader | undefined;
   private screenSettings: ScreenSettingsPort | undefined;
+  private monitorNumbers: MonitorNumbersPort | undefined;
   private macros: MacroCommandPort | undefined;
   private readonly readClock: () => Pick<SliceInputs, 'now' | 'timerNow'>;
 
@@ -70,6 +76,16 @@ export class LiveStore {
   }
 
   /** Attaches the saved output screens; disposal releases only this connection. */
+  /** Attaches the monitor number windows; the returned release is identity-safe. */
+  connectMonitorNumbers(monitorNumbers: MonitorNumbersPort): () => void {
+    this.monitorNumbers = monitorNumbers;
+    return () => {
+      if (this.monitorNumbers === monitorNumbers) {
+        this.monitorNumbers = undefined;
+      }
+    };
+  }
+
   connectScreenSettings(screenSettings: ScreenSettingsPort): () => void {
     this.screenSettings = screenSettings;
     return () => {
@@ -110,6 +126,9 @@ export class LiveStore {
       ...(this.screenSettings === undefined
         ? {}
         : {screenSettings: this.screenSettings}),
+      ...(this.monitorNumbers === undefined
+        ? {}
+        : {monitorNumbers: this.monitorNumbers}),
     });
     const changed = next !== this.history;
     this.history = next;

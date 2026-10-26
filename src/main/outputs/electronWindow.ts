@@ -17,7 +17,7 @@ import type {OutputWindowEvents, OutputWindowHandle} from './outputWindow';
 import type {OutputScreen} from './screens';
 import {WindowPlacement} from './windowPlacement';
 
-const OUTPUT_BACKGROUND = '#000000';
+export const OUTPUT_BACKGROUND = '#000000';
 const CAPTURE_BACKGROUND = '#00b140';
 const PING_SCRIPT = '0';
 
@@ -91,6 +91,7 @@ type OutputPresentation = Pick<
   | 'showCapture'
   | 'prepareForMonitorRemoval'
   | 'bringToFront'
+  | 'bounds'
   | 'hide'
 > & {readonly dispose: () => void};
 
@@ -174,6 +175,7 @@ function presentOnScreen(
       });
     },
     prepareForMonitorRemoval: placeBehindControl,
+    bounds: () => (win.isDestroyed() ? null : win.getBounds()),
     bringToFront: () => {
       raise();
       raiseWhilePending = placement.isPending();
@@ -202,6 +204,7 @@ function presentOffscreen(win: BrowserWindow): OutputPresentation {
     },
     showCapture: bounds => win.setContentBounds(bounds),
     prepareForMonitorRemoval: () => undefined,
+    bounds: () => null,
     bringToFront: () => undefined,
     hide: () => undefined,
     dispose: () => undefined,

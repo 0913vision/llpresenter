@@ -1,0 +1,14 @@
+/* NOTE(0913vision): No design system token sizes this window yet (spec 06,
+   모니터 번호 표시); the window itself is 240 DIP square. */
+.number {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: var(--text-on-fill);
+  background: var(--output-black);
+  font-family: var(--font-ui);
+  font-size: 160px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}

@@ -77,6 +77,10 @@ export class FakeOutputHandle implements OutputWindowHandle {
     this.raises += 1;
   }
 
+  bounds(): Rect | null {
+    return this.mode.kind === 'hidden' ? null : this.mode.bounds;
+  }
+
   hide(): void {
     this.mode = {kind: 'hidden'};
   }
