@@ -182,3 +182,13 @@ Both in
    left, the file given back, and the late page closed without a run) and while
    the page runs (no timer left, the file given back). The three new tests fail
    without the fix.
+
+## Round 2 reply
+
+1. [P2] `mediaAnalyser.ts:249`, a timeout left the job's abort controller
+   unaborted, so a page that opened late still ran the expired job. Fixed in
+   `fix(media): stop an ended analysis from running on a page that opens late`:
+   the job's controller is aborted however the analysis ends (a timeout, a
+   failure, or a reply), so a late page only gets closed. Regression: a page
+   that opens after its analysis timed out is closed without a run, while the
+   next file opens a new page and is read. It fails without the fix.
