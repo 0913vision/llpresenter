@@ -1,0 +1,44 @@
+{
+  "measurements": [
+    {
+      "elements": 405,
+      "heap": 5565428,
+      "documents": 27,
+      "nodes": 1450,
+      "jsEventListeners": 379
+    },
+    {
+      "elements": 405,
+      "heap": 5648396,
+      "documents": 27,
+      "nodes": 1450,
+      "jsEventListeners": 379
+    },
+    {
+      "elements": 405,
+      "heap": 5708384,
+      "documents": 27,
+      "nodes": 1450,
+      "jsEventListeners": 379
+    }
+  ],
+  "errors": [],
+  "toolbar": [
+    "가나다첫 찬송 줄슬라이드 1개",
+    "나무찬송 가사슬라이드 1개",
+    "찬송 2슬라이드 1개",
+    "찬송 10슬라이드 1개"
+  ],
+  "library": [
+    "가나다슬라이드 1개",
+    "나무슬라이드 1개",
+    "찬송 2슬라이드 1개",
+    "찬송 10슬라이드 1개"
+  ],
+  "limit": ["가나다", "나무"],
+  "liveUnchanged": true,
+  "roundTrips": 20,
+  "quickAddReopens": 2,
+  "port": 5193,
+  "offscreen": true
+}

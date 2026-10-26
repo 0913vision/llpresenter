@@ -724,9 +724,9 @@ this:
 
 - In 진행, typing in the toolbar search field opens a list of 라이브러리 songs
   below the field, matched by title, lyrics, or initial consonants with the
-  rules of 05 "Search". The list shows at most 20 songs, title matches first
-  (proposal). A lyrics match shows its first matching line under the title
-  (proposal).
+  rules of 05 "Search". The list shows at most 20 songs in alphabetical title
+  order, including lyric matches (October 27 user decision, P03). A lyrics match
+  shows its first matching line under the title (proposal).
 - Choosing a song opens it in the 슬라이드 panel with the default 구성. It isn't
   added to the 예배 순서. Clicking its 슬라이드 outputs them.
 - In 준비, choosing a result selects the song in the 라이브러리 and opens the

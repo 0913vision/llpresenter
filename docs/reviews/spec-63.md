@@ -20,20 +20,43 @@ that same order. All renderer search surfaces consume this one result order.
 
 This follows the recorded user decision and the current
 [Renewed Vision Quick Search article](https://support.renewedvision.com/hc/en-us/articles/9808905773715-How-to-Use-Quick-Search-within-ProPresenter),
-which documents alphabetical library results. Spec 05 and the shared request
+which documents alphabetical library results. Specs 04/05 and the shared request
 comment now describe that ordering. No IPC fields or schema validation change.
 
 ## Validation
 
-Index/registration regressions cover mixed matches and truncation, preservation
-of lyric details, numeric title ordering, equal-title ID ties, rename/update/
-delete behavior, Hangul initials, normalization, and the existing 3000-song
-latency/yield check. Final counts, typecheck, lint, formatting, build and CI go
-with the submission.
+All 25 index/registration regressions pass, covering mixed matches and
+truncation, preservation of lyric details, numeric title ordering, equal-title
+ID ties, rename/update/ delete behavior, Hangul initials, normalization, and the
+existing 3000-song latency/yield check. Typecheck, scoped ESLint, production
+build, formatting and diff checks pass. CI is pending (API 403); the lead checks
+the exact pushed head.
 
 ## Checked in the app
 
-Pending the required offscreen CDP check before submission.
+Built and ran the actual Electron main/preload and renderer with
+`LLP_TEST_WINDOWS=offscreen`, port 5193, isolated invented song files, and
+CDP 9517. The driver passed `node --check` before launch. No product APIs were
+mocked. All owned app/server processes were stopped afterward.
+
+- [Toolbar search](spec-63/toolbar-search.png),
+  [library search](spec-63/library-search.png), and
+  [QuickAdd](spec-63/quick-add-search.png) show the same mixed alphabetical
+  result. The toolbar retains the first matching lyric line. Actual search IPC
+  with limit two returns 가나다 and 나무.
+- After ten warm-up round trips, selected the first and last toolbar results
+  back and forth twenty times with the same query. Reopened and closed QuickAdd
+  twice. Live layers were unchanged and no renderer exception occurred.
+- At baseline, ten rounds, and twenty rounds, elements stayed at 405, DOM nodes
+  at 1450, documents at 27, and listeners at 379. Collected heap was 5,565,428,
+  5,648,396, and 5,708,384 bytes, a bounded increase of about 140 KiB over this
+  short sample. Raw data is in [measurements](spec-63/measurements.json).
+
+An earlier harness loop erased/retyped the query each time and increased the
+native editing DOM counters. The final selection exercise keeps the query,
+blurs/refocuses the field, and measures at matching closed-list selections.
+QuickAdd initially needed a wait for the asynchronous song results rather than
+its already-visible other-item commands; that harness wait was corrected.
 
 ## Changes outside my paths
 
@@ -41,4 +64,5 @@ Pending the required offscreen CDP check before submission.
   library, and QuickAdd. The lead explicitly assigned P03 to this member.
 - `src/shared/schema/librarySearch.ts`: data-owned comment only, correcting the
   old title-first description; payload shape and validation are unchanged.
-- `docs/spec/05-prep.md` and this review record belong to this member.
+- `docs/spec/04-show.md`, `05-prep.md`, and this review record belong to this
+  member.
