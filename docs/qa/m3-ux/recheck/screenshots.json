@@ -1,0 +1,467 @@
+{
+  "snapshot": "9cc36558b48d9c69c60213b44a3b22bdbaa30783",
+  "images": [
+    {
+      "file": "01-show.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "86a5598c2be1e779cdc578a439f1eaf48d6360f5468ec1e4b069cc704db83ba2"
+    },
+    {
+      "file": "02-prep.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "b2185a5fbc6c0006b53b108eeb8d6cc4e5252bc1a6c26b2c10d68db9fa5a1aac"
+    },
+    {
+      "file": "03-screens.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "94865771dc540024db4ee4360db5e30fd10e9fd8d38ed7d75539ce58b570dd06"
+    },
+    {
+      "file": "04-media.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "49e2f617f5eb6370b93cf777970c8f2fc71ee33132c4a5bb31bd67ce8d66c7d2"
+    },
+    {
+      "file": "alphabetic-search.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "e254355ffd96e42514d743f20cb5da75204fe9faa0e225211fcf4eccc364cb83"
+    },
+    {
+      "file": "bible/prep.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "d4347c58f89d523c2981846a4d880323ed56b8dc4cb0ae8e57b87bcb7bc3584e"
+    },
+    {
+      "file": "bible/show.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "9a7fb3bf58b2a00b9ec367d5db874d6b0da36140c63f3560663c1af5ca6c2b3a"
+    },
+    {
+      "file": "bible-prep-preview-empty.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "6c63c8ad9b4f4c486b15a2857c77c94232c144da244ab9c14feec2871fa76447"
+    },
+    {
+      "file": "bible-show-same-item.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "e226a47814a8ab461e26b0cdf28fc41bd6bf1d063add29a6b3e8e970cd2ee62c"
+    },
+    {
+      "file": "dialog-arrangement.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "4c02363a5bb1eaa8ad961f0390cac488e3a6e67d781160427de641d9b4d1bf5c"
+    },
+    {
+      "file": "dialog-import-items.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "8bd2882bebf623bf698752cf4e62ab99e47a944918045f616d65b8b8b1fce27a"
+    },
+    {
+      "file": "dialog-import-selected.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "2f663489dc90de6e7d2429e09b6bbc28f45e24c85aaf19b550378b22655b2c53"
+    },
+    {
+      "file": "dialog-imported-song-conflict.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "bbfa2cbea9d12c1a076cbaf79a4834cf5200a5f91a71ef4746428c6ae8bb3e93"
+    },
+    {
+      "file": "dialog-imported-song-discard.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "baac60b0cda91b55f4233782bddfd8ca52f703f4d7d5d619bfa9ece24fdbd3ae"
+    },
+    {
+      "file": "dialog-label-delete.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "f1b68d433298d7dd42864d6781db2f7d89254ec330a788006d95fd292e0eaad9"
+    },
+    {
+      "file": "dialog-label-key.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "ac945be4f6a1315de5c5c356ba151cb7b6265ad288f0bd38219d0f87e528b691"
+    },
+    {
+      "file": "dialog-label-rename.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "3dc74ac2aee5543c3e37bfb1839300e376f7ae10b927235a7ee9cdb89c8b7d06"
+    },
+    {
+      "file": "dialog-library-delete.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "f898359acf38868d70f7bb3550b9c3979ba714f76d9b7b83d2ff1f1c795c7321"
+    },
+    {
+      "file": "dialog-look-delete-dependent.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "c5c85e19a644125aa2b61de09444cf83139e086905b2020a923fc570e32b88cd"
+    },
+    {
+      "file": "dialog-media-delete.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "3cc7c48061412c976abb29358c64241fa6d17dcfa49235f48aff691b67cbf66c"
+    },
+    {
+      "file": "dialog-message-add.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "7a505e2bfd651cb03f732be6daf3daac70ffa540a659acfa02331886bffd8dd3"
+    },
+    {
+      "file": "dialog-message-delete.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "3b9222254a50a814a29226e6cc16124d28ce3ba8fe8c425b4a215aff5cbb3ece"
+    },
+    {
+      "file": "dialog-message-edit.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "7a70cc4e21bdd7a33e7da1cce0a001607a8efc511f7eb848156612d51715c657"
+    },
+    {
+      "file": "dialog-new-service.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "f612841e4118287cc21febb719f7be2840e50e474069e25d6f3628582d3b2949"
+    },
+    {
+      "file": "dialog-past-service-delete.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "8cf8fb9eb3e5eee01078684947cb9ed34a1157f57e7eef7f9b3c206ff215c1c9"
+    },
+    {
+      "file": "dialog-playlist-delete-audio.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "e2ebbb5f67dc209d82138c959a439e2b3450bd10c6045c1e91787d450a1dff9d"
+    },
+    {
+      "file": "dialog-playlist-delete-media.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "1d97064ac276af16a72fe73560c8a724a40670e3b765e3d8fb35791488495602"
+    },
+    {
+      "file": "dialog-quick-rename.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "76b9b0f96ceb3f840f841e3e2ea4d98073375d70d45b454fb6c8d822e5c900ef"
+    },
+    {
+      "file": "dialog-recovery-1.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "5dc592b32a1281737480d046e2b04d92c930171c9bfba368b907f619b308c5b6"
+    },
+    {
+      "file": "dialog-recovery-2.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "bab3dcffaebd876747e9887121a1fa2903b396f21910a232ee7c4399fe2481ab"
+    },
+    {
+      "file": "dialog-save-template-conflict.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "6942670c0912702040732b75340e7efaa95b47cd7d293d7bddae961ac2afef85"
+    },
+    {
+      "file": "dialog-service-rename.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "6cbed5befbf4f2ce0f36c06ead2a7f2d3b5c0eba6241279910cc2bb53fc43131"
+    },
+    {
+      "file": "dialog-template-delete.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "0085c3b119b5963c3b1e056af00ee4f667876c8689614f3a8054af5369d2a423"
+    },
+    {
+      "file": "dialog-template-rename.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "6603d815d07ee42bbd62978e86c724de690c2d2118226b8f003ae0a6946af396"
+    },
+    {
+      "file": "dialog-text-import.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "90a3ae5a25b20aab512dc3c7a641742564be9fa8296d428449a47bf1eadec07c"
+    },
+    {
+      "file": "look-selected.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "01e32ea7d94a49ae0365f77c953876baa036e2e2212ed773d137c2eca252f324"
+    },
+    {
+      "file": "media-info.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "37cffdc52a2c922a2bc5ce36cc907a4867dfd87ec50a7e381f1757d4222a74d0"
+    },
+    {
+      "file": "media-playlists-renamed.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "37614d27f9c5b1bf4402e91e96a24cf6dcea6d1206d389b99f65bcee92b02280"
+    },
+    {
+      "file": "menu-add-item.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "7835dff38634f25bfa31da49c3e995b8ff8ceafbb8e3c75f2205a66a2de87c97"
+    },
+    {
+      "file": "menu-edit.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "44a0fbcca3dddc092a831a8bc853746622254488485de3bc36564895ebfae1fc"
+    },
+    {
+      "file": "menu-file.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "3b2ea02adf39ad0ec0e60a29ec1b683647374dd221fedf6ff5834390e5a542cb"
+    },
+    {
+      "file": "menu-help.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "44a0fbcca3dddc092a831a8bc853746622254488485de3bc36564895ebfae1fc"
+    },
+    {
+      "file": "menu-label.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "889df01f7e773ddae6b10b007adc1257225ff7fa07a93e7a69a717b5769e62df"
+    },
+    {
+      "file": "menu-output.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "6d000b791da2320cc1cfe92c0635c75ad5dcc41430fef9d143efed5fe819c7c6"
+    },
+    {
+      "file": "menu-quick-add.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "ebfa2207795588c96a21f9f80ff28d4ff5f204662312fabf3f4982a29c99c6ff"
+    },
+    {
+      "file": "menu-view.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "e60afc60588ab3808b6208acd6d8ce01e0c3bfc477db984c9957189af4cfcc63"
+    },
+    {
+      "file": "menu-window.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "44a0fbcca3dddc092a831a8bc853746622254488485de3bc36564895ebfae1fc"
+    },
+    {
+      "file": "output-broadcast.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "9c70c8993d9eb83771e8f1111ae7db02abbfc506ef0c59ed424191309c38bea5"
+    },
+    {
+      "file": "output-main-late.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "ba502c6b4d68de98f88de497b1e3232a98fe201b8f67c822ec6a8b93ff24664a"
+    },
+    {
+      "file": "output-main.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "17a9c836bba7faedc8a76fc27f43ce6874f5d1b6962bac99407579a62aa3ea69"
+    },
+    {
+      "file": "output-stage.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "9edba542b96e38b987095df8dc7941777bed9a626eb9ff4a302591cab183fcbb"
+    },
+    {
+      "file": "playlist-rename-audio.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "73548143ffa43878c8f5e4d158281dad3511fcfc5051bdb479e083d2a47ea179"
+    },
+    {
+      "file": "playlist-rename-media.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "63c0462b6a80d0e9a81705422fe2ccbcdecbe5de4ef1bc1dbbbb060b2e0b0148"
+    },
+    {
+      "file": "prep-song-editor-second.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "2c5c61335e57d5703286f880c5b03953506a22350bacc41aeda9eb7bfb6aae55"
+    },
+    {
+      "file": "save-failed-1.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "5514c06dd2c9663f27587cfd2ab310ca278a1f449472fe8947646989f7633036"
+    },
+    {
+      "file": "save-failed-2.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "859e2f66480e682c677e4c7ea125d2319bb126ffab322183348c827f17ba6383"
+    },
+    {
+      "file": "screen-properties-0.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "303276ace0661f7053dd365124c50f19d81ca2d85cab748f49173ea3f9edfe14"
+    },
+    {
+      "file": "screen-properties-1.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "349d529c572a62113a22dbf0bdb039f1613a020f85ec00d74f5b5989f599febe"
+    },
+    {
+      "file": "screen-properties-2.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "5eeaa7d1649cb4c88ef818ccbc083b642a93da00645767b3aa7f9cc107eeeece"
+    },
+    {
+      "file": "screen-renamed.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "9246c90e1edf24fa5b9290137d6a51dcea309dbe175820f196986a557b8ff764"
+    },
+    {
+      "file": "screens-test-pattern.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "2e8042fdbc236b917d851427d0eb9eee70004d619d5ce63ba53354fb9894d43a"
+    },
+    {
+      "file": "section-renamed.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "4345e77652496e75e5ff02e6be5587ecbc3817bf1be4df5b3b6a53246304fe54"
+    },
+    {
+      "file": "show-after-20-roundtrips.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "86a5598c2be1e779cdc578a439f1eaf48d6360f5468ec1e4b069cc704db83ba2"
+    },
+    {
+      "file": "show-after-screen-rename.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "10c2ab89fa9b21f870905c24fe2422df7856f64a7b57e7ef5e9aeb271db7b4f5"
+    },
+    {
+      "file": "show-hover-end.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "d02cb14ea793e1fb22435d16a52f1a9e53d6335ae7dd47ae1090b742f60fd77c"
+    },
+    {
+      "file": "show-live.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "15fd6f5568a347ecdc276826066e5947bb20a592ecea661b73621427cf6fe241"
+    },
+    {
+      "file": "show-video-continuity.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "123fd3aa5d11a635119153c533b0a0b7efc46e494f4fb3bd732855874bf0b41f"
+    },
+    {
+      "file": "stage-layout-selected.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "b2eb9f07450b0ac10285a5a3dc4c345eb29f9bde7c9540d630e64df86b94ab24"
+    },
+    {
+      "file": "stage-message-live.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "cbb4e202a00d8d7cdc553d00967b798508b626dbc5513d1390ee3ebc4f643bc7"
+    },
+    {
+      "file": "tool-audio.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "611da0b78b5381fa6dea64c97399dba8155749838c897571844c91ebfb37bb41"
+    },
+    {
+      "file": "tool-macro.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "7f92236e86c34b5915d828a2b1c2084ced1ae2705c94c20752b0e02af3273a43"
+    },
+    {
+      "file": "tool-message.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "e00b7697db655e47626050bf628b382ec2d89c6ad9bbcd784e557b1141bb899f"
+    },
+    {
+      "file": "tool-notice.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "c1b9a05e797eae48340811c6cb2a7b6264523b41618c1dbabe2e56a13035a1aa"
+    },
+    {
+      "file": "tool-prop.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "6bf21b9e55c2f73e73f5d78990a0b10d335902ba35c0ca8b11de354bfc952bac"
+    },
+    {
+      "file": "tool-showing.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "44a0fbcca3dddc092a831a8bc853746622254488485de3bc36564895ebfae1fc"
+    },
+    {
+      "file": "tool-stage.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "32989554933bbedea877c2283cdd7a33dcd9e6eb95e6db6c8cdfd61b18283abc"
+    },
+    {
+      "file": "tool-timer.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "411e4c64552a5380da3598af2a4359e54f45438ece95c6a8bb0204be5a13ec33"
+    }
+  ]
+}
