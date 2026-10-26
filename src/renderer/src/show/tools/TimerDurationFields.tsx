@@ -4,16 +4,14 @@ import {PropertyRow, TextField} from '@renderer/ui';
 
 const SECONDS_PER_MINUTE = 60;
 const SECONDS_MAX = SECONDS_PER_MINUTE - 1;
+const MAX_MINUTES = Math.floor(MAX_TIMER_SECONDS / SECONDS_PER_MINUTE);
 const wholeNumber = (text: string, max: number): boolean =>
   /^\d+$/u.test(text) &&
   Number.isSafeInteger(Number(text)) &&
   Number(text) <= max;
 
 export function parseTimerDuration(minutes: string, seconds: string) {
-  const minutesReason = wholeNumber(
-    minutes,
-    Math.floor(MAX_TIMER_SECONDS / SECONDS_PER_MINUTE),
-  )
+  const minutesReason = wholeNumber(minutes, MAX_MINUTES)
     ? undefined
     : '분은 설정 가능한 0 이상의 정수여야 합니다';
   const secondsReason = wholeNumber(seconds, SECONDS_MAX)
@@ -57,6 +55,7 @@ export function TimerDurationFields({
             aria-label="분"
             numeric
             inputMode="numeric"
+            maxLength={String(MAX_MINUTES).length}
             block
             autoFocus
             value={minutes}
@@ -75,6 +74,7 @@ export function TimerDurationFields({
             aria-label="초"
             numeric
             inputMode="numeric"
+            maxLength={String(SECONDS_MAX).length}
             block
             value={seconds}
             onChange={onSecondsChange}

@@ -8,8 +8,7 @@ import type {
 import {withinLookupTimeout} from '@renderer/state/showOutput';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import type {EditResult} from '@shared/schema/contentEdit';
-import {MAX_QUICK_ITEMS} from '@shared/schema/quick';
-import {isKnownQuickItem} from '@shared/schema/quick';
+import {isKnownQuickItem, MAX_QUICK_ITEMS} from '@shared/schema/quick';
 import type {QuickTimerEdit} from '@shared/schema/quickTimerEdit';
 
 export {MAX_QUICK_ITEMS} from '@shared/schema/quick';
@@ -130,8 +129,9 @@ async function sendQuickEdit(
   if (edit.kind === 'rename') {
     const item = document.value.items.find(item => item.id === edit.id);
     if (item && isKnownQuickItem(item) && item.kind === 'timer') {
-      if (quickNameReason(edit.name))
+      if (quickNameReason(edit.name)) {
         throw new Error('Invalid quick item name');
+      }
       return api.settings.edit({
         type: 'quick.timer.rename',
         name: 'quick',

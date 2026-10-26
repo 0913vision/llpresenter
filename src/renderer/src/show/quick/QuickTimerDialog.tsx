@@ -58,7 +58,7 @@ export function QuickTimerDialog({
           {({controlId}) => (
             <SegmentedControl
               id={controlId}
-              aria-label="0 지나면"
+              label="0 지나면"
               fill
               disabled={locked}
               value={overrun ? 'continue' : 'stop'}

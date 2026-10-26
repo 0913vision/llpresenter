@@ -20,13 +20,15 @@ const rename = {
 
 describe('quick timer edit boundary', () => {
   it('accepts optional overrun only as a Boolean', () => {
-    for (const overrun of [true, false])
+    for (const overrun of [true, false]) {
       expect(parseSettingsEdit({...create, overrun})).toEqual({
         ok: true,
         value: {...create, overrun},
       });
-    for (const overrun of [null, 'false', 0])
+    }
+    for (const overrun of [null, 'false', 0]) {
       expect(parseSettingsEdit({...create, overrun}).ok).toBe(false);
+    }
   });
   it('accepts a bounded separation command and rejects another settings area', () => {
     expect(

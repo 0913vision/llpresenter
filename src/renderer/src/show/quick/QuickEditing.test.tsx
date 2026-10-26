@@ -209,6 +209,123 @@ afterEach(() => {
 });
 
 describe('quick editing', () => {
+  it('closes an applied timer addition with its persistence warning and no retry', async () => {
+    vi.mocked(crypto.randomUUID)
+      .mockReturnValueOnce('00000000-0000-4000-8000-000000000998')
+      .mockReturnValueOnce('00000000-0000-4000-8000-000000000997');
+    const fixture = setup();
+    failPersistedEdit(fixture.edit);
+    fixture.mount();
+    await openAddMenu();
+    fireEvent.click(screen.getByRole('menuitem', {name: '타이머'}));
+    await screen.findByRole('dialog', {name: '타이머 추가'});
+    fireEvent.change(screen.getByRole('textbox', {name: '초'}), {
+      target: {value: '30'},
+    });
+    fireEvent.click(screen.getByRole('button', {name: '추가'}));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(fixture.current().value.items).toHaveLength(8);
+    expect(fixture.edit).toHaveBeenCalledOnce();
+    expect(fixture.problem).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({kind: 'warning', title: '퀵 실행 저장 실패'}),
+    );
+  });
+
+  it('holds the close gate during the timer rename read and paired write', async () => {
+    const fixture = setup();
+    const reading = deferred<ReturnType<typeof quickDocument>>();
+    fixture.get.mockReturnValueOnce(reading.promise);
+    const saving = saveQuickEdit(fixture.api, {
+      kind: 'rename',
+      id: quickItem('timer').id,
+      name: '예배 타이머',
+    });
+    let closed = false;
+    const closing = pendingWritesOf(fixture.api)
+      .flush()
+      .then(ok => {
+        closed = true;
+        return ok;
+      });
+    await act(async () => undefined);
+    expect(closed).toBe(false);
+    reading.resolve(quickDocument());
+    expect(await saving).toMatchObject({ok: true});
+    expect(await closing).toBe(true);
+    expect(fixture.edit).toHaveBeenCalledExactlyOnceWith({
+      type: 'quick.timer.rename',
+      name: 'quick',
+      quickItemId: quickItem('timer').id,
+      timerName: '예배 타이머',
+    });
+  });
+  it('opens a focused duration dialog and creates a new timer instead of selecting an existing one', async () => {
+    vi.mocked(crypto.randomUUID)
+      .mockReturnValueOnce('00000000-0000-4000-8000-000000000998')
+      .mockReturnValueOnce('00000000-0000-4000-8000-000000000997');
+    const fixture = setup();
+    fixture.mount();
+    await openAddMenu();
+    fireEvent.click(screen.getByRole('menuitem', {name: '타이머'}));
+    const dialog = await screen.findByRole('dialog', {name: '타이머 추가'});
+    expect(dialog).toBeTruthy();
+    expect(screen.queryByRole('menu')).toBeNull();
+    expect(document.activeElement).toBe(
+      screen.getByRole('textbox', {name: '분'}),
+    );
+    fireEvent.change(screen.getByRole('textbox', {name: '초'}), {
+      target: {value: '30'},
+    });
+    fireEvent.click(screen.getByRole('button', {name: '추가'}));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(fixture.edit).toHaveBeenCalledExactlyOnceWith({
+      type: 'quick.timer.create',
+      name: 'quick',
+      quickItemId: quickId(998),
+      timerId: quickId(997),
+      duration: 30,
+      overrun: true,
+    });
+    expect(fixture.current().value.items.at(-1)).toMatchObject({
+      kind: 'timer',
+      ref: quickId(997),
+    });
+    expect(fixture.send).not.toHaveBeenCalled();
+  });
+
+  it('cancels adding a timer without creating a definition or row', async () => {
+    const fixture = setup();
+    fixture.mount();
+    await openAddMenu();
+    fireEvent.click(screen.getByRole('menuitem', {name: '타이머'}));
+    await screen.findByRole('dialog', {name: '타이머 추가'});
+    fireEvent.click(screen.getByRole('button', {name: '취소'}));
+    expect(fixture.edit).not.toHaveBeenCalled();
+    expect(fixture.current().value.items).toHaveLength(7);
+  });
+
+  it('renames the timer through its paired command without replacing settings', async () => {
+    const fixture = setup();
+    fixture.mount();
+    fireEvent.contextMenu(
+      await screen.findByRole('button', {name: '시작 카운트다운'}),
+    );
+    fireEvent.click(await screen.findByRole('menuitem', {name: '이름 바꾸기'}));
+    fireEvent.change(screen.getByRole('textbox', {name: '이름'}), {
+      target: {value: '  예배 타이머  '},
+    });
+    fireEvent.click(screen.getByRole('button', {name: '저장'}));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(fixture.edit).toHaveBeenCalledExactlyOnceWith({
+      type: 'quick.timer.rename',
+      name: 'quick',
+      quickItemId: quickItem('timer').id,
+      timerName: '예배 타이머',
+    });
+    expect(
+      fixture.current().value.items.find(item => item.kind === 'timer')?.name,
+    ).toBe('예배 타이머');
+  });
   it('waits for quick settings before trying to open the add menu', async () => {
     const fixture = setup();
     const reading = deferred<ReturnType<typeof quickDocument>>();
