@@ -187,19 +187,18 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (a6007578): reviewer (Claude, review2-3e) Approve: a failed final
+  check rejects the whole dispatch with the last good state kept; the heavy
+  failing batch fell from 1,533.49 ms to 1.07 ms. Nits for the next data branch:
+  say in the `SliceContext.defer` TSDoc that a deferred effect must not dispatch
+  synchronously; truncate the effects of a child that defers and then throws or
+  rejects, with a test. For spec: spec 01 and 08 say that a batch or 매크로 over
+  the live state limits is dropped whole and logged once, and what the operator
+  sees. The resync commit is strictly a `fix`; accepted as recorded. Lead
+  Approve. Written by the Claude session that took over data's work. Rebased by
+  the lead onto local `main` without conflicts.
 
 ## Team member's reply
 
