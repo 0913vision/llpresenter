@@ -55,5 +55,6 @@ None. Only `docs/spec/05-prep.md` and this member's review document changed.
 
 - Round 1 (Codex): Request changes; the findings and replies are above.
 - Round 2 (4f415877): reviewer (Codex) Approve. Lead Approve (see "What changed
-  and why"); the exact-head CI run passed, checked by the lead at merge. Rebased
-  by the lead onto local `main` without conflicts; typecheck passes.
+  and why"); it changes documents only, and its exact-head CI run was still
+  running at merge (the lead checks it afterwards). Rebased by the lead onto
+  local `main` without conflicts; typecheck passes.
