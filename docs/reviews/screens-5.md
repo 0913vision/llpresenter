@@ -36,6 +36,10 @@ request, with the one-screen-per-monitor and control monitor rules.
   `screenEditor.ts`, `useScreenEditor.ts`, and their tests.
 - Changes outside my paths: `src/renderer/src/shell/Workspace.tsx` (shell's
   path), the `case '속성'` and its import.
+- Round 3 also changes `src/renderer/src/control/controlSession.ts` (shell's
+  path): commit the focused field before the close flush stops new writes.
+- `src/renderer/src/screens/ScreenProperties.close.test.tsx` exercises that
+  handshake with actual focused properties and a held settings save.
 
 ## Checks run
 
@@ -98,6 +102,8 @@ missing.
 
 ## Team member's reply
 
+### Round 2
+
 1. P1, close flush: every committed screen change now enters the window's
    `PendingWrites` before it waits in the editor queue. The close flush waits
    for both the held write and the queued change, refuses newly attempted
@@ -116,6 +122,19 @@ missing.
    edits are sent, and check the tooltip. An access change remounts the controls
    to discard any draft before it can be committed.
 
+### Round 3
+
+1. P2, focused drafts on close: `ControlSession` blurs the active field before
+   it stops new writes. The existing blur handlers validate and commit the
+   focused name or number draft synchronously, so the resulting queued save is
+   registered in `PendingWrites` before its close snapshot. This uses the same
+   validation, clamping and offset merge as an ordinary field commit. Five
+   close-handshake regressions fail against round 2 and pass with the fix: a
+   valid name, the edge margin, each offset axis, and an invalid name restored
+   without being sent. Each valid case keeps focus until main's flush request
+   and holds the save reply to prove that neither main's disk flush nor the
+   successful close answer can run before the field save finishes.
+
 ## Round 2 checks
 
 Screens and workspace tests pass: 130 tests in 12 files. Typecheck passes after
@@ -123,3 +142,9 @@ rebasing onto `57d28dc5`. The request line reports ESLint, formatting and the
 GitHub verify run on the exact request head. No full verify was run locally.
 Local checks were paused during the lead's quiet window and resumed only after
 the lead ended it.
+
+## Round 3 checks
+
+Before the fix, all five new close-handshake tests fail against round 2. With
+the fix, all 12 new and existing close-session tests pass. The request line
+reports the complete focused checks, rebase base and exact-head GitHub verify.

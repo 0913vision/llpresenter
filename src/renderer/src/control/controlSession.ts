@@ -84,6 +84,10 @@ export class ControlSession {
   // background edits), and in memo drafts that a refused save left waiting.
   // The close goes on only after main writes all accepted edits to disk.
   private async flushBeforeClose(): Promise<boolean> {
+    // NOTE(0913vision): Commit-mode fields save on blur, before the write
+    // gate stops.
+    const focused = document.activeElement;
+    if (focused instanceof HTMLElement) focused.blur();
     this.editorBlocked = true;
     const writes =
       this.api === undefined ? undefined : pendingWritesOf(this.api);
