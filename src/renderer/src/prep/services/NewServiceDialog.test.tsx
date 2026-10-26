@@ -1,0 +1,292 @@
+import {render, screen, waitFor, within} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
+import type {LiveCommand} from '@shared/commands';
+import type {ContentEdit, EditResult} from '@shared/schema/contentEdit';
+import type {ServiceOpenRequest} from '@shared/schema/serviceOpen';
+import type {ShowService} from '@shared/schema/showService';
+import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import {applyService, useShow} from '@renderer/state/show';
+import {sampleService} from '@renderer/show/testing/sampleService';
+import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
+import {NewServiceDialog} from './NewServiceDialog';
+import {
+  ids,
+  librarySongs,
+  pastDocument,
+  serviceEntries,
+  templateDocument,
+  templateEntries,
+  titles,
+} from './testing';
+
+const REFUSED: EditResult = {
+  ok: false,
+  error: {reason: 'invalid', message: 'Refused in the test'},
+};
+
+function accepted(edit: ContentEdit): EditResult {
+  return {
+    ok: true,
+    value: {
+      id: ids.created,
+      revision: edit.type === 'service.delete' ? null : 1,
+    },
+  };
+}
+
+function setup(answer: (edit: ContentEdit) => EditResult = accepted) {
+  const edits: ContentEdit[] = [];
+  const sent: LiveCommand[] = [];
+  const open = vi.fn(
+    ({serviceId}: ServiceOpenRequest): Promise<ShowService | null> =>
+      Promise.resolve({
+        ...sampleService,
+        id: serviceId,
+        name: '새로 만든 예배',
+      }),
+  );
+  window.llp = fakeLlpApi({
+    templates: {
+      list: () => Promise.resolve(templateEntries),
+      get: () => Promise.resolve(templateDocument),
+    },
+    services: {
+      list: () => Promise.resolve(serviceEntries),
+      get: () => Promise.resolve(pastDocument),
+    },
+    songs: {list: () => Promise.resolve(librarySongs)},
+    content: {
+      edit: edit => {
+        edits.push(edit);
+        return Promise.resolve(answer(edit));
+      },
+    },
+    service: {open},
+    live: {send: command => sent.push(command)},
+  });
+  const onClose = vi.fn();
+  const onProblem = vi.fn();
+  render(<NewServiceDialog onClose={onClose} onProblem={onProblem} />);
+  return {edits, sent, open, onClose, onProblem};
+}
+
+function row(name: string): HTMLElement {
+  return screen.getByRole('treeitem', {name});
+}
+
+function createButton(): HTMLElement {
+  return screen.getByRole('button', {name: '만들기'});
+}
+
+beforeAll(() => {
+  Element.prototype.scrollIntoView = () => undefined;
+});
+
+beforeEach(() => {
+  vi.useFakeTimers({toFake: ['Date'], now: new Date(2026, 9, 26, 8, 40)});
+  applyService(null);
+});
+
+afterEach(() => {
+  resetTooltips();
+  vi.useRealTimers();
+  delete window.llp;
+});
+
+describe('NewServiceDialog', () => {
+  it('starts from the first 틀 with every item checked and its name and time', async () => {
+    setup();
+    expect(
+      await screen.findByRole('treeitem', {name: titles.first}),
+    ).toBeDefined();
+    expect(
+      screen
+        .getByRole('checkbox', {name: '예배 순서'})
+        .getAttribute('aria-checked'),
+    ).toBe('true');
+    expect(row('찬양').getAttribute('aria-checked')).toBe('true');
+    expect(
+      within(screen.getByRole('region', {name: '예배 순서'})).getByText(
+        '항목 4개',
+      ),
+    ).toBeDefined();
+    expect(screen.getByRole('textbox', {name: '이름'})).toHaveProperty(
+      'value',
+      '주일 예배',
+    );
+    expect(screen.getByRole('button', {name: '날짜'}).textContent).toBe(
+      '10월 26일 월요일',
+    );
+    expect(screen.getByRole('button', {name: '시간'}).textContent).toBe(
+      '오전 11:00',
+    );
+    expect(screen.getByRole('option', {name: /빈 예배/})).toBeDefined();
+    expect(
+      screen.getByRole('option', {name: /지난 주일 예배/}).textContent,
+    ).toContain('10월 25일 일요일');
+  });
+
+  it('creates from the 틀 with the checked items and opens it without an output command', async () => {
+    const {edits, sent, open, onClose, onProblem} = setup();
+    await userEvent.click(
+      await screen.findByRole('treeitem', {name: titles.second}),
+    );
+    expect(row('찬양').getAttribute('aria-checked')).toBe('mixed');
+    await userEvent.click(createButton());
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(edits).toEqual([
+      {
+        type: 'service.create',
+        name: '주일 예배',
+        date: '2026-10-26T11:00',
+        templateId: null,
+      },
+      {
+        type: 'service.importItems',
+        serviceId: ids.created,
+        from: {kind: 'template', id: ids.template},
+        itemIds: [ids.doxology, ids.psalm, ids.offering, ids.closing],
+      },
+    ]);
+    expect(open).toHaveBeenCalledWith({serviceId: ids.created});
+    expect(useShow.getState().serviceId).toBe(ids.created);
+    expect(sent).toEqual([]);
+    expect(onProblem).not.toHaveBeenCalled();
+  });
+
+  it('keeps 만들기 unavailable while the name is empty, with the reason', async () => {
+    const {edits} = setup();
+    const name = screen.getByRole('textbox', {name: '이름'});
+    await screen.findByRole('treeitem', {name: titles.first});
+    await userEvent.clear(name);
+    await userEvent.type(name, '   ');
+    expect(createButton().getAttribute('aria-disabled')).toBe('true');
+    await userEvent.click(createButton());
+    await userEvent.keyboard('{Enter}');
+    expect(edits).toEqual([]);
+    const tooltip = await hoverForTooltip(createButton());
+    expect(tooltip?.textContent).toBe('이름을 적어야 만들 수 있습니다');
+  });
+
+  it('creates an empty service from 빈 예배 with the current hour', async () => {
+    const {edits, onClose} = setup();
+    await userEvent.click(await screen.findByRole('option', {name: /빈 예배/}));
+    expect(screen.getByRole('textbox', {name: '이름'})).toHaveProperty(
+      'value',
+      '새 예배',
+    );
+    expect(screen.queryByRole('checkbox', {name: '예배 순서'})).toBeNull();
+    expect(screen.getByRole('button', {name: '시간'}).textContent).toBe(
+      '오전 8:00',
+    );
+    await userEvent.click(createButton());
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(edits).toEqual([
+      {
+        type: 'service.create',
+        name: '새 예배',
+        date: '2026-10-26T08:00',
+        templateId: null,
+      },
+    ]);
+  });
+
+  it('starts from a past service with its items checked and its time', async () => {
+    const {edits, onClose} = setup();
+    await userEvent.click(
+      await screen.findByRole('option', {name: /지난 주일 예배/}),
+    );
+    expect(
+      (await screen.findByRole('treeitem', {name: titles.first})).getAttribute(
+        'aria-checked',
+      ),
+    ).toBe('true');
+    expect(screen.getByRole('button', {name: '시간'}).textContent).toBe(
+      '오전 9:30',
+    );
+    await userEvent.click(createButton());
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(edits[1]).toEqual({
+      type: 'service.importItems',
+      serviceId: ids.created,
+      from: {kind: 'service', id: ids.past},
+      itemIds: [ids.pastSong],
+    });
+  });
+
+  it('keeps a typed name when the operator picks another source', async () => {
+    setup();
+    const name = screen.getByRole('textbox', {name: '이름'});
+    await screen.findByRole('treeitem', {name: titles.first});
+    await userEvent.clear(name);
+    await userEvent.type(name, '추수감사 예배');
+    await userEvent.click(screen.getByRole('option', {name: /빈 예배/}));
+    expect(name).toHaveProperty('value', '추수감사 예배');
+  });
+
+  it('deletes the new service again when its items can not be copied', async () => {
+    const {edits, onClose, onProblem} = setup(edit =>
+      edit.type === 'service.importItems' ? REFUSED : accepted(edit),
+    );
+    await screen.findByRole('treeitem', {name: titles.first});
+    await userEvent.click(createButton());
+    await waitFor(() => expect(onProblem).toHaveBeenCalled());
+    expect(edits.map(edit => edit.type)).toEqual([
+      'service.create',
+      'service.importItems',
+      'service.delete',
+    ]);
+    expect(onProblem.mock.calls[0]?.[0]).toMatchObject({
+      title: '새 예배를 만들 수 없음',
+    });
+    expect(onClose).not.toHaveBeenCalled();
+    expect(createButton().getAttribute('aria-disabled')).toBeNull();
+  });
+
+  it('reports a refused create and keeps the dialog', async () => {
+    const {edits, open, onClose, onProblem} = setup(() => REFUSED);
+    await screen.findByRole('treeitem', {name: titles.first});
+    await userEvent.click(createButton());
+    await waitFor(() => expect(onProblem).toHaveBeenCalled());
+    expect(edits).toHaveLength(1);
+    expect(open).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('goes on when the new file waits to be saved', async () => {
+    const {open, onClose} = setup(() => ({
+      ok: false,
+      error: {
+        reason: 'write-failed',
+        message: 'Disk full in the test',
+        applied: {id: ids.created, revision: 1},
+        unchangedFiles: ['service.llservice'],
+      },
+    }));
+    await screen.findByRole('treeitem', {name: titles.first});
+    await userEvent.click(createButton());
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(open).toHaveBeenCalledWith({serviceId: ids.created});
+  });
+
+  it('closes and reports when the new service can not be opened', async () => {
+    const {open, onClose, onProblem} = setup();
+    open.mockResolvedValueOnce(null);
+    await screen.findByRole('treeitem', {name: titles.first});
+    await userEvent.click(createButton());
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(onProblem.mock.calls[0]?.[0]).toMatchObject({
+      title: '새 예배를 열 수 없음',
+    });
+    expect(useShow.getState().serviceId).toBeNull();
+  });
+});

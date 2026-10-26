@@ -5,6 +5,8 @@ import {TruncatedText} from '@renderer/ui/TruncatedText';
 import {Menu} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import {openOnArrowDown} from '@renderer/ui/menuButton';
+import type {MenuEntry} from '@renderer/ui/menuModel';
+import {NewServiceDialog} from '@renderer/prep/services/NewServiceDialog';
 import {useServicePicker} from './useServicePicker';
 import styles from './ServiceOrderHeader.module.css';
 
@@ -22,6 +24,7 @@ export function ServiceOrderHeader({
   readonly onProblem?: ((notice: Notice) => void) | undefined;
 }): JSX.Element {
   const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
+  const [creating, setCreating] = useState(false);
   const picker = useServicePicker(onProblem);
   const currentId = useShow(view => view.serviceId);
   const name = useShow(view =>
@@ -64,15 +67,36 @@ export function ServiceOrderHeader({
           width={PICKER_WIDTH}
           onClose={picker.close}
           search={{value: picker.query, onChange: picker.setQuery}}
-          entries={picker.visible.map(entry => ({
-            kind: 'item',
-            id: entry.id,
-            label: entry.name,
-            meta: `${Number(entry.date.slice(5, 7))}월 ${Number(entry.date.slice(8, 10))}일`,
-            check: 'radio',
-            checked: entry.id === currentId,
-            onSelect: () => picker.select(entry),
-          }))}
+          entries={[
+            ...picker.visible.map((entry): MenuEntry => ({
+              kind: 'item',
+              id: entry.id,
+              label: entry.name,
+              meta: `${Number(entry.date.slice(5, 7))}월 ${Number(entry.date.slice(8, 10))}일`,
+              check: 'radio',
+              checked: entry.id === currentId,
+              onSelect: () => picker.select(entry),
+            })),
+            ...(picker.visible.length === 0
+              ? []
+              : [{kind: 'separator', id: 'service-actions'} as const]),
+            {
+              kind: 'item',
+              id: 'new-service',
+              label: '새 예배',
+              icon: 'plus',
+              onSelect: () => {
+                picker.close();
+                setCreating(true);
+              },
+            },
+          ]}
+        />
+      ) : null}
+      {creating ? (
+        <NewServiceDialog
+          onClose={() => setCreating(false)}
+          onProblem={onProblem}
         />
       ) : null}
     </>

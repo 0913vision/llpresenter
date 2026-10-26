@@ -27,6 +27,7 @@ function sample<T>(result: Result<T, unknown>): T {
 export const ids = {
   template: createTemplateId('30000000-0000-4000-8000-000000000001'),
   past: createServiceId('40000000-0000-4000-8000-000000000001'),
+  created: createServiceId('40000000-0000-4000-8000-000000000002'),
   praise: createServiceItemId('50000000-0000-4000-8000-000000000001'),
   doxology: createServiceItemId('50000000-0000-4000-8000-000000000002'),
   nearer: createServiceItemId('50000000-0000-4000-8000-000000000003'),

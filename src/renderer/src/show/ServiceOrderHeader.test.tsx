@@ -5,6 +5,7 @@ import {applyService, useShow} from '@renderer/state/show';
 import {useLive} from '@renderer/state/live';
 import {emptyLiveState} from '@shared/live';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import {createServiceId} from '@shared/schema/ids';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {ServiceOrderHeader} from './ServiceOrderHeader';
 import {sampleService, seedSampleService} from './testing/sampleService';
@@ -79,5 +80,38 @@ describe('ServiceOrderHeader', () => {
     expect(sent).toEqual([]);
     expect(useLive.getState().state).toBe(state);
     expect(useShow.getState().serviceId).toBe(sampleService.id);
+  });
+
+  it('ends the picker with 새 예배, which opens its dialog', async () => {
+    window.llp = fakeLlpApi({
+      services: {
+        list: () =>
+          Promise.resolve([
+            {
+              id: createServiceId('00000000-0000-4000-8000-000000000009'),
+              name: '저녁 예배',
+              date: '2026-10-25T19:00',
+              access: 'editable',
+            },
+          ]),
+      },
+    });
+    render(<ServiceOrderHeader />);
+    await act(async () => {
+      fireEvent.click(screen.getByText(sampleService.name));
+    });
+    const items = [
+      ...screen.getByRole('menu').querySelectorAll('[role^="menuitem"]'),
+    ].map(item => item.textContent);
+    expect(items).toEqual([expect.stringContaining('저녁 예배'), '새 예배']);
+    await act(async () => {
+      fireEvent.click(screen.getByRole('menuitem', {name: '새 예배'}));
+    });
+    expect(screen.queryByRole('menu')).toBeNull();
+    expect(screen.getByRole('dialog', {name: '새 예배'})).toBeDefined();
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', {name: '취소'}));
+    });
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 });
