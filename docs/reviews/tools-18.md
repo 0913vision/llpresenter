@@ -71,3 +71,11 @@ fixtures were restored afterwards.
 ## Team member's reply
 
 No findings yet.
+
+## Verdicts (recorded by the lead at merge)
+
+- Final round (b6d0cb60): reviewer (Codex) Approve. Lead Approve after checking
+  the main-process part of the change (see "What changed and why"); the
+  exact-head CI run passed, checked by the lead at merge. Rebased by the lead
+  onto local `main` without conflicts; typecheck passes. Earlier rounds'
+  findings and replies are above.
