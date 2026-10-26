@@ -59,6 +59,28 @@ function setup(loop = false) {
 }
 
 describe('audio transport', () => {
+  it('never reuses track versions after batched plays, next, or a clear', () => {
+    const {store, send, start} = setup();
+    send({
+      type: 'live.batch',
+      commands: [0, 1].map(position => ({
+        type: 'audio.play',
+        source: {kind: 'playlist', playlistId: LIST, position},
+      })),
+    });
+    const batched = store.state.layers.audio?.playback?.trackVersion;
+    if (batched === undefined) throw new Error('Missing playback');
+    send({type: 'audio.next'});
+    const next = store.state.layers.audio?.playback?.trackVersion;
+    if (next === undefined) throw new Error('Missing next playback');
+    expect(next).toBeGreaterThan(batched);
+    send({type: 'layer.clear', target: 'audio'});
+    start();
+    expect(store.state.layers.audio?.playback?.trackVersion).toBeGreaterThan(
+      next,
+    );
+    expect(send({type: 'audio.next', trackVersion: batched})).toBe(false);
+  });
   it('ignores stale or paused ended notifications, while a matching track can advance', () => {
     const {store, start, send} = setup();
     start();

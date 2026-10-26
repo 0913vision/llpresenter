@@ -88,6 +88,8 @@ export interface LiveLayers {
 
 /** The live output state. The main process owns it; windows receive copies. */
 export interface LiveState {
+  /** Last allocated audio track version, retained across clears and batches. */
+  readonly audioTrackVersion?: number;
   /** The audio layer's live volume, from 0 to 100; absent means 100. */
   readonly audioVolume?: number;
   /** The selected Look; absent or null uses the saved current Look. */

@@ -3,6 +3,7 @@ import {audioPositionSeconds} from '@shared/schema/audioState';
 import {MissingLiveTargetError} from '../commandErrors';
 import {setLayer, type LiveHistory} from '../history';
 import {defineSlice, type SliceContext} from '../slice';
+import {nextAudioTrackVersion} from '../audioTrackVersion';
 
 function play(
   history: LiveHistory,
@@ -29,15 +30,17 @@ function play(
   if (item === undefined) {
     throw new MissingLiveTargetError({kind: 'audio', id: mediaId});
   }
-  return setLayer(history, 'audio', {
+  const trackVersion = nextAudioTrackVersion(history.state);
+  const next = setLayer(history, 'audio', {
     mediaId,
     playback: {
       source,
-      trackVersion: history.state.version + 1,
+      trackVersion,
       positionSeconds: 0,
       since: context.timerNow ?? context.now,
     },
   });
+  return {...next, state: {...next.state, audioTrackVersion: trackVersion}};
 }
 
 function move(

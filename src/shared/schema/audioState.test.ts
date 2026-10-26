@@ -25,6 +25,18 @@ function state(change: object = {}) {
 }
 
 describe('audio playback state', () => {
+  it.each([0, 7, Number.MAX_SAFE_INTEGER])(
+    'accepts allocated track version %s',
+    audioTrackVersion => {
+      expect(parseLiveState({...state(), audioTrackVersion}).ok).toBe(true);
+    },
+  );
+  it.each([-1, 0.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1])(
+    'rejects invalid allocated version %s',
+    audioTrackVersion => {
+      expect(parseLiveState({...state(), audioTrackVersion}).ok).toBe(false);
+    },
+  );
   it('accepts running, paused and legacy playback and default volume', () => {
     for (const value of [state(), state({since: null}), emptyLiveState()]) {
       expect(parseLiveState(value)).toEqual({ok: true, value});

@@ -71,6 +71,9 @@ export const layerSchemas = {
 } satisfies Record<LayerKind, v.GenericSchema>;
 
 export const liveStateSchema = payloadObject({
+  audioTrackVersion: v.exactOptional(
+    v.pipe(count, v.maxValue(Number.MAX_SAFE_INTEGER)),
+  ),
   audioVolume: v.exactOptional(percent),
   lookId: v.exactOptional(v.nullable(lookIdSchema)),
   stageMessage: v.exactOptional(v.nullable(liveNonBlankTextSchema)),
