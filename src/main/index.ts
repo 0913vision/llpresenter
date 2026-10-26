@@ -5,6 +5,8 @@ import {registerTextImport} from './import/register';
 import {LiveStore, dispatchLogged} from './live/store';
 import {startOverlays} from './live/overlays';
 import {registerMacros} from './macros/register';
+import {registerRecoveryChannels} from './live/recovery/channels';
+import {RecoveryController, recoverySources} from './live/recovery/controller';
 import {
   openServiceIdOf,
   RecoveryRecordWriter,
@@ -16,6 +18,7 @@ import {
 import {registerLookSelection} from './live/lookSelection';
 import {createLogger, flushWithin, type Logger} from './log';
 import {registerIpc} from './ipc';
+import {showOutputsOnLaunch} from './outputs/launch';
 import {startOutputs} from './outputs/start';
 import {LOG_FLUSH_LIMIT_MS, ShutdownCoordinator} from './shutdown';
 import {registerSoakRecorder, registerSoakScenario} from './soak';
@@ -113,9 +116,6 @@ function start(): void {
         serviceId: openServiceIdOf(dataStore.content, log),
         log,
       });
-      // TODO(0913vision): After a crash, start the record once the operator
-      // answers the recovery dialog (M3-O8 part 2).
-      if (!session.crashed) recoveryRecord.start();
       const disposeIpc = registerIpc(store, log, windowMode);
       // NOTE(0913vision): Register the reader owner before the output source;
       // their settings promise callbacks run in registration order.
@@ -154,6 +154,25 @@ function start(): void {
         log,
         launch: session.crashed ? 'restore' : 'normal',
       });
+      // NOTE(0913vision): Registered after the overlays, so the store has its
+      // settings reader before 켤 때 화면 출력 sends output.set.
+      const recovery = new RecoveryController({
+        crashed: session.crashed,
+        file: join(recoveryFolder, RECOVERY_RECORD_FILE),
+        store,
+        sources: recoverySources(dataStore, log),
+        record: recoveryRecord,
+        showOutputsOnLaunch: () =>
+          showOutputsOnLaunch({store, settings: dataStore.settings, log}),
+        runStartupMacros: macros.startFresh,
+        log,
+      });
+      const stopRecoveryChannels = registerRecoveryChannels(recovery, log);
+      recovery
+        .start()
+        .catch((error: unknown) =>
+          log.error('could not start recovery', error),
+        );
       const stopSoakScenario = registerSoakScenario(log, command =>
         dispatchLogged(store, command, log),
       );
@@ -191,6 +210,10 @@ function start(): void {
       shutdown.add({name: 'close the data store', run: dataStore.dispose});
       shutdown.add({name: 'stop serving media', run: stopServingMedia});
       shutdown.add({name: 'remove the IPC channels', run: disposeIpc});
+      shutdown.add({
+        name: 'remove the recovery channels',
+        run: stopRecoveryChannels,
+      });
       shutdown.add({
         name: 'finish the recovery record write',
         run: () => recoveryRecord.settled(),

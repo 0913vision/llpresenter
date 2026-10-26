@@ -32,6 +32,12 @@ const fakes = vi.hoisted(() => {
       cleanExit: vi.fn<() => Promise<void>>(),
     },
     recordOptions: new Array<unknown>(),
+    writers: new Array<unknown>(),
+    recoveryOptions: new Array<unknown>(),
+    recoveryStart: vi.fn<() => Promise<void>>(),
+    recoveryPorts: new Array<unknown>(),
+    recoveryChannelsStop: vi.fn<() => void>(),
+    macrosStartFresh: vi.fn<() => Promise<void>>(),
     recordStart: vi.fn<() => void>(),
     recordStop: vi.fn<() => void>(),
     recordSettled: vi.fn<() => Promise<void>>(),
@@ -96,16 +102,32 @@ vi.mock('./live/recovery/recordWriter', () => ({
   RecoveryRecordWriter: class {
     constructor(options: unknown) {
       fakes.recordOptions.push(options);
+      fakes.writers.push(this);
     }
     start = fakes.recordStart;
     stop = fakes.recordStop;
     settled = fakes.recordSettled;
   },
 }));
+vi.mock('./live/recovery/controller', () => ({
+  recoverySources: () => Promise.resolve(null),
+  RecoveryController: class {
+    constructor(options: unknown) {
+      fakes.recoveryOptions.push(options);
+    }
+    start = fakes.recoveryStart;
+  },
+}));
+vi.mock('./live/recovery/channels', () => ({
+  registerRecoveryChannels: (port: unknown) => {
+    fakes.recoveryPorts.push(port);
+    return fakes.recoveryChannelsStop;
+  },
+}));
 vi.mock('./macros/register', () => ({
   registerMacros: (context: unknown) => {
     fakes.macroContexts.push(context);
-    return {dispose: fakes.macrosStop};
+    return {dispose: fakes.macrosStop, startFresh: fakes.macrosStartFresh};
   },
 }));
 vi.mock('./live/overlays', () => ({
@@ -240,6 +262,12 @@ beforeEach(async () => {
   fakes.recovery.markQuitting.mockReset();
   fakes.recovery.cleanExit.mockReset();
   fakes.recordOptions.length = 0;
+  fakes.writers.length = 0;
+  fakes.recoveryOptions.length = 0;
+  fakes.recoveryStart.mockReset().mockResolvedValue(undefined);
+  fakes.recoveryPorts.length = 0;
+  fakes.recoveryChannelsStop.mockReset();
+  fakes.macrosStartFresh.mockReset();
   fakes.recordStart.mockReset();
   fakes.recordStop.mockReset();
   fakes.recordSettled.mockReset();
@@ -310,25 +338,34 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
       expect(fakes.electron.app.quit).toHaveBeenCalledOnce(),
     );
   });
-  it('keeps the recovery record of a crashed session until the operator answers', async () => {
+  it('leaves a crashed launch, its record, and the held-back startup macros to recovery', async () => {
     fakes.recovery.crashed = true;
     await startMain();
     const userData = fakes.electron.app.getPath('userData');
-    expect(fakes.recordOptions).toMatchObject([
+    const file = join(userData, 'recovery', 'live.json');
+    const store = fakes.outputContexts[0]?.store;
+    expect(fakes.recordOptions).toMatchObject([{file, store}]);
+    expect(fakes.recoveryOptions).toMatchObject([
       {
-        file: join(userData, 'recovery', 'live.json'),
-        store: fakes.outputContexts[0]?.store,
+        crashed: true,
+        file,
+        store,
+        record: fakes.writers[0],
+        runStartupMacros: fakes.macrosStartFresh,
       },
     ]);
+    expect(fakes.recoveryPorts).toHaveLength(1);
+    expect(fakes.recoveryStart).toHaveBeenCalledOnce();
     expect(fakes.recordStart).not.toHaveBeenCalled();
   });
 
-  it('records a normal session at once and marks quitting before anything else stops', async () => {
+  it('starts recovery on a normal launch and marks quitting before anything else stops', async () => {
     const lastWrite = deferred();
     onTestFinished(lastWrite.resolve);
     fakes.recordSettled.mockReturnValue(lastWrite.promise);
     await startMain();
-    expect(fakes.recordStart).toHaveBeenCalledOnce();
+    expect(fakes.recoveryOptions).toMatchObject([{crashed: false}]);
+    expect(fakes.recoveryStart).toHaveBeenCalledOnce();
     beforeQuit();
     await vi.waitFor(() => expect(fakes.recordSettled).toHaveBeenCalledOnce());
     const order = [
@@ -338,6 +375,7 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
       fakes.outputsStop,
       fakes.appConfig.flush,
       fakes.storeDispose,
+      fakes.recoveryChannelsStop,
       fakes.recordSettled,
     ].map(step => step.mock.invocationCallOrder[0] ?? Infinity);
     expect(order).toEqual([...order].sort((a, b) => a - b));
