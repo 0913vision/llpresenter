@@ -603,11 +603,13 @@ describe('createElectronOutputWindow normal', () => {
     expect(win.setAlwaysOnTop).toHaveBeenLastCalledWith(true);
     expect(log.warn).toHaveBeenCalledOnce();
     output.hide();
+    win.setAlwaysOnTop.mockClear();
     win.onTop = false;
     await clock.advance(ON_TOP_CHECK_MS * 2);
     win.emit('always-on-top-changed', {}, false);
-    expect(win.isAlwaysOnTop()).toBe(false);
+    expect(win.setAlwaysOnTop).not.toHaveBeenCalled();
     expect(log.warn).toHaveBeenCalledOnce();
+    expect(log.error).not.toHaveBeenCalled();
     output.destroy();
   });
 
