@@ -40,6 +40,68 @@ const saved = (revision: number): EditResult => ({
 });
 
 describe('ScreenEditor', () => {
+  it('preserves both assignments in a queued swap before the monitor feed changes', async () => {
+    const initial = screensAt(1);
+    const monitor2 = {...projector, number: 2};
+    const monitor3 = {
+      ...projector,
+      id: 3,
+      number: 3,
+      name: 'Stage',
+      screenIds: [STAGE_ID],
+    };
+    let release: (result: EditResult) => void = () => undefined;
+    const held = new Promise<EditResult>(resolve => {
+      release = resolve;
+    });
+    const edits: SettingsEdit[] = [];
+    const api = fakeLlpApi({
+      settings: {
+        edit: edit => {
+          edits.push(edit);
+          return edits.length === 1 ? held : Promise.resolve(saved(3));
+        },
+      },
+    });
+    const editor = new ScreenEditor(api, vi.fn());
+    editor.adopt({
+      ...initial,
+      value: {
+        ...initial.value,
+        screens: initial.value.screens.map(screen =>
+          screen.id === STAGE_ID
+            ? {
+                ...screen,
+                display: {
+                  id: 3,
+                  number: 3,
+                  name: monitor3.name,
+                  bounds: monitor3.bounds,
+                  scaleFactor: monitor3.scaleFactor,
+                },
+              }
+            : screen,
+        ),
+      },
+    });
+    const moveA = editor.assign(MAIN_ID, monitor3);
+    await vi.waitFor(() => expect(edits).toHaveLength(1));
+    const moveB = editor.assign(STAGE_ID, monitor2);
+    const closing = pendingWritesOf(api).flush();
+    release(saved(2));
+    await Promise.all([moveA, moveB]);
+    expect(await closing).toBe(true);
+    expect(edits).toHaveLength(2);
+    const last = edits[1];
+    expect(last).toMatchObject({baseRevision: 2});
+    expect(last?.name === 'screens' && last.value.screens[0]?.display?.id).toBe(
+      3,
+    );
+    expect(last?.name === 'screens' && last.value.screens[2]?.display?.id).toBe(
+      2,
+    );
+  });
+
   it('makes the close flush wait for a held save and a queued change', async () => {
     let finishFirst: (result: EditResult) => void = () => undefined;
     let finishSecond: (result: EditResult) => void = () => undefined;

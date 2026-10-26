@@ -42,8 +42,9 @@ export class ScreenEditor {
 
   /** Assigns a monitor and clears its old assignment in one revision. */
   assign(screenId: string, monitor: MonitorInfo): Promise<void> {
+    const observedScreens = this.base?.value.screens;
     return this.enqueue(screens =>
-      assignScreenMonitor(screens, screenId, monitor),
+      assignScreenMonitor({screens, screenId, monitor, observedScreens}),
     );
   }
 

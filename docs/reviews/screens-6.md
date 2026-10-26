@@ -101,4 +101,18 @@ device select itself appears only for that method.
 
 ## Team member's reply
 
-1.
+1. Queued swap: each assignment captures the saved screen assignments when it
+   enters the queue. While saving, published `screenIds` can release a prior
+   owner only if that owner's saved assignment is unchanged. A current saved id
+   that matches the chosen monitor is still released directly. Comparison uses
+   the saved method and display fields rather than object identity, so an
+   unchanged fallback owner is still released after a settings push clones it.
+   The queued A3/B2 regression holds the first save, submits the second with the
+   unchanged monitor feed, then checks both final assignments and the close
+   flush. It fails against round 1 because A loses monitor 3. Pure regressions
+   cover an intervening assignment and an unchanged cloned fallback owner.
+
+## Round 2 checks
+
+The queued-swap regression fails against round 1 before the fix. The request
+line reports targeted checks after rebase and GitHub verify on the exact head.
