@@ -332,6 +332,16 @@ describe('the display layout', () => {
       );
       expect(box(1).getAttribute('aria-pressed')).toBe('true');
       expect(box(2).getAttribute('aria-pressed')).toBe('false');
+      await userEvent.click(screen.getByRole('button', {name: '무대 화면'}));
+      await userEvent.click(
+        screen.getByRole('button', {name: '모니터 1 Wide monitor'}),
+      );
+      expect(
+        screen
+          .getByRole('button', {name: '무대 화면'})
+          .getAttribute('aria-pressed'),
+      ).toBe('false');
+      expect(box(1).getAttribute('aria-pressed')).toBe('true');
       expect(edit).not.toHaveBeenCalled();
       expect(send).not.toHaveBeenCalled();
     },

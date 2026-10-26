@@ -162,6 +162,11 @@ export function DisplayLayout({
     () => displayLayout(monitors, screens, selectedId),
     [monitors, screens, selectedId],
   );
+  const pickedNumber =
+    pickedMonitor?.selection === selection &&
+    pickedMonitor.monitors === monitors
+      ? pickedMonitor.number
+      : null;
   return (
     <section className={styles.layout} aria-label={TITLE}>
       <div className={styles.header}>
@@ -186,10 +191,9 @@ export function DisplayLayout({
                 box={{
                   ...box,
                   selected:
-                    pickedMonitor?.selection === selection &&
-                    pickedMonitor.monitors === monitors
-                      ? pickedMonitor.number === box.number
-                      : box.selected,
+                    pickedNumber === null
+                      ? box.selected
+                      : pickedNumber === box.number,
                 }}
                 onSelect={() => {
                   const screenId = box.screenIds.includes(selectedId ?? '')
@@ -247,7 +251,13 @@ export function DisplayLayout({
         {model.targets.length > 0 ? (
           <div className={styles.targets}>
             {model.targets.map(target => (
-              <TargetView key={target.id} target={target} />
+              <TargetView
+                key={target.id}
+                target={{
+                  ...target,
+                  selected: pickedNumber === null && target.selected,
+                }}
+              />
             ))}
           </div>
         ) : (
