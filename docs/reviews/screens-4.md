@@ -80,19 +80,17 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (Codex, codex2): Request changes: the preview drew its own test
+  pattern instead of output-39's layer, so it showed neither the screen's
+  correction nor the name-only label of the real output.
+- Round 2 (ec0b58f3): reviewer (Codex, codex2) Approve, no findings. Lead
+  Approve. Changes outside screens' paths (`shell/Workspace.tsx` mounts the
+  preview) checked. Nit for the next branch: one TSDoc line of `OutputPreview`
+  runs past 80 columns. Rebased by the lead onto local `main` after tools-5
+  without conflicts; typecheck passes. output-42 (the main-side pattern safety
+  net) must merge before the next check build.
 
 ## Team member's reply
 
