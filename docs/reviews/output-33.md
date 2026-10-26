@@ -30,8 +30,8 @@ a Look can't be resolved":
    background, chroma for a capture window (the drawing before this request).
 3. A Look without a card for the screen: as rule 2, and a `no-card` gap.
 4. A card whose lyric style is gone: the 기본 style, and a `missing-style` gap.
-5. The 무대 화면 draws lyrics in 기본 until stage layouts arrive (its card has
-   no lyric style, so rule 4 doesn't log for it).
+5. The 무대 화면 draws lyrics in 기본 until stage layouts arrive, whatever lyric
+   style its card names, and rule 4 doesn't log for it.
 
 `showsLayer` reads an absent switch as hidden (the `ScreenLook` contract) and
 hides the media layer behind a color background.
@@ -174,4 +174,13 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 (codex4, Request changes):
+
+1. [P2] `screenLook.ts`: fixed in `205d13b9`. `resolveScreenLook` takes the
+   screen's id and kind; a 무대 화면 always draws with the 기본 style and logs
+   no missing-style gap, with a `TODO(0913vision)` for M3-O5's stage layouts.
+   `ScreenFrames` passes the resolved screen, whose identity changes on a
+   `screens.json` change, so a kind change re-resolves at once. Regression
+   tests: a stage screen whose card names the lower-third style, and your
+   sequence through `ScreenFrames` (an audience screen with a lower-third card
+   becomes stage while the card stays). Both fail against the previous code.
