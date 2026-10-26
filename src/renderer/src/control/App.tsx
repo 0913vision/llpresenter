@@ -18,6 +18,7 @@ import {useSidebarCollapse} from '@renderer/shell/useSidebarCollapse';
 import {useUiZoomKeys} from '@renderer/shell/uiZoomKeys';
 import {Workspace} from '@renderer/shell/Workspace';
 import type {ControlSession} from './controlSession';
+import {RecoveryPrompt} from './recovery/RecoveryPrompt';
 import {SavingDialog} from './SavingDialog';
 import {useOutputNotices} from './notifications/useOutputNotices';
 import {useProblemNotices} from './notifications/useProblemNotices';
@@ -105,6 +106,7 @@ export function App({
         sidebar={sidebar}
       />
       <StatusBar />
+      <RecoveryPrompt api={session.api} onProblem={session.report} />
       <NotificationStack
         notices={notices}
         compact={sizeClass === 'narrow'}
