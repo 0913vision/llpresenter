@@ -2,7 +2,7 @@
 
 - Team member: data (Claude session)
 - Branch: `feat/data/analysis-window`, stacked on data-52
-  (`feat/data/analysis-main`)
+  (`feat/data/analysis-main`, round 2)
 - Base commit: the data-52 head; the request message gives the range, the head
   commit, and its CI run.
 - Related brief: `docs/briefs/data.md`; request from `.llp/task.md`, M3-P6a part
@@ -158,3 +158,20 @@ missing.
 ## Team member's reply
 
 1.
+
+## Round 1 reply
+
+1. [P2] `analysisPage.ts:35`, startup had no deadline and the window couldn't
+   close while it loaded. Fixed with data-52's round 1, which puts one deadline
+   over opening the page and running the job and gives `openPage` an abort
+   signal that aborts whenever analysis gives up on the page (a timeout, idle
+   time, or disposal). Here, in
+   `fix(media): destroy the analysis window when analysis gives up on it, also while it loads`,
+   `openAnalysisPage` takes that signal: it destroys the window at any time,
+   also while the page loads, and a load the signal ends rejects at once. A
+   signal that aborted before opening loads nothing. Listeners on the signal end
+   with the load and with `close`. Regressions: a load that never settles, then
+   the signal, rejects and destroys the window; an opened window is destroyed by
+   the signal; an aborted signal loads nothing. Queue recovery is data-52's
+   regression: the page that never opens times out, and the next file opens a
+   new page and is read.
