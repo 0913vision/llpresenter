@@ -235,7 +235,11 @@ Source: `Recovery`, `AlertDialog` README, `Checkbox` README, `Main` decision
 - While a warning card shows, the right column moves down by the card height, so
   the preview stays visible. Information cards float without moving the column.
 - Closing a warning card leaves the problem marks on the toolbar and status bar.
-  Clicking the screen's text in the status bar reopens the card.
+  While a screen's warning holds, the menu bar's 출력 menu lists an item for
+  that screen, such as "무대 화면 경고 보기", which reopens its card; with no
+  unresolved warning there is no such item. The status bar stays plain text, and
+  the toolbar output button keeps its toggle and its tooltip (lead decision,
+  October 26: the StatusBar README allows nothing clickable).
 - Cards never take focus, never make a sound, and don't close with Esc. They
   show above dialogs, and their buttons work while a dialog is open.
 
