@@ -16,14 +16,15 @@ heard about them. This request makes that true for the songs, 예배 순서, 틀
 app-wide settings, and the media list.
 
 1. **One waiting list** (`src/main/store/saveFailures.ts`). `SaveFailures` keeps
-   each file that couldn't be written, oldest first, at most
-   `APP_PROBLEM_LIMITS.waitingSaves` (256). Every change pushes `save-failed`
-   with the oldest file's name and the count; when the last file is written, it
-   pushes `save-recovered`. While files wait, it writes them again every
-   `SAVE_RETRY_INTERVAL_MS` (30 s) and at once on `retry()`, which writes each
-   file once, oldest first, and joins a retry that already runs. A file over the
-   cap is logged; its store still keeps it for the next write and for the flush
-   at quit.
+   each file that couldn't be written, in retry order. Every change pushes
+   `save-failed` with the next file's name and the count; when the last file is
+   written, it pushes `save-recovered`. While files wait, it writes them again
+   every `SAVE_RETRY_INTERVAL_MS` (30 s) and at once on `retry()`, which joins a
+   retry that already runs. A pass moves each file that fails again to the end
+   and stops after `MAX_FAILED_RETRIES_IN_A_ROW` (3) failures in a row, so a
+   full disk costs a few writes per pass (round 2). The list holds one entry per
+   file of a store, which keeps every such document in memory already, so it
+   can't outgrow them.
 2. **Where the content waits.** The stores already keep the edited documents in
    memory, and `ContentPersistence`, which the content, settings, and media
    stores share, already kept each file's newest failed write or delete for the
@@ -76,9 +77,8 @@ app-wide settings, and the media list.
 
 ## Shared contract changes (additive)
 
-- `save-failed` and `save-recovered` in `AppProblem`,
-  `APP_PROBLEM_LIMITS.waitingSaves`, `saveFailedProblem`, `AppProblemOf`,
-  `app:problem:retry-saves`, and `LlpApi.problems.retrySaves`.
+- `save-failed` and `save-recovered` in `AppProblem`, `saveFailedProblem`,
+  `AppProblemOf`, `app:problem:retry-saves`, and `LlpApi.problems.retrySaves`.
 
 ## Checks run
 
@@ -109,7 +109,8 @@ push, retry, and removal; the payloads, the preload send, and the fake.
 - [x] No `any`, no type assertions that bypass checks, and no `!`
 - [x] Every registered subscription, timer, IPC listener, video and audio
       element, and object URL is released
-- [x] Caches and lists have size caps (256 waiting files)
+- [x] Caches and lists have size caps (the waiting list is bounded by the
+      stores' documents, one entry per file; each pass by 3 failures in a row)
 - [x] An exception in the output path doesn't stop the output (a save failure
       never touches the output, spec 02)
 - [x] Only what's needed re-renders (control window): no renderer change
@@ -165,3 +166,23 @@ missing.
 ## Team member's reply
 
 1.
+
+## Round 2 reply
+
+1. [P2] `saveFailures.ts:59`, the 257th failed file fell out of retries and
+   notices. Fixed in
+   `fix(store): keep every waiting save and bound each retry pass`: there is no
+   drop any more. The list keeps one entry per waiting file, and every one is a
+   document its store holds in memory anyway, so the list is bounded by the
+   stores (a NOTE says why). The retry work is what's bounded now: a pass
+   retries in order, moves each file that fails again to the end, and stops
+   after `MAX_FAILED_RETRIES_IN_A_ROW` (3) failures in a row, so the next pass
+   starts with files it didn't try. `count` loses its 256 cap (a safe positive
+   integer). Regressions: 300 waiting files are all counted, and
+   `save-recovered` goes out only after the last one is written; a pass over
+   five failing files tries three, and the next pass tries the other two first.
+2. [P2] `contentStore.ts:394`, an unnamed 예배 순서 or 틀 gave an empty name.
+   Fixed in `fix(store): name an unnamed waiting file by its file name`: a blank
+   name falls back to the file name. Regression: a 틀 with an empty name waits
+   under its file name.
+3. The private method's TSDoc is gone (same commit).
