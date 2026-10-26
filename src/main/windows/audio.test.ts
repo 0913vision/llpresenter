@@ -69,6 +69,15 @@ beforeEach(() => {
   vi.mocked(loadPage).mockClear();
 });
 describe('registerAudioOutput', () => {
+  it('logs a page load exception and preserves live state without escaping startup', () => {
+    vi.mocked(loadPage).mockImplementationOnce(() => {
+      throw new Error('Load failed');
+    });
+    const {store, log, stop} = setup();
+    expect(store.state.version).toBe(0);
+    expect(log.messages('error')).toContain('audio output failed');
+    stop();
+  });
   it('keeps a single hidden, sandboxed window muted in development before loading its page', async () => {
     const {win, stop, connect} = setup();
     await Promise.resolve();

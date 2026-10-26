@@ -79,7 +79,7 @@ export function registerAudioOutput({
   return () => {
     if (stopped) return;
     stopped = true;
-    releaseMedia?.();
+    attempt(() => releaseMedia?.());
     attempt(() => releaseCrash?.());
     const opened = win;
     attempt(() => {
