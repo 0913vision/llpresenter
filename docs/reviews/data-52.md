@@ -143,19 +143,15 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (Codex, codex3): Request changes: opening the page sat outside the
+  timeout, and disposal didn't unwind a running analysis.
+- Round 2 (Codex, codex3): Request changes: a timeout didn't abort the job, so a
+  late page could still run with an expired URL.
+- Round 3 (1e2b1d62): reviewer (Codex, codex3) Approve, no findings. Lead
+  Approve. Rebased by the lead onto local `main` without conflicts; typecheck
+  passes.
 
 ## Team member's reply
 

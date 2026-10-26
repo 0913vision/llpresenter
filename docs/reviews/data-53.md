@@ -141,19 +141,15 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (Codex, codex5): Request changes: page startup had no deadline, and
+  the window couldn't be destroyed while it loaded.
+- Round 2 (eea62b0c): reviewer (Codex, codex5) Approve, no findings. Restacked
+  after data-52's round 3 with its own commits unchanged. Lead Approve. Real
+  decoding is covered only by the m3-check1 built-app check, as the request
+  lists. Rebased by the lead onto local `main` without conflicts; typecheck
+  passes.
 
 ## Team member's reply
 
