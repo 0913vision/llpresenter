@@ -76,19 +76,11 @@ reports checks after rebase, formatting and exact-head GitHub CI.
 3. This unit provides the lifecycle and save path. List menus, per-screen cards
    and lyric-style controls follow in separate M3-O2 requests.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (974c849b): reviewer (Codex) Approve. Lead Approve (see "What changed
+  and why"); the exact-head CI run passed, checked by the lead at merge. Rebased
+  by the lead onto local `main` without conflicts; typecheck passes.
 
 ## Team member's reply
 
