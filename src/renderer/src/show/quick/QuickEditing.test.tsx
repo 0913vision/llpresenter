@@ -153,6 +153,7 @@ beforeEach(() => {
   useLive.setState({state: quickLive()});
 });
 afterEach(() => {
+  Reflect.deleteProperty(document, 'elementFromPoint');
   cleanup();
   delete window.llp;
   vi.restoreAllMocks();
@@ -187,6 +188,15 @@ describe('quick editing', () => {
     const fixture = setup();
     fixture.mount();
     const first = await screen.findByRole('button', {name: '저장된 곡'});
+    const list = screen.getByRole('group', {name: '퀵 실행 항목'});
+    const height = fixture.current().value.items.length * 30;
+    vi.spyOn(list, 'getBoundingClientRect').mockReturnValue(
+      new DOMRect(0, 0, 200, height),
+    );
+    Object.defineProperty(document, 'elementFromPoint', {
+      configurable: true,
+      value: () => list,
+    });
     const live = useLive.getState().state;
     document
       .querySelectorAll<HTMLElement>('[data-quick-id]')
@@ -197,8 +207,8 @@ describe('quick editing', () => {
       );
     const pointer = {pointerId: 1, button: 0, clientX: 10};
     fireEvent.pointerDown(first, {...pointer, clientY: 15});
-    fireEvent.pointerMove(window, {...pointer, clientY: 300});
-    fireEvent.pointerUp(window, {...pointer, clientY: 300});
+    fireEvent.pointerMove(window, {...pointer, clientY: height - 1});
+    fireEvent.pointerUp(window, {...pointer, clientY: height - 1});
     fireEvent.click(first, {detail: 1});
     await waitFor(() =>
       expect(fixture.current().value.items.at(-1)?.id).toBe(

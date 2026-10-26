@@ -16,10 +16,24 @@ interface Drag {
   readonly x: number;
   readonly y: number;
   readonly started: boolean;
-  readonly before: string | null;
+  readonly before: string | null | undefined;
 }
 
-function beforeAt(list: HTMLElement, y: number): string | null {
+function beforeAt(
+  list: HTMLElement,
+  x: number,
+  y: number,
+): string | null | undefined {
+  const bounds = list.getBoundingClientRect();
+  if (
+    x < bounds.left ||
+    x >= bounds.right ||
+    y < bounds.top ||
+    y >= bounds.bottom ||
+    !list.contains(list.ownerDocument.elementFromPoint(x, y))
+  ) {
+    return undefined;
+  }
   for (const row of list.querySelectorAll<HTMLElement>(ROW)) {
     const box = row.getBoundingClientRect();
     if (y < box.top + box.height / 2) return row.dataset['quickId'] ?? null;
@@ -69,7 +83,7 @@ export function useQuickDrag({
     setDrag({
       ...drag,
       started: true,
-      before: beforeAt(list.current, event.clientY),
+      before: beforeAt(list.current, event.clientX, event.clientY),
     });
   });
   const finish = useEffectEvent((event: globalThis.PointerEvent) => {
@@ -86,7 +100,8 @@ export function useQuickDrag({
     }
     ended.current = true;
     if (list.current === null) return;
-    const before = beforeAt(list.current, event.clientY);
+    const before = beforeAt(list.current, event.clientX, event.clientY);
+    if (before === undefined) return;
     const rows = [...list.current.querySelectorAll<HTMLElement>(ROW)];
     const index = rows.findIndex(row => row.dataset['quickId'] === drag.id);
     const next = rows[index + 1]?.dataset['quickId'] ?? null;
