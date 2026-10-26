@@ -77,7 +77,7 @@ draws them; this request keeps and serves them.
 | Command or test                                    | Result                                     |
 | -------------------------------------------------- | ------------------------------------------ |
 | `npm run typecheck`                                | Pass                                       |
-| Vitest (`--no-fsModuleCache`) on the changed areas | Pass: 197 tests in 23 files                |
+| Vitest (`--no-fsModuleCache`) on the changed areas | Pass: 203 tests in 23 files                |
 | `npx --no-install eslint` on the changed files     | Pass                                       |
 | `npm run format:check`                             | Pass                                       |
 | `npm run verify`                                   | GitHub CI on the head commit (see request) |
