@@ -4,6 +4,7 @@ import type {Result} from '@shared/result';
 import type {ContentEdit} from '@shared/schema/contentEdit';
 import type {FileError, LoadedFile} from '@shared/schema/fileFormat';
 import {
+  createSongId,
   serviceIdSchema,
   serviceItemIdSchema,
   songIdSchema,
@@ -22,7 +23,7 @@ import {
 import type {StoredFile} from './library';
 import {resolveLocations} from './locations';
 import type {RecoveryTarget} from './recoveryCopies';
-import type {WaitingSave} from './saveFailures';
+import {MAX_WAITING_SAVES, type WaitingSave} from './saveFailures';
 import type {SaveRequest} from './saver';
 import {
   hymnOne,
@@ -95,6 +96,8 @@ interface FakeFiles extends DocumentFiles {
   readonly waiting: WaitingSave[];
   readonly saved: string[];
   failing: ReadonlySet<string>;
+  failAll: boolean;
+  reminded: number;
 }
 
 function fakeFiles(): FakeFiles {
@@ -105,6 +108,8 @@ function fakeFiles(): FakeFiles {
     waiting: [],
     saved: [],
     failing: new Set(),
+    failAll: false,
+    reminded: 0,
     failures: {
       waiting: save => {
         files.waiting.push(save);
@@ -112,11 +117,14 @@ function fakeFiles(): FakeFiles {
       saved: file => {
         files.saved.push(file);
       },
+      remind: () => {
+        files.reminded++;
+      },
     },
     write: (request: SaveRequest) => {
       const {file} = request.target;
       files.written.push(file);
-      if (files.failing.has(file)) {
+      if (files.failAll || files.failing.has(file)) {
         return Promise.resolve({
           ok: false,
           error: {file, message: 'disk full'},
@@ -127,7 +135,7 @@ function fakeFiles(): FakeFiles {
     },
     remove: (target: RecoveryTarget) => {
       files.removed.push(target.file);
-      if (files.failing.has(target.file)) {
+      if (files.failAll || files.failing.has(target.file)) {
         return Promise.resolve({
           ok: false,
           error: {file: target.file, message: 'disk full'},
@@ -215,6 +223,69 @@ describe('ContentStore save failures', () => {
     files.failing = new Set();
     await files.waiting[0]?.retry();
     expect(files.saved).toEqual([song.file]);
+  });
+
+  it('refuses new files once the cap of files wait, keeping each waiting delete', async () => {
+    const {store, files, song} = setUp();
+    files.failAll = true;
+    for (let cycle = 0; cycle < MAX_WAITING_SAVES; cycle++) {
+      const created = await store.apply({type: 'song.create'});
+      if (created.ok || created.error.reason !== 'write-failed') {
+        throw new Error('Expected a song kept in memory');
+      }
+      const deleted = await store.apply({
+        type: 'song.delete',
+        songId: createSongId(created.error.applied.id),
+      });
+      expect(deleted).toMatchObject({error: {reason: 'write-failed'}});
+    }
+    const waitingFiles = new Set(files.waiting.map(({file}) => file));
+    expect(waitingFiles.size).toBe(MAX_WAITING_SAVES);
+    const written = files.written.length;
+    const removed = files.removed.length;
+
+    const refusals = [
+      await store.apply({type: 'song.create'}),
+      await store.apply({type: 'song.delete', songId: song.data.id}),
+      await store.apply(songEdit('Invented refused title', 1)),
+    ];
+
+    expect(refusals).toEqual(
+      refusals.map(() => ({
+        ok: false,
+        error: {
+          reason: 'saves-full',
+          message: 'Too many files are waiting to be saved',
+        },
+      })),
+    );
+    expect(files.reminded).toBe(3);
+    expect(store.song(song.data.id)?.revision).toBe(1);
+    expect(store.songList().map(({id}) => id)).toEqual([song.data.id]);
+    expect(files.written).toHaveLength(written);
+    expect(files.removed).toHaveLength(removed);
+
+    files.failAll = false;
+    await Promise.all(files.waiting.map(save => save.retry()));
+    expect(files.written).toHaveLength(written);
+    expect(new Set(files.saved)).toEqual(waitingFiles);
+    expect(await store.apply({type: 'song.create'})).toMatchObject({ok: true});
+  });
+
+  it('admits an edit of a file that waits already at the cap', async () => {
+    const {store, files} = setUp();
+    files.failAll = true;
+    await store.apply(songEdit('Invented waiting hymn', 1));
+    await vi.waitFor(() => expect(files.waiting).toHaveLength(1));
+    for (let index = 1; index < MAX_WAITING_SAVES; index++) {
+      await store.apply({type: 'song.create'});
+    }
+    expect(await store.apply({type: 'song.create'})).toMatchObject({
+      error: {reason: 'saves-full'},
+    });
+    expect(await store.apply(songEdit('Invented hymn again', 2))).toMatchObject(
+      {ok: true, value: {revision: 3}},
+    );
   });
 
   it('names a waiting 틀 without a name by its file name', async () => {

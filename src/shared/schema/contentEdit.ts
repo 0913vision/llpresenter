@@ -20,6 +20,7 @@ export const editRefusalReasons = [
   'read-only',
   'duplicate-title',
   'invalid',
+  'saves-full',
 ] as const;
 
 export type EditRefusalReason = (typeof editRefusalReasons)[number];
@@ -133,7 +134,9 @@ export type EditSuccess = v.InferOutput<typeof editSuccessSchema>;
 
 /**
  * Why an edit failed. A refusal changed nothing; `stale` means the document
- * changed since `baseRevision`, so the window reads it again. `write-failed`
+ * changed since `baseRevision`, so the window reads it again. `saves-full`
+ * means too many files wait to be saved for this edit to write another one;
+ * the edit was refused before it changed anything. `write-failed`
  * means the edit was applied and kept in memory, with its result in
  * `applied`, but the files in `unchangedFiles` couldn't be written; the main
  * process saves them again later and reports "저장할 수 없음"

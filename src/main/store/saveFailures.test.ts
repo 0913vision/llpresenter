@@ -156,6 +156,43 @@ describe('save failures', () => {
     ]);
   });
 
+  it('leaves a file that starts waiting during a pass to the next one', async () => {
+    const {failures} = setup();
+    const tried: string[] = [];
+    const add = (file: string, during?: () => void) => {
+      failures.waiting({
+        file,
+        name: file,
+        retry: () => {
+          tried.push(file);
+          during?.();
+          return Promise.resolve();
+        },
+      });
+    };
+    add('a', () => {
+      add('new');
+    });
+    add('b');
+    await failures.retry();
+    expect(tried).toEqual(['a', 'b']);
+    tried.length = 0;
+    await failures.retry();
+    expect(tried).toEqual(['new', 'a', 'b']);
+  });
+
+  it('pushes save-failed again on remind only while files wait', () => {
+    const {failures, pushed, wait} = setup();
+    failures.remind();
+    expect(pushed).not.toHaveBeenCalled();
+    wait('a');
+    failures.remind();
+    expect(pushed.mock.calls.map(([problem]) => problem)).toEqual([
+      {kind: 'save-failed', name: 'a', count: 1},
+      {kind: 'save-failed', name: 'a', count: 1},
+    ]);
+  });
+
   it('keeps a failing listener from the others', () => {
     const {failures, log, pushed, wait} = setup();
     failures.subscribe(() => {

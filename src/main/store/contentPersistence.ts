@@ -2,7 +2,7 @@ import {basename} from 'node:path';
 import type {Logger} from '../log';
 import type {WriteResult} from './fileWriter';
 import type {RecoveryTarget} from './recoveryCopies';
-import type {SaveFailureSink} from './saveFailures';
+import {MAX_WAITING_SAVES, type SaveFailureSink} from './saveFailures';
 import type {SaveRequest} from './saver';
 
 /** Saves and deletes the files of documents, with recovery copies. */
@@ -19,10 +19,14 @@ type Pending =
 
 /**
  * Keeps the newest failed operation per file for a retry, and reports each
- * such file to the files' failure sink until it is written.
+ * such file to the files' failure sink until it is written. A file's later
+ * operation replaces its earlier one, so a delete supersedes a write that
+ * waits and only the newest intent is retried.
  */
 export class ContentPersistence {
   private readonly pending = new Map<string, Pending>();
+  /** The files whose newest operation failed. */
+  private readonly waiting = new Set<string>();
 
   /** @param nameOf - What a failure card calls a file; its name by default. */
   constructor(
@@ -37,6 +41,22 @@ export class ContentPersistence {
 
   remove(target: RecoveryTarget): Promise<WriteResult> {
     return this.perform({kind: 'remove', target});
+  }
+
+  /**
+   * Whether an edit may write or delete these files: each waits already, or
+   * fewer than {@link MAX_WAITING_SAVES} files wait.
+   */
+  admits(files: readonly string[]): boolean {
+    return (
+      this.waiting.size < MAX_WAITING_SAVES ||
+      files.every(file => this.waiting.has(file))
+    );
+  }
+
+  /** Shows the waiting files again, after an edit was refused at the cap. */
+  remind(): void {
+    this.files.failures?.remind();
   }
 
   /** Retries each pending file once, in the order the operations were asked. */
@@ -69,9 +89,11 @@ export class ContentPersistence {
   private report(file: string, result: WriteResult): void {
     if (result.ok) {
       this.pending.delete(file);
+      this.waiting.delete(file);
       this.files.failures?.saved(file);
       return;
     }
+    this.waiting.add(file);
     this.files.failures?.waiting({
       file,
       name: this.nameOf(file),

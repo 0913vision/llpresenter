@@ -14,6 +14,13 @@ export const SAVE_RETRY_INTERVAL_MS = 30_000;
  */
 export const MAX_FAILED_RETRIES_IN_A_ROW = 3;
 
+/**
+ * How many files of a store may wait. At the cap, an edit that would write or
+ * delete a file that doesn't wait yet is refused before it changes anything,
+ * so nothing waiting is ever dropped.
+ */
+export const MAX_WAITING_SAVES = 100;
+
 /** A file that couldn't be written, and how its store writes it again. */
 export interface WaitingSave {
   readonly file: string;
@@ -26,6 +33,8 @@ export interface WaitingSave {
 export interface SaveFailureSink {
   waiting(save: WaitingSave): void;
   saved(file: string): void;
+  /** Shows the waiting files again, as after an edit was refused at the cap. */
+  remind(): void;
 }
 
 export interface SaveFailuresOptions {
@@ -60,11 +69,15 @@ export class SaveFailures implements SaveFailureSink {
 
   constructor(private readonly options: SaveFailuresOptions) {}
 
-  /** Keeps a file waiting; a file that waits already keeps its place. */
+  /**
+   * Keeps a file waiting; a file that waits already keeps its place and
+   * retries only its store's newest operation.
+   */
   waiting(save: WaitingSave): void {
     if (this.disposed) return;
-    // NOTE(0913vision): One entry per file of a store, which holds every one
-    // of those documents in memory already, so this list can't outgrow them.
+    // NOTE(0913vision): One entry per file. Each store refuses edits of new
+    // files once MAX_WAITING_SAVES of its files wait, so this list holds at
+    // most the cap per store, plus files of edits admitted just before it.
     this.saves.set(save.file, save);
     this.changed();
   }
@@ -80,6 +93,11 @@ export class SaveFailures implements SaveFailureSink {
    */
   async retry(): Promise<void> {
     await this.retryOnce();
+    this.remind();
+  }
+
+  /** Pushes `save-failed` again while files wait, even if nothing changed. */
+  remind(): void {
     const current = this.current();
     if (current === null || this.disposed) return;
     this.published = current;
@@ -115,8 +133,18 @@ export class SaveFailures implements SaveFailureSink {
 
   private async retryAll(): Promise<void> {
     let failedInARow = 0;
-    for (const save of [...this.saves.values()]) {
-      if (this.disposed || failedInARow >= MAX_FAILED_RETRIES_IN_A_ROW) return;
+    // NOTE(0913vision): A file that fails again moves to the end, so the first
+    // file is always the next one this pass hasn't tried, and counting the
+    // files that waited when it began stops it before it reaches them again.
+    for (let left = this.saves.size; left > 0; left--) {
+      const save = firstOf(this.saves.values());
+      if (
+        save === undefined ||
+        this.disposed ||
+        failedInARow >= MAX_FAILED_RETRIES_IN_A_ROW
+      ) {
+        return;
+      }
       await this.retryOne(save);
       if (this.saves.has(save.file)) {
         failedInARow++;

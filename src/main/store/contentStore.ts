@@ -265,6 +265,8 @@ export class ContentStore {
     if (affected.some(song => song.access === 'readOnly')) {
       return refuse('read-only', 'A newer app version wrote an affected song');
     }
+    const full = this.savesFull(affected.map(song => song.file));
+    if (full !== null) return full;
     const update = parseSettingsEdit({
       type: 'settings.update',
       name: 'labels',
@@ -418,6 +420,8 @@ export class ContentStore {
       slides: [{lines: []}],
     };
     const file = join(this.options.locations.songs, `${id}${SONG_EXTENSION}`);
+    const full = this.savesFull([file]);
+    if (full !== null) return full;
     const stored = this.songs.add(song, file);
     const written = await this.write(SONG, stored);
     this.announceSong(id);
@@ -436,6 +440,8 @@ export class ContentStore {
     if (this.hasOtherSongTitled(title, song.id)) {
       return refuse('duplicate-title', `Another song is titled ${title}`);
     }
+    const full = this.savesFull([checked.value.file]);
+    if (full !== null) return full;
     const {
       background: _background,
       arrangements: _arrangements,
@@ -466,6 +472,8 @@ export class ContentStore {
     if (!checked.ok) {
       return checked.error;
     }
+    const full = this.savesFull([checked.value.file]);
+    if (full !== null) return full;
     this.songs.remove(songId);
     const written = await this.remove(SONG, checked.value);
     this.announceSong(songId);
@@ -500,9 +508,17 @@ export class ContentStore {
     changed: Song,
     pick: ArrangementPick,
   ): Promise<EditResult> {
+    const servicePicks = picksToRewrite(this.services, pick);
+    const templatePicks = picksToRewrite(this.templates, pick);
+    const full = this.savesFull([
+      current.file,
+      ...servicePicks.map(({document}) => document.file),
+      ...templatePicks.map(({document}) => document.file),
+    ]);
+    if (full !== null) return full;
     const stored = this.songs.replace(current, changed);
-    const services = rewritePicks(this.services, pick);
-    const templates = rewritePicks(this.templates, pick);
+    const services = rewritePicks(this.services, servicePicks);
+    const templates = rewritePicks(this.templates, templatePicks);
     this.announceSong(pick.songId);
     for (const service of services) {
       this.announceService(service.data.id);
@@ -543,6 +559,8 @@ export class ContentStore {
       this.options.locations.services,
       `${id}${SERVICE_EXTENSION}`,
     );
+    const full = this.savesFull([file]);
+    if (full !== null) return full;
     const stored = this.services.add(service, file);
     const written = await this.write(SERVICE, stored);
     this.announceService(id);
@@ -558,6 +576,8 @@ export class ContentStore {
     if (!checked.ok) {
       return checked.error;
     }
+    const full = this.savesFull([checked.value.file]);
+    if (full !== null) return full;
     const stored = this.services.replace(checked.value, {
       ...checked.value.data,
       ...service,
@@ -575,6 +595,8 @@ export class ContentStore {
     if (!checked.ok) {
       return checked.error;
     }
+    const full = this.savesFull([checked.value.file]);
+    if (full !== null) return full;
     this.services.remove(serviceId);
     const written = await this.remove(SERVICE, checked.value);
     this.announceService(serviceId);
@@ -605,6 +627,8 @@ export class ContentStore {
     }
     const picked = pickedItems(source.data.order, wanted);
     const target = checked.value;
+    const full = this.savesFull([target.file]);
+    if (full !== null) return full;
     const stored = this.services.replace(target, {
       ...target.data,
       order: [...target.data.order, ...copiedItems(picked)],
@@ -636,6 +660,8 @@ export class ContentStore {
       this.options.locations.templates,
       `${id}${SERVICE_EXTENSION}`,
     );
+    const full = this.savesFull([file]);
+    if (full !== null) return full;
     const stored = this.templates.add(template, file);
     const written = await this.write(TEMPLATE, stored);
     this.announceTemplate(id);
@@ -651,6 +677,8 @@ export class ContentStore {
     if (!checked.ok) {
       return checked.error;
     }
+    const full = this.savesFull([checked.value.file]);
+    if (full !== null) return full;
     const {time: _time, ...kept} = checked.value.data;
     const stored = this.templates.replace(checked.value, {
       ...kept,
@@ -666,10 +694,22 @@ export class ContentStore {
     if (!checked.ok) {
       return checked.error;
     }
+    const full = this.savesFull([checked.value.file]);
+    if (full !== null) return full;
     this.templates.remove(templateId);
     const written = await this.remove(TEMPLATE, checked.value);
     this.announceTemplate(templateId);
     return answer({id: templateId, revision: null}, [written]);
+  }
+
+  /**
+   * The refusal for an edit of files that don't wait yet while too many wait
+   * to be saved, which shows 저장할 수 없음 again; null when it may go on.
+   */
+  private savesFull(files: readonly string[]): EditResult | null {
+    if (this.persistence.admits(files)) return null;
+    this.persistence.remind();
+    return refuse('saves-full', 'Too many files are waiting to be saved');
   }
 
   private hasOtherSongTitled(title: string, songId: string): boolean {
@@ -795,22 +835,36 @@ export class ContentStore {
   }
 }
 
-function rewritePicks<
+interface PickRewrite<T> {
+  readonly document: StoredDocument<T>;
+  readonly order: readonly ServiceItem[];
+}
+
+function picksToRewrite<
   T extends {readonly id: string; readonly order: readonly ServiceItem[]},
 >(
   documents: DocumentCollection<T>,
   pick: ArrangementPick,
-): ReadonlyArray<StoredDocument<T>> {
+): ReadonlyArray<PickRewrite<T>> {
   return documents
     .all()
     .filter(({access}) => access === 'editable')
     .flatMap(document => {
       const order = withArrangementPicks(document.data.order, pick);
-      return order === null
-        ? []
-        : [documents.replace(document, {...document.data, order})];
+      return order === null ? [] : [{document, order}];
     })
-    .sort((a, b) => a.data.id.localeCompare(b.data.id));
+    .sort((a, b) => a.document.data.id.localeCompare(b.document.data.id));
+}
+
+function rewritePicks<
+  T extends {readonly id: string; readonly order: readonly ServiceItem[]},
+>(
+  documents: DocumentCollection<T>,
+  rewrites: ReadonlyArray<PickRewrite<T>>,
+): ReadonlyArray<StoredDocument<T>> {
+  return rewrites.map(({document, order}) =>
+    documents.replace(document, {...document.data, order}),
+  );
 }
 
 function checkEditable<T>(stored: StoredDocument<T> | undefined): Checked<T> {
