@@ -64,7 +64,11 @@ export interface AnalysisRequest {
 
 /** The arguments of the {@link MediaAnalyser} constructor. */
 export interface MediaAnalyserOptions {
-  readonly openPage: () => Promise<AnalysisPage>;
+  /**
+   * Opens the analysis page. The signal aborts when analysis gives up on the
+   * page, after a timeout, when idle, or on disposal, even while it loads.
+   */
+  readonly openPage: (signal: AbortSignal) => Promise<AnalysisPage>;
   readonly files: AnalysisFiles;
   /** Measures an image in main; null when it can't read it. */
   readonly measureImage: (
@@ -82,6 +86,7 @@ interface Waiting {
 }
 
 const TIMED_OUT = Symbol('timed out');
+const STOPPED = Symbol('stopped');
 
 function unavailable(message: string): Analysis {
   return {kind: 'unavailable', message};
@@ -119,7 +124,11 @@ function analysisOf(reply: AnalysisReply): Analysis {
 export class MediaAnalyser {
   private readonly queue: Waiting[] = [];
   private page: Promise<AnalysisPage> | null = null;
+  private pageAbort: AbortController | null = null;
   private running: Waiting | null = null;
+  // NOTE(0913vision): Aborted on disposal, so the running analysis stops
+  // waiting, gives its file back, and never reaches a page opened later.
+  private active: AbortController | null = null;
   private idleTimer: ReturnType<typeof setTimeout> | undefined;
   private disposed = false;
 
@@ -171,6 +180,7 @@ export class MediaAnalyser {
     for (const waiting of [this.running, ...this.queue.splice(0)]) {
       waiting?.settle(unavailable('Media analysis is closed'));
     }
+    this.active?.abort();
     this.closePage();
   }
 
@@ -221,15 +231,21 @@ export class MediaAnalyser {
   private async runOne(request: AnalysisRequest): Promise<Analysis> {
     const lent = this.options.files.lend(request.file);
     if (lent === null) return unavailable('Another file is lent for analysis');
+    const active = new AbortController();
+    this.active = active;
     try {
-      const page = await this.openedPage();
-      const reply = await this.withTimeout(
-        page.run({
-          url: lent.url,
-          kind: request.kind,
-          thumbnail: request.thumbnail ? THUMBNAIL_SIZE : null,
-        } satisfies AnalysisJob),
+      const reply = await this.withDeadline(
+        this.openAndRun(
+          {
+            url: lent.url,
+            kind: request.kind,
+            thumbnail: request.thumbnail ? THUMBNAIL_SIZE : null,
+          },
+          active.signal,
+        ),
+        active.signal,
       );
+      if (reply === STOPPED) return unavailable('Media analysis is closed');
       if (reply === TIMED_OUT) {
         this.options.log.warn('media analysis timed out', {file: request.file});
         this.closePage();
@@ -247,32 +263,63 @@ export class MediaAnalyser {
       this.closePage();
       return unavailable('The analysis page failed');
     } finally {
+      this.active = null;
       lent.release();
     }
   }
 
+  private async openAndRun(
+    job: AnalysisJob,
+    signal: AbortSignal,
+  ): Promise<unknown> {
+    const page = await this.openedPage();
+    return signal.aborted ? STOPPED : page.run(job);
+  }
+
   private openedPage(): Promise<AnalysisPage> {
-    this.page ??= this.options.openPage();
+    if (this.page === null) {
+      const abort = new AbortController();
+      this.pageAbort = abort;
+      this.page = this.options.openPage(abort.signal);
+    }
     return this.page;
   }
 
-  private async withTimeout(reply: Promise<unknown>): Promise<unknown> {
+  // NOTE(0913vision): One deadline for opening the page and running the job,
+  // so a page that never opens can't hold the queue either; disposal ends it
+  // at once.
+  private async withDeadline(
+    work: Promise<unknown>,
+    signal: AbortSignal,
+  ): Promise<unknown> {
     let timer: ReturnType<typeof setTimeout> | undefined;
-    const timeout = new Promise<typeof TIMED_OUT>(resolve => {
+    let stop: () => void = () => undefined;
+    const onAbort = (): void => {
+      stop();
+    };
+    const deadline = new Promise<typeof TIMED_OUT | typeof STOPPED>(resolve => {
+      stop = () => {
+        resolve(STOPPED);
+      };
       timer = setTimeout(() => {
         resolve(TIMED_OUT);
       }, this.options.timeoutMs ?? ANALYSIS_TIMEOUT_MS);
     });
+    if (signal.aborted) stop();
+    signal.addEventListener('abort', onAbort, {once: true});
     try {
-      return await Promise.race([reply, timeout]);
+      return await Promise.race([work, deadline]);
     } finally {
       clearTimeout(timer);
+      signal.removeEventListener('abort', onAbort);
     }
   }
 
   private closePage(): void {
     const page = this.page;
     this.page = null;
+    this.pageAbort?.abort();
+    this.pageAbort = null;
     page?.then(
       opened => {
         opened.close();

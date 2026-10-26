@@ -30,7 +30,7 @@ function setup() {
   const answers: {next: (job: AnalysisJob) => Promise<unknown>} = {
     next: () => Promise.resolve({ok: true, duration: 3}),
   };
-  const openPage = vi.fn<() => Promise<AnalysisPage>>(() => {
+  const openPage = vi.fn<(signal: AbortSignal) => Promise<AnalysisPage>>(() => {
     const page: FakePage = {
       run: vi.fn((job: AnalysisJob) => answers.next(job)),
       close: vi.fn(),
@@ -59,6 +59,12 @@ function held() {
 }
 
 const VIDEO = {file: 'D:/media/a.mp4', kind: 'video', thumbnail: true} as const;
+
+function expectFileGivenBack(files: AnalysisFiles): void {
+  const loan = files.lend('D:/media/next.mp4');
+  expect(loan).not.toBeNull();
+  loan?.release();
+}
 
 describe('media analysis', () => {
   it('measures an image in main without opening the page', async () => {
@@ -148,6 +154,7 @@ describe('media analysis', () => {
     expect(pages[0]?.close).not.toHaveBeenCalled();
     await clock.advance(1);
     expect(pages[0]?.close).toHaveBeenCalledOnce();
+    expect(openPage.mock.calls[0]?.[0].aborted).toBe(true);
     expect(vi.getTimerCount()).toBe(0);
     await analyser.analyse(VIDEO);
     expect(openPage).toHaveBeenCalledTimes(2);
@@ -238,5 +245,69 @@ describe('media analysis', () => {
     });
     analyser.dispose();
     expect(await running).toMatchObject({kind: 'unavailable'});
+  });
+
+  it('times out a page that never opens and opens a new one for the next file', async () => {
+    const clock = installFakeClock();
+    const {analyser, openPage, files, log} = setup();
+    openPage.mockImplementationOnce(() => new Promise(() => undefined));
+    const stuck = analyser.analyse(VIDEO);
+    await clock.advance(ANALYSIS_TIMEOUT_MS);
+    expect(openPage.mock.calls[0]?.[0].aborted).toBe(true);
+    expect(await stuck).toEqual({
+      kind: 'unavailable',
+      message: 'The analysis timed out',
+    });
+    expect(log.messages('warn')).toEqual(['media analysis timed out']);
+    expectFileGivenBack(files);
+    expect(await analyser.analyse(VIDEO)).toMatchObject({kind: 'read'});
+    expect(openPage).toHaveBeenCalledTimes(2);
+  });
+
+  it('on disposal while the page opens, gives the file back and never runs the page', async () => {
+    const clock = installFakeClock();
+    const files = new AnalysisFiles();
+    const page = {run: vi.fn<AnalysisPage['run']>(), close: vi.fn()};
+    let open: (opened: AnalysisPage) => void = () => undefined;
+    let opening = new AbortController().signal;
+    const analyser = new MediaAnalyser({
+      openPage: signal => {
+        opening = signal;
+        return new Promise<AnalysisPage>(resolve => {
+          open = resolve;
+        });
+      },
+      files,
+      measureImage: () => null,
+      log: recordingLogger(),
+    });
+    const result = analyser.analyse(VIDEO);
+    await clock.advance(1);
+    analyser.dispose();
+    expect(await result).toEqual({
+      kind: 'unavailable',
+      message: 'Media analysis is closed',
+    });
+    await clock.advance(0);
+    expect(opening.aborted).toBe(true);
+    expect(vi.getTimerCount()).toBe(0);
+    expectFileGivenBack(files);
+    open(page);
+    await clock.advance(1);
+    expect(page.run).not.toHaveBeenCalled();
+    expect(page.close).toHaveBeenCalledOnce();
+  });
+
+  it('on disposal while the page runs, clears the deadline and gives the file back', async () => {
+    const clock = installFakeClock();
+    const {analyser, answers, files} = setup();
+    answers.next = () => new Promise(() => undefined);
+    const result = analyser.analyse(VIDEO);
+    await clock.advance(1);
+    analyser.dispose();
+    expect(await result).toMatchObject({kind: 'unavailable'});
+    await clock.advance(1);
+    expect(vi.getTimerCount()).toBe(0);
+    expectFileGivenBack(files);
   });
 });
