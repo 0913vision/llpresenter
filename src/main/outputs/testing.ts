@@ -39,6 +39,7 @@ export class FakeOutputHandle implements OutputWindowHandle {
   forcedCrashes = 0;
   pings = 0;
   monitorRemovals = 0;
+  raises = 0;
   /** How long the page takes to answer a ping; null when it never does. */
   answerAfterMs: number | null = 0;
   /** Every call that showed the window, in order. */
@@ -70,6 +71,10 @@ export class FakeOutputHandle implements OutputWindowHandle {
     if (this.mode.kind === 'fullscreen') {
       this.mode = {...this.mode, alwaysOnTop: false};
     }
+  }
+
+  bringToFront(): void {
+    this.raises += 1;
   }
 
   hide(): void {

@@ -295,6 +295,40 @@ describe('OutputManager', () => {
     expect(store.state.outputs['main']).toBe(true);
   });
 
+  it('reports the monitor number an output last showed full screen on, also after an unplug', () => {
+    const {store, displays, manager} = setUp();
+    expect(manager.screenStates().get('main')?.monitor).toBeUndefined();
+    store.dispatch(turn(true));
+    expect(manager.screenStates().get('main')).toMatchObject({
+      placement: 'fullscreen',
+      monitor: 2,
+    });
+
+    displays.plug(CONTROL, STAGE);
+    expect(manager.screenStates().get('main')).toMatchObject({
+      placement: 'monitorMissing',
+      monitor: 2,
+    });
+  });
+
+  it('raises only a windowed output for 창 보기', () => {
+    const {store, displays, windows, manager} = setUp();
+    store.dispatch(turn(true));
+    const handle = windows.only('main');
+    manager.showWindow('main');
+    expect(handle.raises).toBe(0);
+
+    displays.plug(CONTROL, STAGE);
+    manager.showWindow('main');
+    expect(handle.raises).toBe(1);
+    expect(handle.mode).toEqual({kind: 'window', bounds: FALLBACK_BOUNDS});
+
+    manager.showWindow('unknown');
+    store.dispatch(turn(false));
+    manager.showWindow('main');
+    expect(handle.raises).toBe(1);
+  });
+
   it('keeps an output on the monitor it found when a look-alike monitor connects', () => {
     const {store, displays, windows} = setUp();
     const found = {...PROJECTOR, id: 22, x: 3840};

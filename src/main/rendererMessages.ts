@@ -3,7 +3,10 @@ import {
   parseRendererLogEntry,
   type FrameRateReport,
 } from '@shared/schema/ipcPayloads';
-import {parseOutputRetryRequest} from '@shared/schema/outputStatus';
+import {
+  parseOutputRetryRequest,
+  parseOutputShowWindowRequest,
+} from '@shared/schema/outputStatus';
 import type {Logger} from './log';
 
 /** A window's web contents id, which tells windows apart. */
@@ -113,17 +116,51 @@ export function handleFrameRate(
   };
 }
 
+interface ScreenRequestHandling {
+  readonly name: string;
+  readonly parse: typeof parseOutputRetryRequest;
+  readonly act: (screenId: string) => void;
+  readonly log: Logger;
+}
+
+function handleScreenRequest({
+  name,
+  parse,
+  act,
+  log,
+}: ScreenRequestHandling): MessageHandler {
+  return value => {
+    const parsed = parse(value);
+    if (!parsed.ok) {
+      log.warn(`dropped a malformed ${name} request`, parsed.error);
+      return;
+    }
+    act(parsed.value.screenId);
+  };
+}
+
 /** Passes 다시 시도 for a screen on. A malformed request is dropped and reported. */
 export function handleRetryRequest(
   retry: (screenId: string) => void,
   log: Logger,
 ): MessageHandler {
-  return value => {
-    const parsed = parseOutputRetryRequest(value);
-    if (!parsed.ok) {
-      log.warn('dropped a malformed retry request', parsed.error);
-      return;
-    }
-    retry(parsed.value.screenId);
-  };
+  return handleScreenRequest({
+    name: 'retry',
+    parse: parseOutputRetryRequest,
+    act: retry,
+    log,
+  });
+}
+
+/** Passes 창 보기 for a screen on. A malformed request is dropped and reported. */
+export function handleShowWindowRequest(
+  show: (screenId: string) => void,
+  log: Logger,
+): MessageHandler {
+  return handleScreenRequest({
+    name: 'show window',
+    parse: parseOutputShowWindowRequest,
+    act: show,
+    log,
+  });
 }

@@ -7,7 +7,11 @@ import type {LiveStore} from '../live/store';
 import type {Logger} from '../log';
 import type {SettingsReader} from '../store/settingsStore';
 import type {WindowMode} from '../windows/testWindows';
-import {handleFrameRate, handleRetryRequest} from '../rendererMessages';
+import {
+  handleFrameRate,
+  handleRetryRequest,
+  handleShowWindowRequest,
+} from '../rendererMessages';
 import {createSettingsScreenSource} from './settingsScreens';
 import {createDefaultScreenSource} from './defaultScreens';
 import type {OutputScreen, ScreenSource} from './screens';
@@ -31,6 +35,7 @@ export interface OutputContext {
 interface StatusPublishing {
   readonly board: OutputStatusBoard;
   readonly outputs: OutputManager;
+  readonly displays: DisplayRegistry;
   readonly log: Logger;
   readonly screenIdFor: (id: string) => string;
 }
@@ -67,6 +72,7 @@ function normalizeOutputFlags(
 function publishStatus({
   board,
   outputs,
+  displays,
   log,
   screenIdFor,
 }: StatusPublishing): Array<() => void> {
@@ -75,6 +81,14 @@ function publishStatus({
     listenToWindows(
       Channels.outputRetry,
       handleRetryRequest(screenId => outputs.retry(screenIdFor(screenId)), log),
+    ),
+    listenToWindows(Channels.outputFindMonitors, () => displays.refresh()),
+    listenToWindows(
+      Channels.outputShowWindow,
+      handleShowWindowRequest(
+        screenId => outputs.showWindow(screenIdFor(screenId)),
+        log,
+      ),
     ),
     board.subscribe(statuses =>
       sendToWindows(Channels.outputStatusChanged, statuses, log),
@@ -97,7 +111,9 @@ export interface RunningOutputs {
  * Starts watching the monitors and the output switches, opens the output
  * windows as outputs turn on, follows their frame rate reports, and publishes
  * the output status (`output:status:get`, `output:status:changed`) and
- * handles 다시 시도 (`output:retry`). Call it after the app is ready.
+ * handles 다시 시도 (`output:retry`), 모니터 다시 찾기
+ * (`output:find-monitors`), and 창 보기 (`output:show-window`). Call it after
+ * the app is ready.
  *
  * Keeps the display awake while any output is on.
  */
@@ -157,7 +173,7 @@ export function startOutputs({
         board.refresh();
       }, log),
     ),
-    ...publishStatus({board, outputs, log, screenIdFor}),
+    ...publishStatus({board, outputs, displays, log, screenIdFor}),
     keepAwakeWhileOutputsOn(
       store,
       new WakeKeeper(createElectronWakeLock(), log),

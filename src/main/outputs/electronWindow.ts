@@ -90,6 +90,7 @@ type OutputPresentation = Pick<
   | 'showWindowed'
   | 'showCapture'
   | 'prepareForMonitorRemoval'
+  | 'bringToFront'
   | 'hide'
 > & {readonly dispose: () => void};
 
@@ -156,6 +157,9 @@ function presentOnScreen(
       });
     },
     prepareForMonitorRemoval: placeBehindControl,
+    bringToFront: () => {
+      if (win.isVisible()) win.moveTop();
+    },
     hide: () => {
       placement.cancel();
       win.hide();
@@ -178,6 +182,7 @@ function presentOffscreen(win: BrowserWindow): OutputPresentation {
     },
     showCapture: bounds => win.setContentBounds(bounds),
     prepareForMonitorRemoval: () => undefined,
+    bringToFront: () => undefined,
     hide: () => undefined,
     dispose: () => undefined,
   };

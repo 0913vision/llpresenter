@@ -147,6 +147,26 @@ describe('OutputWindow', () => {
     expect(handle.reloads).toBe(0);
   });
 
+  it('raises the window for 창 보기 only while it shows as a normal window', () => {
+    const {output, windows} = setUp();
+    output.bringToFront();
+    output.update(FULL_SCREEN);
+    output.bringToFront();
+    const handle = windows.only('main');
+    expect(handle.raises).toBe(0);
+
+    output.update(FALLBACK);
+    output.bringToFront();
+    expect(handle.raises).toBe(1);
+
+    output.update(null);
+    output.bringToFront();
+    output.update(FALLBACK);
+    output.dispose();
+    output.bringToFront();
+    expect(handle.raises).toBe(1);
+  });
+
   it('keeps where the operator dragged a window when it shows again', () => {
     const {output, windows} = setUp();
     output.update(FALLBACK);

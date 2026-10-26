@@ -42,6 +42,8 @@ export interface OutputManagerOptions {
 export interface ScreenOutputState {
   readonly placement: OutputStatus;
   readonly renderer: RendererState;
+  /** The number of the monitor it last showed full screen on, kept after a disconnect. */
+  readonly monitor?: number;
 }
 
 interface Surroundings {
@@ -86,6 +88,7 @@ export class OutputManager {
   private readonly windows = new Map<string, OutputWindow>();
   private readonly statuses = new Map<string, OutputStatus>();
   private previousMonitors: ReadonlyMap<string, number> = new Map();
+  private readonly monitorNumbers = new Map<string, number>();
   private readonly unsettledRemovals = new Set<number>();
   private stops: ReadonlyArray<() => void> = [];
   private lastOutputs: LiveState['outputs'] | null = null;
@@ -122,13 +125,20 @@ export class OutputManager {
     this.windows.get(screenId)?.retry();
   }
 
+  /** 창 보기 for a screen whose output shows as a window. */
+  showWindow(screenId: string): void {
+    this.windows.get(screenId)?.bringToFront();
+  }
+
   /** The placement and renderer state of every screen in the list. */
   screenStates(): ReadonlyMap<string, ScreenOutputState> {
     return new Map(
       this.options.screens.list().flatMap(({id, aliases = []}) => {
+        const monitor = this.monitorNumbers.get(id);
         const state: ScreenOutputState = {
           placement: this.statuses.get(id) ?? 'off',
           renderer: this.windows.get(id)?.rendererState ?? 'running',
+          ...(monitor === undefined ? {} : {monitor}),
         };
         return [id, ...aliases].map(key => [key, state] as const);
       }),
@@ -143,6 +153,7 @@ export class OutputManager {
     for (const output of this.windows.values()) output.dispose();
     this.windows.clear();
     this.statuses.clear();
+    this.monitorNumbers.clear();
     this.previousMonitors = new Map();
     this.unsettledRemovals.clear();
   }
@@ -184,6 +195,10 @@ export class OutputManager {
       const placement = this.placementFor(screen, surroundings);
       this.apply(screen, placement);
       if (placement?.kind === 'off') turnOff.push(screen.id);
+      const monitor = surroundings.assigned.get(screen.id);
+      if (placement?.kind === 'fullscreen' && monitor !== undefined) {
+        this.monitorNumbers.set(screen.id, monitor.number);
+      }
     }
     for (const screenId of turnOff) this.turnOff(screenId);
   }
@@ -286,6 +301,7 @@ export class OutputManager {
       output.dispose();
       this.windows.delete(screenId);
       this.statuses.delete(screenId);
+      this.monitorNumbers.delete(screenId);
       removed = true;
     }
     if (removed) this.options.onStatusChange?.();

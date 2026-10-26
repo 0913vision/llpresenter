@@ -366,6 +366,31 @@ describe('saved output backend', () => {
     expect(fakes.handlers.size + fakes.answers.size).toBe(0);
   });
 
+  it('reads the monitors at once for 모니터 다시 찾기 and raises the fallback for 창 보기', async () => {
+    const {store, windows, log} = setup();
+    await loaded();
+    store.dispatch({type: 'output.set', screenId: 'main', on: true});
+    const output = windows.only(MAIN);
+    expect(output.mode.kind).toBe('fullscreen');
+    const displays = fakes.displays;
+    if (displays === null) throw new Error('Missing displays');
+    displays.displays = [displayInfo({id: 1, primary: true}), stage];
+
+    fakes.handlers.get(Channels.outputFindMonitors)?.(undefined, 1);
+    expect(output.mode.kind).toBe('window');
+    expect(fakes.answers.get(Channels.outputStatusGet)?.()).toMatchObject({
+      main: {placement: 'monitorMissing', monitor: 2},
+    });
+
+    fakes.handlers.get(Channels.outputShowWindow)?.({screenId: 'main'}, 1);
+    expect(output.raises).toBe(1);
+    fakes.handlers.get(Channels.outputShowWindow)?.({screenId: ''}, 1);
+    expect(output.raises).toBe(1);
+    expect(log.messages('warn')).toContain(
+      'dropped a malformed show window request',
+    );
+  });
+
   it('routes capture aliases and frame statuses by UUID and forgets removed reports', async () => {
     const {save, store, running, windows} = setup();
     await loaded();

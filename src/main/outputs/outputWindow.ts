@@ -19,6 +19,8 @@ export interface OutputWindowHandle {
   showCapture(contentBounds: Rect, alwaysOnTop?: boolean): void;
   /** Drops always on top and places the control directly above this output without focus. */
   prepareForMonitorRemoval(): void;
+  /** Raises the shown window above the other windows without taking focus. */
+  bringToFront(): void;
   hide(): void;
   /**
    * Loads the page again, in a new renderer process if the old one died.
@@ -131,6 +133,14 @@ export class OutputWindow {
     }
     this.applied = null;
     this.handle?.prepareForMonitorRemoval();
+  }
+
+  /** 창 보기: raises the window only while it shows as a normal window. */
+  bringToFront(): void {
+    if (this.disposed || !this.visible || this.applied?.kind !== 'window') {
+      return;
+    }
+    this.handle?.bringToFront();
   }
 
   dispose(): void {

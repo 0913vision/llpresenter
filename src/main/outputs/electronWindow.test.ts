@@ -43,6 +43,7 @@ const electron = await vi.hoisted(async () => {
     readonly showInactive = vi.fn();
     readonly show = vi.fn();
     readonly focus = vi.fn();
+    readonly moveTop = vi.fn();
     readonly hide = vi.fn();
     readonly removeMenu = vi.fn();
     readonly isDestroyed = vi.fn(() => false);
@@ -140,6 +141,25 @@ describe('createElectronOutputWindow offscreen', () => {
       height: 1080,
     });
     expectNeverPresented(lastWindow());
+  });
+
+  it('raises a shown window for 창 보기 without focusing it', () => {
+    const output = openOutput('normal');
+    const win = lastWindow();
+    output.bringToFront();
+    expect(win.moveTop).not.toHaveBeenCalled();
+
+    win.isVisible.mockReturnValue(true);
+    output.bringToFront();
+    expect(win.moveTop).toHaveBeenCalledTimes(1);
+    expect(win.focus).not.toHaveBeenCalled();
+  });
+
+  it('never raises a window in offscreen mode', () => {
+    const output = openOutput('offscreen');
+    lastWindow().isVisible.mockReturnValue(true);
+    output.bringToFront();
+    expect(lastWindow().moveTop).not.toHaveBeenCalled();
   });
 
   it('does not change window order on monitor removal in offscreen mode', () => {

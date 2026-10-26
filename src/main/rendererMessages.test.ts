@@ -7,6 +7,7 @@ import {
   handleFrameRate,
   handleLogWrite,
   handleRetryRequest,
+  handleShowWindowRequest,
 } from './rendererMessages';
 
 const WINDOW = 7;
@@ -149,6 +150,30 @@ describe('handleRetryRequest', () => {
       expect(retry).not.toHaveBeenCalled();
       expect(log.messages('warn')).toEqual([
         'dropped a malformed retry request',
+      ]);
+    },
+  );
+});
+
+describe('handleShowWindowRequest', () => {
+  it('passes the screen of a valid request on', () => {
+    const show = vi.fn();
+    handleShowWindowRequest(show, recordingLogger())(
+      {screenId: 'stage'},
+      WINDOW,
+    );
+    expect(show).toHaveBeenCalledWith('stage');
+  });
+
+  it.each([null, {}, {screenId: ''}, {screenId: 7}])(
+    'drops a malformed request: %j',
+    value => {
+      const show = vi.fn();
+      const log = recordingLogger();
+      handleShowWindowRequest(show, log)(value, WINDOW);
+      expect(show).not.toHaveBeenCalled();
+      expect(log.messages('warn')).toEqual([
+        'dropped a malformed show window request',
       ]);
     },
   );

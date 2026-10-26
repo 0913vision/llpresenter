@@ -51,6 +51,33 @@ describe('OutputStatusBoard', () => {
     });
   });
 
+  it('passes the monitor number on and announces a change of it', () => {
+    const {board, states, listener} = setUp();
+    states.set('main', {
+      placement: 'fullscreen',
+      renderer: 'running',
+      monitor: 2,
+    });
+    board.refresh();
+    expect(listener.mock.lastCall?.[0]).toMatchObject({main: {monitor: 2}});
+    states.set('main', {
+      placement: 'monitorMissing',
+      renderer: 'running',
+      monitor: 3,
+    });
+    board.refresh();
+    expect(listener).toHaveBeenCalledTimes(2);
+    expect(listener.mock.lastCall?.[0]).toMatchObject({
+      main: {placement: 'monitorMissing', monitor: 3},
+    });
+    expect(board.snapshot()['main']).toHaveProperty('monitor', 3);
+  });
+
+  it('leaves the monitor out for a screen that never had one', () => {
+    const {board} = setUp();
+    expect(board.snapshot()['main']).not.toHaveProperty('monitor');
+  });
+
   it('announces a low frame rate', () => {
     const {board, rates, listener} = setUp();
     board.refresh();
