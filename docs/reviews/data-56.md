@@ -136,3 +136,27 @@ missing.
 ## Team member's reply
 
 1.
+
+## Round 1 reply
+
+Both in
+`fix(prep): window the media grid by rows and fill the media view's column`.
+
+1. [P2] `MediaView.module.css:2`, the panel grew with the grid and pushed its
+   footer out. The panel now fills the host's height as `LibraryPanel` does; the
+   body doesn't scroll, and a viewport inside it scrolls only the grid, with the
+   panel's inset and a stable scrollbar gutter. Regression: the CSS rules that
+   keep the footer in view (jsdom has no layout, so the test reads the rules, as
+   other layout tests here do).
+2. [P2] `MediaView.tsx:219`, the grid mounted every tile and thumbnail.
+   `VirtualMediaGrid` windows it by rows the way the 슬라이드 grid
+   (`VirtualSlides`) does: rows from the measured width, the 16:9 picture, and
+   the name line, plus `OVERSCAN_ROWS` (1) above and below, or `INITIAL_ROWS`
+   (3) before the first measure. The window's tiles carry their place in the
+   whole list (`aria-posinset`, `aria-setsize`), and the arrow keys, Home, and
+   End move across the window's edge, scrolling the target in and focusing it.
+   There is no shared windowing helper yet (`VirtualSlides` and
+   `WindowedMediaStrip` each have their own), so this follows `VirtualSlides`.
+   Regression: a 60-item list mounts 25 tiles; ArrowDown from the last mounted
+   tile selects and focuses the one below it; End selects the last tile, and the
+   window never grows past 25 tiles.
