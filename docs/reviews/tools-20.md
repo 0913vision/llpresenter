@@ -88,3 +88,10 @@ check. No production change is needed. Rebased onto current local main and
 included ShowPanels, App and PrepMount in the local regression checks. The app
 flow was repeated on the rebased code; the table and screenshots above are
 refreshed. Updated check results are in the round 2 report.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 2 (ab1c952b): reviewer (Codex) Approve. Lead Approve through the lead's
+  merge check: the exact-head CI run passed, the branch rebased onto local
+  `main` without conflicts, and typecheck passes. Earlier rounds' findings and
+  replies are above.
