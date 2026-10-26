@@ -2,6 +2,7 @@ import {expect, it} from 'vitest';
 import type {ClearTarget} from '@shared/commands';
 import {emptyLiveState, layerKinds} from '@shared/live';
 import {LiveStore} from './store';
+import {NOTICE, overlaySettings} from './testing/overlays';
 
 const slide = {itemId: 'fixture', position: 0, label: null, lines: ['Current']};
 function setup() {
@@ -106,4 +107,17 @@ it('drops saved restore flags when recovery has no in-memory clear captures', ()
   expect(store.dispatch({type: 'layer.clear.toggle', target: 'slide'})).toBe(
     false,
   );
+});
+
+it('restores F2 lyrics after pausing and resuming an unchanged notice', () => {
+  const store = setup();
+  store.connectSettings(overlaySettings().reader);
+  store.dispatch({type: 'notice.start', noticeId: NOTICE});
+  store.dispatch({type: 'layer.clear.toggle', target: 'slide'});
+  store.dispatch({type: 'notice.pause'});
+  store.dispatch({type: 'notice.start', noticeId: NOTICE});
+  expect(store.state.clearToggles).toEqual(['slide']);
+  expect(store.state.layers.notice?.playback?.pausedAt).toBeNull();
+  store.dispatch({type: 'layer.clear.toggle', target: 'slide'});
+  expect(store.state.layers.slide).toEqual(slide);
 });

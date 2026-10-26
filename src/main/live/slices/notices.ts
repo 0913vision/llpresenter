@@ -26,12 +26,14 @@ function start(
     previous.media.length === notice.media.length &&
     previous.media.every((id, index) => id === notice.media[index]);
   const targets = [...new Set(notice.targets)];
+  const unchangedTargets =
+    previous?.targets.length === targets.length &&
+    previous.targets.every((id, index) => id === targets[index]);
   if (
     unchangedSequence &&
     previous.pausedAt === null &&
     command.position === undefined &&
-    previous.targets.length === targets.length &&
-    previous.targets.every((id, index) => id === targets[index])
+    unchangedTargets
   ) {
     return history;
   }
@@ -67,7 +69,11 @@ function start(
   }
   const parsed = parseNoticePlayback(playback);
   if (!parsed.ok) return reject(parsed.error);
-  return setLayer(history, 'notice', {
+  const put =
+    unchangedSequence && unchangedTargets && command.position === undefined
+      ? updateLayer
+      : setLayer;
+  return put(history, 'notice', {
     noticeId: notice.id,
     playback: parsed.value,
   });

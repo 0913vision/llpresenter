@@ -337,7 +337,7 @@ describe('App clear keys', () => {
     fireEvent.keyDown(document.body, {code: 'KeyZ', ctrlKey: true});
     expect(sent).toEqual([]);
     fireEvent.keyDown(document.body, {code: 'F2'});
-    expect(sent).toEqual([{type: 'layer.clear', target: 'slide'}]);
+    expect(sent).toEqual([{type: 'layer.clear.toggle', target: 'slide'}]);
   });
 });
 

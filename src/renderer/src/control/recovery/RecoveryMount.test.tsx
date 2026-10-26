@@ -172,6 +172,9 @@ it('lets F1 clear the screens while the dialog is open', async () => {
       new KeyboardEvent('keydown', {key: 'F1', code: 'F1', bubbles: true}),
     );
   });
-  expect(send).toHaveBeenCalledWith({type: 'layer.clear', target: 'all'});
+  expect(send).toHaveBeenCalledWith({
+    type: 'layer.clear.toggle',
+    target: 'all',
+  });
   expect(dialog()).not.toBeNull();
 });

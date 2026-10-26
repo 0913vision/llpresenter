@@ -36,6 +36,9 @@ claimed as ProPresenter behavior.
 - `src/renderer/src/show/ClearRow.tsx`, its styles/test and `clearKeys.ts`:
   shell's clear controls use the toggle command and expose restore state. Key
   bindings and focus precedence stay the same.
+- `src/renderer/src/control/App.test.tsx` and
+  `control/recovery/RecoveryMount.test.tsx`: update integrated F2 and modal F1
+  expectations to the additive toggle command.
 - Spec 03 and 10: clear toggle and restore behavior.
 
 ## Checks run
@@ -46,6 +49,10 @@ claimed as ProPresenter behavior.
   repeated captures and malformed IPC flags/targets.
 - Typecheck, build, own-file lint after formatting: see request message. Full
   verify runs on GitHub.
+- The first
+  [CI run](https://github.com/0913vision/llpresenter/actions/runs/40346115241)
+  failed two old command expectations in `App.test.tsx` and
+  `RecoveryMount.test.tsx`. Both now expect `layer.clear.toggle`.
 
 ## Checked in the app
 
@@ -65,6 +72,15 @@ claimed as ProPresenter behavior.
 - Screenshots: [cleared key](evidence/output-55/cleared-run1.png),
   [restored picture](evidence/output-55/restored-run1.png),
   [second launch](evidence/output-55/restored-run2.png).
+- Round 2 repeats the two launches with a notice active on the stage screen.
+  Each of 25 cycles clears lyrics with F2, pauses and resumes that unchanged
+  notice, and restores the lyrics with F2. Both runs also repeat the existing
+  new-slide reset and F1 restore checks and quit normally. Counts stay at 451
+  live elements and 1,675 CDP DOM nodes; listeners stay at 403 or decrease from
+  408 to 403. Collected heaps were 5,516,572 to 5,794,364 bytes and 5,492,700 to
+  5,792,648 bytes. Screenshots:
+  [notice resume and restored lyrics](evidence/output-55-round2/restored-run1.png),
+  [second launch](evidence/output-55-round2/restored-run2.png).
 
 ## Review: lead
 
@@ -76,4 +92,9 @@ claimed as ProPresenter behavior.
 
 ## Team member's reply
 
-1.
+1. Resuming a notice with the same media sequence and targets now uses
+   `updateLayer`, preserving another clear key's capture. New notice content or
+   targets still invalidate captures. The regression starts a notice, clears
+   lyrics with F2, pauses and resumes the notice, then restores those lyrics
+   with F2. Two integrated key expectations found by CI were also updated to the
+   toggle command.
