@@ -75,10 +75,13 @@ describe('ServiceOrderList', () => {
     expect(list.dataset['workspace']).toBe('show');
   });
 
-  it('shows headers as text and items as options', () => {
+  it('makes sections and items selectable without outputting a section', () => {
     render(<ServiceOrderList />);
-    expect(screen.getByText('찬양')).toBeTruthy();
-    expect(screen.queryByRole('option', {name: '찬양'})).toBeNull();
+    const section = screen.getByRole('option', {name: '찬양'});
+    fireEvent.click(section);
+    expect(useShow.getState().openItemId).toBe('praise');
+    expect(section.getAttribute('aria-selected')).toBe('true');
+    expect(sent).toHaveLength(0);
     expect(screen.getByRole('option', {name: /아침이 밝아 오네/})).toBeTruthy();
   });
 
@@ -146,7 +149,9 @@ describe('ServiceOrderList', () => {
         .filter(option => option.tabIndex === 0)
         .map(row => row.textContent);
     expect(list.hasAttribute('tabindex')).toBe(false);
-    expect(rowStops()).toEqual([expect.stringContaining('예배 전 카운트다운')]);
+    expect(rowStops()).toEqual(['예배 전']);
+    act(() => openItem('praise'));
+    expect(rowStops()).toEqual(['찬양']);
     act(() => openItem('song-river'));
     expect(rowStops()).toEqual([expect.stringContaining('맑은 시냇물')]);
   });
@@ -209,14 +214,20 @@ describe('ServiceOrderList', () => {
       fireEvent.keyDown(document.activeElement ?? document.body, {key});
     };
     screen.getByRole('option', {name: /아침이 밝아 오네/}).focus();
-    press('Home');
-    expect(useShow.getState().openItemId).toBe('countdown');
-    press('ArrowDown');
-    expect(useShow.getState().openItemId).toBe('song-morning');
-    press('ArrowUp');
-    expect(useShow.getState().openItemId).toBe('countdown');
-    press('End');
-    expect(useShow.getState().openItemId).toBe('notice-sunday');
+    for (const [key, id, name] of [
+      ['Home', 'before', '예배 전'],
+      ['ArrowDown', 'countdown', '예배 전 카운트다운'],
+      ['ArrowDown', 'praise', '찬양'],
+      ['ArrowDown', 'song-morning', '아침이 밝아 오네'],
+      ['ArrowUp', 'praise', '찬양'],
+      ['Home', 'before', '예배 전'],
+      ['End', 'notice-sunday', '주일 광고'],
+    ] as const) {
+      press(key);
+      expect(useShow.getState().openItemId).toBe(id);
+      expect(document.activeElement).toBe(screen.getByRole('option', {name}));
+    }
+    expect(sent).toHaveLength(0);
   });
 
   it.each([

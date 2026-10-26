@@ -7,10 +7,10 @@
       "selected": "빈 구역 B"
     },
     "heap": {
-      "backingStorageSize": 1689350,
-      "embedderHeapUsedSize": 4378512,
-      "totalSize": 6590464,
-      "usedSize": 5491804
+      "backingStorageSize": 1702581,
+      "embedderHeapUsedSize": 4432032,
+      "totalSize": 6856704,
+      "usedSize": 5800232
     }
   },
   "middle": {
@@ -21,10 +21,10 @@
       "selected": "빈 구역 B"
     },
     "heap": {
-      "backingStorageSize": 1689362,
-      "embedderHeapUsedSize": 4213312,
-      "totalSize": 6852608,
-      "usedSize": 5840212
+      "backingStorageSize": 1702593,
+      "embedderHeapUsedSize": 4361048,
+      "totalSize": 6594560,
+      "usedSize": 5948804
     }
   },
   "final": {
@@ -35,10 +35,10 @@
       "selected": "빈 구역 B"
     },
     "heap": {
-      "backingStorageSize": 1689362,
-      "embedderHeapUsedSize": 4262672,
-      "totalSize": 6590464,
-      "usedSize": 5980716
+      "backingStorageSize": 1702593,
+      "embedderHeapUsedSize": 4327712,
+      "totalSize": 6856704,
+      "usedSize": 6083832
     }
   },
   "insertedOrder": [
