@@ -59,3 +59,10 @@ fallback. No new persistence or live-state channel is needed.
    with a remaining current Look, and verifies the fallback check without
    changing live state or sending a command or settings edit. It fails without
    the fix. The no-initial-snapshot guard remains.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (Codex): Request changes; the findings and replies are above.
+- Round 2 (7928909e): reviewer (Codex, codex2) Approve. Lead Approve (see "What
+  changed and why"); the exact-head CI run passed, checked by the lead at merge.
+  Rebased by the lead onto local `main` without conflicts; typecheck passes.
