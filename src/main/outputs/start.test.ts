@@ -574,4 +574,25 @@ describe('saved output backend', () => {
       expect.anything(),
     );
   });
+
+  it('pushes the monitor list when only the assignment changes', async () => {
+    const {save} = setup();
+    await loaded();
+    vi.mocked(sendToWindows).mockClear();
+
+    save([{...main, display: savedDisplay(stage)}]);
+
+    const pushes = vi
+      .mocked(sendToWindows)
+      .mock.calls.filter(([channel]) => channel === Channels.monitorsChanged);
+    const parsed = parseMonitorList(pushes.at(-1)?.[1]);
+    if (!parsed.ok) throw new Error(parsed.error.message);
+    expect(
+      parsed.value.map(monitor => [monitor.number, monitor.screenIds]),
+    ).toEqual([
+      [1, []],
+      [2, []],
+      [3, [MAIN]],
+    ]);
+  });
 });

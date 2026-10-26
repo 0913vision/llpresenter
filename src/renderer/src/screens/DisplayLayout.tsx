@@ -1,11 +1,13 @@
-import {useMemo, type JSX} from 'react';
+import {useMemo, type CSSProperties, type JSX} from 'react';
 import type {Screen} from '@shared/schema/screens';
 import {Button} from '@renderer/ui';
 import {classNames} from '@renderer/ui/classNames';
 import {sendLive} from '@renderer/state/live';
 import type {Notice} from '@renderer/ui/notices';
 import {displayLayout, type MonitorBox, type TargetBox} from './layoutBoxes';
+import {fitAspect, type BoxSize} from './fitAspect';
 import {selectedScreenIn, useScreensSelection} from './selection';
+import {useElementSize} from './useElementSize';
 import {useMonitors} from './useMonitors';
 import {useSettingsDocument} from './useSettingsDocument';
 import styles from './DisplayLayout.module.css';
@@ -19,6 +21,15 @@ const noScreens: readonly Screen[] = [];
 
 function percent(value: number): string {
   return `${value}${PERCENT_UNIT}`;
+}
+
+function arrangementStyle(
+  available: BoxSize | undefined,
+  aspectRatio: number,
+): CSSProperties {
+  if (available === undefined) return {aspectRatio};
+  const {width, height} = fitAspect(available, aspectRatio);
+  return {width: `${width}px`, height: `${height}px`};
 }
 
 function MonitorView({box}: {readonly box: MonitorBox}): JSX.Element {
@@ -73,6 +84,7 @@ export function DisplayLayout({
   const selection = useScreensSelection(view => view.selection);
   const screens = document?.value.screens ?? noScreens;
   const selectedId = selectedScreenIn(selection, screens)?.id;
+  const [watchStage, stageSize] = useElementSize();
   const model = useMemo(
     () => displayLayout(monitors, screens, selectedId),
     [monitors, screens, selectedId],
@@ -87,10 +99,10 @@ export function DisplayLayout({
           {IDENTIFY_LABEL}
         </Button>
       </div>
-      <div className={styles.stage}>
+      <div className={styles.stage} ref={watchStage}>
         <div
           className={styles.arrangement}
-          style={{aspectRatio: model.aspectRatio}}
+          style={arrangementStyle(stageSize, model.aspectRatio)}
         >
           {model.monitors.map(box => (
             <MonitorView key={box.number} box={box} />

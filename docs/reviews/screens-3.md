@@ -142,3 +142,17 @@ main leaves the screen in a window); the NOTE in `monitorAssignment.ts` says so.
    changes while the monitors do not. `layoutBoxes.test.ts` covers a list whose
    assignment differs from the saved monitor and a screen main assigned no
    monitor.
+
+## Round 4 reply
+
+1. [P2] Arrangement fit: the panel measures its stage (`useElementSize`,
+   released on unmount) and sizes the arrangement with `fitAspect`, one uniform
+   scale that fits both sides, so stacked or portrait monitors keep their shape
+   in a short panel. Tests: `fitAspect.test.ts` for wide, tall, and exact boxes,
+   and a rendered test that fits a 400 x 100 panel with two stacked monitors and
+   checks the width and the height keep the ratio. jsdom has no layout, so the
+   test feeds the measurement through a stubbed `ResizeObserver`.
+2. [P2] Assignment-only push: `start.test.ts` now saves a settings change that
+   moves `main` to the stage monitor with the monitors unchanged, and checks the
+   `monitors:changed` payload. I confirmed it fails without
+   `subscribeAssignment` in the handler.

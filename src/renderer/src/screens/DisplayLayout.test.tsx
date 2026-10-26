@@ -60,6 +60,46 @@ afterEach(() => {
   delete window.llp;
 });
 
+function entry(width: number, height: number): ResizeObserverEntry {
+  return {
+    target: document.body,
+    contentRect: {
+      x: 0,
+      y: 0,
+      top: 0,
+      left: 0,
+      right: width,
+      bottom: height,
+      width,
+      height,
+      toJSON: () => ({}),
+    },
+    borderBoxSize: [],
+    contentBoxSize: [],
+    devicePixelContentBoxSize: [],
+  };
+}
+
+function stubStage(width: number, height: number) {
+  const observers: Array<() => void> = [];
+  const disconnect = vi.fn();
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      constructor(callback: ResizeObserverCallback) {
+        observers.push(() => callback([entry(width, height)], this));
+      }
+      observe = vi.fn();
+      unobserve = vi.fn();
+      disconnect = disconnect;
+    },
+  );
+  return {
+    measure: () => act(() => observers.forEach(run => run())),
+    disconnect,
+  };
+}
+
 function box(number: number): HTMLElement {
   const element = document.querySelector<HTMLElement>(
     `[data-monitor="${number}"]`,
@@ -101,6 +141,33 @@ describe('the display layout', () => {
         .querySelector(`[data-target="${CAPTIONS_ID}"]`)
         ?.getAttribute('aria-current'),
     ).toBe('true');
+  });
+
+  it('fits a tall arrangement in a short panel with one uniform scale', async () => {
+    const stage = stubStage(400, 100);
+    const stacked: MonitorList = [
+      monitor(1, 0, true),
+      {...monitor(2, 0), bounds: {x: 0, y: 1080, width: 1920, height: 1080}},
+    ];
+    setup(() => Promise.resolve(stacked));
+    await waitFor(() => expect(box(2)).toBeTruthy());
+
+    stage.measure();
+
+    const arrangement = box(1).parentElement;
+    const {width, height} = arrangement?.style ?? {};
+    expect(parseFloat(width ?? '')).toBeCloseTo(100 * (1920 / 2160), 5);
+    expect(parseFloat(height ?? '')).toBeCloseTo(100, 5);
+  });
+
+  it('stops observing the panel when it unmounts', async () => {
+    const stage = stubStage(400, 400);
+    const {view} = setup();
+    await waitFor(() => expect(box(2)).toBeTruthy());
+
+    view.unmount();
+
+    expect(stage.disconnect).toHaveBeenCalled();
   });
 
   it('follows a pushed monitor list', async () => {
