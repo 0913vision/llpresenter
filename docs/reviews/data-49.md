@@ -147,3 +147,30 @@ missing.
 ## Team member's reply
 
 1.
+
+## Round 2 reply
+
+All four in
+`fix(media): admit imports at one commit boundary and release finished jobs`,
+which gives a job explicit phases: copy, then a check for a cancel, then
+admission.
+
+1. [P1] `mediaImporter.ts:231`, a list save failure deleted an accepted file.
+   `MediaStore.add` applies the item before it saves, so a `write-failed` answer
+   now completes the job and keeps the file; the list's save waits for its retry
+   (data-47). Only a refusal, which leaves the list unchanged, removes the copy.
+   Regression with a real `MediaStore` whose writes fail: the job completes, the
+   file stays, and the item is in the list.
+2. [P2] `:175`, finished jobs kept their listener on the backend's shared
+   signal. Each job now removes its listener when it ends. Regression: three
+   imports on one signal leave no `abort` listener.
+3. [P2] `:216`, a cancel that won after the copy left an unlisted file. After
+   the copy, a cancelled job removes its own copy before it reports `cancelled`.
+   Regression: a cancel while the copy finishes removes the file and never
+   reaches the list.
+4. [P2] `:147`, a cancel during admission reported `cancelled` for an item that
+   was in the list. Admission is the commit boundary: the job marks itself
+   admitting before `MediaStore.add`, and a cancel from then on is refused
+   (`invalid`, "This import is joining the media list"). Regression: a cancel
+   while the store's write is pending is refused, and the job completes with its
+   file.
