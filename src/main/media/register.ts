@@ -131,7 +131,7 @@ export function registerMediaBackend(
     send: () => undefined,
   };
   const analyser = new MediaAnalyser({
-    openPage: () => openAnalysisPage(options.log),
+    openPage: signal => openAnalysisPage(options.log, signal),
     files: options.analysisFiles,
     measureImage,
     log: options.log,
