@@ -2,9 +2,15 @@ import {app, BrowserWindow} from 'electron';
 import type {LiveStore} from '../live/store';
 import type {Logger} from '../log';
 import type {MediaStore} from '../store/mediaStore';
-import {RestartBudget} from '../outputs/restartBudget';
+import {RendererRecovery} from '../outputs/rendererRecovery';
 import {audioMutedByDefault} from './audioPolicy';
-import {blockNavigation, loadPage, preloadPath, type PageRequest} from './page';
+import {
+  blockNavigation,
+  loadPage,
+  startLoading,
+  preloadPath,
+  type PageRequest,
+} from './page';
 import type {WindowMode} from './testWindows';
 
 interface AudioOutputOptions {
@@ -56,15 +62,28 @@ export function registerAudioOutput({
       name: 'output',
       query: {audio: muted ? 'muted' : 'sound'},
     };
-    const budget = new RestartBudget();
-    const crashed = (): void => {
+    const recovery = new RendererRecovery({
+      screenId: 'audio',
+      log,
+      reload: async () => {
+        await startLoading(opened, page);
+      },
+    });
+    const crashed = (
+      _event: unknown,
+      details: {reason: string; exitCode: number},
+    ): void => {
       if (stopped || opened.isDestroyed()) return;
-      log.error('audio renderer process gone');
-      if (budget.recordCrash()) attempt(() => loadPage(opened, page, log));
+      attempt(() => recovery.crashed(details));
     };
+    const ready = (): void => attempt(() => recovery.pageDrawn());
     opened.webContents.on('render-process-gone', crashed);
-    releaseCrash = () =>
+    opened.webContents.on('did-finish-load', ready);
+    releaseCrash = () => {
       opened.webContents.removeListener('render-process-gone', crashed);
+      opened.webContents.removeListener('did-finish-load', ready);
+      recovery.dispose();
+    };
     loadPage(opened, page, log);
   });
   void media

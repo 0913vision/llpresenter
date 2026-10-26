@@ -4,7 +4,8 @@
 - Branch: `feat/output/audio-window`
 - Base and range: in the request message; stacked on output-46 round 2.
 - Scope: O7 hidden audio window, catalog connection and renderer bridge. Fade
-  and clear undo follow in output-48. O7 remains open.
+  and clear undo follow in output-49, after output-48's identity fix. O7 remains
+  open.
 - GitHub head CI: URL/result in the request message.
 
 ## What changed and why
@@ -13,7 +14,9 @@ Main owns one hidden, sandboxed, unfocused audio window with background
 throttling disabled. It uses the output page's audio-only entry, independently
 of screen toggles, previews and control-window navigation. The real media
 catalog connects before macro startup and releases before the data store closes.
-Renderer crashes are logged and use the existing bounded restart budget.
+Renderer crashes use the existing output recovery policy: quick reloads, then
+10/20/40/60-second backoff, continuing during the service. A loaded page that
+survives a minute resets the limit. Disposal releases all recovery timers.
 Creation/load errors are isolated from the remaining startup and output paths.
 
 Main mutes web contents before loading in dev, tests and offscreen runs. The
@@ -64,4 +67,11 @@ selection. Manual next commands without a version keep their existing behavior.
 
 ## Team member's reply
 
-1.
+Round 1 reply:
+
+1. The audio window now uses `RendererRecovery`, matching spec 08's persistent
+   recovery and capped cool-down. `did-finish-load` marks a ready audio page;
+   both crash and ready listeners, pending loads and all timers are released on
+   disposal. Regression tests cross the crash limit, verify the complete backoff
+   sequence including the repeated 60-second cap, cancel a pending attempt on
+   shutdown, and reset to quick recovery after a healthy minute.

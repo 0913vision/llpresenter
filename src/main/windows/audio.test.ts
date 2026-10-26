@@ -4,8 +4,14 @@ import type {MediaStore} from '../store/mediaStore';
 import {recordingLogger} from '../displays/testing';
 import {LiveStore} from '../live/store';
 import {registerAudioOutput} from './audio';
-import {loadPage} from './page';
+import {loadPage, startLoading} from './page';
 import type {WindowMode} from './testWindows';
+import {installFakeClock} from '../../../test/fake-clock';
+import {
+  COOLDOWN_STEPS_MS,
+  RELAUNCH_DELAY_MS,
+  SURVIVAL_MS,
+} from '../outputs/rendererRecovery';
 
 const fakes = await vi.hoisted(async () => {
   const {EventEmitter} = await import('node:events');
@@ -31,6 +37,7 @@ const fakes = await vi.hoisted(async () => {
 vi.mock('electron', () => ({app: fakes.app, BrowserWindow: fakes.Window}));
 vi.mock('./page', () => ({
   loadPage: vi.fn(),
+  startLoading: vi.fn(() => Promise.resolve()),
   blockNavigation: vi.fn(),
   preloadPath: 'preload.js',
 }));
@@ -67,6 +74,7 @@ beforeEach(() => {
   fakes.windows.length = 0;
   fakes.app.isPackaged = false;
   vi.mocked(loadPage).mockClear();
+  vi.mocked(startLoading).mockClear();
 });
 describe('registerAudioOutput', () => {
   it('logs a page load exception and preserves live state without escaping startup', () => {
@@ -130,14 +138,60 @@ describe('registerAudioOutput', () => {
     );
     stop();
   });
-  it('bounds crash reloads without changing live state', () => {
+  it('continues after the crash limit with capped backoff and cancels pending work on disposal', async () => {
+    const clock = installFakeClock();
     const {win, store, stop} = setup();
     const state = store.state;
-    for (let index = 0; index < 4; index += 1) {
-      win.webContents.emit('render-process-gone');
+    const crash = () =>
+      win.webContents.emit(
+        'render-process-gone',
+        {},
+        {reason: 'crashed', exitCode: -1},
+      );
+    for (let index = 0; index < 2; index += 1) {
+      crash();
+      await clock.advance(RELAUNCH_DELAY_MS);
+      win.webContents.emit('did-finish-load');
     }
-    expect(loadPage).toHaveBeenCalledTimes(3);
+    crash();
+    for (const delay of [...COOLDOWN_STEPS_MS, 60_000]) {
+      const before = vi.mocked(startLoading).mock.calls.length;
+      await clock.advance(delay - 1);
+      expect(startLoading).toHaveBeenCalledTimes(before);
+      await clock.advance(1);
+      expect(startLoading).toHaveBeenCalledTimes(before + 1);
+      win.webContents.emit('did-finish-load');
+      crash();
+    }
     expect(store.state).toBe(state);
+    stop();
+    const before = vi.mocked(startLoading).mock.calls.length;
+    await clock.advance(120_000);
+    expect(startLoading).toHaveBeenCalledTimes(before);
+    expect(win.webContents.listenerCount('did-finish-load')).toBe(0);
+  });
+  it('resets the crash limit after a loaded audio page survives a minute', async () => {
+    const clock = installFakeClock();
+    const {win, stop} = setup();
+    const crash = () =>
+      win.webContents.emit(
+        'render-process-gone',
+        {},
+        {reason: 'crashed', exitCode: -1},
+      );
+    for (let index = 0; index < 2; index += 1) {
+      crash();
+      await clock.advance(RELAUNCH_DELAY_MS);
+      win.webContents.emit('did-finish-load');
+    }
+    crash();
+    await clock.advance(10_000);
+    win.webContents.emit('did-finish-load');
+    await clock.advance(SURVIVAL_MS);
+    const before = vi.mocked(startLoading).mock.calls.length;
+    crash();
+    await clock.advance(RELAUNCH_DELAY_MS);
+    expect(startLoading).toHaveBeenCalledTimes(before + 1);
     stop();
   });
   it('does not connect a late media reader after disposal, and logs unavailable media', async () => {
