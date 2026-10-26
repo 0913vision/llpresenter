@@ -46,8 +46,12 @@ function mediaDocument() {
   return parsed.value;
 }
 
-function mockBible(api: ReturnType<typeof setup>['api']) {
+function mockBible(
+  api: ReturnType<typeof setup>['api'],
+  defaultTranslation: {current: 'krv' | 'other'} = {current: 'krv'},
+) {
   const krv = v.parse(translationIdSchema, 'krv');
+  const other = v.parse(translationIdSchema, 'other');
   const readSettings = api.settings.get;
   vi.spyOn(api.settings, 'get').mockImplementation(async request => {
     if (request.name !== 'bible') return readSettings(request);
@@ -60,18 +64,18 @@ function mockBible(api: ReturnType<typeof setup>['api']) {
         schemaVersion: 1,
         translations: [
           {
-            id: 'other',
+            id: other,
             name: '다른',
             lang: 'ko',
             file: 'a.json',
-            default: false,
+            default: defaultTranslation.current === 'other',
           },
           {
             id: krv,
             name: '개역한글',
             lang: 'ko',
             file: 'b.json',
-            default: true,
+            default: defaultTranslation.current === 'krv',
           },
         ],
         recents: [],
@@ -96,7 +100,7 @@ function mockBible(api: ReturnType<typeof setup>['api']) {
         },
       },
     }));
-  return {krv, lookup};
+  return {krv, other, lookup};
 }
 
 function songItems(menu: HTMLElement): HTMLElement[] {
@@ -303,6 +307,108 @@ describe('항목 추가', () => {
       },
     });
     expect(screen.queryByRole('menu')).toBeNull();
+  });
+
+  it('forgets the answers when it closes and counts only the opening that asked', async () => {
+    const {api, user, service} = setup();
+    const defaultTranslation: {current: 'krv' | 'other'} = {current: 'krv'};
+    const {krv, other, lookup} = mockBible(api, defaultTranslation);
+    const asked: Array<{
+      translation: string;
+      answer: (ref: string) => void;
+    }> = [];
+    lookup.mockImplementation(
+      ({translation, input}) =>
+        new Promise(resolve => {
+          asked.push({
+            translation,
+            answer: ref =>
+              resolve({
+                input,
+                translation,
+                suggestions: [],
+                result: {
+                  ok: true,
+                  value: {
+                    translation,
+                    ref,
+                    displayRef: ref,
+                    verses: [{chapter: 3, verse: 16, text: '하나님이'}],
+                  },
+                },
+              }),
+          });
+        }),
+    );
+    await user.click(screen.getByRole('button', {name: '항목 추가'}));
+    await user.click(await screen.findByRole('menuitem', {name: '성경 구절'}));
+    await user.keyboard('요 3:16');
+    await waitFor(() => expect(asked).toHaveLength(1));
+    await user.keyboard('{Escape}');
+    defaultTranslation.current = 'other';
+    await user.click(screen.getByRole('button', {name: '항목 추가'}));
+    await user.click(await screen.findByRole('menuitem', {name: '성경 구절'}));
+    await user.keyboard('요 3:16');
+    asked[0]?.answer('요한복음 3:16 옛 번역');
+    await waitFor(() =>
+      expect(asked.some(request => request.translation === other)).toBe(true),
+    );
+    const menu = screen.getByRole('menu', {name: '항목 추가'});
+    expect(within(menu).queryByRole('menuitem', {name: /옛 번역/u})).toBeNull();
+    asked
+      .find(request => request.translation === other)
+      ?.answer('요한복음 3:16');
+    const passage = await within(menu).findByRole('menuitem', {
+      name: /요한복음 3:16/u,
+    });
+    await user.click(passage);
+    await waitFor(() => expect(service().service.order).toHaveLength(6));
+    expect(service().service.order.at(-1)).toMatchObject({
+      bible: {translation: other},
+    });
+    expect(krv).not.toBe(other);
+  });
+
+  it('looks up only the newest input once a slow lookup is back', async () => {
+    const {api, user} = setup();
+    const {lookup} = mockBible(api);
+    const asked: Array<{input: string; answer: () => void}> = [];
+    lookup.mockImplementation(
+      ({translation, input}) =>
+        new Promise(resolve => {
+          asked.push({
+            input,
+            answer: () =>
+              resolve({
+                input,
+                translation,
+                suggestions: [],
+                result: {
+                  ok: true,
+                  value: {
+                    translation,
+                    ref: '요한복음 3:16',
+                    displayRef: '요한복음 3:16',
+                    verses: [{chapter: 3, verse: 16, text: '하나님이'}],
+                  },
+                },
+              }),
+          });
+        }),
+    );
+    await user.click(screen.getByRole('button', {name: '항목 추가'}));
+    await user.click(await screen.findByRole('menuitem', {name: '성경 구절'}));
+    await waitFor(() => expect(asked).toHaveLength(1));
+    await user.keyboard('요 3:16');
+    expect(asked.map(request => request.input)).toEqual(['']);
+    asked[0]?.answer();
+    await waitFor(() => expect(asked).toHaveLength(2));
+    expect(asked[1]?.input).toBe('요 3:16');
+    asked[1]?.answer();
+    const menu = screen.getByRole('menu', {name: '항목 추가'});
+    expect(
+      await within(menu).findByRole('menuitem', {name: /요한복음 3:16/u}),
+    ).toBeDefined();
   });
 
   it('fills the selected Bible slot with the passage from quick add', async () => {

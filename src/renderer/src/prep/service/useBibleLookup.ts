@@ -1,5 +1,6 @@
 import {useEffect, useState} from 'react';
 import type {BibleLookupReply} from '@shared/schema/bibleLookup';
+import {createLatestRunner} from './latestRunner';
 import type {PassageDefaults} from './quickAddBible';
 
 interface BibleSources {
@@ -10,7 +11,9 @@ interface BibleSources {
 
 // NOTE(0913vision): While the popover types a reference, the default
 // translation and the verse number preference are read once, and each
-// reference is looked up offline; an answer for an older input is dropped.
+// reference is looked up offline, one at a time with only the newest input
+// waiting; closing forgets the answers, and a reply counts only for the input
+// and translation shown.
 export function useBibleLookup(typing: boolean, input: string): BibleSources {
   const [defaults, setDefaults] = useState<PassageDefaults | null>(null);
   const [reply, setReply] = useState<BibleLookupReply | null>(null);
@@ -39,27 +42,37 @@ export function useBibleLookup(typing: boolean, input: string): BibleSources {
     );
     return () => {
       current = false;
+      setDefaults(null);
+      setReply(null);
     };
   }, [typing]);
   const translation = defaults?.translation;
+  const [runner] = useState(createLatestRunner);
   useEffect(() => {
     const api = window.llp;
     if (!typing || api === undefined || translation === undefined) {
       return undefined;
     }
-    let current = true;
-    api.bible.lookup({translation, input}).then(
-      answer => {
-        if (current && answer.input === input) setReply(answer);
-      },
-      (error: unknown) => console.error('Quick add Bible lookup failed', error),
-    );
+    let alive = true;
+    const isAlive = (): boolean => alive;
+    runner.submit(async () => {
+      if (!isAlive()) return;
+      try {
+        const answer = await api.bible.lookup({translation, input});
+        if (isAlive()) setReply(answer);
+      } catch (error: unknown) {
+        console.error('Quick add Bible lookup failed', error);
+      }
+    });
     return () => {
-      current = false;
+      alive = false;
     };
-  }, [typing, input, translation]);
+  }, [runner, typing, input, translation]);
   return {
     defaults,
-    reply: reply?.input === input ? reply : null,
+    reply:
+      reply?.input === input && reply.translation === translation
+        ? reply
+        : null,
   };
 }
