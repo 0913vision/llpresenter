@@ -143,6 +143,7 @@ export function BibleReferenceForm(
     }
     props.onIntent?.();
     setFields(EMPTY_REFERENCE);
+    setBlocked(null);
     setRecent({
       provided: props.translation,
       value: {ref: item.ref, translation: item.translation},

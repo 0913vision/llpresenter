@@ -37,6 +37,22 @@ function setup(
 }
 
 describe('Show Bible reference mount', () => {
+  it('clears a blocked manual-field error when choosing a valid recent passage', async () => {
+    const view = setup();
+    await view.user.type(view.field, 'unknown');
+    await view.user.tab();
+    expect(document.activeElement).toBe(view.field);
+    expect(view.field.getAttribute('aria-invalid')).toBe('true');
+    await view.user.click(screen.getByRole('option', {name: '요한복음 3:16'}));
+    await waitFor(() => expect(view.onPreview).toHaveBeenCalled());
+    expect(view.field.hasAttribute('aria-invalid')).toBe(false);
+    expect(view.onShow).not.toHaveBeenCalled();
+    await view.user.keyboard('{Enter}');
+    expect(view.onShow).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ref: '요한복음 3:16'}),
+    );
+  });
+
   it.each(['요한복음 3:16', '요한복음 3', '요한복음 3:35-4:2'])(
     'previews a recent %s in its original range before Enter outputs it',
     async ref => {

@@ -2,7 +2,7 @@
 
 - Team member: bible
 - Branch: `feat/bible/mount-reference-form`
-- Stack: bible-2, `feat/bible/reference-form`.
+- Depends on merged bible-2; rebased onto local `main`.
 - Base and reviewed head: recorded in the member report after rebase.
 - Related brief: `docs/briefs/tools.md`; October 26 four-field input decision.
 
@@ -25,10 +25,12 @@ input, rather than retaining the last successful lookup after invalid edits.
 The former single-field tests move to the shared form's interaction tests;
 wrapper tests retain recent-range, translation, dismissal, and focus coverage.
 Show workspace and quick-panel tests exercise selection cancellation and output
-with the new fields. Prep integration covers shared completion, invalid fields,
-clamped insertion through both actions, fresh defaults, and legacy slot fill.
-Spec 04 now agrees with spec 02 and the October 26 decision, addressing the
-bible-1 review nit.
+with the new fields. Selecting a recent also clears a previous blocked-field
+error, with a regression test proving the old failure. Prep integration covers
+shared completion, invalid fields, clamped insertion through both actions and
+fresh defaults. Conflict resolution retains main's removal of legacy slot
+insertion paths and tests. Spec 04 now agrees with spec 02 and the October 26
+decision, addressing the bible-1 review nit.
 
 ## Changes outside my paths
 
@@ -44,10 +46,11 @@ bible-1 review nit.
 ## Checks run
 
 - `npm run typecheck`: passed.
-- Scoped Vitest: 72 tests across six renderer files passed.
+- Scoped Vitest: 74 tests across six renderer files passed.
 - Scoped ESLint and formatting: final results in the member report.
 - `npm run build`: passed; the actual built app was exercised below.
-- Exact-head GitHub `npm run verify`: run URL and result in the member report.
+- CI pending. The dispatcher checks the exact head before merge; members do not
+  poll CI under the October 27 rule.
 - No full local verify, dependency changes, Bible text, or crawl output.
 
 ## Checked in the app
@@ -57,7 +60,8 @@ the isolated Bible member app-data folder. Every launch script and the built
 main entry passed `node --check` before Electron started. The sample was copied
 from the repository and locally converted to the chapter container. The driver
 uses real CDP mouse, keyboard, and text input, without mocking IPC or changing
-React state. The app exited normally after the checks.
+React state. The app exited normally after the checks. The isolated fixture was
+reused, so screenshots include passages inserted by earlier checks.
 
 - Ambiguous 책 has no initial highlight. Tab stays; two ArrowDown presses and
   Tab choose 베드로전서 and advance to 장. Hover alone cannot authorize Tab.
@@ -81,15 +85,15 @@ samples:
 
 | Flow                             | Elements        | Listeners       | Used JS heap, bytes               |
 | -------------------------------- | --------------- | --------------- | --------------------------------- |
-| Show selection cycles            | 493 / 493 / 493 | 839 / 839 / 839 | 6,601,768 / 6,699,840 / 6,747,228 |
-| Prep field changes               | 210 / 210 / 210 | 623 / 623 / 623 | 5,607,828 / 5,642,052 / 5,680,860 |
-| Settled Prep after closing twice | 193 / 193       | 758 / 758       | 5,663,680 / 5,697,812             |
+| Show selection cycles            | 508 / 508 / 508 | 857 / 857 / 857 | 6,762,520 / 6,873,540 / 6,917,544 |
+| Prep field changes               | 225 / 225 / 225 | 641 / 641 / 641 | 5,770,000 / 5,804,308 / 5,848,596 |
+| Settled Prep after closing twice | 208 / 208       | 776 / 776       | 5,852,180 / 5,875,528             |
 
-Show heap changes 2.2%, Prep 1.3%. The initial Show loop before the extra warmup
-grew 6.7%; those startup samples are retained separately in the raw counters.
-Prep's total DOM-node counter grows from 404 to 444 during repeated native text
+Show heap changes 2.3%, Prep 1.4%. The initial Show loop before the extra warmup
+grew 6.8%; those startup samples are retained separately in the raw counters.
+Prep's total DOM-node counter grows from 420 to 460 during repeated native text
 editing, while elements and listeners remain constant; after dialog unmount and
-cleanup it falls to 326 and remains 326 across both subsequent closes. These are
+cleanup it falls to 342 and remains 342 across both subsequent closes. These are
 short repeated-flow observations, not a long-duration soak or a physical monitor
 check.
 
@@ -119,14 +123,33 @@ the original input and the 역본에 없는 책 tooltip. The Show popup and Prep
 dialog each close twice. Live output and the service item count do not change.
 Pending-lookup completion is covered by the deferred-reply unit test.
 
-[Regression counters](bible-3/unavailable-check.json): Show elements remain 473
-and listeners 553 across all samples, with heap 5,478,332 to 5,588,736 (+2.0%).
-Prep elements remain 216 and listeners 766, with heap 5,611,484 to 5,664,636
-(+0.9%). The app exited normally after the check.
+[Regression counters](bible-3/unavailable-check.json): Show elements remain 513
+and listeners 858 across all samples, with heap 6,832,844 to 6,856,776 (+0.4%).
+Prep elements remain 227 and listeners 784, with heap 6,733,816 to 6,808,996
+(+1.1%). The app exited normally after the check.
 
 ![Show retains focus for an unavailable book](bible-3/show-unavailable-book.png)
 
 ![Prep retains focus for an unavailable book](bible-3/prep-unavailable-book.png)
+
+### Recovering from a manual error through a recent passage
+
+A blocked invalid book could leave its error marker on the now-empty manual
+fields after a valid recent was chosen. Clearing the blocked-field state on
+recent selection fixes it; the new regression test failed before the fix and
+passes afterward.
+
+Rebuilt and exercised this transition in the real offscreen app for 20 measured
+cycles after 20 warmup cycles. Each invalid book blocks Tab, then choosing
+요한복음 3:16-36 clears the manual fields and the previous error. No output
+changes until Enter; Enter outputs the selected original range. The suggestion
+popup opens and closes twice. The service item count does not change.
+
+[Recovery counters](bible-3/recent-recovery-check.json): elements remain 617 and
+listeners 572 across all samples; used heap is 5,808,672 / 5,916,628 / 5,939,660
+bytes (+2.3%). The app exited normally after the check.
+
+![Recent selection clears the previous manual error](bible-3/show-recent-recovered.png)
 
 ## Quality and review focus
 

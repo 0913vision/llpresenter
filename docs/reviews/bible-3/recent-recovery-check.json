@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-26T18:14:12.155Z",
+  "warmupCycles": 20,
+  "measuredCycles": 20,
+  "ref": "요한복음 3:16-36",
+  "samples": [
+    {
+      "elements": 617,
+      "documents": 30,
+      "nodes": 1934,
+      "jsEventListeners": 572,
+      "usedSize": 5808672,
+      "totalSize": 6598656,
+      "embedderHeapUsedSize": 4692936,
+      "backingStorageSize": 1715418
+    },
+    {
+      "elements": 617,
+      "documents": 30,
+      "nodes": 1944,
+      "jsEventListeners": 572,
+      "usedSize": 5916628,
+      "totalSize": 6860800,
+      "embedderHeapUsedSize": 4503896,
+      "backingStorageSize": 1715418
+    },
+    {
+      "elements": 617,
+      "documents": 30,
+      "nodes": 1954,
+      "jsEventListeners": 572,
+      "usedSize": 5939660,
+      "totalSize": 6860800,
+      "embedderHeapUsedSize": 4526648,
+      "backingStorageSize": 1715418
+    }
+  ],
+  "checks": [
+    "Invalid manual book blocks Tab; choosing a valid recent clears all manual fields and the previous error marker",
+    "Twenty repeated recoveries keep element and listener counts fixed and leave live output unchanged until Enter",
+    "Suggestion popup closed twice; Enter outputs the selected original recent passage without service insertion"
+  ]
+}

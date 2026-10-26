@@ -207,8 +207,21 @@ describe('항목 추가', () => {
         await user.click(
           await screen.findByRole('menuitem', {name: '성경 구절'}),
         );
-        await user.keyboard('요 3:16');
-        await screen.findByRole('menuitem', {name: /요한복음 3:16/u});
+        await waitFor(() =>
+          expect(
+            screen.getByRole<HTMLInputElement>('combobox', {name: '책'})
+              .disabled,
+          ).toBe(false),
+        );
+        fillBibleForm();
+        await waitFor(() =>
+          expect(
+            screen
+              .getByRole('button', {name: '추가'})
+              .getAttribute('aria-disabled'),
+          ).not.toBe('true'),
+        );
+        await user.click(screen.getByRole('textbox', {name: '시작절'}));
         await user.keyboard('{Enter}');
       }
       await waitFor(() => expect(service().service.order).toHaveLength(3));

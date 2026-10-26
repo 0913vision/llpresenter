@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-26T15:12:10.460Z",
+  "date": "2026-10-26T18:01:06.192Z",
   "warmupCycles": 20,
   "measuredCycles": 20,
   "checks": [
@@ -9,72 +9,72 @@
   ],
   "show": [
     {
-      "elements": 473,
+      "elements": 513,
       "documents": 30,
-      "nodes": 1724,
-      "jsEventListeners": 553,
-      "usedSize": 5478332,
-      "totalSize": 6328320,
-      "embedderHeapUsedSize": 4323336,
-      "backingStorageSize": 1693877
+      "nodes": 1784,
+      "jsEventListeners": 858,
+      "usedSize": 6832844,
+      "totalSize": 8171520,
+      "embedderHeapUsedSize": 4981592,
+      "backingStorageSize": 1716719
     },
     {
-      "elements": 473,
+      "elements": 513,
       "documents": 30,
-      "nodes": 1734,
-      "jsEventListeners": 553,
-      "usedSize": 5529108,
-      "totalSize": 6328320,
-      "embedderHeapUsedSize": 4055200,
-      "backingStorageSize": 1693885
+      "nodes": 1794,
+      "jsEventListeners": 858,
+      "usedSize": 6852716,
+      "totalSize": 8171520,
+      "embedderHeapUsedSize": 4963256,
+      "backingStorageSize": 1716719
     },
     {
-      "elements": 473,
+      "elements": 513,
       "documents": 30,
-      "nodes": 1744,
-      "jsEventListeners": 553,
-      "usedSize": 5588736,
-      "totalSize": 6328320,
-      "embedderHeapUsedSize": 4064144,
-      "backingStorageSize": 1693885
+      "nodes": 1804,
+      "jsEventListeners": 858,
+      "usedSize": 6856776,
+      "totalSize": 8171520,
+      "embedderHeapUsedSize": 4981696,
+      "backingStorageSize": 1716719
     }
   ],
   "prep": [
     {
-      "elements": 216,
-      "documents": 19,
-      "nodes": 387,
-      "jsEventListeners": 766,
-      "usedSize": 5611484,
-      "totalSize": 6590464,
-      "embedderHeapUsedSize": 2938896,
-      "backingStorageSize": 1694594
+      "elements": 227,
+      "documents": 31,
+      "nodes": 436,
+      "jsEventListeners": 784,
+      "usedSize": 6733816,
+      "totalSize": 7647232,
+      "embedderHeapUsedSize": 3905232,
+      "backingStorageSize": 1716714
     },
     {
-      "elements": 216,
-      "documents": 19,
-      "nodes": 397,
-      "jsEventListeners": 766,
-      "usedSize": 5642332,
-      "totalSize": 6590464,
-      "embedderHeapUsedSize": 2953800,
-      "backingStorageSize": 1694594
+      "elements": 227,
+      "documents": 31,
+      "nodes": 446,
+      "jsEventListeners": 784,
+      "usedSize": 6792892,
+      "totalSize": 7909376,
+      "embedderHeapUsedSize": 3911136,
+      "backingStorageSize": 1716714
     },
     {
-      "elements": 216,
-      "documents": 19,
-      "nodes": 407,
-      "jsEventListeners": 766,
-      "usedSize": 5664636,
-      "totalSize": 6590464,
-      "embedderHeapUsedSize": 2936768,
-      "backingStorageSize": 1694594
+      "elements": 227,
+      "documents": 31,
+      "nodes": 456,
+      "jsEventListeners": 784,
+      "usedSize": 6808996,
+      "totalSize": 7909376,
+      "embedderHeapUsedSize": 3917232,
+      "backingStorageSize": 1716714
     }
   ],
   "closed": {
-    "documents": 21,
-    "nodes": 543,
-    "jsEventListeners": 874
+    "documents": 33,
+    "nodes": 586,
+    "jsEventListeners": 889
   },
-  "finished": "2026-10-26T15:12:33.282Z"
+  "finished": "2026-10-26T18:01:27.847Z"
 }
