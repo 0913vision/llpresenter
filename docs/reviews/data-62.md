@@ -77,19 +77,14 @@ disposal, preservation of invented verse slots and atomic write failures.
    header and chapter limits. These are implementation bounds, not measured
    results.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (e818bae4): reviewer (Codex, codex2) Approve. Lead Approve; the spec
+  now follows the user's decision of October 26: chunked translation files (a
+  header with a chapter offset table, then one block per chapter; launch reads
+  headers, lookups read chapters into a capped cache), translations prepared in
+  advance and updated with the app, no 역본 추가 or 삭제. Rebased by the lead
+  onto local `main` without conflicts.
 
 ## Team member's reply
 
