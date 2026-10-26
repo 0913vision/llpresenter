@@ -89,19 +89,17 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (d27b50a3): reviewer (Codex, codex3) Approve, no findings. Lead
+  Approve after reading `testPatternGuard.ts` and the outputs slice: a closed,
+  crashed, or reloaded control window hides every shown pattern through
+  `dispatchLogged`, in-page and subframe navigations leave them alone, the
+  release removes every listener and skips destroyed web contents, and turning a
+  screen's output off drops its pattern in the same state change. This is the
+  main-side safety net that screens-4's pattern button needed before the next
+  check build. Rebased by the lead onto local `main` without conflicts;
+  typecheck passes.
 
 ## Team member's reply
 
