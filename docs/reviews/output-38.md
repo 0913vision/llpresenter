@@ -18,14 +18,15 @@
 
 ## What changed and why
 
-- `RenderScreen.correction` (`render/layer.ts`): the screen's `edgeMargin`
-  (percent), `offset` (x and y in the screen's own pixels), and, when known, the
-  screen's own pixel size. `resolveRenderScreen` fills it from `screens.json`
-  only when the margin or an offset isn't 0, so an uncorrected screen draws as
-  before. The pixel size is the monitor's real pixels for 전체 화면 (saved
-  bounds times the Windows scale), the set resolution for the capture window
+- `RenderScreen` (`render/layer.ts`) gains `pixels`, the screen's own pixel
+  size, and `correction`, its `edgeMargin` (percent) and `offset` (x and y in
+  the screen's own pixels). `resolveRenderScreen` fills `correction` only when
+  the margin or an offset isn't 0, so an uncorrected screen draws as before.
+  `pixels` is the monitor's real pixels for 전체 화면 (saved bounds times the
+  Windows scale), the set resolution for the capture window
   (`CAPTURE_WINDOW_SIZE` when none is set), the set resolution for NDI when
-  there is one, and none for 창.
+  there is one, and absent for 창. The test pattern (output-39) prints it as the
+  screen's resolution.
 - `pictureTransform` (`render/pictureCorrection.ts`, new): spec 03's rule as a
   CSS transform. Margin m % scales to (100 - 2m) % around the centre, 0 from 50
   % on. The offset converts to the surface's CSS pixels by the share of the
@@ -70,8 +71,10 @@
 Sixteen mutations fail a test. Five of them survived the first run and fail
 since the commits that pin them (the log shows both runs): the y axis using the
 width, an offset-only correction, the same correction coming again, and the CSS
-rule. The seventeenth showed that a `pixels > 0` guard was dead (the schema
-allows only positive pixel counts), so the guard is gone.
+rule. After `pixels` moved to `RenderScreen`, the affected mutations ran again
+and fail a test, along with two new ones (the pixel size left out of the screen
+or of the transform). The seventeenth showed that a `pixels > 0` guard was dead
+(the schema allows only positive pixel counts), so the guard is gone.
 
 Tests: the margin scale, the offset in screen pixels on a full size, a quarter
 size, and a non-16:9 surface, device pixels without a screen size, a margin of
@@ -109,6 +112,7 @@ None beyond the additive constant.
 - `pictureCorrection.ts`: `pictureTransform`.
 - `outputRenderer.ts`: `setCorrection` and `applyCorrection`.
 - `screenIdentity.ts`: `screenPixels`.
+- `layer.ts`: `RenderScreen.pixels` and `correction`.
 
 ---
 
