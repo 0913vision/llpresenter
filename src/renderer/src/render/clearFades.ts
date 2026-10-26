@@ -43,9 +43,8 @@ export class ClearFades {
       const item = this.previous?.prop?.items?.find(
         item => item.propId === propId,
       );
-      const value =
-        this.props.get(propId) ??
-        (item === undefined ? undefined : {item, index});
+      const held = this.props.get(propId)?.item ?? item;
+      const value = held === undefined ? undefined : {item: held, index};
       const gain = this.gain(effect, now);
       if (
         value === undefined ||
@@ -67,10 +66,15 @@ export class ClearFades {
     }
     if (removed.length > 0 && opacity.prop === undefined) {
       const items = [...(layers.prop?.items ?? [])];
+      const positions = new Map(this.propOrder.map((id, index) => [id, index]));
       for (const value of [...this.props.values()].sort(
         (a, b) => a.index - b.index,
       )) {
-        items.splice(value.index, 0, value.item);
+        const next = items.findIndex(
+          item =>
+            (positions.get(item.propId) ?? MAX_ACTIVE_PROPS) > value.index,
+        );
+        items.splice(next < 0 ? items.length : next, 0, value.item);
       }
       const first = items[0];
       if (first !== undefined) drawn.prop = {propId: first.propId, items};

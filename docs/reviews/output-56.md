@@ -100,6 +100,23 @@ Manual three-second audio fade behavior remains separate.
   [new live prop at capacity](evidence/output-56-round2/capacity-run1.png),
   [second launch](evidence/output-56-round2/overlap-run2.png).
 
+### Round 3 app check
+
+- Rebuilt and syntax-checked the launcher, then completed two offscreen launches
+  with 25 cycles each and normal quits. Alternating cycles clear A/B over
+  200/1200 ms and 1200/200 ms; after the short fade ends, the surviving outgoing
+  prop remains below C in both cases. The capacity and 85-prop macro checks also
+  pass.
+- Control stays at 1,154 elements, 2,505 CDP nodes and 416 listeners; output
+  stays at 774 elements, 1,214 nodes and 10 listeners. Collected control heaps
+  at iterations 5/25 are 5,940,460/6,381,652 and 5,942,184/6,369,544 bytes;
+  output heaps are 2,772,712/2,854,188 and 2,780,788/2,857,900 bytes. Five
+  targets remain. The focused regression run passes 21 tests; typecheck, build,
+  formatting and changed-file lint pass. CI pending for this head.
+- Screenshots: [B survives A](evidence/output-56-round3/overlap-run1.png),
+  [live props at capacity](evidence/output-56-round3/capacity-run1.png),
+  [second launch](evidence/output-56-round3/overlap-run2.png).
+
 ## Follow-up controls
 
 The user allows the editing controls as a follow-up request. Per-key controls
@@ -117,6 +134,15 @@ existing settings documents; it does not introduce either editor.
 - Verdict: pending
 
 ## Team member's reply
+
+### Round 3
+
+1. Each frame reconciles retained prop positions against the preceding drawn
+   order and inserts outgoing props before surviving successors. An expired
+   predecessor no longer leaves a stale absolute insertion offset. The same
+   regression now runs both 1200/200 ms and 200/1200 ms clears of `[A, B, C]`,
+   checks the survivor remains below C, and verifies independent gains and
+   completion. The app check also exercises both duration orders.
 
 ### Round 2
 

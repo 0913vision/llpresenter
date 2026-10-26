@@ -100,56 +100,74 @@ function setup() {
 }
 
 describe('registered overlay layers', () => {
-  it('keeps consecutive prop fades independent and preserves their order until each finishes', () => {
-    const {settings, send, render, box} = setup();
-    const existing = settings.reader.get('props');
-    if (existing.name !== 'props') throw new Error('Missing prop fixture');
-    settings.update(
-      settingsDocument('props', {
-        props: [
-          ...existing.value.props,
-          {
-            id: overlayUuid(12),
-            name: 'Remaining',
-            targets: [MAIN],
-            content: {kind: 'text', text: 'Remaining', style: TEXT_STYLE},
-          },
-        ],
-      }),
-    );
-    send({type: 'prop.set', propId: PROP, on: true});
-    send({type: 'prop.set', propId: IMAGE_PROP, on: true});
-    send({type: 'prop.set', propId: overlayUuid(12), on: true});
-    render();
-    const boxes = Array.from(box('prop')?.children ?? []).filter(
-      (value): value is HTMLElement => value instanceof HTMLElement,
-    );
-    send({
-      type: 'overlay.clear',
-      target: {kind: 'prop', propId: PROP},
-      transition: {fade: true, durationMs: 1200},
-    });
-    render();
-    send({
-      type: 'overlay.clear',
-      target: {kind: 'prop', propId: IMAGE_PROP},
-      transition: {fade: true, durationMs: 200},
-    });
-    render();
-    vi.advanceTimersByTime(100);
-    const host = box('prop');
-    expect(host instanceof HTMLElement ? host.style.opacity : null).toBe('');
-    expect(boxes.map(value => value.style.zIndex)).toEqual(['0', '1', '2']);
-    expect(Number(boxes[0]?.style.opacity)).toBeCloseTo(0.92, 1);
-    expect(Number(boxes[1]?.style.opacity)).toBeCloseTo(0.5, 1);
-    vi.advanceTimersByTime(200);
-    expect(boxes[0]?.hidden).toBe(false);
-    expect(boxes[1]?.hidden).toBe(true);
-    vi.advanceTimersByTime(1000);
-    expect(boxes.slice(0, 2).every(value => value.hidden)).toBe(true);
-    expect(boxes[2]?.hidden).toBe(false);
-    expect(vi.getTimerCount()).toBe(0);
-  });
+  it.each([
+    [1200, 200],
+    [200, 1200],
+  ])(
+    'keeps consecutive prop fades ordered with durations %i and %i',
+    (firstDuration, secondDuration) => {
+      const {settings, send, render, box} = setup();
+      const existing = settings.reader.get('props');
+      if (existing.name !== 'props') throw new Error('Missing prop fixture');
+      settings.update(
+        settingsDocument('props', {
+          props: [
+            ...existing.value.props,
+            {
+              id: overlayUuid(12),
+              name: 'Remaining',
+              targets: [MAIN],
+              content: {kind: 'text', text: 'Remaining', style: TEXT_STYLE},
+            },
+          ],
+        }),
+      );
+      send({type: 'prop.set', propId: PROP, on: true});
+      send({type: 'prop.set', propId: IMAGE_PROP, on: true});
+      send({type: 'prop.set', propId: overlayUuid(12), on: true});
+      render();
+      const boxes = Array.from(box('prop')?.children ?? []).filter(
+        (value): value is HTMLElement => value instanceof HTMLElement,
+      );
+      send({
+        type: 'overlay.clear',
+        target: {kind: 'prop', propId: PROP},
+        transition: {fade: true, durationMs: firstDuration},
+      });
+      render();
+      send({
+        type: 'overlay.clear',
+        target: {kind: 'prop', propId: IMAGE_PROP},
+        transition: {fade: true, durationMs: secondDuration},
+      });
+      render();
+      vi.advanceTimersByTime(100);
+      const host = box('prop');
+      expect(host instanceof HTMLElement ? host.style.opacity : null).toBe('');
+      expect(boxes.map(value => value.style.zIndex)).toEqual(['0', '1', '2']);
+      expect(Number(boxes[0]?.style.opacity)).toBeCloseTo(
+        1 - 100 / firstDuration,
+        1,
+      );
+      expect(Number(boxes[1]?.style.opacity)).toBeCloseTo(
+        1 - 100 / secondDuration,
+        1,
+      );
+      vi.advanceTimersByTime(200);
+      expect(boxes[0]?.hidden).toBe(firstDuration < secondDuration);
+      expect(boxes[1]?.hidden).toBe(secondDuration < firstDuration);
+      const remaining = boxes.filter(value => !value.hidden);
+      expect(remaining.map(value => value.style.zIndex)).toEqual(['0', '1']);
+      expect(remaining[0]).toBe(
+        firstDuration < secondDuration ? boxes[1] : boxes[0],
+      );
+      expect(remaining[1]).toBe(boxes[2]);
+      vi.advanceTimersByTime(1000);
+      expect(boxes.slice(0, 2).every(value => value.hidden)).toBe(true);
+      expect(boxes[2]?.hidden).toBe(false);
+      expect(vi.getTimerCount()).toBe(0);
+    },
+  );
 
   it('shows all 64 newly live props when an outgoing fade competes for the pool', () => {
     const {settings, send, render, box} = setup();
