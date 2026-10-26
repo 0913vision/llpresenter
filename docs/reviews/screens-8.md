@@ -2,7 +2,7 @@
 
 - Team member: `screens`
 - Branch: `feat/screens/look-list-ui`
-- Base: see request line, local main after screens-7 merge.
+- Base commit (`main`): `5a2ad88c`, after screens-7 merged.
 - Related brief: `docs/briefs/screens.md`, M3-O2 Look list UI.
 
 ## What changed and why
@@ -57,8 +57,10 @@ existing trimmed names, with a padded-name duplication regression.
 
 ## Checks run
 
-See request line for post-rebase typecheck, scoped lint/tests, formatting and
-exact-head CI. No Electron or full local verify was run.
+After rebasing onto `5a2ad88c`, typecheck and all 178 tests in the 18 screens
+and shell workspace files pass. Scoped lint and formatting are checked before
+the final commit. The request line records exact-head CI. No Electron or full
+local verify was run.
 
 ## Remaining M3-O2 work
 

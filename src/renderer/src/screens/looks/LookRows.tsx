@@ -50,8 +50,9 @@ export function LookRows({
   };
   useLayoutEffect(() => {
     const element = viewport.current;
-    if (element === null || typeof ResizeObserver === 'undefined')
+    if (element === null || typeof ResizeObserver === 'undefined') {
       return undefined;
+    }
     const observer = new ResizeObserver(measure);
     observer.observe(element);
     return () => observer.disconnect();
@@ -100,8 +101,9 @@ export function LookRows({
       event.ctrlKey ||
       event.metaKey ||
       event.shiftKey
-    )
+    ) {
       return;
+    }
     const index = looks.findIndex(look => look.id === selected);
     const targets: Readonly<Record<string, number>> = {
       ArrowDown: index + 1,
@@ -134,8 +136,9 @@ export function LookRows({
         if (
           active instanceof HTMLInputElement &&
           viewport.current?.contains(active)
-        )
+        ) {
           active.blur();
+        }
         measure();
       }}
       onKeyDownCapture={navigate}
@@ -159,8 +162,9 @@ export function LookRows({
               if (
                 event.key !== 'ContextMenu' &&
                 !(event.key === 'F10' && event.shiftKey)
-              )
+              ) {
                 return;
+              }
               event.preventDefault();
               onMenu(look, {kind: 'element', element: event.currentTarget});
             }}

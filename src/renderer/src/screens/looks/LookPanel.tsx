@@ -91,8 +91,9 @@ export function LookPanel({
           return;
         }
         if (!result.value) return;
-        if (edit.kind === 'add' || edit.kind === 'duplicate')
+        if (edit.kind === 'add' || edit.kind === 'duplicate') {
           select('look', edit.id);
+        }
         if (edit.kind === 'delete') {
           const picked = useScreensSelection.getState().selection;
           const next = looks.find(look => look.id !== edit.id);
@@ -100,8 +101,9 @@ export function LookPanel({
             picked.kind === 'look' &&
             picked.id === edit.id &&
             next !== undefined
-          )
+          ) {
             select('look', next.id);
+          }
         }
       })
       .catch((cause: unknown) => {
@@ -164,9 +166,9 @@ export function LookPanel({
                       onCommit: name => {
                         setRenaming(null);
                         const problem = nameProblem(name, looks, renaming.id);
-                        if (problem !== undefined)
+                        if (problem !== undefined) {
                           editor.report(PROBLEMS[problem]);
-                        else run({kind: 'rename', id: renaming.id, name});
+                        } else run({kind: 'rename', id: renaming.id, name});
                       },
                       onCancel: () => setRenaming(null),
                     },

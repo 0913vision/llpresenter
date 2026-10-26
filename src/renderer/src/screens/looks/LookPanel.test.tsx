@@ -58,8 +58,9 @@ function setup({
   });
   const send = vi.fn();
   const edit = vi.fn((change: SettingsEdit) => {
-    if (change.type !== 'settings.update' || change.name !== 'looks')
+    if (change.type !== 'settings.update' || change.name !== 'looks') {
       throw new Error('Unexpected edit');
+    }
     document = settingsDocument('looks', change.value, document.revision + 1);
     for (const listener of listeners) listener(document);
     return Promise.resolve({
