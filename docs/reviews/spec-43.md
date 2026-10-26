@@ -1,11 +1,12 @@
-Review range: `439ad039...feat/spec/narrow-layout`
+Review range: `01735790...feat/spec/narrow-layout`
 
 # Review request: `spec-43`
 
 - Team member: `spec` (Claude session that took over from Codex)
 - Branch: `feat/spec/narrow-layout`
-- Base commit: `439ad039`, main after the output-32 approval
-- Review round: 2
+- Base commit: `01735790`, main at round 3 (rebased over the 준비 item panel in
+  Workspace.tsx)
+- Review round: 3
 - Task: M3-S1b narrow window layout
 - Code owner for the renderer paths: shell
 
@@ -32,6 +33,25 @@ and leaves a strip at the window edge, as wide as a panel header, with 사이드
 `layout.narrow.leftCollapsed` through spec-38's `ui.setLayout`; a saved choice
 is restored at start without being saved again. If the pressed button had the
 keyboard focus, the button that replaces it takes it.
+
+## Round 3 response
+
+1. The tool tabs now use ui-35's `PanelTabs` `more` slot, and the split is
+   decided by measured width, not only by size class. A narrow window always
+   shows 표시 중, 무대, and 더 보기 (spec 04). In regular and wide windows the
+   panel watches its own width with a `ResizeObserver`: when the row of eight
+   tabs overflows (the right column can shrink to 320 px), it records how much
+   wider the panel would need to be and switches to the compact tabs; it shows
+   all eight again once the panel is that wide. Measuring adapts to UI zoom and
+   to the count badge on 표시 중 later, where a fixed threshold wouldn't. My own
+   더 보기 button and its styles are gone, and the tab panel is labelled by ui's
+   hidden tab name. Tests: overflow at the 320 px minimum switches to the
+   compact tabs; one pixel short stays compact; the needed width shows all eight
+   again; a narrow window never measures. `showToolGroups(sizeClass)` became the
+   two named groups `ALL_TOOL_TABS` and `COMPACT_TOOL_TABS`, and the unused
+   `showToolLabel` is removed.
+2. The private `useSidebarToggle` and the new private `useAllTabsFit` explain
+   themselves with NOTE comments instead of TSDoc.
 
 ## Round 2 response
 
@@ -110,13 +130,13 @@ source is changed, and no dependency is added.
 
 ## Validation
 
-| Command or test                                                                                               | Result                    |
-| ------------------------------------------------------------------------------------------------------------- | ------------------------- |
-| `npm run typecheck`                                                                                           | Pass                      |
-| `npx vitest run src/renderer/src/shell src/renderer/src/show src/renderer/src/control src/renderer/src/state` | Pass, 615 tests, 55 files |
-| `npx eslint --max-warnings 0` on the changed areas                                                            | Pass                      |
-| `npx prettier --check` on the changed areas                                                                   | Pass                      |
-| GitHub CI (`npm run verify`)                                                                                  | In the request message    |
+| Command or test                                    | Result                 |
+| -------------------------------------------------- | ---------------------- |
+| `npm run typecheck`                                | Pass                   |
+| `npx vitest run --no-fsModuleCache src/renderer`   | Pass, 1,575 tests      |
+| `npx eslint --max-warnings 0` on the changed areas | Pass                   |
+| `npx prettier --check` on the changed areas        | Pass                   |
+| GitHub CI (`npm run verify`)                       | In the request message |
 
 Tests cover: tab sets per size class; the 더 보기 menu items, radio check,
 active look, and Down to open; arrow keys between tabs; the chosen tool across
