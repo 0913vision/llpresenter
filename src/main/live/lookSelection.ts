@@ -18,7 +18,9 @@ export function registerLookSelection(options: {
     if (lookId === undefined || lookId === null) return;
     (async () => {
       const result = await selection.selectLook(lookId);
-      if (!disposed && !result.ok) {
+      // NOTE(0913vision): The settings persistence logs a failed write
+      // itself, so only a refused selection is warned about here.
+      if (!disposed && !result.ok && result.error.reason !== 'write-failed') {
         log.warn('could not save the selected Look', {
           lookId,
           ...result.error,

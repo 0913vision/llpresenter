@@ -46,7 +46,7 @@ function setup() {
     stop();
     release();
   });
-  return {store, selectLook, log, stop, release};
+  return {store, settings, selectLook, log, stop, release};
 }
 
 describe('Look state and saved selection lifecycle', () => {
@@ -125,16 +125,11 @@ describe('Look state and saved selection lifecycle', () => {
     expect(selectLook).toHaveBeenCalledOnce();
   });
 
-  it('logs failed saves without rolling back live output, and releases its listener', async () => {
+  it('warns about a refused save without rolling back live output, and releases its listener', async () => {
     const {store, selectLook, log, stop} = setup();
     selectLook.mockResolvedValueOnce({
       ok: false,
-      error: {
-        reason: 'write-failed',
-        message: 'disk full',
-        applied: {id: 'looks', revision: 2},
-        unchangedFiles: ['/settings/looks.json'],
-      },
+      error: {reason: 'read-only', message: 'The Look settings are read-only'},
     });
     store.dispatch(SECOND);
     await Promise.resolve();
@@ -146,6 +141,69 @@ describe('Look state and saved selection lifecycle', () => {
     expect(store.listenerCount).toBe(0);
     store.dispatch(FIRST);
     expect(selectLook).toHaveBeenCalledOnce();
+  });
+
+  it('leaves a failed write to the settings persistence log', async () => {
+    const {store, selectLook, log} = setup();
+    selectLook.mockResolvedValueOnce({
+      ok: false,
+      error: {
+        reason: 'write-failed',
+        message: 'disk full',
+        applied: {id: 'looks', revision: 2},
+        unchangedFiles: ['/settings/looks.json'],
+      },
+    });
+    store.dispatch(SECOND);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(store.state.lookId).toBe(SECOND.lookId);
+    expect(log.entries).toEqual([]);
+  });
+
+  it('skips a Look change before the settings connect, alone and in a batch', () => {
+    const store = new LiveStore(undefined, () => 1000);
+    const log = recordingLogger();
+    dispatchLogged(store, SECOND, log);
+    expect(store.state.version).toBe(0);
+    dispatchLogged(
+      store,
+      {
+        type: 'live.batch',
+        commands: [SECOND, {type: 'output.set', screenId: 'main', on: true}],
+      },
+      log,
+    );
+    expect(store.state).toMatchObject({version: 1, outputs: {main: true}});
+    expect(store.state.lookId).toBeUndefined();
+    expect(log.messages('error')).toEqual([
+      'live command failed',
+      'live command failed',
+    ]);
+  });
+
+  it('replaces a deleted live Look with the next choice and refuses the deleted one', () => {
+    const {store, settings} = setup();
+    store.dispatch(SECOND);
+    settings.update(
+      settingsDocument(
+        'looks',
+        {
+          current: FIRST.lookId,
+          looks: [{id: FIRST.lookId, name: 'First', screens: {}}],
+          lyricStyles: [],
+        },
+        2,
+      ),
+    );
+    expect(store.dispatch(FIRST)).toBe(true);
+    expect(store.state.lookId).toBe(FIRST.lookId);
+    const skipped = vi.fn();
+    expect(store.dispatch(SECOND, undefined, skipped)).toBe(false);
+    expect(skipped).toHaveBeenCalledWith(
+      expect.objectContaining({reason: 'missing-target'}),
+    );
+    expect(store.state.lookId).toBe(FIRST.lookId);
   });
 
   it('logs an unexpected writer exception and skips persistence after shutdown', async () => {
