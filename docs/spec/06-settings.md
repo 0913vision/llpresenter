@@ -117,9 +117,10 @@ Source: `Screens`, `Looks`, `StageEditor`, `Main` board guide (화면 설정, Lo
   around the picture edge, and the screen name and resolution sit in the center
   in white on black. The pattern is drawn with the screen's 가장자리 여백 and
   위치 미세 조정 applied, so the border shows where the corrected picture ends.
-  - The resolution in the center is the screen's own pixels as 03 counts them
-    under the correction rules, for example "3840×2160" for a 4K monitor at
-    150%. A 창 screen shows the pixels its window covers now (proposal).
+  - The output window prints the real pixels it covers as the resolution, for
+    example "3840×2160" for a 4K monitor at 150%, and a 창 follows its window's
+    size. A preview prints the screen name only, since it can't know the
+    output's size (lead decision, October 26).
   - The pattern covers every layer while the layers keep playing underneath, so
     the content is back at once. Clears and 되돌림 don't touch it, only a saved
     screen can show it, and it never comes back after a restart (proposal).
