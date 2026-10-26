@@ -51,14 +51,18 @@ class WindowProblemFeed implements ProblemFeed {
     };
   }
 
-  /** The standing problems, then the unread ones, which this read clears. */
+  /**
+   * The standing problems, then the unread ones, which this read clears. The
+   * unread ones always fit: the standing ones get the rest of the list's room,
+   * and a standing problem left out is listed again on the next read.
+   */
   list(): readonly AppProblem[] {
     const unread = this.unread;
     this.unread = [];
-    return [
-      ...[...this.standing].flatMap(source => this.problemsOf(source)),
-      ...unread,
-    ].slice(0, APP_PROBLEM_LIMITS.listed);
+    const standing = [...this.standing]
+      .flatMap(source => this.problemsOf(source))
+      .slice(0, APP_PROBLEM_LIMITS.listed - unread.length);
+    return [...standing, ...unread];
   }
 
   private problemsOf(source: StandingProblems): readonly AppProblem[] {

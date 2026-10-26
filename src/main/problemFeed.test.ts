@@ -1,6 +1,10 @@
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import {Channels} from '@shared/ipc';
-import {macroDroppedProblem, type AppProblem} from '@shared/schema/appProblem';
+import {
+  APP_PROBLEM_LIMITS,
+  macroDroppedProblem,
+  type AppProblem,
+} from '@shared/schema/appProblem';
 import {parseMacroId} from '@shared/schema/ids';
 import {LIVE_STATE_LIMITS} from '@shared/schema/liveLimits';
 import {expectSuccess} from '@shared/schema/testHelpers';
@@ -111,6 +115,23 @@ describe('problem feed', () => {
       [Channels.appProblem, dropped],
       [Channels.appProblem, waiting],
     ]);
+  });
+
+  it('always fits the unread problems beside a full standing list', () => {
+    const {feed} = setup();
+    const standing = Array.from({length: APP_PROBLEM_LIMITS.listed}, (_, i) =>
+      macroDroppedProblem(macroId(100 + i), `Standing ${i}`),
+    );
+    feed.addStanding(() => standing);
+    const dropped = [1, 2].map(i =>
+      macroDroppedProblem(macroId(i), `Startup ${i}`),
+    );
+    for (const problem of dropped) feed.report(problem);
+    expect(list()).toEqual([
+      ...standing.slice(0, APP_PROBLEM_LIMITS.listed - 2),
+      ...dropped,
+    ]);
+    expect(list()).toEqual(standing);
   });
 
   it('keeps only the newest unread problems', () => {
