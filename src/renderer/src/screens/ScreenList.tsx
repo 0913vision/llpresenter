@@ -22,12 +22,22 @@ const STAGE_LABEL = '무대';
 const LOAD_TITLE = '화면';
 const noScreens: readonly Screen[] = [];
 
-function RowView({row}: {readonly row: ScreenRow}): JSX.Element {
+function RowView({
+  row,
+  canDrag,
+}: {
+  readonly row: ScreenRow;
+  readonly canDrag: boolean;
+}): JSX.Element {
   const ghost = useRef<HTMLDivElement>(null);
   return (
     <div
-      draggable
+      draggable={canDrag}
       onDragStart={event => {
+        if (!canDrag) {
+          event.preventDefault();
+          return;
+        }
         event.dataTransfer.effectAllowed = 'move';
         event.dataTransfer.setData(SCREEN_DRAG_MIME, row.id);
         if (ghost.current !== null) {
@@ -89,7 +99,11 @@ export function ScreenList({
         .map(section => (
           <ListGroup key={section.label} label={section.label}>
             {section.rows.map(row => (
-              <RowView key={row.id} row={row} />
+              <RowView
+                key={row.id}
+                row={row}
+                canDrag={document?.access === 'editable'}
+              />
             ))}
           </ListGroup>
         ))}

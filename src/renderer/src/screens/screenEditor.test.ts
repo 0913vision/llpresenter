@@ -58,7 +58,7 @@ describe('ScreenEditor', () => {
     editor.adopt(screensAt(1));
     const first = editor.change(MAIN_ID, {name: '본당'});
     await vi.waitFor(() => expect(edit).toHaveBeenCalledTimes(1));
-    const second = editor.change(MAIN_ID, {alwaysOnTop: false});
+    const second = editor.assign(STAGE_ID, projector);
     const flushed = vi.fn();
     const writes = pendingWritesOf(api);
     const closing = writes.flush().then(flushed);
@@ -79,9 +79,9 @@ describe('ScreenEditor', () => {
       baseRevision: 2,
       value: {
         screens: [
-          {name: '본당', alwaysOnTop: false},
+          {name: '본당'},
           {id: CAPTIONS_ID},
-          {name: '무대 화면'},
+          {name: '무대 화면', display: {id: 2}},
         ],
       },
     });

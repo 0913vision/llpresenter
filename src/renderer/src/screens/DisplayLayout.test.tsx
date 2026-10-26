@@ -39,6 +39,7 @@ const monitors: MonitorList = [monitor(1, 0, true), monitor(2, 1920)];
 
 function setup(
   get: () => Promise<MonitorList> = () => Promise.resolve(monitors),
+  access: 'editable' | 'readOnly' = 'editable',
 ) {
   let push: (next: MonitorList) => void = () => undefined;
   const stop = vi.fn();
@@ -55,7 +56,10 @@ function setup(
         return stop;
       },
     },
-    settings: {get: () => Promise.resolve(screensDocument()), edit},
+    settings: {
+      get: () => Promise.resolve({...screensDocument(), access}),
+      edit,
+    },
     live: {send},
     log: {write},
   });
@@ -128,6 +132,38 @@ function box(number: number): HTMLElement {
 }
 
 describe('the display layout', () => {
+  it.each(['readOnly', 'olderPublisher'])(
+    'rejects drops for %s',
+    async state => {
+      const older = monitors.map(monitor => ({
+        number: monitor.number,
+        name: monitor.name,
+        bounds: monitor.bounds,
+        scaleFactor: monitor.scaleFactor,
+        refreshRate: monitor.refreshRate,
+        hasMainWindow: monitor.hasMainWindow,
+        screenIds: monitor.screenIds,
+      }));
+      const {edit} = setup(
+        () => Promise.resolve(state === 'olderPublisher' ? older : monitors),
+        state === 'readOnly' ? 'readOnly' : 'editable',
+      );
+      await waitFor(() => expect(box(2)).toBeTruthy());
+      const dataTransfer = {types: [SCREEN_DRAG_MIME], getData: () => STAGE_ID};
+      expect(fireEvent.dragOver(box(2), {dataTransfer})).toBe(true);
+      fireEvent.drop(box(2), {dataTransfer});
+      expect(edit).not.toHaveBeenCalled();
+      if (state === 'readOnly') {
+        render(<ScreenList />);
+        const row = await screen.findByRole('option', {name: '무대 화면'});
+        const source = row.closest('[draggable]');
+        if (source === null) throw new Error('Missing screen row');
+        expect(source).toHaveProperty('draggable', false);
+        expect(fireEvent.dragStart(source, {dataTransfer})).toBe(false);
+      }
+    },
+  );
+
   it('drags a screen row onto a monitor and clears the previous screen once', async () => {
     const {edit} = setup();
     render(<ScreenList />);

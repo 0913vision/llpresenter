@@ -102,6 +102,16 @@ async function nameField(): Promise<HTMLElement> {
 }
 
 describe('the screen properties', () => {
+  it('locks the device select for a read-only document', async () => {
+    const {edits} = setup({access: 'readOnly'});
+    await nameField();
+    const device = screen.getByRole('button', {name: '장치'});
+    expect(device.getAttribute('aria-disabled')).toBe('true');
+    await userEvent.click(device);
+    expect(screen.queryByRole('menu')).toBeNull();
+    expect(edits).toEqual([]);
+  });
+
   it('keeps both offset axes when another edit waits for a delayed save', async () => {
     let release: () => void = () => undefined;
     const held = new Promise<void>(resolve => {
