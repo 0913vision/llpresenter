@@ -3,6 +3,7 @@ import type {Logger} from '../log';
 import {dispatchLogged, type LiveStore} from './store';
 import {followMessageExpiry} from './messageExpiry';
 import {overlayRefreshCommands, stageRefreshCommands} from './overlayRefresh';
+import {followTimerCompletion} from './timerCompletion';
 
 interface OverlayOptions {
   readonly store: LiveStore;
@@ -21,6 +22,7 @@ export function startOverlays({
   let disposed = false;
   let stopSettings: (() => void) | null = null;
   let releaseSettings: (() => void) | null = null;
+  let completion: ReturnType<typeof followTimerCompletion> | null = null;
   const stopExpiry = followMessageExpiry({
     store,
     now,
@@ -32,8 +34,17 @@ export function startOverlays({
       // NOTE(0913vision): This lifecycle alone owns the store's reader.
       // Output subscriptions use it without attaching a second owner.
       releaseSettings = store.connectSettings(reader);
+      completion = followTimerCompletion({
+        store,
+        settings: reader,
+        now: () => ({wall: now(), timer: store.timerNow()}),
+        send: command => dispatchLogged(store, command, log),
+        onError: error =>
+          log.error('could not complete countdown timers', error),
+      });
       stopSettings = reader.subscribe(document => {
         if (disposed) return;
+        if (document.name === 'timers') completion?.refresh();
         const commands = [
           ...overlayRefreshCommands(store.state, document),
           ...stageRefreshCommands(store.state, document),
@@ -50,6 +61,7 @@ export function startOverlays({
     if (disposed) return;
     disposed = true;
     stopExpiry();
+    completion?.dispose();
     stopSettings?.();
     releaseSettings?.();
   };

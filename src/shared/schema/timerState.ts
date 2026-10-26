@@ -29,6 +29,7 @@ const timerRunSchema = v.pipe(
       countedMs,
       day: epochMillisecondsSchema,
       wallAt: epochMillisecondsSchema,
+      completed: v.exactOptional(v.literal(true)),
     }),
   ]),
 );
@@ -45,7 +46,8 @@ export const timerRunsSchema = v.pipe(
  * or paused at one, with the milliseconds it counted before that. `day` is
  * the local midnight, on the wall clock, of the day it started, and `wallAt`
  * the wall-clock moment of a pause, so a 타이머 that reads the time of day
- * keeps its day across midnight.
+ * keeps its day across midnight. `completed` holds a stop-at-zero countdown
+ * at zero until reset or restarted, separately from an operator pause.
  */
 export type TimerRun = ReadonlyKnown<v.InferOutput<typeof timerRunSchema>>;
 

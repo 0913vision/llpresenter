@@ -6,6 +6,29 @@ const SECONDS_PER_MINUTE = 60;
 const SECONDS_PER_HOUR = 3600;
 const TIME_PART_WIDTH = 2;
 
+export type CountdownTimer = Extract<
+  Timer,
+  {kind: 'countdown' | 'countdownTo'}
+>;
+
+export function stopsAtZero(timer: Timer): timer is CountdownTimer {
+  return (
+    (timer.kind === 'countdown' || timer.kind === 'countdownTo') &&
+    timer.overrun === false
+  );
+}
+
+export function countdownRemainingMs(
+  timer: CountdownTimer,
+  run: TimerRun | undefined,
+  now: TimerNow,
+): number {
+  if (run?.state === 'paused' && run.completed === true) return 0;
+  return timer.kind === 'countdown'
+    ? timer.duration * MS_PER_SECOND - countedMs(run, now.timer)
+    : timerTargetTime(timer, run, now) - wallReading(run, now);
+}
+
 /** The two clocks a 타이머 reads: main's monotonic 타이머 clock and the wall clock. */
 export interface TimerNow {
   readonly timer: number;
@@ -54,17 +77,11 @@ export function timerText(
 ): string {
   switch (timer.kind) {
     case 'countdown':
-      return durationText(
-        Math.ceil(
-          (timer.duration * MS_PER_SECOND - countedMs(run, now.timer)) /
-            MS_PER_SECOND,
-        ),
-      );
     case 'countdownTo': {
-      const at = wallReading(run, now);
-      return durationText(
-        Math.ceil((timerTargetTime(timer, run, now) - at) / MS_PER_SECOND),
+      const seconds = Math.ceil(
+        countdownRemainingMs(timer, run, now) / MS_PER_SECOND,
       );
+      return durationText(stopsAtZero(timer) ? Math.max(0, seconds) : seconds);
     }
     case 'elapsed':
       return durationText(

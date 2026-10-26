@@ -19,6 +19,18 @@ function withTimers(timers: unknown) {
 }
 
 describe('live 타이머 runs', () => {
+  it('accepts an optional completed marker only on a paused run', () => {
+    const completed = {...PAUSED, completed: true};
+    const parsed = withTimers({[uuid(1)]: completed});
+    expect(parsed.ok && Object.values(parsed.value.timers ?? {})).toEqual([
+      completed,
+    ]);
+    for (const invalid of [false, 'true', null]) {
+      expect(withTimers({[uuid(1)]: {...PAUSED, completed: invalid}}).ok).toBe(
+        false,
+      );
+    }
+  });
   it('keeps running and paused runs, and a state without any', () => {
     const timers = {
       [uuid(1)]: {state: 'running', since: SINCE, countedMs: 1500, day: SINCE},

@@ -94,6 +94,21 @@ describe('timer date and elapsed settings boundaries', () => {
     ];
   }
 
+  it.each(['countdown', 'countdownTo'])(
+    'accepts optional overrun only as a Boolean for %s',
+    kind => {
+      const fields = {kind, duration: 30, time: '12:00'};
+      for (const overrun of [true, false]) {
+        expect(accepted({...fields, overrun})).toEqual([true, true]);
+        expectRoundTrip(codec, settings({...fields, overrun}));
+      }
+      for (const overrun of [null, 'false', 0]) {
+        expect(accepted({...fields, overrun})).toEqual([false, false]);
+      }
+      expect(accepted(fields)).toEqual([true, true]);
+    },
+  );
+
   it.each(['2024-02-29', '2026-10-27', undefined])(
     'accepts a real date or a legacy undated target: %s',
     date => {

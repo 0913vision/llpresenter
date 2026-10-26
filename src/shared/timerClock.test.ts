@@ -45,7 +45,11 @@ const running = (counted = 0, day = TODAY): TimerRun => ({
   countedMs: counted,
   day,
 });
-const paused = (wallAt: number, counted: number, day = TODAY): TimerRun => ({
+const paused = (
+  wallAt: number,
+  counted: number,
+  day = TODAY,
+): Extract<TimerRun, {state: 'paused'}> => ({
   state: 'paused',
   at: TIMER,
   countedMs: counted,
@@ -107,6 +111,29 @@ describe('timerText', () => {
       '-1:01',
     );
   });
+
+  it.each([
+    {kind: 'countdown', duration: 60},
+    {kind: 'countdownTo', date: '2026-10-26', time: '10:01'},
+  ])(
+    'clamps a stop-at-zero countdown and keeps a completed one at zero: %j',
+    fields => {
+      const stopping = timer({...fields, overrun: false});
+      const continuing = timer({...fields, overrun: true});
+      expect(timerText(stopping, running(), after(30 * SECOND))).toBe('0:30');
+      expect(timerText(stopping, running(), after(61 * SECOND))).toBe('0:00');
+      expect(timerText(continuing, running(), after(61 * SECOND))).toBe(
+        '-0:01',
+      );
+      const completed: TimerRun = {
+        ...paused(WALL + MINUTE, MINUTE),
+        completed: true,
+      };
+      expect(
+        timerText(stopping, completed, {timer: TIMER, wall: WALL - HOUR}),
+      ).toBe('0:00');
+    },
+  );
 
   it('shows hours from an hour on', () => {
     const long = timer({kind: 'countdown', duration: 2 * 3600 + 5});

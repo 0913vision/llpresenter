@@ -30,11 +30,13 @@ const timerSchema = v.variant('kind', [
     kind: v.literal('countdownTo'),
     time: timeOfDay,
     date: v.exactOptional(calendarDate),
+    overrun: v.exactOptional(v.boolean()),
   }),
   v.looseObject({
     ...timerFields,
     kind: v.literal('countdown'),
     duration: positiveSeconds,
+    overrun: v.exactOptional(v.boolean()),
   }),
   v.looseObject({
     ...timerFields,

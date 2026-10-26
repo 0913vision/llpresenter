@@ -1,6 +1,11 @@
 import type {TimerId} from '@shared/schema/ids';
 import {MAX_LIVE_TIMERS, type TimerRun} from '@shared/schema/timerState';
-import {countedMs, localDay} from '@shared/timerClock';
+import {
+  countedMs,
+  countdownRemainingMs,
+  localDay,
+  stopsAtZero,
+} from '@shared/timerClock';
 import {MissingLiveTargetError} from '../commandErrors';
 import type {LiveHistory} from '../history';
 import {defineSlice, type CommandOf, type SliceContext} from '../slice';
@@ -35,13 +40,14 @@ function start(
   if (run === undefined && Object.keys(runs).length >= MAX_LIVE_TIMERS) {
     return reject({field: 'timers', message: 'Too many 타이머 are started'});
   }
+  const completed = run?.state === 'paused' && run.completed === true;
   return withRuns(history, {
     ...runs,
     [timerId]: {
       state: 'running',
       since: timerNow,
-      countedMs: run?.countedMs ?? 0,
-      day: run?.day ?? localDay(now),
+      countedMs: completed ? 0 : (run?.countedMs ?? 0),
+      day: completed ? localDay(now) : (run?.day ?? localDay(now)),
     },
   });
 }
@@ -49,11 +55,20 @@ function start(
 function pause(
   history: LiveHistory,
   {timerId}: CommandOf<'timer.pause'>,
-  {now, timerNow = now}: SliceContext,
+  {settings, now, timerNow = now}: SliceContext,
 ): LiveHistory {
   const runs = history.state.timers ?? {};
   const run = runs[timerId];
   if (run?.state !== 'running') return history;
+  const document = settings?.get('timers');
+  const timer =
+    document?.name === 'timers'
+      ? document.value.timers.find(t => t.id === timerId)
+      : undefined;
+  const completed =
+    timer !== undefined &&
+    stopsAtZero(timer) &&
+    countdownRemainingMs(timer, run, {wall: now, timer: timerNow}) <= 0;
   return withRuns(history, {
     ...runs,
     [timerId]: {
@@ -62,6 +77,7 @@ function pause(
       countedMs: countedMs(run, timerNow),
       day: run.day,
       wallAt: now,
+      ...(completed ? {completed: true} : {}),
     },
   });
 }

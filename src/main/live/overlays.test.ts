@@ -546,7 +546,7 @@ describe('overlay live state and lifecycle', () => {
     expect(store.state.layers.message).not.toBeNull();
     expect(vi.getTimerCount()).toBe(1);
     expect(settings.listeners.size).toBe(1);
-    expect(store.listenerCount).toBe(1);
+    expect(store.listenerCount).toBe(2);
     stop();
     stop();
     expect(vi.getTimerCount()).toBe(0);
