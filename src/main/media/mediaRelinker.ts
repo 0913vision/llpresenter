@@ -2,7 +2,7 @@ import {stat} from 'node:fs/promises';
 import {basename, dirname, join, relative} from 'node:path';
 import type {MediaId} from '@shared/schema/ids';
 import type {MediaDocument, MediaEditResult} from '@shared/schema/mediaEdit';
-import {MEDIA_LIMITS, type MediaItem} from '@shared/schema/mediaList';
+import {MEDIA_LIMITS} from '@shared/schema/mediaList';
 import type {Logger} from '../log';
 import {mediaRefusal} from '../store/mediaEdits';
 import type {MediaItemsCommit} from '../store/mediaStore';
@@ -31,8 +31,20 @@ export interface MediaRelinkerOptions {
   readonly exists?: (file: string) => Promise<boolean>;
 }
 
+interface Move {
+  readonly id: MediaId;
+  readonly file: string;
+  readonly size: number;
+}
+
 function sameFolder(left: string, right: string): boolean {
   return relative(dirname(left), dirname(right)) === '';
+}
+
+// NOTE(0913vision): write-failed means the list applied the change in memory
+// and saves it later.
+function applied(result: MediaEditResult): boolean {
+  return result.ok || result.error.reason === 'write-failed';
 }
 
 /**
@@ -75,35 +87,42 @@ export class MediaRelinker {
     if (store === null || item === undefined) {
       return mediaRefusal('not-found', 'This media no longer exists');
     }
+    const oldFile = store.fileOf(item.id);
     const chosen = await this.options.chooseFile(item.kind);
     if (chosen === null) return {ok: true, value: null};
-    const relinked = await this.moved(store, item, chosen);
+    const relinked = await this.moved(store, item.id, chosen);
     if (relinked === null) {
       return mediaRefusal('not-found', 'The chosen file can no longer be read');
     }
-    const oldFile = store.fileOf(item.id);
     const others =
       oldFile === null
         ? []
-        : await this.sameFolderMoves(store, item, {oldFile, chosen});
-    const items = [relinked, ...others];
+        : await this.sameFolderMoves(store, item.id, {oldFile, chosen});
     if (signal.aborted) return {ok: true, value: null};
-    const result = await store.replace({
-      items,
-      baseRevision: store.get().revision,
+    // NOTE(0913vision): The dialog and the file checks wait, and the list can
+    // change meanwhile, so only the file and size go into the items as they
+    // are now, and media deleted meanwhile drop out.
+    const {revision, value} = store.get();
+    const items = [relinked, ...others].flatMap(({id, file, size}) => {
+      const current = value.items.find(entry => entry.id === id);
+      return current === undefined ? [] : [{...current, file, size}];
     });
-    if (result.ok) this.options.recheck(items.map(entry => entry.id));
+    if (items[0]?.id !== mediaId) {
+      return mediaRefusal('not-found', 'This media no longer exists');
+    }
+    const result = await store.replace({items, baseRevision: revision});
+    if (applied(result)) this.options.recheck(items.map(({id}) => id));
     return result;
   }
 
   private async moved(
     store: RelinkStore,
-    item: MediaItem,
+    id: MediaId,
     file: string,
-  ): Promise<MediaItem | null> {
+  ): Promise<Move | null> {
     try {
       const {size} = await stat(file);
-      return {...item, file: storedPath(store.folder, file), size};
+      return {id, file: storedPath(store.folder, file), size};
     } catch (error: unknown) {
       this.options.log.warn('could not read a relinked media file', {
         file,
@@ -115,16 +134,16 @@ export class MediaRelinker {
 
   private async sameFolderMoves(
     store: RelinkStore,
-    relinked: MediaItem,
+    relinked: MediaId,
     {oldFile, chosen}: {readonly oldFile: string; readonly chosen: string},
-  ): Promise<MediaItem[]> {
+  ): Promise<Move[]> {
     const exists = this.options.exists ?? fileExists;
-    const moves: MediaItem[] = [];
+    const moves: Move[] = [];
     for (const item of store.get().value.items) {
       if (moves.length >= MEDIA_LIMITS.importBatch - 1) break;
       const file = store.fileOf(item.id);
       if (
-        item.id === relinked.id ||
+        item.id === relinked ||
         file === null ||
         !this.options.isMissing(item.id) ||
         !sameFolder(file, oldFile)
@@ -133,7 +152,7 @@ export class MediaRelinker {
       }
       const candidate = join(dirname(chosen), basename(file));
       if (!(await exists(candidate))) continue;
-      const moved = await this.moved(store, item, candidate);
+      const moved = await this.moved(store, item.id, candidate);
       if (moved !== null) moves.push(moved);
     }
     return moves;

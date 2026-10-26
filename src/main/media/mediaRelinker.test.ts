@@ -19,11 +19,11 @@ import {MediaRelinker, type RelinkStore} from './mediaRelinker';
 const mediaId = (index: number): MediaId =>
   createMediaId(`00000000-0000-4000-8000-${String(index).padStart(12, '0')}`);
 
-function mediaDocument(items: readonly object[]): MediaDocument {
+function mediaDocument(items: readonly object[], revision = 4): MediaDocument {
   return expectSuccess(
     parseMediaDocument({
       name: 'media',
-      revision: 4,
+      revision,
       access: 'editable',
       value: {...EMPTY_MEDIA_LIST, items},
     }),
@@ -38,15 +38,26 @@ interface Stored {
 
 async function setup(stored: readonly Stored[]) {
   const folder = await makeTempDir();
-  const document = mediaDocument(
-    stored.map(({id, file}) => ({
-      id,
-      name: 'Invented',
-      kind: 'image',
-      file,
-      size: 1,
-    })),
-  );
+  const state = {
+    document: mediaDocument(
+      stored.map(({id, file}) => ({
+        id,
+        name: 'Invented',
+        kind: 'image',
+        file,
+        size: 1,
+      })),
+    ),
+  };
+  const edit = (
+    change: (items: readonly MediaItem[]) => readonly object[],
+    revision: number,
+  ): void => {
+    state.document = mediaDocument(
+      change(state.document.value.items),
+      revision,
+    );
+  };
   const files = new Map(stored.map(({id, file}) => [id, file]));
   const replace = vi.fn<(commit: MediaItemsCommit) => Promise<MediaEditResult>>(
     commit =>
@@ -56,7 +67,7 @@ async function setup(stored: readonly Stored[]) {
       }),
   );
   const store: RelinkStore = {
-    get: () => document,
+    get: () => state.document,
     folder,
     fileOf: id => {
       for (const [key, file] of files) if (key === id) return file;
@@ -79,7 +90,7 @@ async function setup(stored: readonly Stored[]) {
     recheck,
     log,
   });
-  return {folder, relinker, replace, chooseFile, recheck, log};
+  return {folder, relinker, replace, chooseFile, recheck, log, edit};
 }
 
 async function file(path: string, bytes = 'invented'): Promise<string> {
@@ -242,5 +253,85 @@ describe('media relinking', () => {
     expect(recheck).not.toHaveBeenCalled();
     chooseFile.mockResolvedValue(chosen);
     expect(await relinker.relink(A, signal)).toMatchObject({ok: true});
+  });
+
+  it('keeps edits made while the dialog is open and commits on the newest list', async () => {
+    const old = await makeTempDir();
+    const found = await makeTempDir();
+    const b = mediaId(2);
+    const {relinker, replace, chooseFile, edit} = await setup([
+      {id: A, file: join(old, 'a.png'), missing: true},
+      {id: b, file: join(old, 'b.png'), missing: true},
+    ]);
+    await file(join(found, 'b.png'));
+    const chosen = await file(join(found, 'a.png'));
+    chooseFile.mockImplementation(() => {
+      edit(
+        items =>
+          items.map(item => ({...item, name: `Renamed ${item.id.slice(-1)}`})),
+        9,
+      );
+      return Promise.resolve(chosen);
+    });
+
+    await relinker.relink(A, signal);
+
+    expect(replace.mock.calls[0]?.[0].baseRevision).toBe(9);
+    expect(
+      committed(replace).map(({id, name, file: path}) => [id, name, path]),
+    ).toEqual([
+      [A, 'Renamed 1', chosen],
+      [b, 'Renamed 2', join(found, 'b.png')],
+    ]);
+  });
+
+  it('drops media deleted while the dialog is open', async () => {
+    const old = await makeTempDir();
+    const found = await makeTempDir();
+    const b = mediaId(2);
+    const {relinker, replace, chooseFile, edit} = await setup([
+      {id: A, file: join(old, 'a.png'), missing: true},
+      {id: b, file: join(old, 'b.png'), missing: true},
+    ]);
+    await file(join(found, 'b.png'));
+    chooseFile.mockImplementation(async () => {
+      edit(items => items.filter(item => item.id !== b), 6);
+      return file(join(found, 'a.png'));
+    });
+    await relinker.relink(A, signal);
+    expect(committed(replace).map(({id}) => id)).toEqual([A]);
+
+    replace.mockClear();
+    chooseFile.mockImplementation(async () => {
+      edit(() => [], 7);
+      return file(join(found, 'a.png'));
+    });
+    expect(await relinker.relink(A, signal)).toMatchObject({
+      ok: false,
+      error: {reason: 'not-found'},
+    });
+    expect(replace).not.toHaveBeenCalled();
+  });
+
+  it('checks the file again after a save that failed but applied, so an unchanged path clears', async () => {
+    const {folder, relinker, replace, chooseFile, recheck} = await setup([
+      {id: A, file: 'a.png', missing: true},
+    ]);
+    const restored = await file(join(folder, 'a.png'));
+    chooseFile.mockResolvedValue(restored);
+    replace.mockResolvedValueOnce({
+      ok: false,
+      error: {
+        reason: 'write-failed',
+        message: 'Invented full disk',
+        applied: {id: A, revision: 5},
+        unchangedFiles: ['media.json'],
+      },
+    });
+    expect(await relinker.relink(A, signal)).toMatchObject({
+      error: {reason: 'write-failed'},
+    });
+    expect(committed(replace).map(({file: path}) => path)).toEqual(['a.png']);
+    expect(recheck).toHaveBeenCalledExactlyOnceWith([A]);
   });
 });
