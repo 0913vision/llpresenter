@@ -166,8 +166,7 @@ describe('the 화면 list', () => {
 
   it('selects the first screen until another row is chosen', async () => {
     setup();
-    await screen.findByRole('option', {name: '본 화면'});
-    expect(selectedOf('본 화면')).toBe('true');
+    await screen.findByRole('option', {name: '본 화면', selected: true});
     await userEvent.setup().click(option('방송 자막'));
     expect(useScreensSelection.getState().selection).toEqual({
       kind: 'screen',
