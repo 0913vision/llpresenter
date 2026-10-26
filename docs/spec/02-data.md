@@ -138,6 +138,12 @@ Rules:
 - An empty named arrangement remains stored and plays the default order, as in
   version 1. A missing arrangement name also falls back to the default.
 - Keep unknown fields on songs, groups, slides and arrangements.
+- `SONG_GROUP_LIMITS` caps a song at 10,000 source slides, 10,000 groups, 1,000
+  named arrangements and 100,000 total stored group occurrences across all
+  arrangements. Reject an oversized file without truncation. These limits also
+  apply after migration; source slides are counted once, not once per
+  arrangement occurrence. Consumers must iterate repeated groups without
+  allocating an unbounded expanded song.
 
 ### Version 1 migration
 

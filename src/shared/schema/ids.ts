@@ -15,6 +15,7 @@ function uuidId<TBrand extends string>(brand: TBrand) {
 }
 
 export const songIdSchema = uuidId('SongId');
+export const songGroupIdSchema = uuidId('SongGroupId');
 export const serviceIdSchema = uuidId('ServiceId');
 export const templateIdSchema = uuidId('TemplateId');
 export const serviceItemIdSchema = uuidId('ServiceItemId');
@@ -48,6 +49,7 @@ export const translationIdSchema = v.pipe(
 );
 
 export type SongId = v.InferOutput<typeof songIdSchema>;
+export type SongGroupId = v.InferOutput<typeof songGroupIdSchema>;
 export type ServiceId = v.InferOutput<typeof serviceIdSchema>;
 export type TemplateId = v.InferOutput<typeof templateIdSchema>;
 export type ServiceItemId = v.InferOutput<typeof serviceItemIdSchema>;
@@ -83,6 +85,11 @@ export function parseLookId(value: unknown) {
 /** Brands a generated song UUID; throws unless it is lowercase version 4. */
 export function createSongId(uuid: string): SongId {
   return v.parse(songIdSchema, uuid);
+}
+
+/** Brands a generated group UUID, scoped to its song. */
+export function createSongGroupId(uuid: string): SongGroupId {
+  return v.parse(songGroupIdSchema, uuid);
 }
 
 export function createQuickItemId(uuid: string): QuickItemId {

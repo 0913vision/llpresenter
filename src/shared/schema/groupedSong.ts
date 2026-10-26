@@ -1,0 +1,129 @@
+import * as v from 'valibot';
+import type {Result} from '../result';
+import {
+  parseFile,
+  serializeFile,
+  type FileError,
+  type FileFormat,
+  type LoadedFile,
+  type ReadonlyKnown,
+} from './fileFormat';
+import {mediaIdSchema, songGroupIdSchema, songIdSchema} from './ids';
+import {
+  isFirstWithKey,
+  jsonObject,
+  nonBlankText,
+  positiveInteger,
+  timestamp,
+} from './primitives';
+import {arrangementNameSchema} from './song';
+import {migrateSongGroups} from './songGroupMigration';
+
+/** File bounds keep group expansion and arrangement validation finite. */
+export const SONG_GROUP_LIMITS = {
+  slides: 10_000,
+  groups: 10_000,
+  arrangements: 1_000,
+  occurrences: 100_000,
+} as const;
+
+const groupedSlideSchema = jsonObject({lines: v.array(v.string())});
+
+export const songGroupSchema = jsonObject({
+  id: songGroupIdSchema,
+  name: v.string(),
+  slides: v.pipe(
+    v.array(groupedSlideSchema),
+    v.minLength(1),
+    v.maxLength(SONG_GROUP_LIMITS.slides),
+  ),
+});
+
+const groupArrangementSchema = jsonObject({
+  name: arrangementNameSchema,
+  groups: v.pipe(
+    v.array(songGroupIdSchema),
+    v.maxLength(SONG_GROUP_LIMITS.occurrences),
+  ),
+});
+
+export const groupedSongSchema = v.pipe(
+  jsonObject({
+    format: v.literal('llsong'),
+    schemaVersion: positiveInteger,
+    id: songIdSchema,
+    title: nonBlankText,
+    background: v.exactOptional(mediaIdSchema),
+    groups: v.pipe(
+      v.array(songGroupSchema),
+      v.minLength(1),
+      v.maxLength(SONG_GROUP_LIMITS.groups),
+      v.check(
+        groups => new Set(groups.map(group => group.id)).size === groups.length,
+        'Another group already has this id',
+      ),
+      v.check(
+        groups =>
+          groups.reduce((sum, group) => sum + group.slides.length, 0) <=
+          SONG_GROUP_LIMITS.slides,
+        'Too many source slides',
+      ),
+    ),
+    arrangements: v.exactOptional(
+      v.pipe(
+        v.array(groupArrangementSchema),
+        v.maxLength(SONG_GROUP_LIMITS.arrangements),
+        v.checkItems(
+          (_item, index, items) =>
+            isFirstWithKey(items, index, ({name}) => name),
+          'Another arrangement already has this name',
+        ),
+        v.check(
+          items =>
+            items.reduce((sum, item) => sum + item.groups.length, 0) <=
+            SONG_GROUP_LIMITS.occurrences,
+          'Too many group occurrences',
+        ),
+      ),
+    ),
+    updatedAt: v.exactOptional(timestamp),
+  }),
+  v.forward(
+    v.check(({groups, arrangements = []}) => {
+      const ids = new Set(groups.map(group => group.id));
+      return arrangements.every(arrangement =>
+        arrangement.groups.every(id => ids.has(id)),
+      );
+    }, 'An arrangement points at a group that does not exist'),
+    ['arrangements'],
+  ),
+);
+
+const groupedSongFormat: FileFormat<typeof groupedSongSchema> = {
+  format: 'llsong',
+  schema: groupedSongSchema,
+  migrations: [migrateSongGroups],
+};
+
+/** Version 2 contract; persistence stays on version 1 until consumers migrate. */
+export type GroupedSong = ReadonlyKnown<
+  v.InferOutput<typeof groupedSongSchema>
+>;
+export type SongGroup = GroupedSong['groups'][number];
+export type GroupArrangement = NonNullable<GroupedSong['arrangements']>[number];
+
+/** Reads version 2, or migrates a version 1 song in memory without writing it. */
+export function parseGroupedSong(
+  text: string,
+  file: string,
+): Result<LoadedFile<GroupedSong>, FileError> {
+  return parseFile(groupedSongFormat, text, file);
+}
+
+/** Only version 2 is writable; unknown fields survive at every object level. */
+export function serializeGroupedSong(
+  song: GroupedSong,
+  file: string,
+): Result<string, FileError> {
+  return serializeFile(groupedSongFormat, song, file);
+}
