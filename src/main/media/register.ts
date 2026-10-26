@@ -8,6 +8,9 @@ import type {Logger} from '../log';
 import {broadcast} from '../store/contentChannels';
 import type {MediaBackendPort} from '../store/mediaChannels';
 import type {WindowMode} from '../windows/testWindows';
+import type {AnalysisFiles} from './analysisFiles';
+import {measureImage} from './measureImage';
+import {MediaAnalyser} from './mediaAnalyser';
 import {MediaImporter, type ImportStore} from './mediaImporter';
 import {mediaDialogFilters, type MediaKind} from './mediaKinds';
 import {MediaRelinker, type RelinkStore} from './mediaRelinker';
@@ -22,6 +25,8 @@ export interface MediaBackendRegistration {
   readonly media: Promise<MediaBackendStore | null>;
   readonly control: BrowserWindow;
   readonly windowMode: WindowMode;
+  /** The files analysis lends the media scheme to serve. */
+  readonly analysisFiles: AnalysisFiles;
   readonly log: Logger;
 }
 
@@ -111,12 +116,12 @@ function watchMissingFiles({media, log}: MediaBackendRegistration): {
 
 /**
  * Connects the media backend to the media channels: the import dialog on the
- * control window, copying into the media folder with progress, cancelling,
- * relinking a file, and the missing file check. Never throws: a backend that
- * can't connect is logged, and the missing file check still runs.
+ * control window, copying into the media folder with progress and analysis,
+ * cancelling, relinking a file, and the missing file check. Never throws: a
+ * backend that can't connect is logged, and the missing file check still runs.
  *
- * @returns A function that cancels every import job, waits for the running
- * one, and disconnects.
+ * @returns A function that stops analysis, cancels every import job, waits for
+ * the running one, and disconnects.
  */
 export function registerMediaBackend(
   options: MediaBackendRegistration,
@@ -124,6 +129,15 @@ export function registerMediaBackend(
   const progress: {send: (value: MediaImportProgress) => void} = {
     send: () => undefined,
   };
+  const analyser = new MediaAnalyser({
+    // TODO(0913vision): data-53 opens the hidden analysis page here. Until
+    // then video and audio join the list without their duration.
+    openPage: () =>
+      Promise.reject(new Error('The media analysis page is not available')),
+    files: options.analysisFiles,
+    measureImage,
+    log: options.log,
+  });
   const importer = new MediaImporter({
     store: () => options.media,
     report: value => {
@@ -131,6 +145,7 @@ export function registerMediaBackend(
     },
     chooseFiles: importDialog(options),
     createId: () => createMediaId(randomUUID()),
+    analyse: request => analyser.analyse(request),
     log: options.log,
   });
   const missing = watchMissingFiles(options);
@@ -154,6 +169,7 @@ export function registerMediaBackend(
     };
     return async () => {
       missing.dispose();
+      analyser.dispose();
       await importer.dispose();
       connection.disconnect();
     };
@@ -161,6 +177,7 @@ export function registerMediaBackend(
     options.log.error('could not connect the media backend', error);
     return () => {
       missing.dispose();
+      analyser.dispose();
       return importer.dispose();
     };
   }

@@ -3,7 +3,10 @@ import {join} from 'node:path';
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {LiveCommand} from '@shared/commands';
 import {makeTempDir} from '../../test/temp-dir';
+import {analysisTokenFromUrl} from '@shared/media';
 import type {LiveStore} from './live/store';
+import type {MediaBackendRegistration} from './media/register';
+import type {MediaHandlerOptions} from './windows/mediaResponse';
 
 // NOTE(0913vision): Each test imports the whole main process afresh, which
 // takes several seconds under coverage on a busy machine.
@@ -12,7 +15,7 @@ const ENTRY_TEST_TIMEOUT_MS = 30_000;
 const fakes = vi.hoisted(() => {
   const order: string[] = [];
   const storeOptions: unknown[] = [];
-  const mediaOptions: unknown[] = [];
+  const mediaOptions: MediaHandlerOptions[] = [];
   const soakSources: unknown[] = [];
   const outputContexts: Array<{readonly store: LiveStore}> = [];
   const scenarioDispatch: {current: ((command: LiveCommand) => void) | null} = {
@@ -49,7 +52,7 @@ const fakes = vi.hoisted(() => {
     textImportStop: vi.fn<() => void>(),
     bibleContexts: new Array<unknown>(),
     bibleStop: vi.fn<() => void>(),
-    mediaBackendContexts: new Array<unknown>(),
+    mediaBackendContexts: new Array<MediaBackendRegistration>(),
     mediaBackendStop: vi.fn<() => Promise<void>>(),
     closeContexts: new Array<unknown>(),
     confirmClose: vi.fn<() => Promise<boolean>>(),
@@ -159,7 +162,7 @@ vi.mock('./live/lookSelection', () => ({
   },
 }));
 vi.mock('./media/register', () => ({
-  registerMediaBackend: (context: unknown) => {
+  registerMediaBackend: (context: MediaBackendRegistration) => {
     fakes.mediaBackendContexts.push(context);
     return fakes.mediaBackendStop;
   },
@@ -236,7 +239,7 @@ vi.mock('./outputs/start', () => ({
 }));
 vi.mock('./windows/mediaProtocol', () => ({
   registerMediaScheme: () => undefined,
-  serveMedia: (options: unknown) => {
+  serveMedia: (options: MediaHandlerOptions) => {
     fakes.mediaOptions.push(options);
     return () => undefined;
   },
@@ -631,6 +634,13 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
       'mediaRoots',
       fakes.mediaRoots,
     );
+  });
+
+  it('serves the files the media backend lends for analysis', async () => {
+    await startMain();
+    const lent = fakes.mediaBackendContexts[0]?.analysisFiles.lend('a.mp4');
+    const token = analysisTokenFromUrl(lent?.url ?? '') ?? '';
+    expect(fakes.mediaOptions[0]?.analysisFile?.(token)).toBe('a.mp4');
   });
 
   it('asks to quit when the control window closes', async () => {

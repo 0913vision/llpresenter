@@ -3,6 +3,7 @@ import {join} from 'node:path';
 import {isAnyOutputOn} from '@shared/live';
 import {registerBible} from './bible/register';
 import {registerTextImport} from './import/register';
+import {AnalysisFiles} from './media/analysisFiles';
 import {registerMediaBackend} from './media/register';
 import {LiveStore, dispatchLogged} from './live/store';
 import {startOverlays} from './live/overlays';
@@ -140,9 +141,11 @@ function start(): void {
         selection: dataStore,
         log,
       });
+      const analysisFiles = new AnalysisFiles();
       const stopServingMedia = serveMedia({
         resolvePath: dataStore.findMediaFile,
         mediaRoots: dataStore.mediaRoots,
+        analysisFile: token => analysisFiles.fileOf(token),
         log,
       });
       const win = createControlWindow(log, windowMode, zoom);
@@ -154,6 +157,7 @@ function start(): void {
         media: dataStore.media,
         control: win,
         windowMode,
+        analysisFiles,
         log,
       });
       const stopTextImport = registerTextImport({

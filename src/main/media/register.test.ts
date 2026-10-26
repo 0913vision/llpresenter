@@ -14,6 +14,7 @@ import type {
   MediaBackendConnection,
   MediaBackendPort,
 } from '../store/mediaChannels';
+import {AnalysisFiles} from './analysisFiles';
 import {registerMediaBackend, type MediaBackendStore} from './register';
 
 type Listener = (event: unknown, value: unknown) => void;
@@ -41,6 +42,12 @@ vi.mock('electron', () => ({
     }
   },
   dialog: {showOpenDialog: electron.showOpenDialog},
+  nativeImage: {
+    createFromPath: () => ({
+      isEmpty: () => false,
+      getSize: () => ({width: 4, height: 3}),
+    }),
+  },
   ipcMain: {
     handle: (channel: string, handler: () => unknown) => {
       electron.handlers.set(channel, handler);
@@ -140,6 +147,7 @@ function register(
     media: Promise.resolve(store),
     control: new BrowserWindow(),
     windowMode,
+    analysisFiles: new AnalysisFiles(),
     log,
   });
 }
@@ -169,6 +177,32 @@ describe('media backend registration', () => {
     );
     await stop();
     expect(disconnect).toHaveBeenCalledOnce();
+  });
+
+  it('adds an imported image with the size main measured', async () => {
+    const {port, reported, handlers} = fakePort();
+    const store = await mediaStore();
+    const added: unknown[] = [];
+    const file = join(await makeTempDir(), 'Notice.png');
+    await writeFile(file, 'invented');
+    const stop = register(port, {
+      ...store,
+      add: (commit, playlist) => {
+        added.push(...commit.items);
+        return store.add(commit, playlist);
+      },
+    });
+    await handlers().import(
+      {source: {kind: 'files', paths: [file]}, playlist: null},
+      new AbortController().signal,
+    );
+    await vi.waitFor(() =>
+      expect(reported.at(-1)).toMatchObject({phase: 'complete'}),
+    );
+    expect(added).toEqual([
+      expect.objectContaining({name: 'Notice', width: 4, height: 3}),
+    ]);
+    await stop();
   });
 
   it('relinks through a dialog of the item kind on the control window', async () => {
