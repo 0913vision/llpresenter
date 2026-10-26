@@ -16,9 +16,10 @@ preview").
 - A segmented control switches between 화면 내용 and 테스트 패턴.
 - 화면 내용 shows the selected screen's current output through the existing
   `ScreenPreview`.
-- 테스트 패턴 shows the pattern (seven color bars, an 11 step gray ramp, a white
-  border, and the screen name and resolution) and sends `screen.testPattern.set`
-  so the screen's real output shows it too (output-39).
+- 테스트 패턴 sends `screen.testPattern.set`, which puts the screen into the
+  live state's pattern list. The preview, which stays mounted, then draws the
+  pattern through output's own layer (output-39) with the screen's correction
+  and its name only, and the real output shows it too.
 - The caption shows the screen name, the target with the monitor name
   (`모니터 2 EPSON 프로젝터`), and the resolution and refresh rate
   (`1920×1080 60Hz`). The monitor is the one main placed the screen on
@@ -32,7 +33,7 @@ preview").
 ## Changed files
 
 - `src/renderer/src/screens/`: `OutputPreview.tsx` and its stylesheet,
-  `TestPattern.tsx` and its stylesheet, `previewCaption.ts`, and their tests.
+  `previewCaption.ts`, and their tests.
 - `src/renderer/src/screens/screenRows.ts`: exports `targetByMethod` and
   `UNASSIGNED_TARGET`, so the caption uses the same words as the screen list.
 - Changes outside my paths: `src/renderer/src/shell/Workspace.tsx` (shell's
@@ -56,21 +57,15 @@ preview").
 - [x] Every new behavior has unit tests, including each exit path of the pattern
 - [x] No `any`, no bypassing type assertions, and no `!`
 - [x] Every listener and observer is released (tested)
-- [x] Colors, sizes, and spacing use design tokens, except the fixed signal
-      colors of the pattern, which are named custom properties in
-      `TestPattern.module.css` with a NOTE
+- [x] Colors, sizes, and spacing use design tokens
 - [x] Not in the output path
 
 ## Decisions and open points
 
-1. The preview pattern is drawn by the panel, not by the output renderer, so it
-   does not apply the screen's 가장자리 여백 and 위치 미세 조정; the real output
-   does (output-39). If output exports its pattern as a component, the panel can
-   use it and show the same corrected picture.
-2. A selection change always resets the preview to 화면 내용. Sending the
+1. A selection change always resets the preview to 화면 내용. Sending the
    pattern to another projector because the operator clicked its row would be a
    surprise during a service.
-3. The `pagehide` listener is a second line of defense for a closing or
+2. The `pagehide` listener is a second line of defense for a closing or
    reloading window, where React may not run its cleanups. Main should also
    clear the pattern when a window closes; that is output's side.
 
@@ -101,4 +96,10 @@ missing.
 
 ## Team member's reply
 
-1.
+1. [P2] Separate pattern: removed. `TestPattern.tsx`, its stylesheet, and its
+   test are gone. The preview stays mounted in both modes, and the pattern comes
+   from the existing layer once the live state lists the screen, so the
+   correction and the name-only label are output's. Tests: one preview renderer
+   is created in `preview` mode and kept across both modes, and with an edge
+   margin of 10 % and an offset of (20, -10) the frame the preview draws has
+   `testPattern: true` and that correction.

@@ -1,16 +1,36 @@
 import {act, cleanup, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import * as v from 'valibot';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@shared/commands';
 import type {MonitorList} from '@shared/schema/monitors';
+import {screenIdSchema} from '@shared/schema/ids';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {OutputPreview} from './OutputPreview';
 import {useScreensSelection} from './selection';
-import {CAPTIONS_ID, MAIN_ID, screensDocument} from './testing/documents';
+import {useLive} from '@renderer/state/live';
+import {emptyLiveState} from '@shared/live';
+import {
+  CAPTIONS_ID,
+  MAIN_ID,
+  screensDocument,
+  settingsDocument,
+} from './testing/documents';
+
+const drawn = vi.hoisted(() => {
+  const created: Array<{mode?: string}> = [];
+  const frames: unknown[] = [];
+  return {created, frames};
+});
 
 vi.mock('@renderer/render/outputRenderer', () => ({
   OutputRenderer: class {
-    render = vi.fn();
+    constructor(_parent: unknown, options: {mode?: string}) {
+      drawn.created.push(options);
+    }
+    render = (_layers: unknown, frame?: unknown) => {
+      drawn.frames.push(frame);
+    };
     dispose = vi.fn();
   },
 }));
@@ -27,11 +47,11 @@ const monitors: MonitorList = [
   },
 ];
 
-function setup() {
+function setup(document = screensDocument()) {
   const send = vi.fn<(command: LiveCommand) => void>();
   window.llp = fakeLlpApi({
     monitors: {get: () => Promise.resolve(monitors)},
-    settings: {get: () => Promise.resolve(screensDocument())},
+    settings: {get: () => Promise.resolve(document)},
     live: {send},
   });
   const view = render(<OutputPreview />);
@@ -43,11 +63,14 @@ function setup() {
 }
 
 beforeEach(() => {
+  drawn.created.length = 0;
+  drawn.frames.length = 0;
   useScreensSelection.setState({selection: {kind: 'screen', id: null}});
 });
 
 afterEach(() => {
   cleanup();
+  useLive.setState({state: null});
   delete window.llp;
 });
 
@@ -66,20 +89,17 @@ describe('the output preview', () => {
         .getByRole('radio', {name: '화면 내용'})
         .getAttribute('aria-checked'),
     ).toBe('true');
-    expect(screen.queryByTestId('test-pattern')).toBeNull();
   });
 
-  it('shows the pattern here and on the real output, and takes it off on 화면 내용', async () => {
+  it('asks for the pattern on the real output and on the real output, and takes it off on 화면 내용', async () => {
     const {patternCommands} = setup();
 
     await choose('테스트 패턴');
 
-    expect(screen.getByTestId('test-pattern')).toBeTruthy();
     expect(patternCommands()).toEqual([
       {type: 'screen.testPattern.set', screenId: MAIN_ID, on: true},
     ]);
     await choose('화면 내용');
-    expect(screen.queryByTestId('test-pattern')).toBeNull();
     expect(patternCommands().at(-1)).toEqual({
       type: 'screen.testPattern.set',
       screenId: MAIN_ID,
@@ -99,7 +119,6 @@ describe('the output preview', () => {
       screenId: MAIN_ID,
       on: false,
     });
-    expect(screen.queryByTestId('test-pattern')).toBeNull();
     expect(
       screen
         .getByRole('radio', {name: '화면 내용'})
@@ -159,6 +178,53 @@ describe('the output preview', () => {
       screenId: MAIN_ID,
       on: false,
     });
+  });
+
+  it('keeps one preview drawing across the modes', async () => {
+    setup();
+    await screen.findByText('모니터 2 EPSON 프로젝터');
+
+    await choose('테스트 패턴');
+    await choose('화면 내용');
+
+    expect(drawn.created.map(options => options.mode)).toEqual(['preview']);
+  });
+
+  it('draws the pattern through the preview with the screen correction', async () => {
+    const corrected = settingsDocument('screens', {
+      screens: [
+        {
+          id: MAIN_ID,
+          name: '본 화면',
+          kind: 'audience',
+          method: 'fullscreen',
+          edgeMargin: 10,
+          offset: {x: 20, y: -10},
+        },
+      ],
+    });
+    setup(corrected);
+    await screen.findByText('본 화면');
+    await choose('테스트 패턴');
+
+    act(() =>
+      useLive.setState({
+        state: {
+          ...emptyLiveState(),
+          testPatterns: [v.parse(screenIdSchema, MAIN_ID)],
+        },
+      }),
+    );
+
+    await waitFor(() =>
+      expect(drawn.frames.at(-1)).toMatchObject({
+        testPattern: true,
+        screen: {
+          name: '본 화면',
+          correction: {edgeMargin: 10, offset: {x: 20, y: -10}},
+        },
+      }),
+    );
   });
 
   it('sends nothing in the content mode', async () => {
