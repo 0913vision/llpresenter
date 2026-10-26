@@ -40,7 +40,9 @@ the tools area that no Claude member holds (user decision).
 | qa, devops (Codex)      | qa, devops | Idle; on request only                       |
 
 All worktrees share one `refs/stash`, so members apply or drop a stash only by
-its commit hash, never with a bare `git stash pop`.
+its commit hash, never with a bare `git stash pop`. Members run tools only
+through the repository's npm scripts or `npx --no-install`, because a bare
+`npx <package>` downloads what the repository doesn't have.
 
 ## Merge queue
 
