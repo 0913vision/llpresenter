@@ -1,11 +1,4 @@
-import {
-  useEffect,
-  useEffectEvent,
-  useMemo,
-  useState,
-  useSyncExternalStore,
-  type JSX,
-} from 'react';
+import {useMemo, useState, type JSX} from 'react';
 import {thumbnailUrl} from '@shared/media';
 import {mediaLoops} from '@shared/mediaEndRule';
 import type {MediaId} from '@shared/schema/ids';
@@ -25,13 +18,16 @@ import {
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
-import {MediaLibrary, type MediaApi} from './mediaLibrary';
 import {
+  UNNAMED_PLAYLIST,
+  chosenPlaylist,
   durationText,
   mediaEntries,
   totalText,
+  type ChosenPlaylist,
   type MediaEntry,
 } from './mediaEntries';
+import {useMediaView} from './MediaViewProvider';
 import {VirtualMediaGrid} from './VirtualMediaGrid';
 import styles from './MediaView.module.css';
 
@@ -43,7 +39,6 @@ export const DEFAULT_MEDIA_COLUMNS = 5;
 export const UNNAMED_MEDIA = '이름 없는 미디어';
 
 export interface MediaViewProps {
-  readonly api: MediaApi;
   /** The workspace host merges problems into its one notification list. */
   readonly onProblem: (notice: Notice) => void;
 }
@@ -53,20 +48,10 @@ interface OpenMenu {
   readonly anchor: MenuAnchor;
 }
 
-function useMediaLibrary(
-  api: MediaApi,
-  onProblem: (notice: Notice) => void,
-): MediaLibrary {
-  const report = useEffectEvent(onProblem);
-  const [library] = useState(() => new MediaLibrary(api));
-  useEffect(
-    () =>
-      library.start(notice => {
-        report(notice);
-      }),
-    [library],
-  );
-  return library;
+function playlistRef(playlist: ChosenPlaylist) {
+  return playlist.kind === 'media'
+    ? ({kind: 'media', id: playlist.id} as const)
+    : ({kind: 'audio', id: playlist.id} as const);
 }
 
 function nameOf(entry: MediaEntry): string {
@@ -106,24 +91,25 @@ function EntryTile({
 }
 
 /**
- * The media view of 준비 (spec 05, "Media view"): 모든 미디어 as a grid of
- * tiles, 가져오기 with each file's copy progress, and the size slider. A click
- * selects a tile, a double click outputs it as the background, and a missing
- * file's tile opens 다시 연결.
+ * The center of the media view in 준비 (spec 05, "Media view"): the list the
+ * playlist panels chose, as a grid of tiles, 가져오기 into it with each file's
+ * copy progress, and the size slider. A click selects a tile, a double click
+ * outputs it as the background, and a missing file's tile opens 다시 연결.
  */
-export function MediaView({api, onProblem}: MediaViewProps): JSX.Element {
-  const library = useMediaLibrary(api, onProblem);
-  const view = useSyncExternalStore(library.subscribe, library.getSnapshot);
+export function MediaView({onProblem}: MediaViewProps): JSX.Element {
+  const {library, view, choice} = useMediaView();
   const [selected, setSelected] = useState<string | null>(null);
   const [columns, setColumns] = useState(DEFAULT_MEDIA_COLUMNS);
   const [menu, setMenu] = useState<OpenMenu | null>(null);
   const [importing, setImporting] = useState(false);
   const liveId = useLive(state => state.state?.layers.media?.mediaId);
-  const entries = useMemo(
-    () => mediaEntries(view.document, view.jobs),
-    [view.document, view.jobs],
+  const entries = useMemo(() => mediaEntries(view, choice), [view, choice]);
+  const playlist = chosenPlaylist(view.document, choice);
+  const title =
+    playlist === null ? '모든 미디어' : playlist.name || UNNAMED_PLAYLIST;
+  const items = entries.flatMap(entry =>
+    entry.kind === 'media' ? [entry.item] : [],
   );
-  const items = view.document?.value.items ?? [];
   const index = entries.findIndex(({id}) => id === selected);
   const missing = (entry: MediaEntry): boolean =>
     entry.kind === 'media' && view.missing.has(entry.item.id);
@@ -177,7 +163,7 @@ export function MediaView({api, onProblem}: MediaViewProps): JSX.Element {
   const startImport = (): void => {
     setImporting(true);
     library
-      .import(null)
+      .import(playlist === null ? null : playlistRef(playlist))
       .catch((cause: unknown) => {
         console.error('Media import failed:', cause);
       })
@@ -187,11 +173,11 @@ export function MediaView({api, onProblem}: MediaViewProps): JSX.Element {
   };
   return (
     <>
-      <Panel label="미디어" className={styles.panel}>
+      <Panel label="미디어 보기" className={styles.panel}>
         <PanelHeader>
           <PanelTabs
-            tabs={[{value: 'all', label: '모든 미디어'}]}
-            value="all"
+            tabs={[{value: 'list', label: title}]}
+            value="list"
             onChange={() => undefined}
           />
           <PanelMeta>{items.length}</PanelMeta>
@@ -201,9 +187,9 @@ export function MediaView({api, onProblem}: MediaViewProps): JSX.Element {
             </Button>
           </PanelActions>
         </PanelHeader>
-        <PanelBody tab="all" className={styles.body}>
+        <PanelBody tab="list" className={styles.body}>
           <VirtualMediaGrid
-            label="모든 미디어"
+            label={title}
             count={entries.length}
             columns={columns}
             selected={index < 0 ? undefined : index}

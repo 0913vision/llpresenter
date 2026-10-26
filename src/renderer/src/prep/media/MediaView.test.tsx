@@ -4,6 +4,7 @@ import {thumbnailUrl} from '@shared/media';
 import {mediaDocument, mediaFixture, mediaId, mediaItem} from './mediaTesting';
 import {cssRules} from '@renderer/shell/testing/cssRules';
 import {DEFAULT_MEDIA_COLUMNS, MediaView} from './MediaView';
+import {MediaViewProvider} from './MediaViewProvider';
 import {INITIAL_ROWS, OVERSCAN_ROWS} from './VirtualMediaGrid';
 
 function setup() {
@@ -24,7 +25,11 @@ function setup() {
   onTestFinished(() => {
     delete window.llp;
   });
-  render(<MediaView api={fixture.api} onProblem={problems} />);
+  render(
+    <MediaViewProvider api={fixture.api} onProblem={problems}>
+      <MediaView onProblem={problems} />
+    </MediaViewProvider>,
+  );
   return {...fixture, problems};
 }
 
@@ -138,7 +143,11 @@ describe('media view', () => {
     onTestFinished(() => {
       delete window.llp;
     });
-    render(<MediaView api={fixture.api} onProblem={vi.fn()} />);
+    render(
+      <MediaViewProvider api={fixture.api} onProblem={vi.fn()}>
+        <MediaView onProblem={vi.fn()} />
+      </MediaViewProvider>,
+    );
     const grid = screen.getByRole('listbox', {name: '모든 미디어'});
     await within(grid).findByRole('option', {name: 'Tile 1'});
     const mounted = within(grid).getAllByRole('option');
