@@ -36,7 +36,7 @@ export interface MediaFacts {
   readonly width?: number;
   readonly height?: number;
   /** A JPEG at {@link THUMBNAIL_SIZE}. */
-  readonly thumbnail?: Buffer;
+  readonly thumbnail?: Uint8Array;
 }
 
 /**

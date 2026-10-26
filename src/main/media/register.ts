@@ -8,10 +8,7 @@ import type {Logger} from '../log';
 import {broadcast} from '../store/contentChannels';
 import type {MediaBackendPort} from '../store/mediaChannels';
 import type {WindowMode} from '../windows/testWindows';
-import type {AnalysisFiles} from './analysisFiles';
-import {openAnalysisPage} from './analysisPage';
-import {measureImage} from './measureImage';
-import {MediaAnalyser} from './mediaAnalyser';
+import type {MediaAnalysis} from './analysis';
 import {MediaImporter, type ImportStore} from './mediaImporter';
 import {mediaDialogFilters, type MediaKind} from './mediaKinds';
 import {MediaRelinker, type RelinkStore} from './mediaRelinker';
@@ -26,8 +23,8 @@ export interface MediaBackendRegistration {
   readonly media: Promise<MediaBackendStore | null>;
   readonly control: BrowserWindow;
   readonly windowMode: WindowMode;
-  /** The files analysis lends the media scheme to serve. */
-  readonly analysisFiles: AnalysisFiles;
+  /** Analysis and thumbnails for imports; their owner disposes them. */
+  readonly analysis: Pick<MediaAnalysis, 'analyse' | 'saveThumbnail'>;
   readonly log: Logger;
 }
 
@@ -121,8 +118,8 @@ function watchMissingFiles({media, log}: MediaBackendRegistration): {
  * cancelling, relinking a file, and the missing file check. Never throws: a
  * backend that can't connect is logged, and the missing file check still runs.
  *
- * @returns A function that stops analysis, cancels every import job, waits for
- * the running one, and disconnects.
+ * @returns A function that cancels every import job, waits for the running
+ * one, and disconnects.
  */
 export function registerMediaBackend(
   options: MediaBackendRegistration,
@@ -130,12 +127,6 @@ export function registerMediaBackend(
   const progress: {send: (value: MediaImportProgress) => void} = {
     send: () => undefined,
   };
-  const analyser = new MediaAnalyser({
-    openPage: signal => openAnalysisPage(options.log, signal),
-    files: options.analysisFiles,
-    measureImage,
-    log: options.log,
-  });
   const importer = new MediaImporter({
     store: () => options.media,
     report: value => {
@@ -143,7 +134,8 @@ export function registerMediaBackend(
     },
     chooseFiles: importDialog(options),
     createId: () => createMediaId(randomUUID()),
-    analyse: request => analyser.analyse(request),
+    analyse: options.analysis.analyse,
+    saveThumbnail: options.analysis.saveThumbnail,
     log: options.log,
   });
   const missing = watchMissingFiles(options);
@@ -167,7 +159,6 @@ export function registerMediaBackend(
     };
     return async () => {
       missing.dispose();
-      analyser.dispose();
       await importer.dispose();
       connection.disconnect();
     };
@@ -175,7 +166,6 @@ export function registerMediaBackend(
     options.log.error('could not connect the media backend', error);
     return () => {
       missing.dispose();
-      analyser.dispose();
       return importer.dispose();
     };
   }

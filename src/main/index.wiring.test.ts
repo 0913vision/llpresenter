@@ -3,7 +3,6 @@ import {join} from 'node:path';
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {LiveCommand} from '@shared/commands';
 import {makeTempDir} from '../../test/temp-dir';
-import {analysisTokenFromUrl} from '@shared/media';
 import type {LiveStore} from './live/store';
 import type {MediaBackendRegistration} from './media/register';
 import type {MediaHandlerOptions} from './windows/mediaResponse';
@@ -53,6 +52,16 @@ const fakes = vi.hoisted(() => {
     bibleContexts: new Array<unknown>(),
     bibleStop: vi.fn<() => void>(),
     mediaBackendContexts: new Array<MediaBackendRegistration>(),
+    analysisOptions: new Array<unknown>(),
+    analysis: {
+      lentFile: vi.fn<(token: string) => string | null>(() => 'a.mp4'),
+      analyse: vi.fn(),
+      thumbnailOf: vi.fn<(mediaId: string) => Promise<string | null>>(() =>
+        Promise.resolve('thumb.jpg'),
+      ),
+      saveThumbnail: vi.fn(),
+      dispose: vi.fn<() => void>(),
+    },
     mediaBackendStop: vi.fn<() => Promise<void>>(),
     closeContexts: new Array<unknown>(),
     confirmClose: vi.fn<() => Promise<boolean>>(),
@@ -159,6 +168,12 @@ vi.mock('./live/lookSelection', () => ({
   registerLookSelection: (context: unknown) => {
     fakes.lookSelectionContexts.push(context);
     return fakes.lookSelectionStop;
+  },
+}));
+vi.mock('./media/analysis', () => ({
+  startMediaAnalysis: (options: unknown) => {
+    fakes.analysisOptions.push(options);
+    return fakes.analysis;
   },
 }));
 vi.mock('./media/register', () => ({
@@ -317,6 +332,8 @@ beforeEach(async () => {
   fakes.bibleStop.mockReset();
   fakes.mediaBackendContexts.length = 0;
   fakes.mediaBackendStop.mockReset();
+  fakes.analysisOptions.length = 0;
+  fakes.analysis.dispose.mockReset();
   fakes.closeContexts.length = 0;
   fakes.confirmClose.mockReset().mockResolvedValue(true);
   fakes.closeStop.mockReset();
@@ -636,11 +653,27 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     );
   });
 
-  it('serves the files the media backend lends for analysis', async () => {
+  it('shares media analysis with the media scheme and the backend, and stops it after the backend', async () => {
     await startMain();
-    const lent = fakes.mediaBackendContexts[0]?.analysisFiles.lend('a.mp4');
-    const token = analysisTokenFromUrl(lent?.url ?? '') ?? '';
-    expect(fakes.mediaOptions[0]?.analysisFile?.(token)).toBe('a.mp4');
+    expect(fakes.analysisOptions).toMatchObject([
+      {
+        thumbnailFolder: join(
+          fakes.electron.app.getPath('userData'),
+          'cache',
+          'thumbnails',
+        ),
+      },
+    ]);
+    expect(fakes.mediaBackendContexts[0]?.analysis).toBe(fakes.analysis);
+    expect(fakes.mediaOptions[0]?.analysisFile?.('token')).toBe('a.mp4');
+    expect(await fakes.mediaOptions[0]?.thumbnail?.('id')).toBe('thumb.jpg');
+    beforeQuit();
+    await vi.waitFor(() =>
+      expect(fakes.analysis.dispose).toHaveBeenCalledOnce(),
+    );
+    expect(fakes.mediaBackendStop.mock.invocationCallOrder[0]).toBeLessThan(
+      fakes.analysis.dispose.mock.invocationCallOrder[0] ?? -Infinity,
+    );
   });
 
   it('asks to quit when the control window closes', async () => {

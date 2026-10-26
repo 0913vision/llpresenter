@@ -55,8 +55,10 @@ export interface MediaImporterOptions {
   /** The import dialog; no files when it is cancelled or unavailable. */
   readonly chooseFiles: () => Promise<readonly string[]>;
   readonly createId: () => MediaId;
-  /** Reads a placed file's duration and size, and whether it can play. */
+  /** Reads a placed file's duration, size, and thumbnail, and whether it can play. */
   readonly analyse: (request: AnalysisRequest) => Promise<Analysis>;
+  /** Keeps the thumbnail of a file that joined the media list. */
+  readonly saveThumbnail: (mediaId: MediaId, jpeg: Uint8Array) => Promise<void>;
   readonly log: Logger;
   readonly copy?: (options: CopyOptions) => ReturnType<typeof copyWithProgress>;
   /** Whether imports copy into the media folder; {@link COPY_IMPORTED_MEDIA} by default. */
@@ -274,7 +276,7 @@ export class MediaImporter {
     const analysis = await this.options.analyse({
       file: placed.file,
       kind: job.kind,
-      thumbnail: false,
+      thumbnail: true,
       signal: job.abort.signal,
     });
     if (cancelled(job)) {
@@ -291,10 +293,12 @@ export class MediaImporter {
         message: analysis.message,
       });
     }
-    return this.admit(job, store, {
-      placed,
-      facts: analysis.kind === 'read' ? analysis.facts : {},
-    });
+    const facts = analysis.kind === 'read' ? analysis.facts : {};
+    const outcome = await this.admit(job, store, {placed, facts});
+    if (outcome === COMPLETE && facts.thumbnail !== undefined) {
+      await this.options.saveThumbnail(job.mediaId, facts.thumbnail);
+    }
+    return outcome;
   }
 
   private refused(

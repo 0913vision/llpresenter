@@ -4,7 +4,7 @@ import {BrowserWindow} from 'electron';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {makeTempDir} from '../../../test/temp-dir';
 import {Channels} from '@shared/ipc';
-import {createMediaId} from '@shared/schema/ids';
+import {createMediaId, type MediaId} from '@shared/schema/ids';
 import {parseMediaDocument} from '@shared/schema/mediaEdit';
 import {expectSuccess} from '@shared/schema/testHelpers';
 import {recordingLogger} from '../displays/testing';
@@ -14,7 +14,7 @@ import type {
   MediaBackendConnection,
   MediaBackendPort,
 } from '../store/mediaChannels';
-import {AnalysisFiles} from './analysisFiles';
+import type {Analysis, AnalysisRequest} from './mediaAnalyser';
 import {registerMediaBackend, type MediaBackendStore} from './register';
 
 type Listener = (event: unknown, value: unknown) => void;
@@ -42,12 +42,6 @@ vi.mock('electron', () => ({
     }
   },
   dialog: {showOpenDialog: electron.showOpenDialog},
-  nativeImage: {
-    createFromPath: () => ({
-      isEmpty: () => false,
-      getSize: () => ({width: 4, height: 3}),
-    }),
-  },
   ipcMain: {
     handle: (channel: string, handler: () => unknown) => {
       electron.handlers.set(channel, handler);
@@ -66,7 +60,16 @@ vi.mock('electron', () => ({
   },
 }));
 
+const analysis = {
+  analyse: vi.fn<(request: AnalysisRequest) => Promise<Analysis>>(),
+  saveThumbnail: vi.fn<(mediaId: MediaId, jpeg: Uint8Array) => Promise<void>>(),
+};
+
 beforeEach(() => {
+  analysis.analyse.mockReset();
+  analysis.analyse.mockResolvedValue({kind: 'read', facts: {}});
+  analysis.saveThumbnail.mockReset();
+  analysis.saveThumbnail.mockResolvedValue(undefined);
   electron.showOpenDialog.mockReset();
   electron.send.mockReset();
   electron.destroyed = false;
@@ -147,7 +150,7 @@ function register(
     media: Promise.resolve(store),
     control: new BrowserWindow(),
     windowMode,
-    analysisFiles: new AnalysisFiles(),
+    analysis,
     log,
   });
 }
@@ -179,12 +182,17 @@ describe('media backend registration', () => {
     expect(disconnect).toHaveBeenCalledOnce();
   });
 
-  it('adds an imported image with the size main measured', async () => {
+  it('adds an imported file with what analysis found and keeps its thumbnail', async () => {
     const {port, reported, handlers} = fakePort();
     const store = await mediaStore();
     const added: unknown[] = [];
     const file = join(await makeTempDir(), 'Notice.png');
     await writeFile(file, 'invented');
+    const thumbnail = Uint8Array.from([1]);
+    analysis.analyse.mockResolvedValue({
+      kind: 'read',
+      facts: {width: 4, height: 3, thumbnail},
+    });
     const stop = register(port, {
       ...store,
       add: (commit, playlist) => {
@@ -199,8 +207,15 @@ describe('media backend registration', () => {
     await vi.waitFor(() =>
       expect(reported.at(-1)).toMatchObject({phase: 'complete'}),
     );
+    const [saved] = analysis.saveThumbnail.mock.calls;
+    expect(saved?.[1]).toBe(thumbnail);
     expect(added).toEqual([
-      expect.objectContaining({name: 'Notice', width: 4, height: 3}),
+      expect.objectContaining({
+        id: saved?.[0],
+        name: 'Notice',
+        width: 4,
+        height: 3,
+      }),
     ]);
     await stop();
   });

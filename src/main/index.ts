@@ -3,7 +3,7 @@ import {join} from 'node:path';
 import {isAnyOutputOn} from '@shared/live';
 import {registerBible} from './bible/register';
 import {registerTextImport} from './import/register';
-import {AnalysisFiles} from './media/analysisFiles';
+import {startMediaAnalysis} from './media/analysis';
 import {registerMediaBackend} from './media/register';
 import {LiveStore, dispatchLogged} from './live/store';
 import {startOverlays} from './live/overlays';
@@ -39,6 +39,7 @@ import {windowModeFrom, type WindowMode} from './windows/testWindows';
 const BAD_ENVIRONMENT_EXIT_CODE = 1;
 const UI_STATE_FILE = 'app.json';
 const RECOVERY_FOLDER = 'recovery';
+const THUMBNAIL_FOLDER = join('cache', 'thumbnails');
 
 const userDataProblem = applyUserDataOverride(
   process.env['LLP_USER_DATA'],
@@ -141,11 +142,16 @@ function start(): void {
         selection: dataStore,
         log,
       });
-      const analysisFiles = new AnalysisFiles();
+      const analysis = startMediaAnalysis({
+        media: dataStore.media,
+        thumbnailFolder: join(app.getPath('userData'), THUMBNAIL_FOLDER),
+        log,
+      });
       const stopServingMedia = serveMedia({
         resolvePath: dataStore.findMediaFile,
         mediaRoots: dataStore.mediaRoots,
-        analysisFile: token => analysisFiles.fileOf(token),
+        analysisFile: analysis.lentFile,
+        thumbnail: analysis.thumbnailOf,
         log,
       });
       const win = createControlWindow(log, windowMode, zoom);
@@ -157,7 +163,7 @@ function start(): void {
         media: dataStore.media,
         control: win,
         windowMode,
-        analysisFiles,
+        analysis,
         log,
       });
       const stopTextImport = registerTextImport({
@@ -225,6 +231,7 @@ function start(): void {
       shutdown.add({name: 'stop text import', run: stopTextImport});
       shutdown.add({name: 'stop Bible lookup', run: stopBible});
       shutdown.add({name: 'stop the media backend', run: stopMediaBackend});
+      shutdown.add({name: 'stop media analysis', run: analysis.dispose});
       shutdown.add({name: 'stop macros', run: macros.dispose});
       shutdown.add({name: 'stop overlays', run: stopOverlays});
       shutdown.add({name: 'stop Look selection', run: stopLookSelection});

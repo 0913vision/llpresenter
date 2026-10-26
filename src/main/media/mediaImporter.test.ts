@@ -3,7 +3,11 @@ import {mkdir, readdir, writeFile} from 'node:fs/promises';
 import {dirname, join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {makeTempDir} from '../../../test/temp-dir';
-import {createMediaId, createMediaPlaylistId} from '@shared/schema/ids';
+import {
+  createMediaId,
+  createMediaPlaylistId,
+  type MediaId,
+} from '@shared/schema/ids';
 import {
   parseMediaDocument,
   type MediaEditResult,
@@ -60,6 +64,9 @@ async function setup(options: Partial<MediaImporterOptions> = {}) {
   const analyse = vi.fn<(request: AnalysisRequest) => Promise<Analysis>>(() =>
     Promise.resolve({kind: 'read', facts: {}}),
   );
+  const saveThumbnail = vi.fn<
+    (mediaId: MediaId, jpeg: Uint8Array) => Promise<void>
+  >(() => Promise.resolve());
   const log = recordingLogger();
   const importer = new MediaImporter({
     store: () => Promise.resolve(store),
@@ -67,6 +74,7 @@ async function setup(options: Partial<MediaImporterOptions> = {}) {
     chooseFiles: () => Promise.resolve([]),
     createId: () => createMediaId(uuid(++next)),
     analyse,
+    saveThumbnail,
     log,
     ...options,
   });
@@ -85,6 +93,7 @@ async function setup(options: Partial<MediaImporterOptions> = {}) {
     add,
     source,
     analyse,
+    saveThumbnail,
     log,
   };
 }
@@ -317,6 +326,7 @@ describe('media import boundaries', () => {
       chooseFiles: () => Promise.resolve([]),
       createId: () => createMediaId(uuid(1)),
       analyse: () => Promise.resolve({kind: 'read', facts: {}}),
+      saveThumbnail: () => Promise.resolve(),
       log: recordingLogger(),
     });
     const source = join(root, 'Kept.png');
@@ -381,8 +391,9 @@ describe('media import boundaries', () => {
     expect(await readdir(media)).toEqual(['l.webm']);
   });
 
-  it('analyses each copied file and adds its duration and size', async () => {
-    const {importer, reports, items, analyse, media, source} = await setup();
+  it('analyses each copied file, adds its duration and size, and keeps its thumbnail', async () => {
+    const {importer, reports, items, analyse, saveThumbnail, media, source} =
+      await setup();
     analyse.mockResolvedValue({
       kind: 'read',
       facts: {
@@ -404,11 +415,15 @@ describe('media import boundaries', () => {
     expect(request).toMatchObject({
       file: join(media, 'Dawn.mp4'),
       kind: 'video',
-      thumbnail: false,
+      thumbnail: true,
     });
     expect(request?.signal?.aborted).toBe(false);
     expect(items[0]).toMatchObject({duration: 12.5, width: 1920, height: 1080});
     expect(items[0]).not.toHaveProperty('thumbnail');
+    expect(saveThumbnail).toHaveBeenCalledExactlyOnceWith(
+      uuid(1),
+      Buffer.from([1]),
+    );
   });
 
   it('fails a file the decoders refuse and removes its copy', async () => {
