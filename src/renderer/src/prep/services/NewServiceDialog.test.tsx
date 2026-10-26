@@ -43,7 +43,7 @@ function accepted(edit: ContentEdit): EditResult {
   };
 }
 
-function setup(answer: (edit: ContentEdit) => EditResult = accepted) {
+function setup(answer: (edit: ContentEdit) => EditResult | Error = accepted) {
   const edits: ContentEdit[] = [];
   const sent: LiveCommand[] = [];
   const open = vi.fn(
@@ -67,7 +67,10 @@ function setup(answer: (edit: ContentEdit) => EditResult = accepted) {
     content: {
       edit: edit => {
         edits.push(edit);
-        return Promise.resolve(answer(edit));
+        const result = answer(edit);
+        return result instanceof Error
+          ? Promise.reject(result)
+          : Promise.resolve(result);
       },
     },
     service: {open},
@@ -288,5 +291,100 @@ describe('NewServiceDialog', () => {
       title: '새 예배를 열 수 없음',
     });
     expect(useShow.getState().serviceId).toBeNull();
+  });
+
+  it('checks every item again when the operator returns to a source', async () => {
+    setup();
+    await userEvent.click(
+      await screen.findByRole('treeitem', {name: titles.second}),
+    );
+    expect(row(titles.second).getAttribute('aria-checked')).toBe('false');
+    await userEvent.click(screen.getByRole('option', {name: '빈 예배'}));
+    await userEvent.click(screen.getByRole('option', {name: /^주일 예배/}));
+    expect(
+      (await screen.findByRole('treeitem', {name: titles.second})).getAttribute(
+        'aria-checked',
+      ),
+    ).toBe('true');
+  });
+
+  it('deletes the new service again when copying its items is rejected', async () => {
+    const {edits, open, onClose, onProblem} = setup(edit =>
+      edit.type === 'service.importItems'
+        ? new Error('Copy failed in the test')
+        : accepted(edit),
+    );
+    await screen.findByRole('treeitem', {name: titles.first});
+    await userEvent.click(createButton());
+    await waitFor(() => expect(onProblem).toHaveBeenCalled());
+    expect(edits.map(edit => edit.type)).toEqual([
+      'service.create',
+      'service.importItems',
+      'service.delete',
+    ]);
+    expect(onProblem.mock.calls[0]?.[0]).toMatchObject({
+      title: '새 예배를 만들 수 없음',
+    });
+    expect(open).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('opens the empty new service and closes when it can not be deleted either', async () => {
+    const {edits, open, onClose, onProblem} = setup(edit =>
+      edit.type === 'service.create'
+        ? accepted(edit)
+        : edit.type === 'service.importItems'
+          ? REFUSED
+          : new Error('Delete failed in the test'),
+    );
+    await screen.findByRole('treeitem', {name: titles.first});
+    await userEvent.click(createButton());
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(edits).toHaveLength(3);
+    expect(open).toHaveBeenCalledWith({serviceId: ids.created});
+    expect(useShow.getState().serviceId).toBe(ids.created);
+    expect(onProblem.mock.calls[0]?.[0]).toMatchObject({
+      title: '새 예배에 항목을 가져올 수 없음',
+    });
+  });
+
+  it('closes, without making it twice, when opening the new service is rejected', async () => {
+    const {edits, open, onClose, onProblem} = setup();
+    open.mockRejectedValueOnce(new Error('Open failed in the test'));
+    await screen.findByRole('treeitem', {name: titles.first});
+    await userEvent.click(createButton());
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(edits.map(edit => edit.type)).toEqual([
+      'service.create',
+      'service.importItems',
+    ]);
+    expect(onProblem.mock.calls[0]?.[0]).toMatchObject({
+      title: '새 예배를 열 수 없음',
+    });
+  });
+
+  it('offers 다시 시도 when a list could not be read', async () => {
+    const list = vi
+      .fn<() => Promise<typeof templateEntries>>()
+      .mockRejectedValueOnce(new Error('Read failed in the test'))
+      .mockResolvedValue(templateEntries);
+    window.llp = fakeLlpApi({
+      templates: {list, get: () => Promise.resolve(templateDocument)},
+      services: {list: () => Promise.resolve(serviceEntries)},
+      songs: {list: () => Promise.resolve(librarySongs)},
+    });
+    render(
+      <NewServiceDialog
+        onClose={() => undefined}
+        onProblem={() => undefined}
+      />,
+    );
+    await userEvent.click(
+      await screen.findByRole('button', {name: '다시 시도'}),
+    );
+    expect(
+      await screen.findByRole('option', {name: /^주일 예배/}),
+    ).toBeDefined();
+    expect(screen.queryByRole('button', {name: '다시 시도'})).toBeNull();
   });
 });

@@ -40,6 +40,7 @@ export function NewServiceDialog({
           selected={state.source}
           onSelect={state.choose}
           withEmpty
+          onRetry={state.lists.failed ? state.lists.retry : undefined}
         />
       }
       bottomBar={

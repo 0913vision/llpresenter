@@ -1,11 +1,14 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
 import type {LlpApi} from '@shared/ipc';
-import type {EditResult} from '@shared/schema/contentEdit';
-import {serviceIdSchema, type ServiceId} from '@shared/schema/ids';
-import {parsePayload} from '@shared/schema/payload';
 import {applyService} from '@renderer/state/show';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/notices';
 import {localDate} from './serviceDates';
+import {
+  appliedId,
+  asServiceId,
+  editApplied,
+  warningNotice,
+} from './serviceEdits';
 import {
   checkAll,
   selectedIds,
@@ -23,9 +26,12 @@ import {
 } from './useServiceSources';
 
 const DEFAULT_NAME = '새 예배';
-const problemTitles = {
-  create: '새 예배를 만들 수 없음',
-  open: '새 예배를 열 수 없음',
+type CreateProblem = 'not-made' | 'not-copied' | 'not-opened';
+
+const problemTitles: Readonly<Record<CreateProblem, string>> = {
+  'not-made': '새 예배를 만들 수 없음',
+  'not-copied': '새 예배에 항목을 가져올 수 없음',
+  'not-opened': '새 예배를 열 수 없음',
 };
 
 type NewServiceApi = Pick<
@@ -33,30 +39,19 @@ type NewServiceApi = Pick<
   'content' | 'service' | 'services' | 'templates' | 'songs' | 'log'
 >;
 
-function problemNotice(cause: keyof typeof problemTitles): Notice {
-  return {
-    key: `new-service:${cause}`,
-    kind: 'warning',
-    icon: 'warning',
-    title: problemTitles[cause],
-    time: noticeTime(),
-  };
-}
-
-// NOTE(0913vision): A failed save still made the service; main saves it later.
-function createdId(result: EditResult): ServiceId | null {
-  const id = result.ok
-    ? result.value.id
-    : result.error.reason === 'write-failed'
-      ? result.error.applied.id
-      : null;
-  if (id === null) return null;
-  const parsed = parsePayload(serviceIdSchema, id);
-  return parsed.ok ? parsed.value : null;
-}
-
-function succeeded(result: EditResult): boolean {
-  return result.ok || result.error.reason === 'write-failed';
+// NOTE(0913vision): A rejected call is logged and answers `undefined`, so each
+// step of a create can tell its own failure apart.
+async function settle<T>(
+  api: NewServiceApi,
+  what: string,
+  run: () => Promise<T>,
+): Promise<T | undefined> {
+  try {
+    return await run();
+  } catch (cause) {
+    logFailure(api, what, cause);
+    return undefined;
+  }
 }
 
 function currentHour(): string {
@@ -68,9 +63,11 @@ function defaultName(document: SourceDocument | null): string {
   return document.source.kind === 'empty' ? DEFAULT_NAME : document.name;
 }
 
-// NOTE(0913vision): Opening the new service doesn't touch the output. When the
-// items can't be copied, the empty service is deleted again, so a refusal
-// leaves nothing behind.
+// NOTE(0913vision): Each step fails on its own. Nothing is made when the
+// create fails. When the items can't be copied, the empty service is deleted
+// again; if that fails too, it is opened, so the operator lands on it. A
+// service that is made is never made twice: every failure after the create
+// closes the dialog. Opening it doesn't touch the output.
 async function createService({
   api,
   name,
@@ -83,33 +80,37 @@ async function createService({
   readonly date: string;
   readonly document: SourceDocument;
   readonly itemIds: ReturnType<typeof selectedIds>;
-}): Promise<keyof typeof problemTitles | null> {
-  const id = createdId(
-    await api.content.edit({
-      type: 'service.create',
-      name,
-      date,
-      templateId: null,
-    }),
+}): Promise<CreateProblem | null> {
+  const made = await settle(api, 'Could not create a service', () =>
+    api.content.edit({type: 'service.create', name, date, templateId: null}),
   );
-  if (id === null) return 'create';
+  const id = made === undefined ? null : asServiceId(appliedId(made));
+  if (id === null) return 'not-made';
+  let problem: CreateProblem | null = null;
   const {source} = document;
   if (source.kind !== 'empty' && itemIds.length > 0) {
-    const imported = await api.content.edit({
-      type: 'service.importItems',
-      serviceId: id,
-      from: source,
-      itemIds: [...itemIds],
-    });
-    if (!succeeded(imported)) {
-      await api.content.edit({type: 'service.delete', serviceId: id});
-      return 'create';
+    const copied = await settle(api, 'Could not copy items to a service', () =>
+      api.content.edit({
+        type: 'service.importItems',
+        serviceId: id,
+        from: source,
+        itemIds: [...itemIds],
+      }),
+    );
+    if (copied === undefined || !editApplied(copied)) {
+      const removed = await settle(api, 'Could not delete a service', () =>
+        api.content.edit({type: 'service.delete', serviceId: id}),
+      );
+      if (removed !== undefined && editApplied(removed)) return 'not-made';
+      problem = 'not-copied';
     }
   }
-  const opened = await api.service.open({serviceId: id});
-  if (opened?.id !== id) return 'open';
+  const opened = await settle(api, 'Could not open a service', () =>
+    api.service.open({serviceId: id}),
+  );
+  if (opened?.id !== id) return problem ?? 'not-opened';
   applyService(opened);
-  return null;
+  return problem;
 }
 
 /** The state and actions of the 새 예배 dialog. */
@@ -146,6 +147,12 @@ export function useNewService({
     picked?.key === key ? picked.selection : checkAll(rows, true);
   const setSelection = (next: TreeSelection): void =>
     setPicked({key, selection: next});
+  // NOTE(0913vision): Choosing a source checks every item again (spec 05),
+  // also when the operator returns to a source they changed.
+  const choose = (next: ServiceSource): void => {
+    setChosen(next);
+    setPicked(null);
+  };
 
   const [typedName, setName] = useState<string | null>(null);
   const name = typedName ?? defaultName(document);
@@ -176,15 +183,15 @@ export function useNewService({
       document,
       itemIds: selectedIds(rows, selection),
     })
-      .catch((cause: unknown) => {
-        logFailure(api, 'Could not create a service', cause);
-        return 'create' as const;
-      })
       .then(problem => {
         if (!alive.current) return;
         setBusy(false);
-        if (problem !== null) onProblem(problemNotice(problem));
-        if (problem !== 'create') onDone();
+        if (problem !== null) {
+          onProblem(
+            warningNotice(`new-service:${problem}`, problemTitles[problem]),
+          );
+        }
+        if (problem !== 'not-made') onDone();
       })
       .catch((cause: unknown) => {
         console.error('Failed to finish creating a service:', cause);
@@ -194,7 +201,7 @@ export function useNewService({
   return {
     lists,
     source,
-    choose: setChosen,
+    choose,
     document,
     missing,
     rows,
