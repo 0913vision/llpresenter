@@ -178,20 +178,20 @@ Phase 1 makes the app read the dev server port (`LLP_DEV_PORT`) and the app data
 folder (`LLP_USER_DATA`) from environment variables. With different app data
 folders, several copies of the same app can run without colliding.
 
-| Session | Port | App data folder     |
-| ------- | ---- | ------------------- |
-| lead    | 5173 | `D:\llp-dev\lead`   |
-| trial   | 5190 | `D:\llp-dev\trial`  |
-| devops  | 5185 | `D:\llp-dev\devops` |
-| ui      | 5186 | `D:\llp-dev\ui`     |
-| shell   | 5187 | `D:\llp-dev\shell`  |
-| data    | 5188 | `D:\llp-dev\data`   |
-| qa      | 5189 | `D:\llp-dev\qa`     |
-| prep    | 5181 | `D:\llp-dev\prep`   |
-| output  | 5182 | `D:\llp-dev\output` |
-| tools   | 5183 | `D:\llp-dev\tools`  |
-| polish  | 5184 | `D:\llp-dev\polish` |
-| screens | 5192 | `D:llp-devscreens`  |
+| Session | Port | App data folder      |
+| ------- | ---- | -------------------- |
+| lead    | 5173 | `D:\llp-dev\lead`    |
+| trial   | 5190 | `D:\llp-dev\trial`   |
+| devops  | 5185 | `D:\llp-dev\devops`  |
+| ui      | 5186 | `D:\llp-dev\ui`      |
+| shell   | 5187 | `D:\llp-dev\shell`   |
+| data    | 5188 | `D:\llp-dev\data`    |
+| qa      | 5189 | `D:\llp-dev\qa`      |
+| prep    | 5181 | `D:\llp-dev\prep`    |
+| output  | 5182 | `D:\llp-dev\output`  |
+| tools   | 5183 | `D:\llp-dev\tools`   |
+| polish  | 5184 | `D:\llp-dev\polish`  |
+| screens | 5192 | `D:\llp-dev\screens` |
 
 ## Milestones and QA
 
