@@ -675,16 +675,23 @@ and 59.
   it as the background (see 03).
 - 가져오기 opens a file dialog for one or more video, image, or audio files.
   Supported formats come from the technical test in `docs/TECH.md`.
-  - Each file copies into the media folder. Its tile shows the progress (dimmed
-    picture, percent, progress bar). A copying tile can't be clicked, and its
-    right-click menu has only 복사 멈추기 (stop copying).
-  - After the copy, a helper process reads the thumbnail and duration. The media
-    joins 모든 미디어 and the selected playlist.
+  - 미디어 폴더로 복사 is an option, off by default (October 27 user decision).
+    It uses `preferences.json` `media.copyOnImport`, shared by the file dialog
+    and Explorer drops. Off references the original file; on copies into the
+    configured media folder. Existing files and queued jobs do not move when the
+    option changes. A request snapshots its choice before admitting jobs.
+  - A copying tile shows progress (dimmed picture, percent, progress bar). It
+    can't be clicked, and its right-click menu has only 복사 멈추기. Imports
+    that reference a file still show analysis progress without pretending to
+    copy it. Cancellation or failure never deletes an original source file.
+  - After placement, a helper process reads the thumbnail and duration. The
+    media joins 모든 미디어 and the selected playlist.
   - A file that can't play shows a warning icon on its tile, with the reason in
     a tooltip (proposal).
-  - Whether to copy files or refer to them in place is an open question. The
-    copy progress in the board implies copying, but the file paths in the board
-    point to the original folder.
+  - 가져오기 설정 beside 가져오기 opens a checked menu item 미디어 폴더로 복사.
+    It edits the same preference as 환경설정 > 미디어. This local placement
+    keeps the option reachable before the full Preferences window lands; it does
+    not add a separate import mode or delay opening the file dialog.
 - Dropping files from Windows Explorer on the grid imports them (proposal).
 - Dragging tiles onto a playlist in the left column adds them to that playlist
   (proposal).

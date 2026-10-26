@@ -551,6 +551,18 @@ source gives default keys for ProPresenter's group labels; 10). The board spells
 
 ### 환경설정 (`preferences.json`)
 
+`media.copyOnImport` is an optional Boolean, default `false` (October 27 user
+decision). Off imports reference the original file in place. On imports copy
+into the configured media folder. Read the choice once when an import request is
+admitted; changing it affects the next request, not jobs already queued.
+Changing the choice does not move, recopy or relink existing media. Preserve an
+explicit saved value; an absent value uses off.
+
+Store paths relative to the media folder when inside it, absolute otherwise.
+Cancelling or failing an import may remove only copies created by that job,
+never the original. Removing an item from the media list does not delete its
+source file.
+
 | Area       | Field                  | Type and default                             | UI name                                                                 | Source                |
 | ---------- | ---------------------- | -------------------------------------------- | ----------------------------------------------------------------------- | --------------------- |
 | General    | `language`             | `"ko"`                                       | 언어: 한국어 (language: Korean). Version 1 has Korean only.             | `Prefs`               |
@@ -680,7 +692,9 @@ change this picker preference.
 - One media item can be in several playlists (proposal). Removing it from a
   playlist keeps it in the media list.
 - Thumbnails and durations live in `cache\`. If they're deleted, rebuild them.
-- Importing media copies the file into the media folder (see 05, open question).
+- Importing media references its original file by default. Copying into the
+  media folder is optional through `media.copyOnImport`, default off (October 27
+  user decision; see 05 and 10).
 
 ## Bible translations
 
