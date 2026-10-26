@@ -7,14 +7,18 @@ import type {SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';
 import styles from './SongHeader.module.css';
 import {SongBackground} from './SongBackground';
+import type {SongId} from '@shared/schema/ids';
+import {ImportedSongActions} from '../import/ImportedSongActions';
 
 /** The library source title and its service usage; edits share the song queue. */
 export function SongHeader({
   store,
   session,
+  onImportedSave,
 }: {
   readonly store: SongEditorStore;
   readonly session: SongSession;
+  readonly onImportedSave?: ((id: SongId) => void) | undefined;
 }): JSX.Element {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const titleFrame = useRef<HTMLDivElement>(null);
@@ -67,22 +71,29 @@ export function SongHeader({
       <span className={styles.count}>
         슬라이드 {session.history.snapshot.song.slides.length}개
       </span>
-      <span className={styles.library}>
-        <Icon name="folder" size={12} />
-        라이브러리
-      </span>
-      <Tooltip
-        text={
-          usedBy.map(service => service.name).join(', ') ||
-          '사용 중인 예배 순서 없음'
-        }
-      >
-        <span tabIndex={0} className={styles.used}>
-          <Icon name="link" size={14} />
-          예배 순서 {usedBy.length}곳
-        </span>
-      </Tooltip>
+      {state.imported ? null : (
+        <>
+          <span className={styles.library}>
+            <Icon name="folder" size={12} />
+            라이브러리
+          </span>
+          <Tooltip
+            text={
+              usedBy.map(service => service.name).join(', ') ||
+              '사용 중인 예배 순서 없음'
+            }
+          >
+            <span tabIndex={0} className={styles.used}>
+              <Icon name="link" size={14} />
+              예배 순서 {usedBy.length}곳
+            </span>
+          </Tooltip>
+        </>
+      )}
       <SongBackground store={store} session={session} busy={state.busy} />
+      {state.imported ? (
+        <ImportedSongActions store={store} onSaved={onImportedSave} />
+      ) : null}
     </header>
   );
 }

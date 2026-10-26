@@ -1,3 +1,4 @@
+import type {SongId} from '@shared/schema/ids';
 import {
   Fragment,
   useCallback,
@@ -255,6 +256,7 @@ function screensPanelParts(
 }
 
 interface PrepBinding {
+  readonly onImportedSave?: ((id: SongId) => void) | undefined;
   readonly api: LlpApi;
   readonly editor: SongEditorStore;
   readonly items: ServiceItemStore;
@@ -319,7 +321,14 @@ function prepPanelParts({
             />
           ),
         }
-      : {body: <SongEditor store={prep.editor} />};
+      : {
+          body: (
+            <SongEditor
+              store={prep.editor}
+              onImportedSave={prep.onImportedSave}
+            />
+          ),
+        };
   }
   if (title === '미리보기') {
     return {
@@ -345,8 +354,10 @@ function prepPanelParts({
 }
 
 function openPrepItem(prep: PrepBinding | undefined): void {
-  prep?.onServiceItemOpen?.();
-  prep?.editor.open(null);
+  prep?.editor.requestLeave(() => {
+    prep.onServiceItemOpen?.();
+    prep.editor.open(null);
+  });
 }
 
 function serviceOrderParts({

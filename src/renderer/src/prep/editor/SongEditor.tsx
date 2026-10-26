@@ -13,19 +13,26 @@ import {ArrangementRow} from './ArrangementRow';
 import type {SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';
 import styles from './SongEditor.module.css';
+import type {SongId} from '@shared/schema/ids';
 
 /** Mount with a window-owned store; unmounting does not discard song history. */
 export function SongEditor({
   store,
+  onImportedSave,
 }: {
   readonly store: SongEditorStore;
+  readonly onImportedSave?: ((id: SongId) => void) | undefined;
 }): JSX.Element {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
   return (
     <section aria-label="곡 편집" className={styles.editor}>
       {state.session === null ? null : (
         <div key={state.session.document.song.id} className={styles.content}>
-          <SongHeader store={store} session={state.session} />
+          <SongHeader
+            store={store}
+            session={state.session}
+            onImportedSave={onImportedSave}
+          />
           <ArrangementRow store={store} session={state.session} />
           <div className={styles.blocks}>
             <SongBlocks store={store} session={state.session} />

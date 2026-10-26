@@ -172,6 +172,10 @@ export class SongEditorStore {
     this.publish();
   }
 
+  reportImportReadFailure(): void {
+    this.problem('덮어쓸 곡 불러오기 실패');
+  }
+
   discardImported(): void {
     if (this.locked) return;
     const action = this.pendingLeave;

@@ -1,4 +1,11 @@
-import {useMemo, useState, useSyncExternalStore, type JSX} from 'react';
+import {
+  useCallback,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+  type JSX,
+} from 'react';
+import {TextImportFlow} from '@renderer/prep/import/TextImportFlow';
 import type {UiState} from '@shared/schema/uiState';
 import type {ColumnWidthStore} from '@renderer/shell/columnWidthStore';
 import {useClearKeys} from '@renderer/show/clearKeys';
@@ -46,6 +53,10 @@ export function App({
   const warnings = useMemo(() => warningScreens(warningMap), [warningMap]);
   const [workspace, setWorkspace] = useState<WorkspaceId>('show');
   const [prepMedia, setPrepMedia] = useState(false);
+  const [importSource, setImportSource] = useState<'file' | 'clipboard' | null>(
+    null,
+  );
+  const closeImport = useCallback(() => setImportSource(null), []);
   const prepSelection = usePrepSelection();
   const notices = useSyncExternalStore(session.subscribe, session.getNotices);
   const [warningHeight, setWarningHeight] = useState(0);
@@ -60,6 +71,14 @@ export function App({
   return (
     <div className={styles.app} data-size={sizeClass}>
       <MenuBar
+        onImportText={
+          session.api && importSource === null
+            ? source => {
+                onWorkspace('prep');
+                session.editor?.requestLeave(() => setImportSource(source));
+              }
+            : undefined
+        }
         title={serviceName}
         onProblem={session.report}
         warnings={warnings}
@@ -102,14 +121,19 @@ export function App({
                 selectionRequest: prepSelection.request,
                 onSelectionHandled: prepSelection.handled,
                 onServiceItemOpen: prepSelection.clear,
+                onImportedSave: prepSelection.openSong,
               }
             : undefined
         }
         onOpenPrep={itemId => {
-          prepSelection.clear();
-          openItem(itemId);
           onWorkspace('prep');
-          session.editor?.open(null);
+          const open = (): void => {
+            prepSelection.clear();
+            openItem(itemId);
+            session.editor?.open(null);
+          };
+          if (session.editor === undefined) open();
+          else session.editor.requestLeave(open);
         }}
         warningHeight={warningHeight}
         mediaVisible={mediaStrip.visible}
@@ -117,6 +141,16 @@ export function App({
         sidebar={sidebar}
       />
       <StatusBar />
+      {session.api && session.editor && importSource !== null ? (
+        <TextImportFlow
+          api={session.api}
+          store={session.editor}
+          source={importSource}
+          onDone={closeImport}
+          onEdit={prepSelection.clear}
+          onProblem={session.report}
+        />
+      ) : null}
       <RecoveryPrompt api={session.api} onProblem={session.report} />
       <NotificationStack
         notices={notices}

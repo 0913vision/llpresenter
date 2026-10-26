@@ -32,6 +32,18 @@ function outputItem(name: string): HTMLElement {
 }
 
 describe('MenuBar', () => {
+  it.each([
+    {label: '텍스트 파일', source: 'file'},
+    {label: '클립보드 텍스트', source: 'clipboard'},
+  ])('starts $source import from the File submenu', async ({label, source}) => {
+    const onImport = vi.fn();
+    render(<MenuBar title="" onImportText={onImport} />);
+    await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
+    await userEvent.click(screen.getByRole('menuitem', {name: '가져오기'}));
+    await userEvent.click(await screen.findByRole('menuitem', {name: label}));
+    expect(onImport).toHaveBeenCalledExactlyOnceWith(source);
+    expect(screen.queryByRole('menu', {name: '파일'})).toBeNull();
+  });
   it('shows the service name in the center', () => {
     render(<MenuBar title="주일 예배" />);
     expect(screen.getByText('주일 예배')).toBeTruthy();
