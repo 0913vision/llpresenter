@@ -4,9 +4,14 @@ import {parsePayload, plainObject} from './payload';
 
 /**
  * Bounds for the problems that main reports to the windows. `listed` is well
- * above the startup file problems that settings and content can report.
+ * above the startup file problems that settings and content can report;
+ * `waitingSaves` is the most files that wait for a save retry at once.
  */
-export const APP_PROBLEM_LIMITS = {nameCharacters: 200, listed: 64} as const;
+export const APP_PROBLEM_LIMITS = {
+  nameCharacters: 200,
+  listed: 64,
+  waitingSaves: 256,
+} as const;
 
 const nameSchema = v.pipe(
   v.string(),
@@ -21,6 +26,17 @@ const appProblemSchema = v.pipe(
       macroId: macroIdSchema,
       name: nameSchema,
     }),
+    v.object({
+      kind: v.literal('save-failed'),
+      name: v.pipe(nameSchema, v.nonEmpty()),
+      count: v.pipe(
+        v.number(),
+        v.integer(),
+        v.minValue(1),
+        v.maxValue(APP_PROBLEM_LIMITS.waitingSaves),
+      ),
+    }),
+    v.object({kind: v.literal('save-recovered')}),
   ]),
 );
 
@@ -31,11 +47,23 @@ const appProblemListSchema = v.pipe(
 
 /**
  * A problem that main reports to the windows for a notification card, one
- * kind at a time. `macro-dropped`: a dispatch that ran this 매크로 was dropped
- * whole, because its result would break the live state limits (spec 08,
- * 매크로 적용 실패); `name` is the 매크로's name when it ran.
+ * kind at a time.
+ *
+ * - `macro-dropped`: a dispatch that ran this 매크로 was dropped whole,
+ *   because its result would break the live state limits (spec 08, 매크로
+ *   적용 실패); `name` is the 매크로's name when it ran.
+ * - `save-failed`: files wait in memory because they couldn't be written
+ *   (spec 02 and 08, 저장할 수 없음); `name` names the oldest one, and `count`
+ *   is how many wait. Main pushes it again whenever either changes.
+ * - `save-recovered`: every waiting file is written now.
  */
 export type AppProblem = Readonly<v.InferOutput<typeof appProblemSchema>>;
+
+/** The problems of one kind. */
+export type AppProblemOf<TKind extends AppProblem['kind']> = Extract<
+  AppProblem,
+  {readonly kind: TKind}
+>;
 
 /** Checks an `app:problem` push. Unknown fields are dropped. Never throws. */
 export function parseAppProblem(value: unknown) {
@@ -57,13 +85,28 @@ function clipped(text: string, length: number): string {
 }
 
 /**
+ * The problem for files that wait for a save retry. A name over the limit is
+ * cut at a whole character.
+ */
+export function saveFailedProblem(
+  name: string,
+  count: number,
+): AppProblemOf<'save-failed'> {
+  return {
+    kind: 'save-failed',
+    name: clipped(name, APP_PROBLEM_LIMITS.nameCharacters),
+    count,
+  };
+}
+
+/**
  * The problem for a 매크로 in a dropped dispatch. A name over the limit is cut
  * at a whole character.
  */
 export function macroDroppedProblem(
   macroId: MacroId,
   name: string,
-): AppProblem {
+): AppProblemOf<'macro-dropped'> {
   return {
     kind: 'macro-dropped',
     macroId,

@@ -352,6 +352,11 @@ describe('preload', () => {
     expect(electron.handlers.has(Channels.appProblem)).toBe(false);
   });
 
+  it('sends a save retry without a payload', () => {
+    api.problems.retrySaves();
+    expect(electron.send.mock.calls).toEqual([[Channels.appProblemRetrySaves]]);
+  });
+
   it('sends 강제로 닫기 without a payload', () => {
     api.app.closeAnyway();
     expect(electron.send.mock.calls).toEqual([[Channels.appCloseAnyway]]);

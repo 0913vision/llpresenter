@@ -4,6 +4,7 @@ import {
   macroDroppedProblem,
   parseAppProblem,
   parseAppProblems,
+  saveFailedProblem,
 } from './appProblem';
 import {macroIdSchema} from './ids';
 import {testId} from './testHelpers';
@@ -23,6 +24,45 @@ describe('app problem payloads', () => {
       ok: true,
       value: {kind: 'macro-dropped', macroId: MACRO_ID, name: '예배 시작'},
     });
+  });
+
+  it.each([
+    {kind: 'save-failed', name: 'songs.llsong', count: 1},
+    {
+      kind: 'save-failed',
+      name: 'x',
+      count: APP_PROBLEM_LIMITS.waitingSaves,
+    },
+    {kind: 'save-recovered'},
+  ])('reads %j', value => {
+    expect(parseAppProblem(value)).toEqual({ok: true, value});
+  });
+
+  it.each([
+    {kind: 'save-failed', name: '', count: 1},
+    {kind: 'save-failed', name: 'x', count: 0},
+    {kind: 'save-failed', name: 'x', count: 1.5},
+    {
+      kind: 'save-failed',
+      name: 'x',
+      count: APP_PROBLEM_LIMITS.waitingSaves + 1,
+    },
+    {kind: 'save-failed', count: 1},
+  ])('rejects the save problem %j', value => {
+    expect(parseAppProblem(value).ok).toBe(false);
+  });
+
+  it('builds a save problem that cuts a long name', () => {
+    const problem = saveFailedProblem(
+      'y'.repeat(APP_PROBLEM_LIMITS.nameCharacters + 5),
+      2,
+    );
+    expect(problem).toEqual({
+      kind: 'save-failed',
+      name: 'y'.repeat(APP_PROBLEM_LIMITS.nameCharacters),
+      count: 2,
+    });
+    expect(parseAppProblem(problem).ok).toBe(true);
   });
 
   it('accepts a name at the limit', () => {

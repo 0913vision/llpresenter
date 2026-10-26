@@ -226,6 +226,9 @@ const api: LlpApi = {
     list: () => invokeChecked(Channels.appProblemList, parseAppProblems),
     subscribe: listener =>
       listen(Channels.appProblem, parseAppProblem, listener),
+    retrySaves: () => {
+      ipcRenderer.send(Channels.appProblemRetrySaves);
+    },
   },
   live: {
     get: () => invokeChecked(Channels.liveGet, parseLiveState),

@@ -62,6 +62,7 @@ export const Channels = {
   appCloseAnyway: 'app:close-anyway',
   appProblem: 'app:problem',
   appProblemList: 'app:problem:list',
+  appProblemRetrySaves: 'app:problem:retry-saves',
   liveGet: 'live:get',
   liveCommand: 'live:command',
   liveChanged: 'live:changed',
@@ -160,6 +161,11 @@ export interface LlpApi {
      * @returns A function that removes the listener. Always call it.
      */
     subscribe(listener: (problem: AppProblem) => void): Unsubscribe;
+    /**
+     * 다시 시도 of 저장할 수 없음: writes every waiting file again at once. A
+     * later push says how it went.
+     */
+    retrySaves(): void;
   };
   readonly live: {
     /**

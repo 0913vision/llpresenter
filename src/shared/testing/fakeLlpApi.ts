@@ -38,6 +38,7 @@ export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
     problems: {
       list: () => Promise.resolve([]),
       subscribe: () => () => undefined,
+      retrySaves: () => undefined,
       ...overrides.problems,
     },
     live: {

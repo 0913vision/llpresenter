@@ -159,7 +159,7 @@ describe('dropped dispatch problems', () => {
     const log = recordingLogger();
     const received: string[] = [];
     live.subscribeProblems(problem => {
-      received.push(problem.name);
+      if (problem.kind === 'macro-dropped') received.push(problem.name);
       expect(log.messages('warn')).toEqual(['dropped live dispatch']);
     });
     dispatchLogged(
