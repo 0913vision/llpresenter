@@ -160,3 +160,25 @@ missing.
 ## Team member's reply
 
 1.
+
+## Round 1 reply
+
+Both in
+`fix(media): bound opening the analysis page and unwind an analysis on disposal`.
+
+1. [P2] `mediaAnalyser.ts:225`, a page that never opened blocked the queue. One
+   deadline now covers opening the page and running the job. When it passes, the
+   page is given up and the next file opens a new one. Opening takes an abort
+   signal, aborted whenever analysis gives up on a page (after a timeout, when
+   idle, or on disposal), so the window can be destroyed while it still loads;
+   data-53 does that on the window side. Regression: a page that never opens
+   times out, its signal aborts, the file is given back, and the next file opens
+   a new page and is read.
+2. [P2] `mediaAnalyser.ts:167`, disposal left the running analysis going. The
+   running analysis now has an abort controller that disposal aborts: its
+   deadline ends at once and clears its timer, the file is given back, and a
+   page that opens afterwards is never run, only closed. Regressions: disposal
+   while the page opens (the caller answered, the open signal aborted, no timer
+   left, the file given back, and the late page closed without a run) and while
+   the page runs (no timer left, the file given back). The three new tests fail
+   without the fix.
