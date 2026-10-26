@@ -119,6 +119,38 @@ afterEach(() => {
 });
 
 describe('NewServiceDialog', () => {
+  it('refreshes today across midnight without resetting the chosen date', async () => {
+    vi.setSystemTime(new Date(2026, 9, 26, 23, 59));
+    const {edits, onClose} = setup();
+    const user = userEvent.setup();
+    await screen.findByRole('treeitem', {name: titles.first});
+    const date = screen.getByRole('button', {name: '날짜'});
+    await user.click(date);
+    await user.keyboard('{ArrowRight}{ArrowRight}{ArrowRight}{Enter}');
+    expect(date.textContent).toBe('10월 29일 목요일');
+    vi.setSystemTime(new Date(2026, 9, 27, 0, 1));
+    await user.click(date);
+    expect(date.textContent).toBe('10월 29일 목요일');
+    expect(
+      screen
+        .getByRole('button', {name: '2026년 10월 27일 화요일'})
+        .getAttribute('aria-current'),
+    ).toBe('date');
+    await user.click(screen.getByRole('button', {name: '오늘'}));
+    expect(date.textContent).toBe('10월 27일 화요일');
+    await user.click(date);
+    vi.setSystemTime(new Date(2026, 9, 28, 0, 1));
+    await user.click(screen.getByRole('button', {name: '오늘'}));
+    expect(date.textContent).toBe('10월 28일 수요일');
+    expect(edits).toHaveLength(0);
+    await user.click(createButton());
+    await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
+    expect(edits[0]).toMatchObject({
+      type: 'service.create',
+      date: '2026-10-28T11:00',
+    });
+  });
+
   it('chooses a date beyond the old two-week list without submitting the parent', async () => {
     const {edits, onClose} = setup();
     const user = userEvent.setup();

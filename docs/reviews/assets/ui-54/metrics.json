@@ -7,10 +7,10 @@
       "overflow": false
     },
     "heap": {
-      "backingStorageSize": 1701607,
-      "embedderHeapUsedSize": 5025088,
-      "totalSize": 6328320,
-      "usedSize": 5476132
+      "backingStorageSize": 1714506,
+      "embedderHeapUsedSize": 5112824,
+      "totalSize": 6856704,
+      "usedSize": 5741008
     }
   },
   "middle": {
@@ -21,10 +21,10 @@
       "overflow": false
     },
     "heap": {
-      "backingStorageSize": 1701613,
-      "embedderHeapUsedSize": 5064776,
-      "totalSize": 6590464,
-      "usedSize": 5805516
+      "backingStorageSize": 1714512,
+      "embedderHeapUsedSize": 4937176,
+      "totalSize": 6856704,
+      "usedSize": 5916420
     }
   },
   "final": {
@@ -35,10 +35,10 @@
       "overflow": false
     },
     "heap": {
-      "backingStorageSize": 1701613,
-      "embedderHeapUsedSize": 5208104,
-      "totalSize": 6852608,
-      "usedSize": 5869956
+      "backingStorageSize": 1714512,
+      "embedderHeapUsedSize": 4997024,
+      "totalSize": 6856704,
+      "usedSize": 5996488
     }
   },
   "geometry": {
@@ -49,9 +49,14 @@
     "y": 281.5,
     "z": "301"
   },
-  "chosen": "2026-11-28",
+  "midnight": {
+    "chosenBefore": "2026-10-29",
+    "reopenedToday": "2026-10-27",
+    "activatedToday": "2026-10-28"
+  },
+  "chosen": "2026-11-29",
   "saved": {
-    "date": "2026-11-28T11:00",
+    "date": "2026-11-29T11:00",
     "name": "달력 점검"
   },
   "exceptions": []

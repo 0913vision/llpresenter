@@ -70,6 +70,10 @@ function moveDay(
   }
 }
 
+function currentToday(value: string | undefined): CalendarDate {
+  return parseCalendarDate(value ?? '') ?? localCalendarDate(new Date());
+}
+
 /** A bounded date grid in the popover layer; browsing never commits a date. */
 export function Calendar({
   id,
@@ -79,8 +83,7 @@ export function Calendar({
   onChange,
   onClose,
 }: CalendarProps): JSX.Element {
-  const todayDate =
-    parseCalendarDate(today ?? '') ?? localCalendarDate(new Date());
+  const todayDate = currentToday(today);
   const [view, setView] = useState(() => ({
     date: parseCalendarDate(value) ?? todayDate,
     focus: true,
@@ -218,7 +221,9 @@ export function Calendar({
         ))}
       </div>
       <div className={styles.foot}>
-        <Button onClick={() => choose(todayValue)}>오늘</Button>
+        <Button onClick={() => choose(calendarDateValue(currentToday(today)))}>
+          오늘
+        </Button>
       </div>
     </div>,
     layerContainer('popover'),

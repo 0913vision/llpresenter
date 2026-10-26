@@ -5,7 +5,7 @@ import {DateSelect} from '@renderer/ui/DateSelect';
 import type {Notice} from '@renderer/ui/notices';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {TextField} from '@renderer/ui/TextField';
-import {localDate, timeChoices} from './serviceDates';
+import {timeChoices} from './serviceDates';
 import {SourceList} from './SourceList';
 import {SourceTree} from './SourceTree';
 import {useSourceActions} from './useSourceActions';
@@ -88,7 +88,6 @@ export function NewServiceDialog({
             <DialogField label="날짜">
               <DateSelect
                 aria-label="날짜"
-                today={localDate(state.today)}
                 value={state.date}
                 onChange={state.setDate}
               />
