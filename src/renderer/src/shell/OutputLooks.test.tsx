@@ -163,6 +163,41 @@ describe('Looks in the 출력 menu', () => {
     ).toBe(true);
   });
 
+  it('checks the saved current Look when a settings push deletes the live Look', async () => {
+    const {api, push, send} = setup();
+    const edit = vi.spyOn(api.settings, 'edit');
+    const live = {
+      ...emptyLiveState(),
+      lookId: looksDocument(1, second).value.current,
+    };
+    act(() => useLive.setState({state: live}));
+    await openMenu();
+    expect(
+      (await screen.findByRole('menuitemradio', {name: '설교'})).getAttribute(
+        'aria-checked',
+      ),
+    ).toBe('true');
+    const next = looksDocument(2, first);
+    act(() =>
+      push({
+        ...next,
+        value: {
+          ...next.value,
+          looks: next.value.looks.filter(look => look.id !== second),
+        },
+      }),
+    );
+    expect(screen.queryByRole('menuitemradio', {name: '설교'})).toBeNull();
+    expect(
+      screen
+        .getByRole('menuitemradio', {name: '평상시'})
+        .getAttribute('aria-checked'),
+    ).toBe('true');
+    expect(useLive.getState().state).toBe(live);
+    expect(send).not.toHaveBeenCalled();
+    expect(edit).not.toHaveBeenCalled();
+  });
+
   it('sends look.set once and waits for main to change the live selection', async () => {
     const {api, send} = setup();
     const edit = vi.spyOn(api.settings, 'edit');

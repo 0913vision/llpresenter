@@ -235,18 +235,20 @@ function OutputMenu({
     open: anchor !== null,
     onProblem,
   });
+  const choices = document?.value.looks ?? [];
   const currentLook =
-    liveLook === undefined ? null : (liveLook ?? document?.value.current);
-  const looks: readonly MenuEntry[] = (document?.value.looks ?? []).map(
-    look => ({
-      kind: 'item',
-      id: `look:${look.id}`,
-      label: look.name || '이름 없는 Look',
-      check: 'radio',
-      checked: look.id === currentLook,
-      onSelect: () => sendLookChange(look.id, onProblem),
-    }),
-  );
+    liveLook === undefined
+      ? null
+      : (choices.find(look => look.id === liveLook)?.id ??
+        document?.value.current);
+  const looks: readonly MenuEntry[] = choices.map(look => ({
+    kind: 'item',
+    id: `look:${look.id}`,
+    label: look.name || '이름 없는 Look',
+    check: 'radio',
+    checked: look.id === currentLook,
+    onSelect: () => sendLookChange(look.id, onProblem),
+  }));
   return (
     <>
       <MenuTrigger label={OUTPUT_MENU} control={control} />
