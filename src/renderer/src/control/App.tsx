@@ -1,9 +1,14 @@
-import {useState, useSyncExternalStore, type JSX} from 'react';
+import {useMemo, useState, useSyncExternalStore, type JSX} from 'react';
 import type {UiState} from '@shared/schema/uiState';
 import type {ColumnWidthStore} from '@renderer/shell/columnWidthStore';
 import {useClearKeys} from '@renderer/show/clearKeys';
 import {MenuBar} from '@renderer/shell/MenuBar';
 import {StatusBar} from '@renderer/shell/StatusBar';
+import {
+  outputWarningCards,
+  useOutputWarnings,
+  warningScreens,
+} from '@renderer/state/outputWarnings';
 import {openItem, useShow} from '@renderer/state/show';
 import {NotificationStack} from '@renderer/ui/Notification';
 import {Toolbar, type Workspace as WorkspaceId} from '@renderer/shell/Toolbar';
@@ -34,6 +39,8 @@ export function App({
   );
   const sidebar = useSidebarCollapse(sizeClass, uiState.layout, session.api);
   const serviceName = useShow(view => view.serviceName);
+  const warningMap = useOutputWarnings(state => state.warnings);
+  const warnings = useMemo(() => warningScreens(warningMap), [warningMap]);
   const [workspace, setWorkspace] = useState<WorkspaceId>('show');
   const prepSelection = usePrepSelection();
   const notices = useSyncExternalStore(session.subscribe, session.getNotices);
@@ -47,7 +54,15 @@ export function App({
   useOutputNotices(session.api, session);
   return (
     <div className={styles.app} data-size={sizeClass}>
-      <MenuBar title={serviceName} />
+      <MenuBar
+        title={serviceName}
+        warnings={warnings}
+        onShowWarning={screenId => {
+          for (const notice of outputWarningCards(screenId)) {
+            session.report(notice);
+          }
+        }}
+      />
       <Toolbar
         sizeClass={sizeClass}
         workspace={workspace}

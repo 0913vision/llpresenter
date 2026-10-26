@@ -2,8 +2,17 @@ import {useEffect, useEffectEvent} from 'react';
 import type {LlpApi} from '@shared/ipc';
 import type {OutputStatuses} from '@shared/schema/outputStatus';
 import {defaultScreens} from '@renderer/shell/screens';
+import {
+  dropOutputWarning,
+  keepOutputWarning,
+  useOutputWarnings,
+} from '@renderer/state/outputWarnings';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
-import {outputNoticeChanges, type ScreenNames} from './outputNotices';
+import {
+  outputNoticeChanges,
+  type NoticeChange,
+  type ScreenNames,
+} from './outputNotices';
 
 // TODO(0913vision): Name the screens from the screen settings once they reach
 // the control window; until then only the built-in screens get cards.
@@ -20,9 +29,34 @@ export interface NoticeTarget {
   readonly dismiss: (key: string) => void;
 }
 
+// NOTE(0913vision): The session closes a card when one of its buttons is
+// pressed. An action such as 모니터 다시 찾기 may change nothing, and then no
+// new status brings the card back, so the card shows again right after its
+// action while its warning still holds.
+function keptAfterActions(
+  notice: Notice,
+  report: (notice: Notice) => void,
+): Notice {
+  const showAgain = (): void => {
+    const kept = useOutputWarnings.getState().warnings.get(notice.key);
+    if (kept !== undefined) report(kept.notice);
+  };
+  return {
+    ...notice,
+    actions: notice.actions?.map(action => ({
+      ...action,
+      onSelect: () => {
+        action.onSelect();
+        showAgain();
+      },
+    })),
+  };
+}
+
 /**
- * Turns output status updates into the lost monitor and restart limit cards.
- * The first status read counts only when no push came before it.
+ * Turns output status updates into the lost monitor and restart limit cards,
+ * and keeps each unresolved warning for the 출력 menu. The first status read
+ * counts only when no push came before it.
  */
 export function useOutputNotices(
   api: Pick<LlpApi, 'output'> | undefined,
@@ -36,6 +70,25 @@ export function useOutputNotices(
     let previous: OutputStatuses = {};
     let stopped = false;
     let pushed = false;
+    const take = (change: NoticeChange): void => {
+      if (change.kind === 'dismiss') {
+        dropOutputWarning(change.key);
+        dismiss(change.key);
+        return;
+      }
+      if (change.notice.kind !== 'warning') {
+        dropOutputWarning(change.notice.key);
+        report(change.notice);
+        return;
+      }
+      const notice = keptAfterActions(change.notice, report);
+      keepOutputWarning({
+        screenId: change.screenId,
+        screenName: screenNames.get(change.screenId)?.window ?? change.screenId,
+        notice,
+      });
+      report(notice);
+    };
     const apply = (next: OutputStatuses): void => {
       if (stopped) return;
       const changes = outputNoticeChanges({
@@ -50,10 +103,7 @@ export function useOutputNotices(
         time: noticeTime(),
       });
       previous = next;
-      for (const change of changes) {
-        if (change.kind === 'show') report(change.notice);
-        else dismiss(change.key);
-      }
+      for (const change of changes) take(change);
     };
     const unsubscribe = output.subscribeStatus(next => {
       pushed = true;

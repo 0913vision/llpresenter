@@ -19,8 +19,17 @@ export interface OutputNoticeActions {
   readonly retry: (screenId: string) => void;
 }
 
-export type NoticeChange =
+type CardChange =
   | {readonly kind: 'show'; readonly notice: Notice}
+  | {readonly kind: 'dismiss'; readonly key: string};
+
+/** A card to show for a screen, or a card to close. */
+export type NoticeChange =
+  | {
+      readonly kind: 'show';
+      readonly screenId: string;
+      readonly notice: Notice;
+    }
   | {readonly kind: 'dismiss'; readonly key: string};
 
 export interface OutputNoticeInput {
@@ -99,30 +108,34 @@ function reconnectedCard({
   };
 }
 
-/**
- * A lost monitor warns until the screen is full screen again, which turns the
- * card into information. While the monitor stays missing with the output off,
- * the card stays and says so; a later full screen from off clears it.
- */
-function monitorChange(transition: ScreenTransition): NoticeChange | null {
+// NOTE(0913vision): A lost monitor warns until the screen is full screen
+// again, which turns the card into information. While the monitor stays
+// missing with the output off, the card stays and says so. A later full
+// screen from off, or a switch to window or capture mode, makes the warning
+// obsolete, so its card closes.
+function monitorChange(transition: ScreenTransition): CardChange | null {
   const was = transition.before?.placement;
   const now = transition.after.placement;
   if (now === was) return null;
-  if (now === 'monitorMissing') {
-    return {kind: 'show', notice: lostCard(transition, true)};
+  const key = monitorNoticeKey(transition.screenId);
+  switch (now) {
+    case 'monitorMissing':
+      return {kind: 'show', notice: lostCard(transition, true)};
+    case 'off':
+      return was === 'monitorMissing'
+        ? {kind: 'show', notice: lostCard(transition, false)}
+        : null;
+    case 'fullscreen':
+      return was === 'monitorMissing'
+        ? {kind: 'show', notice: reconnectedCard(transition)}
+        : {kind: 'dismiss', key};
+    case 'window':
+      return {kind: 'dismiss', key};
   }
-  if (now === 'off') {
-    return was === 'monitorMissing'
-      ? {kind: 'show', notice: lostCard(transition, false)}
-      : null;
-  }
-  if (now !== 'fullscreen') return null;
-  return was === 'monitorMissing'
-    ? {kind: 'show', notice: reconnectedCard(transition)}
-    : {kind: 'dismiss', key: monitorNoticeKey(transition.screenId)};
 }
 
-/** The restart limit warns with 다시 시도 and turns into information when it ends. */
+// NOTE(0913vision): The restart limit warns with 다시 시도 and turns into
+// information when it ends.
 function windowChange({
   screenId,
   names,
@@ -130,7 +143,7 @@ function windowChange({
   after,
   actions,
   time,
-}: ScreenTransition): NoticeChange | null {
+}: ScreenTransition): CardChange | null {
   const wasLimited = before?.renderer === 'limited';
   const isLimited = after.renderer === 'limited';
   if (wasLimited === isLimited) return null;
@@ -170,7 +183,8 @@ function windowChange({
 /**
  * The notification changes for one output status update (spec 08, "Lost
  * monitor" and "The restart limit"). A screen seen for the first time counts
- * as having had no problem, so a problem already present at launch warns.
+ * as having had no problem, so a problem already present at launch warns; a
+ * screen that leaves the status closes its cards.
  */
 export function outputNoticeChanges({
   previous,
@@ -179,9 +193,16 @@ export function outputNoticeChanges({
   actions,
   time,
 }: OutputNoticeInput): readonly NoticeChange[] {
-  return [...screens].flatMap(([screenId, names]) => {
+  return [...screens].flatMap(([screenId, names]): NoticeChange[] => {
     const after = next[screenId];
-    if (after === undefined) return [];
+    if (after === undefined) {
+      return previous[screenId] === undefined
+        ? []
+        : [
+            {kind: 'dismiss', key: monitorNoticeKey(screenId)},
+            {kind: 'dismiss', key: windowNoticeKey(screenId)},
+          ];
+    }
     const transition: ScreenTransition = {
       screenId,
       names,
@@ -190,8 +211,11 @@ export function outputNoticeChanges({
       actions,
       time,
     };
-    return [monitorChange(transition), windowChange(transition)].filter(
-      change => change !== null,
+    return [monitorChange(transition), windowChange(transition)].flatMap(
+      (change): NoticeChange[] => {
+        if (change === null) return [];
+        return change.kind === 'show' ? [{...change, screenId}] : [change];
+      },
     );
   });
 }

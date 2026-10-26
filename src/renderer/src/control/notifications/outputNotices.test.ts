@@ -146,12 +146,42 @@ describe('outputNoticeChanges, lost monitor', () => {
     expect(result.filter(change => change.kind === 'show')).toEqual([]);
   });
 
-  it('ignores screens it has no names for and screens missing from the update', () => {
+  it('ignores screens it has no names for', () => {
     const {result} = changes(
-      {stage: status({placement: 'monitorMissing'})},
+      {},
       {other: status({placement: 'monitorMissing'})},
     );
     expect(result).toEqual([]);
+  });
+
+  it('closes both cards of a screen that leaves the status', () => {
+    const {result} = changes(
+      {stage: status({placement: 'monitorMissing', renderer: 'limited'})},
+      {},
+    );
+    expect(result).toEqual([
+      {kind: 'dismiss', key: 'screen:stage'},
+      {kind: 'dismiss', key: 'output-window:stage'},
+    ]);
+  });
+
+  it.each(['monitorMissing', 'off'] as const)(
+    'closes the lost monitor card when a %s screen switches to window mode',
+    was => {
+      const {result} = changes(
+        {stage: status({placement: was})},
+        {stage: status({placement: 'window'})},
+      );
+      expect(result).toEqual([{kind: 'dismiss', key: 'screen:stage'}]);
+    },
+  );
+
+  it('names the screen of each card it shows', () => {
+    const {result} = changes(
+      {},
+      {stage: status({placement: 'monitorMissing'})},
+    );
+    expect(result[0]).toMatchObject({kind: 'show', screenId: 'stage'});
   });
 });
 
