@@ -74,3 +74,10 @@ P4 decisions in spec 05 are the next two authorized requests.
    hover and first-click switching in both directions, one open popup, expanded
    states, Escape focus, the catcher bounds and resize cleanup, clearing an old
    submenu, and closed-menu hover behavior.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (Codex): Request changes; the findings and replies are above.
+- Round 2 (9a9cee88): reviewer (Codex) Approve. Lead Approve (see "What changed
+  and why"). Rebased by the lead onto local `main` without conflicts; typecheck
+  passes.
