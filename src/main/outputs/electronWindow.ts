@@ -138,6 +138,9 @@ function presentOnScreen(
       const place = () => {
         profile('window');
         win.setFocusable(false);
+        // NOTE(0913vision): The keeper lets go while Windows moves the window
+        // into full screen, so a level change mid-move is no loss.
+        onTop.release();
         enterFullScreen(win, monitorBounds);
         onTop.set(alwaysOnTop);
         if (!win.isVisible()) win.showInactive();

@@ -613,6 +613,25 @@ describe('createElectronOutputWindow normal', () => {
     output.destroy();
   });
 
+  it('ignores a level change while moving into full screen and sets the level after', () => {
+    const log = fakeLog();
+    const output = openOutput('normal', fakeControl(), log);
+    const win = lastWindow();
+    output.showFullScreen(MONITOR, true);
+    win.isFullScreen.mockReturnValue(true);
+    win.setFullScreen.mockImplementation(flag => {
+      if (flag) return;
+      win.onTop = false;
+      win.emit('always-on-top-changed', {}, false);
+    });
+    win.setAlwaysOnTop.mockClear();
+    output.showFullScreen(WINDOW_BOUNDS, true);
+    expect(win.setFullScreen.mock.calls.slice(-2)).toEqual([[false], [true]]);
+    expect(win.setAlwaysOnTop.mock.calls).toEqual([[true]]);
+    expect(log.warn).not.toHaveBeenCalled();
+    output.destroy();
+  });
+
   it('drops always on top before moving the control above it, immediately and after placement', () => {
     const control = fakeControl();
     const output = openOutput('normal', control);

@@ -16,7 +16,8 @@ export interface OnTopWindow {
  * the window leaves it, as Electron reports or as a check every
  * {@link ON_TOP_CHECK_MS} finds while it should be on top, the keeper puts it
  * back once and warns. Lost again before the next deliberate set, it logs an
- * error and leaves the window alone until then.
+ * error and leaves the window alone until then, as it does when reading or
+ * setting the level throws.
  */
 export class OnTopKeeper {
   private expected: boolean | null = null;
@@ -54,10 +55,22 @@ export class OnTopKeeper {
   // like a loss.
   private readonly check = (): void => {
     const {expected} = this;
-    if (expected === null || this.win.isAlwaysOnTop() === expected) return;
+    if (expected === null) return;
+    try {
+      this.keep(expected);
+    } catch (error) {
+      this.release();
+      this.log.error(
+        'could not keep an output window always on top; leaving it until the next change',
+        error,
+      );
+    }
+  };
+
+  private keep(expected: boolean): void {
+    if (this.win.isAlwaysOnTop() === expected) return;
     if (this.restored) {
-      this.expected = null;
-      this.followChecks();
+      this.release();
       this.log.error(
         'an output window lost its always-on-top level again; leaving it until the next change',
         {alwaysOnTop: expected},
@@ -72,7 +85,7 @@ export class OnTopKeeper {
       },
     );
     this.win.setAlwaysOnTop(expected);
-  };
+  }
 
   private followChecks(): void {
     const checking = this.expected === true;

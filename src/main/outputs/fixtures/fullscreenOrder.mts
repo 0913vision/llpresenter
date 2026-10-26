@@ -177,6 +177,7 @@ async function run(): Promise<void> {
   deepEqual(win.getBounds(), target);
   equal(win.isAlwaysOnTop(), false);
   placement.fullscreen(() => {
+    keeper.release();
     win.setFullScreen(true);
     keeper.set(true);
   });

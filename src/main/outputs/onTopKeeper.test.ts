@@ -9,7 +9,7 @@ function fakeWindow() {
     for (const listener of listeners) listener();
   };
   const win = {
-    isAlwaysOnTop: () => onTop,
+    isAlwaysOnTop: vi.fn(() => onTop),
     setAlwaysOnTop: vi.fn((flag: boolean) => {
       onTop = flag;
       emit();
@@ -22,7 +22,6 @@ function fakeWindow() {
   return {
     win,
     listeners,
-    /** Changes the level from outside the app, with or without an event. */
     changeOutside: (flag: boolean, {event}: {readonly event: boolean}) => {
       onTop = flag;
       if (event) emit();
@@ -86,6 +85,29 @@ describe('OnTopKeeper', () => {
     vi.advanceTimersByTime(ON_TOP_CHECK_MS);
     expect(win.isAlwaysOnTop()).toBe(true);
     expect(log.messages('warn')).toHaveLength(2);
+    keeper.dispose();
+  });
+
+  it('logs a window that throws and lets it go, from an event or a check', () => {
+    const {win, changeOutside, log, keeper} = setup();
+    keeper.set(true);
+    win.isAlwaysOnTop.mockImplementation(() => {
+      throw new Error('Object has been destroyed');
+    });
+    expect(() => vi.advanceTimersByTime(ON_TOP_CHECK_MS * 3)).not.toThrow();
+    expect(log.messages('error')).toEqual([
+      'could not keep an output window always on top; leaving it until the next change',
+    ]);
+    expect(vi.getTimerCount()).toBe(0);
+    win.isAlwaysOnTop.mockImplementation(() => false);
+    win.setAlwaysOnTop.mockImplementation(() => undefined);
+    keeper.set(true);
+    win.setAlwaysOnTop.mockImplementation(() => {
+      throw new Error('Object has been destroyed');
+    });
+    expect(() => changeOutside(false, {event: true})).not.toThrow();
+    expect(log.messages('error')).toHaveLength(2);
+    expect(vi.getTimerCount()).toBe(0);
     keeper.dispose();
   });
 
