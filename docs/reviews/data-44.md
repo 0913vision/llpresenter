@@ -183,19 +183,21 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (Codex, codex3): Request changes: the editor stayed writable during
+  and after a successful close flush.
+- Round 2 (Codex, codex3): Request changes: TSDoc on a private method only.
+- Round 3 (Codex, codex3): Request changes: the 예배 순서 item store (ui-31 to
+  ui-33) was neither drained nor blocked by the flush.
+- Round 4 (Codex, codex3): Request changes: failed item operations were dropped,
+  so the flush could answer true.
+- Round 5 (): reviewer (Codex, codex3) Approve, no findings; every store that
+  can hold unsent work now shares one pending-writes gate, and a refusal resumes
+  both. Lead Approve. Changes outside data's paths (`src/main/windows/`,
+  `prep/editor`, `prep/service`, `control/`, `state/`) checked against their
+  owners' rules. Rebased by the lead onto local `main` without conflicts;
+  typecheck passes.
 
 ## Team member's reply
 
