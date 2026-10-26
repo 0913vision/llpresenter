@@ -259,6 +259,45 @@ describe('service item store', () => {
     ).toBe('주일용');
   });
 
+  it('waits for a running edit at the close flush and refuses new ones until it resumes', async () => {
+    const {api, items, edits} = setup();
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
+    await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
+    const read = api.services.get.bind(api.services);
+    let answer: () => void = () => undefined;
+    vi.spyOn(api.services, 'get').mockImplementationOnce(
+      id =>
+        new Promise(resolve => {
+          answer = () => {
+            resolve(read(id));
+          };
+        }),
+    );
+    const choosing = items.chooseArrangement(undefined);
+    let flushed = false;
+    const flushing = items.flush().then(() => {
+      flushed = true;
+    });
+    await settle();
+    expect(flushed).toBe(false);
+    expect(items.getSnapshot().busy).toBe(true);
+    answer();
+    await flushing;
+    expect(await choosing).toBe(true);
+    expect(edits.filter(edit => edit.type === 'service.update')).toHaveLength(
+      1,
+    );
+    expect(await items.chooseArrangement('주일용')).toBe(false);
+    expect(await items.createArrangement()).toBe(false);
+    expect(items.setOrder([1])).toBe(false);
+    expect(edits.filter(edit => edit.type === 'service.update')).toHaveLength(
+      1,
+    );
+    items.resume();
+    expect(items.getSnapshot().busy).toBe(false);
+    expect(await items.chooseArrangement('주일용')).toBe(true);
+  });
+
   it('refuses a 구성 for other kinds and reports main refusals', async () => {
     const {api, items, problem, edits} = setup();
     items.show({serviceId: fixtureServiceId, itemId: fixtureItems.slot});

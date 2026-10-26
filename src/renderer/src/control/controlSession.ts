@@ -85,10 +85,15 @@ export class ControlSession {
     this.editorBlocked = true;
     let flushed = false;
     try {
-      flushed = (await this.editorStore?.flush()) ?? true;
+      const [, editorFlushed] = await Promise.all([
+        this.itemStore?.flush(),
+        this.editorStore?.flush(),
+      ]);
+      flushed = editorFlushed ?? true;
       return flushed;
     } finally {
       this.editorBlocked = flushed;
+      if (!flushed) this.itemStore?.resume();
     }
   }
 

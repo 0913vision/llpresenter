@@ -108,6 +108,8 @@ export class ServiceItemStore {
   private serviceRead = 0;
   private songRead = 0;
   private busy = false;
+  private editingStopped = false;
+  private readonly operations = new Set<Promise<unknown>>();
   private alive = true;
   private state = NO_ITEM;
 
@@ -156,9 +158,12 @@ export class ServiceItemStore {
 
   /** Picks the item's 구성, or 기본 with `undefined`. */
   chooseArrangement(name: string | undefined): Promise<boolean> {
-    return this.edit(
-      item => (isItemOfKind(item, 'song') ? withArrangement(item, name) : null),
-      '구성 변경 실패',
+    return this.operation(() =>
+      this.edit(
+        item =>
+          isItemOfKind(item, 'song') ? withArrangement(item, name) : null,
+        '구성 변경 실패',
+      ),
     );
   }
 
@@ -166,7 +171,25 @@ export class ServiceItemStore {
    * 새 구성: adds a 구성 to the song that copies the order the item plays,
    * saves the song, and then picks the new 구성 for the item.
    */
-  async createArrangement(): Promise<boolean> {
+  createArrangement(): Promise<boolean> {
+    return this.operation(() => this.addArrangement());
+  }
+
+  /**
+   * Close preflight: stops every new item edit, then resolves once the edits
+   * already running have sent their changes. {@link resume} restarts editing
+   * after a refused close.
+   */
+  async flush(): Promise<void> {
+    this.stopEditing(true);
+    await Promise.allSettled(this.operations);
+  }
+
+  resume(): void {
+    this.stopEditing(false);
+  }
+
+  private async addArrangement(): Promise<boolean> {
     const {song, arrangement} = this.state;
     const target = this.target;
     if (!this.alive || this.busy || song === null || target === null) {
@@ -191,7 +214,12 @@ export class ServiceItemStore {
    */
   setOrder(slides: readonly number[]): boolean {
     const {song, arrangement} = this.state;
-    if (!this.alive || song === null || arrangement === undefined) {
+    if (
+      !this.alive ||
+      this.editingStopped ||
+      song === null ||
+      arrangement === undefined
+    ) {
       return false;
     }
     return song.setArrangementSlides(arrangement, slides);
@@ -201,6 +229,25 @@ export class ServiceItemStore {
     this.alive = false;
     for (const stop of this.stops) stop();
     this.listeners.clear();
+  }
+
+  // NOTE(0913vision): Every item edit goes through here, so the close flush
+  // can stop new ones and wait for the running ones in one place.
+  private operation(task: () => Promise<boolean>): Promise<boolean> {
+    if (!this.alive || this.editingStopped) return Promise.resolve(false);
+    const running = task();
+    this.operations.add(running);
+    const settled = (): void => {
+      this.operations.delete(running);
+    };
+    running.then(settled, settled);
+    return running;
+  }
+
+  private stopEditing(stopped: boolean): void {
+    if (this.editingStopped === stopped) return;
+    this.editingStopped = stopped;
+    this.publish();
   }
 
   private async edit(
@@ -357,7 +404,7 @@ export class ServiceItemStore {
       songStatus: this.songId === null ? null : this.songStatus,
       arrangement: effectiveArrangement(item, song?.history.snapshot.song),
       position: this.position,
-      busy: this.busy,
+      busy: this.busy || this.editingStopped,
     };
     for (const listener of this.listeners) listener();
   }
