@@ -1,0 +1,46 @@
+/* NOTE(0913vision): The 테스트 패턴 is a test signal at full strength (spec 06),
+   not UI, so its colors are fixed values rather than design tokens. */
+.pattern {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: 2fr 1fr;
+  background: #000000;
+}
+
+.pattern[hidden] {
+  display: none;
+}
+
+.pattern::after {
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 0 2px #ffffff;
+  content: '';
+}
+
+.bars,
+.ramp {
+  display: flex;
+}
+
+.bars > *,
+.ramp > * {
+  flex: 1;
+}
+
+.label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  padding: 0.4em 0.8em;
+  transform: translate(-50%, -50%);
+  color: #ffffff;
+  background: #000000;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+  text-align: center;
+  white-space: pre;
+}

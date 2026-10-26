@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import type {LayerKind, LiveState} from '../live';
 import type {Result} from '../result';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
-import {lookIdSchema} from './ids';
+import {lookIdSchema, screenIdSchema} from './ids';
 import {
   LIVE_STATE_LIMITS,
   liveTextSchema,
@@ -67,6 +67,16 @@ export const liveStateSchema = payloadObject({
   outputs: liveOutputsSchema,
   canUndo: v.boolean(),
   timers: v.exactOptional(timerRunsSchema),
+  testPatterns: v.exactOptional(
+    v.pipe(
+      v.array(screenIdSchema),
+      v.maxLength(LIVE_STATE_LIMITS.outputs),
+      v.check(
+        screens => new Set(screens).size === screens.length,
+        'Expected each screen once',
+      ),
+    ),
+  ),
 });
 
 /**

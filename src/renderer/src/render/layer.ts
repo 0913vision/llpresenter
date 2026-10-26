@@ -16,6 +16,8 @@ export interface PictureCorrection {
 
 export interface RenderScreen {
   readonly id: ScreenId;
+  /** The saved screen name; absent for a picture of no saved screen. */
+  readonly name?: string;
   readonly kind: 'audience' | 'stage';
   readonly method?: Screen['method'];
   /** Absent draws the picture over the whole screen. */
@@ -29,6 +31,8 @@ export interface RenderFrame {
   readonly look?: ScreenAppearance;
   /** What `{timer:<id>}` tokens in 소품 text read; absent reads as no 타이머. */
   readonly timers?: RenderTimers;
+  /** Covers the picture with the 테스트 패턴. */
+  readonly testPattern?: boolean;
 }
 
 export interface RenderLayerOptions {

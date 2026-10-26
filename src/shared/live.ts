@@ -3,7 +3,7 @@ import type {
   ActiveProp,
   NoticePlayback,
 } from './schema/overlayState';
-import type {LookId} from './schema/ids';
+import type {LookId, ScreenId} from './schema/ids';
 import type {TimerRuns} from './schema/timerState';
 export type {
   ActiveMessage,
@@ -90,6 +90,8 @@ export interface LiveState {
   readonly canUndo: boolean;
   /** The started 타이머 by id; clears never touch them. Absent means none started. */
   readonly timers?: TimerRuns;
+  /** The screens showing the 테스트 패턴; clears never touch it. Absent means none. */
+  readonly testPatterns?: readonly ScreenId[];
 }
 
 export function emptyLayers(): LiveLayers {

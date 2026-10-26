@@ -102,6 +102,9 @@ export class ScreenFrames {
         now: this.timerClock.now,
       },
       ...(appearance === null ? {} : {look: appearance}),
+      ...(state?.testPatterns?.includes(screen.id) === true
+        ? {testPattern: true}
+        : {}),
     };
   }
 

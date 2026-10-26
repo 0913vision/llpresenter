@@ -21,6 +21,7 @@ export function resolveRenderScreen(
   const correction = pictureCorrection(screen);
   return {
     id: screen.id,
+    name: screen.name,
     kind: screen.kind,
     method: screen.method,
     ...(correction === undefined ? {} : {correction}),
