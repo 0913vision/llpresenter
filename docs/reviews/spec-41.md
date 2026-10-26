@@ -78,3 +78,11 @@ None.
 Prettier on the changed files and `git diff --check` pass. No runtime code
 changes. The final pushed head and its GitHub CI result are in the request
 message.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (Claude reviewer): Request changes: six findings on the recovery
+  record table, the 매크로 drop card, limits, and wording.
+- Round 2 (524bf86e): reviewer (Codex, codex3) Approve: all six round 1 findings
+  are addressed. Lead Approve. Rebased by the lead onto local `main` without
+  conflicts.
