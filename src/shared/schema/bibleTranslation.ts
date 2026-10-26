@@ -32,9 +32,7 @@ const bookSchema = jsonObject({
   ),
 });
 
-const bibleTranslationSchema = jsonObject({
-  format: v.literal('llbible'),
-  schemaVersion: positiveInteger,
+export const bibleTranslationMetadata = {
   id: v.pipe(
     translationIdSchema,
     v.check(
@@ -59,6 +57,12 @@ const bibleTranslationSchema = jsonObject({
     license: nonBlankText,
     retrieved: retrievedDate,
   }),
+};
+
+const bibleTranslationSchema = jsonObject({
+  format: v.literal('llbible'),
+  schemaVersion: positiveInteger,
+  ...bibleTranslationMetadata,
   books: v.pipe(
     v.array(bookSchema),
     v.maxLength(LAST_BOOK_ID),

@@ -39,6 +39,36 @@ export function parsedTranslation(value: unknown = translationFile()) {
   return result.value.data;
 }
 
+export function chunkedTranslationFile(value = translationFile()) {
+  let offset = 0;
+  const blocks: Buffer[] = [];
+  const header = {
+    ...value,
+    schemaVersion: 2,
+    books: value.books.map(book => ({
+      ...book,
+      chapters: book.chapters.map(verses => {
+        const block = Buffer.from(`${JSON.stringify(verses)}\n`, 'utf8');
+        const entry = {offset, bytes: block.length, verses: verses.length};
+        offset += block.length;
+        blocks.push(block);
+        return entry;
+      }),
+    })),
+  };
+  return {...frameBibleChunks(header, Buffer.concat(blocks)), header, blocks};
+}
+
+export function frameBibleChunks(header: unknown, body: Uint8Array) {
+  const json = Buffer.from(JSON.stringify(header), 'utf8');
+  const prefix = Buffer.alloc(4);
+  prefix.writeUInt32LE(json.length);
+  return {
+    dataStart: prefix.length + json.length,
+    bytes: Buffer.concat([prefix, json, body]),
+  };
+}
+
 export const FULL_TRANSLATION_VERSES = 31_102;
 
 export function fullTranslationText(): string {
