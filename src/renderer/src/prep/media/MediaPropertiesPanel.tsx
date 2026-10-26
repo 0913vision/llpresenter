@@ -1,4 +1,4 @@
-import {useState, type JSX, type KeyboardEvent} from 'react';
+import {Fragment, useState, type JSX, type KeyboardEvent} from 'react';
 import type {MediaItem} from '@shared/schema/mediaList';
 import {NumberField} from '@renderer/ui/NumberField';
 import {Panel, PanelBody, PanelHeader, PanelTabs} from '@renderer/ui/Panel';
@@ -296,19 +296,18 @@ export function MediaPropertiesPanel(): JSX.Element {
         {item === null ? (
           <p className={styles.empty}>선택한 미디어 없음</p>
         ) : (
-          <>
+          <Fragment key={item.id}>
             <MediaPreviewPlayer
-              key={item.id}
               item={item}
               missing={view.missing.has(item.id)}
               onReveal={() => library.reveal(item.id)}
             />
             {tab === 'props' ? (
-              <MediaProperties key={item.id} item={item} disabled={disabled} />
+              <MediaProperties item={item} disabled={disabled} />
             ) : (
               <MediaInfo item={item} />
             )}
-          </>
+          </Fragment>
         )}
       </PanelBody>
     </Panel>

@@ -1,0 +1,120 @@
+{
+  "port": 5188,
+  "offscreen": true,
+  "samples": [
+    {
+      "round": 5,
+      "counts": {
+        "document": 216,
+        "fields": 1,
+        "panel": 67,
+        "video": 1
+      },
+      "heap": {
+        "backingStorageSize": 1661017,
+        "embedderHeapUsedSize": 3631088,
+        "totalSize": 6066176,
+        "usedSize": 5257752
+      },
+      "dom": {
+        "documents": 29,
+        "jsEventListeners": 369,
+        "nodes": 544
+      }
+    },
+    {
+      "round": 10,
+      "counts": {
+        "document": 216,
+        "fields": 1,
+        "panel": 67,
+        "video": 1
+      },
+      "heap": {
+        "backingStorageSize": 1661017,
+        "embedderHeapUsedSize": 3693264,
+        "totalSize": 6066176,
+        "usedSize": 5276044
+      },
+      "dom": {
+        "documents": 29,
+        "jsEventListeners": 369,
+        "nodes": 544
+      }
+    },
+    {
+      "round": 15,
+      "counts": {
+        "document": 216,
+        "fields": 1,
+        "panel": 67,
+        "video": 1
+      },
+      "heap": {
+        "backingStorageSize": 1661013,
+        "embedderHeapUsedSize": 3349064,
+        "totalSize": 6066176,
+        "usedSize": 5291732
+      },
+      "dom": {
+        "documents": 29,
+        "jsEventListeners": 369,
+        "nodes": 544
+      }
+    },
+    {
+      "round": 20,
+      "counts": {
+        "document": 216,
+        "fields": 1,
+        "panel": 67,
+        "video": 1
+      },
+      "heap": {
+        "backingStorageSize": 1661013,
+        "embedderHeapUsedSize": 3643600,
+        "totalSize": 6066176,
+        "usedSize": 5300468
+      },
+      "dom": {
+        "documents": 29,
+        "jsEventListeners": 369,
+        "nodes": 544
+      }
+    }
+  ],
+  "baseline": {
+    "counts": {
+      "document": 216,
+      "fields": 1,
+      "panel": 67,
+      "video": 1
+    },
+    "heap": {
+      "backingStorageSize": 1660990,
+      "embedderHeapUsedSize": 3565000,
+      "totalSize": 6066176,
+      "usedSize": 5206180
+    }
+  },
+  "after": {
+    "counts": {
+      "document": 216,
+      "fields": 1,
+      "panel": 67,
+      "video": 1
+    },
+    "heap": {
+      "backingStorageSize": 1660970,
+      "embedderHeapUsedSize": 3578840,
+      "totalSize": 6066176,
+      "usedSize": 5389452
+    },
+    "dom": {
+      "documents": 29,
+      "jsEventListeners": 369,
+      "nodes": 544
+    }
+  },
+  "reopenCount": 2
+}

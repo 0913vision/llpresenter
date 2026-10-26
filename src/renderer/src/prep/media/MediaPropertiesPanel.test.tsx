@@ -64,6 +64,40 @@ function groups(panel: HTMLElement): ReadonlyArray<string | null> {
 }
 
 describe('media properties panel', () => {
+  it.each(['image', 'video'] as const)(
+    'replaces a video and %s without retaining DOM across twenty round trips',
+    async kind => {
+      setup(
+        mediaDocument([
+          mediaItem(1, {name: 'Dawn', kind: 'video', file: 'dawn.mp4'}),
+          mediaItem(2, {
+            name: 'Notice',
+            kind,
+            file: kind === 'image' ? 'notice.png' : 'notice.mp4',
+          }),
+        ]),
+      );
+      const panel = await choose('Dawn');
+      const videoCount = panel.querySelectorAll('*').length;
+      await choose('Notice');
+      const imageCount = panel.querySelectorAll('*').length;
+      for (let round = 0; round < 20; round += 1) {
+        await choose('Dawn');
+        expect(panel.querySelectorAll('*')).toHaveLength(videoCount);
+        expect(panel.querySelectorAll('video')).toHaveLength(1);
+        expect(within(panel).getAllByRole('spinbutton')).toHaveLength(1);
+        await choose('Notice');
+        expect(panel.querySelectorAll('*')).toHaveLength(imageCount);
+        expect(panel.querySelectorAll('video')).toHaveLength(
+          kind === 'video' ? 1 : 0,
+        );
+        expect(within(panel).queryAllByRole('spinbutton')).toHaveLength(
+          kind === 'video' ? 1 : 0,
+        );
+      }
+    },
+  );
+
   it.each(['media', 'audio'] as const)(
     'shows no stale properties after choosing an excluding %s playlist',
     async kind => {
