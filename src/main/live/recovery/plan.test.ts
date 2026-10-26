@@ -61,6 +61,12 @@ describe('recovery plan', () => {
     expect(planRecovery(recoveryRecordOf({}), sources())).toEqual([]);
   });
 
+  it('never brings back a 테스트 패턴', () => {
+    expect(
+      planRecovery(recoveryRecordOf({testPatterns: [MAIN]}), sources()),
+    ).toEqual([]);
+  });
+
   it('turns on the saved screens that were on, through their compatible keys', () => {
     const fixture = sources();
     fixture.update(
