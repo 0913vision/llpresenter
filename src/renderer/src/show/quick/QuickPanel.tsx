@@ -20,6 +20,8 @@ import {QuickAdd, QuickRowEditor} from './QuickEditing';
 import {MAX_QUICK_ITEMS} from './quickEdits';
 import {useQuickEditing} from './useQuickEditing';
 import {useQuickDrag} from './useQuickDrag';
+import {useQuickTimers} from './useQuickTimers';
+import {TimerValue} from '../tools/TimerValue';
 
 const icons: Readonly<Record<QuickItemKind, string>> = {
   song: 'song',
@@ -39,6 +41,7 @@ export function QuickPanel({
 }): JSX.Element | null {
   const api = window.llp;
   const document = useSettingsDocument('quick', '퀵 실행', onProblem);
+  const timers = useQuickTimers(api, document, onProblem);
   const editing = useQuickEditing(api, onProblem);
   const locked = document?.access !== 'editable' || editing.busy;
   const full = (document?.value.items.length ?? 0) >= MAX_QUICK_ITEMS;
@@ -100,8 +103,12 @@ export function QuickPanel({
         <div {...drag.listProps} role="group" aria-label="퀵 실행 항목">
           {document?.value.items.map(item => {
             const known = isKnownQuickItem(item);
-            const reason = quickItemUnavailable(item);
+            const reason = quickItemUnavailable(item) ?? timers.reason(item);
             const available = known && reason === undefined;
+            const timer =
+              known && item.kind === 'timer'
+                ? timers.definitions.get(item.ref)
+                : undefined;
             return (
               <QuickRowEditor
                 key={item.id}
@@ -112,8 +119,19 @@ export function QuickPanel({
               >
                 <ListActionRow
                   title={item.name}
+                  meta={
+                    timer ? (
+                      <TimerValue
+                        api={api}
+                        timer={timer}
+                        run={available ? live?.timers?.[timer.id] : undefined}
+                      />
+                    ) : undefined
+                  }
                   icon={known ? icons[item.kind] : 'warning'}
-                  pressed={known ? quickItemOn(item, live) : undefined}
+                  pressed={
+                    known && available ? quickItemOn(item, live) : undefined
+                  }
                   disabled={!available}
                   reason={reason}
                   onPress={() => {

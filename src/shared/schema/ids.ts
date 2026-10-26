@@ -84,6 +84,10 @@ export function createQuickItemId(uuid: string): QuickItemId {
   return v.parse(quickItemIdSchema, uuid);
 }
 
+export function createTimerId(uuid: string): TimerId {
+  return v.parse(timerIdSchema, uuid);
+}
+
 export function createMessageTemplateId(uuid: string): MessageTemplateId {
   return v.parse(messageTemplateIdSchema, uuid);
 }

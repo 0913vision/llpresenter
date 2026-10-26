@@ -119,7 +119,7 @@ export function quickRunner(api: LlpApi, onProblem: (notice: Notice) => void) {
         case 'timer':
           sendLive({
             type: quickItemOn(item, useLive.getState().state)
-              ? 'timer.pause'
+              ? 'timer.reset'
               : 'timer.start',
             timerId: item.ref,
           });

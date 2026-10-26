@@ -95,6 +95,82 @@ function setup(options: FixtureOptions = {}) {
 }
 
 describe('paired quick timer edits', () => {
+  it('separates legacy shared references once, preserving the first ID, row order and unknown fields', async () => {
+    const f = setup({
+      quickItems: [1, 2, 3].map(n => ({
+        id: id(n),
+        kind: 'timer',
+        ref: id(101),
+        name: `타이머 ${n}`,
+        extra: {row: n},
+      })),
+      timerItems: [
+        {
+          id: id(101),
+          kind: 'countdown',
+          name: '원래 타이머',
+          duration: 90,
+          extra: {definition: true},
+        },
+        {id: id(999), kind: 'clock', name: '다른 타이머'},
+      ],
+    });
+    const separate = {type: 'quick.timers.separate', name: 'quick'};
+    expect(await f.save(separate)).toMatchObject({ok: true});
+    const refs = f
+      .quick()
+      .value.items.map(item => ('ref' in item ? item.ref : null));
+    expect(refs[0]).toBe(id(101));
+    expect(new Set(refs).size).toBe(3);
+    expect(f.quick().value.items.map(item => item.id)).toEqual([
+      id(1),
+      id(2),
+      id(3),
+    ]);
+    expect(f.quick().value.items[1]).toMatchObject({
+      name: '타이머 2',
+      extra: {row: 2},
+    });
+    expect(f.timers().value.timers).toHaveLength(4);
+    expect(f.timers().value.timers[0]).toMatchObject({
+      id: id(101),
+      name: '원래 타이머',
+    });
+    expect(f.timers().value.timers[1]).toMatchObject({id: id(999)});
+    expect(f.timers().value.timers[2]).toMatchObject({
+      id: refs[1],
+      name: '타이머 2',
+      duration: 90,
+      extra: {definition: true},
+    });
+    expect(await f.save(separate)).toEqual({
+      ok: true,
+      value: {id: 'quick', revision: 2},
+    });
+    expect(f.write).toHaveBeenCalledTimes(2);
+  });
+
+  it('refuses legacy separation at the definition cap without dropping a row or changing its reference', async () => {
+    const f = setup({
+      quickItems: [1, 2].map(n => ({
+        id: id(n),
+        kind: 'timer',
+        ref: id(101),
+        name: '공유',
+      })),
+      timerItems: Array.from({length: MAX_TIMER_DEFINITIONS}, (_, n) => ({
+        id: n === 0 ? id(101) : id(n + 1000),
+        kind: 'clock',
+        name: '시계',
+      })),
+    });
+    expect(
+      await f.save({type: 'quick.timers.separate', name: 'quick'}),
+    ).toMatchObject({ok: false, error: {reason: 'invalid'}});
+    expect(f.quick().revision).toBe(1);
+    expect(f.timers().revision).toBe(1);
+    expect(f.write).not.toHaveBeenCalled();
+  });
   it('creates distinct numbered countdowns and publishes only after both documents are installed', async () => {
     const f = setup();
     const observed: string[][] = [];

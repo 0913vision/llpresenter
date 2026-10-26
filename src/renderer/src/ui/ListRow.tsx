@@ -386,7 +386,7 @@ export const ListRow = memo((props: ListRowProps): JSX.Element => {
 export interface ListActionRowProps {
   readonly title: string;
   readonly icon?: string | undefined;
-  readonly meta?: string | undefined;
+  readonly meta?: ReactNode;
   /** For an item that turns on and off, such as a logo screen. */
   readonly pressed?: boolean | undefined;
   readonly onPress: () => void;

@@ -60,7 +60,7 @@ function setup() {
           ],
         },
         timers: {
-          timers: [{id: quickId(104), name: '타이머 대상', kind: 'clock'}],
+          timers: [{id: quickId(114), name: '타이머 대상', kind: 'clock'}],
         },
         macros: {
           macros: [

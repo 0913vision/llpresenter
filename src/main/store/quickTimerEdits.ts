@@ -1,4 +1,7 @@
 import type {EditFailure, EditSuccess} from '@shared/schema/contentEdit';
+import {randomUUID} from 'node:crypto';
+import {createTimerId, type TimerId} from '@shared/schema/ids';
+import type {Timer} from '@shared/schema/timers';
 import type {Result} from '@shared/result';
 import {isKnownQuickItem, MAX_QUICK_ITEMS} from '@shared/schema/quick';
 import {
@@ -178,6 +181,51 @@ function renameTimer(
   );
 }
 
+function separateTimers(current: TimerDocuments): PreparedResult {
+  const {quick, timers} = current;
+  if (quick.value.items.length > MAX_QUICK_ITEMS) {
+    return refuse('invalid', 'Too many quick rows to separate timers');
+  }
+  const definitions = new Map(
+    timers.value.timers.map(timer => [timer.id, timer]),
+  );
+  const used = new Set<string>([
+    ...quick.value.items.map(item => item.id),
+    ...definitions.keys(),
+  ]);
+  const seen = new Set<TimerId>();
+  const copies: Timer[] = [];
+  const items = quick.value.items.map(item => {
+    if (!isKnownQuickItem(item) || item.kind !== 'timer') return item;
+    const timer = definitions.get(item.ref);
+    if (!timer) return item;
+    if (!seen.has(item.ref)) {
+      seen.add(item.ref);
+      return item;
+    }
+    const id = createTimerId(randomUUID());
+    if (used.has(id)) throw new Error('Generated a timer ID already in use');
+    used.add(id);
+    copies.push({...timer, id, name: item.name});
+    return {...item, ref: id};
+  });
+  if (copies.length === 0) return unchanged(current, 'quick');
+  if (timers.value.timers.length + copies.length > MAX_TIMER_DEFINITIONS) {
+    return refuse(
+      'invalid',
+      'Too many timer definitions to separate quick rows',
+    );
+  }
+  return prepared(
+    current,
+    {
+      quick: {...quick.value, items},
+      timers: {...timers.value, timers: [...timers.value.timers, ...copies]},
+    },
+    'quick',
+  );
+}
+
 export function prepareQuickTimerEdit(
   documents: ReadonlyMap<string, SettingsDocument>,
   edit: QuickTimerEdit,
@@ -194,7 +242,12 @@ export function prepareQuickTimerEdit(
     );
   }
   const current = {quick, timers};
-  return edit.type === 'quick.timer.create'
-    ? createTimer(current, edit)
-    : renameTimer(current, edit);
+  switch (edit.type) {
+    case 'quick.timer.create':
+      return createTimer(current, edit);
+    case 'quick.timer.rename':
+      return renameTimer(current, edit);
+    case 'quick.timers.separate':
+      return separateTimers(current);
+  }
 }

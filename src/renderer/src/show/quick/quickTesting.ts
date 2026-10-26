@@ -115,7 +115,11 @@ export function quickFixture() {
     Promise.resolve(song.value),
   );
   const get = vi.fn<LlpApi['settings']['get']>(request =>
-    request.name === 'quick' ? Promise.resolve(document) : bible.get(request),
+    request.name === 'quick'
+      ? Promise.resolve(document)
+      : request.name === 'timers'
+        ? Promise.resolve(timerDocument())
+        : bible.get(request),
   );
   const api = fakeLlpApi({
     ...bible.api,
@@ -146,4 +150,26 @@ export function quickFixture() {
     },
     quickListeners: () => listeners.size,
   };
+}
+
+function timerDocument(): SettingsDocument {
+  const parsed = parseSettingsDocument({
+    name: 'timers',
+    revision: 1,
+    access: 'editable',
+    value: {
+      format: 'llsettings.timers',
+      schemaVersion: 1,
+      timers: [
+        {
+          id: quickId(104),
+          name: '시작 카운트다운',
+          kind: 'countdown',
+          duration: 90,
+        },
+      ],
+    },
+  });
+  if (!parsed.ok) throw new Error('Invalid timer fixture');
+  return parsed.value;
 }

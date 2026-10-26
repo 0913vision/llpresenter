@@ -125,7 +125,7 @@ describe('quick panel integration', () => {
         '저장된 곡',
         '저장된 구절',
         '로고 화면',
-        '시작 카운트다운',
+        '시작 카운트다운1:30',
         '시작 매크로',
         '검은 화면',
         '새 버전 항목',
@@ -153,7 +153,7 @@ describe('quick panel integration', () => {
     window.llp = fixture.api;
     render(<QuickPanel selectionVersion={0} onProblem={vi.fn()} />);
     const prop = await screen.findByRole('button', {name: '로고 화면'});
-    const timer = screen.getByRole('button', {name: '시작 카운트다운'});
+    const timer = screen.getByRole('button', {name: /^시작 카운트다운/});
     expect(prop.getAttribute('aria-pressed')).toBe('false');
     fireEvent.click(prop);
     fireEvent.click(timer);
@@ -172,7 +172,7 @@ describe('quick panel integration', () => {
       fixture.send.mock.calls.slice(2).map(([command]) => command),
     ).toEqual([
       {type: 'prop.set', propId: quickId(103), on: false},
-      {type: 'timer.pause', timerId: quickId(104)},
+      {type: 'timer.reset', timerId: quickId(104)},
     ]);
     act(() => useLive.setState({state: live}));
     expect(prop.getAttribute('aria-pressed')).toBe('false');

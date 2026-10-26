@@ -18,7 +18,11 @@ import {stageLayoutsSchema} from './stageLayouts';
 import {timersSchema} from './timers';
 import {preserveUnknownFields} from './preserveUnknown';
 import {nonBlankText} from './primitives';
-import {quickTimerCreateSchema, quickTimerRenameSchema} from './quickTimerEdit';
+import {
+  quickTimerCreateSchema,
+  quickTimerRenameSchema,
+  quickTimersSeparateSchema,
+} from './quickTimerEdit';
 
 /** Shared metadata for settings and the separately edited media list. */
 export function settingsDocumentSchema<
@@ -134,6 +138,7 @@ const settingsEditSchema = v.pipe(
     labelRenameSchema,
     quickTimerCreateSchema,
     quickTimerRenameSchema,
+    quickTimersSeparateSchema,
   ]),
 );
 

@@ -181,7 +181,8 @@ export class SettingsStore {
   private update(edit: SettingsEdit): Promise<EditResult> {
     if (
       edit.type === 'quick.timer.create' ||
-      edit.type === 'quick.timer.rename'
+      edit.type === 'quick.timer.rename' ||
+      edit.type === 'quick.timers.separate'
     ) {
       const prepared = prepareQuickTimerEdit(this.documents, edit);
       if (!prepared.ok) {
