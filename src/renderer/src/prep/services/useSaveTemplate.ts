@@ -2,7 +2,7 @@ import {useEffect, useRef, useState} from 'react';
 import type {LlpApi} from '@shared/ipc';
 import type {ServiceId, TemplateId} from '@shared/schema/ids';
 import {useShow} from '@renderer/state/show';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/notices';
 import {
   appliedId,
   asServiceId,
@@ -39,18 +39,10 @@ function freeName(base: string, taken: ReadonlySet<string>): string {
   return `${base} ${number}`;
 }
 
-function savedNotice(name: string): Notice {
-  return {
-    key: 'save-template:saved',
-    kind: 'info',
-    icon: 'frame',
-    title: `‘${name}’ 틀로 저장됨`,
-    time: noticeTime(),
-  };
-}
-
-// NOTE(0913vision): Overwriting saves the new 틀 first and then deletes the old
-// one, so a failure never loses the 틀 the operator had.
+// NOTE(0913vision): Overwriting saves the new 틀 first and deletes the old one
+// only once the new one is on disk, so a failure or a crash never loses the
+// 틀 the operator had. A new 틀 that main holds only in memory (write-failed)
+// keeps the old one; main's 저장할 수 없음 card tells the operator.
 async function writeTemplate({
   api,
   serviceId,
@@ -66,7 +58,7 @@ async function writeTemplate({
     api.content.edit({type: 'service.saveAsTemplate', serviceId, name}),
   );
   if (saved === undefined || appliedId(saved) === null) return 'not-saved';
-  if (replace === undefined) return null;
+  if (replace === undefined || !saved.ok) return null;
   const removed = await settle(api, 'Could not delete a 틀', () =>
     api.content.edit({type: 'template.delete', templateId: replace}),
   );
@@ -97,20 +89,21 @@ export function useSaveTemplate({
   }, []);
 
   const serviceId = asServiceId(currentId);
-  const report = (problem: SaveProblem | null, name: string): void => {
+  // NOTE(0913vision): A save that works shows nothing: spec 08 keeps the
+  // notifications for what the operator didn't do themselves.
+  const report = (problem: SaveProblem | null): void => {
+    if (problem === null) return;
     onProblem(
-      problem === null
-        ? savedNotice(name)
-        : warningNotice(`save-template:${problem}`, problemTitles[problem]),
+      warningNotice(`save-template:${problem}`, problemTitles[problem]),
     );
   };
-  const finish = (write: Promise<SaveProblem | null>, name: string): void => {
+  const finish = (write: Promise<SaveProblem | null>): void => {
     write
       .then(problem => {
         if (!alive.current) return;
         setBusy(false);
         setConflict(null);
-        report(problem, name);
+        report(problem);
       })
       .catch((cause: unknown) => {
         console.error('Failed to finish saving a 틀:', cause);
@@ -126,12 +119,12 @@ export function useSaveTemplate({
         if (!alive.current) return;
         if (entries === undefined) {
           setBusy(false);
-          report('not-saved', name);
+          report('not-saved');
           return;
         }
         const existing = entries.find(entry => entry.name === name);
         if (existing === undefined) {
-          finish(writeTemplate({api, serviceId, name}), name);
+          finish(writeTemplate({api, serviceId, name}));
           return;
         }
         setBusy(false);
@@ -151,20 +144,18 @@ export function useSaveTemplate({
     if (api === undefined || conflict === null || busy) return;
     const name = freeName(conflict.name, conflict.taken);
     setBusy(true);
-    finish(writeTemplate({api, serviceId: conflict.serviceId, name}), name);
+    finish(writeTemplate({api, serviceId: conflict.serviceId, name}));
   };
   const overwrite = (): void => {
     if (api === undefined || conflict === null || busy) return;
-    const {name} = conflict;
     setBusy(true);
     finish(
       writeTemplate({
         api,
         serviceId: conflict.serviceId,
-        name,
+        name: conflict.name,
         replace: conflict.existing,
       }),
-      name,
     );
   };
   const cancel = (): void => {

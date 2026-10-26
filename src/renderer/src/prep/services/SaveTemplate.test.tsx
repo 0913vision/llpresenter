@@ -125,10 +125,13 @@ afterEach(() => {
 });
 
 describe('지금 예배를 틀로 저장', () => {
-  it('saves a 틀 named after the open service and says so', async () => {
+  it('saves a 틀 named after the open service, with no card', async () => {
     const {edits, onProblem} = setup();
     await userEvent.click(saveButton());
-    await waitFor(() => expect(onProblem).toHaveBeenCalled());
+    await waitFor(() => expect(edits).toHaveLength(1));
+    await waitFor(() =>
+      expect(saveButton().hasAttribute('disabled')).toBe(false),
+    );
     expect(edits).toEqual([
       {
         type: 'service.saveAsTemplate',
@@ -136,10 +139,7 @@ describe('지금 예배를 틀로 저장', () => {
         name: existing.name,
       },
     ]);
-    expect(onProblem.mock.calls[0]?.[0]).toMatchObject({
-      kind: 'info',
-      title: '‘이번 주일 예배’ 틀로 저장됨',
-    });
+    expect(onProblem).not.toHaveBeenCalled();
     expect(screen.queryByRole('alertdialog')).toBeNull();
   });
 
@@ -151,7 +151,8 @@ describe('지금 예배를 틀로 저장', () => {
     });
     expect(prompt).toBeDefined();
     await userEvent.click(screen.getByRole('button', {name: '새 틀로 저장'}));
-    await waitFor(() => expect(onProblem).toHaveBeenCalled());
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
+    expect(onProblem).not.toHaveBeenCalled();
     expect(edits).toEqual([
       {
         type: 'service.saveAsTemplate',
@@ -168,7 +169,7 @@ describe('지금 예배를 틀로 저장', () => {
     await userEvent.click(
       await screen.findByRole('button', {name: '덮어쓰기'}),
     );
-    await waitFor(() => expect(onProblem).toHaveBeenCalled());
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
     expect(edits).toEqual([
       {
         type: 'service.saveAsTemplate',
@@ -177,7 +178,29 @@ describe('지금 예배를 틀로 저장', () => {
       },
       {type: 'template.delete', templateId: existing.id},
     ]);
-    expect(onProblem.mock.calls[0]?.[0]).toMatchObject({kind: 'info'});
+    expect(onProblem).not.toHaveBeenCalled();
+  });
+
+  it('keeps the old 틀 when the new one is only in memory', async () => {
+    const {edits, onProblem} = setup({
+      templates: [existing],
+      answer: () => ({
+        ok: false,
+        error: {
+          reason: 'write-failed',
+          message: 'Disk full in the test',
+          applied: {id: savedId, revision: 1},
+          unchangedFiles: ['saved.llservice'],
+        },
+      }),
+    });
+    await userEvent.click(saveButton());
+    await userEvent.click(
+      await screen.findByRole('button', {name: '덮어쓰기'}),
+    );
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
+    expect(edits.map(edit => edit.type)).toEqual(['service.saveAsTemplate']);
+    expect(onProblem).not.toHaveBeenCalled();
   });
 
   it('sends nothing when the operator cancels', async () => {
