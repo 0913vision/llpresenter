@@ -164,14 +164,15 @@ function start(): void {
       // step removes session.lock. The next launch then takes it for a crash,
       // the safe side (no startup macros), and logs that quitting didn't
       // finish. The record stops before the outputs close, so it keeps the
-      // state from before the quit.
+      // state from before the quit, and its last write is awaited only after
+      // the data store closes, so it never delays a save.
       shutdown.add({
         name: 'mark the recovery session as quitting',
         run: () => session.markQuitting(),
       });
       shutdown.add({
         name: 'stop the recovery record',
-        run: () => recoveryRecord.dispose(),
+        run: () => recoveryRecord.stop(),
       });
       // NOTE(0913vision): The soak scenario stops next, so it changes
       // nothing while the outputs close. Output windows turn a close into
@@ -190,6 +191,10 @@ function start(): void {
       shutdown.add({name: 'close the data store', run: dataStore.dispose});
       shutdown.add({name: 'stop serving media', run: stopServingMedia});
       shutdown.add({name: 'remove the IPC channels', run: disposeIpc});
+      shutdown.add({
+        name: 'finish the recovery record write',
+        run: () => recoveryRecord.settled(),
+      });
       shutdown.add({
         name: 'finish the recovery session',
         run: () => session.cleanExit(),

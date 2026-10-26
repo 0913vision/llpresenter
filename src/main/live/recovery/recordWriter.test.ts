@@ -113,7 +113,8 @@ describe('recovery record writer', () => {
       now: () => SAVED_AT,
     });
     writer.start();
-    await writer.dispose();
+    writer.stop();
+    await writer.settled();
     const record = recordOf(await readFile(file, 'utf8'));
     expect(record).toMatchObject({
       format: 'llrecovery',
@@ -149,7 +150,8 @@ describe('recovery record writer', () => {
     });
     await vi.advanceTimersByTimeAsync(RECORD_INTERVAL_MS * 5);
     expect(texts).toHaveLength(2);
-    await writer.dispose();
+    writer.stop();
+    await writer.settled();
   });
 
   it('keeps one write in flight and follows it with the newest state', async () => {
@@ -169,7 +171,8 @@ describe('recovery record writer', () => {
     await vi.advanceTimersByTimeAsync(0);
     expect(write).toHaveBeenCalledTimes(2);
     expect(recordOf(texts[1]).state.version).toBe(3);
-    await writer.dispose();
+    writer.stop();
+    await writer.settled();
   });
 
   it('logs failed writes once until a write succeeds again', async () => {
@@ -192,7 +195,8 @@ describe('recovery record writer', () => {
     expect(log.messages('info')).toEqual([
       'the recovery record is written again',
     ]);
-    await writer.dispose();
+    writer.stop();
+    await writer.settled();
   });
 
   it('logs a state the record cannot hold and keeps the previous record', async () => {
@@ -210,29 +214,33 @@ describe('recovery record writer', () => {
     expect(log.messages('warn')).toEqual([
       'could not write the recovery record',
     ]);
-    await writer.dispose();
+    writer.stop();
+    await writer.settled();
   });
 
-  it('waits for the write in flight on dispose and writes nothing after it', async () => {
+  it('stops at once and lets the write in flight settle', async () => {
     const {store, write, writer} = setup();
     const first = deferredWrite();
     write.mockReturnValueOnce(first.promise);
     writer.start();
     store.change({outputs: {main: true}});
-    let disposed = false;
-    const disposing = writer.dispose().then(() => {
-      disposed = true;
+    writer.stop();
+    expect(store.listenerCount).toBe(0);
+    expect(vi.getTimerCount()).toBe(0);
+    let settled = false;
+    const settling = writer.settled().then(() => {
+      settled = true;
     });
     await vi.advanceTimersByTimeAsync(RECORD_INTERVAL_MS);
-    expect(disposed).toBe(false);
+    expect(settled).toBe(false);
     first.finish(OK);
-    await disposing;
-    expect(store.listenerCount).toBe(0);
+    await settling;
     store.change({outputs: {main: false}});
     writer.start();
     await vi.advanceTimersByTimeAsync(RECORD_INTERVAL_MS * 2);
     expect(write).toHaveBeenCalledOnce();
     expect(vi.getTimerCount()).toBe(0);
+    await expect(writer.settled()).resolves.toBeUndefined();
   });
 
   it('starts once', async () => {
@@ -242,7 +250,8 @@ describe('recovery record writer', () => {
     await vi.advanceTimersByTimeAsync(0);
     expect(store.listenerCount).toBe(1);
     expect(write).toHaveBeenCalledOnce();
-    await writer.dispose();
+    writer.stop();
+    await writer.settled();
   });
 });
 

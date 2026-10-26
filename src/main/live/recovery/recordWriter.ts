@@ -46,7 +46,7 @@ export class RecoveryRecordWriter {
   private timer: ReturnType<typeof setTimeout> | null = null;
   private writing: Promise<void> | null = null;
   private pending = false;
-  private disposed = false;
+  private stopped = false;
   private failing = false;
   private lastState: LiveState | null = null;
   private lastServiceId: ServiceId | null = null;
@@ -55,24 +55,28 @@ export class RecoveryRecordWriter {
 
   /** Writes the current state and follows its changes; later calls do nothing. */
   start(): void {
-    if (this.disposed || this.stopFollowing !== null) return;
+    if (this.stopped || this.stopFollowing !== null) return;
     this.stopFollowing = this.options.store.subscribe(this.schedule);
     this.request();
   }
 
-  /** Stops following the state and waits for the write in flight. */
-  async dispose(): Promise<void> {
-    this.disposed = true;
+  /** Stops following the state and drops later writes; a write in flight still finishes. */
+  stop(): void {
+    this.stopped = true;
     this.pending = false;
     if (this.timer !== null) clearTimeout(this.timer);
     this.timer = null;
     this.stopFollowing?.();
     this.stopFollowing = null;
+  }
+
+  /** Resolves once no write is in flight. */
+  async settled(): Promise<void> {
     await this.writing;
   }
 
   private readonly schedule = (): void => {
-    if (this.timer !== null || this.disposed) return;
+    if (this.timer !== null || this.stopped) return;
     this.timer = setTimeout(
       this.writeLater,
       this.options.intervalMs ?? RECORD_INTERVAL_MS,
@@ -85,7 +89,7 @@ export class RecoveryRecordWriter {
   };
 
   private request(): void {
-    if (this.disposed) return;
+    if (this.stopped) return;
     if (this.writing !== null) {
       this.pending = true;
       return;

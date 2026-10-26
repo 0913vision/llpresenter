@@ -33,7 +33,8 @@ const fakes = vi.hoisted(() => {
     },
     recordOptions: new Array<unknown>(),
     recordStart: vi.fn<() => void>(),
-    recordDispose: vi.fn<() => Promise<void>>(),
+    recordStop: vi.fn<() => void>(),
+    recordSettled: vi.fn<() => Promise<void>>(),
     macroContexts: new Array<unknown>(),
     macrosStop: vi.fn<() => void>(),
     overlaysStop: vi.fn<() => void>(),
@@ -97,7 +98,8 @@ vi.mock('./live/recovery/recordWriter', () => ({
       fakes.recordOptions.push(options);
     }
     start = fakes.recordStart;
-    dispose = fakes.recordDispose;
+    stop = fakes.recordStop;
+    settled = fakes.recordSettled;
   },
 }));
 vi.mock('./macros/register', () => ({
@@ -239,7 +241,8 @@ beforeEach(async () => {
   fakes.recovery.cleanExit.mockReset();
   fakes.recordOptions.length = 0;
   fakes.recordStart.mockReset();
-  fakes.recordDispose.mockReset();
+  fakes.recordStop.mockReset();
+  fakes.recordSettled.mockReset();
   fakes.macroContexts.length = 0;
   fakes.macrosStop.mockReset();
   fakes.overlaysStop.mockReset();
@@ -321,21 +324,29 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
   });
 
   it('records a normal session at once and marks quitting before anything else stops', async () => {
+    const lastWrite = deferred();
+    onTestFinished(lastWrite.resolve);
+    fakes.recordSettled.mockReturnValue(lastWrite.promise);
     await startMain();
     expect(fakes.recordStart).toHaveBeenCalledOnce();
     beforeQuit();
-    await vi.waitFor(() =>
-      expect(fakes.recovery.cleanExit).toHaveBeenCalledOnce(),
-    );
+    await vi.waitFor(() => expect(fakes.recordSettled).toHaveBeenCalledOnce());
     const order = [
       fakes.recovery.markQuitting,
-      fakes.recordDispose,
+      fakes.recordStop,
       fakes.scenarioStop,
       fakes.outputsStop,
-      fakes.recovery.cleanExit,
+      fakes.appConfig.flush,
+      fakes.storeDispose,
+      fakes.recordSettled,
     ].map(step => step.mock.invocationCallOrder[0] ?? Infinity);
     expect(order).toEqual([...order].sort((a, b) => a - b));
     expect(order.every(Number.isFinite)).toBe(true);
+    expect(fakes.recovery.cleanExit).not.toHaveBeenCalled();
+    lastWrite.resolve();
+    await vi.waitFor(() =>
+      expect(fakes.recovery.cleanExit).toHaveBeenCalledOnce(),
+    );
   });
 
   it('connects macro execution to the shared live and data stores and stops it before closing data', async () => {
