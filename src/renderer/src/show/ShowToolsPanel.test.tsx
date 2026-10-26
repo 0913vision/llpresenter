@@ -1,11 +1,14 @@
-import {cleanup, render, screen, within} from '@testing-library/react';
+import {act, cleanup, render, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {afterEach, beforeEach, expect, it} from 'vitest';
+import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {useShowToolTab} from '@renderer/state/showToolTab';
 import {ShowToolsPanel} from './ShowToolsPanel';
 
 beforeEach(() => useShowToolTab.setState({tool: 'showing'}));
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 
 const tabNames = (): readonly string[] =>
   within(screen.getByRole('tablist'))
@@ -96,4 +99,86 @@ it('keeps the chosen tool when the panel mounts again', async () => {
   unmount();
   render(<ShowToolsPanel sizeClass="normal" />);
   expect(screen.getByRole('tabpanel', {name: '공지'})).toBeDefined();
+});
+
+const RIGHT_COLUMN_MIN = 320;
+const ALL_TABS_WIDTH = 440;
+
+/** A panel whose width the test sets, with the overflow its tab row would have. */
+function measuredPanel() {
+  const observers: Array<() => void> = [];
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      constructor(private readonly callback: () => void) {
+        observers.push(callback);
+      }
+      observe(): void {}
+      disconnect(): void {
+        observers.splice(observers.indexOf(this.callback), 1);
+      }
+    },
+  );
+  let width = 480;
+  const view = render(<ShowToolsPanel sizeClass="normal" />);
+  const root = view.container.firstElementChild;
+  if (!(root instanceof HTMLElement)) throw new Error('Missing panel root');
+  Object.defineProperty(root, 'clientWidth', {get: () => width});
+  const tabList = (): HTMLElement => screen.getByRole('tablist');
+  const resize = (next: number): void => {
+    width = next;
+    const list = tabList();
+    const tabsWidth =
+      list.querySelectorAll('[role="tab"]').length === 8 ? ALL_TABS_WIDTH : 0;
+    Object.defineProperty(list, 'scrollWidth', {
+      configurable: true,
+      get: () => tabsWidth,
+    });
+    Object.defineProperty(list, 'clientWidth', {
+      configurable: true,
+      get: () => Math.min(tabsWidth, width),
+    });
+    act(() => {
+      for (const observer of [...observers]) observer();
+    });
+  };
+  return {resize, view};
+}
+
+it('moves the tools behind 더 보기 when the right column is at its 320 px minimum', () => {
+  const {resize} = measuredPanel();
+  resize(480);
+  expect(tabNames()).toHaveLength(8);
+
+  resize(RIGHT_COLUMN_MIN);
+
+  expect(tabNames()).toEqual(['표시 중', '무대']);
+  expect(screen.getByRole('button', {name: '더 보기'})).toBeDefined();
+});
+
+it('shows all eight tabs again once the panel is wide enough for them', () => {
+  const {resize} = measuredPanel();
+  resize(RIGHT_COLUMN_MIN);
+  expect(tabNames()).toHaveLength(2);
+
+  resize(ALL_TABS_WIDTH - 1);
+  expect(tabNames()).toHaveLength(2);
+  resize(ALL_TABS_WIDTH);
+
+  expect(tabNames()).toHaveLength(8);
+  expect(screen.queryByRole('button', {name: '더 보기'})).toBeNull();
+});
+
+it('keeps the narrow window split without measuring', () => {
+  const observe = vi.fn();
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe = observe;
+      disconnect(): void {}
+    },
+  );
+  render(<ShowToolsPanel sizeClass="narrow" />);
+  expect(tabNames()).toEqual(['표시 중', '무대']);
+  expect(observe).not.toHaveBeenCalled();
 });

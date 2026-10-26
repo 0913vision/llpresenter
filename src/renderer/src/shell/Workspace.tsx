@@ -286,12 +286,10 @@ function serviceOrderParts({
   };
 }
 
-/**
- * Collapses and expands the left column. When the pressed button itself has
- * the keyboard focus (a key press, not a click in 진행), the button that
- * replaces it takes the focus; otherwise the focus falls to the body, where
- * the 진행 keys work.
- */
+// NOTE(0913vision): The button that replaces a pressed sidebar button takes
+// the keyboard focus only when the pressed one had it (a key press, not a
+// click in 진행); otherwise the focus falls to the body, where the 진행 keys
+// work.
 function useSidebarToggle(sidebar: SidebarCollapse | undefined) {
   const pendingFocus = useRef(false);
   const claimFocus = useCallback((): boolean => {

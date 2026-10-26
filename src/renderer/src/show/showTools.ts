@@ -1,5 +1,3 @@
-import type {SizeClass} from '@renderer/shell/sizeClass';
-
 /** The 진행 도구 tabs, in the order of spec 04. */
 export const SHOW_TOOLS = [
   {value: 'showing', label: '표시 중'},
@@ -15,26 +13,22 @@ export const SHOW_TOOLS = [
 export type ShowToolEntry = (typeof SHOW_TOOLS)[number];
 export type ShowTool = ShowToolEntry['value'];
 
-const NARROW_TABS: ReadonlySet<ShowTool> = new Set(['showing', 'stage']);
-
 /** The tools shown as tabs and the tools in the 더 보기 menu. */
 export interface ShowToolGroups {
   readonly tabs: readonly ShowToolEntry[];
   readonly more: readonly ShowToolEntry[];
 }
 
-/**
- * A narrow window keeps 표시 중 and 무대 as tabs and moves the other six into
- * 더 보기; regular and wide windows show all eight tabs.
- */
-export function showToolGroups(sizeClass: SizeClass): ShowToolGroups {
-  if (sizeClass !== 'narrow') return {tabs: SHOW_TOOLS, more: []};
-  return {
-    tabs: SHOW_TOOLS.filter(tool => NARROW_TABS.has(tool.value)),
-    more: SHOW_TOOLS.filter(tool => !NARROW_TABS.has(tool.value)),
-  };
-}
+const COMPACT_TABS: ReadonlySet<ShowTool> = new Set(['showing', 'stage']);
 
-export function showToolLabel(tool: ShowTool): string {
-  return SHOW_TOOLS.find(entry => entry.value === tool)?.label ?? tool;
-}
+/** All eight tools as tabs. */
+export const ALL_TOOL_TABS: ShowToolGroups = {tabs: SHOW_TOOLS, more: []};
+
+/**
+ * 표시 중 and 무대 as tabs and the other six in 더 보기, for a narrow window
+ * or a panel too narrow for all eight.
+ */
+export const COMPACT_TOOL_TABS: ShowToolGroups = {
+  tabs: SHOW_TOOLS.filter(tool => COMPACT_TABS.has(tool.value)),
+  more: SHOW_TOOLS.filter(tool => !COMPACT_TABS.has(tool.value)),
+};
