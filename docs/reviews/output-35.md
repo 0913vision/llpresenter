@@ -141,3 +141,23 @@ Round 1 (codex4, Request changes):
    same check found one more on my change, the `clock` field of the unexported
    `ScreenFramesOptions`; it is gone too (`bfb5528a`). Every other added TSDoc
    sits on an exported declaration.
+
+Round 2 (codex4, Approve). Round 3 (lead findings on the ticker):
+
+1. (A) A throwing tick: fixed in `3818989a`. The tick body runs inside a try,
+   and each 소품 inside its own, so a failure keeps the text that 소품 showed
+   and the others still tick (a NOTE). Failures are logged once per 소품 and
+   message, up to `MAX_REPORTED_TICK_ERRORS` (32) per layer, and the set is
+   cleared on dispose. Tests: a failing clock read keeps "설교 1:00" through
+   three ticks and logs once (`0bc7ac35`); a 소품 whose redraw throws every
+   second keeps its text while another ticks on to 0:20, and the log stops at 32
+   (`87a1045d`).
+2. (B) Ticking only what changes: each pooled view keeps whether its text has a
+   running 타이머 token, computed when the live state draws it, and the tick and
+   the ticker's start and stop read that flag. A plain text 소품 is never
+   redrawn by a tick. `OverlayTextView.replace` already returns before layout
+   when the text equals what shows, and a tick passes no style since round 1.
+   Test: with a 타이머 소품 and a plain one, two ticks redraw only "설교 0:59"
+   and "설교 0:58".
+
+All of these fail a test when reverted (`.llp/output-35/mutations-r2.log`).
