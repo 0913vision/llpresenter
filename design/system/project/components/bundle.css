@@ -1251,3 +1251,22 @@ button.ll-tag, :is(.ll-root, .ll-preview) button.ll-tag { padding-right: var(--s
 .ll-layout__table--plain td:first-child { font-weight: 400; }
 .ll-layout__rules { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 24px; font-size: 12px; line-height: 18px; color: var(--text-2); }
 .ll-layout__rules b { color: var(--text); font-weight: 600; }
+
+/* ---- 47-calendar.css ---- */
+.ll-calendar { box-sizing: border-box; width: var(--size-calendar-width); padding: var(--space-8); border-radius: var(--radius-xl); background: var(--bg-raised); box-shadow: var(--shadow-popover); color: var(--text); animation: ll-calendar-in var(--motion-popover); }
+.ll-calendar__head { display: grid; grid-template-columns: var(--size-control-sm) minmax(0, 1fr) var(--size-control-sm); align-items: center; gap: var(--space-8); min-height: var(--size-calendar-day); margin-bottom: var(--space-8); }
+.ll-calendar__month { font: var(--type-title); text-align: center; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ll-calendar__previous .ll-i { transform: rotate(0.5turn); }
+.ll-calendar__grid { display: flex; flex-direction: column; gap: var(--space-4); }
+.ll-calendar__week { display: grid; grid-template-columns: repeat(7, var(--size-calendar-day)); gap: var(--space-4); }
+.ll-calendar__weekday { display: flex; align-items: center; justify-content: center; height: var(--size-calendar-weekday); color: var(--text-3); font: var(--type-label); }
+.ll-calendar__day { display: flex; align-items: center; justify-content: center; width: var(--size-calendar-day); height: var(--size-calendar-day); padding: 0; border: 0; border-radius: var(--radius-md); background: transparent; color: var(--text); font: var(--type-body); font-variant-numeric: tabular-nums; cursor: default; transition: none; }
+.ll-calendar__day[data-outside] { color: var(--text-3); }
+.ll-calendar__day[aria-current="date"] { box-shadow: var(--ring-calendar-today); }
+.ll-calendar__cell:not([aria-selected="true"]) .ll-calendar__day:not(:disabled):hover, .ll-calendar__cell:not([aria-selected="true"]) .ll-calendar__day:not(:disabled):active { background: var(--bg-control-hover); }
+.ll-calendar__cell[aria-selected="true"] .ll-calendar__day { background: var(--accent-fill); color: var(--text-on-fill); box-shadow: none; }
+.ll-calendar__day:focus-visible, .ll-calendar__day.is-focus { outline: var(--space-2) solid var(--accent); outline-offset: var(--radius-hairline); }
+.ll-calendar__day:disabled { color: var(--text-off); box-shadow: none; }
+.ll-calendar__foot { display: flex; justify-content: center; margin-top: var(--space-8); padding-top: var(--space-8); border-top: var(--radius-hairline) solid var(--line); }
+@keyframes ll-calendar-in { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .ll-calendar { animation: none; } }

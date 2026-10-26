@@ -52,6 +52,7 @@
   --bar-warning: inset 3px 0 0 #e3a23b;
   --ring-field: inset 0 0 0 1px #2b2b2b;
   --ring-field-focus: inset 0 0 0 1px #3d8bf0;
+  --ring-calendar-today: inset 0 0 0 1px var(--accent);
   --ring-field-error: inset 0 0 0 1px #d2343a;
   --ring-dot-cut: 0 0 0 2px #0e0e0e;
   --ring-dot-cut-hover: 0 0 0 2px #232323;
@@ -185,6 +186,9 @@
   --window-min-width: 1280px;
   --window-min-height: 720px;
   --size-editor-label: 120px;
+  --size-calendar-width: 250px;
+  --size-calendar-day: 30px;
+  --size-calendar-weekday: 24px;
   --z-popover: 100;
   --z-tooltip: 200;
   --z-dialog: 300;

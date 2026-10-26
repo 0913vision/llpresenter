@@ -1,0 +1,96 @@
+<!-- @dsCard group="Inputs" height=490 -->
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>Calendar</title></head>
+<body><div class="ll-preview">
+  <div class="ll-spec-title">Calendar: selected date, today and keyboard focus are separate</div>
+  <div class="ll-spec" style="align-items: flex-start">
+    <div class="ll-spec-item"><div id="regular"></div><span class="ll-spec-label">Selected 17, today 26, focused 20</span></div>
+    <div class="ll-spec-item"><div id="boundary"></div><span class="ll-spec-label">Year boundary, disabled previous month</span></div>
+  </div>
+</div>
+<script>
+const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+function civil(year, month, day) {
+  const value = new Date(0);
+  value.setUTCFullYear(year, month, day);
+  value.setUTCHours(12, 0, 0, 0);
+  return value;
+}
+function iconButton(icon, label, disabled) {
+  const button = document.createElement('button');
+  button.className = 'll-iconbtn';
+  button.setAttribute('aria-label', label);
+  button.disabled = disabled;
+  const mark = document.createElement('span');
+  mark.className = 'll-i ll-i-' + icon;
+  button.append(mark);
+  return button;
+}
+function calendar(target, year, month) {
+  const root = document.createElement('section');
+  root.className = 'll-calendar';
+  root.setAttribute('role', 'dialog');
+  root.setAttribute('aria-label', '날짜 선택');
+  const head = document.createElement('div');
+  head.className = 'll-calendar__head';
+  const label = document.createElement('span');
+  label.className = 'll-calendar__month';
+  label.textContent = year + '년 ' + (month + 1) + '월';
+  const previous = iconButton('right', '이전 달', year === 0);
+  previous.classList.add('ll-calendar__previous');
+  head.append(previous, label, iconButton('right', '다음 달', false));
+  const grid = document.createElement('div');
+  grid.className = 'll-calendar__grid';
+  grid.setAttribute('role', 'grid');
+  grid.setAttribute('aria-label', label.textContent);
+  const headings = document.createElement('div');
+  headings.className = 'll-calendar__week';
+  headings.setAttribute('role', 'row');
+  for (const name of weekdays) {
+    const cell = document.createElement('span');
+    cell.className = 'll-calendar__weekday';
+    cell.setAttribute('role', 'columnheader');
+    cell.textContent = name;
+    headings.append(cell);
+  }
+  grid.append(headings);
+  const offset = civil(year, month, 1).getUTCDay();
+  for (let week = 0; week < 6; week++) {
+    const row = document.createElement('div');
+    row.className = 'll-calendar__week';
+    row.setAttribute('role', 'row');
+    for (let column = 0; column < 7; column++) {
+      const date = civil(year, month, 1 - offset + week * 7 + column);
+      const day = date.getUTCDate();
+      const outside = date.getUTCMonth() !== month;
+      const selected = !outside && day === (year === 0 ? 1 : 17);
+      const cell = document.createElement('div');
+      cell.className = 'll-calendar__cell';
+      cell.setAttribute('role', 'gridcell');
+      cell.setAttribute('aria-selected', String(selected));
+      const button = document.createElement('button');
+      button.className = 'll-calendar__day';
+      button.textContent = day;
+      button.setAttribute('aria-label', date.getUTCFullYear() + '년 ' + (date.getUTCMonth() + 1) + '월 ' + day + '일');
+      button.tabIndex = !outside && day === 20 ? 0 : -1;
+      button.disabled = date.getUTCFullYear() < 0;
+      if (outside) button.setAttribute('data-outside', '');
+      if (!outside && year !== 0 && day === 26) button.setAttribute('aria-current', 'date');
+      if (!outside && year !== 0 && day === 20) button.classList.add('is-focus');
+      cell.append(button);
+      row.append(cell);
+    }
+    grid.append(row);
+  }
+  const foot = document.createElement('div');
+  foot.className = 'll-calendar__foot';
+  const today = document.createElement('button');
+  today.className = 'll-btn';
+  today.textContent = '오늘';
+  foot.append(today);
+  root.append(head, grid, foot);
+  document.getElementById(target).append(root);
+}
+calendar('regular', 2026, 4);
+calendar('boundary', 0, 0);
+</script></body></html>

@@ -80,6 +80,10 @@ Surfaces stack from bottom to top. A surface on top is one step lighter than the
 
 ## Typography
 
+Date fields use the [Calendar](components/Calendar/README.md) popover. Its
+250px width, 30px day cells and 24px weekday row follow the current type scale.
+The design card covers selection, today, focus and disabled year boundaries.
+
 The app uses one typeface, Pretendard Variable (`fonts/PretendardVariable.woff2`, OFL). Ship the file with the app, and don't replace it with a system font.
 
 | Style | Size/line height/weight | Where to use |
@@ -237,7 +241,7 @@ Sizes are CSS pixels after Windows display scaling is applied. A 1920×1080 scre
 
 ## Implementation notes
 
-- The preparation song editor uses body 14/20 lyrics, caption 12/16 numbers, and 22px `LabelTag` pickers. Its Reflow layout has 14px insets, 16px gaps, an 18px number gutter, a 120px `size-editor-label` column, and a 2px accent bar on the active block. Lyrics edit without field chrome. The label popup uses `size-menu-max` (320px) so the persistent nine-color row and its name fit; names truncate in the remaining space.
+- The preparation song editor uses body 16/22 lyrics, caption 14/20 numbers, and 22px `LabelTag` pickers. Its Reflow layout has 14px insets, 16px gaps, an 18px number gutter, a 120px `size-editor-label` column, and a 2px accent bar on the active block. Lyrics edit without field chrome. The label popup uses `size-menu-max` (320px) so the persistent nine-color row and its name fit; names truncate in the remaining space.
 
 - Load `tokens.css` first in the app, and use only `var(--token-name)` in component CSS. Don't write values directly.
 - Follow `components/bundle.css` and each component document for component classes and state attributes. Express state with `aria-pressed`, `aria-selected`, `aria-checked`, `aria-expanded`, `aria-invalid`, `disabled`, and `data-state` instead of classes.
