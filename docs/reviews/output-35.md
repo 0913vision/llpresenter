@@ -1,7 +1,7 @@
 # Review request: `output-35`
 
 - Team member: `output`
-- Branch: `feat/output/timer-text` (stacked on output-34)
+- Branch: `feat/output/timer-text` (on `main` after output-34)
 - Base and range: in the review request message.
 - Scope: M3-O6b part 2: each window reads main's 타이머 clock, and 소품 text
   draws `{timer:<id>}` tokens with one ticker per window, so main sends nothing
