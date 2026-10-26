@@ -80,3 +80,9 @@ reloads, legacy runtime rejection, queued work and disposal during index/read.
 ## Team member's reply
 
 1.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (dfb2969d): reviewer (Codex) Approve. Lead Approve; the third Bible
+  reader slice, after data-62 to data-64 (see "What changed and why"). Rebased
+  by the lead onto local `main` without conflicts; typecheck passes.
