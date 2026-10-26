@@ -25,7 +25,9 @@ Owned: `show/quick/QuickPanel.tsx`, its CSS, `quickActions.ts`, tests and
 fixtures. Outside: `shell/Workspace.tsx` mounts the content-sized panel in all
 size classes. The existing settings-document hook, UI components and validated
 IPC are reused. No shared contracts, settings writes, or output-renderer
-changes.
+changes. `shared/testing/fakeLlpApi.ts` supplies empty quick settings for
+mounted apps; otherwise its default rejection adds an unrelated warning to
+notification tests.
 
 ## Checks and quality
 
@@ -34,6 +36,8 @@ test consolidation. Final test count, formatting, ESLint and exact-head GitHub
 verify are in the report. No full local verify or app launch. New TSDoc is only
 on the exported runner. Subscriptions and timeout timers are released; the panel
 keeps one settings snapshot and a generation counter, with no growing cache.
+Initial CI exposed three notification-test failures from the new settings read;
+the fake API default fixes them. Final head CI is in the report.
 
 ## Remaining units and shared contract request
 

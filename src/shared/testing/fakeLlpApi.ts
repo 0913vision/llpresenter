@@ -89,8 +89,15 @@ export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
       ...overrides.preferences,
     },
     settings: {
-      get: () =>
-        Promise.reject(new Error('fakeLlpApi has no settings documents')),
+      get: request =>
+        request.name === 'quick'
+          ? Promise.resolve({
+              name: 'quick',
+              revision: 1,
+              access: 'editable',
+              value: {format: 'llsettings.quick', schemaVersion: 1, items: []},
+            })
+          : Promise.reject(new Error('fakeLlpApi has no settings documents')),
       edit: () => Promise.resolve(NOT_FOUND),
       subscribe: () => () => undefined,
       ...overrides.settings,
