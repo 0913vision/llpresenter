@@ -34,6 +34,12 @@ export default defineConfig({
     restoreMocks: true,
     unstubEnvs: true,
     unstubGlobals: true,
+    // NOTE(0913vision): The module cache keys a transformed file by its own
+    // content, so an eager import.meta.glob stays expanded to the files that
+    // existed when it was cached. The live slice registry then lost every
+    // slice added since M2 in local runs, while CI, which starts clean,
+    // passed.
+    fsModuleCache: false,
     coverage: {
       provider: 'v8',
       include: ['src/**/*.{ts,tsx,mts}', 'scripts/**/*.{ts,mts}'],

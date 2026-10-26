@@ -59,3 +59,9 @@ describe('renderer tests that need Node', () => {
     );
   });
 });
+
+describe('transformed modules', () => {
+  it('are not cached between runs, so a glob always sees the current files', () => {
+    expect(config.test?.fsModuleCache).toBe(false);
+  });
+});
