@@ -112,6 +112,8 @@ async function setup({
 
 const UNAVAILABLE = {ok: false, error: {reason: 'unavailable'}};
 
+const FILE_WRITE_WAIT_MS = 5000;
+
 describe('recovery controller', () => {
   it('records a normal launch at once and applies 켤 때 화면 출력 without asking', async () => {
     const {controller, calls} = await setup({crashed: false});
@@ -400,8 +402,11 @@ describe('a record written after another service opened', () => {
     });
     open = OTHER_SERVICE;
     store.dispatch({type: 'stage.message.set', text: 'Fixture stage note'});
-    await vi.waitFor(async () =>
-      expect(await readFile(file, 'utf8')).toContain(OTHER_SERVICE),
+    // NOTE(0913vision): A real file write can take longer than waitFor's
+    // default second while the whole suite runs in parallel.
+    await vi.waitFor(
+      async () => expect(await readFile(file, 'utf8')).toContain(OTHER_SERVICE),
+      {timeout: FILE_WRITE_WAIT_MS},
     );
     writer.stop();
     await writer.settled();
