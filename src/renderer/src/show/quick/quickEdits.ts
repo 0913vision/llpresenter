@@ -1,6 +1,5 @@
-import * as v from 'valibot';
 import type {LlpApi} from '@shared/ipc';
-import {quickItemIdSchema} from '@shared/schema/ids';
+import {createQuickItemId} from '@shared/schema/ids';
 import type {
   KnownQuickItem,
   QuickItem,
@@ -26,7 +25,7 @@ export type QuickEdit =
   | {readonly kind: 'delete'; readonly id: QuickItem['id']};
 
 export function newQuickItem(choice: QuickChoice): KnownQuickItem {
-  return {...choice, id: v.parse(quickItemIdSchema, crypto.randomUUID())};
+  return {...choice, id: createQuickItemId(crypto.randomUUID())};
 }
 
 export function quickNameReason(name: string): string | undefined {
@@ -42,14 +41,17 @@ function applyEdit(
   switch (edit.kind) {
     case 'add':
       if (items.some(item => item.id === edit.item.id)) return items;
-      if (items.length >= MAX_QUICK_ITEMS)
+      if (items.length >= MAX_QUICK_ITEMS) {
         throw new Error('The quick list is full');
-      if (quickNameReason(edit.item.name))
+      }
+      if (quickNameReason(edit.item.name)) {
         throw new Error('Invalid quick item name');
+      }
       return [...items, {...edit.item, name: edit.item.name.trim()}];
     case 'rename':
-      if (quickNameReason(edit.name))
+      if (quickNameReason(edit.name)) {
         throw new Error('Invalid quick item name');
+      }
       return items.map(item =>
         item.id === edit.id ? {...item, name: edit.name.trim()} : item,
       );

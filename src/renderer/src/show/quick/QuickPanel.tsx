@@ -10,11 +10,15 @@ import {
   PanelHeader,
   PanelTitle,
   PanelTools,
+  PanelActions,
 } from '@renderer/ui/Panel';
 import type {Notice} from '@renderer/ui/notices';
 import {BibleQuickField} from './BibleQuickField';
 import {quickItemOn, quickItemUnavailable, quickRunner} from './quickActions';
 import styles from './QuickPanel.module.css';
+import {QuickAdd, QuickRowEditor} from './QuickEditing';
+import {MAX_QUICK_ITEMS} from './quickEdits';
+import {useQuickEditing} from './useQuickEditing';
 
 const icons: Readonly<Record<QuickItemKind, string>> = {
   song: 'song',
@@ -34,6 +38,9 @@ export function QuickPanel({
 }): JSX.Element | null {
   const api = window.llp;
   const document = useSettingsDocument('quick', '퀵 실행', onProblem);
+  const editing = useQuickEditing(api, onProblem);
+  const locked = document?.access !== 'editable' || editing.busy;
+  const full = (document?.value.items.length ?? 0) >= MAX_QUICK_ITEMS;
   const live = useLive(view => view.state);
   const [activationVersion, setActivationVersion] = useState(0);
   const runner = useMemo(
@@ -58,6 +65,14 @@ export function QuickPanel({
     <Panel label="퀵 실행" className={styles.panel}>
       <PanelHeader>
         <PanelTitle title="퀵 실행" />
+        <PanelActions>
+          <QuickAdd
+            api={api}
+            locked={locked || full}
+            save={editing.run}
+            onProblem={onProblem}
+          />
+        </PanelActions>
       </PanelHeader>
       <PanelTools>
         <BibleQuickField
@@ -73,24 +88,30 @@ export function QuickPanel({
             const reason = quickItemUnavailable(item);
             const available = known && reason === undefined;
             return (
-              <ListActionRow
+              <QuickRowEditor
                 key={item.id}
-                title={item.name}
-                icon={known ? icons[item.kind] : 'warning'}
-                pressed={known ? quickItemOn(item, live) : undefined}
-                disabled={!available}
-                reason={reason}
-                onPress={() => {
-                  if (available) {
-                    setActivationVersion(value => value + 1);
-                    runner
-                      ?.run(item)
-                      .catch((cause: unknown) =>
-                        console.error('Quick item callback failed:', cause),
-                      );
-                  }
-                }}
-              />
+                item={item}
+                locked={locked}
+                save={editing.run}
+              >
+                <ListActionRow
+                  title={item.name}
+                  icon={known ? icons[item.kind] : 'warning'}
+                  pressed={known ? quickItemOn(item, live) : undefined}
+                  disabled={!available}
+                  reason={reason}
+                  onPress={() => {
+                    if (available) {
+                      setActivationVersion(value => value + 1);
+                      runner
+                        ?.run(item)
+                        .catch((cause: unknown) =>
+                          console.error('Quick item callback failed:', cause),
+                        );
+                    }
+                  }}
+                />
+              </QuickRowEditor>
             );
           })}
         </div>

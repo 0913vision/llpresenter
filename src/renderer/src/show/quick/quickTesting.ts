@@ -22,7 +22,9 @@ export function deferred<T>() {
   return {promise, resolve};
 }
 
-export function quickDocument(revision = 1) {
+export function quickDocument(
+  revision = 1,
+): Extract<SettingsDocument, {name: 'quick'}> {
   const parsed = parseSettingsDocument({
     name: 'quick',
     revision,

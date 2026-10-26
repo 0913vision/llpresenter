@@ -8,9 +8,10 @@ import {
   createMessageId,
   createMediaPlaylistId,
   createAudioPlaylistId,
+  createQuickItemId,
 } from './ids';
 
-const UUID = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
+const UUID = '00000000-0000-4000-8000-00000000000a';
 const factories = {
   song: createSongId,
   service: createServiceId,
@@ -20,6 +21,7 @@ const factories = {
   message: createMessageId,
   mediaPlaylist: createMediaPlaylistId,
   audioPlaylist: createAudioPlaylistId,
+  quickItem: createQuickItemId,
 };
 
 describe.each(Object.entries(factories))(
@@ -33,8 +35,8 @@ describe.each(Object.entries(factories))(
       '',
       'not-an-id',
       '00000000-0000-0000-0000-000000000000',
-      '6f1c2a9e-4b7d-1c1a-9e2f-0123456789ab',
-      '6f1c2a9e-4b7d-4c1a-7e2f-0123456789ab',
+      '00000000-0000-1000-8000-000000000001',
+      '00000000-0000-4000-7000-000000000001',
       UUID.toUpperCase(),
     ])('refuses %j before branding it', value => {
       expect(() => createId(value)).toThrow();

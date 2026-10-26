@@ -16,20 +16,21 @@ export function useQuickEditing(
       active.current = false;
     };
   }, []);
+  const isActive = (): boolean => active.current;
   const run = async (edit: QuickEdit): Promise<boolean> => {
-    if (api === undefined || pending.current || !active.current) return false;
+    if (api === undefined || pending.current || !isActive()) return false;
     pending.current = true;
     setBusy(true);
     try {
       await saveQuickEdit(api, edit);
-      return active.current;
+      return isActive();
     } catch (cause) {
       api.log.write({
         level: 'error',
         message: 'Could not edit the quick list',
         detail: cause instanceof Error ? cause.message : String(cause),
       });
-      if (active.current)
+      if (isActive()) {
         onProblem({
           key: 'quick:edit',
           kind: 'warning',
@@ -37,10 +38,11 @@ export function useQuickEditing(
           title: '퀵 실행 변경 실패',
           time: noticeTime(),
         });
+      }
       return false;
     } finally {
       pending.current = false;
-      if (active.current) setBusy(false);
+      if (isActive()) setBusy(false);
     }
   };
   return {busy, run};

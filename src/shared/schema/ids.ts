@@ -80,6 +80,10 @@ export function createSongId(uuid: string): SongId {
   return v.parse(songIdSchema, uuid);
 }
 
+export function createQuickItemId(uuid: string): QuickItemId {
+  return v.parse(quickItemIdSchema, uuid);
+}
+
 /** Brands a generated service UUID; throws unless it is lowercase version 4. */
 export function createServiceId(uuid: string): ServiceId {
   return v.parse(serviceIdSchema, uuid);
