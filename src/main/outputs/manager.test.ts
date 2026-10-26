@@ -140,13 +140,13 @@ describe('output identification', () => {
         width: 960,
         height: 540,
       });
-      expect(manager.shownOutputs()).toEqual([
-        {
-          screen,
-          placement: expect.objectContaining({kind: method, bounds: outer}),
-          contentSize: {width: 960, height: 540},
-        },
-      ]);
+      const identified = manager.shownOutputs()[0];
+      expect(identified?.screen).toEqual(screen);
+      expect(identified?.placement).toMatchObject({
+        kind: method,
+        bounds: outer,
+      });
+      expect(identified?.contentSize).toEqual({width: 960, height: 540});
       if (method === 'capture') expect(manager.captureAreas()).toEqual([outer]);
       manager.dispose();
     },

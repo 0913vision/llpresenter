@@ -2,7 +2,7 @@
 
 - Team member: `screens`
 - Branch: `fix/screens/identify-details`
-- Base (`main`): `2d1d8bfe`, rebased once before final checks.
+- Base (`main`): `ecad4256`, rebased before round 2 final checks.
 - Exact head and CI: see request line.
 - Scope: freeze-allowed C02 Identify alignment, user decision October 27.
 
@@ -69,7 +69,7 @@ explicitly:
 
 ## Checks run
 
-After rebase: typecheck, scoped ESLint, 175 tests in 10 related output/renderer
+After rebase: typecheck, scoped ESLint, 181 tests in 10 related output/renderer
 and schema files, formatting, and the production build pass. Regressions cover
 the exact 3440x1440 primary plus 1920x1080 at x3440/y222, physical pixels on a
 scaled display, multiple outputs, capture avoidance, saved kinds, hidden
@@ -90,21 +90,22 @@ test; the app check exercises actual fallback-window, Stage-window, capture and
 unused display cards on the currently connected monitor.
 
 Each launch enables the three fixture outputs, verifies their names, physical
-resolution, refresh and kinds, then switches selection back and forth 20 times
-while pressing Identify. All three Identify target IDs remain unchanged, and the
+client resolution against the actual output page's viewport and pixel ratio,
+refresh and kinds, then switches selection back and forth 20 times while
+pressing Identify. All three Identify target IDs remain unchanged, and the
 control's Identify button retains focus after each press. Each card stays within
 its 240x240 content box. After the last press, all Identify targets close within
 the three-second timeout. Each launch also leaves and reopens Screen settings
 twice, switches all outputs off, and verifies the hardware-only card.
 
 Across both launches, every Identify page stays at 18 elements, 38 DOM nodes and
-0 listeners. Its post-GC heap decreases slightly: about 1.431 to 1.428 MB in the
-first launch, and 1.426 to 1.423 MB in the second. The control stays at 346
-elements, 812 nodes and 372 listeners through the 20 round trips. Its final
-post-GC heaps are 5,969,620 and 5,992,036 bytes across the independent launches.
-The two workspace reopens settle at the same 845 nodes and 372 listeners in each
-launch after loading the Show workspace. No accumulating Identify windows,
-elements, listeners or heap retention were observed.
+0 listeners. Its post-GC heap decreases slightly: about 1.433 to 1.430 MB in
+both launches. The control stays at 346 elements, 812 nodes and 372 listeners
+through the 20 round trips. Its final post-GC heaps are 5,960,744 and 5,969,756
+bytes across the independent launches. The two workspace reopens settle at the
+same 845 nodes and 372 listeners in each launch after loading the Show
+workspace. No accumulating Identify windows, elements, listeners or heap
+retention were observed.
 
 | Screen               | First launch                                         | Relaunch                                                           |
 | -------------------- | ---------------------------------------------------- | ------------------------------------------------------------------ |
