@@ -47,13 +47,13 @@ still depend on open decisions 25 and 26 and the missing X1a/X2a stored fields.
 - [x] No new resource, dependency, contract or cache
 - [ ] Exact-head CI verified by lead if the shared API is limited
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: pending
-
-## Review: reviewer
-
-- Verdict: pending
+- Round 1 (e1ded013): reviewer (Codex) Approve. Lead Approve; the hidden audio
+  window's release no longer reads `webContents` from a destroyed window, the
+  same class of fault as M3-C2-1, so recovery timers are always disposed. The
+  exact-head CI run passed, checked by the lead at merge. Rebased by the lead
+  onto local `main` without conflicts; typecheck passes.
 
 ## Team member's reply
 
