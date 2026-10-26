@@ -160,6 +160,7 @@ export class SliceRegistry {
         skipped.push({type: next.type, reason: 'unhandled'});
         return before;
       }
+      const effectsBefore = effects.length;
       const context: SliceContext = {
         ...inputs,
         apply,
@@ -170,6 +171,7 @@ export class SliceRegistry {
           effects.push({type: next.type, run: effect});
         },
         reject: error => {
+          effects.length = effectsBefore;
           skipped.push({type: next.type, reason: 'invalid-overlay', error});
           return before;
         },
@@ -177,6 +179,7 @@ export class SliceRegistry {
       try {
         return slice.apply(before, next, context);
       } catch (error) {
+        effects.length = effectsBefore;
         skipped.push(
           error instanceof MissingLiveTargetError
             ? {type: next.type, reason: 'missing-target', error}

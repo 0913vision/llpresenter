@@ -4,6 +4,7 @@ import {recordingLogger} from '../displays/testing';
 import {initialHistory, liveSlices, type LiveHistory} from './reducer';
 import {defineSlice} from './slice';
 import {registryOf, SliceRegistry} from './sliceRegistry';
+import {batchSlice} from './slices/batch';
 import {dispatchLogged, LiveStore} from './store';
 
 const fixtureSlice = defineSlice({
@@ -49,6 +50,54 @@ describe('SliceRegistry', () => {
     expect(() => registry.apply(history, {type: 'clear.undo'}, 42)).toThrow(
       'live reducer failed',
     );
+  });
+
+  it('drops the effects a skipped child deferred and runs its siblings effects', () => {
+    const ran: string[] = [];
+    const registry = new SliceRegistry([
+      batchSlice,
+      defineSlice({
+        commands: ['output.set'],
+        initial: {},
+        reduce: (history, _command, {defer}) => {
+          defer(() => ran.push('applied'));
+          return history;
+        },
+      }),
+      defineSlice({
+        commands: ['clear.undo'],
+        initial: {},
+        reduce: (_history, _command, {defer}) => {
+          defer(() => ran.push('failed'));
+          throw new Error('Fixture failure');
+        },
+      }),
+      defineSlice({
+        commands: ['layer.clear'],
+        initial: {},
+        reduce: (_history, _command, {defer, reject}) => {
+          defer(() => ran.push('rejected'));
+          return reject({field: 'target', message: 'Fixture rejection'});
+        },
+      }),
+    ]);
+    const result = registry.run(
+      initialHistory(emptyLiveState()),
+      {
+        type: 'live.batch',
+        commands: [
+          {type: 'output.set', screenId: 'main', on: true},
+          {type: 'clear.undo'},
+          {type: 'layer.clear', target: 'all'},
+        ],
+      },
+      {now: 42},
+    );
+    expect(ran).toEqual(['applied']);
+    expect(result.skipped.map(problem => problem.reason)).toEqual([
+      'failed',
+      'invalid-overlay',
+    ]);
   });
 
   it('collects slices while ignoring helper exports and matches command names exactly', () => {

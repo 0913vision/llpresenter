@@ -47,7 +47,13 @@ export type SliceInitial = Omit<Partial<LiveState>, 'layers'> & {
 
 /** The command time and the same registry path for a transaction's children. */
 export interface SliceContext extends SliceInputs {
-  /** Defers an effect until the dispatch passes its final admission check. */
+  /**
+   * Defers an effect until the dispatch passes its final admission check.
+   * Effects run inside the dispatch, before its state is stored, so an effect
+   * must not dispatch synchronously; it queues a microtask instead, as
+   * `ScreenSettingsPort.queueRefresh` does. A skipped command's effects never
+   * run.
+   */
   readonly defer: (effect: () => void) => void;
   /** Records a validation skip and returns this command's unchanged history. */
   readonly reject: (error: PayloadError) => LiveHistory;
