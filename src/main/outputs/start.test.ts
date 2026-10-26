@@ -40,15 +40,26 @@ const fakes = vi.hoisted(() => {
     closeNumber: vi.fn(),
   };
 });
-vi.mock('electron', () => ({
-  BrowserWindow: class {
-    isDestroyed() {
+const control = await vi.hoisted(async () => {
+  const {EventEmitter} = await import('node:events');
+  class FakeContents extends EventEmitter {
+    isDestroyed(): boolean {
+      return false;
+    }
+  }
+  class FakeControl extends EventEmitter {
+    readonly webContents = new FakeContents();
+    isDestroyed(): boolean {
       return false;
     }
     getBounds() {
       return {x: 0, y: 0, width: 1920, height: 1040};
     }
-  },
+  }
+  return {FakeControl};
+});
+vi.mock('electron', () => ({
+  BrowserWindow: control.FakeControl,
   powerSaveBlocker: {
     start: fakes.start,
     stop: fakes.stop,
@@ -126,13 +137,14 @@ function setup(
   const log = recordingLogger();
   const settingsPromise = loading ?? Promise.resolve(settings.reader);
   const stopOverlays = startOverlays({store, settings: settingsPromise, log});
+  const controlWindow = new BrowserWindow({
+    show: false,
+    webPreferences: {offscreen: true},
+  });
   const running = startOutputs({
     store,
     settings: settingsPromise,
-    control: new BrowserWindow({
-      show: false,
-      webPreferences: {offscreen: true},
-    }),
+    control: controlWindow,
     log,
     windowMode,
   });
@@ -145,7 +157,17 @@ function setup(
   if (windows === null) throw new Error('Missing windows');
   const save = (screens: readonly object[]): void =>
     settings.update(settingsDocument('screens', {screens}));
-  return {settings, store, log, running, windows, save, stop, stopOverlays};
+  return {
+    settings,
+    store,
+    log,
+    running,
+    windows,
+    save,
+    stop,
+    stopOverlays,
+    controlWindow,
+  };
 }
 
 async function loaded() {
@@ -411,6 +433,28 @@ describe('saved output backend', () => {
     expect(fakes.closeNumber).not.toHaveBeenCalled();
     stop();
     expect(fakes.closeNumber).toHaveBeenCalledTimes(3);
+  });
+
+  it('hides every 테스트 패턴 when the control window goes away, until outputs stop', async () => {
+    const {store, stop, controlWindow} = setup();
+    await loaded();
+    const show = (): void => {
+      const command = parseLiveCommand({
+        type: 'screen.testPattern.set',
+        screenId: MAIN,
+        on: true,
+      });
+      if (!command.ok) throw new Error(JSON.stringify(command.error));
+      store.dispatch(command.value);
+    };
+    show();
+    expect(store.state.testPatterns).toEqual([MAIN]);
+    controlWindow.emit('closed');
+    expect(store.state).not.toHaveProperty('testPatterns');
+    show();
+    stop();
+    controlWindow.emit('closed');
+    expect(store.state.testPatterns).toEqual([MAIN]);
   });
 
   it('reads the monitors at once for 모니터 다시 찾기 and raises the fallback for 창 보기', async () => {

@@ -25,6 +25,7 @@ import {OutputManager} from './manager';
 import {MonitorNumbers} from './monitorNumbers';
 import {openNumberWindow} from './numberWindow';
 import {OutputStatusBoard} from './statusBoard';
+import {guardTestPatterns} from './testPatternGuard';
 import {WakeKeeper, keepAwakeWhileOutputsOn} from './wakeLock';
 
 /** What the output windows hang on. */
@@ -211,6 +212,7 @@ export function startOutputs({
   const stops = [
     releaseResync,
     releaseNumbers,
+    guardTestPatterns({control, store, log}),
     () => numbers.dispose(),
     stopNormalizing,
     screens.subscribe(() => board.refresh()),

@@ -5,7 +5,10 @@ import {resolveOutputScreen} from '@shared/screens';
 import {outputStateKeys} from '../../outputs/identity';
 import {MissingLiveTargetError} from '../commandErrors';
 
-/** Turns each screen's output on and off. */
+/**
+ * Turns each screen's output on and off. Turning one off also hides its 테스트
+ * 패턴, so a pattern never waits on a screen for its next output.
+ */
 export const outputsSlice = defineSlice({
   commands: ['output.set'],
   initial: {outputs: {}},
@@ -42,6 +45,20 @@ export const outputsSlice = defineSlice({
           Object.entries(state.outputs).filter(([key]) => !keys.includes(key)),
         )
       : {...state.outputs, ...Object.fromEntries(keys.map(key => [key, on]))};
-    return {...history, state: {...state, version: state.version + 1, outputs}};
+    const {testPatterns, ...rest} = state;
+    const patterns = on
+      ? testPatterns
+      : testPatterns?.filter(id => !keys.includes(id));
+    return {
+      ...history,
+      state: {
+        ...rest,
+        ...(patterns === undefined || patterns.length === 0
+          ? {}
+          : {testPatterns: patterns}),
+        version: state.version + 1,
+        outputs,
+      },
+    };
   },
 });

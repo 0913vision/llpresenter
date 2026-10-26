@@ -70,6 +70,26 @@ describe('screen.testPattern.set', () => {
     expect(store.state.testPatterns).toEqual([MAIN]);
   });
 
+  it('hides the pattern of a screen whose output turns off, and only then', () => {
+    const {store, set} = setup();
+    const output = (screenId: string, on: boolean) => {
+      const command = parseLiveCommand({type: 'output.set', screenId, on});
+      if (!command.ok) throw new Error(JSON.stringify(command.error));
+      store.dispatch(command.value);
+    };
+    set(MAIN, true);
+    set(CAPTIONS, true);
+    output(MAIN, false);
+    expect(store.state.testPatterns).toEqual([MAIN, CAPTIONS]);
+    output(MAIN, true);
+    expect(store.state.testPatterns).toEqual([MAIN, CAPTIONS]);
+    output(MAIN, false);
+    expect(store.state.testPatterns).toEqual([CAPTIONS]);
+    output(CAPTIONS, true);
+    output(CAPTIONS, false);
+    expect(store.state).not.toHaveProperty('testPatterns');
+  });
+
   it('refuses a screen past the live state cap', () => {
     const {store, settings, skipped, set} = setup();
     const screens = Array.from(
