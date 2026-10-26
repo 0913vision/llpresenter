@@ -237,15 +237,14 @@ describe('항목 추가', () => {
     expect(useHeaderRename.getState().requested).toBe(added?.id);
   });
 
-  it('inserts a 빈 자리 and a media item from the submenus', async () => {
+  it('normalizes a legacy slot submenu insert and still inserts a media item', async () => {
     const {user, service} = setup();
     await user.click(screen.getByRole('button', {name: '항목 추가'}));
     await user.click(screen.getByRole('menuitem', {name: '빈 자리'}));
     await user.click(screen.getByRole('menuitem', {name: '설교'}));
     await waitFor(() => expect(service().service.order).toHaveLength(6));
     expect(service().service.order.at(-1)).toMatchObject({
-      slot: 'slides',
-      title: '설교',
+      header: '설교',
     });
     await user.click(screen.getByRole('button', {name: '항목 추가'}));
     await user.click(screen.getByRole('menuitem', {name: '미디어'}));
@@ -256,17 +255,16 @@ describe('항목 추가', () => {
     });
   });
 
-  it('fills the selected song slot with the chosen song', async () => {
+  it('adds a chosen song without replacing the migrated section', async () => {
     const {user, service, second} = setup();
     act(() =>
       useShow.setState({
         rows: [
           {kind: 'header', id: fixtureItems.header, title: '찬양'},
           {
-            kind: 'slot',
+            kind: 'header',
             id: fixtureItems.slot,
             title: '헌금 찬양',
-            accepts: 'song',
           },
         ],
         openItemId: fixtureItems.slot,
@@ -278,10 +276,13 @@ describe('항목 추가', () => {
       await within(menu).findByRole('menuitem', {name: /새 노래 2/u}),
     );
     await waitFor(() =>
-      expect(service().service.order[3]).toMatchObject({song: second.song.id}),
+      expect(service().service.order.at(-1)).toMatchObject({
+        song: second.song.id,
+      }),
     );
-    expect(service().service.order).toHaveLength(5);
+    expect(service().service.order).toHaveLength(6);
     expect(service().service.order[3]).toHaveProperty('id', fixtureItems.slot);
+    expect(service().service.order[3]).toHaveProperty('header', '헌금 찬양');
     expect(service().service.order[3]).not.toHaveProperty('slot');
   });
 

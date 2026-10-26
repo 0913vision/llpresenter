@@ -1192,7 +1192,7 @@ describe('ContentStore 예배 순서 and 틀 edits', () => {
     const order = store.service(id)?.service.order ?? [];
     expect(
       order.map(item => ('header' in item ? item.header : 'slot')),
-    ).toEqual(['찬양', 'slot']);
+    ).toEqual(['찬양', '찬양']);
     expect(order.map(({id: itemIdOf}) => itemIdOf)).not.toContain(itemId(21));
     const emptyId = empty.ok ? empty.value.id : '';
     expect(store.service(emptyId)?.service.order).toEqual([]);
@@ -1226,8 +1226,8 @@ describe('ContentStore 예배 순서 and 틀 edits', () => {
     const order = store.service(SUNDAY)?.service.order ?? [];
     expect(
       order.map(item => Object.keys(item).find(key => key !== 'id')),
-    ).toEqual(['header', 'header', 'song', 'header', 'slot']);
-    expect(new Set(order.map(({id}) => id)).size).toBe(5);
+    ).toEqual(['header', 'header', 'song', 'header']);
+    expect(new Set(order.map(({id}) => id)).size).toBe(4);
   });
 
   it('refuses an import of an item the source lacks', async () => {
@@ -1310,9 +1310,9 @@ describe('ContentStore lists', () => {
         {id: itemId(5), slot: 'bible', title: '말씀'},
       ]),
     ]);
-    expect(store.serviceList()).toMatchObject([{id: SUNDAY, itemCount: 3}]);
+    expect(store.serviceList()).toMatchObject([{id: SUNDAY, itemCount: 1}]);
     expect(store.templateList()).toMatchObject([
-      {id: TEMPLATE_ID, itemCount: 1},
+      {id: TEMPLATE_ID, itemCount: 0},
     ]);
   });
 });

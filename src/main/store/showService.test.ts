@@ -132,7 +132,7 @@ describe('buildShowService', () => {
     expect(show.rows).toEqual([
       {kind: 'header', id: itemId(1), title: '찬양'},
       {kind: 'song', id: itemId(2), title: '만복의 근원 하나님'},
-      {kind: 'slot', id: itemId(3), title: '찬양', accepts: 'song'},
+      {kind: 'header', id: itemId(3), title: '찬양'},
       {kind: 'bible', id: itemId(4), title: '요한복음 3:16-18'},
       {kind: 'media', id: itemId(5), title: ''},
       {kind: 'notice', id: itemId(6), title: ''},

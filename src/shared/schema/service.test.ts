@@ -6,7 +6,6 @@ import {
   serializeService,
   serializeTemplate,
   serviceItemKind,
-  serviceItemKinds,
   isItemOfKind,
   type ServiceItem,
   type ServiceItemKind,
@@ -51,7 +50,7 @@ function sundayService() {
         macro: MACRO_ID,
         memo: '천천히\n둘째 줄',
       },
-      {id: itemId(3), slot: 'song', title: '찬양'},
+      {id: itemId(3), header: 'Offering'},
       {id: itemId(4), bible: PASSAGE, memo: ''},
       {id: itemId(5), media: MEDIA_ID},
       {id: itemId(6), notice: NOTICE_ID, macro: '광고'},
@@ -73,11 +72,18 @@ function withItem(item: object) {
 }
 
 describe('parseService', () => {
-  it('reads a service with every item kind', () => {
+  it('reads a service with every current item kind', () => {
     const loaded = expectSuccess(parse(sundayService()));
 
     expect(loaded.data).toEqual(sundayService());
-    expect(loaded.data.order.map(serviceItemKind)).toEqual(serviceItemKinds);
+    expect(loaded.data.order.map(serviceItemKind)).toEqual([
+      'header',
+      'song',
+      'header',
+      'bible',
+      'media',
+      'notice',
+    ]);
   });
 
   it('keeps an item of an unknown kind unchanged', () => {
@@ -292,7 +298,7 @@ function randomItem(random: TestRandom): object {
   return random.pick<object>([
     {id, header: '찬양'},
     {id, song: random.uuid(), ...memo},
-    {id, slot: random.pick(['song', 'bible', 'slides']), title: '자리'},
+    {id, header: 'Empty section'},
     {id, media: random.uuid(), macro: random.uuid()},
     {id, notice: random.uuid(), ...memo},
     {id, future: {kind: random.integer(0, 9)}},

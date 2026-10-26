@@ -29,7 +29,7 @@ import {
 
 const SERVICE_FORMAT = 'llservice';
 
-/** The kind keys of 예배 순서 items. An item has exactly one of them. */
+/** Accepted kind keys, including legacy slot input normalized to a header. */
 export const serviceItemKinds = [
   'header',
   'song',
@@ -41,7 +41,7 @@ export const serviceItemKinds = [
 
 export type ServiceItemKind = (typeof serviceItemKinds)[number];
 
-/** The kinds of item a 빈 자리 accepts. */
+/** Recognized legacy slot values in older service and template files. */
 export const slotKinds = ['song', 'bible', 'slides'] as const;
 
 export type SlotKind = (typeof slotKinds)[number];
@@ -86,7 +86,22 @@ const mixedItemSchema = v.never('An item has more than one kind key');
 
 const serviceItemSchema = v.lazy(itemSchemaFor);
 
-const orderSchema = listWithUniqueIds(serviceItemSchema);
+const orderSchema = v.pipe(
+  listWithUniqueIds(serviceItemSchema),
+  v.transform(normalizeLegacySlots),
+);
+
+function normalizeLegacySlots(
+  order: Array<v.InferOutput<typeof serviceItemSchema>>,
+): Array<v.InferOutput<typeof serviceItemSchema>> {
+  return order.map(item => {
+    if (!Object.hasOwn(item, 'slot') || typeof item.title !== 'string') {
+      return item;
+    }
+    const {slot: _slot, title, ...fields} = item;
+    return {...fields, header: title};
+  });
+}
 
 /**
  * A 예배 순서 as its file holds it. A value from another process goes through
