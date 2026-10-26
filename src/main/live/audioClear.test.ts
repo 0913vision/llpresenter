@@ -4,7 +4,11 @@ import {parseLiveState} from '@shared/schema/liveState';
 import {audioPositionSeconds} from '@shared/schema/audioState';
 import {LiveStore} from './store';
 
-function setup(paused = false, audioTrackVersion?: number) {
+function setup(
+  paused = false,
+  audioTrackVersion?: number,
+  fadeOutSince?: number,
+) {
   const mediaId = '00000000-0000-4000-8000-000000000001';
   const initial = emptyLiveState();
   const parsed = parseLiveState({
@@ -22,6 +26,7 @@ function setup(paused = false, audioTrackVersion?: number) {
           trackVersion: 7,
           since: paused ? null : 1000,
           positionSeconds: 2,
+          ...(fadeOutSince === undefined ? {} : {fadeOutSince}),
         },
       },
     },
@@ -42,6 +47,24 @@ function setup(paused = false, audioTrackVersion?: number) {
   };
 }
 describe('audio clear undo', () => {
+  it('restores a manual fade with the same remaining time after undo', () => {
+    const {store, later} = setup(false, undefined, 4000);
+    store.dispatch({type: 'layer.clear', target: 'audio'});
+    later();
+    store.dispatch({type: 'clear.undo'});
+    expect(store.state.layers.audio?.playback).toMatchObject({
+      fadeOutSince: 24_000,
+      since: 25_000,
+      positionSeconds: 6,
+    });
+    expect(
+      store.dispatch({
+        type: 'audio.fadeOut.complete',
+        trackVersion: 7,
+        since: 4000,
+      }),
+    ).toBe(false);
+  });
   it('allocates undo identity after the retained counter rather than the batch-compressed state version', () => {
     const {store, later} = setup(false, 100);
     store.dispatch({type: 'layer.clear', target: 'audio'});

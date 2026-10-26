@@ -41,14 +41,15 @@ function setup() {
   const root = document.createElement('div');
   const now = vi.fn(() => 5000);
   const onNext = vi.fn();
+  const onFadeEnd = vi.fn();
   const onError = vi.fn();
-  const player = new AudioPlayer(root, {now, onNext, onError});
+  const player = new AudioPlayer(root, {now, onNext, onFadeEnd, onError});
   onTestFinished(() => player.dispose());
   const [first, second] = root.querySelectorAll('audio');
   if (first === undefined || second === undefined) {
     throw new Error('Missing audio elements');
   }
-  return {root, player, first, second, now, onNext, onError};
+  return {root, player, first, second, now, onNext, onFadeEnd, onError};
 }
 
 async function ready(element: HTMLAudioElement) {
@@ -64,6 +65,64 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers());
 
 describe('AudioPlayer', () => {
+  it('fades both fallback and newly ready replacement for three seconds, then stops without next', async () => {
+    vi.useFakeTimers();
+    const {root, player, first, second, now, onNext, onFadeEnd} = setup();
+    player.show(state());
+    await ready(first);
+    player.show(state(2, {fadeOutSince: 5000}));
+    now.mockReturnValue(6500);
+    vi.advanceTimersByTime(1500);
+    expect(first.volume).toBeCloseTo(0.5);
+    expect(second.volume).toBeCloseTo(0.5);
+    await ready(second);
+    player.show(state(2, {fadeOutSince: 5000}, 50));
+    expect(second.volume).toBeCloseTo(0.25);
+    now.mockReturnValue(8000);
+    vi.advanceTimersByTime(1500);
+    expect(root.querySelector('audio[src]')).toBeNull();
+    expect(onFadeEnd).toHaveBeenCalledExactlyOnceWith(2, 5000);
+    expect(onNext).not.toHaveBeenCalled();
+    player.show(state(2, {fadeOutSince: 5000}));
+    expect(root.querySelector('audio[src]')).toBeNull();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('interrupts a manual fade with F5 without increasing its current gain', async () => {
+    vi.useFakeTimers();
+    const {player, first, now, onFadeEnd} = setup();
+    player.show(state());
+    await ready(first);
+    player.show(state(1, {fadeOutSince: 5000}));
+    now.mockReturnValue(6500);
+    vi.advanceTimersByTime(1500);
+    expect(first.volume).toBeCloseTo(0.5);
+    player.show(emptyLiveState());
+    expect(first.volume).toBeCloseTo(0.5);
+    now.mockReturnValue(6700);
+    vi.advanceTimersByTime(200);
+    expect(first.volume).toBeCloseTo(0.25);
+    now.mockReturnValue(6900);
+    vi.advanceTimersByTime(200);
+    expect(first.hasAttribute('src')).toBe(false);
+    vi.advanceTimersByTime(5000);
+    expect(onFadeEnd).not.toHaveBeenCalled();
+  });
+
+  it('finishes an expired fade on reload without playing and treats natural end as stop', async () => {
+    vi.useFakeTimers();
+    const {player, first, onNext, onFadeEnd} = setup();
+    player.show(state(1, {fadeOutSince: 1000}));
+    expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
+    expect(onFadeEnd).toHaveBeenCalledExactlyOnceWith(1, 1000);
+    player.show(state(2));
+    await ready(first);
+    player.show(state(2, {fadeOutSince: 5000}));
+    first.dispatchEvent(new Event('ended'));
+    expect(onFadeEnd).toHaveBeenLastCalledWith(2, 5000);
+    expect(onNext).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+  });
   it('creates only two muted hidden elements and leaves empty output idle', () => {
     const {root, player, first, second} = setup();
     for (const element of [first, second]) {

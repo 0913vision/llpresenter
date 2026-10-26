@@ -1,6 +1,9 @@
 import type {AudioLayer, LiveState} from '@shared/live';
 import {mediaUrl} from '@shared/media';
-import {audioPositionSeconds} from '@shared/schema/audioState';
+import {
+  AUDIO_MANUAL_FADE_MS,
+  audioPositionSeconds,
+} from '@shared/schema/audioState';
 import {fadeAudio} from './audioFade';
 
 /** Leaves time for command delivery within the F5 half-second limit. */
@@ -9,6 +12,7 @@ export const AUDIO_CLEAR_FADE_MS = 400;
 interface AudioPlayerOptions {
   readonly now: () => number;
   readonly onNext: (trackVersion: number) => void;
+  readonly onFadeEnd: (trackVersion: number, since: number) => void;
   readonly onError: (message: string, error: unknown) => void;
   readonly muted?: boolean;
 }
@@ -19,6 +23,12 @@ interface Track {
   ready: boolean;
   attempted: boolean;
   generation: number;
+}
+
+interface ManualFade {
+  readonly trackVersion: number;
+  readonly since: number;
+  done: boolean;
 }
 
 const MAX_REPORTED_AUDIO_ERRORS = 32;
@@ -33,7 +43,8 @@ export class AudioPlayer {
   private endedVersion: number | null = null;
   private disposed = false;
   private cancelFade: (() => void) | null = null;
-  private fading: Track | null = null;
+  private clearing = false;
+  private manualFade: ManualFade | null = null;
   private gain = 1;
   private volume = 1;
 
@@ -75,7 +86,8 @@ export class AudioPlayer {
           return;
         }
         this.endedVersion = playback.trackVersion;
-        this.options.onNext(playback.trackVersion);
+        if (this.manualFade !== null) this.finishManualFade(this.manualFade);
+        else this.options.onNext(playback.trackVersion);
       });
     }
   }
@@ -85,17 +97,8 @@ export class AudioPlayer {
     this.attempt(() => {
       const layer = state.layers.audio;
       this.wanted = layer;
-      if (layer?.playback !== undefined && this.cancelFade !== null) {
-        const cleared = this.fading;
-        this.cancelFade();
-        this.cancelFade = null;
-        this.fading = null;
-        if (cleared !== null) {
-          if (this.active === cleared) this.active = null;
-          this.attempt(() => this.unload(cleared));
-        }
-        this.gain = 1;
-      }
+      this.volume = (state.audioVolume ?? 100) / 100;
+      if (this.followFade(layer)) return;
       const fallback = this.active;
       if (
         layer?.playback?.since === null &&
@@ -105,8 +108,7 @@ export class AudioPlayer {
         this.attempt(() => fallback.element.pause());
       }
       for (const track of this.tracks) {
-        this.volume = (state.audioVolume ?? 100) / 100;
-        const volume = this.volume * (track === this.fading ? this.gain : 1);
+        const volume = this.volume * this.gain;
         if (track.element.volume !== volume) track.element.volume = volume;
         if (
           track.layer !== null &&
@@ -117,7 +119,7 @@ export class AudioPlayer {
         }
       }
       if (layer?.playback === undefined) {
-        if (this.active !== null && this.fading === null) this.clearAudio();
+        if (this.active !== null && !this.clearing) this.clearAudio();
         return;
       }
       const playback = layer.playback;
@@ -161,30 +163,101 @@ export class AudioPlayer {
   }
 
   private clearAudio(): void {
-    const track = this.active;
-    if (track === null) return;
+    if (this.active === null) return;
+    const startGain = this.gain;
     const finish = (): void => {
-      this.active = null;
-      this.fading = null;
+      this.clearing = false;
       this.cancelFade = null;
       this.gain = 1;
-      this.attempt(() => this.unload(track));
+      this.stopTracks();
     };
-    this.fading = track;
+    this.clearing = true;
     try {
       this.cancelFade = fadeAudio({
         durationMs: AUDIO_CLEAR_FADE_MS,
         now: this.options.now,
-        gain: fraction => {
-          this.gain = fraction;
-          track.element.volume = this.volume * fraction;
-        },
+        gain: fraction => this.setGain(startGain * fraction),
         end: finish,
         onError: error => this.report(error),
       });
     } catch (error) {
       this.report(error);
       finish();
+    }
+  }
+
+  private followFade(layer: AudioLayer | null): boolean {
+    const playback = layer?.playback;
+    const manual = this.manualFade;
+    if (
+      manual !== null &&
+      manual.trackVersion === playback?.trackVersion &&
+      manual.since === playback.fadeOutSince
+    ) {
+      return manual.done;
+    }
+    if (playback !== undefined || !this.clearing) {
+      this.cancelFade?.();
+      this.cancelFade = null;
+      if (this.clearing) this.stopTracks();
+      this.clearing = false;
+      this.manualFade = null;
+      if (playback !== undefined) this.gain = 1;
+    }
+    if (playback?.fadeOutSince !== undefined) {
+      return this.startManualFade(playback.trackVersion, playback.fadeOutSince)
+        .done;
+    }
+    return false;
+  }
+
+  private startManualFade(trackVersion: number, since: number): ManualFade {
+    const manual: ManualFade = {trackVersion, since, done: false};
+    this.manualFade = manual;
+    try {
+      const remaining = Math.max(
+        0,
+        AUDIO_MANUAL_FADE_MS - Math.max(0, this.options.now() - since),
+      );
+      if (remaining === 0) {
+        this.finishManualFade(manual);
+        return manual;
+      }
+      const startGain = remaining / AUDIO_MANUAL_FADE_MS;
+      this.setGain(startGain);
+      this.cancelFade = fadeAudio({
+        durationMs: remaining,
+        now: this.options.now,
+        gain: fraction => this.setGain(startGain * fraction),
+        end: () => this.finishManualFade(manual),
+        onError: error => this.report(error),
+      });
+    } catch (error) {
+      this.report(error);
+      this.finishManualFade(manual);
+    }
+    return manual;
+  }
+
+  private finishManualFade(manual: ManualFade): void {
+    if (this.manualFade !== manual || manual.done) return;
+    manual.done = true;
+    this.cancelFade?.();
+    this.cancelFade = null;
+    this.attempt(() => this.setGain(0));
+    this.stopTracks();
+    this.options.onFadeEnd(manual.trackVersion, manual.since);
+  }
+
+  private setGain(gain: number): void {
+    this.gain = gain;
+    for (const track of this.tracks) track.element.volume = this.volume * gain;
+  }
+
+  private stopTracks(): void {
+    this.active = null;
+    for (const track of this.tracks) {
+      if (track.layer !== null) this.attempt(() => this.unload(track));
     }
   }
 

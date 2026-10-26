@@ -14,6 +14,7 @@ import {
 } from './ids';
 import {messageDurationSchema} from './messages';
 import {messageTargetsSchema} from './overlayState';
+import {epochMillisecondsSchema} from './overlayState';
 import {plainObject} from './payload';
 import {nonNegativeInteger, percent} from './primitives';
 import {liveNonBlankTextSchema} from './liveLimits';
@@ -84,6 +85,14 @@ export const liveActionOptions = [
   }),
   v.object({type: v.literal('audio.previous')}),
   v.object({type: v.literal('audio.fadeOut')}),
+  v.object({
+    type: v.literal('audio.fadeOut.complete'),
+    trackVersion: v.pipe(
+      nonNegativeInteger,
+      v.maxValue(Number.MAX_SAFE_INTEGER),
+    ),
+    since: epochMillisecondsSchema,
+  }),
   v.object({type: v.literal('audio.volume.set'), volume: percent}),
   v.object({type: v.literal('macro.run'), macroId: macroIdSchema}),
   v.object({type: v.literal('item.start'), itemId: serviceItemIdSchema}),

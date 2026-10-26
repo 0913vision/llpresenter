@@ -102,6 +102,12 @@ function resumedAudio(
       positionSeconds: audioPositionSeconds(playback, clock.clearedAt),
       since: playback.since === null ? null : clock.now,
       trackVersion: clock.version,
+      ...(playback.fadeOutSince === undefined
+        ? {}
+        : {
+            fadeOutSince:
+              playback.fadeOutSince + Math.max(0, clock.now - clock.clearedAt),
+          }),
     },
   };
 }

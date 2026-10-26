@@ -10,6 +10,42 @@ beforeEach(() => {
   vi.spyOn(HTMLMediaElement.prototype, 'load').mockReturnValue(undefined);
 });
 describe('startAudio', () => {
+  it('sends both fade identity fields when reloading an already expired fade', async () => {
+    const mediaId = '00000000-0000-4000-8000-000000000001';
+    const initial = emptyLiveState();
+    const parsed = parseLiveState({
+      ...initial,
+      version: 7,
+      layers: {
+        ...initial.layers,
+        audio: {
+          mediaId,
+          playback: {
+            source: {kind: 'media', mediaId},
+            trackVersion: 7,
+            since: 0,
+            positionSeconds: 0,
+            fadeOutSince: 0,
+          },
+        },
+      },
+    });
+    if (!parsed.ok) throw new Error('Invalid fading fixture');
+    const send = vi.fn();
+    const api = fakeLlpApi({
+      live: {send, get: () => Promise.resolve(parsed.value)},
+    });
+    const stop = startAudio({root: document.createElement('div'), api});
+    await vi.waitFor(() =>
+      expect(send).toHaveBeenCalledExactlyOnceWith({
+        type: 'audio.fadeOut.complete',
+        trackVersion: 7,
+        since: 0,
+      }),
+    );
+    expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
+    stop();
+  });
   it('sends the ended track version so a late event cannot advance a newer selection', async () => {
     const mediaId = '00000000-0000-4000-8000-000000000001';
     const initial = emptyLiveState();

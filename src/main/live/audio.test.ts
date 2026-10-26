@@ -59,6 +59,56 @@ function setup(loop = false) {
 }
 
 describe('audio transport', () => {
+  it('starts manual fade once, ignores stale completion, and lets play cancel it with a fresh identity', () => {
+    const {store, start, send, advance} = setup();
+    start();
+    send({type: 'audio.fadeOut'});
+    const original = store.state.layers.audio?.playback;
+    if (original === undefined) throw new Error('Missing fade');
+    expect(original.fadeOutSince).toBe(1000);
+    expect(send({type: 'audio.fadeOut'})).toBe(false);
+    expect(
+      send({type: 'audio.next', trackVersion: original.trackVersion}),
+    ).toBe(false);
+    advance(1000);
+    send({type: 'audio.play'});
+    expect(store.state.layers.audio?.playback?.fadeOutSince).toBeUndefined();
+    const current = store.state.layers.audio?.playback;
+    if (current === undefined) throw new Error('Missing playback');
+    expect(current.trackVersion).toBeGreaterThan(original.trackVersion);
+    send({type: 'audio.fadeOut'});
+    expect(
+      send({
+        type: 'audio.fadeOut.complete',
+        trackVersion: original.trackVersion,
+        since: 1000,
+      }),
+    ).toBe(false);
+    expect(
+      send({
+        type: 'audio.fadeOut.complete',
+        trackVersion: current.trackVersion,
+        since: 1000,
+      }),
+    ).toBe(false);
+    send({
+      type: 'audio.fadeOut.complete',
+      trackVersion: current.trackVersion,
+      since: 2000,
+    });
+    expect(store.state.layers.audio).toBeNull();
+    expect(store.state.canUndo).toBe(false);
+  });
+  it.each([
+    {trackVersion: -1, since: 0},
+    {trackVersion: 1, since: NaN},
+    {trackVersion: 1, since: Infinity},
+    {trackVersion: 1, since: -1},
+  ])('rejects malformed fade completion %j', fields => {
+    expect(
+      parseLiveCommand({type: 'audio.fadeOut.complete', ...fields}).ok,
+    ).toBe(false);
+  });
   it('never reuses track versions after batched plays, next, or a clear', () => {
     const {store, send, start} = setup();
     send({

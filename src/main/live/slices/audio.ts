@@ -83,23 +83,43 @@ export const audioSlice = defineSlice({
     'audio.next',
     'audio.previous',
     'audio.volume.set',
+    'audio.fadeOut',
+    'audio.fadeOut.complete',
   ],
   initial: {},
   reduce: (history, command, context) => {
     const layer = history.state.layers.audio;
     const now = context.timerNow ?? context.now;
     switch (command.type) {
-      case 'audio.play':
+      case 'audio.play': {
         if (command.source !== undefined) {
           return play(history, command.source, context);
         }
-        if (layer?.playback?.since !== null) {
+        if (
+          layer?.playback === undefined ||
+          (layer.playback.since !== null &&
+            layer.playback.fadeOutSince === undefined)
+        ) {
           return history;
         }
-        return setLayer(history, 'audio', {
+        const playback = layer.playback;
+        const trackVersion =
+          playback.fadeOutSince === undefined
+            ? playback.trackVersion
+            : nextAudioTrackVersion(history.state);
+        const next = setLayer(history, 'audio', {
           ...layer,
-          playback: {...layer.playback, since: now},
+          playback: {
+            source: playback.source,
+            trackVersion,
+            positionSeconds: playback.positionSeconds,
+            since: playback.since ?? now,
+          },
         });
+        return playback.fadeOutSince === undefined
+          ? next
+          : {...next, state: {...next.state, audioTrackVersion: trackVersion}};
+      }
       case 'audio.pause':
         if (layer?.playback === undefined || layer.playback.since === null) {
           return history;
@@ -116,13 +136,33 @@ export const audioSlice = defineSlice({
         if (
           command.trackVersion !== undefined &&
           (layer?.playback?.trackVersion !== command.trackVersion ||
-            layer.playback.since === null)
+            layer.playback.since === null ||
+            layer.playback.fadeOutSince !== undefined)
         ) {
           return history;
         }
         return move(history, 1, context);
       case 'audio.previous':
         return move(history, -1, context);
+      case 'audio.fadeOut':
+        if (
+          layer?.playback === undefined ||
+          layer.playback.fadeOutSince !== undefined
+        ) {
+          return history;
+        }
+        return setLayer(history, 'audio', {
+          ...layer,
+          playback: {...layer.playback, fadeOutSince: now},
+        });
+      case 'audio.fadeOut.complete':
+        if (
+          layer?.playback?.trackVersion !== command.trackVersion ||
+          layer.playback.fadeOutSince !== command.since
+        ) {
+          return history;
+        }
+        return setLayer(history, 'audio', null);
       case 'audio.volume.set':
         if ((history.state.audioVolume ?? 100) === command.volume) {
           return history;

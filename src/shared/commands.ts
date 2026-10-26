@@ -66,6 +66,7 @@ export function interruptsSongOutput(command: LiveCommand): boolean {
     case 'audio.next':
     case 'audio.previous':
     case 'audio.fadeOut':
+    case 'audio.fadeOut.complete':
     case 'audio.volume.set':
     case 'macro.run':
     case 'item.start':

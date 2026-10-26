@@ -25,6 +25,12 @@ function state(change: object = {}) {
 }
 
 describe('audio playback state', () => {
+  it.each([-1, NaN, Infinity])(
+    'rejects invalid fade start %s',
+    fadeOutSince => {
+      expect(parseLiveState(state({fadeOutSince})).ok).toBe(false);
+    },
+  );
   it.each([0, 7, Number.MAX_SAFE_INTEGER])(
     'accepts allocated track version %s',
     audioTrackVersion => {

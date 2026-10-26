@@ -27,6 +27,8 @@ export function startAudio({
     muted,
     now: () => clock.now().timer,
     onNext: trackVersion => api.live.send({type: 'audio.next', trackVersion}),
+    onFadeEnd: (trackVersion, since) =>
+      api.live.send({type: 'audio.fadeOut.complete', trackVersion, since}),
     onError: report,
   });
   let stopped = false;
