@@ -26,6 +26,7 @@ describe('output screen identity', () => {
     }));
     expect(resolveRenderScreen('main', changed)).toEqual({
       id: MAIN,
+      name: 'Main',
       kind: 'audience',
       method: 'capture',
     });
@@ -36,6 +37,7 @@ describe('output screen identity', () => {
     const {value} = screens();
     expect(resolveRenderScreen(MAIN, value.screens)).toEqual({
       id: MAIN,
+      name: 'Main',
       kind: 'audience',
       method: 'fullscreen',
     });
@@ -44,6 +46,7 @@ describe('output screen identity', () => {
     expect(resolveRenderScreen('broadcast', value.screens)?.id).toBe(CAPTIONS);
     expect(resolveRenderScreen('stage', value.screens)).toEqual({
       id: STAGE,
+      name: 'Stage',
       kind: 'stage',
       method: 'fullscreen',
     });
@@ -63,6 +66,7 @@ describe('output screen identity', () => {
       ),
     ).toEqual({
       id: MAIN,
+      name: 'Main',
       kind: 'audience',
       method: 'fullscreen',
       correction: {edgeMargin: 5, offset: {x: 12, y: -6}},

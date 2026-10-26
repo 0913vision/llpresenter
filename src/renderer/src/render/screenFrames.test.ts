@@ -124,7 +124,7 @@ describe('ScreenFrames', () => {
       frames.frame(stateWith({stageMessage: 'Fixture note'})) ?? {};
     expect(timers).toMatchObject({list: [], runs: undefined});
     expect(frame).toEqual({
-      screen: {id: STAGE, kind: 'stage', method: 'fullscreen'},
+      screen: {id: STAGE, name: 'Stage', kind: 'stage', method: 'fullscreen'},
       stageMessage: 'Fixture note',
       look: {
         layers: {slide: true, stageMessage: true},
@@ -132,6 +132,18 @@ describe('ScreenFrames', () => {
         background: null,
       },
     });
+    frames.dispose();
+  });
+
+  it('covers only the screens the live state lists with the 테스트 패턴', async () => {
+    const {frames} = await framesFor(STAGE);
+    expect(frames.frame(stateWith({testPatterns: [STAGE]}))).toMatchObject({
+      testPattern: true,
+    });
+    expect(frames.frame(stateWith({testPatterns: [MAIN]}))).not.toHaveProperty(
+      'testPattern',
+    );
+    expect(frames.frame(emptyLiveState())).not.toHaveProperty('testPattern');
     frames.dispose();
   });
 

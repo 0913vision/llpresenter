@@ -1,6 +1,10 @@
 import {describe, expect, it} from 'vitest';
 import {emptyLiveState, type LiveState} from '../live';
+import {LIVE_STATE_LIMITS} from './liveLimits';
 import {parseLiveState} from './liveState';
+
+const screenUuid = (id: number): string =>
+  `00000000-0000-4000-8000-${String(id).padStart(12, '0')}`;
 
 function busyState(): LiveState {
   return {
@@ -102,6 +106,34 @@ describe('parseLiveState', () => {
     });
 
     expect(result.ok ? undefined : result.error.field).toBe(field);
+  });
+
+  it('carries the screens that show the 테스트 패턴, each once and within the cap', () => {
+    const shown = {
+      ...emptyLiveState(),
+      testPatterns: [screenUuid(1), screenUuid(2)],
+    };
+    expect(parseLiveState(shown)).toEqual({ok: true, value: shown});
+    const field = (testPatterns: unknown) => {
+      const result = parseLiveState({...emptyLiveState(), testPatterns});
+      return result.ok ? undefined : result.error.field;
+    };
+    expect(field([screenUuid(1), screenUuid(1)])).toBe('testPatterns');
+    expect(field(['main'])).toBe('testPatterns.0');
+    expect(
+      field(
+        Array.from({length: LIVE_STATE_LIMITS.outputs + 1}, (_, index) =>
+          screenUuid(index + 1),
+        ),
+      ),
+    ).toBe('testPatterns');
+    expect(
+      field(
+        Array.from({length: LIVE_STATE_LIMITS.outputs}, (_, index) =>
+          screenUuid(index + 1),
+        ),
+      ),
+    ).toBeUndefined();
   });
 
   it('rejects values that are not states', () => {
