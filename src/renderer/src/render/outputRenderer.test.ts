@@ -76,6 +76,24 @@ describe('OutputRenderer', () => {
       expect(lyrics?.querySelector(`.${classes.shown}`)?.textContent).toContain(
         '만복의 근원',
       );
+      renderer.render(cleared, {
+        ...frame,
+        clearEffects: [effect],
+        look: {
+          layers: {
+            slide: false,
+            media: true,
+            prop: true,
+            message: true,
+            notice: true,
+            stageMessage: true,
+            clock: true,
+          },
+          lyricStyle: DEFAULT_LYRIC_STYLE,
+          background: null,
+        },
+      });
+      expect(lyrics?.style.opacity).toBe('0');
       renderer.render(shown, frame);
       expect(lyrics?.style.opacity).toBe('');
       renderer.render(cleared, {

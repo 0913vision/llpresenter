@@ -5,7 +5,6 @@ import {propIdSchema} from './ids';
 import {plainObject, payloadObject} from './payload';
 
 export const CLEAR_FADE_LIMIT_MS = 30_000;
-export const clearKeyTargets = ['all', ...layerKinds] as const;
 export const DEFAULT_CLEAR_FADE = {fade: false, durationMs: 500} as const;
 export const clearFadeSchema = v.looseObject({
   fade: v.optional(v.boolean(), DEFAULT_CLEAR_FADE.fade),

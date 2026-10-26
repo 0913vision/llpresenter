@@ -31,6 +31,7 @@ it('round-trips additive key and macro fields including unknown option fields', 
     format: 'llsettings.preferences',
     schemaVersion: 1,
     clearKeys: {
+      futureTarget: {future: 'kept'},
       all: {...transition, future: 1},
       slide: {fade: false, durationMs: 0},
     },
@@ -94,7 +95,7 @@ it('validates per-key names and bounds live effect metadata', () => {
   const header = {format: 'llsettings.preferences', schemaVersion: 1};
   expect(
     parsePreferences(
-      JSON.stringify({...header, clearKeys: {unknown: transition}}),
+      JSON.stringify({...header, clearKeys: {slide: {durationMs: -1}}}),
       'preferences.json',
     ).ok,
   ).toBe(false);

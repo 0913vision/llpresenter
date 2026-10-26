@@ -15,7 +15,7 @@ import {
 import type {MigrationStep} from './migration';
 import {jsonObject, positiveInteger} from './primitives';
 import type {PayloadError} from './payload';
-import {clearFadeSchema, clearKeyTargets} from './clearFade';
+import {clearFadeSchema} from './clearFade';
 
 const PREFERENCES_FORMAT = 'llsettings.preferences';
 
@@ -72,10 +72,15 @@ export const preferencesSchema = jsonObject({
   hardwareAcceleration: optionalBoolean,
   previewFps: v.exactOptional(previewFpsSchema),
   clearKeys: v.exactOptional(
-    v.pipe(
-      v.record(v.picklist(clearKeyTargets), clearFadeSchema),
-      v.maxEntries(clearKeyTargets.length),
-    ),
+    jsonObject({
+      all: v.exactOptional(clearFadeSchema),
+      slide: v.exactOptional(clearFadeSchema),
+      media: v.exactOptional(clearFadeSchema),
+      prop: v.exactOptional(clearFadeSchema),
+      audio: v.exactOptional(clearFadeSchema),
+      message: v.exactOptional(clearFadeSchema),
+      notice: v.exactOptional(clearFadeSchema),
+    }),
   ),
   show: v.exactOptional(jsonObject({showClearUndoButton: optionalBoolean})),
   backup: v.exactOptional(

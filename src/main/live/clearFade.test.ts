@@ -64,6 +64,16 @@ it('keeps macro defaults instant and honors only their explicit timing', () => {
   ]);
 });
 
+it.each([
+  {fade: false, durationMs: 1200},
+  {fade: true, durationMs: 0},
+])('clears at once for a disabled or zero-duration choice %j', transition => {
+  const store = setup();
+  store.dispatch({type: 'layer.clear', target: 'slide', transition});
+  expect(store.state.layers.slide).toBeNull();
+  expect(store.state.clearEffects).toBeUndefined();
+});
+
 it('fades only a removed prop while retaining its neighbor and cancels it on undo', () => {
   const store = setup();
   store.dispatch({type: 'prop.set', propId: PROP, on: true});
