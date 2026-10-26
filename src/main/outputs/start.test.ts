@@ -19,6 +19,7 @@ import {
   settingsDocument,
 } from '../live/testing/overlays';
 import {fakeWindows, type FakeWindows} from './testing';
+import {openNumberWindow} from './numberWindow';
 import {startOutputs} from './start';
 
 const fakes = vi.hoisted(() => {
@@ -61,6 +62,7 @@ vi.mock('./electronWindow', () => ({
     return fakes.windows.create(...args);
   },
 }));
+vi.mock('./numberWindow', () => ({openNumberWindow: vi.fn()}));
 vi.mock('../ipc', () => ({
   listenToWindows: (channel: string, handler: MessageHandler) => {
     fakes.handlers.set(channel, handler);
@@ -364,6 +366,20 @@ describe('saved output backend', () => {
     expect(settings.listeners.size).toBe(0);
     expect(fakes.displays?.watcherCount).toBe(0);
     expect(fakes.handlers.size + fakes.answers.size).toBe(0);
+  });
+
+  it('shows monitor numbers while running, opening no window offscreen', async () => {
+    const {store, stop} = setup();
+    await loaded();
+    const skipped = vi.fn();
+    store.dispatch({type: 'monitors.identify'}, undefined, skipped);
+    expect(skipped).not.toHaveBeenCalled();
+    expect(vi.mocked(openNumberWindow)).not.toHaveBeenCalled();
+    stop();
+    store.dispatch({type: 'monitors.identify'}, undefined, skipped);
+    expect(skipped).toHaveBeenCalledWith(
+      expect.objectContaining({reason: 'failed'}),
+    );
   });
 
   it('reads the monitors at once for 모니터 다시 찾기 and raises the fallback for 창 보기', async () => {

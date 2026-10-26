@@ -174,7 +174,11 @@ describe('OutputManager', () => {
     });
     expect(windows.only('main').mode.kind).toBe('fullscreen');
     expect(manager.screenStates().get('capture')?.placement).toBe('window');
+    expect(manager.captureAreas()).toEqual([
+      expect.objectContaining({width: 1920, height: 1080}),
+    ]);
     windows.only('capture').clickClose();
+    expect(manager.captureAreas()).toEqual([]);
     expect(store.state.outputs).toMatchObject({capture: false, main: true});
     expect(windows.only('capture').mode.kind).toBe('hidden');
     manager.dispose();

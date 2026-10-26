@@ -99,6 +99,26 @@ describe('OutputWindow', () => {
     expect(handle.destroyed).toBe(true);
   });
 
+  it('reports where a shown capture window is now, and nothing in other modes', () => {
+    const {output, windows} = setUp();
+    expect(output.captureArea()).toBeNull();
+    output.update(FULL_SCREEN);
+    expect(output.captureArea()).toBeNull();
+    output.update({kind: 'capture', bounds: PROJECTOR});
+    const handle = windows.only('main');
+    const moved = {x: 100, y: 50, width: 1920, height: 1080};
+    handle.mode = {kind: 'capture', bounds: moved};
+    expect(output.captureArea()).toEqual(moved);
+    output.update(FALLBACK);
+    expect(output.captureArea()).toBeNull();
+    output.update({kind: 'capture', bounds: PROJECTOR});
+    output.update(null);
+    expect(output.captureArea()).toBeNull();
+    output.update({kind: 'capture', bounds: PROJECTOR});
+    output.dispose();
+    expect(output.captureArea()).toBeNull();
+  });
+
   it('creates no window until the output first turns on', () => {
     const {output, windows} = setUp();
     output.update(null);
