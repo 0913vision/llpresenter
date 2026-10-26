@@ -24,8 +24,9 @@ export function clearLayer(target: ClearTarget): void {
     !state ||
     (!hasSomethingToClear(state.layers, target) &&
       !state.clearToggles?.includes(target))
-  )
-    {return;}
+  ) {
+    return;
+  }
   sendLive({type: 'layer.clear.toggle', target});
 }
 
