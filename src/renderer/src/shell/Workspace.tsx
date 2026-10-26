@@ -54,6 +54,7 @@ import {useLibrarySongSync} from '@renderer/show/useLibrarySongSync';
 import {DisplayLayout} from '@renderer/screens/DisplayLayout';
 import {OutputPreview} from '@renderer/screens/OutputPreview';
 import {ScreenList} from '@renderer/screens/ScreenList';
+import {ScreenProperties} from '@renderer/screens/ScreenProperties';
 import {LookList, StageLayoutList} from '@renderer/screens/LookLists';
 import {classNames} from '@renderer/ui/classNames';
 import type {Notice} from '@renderer/ui/notices';
@@ -244,6 +245,8 @@ function screensPanelParts(
       return {body: <StageLayoutList onProblem={onProblem} />};
     case '배치':
       return {body: <DisplayLayout onProblem={onProblem} />};
+    case '속성':
+      return {body: <ScreenProperties onProblem={onProblem} />};
     case '출력 미리보기':
       return {size: 'content', body: <OutputPreview onProblem={onProblem} />};
     default:

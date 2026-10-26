@@ -79,12 +79,13 @@ function PreviewBody({
 }
 
 /**
- * The output preview of the selected screen. The picture is always the screen's
- * own preview. 테스트 패턴 puts the screen into the live state's pattern list,
- * so the preview draws the pattern with the screen's correction and its name
- * only, and the real output shows it too. The pattern comes off when the operator picks 화면 내용, selects
- * another screen (the preview starts in 화면 내용 for it), leaves 화면 설정 for
- * any reason, or the window goes away.
+ * The output preview of the selected screen. The picture is always the
+ * screen's own preview. 테스트 패턴 puts the screen into the live state's
+ * pattern list, so the preview draws the pattern with the screen's correction
+ * and its name only, and the real output shows it too. The pattern comes off
+ * when the operator picks 화면 내용, selects another screen (the preview starts
+ * in 화면 내용 for it), leaves 화면 설정 for any reason, or the window goes
+ * away.
  */
 export function OutputPreview({
   onProblem,
