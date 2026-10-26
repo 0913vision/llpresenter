@@ -2,7 +2,7 @@
 
 - Team member: `screens`
 - Branch: `feat/screens/properties`
-- Base commit (`main`): `ca4b745c`
+- Base commit (`main`): `57d28dc5`
 - Last commit: see the request line
 - Related brief: `docs/briefs/screens.md`
 
@@ -118,7 +118,8 @@ missing.
 
 ## Round 2 checks
 
-The request line reports targeted tests, typecheck after rebase, ESLint,
-formatting and the GitHub verify run on the exact request head. No full verify
-was run locally. Local checks were paused during the lead's quiet window and
-resumed only after the lead ended it.
+Screens and workspace tests pass: 130 tests in 12 files. Typecheck passes after
+rebasing onto `57d28dc5`. The request line reports ESLint, formatting and the
+GitHub verify run on the exact request head. No full verify was run locally.
+Local checks were paused during the lead's quiet window and resumed only after
+the lead ended it.

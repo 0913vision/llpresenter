@@ -49,7 +49,7 @@ export class ScreenEditor {
 
   private async save(screenId: string, change: ScreenChange): Promise<boolean> {
     const base = this.base;
-    if (base === null || base.access !== 'editable') return false;
+    if (base?.access !== 'editable') return false;
     const value = {
       ...base.value,
       screens: changeScreen(base.value.screens, screenId, change),
