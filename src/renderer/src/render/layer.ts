@@ -1,6 +1,7 @@
 import type {LiveLayers} from '@shared/live';
 import type {RenderMode} from './backgroundLayer';
 import type {LyricStyle} from './lyricStyle';
+import type {LookLayer, ScreenAppearance} from './screenLook';
 import type {ScreenId} from '@shared/schema/ids';
 import type {Screen} from '@shared/schema/screens';
 
@@ -13,6 +14,8 @@ export interface RenderScreen {
 export interface RenderFrame {
   readonly screen?: RenderScreen;
   readonly stageMessage?: string | null;
+  /** The screen's appearance under the current Look; absent draws as before Looks. */
+  readonly look?: ScreenAppearance;
 }
 
 export interface RenderLayerOptions {
@@ -36,6 +39,8 @@ export interface LayerDefinition {
   readonly kind: string;
   /** Back to front, matching the stacking order in the output specification. */
   readonly order: number;
+  /** The Look switch that shows this layer; absent shows it on every Look. */
+  readonly look?: LookLayer;
   readonly create: (
     parent: HTMLElement,
     options: RenderLayerOptions,
