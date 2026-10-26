@@ -1,11 +1,11 @@
-Review range: `2ba089b8...feat/spec/narrow-layout`
+Review range: `439ad039...feat/spec/narrow-layout`
 
 # Review request: `spec-43`
 
 - Team member: `spec` (Claude session that took over from Codex)
 - Branch: `feat/spec/narrow-layout`
-- Base commit: `2ba089b8`, main after the spec-40 approval
-- Review round: 1
+- Base commit: `439ad039`, main after the output-32 approval
+- Review round: 2
 - Task: M3-S1b narrow window layout
 - Code owner for the renderer paths: shell
 
@@ -32,6 +32,25 @@ and leaves a strip at the window edge, as wide as a panel header, with 사이드
 `layout.narrow.leftCollapsed` through spec-38's `ui.setLayout`; a saved choice
 is restored at start without being saved again. If the pressed button had the
 keyboard focus, the button that replaces it takes it.
+
+## Round 2 response
+
+1. The focus handoff happens only when the pressed button itself is
+   `document.activeElement`: `onPress` passes `event.currentTarget`. After a
+   click in 진행 (which doesn't move focus), the focus falls to the body. A
+   mounted test selects a 예배 순서 item, clicks 사이드바 접기, checks that
+   사이드바 펼치기 isn't focused, and that Space sends the next slide. The
+   keyboard handoff test stays.
+2. The chosen 진행 도구 tab lives in a small store, `state/showToolTab.ts`, for
+   the session. Tests: the panel mounting again, and the mounted app going 진행,
+   준비, 진행 with 타이머 chosen from 더 보기.
+3. TODO(0913vision) markers record decisions 5 (`Workspace.tsx`: the shrink rule
+   still counts the hidden left width) and 6 (`state/showToolTab.ts`: spec 10
+   remembers the last tab).
+4. The 더 보기 slot in `PanelTabs` is left for ui, as the lead said.
+
+`SidebarMount.test.tsx` is now `NarrowLayoutMount.test.tsx`, since it covers the
+tool tabs too.
 
 ## Carried spec-40 nits
 
@@ -79,8 +98,9 @@ None. Everything is in shell's renderer paths:
   handoff, the 예배 순서 parts extracted from the render, and the tool frame
   mounted as the 진행 도구 panel.
 - `src/renderer/src/control/App.tsx`: passes the sidebar state to the workspace.
-- `src/renderer/src/control/SidebarMount.test.tsx`: the mounted app at 1366 x
-  768, 1920 x 1080, and 2560 x 1440.
+- `src/renderer/src/control/NarrowLayoutMount.test.tsx`: the mounted app at 1366
+  x 768, 1920 x 1080, and 2560 x 1440.
+- `src/renderer/src/state/showToolTab.ts`: the session's chosen tool tab.
 - `src/renderer/src/shell/ToolbarSearch.tsx`,
   `src/renderer/src/state/showOutput.ts`, and `state/songBackground.test.ts`:
   the spec-40 nits above.
@@ -93,7 +113,7 @@ source is changed, and no dependency is added.
 | Command or test                                                                                               | Result                    |
 | ------------------------------------------------------------------------------------------------------------- | ------------------------- |
 | `npm run typecheck`                                                                                           | Pass                      |
-| `npx vitest run src/renderer/src/shell src/renderer/src/show src/renderer/src/control src/renderer/src/state` | Pass, 612 tests, 55 files |
+| `npx vitest run src/renderer/src/shell src/renderer/src/show src/renderer/src/control src/renderer/src/state` | Pass, 615 tests, 55 files |
 | `npx eslint --max-warnings 0` on the changed areas                                                            | Pass                      |
 | `npx prettier --check` on the changed areas                                                                   | Pass                      |
 | GitHub CI (`npm run verify`)                                                                                  | In the request message    |
