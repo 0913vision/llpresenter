@@ -97,19 +97,14 @@ mouse and keyboard events in a 1600 x 900 viewport.
 ![Macro deletion confirmation](screens-8/macro-delete-confirmation.png)
 ![Read-only actions](screens-8/read-only-menu.png)
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Earlier rounds (Codex): see the findings and replies above.
+- Round 2 (7b11435a): reviewer (Codex, codex3) Approve. Lead Approve; the Look
+  list in 화면 설정 with rename, delete, and read-only states, checked in the
+  app with screenshots. It was in progress before the feature freeze. The
+  exact-head CI run passed, checked by the lead at merge. Rebased by the lead
+  onto local `main` without conflicts; typecheck passes.
 
 ## Team member's reply
 
