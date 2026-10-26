@@ -50,14 +50,15 @@ Rules for output windows:
 - 가장자리 여백 m % scales the picture to (100 − 2m) % of the screen and centers
   it, so m % of the width stays empty on each side and m % of the height at the
   top and bottom. 위치 미세 조정 then moves the scaled picture by x px to the
-  right and y px down, in the screen's own pixels (negative values move it left
-  and up). What moves past the screen edge isn't drawn, and the empty area is
-  the screen's empty color (proposal).
-  - The screen's own pixels are the monitor's real pixels for 전체 화면 (its
-    resolution times its Windows scale), the set resolution for the capture
-    window (1920 x 1080 when none is set), and the drawn device pixels for 창. A
-    picture drawn smaller, such as a lost monitor's window or a preview, moves
-    by the same share of its size (proposal).
+  right and y px down (negative values move it left and up). What moves past the
+  screen edge isn't drawn, and the empty area is the screen's empty color
+  (proposal).
+  - 위치 미세 조정 counts pixels of a 1920 x 1080 reference picture, scaled to
+    whatever draws the picture, the same rule as lyric sizes (lead decision,
+    October 26). One unit holds for the whole picture, a preview or a lost
+    monitor's window is an exact scaled copy, a resolution change keeps the same
+    share of the picture, and no pixel size has to be reported. On a 4K output
+    one step moves two real pixels.
   - Previews of a screen draw its picture with the correction, as the screen
     shows it (proposal).
 
