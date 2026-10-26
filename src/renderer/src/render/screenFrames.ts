@@ -18,7 +18,6 @@ const GAP_MESSAGES: Record<LookGap['kind'], string> = {
 
 interface ScreenFramesOptions {
   readonly settings: LlpApi['settings'];
-  /** Reads main's 타이머 clock once, so 타이머 tokens read their runs. */
   readonly clock: LlpApi['live']['clock'];
   readonly screenId: string;
   /** Called when the screen identity or the Looks change, to draw again. */
