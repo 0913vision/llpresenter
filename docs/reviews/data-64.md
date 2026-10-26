@@ -2,8 +2,8 @@
 
 - Team member: data
 - Branch: `feat/data/bible-chunk-library`
-- Base commit: `8ae3276a`, the head of `data-63`. Final range and CI are in the
-  member report.
+- Base commit: `57d28dc5` on local `main`, including the approved `data-63`.
+  Final range and CI are in the member report.
 - Related requests: approved chunked-file specification `data-62` and file
   primitives `data-63`.
 
@@ -36,10 +36,8 @@ invented text only. No dependencies, app launches or Bible texts are added.
 
 ## Checks
 
-- Targeted cache and library tests: 13 passed.
+- Targeted cache and library tests: 14 passed.
 - Node TypeScript check and ESLint on changed TypeScript: pass.
-- The later first-installed-identity regression and ordering adjustment await
-  CI; the lead's main-build quiet window pauses further local checks.
 - Formatting, diff checks and exact-head GitHub CI: final results in report.
 
 Coverage includes the shared count/byte limits, hit refresh, replacement byte
