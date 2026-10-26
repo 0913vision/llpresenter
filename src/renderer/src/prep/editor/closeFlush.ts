@@ -1,7 +1,7 @@
 import type {AppFlushRequest} from '@shared/schema/appFlush';
 import {closeStepAfter} from '@shared/closePolicy';
 import type {LlpApi, Unsubscribe} from '@shared/ipc';
-import type {Notice} from '@renderer/ui/notices';
+import {noticeTime, type Notice} from '@renderer/ui/notices';
 
 /** The cause of the 그래도 닫기 warning; a later refusal replaces the card. */
 export const CLOSE_WARNING_KEY = 'app:close-flush';
@@ -20,7 +20,7 @@ function closeWarning(api: CloseFlushOptions['api']): Notice {
     kind: 'warning',
     icon: 'warning',
     title: '편집 내용 저장 실패',
-    time: new Date().toTimeString().slice(0, 5),
+    time: noticeTime(),
     actions: [
       {
         icon: 'x',
