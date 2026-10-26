@@ -104,3 +104,13 @@ that answers nothing or is rejected closing with its card; the retry line; and
 the picker ending with 새 예배, opening and cancelling the dialog.
 
 No Electron process, visible window, soak, or memory measurement was started.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (Codex, codex5): Request changes: returning to a source kept old
+  exclusions, and every rejection counted as a create failure, which could
+  create a second service on retry.
+- Round 2 (23732ba0): reviewer (Codex, codex5) Approve, no findings. Lead
+  Approve. Changes outside 진행's paths (the service picker in shell) checked.
+  Rebased by the lead onto local `main` after spec-49 without conflicts;
+  typecheck passes. M3-P4a (새 예배) is complete.

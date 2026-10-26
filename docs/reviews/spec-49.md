@@ -89,3 +89,12 @@ service's time from its date, 빈 예배, no source, a deleted source, an earlie
 read that answers after a later choice, and A, B, then A again.
 
 No Electron process, visible window, soak, or memory measurement was started.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (Codex, codex2): Request changes: one rejected read discarded every
+  successful list, and reselecting a source showed its stale document.
+- Round 2 (3fd2a966): reviewer (Codex, codex2) Approve, no findings. Lead
+  Approve. The date control is a Select until the design system has a calendar
+  (lead decision, Q2). Rebased by the lead onto local `main` without conflicts;
+  typecheck passes.
