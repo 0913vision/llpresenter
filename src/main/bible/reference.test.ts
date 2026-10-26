@@ -35,9 +35,9 @@ describe('Bible reference grammar and lookup', () => {
     ['요3:16-3:16', '요한복음 3:16', 1],
     ['요3:35-4:2', '요한복음 3:35-4:2', 4],
     ['요3장35절~4장2절', '요한복음 3:35-4:2', 4],
-    ['요3:35-4:35', '요한복음 3:35-4:8', 10],
-    ['요3:16-99', '요한복음 3:16-36', 21],
-    ['요3:36-99', '요한복음 3:36', 1],
+    ['요3:35-4:8', '요한복음 3:35-4:8', 10],
+    ['요3:16-36', '요한복음 3:16-36', 21],
+    ['요3:36-36', '요한복음 3:36', 1],
   ])('normalizes %j to %s', (input, ref, count) => {
     const result = resolvePassage(translation, input);
     expect(result).toMatchObject({ok: true, value: {ref}});
@@ -64,6 +64,14 @@ describe('Bible reference grammar and lookup', () => {
     ['요22:1', 'chapter'],
     ['요3:16-22:1', 'chapter'],
     ['요3:40', 'verse'],
+    ['요3:16-99', 'verse'],
+    ['요3:36-99', 'verse'],
+    ['요3:16-37', 'verse'],
+    ['요3장16-99절', 'verse'],
+    ['John 3:16-99', 'verse'],
+    ['요3:35-4:35', 'verse'],
+    ['요3:35-4:9', 'verse'],
+    ['요3장35절-4장9절', 'verse'],
     ['요3:18-16', 'reversed'],
     ['요4:2-3:16', 'reversed'],
   ])('returns a reason for invalid reference %j', (input, code) => {

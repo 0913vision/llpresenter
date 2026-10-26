@@ -66,6 +66,20 @@ async function setup() {
 }
 
 describe('Bible lookup session', () => {
+  it.each([
+    {input: '요 3:16-99', code: 'verse'},
+    {input: '요 3장 35절-4장 9절', code: 'verse'},
+    {input: '요 3:16-22:1', code: 'chapter'},
+  ])(
+    'rejects an out-of-range endpoint in $input without resolving suggestions',
+    async ({input, code}) => {
+      const {session} = await setup();
+      const reply = await session.lookup(request(input));
+      expect(reply.result).toMatchObject({ok: false, error: {code}});
+      expect(reply.suggestions).toHaveLength(1);
+      expect(reply.suggestions[0]?.resolved).toBeUndefined();
+    },
+  );
   it.each(['요 3장 16절', '요 3장 16-18절'])(
     'returns canonical suggestion identity and counts for %s',
     async input => {

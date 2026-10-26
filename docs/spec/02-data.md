@@ -755,7 +755,7 @@ verse is one verse.
 | The start chapter doesn't exist              | Invalid                                             | 요 22:1                                                                                      |
 | The start verse doesn't exist in its chapter | Invalid                                             | 요 3:40                                                                                      |
 | The end chapter doesn't exist                | Invalid                                             | 요 3:16-22:1                                                                                 |
-| The end verse is past the end of its chapter | The range stops at that chapter's last verse        | 요 3:16-99 becomes 요 3:16-36                                                                |
+| The end verse is past the end of its chapter | Invalid; never shorten the requested range          | 요 3:16-99 is invalid                                                                        |
 | The end comes before the start               | Invalid (reversed)                                  | 요 3:18-16, 요 4:2-3:16                                                                      |
 | The end is in a later chapter                | A range across chapters, whatever the verse numbers | 요 3:16-4:2 (verse 2 is lower than 16, and the range is valid), 요 3:16-4:16 (not one verse) |
 | The end chapter equals the start chapter     | Read as a range in one chapter                      | 요 3:16-3:18 becomes 요 3:16-18                                                              |

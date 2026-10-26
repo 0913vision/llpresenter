@@ -2,7 +2,7 @@
 
 - Team member: tools
 - Branch: `feat/tools/bible-complete`
-- Base: local `main` at `1986804e`, including approved tools-8 round 2.
+- Base: local `main` at `f4922fef`, rebased for round 2.
 - Brief: tools; user priority in decisions, October 26, Bible autocomplete
   first.
 - Final head and exact-head CI are in the report.
@@ -34,7 +34,7 @@ open; they do not insert a passage. Repeated Enter cannot output again.
 
 - `shared/bibleBooks` and `bibleMatching` relocate owned main Bible modules;
   `bibleCompletion` and tests provide the shared policy. Main imports are
-  updated.
+  updated, including the newly merged chunk-format module after rebase.
 - `prep/service/QuickAdd`, `quickAddBible` and tests connect the common rule.
 - `ui/MenuParts`, `Menu`, styles and `useInputCompletion` add optional
   completion, error reason and input cap support. Existing menu users retain
@@ -42,6 +42,10 @@ open; they do not insert a passage. Repeated Enter cannot output again.
   value updates.
 - `docs/spec/04-show.md` records the user decision. No IPC/schema, dependency,
   storage format or output renderer changes.
+- `docs/spec/02-data.md` now rejects oversized range endpoints instead of
+  clipping them, consistently with the new field rule. The resolver checks both
+  explicit endpoints against their own chapters; whole chapters still use the
+  actual final verse.
 
 ## Checks and quality
 
@@ -72,3 +76,13 @@ confirmation. Chunked translation files and passage splitting are separate work.
 - Findings:
 
 ## Team member's reply
+
+1. Addressed the round-1 P2 finding. `resolvePassage` no longer clamps an
+   oversized end verse. Same-chapter and cross-chapter endpoints return the
+   existing verse error, while exact final-verse boundaries and whole chapters
+   remain valid. Spec 02's conflicting clipping row now says to reject the
+   range. Parser, real lookup-session and both field tests use the real resolver
+   with invented translation data. Fourteen regression cases failed before the
+   fix; the field tests no longer manufacture error replies. They verify the
+   actual reason and blocked output/insertion. Final checks and exact-head CI
+   are in the report.

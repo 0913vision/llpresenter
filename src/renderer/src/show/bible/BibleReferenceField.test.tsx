@@ -7,6 +7,8 @@ import type {
 } from '@shared/schema/bibleLookup';
 import {BibleReferenceField} from './BibleReferenceField';
 import {lookupReply, lookupRequest} from './testBible';
+import {resolvePassage} from '../../../../main/bible/reference';
+import {parsedTranslation} from '../../../../main/bible/testFiles';
 
 beforeEach(() => {
   HTMLElement.prototype.scrollIntoView = vi.fn();
@@ -86,20 +88,26 @@ describe('Bible reference field', () => {
     expect(fireEvent.keyDown(view.field, {key: 'Tab'})).toBe(true);
     expect(view.field.value).toBe('창 1:1');
   });
-  it.each(['chapter', 'verse'] as const)(
-    'exposes a %s range error in the field and blocks output',
-    async code => {
+  it.each([
+    {input: '요 3:16-99', code: 'verse'},
+    {input: '요 3장 35절-4장 9절', code: 'verse'},
+    {input: '요 3:16-22:1', code: 'chapter'},
+  ])(
+    'exposes the real resolver endpoint error for $input and blocks output',
+    async ({input, code}) => {
       const view = setup();
-      const message =
-        code === 'chapter'
-          ? '장이 범위를 벗어났습니다'
-          : '절이 범위를 벗어났습니다';
+      const file = parsedTranslation();
+      const result = resolvePassage(file, input);
+      expect(result).toMatchObject({ok: false, error: {code}});
+      if (result.ok) throw new Error('Expected an invalid endpoint');
+      const message = result.error.message;
       view.lookup.mockImplementation(async request => ({
-        ...lookupReply(request),
-        result: {ok: false, error: {code, message}},
+        ...request,
+        suggestions: [],
+        result: resolvePassage(file, request.input),
       }));
       fireEvent.change(view.field, {
-        target: {value: code === 'chapter' ? '요 999:1' : '요 3:999'},
+        target: {value: input},
       });
       await waitFor(() =>
         expect(view.field.getAttribute('aria-invalid')).toBe('true'),

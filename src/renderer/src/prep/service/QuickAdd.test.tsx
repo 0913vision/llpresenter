@@ -20,6 +20,11 @@ import {NEWER_FILE_REASON} from './ItemArrangement';
 import {fixtureItems, fixtureServiceId, itemFixture} from './itemFixture';
 import {useHeaderRename} from '@renderer/state/headerRename';
 import {ServiceQuickAdd} from './QuickAdd';
+import {resolvePassage} from '../../../../main/bible/reference';
+import {
+  parsedTranslation,
+  translationFile,
+} from '../../../../main/bible/testFiles';
 
 afterEach(() => {
   useShow.setState({
@@ -310,20 +315,25 @@ describe('항목 추가', () => {
     expect(screen.getByRole('menu', {name: '항목 추가'})).toBeTruthy();
   });
 
-  it.each(['chapter', 'verse'] as const)(
-    'shows a %s error only through the field and cannot insert it',
-    async code => {
+  it.each([
+    {input: '요 3:16-99', code: 'verse'},
+    {input: '요 3장 35절-4장 9절', code: 'verse'},
+    {input: '요 3:16-22:1', code: 'chapter'},
+  ])(
+    'shows the real resolver endpoint error for $input and cannot insert it',
+    async ({input, code}) => {
       const {api, user, service} = setup();
-      const {lookup} = mockBible(api);
-      const message =
-        code === 'chapter'
-          ? '장이 범위를 벗어났습니다'
-          : '절이 범위를 벗어났습니다';
+      const {krv, lookup} = mockBible(api);
+      const file = parsedTranslation({...translationFile(), id: krv});
+      const result = resolvePassage(file, input);
+      expect(result).toMatchObject({ok: false, error: {code}});
+      if (result.ok) throw new Error('Expected an invalid endpoint');
+      const message = result.error.message;
       lookup.mockImplementation(async ({input, translation}) => ({
         input,
         translation,
         suggestions: [],
-        result: {ok: false, error: {code, message}},
+        result: resolvePassage(file, input),
       }));
       const length = service().service.order.length;
       await user.click(screen.getByRole('button', {name: '항목 추가'}));
@@ -332,7 +342,7 @@ describe('항목 추가', () => {
       );
       const field = screen.getByRole('combobox', {name: '성경 구절'});
       fireEvent.change(field, {
-        target: {value: code === 'chapter' ? '요 999:1' : '요 3:999'},
+        target: {value: input},
       });
       await waitFor(() =>
         expect(field.getAttribute('aria-invalid')).toBe('true'),

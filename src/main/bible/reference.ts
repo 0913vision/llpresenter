@@ -135,8 +135,10 @@ export function resolvePassage(
   const last = content.chapters[endChapter - 1];
   if (!first || !last) return error('chapter', '없는 장입니다');
   const startVerse = verse ?? 1;
-  if (startVerse > first.length) return error('verse', '없는 절입니다');
-  const endVerse = Math.min(reference.endVerse ?? last.length, last.length);
+  const endVerse = reference.endVerse ?? last.length;
+  if (startVerse > first.length || endVerse > last.length) {
+    return error('verse', '없는 절입니다');
+  }
   if (
     endChapter < chapter ||
     (endChapter === chapter && endVerse < startVerse)
