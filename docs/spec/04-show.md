@@ -340,6 +340,12 @@ after its name, and hides it at 0.
     message down.
   - Clock: the Look decides it, so the row has no 내리기 button.
   - A 내리기 counts as the last clear, and undo restores it (proposal).
+  - Individual message, prop and stage-message rows use `overlay.clear` with a
+    `message` and `messageId`, `prop` and `propId`, or `stage-message` target.
+    Message and prop IDs are lowercase UUID v4 values. Legacy single-item layers
+    with older IDs use the existing whole-layer clear. Missing rows do nothing
+    and preserve the previous clear's undo. Only the removed message's remaining
+    display time pauses until undo; other messages keep their deadlines.
 
 ### 오디오 (Audio)
 

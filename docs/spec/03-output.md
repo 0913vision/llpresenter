@@ -379,6 +379,11 @@ project). Build it as a 매크로 with several clear actions. If needed, set tha
   - Audio: the same track plays again from the position at the moment of the
     clear (proposal).
 - After an undo, there is nothing left to undo (one level only).
+- Taking down a single message or prop from 표시 중 is also a clear. Undo
+  restores its captured content and targets. Only that message's remaining
+  lifetime resumes; messages that stayed up keep expiring normally. Taking down
+  a stage message records its text for undo. Sending new stage text ends that
+  stage-message undo, so it never replaces a newer message.
 - If new content goes to a cleared layer (a new 슬라이드, a new background, a
   new 메시지), that clear can no longer be undone (proposal: undo must never
   cover something new).

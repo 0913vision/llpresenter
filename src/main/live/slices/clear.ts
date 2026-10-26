@@ -8,6 +8,8 @@ import {
   type AudioLayer,
 } from '@shared/live';
 import {audioPositionSeconds} from '@shared/schema/audioState';
+import type {MessageId} from '@shared/schema/ids';
+import {clearOverlay} from '../clearOverlay';
 import {nextAudioTrackVersion} from '../audioTrackVersion';
 import {withLayers, type LiveHistory} from '../history';
 import {defineSlice, type SliceContext} from '../slice';
@@ -58,8 +60,8 @@ function undoClear(
     : undo.layers.media;
   const elapsed = Math.max(0, now - undo.clearedAt);
   const message =
-    history.state.layers.message === null
-      ? resumedMessages(undo.layers.message, elapsed)
+    history.state.layers.message === null || undo.clearedMessageId !== undefined
+      ? resumedMessages(undo.layers.message, elapsed, undo.clearedMessageId)
       : undo.layers.message;
   const notice =
     history.state.layers.notice === null
@@ -78,15 +80,22 @@ function undoClear(
     {...undo.layers, media, message, notice, audio},
     null,
   );
+  const withStage =
+    undo.stageMessage === undefined
+      ? restored
+      : {
+          ...restored,
+          state: {...restored.state, stageMessage: undo.stageMessage},
+        };
   return audio !== undo.layers.audio && audio?.playback !== undefined
     ? {
-        ...restored,
+        ...withStage,
         state: {
-          ...restored.state,
+          ...withStage.state,
           audioTrackVersion: audio.playback.trackVersion,
         },
       }
-    : restored;
+    : withStage;
 }
 
 function resumedAudio(
@@ -115,15 +124,21 @@ function resumedAudio(
 function resumedMessages(
   layer: MessageLayer | null,
   elapsed: number,
+  id?: MessageId,
 ): MessageLayer | null {
   if (layer?.items === undefined) return layer;
   return {
     ...layer,
-    items: layer.items.map(item => ({
-      ...item,
-      startedAt: item.startedAt + elapsed,
-      expiresAt: item.expiresAt === null ? null : item.expiresAt + elapsed,
-    })),
+    items: layer.items.map(item =>
+      id !== undefined && item.messageId !== id
+        ? item
+        : {
+            ...item,
+            startedAt: item.startedAt + elapsed,
+            expiresAt:
+              item.expiresAt === null ? null : item.expiresAt + elapsed,
+          },
+    ),
   };
 }
 
@@ -147,7 +162,7 @@ function resumedNotice(
 
 /** Clears layers and undoes the last clear, one level deep. */
 export const clearSlice = defineSlice({
-  commands: ['layer.clear', 'clear.undo'],
+  commands: ['layer.clear', 'clear.undo', 'overlay.clear'],
   initial: {canUndo: false},
   reduce: (history, command, context) => {
     switch (command.type) {
@@ -155,6 +170,8 @@ export const clearSlice = defineSlice({
         return clear(history, command.target, context);
       case 'clear.undo':
         return undoClear(history, context);
+      case 'overlay.clear':
+        return clearOverlay(history, command.target, context.now);
     }
   },
 });

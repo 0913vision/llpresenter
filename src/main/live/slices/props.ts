@@ -2,6 +2,7 @@ import {parseActiveProps} from '@shared/schema/overlayState';
 import type {ActiveProp} from '@shared/live';
 import {MissingLiveTargetError} from '../commandErrors';
 import {setLayer} from '../history';
+import {propLayer} from '../propState';
 import {defineSlice} from '../slice';
 
 export const propsSlice = defineSlice({
@@ -12,12 +13,7 @@ export const propsSlice = defineSlice({
     const retained = previous.filter(item => item.propId !== command.propId);
     if (!command.on) {
       if (retained.length === previous.length) return history;
-      const first = retained[0];
-      return setLayer(
-        history,
-        'prop',
-        first === undefined ? null : {propId: first.propId, items: retained},
-      );
+      return setLayer(history, 'prop', propLayer(retained));
     }
     const document = settings?.get('props');
     if (document?.name !== 'props') {
@@ -42,9 +38,6 @@ export const propsSlice = defineSlice({
     ];
     const parsed = parseActiveProps(items);
     if (!parsed.ok) return reject(parsed.error);
-    return setLayer(history, 'prop', {
-      propId: items[0]?.propId ?? prop.id,
-      items,
-    });
+    return setLayer(history, 'prop', propLayer(items));
   },
 });

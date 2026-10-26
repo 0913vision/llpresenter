@@ -1,10 +1,13 @@
 import type {LayerKind, LiveLayers, LiveState} from '@shared/live';
+import type {MessageId} from '@shared/schema/ids';
 
 /** What the last clear took down, and when, so it can be undone. */
 export interface UndoEntry {
   readonly layers: LiveLayers;
   readonly clearedAt: number;
   readonly audioClearedAt?: number;
+  readonly clearedMessageId?: MessageId;
+  readonly stageMessage?: string;
 }
 
 export interface LiveHistory {

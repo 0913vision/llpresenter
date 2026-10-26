@@ -6,6 +6,7 @@ import {layerSchemas, mediaChoiceSchema} from './liveState';
 import {liveActionOptions} from './liveActions';
 import {screenCommandOptions} from './screenCommands';
 import {messageExpirySchema} from './overlayState';
+import {overlayClearSchema} from './overlayClear';
 import {checkPart} from './fileFormat';
 import {
   parsePayload,
@@ -20,6 +21,7 @@ const singleCommandOptions = [
   ...liveActionOptions,
   ...screenCommandOptions,
   messageExpirySchema,
+  overlayClearSchema,
   v.object({type: v.literal('slide.show'), slide: layerSchemas.slide}),
   v.object({type: v.literal('media.show'), media: mediaChoiceSchema}),
   v.object({type: v.literal('message.show'), message: layerSchemas.message}),
