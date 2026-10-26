@@ -261,9 +261,15 @@ Source: `Recovery`, `AlertDialog` README, `Checkbox` README, `Main` decision
 | Backup location unavailable (proposal)               | Warning     |
 | An output window can't be reopened (proposal)        | Warning     |
 | An output window reopened after the limit (proposal) | Information |
+| A 매크로 was dropped whole (01)                      | Warning     |
 
 Don't use notifications for problems of one item (they show in place) or for the
 results of the operator's own actions.
+
+When the main process drops a whole 매크로 because its result would exceed the
+live state limits (01), a warning card titled "매크로 적용 실패" shows, with the
+매크로 name as its detail line. Nothing changes on output: the screens keep the
+state from before the 매크로 ran.
 
 Source: `Notification` README, `Problems`, `StatusBar` README, design system
 writing rules.

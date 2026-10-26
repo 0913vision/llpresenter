@@ -97,6 +97,12 @@ Source: product log (2026-10-23 product philosophy, 2026-10-24 decisions),
   that no longer exists, such as a deleted Look or 소품, is dropped and logged
   the same way. Inside a 매크로 or a batch, that one action is skipped and the
   rest run (07).
+- A 매크로 or a batch whose actions are each valid, but whose result together
+  would exceed the live state limits (`LIVE_STATE_LIMITS` in
+  `src/shared/schema/liveLimits.ts`: text length, 슬라이드 lines, outputs, and
+  the byte size of one state), is dropped whole. The state doesn't change, no
+  window receives a new state, none of its effects run, and the main process
+  logs it once, naming the 매크로 or batch. 08 says what the operator sees.
 - Each new state carries a number that rises by one with every change. A window
   that receives a state with a lower number than the one it already has ignores
   it (proposal).
