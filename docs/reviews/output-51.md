@@ -46,13 +46,11 @@ the old timers. Repeated gain values do not trigger extra volume updates.
 - [x] Errors use the existing bounded log path
 - [ ] Head checks pass (see request message)
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: pending
-
-## Review: reviewer
-
-- Verdict: pending
+- Round 1 (1ec91065): reviewer (Codex) Approve. Lead Approve (see "What changed
+  and why"); the exact-head CI run passed, checked by the lead at merge. Rebased
+  by the lead onto local `main` without conflicts; typecheck passes.
 
 ## Team member's reply
 
