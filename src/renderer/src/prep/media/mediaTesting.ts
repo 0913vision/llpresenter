@@ -1,6 +1,11 @@
 import {vi} from 'vitest';
 import type {LlpApi} from '@shared/ipc';
-import {createMediaId, type MediaId} from '@shared/schema/ids';
+import {
+  createAudioPlaylistId,
+  createMediaId,
+  createMediaPlaylistId,
+  type MediaId,
+} from '@shared/schema/ids';
 import type {
   MediaDocument,
   MediaEdit,
@@ -10,7 +15,11 @@ import type {
   MediaImportResult,
 } from '@shared/schema/mediaEdit';
 import type {MissingMedia} from '@shared/schema/mediaFiles';
-import type {MediaItem} from '@shared/schema/mediaList';
+import type {
+  AudioPlaylist,
+  MediaItem,
+  MediaPlaylist,
+} from '@shared/schema/mediaList';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 
 export const mediaId = (index: number): MediaId =>
@@ -31,9 +40,23 @@ export function mediaItem(
   };
 }
 
+export const playlistId = (index: number) =>
+  createMediaPlaylistId(
+    `00000000-0000-4000-8000-${String(900 + index).padStart(12, '0')}`,
+  );
+
+export const audioPlaylistId = (index: number) =>
+  createAudioPlaylistId(
+    `00000000-0000-4000-8000-${String(950 + index).padStart(12, '0')}`,
+  );
+
 export function mediaDocument(
   items: readonly MediaItem[],
   revision = 1,
+  lists: {
+    readonly playlists?: readonly MediaPlaylist[];
+    readonly audioPlaylists?: readonly AudioPlaylist[];
+  } = {},
 ): MediaDocument {
   return {
     name: 'media',
@@ -43,8 +66,8 @@ export function mediaDocument(
       format: 'llmedia',
       schemaVersion: 1,
       items,
-      playlists: [],
-      audioPlaylists: [],
+      playlists: lists.playlists ?? [],
+      audioPlaylists: lists.audioPlaylists ?? [],
     },
   };
 }

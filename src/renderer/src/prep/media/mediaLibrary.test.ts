@@ -1,7 +1,14 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {MediaId} from '@shared/schema/ids';
 import type {Notice} from '@renderer/ui/notices';
-import {mediaDocument, mediaFixture, mediaId, mediaItem} from './mediaTesting';
+import {
+  audioPlaylistId,
+  mediaDocument,
+  mediaFixture,
+  mediaId,
+  mediaItem,
+  playlistId,
+} from './mediaTesting';
 import {MediaLibrary} from './mediaLibrary';
 
 function setup(fixture = mediaFixture(mediaDocument([mediaItem(1)]))) {
@@ -180,5 +187,52 @@ describe('media library for the media view', () => {
       mediaId: mediaId(1),
     });
     expect(problems).toHaveBeenCalledTimes(3);
+  });
+
+  it('remembers the playlist each import joins until it ends', async () => {
+    const {library, importFiles, pushProgress} = setup();
+    importFiles.mockResolvedValue({
+      ok: true,
+      value: [
+        {...JOB, phase: 'queued', percent: 0},
+        {
+          mediaId: mediaId(10),
+          fileName: 'Odd.txt',
+          phase: 'failed',
+          percent: 0,
+          message: '지원하지 않는 형식',
+        },
+      ],
+    });
+    await library.import({kind: 'media', id: playlistId(1)});
+    expect(library.getSnapshot().destinations).toEqual(
+      new Map([[JOB.mediaId, playlistId(1)]]),
+    );
+    pushProgress({...JOB, phase: 'complete', percent: 100});
+    expect(library.getSnapshot().destinations.size).toBe(0);
+  });
+
+  it('creates a playlist and answers its id, also when its save failed', async () => {
+    const {library, edit, problems} = setup();
+    edit.mockResolvedValueOnce({
+      ok: true,
+      value: {id: playlistId(1), revision: 2},
+    });
+    expect(await library.createPlaylist('media')).toBe(playlistId(1));
+    edit.mockResolvedValueOnce({
+      ok: false,
+      error: {
+        reason: 'write-failed',
+        message: 'Invented full disk',
+        applied: {id: audioPlaylistId(1), revision: 3},
+        unchangedFiles: ['media.json'],
+      },
+    });
+    expect(await library.createPlaylist('audio')).toBe(audioPlaylistId(1));
+    edit.mockRejectedValueOnce(new Error('Invented failure'));
+    expect(await library.createPlaylist('media')).toBeNull();
+    expect(problems.mock.calls.map(([notice]) => notice.title)).toEqual([
+      '재생목록을 만들 수 없음',
+    ]);
   });
 });
