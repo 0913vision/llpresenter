@@ -57,3 +57,10 @@ or app launch.
    message clears with a retained third message and grouped stage text. The ID
    set is bounded by the existing 200 active messages. The six affected test
    files pass all 76 tests; final checks and CI status are in the report.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (Codex): Request changes; the findings and replies are above.
+- Round 2 (bf75e3a5): reviewer (Codex) Approve. Lead Approve (see "What changed
+  and why"); the exact-head CI run passed, checked by the lead at merge. Rebased
+  by the lead onto local `main` without conflicts; typecheck passes.
