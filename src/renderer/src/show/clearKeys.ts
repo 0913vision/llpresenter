@@ -28,8 +28,9 @@ function runClearCommand(command: ClearCommandId): void {
 /**
  * Handles the clear keys. F1 to F7 clear a layer wherever the focus is, in a
  * text field and during an IME composition too, except in a field that records
- * a shortcut. A held key runs once, and its repeats are still swallowed. No key
- * undoes a clear; only the 되돌리기 button does.
+ * a shortcut. A held key runs once, and its repeats are still swallowed. A key
+ * clears again after new output content, otherwise a second press restores
+ * that key's captured content.
  */
 export function handleClearKey(event: KeyboardEvent): void {
   if (event.defaultPrevented || isInShortcutRecorder(event.target)) return;

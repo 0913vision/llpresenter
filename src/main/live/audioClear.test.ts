@@ -47,6 +47,29 @@ function setup(
   };
 }
 describe('audio clear undo', () => {
+  it('restores F1 audio on the monotonic clock with a fresh playback identity', () => {
+    const {store, later} = setup();
+    store.dispatch({type: 'layer.clear.toggle', target: 'all'});
+    later();
+    store.dispatch({type: 'layer.clear.toggle', target: 'all'});
+    expect(store.state.layers.audio?.playback).toMatchObject({
+      positionSeconds: 6,
+      since: 25_000,
+    });
+    expect(store.state.layers.audio?.playback?.trackVersion).toBeGreaterThan(7);
+    expect(store.state.layers.message?.text).toBe('Fixture');
+  });
+
+  it('keeps another key capture through audio pause and resume', () => {
+    const {store} = setup();
+    store.dispatch({type: 'layer.clear.toggle', target: 'message'});
+    store.dispatch({type: 'audio.pause'});
+    store.dispatch({type: 'audio.play'});
+    expect(store.state.clearToggles).toEqual(['message']);
+    store.dispatch({type: 'layer.clear.toggle', target: 'message'});
+    expect(store.state.layers.message?.text).toBe('Fixture');
+  });
+
   it('restores a manual fade with the same remaining time after undo', () => {
     const {store, later} = setup(false, undefined, 4000);
     store.dispatch({type: 'layer.clear', target: 'audio'});

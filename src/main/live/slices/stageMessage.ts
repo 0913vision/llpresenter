@@ -1,10 +1,12 @@
 import {defineSlice} from '../slice';
+import {resetClearToggles} from '../history';
 
 export const stageMessageSlice = defineSlice({
   commands: ['stage.message.set'],
   initial: {},
   reduce: (history, {text}) => {
     if ((history.state.stageMessage ?? null) === text) return history;
+    if (text !== null) history = resetClearToggles(history);
     const endsUndo = history.undo?.stageMessage !== undefined;
     return {
       ...history,

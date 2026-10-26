@@ -89,12 +89,17 @@ export const noticesSlice = defineSlice({
     if (notice?.playback?.pausedAt !== null) {
       return history;
     }
-    return setLayer(history, 'notice', {
-      ...notice,
-      playback: {
-        ...notice.playback,
-        pausedAt: Math.max(context.now, notice.playback.startedAt),
+    return setLayer(
+      history,
+      'notice',
+      {
+        ...notice,
+        playback: {
+          ...notice.playback,
+          pausedAt: Math.max(context.now, notice.playback.startedAt),
+        },
       },
-    });
+      {preserveClearToggles: true},
+    );
   },
 });

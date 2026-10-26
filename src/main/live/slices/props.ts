@@ -13,7 +13,9 @@ export const propsSlice = defineSlice({
     const retained = previous.filter(item => item.propId !== command.propId);
     if (!command.on) {
       if (retained.length === previous.length) return history;
-      return setLayer(history, 'prop', propLayer(retained));
+      return setLayer(history, 'prop', propLayer(retained), {
+        preserveClearToggles: true,
+      });
     }
     const document = settings?.get('props');
     if (document?.name !== 'props') {

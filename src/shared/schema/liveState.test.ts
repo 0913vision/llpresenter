@@ -28,6 +28,16 @@ function busyState(): LiveState {
 }
 
 describe('parseLiveState', () => {
+  it('accepts optional unique clear key restore flags', () => {
+    const state = {...emptyLiveState(), clearToggles: ['all', 'slide'] as const};
+    expect(parseLiveState(state)).toEqual({ok: true, value: state});
+  });
+  it.each([
+    {clearToggles: ['slide', 'slide']}, {clearToggles: ['unknown']},
+    {clearToggles: Array(8).fill('all')}, {clearToggles: undefined}, {clearToggles: [null]},
+  ])('rejects malformed clear key flags %j', ({clearToggles}) => {
+    expect(parseLiveState({...emptyLiveState(), clearToggles}).ok).toBe(false);
+  });
   it.each([null, '00000000-0000-4000-8000-000000000004'])(
     'preserves an optional current Look %s',
     lookId => {

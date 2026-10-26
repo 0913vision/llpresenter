@@ -20,6 +20,7 @@ export type SingleLiveCommand =
   | {readonly type: 'media.show'; readonly media: MediaChoice}
   | {readonly type: 'message.show'; readonly message: MessageLayer}
   | {readonly type: 'layer.clear'; readonly target: ClearTarget}
+    | {readonly type: 'layer.clear.toggle'; readonly target: ClearTarget}
   | {readonly type: 'clear.undo'}
   | {
       readonly type: 'output.set';
@@ -45,6 +46,7 @@ export function interruptsSongOutput(command: LiveCommand): boolean {
     case 'clear.undo':
       return true;
     case 'layer.clear':
+    case 'layer.clear.toggle':
       return ['all', 'slide', 'media'].includes(command.target);
     case 'live.batch':
       return command.commands.some(interruptsSongOutput);

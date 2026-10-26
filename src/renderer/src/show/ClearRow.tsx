@@ -5,6 +5,7 @@ import {
   undoClear,
   useCanUndo,
   useSomethingToClear,
+  useClearRestores,
 } from '@renderer/state/clear';
 import {clearButtons, type ClearButtonSpec} from './clear';
 import styles from './ClearRow.module.css';
@@ -17,7 +18,8 @@ function ClearButton({
   readonly compact: boolean;
 }): JSX.Element {
   const active = useSomethingToClear(spec.target);
-  const name = `${spec.label} 지우기`;
+  const restores = useClearRestores(spec.target);
+  const name = `${spec.label} ${restores ? '복원' : '지우기'}`;
   const classes =
     spec.target === 'all' ? `${styles.button} ${styles.all}` : styles.button;
   const {targetProps, tooltip} = useTooltip({
@@ -31,6 +33,7 @@ function ClearButton({
         type="button"
         className={classes}
         aria-label={name}
+        aria-pressed={restores}
         aria-disabled={!active}
         data-state={active ? undefined : 'off'}
         onClick={() => clearLayer(spec.target)}

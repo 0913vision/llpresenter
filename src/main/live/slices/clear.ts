@@ -2,6 +2,8 @@ import type {ClearTarget} from '@shared/commands';
 import {
   emptyLayers,
   hasAnyLayer,
+  type LayerKind,
+  type LiveLayers,
   type MediaLayer,
   type MessageLayer,
   type NoticeLayer,
@@ -11,7 +13,12 @@ import {audioPositionSeconds} from '@shared/schema/audioState';
 import type {MessageId} from '@shared/schema/ids';
 import {clearOverlay} from '../clearOverlay';
 import {nextAudioTrackVersion} from '../audioTrackVersion';
-import {withLayers, type LiveHistory} from '../history';
+import {
+  withLayers,
+  withClearSnapshots,
+  resetClearToggles,
+  type LiveHistory,
+} from '../history';
 import {defineSlice, type SliceContext} from '../slice';
 
 function clear(
@@ -34,6 +41,47 @@ function clear(
   }
   if (layers[target] === null) return history;
   return withLayers(history, {...layers, [target]: null}, undo);
+}
+
+function toggleClear(
+  history: LiveHistory,
+  target: ClearTarget,
+  context: SliceContext,
+): LiveHistory {
+  const saved = history.clearSnapshots?.[target];
+  if (saved === undefined) {
+    const cleared = clear(history, target, context);
+    if (cleared === history || cleared.undo === null) return history;
+    return withClearSnapshots(cleared, {
+      ...history.clearSnapshots,
+      [target]: cleared.undo,
+    });
+  }
+  const current = history.state.layers;
+  const restore = <K extends LayerKind>(kind: K): LiveLayers[K] =>
+    (target === 'all' || target === kind) && current[kind] === null
+      ? saved.layers[kind]
+      : current[kind];
+  const restored = undoClear(
+    {
+      ...history,
+      undo: {
+        ...saved,
+        layers: {
+          media: restore('media'),
+          slide: restore('slide'),
+          prop: restore('prop'),
+          audio: restore('audio'),
+          message: restore('message'),
+          notice: restore('notice'),
+        },
+      },
+    },
+    context,
+  );
+  const remaining = {...history.clearSnapshots};
+  delete remaining[target];
+  return withClearSnapshots(restored, remaining);
 }
 
 function resumedMedia(
@@ -163,14 +211,23 @@ function resumedNotice(
 
 /** Clears layers and undoes the last clear, one level deep. */
 export const clearSlice = defineSlice({
-  commands: ['layer.clear', 'clear.undo', 'overlay.clear'],
+  commands: [
+    'layer.clear',
+    'layer.clear.toggle',
+    'clear.undo',
+    'overlay.clear',
+  ],
   initial: {canUndo: false},
   reduce: (history, command, context) => {
     switch (command.type) {
       case 'layer.clear':
         return clear(history, command.target, context);
+      case 'layer.clear.toggle':
+        return toggleClear(history, command.target, context);
       case 'clear.undo':
-        return undoClear(history, context);
+        return history.undo === null
+          ? history
+          : resetClearToggles(undoClear(history, context));
       case 'overlay.clear':
         return clearOverlay(history, command.target, context.now);
     }

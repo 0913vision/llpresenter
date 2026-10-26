@@ -29,6 +29,10 @@ const singleCommandOptions = [
     type: v.literal('layer.clear'),
     target: v.picklist(['all', ...layerKinds]),
   }),
+  v.object({
+    type: v.literal('layer.clear.toggle'),
+    target: v.picklist(['all', ...layerKinds]),
+  }),
   v.object({type: v.literal('clear.undo')}),
   v.object({
     type: v.literal('output.set'),

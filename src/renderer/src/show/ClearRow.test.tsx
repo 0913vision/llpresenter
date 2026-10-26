@@ -225,18 +225,31 @@ describe('ClearRow', () => {
     ).toBeNull();
   });
 
-  it('clears the layer of a bright button with layer.clear', () => {
+  it('toggles the layer of a bright button with layer.clear.toggle', () => {
     setLayers({slide});
     render(<ClearRow compact={false} />);
     fireEvent.click(screen.getByRole('button', {name: '가사 지우기'}));
-    expect(sent).toEqual([{type: 'layer.clear', target: 'slide'}]);
+    expect(sent).toEqual([{type: 'layer.clear.toggle', target: 'slide'}]);
   });
 
   it('clears everything with the all button', () => {
     setLayers({slide, media});
     render(<ClearRow compact={false} />);
     fireEvent.click(screen.getByRole('button', {name: '모두 지우기'}));
-    expect(sent).toEqual([{type: 'layer.clear', target: 'all'}]);
+    expect(sent).toEqual([{type: 'layer.clear.toggle', target: 'all'}]);
+  });
+
+  it('offers a pressed restore button after its layer has been cleared', async () => {
+    useLive.setState({state: {...emptyLiveState(), clearToggles: ['slide']}});
+    render(<ClearRow compact={false} />);
+    const button = screen.getByRole('button', {name: '가사 복원'});
+    expect(button.getAttribute('aria-disabled')).toBe('false');
+    expect(button.getAttribute('aria-pressed')).toBe('true');
+    expect((await hoverForTooltip(button))?.textContent).toBe('가사 복원F2');
+    fireEvent.click(button);
+    expect(sent).toEqual([{type: 'layer.clear.toggle', target: 'slide'}]);
+    act(() => setLayers({slide}));
+    expect(screen.getByRole('button', {name: '가사 지우기'}).getAttribute('aria-pressed')).toBe('false');
   });
 
   it('does nothing when a dim button is clicked', () => {

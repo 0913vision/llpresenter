@@ -107,15 +107,20 @@ export const audioSlice = defineSlice({
           playback.fadeOutSince === undefined
             ? playback.trackVersion
             : nextAudioTrackVersion(history.state);
-        const next = setLayer(history, 'audio', {
-          ...layer,
-          playback: {
-            source: playback.source,
-            trackVersion,
-            positionSeconds: playback.positionSeconds,
-            since: playback.since ?? now,
+        const next = setLayer(
+          history,
+          'audio',
+          {
+            ...layer,
+            playback: {
+              source: playback.source,
+              trackVersion,
+              positionSeconds: playback.positionSeconds,
+              since: playback.since ?? now,
+            },
           },
-        });
+          {preserveClearToggles: true},
+        );
         return playback.fadeOutSince === undefined
           ? next
           : {...next, state: {...next.state, audioTrackVersion: trackVersion}};
@@ -124,14 +129,19 @@ export const audioSlice = defineSlice({
         if (layer?.playback === undefined || layer.playback.since === null) {
           return history;
         }
-        return setLayer(history, 'audio', {
-          ...layer,
-          playback: {
-            ...layer.playback,
-            positionSeconds: audioPositionSeconds(layer.playback, now),
-            since: null,
+        return setLayer(
+          history,
+          'audio',
+          {
+            ...layer,
+            playback: {
+              ...layer.playback,
+              positionSeconds: audioPositionSeconds(layer.playback, now),
+              since: null,
+            },
           },
-        });
+          {preserveClearToggles: true},
+        );
       case 'audio.next':
         if (
           command.trackVersion !== undefined &&
@@ -151,10 +161,15 @@ export const audioSlice = defineSlice({
         ) {
           return history;
         }
-        return setLayer(history, 'audio', {
-          ...layer,
-          playback: {...layer.playback, fadeOutSince: now},
-        });
+        return setLayer(
+          history,
+          'audio',
+          {
+            ...layer,
+            playback: {...layer.playback, fadeOutSince: now},
+          },
+          {preserveClearToggles: true},
+        );
       case 'audio.fadeOut.complete':
         if (
           layer?.playback?.trackVersion !== command.trackVersion ||
