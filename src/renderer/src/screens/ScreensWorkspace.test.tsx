@@ -155,12 +155,15 @@ describe('the 화면 list', () => {
   it('groups the screens under 청중 and 무대 with their targets', async () => {
     setup();
     await screen.findByRole('option', {name: '본 화면'});
-    const groups = within(
-      screen.getByRole('listbox', {name: '화면'}),
-    ).getAllByRole('group');
-    expect(groups.map(group => group.textContent)).toEqual([
-      '청중본 화면모니터 2방송 자막캡처용 창',
-      '무대무대 화면모니터 미지정',
+    const list = within(screen.getByRole('listbox', {name: '화면'}));
+    const audience = within(list.getByRole('group', {name: '청중'}));
+    const stage = within(list.getByRole('group', {name: '무대'}));
+    expect(audience.getAllByRole('option').map(row => row.textContent)).toEqual([
+      '본 화면모니터 2',
+      '방송 자막캡처용 창',
+    ]);
+    expect(stage.getAllByRole('option').map(row => row.textContent)).toEqual([
+      '무대 화면모니터 미지정',
     ]);
   });
 

@@ -1,5 +1,6 @@
 import {useMemo, type CSSProperties, type DragEvent, type JSX} from 'react';
 import type {Screen} from '@shared/schema/screens';
+import {MONITOR_SCREEN_ID_MAX} from '@shared/schema/monitors';
 import {Button} from '@renderer/ui';
 import {classNames} from '@renderer/ui/classNames';
 import {sendLive} from '@renderer/state/live';
@@ -37,9 +38,11 @@ function arrangementStyle(
 function MonitorView({
   box,
   onDrop,
+  enabled,
 }: {
   readonly box: MonitorBox;
   readonly onDrop: (event: DragEvent) => void;
+  readonly enabled: boolean;
 }): JSX.Element {
   return (
     <div
@@ -48,6 +51,7 @@ function MonitorView({
       aria-current={box.selected ? 'true' : undefined}
       onDragOver={event => {
         if (
+          !enabled ||
           box.control ||
           !event.dataTransfer.types.includes(SCREEN_DRAG_MIME)
         ) {
@@ -129,7 +133,15 @@ export function DisplayLayout({
             <MonitorView
               key={box.number}
               box={box}
+              enabled={
+                document?.access === 'editable' &&
+                monitors.some(
+                  monitor =>
+                    monitor.number === box.number && monitor.id !== undefined,
+                )
+              }
               onDrop={event => {
+                if (document?.access !== 'editable') return;
                 const monitor = monitors.find(
                   item => item.number === box.number,
                 );
@@ -139,9 +151,13 @@ export function DisplayLayout({
                   monitor.id === undefined ||
                   !event.dataTransfer.types.includes(SCREEN_DRAG_MIME)
                 )
-                  return;
+                  {return;}
                 const screenId = event.dataTransfer.getData(SCREEN_DRAG_MIME);
-                if (!screens.some(screen => screen.id === screenId)) return;
+                if (
+                  screenId.length > MONITOR_SCREEN_ID_MAX ||
+                  !screens.some(screen => screen.id === screenId)
+                )
+                  {return;}
                 event.preventDefault();
                 select('screen', screenId);
                 editor.assign(screenId, monitor);
