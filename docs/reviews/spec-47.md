@@ -1,11 +1,11 @@
-Review range: `574e7369...feat/spec/recovery-dialog`
+Review range: `a75c124a...feat/spec/recovery-dialog`
 
 # Review request: `spec-47`
 
 - Team member: `spec` (Claude session that took over from Codex)
 - Branch: `feat/spec/recovery-dialog`
-- Base commit: `574e7369`
-- Review round: 1
+- Base commit: `a75c124a`
+- Review round: 2
 - Task: M3-S2b, the 출력 상태 복구 dialog on output-30's recovery answer
 - Code owner: shell (`src/renderer/src/control/recovery/` and `App.tsx`)
 
@@ -37,6 +37,15 @@ crash, and answers `recovery.summary()`, `recovery.apply({savedAt, rows})`, and
 - **F1 to F7** keep working: ui's modal lets them pass, and the app's capture
   listener clears; a mounted test presses F1 with the dialog open.
 - `RecoveryPrompt` mounts it in `App` next to the notification stack.
+
+## Round 2 response
+
+A rejected `recovery.summary()` no longer leaves main waiting with no way to
+answer. The failure is logged and reported as the warning card "복구할 출력
+상태를 읽을 수 없음" with 다시 시도, which reads the offer again; a read that
+fails again reports the card again, and one that succeeds shows the dialog. A
+mounted test rejects the first read, presses 다시 시도 on the card, and gets the
+dialog from the second read.
 
 ## Decisions I made (for the lead to confirm)
 
