@@ -22,20 +22,26 @@ app-wide settings, and the media list.
    every `SAVE_RETRY_INTERVAL_MS` (30 s) and at once on `retry()`, which joins a
    retry that already runs. A pass moves each file that fails again to the end
    and stops after `MAX_FAILED_RETRIES_IN_A_ROW` (3) failures in a row, so a
-   full disk costs a few writes per pass (round 2). The list holds one entry per
-   file of a store, which keeps every such document in memory already, so it
-   can't outgrow them.
-2. **Where the content waits.** The stores already keep the edited documents in
+   full disk costs a few writes per pass (round 2), and walks the list without
+   copying it (round 3).
+2. **A cap** (round 3). Once `MAX_WAITING_SAVES` (100) files of the content
+   store wait, an edit that would write or delete a file that doesn't wait yet
+   is refused with the new reason `saves-full` before it changes anything, and
+   저장할 수 없음 is pushed again; an edit of files that wait already goes on.
+   Nothing waiting is ever dropped. A file's later operation replaces its
+   earlier one, so a delete supersedes a waiting write and only the newest
+   intent is retried.
+3. **Where the content waits.** The stores already keep the edited documents in
    memory, and `ContentPersistence`, which the content, settings, and media
    stores share, already kept each file's newest failed write or delete for the
    flush at quit. It now reports such a file to the sink in `DocumentFiles` with
    a `retry` that runs its newest operation again, and reports it written once
    that operation, or a newer one, succeeds. A superseded failure is left to the
    newer operation's result, so an older text never comes back.
-3. **Names.** The card names a song by its title and a 예배 순서 or 틀 by its
+4. **Names.** The card names a song by its title and a 예배 순서 or 틀 by its
    name (`ContentStore.nameOfFile`); settings and the media list use their file
    names, such as `media.json`.
-4. **Channels** (`src/main/store/saveProblems.ts`). The data store adds the
+5. **Channels** (`src/main/store/saveProblems.ts`). The data store adds the
    waiting saves to data-46's problem feed as a standing source, so
    `app:problem:list` lists `save-failed` while files wait, pushes every change
    through the feed on `app:problem`, and retries on `app:problem:retry-saves`
@@ -43,7 +49,7 @@ app-wide settings, and the media list.
    pushes the current problem again when files still wait, even unchanged,
    because pressing 다시 시도 closed the card (visio-c9); the automatic retries
    push only a change. spec-46 adds its skipped files to the same feed.
-5. **Contract.** `AppProblem` gains `{kind: 'save-failed', name, count}` and
+6. **Contract.** `AppProblem` gains `{kind: 'save-failed', name, count}` and
    `{kind: 'save-recovered'}`, as agreed with the 진행 member (visio-c9), who
    builds the 저장할 수 없음 card on it in spec-45 and 46.
 
@@ -51,15 +57,17 @@ app-wide settings, and the media list.
 
 - `src/shared/schema/appProblem.ts` and `.test.ts`: the two kinds, the cap,
   `saveFailedProblem`, and `AppProblemOf`.
+- `src/shared/schema/contentEdit.ts`: the `saves-full` refusal (round 3).
 - `src/shared/ipc.ts`, `src/preload/index.ts` and `.test.ts`,
   `src/shared/testing/fakeLlpApi.ts` and `.test.ts`: `retrySaves`.
 - `src/main/store/saveFailures.ts` and `.test.ts`: the waiting list (new).
 - `src/main/store/saveProblems.ts` and `.test.ts`: the feed source, the pushes,
   and the retry listener (new).
-- `src/main/store/contentPersistence.ts` and `.test.ts` (new test): reports and
-  `retry(file)`.
+- `src/main/store/contentPersistence.ts` and `.test.ts` (new test): reports,
+  `retry(file)`, and the cap's `admits` and `remind`.
 - `src/main/store/documentFiles.ts`: carries the sink.
-- `src/main/store/contentStore.ts` and `.test.ts`: names the files.
+- `src/main/store/contentStore.ts` and `.test.ts`: names the files and checks
+  the cap before each edit changes anything.
 - `src/main/store/settingsStore.ts`, `mediaLoader.ts` and `.test.ts`: pass the
   sink; `openMediaStore` takes its context as one object.
 - `src/main/store/register.ts` and `.test.ts`: one `SaveFailures` for all
@@ -79,6 +87,8 @@ app-wide settings, and the media list.
 
 - `save-failed` and `save-recovered` in `AppProblem`, `saveFailedProblem`,
   `AppProblemOf`, `app:problem:retry-saves`, and `LlpApi.problems.retrySaves`.
+- `saves-full` in `editRefusalReasons` (round 3). No window branches on it yet;
+  each treats it like any other refusal until the editing windows show it.
 
 ## Checks run
 
@@ -109,8 +119,8 @@ push, retry, and removal; the payloads, the preload send, and the fake.
 - [x] No `any`, no type assertions that bypass checks, and no `!`
 - [x] Every registered subscription, timer, IPC listener, video and audio
       element, and object URL is released
-- [x] Caches and lists have size caps (the waiting list is bounded by the
-      stores' documents, one entry per file; each pass by 3 failures in a row)
+- [x] Caches and lists have size caps (`MAX_WAITING_SAVES` waiting files per
+      store, one entry per file; each pass by 3 failures in a row)
 - [x] An exception in the output path doesn't stop the output (a save failure
       never touches the output, spec 02)
 - [x] Only what's needed re-renders (control window): no renderer change
@@ -134,6 +144,15 @@ push, retry, and removal; the payloads, the preload send, and the fake.
    song files are named by id.
 5. A failed delete waits like a failed write, since `ContentPersistence` retries
    both.
+6. The cap refuses only edits of the songs, 예배 순서, and 틀 (round 3).
+   Settings and the media list are one file each, so they can't grow the list,
+   and the open 예배 순서's save on switching and the autosave of an accepted
+   edit write a change that is in memory already, so refusing them would save
+   nothing. An edit admitted just below the cap may take the count past it by
+   its own files (a 라벨 rename by its songs); those are documents in memory,
+   and deleted documents never pass the cap.
+7. The cap is 100 files: a disk that fails that many writes is broken, and the
+   card already shows it.
 
 ## Where to look
 
@@ -186,3 +205,35 @@ missing.
    name falls back to the file name. Regression: a 틀 with an empty name waits
    under its file name.
 3. The private method's TSDoc is gone (same commit).
+
+## Round 3 reply
+
+1. [P2] `saveFailures.ts:68`, repeated failed deletes grew the list without a
+   bound. Fixed in
+   `fix(store): cap the waiting saves and refuse edits of new files at the cap`,
+   as directed:
+   1. **Coalescing.** Each file keeps only its newest operation, and song, 예배
+      순서, and 틀 files are named by id, so a delete supersedes a waiting write
+      of the same document and the retry runs only the delete. Regression: a
+      failed write and then a failed delete of one file leave one waiting entry,
+      and its retry deletes without writing.
+   2. **One cap.** `MAX_WAITING_SAVES` (100) in `saveFailures.ts`.
+      `ContentPersistence` tracks the files whose newest operation failed and
+      `admits` an edit while fewer than 100 wait, or when every file it touches
+      waits already.
+   3. **Refusal at the cap.** `ContentStore` checks before an edit changes
+      anything (create, update, delete, 구성 edits with every 예배 순서 and 틀
+      they rewrite, item import, 틀 saving, and the songs of a 라벨 rename). A
+      refused edit answers `saves-full`, "Too many files are waiting to be
+      saved", and pushes `save-failed` again through the new
+      `SaveFailureSink.remind()`. Nothing is dropped: the document stays in its
+      collection and every waiting entry stays. Regression: 100 create and
+      delete cycles on a failing disk leave 100 waiting deletes; then a create,
+      a delete, and an update are refused with the song, the list, and the files
+      unchanged; once the disk works, the retries delete all 100 without
+      writing, and a create works again. Another: at the cap, an update of a
+      song that waits already goes on.
+   4. **No copy per pass.** A pass takes the first waiting file each time, since
+      a file that fails again moves to the end, and stops after the number of
+      files that waited when it began. Regression: a file that starts waiting
+      during a pass waits for the next one.
