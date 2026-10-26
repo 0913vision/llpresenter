@@ -94,6 +94,12 @@ export const timeOfDay = v.pipe(
   v.regex(TIME_OF_DAY, 'Expected a time as HH:mm'),
 );
 
+export const calendarDate = v.pipe(
+  v.string(),
+  v.isoDate('Expected a date as YYYY-MM-DD'),
+  v.check(isCalendarDate, 'Expected a date that exists in the calendar'),
+);
+
 /** A record timestamp: ISO 8601 with seconds and a time zone offset. */
 export const timestamp = v.pipe(
   v.string(),

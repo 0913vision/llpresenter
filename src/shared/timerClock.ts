@@ -41,11 +41,11 @@ export function isTimerTicking(
 /**
  * The text a 타이머 shows (docs/spec/04-show.md, "타이머"): "m:ss" under an
  * hour and "h:mm:ss" from an hour, with a leading "-" past 0, and "HH:mm:ss"
- * for a clock. A countdown counts on the monotonic clock, so a wall-clock
- * correction never moves it. A 타이머 that reads the time of day follows the
+ * for a clock. Counted durations use the monotonic clock, so a wall-clock
+ * correction never moves them. A 타이머 that reads the time of day follows the
  * wall clock, corrections included, so it reaches its set time when the clock
- * does; it reads its set time on the day its run started, at the wall-clock
- * moment of a pause, and before it starts as of now.
+ * does. Its target uses the configured date, or the day its run started for
+ * legacy undated targets. A pause holds its wall-clock reading.
  */
 export function timerText(
   timer: Timer,
@@ -63,13 +63,17 @@ export function timerText(
     case 'countdownTo': {
       const at = wallReading(run, now);
       return durationText(
-        Math.ceil((setTimeOn(timer.time, run, now) - at) / MS_PER_SECOND),
+        Math.ceil((timerTargetTime(timer, run, now) - at) / MS_PER_SECOND),
       );
     }
+    case 'elapsed':
+      return durationText(
+        Math.floor(timer.start + countedMs(run, now.timer) / MS_PER_SECOND),
+      );
     case 'elapsedFrom': {
       const at = wallReading(run, now);
       return durationText(
-        Math.floor((at - setTimeOn(timer.time, run, now)) / MS_PER_SECOND),
+        Math.floor((at - timerTargetTime(timer, run, now)) / MS_PER_SECOND),
       );
     }
     case 'clock':
@@ -85,13 +89,17 @@ function wallReading(run: TimerRun | undefined, now: TimerNow): number {
   return run?.state === 'paused' ? run.wallAt : now.wall;
 }
 
-function setTimeOn(
-  time: string,
+export function timerTargetTime(
+  timer: Extract<Timer, {kind: 'countdownTo' | 'elapsedFrom'}>,
   run: TimerRun | undefined,
   now: TimerNow,
 ): number {
-  const [hours = 0, minutes = 0] = time.split(':').map(Number);
+  const [hours = 0, minutes = 0] = timer.time.split(':').map(Number);
   const date = new Date(run?.day ?? localDay(now.wall));
+  if (timer.kind === 'countdownTo' && timer.date !== undefined) {
+    const [year = 0, month = 1, day = 1] = timer.date.split('-').map(Number);
+    date.setFullYear(year, month - 1, day);
+  }
   date.setHours(hours, minutes, 0, 0);
   return date.getTime();
 }

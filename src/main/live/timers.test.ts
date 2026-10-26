@@ -2,7 +2,8 @@ import {describe, expect, it, vi} from 'vitest';
 import type {SingleLiveCommand} from '@shared/commands';
 import {parseLiveCommand} from '@shared/schema/liveCommand';
 import {MAX_LIVE_TIMERS} from '@shared/schema/timerState';
-import {localDay} from '@shared/timerClock';
+import {localDay, timerText} from '@shared/timerClock';
+import {parseTimers} from '@shared/schema/timers';
 import {recordingLogger} from '../displays/testing';
 import {dispatchLogged, LiveStore} from './store';
 import {
@@ -71,6 +72,51 @@ function setup(extraTimers: readonly object[] = []) {
 }
 
 describe('timer slice', () => {
+  it.each([
+    [{kind: 'elapsed', start: 30}, ['0:30', '0:32', '0:32', '0:33', '0:30']],
+    [
+      {kind: 'countdownTo', date: '2026-10-27', time: '10:00'},
+      ['24:00:00', '23:59:58', '23:59:58', '23:59:47', '23:59:47'],
+    ],
+  ])(
+    'starts, pauses, resumes and resets the new mode %j',
+    (fields, expected) => {
+      const id = overlayUuid(94);
+      const parsed = parseTimers(
+        JSON.stringify({
+          format: 'llsettings.timers',
+          schemaVersion: 1,
+          timers: [{id, name: 'Fixture', ...fields}],
+        }),
+        'timers.json',
+      );
+      const definition = parsed.ok ? parsed.value.data.timers[0] : undefined;
+      if (definition === undefined) throw new Error('Invalid timer fixture');
+      const {store, advance, stepWallClock, timer, wall} = setup([definition]);
+      const read = () =>
+        timerText(definition, runOf(store, id), {timer: timer(), wall: wall()});
+      const values = [read()];
+      expect(store.dispatch(command('timer.start', id))).toBe(true);
+      advance(2 * SECOND);
+      expect(store.dispatch(command('timer.pause', id))).toBe(true);
+      values.push(read());
+      advance(10 * SECOND);
+      values.push(read());
+      expect(store.dispatch(command('timer.start', id))).toBe(true);
+      advance(SECOND);
+      values.push(read());
+      expect(store.dispatch(command('timer.reset', id))).toBe(true);
+      values.push(read());
+      expect(values).toEqual(expected);
+      if (definition.kind === 'elapsed') {
+        store.dispatch(command('timer.start', id));
+        advance(SECOND);
+        stepWallClock(-60 * SECOND);
+        expect(read()).toBe('0:31');
+      }
+    },
+  );
+
   it('starts, pauses with the counted time, and resumes from it on its first day', () => {
     const {store, advance, timer, wall} = setup();
     const day = localDay(WALL_START);

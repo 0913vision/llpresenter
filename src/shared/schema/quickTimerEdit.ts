@@ -1,10 +1,11 @@
 import * as v from 'valibot';
 import {quickItemIdSchema, timerIdSchema} from './ids';
 import type {ReadonlyKnown} from './fileFormat';
+import {MAX_TIMER_SECONDS} from './timers';
 
 export const MAX_TIMER_DEFINITIONS = 500;
 export const TIMER_NAME_LIMIT = 256;
-export const MAX_TIMER_SECONDS = Math.floor(Number.MAX_SAFE_INTEGER / 1000);
+export {MAX_TIMER_SECONDS} from './timers';
 
 export const quickTimerCreateSchema = v.pipe(
   v.object({

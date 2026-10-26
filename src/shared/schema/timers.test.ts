@@ -1,12 +1,18 @@
-import {describe, expectTypeOf, it} from 'vitest';
+import {describe, expect, expectTypeOf, it} from 'vitest';
+import {parseSettingsDocument, parseSettingsEdit} from './settingsDocuments';
 import type {Seconds} from './primitives';
 import {expectInvalidField, expectRoundTrip} from './testHelpers';
-import {parseTimers, serializeTimers, type Timer} from './timers';
+import {
+  MAX_TIMER_SECONDS,
+  parseTimers,
+  serializeTimers,
+  type Timer,
+} from './timers';
 
 const codec = {parse: parseTimers, serialize: serializeTimers};
 
 function timerId(number: number): string {
-  return `b9b8b7b6-0000-4222-8333-${String(number).padStart(12, '0')}`;
+  return `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;
 }
 
 function timersFile(timers: readonly object[]) {
@@ -19,6 +25,14 @@ function sampleTimers() {
     {id: timerId(2), name: '설교', kind: 'countdown', duration: 2100},
     {id: timerId(3), name: '예배 경과', kind: 'elapsedFrom', time: '10:30'},
     {id: timerId(4), name: '현재 시각', kind: 'clock'},
+    {
+      id: timerId(5),
+      name: 'Tomorrow',
+      kind: 'countdownTo',
+      date: '2024-02-29',
+      time: '12:00',
+    },
+    {id: timerId(6), name: 'Stopwatch', kind: 'elapsed', start: 0},
   ];
 }
 
@@ -56,6 +70,74 @@ describe('parseTimers', () => {
   ])('rejects %s', (_name, timer, field) => {
     expectInvalidField(codec, timersFile([timer]), field);
   });
+});
+
+describe('timer date and elapsed settings boundaries', () => {
+  const settings = (fields: object) =>
+    timersFile([{id: timerId(1), name: 'Fixture', ...fields}]);
+
+  function accepted(fields: object): boolean[] {
+    const value = settings(fields);
+    return [
+      parseSettingsDocument({
+        name: 'timers',
+        value,
+        revision: 1,
+        access: 'editable',
+      }).ok,
+      parseSettingsEdit({
+        type: 'settings.update',
+        name: 'timers',
+        value,
+        baseRevision: 1,
+      }).ok,
+    ];
+  }
+
+  it.each(['2024-02-29', '2026-10-27', undefined])(
+    'accepts a real date or a legacy undated target: %s',
+    date => {
+      const fields = {
+        kind: 'countdownTo',
+        time: '12:00',
+        ...(date === undefined ? {} : {date}),
+      };
+      expect(accepted(fields)).toEqual([true, true]);
+      expectRoundTrip(codec, settings({...fields, futureField: {keep: true}}));
+    },
+  );
+
+  it.each([
+    '2026-02-29',
+    '2026-11-31',
+    '2026-1-01',
+    '2026-10-27T12:00',
+    '',
+    null,
+  ])('rejects an invalid calendar date: %s', date => {
+    expect(accepted({kind: 'countdownTo', time: '12:00', date})).toEqual([
+      false,
+      false,
+    ]);
+  });
+
+  it.each([0, 0.25, 3600, MAX_TIMER_SECONDS])(
+    'accepts a bounded elapsed start: %s',
+    start => {
+      expect(accepted({kind: 'elapsed', start})).toEqual([true, true]);
+      expectRoundTrip(
+        codec,
+        settings({kind: 'elapsed', start, futureField: 'kept'}),
+      );
+    },
+  );
+
+  it.each([-1, NaN, Infinity, MAX_TIMER_SECONDS + 1, '30', null, undefined])(
+    'rejects an invalid elapsed start: %s',
+    start => {
+      expect(accepted({kind: 'elapsed', start})).toEqual([false, false]);
+    },
+  );
 });
 
 describe('timer types', () => {

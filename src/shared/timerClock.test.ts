@@ -37,7 +37,6 @@ function timer(fields: object): Timer {
   return first;
 }
 
-/** Both clocks moved by the same amount from the fixture's start. */
 const after = (ms: number): TimerNow => ({timer: TIMER + ms, wall: WALL + ms});
 
 const running = (counted = 0, day = TODAY): TimerRun => ({
@@ -155,6 +154,56 @@ describe('timerText', () => {
     expect(timerText(clock, undefined, after(13 * HOUR + 5 * SECOND))).toBe(
       '23:00:05',
     );
+  });
+
+  it('counts down to the configured date across midnight, regardless of its start day', () => {
+    const target = timer({
+      kind: 'countdownTo',
+      date: '2026-10-28',
+      time: '00:01',
+    });
+    const wall = new Date(2026, 9, 27, 23, 59, 30).getTime();
+    expect(timerText(target, undefined, {timer: TIMER, wall})).toBe('1:30');
+    expect(timerText(target, running(), {timer: TIMER, wall})).toBe('1:30');
+    expect(
+      timerText(target, running(), {timer: TIMER, wall: wall + 2 * MINUTE}),
+    ).toBe('-0:30');
+    expect(timerText(target, paused(wall, 0), after(72 * HOUR))).toBe('1:30');
+    expect(
+      timerText(target, running(), {timer: TIMER, wall: wall - SECOND}),
+    ).toBe('1:31');
+  });
+
+  it('uses the explicit calendar year even for dates before 100 AD', () => {
+    const target = timer({
+      kind: 'countdownTo',
+      date: '0099-01-02',
+      time: '00:01',
+    });
+    const wall = new Date(WALL);
+    wall.setFullYear(99, 0, 2);
+    wall.setHours(0, 0, 0, 0);
+    expect(
+      timerText(target, undefined, {timer: TIMER, wall: wall.getTime()}),
+    ).toBe('1:00');
+  });
+
+  it('counts elapsed duration from its start value on the monotonic clock', () => {
+    const elapsed = timer({kind: 'elapsed', start: 3599.5});
+    expect(timerText(elapsed, undefined, after(0))).toBe('59:59');
+    expect(timerText(elapsed, running(), after(500))).toBe('1:00:00');
+    expect(
+      timerText(elapsed, running(SECOND), {
+        timer: TIMER + 500,
+        wall: WALL - HOUR,
+      }),
+    ).toBe('1:00:01');
+    expect(timerText(elapsed, paused(WALL, 2 * SECOND), after(HOUR))).toBe(
+      '1:00:01',
+    );
+    expect(
+      timerText(timer({kind: 'elapsed', start: 0}), undefined, after(HOUR)),
+    ).toBe('0:00');
   });
 });
 
