@@ -78,6 +78,54 @@ describe('parseLiveState', () => {
       'layers.slide.lines.0',
     ],
     [
+      'a next slide without lines',
+      {
+        slide: {
+          itemId: 'i',
+          position: 0,
+          label: null,
+          lines: [],
+          next: {label: null},
+        },
+      },
+      'layers.slide.next.lines',
+    ],
+    [
+      'a next slide past the line cap',
+      {
+        slide: {
+          itemId: 'i',
+          position: 0,
+          label: null,
+          lines: [],
+          next: {
+            label: null,
+            lines: Array.from(
+              {length: LIVE_STATE_LIMITS.slideLines + 1},
+              () => 'line',
+            ),
+          },
+        },
+      },
+      'layers.slide.next.lines',
+    ],
+    [
+      'a next slide with a label past the text cap',
+      {
+        slide: {
+          itemId: 'i',
+          position: 0,
+          label: null,
+          lines: [],
+          next: {
+            label: 'a'.repeat(LIVE_STATE_LIMITS.textCharacters + 1),
+            lines: [],
+          },
+        },
+      },
+      'layers.slide.next.label',
+    ],
+    [
       'a slide at a fractional position',
       {slide: {itemId: 'i', position: 0.5, label: null, lines: []}},
       'layers.slide.position',
@@ -134,6 +182,47 @@ describe('parseLiveState', () => {
         ),
       ),
     ).toBeUndefined();
+  });
+
+  it('carries the next slide, the stage layout per stage screen, and the stage 타이머', () => {
+    const state = {
+      ...busyState(),
+      layers: {
+        ...busyState().layers,
+        slide: {
+          itemId: 'item-1',
+          position: 0,
+          label: '1절',
+          lines: ['첫 줄'],
+          next: {label: null, lines: ['둘째 줄']},
+        },
+      },
+      stageLayouts: {[screenUuid(1)]: screenUuid(5)},
+      stageTimerId: screenUuid(6),
+    };
+    expect(parseLiveState(state)).toEqual({ok: true, value: state});
+    const field = (change: object) => {
+      const result = parseLiveState({...emptyLiveState(), ...change});
+      return result.ok ? undefined : result.error.field;
+    };
+    expect(field({stageLayouts: {main: screenUuid(5)}})).toBe(
+      'stageLayouts.main',
+    );
+    expect(field({stageLayouts: {[screenUuid(1)]: 'layout'}})).toBe(
+      `stageLayouts.${screenUuid(1)}`,
+    );
+    expect(
+      field({
+        stageLayouts: Object.fromEntries(
+          Array.from({length: LIVE_STATE_LIMITS.outputs + 1}, (_, index) => [
+            screenUuid(index + 1),
+            screenUuid(5),
+          ]),
+        ),
+      }),
+    ).toBe('stageLayouts');
+    expect(field({stageTimerId: 'clock'})).toBe('stageTimerId');
+    expect(field({stageTimerId: null})).toBe('stageTimerId');
   });
 
   it('rejects values that are not states', () => {
