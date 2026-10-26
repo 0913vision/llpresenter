@@ -39,13 +39,13 @@ export interface MediaLayer extends MediaChoice {
   readonly startedAt: number;
 }
 
-/** The slide on output: a service item, its position in the arrangement, and what to draw. */
 /** The 장 after the live one in the item's sequence, for the 무대 화면. */
 export interface NextSlide {
   readonly label: string | null;
   readonly lines: readonly string[];
 }
 
+/** The slide on output: a service item, its position in the arrangement, and what to draw. */
 export interface SlideLayer {
   readonly itemId: string;
   readonly position: number;

@@ -35,7 +35,6 @@ const DEFAULT_TEXT: NonNullable<StageElement['text']> = {
   autoFit: true,
 };
 
-/** The Look switch that empties each element kind, when it has one. */
 const ELEMENT_SWITCH: Readonly<Record<StageElement['kind'], LookLayer | null>> =
   {
     currentSlide: 'slide',
@@ -113,7 +112,6 @@ function contentOf(
   }
 }
 
-/** One element of a stage layout: its box, framed in canvas px, and its text. */
 class StageElementView {
   private readonly box = document.createElement('div');
   private readonly block = document.createElement('div');
