@@ -11,6 +11,7 @@ import type {Workspace} from '@renderer/ui/workspace';
 import {useServiceOrderEditing} from './useServiceOrderEditing';
 import {serviceOrderRowId, useServiceOrderDrag} from './useServiceOrderDrag';
 import {useMediaDurations} from './useMediaDurations';
+import type {SlotKind} from '@shared/schema/service';
 import type {ItemKind, RowProblem, ServiceRow} from './model';
 import styles from './ServiceOrderList.module.css';
 
@@ -21,6 +22,12 @@ const iconByKind: Readonly<Record<ItemKind, string>> = {
   notice: 'notice',
   slot: 'listplus',
   unknown: 'filex',
+};
+
+const slotIconByKind: Readonly<Record<SlotKind, string>> = {
+  song: 'song',
+  bible: 'book',
+  slides: 'slides',
 };
 
 const problemTips: Readonly<Record<RowProblem, string>> = {
@@ -89,7 +96,11 @@ function ItemRows({
             <ListRow
               value={row.id}
               title={row.title}
-              icon={iconByKind[row.kind]}
+              icon={
+                row.accepts === undefined
+                  ? iconByKind[row.kind]
+                  : slotIconByKind[row.accepts]
+              }
               live={row.id === liveItemId}
               done={done.has(row.id)}
               meta={
@@ -161,6 +172,10 @@ export function ServiceOrderList({
           createServiceItemId(source),
           before === null ? null : createServiceItemId(before),
         ),
+      ),
+    onFill: (songId, slotId) =>
+      editing.run((edits, id) =>
+        edits.fillSlotWithSong(id, createServiceItemId(slotId), songId),
       ),
     onCopy: (songId, before) =>
       editing.run((edits, id) =>

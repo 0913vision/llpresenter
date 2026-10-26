@@ -3,6 +3,7 @@ import {NO_LABEL_COLOR, paletteColors} from '../colors';
 import type {Result} from '../result';
 import type {ReadonlyKnown} from './fileFormat';
 import {mediaChoiceSchema} from './liveState';
+import {slotKinds} from './service';
 import {
   parsePayload,
   payloadObject,
@@ -36,7 +37,14 @@ const showRowSchema = v.pipe(
       background: v.exactOptional(mediaChoiceSchema),
     }),
     v.object({
-      kind: v.picklist(['bible', 'media', 'notice', 'slot', 'unknown']),
+      kind: v.literal('slot'),
+      id,
+      title: v.string(),
+      problem: v.exactOptional(v.picklist(showRowProblems)),
+      accepts: v.exactOptional(v.picklist(slotKinds)),
+    }),
+    v.object({
+      kind: v.picklist(['bible', 'media', 'notice', 'unknown']),
       id,
       title: v.string(),
       problem: v.exactOptional(v.picklist(showRowProblems)),

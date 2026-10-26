@@ -1,5 +1,6 @@
 import type {LabelColor} from '@shared/colors';
 import type {MediaChoice} from '@shared/live';
+import type {SlotKind} from '@shared/schema/service';
 import type {showRowProblems} from '@shared/schema/showService';
 
 /** Id of a row in the 예배 순서 (service order). */
@@ -23,6 +24,8 @@ export interface ItemRow {
   readonly title: string;
   readonly problem?: RowProblem;
   readonly background?: MediaChoice;
+  /** The kind a 빈 자리 accepts. */
+  readonly accepts?: SlotKind;
 }
 
 export type ServiceRow = HeaderRow | ItemRow;

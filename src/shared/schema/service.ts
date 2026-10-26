@@ -41,7 +41,10 @@ export const serviceItemKinds = [
 
 export type ServiceItemKind = (typeof serviceItemKinds)[number];
 
-const slotKinds = ['song', 'bible', 'slides'] as const;
+/** The kinds of item a 빈 자리 accepts. */
+export const slotKinds = ['song', 'bible', 'slides'] as const;
+
+export type SlotKind = (typeof slotKinds)[number];
 
 const itemFields = {id: serviceItemIdSchema};
 

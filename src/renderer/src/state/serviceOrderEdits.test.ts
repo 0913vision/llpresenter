@@ -232,6 +232,55 @@ describe('service order edits', () => {
     ).toMatchObject({ok: false, error: {reason: 'not-found'}});
   });
 
+  it('fills a song slot in place and refuses other slots and songs that are gone', async () => {
+    const {state, edits, edit} = fixture();
+    const slotId = createServiceItemId('90000000-0000-4000-8000-0000000000a1');
+    const bibleSlot = createServiceItemId(
+      '90000000-0000-4000-8000-0000000000a2',
+    );
+    const spareSlot = createServiceItemId(
+      '90000000-0000-4000-8000-0000000000a3',
+    );
+    await edits.insertItem(
+      serviceId,
+      {id: slotId, slot: 'song', title: '찬양'},
+      second,
+    );
+    await edits.insertItem(
+      serviceId,
+      {id: spareSlot, slot: 'song', title: '헌금'},
+      null,
+    );
+    await edits.insertItem(
+      serviceId,
+      {id: bibleSlot, slot: 'bible', title: '성경 구절'},
+      null,
+    );
+    const before = state.document?.service.order.length ?? 0;
+    expect(await edits.fillSlotWithSong(serviceId, slotId, songId)).toEqual({
+      ok: true,
+      value: true,
+    });
+    const order = state.document?.service.order ?? [];
+    expect(order).toHaveLength(before);
+    expect(order[1]).toEqual({id: slotId, song: songId});
+    expect(order.at(-1)).toMatchObject({slot: 'bible'});
+    const calls = edit.mock.calls.length;
+    expect(
+      await edits.fillSlotWithSong(serviceId, bibleSlot, songId),
+    ).toMatchObject({ok: false, error: {reason: 'invalid'}});
+    expect(
+      await edits.fillSlotWithSong(serviceId, second, songId),
+    ).toMatchObject({ok: false, error: {reason: 'not-found'}});
+    state.song = null;
+    expect(
+      await edits.fillSlotWithSong(serviceId, spareSlot, songId),
+    ).toMatchObject({ok: false, error: {reason: 'not-found'}});
+    expect(edit.mock.calls).toHaveLength(calls);
+    await edits.undo(serviceId);
+    expect(state.document?.service.order[1]).toMatchObject({slot: 'song'});
+  });
+
   it('renames a header, keeps unknown fields, and ignores a blank name', async () => {
     const {state, edits, edit} = fixture();
     const headerId = state.document?.service.order.find(

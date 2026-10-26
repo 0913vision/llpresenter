@@ -33,6 +33,29 @@ describe('parseShowService', () => {
     expect(parseShowService(null)).toEqual({ok: true, value: null});
   });
 
+  it('keeps the kind a 빈 자리 accepts, only on slot rows', () => {
+    const slot = {kind: 'slot', id: 'slot', title: '찬양', accepts: 'song'};
+    const bible = {kind: 'bible', id: 'bible', title: 'Passage'};
+    const bare = {kind: 'slot', id: 'bare', title: '빈 자리'};
+    expect(
+      parseShowService({
+        ...showService(),
+        rows: [slot, bare, {...bible, accepts: 'song'}],
+      }),
+    ).toMatchObject({ok: true, value: {rows: [slot, bare, bible]}});
+  });
+
+  it('rejects a 빈 자리 that accepts an unknown kind', () => {
+    for (const accepts of ['media', '', 3, null]) {
+      expect(
+        parseShowService({
+          ...showService(),
+          rows: [{kind: 'slot', id: 'slot', title: '찬양', accepts}],
+        }).ok,
+      ).toBe(false);
+    }
+  });
+
   it('keeps an optional background only on song rows', () => {
     const background = {mediaId: 'media-1', loop: true};
     const song = {kind: 'song', id: 'song', title: 'Song', background};

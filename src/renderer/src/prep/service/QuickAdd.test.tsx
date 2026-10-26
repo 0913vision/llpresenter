@@ -188,6 +188,35 @@ describe('항목 추가', () => {
     });
   });
 
+  it('fills the selected song slot with the chosen song', async () => {
+    const {user, service, second} = setup();
+    act(() =>
+      useShow.setState({
+        rows: [
+          {kind: 'header', id: fixtureItems.header, title: '찬양'},
+          {
+            kind: 'slot',
+            id: fixtureItems.slot,
+            title: '헌금 찬양',
+            accepts: 'song',
+          },
+        ],
+        openItemId: fixtureItems.slot,
+      }),
+    );
+    await user.click(screen.getByRole('button', {name: '항목 추가'}));
+    const menu = screen.getByRole('menu', {name: '항목 추가'});
+    await user.click(
+      await within(menu).findByRole('menuitem', {name: /새 노래 2/u}),
+    );
+    await waitFor(() =>
+      expect(service().service.order[3]).toMatchObject({song: second.song.id}),
+    );
+    expect(service().service.order).toHaveLength(5);
+    expect(service().service.order[3]).toHaveProperty('id', fixtureItems.slot);
+    expect(service().service.order[3]).not.toHaveProperty('slot');
+  });
+
   it('is unavailable for a read-only service, with the reason', async () => {
     setup();
     act(() => useShow.setState({readOnly: true}));

@@ -20,9 +20,14 @@ const serviceId = createServiceId('00000000-0000-4000-8000-000000000001');
 const headerId = createServiceItemId('10000000-0000-4000-8000-000000000001');
 const firstId = createServiceItemId('10000000-0000-4000-8000-000000000002');
 const lastId = createServiceItemId('10000000-0000-4000-8000-000000000003');
+const slotId = createServiceItemId('10000000-0000-4000-8000-000000000009');
 const songId = createSongId('20000000-0000-4000-8000-000000000001');
 
-function setup(workspace: 'show' | 'prep' = 'show', readOnly = false) {
+function setup(
+  workspace: 'show' | 'prep' = 'show',
+  readOnly = false,
+  withSlot = false,
+) {
   let document: ServiceDocument = {
     service: {
       format: 'llservice',
@@ -34,6 +39,9 @@ function setup(workspace: 'show' | 'prep' = 'show', readOnly = false) {
         {id: headerId, header: '제목'},
         {id: firstId, song: songId},
         {id: lastId, song: songId},
+        ...(withSlot
+          ? [{id: slotId, slot: 'song' as const, title: '찬양 자리'}]
+          : []),
       ],
     },
     revision: 1,
@@ -48,11 +56,13 @@ function setup(workspace: 'show' | 'prep' = 'show', readOnly = false) {
       rows: document.service.order.map(item =>
         'header' in item
           ? {kind: 'header', id: item.id, title: item.header}
-          : {
-              kind: 'song',
-              id: item.id,
-              title: item.id === firstId ? '첫 곡' : '다음 곡',
-            },
+          : 'slot' in item
+            ? {kind: 'slot', id: item.id, title: item.title, accepts: item.slot}
+            : {
+                kind: 'song',
+                id: item.id,
+                title: item.id === firstId ? '첫 곡' : '다음 곡',
+              },
       ),
       tiles: {},
       jumpKeys: {},
@@ -325,6 +335,27 @@ describe('service panel editing', () => {
     setup('show', true);
     fireEvent.doubleClick(screen.getByText('제목'));
     expect(screen.queryByRole('textbox')).toBeNull();
+  });
+
+  it('fills a song slot with a dropped library song, keeping its place and its selection', async () => {
+    const {api, ids, send} = setup('prep', false, true);
+    const target = screen.getByRole('option', {name: '찬양 자리'});
+    fireEvent.click(target);
+    expect(useShow.getState().openItemId).toBe(slotId);
+    const dataTransfer = transfer(JSON.stringify({kind: 'song', songId}));
+    fireEvent.dragOver(target, {dataTransfer});
+    expect(dataTransfer.dropEffect).toBe('copy');
+    fireEvent.drop(target, {dataTransfer});
+    await waitFor(() =>
+      expect(screen.queryByRole('option', {name: '찬양 자리'})).toBeNull(),
+    );
+    expect(ids()).toEqual([headerId, firstId, lastId, slotId]);
+    expect(useShow.getState().openItemId).toBe(slotId);
+    expect(
+      screen.getByRole('option', {name: '다음 곡', selected: true}),
+    ).toBeDefined();
+    expect(api.content.edit).toHaveBeenCalledTimes(1);
+    expect(send).not.toHaveBeenCalled();
   });
 
   it('copies validated library song drops and ignores unrelated or malformed data', async () => {

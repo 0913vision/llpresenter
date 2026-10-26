@@ -37,7 +37,10 @@ interface HistoryEntry {
   readonly after: Order;
 }
 
-function refuse(reason: 'not-found' | 'read-only' | 'stale', message: string) {
+function refuse(
+  reason: 'invalid' | 'not-found' | 'read-only' | 'stale',
+  message: string,
+) {
   return {ok: false, error: {reason, message}} as const;
 }
 
@@ -153,6 +156,35 @@ export class ServiceOrderEdits {
         id: createServiceItemId(crypto.randomUUID()),
         song: songId,
       });
+      return {ok: true, value: order};
+    });
+  }
+
+  /**
+   * Fills a 빈 자리 that accepts songs with a song: the slot becomes a song
+   * item at its place and keeps its id, so a selection on it stays, with
+   * default 구성, no background, and no start 매크로.
+   */
+  fillSlotWithSong(
+    serviceId: ServiceId,
+    slotId: ServiceItemId,
+    songId: SongId,
+  ) {
+    return this.update(serviceId, async service => {
+      const index = service.order.findIndex(row => row.id === slotId);
+      const slot = service.order[index];
+      if (slot === undefined || !isItemOfKind(slot, 'slot')) {
+        return refuse('not-found', 'The slot no longer exists');
+      }
+      if (slot.slot !== 'song') {
+        return refuse('invalid', 'The slot does not take a song');
+      }
+      const song = await this.api.songs.get(songId);
+      if (song?.song.id !== songId) {
+        return refuse('not-found', 'The song no longer exists');
+      }
+      const order = [...service.order];
+      order[index] = {id: slot.id, song: songId};
       return {ok: true, value: order};
     });
   }

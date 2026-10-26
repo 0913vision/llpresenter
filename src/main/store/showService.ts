@@ -83,7 +83,7 @@ function rowOf(
     return songRow(item, songs.get(item.song), backgrounds);
   }
   if (isItemOfKind(item, 'slot')) {
-    return {kind: 'slot', id, title: item.title};
+    return {kind: 'slot', id, title: item.title, accepts: item.slot};
   }
   if (isItemOfKind(item, 'bible')) {
     return {kind: 'bible', id, title: item.bible.ref};
