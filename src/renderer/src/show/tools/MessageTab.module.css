@@ -31,3 +31,8 @@
   display: flex;
   justify-content: flex-end;
 }
+.editingTools {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--space-4) var(--panel-inset);
+}

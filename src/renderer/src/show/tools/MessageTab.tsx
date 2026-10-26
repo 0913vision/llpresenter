@@ -27,6 +27,7 @@ import {
   type DraftTargets,
 } from './messageDraft';
 import styles from './MessageTab.module.css';
+import {MessageEditing} from './MessageEditing';
 
 function Sentence({text}: {readonly text: string}): JSX.Element {
   const names = messageBlankNames(text);
@@ -114,10 +115,14 @@ function Composer({
     })),
   ];
   if (
-    duration !== null &&
-    !durations.some(option => option.value === String(duration))
+    template.duration !== undefined &&
+    template.duration !== null &&
+    !durations.some(option => option.value === String(template.duration))
   ) {
-    durations.push({value: String(duration), label: `${duration}초`});
+    durations.push({
+      value: String(template.duration),
+      label: `${template.duration}초`,
+    });
   }
   return (
     <div className={styles.composer}>
@@ -222,16 +227,22 @@ export function MessageTab({
     messages?.value.templates[0];
   return (
     <>
-      <ListBox
-        label="메시지 틀"
-        workspace="show"
-        selected={selected?.id}
+      <MessageEditing
+        document={messages}
+        onProblem={onProblem}
         onSelect={setSelectedId}
       >
-        {messages?.value.templates.map(template => (
-          <TemplateRow key={template.id} template={template} />
-        ))}
-      </ListBox>
+        <ListBox
+          label="메시지 틀"
+          workspace="show"
+          selected={selected?.id}
+          onSelect={setSelectedId}
+        >
+          {messages?.value.templates.map(template => (
+            <TemplateRow key={template.id} template={template} />
+          ))}
+        </ListBox>
+      </MessageEditing>
       {selected === undefined ? null : (
         <Composer
           key={JSON.stringify([

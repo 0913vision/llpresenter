@@ -166,6 +166,7 @@ it('loads stored defaults, offers every duration, and resets the draft when swit
   });
   for (const [label, seconds] of [
     ['30초', 30],
+    ['45초', 45],
     ['1분', 60],
     ['2분', 120],
     ['계속', null],

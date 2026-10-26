@@ -9,6 +9,7 @@ import {
   createMediaPlaylistId,
   createAudioPlaylistId,
   createQuickItemId,
+  createMessageTemplateId,
 } from './ids';
 
 const UUID = '00000000-0000-4000-8000-00000000000a';
@@ -22,6 +23,7 @@ const factories = {
   mediaPlaylist: createMediaPlaylistId,
   audioPlaylist: createAudioPlaylistId,
   quickItem: createQuickItemId,
+  messageTemplate: createMessageTemplateId,
 };
 
 describe.each(Object.entries(factories))(

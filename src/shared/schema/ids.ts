@@ -84,6 +84,10 @@ export function createQuickItemId(uuid: string): QuickItemId {
   return v.parse(quickItemIdSchema, uuid);
 }
 
+export function createMessageTemplateId(uuid: string): MessageTemplateId {
+  return v.parse(messageTemplateIdSchema, uuid);
+}
+
 /** Brands a generated service UUID; throws unless it is lowercase version 4. */
 export function createServiceId(uuid: string): ServiceId {
   return v.parse(serviceIdSchema, uuid);
