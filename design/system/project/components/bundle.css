@@ -1270,3 +1270,10 @@ button.ll-tag, :is(.ll-root, .ll-preview) button.ll-tag { padding-right: var(--s
 .ll-calendar__foot { display: flex; justify-content: center; margin-top: var(--space-8); padding-top: var(--space-8); border-top: var(--radius-hairline) solid var(--line); }
 @keyframes ll-calendar-in { from { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .ll-calendar { animation: none; } }
+
+/* ---- 48-smartguides.css ---- */
+.ll-smart-guide-overlay { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.ll-smart-guide { position: absolute; display: block; background: var(--guide); pointer-events: none; animation: none; transition: none; }
+.ll-smart-guide[data-axis="x"] { top: 0; bottom: 0; width: var(--size-guide-line); }
+.ll-smart-guide[data-axis="y"] { left: 0; right: 0; height: var(--size-guide-line); }
+.ll-smart-guide-overlay[hidden] { display: none; }

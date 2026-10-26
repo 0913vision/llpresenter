@@ -119,6 +119,18 @@ The app uses one typeface, Pretendard Variable (`fonts/PretendardVariable.woff2`
 
 ## Spacing and sizes
 
+### Stage layout smart guides
+
+The future stage editor uses [SmartGuides](components/SmartGuides/README.md)
+for temporary alignment to canvas/element edges and centers. `guide` aliases
+`accent`; `size-guide-line` is 1 CSS pixel and `size-guide-snap` is 6 viewport
+CSS pixels, independent of canvas zoom. Lines appear and disappear immediately,
+are hidden while Alt bypasses snapping and never enter the saved/output layout.
+The separate 20px document grid remains available; a matching guide wins on its
+axis. See the component README and reference card before implementing M3-O3.
+
+### General spacing
+
 - Pick every spacing value from the `space-*` tokens. The base is a 4px unit, but use 2, 6, 10, and 14px only where they are already used.
 - Use `panel-gap` (4px) between panels and at the window edges, `panel-inset` (14px) inside panels, and `dialog-inset` (16px) inside dialogs.
 

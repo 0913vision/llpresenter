@@ -1,0 +1,58 @@
+<!-- @dsCard group="Editors" height=1060 -->
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>Smart guides</title>
+<style>
+  .guide-samples { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-20) var(--space-24); }
+  .guide-samples .ll-spec-item { min-width: 0; }
+  .guide-scene { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; background: var(--bg-well); }
+  .guide-object { position: absolute; display: flex; align-items: center; justify-content: center; box-sizing: border-box; border: var(--radius-hairline) solid var(--line-control); background: var(--bg-panel); color: var(--text-2); font: var(--type-label); }
+  .guide-object[data-selected] { outline: var(--space-2) solid var(--accent); outline-offset: calc(-1 * var(--space-2)); color: var(--text); }
+  .guide-selection { position: absolute; inset: 0; pointer-events: none; }
+</style></head><body><div class="ll-preview">
+  <div class="ll-spec-title">Smart guides: static states for the future stage editor</div>
+  <div class="guide-samples">
+    <div class="ll-spec-item">
+      <div class="guide-scene" role="img" aria-label="캔버스 왼쪽에 맞춘 요소">
+        <div class="guide-object" style="left:0;top:28%;width:44%;height:32%">현재 순서</div>
+        <div class="ll-smart-guide-overlay" aria-hidden="true"><span class="ll-smart-guide" data-axis="x" style="left:0"></span></div>
+        <div class="guide-selection" aria-hidden="true"><div class="guide-object" data-selected style="left:0;top:28%;width:44%;height:32%;background:transparent"></div></div>
+      </div><span class="ll-spec-label">Canvas edge: 1px line remains inside the canvas</span>
+    </div>
+    <div class="ll-spec-item">
+      <div class="guide-scene" role="img" aria-label="다른 요소의 왼쪽에 맞춘 요소">
+        <div class="guide-object" style="left:18%;top:12%;width:58%;height:24%">현재 순서</div>
+        <div class="guide-object" style="left:18%;top:58%;width:44%;height:24%">다음 순서</div>
+        <div class="ll-smart-guide-overlay" aria-hidden="true"><span class="ll-smart-guide" data-axis="x" style="left:18%"></span></div>
+        <div class="guide-selection" aria-hidden="true"><div class="guide-object" data-selected style="left:18%;top:58%;width:44%;height:24%;background:transparent"></div></div>
+      </div><span class="ll-spec-label">Object edge: guide above artwork, selection above guide</span>
+    </div>
+    <div class="ll-spec-item">
+      <div class="guide-scene" role="img" aria-label="캔버스 가로 세로 중앙에 맞춘 요소">
+        <div class="guide-object" style="left:28%;top:34%;width:44%;height:32%">현재 순서</div>
+        <div class="ll-smart-guide-overlay" aria-hidden="true"><span class="ll-smart-guide" data-axis="x" style="left:50%"></span><span class="ll-smart-guide" data-axis="y" style="top:50%"></span></div>
+        <div class="guide-selection" aria-hidden="true"><div class="guide-object" data-selected style="left:28%;top:34%;width:44%;height:32%;background:transparent"></div></div>
+      </div><span class="ll-spec-label">Both centers: at most one line per axis</span>
+    </div>
+    <div class="ll-spec-item">
+      <div class="guide-scene" role="img" aria-label="크기 조절 중 다른 요소의 오른쪽에 맞춘 요소">
+        <div class="guide-object" style="left:18%;top:12%;width:58%;height:24%">현재 순서</div>
+        <div class="guide-object" style="left:34%;top:58%;width:42%;height:24%">다음 순서</div>
+        <div class="ll-smart-guide-overlay" aria-hidden="true"><span class="ll-smart-guide" data-axis="x" style="left:76%"></span></div>
+        <div class="guide-selection" aria-hidden="true"><div class="guide-object" data-selected style="left:34%;top:58%;width:42%;height:24%;background:transparent"></div></div>
+      </div><span class="ll-spec-label">Resize: moving right edge aligns, left edge stays fixed</span>
+    </div>
+    <div class="ll-spec-item">
+      <div class="guide-scene" role="img" aria-label="맞춤 범위 밖에서는 안내선 없음">
+        <div class="guide-object" style="left:18%;top:12%;width:58%;height:24%">현재 순서</div>
+        <div class="guide-object" data-selected style="left:28%;top:58%;width:44%;height:24%">다음 순서</div>
+        <div class="ll-smart-guide-overlay" aria-hidden="true" hidden><span class="ll-smart-guide" data-axis="x" style="left:18%"></span></div>
+      </div><span class="ll-spec-label">Outside 6px: no guide, no delayed fade</span>
+    </div>
+    <div class="ll-spec-item">
+      <div class="guide-scene" role="img" aria-label="Alt를 누르는 동안 안내선 없음">
+        <div class="guide-object" data-selected style="left:28%;top:34%;width:44%;height:32%">현재 순서</div>
+        <div class="ll-smart-guide-overlay" aria-hidden="true" hidden><span class="ll-smart-guide" data-axis="x" style="left:50%"></span><span class="ll-smart-guide" data-axis="y" style="top:50%"></span></div>
+      </div><span class="ll-spec-label">Alt bypass: no snapping or alignment lines</span>
+    </div>
+  </div>
+</div></body></html>

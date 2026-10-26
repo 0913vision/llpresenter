@@ -1,0 +1,5 @@
+.ll-smart-guide-overlay { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.ll-smart-guide { position: absolute; display: block; background: var(--guide); pointer-events: none; animation: none; transition: none; }
+.ll-smart-guide[data-axis="x"] { top: 0; bottom: 0; width: var(--size-guide-line); }
+.ll-smart-guide[data-axis="y"] { left: 0; right: 0; height: var(--size-guide-line); }
+.ll-smart-guide-overlay[hidden] { display: none; }

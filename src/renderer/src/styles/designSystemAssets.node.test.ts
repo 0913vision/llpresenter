@@ -158,3 +158,29 @@ describe('one-step larger UI type scale', () => {
     expect(token('size-count')).toBeGreaterThanOrEqual(bodyLine);
   });
 });
+
+describe('smart guide design contract', () => {
+  it('ships the semantic color and zoom-independent distances in both CSS copies', () => {
+    const source: unknown = JSON.parse(
+      readFileSync(resolve(PROJECT, 'tokens.json'), 'utf8'),
+    );
+    expect(source).toHaveProperty(
+      'color.tokens',
+      expect.arrayContaining([
+        expect.objectContaining({name: 'guide', value: '{accent}'}),
+      ]),
+    );
+    expect(source).toHaveProperty(
+      'size.tokens',
+      expect.arrayContaining([
+        expect.objectContaining({name: 'size-guide-line', value: '1px'}),
+        expect.objectContaining({name: 'size-guide-snap', value: '6px'}),
+      ]),
+    );
+    for (const css of [designCss, appCss]) {
+      expect(css).toContain('--guide: var(--accent);');
+      expect(css).toContain('--size-guide-line: 1px;');
+      expect(css).toContain('--size-guide-snap: 6px;');
+    }
+  });
+});

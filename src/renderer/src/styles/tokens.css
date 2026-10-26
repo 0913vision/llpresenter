@@ -25,6 +25,7 @@
   --text-on-selection: #b4c6e0;
   --accent: #3d8bf0;
   --accent-fill: #2a70dc;
+  --guide: var(--accent);
   --accent-fill-hover: #2566cc;
   --selection: #1f4170;
   --live: #d2343a;
@@ -191,6 +192,8 @@
   --size-calendar-width: 250px;
   --size-calendar-day: 30px;
   --size-calendar-weekday: 24px;
+  --size-guide-line: 1px;
+  --size-guide-snap: 6px;
   --z-popover: 100;
   --z-tooltip: 200;
   --z-dialog: 300;
