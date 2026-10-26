@@ -66,3 +66,11 @@ the reading. No DOM or subscription accumulation was observed.
 ## Team member's reply
 
 No findings yet.
+
+## Verdicts (recorded by the lead at merge)
+
+- Final round (feced3ea): reviewer (Codex) Approve. Lead Approve; the
+  main-process change only moves the timer name rule into a shared helper (read
+  by the lead). The exact-head CI run passed, checked by the lead at merge.
+  Rebased by the lead onto local `main` without conflicts; typecheck passes.
+  Earlier rounds' findings and replies are above.
