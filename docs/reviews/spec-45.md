@@ -1,11 +1,11 @@
-Review range: `d91ae981...feat/spec/output-notices`
+Review range: `4fe8bab3...feat/spec/output-notices`
 
 # Review request: `spec-45`
 
 - Team member: `spec` (Claude session that took over from Codex)
 - Branch: `feat/spec/output-notices`
-- Base commit: `d91ae981`, main with spec-44 merged
-- Review round: 2
+- Base commit: `4fe8bab3`, main with spec-42 merged
+- Review round: 3
 - Task: M3-S2a part 2, the output notifications of spec 08
 - Code owner: shell (`src/renderer/src/control/notifications/` and `App.tsx`)
 
@@ -45,6 +45,20 @@ The missing media marks that S2a also lists already exist from S1a and S1b: the
 예배 순서 row problems and the slide panel's amber background control with 다시
 연결. The file and save problem cards follow as spec-46 on data-46's problem
 event channel (agreed with data).
+
+## Round 3 response
+
+1. `MenuBar.test.tsx` now opens the 출력 menu: each screen's checkbox item
+   reports its output state (본 화면 on, 무대 화면 and 방송 자막 off), a click
+   on each sends its `output.set` with the opposite value and closes the menu,
+   Down on 출력 opens the menu and Down and Enter turn 무대 화면 on, and a
+   warning item calls its screen's reopen.
+2. The private `OutputMenu` explains itself with a NOTE. The same round carries
+   the lead's spec-42 nit: the private `PrepBinding.onServiceItemOpen` in
+   `Workspace.tsx` has a NOTE instead of TSDoc.
+
+Rebased onto `4fe8bab3` (spec-42 merged); the only conflict was the import list
+in `App.tsx`.
 
 ## Round 2 response
 
@@ -122,7 +136,7 @@ paths.
 | Command or test                                        | Result                 |
 | ------------------------------------------------------ | ---------------------- |
 | `npm run typecheck`                                    | Pass                   |
-| `npx vitest run --no-fsModuleCache src/renderer`       | Pass, 1,639 tests      |
+| `npx vitest run --no-fsModuleCache src/renderer`       | Pass, 1,651 tests      |
 | `npx eslint --max-warnings 0 src/renderer/src/control` | Pass                   |
 | `npx prettier --check` on the changed files            | Pass                   |
 | GitHub CI (`npm run verify`)                           | In the request message |
