@@ -8,6 +8,12 @@ import {openOnArrowDown} from '@renderer/ui/menuButton';
 import {useTooltip} from '@renderer/ui/Tooltip';
 import {TruncatedText} from '@renderer/ui/TruncatedText';
 import type {Notice} from '@renderer/ui/notices';
+import {
+  backgroundEntries,
+  backgroundMedia,
+  mediaName,
+  SONG_DEFAULT_LABEL,
+} from './backgroundChoices';
 import {useSongBackground} from './useSongBackground';
 import {MISSING_BACKGROUND_TIP} from './problemReasons';
 import styles from './SongBackgroundControl.module.css';
@@ -16,10 +22,6 @@ const ICON_SIZE = 14;
 const CHEVRON_SIZE = 12;
 // TODO(0913vision): Enable relinking when P6a implements media.relink.
 const RELINK_UNAVAILABLE = '현재 버전에서는 미디어 파일을 다시 연결할 수 없음';
-
-function mediaName(media: MediaItem): string {
-  return media.name === '' ? '이름 없는 미디어' : media.name;
-}
 
 function Picture({media}: {readonly media: MediaItem}): JSX.Element {
   const video = useRef<HTMLVideoElement>(null);
@@ -89,14 +91,8 @@ export function SongBackgroundSelect({
   const [query, setQuery] = useState('');
   const valueId = useId();
   const defaultDescriptionId = useId();
-  const choices = items.filter(item => item.kind !== 'audio');
-  const selected = choices.find(item => item.id === selection.mediaId);
-  const searchText = query.normalize('NFC').trim().toLocaleLowerCase('ko');
-  const visible = choices.filter(item =>
-    mediaName(item)
-      .normalize('NFC')
-      .toLocaleLowerCase('ko')
-      .includes(searchText),
+  const selected = backgroundMedia(items).find(
+    item => item.id === selection.mediaId,
   );
   const disabled = readOnly || busy;
   const expanded = anchor !== null && !disabled;
@@ -152,7 +148,7 @@ export function SongBackgroundSelect({
         <TruncatedText id={valueId} text={value} className={styles.name} />
         {selection.inherited ? (
           <span id={defaultDescriptionId} className={styles.meta}>
-            곡 기본값
+            {SONG_DEFAULT_LABEL}
           </span>
         ) : null}
         <Icon name="down" size={CHEVRON_SIZE} />
@@ -163,33 +159,16 @@ export function SongBackgroundSelect({
           anchor={{kind: 'element', element: anchor}}
           onClose={() => setAnchor(null)}
           search={{value: query, onChange: setQuery}}
-          entries={[
-            {
-              kind: 'item',
-              id: 'song-default',
-              label: '곡 기본값',
-              check: 'radio',
-              checked: selection.inherited,
-              onSelect: () => {
-                onChoose(null);
-                setAnchor(null);
-              },
+          entries={backgroundEntries({
+            items,
+            query,
+            mediaId: selection.mediaId,
+            inherited: selection.inherited,
+            onChoose: mediaId => {
+              onChoose(mediaId);
+              setAnchor(null);
             },
-            ...(visible.length === 0
-              ? []
-              : [{kind: 'separator' as const, id: 'media'}]),
-            ...visible.map(item => ({
-              kind: 'item' as const,
-              id: item.id,
-              label: mediaName(item),
-              check: 'radio' as const,
-              checked: !selection.inherited && item.id === selection.mediaId,
-              onSelect: () => {
-                onChoose(item.id);
-                setAnchor(null);
-              },
-            })),
-          ]}
+          })}
         />
       ) : null}
     </div>

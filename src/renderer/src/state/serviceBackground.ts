@@ -4,6 +4,7 @@ import {pendingWritesOf} from './pendingWrites';
 import {
   updateServiceItem,
   type ServiceItemApi,
+  type ServiceItemChange,
   type ServiceItemEditResult,
 } from './serviceItemUpdate';
 
@@ -11,6 +12,18 @@ interface BackgroundChange {
   readonly serviceId: string;
   readonly itemId: string;
   readonly mediaId: MediaId | null;
+}
+
+/** Sets a song item's override, or removes it with null for the song default. */
+export function backgroundChange(mediaId: MediaId | null): ServiceItemChange {
+  return item => {
+    if (!isItemOfKind(item, 'song')) return null;
+    if ((item.background ?? null) === mediaId) return item;
+    const updated = {...item};
+    if (mediaId === null) delete updated.background;
+    else updated.background = mediaId;
+    return updated;
+  };
 }
 
 /**
@@ -27,14 +40,7 @@ export function updateServiceBackground(
       updateServiceItem(api, {
         serviceId,
         itemId,
-        change: item => {
-          if (!isItemOfKind(item, 'song')) return null;
-          if ((item.background ?? null) === mediaId) return item;
-          const updated = {...item};
-          if (mediaId === null) delete updated.background;
-          else updated.background = mediaId;
-          return updated;
-        },
+        change: backgroundChange(mediaId),
       }),
     refused: {
       ok: false,

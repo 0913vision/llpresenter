@@ -3,12 +3,18 @@ import type {
   ServiceDocument,
   SongDocument,
 } from '@shared/schema/contentDocuments';
-import {createServiceId} from '@shared/schema/ids';
+import {createServiceId, createServiceItemId} from '@shared/schema/ids';
 import {isItemOfKind} from '@shared/schema/service';
 import {SongEditorStore} from '@renderer/prep/editor';
 import type {Notice} from '@renderer/ui/notices';
-import {fixtureItems, fixtureServiceId, itemFixture} from './itemFixture';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
+import {
+  fixtureItems,
+  fixtureMacros,
+  fixtureMedia,
+  fixtureServiceId,
+  itemFixture,
+} from './itemFixture';
 import {ServiceItemStore} from './serviceItemStore';
 
 function setup() {
@@ -434,6 +440,108 @@ describe('service item store', () => {
     expect(items.getSnapshot().position).toBe(2);
     items.show({serviceId: fixtureServiceId, itemId: fixtureItems.plain});
     expect(items.getSnapshot().position).toBe(0);
+  });
+
+  it('sets and removes the background, start 매크로, and memo of a song item', async () => {
+    const {items, service} = setup();
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
+    await vi.waitFor(() => expect(items.getSnapshot().item).not.toBeNull());
+    const target = {serviceId: fixtureServiceId, itemId: fixtureItems.arranged};
+    expect(await items.setBackground(fixtureMedia.warm)).toBe(true);
+    expect(await items.setStartMacro(fixtureMacros.praise)).toBe(true);
+    expect(await items.setMemo(target, '새 메모')).toBe(true);
+    expect(service().service.order[1]).toMatchObject({
+      background: fixtureMedia.warm,
+      macro: fixtureMacros.praise,
+      memo: '새 메모',
+      future: {keep: true},
+    });
+    expect(await items.setBackground(null)).toBe(true);
+    expect(await items.setStartMacro(undefined)).toBe(true);
+    expect(await items.setMemo(target, '')).toBe(true);
+    for (const field of ['background', 'macro', 'memo']) {
+      expect(service().service.order[1]).not.toHaveProperty(field);
+    }
+  });
+
+  it('refuses a start 매크로 and a memo for headers and slots', async () => {
+    const {items, edits, problem} = setup();
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.slot});
+    await vi.waitFor(() => expect(items.getSnapshot().item).not.toBeNull());
+    expect(await items.setStartMacro(fixtureMacros.praise)).toBe(false);
+    expect(
+      await items.setMemo(
+        {serviceId: fixtureServiceId, itemId: fixtureItems.header},
+        '메모',
+      ),
+    ).toBe(false);
+    expect(edits).toEqual([]);
+    expect(problem).toHaveBeenCalledTimes(2);
+  });
+
+  it('saves a memo after the edit in progress instead of dropping it', async () => {
+    const {items, service} = setup();
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
+    await vi.waitFor(() => expect(items.getSnapshot().item).not.toBeNull());
+    const choosing = items.chooseArrangement(undefined);
+    const saving = items.setMemo(
+      {serviceId: fixtureServiceId, itemId: fixtureItems.arranged},
+      '기다린 메모',
+    );
+    expect(await choosing).toBe(true);
+    expect(await saving).toBe(true);
+    expect(service().service.order[1]).toMatchObject({memo: '기다린 메모'});
+    expect(service().service.order[1]).not.toHaveProperty('arrangement');
+  });
+
+  it('never drops a refused memo draft by age and refuses new ones at the limit', async () => {
+    const {api, items, problem} = setup();
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
+    await vi.waitFor(() => expect(items.getSnapshot().item).not.toBeNull());
+    vi.spyOn(api.content, 'edit').mockResolvedValue({
+      ok: false,
+      error: {reason: 'stale', message: 'Fixture refusal'},
+    });
+    const target = (n: number) => ({
+      serviceId: fixtureServiceId,
+      itemId: createServiceItemId(
+        `80000000-0000-4000-8000-${String(n).padStart(12, '0')}`,
+      ),
+    });
+    for (let n = 0; n < 100; n++) await items.setMemo(target(n), `메모 ${n}`);
+    expect(items.memoDraft(target(0))).toBe('메모 0');
+    expect(await items.setMemo(target(100), '넘침')).toBe(false);
+    expect(items.memoDraft(target(100))).toBeUndefined();
+    expect(items.memoDraft(target(0))).toBe('메모 0');
+    expect(problem).toHaveBeenLastCalledWith(
+      expect.objectContaining({title: '저장하지 못한 메모가 너무 많음'}),
+    );
+    expect(await items.setMemo(target(0), '고침')).toBe(false);
+    expect(items.memoDraft(target(0))).toBe('고침');
+  });
+
+  it('drops the draft of an item that was deleted', async () => {
+    const {api, items, service, pushService} = setup();
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
+    await vi.waitFor(() => expect(items.getSnapshot().item).not.toBeNull());
+    vi.spyOn(api.content, 'edit').mockResolvedValueOnce({
+      ok: false,
+      error: {reason: 'stale', message: 'Fixture refusal'},
+    });
+    const target = {serviceId: fixtureServiceId, itemId: fixtureItems.arranged};
+    await items.setMemo(target, '남는 글');
+    expect(items.memoDraft(target)).toBe('남는 글');
+    pushService({
+      ...service(),
+      revision: 30,
+      service: {
+        ...service().service,
+        order: service().service.order.filter(
+          row => row.id !== fixtureItems.arranged,
+        ),
+      },
+    });
+    expect(items.memoDraft(target)).toBeUndefined();
   });
 
   it('releases its subscriptions and ignores pushes after dispose', async () => {

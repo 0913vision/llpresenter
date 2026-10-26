@@ -4,7 +4,13 @@ import {
   type ServiceDocument,
 } from '@shared/schema/contentDocuments';
 import type {EditResult} from '@shared/schema/contentEdit';
-import {createServiceId, createServiceItemId} from '@shared/schema/ids';
+import {
+  createMediaId,
+  createServiceId,
+  createServiceItemId,
+} from '@shared/schema/ids';
+import {parseMediaDocument} from '@shared/schema/mediaEdit';
+import {parseSettingsDocument} from '@shared/schema/settingsDocuments';
 import {editorFixture} from '@renderer/prep/editor/editorFixture';
 
 export const fixtureServiceId = createServiceId(
@@ -17,6 +23,90 @@ export const fixtureItems = {
   slot: createServiceItemId('50000000-0000-4000-8000-000000000004'),
   lost: createServiceItemId('50000000-0000-4000-8000-000000000005'),
 } as const;
+
+export const fixtureMedia = {
+  warm: createMediaId('60000000-0000-4000-8000-000000000011'),
+  dawn: createMediaId('60000000-0000-4000-8000-000000000012'),
+  hymn: createMediaId('60000000-0000-4000-8000-000000000013'),
+} as const;
+export const fixtureMacros = {
+  praise: '70000000-0000-4000-8000-000000000001',
+  sermon: '70000000-0000-4000-8000-000000000002',
+} as const;
+
+/** Two pictures and one audio file, as the media list holds them. */
+export function itemMedia() {
+  const parsed = parseMediaDocument({
+    name: 'media',
+    revision: 1,
+    access: 'editable',
+    value: {
+      format: 'llmedia',
+      schemaVersion: 1,
+      playlists: [],
+      audioPlaylists: [],
+      items: [
+        {
+          id: fixtureMedia.warm,
+          name: '따뜻한 빛',
+          kind: 'image',
+          file: 'a.png',
+          size: 0,
+        },
+        {
+          id: fixtureMedia.dawn,
+          name: '새벽 하늘',
+          kind: 'video',
+          file: 'b.mp4',
+          size: 0,
+        },
+        {
+          id: fixtureMedia.hymn,
+          name: '찬송 반주',
+          kind: 'audio',
+          file: 'c.mp3',
+          size: 0,
+        },
+      ],
+    },
+  });
+  if (!parsed.ok) throw new Error('Invalid media fixture');
+  return parsed.value;
+}
+
+/** Two invented 매크로 with one action each. */
+export function itemMacros() {
+  const parsed = parseSettingsDocument({
+    name: 'macros',
+    revision: 1,
+    access: 'editable',
+    value: {
+      format: 'llsettings.macros',
+      schemaVersion: 1,
+      macros: [
+        {
+          id: fixtureMacros.praise,
+          name: '찬양',
+          icon: 'music-notes',
+          color: 'teal',
+          actions: [{kind: 'audio', operation: 'fadeOut'}],
+        },
+        {
+          id: fixtureMacros.sermon,
+          name: '설교',
+          icon: 'book',
+          color: 'violet',
+          actions: [{kind: 'audio', operation: 'fadeOut'}],
+        },
+      ],
+      collections: [],
+    },
+  });
+  if (!parsed.ok || parsed.value.name !== 'macros') {
+    throw new Error('Invalid macros fixture');
+  }
+  return parsed.value;
+}
 
 function serviceDocument(value: unknown): ServiceDocument {
   const parsed = parseServiceDocument(value);
@@ -71,8 +161,18 @@ export function itemFixture() {
     ok: false,
     error: {reason, message: 'Fixture refusal'},
   });
+  const media = itemMedia();
+  const macros = itemMacros();
   const api = {
     ...editor.api,
+    media: {...editor.api.media, get: () => Promise.resolve(media)},
+    settings: {
+      ...editor.api.settings,
+      get: (request: Parameters<typeof editor.api.settings.get>[0]) =>
+        request.name === 'macros'
+          ? Promise.resolve(macros)
+          : editor.api.settings.get(request),
+    },
     services: {
       ...editor.api.services,
       get: (id: string) =>

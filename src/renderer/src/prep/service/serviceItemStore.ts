@@ -1,6 +1,6 @@
 import type {LlpApi} from '@shared/ipc';
 import type {ServiceDocument} from '@shared/schema/contentDocuments';
-import type {SongId} from '@shared/schema/ids';
+import type {MediaId, SongId} from '@shared/schema/ids';
 import {
   isItemOfKind,
   type ServiceItem,
@@ -10,6 +10,7 @@ import type {Song} from '@shared/schema/song';
 import type {SongEditorStore} from '@renderer/prep/editor';
 import {editorTask} from '@renderer/prep/editor/editorTask';
 import type {SongSession} from '@renderer/prep/editor/songSession';
+import {backgroundChange} from '@renderer/state/serviceBackground';
 import {
   pendingWritesOf,
   type PendingWrites,
@@ -67,6 +68,25 @@ const NO_ITEM: ServiceItemState = {
   busy: false,
 };
 
+interface ItemEdit {
+  readonly change: ServiceItemChange;
+  readonly failure: string;
+  readonly target?: ItemTarget | null;
+  readonly retry?: () => unknown;
+}
+
+// NOTE(0913vision): No text may vanish, so a draft is never dropped by age.
+// Drafts are bounded by the items they were typed for; this limit only
+// refuses a new draft when that many are still unsaved.
+const MAX_MEMO_DRAFTS = 100;
+const TOO_MANY_DRAFTS = '저장하지 못한 메모가 너무 많음';
+const RETRY_READ_LABEL = '다시 불러오기';
+const RETRY_SAVE_LABEL = '다시 저장';
+
+function draftKey({serviceId, itemId}: ItemTarget): string {
+  return `${serviceId}:${itemId}`;
+}
+
 function sameTarget(left: ItemTarget | null, right: ItemTarget | null) {
   return left?.serviceId === right?.serviceId && left?.itemId === right?.itemId;
 }
@@ -80,6 +100,44 @@ function withArrangement(
   if (name === undefined) delete updated.arrangement;
   else updated.arrangement = name;
   return updated;
+}
+
+const startKinds = ['song', 'bible', 'media', 'notice'] as const;
+export type StartItem = ServiceItemOf<(typeof startKinds)[number]>;
+type StartField = 'macro' | 'memo';
+
+/** The items that run a start 매크로 and keep a memo (spec 02). */
+export function isStartItem(item: ServiceItem): item is StartItem {
+  return startKinds.some(kind => isItemOfKind(item, kind));
+}
+
+function setStartField(
+  item: StartItem,
+  field: StartField,
+  value: string | undefined,
+): StartItem {
+  const updated = {...item};
+  switch (field) {
+    case 'macro':
+      if (value === undefined) delete updated.macro;
+      else updated.macro = value;
+      break;
+    case 'memo':
+      if (value === undefined) delete updated.memo;
+      else updated.memo = value;
+      break;
+  }
+  return updated;
+}
+
+function withStartField(
+  field: StartField,
+  value: string | undefined,
+): ServiceItemChange {
+  return item => {
+    if (!isStartItem(item)) return null;
+    return item[field] === value ? item : setStartField(item, field, value);
+  };
 }
 
 function effectiveArrangement(
@@ -109,6 +167,11 @@ export class ServiceItemStore {
   private songId: SongId | null = null;
   private songStatus: ItemSongStatus = 'loading';
   private position = 0;
+  private pending: Promise<unknown> | undefined;
+  private readonly memoDrafts = new Map<
+    string,
+    {readonly target: ItemTarget; readonly memo: string}
+  >();
   private serviceRead = 0;
   private songRead = 0;
   private busy = false;
@@ -164,11 +227,11 @@ export class ServiceItemStore {
   /** Picks the item's 구성, or 기본 with `undefined`. */
   chooseArrangement(name: string | undefined): Promise<boolean> {
     return this.operation(() =>
-      this.edit(
-        item =>
+      this.edit({
+        change: item =>
           isItemOfKind(item, 'song') ? withArrangement(item, name) : null,
-        '구성 변경 실패',
-      ),
+        failure: '구성 변경 실패',
+      }),
     );
   }
 
@@ -189,14 +252,14 @@ export class ServiceItemStore {
     const songId = song.document.song.id;
     const name = song.copyArrangement(arrangement);
     if (name === undefined || !(await song.flush())) return false;
-    return this.edit(
-      item =>
+    return this.edit({
+      change: item =>
         isItemOfKind(item, 'song') && item.song === songId
           ? withArrangement(item, name)
           : null,
-      '구성 변경 실패',
+      failure: '구성 변경 실패',
       target,
-    );
+    });
   }
 
   /**
@@ -216,6 +279,85 @@ export class ServiceItemStore {
     return song.setArrangementSlides(arrangement, slides);
   }
 
+  /** Overrides the song's background for this item, or follows it with `null`. */
+  setBackground(mediaId: MediaId | null): Promise<boolean> {
+    return this.operation(() =>
+      this.edit({
+        change: backgroundChange(mediaId),
+        failure: '배경 변경 실패',
+      }),
+    );
+  }
+
+  /** The 매크로 that runs when the item starts, or none with `undefined`. */
+  setStartMacro(macroId: string | undefined): Promise<boolean> {
+    return this.operation(() =>
+      this.edit({
+        change: withStartField('macro', macroId),
+        failure: '시작 매크로 변경 실패',
+      }),
+    );
+  }
+
+  /**
+   * Saves a memo to the item it was typed for, even when another item is
+   * shown by then, after any edit in progress. An empty memo removes the field.
+   */
+  async setMemo(target: ItemTarget, memo: string): Promise<boolean> {
+    const key = draftKey(target);
+    if (!this.keepMemoDraft(key, target, memo)) return false;
+    while (this.pending !== undefined) await this.pending;
+    const saved = await this.operation(() =>
+      this.edit({
+        change: withStartField('memo', memo === '' ? undefined : memo),
+        failure: '메모 저장 실패',
+        target,
+        retry: () => this.retryMemo(target),
+      }),
+    );
+    if (saved && this.memoDrafts.get(key)?.memo === memo) {
+      this.memoDrafts.delete(key);
+      this.publish();
+    }
+    return saved;
+  }
+
+  /** A memo typed for the item that isn't saved yet, kept until it is. */
+  memoDraft(target: ItemTarget): string | undefined {
+    return this.memoDrafts.get(draftKey(target))?.memo;
+  }
+
+  private keepMemoDraft(
+    key: string,
+    target: ItemTarget,
+    memo: string,
+  ): boolean {
+    if (!this.memoDrafts.has(key) && this.memoDrafts.size >= MAX_MEMO_DRAFTS) {
+      this.problem(TOO_MANY_DRAFTS);
+      return false;
+    }
+    this.memoDrafts.set(key, {target, memo});
+    return true;
+  }
+
+  /** Drops the drafts of items the service no longer has. */
+  private forgetDeletedDrafts(
+    serviceId: string,
+    document: ServiceDocument | null,
+  ): void {
+    const kept = new Set<string>(document?.service.order.map(item => item.id));
+    for (const [key, {target}] of this.memoDrafts) {
+      if (target.serviceId === serviceId && !kept.has(target.itemId)) {
+        this.memoDrafts.delete(key);
+      }
+    }
+  }
+
+  private retryMemo(target: ItemTarget): void {
+    const memo = this.memoDraft(target);
+    if (memo !== undefined) editorTask(this.setMemo(target, memo));
+  }
+
   dispose(): void {
     this.alive = false;
     for (const stop of this.stops) stop();
@@ -230,21 +372,25 @@ export class ServiceItemStore {
     return this.writes.run({write: task, refused: false, sent: sent => sent});
   }
 
-  private async edit(
-    change: ServiceItemChange,
-    failure: string,
+  private async edit({
+    change,
+    failure,
     target = this.target,
-  ): Promise<boolean> {
+    retry,
+  }: ItemEdit): Promise<boolean> {
     if (!this.alive || this.busy || target === null) return false;
     this.setBusy(true);
-    const result = await updateServiceItem(this.api, {...target, change});
+    const request = updateServiceItem(this.api, {...target, change});
+    this.pending = request;
+    const result = await request;
+    this.pending = undefined;
     this.setBusy(false);
     if (result.ok) return true;
     if (result.error.reason === 'write-failed') {
       this.problem('예배 순서 저장 실패');
       return true;
     }
-    this.problem(failure);
+    this.problem(failure, retry, RETRY_SAVE_LABEL);
     return false;
   }
 
@@ -284,6 +430,7 @@ export class ServiceItemStore {
       return;
     }
     this.service = document;
+    this.forgetDeletedDrafts(serviceId, document);
     this.followSong();
     this.publish();
   }
@@ -352,7 +499,11 @@ export class ServiceItemStore {
     this.publish();
   }
 
-  private problem(title: string, retry?: () => unknown): void {
+  private problem(
+    title: string,
+    retry?: () => unknown,
+    retryLabel = RETRY_READ_LABEL,
+  ): void {
     if (!this.alive) return;
     this.onProblem({
       key: `item:${this.target?.itemId}:${title}`,
@@ -363,9 +514,7 @@ export class ServiceItemStore {
       ...(retry === undefined
         ? {}
         : {
-            actions: [
-              {icon: 'refresh', label: '다시 불러오기', onSelect: retry},
-            ],
+            actions: [{icon: 'refresh', label: retryLabel, onSelect: retry}],
           }),
     });
   }
