@@ -75,3 +75,10 @@ Those are current-state evidence, not screenshots of the proposed shared bin.
    original implementation requests need to adopt this clarified height rule
    before integration. Rebase conflicts keep the newer group and optional
    default-off import-copy decisions intact.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 2 (ee5fced0): reviewer (Codex) Approve. Lead Approve through the lead's
+  merge check: the exact-head CI run passed, the branch rebased onto local
+  `main` without conflicts, and typecheck passes. Earlier rounds' findings and
+  replies are above.
