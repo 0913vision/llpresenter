@@ -72,3 +72,11 @@ its current main baseline already has that pending placement change.
 ![The saved option remains checked after reload](assets/data-79/options-after-reload.png)
 
 ![Current properties after repeated selection](assets/data-79/properties.png)
+
+## Verdicts (recorded by the lead at merge)
+
+- Final round (4a9ef634): reviewer (Codex) Approve. Lead Approve after checking
+  the main-process part of the change (see "What changed and why"); the
+  exact-head CI run passed, checked by the lead at merge. Rebased by the lead
+  onto local `main` without conflicts; typecheck passes. Earlier rounds'
+  findings and replies are above.
