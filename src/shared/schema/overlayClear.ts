@@ -2,9 +2,11 @@ import * as v from 'valibot';
 import {messageIdSchema, propIdSchema} from './ids';
 import {plainObject} from './payload';
 import type {ReadonlyKnown} from './fileFormat';
+import {clearFadeSchema} from './clearFade';
 
 export const overlayClearSchema = v.object({
   type: v.literal('overlay.clear'),
+  transition: v.exactOptional(clearFadeSchema),
   target: v.pipe(
     plainObject,
     v.variant('kind', [

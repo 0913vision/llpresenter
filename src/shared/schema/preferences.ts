@@ -15,6 +15,7 @@ import {
 import type {MigrationStep} from './migration';
 import {jsonObject, positiveInteger} from './primitives';
 import type {PayloadError} from './payload';
+import {clearFadeSchema, clearKeyTargets} from './clearFade';
 
 const PREFERENCES_FORMAT = 'llsettings.preferences';
 
@@ -70,6 +71,12 @@ export const preferencesSchema = jsonObject({
   onDisconnect: v.exactOptional(v.picklist(['window', 'off'])),
   hardwareAcceleration: optionalBoolean,
   previewFps: v.exactOptional(previewFpsSchema),
+  clearKeys: v.exactOptional(
+    v.pipe(
+      v.record(v.picklist(clearKeyTargets), clearFadeSchema),
+      v.maxEntries(clearKeyTargets.length),
+    ),
+  ),
   show: v.exactOptional(jsonObject({showClearUndoButton: optionalBoolean})),
   backup: v.exactOptional(
     jsonObject({
@@ -127,6 +134,7 @@ export type Preferences = Complete<PreferencesFile>;
 
 /** Every 환경설정 default of `docs/spec/02-data.md`, as a complete file. */
 export const defaultPreferences: Preferences = {
+  clearKeys: {},
   format: PREFERENCES_FORMAT,
   schemaVersion: 1,
   language: 'ko',

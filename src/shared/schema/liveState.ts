@@ -22,6 +22,7 @@ import {
 import {timerRunsSchema} from './timerState';
 import {audioPlaybackSchema} from './audioState';
 import {percent} from './primitives';
+import {clearEffectsSchema} from './clearFade';
 
 const id = v.pipe(v.string(), v.nonEmpty());
 const count = v.pipe(v.number(), v.integer(), v.minValue(0));
@@ -88,6 +89,7 @@ export const liveStateSchema = payloadObject({
   }),
   outputs: liveOutputsSchema,
   canUndo: v.boolean(),
+  clearEffects: v.exactOptional(clearEffectsSchema),
   clearToggles: v.exactOptional(
     v.pipe(
       v.array(v.picklist(['all', ...layerKinds])),

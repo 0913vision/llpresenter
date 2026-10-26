@@ -7,6 +7,7 @@ import {liveActionOptions} from './liveActions';
 import {screenCommandOptions} from './screenCommands';
 import {messageExpirySchema} from './overlayState';
 import {overlayClearSchema} from './overlayClear';
+import {clearFadeSchema} from './clearFade';
 import {checkPart} from './fileFormat';
 import {
   parsePayload,
@@ -28,6 +29,7 @@ const singleCommandOptions = [
   v.object({
     type: v.literal('layer.clear'),
     target: v.picklist(['all', ...layerKinds]),
+    transition: v.exactOptional(clearFadeSchema),
   }),
   v.object({
     type: v.literal('layer.clear.toggle'),

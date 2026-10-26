@@ -7,6 +7,7 @@ import type {LookId, ScreenId, StageLayoutId, TimerId} from './schema/ids';
 import type {TimerRuns} from './schema/timerState';
 import type {AudioPlayback} from './schema/audioState';
 import type {ClearTarget} from './commands';
+import type {ClearEffect} from './schema/clearFade';
 export type {
   ActiveMessage,
   ActiveProp,
@@ -105,6 +106,7 @@ export interface LiveState {
   readonly canUndo: boolean;
   /** Clear keys with captured content available for a second press to restore. */
   readonly clearToggles?: readonly ClearTarget[];
+  readonly clearEffects?: readonly ClearEffect[];
   /** The started 타이머 by id; clears never touch them. Absent means none started. */
   readonly timers?: TimerRuns;
   /** The screens showing the 테스트 패턴; clears never touch it. Absent means none. */

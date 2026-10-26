@@ -56,20 +56,39 @@ export const macroActionHandlers = [
   }),
   defineMacroAction({
     kind: 'clearAll',
-    compile: () => command({type: 'layer.clear', target: 'all'}),
+    compile: action =>
+      command({
+        type: 'layer.clear',
+        target: 'all',
+        ...(action.transition === undefined
+          ? {}
+          : {transition: action.transition}),
+      }),
   }),
   defineMacroAction({
     kind: 'clearLayer',
     compile: (action, {catalog}) => {
       if ('layer' in action) {
-        return command({type: 'layer.clear', target: action.layer});
+        return command({
+          type: 'layer.clear',
+          target: action.layer,
+          ...(action.transition === undefined
+            ? {}
+            : {transition: action.transition}),
+        });
       }
       requireMacroTarget(
         catalog.props.props.find(item => item.id === action.prop),
         'prop',
         action.prop,
       );
-      return command({type: 'prop.set', propId: action.prop, on: false});
+      return command({
+        type: 'overlay.clear',
+        target: {kind: 'prop', propId: action.prop},
+        ...(action.transition === undefined
+          ? {}
+          : {transition: action.transition}),
+      });
     },
   }),
   defineMacroAction({

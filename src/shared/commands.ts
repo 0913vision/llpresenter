@@ -4,6 +4,7 @@ import type {LiveAction} from './schema/liveActions';
 import type {ScreenCommand} from './schema/screenCommands';
 import type {MessageExpiry} from './schema/overlayState';
 import type {OverlayClear} from './schema/overlayClear';
+import type {ClearFade} from './schema/clearFade';
 
 export type ClearTarget = LayerKind | 'all';
 
@@ -19,7 +20,11 @@ export type SingleLiveCommand =
   | {readonly type: 'slide.show'; readonly slide: SlideLayer}
   | {readonly type: 'media.show'; readonly media: MediaChoice}
   | {readonly type: 'message.show'; readonly message: MessageLayer}
-  | {readonly type: 'layer.clear'; readonly target: ClearTarget}
+  | {
+      readonly type: 'layer.clear';
+      readonly target: ClearTarget;
+      readonly transition?: ClearFade;
+    }
   | {readonly type: 'layer.clear.toggle'; readonly target: ClearTarget}
   | {readonly type: 'clear.undo'}
   | {

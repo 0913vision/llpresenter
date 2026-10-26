@@ -27,6 +27,7 @@ import {
 import {isKnownKind, kindsWithUnknown} from './kinds';
 import {messageDurationSchema, messageTargetsSchema} from './messages';
 import type {MigrationStep} from './migration';
+import {clearFadeSchema} from './clearFade';
 import {
   jsonObject,
   jsonRecord,
@@ -65,11 +66,13 @@ export type MacroActionKind = (typeof macroActionKinds)[number];
 const clearLayerKindSchema = jsonObject({
   kind: v.literal('clearLayer'),
   layer: v.picklist(layerKinds),
+  transition: v.exactOptional(clearFadeSchema),
 });
 
 const clearPropSchema = jsonObject({
   kind: v.literal('clearLayer'),
   prop: propIdSchema,
+  transition: v.exactOptional(clearFadeSchema),
 });
 
 const clearBothSchema = v.never(
@@ -83,7 +86,10 @@ const actionSchemas = {
     screen: v.exactOptional(screenIdSchema),
     layout: stageLayoutIdSchema,
   }),
-  clearAll: jsonObject({kind: v.literal('clearAll')}),
+  clearAll: jsonObject({
+    kind: v.literal('clearAll'),
+    transition: v.exactOptional(clearFadeSchema),
+  }),
   clearLayer: v.lazy(clearLayerSchemaFor),
   media: jsonObject({kind: v.literal('media'), media: mediaIdSchema}),
   prop: jsonObject({
