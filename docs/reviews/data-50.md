@@ -159,19 +159,15 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (Codex, codex4): Request changes: a relink overwrote property edits
+  made during its waits, removed media stayed in the check queue, and an applied
+  relink whose save failed kept its missing mark.
+- Round 2 (05d920a7): reviewer (Codex, codex4) Approve, no findings. Lead
+  Approve; the data-47 nit (push the next waiting file after an automatic pass)
+  is in this request as asked. Rebased by the lead onto local `main` without
+  conflicts; typecheck passes.
 
 ## Team member's reply
 
