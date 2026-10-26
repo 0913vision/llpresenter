@@ -46,7 +46,7 @@ decision, addressing the bible-1 review nit.
 ## Checks run
 
 - `npm run typecheck`: passed.
-- Scoped Vitest: 74 tests across six renderer files passed.
+- Scoped Vitest: 75 tests across six renderer files passed.
 - Scoped ESLint and formatting: final results in the member report.
 - `npm run build`: passed; the actual built app was exercised below.
 - CI pending. The dispatcher checks the exact head before merge; members do not
@@ -150,6 +150,50 @@ listeners 572 across all samples; used heap is 5,808,672 / 5,916,628 / 5,939,660
 bytes (+2.3%). The app exited normally after the check.
 
 ![Recent selection clears the previous manual error](bible-3/show-recent-recovered.png)
+
+### Round 2: pointer selection above the Prep dialog
+
+Rebased onto local main `8aeed6b5b7a890a69fac62f2a84c49dce4949a01`, rebuilt, and
+checked the actual app offscreen on dev port 5193. The earlier
+`prep-unavailable-book.png` captures the pre-fix layering bug. The screenshots
+below supersede it for suggestion visibility.
+
+The CDP driver types 요, checks that each target option owns its center point
+with `document.elementFromPoint`, and dispatches real mouse move, press, and
+release events. It alternates 요한일서 and 요한복음 for 20 measured round trips
+after 20 warmup round trips. Each choice completes the book and closes the
+popup. The popup's computed z-index is 301, above the scrim's 300. Two
+subsequent dialog open, pointer choice, and close cycles return to the same
+element and listener counts. Both later closes have 341 nodes. Live output and
+service item count stay unchanged. The app exits normally afterward.
+
+[Round 2 CDP counters](bible-3/modal-suggestions-check.json):
+
+| Flow                                            | Elements        | Listeners       | Used JS heap, bytes               |
+| ----------------------------------------------- | --------------- | --------------- | --------------------------------- |
+| Pointer selection, baseline / 10 / 20 cycles    | 230 / 230 / 230 | 642 / 642 / 642 | 5,715,552 / 5,806,200 / 5,824,320 |
+| Closed dialog, baseline / first / second reopen | 207 / 207 / 207 | 633 / 633 / 633 | 5,732,596 / 5,748,336 / 5,793,168 |
+
+Selection heap grows 1.9%, and closed-dialog heap grows 1.1%. Native text edit
+nodes grow from 421 to 461 while mounted, then fall to 338; both later closes
+have 341 nodes after reopening. These short-run JS-heap observations do not
+establish long-duration memory stability.
+
+![Book suggestions visibly above the Prep dialog](bible-3/prep-visible-suggestions.png)
+
+![John completed by clicking the visible suggestion](bible-3/prep-pointer-choice.png)
+
+## Team member's reply
+
+1. Fixed P2: `BibleSuggestions` now captures `modalStack.isOpen` when mounted
+   and applies the existing `data-over-modal` treatment with
+   `--z-popover-over-modal`, matching Menu and Tooltip. Ordinary Show
+   suggestions retain the standard popover layer. Added a Prep integration
+   regression for pointer completion in a live over-modal list, plus a
+   normal-layer assertion in the shared-form test. The actual CDP pointer check
+   and screenshots are recorded under "Checked in the app" above. Scoped tests,
+   typecheck, ESLint, formatting, and build pass. CI pending under the
+   dispatcher rule.
 
 ## Quality and review focus
 

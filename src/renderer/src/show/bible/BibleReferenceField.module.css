@@ -28,6 +28,10 @@
   color: var(--text);
 }
 
+.popup[data-over-modal] {
+  z-index: var(--z-popover-over-modal);
+}
+
 .group,
 .count {
   color: var(--text-3);

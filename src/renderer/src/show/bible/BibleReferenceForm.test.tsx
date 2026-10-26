@@ -141,6 +141,9 @@ describe('shared Bible reference form', () => {
   it('keeps all matches beyond eight and lets a click complete a book without output', async () => {
     const view = setup();
     await view.user.type(view.book, '서');
+    expect(screen.getByRole('listbox').hasAttribute('data-over-modal')).toBe(
+      false,
+    );
     expect(screen.getAllByRole('option').length).toBeGreaterThan(8);
     await view.user.click(screen.getByRole('option', {name: '요한일서'}));
     expect(view.book.value).toBe('요한일서');

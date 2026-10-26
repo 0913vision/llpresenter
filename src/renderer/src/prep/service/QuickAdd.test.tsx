@@ -368,6 +368,23 @@ describe('항목 추가', () => {
     expect(service().service.order[3]).not.toHaveProperty('slot');
   });
 
+  it('lifts book suggestions over the dialog and accepts a pointer choice', async () => {
+    const {api, user, service} = setup();
+    mockBible(api);
+    const length = service().service.order.length;
+    await openBibleForm(user);
+    const book = screen.getByRole<HTMLInputElement>('combobox', {name: '책'});
+    await user.type(book, '요');
+    const list = screen.getByRole('listbox', {name: '성경 구절 추천'});
+    expect(list.hasAttribute('data-over-modal')).toBe(true);
+    expect(list.closest('[inert]')).toBeNull();
+    await user.click(within(list).getByRole('option', {name: '요한복음'}));
+    expect(book.value).toBe('요한복음');
+    expect(screen.queryByRole('listbox')).toBeNull();
+    expect(service().service.order).toHaveLength(length);
+    expect(screen.getByRole('dialog', {name: '성경 구절'})).toBeTruthy();
+  });
+
   it('shares completion, blocks ambiguous Tab, and advances to the next field', async () => {
     const {api, user, service} = setup();
     mockBible(api).lookup.mockImplementation(

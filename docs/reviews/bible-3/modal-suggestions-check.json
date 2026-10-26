@@ -1,0 +1,80 @@
+{
+  "date": "2026-10-26T18:40:06.737Z",
+  "warmupCycles": 20,
+  "measuredCycles": 20,
+  "checks": [
+    "Real CDP pointer clicks hit visible John and 1 John suggestions, never the scrim, across 20 warmup and 20 measured back-and-forth cycles",
+    "Popup z-index exceeds dialog scrim; chosen name completes and popup closes",
+    "Two subsequent dialog open/choose/close cycles return to stable element/listener counts",
+    "No live output or service insertion"
+  ],
+  "samples": [
+    {
+      "elements": 230,
+      "documents": 18,
+      "nodes": 421,
+      "jsEventListeners": 642,
+      "usedSize": 5715552,
+      "totalSize": 6598656,
+      "embedderHeapUsedSize": 3059728,
+      "backingStorageSize": 1726841
+    },
+    {
+      "elements": 230,
+      "documents": 18,
+      "nodes": 441,
+      "jsEventListeners": 642,
+      "usedSize": 5806200,
+      "totalSize": 6598656,
+      "embedderHeapUsedSize": 2834992,
+      "backingStorageSize": 1726841
+    },
+    {
+      "elements": 230,
+      "documents": 18,
+      "nodes": 461,
+      "jsEventListeners": 642,
+      "usedSize": 5824320,
+      "totalSize": 6860800,
+      "embedderHeapUsedSize": 2892200,
+      "backingStorageSize": 1726841
+    }
+  ],
+  "layers": {
+    "popup": "301",
+    "scrim": "300"
+  },
+  "closed": [
+    {
+      "elements": 207,
+      "documents": 18,
+      "nodes": 338,
+      "jsEventListeners": 633,
+      "usedSize": 5732596,
+      "totalSize": 6598656,
+      "embedderHeapUsedSize": 2787096,
+      "backingStorageSize": 1726828
+    },
+    {
+      "elements": 207,
+      "documents": 19,
+      "nodes": 341,
+      "jsEventListeners": 633,
+      "usedSize": 5748336,
+      "totalSize": 6598656,
+      "embedderHeapUsedSize": 2821752,
+      "backingStorageSize": 1726828
+    },
+    {
+      "elements": 207,
+      "documents": 19,
+      "nodes": 341,
+      "jsEventListeners": 633,
+      "usedSize": 5793168,
+      "totalSize": 6598656,
+      "embedderHeapUsedSize": 2804112,
+      "backingStorageSize": 1726828
+    }
+  ],
+  "finished": "2026-10-26T18:40:27.549Z"
+}

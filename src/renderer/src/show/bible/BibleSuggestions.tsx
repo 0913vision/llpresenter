@@ -2,6 +2,7 @@ import {
   useEffect,
   useEffectEvent,
   useRef,
+  useState,
   type JSX,
   type RefObject,
 } from 'react';
@@ -9,6 +10,7 @@ import {createPortal} from 'react-dom';
 import type {TranslationId} from '@shared/schema/ids';
 import {placeFloating} from '@renderer/ui/floating';
 import {layerContainer} from '@renderer/ui/layers';
+import {modalStack} from '@renderer/ui/modalStack';
 import {placeBelow, viewportSize} from '@renderer/ui/placement';
 import {TruncatedText} from '@renderer/ui/TruncatedText';
 import styles from './BibleReferenceField.module.css';
@@ -40,6 +42,7 @@ export function BibleSuggestions({
   readonly onChoose: (item: BibleSuggestion) => void;
   readonly onClose: () => void;
 }): JSX.Element {
+  const [overModal] = useState(() => modalStack.isOpen);
   const popup = useRef<HTMLDivElement>(null);
   const close = useEffectEvent(onClose);
   useEffect(() => {
@@ -74,6 +77,7 @@ export function BibleSuggestions({
       role="listbox"
       aria-label="성경 구절 추천"
       className={styles.popup}
+      data-over-modal={overModal ? '' : undefined}
       ref={element => {
         popup.current = element;
         if (element && anchor.current) {
