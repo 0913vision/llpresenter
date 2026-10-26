@@ -48,14 +48,18 @@ export function MediaPreviewPlayer({
     return () => {
       release(element);
     };
-  }, []);
+  }, [item.kind, missing]);
   useEffect(() => {
     const element = media.current;
     if (element === null) return;
     element.muted = !shown.audio;
     element.volume = shown.volume / MAX_VOLUME;
     element.playbackRate = shown.speed;
-  }, [shown.audio, shown.volume, shown.speed]);
+  }, [item.kind, missing, shown.audio, shown.volume, shown.speed]);
+  const failed = (error: unknown): void => {
+    console.warn('Could not play the media preview', error);
+    setPlaying(false);
+  };
   const toggle = (): void => {
     const element = media.current;
     if (element === null) return;
@@ -69,9 +73,7 @@ export function MediaPreviewPlayer({
     ) {
       element.currentTime = shown.start;
     }
-    element.play().catch(() => {
-      setPlaying(false);
-    });
+    element.play().catch(failed);
   };
   const follow = (element: HTMLMediaElement): void => {
     const time = element.currentTime;
@@ -91,9 +93,18 @@ export function MediaPreviewPlayer({
     onLoadedMetadata: () => {
       const element = media.current;
       if (element !== null) element.currentTime = shown.start;
+      setPlaying(false);
     },
     onPlay: () => setPlaying(true),
     onPause: () => setPlaying(false),
+    onEnded: () => {
+      const element = media.current;
+      if (element === null) return;
+      if (shown.end === 'loop') {
+        element.currentTime = shown.start;
+        element.play().catch(failed);
+      } else setPlaying(false);
+    },
     onTimeUpdate: () => {
       if (media.current !== null) follow(media.current);
     },
@@ -124,6 +135,7 @@ export function MediaPreviewPlayer({
             icon={playing ? 'pause' : 'play'}
             label={playing ? '일시 정지' : '재생'}
             disabled={!playable}
+            title={missing ? '파일을 찾을 수 없음' : undefined}
             onClick={toggle}
           />
           <span className={styles.time}>{durationText(position)}</span>
@@ -143,6 +155,7 @@ export function MediaPreviewPlayer({
           icon="folderopen"
           label="파일 위치 열기"
           disabled={missing}
+          title={missing ? '파일을 찾을 수 없음' : undefined}
           onClick={onReveal}
         />
       </div>

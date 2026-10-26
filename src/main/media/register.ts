@@ -148,11 +148,19 @@ async function revealFile(
   shell.showItemInFolder(inside);
 }
 
-function listenForReveals({media, log}: MediaBackendRegistration): () => void {
+function listenForReveals({
+  media,
+  log,
+  windowMode,
+}: MediaBackendRegistration): () => void {
   const reveal = (_event: IpcMainEvent, value: unknown): void => {
     const parsed = parseMediaRevealRequest(value);
     if (!parsed.ok) {
       log.warn('dropped a malformed media reveal', parsed.error);
+      return;
+    }
+    if (windowMode === 'offscreen') {
+      log.info('media file reveal is unavailable in offscreen mode');
       return;
     }
     revealFile(media, parsed.value.mediaId, log).catch((error: unknown) => {

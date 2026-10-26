@@ -1,5 +1,5 @@
 import {act, fireEvent, render, screen, within} from '@testing-library/react';
-import {describe, expect, it, onTestFinished, vi} from 'vitest';
+import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {MediaDocument} from '@shared/schema/mediaEdit';
 import {MediaPropertiesPanel} from './MediaPropertiesPanel';
 import {MediaView} from './MediaView';
@@ -27,6 +27,12 @@ const ITEMS = [
   mediaItem(2, {name: 'Notice', kind: 'image', file: 'notice.png'}),
   mediaItem(3, {name: 'Hymn', kind: 'audio', file: 'hymn.mp3'}),
 ];
+
+beforeEach(() => {
+  vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined);
+  vi.spyOn(HTMLMediaElement.prototype, 'pause').mockReturnValue(undefined);
+  vi.spyOn(HTMLMediaElement.prototype, 'load').mockReturnValue(undefined);
+});
 
 function setup(document: MediaDocument = mediaDocument(ITEMS, 5)) {
   const fixture = mediaFixture(document);

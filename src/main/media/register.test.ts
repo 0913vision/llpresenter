@@ -312,6 +312,22 @@ describe('media backend registration', () => {
     expect(electron.listeners.has(Channels.mediaReveal)).toBe(false);
   });
 
+  it('opens no Explorer window for 파일 위치 열기 in offscreen mode', async () => {
+    const log = recordingLogger();
+    const store = await mediaStore();
+    await writeFile(join(store.folder, 'gone.png'), 'invented');
+    const stop = register(fakePort().port, store, {
+      log,
+      windowMode: 'offscreen',
+    });
+    electron.listeners.get(Channels.mediaReveal)?.({}, {mediaId: MISSING});
+    expect(log.messages('info')).toContain(
+      'media file reveal is unavailable in offscreen mode',
+    );
+    expect(electron.showItemInFolder).not.toHaveBeenCalled();
+    await stop();
+  });
+
   it('reveals no file outside the media folders, or one that is gone', async () => {
     const {port} = fakePort();
     const log = recordingLogger();

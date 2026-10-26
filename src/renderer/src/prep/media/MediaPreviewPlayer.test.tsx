@@ -1,5 +1,6 @@
 import {fireEvent, render, screen} from '@testing-library/react';
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {mediaUrl} from '@shared/media';
 import type {MediaItem} from '@shared/schema/mediaList';
 import {MediaPreviewPlayer} from './MediaPreviewPlayer';
@@ -34,6 +35,73 @@ function player(item: MediaItem, missing = false) {
 }
 
 describe('media preview player', () => {
+  afterEach(resetTooltips);
+
+  it('restarts the selected range at the natural file end for 반복', () => {
+    const {media} = player(mediaItem(1, {duration: 30, props: {in: 2}}));
+    if (media === null) throw new Error('No media element');
+    setTime(media, 30);
+    fireEvent.ended(media);
+    expect(seeks).toEqual([2]);
+    expect(HTMLMediaElement.prototype.play).toHaveBeenCalledOnce();
+  });
+
+  it('shows 재생 after the natural file end for 멈춤', () => {
+    const {media} = player(mediaItem(1, {duration: 30, props: {end: 'stop'}}));
+    if (media === null) throw new Error('No media element');
+    fireEvent.play(media);
+    expect(screen.getByRole('button', {name: '일시 정지'})).toBeDefined();
+    fireEvent.ended(media);
+    expect(screen.getByRole('button', {name: '재생'})).toBeDefined();
+    expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
+  });
+
+  it('releases a removed element and configures and releases its replacement after relinking', () => {
+    const item = mediaItem(1, {props: {audio: false, volume: 40, speed: 1.1}});
+    const view = player(item);
+    const original = view.media;
+    view.rerender(
+      <MediaPreviewPlayer item={item} missing onReveal={vi.fn()} />,
+    );
+    expect(original?.hasAttribute('src')).toBe(false);
+    expect(HTMLMediaElement.prototype.pause).toHaveBeenCalledOnce();
+    view.rerender(
+      <MediaPreviewPlayer item={item} missing={false} onReveal={vi.fn()} />,
+    );
+    const replacement = view.container.querySelector('video');
+    expect(replacement?.muted).toBe(true);
+    expect(replacement?.volume).toBe(0.4);
+    expect(replacement?.playbackRate).toBe(1.1);
+    view.unmount();
+    expect(replacement?.hasAttribute('src')).toBe(false);
+    expect(HTMLMediaElement.prototype.pause).toHaveBeenCalledTimes(2);
+  });
+
+  it('logs a refused playback and keeps the play control available', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const error = new Error('Invented decoder refusal');
+    vi.spyOn(HTMLMediaElement.prototype, 'play').mockRejectedValue(error);
+    player(mediaItem(1));
+    fireEvent.click(screen.getByRole('button', {name: '재생'}));
+    await vi.waitFor(() =>
+      expect(warn).toHaveBeenCalledExactlyOnceWith(
+        'Could not play the media preview',
+        error,
+      ),
+    );
+    expect(screen.getByRole('button', {name: '재생'})).toBeDefined();
+  });
+
+  it.each(['재생', '파일 위치 열기'])(
+    'explains why %s is unavailable for a missing file',
+    async name => {
+      player(mediaItem(1), true);
+      expect(
+        (await hoverForTooltip(screen.getByRole('button', {name})))
+          ?.textContent,
+      ).toBe('파일을 찾을 수 없음');
+    },
+  );
   it('plays a video in this window from its media URL and pauses it', () => {
     const {media} = player(mediaItem(1));
     expect(media?.getAttribute('src')).toBe(mediaUrl(mediaId(1)));
