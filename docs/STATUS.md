@@ -21,7 +21,8 @@ and Codex sessions review (user decision). The lead routes renderer requests to
 one reviewer and main-process, contract, and document requests to another; when
 that reviewer is busy, round 1 goes to the reviewer with the shortest queue, and
 later rounds stay with the round-1 reviewer. Ownership works like code owners
-(`CLAUDE.md`, "Your files").
+(`CLAUDE.md`, "Your files"). Since 10:50 one Codex session also implements, in
+the tools area that no Claude member holds (user decision).
 
 | Session                 | Worktree   | Works on now                                |
 | ----------------------- | ---------- | ------------------------------------------- |
@@ -34,6 +35,7 @@ later rounds stay with the round-1 reviewer. Ownership works like code owners
 | output (Claude)         | output     | Vitest cache fix, M3-O8 recovery answer, O4 |
 | ui (Claude)             | ui         | M3-P3a item panel, center song panel        |
 | 진행 work (Claude)      | spec       | M3-S1b narrow layout, monitor cards, S2a    |
+| tools (Codex)           | tools      | M3-T4b 퀵 실행 and Bible panels             |
 | qa, devops (Codex)      | qa, devops | Idle; on request only                       |
 
 All worktrees share one `refs/stash`, so members apply or drop a stash only by
