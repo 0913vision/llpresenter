@@ -60,12 +60,12 @@ The final build kept counts fixed for each panel and size:
 
 | Viewport/panel  | Elements | DOM nodes | Listeners | Documents | GC heap         |
 | --------------- | -------- | --------- | --------- | --------- | --------------- |
-| Normal, stage   | 460      | 1,529     | 398       | 28        | 5.55 to 5.66 MB |
-| Normal, message | 459      | 1,522     | 394       | 28        | 5.54 to 5.64 MB |
-| Narrow, stage   | 438      | 1,492     | 395       | 27        | 5.77 to 5.80 MB |
-| Narrow, message | 437      | 1,485     | 391       | 27        | 5.76 to 5.78 MB |
+| Normal, stage   | 464      | 1,533     | 400       | 28        | 5.80 to 5.83 MB |
+| Normal, message | 463      | 1,526     | 396       | 28        | 5.78 to 5.82 MB |
+| Narrow, stage   | 442      | 1,496     | 397       | 27        | 5.88 to 5.90 MB |
+| Narrow, message | 441      | 1,489     | 393       | 27        | 5.85 to 5.88 MB |
 
-The final ten narrow pairs changed each heap by less than 5 KB. No DOM or
+The final ten narrow pairs changed each heap by less than 17 KB. No DOM or
 subscription accumulation was observed.
 
 ![Normal stage panel](evidence/tools-20/normal-stage.png)
@@ -78,10 +78,13 @@ subscription accumulation was observed.
 
 ## Team member's reply
 
-CI follow-up: run 40367927960 failed because the screen-identity error test
-implicitly used the former missing-document default. Reproduced locally:
-`screenIdentity.test.ts` had one failure at line 127. The test now injects its
-read error explicitly and verifies the exact error is forwarded once, while
-retaining the late-resolution cleanup check. No production change is needed.
-Rebased onto current local main and included ShowPanels, App and PrepMount in
-the local regression checks. Updated results are in the round 2 report.
+CI follow-up:
+[run 40367927960](https://github.com/0913vision/llpresenter/actions/runs/40367927960)
+failed because the screen-identity error test implicitly used the former
+missing-document default. Reproduced locally: `screenIdentity.test.ts` had one
+failure at line 127. The test now injects its read error explicitly and verifies
+the exact error is forwarded once, while retaining the late-resolution cleanup
+check. No production change is needed. Rebased onto current local main and
+included ShowPanels, App and PrepMount in the local regression checks. The app
+flow was repeated on the rebased code; the table and screenshots above are
+refreshed. Updated check results are in the round 2 report.

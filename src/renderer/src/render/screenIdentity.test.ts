@@ -126,7 +126,10 @@ describe('output screen identity', () => {
     });
     await Promise.resolve();
     await Promise.resolve();
-    expect(onError).toHaveBeenCalledExactlyOnceWith(failure);
+    expect(onError).toHaveBeenCalledExactlyOnceWith(
+      'could not read output screen identity',
+      failure,
+    );
     stop();
     const receive = vi.fn();
     const stopEarly = followRenderScreen({
