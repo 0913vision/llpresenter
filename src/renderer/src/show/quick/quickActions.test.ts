@@ -63,7 +63,7 @@ describe('quick execution', () => {
       type: 'slide.show',
       slide: {
         position: 0,
-        lines: ['16 Invented verse 16'],
+        lines: ['16 Invented book 43, chapter 3, verse 16'],
       },
     });
     await vi.waitFor(() =>

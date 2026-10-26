@@ -76,6 +76,13 @@ export function BibleReferenceForm(
       ? (selectedRecent?.translation ?? props.translation)
       : props.translation;
   const root = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (props.autoFocus && props.translation !== undefined) {
+      root.current
+        ?.querySelector<HTMLInputElement>('[role="combobox"]')
+        ?.focus();
+    }
+  }, [props.autoFocus, props.translation]);
   const bookAnchor = useRef<HTMLDivElement>(null);
   const listId = useId();
   const book = selectedBook(fields.book);

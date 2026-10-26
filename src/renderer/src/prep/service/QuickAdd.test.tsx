@@ -144,6 +144,11 @@ async function openBibleForm(
       screen.getByRole<HTMLInputElement>('combobox', {name: '책'}).disabled,
     ).toBe(false),
   );
+  await waitFor(() =>
+    expect(document.activeElement).toBe(
+      screen.getByRole('combobox', {name: '책'}),
+    ),
+  );
 }
 
 function fillBibleForm(end = ''): void {

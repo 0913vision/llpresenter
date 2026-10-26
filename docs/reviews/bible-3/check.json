@@ -13,7 +13,8 @@
     "Prep form opened and closed, then reopened with empty fields",
     "Prep 20 start/end cycles clear the end; reversed end blocks Tab, Enter and Add; end 99 inserts a clamped passage on Enter without changing live output",
     "Prep book Tab completes English John and IME-off dy to 요한복음 and advances to chapter",
-    "After insertion, settled element, node and listener counts match across both subsequent Prep closes; edited input nodes are released after dialog unmount"
+    "After insertion, settled element, node and listener counts match across both subsequent Prep closes; edited input nodes are released after dialog unmount",
+    "Prep focuses Book after default-translation loading; English John is typed directly without clicking the input"
   ],
   "showSelectionCycles": 20,
   "showSamples": [
@@ -74,7 +75,7 @@
       "right": 194
     }
   ],
-  "finished": "2026-10-26T14:36:17.569Z",
+  "finished": "2026-10-26T14:51:15.327Z",
   "startupShowSamples": [
     {
       "elements": 493,
@@ -105,39 +106,43 @@
   "prepFieldCycles": 20,
   "prepSamples": [
     {
-      "elements": 206,
-      "documents": 20,
-      "nodes": 361,
-      "jsEventListeners": 765,
-      "usedSize": 6584232,
-      "totalSize": 7376896,
-      "embedderHeapUsedSize": 3271744,
-      "backingStorageSize": 1689893
+      "elements": 210,
+      "documents": 19,
+      "nodes": 404,
+      "jsEventListeners": 623,
+      "usedSize": 5607828,
+      "totalSize": 6328320,
+      "embedderHeapUsedSize": 2968664,
+      "backingStorageSize": 1689308
     },
     {
-      "elements": 206,
-      "documents": 20,
-      "nodes": 381,
-      "jsEventListeners": 765,
-      "usedSize": 6624632,
-      "totalSize": 7376896,
-      "embedderHeapUsedSize": 3231936,
-      "backingStorageSize": 1689893
+      "elements": 210,
+      "documents": 19,
+      "nodes": 424,
+      "jsEventListeners": 623,
+      "usedSize": 5642052,
+      "totalSize": 6590464,
+      "embedderHeapUsedSize": 2805672,
+      "backingStorageSize": 1689308
     },
     {
-      "elements": 206,
-      "documents": 20,
-      "nodes": 401,
-      "jsEventListeners": 765,
-      "usedSize": 6674952,
-      "totalSize": 7376896,
-      "embedderHeapUsedSize": 3210664,
-      "backingStorageSize": 1689893
+      "elements": 210,
+      "documents": 19,
+      "nodes": 444,
+      "jsEventListeners": 623,
+      "usedSize": 5680860,
+      "totalSize": 6590464,
+      "embedderHeapUsedSize": 2819240,
+      "backingStorageSize": 1689308
     }
   ],
-  "prepRowsBefore": 8,
-  "prepRowsAfter": 9,
+  "prepRowsBefore": 9,
+  "prepRowsAfter": 10,
   "inserted": [
+    {
+      "title": "요한복음 3:16-36",
+      "kind": "bible"
+    },
     {
       "title": "요한복음 3:16-36",
       "kind": "bible"
@@ -149,34 +154,36 @@
   ],
   "closedPrepSamples": [
     {
-      "elements": 189,
+      "elements": 194,
       "documents": 16,
-      "nodes": 357,
-      "jsEventListeners": 769,
-      "usedSize": 6628404,
-      "totalSize": 7376896,
-      "embedderHeapUsedSize": 3048296,
-      "backingStorageSize": 1689896
+      "nodes": 364,
+      "jsEventListeners": 770,
+      "usedSize": 5664124,
+      "totalSize": 6590464,
+      "embedderHeapUsedSize": 2719720,
+      "backingStorageSize": 1689482
     },
     {
-      "elements": 188,
+      "elements": 193,
       "documents": 20,
-      "nodes": 319,
-      "jsEventListeners": 757,
-      "usedSize": 6604620,
-      "totalSize": 7376896,
-      "embedderHeapUsedSize": 3154184,
-      "backingStorageSize": 1689891
+      "nodes": 326,
+      "jsEventListeners": 758,
+      "usedSize": 5663680,
+      "totalSize": 6590464,
+      "embedderHeapUsedSize": 2817808,
+      "backingStorageSize": 1689477
     },
     {
-      "elements": 188,
+      "elements": 193,
       "documents": 20,
-      "nodes": 319,
-      "jsEventListeners": 757,
-      "usedSize": 6624568,
-      "totalSize": 7376896,
-      "embedderHeapUsedSize": 3204648,
-      "backingStorageSize": 1689891
+      "nodes": 326,
+      "jsEventListeners": 758,
+      "usedSize": 5697812,
+      "totalSize": 6590464,
+      "embedderHeapUsedSize": 2849296,
+      "backingStorageSize": 1689477
     }
-  ]
+  ],
+  "prepWarmupCycles": 20,
+  "prepFocusAfterDefaults": true
 }

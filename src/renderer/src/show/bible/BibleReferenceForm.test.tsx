@@ -85,6 +85,16 @@ describe('shared Bible reference form', () => {
     expect(view.onSubmit).not.toHaveBeenCalled();
   });
 
+  it('focuses the book after delayed translation availability when autofocus is requested', async () => {
+    const view = setup();
+    view.rerender(
+      <BibleReferenceForm {...view.props} autoFocus translation={undefined} />,
+    );
+    expect(view.book.disabled).toBe(true);
+    view.rerender(<BibleReferenceForm {...view.props} autoFocus />);
+    await waitFor(() => expect(document.activeElement).toBe(view.book));
+  });
+
   it('requires an arrow choice for ambiguous Tab even after pointer hover', async () => {
     const view = setup();
     await view.user.type(view.book, '베');
