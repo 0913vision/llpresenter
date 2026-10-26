@@ -115,6 +115,28 @@ describe('MonitorNumbers', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
+  it('opens new windows when only the numbers changed', () => {
+    let shownMonitors = monitors(LEFT, RIGHT);
+    const opened: NumberSpot[] = [];
+    const numbers = new MonitorNumbers({
+      monitors: () => shownMonitors,
+      avoid: () => [],
+      open: spot => {
+        opened.push(spot);
+        return {close: () => undefined};
+      },
+      log: recordingLogger(),
+    });
+    numbers.identify();
+    shownMonitors = shownMonitors.map(monitor => ({
+      ...monitor,
+      number: 3 - monitor.number,
+    }));
+    numbers.identify();
+    expect(opened.map(({number}) => number)).toEqual([1, 2, 2, 1]);
+    numbers.dispose();
+  });
+
   it('logs a window that fails to open or close and shows the others', () => {
     const log = recordingLogger();
     let calls = 0;
