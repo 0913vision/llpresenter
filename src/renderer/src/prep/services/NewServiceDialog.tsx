@@ -7,6 +7,7 @@ import {TextField} from '@renderer/ui/TextField';
 import {dateChoices, timeChoices} from './serviceDates';
 import {SourceList} from './SourceList';
 import {SourceTree} from './SourceTree';
+import {useSourceActions} from './useSourceActions';
 import {useNewService} from './useNewService';
 
 const DIALOG_HEIGHT = 700;
@@ -34,77 +35,82 @@ export function NewServiceDialog({
     | undefined;
 }): JSX.Element {
   const state = useNewService({onProblem, onDone: onClose});
+  const actions = useSourceActions({onProblem});
   return (
-    <Dialog
-      title="새 예배"
-      size="l"
-      height={DIALOG_HEIGHT}
-      onCancel={() => {
-        if (!state.busy) onClose();
-      }}
-      primary={{
-        label: '만들기',
-        onSelect: state.create,
-        disabled: !state.canCreate,
-        title: state.name.trim() === '' ? NAME_NEEDED : undefined,
-      }}
-      aside={
-        <SourceList
-          templates={state.lists.templates}
-          services={state.lists.services}
-          selected={state.source}
-          onSelect={state.choose}
-          withEmpty
-          onRetry={state.lists.failed ? state.lists.retry : undefined}
+    <>
+      <Dialog
+        title="새 예배"
+        size="l"
+        height={DIALOG_HEIGHT}
+        onCancel={() => {
+          if (!state.busy) onClose();
+        }}
+        primary={{
+          label: '만들기',
+          onSelect: state.create,
+          disabled: !state.canCreate,
+          title: state.name.trim() === '' ? NAME_NEEDED : undefined,
+        }}
+        aside={
+          <SourceList
+            templates={state.lists.templates}
+            services={state.lists.services}
+            selected={state.source}
+            onSelect={state.choose}
+            withEmpty
+            onRetry={state.lists.failed ? state.lists.retry : undefined}
+            onRowMenu={actions.openMenu}
+          />
+        }
+        asideFoot={
+          saveTemplate === undefined ? undefined : (
+            <Button
+              variant="ghost"
+              icon="plus"
+              disabled={saveTemplate.disabled}
+              title={saveTemplate.reason}
+              onClick={saveTemplate.onSave}
+            >
+              지금 예배를 틀로 저장
+            </Button>
+          )
+        }
+        bottomBar={
+          <>
+            <DialogField label="이름">
+              <TextField
+                aria-label="이름"
+                value={state.name}
+                onChange={state.setName}
+              />
+            </DialogField>
+            <DialogField label="날짜">
+              <SelectMenu
+                aria-label="날짜"
+                options={dateChoices(state.today, state.date)}
+                value={state.date}
+                onChange={state.setDate}
+              />
+            </DialogField>
+            <DialogField label="시간">
+              <SelectMenu
+                aria-label="시간"
+                options={timeChoices(state.time)}
+                value={state.time}
+                onChange={state.setTime}
+              />
+            </DialogField>
+          </>
+        }
+      >
+        <SourceTree
+          rows={state.rows}
+          selection={state.selection}
+          onChange={state.setSelection}
+          empty={state.missing ? MISSING : undefined}
         />
-      }
-      asideFoot={
-        saveTemplate === undefined ? undefined : (
-          <Button
-            variant="ghost"
-            icon="plus"
-            disabled={saveTemplate.disabled}
-            title={saveTemplate.reason}
-            onClick={saveTemplate.onSave}
-          >
-            지금 예배를 틀로 저장
-          </Button>
-        )
-      }
-      bottomBar={
-        <>
-          <DialogField label="이름">
-            <TextField
-              aria-label="이름"
-              value={state.name}
-              onChange={state.setName}
-            />
-          </DialogField>
-          <DialogField label="날짜">
-            <SelectMenu
-              aria-label="날짜"
-              options={dateChoices(state.today, state.date)}
-              value={state.date}
-              onChange={state.setDate}
-            />
-          </DialogField>
-          <DialogField label="시간">
-            <SelectMenu
-              aria-label="시간"
-              options={timeChoices(state.time)}
-              value={state.time}
-              onChange={state.setTime}
-            />
-          </DialogField>
-        </>
-      }
-    >
-      <SourceTree
-        rows={state.rows}
-        selection={state.selection}
-        onChange={state.setSelection}
-        empty={state.missing ? MISSING : undefined}
-      />
-    </Dialog>
+      </Dialog>
+      {actions.overlays}
+    </>
   );
 }

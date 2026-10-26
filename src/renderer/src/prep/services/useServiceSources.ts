@@ -195,13 +195,15 @@ export function useSourceLists(api: SourcesApi | undefined) {
 
 /**
  * The chosen source's document: `null` while it loads, and `missing` when
- * it was deleted or couldn't be read. A later choice replaces an earlier read.
+ * it was deleted or couldn't be read. A later choice replaces an earlier read,
+ * and so does a new `version`, such as the list row's name after a rename.
  */
 export function useSourceDocument(
   api: SourcesApi | undefined,
   source: ServiceSource | null,
+  version = '',
 ) {
-  const key = source === null ? null : sourceKey(source);
+  const key = source === null ? null : `${sourceKey(source)} ${version}`;
   // NOTE(0913vision): Each new choice gets the next read number, so a document
   // read for an earlier choice of the same source, as in A, B, then A again,
   // never shows while the new read is on its way.
@@ -237,5 +239,39 @@ export function useSourceDocument(
   return {
     document: current?.document ?? null,
     missing: current !== null && current.document === null,
+  };
+}
+
+/**
+ * The chosen source if the lists still have it, else `fallback`, with the
+ * list row's name and count as the document's `version`. 빈 예배 is always
+ * there.
+ */
+export function listedSource(
+  lists: {
+    readonly templates: readonly TemplateEntry[];
+    readonly services: readonly ServiceEntry[];
+  },
+  chosen: ServiceSource | null,
+  fallback: ServiceSource | null,
+): {readonly source: ServiceSource | null; readonly version: string} {
+  const entryOf = (
+    source: ServiceSource | null,
+  ): TemplateEntry | ServiceEntry | undefined => {
+    if (source === null || source.kind === 'empty') return undefined;
+    return source.kind === 'template'
+      ? lists.templates.find(entry => entry.id === source.id)
+      : lists.services.find(entry => entry.id === source.id);
+  };
+  const kept =
+    chosen !== null &&
+    (chosen.kind === 'empty' || entryOf(chosen) !== undefined)
+      ? chosen
+      : fallback;
+  const entry = entryOf(kept);
+  return {
+    source: kept,
+    version:
+      entry === undefined ? '' : `${entry.name} ${entry.itemCount ?? ''}`,
   };
 }

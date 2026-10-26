@@ -3,6 +3,7 @@ import {Dialog} from '@renderer/ui/Dialog';
 import type {Notice} from '@renderer/ui/notices';
 import {SourceList} from './SourceList';
 import {SourceTree} from './SourceTree';
+import {useSourceActions} from './useSourceActions';
 import {useImportItems} from './useImportItems';
 
 const DIALOG_HEIGHT = 700;
@@ -26,37 +27,42 @@ export function ImportItemsDialog({
     : state.lists.ready && state.source === null
       ? NO_SOURCES
       : undefined;
+  const actions = useSourceActions({onProblem});
   return (
-    <Dialog
-      title="다른 예배에서 가져오기"
-      size="l"
-      height={DIALOG_HEIGHT}
-      onCancel={() => {
-        if (!state.busy) onClose();
-      }}
-      primary={{
-        label: '가져오기',
-        onSelect: state.importItems,
-        disabled: !state.canImport,
-        title: state.reason,
-      }}
-      aside={
-        <SourceList
-          templates={state.templates}
-          services={state.services}
-          selected={state.source}
-          onSelect={state.choose}
-          withEmpty={false}
-          onRetry={state.lists.failed ? state.lists.retry : undefined}
+    <>
+      <Dialog
+        title="다른 예배에서 가져오기"
+        size="l"
+        height={DIALOG_HEIGHT}
+        onCancel={() => {
+          if (!state.busy) onClose();
+        }}
+        primary={{
+          label: '가져오기',
+          onSelect: state.importItems,
+          disabled: !state.canImport,
+          title: state.reason,
+        }}
+        aside={
+          <SourceList
+            templates={state.templates}
+            services={state.services}
+            selected={state.source}
+            onSelect={state.choose}
+            withEmpty={false}
+            onRetry={state.lists.failed ? state.lists.retry : undefined}
+            onRowMenu={actions.openMenu}
+          />
+        }
+      >
+        <SourceTree
+          rows={state.rows}
+          selection={state.selection}
+          onChange={state.setSelection}
+          empty={empty}
         />
-      }
-    >
-      <SourceTree
-        rows={state.rows}
-        selection={state.selection}
-        onChange={state.setSelection}
-        empty={empty}
-      />
-    </Dialog>
+      </Dialog>
+      {actions.overlays}
+    </>
   );
 }

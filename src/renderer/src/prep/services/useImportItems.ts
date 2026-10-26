@@ -4,6 +4,7 @@ import type {Notice} from '@renderer/ui/notices';
 import {asServiceId, editApplied, warningNotice} from './serviceEdits';
 import {selectedIds, treeRows, type TreeSelection} from './serviceTree';
 import {
+  listedSource,
   logFailure,
   sourceKey,
   useSourceDocument,
@@ -47,8 +48,8 @@ export function useImportItems({
       ? null
       : {kind: 'service', id: firstService};
   }, [lists.ready, firstTemplate, firstService]);
-  const source = chosen ?? fallback;
-  const {document, missing} = useSourceDocument(api, source);
+  const {source, version} = listedSource(lists, chosen, fallback);
+  const {document, missing} = useSourceDocument(api, source, version);
   const rows = useMemo(
     () => (document === null ? [] : treeRows(document.order, lists.songTitles)),
     [document, lists.songTitles],

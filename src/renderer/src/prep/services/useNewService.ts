@@ -18,6 +18,7 @@ import {
 } from './serviceTree';
 import {
   EMPTY_SOURCE,
+  listedSource,
   sourceKey,
   useSourceDocument,
   useSourceLists,
@@ -116,8 +117,8 @@ export function useNewService({
       ? EMPTY_SOURCE
       : {kind: 'template', id: firstTemplate};
   }, [lists.ready, firstTemplate]);
-  const source = chosen ?? fallback;
-  const {document, missing} = useSourceDocument(api, source);
+  const {source, version} = listedSource(lists, chosen, fallback);
+  const {document, missing} = useSourceDocument(api, source, version);
   const rows = useMemo(
     () => (document === null ? [] : treeRows(document.order, lists.songTitles)),
     [document, lists.songTitles],

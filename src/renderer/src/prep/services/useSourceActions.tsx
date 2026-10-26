@@ -1,0 +1,228 @@
+import {
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent,
+  type ReactNode,
+} from 'react';
+import type {LlpApi} from '@shared/ipc';
+import {useShow} from '@renderer/state/show';
+import {AlertDialog} from '@renderer/ui/AlertDialog';
+import {Menu} from '@renderer/ui/Menu';
+import type {Notice} from '@renderer/ui/notices';
+import {RenameDialog} from './RenameDialog';
+import {editApplied, settle, warningNotice} from './serviceEdits';
+import type {ServiceSource} from './useServiceSources';
+
+type NamedSource = Exclude<ServiceSource, {readonly kind: 'empty'}>;
+
+/** A 틀 or 예배 순서 row the operator right-clicked, with its list name. */
+export interface SourceRow {
+  readonly source: NamedSource;
+  readonly name: string;
+}
+
+type SourceActionsApi = Pick<
+  LlpApi,
+  'content' | 'services' | 'templates' | 'log'
+>;
+
+const MENU_WIDTH = 200;
+const OPEN_SERVICE = '열린 예배 순서는 삭제할 수 없습니다';
+const problemTitles = {
+  rename: '이름을 바꿀 수 없음',
+  delete: '삭제할 수 없음',
+} as const;
+
+function kindName(source: NamedSource): string {
+  return source.kind === 'template' ? '틀' : '예배 순서';
+}
+
+function kindObject(source: NamedSource): string {
+  return source.kind === 'template' ? '틀을' : '예배 순서를';
+}
+
+// NOTE(0913vision): A rename sends the whole document with the revision it
+// was read at, as every `*.update` does; main refuses it as stale when the
+// document changed in between.
+async function renameSource(
+  api: SourceActionsApi,
+  {source, name}: SourceRow,
+): Promise<boolean> {
+  if (source.kind === 'template') {
+    const document = await settle(api, 'Could not read a 틀', () =>
+      api.templates.get(source.id),
+    );
+    if (document === undefined || document === null) return false;
+    const result = await settle(api, 'Could not rename a 틀', () =>
+      api.content.edit({
+        type: 'template.update',
+        template: {...document.template, name},
+        baseRevision: document.revision,
+      }),
+    );
+    return result !== undefined && editApplied(result);
+  }
+  const document = await settle(api, 'Could not read a service', () =>
+    api.services.get(source.id),
+  );
+  if (document === null || document === undefined) return false;
+  const result = await settle(api, 'Could not rename a service', () =>
+    api.content.edit({
+      type: 'service.update',
+      service: {...document.service, name},
+      baseRevision: document.revision,
+    }),
+  );
+  return result !== undefined && editApplied(result);
+}
+
+async function deleteSource(
+  api: SourceActionsApi,
+  source: NamedSource,
+): Promise<boolean> {
+  const result = await settle(api, 'Could not delete a service source', () =>
+    api.content.edit(
+      source.kind === 'template'
+        ? {type: 'template.delete', templateId: source.id}
+        : {type: 'service.delete', serviceId: source.id},
+    ),
+  );
+  return result !== undefined && editApplied(result);
+}
+
+/**
+ * The right-click menu of the 틀 and 예배 순서 rows in the service dialogs:
+ * 이름 바꾸기 and 삭제, with their dialogs. The open 예배 순서 can't be deleted.
+ * `overlays` renders the menu and the dialog that is open.
+ */
+export function useSourceActions({
+  onProblem,
+}: {
+  readonly onProblem: (notice: Notice) => void;
+}): {
+  readonly openMenu: (event: MouseEvent, row: SourceRow) => void;
+  readonly overlays: ReactNode;
+} {
+  const api = window.llp;
+  const currentId = useShow(view => view.serviceId);
+  const [menu, setMenu] = useState<{
+    readonly row: SourceRow;
+    readonly x: number;
+    readonly y: number;
+  } | null>(null);
+  const [dialog, setDialog] = useState<{
+    readonly kind: 'rename' | 'delete';
+    readonly row: SourceRow;
+  } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const alive = useRef(true);
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
+
+  const run = (
+    action: keyof typeof problemTitles,
+    work: (api: SourceActionsApi) => Promise<boolean>,
+  ): void => {
+    if (api === undefined || busy) return;
+    setBusy(true);
+    work(api)
+      .then(done => {
+        if (!alive.current) return;
+        setBusy(false);
+        if (done) {
+          setDialog(null);
+          return;
+        }
+        onProblem(
+          warningNotice(`source-actions:${action}`, problemTitles[action]),
+        );
+      })
+      .catch((cause: unknown) => {
+        console.error('Failed to finish a service source action:', cause);
+      });
+  };
+
+  // NOTE(0913vision): The rename and delete dialogs stay until their edit
+  // answers, so its result is never dropped.
+  const closeDialog = (): void => {
+    if (!busy) setDialog(null);
+  };
+  const openMenu = (event: MouseEvent, row: SourceRow): void => {
+    event.preventDefault();
+    setMenu({row, x: event.clientX, y: event.clientY});
+  };
+  const isOpen = (row: SourceRow): boolean =>
+    row.source.kind === 'service' && row.source.id === currentId;
+
+  const overlays = (
+    <>
+      {menu === null ? null : (
+        <Menu
+          label={`${menu.row.name} ${kindName(menu.row.source)}`}
+          anchor={{kind: 'point', point: {x: menu.x, y: menu.y}}}
+          width={MENU_WIDTH}
+          onClose={() => setMenu(null)}
+          entries={[
+            {
+              kind: 'item',
+              id: 'rename',
+              label: '이름 바꾸기',
+              icon: 'edit',
+              onSelect: () => {
+                setMenu(null);
+                setDialog({kind: 'rename', row: menu.row});
+              },
+            },
+            {
+              kind: 'item',
+              id: 'delete',
+              label: '삭제',
+              icon: 'trash',
+              danger: true,
+              disabled: isOpen(menu.row),
+              title: isOpen(menu.row) ? OPEN_SERVICE : undefined,
+              onSelect: () => {
+                setMenu(null);
+                setDialog({kind: 'delete', row: menu.row});
+              },
+            },
+          ]}
+        />
+      )}
+      {dialog?.kind === 'rename' ? (
+        <RenameDialog
+          name={dialog.row.name}
+          busy={busy}
+          onCancel={closeDialog}
+          onRename={name =>
+            run('rename', next =>
+              renameSource(next, {source: dialog.row.source, name}),
+            )
+          }
+        />
+      ) : null}
+      {dialog?.kind === 'delete' ? (
+        <AlertDialog
+          icon="trash"
+          title={`‘${dialog.row.name}’ ${kindObject(dialog.row.source)} 삭제할까요?`}
+          onCancel={closeDialog}
+          actions={[
+            {
+              label: '삭제',
+              primary: true,
+              disabled: busy,
+              onSelect: () =>
+                run('delete', next => deleteSource(next, dialog.row.source)),
+            },
+          ]}
+        />
+      ) : null}
+    </>
+  );
+  return {openMenu, overlays};
+}

@@ -1,4 +1,4 @@
-import {useMemo, type JSX} from 'react';
+import {useMemo, type JSX, type MouseEvent, type ReactNode} from 'react';
 import type {
   ServiceEntry,
   TemplateEntry,
@@ -6,6 +6,7 @@ import type {
 import {Button} from '@renderer/ui/Button';
 import {ListBox, ListGroup, ListRow} from '@renderer/ui/ListRow';
 import {dateLabel} from './serviceDates';
+import type {SourceRow} from './useSourceActions';
 import {EMPTY_SOURCE, sourceKey, type ServiceSource} from './useServiceSources';
 import styles from './ServiceDialogs.module.css';
 
@@ -25,18 +26,37 @@ function newestFirst(
   );
 }
 
-function templateSource(entry: TemplateEntry): ServiceSource {
+function templateSource(entry: TemplateEntry): SourceRow['source'] {
   return {kind: 'template', id: entry.id};
 }
 
-function serviceSource(entry: ServiceEntry): ServiceSource {
+function serviceSource(entry: ServiceEntry): SourceRow['source'] {
   return {kind: 'service', id: entry.id};
+}
+
+// NOTE(0913vision): A right click on a row, or the context menu key while it
+// has focus, opens the row's menu; without `onRowMenu` the row stays as is.
+function withMenu(
+  row: SourceRow,
+  onRowMenu: ((event: MouseEvent, row: SourceRow) => void) | undefined,
+  children: ReactNode,
+): ReactNode {
+  if (onRowMenu === undefined) return children;
+  return (
+    <div
+      key={sourceKey(row.source)}
+      onContextMenu={event => onRowMenu(event, row)}
+    >
+      {children}
+    </div>
+  );
 }
 
 /**
  * The sources on the left of the service dialogs: 빈 예배 when `withEmpty`,
  * then the 틀 and the 지난 예배 groups, newest service first. With `onRetry`,
- * a line under the list says a list couldn't be read and offers 다시 시도.
+ * a line under the list says a list couldn't be read and offers 다시 시도;
+ * with `onRowMenu`, a right click on a 틀 or 예배 순서 row opens its menu.
  */
 export function SourceList({
   templates,
@@ -45,6 +65,7 @@ export function SourceList({
   onSelect,
   withEmpty,
   onRetry,
+  onRowMenu,
 }: {
   readonly templates: readonly TemplateEntry[];
   readonly services: readonly ServiceEntry[];
@@ -52,6 +73,9 @@ export function SourceList({
   readonly onSelect: (source: ServiceSource) => void;
   readonly withEmpty: boolean;
   readonly onRetry?: (() => void) | undefined;
+  /** Opens the right-click menu of a 틀 or 예배 순서 row. */
+  readonly onRowMenu?:
+    ((event: MouseEvent, row: SourceRow) => void) | undefined;
 }): JSX.Element {
   const sorted = useMemo(() => newestFirst(services), [services]);
   const sources = useMemo(
@@ -85,31 +109,39 @@ export function SourceList({
         ) : null}
         {templates.length === 0 ? null : (
           <ListGroup label="틀">
-            {templates.map(entry => (
-              <ListRow
-                key={entry.id}
-                value={sourceKey(templateSource(entry))}
-                icon="frame"
-                title={entry.name}
-                sub={countText(entry.itemCount)}
-              />
-            ))}
+            {templates.map(entry =>
+              withMenu(
+                {source: templateSource(entry), name: entry.name},
+                onRowMenu,
+                <ListRow
+                  key={entry.id}
+                  value={sourceKey(templateSource(entry))}
+                  icon="frame"
+                  title={entry.name}
+                  sub={countText(entry.itemCount)}
+                />,
+              ),
+            )}
           </ListGroup>
         )}
         {sorted.length === 0 ? null : (
           <ListGroup label="지난 예배">
-            {sorted.map(entry => (
-              <ListRow
-                key={entry.id}
-                value={sourceKey(serviceSource(entry))}
-                icon="cal"
-                title={entry.name}
-                sub={[
-                  dateLabel(entry.date.slice(0, 10)),
-                  ...countText(entry.itemCount),
-                ]}
-              />
-            ))}
+            {sorted.map(entry =>
+              withMenu(
+                {source: serviceSource(entry), name: entry.name},
+                onRowMenu,
+                <ListRow
+                  key={entry.id}
+                  value={sourceKey(serviceSource(entry))}
+                  icon="cal"
+                  title={entry.name}
+                  sub={[
+                    dateLabel(entry.date.slice(0, 10)),
+                    ...countText(entry.itemCount),
+                  ]}
+                />,
+              ),
+            )}
           </ListGroup>
         )}
       </ListBox>
