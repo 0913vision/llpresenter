@@ -403,6 +403,19 @@ follow the `StageEditor` board.
 
 Version 1 has no 퀵 실행 shortcuts (see 09).
 
+A newly added `timer` item creates its own timer in `timers.json` and saves that
+timer's ID in `.ref`. Two quick rows never share that ID. Adding the timer and
+its row is one applied edit: a refusal creates neither; a persistence failure
+keeps the applied pair in memory and uses the existing save retry mechanism.
+Renaming a timer row updates its `.name` and the referenced timer's `.name`
+together. Other quick item names remain independent (user decision, October 26).
+
+When older quick rows share a timer ID, keep that timer's ID for the first row
+and give each later row a copy with a new timer ID before those rows can run.
+Copy its configuration and unknown fields, and retain the original quick row's
+ID, name and position. Stage picks and other references to the original timer
+keep that ID. Each resulting timer starts stopped on launch, as before.
+
 ### 메시지 templates and stage message presets (`messages.json`)
 
 | Field            | Type                                        | Meaning                                                                                                   | Source                                                 |
@@ -447,6 +460,20 @@ Version 1 has no 퀵 실행 shortcuts (see 09).
 
 Don't save whether a 타이머 is running or how much time is left. That is output
 state (see the recovery record).
+
+The quick timer flow in 04 uses the existing `countdown` shape: `.duration` is
+the entered minutes times 60 plus seconds, a positive whole number for newly
+added quick timers. Each addition creates a new UUID v4 and a name 타이머 1,
+타이머 2, and so on, using an unused number. It never reuses another timer's ID
+or running state, including when durations match. The file keeps the existing
+four timer kinds and the configured duration after a stop/reset. No field or
+schema version changes are needed for these rules.
+
+Names are for display in 퀵 실행, the timer tab and stage pickers. References
+stay ID-based, so 이름 바꾸기 does not break a stage selection or a 소품 token.
+Quick start/reset changes only the referenced timer's live state. Passing zero
+does not rewrite `.duration`: the displayed value continues with a leading "-"
+(user decision from the October 26 check, see 04).
 
 ### 이름표 list (`labels.json`)
 

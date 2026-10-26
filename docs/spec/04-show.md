@@ -408,6 +408,10 @@ after its name, and hides it at 0.
 
 ### 타이머
 
+- Each timer has its own ID, configuration and running state. Starting, stopping
+  or resetting one timer never changes another. 퀵 실행, the timer tab, 소품
+  tokens and the stage timer picker refer to that same timer by ID; the operator
+  sees its name (user decision from the October 26 check).
 - One row per 타이머: an icon, the name and kind ("10:30까지" until 10:30,
   "35분" 35 minutes, "10:30부터" since 10:30, "시계" clock), a large value, 시작
   (start) or 일시 정지 (pause), and 처음으로 (reset). The clock has no buttons.
@@ -448,6 +452,15 @@ after its name, and hides it at 0.
   "hours:minutes:seconds" (proposal).
 - 타이머 keep running regardless of clears. They show in 소품 text and in the
   stage layout's 타이머 element.
+- Adding a timer from 퀵 실행 creates a new fixed-duration countdown after
+  asking for minutes and seconds. Its initial name is 타이머 1, 타이머 2, and so
+  on, using an unused number. The row's 이름 바꾸기 changes that timer's name
+  too, so the 무대 tab and stage layout picker show the renamed timer. Those
+  pickers continue selecting the existing timer; they do not create one.
+- The quick row is a start/reset control: a stopped timer starts at its set
+  duration; clicking a running timer stops it and restores the full duration. It
+  does not pause. The separate timer-tab pause and 처음으로 controls above
+  remain available (user decision from the October 26 check).
 - No board shows where to add or edit a 타이머 (open question). Version 1 has a
   plus button in the tab and a right-click menu on each row (rename, change kind
   and time, delete) (proposal).
@@ -529,20 +542,23 @@ README (count badge).
 - Tool row: the Bible passage field (book icon, placeholder "요 3:16, 창
   1:1-5"). See "Bible passages".
 - List: one row per item, with a kind icon and a name. Rows show no shortcuts.
+- A timer row also shows its current value in place. While stopped, it shows its
+  configured duration; while running, it counts down and keeps counting past
+  zero with a leading "-". The running row keeps its red on-state bar.
 
 ### Clicking an item
 
 Clicking a row runs it at once. A toggle item keeps a red bar at the left of its
 row while it's on. Clicking it again turns it off.
 
-| Kind          | Example in the board              | Clicking it                                                                                                                                                                | Toggle             |
-| ------------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
-| Bible passage | 요한복음 3장 16절                 | Opens the passage in the Bible panel and outputs its first 슬라이드 (proposal).                                                                                            | No                 |
-| Song          | 주 하나님 지으신 모든 세계        | Opens the song in the 슬라이드 panel with the default 구성 and outputs its first 슬라이드 (proposal). Doesn't add it to the 예배 순서 or change the background (proposal). | No                 |
-| Black screen  | 검은 화면                         | Turns on or off a built-in 소품 that covers every audience screen with black (proposal).                                                                                   | Yes                |
-| 소품          | 로고 화면 (logo screen)           | Turns that 소품 on or off.                                                                                                                                                 | Yes                |
-| 타이머        | 시작 카운트다운 (start countdown) | Starts that 타이머, or pauses it if it's running (proposal).                                                                                                               | Yes, while running |
-| 매크로        |                                   | Runs that 매크로 (proposal).                                                                                                                                               | No                 |
+| Kind          | Example in the board       | Clicking it                                                                                                                                                                | Toggle             |
+| ------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| Bible passage | 요한복음 3장 16절          | Opens the passage in the Bible panel and outputs its first 슬라이드 (proposal).                                                                                            | No                 |
+| Song          | 주 하나님 지으신 모든 세계 | Opens the song in the 슬라이드 panel with the default 구성 and outputs its first 슬라이드 (proposal). Doesn't add it to the 예배 순서 or change the background (proposal). | No                 |
+| Black screen  | 검은 화면                  | Turns on or off a built-in 소품 that covers every audience screen with black (proposal).                                                                                   | Yes                |
+| 소품          | 로고 화면 (logo screen)    | Turns that 소품 on or off.                                                                                                                                                 | Yes                |
+| 타이머        | 타이머 1                   | Starts its own timer from the configured duration. Clicking a running timer stops and resets it to that duration (user decision, October 26).                              | Yes, while running |
+| 매크로        |                            | Runs that 매크로 (proposal).                                                                                                                                               | No                 |
 
 - The board's 축도 (benediction, 슬라이드 icon) is read as a short song made in
   the 라이브러리 (proposal, open question).
@@ -555,7 +571,17 @@ No board shows how to add a 퀵 실행 item (open question). Version 1 works lik
 this:
 
 - 퀵 실행 추가 opens a menu: add the item in the 슬라이드 panel (a song or Bible
-  passage), 소품 (submenu), 타이머 (submenu), 매크로 (submenu), 검은 화면.
+  passage), 소품 (submenu), 타이머, 매크로 (submenu), 검은 화면.
+- 타이머 opens a duration dialog with minutes and seconds. Both are whole
+  numbers, minutes are nonnegative, seconds run from 0 to 59, and the total must
+  be positive. An invalid value has the design system error ring and a reason in
+  its tooltip; it blocks adding. Cancel creates nothing.
+- Confirming creates a new `countdown` timer and its quick row together; it
+  never adds a second control for an existing timer. Another addition always
+  creates another timer, even if its duration matches. It uses the name 타이머
+  1, 타이머 2, and so on; 이름 바꾸기 renames the timer and its row together.
+  These replace the earlier existing-timer submenu and pause toggle (user
+  decision from the October 26 check).
 - The operator can also drag song and Bible passage rows from the 예배 순서 into
   퀵 실행.
 - Dragging rows reorders them. The right-click menu has rename and delete.
