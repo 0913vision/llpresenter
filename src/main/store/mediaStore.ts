@@ -71,6 +71,10 @@ export class MediaStore implements MediaLibrary {
   get roots(): readonly string[] {
     return this.library.roots;
   }
+  /** The media folder, where imports copy their files. */
+  get folder(): string {
+    return this.options.mediaFolder;
+  }
   fileOf(mediaId: string): string | null {
     return this.library.fileOf(mediaId);
   }
