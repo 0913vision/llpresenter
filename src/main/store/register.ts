@@ -1,4 +1,5 @@
 import {app, ipcMain} from 'electron';
+import type {FileError} from '@shared/schema/fileFormat';
 import {Channels} from '@shared/ipc';
 import {defaultPreferences} from '@shared/schema/preferences';
 import type {Logger} from '../log';
@@ -28,6 +29,7 @@ import {OpenServiceFeed} from './openServiceFeed';
 import {RecoveryCopies} from './recoveryCopies';
 import {SaveFailures, type SaveFailureSink} from './saveFailures';
 import {registerSaveProblems} from './saveProblems';
+import {SkippedFiles, startSkippedFileProblems} from './skippedFiles';
 import {Saver} from './saver';
 import {removeStaleTempFiles} from './staleTempFiles';
 import {settingsNames} from '@shared/schema/settingsDocuments';
@@ -110,6 +112,8 @@ export function registerStore({
   const loading = readStore(() => ({...context(), appConfig}), log);
   const saveFailures = new SaveFailures({log});
   const removeSaveProblems = registerSaveProblems(saveFailures, problems, log);
+  const skippedFiles = new SkippedFiles(log);
+  const removeSkippedFiles = problems.addStanding(() => skippedFiles.list());
   const settings = loading
     .then(store =>
       store === null ? null : openSettingsStore(store, log, saveFailures),
@@ -160,6 +164,17 @@ export function registerStore({
       return readyContent.content.renameLabel(readySettings, edit);
     },
   );
+  const stopSkippedFiles = startSkippedFileProblems({
+    skipped: skippedFiles,
+    sources: {
+      settings: settingsChannels.subscribe,
+      content: loading.then(store =>
+        store === null ? [] : contentProblems(store),
+      ),
+    },
+    announce: problem => problems.push(problem),
+    log,
+  });
   const settingsAccess = createSettingsAccess(settings, log);
   const lookSelection = createLookSelection(settings, log);
   const serviceChannels = registerServiceChannels(opened, appConfig, log);
@@ -212,6 +227,8 @@ export function registerStore({
       } finally {
         ready?.search.clear();
         ready?.content.dispose();
+        stopSkippedFiles();
+        removeSkippedFiles();
         removeSaveProblems();
         saveFailures.dispose();
       }
@@ -421,6 +438,19 @@ async function backUpAtLaunch(
   }
 }
 
+/**
+ * The songs, 예배 순서, 틀, labels, and preferences files skipped at startup,
+ * without the settings and media files that the settings problem feed reports.
+ */
+function contentProblems(store: LoadedStore): readonly FileError[] {
+  return store.problems.filter(
+    problem =>
+      ![...settingsNames, 'media'].some(
+        name => settingsLocation(store.locations, name).file === problem.file,
+      ),
+  );
+}
+
 function logLoadedStore(store: LoadedStore, log: Logger): void {
   log.info('read the data folder', {
     dataRoot: store.locations.dataRoot,
@@ -428,12 +458,7 @@ function logLoadedStore(store: LoadedStore, log: Logger): void {
     services: store.services.size,
     openServiceId: store.openServiceId,
   });
-  const problems = store.problems.filter(
-    problem =>
-      ![...settingsNames, 'media'].some(
-        name => settingsLocation(store.locations, name).file === problem.file,
-      ),
-  );
+  const problems = contentProblems(store);
   for (const problem of problems.slice(0, MAX_LOGGED_PROBLEMS)) {
     log.warn('skipped a data file or a part of one', problem);
   }

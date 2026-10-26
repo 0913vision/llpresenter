@@ -9,6 +9,7 @@ import {
   onTestFinished,
   vi,
 } from 'vitest';
+import type {AppProblem} from '@shared/schema/appProblem';
 import {Channels} from '@shared/ipc';
 import {parseEditResult} from '@shared/schema/contentEdit';
 import {parseSong} from '@shared/schema/song';
@@ -79,6 +80,12 @@ vi.mock('electron', () => ({
     },
   },
 }));
+
+function byName(a: AppProblem, b: AppProblem): number {
+  const name = (problem: AppProblem): string =>
+    'name' in problem ? problem.name : '';
+  return name(a).localeCompare(name(b));
+}
 
 function fakeProblems() {
   return {report: vi.fn(), push: vi.fn(), addStanding: () => () => undefined};
@@ -1282,6 +1289,53 @@ describe('registerStore', () => {
         }),
       ],
     ]);
+  });
+
+  it('lists and pushes the files skipped at startup, settings and content, once each', async () => {
+    const context = await developmentContext();
+    const root = join(context.appDataFolder, DATA_FOLDER_NAME);
+    await writeJson(join(root, '곡', 'broken.llsong'), '{"format": ');
+    await writeJson(join(root, '설정', 'looks.json'), '{broken looks');
+    const sources: Array<() => readonly AppProblem[]> = [];
+    const push = vi.fn<(problem: AppProblem) => void>();
+    const store = registerStore({
+      problems: {
+        report: vi.fn(),
+        push,
+        addStanding: source => {
+          sources.push(source);
+          return () => undefined;
+        },
+      },
+      log: fakeLog(),
+      isAnyOutputOn: () => false,
+      appConfig: await openAppConfig({
+        file: join(context.appDataFolder, 'app.json'),
+        log: fakeLog(),
+      }),
+      context: () => ({
+        developmentFolder: context.developmentFolder,
+        documents: context.documents,
+      }),
+    });
+    disposers.push(store.dispose);
+    await askForService();
+    await ask(Channels.settingsGet, {name: 'looks'});
+    const skipped = (): readonly AppProblem[] =>
+      sources
+        .flatMap(source => source())
+        .filter(problem => problem.kind === 'file-skipped');
+    const expected = [
+      {kind: 'file-skipped', name: 'broken.llsong'},
+      {kind: 'file-skipped', name: 'looks.json'},
+    ];
+
+    await vi.waitFor(() =>
+      expect([...skipped()].sort(byName)).toEqual(expected),
+    );
+    expect(push.mock.calls.map(([problem]) => problem).sort(byName)).toEqual(
+      expected,
+    );
   });
 
   it('logs at most 50 problems and counts the rest', async () => {
