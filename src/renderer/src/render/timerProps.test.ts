@@ -16,6 +16,7 @@ import {OutputRenderer} from './outputRenderer';
 
 const SERMON = overlayUuid(95);
 const GONE = overlayUuid(96);
+const PLAIN = overlayUuid(97);
 const TIMER_START = 5_000_000;
 const WALL_START = new Date(2026, 9, 26, 10, 0, 0).getTime();
 const screen = {id: MAIN, kind: 'audience'} as const;
@@ -40,7 +41,14 @@ function sermonTimer(): readonly Timer[] {
   return parsed.value.data.timers;
 }
 
-function stateWith(text: string, runs: object) {
+function stateWith(
+  text: string,
+  runs: object,
+  {
+    style = TEXT_STYLE,
+    others = [],
+  }: {readonly style?: object; readonly others?: readonly object[]} = {},
+) {
   const parsed = parseLiveState({
     ...emptyLiveState(),
     timers: runs,
@@ -51,9 +59,10 @@ function stateWith(text: string, runs: object) {
         items: [
           {
             propId: PROP,
-            content: {kind: 'text', text, style: TEXT_STYLE},
+            content: {kind: 'text', text, style},
             targets: [MAIN],
           },
+          ...others,
         ],
       },
     },
@@ -97,7 +106,7 @@ function setup() {
     parent.querySelector<HTMLElement>(
       `[data-layer="prop"] .${classes.page}.${classes.shown}`,
     );
-  return {renderer, render, shown};
+  return {renderer, render, shown, parent};
 }
 
 beforeEach(() => {
@@ -127,6 +136,40 @@ describe('타이머 tokens in 소품 text', () => {
     expect(page?.textContent).toBe('설교 0:59');
     advance(30_000);
     expect(page?.textContent).toBe('설교 0:29');
+    renderer.dispose();
+  });
+
+  it('keeps each text 소품 style while the ticker redraws them', () => {
+    const {renderer, render, parent} = setup();
+    const custom = {...TEXT_STYLE, color: '#FFD400', align: 'left', margin: 3};
+    const plain = {...TEXT_STYLE, color: '#00C2FF'};
+    const state = stateWith(`설교 {timer:${SERMON}}`, running, {
+      style: custom,
+      others: [
+        {
+          propId: PLAIN,
+          content: {kind: 'text', text: '헌금', style: plain},
+          targets: [MAIN],
+        },
+      ],
+    });
+    render(state.layers, state.timers);
+    const blocks = () =>
+      [
+        ...parent.querySelectorAll<HTMLElement>(
+          `[data-layer="prop"] .${classes.page}.${classes.shown} .${classes.block}`,
+        ),
+      ].map(({style, textContent}) => [textContent, style.color]);
+    const before = blocks();
+    advance(1000);
+    expect(blocks()).toEqual([
+      ['설교 0:59', before[0]?.[1]],
+      ['헌금', before[1]?.[1]],
+    ]);
+    expect(before.map(([, color]) => color)).toEqual([
+      'rgb(255, 212, 0)',
+      'rgb(0, 194, 255)',
+    ]);
     renderer.dispose();
   });
 

@@ -26,7 +26,6 @@ interface PropView {
   readonly text: OverlayTextView;
   readonly image: OverlayImageView;
   id: string | null;
-  /** The 소품 text with its `{timer:<id>}` tokens, while text shows. */
   template: string | null;
 }
 
