@@ -43,13 +43,13 @@ the identity alone. No source, command or playback field changes meaning.
 - [x] No new resource, dependency or growing collection
 - [ ] GitHub head verify passes (see request message)
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: pending
-
-## Review: reviewer
-
-- Verdict: pending
+- Round 1 (eac79289): reviewer (Codex) Approve. Lead Approve; audio track
+  identities no longer follow live-state versions that a batch compresses, so
+  two plays in one batch can't share an identity. Merged after m3-check3;
+  rebased by the lead onto local `main` after ui-45 without conflicts; typecheck
+  passes.
 
 ## Team member's reply
 
