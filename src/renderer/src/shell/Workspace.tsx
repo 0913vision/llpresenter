@@ -52,6 +52,8 @@ import {OutputPreview} from '@renderer/screens/OutputPreview';
 import {ScreenList} from '@renderer/screens/ScreenList';
 import {ScreenProperties} from '@renderer/screens/ScreenProperties';
 import {LookList, StageLayoutList} from '@renderer/screens/LookLists';
+import {LookEditor} from '@renderer/screens/looks/LookEditor';
+import {useScreensSelection} from '@renderer/screens/selection';
 import {classNames} from '@renderer/ui/classNames';
 import type {Notice} from '@renderer/ui/notices';
 import {ColumnGap} from './ColumnGap';
@@ -233,6 +235,8 @@ function screensPanelParts(
       return {body: <ScreenList onProblem={onProblem} />};
     case 'Look':
       return {embedded: <LookList onProblem={onProblem} />};
+    case 'Look 편집':
+      return {embedded: <LookEditor onProblem={onProblem} />};
     case '무대 배치':
       return {body: <StageLayoutList onProblem={onProblem} />};
     case '배치':
@@ -427,6 +431,9 @@ export function Workspace({
   readonly sidebar?: SidebarCollapse | undefined;
 }): JSX.Element {
   const {gridRef, drag} = useColumnLayout(sizeClass, store);
+  const lookEditing = useScreensSelection(
+    view => id === 'screens' && view.selection.kind === 'look',
+  );
   const [bibleSelection, setBibleSelection] = useState(0);
   const bibleOpen = useShow(
     view => id === 'show' && isBibleSource(view, view.openItemId),
@@ -442,7 +449,9 @@ export function Workspace({
       : panelsByWorkspace[id];
   const api = mediaApi ?? prep?.api ?? window.llp;
   const mediaOpen = id !== 'screens' && mediaVisible;
-  const columns = prepColumns;
+  const columns = lookEditing
+    ? [panelsByWorkspace.screens[0], ['Look 편집']]
+    : prepColumns;
   const partsOf = (title: string): PanelParts => {
     if (title === '예배 순서' && id !== 'screens') {
       return serviceOrderParts({
@@ -473,7 +482,7 @@ export function Workspace({
       <div
         className={styles.column}
         style={
-          column === 2 && warningHeight > 0
+          column === columns.length - 1 && warningHeight > 0
             ? {paddingTop: `calc(${warningHeight}px + var(--panel-gap))`}
             : undefined
         }
@@ -503,6 +512,7 @@ export function Workspace({
           styles.columns,
           toggle.collapsed && styles.leftCollapsed,
           id === 'screens' && styles.screenSettings,
+          lookEditing && styles.lookEditing,
         )}
       >
         {panelColumns}

@@ -1,0 +1,51 @@
+.panel {
+  height: 100%;
+}
+
+.body {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(100%, var(--col-left)), 1fr)
+  );
+  gap: var(--space-14);
+}
+
+.card {
+  min-width: 0;
+  padding: var(--space-12);
+  border-radius: var(--radius-lg);
+  background: var(--bg-inset);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  font: var(--type-body-strong);
+  color: var(--text);
+}
+
+.target {
+  margin: var(--space-4) 0 var(--space-8);
+  font: var(--type-caption);
+  color: var(--text-2);
+}
+
+.preview {
+  aspect-ratio: var(--aspect-output);
+  margin-bottom: var(--space-8);
+}
+
+.layer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  min-height: var(--size-row);
+}

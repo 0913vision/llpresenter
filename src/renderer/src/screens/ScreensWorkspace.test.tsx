@@ -54,6 +54,8 @@ function readDocument(name: string): Promise<SettingsDocument> {
       return Promise.resolve(
         settingsDocument('macros', {macros: [], collections: []}),
       );
+    case 'timers':
+      return Promise.resolve(settingsDocument('timers', {timers: []}));
     default:
       return Promise.reject(new Error(`Unexpected settings read: ${name}`));
   }
@@ -64,11 +66,13 @@ function setup({
   outputs = {[MAIN_ID]: true},
   read = readDocument,
   monitors = [],
+  warningHeight = 0,
 }: {
   readonly statuses?: OutputStatuses;
   readonly outputs?: Readonly<Record<string, boolean>>;
   readonly read?: (name: string) => Promise<SettingsDocument>;
   readonly monitors?: MonitorList;
+  readonly warningHeight?: number;
 } = {}) {
   const settingsListeners = new Set<(document: SettingsDocument) => void>();
   let pushStatus: (next: OutputStatuses) => void = () => undefined;
@@ -102,6 +106,7 @@ function setup({
       sizeClass="normal"
       store={createMemoryColumnWidthStore()}
       onProblem={onProblem}
+      warningHeight={warningHeight}
     />,
   );
   return {
@@ -139,7 +144,27 @@ function selectedOf(name: string): string | null {
 }
 
 describe('the 화면 list', () => {
-  it.each(['설교', '현재와 다음'])(
+  it('opens the selected Look editor and keeps output warnings above its column', async () => {
+    setup({warningHeight: 96});
+    await screen.findByRole('option', {name: '설교'});
+    await userEvent.click(option('설교'));
+    const editor = await screen.findByRole('region', {name: 'Look 편집'});
+    expect(
+      screen.getByRole('textbox', {name: 'Look 이름'}).getAttribute('value'),
+    ).toBe('설교');
+    expect(within(editor).getByRole('region', {name: '본 화면'})).toBeDefined();
+    expect(
+      within(editor).getByRole('region', {name: '방송 자막'}),
+    ).toBeDefined();
+    expect(
+      within(editor).getByRole('region', {name: '무대 화면'}),
+    ).toBeDefined();
+    expect(screen.queryByRole('region', {name: '속성'})).toBeNull();
+    expect(
+      editor.closest('[style*="padding-top"]')?.getAttribute('style'),
+    ).toContain('96px');
+  });
+  it.each(['현재와 다음'])(
     'keeps the retained-screen pattern while committing a correction from %s',
     async label => {
       const {send} = setup();
@@ -183,11 +208,11 @@ describe('the 화면 list', () => {
       ]);
     },
   );
-  it('retains the screen view when the workspace remounts with a Look selected', async () => {
+  it('retains the screen view when the workspace remounts with a layout selected', async () => {
     const {view} = setup();
     await screen.findByRole('option', {name: '방송 자막'});
     await userEvent.click(option('방송 자막'));
-    await userEvent.click(option('설교'));
+    await userEvent.click(option('현재와 다음'));
     view.unmount();
     setup();
     await screen.findByRole('option', {name: '방송 자막'});
@@ -196,9 +221,9 @@ describe('the 화면 list', () => {
         screen.getByRole('textbox', {name: '이름'}).getAttribute('value'),
       ).toBe('방송 자막'),
     );
-    expect(useScreensSelection.getState().selection.kind).toBe('look');
+    expect(useScreensSelection.getState().selection.kind).toBe('stage');
   });
-  it.each(['설교', '현재와 다음'])(
+  it.each(['현재와 다음'])(
     'retains the chosen screen view while selecting %s',
     async label => {
       setup();
