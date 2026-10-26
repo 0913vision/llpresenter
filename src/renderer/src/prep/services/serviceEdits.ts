@@ -1,7 +1,9 @@
+import type {LlpApi} from '@shared/ipc';
 import type {EditResult} from '@shared/schema/contentEdit';
 import {serviceIdSchema, type ServiceId} from '@shared/schema/ids';
 import {parsePayload} from '@shared/schema/payload';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {logFailure} from './useServiceSources';
 
 /**
  * Whether an edit took effect. A failed save still did: main keeps the edit
@@ -29,4 +31,21 @@ export function asServiceId(id: string | null): ServiceId | null {
 /** A warning card from the service dialogs, such as 새 예배를 만들 수 없음. */
 export function warningNotice(key: string, title: string): Notice {
   return {key, kind: 'warning', icon: 'warning', title, time: noticeTime()};
+}
+
+/**
+ * Runs one step of a flow. A rejected call is logged with `what` and answers
+ * `undefined`, so each step can tell its own failure apart.
+ */
+export async function settle<T>(
+  api: Pick<LlpApi, 'log'>,
+  what: string,
+  run: () => Promise<T>,
+): Promise<T | undefined> {
+  try {
+    return await run();
+  } catch (cause) {
+    logFailure(api, what, cause);
+    return undefined;
+  }
 }

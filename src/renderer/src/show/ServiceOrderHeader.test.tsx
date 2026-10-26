@@ -107,6 +107,7 @@ describe('ServiceOrderHeader', () => {
       expect.stringContaining('저녁 예배'),
       '새 예배',
       '다른 예배에서 가져오기',
+      '지금 예배를 틀로 저장',
     ]);
     for (const name of ['새 예배', '다른 예배에서 가져오기']) {
       if (screen.queryByRole('menu') === null) {
@@ -126,7 +127,7 @@ describe('ServiceOrderHeader', () => {
     }
   });
 
-  it('offers 다른 예배에서 가져오기 only with a service open', async () => {
+  it('offers 가져오기 and 틀로 저장 only with a service open', async () => {
     window.llp = fakeLlpApi();
     render(<ServiceOrderHeader />);
     act(() => applyService(null));
@@ -136,6 +137,11 @@ describe('ServiceOrderHeader', () => {
     expect(
       screen
         .getByRole('menuitem', {name: '다른 예배에서 가져오기'})
+        .getAttribute('aria-disabled'),
+    ).toBe('true');
+    expect(
+      screen
+        .getByRole('menuitem', {name: '지금 예배를 틀로 저장'})
         .getAttribute('aria-disabled'),
     ).toBe('true');
     expect(

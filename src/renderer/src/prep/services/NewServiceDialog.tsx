@@ -1,4 +1,5 @@
 import type {JSX} from 'react';
+import {Button} from '@renderer/ui/Button';
 import {Dialog, DialogField} from '@renderer/ui/Dialog';
 import type {Notice} from '@renderer/ui/notices';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
@@ -19,9 +20,18 @@ const MISSING = '예배 순서를 읽을 수 없습니다';
 export function NewServiceDialog({
   onClose,
   onProblem,
+  saveTemplate,
 }: {
   readonly onClose: () => void;
   readonly onProblem: (notice: Notice) => void;
+  /** 지금 예배를 틀로 저장 under the source list, when given. */
+  readonly saveTemplate?:
+    | {
+        readonly disabled: boolean;
+        readonly reason?: string | undefined;
+        readonly onSave: () => void;
+      }
+    | undefined;
 }): JSX.Element {
   const state = useNewService({onProblem, onDone: onClose});
   return (
@@ -47,6 +57,19 @@ export function NewServiceDialog({
           withEmpty
           onRetry={state.lists.failed ? state.lists.retry : undefined}
         />
+      }
+      asideFoot={
+        saveTemplate === undefined ? undefined : (
+          <Button
+            variant="ghost"
+            icon="plus"
+            disabled={saveTemplate.disabled}
+            title={saveTemplate.reason}
+            onClick={saveTemplate.onSave}
+          >
+            지금 예배를 틀로 저장
+          </Button>
+        )
       }
       bottomBar={
         <>

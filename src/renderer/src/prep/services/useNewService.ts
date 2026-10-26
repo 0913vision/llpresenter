@@ -7,6 +7,7 @@ import {
   appliedId,
   asServiceId,
   editApplied,
+  settle,
   warningNotice,
 } from './serviceEdits';
 import {
@@ -17,7 +18,6 @@ import {
 } from './serviceTree';
 import {
   EMPTY_SOURCE,
-  logFailure,
   sourceKey,
   useSourceDocument,
   useSourceLists,
@@ -38,21 +38,6 @@ type NewServiceApi = Pick<
   LlpApi,
   'content' | 'service' | 'services' | 'templates' | 'songs' | 'log'
 >;
-
-// NOTE(0913vision): A rejected call is logged and answers `undefined`, so each
-// step of a create can tell its own failure apart.
-async function settle<T>(
-  api: NewServiceApi,
-  what: string,
-  run: () => Promise<T>,
-): Promise<T | undefined> {
-  try {
-    return await run();
-  } catch (cause) {
-    logFailure(api, what, cause);
-    return undefined;
-  }
-}
 
 function currentHour(): string {
   return `${String(new Date().getHours()).padStart(2, '0')}:00`;
