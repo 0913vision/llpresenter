@@ -29,8 +29,12 @@ export interface MediaAnalysis {
   readonly analyse: (request: AnalysisRequest) => Promise<Analysis>;
   /** A media item's thumbnail file, for the media scheme. */
   readonly thumbnailOf: (mediaId: string) => Promise<string | null>;
-  /** Keeps the thumbnail an import made. */
-  readonly saveThumbnail: (mediaId: MediaId, jpeg: Uint8Array) => Promise<void>;
+  /** Keeps the thumbnail an import made from a file, while the item has it. */
+  readonly saveThumbnail: (
+    mediaId: MediaId,
+    jpeg: Uint8Array,
+    file: string,
+  ) => Promise<void>;
   /** Stops following the media list and closes the analysis page. */
   readonly dispose: () => void;
 }
@@ -64,7 +68,8 @@ export function startMediaAnalysis({
     lentFile: token => files.fileOf(token),
     analyse: request => analyser.analyse(request),
     thumbnailOf: mediaId => thumbnails.thumbnailOf(mediaId),
-    saveThumbnail: (mediaId, jpeg) => thumbnails.save(mediaId, jpeg),
+    saveThumbnail: (mediaId, jpeg, file) =>
+      thumbnails.save(mediaId, jpeg, file),
     dispose: () => {
       thumbnails.dispose();
       analyser.dispose();

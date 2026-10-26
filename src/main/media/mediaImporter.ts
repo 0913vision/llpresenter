@@ -58,7 +58,11 @@ export interface MediaImporterOptions {
   /** Reads a placed file's duration, size, and thumbnail, and whether it can play. */
   readonly analyse: (request: AnalysisRequest) => Promise<Analysis>;
   /** Keeps the thumbnail of a file that joined the media list. */
-  readonly saveThumbnail: (mediaId: MediaId, jpeg: Uint8Array) => Promise<void>;
+  readonly saveThumbnail: (
+    mediaId: MediaId,
+    jpeg: Uint8Array,
+    file: string,
+  ) => Promise<void>;
   readonly log: Logger;
   readonly copy?: (options: CopyOptions) => ReturnType<typeof copyWithProgress>;
   /** Whether imports copy into the media folder; {@link COPY_IMPORTED_MEDIA} by default. */
@@ -296,7 +300,11 @@ export class MediaImporter {
     const facts = analysis.kind === 'read' ? analysis.facts : {};
     const outcome = await this.admit(job, store, {placed, facts});
     if (outcome === COMPLETE && facts.thumbnail !== undefined) {
-      await this.options.saveThumbnail(job.mediaId, facts.thumbnail);
+      await this.options.saveThumbnail(
+        job.mediaId,
+        facts.thumbnail,
+        placed.file,
+      );
     }
     return outcome;
   }

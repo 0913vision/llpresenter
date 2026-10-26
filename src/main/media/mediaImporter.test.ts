@@ -20,6 +20,7 @@ import {EMPTY_MEDIA_LIST} from '../store/defaults';
 import {MediaStore, type MediaItemsCommit} from '../store/mediaStore';
 import type {CopyOptions} from './copyFile';
 import type {Analysis, AnalysisRequest} from './mediaAnalyser';
+import {Thumbnails} from './thumbnails';
 import {
   IMPORTED_VIDEO_SOUND,
   MAX_IMPORT_JOBS,
@@ -65,7 +66,7 @@ async function setup(options: Partial<MediaImporterOptions> = {}) {
     Promise.resolve({kind: 'read', facts: {}}),
   );
   const saveThumbnail = vi.fn<
-    (mediaId: MediaId, jpeg: Uint8Array) => Promise<void>
+    (mediaId: MediaId, jpeg: Uint8Array, file: string) => Promise<void>
   >(() => Promise.resolve());
   const log = recordingLogger();
   const importer = new MediaImporter({
@@ -423,6 +424,7 @@ describe('media import boundaries', () => {
     expect(saveThumbnail).toHaveBeenCalledExactlyOnceWith(
       uuid(1),
       Buffer.from([1]),
+      join(media, 'Dawn.mp4'),
     );
   });
 
@@ -483,5 +485,72 @@ describe('media import boundaries', () => {
     expect(reports.at(-1)).toMatchObject({phase: 'cancelled'});
     expect(items).toEqual([]);
     expect(await readdir(media)).toEqual([]);
+  });
+
+  it('keeps no thumbnail for an item relinked while its admission was still saving', async () => {
+    const kept = new Map<string, Uint8Array>();
+    const cache = {
+      fileOf: () => Promise.resolve(null),
+      put: (id: MediaId, jpeg: Uint8Array) => {
+        kept.set(id, jpeg);
+        return Promise.resolve<string | null>(`cache/${id}`);
+      },
+      remove: (id: MediaId) => {
+        kept.delete(id);
+        return Promise.resolve();
+      },
+    };
+    const listed = {file: ''};
+    let saved: (result: MediaEditResult) => void = () => undefined;
+    const {importer, reports, analyse, add, media, source} = await setup({
+      saveThumbnail: (mediaId, jpeg, file) =>
+        thumbnails.save(mediaId, jpeg, file),
+    });
+    const thumbnails = new Thumbnails({
+      cache,
+      analyse,
+      source: Promise.resolve({
+        get: () =>
+          expectSuccess(
+            parseMediaDocument({
+              name: 'media',
+              revision: 2,
+              access: 'editable',
+              value: {
+                ...EMPTY_MEDIA_LIST,
+                items: [
+                  {
+                    id: uuid(1),
+                    name: 'Dawn',
+                    kind: 'video',
+                    file: 'x',
+                    size: 1,
+                  },
+                ],
+              },
+            }),
+          ),
+        fileOf: () => listed.file,
+        subscribe: () => () => undefined,
+      }),
+      log: recordingLogger(),
+    });
+    analyse.mockResolvedValue({
+      kind: 'read',
+      facts: {thumbnail: Uint8Array.from([1])},
+    });
+    add.mockImplementation(
+      () =>
+        new Promise(resolve => {
+          listed.file = join(media, 'Dawn.mp4');
+          saved = resolve;
+        }),
+    );
+    await importer.import(filesOf([await source('Dawn.mp4')]), signal());
+    await vi.waitFor(() => expect(add).toHaveBeenCalledOnce());
+    listed.file = 'D:/found/Dawn.mp4';
+    saved({ok: true, value: {id: uuid(1), revision: 2}});
+    await ended(reports, 1);
+    expect(kept.size).toBe(0);
   });
 });

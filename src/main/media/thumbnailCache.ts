@@ -3,6 +3,7 @@ import {join} from 'node:path';
 import {parseMediaId, type MediaId} from '@shared/schema/ids';
 import type {Logger} from '../log';
 import {writeFileAtomically} from '../store/atomicWrite';
+import {fileExists} from './missingFiles';
 
 /** How many thumbnails the cache keeps; the least recently used go first. */
 export const MAX_CACHED_THUMBNAILS = 2_000;
@@ -37,13 +38,19 @@ export class ThumbnailCache {
 
   constructor(private readonly options: ThumbnailCacheOptions) {}
 
-  /** The thumbnail's file, or null when there is none. */
+  /**
+   * The thumbnail's file, or null when there is none. A file deleted since it
+   * was kept, such as with the cache folder, leaves the cache, so the
+   * thumbnail is made again.
+   */
   async fileOf(mediaId: MediaId): Promise<string | null> {
     await this.load();
     if (!this.entries.has(mediaId)) return null;
+    const file = this.pathOf(mediaId);
     this.entries.delete(mediaId);
+    if (!(await fileExists(file))) return null;
     this.entries.add(mediaId);
-    return this.pathOf(mediaId);
+    return file;
   }
 
   /** Keeps a thumbnail. @returns Its file, or null when it can't be written. */

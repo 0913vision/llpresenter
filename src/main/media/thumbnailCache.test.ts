@@ -1,4 +1,11 @@
-import {mkdir, readdir, readFile, utimes, writeFile} from 'node:fs/promises';
+import {
+  mkdir,
+  readdir,
+  readFile,
+  rm,
+  utimes,
+  writeFile,
+} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
 import {makeTempDir} from '../../../test/temp-dir';
@@ -81,5 +88,14 @@ describe('thumbnail cache', () => {
     });
     expect(await cache.put(mediaId(1), JPEG)).toBeNull();
     expect(log.messages('warn')).toContain('could not keep a thumbnail');
+  });
+
+  it('forgets a thumbnail whose file was deleted, so it is made again', async () => {
+    const {folder, cache} = await setup();
+    const file = await cache.put(mediaId(1), JPEG);
+    await rm(folder, {recursive: true, force: true});
+    expect(await cache.fileOf(mediaId(1))).toBeNull();
+    expect(await cache.put(mediaId(1), JPEG)).toBe(file);
+    expect(await cache.fileOf(mediaId(1))).toBe(file);
   });
 });

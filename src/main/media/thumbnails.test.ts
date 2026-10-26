@@ -187,10 +187,41 @@ describe('media thumbnails', () => {
   it('saves an import thumbnail, and stops following the list on dispose', async () => {
     const {thumbnails, kept, listeners} = setup();
     await thumbnails.start();
-    await thumbnails.save(VIDEO, JPEG);
+    await thumbnails.save(VIDEO, JPEG, 'D:/media/dawn.mp4');
     expect(kept.get(VIDEO)).toEqual(JPEG);
     thumbnails.dispose();
     expect(listeners.size).toBe(0);
     expect(await thumbnails.thumbnailOf(VIDEO)).toBeNull();
+  });
+
+  it('accepts a cached thumbnail only for a current item with a picture and an accepted path', async () => {
+    const OTHER = mediaId(5);
+    const {thumbnails, kept, analyse} = setup(
+      new Map([
+        [VIDEO, {kind: 'video', file: 'D:/media/dawn.mp4'}],
+        [SONG, {kind: 'audio', file: 'D:/media/hymn.mp3'}],
+        [mediaId(4), {kind: 'image', file: null}],
+      ]),
+    );
+    for (const id of [VIDEO, SONG, mediaId(4), OTHER]) kept.set(id, JPEG);
+    expect(await thumbnails.thumbnailOf(SONG)).toBeNull();
+    expect(await thumbnails.thumbnailOf(mediaId(4))).toBeNull();
+    expect(await thumbnails.thumbnailOf(OTHER)).toBeNull();
+    expect(await thumbnails.thumbnailOf(VIDEO)).toBe(`cache/${VIDEO}.jpg`);
+    expect(analyse).not.toHaveBeenCalled();
+  });
+
+  it('saves an import thumbnail only for the file it was made from, also while it is written', async () => {
+    const {thumbnails, kept, cache, change} = setup();
+    await thumbnails.save(VIDEO, JPEG, 'D:/media/older.mp4');
+    expect(kept.size).toBe(0);
+    cache.put.mockImplementationOnce((id: MediaId, jpeg: Uint8Array) => {
+      kept.set(id, jpeg);
+      change(new Map([[VIDEO, {kind: 'video', file: 'D:/found/dawn.mp4'}]]));
+      return Promise.resolve(`cache/${id}.jpg`);
+    });
+    await thumbnails.save(VIDEO, JPEG, 'D:/media/dawn.mp4');
+    expect(kept.size).toBe(0);
+    expect(cache.remove).toHaveBeenCalledWith(VIDEO);
   });
 });
