@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {
   APP_PROBLEM_LIMITS,
+  fileSkippedProblem,
   macroDroppedProblem,
   parseAppProblem,
   parseAppProblems,
@@ -68,7 +69,13 @@ describe('app problem payloads', () => {
     null,
     [],
     'macro-dropped',
-    {kind: 'file-skipped', macroId: MACRO_ID, name: 'x'},
+    {kind: 'disk-full', macroId: MACRO_ID, name: 'x'},
+    {kind: 'file-skipped'},
+    {kind: 'file-skipped', name: ''},
+    {
+      kind: 'file-skipped',
+      name: 'x'.repeat(APP_PROBLEM_LIMITS.nameCharacters + 1),
+    },
     {kind: 'macro-dropped', macroId: 'not-a-uuid', name: 'x'},
     {kind: 'macro-dropped', macroId: MACRO_ID},
     {kind: 'macro-dropped', macroId: MACRO_ID, name: 7},
@@ -112,5 +119,30 @@ describe('app problem payloads', () => {
     expect(long.name).toHaveLength(APP_PROBLEM_LIMITS.nameCharacters - 1);
     expect(long.name.startsWith('x😀')).toBe(true);
     expect(parseAppProblem(long)).toEqual({ok: true, value: long});
+  });
+});
+
+describe('fileSkippedProblem', () => {
+  it.each([
+    ['D:\\예배 데이터\\곡\\a1.llsong', 'a1.llsong'],
+    ['/data/settings/screens.json', 'screens.json'],
+    ['looks.json', 'looks.json'],
+  ])('names %s by its file name %s', (file, name) => {
+    const problem = fileSkippedProblem(file);
+    expect(problem).toEqual({kind: 'file-skipped', name});
+    expect(parseAppProblem(problem).ok).toBe(true);
+  });
+
+  it('cuts a long file name at a whole character within the limit', () => {
+    const name = `${'가'.repeat(APP_PROBLEM_LIMITS.nameCharacters)}.json`;
+    const problem = fileSkippedProblem(`C:\\data\\${name}`);
+    expect(problem.name).toBe('가'.repeat(APP_PROBLEM_LIMITS.nameCharacters));
+    expect(parseAppProblem(problem).ok).toBe(true);
+  });
+
+  it('reads a file problem and strips unknown fields', () => {
+    expect(
+      parseAppProblem({kind: 'file-skipped', name: 'looks.json', file: 'x'}),
+    ).toEqual({ok: true, value: {kind: 'file-skipped', name: 'looks.json'}});
   });
 });

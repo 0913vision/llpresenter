@@ -27,6 +27,10 @@ const appProblemSchema = v.pipe(
       count: v.pipe(v.number(), v.safeInteger(), v.minValue(1)),
     }),
     v.object({kind: v.literal('save-recovered')}),
+    v.object({
+      kind: v.literal('file-skipped'),
+      name: v.pipe(nameSchema, v.nonEmpty()),
+    }),
   ]),
 );
 
@@ -46,6 +50,9 @@ const appProblemListSchema = v.pipe(
  *   (spec 02 and 08, 저장할 수 없음); `name` names the next one to retry,
  *   and `count` is how many wait. Main pushes it again whenever either changes.
  * - `save-recovered`: every waiting file is written now.
+ * - `file-skipped`: a data file couldn't be read at startup and was skipped
+ *   (spec 08, "File can't be read"); `name` is its file name without the
+ *   folder.
  */
 export type AppProblem = Readonly<v.InferOutput<typeof appProblemSchema>>;
 
@@ -100,6 +107,20 @@ export function macroDroppedProblem(
   return {
     kind: 'macro-dropped',
     macroId,
+    name: clipped(name, APP_PROBLEM_LIMITS.nameCharacters),
+  };
+}
+
+const FOLDER_SEPARATOR = /[\\/]/;
+
+/**
+ * The problem for a data file skipped at startup, named by its file name
+ * without the folder. A name over the limit is cut at a whole character.
+ */
+export function fileSkippedProblem(file: string): AppProblemOf<'file-skipped'> {
+  const name = file.split(FOLDER_SEPARATOR).at(-1) ?? file;
+  return {
+    kind: 'file-skipped',
     name: clipped(name, APP_PROBLEM_LIMITS.nameCharacters),
   };
 }
