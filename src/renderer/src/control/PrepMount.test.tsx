@@ -210,7 +210,7 @@ it('submits a typed but unsent lyric edit when main asks to flush before quittin
   expect(edit.mock.invocationCallOrder[0]).toBeLessThan(
     flushDone.mock.invocationCallOrder[0] ?? -Infinity,
   );
-  expect(screen.queryByText('편집 내용 저장 실패')).toBeNull();
+  expect(screen.queryByRole('alertdialog')).toBeNull();
   const locked = screen.getByRole('textbox', {name: '슬라이드 1 가사'});
   expect(locked).toHaveProperty('readOnly', true);
   fireEvent.change(locked, {target: {value: 'Invented late line'}});
@@ -224,7 +224,7 @@ it('submits a typed but unsent lyric edit when main asks to flush before quittin
   expect(fixture.flushListeners.size).toBe(0);
 });
 
-it('keeps a refused draft and offers 그래도 닫기 in the host warning stack', async () => {
+it('keeps a refused draft in the 저장 실패 dialog until 다시 시도 or 강제로 닫기', async () => {
   const fixture = mountPrep();
   await openSong(fixture.first.song.title);
   const editor = fixture.session.editor;
@@ -232,17 +232,21 @@ it('keeps a refused draft and offers 그래도 닫기 in the host warning stack'
   vi.spyOn(editor, 'flush').mockResolvedValue(false);
   const flushDone = vi.spyOn(fixture.api.app, 'flushDone');
   const closeAnyway = vi.spyOn(fixture.api.app, 'closeAnyway');
+  const control = vi.spyOn(fixture.api.window, 'control');
   const requestId = createAppFlushRequestId(
     'd74b3f85-ab42-4d5e-9f60-718293041526',
   );
   act(() => {
     fixture.requestFlush({requestId});
   });
-  await screen.findByText('편집 내용 저장 실패');
+  await screen.findByRole('alertdialog', {name: '저장 실패'});
   expect(flushDone).toHaveBeenCalledExactlyOnceWith({requestId, result: false});
+  expect(screen.queryAllByRole('alert')).toHaveLength(0);
+  fireEvent.click(screen.getByRole('button', {name: '다시 시도'}));
+  expect(control).toHaveBeenCalledExactlyOnceWith('close');
+  expect(screen.getByRole('alertdialog', {name: '저장 중'})).toBeTruthy();
   expect(closeAnyway).not.toHaveBeenCalled();
-  fireEvent.click(screen.getByRole('button', {name: '그래도 닫기'}));
+  fireEvent.click(screen.getByRole('button', {name: '강제로 닫기'}));
   expect(closeAnyway).toHaveBeenCalledOnce();
-  expect(screen.queryByText('편집 내용 저장 실패')).toBeNull();
   await act(async () => fixture.session.dispose());
 });

@@ -18,6 +18,7 @@ import {useSidebarCollapse} from '@renderer/shell/useSidebarCollapse';
 import {useUiZoomKeys} from '@renderer/shell/uiZoomKeys';
 import {Workspace} from '@renderer/shell/Workspace';
 import type {ControlSession} from './controlSession';
+import {SavingDialog} from './SavingDialog';
 import {useOutputNotices} from './notifications/useOutputNotices';
 import {usePrepSelection} from './usePrepSelection';
 import styles from './App.module.css';
@@ -108,6 +109,9 @@ export function App({
         onClose={session.dismiss}
         onWarningHeightChange={setWarningHeight}
       />
+      {session.closeFlush === undefined ? null : (
+        <SavingDialog closeFlush={session.closeFlush} />
+      )}
     </div>
   );
 }

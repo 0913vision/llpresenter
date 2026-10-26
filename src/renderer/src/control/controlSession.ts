@@ -1,8 +1,9 @@
-import type {LlpApi, Unsubscribe} from '@shared/ipc';
-import {answerCloseFlush, SongEditorStore} from '@renderer/prep/editor';
+import type {LlpApi} from '@shared/ipc';
+import {SongEditorStore} from '@renderer/prep/editor';
 import {ServiceItemStore} from '@renderer/prep/service/serviceItemStore';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {addNotice, removeNotice, type Notice} from '@renderer/ui/notices';
+import {CloseFlush} from './closeFlush';
 
 /** Window-owned editor sessions and their shared notification destination. */
 export class ControlSession {
@@ -12,16 +13,12 @@ export class ControlSession {
   private readonly listeners = new Set<() => void>();
   private closing: Promise<void> | undefined;
   private editorBlocked = false;
-  private readonly stopCloseFlush: Unsubscribe | undefined;
+  /** Answers main's flush before closing and holds the 저장 중 dialog. */
+  readonly closeFlush: CloseFlush | undefined;
 
   constructor(readonly api: LlpApi | undefined) {
-    this.stopCloseFlush =
-      api &&
-      answerCloseFlush({
-        api,
-        flush: () => this.flushBeforeClose(),
-        report: this.report,
-      });
+    this.closeFlush =
+      api && new CloseFlush({api, flush: () => this.flushBeforeClose()});
   }
 
   get editor(): SongEditorStore | undefined {
@@ -72,7 +69,7 @@ export class ControlSession {
 
   /** Release resources after unmount, including the close flush answer. */
   dispose(): Promise<void> {
-    this.stopCloseFlush?.();
+    this.closeFlush?.dispose();
     this.closing ??= Promise.resolve().then(() => {
       this.itemStore?.dispose();
       return this.editorStore?.dispose();

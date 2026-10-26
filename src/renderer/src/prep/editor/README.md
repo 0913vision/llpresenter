@@ -9,8 +9,7 @@ editor.open(selection.document, {focusTitle: selection.focusTitle});
 // NOTE(0913vision): Render in a panel with a bounded height.
 <SongEditor store={editor} />;
 // NOTE(0913vision): On selection clearing, call editor.open(null).
-// NOTE(0913vision): Answer main's close flush with answerCloseFlush.
-const stop = answerCloseFlush({api, flush: () => editor.flush(), report});
+// NOTE(0913vision): Answer main's close flush with editor.flush().
 ```
 
 Create one store per control window, outside React render. `open` accepts a
@@ -28,11 +27,9 @@ writes, and releases sessions. The host must await it before closing the IPC
 connection. Each session owns at most one deferred-save timer. No output
 commands or global keyboard listeners are registered by this feature.
 
-`answerCloseFlush` answers main's `app:flush-request` before the window closes
-or the app quits: it awaits the flush (a throw counts as false and is logged)
-and replies with the request's id. When `closeStepAfter` keeps the window open,
-it reports the 편집 내용 저장 실패 warning with 그래도 닫기, which asks main to
-close without another flush. Call its returned function on window disposal.
+The control window's `CloseFlush` (`src/renderer/src/control/closeFlush.ts`)
+answers main's `app:flush-request` with this `flush()` before the window closes
+or the app quits, and shows the 저장 중 dialog while it runs.
 
 ## Header
 
