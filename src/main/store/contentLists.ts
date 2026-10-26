@@ -1,10 +1,11 @@
-import type {
-  LibrarySong,
-  ServiceDocument,
-  ServiceEntry,
-  SongDocument,
-  TemplateDocument,
-  TemplateEntry,
+import {
+  ENTRY_ITEM_COUNT_MAX,
+  type LibrarySong,
+  type ServiceDocument,
+  type ServiceEntry,
+  type SongDocument,
+  type TemplateDocument,
+  type TemplateEntry,
 } from '@shared/schema/contentDocuments';
 import {
   isItemOfKind,
@@ -38,6 +39,15 @@ export function librarySongs(
 }
 
 /** The 예배 순서 list, the latest date first. */
+// NOTE(0913vision): The documents are in memory already, so a list counts
+// their items each time instead of keeping a count on save.
+function itemCount({order}: Service | Template): number {
+  return Math.min(
+    order.filter(item => !isItemOfKind(item, 'header')).length,
+    ENTRY_ITEM_COUNT_MAX,
+  );
+}
+
 export function serviceEntries(
   services: ReadonlyArray<StoredDocument<Service>>,
 ): readonly ServiceEntry[] {
@@ -47,6 +57,7 @@ export function serviceEntries(
       name: data.name,
       date: data.date,
       access,
+      itemCount: itemCount(data),
     }))
     .sort((a, b) => b.date.localeCompare(a.date));
 }
@@ -56,7 +67,12 @@ export function templateEntries(
   templates: ReadonlyArray<StoredDocument<Template>>,
 ): readonly TemplateEntry[] {
   return templates
-    .map(({data, access}) => ({id: data.id, name: data.name, access}))
+    .map(({data, access}) => ({
+      id: data.id,
+      name: data.name,
+      access,
+      itemCount: itemCount(data),
+    }))
     .sort((a, b) => TITLES.compare(a.name, b.name));
 }
 

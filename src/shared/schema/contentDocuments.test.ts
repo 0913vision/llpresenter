@@ -8,6 +8,7 @@ import {
   parseTemplateChange,
   parseTemplateDocument,
   parseTemplateEntries,
+  ENTRY_ITEM_COUNT_MAX,
 } from './contentDocuments';
 
 const SONG_ID = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
@@ -80,6 +81,43 @@ describe('the list checks', () => {
       value: [template],
     });
   });
+
+  it('accepts an item count from zero to the limit on both entries', () => {
+    for (const itemCount of [0, 9, ENTRY_ITEM_COUNT_MAX]) {
+      const service = {
+        id: SERVICE_ID,
+        name: '주일 예배',
+        date: '2026-11-01T11:00',
+        access: 'editable',
+        itemCount,
+      };
+      const template = {
+        id: TEMPLATE_ID,
+        name: '주일',
+        access: 'editable',
+        itemCount,
+      };
+      expect(parseServiceEntries([service])).toEqual({
+        ok: true,
+        value: [service],
+      });
+      expect(parseTemplateEntries([template])).toEqual({
+        ok: true,
+        value: [template],
+      });
+    }
+  });
+
+  it.each([-1, 1.5, ENTRY_ITEM_COUNT_MAX + 1, '9'])(
+    'rejects the item count %j',
+    itemCount => {
+      const template = {id: TEMPLATE_ID, name: '주일', access: 'editable'};
+      expect(parseTemplateEntries([{...template, itemCount}])).toMatchObject({
+        ok: false,
+        error: {field: '0.itemCount'},
+      });
+    },
+  );
 
   it('rejects a list with a bad entry, and a list that is an object', () => {
     expect(

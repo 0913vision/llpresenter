@@ -1084,6 +1084,24 @@ describe('ContentStore 예배 순서 and 틀 edits', () => {
   });
 });
 
+describe('ContentStore lists', () => {
+  it('counts the items of each 예배 순서 and 틀 without their headers', () => {
+    const {store} = setUp([
+      serviceFile(SUNDAY, [
+        {id: itemId(1), header: '찬양'},
+        {id: itemId(2), song: HYMN_ONE_ID},
+        {id: itemId(3), slot: 'song', title: '찬양'},
+        {id: itemId(4), header: '말씀'},
+        {id: itemId(5), slot: 'bible', title: '말씀'},
+      ]),
+    ]);
+    expect(store.serviceList()).toMatchObject([{id: SUNDAY, itemCount: 3}]);
+    expect(store.templateList()).toMatchObject([
+      {id: TEMPLATE_ID, itemCount: 1},
+    ]);
+  });
+});
+
 describe('ContentStore persistence and notifications', () => {
   it('keeps failed deletions for a flush to retry', async () => {
     const {store, files} = setUp();

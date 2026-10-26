@@ -44,17 +44,26 @@ const librarySongSchema = payloadObject({
   usedBy: v.array(payloadObject({id: serviceIdSchema, name: v.string()})),
 });
 
+/** The most items a list row counts; main reports no more than this. */
+export const ENTRY_ITEM_COUNT_MAX = 10_000;
+
+const itemCountSchema = v.exactOptional(
+  v.pipe(nonNegativeInteger, v.maxValue(ENTRY_ITEM_COUNT_MAX)),
+);
+
 const serviceEntrySchema = payloadObject({
   id: serviceIdSchema,
   name: v.string(),
   date: localDateTime,
   access: accessSchema,
+  itemCount: itemCountSchema,
 });
 
 const templateEntrySchema = payloadObject({
   id: templateIdSchema,
   name: v.string(),
   access: accessSchema,
+  itemCount: itemCountSchema,
 });
 
 const SAME_ID = 'The document has another id than the change names';
@@ -127,11 +136,15 @@ export type LibrarySong = ReadonlyKnown<
   v.InferOutput<typeof librarySongSchema>
 >;
 
-/** One 예배 순서 of the list that switches the open one. */
+/**
+ * One 예배 순서 of the list that switches the open one. `itemCount` is how
+ * many items it has, headers not counted, as the 새 예배 list shows it.
+ */
 export type ServiceEntry = ReadonlyKnown<
   v.InferOutput<typeof serviceEntrySchema>
 >;
 
+/** One 틀, with `itemCount` counted as for a 예배 순서. */
 export type TemplateEntry = ReadonlyKnown<
   v.InferOutput<typeof templateEntrySchema>
 >;
