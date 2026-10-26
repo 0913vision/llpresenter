@@ -168,12 +168,35 @@ describe('the 화면 list', () => {
     setup();
     await screen.findByRole('option', {name: '본 화면', selected: true});
     await userEvent.setup().click(option('방송 자막'));
+    await screen.findByRole('option', {name: '방송 자막', selected: true});
     expect(useScreensSelection.getState().selection).toEqual({
       kind: 'screen',
       id: CAPTIONS_ID,
     });
     expect(selectedOf('본 화면')).toBe('false');
     expect(selectedOf('방송 자막')).toBe('true');
+  });
+
+  it('selects the first screen after a delayed settings read', async () => {
+    let resolveScreens: ((value: SettingsDocument) => void) | undefined;
+    const pending = new Promise<SettingsDocument>(resolve => {
+      resolveScreens = resolve;
+    });
+    setup({
+      read: name => (name === 'screens' ? pending : readDocument(name)),
+    });
+    await screen.findByRole('option', {name: '평상시'});
+    expect(screen.queryByRole('option', {name: '본 화면'})).toBeNull();
+
+    if (resolveScreens === undefined) throw new Error('Missing resolver');
+    resolveScreens(screensDocument());
+
+    await screen.findByRole('option', {name: '본 화면', selected: true});
+    expect(selectedOf('방송 자막')).toBe('false');
+    expect(useScreensSelection.getState().selection).toEqual({
+      kind: 'screen',
+      id: null,
+    });
   });
 
   it('shows the ok dot for a healthy output and none for an output that is off', async () => {
