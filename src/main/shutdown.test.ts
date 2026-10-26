@@ -141,6 +141,61 @@ describe('ShutdownCoordinator', () => {
     await vi.waitFor(() => expect(app.quitted).toBe(true));
   });
 
+  it('confirms before any step and keeps running when the check refuses', async () => {
+    const log = recordingLogger();
+    const app = new FakeApp();
+    const shutdown = new ShutdownCoordinator({app, log});
+    const order: string[] = [];
+    const answers = [false, true];
+    shutdown.confirmWith(async () => {
+      order.push('confirm');
+      return answers.shift() ?? true;
+    });
+    shutdown.add({name: 'save the UI state', run: () => void order.push('ui')});
+    app.quit();
+    await vi.waitFor(() =>
+      expect(log.messages('info')).toEqual(['quit cancelled before saving']),
+    );
+    await new Promise(resolve => setImmediate(resolve));
+    expect(order).toEqual(['confirm']);
+    expect(app.quitted).toBe(false);
+    expect(app.lockReleased).toBe(false);
+    app.quit();
+    await vi.waitFor(() => expect(app.quitted).toBe(true));
+    expect(order).toEqual(['confirm', 'confirm', 'ui']);
+  });
+
+  it('holds repeated quit requests on one pending confirmation', async () => {
+    const app = new FakeApp();
+    const shutdown = new ShutdownCoordinator({app, log: recordingLogger()});
+    let answer: (value: boolean) => void = () => undefined;
+    const confirm = vi.fn(
+      () =>
+        new Promise<boolean>(resolve => {
+          answer = resolve;
+        }),
+    );
+    shutdown.confirmWith(confirm);
+    app.quit();
+    await new Promise(resolve => setImmediate(resolve));
+    app.quit();
+    expect(confirm).toHaveBeenCalledOnce();
+    answer(true);
+    await vi.waitFor(() => expect(app.quitted).toBe(true));
+  });
+
+  it('logs a failing confirmation and quits anyway', async () => {
+    const log = recordingLogger();
+    const app = new FakeApp();
+    const shutdown = new ShutdownCoordinator({app, log});
+    shutdown.confirmWith(() => Promise.reject(new Error('Invented failure')));
+    app.quit();
+    await vi.waitFor(() => expect(app.quitted).toBe(true));
+    expect(log.messages('error')).toEqual([
+      'could not confirm quitting; quitting anyway',
+    ]);
+  });
+
   it('logs a failing step and carries on with the next', async () => {
     const log = recordingLogger();
     const app = new FakeApp();

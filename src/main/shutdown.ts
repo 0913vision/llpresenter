@@ -30,7 +30,7 @@ export interface ShutdownOptions {
   readonly logFlushLimitMs?: number;
 }
 
-type Phase = 'running' | 'shuttingDown' | 'done';
+type Phase = 'running' | 'confirming' | 'shuttingDown' | 'done';
 
 function deadline(ms: number): {expired: Promise<'expired'>; cancel(): void} {
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -43,7 +43,8 @@ function deadline(ms: number): {expired: Promise<'expired'>; cancel(): void} {
 /**
  * The one place that decides when the app may quit. Every quit request, from
  * the control window, from Electron, or repeated, waits for the same
- * shutdown: the save steps in the order they were added, all within
+ * shutdown: the confirmation check, which may cancel the quit before anything
+ * is saved, then the save steps in the order they were added, all within
  * {@link SAVE_LIMIT_MS}, then the log flush within {@link LOG_FLUSH_LIMIT_MS},
  * then the single-instance lock is released and the app really quits. A step
  * that fails or never ends is logged, and the shutdown carries on, so the app
@@ -53,6 +54,7 @@ export class ShutdownCoordinator {
   private readonly steps: ShutdownStep[] = [];
   private phase: Phase = 'running';
   private pendingStep: string | null = null;
+  private confirm: () => Promise<boolean> = () => Promise.resolve(true);
 
   constructor(private readonly options: ShutdownOptions) {
     options.app.on('before-quit', event => this.handleBeforeQuit(event));
@@ -63,18 +65,48 @@ export class ShutdownCoordinator {
     this.steps.push(step);
   }
 
+  /**
+   * Sets the check that runs before any step, such as the control window's
+   * flush. It must settle within its own bound. False cancels the quit and
+   * the app keeps running; a check that fails counts as true, so the app
+   * still quits.
+   */
+  confirmWith(confirm: () => Promise<boolean>): void {
+    this.confirm = confirm;
+  }
+
   private handleBeforeQuit(event: {preventDefault(): void}): void {
     if (this.phase === 'done') return;
     event.preventDefault();
-    if (this.phase === 'shuttingDown') return;
+    if (this.phase !== 'running') return;
+    this.phase = 'confirming';
+    this.confirmThenQuit().catch((error: unknown) => {
+      this.options.log.error('shutdown failed; quitting anyway', error);
+      this.quitForReal();
+    });
+  }
+
+  private async confirmThenQuit(): Promise<void> {
+    if (!(await this.confirmed())) {
+      this.phase = 'running';
+      this.options.log.info('quit cancelled before saving');
+      return;
+    }
     this.phase = 'shuttingDown';
-    this.shutDown().then(
-      () => this.quitForReal(),
-      (error: unknown) => {
-        this.options.log.error('shutdown failed; quitting anyway', error);
-        this.quitForReal();
-      },
-    );
+    await this.shutDown();
+    this.quitForReal();
+  }
+
+  private async confirmed(): Promise<boolean> {
+    try {
+      return await this.confirm();
+    } catch (error) {
+      this.options.log.error(
+        'could not confirm quitting; quitting anyway',
+        error,
+      );
+      return true;
+    }
   }
 
   private async shutDown(): Promise<void> {

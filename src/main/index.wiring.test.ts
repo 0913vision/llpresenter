@@ -49,6 +49,9 @@ const fakes = vi.hoisted(() => {
     textImportStop: vi.fn<() => void>(),
     bibleContexts: new Array<unknown>(),
     bibleStop: vi.fn<() => void>(),
+    closeContexts: new Array<unknown>(),
+    confirmClose: vi.fn<() => Promise<boolean>>(),
+    closeStop: vi.fn<() => void>(),
     appHandlers,
     electron: {
       app: {
@@ -154,6 +157,12 @@ vi.mock('./import/register', () => ({
   registerTextImport: (context: unknown) => {
     fakes.textImportContexts.push(context);
     return fakes.textImportStop;
+  },
+}));
+vi.mock('./windows/controlClose', () => ({
+  registerControlClose: (context: unknown) => {
+    fakes.closeContexts.push(context);
+    return {confirmClose: fakes.confirmClose, dispose: fakes.closeStop};
   },
 }));
 vi.mock('./store/uiZoom', () => ({
@@ -286,6 +295,9 @@ beforeEach(async () => {
   fakes.textImportStop.mockReset();
   fakes.bibleContexts.length = 0;
   fakes.bibleStop.mockReset();
+  fakes.closeContexts.length = 0;
+  fakes.confirmClose.mockReset().mockResolvedValue(true);
+  fakes.closeStop.mockReset();
   fakes.appHandlers.clear();
   fakes.opened.control = null;
   fakes.uiDispose.mockReset();
@@ -460,6 +472,32 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     ]);
     beforeQuit();
     await vi.waitFor(() => expect(fakes.textImportStop).toHaveBeenCalledOnce());
+  });
+
+  it('asks the control window to flush before saving and keeps running when it refuses', async () => {
+    fakes.confirmClose.mockResolvedValueOnce(false);
+    await startMain();
+    expect(fakes.closeContexts).toEqual([
+      expect.objectContaining({control: fakes.opened.control}),
+    ]);
+    expect(beforeQuit().prevented).toBe(true);
+    await vi.waitFor(() => expect(fakes.confirmClose).toHaveBeenCalledOnce());
+    await new Promise(resolve => setImmediate(resolve));
+    expect(fakes.scenarioStop).not.toHaveBeenCalled();
+    expect(fakes.uiDispose).not.toHaveBeenCalled();
+    expect(fakes.electron.app.quit).not.toHaveBeenCalled();
+    expect(beforeQuit().prevented).toBe(true);
+    await vi.waitFor(() =>
+      expect(fakes.electron.app.quit).toHaveBeenCalledOnce(),
+    );
+    expect(fakes.confirmClose).toHaveBeenCalledTimes(2);
+    expect(fakes.confirmClose.mock.invocationCallOrder[1]).toBeLessThan(
+      fakes.scenarioStop.mock.invocationCallOrder[0] ?? -Infinity,
+    );
+    expect(fakes.closeStop).toHaveBeenCalledOnce();
+    expect(fakes.storeDispose.mock.invocationCallOrder[0]).toBeLessThan(
+      fakes.closeStop.mock.invocationCallOrder[0] ?? -Infinity,
+    );
   });
 
   it('registers the required Look writer and releases it before closing data', async () => {

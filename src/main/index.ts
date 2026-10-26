@@ -29,6 +29,7 @@ import {registerUiZoom} from './store/uiZoom';
 import {registerUiState} from './uiState/register';
 import {applyUserDataOverride, type UserDataProblem} from './userData';
 import {createControlWindow} from './windows/control';
+import {registerControlClose} from './windows/controlClose';
 import {registerMediaScheme, serveMedia} from './windows/mediaProtocol';
 import {windowModeFrom, type WindowMode} from './windows/testWindows';
 
@@ -142,6 +143,8 @@ function start(): void {
       });
       const win = createControlWindow(log, windowMode, zoom);
       control = win;
+      const closing = registerControlClose({control: win, log});
+      shutdown.confirmWith(() => closing.confirmClose());
       const stopTextImport = registerTextImport({
         control: win,
         windowMode,
@@ -216,6 +219,10 @@ function start(): void {
       shutdown.add({name: 'finish the soak record', run: stopSoakRecorder});
       shutdown.add({name: 'close the data store', run: dataStore.dispose});
       shutdown.add({name: 'stop serving media', run: stopServingMedia});
+      shutdown.add({
+        name: 'stop the close handshake',
+        run: () => closing.dispose(),
+      });
       shutdown.add({name: 'remove the IPC channels', run: disposeIpc});
       shutdown.add({
         name: 'remove the recovery channels',
