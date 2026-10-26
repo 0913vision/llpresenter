@@ -1,0 +1,96 @@
+Review range: `d059d1ce...feat/spec/problem-cards`
+
+# Review request: `spec-46`
+
+- Team member: `spec` (Claude session that took over from Codex)
+- Branch: `feat/spec/problem-cards`
+- Base: data-47 (`feat/data/save-retry`, `d059d1ce`), stacked on data-46;
+  stacked until both merge
+- Review round: 1
+- Task: M3-S2a part 3, the 파일을 읽을 수 없음, 매크로 적용 실패, and 저장할 수
+  없음 cards on the app problem feed (lead, 10:1x and 10:5x)
+- Code owners: data for `src/shared/` and `src/main/store/`; shell for the
+  renderer
+
+## What changed and why
+
+Spec 08 lists "A file can't be read and was skipped" and "Save failed" among the
+version 1 notifications, and spec-41 added 매크로 적용 실패. data-46 and data-47
+built the app problem feed (`ProblemFeed`: `report` for one-shot problems,
+`push` for a standing problem's change, `addStanding` for list sources;
+`problems.subscribe`, `problems.list`, `problems.retrySaves` in the windows)
+with the `macro-dropped`, `save-failed`, and `save-recovered` kinds.
+
+**Contract (additive).** `AppProblem` gains `{kind: 'file-skipped', name}`,
+where `name` is the file name without the folder, non-empty, and at most
+`APP_PROBLEM_LIMITS.nameCharacters`. `fileSkippedProblem(file)` takes the name
+from a Windows or POSIX path and cuts it at a whole character, like the other
+helpers.
+
+**Data store.** Skipped files happen while the data is read, before the control
+window loads, so they are a standing problem. `SkippedFiles` keeps each skipped
+file once, up to `APP_PROBLEM_LIMITS.listed`, and logs the overflow once.
+`registerStore` adds it to the feed with `problems.addStanding` (after the
+waiting saves, so the feed lists saves first) and starts
+`startSkippedFileProblems`, which feeds it from the settings problem feed
+(settings and media files, replayed to a new listener) and from the content
+files read at startup (songs, 예배 순서, 틀, labels, preferences; the filter the
+launch log already used, now one `contentProblems` function), and pushes each
+new problem with `problems.push`. Both stop when the store is disposed.
+
+**Renderer.** `useProblemNotices` subscribes first, then lists once, and shows:
+
+- one 파일을 읽을 수 없음 card for every skipped file so far, keyed
+  `file-skipped`, with the first name and how many more ("looks.json 외 2개")
+  and 건너뜀. A file that arrives both by the list and by a push counts once.
+- 매크로 적용 실패 with the 매크로's name (or 이름 없는 매크로), keyed
+  `macro-dropped:<macroId>`, so the same 매크로 again replaces its card.
+- 저장할 수 없음 with the oldest waiting file's name and how many more, keyed
+  `save-failed`, with 다시 시도 calling `problems.retrySaves()`.
+  `save-recovered` closes it. data-47 pushes save-failed again after an explicit
+  retry that leaves files waiting, so the card comes back even though the
+  session closed it on the button press.
+
+## Decisions I made (for the lead to confirm)
+
+1. One card for all skipped files instead of one per file. A broken folder can
+   skip dozens of songs at once, and the stack shows only three cards; one card
+   keeps a lost monitor card from being pushed out.
+2. Song and 예배 순서 files are named by their file name (`<id>.llsong`), since
+   a file that couldn't be read has no title to show.
+3. The 매크로 card uses the `macro` icon and 저장할 수 없음 the `warning` icon,
+   as the gallery does; spec 08 names none.
+
+## Changes outside my paths
+
+data keeps:
+
+- `src/shared/schema/appProblem.ts` and `.test.ts`: the `file-skipped` kind,
+  `fileSkippedProblem`, valid and invalid cases. The old invalid case
+  `{kind: 'file-skipped', ...}` became an unknown kind.
+- `src/main/store/skippedFiles.ts` and `.test.ts` (new): `SkippedFiles` and
+  `startSkippedFileProblems`.
+- `src/main/store/register.ts` and `.test.ts`: the standing source, the feed
+  start and stop, and the shared `contentProblems` filter; tested with a broken
+  song and a broken settings file, listed and pushed once each.
+
+Shell keeps `src/renderer/src/control/notifications/` and `App.tsx`.
+
+This review document is in my own path. No dependency is added.
+
+## Validation
+
+| Command or test                                                                                                                                           | Result                 |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| `npm run typecheck`                                                                                                                                       | Pass                   |
+| `npx vitest run --no-fsModuleCache src/main/store src/main/problemFeed.test.ts src/shared/schema/appProblem.test.ts src/renderer/src/control src/preload` | Pass, 522 tests        |
+| `npx eslint --max-warnings 0` on the changed files                                                                                                        | Pass                   |
+| `npx prettier --check` on the changed files                                                                                                               | Pass                   |
+| GitHub CI (`npm run verify`)                                                                                                                              | In the request message |
+
+No Electron process, visible window, soak, or memory measurement was started.
+
+## Follow-ups
+
+- When spec-45 merges, `useProblemNotices` can share its `NoticeTarget`; it
+  takes the session's `report` and `dismiss` directly to stay independent.
