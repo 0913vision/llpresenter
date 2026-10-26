@@ -10,7 +10,8 @@ import {defaultPreferences} from '@shared/schema/preferences';
 import {makeTempDir} from '../../../test/temp-dir';
 import type {SettingsReader} from '../store/settingsStore';
 import {BibleLookupSession} from './lookup';
-import {translationFile} from './testFiles';
+import * as library from './library';
+import {parsedTranslation, translationFile} from './testFiles';
 
 const log = {
   info: vi.fn(),
@@ -133,6 +134,26 @@ describe('Bible lookup session', () => {
     session.dispose();
     await expect(pending).rejects.toThrow('closed');
     await expect(session.lookup(request())).rejects.toThrow('unavailable');
+  });
+
+  it('clears a library whose load finishes after disposal', async () => {
+    const {session} = await setup();
+    const loaded = new library.BibleLibrary([parsedTranslation()]);
+    let finish: (value: library.BibleLibrary) => void = () => undefined;
+    const loading = new Promise<library.BibleLibrary>(resolve => {
+      finish = resolve;
+    });
+    const load = vi
+      .spyOn(library, 'loadBibleLibrary')
+      .mockReturnValueOnce(loading);
+    onTestFinished(() => finish(loaded));
+    const pending = session.lookup(request());
+    const rejected = expect(pending).rejects.toThrow('closed');
+    await vi.waitFor(() => expect(load).toHaveBeenCalledOnce());
+    session.dispose();
+    finish(loaded);
+    await rejected;
+    expect(loaded.translations).toEqual([]);
   });
 
   it('caps pending work and recovers the queue after failures', async () => {

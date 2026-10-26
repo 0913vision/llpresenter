@@ -44,6 +44,10 @@ describe('Bible lookup payloads', () => {
     null,
     [],
     {...request, translation: ''},
+    {
+      ...request,
+      translation: 'x'.repeat(BIBLE_LOOKUP_LIMITS.translationId + 1),
+    },
     {...request, input: 3},
     {...request, input: 'x'.repeat(BIBLE_LOOKUP_LIMITS.input + 1)},
   ])('rejects malformed request %j', value => {
@@ -80,7 +84,13 @@ describe('Bible lookup payloads', () => {
         ok: true,
         value: {
           ...reply.result.value,
-          verses: [{chapter: 1, verse: 1, text: 'x'.repeat(20_001)}],
+          verses: [
+            {
+              chapter: 1,
+              verse: 1,
+              text: 'x'.repeat(BIBLE_LOOKUP_LIMITS.verseText + 1),
+            },
+          ],
         },
       },
     },

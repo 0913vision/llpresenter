@@ -6,6 +6,8 @@ import {positiveInteger} from './primitives';
 
 export const BIBLE_LOOKUP_LIMITS = {
   input: 256,
+  translationId: 256,
+  books: 66,
   suggestions: 8,
   verses: 40_000,
   verseText: 20_000,
@@ -16,12 +18,16 @@ const referenceText = v.pipe(
   v.string(),
   v.maxLength(BIBLE_LOOKUP_LIMITS.input),
 );
+const translationId = v.pipe(
+  translationIdSchema,
+  v.maxLength(BIBLE_LOOKUP_LIMITS.translationId),
+);
 const requestSchema = payloadObject({
-  translation: translationIdSchema,
+  translation: translationId,
   input: referenceText,
 });
 const passageSchema = payloadObject({
-  translation: translationIdSchema,
+  translation: translationId,
   ref: referenceText,
   displayRef: referenceText,
   verses: v.pipe(
@@ -52,11 +58,11 @@ const problemSchema = payloadObject({
 });
 const replySchema = payloadObject({
   input: referenceText,
-  translation: translationIdSchema,
+  translation: translationId,
   suggestions: v.pipe(
     v.array(
       payloadObject({
-        bookId: v.pipe(positiveInteger, v.maxValue(66)),
+        bookId: v.pipe(positiveInteger, v.maxValue(BIBLE_LOOKUP_LIMITS.books)),
         name: referenceText,
         input: referenceText,
       }),
