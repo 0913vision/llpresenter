@@ -33,7 +33,7 @@ import {ServiceOrderList} from '@renderer/show/ServiceOrderList';
 import {ShowToolsPanel} from '@renderer/show/ShowToolsPanel';
 import {SongBackgroundControl} from '@renderer/show/SongBackgroundControl';
 import {ReadOnlyMark} from '@renderer/show/ReadOnlyMark';
-import {BibleQuickField} from '@renderer/show/quick/BibleQuickField';
+import {QuickPanel} from '@renderer/show/quick/QuickPanel';
 import {BiblePanel} from '@renderer/show/bible/BiblePanel';
 import {useShow} from '@renderer/state/show';
 import {isBibleSource} from '@renderer/state/showLibrary';
@@ -175,9 +175,13 @@ function showPanelParts({
   switch (title) {
     case '퀵 실행':
       return {
-        body: window.llp ? (
-          <BibleQuickField api={window.llp} selectionVersion={bibleSelection} />
-        ) : null,
+        size: 'content',
+        embedded: (
+          <QuickPanel
+            selectionVersion={bibleSelection}
+            onProblem={onProblem ?? logPanelProblem}
+          />
+        ),
       };
     case '미리보기':
       return {
