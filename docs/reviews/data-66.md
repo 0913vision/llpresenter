@@ -62,3 +62,9 @@ rejection, source preservation, argument validation and exit codes.
 ## Team member's reply
 
 1.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (5f921129): reviewer (Codex) Approve. Lead Approve (see "What changed
+  and why"). Rebased by the lead onto local `main` without conflicts; typecheck
+  passes.
