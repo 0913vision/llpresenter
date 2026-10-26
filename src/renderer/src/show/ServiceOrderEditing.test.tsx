@@ -151,6 +151,25 @@ beforeEach(() => {
 });
 
 describe('service panel editing', () => {
+  it('hands focus from a selected section context menu to its rename field', async () => {
+    const {api} = setup('prep');
+    const user = userEvent.setup();
+    const section = screen.getByRole('option', {name: '제목'});
+    await user.click(section);
+    section.focus();
+    expect(document.activeElement).toBe(section);
+    fireEvent.contextMenu(section);
+    await user.click(
+      await screen.findByRole('menuitem', {name: '이름 바꾸기'}),
+    );
+    const field = await screen.findByRole('textbox', {name: '제목 이름'});
+    await waitFor(() => expect(document.activeElement).toBe(field));
+    await user.clear(field);
+    await user.type(field, '바뀐 구역{Enter}');
+    await screen.findByRole('option', {name: '바뀐 구역'});
+    expect(api.content.edit).toHaveBeenCalledTimes(1);
+  });
+
   it('selects an empty section and keeps it when a dropped song is added below it', async () => {
     const {ids, send} = setup('prep', false, {emptySection: true});
     const target = screen.getByRole('option', {name: '빈 구역'});
@@ -417,7 +436,7 @@ describe('service panel editing', () => {
     const {api} = setup();
     fireEvent.contextMenu(screen.getByText('제목'));
     fireEvent.click(await screen.findByRole('menuitem', {name: '이름 바꾸기'}));
-    const field = screen.getByRole('textbox', {name: '제목 이름'});
+    const field = await screen.findByRole('textbox', {name: '제목 이름'});
     fireEvent.change(field, {target: {value: '   '}});
     fireEvent.keyDown(field, {key: 'Enter'});
     await waitFor(() => expect(screen.queryByRole('textbox')).toBeNull());

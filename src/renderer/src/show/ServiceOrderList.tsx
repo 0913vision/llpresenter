@@ -187,6 +187,10 @@ export function ServiceOrderList({
     serviceId: string | null;
     anchor: MenuAnchor;
   } | null>(null);
+  const [pendingRename, setPendingRename] = useState<{
+    readonly id: string;
+    readonly serviceId: string | null;
+  } | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const [chosenRename, setRenaming] = useState<string | null>(null);
   const requestedRename = useHeaderRename(state => state.requested);
@@ -199,6 +203,23 @@ export function ServiceOrderList({
     setRenaming(null);
     clearRenameRequest();
   };
+
+  useEffect(() => {
+    if (menu !== null || pendingRename === null) return;
+    // NOTE(0913vision): Menu restores its opener on cleanup; the field must
+    // take focus after that handoff rather than blur and commit immediately.
+    const handoff = setTimeout(() => {
+      setPendingRename(null);
+      if (
+        pendingRename.serviceId === serviceId &&
+        editable &&
+        rows.some(row => row.id === pendingRename.id && row.kind === 'header')
+      ) {
+        setRenaming(pendingRename.id);
+      }
+    });
+    return () => clearTimeout(handoff);
+  }, [menu, pendingRename, serviceId, editable, rows]);
 
   useEffect(() => {
     const list = listRef.current;
@@ -362,7 +383,10 @@ export function ServiceOrderList({
                     label: '이름 바꾸기',
                     disabled: !editable,
                     onSelect: () => {
-                      setRenaming(menu.id);
+                      setPendingRename({
+                        id: menu.id,
+                        serviceId: menu.serviceId,
+                      });
                       setMenu(null);
                     },
                   },
