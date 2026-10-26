@@ -402,3 +402,12 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
 - Images are measured and scaled in main with Electron's `nativeImage`, at the
   tile size, into the capped thumbnail cache in `cache\`. The utility process
   keeps import conversion and, later, NDI. `docs/TECH.md` says this.
+
+## 2026-10-26: A cap never drops the operator's unsaved work
+
+- Every list and cache has a cap (`CLAUDE.md`), but a cap on unsaved work (memo
+  drafts, files waiting to be saved) must never drop an entry. Coalesce entries
+  for the same document so only the latest intent waits, set one named hard cap,
+  and at the cap refuse new edits before anything is accepted, with the problem
+  visible and the reason in a tooltip or the edit result (lead decision; it came
+  up in ui-37 and data-47).
