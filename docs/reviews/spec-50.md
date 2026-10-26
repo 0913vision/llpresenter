@@ -4,7 +4,7 @@ Review range: `feat/spec/service-sources...feat/spec/new-service`
 
 - Team member: `spec` (Claude session that took over from Codex)
 - Branch: `feat/spec/new-service`, stacked on spec-49
-  (`feat/spec/service-sources`), which is stacked on spec-48
+  (`feat/spec/service-sources`), which is on `main` now that spec-48 merged
 - Base commit: spec-49's head, named in the request message
 - Review round: 2
 - Task: M3-P4, part 3 of 3 for 새 예배 (P4a): the dialog, its create flow, and
@@ -87,7 +87,7 @@ and 만들기 is unavailable while the name is empty.
 | Command or test                                                                                                     | Result                 |
 | ------------------------------------------------------------------------------------------------------------------- | ---------------------- |
 | `npm run typecheck`                                                                                                 | Pass                   |
-| `npx --no-install vitest run --no-fsModuleCache src/renderer/src/prep src/renderer/src/show src/renderer/src/shell` | Pass, 757 tests        |
+| `npx --no-install vitest run --no-fsModuleCache src/renderer/src/prep src/renderer/src/show src/renderer/src/shell` | Pass, 837 tests        |
 | `npx --no-install eslint --max-warnings 0 src/renderer/src/prep/services src/renderer/src/show`                     | Pass                   |
 | `npx --no-install prettier --check src/renderer/src/prep/services src/renderer/src/show`                            | Pass                   |
 | GitHub CI (`npm run verify`)                                                                                        | In the request message |
