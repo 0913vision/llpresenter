@@ -233,7 +233,7 @@ export interface ListRowProps {
   /** Extra information at the right end, such as 슬라이드 9개 or 5:00. */
   readonly meta?: string | undefined;
   /** The second line of a two-line item, such as a date and a count. */
-  readonly sub?: readonly string[] | undefined;
+  readonly sub?: readonly ReactNode[] | undefined;
   /** On the screens now: a LIVE badge replaces the extra information. */
   readonly live?: boolean | undefined;
   /** A 예배 순서 item that has already passed. */
@@ -321,8 +321,8 @@ function RowContent({
         <span className={styles.lines}>
           {titleText}
           <span className={styles.sub}>
-            {sub.map(part => (
-              <span key={part}>{part}</span>
+            {sub.map((part, index) => (
+              <span key={index}>{part}</span>
             ))}
           </span>
         </span>

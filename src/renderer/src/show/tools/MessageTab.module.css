@@ -1,0 +1,33 @@
+.composer {
+  padding: var(--space-8) var(--panel-inset) var(--space-14);
+}
+.sentence {
+  white-space: nowrap;
+}
+.blank {
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--bg-control);
+  color: var(--text);
+}
+.targets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  padding: var(--space-4) 0;
+}
+.targets button[aria-pressed='true'] {
+  box-shadow: var(--ring-field-focus);
+}
+.preview {
+  display: block;
+  padding: var(--space-12) 0;
+  color: var(--text-2);
+  font: var(--type-body);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}

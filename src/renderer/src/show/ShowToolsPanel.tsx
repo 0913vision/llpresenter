@@ -5,6 +5,7 @@ import {Panel, PanelBody, PanelHeader, PanelTabs} from '@renderer/ui/Panel';
 import type {Notice} from '@renderer/ui/notices';
 import {ALL_TOOL_TABS, COMPACT_TOOL_TABS} from './showTools';
 import {StageTab} from './tools/StageTab';
+import {MessageTab} from './tools/MessageTab';
 import styles from './ShowToolsPanel.module.css';
 
 const MORE_LABEL = '더 보기';
@@ -72,6 +73,7 @@ export function ShowToolsPanel({
         </PanelHeader>
         <PanelBody variant="flush" tab={tool}>
           {tool === 'stage' ? <StageTab onProblem={onProblem} /> : null}
+          {tool === 'message' ? <MessageTab onProblem={onProblem} /> : null}
         </PanelBody>
       </Panel>
     </div>

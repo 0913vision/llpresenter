@@ -1,0 +1,249 @@
+import {
+  memo,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+  type JSX,
+} from 'react';
+import type {MessageTemplate} from '@shared/schema/messages';
+import type {Screen} from '@shared/schema/screens';
+import {messageBlankNames, MAX_MESSAGE_CHARACTERS} from '@shared/messageText';
+import {useSettingsDocument} from '@renderer/screens/useSettingsDocument';
+import {sendLive} from '@renderer/state/live';
+import {
+  Button,
+  ListBox,
+  ListRow,
+  Properties,
+  PropertyRow,
+  SelectMenu,
+  TextField,
+} from '@renderer/ui';
+import type {Notice} from '@renderer/ui/notices';
+import {
+  currentMessageTargets,
+  toggleMessageScreen,
+  prepareMessage,
+  type DraftTargets,
+} from './messageDraft';
+import styles from './MessageTab.module.css';
+
+function Sentence({text}: {readonly text: string}): JSX.Element {
+  const names = messageBlankNames(text);
+  const parts = text.slice(0, MAX_MESSAGE_CHARACTERS).split(/(\{[^{}]+\})/gu);
+  return (
+    <span className={styles.sentence}>
+      {parts.map((part, index) =>
+        part.startsWith('{') &&
+        part.endsWith('}') &&
+        names.includes(part.slice(1, -1)) ? (
+          <span key={index} className={styles.blank}>
+            {part.slice(1, -1)}
+          </span>
+        ) : (
+          part
+        ),
+      )}
+    </span>
+  );
+}
+
+const BlankField = memo(
+  ({
+    name,
+    value,
+    setValues,
+  }: {
+    readonly name: string;
+    readonly value: string;
+    readonly setValues: Dispatch<SetStateAction<ReadonlyMap<string, string>>>;
+  }): JSX.Element => (
+    <PropertyRow label={name.trim() || '빈칸'}>
+      {({controlId}) => (
+        <TextField
+          id={controlId}
+          block
+          value={value}
+          maxLength={MAX_MESSAGE_CHARACTERS}
+          onChange={value =>
+            setValues(current => new Map(current).set(name, value))
+          }
+        />
+      )}
+    </PropertyRow>
+  ),
+);
+
+const TemplateRow = memo(
+  ({template}: {readonly template: MessageTemplate}): JSX.Element => (
+    <ListRow
+      value={template.id}
+      title={template.name || '이름 없음'}
+      icon={template.icon}
+      sub={[<Sentence key="sentence" text={template.text} />]}
+    />
+  ),
+);
+
+function Composer({
+  template,
+  screens,
+}: {
+  readonly template: MessageTemplate;
+  readonly screens: readonly Screen[];
+}): JSX.Element {
+  const [values, setValues] = useState<ReadonlyMap<string, string>>(new Map());
+  const [selectedTargets, setTargets] = useState<DraftTargets>(
+    template.targets ?? 'all',
+  );
+  const [duration, setDuration] = useState<number | null>(
+    template.duration ?? null,
+  );
+  const targets = currentMessageTargets(selectedTargets, screens);
+  const ready = prepareMessage({
+    template,
+    values,
+    targets,
+    screenCount: screens.length,
+  });
+  const durations = [
+    {value: 'until', label: '계속'},
+    ...[30, 60, 120].map(value => ({
+      value: String(value),
+      label: value < 60 ? `${value}초` : `${value / 60}분`,
+    })),
+  ];
+  if (
+    duration !== null &&
+    !durations.some(option => option.value === String(duration))
+  ) {
+    durations.push({value: String(duration), label: `${duration}초`});
+  }
+  return (
+    <div className={styles.composer}>
+      <Properties>
+        {messageBlankNames(template.text).map(name => (
+          <BlankField
+            key={name}
+            name={name}
+            value={values.get(name) ?? ''}
+            setValues={setValues}
+          />
+        ))}
+        <PropertyRow label="보낼 화면" alignTop>
+          {({labelId, controlId}) => (
+            <div
+              id={controlId}
+              role="group"
+              aria-labelledby={labelId}
+              className={styles.targets}
+            >
+              <Button
+                aria-pressed={targets === 'all'}
+                onClick={() => setTargets(targets === 'all' ? [] : 'all')}
+              >
+                모든 화면
+              </Button>
+              {screens.map(screen => (
+                <Button
+                  key={screen.id}
+                  aria-pressed={
+                    targets !== 'all' && targets.includes(screen.id)
+                  }
+                  onClick={() =>
+                    setTargets(current =>
+                      toggleMessageScreen(current, screen.id),
+                    )
+                  }
+                >
+                  {screen.name || '이름 없음'}
+                </Button>
+              ))}
+            </div>
+          )}
+        </PropertyRow>
+        <PropertyRow label="표시 시간">
+          {({controlId}) => (
+            <SelectMenu
+              id={controlId}
+              aria-label="메시지 표시 시간"
+              block
+              value={duration === null ? 'until' : String(duration)}
+              options={durations}
+              onChange={value =>
+                setDuration(value === 'until' ? null : Number(value))
+              }
+            />
+          )}
+        </PropertyRow>
+      </Properties>
+      <output className={styles.preview} aria-label="메시지 미리보기">
+        {ready.text}
+      </output>
+      <div className={styles.actions}>
+        <Button
+          variant="primary"
+          disabled={ready.reason !== undefined}
+          title={ready.reason}
+          onKeyDown={event => {
+            if (event.key === 'Enter' && event.repeat) {
+              event.preventDefault();
+              event.stopPropagation();
+            }
+          }}
+          onClick={() => {
+            if (ready.reason === undefined) {
+              sendLive({
+                type: 'message.send',
+                text: ready.text,
+                targets,
+                duration,
+              });
+            }
+          }}
+        >
+          보내기
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+export function MessageTab({
+  onProblem,
+}: {
+  readonly onProblem?: ((notice: Notice) => void) | undefined;
+}): JSX.Element {
+  const messages = useSettingsDocument('messages', '메시지', onProblem);
+  const screens = useSettingsDocument('screens', '화면', onProblem);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected =
+    messages?.value.templates.find(template => template.id === selectedId) ??
+    messages?.value.templates[0];
+  return (
+    <>
+      <ListBox
+        label="메시지 틀"
+        workspace="show"
+        selected={selected?.id}
+        onSelect={setSelectedId}
+      >
+        {messages?.value.templates.map(template => (
+          <TemplateRow key={template.id} template={template} />
+        ))}
+      </ListBox>
+      {selected === undefined ? null : (
+        <Composer
+          key={JSON.stringify([
+            selected.id,
+            selected.text,
+            selected.targets ?? 'all',
+            selected.duration ?? null,
+          ])}
+          template={selected}
+          screens={screens?.value.screens ?? []}
+        />
+      )}
+    </>
+  );
+}
