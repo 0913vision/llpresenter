@@ -94,3 +94,13 @@ After repeated start/reset and workspace switches:
 Quick list without timers:
 
 ![No timer rows or timer load warning](evidence/tools-16/no-timer-rows.png)
+
+## Verdicts (recorded by the lead at merge)
+
+- Earlier rounds (Codex): see the findings and replies above.
+- Final round (890ada01): reviewer (Codex) Approve. Lead Approve after reading
+  the store change: rows that shared one timer get their own copies once, within
+  the caps, so every 퀵 실행 timer is its own; clicking a running row resets it
+  and each row shows its own value, per the user's timer decision of October 26.
+  The exact-head CI run passed, checked by the lead at merge. Rebased by the
+  lead onto local `main` without conflicts; typecheck passes.
