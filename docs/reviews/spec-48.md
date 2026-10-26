@@ -123,3 +123,14 @@ checked and mixed states, description, clicks, keyboard moves and Space, Enter
 inside a dialog, and the empty state.
 
 No Electron process, visible window, soak, or memory measurement was started.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (Codex, codex4): Request changes: a flat checkbox group without tree
+  semantics; Enter in the tree triggered the dialog's primary action.
+- Round 2 (Codex, codex4): Request changes: keys acted on a cached row instead
+  of the focused one, and position work was quadratic.
+- Round 3 (010c0910): reviewer (Codex, codex3, codex4 being busy) Approve, no
+  findings. Lead Approve. The additive `itemCount` on the list entries is
+  data-side (lead approval, Q1). Rebased by the lead onto local `main` without
+  conflicts; typecheck passes.
