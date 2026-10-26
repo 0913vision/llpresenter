@@ -85,15 +85,16 @@ contract changes in this unit.
 Review service-refresh selection, Enter/button equivalence, history from grid
 and navigation, stale writes, and the two actual Workspace mounts.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict:
-- Findings:
-
-## Review: reviewer
-
-- Verdict:
-- Findings:
+- Round 1 (Codex, codex5): Request changes: reselecting the open row didn't
+  cancel a pending lookup, and previewing a passage dropped the live passage's
+  source.
+- Round 2 (e2ca81cb): reviewer (Codex, codex5) Approve, no findings. Lead
+  Approve after reading the output actions: Bible passages go out through the
+  standard slide command path, and the kept sources are bounded to the live and
+  the previewed passage. Written by the Codex tools member. Rebased by the lead
+  onto local `main` without conflicts; typecheck passes.
 
 ## Team member's reply
 
