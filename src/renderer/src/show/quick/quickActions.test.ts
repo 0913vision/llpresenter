@@ -84,30 +84,6 @@ describe('quick execution', () => {
     expect(fixture.send).not.toHaveBeenCalled();
     expect(problem).toHaveBeenCalledOnce();
   });
-  it('toggles only the chosen prop and timer using accepted live state', async () => {
-    const fixture = quickFixture();
-    window.llp = fixture.api;
-    const run = quickRunner(fixture.api, vi.fn()).run;
-    await run(quickItem('prop'));
-    await run(quickItem('timer'));
-    expect(fixture.send.mock.calls.map(([command]) => command)).toEqual([
-      {type: 'prop.set', propId: quickId(103), on: true},
-      {type: 'timer.start', timerId: quickId(104)},
-    ]);
-    const live = quickLive();
-    useLive.setState({state: live});
-    await run(quickItem('prop'));
-    await run(quickItem('timer'));
-    await run(quickItem('macro'));
-    expect(
-      fixture.send.mock.calls.slice(2).map(([command]) => command),
-    ).toEqual([
-      {type: 'prop.set', propId: quickId(103), on: false},
-      {type: 'timer.pause', timerId: quickId(104)},
-      {type: 'macro.run', macroId: quickId(105)},
-    ]);
-    expect(quickItemOn(quickItem('song'), live)).toBeUndefined();
-  });
   it('uses the active prop list even when a different prop is the primary id', () => {
     const live = emptyLiveState();
     expect(quickItemOn(quickItem('prop'), quickLive())).toBe(true);

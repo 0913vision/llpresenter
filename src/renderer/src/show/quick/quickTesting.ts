@@ -31,9 +31,8 @@ export function quickDocument(revision = 1) {
       format: 'llsettings.quick',
       schemaVersion: 1,
       items: [
-        {id: quickId(1), name: '저장된 곡', kind: 'song', ref: quickId(101)},
+        {name: '저장된 곡', kind: 'song', ref: quickId(101)},
         {
-          id: quickId(2),
           name: '저장된 구절',
           kind: 'bible',
           ref: {
@@ -45,17 +44,16 @@ export function quickDocument(revision = 1) {
             translationName: false,
           },
         },
-        {id: quickId(3), name: '로고 화면', kind: 'prop', ref: quickId(103)},
+        {name: '로고 화면', kind: 'prop', ref: quickId(103)},
         {
-          id: quickId(4),
           name: '시작 카운트다운',
           kind: 'timer',
           ref: quickId(104),
         },
-        {id: quickId(5), name: '시작 매크로', kind: 'macro', ref: quickId(105)},
-        {id: quickId(6), name: '검은 화면', kind: 'black'},
-        {id: quickId(7), name: '새 버전 항목', kind: 'future', extension: true},
-      ],
+        {name: '시작 매크로', kind: 'macro', ref: quickId(105)},
+        {name: '검은 화면', kind: 'black'},
+        {name: '새 버전 항목', kind: 'future', extension: true},
+      ].map((item, index) => ({id: quickId(index + 1), ...item})),
     },
   });
   if (!parsed.ok || parsed.value.name !== 'quick') {

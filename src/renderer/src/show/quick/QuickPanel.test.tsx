@@ -104,6 +104,11 @@ describe('quick panel integration', () => {
     const timer = screen.getByRole('button', {name: '시작 카운트다운'});
     expect(prop.getAttribute('aria-pressed')).toBe('false');
     fireEvent.click(prop);
+    fireEvent.click(timer);
+    expect(fixture.send.mock.calls.map(([command]) => command)).toEqual([
+      {type: 'prop.set', propId: quickId(103), on: true},
+      {type: 'timer.start', timerId: quickId(104)},
+    ]);
     expect(prop.getAttribute('aria-pressed')).toBe('false');
     const live = emptyLiveState();
     act(() => useLive.setState({state: quickLive()}));
@@ -112,7 +117,7 @@ describe('quick panel integration', () => {
     fireEvent.click(prop);
     fireEvent.click(timer);
     expect(
-      fixture.send.mock.calls.slice(1).map(([command]) => command),
+      fixture.send.mock.calls.slice(2).map(([command]) => command),
     ).toEqual([
       {type: 'prop.set', propId: quickId(103), on: false},
       {type: 'timer.pause', timerId: quickId(104)},
