@@ -42,7 +42,7 @@ function createBrowserWindow(
   return new BrowserWindow({
     show: false,
     paintWhenInitiallyHidden: true,
-    focusable: false,
+    focusable: true,
     title: screen.name,
     backgroundColor:
       screen.method === 'capture' ? CAPTURE_BACKGROUND : OUTPUT_BACKGROUND,
@@ -97,6 +97,7 @@ type OutputPresentation = Pick<
   | 'bringToFront'
   | 'bounds'
   | 'hide'
+  | 'setAlwaysOnTop'
 > & {readonly dispose: () => void};
 
 function presentOnScreen(
@@ -106,6 +107,12 @@ function presentOnScreen(
   const placement = new WindowPlacement(win, log);
   const onTop = new OnTopKeeper(win, log);
   let unplacedBounds: Rect | null = null;
+  let wantedOnTop = false;
+  let demoted = false;
+  const setAlwaysOnTop = (on: boolean): void => {
+    wantedOnTop = on;
+    onTop.set(on);
+  };
   const raise = (): void => {
     if (win.isMinimized()) win.showInactive();
     else if (!win.isVisible()) return;
@@ -116,9 +123,14 @@ function presentOnScreen(
     win.showInactive();
     win.moveTop();
   };
-  const orderWindow = (alwaysOnTop: boolean): void => onTop.set(alwaysOnTop);
+  const orderWindow = (): void => {
+    onTop.set(wantedOnTop);
+    if (demoted && !control.isDestroyed())
+      control.moveAbove(win.getMediaSourceId());
+  };
   const placeBehindControl = (): void => {
-    onTop.set(false);
+    demoted = true;
+    setAlwaysOnTop(false);
     if (!control.isDestroyed()) control.moveAbove(win.getMediaSourceId());
   };
   const profile = (method: 'window' | 'capture') => {
@@ -129,56 +141,61 @@ function presentOnScreen(
     win.setResizable(normal);
   };
   return {
+    setAlwaysOnTop,
     showFullScreen: (monitorBounds, alwaysOnTop) => {
       unplacedBounds = null;
+      demoted = false;
+      wantedOnTop = alwaysOnTop;
       const place = () => {
         profile('window');
-        win.setFocusable(false);
+        win.setFocusable(true);
         // NOTE(0913vision): The keeper lets go while Windows moves the window
         // into full screen, so a level change mid-move is no loss.
         onTop.release();
         enterFullScreen(win, monitorBounds);
-        onTop.set(alwaysOnTop);
+        orderWindow();
         showOnce();
       };
       placement.fullscreen(place);
     },
     showWindowed: (bounds, alwaysOnTop = false) => {
+      wantedOnTop = alwaysOnTop;
       if (bounds !== null) unplacedBounds = bounds;
       const place = () => {
         profile('window');
         win.setFocusable(true);
         if (unplacedBounds !== null) {
           win.setBounds(unplacedBounds);
-          placement.verifyBounds(unplacedBounds, () =>
-            orderWindow(alwaysOnTop),
-          );
+          placement.verifyBounds(unplacedBounds, orderWindow);
         }
         unplacedBounds = null;
         showOnce();
-        orderWindow(alwaysOnTop);
+        orderWindow();
       };
       onTop.set(false);
       placement.windowed(place);
     },
     showCapture: (bounds, alwaysOnTop = false) => {
       unplacedBounds = null;
+      wantedOnTop = alwaysOnTop;
       onTop.set(false);
       placement.windowed(() => {
         profile('capture');
         win.setFocusable(true);
         win.setContentBounds(bounds);
-        placement.verifyContentBounds(bounds, () => orderWindow(alwaysOnTop));
+        placement.verifyContentBounds(bounds, orderWindow);
         showOnce();
-        orderWindow(alwaysOnTop);
+        orderWindow();
       });
     },
     prepareForMonitorRemoval: placeBehindControl,
     bounds: () => (win.isDestroyed() ? null : win.getBounds()),
     bringToFront: () => {
+      demoted = false;
       raise();
     },
     hide: () => {
+      demoted = false;
       placement.cancel();
       onTop.release();
       win.hide();
@@ -196,6 +213,7 @@ function presentOffscreen(win: BrowserWindow): OutputPresentation {
   // screen, so its page lays out the same, but it never shows, takes focus,
   // goes full screen, or stays on top.
   return {
+    setAlwaysOnTop: () => undefined,
     showFullScreen: monitorBounds => win.setContentBounds(monitorBounds),
     showWindowed: bounds => {
       if (bounds !== null) win.setBounds(bounds);

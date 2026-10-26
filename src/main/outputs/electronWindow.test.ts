@@ -205,7 +205,7 @@ describe('createElectronOutputWindow offscreen', () => {
     expect(win.show).not.toHaveBeenCalled();
   });
 
-  it('keeps the raise when a fallback placement finishes after 창 보기', async () => {
+  it('does not raise again when fallback placement finishes after 창 보기', async () => {
     const clock = installFakeClock();
     const control = fakeControl();
     const output = openOutput('normal', control);
@@ -216,7 +216,7 @@ describe('createElectronOutputWindow offscreen', () => {
     output.showWindowed(WINDOW_BOUNDS);
 
     output.bringToFront();
-    expect(win.moveTop).toHaveBeenCalledTimes(1);
+    expect(win.moveTop).toHaveBeenCalledTimes(2);
     win.isFullScreen.mockReturnValue(false);
     win.emit('leave-full-screen');
     await clock.advance(0);
@@ -238,7 +238,7 @@ describe('createElectronOutputWindow offscreen', () => {
       bounds = next;
     });
     output.showWindowed(WINDOW_BOUNDS);
-    expect(control.moveAbove).toHaveBeenCalledTimes(1);
+    expect(control.moveAbove).not.toHaveBeenCalled();
     win.isVisible.mockReturnValue(true);
     output.bringToFront();
 
@@ -248,7 +248,7 @@ describe('createElectronOutputWindow offscreen', () => {
 
     expect(bounds).toEqual(WINDOW_BOUNDS);
     expect(win.moveTop).toHaveBeenCalledTimes(2);
-    expect(control.moveAbove).toHaveBeenCalledTimes(1);
+    expect(control.moveAbove).not.toHaveBeenCalled();
     output.destroy();
   });
 
@@ -256,7 +256,7 @@ describe('createElectronOutputWindow offscreen', () => {
     ['after its placement has settled', true],
     ['while its bounds check was still running', false],
   ] as const)(
-    'leaves a later independent placement behind the control after 창 보기 %s',
+    'leaves the control alone during a later independent placement %s',
     async (_when, settledFirst) => {
       const clock = installFakeClock();
       const control = fakeControl();
@@ -268,21 +268,21 @@ describe('createElectronOutputWindow offscreen', () => {
       if (settledFirst) await clock.advance(BOUNDS_RECHECK_MS);
       output.bringToFront();
       if (!settledFirst) await clock.advance(BOUNDS_RECHECK_MS);
-      expect(win.moveTop).toHaveBeenCalledTimes(1);
+      expect(win.moveTop).toHaveBeenCalledTimes(2);
       control.moveAbove.mockClear();
 
       const recentered = {...WINDOW_BOUNDS, x: 200};
       win.getBounds.mockImplementation(() => recentered);
       output.showWindowed(recentered);
 
-      expect(control.moveAbove).toHaveBeenCalledTimes(1);
-      expect(win.moveTop).toHaveBeenCalledTimes(1);
+      expect(control.moveAbove).not.toHaveBeenCalled();
+      expect(win.moveTop).toHaveBeenCalledTimes(2);
       output.destroy();
     },
   );
 
   it.each(['hide', 'full screen', 'monitor removal'] as const)(
-    'places the window behind the control again after %s ends the raise',
+    'only monitor removal demotes the output after %s',
     end => {
       const control = fakeControl();
       const output = openOutput('normal', control);
@@ -296,7 +296,9 @@ describe('createElectronOutputWindow offscreen', () => {
 
       output.showWindowed(WINDOW_BOUNDS);
 
-      expect(control.moveAbove).toHaveBeenCalledTimes(1);
+      expect(control.moveAbove).toHaveBeenCalledTimes(
+        end === 'monitor removal' ? 1 : 0,
+      );
       expect(win.moveTop).toHaveBeenCalledTimes(1);
       output.destroy();
     },
@@ -433,6 +435,47 @@ describe('createElectronOutputWindow normal', () => {
     expect(win.setBounds).not.toHaveBeenCalled();
     expect(win.showInactive).toHaveBeenCalledOnce();
   });
+  it.each(['fullscreen', 'window', 'capture'] as const)(
+    'changes only its own stacking when always on top changes in %s mode',
+    method => {
+      const control = fakeControl();
+      const output = openOutput('normal', control);
+      const win = lastWindow();
+      if (method === 'fullscreen') output.showFullScreen(MONITOR, false);
+      else if (method === 'window') output.showWindowed(WINDOW_BOUNDS);
+      else output.showCapture(MONITOR);
+      vi.clearAllMocks();
+      for (let index = 0; index < 20; index += 1)
+        output.setAlwaysOnTop(index % 2 === 0);
+      expect(win.setAlwaysOnTop).toHaveBeenCalledTimes(20);
+      expect(win.setFullScreen).not.toHaveBeenCalled();
+      expect(win.setBounds).not.toHaveBeenCalled();
+      expect(win.setContentBounds).not.toHaveBeenCalled();
+      expect(win.setFocusable).not.toHaveBeenCalled();
+      expect(win.showInactive).not.toHaveBeenCalled();
+      expect(win.moveTop).not.toHaveBeenCalled();
+      expect(win.focus).not.toHaveBeenCalled();
+      expect(control.moveAbove).not.toHaveBeenCalled();
+      expect(control.focus).not.toHaveBeenCalled();
+    },
+  );
+
+  it('keeps the latest stacking choice when a pending fullscreen exit finishes', async () => {
+    const clock = installFakeClock();
+    const output = openOutput('normal');
+    const win = lastWindow();
+    win.isFullScreen.mockReturnValue(true);
+    output.showWindowed(WINDOW_BOUNDS, true);
+    output.setAlwaysOnTop(false);
+    win.isFullScreen.mockReturnValue(false);
+    win.emit('leave-full-screen');
+    await clock.advance(0);
+    expect(win.setAlwaysOnTop).toHaveBeenLastCalledWith(false);
+    expect(vi.getTimerCount()).toBe(1);
+    output.destroy();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
   it('raises a non-topmost output once on show and never keeps raising it', async () => {
     const clock = installFakeClock();
     const control = fakeControl();
@@ -592,7 +635,7 @@ describe('createElectronOutputWindow normal', () => {
       expect(bounds).toEqual(WINDOW_BOUNDS);
       expect(win.getBounds).toHaveBeenCalled();
       expect(win.setBounds).toHaveBeenCalledTimes(2);
-      expect(control.moveAbove).toHaveBeenCalledTimes(2);
+      expect(control.moveAbove).not.toHaveBeenCalled();
       bounds = {...WINDOW_BOUNDS, x: 300};
       win.emit('move');
       await clock.advance(BOUNDS_RECHECK_MS);
@@ -745,10 +788,8 @@ describe('createElectronOutputWindow normal', () => {
 
     expect(bounds).toEqual(WINDOW_BOUNDS);
     expect(win.setBounds).toHaveBeenCalledExactlyOnceWith(WINDOW_BOUNDS);
-    expect(control.moveAbove).toHaveBeenCalledExactlyOnceWith('window:42:0');
-    expect(win.setAlwaysOnTop).toHaveBeenCalledBefore(control.moveAbove);
-    expect(win.setBounds).toHaveBeenCalledBefore(control.moveAbove);
-    expect(win.showInactive).toHaveBeenCalledBefore(control.moveAbove);
+    expect(control.moveAbove).not.toHaveBeenCalled();
+    expect(win.moveTop).toHaveBeenCalledOnce();
     expect(win.focus).not.toHaveBeenCalled();
     expect(control.focus).not.toHaveBeenCalled();
     expect(win.listenerCount('leave-full-screen')).toBe(1);
@@ -756,17 +797,16 @@ describe('createElectronOutputWindow normal', () => {
     expect(win.listenerCount('leave-full-screen')).toBe(0);
   });
 
-  it('places the control directly above a windowed output without focusing either', () => {
+  it('raises a windowed output once without focusing or moving the control', () => {
     const control = fakeControl();
     const output = openOutput('normal', control);
     const win = lastWindow();
 
     output.showWindowed(WINDOW_BOUNDS);
 
-    expect(control.moveAbove).toHaveBeenCalledExactlyOnceWith('window:42:0');
+    expect(control.moveAbove).not.toHaveBeenCalled();
+    expect(win.moveTop).toHaveBeenCalledOnce();
     expect(win.setAlwaysOnTop).toHaveBeenCalledWith(false);
-    expect(win.setAlwaysOnTop).toHaveBeenCalledBefore(control.moveAbove);
-    expect(win.setBounds).toHaveBeenCalledBefore(control.moveAbove);
     expect(win.focus).not.toHaveBeenCalled();
     expect(control.focus).not.toHaveBeenCalled();
   });
@@ -877,7 +917,7 @@ describe('createElectronOutputWindow normal', () => {
 
     output.showFullScreen(MONITOR, true);
 
-    expect(win.setFocusable).toHaveBeenCalledWith(false);
+    expect(win.setFocusable).toHaveBeenCalledWith(true);
     expect(win.setFullScreen).toHaveBeenCalledWith(true);
     expect(win.setAlwaysOnTop).toHaveBeenCalledWith(true, 'screen-saver');
     expect(win.showInactive).toHaveBeenCalledTimes(1);
@@ -909,7 +949,7 @@ describe('createElectronOutputWindow normal', () => {
 
     expect(lastWindow().options).toMatchObject({
       show: false,
-      focusable: false,
+      focusable: true,
       webPreferences: {backgroundThrottling: false},
     });
     expect(lastWindow().options).not.toHaveProperty('skipTaskbar');

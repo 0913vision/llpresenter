@@ -40,6 +40,7 @@ export class FakeOutputHandle implements OutputWindowHandle {
   pings = 0;
   monitorRemovals = 0;
   raises = 0;
+  readonly stackingChanges: boolean[] = [];
   /** How long the page takes to answer a ping; null when it never does. */
   answerAfterMs: number | null = 0;
   /** Every call that showed the window, in order. */
@@ -68,6 +69,12 @@ export class FakeOutputHandle implements OutputWindowHandle {
 
   configure(screen: OutputScreen): void {
     this.screen = screen;
+  }
+
+  setAlwaysOnTop(onTop: boolean): void {
+    this.stackingChanges.push(onTop);
+    if (this.mode.kind !== 'hidden')
+      this.mode = {...this.mode, alwaysOnTop: onTop};
   }
 
   showWindowed(bounds: Rect | null, alwaysOnTop = false): void {

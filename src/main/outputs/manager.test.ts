@@ -420,22 +420,22 @@ describe('OutputManager', () => {
     });
   });
 
-  it('raises only a windowed output for 창 보기', () => {
+  it('raises any visible output for 창 보기 and ignores hidden or unknown outputs', () => {
     const {store, displays, windows, manager} = setUp();
     store.dispatch(turn(true));
     const handle = windows.only('main');
     manager.showWindow('main');
-    expect(handle.raises).toBe(0);
+    expect(handle.raises).toBe(1);
 
     displays.plug(CONTROL, STAGE);
     manager.showWindow('main');
-    expect(handle.raises).toBe(1);
+    expect(handle.raises).toBe(2);
     expect(handle.mode).toEqual({kind: 'window', bounds: FALLBACK_BOUNDS});
 
     manager.showWindow('unknown');
     store.dispatch(turn(false));
     manager.showWindow('main');
-    expect(handle.raises).toBe(1);
+    expect(handle.raises).toBe(2);
   });
 
   it('keeps an output on the monitor it found when a look-alike monitor connects', () => {
@@ -563,7 +563,7 @@ describe('OutputManager', () => {
     expect(windows.only('main').mode).toEqual({
       kind: 'fullscreen',
       bounds: PROJECTOR_BOUNDS,
-      alwaysOnTop: true,
+      alwaysOnTop: false,
     });
     manager.dispose();
     displays.dispose();

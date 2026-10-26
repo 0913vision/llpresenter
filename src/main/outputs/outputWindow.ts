@@ -1,7 +1,7 @@
 import {sameRect, type Rect, type Size} from '../displays/rect';
 import type {FrameReadyReport} from '@shared/schema/ipcPayloads';
 import type {Logger} from '../log';
-import type {FullScreenPlacement, ShownPlacement} from './placement';
+import type {ShownPlacement} from './placement';
 import {ANSWER_LIMIT_MS, FRAME_SILENCE_MS, HangWatch} from './hangWatch';
 import {
   RendererRecovery,
@@ -15,6 +15,8 @@ export interface OutputWindowHandle {
   configure(screen: OutputScreen): void;
   prepare(bounds: Rect, kind: ShownPlacement['kind']): void;
   contentSize(): Size;
+  /** Changes only this window's stacking, without moving it or taking focus. */
+  setAlwaysOnTop(onTop: boolean): void;
   /** Shows the window without taking focus, full screen on the monitor with these bounds. */
   showFullScreen(monitorBounds: Rect, alwaysOnTop: boolean): void;
   /** Shows the window without taking focus as a normal window, moved to the bounds when given. */
@@ -70,17 +72,6 @@ export interface OutputWindowOptions {
 
 /** A requested output reveals even if decoding, layout or renderer IPC stalls. */
 export const OUTPUT_REVEAL_DEADLINE_MS = 1500;
-
-function sameFullScreen(
-  applied: ShownPlacement | null,
-  next: FullScreenPlacement,
-): boolean {
-  return (
-    applied?.kind === 'fullscreen' &&
-    sameRect(applied.bounds, next.bounds) &&
-    applied.alwaysOnTop === next.alwaysOnTop
-  );
-}
 
 /**
  * One screen's preloaded output window. It stays hidden until the current
@@ -236,6 +227,8 @@ export class OutputWindow {
       return;
     } else if (this.changes(placement)) {
       this.place(handle, placement);
+    } else if (!!this.applied?.alwaysOnTop !== !!placement.alwaysOnTop) {
+      handle.setAlwaysOnTop(placement.alwaysOnTop ?? false);
     }
     this.applied = placement;
   }
@@ -301,20 +294,21 @@ export class OutputWindow {
     if (placement.kind === 'capture') {
       return (
         this.applied?.kind !== 'capture' ||
-        !sameRect(this.applied.bounds, placement.bounds) ||
-        !!this.applied.alwaysOnTop !== !!placement.alwaysOnTop
+        !sameRect(this.applied.bounds, placement.bounds)
       );
     }
     if (placement.kind === 'window') {
       return (
         this.applied?.kind !== 'window' ||
-        !!this.applied.alwaysOnTop !== !!placement.alwaysOnTop ||
         (placement.reason === 'monitorMissing' &&
           (this.applied.reason !== 'monitorMissing' ||
             !sameRect(this.applied.bounds, placement.bounds)))
       );
     }
-    return !sameFullScreen(this.applied, placement);
+    return (
+      this.applied?.kind !== 'fullscreen' ||
+      !sameRect(this.applied.bounds, placement.bounds)
+    );
   }
 
   private place(handle: OutputWindowHandle, placement: ShownPlacement): void {

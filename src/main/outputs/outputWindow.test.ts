@@ -191,13 +191,28 @@ describe('OutputWindow', () => {
     output.update({...FALLBACK, reason: 'method', alwaysOnTop: true});
     expect(windows.only('main').mode).toEqual({
       kind: 'window',
-      bounds: null,
+      bounds: FALLBACK.bounds,
       alwaysOnTop: true,
     });
     const capture = {kind: 'capture', bounds: PROJECTOR} as const;
     output.update(capture);
     output.update({...capture, alwaysOnTop: true});
     expect(windows.only('main').mode).toEqual({...capture, alwaysOnTop: true});
+    expect(windows.only('main').placements).toHaveLength(2);
+    expect(windows.only('main').stackingChanges).toEqual([true, true]);
+    output.dispose();
+  });
+
+  it('changes only stacking when full screen always on top is toggled repeatedly', () => {
+    const {output, windows} = setUp();
+    output.update(FULL_SCREEN);
+    const handle = windows.only('main');
+    for (let index = 0; index < 20; index += 1) {
+      output.update({...FULL_SCREEN, alwaysOnTop: index % 2 === 1});
+    }
+    expect(handle.placements).toHaveLength(1);
+    expect(handle.stackingChanges).toHaveLength(20);
+    expect(handle.reloads).toBe(0);
     output.dispose();
   });
 

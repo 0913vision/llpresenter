@@ -241,7 +241,7 @@ describe('saved output backend', () => {
       expect(output.mode).toEqual({
         kind: 'fullscreen',
         bounds: projector.bounds,
-        alwaysOnTop: true,
+        alwaysOnTop: false,
       });
       expect(log.messages('warn')).toContain(
         'using built-in output screens because settings are unavailable',
@@ -349,7 +349,7 @@ describe('saved output backend', () => {
     expect(window.mode).toEqual({
       kind: 'fullscreen',
       bounds: projector.bounds,
-      alwaysOnTop: true,
+      alwaysOnTop: false,
     });
     save([
       {...main, method: 'capture', resolution: {width: 1280, height: 720}},
