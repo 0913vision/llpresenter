@@ -65,10 +65,24 @@ describe('save failures', () => {
       },
     });
     const first = failures.retry();
-    expect(failures.retry()).toBe(first);
+    const second = failures.retry();
     release();
-    await first;
+    await Promise.all([first, second]);
     expect(order).toEqual(['a', 'c']);
+  });
+
+  it('pushes the unchanged problem again after 다시 시도 while files still wait', async () => {
+    const {failures, pushed, wait} = setup();
+    wait('a');
+    await failures.retry();
+    expect(pushed.mock.calls.map(([problem]) => problem)).toEqual([
+      {kind: 'save-failed', name: 'a', count: 1},
+      {kind: 'save-failed', name: 'a', count: 1},
+    ]);
+    failures.saved('a');
+    await failures.retry();
+    expect(pushed).toHaveBeenCalledTimes(3);
+    expect(pushed).toHaveBeenLastCalledWith({kind: 'save-recovered'});
   });
 
   it('logs a retry that throws and goes on with the next file', async () => {
@@ -86,7 +100,7 @@ describe('save failures', () => {
 
   it('retries by itself every interval while files wait and stops when none do', async () => {
     const clock = installFakeClock();
-    const {failures, retry, wait} = setup();
+    const {failures, pushed, retry, wait} = setup();
     wait('a');
     await clock.advance(SAVE_RETRY_INTERVAL_MS - 1);
     expect(retry).not.toHaveBeenCalled();
@@ -94,6 +108,7 @@ describe('save failures', () => {
     expect(retry).toHaveBeenCalledOnce();
     await clock.advance(SAVE_RETRY_INTERVAL_MS);
     expect(retry).toHaveBeenCalledTimes(2);
+    expect(pushed).toHaveBeenCalledOnce();
     failures.saved('a');
     expect(vi.getTimerCount()).toBe(0);
   });

@@ -40,8 +40,8 @@ function firstOf<T>(values: Iterable<T>): T | undefined {
  * first, at most `APP_PROBLEM_LIMITS.waitingSaves` (spec 02, "Save failures").
  * Every change pushes `save-failed` with the oldest file and the count, and
  * the last file written pushes `save-recovered`. While files wait, they are
- * written again every {@link SAVE_RETRY_INTERVAL_MS}, and at once on
- * {@link SaveFailures.retry}.
+ * written again every {@link SAVE_RETRY_INTERVAL_MS}, which pushes only a
+ * change, and at once on {@link SaveFailures.retry}.
  */
 export class SaveFailures implements SaveFailureSink {
   private readonly saves = new Map<string, WaitingSave>();
@@ -73,12 +73,17 @@ export class SaveFailures implements SaveFailureSink {
     if (this.saves.delete(file)) this.changed();
   }
 
-  /** Writes every waiting file again once, oldest first, joining a retry that runs. */
-  retry(): Promise<void> {
-    this.retrying ??= this.retryAll().finally(() => {
-      this.retrying = undefined;
-    });
-    return this.retrying;
+  /**
+   * 다시 시도: writes every waiting file again once, oldest first, joining a
+   * retry that runs. When files still wait, it pushes `save-failed` again even
+   * if nothing changed, because pressing 다시 시도 closed the card.
+   */
+  async retry(): Promise<void> {
+    await this.retryOnce();
+    const current = this.current();
+    if (current === null || this.disposed) return;
+    this.published = current;
+    this.publish(current);
   }
 
   /** The standing problems for `problems.list()`: `save-failed` while files wait. */
@@ -99,6 +104,13 @@ export class SaveFailures implements SaveFailureSink {
     clearTimeout(this.timer);
     this.timer = undefined;
     this.listeners.clear();
+  }
+
+  private retryOnce(): Promise<void> {
+    this.retrying ??= this.retryAll().finally(() => {
+      this.retrying = undefined;
+    });
+    return this.retrying;
   }
 
   private async retryAll(): Promise<void> {
@@ -145,7 +157,7 @@ export class SaveFailures implements SaveFailureSink {
     if (this.timer !== undefined || this.disposed) return;
     this.timer = setTimeout(() => {
       this.timer = undefined;
-      this.retry().then(
+      this.retryOnce().then(
         () => {
           this.scheduleRetry();
         },
