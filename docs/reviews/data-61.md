@@ -97,19 +97,21 @@ Use a non-disposing disk preflight so failed saves keep the application and its
 in-memory documents available for retry. Existing renderer delivery semantics
 remain unchanged for edits outside the close preflight.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (Codex, codex4): Request changes: awaiting the disk flush used up the
+  five-second renderer deadline, so enough locked files could still close the
+  window and drop edits (P1), and app-config write failures never counted as
+  save failures (P2).
+- Round 1 second review (Gemini 4 Argon, gem1): Approve, no findings.
+- Round 2 (0ab4a7a1): reviewer (Codex, codex4) Approve. Lead Approve after
+  reading the close path: main writes every accepted edit to disk before the
+  close goes on and answers false while any file is unsaved, a renderer that is
+  still working sends progress that re-arms the deadline (a frozen one still
+  times out), the 저장 중 dialog keeps 강제로 닫기 as the only way to drop an
+  edit, and every listener is released. Fixes qa's M3-C1-1 (major) and M3-C1-2
+  (minor) from the m3-check1 smoke run. Fast-forward onto local `main`;
+  typecheck passes.
 
 ## Team member's reply
 
