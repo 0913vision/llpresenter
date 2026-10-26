@@ -367,10 +367,21 @@ Source: `NewService`, `ListRow` README.
     children is checked. The new service becomes the current service. The output
     doesn't change. The flow creates an empty service, copies only the checked
     items, and then opens it.
-  - If creation fails, keep the dialog. If copying fails, try deleting the new
-    empty service so the operator can retry; if that deletion fails, open the
-    created service and report the failure. If a created service remains after a
-    later failure, report the failure and close the dialog.
+  - A `write-failed` result from creation or copying means the edit is already
+    applied in main, with a pending disk save. Continue with the applied service
+    id after creation and continue to opening after copying. Keep the copied
+    items; main retains the pending save and reports its save problem (08).
+    Retrying the disk save must not create the service again, copy the items
+    again, or roll back the applied copy.
+  - A refused create or rejected create call keeps the dialog and reports the
+    failure. Only a refused copy or rejected copy call starts rollback: try
+    deleting the new empty service. If that deletion is applied in main, keep
+    the dialog so the operator can retry. A `write-failed` deletion counts as
+    applied cleanup; main retains its pending disk operation. If deletion is
+    refused or its call rejects, try opening the created service, report the
+    copy failure, and close the dialog.
+  - If opening a created service fails, report the failure and close the dialog,
+    leaving the created service in main.
   - Two services can share a name and date.
   - Source lists update while the dialog is open. Keep the selected source id,
     including an automatic choice, when a rename changes its sort order. Keep
@@ -415,10 +426,14 @@ lead's date/time choice and source-menu decision recorded in those requests.
   id or drops checked items when the list reorders. If a selected source is
   deleted, use the first remaining 틀 or other service, with nothing checked.
   With no source left, show that there is nothing to import from.
-- While importing, the dialog waits for the result before closing. A refused or
-  failed import keeps the dialog and reports the failure through the shared
-  notification list. Success closes it without a notification and doesn't change
-  output.
+- While importing, the dialog waits for the result before closing. A plain
+  success or `write-failed` result means the items are already applied in main,
+  so the dialog closes. With `write-failed`, main retains the applied items and
+  pending disk save and reports its save problem (08). Retrying that save must
+  not import the items again.
+- A refused import or rejected import call keeps the dialog and reports the
+  failure through the shared notification list. An applied import adds no
+  separate action-result notification. Importing doesn't change output.
 - No ProPresenter source describes copying items from another playlist. It's
   this project's addition.
 
