@@ -145,10 +145,12 @@ export interface LlpApi {
   };
   readonly problems: {
     /**
-     * Reads the standing problems once, such as files skipped at startup,
-     * which happen before the window loads. One-shot problems, such as
-     * `macro-dropped`, are never listed. Rejects, after logging, when the call
-     * fails or the answer is malformed.
+     * Reads what a window that loads late must show: the standing problems,
+     * such as files skipped at startup, then, once, the newest one-shot
+     * problems that no window has read yet (at most 16), such as a
+     * `macro-dropped` from a startup 매크로. The read clears those, so
+     * subscribe first and then list, and nothing falls between the two.
+     * Rejects, after logging, when the call fails or the answer is malformed.
      */
     list(): Promise<readonly AppProblem[]>;
     /**
