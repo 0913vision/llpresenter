@@ -1,5 +1,5 @@
 import {randomUUID} from 'node:crypto';
-import {join} from 'node:path';
+import {basename, join} from 'node:path';
 import type {Result} from '@shared/result';
 import type {
   LibrarySong,
@@ -139,7 +139,11 @@ export class ContentStore {
     this.songs = new DocumentCollection(options.songs);
     this.services = new DocumentCollection(options.services);
     this.templates = new DocumentCollection(options.templates);
-    this.persistence = new ContentPersistence(options.files, options.log);
+    this.persistence = new ContentPersistence(
+      options.files,
+      options.log,
+      file => this.nameOfFile(file),
+    );
     this.autosave = new Autosave(
       (key, error) => options.log.error('could not save a file', {key, error}),
       options.writeDelayMs,
@@ -378,6 +382,16 @@ export class ContentStore {
   /** The current songs, for the open 예배 순서 in 진행. */
   storedSongs(): ReadonlyMap<string, StoredDocument<Song>> {
     return new Map(this.songs.all().map(song => [song.data.id, song]));
+  }
+
+  /** A song's title, or a 예배 순서's or 틀's name, else the file's name. */
+  private nameOfFile(file: string): string {
+    const song = this.songs.all().find(stored => stored.file === file);
+    if (song !== undefined) return song.data.title;
+    const named = [...this.services.all(), ...this.templates.all()].find(
+      stored => stored.file === file,
+    );
+    return named?.data.name ?? basename(file);
   }
 
   /** Saves every change that waits, for quitting. */

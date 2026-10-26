@@ -24,7 +24,9 @@ import {openMediaStore} from './mediaLoader';
 import {registerMediaChannels, type MediaBackendPort} from './mediaChannels';
 import type {MediaStore} from './mediaStore';
 import {OpenServiceFeed} from './openServiceFeed';
+import {registerProblemChannels} from './problemChannels';
 import {RecoveryCopies} from './recoveryCopies';
+import {SaveFailures, type SaveFailureSink} from './saveFailures';
 import {Saver} from './saver';
 import {removeStaleTempFiles} from './staleTempFiles';
 import {settingsNames} from '@shared/schema/settingsDocuments';
@@ -102,8 +104,12 @@ export function registerStore({
   context = electronLocationContext,
 }: StoreRegistration): DataStore {
   const loading = readStore(() => ({...context(), appConfig}), log);
+  const saveFailures = new SaveFailures({log});
+  const removeProblemChannels = registerProblemChannels(saveFailures, log);
   const settings = loading
-    .then(store => (store === null ? null : openSettingsStore(store, log)))
+    .then(store =>
+      store === null ? null : openSettingsStore(store, log, saveFailures),
+    )
     .catch((error: unknown) => {
       log.error('could not open app-wide settings', error);
       return null;
@@ -112,7 +118,11 @@ export function registerStore({
     .then(async store => {
       if (store === null) return null;
       const readySettings = await settings;
-      const opened = await openMediaStore(store, readySettings, log);
+      const opened = await openMediaStore(store, {
+        settings: readySettings,
+        log,
+        failures: saveFailures,
+      });
       readySettings?.addProblems(opened.problems);
       return opened.store;
     })
@@ -121,7 +131,11 @@ export function registerStore({
       return null;
     });
   const mediaChannels = registerMediaChannels(media, log);
-  const opened = openContent(loading, log, {settings, media});
+  const opened = openContent(loading, log, {
+    settings,
+    media,
+    failures: saveFailures,
+  });
   const settingsChannels = registerSettingsChannels(
     settings,
     log,
@@ -194,6 +208,8 @@ export function registerStore({
       } finally {
         ready?.search.clear();
         ready?.content.dispose();
+        removeProblemChannels();
+        saveFailures.dispose();
       }
     },
     findMediaFile: mediaLibrary.findFile,
@@ -234,6 +250,7 @@ async function openContent(
   readers: {
     readonly settings: Promise<SettingsStore | null>;
     readonly media: Promise<MediaStore | null>;
+    readonly failures: SaveFailureSink;
   },
 ): Promise<OpenedContent | null> {
   const store = await loading;
@@ -244,6 +261,7 @@ async function openContent(
     return await createContent(store, log, {
       settings: await readers.settings,
       media: await readers.media,
+      failures: readers.failures,
     });
   } catch (error: unknown) {
     log.error('could not open the songs and 예배 순서', error);
@@ -257,9 +275,11 @@ async function createContent(
   {
     settings,
     media,
+    failures,
   }: {
     readonly settings: SettingsStore | null;
     readonly media: MediaStore | null;
+    readonly failures: SaveFailureSink;
   },
 ): Promise<OpenedContent> {
   const search = await buildSongSearchIndex(
@@ -289,7 +309,7 @@ async function createContent(
     services: store.services,
     templates: store.templates,
     openServiceId: store.openServiceId,
-    files: documentFiles({saver, copies, log}),
+    files: documentFiles({saver, copies, log, failures}),
     events: {
       ...events,
       songChanged: change => {

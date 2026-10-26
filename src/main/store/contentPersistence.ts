@@ -1,25 +1,34 @@
+import {basename} from 'node:path';
 import type {Logger} from '../log';
 import type {WriteResult} from './fileWriter';
 import type {RecoveryTarget} from './recoveryCopies';
+import type {SaveFailureSink} from './saveFailures';
 import type {SaveRequest} from './saver';
 
 /** Saves and deletes the files of documents, with recovery copies. */
 export interface DocumentFiles {
   write(request: SaveRequest): Promise<WriteResult>;
   remove(target: RecoveryTarget): Promise<WriteResult>;
+  /** Hears which files couldn't be written, and which were written again. */
+  readonly failures?: SaveFailureSink | undefined;
 }
 
 type Pending =
   | {readonly kind: 'write'; readonly request: SaveRequest}
   | {readonly kind: 'remove'; readonly target: RecoveryTarget};
 
-/** Keeps the newest failed operation per file for the next flush to retry. */
+/**
+ * Keeps the newest failed operation per file for a retry, and reports each
+ * such file to the files' failure sink until it is written.
+ */
 export class ContentPersistence {
   private readonly pending = new Map<string, Pending>();
 
+  /** @param nameOf - What a failure card calls a file; its name by default. */
   constructor(
     private readonly files: DocumentFiles,
     private readonly log: Logger,
+    private readonly nameOf: (file: string) => string = file => basename(file),
   ) {}
 
   write(request: SaveRequest): Promise<WriteResult> {
@@ -37,6 +46,12 @@ export class ContentPersistence {
     }
   }
 
+  /** Retries the newest operation of one file, if it still waits. */
+  async retry(file: string): Promise<void> {
+    const operation = this.pending.get(file);
+    if (operation !== undefined) await this.perform(operation);
+  }
+
   private async perform(operation: Pending): Promise<WriteResult> {
     const file =
       operation.kind === 'write'
@@ -44,14 +59,24 @@ export class ContentPersistence {
         : operation.target.file;
     this.pending.set(file, operation);
     const result = await this.tryOperation(operation, file);
-    if (result.ok) {
-      if (this.pending.get(file) === operation) {
-        this.pending.delete(file);
-      }
-    } else {
+    if (!result.ok) {
       this.log.warn('could not persist a content file', result.error);
     }
+    if (this.pending.get(file) === operation) this.report(file, result);
     return result;
+  }
+
+  private report(file: string, result: WriteResult): void {
+    if (result.ok) {
+      this.pending.delete(file);
+      this.files.failures?.saved(file);
+      return;
+    }
+    this.files.failures?.waiting({
+      file,
+      name: this.nameOf(file),
+      retry: () => this.retry(file),
+    });
   }
 
   private async tryOperation(

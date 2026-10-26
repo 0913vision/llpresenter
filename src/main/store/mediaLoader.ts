@@ -19,12 +19,20 @@ import {
 } from './settingsFile';
 import type {SettingsProblem, SettingsReader} from './settingsStore';
 import {MediaStore} from './mediaStore';
+import type {SaveFailureSink} from './saveFailures';
+
+/** What the media list opens with besides the loaded data. */
+export interface MediaStoreContext {
+  readonly settings: SettingsReader | null;
+  readonly log: Logger;
+  /** Hears the files that couldn't be written, for 저장할 수 없음. */
+  readonly failures?: SaveFailureSink | undefined;
+}
 
 /** Loads the media list independently and creates only a missing file. */
 export async function openMediaStore(
   store: LoadedStore,
-  settings: SettingsReader | null,
-  log: Logger,
+  {settings, log, failures}: MediaStoreContext,
 ): Promise<{
   readonly store: MediaStore;
   readonly problems: readonly SettingsProblem[];
@@ -46,7 +54,7 @@ export async function openMediaStore(
     file: location.file,
     mediaFolder: store.locations.media,
     developmentFolder: store.developmentFolder,
-    files: documentFiles({saver, copies, log}),
+    files: documentFiles({saver, copies, log, failures}),
     log,
   });
   const [pathProblem] = opened.startupProblems;

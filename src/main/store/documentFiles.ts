@@ -2,12 +2,15 @@ import {rm} from 'node:fs/promises';
 import type {Logger} from '../log';
 import type {DocumentFiles} from './contentPersistence';
 import type {RecoveryCopies} from './recoveryCopies';
+import type {SaveFailureSink} from './saveFailures';
 import type {Saver} from './saver';
 
 export interface DocumentFilesOptions {
   readonly saver: Saver;
   readonly copies: Pick<RecoveryCopies, 'keepBeforeDelete'>;
   readonly log: Logger;
+  /** Hears the files that couldn't be written, for 저장할 수 없음. */
+  readonly failures?: SaveFailureSink | undefined;
 }
 
 /**
@@ -20,8 +23,10 @@ export function documentFiles({
   saver,
   copies,
   log,
+  failures,
 }: DocumentFilesOptions): DocumentFiles {
   return {
+    failures,
     write: request => saver.save(request),
     remove: async target => {
       await saver.idle();

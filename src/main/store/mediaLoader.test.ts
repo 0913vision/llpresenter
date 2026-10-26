@@ -39,7 +39,7 @@ describe('media list loading', () => {
         throw new Error('Serializer failed');
       },
     );
-    const opened = await openMediaStore(loaded, null, log);
+    const opened = await openMediaStore(loaded, {settings: null, log});
     onTestFinished(() => opened.store.dispose());
     expect(opened.store.get().value).toEqual(EMPTY);
     expect(opened.problems).toMatchObject([
@@ -48,7 +48,7 @@ describe('media list loading', () => {
   });
   it('creates a missing empty media list', async () => {
     const {loaded, log} = await setup();
-    const opened = await openMediaStore(loaded, null, log);
+    const opened = await openMediaStore(loaded, {settings: null, log});
     onTestFinished(() => opened.store.dispose());
     expect(opened.problems).toEqual([]);
     expect(opened.store.get()).toEqual({
@@ -68,7 +68,7 @@ describe('media list loading', () => {
     const {loaded, log} = await setup();
     const file = join(loaded.locations.settings, 'media.json');
     await writeJson(file, '{"format":');
-    const opened = await openMediaStore(loaded, null, log);
+    const opened = await openMediaStore(loaded, {settings: null, log});
     onTestFinished(() => opened.store.dispose());
     expect(opened.store.get().value).toEqual(EMPTY);
     expect(opened.problems).toMatchObject([
@@ -95,7 +95,7 @@ describe('media list loading', () => {
       ),
       EMPTY,
     );
-    const opened = await openMediaStore(loaded, null, log);
+    const opened = await openMediaStore(loaded, {settings: null, log});
     onTestFinished(() => opened.store.dispose());
     expect(opened.store.get()).toMatchObject({
       access: 'readOnly',
@@ -121,7 +121,7 @@ describe('media list loading', () => {
         },
       ],
     });
-    const opened = await openMediaStore(loaded, null, log);
+    const opened = await openMediaStore(loaded, {settings: null, log});
     onTestFinished(() => opened.store.dispose());
     expect(opened.store.get().value.items).toHaveLength(1);
     expect(opened.store.fileOf(ID)).toBeNull();

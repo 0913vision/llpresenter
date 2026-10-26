@@ -17,6 +17,7 @@ import type {DocumentFiles} from './contentPersistence';
 import {documentFiles} from './documentFiles';
 import type {LoadedStore} from './fileStore';
 import {RecoveryCopies} from './recoveryCopies';
+import type {SaveFailureSink} from './saveFailures';
 import {Saver} from './saver';
 import {settingsCodecs} from './settingsCodecs';
 import {settingsFileName} from './settingsFile';
@@ -252,6 +253,7 @@ export class SettingsStore {
 export async function openSettingsStore(
   store: LoadedStore,
   log: Logger,
+  failures?: SaveFailureSink,
 ): Promise<SettingsStore> {
   let opened: SettingsStore | null = null;
   const copies = new RecoveryCopies({
@@ -280,7 +282,7 @@ export async function openSettingsStore(
     log,
     saving: {
       folder: store.locations.settings,
-      files: documentFiles({saver, copies, log}),
+      files: documentFiles({saver, copies, log, failures}),
     },
   });
   return opened;

@@ -47,6 +47,7 @@ type Handler = (event: unknown, value: unknown) => unknown;
 
 const electron = vi.hoisted(() => ({
   handlers: new Map<string, Handler>(),
+  listeners: new Map<string, () => void>(),
   paths: new Map<string, string>(),
   send: vi.fn(),
 }));
@@ -69,6 +70,12 @@ vi.mock('electron', () => ({
     },
     removeHandler: (channel: string) => {
       electron.handlers.delete(channel);
+    },
+    on: (channel: string, listener: () => void) => {
+      electron.listeners.set(channel, listener);
+    },
+    removeListener: (channel: string) => {
+      electron.listeners.delete(channel);
     },
   },
 }));

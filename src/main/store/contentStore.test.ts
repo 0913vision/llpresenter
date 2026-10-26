@@ -22,6 +22,7 @@ import {
 import type {StoredFile} from './library';
 import {resolveLocations} from './locations';
 import type {RecoveryTarget} from './recoveryCopies';
+import type {WaitingSave} from './saveFailures';
 import type {SaveRequest} from './saver';
 import {
   hymnOne,
@@ -91,6 +92,8 @@ interface FakeFiles extends DocumentFiles {
   readonly written: string[];
   readonly removed: string[];
   readonly texts: Map<string, string>;
+  readonly waiting: WaitingSave[];
+  readonly saved: string[];
   failing: ReadonlySet<string>;
 }
 
@@ -99,7 +102,17 @@ function fakeFiles(): FakeFiles {
     written: [],
     removed: [],
     texts: new Map(),
+    waiting: [],
+    saved: [],
     failing: new Set(),
+    failures: {
+      waiting: save => {
+        files.waiting.push(save);
+      },
+      saved: file => {
+        files.saved.push(file);
+      },
+    },
     write: (request: SaveRequest) => {
       const {file} = request.target;
       files.written.push(file);
@@ -185,6 +198,39 @@ function songEdit(title: string, baseRevision: number): ContentEdit {
     baseRevision,
   };
 }
+
+describe('ContentStore save failures', () => {
+  it('names a waiting song by its title and reports it once written again', async () => {
+    const {store, files, song} = setUp();
+    files.failing = new Set([song.file]);
+    await store.apply({
+      type: 'song.update',
+      song: {...song.data, title: 'Invented waiting hymn'},
+      baseRevision: 1,
+    });
+    await vi.waitFor(() => expect(files.waiting).toHaveLength(1));
+    expect(files.waiting.map(({file, name}) => [file, name])).toEqual([
+      [song.file, 'Invented waiting hymn'],
+    ]);
+    files.failing = new Set();
+    await files.waiting[0]?.retry();
+    expect(files.saved).toEqual([song.file]);
+  });
+
+  it('names a waiting 틀 by its name', async () => {
+    const {store, files} = setUp();
+    const template = templateFile();
+    files.failing = new Set([template.file]);
+    await store.apply({
+      type: 'template.update',
+      template: {...template.data, name: 'Invented evening'},
+      baseRevision: 1,
+    });
+    await vi.waitFor(() =>
+      expect(files.waiting.map(({name}) => name)).toEqual(['Invented evening']),
+    );
+  });
+});
 
 describe('ContentStore song updates', () => {
   it('saves and pushes a trimmed NFC title without mutating the submitted song', async () => {
