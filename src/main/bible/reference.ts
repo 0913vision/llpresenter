@@ -1,5 +1,6 @@
 import type {Result} from '@shared/result';
-import type {BibleTranslationFile} from '@shared/schema/bibleTranslation';
+import {BIBLE_LOOKUP_LIMITS} from '@shared/schema/bibleLookup';
+import type {BibleChunkHeader} from '@shared/schema/bibleChunks';
 import type {TranslationId} from '@shared/schema/ids';
 import type {BibleBook} from '@shared/bibleBooks';
 import {matchBooks} from '@shared/bibleMatching';
@@ -41,6 +42,13 @@ export interface ResolvedPassage {
   readonly displayRef: string;
   readonly book: BibleBook;
   readonly verses: readonly PassageVerse[];
+}
+
+export interface BiblePassageSource extends Pick<
+  BibleChunkHeader,
+  'id' | 'language' | 'books'
+> {
+  readChapter(book: number, chapter: number): Promise<readonly string[] | null>;
 }
 
 const COLON =
@@ -120,11 +128,22 @@ function rangeText(reference: ParsedReference, endVerse: number): string {
   return endVerse === verse ? start : `${start}-${endVerse}`;
 }
 
-/** Resolves against one loaded translation; omitted verses retain their numbers. */
-export function resolvePassage(
-  translation: BibleTranslationFile,
+interface PlannedChapter {
+  readonly chapter: number;
+  readonly start: number;
+  readonly end: number;
+}
+
+interface PassagePlan {
+  readonly reference: ParsedReference;
+  readonly endVerse: number;
+  readonly chapters: readonly PlannedChapter[];
+}
+
+function planPassage(
+  translation: BiblePassageSource,
   input: string,
-): Result<ResolvedPassage, ReferenceProblem> {
+): Result<PassagePlan, ReferenceProblem> {
   const parsed = parseReference(input);
   if (!parsed.ok) return parsed;
   const reference = parsed.value;
@@ -135,8 +154,8 @@ export function resolvePassage(
   const last = content.chapters[endChapter - 1];
   if (!first || !last) return error('chapter', '없는 장입니다');
   const startVerse = verse ?? 1;
-  const endVerse = reference.endVerse ?? last.length;
-  if (startVerse > first.length || endVerse > last.length) {
+  const endVerse = reference.endVerse ?? last.verses;
+  if (startVerse > first.verses || endVerse > last.verses) {
     return error('verse', '없는 절입니다');
   }
   if (
@@ -145,11 +164,38 @@ export function resolvePassage(
   ) {
     return error('reversed', '구절 순서가 거꾸로입니다');
   }
-  const verses: PassageVerse[] = [];
+  let count = 0;
+  const chapters: PlannedChapter[] = [];
   for (let current = chapter; current <= endChapter; current++) {
-    const lines = content.chapters[current - 1] ?? [];
     const start = current === chapter ? startVerse : 1;
-    const end = current === endChapter ? endVerse : lines.length;
+    const end =
+      current === endChapter
+        ? endVerse
+        : (content.chapters[current - 1]?.verses ?? 0);
+    count += end - start + 1;
+    if (count > BIBLE_LOOKUP_LIMITS.verses) {
+      return error('verse', '조회할 수 있는 절 수를 넘었습니다');
+    }
+    chapters.push({chapter: current, start, end});
+  }
+  return {ok: true, value: {reference, endVerse, chapters}};
+}
+
+/** Validates the requested range before reading only its needed chapters. */
+export async function resolvePassage(
+  translation: BiblePassageSource,
+  input: string,
+): Promise<Result<ResolvedPassage, ReferenceProblem>> {
+  const planned = planPassage(translation, input);
+  if (!planned.ok) return planned;
+  const {reference, endVerse, chapters} = planned.value;
+  const {book} = reference;
+  const verses: PassageVerse[] = [];
+  for (const {chapter: current, start, end} of chapters) {
+    const lines = await translation.readChapter(book.id, current);
+    if (lines === null) {
+      return error('translation', '사용할 수 없는 역본입니다');
+    }
     for (let number = start; number <= end; number++) {
       const text = lines[number - 1];
       if (text !== undefined && text !== '') {

@@ -11,7 +11,8 @@ import {makeTempDir} from '../../../test/temp-dir';
 import type {SettingsReader} from '../store/settingsStore';
 import {BibleLookupSession} from './lookup';
 import * as library from './library';
-import {parsedTranslation, translationFile} from './testFiles';
+import * as chapterFile from './chapterFile';
+import {chunkedTranslationFile} from './testFiles';
 
 const log = {
   info: vi.fn(),
@@ -34,7 +35,9 @@ function document(file = 'sample.llbible') {
     access: 'editable',
     revision: 1,
   });
-  if (!parsed.ok) throw new Error('Invalid Bible settings fixture');
+  if (!parsed.ok || parsed.value.name !== 'bible') {
+    throw new Error('Invalid Bible settings fixture');
+  }
   return parsed.value;
 }
 
@@ -48,7 +51,7 @@ async function setup() {
   const folder = await makeTempDir();
   await writeFile(
     join(folder, 'sample.llbible'),
-    JSON.stringify(translationFile()),
+    chunkedTranslationFile().bytes,
   );
   const get = vi.fn(() => document());
   const settings: SettingsReader = {
@@ -62,7 +65,7 @@ async function setup() {
     log,
   });
   onTestFinished(() => session.dispose());
-  return {folder, session, get};
+  return {folder, session, get, settings};
 }
 
 describe('Bible lookup session', () => {
@@ -80,6 +83,19 @@ describe('Bible lookup session', () => {
       expect(reply.suggestions[0]?.resolved).toBeUndefined();
     },
   );
+  it('indexes headers at startup before the first request without loading chapters', async () => {
+    const load = vi.spyOn(library, 'loadBibleLibrary');
+    const read = vi.spyOn(chapterFile, 'readBibleChapter');
+    const {session} = await setup();
+    await vi.waitFor(() => expect(load).toHaveBeenCalledOnce());
+    const loading = load.mock.results[0];
+    if (loading?.type !== 'return') throw new Error('Missing startup load');
+    const indexed = await loading.value;
+    expect(indexed.translations).toHaveLength(1);
+    expect(read).not.toHaveBeenCalled();
+    expect((await session.lookup(request())).result.ok).toBe(true);
+    expect(read).toHaveBeenCalledOnce();
+  });
   it.each(['요 3장 16절', '요 3장 16-18절'])(
     'returns canonical suggestion identity and counts for %s',
     async input => {
@@ -160,6 +176,12 @@ describe('Bible lookup session', () => {
     });
     await session.lookup(request());
     expect(log.warn).toHaveBeenCalledTimes(warnings + 1);
+    get.mockImplementation(() => document('other-missing.llbible'));
+    await session.lookup(request());
+    expect(log.warn).toHaveBeenCalledTimes(warnings + 2);
+    get.mockImplementation(() => document('missing.llbible'));
+    await session.lookup(request());
+    expect(log.warn).toHaveBeenCalledTimes(warnings + 2);
   });
 
   it('rejects unavailable settings and releases queued requests after disposal', async () => {
@@ -181,8 +203,13 @@ describe('Bible lookup session', () => {
   });
 
   it('clears a library whose load finishes after disposal', async () => {
-    const {session} = await setup();
-    const loaded = new library.BibleLibrary([parsedTranslation()]);
+    const {session: initial, folder, settings} = await setup();
+    initial.dispose();
+    const loaded = await library.loadBibleLibrary({
+      folder,
+      translations: document().value.translations,
+      onProblem: log.warn,
+    });
     let finish: (value: library.BibleLibrary) => void = () => undefined;
     const loading = new Promise<library.BibleLibrary>(resolve => {
       finish = resolve;
@@ -190,6 +217,12 @@ describe('Bible lookup session', () => {
     const load = vi
       .spyOn(library, 'loadBibleLibrary')
       .mockReturnValueOnce(loading);
+    const session = new BibleLookupSession({
+      folder,
+      settings: Promise.resolve(settings),
+      log,
+    });
+    onTestFinished(() => session.dispose());
     onTestFinished(() => finish(loaded));
     const pending = session.lookup(request());
     const rejected = expect(pending).rejects.toThrow('closed');
@@ -219,5 +252,23 @@ describe('Bible lookup session', () => {
     await expect(session.lookup(request())).rejects.toThrow(
       'settings are unavailable',
     );
+  });
+
+  it('rejects a request disposed during its chapter read without returning late text', async () => {
+    const {session} = await setup();
+    let finish: (verses: readonly string[]) => void = () => undefined;
+    const reading = new Promise<readonly string[]>(resolve => {
+      finish = resolve;
+    });
+    const read = vi
+      .spyOn(chapterFile, 'readBibleChapter')
+      .mockReturnValueOnce(reading);
+    onTestFinished(() => finish([]));
+    const pending = session.lookup(request());
+    const rejected = expect(pending).rejects.toThrow('closed');
+    await vi.waitFor(() => expect(read).toHaveBeenCalledOnce());
+    session.dispose();
+    finish(['Invented late sentence.']);
+    await rejected;
   });
 });

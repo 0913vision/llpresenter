@@ -1,211 +1,171 @@
-import {mkdir, readFile, unlink, writeFile} from 'node:fs/promises';
+import {readFile, unlink, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
 import type {Translation} from '@shared/schema/bible';
 import type {FileError} from '@shared/schema/fileFormat';
 import {makeTempDir} from '../../../test/temp-dir';
+import * as chapterFile from './chapterFile';
 import {loadBibleLibrary} from './library';
-import {parsedTranslation, translationFile} from './testFiles';
+import {
+  chunkedTranslationFile,
+  frameBibleChunks,
+  parsedTranslation,
+  translationFile,
+} from './testFiles';
 
 function installed(file = 'sample.llbible', id = 'sample'): Translation {
   return {
-    id: parsedTranslation({...translationFile(), id}).id,
+    id: parsedTranslation({...translationFile([]), id}).id,
     name: 'Invented translation',
-    lang: '한국어',
+    lang: 'ko',
     file,
     default: false,
   };
 }
 
-describe('Bible library loading', () => {
-  it('loads a partial translation without writing, then answers from memory and releases its entries', async () => {
-    const folder = await makeTempDir();
-    const file = join(folder, 'sample.llbible');
-    const text = JSON.stringify(
-      {...translationFile([43, 57]), extension: {kept: true}},
-      null,
-      4,
-    );
-    await writeFile(file, text);
-    const onProblem = vi.fn<(problem: FileError) => void>();
-    const library = await loadBibleLibrary({
-      folder,
-      translations: [installed()],
-      onProblem,
-    });
-    expect(onProblem).not.toHaveBeenCalled();
+async function setup(
+  bytes = chunkedTranslationFile(translationFile([43, 57])).bytes,
+) {
+  const folder = await makeTempDir();
+  const file = join(folder, 'sample.llbible');
+  await writeFile(file, bytes);
+  const onProblem = vi.fn<(problem: FileError) => void>();
+  const library = await loadBibleLibrary({
+    folder,
+    translations: [installed()],
+    onProblem,
+  });
+  return {folder, file, library, onProblem};
+}
+
+describe('indexed Bible passage library', () => {
+  it('loads partial translation headers without writing and resolves cached passages', async () => {
+    const fixture = chunkedTranslationFile(translationFile([43, 57]));
+    const bytes = frameBibleChunks(
+      {...fixture.header, extension: {kept: true}},
+      Buffer.concat(fixture.blocks),
+    ).bytes;
+    const {file, library, onProblem} = await setup(bytes);
     expect(library.translations).toHaveLength(1);
     expect(library.translations[0]).toMatchObject({extension: {kept: true}});
-    expect(await readFile(file, 'utf8')).toBe(text);
-    await unlink(file);
-    expect(library.resolve('sample', '요 3:16-18')).toMatchObject({
+    expect(await readFile(file)).toEqual(bytes);
+    const result = await library.resolve('sample', 'John3:16-18');
+    expect(result).toMatchObject({
       ok: true,
       value: {verses: [{verse: 16}, {verse: 17}, {verse: 18}]},
     });
-    expect(library.resolve('sample', '요 3장 16-18절')).toEqual(
-      library.resolve('sample', '요 3:16-18'),
-    );
-    expect(library.resolve('sample', '몬1:1')).toMatchObject({
+    expect(await library.resolve('sample', 'Philemon1:1')).toMatchObject({
       ok: true,
-      value: {ref: '빌레몬서 1:1'},
     });
-    expect(library.resolve('missing', '요3:16')).toMatchObject({
+    await unlink(file);
+    expect(await library.resolve('sample', 'John3:16-18')).toEqual(result);
+    expect(await library.resolve('missing', 'John3:16')).toMatchObject({
       ok: false,
       error: {code: 'translation'},
     });
+    expect(onProblem).not.toHaveBeenCalled();
     library.clear();
     expect(library.translations).toEqual([]);
-    expect(library.resolve('sample', '요3:16')).toMatchObject({
+    expect(await library.resolve('sample', 'John3:16')).toMatchObject({
       ok: false,
       error: {code: 'translation'},
     });
   });
 
-  it.each(
-    [
-      ['invalid JSON', '{', 'json', ''],
-      [
-        'wrong format',
-        {...translationFile(), format: 'other'},
-        'format',
-        'format',
-      ],
-      [
-        'wrong chapter count',
-        {...translationFile(), books: [{id: 43, chapters: [['Invented']]}]},
-        'invalid',
-        'books.0.chapters',
-      ],
-      [
-        'untrimmed verse',
-        {
-          ...translationFile([57]),
-          books: [{id: 57, chapters: [[' Invented ']]}],
-        },
-        'invalid',
-        'books.0.chapters.0.0',
-      ],
-      [
-        'duplicate books',
-        {
-          ...translationFile([57]),
-          books: [
-            {id: 57, chapters: [['Invented']]},
-            {id: 57, chapters: [['Invented']]},
-          ],
-        },
-        'invalid',
-        'books.1',
-      ],
-      [
-        'out-of-order books',
-        {
-          ...translationFile(),
-          books: [...translationFile([43, 57]).books].reverse(),
-        },
-        'invalid',
-        'books.1',
-      ],
-      [
-        'empty chapter',
-        {...translationFile([57]), books: [{id: 57, chapters: [[]]}]},
-        'invalid',
-        'books.0.chapters.0',
-      ],
-      [
-        'wrong installed identity',
-        {...translationFile(), id: 'other'},
-        'invalid',
-        'id',
-      ],
-    ].map(([name, invalid, kind, field]) => ({name, invalid, kind, field})),
-  )(
-    'skips $name with one problem event while keeping the next valid translation',
-    async ({invalid, kind, field}) => {
-      const folder = await makeTempDir();
-      const file = join(folder, 'bad.llbible');
-      const text =
-        typeof invalid === 'string' ? invalid : JSON.stringify(invalid);
-      await writeFile(file, text);
-      await writeFile(
-        join(folder, 'good.llbible'),
-        JSON.stringify({...translationFile(), id: 'good'}),
-      );
-      const onProblem = vi.fn<(problem: FileError) => void>();
-      const library = await loadBibleLibrary({
-        folder,
-        translations: [
-          installed('bad.llbible'),
-          installed('good.llbible', 'good'),
+  it.each([
+    ['John22:1', 'chapter'],
+    ['John3:40', 'verse'],
+    ['John3:16-99', 'verse'],
+    ['John3:35-4:9', 'verse'],
+    ['John4:2-3:16', 'reversed'],
+    ['Genesis1:1', 'missingBook'],
+    ['John', 'syntax'],
+  ])(
+    'rejects %s from the header without reading any chapter',
+    async (input, code) => {
+      const {library} = await setup();
+      const read = vi.spyOn(chapterFile, 'readBibleChapter');
+      expect(await library.resolve('sample', input)).toMatchObject({
+        ok: false,
+        error: {code},
+      });
+      expect(read).not.toHaveBeenCalled();
+    },
+  );
+
+  it('reads only the requested chapters and preserves omitted slots across a boundary', async () => {
+    const value = translationFile();
+    value.books[0]?.chapters[2]?.splice(34, 2, '', 'Invented final sentence.');
+    value.books[0]?.chapters[3]?.splice(0, 2, '', 'Invented next sentence.');
+    const {library} = await setup(chunkedTranslationFile(value).bytes);
+    const read = vi.spyOn(chapterFile, 'readBibleChapter');
+    expect(await library.resolve('sample', 'John3:35-4:2')).toMatchObject({
+      ok: true,
+      value: {
+        verses: [
+          {chapter: 3, verse: 36, text: 'Invented final sentence.'},
+          {chapter: 4, verse: 2, text: 'Invented next sentence.'},
         ],
-        onProblem,
-      });
-      expect(onProblem).toHaveBeenCalledExactlyOnceWith(
-        expect.objectContaining({file, kind, field}),
-      );
-      expect(library.translations.map(translation => translation.id)).toEqual([
-        'good',
-      ]);
-      expect(library.resolve('good', '요3:16')).toMatchObject({ok: true});
-      expect(await readFile(file, 'utf8')).toBe(text);
-    },
-  );
-
-  it.each(['missing.llbible', '../sample.llbible', 'sample.json'])(
-    'reports an unavailable or unsupported installed file %j once',
-    async file => {
-      const folder = await makeTempDir();
-      const onProblem = vi.fn<(problem: FileError) => void>();
-      const library = await loadBibleLibrary({
-        folder,
-        translations: [installed(file)],
-        onProblem,
-      });
-      expect(library.translations).toEqual([]);
-      expect(onProblem).toHaveBeenCalledTimes(1);
-    },
-  );
-
-  it('refuses directories and ignores files that are not installed', async () => {
-    const folder = await makeTempDir();
-    await mkdir(join(folder, 'sample.llbible'));
-    await writeFile(join(folder, 'not-installed.llbible'), 'broken JSON');
-    const onProblem = vi.fn<(problem: FileError) => void>();
-    const library = await loadBibleLibrary({
-      folder,
-      translations: [installed()],
-      onProblem,
+      },
     });
-    expect(library.translations).toEqual([]);
-    expect(onProblem).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({
-        kind: 'invalid',
-        message: 'Expected a regular translation file',
-      }),
+    expect(read.mock.calls.map(([, book, chapter]) => [book, chapter])).toEqual(
+      [
+        [43, 3],
+        [43, 4],
+      ],
     );
-    onProblem.mockClear();
-    await loadBibleLibrary({folder, translations: [], onProblem});
-    expect(onProblem).not.toHaveBeenCalled();
+    expect(await library.resolve('sample', 'John3:35')).toMatchObject({
+      ok: false,
+      error: {code: 'omitted'},
+    });
   });
 
-  it('keeps the first installed identity and reports a duplicate once', async () => {
-    const folder = await makeTempDir();
-    await writeFile(
-      join(folder, 'sample.llbible'),
-      JSON.stringify(translationFile()),
-    );
-    const onProblem = vi.fn<(problem: FileError) => void>();
-    const library = await loadBibleLibrary({
-      folder,
-      translations: [installed(), installed('duplicate.llbible')],
-      onProblem,
+  it('allows the verse-count limit and rejects a larger range before any reads', async () => {
+    const value = translationFile();
+    const first = Array<string>(20_000).fill('');
+    const second = [...first];
+    first[0] = 'Invented first sentence.';
+    second[0] = 'Invented second sentence.';
+    value.books[0]?.chapters.splice(0, 2, first, second);
+    const {library} = await setup(chunkedTranslationFile(value).bytes);
+    const read = vi.spyOn(chapterFile, 'readBibleChapter');
+    expect(await library.resolve('sample', 'John1:1-3:1')).toMatchObject({
+      ok: false,
+      error: {code: 'verse'},
     });
-    expect(library.translations).toHaveLength(1);
-    expect(onProblem).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({
-        field: 'id',
-        message: 'Duplicate installed translation id',
-      }),
-    );
+    expect(read).not.toHaveBeenCalled();
+    expect(await library.resolve('sample', 'John1:1-2:20000')).toMatchObject({
+      ok: true,
+      value: {
+        verses: [
+          {chapter: 1, verse: 1},
+          {chapter: 2, verse: 1},
+        ],
+      },
+    });
+    expect(read).toHaveBeenCalledTimes(2);
+  });
+
+  it('returns a translation error and warns once after an uncached read fails', async () => {
+    const {file, library, onProblem} = await setup();
+    await library.resolve('sample', 'John3:16');
+    await unlink(file);
+    expect(await library.resolve('sample', 'John4:1')).toMatchObject({
+      ok: false,
+      error: {code: 'translation'},
+    });
+    expect(await library.resolve('sample', 'John3:16')).toMatchObject({
+      ok: false,
+      error: {code: 'translation'},
+    });
+    expect(onProblem).toHaveBeenCalledOnce();
+  });
+
+  it('skips legacy whole-file JSON at runtime without converting it', async () => {
+    const bytes = Buffer.from(JSON.stringify(translationFile()));
+    const {file, library, onProblem} = await setup(bytes);
+    expect(library.translations).toEqual([]);
+    expect(await readFile(file)).toEqual(bytes);
+    expect(onProblem).toHaveBeenCalledOnce();
   });
 });

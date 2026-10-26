@@ -1,5 +1,6 @@
 import {parseBibleTranslation} from '@shared/schema/bibleTranslation';
 import {BIBLE_BOOKS} from '@shared/bibleBooks';
+import type {BiblePassageSource} from './reference';
 
 export function translationFile(ids: readonly number[] = [43]) {
   return {
@@ -66,6 +67,20 @@ export function frameBibleChunks(header: unknown, body: Uint8Array) {
   return {
     dataStart: prefix.length + json.length,
     bytes: Buffer.concat([prefix, json, body]),
+  };
+}
+
+export function passageSource(value = translationFile()): BiblePassageSource {
+  const parsed = parsedTranslation(value);
+  return {
+    ...chunkedTranslationFile(value).header,
+    id: parsed.id,
+    readChapter: (book, chapter) =>
+      Promise.resolve(
+        parsed.books.find(candidate => candidate.id === book)?.chapters[
+          chapter - 1
+        ] ?? null,
+      ),
   };
 }
 

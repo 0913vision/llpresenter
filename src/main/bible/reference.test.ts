@@ -1,8 +1,8 @@
 import {describe, expect, it} from 'vitest';
 import {parseReference, resolvePassage} from './reference';
-import {parsedTranslation, translationFile} from './testFiles';
+import {passageSource, translationFile} from './testFiles';
 
-const translation = parsedTranslation();
+const translation = passageSource();
 
 describe('Bible reference grammar and lookup', () => {
   it.each([
@@ -11,8 +11,8 @@ describe('Bible reference grammar and lookup', () => {
     '요한복음3장16~18절',
     '요3:16~18',
     'John 3 : 16 - 18',
-  ])('resolves %j to the required three verses', input => {
-    const result = resolvePassage(translation, input);
+  ])('resolves %j to the required three verses', async input => {
+    const result = await resolvePassage(translation, input);
     expect(result).toMatchObject({
       ok: true,
       value: {ref: '요한복음 3:16-18', displayRef: '요한복음 3:16-18'},
@@ -38,12 +38,12 @@ describe('Bible reference grammar and lookup', () => {
     ['요3:35-4:8', '요한복음 3:35-4:8', 10],
     ['요3:16-36', '요한복음 3:16-36', 21],
     ['요3:36-36', '요한복음 3:36', 1],
-  ])('normalizes %j to %s', (input, ref, count) => {
-    const result = resolvePassage(translation, input);
+  ])('normalizes %j to %s', async (input, ref, count) => {
+    const result = await resolvePassage(translation, input);
     expect(result).toMatchObject({ok: true, value: {ref}});
     if (!result.ok) throw new Error(result.error.message);
     expect(result.value.verses).toHaveLength(count);
-    expect(resolvePassage(translation, result.value.ref)).toEqual(result);
+    expect(await resolvePassage(translation, result.value.ref)).toEqual(result);
   });
 
   it.each([
@@ -74,8 +74,8 @@ describe('Bible reference grammar and lookup', () => {
     ['요3장35절-4장9절', 'verse'],
     ['요3:18-16', 'reversed'],
     ['요4:2-3:16', 'reversed'],
-  ])('returns a reason for invalid reference %j', (input, code) => {
-    const result = resolvePassage(translation, input);
+  ])('returns a reason for invalid reference %j', async (input, code) => {
+    const result = await resolvePassage(translation, input);
     expect(result).toMatchObject({
       ok: false,
       error: {code},
@@ -84,7 +84,7 @@ describe('Bible reference grammar and lookup', () => {
     expect(result.error.message.length).toBeGreaterThan(0);
   });
 
-  it('offers ambiguous book choices and resolves numbered and IME-off names', () => {
+  it('offers ambiguous book choices and resolves numbered and IME-off names', async () => {
     expect(parseReference('베1:1')).toMatchObject({
       ok: false,
       error: {suggestions: [{id: 49}, {id: 60}, {id: 61}]},
@@ -94,41 +94,41 @@ describe('Bible reference grammar and lookup', () => {
       value: {book: {id: 1}},
     });
     expect(
-      resolvePassage(parsedTranslation(translationFile([62])), '1John1:1'),
+      await resolvePassage(passageSource(translationFile([62])), '1John1:1'),
     ).toMatchObject({ok: true, value: {ref: '요한일서 1:1'}});
   });
 
-  it('uses the translation language for display without changing the normalized reference', () => {
-    const english = parsedTranslation({
+  it('uses the translation language for display without changing the normalized reference', async () => {
+    const english = passageSource({
       ...translationFile(),
       language: 'en-US',
     });
-    expect(resolvePassage(english, '요3:16')).toMatchObject({
+    expect(await resolvePassage(english, '요3:16')).toMatchObject({
       ok: true,
       value: {ref: '요한복음 3:16', displayRef: 'John 3:16'},
     });
   });
 
-  it('skips omitted verses without renumbering or changing the requested range', () => {
+  it('skips omitted verses without renumbering or changing the requested range', async () => {
     const source = translationFile();
     const chapter = source.books[0]?.chapters[2];
     if (!chapter) throw new Error('Missing fixture chapter');
     chapter[16] = '';
-    const file = parsedTranslation(source);
-    expect(resolvePassage(file, '요3:16-18')).toMatchObject({
+    const file = passageSource(source);
+    expect(await resolvePassage(file, '요3:16-18')).toMatchObject({
       ok: true,
       value: {ref: '요한복음 3:16-18', verses: [{verse: 16}, {verse: 18}]},
     });
-    expect(resolvePassage(file, '요3:17')).toMatchObject({
+    expect(await resolvePassage(file, '요3:17')).toMatchObject({
       ok: false,
       error: {code: 'omitted'},
     });
-    expect(resolvePassage(file, '요3:17-18')).toMatchObject({
+    expect(await resolvePassage(file, '요3:17-18')).toMatchObject({
       ok: true,
       value: {ref: '요한복음 3:17-18', verses: [{verse: 18}]},
     });
     chapter.fill('');
-    expect(resolvePassage(parsedTranslation(source), '요3')).toMatchObject({
+    expect(await resolvePassage(passageSource(source), '요3')).toMatchObject({
       ok: false,
       error: {code: 'omitted'},
     });
