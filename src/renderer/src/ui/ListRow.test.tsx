@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react';
+import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
@@ -448,5 +448,41 @@ describe('ListGroup rename', () => {
     await userEvent.tab();
     expect(onCancel).toHaveBeenCalledOnce();
     expect(onCommit).not.toHaveBeenCalled();
+  });
+});
+
+describe('ListRow rename', () => {
+  function renameRow(onCommit = vi.fn(), onCancel = vi.fn()) {
+    render(
+      <ListBox label="Playlists" selected={undefined} onSelect={vi.fn()}>
+        <ListRow value="a" title="Old name" rename={{onCommit, onCancel}} />
+      </ListBox>,
+    );
+    return {
+      onCommit,
+      onCancel,
+      field: screen.getByRole('textbox', {name: 'Old name 이름'}),
+    };
+  }
+
+  it('saves the typed name on Enter, once', () => {
+    const {onCommit, field} = renameRow();
+    expect(document.activeElement).toBe(field);
+    fireEvent.change(field, {target: {value: 'New name'}});
+    fireEvent.keyDown(field, {key: 'Enter'});
+    fireEvent.blur(field);
+    expect(onCommit).toHaveBeenCalledExactlyOnceWith('New name');
+  });
+
+  it('keeps the old name on Esc and saves when the field is left', () => {
+    const {onCommit, onCancel, field} = renameRow();
+    fireEvent.keyDown(field, {key: 'Escape'});
+    expect(onCancel).toHaveBeenCalledOnce();
+    expect(onCommit).not.toHaveBeenCalled();
+    cleanup();
+    const left = renameRow();
+    fireEvent.change(left.field, {target: {value: 'Left'}});
+    fireEvent.blur(left.field);
+    expect(left.onCommit).toHaveBeenCalledExactlyOnceWith('Left');
   });
 });

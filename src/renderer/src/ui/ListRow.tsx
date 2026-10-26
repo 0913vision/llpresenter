@@ -217,6 +217,13 @@ export function ListBox({
   );
 }
 
+export interface GroupRename {
+  /** Saves the typed name; Enter and leaving the field both ask for it. */
+  readonly onCommit: (name: string) => void;
+  /** Esc leaves the old name as it was. */
+  readonly onCancel: () => void;
+}
+
 export interface ListRowProps {
   /** The value the list reports when this row is selected. */
   readonly value: string;
@@ -238,6 +245,11 @@ export interface ListRowProps {
   readonly reason?: string | undefined;
   /** A control at the end of the row; its clicks don't select the row. */
   readonly end?: ReactNode;
+  /**
+   * With it, the name is a field that saves on Enter or leaving it and cancels
+   * on Esc, as a group's name does.
+   */
+  readonly rename?: GroupRename | undefined;
 }
 
 function rowState(
@@ -291,10 +303,13 @@ function RowContent({
   readonly props: ListRowProps;
   readonly titleId: string;
 }): JSX.Element {
-  const {icon, title, meta, sub, live = false, warning, end} = props;
-  const titleText = (
-    <TruncatedText id={titleId} text={title} className={styles.title} />
-  );
+  const {icon, title, meta, sub, live = false, warning, end, rename} = props;
+  const titleText =
+    rename === undefined ? (
+      <TruncatedText id={titleId} text={title} className={styles.title} />
+    ) : (
+      <NameField id={titleId} label={title} rename={rename} />
+    );
   return (
     <>
       {icon === undefined ? null : (
@@ -418,12 +433,6 @@ export function ListActionRow({
 }
 
 /** A group name being edited in place. */
-export interface GroupRename {
-  /** Saves the typed name; Enter and leaving the field both ask for it. */
-  readonly onCommit: (name: string) => void;
-  /** Esc leaves the old name as it was. */
-  readonly onCancel: () => void;
-}
 
 const FIELD_COMMAND_CODES: ReadonlySet<string> = new Set([
   'KeyA',
@@ -452,10 +461,12 @@ function ownsFieldKey(event: KeyboardEvent): boolean {
   return true;
 }
 
-function GroupNameField({
+function NameField({
+  id,
   label,
   rename,
 }: {
+  readonly id?: string | undefined;
   readonly label: string;
   readonly rename: GroupRename;
 }): JSX.Element {
@@ -469,6 +480,7 @@ function GroupNameField({
   };
   return (
     <input
+      id={id}
       aria-label={`${label} 이름`}
       className={styles.groupField}
       value={value}
@@ -508,7 +520,7 @@ export function ListGroup({
         {rename === undefined ? (
           label
         ) : (
-          <GroupNameField label={label} rename={rename} />
+          <NameField label={label} rename={rename} />
         )}
       </div>
       {children}
