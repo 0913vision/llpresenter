@@ -1,11 +1,10 @@
-Review range: `feat/spec/service-tree...feat/spec/service-sources`
+Review range: `f5d8eb2b...feat/spec/service-sources`
 
 # Review request: `spec-49`
 
 - Team member: `spec` (Claude session that took over from Codex)
-- Branch: `feat/spec/service-sources`, stacked on spec-48
-  (`feat/spec/service-tree`)
-- Base commit: spec-48's head, named in the request message
+- Branch: `feat/spec/service-sources`, rebased onto `main` after spec-48 merged
+- Base commit: `f5d8eb2b`
 - Review round: 2
 - Task: M3-P4, part 2 of 3 for 새 예배 (P4a): the source lists, the chosen
   source's document, the date and time choices, and the left list
