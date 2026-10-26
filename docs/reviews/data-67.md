@@ -49,8 +49,8 @@ No dependency, main-process handler or app window is added.
 
 ## Checks
 
-- Related preload, fake API, library and media view tests: 119 pass, with the
-  final media view 16-test subset rerun after fixing its tooltip assertions.
+- Related preload, fake API, library and media view tests: 119 pass after
+  rebasing onto main.
 - `npm run typecheck`: pass for both node and web projects.
 - Changed-file ESLint, formatting and diff checks: final results in report.
 - Full `npm run verify`: GitHub CI on the final head; URL in report.
