@@ -185,3 +185,15 @@ All three in
    file that changes during the write drops the thumbnail; and an import whose
    item is relinked while its admission is still saving keeps no thumbnail (a
    real `Thumbnails` behind the importer).
+
+## Round 2 reply
+
+1. [P2] `thumbnailCache.ts:50`, a lookup took its entry out before checking the
+   file, so a concurrent lookup missed it and a removal in between found nothing
+   to delete, after which the lookup put the stale entry back. Fixed in
+   `fix(media): keep a thumbnail's entry during its check and order work per id`:
+   a lookup keeps the entry while it checks the file and answers nothing if the
+   entry left meanwhile, and the lookups, writes, and removals of one media id
+   run one after another (only ids with work in flight are queued). Regressions:
+   three concurrent lookups all answer the file; a removal asked during a lookup
+   deletes the file and the entry for good. Both fail without the fix.
