@@ -5,6 +5,7 @@ import type {Logger} from '../log';
 import {startLoading} from '../windows/page';
 import type {WindowMode} from '../windows/testWindows';
 import {createElectronOutputWindow} from './electronWindow';
+import {ON_TOP_CHECK_MS} from './onTopKeeper';
 import designTokens from '../../../design/system/project/tokens.json';
 import type {OutputWindowHandle} from './outputWindow';
 import type {OutputScreen} from './screens';
@@ -38,7 +39,11 @@ const electron = await vi.hoisted(async () => {
     readonly setMaximizable = vi.fn();
     readonly setResizable = vi.fn();
     readonly setBackgroundColor = vi.fn();
-    readonly setAlwaysOnTop = vi.fn<(flag: boolean) => void>();
+    onTop = false;
+    readonly setAlwaysOnTop = vi.fn<(flag: boolean) => void>(flag => {
+      this.onTop = flag;
+    });
+    readonly isAlwaysOnTop = vi.fn(() => this.onTop);
     readonly isVisible = vi.fn(() => false);
     readonly showInactive = vi.fn();
     readonly show = vi.fn();
@@ -584,6 +589,25 @@ describe('createElectronOutputWindow normal', () => {
     expect(win.setAlwaysOnTop).toHaveBeenLastCalledWith(true);
     expect(win.setFullScreen).toHaveBeenLastCalledWith(true);
     expect(win.focus).not.toHaveBeenCalled();
+    output.destroy();
+  });
+
+  it('restores a full screen output that loses always on top, and stops checking once hidden', async () => {
+    const clock = installFakeClock();
+    const log = fakeLog();
+    const output = openOutput('normal', fakeControl(), log);
+    const win = lastWindow();
+    output.showFullScreen(MONITOR, true);
+    win.onTop = false;
+    win.emit('always-on-top-changed', {}, false);
+    expect(win.setAlwaysOnTop).toHaveBeenLastCalledWith(true);
+    expect(log.warn).toHaveBeenCalledOnce();
+    output.hide();
+    win.onTop = false;
+    await clock.advance(ON_TOP_CHECK_MS * 2);
+    win.emit('always-on-top-changed', {}, false);
+    expect(win.isAlwaysOnTop()).toBe(false);
+    expect(log.warn).toHaveBeenCalledOnce();
     output.destroy();
   });
 

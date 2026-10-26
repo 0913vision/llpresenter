@@ -15,6 +15,7 @@ import {
 } from '../windows/testWindows';
 import type {OutputWindowEvents, OutputWindowHandle} from './outputWindow';
 import type {OutputScreen} from './screens';
+import {OnTopKeeper} from './onTopKeeper';
 import {WindowPlacement} from './windowPlacement';
 
 export const OUTPUT_BACKGROUND = '#000000';
@@ -100,6 +101,7 @@ function presentOnScreen(
   {control, log}: ElectronOutputWindowOptions,
 ): OutputPresentation {
   const placement = new WindowPlacement(win, log);
+  const onTop = new OnTopKeeper(win, log);
   let unplacedBounds: Rect | null = null;
   // NOTE(0913vision): 창 보기 keeps the window raised through the deferred
   // placement and the bounds correction that were still running when it was
@@ -112,7 +114,7 @@ function presentOnScreen(
     win.moveTop();
   };
   const orderWindow = (alwaysOnTop: boolean) => {
-    win.setAlwaysOnTop(alwaysOnTop);
+    onTop.set(alwaysOnTop);
     if (alwaysOnTop) return;
     if (raiseWhilePending) raise();
     else if (!control.isDestroyed()) control.moveAbove(win.getMediaSourceId());
@@ -137,7 +139,7 @@ function presentOnScreen(
         profile('window');
         win.setFocusable(false);
         enterFullScreen(win, monitorBounds);
-        win.setAlwaysOnTop(alwaysOnTop);
+        onTop.set(alwaysOnTop);
         if (!win.isVisible()) win.showInactive();
       };
       placement.fullscreen(place);
@@ -158,13 +160,13 @@ function presentOnScreen(
         if (!win.isVisible()) win.showInactive();
         orderWindow(alwaysOnTop);
       };
-      win.setAlwaysOnTop(false);
+      onTop.set(false);
       placement.windowed(place);
     },
     showCapture: (bounds, alwaysOnTop = false) => {
       raiseWhilePending = false;
       unplacedBounds = null;
-      win.setAlwaysOnTop(false);
+      onTop.set(false);
       placement.windowed(() => {
         profile('capture');
         win.setFocusable(true);
@@ -183,12 +185,14 @@ function presentOnScreen(
     hide: () => {
       raiseWhilePending = false;
       placement.cancel();
+      onTop.release();
       win.hide();
     },
     dispose: () => {
       raiseWhilePending = false;
       unplacedBounds = null;
       placement.dispose();
+      onTop.dispose();
     },
   };
 }
