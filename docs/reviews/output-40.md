@@ -132,19 +132,15 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (d4d410c5): reviewer (Codex, codex3) Approve. Nit for output-41:
+  `src/shared/live.ts:42` leaves SlideLayer's documentation above the new
+  NextSlide; move it back above SlideLayer. Lead Approve after reading the stage
+  slice: every layout, screen, and 타이머 is checked against the saved settings,
+  and the overrides are bounded by the stage screens. The three contracts follow
+  the lead decisions of October 26 (spec 03 and 04). Rebased by the lead onto
+  local `main` without conflicts; typecheck passes. M3-O5a is complete.
 
 ## Team member's reply
 
