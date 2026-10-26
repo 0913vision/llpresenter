@@ -1,4 +1,4 @@
-import {render, screen, waitFor} from '@testing-library/react';
+import {act, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   afterEach,
@@ -160,6 +160,40 @@ describe('ImportItemsDialog', () => {
       from: {kind: 'service', id: ids.past},
       itemIds: [ids.pastSong],
     });
+  });
+
+  it('stays open while an import is on its way, then closes', async () => {
+    let answer: (result: EditResult) => void = () => undefined;
+    const onClose = vi.fn();
+    window.llp = fakeLlpApi({
+      templates: {
+        list: () => Promise.resolve(templateEntries),
+        get: () => Promise.resolve(templateDocument),
+      },
+      services: {list: () => Promise.resolve(serviceEntries)},
+      songs: {list: () => Promise.resolve(librarySongs)},
+      content: {
+        edit: () =>
+          new Promise(resolve => {
+            answer = resolve;
+          }),
+      },
+    });
+    render(<ImportItemsDialog onClose={onClose} onProblem={() => undefined} />);
+    await userEvent.click(
+      await screen.findByRole('treeitem', {name: titles.first}),
+    );
+    await userEvent.click(importButton());
+    expect(importButton().getAttribute('aria-disabled')).toBe('true');
+    await userEvent.click(screen.getByRole('button', {name: '취소'}));
+    await userEvent.click(screen.getByRole('button', {name: '닫기'}));
+    await userEvent.keyboard('{Escape}');
+    expect(onClose).not.toHaveBeenCalled();
+    await act(async () => {
+      answer(ACCEPTED);
+      await Promise.resolve();
+    });
+    await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
   });
 
   it('reports a refused or rejected import and keeps the dialog', async () => {

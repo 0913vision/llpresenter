@@ -1,4 +1,4 @@
-import {render, screen, waitFor, within} from '@testing-library/react';
+import {act, render, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   afterEach,
@@ -164,6 +164,50 @@ describe('NewServiceDialog', () => {
     expect(useShow.getState().serviceId).toBe(ids.created);
     expect(sent).toEqual([]);
     expect(onProblem).not.toHaveBeenCalled();
+  });
+
+  it('stays open while a create is on its way, then closes', async () => {
+    let answer: (result: EditResult) => void = () => undefined;
+    const onClose = vi.fn();
+    window.llp = fakeLlpApi({
+      templates: {
+        list: () => Promise.resolve(templateEntries),
+        get: () => Promise.resolve(templateDocument),
+      },
+      services: {list: () => Promise.resolve(serviceEntries)},
+      songs: {list: () => Promise.resolve(librarySongs)},
+      content: {
+        edit: edit =>
+          edit.type === 'service.create'
+            ? new Promise(resolve => {
+                answer = resolve;
+              })
+            : Promise.resolve(accepted(edit)),
+      },
+      service: {
+        open: ({serviceId}) =>
+          Promise.resolve({...sampleService, id: serviceId}),
+      },
+    });
+    render(<NewServiceDialog onClose={onClose} onProblem={() => undefined} />);
+    await screen.findByRole('treeitem', {name: titles.first});
+    await userEvent.click(createButton());
+    await userEvent.click(screen.getByRole('button', {name: '취소'}));
+    await userEvent.keyboard('{Escape}');
+    expect(onClose).not.toHaveBeenCalled();
+    await act(async () => {
+      answer(
+        accepted({
+          type: 'service.create',
+          name: '',
+          date: '',
+          templateId: null,
+        }),
+      );
+      await Promise.resolve();
+    });
+    await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
+    expect(useShow.getState().serviceId).toBe(ids.created);
   });
 
   it('keeps 만들기 unavailable while the name is empty, with the reason', async () => {

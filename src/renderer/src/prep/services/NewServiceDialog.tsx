@@ -12,7 +12,10 @@ const DIALOG_HEIGHT = 700;
 const NAME_NEEDED = '이름을 적어야 만들 수 있습니다';
 const MISSING = '예배 순서를 읽을 수 없습니다';
 
-/** The 새 예배 dialog: start empty, from a 틀, or from a past service. */
+/**
+ * The 새 예배 dialog: start empty, from a 틀, or from a past service. 취소,
+ * Esc, and the close button wait while a create is on its way.
+ */
 export function NewServiceDialog({
   onClose,
   onProblem,
@@ -26,7 +29,9 @@ export function NewServiceDialog({
       title="새 예배"
       size="l"
       height={DIALOG_HEIGHT}
-      onCancel={onClose}
+      onCancel={() => {
+        if (!state.busy) onClose();
+      }}
       primary={{
         label: '만들기',
         onSelect: state.create,
