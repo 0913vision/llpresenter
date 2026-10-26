@@ -30,7 +30,8 @@ export class OverlayTextView {
   }
 
   /** Changes the shown text in place, without a dissolve, as a ticking 타이머 does. */
-  replace(text: string): void {
+  replace(text: string, style: LyricStyle = DEFAULT_MESSAGE_STYLE): void {
+    this.view.setStyle(style);
     if (text === this.text || this.text === null) return;
     this.text = text;
     this.view.replaceLines([text]);

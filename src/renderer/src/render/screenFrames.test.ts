@@ -121,6 +121,7 @@ describe('ScreenFrames', () => {
     expect(frames.frame(stateWith({stageMessage: 'Fixture note'}))).toEqual({
       screen: {id: STAGE, kind: 'stage', method: 'fullscreen'},
       stageMessage: 'Fixture note',
+      timers: {list: [], runs: undefined},
       look: {
         layers: {slide: true, stageMessage: true},
         lyricStyle: DEFAULT_LYRIC_STYLE,
@@ -234,9 +235,9 @@ describe('ScreenFrames', () => {
     frames.dispose();
   });
 
-  it('stops following both documents on dispose', async () => {
+  it('stops following all three documents on dispose', async () => {
     const {frames, settings} = await framesFor(MAIN);
     frames.dispose();
-    expect(settings.unsubscribe).toHaveBeenCalledTimes(2);
+    expect(settings.unsubscribe).toHaveBeenCalledTimes(3);
   });
 });

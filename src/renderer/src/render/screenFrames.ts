@@ -1,6 +1,7 @@
 import type {LlpApi} from '@shared/ipc';
 import type {LiveState} from '@shared/live';
 import type {LooksFile} from '@shared/schema/looks';
+import type {Timer} from '@shared/schema/timers';
 import type {RenderFrame, RenderScreen} from './layer';
 import {followRenderScreen} from './screenIdentity';
 import {resolveScreenLook, type LookGap, type ResolvedLook} from './screenLook';
@@ -33,13 +34,14 @@ interface Resolution {
 
 /**
  * Turns the live state into what one screen draws: its identity, its stage
- * message, and its appearance under the current Look, following `screens.json`
- * and `looks.json`. The appearance is resolved again only when the Looks, the
- * live Look, or the screen change.
+ * message, its 타이머, and its appearance under the current Look, following
+ * `screens.json`, `looks.json`, and `timers.json`. The appearance is resolved
+ * again only when the Looks, the live Look, or the screen change.
  */
 export class ScreenFrames {
   private screen: RenderScreen | undefined;
   private looks: LooksFile | null = null;
+  private timers: readonly Timer[] = [];
   private resolution: Resolution | null = null;
   private readonly reported = new Set<string>();
   private readonly stops: ReadonlyArray<() => void>;
@@ -68,6 +70,17 @@ export class ScreenFrames {
         },
         onError: error => onError('could not read the Looks', error),
       }),
+      followSettingsDocument({
+        settings,
+        name: 'timers',
+        select: document =>
+          document.name === 'timers' ? document.value.timers : undefined,
+        receive: timers => {
+          this.timers = timers;
+          options.onChange();
+        },
+        onError: error => onError('could not read the 타이머', error),
+      }),
     ];
   }
 
@@ -79,6 +92,7 @@ export class ScreenFrames {
     return {
       screen,
       stageMessage: state?.stageMessage ?? null,
+      timers: {list: this.timers, runs: state?.timers},
       ...(appearance === null ? {} : {look: appearance}),
     };
   }

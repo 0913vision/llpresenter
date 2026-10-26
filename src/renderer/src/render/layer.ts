@@ -2,6 +2,7 @@ import type {LiveLayers} from '@shared/live';
 import type {RenderMode} from './backgroundLayer';
 import type {LyricStyle} from './lyricStyle';
 import type {LookLayer, ScreenAppearance} from './screenLook';
+import type {RenderTimers} from './timerTokens';
 import type {ScreenId} from '@shared/schema/ids';
 import type {Screen} from '@shared/schema/screens';
 
@@ -16,6 +17,8 @@ export interface RenderFrame {
   readonly stageMessage?: string | null;
   /** The screen's appearance under the current Look; absent draws as before Looks. */
   readonly look?: ScreenAppearance;
+  /** What `{timer:<id>}` tokens in 소품 text read; absent reads as no 타이머. */
+  readonly timers?: RenderTimers;
 }
 
 export interface RenderLayerOptions {
