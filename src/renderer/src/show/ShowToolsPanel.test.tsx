@@ -1,185 +1,92 @@
-import {act, cleanup, render, screen, within} from '@testing-library/react';
+import {cleanup, render, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {afterEach, beforeEach, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, expect, it} from 'vitest';
 import {useShowToolTab} from '@renderer/state/showToolTab';
 import {ShowToolsPanel} from './ShowToolsPanel';
+import {SHOW_TOOLS} from './showTools';
+import {stageFixture} from './tools/stageTesting';
 
-beforeEach(() => useShowToolTab.setState({tool: 'showing'}));
+let fixture: ReturnType<typeof stageFixture>;
+beforeEach(() => {
+  useShowToolTab.setState({tool: 'stage'});
+  fixture = stageFixture();
+});
 afterEach(() => {
   cleanup();
-  vi.unstubAllGlobals();
+  delete window.llp;
 });
 
 const tabNames = (): readonly string[] =>
   within(screen.getByRole('tablist'))
     .getAllByRole('tab')
     .map(tab => tab.textContent);
+const stageReady = () => waitFor(() => expect(fixture.count()).toBe(5));
 
-it.each(['normal', 'wide'] as const)(
-  'shows all eight tabs without 더 보기 in a %s window',
-  sizeClass => {
+it.each(['normal', 'wide', 'narrow'] as const)(
+  'shows only working tabs in a %s window without an empty overflow menu',
+  async sizeClass => {
     render(<ShowToolsPanel sizeClass={sizeClass} />);
-    expect(tabNames()).toHaveLength(8);
+    await stageReady();
+    expect(tabNames()).toEqual(['무대', '메시지']);
     expect(screen.queryByRole('button', {name: '더 보기'})).toBeNull();
+    expect(
+      screen.getByRole('tab', {name: '무대'}).getAttribute('aria-selected'),
+    ).toBe('true');
+    expect(
+      within(screen.getByRole('tabpanel', {name: '무대'})).getByRole('button', {
+        name: '무대 타이머',
+      }),
+    ).toBeDefined();
   },
 );
 
-it('shows 표시 중, 무대, and 더 보기 in a narrow window', () => {
-  render(<ShowToolsPanel sizeClass="narrow" />);
-  expect(tabNames()).toEqual(['표시 중', '무대']);
+it.each(
+  SHOW_TOOLS.filter(tab => tab.value !== 'stage' && tab.value !== 'message'),
+)(
+  'opens working stage controls for a previously selected hidden tab: $label',
+  async tab => {
+    useShowToolTab.setState({tool: tab.value});
+    render(<ShowToolsPanel sizeClass="normal" />);
+    await stageReady();
+    expect(tabNames()).toEqual(['무대', '메시지']);
+    expect(screen.queryByRole('tab', {name: tab.label})).toBeNull();
+    expect(
+      screen.getByRole('tab', {name: '무대'}).getAttribute('aria-selected'),
+    ).toBe('true');
+    expect(
+      screen.getByRole('tabpanel', {name: '무대'}).childElementCount,
+    ).toBeGreaterThan(0);
+  },
+);
+
+it('selects only working panels with arrow keys and releases their subscriptions', async () => {
+  const {unmount} = render(<ShowToolsPanel sizeClass="narrow" />);
+  await stageReady();
+  screen.getByRole('tab', {name: '무대'}).focus();
+  await userEvent.keyboard('{ArrowRight}');
+  await waitFor(() => expect(fixture.count()).toBe(2));
   expect(
-    screen.getByRole('tab', {name: '표시 중'}).getAttribute('aria-selected'),
-  ).toBe('true');
-  expect(screen.getByRole('tabpanel', {name: '표시 중'})).toBeDefined();
-  expect(
-    screen.getByRole('button', {name: '더 보기'}).getAttribute('aria-haspopup'),
-  ).toBe('menu');
+    screen.getByRole('tabpanel', {name: '메시지'}).childElementCount,
+  ).toBeGreaterThan(0);
+  await userEvent.keyboard('{ArrowRight}');
+  await stageReady();
+  expect(screen.getByRole('tabpanel', {name: '무대'})).toBeDefined();
+  unmount();
+  expect(fixture.count()).toBe(0);
 });
 
-it('opens a 더 보기 tool and shows 더 보기 as the active tab', async () => {
-  render(<ShowToolsPanel sizeClass="narrow" />);
-  const more = screen.getByRole('button', {name: '더 보기'});
-  await userEvent.click(more);
-  const menu = screen.getByRole('menu', {name: '더 보기'});
-  expect(
-    within(menu)
-      .getAllByRole('menuitemradio')
-      .map(item => item.textContent),
-  ).toEqual(['오디오', '타이머', '메시지', '공지', '소품', '매크로']);
-  await userEvent.click(
-    within(menu).getByRole('menuitemradio', {name: '타이머'}),
-  );
-  expect(screen.queryByRole('menu')).toBeNull();
-  expect(screen.getByRole('tabpanel', {name: '타이머'})).toBeDefined();
-  expect(more.hasAttribute('data-active')).toBe(true);
-  expect(
-    screen
-      .getAllByRole('tab')
-      .filter(tab => tab.getAttribute('aria-selected') === 'true'),
-  ).toHaveLength(0);
-  await userEvent.click(more);
-  expect(
-    screen
-      .getByRole('menuitemradio', {name: '타이머'})
-      .getAttribute('aria-checked'),
-  ).toBe('true');
-});
-
-it('opens 더 보기 with the down arrow', async () => {
-  render(<ShowToolsPanel sizeClass="narrow" />);
-  screen.getByRole('button', {name: '더 보기'}).focus();
-  await userEvent.keyboard('{ArrowDown}');
-  expect(screen.getByRole('menu', {name: '더 보기'})).toBeDefined();
-});
-
-it('keeps the chosen tool when the window grows out of narrow', async () => {
-  const {rerender} = render(<ShowToolsPanel sizeClass="narrow" />);
-  await userEvent.click(screen.getByRole('button', {name: '더 보기'}));
-  await userEvent.click(screen.getByRole('menuitemradio', {name: '메시지'}));
+it('keeps the chosen working panel through size changes and remounting', async () => {
+  const {rerender, unmount} = render(<ShowToolsPanel sizeClass="narrow" />);
+  await stageReady();
+  await userEvent.click(screen.getByRole('tab', {name: '메시지'}));
+  await waitFor(() => expect(fixture.count()).toBe(2));
   rerender(<ShowToolsPanel sizeClass="normal" />);
   expect(
     screen.getByRole('tab', {name: '메시지'}).getAttribute('aria-selected'),
   ).toBe('true');
-  rerender(<ShowToolsPanel sizeClass="narrow" />);
-  expect(
-    screen.getByRole('button', {name: '더 보기'}).hasAttribute('data-active'),
-  ).toBe(true);
-});
-
-it('selects a tab with the arrow keys', async () => {
-  render(<ShowToolsPanel sizeClass="narrow" />);
-  screen.getByRole('tab', {name: '표시 중'}).focus();
-  await userEvent.keyboard('{ArrowRight}');
-  expect(screen.getByRole('tabpanel', {name: '무대'})).toBeDefined();
-});
-
-it('keeps the chosen tool when the panel mounts again', async () => {
-  const {unmount} = render(<ShowToolsPanel sizeClass="normal" />);
-  await userEvent.click(screen.getByRole('tab', {name: '공지'}));
   unmount();
-  render(<ShowToolsPanel sizeClass="normal" />);
-  expect(screen.getByRole('tabpanel', {name: '공지'})).toBeDefined();
-});
-
-const RIGHT_COLUMN_MIN = 320;
-const ALL_TABS_WIDTH = 440;
-
-// NOTE(0913vision): The panel's width is set by the test, and its tab row
-// reports the overflow the eight tabs would have at that width.
-function measuredPanel() {
-  const observers: Array<() => void> = [];
-  vi.stubGlobal(
-    'ResizeObserver',
-    class {
-      constructor(private readonly callback: () => void) {
-        observers.push(callback);
-      }
-      observe(): void {}
-      disconnect(): void {
-        observers.splice(observers.indexOf(this.callback), 1);
-      }
-    },
-  );
-  let width = 480;
-  const view = render(<ShowToolsPanel sizeClass="normal" />);
-  const root = view.container.firstElementChild;
-  if (!(root instanceof HTMLElement)) throw new Error('Missing panel root');
-  Object.defineProperty(root, 'clientWidth', {get: () => width});
-  const tabList = (): HTMLElement => screen.getByRole('tablist');
-  const resize = (next: number): void => {
-    width = next;
-    const list = tabList();
-    const tabsWidth =
-      list.querySelectorAll('[role="tab"]').length === 8 ? ALL_TABS_WIDTH : 0;
-    Object.defineProperty(list, 'scrollWidth', {
-      configurable: true,
-      get: () => tabsWidth,
-    });
-    Object.defineProperty(list, 'clientWidth', {
-      configurable: true,
-      get: () => Math.min(tabsWidth, width),
-    });
-    act(() => {
-      for (const observer of [...observers]) observer();
-    });
-  };
-  return {resize, view};
-}
-
-it('moves the tools behind 더 보기 when the right column is at its 320 px minimum', () => {
-  const {resize} = measuredPanel();
-  resize(480);
-  expect(tabNames()).toHaveLength(8);
-
-  resize(RIGHT_COLUMN_MIN);
-
-  expect(tabNames()).toEqual(['표시 중', '무대']);
-  expect(screen.getByRole('button', {name: '더 보기'})).toBeDefined();
-});
-
-it('shows all eight tabs again once the panel is wide enough for them', () => {
-  const {resize} = measuredPanel();
-  resize(RIGHT_COLUMN_MIN);
-  expect(tabNames()).toHaveLength(2);
-
-  resize(ALL_TABS_WIDTH - 1);
-  expect(tabNames()).toHaveLength(2);
-  resize(ALL_TABS_WIDTH);
-
-  expect(tabNames()).toHaveLength(8);
-  expect(screen.queryByRole('button', {name: '더 보기'})).toBeNull();
-});
-
-it('keeps the narrow window split without measuring', () => {
-  const observe = vi.fn();
-  vi.stubGlobal(
-    'ResizeObserver',
-    class {
-      observe = observe;
-      disconnect(): void {}
-    },
-  );
-  render(<ShowToolsPanel sizeClass="narrow" />);
-  expect(tabNames()).toEqual(['표시 중', '무대']);
-  expect(observe).not.toHaveBeenCalled();
+  expect(fixture.count()).toBe(0);
+  render(<ShowToolsPanel sizeClass="wide" />);
+  await waitFor(() => expect(fixture.count()).toBe(2));
+  expect(screen.getByRole('tabpanel', {name: '메시지'})).toBeDefined();
 });

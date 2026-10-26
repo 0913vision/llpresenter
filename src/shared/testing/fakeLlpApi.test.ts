@@ -3,8 +3,24 @@ import {emptyLiveState} from '../live';
 import {fakeLlpApi} from './fakeLlpApi';
 import {createAppFlushRequestId} from '../schema/ids';
 import {createServiceId} from '../schema/ids';
+import {parseSettingsDocument} from '../schema/settingsDocuments';
 
 describe('fakeLlpApi', () => {
+  it('supplies valid empty documents for the initially mounted show panels', async () => {
+    const api = fakeLlpApi();
+    for (const name of [
+      'quick',
+      'screens',
+      'looks',
+      'stage-layouts',
+      'timers',
+      'messages',
+    ] as const) {
+      const document = await api.settings.get({name});
+      expect(document.name).toBe(name);
+      expect(parseSettingsDocument(document).ok).toBe(true);
+    }
+  });
   it('provides media state defaults and supports partial UI overrides', () => {
     const setMediaBrowser = vi.fn();
     const api = fakeLlpApi({ui: {setMediaBrowser}});

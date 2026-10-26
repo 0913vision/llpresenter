@@ -59,7 +59,7 @@ function sentTypes(
 }
 
 beforeEach(() => {
-  useShowToolTab.setState({tool: 'showing'});
+  useShowToolTab.setState({tool: 'stage'});
   applyService(null);
   useLive.setState({state: emptyLiveState()});
 });
@@ -74,8 +74,9 @@ it('shows the narrow window layout at 1366 x 768', () => {
   setup(NARROW.width, NARROW.height);
   expect(serviceOrder()).not.toBeNull();
   expect(collapseButton()).not.toBeNull();
-  expect(screen.getByRole('button', {name: '더 보기'})).toBeDefined();
-  expect(screen.getByRole('tab', {name: '표시 중'})).toBeDefined();
+  expect(screen.queryByRole('button', {name: '더 보기'})).toBeNull();
+  expect(screen.getByRole('tab', {name: '무대'})).toBeDefined();
+  expect(screen.getByRole('tab', {name: '메시지'})).toBeDefined();
   expect(screen.queryByRole('tab', {name: '타이머'})).toBeNull();
 });
 
@@ -144,10 +145,10 @@ it('hands the keyboard focus to the other sidebar button', async () => {
 
 it('leaves the focus alone when it was outside the left column', async () => {
   setup(NARROW.width, NARROW.height);
-  const more = screen.getByRole('button', {name: '더 보기'});
-  more.focus();
+  const stage = screen.getByRole('tab', {name: '무대'});
+  stage.focus();
   await userEvent.click(screen.getByRole('button', {name: COLLAPSE}));
-  expect(document.activeElement).toBe(more);
+  expect(document.activeElement).toBe(stage);
 });
 
 it('lets the focus fall to the body after a click, so Space is the next slide', async () => {
@@ -163,12 +164,11 @@ it('lets the focus fall to the body after a click, so Space is the next slide', 
 
 it('keeps the chosen 진행 도구 tab through 준비 and back', async () => {
   setup(NARROW.width, NARROW.height);
-  await userEvent.click(screen.getByRole('button', {name: '더 보기'}));
-  await userEvent.click(screen.getByRole('menuitemradio', {name: '타이머'}));
+  await userEvent.click(screen.getByRole('tab', {name: '메시지'}));
   await userEvent.click(screen.getByRole('tab', {name: '준비'}));
   await userEvent.click(screen.getByRole('tab', {name: '진행'}));
-  expect(screen.getByRole('tabpanel', {name: '타이머'})).toBeDefined();
+  expect(screen.getByRole('tabpanel', {name: '메시지'})).toBeDefined();
   expect(
-    screen.getByRole('button', {name: '더 보기'}).hasAttribute('data-active'),
-  ).toBe(true);
+    screen.getByRole('tab', {name: '메시지'}).getAttribute('aria-selected'),
+  ).toBe('true');
 });

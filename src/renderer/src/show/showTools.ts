@@ -13,22 +13,6 @@ export const SHOW_TOOLS = [
 export type ShowToolEntry = (typeof SHOW_TOOLS)[number];
 export type ShowTool = ShowToolEntry['value'];
 
-/** The tools shown as tabs and the tools in the 더 보기 menu. */
-export interface ShowToolGroups {
-  readonly tabs: readonly ShowToolEntry[];
-  readonly more: readonly ShowToolEntry[];
-}
-
-const COMPACT_TABS: ReadonlySet<ShowTool> = new Set(['showing', 'stage']);
-
-/** All eight tools as tabs. */
-export const ALL_TOOL_TABS: ShowToolGroups = {tabs: SHOW_TOOLS, more: []};
-
-/**
- * 표시 중 and 무대 as tabs and the other six in 더 보기, for a narrow window
- * or a panel too narrow for all eight.
- */
-export const COMPACT_TOOL_TABS: ShowToolGroups = {
-  tabs: SHOW_TOOLS.filter(tool => COMPACT_TABS.has(tool.value)),
-  more: SHOW_TOOLS.filter(tool => !COMPACT_TABS.has(tool.value)),
-};
+export const AVAILABLE_TOOL_TABS = SHOW_TOOLS.filter(
+  tool => tool.value === 'stage' || tool.value === 'message',
+);

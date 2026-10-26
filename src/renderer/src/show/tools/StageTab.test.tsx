@@ -48,14 +48,18 @@ async function choose(label: string, option: string): Promise<void> {
 describe('stage tool', () => {
   it('mounts only on its tab and releases all five document subscriptions', async () => {
     const fixture = stageFixture();
-    render(<ShowToolsPanel sizeClass="narrow" />);
-    expect(fixture.get).not.toHaveBeenCalled();
+    useShowToolTab.setState({tool: 'message'});
+    const {unmount} = render(<ShowToolsPanel sizeClass="narrow" />);
+    await waitFor(() => expect(fixture.count()).toBe(2));
+    fixture.get.mockClear();
     fireEvent.click(screen.getByRole('tab', {name: '무대'}));
     expect(
       await screen.findByRole('button', {name: '무대 화면 무대 배치'}),
     ).toBeTruthy();
     expect(fixture.count()).toBe(5);
-    fireEvent.click(screen.getByRole('tab', {name: '표시 중'}));
+    fireEvent.click(screen.getByRole('tab', {name: '메시지'}));
+    await waitFor(() => expect(fixture.count()).toBe(2));
+    unmount();
     expect(fixture.count()).toBe(0);
     expect(fixture.send).not.toHaveBeenCalled();
   });

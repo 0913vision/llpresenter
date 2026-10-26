@@ -4,6 +4,50 @@ import {emptyLiveState} from '../live';
 import {UI_ZOOM, UI_ZOOM_FACTOR} from '../schema/uiZoom';
 import {defaultPreferences} from '../schema/preferences';
 import type {MediaDocument} from '../schema/mediaEdit';
+import {
+  parseSettingsDocument,
+  type SettingsDocument,
+  type SettingsName,
+} from '../schema/settingsDocuments';
+
+const EMPTY_SHOW_SETTINGS = new Map<SettingsName, SettingsDocument>();
+for (const [name, value] of [
+  ['quick', {format: 'llsettings.quick', schemaVersion: 1, items: []}],
+  ['screens', {format: 'llsettings.screens', schemaVersion: 1, screens: []}],
+  [
+    'looks',
+    {
+      format: 'llsettings.looks',
+      schemaVersion: 1,
+      current: '00000000-0000-4000-8000-000000000001',
+      looks: [],
+      lyricStyles: [],
+    },
+  ],
+  [
+    'stage-layouts',
+    {format: 'llsettings.stage', schemaVersion: 1, layouts: []},
+  ],
+  ['timers', {format: 'llsettings.timers', schemaVersion: 1, timers: []}],
+  [
+    'messages',
+    {
+      format: 'llsettings.messages',
+      schemaVersion: 1,
+      templates: [],
+      stagePresets: [],
+    },
+  ],
+] as const) {
+  const parsed = parseSettingsDocument({
+    name,
+    value,
+    revision: 1,
+    access: 'editable',
+  });
+  if (!parsed.ok) throw new Error('Invalid empty show settings fixture');
+  EMPTY_SHOW_SETTINGS.set(name, parsed.value);
+}
 
 /** The members a test replaces, part by part. */
 export type FakeLlpApiParts = {
@@ -94,15 +138,12 @@ export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
       ...overrides.preferences,
     },
     settings: {
-      get: request =>
-        request.name === 'quick'
-          ? Promise.resolve({
-              name: 'quick',
-              revision: 1,
-              access: 'editable',
-              value: {format: 'llsettings.quick', schemaVersion: 1, items: []},
-            })
-          : Promise.reject(new Error('fakeLlpApi has no settings documents')),
+      get: request => {
+        const document = EMPTY_SHOW_SETTINGS.get(request.name);
+        return document === undefined
+          ? Promise.reject(new Error('fakeLlpApi has no settings documents'))
+          : Promise.resolve(document);
+      },
       edit: () => Promise.resolve(NOT_FOUND),
       subscribe: () => () => undefined,
       ...overrides.settings,

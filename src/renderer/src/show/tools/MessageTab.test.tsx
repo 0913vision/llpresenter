@@ -81,8 +81,9 @@ afterEach(() => {
 
 it('mounts only on the message tab and releases both document subscriptions', async () => {
   const fixture = messageFixture();
-  render(<ShowToolsPanel sizeClass="normal" />);
-  expect(fixture.get).not.toHaveBeenCalled();
+  const {unmount} = render(<ShowToolsPanel sizeClass="normal" />);
+  await waitFor(() => expect(fixture.count()).toBe(5));
+  fixture.get.mockClear();
   fireEvent.click(screen.getByRole('tab', {name: '메시지'}));
   await ready();
   expect(fixture.count()).toBe(2);
@@ -90,7 +91,9 @@ it('mounts only on the message tab and releases both document subscriptions', as
     'messages',
     'screens',
   ]);
-  fireEvent.click(screen.getByRole('tab', {name: '표시 중'}));
+  fireEvent.click(screen.getByRole('tab', {name: '무대'}));
+  await waitFor(() => expect(fixture.count()).toBe(5));
+  unmount();
   expect(fixture.count()).toBe(0);
   expect(fixture.send).not.toHaveBeenCalled();
 });

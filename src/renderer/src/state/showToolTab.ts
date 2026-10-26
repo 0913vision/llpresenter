@@ -10,6 +10,6 @@ interface ShowToolTab {
 // state" asks, once the UI state has a field for it.
 /** The chosen 진행 도구 tab, kept for the session across workspaces and size classes. */
 export const useShowToolTab = create<ShowToolTab>(set => ({
-  tool: 'showing',
+  tool: 'stage',
   setTool: tool => set({tool}),
 }));
