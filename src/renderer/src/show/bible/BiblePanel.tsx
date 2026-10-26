@@ -12,6 +12,7 @@ import {
 } from '@renderer/ui/Panel';
 import {SlidePanelBody, SlideSizeControl} from '../SlidePanel';
 import {showBiblePassage} from './actions';
+import styles from './BiblePanel.module.css';
 
 export function BiblePanel({
   sizeClass,
@@ -23,14 +24,14 @@ export function BiblePanel({
   );
   if (source === null) return null;
   return (
-    <Panel label="성경">
+    <Panel label="성경" className={styles.panel}>
       <PanelHeader>
         <PanelTitle
           title={source.passage.displayRef}
           meta={`슬라이드 ${source.tiles.length}개`}
         />
       </PanelHeader>
-      <PanelBody variant="flush">
+      <PanelBody variant="flush" className={styles.body}>
         <SlidePanelBody sizeClass={sizeClass} />
       </PanelBody>
       <PanelFooter
