@@ -199,16 +199,16 @@ it('applies resize defaults until the operator makes an explicit choice', async 
   expect(screen.getByRole('region', {name: '미디어'})).toBeDefined();
 });
 
-it('keeps the window choice across workspace switches and leaves the prep media view unavailable', async () => {
+it('keeps the window choice across workspace switches, apart from the media view of 준비', async () => {
   const {mount, send} = setup(1366, 768);
   mount();
   await userEvent.click(screen.getByRole('button', {name: '미디어'}));
   await screen.findByRole('region', {name: '미디어'});
   await userEvent.click(screen.getByRole('tab', {name: '준비'}));
   expect(screen.queryByRole('region', {name: '미디어'})).toBeNull();
-  expect(
-    screen.getByRole('button', {name: '미디어'}).getAttribute('aria-disabled'),
-  ).toBe('true');
+  const toggle = screen.getByRole('button', {name: '미디어'});
+  expect(toggle.getAttribute('aria-disabled')).toBeNull();
+  expect(toggle.getAttribute('aria-pressed')).toBe('false');
   await userEvent.click(screen.getByRole('tab', {name: '진행'}));
   await screen.findByRole('region', {name: '미디어'});
   expect(send).not.toHaveBeenCalled();

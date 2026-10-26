@@ -23,6 +23,7 @@ import {
   ItemSettingsPanel,
 } from '@renderer/prep/service/ItemSidePanels';
 import {ServiceQuickAdd} from '@renderer/prep/service/QuickAdd';
+import {MediaView} from '@renderer/prep/media/MediaView';
 import {ServiceItemPanel} from '@renderer/prep/service/SongItemPanel';
 import type {ServiceItemStore} from '@renderer/prep/service/serviceItemStore';
 import {ClearRow} from '@renderer/show/ClearRow';
@@ -265,6 +266,13 @@ function prepPanelParts({
   readonly sizeClass: SizeClass;
 }): PanelParts {
   if (!prep) return {};
+  if (title === '미디어') {
+    return {
+      embedded: (
+        <MediaView api={prep.api} onProblem={onProblem ?? ignoreProblem} />
+      ),
+    };
+  }
   if (title === '라이브러리') {
     return {
       embedded: (
@@ -392,6 +400,7 @@ export function Workspace({
   prep,
   warningHeight = 0,
   mediaVisible = true,
+  mediaView = false,
   sidebar,
 }: {
   readonly id: WorkspaceId;
@@ -402,6 +411,8 @@ export function Workspace({
   readonly prep?: PrepBinding | undefined;
   readonly warningHeight?: number;
   readonly mediaVisible?: boolean | undefined;
+  /** 준비 shows the media view in its center column (spec 05, "Layout"). */
+  readonly mediaView?: boolean | undefined;
   readonly sidebar?: SidebarCollapse | undefined;
 }): JSX.Element {
   const {gridRef, drag} = useColumnLayout(sizeClass, store);
@@ -414,10 +425,16 @@ export function Workspace({
     prep?.editor.subscribe ?? noSubscribe,
     () => Boolean(prep?.editor.getSnapshot().session),
   );
-  const columns =
+  const prepColumns =
     id === 'prep' && hasSong
       ? [['예배 순서', '라이브러리'], ['편집'], ['미리보기', '슬라이드']]
       : panelsByWorkspace[id];
+  const columns =
+    id === 'prep' && mediaView
+      ? prepColumns.map((panels, column) =>
+          column === 1 ? ['미디어'] : panels,
+        )
+      : prepColumns;
   const partsOf = (title: string): PanelParts => {
     if (title === '예배 순서' && id !== 'screens') {
       return serviceOrderParts({

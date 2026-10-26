@@ -45,6 +45,7 @@ export function App({
   const warningMap = useOutputWarnings(state => state.warnings);
   const warnings = useMemo(() => warningScreens(warningMap), [warningMap]);
   const [workspace, setWorkspace] = useState<WorkspaceId>('show');
+  const [prepMedia, setPrepMedia] = useState(false);
   const prepSelection = usePrepSelection();
   const notices = useSyncExternalStore(session.subscribe, session.getNotices);
   const [warningHeight, setWarningHeight] = useState(0);
@@ -73,9 +74,17 @@ export function App({
         onWorkspace={onWorkspace}
         onProblem={session.report}
         onOpenPrepSong={prepSelection.openSong}
-        mediaOpen={workspace === 'show' && mediaStrip.visible}
+        mediaOpen={
+          workspace === 'show'
+            ? mediaStrip.visible
+            : workspace === 'prep' && prepMedia
+        }
         onMediaOpenChange={
-          workspace === 'show' ? mediaStrip.setVisible : undefined
+          workspace === 'show'
+            ? mediaStrip.setVisible
+            : workspace === 'prep'
+              ? setPrepMedia
+              : undefined
         }
       />
       <Workspace
@@ -103,6 +112,7 @@ export function App({
         }}
         warningHeight={warningHeight}
         mediaVisible={mediaStrip.visible}
+        mediaView={prepMedia}
         sidebar={sidebar}
       />
       <StatusBar />
