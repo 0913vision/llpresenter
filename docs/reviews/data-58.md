@@ -113,19 +113,17 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (Codex, codex2): Request changes: taking a tile out of a playlist
+  filtered the snapshot from when the menu opened and saved it at the latest
+  revision, so a newer item could be dropped; nit: an orphaned TSDoc in
+  `ListRow.tsx`.
+- Round 2 (b04b636e): reviewer (Codex, codex2) Approve. Lead Approve; the
+  removal now reads the current playlist, so nothing newer is lost. Round 1 was
+  written by the Claude data member and round 2 by its Codex successor. Rebased
+  by the lead onto local `main` after tools-6 without conflicts; typecheck
+  passes.
 
 ## Team member's reply
 
