@@ -121,8 +121,32 @@ describe('AudioPlayer', () => {
     first.dispatchEvent(new Event('ended'));
     expect(onFadeEnd).toHaveBeenLastCalledWith(2, 5000);
     expect(onNext).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(0);
     expect(vi.getTimerCount()).toBe(0);
   });
+
+  it('cancels a manual fade on a fresh play and releases its timers on disposal', async () => {
+    vi.useFakeTimers();
+    const {player, first, second, now, onFadeEnd} = setup();
+    player.show(state());
+    await ready(first);
+    player.show(state(1, {fadeOutSince: 5000}));
+    now.mockReturnValue(6500);
+    vi.advanceTimersByTime(1500);
+    player.show(state(2));
+    await ready(second);
+    expect(second.volume).toBe(1);
+    vi.advanceTimersByTime(3000);
+    expect(second.hasAttribute('src')).toBe(true);
+    expect(onFadeEnd).not.toHaveBeenCalled();
+    player.show(state(2, {fadeOutSince: 6500}));
+    player.dispose();
+    vi.advanceTimersByTime(0);
+    expect(vi.getTimerCount()).toBe(0);
+    vi.advanceTimersByTime(3000);
+    expect(onFadeEnd).not.toHaveBeenCalled();
+  });
+
   it('creates only two muted hidden elements and leaves empty output idle', () => {
     const {root, player, first, second} = setup();
     for (const element of [first, second]) {

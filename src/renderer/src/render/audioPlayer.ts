@@ -251,7 +251,10 @@ export class AudioPlayer {
 
   private setGain(gain: number): void {
     this.gain = gain;
-    for (const track of this.tracks) track.element.volume = this.volume * gain;
+    const volume = this.volume * gain;
+    for (const track of this.tracks) {
+      if (track.element.volume !== volume) track.element.volume = volume;
+    }
   }
 
   private stopTracks(): void {

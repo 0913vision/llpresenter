@@ -13,8 +13,7 @@ import {
   timerIdSchema,
 } from './ids';
 import {messageDurationSchema} from './messages';
-import {messageTargetsSchema} from './overlayState';
-import {epochMillisecondsSchema} from './overlayState';
+import {epochMillisecondsSchema, messageTargetsSchema} from './overlayState';
 import {plainObject} from './payload';
 import {nonNegativeInteger, percent} from './primitives';
 import {liveNonBlankTextSchema} from './liveLimits';

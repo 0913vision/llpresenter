@@ -27,8 +27,12 @@ Record the build commit, device, pass/fail results and observations here.
 - [ ] Repeat the clear/undo checks with F1 and a macro that clears another layer
       before audio. Verify the picture keeps updating.
 - [ ] Reload the control window during playback. Verify audio continues.
+- [ ] Start manual 페이드 아웃. Verify the level falls over three seconds and
+      stops without advancing the playlist. Repeat while a replacement loads.
+- [ ] During manual fade, start a fresh track or press play. Verify the old fade
+      does not stop that playback.
+- [ ] Press F5 during manual fade. Verify the level does not rise and silence
+      arrives within 0.5 seconds. Undo and verify the saved position and
+      remaining manual fade duration resume.
 - [ ] Close the application. Verify playback stops and no hidden audio window
       remains.
-
-The manual three-second 페이드 아웃 button is a separate follow-up request; add
-its native result after that implementation lands.
