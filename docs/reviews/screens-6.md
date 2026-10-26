@@ -85,19 +85,12 @@ can still be displayed but cannot be chosen as a saved assignment. Dropping a
 window screen onto a monitor also changes its output method to full screen; the
 device select itself appears only for that method.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (Codex): Request changes; the findings and replies are above.
+- Round 2 (6504d591): reviewer (Codex) Approve. Lead Approve (see "What changed
+  and why"); the exact-head CI run passed, checked by the lead at merge. Rebased
+  by the lead onto local `main` without conflicts; typecheck passes.
 
 ## Team member's reply
 
