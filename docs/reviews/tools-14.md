@@ -1,7 +1,7 @@
 # Review request: `tools-14`
 
 - Team member: tools
-- Branch: `docs/tools/timer-redesign`, stacked on tools-13.
+- Branch: `docs/tools/timer-redesign`, rebased onto local main after tools-13.
 - Base, final head, checks and CI status: in the report.
 - Scope: the October 26 user-check timer decision, documentation first.
 
