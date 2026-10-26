@@ -2,7 +2,7 @@
 
 - Team member: data (Codex session, taking over from Claude)
 - Branch: `feat/data/media-properties`, rebased onto `main` after data-58 merged
-- Base commit: `0f868ec2`; the request message gives the range, head and CI run.
+- Base commit: `6c62d738`; the request message gives the range, head and CI run.
 - Related brief: `docs/briefs/data.md`; request from the lead (M3-P6b: the
   properties with the rows of the 10 inventory and the 정보 tab). The preview
   player and 파일 위치 열기 follow in data-60.
@@ -172,3 +172,7 @@ No quick-launch files were changed by this request. Once data-58 merged, the
 request was rebased onto current main `0f868ec2` without conflicts and sent
 through CI again. All three existing request commits compare equal after that
 rebase; only this record and the base metadata are updated afterwards.
+
+For the data-60 round 2 stack refresh, this request was rebased again onto main
+6c62d738. All four request commits compare equal with the prior head a3feb01e;
+only this base metadata and rebase record are updated afterwards.
