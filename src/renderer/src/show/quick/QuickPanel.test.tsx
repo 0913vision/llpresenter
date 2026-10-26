@@ -26,7 +26,6 @@ import {
 } from './quickTesting';
 
 vi.mock('@renderer/show/PreviewPanel', () => ({PreviewPanel: () => null}));
-vi.mock('@renderer/show/ShowMediaPanel', () => ({ShowMediaPanel: () => null}));
 vi.mock('@renderer/show/ShowToolsPanel', () => ({ShowToolsPanel: () => null}));
 beforeEach(() => {
   HTMLElement.prototype.scrollIntoView = vi.fn();
