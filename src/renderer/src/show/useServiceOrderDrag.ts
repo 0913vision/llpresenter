@@ -3,6 +3,8 @@ import type {SongId} from '@shared/schema/ids';
 import {readSongDragData, SONG_DRAG_MIME} from '@shared/schema/songDrag';
 import type {ServiceRow} from './model';
 import {sectionBoundaryIndex} from './serviceSections';
+import {beforeRowMidpoint} from '@renderer/ui/rowDrag';
+import {useDragClickGuard} from '@renderer/ui/useDragClickGuard';
 
 interface DragOptions {
   readonly enabled: boolean;
@@ -31,26 +33,50 @@ export function useServiceOrderDrag({
   onFill,
 }: DragOptions) {
   const dragged = useRef<string | null>(null);
+  const click = useDragClickGuard();
   const [insertBefore, setInsertBefore] = useState<string | null | undefined>();
   const accepts = (event: DragEvent): boolean =>
     enabled &&
     (dragged.current !== null ||
       event.dataTransfer.types.includes(SONG_DRAG_MIME));
   const destination = (event: DragEvent): string | null => {
-    const element = rowElement(event.target);
+    let element = rowElement(event.target);
+    if (element === null) {
+      const first =
+        event.currentTarget.querySelector<HTMLElement>('[data-order-id]');
+      const face = first?.querySelector(
+        '[role="option"], [role="group"] > div',
+      );
+      if (
+        first &&
+        face &&
+        beforeRowMidpoint(event.clientY, face.getBoundingClientRect())
+      ) {
+        element = first;
+      }
+    }
     const id = element?.dataset['orderId'];
     if (element === null || id === undefined) return null;
     const label = element.querySelector('[role="group"]')?.firstElementChild;
     const rect = (label ?? element).getBoundingClientRect();
-    const after =
-      rect.height > 0 && event.clientY >= rect.top + rect.height / 2;
+    const after = rect.height > 0 && !beforeRowMidpoint(event.clientY, rect);
     const targetIndex = rows.findIndex(row => row.id === id);
     if (targetIndex < 0) return id;
     const requested = targetIndex + (after ? 1 : 0);
-    const index =
-      rows.find(row => row.id === dragged.current)?.kind === 'header'
-        ? sectionBoundaryIndex(rows, requested, row => row.kind === 'header')
-        : requested;
+    let index = requested;
+    if (rows.find(row => row.id === dragged.current)?.kind === 'header') {
+      index = sectionBoundaryIndex(
+        rows,
+        requested,
+        row => row.kind === 'header',
+      );
+      if (after && index < requested) {
+        const next = rows.findIndex(
+          (row, position) => position >= requested && row.kind === 'header',
+        );
+        index = next < 0 ? rows.length : next;
+      }
+    }
     return rows[index]?.id ?? null;
   };
   const songSlotUnder = (event: DragEvent): string | null => {
@@ -66,6 +92,9 @@ export function useServiceOrderDrag({
   return {
     insertBefore,
     dragProps: {
+      onPointerDownCapture: click.props.onPointerDownCapture,
+      onClickCapture: click.props.onClickCapture,
+      onDoubleClickCapture: click.props.onDoubleClickCapture,
       onDragStart: (event: DragEvent): void => {
         if (!enabled) {
           event.preventDefault();
@@ -74,6 +103,7 @@ export function useServiceOrderDrag({
         dragged.current = serviceOrderRowId(event.target);
         event.dataTransfer.effectAllowed = 'move';
         event.dataTransfer.setData('text/plain', dragged.current ?? '');
+        click.markDragged();
       },
       onDragEnd: clear,
       onDragOver: (event: DragEvent): void => {

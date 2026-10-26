@@ -208,6 +208,22 @@ describe('the display layout', () => {
     });
   });
 
+  it('keeps screen selection when releasing a native row drag', async () => {
+    setup();
+    render(<ScreenList />);
+    const row = await screen.findByRole('option', {name: '무대 화면'});
+    const previous = useScreensSelection.getState().selection;
+    fireEvent.dragStart(row, {
+      dataTransfer: {setData: vi.fn(), setDragImage: vi.fn()},
+    });
+    fireEvent.dragEnd(row);
+    fireEvent.click(row, {detail: 1});
+    expect(useScreensSelection.getState().selection).toBe(previous);
+    fireEvent.pointerDown(row);
+    fireEvent.click(row, {detail: 1});
+    expect(useScreensSelection.getState().selection.id).toBe(STAGE_ID);
+  });
+
   it('ignores unrelated drags and unknown screen ids', async () => {
     const {edit} = setup();
     await waitFor(() => expect(box(2)).toBeTruthy());

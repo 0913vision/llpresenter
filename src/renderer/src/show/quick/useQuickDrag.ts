@@ -6,6 +6,8 @@ import {
   type MouseEvent,
   type PointerEvent,
 } from 'react';
+import {beforeRowMidpoint} from '@renderer/ui/rowDrag';
+import {useDragClickGuard} from '@renderer/ui/useDragClickGuard';
 
 const DRAG_THRESHOLD_PX = 4;
 const ROW = '[data-quick-id]';
@@ -36,7 +38,7 @@ function beforeAt(
   }
   for (const row of list.querySelectorAll<HTMLElement>(ROW)) {
     const box = row.getBoundingClientRect();
-    if (y < box.top + box.height / 2) return row.dataset['quickId'] ?? null;
+    if (beforeRowMidpoint(y, box)) return row.dataset['quickId'] ?? null;
   }
   return null;
 }
@@ -51,7 +53,7 @@ export function useQuickDrag({
   readonly onMove: (id: string, before: string | null) => void;
 }) {
   const list = useRef<HTMLDivElement>(null);
-  const ended = useRef(false);
+  const click = useDragClickGuard();
   const aborted = useRef(false);
   const [drag, setDrag] = useState<Drag | null>(null);
   const [cancelled, setCancelled] = useState(false);
@@ -79,7 +81,7 @@ export function useQuickDrag({
     ) {
       return;
     }
-    ended.current = true;
+    click.markDragged();
     setDrag({
       ...drag,
       started: true,
@@ -92,13 +94,13 @@ export function useQuickDrag({
     if (aborted.current) return;
     if (
       !drag.started &&
-      !ended.current &&
+      !click.wasDragged() &&
       Math.hypot(event.clientX - drag.x, event.clientY - drag.y) <=
         DRAG_THRESHOLD_PX
     ) {
       return;
     }
-    ended.current = true;
+    click.markDragged();
     if (list.current === null) return;
     const before = beforeAt(list.current, event.clientX, event.clientY);
     if (before === undefined) return;
@@ -111,14 +113,14 @@ export function useQuickDrag({
   });
   const cancel = useEffectEvent(() => {
     aborted.current = true;
-    if (drag !== null) ended.current = true;
+    if (drag !== null) click.markDragged();
     setDrag(null);
   });
   const escape = useEffectEvent((event: globalThis.KeyboardEvent) => {
     if (
       event.key !== 'Escape' ||
       drag === null ||
-      (!drag.started && !ended.current)
+      (!drag.started && !click.wasDragged())
     ) {
       return;
     }
@@ -149,9 +151,10 @@ export function useQuickDrag({
     before: drag?.started ? drag.before : undefined,
     listProps: {
       ref: list,
+      onPointerDownCapture: click.props.onPointerDownCapture,
+      onDoubleClickCapture: click.props.onDoubleClickCapture,
       onPointerDown: (event: PointerEvent<HTMLDivElement>): void => {
         aborted.current = false;
-        ended.current = false;
         setCancelled(false);
         const row =
           event.target instanceof Element
@@ -176,11 +179,9 @@ export function useQuickDrag({
         });
       },
       onClickCapture: (event: MouseEvent<HTMLDivElement>): void => {
-        if (event.detail === 0 || (!ended.current && !cancelled)) return;
-        ended.current = false;
-        setCancelled(false);
-        event.preventDefault();
-        event.stopPropagation();
+        if (cancelled) click.markDragged();
+        click.props.onClickCapture(event);
+        if (event.defaultPrevented) setCancelled(false);
       },
     },
   };

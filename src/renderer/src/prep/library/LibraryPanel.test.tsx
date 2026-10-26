@@ -373,6 +373,19 @@ describe('library panel', () => {
     });
   });
 
+  it('keeps selection when releasing a library drag and allows the next click', async () => {
+    await setup();
+    const row = screen.getByRole('option', {name: '찬송 10'});
+    const previous = row.getAttribute('aria-selected');
+    fireEvent.dragStart(row, {dataTransfer: {setData: vi.fn()}});
+    fireEvent.dragEnd(row);
+    fireEvent.click(row, {detail: 1});
+    expect(row.getAttribute('aria-selected')).toBe(previous);
+    fireEvent.pointerDown(row);
+    fireEvent.click(row, {detail: 1});
+    expect(row.getAttribute('aria-selected')).toBe('true');
+  });
+
   it('keeps a newer pushed list when the initial read finishes late and removes subscriptions', async () => {
     const fixture = libraryFixture();
     let finish: (songs: readonly LibrarySong[]) => void = () => undefined;

@@ -24,11 +24,14 @@ const firstId = createServiceItemId('10000000-0000-4000-8000-000000000002');
 const lastId = createServiceItemId('10000000-0000-4000-8000-000000000003');
 const slotId = createServiceItemId('10000000-0000-4000-8000-000000000009');
 const songId = createSongId('20000000-0000-4000-8000-000000000001');
+const secondHeaderId = createServiceItemId(
+  '10000000-0000-4000-8000-000000000004',
+);
 
 function setup(
   workspace: 'show' | 'prep' = 'show',
   readOnly = false,
-  withSlot = false,
+  extra: {slot?: boolean; secondSection?: boolean} = {},
 ) {
   let document: ServiceDocument = {
     service: {
@@ -41,7 +44,10 @@ function setup(
         {id: headerId, header: '제목'},
         {id: firstId, song: songId},
         {id: lastId, song: songId},
-        ...(withSlot
+        ...(extra.secondSection
+          ? [{id: secondHeaderId, header: '마무리'}]
+          : []),
+        ...(extra.slot
           ? [{id: slotId, slot: 'song' as const, title: '찬양 자리'}]
           : []),
       ],
@@ -230,6 +236,80 @@ describe('service panel editing', () => {
     expect(send).not.toHaveBeenCalled();
   });
 
+  it('drops above the first row from the list top padding', async () => {
+    const {list, ids} = setup();
+    const header = screen.getByText('제목');
+    vi.spyOn(header, 'getBoundingClientRect').mockReturnValue(
+      new DOMRect(0, 4, 200, 30),
+    );
+    for (const [index, row] of screen.getAllByRole('option').entries()) {
+      vi.spyOn(row, 'getBoundingClientRect').mockReturnValue(
+        new DOMRect(0, 34 + index * 30, 200, 30),
+      );
+    }
+    const dataTransfer = transfer();
+    fireEvent.dragStart(screen.getByRole('option', {name: '다음 곡'}), {
+      dataTransfer,
+    });
+    const event = new Event('drop', {bubbles: true, cancelable: true});
+    Object.defineProperties(event, {
+      dataTransfer: {value: dataTransfer},
+      clientY: {value: 2},
+    });
+    fireEvent(list(), event);
+    await waitFor(() => expect(ids()).toEqual([lastId, headerId, firstId]));
+  });
+
+  it('does not select or output a row on the click after a native drag', () => {
+    const {send} = setup();
+    const before = useShow.getState().openItemId;
+    const row = screen.getByRole('option', {name: '다음 곡'});
+    fireEvent.dragStart(row, {dataTransfer: transfer()});
+    fireEvent.dragEnd(row);
+    fireEvent.click(row, {detail: 1});
+    expect(useShow.getState().openItemId).toBe(before);
+    expect(send).not.toHaveBeenCalled();
+    fireEvent.pointerDown(row);
+    fireEvent.click(row, {detail: 1});
+    expect(useShow.getState().openItemId).toBe(lastId);
+  });
+
+  it('does not rename a dragged header on a release double click', () => {
+    setup('prep');
+    const header = screen.getByText('제목');
+    fireEvent.dragStart(header, {dataTransfer: transfer()});
+    fireEvent.dragEnd(header);
+    fireEvent.doubleClick(header, {detail: 2});
+    expect(screen.queryByRole('textbox')).toBeNull();
+    fireEvent.pointerDown(header);
+    fireEvent.doubleClick(header, {detail: 2});
+    expect(screen.getByRole('textbox', {name: '제목 이름'})).toBeDefined();
+  });
+
+  it.each([
+    {y: 14, expected: [headerId, firstId, lastId, secondHeaderId]},
+    {y: 15, expected: [secondHeaderId, headerId, firstId, lastId]},
+    {y: 16, expected: [secondHeaderId, headerId, firstId, lastId]},
+  ])(
+    'moves a whole section across the target header midpoint at $y',
+    async ({y, expected}) => {
+      const {ids} = setup('prep', false, {secondSection: true});
+      const target = screen.getByText('마무리');
+      vi.spyOn(target, 'getBoundingClientRect').mockReturnValue(
+        new DOMRect(0, 0, 200, 30),
+      );
+      const dataTransfer = transfer();
+      fireEvent.dragStart(screen.getByText('제목'), {dataTransfer});
+      const event = new Event('drop', {bubbles: true, cancelable: true});
+      Object.defineProperties(event, {
+        dataTransfer: {value: dataTransfer},
+        clientY: {value: y},
+      });
+      fireEvent(target, event);
+      await waitFor(() => expect(ids()).toEqual(expected));
+    },
+  );
+
   it('renames a header in place with a double click, Enter, Esc, and leaving the field', async () => {
     const {api, ids, send} = setup();
     fireEvent.doubleClick(screen.getByText('제목'));
@@ -376,7 +456,7 @@ describe('service panel editing', () => {
   });
 
   it('fills a song slot with a dropped library song, keeping its place and its selection', async () => {
-    const {api, ids, send} = setup('prep', false, true);
+    const {api, ids, send} = setup('prep', false, {slot: true});
     const target = screen.getByRole('option', {name: '찬양 자리'});
     fireEvent.click(target);
     expect(useShow.getState().openItemId).toBe(slotId);

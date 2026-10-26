@@ -15,6 +15,7 @@ import {useOutputStatuses} from './useOutputStatuses';
 import {useSettingsDocument} from './useSettingsDocument';
 import {SCREEN_DRAG_MIME} from './screenDrag';
 import styles from './ScreenList.module.css';
+import {useDragClickGuard} from '@renderer/ui/useDragClickGuard';
 
 const LIST_LABEL = '화면';
 const AUDIENCE_LABEL = '청중';
@@ -74,6 +75,7 @@ export function ScreenList({
   readonly onProblem?: ((notice: Notice) => void) | undefined;
 }): JSX.Element {
   const document = useSettingsDocument('screens', LOAD_TITLE, onProblem);
+  const click = useDragClickGuard();
   const statuses = useOutputStatuses();
   const outputs = useOutputs();
   const selection = useScreensSelection(view => view.selection);
@@ -89,24 +91,26 @@ export function ScreenList({
     {label: STAGE_LABEL, rows: groups.stage},
   ];
   return (
-    <ListBox
-      label={LIST_LABEL}
-      selected={selected}
-      onSelect={id => select('screen', id)}
-    >
-      {sections
-        .filter(section => section.rows.length > 0)
-        .map(section => (
-          <ListGroup key={section.label} label={section.label}>
-            {section.rows.map(row => (
-              <RowView
-                key={row.id}
-                row={row}
-                canDrag={document?.access === 'editable'}
-              />
-            ))}
-          </ListGroup>
-        ))}
-    </ListBox>
+    <div {...click.props}>
+      <ListBox
+        label={LIST_LABEL}
+        selected={selected}
+        onSelect={id => select('screen', id)}
+      >
+        {sections
+          .filter(section => section.rows.length > 0)
+          .map(section => (
+            <ListGroup key={section.label} label={section.label}>
+              {section.rows.map(row => (
+                <RowView
+                  key={row.id}
+                  row={row}
+                  canDrag={document?.access === 'editable'}
+                />
+              ))}
+            </ListGroup>
+          ))}
+      </ListBox>
+    </div>
   );
 }

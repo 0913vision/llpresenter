@@ -14,6 +14,7 @@ import {
 import {ListBox, ListRow} from '@renderer/ui/ListRow';
 import type {LibraryRow} from './useLibrary';
 import styles from './LibraryPanel.module.css';
+import {useDragClickGuard} from '@renderer/ui/useDragClickGuard';
 
 const OVERSCAN = 4;
 const INITIAL_ROWS = 12;
@@ -33,6 +34,7 @@ export function LibraryList({
   onContextMenu,
 }: LibraryListProps): JSX.Element {
   const viewport = useRef<HTMLDivElement>(null);
+  const click = useDragClickGuard();
   const focusNext = useRef<string | null>(null);
   const [view, setView] = useState({top: 0, height: 0, row: 0});
   const measure = (): void => {
@@ -116,6 +118,7 @@ export function LibraryList({
 
   return (
     <div
+      {...click.props}
       ref={viewport}
       className={styles.viewport}
       onScroll={measure}

@@ -93,6 +93,17 @@ function setup() {
 
 describe('quick pointer reorder', () => {
   it.each([
+    {y: 14, before: quickId(1)},
+    {y: 15, before: quickId(2)},
+    {y: 16, before: quickId(2)},
+  ])('places around the first row midpoint at $y', ({y, before}) => {
+    const drag = setup();
+    drag.start(2);
+    drag.move(y);
+    drag.up();
+    expect(drag.moved).toHaveBeenCalledExactlyOnceWith(quickId(3), before);
+  });
+  it.each([
     {x: -1, y: 80},
     {x: 200, y: 80},
     {x: 10, y: -1},
@@ -166,6 +177,21 @@ describe('quick pointer reorder', () => {
     expect(drag.activated).toHaveBeenCalledOnce();
     expect(drag.moved).not.toHaveBeenCalled();
     expect(drag.row(0).closest(CLICK_FOCUS_SELECTOR)).toBeNull();
+  });
+
+  it('suppresses pointer-generated zero-detail clicks after a drag', () => {
+    const drag = setup();
+    drag.start();
+    drag.move(89);
+    drag.up();
+    const event = new MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+      detail: 0,
+    });
+    Object.defineProperty(event, 'pointerType', {value: 'mouse'});
+    fireEvent(drag.row(0), event);
+    expect(drag.activated).not.toHaveBeenCalled();
   });
   it.each([
     {from: 0, y: 89, before: null},
