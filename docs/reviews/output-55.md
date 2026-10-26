@@ -82,11 +82,13 @@ claimed as ProPresenter behavior.
   [notice resume and restored lyrics](evidence/output-55-round2/restored-run1.png),
   [second launch](evidence/output-55-round2/restored-run2.png).
 
-- After restacking on the output-53 round 3 and output-54 fixes, the rebuilt app
-  repeats both complete launches and every notice-resume, new-slide reset and F1
-  restore cycle again. Both launches quit normally. See the request message for
-  the focused tests and refreshed app measurements; the round 2 screenshots
-  above show this restacked build.
+- After restacking on output-54 round 3, 114 focused tests and typecheck pass.
+  The rebuilt app repeats both complete launches and every notice-resume,
+  new-slide reset and F1 restore cycle. Both launches quit normally. Five
+  targets and 450 live elements remain constant. CDP nodes are 1,677 to 1,674
+  and 1,677 to 1,686; listeners decrease from 423 to 421 or 422. Heaps are
+  5,568,552 to 5,834,776 bytes and 5,554,408 to 5,834,236 bytes. The round 2
+  screenshots above show this final restacked build.
 
 ## Review: lead
 
