@@ -137,6 +137,15 @@ function failPersistedEdit(edit: ReturnType<typeof setup>['edit']): void {
   });
 }
 
+async function openAddMenu(): Promise<void> {
+  const add = screen.getByRole('button', {name: '퀵 실행 추가'});
+  await waitFor(() =>
+    expect(add.getAttribute('aria-disabled')).not.toBe('true'),
+  );
+  fireEvent.click(add);
+  await screen.findByRole('menu', {name: '퀵 실행 추가'});
+}
+
 beforeEach(() => {
   vi.spyOn(crypto, 'randomUUID').mockReturnValue(
     '00000000-0000-4000-8000-000000000999',
@@ -160,6 +169,27 @@ afterEach(() => {
 });
 
 describe('quick editing', () => {
+  it('waits for quick settings before trying to open the add menu', async () => {
+    const fixture = setup();
+    const reading = deferred<ReturnType<typeof quickDocument>>();
+    const original = fixture.get.getMockImplementation();
+    if (!original) throw new Error('Missing settings fixture');
+    fixture.get.mockImplementation(request =>
+      request.name === 'quick' ? reading.promise : original(request),
+    );
+    fixture.mount();
+    const opening = openAddMenu();
+    await act(async () => undefined);
+    expect(
+      screen
+        .getByRole('button', {name: '퀵 실행 추가'})
+        .getAttribute('aria-disabled'),
+    ).toBe('true');
+    expect(screen.queryByRole('menu', {name: '퀵 실행 추가'})).toBeNull();
+    await act(async () => reading.resolve(quickDocument()));
+    await opening;
+    expect(screen.getByRole('menuitem', {name: '현재 항목 추가'})).toBeTruthy();
+  });
   it.each([
     {group: '소품', name: '소품 대상', kind: 'prop'},
     {group: '타이머', name: '타이머 대상', kind: 'timer'},
@@ -169,10 +199,12 @@ describe('quick editing', () => {
     async ({group, name, kind}) => {
       const fixture = setup();
       fixture.mount();
-      fireEvent.click(
-        await screen.findByRole('button', {name: '퀵 실행 추가'}),
+      await openAddMenu();
+      const submenu = await screen.findByRole('menuitem', {name: group});
+      await waitFor(() =>
+        expect(submenu.getAttribute('aria-disabled')).not.toBe('true'),
       );
-      fireEvent.click(await screen.findByRole('menuitem', {name: group}));
+      fireEvent.click(submenu);
       fireEvent.click(await screen.findByRole('menuitem', {name}));
       await waitFor(() =>
         expect(fixture.current().value.items.at(-1)).toMatchObject({
@@ -407,9 +439,7 @@ describe('quick editing', () => {
         rows: [{id: quickId(901), kind, title: '예배 항목'}],
       });
       fixture.mount();
-      fireEvent.click(
-        await screen.findByRole('button', {name: '퀵 실행 추가'}),
-      );
+      await openAddMenu();
       const current = await screen.findByRole('menuitem', {
         name: /현재 항목 추가/,
       });
@@ -430,7 +460,7 @@ describe('quick editing', () => {
     const fixture = setup();
     openBiblePassage(panelPassage());
     fixture.mount();
-    fireEvent.click(await screen.findByRole('button', {name: '퀵 실행 추가'}));
+    await openAddMenu();
     const current = await screen.findByRole('menuitem', {
       name: /현재 항목 추가/,
     });
@@ -451,7 +481,7 @@ describe('quick editing', () => {
     const fixture = setup();
     openLibrarySong(fixture.song);
     fixture.mount();
-    fireEvent.click(await screen.findByRole('button', {name: '퀵 실행 추가'}));
+    await openAddMenu();
     const current = await screen.findByRole('menuitem', {
       name: /현재 항목 추가/,
     });
