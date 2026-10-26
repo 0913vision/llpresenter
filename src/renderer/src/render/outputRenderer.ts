@@ -53,6 +53,7 @@ export class OutputRenderer {
   private transform: string | null = null;
   private scale = 1;
   private testPattern = false;
+  private initialLayers: LiveLayers | null = null;
 
   constructor(
     parent: HTMLElement,
@@ -68,14 +69,21 @@ export class OutputRenderer {
 
   render(layers: LiveLayers, frame?: RenderFrame): void {
     if (this.disposed) return;
-    const look = frame?.look ?? null;
-    this.testPattern = frame?.testPattern === true;
-    this.root.classList.toggle(classes.instant, frame?.transitions === false);
+    frame = {
+      ...frame,
+      transitions:
+        frame?.transitions ??
+        (this.initialLayers !== null && layers !== this.initialLayers),
+    };
+    this.initialLayers ??= layers;
+    const look = frame.look ?? null;
+    this.testPattern = frame.testPattern === true;
+    this.root.classList.toggle(classes.instant, frame.transitions === false);
     this.setBackground(
       look?.background ??
-        (frame?.screen?.method === 'capture' ? CHROMA_BACKGROUND : null),
+        (frame.screen?.method === 'capture' ? CHROMA_BACKGROUND : null),
     );
-    this.setScreen(frame?.screen);
+    this.setScreen(frame.screen);
     for (const layer of this.layers) {
       this.setHidden(layer, look);
       this.attempt(layer.kind, 'draw', () => layer.view.render(layers, frame));

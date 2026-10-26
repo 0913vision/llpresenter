@@ -3,8 +3,8 @@
 - Team member: `output`
 - Branch: `fix/output/ready-frame-reveal`
 - Base, head, review range and CI: in the request message.
-- Scope: urgent M3-C3-1 from the user's `m3-check3` run. Argon second review
-  requested by the lead. Media properties and O3 remain queued behind this fix.
+- Scope: urgent M3-C3-1 and M3-C3-7 from the user's `m3-check3` run. Argon
+  second review requested by the lead. New feature work is frozen.
 
 ## What changed and why
 
@@ -33,6 +33,12 @@ background dissolve remains for changes after main acknowledges a reveal. Ready
 IPC has at most one request in flight, and all video callbacks, frame callbacks
 and listeners are cancelled on disposal.
 
+The same renderer transition flag makes every newly mounted preview draw its
+current frame instantly. It stays instant for redraws of that initial content;
+subsequent content changes retain the normal dissolve. This covers both the live
+ScreenPreview and the local song preview that remounts after leaving the 준비
+media view, without separate transition implementations.
+
 ## Changes outside my paths
 
 - `src/shared/ipc.ts`, `schema/ipcPayloads.ts` and its test: additive validated
@@ -41,6 +47,8 @@ and listeners are cancelled on disposal.
 - `src/shared/testing/fakeLlpApi.ts`: default fake ready reply.
 - `src/main/ipc.ts`: let the existing answer-registration helper accept a
   validated request payload, retaining its disposal path.
+- `src/renderer/src/show/ScreenPreview.test.tsx`: exercise the real shared
+  renderer through a preview remount and a subsequent live slide change.
 
 ## Checks run
 
@@ -51,7 +59,8 @@ and listeners are cancelled on disposal.
   still dissolves on a later shown change; window reuse and cleanup.
 - Placement tests simulate an immediately ready page. Dedicated readiness tests
   explicitly delay decoding and reject stale versions.
-- No local Electron or native window was started and no sound was played.
+- The real app was built and exercised offscreen as recorded below. No sound was
+  played and no window appeared on the user's desktop.
 - Full verify runs on GitHub. Under the lead's API-403 rule, the lead confirms
   exact-head CI before merging.
 - The first head's
@@ -59,6 +68,32 @@ and listeners are cancelled on disposal.
   passed coverage tests and build but failed lint: formatting expanded six
   single-line conditions/loops that then required braces. Those braces are
   corrected, and own-file lint is checked after formatting for the new head.
+
+## Checked in the app
+
+- Built with `npm run build`. The CDP check script passed `node --check` before
+  Electron started. Two complete launches used `LLP_TEST_WINDOWS=offscreen`,
+  `LLP_DEV_PORT=5182` and an isolated output-member fixture copied from
+  `docs/qa/m3-check/sample`. All videos stayed muted.
+- In each launch, changed the live lyrics and silent background while hidden,
+  then turned the output on and off 25 times. Each reveal waited for main's
+  actual current-version ready acknowledgment, with a decoded background at
+  opacity 1 and no lyric/background transition. Hidden windows displayed the
+  newest state. BrowserWindow visibility remained false throughout the check.
+- In each launch, selected an invented library song in 준비 and switched to
+  media and back 25 times. The remounted preview had a zero-second transition
+  and showed the selected slide immediately. Both launches quit normally,
+  closing all their Electron windows and processes.
+- Across output iterations 5 to 25, the five renderer target IDs and the DOM and
+  video element counts stayed unchanged. Collected output heaps were 2,449,720
+  to 2,459,004 bytes in run 1 and 2,437,724 to 2,447,180 in run 2. Preview
+  remounts kept 346 live DOM elements, 1,035 CDP DOM nodes and 375 listeners;
+  collected control heaps were 6,402,480 to 6,695,592 bytes and 6,400,032 to
+  6,686,996 bytes. This is a short repeated-flow check, not an hours-long soak.
+- Screenshots: [control](evidence/output-53/control-run1.png),
+  [decoded output](evidence/output-53/output-run1.png),
+  [준비 after media remount](evidence/output-53/prep-remount-run1.png),
+  [second launch](evidence/output-53/prep-remount-run2.png).
 
 ## Review: lead
 

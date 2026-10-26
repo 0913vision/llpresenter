@@ -52,6 +52,20 @@ function setUp() {
 }
 
 describe('OutputRenderer', () => {
+  it('mounts the current frame instantly and enables transitions for subsequent content', () => {
+    const {parent, renderer} = setUp();
+    const root = parent.firstElementChild;
+    renderer.render(WITH_SLIDE);
+    expect(root?.classList.contains(classes.instant)).toBe(true);
+    renderer.render(WITH_SLIDE, {testPattern: false});
+    expect(root?.classList.contains(classes.instant)).toBe(true);
+    renderer.render({...WITH_SLIDE, slide: null});
+    expect(root?.classList.contains(classes.instant)).toBe(false);
+    renderer.render(WITH_SLIDE, {transitions: false});
+    expect(root?.classList.contains(classes.instant)).toBe(true);
+    renderer.dispose();
+  });
+
   it('switches the empty color between chroma and black without replacing the content', () => {
     const {parent, renderer} = setUp();
     const frame = {
@@ -118,7 +132,7 @@ describe('OutputRenderer', () => {
 
   it('keeps the playing video under the lyrics in separate stacking contexts', () => {
     const {parent, renderer} = setUp();
-    renderer.render(WITH_SLIDE);
+    renderer.render(WITH_SLIDE, {transitions: true});
     parent.querySelector('video[src]')?.dispatchEvent(new Event('playing'));
     const box = (name: string): HTMLElement | null =>
       parent.querySelector<HTMLElement>(`[data-layer="${name}"]`);
