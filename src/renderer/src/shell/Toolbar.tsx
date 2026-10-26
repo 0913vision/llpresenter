@@ -30,6 +30,8 @@ export interface ToolbarProps {
   readonly onOpenPrepSong?: ((songId: SongId) => void) | undefined;
   readonly mediaOpen?: boolean | undefined;
   readonly onMediaOpenChange?: ((open: boolean) => void) | undefined;
+  readonly focusSearch?: boolean | undefined;
+  readonly onSearchFocused?: (() => void) | undefined;
 }
 
 function OutputToggles({compact}: {readonly compact: boolean}): JSX.Element {
@@ -66,6 +68,8 @@ export function Toolbar({
   onOpenPrepSong,
   mediaOpen = false,
   onMediaOpenChange,
+  focusSearch,
+  onSearchFocused,
 }: ToolbarProps): JSX.Element {
   const compact = sizeClass === 'narrow';
   const barClass = compact ? `${styles.bar} ${styles.barCompact}` : styles.bar;
@@ -96,6 +100,8 @@ export function Toolbar({
         disabled={onMediaOpenChange === undefined}
       />
       <ToolbarSearch
+        focusSearch={focusSearch}
+        onSearchFocused={onSearchFocused}
         key={workspace}
         enabled={
           workspace === 'show' ||

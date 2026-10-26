@@ -57,6 +57,8 @@ export function App({
   const warnings = useMemo(() => warningScreens(warningMap), [warningMap]);
   const [workspace, setWorkspace] = useState<WorkspaceId>('show');
   const [prepMedia, setPrepMedia] = useState(false);
+  const [focusSearch, setFocusSearch] = useState(false);
+  const searchFocused = useCallback(() => setFocusSearch(false), []);
   const [importSource, setImportSource] = useState<'file' | 'clipboard' | null>(
     null,
   );
@@ -76,17 +78,38 @@ export function App({
       mediaStrip.setVisible(workspace === 'screens' || !mediaStrip.visible);
     }
   };
+  const importText = (source: 'file' | 'clipboard'): void => {
+    if (session.api === undefined || importSource !== null) return;
+    onWorkspace('prep');
+    setPrepMedia(false);
+    session.editor?.requestLeave(() => setImportSource(source));
+  };
   const imported = useSyncExternalStore(
     session.editor?.subscribe ?? noEditorSubscription,
     () => session.editor?.getSnapshot().imported ?? false,
   );
-  useWindowShortcuts(
-    workspaceShortcuts({
+  useWindowShortcuts([
+    ...workspaceShortcuts({
       onWorkspace,
       onMedia,
       imported: workspace === 'prep' && imported,
     }),
-  );
+    {
+      code: 'KeyF',
+      ctrl: true,
+      run: () => {
+        if (workspace === 'screens') onWorkspace('show');
+        setFocusSearch(true);
+      },
+    },
+    {
+      code: 'KeyI',
+      ctrl: true,
+      shift: true,
+      when: () => session.api !== undefined && importSource === null,
+      run: () => importText('file'),
+    },
+  ]);
   useClearKeys();
   useUiZoomKeys();
   useOutputNotices(session.api, session);
@@ -100,13 +123,7 @@ export function App({
           textImport && (() => textImport.clipboardAvailable())
         }
         onImportText={
-          session.api && importSource === null
-            ? source => {
-                onWorkspace('prep');
-                setPrepMedia(false);
-                session.editor?.requestLeave(() => setImportSource(source));
-              }
-            : undefined
+          session.api && importSource === null ? importText : undefined
         }
         title={serviceName}
         onProblem={session.report}
@@ -118,6 +135,8 @@ export function App({
         }}
       />
       <Toolbar
+        focusSearch={focusSearch}
+        onSearchFocused={searchFocused}
         sizeClass={sizeClass}
         workspace={workspace}
         onWorkspace={onWorkspace}

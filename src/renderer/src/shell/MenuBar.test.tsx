@@ -46,7 +46,9 @@ describe('MenuBar', () => {
     );
     await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
     await userEvent.click(screen.getByRole('menuitem', {name: '가져오기'}));
-    await userEvent.click(await screen.findByRole('menuitem', {name: label}));
+    await userEvent.click(
+      await screen.findByRole('menuitem', {name: new RegExp(`^${label}`)}),
+    );
     expect(onImport).toHaveBeenCalledExactlyOnceWith(source);
     expect(screen.queryByRole('menu', {name: '파일'})).toBeNull();
   });

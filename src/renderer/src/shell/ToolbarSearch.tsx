@@ -123,10 +123,14 @@ export function ToolbarSearch({
   enabled,
   onProblem = logProblem,
   onOpenPrepSong,
+  focusSearch = false,
+  onSearchFocused,
 }: {
   readonly enabled: boolean;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
   readonly onOpenPrepSong?: ((songId: SongId) => void) | undefined;
+  readonly focusSearch?: boolean | undefined;
+  readonly onSearchFocused?: (() => void) | undefined;
 }): JSX.Element {
   const search = useToolbarSearch(enabled, onProblem, onOpenPrepSong);
   const root = useRef<HTMLDivElement>(null);
@@ -136,6 +140,14 @@ export function ToolbarSearch({
   const expanded = enabled && open && search.query.trim() !== '';
   const pointed = search.matches.findIndex(match => match.songId === pointedId);
   const selected = search.matches[pointed];
+  useEffect(() => {
+    if (!focusSearch || !enabled) return;
+    const input = root.current?.querySelector('input');
+    if (input === undefined || input === null) return;
+    input.focus();
+    input.select();
+    onSearchFocused?.();
+  }, [focusSearch, enabled, onSearchFocused]);
   useEffect(() => {
     if (!expanded || !selected) return;
     document
@@ -189,6 +201,7 @@ export function ToolbarSearch({
           block
           placeholder="곡, 가사, 초성"
           aria-label="검색"
+          aria-keyshortcuts="Control+F"
           disabled={!enabled || !window.llp}
           title={!enabled ? WORKSPACE_UNAVAILABLE_TIP : undefined}
           role="combobox"

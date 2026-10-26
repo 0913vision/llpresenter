@@ -151,6 +151,7 @@ function FileMenu({
       id: `import:${source}`,
       label: source === 'file' ? '텍스트 파일' : '클립보드 텍스트',
       icon: source === 'file' ? 'filetext' : 'copy',
+      meta: source === 'file' ? 'Ctrl Shift I' : undefined,
       disabled:
         onImportText === undefined ||
         (source === 'clipboard' && clipboard !== 'ready'),

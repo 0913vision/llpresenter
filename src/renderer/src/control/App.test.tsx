@@ -50,6 +50,67 @@ afterEach(async () => {
 });
 
 describe('App menu bar title', () => {
+  it('focuses and selects toolbar search from every workspace with Ctrl F', () => {
+    const send = vi.fn();
+    window.llp = fakeLlpApi({live: {send}});
+    render(
+      <App
+        session={createSession()}
+        columnWidthStore={createMemoryColumnWidthStore()}
+      />,
+    );
+    for (const code of ['KeyE', 'KeyS', 'Digit1']) {
+      fireEvent.keyDown(window, {
+        code,
+        ctrlKey: true,
+        altKey: code === 'Digit1',
+      });
+      fireEvent.keyDown(window, {code: 'KeyF', ctrlKey: true});
+      const field = screen.getByRole('combobox', {name: '검색'});
+      expect(document.activeElement).toBe(field);
+      fireEvent.change(field, {target: {value: 'Invented'}});
+      fireEvent.keyDown(field, {code: 'KeyF', ctrlKey: true});
+      expect(field).toHaveProperty('selectionStart', 0);
+      expect(field).toHaveProperty('selectionEnd', 8);
+    }
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it('routes Ctrl Shift I to the existing import flow and suppresses held repeats', async () => {
+    const read = vi.fn(async () => ({
+      ok: true as const,
+      value: {
+        source: 'file' as const,
+        fileName: 'Invented.txt',
+        text: 'Invented line',
+      },
+    }));
+    window.llp = fakeLlpApi({
+      textImport: {read, preview: async request => convertTextImport(request)},
+    });
+    render(
+      <App
+        session={createSession()}
+        columnWidthStore={createMemoryColumnWidthStore()}
+      />,
+    );
+    fireEvent.keyDown(window, {code: 'KeyI', ctrlKey: true, shiftKey: true});
+    fireEvent.keyDown(window, {
+      code: 'KeyI',
+      ctrlKey: true,
+      shiftKey: true,
+      repeat: true,
+    });
+    await screen.findByText('슬라이드 1');
+    expect(read).toHaveBeenCalledExactlyOnceWith({
+      source: 'file',
+      encoding: 'auto',
+    });
+    expect(
+      screen.getByRole('tab', {name: '준비'}).getAttribute('aria-selected'),
+    ).toBe('true');
+  });
+
   it('opens existing workspaces by S1 keys and View menu without sending live commands', async () => {
     const send = vi.fn();
     window.llp = fakeLlpApi({live: {send}});
@@ -150,7 +211,7 @@ describe('App menu bar title', () => {
       await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
       await userEvent.click(screen.getByRole('menuitem', {name: '가져오기'}));
       await userEvent.click(
-        await screen.findByRole('menuitem', {name: '텍스트 파일'}),
+        await screen.findByRole('menuitem', {name: /^텍스트 파일/}),
       );
       await screen.findByText('슬라이드 1');
       fireEvent.click(screen.getByRole('button', {name: '편집'}));
@@ -170,7 +231,7 @@ describe('App menu bar title', () => {
         await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
         await userEvent.click(screen.getByRole('menuitem', {name: '가져오기'}));
         await userEvent.click(
-          await screen.findByRole('menuitem', {name: '텍스트 파일'}),
+          await screen.findByRole('menuitem', {name: /^텍스트 파일/}),
         );
         expect(await screen.findByRole('alertdialog')).toHaveProperty(
           'textContent',

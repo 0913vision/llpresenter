@@ -24,7 +24,7 @@ ProPresenter belongs in this app.
 | `ui/Menu.tsx`, `menuKeys.ts`, `menuButton.ts`                                            | Popup arrows, typeahead, Enter/Space, Esc, submenu navigation                                                                                                            | Popup keys work; top-level Alt/F10 activation is missing.                                                                         |
 | `ui/TextField.tsx`, `NumberField.tsx`, `Slider.tsx`, dialogs and rename fields           | Native editing, Esc, Enter, Tab cycle, bounded number/slider changes                                                                                                     | Fixed control keys. No F2 rename shortcut.                                                                                        |
 | `show/tools/StageMessage.tsx`, `MessageTab.tsx`; Bible input; import dialogs             | Contextual Enter sends/runs the primary action; IME guards                                                                                                               | Existing context-specific commands. No app-wide aliases.                                                                          |
-| `show/quick/QuickEditing.tsx`, `MessageEditing.tsx`, `ui/TileList.tsx`                   | ContextMenu/Shift F10 on applicable tiles                                                                                                                                | Present locally; not implemented on all editable lists.                                                                           |
+| `show/quick/QuickEditing.tsx`, `MessageEditing.tsx`, `ui/TileList.tsx`                   | ContextMenu/Shift F10 on applicable tiles                                                                                                                                | Explicit handlers here; native context-menu fallback on other lists still needs app verification.                                 |
 | Native browser text fields                                                               | Ctrl X/C/V/A/Z/Y and plain paste where supported by Chromium                                                                                                             | Native field editing is not an app command dispatcher. Lists do not uniformly implement Ctrl A/C/V.                               |
 
 No production Electron menu accelerator table, `globalShortcut`, or
@@ -108,6 +108,8 @@ PowerPoint import are later.
 - spec-60: wire existing workspace defaults and the 보기 menu, with popup/IME/
   drag precedence and plain-paste/imported-save exceptions. App evidence and
   final validation go in its review record.
+- spec-61: focus/select the existing toolbar search with Ctrl F and open the
+  existing text-file import flow with Ctrl Shift I, including the menu hint.
 - Next: search/file/library actions; imported save; output toggles and quit;
   existing show tabs/Bible/background navigation; menubar access and local
   editing conflicts. Keep each review range small and check it in the app.
