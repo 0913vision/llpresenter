@@ -18,8 +18,8 @@ import type {Analysis, AnalysisRequest, MediaFacts} from './mediaAnalyser';
 import {mediaKindOf, type MediaKind} from './mediaKinds';
 import {storedPath} from './storedPath';
 
-/** Imports copy their files into the media folder (the plan's open question 14). */
-export const COPY_IMPORTED_MEDIA = true;
+/** Refer to originals unless copying is enabled (October 27 user decision). */
+export const COPY_IMPORTED_MEDIA = false;
 
 /** Imported videos start with their sound off (the plan's open question 15). */
 export const IMPORTED_VIDEO_SOUND = false;
@@ -65,8 +65,8 @@ export interface MediaImporterOptions {
   ) => Promise<void>;
   readonly log: Logger;
   readonly copy?: (options: CopyOptions) => ReturnType<typeof copyWithProgress>;
-  /** Whether imports copy into the media folder; {@link COPY_IMPORTED_MEDIA} by default. */
-  readonly copyIntoFolder?: boolean;
+  /** Resolved once per admitted request; {@link COPY_IMPORTED_MEDIA} by default. */
+  readonly copyIntoFolder?: boolean | (() => Promise<boolean>);
 }
 
 interface ImportJob {
@@ -75,6 +75,7 @@ interface ImportJob {
   readonly kind: MediaKind;
   readonly fileName: string;
   readonly playlist: PlaylistRef | null;
+  readonly copyIntoFolder: boolean;
   readonly abort: AbortController;
   /** Stops following the backend's signal once the job ends. */
   readonly release: () => void;
@@ -148,8 +149,8 @@ function cancelled(job: ImportJob): boolean {
 }
 
 /**
- * Imports media files one at a time: each job copies its file into the media
- * folder with progress, analyses it, then joins the media list and the chosen
+ * Imports media files one at a time: each job references its source or copies
+ * into the media folder, analyses it, then joins the media list and the chosen
  * playlist with its duration and size. A file Chromium's decoders refuse
  * fails, and its copy is removed. A job can be cancelled while it waits,
  * copies, or is analysed, and disposal cancels all.
@@ -169,7 +170,16 @@ export class MediaImporter {
       request.source.kind === 'dialog'
         ? await this.options.chooseFiles()
         : request.source.paths;
-    if (this.disposed || signal.aborted) {
+    if (this.isClosing(signal)) {
+      return mediaRefusal('not-found', 'Media import is closing');
+    }
+    if (paths.length === 0) return {ok: true, value: []};
+    const policy = this.options.copyIntoFolder;
+    const copyIntoFolder =
+      typeof policy === 'function'
+        ? await policy()
+        : (policy ?? COPY_IMPORTED_MEDIA);
+    if (this.isClosing(signal)) {
       return mediaRefusal('not-found', 'Media import is closing');
     }
     if (this.jobs.size + paths.length > MAX_IMPORT_JOBS) {
@@ -177,7 +187,14 @@ export class MediaImporter {
     }
     return {
       ok: true,
-      value: paths.map(path => this.enqueue(path, request.playlist, signal)),
+      value: paths.map(path =>
+        this.enqueue({
+          source: path,
+          playlist: request.playlist,
+          signal,
+          copyIntoFolder,
+        }),
+      ),
     };
   }
 
@@ -197,6 +214,10 @@ export class MediaImporter {
     return Promise.resolve({ok: true, value: null});
   }
 
+  private isClosing(signal: AbortSignal): boolean {
+    return this.disposed || signal.aborted;
+  }
+
   /** Cancels every job and resolves once the running one has stopped. */
   dispose(): Promise<void> {
     this.disposed = true;
@@ -204,11 +225,17 @@ export class MediaImporter {
     return this.queue;
   }
 
-  private enqueue(
-    source: string,
-    playlist: PlaylistRef | null,
-    signal: AbortSignal,
-  ): MediaImportProgress {
+  private enqueue({
+    source,
+    playlist,
+    signal,
+    copyIntoFolder,
+  }: {
+    readonly source: string;
+    readonly playlist: PlaylistRef | null;
+    readonly signal: AbortSignal;
+    readonly copyIntoFolder: boolean;
+  }): MediaImportProgress {
     const fileName = basename(source);
     const mediaId = this.options.createId();
     const kind = mediaKindOf(source);
@@ -224,6 +251,7 @@ export class MediaImporter {
       kind,
       fileName,
       playlist,
+      copyIntoFolder,
       abort,
       release: () => {
         signal.removeEventListener('abort', stop);
@@ -240,7 +268,9 @@ export class MediaImporter {
     try {
       const outcome = await this.importFile(job, value => {
         percent = value;
-        this.options.report(progress(job, 'copying', value));
+        if (job.copyIntoFolder) {
+          this.options.report(progress(job, 'copying', value));
+        }
       });
       this.options.report(
         outcome.phase === 'failed'
@@ -368,7 +398,7 @@ export class MediaImporter {
     folder: string,
     onPercent: (percent: number) => void,
   ): Promise<Placed> {
-    if (!(this.options.copyIntoFolder ?? COPY_IMPORTED_MEDIA)) {
+    if (!job.copyIntoFolder) {
       const {size} = await stat(job.source);
       onPercent(100);
       return {ok: true, file: job.source, size, copied: false};

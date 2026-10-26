@@ -1,5 +1,5 @@
 import {getEventListeners} from 'node:events';
-import {mkdir, readdir, writeFile} from 'node:fs/promises';
+import {mkdir, readdir, readFile, writeFile} from 'node:fs/promises';
 import {dirname, join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {makeTempDir} from '../../../test/temp-dir';
@@ -77,6 +77,7 @@ async function setup(options: Partial<MediaImporterOptions> = {}) {
     analyse,
     saveThumbnail,
     log,
+    copyIntoFolder: true,
     ...options,
   });
   onTestFinished(() => importer.dispose());
@@ -177,7 +178,68 @@ describe('media import', () => {
     expect(items).toEqual([
       {id: uuid(1), name: 'Prelude', kind: 'audio', file: audio, size: 14},
     ]);
+    expect(reports.some(report => report.phase === 'copying')).toBe(false);
+    expect(reports.at(-1)).toMatchObject({phase: 'complete', percent: 100});
   });
+
+  it('snapshots one policy per batch while queued jobs keep their admitted policy', async () => {
+    let copying = false;
+    const policy = vi.fn(() => Promise.resolve(copying));
+    const {importer, items, reports, source, media, analyse} = await setup({
+      copyIntoFolder: policy,
+    });
+    let finish: (value: Analysis) => void = () => undefined;
+    analyse.mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          finish = resolve;
+        }),
+    );
+    const paths = await Promise.all(
+      ['First.mp4', 'Second.mp4', 'Third.mp4'].map(name => source(name)),
+    );
+    await importer.import(filesOf(paths.slice(0, 2)), signal());
+    await vi.waitFor(() => expect(analyse).toHaveBeenCalledOnce());
+    copying = true;
+    await importer.import(filesOf(paths.slice(2)), signal());
+    finish({kind: 'read', facts: {}});
+    await ended(reports, 3);
+    expect(policy).toHaveBeenCalledTimes(2);
+    expect(items.map(item => item.file)).toEqual([
+      paths[0],
+      paths[1],
+      'Third.mp4',
+    ]);
+    expect(await readdir(media)).toEqual(['Third.mp4']);
+    expect(await readFile(paths[0] ?? '', 'utf8')).toBe('invented media');
+  });
+
+  it.each(['failure', 'cancellation'] as const)(
+    'keeps an original after analysis %s without copying',
+    async outcome => {
+      const {importer, reports, source, analyse, add} = await setup({
+        copyIntoFolder: false,
+      });
+      const file = await source('Original.mp4');
+      analyse.mockImplementationOnce(async () => {
+        if (outcome === 'cancellation') {
+          await importer.cancel(createMediaId(uuid(1)));
+        }
+        return {
+          kind: 'cant-play',
+          reason: 'unsupported',
+          message: 'Invented decode failure',
+        };
+      });
+      await importer.import(filesOf([file]), signal());
+      await ended(reports, 1);
+      expect(add).not.toHaveBeenCalled();
+      expect(await readFile(file, 'utf8')).toBe('invented media');
+      expect(reports.at(-1)?.phase).toBe(
+        outcome === 'cancellation' ? 'cancelled' : 'failed',
+      );
+    },
+  );
 
   it('fails an unsupported file at once and never queues it', async () => {
     const {importer, source, add} = await setup();
@@ -293,51 +355,59 @@ describe('media import', () => {
 });
 
 describe('media import boundaries', () => {
-  it('keeps an imported file when the media list applies it but fails to save', async () => {
-    const root = await makeTempDir();
-    const folder = join(root, 'media');
-    const store = new MediaStore({
-      document: expectSuccess(
-        parseMediaDocument({
-          name: 'media',
-          revision: 1,
-          access: 'editable',
-          value: EMPTY_MEDIA_LIST,
-        }),
-      ),
-      file: join(root, 'media.json'),
-      mediaFolder: folder,
-      developmentFolder: null,
-      files: {
-        write: request =>
-          Promise.resolve({
-            ok: false,
-            error: {file: request.target.file, message: 'Invented full disk'},
+  it.each([true, false])(
+    'keeps an imported file when the media list applies it but fails to save (copy=%s)',
+    async copyIntoFolder => {
+      const root = await makeTempDir();
+      const folder = join(root, 'media');
+      const store = new MediaStore({
+        document: expectSuccess(
+          parseMediaDocument({
+            name: 'media',
+            revision: 1,
+            access: 'editable',
+            value: EMPTY_MEDIA_LIST,
           }),
-        remove: () => Promise.resolve({ok: true, value: undefined}),
-      },
-      log: recordingLogger(),
-      delayMs: 0,
-    });
-    onTestFinished(() => store.dispose());
-    const reports: MediaImportProgress[] = [];
-    const importer = new MediaImporter({
-      store: () => Promise.resolve(store),
-      report: value => reports.push(value),
-      chooseFiles: () => Promise.resolve([]),
-      createId: () => createMediaId(uuid(1)),
-      analyse: () => Promise.resolve({kind: 'read', facts: {}}),
-      saveThumbnail: () => Promise.resolve(),
-      log: recordingLogger(),
-    });
-    const source = join(root, 'Kept.png');
-    await writeFile(source, 'invented');
-    await importer.import(filesOf([source]), signal());
-    await ended(reports, 1);
-    expect(reports.at(-1)).toMatchObject({phase: 'complete'});
-    expect(await readdir(folder)).toEqual(['Kept.png']);
-    expect(store.get().value.items.map(({id}) => id)).toEqual([uuid(1)]);
-  });
+        ),
+        file: join(root, 'media.json'),
+        mediaFolder: folder,
+        developmentFolder: null,
+        files: {
+          write: request =>
+            Promise.resolve({
+              ok: false,
+              error: {file: request.target.file, message: 'Invented full disk'},
+            }),
+          remove: () => Promise.resolve({ok: true, value: undefined}),
+        },
+        log: recordingLogger(),
+        delayMs: 0,
+      });
+      onTestFinished(() => store.dispose());
+      const reports: MediaImportProgress[] = [];
+      const importer = new MediaImporter({
+        store: () => Promise.resolve(store),
+        report: value => reports.push(value),
+        chooseFiles: () => Promise.resolve([]),
+        createId: () => createMediaId(uuid(1)),
+        copyIntoFolder,
+        analyse: () => Promise.resolve({kind: 'read', facts: {}}),
+        saveThumbnail: () => Promise.resolve(),
+        log: recordingLogger(),
+      });
+      const source = join(root, 'Kept.png');
+      await writeFile(source, 'invented');
+      await importer.import(filesOf([source]), signal());
+      await ended(reports, 1);
+      expect(reports.at(-1)).toMatchObject({phase: 'complete'});
+      if (copyIntoFolder) expect(await readdir(folder)).toEqual(['Kept.png']);
+      expect(await readFile(source, 'utf8')).toBe('invented');
+      expect(await store.backgroundOf(uuid(1))).toMatchObject({
+        mediaId: uuid(1),
+      });
+      expect(store.get().value.items.map(({id}) => id)).toEqual([uuid(1)]);
+    },
+  );
 
   it('stops following the shared backend signal when each job ends', async () => {
     const {importer, reports, source} = await setup();

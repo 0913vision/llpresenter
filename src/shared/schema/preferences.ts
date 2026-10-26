@@ -77,6 +77,7 @@ export const preferencesSchema = jsonObject({
       keep: v.exactOptional(backupKeepSchema),
     }),
   ),
+  media: v.exactOptional(jsonObject({copyOnImport: optionalBoolean})),
   bible: v.exactOptional(
     jsonObject({
       verseNumbers: optionalBoolean,
@@ -139,6 +140,7 @@ export const defaultPreferences: Preferences = {
   previewFps: 30,
   show: {showClearUndoButton: false},
   backup: {auto: true, keep: 30},
+  media: {copyOnImport: false},
   bible: {verseNumbers: true, maxLines: 4, sourcePosition: 'bottomRight'},
   import: {
     txt: {
@@ -157,6 +159,7 @@ export function withPreferenceDefaults(stored: PreferencesFile): Preferences {
     ...stored,
     show: {...defaultPreferences.show, ...stored.show},
     backup: {...defaultPreferences.backup, ...stored.backup},
+    media: {...defaultPreferences.media, ...stored.media},
     bible: {...defaultPreferences.bible, ...stored.bible},
     import: {
       ...stored.import,

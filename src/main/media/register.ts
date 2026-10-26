@@ -19,6 +19,7 @@ import type {Logger} from '../log';
 import {broadcast} from '../store/contentChannels';
 import type {MediaBackendPort} from '../store/mediaChannels';
 import type {UiStateFields} from '../store/appConfigFile';
+import type {SettingsReader} from '../store/settingsStore';
 import {realPathInside} from '../windows/insideRoots';
 import type {WindowMode} from '../windows/testWindows';
 import type {MediaAnalysis} from './analysis';
@@ -45,6 +46,7 @@ export interface MediaBackendRegistration {
   readonly analysis: Pick<MediaAnalysis, 'analyse' | 'saveThumbnail'>;
   readonly log: Logger;
   readonly uiState: UiStateFields;
+  readonly settings?: Promise<Pick<SettingsReader, 'preferences'> | null>;
 }
 
 function dialogParent(
@@ -213,6 +215,8 @@ export function registerMediaBackend(
     analyse: options.analysis.analyse,
     saveThumbnail: options.analysis.saveThumbnail,
     log: options.log,
+    copyIntoFolder: async () =>
+      (await options.settings)?.preferences().media.copyOnImport ?? false,
   });
   const missing = watchMissingFiles(options);
   const stopReveals = listenForReveals(options);

@@ -160,6 +160,7 @@ function start(): void {
       const closing = registerControlClose({control: win, log});
       shutdown.confirmWith(() => closing.confirmClose());
       const stopMediaBackend = registerMediaBackend({
+        settings: dataStore.settings,
         uiState: appConfig,
         port: dataStore.mediaBackend,
         media: dataStore.media,

@@ -193,6 +193,25 @@ describe('withPreferenceDefaults', () => {
 });
 
 describe('preferences read boundary', () => {
+  it('defaults media copying off and keeps explicit choices and unknown media fields', () => {
+    expect(
+      expectSuccess(parsePreferencesValue(HEADER)).media.copyOnImport,
+    ).toBe(false);
+    for (const copyOnImport of [true, false]) {
+      const value = {...HEADER, media: {copyOnImport, future: {enabled: true}}};
+      expectRoundTrip(codec, value);
+      expect(expectSuccess(parsePreferencesValue(value))).toHaveProperty(
+        'media',
+        value.media,
+      );
+    }
+    expect(
+      withPreferenceDefaults(parse({...HEADER, media: {future: 'invented'}})),
+    ).toHaveProperty('media', {copyOnImport: false, future: 'invented'});
+    expect(
+      parsePreferencesValue({...HEADER, media: {copyOnImport: 'false'}}).ok,
+    ).toBe(false);
+  });
   it('returns a normalized value for a valid sparse file-shaped reply', () => {
     expect(expectSuccess(parsePreferencesValue(HEADER))).toEqual(
       defaultPreferences,

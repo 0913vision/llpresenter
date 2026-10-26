@@ -7,6 +7,7 @@ import {Channels} from '@shared/ipc';
 import {createMediaId, type MediaId} from '@shared/schema/ids';
 import {parseMediaDocument} from '@shared/schema/mediaEdit';
 import {expectSuccess} from '@shared/schema/testHelpers';
+import {defaultPreferences, type Preferences} from '@shared/schema/preferences';
 import {recordingLogger} from '../displays/testing';
 import {EMPTY_MEDIA_LIST} from '../store/defaults';
 import type {UiStateFields} from '../store/appConfigFile';
@@ -147,10 +148,12 @@ function register(
     windowMode = 'normal',
     log = recordingLogger(),
     uiState = {read: () => ({}), change: vi.fn()},
+    settings = Promise.resolve(null),
   }: {
     readonly windowMode?: 'normal' | 'offscreen';
     readonly log?: ReturnType<typeof recordingLogger>;
     readonly uiState?: UiStateFields;
+    readonly settings?: Promise<{preferences(): Preferences} | null>;
   } = {},
 ) {
   return registerMediaBackend({
@@ -161,10 +164,50 @@ function register(
     analysis,
     log,
     uiState,
+    settings,
   });
 }
 
 describe('media backend registration', () => {
+  it('reads the current preference for each request, defaults off, and preserves explicit on', async () => {
+    const {port, handlers, reported} = fakePort();
+    const store = await mediaStore();
+    const add = vi.fn(store.add);
+    const file = join(await makeTempDir(), 'Invented.png');
+    await writeFile(file, 'invented');
+    let copying = false;
+    const stop = register(
+      port,
+      {...store, add},
+      {
+        settings: Promise.resolve({
+          preferences: () => ({
+            ...defaultPreferences,
+            media: {copyOnImport: copying},
+          }),
+        }),
+      },
+    );
+    await handlers().import(
+      {source: {kind: 'files', paths: [file]}, playlist: null},
+      new AbortController().signal,
+    );
+    await vi.waitFor(() =>
+      expect(reported.at(-1)).toMatchObject({phase: 'complete'}),
+    );
+    expect(add.mock.calls[0]?.[0].items[0]?.file).toBe(file);
+    copying = true;
+    reported.length = 0;
+    await handlers().import(
+      {source: {kind: 'files', paths: [file]}, playlist: null},
+      new AbortController().signal,
+    );
+    await vi.waitFor(() =>
+      expect(reported.at(-1)).toMatchObject({phase: 'complete'}),
+    );
+    expect(add.mock.calls[1]?.[0].items[0]?.file).toBe('Invented.png');
+    await stop();
+  });
   it('opens immediately in the remembered folder without waiting for the import queue', async () => {
     const {port, handlers} = fakePort();
     const store = await mediaStore();
@@ -325,6 +368,7 @@ describe('media backend registration', () => {
       expect.objectContaining({
         id: saved?.[0],
         name: 'Notice',
+        file,
         width: 4,
         height: 3,
       }),
