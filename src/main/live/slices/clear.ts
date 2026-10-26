@@ -252,6 +252,9 @@ export const clearSlice = defineSlice({
           history,
           clearOverlay(history, command.target, context.now),
           {
+            ...(command.target.kind === 'prop'
+              ? {propId: command.target.propId}
+              : {}),
             transition: command.transition,
             now: context.timerNow ?? context.now,
           },

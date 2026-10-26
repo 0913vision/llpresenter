@@ -8,6 +8,7 @@ type PropItem = NonNullable<LiveLayers['prop']>['items'];
 /** Retains only outgoing content for bounded clear effects, never an IPC snapshot. */
 export class ClearFades {
   private previous: LiveLayers | null = null;
+  private propOrder: readonly string[] = [];
   private readonly held = new Map<
     LayerKind,
     NonNullable<LiveLayers[LayerKind]>
@@ -38,10 +39,10 @@ export class ClearFades {
     const removed = effects.flatMap(effect => {
       if (effect.target.kind !== 'prop') return [];
       const {propId} = effect.target;
-      const index =
-        this.previous?.prop?.items?.findIndex(item => item.propId === propId) ??
-        -1;
-      const item = this.previous?.prop?.items?.[index];
+      const index = this.propOrder.indexOf(propId);
+      const item = this.previous?.prop?.items?.find(
+        item => item.propId === propId,
+      );
       const value =
         this.props.get(propId) ??
         (item === undefined ? undefined : {item, index});
@@ -57,7 +58,11 @@ export class ClearFades {
       return [value];
     });
     this.props.clear();
-    for (const value of removed.slice(0, MAX_ACTIVE_PROPS)) {
+    const capacity = Math.max(
+      0,
+      MAX_ACTIVE_PROPS - (layers.prop?.items?.length ?? 0),
+    );
+    for (const value of removed.slice(0, capacity)) {
       this.props.set(value.item.propId, value);
     }
     if (removed.length > 0 && opacity.prop === undefined) {
@@ -71,6 +76,9 @@ export class ClearFades {
       if (first !== undefined) drawn.prop = {propId: first.propId, items};
     }
     this.previous = layers;
+    this.propOrder = (drawn.prop?.items ?? [])
+      .slice(0, MAX_ACTIVE_PROPS)
+      .map(item => item.propId);
     return {
       layers: drawn,
       opacity,
@@ -81,6 +89,7 @@ export class ClearFades {
 
   dispose(): void {
     this.previous = null;
+    this.propOrder = [];
     this.held.clear();
     this.props.clear();
   }

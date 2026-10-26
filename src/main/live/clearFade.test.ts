@@ -1,8 +1,17 @@
-import {expect, it} from 'vitest';
+import {expect, it, vi} from 'vitest';
 import {emptyLiveState, layerKinds} from '@shared/live';
 import {defaultPreferences} from '@shared/schema/preferences';
 import {LiveStore} from './store';
-import {PROP, IMAGE_PROP, overlaySettings} from './testing/overlays';
+import {
+  PROP,
+  IMAGE_PROP,
+  overlaySettings,
+  settingsDocument,
+  overlayUuid,
+  MAIN,
+  TEXT_STYLE,
+} from './testing/overlays';
+import {MAX_CLEAR_EFFECTS} from '@shared/schema/clearFade';
 
 const slide = {
   itemId: 'fade-check',
@@ -110,12 +119,81 @@ it('keeps independent prop timing when a later clear removes the last live prop'
   const store = setup();
   store.dispatch({type: 'prop.set', propId: PROP, on: true});
   store.dispatch({type: 'prop.set', propId: IMAGE_PROP, on: true});
-  for (const [propId, durationMs] of [[PROP, 1200], [IMAGE_PROP, 200]] as const) {
-    store.dispatch({type: 'overlay.clear', target: {kind: 'prop', propId}, transition: {fade: true, durationMs}});
+  for (const [propId, durationMs] of [
+    [PROP, 1200],
+    [IMAGE_PROP, 200],
+  ] as const) {
+    store.dispatch({
+      type: 'overlay.clear',
+      target: {kind: 'prop', propId},
+      transition: {fade: true, durationMs},
+    });
   }
   expect(store.state.layers.prop).toBeNull();
   expect(store.state.clearEffects).toEqual([
     {target: {kind: 'prop', propId: PROP}, since: 1000, durationMs: 1200},
     {target: {kind: 'prop', propId: IMAGE_PROP}, since: 1000, durationMs: 200},
+  ]);
+});
+
+it('admits rotating prop clears in a batch by retaining only the newest bounded effects', () => {
+  const settings = overlaySettings();
+  const document = settingsDocument('props', {
+    props: Array.from({length: 85}, (_, index) => ({
+      id: overlayUuid(2000 + index),
+      name: `Prop ${index}`,
+      targets: [MAIN],
+      content: {kind: 'text', text: `Prop ${index}`, style: TEXT_STYLE},
+    })),
+  });
+  if (document.name !== 'props') throw new Error('Missing prop fixture');
+  settings.update(document);
+  const store = new LiveStore(undefined, () => 1000);
+  store.connectSettings(settings.reader);
+  const rejected = vi.fn();
+  store.dispatch(
+    {
+      type: 'live.batch',
+      commands: document.value.props.flatMap(prop => [
+        {type: 'prop.set', propId: prop.id, on: true} as const,
+        {
+          type: 'overlay.clear',
+          target: {kind: 'prop', propId: prop.id},
+          transition: {fade: true, durationMs: 30000},
+        } as const,
+      ]),
+    },
+    rejected,
+    rejected,
+  );
+  expect(rejected).not.toHaveBeenCalled();
+  expect(store.state.layers.prop).toBeNull();
+  expect(store.state.clearEffects).toHaveLength(MAX_CLEAR_EFFECTS);
+  expect(store.state.clearEffects?.[0]?.target).toEqual({
+    kind: 'prop',
+    propId: overlayUuid(2015),
+  });
+  expect(store.state.clearEffects?.at(-1)?.target).toEqual({
+    kind: 'prop',
+    propId: overlayUuid(2084),
+  });
+});
+
+it('replaces older individual prop effects when clearing the whole prop layer', () => {
+  const store = setup();
+  store.dispatch({type: 'prop.set', propId: PROP, on: true});
+  store.dispatch({type: 'prop.set', propId: IMAGE_PROP, on: true});
+  store.dispatch({
+    type: 'overlay.clear',
+    target: {kind: 'prop', propId: PROP},
+    transition,
+  });
+  store.dispatch({
+    type: 'layer.clear',
+    target: 'prop',
+    transition: {fade: true, durationMs: 200},
+  });
+  expect(store.state.clearEffects).toEqual([
+    {target: {kind: 'layer', layer: 'prop'}, since: 1000, durationMs: 200},
   ]);
 });

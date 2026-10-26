@@ -1,5 +1,10 @@
 import {layerKinds, type LiveState} from '@shared/live';
-import type {ClearEffect, ClearFade} from '@shared/schema/clearFade';
+import {
+  MAX_CLEAR_EFFECTS,
+  type ClearEffect,
+  type ClearFade,
+} from '@shared/schema/clearFade';
+import type {PropId} from '@shared/schema/ids';
 import type {LiveHistory} from './history';
 
 function isCleared(state: LiveState, target: ClearEffect['target']): boolean {
@@ -23,36 +28,46 @@ export function retainClearEffects(state: LiveState): LiveState {
 export function withClearEffects(
   before: LiveHistory,
   after: LiveHistory,
-  timing: {readonly transition: ClearFade | undefined; readonly now: number},
+  timing: {
+    readonly transition: ClearFade | undefined;
+    readonly now: number;
+    readonly propId?: PropId;
+  },
 ): LiveHistory {
   if (after === before) return after;
-  const {transition, now} = timing;
+  const {transition, now, propId} = timing;
   const added: ClearEffect[] = [];
   if (transition?.fade && transition.durationMs > 0) {
     const stamp = {since: now, durationMs: transition.durationMs};
-    for (const layer of layerKinds) {
-      if (
-        before.state.layers[layer] !== null &&
-        after.state.layers[layer] === null
-      ) {
-        added.push({target: {kind: 'layer', layer}, ...stamp});
-      }
-    }
-    if (after.state.layers.prop !== null) {
-      const props = after.state.layers.prop;
-      const removed = (before.state.layers.prop?.items ?? []).filter(
-        item => !props.items?.some(kept => kept.propId === item.propId),
-      );
-      for (const item of removed) {
-        added.push({target: {kind: 'prop', propId: item.propId}, ...stamp});
-      }
-    }
+    const targets: Array<ClearEffect['target']> =
+      propId === undefined
+        ? layerKinds
+            .filter(
+              layer =>
+                before.state.layers[layer] !== null &&
+                after.state.layers[layer] === null,
+            )
+            .map(layer => ({kind: 'layer', layer}))
+        : [{kind: 'prop', propId}];
+    added.push(...targets.map(target => ({target, ...stamp})));
   }
+  const clearedProps =
+    propId === undefined &&
+    before.state.layers.prop !== null &&
+    after.state.layers.prop === null;
   const kept = (after.state.clearEffects ?? []).filter(
-    effect => now < effect.since + effect.durationMs,
+    effect =>
+      now < effect.since + effect.durationMs &&
+      (!clearedProps || effect.target.kind !== 'prop'),
   );
   if (added.length === 0 && after.state.clearEffects === undefined) {
     return after;
   }
-  return {...after, state: {...after.state, clearEffects: [...kept, ...added]}};
+  return {
+    ...after,
+    state: {
+      ...after.state,
+      clearEffects: [...kept, ...added].slice(-MAX_CLEAR_EFFECTS),
+    },
+  };
 }

@@ -69,6 +69,30 @@ Manual three-second audio fade behavior remains separate.
   [held background](evidence/output-56/background-fade-run1.png),
   [second launch](evidence/output-56/prop-fade-run2.png).
 
+### Round 2 app check
+
+- Rebuilt and syntax-checked the launcher before two offscreen launches. Both
+  repeat the original flows 25 times, plus consecutive prop clears with
+  different durations, a full 64-item prop pool followed by a new activation,
+  and a saved macro that activates and clears 85 distinct props in one run.
+  Earlier fades keep their order and duration, the new live prop remains visible
+  at capacity, and the macro finishes with exactly 70 retained effects.
+- Both launches quit normally. Measurements and screenshots below are from this
+  final check; collected heaps are sampled in both control and output.
+- At iterations 5 and 25, control stays at 1,154 elements, 2,505 CDP nodes and
+  416 listeners. Collected heaps are 5,962,496 to 6,363,868 bytes and 5,935,204
+  to 6,374,436 bytes. Output stays at 774 elements, 1,214 CDP nodes and 10
+  listeners; its heaps are 2,747,396 to 2,849,936 bytes and 2,752,512 to
+  2,851,192 bytes. Five targets remain throughout. This is a short repeated
+  flow, not an hours-long soak.
+- An earlier instrumentation run failed a fixed 300 ms overlap probe while the
+  preceding frame phase was still drawn. The final check observes the actual
+  ordered overlap and completion phases; deterministic clock regressions check
+  the individual deadlines independently.
+- Screenshots: [overlapping fades](evidence/output-56-round2/overlap-run1.png),
+  [new live prop at capacity](evidence/output-56-round2/capacity-run1.png),
+  [second launch](evidence/output-56-round2/overlap-run2.png).
+
 ## Follow-up controls
 
 The user allows the editing controls as a follow-up request. Per-key controls
@@ -87,4 +111,18 @@ existing settings documents; it does not introduce either editor.
 
 ## Team member's reply
 
-1.
+### Round 2
+
+1. Main retains only the newest `MAX_CLEAR_EFFECTS` entries, shared with the
+   70-entry schema cap. An 85-prop transaction regression verifies that the
+   whole command is admitted, old entries are discarded, and the newest clear
+   survives. Individual clears keep a prop target even when they remove the last
+   live prop; a whole-layer clear removes superseded individual effects.
+2. Outgoing props use only the slots left after live props, so all 64 current
+   items remain visible. The regression fills the pool, clears one with a long
+   fade and activates a new prop: the new item appears without growing the pool
+   or scheduling another fade frame for discarded content.
+3. New outgoing captures take their index from the last rendered order rather
+   than the shrinking logical list. The regression clears A then B from
+   `[A, B, C]`, checks stable order and separate gains, and verifies each clear
+   finishes at its own deadline while C remains visible.

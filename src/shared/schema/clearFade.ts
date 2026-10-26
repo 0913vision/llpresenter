@@ -5,6 +5,7 @@ import {propIdSchema} from './ids';
 import {plainObject, payloadObject} from './payload';
 
 export const CLEAR_FADE_LIMIT_MS = 30_000;
+export const MAX_CLEAR_EFFECTS = MAX_ACTIVE_PROPS + layerKinds.length;
 export const DEFAULT_CLEAR_FADE = {fade: false, durationMs: 500} as const;
 export const clearFadeSchema = v.looseObject({
   fade: v.optional(v.boolean(), DEFAULT_CLEAR_FADE.fade),
@@ -40,7 +41,7 @@ export const clearEffectsSchema = v.pipe(
       ),
     }),
   ),
-  v.maxLength(MAX_ACTIVE_PROPS + layerKinds.length),
+  v.maxLength(MAX_CLEAR_EFFECTS),
 );
 export type ClearEffect = Readonly<
   v.InferOutput<typeof clearEffectsSchema>[number]
