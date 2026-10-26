@@ -91,19 +91,16 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (Codex, codex3): Request changes: no test for the refresh-rate-only
+  change; nit on the bounds unit.
+- Round 2 (da5096c8): reviewer (Codex, codex3) Approve, no findings. Lead
+  Approve. Built on Claude Sonnet 5.5 (model trial). Changes outside screens'
+  paths (`src/shared/`, `src/preload/`, `src/main/displays/`,
+  `src/main/outputs/start.ts`, the output-37 test fixtures) are additive and
+  checked against data's and output's rules. Rebased by the lead onto local
+  `main` without conflicts; typecheck passes.
 
 ## Team member's reply
 
