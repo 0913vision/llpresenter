@@ -103,22 +103,29 @@ function publishStatus({
 
 interface MonitorPublishing {
   readonly displays: DisplayRegistry;
+  readonly outputs: OutputManager;
   readonly controlBounds: () => Rect | null;
   readonly log: Logger;
 }
 
 function publishMonitors({
   displays,
+  outputs,
   controlBounds,
   log,
 }: MonitorPublishing): Array<() => void> {
   const list = () =>
-    toMonitorList(displays.monitors, controlBounds(), MONITOR_LIST_MAX);
+    toMonitorList({
+      monitors: displays.monitors,
+      controlBounds: controlBounds(),
+      assignment: outputs.assignedMonitorIds,
+      limit: MONITOR_LIST_MAX,
+    });
+  const push = () => sendToWindows(Channels.monitorsChanged, list(), log);
   return [
     answerWindows(Channels.monitorsGet, list),
-    displays.subscribe(() =>
-      sendToWindows(Channels.monitorsChanged, list(), log),
-    ),
+    displays.subscribe(push),
+    outputs.subscribeAssignment(push),
   ];
 }
 
@@ -217,7 +224,7 @@ export function startOutputs({
       }, log),
     ),
     ...publishStatus({board, outputs, displays, log, screenIdFor}),
-    ...publishMonitors({displays, controlBounds, log}),
+    ...publishMonitors({displays, outputs, controlBounds, log}),
     keepAwakeWhileOutputsOn(
       store,
       new WakeKeeper(createElectronWakeLock(), log),

@@ -60,7 +60,7 @@ function monitorBox(
 ): MonitorBox {
   const {bounds} = monitor;
   const shown = screens.filter(
-    screen => assignment.get(screen.id)?.id === monitor.id,
+    screen => assignment.get(screen.id)?.number === monitor.number,
   );
   return {
     number: monitor.number,
@@ -109,7 +109,7 @@ export function displayLayout(
   const targets = targetBoxes(screens, selected);
   if (monitors.length === 0) return {aspectRatio: 1, monitors: [], targets};
   const whole = arrangement(monitors);
-  const assignment = monitorAssignment(monitors, screens);
+  const assignment = monitorAssignment(monitors);
   return {
     aspectRatio: whole.width / whole.height,
     monitors: monitors.map(monitor =>

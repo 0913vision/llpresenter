@@ -86,6 +86,7 @@ vi.mock('../ipc', () => ({
   sendToWindows: vi.fn(),
 }));
 
+const STAGE_SCREEN = '00000000-0000-4000-8000-0000000000e3';
 const projector = displayInfo({id: 2, x: 1920});
 const stage = displayInfo({id: 3, x: 3840});
 const savedDisplay = ({id, name, bounds, scaleFactor}: typeof projector) => ({
@@ -515,6 +516,61 @@ describe('saved output backend', () => {
     expect(vi.mocked(sendToWindows)).toHaveBeenLastCalledWith(
       Channels.monitorsChanged,
       expect.arrayContaining([expect.objectContaining({refreshRate: 75})]),
+      expect.anything(),
+    );
+  });
+
+  it('lists the screens on the monitors main assigned, and pushes when the assignment changes', async () => {
+    const twin = {name: 'Generic PnP'};
+    const second = (id: number, x: number) =>
+      displayInfo({id, x, name: twin.name});
+    const stageScreen = {
+      ...main,
+      id: STAGE_SCREEN,
+      name: 'Stage',
+      kind: 'stage',
+      display: savedDisplay(second(3, 3840)),
+    };
+    const displays = fakes.displays;
+    if (displays === null) throw new Error('Missing displays');
+    displays.displays = [
+      displayInfo({id: 1, primary: true}),
+      second(22, 1920),
+      second(33, 3840),
+    ];
+    const {save} = setup();
+    await loaded();
+    save([{...main, display: savedDisplay(second(2, 1920))}, stageScreen]);
+    const assignment = () => {
+      const parsed = parseMonitorList(
+        fakes.answers.get(Channels.monitorsGet)?.(),
+      );
+      if (!parsed.ok) throw new Error(parsed.error.message);
+      return parsed.value.map(monitor => [monitor.number, monitor.screenIds]);
+    };
+    expect(assignment()).toEqual([
+      [1, []],
+      [2, [MAIN]],
+      [3, [STAGE_SCREEN]],
+    ]);
+
+    displays.displays = [
+      displayInfo({id: 1, primary: true}),
+      second(33, 1920),
+      second(22, 3840),
+    ];
+    fakes.handlers.get(Channels.outputFindMonitors)?.(undefined, 1);
+
+    expect(assignment()).toEqual([
+      [1, []],
+      [2, [STAGE_SCREEN]],
+      [3, [MAIN]],
+    ]);
+    expect(vi.mocked(sendToWindows)).toHaveBeenLastCalledWith(
+      Channels.monitorsChanged,
+      expect.arrayContaining([
+        expect.objectContaining({number: 3, screenIds: [MAIN]}),
+      ]),
       expect.anything(),
     );
   });

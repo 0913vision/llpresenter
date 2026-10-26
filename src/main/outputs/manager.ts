@@ -77,6 +77,13 @@ function displayRequests(
   );
 }
 
+function sameAssignment(
+  a: ReadonlyMap<string, number>,
+  b: ReadonlyMap<string, number>,
+): boolean {
+  return a.size === b.size && [...a].every(([key, id]) => b.get(key) === id);
+}
+
 /**
  * Keeps one output window per screen in line with the output switches in the
  * live state and with the connected monitors. The main process owns the live
@@ -88,6 +95,7 @@ export class OutputManager {
   private readonly windows = new Map<string, OutputWindow>();
   private readonly statuses = new Map<string, OutputStatus>();
   private previousMonitors: ReadonlyMap<string, number> = new Map();
+  private readonly assignmentListeners = new Set<() => void>();
   private readonly monitorNumbers = new Map<string, number>();
   private readonly unsettledRemovals = new Set<number>();
   private stops: ReadonlyArray<() => void> = [];
@@ -138,6 +146,26 @@ export class OutputManager {
     });
   }
 
+  /**
+   * The monitor id each full screen output is assigned to, as of the last
+   * placement. A screen without a monitor has no entry.
+   */
+  get assignedMonitorIds(): ReadonlyMap<string, number> {
+    return this.previousMonitors;
+  }
+
+  /**
+   * Calls the listener when the assignment of screens to monitors changes.
+   *
+   * @returns A function that removes the listener. Always call it.
+   */
+  subscribeAssignment(listener: () => void): () => void {
+    this.assignmentListeners.add(listener);
+    return () => {
+      this.assignmentListeners.delete(listener);
+    };
+  }
+
   /** The placement and renderer state of every screen in the list. */
   screenStates(): ReadonlyMap<string, ScreenOutputState> {
     return new Map(
@@ -163,6 +191,7 @@ export class OutputManager {
     this.statuses.clear();
     this.monitorNumbers.clear();
     this.previousMonitors = new Map();
+    this.assignmentListeners.clear();
     this.unsettledRemovals.clear();
   }
 
@@ -251,9 +280,22 @@ export class OutputManager {
   }
 
   private rememberMonitors(assigned: ReadonlyMap<string, Monitor>): void {
-    this.previousMonitors = new Map(
-      [...assigned].map(([screenId, {id}]) => [screenId, id]),
+    const next = new Map(
+      [...assigned].map(([screenId, {id}]) => [screenId, id] as const),
     );
+    const changed = !sameAssignment(this.previousMonitors, next);
+    this.previousMonitors = next;
+    if (changed) this.notifyAssignment();
+  }
+
+  private notifyAssignment(): void {
+    for (const listener of this.assignmentListeners) {
+      try {
+        listener();
+      } catch (error) {
+        this.options.log.error('an assignment listener failed', error);
+      }
+    }
   }
 
   private placementFor(

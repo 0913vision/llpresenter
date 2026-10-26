@@ -6,6 +6,12 @@ import {parsePayload, payloadObject, type PayloadError} from './payload';
 /** How many monitors one list may hold, the highest monitor number. */
 export const MONITOR_LIST_MAX = MONITOR_NUMBER_MAX;
 
+/** How many screens one monitor may hold in `screenIds`. */
+export const MONITOR_SCREEN_IDS_MAX = 64;
+
+/** The longest screen id a monitor may list, in characters. */
+export const MONITOR_SCREEN_ID_MAX = 100;
+
 /** The longest monitor name a list may carry, in characters. */
 export const MONITOR_NAME_MAX = 200;
 
@@ -32,7 +38,6 @@ const extent = v.pipe(
 );
 
 const monitorInfoSchema = payloadObject({
-  id: v.pipe(v.number(), v.integer()),
   number: v.pipe(
     v.number(),
     v.integer(),
@@ -59,6 +64,12 @@ const monitorInfoSchema = payloadObject({
     v.maxValue(MONITOR_REFRESH_RATE_MAX),
   ),
   hasMainWindow: v.boolean(),
+  screenIds: v.pipe(
+    v.array(
+      v.pipe(v.string(), v.nonEmpty(), v.maxLength(MONITOR_SCREEN_ID_MAX)),
+    ),
+    v.maxLength(MONITOR_SCREEN_IDS_MAX),
+  ),
 });
 
 const monitorListSchema = v.pipe(
@@ -67,12 +78,12 @@ const monitorListSchema = v.pipe(
 );
 
 /**
- * A connected monitor as 화면 설정 shows it. `id` is the operating system's
- * display id, which a screen's saved monitor names. `number` counts from 1, left to
+ * A connected monitor as 화면 설정 shows it. `number` counts from 1, left to
  * right, then top to bottom. `bounds` are in
  * device-independent pixels, as Electron reports them. `refreshRate` is
  * in hertz, and 0 when the system doesn't report one. `hasMainWindow` is set
- * on the monitor that holds the control window.
+ * on the monitor that holds the control window. `screenIds` are the screens
+ * whose full screen output main placed on this monitor, as main resolved them.
  */
 export type MonitorInfo = Readonly<v.InferOutput<typeof monitorInfoSchema>>;
 

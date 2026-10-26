@@ -2,6 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {
   MONITOR_LIST_MAX,
   MONITOR_NAME_MAX,
+  MONITOR_SCREEN_IDS_MAX,
   MONITOR_REFRESH_RATE_MAX,
   MONITOR_SCALE_FACTOR_MAX,
   parseMonitorList,
@@ -9,13 +10,13 @@ import {
 
 function monitor(number = 1) {
   return {
-    id: number + 10,
     number,
     name: `Monitor ${number}`,
     bounds: {x: (number - 1) * 1920, y: 0, width: 1920, height: 1080},
     scaleFactor: 1.25,
     refreshRate: 59.94,
     hasMainWindow: number === 1,
+    screenIds: number === 1 ? ['main'] : [],
   };
 }
 
@@ -46,8 +47,13 @@ describe('parseMonitorList', () => {
   });
 
   it.each([
-    ['a missing id', {id: undefined}, '0.id'],
-    ['a fractional id', {id: 1.5}, '0.id'],
+    ['screen ids that are not a list', {screenIds: 'main'}, '0.screenIds'],
+    ['an empty screen id', {screenIds: ['']}, '0.screenIds.0'],
+    [
+      'more screen ids than the limit',
+      {screenIds: Array.from({length: MONITOR_SCREEN_IDS_MAX + 1}, () => 'x')},
+      '0.screenIds',
+    ],
     ['a missing name', {name: undefined}, '0.name'],
     [
       'a name over the limit',

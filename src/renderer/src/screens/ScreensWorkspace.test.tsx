@@ -285,15 +285,20 @@ describe('the Look and 무대 배치 lists', () => {
 
   it('marks the first screen and its monitor before any pick, and follows the fallback after a removal', async () => {
     const projector = {
-      id: 2,
       number: 2,
       name: 'Projector',
       bounds: {x: 1920, y: 0, width: 1920, height: 1080},
       scaleFactor: 1,
       refreshRate: 60,
       hasMainWindow: false,
+      screenIds: [MAIN_ID],
     };
-    const control = {...projector, id: 1, number: 1, hasMainWindow: true};
+    const control = {
+      ...projector,
+      number: 1,
+      hasMainWindow: true,
+      screenIds: [],
+    };
     const {pushSettings} = setup({
       monitors: [{...control, bounds: {...control.bounds, x: 0}}, projector],
     });

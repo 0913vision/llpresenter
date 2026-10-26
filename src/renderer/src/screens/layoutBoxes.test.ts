@@ -16,13 +16,13 @@ function screens() {
 
 function monitor(number: number, x: number, hasMainWindow = false) {
   return {
-    id: number,
     number,
     name: `Monitor ${number}`,
     bounds: {x, y: 0, width: 1920, height: 1080},
     scaleFactor: 1,
     refreshRate: 60,
     hasMainWindow,
+    screenIds: number === 2 ? [MAIN_ID] : [],
   };
 }
 
@@ -82,30 +82,28 @@ describe('displayLayout', () => {
     ]);
   });
 
-  it('finds the saved monitor by identity after the monitors are renumbered', () => {
-    const left = {...monitor(1, 0, true), id: 5, name: 'Newly plugged'};
-    const projector = {
-      ...monitor(2, 1920),
-      id: 2,
-      number: 3,
-      name: 'Projector',
-    };
-    const middle = {...monitor(3, 1000), id: 8, number: 2};
-    const renumbered: MonitorList = [left, middle, projector];
+  it('shows the assignment main reports, not the saved monitor', () => {
+    const swapped: MonitorList = [
+      {...monitor(1, 0, true), screenIds: [MAIN_ID]},
+      {...monitor(2, 1920), screenIds: []},
+    ];
 
-    const model = displayLayout(renumbered, screens(), MAIN_ID);
+    const model = displayLayout(swapped, screens(), MAIN_ID);
 
     expect(
       model.monitors.map(box => [box.number, box.screens, box.selected]),
     ).toEqual([
-      [1, [], false],
+      [1, ['본 화면'], true],
       [2, [], false],
-      [3, ['본 화면'], true],
     ]);
   });
 
-  it('shows the screen on no monitor when its saved monitor is gone', () => {
-    const model = displayLayout([monitor(1, 0, true)], screens(), MAIN_ID);
+  it('shows the screen on no monitor when main assigned it none', () => {
+    const model = displayLayout(
+      [monitor(1, 0, true), {...monitor(2, 1920), screenIds: []}],
+      screens(),
+      MAIN_ID,
+    );
 
     expect(model.monitors.flatMap(box => box.screens)).toEqual([]);
   });

@@ -6,17 +6,17 @@ import type {MonitorList} from '@shared/schema/monitors';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {DisplayLayout} from './DisplayLayout';
 import {useScreensSelection} from './selection';
-import {CAPTIONS_ID, screensDocument} from './testing/documents';
+import {CAPTIONS_ID, MAIN_ID, screensDocument} from './testing/documents';
 
 function monitor(number: number, x: number, hasMainWindow = false) {
   return {
-    id: number,
     number,
     name: `Monitor ${number}`,
     bounds: {x, y: 0, width: 1920, height: 1080},
     scaleFactor: 1,
     refreshRate: 60,
     hasMainWindow,
+    screenIds: number === 2 ? [MAIN_ID] : [],
   };
 }
 

@@ -1084,13 +1084,13 @@ describe('preload', () => {
 
   it('passes a valid monitor list through and rejects a bad one', async () => {
     const monitor = {
-      id: 11,
       number: 1,
       name: 'Monitor 1',
       bounds: {x: 0, y: 0, width: 1920, height: 1080},
       scaleFactor: 1,
       refreshRate: 60,
       hasMainWindow: true,
+      screenIds: ['main'],
     };
     electron.invoke.mockResolvedValueOnce([monitor]);
     electron.invoke.mockResolvedValueOnce([{...monitor, number: 0}]);
