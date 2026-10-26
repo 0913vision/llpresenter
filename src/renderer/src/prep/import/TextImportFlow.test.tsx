@@ -131,6 +131,54 @@ describe('text import flow', () => {
 });
 
 describe('imported song actions', () => {
+  it('disables overwrite for a read-only target without preventing a new copy', async () => {
+    const f = fixture();
+    f.store.openImported({
+      title: f.first.song.title,
+      slides: [{lines: ['Imported line']}],
+    });
+    await Promise.resolve();
+    vi.spyOn(f.api.songs, 'get').mockResolvedValueOnce({
+      ...f.first,
+      access: 'readOnly',
+    });
+    const save = vi.spyOn(f.store, 'saveImported').mockResolvedValue(false);
+    render(<ImportedSongActions store={f.store} />);
+    fireEvent.click(screen.getByRole('button', {name: '저장'}));
+    await screen.findByRole('alertdialog');
+    expect(
+      screen
+        .getByRole('button', {name: '덮어쓰기'})
+        .getAttribute('aria-disabled'),
+    ).toBe('true');
+    fireEvent.keyDown(screen.getByRole('alertdialog'), {key: 'Enter'});
+    expect(save).not.toHaveBeenCalled();
+    expect(
+      screen
+        .getByRole('button', {name: '새 곡으로 저장'})
+        .getAttribute('aria-disabled'),
+    ).not.toBe('true');
+  });
+
+  it('reports a failed overwrite-target read and retains the editable draft', async () => {
+    const f = fixture();
+    f.store.openImported({
+      title: f.first.song.title,
+      slides: [{lines: ['Imported line']}],
+    });
+    await Promise.resolve();
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    vi.spyOn(f.api.songs, 'get').mockRejectedValueOnce(
+      new Error('Invented failure'),
+    );
+    render(<ImportedSongActions store={f.store} />);
+    fireEvent.click(screen.getByRole('button', {name: '저장'}));
+    await waitFor(() => expect(f.problem).toHaveBeenCalledOnce());
+    expect(f.store.getSnapshot().imported).toBe(true);
+    expect(f.store.getSnapshot().session?.readOnly).toBe(false);
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+  });
+
   async function actions(title = '') {
     const f = fixture();
     f.store.openImported({title, slides: [{lines: ['Invented line']}]});
