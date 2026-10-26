@@ -10,7 +10,9 @@ export const lyricsLayer = defineLayer({
     return {
       render: (layers, frame) => {
         view.setStyle(frame?.look?.lyricStyle ?? options.lyricStyle);
-        view.show(layers.slide);
+        // NOTE(0913vision): A 무대 화면 with a stage layout draws its 장 in the
+        // layout's elements instead.
+        view.show(frame?.stage === undefined ? layers.slide : null);
       },
       rescale: scale => view.rescale(scale),
       dispose: () => view.dispose(),

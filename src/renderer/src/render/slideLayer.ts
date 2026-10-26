@@ -9,7 +9,8 @@ export const SLIDE_DISSOLVE_MS = OUTPUT_TRANSITIONS.slideMs;
 
 const FALLBACK_FONTS = "'Pretendard Variable', sans-serif";
 
-function fontFamilyFor(font: string): string {
+/** A CSS font family for a saved font name, with Pretendard as the fallback. */
+export function fontFamilyFor(font: string): string {
   const escaped = font.replace(
     /["\\\p{Cc}]/gu,
     character => `\\${character.charCodeAt(0).toString(16)} `,

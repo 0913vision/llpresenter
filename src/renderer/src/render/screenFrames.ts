@@ -1,8 +1,9 @@
 import type {LlpApi} from '@shared/ipc';
 import type {LiveState} from '@shared/live';
 import type {LooksFile} from '@shared/schema/looks';
+import type {StageLayout} from '@shared/schema/stageLayouts';
 import type {Timer} from '@shared/schema/timers';
-import type {RenderFrame, RenderScreen} from './layer';
+import type {RenderFrame, RenderScreen, StageFrame} from './layer';
 import {MainTimerClock} from './mainTimerClock';
 import {followRenderScreen} from './screenIdentity';
 import {resolveScreenLook, type LookGap, type ResolvedLook} from './screenLook';
@@ -14,6 +15,8 @@ export const MAX_REPORTED_LOOK_GAPS = 32;
 const GAP_MESSAGES: Record<LookGap['kind'], string> = {
   'no-card': 'the Look has no card for this screen; drawing every layer',
   'missing-style': 'the lyric style of this screen is missing; drawing 기본',
+  'missing-layout':
+    'the stage layout of this screen is missing; drawing the lyrics',
 };
 
 interface ScreenFramesOptions {
@@ -36,14 +39,17 @@ interface Resolution {
 
 /**
  * Turns the live state into what one screen draws: its identity, its stage
- * message, its 타이머, and its appearance under the current Look, following
- * `screens.json`, `looks.json`, and `timers.json`. The appearance is resolved
- * again only when the Looks, the live Look, or the screen change.
+ * message, its 타이머, its appearance under the current Look, and a 무대
+ * 화면's stage layout (the one chosen for this output, else the Look's),
+ * following `screens.json`, `looks.json`, `timers.json`, and
+ * `stage-layouts.json`. The appearance is resolved again only when the Looks,
+ * the live Look, or the screen change.
  */
 export class ScreenFrames {
   private screen: RenderScreen | undefined;
   private looks: LooksFile | null = null;
   private timers: readonly Timer[] = [];
+  private stageLayouts: readonly StageLayout[] = [];
   private resolution: Resolution | null = null;
   private readonly reported = new Set<string>();
   private readonly stops: ReadonlyArray<() => void>;
@@ -85,6 +91,20 @@ export class ScreenFrames {
         },
         onError: error => onError('could not read the 타이머', error),
       }),
+      followSettingsDocument({
+        settings,
+        name: 'stage-layouts',
+        select: document =>
+          document.name === 'stage-layouts'
+            ? document.value.layouts
+            : undefined,
+        receive: layouts => {
+          this.stageLayouts = layouts;
+          this.reported.clear();
+          options.onChange();
+        },
+        onError: error => onError('could not read the stage layouts', error),
+      }),
     ];
   }
 
@@ -93,6 +113,14 @@ export class ScreenFrames {
     const {screen} = this;
     if (screen === undefined) return undefined;
     const {appearance} = this.resolve(state?.lookId, screen);
+    const stage =
+      screen.kind === 'stage'
+        ? this.stageFrame(
+            state?.stageLayouts?.[screen.id] ?? appearance?.stageLayout,
+            state,
+            screen,
+          )
+        : undefined;
     return {
       screen,
       stageMessage: state?.stageMessage ?? null,
@@ -105,6 +133,7 @@ export class ScreenFrames {
       ...(state?.testPatterns?.includes(screen.id) === true
         ? {testPattern: true}
         : {}),
+      ...(stage === undefined ? {} : {stage}),
     };
   }
 
@@ -128,6 +157,21 @@ export class ScreenFrames {
     this.resolution = {looks: this.looks, lookId, screen, resolved};
     if (resolved.gap !== null) this.report(screen, resolved.gap);
     return resolved;
+  }
+
+  private stageFrame(
+    layoutId: string | undefined,
+    state: LiveState | null,
+    screen: RenderScreen,
+  ): StageFrame | undefined {
+    if (layoutId === undefined) return undefined;
+    const layout = this.stageLayouts.find(({id}) => id === layoutId);
+    if (layout === undefined) {
+      this.report(screen, {kind: 'missing-layout', id: layoutId});
+      return undefined;
+    }
+    const timerId = state?.stageTimerId;
+    return {layout, ...(timerId === undefined ? {} : {timerId})};
   }
 
   private report(screen: RenderScreen, gap: LookGap): void {

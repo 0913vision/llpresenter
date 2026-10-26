@@ -3,7 +3,8 @@ import type {RenderMode} from './backgroundLayer';
 import type {LyricStyle} from './lyricStyle';
 import type {LookLayer, ScreenAppearance} from './screenLook';
 import type {RenderTimers} from './timerTokens';
-import type {ScreenId} from '@shared/schema/ids';
+import type {ScreenId, TimerId} from '@shared/schema/ids';
+import type {StageLayout} from '@shared/schema/stageLayouts';
 import type {Screen} from '@shared/schema/screens';
 
 /** 가장자리 여백 and 위치 미세 조정 of a screen (docs/spec/03-output.md). */
@@ -24,6 +25,13 @@ export interface RenderScreen {
   readonly correction?: PictureCorrection;
 }
 
+/** What a 무대 화면 draws with its stage layout. */
+export interface StageFrame {
+  readonly layout: StageLayout;
+  /** The 타이머 the layout's 타이머 element shows; absent shows none. */
+  readonly timerId?: TimerId;
+}
+
 export interface RenderFrame {
   readonly screen?: RenderScreen;
   readonly stageMessage?: string | null;
@@ -33,6 +41,8 @@ export interface RenderFrame {
   readonly timers?: RenderTimers;
   /** Covers the picture with the 테스트 패턴. */
   readonly testPattern?: boolean;
+  /** A 무대 화면's stage layout; absent draws the lyrics as an audience screen. */
+  readonly stage?: StageFrame;
 }
 
 export interface RenderLayerOptions {

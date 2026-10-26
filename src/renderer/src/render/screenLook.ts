@@ -1,4 +1,4 @@
-import type {LookId, ScreenId} from '@shared/schema/ids';
+import type {LookId, ScreenId, StageLayoutId} from '@shared/schema/ids';
 import type {Look, LooksFile, ScreenLook} from '@shared/schema/looks';
 import {DEFAULT_LYRIC_STYLE, type LyricStyle} from './lyricStyle';
 
@@ -12,12 +12,15 @@ export interface ScreenAppearance {
   readonly lyricStyle: LyricStyle;
   /** A solid color in place of the background media, or null for the media. */
   readonly background: string | null;
+  /** The 무대 화면's stage layout under this Look; absent on audience screens. */
+  readonly stageLayout?: StageLayoutId;
 }
 
 /** A part of `looks.json` that a screen had to draw around. */
 export type LookGap =
   | {readonly kind: 'no-card'; readonly id: LookId}
-  | {readonly kind: 'missing-style'; readonly id: string};
+  | {readonly kind: 'missing-style'; readonly id: string}
+  | {readonly kind: 'missing-layout'; readonly id: string};
 
 export interface ResolvedLook {
   /** Null draws every layer with the 기본 style, as before Looks existed. */
@@ -44,8 +47,8 @@ export interface LookScreen {
  * The appearance of a screen under the live Look (docs/spec/03-output.md,
  * "When a Look can't be resolved"). A live Look that no longer exists falls
  * back to the saved current Look; no Look at all, or a Look without a card for
- * the screen, draws as before Looks; a missing lyric style draws with 기본,
- * and so does every 무대 화면 until stage layouts reach the output.
+ * the screen, draws as before Looks; a missing lyric style draws with 기본.
+ * A 무대 화면 draws its stage layout, so its card's lyric style isn't read.
  */
 export function resolveScreenLook(
   looks: LooksFile | null,
@@ -59,7 +62,6 @@ export function resolveScreenLook(
   if (card === undefined) {
     return {appearance: null, gap: {kind: 'no-card', id: look.id}};
   }
-  // TODO(0913vision): Draw the 무대 화면 with its stage layout (M3-O5).
   const styleId = screen.kind === 'stage' ? undefined : card.lyricStyle;
   const style =
     styleId === undefined
@@ -71,6 +73,9 @@ export function resolveScreenLook(
       lyricStyle: style ?? DEFAULT_LYRIC_STYLE,
       background:
         card.background?.kind === 'color' ? card.background.color : null,
+      ...(screen.kind === 'stage' && card.stageLayout !== undefined
+        ? {stageLayout: card.stageLayout}
+        : {}),
     },
     gap:
       styleId !== undefined && style === undefined
