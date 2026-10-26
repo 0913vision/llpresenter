@@ -96,11 +96,17 @@ export function TextImportDialog({
               options={SPLITS}
               value={options.split}
               onChange={split =>
-                setOptions(current => ({
-                  ...current,
-                  split,
-                  unitsPerSlide: split === 'lineBreak' ? 2 : 1,
-                }))
+                setOptions(current => {
+                  const {symbol, ...shared} = current;
+                  return {
+                    ...shared,
+                    split,
+                    ...(split === 'symbol'
+                      ? {symbol: symbol?.trim() ? symbol : '/'}
+                      : {}),
+                    unitsPerSlide: split === 'lineBreak' ? 2 : 1,
+                  };
+                })
               }
             />
           </DialogField>

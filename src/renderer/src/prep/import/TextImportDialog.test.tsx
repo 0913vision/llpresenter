@@ -11,10 +11,11 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LlpApi} from '@shared/ipc';
 import {createSongId} from '@shared/schema/ids';
 import {defaultPreferences} from '@shared/schema/preferences';
-import type {
-  TextImportOptions,
-  TextImportPreviewResult,
-  TextImportSource,
+import {
+  parseTextImportPreviewRequest,
+  type TextImportOptions,
+  type TextImportPreviewResult,
+  type TextImportSource,
 } from '@shared/schema/textImport';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {convertTextImport} from '../../../../main/import/convert';
@@ -37,9 +38,16 @@ function deferred<T>() {
   return {promise, resolve};
 }
 function fixture() {
-  const preview = vi.fn<LlpApi['textImport']['preview']>(async request =>
-    convertTextImport(request),
-  );
+  const preview = vi.fn<LlpApi['textImport']['preview']>(async request => {
+    const checked = parseTextImportPreviewRequest(request);
+    if (!checked.ok) {
+      return {
+        ok: false,
+        error: {reason: 'invalid', message: checked.error.message},
+      };
+    }
+    return convertTextImport(checked.value);
+  });
   const api = fakeLlpApi({textImport: {preview}}).textImport;
   const onProblem = vi.fn();
   const onEdit = vi.fn();
@@ -170,6 +178,48 @@ describe('text import dialog', () => {
     expect(f.onDiscard).toHaveBeenCalledOnce();
     expect(f.onEdit).not.toHaveBeenCalled();
   });
+  it.each([
+    {label: '빈 줄', split: 'blankLine'},
+    {label: '줄 바꿈', split: 'lineBreak'},
+  ])(
+    'previews after clearing the symbol and switching to $split',
+    async ({label, split}) => {
+      const f = fixture();
+      render(
+        <TextImportDialog
+          {...f.props}
+          defaults={{...defaults, split: 'symbol'}}
+        />,
+      );
+      await screen.findByText('슬라이드 1');
+      fireEvent.change(screen.getByRole('textbox', {name: '기호'}), {
+        target: {value: ''},
+      });
+      expect(
+        screen
+          .getByRole('button', {name: '편집'})
+          .getAttribute('aria-disabled'),
+      ).toBe('true');
+      await userEvent.click(
+        screen.getByRole('button', {name: '슬라이드 나누기'}),
+      );
+      await userEvent.click(screen.getByRole('menuitemradio', {name: label}));
+      await waitFor(() =>
+        expect(f.preview.mock.calls.at(-1)?.[0].options.split).toBe(split),
+      );
+      expect(f.preview.mock.calls.at(-1)?.[0].options.symbol).toBeUndefined();
+      await waitFor(() =>
+        expect(
+          screen
+            .getByRole('button', {name: '편집'})
+            .getAttribute('aria-disabled'),
+        ).not.toBe('true'),
+      );
+      expect(f.onProblem).not.toHaveBeenCalled();
+      fireEvent.click(screen.getByRole('button', {name: '편집'}));
+      expect(f.onEdit).toHaveBeenCalledOnce();
+    },
+  );
   it('bounds a large preview and reaches its final slide by keyboard', async () => {
     const f = fixture();
     f.preview.mockResolvedValue({
