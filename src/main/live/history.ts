@@ -6,7 +6,7 @@ export interface UndoEntry {
   readonly layers: LiveLayers;
   readonly clearedAt: number;
   readonly audioClearedAt?: number;
-  readonly clearedMessageId?: MessageId;
+  readonly clearedMessageIds?: readonly MessageId[];
   readonly stageMessage?: string;
 }
 

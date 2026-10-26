@@ -60,8 +60,9 @@ function undoClear(
     : undo.layers.media;
   const elapsed = Math.max(0, now - undo.clearedAt);
   const message =
-    history.state.layers.message === null || undo.clearedMessageId !== undefined
-      ? resumedMessages(undo.layers.message, elapsed, undo.clearedMessageId)
+    history.state.layers.message === null ||
+    undo.clearedMessageIds !== undefined
+      ? resumedMessages(undo.layers.message, elapsed, undo.clearedMessageIds)
       : undo.layers.message;
   const notice =
     history.state.layers.notice === null
@@ -124,13 +125,13 @@ function resumedAudio(
 function resumedMessages(
   layer: MessageLayer | null,
   elapsed: number,
-  id?: MessageId,
+  ids?: readonly MessageId[],
 ): MessageLayer | null {
   if (layer?.items === undefined) return layer;
   return {
     ...layer,
     items: layer.items.map(item =>
-      id !== undefined && item.messageId !== id
+      ids !== undefined && !ids.includes(item.messageId)
         ? item
         : {
             ...item,

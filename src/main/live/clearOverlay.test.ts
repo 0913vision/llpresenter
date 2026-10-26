@@ -14,6 +14,7 @@ import {
   MAIN,
   CAPTIONS,
   PROP,
+  STAGE,
   IMAGE_PROP,
   NOTICE,
   TEXT_STYLE,
@@ -253,7 +254,7 @@ it('leaves repeated or missing rows as no-ops without losing the prior clear', (
   expect(store.state.stageMessage).toBe('One more chorus');
 });
 
-it('keeps only the last clear in a mixed batch and cancels undo for new layer content', () => {
+it('groups row clears in a batch and cancels undo for new layer content', () => {
   const {store, send} = setup();
   const changed = vi.fn();
   stops.push(store.subscribe(changed));
@@ -268,11 +269,84 @@ it('keeps only the last clear in a mixed batch and cancels undo for new layer co
   send({type: 'clear.undo'});
   expect(
     store.state.layers.message?.items?.map(item => item.messageId),
-  ).toEqual([B]);
+  ).toEqual([A, B]);
   expect(store.state.layers.prop?.items).toHaveLength(2);
   send({type: 'overlay.clear', target: {kind: 'message', messageId: B}});
   send({type: 'message.show', message: {messageId: A, text: 'New content'}});
   expect(store.state.canUndo).toBe(false);
+});
+
+it.each(['message', 'all'] as const)(
+  'resumes every message after a row clear followed by %s in a grouped batch',
+  target => {
+    const {store, send, at} = setup();
+    const original = store.state.layers;
+    send({
+      type: 'live.batch',
+      commands: [
+        {type: 'layer.clear', target: 'prop'},
+        {type: 'overlay.clear', target: {kind: 'message', messageId: A}},
+        {type: 'layer.clear', target},
+      ],
+    });
+    at(BASE + 5000);
+    send({type: 'clear.undo'});
+    expect(store.state.layers.message?.items).toEqual(
+      original.message?.items?.map(item => ({
+        ...item,
+        startedAt: item.startedAt + 5000,
+        expiresAt: item.expiresAt === null ? null : item.expiresAt + 5000,
+      })),
+    );
+    expect(store.state.layers.prop).toBe(original.prop);
+  },
+);
+
+it('resumes multiple cleared message IDs without pausing a retained third message', () => {
+  const items = [MAIN, CAPTIONS, STAGE].map((screen, index) => ({
+    messageId: createMessageId(overlayUuid(index + 101)),
+    text: 'Fixture',
+    targets: [screen],
+    excludedTargets: [],
+    startedAt: BASE,
+    expiresAt: BASE + 30_000,
+  }));
+  const {store, send, at} = setup({
+    layers: {...emptyLiveState().layers, message: messageLayer(items)},
+  });
+  send({
+    type: 'live.batch',
+    commands: [
+      {type: 'overlay.clear', target: {kind: 'message', messageId: A}},
+      {type: 'overlay.clear', target: {kind: 'message', messageId: B}},
+    ],
+  });
+  expect(store.state.layers.message?.items).toEqual(items.slice(2));
+  at(BASE + 5000);
+  send({type: 'clear.undo'});
+  expect(store.state.layers.message?.items).toEqual(
+    items.map((item, index) =>
+      index === 2
+        ? item
+        : {...item, startedAt: BASE + 5000, expiresAt: BASE + 35_000},
+    ),
+  );
+});
+
+it('retains captured stage text when grouping row and layer clears', () => {
+  const {store, send} = setup();
+  const original = store.state;
+  send({
+    type: 'live.batch',
+    commands: [
+      {type: 'layer.clear', target: 'prop'},
+      {type: 'overlay.clear', target: {kind: 'stage-message'}},
+      {type: 'layer.clear', target: 'message'},
+    ],
+  });
+  send({type: 'clear.undo'});
+  expect(store.state.layers).toEqual(original.layers);
+  expect(store.state.stageMessage).toBe(original.stageMessage);
 });
 
 it('resumes the cleared deadline while other messages expire normally and old callbacks stay stale', async () => {

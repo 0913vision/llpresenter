@@ -46,6 +46,8 @@ export function clearOverlay(
   return withLayers(history, next, {
     layers,
     clearedAt: now,
-    ...(target.kind === 'message' ? {clearedMessageId: target.messageId} : {}),
+    ...(target.kind === 'message'
+      ? {clearedMessageIds: [target.messageId]}
+      : {}),
   });
 }

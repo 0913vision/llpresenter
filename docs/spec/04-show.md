@@ -345,7 +345,9 @@ after its name, and hides it at 0.
     Message and prop IDs are lowercase UUID v4 values. Legacy single-item layers
     with older IDs use the existing whole-layer clear. Missing rows do nothing
     and preserve the previous clear's undo. Only the removed message's remaining
-    display time pauses until undo; other messages keep their deadlines.
+    display time pauses until undo; other messages keep their deadlines. Clears
+    within one batch share one undo entry. A following whole-message clear
+    pauses every restored message's lifetime.
 
 ### 오디오 (Audio)
 
