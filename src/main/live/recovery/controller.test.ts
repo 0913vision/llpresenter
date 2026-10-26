@@ -1,8 +1,12 @@
-import {writeFile} from 'node:fs/promises';
+import {readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
 import {emptyLiveState, type LiveState} from '@shared/live';
-import {createMediaId, createMessageId} from '@shared/schema/ids';
+import {
+  createMediaId,
+  createMessageId,
+  type ServiceId,
+} from '@shared/schema/ids';
 import {RECOVERY_RECORD_LIMITS} from '@shared/schema/recoveryRecord';
 import {makeTempDir} from '../../../../test/temp-dir';
 import {recordingLogger} from '../../displays/testing';
@@ -21,13 +25,16 @@ import {
   TEXT_STYLE,
 } from '../testing/overlays';
 import {
+  OTHER_SERVICE,
   recoveryContent,
   recoveryText,
   SAVED_AT,
   SAVED_AT_MS,
+  SERVICE,
   SONG_ITEM,
 } from '../testing/recovery';
 import {RecoveryController, recoverySources} from './controller';
+import {RecoveryRecordWriter} from './recordWriter';
 
 const NOW = SAVED_AT_MS + 60_000;
 const FIRST_IMAGE = createMediaId(overlayUuid(30));
@@ -365,6 +372,63 @@ describe('recovery controller', () => {
       expect(calls).toHaveLength(3);
     },
   );
+});
+
+describe('a record written after another service opened', () => {
+  it('still offers the live 슬라이드 from the service it came from', async () => {
+    const file = join(await makeTempDir(), 'live.json');
+    const settings = overlaySettings();
+    const store = new LiveStore(undefined, () => NOW);
+    store.connectSettings(settings.reader);
+    let open: ServiceId | null = SERVICE;
+    const writer = new RecoveryRecordWriter({
+      file,
+      store,
+      serviceId: () => open,
+      log: recordingLogger(),
+      intervalMs: 1,
+    });
+    writer.start();
+    store.dispatch({
+      type: 'slide.show',
+      slide: {
+        itemId: SONG_ITEM,
+        position: 1,
+        label: '후렴',
+        lines: ['Fixture'],
+      },
+    });
+    open = OTHER_SERVICE;
+    store.dispatch({type: 'stage.message.set', text: 'Fixture stage note'});
+    await vi.waitFor(async () =>
+      expect(await readFile(file, 'utf8')).toContain(OTHER_SERVICE),
+    );
+    writer.stop();
+    await writer.settled();
+    const controller = new RecoveryController({
+      crashed: true,
+      file,
+      store: new LiveStore(undefined, () => NOW),
+      sources: Promise.resolve({
+        settings: settings.reader,
+        content: recoveryContent(),
+      }),
+      record: {start: vi.fn()},
+      showOutputsOnLaunch: vi.fn(async () => undefined),
+      runStartupMacros: vi.fn(async () => undefined),
+      log: recordingLogger(),
+    });
+    expect((await controller.summary())?.rows).toContainEqual({
+      kind: 'slide',
+      slide: {
+        serviceId: SERVICE,
+        itemId: SONG_ITEM,
+        title: '만복의 근원 하나님',
+        position: 1,
+        slideCount: 5,
+      },
+    });
+  });
 });
 
 describe('recovery sources', () => {

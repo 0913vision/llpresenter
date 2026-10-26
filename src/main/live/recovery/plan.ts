@@ -6,7 +6,12 @@ import type {ScreenId} from '@shared/schema/ids';
 import type {RecoverySummary} from '@shared/schema/recovery';
 import type {RecoveryRecord} from '@shared/schema/recoveryRecord';
 import type {Screen} from '@shared/schema/screens';
-import {isItemOfKind, type Service} from '@shared/schema/service';
+import {
+  isItemOfKind,
+  type Service,
+  type ServiceItemOf,
+} from '@shared/schema/service';
+import type {ServiceId} from '@shared/schema/ids';
 import type {Song} from '@shared/schema/song';
 import type {SettingsReader} from '../../store/settingsStore';
 import {songTiles} from '../../store/showService';
@@ -26,7 +31,8 @@ export interface RecoveryStep {
 
 /** The documents of the content store that a recorded 슬라이드 is checked against. */
 export interface RecoveryContent {
-  service(id: string): {readonly service: Pick<Service, 'order'>} | null;
+  serviceList(): ReadonlyArray<{readonly id: string}>;
+  service(id: string): {readonly service: Pick<Service, 'id' | 'order'>} | null;
   song(id: string): {readonly song: Song} | null;
 }
 
@@ -89,16 +95,41 @@ function outputsStep(
   };
 }
 
+interface SourceItem {
+  readonly serviceId: ServiceId;
+  readonly item: ServiceItemOf<'song'>;
+}
+
+// NOTE(0913vision): The record names the service open at its last write,
+// which can differ from the one the live 슬라이드 came from, so every service
+// is searched after the recorded one. Item ids are unique across services.
+function sourceSongItem(
+  content: RecoveryContent,
+  serviceId: string | null,
+  itemId: string,
+): SourceItem | null {
+  const others = content
+    .serviceList()
+    .map(({id}) => id)
+    .filter(id => id !== serviceId);
+  for (const id of serviceId === null ? others : [serviceId, ...others]) {
+    const service = content.service(id)?.service;
+    const item = service?.order.find(entry => entry.id === itemId);
+    if (service === undefined || item === undefined) continue;
+    return isItemOfKind(item, 'song') ? {serviceId: service.id, item} : null;
+  }
+  return null;
+}
+
 function slideStep(
-  {serviceId, state}: RecoveryRecord,
+  {serviceId: recordedServiceId, state}: RecoveryRecord,
   content: RecoveryContent,
 ): RecoveryStep | null {
   const slide = state.layers.slide;
-  if (slide === null || serviceId === null) return null;
-  const item = content
-    .service(serviceId)
-    ?.service.order.find(({id}) => id === slide.itemId);
-  if (item === undefined || !isItemOfKind(item, 'song')) return null;
+  if (slide === null) return null;
+  const source = sourceSongItem(content, recordedServiceId, slide.itemId);
+  if (source === null) return null;
+  const {serviceId, item} = source;
   const song = content.song(item.song)?.song;
   if (song === undefined) return null;
   const slideCount = songTiles(song, NO_LABEL_COLORS, item.arrangement).length;

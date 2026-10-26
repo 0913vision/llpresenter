@@ -14,34 +14,51 @@ import {
   hymnOne,
   itemId,
   service,
+  EVENING_ID,
   SUNDAY_ID,
 } from '../../store/testFiles';
 
 export const SAVED_AT = '2026-10-26T06:00:00+09:00';
 export const SAVED_AT_MS = Date.parse(SAVED_AT);
 export const SERVICE = createServiceId(SUNDAY_ID);
+export const OTHER_SERVICE = createServiceId(EVENING_ID);
 export const SONG_ITEM = createServiceItemId(itemId(101));
 export const HEADER_ITEM = createServiceItemId(itemId(102));
 export const MISSING_SONG_ITEM = createServiceItemId(itemId(103));
 
-/** One 예배 순서 with a song item (5 slides in its 구성), a header, and a song that is gone. */
-export function recoveryContent(): RecoveryContent {
-  const order = [
-    {id: SONG_ITEM, song: HYMN_ONE_ID, arrangement: '주일용'},
-    {id: HEADER_ITEM, header: '말씀'},
-    {id: MISSING_SONG_ITEM, song: 'f0f0f0f0-f0f0-4f0f-8f0f-f0f0f0f0f0f0'},
-  ];
-  const sunday = expectSuccess(
+function serviceOf(id: string, order: readonly object[]) {
+  return expectSuccess(
     parseService(
-      JSON.stringify(service(SUNDAY_ID, '2026-11-01T11:00', order)),
-      'sunday.llservice',
+      JSON.stringify(service(id, '2026-11-01T11:00', order)),
+      `${id}.llservice`,
     ),
   ).data;
+}
+
+/**
+ * Two 예배 순서: the first has a song item (5 slides in its 구성), a header,
+ * and a song that is gone; the second, listed first, has only a header.
+ */
+export function recoveryContent(): RecoveryContent {
+  const services = new Map<string, ReturnType<typeof serviceOf>>(
+    [
+      serviceOf(EVENING_ID, [{id: itemId(104), header: '찬양'}]),
+      serviceOf(SUNDAY_ID, [
+        {id: SONG_ITEM, song: HYMN_ONE_ID, arrangement: '주일용'},
+        {id: HEADER_ITEM, header: '말씀'},
+        {id: MISSING_SONG_ITEM, song: 'f0f0f0f0-f0f0-4f0f-8f0f-f0f0f0f0f0f0'},
+      ]),
+    ].map(document => [document.id, document]),
+  );
   const hymn = expectSuccess(
     parseSong(JSON.stringify(hymnOne()), 'hymn.llsong'),
   ).data;
   return {
-    service: id => (id === SERVICE ? {service: sunday} : null),
+    serviceList: () => [...services.keys()].map(id => ({id})),
+    service: id => {
+      const found = services.get(id);
+      return found === undefined ? null : {service: found};
+    },
     song: id => (id === HYMN_ONE_ID ? {song: hymn} : null),
   };
 }

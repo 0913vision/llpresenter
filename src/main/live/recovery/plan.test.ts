@@ -15,6 +15,7 @@ import {
 import {
   HEADER_ITEM,
   MISSING_SONG_ITEM,
+  OTHER_SERVICE,
   recoveryContent,
   recoveryRecordOf,
   SAVED_AT_MS,
@@ -126,8 +127,6 @@ describe('recovery plan', () => {
   });
 
   it.each([
-    ['no recorded service', LIVE_SLIDE, null],
-    ['a service that is gone', LIVE_SLIDE, overlayUuid(44)],
     ['an item that is gone', {...LIVE_SLIDE, itemId: overlayUuid(45)}, SERVICE],
     [
       'an item that is not a song',
@@ -144,6 +143,20 @@ describe('recovery plan', () => {
     const record = recoveryRecordOf({layers: {slide}}, serviceId);
     expect(planRecovery(record, sources())).toEqual([]);
   });
+
+  it.each([
+    ['another open service', OTHER_SERVICE],
+    ['no open service', null],
+    ['an open service that is gone', overlayUuid(44)],
+  ])(
+    'finds the live 슬라이드 in its own service when the record names %s',
+    (_case, serviceId) => {
+      const record = recoveryRecordOf({layers: {slide: LIVE_SLIDE}}, serviceId);
+      expect(planRecovery(record, sources())).toMatchObject([
+        {row: {kind: 'slide', slide: {serviceId: SERVICE, itemId: SONG_ITEM}}},
+      ]);
+    },
+  );
 
   it('restores what was showing, with the display time each message had left', () => {
     const record = recoveryRecordOf({
