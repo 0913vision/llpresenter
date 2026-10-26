@@ -20,6 +20,7 @@ import {registerLookSelection} from './live/lookSelection';
 import {createLogger, flushWithin, type Logger} from './log';
 import {registerIpc} from './ipc';
 import {showOutputsOnLaunch} from './outputs/launch';
+import {registerProblemFeed} from './problemFeed';
 import {startOutputs} from './outputs/start';
 import {LOG_FLUSH_LIMIT_MS, ShutdownCoordinator} from './shutdown';
 import {registerSoakRecorder, registerSoakScenario} from './soak';
@@ -124,6 +125,7 @@ function start(): void {
         settings: dataStore.settings,
         log,
       });
+      const problems = registerProblemFeed({store, log});
       // NOTE(0913vision): Register the reader owner before the output source;
       // their settings promise callbacks run in registration order.
       const stopOverlays = startOverlays({
@@ -223,6 +225,7 @@ function start(): void {
         name: 'stop the close handshake',
         run: () => closing.dispose(),
       });
+      shutdown.add({name: 'stop the problem feed', run: problems.dispose});
       shutdown.add({name: 'remove the IPC channels', run: disposeIpc});
       shutdown.add({
         name: 'remove the recovery channels',

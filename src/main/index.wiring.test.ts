@@ -52,6 +52,8 @@ const fakes = vi.hoisted(() => {
     closeContexts: new Array<unknown>(),
     confirmClose: vi.fn<() => Promise<boolean>>(),
     closeStop: vi.fn<() => void>(),
+    problemContexts: new Array<unknown>(),
+    problemsStop: vi.fn<() => void>(),
     appHandlers,
     electron: {
       app: {
@@ -211,6 +213,12 @@ vi.mock('./store/register', () => ({
   },
 }));
 vi.mock('./ipc', () => ({registerIpc: () => () => undefined}));
+vi.mock('./problemFeed', () => ({
+  registerProblemFeed: (context: unknown) => {
+    fakes.problemContexts.push(context);
+    return {feed: {}, dispose: fakes.problemsStop};
+  },
+}));
 vi.mock('./outputs/start', () => ({
   startOutputs: (context: {readonly store: LiveStore}) => {
     fakes.outputContexts.push(context);
@@ -298,6 +306,8 @@ beforeEach(async () => {
   fakes.closeContexts.length = 0;
   fakes.confirmClose.mockReset().mockResolvedValue(true);
   fakes.closeStop.mockReset();
+  fakes.problemContexts.length = 0;
+  fakes.problemsStop.mockReset();
   fakes.appHandlers.clear();
   fakes.opened.control = null;
   fakes.uiDispose.mockReset();
@@ -498,6 +508,18 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     expect(fakes.storeDispose.mock.invocationCallOrder[0]).toBeLessThan(
       fakes.closeStop.mock.invocationCallOrder[0] ?? -Infinity,
     );
+  });
+
+  it('reports the live store problems to the windows and stops on shutdown', async () => {
+    await startMain();
+    expect(fakes.problemContexts).toEqual([
+      expect.objectContaining({store: fakes.outputContexts[0]?.store}),
+    ]);
+    beforeQuit();
+    await vi.waitFor(() =>
+      expect(fakes.electron.app.quit).toHaveBeenCalledOnce(),
+    );
+    expect(fakes.problemsStop).toHaveBeenCalledOnce();
   });
 
   it('registers the required Look writer and releases it before closing data', async () => {
