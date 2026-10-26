@@ -12,6 +12,7 @@ import {
 } from '../../../main/live/testing/overlays';
 import {DEFAULT_LYRIC_STYLE} from './lyricStyle';
 import {MAX_REPORTED_LOOK_GAPS, ScreenFrames} from './screenFrames';
+import type {LookGap} from './screenLook';
 
 const NORMAL = lookIdOf(80);
 const VIDEO_ONLY = lookIdOf(81);
@@ -82,7 +83,7 @@ function fakeSettings(looks: SettingsDocument = looksDocument()) {
 async function framesFor(
   screenId: string,
   settings = fakeSettings(),
-  onGap = vi.fn(),
+  onGap = vi.fn<(message: string, gap: LookGap) => void>(),
 ) {
   const onChange = vi.fn();
   const frames = new ScreenFrames({
@@ -174,6 +175,23 @@ describe('ScreenFrames', () => {
     settings.push(looksDocument(2, broken));
     drawAll();
     expect(onGap).toHaveBeenCalledTimes(MAX_REPORTED_LOOK_GAPS * 2);
+    frames.dispose();
+  });
+
+  it('logs a gap once while the screen keeps drawing it', async () => {
+    const broken = [0, 1].map(i => ({
+      id: lookIdOf(200 + i),
+      name: `Broken ${i}`,
+      screens: {},
+    }));
+    const settings = fakeSettings(looksDocument(1, broken));
+    const {frames, onGap} = await framesFor(MAIN, settings);
+    for (let round = 0; round < 3; round++) {
+      for (const {id} of broken) frames.frame(stateWith({lookId: id}));
+    }
+    expect(onGap.mock.calls.map(([, gap]) => gap)).toEqual(
+      broken.map(({id}) => ({kind: 'no-card', id})),
+    );
     frames.dispose();
   });
 
