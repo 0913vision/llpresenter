@@ -1,11 +1,92 @@
 # M3 user check smoke report
 
-Status: check1 baseline completed. Major bug M3-C1-1 was reported immediately
-and the lead assigned it, with C1-2, to data's `fix/data/close-write-failure`.
-The user will run `m3-check2`, which the lead plans to tag around 19:50 KST on
-October 26. Check2 has not been tested yet. The [Korean sheet](../m3-check.md)
-is a draft for that tag. Final qa-11 is due by 20:45 after the retest. This
-report does not sign off check1 for user use.
+Current user tag: `m3-check2`, commit
+`ca4b745cbd1821f3a1ae789097d14315d23c3284`, version `0.15.0`. Retested October
+26 from 19:41 KST. `npm ci` and build passed detached in QA's own worktree.
+Restored only later QA fixture paths from the member branch. Used fresh
+`D:\llp-dev\qa\m3-check2-data`, port 5189, offscreen windows and CDP 15189. No
+app source, built code or Electron API was patched.
+
+The lead received C2-1 and authorized continuing with a documented Task Manager
+workaround if no check3 tag is ready around 20:30. This prepares a user check;
+it does not sign off the milestone. The copible task was cancelled; no
+comparison document or copied implementation is included.
+
+## Check2 results
+
+| Case                                | Result  | Evidence and limits                                                                                                                                                               |
+| ----------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Fresh sample startup                | Pass    | Six rows, three songs, empty problem list, no recovery dialog, outputs off. Invented lookup fixture loads.                                                                        |
+| C1-1 actual locked file             | Pass    | FileShare.Read refuses atomic replacement. Close stays open with 저장할 수 없음. Release and retry saves newest memo and exits 0. No force close.                                 |
+| C1-1 restart                        | Pass    | Memo equals retry marker; no recovery dialog, outputs off.                                                                                                                        |
+| C1-2 old handshake cleanup          | Pass    | Former could not stop the close handshake error absent. C2-1 is a different cleanup path.                                                                                         |
+| Quit after output creation          | Fail    | C2-1 below. Control closes; main and two output pages remain over one minute. Only recorded QA process tree terminated after evidence capture.                                    |
+| M2 navigation                       | Pass    | CDP Ctrl Down twice, Ctrl Up, Ctrl L open expected songs with live slide unchanged. C selects chorus; next at last slide stays there. Preview switch leaves live state unchanged. |
+| Main and stage rendering            | Pass    | Hidden main contains current lyrics; stage contains current/next labels and lyrics plus clock. Main video advances about 0.51 s, no decoder error. No physical scan-out claim.    |
+| Bible field and panel               | Pass    | Reference previews three invented sentences without output. Final verse plus next remains at verse 18.                                                                            |
+| New service and template save       | Pass    | Blank name unavailable. Template creates six rows. Saving current service adds a named template to list.                                                                          |
+| Other-service import                | Pass    | Five checked source rows appended to current seven-row service. Source retained, new IDs. An earlier automation click hit the background toolbar and is excluded as evidence.     |
+| Prep Bible quick add                | Pass    | 성경 구절 mode inserts normalized 요한복음 3:16-18 row. Full service-Bible playback/settings not established.                                                                     |
+| Quick rename and delete             | Pass    | Rename persists, delete removes only quick row.                                                                                                                                   |
+| Quick pointer reorder               | Pass    | CDP mouse drag moves first row after timer; saved ID order changes, live state unchanged.                                                                                         |
+| Quick target submenu                | Pass    | 타이머 submenu lists saved timer; choosing it appends timer row.                                                                                                                  |
+| Stage controls                      | Pass    | Layout and timer selectors set live override/ID. Quick row starts timer. Default stage layout visibly exists in hidden DOM.                                                       |
+| Screen preview and pattern          | Pass    | Preview mounts; pattern adds selected main ID, 화면 내용 removes it, returning to Show leaves it off. Physical picture remains user check.                                        |
+| Monitor number cards                | Blocked | Intentionally suppressed offscreen; real location, lifetime and focus are user checks.                                                                                            |
+| Fullscreen always on top            | Blocked | Native stacking suppressed offscreen. Optional windowless helper configures copied sample for physical user check.                                                                |
+| Media information and preview       | Pass    | 0:12, 1280×720, 1.1MB shown; raw size 1,123,968 bytes. Preview advances with no decoder error.                                                                                    |
+| Media import backend                | Pass    | Validated files API completes VP8 import, rejects text WebM with 재생할 수 없는 형식; invalid item absent and refusal card appears.                                               |
+| Native chooser and reveal           | Blocked | Buttons exist; guards log offscreen refusal. End-to-end file picker and Explorer are user checks.                                                                                 |
+| Media property edit/delete          | Pass    | Stop/fit persist end=stop, fit=fit. Imported duplicate deleted; original media retained.                                                                                          |
+| Playlist create/rename/delete       | Pass    | Empty list created, inline rename persisted, deletion removes list while keeping media.                                                                                           |
+| Viewport sizes                      | Pass    | 1280×720, 1600×900, 2560×1440 CSS viewports have no horizontal overflow. No Windows scaling or detailed clipping claim.                                                           |
+| Screen properties / stage editor    | Blocked | Not mounted. Existing layouts and output preview available.                                                                                                                       |
+| Template/past-service rename/delete | Blocked | spec-53 merged after tag, per lead correction. Excluded from steps.                                                                                                               |
+| Audio output                        | Blocked | Not wired to a window in tag, per lead.                                                                                                                                           |
+| Optional display setup helper       | Pass    | Syntax and ESLint checked. Windowless isolated-copy run assigns non-primary display and fullscreen/always-on-top; tracked sample unchanged.                                       |
+| Transient saving dialog             | Blocked | Fast saves show none; lock test reaches failed-saving dialog. User may observe 저장 중 during slow save, without inducing failure.                                                |
+
+See [check2.json](evidence/check2.json) for recorded observations and the retry
+result, and [check2-close.log](evidence/check2-close.log) for actual shutdown
+failures. Short-lived missing-layout warnings occur during settings reads;
+steady stage output subsequently includes its layout.
+
+## Check2 urgent finding: M3-C2-1
+
+Major, output owner. On `m3-check2` at
+`ca4b745cbd1821f3a1ae789097d14315d23c3284` (version `0.15.0`), normal close
+after creating output windows leaves Electron and two hidden output pages alive
+for more than one minute. Reported immediately before completing qa-11.
+
+1. Start the tag offscreen with a fresh sample. Select a song and enable main
+   and stage output, then disable both. Other smoke actions also ran; a minimal
+   fresh-run reproduction has not yet been performed.
+2. Request normal close. At `2026-10-26T10:50:39.706Z`, main logs
+   `could not stop the outputs before quitting`,
+   `TypeError: Object has been destroyed`.
+3. At `19:51:36 KST` and afterwards, main PID `40128` still exists and CDP still
+   lists the main and stage output pages, without a control page. Both outputs
+   and the test-pattern list were off immediately before closing.
+4. The built stack points to `connectPatternControl` cleanup reading
+   `control.webContents.isDestroyed()` after the control BrowserWindow is
+   destroyed. `startOutputs.stop` invokes its stop callbacks before
+   `outputs.dispose`, without isolating a throwing callback. This explains a
+   path that skips output disposal; attribution is from the built source.
+
+Expected: normal close disposes all outputs and exits. Actual: the control
+disappears but output pages and the main process remain. QA terminates only its
+own recorded process tree after capturing evidence. No visible windows opened.
+
+The separate C1-1 locked-file reproduction **passes** on check2: the app stays
+open with 저장할 수 없음, releases and retries successfully, persists the latest
+memo, and exits 0 before any output windows have been created. Restart retains
+that memo, has no recovery dialog, and starts with outputs off. C1-2's former
+close-handshake error is absent; C2-1 is a different output cleanup path.
+
+## Historical check1 baseline
+
+Check1 is superseded. Its original failures and evidence remain below; current
+check2 outcomes are above.
 
 ## Build and environment
 
@@ -106,13 +187,9 @@ viewport measurements, and terminal import results. The log contains the actual
 save-failure and shutdown messages for C1-1 and C1-2. Full local records retain
 the source expressions and the unabridged runtime log.
 
-## Check2 retest pending
+## Possible check3 follow-up
 
-After the lead publishes `m3-check2`, check out that exact tag detached, run
-`npm ci` and build again, copy the sample to a new QA data folder, and repeat
-the applicable flow. Recheck C1-1 with an isolated file lock only in QA,
-followed by release and retry. The user must not induce that failure. Check C1-2
-on normal close, verify the saved memo on restart, and inspect the new tag for
-mounted screen properties, stage layout/rendering, media import/metadata, and
-quick rename/delete. Update user steps only for features actually reachable in
-it. Monitor cards and native always-on-top remain physical user checks.
+If the lead publishes check3 around 20:30, retest only quit after creating and
+disabling outputs, then update the clone tag and known-problem wording. Broader
+check2 evidence remains pinned to check2. Native monitor cards and always-on-top
+remain user checks.

@@ -1,9 +1,9 @@
 # M3 user check fixture
 
-The [Korean user sheet](../m3-check.md) targets the upcoming `m3-check2` tag.
-The [smoke report](smoke.md) currently records only `m3-check1`; a check2 retest
-is required before the user runs it. This directory is added after check1, so
-the sheet fetches these QA files separately from the app tag.
+The [Korean user sheet](../m3-check.md) targets `m3-check2` at `ca4b745c`,
+version `0.15.0`. The [smoke report](smoke.md) retains both tagged runs and the
+known C2-1 output cleanup failure. These fixtures were added after the app tags,
+so the sheet fetches QA files separately while preserving the app tag.
 
 Copy `sample/` to a new user-data folder. Its root must contain `app.json`,
 `bible/`, and `LoveLight/`. Set `LLP_USER_DATA` to that root. Never run against
@@ -63,6 +63,25 @@ corresponding operator panel or renderer is mounted.
 | Native number cards and always-on-top keeper        | [output-36](../../reviews/output-36.md), [output-37](../../reviews/output-37.md)                                                   |
 | Media analysis backend                              | [data-52](../../reviews/data-52.md), [data-53](../../reviews/data-53.md)                                                           |
 
-Quick rename/delete, screen properties, stage editor/rendering, and the media
-view need a new inventory against the actual `m3-check2` tag. Their availability
-is not inferred from a branch or a planned merge.
+Check2 adds quick rename/delete/target submenus/reorder (tools-5/6), stage
+rendering and stage controls (output-41 and tools-8), screen output preview,
+media view and properties (data-54 through data-60), prep Bible quick add
+(ui-41), service import and template save (spec-51/52), and the close disk-save
+fix (data-61). Template/past-service rename/delete (spec-53) is after the tag.
+Screen properties and the stage layout editor remain unmounted. Audio is not
+wired to a window. Availability is based on the tag and recorded smoke.
+
+## Optional physical display setup
+
+`prepare-display.cjs` is a QA helper, not app implementation. It requires an
+explicit copied `LLP_USER_DATA` and offscreen mode, rejects a repository-local
+folder or a different initial service ID, and creates no BrowserWindow. Before
+Electron is ready it points its own userData at that copy. It atomically updates
+only the sample main screen, preserving other fields, to fullscreen with always
+on top on the first non-primary display. With one display it changes nothing.
+The sheet clears offscreen mode before the user's actual app run.
+
+This bridges the unmounted screen-properties UI for the user's real second
+screen/stacking check. QA syntax, ESLint, and an isolated-copy helper run
+passed; the physical fullscreen picture, native stacking and monitor cards are
+user checks. The default tracked fixture stays portable and uses no monitor IDs.
