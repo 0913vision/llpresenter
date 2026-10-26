@@ -264,7 +264,7 @@ describe('ScreenFrames', () => {
           id: NORMAL,
           name: '평상시',
           screens: {
-            [MAIN]: {layers: {slide: true}},
+            [MAIN]: {layers: {slide: true}, stageLayout: nowNext},
             [STAGE]: {layers: {slide: true}, stageLayout: nowNext},
           },
         },
@@ -307,6 +307,9 @@ describe('ScreenFrames', () => {
     frames.dispose();
     const audience = await framesFor(MAIN, settings);
     expect(audience.frames.frame(live({}))).not.toHaveProperty('stage');
+    expect(
+      audience.frames.frame(live({stageLayouts: {[MAIN]: lyrics}})),
+    ).not.toHaveProperty('stage');
     audience.frames.dispose();
   });
 
