@@ -153,19 +153,15 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (Codex, codex4): Request changes: a startup 매크로 drop could be
+  pushed before any window subscribed, and lost; private TSDoc.
+- Round 2 (Codex, codex4): Request changes: the list's 64-entry cap could cut an
+  unread drop; the API documentation still said drops were never listed.
+- Round 3 (98fd4ef6): reviewer (Codex, codex4) Approve, no findings. Restacked
+  afterwards with every commit identical (`git range-diff`). Lead Approve.
+  Rebased by the lead onto local `main` without conflicts; typecheck passes.
 
 ## Team member's reply
 
