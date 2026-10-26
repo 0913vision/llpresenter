@@ -1,11 +1,14 @@
-import type {LiveState} from '@shared/live';
+import type {AudioLayer, LiveState} from '@shared/live';
 
 /** Allocates independently of the state version, which a batch compresses. */
-export function nextAudioTrackVersion(state: LiveState): number {
+export function nextAudioTrackVersion(
+  state: LiveState,
+  restored: AudioLayer | null = state.layers.audio,
+): number {
   return (
     Math.max(
       state.audioTrackVersion ?? 0,
-      state.layers.audio?.playback?.trackVersion ?? 0,
+      restored?.playback?.trackVersion ?? 0,
     ) + 1
   );
 }

@@ -4,13 +4,14 @@ import {parseLiveState} from '@shared/schema/liveState';
 import {audioPositionSeconds} from '@shared/schema/audioState';
 import {LiveStore} from './store';
 
-function setup(paused = false) {
+function setup(paused = false, audioTrackVersion?: number) {
   const mediaId = '00000000-0000-4000-8000-000000000001';
   const initial = emptyLiveState();
   const parsed = parseLiveState({
     ...initial,
     version: 7,
     audioVolume: 43,
+    ...(audioTrackVersion === undefined ? {} : {audioTrackVersion}),
     layers: {
       ...initial.layers,
       message: {messageId: 'fixture', text: 'Fixture'},
@@ -41,6 +42,14 @@ function setup(paused = false) {
   };
 }
 describe('audio clear undo', () => {
+  it('allocates undo identity after the retained counter rather than the batch-compressed state version', () => {
+    const {store, later} = setup(false, 100);
+    store.dispatch({type: 'layer.clear', target: 'audio'});
+    later();
+    store.dispatch({type: 'clear.undo'});
+    expect(store.state.layers.audio?.playback?.trackVersion).toBe(101);
+    expect(store.state.audioTrackVersion).toBe(101);
+  });
   it('keeps the audio clear position when a batch clears another layer first', () => {
     const {store, later} = setup();
     store.dispatch({

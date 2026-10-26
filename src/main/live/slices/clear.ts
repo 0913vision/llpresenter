@@ -8,6 +8,7 @@ import {
   type AudioLayer,
 } from '@shared/live';
 import {audioPositionSeconds} from '@shared/schema/audioState';
+import {nextAudioTrackVersion} from '../audioTrackVersion';
 import {withLayers, type LiveHistory} from '../history';
 import {defineSlice, type SliceContext} from '../slice';
 
@@ -69,14 +70,23 @@ function undoClear(
       ? resumedAudio(undo.layers.audio, {
           now: timerNow,
           clearedAt: undo.audioClearedAt,
-          version: history.state.version + 1,
+          version: nextAudioTrackVersion(history.state, undo.layers.audio),
         })
       : undo.layers.audio;
-  return withLayers(
+  const restored = withLayers(
     history,
     {...undo.layers, media, message, notice, audio},
     null,
   );
+  return audio !== undo.layers.audio && audio?.playback !== undefined
+    ? {
+        ...restored,
+        state: {
+          ...restored.state,
+          audioTrackVersion: audio.playback.trackVersion,
+        },
+      }
+    : restored;
 }
 
 function resumedAudio(

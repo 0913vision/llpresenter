@@ -238,6 +238,18 @@ describe('AudioPlayer', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
+  it('logs a failed clear clock and stops the active audio without leaving timers', async () => {
+    const {player, first, now, onError} = setup();
+    player.show(state());
+    await ready(first);
+    now.mockImplementation(() => {
+      throw new Error('Clock failed');
+    });
+    expect(() => player.show(emptyLiveState())).not.toThrow();
+    expect(first.hasAttribute('src')).toBe(false);
+    expect(onError).toHaveBeenCalledOnce();
+  });
+
   it('bounds distinct error reports and keeps both elements reusable after errors', () => {
     const {player, first, now, onError, root} = setup();
     for (let index = 1; index <= 40; index += 1) {
