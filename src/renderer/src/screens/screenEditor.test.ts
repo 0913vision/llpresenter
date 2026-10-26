@@ -7,6 +7,7 @@ import {ScreenEditor} from './screenEditor';
 import {CAPTIONS_ID, MAIN_ID, screensDocument} from './testing/documents';
 import {STAGE_ID} from './testing/documents';
 import {projector} from './testing/monitors';
+import {parseScreenId} from '@shared/schema/ids';
 
 function screensAt(revision: number) {
   const document = screensDocument(revision);
@@ -40,6 +41,85 @@ const saved = (revision: number): EditResult => ({
 });
 
 describe('ScreenEditor', () => {
+  it('names rapid creations against the preceding save without waiting for a push', async () => {
+    const first = parseScreenId('00000000-0000-4000-8000-000000000201');
+    const second = parseScreenId('00000000-0000-4000-8000-000000000202');
+    if (!first.ok || !second.ok) throw new Error('Invalid fixture id');
+    const {editor, edits} = setup([saved(2), saved(3)]);
+    editor.adopt(screensAt(1));
+    const adding = editor.add({
+      id: first.value,
+      kind: 'audience',
+      method: 'fullscreen',
+    });
+    const queued = editor.add({
+      id: second.value,
+      kind: 'audience',
+      method: 'capture',
+    });
+    expect(await adding).toBe(true);
+    expect(await queued).toBe(true);
+    const request = edits[1];
+    if (request?.name !== 'screens') throw new Error('Missing queued edit');
+    expect(request.baseRevision).toBe(2);
+    expect(request.value.screens.slice(-2).map(screen => screen.name)).toEqual([
+      '새 청중 화면',
+      '새 청중 화면 (2)',
+    ]);
+  });
+  it('serializes screen creation against a held property save and includes it in close flush', async () => {
+    const id = parseScreenId('00000000-0000-4000-8000-000000000201');
+    if (!id.ok) throw new Error('Invalid fixture id');
+    let release: (result: EditResult) => void = () => undefined;
+    const held = new Promise<EditResult>(resolve => {
+      release = resolve;
+    });
+    const edit = vi
+      .fn<(value: SettingsEdit) => Promise<EditResult>>()
+      .mockImplementationOnce(() => held)
+      .mockResolvedValue(saved(3));
+    const api = fakeLlpApi({settings: {edit}});
+    const editor = new ScreenEditor(api, vi.fn());
+    editor.adopt(screensAt(1));
+    const property = editor.change(MAIN_ID, {name: 'Renamed'});
+    const adding = editor.add({id: id.value, kind: 'stage', method: 'window'});
+    let flushed = false;
+    const flush = pendingWritesOf(api)
+      .flush()
+      .then(result => {
+        flushed = true;
+        return result;
+      });
+    await Promise.resolve();
+    expect(edit).toHaveBeenCalledOnce();
+    expect(flushed).toBe(false);
+    release(saved(2));
+    await property;
+    expect(await adding).toBe(true);
+    expect(await flush).toBe(true);
+    const request = edit.mock.calls[1]?.[0];
+    expect(request).toMatchObject({name: 'screens', baseRevision: 2});
+    if (request?.name !== 'screens')
+      throw new Error('Missing queued screen edit');
+    expect(request.value.screens[0]?.name).toBe('Renamed');
+    expect(request.value.screens.at(-1)).toMatchObject({
+      id: id.value,
+      kind: 'stage',
+      method: 'window',
+      alwaysOnTop: false,
+    });
+  });
+
+  it('refuses screen creation for a read-only document', async () => {
+    const id = parseScreenId('00000000-0000-4000-8000-000000000201');
+    if (!id.ok) throw new Error('Invalid fixture id');
+    const {editor, edits} = setup();
+    editor.adopt({...screensAt(1), access: 'readOnly'});
+    expect(
+      await editor.add({id: id.value, kind: 'audience', method: 'fullscreen'}),
+    ).toBe(false);
+    expect(edits).toHaveLength(0);
+  });
   it.each([true, false])(
     'keeps the original feed snapshot when it arrives before the document: %s',
     async feedFirst => {

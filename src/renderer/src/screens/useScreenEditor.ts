@@ -6,6 +6,7 @@ import type {ScreenChange} from './screenEdits';
 import type {MonitorInfo, MonitorList} from '@shared/schema/monitors';
 import type {LlpApi} from '@shared/ipc';
 import type {EditProblemReporter} from './screenEditor';
+import type {NewScreen} from './addScreen';
 
 const SAVE_FAILED_TITLE = '화면 설정 저장 실패';
 const sessions = new WeakMap<LlpApi, ReturnType<typeof createSession>>();
@@ -79,6 +80,8 @@ export function useScreenEditor(
     });
   };
   return {
+    add: (input: NewScreen): Promise<boolean> =>
+      editor.current?.add(input) ?? Promise.resolve(false),
     change: (screenId: string, change: ScreenChange): void =>
       run(current => current.change(screenId, change)),
     assign: (screenId: string, monitor: MonitorInfo): void =>

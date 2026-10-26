@@ -5,6 +5,7 @@ import type {Screen} from '@shared/schema/screens';
 import {assignScreenMonitor} from './assignScreenMonitor';
 import {changeScreen, type ScreenChange} from './screenEdits';
 import {SettingsDocumentEditor} from './settingsDocumentEditor';
+import {addScreen, type NewScreen} from './addScreen';
 
 type ScreensDocument = Extract<SettingsDocument, {name: 'screens'}>;
 interface AssignmentSnapshot {
@@ -69,6 +70,14 @@ export class ScreenEditor {
   /** Saves the change to one screen; resolves when it is saved or dropped. */
   change(screenId: string, change: ScreenChange): Promise<void> {
     return this.enqueue(screens => changeScreen(screens, screenId, change));
+  }
+
+  /** Creates one screen against the newest queued settings revision. */
+  add(input: NewScreen): Promise<boolean> {
+    return this.documents.change(value => ({
+      ...value,
+      screens: addScreen(value.screens, input),
+    }));
   }
 
   /** Assigns a monitor and clears its old assignment in one revision. */

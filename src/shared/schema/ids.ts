@@ -67,6 +67,11 @@ export type TimerId = v.InferOutput<typeof timerIdSchema>;
 export type MessageTemplateId = v.InferOutput<typeof messageTemplateIdSchema>;
 export type QuickItemId = v.InferOutput<typeof quickItemIdSchema>;
 export type AppFlushRequestId = v.InferOutput<typeof appFlushRequestIdSchema>;
+
+/** Checks a generated screen UUID without throwing. */
+export function parseScreenId(value: unknown) {
+  return parsePayload(screenIdSchema, value);
+}
 export type StageElementId = v.InferOutput<typeof stageElementIdSchema>;
 export type TranslationId = v.InferOutput<typeof translationIdSchema>;
 
