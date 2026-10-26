@@ -128,4 +128,16 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 (codex4, Request changes):
+
+1. [P2] Tick styling: fixed in `63f47517`. `OverlayTextView.replace` now keeps
+   the style the text has when no style is given, so the per-second redraw
+   changes only the text; a live state change still passes the 소품 style. Test:
+   a 타이머 소품 with its own color, alignment, and margin, and a plain text
+   소품 with another color sharing the ticker, keep their colors after a tick
+   while the value reads 0:59. The test fails against the previous code
+   (`.llp/output-35/mutations-r2.log`).
+2. Nit: the TSDoc on the internal `PropView` field is gone (same commit). The
+   same check found one more on my change, the `clock` field of the unexported
+   `ScreenFramesOptions`; it is gone too (`bfb5528a`). Every other added TSDoc
+   sits on an exported declaration.
