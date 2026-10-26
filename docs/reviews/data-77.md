@@ -48,3 +48,10 @@ claim the existing app already exposes or consumes the setting.
    replaced spec 10's default-on proposal in row 15. All now specify optional
    copying, default off, using the same `media.copyOnImport` setting. Searched
    the specifications for other mandatory-copy/default-on media-import rules.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 2 (782097ff): reviewer (Codex) Approve. Lead Approve through the lead's
+  merge check: the exact-head CI run passed, the branch rebased onto local
+  `main` without conflicts, and typecheck passes. Earlier rounds' findings and
+  replies are above.
