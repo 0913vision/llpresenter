@@ -11,6 +11,10 @@ import {
   type Unsubscribe,
 } from '@shared/ipc';
 import type {Result} from '@shared/result';
+import {
+  parseBibleLookupRequest,
+  parseBibleLookupReply,
+} from '@shared/schema/bibleLookup';
 import {parseAppFlushDone, parseAppFlushRequest} from '@shared/schema/appFlush';
 import {
   parseLibrarySongs,
@@ -393,6 +397,17 @@ const api: LlpApi = {
           channel: Channels.textImportPreview,
           request: parseTextImportPreviewRequest,
           reply: parseTextImportPreviewResult,
+        },
+        request,
+      ),
+  },
+  bible: {
+    lookup: request =>
+      invokeRequest(
+        {
+          channel: Channels.bibleLookup,
+          request: parseBibleLookupRequest,
+          reply: value => parseBibleLookupReply(request, value),
         },
         request,
       ),

@@ -17,6 +17,18 @@ export type FakeLlpApiParts = {
  */
 export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
   return {
+    bible: {
+      lookup: request =>
+        Promise.resolve({
+          ...request,
+          suggestions: [],
+          result: {
+            ok: false,
+            error: {code: 'translation', message: '사용할 수 없는 역본입니다'},
+          },
+        }),
+      ...overrides.bible,
+    },
     app: {
       subscribeFlushRequests: () => () => undefined,
       flushDone: () => undefined,

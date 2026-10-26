@@ -9,6 +9,7 @@ import {
 } from 'vitest';
 import {Channels, type LlpApi} from '@shared/ipc';
 import {emptyLiveState} from '@shared/live';
+import {parseBibleLookupRequest} from '@shared/schema/bibleLookup';
 import {LIVE_STATE_LIMITS} from '@shared/schema/liveLimits';
 import {createSongId} from '@shared/schema/ids';
 import {
@@ -51,6 +52,39 @@ vi.mock('electron', () => ({
 }));
 
 let api: LlpApi;
+
+describe('Bible lookup boundary', () => {
+  it('validates requests and correlates replies with input and translation', async () => {
+    const parsed = parseBibleLookupRequest({
+      translation: 'sample',
+      input: '요 3:16',
+    });
+    if (!parsed.ok) throw new Error('Invalid Bible lookup fixture');
+    const request = parsed.value;
+    const reply = {
+      ...request,
+      suggestions: [],
+      result: {
+        ok: false,
+        error: {code: 'translation', message: '없는 역본입니다'},
+      },
+    };
+    electron.invoke.mockResolvedValueOnce(reply);
+    await expect(api.bible.lookup(request)).resolves.toEqual(reply);
+    expect(electron.invoke).toHaveBeenCalledWith(Channels.bibleLookup, request);
+    electron.invoke.mockResolvedValueOnce({...reply, input: '창 1:1'});
+    await expect(api.bible.lookup(request)).rejects.toThrow('Bad reply');
+    const calls = electron.invoke.mock.calls.length;
+    await expect(
+      api.bible.lookup({...request, input: 'x'.repeat(257)}),
+    ).rejects.toThrow('Bad request');
+    expect(electron.invoke).toHaveBeenCalledTimes(calls);
+    expect(electron.send).toHaveBeenCalledWith(
+      Channels.logWrite,
+      expect.objectContaining({level: 'error'}),
+    );
+  });
+});
 
 describe('actual control-window zoom factor', () => {
   it.each([UI_ZOOM_FACTOR.min, 1.2, UI_ZOOM_FACTOR.max])(

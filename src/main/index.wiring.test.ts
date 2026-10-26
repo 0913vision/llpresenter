@@ -47,6 +47,8 @@ const fakes = vi.hoisted(() => {
     settings: Promise.resolve(null),
     textImportContexts: new Array<unknown>(),
     textImportStop: vi.fn<() => void>(),
+    bibleContexts: new Array<unknown>(),
+    bibleStop: vi.fn<() => void>(),
     appHandlers,
     electron: {
       app: {
@@ -90,6 +92,12 @@ const fakes = vi.hoisted(() => {
 });
 
 vi.mock('electron', () => fakes.electron);
+vi.mock('./bible/register', () => ({
+  registerBible: (context: unknown) => {
+    fakes.bibleContexts.push(context);
+    return fakes.bibleStop;
+  },
+}));
 vi.mock('./live/recovery/session', () => ({
   RECOVERY_RECORD_FILE: 'live.json',
   openRecoverySession: async () => {
@@ -276,6 +284,8 @@ beforeEach(async () => {
   fakes.overlaysStop.mockReset();
   fakes.textImportContexts.length = 0;
   fakes.textImportStop.mockReset();
+  fakes.bibleContexts.length = 0;
+  fakes.bibleStop.mockReset();
   fakes.appHandlers.clear();
   fakes.opened.control = null;
   fakes.uiDispose.mockReset();
@@ -314,6 +324,21 @@ function beforeQuit(): {prevented: boolean} {
 }
 
 describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
+  it('connects Bible lookup to app-local files and stops it before closing data', async () => {
+    await startMain();
+    expect(fakes.bibleContexts).toEqual([
+      expect.objectContaining({
+        folder: join(fakes.electron.app.getPath('userData'), 'bible'),
+        settings: fakes.settings,
+      }),
+    ]);
+    beforeQuit();
+    await vi.waitFor(() => expect(fakes.storeDispose).toHaveBeenCalledOnce());
+    expect(fakes.bibleStop).toHaveBeenCalledOnce();
+    expect(fakes.bibleStop.mock.invocationCallOrder[0]).toBeLessThan(
+      fakes.storeDispose.mock.invocationCallOrder[0] ?? Infinity,
+    );
+  });
   it('starts a crashed session in standby and removes its marker after saving the data store', async () => {
     const finish = deferred();
     onTestFinished(finish.resolve);

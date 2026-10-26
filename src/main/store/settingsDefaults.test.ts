@@ -28,6 +28,25 @@ async function setup() {
 }
 
 describe('starter screen defaults', () => {
+  it('names translation files with the extension accepted by the Bible loader', () => {
+    const parsed = parseSettingsDocument({
+      name: 'bible',
+      value: {
+        format: 'llsettings.bible',
+        schemaVersion: 1,
+        ...settingsDefaults.bible,
+      },
+      access: 'editable',
+      revision: 1,
+    });
+    if (!parsed.ok || parsed.value.name !== 'bible') {
+      throw new Error('Invalid Bible defaults');
+    }
+    expect(parsed.value.value.translations.map(({file}) => file)).toEqual([
+      'krv.llbible',
+      'kjv.llbible',
+    ]);
+  });
   it('creates stable screen UUIDs and method-specific always-on-top values on a new install', async () => {
     const {locations, saver, file} = await setup();
     const loaded = await loadSettingsArea('screens', locations, saver);

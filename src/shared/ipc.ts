@@ -1,4 +1,5 @@
 import type {LiveCommand} from './commands';
+import type {BibleLookupReply, BibleLookupRequest} from './schema/bibleLookup';
 import type {AppFlushDone, AppFlushRequest} from './schema/appFlush';
 import type {
   LibrarySong,
@@ -54,6 +55,7 @@ import type {
 } from './schema/recovery';
 
 export const Channels = {
+  bibleLookup: 'bible:lookup',
   appFlushRequest: 'app:flush-request',
   appFlushDone: 'app:flush-done',
   liveGet: 'live:get',
@@ -117,6 +119,10 @@ export type Unsubscribe = () => void;
 
 /** The API that the preload script exposes to windows as `window.llp`. */
 export interface LlpApi {
+  readonly bible: {
+    /** Resolves offline text and book suggestions without changing live output. */
+    lookup(request: BibleLookupRequest): Promise<BibleLookupReply>;
+  };
   readonly app: {
     /** Returns a function that removes the control window's flush listener. */
     subscribeFlushRequests(

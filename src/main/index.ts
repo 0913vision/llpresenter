@@ -1,6 +1,7 @@
 import {app, type BrowserWindow} from 'electron';
 import {join} from 'node:path';
 import {isAnyOutputOn} from '@shared/live';
+import {registerBible} from './bible/register';
 import {registerTextImport} from './import/register';
 import {LiveStore, dispatchLogged} from './live/store';
 import {startOverlays} from './live/overlays';
@@ -117,6 +118,11 @@ function start(): void {
         log,
       });
       const disposeIpc = registerIpc(store, log, windowMode);
+      const stopBible = registerBible({
+        folder: join(app.getPath('userData'), 'bible'),
+        settings: dataStore.settings,
+        log,
+      });
       // NOTE(0913vision): Register the reader owner before the output source;
       // their settings promise callbacks run in registration order.
       const stopOverlays = startOverlays({
@@ -199,6 +205,7 @@ function start(): void {
       // quit.
       shutdown.add({name: 'stop the soak scenario', run: stopSoakScenario});
       shutdown.add({name: 'stop text import', run: stopTextImport});
+      shutdown.add({name: 'stop Bible lookup', run: stopBible});
       shutdown.add({name: 'stop macros', run: macros.dispose});
       shutdown.add({name: 'stop overlays', run: stopOverlays});
       shutdown.add({name: 'stop Look selection', run: stopLookSelection});

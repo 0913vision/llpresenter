@@ -1,0 +1,47 @@
+import {describe, expect, it, vi} from 'vitest';
+import {Channels} from '@shared/ipc';
+import {registerBible} from './register';
+
+type Handler = (event: unknown, value: unknown) => Promise<unknown>;
+const handlers = vi.hoisted(() => new Map<string, Handler>());
+vi.mock('electron', () => ({
+  ipcMain: {
+    handle: (channel: string, handler: Handler) =>
+      handlers.set(channel, handler),
+    removeHandler: (channel: string) => handlers.delete(channel),
+  },
+}));
+
+describe('Bible IPC registration', () => {
+  it('validates requests, logs read failures, and removes the handler on close', async () => {
+    const log = {
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      flush: async () => undefined,
+    };
+    const stop = registerBible({
+      folder: 'unused',
+      settings: Promise.resolve(null),
+      log,
+    });
+    try {
+      const handler = handlers.get(Channels.bibleLookup);
+      if (handler === undefined) {
+        throw new Error('Missing Bible lookup handler');
+      }
+      await expect(handler({}, {})).rejects.toThrow(
+        'Invalid Bible lookup request',
+      );
+      expect(log.warn).toHaveBeenCalledOnce();
+      await expect(
+        handler({}, {input: '요 3:16', translation: 'sample'}),
+      ).rejects.toThrow('Could not look up a Bible passage');
+      expect(log.error).toHaveBeenCalledOnce();
+    } finally {
+      stop();
+      stop();
+    }
+    expect(handlers.has(Channels.bibleLookup)).toBe(false);
+  });
+});
