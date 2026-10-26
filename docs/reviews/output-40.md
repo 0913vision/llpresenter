@@ -74,7 +74,7 @@ All additive, with valid and invalid tests and caps:
 | `npm run typecheck`                                                                                       | Pass                                     |
 | `npx vitest run src/main src/shared src/renderer/src/state src/renderer/src/show src/renderer/src/render` | Pass, 3168 tests (the native test skips) |
 | `npx eslint` and `npx prettier --check` on the changed files                                              | Pass                                     |
-| Mutation checks (`.llp/output-40/mutations.log` in the worktree)                                          | 16 mutations, all fail a test            |
+| Mutation checks (`.llp/output-40/mutations.log` in the worktree)                                          | 15 mutations, all fail a test            |
 | `npm run verify`                                                                                          | GitHub CI only (see the request message) |
 
 Two lines marked NO-MATCH in the log missed reformatted code and ran again
