@@ -175,10 +175,11 @@ editor can change meanwhile.
   (`AlertDialog`, saved icon): title "저장 중", buttons 강제로 닫기 and 다시
   시도 (primary, unavailable while saving). A normal close never shows it.
 - When saving succeeds, the app closes by itself.
-- When saving fails, the title becomes "저장 실패" and the app stays open. 다시
-  시도 saves again and closes when that succeeds; 강제로 닫기 closes without the
-  unsaved edits, and its tooltip says so: "저장하지 못한 편집은 사라집니다".
-  Edits are never dropped unless the operator picks 강제로 닫기.
+- When saving fails, the title becomes "저장할 수 없음", as for other save
+  failures (02), and the app stays open. 다시 시도 saves again and closes when
+  that succeeds; 강제로 닫기 closes without the unsaved edits, and its tooltip
+  says so: "저장하지 못한 편집은 사라집니다". Edits are never dropped unless the
+  operator picks 강제로 닫기.
 - When the control window doesn't answer within 5 seconds, the app closes
   without the dialog, because a frozen window can't draw it and must never keep
   the app from closing.
