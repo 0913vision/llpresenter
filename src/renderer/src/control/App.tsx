@@ -61,6 +61,7 @@ export function App({
     <div className={styles.app} data-size={sizeClass}>
       <MenuBar
         title={serviceName}
+        onProblem={session.report}
         warnings={warnings}
         onShowWarning={screenId => {
           for (const notice of outputWarningCards(screenId)) {
