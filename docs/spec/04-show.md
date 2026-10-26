@@ -421,8 +421,13 @@ after its name, and hides it at 0.
     the article doesn't say what these timers show before they start).
   - Clock (`clock`): the current time as 24-hour "HH:mm:ss". It has no buttons
     (lead decision, October 26; a format choice is later work).
-- Running time comes from the main process's monotonic clock, so a correction of
-  the computer's clock never moves a running 타이머 (lead decision, October 26).
+- A fixed-duration countdown counts on the main process's monotonic clock: the
+  time it has counted never goes down, even when the computer's clock is
+  corrected (lead decision, October 26).
+- `countdownTo` and `elapsedFrom` show the time to or since the set time by the
+  wall clock, including after a correction of the computer's clock, so a
+  "10:30까지" countdown reaches 0 when the clock in the room reads 10:30 (lead
+  decision, October 26).
 - A `countdownTo` or `elapsedFrom` that runs or is paused reads its set time on
   the day it started, so it keeps counting across midnight (lead decision,
   October 26).

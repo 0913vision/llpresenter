@@ -42,9 +42,10 @@ export function isTimerTicking(
  * The text a 타이머 shows (docs/spec/04-show.md, "타이머"): "m:ss" under an
  * hour and "h:mm:ss" from an hour, with a leading "-" past 0, and "HH:mm:ss"
  * for a clock. A countdown counts on the monotonic clock, so a wall-clock
- * correction never moves it. A 타이머 that reads the time of day reads its set
- * time on the day its run started, at the wall-clock moment of a pause, and
- * before it starts as of now.
+ * correction never moves it. A 타이머 that reads the time of day follows the
+ * wall clock, corrections included, so it reaches its set time when the clock
+ * does; it reads its set time on the day its run started, at the wall-clock
+ * moment of a pause, and before it starts as of now.
  */
 export function timerText(
   timer: Timer,
