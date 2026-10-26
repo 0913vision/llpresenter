@@ -1,10 +1,10 @@
-Review range: `feat/spec/toolbar-search-results...feat/spec/narrow-layout`
+Review range: `2ba089b8...feat/spec/narrow-layout`
 
 # Review request: `spec-43`
 
 - Team member: `spec` (Claude session that took over from Codex)
 - Branch: `feat/spec/narrow-layout`
-- Base: spec-40 round 2 (`e46d00d4`), stacked until its approval
+- Base commit: `2ba089b8`, main after the spec-40 approval
 - Review round: 1
 - Task: M3-S1b narrow window layout
 - Code owner for the renderer paths: shell
@@ -32,6 +32,13 @@ and leaves a strip at the window edge, as wide as a panel header, with 사이드
 `layout.narrow.leftCollapsed` through spec-38's `ui.setLayout`; a saved choice
 is restored at start without being saved again. If the pressed button had the
 keyboard focus, the button that replaces it takes it.
+
+## Carried spec-40 nits
+
+- `WORKSPACE_UNAVAILABLE_TIP` ends without a period, as tooltips do.
+- `withinLookupTimeout` rejects with "Song lookup timed out", since it bounds
+  the library song read as well as the background read;
+  `state/songBackground.test.ts` expects the new text.
 
 ## Decisions I made (for the lead to confirm)
 
@@ -74,6 +81,9 @@ None. Everything is in shell's renderer paths:
 - `src/renderer/src/control/App.tsx`: passes the sidebar state to the workspace.
 - `src/renderer/src/control/SidebarMount.test.tsx`: the mounted app at 1366 x
   768, 1920 x 1080, and 2560 x 1440.
+- `src/renderer/src/shell/ToolbarSearch.tsx`,
+  `src/renderer/src/state/showOutput.ts`, and `state/songBackground.test.ts`:
+  the spec-40 nits above.
 
 This review document is in my own path. No shared, preload, main, prep, or UI
 source is changed, and no dependency is added.
