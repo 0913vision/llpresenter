@@ -7,6 +7,8 @@ import {
   SongSlidePanel,
   type SongEditorStore,
 } from '@renderer/prep/editor';
+import {ServiceItemPanel} from '@renderer/prep/service/SongItemPanel';
+import type {ServiceItemStore} from '@renderer/prep/service/serviceItemStore';
 import {ClearRow} from '@renderer/show/ClearRow';
 import {PreviewPanel} from '@renderer/show/PreviewPanel';
 import {ShowMediaPanel} from '@renderer/show/ShowMediaPanel';
@@ -160,6 +162,7 @@ function showPanelParts(
 interface PrepBinding {
   readonly api: LlpApi;
   readonly editor: SongEditorStore;
+  readonly items: ServiceItemStore;
 }
 
 const noSubscribe = (): (() => void) => () => undefined;
@@ -168,11 +171,13 @@ const ignoreProblem = (): void => undefined;
 function prepPanelParts({
   title,
   prep,
+  hasSong,
   onProblem,
   sizeClass,
 }: {
   readonly title: string;
   readonly prep: PrepBinding | undefined;
+  readonly hasSong: boolean;
   readonly onProblem: ((notice: Notice) => void) | undefined;
   readonly sizeClass: SizeClass;
 }): PanelParts {
@@ -192,7 +197,19 @@ function prepPanelParts({
       ),
     };
   }
-  if (title === '편집') return {body: <SongEditor store={prep.editor} />};
+  if (title === '편집') {
+    return !hasSong
+      ? {
+          embedded: (
+            <ServiceItemPanel
+              items={prep.items}
+              editor={prep.editor}
+              sizeClass={sizeClass}
+            />
+          ),
+        }
+      : {body: <SongEditor store={prep.editor} />};
+  }
   if (title === '미리보기') {
     return {
       size: 'content',
@@ -282,7 +299,13 @@ export function Workspace({
                         }
                       : id === 'show'
                         ? showPanelParts(title, sizeClass, onProblem)
-                        : prepPanelParts({title, prep, onProblem, sizeClass})
+                        : prepPanelParts({
+                            title,
+                            prep,
+                            hasSong,
+                            onProblem,
+                            sizeClass,
+                          })
                   }
                 />
               ))}

@@ -1,10 +1,12 @@
 import type {LlpApi} from '@shared/ipc';
 import {SongEditorStore} from '@renderer/prep/editor';
+import {ServiceItemStore} from '@renderer/prep/service/serviceItemStore';
 import {addNotice, removeNotice, type Notice} from '@renderer/ui/notices';
 
 /** Window-owned editor sessions and their shared notification destination. */
 export class ControlSession {
   private editorStore: SongEditorStore | undefined;
+  private itemStore: ServiceItemStore | undefined;
   private notices: readonly Notice[] = [];
   private readonly listeners = new Set<() => void>();
   private closing: Promise<void> | undefined;
@@ -15,10 +17,19 @@ export class ControlSession {
     return this.editorStore;
   }
 
+  get items(): ServiceItemStore | undefined {
+    return this.itemStore;
+  }
+
   /** Start from a workspace event, outside React render and its StrictMode probe. */
   startEditor(): void {
     if (this.api && !this.editorStore && !this.closing) {
       this.editorStore = new SongEditorStore(this.api, this.report);
+      this.itemStore = new ServiceItemStore(
+        this.api,
+        this.editorStore,
+        this.report,
+      );
     }
   }
 
@@ -50,7 +61,10 @@ export class ControlSession {
 
   /** Release resources after unmount. The native close flush handshake is separate. */
   dispose(): Promise<void> {
-    this.closing ??= Promise.resolve().then(() => this.editorStore?.dispose());
+    this.closing ??= Promise.resolve().then(() => {
+      this.itemStore?.dispose();
+      return this.editorStore?.dispose();
+    });
     this.notices = [];
     this.listeners.clear();
     return this.closing;

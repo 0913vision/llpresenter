@@ -35,7 +35,7 @@
   opacity: var(--chip-grip-opacity);
 }
 
-.chip:hover {
+.chips:not([aria-readonly='true']) .chip:hover {
   cursor: grab;
 }
 
@@ -93,13 +93,17 @@
   transition: background-color var(--motion-hover);
 }
 
-.add:hover {
+.add:not([aria-disabled='true']):hover {
   background: var(--bg-raised);
 }
 
-.add:active {
+.add:not([aria-disabled='true']):active {
   background: var(--bg-control-hover);
   color: var(--text);
+}
+
+.add[aria-disabled='true'] {
+  color: var(--text-off);
 }
 
 .tag {

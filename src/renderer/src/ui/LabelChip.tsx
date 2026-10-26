@@ -11,7 +11,7 @@ import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {labelInk} from './labelInk';
 import {hasModifier, isAltOnly} from './modifierKeys';
-import {useTooltip} from './Tooltip';
+import {titleTooltip, useTooltip} from './Tooltip';
 import styles from './LabelChip.module.css';
 
 const GRIP_SIZE = 14;
@@ -53,6 +53,11 @@ export interface ArrangementStripProps {
   readonly dropIndex?: number | undefined;
   /** The chip being dragged. */
   readonly draggingIndex?: number | undefined;
+  /**
+   * Why the order can't change, such as while 기본 is chosen. The chips then
+   * only select, and the reason shows in their tooltips.
+   */
+  readonly readOnlyReason?: string | undefined;
 }
 
 type StripKey = (index: number, count: number) => number;
@@ -71,6 +76,7 @@ const moveKeys: Readonly<Record<string, -1 | 1>> = {
 
 interface ChipKeyActions {
   readonly count: number;
+  readonly readOnly: boolean;
   readonly select: (index: number) => void;
   readonly onMove: (from: number, to: number) => void;
   readonly onRemove: (index: number) => void;
@@ -108,16 +114,16 @@ function handleChipKey(
   index: number,
   actions: ChipKeyActions,
 ): boolean {
-  const {count, select, onMove, onRemove} = actions;
+  const {count, readOnly, select, onMove, onRemove} = actions;
   const step = moveKeys[event.key];
   if (step !== undefined && isAltOnly(event)) {
     const to = index + step;
-    if (to >= 0 && to < count) onMove(index, to);
+    if (!readOnly && to >= 0 && to < count) onMove(index, to);
     return true;
   }
   if (hasModifier(event)) return false;
   if (event.key === 'Delete') {
-    onRemove(index);
+    if (!readOnly) onRemove(index);
     return true;
   }
   const target = selectKeys[event.key];
@@ -143,10 +149,12 @@ export function ArrangementStrip({
   onInsert,
   dropIndex,
   draggingIndex,
+  readOnlyReason,
 }: ArrangementStripProps): JSX.Element {
   const chipElements = useRef<Array<HTMLButtonElement | null>>([]);
   const insertButton = useRef<HTMLButtonElement>(null);
-  const insertTooltip = useTooltip({text: INSERT_LABEL});
+  const readOnly = readOnlyReason !== undefined;
+  const insertTooltip = useTooltip({text: readOnlyReason ?? INSERT_LABEL});
   const tabStop = Math.min(selected ?? 0, chips.length - 1);
   const focusAfterRemoval = useFocusAfterRemoval(chips.length, index => {
     const target =
@@ -169,7 +177,13 @@ export function ArrangementStrip({
     index: number,
     event: KeyboardEvent<HTMLButtonElement>,
   ): void => {
-    const actions = {count: chips.length, select, onMove, onRemove: remove};
+    const actions = {
+      count: chips.length,
+      readOnly,
+      select,
+      onMove,
+      onRemove: remove,
+    };
     if (handleChipKey(event, index, actions)) event.preventDefault();
   };
 
@@ -179,6 +193,7 @@ export function ArrangementStrip({
         role="listbox"
         aria-label={label}
         aria-orientation="horizontal"
+        aria-readonly={readOnly ? true : undefined}
         className={styles.chips}
       >
         {chips.map((chip, index) => (
@@ -189,6 +204,7 @@ export function ArrangementStrip({
             selected={index === selected}
             live={index === live}
             dragging={index === draggingIndex}
+            reason={readOnlyReason}
             tabIndex={index === tabStop ? 0 : -1}
             elementRef={element => {
               chipElements.current[index] = element;
@@ -204,10 +220,11 @@ export function ArrangementStrip({
         ref={insertButton}
         type="button"
         aria-label={INSERT_LABEL}
+        aria-disabled={readOnly ? true : undefined}
         className={styles.add}
-        onClick={(event: MouseEvent<HTMLButtonElement>) =>
-          onInsert(event.currentTarget)
-        }
+        onClick={(event: MouseEvent<HTMLButtonElement>) => {
+          if (!readOnly) onInsert(event.currentTarget);
+        }}
       >
         <Icon name="plus" size={ADD_ICON_SIZE} />
       </button>
@@ -222,6 +239,7 @@ interface ChipSlotProps {
   readonly selected: boolean;
   readonly live: boolean;
   readonly dragging: boolean;
+  readonly reason: string | undefined;
   readonly tabIndex: 0 | -1;
   readonly elementRef: (element: HTMLButtonElement | null) => void;
   readonly onSelect: () => void;
@@ -246,6 +264,8 @@ interface LabelChipProps {
   readonly selected: boolean;
   readonly live: boolean;
   readonly dragging: boolean;
+  /** The tooltip of a chip that only selects. */
+  readonly reason: string | undefined;
   readonly tabIndex: 0 | -1;
   readonly elementRef: (element: HTMLButtonElement | null) => void;
   readonly onSelect: () => void;
@@ -257,29 +277,35 @@ function LabelChip({
   selected,
   live,
   dragging,
+  reason,
   tabIndex,
   elementRef,
   onSelect,
   onKeyDown,
 }: LabelChipProps): JSX.Element {
+  const {targetProps, tooltip} = useTooltip(titleTooltip(reason));
   return (
-    <button
-      ref={elementRef}
-      type="button"
-      role="option"
-      aria-selected={selected}
-      tabIndex={tabIndex}
-      data-color={chip.color}
-      data-state={live ? 'live' : undefined}
-      data-dragging={dragging ? true : undefined}
-      style={labelInk(chip.color)}
-      className={styles.chip}
-      onClick={onSelect}
-      onKeyDown={onKeyDown}
-    >
-      <Icon name="grip" size={GRIP_SIZE} className={styles.grip} />
-      {chipText(chip)}
-    </button>
+    <>
+      <button
+        {...targetProps}
+        ref={elementRef}
+        type="button"
+        role="option"
+        aria-selected={selected}
+        tabIndex={tabIndex}
+        data-color={chip.color}
+        data-state={live ? 'live' : undefined}
+        data-dragging={dragging ? true : undefined}
+        style={labelInk(chip.color)}
+        className={styles.chip}
+        onClick={onSelect}
+        onKeyDown={onKeyDown}
+      >
+        <Icon name="grip" size={GRIP_SIZE} className={styles.grip} />
+        {chipText(chip)}
+      </button>
+      {tooltip}
+    </>
   );
 }
 

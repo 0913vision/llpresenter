@@ -58,8 +58,8 @@ export function App({
         store={columnWidthStore}
         onProblem={session.report}
         prep={
-          session.api && session.editor
-            ? {api: session.api, editor: session.editor}
+          session.api && session.editor && session.items
+            ? {api: session.api, editor: session.editor, items: session.items}
             : undefined
         }
         onOpenPrep={itemId => {

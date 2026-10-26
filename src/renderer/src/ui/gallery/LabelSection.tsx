@@ -187,6 +187,18 @@ export function LabelSection(): JSX.Element {
         <SpecItem label="Insert, hover" pin="hover">
           <InsertOnly />
         </SpecItem>
+        <SpecItem label="Read-only, 기본 chosen" width={STRIP_WIDTH}>
+          <ArrangementStrip
+            label="구성"
+            chips={songChips.slice(0, 2)}
+            selected={0}
+            readOnlyReason="기본 구성은 변경할 수 없습니다"
+            onSelect={ignore}
+            onMove={ignore}
+            onRemove={ignore}
+            onInsert={ignore}
+          />
+        </SpecItem>
       </SpecGroup>
       <SpecGroup
         title="Small 이름표 22, in lyric blocks and lists"

@@ -24,12 +24,14 @@ interface Handlers {
   readonly onMove?: (from: number, to: number) => void;
   readonly onRemove?: (index: number) => void;
   readonly onInsert?: (button: HTMLElement) => void;
+  readonly readOnlyReason?: string;
 }
 
 function Strip({
   onMove = () => undefined,
   onRemove = () => undefined,
   onInsert = () => undefined,
+  readOnlyReason,
 }: Handlers): JSX.Element {
   const [selected, setSelected] = useState(0);
   return (
@@ -42,6 +44,7 @@ function Strip({
       onMove={onMove}
       onRemove={onRemove}
       onInsert={onInsert}
+      readOnlyReason={readOnlyReason}
     />
   );
 }
@@ -135,6 +138,38 @@ describe('ArrangementStrip', () => {
       'Alt',
       'ArrowRight',
     ]);
+  });
+
+  it('only selects while read-only and gives the reason in tooltips', async () => {
+    const onMove = vi.fn();
+    const onRemove = vi.fn();
+    const onInsert = vi.fn();
+    const reason = '기본 구성은 변경할 수 없습니다';
+    render(
+      <Strip
+        onMove={onMove}
+        onRemove={onRemove}
+        onInsert={onInsert}
+        readOnlyReason={reason}
+      />,
+    );
+    expect(
+      screen.getByRole('listbox', {name: '구성'}).getAttribute('aria-readonly'),
+    ).toBe('true');
+    await userEvent.tab();
+    const keys = recordWindowKeys();
+    await userEvent.keyboard('{Alt>}{ArrowRight}{/Alt}{Delete}{ArrowRight}');
+    expect(onMove).not.toHaveBeenCalled();
+    expect(onRemove).not.toHaveBeenCalled();
+    expect(passedKeys(keys)).toEqual(['Alt']);
+    expect(selectedChip()).toBe('후렴');
+    const insert = screen.getByRole('button', {name: '슬라이드 넣기'});
+    expect(insert.getAttribute('aria-disabled')).toBe('true');
+    await userEvent.click(insert);
+    expect(onInsert).not.toHaveBeenCalled();
+    expect((await hoverForTooltip(insert))?.textContent).toBe(reason);
+    const chip = screen.getByRole('option', {name: '1절'});
+    expect((await hoverForTooltip(chip))?.textContent).toBe(reason);
   });
 
   it('takes a chip out with Delete', async () => {
