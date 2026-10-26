@@ -19,9 +19,11 @@ import styles from './ToolbarSearch.module.css';
 
 const SONG_ICON_SIZE = 16;
 const NO_RESULT = -1;
-const UNAVAILABLE = '현재 작업 공간에서는 검색 결과를 열 수 없음';
+const WORKSPACE_UNAVAILABLE_TIP =
+  '현재 작업 공간에서는 검색 결과를 열 수 없습니다.';
 
 type ResultKey = 'ArrowDown' | 'ArrowUp';
+type SongId = LibrarySearchMatch['songId'];
 
 function logProblem(notice: Notice): void {
   console.error('Toolbar search failed:', notice.key);
@@ -128,9 +130,9 @@ export function ToolbarSearch({
   const root = useRef<HTMLDivElement>(null);
   const listId = useId();
   const [open, setOpen] = useState(false);
-  const [pointed, setPointed] = useState(NO_RESULT);
-  const expanded =
-    enabled && open && !search.composing && search.query.trim() !== '';
+  const [pointedId, setPointedId] = useState<SongId | null>(null);
+  const expanded = enabled && open && search.query.trim() !== '';
+  const pointed = search.matches.findIndex(match => match.songId === pointedId);
   const selected = search.matches[pointed];
   useEffect(() => {
     if (!expanded || !selected) return;
@@ -149,13 +151,17 @@ export function ToolbarSearch({
       );
   };
   const keys = (event: KeyboardEvent<HTMLInputElement>): void => {
-    if (isComposing(event) || search.composing || hasModifier(event)) return;
-    if (!expanded || search.matches.length === 0) return;
+    if (isComposing(event) || hasModifier(event)) return;
+    if (search.matches.length === 0) return;
     if (isResultKey(event.code)) {
       event.preventDefault();
-      const key = event.code;
-      setPointed(current => nextPointed(current, key, search.matches.length));
-    } else if (event.code === 'Enter' && selected) {
+      if (!expanded) {
+        setOpen(true);
+        return;
+      }
+      const next = nextPointed(pointed, event.code, search.matches.length);
+      setPointedId(search.matches[next]?.songId ?? null);
+    } else if (event.code === 'Enter' && expanded && selected) {
       event.preventDefault();
       choose(selected);
     }
@@ -182,7 +188,7 @@ export function ToolbarSearch({
           placeholder="곡, 가사, 초성"
           aria-label="검색"
           disabled={!enabled || !window.llp}
-          title={!enabled ? UNAVAILABLE : undefined}
+          title={!enabled ? WORKSPACE_UNAVAILABLE_TIP : undefined}
           role="combobox"
           aria-autocomplete="list"
           aria-haspopup="listbox"
@@ -194,16 +200,11 @@ export function ToolbarSearch({
           value={search.query}
           onChange={value => {
             search.setQuery(value);
-            setPointed(NO_RESULT);
+            setPointedId(null);
             setOpen(true);
           }}
           onFocus={() => setOpen(true)}
           onKeyDown={keys}
-          onCompositionStart={() => search.setComposing(true)}
-          onCompositionEnd={event => {
-            search.setComposing(false);
-            search.setQuery(event.currentTarget.value);
-          }}
         />
         {expanded ? (
           <div className={styles.popup}>
@@ -213,13 +214,13 @@ export function ToolbarSearch({
               aria-label="곡 검색 결과"
               aria-busy={search.loading}
             >
-              {search.matches.map((match, index) => (
+              {search.matches.map(match => (
                 <ResultRow
                   key={match.songId}
                   match={match}
                   id={optionIdOf(listId, match)}
-                  selected={index === pointed}
-                  onPoint={() => setPointed(index)}
+                  selected={match.songId === pointedId}
+                  onPoint={() => setPointedId(match.songId)}
                   onChoose={() => choose(match)}
                 />
               ))}

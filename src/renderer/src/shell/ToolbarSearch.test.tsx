@@ -22,6 +22,7 @@ import {sampleService} from '@renderer/show/testing/sampleService';
 import {useLive} from '@renderer/state/live';
 import {applyService, openItem, useShow} from '@renderer/state/show';
 import {librarySourceId} from '@renderer/state/showLibrary';
+import {LOOKUP_TIMEOUT_MS} from '@renderer/state/showOutput';
 import {createMemoryColumnWidthStore} from './columnWidthStore';
 import {nextPointed, ToolbarSearch} from './ToolbarSearch';
 import {TOOLBAR_SEARCH_LIMIT} from './useToolbarSearch';
@@ -182,28 +183,119 @@ it('drops an older query reply and bounds a reply to the toolbar limit', async (
   expect(screen.getAllByRole('option')).toHaveLength(TOOLBAR_SEARCH_LIMIT);
 });
 
-it('waits for Korean composition and leaves composing Enter, Esc clear, and empty Esc to the field', async () => {
-  const {search, showSong, mount} = setup();
+it.each([
+  {syllables: ['새', '새벽'], query: '새벽'},
+  {syllables: ['ㅅ', 'ㅅㅂ'], query: 'ㅅㅂ'},
+])(
+  'searches $query while its last syllable is still composing',
+  async ({syllables, query}) => {
+    const {search, showSong, mount} = setup();
+    mount();
+    const field = screen.getByRole('combobox', {name: '검색'});
+    await userEvent.click(field);
+    for (const [index, value] of syllables.entries()) {
+      fireEvent.compositionStart(field);
+      fireEvent.change(field, {target: {value}});
+      if (index < syllables.length - 1) {
+        fireEvent.compositionEnd(field, {data: value});
+      }
+    }
+    await screen.findByRole('option', {name: /새벽빛/});
+    expect(search).toHaveBeenLastCalledWith({
+      query,
+      limit: TOOLBAR_SEARCH_LIMIT,
+    });
+    fireEvent.keyDown(field, {
+      key: 'ArrowDown',
+      code: 'ArrowDown',
+      isComposing: true,
+    });
+    expect(field.getAttribute('aria-activedescendant')).toBeNull();
+    fireEvent.keyDown(field, {key: 'Enter', code: 'Enter', isComposing: true});
+    expect(showSong).not.toHaveBeenCalled();
+    expect(screen.getByRole('listbox', {name: '곡 검색 결과'})).toBeDefined();
+  },
+);
+
+it('leaves Esc clear and empty Esc to the field', async () => {
+  const {mount} = setup();
   mount();
   const field = screen.getByRole('combobox', {name: '검색'});
-  await userEvent.click(field);
-  fireEvent.compositionStart(field);
-  fireEvent.change(field, {target: {value: '새'}});
-  fireEvent.keyDown(field, {key: 'Enter', code: 'Enter', isComposing: true});
-  expect(search).not.toHaveBeenCalled();
-  expect(showSong).not.toHaveBeenCalled();
-  fireEvent.change(field, {target: {value: '새벽'}});
-  fireEvent.compositionEnd(field, {data: '새벽'});
+  await userEvent.type(field, '새벽');
   await screen.findByRole('option', {name: /새벽빛/});
-  await userEvent.keyboard('{ArrowDown}');
-  fireEvent.keyDown(field, {key: 'Enter', code: 'Enter', isComposing: true});
-  expect(showSong).not.toHaveBeenCalled();
   await userEvent.keyboard('{Escape}');
   expect(field).toHaveProperty('value', '');
   expect(screen.queryByRole('listbox', {name: '곡 검색 결과'})).toBeNull();
   expect(document.activeElement).toBe(field);
   await userEvent.keyboard('{Escape}');
   expect(document.activeElement).not.toBe(field);
+});
+
+it('keeps the pointed song when a refresh reorders the results', async () => {
+  const {api, search, mount} = setup();
+  let changed = (): void => undefined;
+  vi.spyOn(api.songs, 'subscribe').mockImplementation(listener => {
+    changed = () => listener({songId, document: null});
+    return () => undefined;
+  });
+  mount();
+  const field = screen.getByRole('combobox', {name: '검색'});
+  await userEvent.type(field, '새벽');
+  await screen.findByRole('option', {name: /새벽빛/});
+  await userEvent.keyboard('{ArrowDown}');
+  const pointed = screen.getByRole('option', {name: /새벽빛/}).id;
+  search.mockResolvedValueOnce({
+    query: '새벽',
+    matches: [...matches].reverse(),
+  });
+  act(() => changed());
+  await waitFor(() =>
+    expect(screen.getAllByRole('option')[0]?.textContent).toContain('아침길'),
+  );
+  expect(field.getAttribute('aria-activedescendant')).toBe(pointed);
+  search.mockResolvedValueOnce({query: '새벽', matches: matches.slice(1)});
+  act(() => changed());
+  await waitFor(() =>
+    expect(screen.queryByRole('option', {name: /새벽빛/})).toBeNull(),
+  );
+  expect(field.getAttribute('aria-activedescendant')).toBeNull();
+});
+
+it('reopens the results with Down after an outside pointer closed them', async () => {
+  const {mount} = setup();
+  render(<button type="button">밖</button>);
+  mount();
+  const field = screen.getByRole('combobox', {name: '검색'});
+  await userEvent.type(field, '새벽');
+  await screen.findByRole('option', {name: /새벽빛/});
+  fireEvent.pointerDown(screen.getByRole('button', {name: '밖'}));
+  expect(screen.queryByRole('listbox', {name: '곡 검색 결과'})).toBeNull();
+  await userEvent.keyboard('{ArrowDown}');
+  expect(screen.getByRole('listbox', {name: '곡 검색 결과'})).toBeDefined();
+  await userEvent.keyboard('{ArrowUp}');
+  expect(field.getAttribute('aria-activedescendant')).toBe(
+    screen.getByRole('option', {name: /아침길/}).id,
+  );
+});
+
+it('reports a result read that outlasts the lookup timeout', async () => {
+  const {showSong, report, mount} = setup();
+  showSong.mockImplementationOnce(() => new Promise(() => undefined));
+  mount();
+  const field = screen.getByRole('combobox', {name: '검색'});
+  await userEvent.type(field, '새벽');
+  const option = await screen.findByRole('option', {name: /새벽빛/});
+  vi.useFakeTimers();
+  try {
+    fireEvent.click(option);
+    await act(() => vi.advanceTimersByTimeAsync(LOOKUP_TIMEOUT_MS));
+  } finally {
+    vi.useRealTimers();
+  }
+  expect(report).toHaveBeenCalledWith(
+    expect.objectContaining({title: '곡 불러오기 실패', meta: ['새벽빛']}),
+  );
+  expect(useShow.getState().librarySong).toBeNull();
 });
 
 it.each(['source-change', 'unmount'] as const)(

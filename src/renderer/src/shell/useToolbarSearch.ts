@@ -2,6 +2,7 @@ import {useEffect, useEffectEvent, useRef, useState} from 'react';
 import type {LibrarySearchMatch} from '@shared/schema/librarySearch';
 import {useShow} from '@renderer/state/show';
 import {openLibrarySong} from '@renderer/state/showLibrary';
+import {withinLookupTimeout} from '@renderer/state/showOutput';
 import type {Notice} from '@renderer/ui/notices';
 
 export const TOOLBAR_SEARCH_LIMIT = 20;
@@ -34,16 +35,18 @@ function logFailure(message: string, cause: unknown): void {
   });
 }
 
-/** Searches for the confirmed query, again whenever a song changes. */
+// NOTE(0913vision): The query includes text that is still composing. The
+// Windows Korean IME keeps each syllable in a composition, and the last one
+// stays open while the operator pauses, so waiting for confirmation would show
+// no list for a Korean query.
+/** Searches for the field's query, again whenever a song changes. */
 function useSearchReply({
   enabled,
   query,
-  composing,
   onProblem,
 }: {
   readonly enabled: boolean;
   readonly query: string;
-  readonly composing: boolean;
   readonly onProblem: (notice: Notice) => void;
 }): SearchReply {
   const [reply, setReply] = useState(noReply);
@@ -52,7 +55,7 @@ function useSearchReply({
   useEffect(() => {
     const api = window.llp;
     const term = query.trim();
-    if (!enabled || composing || !term || !api) return undefined;
+    if (!enabled || !term || !api) return undefined;
     let active = true;
     let version = 0;
     const search = async (): Promise<void> => {
@@ -89,13 +92,14 @@ function useSearchReply({
       version++;
       stop();
     };
-  }, [enabled, query, composing]);
+  }, [enabled, query]);
   return reply;
 }
 
 /**
  * Opens a chosen result as the library source. A later choice, a new query,
- * a change of the open item or slide, or unmounting drops a pending read.
+ * a change of the open item or slide, or unmounting drops a pending read, and
+ * a read that takes longer than the lookup timeout fails.
  */
 function useResultChooser(
   enabled: boolean,
@@ -132,7 +136,9 @@ function useResultChooser(
     const isCurrent = (): boolean =>
       alive.current && request === selection.current.version;
     try {
-      const song = await api.library.showSong({songId: match.songId});
+      const song = await withinLookupTimeout(() =>
+        api.library.showSong({songId: match.songId}),
+      );
       if (!isCurrent()) return;
       if (song === null) {
         onProblem(problem('곡을 찾을 수 없음', match.title));
@@ -156,14 +162,11 @@ export function useToolbarSearch(
   onProblem: (notice: Notice) => void,
 ) {
   const [query, setQuery] = useState('');
-  const [composing, setComposing] = useState(false);
-  const reply = useSearchReply({enabled, query, composing, onProblem});
+  const reply = useSearchReply({enabled, query, onProblem});
   const {choose, supersede} = useResultChooser(enabled, onProblem);
   const answered = reply.query === query;
   return {
     query,
-    composing,
-    setComposing,
     setQuery: (value: string): void => {
       supersede();
       setQuery(value);

@@ -1,6 +1,7 @@
 import {useLive} from './live';
 
-const BACKGROUND_LOOKUP_TIMEOUT_MS = 2000;
+/** How long a fresh song read may take before it counts as failed. */
+export const LOOKUP_TIMEOUT_MS = 2000;
 let outputRequest = 0;
 
 /** Invalidates earlier delayed output across service and library sources. */
@@ -29,7 +30,7 @@ export async function withinLookupTimeout<T>(
       new Promise<never>((_resolve, reject) => {
         timeout = setTimeout(
           () => reject(new Error('Song background lookup timed out')),
-          BACKGROUND_LOOKUP_TIMEOUT_MS,
+          LOOKUP_TIMEOUT_MS,
         );
       }),
     ]);
