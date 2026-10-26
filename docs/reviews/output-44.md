@@ -42,6 +42,23 @@ without test flags, including when a packaged test explicitly sets
 - Own-file ESLint and formatting: see request message.
 - Full `npm run verify`: GitHub CI only, see request message.
 
+### Known flaky native test
+
+The implementation commit `7ca51090` was checked by
+[CI run 40287488840](https://github.com/0913vision/llpresenter/actions/runs/40287488840).
+Typecheck, lint, formatting and build passed. Tests: 5,207 passed, 3 skipped,
+and one failed: `src/main/outputs/fullscreenOrder.electron.test.ts`, where
+`win.isAlwaysOnTop()` was false in the native full-screen fixture.
+
+The lead classified this as the known flaky test under the October 24 decision
+in `docs/decisions.md`: record it and do not rerun. The lead authorized this
+review request with that exception and assigned the recurring failure as a
+separate fix before the audio player. This diff changes only audio transport,
+its additive state schemas, the mute policy, and their tests. It does not change
+`electronWindow.ts`, `onTopKeeper.ts`, `windowPlacement.ts`, the native fixture,
+or any full-screen or always-on-top calls. This follow-up commit records the CI
+evidence and changes no implementation.
+
 ## Quality checklist
 
 - [x] Transport, malformed playback, volume bounds and mute policy tests
