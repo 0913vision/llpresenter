@@ -1,3 +1,4 @@
+import * as v from 'valibot';
 import {describe, expect, it, vi} from 'vitest';
 import type {ContentEdit, EditResult} from '@shared/schema/contentEdit';
 import type {
@@ -12,6 +13,7 @@ import {
   createServiceId,
   createServiceItemId,
   createSongId,
+  translationIdSchema,
 } from '@shared/schema/ids';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {pendingWritesOf} from './pendingWrites';
@@ -296,6 +298,49 @@ describe('service order edits', () => {
       id: slotId,
       song: songId,
       future: {keep: true},
+    });
+    await edits.undo(serviceId);
+    expect(state.document?.service.order[1]).toEqual(slot);
+  });
+
+  it('fills a Bible slot with a passage, keeping its id and unknown fields, and refuses song slots', async () => {
+    const {state, edits} = fixture();
+    const bibleSlot = createServiceItemId(
+      '90000000-0000-4000-8000-0000000000c1',
+    );
+    const songSlot = createServiceItemId(
+      '90000000-0000-4000-8000-0000000000c2',
+    );
+    const slot = {
+      id: bibleSlot,
+      slot: 'bible' as const,
+      title: '성경 구절',
+      future: 1,
+    };
+    await edits.insertItem(serviceId, slot, second);
+    await edits.insertItem(
+      serviceId,
+      {id: songSlot, slot: 'song', title: '찬양'},
+      null,
+    );
+    const passage = {
+      translation: v.parse(translationIdSchema, 'krv'),
+      ref: '요한복음 3:16',
+      split: 'verse' as const,
+      reference: 'every' as const,
+      verseNumbers: true,
+      translationName: false,
+    };
+    expect(
+      await edits.fillSlotWithPassage(serviceId, songSlot, passage),
+    ).toMatchObject({ok: false, error: {reason: 'invalid'}});
+    expect(
+      await edits.fillSlotWithPassage(serviceId, bibleSlot, passage),
+    ).toEqual({ok: true, value: true});
+    expect(state.document?.service.order[1]).toEqual({
+      id: bibleSlot,
+      bible: passage,
+      future: 1,
     });
     await edits.undo(serviceId);
     expect(state.document?.service.order[1]).toEqual(slot);

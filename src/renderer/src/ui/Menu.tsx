@@ -181,7 +181,9 @@ function useMenuNavigation({
       return;
     }
     item.onSelect?.();
-    onClose('select');
+    if (item.keepsOpen === true) {
+      surface.current?.querySelector('input')?.focus({preventScroll: true});
+    } else onClose('select');
   };
   const hover = (index: number): void => {
     setPointed(index);

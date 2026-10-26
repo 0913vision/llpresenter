@@ -13,7 +13,9 @@ import type {MenuEntry} from '@renderer/ui/menuModel';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {NEWER_FILE_REASON} from './ItemArrangement';
 import {otherItemEntries, type NoticeSetChoice} from './quickAddItems';
+import {bibleEntries, passageItem} from './quickAddBible';
 import {quickAddBefore} from './quickAddPosition';
+import {useBibleLookup} from './useBibleLookup';
 import {useHeaderRename} from '@renderer/state/headerRename';
 
 const QUICK_ADD_LIMIT = 20;
@@ -133,7 +135,9 @@ export function ServiceQuickAdd({
   const [button, setButton] = useState<HTMLButtonElement | null>(null);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const songs = useQuickAddSongs(open, query, onProblem);
+  const [typingPassage, setTypingPassage] = useState(false);
+  const songs = useQuickAddSongs(open && !typingPassage, query, onProblem);
+  const bible = useBibleLookup(open && typingPassage, query);
   const sources = useOtherSources(open);
   const reason =
     serviceId === null
@@ -159,6 +163,27 @@ export function ServiceQuickAdd({
         before === null ? null : createServiceItemId(before),
       ),
     );
+  };
+  const insertPassage = (ref: string): void => {
+    if (bible.defaults === null) return;
+    const passage = passageItem(ref, bible.defaults);
+    const {rows, openItemId} = useShow.getState();
+    const selected = rows.find(row => row.id === openItemId);
+    if (
+      selected?.kind === 'slot' &&
+      selected.accepts === 'bible' &&
+      'bible' in passage
+    ) {
+      editing.run((edits, id) =>
+        edits.fillSlotWithPassage(
+          id,
+          createServiceItemId(selected.id),
+          passage.bible,
+        ),
+      );
+      return;
+    }
+    insertItem(passage);
   };
   const insertItem = (item: ServiceItem): void => {
     const {rows, openItemId} = useShow.getState();
@@ -187,6 +212,7 @@ export function ServiceQuickAdd({
           disabled,
           onExpandedChange: next => {
             setQuery('');
+            setTypingPassage(false);
             setOpen(next);
           },
         })}
@@ -199,13 +225,24 @@ export function ServiceQuickAdd({
           search={{
             value: query,
             onChange: setQuery,
-            placeholder: '곡, 가사, 초성',
+            placeholder: typingPassage ? '성경 구절' : '곡, 가사, 초성',
           }}
           onClose={() => setOpen(false)}
-          entries={[
-            ...songEntries(songs, query, insert),
-            ...otherItemEntries({...sources, onInsert: insertItem}),
-          ]}
+          entries={
+            typingPassage
+              ? bibleEntries(bible.reply, insertPassage)
+              : [
+                  ...songEntries(songs, query, insert),
+                  ...otherItemEntries({
+                    ...sources,
+                    onInsert: insertItem,
+                    onBible: () => {
+                      setQuery('');
+                      setTypingPassage(true);
+                    },
+                  }),
+                ]
+          }
         />
       ) : null}
     </>

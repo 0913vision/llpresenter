@@ -27,6 +27,8 @@ export interface MenuItem {
   readonly title?: string | undefined;
   readonly submenu?: readonly MenuEntry[] | undefined;
   readonly onSelect?: (() => void) | undefined;
+  /** Keeps the menu open after the item runs, as a mode switch does. */
+  readonly keepsOpen?: boolean | undefined;
 }
 
 export interface MenuSeparator {

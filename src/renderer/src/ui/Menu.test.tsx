@@ -198,6 +198,27 @@ describe('Menu', () => {
     expect(field.getAttribute('aria-activedescendant')).toContain('item-0');
   });
 
+  it('keeps the menu open after an item that keeps it open runs', async () => {
+    const onSelect = vi.fn();
+    const onClose = vi.fn();
+    render(
+      <Harness
+        onClose={onClose}
+        entries={[
+          {kind: 'item', id: 'mode', label: '모드', keepsOpen: true, onSelect},
+          {kind: 'item', id: 'plain', label: '보통'},
+        ]}
+      />,
+    );
+    await openMenu();
+    await userEvent.click(screen.getByRole('menuitem', {name: '모드'}));
+    expect(onSelect).toHaveBeenCalledOnce();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByRole('menu')).toBeDefined();
+    await userEvent.click(screen.getByRole('menuitem', {name: '보통'}));
+    expect(onClose).toHaveBeenCalledWith('select');
+  });
+
   it('runs an item on click', async () => {
     const onSelect = vi.fn();
     render(<Harness onSelect={onSelect} />);

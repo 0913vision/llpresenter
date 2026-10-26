@@ -12,6 +12,7 @@ import {
   isItemOfKind,
   type Service,
   type ServiceItem,
+  type ServiceItemOf,
 } from '@shared/schema/service';
 import {sectionBoundaryIndex} from '@renderer/show/serviceSections';
 import {pendingWritesOf} from './pendingWrites';
@@ -186,6 +187,31 @@ export class ServiceOrderEdits {
       const order = [...service.order];
       const {slot: _kind, title: _title, ...kept} = slot;
       order[index] = {...kept, song: songId};
+      return {ok: true, value: order};
+    });
+  }
+
+  /**
+   * Fills a 빈 자리 that accepts Bible passages with a passage item, which
+   * takes the slot's place and id and keeps its unknown fields.
+   */
+  fillSlotWithPassage(
+    serviceId: ServiceId,
+    slotId: ServiceItemId,
+    passage: ServiceItemOf<'bible'>['bible'],
+  ) {
+    return this.update(serviceId, service => {
+      const index = service.order.findIndex(row => row.id === slotId);
+      const slot = service.order[index];
+      if (slot === undefined || !isItemOfKind(slot, 'slot')) {
+        return refuse('not-found', 'The slot no longer exists');
+      }
+      if (slot.slot !== 'bible') {
+        return refuse('invalid', 'The slot does not take a Bible passage');
+      }
+      const order = [...service.order];
+      const {slot: _kind, title: _title, ...kept} = slot;
+      order[index] = {...kept, bible: passage};
       return {ok: true, value: order};
     });
   }

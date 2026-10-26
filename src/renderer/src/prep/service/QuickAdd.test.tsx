@@ -1,7 +1,9 @@
 import {act, render, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {createMediaId} from '@shared/schema/ids';
+import * as v from 'valibot';
+import {createMediaId, translationIdSchema} from '@shared/schema/ids';
+import {parseSettingsDocument} from '@shared/schema/settingsDocuments';
 import type {LibrarySearchRequest} from '@shared/schema/librarySearch';
 import {parseMediaDocument} from '@shared/schema/mediaEdit';
 import {mockMenuRowHeight} from '@renderer/prep/editor/editorTesting';
@@ -42,6 +44,59 @@ function mediaDocument() {
   });
   if (!parsed.ok) throw new Error('Invalid media fixture');
   return parsed.value;
+}
+
+function mockBible(api: ReturnType<typeof setup>['api']) {
+  const krv = v.parse(translationIdSchema, 'krv');
+  const readSettings = api.settings.get;
+  vi.spyOn(api.settings, 'get').mockImplementation(async request => {
+    if (request.name !== 'bible') return readSettings(request);
+    const parsed = parseSettingsDocument({
+      name: 'bible',
+      revision: 1,
+      access: 'editable',
+      value: {
+        format: 'llsettings.bible',
+        schemaVersion: 1,
+        translations: [
+          {
+            id: 'other',
+            name: '다른',
+            lang: 'ko',
+            file: 'a.json',
+            default: false,
+          },
+          {
+            id: krv,
+            name: '개역한글',
+            lang: 'ko',
+            file: 'b.json',
+            default: true,
+          },
+        ],
+        recents: [],
+      },
+    });
+    if (!parsed.ok) throw new Error('No bible');
+    return parsed.value;
+  });
+  const lookup = vi
+    .spyOn(api.bible, 'lookup')
+    .mockImplementation(async ({translation, input}) => ({
+      input,
+      translation,
+      suggestions: [],
+      result: {
+        ok: true,
+        value: {
+          translation,
+          ref: '요한복음 3:16',
+          displayRef: '요한복음 3:16',
+          verses: [{chapter: 3, verse: 16, text: '하나님이'}],
+        },
+      },
+    }));
+  return {krv, lookup};
 }
 
 function songItems(menu: HTMLElement): HTMLElement[] {
@@ -211,6 +266,83 @@ describe('항목 추가', () => {
     );
     await waitFor(() =>
       expect(service().service.order[3]).toMatchObject({song: second.song.id}),
+    );
+    expect(service().service.order).toHaveLength(5);
+    expect(service().service.order[3]).toHaveProperty('id', fixtureItems.slot);
+    expect(service().service.order[3]).not.toHaveProperty('slot');
+  });
+
+  it('looks up a typed reference and inserts the passage with the default settings', async () => {
+    const {api, user, service} = setup();
+    const {krv, lookup} = mockBible(api);
+    await user.click(screen.getByRole('button', {name: '항목 추가'}));
+    await user.click(await screen.findByRole('menuitem', {name: '성경 구절'}));
+    const menu = screen.getByRole('menu', {name: '항목 추가'});
+    expect(screen.getByRole('combobox', {name: '성경 구절'})).toBeDefined();
+    await user.keyboard('요 3:16');
+    const passage = await within(menu).findByRole('menuitem', {
+      name: /요한복음 3:16/u,
+    });
+    expect(passage.textContent).toContain('절 1개');
+    await waitFor(() =>
+      expect(lookup).toHaveBeenLastCalledWith({
+        translation: krv,
+        input: '요 3:16',
+      }),
+    );
+    await user.keyboard('{Enter}');
+    await waitFor(() => expect(service().service.order).toHaveLength(6));
+    expect(service().service.order.at(-1)).toMatchObject({
+      bible: {
+        translation: krv,
+        ref: '요한복음 3:16',
+        split: 'verse',
+        reference: 'every',
+        verseNumbers: true,
+        translationName: false,
+      },
+    });
+    expect(screen.queryByRole('menu')).toBeNull();
+  });
+
+  it('fills the selected Bible slot with the passage from quick add', async () => {
+    const {api, user, service, pushService} = setup();
+    mockBible(api);
+    pushService({
+      ...service(),
+      revision: 40,
+      service: {
+        ...service().service,
+        order: service().service.order.map(row =>
+          row.id === fixtureItems.slot
+            ? {id: row.id, slot: 'bible' as const, title: '성경 구절'}
+            : row,
+        ),
+      },
+    });
+    act(() =>
+      useShow.setState({
+        rows: [
+          {kind: 'header', id: fixtureItems.header, title: '찬양'},
+          {
+            kind: 'slot',
+            id: fixtureItems.slot,
+            title: '성경 구절',
+            accepts: 'bible',
+          },
+        ],
+        openItemId: fixtureItems.slot,
+      }),
+    );
+    await user.click(screen.getByRole('button', {name: '항목 추가'}));
+    await user.click(await screen.findByRole('menuitem', {name: '성경 구절'}));
+    await user.keyboard('요 3:16');
+    await screen.findByRole('menuitem', {name: /요한복음 3:16/u});
+    await user.keyboard('{Enter}');
+    await waitFor(() =>
+      expect(service().service.order[3]).toMatchObject({
+        bible: {ref: '요한복음 3:16'},
+      }),
     );
     expect(service().service.order).toHaveLength(5);
     expect(service().service.order[3]).toHaveProperty('id', fixtureItems.slot);

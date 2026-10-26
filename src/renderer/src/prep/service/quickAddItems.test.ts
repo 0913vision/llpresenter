@@ -32,6 +32,7 @@ function build(onInsert: (item: ServiceItem) => void) {
     media,
     notices: [{id: noticeSet, name: '주일 광고'}],
     onInsert,
+    onBible: () => undefined,
   });
 }
 
@@ -42,6 +43,7 @@ describe('quick add other items', () => {
     expect(items(entries).map(item => item.label)).toEqual([
       '머리글',
       '빈 자리',
+      '성경 구절',
       '미디어',
       '공지',
     ]);
@@ -91,6 +93,7 @@ describe('quick add other items', () => {
       media: [],
       notices: [],
       onInsert: () => undefined,
+      onBible: () => undefined,
     });
     expect(items(entry(entries, 'other:media').submenu ?? [])[0]).toMatchObject(
       {label: '미디어 없음', disabled: true},

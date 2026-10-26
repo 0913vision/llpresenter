@@ -20,6 +20,8 @@ export interface OtherItemChoices {
   readonly media: readonly MediaItem[];
   readonly notices: readonly NoticeSetChoice[];
   readonly onInsert: (item: ServiceItem) => void;
+  /** Switches the popover to typing a passage reference. */
+  readonly onBible: () => void;
 }
 
 function newId(): ServiceItem['id'] {
@@ -41,6 +43,7 @@ export function otherItemEntries({
   media,
   notices,
   onInsert,
+  onBible,
 }: OtherItemChoices): readonly MenuEntry[] {
   return [
     {kind: 'group', id: 'other', label: '다른 항목'},
@@ -62,6 +65,14 @@ export function otherItemEntries({
         label,
         onSelect: () => onInsert({id: newId(), slot, title: label}),
       })),
+    },
+    {
+      kind: 'item',
+      id: 'other:bible',
+      label: '성경 구절',
+      icon: 'book',
+      keepsOpen: true,
+      onSelect: onBible,
     },
     {
       kind: 'item',
