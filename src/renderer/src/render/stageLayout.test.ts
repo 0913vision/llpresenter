@@ -35,20 +35,16 @@ const KINDS = [
   'stageMessage',
 ] as const;
 
-function layoutOf(elements: readonly object[], id = 81): StageLayout {
+function layoutOf(
+  elements: readonly object[],
+  id = 81,
+  size = {width: 1920, height: 1080},
+): StageLayout {
   const parsed = parseStageLayouts(
     JSON.stringify({
       format: 'llsettings.stage',
       schemaVersion: 1,
-      layouts: [
-        {
-          id: overlayUuid(id),
-          name: '현재와 다음',
-          width: 1920,
-          height: 1080,
-          elements,
-        },
-      ],
+      layouts: [{id: overlayUuid(id), name: '현재와 다음', ...size, elements}],
     }),
     'stage-layouts.json',
   );
@@ -311,6 +307,58 @@ describe('StageLayoutView', () => {
     view.render(LAYERS, frameOf({timers}));
     view.dispose();
     expect(stopped).toHaveBeenCalledTimes(2);
+  });
+
+  it('writes an element only when its text changes, and ticks only the clock and 타이머', () => {
+    const {view, canvas} = setup();
+    let reads = 0;
+    const slide = {
+      itemId: 'item-1',
+      position: 0,
+      label: '1절',
+      get lines(): readonly string[] {
+        reads += 1;
+        return ['첫 줄'];
+      },
+    };
+    view.render({...LAYERS, slide}, frameOf());
+    const block = canvas.querySelector(':scope > * > *');
+    if (!(block instanceof HTMLElement)) throw new Error('Missing block');
+    const write = vi.spyOn(block, 'textContent', 'set');
+    view.render({...LAYERS, slide}, frameOf());
+    expect(write).not.toHaveBeenCalled();
+    const before = reads;
+    vi.advanceTimersByTime(STAGE_TICK_MS * 2);
+    expect(reads).toBe(before);
+    view.dispose();
+  });
+
+  it('sizes text on a canvas of another height by the same share of 1080 lines', () => {
+    const {view, canvas} = setup();
+    const small = layoutOf([element('nextSlide', 0)], 84, {
+      width: 1280,
+      height: 720,
+    });
+    view.render(LAYERS, frameOf({stage: {layout: small}}));
+    const block = canvas.querySelector<HTMLElement>(':scope > * > *');
+    expect(block?.style.fontSize).toBe(`${(TEXT_STYLE.size * 720) / 1080}px`);
+    view.dispose();
+  });
+
+  it('ticks a lone clock each second without a running 타이머', () => {
+    const {view, texts} = setup();
+    let wall = WALL;
+    const timers = {
+      ...sermonTimers(undefined),
+      now: () => ({timer: TIMER_START, wall}),
+    };
+    const clockOnly = layoutOf([element('clock', 0)], 85);
+    view.render(LAYERS, frameOf({timers, stage: {layout: clockOnly}}));
+    expect(texts()).toEqual(['09:05']);
+    wall += 60_000;
+    vi.advanceTimersByTime(STAGE_TICK_MS);
+    expect(texts()).toEqual(['09:06']);
+    view.dispose();
   });
 
   it('keeps the text and logs once when a tick fails', () => {
