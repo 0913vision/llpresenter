@@ -96,19 +96,17 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (2c82bcba): reviewer (Codex, codex3) Approve. Nit for output's next
+  request: Vite also rewrites the test's template-literal `import()` into
+  `import.meta.glob`, so decision 2's claim that the test avoids a cached
+  expansion is inaccurate (the disk listing still catches a new file through the
+  failed import). Correct the explanation, or build the specifier in a variable
+  before `import()`. Lead Approve; decision 1 (turn the cache off) confirmed.
+  Changes outside output's paths (`vitest.config.mts`,
+  `test/vitest-projects.test.ts`) checked against devops's rules. Rebased by the
+  lead onto local `main` without conflicts; typecheck passes.
 
 ## Team member's reply
 
