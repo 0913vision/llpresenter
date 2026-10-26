@@ -1,11 +1,11 @@
-Review range: `8e6eba7d...feat/spec/output-actions`
+Review range: `01735790...feat/spec/output-actions`
 
 # Review request: `spec-44`
 
 - Team member: `spec` (Claude session that took over from Codex)
 - Branch: `feat/spec/output-actions`
-- Base commit: `8e6eba7d`, main at round 2
-- Review round: 2
+- Base commit: `01735790`, main at round 3
+- Review round: 3
 - Task: M3-S2a part 1, the output actions and status that the lost monitor card
   needs (lead, 09:3x: shell builds the main handlers too)
 - Code owners: data for `src/shared/` and `src/preload/`; output for
@@ -36,6 +36,20 @@ operator's keys stay in the control window. The manager remembers each screen's
 monitor number when it goes full screen and keeps it through a disconnect; the
 status board passes it on and announces a change of it. The retry and show
 window handlers share one request handler.
+
+## Round 3 response
+
+The raise now lives only as long as the placement work that was running when 창
+보기 was pressed. `WindowPlacement.isPending()` reports a deferred full screen
+exit or a running bounds check. 창 보기 raises the window and keeps the raise
+only if work is pending; that work's `orderWindow(false)` raises again instead
+of moving the control window above, and the raise ends once the placement is
+idle. Every new placement (`showWindowed`, `showFullScreen`, `showCapture`), a
+hide, a monitor-removal demotion, and dispose clear it first, so a later
+work-area recentre puts the fallback behind the control window again, as spec 03
+asks. New tests: a later independent placement after 창 보기 on a settled
+window, and after 창 보기 during a bounds check that then ended without a
+correction; the round 2 timing tests still pass.
 
 ## Round 2 response
 
