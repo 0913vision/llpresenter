@@ -105,7 +105,14 @@ describe('recovery record writer', () => {
         media: MEDIA,
         audio: {mediaId: 'song audio'},
       },
-      timers: {[TIMER]: {state: 'running', since: SAVED_AT, countedMs: 0}},
+      timers: {
+        [TIMER]: {
+          state: 'running',
+          since: SAVED_AT,
+          countedMs: 0,
+          day: SAVED_AT,
+        },
+      },
     });
     if (!live.ok) throw new Error(live.error.message);
     const store = fakeStore(live.value);

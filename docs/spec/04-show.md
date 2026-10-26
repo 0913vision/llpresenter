@@ -421,8 +421,11 @@ after its name, and hides it at 0.
     the article doesn't say what these timers show before they start).
   - Clock (`clock`): the current time as 24-hour "HH:mm:ss". It has no buttons
     (lead decision, October 26; a format choice is later work).
-- Running time comes from the main process's clock, and a clock that steps back
-  never makes a 타이머 count backwards (lead decision, October 26).
+- Running time comes from the main process's monotonic clock, so a correction of
+  the computer's clock never moves a running 타이머 (lead decision, October 26).
+- A `countdownTo` or `elapsedFrom` that runs or is paused reads its set time on
+  the day it started, so it keeps counting across midnight (lead decision,
+  October 26).
 - Values under an hour show as "minutes:seconds", and longer values as
   "hours:minutes:seconds" (proposal).
 - 타이머 keep running regardless of clears. They show in 소품 text and in the

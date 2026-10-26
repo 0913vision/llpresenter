@@ -28,6 +28,8 @@ export interface ScreenSettingsPort {
 
 export interface SliceInputs {
   readonly now: number;
+  /** The monotonic 타이머 clock; absent uses `now`. */
+  readonly timerNow?: number;
   readonly settings?: SettingsReader;
   readonly nextMessageId?: () => MessageId;
   readonly screenSettings?: ScreenSettingsPort;

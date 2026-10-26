@@ -6,6 +6,13 @@ import {MAX_LIVE_TIMERS} from './timerState';
 const uuid = (index: number) =>
   `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
 const SINCE = 1_000_000;
+const PAUSED = {
+  state: 'paused',
+  at: SINCE,
+  countedMs: 0,
+  day: SINCE,
+  wallAt: SINCE,
+};
 
 function withTimers(timers: unknown) {
   return parseLiveState({...emptyLiveState(), timers});
@@ -14,8 +21,14 @@ function withTimers(timers: unknown) {
 describe('live 타이머 runs', () => {
   it('keeps running and paused runs, and a state without any', () => {
     const timers = {
-      [uuid(1)]: {state: 'running', since: SINCE, countedMs: 1500},
-      [uuid(2)]: {state: 'paused', at: SINCE, countedMs: 0},
+      [uuid(1)]: {state: 'running', since: SINCE, countedMs: 1500, day: SINCE},
+      [uuid(2)]: {
+        state: 'paused',
+        at: SINCE,
+        countedMs: 0,
+        day: SINCE,
+        wallAt: SINCE,
+      },
     };
     expect(withTimers(timers)).toEqual({
       ok: true,
@@ -26,11 +39,9 @@ describe('live 타이머 runs', () => {
 
   it('drops unknown fields of a run', () => {
     const parsed = withTimers({
-      [uuid(1)]: {state: 'paused', at: SINCE, countedMs: 0, extra: true},
+      [uuid(1)]: {...PAUSED, extra: true},
     });
-    expect(parsed.ok && parsed.value.timers).toEqual({
-      [uuid(1)]: {state: 'paused', at: SINCE, countedMs: 0},
-    });
+    expect(parsed.ok && parsed.value.timers).toEqual({[uuid(1)]: PAUSED});
   });
 
   it.each([
@@ -43,7 +54,15 @@ describe('live 타이머 runs', () => {
       'a running run without its start',
       {[uuid(1)]: {state: 'running', countedMs: 0}},
     ],
-    ['a negative count', {[uuid(1)]: {state: 'paused', at: 1, countedMs: -1}}],
+    ['a negative count', {[uuid(1)]: {...PAUSED, countedMs: -1}}],
+    [
+      'a pause without its wall time',
+      {[uuid(1)]: {state: 'paused', at: 1, countedMs: 0, day: 1}},
+    ],
+    [
+      'a run without its day',
+      {[uuid(1)]: {state: 'running', since: 1, countedMs: 0}},
+    ],
     [
       'a time that is not a number',
       {[uuid(1)]: {state: 'running', since: '1', countedMs: 0}},
@@ -57,10 +76,7 @@ describe('live 타이머 runs', () => {
   it('holds at most the cap of runs', () => {
     const runs = (count: number) =>
       Object.fromEntries(
-        Array.from({length: count}, (_, index) => [
-          uuid(index + 1),
-          {state: 'paused', at: SINCE, countedMs: 0},
-        ]),
+        Array.from({length: count}, (_, index) => [uuid(index + 1), PAUSED]),
       );
     expect(withTimers(runs(MAX_LIVE_TIMERS)).ok).toBe(true);
     expect(withTimers(runs(MAX_LIVE_TIMERS + 1)).ok).toBe(false);

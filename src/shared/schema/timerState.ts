@@ -20,11 +20,14 @@ const timerRunSchema = v.pipe(
       state: v.literal('running'),
       since: epochMillisecondsSchema,
       countedMs,
+      day: epochMillisecondsSchema,
     }),
     v.object({
       state: v.literal('paused'),
       at: epochMillisecondsSchema,
       countedMs,
+      day: epochMillisecondsSchema,
+      wallAt: epochMillisecondsSchema,
     }),
   ]),
 );
@@ -37,8 +40,11 @@ export const timerRunsSchema = v.pipe(
 );
 
 /**
- * One started 타이머: running since a main-clock time, or paused at one, with
- * the milliseconds it counted before that.
+ * One started 타이머: running since a time on main's monotonic 타이머 clock,
+ * or paused at one, with the milliseconds it counted before that. `day` is
+ * the local midnight, on the wall clock, of the day it started, and `wallAt`
+ * the wall-clock moment of a pause, so a 타이머 that reads the time of day
+ * keeps its day across midnight.
  */
 export type TimerRun = ReadonlyKnown<v.InferOutput<typeof timerRunSchema>>;
 

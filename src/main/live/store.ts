@@ -5,9 +5,10 @@ import {MAX_LIVE_BATCH_COMMANDS} from '@shared/schema/liveCommand';
 import type {LiveState} from '@shared/live';
 import type {Logger} from '../log';
 import type {SettingsReader} from '../store/settingsStore';
+import {SYSTEM_CLOCK, type LiveClock} from './clock';
 import {initialHistory, liveSlices, type LiveHistory} from './reducer';
 import type {SliceRegistry, SkippedLiveCommand} from './sliceRegistry';
-import type {MacroCommandPort, ScreenSettingsPort} from './slice';
+import type {MacroCommandPort, ScreenSettingsPort, SliceInputs} from './slice';
 
 export type LiveListener = (state: LiveState) => void;
 
@@ -21,18 +22,27 @@ export class LiveStore {
   private settings: SettingsReader | undefined;
   private screenSettings: ScreenSettingsPort | undefined;
   private macros: MacroCommandPort | undefined;
+  private readonly readClock: () => Pick<SliceInputs, 'now' | 'timerNow'>;
 
   /**
    * Starts from the initial state.
    *
-   * @param now - The clock that stamps commands; tests pass a fixed one.
+   * @param clock - The clocks that stamp commands; a single function serves as
+   * both, as tests pass a fixed one.
    */
   constructor(
     initial?: LiveState,
-    private readonly now: () => number = Date.now,
+    clock: LiveClock | (() => number) = SYSTEM_CLOCK,
     private readonly slices: SliceRegistry = liveSlices,
   ) {
     this.history = initialHistory(initial ?? slices.initialState());
+    this.readClock =
+      typeof clock === 'function'
+        ? () => {
+            const now = clock();
+            return {now, timerNow: now};
+          }
+        : () => ({now: clock.wall(), timerNow: clock.timer()});
   }
 
   get state(): LiveState {
@@ -87,7 +97,7 @@ export class LiveStore {
     onSkipped?: (problem: SkippedLiveCommand) => void,
   ): boolean {
     const {history: next, skipped} = this.slices.run(this.history, command, {
-      now: this.now(),
+      ...this.readClock(),
       ...(this.settings === undefined ? {} : {settings: this.settings}),
       ...(this.macros === undefined ? {} : {macros: this.macros}),
       nextMessageId: () => createMessageId(randomUUID()),

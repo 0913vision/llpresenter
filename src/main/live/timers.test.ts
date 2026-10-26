@@ -2,6 +2,7 @@ import {describe, expect, it, vi} from 'vitest';
 import type {SingleLiveCommand} from '@shared/commands';
 import {parseLiveCommand} from '@shared/schema/liveCommand';
 import {MAX_LIVE_TIMERS} from '@shared/schema/timerState';
+import {localDay} from '@shared/timerClock';
 import {recordingLogger} from '../displays/testing';
 import {dispatchLogged, LiveStore} from './store';
 import {
@@ -33,9 +34,16 @@ function runOf(store: LiveStore, timerId: string) {
   )?.[1];
 }
 
+const WALL_START = new Date(2026, 9, 26, 10, 0, 0).getTime();
+const TIMER_START = 1_000_000;
+
 function setup(extraTimers: readonly object[] = []) {
-  let now = 1_000_000;
-  const store = new LiveStore(undefined, () => now);
+  let wall = WALL_START;
+  let timer = TIMER_START;
+  const store = new LiveStore(undefined, {
+    wall: () => wall,
+    timer: () => timer,
+  });
   const settings = overlaySettings();
   settings.update(
     settingsDocument('timers', {
@@ -51,34 +59,44 @@ function setup(extraTimers: readonly object[] = []) {
   return {
     store,
     advance: (ms: number) => {
-      now += ms;
+      wall += ms;
+      timer += ms;
     },
-    now: () => now,
+    stepWallClock: (ms: number) => {
+      wall += ms;
+    },
+    timer: () => timer,
+    wall: () => wall,
   };
 }
 
 describe('timer slice', () => {
-  it('starts, pauses with the counted time, and resumes from it', () => {
-    const {store, advance, now} = setup();
+  it('starts, pauses with the counted time, and resumes from it on its first day', () => {
+    const {store, advance, timer, wall} = setup();
+    const day = localDay(WALL_START);
     expect(store.dispatch(command('timer.start', SERMON))).toBe(true);
     expect(runOf(store, SERMON)).toEqual({
       state: 'running',
-      since: now(),
+      since: timer(),
       countedMs: 0,
+      day,
     });
     advance(90 * SECOND);
     store.dispatch(command('timer.pause', SERMON));
     expect(runOf(store, SERMON)).toEqual({
       state: 'paused',
-      at: now(),
+      at: timer(),
       countedMs: 90 * SECOND,
+      day,
+      wallAt: wall(),
     });
-    advance(60 * SECOND);
+    advance(24 * 60 * 60 * SECOND);
     store.dispatch(command('timer.start', SERMON));
     expect(runOf(store, SERMON)).toEqual({
       state: 'running',
-      since: now(),
+      since: timer(),
       countedMs: 90 * SECOND,
+      day,
     });
   });
 
@@ -124,12 +142,13 @@ describe('timer slice', () => {
     expect(store.state.timers).toBe(timers);
   });
 
-  it('never counts a pause backwards when the clock steps back', () => {
-    const {store, advance} = setup();
+  it('counts on the monotonic clock when the wall clock steps back', () => {
+    const {store, advance, stepWallClock} = setup();
     store.dispatch(command('timer.start', SERMON));
-    advance(-30 * SECOND);
+    advance(30 * SECOND);
+    stepWallClock(-10 * SECOND);
     store.dispatch(command('timer.pause', SERMON));
-    expect(runOf(store, SERMON)).toMatchObject({countedMs: 0});
+    expect(runOf(store, SERMON)).toMatchObject({countedMs: 30 * SECOND});
   });
 
   it('has nothing to start on a clock and refuses a 타이머 that is gone', () => {
