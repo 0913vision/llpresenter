@@ -2,6 +2,7 @@ import {
   contextBridge,
   ipcRenderer,
   webFrame,
+  webUtils,
   type IpcRendererEvent,
 } from 'electron';
 import {
@@ -379,6 +380,17 @@ const api: LlpApi = {
       listen(Channels.settingsChanged, parseSettingsDocument, listener),
   },
   media: {
+    pathForFile: file => {
+      try {
+        return webUtils.getPathForFile(file);
+      } catch (error: unknown) {
+        logBadValue('request', 'media.pathForFile', {
+          field: 'file',
+          message: error instanceof Error ? error.message : String(error),
+        });
+        return '';
+      }
+    },
     get: () => invokeChecked(Channels.mediaGet, parseMediaDocument),
     edit: edit =>
       invokeRequest(

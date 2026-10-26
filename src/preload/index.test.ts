@@ -30,9 +30,11 @@ const electron = vi.hoisted(() => ({
   send: vi.fn(),
   invoke: vi.fn(),
   getZoomFactor: vi.fn<() => unknown>(() => 1),
+  getPathForFile: vi.fn<(file: File) => string>(() => ''),
 }));
 
 vi.mock('electron', () => ({
+  webUtils: {getPathForFile: electron.getPathForFile},
   webFrame: {getZoomFactor: electron.getZoomFactor},
   contextBridge: {
     exposeInMainWorld: (key: string, api: unknown) => {
@@ -241,9 +243,35 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+  electron.getPathForFile.mockReset().mockReturnValue('');
   electron.send.mockClear();
   electron.invoke.mockReset();
   electron.getZoomFactor.mockReset().mockReturnValue(UI_ZOOM_FACTOR.default);
+});
+
+describe('native dropped media file paths', () => {
+  it('uses Electron native file validation and keeps unbacked files empty', () => {
+    const file = new File(['Invented bytes'], 'clip.mp4');
+    electron.getPathForFile.mockReturnValueOnce('C:\\media\\clip.mp4');
+    expect(api.media.pathForFile(file)).toBe('C:\\media\\clip.mp4');
+    expect(electron.getPathForFile).toHaveBeenCalledWith(file);
+    expect(api.media.pathForFile(file)).toBe('');
+    expect(electron.invoke).not.toHaveBeenCalled();
+  });
+
+  it('logs invalid native files and returns an empty path instead of throwing', () => {
+    electron.getPathForFile.mockImplementationOnce(() => {
+      throw new TypeError('Expected a native File');
+    });
+    expect(Reflect.apply(api.media.pathForFile, undefined, [{}])).toBe('');
+    expect(electron.send).toHaveBeenCalledWith(
+      Channels.logWrite,
+      expect.objectContaining({
+        level: 'error',
+        message: 'Ignored a bad request on media.pathForFile',
+      }),
+    );
+  });
 });
 
 function isLlpApi(value: unknown): value is LlpApi {

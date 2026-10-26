@@ -1,6 +1,8 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {MediaId} from '@shared/schema/ids';
 import type {Notice} from '@renderer/ui/notices';
+import {MEDIA_LIMITS} from '@shared/schema/mediaList';
+import type {MediaImportRequest} from '@shared/schema/mediaEdit';
 import {
   audioPlaylistId,
   mediaDocument,
@@ -23,6 +25,70 @@ function setup(fixture = mediaFixture(mediaDocument([mediaItem(1)]))) {
 const JOB = {mediaId: mediaId(9), fileName: 'Invented.mp4'} as const;
 
 describe('media library for the media view', () => {
+  it.each(['media', 'audio'] as const)(
+    'imports dropped files into a %s playlist with its copy progress',
+    async kind => {
+      const {library, importFiles, pathForFile} = setup();
+      const file = new File(['Invented bytes'], 'dropped.mp3');
+      pathForFile.mockReturnValue('C:\\media\\dropped.mp3');
+      importFiles.mockResolvedValue({
+        ok: true,
+        value: [{...JOB, phase: 'queued', percent: 0}],
+      });
+      const playlist: MediaImportRequest['playlist'] =
+        kind === 'media'
+          ? {kind, id: playlistId(1)}
+          : {kind, id: audioPlaylistId(1)};
+      await library.importFiles([file], playlist);
+      expect(pathForFile).toHaveBeenCalledExactlyOnceWith(file);
+      expect(importFiles).toHaveBeenCalledExactlyOnceWith({
+        source: {kind: 'files', paths: ['C:\\media\\dropped.mp3']},
+        playlist,
+      });
+      expect(library.getSnapshot().jobs).toHaveLength(1);
+      expect(library.getSnapshot().destinations.get(JOB.mediaId)).toBe(
+        playlist.id,
+      );
+    },
+  );
+
+  it('skips unbacked files and reports a drop without any native paths', async () => {
+    const {library, importFiles, pathForFile, problems} = setup();
+    const file = new File(['Invented bytes'], 'clip.mp4');
+    await library.importFiles([file], null);
+    expect(importFiles).not.toHaveBeenCalled();
+    expect(problems).toHaveBeenCalledWith(
+      expect.objectContaining({title: '미디어를 가져올 수 없음'}),
+    );
+    pathForFile
+      .mockReturnValueOnce('')
+      .mockReturnValueOnce('C:\\media\\clip.mp4');
+    await library.importFiles([file, file], null);
+    expect(importFiles).toHaveBeenCalledExactlyOnceWith({
+      source: {kind: 'files', paths: ['C:\\media\\clip.mp4']},
+      playlist: null,
+    });
+  });
+
+  it('caps native path reads and the import batch before sending a large drop', async () => {
+    const {library, importFiles, pathForFile} = setup();
+    pathForFile.mockImplementation(file => `C:\\media\\${file.name}`);
+    const files = Array.from(
+      {length: MEDIA_LIMITS.importBatch + 5},
+      (_, index) => new File(['Invented bytes'], `${index}.mp4`),
+    );
+    await library.importFiles(files, null);
+    expect(pathForFile).toHaveBeenCalledTimes(MEDIA_LIMITS.importBatch);
+    const request = importFiles.mock.calls[0]?.[0];
+    expect(request?.source.kind).toBe('files');
+    if (request?.source.kind !== 'files') {
+      throw new Error('Expected file import');
+    }
+    expect(request.source.paths).toHaveLength(MEDIA_LIMITS.importBatch);
+    expect(request.source.paths.at(-1)).toBe(
+      `C:\\media\\${MEDIA_LIMITS.importBatch - 1}.mp4`,
+    );
+  });
   it.each(['media', 'audio'] as const)(
     'removes from the current %s playlist after a newer document push',
     async kind => {

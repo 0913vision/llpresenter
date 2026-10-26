@@ -3,6 +3,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type DragEventHandler,
   type JSX,
   type KeyboardEvent,
   type ReactNode,
@@ -105,6 +106,8 @@ export interface VirtualMediaGridProps {
   readonly onMenu: (index: number, anchor: MenuAnchor) => void;
   /** The tile at an index of the whole list. */
   readonly tile: (index: number) => ReactNode;
+  readonly onDragOver?: DragEventHandler<HTMLDivElement>;
+  readonly onDrop?: DragEventHandler<HTMLDivElement>;
 }
 
 /**
@@ -123,6 +126,8 @@ export function VirtualMediaGrid({
   onOutput,
   onMenu,
   tile,
+  onDragOver,
+  onDrop,
 }: VirtualMediaGridProps): JSX.Element {
   const viewport = useRef<HTMLDivElement>(null);
   const focusNext = useRef<number | null>(null);
@@ -214,6 +219,8 @@ export function VirtualMediaGrid({
       className={styles.viewport}
       onScroll={event => setScrollTop(event.currentTarget.scrollTop)}
       onKeyDownCapture={navigate}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
     >
       <div className={styles.spacer} style={windowStyle}>
         <MediaGrid

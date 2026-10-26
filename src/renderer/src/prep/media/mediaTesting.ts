@@ -93,6 +93,7 @@ export function mediaFixture(document = mediaDocument([])) {
   const importFiles = vi.fn<
     (request: MediaImportRequest) => Promise<MediaImportResult>
   >(() => Promise.resolve({ok: true, value: []}));
+  const pathForFile = vi.fn<LlpApi['media']['pathForFile']>(() => '');
   const missing = vi.fn<() => Promise<MissingMedia>>(() => Promise.resolve([]));
   const write = vi.fn<LlpApi['log']['write']>();
   const send = vi.fn<LlpApi['live']['send']>();
@@ -101,6 +102,7 @@ export function mediaFixture(document = mediaDocument([])) {
       get: () => Promise.resolve(document),
       edit,
       import: importFiles,
+      pathForFile,
       subscribe: follow(listeners.document),
       subscribeImports: follow(listeners.imports),
       missing,
@@ -113,6 +115,7 @@ export function mediaFixture(document = mediaDocument([])) {
     api,
     edit,
     importFiles,
+    pathForFile,
     missing,
     write,
     send,

@@ -1,14 +1,24 @@
 import {act, fireEvent, render, screen, within} from '@testing-library/react';
-import {describe, expect, it, onTestFinished, vi} from 'vitest';
+import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
+import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {thumbnailUrl} from '@shared/media';
 import {mediaDocument, mediaFixture, mediaId, mediaItem} from './mediaTesting';
 import {cssRules} from '@renderer/shell/testing/cssRules';
 import {DEFAULT_MEDIA_COLUMNS, MediaView} from './MediaView';
-import {MediaViewProvider} from './MediaViewProvider';
+import {MediaViewProvider, useMediaView} from './MediaViewProvider';
+import type {MediaListChoice} from './mediaEntries';
+import type {MediaDocument, MediaImportResult} from '@shared/schema/mediaEdit';
+import {MEDIA_LIMITS} from '@shared/schema/mediaList';
+import {playlistId, audioPlaylistId} from './mediaTesting';
 import {INITIAL_ROWS, OVERSCAN_ROWS} from './VirtualMediaGrid';
 
-function setup() {
-  const fixture = mediaFixture(
+function ChoiceButton({choice}: {readonly choice: MediaListChoice}) {
+  const {choose} = useMediaView();
+  return <button onClick={() => choose(choice)}>Choose list</button>;
+}
+
+function setup(
+  fixture = mediaFixture(
     mediaDocument([
       mediaItem(1, {name: 'Dawn', size: 1024}),
       mediaItem(2, {
@@ -19,7 +29,9 @@ function setup() {
       }),
       mediaItem(3, {name: 'Hymn', kind: 'audio', file: 'hymn.mp3', size: 1024}),
     ]),
-  );
+  ),
+  choice?: MediaListChoice,
+) {
   const problems = vi.fn();
   window.llp = fixture.api;
   onTestFinished(() => {
@@ -27,6 +39,7 @@ function setup() {
   });
   render(
     <MediaViewProvider api={fixture.api} onProblem={problems}>
+      {choice !== undefined && <ChoiceButton choice={choice} />}
       <MediaView onProblem={problems} />
     </MediaViewProvider>,
   );
@@ -39,6 +52,144 @@ async function tile(name: string): Promise<HTMLElement> {
 }
 
 describe('media view', () => {
+  afterEach(resetTooltips);
+  it.each(['media', 'audio'] as const)(
+    'drops native files into the selected %s playlist and shows copy progress',
+    async kind => {
+      const id = kind === 'media' ? playlistId(1) : audioPlaylistId(1);
+      const document = mediaDocument([], 1, {
+        playlists: [{id: playlistId(1), name: 'Target', items: []}],
+        audioPlaylists: [
+          {id: audioPlaylistId(1), name: 'Target', items: [], loop: true},
+        ],
+      });
+      const {importFiles, pathForFile} = setup(mediaFixture(document), {
+        kind,
+        id,
+      });
+      fireEvent.click(screen.getByRole('button', {name: 'Choose list'}));
+      const grid = await screen.findByRole('listbox', {name: 'Target'});
+      const file = new File(['Invented bytes'], 'dropped.mp3');
+      pathForFile.mockReturnValue('C:\\media\\dropped.mp3');
+      importFiles.mockResolvedValue({
+        ok: true,
+        value: [
+          {
+            mediaId: mediaId(9),
+            fileName: file.name,
+            phase: 'queued',
+            percent: 0,
+          },
+        ],
+      });
+      const dataTransfer = {
+        types: ['Files'],
+        files: [file],
+        dropEffect: 'none',
+      };
+      expect(fireEvent.dragOver(grid, {dataTransfer})).toBe(false);
+      expect(dataTransfer.dropEffect).toBe('copy');
+      expect(fireEvent.drop(grid, {dataTransfer})).toBe(false);
+      expect(importFiles).toHaveBeenCalledExactlyOnceWith({
+        source: {kind: 'files', paths: ['C:\\media\\dropped.mp3']},
+        playlist: {kind, id},
+      });
+      const copying = await within(grid).findByRole('option', {
+        name: file.name,
+      });
+      expect(within(copying).getByRole('progressbar')).toBeDefined();
+    },
+  );
+
+  it('caps dropped files before reading native paths', async () => {
+    const {importFiles, pathForFile} = setup();
+    const grid = await screen.findByRole('listbox', {name: '모든 미디어'});
+    await tile('Dawn');
+    pathForFile.mockImplementation(file => `C:\\media\\${file.name}`);
+    const files = Array.from(
+      {length: MEDIA_LIMITS.importBatch + 1},
+      (_, index) => new File(['Invented bytes'], `${index}.mp4`),
+    );
+    fireEvent.drop(grid, {dataTransfer: {types: ['Files'], files}});
+    expect(pathForFile).toHaveBeenCalledTimes(MEDIA_LIMITS.importBatch);
+    expect(importFiles).toHaveBeenCalledWith({
+      source: {
+        kind: 'files',
+        paths: files
+          .slice(0, MEDIA_LIMITS.importBatch)
+          .map(file => `C:\\media\\${file.name}`),
+      },
+      playlist: null,
+    });
+  });
+
+  it.each(['loading', 'readOnly'] as const)(
+    'blocks file navigation and import while %s',
+    async state => {
+      const fixture = mediaFixture({...mediaDocument([]), access: 'readOnly'});
+      if (state === 'loading') {
+        vi.spyOn(fixture.api.media, 'get').mockReturnValue(
+          new Promise<MediaDocument>(() => undefined),
+        );
+      }
+      const {importFiles, pathForFile} = setup(fixture);
+      const grid = screen.getByRole('listbox', {name: '모든 미디어'});
+      await act(() => Promise.resolve());
+      const button = screen.getByRole('button', {name: '가져오기'});
+      expect(button.getAttribute('aria-disabled')).toBe('true');
+      expect((await hoverForTooltip(button))?.textContent).toBe(
+        state === 'loading' ? '미디어를 불러오는 중' : '읽기 전용 미디어',
+      );
+      const dataTransfer = {
+        types: ['Files'],
+        files: [new File(['Invented bytes'], 'clip.mp4')],
+        dropEffect: 'copy',
+      };
+      expect(fireEvent.dragOver(grid, {dataTransfer})).toBe(false);
+      expect(dataTransfer.dropEffect).toBe('none');
+      expect(fireEvent.drop(grid, {dataTransfer})).toBe(false);
+      expect(pathForFile).not.toHaveBeenCalled();
+      expect(importFiles).not.toHaveBeenCalled();
+    },
+  );
+
+  it('does not accept text drags or empty file drops', async () => {
+    const {importFiles, pathForFile} = setup();
+    const grid = await screen.findByRole('listbox', {name: '모든 미디어'});
+    await tile('Dawn');
+    const dataTransfer = {types: ['text/plain'], files: []};
+    expect(fireEvent.dragOver(grid, {dataTransfer})).toBe(true);
+    expect(fireEvent.drop(grid, {dataTransfer})).toBe(true);
+    fireEvent.drop(grid, {dataTransfer: {types: ['Files'], files: []}});
+    expect(pathForFile).not.toHaveBeenCalled();
+    expect(importFiles).not.toHaveBeenCalled();
+  });
+
+  it('blocks overlapping drops and accepts the next batch after the request finishes', async () => {
+    const {importFiles, pathForFile} = setup();
+    await tile('Dawn');
+    const grid = screen.getByRole('listbox', {name: '모든 미디어'});
+    pathForFile.mockReturnValue('C:\\media\\clip.mp4');
+    let finish: (result: MediaImportResult) => void = () => undefined;
+    importFiles.mockReturnValueOnce(
+      new Promise<MediaImportResult>(resolve => {
+        finish = resolve;
+      }),
+    );
+    onTestFinished(() => finish({ok: true, value: []}));
+    const dataTransfer = {
+      types: ['Files'],
+      files: [new File(['Invented bytes'], 'clip.mp4')],
+    };
+    fireEvent.drop(grid, {dataTransfer});
+    fireEvent.drop(grid, {dataTransfer});
+    expect(importFiles).toHaveBeenCalledOnce();
+    await act(async () => {
+      finish({ok: true, value: []});
+    });
+    fireEvent.drop(grid, {dataTransfer});
+    expect(importFiles).toHaveBeenCalledTimes(2);
+  });
   it('shows every item with its thumbnail and duration, and the total size', async () => {
     setup();
     const video = await tile('Dawn');

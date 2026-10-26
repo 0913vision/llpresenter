@@ -105,6 +105,7 @@ export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
       ...overrides.settings,
     },
     media: {
+      pathForFile: () => '',
       get: () => Promise.resolve(EMPTY_MEDIA),
       edit: () => Promise.resolve(NOT_FOUND),
       import: () => Promise.resolve({ok: true, value: []}),

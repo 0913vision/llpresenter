@@ -6,6 +6,7 @@ import type {
   MediaImportRequest,
 } from '@shared/schema/mediaEdit';
 import type {MissingMedia} from '@shared/schema/mediaFiles';
+import {MEDIA_LIMITS} from '@shared/schema/mediaList';
 import {updateActiveCopies, type CopyJob} from '@renderer/show/mediaCopyJobs';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {chosenPlaylist, type ChosenPlaylist} from './mediaEntries';
@@ -157,9 +158,32 @@ export class MediaLibrary {
   }
 
   /** 가져오기: the file dialog, then a copy job per chosen file. */
-  async import(playlist: MediaImportRequest['playlist']): Promise<void> {
+  import(playlist: MediaImportRequest['playlist']): Promise<void> {
+    return this.importSource({kind: 'dialog'}, playlist);
+  }
+
+  /** Imports the first bounded batch of native dropped files into the chosen list. */
+  async importFiles(
+    files: readonly File[],
+    playlist: MediaImportRequest['playlist'],
+  ): Promise<void> {
+    const paths = files
+      .slice(0, MEDIA_LIMITS.importBatch)
+      .map(file => this.api.media.pathForFile(file))
+      .filter(path => path !== '');
+    if (paths.length === 0) {
+      this.onProblem(warning('media-view:import', '미디어를 가져올 수 없음'));
+      return;
+    }
+    return this.importSource({kind: 'files', paths}, playlist);
+  }
+
+  private async importSource(
+    source: MediaImportRequest['source'],
+    playlist: MediaImportRequest['playlist'],
+  ): Promise<void> {
     const result = await this.api.media
-      .import({source: {kind: 'dialog'}, playlist})
+      .import({source, playlist})
       .catch(rejected);
     if (!result.ok) {
       this.refused('Media import was refused', result.error.message);

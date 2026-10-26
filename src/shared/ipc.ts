@@ -335,6 +335,8 @@ export interface LlpApi {
     subscribe(listener: (document: SettingsDocument) => void): Unsubscribe;
   };
   readonly media: {
+    /** Reads a native dropped File's path, or an empty string when unavailable. */
+    pathForFile(file: File): string;
     get(): Promise<MediaDocument>;
     edit(edit: MediaEdit): Promise<MediaEditResult>;
     /** Starts copy jobs; an empty success means the file dialog was cancelled. */

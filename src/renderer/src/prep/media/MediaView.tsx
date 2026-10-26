@@ -1,8 +1,9 @@
-import {useMemo, useState, type JSX} from 'react';
+import {useMemo, useRef, useState, type DragEvent, type JSX} from 'react';
 import {thumbnailUrl} from '@shared/media';
 import {mediaLoops} from '@shared/mediaEndRule';
 import type {MediaId} from '@shared/schema/ids';
 import type {MediaItem} from '@shared/schema/mediaList';
+import {MEDIA_LIMITS} from '@shared/schema/mediaList';
 import {sendLive, useLive} from '@renderer/state/live';
 import {
   Button,
@@ -103,6 +104,7 @@ export function MediaView({onProblem}: MediaViewProps): JSX.Element {
   const [columns, setColumns] = useState(DEFAULT_MEDIA_COLUMNS);
   const [menu, setMenu] = useState<OpenMenu | null>(null);
   const [importing, setImporting] = useState(false);
+  const importPending = useRef(false);
   const [deleting, setDeleting] = useState<MediaItem | null>(null);
   const liveId = useLive(state => state.state?.layers.media?.mediaId);
   const entries = useMemo(() => mediaEntries(view, choice), [view, choice]);
@@ -173,16 +175,53 @@ export function MediaView({onProblem}: MediaViewProps): JSX.Element {
     },
     remove: setDeleting,
   });
-  const startImport = (): void => {
+  const importReason = importing
+    ? '미디어를 가져오는 중'
+    : view.document === null
+      ? '미디어를 불러오는 중'
+      : view.document.access !== 'editable'
+        ? '읽기 전용 미디어'
+        : undefined;
+  const startImport = (files?: readonly File[]): void => {
+    if (importReason !== undefined || importPending.current) return;
+    importPending.current = true;
     setImporting(true);
-    library
-      .import(playlist === null ? null : playlistRef(playlist))
+    const destination = playlist === null ? null : playlistRef(playlist);
+    const pending =
+      files === undefined
+        ? library.import(destination)
+        : library.importFiles(files, destination);
+    pending
       .catch((cause: unknown) => {
         console.error('Media import failed:', cause);
       })
       .finally(() => {
+        importPending.current = false;
         setImporting(false);
       });
+  };
+  const dragOver = (event: DragEvent<HTMLDivElement>): void => {
+    if (!event.dataTransfer.types.includes('Files')) return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.dataTransfer.dropEffect =
+      importReason === undefined && !importPending.current ? 'copy' : 'none';
+  };
+  const drop = (event: DragEvent<HTMLDivElement>): void => {
+    if (!event.dataTransfer.types.includes('Files')) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (importReason !== undefined || importPending.current) return;
+    const files: File[] = [];
+    const count = Math.min(
+      event.dataTransfer.files.length,
+      MEDIA_LIMITS.importBatch,
+    );
+    for (let index = 0; index < count; index++) {
+      const file = event.dataTransfer.files[index];
+      if (file !== undefined) files.push(file);
+    }
+    if (files.length > 0) startImport(files);
   };
   return (
     <>
@@ -195,13 +234,20 @@ export function MediaView({onProblem}: MediaViewProps): JSX.Element {
           />
           <PanelMeta>{items.length}</PanelMeta>
           <PanelActions>
-            <Button icon="upload" disabled={importing} onClick={startImport}>
+            <Button
+              icon="upload"
+              disabled={importReason !== undefined}
+              title={importReason}
+              onClick={() => startImport()}
+            >
               가져오기
             </Button>
           </PanelActions>
         </PanelHeader>
         <PanelBody tab="list" className={styles.body}>
           <VirtualMediaGrid
+            onDragOver={dragOver}
+            onDrop={drop}
             label={title}
             count={entries.length}
             columns={columns}
