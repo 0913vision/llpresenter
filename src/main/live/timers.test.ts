@@ -92,6 +92,16 @@ describe('timer slice', () => {
     expect(store.state.version).toBe(version);
   });
 
+  it('keeps the moment of the first pause when paused again', () => {
+    const {store, advance} = setup();
+    store.dispatch(command('timer.start', START_TIME));
+    store.dispatch(command('timer.pause', START_TIME));
+    const paused = runOf(store, START_TIME);
+    advance(60 * SECOND);
+    expect(store.dispatch(command('timer.pause', START_TIME))).toBe(false);
+    expect(runOf(store, START_TIME)).toBe(paused);
+  });
+
   it('stops a 타이머 on reset and leaves the others running', () => {
     const {store} = setup();
     store.dispatch(command('timer.start', SERMON));
