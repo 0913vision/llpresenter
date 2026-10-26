@@ -130,3 +130,17 @@ missing.
 ## Team member's reply
 
 1.
+
+## Round 1 reply
+
+Both in `fix(prep): keep newer missing files and report rejected media calls`.
+
+1. [P2] `mediaLibrary.ts:95`, a late first `missing()` reply could overwrite a
+   newer push. Once a push has arrived, the first reply is ignored. Regressions:
+   a push before a late reply keeps the push; a reply that comes first is taken,
+   and the pushes after it follow.
+2. [P2] `mediaLibrary.ts:109`, rejected calls escaped without their notice.
+   Import, cancel, and relink now turn a rejected call into a refusal, so it
+   gets the same Korean notice and its message goes to the log; the relink guard
+   is released either way. Regression: a rejected import, cancel, and relink
+   each give their notice, and a relink after the rejected one reaches main.
