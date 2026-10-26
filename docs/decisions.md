@@ -444,3 +444,23 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   with positioned reads and keeps recent chapters in a capped cache. The October
   25 rule still holds: no Bible text and no file built from a crawl is committed
   to the public repository; the files live in the app data folder.
+
+## 2026-10-26: Decisions from the m3-check3 user check
+
+- No 빈 자리 (slot) items (user decision): "빈 자리라는 걸 왜 두는지 모르겠어,
+  그냥 곡 같잖아; 구역을 만들어서 비운 채로 두는 게 합리적". A section (머리글)
+  may be empty, the operator adds and removes sections freely, and templates
+  hold empty sections. A file that has slot items reads each one as an empty
+  section with the slot's title, keeping unknown fields; new writes have no
+  slots.
+- Turning a screen output off hides its window, so that monitor shows the
+  Windows desktop (user decision; Renewed Vision's documents and the 7.5 guide
+  don't say what ProPresenter shows, so this is not a ProPresenter rule).
+- The clear keys are toggles (user decision): pressing F1 to F7 again restores
+  what that key cleared. Anything new sent to the output after the clear resets
+  the toggle, so the next press clears again. ProPresenter documents F2 as Clear
+  Slide with a separate Undo; no source says it toggles, so this is the user's
+  rule.
+- Turning an output on shows a complete frame at once (spec 03): the output
+  window is loaded ahead of time with its background ready, and no dissolve
+  plays on reveal (bug M3-C3-1 from the check).
