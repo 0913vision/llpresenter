@@ -59,3 +59,10 @@ duplicate identities, broken headers and pending success/failure after clear.
 ## Team member's reply
 
 1.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (d4862b24): reviewer (Codex) Approve. Lead Approve; a build-time
+  script converts a `.llbible` v1 JSON file into the chunked file of data-62
+  with an atomic write, tested with invented sentences only. Rebased by the lead
+  onto local `main` without conflicts; typecheck passes.
