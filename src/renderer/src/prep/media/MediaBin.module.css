@@ -6,7 +6,6 @@
   grid-template-columns: var(--ll-col-left) minmax(0, 1fr) var(--ll-col-right);
   gap: var(--panel-gap);
   padding: 0 var(--panel-gap);
-  flex: 0 0 min(40%, calc(var(--size-media-strip-tile) * 2));
   min-height: 0;
   overflow: hidden;
 }

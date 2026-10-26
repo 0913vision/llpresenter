@@ -186,6 +186,8 @@
   --dialog-xl: 1080px;
   --window-min-width: 1280px;
   --window-min-height: 720px;
+  --workspace-upper-min-height: 440px;
+  --media-bin-min-height: 168px;
   --size-editor-label: 120px;
   --size-calendar-width: 250px;
   --size-calendar-day: 30px;

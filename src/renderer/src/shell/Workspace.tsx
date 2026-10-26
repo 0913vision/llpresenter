@@ -503,7 +503,14 @@ export function Workspace({
   // TODO(0913vision): Let the shrink rule ignore the hidden left width while
   // the left column is collapsed; it still counts the saved width now.
   const frame = (
-    <main ref={gridRef} className={styles.workspace}>
+    <main
+      ref={gridRef}
+      data-workspace-layout={id}
+      className={classNames(
+        styles.workspace,
+        mediaOpen && api !== undefined && styles.mediaOpen,
+      )}
+    >
       {id === 'show' ? (
         <ShowShortcuts onProblem={onProblem ?? logPanelProblem} />
       ) : null}

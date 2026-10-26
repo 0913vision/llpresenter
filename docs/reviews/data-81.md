@@ -14,9 +14,10 @@ replaced that subtree with MediaBin and the shared media-library provider. The
 removed files have no remaining production consumers in that base.
 
 QuickPanel and BiblePanel tests lose only their obsolete ShowMediaPanel mocks.
-The shell visibility hook, shared UI MediaStrip primitive, current preview
-player and media-copy job reducer remain because active code still uses them. No
-replacement implementation or operator behavior is added here.
+The shell visibility hook, current preview player and media-copy job reducer
+remain because production code uses them. The shared UI MediaStrip stays as a
+design-system primitive used by the gallery and tests. No replacement
+implementation or operator behavior is added here.
 
 This is mostly deletion: eight retired files and two mock lines. It is one
 cleanup unit so the mutually dependent obsolete components do not linger. Do not
@@ -55,6 +56,8 @@ playlist-rename regression check; the requests must merge in the order above.
 ![Shared bin after retiring the old Show subtree](assets/data-81/bin-show.png)
 
 ![준비 source editor remains above the shared bin](assets/data-81/bin-prep-editor.png)
+
+![View menu controls the bin while retaining the preparation editor](assets/data-81/bin-prep-view-menu.png)
 
 ![The bin remains usable at 1366x768](assets/data-81/bin-narrow.png)
 

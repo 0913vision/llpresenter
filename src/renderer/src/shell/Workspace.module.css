@@ -1,8 +1,22 @@
 .workspace {
-  display: flex;
+  display: grid;
   flex: 1;
-  flex-direction: column;
+  grid-template-rows: minmax(var(--workspace-upper-min-height), 1fr);
   min-height: 0;
+  overflow: auto;
+}
+
+.mediaOpen {
+  grid-template-rows:
+    minmax(var(--workspace-upper-min-height), 1fr)
+    clamp(
+      var(--media-bin-min-height),
+      min(
+        40%,
+        calc(100% - var(--workspace-upper-min-height) - var(--panel-gap))
+      ),
+      calc(var(--size-media-strip-tile) * 2)
+    );
   gap: var(--panel-gap);
 }
 
@@ -101,7 +115,7 @@
 }
 
 .content .body {
-  overflow: hidden;
+  overflow: auto;
 }
 
 .rest {

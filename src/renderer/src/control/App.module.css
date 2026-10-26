@@ -16,3 +16,7 @@
       var(--size-statusbar)
   );
 }
+
+.app > main[data-workspace-layout] {
+  min-height: 0;
+}
