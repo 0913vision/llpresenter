@@ -88,7 +88,10 @@ function Live({
 export function SliderSection(): JSX.Element {
   return (
     <Section title="Slider">
-      <SpecGroup title="Slider, track 4, knob 12" surface="panel">
+      <SpecGroup
+        title="Slider: 22px hit area, track 4, knob 12"
+        surface="panel"
+      >
         <SpecItem label="Default">
           <Live {...THUMBNAIL} initial={3} />
         </SpecItem>

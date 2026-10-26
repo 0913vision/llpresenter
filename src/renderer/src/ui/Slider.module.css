@@ -7,12 +7,13 @@
   --slider-hit-height: var(--size-slider-hit);
   --slider-track-height: var(--size-slider-track);
   --slider-knob-size: var(--size-slider-knob);
-  --slider-focus-gap: 1px;
-  --slider-focus-ring: 2px;
+  --slider-focus-gap: var(--radius-hairline);
+  --slider-focus-ring: var(--space-2);
 
   display: inline-block;
   flex: none;
   width: var(--slider-width);
+  min-width: var(--size-control-xs);
   height: var(--slider-hit-height);
   margin: 0;
   padding: 0;
@@ -29,7 +30,7 @@
 .block {
   flex: 1 1 auto;
   width: auto;
-  min-width: 0;
+  min-width: var(--size-control-xs);
 }
 
 .onDialog {

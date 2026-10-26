@@ -16,7 +16,9 @@ A horizontal slider that sets a value by dragging. Use it for the thumbnail size
 ## Anatomy
 
 - Redraw the native `input[type="range"]` with `appearance: none`.
-- Hit height 16px, track 4px `radius-full`.
+- Hit height `size-slider-hit` (22px), meeting the global 22x22 minimum target.
+  The whole transparent input area accepts pointing; the visual track stays
+  4px `radius-full` and the knob stays 12px. Center both within the hit area.
 - Filled part `text`, remaining part `line-strong`. This carries over `accent-color: #ececec` from the drafts as is. Don't use blue (`accent`). A slider shows size and amount, not state, so don't mix it with the blue that is reserved for selection and focus.
 - Knob: a 12×12 circle in `text`.
 - Width: 120px in a regular window, 96px in a narrow window and for the 진행 도구 volume (`ll-slider--compact`), fills the control cell in a property field (`ll-slider--block`).
@@ -27,9 +29,13 @@ A horizontal slider that sets a value by dragging. Use it for the thumbnail size
 
 | Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
-| Default | 16 (track 4) | - | Thumbnail size in the row under the grid, width 120 |
-| compact | 16 | - | Thumbnail size in a narrow window, 진행 도구 volume, width 96 |
-| block | 16 | - | Volume inside a property field, as wide as the cell |
+| Default | 22 (track 4, knob 12) | - | Thumbnail size in the row under the grid, width 120 |
+| compact | 22 | - | Thumbnail size in a narrow window, 진행 도구 volume, width 96 |
+| block | 22 | - | Volume inside a property field, cell width with a 22px minimum |
+
+This resolves M3-UX-07's conflict between the former 16px slider hit height and
+the global minimum. The footer remains 32px. This is our design rule, not a
+claim about ProPresenter's numeric target size.
 
 ## States
 

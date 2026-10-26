@@ -148,6 +148,9 @@ axis. See the component README and reference card before implementing M3-O3.
 
 - Buttons and text fields come in two sizes only: sm (26) and md (30). Use sm in panels, and md in dialogs, Preferences, and the toolbar search field. Don't make 24, 28, or 32px buttons.
 - Don't make a clickable area smaller than 22×22.
+- Sliders meet that minimum with a transparent 22px input height
+  (`size-slider-hit`); their visual track and knob stay 4px and 12px. A smaller
+  painted shape does not reduce the pointer target.
 
 ## Corners, borders, and shadows
 

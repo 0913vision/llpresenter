@@ -194,3 +194,18 @@ describe('smart guide design contract', () => {
     }
   });
 });
+
+describe('slider pointer target', () => {
+  it('meets the 22px minimum without growing the painted track or knob', () => {
+    for (const css of [designCss, appCss]) {
+      expect(css).toContain('--size-slider-hit: 22px;');
+      expect(css).toContain('--size-slider-track: 4px;');
+      expect(css).toContain('--size-slider-knob: 12px;');
+    }
+    const reference = readFileSync(
+      resolve(REPOSITORY, 'design/system/css/24-slider.css'),
+      'utf8',
+    );
+    expect(reference).toContain('height: var(--size-slider-hit)');
+  });
+});

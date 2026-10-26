@@ -2,16 +2,16 @@
 .ll-slider {
   --ll-value: 50%; --ll-slider-fill: var(--text); --ll-slider-knob: var(--text); --ll-slider-cut: var(--bg-panel);
   -webkit-appearance: none; appearance: none; box-sizing: border-box; display: inline-block; flex: none;
-  width: 120px; height: 16px; margin: 0; padding: 0; border: 0; background: transparent; vertical-align: middle;
+  width: var(--size-slider); min-width: var(--size-control-xs); height: var(--size-slider-hit); margin: 0; padding: 0; border: 0; background: transparent; vertical-align: middle;
 }
-.ll-slider--compact { width: 96px; }
-.ll-slider--block { flex: 1 1 auto; width: auto; min-width: 0; }
+.ll-slider--compact { width: var(--size-slider-compact); }
+.ll-slider--block { flex: 1 1 auto; width: auto; min-width: var(--size-control-xs); }
 .ll-slider::-webkit-slider-runnable-track {
-  height: 4px; border-radius: var(--radius-full);
+  height: var(--size-slider-track); border-radius: var(--radius-full);
   background: linear-gradient(to right, var(--ll-slider-fill) 0 var(--ll-value), var(--line-strong) var(--ll-value) 100%);
 }
 .ll-slider::-webkit-slider-thumb {
-  -webkit-appearance: none; appearance: none; box-sizing: border-box; width: 12px; height: 12px; margin-top: -4px;
+  -webkit-appearance: none; appearance: none; box-sizing: border-box; width: var(--size-slider-knob); height: var(--size-slider-knob); margin-top: calc((var(--size-slider-track) - var(--size-slider-knob)) / 2);
   border: 0; border-radius: var(--radius-full); background: var(--ll-slider-knob);
 }
 /* Focus ring goes on the knob only: 1px gap + 2px accent */
