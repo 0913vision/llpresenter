@@ -1,5 +1,6 @@
 import {useState, type JSX} from 'react';
 import type {SizeClass} from '@renderer/shell/sizeClass';
+import {useShowToolTab} from '@renderer/state/showToolTab';
 import {Icon} from '@renderer/ui/Icon';
 import {Menu} from '@renderer/ui/Menu';
 import {openOnArrowDown} from '@renderer/ui/menuButton';
@@ -77,7 +78,8 @@ export function ShowToolsPanel({
 }: {
   readonly sizeClass: SizeClass;
 }): JSX.Element {
-  const [tool, setTool] = useState<ShowTool>('showing');
+  const tool = useShowToolTab(state => state.tool);
+  const setTool = useShowToolTab(state => state.setTool);
   const {tabs, more} = showToolGroups(sizeClass);
   // TODO(0913vision): Mount the tools role's content in the tab panel.
   return (

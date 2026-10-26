@@ -6,7 +6,10 @@ import type {UiState} from '@shared/schema/uiState';
 import {editorFixture} from '@renderer/prep/editor/editorFixture';
 import {createMemoryColumnWidthStore} from '@renderer/shell/columnWidthStore';
 import {useLive} from '@renderer/state/live';
+import type {LiveCommand} from '@shared/commands';
+import {sampleService} from '@renderer/show/testing/sampleService';
 import {applyService} from '@renderer/state/show';
+import {useShowToolTab} from '@renderer/state/showToolTab';
 import {App} from './App';
 import {ControlSession} from './controlSession';
 
@@ -45,7 +48,18 @@ const EXPAND = '사이드바 펼치기';
 const collapseButton = () => screen.queryByRole('button', {name: COLLAPSE});
 const expandButton = () => screen.queryByRole('button', {name: EXPAND});
 
+function sentTypes(
+  calls: ReadonlyArray<readonly [LiveCommand]>,
+): readonly string[] {
+  return calls.flatMap(([command]) =>
+    command.type === 'live.batch'
+      ? command.commands.map(child => child.type)
+      : [command.type],
+  );
+}
+
 beforeEach(() => {
+  useShowToolTab.setState({tool: 'showing'});
   applyService(null);
   useLive.setState({state: emptyLiveState()});
 });
@@ -134,4 +148,27 @@ it('leaves the focus alone when it was outside the left column', async () => {
   more.focus();
   await userEvent.click(screen.getByRole('button', {name: COLLAPSE}));
   expect(document.activeElement).toBe(more);
+});
+
+it('lets the focus fall to the body after a click, so Space is the next slide', async () => {
+  applyService(sampleService);
+  const {send} = setup(NARROW.width, NARROW.height);
+  await userEvent.click(screen.getByRole('option', {name: /아침이 밝아 오네/}));
+  await userEvent.click(screen.getByRole('button', {name: COLLAPSE}));
+  expect(document.activeElement).not.toBe(expandButton());
+  await userEvent.keyboard(' ');
+  expect(sentTypes(send.mock.calls)).toContain('slide.show');
+  expect(expandButton()).not.toBeNull();
+});
+
+it('keeps the chosen 진행 도구 tab through 준비 and back', async () => {
+  setup(NARROW.width, NARROW.height);
+  await userEvent.click(screen.getByRole('button', {name: '더 보기'}));
+  await userEvent.click(screen.getByRole('menuitemradio', {name: '타이머'}));
+  await userEvent.click(screen.getByRole('tab', {name: '준비'}));
+  await userEvent.click(screen.getByRole('tab', {name: '진행'}));
+  expect(screen.getByRole('tabpanel', {name: '타이머'})).toBeDefined();
+  expect(
+    screen.getByRole('button', {name: '더 보기'}).hasAttribute('data-active'),
+  ).toBe(true);
 });

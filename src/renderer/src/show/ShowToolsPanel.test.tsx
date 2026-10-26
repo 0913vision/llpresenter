@@ -1,8 +1,10 @@
 import {cleanup, render, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {afterEach, expect, it} from 'vitest';
+import {afterEach, beforeEach, expect, it} from 'vitest';
+import {useShowToolTab} from '@renderer/state/showToolTab';
 import {ShowToolsPanel} from './ShowToolsPanel';
 
+beforeEach(() => useShowToolTab.setState({tool: 'showing'}));
 afterEach(cleanup);
 
 const tabNames = (): readonly string[] =>
@@ -86,4 +88,12 @@ it('selects a tab with the arrow keys', async () => {
   screen.getByRole('tab', {name: '표시 중'}).focus();
   await userEvent.keyboard('{ArrowRight}');
   expect(screen.getByRole('tabpanel', {name: '무대'})).toBeDefined();
+});
+
+it('keeps the chosen tool when the panel mounts again', async () => {
+  const {unmount} = render(<ShowToolsPanel sizeClass="normal" />);
+  await userEvent.click(screen.getByRole('tab', {name: '공지'}));
+  unmount();
+  render(<ShowToolsPanel sizeClass="normal" />);
+  expect(screen.getByRole('tabpanel', {name: '공지'})).toBeDefined();
 });

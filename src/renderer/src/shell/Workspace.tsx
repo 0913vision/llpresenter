@@ -287,11 +287,12 @@ function serviceOrderParts({
 }
 
 /**
- * Collapses and expands the left column. When the button that is pressed
- * leaves with the keyboard focus, the button that replaces it takes it.
+ * Collapses and expands the left column. When the pressed button itself has
+ * the keyboard focus (a key press, not a click in 진행), the button that
+ * replaces it takes the focus; otherwise the focus falls to the body, where
+ * the 진행 keys work.
  */
 function useSidebarToggle(sidebar: SidebarCollapse | undefined) {
-  const columnRef = useRef<HTMLDivElement>(null);
   const pendingFocus = useRef(false);
   const claimFocus = useCallback((): boolean => {
     const pending = pendingFocus.current;
@@ -299,13 +300,11 @@ function useSidebarToggle(sidebar: SidebarCollapse | undefined) {
     return pending;
   }, []);
   const setCollapsed = sidebar?.setCollapsed;
-  const toggle = (collapsed: boolean): void => {
-    pendingFocus.current =
-      columnRef.current?.contains(document.activeElement) ?? false;
+  const toggle = (collapsed: boolean, button: HTMLButtonElement): void => {
+    pendingFocus.current = document.activeElement === button;
     setCollapsed?.(collapsed);
   };
   return {
-    columnRef,
     claimFocus,
     collapsible: setCollapsed !== undefined,
     collapsed: setCollapsed !== undefined && sidebar?.collapsed === true,
@@ -355,7 +354,7 @@ export function Workspace({
         actions: toggle.collapsible ? (
           <SidebarCollapseButton
             claimFocus={toggle.claimFocus}
-            onPress={() => toggle.toggle(true)}
+            onPress={button => toggle.toggle(true, button)}
           />
         ) : null,
       });
@@ -364,6 +363,8 @@ export function Workspace({
       ? showPanelParts(title, sizeClass, onProblem)
       : prepPanelParts({title, prep, hasSong, onProblem, sizeClass});
   };
+  // TODO(0913vision): Let the shrink rule ignore the hidden left width while
+  // the left column is collapsed; it still counts the saved width now.
   return (
     <main
       ref={gridRef}
@@ -383,7 +384,6 @@ export function Workspace({
             <ColumnGap column={column === 1 ? 'left' : 'right'} drag={drag} />
           ) : null}
           <div
-            ref={column === 0 ? toggle.columnRef : undefined}
             className={styles.column}
             style={
               column === 2 && warningHeight > 0
@@ -394,7 +394,7 @@ export function Workspace({
             {column === 0 && toggle.collapsed ? (
               <CollapsedSidebar
                 claimFocus={toggle.claimFocus}
-                onPress={() => toggle.toggle(false)}
+                onPress={button => toggle.toggle(false, button)}
               />
             ) : (
               panels

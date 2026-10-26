@@ -3,7 +3,8 @@ import {IconButton} from '@renderer/ui/IconButton';
 import styles from './SidebarToggle.module.css';
 
 interface ToggleProps {
-  readonly onPress: () => void;
+  /** Receives the pressed button, so the caller can tell whether it had focus. */
+  readonly onPress: (button: HTMLButtonElement) => void;
   /**
    * Called once when the button appears; `true` means the other button left
    * with the keyboard focus, so this one takes it.
@@ -31,7 +32,7 @@ export function SidebarCollapseButton({
       icon="arrow"
       label="사이드바 접기"
       className={styles.collapse}
-      onClick={onPress}
+      onClick={event => onPress(event.currentTarget)}
     />
   );
 }
@@ -48,7 +49,7 @@ export function CollapsedSidebar({
         ref={ref}
         icon="arrow"
         label="사이드바 펼치기"
-        onClick={onPress}
+        onClick={event => onPress(event.currentTarget)}
       />
     </div>
   );
