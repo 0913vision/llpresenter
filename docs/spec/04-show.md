@@ -44,18 +44,21 @@ Source: `Main` decisions "진행 화면은 절충안" and "작업 공간 세 개
 
 ### List
 
-| Row           | Shows                                                                                            | Clicking it                                                                         |
-| ------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
-| Header        | Group name, for example 예배 전 (before service), 찬양 (praise), 말씀 (sermon), 마무리 (closing) | Nothing. Headers can't be selected.                                                 |
-| Song          | Song icon, song title                                                                            | Selects the row and opens the song's 슬라이드 in the 슬라이드 panel, in 구성 order. |
-| Bible passage | Book icon, passage name, for example 요한복음 3장 16절                                           | Selects the row and opens the passage's 슬라이드 in the 슬라이드 panel.             |
-| Media         | Video icon, media name, for example 예배 전 카운트다운                                           | Selects the row and opens one media tile in the 슬라이드 panel (proposal).          |
-| 공지          | 공지 icon, 공지 set name, for example 주일 광고                                                  | Selects the row and opens the 공지 images as 슬라이드 (proposal).                   |
-| Slot          | Icon of the accepted kind, name, dashed box                                                      | Selects the row and leaves the 슬라이드 panel empty (proposal).                     |
+| Row            | Shows                                                                                            | Clicking it                                                                         |
+| -------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| Section (구역) | Group name, for example 예배 전 (before service), 찬양 (praise), 말씀 (sermon), 마무리 (closing) | Selects the section as the target for 항목 추가; the 슬라이드 panel stays empty.    |
+| Song           | Song icon, song title                                                                            | Selects the row and opens the song's 슬라이드 in the 슬라이드 panel, in 구성 order. |
+| Bible passage  | Book icon, passage name, for example 요한복음 3장 16절                                           | Selects the row and opens the passage's 슬라이드 in the 슬라이드 panel.             |
+| Media          | Video icon, media name, for example 예배 전 카운트다운                                           | Selects the row and opens one media tile in the 슬라이드 panel (proposal).          |
+| 공지           | 공지 icon, 공지 set name, for example 주일 광고                                                  | Selects the row and opens the 공지 images as 슬라이드 (proposal).                   |
 
 - Clicking a row only selects it. The operator outputs by clicking a 슬라이드 in
   the 슬라이드 panel.
-- In the list, the up and down arrow keys move between rows (skipping headers).
+- A 구역 can be empty and remains visible and selectable. The operator can add
+  it with 구역 추가 (new row 새 구역), rename it, or remove it. 항목 추가 adds
+  into the selected section, or the section containing the selected item; with
+  no selection, it appends to the service. See 05.
+- In the list, the up and down arrow keys move between sections and item rows.
   Home and End go to the first and last row. ← → Space Page Up Page Down still
   output the next and previous 슬라이드 while the list has focus (10, focus
   precedence).
@@ -166,7 +169,7 @@ service needs no confirmation), product log version 63.
     (proposal).
   - 공지: the images of the 공지 set, laid out like 슬라이드. Clicking one
     starts the 공지 from that image (proposal; same behavior as the 공지 tab).
-  - Header, slot: no tiles.
+  - Section (구역): no tiles.
 
 ### Keyboard
 
@@ -638,9 +641,9 @@ Source: `ShowH`, `Problems`, `MediaTile` README, `Layout` README.
 - Buttons: 앞 절 추가 (add the previous verse), 뒤 절 추가 (add the next verse),
   예배 순서에 넣기 (add to the 예배 순서), and 바로 띄우기 (show now, outputs
   the selected 슬라이드; the primary button).
-- 예배 순서에 넣기 inserts a Bible passage item after the selected 예배 순서
-  item. If the selected row is a Bible passage slot, the passage fills it
-  (proposal).
+- 예배 순서에 넣기 inserts a Bible passage item into the selected section or the
+  section containing the selected 예배 순서 item, following 항목 추가's
+  insertion rule (05). An empty section stays as the passage's section row.
 - Enter in the passage field does the same as 바로 띄우기. If the suggestion
   list points to a different row, Enter first chooses that suggestion (proposal:
   reconciles the `TextField` document, which says Enter shows the passage, with

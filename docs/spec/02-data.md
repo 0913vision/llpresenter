@@ -148,7 +148,7 @@ Each 예배 순서 is one file. It holds only items. It doesn't hold screens, Lo
       "macro": "찬양",
       "memo": ""
     },
-    {"id": "...", "slot": "song", "title": "찬양"}
+    {"id": "...", "header": "헌금"}
   ]
 }
 ```
@@ -168,14 +168,13 @@ Each item has exactly one of the kind keys below. Every item has an `id`
 (proposal). When you copy items from another service or from a 틀, give them new
 item IDs (proposal).
 
-| Kind          | Kind key                    | Other fields                                 | Source                                                                   |
-| ------------- | --------------------------- | -------------------------------------------- | ------------------------------------------------------------------------ |
-| Header        | `header`: name              | None                                         | `Main` sample, `ShowH` (예배 전, 찬양, 말씀, 마무리)                     |
-| Song          | `song`: song ID             | `arrangement`, `background`, `macro`, `memo` | `Main` sample, `PrepService`                                             |
-| Slot          | `slot`: the kind it accepts | `title`                                      | `Main` sample, `NewService`                                              |
-| Bible passage | `bible`: object (see below) | `macro`, `memo` (proposal)                   | `AddSongsQuick`, `ShowH`, `Bible`. The format is a proposal.             |
-| Media         | `media`: media ID           | `macro`, `memo` (proposal)                   | `AddSongsQuick`, `ShowH` (예배 전 카운트다운). The format is a proposal. |
-| 공지          | `notice`: 공지 set ID       | `macro`, `memo` (proposal)                   | `AddSongsQuick`, `ShowH` (주일 광고). The format is a proposal.          |
+| Kind           | Kind key                    | Other fields                                 | Source                                                                   |
+| -------------- | --------------------------- | -------------------------------------------- | ------------------------------------------------------------------------ |
+| Section (구역) | `header`: name              | None                                         | User decision, October 26 check; `ShowH` (예배 전, 찬양, 말씀, 마무리)   |
+| Song           | `song`: song ID             | `arrangement`, `background`, `macro`, `memo` | `Main` sample, `PrepService`                                             |
+| Bible passage  | `bible`: object (see below) | `macro`, `memo` (proposal)                   | `AddSongsQuick`, `ShowH`, `Bible`. The format is a proposal.             |
+| Media          | `media`: media ID           | `macro`, `memo` (proposal)                   | `AddSongsQuick`, `ShowH` (예배 전 카운트다운). The format is a proposal. |
+| 공지           | `notice`: 공지 set ID       | `macro`, `memo` (proposal)                   | `AddSongsQuick`, `ShowH` (주일 광고). The format is a proposal.          |
 
 Keep an item with an unknown kind key unchanged. Show it as a row with a warning
 icon, and don't let the operator output it (proposal).
@@ -201,18 +200,30 @@ icon, and don't let the operator output it (proposal).
 | `verseNumbers`    | Boolean                            | 절 번호 (verse numbers).                                                                                                          |
 | `translationName` | Boolean                            | 역본 이름 (translation name).                                                                                                     |
 
-### Slot items
+### Sections and legacy slot items
 
-- `slot` names the kind that fits: `"song"` (찬양, praise), `"bible"` (성경
-  구절, Bible passage), or `"slides"` (설교, sermon). These are the values the
-  boards show. Version 1 has no item kind that fills a `"slides"` slot (open
-  question).
-- `title` is the name in the list, for example "찬양".
-- When the operator drops an item of the right kind on a slot, the item fills
-  the slot and becomes a normal item. See 05.
+- The user-facing row is a 구역 (section). Its stored kind key remains `header`,
+  with the section's name as the value.
+- A section groups the following items until the next section. It may have no
+  items. Keep empty sections, including consecutive sections and a final empty
+  section, when reading, editing, copying, and saving a service or template.
+- The operator can add and remove sections freely. 구역 추가 creates a row named
+  새 구역 in rename mode. 항목 추가 inserts content into the selected section,
+  including an empty section. See 04 and 05.
+- Slot is no longer an item kind. On reading an existing service or template,
+  normalize each legacy slot item into a section row with its `title` as
+  `header`. Keep its id, order position, and unknown fields; remove the consumed
+  `slot` and `title` fields. The conversion adds no song, passage, or other
+  content item. New writes contain section rows rather than slot items.
+- For example, a legacy item
+  `{"id":"...","slot":"song","title":"헌금","future":{"keep":true}}` reads as
+  `{"id":"...","header":"헌금","future":{"keep":true}}`. Legacy `bible` and
+  `slides` slots follow the same rule. The stored `header` key is unchanged by
+  the UI terminology change.
 
-Source: `Main` service sample and notes, `NewService`, `ServiceImport`,
-`AddSongsQuick`, `ListRow` README.
+Source: the user's October 26 check decision, recorded under
+[Decisions from the m3-check3 user check](../decisions.md#2026-10-26-decisions-from-the-m3-check3-user-check).
+It replaces the slot behavior in the earlier service samples and draft boards.
 
 ## Templates
 
@@ -220,12 +231,14 @@ Source: `Main` service sample and notes, `NewService`, `ServiceImport`,
   `틀\` folder of the data folder (proposal).
 - A 틀 has no `date`. It can have a `time` (`HH:mm`) that sets the default time
   of a new service (proposal).
-- A 틀 can hold slot items. It can also hold filled items such as songs, media,
-  and 공지. For example, the `NewService` board shows 예배 전 카운트다운, 주일
-  광고, and 축도 in a 틀.
+- A 틀 holds empty sections where content will be added later. Empty sections
+  stay in its order and in the 새 예배 source tree. It can also hold content
+  such as songs, media, and 공지. For example, the `NewService` board shows 예배
+  전 카운트다운, 주일 광고, and 축도 in a 틀. It has no slot items.
 
-Source: `Main` service notes ("틀도 같은 형식이며, 빈 자리 항목을 가질 수
-있습니다"), `NewService`.
+Source: `Main` service notes (same file format), `NewService`, and the
+[October 26 user check decision](../decisions.md#2026-10-26-decisions-from-the-m3-check3-user-check)
+(empty sections replace slot items).
 
 ## App-wide settings
 

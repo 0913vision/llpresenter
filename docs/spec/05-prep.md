@@ -40,7 +40,7 @@ system README (window sizes and layout).
     operator can change the translation and split.
   - Media: the media properties of that media.
   - 공지: the images of the 공지 set.
-  - Header and slot: an empty center panel.
+  - Section (구역): an empty center panel.
 - The operator drags rows to reorder them. Delete removes the selected item
   without confirmation, and Ctrl Z restores it (proposal). The right-click menu
   has 삭제 (delete) (proposal).
@@ -291,12 +291,13 @@ README, `Select` README, product log versions 52, 53, and 61.
 - Dragging a 라이브러리 row more than 4 px starts a drag. A ghost row follows
   the pointer.
 - An insertion line snaps to the row boundary nearest the pointer in the 예배
-  순서. The spot right below a header is valid. Over a valid spot, the ghost row
-  shows a plus.
+  순서. The spot right below a section (구역) is valid, including an empty
+  section. Over a valid spot, the ghost row shows a plus.
 - Esc cancels the drag.
 - A drop inserts a song item with the default 구성, no background override, and
   no start 매크로 (proposal).
-- Dropping on a song slot fills the slot.
+- A drop into an empty section inserts a song after its section row. The section
+  stays in the list.
 
 Source: `AddSongs`, `ListRow` README.
 
@@ -306,15 +307,15 @@ Source: `AddSongs`, `ListRow` README.
   가사, 초성").
 - The 라이브러리 group lists matching songs, with the matching part highlighted
   and the 슬라이드 count. The first result is highlighted.
-- The 다른 항목 (other items) group lists 머리글 (header), 빈 자리 (slot), 성경
-  구절 (Bible passage), 미디어 (media), and 공지.
-- Enter or a click inserts the song. The item goes at the end of the group
-  (header section) that holds the selected item, or at the end of the list if
-  nothing is selected (proposal, from the insertion line in the board). The
-  popover then closes (proposal).
+- The 다른 항목 (other items) group lists 구역 추가 (add section), 성경 구절
+  (Bible passage), 미디어 (media), and 공지.
+- Enter or a click inserts the song. A selected section is the insertion target,
+  including when it is empty. If an item is selected, use its section. Insert at
+  that section's end, before the next section, or at the service's end when
+  nothing is selected. The popover then closes. Adding content keeps the section
+  row.
 - Other items (proposal):
-  - 머리글: inserts a header named "머리글" in rename mode.
-  - 빈 자리: a submenu with 찬양 (praise), 성경 구절, and 설교 (sermon).
+  - 구역 추가: inserts an empty section named "새 구역" in rename mode.
   - 성경 구절: shows a reference field in the popover. Enter inserts a Bible
     passage item with the default settings.
   - 미디어: a submenu with the media list.
@@ -322,13 +323,19 @@ Source: `AddSongs`, `ListRow` README.
 
 Source: `AddSongsQuick`, `Main` board guide (예배 순서에 곡 넣기).
 
-### Slots
+### Sections
 
-- A slot shows the kind it accepts and a dashed box with "빈 자리" (slot).
-- Dropping or inserting an item of that kind on a slot fills it, and it becomes
-  a normal item.
+- The row is called 구역; its stored kind key is `header` (02).
+- The operator can add, rename, and remove sections freely. A section may be
+  empty, stays visible and selectable, and can be the target of 항목 추가.
+  Consecutive or final empty sections are retained.
+- Slots have been removed. The 다른 항목 menu has no 빈 자리 entry or slot
+  submenus, and no item replaces a slot when added. Reading an existing file
+  converts its legacy slots into section rows with their titles and unknown
+  fields preserved, as 02 defines.
 
-Source: `NewService`, `ListRow` README.
+Source: the user's October 26 check decision, recorded under
+[Decisions from the m3-check3 user check](../decisions.md#2026-10-26-decisions-from-the-m3-check3-user-check).
 
 ## New service
 
@@ -340,8 +347,8 @@ Source: `NewService`, `ListRow` README.
     "10월 25일 일요일", and item count). Below the list: 지금 예배를 틀로 저장
     (save the current service as a 틀).
   - Right: the "예배 순서" box with a check-all box and the count ("항목 9개"),
-    and a tree of headers and items with check boxes. Slots show their dashed
-    box.
+    and a tree of sections and items with check boxes. Empty sections stay
+    visible and can be checked on their own.
   - Bottom bar: 이름 (name), 날짜 (date), and 시간 (time).
   - Footer: 취소 (cancel) and 만들기 (create).
 - Behavior:
@@ -352,8 +359,9 @@ Source: `NewService`, `ListRow` README.
   - Choosing a past service also checks every item. Returning to a source checks
     every item again.
   - 빈 예배 leaves the right box empty.
-  - Checking a header checks its children. A header with some children checked
-    shows the mixed state.
+  - Checking a section checks its children. A section with some children checked
+    shows the mixed state. An empty section is checked on its own and is copied
+    when checked, so a template's empty sections survive creation.
   - The name defaults to the name of the chosen 틀 or service, or "새 예배" for
     빈 예배. The date defaults to today. The time defaults to the 틀's `time` or
     the past service's time, or the current hour for 빈 예배. In M3, 날짜
@@ -363,7 +371,7 @@ Source: `NewService`, `ListRow` README.
   - 만들기 is unavailable while the name is empty, with the reason in a tooltip.
   - 만들기 creates a new service file with the checked items, in order, with new
     item IDs. Song references, 구성 names, background overrides, start 매크로,
-    and memos copy as they are. A header comes along if it or any of its
+    and memos copy as they are. A section comes along if it or any of its
     children is checked. The new service becomes the current service. The output
     doesn't change. The flow creates an empty service, copies only the checked
     items, and then opens it.
@@ -391,7 +399,7 @@ Source: `NewService`, `ListRow` README.
     다시 시도 retries failed reads. Late document reads never replace the
     current source choice.
   - Tab enters the checkable tree once; Up, Down, Home, and End move between
-    rows, Left moves to a row's header, and Space toggles a check. Enter stays
+    rows, Left moves to a row's section, and Space toggles a check. Enter stays
     in the tree without creating the service. Each row exposes its level,
     position, group size, and checked or mixed state to assistive technology.
   - While creating, 취소, Escape, and the close button wait for the result.
@@ -416,8 +424,8 @@ lead's date/time choice and source-menu decision recorded in those requests.
   틀. The open service isn't offered as a source. When the operator picks a
   source, nothing is checked, including when returning to a source.
 - 가져오기 (import) appends the checked items to the end of the current service,
-  in source order. A header comes along if it or any of its children is checked,
-  so the items keep their group. Items get new IDs.
+  in source order. A section comes along if it or any of its children is
+  checked, so the items keep their group. Items get new IDs.
 - 가져오기 is unavailable while nothing is checked, with the reason in a
   tooltip. The action is also unavailable without an open service or when the
   open service is read-only.
@@ -451,7 +459,8 @@ The service list opens from the service name in the 예배 순서 header in both
 - Opens from 파일 > 지금 예배를 틀로 저장, from the service list, or from the
   bottom of the left list in the new service dialog.
 - Save a copy of the current service as a new 틀 named after the service. Keep
-  every item as it is: songs stay songs, and slots stay slots.
+  content items and empty sections. The section rows remain even when they
+  contain no content. A template has no slot items.
 - If a 틀 with the same name exists, show the confirmation dialog "‘주일 예배’
   틀이 이미 있습니다. 덮어쓸까요?" (This 틀 already exists. Overwrite it?) with
   취소, 새 틀로 저장 (save as new 틀), and 덮어쓰기 (overwrite).
