@@ -185,6 +185,11 @@ describe('createMediaHandler', () => {
     expect(response.status).toBe(206);
     expect(response.headers.get('access-control-allow-origin')).toBe('*');
     expect(await response.text()).toBe('0123');
+    const past = await handle(
+      new Request(analysisUrl('lent'), {headers: {Range: 'bytes=99-'}}),
+    );
+    expect(past.status).toBe(416);
+    expect(past.headers.get('access-control-allow-origin')).toBe('*');
     expect((await handle(new Request(analysisUrl('other')))).status).toBe(404);
     expect(
       (

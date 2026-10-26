@@ -86,7 +86,7 @@ export async function createFileResponse(
   if (range === 'unsatisfiable') {
     return new Response(null, {
       status: HTTP_RANGE_NOT_SATISFIABLE,
-      headers: {'Content-Range': `bytes */${size}`},
+      headers: {...extraHeaders, 'Content-Range': `bytes */${size}`},
     });
   }
   const bytes = range ?? {start: 0, end: size - 1};
