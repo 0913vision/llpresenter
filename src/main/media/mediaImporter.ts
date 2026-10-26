@@ -1,5 +1,5 @@
 import {rm, stat} from 'node:fs/promises';
-import {basename, extname, relative} from 'node:path';
+import {basename, extname} from 'node:path';
 import type {MediaId} from '@shared/schema/ids';
 import type {
   MediaDocument,
@@ -14,6 +14,7 @@ import {mediaRefusal, type PlaylistRef} from '../store/mediaEdits';
 import type {MediaItemsCommit} from '../store/mediaStore';
 import {copyWithProgress, freePath, type CopyOptions} from './copyFile';
 import {mediaKindOf, type MediaKind} from './mediaKinds';
+import {storedPath} from './storedPath';
 
 /** Imports copy their files into the media folder (the plan's open question 14). */
 export const COPY_IMPORTED_MEDIA = true;
@@ -117,12 +118,6 @@ function nameOf(fileName: string): string {
 
 function cancelled(job: ImportJob): boolean {
   return job.abort.signal.aborted;
-}
-
-/** A file inside the media folder is stored by its name, any other by its full path. */
-function storedPath(folder: string, file: string): string {
-  const inside = relative(folder, file);
-  return inside === basename(file) ? inside : file;
 }
 
 /**
