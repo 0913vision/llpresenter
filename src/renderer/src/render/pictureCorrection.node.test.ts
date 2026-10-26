@@ -1,7 +1,10 @@
 import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {expect, it} from 'vitest';
-import {PICTURE_TRANSFORM} from './pictureCorrection';
+
+// NOTE(0913vision): `PICTURE_TRANSFORM` in `pictureCorrection.ts`; a node
+// test can't import it, since its types pull in DOM code.
+const PICTURE_TRANSFORM = '--picture-transform';
 
 const LAYERS_CSS = readFileSync(
   resolve(import.meta.dirname, 'layers.module.css'),
