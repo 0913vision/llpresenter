@@ -1,4 +1,5 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
+import type {MediaId} from '@shared/schema/ids';
 import type {Notice} from '@renderer/ui/notices';
 import {mediaDocument, mediaFixture, mediaId, mediaItem} from './mediaTesting';
 import {MediaLibrary} from './mediaLibrary';
@@ -129,5 +130,55 @@ describe('media library for the media view', () => {
     expect(fixture.listeners.document.size).toBe(0);
     expect(fixture.listeners.imports.size).toBe(0);
     expect(fixture.listeners.missing.size).toBe(0);
+  });
+
+  it('keeps a missing-files push over a first reply that arrives later', async () => {
+    const fixture = mediaFixture();
+    let reply: (missing: readonly MediaId[]) => void = () => undefined;
+    fixture.missing.mockReturnValue(
+      new Promise(resolve => {
+        reply = resolve;
+      }),
+    );
+    const {library, pushMissing} = setup(fixture);
+    pushMissing([mediaId(2)]);
+    reply([]);
+    await Promise.resolve();
+    expect(library.getSnapshot().missing).toEqual(new Set([mediaId(2)]));
+  });
+
+  it('takes the first reply, then follows the pushes after it', async () => {
+    const fixture = mediaFixture();
+    fixture.missing.mockResolvedValue([mediaId(1)]);
+    const {library, pushMissing} = setup(fixture);
+    await vi.waitFor(() =>
+      expect(library.getSnapshot().missing).toEqual(new Set([mediaId(1)])),
+    );
+    pushMissing([mediaId(2)]);
+    expect(library.getSnapshot().missing).toEqual(new Set([mediaId(2)]));
+  });
+
+  it('reports a rejected import, cancel, or relink, and relinks again after one', async () => {
+    const {library, importFiles, edit, problems, write} = setup();
+    importFiles.mockRejectedValue(new Error('Invented IPC failure'));
+    edit.mockRejectedValue(new Error('Invented malformed reply'));
+    await library.import(null);
+    await library.cancel(mediaId(9), 'Invented.mp4');
+    await library.relink(mediaId(1), 'Invented 1');
+    expect(problems.mock.calls.map(([notice]) => notice.title)).toEqual([
+      '미디어를 가져올 수 없음',
+      '복사를 멈출 수 없음',
+      '다시 연결할 수 없음',
+    ]);
+    expect(write).toHaveBeenCalledWith(
+      expect.objectContaining({detail: 'Invented malformed reply'}),
+    );
+    edit.mockResolvedValue({ok: true, value: null});
+    await library.relink(mediaId(1), 'Invented 1');
+    expect(edit).toHaveBeenLastCalledWith({
+      type: 'media.relink',
+      mediaId: mediaId(1),
+    });
+    expect(problems).toHaveBeenCalledTimes(3);
   });
 });

@@ -23,6 +23,16 @@ export interface MediaLibraryView {
 
 const EMPTY: MediaLibraryView = {document: null, jobs: [], missing: new Set()};
 
+// NOTE(0913vision): The preload rejects a failed call or a malformed reply;
+// it is reported like a refusal.
+function rejected(error: unknown): {
+  readonly ok: false;
+  readonly error: {readonly reason: 'invalid'; readonly message: string};
+} {
+  const message = error instanceof Error ? error.message : String(error);
+  return {ok: false, error: {reason: 'invalid', message}};
+}
+
 function warning(key: string, title: string, meta?: readonly string[]): Notice {
   return {
     key,
@@ -67,6 +77,7 @@ export class MediaLibrary {
    */
   start(onProblem: (notice: Notice) => void): () => void {
     let following = true;
+    let missingPushed = false;
     this.onProblem = onProblem;
     const {media} = this.api;
     const stops = [
@@ -77,6 +88,7 @@ export class MediaLibrary {
         if (following) this.follow(progress);
       }),
       media.subscribeMissing(missing => {
+        missingPushed = true;
         if (following) this.setMissing(missing);
       }),
     ];
@@ -90,9 +102,11 @@ export class MediaLibrary {
         }
       },
     );
+    // NOTE(0913vision): A push is newer than the first reply, which can
+    // arrive after it.
     media.missing().then(
       missing => {
-        if (following) this.setMissing(missing);
+        if (following && !missingPushed) this.setMissing(missing);
       },
       () => undefined,
     );
@@ -106,10 +120,9 @@ export class MediaLibrary {
 
   /** 가져오기: the file dialog, then a copy job per chosen file. */
   async import(playlist: MediaImportRequest['playlist']): Promise<void> {
-    const result = await this.api.media.import({
-      source: {kind: 'dialog'},
-      playlist,
-    });
+    const result = await this.api.media
+      .import({source: {kind: 'dialog'}, playlist})
+      .catch(rejected);
     if (!result.ok) {
       this.refused('Media import was refused', result.error.message);
       this.onProblem(warning('media-view:import', '미디어를 가져올 수 없음'));
@@ -120,10 +133,9 @@ export class MediaLibrary {
 
   /** 복사 멈추기. A job that already ended changes nothing. */
   async cancel(mediaId: MediaId, name: string): Promise<void> {
-    const result = await this.api.media.edit({
-      type: 'media.import.cancel',
-      mediaId,
-    });
+    const result = await this.api.media
+      .edit({type: 'media.import.cancel', mediaId})
+      .catch(rejected);
     if (result.ok || result.error.reason === 'not-found') return;
     this.refused('Stopping a media copy was refused', result.error.message);
     this.onProblem(
@@ -139,7 +151,9 @@ export class MediaLibrary {
     if (this.relinking) return;
     this.relinking = true;
     try {
-      const result = await this.api.media.edit({type: 'media.relink', mediaId});
+      const result = await this.api.media
+        .edit({type: 'media.relink', mediaId})
+        .catch(rejected);
       if (result.ok || result.error.reason === 'write-failed') return;
       this.refused('Relinking media was refused', result.error.message);
       this.onProblem(
