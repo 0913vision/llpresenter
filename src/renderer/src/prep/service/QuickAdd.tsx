@@ -1,5 +1,4 @@
 import {useEffect, useState, type JSX} from 'react';
-import type {MediaItem} from '@shared/schema/mediaList';
 import type {ServiceItem} from '@shared/schema/service';
 import type {LibrarySearchMatch} from '@shared/schema/librarySearch';
 import {createServiceItemId, type SongId} from '@shared/schema/ids';
@@ -12,10 +11,11 @@ import {menuButtonProps} from '@renderer/ui/menuButton';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {NEWER_FILE_REASON} from './ItemArrangement';
-import {otherItemEntries, type NoticeSetChoice} from './quickAddItems';
+import {otherItemEntries} from './quickAddItems';
 import {bibleEntries, passageItem} from './quickAddBible';
 import {quickAddBefore} from './quickAddPosition';
 import {useBibleLookup} from './useBibleLookup';
+import {useOtherSources} from './useOtherSources';
 import {useHeaderRename} from '@renderer/state/headerRename';
 
 const QUICK_ADD_LIMIT = 20;
@@ -61,40 +61,6 @@ function useQuickAddSongs(
     };
   }, [open, query, onProblem]);
   return result?.query === query ? result.matches : [];
-}
-
-// NOTE(0913vision): The media list and 공지 sets are read once each time the
-// popover opens.
-function useOtherSources(open: boolean) {
-  const [sources, setSources] = useState<{
-    readonly media: readonly MediaItem[];
-    readonly notices: readonly NoticeSetChoice[];
-  }>({media: [], notices: []});
-  useEffect(() => {
-    const api = window.llp;
-    if (!open || api === undefined) return undefined;
-    let current = true;
-    api.media.get().then(
-      document => {
-        if (current) {
-          setSources(state => ({...state, media: document.value.items}));
-        }
-      },
-      (error: unknown) => console.error('Quick add media read failed', error),
-    );
-    api.settings.get({name: 'notices'}).then(
-      document => {
-        if (current && document.name === 'notices') {
-          setSources(state => ({...state, notices: document.value.sets}));
-        }
-      },
-      (error: unknown) => console.error('Quick add 공지 read failed', error),
-    );
-    return () => {
-      current = false;
-    };
-  }, [open]);
-  return sources;
 }
 
 function songEntries(

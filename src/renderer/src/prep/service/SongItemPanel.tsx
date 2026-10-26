@@ -29,15 +29,14 @@ import {historyCommand} from '@renderer/prep/editor/editorKeys';
 import {isComposing} from '@renderer/ui/ime';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {ItemArrangement} from './ItemArrangement';
+import {ITEM_PANEL_LABEL, OtherItemPanel} from './OtherItemPanel';
 import type {ServiceItemStore} from './serviceItemStore';
 import {shownPosition} from './songItemModel';
 import styles from './SongItemPanel.module.css';
 
-const PANEL_LABEL = '예배 순서 항목';
-
 /**
  * The center panel of 준비 for the item selected in the 예배 순서. It shows
- * the item the shared selection names; other kinds come in a later request.
+ * the item the shared selection names.
  */
 export function ServiceItemPanel({
   items,
@@ -57,11 +56,7 @@ export function ServiceItemPanel({
   }, [items, serviceId, itemId]);
   const {item, song} = useSyncExternalStore(items.subscribe, items.getSnapshot);
   if (item === null || !isItemOfKind(item, 'song') || song === null) {
-    return (
-      <Panel label={PANEL_LABEL} className={styles.panel}>
-        <PanelHeader>{null}</PanelHeader>
-      </Panel>
-    );
+    return <OtherItemPanel item={item} sizeClass={sizeClass} />;
   }
   return (
     <SongItemView
@@ -113,7 +108,7 @@ function SongItemView({
         session.edit(command);
       }}
     >
-      <Panel label={PANEL_LABEL} className={styles.panel}>
+      <Panel label={ITEM_PANEL_LABEL} className={styles.panel}>
         <PanelHeader>
           <PanelTitle
             title={session.document.song.title}
