@@ -82,10 +82,22 @@ export class SongSession {
 
   /** Creates a discrete undo step and saves it with any pending lyric draft. */
   createArrangement(): string | undefined {
+    const name = this.copyArrangement(this.arrangement);
+    if (name !== undefined) {
+      this.pickedArrangement = name;
+      this.options.changed();
+    }
+    return name;
+  }
+
+  /**
+   * Adds a numbered 구성 that copies the order of `base` (기본 with
+   * `undefined`) as one undo step, without changing the editor's view.
+   */
+  copyArrangement(base: string | undefined): string | undefined {
     if (!this.accepting || this.readOnly) return undefined;
-    const value = newArrangement(this.history.snapshot.song, this.arrangement);
+    const value = newArrangement(this.history.snapshot.song, base);
     this.history.addArrangement(value);
-    this.pickedArrangement = value.name;
     this.dirty = true;
     this.endTyping();
     this.options.changed();

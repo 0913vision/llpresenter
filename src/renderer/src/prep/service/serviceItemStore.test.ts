@@ -330,6 +330,28 @@ describe('service item store', () => {
     expect(edits).toEqual([]);
   });
 
+  it('copies the file order of 기본 into 새 구성 and picks it', async () => {
+    const {items, documents, second, service} = setup();
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.plain});
+    await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
+    expect(await items.createArrangement()).toBe(true);
+    expect(documents.get(second.song.id)?.song.arrangements).toEqual([
+      {name: '주일용', slides: [1, 2, 2]},
+      {name: '구성 1', slides: [1, 2]},
+    ]);
+    expect(service().service.order[2]).toMatchObject({arrangement: '구성 1'});
+    expect(items.getSnapshot().arrangement).toBe('구성 1');
+  });
+
+  it('makes no 새 구성 for a read-only song', async () => {
+    const {items, documents, first, edits} = setup();
+    documents.set(first.song.id, {...first, access: 'readOnly'});
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
+    await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
+    expect(await items.createArrangement()).toBe(false);
+    expect(edits).toEqual([]);
+  });
+
   it('refuses order edits of a read-only song', async () => {
     const {items, documents, first} = setup();
     documents.set(first.song.id, {...first, access: 'readOnly'});

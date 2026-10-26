@@ -1,4 +1,11 @@
-import {act, render, screen, waitFor, within} from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import {emptyLiveState} from '@shared/live';
@@ -9,11 +16,8 @@ import {useShow} from '@renderer/state/show';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {fixtureItems, fixtureServiceId, itemFixture} from './itemFixture';
 import {ServiceItemStore} from './serviceItemStore';
-import {
-  DEFAULT_ORDER_REASON,
-  NEWER_FILE_REASON,
-  ServiceItemPanel,
-} from './SongItemPanel';
+import {DEFAULT_ORDER_REASON, NEWER_FILE_REASON} from './ItemArrangement';
+import {ServiceItemPanel} from './SongItemPanel';
 
 afterEach(() => {
   useShow.setState({serviceId: null, openItemId: null});
@@ -138,6 +142,61 @@ describe('service song item panel', () => {
     await user.click(size);
     await user.keyboard('{Control>}z{/Control}');
     expect(chips(panel)).toEqual(['후렴', '1절', '후렴']);
+  });
+
+  it('drags a chip to a new place, and Esc cancels a drag', async () => {
+    const {panel} = await setup();
+    within(strip(panel))
+      .getAllByRole('option')
+      .forEach((option, index) => {
+        vi.spyOn(option, 'getBoundingClientRect').mockReturnValue(
+          new DOMRect(index * 60, 0, 52, 30),
+        );
+      });
+    const pointer = {pointerId: 7, button: 0};
+    fireEvent.pointerDown(chip(panel, 0), {
+      ...pointer,
+      clientX: 10,
+      clientY: 15,
+    });
+    fireEvent.pointerMove(window, {...pointer, clientX: 12, clientY: 15});
+    expect(chip(panel, 0).getAttribute('data-dragging')).toBeNull();
+    fireEvent.pointerMove(window, {...pointer, clientX: 200, clientY: 15});
+    expect(chip(panel, 0).getAttribute('data-dragging')).toBe('true');
+    fireEvent.pointerUp(window, {...pointer, clientX: 200, clientY: 15});
+    fireEvent.click(chip(panel, 0));
+    expect(chips(panel)).toEqual(['후렴', '후렴', '1절']);
+    expect(selectedThumbnail(panel)).toBe(2);
+    fireEvent.pointerDown(chip(panel, 2), {
+      ...pointer,
+      clientX: 130,
+      clientY: 15,
+    });
+    fireEvent.pointerMove(window, {...pointer, clientX: 0, clientY: 15});
+    fireEvent.keyDown(window, {key: 'Escape'});
+    expect(chip(panel, 2).getAttribute('data-dragging')).toBeNull();
+    fireEvent.pointerUp(window, {...pointer, clientX: 0, clientY: 15});
+    expect(chips(panel)).toEqual(['후렴', '후렴', '1절']);
+  });
+
+  it('adds 새 구성 as a copy of the order and picks it for the item', async () => {
+    mockMenuRowHeight();
+    const {panel, user, service, documents, first} = await setup();
+    await user.click(within(panel).getByRole('button', {name: '구성'}));
+    await user.click(screen.getByRole('menuitem', {name: '새 구성'}));
+    await waitFor(() =>
+      expect(
+        within(screen.getByRole('region', {name: '예배 순서 항목'})).getByRole(
+          'button',
+          {name: '구성'},
+        ).textContent,
+      ).toContain('구성 1'),
+    );
+    expect(documents.get(first.song.id)?.song.arrangements).toEqual([
+      {name: '주일용', slides: [1, 2, 2]},
+      {name: '구성 1', slides: [1, 2, 2]},
+    ]);
+    expect(service().service.order[1]).toMatchObject({arrangement: '구성 1'});
   });
 
   it('appends a chosen 슬라이드 from 슬라이드 넣기', async () => {

@@ -147,6 +147,18 @@ export class ServiceItemStore {
   }
 
   /**
+   * 새 구성: adds a 구성 to the song that copies the order the item plays,
+   * saves the song, and then picks the new 구성 for the item.
+   */
+  async createArrangement(): Promise<boolean> {
+    const {song, arrangement} = this.state;
+    if (!this.alive || this.busy || song === null) return false;
+    const name = song.copyArrangement(arrangement);
+    if (name === undefined || !(await song.flush())) return false;
+    return this.chooseArrangement(name);
+  }
+
+  /**
    * Gives the item's chosen 구성 a new order in the song file, so every 예배
    * 순서 that uses that 구성 shows it. 기본 has no order to change.
    */

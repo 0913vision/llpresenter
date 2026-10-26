@@ -81,6 +81,29 @@ describe('SelectMenu', () => {
     expect(document.activeElement).toBe(trigger());
   });
 
+  it('runs a command below the choices without choosing', async () => {
+    const onChange = vi.fn();
+    const onSelect = vi.fn();
+    render(
+      <SelectMenu
+        aria-label="구성"
+        options={intervals}
+        value="one"
+        onChange={onChange}
+        actions={[{id: 'new', label: '새 구성', icon: 'plus', onSelect}]}
+      />,
+    );
+    await userEvent.click(screen.getByRole('button', {name: '구성'}));
+    const menu = screen.getByRole('menu', {name: '구성'});
+    expect(menu.querySelectorAll('[role="separator"]')).toHaveLength(1);
+    const command = screen.getByRole('menuitem', {name: '새 구성'});
+    expect(command.getAttribute('aria-checked')).toBeNull();
+    await userEvent.click(command);
+    expect(onSelect).toHaveBeenCalledOnce();
+    expect(onChange).not.toHaveBeenCalled();
+    expect(screen.queryByRole('menu')).toBeNull();
+  });
+
   it('writes 없음 when nothing is chosen', () => {
     render(
       <SelectMenu

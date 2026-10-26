@@ -192,6 +192,7 @@ export {
 } from './Select';
 export {
   SelectMenu,
+  type SelectAction,
   type SelectMenuProps,
   type SelectOption,
 } from './SelectMenu';

@@ -16,6 +16,17 @@ export interface SelectOption<T extends string> {
   readonly title?: string | undefined;
 }
 
+/** A command below the choices, such as 새 구성, after a separator. */
+export interface SelectAction {
+  readonly id: string;
+  readonly label: string;
+  readonly icon?: string | undefined;
+  readonly disabled?: boolean | undefined;
+  /** Tooltip text, such as the reason the command is disabled. */
+  readonly title?: string | undefined;
+  readonly onSelect: () => void;
+}
+
 export interface SelectMenuProps<T extends string> extends Omit<
   SelectProps,
   'value' | 'expanded' | 'onExpandedChange' | 'onChange' | 'ref'
@@ -27,6 +38,7 @@ export interface SelectMenuProps<T extends string> extends Omit<
   readonly valueText?: string | undefined;
   /** The name of the list; defaults to the button's `aria-label`. */
   readonly menuLabel?: string | undefined;
+  readonly actions?: readonly SelectAction[] | undefined;
 }
 
 const NO_VALUE = '없음';
@@ -50,6 +62,22 @@ function optionEntries<T extends string>(
   }));
 }
 
+function actionEntries(actions: readonly SelectAction[]): readonly MenuEntry[] {
+  if (actions.length === 0) return [];
+  return [
+    {kind: 'separator', id: 'actions'},
+    ...actions.map((action): MenuEntry => ({
+      kind: 'item',
+      id: `action:${action.id}`,
+      label: action.label,
+      icon: action.icon,
+      disabled: action.disabled,
+      title: action.title,
+      onSelect: action.onSelect,
+    })),
+  ];
+}
+
 /**
  * A Select button with its list. The list opens below the button, no
  * narrower than it, with a check mark before the current choice. Choosing
@@ -61,6 +89,7 @@ export function SelectMenu<T extends string>({
   onChange,
   valueText,
   menuLabel,
+  actions = [],
   ...selectProps
 }: SelectMenuProps<T>): JSX.Element {
   const [trigger, setTrigger] = useState<HTMLButtonElement | null>(null);
@@ -79,7 +108,10 @@ export function SelectMenu<T extends string>({
       {open && trigger !== null ? (
         <Menu
           label={label}
-          entries={optionEntries(options, value, onChange)}
+          entries={[
+            ...optionEntries(options, value, onChange),
+            ...actionEntries(actions),
+          ]}
           anchor={{kind: 'element', element: trigger}}
           minWidth={trigger.getBoundingClientRect().width}
           onClose={() => setOpen(false)}
