@@ -125,4 +125,91 @@ describe('media list panels', () => {
     }
     expect(edit).not.toHaveBeenCalled();
   });
+
+  it('renames a playlist in its row from its menu', async () => {
+    const {edit} = setup();
+    fireEvent.contextMenu(await row('미디어 목록', /Backgrounds/));
+    fireEvent.click(await screen.findByRole('menuitem', {name: '이름 바꾸기'}));
+    const field = await screen.findByRole('textbox', {
+      name: 'Backgrounds 이름',
+    });
+    fireEvent.change(field, {target: {value: 'Morning'}});
+    fireEvent.keyDown(field, {key: 'Enter'});
+    await vi.waitFor(() =>
+      expect(edit).toHaveBeenCalledWith({
+        type: 'media.playlist.update',
+        playlist: {
+          kind: 'media',
+          value: {id: playlistId(1), name: 'Morning', items: [mediaId(2)]},
+        },
+        baseRevision: 1,
+      }),
+    );
+    expect(
+      screen.queryByRole('textbox', {name: 'Backgrounds 이름'}),
+    ).toBeNull();
+  });
+
+  it('deletes an audio playlist after asking', async () => {
+    const {edit} = setup();
+    fireEvent.contextMenu(await row('오디오 재생목록', /Hymns/));
+    fireEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
+    const dialog = await screen.findByRole('alertdialog');
+    expect(dialog.textContent).toContain('Hymns');
+    expect(edit).not.toHaveBeenCalled();
+    fireEvent.click(within(dialog).getByRole('button', {name: '삭제'}));
+    await vi.waitFor(() =>
+      expect(screen.queryByRole('alertdialog')).toBeNull(),
+    );
+    expect(edit).toHaveBeenCalledWith({
+      type: 'media.playlist.delete',
+      playlist: {kind: 'audio', id: audioPlaylistId(1)},
+    });
+  });
+
+  it('names a new playlist in its row', async () => {
+    const {edit, pushDocument} = setup();
+    edit.mockResolvedValue({ok: true, value: {id: playlistId(3), revision: 2}});
+    await row('미디어 목록', /모든 미디어/);
+    fireEvent.click(screen.getByRole('button', {name: '새 재생목록'}));
+    await vi.waitFor(() => expect(edit).toHaveBeenCalledOnce());
+    act(() => {
+      pushDocument(
+        mediaDocument([], 2, {
+          playlists: [{id: playlistId(3), name: '새 재생목록', items: []}],
+        }),
+      );
+    });
+    const field = await screen.findByRole('textbox', {
+      name: '새 재생목록 이름',
+    });
+    expect(document.activeElement).toBe(field);
+  });
+
+  it('offers no menu on 모든 미디어', async () => {
+    setup();
+    fireEvent.contextMenu(await row('미디어 목록', /모든 미디어/));
+    expect(screen.queryByRole('menu')).toBeNull();
+  });
+
+  it('takes media out of the chosen playlist from its tile', async () => {
+    const {edit} = setup();
+    fireEvent.click(await row('미디어 목록', /Backgrounds/));
+    const grid = await screen.findByRole('listbox', {name: 'Backgrounds'});
+    fireEvent.contextMenu(within(grid).getByRole('option', {name: 'Waves'}));
+    expect(
+      screen.getAllByRole('menuitem').map(item => item.textContent),
+    ).toEqual(['재생목록에서 빼기', '삭제']);
+    fireEvent.click(screen.getByRole('menuitem', {name: '재생목록에서 빼기'}));
+    await vi.waitFor(() =>
+      expect(edit).toHaveBeenCalledWith({
+        type: 'media.playlist.update',
+        playlist: {
+          kind: 'media',
+          value: {id: playlistId(1), name: 'Backgrounds', items: []},
+        },
+        baseRevision: 1,
+      }),
+    );
+  });
 });
