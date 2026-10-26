@@ -5,7 +5,7 @@ Review range: `10fadab4...feat/spec/service-tree`
 - Team member: `spec` (Claude session that took over from Codex)
 - Branch: `feat/spec/service-tree`
 - Base commit: `10fadab4`
-- Review round: 2
+- Review round: 3
 - Task: M3-P4, part 1 of 3 for 새 예배 (P4a): the item counts in the lists and
   the 예배 순서 tree the service dialogs check items in
 - Code owners: data for `src/shared/` and `src/main/store/`; prep for
@@ -74,6 +74,21 @@ This request:
 3. **TSDoc.** The service list's comment is back above `serviceEntries`; the
    private `itemCount` keeps only its NOTE.
 
+## Round 3 response
+
+1. **Focused row.** A key acts on the row it was pressed on, taken from the
+   event's target, and a row that takes focus any way (a click, Tab, or a right
+   click) becomes the tree's tab stop. A test clicks one row, focuses another
+   without a click, and presses Space and the up arrow there; it fails with both
+   changes removed.
+2. **Positions.** `serviceTree.ts` reads each rows array once into a shape kept
+   in a `WeakMap`: each header's items, each row's level, position, and size,
+   and the full selection. `treePosition`, `rowState`, `allState`, `toggleRow`,
+   and `checkAll` look up the shape, so a render and a key press are linear in
+   the rows. The hooks keep the rows array with `useMemo`, so the shape is built
+   once per source. A test checks the positions and that a second lookup returns
+   the same object.
+
 ## Decisions I made (for the lead to confirm)
 
 1. A slot row shows 빈 자리 as its detail text instead of the dashed box spec 05
@@ -95,7 +110,7 @@ This request:
 | Command or test                                                                                                                           | Result                 |
 | ----------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
 | `npm run typecheck`                                                                                                                       | Pass                   |
-| `npx --no-install vitest run --no-fsModuleCache src/renderer/src/prep/services src/shared/schema/contentDocuments.test.ts src/main/store` | Pass, 390 tests        |
+| `npx --no-install vitest run --no-fsModuleCache src/renderer/src/prep/services src/shared/schema/contentDocuments.test.ts src/main/store` | Pass, 392 tests        |
 | `npx --no-install eslint --max-warnings 0 src/main/store src/shared/schema src/renderer/src/prep/services`                                | Pass                   |
 | `npx --no-install prettier --check src/main/store src/shared/schema src/renderer/src/prep/services`                                       | Pass                   |
 | GitHub CI (`npm run verify`)                                                                                                              | In the request message |
