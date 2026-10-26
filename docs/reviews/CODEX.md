@@ -39,6 +39,12 @@ Everything else is in this file and in the review document.
   code, and commit messages.
 - For a documents-only request: that each rule is exact enough to build and
   test, and consistent with the other spec files and merged code.
+- For a request that changes what the operator sees: a "Checked in the app"
+  section with screenshots from the real app (offscreen, through the Chrome
+  DevTools Protocol) and a repeated run of the changed flow with a flat element
+  count. Look at the screenshots against the design system (spacing, alignment,
+  motion, the look of the other components). Without that section, request
+  changes (lead rule, October 26, after the user's m3-check3 check).
 
 ## Verdict
 
