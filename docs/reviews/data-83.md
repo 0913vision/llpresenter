@@ -65,3 +65,10 @@ This is a staged contract and pure lookup helper. No active producer emits the
 new fields yet, and no keyboard handler or screen changes. No new screenshot
 would demonstrate the contract in the current legacy UI. The assigned consumer
 owners must exercise the visible binding/projection changes in the real app.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (81623da6): reviewer (Codex) Approve. Lead Approve through the lead's
+  merge check: the exact-head CI run passed, the branch rebased onto local
+  `main` without conflicts, and typecheck passes. Earlier rounds' findings and
+  replies are above.
