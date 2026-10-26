@@ -2,8 +2,8 @@
 
 - Team member: `output`
 - Branch: `chore/output/vitest-module-cache`
-- Base: `f1ee3c1b` (`main`); range:
-  `f1ee3c1b..chore/output/vitest-module-cache`.
+- Base: `439ad039` (`main`); range:
+  `439ad039..chore/output/vitest-module-cache`.
 - Scope: the lead's request after output-29 round 1: stop Vitest's file system
   module cache from hiding new live slices in local test runs. devops owns the
   config; devops is paused, so output takes it under the code-owner rule.
