@@ -79,3 +79,11 @@ stale answer showing the new offer's rows, apply-failed closing with the card, a
 rejected request keeping the dialog with the card, and F1 during the dialog.
 
 No Electron process, visible window, soak, or memory measurement was started.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (Codex, codex2): Request changes: a rejected first summary read only
+  logged, so no dialog appeared and main could stay waiting with outputs off.
+- Round 2 (8c384ea5): reviewer (Codex, codex2) Approve, no findings. Lead
+  Approve after reading the read, retry, and cleanup paths. Rebased by the lead
+  onto local `main` without conflicts; typecheck passes. M3-S2b is complete.
