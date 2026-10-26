@@ -2,7 +2,7 @@
 
 - Team member: data (Codex takeover of the Claude implementation)
 - Branch: `feat/data/media-preview`, stacked on data-59 round 2
-- Base commit: `a3feb01e`; the request reports the head, range and CI URL.
+- Base commit: `bb30361f`; the request reports the head, range and CI URL.
 - Related brief: `docs/briefs/data.md`; M3-P6b part 4, preview player and 파일
   위치 열기 (spec 05, Media view).
 
@@ -140,10 +140,14 @@ All six new regressions failed against round 1 before applying the fixes: both
 StrictMode sources were absent, both saved speeds were unbounded, and engine
 assignment errors escaped rendering. They pass with the fixes.
 
-| Check                                       | Result                                   |
-| ------------------------------------------- | ---------------------------------------- |
-| Targeted Vitest with `--no-fsModuleCache`   | Pass: 38 tests in three files            |
-| `npm run typecheck`                         | Pass                                     |
-| ESLint on changed TypeScript files          | Pass                                     |
-| `npm run format` and `npm run format:check` | Pass                                     |
-| Full `npm run verify`                       | GitHub CI on round 2 head; URL in report |
+| Check                                       | Result                                    |
+| ------------------------------------------- | ----------------------------------------- |
+| Targeted Vitest with `--no-fsModuleCache`   | Pass: 129 tests in six files after rebase |
+| `npm run typecheck`                         | Pass                                      |
+| ESLint on changed TypeScript files          | Pass                                      |
+| `npm run format` and `npm run format:check` | Pass                                      |
+| Full `npm run verify`                       | GitHub CI on round 2 head; URL in report  |
+
+The round 2 stack is rebased onto local main 6c62d738 through data-59 head
+bb30361f. All five preview commits compare equal across that restack, including
+the two fixes above. Only base metadata is changed after the rebase.
