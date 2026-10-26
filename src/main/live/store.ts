@@ -6,6 +6,7 @@ import {macroDroppedProblem, type AppProblem} from '@shared/schema/appProblem';
 import type {LiveState} from '@shared/live';
 import type {Logger} from '../log';
 import type {SettingsReader} from '../store/settingsStore';
+import type {MediaList} from '@shared/schema/mediaList';
 import {SYSTEM_CLOCK, type LiveClock} from './clock';
 import {initialHistory, liveSlices, type LiveHistory} from './reducer';
 import type {SliceRegistry, SkippedLiveCommand} from './sliceRegistry';
@@ -32,6 +33,7 @@ export class LiveStore {
   private screenSettings: ScreenSettingsPort | undefined;
   private monitorNumbers: MonitorNumbersPort | undefined;
   private macros: MacroCommandPort | undefined;
+  private audioMedia: (() => MediaList) | undefined;
   private readonly readClock: () => Pick<SliceInputs, 'now' | 'timerNow'>;
 
   /**
@@ -57,6 +59,13 @@ export class LiveStore {
 
   get state(): LiveState {
     return this.history.state;
+  }
+
+  connectAudioMedia(read: () => MediaList): () => void {
+    this.audioMedia = read;
+    return () => {
+      if (this.audioMedia === read) this.audioMedia = undefined;
+    };
   }
 
   /** The 타이머 clock that stamps 타이머 runs, for windows to read them. */
@@ -126,6 +135,7 @@ export class LiveStore {
   ): boolean {
     const {history: next, skipped} = this.slices.run(this.history, command, {
       ...this.readClock(),
+      ...(this.audioMedia === undefined ? {} : {audioMedia: this.audioMedia}),
       ...(this.settings === undefined ? {} : {settings: this.settings}),
       ...(this.macros === undefined ? {} : {macros: this.macros}),
       nextMessageId: () => createMessageId(randomUUID()),

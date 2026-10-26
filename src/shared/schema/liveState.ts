@@ -20,6 +20,8 @@ import {
   noticePlaybackSchema,
 } from './overlayState';
 import {timerRunsSchema} from './timerState';
+import {audioPlaybackSchema} from './audioState';
+import {percent} from './primitives';
 
 const id = v.pipe(v.string(), v.nonEmpty());
 const count = v.pipe(v.number(), v.integer(), v.minValue(0));
@@ -53,7 +55,10 @@ export const layerSchemas = {
     ),
   }),
   prop: payloadObject({propId: id, items: v.exactOptional(activePropsSchema)}),
-  audio: payloadObject({mediaId: id}),
+  audio: payloadObject({
+    mediaId: id,
+    playback: v.exactOptional(audioPlaybackSchema),
+  }),
   message: payloadObject({
     messageId: id,
     text: liveTextSchema,
@@ -66,6 +71,7 @@ export const layerSchemas = {
 } satisfies Record<LayerKind, v.GenericSchema>;
 
 export const liveStateSchema = payloadObject({
+  audioVolume: v.exactOptional(percent),
   lookId: v.exactOptional(v.nullable(lookIdSchema)),
   stageMessage: v.exactOptional(v.nullable(liveNonBlankTextSchema)),
   version: count,

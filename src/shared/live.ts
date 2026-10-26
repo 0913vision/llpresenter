@@ -5,6 +5,7 @@ import type {
 } from './schema/overlayState';
 import type {LookId, ScreenId, StageLayoutId, TimerId} from './schema/ids';
 import type {TimerRuns} from './schema/timerState';
+import type {AudioPlayback} from './schema/audioState';
 export type {
   ActiveMessage,
   ActiveProp,
@@ -62,6 +63,7 @@ export interface PropLayer {
 
 export interface AudioLayer {
   readonly mediaId: string;
+  readonly playback?: AudioPlayback;
 }
 
 export interface MessageLayer {
@@ -86,6 +88,8 @@ export interface LiveLayers {
 
 /** The live output state. The main process owns it; windows receive copies. */
 export interface LiveState {
+  /** The audio layer's live volume, from 0 to 100; absent means 100. */
+  readonly audioVolume?: number;
   /** The selected Look; absent or null uses the saved current Look. */
   readonly lookId?: LookId | null;
   readonly stageMessage?: string | null;

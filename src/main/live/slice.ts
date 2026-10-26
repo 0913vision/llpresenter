@@ -4,6 +4,7 @@ import type {LiveHistory} from './history';
 import type {SettingsReader} from '../store/settingsStore';
 import type {MacroId, MessageId, ScreenId} from '@shared/schema/ids';
 import type {PayloadError} from '@shared/schema/payload';
+import type {MediaList} from '@shared/schema/mediaList';
 
 export interface MacroCommandPort {
   run(
@@ -39,6 +40,7 @@ export interface MonitorNumbersPort {
 }
 
 export interface SliceInputs {
+  readonly audioMedia?: () => MediaList;
   readonly now: number;
   /** The monotonic 타이머 clock; absent uses `now`. */
   readonly timerNow?: number;

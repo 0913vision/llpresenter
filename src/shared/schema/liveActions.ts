@@ -18,7 +18,7 @@ import {plainObject} from './payload';
 import {nonNegativeInteger, percent} from './primitives';
 import {liveNonBlankTextSchema} from './liveLimits';
 
-const audioSourceSchema = v.pipe(
+export const audioSourceSchema = v.pipe(
   plainObject,
   v.variant('kind', [
     v.object({kind: v.literal('media'), mediaId: mediaIdSchema}),
@@ -29,6 +29,10 @@ const audioSourceSchema = v.pipe(
     }),
   ]),
 );
+
+export type AudioSource = ReadonlyKnown<
+  v.InferOutput<typeof audioSourceSchema>
+>;
 
 /** M3 commands remain unsupported until their owning live slices register. */
 export const liveActionOptions = [
