@@ -2,8 +2,8 @@
 
 - Team member: data
 - Branch: `feat/data/bible-converter`
-- Base commit: `660f6c5e`, the head of `data-65`. The report supplies the final
-  range, head and CI URL.
+- Base commit: `dfb2969d` on local `main`, including approved `data-65`. The
+  report supplies the final range, head and CI URL.
 - Related decision: October 26, prepared chunked Bible translations delivered
   with app updates; specification `data-62` and reader `data-63` to `data-65`.
 
