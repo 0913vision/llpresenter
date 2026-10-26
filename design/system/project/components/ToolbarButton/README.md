@@ -1,11 +1,14 @@
 # ToolbarButton
 
-A button on the toolbar, with its name under the icon. Use it for the workspace tabs, opening and closing media, picking a Look, and turning 출력 (output) on and off for the three screens.
+A toolbar control for workspace tabs, the independent media-bin toggle, Look,
+and screen output. The media toggle is a short horizontal outlined button;
+workspace tabs retain their full-height form. They must not look like the same
+kind of navigation.
 
 ## Where to use
 
 - Workspace tabs: 진행 (Show), 준비 (Prep), 화면 설정 (Screen settings)
-- View toggle: 미디어 (opens and closes the media strip)
+- View toggle: 미디어 (opens and closes the shared bottom bin in 진행 and 준비)
 - Action button that opens a menu: Look picker (평상시)
 - Screen output: 본 화면 (main screen), 무대 (stage), 방송 자막 (broadcast captions)
 - On the 40px toolbar of a narrow window (1366), use the compact form of the same buttons.
@@ -18,23 +21,44 @@ A button on the toolbar, with its name under the icon. Use it for the workspace 
 
 ## Anatomy
 
-- Height `size-toolbar-button` (48px), corner radius `radius-lg` (5px), no background.
+- Other buttons: height `size-toolbar-button` (48px), corner radius `radius-lg`
+  (5px), no background. The media toggle uses its separate anatomy below.
 - Icon `size-icon-18` on top and name `toolbar-label` (14/20/400) below, with a gap of `space-4`. The icon and the name are centered.
 - Workspace tab: width 64, no horizontal padding.
 - Action and output buttons: horizontal padding `space-8`, minimum width 64. A button that opens a menu, like Look, has horizontal padding `space-12` and a `size-icon-12` down arrow (`text-3`) `space-4` to the right of the icon.
 - Status dot on output buttons: a 6px circle (`radius-full`) over the top right corner of the icon (top −3px, right −4px). `ring-dot-cut` sets it apart from the icon. When the button is hovered or pressed, the ring color also changes to the button background (`bg-toolbar-hover`, `bg-raised`).
 - Icons: 진행 `slides`, 준비 `edit`, 화면 설정 `gear`, 미디어 `film`, Look `layers` + `down`, 본 화면 and 무대 `mplay`, 방송 자막 `capture`.
-- Compact form: height 32, icon `size-icon-16` to the left of the name, gap `space-6`, name `label` (14/20), horizontal padding `space-8` `space-10`. Look puts the arrow after the name, with right padding `space-6`. 미디어 is icon only, 32×32. Workspace tabs also fit their width to the text.
+- Compact form: height 32, icon `size-icon-16` to the left of the name, gap `space-6`, name `label` (14/20), horizontal padding `space-8` `space-10`. Look puts the arrow after the name, with right padding `space-6`. Workspace tabs also fit their width to the text. The media toggle keeps its separate form below.
+
+### Media view toggle
+
+- Height `size-control-md` (30px) at every window width, centered in the toolbar.
+  Horizontal `film` icon 16px and visible 미디어 label 14/20, separated by
+  `space-6`; `space-10` side insets, `radius-md`, minimum width
+  `size-toolbar-button-min`. Keep the label visible in the narrow window too.
+- Off: `bg-control`, `text`, a 1px `line-control` border. On: `selection`,
+  `text` and an `accent` border. Workspace selection remains gray, without
+  this outlined control shape. Keep the existing divider after workspace tabs.
+- Hover: off uses `bg-control-hover`; on uses `accent-fill-hover`. Pointer
+  press uses `bg-raised` and keeps the state's border. Keyboard focus uses
+  the shared outer 2px accent outline. Disabled: `bg-control`, `line-strong`,
+  `text-off`, no hover. Use existing hover motion and reduced-motion handling.
+- Use `aria-pressed`, never a workspace tab role or `aria-selected`. The
+  button only invokes its existing controlled callback. Tooltip is 미디어 열기
+  or 미디어 닫기. In 화면 설정 it is disabled with the reason in its tooltip.
+- Integration with data-74: retain `mediaOpen` / `onMediaOpenChange` on Toolbar
+  and `pressed` / `onPressedChange` on ToolbarButton. Data owns the shared
+  bottom-bin mount and visibility state. This style does not switch workspaces.
 
 ## Sizes and variants
 
 | Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
 | Workspace tab | `size-toolbar-button` 48, width 64 | `toolbar-label` | 진행, 준비, 화면 설정 |
-| View toggle | 48, minimum 64 | `toolbar-label` | 미디어 |
+| View toggle | 30, minimum width 64, horizontal | `label` 14/20 | 미디어 at every width |
 | Menu action | 48, horizontal padding 12 | `toolbar-label` | Look (평상시) |
 | Screen output | 48, minimum 64 | `toolbar-label` | 본 화면, 무대, 방송 자막 |
-| Compact | 32 | `label` | Every button on the 40 toolbar (`size-toolbar-compact`) |
+| Compact | 32 | `label` | Other buttons on the 40 toolbar (`size-toolbar-compact`) |
 
 ## States
 
@@ -43,14 +67,16 @@ A button on the toolbar, with its name under the icon. Use it for the workspace 
 | Default (action button) | None | `text` | Arrow `text-3` |
 | Workspace tab, not selected | None | `text-3` | |
 | Workspace tab, selected | `bg-raised` | `text` | Stays the same on hover |
-| 미디어 on / off | None | `text` / `text-3` | Don't show the on state with the background |
+| 미디어 off | `bg-control` | `text` | 1px `line-control` border |
+| 미디어 on | `selection` | `text` | 1px `accent` border |
 | Output on | None | `text` | 6px `live` dot + `ring-dot-cut` |
 | Output off | None | `text-off` | 6px `line-strong` dot (`ll-dot--off` of StatusMarks) + `ring-dot-cut` |
 | Output, no monitor | None | Icon `warning`, name `text` | 6px `warning` dot + `ring-dot-cut` |
-| Hover | `bg-toolbar-hover` | Unchanged | 100ms ease-out, the dot ring takes the same color |
+| Hover, other controls | `bg-toolbar-hover` | Unchanged | 100ms ease-out, the dot ring takes the same color |
 | Pressed, menu open (`aria-expanded`) | `bg-raised` | Unchanged | |
 | Focus | Unchanged | Unchanged | `outline: 2px solid accent`, offset 1px, on keyboard focus only |
-| Disabled | None | `text-off` | No hover. Give the reason in a tooltip |
+| Disabled, other controls | None | `text-off` | No hover. Give the reason in a tooltip |
+| Disabled media toggle | `bg-control` | `text-off` | `line-strong` border, no hover |
 
 ## Behavior
 
@@ -63,7 +89,8 @@ A button on the toolbar, with its name under the icon. Use it for the workspace 
   - On: "본 화면 출력 끄기 (모니터 2)", "무대 화면 출력 끄기 (모니터 3)", "방송 자막 출력 끄기 (NDI)"
   - Off: "본 화면 출력 켜기 (모니터 2)"
   - No monitor: "본 화면: 모니터 2를 찾을 수 없습니다"
-- Give a button whose name is hidden in the compact form (미디어) an `aria-label`.
+- The media toggle's name remains visible in every form. Other icon-only
+  controls keep an `aria-label`.
 
 ## Writing
 

@@ -69,6 +69,48 @@ describe('Toolbar', () => {
 });
 
 describe('Toolbar design system parts', () => {
+  it.each([
+    ['normal', 'show'],
+    ['narrow', 'prep'],
+  ] as const)(
+    'keeps the %s media toggle separate from the %s workspace',
+    async (sizeClass, workspace) => {
+      const onWorkspace = vi.fn();
+      const onMediaOpenChange = vi.fn();
+      const {rerender} = render(
+        <Toolbar
+          sizeClass={sizeClass}
+          workspace={workspace}
+          onWorkspace={onWorkspace}
+          mediaOpen={false}
+          onMediaOpenChange={onMediaOpenChange}
+        />,
+      );
+      const media = screen.getByRole('button', {name: '미디어'});
+      expect(media.textContent).toBe('미디어');
+      expect(
+        screen.getByRole('tablist', {name: '작업 공간'}).contains(media),
+      ).toBe(false);
+      media.focus();
+      await userEvent.keyboard('{Enter}');
+      expect(onMediaOpenChange).toHaveBeenCalledExactlyOnceWith(true);
+      rerender(
+        <Toolbar
+          sizeClass={sizeClass}
+          workspace={workspace}
+          onWorkspace={onWorkspace}
+          mediaOpen
+          onMediaOpenChange={onMediaOpenChange}
+        />,
+      );
+      expect(media.getAttribute('aria-pressed')).toBe('true');
+      await userEvent.keyboard(' ');
+      expect(onMediaOpenChange.mock.calls).toEqual([[true], [false]]);
+      expect(onWorkspace).not.toHaveBeenCalled();
+      expect((await hoverForTooltip(media))?.textContent).toBe('미디어 닫기');
+    },
+  );
+
   it('has the search field with its placeholder and name, and no toolbar role', () => {
     render(
       <Toolbar sizeClass="normal" workspace="show" onWorkspace={() => {}} />,

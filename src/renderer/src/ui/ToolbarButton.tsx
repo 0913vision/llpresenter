@@ -14,7 +14,7 @@ export interface ToolbarButtonProps extends Omit<
   readonly label: string;
   /** Draws the form for the 40 toolbar, with the name beside the icon. */
   readonly compact?: boolean | undefined;
-  /** In the compact form, draws only the icon and keeps the name for aria. */
+  /** Hides compact action names; view toggles always keep their visible label. */
   readonly iconOnly?: boolean | undefined;
   /** Makes it a view toggle; each press reports the opposite value. */
   readonly pressed?: boolean | undefined;
@@ -79,8 +79,7 @@ function Content({
 }
 
 /**
- * A toolbar button with its name under the icon: an action, a view toggle
- * (미디어), or a button that opens a menu (the Look picker).
+ * A toolbar action/menu button, or a separate horizontal view toggle (미디어).
  */
 export function ToolbarButton({
   icon,
@@ -98,7 +97,8 @@ export function ToolbarButton({
   ...rest
 }: ToolbarButtonProps): JSX.Element {
   const {targetProps, tooltip} = useTooltip(titleTooltip(title));
-  const labelHidden = compact && iconOnly;
+  const viewToggle = pressed !== undefined && !menu;
+  const labelHidden = compact && iconOnly && !viewToggle;
   const press = (event: MouseEvent<HTMLButtonElement>): void => {
     onClick?.(event);
     if (pressed !== undefined) onPressedChange?.(!pressed);
@@ -126,7 +126,7 @@ export function ToolbarButton({
         <Content
           icon={icon}
           label={label}
-          compact={compact}
+          compact={compact || viewToggle}
           labelHidden={labelHidden}
           menu={menu}
         />

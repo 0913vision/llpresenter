@@ -81,19 +81,23 @@ describe('ToolbarButton', () => {
     expect(tooltip?.textContent).toBe('미디어 열기');
   });
 
-  it('keeps the name for aria when the compact form hides it', () => {
-    render(
-      <ToolbarButton
-        icon="film"
-        label="미디어"
-        compact
-        iconOnly
-        pressed={false}
-      />,
-    );
-    const button = screen.getByRole('button', {name: '미디어'});
-    expect(button.textContent).toBe('');
-  });
+  it.each([false, true])(
+    'keeps the toggle label visible with compact=%s',
+    compact => {
+      render(
+        <ToolbarButton
+          icon="film"
+          label="미디어"
+          compact={compact}
+          iconOnly
+          pressed={false}
+        />,
+      );
+      const button = screen.getByRole('button', {name: '미디어'});
+      expect(button.textContent).toBe('미디어');
+      expect(button.hasAttribute('aria-selected')).toBe(false);
+    },
+  );
 
   it('shows the name beside the icon in the compact form', () => {
     render(<ToolbarButton icon="layers" label="평상시" compact menu />);

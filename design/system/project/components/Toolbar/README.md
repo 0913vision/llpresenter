@@ -15,11 +15,14 @@ The 56px row under the menu bar. It holds the workspace tabs and media on the le
 ## Anatomy
 
 - Row: height `size-toolbar` (56px), background `bg-app`, horizontal padding `space-4`, gap between items `space-6`. Buttons are ToolbarButton (48), vertically centered.
-- Left: workspace tabs (진행, 준비, 화면 설정), divider, media.
+- Left: workspace tabs (진행, 준비, 화면 설정), divider, the separate horizontal
+  30px media-bin toggle. The toggle keeps its label and outlined on/off states.
 - Center: the search field, centered in a cell that takes the remaining width. The search field is TextField md (`ll-field ll-field--ring`, `size-control-md` 30, `bg-well`, magnifier 16 `text-3`, gap `space-8`), width 420, and it shrinks when space runs short. Placeholder "곡, 가사, 초성".
 - Right: Look (평상시), divider, the three screen output buttons (본 화면 (main screen), 무대 (stage), 방송 자막 (broadcast captions)).
 - Divider: 1×24, `line`, horizontal margin `space-8` (14 together with the gap between items).
-- Narrow window: height `size-toolbar-compact` (40px), buttons in the narrow ToolbarButton form (32), media as an icon only, search field width 280 (still md), divider horizontal margin `space-4`.
+- Narrow window: height `size-toolbar-compact` (40px), other buttons in the
+  narrow ToolbarButton form (32), media remains a labeled 30px horizontal
+  toggle, search field width 280 (still md), divider margin `space-4`.
 
 ## Sizes and variants
 

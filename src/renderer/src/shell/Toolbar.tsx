@@ -90,11 +90,12 @@ export function Toolbar({
         label="미디어"
         title={
           onMediaOpenChange
-            ? '미디어'
+            ? mediaOpen
+              ? '미디어 닫기'
+              : '미디어 열기'
             : '현재 작업 공간에서는 미디어를 열 수 없음'
         }
         compact={compact}
-        iconOnly={compact}
         pressed={mediaOpen}
         onPressedChange={onMediaOpenChange}
         disabled={onMediaOpenChange === undefined}

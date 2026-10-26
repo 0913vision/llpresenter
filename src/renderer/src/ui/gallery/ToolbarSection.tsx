@@ -219,6 +219,15 @@ export function ToolbarSection(): JSX.Element {
         <SpecItem label="Hover" pin="hover">
           <ToolbarButton icon="film" label="미디어" pressed={false} />
         </SpecItem>
+        <SpecItem label="Pressed" pin="pressed">
+          <ToolbarButton icon="film" label="미디어" pressed={false} />
+        </SpecItem>
+        <SpecItem label="Focus" pin="focus">
+          <ToolbarButton icon="film" label="미디어" pressed />
+        </SpecItem>
+        <SpecItem label="Disabled">
+          <ToolbarButton icon="film" label="미디어" pressed={false} disabled />
+        </SpecItem>
         <SpecItem label="Look, default">
           <ToolbarButton
             icon="layers"
@@ -249,20 +258,19 @@ export function ToolbarSection(): JSX.Element {
           />
         ))}
       </SpecGroup>
-      <SpecGroup title="Narrow window, toolbar 40, button 32, icon 16 left of a 12px name, gap 6">
+      <SpecGroup title="Narrow window: workspace buttons 32px, separate media toggle 30px">
         <SpecItem label="Tab selected">
           <SingleTab tab={showTab} selected compact />
         </SpecItem>
         <SpecItem label="Tab hover" pin="hover">
           <SingleTab tab={prepTab} selected={false} compact />
         </SpecItem>
-        <SpecItem label="미디어 32×32">
+        <SpecItem label="미디어: label stays visible">
           <ToolbarButton
             icon="film"
             label="미디어"
             title="미디어 열기"
             compact
-            iconOnly
             pressed={false}
           />
         </SpecItem>

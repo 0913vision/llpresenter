@@ -243,10 +243,6 @@
 /* Action button that opens a menu, such as the Look picker */
 .ll-tbtn.ll-tbtn--menu { padding: 0 var(--space-12); }
 
-/* View toggle (미디어): the background doesn't change */
-.ll-tbtn.ll-tbtn--toggle { min-width: 64px; color: var(--text-3); }
-.ll-tbtn.ll-tbtn--toggle[aria-pressed="true"] { color: var(--text); }
-
 /* Screen output (본 화면, 무대, 방송 자막) */
 .ll-tbtn.ll-tbtn--output { min-width: 64px; }
 .ll-tbtn__dot {
@@ -274,6 +270,15 @@
 .ll-tbtn.ll-tbtn--compact.ll-tbtn--output { width: auto; min-width: 0; }
 .ll-tbtn.ll-tbtn--compact.ll-tbtn--menu { padding: 0 var(--space-6) 0 var(--space-8); }
 .ll-tbtn.ll-tbtn--compact.ll-tbtn--icon-only { width: 32px; min-width: 0; padding: 0; }
+
+/* NOTE(0913vision): The user keeps the media bin toggle distinct from workspace tabs. */
+.ll-tbtn.ll-tbtn--toggle, .ll-tbtn.ll-tbtn--toggle.ll-tbtn--compact { box-sizing: border-box; flex-direction: row; gap: var(--space-6); width: auto; min-width: var(--size-toolbar-button-min); height: var(--size-control-md); padding: 0 var(--space-10); border: var(--radius-hairline) solid var(--line-control); border-radius: var(--radius-md); background: var(--bg-control); color: var(--text); font: var(--type-label); }
+.ll-tbtn.ll-tbtn--toggle .ll-i { width: var(--size-icon-16); height: var(--size-icon-16); }
+.ll-tbtn.ll-tbtn--toggle[aria-pressed="true"]:not(:disabled, [aria-disabled="true"]) { background: var(--selection); border-color: var(--accent); }
+.ll-tbtn.ll-tbtn--toggle:not(:disabled, [aria-disabled="true"]):is(:hover, .is-hover) { background: var(--bg-control-hover); }
+.ll-tbtn.ll-tbtn--toggle[aria-pressed="true"]:not(:disabled, [aria-disabled="true"]):is(:hover, .is-hover) { background: var(--accent-fill-hover); }
+.ll-tbtn.ll-tbtn--toggle[aria-pressed]:not(:disabled, [aria-disabled="true"]):is(:active, .is-active) { background: var(--bg-raised); }
+.ll-tbtn.ll-tbtn--toggle:is(:disabled, [aria-disabled="true"]) { background: var(--bg-control); border-color: var(--line-strong); color: var(--text-off); }
 
 @media (prefers-reduced-motion: reduce) {
   .ll-tbtn, :is(.ll-root, .ll-preview) .ll-tbtn, .ll-tbtn__dot { transition: none; }

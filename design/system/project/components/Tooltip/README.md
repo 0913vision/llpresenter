@@ -29,10 +29,10 @@ A small box that briefly shows a name, a shortcut, the reason something is disab
 
 | Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
-| Name only | 26 (16 + 5 × 2) | `label` 14/20 `text` | Icon buttons, toolbar buttons |
-| Shortcut | 26 | `label` `text` + `text-3` | 지우기 buttons, undo |
-| Two lines | 44 (16 + 2 + 16 + 5 × 2) | `label` `text`, second line `text-3` | Error reason + extra info |
-| Wrapping | Up to 280 wide, 16 per line | `label` | Long reasons, file paths |
+| Name only | 30 (20 + 5 × 2) | `label` 14/20 `text` | Icon buttons, toolbar buttons |
+| Shortcut | 30 | `label` `text` + `text-3` | 지우기 buttons, undo |
+| Two lines | 52 (20 + 2 + 20 + 5 × 2) | `label` `text`, second line `text-3` | Error reason + extra info |
+| Wrapping | Up to 280 wide, 20 per line | `label` | Long reasons, file paths |
 
 ## States
 

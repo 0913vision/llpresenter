@@ -1,4 +1,4 @@
-<!-- @dsCard group="App shell" height=560 -->
+<!-- @dsCard group="App shell" height=720 -->
 <!doctype html>
 <html lang="ko">
 <head>
@@ -28,6 +28,9 @@
 <div class="ll-spec-item"><button type="button" class="ll-tbtn ll-tbtn--toggle" aria-pressed="true" title="미디어 닫기"><span class="ll-i ll-i-film"></span><span class="ll-tbtn__label">미디어</span></button><span class="ll-spec-label">On</span></div>
 <div class="ll-spec-item"><button type="button" class="ll-tbtn ll-tbtn--toggle" aria-pressed="false" title="미디어 열기"><span class="ll-i ll-i-film"></span><span class="ll-tbtn__label">미디어</span></button><span class="ll-spec-label">Off</span></div>
 <div class="ll-spec-item"><button type="button" class="ll-tbtn ll-tbtn--toggle is-hover" aria-pressed="false"><span class="ll-i ll-i-film"></span><span class="ll-tbtn__label">미디어</span></button><span class="ll-spec-label">Hover</span></div>
+<div class="ll-spec-item"><button type="button" class="ll-tbtn ll-tbtn--toggle is-active" aria-pressed="false"><span class="ll-i ll-i-film"></span><span class="ll-tbtn__label">미디어</span></button><span class="ll-spec-label">Pressed</span></div>
+<div class="ll-spec-item"><button type="button" class="ll-tbtn ll-tbtn--toggle is-focus" aria-pressed="true"><span class="ll-i ll-i-film"></span><span class="ll-tbtn__label">미디어</span></button><span class="ll-spec-label">Focus</span></div>
+<div class="ll-spec-item"><button type="button" class="ll-tbtn ll-tbtn--toggle" aria-pressed="false" aria-disabled="true"><span class="ll-i ll-i-film"></span><span class="ll-tbtn__label">미디어</span></button><span class="ll-spec-label">Disabled</span></div>
 <div class="ll-spec-item"><button type="button" class="ll-tbtn ll-tbtn--menu" aria-haspopup="menu" aria-expanded="false" title="Look 고르기"><span class="ll-tbtn__icon"><span class="ll-i ll-i-layers"></span><span class="ll-i ll-tbtn__chevron ll-i-down"></span></span><span class="ll-tbtn__label">평상시</span></button><span class="ll-spec-label">Look, default</span></div>
 <div class="ll-spec-item"><button type="button" class="ll-tbtn ll-tbtn--menu is-hover" aria-haspopup="menu" aria-expanded="false"><span class="ll-tbtn__icon"><span class="ll-i ll-i-layers"></span><span class="ll-i ll-tbtn__chevron ll-i-down"></span></span><span class="ll-tbtn__label">평상시</span></button><span class="ll-spec-label">Hover</span></div>
 <div class="ll-spec-item"><button type="button" class="ll-tbtn ll-tbtn--menu" aria-haspopup="menu" aria-expanded="true"><span class="ll-tbtn__icon"><span class="ll-i ll-i-layers"></span><span class="ll-i ll-tbtn__chevron ll-i-down"></span></span><span class="ll-tbtn__label">평상시</span></button><span class="ll-spec-label">Menu open, pressed</span></div>
@@ -54,11 +57,11 @@
 </div>
 
 <div class="pv-group">
-<div class="ll-spec-title">Narrow window, toolbar 40, button 32, icon 16 left of a 12px name, gap 6</div>
+<div class="ll-spec-title">Narrow window: workspace buttons 32px, media toggle 30px with a visible 14px name</div>
 <div class="ll-spec">
 <div class="ll-spec-item"><button type="button" class="ll-tbtn ll-tbtn--tab ll-tbtn--compact" role="tab" aria-selected="true"><span class="ll-i ll-i-slides"></span><span class="ll-tbtn__label">진행</span></button><span class="ll-spec-label">Tab selected</span></div>
 <div class="ll-spec-item"><button type="button" class="ll-tbtn ll-tbtn--tab ll-tbtn--compact is-hover" role="tab" aria-selected="false"><span class="ll-i ll-i-edit"></span><span class="ll-tbtn__label">준비</span></button><span class="ll-spec-label">Tab hover</span></div>
-<div class="ll-spec-item"><button type="button" class="ll-tbtn ll-tbtn--toggle ll-tbtn--compact ll-tbtn--icon-only" aria-pressed="false" aria-label="미디어" title="미디어 열기"><span class="ll-i ll-i-film"></span></button><span class="ll-spec-label">미디어 32×32</span></div>
+<div class="ll-spec-item"><button type="button" class="ll-tbtn ll-tbtn--toggle ll-tbtn--compact" aria-pressed="false" title="미디어 열기"><span class="ll-i ll-i-film"></span><span class="ll-tbtn__label">미디어</span></button><span class="ll-spec-label">미디어: label stays visible</span></div>
 <div class="ll-spec-item"><button type="button" class="ll-tbtn ll-tbtn--menu ll-tbtn--compact" aria-haspopup="menu" aria-expanded="false"><span class="ll-i ll-i-layers"></span><span class="ll-tbtn__label">평상시</span><span class="ll-i ll-tbtn__chevron ll-i-down"></span></button><span class="ll-spec-label">Look</span></div>
 <div class="ll-spec-item"><button type="button" class="ll-tbtn ll-tbtn--output ll-tbtn--compact" aria-pressed="true" data-state="live" title="본 화면 출력 끄기 (모니터 2)"><span class="ll-tbtn__icon"><span class="ll-i ll-i-mplay"></span><span class="ll-tbtn__dot"></span></span><span class="ll-tbtn__label">본 화면</span></button><span class="ll-spec-label">On</span></div>
 <div class="ll-spec-item"><button type="button" class="ll-tbtn ll-tbtn--output ll-tbtn--compact" aria-pressed="false" data-state="off" title="무대 화면 출력 켜기 (모니터 3)"><span class="ll-tbtn__icon"><span class="ll-i ll-i-mplay"></span><span class="ll-tbtn__dot"></span></span><span class="ll-tbtn__label">무대</span></button><span class="ll-spec-label">Off</span></div>

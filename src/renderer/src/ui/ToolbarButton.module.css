@@ -65,15 +65,6 @@
   padding: 0 var(--space-12);
 }
 
-.toggle {
-  min-width: var(--toolbar-min-width);
-  color: var(--text-3);
-}
-
-.toggle[aria-pressed='true'] {
-  color: var(--text);
-}
-
 .output {
   min-width: var(--toolbar-min-width);
 }
@@ -131,4 +122,42 @@
   width: var(--size-toolbar-button-compact);
   min-width: 0;
   padding: 0;
+}
+
+.button.toggle {
+  box-sizing: border-box;
+  flex-direction: row;
+  gap: var(--space-6);
+  width: auto;
+  min-width: var(--toolbar-min-width);
+  height: var(--size-control-md);
+  padding: 0 var(--space-10);
+  border: var(--radius-hairline) solid var(--line-control);
+  border-radius: var(--radius-md);
+  background: var(--bg-control);
+  color: var(--text);
+  font: var(--type-label);
+}
+
+.button.toggle[aria-pressed='true']:not([aria-disabled='true']) {
+  background: var(--selection);
+  border-color: var(--accent);
+}
+
+.button.toggle:not([aria-disabled='true']):hover {
+  background: var(--bg-control-hover);
+}
+
+.button.toggle[aria-pressed='true']:not([aria-disabled='true']):hover {
+  background: var(--accent-fill-hover);
+}
+
+.button.toggle[aria-pressed]:not([aria-disabled='true']):active {
+  background: var(--bg-raised);
+}
+
+.button.toggle[aria-disabled='true'] {
+  background: var(--bg-control);
+  border-color: var(--line-strong);
+  color: var(--text-off);
 }
