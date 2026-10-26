@@ -33,6 +33,9 @@ Rules for output windows:
   pointer stays visible over every output, including when 항상 위 is on. Output
   windows accept mouse clicks, which bring them to the front (user decision,
   m3-check3, including M3-C3-9).
+- A clicked output forwards its keys to the control window's existing handlers,
+  so clear keys and slide navigation keep working without bringing control to
+  the front or changing its focus.
 - 항상 위 defaults off for every screen method. On reveal, raise the output once
   without taking focus. Other windows may cover it afterwards; clicking the
   output raises it again. No background keeper raises an output while 항상 위 is

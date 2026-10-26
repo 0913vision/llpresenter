@@ -17,6 +17,7 @@ import type {OutputWindowEvents, OutputWindowHandle} from './outputWindow';
 import type {OutputScreen} from './screens';
 import {OnTopKeeper} from './onTopKeeper';
 import {WindowPlacement} from './windowPlacement';
+import {forwardOutputKeys, type OutputKeyControl} from './outputKeys';
 
 export const OUTPUT_BACKGROUND = '#000000';
 const CAPTURE_BACKGROUND = '#00b140';
@@ -30,7 +31,8 @@ function halfOf({width, height}: Rect): Size {
 export interface ElectronOutputWindowOptions {
   readonly log: Logger;
   readonly mode: WindowMode;
-  readonly control: Pick<BrowserWindow, 'isDestroyed' | 'moveAbove'>;
+  readonly control: Pick<BrowserWindow, 'isDestroyed' | 'moveAbove'> &
+    OutputKeyControl;
 }
 
 function createBrowserWindow(
@@ -260,7 +262,15 @@ export function createElectronOutputWindow(
   blockNavigation(win);
   listen(win, events);
   loadPage(win, page, log);
-  const {dispose, ...presentation} = presentationFor(win, options);
+  const releaseKeys = forwardOutputKeys(win.webContents, options.control, log);
+  const {dispose: releasePresentation, ...presentation} = presentationFor(
+    win,
+    options,
+  );
+  const dispose = (): void => {
+    releaseKeys();
+    releasePresentation();
+  };
   win.once('closed', dispose);
   return {
     ...presentation,

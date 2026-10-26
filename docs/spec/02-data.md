@@ -612,7 +612,7 @@ source file.
 | General    | `backupCopies`         | Integer, 10                                  | 복구 사본 10개 (10 recovery copies). See recovery copies below.         | `Prefs`               |
 | Output     | `showOnLaunch`         | Boolean, false                               | 켤 때 화면 출력 (output on launch)                                      | `Prefs`               |
 | Output     | `preventSleep`         | Boolean, true                                | 출력 중 절전 막기 (prevent sleep during output)                         | `Prefs`               |
-| Output     | `alwaysOnTop`          | Boolean, true                                | 출력 창 항상 위 (output windows always on top)                          | `Prefs`               |
+| Output     | `alwaysOnTop`          | Boolean, false                               | 출력 창 항상 위 (output windows always on top)                          | `Prefs`               |
 | Output     | `onDisconnect`         | `"window"`                                   | 화면 연결이 끊기면: 창으로 바꾸기                                       | `Prefs`               |
 | Output     | `hardwareAcceleration` | Boolean, true                                | 하드웨어 가속 (hardware acceleration). Takes effect on the next launch. | `Prefs`               |
 | Output     | `previewFps`           | Integer, 30                                  | 미리보기 30fps (preview frame rate)                                     | `Prefs`               |

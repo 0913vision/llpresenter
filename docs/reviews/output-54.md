@@ -27,6 +27,13 @@ on top releases the keeper and its timer. Monitor-disconnect demotion remains
 the explicit exception: the affected output drops topmost and places the control
 above it until the operator raises it or its full screen placement returns.
 
+An output's native key events forward to the control renderer's active element,
+preserving the existing clear, navigation and field/dialog precedence handlers.
+The control is never focused or raised. Forwarding has one script in flight and
+at most 64 queued events; held-key repeats are swallowed, errors log once, and
+disposal drops the queue and listener. The control's web contents are captured
+once and guarded against destruction.
+
 ## Changes outside my paths
 
 - `src/renderer/src/screens/screenEdits.ts` and its test, plus
@@ -36,6 +43,7 @@ above it until the operator raises it or its full screen placement returns.
   the existing optional schema and explicit saved values.
 - `docs/spec/03-output.md` and `06-settings.md`: record visible pointer,
   default-off, raise-once/click behavior and stacking-only settings changes.
+- `docs/spec/02-data.md`: correct the `alwaysOnTop` preference default to false.
 
 ## Checks run
 
@@ -93,6 +101,29 @@ above it until the operator raises it or its full screen placement returns.
   samples; the instrumented two-launch check recorded unchanged bounds and no
   native movement or focus calls throughout the stacking edits.
 
+### Round 3 app check
+
+- Rebuilt after the key-forwarding fix and checked the launcher with
+  `node --check`. Two offscreen launches repeat the screen selection,
+  always-on-top and pointer checks 25 times each. Cursor visibility is now
+  sampled with both setting values. Preview-frame bounds remain unchanged.
+- Each cycle then opens the sample song in 진행, clicks the output, and sends
+  native F2 and left/right keys to that output through main CDP using
+  `webContents.sendInputEvent`. F2 clears the live slide, right advances from
+  position 0 to 1 and left returns to 0. All F1 to F7 keys reach the existing
+  control handlers in order. No focus, raise, bounds or full-screen call comes
+  from changing the settings. The preliminary renderer-only CDP key injection
+  did not clear, so the final check uses the native Electron input path.
+- Both launches quit normally. Five targets, 527 live elements, 1,936 CDP nodes
+  and 442 listeners remain constant at iterations 5 and 25. Collected heaps are
+  6,689,628 to 7,267,656 bytes and 6,858,204 to 7,444,020 bytes. This is a short
+  repeated-flow check, with the same native-desktop limits described above.
+- Screenshots:
+  [screen properties](evidence/output-54-round3/properties-run1.png),
+  [click-then-key navigation](evidence/output-54-round3/key-navigation-run1.png),
+  [second launch](evidence/output-54-round3/key-navigation-run2.png),
+  [output](evidence/output-54-round3/output-run1.png).
+
 ## Review: lead
 
 - Verdict: pending
@@ -103,4 +134,13 @@ above it until the operator raises it or its full screen placement returns.
 
 ## Team member's reply
 
-1.
+### Round 3
+
+1. Native output key down/up events now reach the control's existing handlers
+   after a click, without changing focus or stacking. The click-then-key
+   regression covers clear and slide navigation, queue bounds and disposal while
+   control destruction or delivery is pending. Active-element dispatch preserves
+   text-field and dialog precedence, modifiers and Num Lock state. The app check
+   injects native keys into the clicked output through main CDP; a preliminary
+   renderer-only CDP key injection did not exercise this path.
+2. Spec 02 now documents the existing `alwaysOnTop` preference default as false.
