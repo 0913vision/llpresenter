@@ -343,6 +343,29 @@ describe('service item store', () => {
     expect(items.getSnapshot().arrangement).toBe('구성 1');
   });
 
+  it('picks 새 구성 for the item it was made for after the selection moved', async () => {
+    const {api, items, service, first, documents} = setup();
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
+    await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
+    const write = api.content.edit;
+    let release: () => void = () => undefined;
+    vi.spyOn(api.content, 'edit').mockImplementationOnce(async edit => {
+      const result = await write(edit);
+      return new Promise(resolve => {
+        release = () => resolve(result);
+      });
+    });
+    const creating = items.createArrangement();
+    await vi.waitFor(() =>
+      expect(documents.get(first.song.id)?.song.arrangements).toHaveLength(2),
+    );
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.plain});
+    release();
+    expect(await creating).toBe(true);
+    expect(service().service.order[1]).toMatchObject({arrangement: '구성 1'});
+    expect(service().service.order[2]).not.toHaveProperty('arrangement');
+  });
+
   it('makes no 새 구성 for a read-only song', async () => {
     const {items, documents, first, edits} = setup();
     documents.set(first.song.id, {...first, access: 'readOnly'});

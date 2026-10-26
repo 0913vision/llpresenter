@@ -152,10 +152,21 @@ export class ServiceItemStore {
    */
   async createArrangement(): Promise<boolean> {
     const {song, arrangement} = this.state;
-    if (!this.alive || this.busy || song === null) return false;
+    const target = this.target;
+    if (!this.alive || this.busy || song === null || target === null) {
+      return false;
+    }
+    const songId = song.document.song.id;
     const name = song.copyArrangement(arrangement);
     if (name === undefined || !(await song.flush())) return false;
-    return this.chooseArrangement(name);
+    return this.edit(
+      item =>
+        isItemOfKind(item, 'song') && item.song === songId
+          ? withArrangement(item, name)
+          : null,
+      '구성 변경 실패',
+      target,
+    );
   }
 
   /**
@@ -179,8 +190,8 @@ export class ServiceItemStore {
   private async edit(
     change: ServiceItemChange,
     failure: string,
+    target = this.target,
   ): Promise<boolean> {
-    const target = this.target;
     if (!this.alive || this.busy || target === null) return false;
     this.setBusy(true);
     const result = await updateServiceItem(this.api, {...target, change});
