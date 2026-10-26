@@ -5,7 +5,7 @@ import {
   ServiceOrderEdits,
   type ServiceOrderEditResult,
 } from '@renderer/state/serviceOrderEdits';
-import type {Notice} from '@renderer/ui/notices';
+import {noticeTime, type Notice} from '@renderer/ui/notices';
 
 const editors = new WeakMap<LlpApi, ServiceOrderEdits>();
 type Operation = (
@@ -48,7 +48,7 @@ export function useServiceOrderEditing(
             result.error.reason === 'write-failed'
               ? '예배 순서 저장 실패'
               : '예배 순서 변경 실패',
-          time: new Date().toTimeString().slice(0, 5),
+          time: noticeTime(),
         });
       }
     } catch (cause) {
@@ -62,7 +62,7 @@ export function useServiceOrderEditing(
         kind: 'warning',
         icon: 'warning',
         title: '예배 순서 변경 실패',
-        time: new Date().toTimeString().slice(0, 5),
+        time: noticeTime(),
       });
     } finally {
       pending.current = false;

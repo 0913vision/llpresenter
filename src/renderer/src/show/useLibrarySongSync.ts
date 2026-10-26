@@ -1,7 +1,7 @@
 import {useEffect, useEffectEvent} from 'react';
 import {useShow} from '@renderer/state/show';
 import {refreshLibrarySong} from '@renderer/state/showLibrary';
-import type {Notice} from '@renderer/ui/notices';
+import {noticeTime, type Notice} from '@renderer/ui/notices';
 
 /** Refreshes the single retained library projection and releases all feeds. */
 export function useLibrarySongSync(onProblem: (notice: Notice) => void): void {
@@ -29,7 +29,7 @@ export function useLibrarySongSync(onProblem: (notice: Notice) => void): void {
             kind: 'warning',
             icon: 'warning',
             title: '곡 불러오기 실패',
-            time: new Date().toTimeString().slice(0, 5),
+            time: noticeTime(),
           });
         }
       }

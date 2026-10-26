@@ -6,7 +6,7 @@ import {isItemOfKind, type ServiceItemOf} from '@shared/schema/service';
 import {applyService, useShow} from '@renderer/state/show';
 import {sendLive, useLive} from '@renderer/state/live';
 import {updateServiceBackground} from '@renderer/state/serviceBackground';
-import type {Notice} from '@renderer/ui/notices';
+import {noticeTime, type Notice} from '@renderer/ui/notices';
 
 interface BackgroundView {
   readonly serviceId: string;
@@ -27,7 +27,7 @@ function notice(cause: 'load' | 'change' | 'save'): Notice {
     kind: 'warning',
     icon: 'warning',
     title: titles[cause],
-    time: new Date().toTimeString().slice(0, 5),
+    time: noticeTime(),
   };
 }
 

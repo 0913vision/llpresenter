@@ -28,6 +28,13 @@ export interface Notice {
 /** The most cards that show at once. */
 export const MAX_NOTICES = 3;
 
+const NOTICE_TIME_LENGTH = 'HH:MM'.length;
+
+/** The time a notice shows, in 24-hour time without seconds, such as 11:24. */
+export function noticeTime(now: Date = new Date()): string {
+  return now.toTimeString().slice(0, NOTICE_TIME_LENGTH);
+}
+
 function oldestToDrop(notices: readonly Notice[]): number {
   const oldestInfo = notices.findLastIndex(notice => notice.kind === 'info');
   return oldestInfo >= 0 ? oldestInfo : notices.length - 1;

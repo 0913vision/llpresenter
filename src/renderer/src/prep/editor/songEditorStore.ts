@@ -6,7 +6,7 @@ import type {
   SettingsDocument,
   SettingsEdit,
 } from '@shared/schema/settingsDocuments';
-import type {Notice} from '@renderer/ui/notices';
+import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {SongSession} from './songSession';
 import {editorTask} from './editorTask';
 import {normalizeSongTitle} from './songTitle';
@@ -383,7 +383,7 @@ export class SongEditorStore {
         kind: 'warning',
         icon: 'warning',
         title,
-        time: new Date().toTimeString().slice(0, 5),
+        time: noticeTime(),
         ...(retry === undefined
           ? {}
           : {

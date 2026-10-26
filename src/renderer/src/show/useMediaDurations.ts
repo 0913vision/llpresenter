@@ -2,7 +2,7 @@ import {useEffect, useState} from 'react';
 import type {ServiceDocument} from '@shared/schema/contentDocuments';
 import type {MediaDocument} from '@shared/schema/mediaEdit';
 import {isItemOfKind} from '@shared/schema/service';
-import type {Notice} from '@renderer/ui/notices';
+import {noticeTime, type Notice} from '@renderer/ui/notices';
 
 const MINUTE_SECONDS = 60;
 const noDurations: Readonly<Record<string, string>> = {};
@@ -74,7 +74,7 @@ export function useMediaDurations(
           kind: 'warning',
           icon: 'warning',
           title: '예배 순서 정보 불러오기 실패',
-          time: new Date().toTimeString().slice(0, 5),
+          time: noticeTime(),
         });
       }
     };

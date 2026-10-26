@@ -1,7 +1,7 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
 import type {ServiceEntry} from '@shared/schema/contentDocuments';
 import {applyService, useShow} from '@renderer/state/show';
-import type {Notice} from '@renderer/ui/notices';
+import {noticeTime, type Notice} from '@renderer/ui/notices';
 
 const names = new Intl.Collator('ko', {numeric: true});
 const problemTitles = {
@@ -16,7 +16,7 @@ function problemNotice(cause: keyof typeof problemTitles): Notice {
     kind: 'warning',
     icon: 'warning',
     title: problemTitles[cause],
-    time: new Date().toTimeString().slice(0, 5),
+    time: noticeTime(),
   };
 }
 

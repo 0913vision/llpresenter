@@ -126,6 +126,7 @@ export {
   addNotice,
   removeNotice,
   MAX_NOTICES,
+  noticeTime,
   type Notice,
   type NoticeAction,
   type NoticeKind,

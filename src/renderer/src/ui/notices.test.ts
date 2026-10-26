@@ -1,5 +1,11 @@
 import {describe, expect, it} from 'vitest';
-import {addNotice, MAX_NOTICES, removeNotice, type Notice} from './notices';
+import {
+  addNotice,
+  MAX_NOTICES,
+  noticeTime,
+  removeNotice,
+  type Notice,
+} from './notices';
 
 function notice(key: string, kind: Notice['kind'] = 'info'): Notice {
   return {key, kind, icon: 'monitor', title: key, time: '11:24'};
@@ -50,5 +56,12 @@ describe('removeNotice', () => {
   it('takes only the card with that cause off', () => {
     const stack = addNotice(addNotice([], notice('a')), notice('b'));
     expect(keys(removeNotice(stack, 'a'))).toEqual(['b']);
+  });
+});
+
+describe('noticeTime', () => {
+  it('writes the local time in 24 hours without seconds', () => {
+    expect(noticeTime(new Date(2026, 9, 26, 7, 5, 59))).toBe('07:05');
+    expect(noticeTime(new Date(2026, 9, 26, 23, 41, 0))).toBe('23:41');
   });
 });

@@ -3,7 +3,7 @@ import type {LookId} from '@shared/schema/ids';
 import {sendLive} from '@renderer/state/live';
 import {Menu, ToolbarButton} from '@renderer/ui';
 import {openOnArrowDown} from '@renderer/ui/menuButton';
-import type {Notice} from '@renderer/ui/notices';
+import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {useLookChoices} from './useLookChoices';
 
 const CONFIRMATION_UNAVAILABLE = '현재 버전에서는 Look 적용을 확인할 수 없음';
@@ -43,7 +43,7 @@ export function LookMenu({
         kind: 'warning',
         icon: 'warning',
         title: 'Look 변경 실패',
-        time: new Date().toTimeString().slice(0, 5),
+        time: noticeTime(),
       });
     }
   };

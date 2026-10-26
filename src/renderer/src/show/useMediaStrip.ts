@@ -6,7 +6,7 @@ import type {
   MediaImportProgress,
 } from '@shared/schema/mediaEdit';
 import {sendLive} from '@renderer/state/live';
-import type {Notice} from '@renderer/ui/notices';
+import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {updateActiveCopies, type CopyJob} from './mediaCopyJobs';
 
 export const UNNAMED_MEDIA = '이름 없는 미디어';
@@ -21,7 +21,7 @@ function warningNotice(
     kind: 'warning',
     icon: 'warning',
     title,
-    time: new Date().toTimeString().slice(0, 5),
+    time: noticeTime(),
     meta,
   };
 }

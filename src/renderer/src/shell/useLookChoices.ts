@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
 import type {SettingsDocument} from '@shared/schema/settingsDocuments';
-import type {Notice} from '@renderer/ui/notices';
+import {noticeTime, type Notice} from '@renderer/ui/notices';
 
 type LooksDocument = Extract<SettingsDocument, {name: 'looks'}>;
 
@@ -39,7 +39,7 @@ export function useLookChoices({
         kind: 'warning',
         icon: 'warning',
         title: 'Look 불러오기 실패',
-        time: new Date().toTimeString().slice(0, 5),
+        time: noticeTime(),
       });
     });
     return () => {

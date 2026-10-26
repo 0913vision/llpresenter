@@ -7,7 +7,7 @@ import {
   type LibrarySearchResult,
 } from '@shared/schema/librarySearch';
 import type {SongId} from '@shared/schema/ids';
-import type {Notice, NoticeAction} from '@renderer/ui/notices';
+import {noticeTime, type Notice, type NoticeAction} from '@renderer/ui/notices';
 
 export type LibraryApi = Pick<LlpApi, 'songs' | 'content'> & {
   readonly library: Pick<LlpApi['library'], 'search'>;
@@ -71,7 +71,7 @@ export function useLibrary(
           kind: 'warning',
           icon: 'warning',
           title: problemTitles[cause],
-          time: new Date().toTimeString().slice(0, 5),
+          time: noticeTime(),
           ...(action === undefined ? {} : {actions: [action]}),
         });
       }
