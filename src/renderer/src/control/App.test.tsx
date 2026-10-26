@@ -71,45 +71,77 @@ describe('App menu bar title', () => {
     expect(screen.queryByText('틀로 저장할 수 없음')).toBeNull();
   });
 
-  it('opens text import from File and hands it to the unsaved song editor', async () => {
-    const edit = vi.fn();
-    window.llp = fakeLlpApi({
-      content: {edit},
-      textImport: {
-        read: async () => ({
-          ok: true,
-          value: {
-            source: 'file',
-            fileName: 'Invented.txt',
-            text: 'Invented line',
-          },
-        }),
-        preview: async request => convertTextImport(request),
-      },
-    });
-    const session = createSession();
-    render(
-      <App
-        columnWidthStore={createMemoryColumnWidthStore()}
-        session={session}
-      />,
-    );
-    await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
-    await userEvent.click(screen.getByRole('menuitem', {name: '가져오기'}));
-    await userEvent.click(
-      await screen.findByRole('menuitem', {name: '텍스트 파일'}),
-    );
-    await screen.findByText('슬라이드 1');
-    fireEvent.click(screen.getByRole('button', {name: '편집'}));
-    expect(
-      await screen.findByRole('textbox', {name: '곡 제목'}),
-    ).toHaveProperty('value', 'Invented');
-    expect(screen.getByRole('button', {name: '저장'})).toBeDefined();
-    expect(session.editor?.getSnapshot().imported).toBe(true);
-    expect(edit).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole('button', {name: '버리기'}));
-    expect(session.editor?.getSnapshot().session).toBeNull();
-  });
+  it.each([false, true])(
+    'opens text import and reveals its unsaved editor with media view initially %s',
+    async mediaOpen => {
+      const edit = vi.fn();
+      window.llp = fakeLlpApi({
+        content: {edit},
+        textImport: {
+          read: async () => ({
+            ok: true,
+            value: {
+              source: 'file',
+              fileName: 'Invented.txt',
+              text: 'Invented line',
+            },
+          }),
+          preview: async request => convertTextImport(request),
+        },
+      });
+      const session = createSession();
+      render(
+        <App
+          columnWidthStore={createMemoryColumnWidthStore()}
+          session={session}
+        />,
+      );
+      if (mediaOpen) {
+        fireEvent.click(screen.getByRole('tab', {name: '준비'}));
+        fireEvent.click(screen.getByRole('button', {name: '미디어'}));
+        expect(
+          screen
+            .getByRole('button', {name: '미디어'})
+            .getAttribute('aria-pressed'),
+        ).toBe('true');
+      }
+      await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
+      await userEvent.click(screen.getByRole('menuitem', {name: '가져오기'}));
+      await userEvent.click(
+        await screen.findByRole('menuitem', {name: '텍스트 파일'}),
+      );
+      await screen.findByText('슬라이드 1');
+      fireEvent.click(screen.getByRole('button', {name: '편집'}));
+      expect(
+        await screen.findByRole('textbox', {name: '곡 제목'}),
+      ).toHaveProperty('value', 'Invented');
+      expect(screen.getByRole('button', {name: '저장'})).toBeDefined();
+      expect(
+        screen
+          .getByRole('button', {name: '미디어'})
+          .getAttribute('aria-pressed'),
+      ).toBe('false');
+      expect(session.editor?.getSnapshot().imported).toBe(true);
+      expect(edit).not.toHaveBeenCalled();
+      if (mediaOpen) {
+        fireEvent.click(screen.getByRole('button', {name: '미디어'}));
+        await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
+        await userEvent.click(screen.getByRole('menuitem', {name: '가져오기'}));
+        await userEvent.click(
+          await screen.findByRole('menuitem', {name: '텍스트 파일'}),
+        );
+        expect(await screen.findByRole('alertdialog')).toHaveProperty(
+          'textContent',
+          expect.stringContaining('가져온 곡을 저장하지 않았습니다. 버릴까요?'),
+        );
+        fireEvent.click(screen.getByRole('button', {name: '취소'}));
+        expect(session.editor?.getSnapshot().imported).toBe(true);
+        expect(screen.getByRole('button', {name: '저장'})).toBeDefined();
+      }
+      fireEvent.click(screen.getByRole('button', {name: '버리기'}));
+      expect(session.editor?.getSnapshot().session).toBeNull();
+    },
+  );
   it('hosts and closes service edit warnings in the shared notice stack', async () => {
     window.llp = fakeLlpApi();
     applyService({

@@ -75,6 +75,7 @@ export function App({
           session.api && importSource === null
             ? source => {
                 onWorkspace('prep');
+                setPrepMedia(false);
                 session.editor?.requestLeave(() => setImportSource(source));
               }
             : undefined
@@ -147,7 +148,10 @@ export function App({
           store={session.editor}
           source={importSource}
           onDone={closeImport}
-          onEdit={prepSelection.clear}
+          onEdit={() => {
+            setPrepMedia(false);
+            prepSelection.clear();
+          }}
           onProblem={session.report}
         />
       ) : null}
