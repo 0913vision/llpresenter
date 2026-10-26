@@ -78,3 +78,11 @@ for the menu, dialog, row commands and stage selection.
 ## Team member's reply
 
 No findings yet.
+
+## Verdicts (recorded by the lead at merge)
+
+- Final round (7f02e9ab): reviewer (Codex) Approve. Lead Approve after reading
+  the store change (the overrun choice is kept when a quick timer is created).
+  The exact-head CI run passed, checked by the lead at merge. Rebased by the
+  lead onto local `main` without conflicts; typecheck passes. Earlier rounds'
+  findings and replies are above.
