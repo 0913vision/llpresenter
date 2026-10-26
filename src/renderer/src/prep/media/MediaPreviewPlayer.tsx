@@ -6,7 +6,7 @@ import {IconButton} from '@renderer/ui/IconButton';
 import {MissingFileMark} from '@renderer/ui/MissingFile';
 import {TruncatedText} from '@renderer/ui/TruncatedText';
 import {durationText} from './mediaEntries';
-import {shownProps} from './mediaProps';
+import {DEFAULT_SPEED, MIN_SPEED, MAX_SPEED, shownProps} from './mediaProps';
 import styles from './MediaPreviewPlayer.module.css';
 
 const AUDIO_ICON_SIZE = 28;
@@ -26,6 +26,24 @@ function release(element: HTMLMediaElement | null): void {
   element.load();
 }
 
+function applyPlaybackRate(element: HTMLMediaElement, speed: number): void {
+  const rate = Math.min(MAX_SPEED, Math.max(MIN_SPEED, speed));
+  try {
+    element.playbackRate = rate;
+  } catch (error: unknown) {
+    console.warn('Could not set the media preview playback rate', error);
+    if (rate === DEFAULT_SPEED) return;
+    try {
+      element.playbackRate = DEFAULT_SPEED;
+    } catch (fallbackError: unknown) {
+      console.warn(
+        'Could not reset the media preview playback rate',
+        fallbackError,
+      );
+    }
+  }
+}
+
 /**
  * The preview player above the media properties (spec 05, "Media view"):
  * the picture, a play button with the position and the time left, the name,
@@ -43,18 +61,23 @@ export function MediaPreviewPlayer({
   const shown = shownProps(item);
   const [position, setPosition] = useState(shown.start);
   const stop = shown.stop;
+  const source = mediaUrl(item.id);
   useEffect(() => {
     const element = media.current;
+    if (element !== null && element.getAttribute('src') !== source) {
+      element.setAttribute('src', source);
+      element.load();
+    }
     return () => {
       release(element);
     };
-  }, [item.kind, missing]);
+  }, [item.kind, missing, source]);
   useEffect(() => {
     const element = media.current;
     if (element === null) return;
     element.muted = !shown.audio;
     element.volume = shown.volume / MAX_VOLUME;
-    element.playbackRate = shown.speed;
+    applyPlaybackRate(element, shown.speed);
   }, [item.kind, missing, shown.audio, shown.volume, shown.speed]);
   const failed = (error: unknown): void => {
     console.warn('Could not play the media preview', error);
@@ -88,7 +111,7 @@ export function MediaPreviewPlayer({
     ref: (element: HTMLMediaElement | null) => {
       media.current = element;
     },
-    src: mediaUrl(item.id),
+    src: source,
     preload: 'metadata',
     onLoadedMetadata: () => {
       const element = media.current;

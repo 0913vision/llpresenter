@@ -1,4 +1,5 @@
 import {fireEvent, render, screen} from '@testing-library/react';
+import {StrictMode} from 'react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {mediaUrl} from '@shared/media';
@@ -36,6 +37,81 @@ function player(item: MediaItem, missing = false) {
 
 describe('media preview player', () => {
   afterEach(resetTooltips);
+
+  it.each(['video', 'audio'] as const)(
+    'restores the %s source after the StrictMode setup probe and releases it on unmount',
+    kind => {
+      const item = mediaItem(1, {kind});
+      const view = render(
+        <StrictMode>
+          <MediaPreviewPlayer item={item} missing={false} onReveal={vi.fn()} />
+        </StrictMode>,
+      );
+      const element = view.container.querySelector('video, audio');
+      expect(element?.getAttribute('src')).toBe(mediaUrl(item.id));
+      fireEvent.click(screen.getByRole('button', {name: '재생'}));
+      expect(HTMLMediaElement.prototype.play).toHaveBeenCalledOnce();
+      view.unmount();
+      expect(element?.hasAttribute('src')).toBe(false);
+      expect(HTMLMediaElement.prototype.pause).toHaveBeenCalledTimes(2);
+    },
+  );
+
+  it.each([
+    {speed: 0.001, applied: 0.25},
+    {speed: 100, applied: 4},
+  ])(
+    'bounds saved speed $speed to $applied for playback',
+    ({speed, applied}) => {
+      const item = mediaItem(1, {props: {speed}});
+      const {media} = player(item);
+      expect(media?.playbackRate).toBe(applied);
+      expect(item.props?.speed).toBe(speed);
+    },
+  );
+
+  it('keeps the preview available when a bounded rate is rejected and falls back to normal speed', () => {
+    const error = new DOMException(
+      'Invented unsupported rate',
+      'NotSupportedError',
+    );
+    const rate = vi
+      .spyOn(HTMLMediaElement.prototype, 'playbackRate', 'set')
+      .mockImplementation(value => {
+        if (value !== 1) throw error;
+      });
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const {media} = player(mediaItem(1, {props: {speed: 2}}));
+    expect(rate.mock.calls).toEqual([[2], [1]]);
+    expect(media?.playbackRate).toBe(1);
+    expect(warn).toHaveBeenCalledExactlyOnceWith(
+      'Could not set the media preview playback rate',
+      error,
+    );
+    fireEvent.click(screen.getByRole('button', {name: '재생'}));
+    expect(HTMLMediaElement.prototype.play).toHaveBeenCalledOnce();
+  });
+
+  it('logs both failures when the engine also rejects the fallback rate', () => {
+    const error = new DOMException(
+      'Invented rate failure',
+      'NotSupportedError',
+    );
+    vi.spyOn(
+      HTMLMediaElement.prototype,
+      'playbackRate',
+      'set',
+    ).mockImplementation(() => {
+      throw error;
+    });
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    expect(() => player(mediaItem(1, {props: {speed: 100}}))).not.toThrow();
+    expect(warn.mock.calls).toEqual([
+      ['Could not set the media preview playback rate', error],
+      ['Could not reset the media preview playback rate', error],
+    ]);
+    expect(screen.getByRole('button', {name: '재생'})).toBeDefined();
+  });
 
   it('restarts the selected range at the natural file end for 반복', () => {
     const {media} = player(mediaItem(1, {duration: 30, props: {in: 2}}));

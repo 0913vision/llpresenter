@@ -15,6 +15,8 @@ import {TextField} from '@renderer/ui/TextField';
 import {durationText, sizeText} from './mediaEntries';
 import {MediaPreviewPlayer} from './MediaPreviewPlayer';
 import {
+  MIN_SPEED,
+  MAX_SPEED,
   parseTime,
   shownProps,
   timeText,
@@ -24,9 +26,8 @@ import {
 import {useMediaView} from './MediaViewProvider';
 import styles from './MediaPropertiesPanel.module.css';
 
-/** The slowest and fastest speeds 속도 offers. */
-export const MIN_SPEED = 0.25;
-export const MAX_SPEED = 4;
+export {MIN_SPEED, MAX_SPEED};
+
 const SPEED_STEP = 0.05;
 const SPEED_LARGE_STEP = 0.5;
 const MAX_VOLUME = 100;

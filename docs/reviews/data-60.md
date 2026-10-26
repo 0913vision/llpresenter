@@ -39,6 +39,8 @@ it suppresses native import dialogs, so tests never open visible windows.
   preview, transport and media element lifecycle.
 - `MediaPropertiesPanel.tsx`, its test and `mediaLibrary.ts`: mount the player
   for the effective selection and send reveal requests.
+- `mediaProps.ts`: share speed bounds with the properties panel, which retains
+  its existing bound exports.
 
 ## Changes outside my paths
 
@@ -53,7 +55,7 @@ Additive `Channels.mediaReveal`, `MediaRevealRequest` and
 the existing UUID schema; unknown fields are dropped. Main revalidates it and
 accepts no renderer-supplied file path. Existing contracts are unchanged.
 
-## Checks run
+## Round 1 checks
 
 | Check                                       | Result                                       |
 | ------------------------------------------- | -------------------------------------------- |
@@ -119,4 +121,29 @@ metadata and subsequent check result are updated after that restack.
 
 ## Team member's reply
 
-1.
+1. StrictMode: the source-owning effect now restores the media URL and calls
+   load when setup finds the source missing. It still pauses, removes the source
+   and loads on cleanup. Normal setup avoids a redundant load when the source is
+   already set. Video and audio regressions mount under StrictMode, check the
+   source and play control after the cleanup/setup probe, and verify release on
+   final unmount.
+2. Playback rate: apply the properties panel's shared 0.25 to 4 range to the
+   element while preserving the saved value. A failed assignment is logged and
+   retried at the default 1x speed; a failed fallback is also logged and cannot
+   escape the effect. Tests cover saved speeds 0.001 and 100, rejection of an
+   otherwise bounded value and rejection of the fallback. The existing
+   property-panel bound exports remain available.
+
+## Round 2 checks
+
+All six new regressions failed against round 1 before applying the fixes: both
+StrictMode sources were absent, both saved speeds were unbounded, and engine
+assignment errors escaped rendering. They pass with the fixes.
+
+| Check                                       | Result                                   |
+| ------------------------------------------- | ---------------------------------------- |
+| Targeted Vitest with `--no-fsModuleCache`   | Pass: 38 tests in three files            |
+| `npm run typecheck`                         | Pass                                     |
+| ESLint on changed TypeScript files          | Pass                                     |
+| `npm run format` and `npm run format:check` | Pass                                     |
+| Full `npm run verify`                       | GitHub CI on round 2 head; URL in report |
