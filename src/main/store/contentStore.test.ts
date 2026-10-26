@@ -1,4 +1,4 @@
-import {join, resolve} from 'node:path';
+import {basename, join, resolve} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {Result} from '@shared/result';
 import type {ContentEdit} from '@shared/schema/contentEdit';
@@ -215,6 +215,22 @@ describe('ContentStore save failures', () => {
     files.failing = new Set();
     await files.waiting[0]?.retry();
     expect(files.saved).toEqual([song.file]);
+  });
+
+  it('names a waiting 틀 without a name by its file name', async () => {
+    const {store, files} = setUp();
+    const template = templateFile();
+    files.failing = new Set([template.file]);
+    await store.apply({
+      type: 'template.update',
+      template: {...template.data, name: ''},
+      baseRevision: 1,
+    });
+    await vi.waitFor(() =>
+      expect(files.waiting.map(({name}) => name)).toEqual([
+        basename(template.file),
+      ]),
+    );
   });
 
   it('names a waiting 틀 by its name', async () => {

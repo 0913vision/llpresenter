@@ -384,14 +384,13 @@ export class ContentStore {
     return new Map(this.songs.all().map(song => [song.data.id, song]));
   }
 
-  /** A song's title, or a 예배 순서's or 틀's name, else the file's name. */
   private nameOfFile(file: string): string {
     const song = this.songs.all().find(stored => stored.file === file);
-    if (song !== undefined) return song.data.title;
     const named = [...this.services.all(), ...this.templates.all()].find(
       stored => stored.file === file,
     );
-    return named?.data.name ?? basename(file);
+    const name = song?.data.title ?? named?.data.name ?? '';
+    return name.trim() === '' ? basename(file) : name;
   }
 
   /** Saves every change that waits, for quitting. */
