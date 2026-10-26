@@ -1,10 +1,10 @@
-Review range: `feat/spec/output-actions...feat/spec/output-notices`
+Review range: `82f52b18...feat/spec/output-notices`
 
 # Review request: `spec-45`
 
 - Team member: `spec` (Claude session that took over from Codex)
 - Branch: `feat/spec/output-notices`
-- Base: spec-44 round 3 (`d9e330ac`), stacked until its approval
+- Base commit: `82f52b18`, main with spec-44 merged
 - Review round: 2
 - Task: M3-S2a part 2, the output notifications of spec 08
 - Code owner: shell (`src/renderer/src/control/notifications/` and `App.tsx`)
@@ -80,7 +80,9 @@ event channel (agreed with data).
    screen once.
 
 Private helper comments in `outputNotices.ts` are NOTE comments now, as the
-spec-43 review asked of private TSDoc.
+spec-43 review asked of private TSDoc. The lead's spec-43 nit is also here: the
+private `measuredPanel()` test helper in `ShowToolsPanel.test.tsx` has a NOTE
+instead of TSDoc.
 
 ## Decisions I made (for the lead to confirm)
 
@@ -106,7 +108,7 @@ paths.
 | Command or test                                        | Result                 |
 | ------------------------------------------------------ | ---------------------- |
 | `npm run typecheck`                                    | Pass                   |
-| `npx vitest run --no-fsModuleCache src/renderer`       | Pass, 1,582 tests      |
+| `npx vitest run --no-fsModuleCache src/renderer`       | Pass, 1,639 tests      |
 | `npx eslint --max-warnings 0 src/renderer/src/control` | Pass                   |
 | `npx prettier --check` on the changed files            | Pass                   |
 | GitHub CI (`npm run verify`)                           | In the request message |
