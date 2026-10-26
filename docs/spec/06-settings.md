@@ -124,10 +124,9 @@ Source: `Screens`, `Looks`, `StageEditor`, `Main` board guide (화면 설정, Lo
   - The pattern covers every layer while the layers keep playing underneath, so
     the content is back at once. Clears and 되돌림 don't touch it, only a saved
     screen can show it, and it never comes back after a restart (proposal).
-  - So a pattern never stays on a projector during a service, the app also
-    hides every pattern when the main window closes, crashes, or reloads, and
-    hides a screen's pattern when its output turns off (lead decision, October
-    26).
+  - So a pattern never stays on a projector during a service, the app also hides
+    every pattern when the main window closes, crashes, or reloads, and hides a
+    screen's pattern when its output turns off (lead decision, October 26).
 - The caption shows the screen name, the target and monitor name ("모니터 2
   EPSON 프로젝터"), and the resolution and refresh rate ("1920×1080 60Hz").
 
