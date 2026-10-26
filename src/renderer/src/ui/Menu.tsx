@@ -153,10 +153,12 @@ function useMenuNavigation({
   const itemElements = useRef<Array<HTMLDivElement | null>>([]);
   const timers = useMenuTimers();
   const [pointedState, setPointed] = useState(0);
-  // NOTE(0913vision): A new search term points to the first item again.
-  const [seenSearch, setSeenSearch] = useState(searchValue);
-  if (seenSearch !== searchValue) {
-    setSeenSearch(searchValue);
+  // NOTE(0913vision): In a searched menu, a new search term or a new set of
+  // results points to the first item again.
+  const results = searchValue === undefined ? '' : items.map(i => i.id).join();
+  const [seen, setSeen] = useState({searchValue, results});
+  if (seen.searchValue !== searchValue || seen.results !== results) {
+    setSeen({searchValue, results});
     setPointed(0);
   }
   const [submenu, setSubmenu] = useState<OpenSubmenu | null>(null);

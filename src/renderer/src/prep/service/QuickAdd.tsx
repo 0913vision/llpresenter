@@ -1,4 +1,6 @@
 import {useEffect, useState, type JSX} from 'react';
+import type {MediaItem} from '@shared/schema/mediaList';
+import type {ServiceItem} from '@shared/schema/service';
 import type {LibrarySearchMatch} from '@shared/schema/librarySearch';
 import {createServiceItemId, type SongId} from '@shared/schema/ids';
 import {searchRange} from '@shared/searchText';
@@ -10,7 +12,9 @@ import {menuButtonProps} from '@renderer/ui/menuButton';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {NEWER_FILE_REASON} from './ItemArrangement';
+import {otherItemEntries, type NoticeSetChoice} from './quickAddItems';
 import {quickAddBefore} from './quickAddPosition';
+import {useHeaderRename} from '@renderer/state/headerRename';
 
 const QUICK_ADD_LIMIT = 20;
 const QUICK_ADD_WIDTH = 420;
@@ -26,7 +30,8 @@ function searchFailed(): Notice {
   };
 }
 
-/** The library songs for a query while the popover is open; older answers drop. */
+// NOTE(0913vision): Reads the library songs for a query while the popover
+// is open; an answer for an older query is dropped.
 function useQuickAddSongs(
   open: boolean,
   query: string,
@@ -54,6 +59,40 @@ function useQuickAddSongs(
     };
   }, [open, query, onProblem]);
   return result?.query === query ? result.matches : [];
+}
+
+// NOTE(0913vision): The media list and 공지 sets are read once each time the
+// popover opens.
+function useOtherSources(open: boolean) {
+  const [sources, setSources] = useState<{
+    readonly media: readonly MediaItem[];
+    readonly notices: readonly NoticeSetChoice[];
+  }>({media: [], notices: []});
+  useEffect(() => {
+    const api = window.llp;
+    if (!open || api === undefined) return undefined;
+    let current = true;
+    api.media.get().then(
+      document => {
+        if (current) {
+          setSources(state => ({...state, media: document.value.items}));
+        }
+      },
+      (error: unknown) => console.error('Quick add media read failed', error),
+    );
+    api.settings.get({name: 'notices'}).then(
+      document => {
+        if (current && document.name === 'notices') {
+          setSources(state => ({...state, notices: document.value.sets}));
+        }
+      },
+      (error: unknown) => console.error('Quick add 공지 read failed', error),
+    );
+    return () => {
+      current = false;
+    };
+  }, [open]);
+  return sources;
 }
 
 function songEntries(
@@ -95,6 +134,7 @@ export function ServiceQuickAdd({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const songs = useQuickAddSongs(open, query, onProblem);
+  const sources = useOtherSources(open);
   const reason =
     serviceId === null
       ? NO_SERVICE_REASON
@@ -109,6 +149,18 @@ export function ServiceQuickAdd({
       edits.insertSong(
         id,
         songId,
+        before === null ? null : createServiceItemId(before),
+      ),
+    );
+  };
+  const insertItem = (item: ServiceItem): void => {
+    const {rows, openItemId} = useShow.getState();
+    const before = quickAddBefore(rows, openItemId);
+    if ('header' in item) useHeaderRename.getState().request(item.id);
+    editing.run((edits, id) =>
+      edits.insertItem(
+        id,
+        item,
         before === null ? null : createServiceItemId(before),
       ),
     );
@@ -143,7 +195,10 @@ export function ServiceQuickAdd({
             placeholder: '곡, 가사, 초성',
           }}
           onClose={() => setOpen(false)}
-          entries={songEntries(songs, query, insert)}
+          entries={[
+            ...songEntries(songs, query, insert),
+            ...otherItemEntries({...sources, onInsert: insertItem}),
+          ]}
         />
       ) : null}
     </>

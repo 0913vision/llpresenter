@@ -16,6 +16,7 @@ import {
 import {classNames} from './classNames';
 import {clickFocusProps} from './clickFocus';
 import {Icon} from './Icon';
+import {isComposing} from './ime';
 import {hasModifier} from './modifierKeys';
 import {pressHandler} from './press';
 import {LiveBadge} from './StatusMarks';
@@ -416,19 +417,72 @@ export function ListActionRow({
   );
 }
 
-/** A named group of rows; its header can't be selected. */
+/** A group name being edited in place. */
+export interface GroupRename {
+  /** Saves the typed name; Enter and leaving the field both ask for it. */
+  readonly onCommit: (name: string) => void;
+  /** Esc leaves the old name as it was. */
+  readonly onCancel: () => void;
+}
+
+function GroupNameField({
+  label,
+  rename,
+}: {
+  readonly label: string;
+  readonly rename: GroupRename;
+}): JSX.Element {
+  const [value, setValue] = useState(label);
+  const finished = useRef(false);
+  const finish = (commit: boolean): void => {
+    if (finished.current) return;
+    finished.current = true;
+    if (commit) rename.onCommit(value);
+    else rename.onCancel();
+  };
+  return (
+    <input
+      aria-label={`${label} 이름`}
+      className={styles.groupField}
+      value={value}
+      autoFocus
+      onFocus={event => event.currentTarget.select()}
+      onChange={event => setValue(event.target.value)}
+      onBlur={() => finish(true)}
+      onKeyDown={event => {
+        event.stopPropagation();
+        if (isComposing(event)) return;
+        if (event.key === 'Enter') finish(true);
+        else if (event.key === 'Escape') finish(false);
+        else return;
+        event.preventDefault();
+      }}
+    />
+  );
+}
+
+/**
+ * A named group of rows; its header can't be selected. With `rename`, the
+ * name is a field that saves on Enter or leaving it and cancels on Esc.
+ */
 export function ListGroup({
   label,
+  rename,
   children,
 }: {
   readonly label: string;
+  readonly rename?: GroupRename | undefined;
   readonly children: ReactNode;
 }): JSX.Element {
   const labelId = useId();
   return (
     <div role="group" aria-labelledby={labelId} className={styles.groupRows}>
       <div id={labelId} className={styles.group}>
-        {label}
+        {rename === undefined ? (
+          label
+        ) : (
+          <GroupNameField label={label} rename={rename} />
+        )}
       </div>
       {children}
     </div>

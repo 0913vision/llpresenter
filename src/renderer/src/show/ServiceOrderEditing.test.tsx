@@ -12,6 +12,7 @@ import {SONG_DRAG_MIME} from '@shared/schema/songDrag';
 import {emptyLiveState} from '@shared/live';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {applyService, useShow} from '@renderer/state/show';
+import {useHeaderRename} from '@renderer/state/headerRename';
 import {useLive} from '@renderer/state/live';
 import {ServiceOrderList} from './ServiceOrderList';
 
@@ -45,8 +46,8 @@ function setup(workspace: 'show' | 'prep' = 'show', readOnly = false) {
       name: 'Invented service',
       readOnly,
       rows: document.service.order.map(item =>
-        item.id === headerId
-          ? {kind: 'header', id: item.id, title: '제목'}
+        'header' in item
+          ? {kind: 'header', id: item.id, title: item.header}
           : {
               kind: 'song',
               id: item.id,
@@ -215,6 +216,98 @@ describe('service panel editing', () => {
     await waitFor(() => expect(ids()).toEqual([lastId, headerId, firstId]));
     expect(api.content.edit).toHaveBeenCalledTimes(1);
     expect(send).not.toHaveBeenCalled();
+  });
+
+  it('renames a header in place with a double click, Enter, Esc, and leaving the field', async () => {
+    const {api, ids, send} = setup();
+    fireEvent.doubleClick(screen.getByText('제목'));
+    const field = screen.getByRole('textbox', {name: '제목 이름'});
+    expect(document.activeElement).toBe(field);
+    fireEvent.change(field, {target: {value: '  말씀  '}});
+    fireEvent.keyDown(field, {key: 'Enter'});
+    await waitFor(() => expect(screen.getByText('말씀')).toBeDefined());
+    expect(ids()).toEqual([headerId, firstId, lastId]);
+    fireEvent.doubleClick(screen.getByText('말씀'));
+    fireEvent.change(screen.getByRole('textbox', {name: '말씀 이름'}), {
+      target: {value: '버림'},
+    });
+    fireEvent.keyDown(screen.getByRole('textbox', {name: '말씀 이름'}), {
+      key: 'Escape',
+    });
+    expect(screen.queryByRole('textbox')).toBeNull();
+    expect(screen.getByText('말씀')).toBeDefined();
+    fireEvent.doubleClick(screen.getByText('말씀'));
+    const again = screen.getByRole('textbox', {name: '말씀 이름'});
+    fireEvent.change(again, {target: {value: '마무리'}});
+    fireEvent.blur(again);
+    await waitFor(() => expect(screen.getByText('마무리')).toBeDefined());
+    expect(api.content.edit).toHaveBeenCalledTimes(2);
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it('leaves text editing keys to the rename field', async () => {
+    const {api, ids} = setup('prep');
+    fireEvent.click(screen.getByRole('option', {name: '첫 곡'}));
+    fireEvent.doubleClick(screen.getByText('제목'));
+    const field = screen.getByRole('textbox', {name: '제목 이름'});
+    for (const key of [
+      {code: 'KeyZ', key: 'z', ctrlKey: true},
+      {code: 'KeyY', key: 'y', ctrlKey: true},
+      {code: 'Delete', key: 'Delete'},
+      {code: 'Home', key: 'Home'},
+      {code: 'End', key: 'End'},
+    ]) {
+      fireEvent.keyDown(field, key);
+      expect(document.activeElement).toBe(field);
+    }
+    expect(api.content.edit).not.toHaveBeenCalled();
+    expect(ids()).toEqual([headerId, firstId, lastId]);
+    expect(
+      screen.getByRole('option', {name: '첫 곡'}).getAttribute('aria-selected'),
+    ).toBe('true');
+  });
+
+  it('opens the rename field only from the header itself, not from its items', () => {
+    setup('prep');
+    fireEvent.doubleClick(screen.getByRole('option', {name: '첫 곡'}));
+    expect(screen.queryByRole('textbox')).toBeNull();
+    fireEvent.doubleClick(screen.getByText('제목'));
+    expect(screen.getByRole('textbox', {name: '제목 이름'})).toBeDefined();
+  });
+
+  it('keeps the old name for a blank one and opens the field from the menu', async () => {
+    const {api} = setup();
+    fireEvent.contextMenu(screen.getByText('제목'));
+    fireEvent.click(await screen.findByRole('menuitem', {name: '이름 바꾸기'}));
+    const field = screen.getByRole('textbox', {name: '제목 이름'});
+    fireEvent.change(field, {target: {value: '   '}});
+    fireEvent.keyDown(field, {key: 'Enter'});
+    await waitFor(() => expect(screen.queryByRole('textbox')).toBeNull());
+    expect(screen.getByText('제목')).toBeDefined();
+    expect(api.content.edit).not.toHaveBeenCalled();
+    fireEvent.contextMenu(screen.getByRole('option', {name: '첫 곡'}));
+    expect(await screen.findByRole('menuitem', {name: '삭제'})).toBeDefined();
+    expect(screen.queryByRole('menuitem', {name: '이름 바꾸기'})).toBeNull();
+  });
+
+  it('opens the field of a header that quick add asked for once it is listed', async () => {
+    setup();
+    useHeaderRename
+      .getState()
+      .request(createServiceItemId('10000000-0000-4000-8000-0000000000aa'));
+    expect(screen.queryByRole('textbox')).toBeNull();
+    act(() => useHeaderRename.getState().request(headerId));
+    expect(screen.getByRole('textbox', {name: '제목 이름'})).toBeDefined();
+    fireEvent.keyDown(screen.getByRole('textbox', {name: '제목 이름'}), {
+      key: 'Escape',
+    });
+    expect(useHeaderRename.getState().requested).toBeNull();
+  });
+
+  it('does not rename in a read-only service', () => {
+    setup('show', true);
+    fireEvent.doubleClick(screen.getByText('제목'));
+    expect(screen.queryByRole('textbox')).toBeNull();
   });
 
   it('copies validated library song drops and ignores unrelated or malformed data', async () => {

@@ -1,5 +1,7 @@
 import {useEffect, useMemo, useRef, useState, type JSX} from 'react';
 import {createServiceItemId} from '@shared/schema/ids';
+import {isInTextEntry} from '@renderer/ui/textEntry';
+import {useHeaderRename} from '@renderer/state/headerRename';
 import {openItem, useShow} from '@renderer/state/show';
 import {useLive} from '@renderer/state/live';
 import {ListBox, ListGroup, ListInsertLine, ListRow, Menu} from '@renderer/ui';
@@ -175,6 +177,17 @@ export function ServiceOrderList({
     anchor: MenuAnchor;
   } | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const [chosenRename, setRenaming] = useState<string | null>(null);
+  const requestedRename = useHeaderRename(state => state.requested);
+  const clearRenameRequest = useHeaderRename(state => state.clear);
+  const requestedHeader = rows.some(
+    row => row.id === requestedRename && row.kind === 'header',
+  );
+  const renaming = chosenRename ?? (requestedHeader ? requestedRename : null);
+  const stopRenaming = (): void => {
+    setRenaming(null);
+    clearRenameRequest();
+  };
 
   useEffect(() => {
     const list = listRef.current;
@@ -200,6 +213,7 @@ export function ServiceOrderList({
         });
       }}
       onKeyDownCapture={event => {
+        if (isInTextEntry(event.target)) return;
         if (
           workspace === 'prep' &&
           event.code === 'Delete' &&
@@ -259,9 +273,41 @@ export function ServiceOrderList({
               done={done}
             />
           ) : (
-            <div key={group.id} data-order-id={group.id} draggable={editable}>
+            <div
+              key={group.id}
+              data-order-id={group.id}
+              draggable={editable}
+              onDoubleClick={event => {
+                const row =
+                  event.target instanceof Element
+                    ? event.target.closest('[data-order-id]')
+                    : null;
+                if (editable && row === event.currentTarget) {
+                  setRenaming(group.id);
+                }
+              }}
+            >
               {insertBefore === group.id ? <ListInsertLine /> : null}
-              <ListGroup label={group.label}>
+              <ListGroup
+                label={group.label}
+                rename={
+                  renaming === group.id
+                    ? {
+                        onCommit: name => {
+                          stopRenaming();
+                          editing.run((edits, id) =>
+                            edits.renameHeader(
+                              id,
+                              createServiceItemId(group.id),
+                              name,
+                            ),
+                          );
+                        },
+                        onCancel: stopRenaming,
+                      }
+                    : undefined
+                }
+              >
                 <ItemRows
                   items={group.items}
                   liveItemId={liveItemId}
@@ -291,6 +337,20 @@ export function ServiceOrderList({
                     label: '준비에서 열기',
                     onSelect: () => {
                       onOpenPrep(menu.id);
+                      setMenu(null);
+                    },
+                  },
+                ]
+              : []),
+            ...(rows.some(row => row.id === menu.id && row.kind === 'header')
+              ? [
+                  {
+                    kind: 'item' as const,
+                    id: 'rename',
+                    label: '이름 바꾸기',
+                    disabled: !editable,
+                    onSelect: () => {
+                      setRenaming(menu.id);
                       setMenu(null);
                     },
                   },

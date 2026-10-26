@@ -204,6 +204,61 @@ describe('service order edits', () => {
     expect(ids()).toHaveLength(4);
   });
 
+  it('inserts a ready-made item before another, or at the end, and undoes it', async () => {
+    const {state, edits, ids} = fixture();
+    const header = {
+      id: createServiceItemId('90000000-0000-4000-8000-000000000001'),
+      header: '머리글',
+    };
+    const slot = {
+      id: createServiceItemId('90000000-0000-4000-8000-000000000002'),
+      slot: 'song' as const,
+      title: '찬양',
+    };
+    await edits.insertItem(serviceId, header, second);
+    await edits.insertItem(serviceId, slot, null);
+    const order = state.document?.service.order ?? [];
+    expect(order[1]).toEqual(header);
+    expect(order.at(-1)).toEqual(slot);
+    expect(ids()).toHaveLength(5);
+    await edits.undo(serviceId);
+    expect(ids()).toHaveLength(4);
+    expect(
+      await edits.insertItem(
+        serviceId,
+        slot,
+        createServiceItemId('90000000-0000-4000-8000-0000000000ff'),
+      ),
+    ).toMatchObject({ok: false, error: {reason: 'not-found'}});
+  });
+
+  it('renames a header, keeps unknown fields, and ignores a blank name', async () => {
+    const {state, edits, edit} = fixture();
+    const headerId = state.document?.service.order.find(
+      row => 'header' in row,
+    )?.id;
+    if (headerId === undefined) throw new Error('No header in the fixture');
+    await edits.renameHeader(serviceId, headerId, '  말씀  ');
+    const renamed = state.document?.service.order.find(
+      row => row.id === headerId,
+    );
+    expect(renamed).toMatchObject({header: '말씀'});
+    const calls = edit.mock.calls.length;
+    expect(await edits.renameHeader(serviceId, headerId, '   ')).toEqual({
+      ok: true,
+      value: false,
+    });
+    expect(edit.mock.calls).toHaveLength(calls);
+    await edits.undo(serviceId);
+    expect(
+      state.document?.service.order.find(row => row.id === headerId),
+    ).not.toMatchObject({header: '말씀'});
+    expect(await edits.renameHeader(serviceId, second, '다른')).toMatchObject({
+      ok: false,
+      error: {reason: 'not-found'},
+    });
+  });
+
   it('reads fresh revisions and keeps metadata changed since the edit on undo', async () => {
     const {state, edits, edit} = fixture();
     await edits.remove(serviceId, second);

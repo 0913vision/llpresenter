@@ -151,6 +151,24 @@
   font: var(--type-caption-strong);
 }
 
+.groupField {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: var(--size-control-sm);
+  padding: 0 var(--space-6);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--bg-well);
+  box-shadow: var(--ring-field);
+  color: var(--text);
+  font: inherit;
+}
+
+.groupField:focus {
+  outline: none;
+  box-shadow: var(--ring-field-focus);
+}
+
 .inset .group {
   padding-right: var(--space-10);
   padding-left: var(--space-10);

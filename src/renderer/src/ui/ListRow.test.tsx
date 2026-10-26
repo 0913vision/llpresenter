@@ -417,3 +417,36 @@ describe('ListSlot and ListDragGhost', () => {
     );
   });
 });
+
+describe('ListGroup rename', () => {
+  it('turns the name into a field that saves on Enter and leaving, and cancels on Esc', async () => {
+    const onCommit = vi.fn();
+    const onCancel = vi.fn();
+    render(
+      <ListGroup label="찬양" rename={{onCommit, onCancel}}>
+        <span>rows</span>
+      </ListGroup>,
+    );
+    const field = screen.getByRole('textbox', {name: '찬양 이름'});
+    expect(document.activeElement).toBe(field);
+    await userEvent.keyboard('{Control>}a{/Control}말씀{Enter}');
+    expect(onCommit).toHaveBeenCalledExactlyOnceWith('말씀');
+    await userEvent.tab();
+    expect(onCommit).toHaveBeenCalledOnce();
+    expect(onCancel).not.toHaveBeenCalled();
+  });
+
+  it('cancels on Esc without saving when the field loses focus afterwards', async () => {
+    const onCommit = vi.fn();
+    const onCancel = vi.fn();
+    render(
+      <ListGroup label="찬양" rename={{onCommit, onCancel}}>
+        <span>rows</span>
+      </ListGroup>,
+    );
+    await userEvent.keyboard('{Escape}');
+    await userEvent.tab();
+    expect(onCancel).toHaveBeenCalledOnce();
+    expect(onCommit).not.toHaveBeenCalled();
+  });
+});

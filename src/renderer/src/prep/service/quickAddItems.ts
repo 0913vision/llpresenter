@@ -1,0 +1,101 @@
+import {createServiceItemId, type NoticeSetId} from '@shared/schema/ids';
+import type {MediaItem} from '@shared/schema/mediaList';
+import type {ServiceItem} from '@shared/schema/service';
+import type {MenuEntry} from '@renderer/ui/menuModel';
+
+const HEADER_NAME = '머리글';
+const UNNAMED_MEDIA = '이름 없는 미디어';
+const SLOT_KINDS = [
+  {slot: 'song', label: '찬양'},
+  {slot: 'bible', label: '성경 구절'},
+  {slot: 'slides', label: '설교'},
+] as const;
+
+export interface NoticeSetChoice {
+  readonly id: NoticeSetId;
+  readonly name: string;
+}
+
+export interface OtherItemChoices {
+  readonly media: readonly MediaItem[];
+  readonly notices: readonly NoticeSetChoice[];
+  readonly onInsert: (item: ServiceItem) => void;
+}
+
+function newId(): ServiceItem['id'] {
+  return createServiceItemId(crypto.randomUUID());
+}
+
+function submenu(
+  prefix: string,
+  entries: readonly MenuEntry[],
+  empty: string,
+): readonly MenuEntry[] {
+  return entries.length > 0
+    ? entries
+    : [{kind: 'item', id: `${prefix}:none`, label: empty, disabled: true}];
+}
+
+/** The 다른 항목 group: 머리글, 빈 자리, 미디어, and 공지 (spec 05). */
+export function otherItemEntries({
+  media,
+  notices,
+  onInsert,
+}: OtherItemChoices): readonly MenuEntry[] {
+  return [
+    {kind: 'group', id: 'other', label: '다른 항목'},
+    {
+      kind: 'item',
+      id: 'other:header',
+      label: HEADER_NAME,
+      icon: 'rows',
+      onSelect: () => onInsert({id: newId(), header: HEADER_NAME}),
+    },
+    {
+      kind: 'item',
+      id: 'other:slot',
+      label: '빈 자리',
+      icon: 'frame',
+      submenu: SLOT_KINDS.map(({slot, label}): MenuEntry => ({
+        kind: 'item',
+        id: `slot:${slot}`,
+        label,
+        onSelect: () => onInsert({id: newId(), slot, title: label}),
+      })),
+    },
+    {
+      kind: 'item',
+      id: 'other:media',
+      label: '미디어',
+      icon: 'film',
+      submenu: submenu(
+        'media',
+        media
+          .filter(item => item.kind !== 'audio')
+          .map((item): MenuEntry => ({
+            kind: 'item',
+            id: `media:${item.id}`,
+            label: item.name === '' ? UNNAMED_MEDIA : item.name,
+            onSelect: () => onInsert({id: newId(), media: item.id}),
+          })),
+        '미디어 없음',
+      ),
+    },
+    {
+      kind: 'item',
+      id: 'other:notice',
+      label: '공지',
+      icon: 'notice',
+      submenu: submenu(
+        'notice',
+        notices.map((set): MenuEntry => ({
+          kind: 'item',
+          id: `notice:${set.id}`,
+          label: set.name,
+          onSelect: () => onInsert({id: newId(), notice: set.id}),
+        })),
+        '공지 없음',
+      ),
+    },
+  ];
+}

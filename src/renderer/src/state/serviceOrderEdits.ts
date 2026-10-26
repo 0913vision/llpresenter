@@ -8,7 +8,11 @@ import {
   type ServiceItemId,
   type SongId,
 } from '@shared/schema/ids';
-import {isItemOfKind, type Service} from '@shared/schema/service';
+import {
+  isItemOfKind,
+  type Service,
+  type ServiceItem,
+} from '@shared/schema/service';
 import {sectionBoundaryIndex} from '@renderer/show/serviceSections';
 import {pendingWritesOf} from './pendingWrites';
 
@@ -149,6 +153,41 @@ export class ServiceOrderEdits {
         id: createServiceItemId(crypto.randomUUID()),
         song: songId,
       });
+      return {ok: true, value: order};
+    });
+  }
+
+  /** Renames a header; a blank name keeps the old one. */
+  renameHeader(serviceId: ServiceId, itemId: ServiceItemId, name: string) {
+    return this.update(serviceId, service => {
+      const item = service.order.find(row => row.id === itemId);
+      if (item === undefined || !isItemOfKind(item, 'header')) {
+        return refuse('not-found', 'The header no longer exists');
+      }
+      const header = name.trim();
+      if (header === '' || header === item.header) {
+        return {ok: true, value: service.order};
+      }
+      return {
+        ok: true,
+        value: service.order.map(row =>
+          row.id === itemId ? {...item, header} : row,
+        ),
+      };
+    });
+  }
+
+  /** Inserts a new item that doesn't read other files, such as a header. */
+  insertItem(
+    serviceId: ServiceId,
+    item: ServiceItem,
+    beforeId: ServiceItemId | null,
+  ) {
+    return this.update(serviceId, service => {
+      const index = insertionIndex(service.order, beforeId);
+      if (index < 0) return refuse('not-found', 'The drop target is gone');
+      const order = [...service.order];
+      order.splice(index, 0, item);
       return {ok: true, value: order};
     });
   }
