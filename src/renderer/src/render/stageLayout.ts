@@ -117,6 +117,7 @@ class StageElementView {
   private readonly block = document.createElement('div');
   private readonly style: NonNullable<StageElement['text']>;
   private text: string | null = null;
+  private unsized = false;
 
   constructor(
     readonly element: StageElement,
@@ -151,12 +152,20 @@ class StageElementView {
     this.fit();
   }
 
+  // NOTE(0913vision): A box with no size, as in a collapsed preview, can't be
+  // measured, so its text fits again once the screen has a size.
+  refitIfUnsized(): void {
+    if (this.unsized) this.fit();
+  }
+
   private fit(): void {
     const size = this.style.size * this.sizeScale;
+    this.unsized = false;
     if (!this.style.autoFit || this.text === null) {
       this.block.style.fontSize = `${size}px`;
       return;
     }
+    this.unsized = this.box.clientWidth === 0 || this.box.clientHeight === 0;
     const fits = (px: number): boolean => {
       this.block.style.fontSize = `${px}px`;
       return (
@@ -203,6 +212,7 @@ export class StageLayoutView {
 
   rescale(): void {
     this.place();
+    for (const view of this.views) view.refitIfUnsized();
   }
 
   dispose(): void {

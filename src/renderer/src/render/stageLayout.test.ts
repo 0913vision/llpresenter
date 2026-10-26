@@ -270,6 +270,36 @@ describe('StageLayoutView', () => {
     view.dispose();
   });
 
+  it('fits auto-fit text again once a collapsed screen has a size', () => {
+    const height = vi
+      .spyOn(HTMLElement.prototype, 'clientHeight', 'get')
+      .mockReturnValue(0);
+    const width = vi
+      .spyOn(HTMLElement.prototype, 'clientWidth', 'get')
+      .mockReturnValue(0);
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(
+      function (this: HTMLElement) {
+        return Number.parseFloat(this.style.fontSize || '0') * 2;
+      },
+    );
+    const {view, canvas} = setup();
+    const layout = layoutOf([
+      element('currentSlide', 0, {text: {...TEXT_STYLE, autoFit: true}}),
+    ]);
+    view.render(LAYERS, frameOf({stage: {layout}}));
+    const block = canvas.querySelector<HTMLElement>(':scope > * > *');
+    if (block === null) throw new Error('Missing block');
+    expect(block.style.fontSize).toBe('1px');
+    height.mockReturnValue(100);
+    width.mockReturnValue(400);
+    view.rescale();
+    expect(block.style.fontSize).toBe('50px');
+    const write = vi.spyOn(block.style, 'fontSize', 'set');
+    view.rescale();
+    expect(write).not.toHaveBeenCalled();
+    view.dispose();
+  });
+
   it('builds the elements once per layout', () => {
     const {view, canvas} = setup();
     view.render(LAYERS, frameOf());
