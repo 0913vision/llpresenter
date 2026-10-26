@@ -80,6 +80,10 @@ vi.mock('electron', () => ({
   },
 }));
 
+function fakeProblems() {
+  return {report: vi.fn(), push: vi.fn(), addStanding: () => () => undefined};
+}
+
 function fakeLog() {
   return {
     info: vi.fn<Logger['info']>(),
@@ -116,6 +120,7 @@ async function register(
     log,
   });
   const store = registerStore({
+    problems: fakeProblems(),
     log,
     isAnyOutputOn,
     appConfig,
@@ -1200,6 +1205,7 @@ describe('registerStore', () => {
       log,
     });
     const store = registerStore({
+      problems: fakeProblems(),
       log,
       appConfig,
       isAnyOutputOn: () => false,
@@ -1397,6 +1403,7 @@ describe('registerStore', () => {
       log,
     });
     const store = registerStore({
+      problems: fakeProblems(),
       log,
       isAnyOutputOn: () => false,
       appConfig,

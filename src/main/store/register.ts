@@ -2,6 +2,7 @@ import {app, ipcMain} from 'electron';
 import {Channels} from '@shared/ipc';
 import {defaultPreferences} from '@shared/schema/preferences';
 import type {Logger} from '../log';
+import type {ProblemFeed} from '../problemFeed';
 import {registerLibrarySearch} from '../search/register';
 import {buildSongSearchIndex, type SongSearchIndex} from '../search/songIndex';
 import {Backups, type BackupOutcome} from './backup';
@@ -24,9 +25,9 @@ import {openMediaStore} from './mediaLoader';
 import {registerMediaChannels, type MediaBackendPort} from './mediaChannels';
 import type {MediaStore} from './mediaStore';
 import {OpenServiceFeed} from './openServiceFeed';
-import {registerProblemChannels} from './problemChannels';
 import {RecoveryCopies} from './recoveryCopies';
 import {SaveFailures, type SaveFailureSink} from './saveFailures';
+import {registerSaveProblems} from './saveProblems';
 import {Saver} from './saver';
 import {removeStaleTempFiles} from './staleTempFiles';
 import {settingsNames} from '@shared/schema/settingsDocuments';
@@ -63,6 +64,8 @@ export interface StoreRegistration {
     Pick<AppConfigFile, 'setLastServiceId' | 'flush'>;
   /** Where the data folders default to. Electron's folders by default. */
   readonly context?: () => LocationContext;
+  /** The app's problem cards, which list and push the waiting saves. */
+  readonly problems: ProblemFeed;
 }
 
 /** What the main process wiring uses of the data store. */
@@ -102,10 +105,11 @@ export function registerStore({
   isAnyOutputOn,
   appConfig,
   context = electronLocationContext,
+  problems,
 }: StoreRegistration): DataStore {
   const loading = readStore(() => ({...context(), appConfig}), log);
   const saveFailures = new SaveFailures({log});
-  const removeProblemChannels = registerProblemChannels(saveFailures, log);
+  const removeSaveProblems = registerSaveProblems(saveFailures, problems, log);
   const settings = loading
     .then(store =>
       store === null ? null : openSettingsStore(store, log, saveFailures),
@@ -208,7 +212,7 @@ export function registerStore({
       } finally {
         ready?.search.clear();
         ready?.content.dispose();
-        removeProblemChannels();
+        removeSaveProblems();
         saveFailures.dispose();
       }
     },

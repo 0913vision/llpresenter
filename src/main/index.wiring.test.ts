@@ -54,6 +54,7 @@ const fakes = vi.hoisted(() => {
     closeStop: vi.fn<() => void>(),
     problemContexts: new Array<unknown>(),
     problemsStop: vi.fn<() => void>(),
+    problemFeed: {report: vi.fn(), push: vi.fn(), addStanding: vi.fn()},
     appHandlers,
     electron: {
       app: {
@@ -216,7 +217,7 @@ vi.mock('./ipc', () => ({registerIpc: () => () => undefined}));
 vi.mock('./problemFeed', () => ({
   registerProblemFeed: (context: unknown) => {
     fakes.problemContexts.push(context);
-    return {feed: {}, dispose: fakes.problemsStop};
+    return {feed: fakes.problemFeed, dispose: fakes.problemsStop};
   },
 }));
 vi.mock('./outputs/start', () => ({
@@ -515,6 +516,7 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     expect(fakes.problemContexts).toEqual([
       expect.objectContaining({store: fakes.outputContexts[0]?.store}),
     ]);
+    expect(fakes.storeOptions[0]).toHaveProperty('problems', fakes.problemFeed);
     beforeQuit();
     await vi.waitFor(() =>
       expect(fakes.electron.app.quit).toHaveBeenCalledOnce(),

@@ -108,10 +108,12 @@ function start(): void {
       const ui = registerUiState(appConfig, log);
       const zoom = registerUiZoom(appConfig, log);
       const store = new LiveStore();
+      const problems = registerProblemFeed({store, log});
       const dataStore = registerStore({
         log,
         isAnyOutputOn: () => isAnyOutputOn(store.state),
         appConfig,
+        problems: problems.feed,
       });
       const recoveryRecord = new RecoveryRecordWriter({
         file: join(recoveryFolder, RECOVERY_RECORD_FILE),
@@ -125,7 +127,6 @@ function start(): void {
         settings: dataStore.settings,
         log,
       });
-      const problems = registerProblemFeed({store, log});
       // NOTE(0913vision): Register the reader owner before the output source;
       // their settings promise callbacks run in registration order.
       const stopOverlays = startOverlays({
