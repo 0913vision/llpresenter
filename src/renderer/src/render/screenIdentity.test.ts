@@ -116,15 +116,17 @@ describe('output screen identity', () => {
 
   it('logs a failed read and ignores a read that resolves after disposal', async () => {
     const onError = vi.fn();
+    const failure = new Error('Fixture screen read failure');
     const stop = followRenderScreen({
-      settings: fakeLlpApi().settings,
+      settings: fakeLlpApi({settings: {get: () => Promise.reject(failure)}})
+        .settings,
       id: 'main',
       receive: vi.fn(),
       onError,
     });
     await Promise.resolve();
     await Promise.resolve();
-    expect(onError).toHaveBeenCalledTimes(1);
+    expect(onError).toHaveBeenCalledExactlyOnceWith(failure);
     stop();
     const receive = vi.fn();
     const stopEarly = followRenderScreen({

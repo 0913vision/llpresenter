@@ -32,6 +32,8 @@ missing-fixture warnings from obscuring notification and file-error tests.
   focus retention and workspace persistence using available tabs.
 - `src/shared/testing/fakeLlpApi.ts` and its test: valid empty settings for the
   mounted default panel. No production IPC or file contract changes.
+- `src/renderer/src/render/screenIdentity.test.ts`: explicitly inject a failed
+  read instead of depending on the default fake API rejecting screen reads.
 - This review and screenshots.
 
 ## Checks and quality
@@ -76,4 +78,10 @@ subscription accumulation was observed.
 
 ## Team member's reply
 
-No findings yet.
+CI follow-up: run 40367927960 failed because the screen-identity error test
+implicitly used the former missing-document default. Reproduced locally:
+`screenIdentity.test.ts` had one failure at line 127. The test now injects its
+read error explicitly and verifies the exact error is forwarded once, while
+retaining the late-resolution cleanup check. No production change is needed.
+Rebased onto current local main and included ShowPanels, App and PrepMount in
+the local regression checks. Updated results are in the round 2 report.
