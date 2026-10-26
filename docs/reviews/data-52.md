@@ -1,9 +1,8 @@
 # Review request: `data-52`
 
 - Team member: data (Claude session)
-- Branch: `feat/data/analysis-main`, stacked on data-51
-  (`feat/data/analysis-contract`)
-- Base commit: the data-51 head; the request message gives the range, the head
+- Branch: `feat/data/analysis-main`, on `main` after data-50 and data-51
+- Base commit: `main` (da5096c8); the request message gives the range, the head
   commit, and its CI run.
 - Related brief: `docs/briefs/data.md`; request from `.llp/task.md`, M3-P6a part
   3, second of four (`docs/reviews/data-51.md` lists the split): the analyser in
@@ -47,6 +46,9 @@ part in main and the importer's use of it; the page itself is data-53.
    before it cancels the imports. Until data-53, opening the page is a `TODO`
    that refuses, so video and audio join without their duration, as they do
    today, and images are measured.
+5. **A data-51 nit** (codex3, moved here). A refused analysis range (416)
+   dropped the CORS header, so the page couldn't read the refusal. It keeps the
+   header now (`src/main/windows/mediaResponse.ts`).
 
 ## Changed files
 
@@ -54,12 +56,14 @@ part in main and the importer's use of it; the page itself is data-53.
 - `src/main/media/mediaImporter.ts` and `.test.ts`: the analysis step.
 - `src/main/media/register.ts` and `.test.ts`: the analyser.
 - `src/main/index.ts` and `index.wiring.test.ts`: the shared loans.
+- `src/main/windows/mediaResponse.ts` and `.test.ts`: the data-51 nit.
 - `docs/reviews/data-52.md`: this request.
 
 ## Changes outside my paths
 
 - `src/main/index.ts` and its wiring test (output): the loans for `serveMedia`
   and the backend.
+- `src/main/windows/mediaResponse.ts` and its test (output): the nit.
 - `src/main/media/` (prep, no member): P6a's folder, given to data by the lead.
 
 ## Shared contract changes
@@ -87,7 +91,8 @@ request; the queue cap; `nativeImage` measuring, cropping, scaling, and
 answering null; an import's `analysing` report, its facts in the item without
 the thumbnail, a refused file failing with its copy removed, an unread file
 added without facts, and a cancel during analysis; the registration measuring an
-imported image; the wiring serving the backend's loans.
+imported image; the wiring serving the backend's loans; a refused analysis range
+keeping its CORS header.
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
