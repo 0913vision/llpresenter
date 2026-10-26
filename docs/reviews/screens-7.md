@@ -1,9 +1,8 @@
 # Review request: `screens-7`
 
 - Team member: `screens`
-- Branch: `feat/screens/look-list-model`, stacked on screens-6 round 2
-  (`feat/screens/monitor-assignment` at `42b4b11f`)
-- Base commit: `42b4b11f`; rebase onto main after screens-6 merges.
+- Branch: `feat/screens/look-list-model`
+- Base commit (`main`): `eb61e600`
 - Last commit, review range and CI: see the request line.
 - Related brief: `docs/briefs/screens.md`, M3-O2, first implementation unit.
 
@@ -33,6 +32,10 @@ monitor publication snapshots and delegates persistence to this shared writer.
 An accepted change that fails only on disk still advances the local revision and
 reports the failure, leaving main's save/close handling to retry it.
 
+`ScreenEditor` keeps its constructor, `adopt`, `observeMonitors`, `change` and
+`assign` signatures. Selection is unchanged. The lead was notified because
+output now owns M3-O3 and shares these 화면 설정 patterns.
+
 ## Changed files
 
 - `src/renderer/src/screens/looks/lookListEdits.ts` and tests: pure lifecycle
@@ -49,10 +52,10 @@ reports the failure, leaving main's save/close handling to retry it.
 
 ## Checks run
 
-While stacked, typecheck and targeted ESLint pass. All 143 screens tests pass,
-including the Look lifecycle/session tests and existing screen, publication race
-and focused-close regressions. The final request reports checks after rebase,
-formatting and exact-head GitHub CI.
+After rebasing onto `eb61e600`, typecheck and targeted ESLint pass. All 143
+screens tests pass, including the Look lifecycle/session tests and existing
+screen, publication race and focused-close regressions. The final request
+reports checks after rebase, formatting and exact-head GitHub CI.
 
 ## Quality checklist
 
