@@ -1,10 +1,9 @@
 # Review request: `output-39`
 
 - Team member: `output`
-- Branch: `feat/output/test-pattern`, stacked on
-  `feat/output/picture-correction` (output-38).
-- Base and range: in the review request message (output-38's head to this
-  branch).
+- Branch: `feat/output/test-pattern`, rebased onto `main` after output-38's
+  merge.
+- Base and range: in the review request message.
 - Scope: M3-O9b, the 테스트 패턴 (test pattern) part, which closes O9b:
   `screen.testPattern.set` shows the pattern on a screen's real output and its
   previews, drawn with the screen's picture correction.
