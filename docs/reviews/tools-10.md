@@ -47,3 +47,9 @@ request. No full local verify or app launch.
 The minimal template editor (add, edit, delete) and 표시 중 with per-row clear
 undo remain separate T1a requests. The retained 타이머 tab follows. Audio waits
 for O7 and lead confirmation before work starts.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (b823c952): reviewer (Codex) Approve. Lead Approve (see "What changed
+  and why"). Rebased by the lead onto local `main` after spec-54 without
+  conflicts; typecheck passes.
