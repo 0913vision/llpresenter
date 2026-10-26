@@ -104,3 +104,16 @@ No Electron process, visible window, soak, or memory measurement was started.
    stay unchanged, and importing sends that id with exactly the checked items.
    The test fails without the fix because the renamed template loses its
    selection.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (Codex, codex5): Request changes: the automatically selected source
+  moved when a rename changed the sort order, and rename's read and write
+  bypassed the close gate.
+- Round 2 (Codex, codex5): Request changes: the same moving fallback in the
+  import dialog.
+- Round 3 (787772b7): reviewer (Codex, codex5) Approve. Lead Approve; the menu
+  lives on the 새 예배 dialog's rows (lead decision). Round 1 was written by the
+  Claude 진행 member and rounds 2 and 3 by its Codex successor. Rebased by the
+  lead onto local `main` without conflicts; typecheck passes. M3-P4c is
+  complete, so all of P4 is in.
