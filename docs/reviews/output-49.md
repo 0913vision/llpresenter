@@ -13,8 +13,10 @@ Clearing audio fades the active track over 400 ms and unloads its decoder at the
 deadline, leaving time for command delivery within the half-second limit.
 Pending replacements stop immediately. A repeated empty state keeps the existing
 envelope, volume changes scale its current gain, and new playback or disposal
-cancels the old deadline. Timer callbacks isolate errors; a failed gain update
-or clock read still stops the cleared audio and releases resources.
+cancels the old deadline. New playback unloads the cleared track before
+restoring gain, so a failed or stalled replacement cannot retain it as a
+fallback. Timer callbacks isolate errors; a failed gain update or clock read
+still stops the cleared audio and releases resources.
 
 Clear history records the audio clear on main's monotonic clock. Undo restores
 the position at the clear, resumes running audio and keeps paused audio paused.
@@ -59,4 +61,10 @@ run.
 
 ## Team member's reply
 
-1.
+1. Addressed the round 1 finding. Cancelling a clear fade now removes the
+   cleared track from active playback and unloads it before restoring gain or
+   loading the replacement. The regressions track actual mocked play/pause state
+   for a stalled load, load error and rejected play; all three failed before the
+   fix. The existing successful-replacement check also verifies that the
+   cancelled deadline cannot stop the new playback. Head checks and CI are in
+   the round 2 request message. No native audio was played.

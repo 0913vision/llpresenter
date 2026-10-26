@@ -86,9 +86,14 @@ export class AudioPlayer {
       const layer = state.layers.audio;
       this.wanted = layer;
       if (layer?.playback !== undefined && this.cancelFade !== null) {
+        const cleared = this.fading;
         this.cancelFade();
         this.cancelFade = null;
         this.fading = null;
+        if (cleared !== null) {
+          if (this.active === cleared) this.active = null;
+          this.attempt(() => this.unload(cleared));
+        }
         this.gain = 1;
       }
       const fallback = this.active;

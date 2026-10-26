@@ -223,16 +223,62 @@ describe('AudioPlayer', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
+  it.each(['stalled', 'load error', 'play error'])(
+    'removes the cleared fallback before replacement readiness (%s)',
+    async failure => {
+      vi.useFakeTimers();
+      const {root, player, first, now, onNext, onError} = setup();
+      const playing = new Set<HTMLMediaElement>();
+      const play = vi.mocked(HTMLMediaElement.prototype.play);
+      play.mockImplementation(function (this: HTMLMediaElement) {
+        playing.add(this);
+        return Promise.resolve();
+      });
+      const pause = vi.mocked(HTMLMediaElement.prototype.pause);
+      pause.mockImplementation(function (this: HTMLMediaElement) {
+        playing.delete(this);
+      });
+      player.show(state());
+      await ready(first);
+      expect(playing.has(first)).toBe(true);
+      player.show(emptyLiveState());
+      now.mockReturnValue(5200);
+      vi.advanceTimersByTime(200);
+      expect(first.volume).toBeCloseTo(0.5);
+      pause.mockClear();
+      player.show(state(2));
+      expect(pause.mock.contexts).toContain(first);
+      expect(playing.size).toBe(0);
+      const replacement = root.querySelector<HTMLAudioElement>('audio[src]');
+      if (replacement === null) throw new Error('Missing replacement');
+      if (failure === 'load error') {
+        replacement.dispatchEvent(new Event('error'));
+      } else if (failure === 'play error') {
+        play.mockRejectedValueOnce(new Error('Decoder failed'));
+        await ready(replacement);
+      }
+      player.show(state(2));
+      now.mockReturnValue(15_000);
+      vi.advanceTimersByTime(10_000);
+      expect(playing.size).toBe(0);
+      expect(onNext).not.toHaveBeenCalled();
+      expect(onError).toHaveBeenCalledTimes(failure === 'stalled' ? 0 : 1);
+      expect(vi.getTimerCount()).toBe(0);
+    },
+  );
+
   it('cancels an old clear deadline when new audio starts and on disposal', async () => {
     vi.useFakeTimers();
-    const {player, first, second} = setup();
+    const {root, player, first} = setup();
     player.show(state());
     await ready(first);
     player.show(emptyLiveState());
     player.show(state(2));
-    await ready(second);
+    const replacement = root.querySelector<HTMLAudioElement>('audio[src]');
+    if (replacement === null) throw new Error('Missing replacement');
+    await ready(replacement);
     vi.advanceTimersByTime(AUDIO_CLEAR_FADE_MS);
-    expect(second.hasAttribute('src')).toBe(true);
+    expect(replacement.hasAttribute('src')).toBe(true);
     player.show(emptyLiveState());
     player.dispose();
     expect(vi.getTimerCount()).toBe(0);
