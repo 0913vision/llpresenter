@@ -13,7 +13,7 @@ export interface TreeRow {
   readonly label: string;
   /** The item's 16px kind icon, as the 예배 순서 list draws it. */
   readonly icon?: string | undefined;
-  /** The chosen 구성 of a song, such as 주일용, or 빈 자리 for a slot. */
+  /** The chosen 구성 of a song, such as 주일용. */
   readonly detail?: string | undefined;
   /** The header the row sits under, if any. */
   readonly headerId?: ServiceItemId | undefined;
@@ -23,7 +23,6 @@ export interface TreeRow {
 export type TreeSelection = ReadonlySet<ServiceItemId>;
 
 const DEFAULT_ARRANGEMENT = '기본';
-const SLOT_DETAIL = '빈 자리';
 const MISSING_SONG = '곡을 찾을 수 없음';
 const kindLabels = {
   media: '미디어',
@@ -36,7 +35,6 @@ const icons = {
   bible: 'book',
   media: 'film',
   notice: 'notice',
-  slot: 'listplus',
   unknown: 'filex',
 } as const;
 
@@ -51,9 +49,6 @@ function rowOf(
       icon: icons.song,
       detail: item.arrangement ?? DEFAULT_ARRANGEMENT,
     };
-  }
-  if (isItemOfKind(item, 'slot')) {
-    return {label: item.title, icon: icons.slot, detail: SLOT_DETAIL};
   }
   if (isItemOfKind(item, 'bible')) {
     return {label: item.bible.ref, icon: icons.bible};

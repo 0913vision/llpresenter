@@ -119,7 +119,7 @@ describe('NewServiceDialog', () => {
     expect(row('찬양').getAttribute('aria-checked')).toBe('true');
     expect(
       within(screen.getByRole('region', {name: '예배 순서'})).getByText(
-        '항목 4개',
+        '항목 3개',
       ),
     ).toBeDefined();
     expect(screen.getByRole('textbox', {name: '이름'})).toHaveProperty(
@@ -164,6 +164,23 @@ describe('NewServiceDialog', () => {
     expect(useShow.getState().serviceId).toBe(ids.created);
     expect(sent).toEqual([]);
     expect(onProblem).not.toHaveBeenCalled();
+  });
+
+  it('creates with only the checked consecutive empty sections', async () => {
+    const {edits, onClose} = setup();
+    await screen.findByRole('treeitem', {name: '헌금 찬양'});
+    await userEvent.click(screen.getByRole('checkbox', {name: '예배 순서'}));
+    await userEvent.click(row('헌금 찬양'));
+    await userEvent.click(row('광고'));
+    expect(row('말씀').getAttribute('aria-checked')).toBe('false');
+    await userEvent.click(createButton());
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(edits[1]).toEqual({
+      type: 'service.importItems',
+      serviceId: ids.created,
+      from: {kind: 'template', id: ids.template},
+      itemIds: [ids.offering, ids.closing],
+    });
   });
 
   it('stays open while a create is on its way, then closes', async () => {

@@ -50,10 +50,7 @@ describe('treeRows', () => {
       {label: '시편 23:1-6', icon: 'book', header: false, headerId: ids.word},
       {
         label: '헌금 찬양',
-        icon: 'listplus',
-        detail: '빈 자리',
-        header: false,
-        headerId: ids.word,
+        header: true,
       },
       {label: '광고', header: true},
     ]);
@@ -76,17 +73,17 @@ describe('treeRows', () => {
     expect(treePosition(rows, row(ids.praise))).toEqual({
       level: 1,
       position: 1,
-      size: 3,
+      size: 4,
     });
     expect(treePosition(rows, row(ids.offering))).toEqual({
-      level: 2,
-      position: 2,
-      size: 2,
+      level: 1,
+      position: 3,
+      size: 4,
     });
     expect(treePosition(rows, row(ids.closing))).toEqual({
       level: 1,
-      position: 3,
-      size: 3,
+      position: 4,
+      size: 4,
     });
     expect(treePosition(rows, row(ids.nearer))).toBe(
       treePosition(rows, row(ids.nearer)),
@@ -94,7 +91,7 @@ describe('treeRows', () => {
   });
 
   it('counts items without headers', () => {
-    expect(itemCount(rows)).toBe(4);
+    expect(itemCount(rows)).toBe(3);
   });
 });
 

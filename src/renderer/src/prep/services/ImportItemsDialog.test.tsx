@@ -153,6 +153,26 @@ describe('ImportItemsDialog', () => {
     expect(onProblem).not.toHaveBeenCalled();
   });
 
+  it('imports consecutive empty sections without checking their preceding section', async () => {
+    const {edits, onClose, sent} = setup();
+    await userEvent.click(
+      await screen.findByRole('treeitem', {name: '헌금 찬양'}),
+    );
+    await userEvent.click(row('광고'));
+    expect(row('말씀').getAttribute('aria-checked')).toBe('false');
+    await userEvent.click(importButton());
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(edits).toEqual([
+      {
+        type: 'service.importItems',
+        serviceId: currentId,
+        from: {kind: 'template', id: ids.template},
+        itemIds: [ids.offering, ids.closing],
+      },
+    ]);
+    expect(sent).toEqual([]);
+  });
+
   it('checks nothing when the operator picks a source, also on a return', async () => {
     const {edits, onClose} = setup();
     await userEvent.click(
@@ -225,7 +245,7 @@ describe('ImportItemsDialog', () => {
     act(() =>
       pushTemplates([
         otherEntry,
-        {id: ids.template, name: '하늘 예배', access: 'editable', itemCount: 4},
+        {id: ids.template, name: '하늘 예배', access: 'editable', itemCount: 3},
       ]),
     );
     expect(

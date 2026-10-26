@@ -258,7 +258,7 @@ describe('the service source menu', () => {
           name: otherTemplate.template.name,
           access: 'editable',
         },
-        {id: ids.template, name: '하늘 예배', access: 'editable', itemCount: 4},
+        {id: ids.template, name: '하늘 예배', access: 'editable', itemCount: 3},
       ]),
     );
     await waitFor(() =>

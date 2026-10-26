@@ -42,23 +42,35 @@ describe('SourceTree', () => {
     expect(tree.getAttribute('aria-multiselectable')).toBe('true');
     expect(within(tree).getAllByRole('treeitem')).toHaveLength(7);
     expect(within(tree).queryAllByRole('checkbox')).toEqual([]);
-    expect(screen.getByText('항목 4개')).toBeDefined();
+    expect(screen.getByText('항목 3개')).toBeDefined();
     expect(
       screen
         .getByRole('checkbox', {name: '예배 순서'})
         .getAttribute('aria-checked'),
     ).toBe('true');
-    expect(position('찬양')).toEqual(['1', '1', '3']);
+    expect(position('찬양')).toEqual(['1', '1', '4']);
     expect(position(titles.second)).toEqual(['2', '2', '2']);
-    expect(position('헌금 찬양')).toEqual(['2', '2', '2']);
-    expect(position('광고')).toEqual(['1', '3', '3']);
+    expect(position('헌금 찬양')).toEqual(['1', '3', '4']);
+    expect(position('광고')).toEqual(['1', '4', '4']);
     expect(state('찬양')).toBe('true');
-    const slot = item('헌금 찬양');
-    const detail = document.getElementById(
-      slot.getAttribute('aria-describedby') ?? '',
-    );
-    expect(detail?.textContent).toBe('빈 자리');
+    expect(item('헌금 찬양').getAttribute('aria-describedby')).toBeNull();
+    expect(screen.queryByText('빈 자리')).toBeNull();
     expect(screen.getByText('주일용')).toBeDefined();
+  });
+
+  it('checks consecutive empty sections independently, including the final one', async () => {
+    render(<Tree initial={new Set()} />);
+    await userEvent.click(item('헌금 찬양'));
+    expect(state('헌금 찬양')).toBe('true');
+    expect(state('광고')).toBe('false');
+    expect(state('말씀')).toBe('false');
+    await userEvent.keyboard('{ArrowDown} ');
+    expect(document.activeElement).toBe(item('광고'));
+    expect(state('광고')).toBe('true');
+    expect(state('헌금 찬양')).toBe('true');
+    await userEvent.click(item('헌금 찬양'));
+    expect(state('헌금 찬양')).toBe('false');
+    expect(state('광고')).toBe('true');
   });
 
   it('checks a header with its items and shows the mixed states', async () => {

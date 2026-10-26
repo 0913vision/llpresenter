@@ -47,7 +47,7 @@ export const titles = {
   second: '저녁 노을 아래서',
 };
 
-/** A 틀 with two headers that hold items and an empty header at the end. */
+/** A 틀 with two populated sections followed by two empty sections. */
 export const templateOrder: readonly ServiceItem[] = [
   {id: ids.praise, header: '찬양'},
   {id: ids.doxology, song: ids.firstSong, arrangement: '주일용'},
@@ -64,7 +64,7 @@ export const templateOrder: readonly ServiceItem[] = [
       translationName: false,
     },
   },
-  {id: ids.offering, slot: 'song', title: '헌금 찬양'},
+  {id: ids.offering, header: '헌금 찬양'},
   {id: ids.closing, header: '광고'},
 ];
 
@@ -118,7 +118,7 @@ export const pastDocument: ServiceDocument = {
 };
 
 export const templateEntries: readonly TemplateEntry[] = [
-  {id: ids.template, name: '주일 예배', access: 'editable', itemCount: 4},
+  {id: ids.template, name: '주일 예배', access: 'editable', itemCount: 3},
 ];
 
 export const serviceEntries: readonly ServiceEntry[] = [
