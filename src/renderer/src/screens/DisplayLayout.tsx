@@ -1,0 +1,104 @@
+import {useMemo, type JSX} from 'react';
+import {Button} from '@renderer/ui';
+import {classNames} from '@renderer/ui/classNames';
+import {sendLive} from '@renderer/state/live';
+import type {Notice} from '@renderer/ui/notices';
+import {displayLayout, type MonitorBox, type TargetBox} from './layoutBoxes';
+import {selectedIdIn, useScreensSelection} from './selection';
+import {useMonitors} from './useMonitors';
+import {useSettingsDocument} from './useSettingsDocument';
+import styles from './DisplayLayout.module.css';
+
+const TITLE = '배치';
+const LOAD_TITLE = '화면';
+const IDENTIFY_LABEL = '모니터 번호 표시';
+const CONTROL_LABEL = '컨트롤';
+const PERCENT_UNIT = '%';
+
+function percent(value: number): string {
+  return `${value}${PERCENT_UNIT}`;
+}
+
+function MonitorView({box}: {readonly box: MonitorBox}): JSX.Element {
+  return (
+    <div
+      className={classNames(styles.monitor, box.selected && styles.selected)}
+      data-monitor={box.number}
+      style={{
+        left: percent(box.left),
+        top: percent(box.top),
+        width: percent(box.width),
+        height: percent(box.height),
+      }}
+    >
+      <span className={styles.number}>{box.number}</span>
+      {box.screens.length > 0 && (
+        <span className={styles.screens}>{box.screens.join(', ')}</span>
+      )}
+      {box.control && <span className={styles.control}>{CONTROL_LABEL}</span>}
+      <span>{box.resolution}</span>
+      <span>{box.name}</span>
+    </div>
+  );
+}
+
+function TargetView({target}: {readonly target: TargetBox}): JSX.Element {
+  return (
+    <div
+      className={classNames(styles.target, target.selected && styles.selected)}
+      data-target={target.id}
+    >
+      <span className={styles.targetName}>{target.name}</span>
+      {target.resolution !== undefined && <span>{target.resolution}</span>}
+    </div>
+  );
+}
+
+/**
+ * The display layout: one box per monitor placed like the Windows
+ * arrangement, with the screens that show on it, and the screens without a
+ * monitor apart. 모니터 번호 표시 shows the numbers on the real monitors.
+ */
+export function DisplayLayout({
+  onProblem,
+}: {
+  readonly onProblem?: ((notice: Notice) => void) | undefined;
+}): JSX.Element {
+  const monitors = useMonitors();
+  const document = useSettingsDocument('screens', LOAD_TITLE, onProblem);
+  const selection = useScreensSelection(view => view.selection);
+  const selectedId = selectedIdIn(selection, 'screen');
+  const model = useMemo(
+    () => displayLayout(monitors, document?.value.screens ?? [], selectedId),
+    [monitors, document, selectedId],
+  );
+  return (
+    <section className={styles.layout} aria-label={TITLE}>
+      <div className={styles.header}>
+        <Button
+          icon="monitor"
+          onClick={() => sendLive({type: 'monitors.identify'})}
+        >
+          {IDENTIFY_LABEL}
+        </Button>
+      </div>
+      <div className={styles.stage}>
+        <div
+          className={styles.arrangement}
+          style={{aspectRatio: model.aspectRatio}}
+        >
+          {model.monitors.map(box => (
+            <MonitorView key={box.number} box={box} />
+          ))}
+        </div>
+      </div>
+      {model.targets.length > 0 && (
+        <div className={styles.targets}>
+          {model.targets.map(target => (
+            <TargetView key={target.id} target={target} />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}

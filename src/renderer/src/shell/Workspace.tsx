@@ -44,6 +44,7 @@ import {
 } from '@renderer/show/SlidePanel';
 import {useShowKeys} from '@renderer/show/shortcuts';
 import {useLibrarySongSync} from '@renderer/show/useLibrarySongSync';
+import {DisplayLayout} from '@renderer/screens/DisplayLayout';
 import {ScreenList} from '@renderer/screens/ScreenList';
 import {LookList, StageLayoutList} from '@renderer/screens/LookLists';
 import {classNames} from '@renderer/ui/classNames';
@@ -225,6 +226,8 @@ function screensPanelParts(
       return {body: <LookList onProblem={onProblem} />};
     case '무대 배치':
       return {body: <StageLayoutList onProblem={onProblem} />};
+    case '배치':
+      return {body: <DisplayLayout onProblem={onProblem} />};
     default:
       return {};
   }

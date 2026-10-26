@@ -136,6 +136,14 @@ describe('the 화면 list', () => {
     expect(labels).toEqual(['화면', 'Look', '무대 배치']);
   });
 
+  it('mounts the display layout in the center column', async () => {
+    setup();
+
+    expect(
+      await screen.findByRole('button', {name: '모니터 번호 표시'}),
+    ).toBeTruthy();
+  });
+
   it('groups the screens under 청중 and 무대 with their targets', async () => {
     setup();
     await screen.findByRole('option', {name: '본 화면'});
