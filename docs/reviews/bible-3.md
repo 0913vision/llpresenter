@@ -44,7 +44,7 @@ bible-1 review nit.
 ## Checks run
 
 - `npm run typecheck`: passed.
-- Scoped Vitest: 70 tests across six renderer files passed.
+- Scoped Vitest: 72 tests across six renderer files passed.
 - Scoped ESLint and formatting: final results in the member report.
 - `npm run build`: passed; the actual built app was exercised below.
 - Exact-head GitHub `npm run verify`: run URL and result in the member report.
@@ -108,6 +108,25 @@ check.
 ![Prep oversized end ready for clamped insertion](bible-3/prep-valid-clamped.png)
 
 ![Inserted Prep passage](bible-3/prep-inserted.png)
+
+### Unavailable-book regression after bible-2 round 2
+
+Restacked this branch on the corrected bible-2, rebuilt, and drove both mounted
+forms in the offscreen app. The invented installed translation has John and no
+Psalms. For 20 measured cycles after 20 warmup cycles in each form, 요 advances
+to 장, while 시, after its unavailable result arrives, remains in 책 on Tab with
+the original input and the 역본에 없는 책 tooltip. The Show popup and Prep
+dialog each close twice. Live output and the service item count do not change.
+Pending-lookup completion is covered by the deferred-reply unit test.
+
+[Regression counters](bible-3/unavailable-check.json): Show elements remain 473
+and listeners 553 across all samples, with heap 5,478,332 to 5,588,736 (+2.0%).
+Prep elements remain 216 and listeners 766, with heap 5,611,484 to 5,664,636
+(+0.9%). The app exited normally after the check.
+
+![Show retains focus for an unavailable book](bible-3/show-unavailable-book.png)
+
+![Prep retains focus for an unavailable book](bible-3/prep-unavailable-book.png)
 
 ## Quality and review focus
 

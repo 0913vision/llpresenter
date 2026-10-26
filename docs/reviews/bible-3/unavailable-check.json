@@ -1,0 +1,80 @@
+{
+  "date": "2026-10-26T15:12:10.460Z",
+  "warmupCycles": 20,
+  "measuredCycles": 20,
+  "checks": [
+    "show: available John advances, confirmed missing Psalms retains book focus and original input across 20 repeated switches",
+    "prep: available John advances, confirmed missing Psalms retains book focus and original input across 20 repeated switches",
+    "Show suggestion popup and Prep dialog each closed twice; no output or service mutation"
+  ],
+  "show": [
+    {
+      "elements": 473,
+      "documents": 30,
+      "nodes": 1724,
+      "jsEventListeners": 553,
+      "usedSize": 5478332,
+      "totalSize": 6328320,
+      "embedderHeapUsedSize": 4323336,
+      "backingStorageSize": 1693877
+    },
+    {
+      "elements": 473,
+      "documents": 30,
+      "nodes": 1734,
+      "jsEventListeners": 553,
+      "usedSize": 5529108,
+      "totalSize": 6328320,
+      "embedderHeapUsedSize": 4055200,
+      "backingStorageSize": 1693885
+    },
+    {
+      "elements": 473,
+      "documents": 30,
+      "nodes": 1744,
+      "jsEventListeners": 553,
+      "usedSize": 5588736,
+      "totalSize": 6328320,
+      "embedderHeapUsedSize": 4064144,
+      "backingStorageSize": 1693885
+    }
+  ],
+  "prep": [
+    {
+      "elements": 216,
+      "documents": 19,
+      "nodes": 387,
+      "jsEventListeners": 766,
+      "usedSize": 5611484,
+      "totalSize": 6590464,
+      "embedderHeapUsedSize": 2938896,
+      "backingStorageSize": 1694594
+    },
+    {
+      "elements": 216,
+      "documents": 19,
+      "nodes": 397,
+      "jsEventListeners": 766,
+      "usedSize": 5642332,
+      "totalSize": 6590464,
+      "embedderHeapUsedSize": 2953800,
+      "backingStorageSize": 1694594
+    },
+    {
+      "elements": 216,
+      "documents": 19,
+      "nodes": 407,
+      "jsEventListeners": 766,
+      "usedSize": 5664636,
+      "totalSize": 6590464,
+      "embedderHeapUsedSize": 2936768,
+      "backingStorageSize": 1694594
+    }
+  ],
+  "closed": {
+    "documents": 21,
+    "nodes": 543,
+    "jsEventListeners": 874
+  },
+  "finished": "2026-10-26T15:12:33.282Z"
+}
