@@ -30,7 +30,9 @@ function setup() {
 describe('screen.testPattern.set', () => {
   it('shows the pattern per screen and drops the field once none shows it', () => {
     const {store, set} = setup();
+    const start = store.state.version;
     expect(set(MAIN, true)).toBe(true);
+    expect(store.state.version).toBe(start + 1);
     expect(set(CAPTIONS, true)).toBe(true);
     expect(store.state.testPatterns).toEqual([MAIN, CAPTIONS]);
     const version = store.state.version;
