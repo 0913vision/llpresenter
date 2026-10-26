@@ -102,19 +102,19 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (Codex, codex2): Request changes: an old monitor status overrode a
+  changed assignment, and the health dot showed ok before any frame rate. Built
+  by an Antigravity session on Claude Sonnet 5.5 (model trial).
+- Round 2 (Codex, codex2): Request changes: a cleared assignment with the output
+  still on showed the old monitor. Fixed by a Claude Code session on Sonnet 5.5
+  after the Antigravity quota ran out.
+- Round 3 (35790c89): reviewer (Codex, codex2) Approve, no findings. Lead
+  Approve; the LIVE badge for the Look and stage layout in use follows the
+  StatusMarks README (red marks what is on the screens now). Changes outside
+  screens' paths (`shell/Workspace.tsx`) checked against shell's rules. Rebased
+  by the lead onto local `main` without conflicts; typecheck passes.
 
 ## Team member's reply
 
