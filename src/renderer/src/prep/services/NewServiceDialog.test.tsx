@@ -10,6 +10,7 @@ import {
   vi,
 } from 'vitest';
 import type {LiveCommand} from '@shared/commands';
+import type {TemplateDocument} from '@shared/schema/contentDocuments';
 import type {ContentEdit, EditResult} from '@shared/schema/contentEdit';
 import type {ServiceOpenRequest} from '@shared/schema/serviceOpen';
 import type {ShowService} from '@shared/schema/showService';
@@ -20,6 +21,7 @@ import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {NewServiceDialog} from './NewServiceDialog';
 import {
   ids,
+  legacyTemplateDocument,
   librarySongs,
   pastDocument,
   serviceEntries,
@@ -43,7 +45,10 @@ function accepted(edit: ContentEdit): EditResult {
   };
 }
 
-function setup(answer: (edit: ContentEdit) => EditResult | Error = accepted) {
+function setup(
+  answer: (edit: ContentEdit) => EditResult | Error = accepted,
+  sourceTemplate: TemplateDocument = templateDocument,
+) {
   const edits: ContentEdit[] = [];
   const sent: LiveCommand[] = [];
   const open = vi.fn(
@@ -57,7 +62,7 @@ function setup(answer: (edit: ContentEdit) => EditResult | Error = accepted) {
   window.llp = fakeLlpApi({
     templates: {
       list: () => Promise.resolve(templateEntries),
-      get: () => Promise.resolve(templateDocument),
+      get: () => Promise.resolve(sourceTemplate),
     },
     services: {
       list: () => Promise.resolve(serviceEntries),
@@ -166,8 +171,8 @@ describe('NewServiceDialog', () => {
     expect(onProblem).not.toHaveBeenCalled();
   });
 
-  it('creates with only the checked consecutive empty sections', async () => {
-    const {edits, onClose} = setup();
+  it('creates with only the checked empty sections from a legacy template read', async () => {
+    const {edits, onClose} = setup(accepted, legacyTemplateDocument());
     await screen.findByRole('treeitem', {name: '헌금 찬양'});
     await userEvent.click(screen.getByRole('checkbox', {name: '예배 순서'}));
     await userEvent.click(row('헌금 찬양'));

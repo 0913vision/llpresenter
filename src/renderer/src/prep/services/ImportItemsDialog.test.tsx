@@ -24,6 +24,7 @@ import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {ImportItemsDialog} from './ImportItemsDialog';
 import {
   ids,
+  legacyTemplateDocument,
   librarySongs,
   pastDocument,
   serviceEntries,
@@ -49,10 +50,12 @@ function setup({
   answer = () => ACCEPTED,
   templates = templateEntries,
   services = [...serviceEntries, current],
+  sourceTemplate = templateDocument,
 }: {
   readonly answer?: (edit: ContentEdit) => EditResult | Error;
   readonly templates?: typeof templateEntries;
   readonly services?: readonly ServiceEntry[];
+  readonly sourceTemplate?: TemplateDocument;
 } = {}) {
   const edits: ContentEdit[] = [];
   const sent: LiveCommand[] = [];
@@ -61,7 +64,7 @@ function setup({
   window.llp = fakeLlpApi({
     templates: {
       list: () => Promise.resolve(templates),
-      get: () => Promise.resolve(templateDocument),
+      get: () => Promise.resolve(sourceTemplate),
       subscribeList: listener => {
         pushTemplates = listener;
         return () => undefined;
@@ -153,8 +156,10 @@ describe('ImportItemsDialog', () => {
     expect(onProblem).not.toHaveBeenCalled();
   });
 
-  it('imports consecutive empty sections without checking their preceding section', async () => {
-    const {edits, onClose, sent} = setup();
+  it('imports empty sections from a legacy template read without checking their preceding section', async () => {
+    const {edits, onClose, sent} = setup({
+      sourceTemplate: legacyTemplateDocument(),
+    });
     await userEvent.click(
       await screen.findByRole('treeitem', {name: '헌금 찬양'}),
     );
