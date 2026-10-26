@@ -31,17 +31,19 @@ built once.
 ## Changed files
 
 - `src/renderer/src/screens/`: `DisplayLayout.tsx`, `DisplayLayout.module.css`,
-  `layoutBoxes.ts`, `monitorAssignment.ts`, `displaySizes.ts`, `selection.ts`
-  (`selectedScreenIn`), `useMonitors.ts`, and their tests.
+  `layoutBoxes.ts`, `monitorAssignment.ts` (reads main's assignment from the
+  monitor list), `displaySizes.ts`, `selection.ts` (`selectedScreenIn`),
+  `useMonitors.ts`, and their tests.
 - Changes outside my paths:
   - `src/renderer/src/shell/Workspace.tsx` (shell's path), one `case '배치'` in
     `screensPanelParts` and its import.
-  - `src/shared/monitorAssign.ts` (new) holds main's `assignMonitors`, moved
-    from `src/main/displays/assign.ts` and made generic over the monitor type;
-    `assign.ts` now re-exports it, so main's callers and `assign.test.ts` are
-    unchanged (output's path).
-  - `src/shared/schema/monitors.ts` and `src/main/displays/monitorList.ts`: the
-    monitor gets its display `id` (additive), with tests.
+  - `src/shared/schema/monitors.ts` and `src/preload/`: each monitor in the list
+    gets `screenIds` (additive, with a cap and tests), the screens main assigned
+    to it.
+  - `src/main/displays/monitorList.ts`, `src/main/outputs/manager.ts`, and
+    `src/main/outputs/start.ts` (output's path): the manager exposes its
+    resolved assignment (`assignedMonitorIds`, `subscribeAssignment`), and the
+    handler lists it in the reply and pushes when it changes.
 
 ## Checks run
 
@@ -126,3 +128,17 @@ missing.
 Windows can't read the monitor each screen had at main's last assignment, so a
 look-alike monitor is the one case where the panel may differ from main (then
 main leaves the screen in a window); the NOTE in `monitorAssignment.ts` says so.
+
+## Round 3 reply
+
+1. [P2] Window-side resolution: removed, and the shared copy of `assignMonitors`
+   and the display `id` field are gone with it (this replaces the first item of
+   the round 2 reply). Main publishes the monitor each screen is on (`screenIds`
+   in the monitor list), and the panel shows exactly that, so it can't differ
+   from the output. The regression test is in `start.test.ts`: two same-model
+   monitors whose ids change and whose positions swap while plugged in. Main
+   keeps `main` and `stage` on the monitors they had, the reply lists them
+   there, and the push follows. The manager also notifies when the assignment
+   changes while the monitors do not. `layoutBoxes.test.ts` covers a list whose
+   assignment differs from the saved monitor and a screen main assigned no
+   monitor.
