@@ -99,6 +99,7 @@ export class ServiceItemStore {
   private songId: SongId | null = null;
   private songStatus: ItemSongStatus = 'loading';
   private serviceRead = 0;
+  private songRead = 0;
   private busy = false;
   private alive = true;
   private state = NO_ITEM;
@@ -190,9 +191,16 @@ export class ServiceItemStore {
       console.error('Could not read the service of the item', error);
       if (read === this.serviceRead) {
         this.problem('예배 순서 불러오기 실패', () =>
-          this.readService(serviceId),
+          this.retryService(serviceId),
         );
       }
+    }
+  }
+
+  /** An old notice's retry reads only the service the store still shows. */
+  private retryService(serviceId: string): void {
+    if (this.alive && this.target?.serviceId === serviceId) {
+      editorTask(this.readService(serviceId));
     }
   }
 
@@ -224,6 +232,7 @@ export class ServiceItemStore {
       item !== null && isItemOfKind(item, 'song') ? item.song : null;
     if (songId === this.songId) return;
     this.songId = songId;
+    this.songRead++;
     this.editor.showItemSong(songId);
     if (songId === null) return;
     if (this.editor.sessionOf(songId) === undefined) this.loadSong(songId);
@@ -241,21 +250,23 @@ export class ServiceItemStore {
     this.publish();
   }
 
+  /** Starts a read that answers only while no newer read or song replaced it. */
   private loadSong(songId: SongId): void {
     this.songStatus = 'loading';
-    editorTask(this.readSong(songId));
+    editorTask(this.readSong(songId, ++this.songRead));
   }
 
-  private async readSong(songId: SongId): Promise<void> {
+  private async readSong(songId: SongId, read: number): Promise<void> {
+    const current = (): boolean => this.alive && read === this.songRead;
     try {
       const document = await this.api.songs.get(songId);
-      if (!this.alive || this.songId !== songId) return;
+      if (!current()) return;
       this.songStatus = document === null ? 'missing' : 'ready';
       if (document !== null) this.editor.attach(document);
       this.publish();
     } catch (error) {
       console.error('Could not read the song of the item', error);
-      if (!this.alive || this.songId !== songId) return;
+      if (!current()) return;
       this.songStatus = 'failed';
       this.publish();
       this.problem('곡 불러오기 실패', () => this.retrySong(songId));

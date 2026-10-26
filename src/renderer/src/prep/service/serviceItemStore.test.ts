@@ -3,6 +3,7 @@ import type {
   ServiceDocument,
   SongDocument,
 } from '@shared/schema/contentDocuments';
+import {createServiceId} from '@shared/schema/ids';
 import {isItemOfKind} from '@shared/schema/service';
 import {SongEditorStore} from '@renderer/prep/editor';
 import type {Notice} from '@renderer/ui/notices';
@@ -169,6 +170,59 @@ describe('service item store', () => {
     await settle();
     expect(editor.sessionOf(first.song.id)).toBeUndefined();
     expect(items.getSnapshot().song?.document.song.id).toBe(second.song.id);
+  });
+
+  it('ignores an old service notice retry while another service loads', async () => {
+    const {api, items, problem, service} = setup();
+    const otherId = createServiceId('40000000-0000-4000-8000-000000000002');
+    const other: ServiceDocument = {
+      ...service(),
+      service: {...service().service, id: otherId, name: '저녁 예배'},
+    };
+    const get = vi.spyOn(api.services, 'get');
+    get.mockRejectedValueOnce(new Error('Gone'));
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.slot});
+    await vi.waitFor(() => expect(problem).toHaveBeenCalled());
+    const retry = problem.mock.calls[0]?.[0].actions?.[0];
+    let answer: (document: ServiceDocument | null) => void = () => undefined;
+    get.mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          answer = resolve;
+        }),
+    );
+    items.show({serviceId: otherId, itemId: fixtureItems.slot});
+    retry?.onSelect();
+    answer(other);
+    await vi.waitFor(() =>
+      expect(items.getSnapshot().service?.service.id).toBe(otherId),
+    );
+    expect(get).toHaveBeenCalledTimes(2);
+  });
+
+  it('lets only the newest song read answer when song items alternate', async () => {
+    const {api, items, problem, first} = setup();
+    let fail: (reason: unknown) => void = () => undefined;
+    vi.spyOn(api.songs, 'get').mockImplementationOnce(
+      () =>
+        new Promise((_, reject) => {
+          fail = reject;
+        }),
+    );
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
+    await vi.waitFor(() => expect(items.getSnapshot().item).not.toBeNull());
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.plain});
+    await vi.waitFor(() =>
+      expect(items.getSnapshot().songStatus).toBe('ready'),
+    );
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
+    await vi.waitFor(() =>
+      expect(items.getSnapshot().song?.document.song.id).toBe(first.song.id),
+    );
+    fail(new Error('Late failure'));
+    await settle();
+    expect(items.getSnapshot().songStatus).toBe('ready');
+    expect(problem).not.toHaveBeenCalled();
   });
 
   it('reports a failed read with a retry that reads again', async () => {
