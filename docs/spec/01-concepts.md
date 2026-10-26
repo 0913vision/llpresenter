@@ -288,13 +288,13 @@ Source: `ImportMenu`, `MenuBar` README, `Menu` README, product log version 63
 
 The toolbar has the same buttons in the same places in every workspace.
 
-| Position | Button                                                           | Behavior                                                                                                              |
-| -------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Left     | 진행, 준비, 화면 설정                                            | Switch workspaces.                                                                                                    |
-| Left     | 미디어 (Media)                                                   | In 진행, opens and closes the media strip (see 04). In 준비, opens and closes the media view (see 05, open question). |
-| Center   | Search field "곡, 가사, 초성" (song, lyrics, initial consonants) | Searches the 라이브러리 (see 04 and 05).                                                                              |
-| Right    | Look (shows the current Look name)                               | Opens the Look menu. Choosing a Look applies it at once (see 03).                                                     |
-| Right    | 본 화면, 무대, 방송 자막                                         | Turns that screen's output on or off (see 03).                                                                        |
+| Position | Button                                                           | Behavior                                                                                              |
+| -------- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Left     | 진행, 준비, 화면 설정                                            | Switch workspaces.                                                                                    |
+| Left     | 미디어 (Media)                                                   | Shows or hides one shared bottom 미디어 bin in 진행 and 준비 (04, 05); it does not switch workspaces. |
+| Center   | Search field "곡, 가사, 초성" (song, lyrics, initial consonants) | Searches the 라이브러리 (see 04 and 05).                                                              |
+| Right    | Look (shows the current Look name)                               | Opens the Look menu. Choosing a Look applies it at once (see 03).                                     |
+| Right    | 본 화면, 무대, 방송 자막                                         | Turns that screen's output on or off (see 03).                                                        |
 
 Source: `ShowH`, `Toolbar` README, `ToolbarButton` README, `Media`.
 
@@ -319,8 +319,8 @@ All three workspaces use the same three-column frame (left, center, right). The
 
 | Workspace | Left column                   | Center column                                                    | Right column                                            | Details |
 | --------- | ----------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------- | ------- |
-| 진행      | 예배 순서, 퀵 실행            | 슬라이드 panel, media strip                                      | Preview, clear row, 진행 도구                           | 04      |
-| 준비      | 예배 순서, 라이브러리         | Song editor or 예배 순서 item. With 미디어 on, the media view.   | Preview and 슬라이드 list, or preview and item settings | 05      |
+| 진행      | 예배 순서, 퀵 실행            | 슬라이드 panel                                                   | Preview, clear row, 진행 도구                           | 04      |
+| 준비      | 예배 순서, 라이브러리         | Song editor or 예배 순서 item.                                   | Preview and 슬라이드 list, or preview and item settings | 05      |
 | 화면 설정 | Screens, Looks, stage layouts | Display layout and output preview, Look editor, or layout editor | Properties                                              | 06      |
 
 - Switching workspaces never changes the output.

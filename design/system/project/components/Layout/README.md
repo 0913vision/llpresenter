@@ -18,15 +18,56 @@ All values are CSS pixels after Windows display scaling (the same as Electron DI
 
 - Minimum window: `window-min-width` 1280 × `window-min-height` 720.
 - From top to bottom: menu bar `size-menubar` (30), toolbar (regular window `size-toolbar` 56, narrow window `size-toolbar-compact` 40), work area, status bar `size-statusbar` (28). The background of the gaps between bars and panels is `bg-app`.
-- Work area: left column, center column, right column. The gaps at the window edges, between columns, and between panels are all `panel-gap` (4). Don't put a gap above or below the work area.
+- Work area: an upper row with left, center and right workspace columns, followed by the shared 미디어 bin when open. The bin spans all three columns in 진행 and 준비. Gaps at the window edges, between columns, between the two rows and between panels are `panel-gap` (4). Don't put a gap above or below the work area.
 - Left column: 예배 순서 (service order) (remaining height) + 퀵 실행 (quick launch) (content height). In the 준비 workspace: 예배 순서 + library.
-- Center column: all remaining width, minimum 560. 슬라이드 (slide) panel (remaining height) + media strip (170 when open = header 34 + content 136).
+- Center column: all remaining width, minimum 560. The 슬라이드 panel or 준비 source/item editor fills the upper row's height. The shared bin does not occupy the center column or replace the editor.
 - Right column: preview (content height) + 지우기 (clear) (content height) + 진행 도구 (show tools) (remaining height, minimum 240).
-- If the height runs short and the 진행 도구 would get smaller than 240, the preview panel shrinks. The large preview keeps 16:9, gets smaller to fit the height, and is centered. At 1280×720 (narrow window), this gives preview 306, 지우기 68, and 진행 도구 240.
+- If the height runs short and the 진행 도구 would get smaller than 240, the preview panel shrinks. The large preview keeps 16:9, gets smaller to fit the height, and is centered. With the bin closed at 1280×720, this gives preview 306, 지우기 68, and 진행 도구 240, including two 4px gaps. With the bin open, reserve the upper row as defined below; preview content scrolls when its other controls cannot fit.
+
+## Shared media bin height
+
+The October 26 shared-bin decision replaces the former 170px center-column
+strip. The same height allocation applies in 진행 and 준비. The upper editor,
+workspace preview and lists remain mounted and usable above the bin.
+
+- Let `H` be the visible work-area height in CSS pixels, after subtracting the
+  current menu bar, toolbar and status bar heights from the content viewport.
+  The open bin adds one `panel-gap` (`G`, currently 4px) between the two rows.
+- Reserve `workspace-upper-min-height = 440px` for the upper row. This includes
+  진행 도구 at 240px, the narrow clear row at 68px, two 4px gaps and at least
+  124px for the workspace preview panel, including its header. 준비 uses the
+  same reservation for its editor, source lists and preview.
+- The bin's minimum is `media-bin-min-height = 168px`. Its preferred maximum
+  is twice `size-media-strip-tile`, currently 300px. These are complete row
+  heights, including panel headers and footers, not content heights.
+- If `H >= 440 + G + 168`, allocate the bin
+  `B = min(2 * size-media-strip-tile, 0.4 * H, H - G - 440)` and the upper row
+  `U = H - G - B`. Do not let flex shrink reduce either allocated row. Closing
+  the bin removes its row and gap, giving the work area to the upper row.
+- If `H < 440 + G + 168`, keep the open bin at 168px and the upper row at
+  440px. Give the work area a vertical scrollbar over that combined minimum
+  height. Keep the menu bar, toolbar and status bar outside that scrolling
+  region. Both rows remain reachable; never auto-close a saved-open bin or
+  clip their controls to force them into the viewport. This also applies when
+  app UI zoom reduces the available CSS viewport. When closed, the work area
+  scrolls only if its upper row cannot fit its 440px minimum.
+- Panel headers and footers do not scroll. Lists, virtual media grid, editor,
+  properties and preview content scroll inside their own bounded bodies.
+  A long playlist/property list cannot enlarge either row. The bin's media and
+  audio playlist panels share its left column; audio takes its content height
+  up to half that column, and both bodies scroll when needed. Fit the preview
+  image proportionally inside its panel; scroll excess preview controls.
+
+At 1280×720 and 100% app UI zoom, the narrow bars use 30 + 40 + 28px, so `H`
+is 622px. A saved-open bin gets 178px, the inter-row gap gets 4px, and the upper
+workspace keeps 440px. No work-area scrollbar is needed. At 1366×768 the same
+calculation gives a 226px bin. At 1920×1080 with the regular 56px toolbar, the
+bin reaches its 300px cap and leaves 662px above it. Smaller usable heights use
+the scrolling fallback, preserving the saved visibility choice.
 
 ## Sizes and variants
 
-| Class | Window width | Toolbar | Left | Right | Media strip | 진행 도구 tabs | Small previews | 지우기 buttons | Default thumbnail columns |
+| Class | Window width | Toolbar | Left | Right | Media bin default | 진행 도구 tabs | Small previews | 지우기 buttons | Default thumbnail columns |
 |---|---|---|---|---|---|---|---|---|---|
 | Narrow window | 1280–1599 | 40 `size-toolbar-compact` | 220 `col-left-compact` | 360 `col-right-compact` | Starts closed | 표시 중, 무대, 더 보기 | 64px rows | Icon only (모두 has a name) | 3 |
 | Regular window | 1600–2399 | 56 `size-toolbar` | 280 `col-left` | 480 `col-right` | Open | All 8 | Two cells | Icon + name | 4 |
@@ -48,8 +89,8 @@ The column widths of the wide window are `col-left-wide` (320) and `col-right-wi
 
 | State | What changes | Other |
 |---|---|---|
-| Media strip open / closed | Shares the bottom 170 of the center column with the 슬라이드 panel / the 슬라이드 panel takes it all | The toolbar "미디어" (media) button turns it on and off (`aria-pressed`) |
-| Height under 900 | The media strip starts closed | If the user opens it, keep it open |
+| Shared media bin open / closed | Uses a full-width bottom row with the bounded height above / the upper workspace takes all work-area height | The toolbar 미디어 button controls visibility (`aria-pressed`), independently of 진행/준비 |
+| Height under 900 DIP | The bin starts closed only when no choice is saved | A saved or explicitly opened choice stays open; allocate rows or scroll as above |
 | 진행 도구 would go under 240 | The preview panel shrinks | See Anatomy above |
 | Dragging a column width | Cursor `col-resize` | Save that width when the drag ends |
 
@@ -79,7 +120,8 @@ const defaults = {
   wide:   { toolbar: 56, left: 320, right: 560, mediaStrip: true, columns: 6 },
 }
 const limits = { left: [200, 400], right: [320, 720], center: 560, toolsMin: 240 }
-// On start: mediaStrip = defaults[c].mediaStrip && window.innerHeight >= 900
+const heightDip = window.innerHeight * uiZoomFactor
+const mediaStrip = settings.mediaStrip ?? (defaults[c].mediaStrip && heightDip >= 900)
 // Save: settings.layout[c] = { left, right, columns }
 ```
 
@@ -90,4 +132,5 @@ const limits = { left: [200, 400], right: [320, 720], center: 560, toolsMin: 240
 ## Changes from the drafts
 
 - Compact (1366×768): toolbar 44 → 40 (`size-toolbar-compact`), status bar 24 → 28, 진행 도구 tabs "표시 중, 무대, 메시지 + 더 보기" → "표시 중, 무대 + 더 보기".
-- ShowH, Problems: media strip panel 220 → 170.
+- The historical ShowH/Problems center strip (220px in the drafts, later 170px)
+  is superseded by the full-width shared bin and bounded allocation above.

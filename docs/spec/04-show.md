@@ -16,9 +16,11 @@ captions), 진행 도구 (show tools), 퀵 실행 (quick launch), 소품 (prop),
 | Column | Panels, top to bottom                                            | Source                   |
 | ------ | ---------------------------------------------------------------- | ------------------------ |
 | Left   | 예배 순서 (takes the remaining height), 퀵 실행 (content height) | `ShowH`, `Layout` README |
-| Center | 슬라이드 panel (remaining height), media strip (when open)       | `ShowH`, `Layout` README |
+| Center | 슬라이드 panel (remaining height)                                | `ShowH`, `Layout` README |
 | Right  | Preview, clear row, 진행 도구 (remaining height, at least 240)   | `ShowH`, `Layout` README |
 
+- The shared bottom 미디어 bin sits below the workspace columns when open; its
+  own playlists, content and properties are described below.
 - 진행 has no 라이브러리. Its left column holds the 예배 순서 and 퀵 실행.
 - Dragging column widths, remembering them per size class, and shrinking the
   preview when the window is too short follow the design system `Layout`
@@ -615,28 +617,56 @@ Source: `ShowH`, `Compact`, `Problems`, `Bible` (퀵 실행 list), `ListRow` REA
 (퀵 실행 on state), `Main` decisions "퀵 실행은 목록" and "단축키", product log
 (퀵 실행 shortcuts deferred).
 
-## Media strip
+## Shared bottom 미디어 bin
 
-- The toolbar's 미디어 (Media) button opens and closes the strip. A saved open
-  or closed choice wins over size defaults, including a saved open choice in a
-  narrow window. With no saved choice, it starts open in regular and wide
-  windows at least 900 DIP high, and closed otherwise.
+- One 미디어 (Media) toggle shows or hides the same bottom bin in 진행 and 준비.
+  It does not switch workspaces or replace the song/item editor. The workspace
+  columns remain above it. The bin has its own left playlist column, center
+  media content, and right preview/properties area (05).
+- Use the authoritative
+  [Layout height allocation](../../design/system/project/components/Layout/README.md#shared-media-bin-height):
+  reserve 440 CSS px for the upper workspace and one `panel-gap` between rows.
+  For work-area height `H >= 612px` (with the current 4px gap), the bin gets
+  `min(300px, 40% of H, H - 444px)`, with a 168px minimum. The 300px cap is
+  twice `size-media-strip-tile`. Below that threshold, keep 440px above and
+  168px below and scroll the work area vertically, with the bars outside it. The
+  editor, preview and 진행 도구 remain reachable. At the minimum 1280x720 window
+  with 100% app UI zoom, a saved-open bin gets 178px and the upper workspace
+  440px; do not restore it closed or shrink panels below their minimums. Long
+  bin content scrolls inside panel bodies, with fixed headers and footers, and
+  never increases the bin height.
+- The toggle is a panel visibility control, visually distinct from the 진행 and
+  준비 workspace switch. ui owns its styling and design-system tokens.
+- A saved open or closed `mediaStrip` choice applies in both workspaces and wins
+  over size defaults, including a saved open choice in a narrow window. With no
+  saved choice, the bin starts open in regular and wide windows at least 900 DIP
+  high, and closed otherwise.
   - Measure height in DIP by multiplying the CSS viewport height by the current
-    UI zoom factor: 750 CSS px at 120% zoom is 900 DIP. Opening or closing saves
-    the choice; resizing or changing UI zoom does not overwrite it.
-- Header: "미디어", the media playlist select (for example 배경 영상, background
-  videos), and 가져오기 (import). 가져오기 opens a file dialog and adds the
-  chosen files to the media list and the current playlist (proposal; the same
-  import as in the media view, see 05).
-- Tiles sit in one row and scroll horizontally. A tile shows the picture, the
-  duration (with a loop icon when it loops), and the name.
-- Clicking a tile outputs that media as the background at once (see 03). The
-  current background tile has a red ring.
-- A tile whose file is missing shows hatching and an amber icon. Clicking it
-  opens a file dialog to relink the file (see 08). A tile that is still copying
-  can't be clicked.
+    UI zoom factor: 750 CSS px at 120% zoom is 900 DIP. Toggling saves the
+    choice; resizing or changing UI zoom does not overwrite it.
+- Switching between 진행 and 준비 keeps the bin's visibility, chosen playlist
+  and selected media. Hiding and reopening it in the same window retains the
+  chosen playlist and selection. Its player pauses and releases media while
+  hidden. None of these navigation actions changes live output.
+- Playlists, importing, file drops, preview, selected-item properties and file
+  information live inside the bin in both workspaces. The full structure and
+  copy/relink rules are in 05, "Shared bottom 미디어 bin". There is one 가져오기
+  action; it opens immediately in the last import folder (02).
+- Keep the existing workspace activation rules during this layout move: clicking
+  a playable tile in 진행 selects it, updates its bin properties and outputs
+  that media as the background at once (03). In 준비, one click only selects;
+  double-clicking outputs (05). Selection and LIVE marks are distinct. A copying
+  tile cannot output; a missing tile offers 다시 연결 (08).
 
-Source: `ShowH`, `Problems`, `MediaTile` README, `Layout` README.
+Source: the user's October 26 decision, "Media lives in one bottom 미디어 bin"
+in
+[decisions](../decisions.md#2026-10-26-decisions-from-the-m3-check3-user-check).
+Renewed Vision's
+[interface documentation](https://support.renewedvision.com/hc/en-us/articles/360041345954-Understanding-The-ProPresenter-User-Interface)
+(S21 in 10, checked October 26) documents the toolbar Media toggle, bottom Media
+Bin and its left playlist column. Sharing that bin with 준비 and keeping
+properties inside it are this app's user decision; the source does not establish
+that ProPresenter's Edit mode has the same behavior.
 
 ## Bible passages
 
@@ -762,7 +792,7 @@ keys are changed are in 10, "Shortcut system".
 | ←, Page Up                                       | Previous 슬라이드                                               | Follows ProPresenter (S1); Page Up for presentation remotes                       |
 | Ctrl ↓, Ctrl ↑                                   | Select the next or previous item (다음 항목, 이전 항목)         | No ProPresenter source found                                                      |
 | Ctrl L                                           | Open the item of the live 슬라이드 (출력 중인 항목 열기)        | Follows ProPresenter (Show Triggered Presentation, S1)                            |
-| Alt →, Alt ←                                     | Next or previous background in the media strip's playlist       | Follows ProPresenter (Next and Previous Background, S1)                           |
+| Alt →, Alt ←                                     | Next or previous background in the shared media bin's playlist  | Follows ProPresenter (Next and Previous Background, S1)                           |
 | F1 to F7                                         | Clear all, lyrics, media, 소품, audio, 메시지, 공지             | Follows ProPresenter (S1)                                                         |
 | Ctrl Z                                           | 실행 취소 (edit undo for the 예배 순서 or a text field)         | M2 check 1 row 8; never restores cleared output (03, 10)                          |
 | Ctrl 1                                           | Audience screen outputs (본 화면 and 방송 자막) on or off       | Follows ProPresenter (Toggle Output Screens, S1; S4 p. 172)                       |

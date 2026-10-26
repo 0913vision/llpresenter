@@ -3,7 +3,7 @@
 준비 (Prep) is the workspace for preparing songs and services. This document
 covers the 라이브러리 and search, the song editor, 예배 순서 item settings,
 adding items, creating and importing services, saving a 틀, text import, and the
-media view.
+shared bottom 미디어 bin.
 
 Terms: 슬라이드 (slide), 예배 순서 (service order), 틀 (template), 구성
 (arrangement), 이름표 (label), 라이브러리 (library), 매크로 (macro), 공지
@@ -12,12 +12,15 @@ captions), 진행 (Show workspace), 퀵 실행 (quick launch). See 01.
 
 ## Layout
 
-| Column | Panels                                                                                                                                     | Source                           |
-| ------ | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------- |
-| Left   | 예배 순서 (remaining height), 라이브러리                                                                                                   | `Reflow`, `PrepService`          |
-| Center | Song editor (when a 라이브러리 song is selected) or 예배 순서 item (when a song item is selected). With 미디어 (Media) on, the media view. | `Reflow`, `PrepService`, `Media` |
-| Right  | Preview and 슬라이드 list (song editor), or preview and 항목 설정 (item settings)                                                          | `Reflow`, `PrepService`          |
+| Column | Panels                                                                                             | Source                           |
+| ------ | -------------------------------------------------------------------------------------------------- | -------------------------------- |
+| Left   | 예배 순서 (remaining height), 라이브러리                                                           | `Reflow`, `PrepService`          |
+| Center | Song editor (when a 라이브러리 song is selected) or 예배 순서 item (when a song item is selected). | `Reflow`, `PrepService`, `Media` |
+| Right  | Preview and 슬라이드 list (song editor), or preview and 항목 설정 (item settings)                  | `Reflow`, `PrepService`          |
 
+- The same bottom 미디어 bin as 진행 sits below these columns. Opening it keeps
+  the editor, selected service item and unsaved drafts in place. Its visibility
+  and media selection follow 04.
 - The previews in 준비 never affect the output. Clicking a 슬라이드 in 준비 only
   selects it.
 - The same 라이브러리 song can be open in the song editor while it's on output
@@ -636,24 +639,35 @@ Source: `ImportMenu`, `ImportText`, `ImportEdit`, `ImportSave`, `Prefs`
 (가져오기), `AlertDialog` README, `TextField` README, product log versions 57
 and 59.
 
-## Media view
+## Shared bottom 미디어 bin
 
-- In 준비, the toolbar's 미디어 button opens the media view. The board shows
-  준비 and 미디어 both on (open question).
-- Left column:
+- This is the same bottom bin in 진행 and 준비, not a separate 준비 workspace
+  mode. 04 defines the shared visibility toggle, saved choice and workspace
+  activation rules. Use the same
+  [Layout height allocation](../../design/system/project/components/Layout/README.md#shared-media-bin-height)
+  as 진행: reserve a 440px upper workspace, a 168px minimum bin and one panel
+  gap, cap the bin at 300px and 40% of the available work-area height, and
+  reduce it first to preserve the upper workspace. At 1280x720 and 100% app UI
+  zoom, a saved-open bin has 178px below a 440px workspace. If both minima
+  cannot fit, the work area scrolls vertically while the bars stay fixed;
+  visibility remains open. Editor, list, grid, preview and properties bodies
+  scroll within their allocated panels, preserving headers and footers.
+- Left column inside the bin:
   - 미디어 panel (header "미디어" with 새 재생목록, new playlist): the 보관함
     (library) group with 모든 미디어 (all media, count 42), and the 재생목록
     (playlists) group with each playlist and its count.
   - 오디오 panel (header "오디오" with 새 오디오 재생목록, new audio playlist):
     the audio playlists with their counts.
-- Center: a header with the playlist name and count ("배경 영상 7"), a grid and
-  list view toggle, and 가져오기 (import). A grid of media tiles (picture,
-  duration chip with a loop icon when the media loops, name). Footer: count and
-  total size ("7개 2.1GB") and a thumbnail size slider (2 to 8 columns).
-- Right: the media properties panel with the tabs 속성 (properties), 정보
-  (info), 전환 (transition), and 소리 (sound). Above the groups: a preview
-  player with a play button, the position ("0:12"), the time left ("0:18 남음"),
-  the media name, the file path, and 파일 위치 열기 (open file location).
+- Center inside the bin: a header with the playlist name and count ("배경 영상
+  7"), a grid and list view toggle, and 가져오기 (import). A grid of media tiles
+  (picture, duration chip with a loop icon when the media loops, name). Footer:
+  count and total size ("7개 2.1GB") and a thumbnail size slider (2 to 8
+  columns).
+- Right inside the bin: the media properties panel with the tabs 속성
+  (properties), 정보 (info), 전환 (transition), and 소리 (sound). Above the
+  groups: a preview player with a play button, the position ("0:12"), the time
+  left ("0:18 남음"), the media name, the file path, and 파일 위치 열기 (open
+  file location).
 
 ### Properties
 
@@ -675,10 +689,14 @@ and 59.
 
 ### Behavior
 
-- Clicking a tile selects it and shows its properties. Double-clicking outputs
-  it as the background (see 03).
-- 가져오기 opens a file dialog for one or more video, image, or audio files.
-  Supported formats come from the technical test in `docs/TECH.md`.
+- In 준비, clicking a tile selects it and shows exactly one item's properties
+  inside the bin. Double-clicking outputs it as the background (03). In 진행,
+  the existing single-click output rule applies (04). Playing the local preview
+  does not affect output. Changing playlists clears an excluded selection.
+- The same 가져오기 action in both workspaces opens a file dialog immediately
+  for one or more video, image, or audio files, starting in the last import
+  folder (02). Cancellation keeps that folder. Supported formats come from the
+  technical test in `docs/TECH.md`.
   - 미디어 폴더로 복사 is an option, off by default (October 27 user decision).
     It uses `preferences.json` `media.copyOnImport`, shared by the file dialog
     and Explorer drops. Off references the original file; on copies into the
@@ -710,5 +728,7 @@ and 59.
 - A tile whose file is missing opens a file dialog to relink it when clicked.
   Its right-click menu has 다시 연결 (relink). See 08.
 
-Source: `Media`, `MediaTile` README, `StatusMarks` README (progress bar),
-`Slider` README, `docs/TECH.md` media.
+Source: the user's October 26 shared-bin decision (04), `Media`, `MediaTile`
+README, `StatusMarks` README (progress bar), `Slider` README, `docs/TECH.md`
+media. Existing media features move into the bin; the layout move does not
+expand the feature-freeze scope.
