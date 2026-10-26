@@ -2,7 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {MEDIA_LIMITS} from './mediaList';
 import {parseMediaCheckRequest, parseMissingMedia} from './mediaFiles';
 
-const ID = 'd74b3f85-ab42-4d5e-9f60-718293041526';
+const ID = '00000000-0000-4000-8000-000000000001';
 
 describe('media file payloads', () => {
   it('reads the missing media ids up to the media list cap', () => {

@@ -43,7 +43,7 @@ describe('mediaIdFromUrl', () => {
 
 describe('analysis URLs', () => {
   it('reads back the token of an analysis URL and only of one', () => {
-    const token = '0f8fad5b-d9cb-469f-a165-70867728950e';
+    const token = '00000000-0000-4000-8000-000000000001';
     expect(analysisUrl(token)).toBe(`llp-media://analysis/${token}`);
     expect(analysisTokenFromUrl(analysisUrl(token))).toBe(token);
     expect(mediaIdFromUrl(analysisUrl(token))).toBeNull();
@@ -53,7 +53,7 @@ describe('analysis URLs', () => {
 
 describe('thumbnail URLs', () => {
   it('reads back the media id of a thumbnail URL and only of one', () => {
-    const id = '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293';
+    const id = '00000000-0000-4000-8000-000000000002';
     expect(thumbnailUrl(id)).toBe(`llp-media://thumbnail/${id}`);
     expect(thumbnailIdFromUrl(thumbnailUrl(id))).toBe(id);
     expect(mediaIdFromUrl(thumbnailUrl(id))).toBeNull();
