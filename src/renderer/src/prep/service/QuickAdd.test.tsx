@@ -21,10 +21,7 @@ import {fixtureItems, fixtureServiceId, itemFixture} from './itemFixture';
 import {useHeaderRename} from '@renderer/state/headerRename';
 import {ServiceQuickAdd} from './QuickAdd';
 import {resolvePassage} from '../../../../main/bible/reference';
-import {
-  parsedTranslation,
-  translationFile,
-} from '../../../../main/bible/testFiles';
+import {passageSource, translationFile} from '../../../../main/bible/testFiles';
 
 afterEach(() => {
   useShow.setState({
@@ -324,8 +321,8 @@ describe('항목 추가', () => {
     async ({input, code}) => {
       const {api, user, service} = setup();
       const {krv, lookup} = mockBible(api);
-      const file = parsedTranslation({...translationFile(), id: krv});
-      const result = resolvePassage(file, input);
+      const file = passageSource({...translationFile(), id: krv});
+      const result = await resolvePassage(file, input);
       expect(result).toMatchObject({ok: false, error: {code}});
       if (result.ok) throw new Error('Expected an invalid endpoint');
       const message = result.error.message;
@@ -333,7 +330,7 @@ describe('항목 추가', () => {
         input,
         translation,
         suggestions: [],
-        result: resolvePassage(file, input),
+        result: await resolvePassage(file, input),
       }));
       const length = service().service.order.length;
       await user.click(screen.getByRole('button', {name: '항목 추가'}));

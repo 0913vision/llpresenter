@@ -8,7 +8,7 @@ import type {
 import {BibleReferenceField} from './BibleReferenceField';
 import {lookupReply, lookupRequest} from './testBible';
 import {resolvePassage} from '../../../../main/bible/reference';
-import {parsedTranslation} from '../../../../main/bible/testFiles';
+import {passageSource} from '../../../../main/bible/testFiles';
 
 beforeEach(() => {
   HTMLElement.prototype.scrollIntoView = vi.fn();
@@ -96,15 +96,15 @@ describe('Bible reference field', () => {
     'exposes the real resolver endpoint error for $input and blocks output',
     async ({input, code}) => {
       const view = setup();
-      const file = parsedTranslation();
-      const result = resolvePassage(file, input);
+      const file = passageSource();
+      const result = await resolvePassage(file, input);
       expect(result).toMatchObject({ok: false, error: {code}});
       if (result.ok) throw new Error('Expected an invalid endpoint');
       const message = result.error.message;
       view.lookup.mockImplementation(async request => ({
         ...request,
         suggestions: [],
-        result: resolvePassage(file, request.input),
+        result: await resolvePassage(file, request.input),
       }));
       fireEvent.change(view.field, {
         target: {value: input},

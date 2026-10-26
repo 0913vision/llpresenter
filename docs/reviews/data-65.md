@@ -34,11 +34,17 @@ next request. No Bible text or dependencies are added.
 
 ## Changes outside my paths
 
-All seven TypeScript files are in `src/main/bible`, owned by tools. The user
-explicitly assigned this reader to data. `library.ts`, `lookup.ts` and
+The seven main TypeScript files are in `src/main/bible`, owned by tools. The
+user explicitly assigned this reader to data. `library.ts`, `lookup.ts` and
 `reference.ts` connect indexed IO to the existing lookup API. Their tests and
 `testFiles.ts` use invented text and in-memory chapter sources. No IPC or
 preload contract changes are needed.
+
+`src/renderer/src/show/bible/BibleReferenceField.test.tsx` and
+`src/renderer/src/prep/service/QuickAdd.test.tsx` directly exercise the real
+resolver for endpoint rejection. These tools-owned tests now use the same
+in-memory passage source and await resolution; product renderer code is
+unchanged.
 
 ## Checks
 
@@ -47,6 +53,12 @@ preload contract changes are needed.
 - Node TypeScript check, changed-file ESLint, formatting and diff checks: final
   results in the report.
 - Full `npm run verify`: GitHub CI on the final request head; URL in report.
+
+Initial CI run 40312316100 on `61cbf9ed` failed because the two renderer test
+files above still called the former synchronous resolver with a v1 fixture.
+Their six endpoint cases now await the indexed resolver with `passageSource`.
+The second main-build quiet window pauses local checks for this follow-up;
+GitHub CI checks the corrected candidate.
 
 Coverage retains both reference grammars, numbered and ambiguous book names,
 IME-off input, normalized ranges and omitted verse behavior. New integration
