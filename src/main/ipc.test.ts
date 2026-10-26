@@ -18,6 +18,7 @@ const electron = vi.hoisted(() => ({
     };
   }>(),
   listeners: new Map<string, (event: unknown, value: unknown) => void>(),
+  handlers: new Map<string, () => unknown>(),
   window: {
     minimize: vi.fn(),
     maximize: vi.fn(),
@@ -29,8 +30,12 @@ const electron = vi.hoisted(() => ({
 
 vi.mock('electron', () => ({
   ipcMain: {
-    handle: vi.fn(),
-    removeHandler: vi.fn(),
+    handle: (channel: string, handler: () => unknown) => {
+      electron.handlers.set(channel, handler);
+    },
+    removeHandler: (channel: string) => {
+      electron.handlers.delete(channel);
+    },
     on: (channel: string, listener: Listener) => {
       electron.listeners.set(channel, listener);
     },
@@ -67,6 +72,7 @@ function sendWindowAction(value: unknown): void {
 beforeEach(() => {
   electron.windows.clear();
   electron.listeners.clear();
+  electron.handlers.clear();
   electron.window.isMaximized.mockReturnValue(false);
 });
 
@@ -120,6 +126,7 @@ describe('registerIpc live commands', () => {
       webContents: {isDestroyed: () => false, send},
     });
     const dispose = registerIpc(store, fakeLog(), 'normal');
+    expect(electron.handlers.get(Channels.appProblemList)?.()).toEqual([]);
     const problem = macroDroppedProblem(
       expectSuccess(parseMacroId('c63a2e74-9a31-4c4d-8e5f-607182930415')),
       'Invented opening',
@@ -128,6 +135,7 @@ describe('registerIpc live commands', () => {
     expect(send).toHaveBeenCalledExactlyOnceWith(Channels.appProblem, problem);
     dispose();
     expect(stop).toHaveBeenCalledOnce();
+    expect(electron.handlers.has(Channels.appProblemList)).toBe(false);
   });
 
   it('rejects an invalid batch envelope without applying any command', () => {

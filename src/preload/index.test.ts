@@ -325,6 +325,15 @@ describe('preload', () => {
     ]);
   });
 
+  it('reads the standing app problems and rejects a malformed list', async () => {
+    const problem = {kind: 'macro-dropped', macroId: SONG_ID, name: 'Opening'};
+    electron.invoke.mockResolvedValueOnce([problem]);
+    await expect(api.problems.list()).resolves.toEqual([problem]);
+    expect(electron.invoke).toHaveBeenCalledWith(Channels.appProblemList);
+    electron.invoke.mockResolvedValueOnce([{kind: 'unknown'}]);
+    await expect(api.problems.list()).rejects.toThrow();
+  });
+
   it('validates app problems, exposes only their payload, and removes the subscription', () => {
     const listener = vi.fn();
     const remove = api.problems.subscribe(listener);

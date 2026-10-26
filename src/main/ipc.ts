@@ -1,5 +1,6 @@
 import {BrowserWindow, ipcMain, type IpcMainEvent} from 'electron';
 import {Channels, windowActions, type WindowAction} from '@shared/ipc';
+import type {AppProblem} from '@shared/schema/appProblem';
 import {parseLiveCommandRequest} from '@shared/schema/liveCommand';
 import type {Logger} from './log';
 import {dispatchLogged, type LiveStore} from './live/store';
@@ -131,12 +132,15 @@ export function registerIpc(
   const stopProblems = store.subscribeProblems(problem =>
     sendToWindows(Channels.appProblem, problem, log),
   );
+  // TODO(0913vision): spec-46 lists the files skipped at startup here.
+  ipcMain.handle(Channels.appProblemList, (): readonly AppProblem[] => []);
 
   return () => {
     unsubscribe();
     stopProblems();
     stopLogWrites();
     ipcMain.removeHandler(Channels.liveGet);
+    ipcMain.removeHandler(Channels.appProblemList);
     ipcMain.removeAllListeners(Channels.liveCommand);
     ipcMain.removeAllListeners(Channels.windowControl);
   };

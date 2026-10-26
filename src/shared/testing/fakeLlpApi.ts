@@ -35,7 +35,11 @@ export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
       closeAnyway: () => undefined,
       ...overrides.app,
     },
-    problems: {subscribe: () => () => undefined, ...overrides.problems},
+    problems: {
+      list: () => Promise.resolve([]),
+      subscribe: () => () => undefined,
+      ...overrides.problems,
+    },
     live: {
       get: () => Promise.resolve(emptyLiveState()),
       send: () => undefined,

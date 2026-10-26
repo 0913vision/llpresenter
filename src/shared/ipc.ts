@@ -61,6 +61,7 @@ export const Channels = {
   appFlushDone: 'app:flush-done',
   appCloseAnyway: 'app:close-anyway',
   appProblem: 'app:problem',
+  appProblemList: 'app:problem:list',
   liveGet: 'live:get',
   liveCommand: 'live:command',
   liveChanged: 'live:changed',
@@ -143,6 +144,13 @@ export interface LlpApi {
     closeAnyway(): void;
   };
   readonly problems: {
+    /**
+     * Reads the standing problems once, such as files skipped at startup,
+     * which happen before the window loads. One-shot problems, such as
+     * `macro-dropped`, are never listed. Rejects, after logging, when the call
+     * fails or the answer is malformed.
+     */
+    list(): Promise<readonly AppProblem[]>;
     /**
      * Calls the listener for each problem main reports for a notification
      * card, such as 매크로 적용 실패.

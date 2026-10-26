@@ -2,8 +2,11 @@ import * as v from 'valibot';
 import {macroIdSchema, type MacroId} from './ids';
 import {parsePayload, plainObject} from './payload';
 
-/** Bounds for the problems that main reports to the windows. */
-export const APP_PROBLEM_LIMITS = {nameCharacters: 200} as const;
+/**
+ * Bounds for the problems that main reports to the windows. `listed` is well
+ * above the startup file problems that settings and content can report.
+ */
+export const APP_PROBLEM_LIMITS = {nameCharacters: 200, listed: 64} as const;
 
 const nameSchema = v.pipe(
   v.string(),
@@ -21,6 +24,11 @@ const appProblemSchema = v.pipe(
   ]),
 );
 
+const appProblemListSchema = v.pipe(
+  v.array(appProblemSchema),
+  v.maxLength(APP_PROBLEM_LIMITS.listed),
+);
+
 /**
  * A problem that main reports to the windows for a notification card, one
  * kind at a time. `macro-dropped`: a dispatch that ran this 매크로 was dropped
@@ -32,6 +40,11 @@ export type AppProblem = Readonly<v.InferOutput<typeof appProblemSchema>>;
 /** Checks an `app:problem` push. Unknown fields are dropped. Never throws. */
 export function parseAppProblem(value: unknown) {
   return parsePayload(appProblemSchema, value);
+}
+
+/** Checks an `app:problem:list` reply. Never throws. */
+export function parseAppProblems(value: unknown) {
+  return parsePayload(appProblemListSchema, value);
 }
 
 function clipped(text: string, length: number): string {

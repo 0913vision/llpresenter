@@ -3,6 +3,7 @@ import {
   APP_PROBLEM_LIMITS,
   macroDroppedProblem,
   parseAppProblem,
+  parseAppProblems,
 } from './appProblem';
 import {macroIdSchema} from './ids';
 import {testId} from './testHelpers';
@@ -46,6 +47,28 @@ describe('app problem payloads', () => {
     },
   ])('rejects %j', value => {
     expect(parseAppProblem(value).ok).toBe(false);
+  });
+
+  it('reads a bounded list of problems', () => {
+    const problem = {kind: 'macro-dropped', macroId: MACRO_ID, name: 'x'};
+    expect(parseAppProblems([])).toEqual({ok: true, value: []});
+    expect(parseAppProblems([problem, problem])).toEqual({
+      ok: true,
+      value: [problem, problem],
+    });
+    expect(
+      parseAppProblems(
+        Array.from({length: APP_PROBLEM_LIMITS.listed}, () => problem),
+      ).ok,
+    ).toBe(true);
+    for (const value of [
+      null,
+      problem,
+      [problem, {kind: 'unknown'}],
+      Array.from({length: APP_PROBLEM_LIMITS.listed + 1}, () => problem),
+    ]) {
+      expect(parseAppProblems(value).ok).toBe(false);
+    }
   });
 
   it('builds a dropped 매크로 problem that cuts a long name at a whole character', () => {
