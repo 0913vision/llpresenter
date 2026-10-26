@@ -1,4 +1,4 @@
-import {useLayoutEffect, useRef, useState, type JSX} from 'react';
+import {useEffect, useLayoutEffect, useRef, useState, type JSX} from 'react';
 import {parseLookId} from '@shared/schema/ids';
 import type {Look} from '@shared/schema/looks';
 import {useLive} from '@renderer/state/live';
@@ -65,6 +65,16 @@ export function LookPanel({
     null,
   );
   const [renaming, setRenaming] = useState<Look | null>(null);
+  const pendingRename = useRef<Look | null>(null);
+  // NOTE(0913vision): Menu restores its opener in passive cleanup; mount the
+  // rename field afterward so that restoration cannot blur and commit it.
+  useEffect(() => {
+    if (menu !== null || pendingRename.current === null) return;
+    const look = pendingRename.current;
+    pendingRename.current = null;
+    select('look', look.id);
+    setRenaming(look);
+  }, [menu, select]);
   const [confirmation, setConfirmation] = useState<{
     id: Look['id'];
     name: string;
@@ -198,8 +208,7 @@ export function LookPanel({
               disabled: reason !== undefined,
               title: reason,
               onSelect: () => {
-                select('look', target.id);
-                setRenaming(target);
+                pendingRename.current = target;
               },
             },
             {

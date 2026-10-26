@@ -84,4 +84,10 @@ output.
 
 ## Team member's reply
 
-1.
+1. Deferred the rename handoff until the menu has unmounted. Selecting rename
+   records the target; the parent's passive effect mounts its field after Menu's
+   opener-focus cleanup. The field keeps focus and no unchanged save is sent.
+   Added a regression that focuses a Look row, opens its keyboard context menu,
+   chooses rename with ArrowDown/Enter, types a replacement and commits once. It
+   fails against round 1 because the textbox disappears after focus restore.
+   Post-rebase checks and exact-head CI are reported in the round 2 request.

@@ -168,6 +168,24 @@ it('rejects duplicate names without saving', async () => {
   expect(edit).not.toHaveBeenCalled();
 });
 
+it('hands keyboard-menu focus to the rename field after the menu restores its opener', async () => {
+  const {user, edit} = setup();
+  const row = await screen.findByRole('option', {name: '설교'});
+  act(() => row.focus());
+  fireEvent.keyDown(row, {key: 'ContextMenu'});
+  await screen.findByRole('menu', {name: 'Look 메뉴'});
+  for (const item of screen.getAllByRole('menuitem'))
+    item.scrollIntoView = vi.fn();
+  await user.keyboard('{ArrowDown}{Enter}');
+  const field = await screen.findByRole('textbox', {name: '설교 이름'});
+  expect(document.activeElement).toBe(field);
+  expect(edit).not.toHaveBeenCalled();
+  await user.clear(field);
+  await user.type(field, '본문용{Enter}');
+  await screen.findByRole('option', {name: '본문용'});
+  expect(edit).toHaveBeenCalledOnce();
+});
+
 it('protects current Looks and confirms macro references before deleting', async () => {
   const {user, edit, send} = setup({referenced: true});
   await menu('평상시');
