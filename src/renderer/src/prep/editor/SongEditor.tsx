@@ -5,6 +5,7 @@ import {
   useState,
   useSyncExternalStore,
   type JSX,
+  type KeyboardEvent,
 } from 'react';
 import {LabelMenu} from './LabelMenu';
 import {SongBlock, type EditorFocus} from './SongBlock';
@@ -14,6 +15,8 @@ import type {SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';
 import styles from './SongEditor.module.css';
 import type {SongId} from '@shared/schema/ids';
+import {isComposing} from '@renderer/ui/ime';
+import {useSongBlockWindow} from './useSongBlockWindow';
 
 /** Mount with a window-owned store; unmounting does not discard song history. */
 export function SongEditor({
@@ -34,9 +37,7 @@ export function SongEditor({
             onImportedSave={onImportedSave}
           />
           <ArrangementRow store={store} session={state.session} />
-          <div className={styles.blocks}>
-            <SongBlocks store={store} session={state.session} />
-          </div>
+          <SongBlocks store={store} session={state.session} />
         </div>
       )}
     </section>
@@ -62,6 +63,41 @@ function SongBlocks({
   const [menu, setMenu] = useState<{anchor: HTMLElement; block: number} | null>(
     null,
   );
+  const {viewport, total, offsets, indices, setScrollTop} = useSongBlockWindow(
+    song.slides,
+    selection.block,
+    menu?.block,
+  );
+  const tab = (event: KeyboardEvent<HTMLDivElement>): void => {
+    if (event.key !== 'Tab' || focus.current.composing || isComposing(event)) {
+      return;
+    }
+    const target = event.target;
+    if (!(
+      target instanceof HTMLTextAreaElement ||
+      target instanceof HTMLButtonElement
+    )) {
+      return;
+    }
+    const row = target.closest<HTMLElement>('[data-editor-block]');
+    if (row === null) return;
+    const block = Number(row.dataset.editorBlock);
+    const input = target instanceof HTMLTextAreaElement;
+    const label = target === row.querySelector('button');
+    if (event.shiftKey ? !label && !(input && session.readOnly) : !input) {
+      return;
+    }
+    const next = block + (event.shiftKey ? -1 : 1);
+    if (!Number.isInteger(block) || next < 0 || next >= song.slides.length) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    focus.current.requested = true;
+    focus.current.target =
+      !event.shiftKey && !session.readOnly ? 'label' : 'lyrics';
+    session.select({block: next, start: 0, end: 0});
+  };
   const openMenu = useCallback(
     (anchor: HTMLElement, block: number): void => {
       if (session.history.snapshot.selection.block !== block) {
@@ -73,6 +109,7 @@ function SongBlocks({
   );
   useLayoutEffect(() => {
     const owner = focus.current;
+    owner.inputs.length = song.slides.length;
     if (owner.composing) return;
     const input = owner.inputs[selection.block];
     const changedBlock = previousBlock.current !== selection.block;
@@ -87,33 +124,56 @@ function SongBlocks({
       (owner.requested || ownsFocus)
     ) {
       owner.restoring = true;
-      input.focus({preventScroll: true});
-      input.setSelectionRange(selection.start, selection.end);
+      const target =
+        owner.requested && owner.target === 'label'
+          ? viewport.current?.querySelector<HTMLElement>(
+              `[data-editor-block="${selection.block}"] button`,
+            )
+          : input;
+      (target ?? input).focus({preventScroll: true});
+      if (target === input) {
+        input.setSelectionRange(selection.start, selection.end);
+      }
       owner.restoring = false;
       if (owner.requested) input.scrollIntoView({block: 'nearest'});
     }
     owner.requested = false;
+    owner.target = 'lyrics';
   });
   return (
-    <>
-      {song.slides.map((slide, block) => (
-        <SongBlock
-          key={block}
-          slide={slide}
-          block={block}
-          session={session}
-          focus={focus}
-          active={selection.block === block}
-          locked={state.busy || session.readOnly}
-          editable={!session.readOnly}
-          color={
-            state.labels?.value.labels.find(label => label.name === slide.label)
-              ?.color ?? 'none'
-          }
-          expanded={menu?.block === block}
-          onOpen={openMenu}
-        />
-      ))}
+    <div
+      ref={viewport}
+      role="group"
+      aria-label="가사"
+      className={styles.blocks}
+      onScroll={event => setScrollTop(event.currentTarget.scrollTop)}
+      onKeyDown={tab}
+    >
+      <div className={styles.blockWindow} style={{height: total}}>
+        {indices.map(block => {
+          const slide = song.slides[block];
+          return slide === undefined ? null : (
+            <SongBlock
+              key={block}
+              slide={slide}
+              block={block}
+              session={session}
+              focus={focus}
+              active={selection.block === block}
+              locked={state.busy || session.readOnly}
+              editable={!session.readOnly}
+              color={
+                state.labels?.value.labels.find(
+                  label => label.name === slide.label,
+                )?.color ?? 'none'
+              }
+              expanded={menu?.block === block}
+              onOpen={openMenu}
+              top={offsets[block] ?? 0}
+            />
+          );
+        })}
+      </div>
       {menu === null ? null : (
         <LabelMenu
           store={store}
@@ -133,6 +193,6 @@ function SongBlocks({
           }}
         />
       )}
-    </>
+    </div>
   );
 }

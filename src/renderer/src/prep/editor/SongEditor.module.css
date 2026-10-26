@@ -19,12 +19,18 @@
 }
 
 .block {
+  position: absolute;
+  inset-inline: 0;
   display: grid;
   grid-template-columns: var(--space-18) var(--size-editor-label) minmax(0, 1fr);
   gap: var(--space-16);
   padding: var(--space-14);
   border-bottom: var(--radius-hairline) solid var(--line);
   border-left: var(--space-2) solid transparent;
+}
+
+.blockWindow {
+  position: relative;
 }
 
 .block[data-active='true'] {

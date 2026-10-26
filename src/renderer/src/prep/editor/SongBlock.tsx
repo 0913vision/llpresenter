@@ -12,6 +12,7 @@ export interface EditorFocus {
   requested: boolean;
   composing: boolean;
   restoring: boolean;
+  target?: 'lyrics' | 'label';
 }
 
 interface BlockProps {
@@ -25,6 +26,7 @@ interface BlockProps {
   readonly color: LabelColor;
   readonly expanded: boolean;
   readonly onOpen: (anchor: HTMLElement, block: number) => void;
+  readonly top: number;
 }
 
 /** Keeps untouched blocks out of the typing render path. */
@@ -40,6 +42,7 @@ export const SongBlock = memo(
     color,
     expanded,
     onOpen,
+    top,
   }: BlockProps): JSX.Element => {
     const select = (input: HTMLTextAreaElement): void => {
       if (focus.current.restoring || focus.current.requested) return;
@@ -62,11 +65,17 @@ export const SongBlock = memo(
       event.preventDefault();
       event.stopPropagation();
       focus.current.requested = true;
+      focus.current.target = 'lyrics';
       if (command !== undefined) session.edit(command);
       else if (adjacent !== undefined) session.select(adjacent);
     };
     return (
-      <div className={styles.block} data-active={active}>
+      <div
+        className={styles.block}
+        data-active={active}
+        data-editor-block={block}
+        style={{top}}
+      >
         <span className={styles.number}>{block + 1}</span>
         <div className={styles.label}>
           <LabelTag
@@ -128,6 +137,7 @@ export const SongBlock = memo(
             event.preventDefault();
             select(event.currentTarget);
             focus.current.requested = true;
+            focus.current.target = 'lyrics';
             session.edit({
               type: 'paste',
               text: event.clipboardData.getData('text/plain'),
