@@ -19,8 +19,10 @@ its pending input and undo history. Panel unmounts do not dispose the store. The
 store subscribes to song, library-list, and label changes. It removes deleted
 songs, keeps at most one session per opened existing library song, and caps each
 history at 100 steps. Before shutdown, await `flush()` while the editor is still
-mounted. A false result means a draft was refused; keep the window/store alive
-so the warning's reload action and draft remain available. After a true result,
+mounted. It stops every edit first and shows the editor as busy, so nothing
+typed during or after it is lost. A false result means a draft was refused and
+editing restarts; keep the window/store alive so the warning's reload action and
+draft remain available. After true, editing stays stopped. After a true result,
 unmount and await `dispose`. It removes all subscriptions, completes accepted
 writes, and releases sessions. The host must await it before closing the IPC
 connection. Each session owns at most one deferred-save timer. No output

@@ -36,6 +36,7 @@ export class SongEditorStore {
   private active: SongId | null = null;
   private itemSong: SongId | null = null;
   private busy = false;
+  private editingStopped = false;
   private renaming = false;
   private alive = true;
   private operation: Promise<boolean> | undefined;
@@ -145,6 +146,7 @@ export class SongEditorStore {
             normalizeSongTitle(entry.title) === value,
         ),
       changed: () => this.publish(),
+      editingStopped: () => this.editingStopped,
       problem: () =>
         this.problem('곡 저장 실패', () => this.reload(document.song.id)),
     });
@@ -224,7 +226,12 @@ export class SongEditorStore {
   ): Promise<boolean> {
     const session =
       this.active === null ? undefined : this.sessions.get(this.active);
-    if (!this.alive || this.busy || session === undefined || session.readOnly) {
+    if (
+      !this.alive ||
+      this.locked ||
+      session === undefined ||
+      session.readOnly
+    ) {
       return Promise.resolve(false);
     }
     if (
@@ -237,13 +244,25 @@ export class SongEditorStore {
     return this.runOperation(() => this.writeArrangement(session, from, to));
   }
 
-  /** Preflight shutdown before unmounting; false keeps a refused draft alive. */
+  /**
+   * Preflight shutdown before unmounting. Every edit stops first, so nothing
+   * typed during or after the flush can be lost. False keeps a refused draft
+   * and restarts editing; after true, editing stays stopped until the window
+   * closes.
+   */
   async flush(): Promise<boolean> {
-    await this.operation;
-    const results = await Promise.all(
-      [...this.sessions.values()].map(session => session.flush()),
-    );
-    return results.every(Boolean);
+    this.stopEditing(true);
+    let flushed = false;
+    try {
+      await this.operation;
+      const results = await Promise.all(
+        [...this.sessions.values()].map(session => session.flush()),
+      );
+      flushed = results.every(Boolean);
+      return flushed;
+    } finally {
+      if (!flushed) this.stopEditing(false);
+    }
   }
 
   async dispose(): Promise<void> {
@@ -259,7 +278,7 @@ export class SongEditorStore {
   }
 
   private editLabels(edit: SettingsEdit): Promise<boolean> {
-    if (!this.alive || this.busy || this.labels?.access !== 'editable') {
+    if (!this.alive || this.locked || this.labels?.access !== 'editable') {
       return Promise.resolve(false);
     }
     return this.runOperation(() => this.writeLabels(edit));
@@ -317,6 +336,16 @@ export class SongEditorStore {
     else session.arrangementChanged(from, to, document);
     this.renamedSongs.delete(songId);
     return document !== null;
+  }
+
+  private get locked(): boolean {
+    return this.busy || this.editingStopped;
+  }
+
+  private stopEditing(stopped: boolean): void {
+    if (this.editingStopped === stopped) return;
+    this.editingStopped = stopped;
+    this.publish();
   }
 
   private runOperation(task: () => Promise<boolean>): Promise<boolean> {
@@ -459,7 +488,7 @@ export class SongEditorStore {
       session:
         this.active === null ? null : (this.sessions.get(this.active) ?? null),
       labels: this.labels,
-      busy: this.busy,
+      busy: this.locked,
       library: this.library,
       titleFocus: this.titleFocus,
     };

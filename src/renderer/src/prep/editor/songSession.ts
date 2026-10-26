@@ -13,6 +13,8 @@ interface SessionOptions {
   readonly changed: () => void;
   readonly problem: () => void;
   readonly isDuplicateTitle?: (value: string) => boolean;
+  /** True while the window's close preflight holds every edit. */
+  readonly editingStopped?: () => boolean;
 }
 
 /** Coalesces typing-group saves and serializes one song's pending writes. */
@@ -59,6 +61,14 @@ export class SongSession {
     );
   }
 
+  private get acceptsEdits(): boolean {
+    return (
+      this.accepting &&
+      !this.readOnly &&
+      this.options.editingStopped?.() !== true
+    );
+  }
+
   get arrangement(): string | undefined {
     return this.pickedArrangement;
   }
@@ -95,7 +105,7 @@ export class SongSession {
    * `undefined`) as one undo step, without changing the editor's view.
    */
   copyArrangement(base: string | undefined): string | undefined {
-    if (!this.accepting || this.readOnly) return undefined;
+    if (!this.acceptsEdits) return undefined;
     const value = newArrangement(this.history.snapshot.song, base);
     this.history.addArrangement(value);
     this.dirty = true;
@@ -109,7 +119,7 @@ export class SongSession {
    * chip strip edits it. The 슬라이드 themselves stay as they are.
    */
   setArrangementSlides(name: string, slides: readonly number[]): boolean {
-    if (!this.accepting || this.readOnly) return false;
+    if (!this.acceptsEdits) return false;
     const count = this.history.snapshot.song.slides.length;
     if (
       !slides.every(
@@ -144,7 +154,7 @@ export class SongSession {
   }
 
   setBackground(id: MediaId | undefined): void {
-    if (!this.accepting || this.readOnly || this.background === id) return;
+    if (!this.acceptsEdits || this.background === id) return;
     this.background = id;
     this.backgroundEdited = true;
     this.endTyping();
@@ -152,7 +162,7 @@ export class SongSession {
   }
 
   editTitle(value: string): void {
-    if (!this.accepting || this.readOnly) return;
+    if (!this.acceptsEdits) return;
     this.title.edit(value);
     if (this.hasChanges || this.writing) this.delaySave();
     else this.cancelSaveTimer();
@@ -184,7 +194,7 @@ export class SongSession {
   }
 
   edit(command: BlockCommand | 'undo' | 'redo'): void {
-    if (!this.accepting || this.readOnly) return;
+    if (!this.acceptsEdits) return;
     const previous = this.history.snapshot.song;
     if (command === 'undo') this.history.undo();
     else if (command === 'redo') this.history.redo();

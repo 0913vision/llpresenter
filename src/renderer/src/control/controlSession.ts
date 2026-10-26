@@ -10,6 +10,7 @@ export class ControlSession {
   private notices: readonly Notice[] = [];
   private readonly listeners = new Set<() => void>();
   private closing: Promise<void> | undefined;
+  private editorBlocked = false;
   private readonly stopCloseFlush: Unsubscribe | undefined;
 
   constructor(readonly api: LlpApi | undefined) {
@@ -17,7 +18,7 @@ export class ControlSession {
       api &&
       answerCloseFlush({
         api,
-        flush: () => this.editorStore?.flush() ?? Promise.resolve(true),
+        flush: () => this.flushBeforeClose(),
         report: this.report,
       });
   }
@@ -32,7 +33,7 @@ export class ControlSession {
 
   /** Start from a workspace event, outside React render and its StrictMode probe. */
   startEditor(): void {
-    if (this.api && !this.editorStore && !this.closing) {
+    if (this.api && !this.editorStore && !this.closing && !this.editorBlocked) {
       this.editorStore = new SongEditorStore(this.api, this.report);
       this.itemStore = new ServiceItemStore(
         this.api,
@@ -78,6 +79,18 @@ export class ControlSession {
     this.notices = [];
     this.listeners.clear();
     return this.closing;
+  }
+
+  /** Keeps the editor from starting while a close flush runs or after it succeeds. */
+  private async flushBeforeClose(): Promise<boolean> {
+    this.editorBlocked = true;
+    let flushed = false;
+    try {
+      flushed = (await this.editorStore?.flush()) ?? true;
+      return flushed;
+    } finally {
+      this.editorBlocked = flushed;
+    }
   }
 
   private publish(): void {

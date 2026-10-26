@@ -211,6 +211,15 @@ it('submits a typed but unsent lyric edit when main asks to flush before quittin
     flushDone.mock.invocationCallOrder[0] ?? -Infinity,
   );
   expect(screen.queryByText('편집 내용 저장 실패')).toBeNull();
+  const locked = screen.getByRole('textbox', {name: '슬라이드 1 가사'});
+  expect(locked).toHaveProperty('readOnly', true);
+  fireEvent.change(locked, {target: {value: 'Invented late line'}});
+  fireEvent.blur(locked);
+  await act(async () => {
+    await Promise.resolve();
+  });
+  expect(edit).toHaveBeenCalledOnce();
+  expect(JSON.stringify(fixture.edits)).not.toContain('Invented late line');
   await act(async () => fixture.session.dispose());
   expect(fixture.flushListeners.size).toBe(0);
 });

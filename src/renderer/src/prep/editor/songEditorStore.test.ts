@@ -260,6 +260,37 @@ describe('song editor persistence', () => {
     expect(store.getSnapshot().session?.history.canUndo).toBe(false);
   });
 
+  it('stops edits during a shutdown flush and keeps them stopped after it succeeds', async () => {
+    const {store, session, text, edits} = setup();
+    text('before close');
+    const flushing = store.flush();
+    expect(store.getSnapshot().busy).toBe(true);
+    text('during close');
+    expect(session.createArrangement()).toBeUndefined();
+    expect(session.setArrangementSlides('주일용', [1])).toBe(false);
+    expect(await flushing).toBe(true);
+    text('after close');
+    expect(store.getSnapshot().busy).toBe(true);
+    expect(session.history.snapshot.song.slides[0]?.lines).toEqual([
+      'before close',
+    ]);
+    expect(edits).toHaveLength(1);
+    expect(JSON.stringify(edits)).not.toContain('during close');
+  });
+
+  it('restarts edits after a refused shutdown flush', async () => {
+    const {store, session, text} = setup();
+    vi.spyOn(session, 'flush').mockResolvedValueOnce(false);
+    text('refused');
+    expect(await store.flush()).toBe(false);
+    expect(store.getSnapshot().busy).toBe(false);
+    text('typed again');
+    expect(session.history.snapshot.song.slides[0]?.lines).toEqual([
+      'typed again',
+    ]);
+    expect(session.setArrangementSlides('주일용', [1])).toBe(true);
+  });
+
   it('reports a failed shutdown preflight without releasing the refused draft', async () => {
     const {api, store, session, text, listenerCount, problem} = setup();
     vi.spyOn(api.content, 'edit').mockRejectedValueOnce(
