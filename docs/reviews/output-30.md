@@ -31,9 +31,9 @@ out.
   its current name. `output.set` turns each one on.
 - 마지막 슬라이드: the recorded 슬라이드 as it was captured (spec-41), and its
   background with `media.show`. The row needs the item to be a song item that
-  still exists in the recorded service with its song, and the position inside
-  its current 구성; the title and the count come from there ("<title> 2 / 9").
-  Otherwise the row is hidden (spec 08).
+  still exists in some service (the recorded one is searched first) with its
+  song, and the position inside its current 구성; the title and the count come
+  from there ("<title> 2 / 9"). Otherwise the row is hidden (spec 08).
 - 표시 중이던 항목: 소품 still in `props.json` (`prop.set`, so they take their
   current saved content, as the overlay refresh does); 메시지 with the display
   time they had left at `savedAt` (`message.send`), dropping expired ones and
@@ -148,7 +148,7 @@ No local Electron, visible window, soak, or memory run.
    values into the state, so current settings decide what still exists and the
    slices keep their checks. 소품 therefore show their current saved content.
 2. The 슬라이드 comes back as captured (spec-41); the summary still needs the
-   song item in its recorded service for the title and the count.
+   song item, found in any service, for the title and the count.
 3. A background alone, without a live 슬라이드, has no row in D1c's contract, so
    it isn't offered.
 4. The Look is applied with any 복구 answer, before the rows, and not with 새로
@@ -192,4 +192,16 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 (codex3, Request changes):
+
+1. [P2] `plan.ts`: fixed in `fbd2563a`. The planner no longer trusts the
+   record's `serviceId` alone. It searches the recorded service first and then
+   every other service in the content store for the live item (item ids are
+   unique across services; a NOTE says why), and the row and the restore use the
+   service the item was found in. A record without a `serviceId`, or naming a
+   service that is gone, also finds the item now. Regression tests: three
+   planner cases (another open service, none, one that is gone) and an end to
+   end test of your sequence through the real writer, store, and controller (a
+   슬라이드 from service A, open B, change the stage message so the record is
+   written again naming B, then `recovery.summary` still offers the 슬라이드
+   with service A). All four fail against the previous lookup.
