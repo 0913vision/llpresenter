@@ -14,6 +14,7 @@ export const noticeLayer = defineLayer({
   create: (parent, options) => {
     const view = new OverlayImageView(parent, options);
     let playback: NoticePlayback | null = null;
+    let held: {source: NoticePlayback; playback: NoticePlayback} | null = null;
     let timer: ReturnType<typeof setTimeout> | null = null;
     let disposed = false;
     const stopTimer = (): void => {
@@ -42,7 +43,22 @@ export const noticeLayer = defineLayer({
     };
     return {
       render: (layers, frame) => {
-        const candidate = layers.notice?.playback;
+        let candidate = layers.notice?.playback;
+        if (
+          candidate !== undefined &&
+          frame?.clearOpacity?.notice !== undefined
+        ) {
+          if (held?.source !== candidate) {
+            held = {
+              source: candidate,
+              playback: {
+                ...candidate,
+                pausedAt: candidate.pausedAt ?? Date.now(),
+              },
+            };
+          }
+          candidate = held.playback;
+        } else held = null;
         const next =
           frame?.screen !== undefined &&
           candidate?.targets.includes(frame.screen.id)

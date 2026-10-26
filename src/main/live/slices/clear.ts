@@ -12,6 +12,7 @@ import {
 import {audioPositionSeconds} from '@shared/schema/audioState';
 import type {MessageId} from '@shared/schema/ids';
 import {clearOverlay} from '../clearOverlay';
+import {withClearEffects} from '../clearEffects';
 import {nextAudioTrackVersion} from '../audioTrackVersion';
 import {
   withLayers,
@@ -224,15 +225,37 @@ export const clearSlice = defineSlice({
   reduce: (history, command, context) => {
     switch (command.type) {
       case 'layer.clear':
-        return clear(history, command.target, context);
+        return withClearEffects(
+          history,
+          clear(history, command.target, context),
+          {
+            transition: command.transition,
+            now: context.timerNow ?? context.now,
+          },
+        );
       case 'layer.clear.toggle':
-        return toggleClear(history, command.target, context);
+        return withClearEffects(
+          history,
+          toggleClear(history, command.target, context),
+          {
+            transition:
+              context.settings?.preferences().clearKeys[command.target],
+            now: context.timerNow ?? context.now,
+          },
+        );
       case 'clear.undo':
         return history.undo === null
           ? history
           : resetClearToggles(undoClear(history, context));
       case 'overlay.clear':
-        return clearOverlay(history, command.target, context.now);
+        return withClearEffects(
+          history,
+          clearOverlay(history, command.target, context.now),
+          {
+            transition: command.transition,
+            now: context.timerNow ?? context.now,
+          },
+        );
     }
   },
 });

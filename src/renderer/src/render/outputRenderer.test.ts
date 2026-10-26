@@ -52,6 +52,52 @@ function setUp() {
 }
 
 describe('OutputRenderer', () => {
+  it('fades cleared lyrics on the monotonic frame clock and cancels on restore or disposal', () => {
+    vi.useFakeTimers();
+    try {
+      let now = 1000;
+      const frame = {
+        timers: {list: [], runs: undefined, now: () => ({timer: now, wall: 0})},
+      };
+      const {parent, renderer} = setUp();
+      const lyrics = parent.querySelector<HTMLElement>('[data-layer="lyrics"]');
+      const shown = {...WITH_SLIDE, media: null};
+      renderer.render(shown, frame);
+      const cleared = {...shown, slide: null};
+      const effect = {
+        target: {kind: 'layer', layer: 'slide'},
+        since: 1000,
+        durationMs: 1200,
+      } as const;
+      renderer.render(cleared, {...frame, clearEffects: [effect]});
+      now = 1600;
+      vi.advanceTimersByTime(32);
+      expect(Number(lyrics?.style.opacity)).toBeCloseTo(0.5);
+      expect(lyrics?.querySelector(`.${classes.shown}`)?.textContent).toContain(
+        '만복의 근원',
+      );
+      renderer.render(shown, frame);
+      expect(lyrics?.style.opacity).toBe('');
+      renderer.render(cleared, {
+        ...frame,
+        clearEffects: [{...effect, since: now}],
+      });
+      now = 2800;
+      vi.advanceTimersByTime(32);
+      expect(lyrics?.querySelector(`.${classes.shown}`)).toBeNull();
+      expect(vi.getTimerCount()).toBe(0);
+      renderer.render(shown, frame);
+      renderer.render(cleared, {
+        ...frame,
+        clearEffects: [{...effect, since: now}],
+      });
+      renderer.dispose();
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('mounts the current frame instantly and enables transitions for subsequent content', () => {
     const {parent, renderer} = setUp();
     const root = parent.firstElementChild;

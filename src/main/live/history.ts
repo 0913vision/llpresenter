@@ -6,6 +6,7 @@ import {
 } from '@shared/live';
 import type {ClearTarget} from '@shared/commands';
 import type {MessageId} from '@shared/schema/ids';
+import {retainClearEffects} from './clearEffects';
 
 /** What the last clear took down, and when, so it can be undone. */
 export interface UndoEntry {
@@ -29,7 +30,11 @@ export interface LiveHistory {
 
 export function initialHistory(state: LiveState): LiveHistory {
   return {
-    state: state.clearToggles?.length ? {...state, clearToggles: []} : state,
+    state: {
+      ...state,
+      ...(state.clearToggles?.length ? {clearToggles: []} : {}),
+      ...(state.clearEffects === undefined ? {} : {clearEffects: []}),
+    },
     undo: null,
   };
 }
@@ -44,7 +49,7 @@ export function withLayers(
   const canUndo = undo !== null;
   return {
     ...history,
-    state: {...history.state, version, layers, canUndo},
+    state: retainClearEffects({...history.state, version, layers, canUndo}),
     undo,
   };
 }

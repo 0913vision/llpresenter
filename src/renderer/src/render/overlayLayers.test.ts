@@ -40,7 +40,7 @@ afterEach(() => {
 
 function setup() {
   const settings = overlaySettings();
-  const store = new LiveStore();
+  const store = new LiveStore(undefined, () => Date.now());
   store.connectSettings(settings.reader);
   const parent = document.createElement('div');
   const onError = vi.fn();
@@ -67,6 +67,12 @@ function setup() {
     renderer.render(store.state.layers, {
       screen,
       stageMessage: store.state.stageMessage ?? null,
+      clearEffects: store.state.clearEffects ?? [],
+      timers: {
+        list: [],
+        runs: undefined,
+        now: () => ({timer: Date.now(), wall: Date.now()}),
+      },
     });
   const box = (kind: string) => parent.querySelector(`[data-layer="${kind}"]`);
   const shownText = (kind: string) =>
@@ -85,6 +91,50 @@ function setup() {
 }
 
 describe('registered overlay layers', () => {
+  it('fades a removed prop in its original order while its neighbor stays fully shown', () => {
+    const {send, render, box} = setup();
+    send({type: 'prop.set', propId: PROP, on: true});
+    send({type: 'prop.set', propId: IMAGE_PROP, on: true});
+    render();
+    send({
+      type: 'overlay.clear',
+      target: {kind: 'prop', propId: PROP},
+      transition: {fade: true, durationMs: 1000},
+    });
+    render();
+    vi.advanceTimersByTime(500);
+    const boxes = Array.from(box('prop')?.children ?? []);
+    expect(boxes).toHaveLength(2);
+    const opacity = boxes.map(child =>
+      child instanceof HTMLElement ? Number(child.style.opacity || 1) : 0,
+    );
+    expect(opacity[0]).toBeCloseTo(0.5, 1);
+    expect(opacity[1]).toBe(1);
+    send({type: 'clear.undo'});
+    render();
+    expect(
+      boxes.map(child =>
+        child instanceof HTMLElement ? child.style.opacity : '',
+      ),
+    ).toEqual(['', '']);
+  });
+
+  it('holds notice rotation throughout a clear fade and releases its ticker', () => {
+    const images = vi.spyOn(OverlayImageView.prototype, 'show');
+    const {send, render} = setup();
+    send({type: 'notice.start', noticeId: NOTICE});
+    render();
+    send({
+      type: 'layer.clear',
+      target: 'notice',
+      transition: {fade: true, durationMs: 6000},
+    });
+    render();
+    vi.advanceTimersByTime(5100);
+    expect(images).not.toHaveBeenCalledWith(IMAGES[1]);
+    vi.advanceTimersByTime(1000);
+    expect(vi.getTimerCount()).toBe(0);
+  });
   it('logs an asynchronous notice drawing failure and still advances to the next image', () => {
     const images = vi.spyOn(OverlayImageView.prototype, 'show');
     const {send, render, onError} = setup();

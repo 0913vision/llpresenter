@@ -1,4 +1,5 @@
-import type {LiveLayers} from '@shared/live';
+import type {LayerKind, LiveLayers} from '@shared/live';
+import type {ClearEffect} from '@shared/schema/clearFade';
 import type {RenderMode} from './backgroundLayer';
 import type {LyricStyle} from './lyricStyle';
 import type {LookLayer, ScreenAppearance} from './screenLook';
@@ -33,6 +34,9 @@ export interface StageFrame {
 }
 
 export interface RenderFrame {
+  readonly clearEffects?: readonly ClearEffect[];
+  readonly clearOpacity?: Readonly<Partial<Record<LayerKind, number>>>;
+  readonly propOpacity?: ReadonlyMap<string, number>;
   readonly transitions?: boolean;
   readonly screen?: RenderScreen;
   readonly stageMessage?: string | null;

@@ -67,6 +67,26 @@ function element(kind: string, index: number, fields: object = {}) {
 
 const EVERY_KIND = layoutOf(KINDS.map((kind, index) => element(kind, index)));
 
+it('fades stage lyrics and labels without fading the clock, timer or stage message', () => {
+  const parent = document.createElement('div');
+  const view = new StageLayoutView(parent, vi.fn());
+  view.render(
+    {
+      ...emptyLayers(),
+      slide: {itemId: 'stage', position: 0, label: 'Label', lines: ['Current']},
+    },
+    {
+      stage: {layout: EVERY_KIND},
+      clearOpacity: {slide: 0.5},
+    },
+  );
+  const boxes = Array.from(parent.firstElementChild?.children ?? []);
+  expect(
+    boxes.map(box => (box instanceof HTMLElement ? box.style.opacity : '')),
+  ).toEqual(['0.5', '0.5', '0.5', '0.5', '1', '1', '1']);
+  view.dispose();
+});
+
 function sermonTimers(runs: TimerRuns | undefined, now = TIMER_START) {
   const parsed = parseTimers(
     JSON.stringify({

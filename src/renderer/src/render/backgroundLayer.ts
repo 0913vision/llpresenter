@@ -116,6 +116,7 @@ export class BackgroundLayerView {
   private stopWaitingToSeek: (() => void) | null = null;
   private transitions = true;
   private failed = false;
+  private held = false;
   private readonly decoded: [boolean, boolean] = [false, false];
   private readonly videoFrames: [number | null, number | null] = [null, null];
   private readonly frameDeadlines: [
@@ -144,6 +145,11 @@ export class BackgroundLayerView {
    * media again keeps playing without a restart (docs/spec/03-output.md).
    */
   show(media: MediaLayer | null, transitions = true): void {
+    if (this.held) {
+      this.held = false;
+      this.current = null;
+      this.clearAtOnce();
+    }
     this.transitions = transitions;
     if (this.handover?.contentChange === true) {
       this.handover = {...this.handover, dissolve: transitions};
@@ -176,6 +182,15 @@ export class BackgroundLayerView {
     this.unloadAt(0);
     this.unloadAt(1);
     this.element.remove();
+  }
+
+  /** Freezes the cleared frame until its explicit fade finishes or is restored. */
+  hold(): void {
+    if (this.held) return;
+    this.held = true;
+    this.cancelSpare();
+    this.cancelSeek();
+    for (const video of this.videos) video.pause();
   }
 
   ready(): boolean {
@@ -255,6 +270,10 @@ export class BackgroundLayerView {
     const removers = this.videos.flatMap((video, index) => {
       const at: VideoIndex = index === 0 ? 0 : 1;
       const onPlaying = (): void => {
+        if (this.held) {
+          video.pause();
+          return;
+        }
         if (this.isImage(at)) return;
         this.handlePlaying(at);
         if (!this.holdsCurrent(at)) return;
@@ -294,6 +313,7 @@ export class BackgroundLayerView {
   }
 
   private handlePlaying(index: VideoIndex): void {
+    if (this.held) return;
     if (this.handover?.to !== index) return;
     const {dissolve} = this.handover;
     this.handover = null;
@@ -338,6 +358,7 @@ export class BackgroundLayerView {
   }
 
   private handleEnded(index: VideoIndex): void {
+    if (this.held) return;
     if (this.isPreview() || this.isImage(index)) return;
     // NOTE(0913vision): An outgoing background that ends while the next one
     // starts holds its last frame; only the current background loops.

@@ -9,9 +9,23 @@ import {
 } from 'vitest';
 import {emptyLiveState} from '@shared/live';
 import {parseLiveState} from '@shared/schema/liveState';
-import {AUDIO_CLEAR_FADE_MS, AudioPlayer} from './audioPlayer';
+import {AudioPlayer} from './audioPlayer';
 
 const MEDIA = '00000000-0000-4000-8000-000000000001';
+const AUDIO_CLEAR_FADE_MS = 400;
+
+function cleared(since = 5000) {
+  return {
+    ...emptyLiveState(),
+    clearEffects: [
+      {
+        target: {kind: 'layer', layer: 'audio'},
+        since,
+        durationMs: AUDIO_CLEAR_FADE_MS,
+      },
+    ],
+  } as const;
+}
 
 function state(trackVersion = 1, playback: object = {}, audioVolume = 100) {
   const initial = emptyLiveState();
@@ -65,6 +79,29 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers());
 
 describe('AudioPlayer', () => {
+  it('clears at once by default and leaves no pending audio or timers', async () => {
+    vi.useFakeTimers();
+    const {player, first} = setup();
+    player.show(state());
+    await ready(first);
+    player.show(emptyLiveState());
+    expect(first.hasAttribute('src')).toBe(false);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('uses the remaining configured clear duration after delayed delivery', async () => {
+    vi.useFakeTimers();
+    const {player, first, now} = setup();
+    player.show(state());
+    await ready(first);
+    now.mockReturnValue(5300);
+    const clear = vi.spyOn(globalThis, 'clearInterval');
+    player.show(cleared());
+    vi.advanceTimersByTime(100);
+    expect(first.hasAttribute('src')).toBe(false);
+    expect(clear).toHaveBeenCalledOnce();
+  });
   it('fades both fallback and newly ready replacement for three seconds, then stops without next', async () => {
     vi.useFakeTimers();
     const {root, player, first, second, now, onNext, onFadeEnd} = setup();
@@ -97,7 +134,7 @@ describe('AudioPlayer', () => {
     now.mockReturnValue(6500);
     vi.advanceTimersByTime(1500);
     expect(first.volume).toBeCloseTo(0.5);
-    player.show(emptyLiveState());
+    player.show(cleared(6500));
     expect(first.volume).toBeCloseTo(0.5);
     now.mockReturnValue(6700);
     vi.advanceTimersByTime(200);
@@ -153,8 +190,8 @@ describe('AudioPlayer', () => {
       expect(element.muted).toBe(true);
       expect(element.hidden).toBe(true);
     }
-    player.show(emptyLiveState());
-    player.show(emptyLiveState());
+    player.show(cleared());
+    player.show(cleared());
     expect(HTMLMediaElement.prototype.load).not.toHaveBeenCalled();
     expect(root.querySelectorAll('audio')).toHaveLength(2);
   });
@@ -271,7 +308,7 @@ describe('AudioPlayer', () => {
     player.show(state());
     await ready(first);
     player.show(state(2));
-    player.show(emptyLiveState());
+    player.show(cleared());
     await ready(second);
     expect(first.hasAttribute('src')).toBe(true);
     now.mockReturnValue(5000 + AUDIO_CLEAR_FADE_MS);
@@ -288,16 +325,16 @@ describe('AudioPlayer', () => {
     expect(onNext).not.toHaveBeenCalled();
   });
 
-  it('fades only once on clear, applies volume during the fade, and unloads within half a second', async () => {
+  it('honors one configured clear fade, applies volume during it, and stops at its deadline', async () => {
     vi.useFakeTimers();
     const {player, first, now} = setup();
     player.show(state());
     await ready(first);
-    player.show(emptyLiveState());
+    player.show(cleared());
     now.mockReturnValue(5200);
     vi.advanceTimersByTime(200);
     expect(first.volume).toBeCloseTo(0.5);
-    player.show({...emptyLiveState(), version: 20, audioVolume: 20});
+    player.show({...cleared(), version: 20, audioVolume: 20});
     expect(first.volume).toBeCloseTo(0.1);
     now.mockReturnValue(5400);
     vi.advanceTimersByTime(200);
@@ -324,7 +361,7 @@ describe('AudioPlayer', () => {
       player.show(state());
       await ready(first);
       expect(playing.has(first)).toBe(true);
-      player.show(emptyLiveState());
+      player.show(cleared());
       now.mockReturnValue(5200);
       vi.advanceTimersByTime(200);
       expect(first.volume).toBeCloseTo(0.5);
@@ -355,14 +392,14 @@ describe('AudioPlayer', () => {
     const {root, player, first} = setup();
     player.show(state());
     await ready(first);
-    player.show(emptyLiveState());
+    player.show(cleared());
     player.show(state(2));
     const replacement = root.querySelector<HTMLAudioElement>('audio[src]');
     if (replacement === null) throw new Error('Missing replacement');
     await ready(replacement);
     vi.advanceTimersByTime(AUDIO_CLEAR_FADE_MS);
     expect(replacement.hasAttribute('src')).toBe(true);
-    player.show(emptyLiveState());
+    player.show(cleared());
     player.dispose();
     expect(vi.getTimerCount()).toBe(0);
   });
@@ -374,7 +411,7 @@ describe('AudioPlayer', () => {
     now.mockImplementation(() => {
       throw new Error('Clock failed');
     });
-    expect(() => player.show(emptyLiveState())).not.toThrow();
+    expect(() => player.show(cleared())).not.toThrow();
     expect(first.hasAttribute('src')).toBe(false);
     expect(onError).toHaveBeenCalledOnce();
   });

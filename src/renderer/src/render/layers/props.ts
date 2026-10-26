@@ -132,6 +132,8 @@ export const propsLayer = defineLayer({
           view.id = item.propId;
           view.box.hidden = false;
           view.box.style.zIndex = String(index);
+          const opacity = frame?.propOpacity?.get(item.propId);
+          view.box.style.opacity = opacity === undefined ? '' : String(opacity);
           if (item.content.kind === 'text') {
             view.image.show(null);
             showText(view, item.content, now);

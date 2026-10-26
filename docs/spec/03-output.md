@@ -332,7 +332,12 @@ range, speed, fit, sound), `Looks` (방송 자막 background green), `Problems`.
 ### Clear buttons and shortcuts
 
 The clear row in the right column of 진행, and the shortcuts, clear the screens.
-The clear happens at once, with no confirmation, on every screen.
+The clear happens without confirmation on every screen. The default is at once.
+Each F1 to F7 key and each macro clear action has its own fade choice and
+duration (user decision, m3-check3). An absent choice, disabled fade or zero
+duration clears at once; an enabled fade uses its configured duration, capped at
+30 seconds. Key options belong to `preferences.clearKeys`; macro actions carry
+`transition`. Macro clears use their own options and do not inherit key options.
 
 | Shortcut | Button         | What it clears                                                           |
 | -------- | -------------- | ------------------------------------------------------------------------ |
@@ -340,7 +345,7 @@ The clear happens at once, with no confirmation, on every screen.
 | F2       | 가사 (lyrics)  | The live 슬라이드 (lyrics layer). After this, there is no live 슬라이드. |
 | F3       | 미디어 (media) | Background media and media items (media layer)                           |
 | F4       | 소품           | Every 소품 that is on                                                    |
-| F5       | 오디오 (audio) | Audio that is playing (proposal: fades out within 0.5 seconds)           |
+| F5       | 오디오 (audio) | Audio that is playing, at once by default or with its configured fade    |
 | F6       | 메시지         | Every 메시지 that is showing                                             |
 | F7       | 공지           | The 공지, and stops its rotation                                         |
 
@@ -359,6 +364,12 @@ The clear happens at once, with no confirmation, on every screen.
 - Any new output content resets all key captures, so the next press clears
   again. Output switches, Looks and transport pause/resume do not send new
   content. Captures are temporary and are not restored after app recovery.
+- A fade clears the logical live layer immediately while its outgoing picture or
+  audio fades. Restoring or replacing that content cancels its outgoing fade.
+  Cleared video and notice rotation hold their current frame; restoring resumes
+  from the captured clear position. A slide clear fades stage lyrics and labels,
+  leaving stage clocks, timers and messages alone. Fade metadata is temporary
+  and does not recover after restarting the app.
 - A button is bright when it can clear content or restore its capture. A
   captured key shows its pressed state and the tooltip changes to 복원. It is
   dim and does nothing only when it can do neither. Content hidden by a Look

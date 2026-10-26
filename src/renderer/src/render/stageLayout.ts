@@ -145,7 +145,8 @@ class StageElementView {
     parent.append(this.box);
   }
 
-  show(text: string | null): void {
+  show(text: string | null, opacity = 1): void {
+    this.box.style.opacity = String(opacity);
     if (text === this.text) return;
     this.text = text;
     this.block.textContent = text ?? '';
@@ -255,7 +256,11 @@ export class StageLayoutView {
   private draw(onlyTicking: boolean): void {
     for (const view of this.views) {
       if (onlyTicking && !this.ticks(view.element)) continue;
-      view.show(contentOf(view.element, this.content));
+      const opacity =
+        ELEMENT_SWITCH[view.element.kind] === 'slide'
+          ? (this.content.frame?.clearOpacity?.slide ?? 1)
+          : 1;
+      view.show(contentOf(view.element, this.content), opacity);
     }
   }
 

@@ -130,7 +130,9 @@ type Complete<T> = T extends readonly unknown[]
     : T;
 
 /** 환경설정 with every field present. */
-export type Preferences = Complete<PreferencesFile>;
+export type Preferences = Omit<Complete<PreferencesFile>, 'clearKeys'> & {
+  readonly clearKeys: NonNullable<PreferencesFile['clearKeys']>;
+};
 
 /** Every 환경설정 default of `docs/spec/02-data.md`, as a complete file. */
 export const defaultPreferences: Preferences = {

@@ -1,5 +1,6 @@
 import type {LiveLayers} from '@shared/live';
 import {classes} from './classes';
+import {ClearFades} from './clearFades';
 import type {
   RegisteredLayer,
   RenderLayer,
@@ -54,6 +55,9 @@ export class OutputRenderer {
   private scale = 1;
   private testPattern = false;
   private initialLayers: LiveLayers | null = null;
+  private readonly clearFades = new ClearFades();
+  private fadeFrame: number | null = null;
+  private latest: {layers: LiveLayers; frame: RenderFrame} | null = null;
 
   constructor(
     parent: HTMLElement,
@@ -76,6 +80,25 @@ export class OutputRenderer {
         (this.initialLayers !== null && layers !== this.initialLayers),
     };
     this.initialLayers ??= layers;
+    this.latest = {layers, frame};
+    this.draw(layers, frame);
+  }
+
+  private draw(layers: LiveLayers, frame: RenderFrame): void {
+    if (this.fadeFrame !== null) cancelAnimationFrame(this.fadeFrame);
+    this.fadeFrame = null;
+    const now =
+      frame.timers?.now().timer ?? performance.timeOrigin + performance.now();
+    const fading = this.clearFades.resolve(
+      layers,
+      frame.clearEffects ?? [],
+      now,
+    );
+    frame = {
+      ...frame,
+      clearOpacity: fading.opacity,
+      propOpacity: fading.propOpacity,
+    };
     const look = frame.look ?? null;
     this.testPattern = frame.testPattern === true;
     this.root.classList.toggle(classes.instant, frame.transitions === false);
@@ -86,7 +109,31 @@ export class OutputRenderer {
     this.setScreen(frame.screen);
     for (const layer of this.layers) {
       this.setHidden(layer, look);
-      this.attempt(layer.kind, 'draw', () => layer.view.render(layers, frame));
+      const opacity =
+        layer.look === undefined ||
+        layer.look === 'clock' ||
+        layer.look === 'stageMessage'
+          ? undefined
+          : fading.opacity[layer.look];
+      layer.box.style.opacity = layer.hidden
+        ? '0'
+        : opacity === undefined
+          ? ''
+          : String(opacity);
+      this.attempt(layer.kind, 'draw', () =>
+        layer.view.render(fading.layers, frame),
+      );
+    }
+    if (fading.active) {
+      this.fadeFrame = requestAnimationFrame(() => {
+        this.fadeFrame = null;
+        const latest = this.latest;
+        if (!this.disposed && latest !== null) {
+          this.attempt('clear fade', 'draw', () =>
+            this.draw(latest.layers, latest.frame),
+          );
+        }
+      });
     }
   }
 
@@ -94,6 +141,10 @@ export class OutputRenderer {
     if (this.disposed) return;
     this.disposed = true;
     this.resizeObserver.disconnect();
+    if (this.fadeFrame !== null) cancelAnimationFrame(this.fadeFrame);
+    this.fadeFrame = null;
+    this.clearFades.dispose();
+    this.latest = null;
     for (const {kind, view} of this.layers) {
       this.attempt(kind, 'dispose', () => view.dispose());
     }

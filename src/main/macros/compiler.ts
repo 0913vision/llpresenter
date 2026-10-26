@@ -37,6 +37,11 @@ function projectProps(
     (command.target === 'all' || command.target === 'prop')
   ) {
     context.props.clear();
+  } else if (
+    command.type === 'overlay.clear' &&
+    command.target.kind === 'prop'
+  ) {
+    context.props.delete(command.target.propId);
   } else if (command.type === 'prop.set') {
     if (!command.on) {
       context.props.delete(command.propId);

@@ -123,6 +123,9 @@ export class ScreenFrames {
         : undefined;
     return {
       screen,
+      ...(state?.clearEffects === undefined
+        ? {}
+        : {clearEffects: state.clearEffects}),
       stageMessage: state?.stageMessage ?? null,
       timers: {
         list: this.timers,

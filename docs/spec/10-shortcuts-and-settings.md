@@ -581,6 +581,14 @@ workspace. "All" means every workspace of the main window, within the rules of
   every layer it actually cleared; clear actions in macros remain one-way. The
   keys follow ProPresenter; toggle restore is the user's m3-check3 decision
   (03).
+- Each clear key and each macro clear action stores its own fade switch and
+  duration. The default is at once; zero duration also clears at once. The
+  duration is an integer from 0 to 30,000 ms, with 500 ms offered when enabling
+  an otherwise unset fade. Key values live under `preferences.clearKeys`, keyed
+  by `all`, `slide`, `media`, `prop`, `audio`, `message` and `notice`. Macro
+  clear actions store `transition`. Editing controls belong to this page's 진행
+  section and the macro action editor; the output engine consumes the additive
+  stored fields independently (user decision, m3-check3; 03).
 
 #### 화면 (screen outputs)
 
@@ -885,8 +893,9 @@ the basis, and the reason.
     value in 화면 설정. 02 made these "defaults for new screens", but version 1
     can't add screens, so the rows would do nothing (resolves README open
     question 14).
-- Look changes and clears stay instant, as 03 says. Whether clears should fade
-  with the layer's transition is open question 12.
+- Look changes stay instant. Clears default to instant and have independent
+  per-key and per-macro fade options (03), resolving open question 12 for
+  clears.
 
 #### 진행 (Show)
 

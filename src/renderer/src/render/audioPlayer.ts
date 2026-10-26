@@ -5,9 +5,7 @@ import {
   audioPositionSeconds,
 } from '@shared/schema/audioState';
 import {fadeAudio} from './audioFade';
-
-/** Leaves time for command delivery within the F5 half-second limit. */
-export const AUDIO_CLEAR_FADE_MS = 400;
+import type {ClearEffect} from '@shared/schema/clearFade';
 
 interface AudioPlayerOptions {
   readonly now: () => number;
@@ -119,7 +117,13 @@ export class AudioPlayer {
         }
       }
       if (layer?.playback === undefined) {
-        if (this.active !== null && !this.clearing) this.clearAudio();
+        if (this.active !== null && !this.clearing) {
+          const effect = state.clearEffects?.find(
+            item =>
+              item.target.kind === 'layer' && item.target.layer === 'audio',
+          );
+          this.clearAudio(effect);
+        }
         return;
       }
       const playback = layer.playback;
@@ -162,7 +166,7 @@ export class AudioPlayer {
     this.reported.clear();
   }
 
-  private clearAudio(): void {
+  private clearAudio(effect: ClearEffect | undefined): void {
     if (this.active === null) return;
     const startGain = this.gain;
     const finish = (): void => {
@@ -172,9 +176,21 @@ export class AudioPlayer {
       this.stopTracks();
     };
     this.clearing = true;
+    if (effect === undefined) {
+      finish();
+      return;
+    }
     try {
+      const durationMs = Math.max(
+        0,
+        effect.since + effect.durationMs - this.options.now(),
+      );
+      if (durationMs <= 0) {
+        finish();
+        return;
+      }
       this.cancelFade = fadeAudio({
-        durationMs: AUDIO_CLEAR_FADE_MS,
+        durationMs,
         now: this.options.now,
         gain: fraction => this.setGain(startGain * fraction),
         end: finish,

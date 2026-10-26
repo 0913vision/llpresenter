@@ -78,7 +78,7 @@ describe('macro compiler', () => {
       supports: () => true,
     });
     expect(plan.commands).toEqual([
-      {type: 'prop.set', propId: uuid(100), on: false},
+      {type: 'overlay.clear', target: {kind: 'prop', propId: uuid(100)}},
       {type: 'prop.set', propId: uuid(164), on: true},
     ]);
     expect(plan.problems[0]?.reason).toBe('invalid-action');
@@ -139,7 +139,7 @@ describe('macro compiler', () => {
       },
       {type: 'timer.pause', timerId: IDS.timer},
       {type: 'timer.reset', timerId: IDS.timer},
-      {type: 'prop.set', propId: IDS.prop, on: false},
+      {type: 'overlay.clear', target: {kind: 'prop', propId: IDS.prop}},
       {type: 'layer.clear', target: 'all'},
     ]);
   });

@@ -65,6 +65,26 @@ function playsOf(video: HTMLVideoElement): number {
 }
 
 describe('BackgroundLayerView', () => {
+  it('holds a cleared video and reloads the same media at its restored clock position', () => {
+    const {view, videos} = setUp();
+    view.show(WARM_LIGHT, false);
+    videos[1].dispatchEvent(new Event('playing'));
+    vi.mocked(HTMLMediaElement.prototype.pause).mockClear();
+    view.hold();
+    expect(vi.mocked(HTMLMediaElement.prototype.pause).mock.contexts).toContain(
+      videos[1],
+    );
+    const play = vi.mocked(HTMLMediaElement.prototype.play);
+    play.mockClear();
+    videos[1].dispatchEvent(new Event('ended'));
+    expect(play).not.toHaveBeenCalled();
+    const load = vi.mocked(HTMLMediaElement.prototype.load);
+    load.mockClear();
+    view.show({...WARM_LIGHT, startedAt: Date.now()}, false);
+    expect(load).toHaveBeenCalled();
+    expect(play).toHaveBeenCalled();
+    view.dispose();
+  });
   it('bounds a hidden video frame callback and releases its callback and deadline', async () => {
     const clock = installFakeClock();
     const {view, videos} = setUp();
