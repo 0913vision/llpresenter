@@ -90,6 +90,17 @@ describe('timerText', () => {
     expect([atThirty, steppedBack]).toEqual(['0:30', '0:30']);
   });
 
+  it('follows the wall clock for a time of day, corrections included', () => {
+    const service = timer({kind: 'countdownTo', time: '11:00'});
+    const since = timer({kind: 'elapsedFrom', time: '10:00'});
+    const halfPast = WALL + 30 * MINUTE;
+    const read = (subject: Timer, wall: number) =>
+      timerText(subject, running(), {timer: TIMER + 30 * MINUTE, wall});
+    expect(read(service, halfPast)).toBe('30:00');
+    expect(read(service, halfPast - 10 * SECOND)).toBe('30:10');
+    expect(read(since, halfPast - 10 * SECOND)).toBe('29:50');
+  });
+
   it('keeps counting a countdown past 0 with a leading minus', () => {
     const counted = 35 * MINUTE;
     expect(timerText(thirtyFive, running(counted), after(500))).toBe('0:00');
