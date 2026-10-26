@@ -72,9 +72,11 @@ describe('screenGroups', () => {
       placement: 'monitorMissing',
       monitor: 2,
     } as const;
-    const cleared = screens().map(screen =>
-      screen.id === MAIN_ID ? {...screen, display: undefined} : screen,
-    );
+    const cleared = screens().map(screen => {
+      if (screen.id !== MAIN_ID) return screen;
+      const {display: _removed, ...rest} = screen;
+      return rest;
+    });
 
     const row = screenGroups(cleared, {[MAIN_ID]: status}, {[MAIN_ID]: true})
       .audience[0];
