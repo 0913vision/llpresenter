@@ -38,7 +38,6 @@ export function librarySongs(
     .sort((a, b) => TITLES.compare(a.title, b.title));
 }
 
-/** The 예배 순서 list, the latest date first. */
 // NOTE(0913vision): The documents are in memory already, so a list counts
 // their items each time instead of keeping a count on save.
 function itemCount({order}: Service | Template): number {
@@ -48,6 +47,7 @@ function itemCount({order}: Service | Template): number {
   );
 }
 
+/** The 예배 순서 list, the latest date first. */
 export function serviceEntries(
   services: ReadonlyArray<StoredDocument<Service>>,
 ): readonly ServiceEntry[] {
