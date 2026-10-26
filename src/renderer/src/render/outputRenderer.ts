@@ -9,7 +9,7 @@ import type {
 } from './layer';
 import {renderLayers} from './layers';
 import {scaleFor} from './lyricStyle';
-import {pictureTransform} from './pictureCorrection';
+import {PICTURE_TRANSFORM, pictureTransform} from './pictureCorrection';
 import {showsLayer, type LookLayer, type ScreenAppearance} from './screenLook';
 
 const CHROMA_BACKGROUND = 'var(--chroma)';
@@ -114,8 +114,8 @@ export class OutputRenderer {
     if (transform === this.transform) return;
     this.transform = transform;
     if (transform === null) {
-      this.root.style.removeProperty('--picture-transform');
-    } else this.root.style.setProperty('--picture-transform', transform);
+      this.root.style.removeProperty(PICTURE_TRANSFORM);
+    } else this.root.style.setProperty(PICTURE_TRANSFORM, transform);
   }
 
   // NOTE(0913vision): A layer the Look turns off keeps drawing under opacity

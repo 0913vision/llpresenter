@@ -1,5 +1,8 @@
 import type {PictureCorrection} from './layer';
 
+/** The custom property on the renderer root that every layer box's transform reads. */
+export const PICTURE_TRANSFORM = '--picture-transform';
+
 /** The CSS size of the surface the picture is drawn on. */
 export interface Surface {
   readonly width: number;
