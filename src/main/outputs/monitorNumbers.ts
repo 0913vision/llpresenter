@@ -28,7 +28,6 @@ export interface NumberWindow {
 
 interface MonitorNumbersOptions {
   readonly monitors: () => readonly Monitor[];
-  /** Areas a number must never cover, such as capture windows. */
   readonly avoid: () => readonly Rect[];
   readonly open: (spot: NumberSpot) => NumberWindow;
   readonly log: Logger;

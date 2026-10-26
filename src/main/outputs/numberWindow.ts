@@ -4,7 +4,6 @@ import {blockNavigation, loadPage} from '../windows/page';
 import {OUTPUT_BACKGROUND} from './electronWindow';
 import type {NumberSpot, NumberWindow} from './monitorNumbers';
 
-/** The always-on-top level above the output windows' own. */
 const ABOVE_OUTPUTS = 'screen-saver';
 
 /**
