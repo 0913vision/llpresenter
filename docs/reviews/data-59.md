@@ -1,10 +1,8 @@
 # Review request: `data-59`
 
 - Team member: data (Codex session, taking over from Claude)
-- Branch: `feat/data/media-properties`, stacked on data-58
-  (`feat/data/media-playlist-edit`)
-- Base commit: data-58 round 2 head `859b35b4`; the request message gives the
-  range, the head commit, and its CI run.
+- Branch: `feat/data/media-properties`, rebased onto `main` after data-58 merged
+- Base commit: `0f868ec2`; the request message gives the range, head and CI run.
 - Related brief: `docs/briefs/data.md`; request from the lead (M3-P6b: the
   properties with the rows of the 10 inventory and the 정보 tab). The preview
   player and 파일 위치 열기 follow in data-60.
@@ -156,12 +154,21 @@ missing.
 | Check                                       | Result                                    |
 | ------------------------------------------- | ----------------------------------------- |
 | `npm run typecheck`                         | Pass                                      |
-| Targeted Vitest with `--no-fsModuleCache`   | Pass: 61 tests in five files              |
+| Targeted Vitest with `--no-fsModuleCache`   | Pass: 68 tests in six files after rebase  |
 | ESLint on changed TypeScript files          | Pass                                      |
 | `npm run format` and `npm run format:check` | Pass                                      |
 | `npm run verify`                            | GitHub CI on round 2 head; URL in request |
 
-Restacked on data-58 round 2. One adjacent import conflict in `mediaLibrary.ts`
-was resolved by retaining data-58's `chosenPlaylist` import and this request's
-`MediaProps` import. The original feature's range-diff changes only that import
-context. The additional behavior changes are the findings above.
+Initially restacked on data-58 round 2. One adjacent import conflict in
+`mediaLibrary.ts` was resolved by retaining data-58's `chosenPlaylist` import
+and this request's `MediaProps` import. The original feature's range-diff
+changes only that import context. The additional behavior changes are the
+findings above.
+
+The first round 2 CI run on `b5d3d65b` failed in an inherited 퀵 실행 test:
+`TestingLibraryElementError`, missing menuitem `/현재 항목 추가/`.
+[Failed run](https://github.com/0913vision/llpresenter/actions/runs/40291232824).
+No quick-launch files were changed by this request. Once data-58 merged, the
+request was rebased onto current main `0f868ec2` without conflicts and sent
+through CI again. All three existing request commits compare equal after that
+rebase; only this record and the base metadata are updated afterwards.
