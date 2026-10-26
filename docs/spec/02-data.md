@@ -94,22 +94,23 @@ This replaces version 1's slide-number arrangements.
 }
 ```
 
-| Field                     | Type                        | Required | Meaning                                                                                                     |
-| ------------------------- | --------------------------- | -------- | ----------------------------------------------------------------------------------------------------------- |
-| `format`                  | `"llsong"`                  | Yes      | File type.                                                                                                  |
-| `schemaVersion`           | Integer                     | Yes      | 2 for grouped songs.                                                                                        |
-| `id`                      | String (UUID)               | Yes      | Song ID. A 예배 순서 points to the song with this value.                                                    |
-| `title`                   | String                      | Yes      | Title. It can't be empty. Titles are unique in the 라이브러리 (proposal, see 05).                           |
-| `background`              | String (media ID) or absent | No       | Default background. If absent, outputting the song doesn't change the background (see 03).                  |
-| `groups`                  | Nonempty array              | Yes      | Groups in master order. Each slide belongs to exactly one group.                                            |
-| `groups[].id`             | String (UUID v4)            | Yes      | Stable group ID, unique within the song. References use IDs, not names or positions.                        |
-| `groups[].name`           | String                      | Yes      | Group name, such as 1절 or 후렴. Names may repeat; `""` means unnamed.                                      |
-| `groups[].slides`         | Nonempty array              | Yes      | This group's slides in their source order. Lyrics are stored once, even when a group repeats in a 구성.     |
-| `groups[].slides[].lines` | Array of strings            | Yes      | Exact slide lines. An empty array is a blank slide.                                                         |
-| `arrangements`            | Array                       | No       | Named 구성. If absent, the song has only the default 구성.                                                  |
-| `arrangements[].name`     | String                      | Yes      | 구성 name. Unique within the song. "기본" (default) is reserved (proposal).                                 |
-| `arrangements[].groups`   | Array of group IDs          | Yes      | Group occurrences in playback order. Repeated IDs repeat the whole group. All IDs must exist in this song.  |
-| `updatedAt`               | String (ISO 8601)           | No       | Time of the last edit (proposal). The duplicate title dialog uses it ("10월 20일 수정", edited October 20). |
+| Field                      | Type                        | Required | Meaning                                                                                                                                    |
+| -------------------------- | --------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `format`                   | `"llsong"`                  | Yes      | File type.                                                                                                                                 |
+| `schemaVersion`            | Integer                     | Yes      | 2 for grouped songs.                                                                                                                       |
+| `id`                       | String (UUID)               | Yes      | Song ID. A 예배 순서 points to the song with this value.                                                                                   |
+| `title`                    | String                      | Yes      | Title. It can't be empty. Titles are unique in the 라이브러리 (proposal, see 05).                                                          |
+| `background`               | String (media ID) or absent | No       | Default background. If absent, outputting the song doesn't change the background (see 03).                                                 |
+| `groups`                   | Nonempty array              | Yes      | Groups in master order. Each slide belongs to exactly one group.                                                                           |
+| `groups[].id`              | String (UUID v4)            | Yes      | Stable group ID, unique within the song. References use IDs, not names or positions.                                                       |
+| `groups[].name`            | String                      | Yes      | Group name, such as 1절 or 후렴. Names may repeat; `""` means unnamed.                                                                     |
+| `groups[].slides`          | Nonempty array              | Yes      | This group's slides in their source order. Lyrics are stored once, even when a group repeats in a 구성.                                    |
+| `groups[].slides[].lines`  | Array of strings            | Yes      | Exact slide lines. An empty array is a blank slide.                                                                                        |
+| `groups[].slides[].hotKey` | String or absent            | No       | Physical `KeyboardEvent.code`: `KeyA`..`KeyZ` or `Digit0`..`Digit9`. Absent means unassigned. Unique among all source slides in this song. |
+| `arrangements`             | Array                       | No       | Named 구성. If absent, the song has only the default 구성.                                                                                 |
+| `arrangements[].name`      | String                      | Yes      | 구성 name. Unique within the song. "기본" (default) is reserved (proposal).                                                                |
+| `arrangements[].groups`    | Array of group IDs          | Yes      | Group occurrences in playback order. Repeated IDs repeat the whole group. All IDs must exist in this song.                                 |
+| `updatedAt`                | String (ISO 8601)           | No       | Time of the last edit (proposal). The duplicate title dialog uses it ("10월 20일 수정", edited October 20).                                |
 
 Rules:
 
@@ -138,6 +139,18 @@ Rules:
 - An empty named arrangement remains stored and plays the default order, as in
   version 1. A missing arrangement name also falls back to the default.
 - Keep unknown fields on songs, groups, slides and arrangements.
+- A slide hot key identifies that source slide, independently of its group name
+  or palette label. Repeating a group does not create another assignment.
+  Duplicate codes on different source slides, within or across groups, are
+  refused. Do not store null, display characters, modifiers or numpad codes.
+- A grouped 진행 tile carries optional `hotKey` and
+  `sourceSlide: {songId, groupId, slideIndex}`. `slideIndex` is zero-based
+  within that group's source slides, at the projected revision. Assigned tiles
+  require their source identity. All repeated occurrences retain the same
+  identity and key. Resolve a key to the first matching occurrence in the
+  selected arrangement's tile order, with no cycling based on the current/live
+  cursor. If that source is omitted, the key has no target in this projection.
+  Legacy tiles without this metadata remain accepted during the format rollout.
 - `SONG_GROUP_LIMITS` caps a song at 10,000 source slides, 10,000 groups, 1,000
   named arrangements and 100,000 total stored group occurrences across all
   arrangements. Reject an oversized file without truncation. These limits also
@@ -178,6 +191,12 @@ that case preserve its original value under that object's `legacyV1.groups`. If
 `legacyV1` already exists, preserve its entire original value under the new
 `legacyV1.legacyV1` before adding the archived fields. Never overwrite unknown
 data. Known version 1 `slides` fields are consumed by the conversion.
+
+The new `hotKey` field was unknown in version 1. Archive any such old slide
+value under `legacyV1.hotKey`, using the same collision rule for an existing
+`legacyV1`, and leave its assignment absent. Do not interpret an extension's old
+value as a new key assignment or reject an otherwise valid old song because that
+value is not a physical code. Version 2 keys are validated normally.
 
 Convert in memory on read. Keep the original file until the first successful
 edit save, with the normal pre-migration recovery copy. New grouped writes use

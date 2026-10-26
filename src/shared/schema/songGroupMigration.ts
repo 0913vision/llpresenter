@@ -23,18 +23,18 @@ export function migrateSongGroups(file: UnknownRecord): UnknownRecord {
       name: slides[start]?.label ?? '',
       slides: slides
         .slice(start, end)
-        .map(({label: _label, ...slide}) => slide),
+        .map(({label: _label, ...slide}) => archiveField(slide, 'hotKey')),
     });
     start = end;
   }
   return {
-    ...archiveGroups(fields),
+    ...archiveField(fields, 'groups'),
     groups,
     ...(arrangements === undefined
       ? {}
       : {
           arrangements: arrangements.map(({slides: order, ...arrangement}) => ({
-            ...archiveGroups(arrangement),
+            ...archiveField(arrangement, 'groups'),
             groups: order.flatMap(number => {
               const id = starts.get(number);
               return id === undefined ? [] : [id];
@@ -60,14 +60,17 @@ function groupBoundaries(song: Song): ReadonlySet<number> {
   return cuts;
 }
 
-function archiveGroups(fields: UnknownRecord): UnknownRecord {
-  if (!Object.hasOwn(fields, 'groups')) return fields;
-  const {groups, legacyV1, ...rest} = fields;
+function archiveField(
+  fields: UnknownRecord,
+  key: 'groups' | 'hotKey',
+): UnknownRecord {
+  if (!Object.hasOwn(fields, key)) return fields;
+  const {[key]: value, legacyV1, ...rest} = fields;
   return {
     ...rest,
     legacyV1: {
       ...(Object.hasOwn(fields, 'legacyV1') ? {legacyV1} : {}),
-      groups,
+      [key]: value,
     },
   };
 }

@@ -1,7 +1,6 @@
-import type {LabelColor} from '@shared/colors';
 import type {MediaChoice} from '@shared/live';
 import type {SlotKind} from '@shared/schema/service';
-import type {showRowProblems} from '@shared/schema/showService';
+import type {ShowTile, showRowProblems} from '@shared/schema/showService';
 
 /** Id of a row in the 예배 순서 (service order). */
 export type ItemId = string;
@@ -31,12 +30,7 @@ export interface ItemRow {
 export type ServiceRow = HeaderRow | ItemRow;
 
 /** One tile of the 장 grid: a 장 at its position in the 구성 (arrangement). */
-export interface SlideTile {
-  readonly label: string | null;
-  /** The 이름표 color, or `none` when the 이름표 has no color. */
-  readonly labelColor: LabelColor;
-  readonly lines: readonly string[];
-}
+export type SlideTile = ShowTile;
 
 /** Where a tile sits: an item and the tile's index in the item's sequence. */
 export interface TileCursor {

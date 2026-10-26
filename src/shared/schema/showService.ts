@@ -4,6 +4,9 @@ import type {Result} from '../result';
 import type {ReadonlyKnown} from './fileFormat';
 import {mediaChoiceSchema} from './liveState';
 import {slotKinds} from './service';
+import {songIdSchema, songGroupIdSchema} from './ids';
+import {nonNegativeInteger} from './primitives';
+import {slideHotKeySchema} from './slideHotKey';
 import {
   parsePayload,
   payloadObject,
@@ -52,11 +55,33 @@ const showRowSchema = v.pipe(
   ]),
 );
 
-export const showTileSchema = payloadObject({
-  label: v.nullable(v.string()),
-  labelColor: v.picklist([...paletteColors, NO_LABEL_COLOR]),
-  lines: v.array(v.string()),
+/** Source identity within the projected song revision; slideIndex is zero-based. */
+export const songSlideSourceSchema = payloadObject({
+  songId: songIdSchema,
+  groupId: songGroupIdSchema,
+  slideIndex: nonNegativeInteger,
 });
+
+export type SongSlideSource = ReadonlyKnown<
+  v.InferOutput<typeof songSlideSourceSchema>
+>;
+
+export const showTileSchema = v.pipe(
+  payloadObject({
+    label: v.nullable(v.string()),
+    labelColor: v.picklist([...paletteColors, NO_LABEL_COLOR]),
+    lines: v.array(v.string()),
+    hotKey: v.exactOptional(slideHotKeySchema),
+    sourceSlide: v.exactOptional(songSlideSourceSchema),
+  }),
+  v.forward(
+    v.check(
+      tile => tile.hotKey === undefined || tile.sourceSlide !== undefined,
+      'An assigned hot key needs its source slide',
+    ),
+    ['sourceSlide'],
+  ),
+);
 
 const showServiceSchema = payloadObject({
   revision: v.pipe(v.number(), v.integer(), v.minValue(0)),

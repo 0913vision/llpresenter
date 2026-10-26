@@ -18,6 +18,7 @@ import {
 } from './primitives';
 import {arrangementNameSchema} from './song';
 import {migrateSongGroups} from './songGroupMigration';
+import {slideHotKeySchema} from './slideHotKey';
 
 /** File bounds keep group expansion and arrangement validation finite. */
 export const SONG_GROUP_LIMITS = {
@@ -27,7 +28,10 @@ export const SONG_GROUP_LIMITS = {
   occurrences: 100_000,
 } as const;
 
-const groupedSlideSchema = jsonObject({lines: v.array(v.string())});
+const groupedSlideSchema = jsonObject({
+  lines: v.array(v.string()),
+  hotKey: v.exactOptional(slideHotKeySchema),
+});
 
 export const songGroupSchema = jsonObject({
   id: songGroupIdSchema,
@@ -68,6 +72,17 @@ export const groupedSongSchema = v.pipe(
           SONG_GROUP_LIMITS.slides,
         'Too many source slides',
       ),
+      v.check(groups => {
+        const assigned = new Set<string>();
+        for (const group of groups) {
+          for (const {hotKey} of group.slides) {
+            if (hotKey === undefined) continue;
+            if (assigned.has(hotKey)) return false;
+            assigned.add(hotKey);
+          }
+        }
+        return true;
+      }, 'Another slide already uses this hot key'),
     ),
     arrangements: v.exactOptional(
       v.pipe(
