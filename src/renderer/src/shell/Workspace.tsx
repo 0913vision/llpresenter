@@ -39,6 +39,8 @@ import {
 } from '@renderer/show/SlidePanel';
 import {useShowKeys} from '@renderer/show/shortcuts';
 import {useLibrarySongSync} from '@renderer/show/useLibrarySongSync';
+import {ScreenList} from '@renderer/screens/ScreenList';
+import {LookList, StageLayoutList} from '@renderer/screens/LookLists';
 import {classNames} from '@renderer/ui/classNames';
 import type {Notice} from '@renderer/ui/notices';
 import {ColumnGap} from './ColumnGap';
@@ -61,7 +63,7 @@ const panelsByWorkspace: Readonly<
     ['미리보기', '지우기', '진행 도구'],
   ],
   prep: [['예배 순서', '라이브러리'], ['편집'], ['미리보기', '항목 설정']],
-  screens: [['화면'], ['배치'], ['속성']],
+  screens: [['화면', 'Look', '무대 배치'], ['배치'], ['속성']],
 };
 
 interface PanelParts {
@@ -183,6 +185,22 @@ function showPanelParts(
         footer: <SlideSizeControl sizeClass={sizeClass} />,
         stableScrollbar: true,
       };
+    default:
+      return {};
+  }
+}
+
+function screensPanelParts(
+  title: string,
+  onProblem: ((notice: Notice) => void) | undefined,
+): PanelParts {
+  switch (title) {
+    case '화면':
+      return {body: <ScreenList onProblem={onProblem} />};
+    case 'Look':
+      return {body: <LookList onProblem={onProblem} />};
+    case '무대 배치':
+      return {body: <StageLayoutList onProblem={onProblem} />};
     default:
       return {};
   }
@@ -379,6 +397,7 @@ export function Workspace({
         ) : null,
       });
     }
+    if (id === 'screens') return screensPanelParts(title, onProblem);
     return id === 'show'
       ? showPanelParts(title, sizeClass, onProblem)
       : prepPanelParts({title, prep, hasSong, onProblem, sizeClass});
