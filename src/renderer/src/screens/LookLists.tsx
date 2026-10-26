@@ -2,8 +2,9 @@ import {useMemo, type JSX} from 'react';
 import {useLive} from '@renderer/state/live';
 import type {Notice} from '@renderer/ui/notices';
 import {ChoiceList} from './ChoiceList';
-import {lookInUse, stageLayoutsInUse} from './choices';
+import {stageLayoutsInUse} from './choices';
 import {useSettingsDocument} from './useSettingsDocument';
+import {LookPanel} from './looks/LookPanel';
 
 const LOOK_LABEL = 'Look';
 const STAGE_LABEL = '무대 배치';
@@ -15,20 +16,7 @@ export function LookList({
 }: {
   readonly onProblem?: ((notice: Notice) => void) | undefined;
 }): JSX.Element {
-  const looks = useSettingsDocument('looks', LOOK_LABEL, onProblem);
-  const liveLookId = useLive(view => view.state?.lookId);
-  const inUse = useMemo(
-    () => new Set(looks === null ? [] : [lookInUse(looks.value, liveLookId)]),
-    [looks, liveLookId],
-  );
-  return (
-    <ChoiceList
-      label={LOOK_LABEL}
-      kind="look"
-      choices={looks?.value.looks ?? []}
-      inUse={inUse}
-    />
-  );
+  return <LookPanel onProblem={onProblem} />;
 }
 
 /** The 무대 배치 list; the layouts the Look in use gives the 무대 screens carry the LIVE badge. */

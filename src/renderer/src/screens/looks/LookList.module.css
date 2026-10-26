@@ -1,0 +1,14 @@
+.panel {
+  height: 100%;
+}
+
+.body {
+  display: flex;
+  overflow: hidden;
+}
+
+.viewport {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}

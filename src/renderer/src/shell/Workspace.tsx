@@ -241,7 +241,7 @@ function screensPanelParts(
     case '화면':
       return {body: <ScreenList onProblem={onProblem} />};
     case 'Look':
-      return {body: <LookList onProblem={onProblem} />};
+      return {embedded: <LookList onProblem={onProblem} />};
     case '무대 배치':
       return {body: <StageLayoutList onProblem={onProblem} />};
     case '배치':

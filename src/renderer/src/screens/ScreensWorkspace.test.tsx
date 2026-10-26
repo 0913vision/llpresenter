@@ -50,6 +50,10 @@ function readDocument(name: string): Promise<SettingsDocument> {
       return Promise.resolve(looksDocument());
     case 'stage-layouts':
       return Promise.resolve(stageLayoutsDocument());
+    case 'macros':
+      return Promise.resolve(
+        settingsDocument('macros', {macros: [], collections: []}),
+      );
     default:
       return Promise.reject(new Error(`Unexpected settings read: ${name}`));
   }

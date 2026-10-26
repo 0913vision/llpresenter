@@ -42,8 +42,10 @@ function refused(reason: LookListProblem['reason']): EditResult {
 
 function unusedName(base: string, looks: readonly Look[]): string {
   const names = new Set(looks.map(look => look.name.trim()));
-  let name = base;
-  for (let suffix = 2; names.has(name); suffix++) name = `${base} ${suffix}`;
+  const normalized = base.trim();
+  let name = normalized;
+  for (let suffix = 2; names.has(name); suffix++)
+    name = `${normalized} ${suffix}`;
   return name;
 }
 

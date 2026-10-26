@@ -81,6 +81,23 @@ describe('Look lifecycle edits', () => {
     expect(next.looks[0]).toBe(before.looks[0]);
   });
 
+  it('normalizes a padded candidate before generating duplicate suffixes', () => {
+    const before = looks();
+    const padded = {
+      ...before,
+      looks: before.looks.map(look =>
+        look.id === sermon ? {...look, name: '  설교'} : look,
+      ),
+    };
+    const first = apply({kind: 'duplicate', id: added, source: sermon}, padded);
+    const second = apply(
+      {kind: 'duplicate', id: another, source: sermon},
+      first,
+    );
+    expect(first.looks.at(-1)?.name).toBe('설교 복사본');
+    expect(second.looks.at(-1)?.name).toBe('설교 복사본 2');
+  });
+
   it.each([
     {name: '', reason: 'empty'},
     {name: '   ', reason: 'empty'},
