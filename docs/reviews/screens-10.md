@@ -106,19 +106,12 @@ counts did not grow with repeated selection or reopening.
 ![Unassigned fullscreen stage remains selectable](screens-10/unassigned-stage.png)
 ![Empty registered-screen state](screens-10/empty-screens.png)
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (b8ea2bcc): reviewer (Codex) Approve. Lead Approve through the lead's
+  merge check: the exact-head CI run passed, the branch rebased onto local
+  `main` without conflicts, and typecheck passes. Earlier rounds' findings and
+  replies are above.
 
 ## Team member's reply
 
