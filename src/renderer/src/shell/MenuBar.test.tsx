@@ -1,14 +1,35 @@
 import {cleanup, fireEvent, render, screen} from '@testing-library/react';
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import userEvent from '@testing-library/user-event';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import {emptyLiveState} from '@shared/live';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import {useLive} from '@renderer/state/live';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {MenuBar} from './MenuBar';
+
+beforeEach(() => {
+  HTMLElement.prototype.scrollIntoView = vi.fn();
+  useLive.setState({
+    state: {...emptyLiveState(), outputs: {main: true, stage: false}},
+  });
+});
 
 afterEach(() => {
   resetTooltips();
   cleanup();
   delete window.llp;
+  useLive.setState({state: null});
 });
+
+function outputSender() {
+  const send = vi.fn();
+  window.llp = fakeLlpApi({live: {send}});
+  return send;
+}
+
+function outputItem(name: string): HTMLElement {
+  return screen.getByRole('menuitemcheckbox', {name});
+}
 
 describe('MenuBar', () => {
   it('shows the service name in the center', () => {
@@ -50,5 +71,65 @@ describe('MenuBar', () => {
     fireEvent.click(screen.getByRole('button', {name: '최대화'}));
     fireEvent.click(screen.getByRole('button', {name: '닫기'}));
     expect(control.mock.calls).toEqual([['toggle-maximize'], ['close']]);
+  });
+
+  it('checks each screen whose output is on in the 출력 menu', async () => {
+    render(<MenuBar title="" />);
+    await userEvent.click(screen.getByRole('menuitem', {name: '출력'}));
+    expect(screen.getByRole('menu', {name: '출력'})).toBeDefined();
+    expect(outputItem('본 화면').getAttribute('aria-checked')).toBe('true');
+    expect(outputItem('무대 화면').getAttribute('aria-checked')).toBe('false');
+    expect(outputItem('방송 자막').getAttribute('aria-checked')).toBe('false');
+    expect(screen.queryByRole('menuitem', {name: /경고 보기/})).toBeNull();
+  });
+
+  it.each([
+    {name: '본 화면', screenId: 'main', on: false},
+    {name: '무대 화면', screenId: 'stage', on: true},
+    {name: '방송 자막', screenId: 'broadcast', on: true},
+  ])(
+    'turns $name output on=$on with a click and closes the menu',
+    async ({name, screenId, on}) => {
+      const send = outputSender();
+      render(<MenuBar title="" />);
+      await userEvent.click(screen.getByRole('menuitem', {name: '출력'}));
+      await userEvent.click(outputItem(name));
+      expect(send).toHaveBeenCalledExactlyOnceWith({
+        type: 'output.set',
+        screenId,
+        on,
+      });
+      expect(screen.queryByRole('menu', {name: '출력'})).toBeNull();
+    },
+  );
+
+  it('opens the 출력 menu and turns an output on with the keyboard', async () => {
+    const send = outputSender();
+    render(<MenuBar title="" />);
+    screen.getByRole('menuitem', {name: '출력'}).focus();
+    await userEvent.keyboard('{ArrowDown}');
+    expect(screen.getByRole('menu', {name: '출력'})).toBeDefined();
+    await userEvent.keyboard('{ArrowDown}{Enter}');
+    expect(send).toHaveBeenCalledExactlyOnceWith({
+      type: 'output.set',
+      screenId: 'stage',
+      on: true,
+    });
+  });
+
+  it('lists a warning item per screen and shows its card on select', async () => {
+    const onShowWarning = vi.fn();
+    render(
+      <MenuBar
+        title=""
+        warnings={[{screenId: 'stage', screenName: '무대 화면'}]}
+        onShowWarning={onShowWarning}
+      />,
+    );
+    await userEvent.click(screen.getByRole('menuitem', {name: '출력'}));
+    await userEvent.click(
+      screen.getByRole('menuitem', {name: '무대 화면 경고 보기'}),
+    );
+    expect(onShowWarning).toHaveBeenCalledExactlyOnceWith('stage');
   });
 });
