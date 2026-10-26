@@ -87,6 +87,7 @@ import {
 } from '@shared/schema/librarySearch';
 import {
   parseTextImportReadRequest,
+  parseTextImportClipboardAvailable,
   parseTextImportReadResult,
   parseTextImportPreviewRequest,
   parseTextImportPreviewResult,
@@ -455,6 +456,11 @@ const api: LlpApi = {
       ),
   },
   textImport: {
+    clipboardAvailable: () =>
+      invokeChecked(
+        Channels.textImportClipboardAvailable,
+        parseTextImportClipboardAvailable,
+      ),
     read: request =>
       invokeRequest(
         {

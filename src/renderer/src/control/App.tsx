@@ -57,6 +57,7 @@ export function App({
     null,
   );
   const closeImport = useCallback(() => setImportSource(null), []);
+  const textImport = session.api?.textImport;
   const prepSelection = usePrepSelection();
   const notices = useSyncExternalStore(session.subscribe, session.getNotices);
   const [warningHeight, setWarningHeight] = useState(0);
@@ -71,6 +72,9 @@ export function App({
   return (
     <div className={styles.app} data-size={sizeClass}>
       <MenuBar
+        clipboardAvailable={
+          textImport && (() => textImport.clipboardAvailable())
+        }
         onImportText={
           session.api && importSource === null
             ? source => {

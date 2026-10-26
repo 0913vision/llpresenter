@@ -11,6 +11,7 @@ import {defaultScreens} from './screens';
 import {sendLookChange} from './lookActions';
 import {useLookChoices} from './useLookChoices';
 import styles from './MenuBar.module.css';
+import {useClipboardAvailability} from './useClipboardAvailability';
 
 // TODO(0913vision): Open the remaining menus (spec 01).
 const inertMenus = ['편집', '보기'] as const;
@@ -127,10 +128,12 @@ function FileMenu({
   onProblem,
   onImportText,
   control,
+  clipboard,
 }: {
   readonly onProblem: (notice: Notice) => void;
   readonly onImportText: ImportText | undefined;
   readonly control: MenuControl;
+  readonly clipboard: ReturnType<typeof useClipboardAvailability>['status'];
 }): JSX.Element {
   const {anchor} = control;
   const actions = useServiceActions({onProblem, onOpen: control.close});
@@ -140,8 +143,17 @@ function FileMenu({
       id: `import:${source}`,
       label: source === 'file' ? '텍스트 파일' : '클립보드 텍스트',
       icon: source === 'file' ? 'filetext' : 'copy',
-      disabled: onImportText === undefined,
-      title: onImportText === undefined ? IMPORT_UNAVAILABLE : undefined,
+      disabled:
+        onImportText === undefined ||
+        (source === 'clipboard' && clipboard !== 'ready'),
+      title:
+        onImportText === undefined
+          ? IMPORT_UNAVAILABLE
+          : source !== 'clipboard' || clipboard === 'ready'
+            ? undefined
+            : clipboard === 'checking'
+              ? '클립보드 확인 중'
+              : '가져올 클립보드 텍스트가 없습니다',
       onSelect: () => onImportText?.(source),
     })),
     {
@@ -281,6 +293,7 @@ export function MenuBar({
   onShowWarning = ignoreWarning,
   onProblem = logProblem,
   onImportText,
+  clipboardAvailable,
 }: {
   readonly title: string;
   /** The screens whose warning still holds, for the 출력 menu. */
@@ -289,23 +302,35 @@ export function MenuBar({
   readonly onProblem?: ((notice: Notice) => void) | undefined;
   /** Mounts P5's file and clipboard entry flow when its host is available. */
   readonly onImportText?: ImportText | undefined;
+  readonly clipboardAvailable?: (() => Promise<boolean>) | undefined;
 }): JSX.Element {
   const [active, setActive] = useState<ActiveMenu | null>(null);
+  const {status: clipboard, check: checkClipboard} =
+    useClipboardAvailability(clipboardAvailable);
   const controlFor = (name: MenuName): MenuControl => ({
     anchor: active?.name === name ? active.anchor : null,
-    open: anchor => setActive({name, anchor, openedByHover: false}),
-    toggle: anchor =>
+    open: anchor => {
+      if (name === FILE_MENU) checkClipboard();
+      setActive({name, anchor, openedByHover: false});
+    },
+    toggle: anchor => {
+      if (name === FILE_MENU && active?.name !== FILE_MENU) checkClipboard();
       setActive(current =>
         current?.name === name && !current.openedByHover
           ? null
           : {name, anchor, openedByHover: false},
-      ),
-    hover: anchor =>
+      );
+    },
+    hover: anchor => {
+      if (name === FILE_MENU && active !== null && active.name !== FILE_MENU) {
+        checkClipboard();
+      }
       setActive(current =>
         current !== null && current.name !== name
           ? {name, anchor, openedByHover: true}
           : current,
-      ),
+      );
+    },
     close: () =>
       setActive(current => (current?.name === name ? null : current)),
   });
@@ -316,6 +341,7 @@ export function MenuBar({
         <FileMenu
           onProblem={onProblem}
           onImportText={onImportText}
+          clipboard={clipboard}
           control={controlFor(FILE_MENU)}
         />
         {inertMenus.map(menu => (

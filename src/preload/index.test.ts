@@ -832,6 +832,26 @@ describe('preload', () => {
     expect(loggedErrors()).toEqual([]);
   });
 
+  it('validates clipboard availability and rejects malformed or failed replies', async () => {
+    electron.invoke
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce('true')
+      .mockRejectedValueOnce(new Error('Clipboard unavailable'));
+    await expect(api.textImport.clipboardAvailable()).resolves.toBe(true);
+    await expect(api.textImport.clipboardAvailable()).resolves.toBe(false);
+    await expect(api.textImport.clipboardAvailable()).rejects.toThrow(
+      'Bad reply on',
+    );
+    await expect(api.textImport.clipboardAvailable()).rejects.toThrow(
+      'Bad reply on',
+    );
+    expect(electron.invoke).toHaveBeenCalledWith(
+      Channels.textImportClipboardAvailable,
+    );
+    expect(loggedErrors()).toHaveLength(2);
+  });
+
   it('reads import input and previews an unsaved draft without creating a song', async () => {
     const source = {
       source: 'file',

@@ -142,7 +142,13 @@ describe('the 파일 menu', () => {
     async ({source, name}) => {
       setup();
       const onImportText = vi.fn();
-      render(<MenuBar title="" onImportText={onImportText} />);
+      render(
+        <MenuBar
+          title=""
+          onImportText={onImportText}
+          clipboardAvailable={async () => true}
+        />,
+      );
       await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
       await userEvent.click(screen.getByRole('menuitem', {name: '가져오기'}));
       await userEvent.click(screen.getByRole('menuitem', {name}));

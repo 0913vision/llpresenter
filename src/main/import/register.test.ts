@@ -9,6 +9,7 @@ import {
 } from '@shared/schema/textImport';
 import {makeTempDir} from '../../../test/temp-dir';
 import {registerTextImport} from './register';
+import {TEXT_IMPORT_LIMITS} from './limits';
 
 type Handler = (event: unknown, value: unknown) => unknown;
 interface Selection {
@@ -67,6 +68,59 @@ function setup(windowMode: 'normal' | 'offscreen' = 'normal') {
 }
 
 const readRequest = {source: 'file', encoding: 'auto'};
+
+describe('clipboard availability', () => {
+  it.each([
+    {text: 'Invented text', available: true},
+    {text: '', available: false},
+    {text: ' \n\t', available: false},
+    {text: 'a'.repeat(TEXT_IMPORT_LIMITS.characters + 1), available: false},
+  ])(
+    'checks usable text without returning it ($available)',
+    async ({text, available}) => {
+      setup();
+      electron.readClipboard.mockResolvedValueOnce(text);
+      expect(
+        await handler(Channels.textImportClipboardAvailable)({}, undefined),
+      ).toBe(available);
+      expect(electron.chooseFile).not.toHaveBeenCalled();
+    },
+  );
+
+  it('coalesces queries, permits a file read, and drops availability after cleanup', async () => {
+    const {stop} = setup();
+    let resolve: (value: string) => void = () => undefined;
+    electron.readClipboard.mockReturnValueOnce(
+      new Promise(finish => {
+        resolve = finish;
+      }),
+    );
+    const query = handler(Channels.textImportClipboardAvailable);
+    const first = query({}, undefined);
+    expect(query({}, undefined)).toBe(first);
+    expect(electron.readClipboard).toHaveBeenCalledOnce();
+    expect(await handler(Channels.textImportRead)({}, readRequest)).toEqual({
+      ok: true,
+      value: null,
+    });
+    stop();
+    resolve('Invented text');
+    expect(await first).toBe(false);
+    expect(await query({}, undefined)).toBe(false);
+    expect(electron.handlers.size).toBe(0);
+  });
+
+  it('logs a failed query and reports unavailable', async () => {
+    const {log} = setup();
+    electron.readClipboard.mockRejectedValueOnce(
+      new Error('Clipboard unavailable'),
+    );
+    expect(
+      await handler(Channels.textImportClipboardAvailable)({}, undefined),
+    ).toBe(false);
+    expect(log.warn).toHaveBeenCalledOnce();
+  });
+});
 const previewRequest = {
   source: {
     source: 'clipboard',

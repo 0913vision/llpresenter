@@ -123,6 +123,7 @@ export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
       ...overrides.library,
     },
     textImport: {
+      clipboardAvailable: () => Promise.resolve(false),
       read: () => Promise.resolve({ok: true, value: null}),
       preview: () =>
         Promise.resolve({

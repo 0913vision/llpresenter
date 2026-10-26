@@ -111,6 +111,10 @@ export function parseTextImportReadRequest(value: unknown) {
   return checkPart(readRequestSchema, value);
 }
 
+export function parseTextImportClipboardAvailable(value: unknown) {
+  return checkPart(v.boolean(), value);
+}
+
 export function parseTextImportPreviewRequest(value: unknown) {
   return checkPart(previewRequestSchema, value);
 }

@@ -12,6 +12,7 @@ import type {Logger} from '../log';
 import type {WindowMode} from '../windows/testWindows';
 import {convertTextImport} from './convert';
 import {readTextImport, type TextImportInputs} from './read';
+import {TEXT_IMPORT_LIMITS} from './limits';
 
 export interface TextImportRegistration {
   readonly control: BrowserWindow;
@@ -52,6 +53,7 @@ function nativeInputs({
 class TextImportSession {
   private disposed = false;
   private reading = false;
+  private clipboardCheck: Promise<boolean> | undefined;
 
   constructor(
     private readonly inputs: TextImportInputs,
@@ -60,6 +62,28 @@ class TextImportSession {
 
   private isDisposed(): boolean {
     return this.disposed;
+  }
+
+  clipboardAvailable(): Promise<boolean> {
+    if (this.disposed) return Promise.resolve(false);
+    this.clipboardCheck ??= this.checkClipboard().finally(() => {
+      this.clipboardCheck = undefined;
+    });
+    return this.clipboardCheck;
+  }
+
+  private async checkClipboard(): Promise<boolean> {
+    try {
+      const text = await this.inputs.readClipboard();
+      return (
+        !this.isDisposed() &&
+        text.length <= TEXT_IMPORT_LIMITS.characters &&
+        text.trim() !== ''
+      );
+    } catch (error) {
+      this.log.warn('could not check clipboard text availability', error);
+      return false;
+    }
   }
 
   async read(value: unknown): Promise<TextImportReadResult> {
@@ -120,6 +144,9 @@ export function registerTextImport(
   context: TextImportRegistration,
 ): () => void {
   const session = new TextImportSession(nativeInputs(context), context.log);
+  ipcMain.handle(Channels.textImportClipboardAvailable, () =>
+    session.clipboardAvailable(),
+  );
   ipcMain.handle(Channels.textImportRead, (_event, value: unknown) =>
     session.read(value),
   );
@@ -129,6 +156,7 @@ export function registerTextImport(
   return () => {
     if (!session.close()) return;
     ipcMain.removeHandler(Channels.textImportRead);
+    ipcMain.removeHandler(Channels.textImportClipboardAvailable);
     ipcMain.removeHandler(Channels.textImportPreview);
   };
 }

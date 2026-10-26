@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {
   parseTextImportReadRequest,
+  parseTextImportClipboardAvailable,
   parseTextImportReadResult,
   parseTextImportPreviewRequest,
   parseTextImportPreviewResult,
@@ -12,6 +13,18 @@ const source = {
   fileName: '새 노래.txt',
   text: '첫째 문장\n둘째 문장',
 } as const;
+
+describe('clipboard availability boundary', () => {
+  it.each([true, false])('accepts the bounded boolean %s', value => {
+    expect(expectSuccess(parseTextImportClipboardAvailable(value))).toBe(value);
+  });
+  it.each([null, undefined, 0, 1, 'true', {}, []])(
+    'rejects a nonboolean reply %j',
+    value => {
+      expect(parseTextImportClipboardAvailable(value).ok).toBe(false);
+    },
+  );
+});
 const options = {
   split: 'blankLine',
   unitsPerSlide: 1,

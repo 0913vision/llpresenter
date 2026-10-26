@@ -106,6 +106,7 @@ export const Channels = {
   librarySearch: 'library:search',
   libraryShowSong: 'library:show-song',
   textImportRead: 'import:text:read',
+  textImportClipboardAvailable: 'import:text:clipboard-available',
   textImportPreview: 'import:text:preview',
   preferencesGet: 'preferences:get',
   preferencesChanged: 'preferences:changed',
@@ -374,6 +375,8 @@ export interface LlpApi {
     showSong(request: ShowLibrarySongRequest): Promise<ShowLibrarySong | null>;
   };
   readonly textImport: {
+    /** Checks for usable clipboard text without opening or reserving a file read. */
+    clipboardAvailable(): Promise<boolean>;
     /** Reads decoded text; a null success means the file dialog was cancelled. */
     read(request: TextImportReadRequest): Promise<TextImportReadResult>;
     /** Rebuilds an unsaved draft from retained text and options; never saves. */
