@@ -85,3 +85,13 @@ retained-heap variation remained without accumulating DOM or listeners.
 ## Team member's reply
 
 1.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (3ca885ad): reviewer (Codex) Approve. Lead Approve after reading the
+  schema change: reading a service or template turns each legacy slot row into a
+  구역 header with its title, keeping the id, position, and unknown fields, as
+  the user decided on October 26. Tagged `break` because files written after
+  this have no slots. The exact-head CI run passed, checked by the lead at
+  merge. Rebased by the lead onto local `main` without conflicts; typecheck
+  passes.
