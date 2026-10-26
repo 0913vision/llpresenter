@@ -59,9 +59,14 @@ describe('screen.testPattern.set', () => {
 
   it('survives clears and their undo', () => {
     const {store, set} = setup();
+    const slide = {itemId: 'item-1', position: 0, label: null, lines: ['줄']};
+    store.dispatch({type: 'slide.show', slide});
     set(MAIN, true);
     store.dispatch({type: 'layer.clear', target: 'all'});
+    expect(store.state.layers.slide).toBeNull();
+    expect(store.state.testPatterns).toEqual([MAIN]);
     store.dispatch({type: 'clear.undo'});
+    expect(store.state.layers.slide).toEqual(slide);
     expect(store.state.testPatterns).toEqual([MAIN]);
   });
 
