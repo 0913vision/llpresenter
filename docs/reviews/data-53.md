@@ -81,9 +81,21 @@ without a preload, the page it loads, a job run through `executeJavaScript`,
 closing once, a stopped renderer logged, and a page that can't load closing its
 window.
 
-Not covered: real decoding. jsdom has no decoder or canvas, and this session
-doesn't open windows, so a video import in the built app (duration, size, and a
-file that can't play) is the check I ask the lead or qa for.
+Not covered by these tests: jsdom has no decoder and no canvas, and this session
+doesn't open windows. These behaviors are covered only by the video import check
+on the m3-check1 sheet, in the user's build:
+
+1. The build emits `analysis.html`, and the hidden window loads it with its CSP
+   allowing its module script and the media scheme.
+2. `executeJavaScript` returns the value of `analyseMedia`'s promise.
+3. A window that is never shown still decodes: a video's `loadedmetadata` and
+   `seeked` events fire.
+4. The duration and pixel size Chromium reports for real video and audio files
+   join the media item on import.
+5. A file Chromium can't play (for example, an unsupported codec) fails its
+   import with the reason, and its copy is removed.
+6. A frame loaded with CORS draws on the canvas without tainting it, so
+   `toDataURL` succeeds. data-54 shows this as the tile's thumbnail.
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
@@ -104,8 +116,8 @@ file that can't play) is the check I ask the lead or qa for.
 - [x] The code uses the modern language features that `CLAUDE.md` lists
 - [x] The change is small and focused, and "What changed and why" describes it
       clearly (about 300 lines of code and 320 of tests)
-- [ ] Measured performance values (when relevant): not measured (see "Not
-      covered")
+- [ ] Measured performance values (when relevant): not measured (see the
+      behaviors only the m3-check1 sheet covers)
 
 ## Decisions I made (for the lead to confirm)
 
