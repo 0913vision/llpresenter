@@ -102,19 +102,17 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (Codex, codex4): Request changes: the transform compounded on nested
+  `.layer` boxes (a 10% margin drew at 64% or 51%), and offsets depended on
+  pixel sizes that previews and changed monitors didn't share.
+- Round 2 (9a0d19e4): reviewer (Codex, codex4) Approve, no findings. Lead
+  Approve after reading the transform: one rule on the root's direct children,
+  and the margin clamped at zero. 위치 미세 조정 counts 1920×1080 reference
+  pixels scaled like lyric sizes (lead decision, October 26, spec 03), so
+  previews and resolution changes keep the same share. Rebased by the lead onto
+  local `main` without conflicts; typecheck passes.
 
 ## Team member's reply
 
