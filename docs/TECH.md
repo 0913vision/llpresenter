@@ -60,8 +60,9 @@ Main process
 Control window (renderer): 진행, 준비, 화면 설정
 Output windows (renderer): 본 화면, 무대 화면, 방송 자막 capture window, each
   separate
-Utility process (utilityProcess): media analysis, import conversion, later
-  NDI sending
+Media analysis window (hidden renderer, on demand): video and audio duration,
+  playability, and video thumbnails, with the same Chromium decoder as output
+Utility process (utilityProcess): import conversion, later NDI sending
 ```
 
 - The control window and the output windows don't change the live output state.

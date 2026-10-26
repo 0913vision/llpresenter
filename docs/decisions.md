@@ -386,3 +386,19 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
 - When the control window doesn't answer within the flush limit (5 seconds), the
   app closes without the modal, because a frozen window can't draw it and must
   never keep the app from closing (lead default, data-44).
+
+## 2026-10-26: Media analysis runs in a hidden renderer, not the utility process
+
+- Video and audio analysis (duration, whether the file can play, and video
+  thumbnails) runs in a hidden, sandboxed renderer window that main opens on
+  demand. It decodes with Chromium's own media stack, the one the output windows
+  play with, so "can't play" means the output really can't play it, and a
+  thumbnail is a real frame. It never shows, analyzes one file at a time from a
+  capped queue, and closes after a short idle time (lead decision, M3-P6a).
+- Rejected: parsing container headers in TypeScript in the utility process (a
+  dozen parsers to keep right, and a codec name only guesses at playability;
+  Windows shell thumbnails miss formats such as VP9 WebM), and ffprobe or ffmpeg
+  binaries (a large dependency for size and licensing).
+- Images are measured and scaled in main with Electron's `nativeImage`, at the
+  tile size, into the capped thumbnail cache in `cache\`. The utility process
+  keeps import conversion and, later, NDI. `docs/TECH.md` says this.
