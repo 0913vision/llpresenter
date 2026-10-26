@@ -3,6 +3,7 @@ import type {LiveState} from '@shared/live';
 import type {LooksFile} from '@shared/schema/looks';
 import type {Timer} from '@shared/schema/timers';
 import type {RenderFrame, RenderScreen} from './layer';
+import {MainTimerClock} from './mainTimerClock';
 import {followRenderScreen} from './screenIdentity';
 import {resolveScreenLook, type LookGap, type ResolvedLook} from './screenLook';
 import {followSettingsDocument} from './settingsFeed';
@@ -17,6 +18,8 @@ const GAP_MESSAGES: Record<LookGap['kind'], string> = {
 
 interface ScreenFramesOptions {
   readonly settings: LlpApi['settings'];
+  /** Reads main's 타이머 clock once, so 타이머 tokens read their runs. */
+  readonly clock: LlpApi['live']['clock'];
   readonly screenId: string;
   /** Called when the screen identity or the Looks change, to draw again. */
   readonly onChange: () => void;
@@ -45,9 +48,11 @@ export class ScreenFrames {
   private resolution: Resolution | null = null;
   private readonly reported = new Set<string>();
   private readonly stops: ReadonlyArray<() => void>;
+  private readonly timerClock: MainTimerClock;
 
   constructor(private readonly options: ScreenFramesOptions) {
     const {settings, screenId, onError} = options;
+    this.timerClock = new MainTimerClock(options.clock, onError);
     this.stops = [
       followRenderScreen({
         settings,
@@ -92,7 +97,11 @@ export class ScreenFrames {
     return {
       screen,
       stageMessage: state?.stageMessage ?? null,
-      timers: {list: this.timers, runs: state?.timers},
+      timers: {
+        list: this.timers,
+        runs: state?.timers,
+        now: this.timerClock.now,
+      },
       ...(appearance === null ? {} : {look: appearance}),
     };
   }

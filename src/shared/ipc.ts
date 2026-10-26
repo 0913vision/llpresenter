@@ -67,6 +67,7 @@ export const Channels = {
   appProblemList: 'app:problem:list',
   appProblemRetrySaves: 'app:problem:retry-saves',
   liveGet: 'live:get',
+  liveClock: 'live:clock',
   liveCommand: 'live:command',
   liveChanged: 'live:changed',
   windowControl: 'window:control',
@@ -188,6 +189,11 @@ export interface LlpApi {
      * @returns A function that removes the listener. Always call it.
      */
     subscribe(listener: (state: LiveState) => void): Unsubscribe;
+    /**
+     * Reads main's monotonic 타이머 clock, in epoch-like milliseconds, so a
+     * window can read 타이머 runs. Rejects, after logging, when the call fails.
+     */
+    clock(): Promise<number>;
   };
   readonly window: {
     control(action: WindowAction): void;

@@ -68,6 +68,7 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
   };
   const frames = new ScreenFrames({
     settings: api.settings,
+    clock: () => api.live.clock(),
     screenId,
     onChange: draw,
     onError: report,

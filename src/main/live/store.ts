@@ -59,6 +59,12 @@ export class LiveStore {
     return this.history.state;
   }
 
+  /** The 타이머 clock that stamps 타이머 runs, for windows to read them. */
+  timerNow(): number {
+    const {now, timerNow = now} = this.readClock();
+    return timerNow;
+  }
+
   get listenerCount(): number {
     return this.listeners.size;
   }

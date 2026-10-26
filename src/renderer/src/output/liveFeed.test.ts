@@ -12,6 +12,7 @@ function fakeLive(current: Promise<LiveState>) {
   const live: LlpApi['live'] = {
     get: () => current,
     send: () => undefined,
+    clock: () => Promise.resolve(0),
     subscribe: listener => {
       listeners.add(listener);
       return () => listeners.delete(listener);

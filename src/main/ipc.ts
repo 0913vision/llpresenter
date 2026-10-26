@@ -109,6 +109,7 @@ export function registerIpc(
   windowMode: WindowMode,
 ): () => void {
   ipcMain.handle(Channels.liveGet, () => store.state);
+  ipcMain.handle(Channels.liveClock, () => store.timerNow());
   ipcMain.on(Channels.liveCommand, (_event, value: unknown) => {
     const command = parseLiveCommandRequest(value);
     if (!command.ok) {
@@ -133,6 +134,7 @@ export function registerIpc(
     unsubscribe();
     stopLogWrites();
     ipcMain.removeHandler(Channels.liveGet);
+    ipcMain.removeHandler(Channels.liveClock);
     ipcMain.removeAllListeners(Channels.liveCommand);
     ipcMain.removeAllListeners(Channels.windowControl);
   };

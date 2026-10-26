@@ -54,11 +54,13 @@ export function ScreenPreview({
       if (frame === undefined) renderer.render(layers);
       else renderer.render(layers, frame);
     };
+    const api = window.llp;
     frames =
-      window.llp === undefined
+      api === undefined
         ? null
         : new ScreenFrames({
-            settings: window.llp.settings,
+            settings: api.settings,
+            clock: () => api.live.clock(),
             screenId,
             onChange: draw,
             onError: reportDrawingError,

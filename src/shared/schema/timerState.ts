@@ -2,7 +2,8 @@ import * as v from 'valibot';
 import type {ReadonlyKnown} from './fileFormat';
 import {timerIdSchema} from './ids';
 import {epochMillisecondsSchema} from './overlayState';
-import {plainObject} from './payload';
+import type {Result} from '../result';
+import {parsePayload, plainObject, type PayloadError} from './payload';
 import {nonNegativeNumber} from './primitives';
 
 /** At most this many 타이머 carry a run in the live state. */
@@ -49,3 +50,10 @@ export const timerRunsSchema = v.pipe(
 export type TimerRun = ReadonlyKnown<v.InferOutput<typeof timerRunSchema>>;
 
 export type TimerRuns = ReadonlyKnown<v.InferOutput<typeof timerRunsSchema>>;
+
+/** Checks a reading of main's 타이머 clock. Never throws. */
+export function parseTimerClockReading(
+  value: unknown,
+): Result<number, PayloadError> {
+  return parsePayload(epochMillisecondsSchema, value);
+}

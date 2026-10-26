@@ -45,6 +45,7 @@ export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
       get: () => Promise.resolve(emptyLiveState()),
       send: () => undefined,
       subscribe: () => () => undefined,
+      clock: () => Promise.resolve(performance.timeOrigin + performance.now()),
       ...overrides.live,
     },
     window: {control: () => undefined, ...overrides.window},

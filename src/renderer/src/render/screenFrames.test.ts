@@ -89,6 +89,7 @@ async function framesFor(
   const onChange = vi.fn();
   const frames = new ScreenFrames({
     settings: settings.api,
+    clock: () => Promise.resolve(0),
     screenId,
     onChange,
     onError: vi.fn(),
@@ -107,6 +108,7 @@ describe('ScreenFrames', () => {
     const settings = fakeSettings();
     const frames = new ScreenFrames({
       settings: settings.api,
+      clock: () => Promise.resolve(0),
       screenId: MAIN,
       onChange: vi.fn(),
       onError: vi.fn(),
@@ -118,10 +120,12 @@ describe('ScreenFrames', () => {
 
   it('draws the screen with its stage message and its card of the live Look', async () => {
     const {frames} = await framesFor(STAGE);
-    expect(frames.frame(stateWith({stageMessage: 'Fixture note'}))).toEqual({
+    const {timers, ...frame} =
+      frames.frame(stateWith({stageMessage: 'Fixture note'})) ?? {};
+    expect(timers).toMatchObject({list: [], runs: undefined});
+    expect(frame).toEqual({
       screen: {id: STAGE, kind: 'stage', method: 'fullscreen'},
       stageMessage: 'Fixture note',
-      timers: {list: [], runs: undefined},
       look: {
         layers: {slide: true, stageMessage: true},
         lyricStyle: DEFAULT_LYRIC_STYLE,

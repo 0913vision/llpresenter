@@ -32,6 +32,7 @@ import {parseEditResult} from '@shared/schema/contentEdit';
 import {RENDERER_LOG_LIMITS} from '@shared/schema/ipcPayloads';
 import {parseLiveState} from '@shared/schema/liveState';
 import {parseLiveCommandRequest} from '@shared/schema/liveCommand';
+import {parseTimerClockReading} from '@shared/schema/timerState';
 import {
   parseRecoveryApply,
   parseRecoveryResult,
@@ -237,6 +238,7 @@ const api: LlpApi = {
   },
   live: {
     get: () => invokeChecked(Channels.liveGet, parseLiveState),
+    clock: () => invokeChecked(Channels.liveClock, parseTimerClockReading),
     send: command => {
       const parsed = parseLiveCommandRequest(command);
       if (!parsed.ok) {

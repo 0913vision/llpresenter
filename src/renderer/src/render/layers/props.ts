@@ -2,6 +2,7 @@ import {MAX_ACTIVE_PROPS} from '@shared/schema/overlayState';
 import {classes} from '../classes';
 import {defineLayer} from '../layer';
 import {OverlayImageView} from '../overlayImage';
+import type {TimerNow} from '@shared/timerClock';
 import type {LyricStyle} from '../lyricStyle';
 import {OverlayTextView} from '../overlayText';
 import {
@@ -11,7 +12,14 @@ import {
 } from '../timerTokens';
 
 const TIMER_TICK_MS = 1000;
-const NO_TIMERS: RenderTimers = {list: [], runs: undefined};
+const NO_TIMERS: RenderTimers = {
+  list: [],
+  runs: undefined,
+  now: () => ({
+    timer: performance.timeOrigin + performance.now(),
+    wall: Date.now(),
+  }),
+};
 
 interface PropView {
   readonly box: HTMLElement;
@@ -32,7 +40,7 @@ export const propsLayer = defineLayer({
     let timers = NO_TIMERS;
     let ticker: ReturnType<typeof setInterval> | null = null;
     const tick = (): void => {
-      const now = Date.now();
+      const now = timers.now();
       for (const view of pool) {
         if (view.template === null) continue;
         view.text.replace(fillTimerTokens(view.template, timers, now));
@@ -43,7 +51,7 @@ export const propsLayer = defineLayer({
     const showText = (
       view: PropView,
       {text, style}: {readonly text: string; readonly style: LyricStyle},
-      now: number,
+      now: TimerNow,
     ): void => {
       const filled = fillTimerTokens(text, timers, now);
       if (view.template === text) view.text.replace(filled, style);
@@ -79,7 +87,7 @@ export const propsLayer = defineLayer({
     return {
       render: (layers, frame) => {
         timers = frame?.timers ?? NO_TIMERS;
-        const now = Date.now();
+        const now = timers.now();
         const id = frame?.screen?.id;
         const items =
           layers.prop?.items
