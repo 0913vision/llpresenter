@@ -469,8 +469,17 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   with several candidates Tab is blocked until the operator picks one with the
   arrow keys. tools-9 highlighted the first candidate and let Tab take it ("베"
   chose 에베소서); that was a deviation, now corrected. copible lists every
-  containment match in canonical order; whether prefix matches should come first
-  is still open with the user.
+  containment match in canonical order, and so does this app (user decision:
+  "카피블하고 동일하게 하면 돼").
+- Each clear can fade or not (user decision): the clear keys F1 to F7 and a
+  매크로's clear actions (such as 가사만 지우기) each have a fade choice and
+  duration; the default stays at once (spec 03 version 1 defaults).
+- Dragging rows in every list (예배 순서, 퀵 실행, and the others) places the
+  row by the target row's midpoint: over the upper half it goes above that row,
+  over the lower half below, so the top of a list is easy to reach. Once the
+  pointer passes the drag threshold, releasing never counts as a click, so a
+  drag can't select a row or run a 퀵 실행 action (user decision from the
+  check).
 - Turning a screen output off hides its window, so that monitor shows the
   Windows desktop (user decision; Renewed Vision's documents and the 7.5 guide
   don't say what ProPresenter shows, so this is not a ProPresenter rule).
