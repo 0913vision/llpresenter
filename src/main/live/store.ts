@@ -1,6 +1,7 @@
-import type {LiveCommand} from '@shared/commands';
+import type {LiveCommand, SingleLiveCommand} from '@shared/commands';
 import {randomUUID} from 'node:crypto';
 import {createMessageId} from '@shared/schema/ids';
+import {MAX_LIVE_BATCH_COMMANDS} from '@shared/schema/liveCommand';
 import type {LiveState} from '@shared/live';
 import type {Logger} from '../log';
 import type {SettingsReader} from '../store/settingsStore';
@@ -165,4 +166,20 @@ export function dispatchLogged(
       }
     },
   );
+}
+
+/** Applies commands in order, in as few bounded transactions as the batch limit allows. */
+export function dispatchBatched(
+  store: LiveStore,
+  commands: readonly SingleLiveCommand[],
+  log: Logger,
+): void {
+  for (
+    let start = 0;
+    start < commands.length;
+    start += MAX_LIVE_BATCH_COMMANDS
+  ) {
+    const batch = commands.slice(start, start + MAX_LIVE_BATCH_COMMANDS);
+    dispatchLogged(store, {type: 'live.batch', commands: batch}, log);
+  }
 }

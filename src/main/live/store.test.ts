@@ -1,6 +1,7 @@
 import {describe, expect, it, vi} from 'vitest';
 import {recordingLogger} from '../displays/testing';
-import {LiveStore, dispatchLogged} from './store';
+import {MAX_LIVE_BATCH_COMMANDS} from '@shared/schema/liveCommand';
+import {LiveStore, dispatchBatched, dispatchLogged} from './store';
 
 describe('LiveStore', () => {
   it('notifies listeners only when the state changes', () => {
@@ -62,5 +63,33 @@ describe('dispatchLogged', () => {
 
     expect(store.state.outputs).toEqual({main: true});
     expect(log.messages('error')).toEqual(['live state listener failed']);
+  });
+});
+
+describe('dispatchBatched', () => {
+  it('applies commands in order in transactions of at most the batch limit', () => {
+    const store = new LiveStore();
+    const listener = vi.fn();
+    store.subscribe(listener);
+    const dispatch = vi.spyOn(store, 'dispatch');
+    const commands = Array.from(
+      {length: MAX_LIVE_BATCH_COMMANDS + 1},
+      (_, index) =>
+        ({type: 'output.set', screenId: 'main', on: index % 2 === 0}) as const,
+    );
+    dispatchBatched(store, commands, recordingLogger());
+    expect(dispatch.mock.calls.map(([command]) => command)).toEqual([
+      {type: 'live.batch', commands: commands.slice(0, -1)},
+      {type: 'live.batch', commands: commands.slice(-1)},
+    ]);
+    expect(listener).toHaveBeenCalledTimes(2);
+    expect(store.state.outputs['main']).toBe(true);
+  });
+
+  it('dispatches nothing for no commands', () => {
+    const store = new LiveStore();
+    const dispatch = vi.spyOn(store, 'dispatch');
+    dispatchBatched(store, [], recordingLogger());
+    expect(dispatch).not.toHaveBeenCalled();
   });
 });
