@@ -105,3 +105,17 @@ it('bounds repeated clear effects and drops them from recovered state', () => {
   }
   expect(new LiveStore(store.state).state.clearEffects).toEqual([]);
 });
+
+it('keeps independent prop timing when a later clear removes the last live prop', () => {
+  const store = setup();
+  store.dispatch({type: 'prop.set', propId: PROP, on: true});
+  store.dispatch({type: 'prop.set', propId: IMAGE_PROP, on: true});
+  for (const [propId, durationMs] of [[PROP, 1200], [IMAGE_PROP, 200]] as const) {
+    store.dispatch({type: 'overlay.clear', target: {kind: 'prop', propId}, transition: {fade: true, durationMs}});
+  }
+  expect(store.state.layers.prop).toBeNull();
+  expect(store.state.clearEffects).toEqual([
+    {target: {kind: 'prop', propId: PROP}, since: 1000, durationMs: 1200},
+    {target: {kind: 'prop', propId: IMAGE_PROP}, since: 1000, durationMs: 200},
+  ]);
+});

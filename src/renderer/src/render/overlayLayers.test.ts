@@ -11,6 +11,8 @@ import {
   PROP,
   settingsDocument,
   STAGE,
+  TEXT_STYLE,
+  overlayUuid,
 } from '../../../main/live/testing/overlays';
 import {parseLiveCommand} from '@shared/schema/liveCommand';
 import {classes} from './classes';
@@ -91,6 +93,45 @@ function setup() {
 }
 
 describe('registered overlay layers', () => {
+  it('keeps consecutive prop fades independent and preserves their order until each finishes', () => {
+    const {send, render, box} = setup();
+    send({type: 'prop.set', propId: PROP, on: true});
+    send({type: 'prop.set', propId: IMAGE_PROP, on: true});
+    render();
+    const boxes = Array.from(box('prop')?.children ?? []).filter((value): value is HTMLElement => value instanceof HTMLElement);
+    send({type: 'overlay.clear', target: {kind: 'prop', propId: PROP}, transition: {fade: true, durationMs: 1200}});
+    render();
+    send({type: 'overlay.clear', target: {kind: 'prop', propId: IMAGE_PROP}, transition: {fade: true, durationMs: 200}});
+    render();
+    vi.advanceTimersByTime(100);
+    expect(box('prop') instanceof HTMLElement && box('prop')?.getAttribute('style')).not.toContain('opacity');
+    expect(boxes.map(value => value.style.zIndex)).toEqual(['0', '1']);
+    expect(Number(boxes[0]?.style.opacity)).toBeCloseTo(0.92, 1);
+    expect(Number(boxes[1]?.style.opacity)).toBeCloseTo(0.5, 1);
+    vi.advanceTimersByTime(200);
+    expect(boxes[0]?.hidden).toBe(false);
+    expect(boxes[1]?.hidden).toBe(true);
+    vi.advanceTimersByTime(1000);
+    expect(boxes.every(value => value.hidden)).toBe(true);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('shows all 64 newly live props when an outgoing fade competes for the pool', () => {
+    const {settings, send, render, box} = setup();
+    const props = Array.from({length: 65}, (_, index) => ({id: overlayUuid(1000 + index), name: `Prop ${index}`, targets: [MAIN], content: {kind: 'text', text: `Prop ${index}`, style: TEXT_STYLE}}));
+    settings.update(settingsDocument('props', {props}));
+    for (const prop of props.slice(0, 64)) send({type: 'prop.set', propId: prop.id, on: true});
+    render();
+    send({type: 'overlay.clear', target: {kind: 'prop', propId: overlayUuid(1000)}, transition: {fade: true, durationMs: 5000}});
+    render();
+    send({type: 'prop.set', propId: overlayUuid(1064), on: true});
+    render();
+    const shown = Array.from(box('prop')?.children ?? []).filter(value => value instanceof HTMLElement && !value.hidden);
+    expect(shown).toHaveLength(64);
+    expect(shown.some(value => value.textContent?.includes('Prop 64'))).toBe(true);
+    expect(box('prop')?.children).toHaveLength(64);
+    expect(vi.getTimerCount()).toBe(0);
+  });
   it('fades a removed prop in its original order while its neighbor stays fully shown', () => {
     const {send, render, box} = setup();
     send({type: 'prop.set', propId: PROP, on: true});
