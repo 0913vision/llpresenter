@@ -176,3 +176,31 @@ missing.
 ## Team member's reply
 
 1.
+
+## Round 1 reply
+
+1. [P2] `mediaRelinker.ts:93`, a relink overwrote edits made while the dialog
+   was open. Fixed in
+   `fix(media): relink into the current media list and check applied relinks again`:
+   the dialog and the file checks now collect only each media id's new file and
+   size, and right before the commit those go into the items as they are then,
+   at that revision. Media deleted meanwhile drop out, and a deleted relinked
+   item answers `not-found` without a commit. Regressions: names changed and the
+   revision moved on while the dialog was open are kept, with the commit at the
+   new revision; a neighbour deleted meanwhile drops out; the relinked item
+   deleted meanwhile commits nothing.
+2. [P2] `missingFiles.ts:98`, removed ids stayed queued. Fixed in
+   `fix(media): drop removed media from the file check queue`: the queue is an
+   ordered `Set`, so each item waits once, and removing an item takes it out.
+   `waitingChecks` tells how many wait. Regression: with every worker blocked,
+   50 rounds of adding and removing an item leave no check waiting. It fails
+   without the fix.
+3. [P2] `mediaRelinker.ts:95`, an applied relink whose save failed wasn't
+   checked again. Same commit as 1: a `write-failed` answer, which the list
+   applied in memory, checks the files again like a success. Regression: a
+   restored file relinked to its unchanged path with a failed save is checked
+   again.
+4. Not from the review:
+   `test(media): give import jobs longer to end when the suite runs at once`. A
+   data-49 import test timed out once at the default one second while the whole
+   media folder ran; the import tests now wait up to 5 seconds for jobs to end.
