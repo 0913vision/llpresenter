@@ -1,5 +1,7 @@
 import type {MonitorInfo, MonitorList} from '@shared/schema/monitors';
 import type {Screen} from '@shared/schema/screens';
+import {monitorPixelSize, sizeText, targetSize} from './displaySizes';
+import {monitorAssignment} from './monitorAssignment';
 
 /** A monitor's box in the display layout, placed in percent of the whole. */
 export interface MonitorBox {
@@ -33,13 +35,6 @@ export interface DisplayLayoutModel {
 
 const PERCENT = 100;
 
-function resolutionText(size: {
-  readonly width: number;
-  readonly height: number;
-}): string {
-  return `${size.width} × ${size.height}`;
-}
-
 function arrangement(monitors: MonitorList) {
   const left = Math.min(...monitors.map(({bounds}) => bounds.x));
   const top = Math.min(...monitors.map(({bounds}) => bounds.y));
@@ -54,24 +49,23 @@ function arrangement(monitors: MonitorList) {
 
 interface BoxContext {
   readonly whole: ReturnType<typeof arrangement>;
+  readonly assignment: ReadonlyMap<string, MonitorInfo>;
   readonly screens: readonly Screen[];
   readonly selected: Screen | undefined;
 }
 
 function monitorBox(
   monitor: MonitorInfo,
-  {whole, screens, selected}: BoxContext,
+  {whole, assignment, screens, selected}: BoxContext,
 ): MonitorBox {
   const {bounds} = monitor;
   const shown = screens.filter(
-    screen =>
-      screen.method === 'fullscreen' &&
-      screen.display?.number === monitor.number,
+    screen => assignment.get(screen.id)?.id === monitor.id,
   );
   return {
     number: monitor.number,
     name: monitor.name,
-    resolution: resolutionText(bounds),
+    resolution: sizeText(monitorPixelSize(monitor)),
     left: ((bounds.x - whole.left) / whole.width) * PERCENT,
     top: ((bounds.y - whole.top) / whole.height) * PERCENT,
     width: (bounds.width / whole.width) * PERCENT,
@@ -80,6 +74,11 @@ function monitorBox(
     control: monitor.hasMainWindow,
     selected: selected !== undefined && shown.includes(selected),
   };
+}
+
+function sizeOf(screen: Screen): string | undefined {
+  const size = targetSize(screen);
+  return size === undefined ? undefined : sizeText(size);
 }
 
 function targetBoxes(
@@ -91,10 +90,7 @@ function targetBoxes(
     .map(screen => ({
       id: screen.id,
       name: screen.name,
-      resolution:
-        screen.resolution === undefined
-          ? undefined
-          : resolutionText(screen.resolution),
+      resolution: sizeOf(screen),
       selected: screen === selected,
     }));
 }
@@ -113,10 +109,11 @@ export function displayLayout(
   const targets = targetBoxes(screens, selected);
   if (monitors.length === 0) return {aspectRatio: 1, monitors: [], targets};
   const whole = arrangement(monitors);
+  const assignment = monitorAssignment(monitors, screens);
   return {
     aspectRatio: whole.width / whole.height,
     monitors: monitors.map(monitor =>
-      monitorBox(monitor, {whole, screens, selected}),
+      monitorBox(monitor, {whole, assignment, screens, selected}),
     ),
     targets,
   };

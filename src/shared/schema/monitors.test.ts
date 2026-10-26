@@ -9,6 +9,7 @@ import {
 
 function monitor(number = 1) {
   return {
+    id: number + 10,
     number,
     name: `Monitor ${number}`,
     bounds: {x: (number - 1) * 1920, y: 0, width: 1920, height: 1080},
@@ -39,12 +40,14 @@ describe('parseMonitorList', () => {
   });
 
   it('drops unknown fields', () => {
-    const parsed = parseMonitorList([{...monitor(), id: 7}]);
+    const parsed = parseMonitorList([{...monitor(), extra: 7}]);
 
     expect(parsed).toEqual({ok: true, value: [monitor()]});
   });
 
   it.each([
+    ['a missing id', {id: undefined}, '0.id'],
+    ['a fractional id', {id: 1.5}, '0.id'],
     ['a missing name', {name: undefined}, '0.name'],
     [
       'a name over the limit',

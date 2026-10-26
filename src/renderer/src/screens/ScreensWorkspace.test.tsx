@@ -9,6 +9,7 @@ import {
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@shared/live';
+import type {MonitorList} from '@shared/schema/monitors';
 import type {OutputStatuses} from '@shared/schema/outputStatus';
 import type {SettingsDocument} from '@shared/schema/settingsDocuments';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
@@ -57,10 +58,12 @@ function setup({
   statuses = {},
   outputs = {[MAIN_ID]: true},
   read = readDocument,
+  monitors = [],
 }: {
   readonly statuses?: OutputStatuses;
   readonly outputs?: Readonly<Record<string, boolean>>;
   readonly read?: (name: string) => Promise<SettingsDocument>;
+  readonly monitors?: MonitorList;
 } = {}) {
   const settingsListeners = new Set<(document: SettingsDocument) => void>();
   let pushStatus: (next: OutputStatuses) => void = () => undefined;
@@ -76,6 +79,7 @@ function setup({
         };
       },
     },
+    monitors: {get: () => Promise.resolve(monitors)},
     output: {
       getStatus: () => Promise.resolve(statuses),
       subscribeStatus: listener => {
@@ -277,6 +281,46 @@ describe('the Look and 무대 배치 lists', () => {
     expect(option('하단 자막').textContent).toContain('LIVE');
     expect(option('평상시').textContent).not.toContain('LIVE');
     expect(option('현재와 다음').textContent).not.toContain('LIVE');
+  });
+
+  it('marks the first screen and its monitor before any pick, and follows the fallback after a removal', async () => {
+    const projector = {
+      id: 2,
+      number: 2,
+      name: 'Projector',
+      bounds: {x: 1920, y: 0, width: 1920, height: 1080},
+      scaleFactor: 1,
+      refreshRate: 60,
+      hasMainWindow: false,
+    };
+    const control = {...projector, id: 1, number: 1, hasMainWindow: true};
+    const {pushSettings} = setup({
+      monitors: [{...control, bounds: {...control.bounds, x: 0}}, projector],
+    });
+    await screen.findByRole('option', {name: '본 화면'});
+    const box = (number: number) =>
+      document.querySelector(`[data-monitor="${number}"]`);
+    await waitFor(() => expect(box(2)?.textContent).toContain('본 화면'));
+    expect(selectedOf('본 화면')).toBe('true');
+    expect(box(2)?.getAttribute('aria-current')).toBe('true');
+
+    const without = screensDocument(2);
+    if (without.name !== 'screens') throw new Error('Expected screens');
+    pushSettings(
+      settingsDocument(
+        'screens',
+        {screens: without.value.screens.filter(({id}) => id !== MAIN_ID)},
+        2,
+      ),
+    );
+
+    await waitFor(() => expect(selectedOf('방송 자막')).toBe('true'));
+    expect(box(2)?.getAttribute('aria-current')).toBeNull();
+    expect(
+      document
+        .querySelector(`[data-target="${CAPTIONS_ID}"]`)
+        ?.getAttribute('aria-current'),
+    ).toBe('true');
   });
 
   it('keeps one selection across the three lists', async () => {

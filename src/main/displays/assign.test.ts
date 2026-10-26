@@ -21,7 +21,7 @@ function assignedIds(
 function assign(
   requests: readonly DisplayRequest[],
   specs: readonly DisplaySpec[],
-  previous: AssignmentInput['previous'] = new Map(),
+  previous: AssignmentInput<Monitor>['previous'] = new Map(),
 ): Record<string, number> {
   return assignedIds(
     assignMonitors({

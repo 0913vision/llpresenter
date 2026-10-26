@@ -1,4 +1,5 @@
 import {create} from 'zustand';
+import type {Screen} from '@shared/schema/screens';
 
 /** The list that holds the selected row of 화면 설정. */
 export type ScreensSelectionKind = 'screen' | 'look' | 'stage';
@@ -31,4 +32,22 @@ export function selectedIdIn(
   kind: ScreensSelectionKind,
 ): string | undefined {
   return selection.kind === kind ? (selection.id ?? undefined) : undefined;
+}
+
+/**
+ * The selected screen: the one the operator picked, or the first 청중 screen
+ * (else the first 무대 screen) until a pick or after the picked one is
+ * removed. `undefined` while another list holds the selection or there are no
+ * screens.
+ */
+export function selectedScreenIn(
+  selection: ScreensSelection,
+  screens: readonly Screen[],
+): Screen | undefined {
+  if (selection.kind !== 'screen') return undefined;
+  return (
+    screens.find(screen => screen.id === selection.id) ??
+    screens.find(screen => screen.kind === 'audience') ??
+    screens[0]
+  );
 }

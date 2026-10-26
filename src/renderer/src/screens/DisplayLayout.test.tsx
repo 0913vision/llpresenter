@@ -6,10 +6,11 @@ import type {MonitorList} from '@shared/schema/monitors';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {DisplayLayout} from './DisplayLayout';
 import {useScreensSelection} from './selection';
-import {CAPTIONS_ID, MAIN_ID, screensDocument} from './testing/documents';
+import {CAPTIONS_ID, screensDocument} from './testing/documents';
 
 function monitor(number: number, x: number, hasMainWindow = false) {
   return {
+    id: number,
     number,
     name: `Monitor ${number}`,
     bounds: {x, y: 0, width: 1920, height: 1080},
@@ -74,7 +75,7 @@ describe('the display layout', () => {
     await waitFor(() => expect(box(2)).toBeTruthy());
     expect(box(1).textContent).toContain('컨트롤');
     expect(box(2).textContent).toContain('Monitor 2');
-    expect(box(2).textContent).toContain('1920 × 1080');
+    expect(box(2).textContent).toContain('1920×1080');
   });
 
   it('shows the screen assigned to a monitor and the targets without one', async () => {
@@ -89,13 +90,17 @@ describe('the display layout', () => {
   it('highlights the monitor of the selected screen', async () => {
     setup();
     await waitFor(() => expect(box(2).textContent).toContain('본 화면'));
-    const before = box(2).className;
-    const controlBefore = box(1).className;
+    expect(box(2).getAttribute('aria-current')).toBe('true');
+    expect(box(1).getAttribute('aria-current')).toBeNull();
 
-    act(() => useScreensSelection.getState().select('screen', MAIN_ID));
+    act(() => useScreensSelection.getState().select('screen', CAPTIONS_ID));
 
-    expect(box(2).className).not.toBe(before);
-    expect(box(1).className).toBe(controlBefore);
+    expect(box(2).getAttribute('aria-current')).toBeNull();
+    expect(
+      document
+        .querySelector(`[data-target="${CAPTIONS_ID}"]`)
+        ?.getAttribute('aria-current'),
+    ).toBe('true');
   });
 
   it('follows a pushed monitor list', async () => {

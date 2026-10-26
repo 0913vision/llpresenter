@@ -14,6 +14,7 @@ export function toMonitorList(
 ): MonitorList {
   const control = findControlMonitor(monitors, controlBounds);
   return monitors.slice(0, limit).map((monitor): MonitorInfo => ({
+    id: monitor.id,
     number: monitor.number,
     name: monitor.name,
     bounds: monitor.bounds,

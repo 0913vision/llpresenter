@@ -16,6 +16,7 @@ function screens() {
 
 function monitor(number: number, x: number, hasMainWindow = false) {
   return {
+    id: number,
     number,
     name: `Monitor ${number}`,
     bounds: {x, y: 0, width: 1920, height: 1080},
@@ -65,7 +66,7 @@ describe('displayLayout', () => {
     const [first, second] = displayLayout(twoMonitors, [], undefined).monitors;
 
     expect(first).toMatchObject({
-      resolution: '1920 × 1080',
+      resolution: '1920×1080',
       name: 'Monitor 1',
       control: true,
     });
@@ -78,6 +79,53 @@ describe('displayLayout', () => {
     expect(model.monitors.map(box => [box.screens, box.selected])).toEqual([
       [[], false],
       [['본 화면'], true],
+    ]);
+  });
+
+  it('finds the saved monitor by identity after the monitors are renumbered', () => {
+    const left = {...monitor(1, 0, true), id: 5, name: 'Newly plugged'};
+    const projector = {
+      ...monitor(2, 1920),
+      id: 2,
+      number: 3,
+      name: 'Projector',
+    };
+    const middle = {...monitor(3, 1000), id: 8, number: 2};
+    const renumbered: MonitorList = [left, middle, projector];
+
+    const model = displayLayout(renumbered, screens(), MAIN_ID);
+
+    expect(
+      model.monitors.map(box => [box.number, box.screens, box.selected]),
+    ).toEqual([
+      [1, [], false],
+      [2, [], false],
+      [3, ['본 화면'], true],
+    ]);
+  });
+
+  it('shows the screen on no monitor when its saved monitor is gone', () => {
+    const model = displayLayout([monitor(1, 0, true)], screens(), MAIN_ID);
+
+    expect(model.monitors.flatMap(box => box.screens)).toEqual([]);
+  });
+
+  it('shows the resolution in device pixels while placing in device-independent pixels', () => {
+    const scaled = {...monitor(1, 0, true), scaleFactor: 2};
+    const model = displayLayout([scaled, monitor(2, 1920)], [], undefined);
+
+    expect(model.monitors.map(box => box.resolution)).toEqual([
+      '3840×2160',
+      '1920×1080',
+    ]);
+    expect(model.monitors.map(box => box.width)).toEqual([50, 50]);
+  });
+
+  it('shows the default size of a capture window with no saved resolution', () => {
+    const model = displayLayout(twoMonitors, screens(), undefined);
+
+    expect(model.targets.map(target => target.resolution)).toEqual([
+      '1920×1080',
     ]);
   });
 

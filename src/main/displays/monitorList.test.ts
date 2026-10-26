@@ -13,6 +13,7 @@ describe('toMonitorList', () => {
 
     expect(toMonitorList(monitors, null, 64)).toEqual([
       {
+        id: 4,
         number: 1,
         name: 'Desk',
         bounds: {x: 0, y: 0, width: 1920, height: 1080},
@@ -21,6 +22,7 @@ describe('toMonitorList', () => {
         hasMainWindow: true,
       },
       {
+        id: 9,
         number: 2,
         name: 'Projector',
         bounds: {x: 1920, y: 0, width: 1920, height: 1080},

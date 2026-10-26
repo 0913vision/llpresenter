@@ -31,9 +31,17 @@ built once.
 ## Changed files
 
 - `src/renderer/src/screens/`: `DisplayLayout.tsx`, `DisplayLayout.module.css`,
-  `layoutBoxes.ts`, `useMonitors.ts`, and their tests.
-- Changes outside my paths: `src/renderer/src/shell/Workspace.tsx` (shell's
-  path), one `case '배치'` in `screensPanelParts` and its import.
+  `layoutBoxes.ts`, `monitorAssignment.ts`, `displaySizes.ts`, `selection.ts`
+  (`selectedScreenIn`), `useMonitors.ts`, and their tests.
+- Changes outside my paths:
+  - `src/renderer/src/shell/Workspace.tsx` (shell's path), one `case '배치'` in
+    `screensPanelParts` and its import.
+  - `src/shared/monitorAssign.ts` (new) holds main's `assignMonitors`, moved
+    from `src/main/displays/assign.ts` and made generic over the monitor type;
+    `assign.ts` now re-exports it, so main's callers and `assign.test.ts` are
+    unchanged (output's path).
+  - `src/shared/schema/monitors.ts` and `src/main/displays/monitorList.ts`: the
+    monitor gets its display `id` (additive), with tests.
 
 ## Checks run
 
@@ -96,3 +104,25 @@ missing.
 ## Team member's reply
 
 1.
+
+## Round 2 reply
+
+1. [P2] Saved monitor numbers: the panel now resolves each screen's monitor with
+   main's own `assignMonitors` (moved to `src/shared/monitorAssign.ts`), from
+   the saved display id first, then name and size, then position and size. The
+   monitor list carries the display `id` for this. Tests renumber the monitors
+   and check a missing monitor.
+2. [P2] Resolution: bounds stay in device-independent pixels for the
+   arrangement, and the label is converted with the scale factor. A test covers
+   a 200 % monitor (`3840×2160`).
+3. [P2] Initial selection: `selectedScreenIn` is the one rule for the screen
+   list and this panel (the picked screen, else the first 청중 screen, else the
+   first screen, also after the picked one is removed). A workspace test covers
+   the initial mark and the fallback after a removal; the boxes carry
+   `aria-current`.
+4. [Nit] A capture screen without a saved resolution shows 1920×1080, the size
+   its window opens with. A window shows 960×540.
+
+Windows can't read the monitor each screen had at main's last assignment, so a
+look-alike monitor is the one case where the panel may differ from main (then
+main leaves the screen in a window); the NOTE in `monitorAssignment.ts` says so.

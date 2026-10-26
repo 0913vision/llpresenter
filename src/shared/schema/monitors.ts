@@ -32,6 +32,7 @@ const extent = v.pipe(
 );
 
 const monitorInfoSchema = payloadObject({
+  id: v.pipe(v.number(), v.integer()),
   number: v.pipe(
     v.number(),
     v.integer(),
@@ -66,7 +67,8 @@ const monitorListSchema = v.pipe(
 );
 
 /**
- * A connected monitor as 화면 설정 shows it. `number` counts from 1, left to
+ * A connected monitor as 화면 설정 shows it. `id` is the operating system's
+ * display id, which a screen's saved monitor names. `number` counts from 1, left to
  * right, then top to bottom. `bounds` are in
  * device-independent pixels, as Electron reports them. `refreshRate` is
  * in hertz, and 0 when the system doesn't report one. `hasMainWindow` is set

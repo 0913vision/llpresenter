@@ -1,10 +1,11 @@
 import {useMemo, type JSX} from 'react';
+import type {Screen} from '@shared/schema/screens';
 import {Button} from '@renderer/ui';
 import {classNames} from '@renderer/ui/classNames';
 import {sendLive} from '@renderer/state/live';
 import type {Notice} from '@renderer/ui/notices';
 import {displayLayout, type MonitorBox, type TargetBox} from './layoutBoxes';
-import {selectedIdIn, useScreensSelection} from './selection';
+import {selectedScreenIn, useScreensSelection} from './selection';
 import {useMonitors} from './useMonitors';
 import {useSettingsDocument} from './useSettingsDocument';
 import styles from './DisplayLayout.module.css';
@@ -14,6 +15,7 @@ const LOAD_TITLE = '화면';
 const IDENTIFY_LABEL = '모니터 번호 표시';
 const CONTROL_LABEL = '컨트롤';
 const PERCENT_UNIT = '%';
+const noScreens: readonly Screen[] = [];
 
 function percent(value: number): string {
   return `${value}${PERCENT_UNIT}`;
@@ -24,6 +26,7 @@ function MonitorView({box}: {readonly box: MonitorBox}): JSX.Element {
     <div
       className={classNames(styles.monitor, box.selected && styles.selected)}
       data-monitor={box.number}
+      aria-current={box.selected ? 'true' : undefined}
       style={{
         left: percent(box.left),
         top: percent(box.top),
@@ -47,6 +50,7 @@ function TargetView({target}: {readonly target: TargetBox}): JSX.Element {
     <div
       className={classNames(styles.target, target.selected && styles.selected)}
       data-target={target.id}
+      aria-current={target.selected ? 'true' : undefined}
     >
       <span className={styles.targetName}>{target.name}</span>
       {target.resolution !== undefined && <span>{target.resolution}</span>}
@@ -67,10 +71,11 @@ export function DisplayLayout({
   const monitors = useMonitors();
   const document = useSettingsDocument('screens', LOAD_TITLE, onProblem);
   const selection = useScreensSelection(view => view.selection);
-  const selectedId = selectedIdIn(selection, 'screen');
+  const screens = document?.value.screens ?? noScreens;
+  const selectedId = selectedScreenIn(selection, screens)?.id;
   const model = useMemo(
-    () => displayLayout(monitors, document?.value.screens ?? [], selectedId),
-    [monitors, document, selectedId],
+    () => displayLayout(monitors, screens, selectedId),
+    [monitors, screens, selectedId],
   );
   return (
     <section className={styles.layout} aria-label={TITLE}>
