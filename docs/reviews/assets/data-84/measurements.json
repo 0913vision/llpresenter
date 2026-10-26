@@ -1,0 +1,779 @@
+{
+  "port": 5188,
+  "offscreen": true,
+  "samples": [
+    {
+      "showRound": 5,
+      "counts": {
+        "bin": 132,
+        "document": 558,
+        "properties": 67,
+        "video": 1
+      },
+      "heap": {
+        "backingStorageSize": 1742867,
+        "embedderHeapUsedSize": 5637912,
+        "totalSize": 7802880,
+        "usedSize": 6604380
+      },
+      "dom": {
+        "documents": 31,
+        "jsEventListeners": 452,
+        "nodes": 1840
+      }
+    },
+    {
+      "showRound": 10,
+      "counts": {
+        "bin": 132,
+        "document": 558,
+        "properties": 67,
+        "video": 1
+      },
+      "heap": {
+        "backingStorageSize": 1742874,
+        "embedderHeapUsedSize": 5650688,
+        "totalSize": 7802880,
+        "usedSize": 6641152
+      },
+      "dom": {
+        "documents": 31,
+        "jsEventListeners": 452,
+        "nodes": 1840
+      }
+    },
+    {
+      "showRound": 15,
+      "counts": {
+        "bin": 132,
+        "document": 558,
+        "properties": 67,
+        "video": 1
+      },
+      "heap": {
+        "backingStorageSize": 1742874,
+        "embedderHeapUsedSize": 5581896,
+        "totalSize": 7802880,
+        "usedSize": 6657624
+      },
+      "dom": {
+        "documents": 31,
+        "jsEventListeners": 452,
+        "nodes": 1840
+      }
+    },
+    {
+      "showRound": 20,
+      "counts": {
+        "bin": 132,
+        "document": 558,
+        "properties": 67,
+        "video": 1
+      },
+      "heap": {
+        "backingStorageSize": 1742877,
+        "embedderHeapUsedSize": 5548736,
+        "totalSize": 7802880,
+        "usedSize": 6691012
+      },
+      "dom": {
+        "documents": 31,
+        "jsEventListeners": 452,
+        "nodes": 1840
+      }
+    }
+  ],
+  "qaAcceptance": {
+    "finding": "M3-C4-4",
+    "zoomPercent": 100,
+    "devicePixelRatio": 1
+  },
+  "heightCases": [
+    {
+      "label": "saved-open, minimum Show",
+      "appScrollTop": 0,
+      "bin": {
+        "bottom": 692,
+        "height": 178,
+        "width": 1280,
+        "x": 0,
+        "y": 514
+      },
+      "clientHeight": 622,
+      "leftPanels": [
+        {
+          "bottom": 354,
+          "height": 284,
+          "width": 220,
+          "x": 4,
+          "y": 70
+        },
+        {
+          "bottom": 510,
+          "height": 152,
+          "width": 220,
+          "x": 4,
+          "y": 358
+        }
+      ],
+      "main": {
+        "bottom": 692,
+        "height": 622,
+        "width": 1280,
+        "x": 0,
+        "y": 70
+      },
+      "overflowY": "auto",
+      "rightPanels": [
+        {
+          "bottom": 210,
+          "height": 140,
+          "width": 360,
+          "x": 916,
+          "y": 70
+        },
+        {
+          "bottom": 266,
+          "height": 52,
+          "width": 360,
+          "x": 916,
+          "y": 214
+        },
+        {
+          "bottom": 510,
+          "height": 240,
+          "width": 360,
+          "x": 916,
+          "y": 270
+        }
+      ],
+      "scrollHeight": 622,
+      "scrollTop": 0,
+      "upper": {
+        "bottom": 510,
+        "height": 440,
+        "width": 1280,
+        "x": 0,
+        "y": 70
+      },
+      "viewport": {
+        "height": 720,
+        "width": 1280
+      }
+    },
+    {
+      "label": "minimum Show reopened",
+      "appScrollTop": 0,
+      "bin": {
+        "bottom": 692,
+        "height": 178,
+        "width": 1280,
+        "x": 0,
+        "y": 514
+      },
+      "clientHeight": 622,
+      "leftPanels": [
+        {
+          "bottom": 354,
+          "height": 284,
+          "width": 220,
+          "x": 4,
+          "y": 70
+        },
+        {
+          "bottom": 510,
+          "height": 152,
+          "width": 220,
+          "x": 4,
+          "y": 358
+        }
+      ],
+      "main": {
+        "bottom": 692,
+        "height": 622,
+        "width": 1280,
+        "x": 0,
+        "y": 70
+      },
+      "overflowY": "auto",
+      "rightPanels": [
+        {
+          "bottom": 210,
+          "height": 140,
+          "width": 360,
+          "x": 916,
+          "y": 70
+        },
+        {
+          "bottom": 266,
+          "height": 52,
+          "width": 360,
+          "x": 916,
+          "y": 214
+        },
+        {
+          "bottom": 510,
+          "height": 240,
+          "width": 360,
+          "x": 916,
+          "y": 270
+        }
+      ],
+      "scrollHeight": 622,
+      "scrollTop": 0,
+      "upper": {
+        "bottom": 510,
+        "height": 440,
+        "width": 1280,
+        "x": 0,
+        "y": 70
+      },
+      "viewport": {
+        "height": 720,
+        "width": 1280
+      }
+    },
+    {
+      "label": "minimum Show reopened",
+      "appScrollTop": 0,
+      "bin": {
+        "bottom": 692,
+        "height": 178,
+        "width": 1280,
+        "x": 0,
+        "y": 514
+      },
+      "clientHeight": 622,
+      "leftPanels": [
+        {
+          "bottom": 354,
+          "height": 284,
+          "width": 220,
+          "x": 4,
+          "y": 70
+        },
+        {
+          "bottom": 510,
+          "height": 152,
+          "width": 220,
+          "x": 4,
+          "y": 358
+        }
+      ],
+      "main": {
+        "bottom": 692,
+        "height": 622,
+        "width": 1280,
+        "x": 0,
+        "y": 70
+      },
+      "overflowY": "auto",
+      "rightPanels": [
+        {
+          "bottom": 210,
+          "height": 140,
+          "width": 360,
+          "x": 916,
+          "y": 70
+        },
+        {
+          "bottom": 266,
+          "height": 52,
+          "width": 360,
+          "x": 916,
+          "y": 214
+        },
+        {
+          "bottom": 510,
+          "height": 240,
+          "width": 360,
+          "x": 916,
+          "y": 270
+        }
+      ],
+      "scrollHeight": 622,
+      "scrollTop": 0,
+      "upper": {
+        "bottom": 510,
+        "height": 440,
+        "width": 1280,
+        "x": 0,
+        "y": 70
+      },
+      "viewport": {
+        "height": 720,
+        "width": 1280
+      }
+    },
+    {
+      "label": "minimum Prep",
+      "appScrollTop": 0,
+      "bin": {
+        "bottom": 692,
+        "height": 178,
+        "width": 1280,
+        "x": 0,
+        "y": 514
+      },
+      "clientHeight": 622,
+      "leftPanels": [
+        {
+          "bottom": 288,
+          "height": 218,
+          "width": 220,
+          "x": 4,
+          "y": 70
+        },
+        {
+          "bottom": 510,
+          "height": 218,
+          "width": 220,
+          "x": 4,
+          "y": 292
+        }
+      ],
+      "main": {
+        "bottom": 692,
+        "height": 622,
+        "width": 1280,
+        "x": 0,
+        "y": 70
+      },
+      "overflowY": "auto",
+      "rightPanels": [
+        {
+          "bottom": 104,
+          "height": 34,
+          "width": 360,
+          "x": 916,
+          "y": 70
+        },
+        {
+          "bottom": 510,
+          "height": 402,
+          "width": 360,
+          "x": 916,
+          "y": 108
+        }
+      ],
+      "scrollHeight": 622,
+      "scrollTop": 0,
+      "upper": {
+        "bottom": 510,
+        "height": 440,
+        "width": 1280,
+        "x": 0,
+        "y": 70
+      },
+      "viewport": {
+        "height": 720,
+        "width": 1280
+      }
+    },
+    {
+      "label": "minimum Prep, properties scrolled",
+      "appScrollTop": 0,
+      "bin": {
+        "bottom": 692,
+        "height": 178,
+        "width": 1280,
+        "x": 0,
+        "y": 514
+      },
+      "clientHeight": 622,
+      "leftPanels": [
+        {
+          "bottom": 288,
+          "height": 218,
+          "width": 220,
+          "x": 4,
+          "y": 70
+        },
+        {
+          "bottom": 510,
+          "height": 218,
+          "width": 220,
+          "x": 4,
+          "y": 292
+        }
+      ],
+      "main": {
+        "bottom": 692,
+        "height": 622,
+        "width": 1280,
+        "x": 0,
+        "y": 70
+      },
+      "overflowY": "auto",
+      "rightPanels": [
+        {
+          "bottom": 104,
+          "height": 34,
+          "width": 360,
+          "x": 916,
+          "y": 70
+        },
+        {
+          "bottom": 510,
+          "height": 402,
+          "width": 360,
+          "x": 916,
+          "y": 108
+        }
+      ],
+      "scrollHeight": 622,
+      "scrollTop": 0,
+      "upper": {
+        "bottom": 510,
+        "height": 440,
+        "width": 1280,
+        "x": 0,
+        "y": 70
+      },
+      "viewport": {
+        "height": 720,
+        "width": 1280
+      }
+    },
+    {
+      "label": "minimum window at 120 percent",
+      "appScrollTop": 0,
+      "bin": {
+        "bottom": 681.9921569824219,
+        "height": 167.99478149414062,
+        "width": 1095.989501953125,
+        "x": 0,
+        "y": 513.9973754882812
+      },
+      "clientHeight": 494,
+      "leftPanels": [
+        {
+          "bottom": 287.9947814941406,
+          "height": 217.99478149414062,
+          "width": 200,
+          "x": 3.9973957538604736,
+          "y": 70
+        },
+        {
+          "bottom": 510,
+          "height": 218.0078125,
+          "width": 200,
+          "x": 3.9973957538604736,
+          "y": 291.9921875
+        }
+      ],
+      "main": {
+        "bottom": 572.0051879882812,
+        "height": 502.00518798828125,
+        "width": 1066.6666259765625,
+        "x": 0,
+        "y": 70
+      },
+      "overflowY": "auto",
+      "rightPanels": [
+        {
+          "bottom": 103.99739456176758,
+          "height": 33.99739456176758,
+          "width": 320,
+          "x": 771.9921875,
+          "y": 70
+        },
+        {
+          "bottom": 509.9999771118164,
+          "height": 402.00518798828125,
+          "width": 320,
+          "x": 771.9921875,
+          "y": 107.99478912353516
+        }
+      ],
+      "scrollHeight": 612,
+      "scrollTop": 0,
+      "upper": {
+        "bottom": 510,
+        "height": 440,
+        "width": 1095.989501953125,
+        "x": 0,
+        "y": 70
+      },
+      "viewport": {
+        "height": 600,
+        "width": 1067
+      }
+    },
+    {
+      "label": "zoomed, scrolled to bin",
+      "appScrollTop": 0,
+      "bin": {
+        "bottom": 563.6588439941406,
+        "height": 167.99478149414062,
+        "width": 1095.989501953125,
+        "x": 0,
+        "y": 395.6640625
+      },
+      "clientHeight": 494,
+      "leftPanels": [
+        {
+          "bottom": 169.66144943237305,
+          "height": 217.99478149414062,
+          "width": 200,
+          "x": 3.9973957538604736,
+          "y": -48.33333206176758
+        },
+        {
+          "bottom": 391.6666564941406,
+          "height": 218.0078125,
+          "width": 200,
+          "x": 3.9973957538604736,
+          "y": 173.65884399414062
+        }
+      ],
+      "main": {
+        "bottom": 572.0051879882812,
+        "height": 502.00518798828125,
+        "width": 1066.6666259765625,
+        "x": 0,
+        "y": 70
+      },
+      "overflowY": "auto",
+      "rightPanels": [
+        {
+          "bottom": -14.3359375,
+          "height": 33.99739456176758,
+          "width": 320,
+          "x": 771.9921875,
+          "y": -48.33333206176758
+        },
+        {
+          "bottom": 391.66664695739746,
+          "height": 402.00518798828125,
+          "width": 320,
+          "x": 771.9921875,
+          "y": -10.338541030883789
+        }
+      ],
+      "scrollHeight": 612,
+      "scrollTop": 118.33332824707031,
+      "upper": {
+        "bottom": 391.6666679382324,
+        "height": 440,
+        "width": 1095.989501953125,
+        "x": 0,
+        "y": -48.33333206176758
+      },
+      "viewport": {
+        "height": 600,
+        "width": 1067
+      }
+    },
+    {
+      "label": "regular Show",
+      "appScrollTop": 0,
+      "bin": {
+        "bottom": 1052,
+        "height": 300,
+        "width": 1920,
+        "x": 0,
+        "y": 752
+      },
+      "clientHeight": 966,
+      "leftPanels": [
+        {
+          "bottom": 592,
+          "height": 506,
+          "width": 280,
+          "x": 4,
+          "y": 86
+        },
+        {
+          "bottom": 748,
+          "height": 152,
+          "width": 280,
+          "x": 4,
+          "y": 596
+        }
+      ],
+      "main": {
+        "bottom": 1052,
+        "height": 966,
+        "width": 1920,
+        "x": 0,
+        "y": 86
+      },
+      "overflowY": "auto",
+      "rightPanels": [
+        {
+          "bottom": 432,
+          "height": 346,
+          "width": 480,
+          "x": 1436,
+          "y": 86
+        },
+        {
+          "bottom": 504,
+          "height": 68,
+          "width": 480,
+          "x": 1436,
+          "y": 436
+        },
+        {
+          "bottom": 748,
+          "height": 240,
+          "width": 480,
+          "x": 1436,
+          "y": 508
+        }
+      ],
+      "scrollHeight": 966,
+      "scrollTop": 0,
+      "upper": {
+        "bottom": 748,
+        "height": 662,
+        "width": 1920,
+        "x": 0,
+        "y": 86
+      },
+      "viewport": {
+        "height": 1080,
+        "width": 1920
+      }
+    }
+  ],
+  "scrollbar": {
+    "color": "rgb(58, 58, 58) rgba(0, 0, 0, 0)",
+    "expectedThumb": "rgb(58, 58, 58)",
+    "width": "thin"
+  },
+  "before": {
+    "counts": {
+      "bin": 132,
+      "document": 558,
+      "properties": 67,
+      "video": 1
+    },
+    "heap": {
+      "backingStorageSize": 1742784,
+      "embedderHeapUsedSize": 5563440,
+      "totalSize": 7278592,
+      "usedSize": 6550584
+    },
+    "dom": {
+      "documents": 31,
+      "jsEventListeners": 452,
+      "nodes": 1840
+    }
+  },
+  "showAfter": {
+    "counts": {
+      "bin": 132,
+      "document": 558,
+      "properties": 67,
+      "video": 1
+    },
+    "heap": {
+      "backingStorageSize": 1742874,
+      "embedderHeapUsedSize": 5466816,
+      "totalSize": 7802880,
+      "usedSize": 6688272
+    },
+    "dom": {
+      "documents": 31,
+      "jsEventListeners": 452,
+      "nodes": 1840
+    }
+  },
+  "prepEntryPoints": [
+    {
+      "name": "View menu",
+      "closedAndReopened": true,
+      "workspaceUnchanged": true
+    },
+    {
+      "name": "Ctrl Shift V",
+      "closedAndReopened": true,
+      "workspaceUnchanged": true
+    }
+  ],
+  "menuScreenshot": "bin-prep-view-menu.png",
+  "prepBefore": {
+    "counts": {
+      "bin": 132,
+      "document": 399,
+      "properties": 67,
+      "video": 1
+    },
+    "heap": {
+      "backingStorageSize": 1743939,
+      "embedderHeapUsedSize": 4923304,
+      "totalSize": 8065024,
+      "usedSize": 7168112
+    },
+    "dom": {
+      "documents": 33,
+      "jsEventListeners": 557,
+      "nodes": 1090
+    }
+  },
+  "after": {
+    "counts": {
+      "bin": 132,
+      "document": 399,
+      "properties": 67,
+      "video": 1
+    },
+    "heap": {
+      "backingStorageSize": 1744022,
+      "embedderHeapUsedSize": 5160264,
+      "totalSize": 8589312,
+      "usedSize": 7559740
+    },
+    "dom": {
+      "documents": 33,
+      "jsEventListeners": 557,
+      "nodes": 1090
+    }
+  },
+  "prepCounts": {
+    "bin": 132,
+    "document": 399,
+    "properties": 67,
+    "video": 1
+  },
+  "selectionRoundTripsPerWorkspace": 20,
+  "workspaceRoundTrips": 20,
+  "reopenCount": 2,
+  "editorTextRetained": true,
+  "workspaceNavigationLeavesOutputUnchanged": true,
+  "geometry": {
+    "bin": {
+      "bottom": 1052,
+      "height": 300,
+      "top": 752,
+      "width": 1920
+    },
+    "editor": {
+      "bottom": 748,
+      "height": 628,
+      "top": 120,
+      "width": 1144
+    },
+    "height": 1080,
+    "width": 1920
+  },
+  "previewHeight": 84.375,
+  "narrow": {
+    "bin": {
+      "bottom": 740,
+      "height": 226,
+      "top": 514,
+      "width": 1366
+    },
+    "editor": {
+      "bottom": 510,
+      "height": 406,
+      "top": 104,
+      "width": 770
+    },
+    "height": 768,
+    "width": 1366
+  }
+}
