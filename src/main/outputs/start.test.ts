@@ -1,6 +1,7 @@
 import {BrowserWindow} from 'electron';
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import {Channels} from '@shared/ipc';
+import {parseMonitorList} from '@shared/schema/monitors';
 import {parseLiveCommand} from '@shared/schema/liveCommand';
 import type {SettingsReader} from '../store/settingsStore';
 import type {MessageHandler} from '../rendererMessages';
@@ -465,10 +466,13 @@ describe('saved output backend', () => {
   it('answers the monitor list and pushes it when the monitors change', async () => {
     const {stop} = setup();
     await loaded();
-    const numbers = () =>
-      (fakes.answers.get(Channels.monitorsGet)?.() as {number: number}[]).map(
-        monitor => monitor.number,
+    const numbers = () => {
+      const parsed = parseMonitorList(
+        fakes.answers.get(Channels.monitorsGet)?.(),
       );
+      if (!parsed.ok) throw new Error(parsed.error.message);
+      return parsed.value.map(monitor => monitor.number);
+    };
     expect(numbers()).toEqual([1, 2, 3]);
 
     const displays = fakes.displays;
