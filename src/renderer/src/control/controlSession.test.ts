@@ -165,3 +165,43 @@ it('refuses the close when a pending item read rejects while the editor flush su
   expect(await items.chooseArrangement('주일용')).toBe(true);
   await session.dispose();
 });
+
+it('refuses the close while a refused memo waits, and lets it close after a retry saves it', async () => {
+  const {api, service} = itemFixture();
+  let request: (value: AppFlushRequest) => void = () => undefined;
+  vi.spyOn(api.app, 'subscribeFlushRequests').mockImplementation(listener => {
+    request = listener;
+    return () => undefined;
+  });
+  const flushDone = vi.spyOn(api.app, 'flushDone');
+  vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  const write = api.content.edit;
+  const edit = vi.spyOn(api.content, 'edit').mockResolvedValue({
+    ok: false,
+    error: {reason: 'stale', message: 'Fixture refusal'},
+  });
+  const session = new ControlSession(api);
+  session.startEditor();
+  const items = session.items;
+  if (items === undefined) throw new Error('Missing item store');
+  items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
+  await vi.waitFor(() => expect(items.getSnapshot().item).not.toBeNull());
+  const target = {serviceId: fixtureServiceId, itemId: fixtureItems.arranged};
+  expect(await items.setMemo(target, '닫기 전의 글')).toBe(false);
+  const first = createAppFlushRequestId('c29f83da-f097-4203-8eb5-263748596071');
+  request({requestId: first});
+  await vi.waitFor(() => {
+    expect(flushDone).toHaveBeenCalledWith({requestId: first, result: false});
+  });
+  expect(items.memoDraft(target)).toBe('닫기 전의 글');
+  edit.mockImplementation(write);
+  const second = createAppFlushRequestId(
+    'd3a094eb-a108-4314-9fc6-374859607182',
+  );
+  request({requestId: second});
+  await vi.waitFor(() => {
+    expect(flushDone).toHaveBeenCalledWith({requestId: second, result: true});
+  });
+  expect(service().service.order[1]).toMatchObject({memo: '닫기 전의 글'});
+  await session.dispose();
+});

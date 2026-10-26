@@ -332,18 +332,83 @@ describe('service item store', () => {
     );
   });
 
-  it('runs one item edit at a time', async () => {
-    const {items, edits} = setup();
+  it('runs item edits one after another without refusing the later ones', async () => {
+    const {items, edits, service} = setup();
     items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
     await vi.waitFor(() => expect(items.getSnapshot().item).not.toBeNull());
     const first = items.chooseArrangement(undefined);
-    expect(items.getSnapshot().busy).toBe(true);
-    expect(await items.chooseArrangement(undefined)).toBe(false);
+    const second = items.setStartMacro(fixtureMacros.praise);
     expect(await first).toBe(true);
+    expect(await second).toBe(true);
     expect(items.getSnapshot().busy).toBe(false);
     expect(edits.filter(edit => edit.type === 'service.update')).toHaveLength(
-      1,
+      2,
     );
+    expect(service().service.order[1]).toMatchObject({
+      macro: fixtureMacros.praise,
+    });
+    expect(service().service.order[1]).not.toHaveProperty('arrangement');
+  });
+
+  it('saves a memo queued behind a running edit before a close flush succeeds', async () => {
+    const {api, items, service} = setup();
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
+    await vi.waitFor(() => expect(items.getSnapshot().item).not.toBeNull());
+    const write = api.content.edit;
+    let release: (() => void) | undefined;
+    vi.spyOn(api.content, 'edit').mockImplementationOnce(async edit => {
+      const result = await write(edit);
+      return new Promise(resolve => {
+        release = () => resolve(result);
+      });
+    });
+    const target = {serviceId: fixtureServiceId, itemId: fixtureItems.arranged};
+    const choosing = items.chooseArrangement(undefined);
+    const saving = items.setMemo(target, '닫기 전에');
+    const flushing = pendingWritesOf(api).flush();
+    await vi.waitFor(() => expect(release).toBeDefined());
+    release?.();
+    expect(await flushing).toBe(true);
+    expect(await choosing).toBe(true);
+    expect(await saving).toBe(true);
+    expect(service().service.order[1]).toMatchObject({memo: '닫기 전에'});
+    expect(items.memoDraft(target)).toBeUndefined();
+  });
+
+  it('keeps a memo save that overlaps a background change instead of refusing it', async () => {
+    const {items, service} = setup();
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
+    await vi.waitFor(() => expect(items.getSnapshot().item).not.toBeNull());
+    const target = {serviceId: fixtureServiceId, itemId: fixtureItems.arranged};
+    const background = items.setBackground(fixtureMedia.warm);
+    const memo = items.setMemo(target, '겹친 메모');
+    expect(await background).toBe(true);
+    expect(await memo).toBe(true);
+    expect(service().service.order[1]).toMatchObject({
+      background: fixtureMedia.warm,
+      memo: '겹친 메모',
+    });
+  });
+
+  it('makes the close flush save a draft that a refused save left waiting', async () => {
+    const {api, items, service} = setup();
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
+    await vi.waitFor(() => expect(items.getSnapshot().item).not.toBeNull());
+    const write = api.content.edit;
+    vi.spyOn(api.content, 'edit').mockResolvedValue({
+      ok: false,
+      error: {reason: 'stale', message: 'Fixture refusal'},
+    });
+    const target = {serviceId: fixtureServiceId, itemId: fixtureItems.arranged};
+    expect(await items.setMemo(target, '남은 글')).toBe(false);
+    expect(items.memoDraft(target)).toBe('남은 글');
+    expect(await items.flushDrafts()).toBe(false);
+    expect(items.memoDraft(target)).toBe('남은 글');
+    vi.mocked(api.content.edit).mockImplementation(write);
+    expect(await items.flushDrafts()).toBe(true);
+    expect(items.memoDraft(target)).toBeUndefined();
+    expect(service().service.order[1]).toMatchObject({memo: '남은 글'});
+    expect(await items.flushDrafts()).toBe(true);
   });
 
   it('saves a new order of the chosen 구성 in the song as one undo step', async () => {

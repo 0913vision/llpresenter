@@ -80,19 +80,20 @@ export class ControlSession {
   }
 
   // NOTE(0913vision): Unsent work lives in the editor's sessions and
-  // operations and in the window's pending writes (item, 예배 순서, and
-  // background edits). The close goes on only when all of it reached main.
+  // operations, in the window's pending writes (item, 예배 순서, and
+  // background edits), and in memo drafts that a refused save left waiting. The close goes on only when all of it reached main.
   private async flushBeforeClose(): Promise<boolean> {
     this.editorBlocked = true;
     const writes =
       this.api === undefined ? undefined : pendingWritesOf(this.api);
     let flushed = false;
     try {
-      const [sent, editorFlushed] = await Promise.all([
+      const [sent, editorFlushed, draftsSaved] = await Promise.all([
         writes?.flush() ?? Promise.resolve(true),
         this.editorStore?.flush() ?? Promise.resolve(true),
+        this.itemStore?.flushDrafts() ?? Promise.resolve(true),
       ]);
-      flushed = sent && editorFlushed;
+      flushed = sent && editorFlushed && draftsSaved;
       return flushed;
     } finally {
       this.editorBlocked = flushed;

@@ -84,7 +84,6 @@ function useMacros(api: LlpApi['settings']) {
 interface RowState {
   readonly items: ServiceItemStore;
   readonly api: Pick<LlpApi, 'media' | 'settings'>;
-  /** Why the row can't change now, or `undefined`. */
   readonly lockReason: string | undefined;
 }
 

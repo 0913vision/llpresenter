@@ -167,14 +167,14 @@ export class ServiceItemStore {
   private songId: SongId | null = null;
   private songStatus: ItemSongStatus = 'loading';
   private position = 0;
-  private pending: Promise<unknown> | undefined;
+  private queue: Promise<unknown> = Promise.resolve();
+  private running = 0;
   private readonly memoDrafts = new Map<
     string,
     {readonly target: ItemTarget; readonly memo: string}
   >();
   private serviceRead = 0;
   private songRead = 0;
-  private busy = false;
   private readonly writes: PendingWrites;
   private alive = true;
   private state = NO_ITEM;
@@ -246,7 +246,7 @@ export class ServiceItemStore {
   private async addArrangement(): Promise<boolean> {
     const {song, arrangement} = this.state;
     const target = this.target;
-    if (!this.alive || this.busy || song === null || target === null) {
+    if (!this.alive || song === null || target === null) {
       return false;
     }
     const songId = song.document.song.id;
@@ -301,20 +301,24 @@ export class ServiceItemStore {
 
   /**
    * Saves a memo to the item it was typed for, even when another item is
-   * shown by then, after any edit in progress. An empty memo removes the field.
+   * shown by then, after any edit in progress: the whole save, its wait
+   * included, is registered with the pending writes at once. An empty memo
+   * removes the field.
    */
   async setMemo(target: ItemTarget, memo: string): Promise<boolean> {
     const key = draftKey(target);
     if (!this.keepMemoDraft(key, target, memo)) return false;
-    while (this.pending !== undefined) await this.pending;
-    const saved = await this.operation(() =>
-      this.edit({
-        change: withStartField('memo', memo === '' ? undefined : memo),
-        failure: '메모 저장 실패',
-        target,
-        retry: () => this.retryMemo(target),
-      }),
-    );
+    return this.operation(() => this.saveMemo(target, memo));
+  }
+
+  private async saveMemo(target: ItemTarget, memo: string): Promise<boolean> {
+    const key = draftKey(target);
+    const saved = await this.edit({
+      change: withStartField('memo', memo === '' ? undefined : memo),
+      failure: '메모 저장 실패',
+      target,
+      retry: () => this.retryMemo(target),
+    });
     if (saved && this.memoDrafts.get(key)?.memo === memo) {
       this.memoDrafts.delete(key);
       this.publish();
@@ -378,10 +382,39 @@ export class ServiceItemStore {
 
   // NOTE(0913vision): Every item edit goes through the window's pending
   // writes, so the close flush stops new ones, waits for the running ones,
-  // and refuses the close when one didn't reach the main process.
+  // and refuses the close when one didn't reach the main process. Edits run
+  // one after another and none is refused for another one running; a queued
+  // edit is registered before it waits.
   private operation(task: () => Promise<boolean>): Promise<boolean> {
     if (!this.alive) return Promise.resolve(false);
-    return this.writes.run({write: task, refused: false, sent: sent => sent});
+    return this.writes.run({
+      write: () => this.queued(task),
+      refused: false,
+      sent: sent => sent,
+    });
+  }
+
+  private queued(task: () => Promise<boolean>): Promise<boolean> {
+    const result = this.queue.then(task, task);
+    this.queue = result.then(
+      () => undefined,
+      () => undefined,
+    );
+    return result;
+  }
+
+  /**
+   * The store's part of the close flush: saves every memo that is still
+   * waiting after the running edits, and answers whether none is left.
+   */
+  async flushDrafts(): Promise<boolean> {
+    await this.queue;
+    const saved = await Promise.all(
+      [...this.memoDrafts.values()].map(({target, memo}) =>
+        this.queued(() => this.saveMemo(target, memo)),
+      ),
+    );
+    return saved.every(Boolean) && this.memoDrafts.size === 0;
   }
 
   private async edit({
@@ -390,13 +423,10 @@ export class ServiceItemStore {
     target = this.target,
     retry,
   }: ItemEdit): Promise<boolean> {
-    if (!this.alive || this.busy || target === null) return false;
-    this.setBusy(true);
-    const request = updateServiceItem(this.api, {...target, change});
-    this.pending = request;
-    const result = await request;
-    this.pending = undefined;
-    this.setBusy(false);
+    if (!this.alive || target === null) return false;
+    this.setRunning(1);
+    const result = await updateServiceItem(this.api, {...target, change});
+    this.setRunning(-1);
     if (result.ok) return true;
     if (result.error.reason === 'write-failed') {
       this.problem('예배 순서 저장 실패');
@@ -506,8 +536,8 @@ export class ServiceItemStore {
     this.publish();
   }
 
-  private setBusy(busy: boolean): void {
-    this.busy = busy;
+  private setRunning(change: 1 | -1): void {
+    this.running += change;
     this.publish();
   }
 
@@ -545,7 +575,7 @@ export class ServiceItemStore {
       songStatus: this.songId === null ? null : this.songStatus,
       arrangement: effectiveArrangement(item, song?.history.snapshot.song),
       position: this.position,
-      busy: this.busy || this.writes.isStopped,
+      busy: this.running > 0 || this.writes.isStopped,
     };
     for (const listener of this.listeners) listener();
   }
