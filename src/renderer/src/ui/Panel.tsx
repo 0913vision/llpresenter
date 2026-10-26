@@ -172,9 +172,11 @@ function PanelMoreTabs<T extends string>({
   readonly value: T;
   readonly onChange: (value: T) => void;
 }): JSX.Element {
+  const base = useContext(PanelIdBase);
   const [button, setButton] = useState<HTMLButtonElement | null>(null);
   const [expanded, setExpanded] = useState(false);
-  const active = more.tabs.some(tab => tab.value === value);
+  const current = more.tabs.find(tab => tab.value === value);
+  const active = current !== undefined;
   return (
     <>
       <button
@@ -191,6 +193,11 @@ function PanelMoreTabs<T extends string>({
           className={styles.moreChevron}
         />
       </button>
+      {current === undefined ? null : (
+        <span id={tabId(base, current.value)} hidden>
+          {tabLabel(current) ?? current.label}
+        </span>
+      )}
       {expanded && button !== null ? (
         <Menu
           label={more.label}

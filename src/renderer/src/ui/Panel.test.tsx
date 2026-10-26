@@ -101,6 +101,9 @@ function NarrowTools({
           more={{label: '더 보기', tabs: more}}
         />
       </PanelHeader>
+      <PanelBody variant="flush" tab={tool}>
+        <span>{tool}</span>
+      </PanelBody>
     </Panel>
   );
 }
@@ -134,6 +137,18 @@ describe('PanelTabs with a 더 보기 group', () => {
     await userEvent.click(screen.getByRole('tab', {name: '무대'}));
     expect(selectedTab()).toBe('무대');
     expect(more.hasAttribute('data-active')).toBe(false);
+  });
+
+  it('names the body after a tab chosen from 더 보기', async () => {
+    Element.prototype.scrollIntoView = () => undefined;
+    render(<NarrowTools />);
+    expect(screen.getByRole('tabpanel', {name: '표시 중'})).toBeDefined();
+    await userEvent.click(screen.getByRole('button', {name: '더 보기'}));
+    await userEvent.click(screen.getByRole('menuitemradio', {name: '오디오'}));
+    expect(screen.queryByRole('menu')).toBeNull();
+    expect(screen.getByRole('tabpanel', {name: '오디오'}).textContent).toBe(
+      'audio',
+    );
   });
 
   it('draws no button when no tab is left over', () => {
