@@ -11,6 +11,7 @@ import {updateActiveCopies, type CopyJob} from '@renderer/show/mediaCopyJobs';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {chosenPlaylist, type ChosenPlaylist} from './mediaEntries';
 import type {MediaProps} from './mediaProps';
+import {requestMediaImport} from './mediaImport';
 
 /** What the media view uses of the window API. */
 export type MediaApi = Pick<LlpApi, 'media' | 'log'>;
@@ -182,20 +183,19 @@ export class MediaLibrary {
     source: MediaImportRequest['source'],
     playlist: MediaImportRequest['playlist'],
   ): Promise<void> {
-    const result = await this.api.media
-      .import({source, playlist})
-      .catch(rejected);
-    if (!result.ok) {
-      this.refused('Media import was refused', result.error.message);
-      this.onProblem(warning('media-view:import', '미디어를 가져올 수 없음'));
-      return;
-    }
-    for (const progress of result.value) this.follow(progress);
+    const result = await requestMediaImport({
+      api: this.api,
+      source,
+      playlist,
+      onProblem: notice => this.onProblem(notice),
+    });
+    if (result === null) return;
+    for (const progress of result) this.follow(progress);
     if (playlist === null) return;
     // NOTE(0913vision): Only jobs that wait or run get a destination, so the
     // map never outgrows the active jobs, which are capped.
     const destinations = new Map(this.view.destinations);
-    for (const {mediaId} of result.value) {
+    for (const {mediaId} of result) {
       if (this.active.has(mediaId)) destinations.set(mediaId, playlist.id);
     }
     this.update({destinations});

@@ -1,11 +1,12 @@
 import {act, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@shared/live';
-import {createMediaId} from '@shared/schema/ids';
+import {createMediaId, createMediaPlaylistId} from '@shared/schema/ids';
 import {
   parseMediaDocument,
   type MediaDocument,
   type MediaImportProgress,
+  type MediaImportResult,
 } from '@shared/schema/mediaEdit';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {useLive} from '@renderer/state/live';
@@ -232,4 +233,46 @@ it('reports read/transport failures and ignores callbacks after unmount', async 
   expect(stopMedia).toHaveBeenCalledOnce();
   expect(stopImports).toHaveBeenCalledOnce();
   expect(report).toHaveBeenCalledTimes(previousReports);
+});
+
+it('removes the import destination when its queued copy ends', async () => {
+  const {api, report, progress} = setup();
+  const job = {
+    mediaId: video,
+    fileName: 'Invented.mp4',
+    phase: 'queued',
+    percent: 0,
+  } as const;
+  vi.spyOn(api.media, 'import').mockResolvedValue({ok: true, value: [job]});
+  const playlist = {
+    kind: 'media',
+    id: createMediaPlaylistId('50000000-0000-4000-8000-000000000001'),
+  } as const;
+  const {result} = renderHook(() => useMediaStrip(report));
+  await waitFor(() => expect(result.current.document).not.toBeNull());
+  await act(() => result.current.importMedia(playlist));
+  expect(result.current.destinations.get(video)).toBe(playlist.id);
+  act(() => progress({...job, phase: 'complete', percent: 100}));
+  expect(result.current.jobs).toHaveLength(0);
+  expect(result.current.destinations.size).toBe(0);
+});
+
+it('ignores an import result and refusal after the panel unmounts', async () => {
+  const {api, report} = setup();
+  let finish: (value: MediaImportResult) => void = () => undefined;
+  vi.spyOn(api.media, 'import').mockReturnValue(
+    new Promise(resolve => {
+      finish = resolve;
+    }),
+  );
+  const {result, unmount} = renderHook(() => useMediaStrip(report));
+  await waitFor(() => expect(result.current.document).not.toBeNull());
+  const pending = result.current.importMedia(null);
+  unmount();
+  await act(async () => {
+    finish({ok: false, error: {reason: 'invalid', message: 'Late refusal'}});
+    await pending;
+  });
+  expect(report).not.toHaveBeenCalled();
+  expect(result.current.jobs).toHaveLength(0);
 });

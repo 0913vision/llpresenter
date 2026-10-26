@@ -4,7 +4,9 @@ import {mediaLoops} from '@shared/mediaEndRule';
 import type {
   MediaDocument,
   MediaImportProgress,
+  MediaImportRequest,
 } from '@shared/schema/mediaEdit';
+import {requestMediaImport} from '@renderer/prep/media/mediaImport';
 import {sendLive} from '@renderer/state/live';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {updateActiveCopies, type CopyJob} from './mediaCopyJobs';
@@ -31,32 +33,41 @@ export function useMediaStrip(onProblem: (notice: Notice) => void) {
   const [document, setDocument] = useState<MediaDocument | null>(null);
   const [jobs, setJobs] = useState<readonly CopyJob[]>([]);
   const [missing, setMissing] = useState<ReadonlySet<MediaId>>(new Set());
+  const [destinations, setDestinations] = useState<
+    ReadonlyMap<MediaId, string>
+  >(new Map());
+  const importDestinations = useRef(new Map<MediaId, string>());
   const canonical = useRef<MediaDocument | null>(null);
   const activeJobs = useRef(new Map<MediaId, CopyJob>());
   const missingIds = useRef(new Set<MediaId>());
   const alive = useRef(false);
   const reportFromFeed = useEffectEvent(onProblem);
 
-  const receiveProgress = useEffectEvent(
-    (progress: MediaImportProgress): void => {
-      const changed = updateActiveCopies(activeJobs.current, progress);
-      if (progress.phase === 'failed') {
-        reportFromFeed(
-          warningNotice(
-            `media-strip:copy:${progress.mediaId}`,
-            '미디어 복사 실패',
-            [progress.fileName],
-          ),
-        );
-        window.llp?.log.write({
-          level: 'error',
-          message: 'Media copy failed',
-          detail: progress.message,
-        });
-      }
-      if (changed) setJobs([...activeJobs.current.values()]);
-    },
-  );
+  const followProgress = (progress: MediaImportProgress): void => {
+    const changed = updateActiveCopies(activeJobs.current, progress);
+    if (progress.phase === 'failed') {
+      onProblem(
+        warningNotice(
+          `media-strip:copy:${progress.mediaId}`,
+          '미디어 복사 실패',
+          [progress.fileName],
+        ),
+      );
+      window.llp?.log.write({
+        level: 'error',
+        message: 'Media copy failed',
+        detail: progress.message,
+      });
+    }
+    if (changed) setJobs([...activeJobs.current.values()]);
+    if (
+      !activeJobs.current.has(progress.mediaId) &&
+      importDestinations.current.delete(progress.mediaId)
+    ) {
+      setDestinations(new Map(importDestinations.current));
+    }
+  };
+  const receiveProgress = useEffectEvent(followProgress);
 
   useEffect(() => {
     const api = window.llp;
@@ -74,6 +85,7 @@ export function useMediaStrip(onProblem: (notice: Notice) => void) {
     };
     const stopMedia = api.media.subscribe(accept);
     const pending = activeJobs.current;
+    const destinations = importDestinations.current;
     const stopImports = api.media.subscribeImports(progress => {
       if (active) receiveProgress(progress);
     });
@@ -102,6 +114,7 @@ export function useMediaStrip(onProblem: (notice: Notice) => void) {
       stopMedia();
       stopImports();
       pending.clear();
+      destinations.clear();
     };
   }, []);
 
@@ -142,5 +155,36 @@ export function useMediaStrip(onProblem: (notice: Notice) => void) {
       onProblem(warningNotice('media-strip:output', '미디어 출력 실패'));
     }
   };
-  return {document, jobs, missing, markMissing, activate};
+  const importMedia = async (
+    playlist: MediaImportRequest['playlist'],
+  ): Promise<void> => {
+    const api = window.llp;
+    const isActive = (): boolean => alive.current;
+    if (!api || !isActive()) return;
+    const queued = await requestMediaImport({
+      api,
+      source: {kind: 'dialog'},
+      playlist,
+      onProblem: notice => {
+        if (alive.current) onProblem(notice);
+      },
+    });
+    if (!alive.current || queued === null) return;
+    for (const progress of queued) {
+      followProgress(progress);
+      if (playlist !== null && activeJobs.current.has(progress.mediaId)) {
+        importDestinations.current.set(progress.mediaId, playlist.id);
+      }
+    }
+    setDestinations(new Map(importDestinations.current));
+  };
+  return {
+    document,
+    jobs,
+    missing,
+    markMissing,
+    activate,
+    importMedia,
+    destinations,
+  };
 }

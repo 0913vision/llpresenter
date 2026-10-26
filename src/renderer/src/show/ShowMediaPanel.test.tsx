@@ -14,6 +14,7 @@ import {
   parseMediaDocument,
   type MediaDocument,
   type MediaImportProgress,
+  type MediaImportResult,
 } from '@shared/schema/mediaEdit';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {useLive} from '@renderer/state/live';
@@ -204,7 +205,7 @@ it('renders active copy progress without allowing output', async () => {
   expect(screen.queryByRole('option', {name: job.fileName})).toBeNull();
 });
 
-it('shows missing-file state after a current preview failure and keeps import/relink unavailable', async () => {
+it('shows missing-file state without disabling import and keeps relink unavailable', async () => {
   const {api, send, report} = fixture();
   const edit = vi.spyOn(api.media, 'edit');
   render(<ShowMediaPanel onProblem={report} />);
@@ -224,10 +225,92 @@ it('shows missing-file state after a current preview failure and keeps import/re
     }),
   );
   const button = screen.getByRole('button', {name: '가져오기'});
+  expect(button.getAttribute('aria-disabled')).toBeNull();
+});
+
+it('imports into the selected playlist through the shared action and shows queued copies', async () => {
+  const {api, report, send} = fixture();
+  const job = {
+    mediaId: id(9),
+    fileName: 'Invented.png',
+    phase: 'queued',
+    percent: 0,
+  } as const;
+  const request = vi
+    .spyOn(api.media, 'import')
+    .mockResolvedValue({ok: true, value: [job]});
+  render(<ShowMediaPanel onProblem={report} />);
+  await screen.findByRole('option', {name: '미디어 0'});
+  await userEvent.click(screen.getByRole('button', {name: '미디어 재생 목록'}));
+  await userEvent.click(screen.getByRole('menuitemradio', {name: '영상'}));
+  await userEvent.click(screen.getByRole('button', {name: '가져오기'}));
+  expect(request).toHaveBeenCalledExactlyOnceWith({
+    source: {kind: 'dialog'},
+    playlist: {
+      kind: 'media',
+      id: createMediaPlaylistId('50000000-0000-4000-8000-000000000001'),
+    },
+  });
+  expect(await screen.findByRole('option', {name: job.fileName})).toBeDefined();
+  expect(send).not.toHaveBeenCalled();
+});
+
+it('rejects duplicate clicks while the dialog is pending and reports refusals once', async () => {
+  const {api, report, send} = fixture();
+  let finish: (value: MediaImportResult) => void = () => undefined;
+  const request = vi.spyOn(api.media, 'import').mockReturnValue(
+    new Promise(resolve => {
+      finish = resolve;
+    }),
+  );
+  render(<ShowMediaPanel onProblem={report} />);
+  await screen.findByRole('option', {name: '미디어 0'});
+  const button = screen.getByRole('button', {name: '가져오기'});
+  fireEvent.click(button);
+  fireEvent.click(button);
+  expect(request).toHaveBeenCalledExactlyOnceWith({
+    source: {kind: 'dialog'},
+    playlist: null,
+  });
   expect(button.getAttribute('aria-disabled')).toBe('true');
   expect((await hoverForTooltip(button))?.textContent).toBe(
-    '현재 버전에서는 미디어 파일을 가져올 수 없음',
+    '미디어를 가져오는 중',
   );
+  await act(async () => {
+    finish({
+      ok: false,
+      error: {reason: 'invalid', message: 'Injected refusal'},
+    });
+  });
+  expect(button.getAttribute('aria-disabled')).toBeNull();
+  expect(report).toHaveBeenCalledExactlyOnceWith(
+    expect.objectContaining({
+      key: 'media-view:import',
+      title: '미디어를 가져올 수 없음',
+    }),
+  );
+  expect(send).not.toHaveBeenCalled();
+});
+
+it('guards import while loading and for a read-only media document', async () => {
+  const {api, report, document} = fixture();
+  let finish: (value: MediaDocument) => void = () => undefined;
+  vi.spyOn(api.media, 'get').mockReturnValue(
+    new Promise(resolve => {
+      finish = resolve;
+    }),
+  );
+  const request = vi.spyOn(api.media, 'import');
+  render(<ShowMediaPanel onProblem={report} />);
+  const button = screen.getByRole('button', {name: '가져오기'});
+  fireEvent.click(button);
+  expect(button.getAttribute('aria-disabled')).toBe('true');
+  await act(async () => {
+    finish({...document, access: 'readOnly'});
+  });
+  fireEvent.click(button);
+  expect(button.getAttribute('aria-disabled')).toBe('true');
+  expect(request).not.toHaveBeenCalled();
 });
 
 it('keeps video previews paused and releases the source on unmount', async () => {

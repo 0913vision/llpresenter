@@ -1,4 +1,4 @@
-import {useMemo, useRef, useState, type DragEvent, type JSX} from 'react';
+import {useMemo, useState, type DragEvent, type JSX} from 'react';
 import {thumbnailUrl} from '@shared/media';
 import {mediaLoops} from '@shared/mediaEndRule';
 import type {MediaId} from '@shared/schema/ids';
@@ -32,6 +32,7 @@ import {
 } from './mediaEntries';
 import {useMediaView} from './MediaViewProvider';
 import {VirtualMediaGrid} from './VirtualMediaGrid';
+import {useMediaImportAction} from './useMediaImportAction';
 import styles from './MediaView.module.css';
 
 /** The fewest and most grid columns the size slider sets. */
@@ -103,8 +104,6 @@ export function MediaView({onProblem}: MediaViewProps): JSX.Element {
   const {library, view, choice, selected, select: setSelected} = useMediaView();
   const [columns, setColumns] = useState(DEFAULT_MEDIA_COLUMNS);
   const [menu, setMenu] = useState<OpenMenu | null>(null);
-  const [importing, setImporting] = useState(false);
-  const importPending = useRef(false);
   const [deleting, setDeleting] = useState<MediaItem | null>(null);
   const liveId = useLive(state => state.state?.layers.media?.mediaId);
   const entries = useMemo(() => mediaEntries(view, choice), [view, choice]);
@@ -175,43 +174,28 @@ export function MediaView({onProblem}: MediaViewProps): JSX.Element {
     },
     remove: setDeleting,
   });
-  const importReason = importing
-    ? '미디어를 가져오는 중'
-    : view.document === null
-      ? '미디어를 불러오는 중'
-      : view.document.access !== 'editable'
-        ? '읽기 전용 미디어'
-        : undefined;
-  const startImport = (files?: readonly File[]): void => {
-    if (importReason !== undefined || importPending.current) return;
-    importPending.current = true;
-    setImporting(true);
+  const {
+    reason: importReason,
+    startImport,
+    isPending,
+  } = useMediaImportAction(view.document, files => {
     const destination = playlist === null ? null : playlistRef(playlist);
-    const pending =
-      files === undefined
-        ? library.import(destination)
-        : library.importFiles(files, destination);
-    pending
-      .catch((cause: unknown) => {
-        console.error('Media import failed:', cause);
-      })
-      .finally(() => {
-        importPending.current = false;
-        setImporting(false);
-      });
-  };
+    return files === undefined
+      ? library.import(destination)
+      : library.importFiles(files, destination);
+  });
   const dragOver = (event: DragEvent<HTMLDivElement>): void => {
     if (!event.dataTransfer.types.includes('Files')) return;
     event.preventDefault();
     event.stopPropagation();
     event.dataTransfer.dropEffect =
-      importReason === undefined && !importPending.current ? 'copy' : 'none';
+      importReason === undefined && !isPending() ? 'copy' : 'none';
   };
   const drop = (event: DragEvent<HTMLDivElement>): void => {
     if (!event.dataTransfer.types.includes('Files')) return;
     event.preventDefault();
     event.stopPropagation();
-    if (importReason !== undefined || importPending.current) return;
+    if (importReason !== undefined || isPending()) return;
     const files: File[] = [];
     const count = Math.min(
       event.dataTransfer.files.length,

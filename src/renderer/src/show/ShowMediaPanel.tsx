@@ -10,13 +10,13 @@ import {
   SelectMenu,
 } from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';
+import {useMediaImportAction} from '@renderer/prep/media/useMediaImportAction';
 import {MediaStripTile, type StripEntry} from './MediaStripTile';
 import {WindowedMediaStrip} from './WindowedMediaStrip';
 import {useMediaStrip} from './useMediaStrip';
 import styles from './ShowMediaPanel.module.css';
 
 const ALL_MEDIA = 'all-media';
-const IMPORT_UNAVAILABLE = '현재 버전에서는 미디어 파일을 가져올 수 없음';
 
 /** A complete media strip panel; the workspace owns its visibility. */
 export function ShowMediaPanel({
@@ -30,6 +30,13 @@ export function ShowMediaPanel({
   const liveId = useLive(view => view.state?.layers.media?.mediaId);
   const playlists = media.document?.value.playlists ?? [];
   const chosen = playlists.find(entry => entry.id === playlist);
+  const {reason: importReason, startImport} = useMediaImportAction(
+    media.document,
+    () =>
+      media.importMedia(
+        chosen === undefined ? null : {kind: 'media', id: chosen.id},
+      ),
+  );
   const entries = useMemo(() => {
     const items = media.document?.value.items ?? [];
     const byId = new Map(items.map(item => [item.id, item]));
@@ -48,15 +55,17 @@ export function ShowMediaPanel({
         item,
         copying: pending.get(item.id)?.percent,
       }));
-    if (!chosen) {
-      for (const job of media.jobs) {
-        if (!byId.has(job.mediaId)) {
-          entries.push({id: job.mediaId, kind: 'copy', job});
-        }
+    for (const job of media.jobs) {
+      if (
+        !byId.has(job.mediaId) &&
+        (chosen === undefined ||
+          media.destinations.get(job.mediaId) === chosen.id)
+      ) {
+        entries.push({id: job.mediaId, kind: 'copy', job});
       }
     }
     return entries;
-  }, [media.document, media.jobs, playlist]);
+  }, [media.document, media.jobs, media.destinations, playlist]);
   const current = entries.findIndex(entry => entry.id === selected);
   return (
     <Panel label="미디어" className={styles.panel}>
@@ -81,7 +90,12 @@ export function ShowMediaPanel({
           ]}
         />
         <PanelActions>
-          <Button icon="upload" disabled title={IMPORT_UNAVAILABLE}>
+          <Button
+            icon="upload"
+            disabled={importReason !== undefined}
+            title={importReason}
+            onClick={() => startImport()}
+          >
             가져오기
           </Button>
         </PanelActions>

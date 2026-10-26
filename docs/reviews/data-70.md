@@ -31,7 +31,7 @@ safety guard deliberately suppresses native dialogs.
 
 - `src/main/media/register.ts` and its tests are prep-owned. The lead assigned
   this urgent picker bug to data.
-- `src/main/index.ts` and its wiring test are shell-owned. They pass the
+- `src/main/index.ts` and its wiring test are output-owned. They pass the
   existing app.json UI fields owner to the media registration and assert its
   identity.
 - `docs/spec/02-data.md` is spec-owned. It records the new optional picker field
