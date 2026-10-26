@@ -456,6 +456,10 @@ The 무대 화면 draws the elements of the current stage layout:
 - The Look's 무대 화면 card turns the clock, the stage message, 메시지, and
   background media on and off. Turning lyrics off empties the current lyrics,
   next lyrics, and 이름표 elements (proposal).
+- The control window sends the next 슬라이드 with the live one, from the
+  sequence it already walks, and main checks it like the rest of the command
+  (lead decision, October 26). If the 구성 changes while a 슬라이드 is live,
+  next lyrics and next 이름표 update with the next 슬라이드 sent.
 
 ### Which stage layout applies (proposal, open question)
 

@@ -382,7 +382,9 @@ after its name, and hides it at 0.
 - 무대 화면 row: the stage screen name and the stage layout select ("현재와
   다음"). Changing it changes only the stage screen's current layout (see 03).
 - 타이머 row: the 타이머 to show in the stage layout's 타이머 element (the board
-  shows "시계 11:24") (proposal).
+  shows "시계 11:24") (proposal). The choice belongs to the current output: a
+  Look change keeps it, it isn't saved, and deleting that 타이머 clears it (lead
+  decision, October 26).
 - Stage message: a text field, a LIVE badge while the message is on, 내리기
   (take down), and 보내기 (send). 보내기 or Enter sends the text to the 무대
   화면 (Enter is a proposal). A new message replaces the previous one.
