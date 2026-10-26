@@ -34,6 +34,10 @@ function mediaIdOf(fileName: string): MediaId | null {
 export class ThumbnailCache {
   // NOTE(0913vision): A Set keeps the order of use, least recent first.
   private readonly entries = new Set<MediaId>();
+  // NOTE(0913vision): The lookups, writes, and removals of one media id run
+  // one after another, so a removal can't slip between a lookup's check and
+  // its answer. Only ids with work in flight are here.
+  private readonly queues = new Map<MediaId, Promise<void>>();
   private loaded: Promise<void> | null = null;
 
   constructor(private readonly options: ThumbnailCacheOptions) {}
@@ -43,35 +47,58 @@ export class ThumbnailCache {
    * was kept, such as with the cache folder, leaves the cache, so the
    * thumbnail is made again.
    */
-  async fileOf(mediaId: MediaId): Promise<string | null> {
-    await this.load();
-    if (!this.entries.has(mediaId)) return null;
-    const file = this.pathOf(mediaId);
-    this.entries.delete(mediaId);
-    if (!(await fileExists(file))) return null;
-    this.entries.add(mediaId);
-    return file;
+  fileOf(mediaId: MediaId): Promise<string | null> {
+    return this.serial(mediaId, async () => {
+      await this.load();
+      if (!this.entries.has(mediaId)) return null;
+      const file = this.pathOf(mediaId);
+      const exists = await fileExists(file);
+      if (!this.entries.has(mediaId)) return null;
+      this.entries.delete(mediaId);
+      if (!exists) return null;
+      this.entries.add(mediaId);
+      return file;
+    });
   }
 
   /** Keeps a thumbnail. @returns Its file, or null when it can't be written. */
-  async put(mediaId: MediaId, jpeg: Uint8Array): Promise<string | null> {
-    await this.load();
-    const file = this.pathOf(mediaId);
-    const written = await writeFileAtomically(file, jpeg);
-    if (!written.ok) {
-      this.options.log.warn('could not keep a thumbnail', written.error);
-      return null;
-    }
-    this.entries.delete(mediaId);
-    this.entries.add(mediaId);
-    await this.trim();
-    return file;
+  put(mediaId: MediaId, jpeg: Uint8Array): Promise<string | null> {
+    return this.serial(mediaId, async () => {
+      await this.load();
+      const file = this.pathOf(mediaId);
+      const written = await writeFileAtomically(file, jpeg);
+      if (!written.ok) {
+        this.options.log.warn('could not keep a thumbnail', written.error);
+        return null;
+      }
+      this.entries.delete(mediaId);
+      this.entries.add(mediaId);
+      await this.trim();
+      return file;
+    });
   }
 
-  async remove(mediaId: MediaId): Promise<void> {
-    await this.load();
-    if (!this.entries.delete(mediaId)) return;
-    await this.removeFile(mediaId);
+  remove(mediaId: MediaId): Promise<void> {
+    return this.serial(mediaId, async () => {
+      await this.load();
+      if (!this.entries.delete(mediaId)) return;
+      await this.removeFile(mediaId);
+    });
+  }
+
+  private serial<T>(mediaId: MediaId, work: () => Promise<T>): Promise<T> {
+    const previous = this.queues.get(mediaId) ?? Promise.resolve();
+    const next = previous.then(work);
+    const settled = next.then(
+      () => undefined,
+      () => undefined,
+    );
+    this.queues.set(mediaId, settled);
+    const release = (): void => {
+      if (this.queues.get(mediaId) === settled) this.queues.delete(mediaId);
+    };
+    settled.then(release, release);
+    return next;
   }
 
   private pathOf(mediaId: MediaId): string {

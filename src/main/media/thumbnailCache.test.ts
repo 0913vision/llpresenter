@@ -98,4 +98,26 @@ describe('thumbnail cache', () => {
     expect(await cache.put(mediaId(1), JPEG)).toBe(file);
     expect(await cache.fileOf(mediaId(1))).toBe(file);
   });
+
+  it('answers concurrent lookups of one thumbnail alike', async () => {
+    const {cache} = await setup();
+    const file = await cache.put(mediaId(1), JPEG);
+    expect(
+      await Promise.all([
+        cache.fileOf(mediaId(1)),
+        cache.fileOf(mediaId(1)),
+        cache.fileOf(mediaId(1)),
+      ]),
+    ).toEqual([file, file, file]);
+  });
+
+  it('lets a removal during a lookup delete the thumbnail for good', async () => {
+    const {folder, cache} = await setup();
+    await cache.put(mediaId(1), JPEG);
+    const lookup = cache.fileOf(mediaId(1));
+    const removal = cache.remove(mediaId(1));
+    await Promise.all([lookup, removal]);
+    expect(await readdir(folder)).toEqual([]);
+    expect(await cache.fileOf(mediaId(1))).toBeNull();
+  });
 });
