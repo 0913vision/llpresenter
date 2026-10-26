@@ -2,7 +2,7 @@
 
 - Team member: `screens`
 - Branch: `feat/screens/properties`
-- Base commit (`main`): `57d28dc5`
+- Base commit (`main`): `7b5ce9a1`
 - Last commit: see the request line
 - Related brief: `docs/briefs/screens.md`
 
@@ -146,5 +146,7 @@ the lead ended it.
 ## Round 3 checks
 
 Before the fix, all five new close-handshake tests fail against round 2. With
-the fix, all 12 new and existing close-session tests pass. The request line
-reports the complete focused checks, rebase base and exact-head GitHub verify.
+the fix, all 12 new and existing close-session tests pass. After rebasing onto
+`7b5ce9a1`, 122 tests in 14 screens and close-flush files pass, as do typecheck
+and ESLint on the changed files. The request line reports formatting and the
+exact-head GitHub verify.
