@@ -23,8 +23,8 @@ type ScreenStatus = OutputStatuses[string];
 
 const MONITOR_ICON = 'monitor';
 const CAPTURE_ICON = 'capture';
-const UNASSIGNED_TARGET = '모니터 미지정';
-const targetByMethod = {
+export const UNASSIGNED_TARGET = '모니터 미지정';
+export const targetByMethod = {
   window: '창',
   capture: '캡처용 창',
   ndi: 'NDI',

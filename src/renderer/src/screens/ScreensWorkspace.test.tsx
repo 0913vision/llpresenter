@@ -9,6 +9,7 @@ import {
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@shared/live';
+import type {LiveCommand} from '@shared/commands';
 import type {MonitorList} from '@shared/schema/monitors';
 import type {OutputStatuses} from '@shared/schema/outputStatus';
 import type {SettingsDocument} from '@shared/schema/settingsDocuments';
@@ -69,7 +70,9 @@ function setup({
   let pushStatus: (next: OutputStatuses) => void = () => undefined;
   const stopStatus = vi.fn();
   const onProblem = vi.fn();
+  const send = vi.fn<(command: LiveCommand) => void>();
   window.llp = fakeLlpApi({
+    live: {send},
     settings: {
       get: request => read(request.name),
       subscribe: listener => {
@@ -99,6 +102,7 @@ function setup({
   );
   return {
     view,
+    send,
     onProblem,
     stopStatus,
     listenerCount: () => settingsListeners.size,
@@ -326,6 +330,26 @@ describe('the Look and 무대 배치 lists', () => {
         .querySelector(`[data-target="${CAPTIONS_ID}"]`)
         ?.getAttribute('aria-current'),
     ).toBe('true');
+  });
+
+  it('takes the test pattern off the real output when the workspace goes away', async () => {
+    const {view, send} = setup();
+    await userEvent
+      .setup()
+      .click(await screen.findByRole('radio', {name: '테스트 패턴'}));
+    expect(send).toHaveBeenCalledWith({
+      type: 'screen.testPattern.set',
+      screenId: MAIN_ID,
+      on: true,
+    });
+
+    view.unmount();
+
+    expect(send).toHaveBeenLastCalledWith({
+      type: 'screen.testPattern.set',
+      screenId: MAIN_ID,
+      on: false,
+    });
   });
 
   it('keeps one selection across the three lists', async () => {

@@ -45,6 +45,7 @@ import {
 import {useShowKeys} from '@renderer/show/shortcuts';
 import {useLibrarySongSync} from '@renderer/show/useLibrarySongSync';
 import {DisplayLayout} from '@renderer/screens/DisplayLayout';
+import {OutputPreview} from '@renderer/screens/OutputPreview';
 import {ScreenList} from '@renderer/screens/ScreenList';
 import {LookList, StageLayoutList} from '@renderer/screens/LookLists';
 import {classNames} from '@renderer/ui/classNames';
@@ -69,7 +70,7 @@ const panelsByWorkspace: Readonly<
     ['미리보기', '지우기', '진행 도구'],
   ],
   prep: [['예배 순서', '라이브러리'], ['편집'], ['미리보기', '항목 설정']],
-  screens: [['화면', 'Look', '무대 배치'], ['배치'], ['속성']],
+  screens: [['화면', 'Look', '무대 배치'], ['배치', '출력 미리보기'], ['속성']],
 };
 
 interface PanelParts {
@@ -228,6 +229,8 @@ function screensPanelParts(
       return {body: <StageLayoutList onProblem={onProblem} />};
     case '배치':
       return {body: <DisplayLayout onProblem={onProblem} />};
+    case '출력 미리보기':
+      return {size: 'content', body: <OutputPreview onProblem={onProblem} />};
     default:
       return {};
   }

@@ -1,0 +1,30 @@
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--space-12);
+}
+
+.frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--aspect-output);
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--output-black);
+  box-shadow: 0 0 0 1px var(--line);
+  container-type: inline-size;
+  pointer-events: none;
+}
+
+.caption {
+  display: flex;
+  flex-direction: column;
+  color: var(--text-2);
+  font: var(--type-caption);
+}
+
+.name {
+  color: var(--text);
+  font: var(--type-body-strong);
+}
