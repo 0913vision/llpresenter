@@ -74,3 +74,10 @@ remained invisible. Generated media and app data are untracked.
 ## Team member's reply
 
 1.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (713e0dfd): reviewer (Codex) Approve. Lead Approve; fixes M3-C3-6 from
+  the user's check: the import picker starts in the last folder used, or the
+  Videos folder. The exact-head CI run passed, checked by the lead at merge.
+  Rebased by the lead onto local `main` without conflicts; typecheck passes.
