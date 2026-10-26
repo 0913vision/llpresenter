@@ -44,9 +44,9 @@ None.
 | Command or test                                                  | Result                                   |
 | ---------------------------------------------------------------- | ---------------------------------------- |
 | `npm run typecheck`                                              | Pass                                     |
-| `npx vitest run src/main/outputs src/main/live`                  | Pass                                     |
+| `npx vitest run src/main/outputs src/main/live`                  | Pass, 416 tests (the native test skips)  |
 | `npx eslint` and `npx prettier --check` on the changed files     | Pass                                     |
-| Mutation checks (`.llp/output-42/mutations.log` in the worktree) | All fail a test                          |
+| Mutation checks (`.llp/output-42/mutations.log` in the worktree) | 11 mutations, all fail a test            |
 | `npm run verify`                                                 | GitHub CI only (see the request message) |
 
 Tests: each way the control window goes away hides both patterns and warns once;
