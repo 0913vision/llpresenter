@@ -59,3 +59,9 @@ and save/reopen alongside service, layout, zoom and other app fields.
 ## Team member's reply
 
 1.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (b0588726): reviewer (Codex, codex2) Approve. Lead Approve (see "What
+  changed and why"); the exact-head CI run passed, checked by the lead at merge.
+  Rebased by the lead onto local `main` without conflicts; typecheck passes.
