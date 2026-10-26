@@ -2,6 +2,7 @@ import {act, fireEvent, screen, waitFor, within} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 import {editorFixture} from './editorFixture';
 import {editorSetup, lyrics} from './editorTesting';
+import {JUMP_KEY_REASON} from './LabelDialog';
 
 async function openMenu(user: Awaited<ReturnType<typeof editorSetup>>['user']) {
   await user.click(screen.getByRole('button', {name: '1절'}));
@@ -135,6 +136,9 @@ describe('song editor label menu', () => {
     const field = within(dialog).getByRole('textbox', {name: '바로 가기 키'});
     fireEvent.keyDown(field, {key: 'F1', code: 'F1'});
     expect(field.getAttribute('aria-invalid')).toBe('true');
+    expect(
+      within(dialog).getByRole('textbox', {description: JUMP_KEY_REASON}),
+    ).toBe(field);
     fireEvent.keyDown(field, {key: 'c', code: 'KeyC', ctrlKey: true});
     expect(field.getAttribute('value')).toBe('');
     fireEvent.keyDown(field, {key: '1', code: 'Digit1'});
