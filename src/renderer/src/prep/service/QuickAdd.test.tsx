@@ -107,6 +107,39 @@ describe('항목 추가', () => {
     });
   });
 
+  it('points to the first result that arrives after keys pressed on an empty list', async () => {
+    const {search, user, service, first} = setup();
+    await user.click(screen.getByRole('button', {name: '항목 추가'}));
+    const menu = screen.getByRole('menu', {name: '항목 추가'});
+    await waitFor(() =>
+      expect(within(menu).getAllByRole('menuitem')).toHaveLength(2),
+    );
+    const real = search.getMockImplementation();
+    if (real === undefined) throw new Error('No search implementation');
+    let release: () => void = () => undefined;
+    search.mockImplementation(
+      request =>
+        new Promise(resolve => {
+          release = () => resolve(real(request));
+        }),
+    );
+    await user.keyboard('노래');
+    await waitFor(() =>
+      expect(within(menu).queryAllByRole('menuitem')).toHaveLength(0),
+    );
+    await user.keyboard('{ArrowDown}{ArrowDown}');
+    release();
+    const field = screen.getByRole('combobox', {name: '곡, 가사, 초성'});
+    await waitFor(() =>
+      expect(field.getAttribute('aria-activedescendant')).toBe(
+        within(menu).getAllByRole('menuitem')[0]?.id,
+      ),
+    );
+    await user.keyboard('{Enter}');
+    await waitFor(() => expect(service().service.order).toHaveLength(6));
+    expect(service().service.order.at(-1)).toMatchObject({song: first.song.id});
+  });
+
   it('is unavailable for a read-only service, with the reason', async () => {
     setup();
     act(() => useShow.setState({readOnly: true}));

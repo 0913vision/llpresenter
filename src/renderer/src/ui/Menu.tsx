@@ -144,7 +144,6 @@ function useMenuNavigation({
   onBack,
 }: {
   readonly entries: readonly MenuEntry[];
-  /** A new search term points to the first item again. */
   readonly searchValue: string | undefined;
   readonly surface: RefObject<HTMLDivElement | null>;
   readonly onClose: (reason: MenuCloseReason) => void;
@@ -154,6 +153,7 @@ function useMenuNavigation({
   const itemElements = useRef<Array<HTMLDivElement | null>>([]);
   const timers = useMenuTimers();
   const [pointedState, setPointed] = useState(0);
+  // NOTE(0913vision): A new search term points to the first item again.
   const [seenSearch, setSeenSearch] = useState(searchValue);
   if (seenSearch !== searchValue) {
     setSeenSearch(searchValue);
@@ -163,6 +163,7 @@ function useMenuNavigation({
   const pointed = Math.min(pointedState, items.length - 1);
 
   const pointTo = (index: number): void => {
+    if (index < 0) return;
     setPointed(index);
     itemElements.current[index]?.scrollIntoView({block: 'nearest'});
   };
