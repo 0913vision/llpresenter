@@ -1,0 +1,10 @@
+.frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--aspect-output);
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--output-black);
+  container-type: inline-size;
+  pointer-events: none;
+}

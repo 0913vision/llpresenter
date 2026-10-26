@@ -2,6 +2,7 @@ import type {LlpApi} from '@shared/ipc';
 import type {Result} from '@shared/result';
 import type {NamedDocument} from '../useSettingsDocument';
 import {SettingsDocumentEditor} from '../settingsDocumentEditor';
+import {editLookCard, type LookCardEdit} from './lookCardEdits';
 import {
   editLookList,
   type LookListContext,
@@ -39,6 +40,10 @@ export class LookListEditor {
 
   getSnapshot(): LooksDocument | null {
     return this.documents.getSnapshot();
+  }
+
+  changeCard(edit: LookCardEdit): Promise<boolean> {
+    return this.documents.change(value => editLookCard(value, edit));
   }
 
   async change(edit: LookListEdit): Promise<Result<boolean, LookListProblem>> {

@@ -4,7 +4,11 @@ import type {EditResult} from '@shared/schema/contentEdit';
 import {parseLookId} from '@shared/schema/ids';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
-import {looksDocument, SERMON_LOOK_ID} from '../testing/documents';
+import {
+  looksDocument,
+  screensDocument,
+  SERMON_LOOK_ID,
+} from '../testing/documents';
 import {LookListEditor} from './lookListEditor';
 
 function document() {
@@ -96,4 +100,74 @@ it('refuses writes to read-only documents', async () => {
     value: false,
   });
   expect(edit).not.toHaveBeenCalled();
+});
+
+it('shares the close-tracked queue between list and card edits', async () => {
+  const initial = document();
+  const screens = screensDocument();
+  if (screens.name !== 'screens') throw new Error('Wrong screens document');
+  const screen = screens.value.screens[0];
+  if (screen === undefined) throw new Error('Missing screen');
+  let release: (result: EditResult) => void = () => undefined;
+  const held = new Promise<EditResult>(resolve => {
+    release = resolve;
+  });
+  const edits: SettingsEdit[] = [];
+  const api = fakeLlpApi({
+    settings: {
+      edit: edit => {
+        edits.push(edit);
+        return edits.length === 1
+          ? held
+          : Promise.resolve({
+              ok: true,
+              value: {id: 'looks', revision: edits.length + 1},
+            });
+      },
+    },
+  });
+  const editor = new LookListEditor(api, vi.fn(), () => ({
+    current: initial.value.current,
+    macros: [],
+  }));
+  editor.adopt(initial);
+  const first = editor.change({
+    kind: 'rename',
+    id: initial.value.current,
+    name: '새 이름',
+  });
+  await vi.waitFor(() => expect(edits).toHaveLength(1));
+  const second = editor.changeCard({
+    lookId: initial.value.current,
+    screenId: screen.id,
+    change: {kind: 'layer', layer: 'media', on: false},
+  });
+  const third = editor.changeCard({
+    lookId: initial.value.current,
+    screenId: screen.id,
+    change: {kind: 'layer', layer: 'slide', on: false},
+  });
+  let closed = false;
+  const closing = pendingWritesOf(api)
+    .flush()
+    .then(value => {
+      closed = true;
+      return value;
+    });
+  await Promise.resolve();
+  expect(closed).toBe(false);
+  release({ok: true, value: {id: 'looks', revision: 2}});
+  await first;
+  expect(await second).toBe(true);
+  expect(await third).toBe(true);
+  expect(await closing).toBe(true);
+  expect(
+    edits.map(edit => 'baseRevision' in edit && edit.baseRevision),
+  ).toEqual([1, 2, 3]);
+  expect(editor.getSnapshot()?.value.looks[0]).toMatchObject({
+    name: '새 이름',
+    screens: {
+      [screen.id]: {layers: {media: false, slide: false, message: true}},
+    },
+  });
 });

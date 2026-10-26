@@ -5,6 +5,7 @@ import {noticeTime, type Notice} from '@renderer/ui/notices';
 import type {NamedDocument} from '../useSettingsDocument';
 import {LookListEditor} from './lookListEditor';
 import type {LookListEdit} from './lookListEdits';
+import type {LookCardEdit} from './lookCardEdits';
 
 const sessions = new WeakMap<LlpApi, ReturnType<typeof createSession>>();
 
@@ -73,6 +74,8 @@ export function useLookListEditor(
   });
   return {
     change: (edit: LookListEdit) => session.current?.editor.change(edit),
+    changeCard: (edit: LookCardEdit) =>
+      session.current?.editor.changeCard(edit),
     report: (title: string): void => session.current?.report(title),
   };
 }
