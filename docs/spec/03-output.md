@@ -160,6 +160,27 @@ Something shows on a screen only if both of these are true (proposal):
   Save, S4 pp. 37 to 38, but no ProPresenter source says whether edits apply
   live).
 
+### When a Look can't be resolved
+
+A gap in `looks.json` never blanks a screen. Each screen draws around it:
+
+- If the live Look no longer exists (deleted in 화면 설정), the screen uses the
+  saved current Look (`looks.current`). If that Look is gone too, the screen
+  draws as if there were no Look (lead decision, October 26).
+- With no Look, or while `looks.json` can't be read or hasn't been read yet, a
+  screen draws every layer its kind can show, lyrics in the 기본 style, the
+  background media, and the 방송 자막's `chroma` green when its method is the
+  capture window (lead decision, October 26).
+- If the Look has no card for a screen, that screen draws as if there were no
+  Look (lead decision, October 26).
+- If a card's lyric style no longer exists, the lyrics use the 기본 style (lead
+  decision, October 26).
+- Until stage layouts reach the output (M3-O5), the 무대 화면 draws lyrics in
+  the 기본 style when its card turns lyrics on (lead decision, October 26).
+- Each output window and preview logs a missing card or lyric style once per
+  screen and missing ID, for a bounded number of gaps, and logs again after
+  `looks.json` changes (lead decision, October 26).
+
 Source: `Looks`, `Main` decision "설정은 앱 전체에 하나", `ShowH` (toolbar
 "평상시"), `ToolbarButton` README (Look menu), `Shortcuts` (Look group).
 
