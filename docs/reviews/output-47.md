@@ -57,13 +57,16 @@ selection. Manual next commands without a version keep their existing behavior.
 - `src/main/index.ts` and its wiring test.
 - `audio.next` optional version and the slice's stale-notification guard.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: pending
-
-## Review: reviewer
-
-- Verdict: pending
+- Round 1 (Codex): Request changes; the findings and replies are above.
+- Round 2 (fea9018e): reviewer (Codex) Approve; second review (Gemini 4 Argon,
+  gem1) Approve, no findings, asked to look at anything that could stop or slow
+  the outputs, window and listener lifetimes, crash recovery, startup and
+  shutdown order, sound during development, and focus. Lead Approve. Held out of
+  m3-check2 on purpose (a new window on the output path the hour before a user
+  check) and merged right after the tag and the 0.16.0 bump; rebased by the lead
+  onto local `main` without conflicts; typecheck passes.
 
 ## Team member's reply
 
