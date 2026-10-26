@@ -43,6 +43,8 @@ export function guardTestPatterns({
   readonly store: LiveStore;
   readonly log: Logger;
 }): () => void {
+  if (control.isDestroyed()) return () => undefined;
+  const contents = control.webContents;
   const hideAll = (reason: string): void => {
     const shown = store.state.testPatterns ?? [];
     if (shown.length === 0) return;
@@ -64,12 +66,12 @@ export function guardTestPatterns({
     if (isMainFrame && !isSameDocument) hideAll('reloaded');
   };
   control.on('closed', onClosed);
-  control.webContents.on('render-process-gone', onGone);
-  control.webContents.on('did-start-navigation', onNavigation);
+  contents.on('render-process-gone', onGone);
+  contents.on('did-start-navigation', onNavigation);
   return () => {
     control.removeListener('closed', onClosed);
-    if (control.webContents.isDestroyed()) return;
-    control.webContents.removeListener('render-process-gone', onGone);
-    control.webContents.removeListener('did-start-navigation', onNavigation);
+    if (control.isDestroyed() || contents.isDestroyed()) return;
+    contents.removeListener('render-process-gone', onGone);
+    contents.removeListener('did-start-navigation', onNavigation);
   };
 }

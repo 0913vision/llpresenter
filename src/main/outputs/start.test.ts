@@ -176,6 +176,30 @@ async function loaded() {
 }
 
 describe('saved output backend', () => {
+  it('continues past a throwing stop callback and disposes outputs after on then off', async () => {
+    const {store, windows, controlWindow, stop, settings, log} = setup();
+    await loaded();
+    store.dispatch({type: 'output.set', screenId: MAIN, on: true});
+    const output = windows.only(MAIN);
+    store.dispatch({type: 'output.set', screenId: MAIN, on: false});
+    expect(output.destroyed).toBe(false);
+    const failure = new Error('Stop callback failed');
+    vi.spyOn(controlWindow, 'removeListener').mockImplementationOnce(() => {
+      throw failure;
+    });
+    expect(stop).not.toThrow();
+    expect(output.destroyed).toBe(true);
+    expect(store.listenerCount).toBe(0);
+    expect(settings.listeners.size).toBe(0);
+    expect(fakes.displays?.watcherCount).toBe(0);
+    expect(fakes.answers.size).toBe(0);
+    expect(log.entries).toContainEqual({
+      level: 'error',
+      message: 'could not release an output resource',
+      detail: failure,
+    });
+    stop();
+  });
   it.each(['refused', 'failed'] as const)(
     'keeps the built-in output usable when settings are %s',
     async reason => {

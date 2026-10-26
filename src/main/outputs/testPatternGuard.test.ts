@@ -14,9 +14,16 @@ class FakeContents extends EventEmitter {
 }
 
 class FakeControl extends EventEmitter {
-  readonly webContents = new FakeContents();
+  readonly contents = new FakeContents();
+  destroyed = false;
+  contentsReads = 0;
+  get webContents(): FakeContents {
+    this.contentsReads += 1;
+    if (this.destroyed) throw new Error('Object has been destroyed');
+    return this.contents;
+  }
   isDestroyed(): boolean {
-    return false;
+    return this.destroyed;
   }
 }
 
@@ -40,6 +47,32 @@ function setup() {
 }
 
 describe('guardTestPatterns', () => {
+  it('releases after the control BrowserWindow is destroyed without reading webContents again', () => {
+    const {control, stop} = setup();
+    control.destroyed = true;
+    const readDestroyed = vi
+      .spyOn(control.contents, 'isDestroyed')
+      .mockImplementation(() => {
+        throw new Error('Destroyed owner');
+      });
+    expect(stop).not.toThrow();
+    expect(control.contentsReads).toBe(1);
+    expect(control.listenerCount('closed')).toBe(0);
+    expect(readDestroyed).not.toHaveBeenCalled();
+  });
+
+  it('does not read webContents when setup receives an already destroyed control', () => {
+    const control = new FakeControl();
+    control.destroyed = true;
+    const stop = guardTestPatterns({
+      control,
+      store: new LiveStore(),
+      log: recordingLogger(),
+    });
+    expect(stop).not.toThrow();
+    expect(control.contentsReads).toBe(0);
+    expect(control.listenerCount('closed')).toBe(0);
+  });
   it.each([
     ['closes', (control: FakeControl) => control.emit('closed')],
     [

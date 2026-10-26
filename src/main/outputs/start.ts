@@ -231,15 +231,21 @@ export function startOutputs({
       store,
       new WakeKeeper(createElectronWakeLock(), log),
     ),
+    () => outputs.dispose(),
+    () => screens.dispose(),
+    () => displays.dispose(),
   ];
   return {
     stop: () => {
       if (stopped) return;
       stopped = true;
-      for (const stop of stops) stop();
-      outputs.dispose();
-      screens.dispose();
-      displays.dispose();
+      for (const stop of stops) {
+        try {
+          stop();
+        } catch (error) {
+          log.error('could not release an output resource', error);
+        }
+      }
     },
     frameRates: () => frameRates.reported(screens.list().map(({id}) => id)),
   };
