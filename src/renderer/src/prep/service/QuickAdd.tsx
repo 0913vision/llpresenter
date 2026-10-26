@@ -116,13 +116,6 @@ export function ServiceQuickAdd({
   const disabled = reason !== undefined || editing.busy;
   const insert = (songId: SongId): void => {
     const {rows, openItemId} = useShow.getState();
-    const selected = rows.find(row => row.id === openItemId);
-    if (selected?.kind === 'slot' && selected.accepts === 'song') {
-      editing.run((edits, id) =>
-        edits.fillSlotWithSong(id, createServiceItemId(selected.id), songId),
-      );
-      return;
-    }
     const before = quickAddBefore(rows, openItemId);
     editing.run((edits, id) =>
       edits.insertSong(
@@ -135,22 +128,6 @@ export function ServiceQuickAdd({
   const insertPassage = (ref: string): void => {
     if (bible.defaults === null) return;
     const passage = passageItem(ref, bible.defaults);
-    const {rows, openItemId} = useShow.getState();
-    const selected = rows.find(row => row.id === openItemId);
-    if (
-      selected?.kind === 'slot' &&
-      selected.accepts === 'bible' &&
-      'bible' in passage
-    ) {
-      editing.run((edits, id) =>
-        edits.fillSlotWithPassage(
-          id,
-          createServiceItemId(selected.id),
-          passage.bible,
-        ),
-      );
-      return;
-    }
     insertItem(passage);
   };
   const insertItem = (item: ServiceItem): void => {

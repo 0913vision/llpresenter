@@ -42,7 +42,6 @@ describe('quick add other items', () => {
     expect(entries[0]).toMatchObject({kind: 'group', label: '다른 항목'});
     expect(items(entries).map(item => item.label)).toEqual([
       '구역 추가',
-      '빈 자리',
       '성경 구절',
       '미디어',
       '공지',
@@ -58,20 +57,10 @@ describe('quick add other items', () => {
     expect(first?.id).not.toBe(second?.id);
   });
 
-  it('offers 찬양, 성경 구절, and 설교 as slots', () => {
-    const onInsert = vi.fn<(item: ServiceItem) => void>();
-    const slots = entry(build(onInsert), 'other:slot').submenu ?? [];
-    expect(items(slots).map(item => item.label)).toEqual([
-      '찬양',
-      '성경 구절',
-      '설교',
-    ]);
-    for (const slot of items(slots)) slot.onSelect?.();
-    expect(onInsert.mock.calls.map(([item]) => item)).toMatchObject([
-      {slot: 'song', title: '찬양'},
-      {slot: 'bible', title: '성경 구절'},
-      {slot: 'slides', title: '설교'},
-    ]);
+  it('offers no slot creation entry or submenus', () => {
+    expect(
+      items(build(() => undefined)).some(item => item.id === 'other:slot'),
+    ).toBe(false);
   });
 
   it('offers media without audio and the 공지 sets', () => {

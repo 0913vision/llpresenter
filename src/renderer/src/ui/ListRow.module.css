@@ -164,6 +164,11 @@
   font: inherit;
 }
 
+.groupRow {
+  min-height: var(--size-row);
+  height: auto;
+}
+
 .groupField:focus {
   outline: none;
   box-shadow: var(--ring-field-focus);

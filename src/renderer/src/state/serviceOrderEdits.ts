@@ -12,7 +12,6 @@ import {
   isItemOfKind,
   type Service,
   type ServiceItem,
-  type ServiceItemOf,
 } from '@shared/schema/service';
 import {sectionBoundaryIndex} from '@renderer/show/serviceSections';
 import {pendingWritesOf} from './pendingWrites';
@@ -157,61 +156,6 @@ export class ServiceOrderEdits {
         id: createServiceItemId(crypto.randomUUID()),
         song: songId,
       });
-      return {ok: true, value: order};
-    });
-  }
-
-  /**
-   * Fills a 빈 자리 that accepts songs with a song: the slot becomes a song
-   * item at its place and keeps its id, so a selection on it stays, with
-   * default 구성, no background, and no start 매크로.
-   */
-  fillSlotWithSong(
-    serviceId: ServiceId,
-    slotId: ServiceItemId,
-    songId: SongId,
-  ) {
-    return this.update(serviceId, async service => {
-      const index = service.order.findIndex(row => row.id === slotId);
-      const slot = service.order[index];
-      if (slot === undefined || !isItemOfKind(slot, 'slot')) {
-        return refuse('not-found', 'The slot no longer exists');
-      }
-      if (slot.slot !== 'song') {
-        return refuse('invalid', 'The slot does not take a song');
-      }
-      const song = await this.api.songs.get(songId);
-      if (song?.song.id !== songId) {
-        return refuse('not-found', 'The song no longer exists');
-      }
-      const order = [...service.order];
-      const {slot: _kind, title: _title, ...kept} = slot;
-      order[index] = {...kept, song: songId};
-      return {ok: true, value: order};
-    });
-  }
-
-  /**
-   * Fills a 빈 자리 that accepts Bible passages with a passage item, which
-   * takes the slot's place and id and keeps its unknown fields.
-   */
-  fillSlotWithPassage(
-    serviceId: ServiceId,
-    slotId: ServiceItemId,
-    passage: ServiceItemOf<'bible'>['bible'],
-  ) {
-    return this.update(serviceId, service => {
-      const index = service.order.findIndex(row => row.id === slotId);
-      const slot = service.order[index];
-      if (slot === undefined || !isItemOfKind(slot, 'slot')) {
-        return refuse('not-found', 'The slot no longer exists');
-      }
-      if (slot.slot !== 'bible') {
-        return refuse('invalid', 'The slot does not take a Bible passage');
-      }
-      const order = [...service.order];
-      const {slot: _kind, title: _title, ...kept} = slot;
-      order[index] = {...kept, bible: passage};
       return {ok: true, value: order};
     });
   }

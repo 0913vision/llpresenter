@@ -22,7 +22,9 @@ const serviceId = createServiceId('00000000-0000-4000-8000-000000000001');
 const headerId = createServiceItemId('10000000-0000-4000-8000-000000000001');
 const firstId = createServiceItemId('10000000-0000-4000-8000-000000000002');
 const lastId = createServiceItemId('10000000-0000-4000-8000-000000000003');
-const slotId = createServiceItemId('10000000-0000-4000-8000-000000000009');
+const emptySectionId = createServiceItemId(
+  '10000000-0000-4000-8000-000000000009',
+);
 const songId = createSongId('20000000-0000-4000-8000-000000000001');
 const secondHeaderId = createServiceItemId(
   '10000000-0000-4000-8000-000000000004',
@@ -31,7 +33,7 @@ const secondHeaderId = createServiceItemId(
 function setup(
   workspace: 'show' | 'prep' = 'show',
   readOnly = false,
-  extra: {slot?: boolean; secondSection?: boolean} = {},
+  extra: {emptySection?: boolean; secondSection?: boolean} = {},
 ) {
   let document: ServiceDocument = {
     service: {
@@ -47,8 +49,8 @@ function setup(
         ...(extra.secondSection
           ? [{id: secondHeaderId, header: '마무리'}]
           : []),
-        ...(extra.slot
-          ? [{id: slotId, slot: 'song' as const, title: '찬양 자리'}]
+        ...(extra.emptySection
+          ? [{id: emptySectionId, header: '빈 구역'}]
           : []),
       ],
     },
@@ -149,6 +151,33 @@ beforeEach(() => {
 });
 
 describe('service panel editing', () => {
+  it('selects an empty section and keeps it when a dropped song is added below it', async () => {
+    const {ids, send} = setup('prep', false, {emptySection: true});
+    const target = screen.getByRole('option', {name: '빈 구역'});
+    fireEvent.click(target);
+    expect(useShow.getState().openItemId).toBe(emptySectionId);
+    vi.spyOn(target, 'getBoundingClientRect').mockReturnValue(
+      new DOMRect(0, 100, 200, 40),
+    );
+    const dataTransfer = transfer(JSON.stringify({kind: 'song', songId}));
+    fireEvent.dragOver(target, {dataTransfer, clientY: 130});
+    const drop = new MouseEvent('drop', {bubbles: true, clientY: 130});
+    Object.defineProperty(drop, 'dataTransfer', {value: dataTransfer});
+    fireEvent(target, drop);
+    await waitFor(() => expect(ids()).toHaveLength(5));
+    expect(ids().slice(0, 4)).toEqual([
+      headerId,
+      firstId,
+      lastId,
+      emptySectionId,
+    ]);
+    expect(
+      screen.getByRole('option', {name: '빈 구역', selected: true}),
+    ).toBeDefined();
+    expect(useShow.getState().openItemId).toBe(emptySectionId);
+    expect(send).not.toHaveBeenCalled();
+  });
+
   it('shows the chosen arrangement count in prep and refreshes it with the projection', () => {
     const {view, onProblem} = setup('prep');
     expect(screen.getAllByText('슬라이드 0개')).toHaveLength(2);
@@ -238,7 +267,7 @@ describe('service panel editing', () => {
 
   it('drops above the first row from the list top padding', async () => {
     const {list, ids} = setup();
-    const header = screen.getByText('제목');
+    const header = screen.getByRole('option', {name: '제목'});
     vi.spyOn(header, 'getBoundingClientRect').mockReturnValue(
       new DOMRect(0, 4, 200, 30),
     );
@@ -294,7 +323,7 @@ describe('service panel editing', () => {
     'moves a whole section across the target header midpoint at $y',
     async ({y, expected}) => {
       const {ids} = setup('prep', false, {secondSection: true});
-      const target = screen.getByText('마무리');
+      const target = screen.getByRole('option', {name: '마무리'});
       vi.spyOn(target, 'getBoundingClientRect').mockReturnValue(
         new DOMRect(0, 0, 200, 30),
       );
@@ -455,27 +484,6 @@ describe('service panel editing', () => {
     expect(screen.queryByRole('textbox')).toBeNull();
   });
 
-  it('fills a song slot with a dropped library song, keeping its place and its selection', async () => {
-    const {api, ids, send} = setup('prep', false, {slot: true});
-    const target = screen.getByRole('option', {name: '찬양 자리'});
-    fireEvent.click(target);
-    expect(useShow.getState().openItemId).toBe(slotId);
-    const dataTransfer = transfer(JSON.stringify({kind: 'song', songId}));
-    fireEvent.dragOver(target, {dataTransfer});
-    expect(dataTransfer.dropEffect).toBe('copy');
-    fireEvent.drop(target, {dataTransfer});
-    await waitFor(() =>
-      expect(screen.queryByRole('option', {name: '찬양 자리'})).toBeNull(),
-    );
-    expect(ids()).toEqual([headerId, firstId, lastId, slotId]);
-    expect(useShow.getState().openItemId).toBe(slotId);
-    expect(
-      screen.getByRole('option', {name: '다음 곡', selected: true}),
-    ).toBeDefined();
-    expect(api.content.edit).toHaveBeenCalledTimes(1);
-    expect(send).not.toHaveBeenCalled();
-  });
-
   it('copies validated library song drops and ignores unrelated or malformed data', async () => {
     const {api, send, ids} = setup('prep');
     const target = screen.getByRole('option', {name: '첫 곡'});
@@ -542,7 +550,7 @@ describe('service panel editing', () => {
     await user.keyboard('{Delete}');
     await waitFor(() => expect(ids()).toEqual([headerId, lastId]));
     expect(document.activeElement).toBe(
-      screen.getByRole('option', {name: '다음 곡'}),
+      screen.getByRole('option', {name: '제목'}),
     );
     await user.keyboard('{Control>}z{/Control}');
     await screen.findByRole('option', {name: '첫 곡'});

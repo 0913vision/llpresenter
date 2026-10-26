@@ -5,11 +5,6 @@ import type {MenuEntry} from '@renderer/ui/menuModel';
 
 const SECTION_NAME = '새 구역';
 const UNNAMED_MEDIA = '이름 없는 미디어';
-const SLOT_KINDS = [
-  {slot: 'song', label: '찬양'},
-  {slot: 'bible', label: '성경 구절'},
-  {slot: 'slides', label: '설교'},
-] as const;
 
 export interface NoticeSetChoice {
   readonly id: NoticeSetId;
@@ -53,18 +48,6 @@ export function otherItemEntries({
       label: '구역 추가',
       icon: 'rows',
       onSelect: () => onInsert({id: newId(), header: SECTION_NAME}),
-    },
-    {
-      kind: 'item',
-      id: 'other:slot',
-      label: '빈 자리',
-      icon: 'frame',
-      submenu: SLOT_KINDS.map(({slot, label}): MenuEntry => ({
-        kind: 'item',
-        id: `slot:${slot}`,
-        label,
-        onSelect: () => onInsert({id: newId(), slot, title: label}),
-      })),
     },
     {
       kind: 'item',

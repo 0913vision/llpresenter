@@ -1,0 +1,91 @@
+{
+  "initial": {
+    "dom": {
+      "cards": 9,
+      "count": 430,
+      "overflow": false,
+      "selected": "빈 구역 B"
+    },
+    "heap": {
+      "backingStorageSize": 1685567,
+      "embedderHeapUsedSize": 4273744,
+      "totalSize": 6328320,
+      "usedSize": 5361592
+    }
+  },
+  "middle": {
+    "dom": {
+      "cards": 9,
+      "count": 430,
+      "overflow": false,
+      "selected": "빈 구역 B"
+    },
+    "heap": {
+      "backingStorageSize": 1685579,
+      "embedderHeapUsedSize": 4170744,
+      "totalSize": 6590464,
+      "usedSize": 5788568
+    }
+  },
+  "final": {
+    "dom": {
+      "cards": 9,
+      "count": 430,
+      "overflow": false,
+      "selected": "빈 구역 B"
+    },
+    "heap": {
+      "backingStorageSize": 1685585,
+      "embedderHeapUsedSize": 4533048,
+      "totalSize": 6852608,
+      "usedSize": 5951816
+    }
+  },
+  "insertedOrder": [
+    {
+      "position": 0,
+      "kind": "section",
+      "name": "경배와 찬양"
+    },
+    {
+      "position": 1,
+      "kind": "song",
+      "name": "sample item"
+    },
+    {
+      "position": 2,
+      "kind": "song",
+      "name": "sample item"
+    },
+    {
+      "position": 3,
+      "kind": "section",
+      "name": "말씀 후 찬양"
+    },
+    {
+      "position": 4,
+      "kind": "song",
+      "name": "sample item"
+    },
+    {
+      "position": 5,
+      "kind": "legacy slot",
+      "name": "sample item"
+    },
+    {
+      "position": 6,
+      "kind": "section",
+      "name": "빈 구역 A"
+    },
+    {
+      "position": 7,
+      "kind": "song",
+      "name": "sample item"
+    },
+    {
+      "position": 8,
+      "kind": "section",
+      "name": "빈 구역 B"
+    }
+  ]
+}

@@ -11,6 +11,18 @@ const rows: readonly ServiceRow[] = [
 ];
 
 describe('quick add position', () => {
+  it('appends inside selected empty, consecutive and final sections', () => {
+    const sections: readonly ServiceRow[] = [
+      {kind: 'header', id: 'empty', title: '빈 구역'},
+      {kind: 'header', id: 'next', title: '다음 구역'},
+      ...rows,
+      {kind: 'header', id: 'last', title: '마지막 구역'},
+    ];
+    expect(quickAddBefore(sections, 'empty')).toBe('next');
+    expect(quickAddBefore(sections, 'next')).toBe('h1');
+    expect(quickAddBefore(sections, 'last')).toBeNull();
+  });
+
   it('goes before the header that ends the selected item group', () => {
     expect(quickAddBefore(rows, 's1')).toBe('h2');
     expect(quickAddBefore(rows, 's2')).toBe('h2');

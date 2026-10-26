@@ -1,5 +1,19 @@
 # ListRow
 
+## Selectable sections
+
+Service-order sections can be selected, even when empty. `ListGroup` with a
+`value` uses the same option, selected background, pointer and keyboard behavior
+as a list row. Its caption-strong group name and spacing remain the section
+treatment. Tab enters the selected section; arrows/Home/End include it.
+Without `value`, a group label remains passive, as in other grouped lists.
+Renaming stays in place, with Enter/blur to save and Escape to cancel.
+
+Selecting a section chooses where 항목 추가 appends content, before the next
+section. The section row remains after content is added. There is no 빈 자리
+creation or fill flow in service orders or templates. Legacy file normalization
+belongs to the data reader, which converts those rows to named sections.
+
 One row of a list. The base is a 30px row with a 16px type icon, a 16px name, and 14px extra information on the right. This document also covers group headers, two-line items (52px), empty slots, drop positions, and the on row of 퀵 실행 (quick launch).
 
 ## Where to use

@@ -11,7 +11,6 @@ interface DragOptions {
   readonly rows: readonly ServiceRow[];
   readonly onMove: (source: string, before: string | null) => void;
   readonly onCopy: (songId: SongId, before: string | null) => void;
-  readonly onFill: (songId: SongId, slotId: string) => void;
 }
 
 function rowElement(target: EventTarget): HTMLElement | null {
@@ -30,7 +29,6 @@ export function useServiceOrderDrag({
   rows,
   onMove,
   onCopy,
-  onFill,
 }: DragOptions) {
   const dragged = useRef<string | null>(null);
   const click = useDragClickGuard();
@@ -44,9 +42,9 @@ export function useServiceOrderDrag({
     if (element === null) {
       const first =
         event.currentTarget.querySelector<HTMLElement>('[data-order-id]');
-      const face = first?.querySelector(
-        '[role="option"], [role="group"] > div',
-      );
+      const face =
+        first?.querySelector('[role="option"]') ??
+        first?.querySelector('[role="group"] > div');
       if (
         first &&
         face &&
@@ -57,7 +55,9 @@ export function useServiceOrderDrag({
     }
     const id = element?.dataset['orderId'];
     if (element === null || id === undefined) return null;
-    const label = element.querySelector('[role="group"]')?.firstElementChild;
+    const label =
+      element.querySelector('[role="option"]') ??
+      element.querySelector('[role="group"]')?.firstElementChild;
     const rect = (label ?? element).getBoundingClientRect();
     const after = rect.height > 0 && !beforeRowMidpoint(event.clientY, rect);
     const targetIndex = rows.findIndex(row => row.id === id);
@@ -78,12 +78,6 @@ export function useServiceOrderDrag({
       }
     }
     return rows[index]?.id ?? null;
-  };
-  const songSlotUnder = (event: DragEvent): string | null => {
-    if (dragged.current !== null) return null;
-    const id = rowElement(event.target)?.dataset['orderId'];
-    const row = rows.find(item => item.id === id);
-    return row?.kind === 'slot' && row.accepts === 'song' ? row.id : null;
   };
   const clear = (): void => {
     dragged.current = null;
@@ -111,9 +105,7 @@ export function useServiceOrderDrag({
         event.preventDefault();
         event.dataTransfer.dropEffect =
           dragged.current === null ? 'copy' : 'move';
-        setInsertBefore(
-          songSlotUnder(event) === null ? destination(event) : undefined,
-        );
+        setInsertBefore(destination(event));
       },
       onDragLeave: (event: DragEvent): void => {
         if (
@@ -127,7 +119,6 @@ export function useServiceOrderDrag({
         if (!accepts(event)) return;
         event.preventDefault();
         const before = destination(event);
-        const slotId = songSlotUnder(event);
         const source = dragged.current;
         clear();
         if (source !== null) {
@@ -138,8 +129,7 @@ export function useServiceOrderDrag({
           event.dataTransfer.getData(SONG_DRAG_MIME),
         );
         if (!payload.ok) return;
-        if (slotId === null) onCopy(payload.value.songId, before);
-        else onFill(payload.value.songId, slotId);
+        onCopy(payload.value.songId, before);
       },
     },
   };

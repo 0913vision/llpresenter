@@ -804,6 +804,7 @@
 
 /* Group header: a checkbox can come first */
 .ll-row-group { box-sizing: border-box; display: flex; align-items: center; gap: var(--space-10); margin: 0; padding: var(--space-10) var(--panel-inset) 5px; font: var(--type-caption-strong); color: var(--text-3); }
+.ll-row-group--selectable { min-height: var(--size-row); height: auto; }
 .ll-rowlist--inset .ll-row-group { padding-left: var(--space-10); padding-right: var(--space-10); }
 .ll-rowlist--inset > .ll-row { padding: 0 var(--space-10); border-radius: var(--radius-lg); }
 

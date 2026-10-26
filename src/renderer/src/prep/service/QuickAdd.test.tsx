@@ -149,6 +149,62 @@ function setup() {
 }
 
 describe('항목 추가', () => {
+  it.each(['song', 'bible'] as const)(
+    'adds %s into the selected empty section without replacing it',
+    async kind => {
+      const {api, user, service, second, pushService} = setup();
+      mockBible(api);
+      const nextSection = fixtureItems.arranged;
+      const emptySection = {
+        id: fixtureItems.header,
+        header: '빈 구역',
+        future: {keep: true},
+      };
+      pushService({
+        ...service(),
+        revision: 40,
+        service: {
+          ...service().service,
+          order: [emptySection, {id: nextSection, header: '다음 구역'}],
+        },
+      });
+      act(() =>
+        useShow.setState({
+          rows: [
+            {kind: 'header', id: fixtureItems.header, title: '빈 구역'},
+            {kind: 'header', id: nextSection, title: '다음 구역'},
+          ],
+          openItemId: fixtureItems.header,
+        }),
+      );
+      await user.click(screen.getByRole('button', {name: '항목 추가'}));
+      expect(screen.queryByRole('menuitem', {name: '빈 자리'})).toBeNull();
+      if (kind === 'song') {
+        await user.click(
+          await screen.findByRole('menuitem', {name: /새 노래 2/u}),
+        );
+      } else {
+        await user.click(
+          await screen.findByRole('menuitem', {name: '성경 구절'}),
+        );
+        await user.keyboard('요 3:16');
+        await screen.findByRole('menuitem', {name: /요한복음 3:16/u});
+        await user.keyboard('{Enter}');
+      }
+      await waitFor(() => expect(service().service.order).toHaveLength(3));
+      expect(service().service.order[0]).toEqual(emptySection);
+      expect(service().service.order[1]).toMatchObject(
+        kind === 'song'
+          ? {song: second.song.id}
+          : {bible: {ref: '요한복음 3:16'}},
+      );
+      expect(service().service.order[2]).toEqual({
+        id: nextSection,
+        header: '다음 구역',
+      });
+    },
+  );
+
   it('searches the 라이브러리 and inserts the chosen song at the end', async () => {
     const {user, search, service, second} = setup();
     await user.click(screen.getByRole('button', {name: '항목 추가'}));
@@ -237,19 +293,12 @@ describe('항목 추가', () => {
     expect(useHeaderRename.getState().requested).toBe(added?.id);
   });
 
-  it('normalizes a legacy slot submenu insert and still inserts a media item', async () => {
+  it('inserts a media item from the submenu', async () => {
     const {user, service} = setup();
-    await user.click(screen.getByRole('button', {name: '항목 추가'}));
-    await user.click(screen.getByRole('menuitem', {name: '빈 자리'}));
-    await user.click(screen.getByRole('menuitem', {name: '설교'}));
-    await waitFor(() => expect(service().service.order).toHaveLength(6));
-    expect(service().service.order.at(-1)).toMatchObject({
-      header: '설교',
-    });
     await user.click(screen.getByRole('button', {name: '항목 추가'}));
     await user.click(screen.getByRole('menuitem', {name: '미디어'}));
     await user.click(await screen.findByRole('menuitem', {name: '새벽 하늘'}));
-    await waitFor(() => expect(service().service.order).toHaveLength(7));
+    await waitFor(() => expect(service().service.order).toHaveLength(6));
     expect(service().service.order.at(-1)).toMatchObject({
       media: dawn,
     });
@@ -487,50 +536,6 @@ describe('항목 추가', () => {
     expect(
       await within(menu).findByRole('menuitem', {name: /요한복음 3:16/u}),
     ).toBeDefined();
-  });
-
-  it('fills the selected Bible slot with the passage from quick add', async () => {
-    const {api, user, service, pushService} = setup();
-    mockBible(api);
-    pushService({
-      ...service(),
-      revision: 40,
-      service: {
-        ...service().service,
-        order: service().service.order.map(row =>
-          row.id === fixtureItems.slot
-            ? {id: row.id, slot: 'bible' as const, title: '성경 구절'}
-            : row,
-        ),
-      },
-    });
-    act(() =>
-      useShow.setState({
-        rows: [
-          {kind: 'header', id: fixtureItems.header, title: '찬양'},
-          {
-            kind: 'slot',
-            id: fixtureItems.slot,
-            title: '성경 구절',
-            accepts: 'bible',
-          },
-        ],
-        openItemId: fixtureItems.slot,
-      }),
-    );
-    await user.click(screen.getByRole('button', {name: '항목 추가'}));
-    await user.click(await screen.findByRole('menuitem', {name: '성경 구절'}));
-    await user.keyboard('요 3:16');
-    await screen.findByRole('menuitem', {name: /요한복음 3:16/u});
-    await user.keyboard('{Enter}');
-    await waitFor(() =>
-      expect(service().service.order[3]).toMatchObject({
-        bible: {ref: '요한복음 3:16'},
-      }),
-    );
-    expect(service().service.order).toHaveLength(5);
-    expect(service().service.order[3]).toHaveProperty('id', fixtureItems.slot);
-    expect(service().service.order[3]).not.toHaveProperty('slot');
   });
 
   it('is unavailable for a read-only service, with the reason', async () => {

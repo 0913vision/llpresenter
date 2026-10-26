@@ -1,4 +1,3 @@
-import * as v from 'valibot';
 import {describe, expect, it, vi} from 'vitest';
 import type {ContentEdit, EditResult} from '@shared/schema/contentEdit';
 import type {
@@ -13,7 +12,6 @@ import {
   createServiceId,
   createServiceItemId,
   createSongId,
-  translationIdSchema,
 } from '@shared/schema/ids';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {pendingWritesOf} from './pendingWrites';
@@ -212,138 +210,25 @@ describe('service order edits', () => {
       id: createServiceItemId('90000000-0000-4000-8000-000000000001'),
       header: '구역',
     };
-    const slot = {
+    const emptySection = {
       id: createServiceItemId('90000000-0000-4000-8000-000000000002'),
-      slot: 'song' as const,
-      title: '찬양',
+      header: '빈 구역',
     };
     await edits.insertItem(serviceId, header, second);
-    await edits.insertItem(serviceId, slot, null);
+    await edits.insertItem(serviceId, emptySection, null);
     const order = state.document?.service.order ?? [];
     expect(order[1]).toEqual(header);
-    expect(order.at(-1)).toEqual(slot);
+    expect(order.at(-1)).toEqual(emptySection);
     expect(ids()).toHaveLength(5);
     await edits.undo(serviceId);
     expect(ids()).toHaveLength(4);
     expect(
       await edits.insertItem(
         serviceId,
-        slot,
+        emptySection,
         createServiceItemId('90000000-0000-4000-8000-0000000000ff'),
       ),
     ).toMatchObject({ok: false, error: {reason: 'not-found'}});
-  });
-
-  it('fills a song slot in place and refuses other slots and songs that are gone', async () => {
-    const {state, edits, edit} = fixture();
-    const slotId = createServiceItemId('90000000-0000-4000-8000-0000000000a1');
-    const bibleSlot = createServiceItemId(
-      '90000000-0000-4000-8000-0000000000a2',
-    );
-    const spareSlot = createServiceItemId(
-      '90000000-0000-4000-8000-0000000000a3',
-    );
-    await edits.insertItem(
-      serviceId,
-      {id: slotId, slot: 'song', title: '찬양'},
-      second,
-    );
-    await edits.insertItem(
-      serviceId,
-      {id: spareSlot, slot: 'song', title: '헌금'},
-      null,
-    );
-    await edits.insertItem(
-      serviceId,
-      {id: bibleSlot, slot: 'bible', title: '성경 구절'},
-      null,
-    );
-    const before = state.document?.service.order.length ?? 0;
-    expect(await edits.fillSlotWithSong(serviceId, slotId, songId)).toEqual({
-      ok: true,
-      value: true,
-    });
-    const order = state.document?.service.order ?? [];
-    expect(order).toHaveLength(before);
-    expect(order[1]).toEqual({id: slotId, song: songId});
-    expect(order.at(-1)).toMatchObject({slot: 'bible'});
-    const calls = edit.mock.calls.length;
-    expect(
-      await edits.fillSlotWithSong(serviceId, bibleSlot, songId),
-    ).toMatchObject({ok: false, error: {reason: 'invalid'}});
-    expect(
-      await edits.fillSlotWithSong(serviceId, second, songId),
-    ).toMatchObject({ok: false, error: {reason: 'not-found'}});
-    state.song = null;
-    expect(
-      await edits.fillSlotWithSong(serviceId, spareSlot, songId),
-    ).toMatchObject({ok: false, error: {reason: 'not-found'}});
-    expect(edit.mock.calls).toHaveLength(calls);
-    await edits.undo(serviceId);
-    expect(state.document?.service.order[1]).toMatchObject({slot: 'song'});
-  });
-
-  it('keeps unknown fields of a slot when it is filled, and brings the slot back on undo', async () => {
-    const {state, edits} = fixture();
-    const slotId = createServiceItemId('90000000-0000-4000-8000-0000000000b1');
-    const slot = {
-      id: slotId,
-      slot: 'song' as const,
-      title: '찬양',
-      future: {keep: true},
-    };
-    await edits.insertItem(serviceId, slot, second);
-    await edits.fillSlotWithSong(serviceId, slotId, songId);
-    expect(state.document?.service.order[1]).toEqual({
-      id: slotId,
-      song: songId,
-      future: {keep: true},
-    });
-    await edits.undo(serviceId);
-    expect(state.document?.service.order[1]).toEqual(slot);
-  });
-
-  it('fills a Bible slot with a passage, keeping its id and unknown fields, and refuses song slots', async () => {
-    const {state, edits} = fixture();
-    const bibleSlot = createServiceItemId(
-      '90000000-0000-4000-8000-0000000000c1',
-    );
-    const songSlot = createServiceItemId(
-      '90000000-0000-4000-8000-0000000000c2',
-    );
-    const slot = {
-      id: bibleSlot,
-      slot: 'bible' as const,
-      title: '성경 구절',
-      future: 1,
-    };
-    await edits.insertItem(serviceId, slot, second);
-    await edits.insertItem(
-      serviceId,
-      {id: songSlot, slot: 'song', title: '찬양'},
-      null,
-    );
-    const passage = {
-      translation: v.parse(translationIdSchema, 'krv'),
-      ref: '요한복음 3:16',
-      split: 'verse' as const,
-      reference: 'every' as const,
-      verseNumbers: true,
-      translationName: false,
-    };
-    expect(
-      await edits.fillSlotWithPassage(serviceId, songSlot, passage),
-    ).toMatchObject({ok: false, error: {reason: 'invalid'}});
-    expect(
-      await edits.fillSlotWithPassage(serviceId, bibleSlot, passage),
-    ).toEqual({ok: true, value: true});
-    expect(state.document?.service.order[1]).toEqual({
-      id: bibleSlot,
-      bible: passage,
-      future: 1,
-    });
-    await edits.undo(serviceId);
-    expect(state.document?.service.order[1]).toEqual(slot);
   });
 
   it('renames a header, keeps unknown fields, and ignores a blank name', async () => {

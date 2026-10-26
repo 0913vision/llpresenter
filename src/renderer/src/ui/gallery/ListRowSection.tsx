@@ -1,4 +1,4 @@
-import {Fragment, type JSX, type ReactNode} from 'react';
+import {Fragment, useState, type JSX, type ReactNode} from 'react';
 import {IconButton} from '../IconButton';
 import {
   ListActionRow,
@@ -231,9 +231,37 @@ function AddAction({label}: {readonly label: string}): JSX.Element {
   );
 }
 
+function SectionTargets(): JSX.Element {
+  const [selected, setSelected] = useState<string>('empty');
+  return (
+    <ListBox label="구역 선택" selected={selected} onSelect={setSelected}>
+      <ListGroup label="빈 구역" value="empty">
+        {null}
+      </ListGroup>
+      <ListGroup label="찬양" value="praise">
+        <ListRow title="함께 걷는 길" value="song" icon="song" />
+      </ListGroup>
+      <ListGroup label="마지막 구역" value="last">
+        {null}
+      </ListGroup>
+    </ListBox>
+  );
+}
+
 export function ListRowSection(): JSX.Element {
   return (
     <Section title="ListRow">
+      <SpecGroup
+        title="Selectable sections, including empty sections"
+        surface="panel"
+      >
+        <SpecItem
+          label="Click or use arrows to choose the insertion section"
+          width={360}
+        >
+          <SectionTargets />
+        </SpecItem>
+      </SpecGroup>
       <SpecGroup
         title="One line 30px: icon 16 + name 13 + extra info 11 on the right"
         surface="panel"

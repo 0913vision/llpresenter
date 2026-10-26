@@ -170,8 +170,8 @@ export interface ListBoxProps {
 
 /**
  * A list that selects one row. Tab enters it once, on the selected row; the
- * up and down arrows, Home, and End move and select at once, skipping group
- * headers and disabled rows. Keys with Ctrl, Alt, Shift, or the Windows key
+ * up and down arrows, Home, and End move and select at once, skipping passive
+ * group headers and disabled rows. Keys with Ctrl, Alt, Shift, or the Windows key
  * pass on to the window.
  */
 export function ListBox({
@@ -228,6 +228,7 @@ export interface ListRowProps {
   /** The value the list reports when this row is selected. */
   readonly value: string;
   readonly title: string;
+  readonly className?: string | undefined;
   /** A 16px type icon, such as `song`. */
   readonly icon?: string | undefined;
   /** Extra information at the right end, such as 슬라이드 9개 or 5:00. */
@@ -338,7 +339,7 @@ function RowContent({
 }
 
 /**
- * One row of a `ListBox`: a 30px row, or a 44px two-line item with `sub`.
+ * One row of a `ListBox`: a 30px row, or a 52px two-line item with `sub`.
  * A click or Space selects it.
  */
 export const ListRow = memo((props: ListRowProps): JSX.Element => {
@@ -373,7 +374,11 @@ export const ListRow = memo((props: ListRowProps): JSX.Element => {
       aria-disabled={disabled ? true : undefined}
       data-value={value}
       data-state={rowState(live, done, warning !== undefined)}
-      className={classNames(styles.row, sub !== undefined && styles.double)}
+      className={classNames(
+        styles.row,
+        sub !== undefined && styles.double,
+        props.className,
+      )}
       onClick={pressHandler(disabled, select)}
       onKeyDown={onKeyDown}
     >
@@ -499,23 +504,35 @@ function NameField({
 }
 
 /**
- * A named group of rows; its header can't be selected. With `rename`, the
- * name is a field that saves on Enter or leaving it and cancels on Esc.
+ * A named group of rows. With `value`, its header joins the list selection,
+ * including for an empty section. `rename` edits the name in place.
  */
 export function ListGroup({
   label,
+  value,
   rename,
   children,
 }: {
   readonly label: string;
+  readonly value?: string | undefined;
   readonly rename?: GroupRename | undefined;
   readonly children: ReactNode;
 }): JSX.Element {
   const labelId = useId();
   return (
     <div role="group" aria-labelledby={labelId} className={styles.groupRows}>
-      <div id={labelId} className={styles.group}>
-        {rename === undefined ? (
+      <div
+        id={labelId}
+        className={value === undefined ? styles.group : undefined}
+      >
+        {value !== undefined ? (
+          <ListRow
+            value={value}
+            title={label}
+            rename={rename}
+            className={classNames(styles.group, styles.groupRow)}
+          />
+        ) : rename === undefined ? (
           label
         ) : (
           <NameField label={label} rename={rename} />

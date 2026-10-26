@@ -115,6 +115,31 @@ function ChangingRows({change}: {readonly change: RowChange}): JSX.Element {
 }
 
 describe('ListBox and ListRow', () => {
+  it('selects empty sections by pointer and keyboard as insertion targets', async () => {
+    const onSelect = vi.fn();
+    render(
+      <ListBox label="예배 순서" selected={undefined} onSelect={onSelect}>
+        <ListGroup label="빈 구역" value="empty">
+          {null}
+        </ListGroup>
+        <ListGroup label="다음 구역" value="next">
+          <ListRow value="song" title="첫 곡" />
+        </ListGroup>
+      </ListBox>,
+    );
+    const empty = screen.getByRole('option', {name: '빈 구역'});
+    await userEvent.click(empty);
+    expect(onSelect).toHaveBeenLastCalledWith('empty');
+    empty.focus();
+    await userEvent.keyboard('{ArrowDown}');
+    expect(onSelect).toHaveBeenLastCalledWith('next');
+    await userEvent.keyboard('{ArrowDown}');
+    expect(onSelect).toHaveBeenLastCalledWith('song');
+    await userEvent.keyboard('{Home}');
+    expect(document.activeElement).toBe(empty);
+    expect(onSelect).toHaveBeenLastCalledWith('empty');
+  });
+
   it.each(['show', 'prep'] as const)(
     'keeps Tab entry and arrow selection in the %s focus appearance',
     async workspace => {

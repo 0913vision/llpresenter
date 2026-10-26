@@ -173,10 +173,6 @@ export function ServiceOrderList({
           before === null ? null : createServiceItemId(before),
         ),
       ),
-    onFill: (songId, slotId) =>
-      editing.run((edits, id) =>
-        edits.fillSlotWithSong(id, createServiceItemId(slotId), songId),
-      ),
     onCopy: (songId, before) =>
       editing.run((edits, id) =>
         edits.insertSong(
@@ -304,6 +300,7 @@ export function ServiceOrderList({
             >
               {insertBefore === group.id ? <ListInsertLine /> : null}
               <ListGroup
+                value={group.id}
                 label={group.label}
                 rename={
                   renaming === group.id

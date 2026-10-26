@@ -40,6 +40,18 @@ afterEach(() => {
 });
 
 describe('applyService', () => {
+  it('keeps a selected section through updates and clears it only when removed', () => {
+    applyService(serviceOf());
+    openItem('praise');
+    applyService(serviceOf({revision: 2}));
+    expect(useShow.getState()).toMatchObject({
+      openItemId: 'praise',
+      selectedTile: 0,
+    });
+    applyService(serviceOf({revision: 3, rows: []}));
+    expect(useShow.getState().openItemId).toBeNull();
+  });
+
   it('shows the rows, tiles, jump keys, name, and read-only flag', () => {
     applyService(serviceOf({readOnly: true}));
     expect(useShow.getState()).toMatchObject({
@@ -118,7 +130,7 @@ describe('applyService', () => {
     });
   });
 
-  it('closes the open item when its row became a header', () => {
+  it('keeps the insertion target when its row becomes a section', () => {
     applyService(serviceOf());
     openItem('a');
     applyService(
@@ -131,7 +143,7 @@ describe('applyService', () => {
       }),
     );
     expect(useShow.getState()).toMatchObject({
-      openItemId: null,
+      openItemId: 'a',
       selectedTile: 0,
     });
   });

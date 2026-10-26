@@ -267,8 +267,7 @@ function keptSelection(
     return {openItemId, selectedTile};
   }
   const stillThere =
-    openItemId !== null &&
-    service.rows.some(row => row.id === openItemId && row.kind !== 'header');
+    openItemId !== null && service.rows.some(row => row.id === openItemId);
   if (!stillThere) return {openItemId: null, selectedTile: 0};
   const last = Math.max(0, (service.tiles[openItemId]?.length ?? 0) - 1);
   return {openItemId, selectedTile: Math.min(selectedTile, last)};
