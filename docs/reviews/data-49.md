@@ -130,19 +130,14 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (Codex, codex4): Request changes: a media-list save failure deleted an
+  accepted file; finished jobs kept abort listeners; cancels at the copy and
+  admission boundaries left files or reported wrongly.
+- Round 2 (de8b19db): reviewer (Codex, codex4) Approve, no findings. Lead
+  Approve. Rebased by the lead onto local `main` after data-47 without
+  conflicts; typecheck passes.
 
 ## Team member's reply
 

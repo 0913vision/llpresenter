@@ -110,3 +110,15 @@ This review document is in my own path. No dependency is added.
 | GitHub CI (`npm run verify`)                                                                                                                              | In the request message |
 
 No Electron process, visible window, soak, or memory measurement was started.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (Codex, codex5): Request changes: a late initial list could bring back
+  a resolved save warning, and skipped files with the same display name were
+  merged; private TSDoc.
+- Round 2 (34e08599): reviewer (Codex, codex5) Approve, no findings. Restacked
+  afterwards on data-47's final tip; `git range-diff` shows only the review
+  document's range line changed. Lead Approve. Changes outside 진행's paths
+  (data's `appProblem.ts`, `store/skippedFiles.ts`, `store/register.ts`) checked
+  against data's rules. Rebased by the lead onto local `main` without conflicts;
+  typecheck passes. M3-S2a is complete.

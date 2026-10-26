@@ -168,19 +168,20 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (Codex, codex3): Request changes: the 257th failed file fell out of
+  retries and notices; an unnamed service or 틀 produced an invalid empty name;
+  private TSDoc.
+- Round 2 (Codex, codex3): Request changes: without a cap, repeated failed
+  deletes could grow the waiting queue without bound.
+- Round 3 (7ba21db2): reviewer (Codex, codex3) Request changes only for TSDoc on
+  two private members, with a nit (publish the reordered next file) moved to
+  data-50. The member fixed the comments in one comment-only commit (bee0da64,
+  CI green); the lead checked that diff and approved without another Codex
+  round. The cap follows the decision of October 26: coalesce per document, one
+  cap, refuse new edits at the cap, never drop. Rebased by the lead onto local
+  `main` without conflicts; typecheck passes.
 
 ## Team member's reply
 
