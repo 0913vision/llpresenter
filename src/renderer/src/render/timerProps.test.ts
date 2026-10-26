@@ -13,6 +13,7 @@ import {
 import {classes} from './classes';
 import {DEFAULT_LYRIC_STYLE} from './lyricStyle';
 import {OutputRenderer} from './outputRenderer';
+import {OverlayTextView} from './overlayText';
 
 const SERMON = overlayUuid(95);
 const GONE = overlayUuid(96);
@@ -91,10 +92,11 @@ const paused = {
 
 function setup() {
   const parent = document.createElement('div');
+  const onError = vi.fn();
   const renderer = new OutputRenderer(parent, {
     lyricStyle: DEFAULT_LYRIC_STYLE,
     mediaUrl: id => `https://media.test/${id}`,
-    onError: vi.fn(),
+    onError,
   });
   const list = sermonTimer();
   const render = (layers: LiveLayers, runs: TimerRuns | undefined) =>
@@ -106,7 +108,7 @@ function setup() {
     parent.querySelector<HTMLElement>(
       `[data-layer="prop"] .${classes.page}.${classes.shown}`,
     );
-  return {renderer, render, shown, parent};
+  return {renderer, render, shown, parent, onError};
 }
 
 beforeEach(() => {
@@ -169,6 +171,49 @@ describe('타이머 tokens in 소품 text', () => {
     expect(before.map(([, color]) => color)).toEqual([
       'rgb(255, 212, 0)',
       'rgb(0, 194, 255)',
+    ]);
+    renderer.dispose();
+  });
+
+  it('keeps the last text and logs once when a tick fails', () => {
+    const {renderer, render, shown, onError} = setup();
+    const state = stateWith(`설교 {timer:${SERMON}}`, running);
+    render(state.layers, state.timers);
+    const page = shown();
+    clock = {
+      get timer(): number {
+        throw new Error('no clock');
+      },
+      wall: WALL_START,
+    };
+    vi.advanceTimersByTime(3000);
+    expect(page?.textContent).toBe('설교 1:00');
+    expect(onError).toHaveBeenCalledExactlyOnceWith(
+      'could not tick a 타이머 in the prop layer',
+      new Error('no clock'),
+    );
+    renderer.dispose();
+  });
+
+  it('ticks only the 소품 that show a running 타이머', () => {
+    const {renderer, render} = setup();
+    const replace = vi.spyOn(OverlayTextView.prototype, 'replace');
+    const state = stateWith(`설교 {timer:${SERMON}}`, running, {
+      others: [
+        {
+          propId: PLAIN,
+          content: {kind: 'text', text: '헌금', style: TEXT_STYLE},
+          targets: [MAIN],
+        },
+      ],
+    });
+    render(state.layers, state.timers);
+    replace.mockClear();
+    advance(1000);
+    advance(1000);
+    expect(replace.mock.calls.map(([text]) => text)).toEqual([
+      '설교 0:59',
+      '설교 0:58',
     ]);
     renderer.dispose();
   });

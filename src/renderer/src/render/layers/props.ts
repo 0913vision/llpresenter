@@ -12,6 +12,8 @@ import {
 } from '../timerTokens';
 
 const TIMER_TICK_MS = 1000;
+/** At most this many distinct tick failures are logged per layer. */
+export const MAX_REPORTED_TICK_ERRORS = 32;
 const NO_TIMERS: RenderTimers = {
   list: [],
   runs: undefined,
@@ -27,6 +29,7 @@ interface PropView {
   readonly image: OverlayImageView;
   id: string | null;
   template: string | null;
+  ticking: boolean;
 }
 
 export const propsLayer = defineLayer({
@@ -38,11 +41,30 @@ export const propsLayer = defineLayer({
     let scale = 1;
     let timers = NO_TIMERS;
     let ticker: ReturnType<typeof setInterval> | null = null;
+    const reported = new Set<string>();
+    const report = (propId: string | null, error: unknown): void => {
+      const key = `${propId} ${error instanceof Error ? error.message : String(error)}`;
+      if (reported.has(key) || reported.size >= MAX_REPORTED_TICK_ERRORS) {
+        return;
+      }
+      reported.add(key);
+      options.onError('could not tick a 타이머 in the prop layer', error);
+    };
+    // NOTE(0913vision): A tick that fails keeps the text it showed, and the
+    // other 소품 still tick.
     const tick = (): void => {
-      const now = timers.now();
-      for (const view of pool) {
-        if (view.template === null) continue;
-        view.text.replace(fillTimerTokens(view.template, timers, now));
+      try {
+        const now = timers.now();
+        for (const view of pool) {
+          if (!view.ticking || view.template === null) continue;
+          try {
+            view.text.replace(fillTimerTokens(view.template, timers, now));
+          } catch (error) {
+            report(view.id, error);
+          }
+        }
+      } catch (error) {
+        report(null, error);
       }
     };
     // NOTE(0913vision): One interval per window redraws 타이머 values from
@@ -56,11 +78,10 @@ export const propsLayer = defineLayer({
       if (view.template === text) view.text.replace(filled, style);
       else view.text.show(filled, style);
       view.template = text;
+      view.ticking = hasTickingToken(text, timers);
     };
     const followTicking = (): void => {
-      const ticking = pool.some(
-        ({template}) => template !== null && hasTickingToken(template, timers),
-      );
+      const ticking = pool.some(view => view.ticking);
       if (ticking && ticker === null) {
         ticker = setInterval(tick, TIMER_TICK_MS);
       } else if (!ticking && ticker !== null) {
@@ -77,6 +98,7 @@ export const propsLayer = defineLayer({
         image: new OverlayImageView(box, options),
         id: null,
         template: null,
+        ticking: false,
       };
       view.text.rescale(scale);
       parent.append(box);
@@ -97,6 +119,7 @@ export const propsLayer = defineLayer({
           if (items.some(item => item.propId === view.id)) continue;
           view.id = null;
           view.template = null;
+          view.ticking = false;
           view.text.show(null);
           view.image.show(null);
           view.box.hidden = true;
@@ -114,6 +137,7 @@ export const propsLayer = defineLayer({
             showText(view, item.content, now);
           } else {
             view.template = null;
+            view.ticking = false;
             view.text.show(null);
             view.image.show(item.content.media);
           }
@@ -133,6 +157,7 @@ export const propsLayer = defineLayer({
           view.box.remove();
         }
         pool.length = 0;
+        reported.clear();
       },
     };
   },
