@@ -65,3 +65,9 @@ drive DOM drag events.
 ## Team member's reply
 
 1.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (c93e64bf): reviewer (Codex, codex5) Approve. Lead Approve (see "What
+  changed and why"); the exact-head CI run passed, checked by the lead at merge.
+  Rebased by the lead onto local `main` without conflicts; typecheck passes.
