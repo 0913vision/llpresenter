@@ -5,7 +5,7 @@ Review range: `feat/spec/new-service...feat/spec/import-items`
 - Team member: `spec` (Claude session that took over from Codex)
 - Branch: `feat/spec/import-items`, stacked on spec-50 (`feat/spec/new-service`)
 - Base commit: spec-50's head, named in the request message
-- Review round: 1
+- Review round: 2
 - Task: M3-P4, part 1 of 2 for P4b: the 다른 예배에서 가져오기 dialog
 - Code owners: prep for `src/renderer/src/prep/services/` (no prep member; lead
   exception for P4); shell for `src/renderer/src/show/ServiceOrderHeader*`
@@ -17,7 +17,8 @@ the checked items with their headers.
 
 - **Dialog.** `ImportItemsDialog` is ui's `Dialog` at size `l` and height 700,
   like 새 예배: the source list without 빈 예배 on the left and the "예배 순서"
-  tree on the right. Song rows show their 구성 name (spec-48).
+  tree on the right. Song rows show their 구성 name (spec-48). It can't be
+  dismissed while an import is on its way (round 2).
 - **Sources.** The 틀 and the services other than the open one. The first 틀 is
   chosen, or the newest other service when there is no 틀. Picking a source
   checks nothing, also on a return to a source (spec 05). With no source at all,
@@ -35,6 +36,16 @@ the checked items with their headers.
   their dialogs, so shell's header only spreads its entries and renders its
   dialogs: 새 예배, then 다른 예배에서 가져오기, which is unavailable with no
   open service (tooltip 열린 예배 순서가 없습니다).
+
+## Round 2 response
+
+취소, Esc, and the close button now wait while an import is on its way, so the
+dialog stays mounted until main answers: a success closes it, and a failure
+shows its card with the dialog still open. 가져오기 shows the busy state as
+unavailable meanwhile. A test holds an import open, presses 취소, the close
+button, and Esc without closing, and then lets the import finish and close. The
+새 예배 dialog had the same gap (spec-50's decision 4, merged), so it waits the
+same way now, with the same kind of test; that replaces the decision.
 
 ## Decisions I made (for the lead to confirm)
 
@@ -56,6 +67,7 @@ the checked items with their headers.
 | ----------------------------------------------------------------------------------------------------- | ---------------------- |
 | `npm run typecheck`                                                                                   | Pass                   |
 | `npx --no-install vitest run --no-fsModuleCache src/renderer/src/prep/services src/renderer/src/show` | Pass, 422 tests        |
+| `npx --no-install vitest run --no-fsModuleCache src/renderer/src/prep/services` (round 2)             | Pass, 56 tests         |
 | `npx --no-install eslint --max-warnings 0 src/renderer/src/prep/services src/renderer/src/show`       | Pass                   |
 | `npx --no-install prettier --check src/renderer/src/prep/services src/renderer/src/show`              | Pass                   |
 | GitHub CI (`npm run verify`)                                                                          | In the request message |
