@@ -398,14 +398,31 @@ after its name, and hides it at 0.
 - One row per 타이머: an icon, the name and kind ("10:30까지" until 10:30,
   "35분" 35 minutes, "10:30부터" since 10:30, "시계" clock), a large value, 시작
   (start) or 일시 정지 (pause), and 처음으로 (reset). The clock has no buttons.
-- Behavior by kind (proposal):
-  - Until a time (`countdownTo`): once started, counts the time left until the
-    set time.
-  - Fixed duration (`countdown`): once started, counts down from the duration.
-    Pause stops it, and start resumes it. Past 0, it shows the overrun with a
-    leading "-".
-  - Since a time (`elapsedFrom`): counts the time since the set time.
-  - 처음으로 resets to the start value and stops.
+- Behavior by kind:
+  - Every kind but the clock starts with 시작 and pauses with 일시 정지; the
+    button switches between the two (follows ProPresenter 7, whose Start button
+    toggles between Start and Stop: Renewed Vision support article 360050782494
+    on ProPresenter 7 timers).
+  - 처음으로 stops the 타이머 and returns it to its settings (follows
+    ProPresenter 7, where Reset returns the timer to its settings: same
+    article).
+  - Fixed duration (`countdown`): counts down from the duration while it runs.
+    Past 0, it keeps counting and shows the overrun with a leading "-" (follows
+    ProPresenter 7 with overrun on: same article). Until `timers.json` has the 0
+    지나면 field of 10, every countdown keeps counting (lead decision, October
+    26).
+  - Until a time (`countdownTo`): while it runs, shows the time left until
+    today's set time, and past it the time since, with a leading "-".
+  - Since a time (`elapsedFrom`): while it runs, shows the time since today's
+    set time, and before it the time left, with a leading "-".
+  - Before they start, `countdownTo` and `elapsedFrom` show their value as of
+    the moment they are drawn, without counting, so a row is never blank; a
+    paused one keeps the value it had when it paused (lead decision, October 26;
+    the article doesn't say what these timers show before they start).
+  - Clock (`clock`): the current time as 24-hour "HH:mm:ss". It has no buttons
+    (lead decision, October 26; a format choice is later work).
+- Running time comes from the main process's clock, and a clock that steps back
+  never makes a 타이머 count backwards (lead decision, October 26).
 - Values under an hour show as "minutes:seconds", and longer values as
   "hours:minutes:seconds" (proposal).
 - 타이머 keep running regardless of clears. They show in 소품 text and in the
