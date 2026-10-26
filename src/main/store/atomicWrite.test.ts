@@ -16,6 +16,16 @@ describe('writeFileAtomically', () => {
     expect(await readdir(folder)).toEqual(['song.llsong']);
   });
 
+  it('writes bytes as they are', async () => {
+    const folder = await makeTempDir();
+    const file = join(folder, 'thumbnail.jpg');
+    const bytes = Uint8Array.from([0xff, 0xd8, 0x00, 0xff, 0xd9]);
+
+    await writeFileAtomically(file, bytes);
+
+    expect(new Uint8Array(await readFile(file))).toEqual(bytes);
+  });
+
   it('replaces the old content', async () => {
     const folder = await makeTempDir();
     const file = join(folder, 'app.json');

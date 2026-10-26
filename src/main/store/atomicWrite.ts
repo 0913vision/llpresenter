@@ -27,19 +27,19 @@ export function isTemporaryFileName(name: string): boolean {
 }
 
 /**
- * Writes text to a file so that a crash or a power loss never leaves it half
- * written: the text goes to a temporary file in the same folder, which is
- * flushed to disk and then renamed over the file. Creates the folder when it
- * is missing. Never throws.
+ * Writes text, or bytes such as a thumbnail, to a file so that a crash or a
+ * power loss never leaves it half written: it goes to a temporary file in the
+ * same folder, which is flushed to disk and then renamed over the file.
+ * Creates the folder when it is missing. Never throws.
  */
 export async function writeFileAtomically(
   file: string,
-  text: string,
+  content: string | Uint8Array,
 ): Promise<Result<void, WriteProblem>> {
   const temporary = join(dirname(file), temporaryName(file));
   try {
     await mkdir(dirname(file), {recursive: true});
-    await writeAndFlush(temporary, text);
+    await writeAndFlush(temporary, content);
     await renameWithRetries(temporary, file);
     return {ok: true, value: undefined};
   } catch (error: unknown) {
@@ -55,10 +55,13 @@ export async function writeFileAtomically(
   }
 }
 
-async function writeAndFlush(file: string, text: string): Promise<void> {
+async function writeAndFlush(
+  file: string,
+  content: string | Uint8Array,
+): Promise<void> {
   const handle = await open(file, 'wx');
   try {
-    await handle.writeFile(text, 'utf8');
+    await handle.writeFile(content, 'utf8');
     await handle.sync();
   } finally {
     await handle.close();
