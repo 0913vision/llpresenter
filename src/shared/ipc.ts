@@ -1,6 +1,7 @@
 import type {LiveCommand} from './commands';
 import type {BibleLookupReply, BibleLookupRequest} from './schema/bibleLookup';
 import type {AppFlushDone, AppFlushRequest} from './schema/appFlush';
+import type {AppProblem} from './schema/appProblem';
 import type {
   LibrarySong,
   ServiceChange,
@@ -59,6 +60,7 @@ export const Channels = {
   appFlushRequest: 'app:flush-request',
   appFlushDone: 'app:flush-done',
   appCloseAnyway: 'app:close-anyway',
+  appProblem: 'app:problem',
   liveGet: 'live:get',
   liveCommand: 'live:command',
   liveChanged: 'live:changed',
@@ -139,6 +141,15 @@ export interface LlpApi {
      * it at any other time.
      */
     closeAnyway(): void;
+  };
+  readonly problems: {
+    /**
+     * Calls the listener for each problem main reports for a notification
+     * card, such as 매크로 적용 실패.
+     *
+     * @returns A function that removes the listener. Always call it.
+     */
+    subscribe(listener: (problem: AppProblem) => void): Unsubscribe;
   };
   readonly live: {
     /**

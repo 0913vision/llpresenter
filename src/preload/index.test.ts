@@ -325,6 +325,24 @@ describe('preload', () => {
     ]);
   });
 
+  it('validates app problems, exposes only their payload, and removes the subscription', () => {
+    const listener = vi.fn();
+    const remove = api.problems.subscribe(listener);
+    onTestFinished(remove);
+    const handler = electron.handlers.get(Channels.appProblem);
+    if (handler === undefined) throw new Error('Missing problem listener');
+    const problem = {kind: 'macro-dropped', macroId: SONG_ID, name: 'Opening'};
+    handler({}, {...problem, extra: true});
+    expect(listener).toHaveBeenCalledExactlyOnceWith(problem);
+    for (const value of [null, {kind: 'unknown'}, {...problem, name: 7}]) {
+      handler({}, value);
+    }
+    expect(listener).toHaveBeenCalledOnce();
+    expect(loggedErrors()).toHaveLength(3);
+    remove();
+    expect(electron.handlers.has(Channels.appProblem)).toBe(false);
+  });
+
   it('sends 강제로 닫기 without a payload', () => {
     api.app.closeAnyway();
     expect(electron.send.mock.calls).toEqual([[Channels.appCloseAnyway]]);

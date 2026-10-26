@@ -16,6 +16,7 @@ import {
   parseBibleLookupReply,
 } from '@shared/schema/bibleLookup';
 import {parseAppFlushDone, parseAppFlushRequest} from '@shared/schema/appFlush';
+import {parseAppProblem} from '@shared/schema/appProblem';
 import {
   parseLibrarySongs,
   parseServiceChange,
@@ -220,6 +221,10 @@ const api: LlpApi = {
     closeAnyway: () => {
       ipcRenderer.send(Channels.appCloseAnyway);
     },
+  },
+  problems: {
+    subscribe: listener =>
+      listen(Channels.appProblem, parseAppProblem, listener),
   },
   live: {
     get: () => invokeChecked(Channels.liveGet, parseLiveState),
