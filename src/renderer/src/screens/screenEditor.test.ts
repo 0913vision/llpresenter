@@ -99,8 +99,9 @@ describe('ScreenEditor', () => {
     expect(await flush).toBe(true);
     const request = edit.mock.calls[1]?.[0];
     expect(request).toMatchObject({name: 'screens', baseRevision: 2});
-    if (request?.name !== 'screens')
+    if (request?.name !== 'screens') {
       throw new Error('Missing queued screen edit');
+    }
     expect(request.value.screens[0]?.name).toBe('Renamed');
     expect(request.value.screens.at(-1)).toMatchObject({
       id: id.value,

@@ -2,7 +2,8 @@
 
 - Team member: `screens`
 - Branch: `feat/screens/add-screen`
-- Stacked base: `e1604a49`, screens-12. Exact head and CI: see request line.
+- Stacked base: `fe38aeb2`, screens-12 round 2. Rebased before final checks.
+  Exact head and CI: see request line.
 - Scope: screen-creation persistence foundation for the approved screens-11
   ProPresenter comparison. O2 remains parked.
 

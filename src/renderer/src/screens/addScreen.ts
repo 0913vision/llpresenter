@@ -13,10 +13,12 @@ export function addScreen(
   screens: readonly Screen[],
   input: NewScreen,
 ): readonly Screen[] {
-  if (screens.length >= MAX_TARGET_SCREENS)
+  if (screens.length >= MAX_TARGET_SCREENS) {
     throw new Error('화면은 200개까지 추가할 수 있음');
-  if (screens.some(screen => screen.id === input.id))
+  }
+  if (screens.some(screen => screen.id === input.id)) {
     throw new Error('화면 추가 실패');
+  }
   const base = input.kind === 'audience' ? '새 청중 화면' : '새 무대 화면';
   const names = new Set(screens.map(screen => screen.name.trim()));
   let name = base;
