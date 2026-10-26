@@ -136,19 +136,15 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (9a1f22f6): reviewer (Codex, codex3) Approve. Nit for data-52: the 416
+  response in `src/main/windows/mediaResponse.ts:89` drops `extraHeaders`, so an
+  unsatisfiable analysis range loses its CORS header; include them and add an
+  analysis-range test. Lead Approve after reading the loan route: a random UUID
+  token, one file at a time, released after the analysis, and
+  `Access-Control-Allow-Origin` only on that route. Rebased by the lead onto
+  local `main` without conflicts; typecheck passes.
 
 ## Team member's reply
 
