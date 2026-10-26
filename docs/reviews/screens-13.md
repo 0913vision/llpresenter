@@ -57,3 +57,11 @@ tests. The visible follow-up will exercise creation and output control in the
 real offscreen app and include screenshots before its request.
 
 ## Team member's reply
+
+## Verdicts (recorded by the lead at merge)
+
+- Final round (7e2b2e35): reviewer (Codex) Approve; second review (Gemini 4
+  Argon, gem1) Approve, no findings, on the output-window changes. Lead Approve;
+  the exact-head CI run passed, checked by the lead at merge. Rebased by the
+  lead onto local `main` without conflicts; typecheck passes. Earlier rounds'
+  findings and replies are above.
