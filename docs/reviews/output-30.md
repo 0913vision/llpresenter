@@ -176,19 +176,17 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (Codex, codex3): Request changes: the planner looked the live 슬라이드
+  up only in the record's open service, so a slide from another service was
+  hidden.
+- Round 2 (d759bde5): reviewer (Codex, codex3) Approve; the round 1 finding is
+  fixed with planner and end-to-end regressions. Nit, settled here: the final
+  head 1be00b9d passed CI (run 40257498111); the earlier failure at 867bf5fe was
+  only the native full screen always-on-top test, which output is investigating
+  separately. Lead Approve. Rebased by the lead onto local `main` without
+  conflicts; typecheck passes. M3-O8 is complete.
 
 ## Team member's reply
 
