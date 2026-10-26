@@ -137,6 +137,7 @@ describe('recovery record writer', () => {
     expect(texts).toHaveLength(1);
     store.change({outputs: {main: true}});
     store.change({stageMessage: 'Fixture note'});
+    expect(vi.getTimerCount()).toBe(1);
     await vi.advanceTimersByTimeAsync(RECORD_INTERVAL_MS - 1);
     expect(texts).toHaveLength(1);
     await vi.advanceTimersByTimeAsync(1);

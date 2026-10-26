@@ -95,9 +95,10 @@ quitting`);
 
   it('never marks quitting after a clean exit or on a newer launch marker', async () => {
     const {folder, log, file} = await setup();
-    const finished = await openRecoverySession({folder, log});
-    await finished.cleanExit();
-    await finished.markQuitting();
+    const closing = await openRecoverySession({folder, log});
+    await Promise.all([closing.cleanExit(), closing.markQuitting()]);
+    await expect(stat(file)).rejects.toMatchObject({code: 'ENOENT'});
+    await closing.markQuitting();
     await expect(stat(file)).rejects.toMatchObject({code: 'ENOENT'});
     const old = await openRecoverySession({folder, log});
     const current = await openRecoverySession({folder, log});
