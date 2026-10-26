@@ -1,44 +1,51 @@
 {
-  "date": "2026-10-26T14:15:22.637Z",
+  "date": "2026-10-26T14:31:05.414Z",
   "environment": {
     "mode": "offscreen",
     "devPort": 5193,
     "data": "isolated invented QA fixture"
   },
   "checks": [
-    "Ambiguous book Tab blocked; no initial highlight; arrows then Tab choose and advance",
+    "Ambiguous book Tab blocked initially and after pointer hover; no initial highlight; arrows then Tab choose and advance",
     "Four-field preview leaves live state unchanged; Enter sends the passage",
     "Invalid chapter blocks Tab; end 99 blocks Tab, Enter clamps to 36; changing start clears end",
     "Prep opens the same four-field form",
     "Prep form opened and closed, then reopened with empty fields",
     "Prep 20 start/end cycles clear the end; reversed end blocks Tab, Enter and Add; end 99 inserts a clamped passage on Enter without changing live output",
-    "After insertion, opening and closing Prep twice returns element and listener counts to baseline; edited input nodes are released after dialog unmount"
+    "Prep book Tab completes English John and IME-off dy to 요한복음 and advances to chapter",
+    "After insertion, settled element, node and listener counts match across both subsequent Prep closes; edited input nodes are released after dialog unmount"
   ],
   "showSelectionCycles": 20,
   "showSamples": [
     {
-      "elements": 488,
+      "elements": 493,
       "documents": 30,
-      "nodes": 1738,
-      "jsEventListeners": 552,
-      "usedSize": 6258040,
-      "totalSize": 6852608
+      "nodes": 1743,
+      "jsEventListeners": 839,
+      "usedSize": 6601768,
+      "totalSize": 7376896,
+      "embedderHeapUsedSize": 4703848,
+      "backingStorageSize": 1689772
     },
     {
-      "elements": 488,
+      "elements": 493,
       "documents": 30,
-      "nodes": 1738,
-      "jsEventListeners": 552,
-      "usedSize": 6306444,
-      "totalSize": 7114752
+      "nodes": 1743,
+      "jsEventListeners": 839,
+      "usedSize": 6699840,
+      "totalSize": 7639040,
+      "embedderHeapUsedSize": 4672168,
+      "backingStorageSize": 1689772
     },
     {
-      "elements": 488,
+      "elements": 493,
       "documents": 30,
-      "nodes": 1738,
-      "jsEventListeners": 552,
-      "usedSize": 6375612,
-      "totalSize": 7114752
+      "nodes": 1743,
+      "jsEventListeners": 839,
+      "usedSize": 6747228,
+      "totalSize": 7639040,
+      "embedderHeapUsedSize": 4698608,
+      "backingStorageSize": 1689772
     }
   ],
   "narrowFields": [
@@ -67,43 +74,74 @@
       "right": 194
     }
   ],
-  "finished": "2026-10-26T14:15:48.472Z",
+  "finished": "2026-10-26T14:36:17.569Z",
+  "startupShowSamples": [
+    {
+      "elements": 493,
+      "documents": 30,
+      "nodes": 1744,
+      "jsEventListeners": 696,
+      "usedSize": 5863468,
+      "totalSize": 6328320
+    },
+    {
+      "elements": 493,
+      "documents": 30,
+      "nodes": 1744,
+      "jsEventListeners": 696,
+      "usedSize": 6161580,
+      "totalSize": 6590464
+    },
+    {
+      "elements": 493,
+      "documents": 30,
+      "nodes": 1744,
+      "jsEventListeners": 696,
+      "usedSize": 6254452,
+      "totalSize": 7114752
+    }
+  ],
+  "showWarmupCycles": 20,
   "prepFieldCycles": 20,
   "prepSamples": [
     {
-      "elements": 200,
-      "documents": 16,
-      "nodes": 339,
-      "jsEventListeners": 621,
-      "usedSize": 6202276,
+      "elements": 206,
+      "documents": 20,
+      "nodes": 361,
+      "jsEventListeners": 765,
+      "usedSize": 6584232,
       "totalSize": 7376896,
-      "embedderHeapUsedSize": 2930520,
-      "backingStorageSize": 1664451
+      "embedderHeapUsedSize": 3271744,
+      "backingStorageSize": 1689893
     },
     {
-      "elements": 200,
-      "documents": 16,
-      "nodes": 359,
-      "jsEventListeners": 621,
-      "usedSize": 6272280,
+      "elements": 206,
+      "documents": 20,
+      "nodes": 381,
+      "jsEventListeners": 765,
+      "usedSize": 6624632,
       "totalSize": 7376896,
-      "embedderHeapUsedSize": 2958832,
-      "backingStorageSize": 1664451
+      "embedderHeapUsedSize": 3231936,
+      "backingStorageSize": 1689893
     },
     {
-      "elements": 200,
-      "documents": 16,
-      "nodes": 379,
-      "jsEventListeners": 621,
-      "usedSize": 6277760,
+      "elements": 206,
+      "documents": 20,
+      "nodes": 401,
+      "jsEventListeners": 765,
+      "usedSize": 6674952,
       "totalSize": 7376896,
-      "embedderHeapUsedSize": 2971800,
-      "backingStorageSize": 1664451
+      "embedderHeapUsedSize": 3210664,
+      "backingStorageSize": 1689893
     }
   ],
-  "prepRowsBefore": 7,
-  "prepRowsAfter": 8,
+  "prepRowsBefore": 8,
+  "prepRowsAfter": 9,
   "inserted": [
+    {
+      "title": "요한복음 3:16-36",
+      "kind": "bible"
+    },
     {
       "title": "요한복음 3:16-36",
       "kind": "bible"
@@ -111,34 +149,34 @@
   ],
   "closedPrepSamples": [
     {
-      "elements": 184,
+      "elements": 189,
       "documents": 16,
-      "nodes": 350,
-      "jsEventListeners": 768,
-      "usedSize": 6227156,
+      "nodes": 357,
+      "jsEventListeners": 769,
+      "usedSize": 6628404,
       "totalSize": 7376896,
-      "embedderHeapUsedSize": 2954192,
-      "backingStorageSize": 1664477
+      "embedderHeapUsedSize": 3048296,
+      "backingStorageSize": 1689896
     },
     {
-      "elements": 183,
+      "elements": 188,
       "documents": 20,
-      "nodes": 312,
-      "jsEventListeners": 756,
-      "usedSize": 6211040,
+      "nodes": 319,
+      "jsEventListeners": 757,
+      "usedSize": 6604620,
       "totalSize": 7376896,
-      "embedderHeapUsedSize": 3115320,
-      "backingStorageSize": 1664472
+      "embedderHeapUsedSize": 3154184,
+      "backingStorageSize": 1689891
     },
     {
-      "elements": 183,
+      "elements": 188,
       "documents": 20,
-      "nodes": 312,
-      "jsEventListeners": 756,
-      "usedSize": 6223012,
+      "nodes": 319,
+      "jsEventListeners": 757,
+      "usedSize": 6624568,
       "totalSize": 7376896,
-      "embedderHeapUsedSize": 3112816,
-      "backingStorageSize": 1664472
+      "embedderHeapUsedSize": 3204648,
+      "backingStorageSize": 1689891
     }
   ]
 }

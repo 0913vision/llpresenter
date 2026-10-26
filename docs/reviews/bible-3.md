@@ -44,7 +44,7 @@ bible-1 review nit.
 ## Checks run
 
 - `npm run typecheck`: passed.
-- Scoped Vitest: 55 tests across five renderer files passed.
+- Scoped Vitest: 56 tests across five renderer files passed.
 - Scoped ESLint and formatting: final results in the member report.
 - `npm run build`: passed; the actual built app was exercised below.
 - Exact-head GitHub `npm run verify`: run URL and result in the member report.
@@ -60,7 +60,8 @@ uses real CDP mouse, keyboard, and text input, without mocking IPC or changing
 React state. The app exited normally after the checks.
 
 - Ambiguous 책 has no initial highlight. Tab stays; two ArrowDown presses and
-  Tab choose 베드로전서 and advance to 장. Exact 요 completes to 요한복음.
+  Tab choose 베드로전서 and advance to 장. Hover alone cannot authorize Tab.
+  Exact 요, English John, and IME-off dy complete to 요한복음.
 - A valid 3, 16, 18 reference previews without changing live state. Enter sends
   the passage. Invalid chapter 22 blocks Tab with the field reason. End 99
   blocks Tab, looks up through verse 36, and normalizes to 36 on Enter. Changing
@@ -72,20 +73,23 @@ React state. The app exited normally after the checks.
   요한복음 3:16-36, adding exactly one service item while live output remains
   unchanged. Opened and closed twice again after insertion to check cleanup.
 
-Measured after forced GC; [raw counters](bible-3/check.json) record the
-baseline, 10-cycle and 20-cycle samples:
+Measured after forced GC, with 20 Show warmup cycles before the measured loop;
+[raw counters](bible-3/check.json) record the baseline, 10-cycle and 20-cycle
+samples:
 
 | Flow                             | Elements        | Listeners       | Used JS heap, bytes               |
 | -------------------------------- | --------------- | --------------- | --------------------------------- |
-| Show selection cycles            | 488 / 488 / 488 | 552 / 552 / 552 | 6,258,040 / 6,306,444 / 6,375,612 |
-| Prep field changes               | 200 / 200 / 200 | 621 / 621 / 621 | 6,202,276 / 6,272,280 / 6,277,760 |
-| Settled Prep after closing twice | 183 / 183       | 756 / 756       | 6,211,040 / 6,223,012             |
+| Show selection cycles            | 493 / 493 / 493 | 839 / 839 / 839 | 6,601,768 / 6,699,840 / 6,747,228 |
+| Prep field changes               | 206 / 206 / 206 | 765 / 765 / 765 | 6,584,232 / 6,624,632 / 6,674,952 |
+| Settled Prep after closing twice | 188 / 188       | 757 / 757       | 6,604,620 / 6,624,568             |
 
-Show heap changes 1.9%, Prep 1.2%. Prep's total DOM-node counter grows from 339
-to 379 during repeated native text editing, while elements and listeners remain
-constant; after dialog unmount and cleanup it falls to 312 and remains 312
-across both subsequent closes. These are short repeated-flow observations, not a
-long-duration soak or a physical monitor check.
+Show heap changes 2.2%, Prep 1.4%. The initial Show loop before the extra warmup
+grew 6.7%; those startup samples are retained separately in the raw counters.
+Prep's total DOM-node counter grows from 361 to 401 during repeated native text
+editing, while elements and listeners remain constant; after dialog unmount and
+cleanup it falls to 319 and remains 319 across both subsequent closes. These are
+short repeated-flow observations, not a long-duration soak or a physical monitor
+check.
 
 ![Show fields and preview at normal width](bible-3/show-four-fields.png)
 
