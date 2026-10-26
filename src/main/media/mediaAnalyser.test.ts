@@ -310,4 +310,27 @@ describe('media analysis', () => {
     expect(vi.getTimerCount()).toBe(0);
     expectFileGivenBack(files);
   });
+
+  it('closes a page that opens after its analysis timed out without running it, while the next file goes on', async () => {
+    const clock = installFakeClock();
+    const {analyser, openPage, pages} = setup();
+    const late = {run: vi.fn<AnalysisPage['run']>(), close: vi.fn()};
+    let open: (page: AnalysisPage) => void = () => undefined;
+    openPage.mockImplementationOnce(
+      () =>
+        new Promise<AnalysisPage>(resolve => {
+          open = resolve;
+        }),
+    );
+    const stuck = analyser.analyse(VIDEO);
+    await clock.advance(ANALYSIS_TIMEOUT_MS);
+    expect(await stuck).toMatchObject({message: 'The analysis timed out'});
+    const next = analyser.analyse(VIDEO);
+    open(late);
+    expect(await next).toMatchObject({kind: 'read'});
+    await clock.advance(0);
+    expect(late.run).not.toHaveBeenCalled();
+    expect(late.close).toHaveBeenCalledOnce();
+    expect(pages[0]?.run).toHaveBeenCalledOnce();
+  });
 });

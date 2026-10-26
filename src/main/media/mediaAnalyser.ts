@@ -263,6 +263,9 @@ export class MediaAnalyser {
       this.closePage();
       return unavailable('The analysis page failed');
     } finally {
+      // NOTE(0913vision): However the analysis ended, a page that opens late
+      // must not run its expired job.
+      active.abort();
       this.active = null;
       lent.release();
     }
