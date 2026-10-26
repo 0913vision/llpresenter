@@ -49,8 +49,8 @@ const fakes = vi.hoisted(() => {
     textImportStop: vi.fn<() => void>(),
     bibleContexts: new Array<unknown>(),
     bibleStop: vi.fn<() => void>(),
-    mediaImportContexts: new Array<unknown>(),
-    mediaImportStop: vi.fn<() => Promise<void>>(),
+    mediaBackendContexts: new Array<unknown>(),
+    mediaBackendStop: vi.fn<() => Promise<void>>(),
     closeContexts: new Array<unknown>(),
     confirmClose: vi.fn<() => Promise<boolean>>(),
     closeStop: vi.fn<() => void>(),
@@ -159,9 +159,9 @@ vi.mock('./live/lookSelection', () => ({
   },
 }));
 vi.mock('./media/register', () => ({
-  registerMediaImport: (context: unknown) => {
-    fakes.mediaImportContexts.push(context);
-    return fakes.mediaImportStop;
+  registerMediaBackend: (context: unknown) => {
+    fakes.mediaBackendContexts.push(context);
+    return fakes.mediaBackendStop;
   },
 }));
 vi.mock('./import/register', () => ({
@@ -312,8 +312,8 @@ beforeEach(async () => {
   fakes.textImportStop.mockReset();
   fakes.bibleContexts.length = 0;
   fakes.bibleStop.mockReset();
-  fakes.mediaImportContexts.length = 0;
-  fakes.mediaImportStop.mockReset();
+  fakes.mediaBackendContexts.length = 0;
+  fakes.mediaBackendStop.mockReset();
   fakes.closeContexts.length = 0;
   fakes.confirmClose.mockReset().mockResolvedValue(true);
   fakes.closeStop.mockReset();
@@ -534,9 +534,9 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     expect(fakes.problemsStop).toHaveBeenCalledOnce();
   });
 
-  it('connects media import to the data store and the control window and stops it before closing data', async () => {
+  it('connects the media backend to the data store and the control window and stops it before closing data', async () => {
     await startMain();
-    expect(fakes.mediaImportContexts).toEqual([
+    expect(fakes.mediaBackendContexts).toEqual([
       expect.objectContaining({
         control: fakes.opened.control,
         windowMode: 'normal',
@@ -544,8 +544,8 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     ]);
     beforeQuit();
     await vi.waitFor(() => expect(fakes.storeDispose).toHaveBeenCalledOnce());
-    expect(fakes.mediaImportStop).toHaveBeenCalledOnce();
-    expect(fakes.mediaImportStop.mock.invocationCallOrder[0]).toBeLessThan(
+    expect(fakes.mediaBackendStop).toHaveBeenCalledOnce();
+    expect(fakes.mediaBackendStop.mock.invocationCallOrder[0]).toBeLessThan(
       fakes.storeDispose.mock.invocationCallOrder[0] ?? -Infinity,
     );
   });
