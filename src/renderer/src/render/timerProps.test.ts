@@ -13,6 +13,7 @@ import {
 import {classes} from './classes';
 import {DEFAULT_LYRIC_STYLE} from './lyricStyle';
 import {OutputRenderer} from './outputRenderer';
+import {MAX_REPORTED_TICK_ERRORS} from './layers/props';
 import {OverlayTextView} from './overlayText';
 
 const SERMON = overlayUuid(95);
@@ -192,6 +193,48 @@ describe('타이머 tokens in 소품 text', () => {
       'could not tick a 타이머 in the prop layer',
       new Error('no clock'),
     );
+    renderer.dispose();
+  });
+
+  it('keeps the other 소품 ticking past a failing one, and stops logging at the cap', () => {
+    const {renderer, render, parent, onError} = setup();
+    const original = OverlayTextView.prototype.replace;
+    let failures = 0;
+    vi.spyOn(OverlayTextView.prototype, 'replace').mockImplementation(function (
+      this: OverlayTextView,
+      text,
+      style,
+    ) {
+      if (text.startsWith('설교')) {
+        failures += 1;
+        throw new Error(`failure ${failures}`);
+      }
+      original.call(this, text, style);
+    });
+    const state = stateWith(`설교 {timer:${SERMON}}`, running, {
+      others: [
+        {
+          propId: PLAIN,
+          content: {
+            kind: 'text',
+            text: `남은 {timer:${SERMON}}`,
+            style: TEXT_STYLE,
+          },
+          targets: [MAIN],
+        },
+      ],
+    });
+    render(state.layers, state.timers);
+    for (let second = 0; second < MAX_REPORTED_TICK_ERRORS + 8; second += 1) {
+      advance(1000);
+    }
+    const texts = [
+      ...parent.querySelectorAll(
+        `[data-layer="prop"] .${classes.page}.${classes.shown}`,
+      ),
+    ].map(({textContent}) => textContent);
+    expect(texts).toEqual(['설교 1:00', '남은 0:20']);
+    expect(onError).toHaveBeenCalledTimes(MAX_REPORTED_TICK_ERRORS);
     renderer.dispose();
   });
 
