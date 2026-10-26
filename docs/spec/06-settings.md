@@ -63,6 +63,20 @@ Source: `Screens`, `Looks`, `StageEditor`, `Main` board guide (화면 설정, Lo
   monitor for 3 seconds, so the operator can match boxes to monitors (proposal
   for the duration). Each number shows in a borderless window above everything,
   output windows included, and never takes focus or the mouse (proposal).
+  - Look (lead decision, October 26; no board draws it): a 240 x 240 square at
+    the centre of each monitor, sized in device-independent pixels so a monitor
+    at 150% shows it at the same physical size. The square is `--output-black`
+    and holds only the monitor number, the same number as the monitor's display
+    layout box, in `--text-on-fill`, `--font-ui` at 160 px, weight 700 with
+    tabular figures as the box draws its number. ui can restyle it through the
+    design system.
+  - A number never covers a shown 방송 자막 capture window. When the centre
+    would, the number moves to the first free corner, 48 device-independent
+    pixels in from the edges (top left, top right, bottom left, bottom right);
+    with no free corner, that monitor shows no number (proposal).
+  - Pressing it again while the numbers show keeps them and starts the 3 seconds
+    over. When the monitors or the capture windows moved in between, the numbers
+    show again at the new places (proposal).
 - The health dot of a screen row is the design system's `ok` dot while the
   output is on and drawing at its frame rate target, an amber dot while it has a
   problem (lost monitor, low frame rate, or the restart limit; 08), and no dot
