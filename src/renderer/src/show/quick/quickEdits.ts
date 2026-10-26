@@ -6,6 +6,8 @@ import type {
   QuickItemKind,
 } from '@shared/schema/quick';
 import {withinLookupTimeout} from '@renderer/state/showOutput';
+import {pendingWritesOf} from '@renderer/state/pendingWrites';
+import type {EditResult} from '@shared/schema/contentEdit';
 
 export const MAX_QUICK_ITEMS = 500;
 export const QUICK_NAME_LIMIT = 256;
@@ -64,28 +66,43 @@ function applyEdit(
   }
 }
 
-/** Rebases an edit on the latest snapshot, retrying one stale revision. */
+/** Keeps the complete settings operation in the window's close gate. */
 export async function saveQuickEdit(
   api: LlpApi,
   edit: QuickEdit,
-): Promise<void> {
-  for (let attempt = 0; attempt < SAVE_ATTEMPTS; attempt++) {
-    const document = await withinLookupTimeout(() =>
-      api.settings.get({name: 'quick'}),
-    );
-    if (document.name !== 'quick' || document.access !== 'editable') {
-      throw new Error('Quick settings cannot be edited');
-    }
-    const items = applyEdit(document.value.items, edit);
-    const result = await api.settings.edit({
-      type: 'settings.update',
-      name: 'quick',
-      baseRevision: document.revision,
-      value: {...document.value, items},
-    });
-    if (result.ok) return;
-    if (result.error.reason !== 'stale' || attempt === SAVE_ATTEMPTS - 1) {
-      throw new Error(result.error.message);
-    }
+): Promise<EditResult> {
+  const result = await pendingWritesOf(api).run<EditResult | null>({
+    write: () => sendQuickEdit(api, edit),
+    refused: null,
+    sent: outcome =>
+      outcome !== null &&
+      (outcome.ok || outcome.error.reason === 'write-failed'),
+  });
+  if (result === null) throw new Error('Quick edits stopped for closing');
+  return result;
+}
+
+async function sendQuickEdit(
+  api: LlpApi,
+  edit: QuickEdit,
+  attempt = 0,
+): Promise<EditResult> {
+  const document = await withinLookupTimeout(() =>
+    api.settings.get({name: 'quick'}),
+  );
+  if (document.name !== 'quick' || document.access !== 'editable') {
+    throw new Error('Quick settings cannot be edited');
   }
+  const items = applyEdit(document.value.items, edit);
+  const result = await api.settings.edit({
+    type: 'settings.update',
+    name: 'quick',
+    baseRevision: document.revision,
+    value: {...document.value, items},
+  });
+  if (result.ok || result.error.reason === 'write-failed') return result;
+  if (result.error.reason === 'stale' && attempt + 1 < SAVE_ATTEMPTS) {
+    return sendQuickEdit(api, edit, attempt + 1);
+  }
+  throw new Error(result.error.message);
 }

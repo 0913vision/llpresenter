@@ -3,6 +3,7 @@ import {
   cleanup,
   fireEvent,
   render,
+  renderHook,
   screen,
   waitFor,
 } from '@testing-library/react';
@@ -10,15 +11,19 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LlpApi} from '@shared/ipc';
 import type {EditResult} from '@shared/schema/contentEdit';
 import {parseServiceDocument} from '@shared/schema/contentDocuments';
-import {createQuickItemId} from '@shared/schema/ids';
+import {createQuickItemId, createAppFlushRequestId} from '@shared/schema/ids';
+import type {AppFlushRequest} from '@shared/schema/appFlush';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {useShow} from '@renderer/state/show';
 import {useLive} from '@renderer/state/live';
 import {openLibrarySong} from '@renderer/state/showLibrary';
+import {pendingWritesOf} from '@renderer/state/pendingWrites';
+import {ControlSession} from '@renderer/control/controlSession';
 import {QuickPanel} from './QuickPanel';
 import {openBiblePassage} from '../bible/actions';
 import {panelPassage} from '../bible/panelTesting';
 import {MAX_QUICK_ITEMS, newQuickItem, saveQuickEdit} from './quickEdits';
+import {useQuickEditing} from './useQuickEditing';
 import {
   deferred,
   quickDocument,
@@ -67,6 +72,24 @@ function setup() {
   };
 }
 
+function failPersistedEdit(edit: ReturnType<typeof setup>['edit']): void {
+  const original = edit.getMockImplementation();
+  if (!original) throw new Error('Missing edit fixture');
+  edit.mockImplementationOnce(async change => {
+    const applied = await original(change);
+    if (!applied.ok) throw new Error('Fixture did not apply');
+    return {
+      ok: false,
+      error: {
+        reason: 'write-failed',
+        message: 'Invented disk failure',
+        applied: applied.value,
+        unchangedFiles: ['quick.json'],
+      },
+    };
+  });
+}
+
 beforeEach(() => {
   vi.spyOn(crypto, 'randomUUID').mockReturnValue(
     '00000000-0000-4000-8000-000000000999',
@@ -89,6 +112,115 @@ afterEach(() => {
 });
 
 describe('quick editing', () => {
+  it.each([false, true])(
+    'holds close through a deferred read and stale retry %s',
+    async retry => {
+      const fixture = setup();
+      let request: (value: AppFlushRequest) => void = () => undefined;
+      vi.spyOn(fixture.api.app, 'subscribeFlushRequests').mockImplementation(
+        listener => {
+          request = listener;
+          return () => undefined;
+        },
+      );
+      const flushed = vi.spyOn(fixture.api.app, 'flushDone');
+      const session = new ControlSession(fixture.api);
+      const first = deferred<ReturnType<typeof quickDocument>>();
+      const second = deferred<ReturnType<typeof quickDocument>>();
+      fixture.get.mockReturnValueOnce(first.promise);
+      if (retry) {
+        fixture.get.mockReturnValueOnce(second.promise);
+        fixture.edit.mockResolvedValueOnce({
+          ok: false,
+          error: {reason: 'stale', message: 'Invented stale write'},
+        });
+      }
+      const editing = saveQuickEdit(fixture.api, {
+        kind: 'rename',
+        id: quickItem('song').id,
+        name: '새 이름',
+      });
+      const requestId = createAppFlushRequestId(
+        '00000000-0000-4000-8000-000000000008',
+      );
+      try {
+        request({requestId});
+        await act(async () => undefined);
+        expect(flushed).not.toHaveBeenCalled();
+        first.resolve(quickDocument());
+        if (retry) {
+          await waitFor(() => expect(fixture.get).toHaveBeenCalledTimes(2));
+          expect(flushed).not.toHaveBeenCalled();
+          second.resolve(quickDocument(2));
+        }
+        await editing;
+        await waitFor(() =>
+          expect(flushed).toHaveBeenCalledExactlyOnceWith({
+            requestId,
+            result: true,
+          }),
+        );
+        expect(fixture.edit.mock.invocationCallOrder.at(-1)).toBeLessThan(
+          flushed.mock.invocationCallOrder[0] ?? -Infinity,
+        );
+        const reads = fixture.get.mock.calls.length;
+        await expect(
+          saveQuickEdit(fixture.api, {
+            kind: 'delete',
+            id: quickItem('song').id,
+          }),
+        ).rejects.toThrow();
+        expect(fixture.get).toHaveBeenCalledTimes(reads);
+      } finally {
+        first.resolve(quickDocument());
+        second.resolve(quickDocument(2));
+        await editing.catch(() => undefined);
+        await session.dispose();
+      }
+    },
+  );
+  it('closes an applied rename while retaining its disk warning', async () => {
+    const fixture = setup();
+    failPersistedEdit(fixture.edit);
+    fixture.mount();
+    fireEvent.contextMenu(
+      await screen.findByRole('button', {name: '저장된 곡'}),
+    );
+    fireEvent.click(await screen.findByRole('menuitem', {name: '이름 바꾸기'}));
+    fireEvent.change(screen.getByRole('textbox', {name: '이름'}), {
+      target: {value: '적용된 이름'},
+    });
+    fireEvent.click(screen.getByRole('button', {name: '저장'}));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(fixture.current().value.items[0]?.name).toBe('적용된 이름');
+    expect(fixture.problem).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({kind: 'warning', title: '퀵 실행 저장 실패'}),
+    );
+    expect(fixture.edit).toHaveBeenCalledOnce();
+  });
+  it('accepts an applied addition without retrying and lets close proceed', async () => {
+    const fixture = setup();
+    failPersistedEdit(fixture.edit);
+    const {result} = renderHook(() =>
+      useQuickEditing(fixture.api, fixture.problem),
+    );
+    let accepted = false;
+    await act(async () => {
+      const adding = result.current.run({
+        kind: 'add',
+        item: newQuickItem({kind: 'black', name: '검은 화면'}),
+      });
+      const flushing = pendingWritesOf(fixture.api).flush();
+      accepted = await adding;
+      expect(await flushing).toBe(true);
+    });
+    expect(accepted).toBe(true);
+    expect(fixture.current().value.items).toHaveLength(8);
+    expect(fixture.edit).toHaveBeenCalledOnce();
+    expect(fixture.problem).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({kind: 'warning', title: '퀵 실행 저장 실패'}),
+    );
+  });
   it.each(['song', 'bible'] as const)(
     'copies the current service %s reference',
     async kind => {

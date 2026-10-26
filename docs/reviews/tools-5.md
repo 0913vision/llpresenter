@@ -10,13 +10,16 @@
 퀵 실행 추가 can save the current service song or Bible reference, library song,
 Bible preview, or a black entry. Adding never outputs or edits the service. The
 row context menu supports rename and delete, including unknown kinds. Blank
-names cannot save; failed saves leave the rename dialog open. Neither operation
-clears live output. Context menus also open with Shift F10.
+names cannot save; rejected edits leave the rename dialog open. Neither
+operation clears live output. Context menus also open with Shift F10.
 
 Edits read the latest settings revision, preserve unrelated and unknown fields,
 and retry one stale revision. A synchronous busy lock blocks duplicate submits.
 Read-only documents reject edits, callbacks stop after unmount, reads time out,
-and additions stop at 500 rows. Names are limited to 256 characters.
+and additions stop at 500 rows. Names are limited to 256 characters. The
+complete read, retry and write operation participates in the window's close
+gate. An applied `write-failed` edit finishes while retaining a persistence
+warning.
 
 ## Changed files and changes outside my paths
 
@@ -51,4 +54,12 @@ contract and renderer units; the stored black entry remains disabled for now.
 
 ## Team member's reply
 
-None yet.
+1. Addressed both round-1 P2 findings. The whole read-before-write operation,
+   including a stale revision retry, now runs through `pendingWritesOf(api)`.
+   Close waits for it to reach main, and new edits stop while close is pending.
+   Two deferred-read tests exercise the actual control-session close request,
+   with and without a stale retry. `write-failed` is now returned as an applied
+   result, counted as sent by the gate, and reported as a persistence warning.
+   Rename closes after an applied change; addition returns success without
+   retrying or duplicating it. Four regression cases failed before the fixes and
+   pass after them. Final checks and exact-head CI are in the report.

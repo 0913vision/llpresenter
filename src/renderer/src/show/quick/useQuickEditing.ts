@@ -22,7 +22,21 @@ export function useQuickEditing(
     pending.current = true;
     setBusy(true);
     try {
-      await saveQuickEdit(api, edit);
+      const result = await saveQuickEdit(api, edit);
+      if (!result.ok) {
+        if (result.error.reason !== 'write-failed') {
+          throw new Error(result.error.message);
+        }
+        if (isActive()) {
+          onProblem({
+            key: 'quick:save',
+            kind: 'warning',
+            icon: 'warning',
+            title: '퀵 실행 저장 실패',
+            time: noticeTime(),
+          });
+        }
+      }
       return isActive();
     } catch (cause) {
       api.log.write({
