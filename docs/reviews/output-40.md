@@ -46,6 +46,9 @@ All additive, with valid and invalid tests and caps:
   `timers.json` no longer has it.
 - Spec 03 and 04: the next 장 sender and the stage 타이머, marked "(lead
   decision, October 26)".
+- The lead's nit on output-39: `src/main/live/testPattern.test.ts` now shows a
+  장 before the clear, so the test checks that the clear empties it and the undo
+  brings it back while the pattern stays on.
 - Aside: `recovery/controller.test.ts` waited for a real file write with
   `vi.waitFor`'s default second and failed once while the whole suite ran in
   parallel (it passed alone and on the rerun). It now waits up to 5 s (a NOTE).
@@ -57,6 +60,7 @@ All additive, with valid and invalid tests and caps:
   their tests.
 - `src/main/live/slices/stage.ts` (new), `slices/look.ts`, `overlayRefresh.ts`,
   `overlays.ts`, and `src/main/live/stage.test.ts` (new).
+- `src/main/live/testPattern.test.ts`, `recovery/controller.test.ts`.
 - `src/renderer/src/show/slideLayer.ts` and its test.
 - Tests whose expected `slide.show` now carries `next`:
   `src/renderer/src/state/show.test.ts`, `state/showLibrary.test.tsx`,
