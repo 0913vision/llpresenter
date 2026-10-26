@@ -702,12 +702,10 @@ export class ContentStore {
     return answer({id: templateId, revision: null}, [written]);
   }
 
-  /**
-   * The refusal for an edit of files that don't wait yet while too many wait
-   * to be saved, which shows 저장할 수 없음 again; null when it may go on.
-   */
   private savesFull(files: readonly string[]): EditResult | null {
     if (this.persistence.admits(files)) return null;
+    // NOTE(0913vision): The operator may have closed 저장할 수 없음, so a
+    // refusal shows it again with the files that wait.
     this.persistence.remind();
     return refuse('saves-full', 'Too many files are waiting to be saved');
   }

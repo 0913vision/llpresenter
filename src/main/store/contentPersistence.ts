@@ -25,7 +25,8 @@ type Pending =
  */
 export class ContentPersistence {
   private readonly pending = new Map<string, Pending>();
-  /** The files whose newest operation failed. */
+  // NOTE(0913vision): The files whose newest operation failed; pending also
+  // holds the ones still running, which the cap doesn't count.
   private readonly waiting = new Set<string>();
 
   /** @param nameOf - What a failure card calls a file; its name by default. */
