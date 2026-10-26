@@ -5,11 +5,7 @@ import {
 } from '@renderer/shell/sizeClass';
 import {useLive} from '@renderer/state/live';
 import {useShow} from '@renderer/state/show';
-import {
-  isBibleSource,
-  isLibrarySource,
-  shownTiles,
-} from '@renderer/state/showLibrary';
+import {isLibrarySource, shownTiles} from '@renderer/state/showLibrary';
 import {
   saveThumbnailScale,
   showThumbnailScale,
@@ -58,9 +54,7 @@ export function SlidePanelMeta(): JSX.Element | null {
   const title = useShow(view =>
     isLibrarySource(view, openItemId)
       ? view.librarySong.title
-      : isBibleSource(view, openItemId)
-        ? view.bibleSource?.passage.displayRef
-        : view.rows.find(row => row.id === openItemId)?.title,
+      : view.rows.find(row => row.id === openItemId)?.title,
   );
   const count = useShow(view => shownTiles(view)?.length ?? 0);
   const livePosition = useLive(view => {

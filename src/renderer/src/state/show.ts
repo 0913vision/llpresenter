@@ -14,6 +14,7 @@ import {
   type SequenceState,
 } from '@renderer/show/navigation';
 import {slideLayerOf} from '@renderer/show/slideLayer';
+import {rememberBibleOutput} from '@renderer/show/bible/recentWriter';
 import {sendLive, useLive} from './live';
 import {
   isBibleSource,
@@ -121,6 +122,10 @@ export function outputTile(cursor: TileCursor): void {
   }
   startServiceItem(cursor.itemId);
   sendLive({type: 'slide.show', slide});
+  const view = useShow.getState();
+  if (isBibleSource(view, cursor.itemId) && view.bibleSource !== null) {
+    rememberBibleOutput(view.bibleSource.passage);
+  }
 }
 
 interface SongOutput {
@@ -271,12 +276,12 @@ export function applyService(service: ShowService | null): void {
   if (service === null) {
     const view = useShow.getState();
     const {openItemId, selectedTile} = view;
-    const keepLibrary =
+    const keepSource =
       isLibrarySource(view, openItemId) || isBibleSource(view, openItemId);
     useShow.setState({
       ...noService,
-      openItemId: keepLibrary ? openItemId : null,
-      selectedTile: keepLibrary ? selectedTile : 0,
+      openItemId: keepSource ? openItemId : null,
+      selectedTile: keepSource ? selectedTile : 0,
     });
     return;
   }

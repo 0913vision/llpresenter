@@ -45,7 +45,10 @@ export function tilesForView(
 /** Selects the open source's tiles without copying either projection. */
 export function shownTiles(view: ShowView): readonly SlideTile[] | undefined {
   if (view.openItemId === null) return undefined;
-  return tilesForView(view, view.openItemId);
+  return isLibrarySource(view, view.openItemId) ||
+    isBibleSource(view, view.openItemId)
+    ? tilesForView(view, view.openItemId)
+    : view.tiles[view.openItemId];
 }
 
 /** Opens a checked library projection without writing a service or output. */

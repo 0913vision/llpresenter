@@ -1,11 +1,10 @@
-import {useEffect, useMemo, useState, type JSX} from 'react';
+import {useEffect, useState, type JSX} from 'react';
 import type {LlpApi} from '@shared/ipc';
 import type {SettingsDocument} from '@shared/schema/settingsDocuments';
 import {useShow} from '@renderer/state/show';
 import {isBibleSource} from '@renderer/state/showLibrary';
 import {BibleReferenceField} from '../bible/BibleReferenceField';
 import {openBiblePassage, showBiblePassage} from '../bible/actions';
-import {recentWriter} from '../bible/recentWriter';
 
 /** The quick-panel mount; previewing never writes output or recent history. */
 export function BibleQuickField({api}: {readonly api: LlpApi}): JSX.Element {
@@ -14,14 +13,14 @@ export function BibleQuickField({api}: {readonly api: LlpApi}): JSX.Element {
     {name: 'bible'}
   > | null>(null);
   const [session, setSession] = useState(0);
-  const remember = useMemo(() => recentWriter(api.settings), [api.settings]);
   useEffect(() => {
     let active = true;
     const accept = (next: SettingsDocument): void => {
-      if (active && next.name === 'bible')
+      if (active && next.name === 'bible') {
         setDocument(previous =>
           previous && previous.revision >= next.revision ? previous : next,
         );
+      }
     };
     const stop = api.settings.subscribe(accept);
     void api.settings.get({name: 'bible'}).then(accept, (error: unknown) => {
@@ -51,10 +50,7 @@ export function BibleQuickField({api}: {readonly api: LlpApi}): JSX.Element {
       }
       recents={document?.value.recents ?? []}
       onPreview={openBiblePassage}
-      onShow={passage => {
-        showBiblePassage(passage);
-        remember(passage);
-      }}
+      onShow={showBiblePassage}
     />
   );
 }

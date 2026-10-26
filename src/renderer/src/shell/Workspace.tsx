@@ -33,6 +33,9 @@ import {ShowToolsPanel} from '@renderer/show/ShowToolsPanel';
 import {SongBackgroundControl} from '@renderer/show/SongBackgroundControl';
 import {ReadOnlyMark} from '@renderer/show/ReadOnlyMark';
 import {BibleQuickField} from '@renderer/show/quick/BibleQuickField';
+import {BiblePanel} from '@renderer/show/bible/BiblePanel';
+import {useShow} from '@renderer/state/show';
+import {isBibleSource} from '@renderer/state/showLibrary';
 import {
   SlidePanelBody,
   SlidePanelMeta,
@@ -155,11 +158,17 @@ function logPanelProblem(notice: Notice): void {
   console.error('Workspace panel failed:', notice.key);
 }
 
-function showPanelParts(
-  title: string,
-  sizeClass: SizeClass,
-  onProblem: ((notice: Notice) => void) | undefined,
-): PanelParts {
+function showPanelParts({
+  title,
+  sizeClass,
+  onProblem,
+  bibleOpen,
+}: {
+  readonly title: string;
+  readonly sizeClass: SizeClass;
+  readonly onProblem: ((notice: Notice) => void) | undefined;
+  readonly bibleOpen: boolean;
+}): PanelParts {
   switch (title) {
     case '퀵 실행':
       return {body: window.llp ? <BibleQuickField api={window.llp} /> : null};
@@ -177,6 +186,7 @@ function showPanelParts(
     case '지우기':
       return {bare: <ClearRow compact={sizeClass === 'narrow'} />};
     case '슬라이드':
+      if (bibleOpen) return {embedded: <BiblePanel sizeClass={sizeClass} />};
       return {
         body: <SlidePanelBody sizeClass={sizeClass} />,
         meta: (
@@ -376,6 +386,9 @@ export function Workspace({
   readonly sidebar?: SidebarCollapse | undefined;
 }): JSX.Element {
   const {gridRef, drag} = useColumnLayout(sizeClass, store);
+  const bibleOpen = useShow(
+    view => id === 'show' && isBibleSource(view, view.openItemId),
+  );
   const toggle = useSidebarToggle(id === 'show' ? sidebar : undefined);
   const hasSong = useSyncExternalStore(
     prep?.editor.subscribe ?? noSubscribe,
@@ -402,7 +415,7 @@ export function Workspace({
     }
     if (id === 'screens') return screensPanelParts(title, onProblem);
     return id === 'show'
-      ? showPanelParts(title, sizeClass, onProblem)
+      ? showPanelParts({title, sizeClass, onProblem, bibleOpen})
       : prepPanelParts({title, prep, hasSong, onProblem, sizeClass});
   };
   // TODO(0913vision): Let the shrink rule ignore the hidden left width while

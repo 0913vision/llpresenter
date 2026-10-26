@@ -10,14 +10,18 @@ export function openBiblePassage(passage: BibleLookupPassage): void {
   useShow.setState({
     bibleSource: source,
     openItemId: source.id,
-    selectedTile: view.openItemId === source.id ? view.selectedTile : 0,
+    selectedTile:
+      view.openItemId === source.id
+        ? Math.min(view.selectedTile, source.tiles.length - 1)
+        : 0,
   });
 }
 
-/** Shares the selected-tile output path with the upcoming 바로 띄우기 button. */
+/** Outputs the selected Bible tile through the standard slide command path. */
 export function showBiblePassage(passage: BibleLookupPassage): void {
   openBiblePassage(passage);
   const view = useShow.getState();
-  if (view.openItemId !== null)
+  if (view.openItemId !== null) {
     outputTile({itemId: view.openItemId, index: view.selectedTile});
+  }
 }
