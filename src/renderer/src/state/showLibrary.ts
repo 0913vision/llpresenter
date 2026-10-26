@@ -11,6 +11,10 @@ import {useShow, type ShowView} from './showStore';
 
 const noTiles: readonly SlideTile[] = [];
 
+export function isBibleSource(view: ShowView, itemId: ItemId | null): boolean {
+  return view.bibleSource !== null && view.bibleSource.id === itemId;
+}
+
 /** Namespaces a library source without inventing a service item. */
 export function librarySourceId(songId: ShowLibrarySong['songId']): ItemId {
   return `library:${songId}`;
@@ -33,15 +37,15 @@ export function tilesForView(
 ): readonly SlideTile[] {
   return isLibrarySource(view, itemId)
     ? view.librarySong.tiles
-    : (view.tiles[itemId] ?? noTiles);
+    : isBibleSource(view, itemId)
+      ? (view.bibleSource?.tiles ?? noTiles)
+      : (view.tiles[itemId] ?? noTiles);
 }
 
 /** Selects the open source's tiles without copying either projection. */
 export function shownTiles(view: ShowView): readonly SlideTile[] | undefined {
   if (view.openItemId === null) return undefined;
-  return isLibrarySource(view, view.openItemId)
-    ? view.librarySong.tiles
-    : view.tiles[view.openItemId];
+  return tilesForView(view, view.openItemId);
 }
 
 /** Opens a checked library projection without writing a service or output. */

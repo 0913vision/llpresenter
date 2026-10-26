@@ -1,8 +1,10 @@
 import {create} from 'zustand';
 import type {ShowLibrarySong} from '@shared/schema/showLibrarySong';
+import type {BibleSource} from '@renderer/show/bible/source';
 import type {ItemId, ServiceRow, SlideTile} from '@renderer/show/model';
 
 export interface ShowView {
+  readonly bibleSource: BibleSource | null;
   readonly librarySong: ShowLibrarySong | null;
   readonly revision: number | null;
   readonly serviceId: string | null;
@@ -29,6 +31,7 @@ export const noService = {
 export const useShow = create<ShowView>(() => ({
   ...noService,
   librarySong: null,
+  bibleSource: null,
   openItemId: null,
   selectedTile: 0,
 }));

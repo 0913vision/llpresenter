@@ -32,6 +32,7 @@ import {ServiceOrderList} from '@renderer/show/ServiceOrderList';
 import {ShowToolsPanel} from '@renderer/show/ShowToolsPanel';
 import {SongBackgroundControl} from '@renderer/show/SongBackgroundControl';
 import {ReadOnlyMark} from '@renderer/show/ReadOnlyMark';
+import {BibleQuickField} from '@renderer/show/quick/BibleQuickField';
 import {
   SlidePanelBody,
   SlidePanelMeta,
@@ -160,6 +161,8 @@ function showPanelParts(
   onProblem: ((notice: Notice) => void) | undefined,
 ): PanelParts {
   switch (title) {
+    case '퀵 실행':
+      return {body: window.llp ? <BibleQuickField api={window.llp} /> : null};
     case '미리보기':
       return {
         size: 'content',

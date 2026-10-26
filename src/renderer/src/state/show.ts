@@ -15,7 +15,12 @@ import {
 } from '@renderer/show/navigation';
 import {slideLayerOf} from '@renderer/show/slideLayer';
 import {sendLive, useLive} from './live';
-import {isLibrarySource, outputLibraryTile, tilesForView} from './showLibrary';
+import {
+  isBibleSource,
+  isLibrarySource,
+  outputLibraryTile,
+  tilesForView,
+} from './showLibrary';
 import {
   beginOutputRequest,
   isOutputRequestCurrent,
@@ -223,7 +228,10 @@ export function openPreviousItem(): void {
 export function revealLiveItem(): void {
   const view = useShow.getState();
   const live = liveCursor();
-  if (live && isLibrarySource(view, live.itemId)) {
+  if (
+    live &&
+    (isLibrarySource(view, live.itemId) || isBibleSource(view, live.itemId))
+  ) {
     openItem(live.itemId);
     return;
   }
@@ -243,7 +251,7 @@ function keptSelection(
 ): Pick<ShowView, 'openItemId' | 'selectedTile'> {
   const view = useShow.getState();
   const {openItemId, selectedTile} = view;
-  if (isLibrarySource(view, openItemId)) {
+  if (isLibrarySource(view, openItemId) || isBibleSource(view, openItemId)) {
     return {openItemId, selectedTile};
   }
   const stillThere =
@@ -263,7 +271,8 @@ export function applyService(service: ShowService | null): void {
   if (service === null) {
     const view = useShow.getState();
     const {openItemId, selectedTile} = view;
-    const keepLibrary = isLibrarySource(view, openItemId);
+    const keepLibrary =
+      isLibrarySource(view, openItemId) || isBibleSource(view, openItemId);
     useShow.setState({
       ...noService,
       openItemId: keepLibrary ? openItemId : null,
