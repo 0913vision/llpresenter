@@ -436,10 +436,11 @@ after its name, and hides it at 0.
     This replaces the earlier always-overrun rule (user decision, October 27,
     following ProPresenter's Overrun option).
   - Elapsed (`elapsed`): counts up from a nonnegative start value, like a
-    stopwatch. The operator enters the start value as a duration. Starting
-    counts from that value, pausing holds it, and 처음으로 returns to it.
-    Changing the wall clock does not change the counted duration (user decision,
-    October 27, following ProPresenter's Elapsed Time).
+    stopwatch. The operator enters the start value as a duration. A stopped
+    timer starts at that value; pausing holds it and resuming continues from the
+    held value. 처음으로 returns to the configured start value. Changing the
+    wall clock does not change the counted duration (user decision, October 27,
+    following ProPresenter's Elapsed Time).
   - Older time-of-day elapsed records (`elapsedFrom`) keep their meaning and
     show as 시각 경과, distinct from 경과. They count from the recorded time of
     day, with a leading "-" before it. New 경과 timers use a start duration.
