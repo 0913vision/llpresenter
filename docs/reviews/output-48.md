@@ -2,7 +2,8 @@
 
 - Team member: `output`
 - Branch: `fix/output/audio-generation`
-- Base and range: in the request message; stacked on output-47.
+- Base and range: in the request message; rebased onto local `main` after
+  output-47.
 - Scope: audio track identity across transactions and clears. The prepared
   fade/undo work follows in output-49.
 - GitHub head CI: URL/result in the request message.
