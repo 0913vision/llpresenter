@@ -21,8 +21,8 @@ export interface OutputWindowHandle {
   prepareForMonitorRemoval(): void;
   /**
    * Raises the shown window above the other windows without taking focus,
-   * restoring it first when it is minimized, and keeps it raised through
-   * placements that finish later.
+   * restoring it first when it is minimized, and keeps it raised through the
+   * placement work still running when it was asked.
    */
   bringToFront(): void;
   hide(): void;

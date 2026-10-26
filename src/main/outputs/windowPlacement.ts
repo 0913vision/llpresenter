@@ -101,6 +101,11 @@ export class WindowPlacement {
     }, BOUNDS_RECHECK_MS);
   }
 
+  /** Whether a deferred placement or a bounds check is still running. */
+  isPending(): boolean {
+    return this.leaving || this.boundsCheck !== null;
+  }
+
   cancel(): void {
     this.afterLeave = null;
     this.clearCheck();

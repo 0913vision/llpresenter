@@ -100,10 +100,11 @@ function presentOnScreen(
 ): OutputPresentation {
   const placement = new WindowPlacement(win, log);
   let unplacedBounds: Rect | null = null;
-  // NOTE(0913vision): 창 보기 keeps the window raised through a placement or
-  // bounds correction that runs later, until the window hides, goes full
-  // screen, or its monitor goes away again.
-  let raised = false;
+  // NOTE(0913vision): 창 보기 keeps the window raised through the deferred
+  // placement and the bounds correction that were still running when it was
+  // pressed. Any placement that starts later puts the window behind the
+  // control window again, as spec 03 asks.
+  let raiseWhilePending = false;
   const raise = () => {
     if (win.isMinimized()) win.showInactive();
     else if (!win.isVisible()) return;
@@ -112,11 +113,12 @@ function presentOnScreen(
   const orderWindow = (alwaysOnTop: boolean) => {
     win.setAlwaysOnTop(alwaysOnTop);
     if (alwaysOnTop) return;
-    if (raised) raise();
+    if (raiseWhilePending) raise();
     else if (!control.isDestroyed()) control.moveAbove(win.getMediaSourceId());
+    if (!placement.isPending()) raiseWhilePending = false;
   };
   const placeBehindControl = () => {
-    raised = false;
+    raiseWhilePending = false;
     orderWindow(false);
   };
   const profile = (method: 'window' | 'capture') => {
@@ -129,7 +131,7 @@ function presentOnScreen(
   return {
     showFullScreen: (monitorBounds, alwaysOnTop) => {
       unplacedBounds = null;
-      raised = false;
+      raiseWhilePending = false;
       const place = () => {
         profile('window');
         win.setFocusable(false);
@@ -140,6 +142,7 @@ function presentOnScreen(
       placement.fullscreen(place);
     },
     showWindowed: (bounds, alwaysOnTop = false) => {
+      raiseWhilePending = false;
       if (bounds !== null) unplacedBounds = bounds;
       const place = () => {
         profile('window');
@@ -158,6 +161,7 @@ function presentOnScreen(
       placement.windowed(place);
     },
     showCapture: (bounds, alwaysOnTop = false) => {
+      raiseWhilePending = false;
       unplacedBounds = null;
       win.setAlwaysOnTop(false);
       placement.windowed(() => {
@@ -171,16 +175,16 @@ function presentOnScreen(
     },
     prepareForMonitorRemoval: placeBehindControl,
     bringToFront: () => {
-      raised = true;
       raise();
+      raiseWhilePending = placement.isPending();
     },
     hide: () => {
-      raised = false;
+      raiseWhilePending = false;
       placement.cancel();
       win.hide();
     },
     dispose: () => {
-      raised = false;
+      raiseWhilePending = false;
       unplacedBounds = null;
       placement.dispose();
     },

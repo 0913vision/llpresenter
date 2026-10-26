@@ -218,6 +218,35 @@ describe('createElectronOutputWindow offscreen', () => {
     output.destroy();
   });
 
+  it.each([
+    ['after its placement has settled', true],
+    ['while its bounds check was still running', false],
+  ] as const)(
+    'leaves a later independent placement behind the control after 창 보기 %s',
+    async (_when, settledFirst) => {
+      const clock = installFakeClock();
+      const control = fakeControl();
+      const output = openOutput('normal', control);
+      const win = lastWindow();
+      win.getBounds.mockImplementation(() => WINDOW_BOUNDS);
+      output.showWindowed(WINDOW_BOUNDS);
+      win.isVisible.mockReturnValue(true);
+      if (settledFirst) await clock.advance(BOUNDS_RECHECK_MS);
+      output.bringToFront();
+      if (!settledFirst) await clock.advance(BOUNDS_RECHECK_MS);
+      expect(win.moveTop).toHaveBeenCalledTimes(1);
+      control.moveAbove.mockClear();
+
+      const recentered = {...WINDOW_BOUNDS, x: 200};
+      win.getBounds.mockImplementation(() => recentered);
+      output.showWindowed(recentered);
+
+      expect(control.moveAbove).toHaveBeenCalledTimes(1);
+      expect(win.moveTop).toHaveBeenCalledTimes(1);
+      output.destroy();
+    },
+  );
+
   it.each(['hide', 'full screen', 'monitor removal'] as const)(
     'places the window behind the control again after %s ends the raise',
     end => {
