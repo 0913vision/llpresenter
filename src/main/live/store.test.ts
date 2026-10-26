@@ -20,7 +20,6 @@ const overflowingOutputs = Object.fromEntries(
   ]),
 );
 
-/** Runs a fixture 매크로 that notes itself and overflows the outputs. */
 const overflowingMacroSlice = defineSlice({
   commands: ['macro.run'],
   initial: {},

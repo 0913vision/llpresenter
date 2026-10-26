@@ -62,7 +62,6 @@ interface RecordMark {
   readonly macros: number;
 }
 
-/** What one reduction collects besides its history. */
 class ReductionRecord {
   readonly skipped: SkippedLiveCommand[] = [];
   readonly effects: DeferredEffect[] = [];
@@ -72,7 +71,6 @@ class ReductionRecord {
     return {effects: this.effects.length, macros: this.macros.length};
   }
 
-  /** Records a skipped command and drops the effects and notes it left. */
   skip(mark: RecordMark, problem: SkippedLiveCommand): void {
     this.effects.length = mark.effects;
     this.macros.length = mark.macros;
