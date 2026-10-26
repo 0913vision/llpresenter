@@ -1,5 +1,11 @@
-import {useMemo, type JSX} from 'react';
-import {ListBox, ListGroup, ListRow, StatusDot} from '@renderer/ui';
+import {useMemo, useRef, type JSX} from 'react';
+import {
+  ListBox,
+  ListDragGhost,
+  ListGroup,
+  ListRow,
+  StatusDot,
+} from '@renderer/ui';
 import type {Screen} from '@shared/schema/screens';
 import {useOutputs} from '@renderer/state/live';
 import type {Notice} from '@renderer/ui/notices';
@@ -7,6 +13,8 @@ import {screenGroups, type ScreenRow} from './screenRows';
 import {selectedScreenIn, useScreensSelection} from './selection';
 import {useOutputStatuses} from './useOutputStatuses';
 import {useSettingsDocument} from './useSettingsDocument';
+import {SCREEN_DRAG_MIME} from './screenDrag';
+import styles from './ScreenList.module.css';
 
 const LIST_LABEL = '화면';
 const AUDIENCE_LABEL = '청중';
@@ -15,19 +23,34 @@ const LOAD_TITLE = '화면';
 const noScreens: readonly Screen[] = [];
 
 function RowView({row}: {readonly row: ScreenRow}): JSX.Element {
+  const ghost = useRef<HTMLDivElement>(null);
   return (
-    <ListRow
-      value={row.id}
-      title={row.name}
-      icon={row.icon}
-      meta={row.target}
-      reason={row.problem}
-      end={
-        row.health === 'none' ? undefined : (
-          <StatusDot tone={row.health === 'ok' ? 'ok' : 'warning'} />
-        )
-      }
-    />
+    <div
+      draggable
+      onDragStart={event => {
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData(SCREEN_DRAG_MIME, row.id);
+        if (ghost.current !== null) {
+          event.dataTransfer.setDragImage(ghost.current, 0, 0);
+        }
+      }}
+    >
+      <div ref={ghost} className={styles.ghost} aria-hidden="true">
+        <ListDragGhost icon={row.icon} title={row.name} />
+      </div>
+      <ListRow
+        value={row.id}
+        title={row.name}
+        icon={row.icon}
+        meta={row.target}
+        reason={row.problem}
+        end={
+          row.health === 'none' ? undefined : (
+            <StatusDot tone={row.health === 'ok' ? 'ok' : 'warning'} />
+          )
+        }
+      />
+    </div>
   );
 }
 

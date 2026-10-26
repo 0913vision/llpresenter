@@ -1,0 +1,6 @@
+.ghost {
+  position: fixed;
+  top: 100%;
+  left: 0;
+  pointer-events: none;
+}

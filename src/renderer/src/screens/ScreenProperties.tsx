@@ -1,5 +1,5 @@
 import {useMemo, useState, type JSX} from 'react';
-import type {MonitorInfo} from '@shared/schema/monitors';
+import type {MonitorInfo, MonitorList} from '@shared/schema/monitors';
 import type {Screen} from '@shared/schema/screens';
 import {
   NumberField,
@@ -28,6 +28,7 @@ import {selectedScreenIn, useScreensSelection} from './selection';
 import {useMonitors} from './useMonitors';
 import {useScreenEditor} from './useScreenEditor';
 import {useSettingsDocument} from './useSettingsDocument';
+import {ScreenDeviceRow} from './ScreenDeviceRow';
 import styles from './ScreenProperties.module.css';
 
 const LOAD_TITLE = '화면';
@@ -277,12 +278,16 @@ function PropertyRows({
   monitor,
   change,
   reason,
+  monitors,
+  assign,
 }: {
   readonly screen: Screen;
   readonly screens: readonly Screen[];
   readonly monitor: MonitorInfo | undefined;
   readonly change: Change;
   readonly reason: string | undefined;
+  readonly monitors: MonitorList;
+  readonly assign: (monitor: MonitorInfo) => void;
 }): JSX.Element {
   return (
     <Properties>
@@ -323,6 +328,13 @@ function PropertyRows({
             />
           )}
         </PropertyRow>
+        <ScreenDeviceRow
+          screen={screen}
+          monitors={monitors}
+          assigned={monitor}
+          assign={assign}
+          reason={reason}
+        />
         <ResolutionRow
           screen={screen}
           monitor={monitor}
@@ -339,8 +351,7 @@ function PropertyRows({
 
 /**
  * The properties of the selected screen (spec 06, "Screen properties"). Every
- * change is saved at once to `screens.json`. The 장치 row comes with the
- * monitor assignment.
+ * change is saved at once to `screens.json`.
  */
 export function ScreenProperties({
   onProblem,
@@ -370,12 +381,18 @@ export function ScreenProperties({
       screens={screens}
       monitor={monitor}
       reason={reason}
+      monitors={monitors}
+      assign={target => {
+        if (reason !== undefined) return;
+        select('screen', selected.id);
+        save.assign(selected.id, target);
+      }}
       change={change => {
         if (reason !== undefined) return;
         // NOTE(0913vision): A change of kind moves the screen to the other
         // group, which would move the fallback selection to another screen.
         select('screen', selected.id);
-        save(selected.id, change);
+        save.change(selected.id, change);
       }}
     />
   );

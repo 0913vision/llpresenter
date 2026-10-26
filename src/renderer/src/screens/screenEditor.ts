@@ -1,6 +1,9 @@
 import type {LlpApi} from '@shared/ipc';
 import type {SettingsDocument} from '@shared/schema/settingsDocuments';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
+import type {MonitorInfo} from '@shared/schema/monitors';
+import type {Screen} from '@shared/schema/screens';
+import {assignScreenMonitor} from './assignScreenMonitor';
 import {changeScreen, type ScreenChange} from './screenEdits';
 
 type ScreensDocument = Extract<SettingsDocument, {name: 'screens'}>;
@@ -34,12 +37,25 @@ export class ScreenEditor {
 
   /** Saves the change to one screen; resolves when it is saved or dropped. */
   change(screenId: string, change: ScreenChange): Promise<void> {
+    return this.enqueue(screens => changeScreen(screens, screenId, change));
+  }
+
+  /** Assigns a monitor and clears its old assignment in one revision. */
+  assign(screenId: string, monitor: MonitorInfo): Promise<void> {
+    return this.enqueue(screens =>
+      assignScreenMonitor(screens, screenId, monitor),
+    );
+  }
+
+  private enqueue(
+    change: (screens: readonly Screen[]) => readonly Screen[],
+  ): Promise<void> {
     return pendingWritesOf(this.api)
       .run({
         refused: false,
         sent: applied => applied,
         write: () => {
-          const operation = this.queue.then(() => this.save(screenId, change));
+          const operation = this.queue.then(() => this.save(change));
           this.queue = operation.then(() => undefined);
           return operation;
         },
@@ -47,12 +63,16 @@ export class ScreenEditor {
       .then(() => undefined);
   }
 
-  private async save(screenId: string, change: ScreenChange): Promise<boolean> {
+  private async save(
+    change: (screens: readonly Screen[]) => readonly Screen[],
+  ): Promise<boolean> {
     const base = this.base;
     if (base?.access !== 'editable') return false;
+    const screens = change(base.value.screens);
+    if (screens === base.value.screens) return true;
     const value = {
       ...base.value,
-      screens: changeScreen(base.value.screens, screenId, change),
+      screens,
     };
     try {
       const result = await this.api.settings.edit({

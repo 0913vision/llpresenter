@@ -5,6 +5,8 @@ import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {ScreenEditor} from './screenEditor';
 import {CAPTIONS_ID, MAIN_ID, screensDocument} from './testing/documents';
+import {STAGE_ID} from './testing/documents';
+import {projector} from './testing/monitors';
 
 function screensAt(revision: number) {
   const document = screensDocument(revision);
@@ -100,6 +102,28 @@ describe('ScreenEditor', () => {
     editor.adopt({...screensAt(1), access: 'readOnly'});
     await editor.change(MAIN_ID, {name: '본당'});
     expect(edits).toEqual([]);
+  });
+
+  it('assigns and clears in one save, then builds the next change on it', async () => {
+    const {editor, edits} = setup([saved(2), saved(3)]);
+    editor.adopt(screensAt(1));
+    const assign = editor.assign(STAGE_ID, projector);
+    const change = editor.change(STAGE_ID, {name: '무대'});
+    await Promise.all([assign, change]);
+    expect(edits).toHaveLength(2);
+    const first = edits[0];
+    expect(
+      first?.name === 'screens' && first.value.screens[0]?.display,
+    ).toBeUndefined();
+    expect(
+      first?.name === 'screens' && first.value.screens[2]?.display?.id,
+    ).toBe(2);
+    expect(edits[1]).toMatchObject({baseRevision: 2});
+    const last = edits[1];
+    expect(last?.name === 'screens' && last.value.screens[2]).toMatchObject({
+      name: '무대',
+      display: {id: 2},
+    });
   });
 
   it('saves the changed screen against the revision it was given', async () => {

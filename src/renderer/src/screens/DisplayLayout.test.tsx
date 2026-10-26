@@ -1,15 +1,30 @@
-import {act, cleanup, render, screen, waitFor} from '@testing-library/react';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@shared/commands';
 import type {MonitorList} from '@shared/schema/monitors';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {DisplayLayout} from './DisplayLayout';
+import {ScreenList} from './ScreenList';
+import {SCREEN_DRAG_MIME} from './screenDrag';
 import {useScreensSelection} from './selection';
-import {CAPTIONS_ID, MAIN_ID, screensDocument} from './testing/documents';
+import {
+  CAPTIONS_ID,
+  MAIN_ID,
+  STAGE_ID,
+  screensDocument,
+} from './testing/documents';
 
 function monitor(number: number, x: number, hasMainWindow = false) {
   return {
+    id: number,
     number,
     name: `Monitor ${number}`,
     bounds: {x, y: 0, width: 1920, height: 1080},
@@ -29,6 +44,9 @@ function setup(
   const stop = vi.fn();
   const send = vi.fn<(command: LiveCommand) => void>();
   const write = vi.fn();
+  const edit = vi
+    .fn()
+    .mockResolvedValue({ok: true, value: {id: 'screens', revision: 2}});
   window.llp = fakeLlpApi({
     monitors: {
       get,
@@ -37,7 +55,7 @@ function setup(
         return stop;
       },
     },
-    settings: {get: () => Promise.resolve(screensDocument())},
+    settings: {get: () => Promise.resolve(screensDocument()), edit},
     live: {send},
     log: {write},
   });
@@ -47,6 +65,7 @@ function setup(
     stop,
     send,
     write,
+    edit,
     push: (next: MonitorList) => act(() => push(next)),
   };
 }
@@ -109,6 +128,59 @@ function box(number: number): HTMLElement {
 }
 
 describe('the display layout', () => {
+  it('drags a screen row onto a monitor and clears the previous screen once', async () => {
+    const {edit} = setup();
+    render(<ScreenList />);
+    const row = await screen.findByRole('option', {name: '무대 화면'});
+    const source = row.closest('[draggable]');
+    if (source === null) throw new Error('Missing drag source');
+    await waitFor(() => expect(box(2)).toBeTruthy());
+    const data = new Map<string, string>();
+    const transfer = {
+      get types() {
+        return [...data.keys()];
+      },
+      setData: (type: string, value: string) => data.set(type, value),
+      getData: (type: string) => data.get(type) ?? '',
+      setDragImage: vi.fn(),
+    };
+    fireEvent.dragStart(source, {dataTransfer: transfer});
+    expect(data.get(SCREEN_DRAG_MIME)).toBe(STAGE_ID);
+    expect(transfer.setDragImage).toHaveBeenCalled();
+    expect(fireEvent.dragOver(box(1), {dataTransfer: transfer})).toBe(true);
+    fireEvent.drop(box(1), {dataTransfer: transfer});
+    expect(edit).not.toHaveBeenCalled();
+    expect(fireEvent.dragOver(box(2), {dataTransfer: transfer})).toBe(false);
+    fireEvent.drop(box(2), {dataTransfer: transfer});
+    await waitFor(() => expect(edit).toHaveBeenCalledTimes(1));
+    const change: unknown = edit.mock.calls[0]?.[0];
+    expect(change).toMatchObject({
+      name: 'screens',
+      baseRevision: 1,
+      value: {
+        screens: [
+          {id: MAIN_ID},
+          {id: CAPTIONS_ID},
+          {id: STAGE_ID, display: {id: 2}, method: 'fullscreen'},
+        ],
+      },
+    });
+    expect(JSON.stringify(change)).not.toContain('Projector');
+    expect(useScreensSelection.getState().selection).toEqual({
+      kind: 'screen',
+      id: STAGE_ID,
+    });
+  });
+
+  it('ignores unrelated drags and unknown screen ids', async () => {
+    const {edit} = setup();
+    await waitFor(() => expect(box(2)).toBeTruthy());
+    for (const types of [['text/plain'], [SCREEN_DRAG_MIME]]) {
+      fireEvent.drop(box(2), {dataTransfer: {types, getData: () => 'unknown'}});
+    }
+    expect(edit).not.toHaveBeenCalled();
+  });
+
   it('shows a box per monitor with its number, name, and resolution', async () => {
     setup();
 

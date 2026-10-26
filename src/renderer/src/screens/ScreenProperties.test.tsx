@@ -20,6 +20,7 @@ import {
 
 const monitors: MonitorList = [
   {
+    id: 2,
     number: 2,
     name: 'EPSON 프로젝터',
     bounds: {x: 1920, y: 0, width: 1920, height: 1080},
@@ -27,6 +28,16 @@ const monitors: MonitorList = [
     refreshRate: 60,
     hasMainWindow: false,
     screenIds: [MAIN_ID],
+  },
+  {
+    id: 1,
+    number: 1,
+    name: 'Desk',
+    bounds: {x: 0, y: 0, width: 1920, height: 1080},
+    scaleFactor: 1,
+    refreshRate: 60,
+    hasMainWindow: true,
+    screenIds: [],
   },
 ];
 
@@ -156,6 +167,35 @@ describe('the screen properties', () => {
     await userEvent.click(resolution);
     expect(screen.queryByRole('menu')).toBeNull();
     expect(edits).toEqual([]);
+  });
+
+  it('offers only output monitors and saves the chosen display identity', async () => {
+    const {savedScreens} = setup();
+    await nameField();
+    const device = await screen.findByRole('button', {name: '장치'});
+    await waitFor(() => expect(device.textContent).toContain('EPSON 프로젝터'));
+    await userEvent.click(device);
+    expect(screen.queryByRole('menuitemradio', {name: /모니터 1/})).toBeNull();
+    await userEvent.click(
+      screen.getByRole('menuitemradio', {name: /모니터 2/}),
+    );
+    await waitFor(() =>
+      expect(savedScreens()[0]?.display).toMatchObject({
+        id: 2,
+        name: 'EPSON 프로젝터',
+        number: 2,
+        scaleFactor: 1,
+      }),
+    );
+  });
+
+  it('hides the device row for capture windows', async () => {
+    useScreensSelection.setState({
+      selection: {kind: 'screen', id: CAPTIONS_ID},
+    });
+    setup();
+    await nameField();
+    expect(screen.queryByRole('button', {name: '장치'})).toBeNull();
   });
 
   it('shows the selected screen with its monitor details', async () => {

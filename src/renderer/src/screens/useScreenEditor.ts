@@ -3,6 +3,7 @@ import {noticeTime, type Notice} from '@renderer/ui/notices';
 import type {NamedDocument} from './useSettingsDocument';
 import {ScreenEditor} from './screenEditor';
 import type {ScreenChange} from './screenEdits';
+import type {MonitorInfo} from '@shared/schema/monitors';
 
 const SAVE_FAILED_TITLE = '화면 설정 저장 실패';
 
@@ -11,12 +12,12 @@ const SAVE_FAILED_TITLE = '화면 설정 저장 실패';
  * the newest revision between saves. A refused save reaches `onProblem` as a
  * notice.
  *
- * @returns A function that saves a change to one screen.
+ * @returns Actions that save property changes and monitor assignments.
  */
 export function useScreenEditor(
   document: NamedDocument<'screens'> | null,
   onProblem: ((notice: Notice) => void) | undefined,
-): (screenId: string, change: ScreenChange) => void {
+) {
   const report = useRef(onProblem);
   const editor = useRef<ScreenEditor | null>(null);
   useLayoutEffect(() => {
@@ -35,13 +36,20 @@ export function useScreenEditor(
     }
     editor.current?.adopt(document);
   });
-  return (screenId, change) => {
-    editor.current?.change(screenId, change).catch((cause: unknown) => {
+  const run = (action: (current: ScreenEditor) => Promise<void>): void => {
+    if (editor.current === null) return;
+    action(editor.current).catch((cause: unknown) => {
       window.llp?.log.write({
         level: 'error',
         message: 'Could not save the screens',
         detail: cause instanceof Error ? cause.message : String(cause),
       });
     });
+  };
+  return {
+    change: (screenId: string, change: ScreenChange): void =>
+      run(current => current.change(screenId, change)),
+    assign: (screenId: string, monitor: MonitorInfo): void =>
+      run(current => current.assign(screenId, monitor)),
   };
 }

@@ -21,6 +21,11 @@ function monitor(number = 1) {
 }
 
 describe('parseMonitorList', () => {
+  it('accepts a saved display id and older lists without one', () => {
+    const list = [{...monitor(), id: -22}, monitor(2)];
+    expect(parseMonitorList(list)).toEqual({ok: true, value: list});
+  });
+
   it('accepts monitors in order, and no monitors', () => {
     const list = [monitor(1), monitor(2)];
 
@@ -47,6 +52,10 @@ describe('parseMonitorList', () => {
   });
 
   it.each([
+    ['a text display id', {id: '22'}, '0.id'],
+    ['a fractional display id', {id: 1.5}, '0.id'],
+    ['an unsafe display id', {id: Number.MAX_SAFE_INTEGER + 1}, '0.id'],
+    ['an infinite display id', {id: Infinity}, '0.id'],
     ['screen ids that are not a list', {screenIds: 'main'}, '0.screenIds'],
     ['an empty screen id', {screenIds: ['']}, '0.screenIds.0'],
     [

@@ -1,4 +1,4 @@
-import {useMemo, type CSSProperties, type JSX} from 'react';
+import {useMemo, type CSSProperties, type DragEvent, type JSX} from 'react';
 import type {Screen} from '@shared/schema/screens';
 import {Button} from '@renderer/ui';
 import {classNames} from '@renderer/ui/classNames';
@@ -10,6 +10,8 @@ import {selectedScreenIn, useScreensSelection} from './selection';
 import {useElementSize} from './useElementSize';
 import {useMonitors} from './useMonitors';
 import {useSettingsDocument} from './useSettingsDocument';
+import {useScreenEditor} from './useScreenEditor';
+import {SCREEN_DRAG_MIME} from './screenDrag';
 import styles from './DisplayLayout.module.css';
 
 const TITLE = '배치';
@@ -32,12 +34,29 @@ function arrangementStyle(
   return {width: `${width}px`, height: `${height}px`};
 }
 
-function MonitorView({box}: {readonly box: MonitorBox}): JSX.Element {
+function MonitorView({
+  box,
+  onDrop,
+}: {
+  readonly box: MonitorBox;
+  readonly onDrop: (event: DragEvent) => void;
+}): JSX.Element {
   return (
     <div
       className={classNames(styles.monitor, box.selected && styles.selected)}
       data-monitor={box.number}
       aria-current={box.selected ? 'true' : undefined}
+      onDragOver={event => {
+        if (
+          box.control ||
+          !event.dataTransfer.types.includes(SCREEN_DRAG_MIME)
+        ) {
+          return;
+        }
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+      }}
+      onDrop={onDrop}
       style={{
         left: percent(box.left),
         top: percent(box.top),
@@ -81,9 +100,11 @@ export function DisplayLayout({
 }): JSX.Element {
   const monitors = useMonitors();
   const document = useSettingsDocument('screens', LOAD_TITLE, onProblem);
+  const editor = useScreenEditor(document, onProblem);
   const selection = useScreensSelection(view => view.selection);
   const screens = document?.value.screens ?? noScreens;
   const selectedId = selectedScreenIn(selection, screens)?.id;
+  const select = useScreensSelection(view => view.select);
   const [watchStage, stageSize] = useElementSize();
   const model = useMemo(
     () => displayLayout(monitors, screens, selectedId),
@@ -105,7 +126,27 @@ export function DisplayLayout({
           style={arrangementStyle(stageSize, model.aspectRatio)}
         >
           {model.monitors.map(box => (
-            <MonitorView key={box.number} box={box} />
+            <MonitorView
+              key={box.number}
+              box={box}
+              onDrop={event => {
+                const monitor = monitors.find(
+                  item => item.number === box.number,
+                );
+                if (
+                  monitor === undefined ||
+                  monitor.hasMainWindow ||
+                  monitor.id === undefined ||
+                  !event.dataTransfer.types.includes(SCREEN_DRAG_MIME)
+                )
+                  return;
+                const screenId = event.dataTransfer.getData(SCREEN_DRAG_MIME);
+                if (!screens.some(screen => screen.id === screenId)) return;
+                event.preventDefault();
+                select('screen', screenId);
+                editor.assign(screenId, monitor);
+              }}
+            />
           ))}
         </div>
       </div>
