@@ -36,6 +36,7 @@ the tools area that no Claude member holds (user decision).
 | ui (Claude)             | ui         | M3-P3a item panel, center song panel        |
 | 진행 work (Claude)      | spec       | M3-S1b narrow layout, monitor cards, S2a    |
 | tools (Codex)           | tools      | M3-T4b 퀵 실행 and Bible panels             |
+| screens (Sonnet, agy)   | screens    | M3-O1 화면 설정 (model trial)               |
 | qa, devops (Codex)      | qa, devops | Idle; on request only                       |
 
 All worktrees share one `refs/stash`, so members apply or drop a stash only by
