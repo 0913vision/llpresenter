@@ -149,3 +149,17 @@ monitor missing at launch, 다시 시도, at most three cards, and the listener
 released on unmount.
 
 No Electron process, visible window, soak, or memory measurement was started.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (Codex, codex5): Request changes: an unsuccessful retry dismissed the
+  warning, obsolete cards stayed after a method change or removal, and a closed
+  card couldn't be reopened. A trial reviewer (Gemini 4 Argon) also found that
+  turning an output off reopened a closed card, a private TSDoc, and an empty
+  meta row; the member fixed those in round 2.
+- Round 2 (Codex, codex5): Request changes: the 출력 menu toggles had no
+  behavior tests.
+- Round 3 (bcdae0d7): reviewer (Codex, codex5) Approve, no findings. Lead
+  Approve; reopening a closed card from the 출력 menu instead of the StatusBar
+  is the lead's decision (the StatusBar README allows nothing clickable). Merged
+  onto local `main` without conflicts; typecheck passes.
