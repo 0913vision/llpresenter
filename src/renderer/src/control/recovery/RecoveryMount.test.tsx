@@ -1,4 +1,11 @@
-import {act, cleanup, render, screen, waitFor} from '@testing-library/react';
+import {
+  act,
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@shared/live';
@@ -21,13 +28,15 @@ vi.mock('@renderer/render/outputRenderer', () => ({
 const sessions: ControlSession[] = [];
 const restored: RecoveryResult = {ok: true, value: null};
 
-function setup(offers: readonly RecoverySummary[]) {
+// NOTE(0913vision): Each read answers the next offer; an Error rejects it.
+function setup(offers: ReadonlyArray<RecoverySummary | Error>) {
   vi.stubGlobal('innerWidth', 1920);
   vi.stubGlobal('innerHeight', 1080);
   const {api} = editorFixture();
   const summary = vi.spyOn(api.recovery, 'summary');
   for (const offer of offers) {
-    summary.mockResolvedValueOnce(offer);
+    if (offer instanceof Error) summary.mockRejectedValueOnce(offer);
+    else summary.mockResolvedValueOnce(offer);
   }
   summary.mockResolvedValue(null);
   const apply = vi.spyOn(api.recovery, 'apply').mockResolvedValue(restored);
@@ -127,6 +136,22 @@ it('keeps the dialog and warns when the answer cannot be sent', async () => {
         .getAttribute('aria-disabled'),
     ).toBeNull(),
   );
+});
+
+it('reports an offer that cannot be read and reads it again with 다시 시도', async () => {
+  const {summary} = setup([
+    new Error('Invented closed channel'),
+    sampleOffer(),
+  ]);
+  const card = await screen.findByRole('alert', {
+    name: '복구할 출력 상태를 읽을 수 없음',
+  });
+  expect(dialog()).toBeNull();
+  await userEvent.click(within(card).getByRole('button', {name: '다시 시도'}));
+  expect(
+    await screen.findByRole('alertdialog', {name: '출력 상태 복구'}),
+  ).toBeDefined();
+  expect(summary).toHaveBeenCalledTimes(2);
 });
 
 it('lets F1 clear the screens while the dialog is open', async () => {

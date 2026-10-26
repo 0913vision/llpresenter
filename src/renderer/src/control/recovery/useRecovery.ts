@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useEffectEvent, useState} from 'react';
 import type {LlpApi} from '@shared/ipc';
 import type {
   RecoveryResult,
@@ -8,6 +8,13 @@ import type {
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 
 type Offer = NonNullable<RecoverySummary>;
+
+const READ_FAILED_NOTICE: Omit<Notice, 'time' | 'actions'> = {
+  key: 'recovery:read',
+  kind: 'warning',
+  icon: 'history',
+  title: '복구할 출력 상태를 읽을 수 없음',
+};
 
 const FAILED_NOTICE: Omit<Notice, 'time'> = {
   key: 'recovery',
@@ -33,6 +40,8 @@ function logFailure(
  * 매크로 until one answer arrives; a stale or invalid selection reads the
  * offer again, a restore that changed nothing reports 출력 상태 복구 실패,
  * and a request that fails keeps the dialog so the operator can answer again.
+ * An offer that can't be read reports a card whose 다시 시도 reads it again,
+ * so main is never left waiting with no way to answer.
  */
 export function useRecovery(
   api: Pick<LlpApi, 'recovery' | 'log'> | undefined,
@@ -40,6 +49,20 @@ export function useRecovery(
 ) {
   const [offer, setOffer] = useState<Offer | null>(null);
   const [busy, setBusy] = useState(false);
+  const [reads, setReads] = useState(0);
+  const reportReadFailure = useEffectEvent(() => {
+    onProblem({
+      ...READ_FAILED_NOTICE,
+      time: noticeTime(),
+      actions: [
+        {
+          icon: 'refresh',
+          label: '다시 시도',
+          onSelect: () => setReads(count => count + 1),
+        },
+      ],
+    });
+  });
 
   useEffect(() => {
     if (api === undefined) return undefined;
@@ -48,13 +71,15 @@ export function useRecovery(
       summary => {
         if (active) setOffer(summary);
       },
-      (cause: unknown) =>
-        logFailure(api, 'could not read the recovery offer', cause),
+      (cause: unknown) => {
+        logFailure(api, 'could not read the recovery offer', cause);
+        if (active) reportReadFailure();
+      },
     );
     return () => {
       active = false;
     };
-  }, [api]);
+  }, [api, reads]);
 
   const settle = async (result: RecoveryResult): Promise<void> => {
     if (result.ok || result.error.reason === 'unavailable') {
