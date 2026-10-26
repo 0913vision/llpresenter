@@ -264,6 +264,9 @@ const api: LlpApi = {
     subscribeStatus: listener =>
       listen(Channels.outputStatusChanged, parseOutputStatuses, listener),
     retry: screenId => ipcRenderer.send(Channels.outputRetry, {screenId}),
+    findMonitors: () => ipcRenderer.send(Channels.outputFindMonitors),
+    showWindow: screenId =>
+      ipcRenderer.send(Channels.outputShowWindow, {screenId}),
   },
   service: {
     get: () => invokeChecked(Channels.serviceGet, parseShowService),

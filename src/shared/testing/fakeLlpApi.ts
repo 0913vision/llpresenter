@@ -56,6 +56,8 @@ export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
       getStatus: () => Promise.resolve({}),
       subscribeStatus: () => () => undefined,
       retry: () => undefined,
+      findMonitors: () => undefined,
+      showWindow: () => undefined,
       ...overrides.output,
     },
     service: {

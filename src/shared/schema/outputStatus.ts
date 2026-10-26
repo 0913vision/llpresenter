@@ -32,6 +32,9 @@ export const outputRendererStates = [
 
 const screenId = v.pipe(v.string(), v.nonEmpty());
 
+/** The highest monitor number a status may report, far above any real setup. */
+export const MONITOR_NUMBER_MAX = 64;
+
 const outputScreenStatusSchema = payloadObject({
   placement: v.picklist(outputPlacements),
   renderer: v.picklist(outputRendererStates),
@@ -39,6 +42,14 @@ const outputScreenStatusSchema = payloadObject({
     v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(FRAME_RATE_MAX)),
   ),
   fpsLow: v.boolean(),
+  monitor: v.exactOptional(
+    v.pipe(
+      v.number(),
+      v.integer(),
+      v.minValue(1),
+      v.maxValue(MONITOR_NUMBER_MAX),
+    ),
+  ),
 });
 
 const outputStatusesSchema = v.pipe(
@@ -46,12 +57,15 @@ const outputStatusesSchema = v.pipe(
   v.record(screenId, outputScreenStatusSchema),
 );
 
-const outputRetryRequestSchema = payloadObject({screenId});
+const outputScreenRequestSchema = payloadObject({screenId});
 
 /**
  * How one screen's output is doing. `fps` is the frame rate its window
  * measured over the last second, or `null` before the first report or while it
  * is off. `fpsLow` is set when the main process judges that rate too low.
+ * `monitor` is the number (from 1, as 화면 설정 counts) of the monitor the
+ * screen last showed full screen on, kept after that monitor disconnects, and
+ * absent when it never had one.
  */
 export type OutputScreenStatus = Readonly<
   v.InferOutput<typeof outputScreenStatusSchema>
@@ -60,10 +74,16 @@ export type OutputScreenStatus = Readonly<
 /** The status of every screen, by screen id. */
 export type OutputStatuses = Readonly<Record<string, OutputScreenStatus>>;
 
-/** 다시 시도 for a screen whose output window hit the restart limit. */
-export type OutputRetryRequest = Readonly<
-  v.InferOutput<typeof outputRetryRequestSchema>
+/** A request about one screen's output window. */
+type OutputScreenRequest = Readonly<
+  v.InferOutput<typeof outputScreenRequestSchema>
 >;
+
+/** 다시 시도 for a screen whose output window hit the restart limit. */
+export type OutputRetryRequest = OutputScreenRequest;
+
+/** 창 보기 for a screen whose output shows in a fallback window. */
+export type OutputShowWindowRequest = OutputScreenRequest;
 
 /** Checks an `output:status:get` reply or an `output:status:changed` push. */
 export function parseOutputStatuses(
@@ -76,5 +96,12 @@ export function parseOutputStatuses(
 export function parseOutputRetryRequest(
   value: unknown,
 ): Result<OutputRetryRequest, PayloadError> {
-  return parsePayload(outputRetryRequestSchema, value);
+  return parsePayload(outputScreenRequestSchema, value);
+}
+
+/** Checks an `output:show-window` request. */
+export function parseOutputShowWindowRequest(
+  value: unknown,
+): Result<OutputShowWindowRequest, PayloadError> {
+  return parsePayload(outputScreenRequestSchema, value);
 }

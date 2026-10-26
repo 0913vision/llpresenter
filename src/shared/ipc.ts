@@ -75,6 +75,8 @@ export const Channels = {
   outputStatusGet: 'output:status:get',
   outputStatusChanged: 'output:status:changed',
   outputRetry: 'output:retry',
+  outputFindMonitors: 'output:find-monitors',
+  outputShowWindow: 'output:show-window',
   contentEdit: 'content:edit',
   songsList: 'songs:list',
   songsListChanged: 'songs:list:changed',
@@ -191,6 +193,16 @@ export interface LlpApi {
      * restart limit holds.
      */
     retry(screenId: string): void;
+    /**
+     * 모니터 다시 찾기: reads the monitor list again at once and matches each
+     * screen's saved monitor again.
+     */
+    findMonitors(): void;
+    /**
+     * 창 보기: brings the screen's output window to the front without taking
+     * focus, when it shows as a window.
+     */
+    showWindow(screenId: string): void;
   };
   readonly service: {
     /**

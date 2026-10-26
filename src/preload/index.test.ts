@@ -1020,6 +1020,20 @@ describe('preload', () => {
     });
   });
 
+  it('sends 모니터 다시 찾기 one way, with no payload', () => {
+    api.output.findMonitors();
+
+    expect(electron.send).toHaveBeenCalledWith(Channels.outputFindMonitors);
+  });
+
+  it('sends 창 보기 for a screen one way', () => {
+    api.output.showWindow('stage');
+
+    expect(electron.send).toHaveBeenCalledWith(Channels.outputShowWindow, {
+      screenId: 'stage',
+    });
+  });
+
   it('sends an edit and passes a valid answer through', async () => {
     const edit = {
       type: 'song.delete',
