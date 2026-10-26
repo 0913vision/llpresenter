@@ -1,4 +1,5 @@
 import type {JSX} from 'react';
+import {IconButton} from '../IconButton';
 import {Panel, PanelBody} from '../Panel';
 import {
   Properties,
@@ -106,6 +107,29 @@ export function PropertySection(): JSX.Element {
           <Panel label="속성">
             <PanelBody>
               <ScreenProperties />
+            </PanelBody>
+          </Panel>
+        </SpecItem>
+        <SpecItem
+          label="Panel, 항목 설정 원본 with an action"
+          width={PANEL_WIDTH}
+        >
+          <Panel label="항목 설정">
+            <PanelBody>
+              <Properties>
+                <PropertyGroup title="원본">
+                  <PropertyValue
+                    label="곡"
+                    value="만복의 근원 하나님"
+                    icon="link"
+                    primary
+                    meta="라이브러리"
+                    action={
+                      <IconButton icon="open" label="라이브러리 곡 열기" />
+                    }
+                  />
+                </PropertyGroup>
+              </Properties>
             </PanelBody>
           </Panel>
         </SpecItem>

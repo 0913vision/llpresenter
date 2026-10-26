@@ -7,6 +7,10 @@ import {
   SongSlidePanel,
   type SongEditorStore,
 } from '@renderer/prep/editor';
+import {
+  ItemPreviewPanel,
+  ItemSettingsPanel,
+} from '@renderer/prep/service/ItemSidePanels';
 import {ServiceItemPanel} from '@renderer/prep/service/SongItemPanel';
 import type {ServiceItemStore} from '@renderer/prep/service/serviceItemStore';
 import {ClearRow} from '@renderer/show/ClearRow';
@@ -41,7 +45,7 @@ const panelsByWorkspace: Readonly<
     ['슬라이드', '미디어'],
     ['미리보기', '지우기', '진행 도구'],
   ],
-  prep: [['예배 순서', '라이브러리'], ['편집'], ['항목 설정']],
+  prep: [['예배 순서', '라이브러리'], ['편집'], ['미리보기', '항목 설정']],
   screens: [['화면'], ['배치'], ['속성']],
 };
 
@@ -213,7 +217,16 @@ function prepPanelParts({
   if (title === '미리보기') {
     return {
       size: 'content',
-      embedded: <SongPreviewPanel store={prep.editor} />,
+      embedded: hasSong ? (
+        <SongPreviewPanel store={prep.editor} />
+      ) : (
+        <ItemPreviewPanel items={prep.items} editor={prep.editor} />
+      ),
+    };
+  }
+  if (title === '항목 설정') {
+    return {
+      embedded: <ItemSettingsPanel items={prep.items} editor={prep.editor} />,
     };
   }
   if (title === '슬라이드') {

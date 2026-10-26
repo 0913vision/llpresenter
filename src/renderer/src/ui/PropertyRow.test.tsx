@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react';
+import {render, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
@@ -121,5 +121,28 @@ describe('PropertyRow', () => {
       />,
     );
     expect(screen.getByText('라이브러리')).toBeDefined();
+  });
+
+  it('ends a value row with its action', async () => {
+    const onClick = vi.fn();
+    render(
+      <PropertyValue
+        label="곡"
+        value="만복의 근원 하나님"
+        icon="link"
+        primary
+        meta="라이브러리"
+        action={
+          <button type="button" onClick={onClick}>
+            라이브러리 곡 열기
+          </button>
+        }
+      />,
+    );
+    const row = screen.getByRole('group', {name: '곡'});
+    await userEvent.click(
+      within(row).getByRole('button', {name: '라이브러리 곡 열기'}),
+    );
+    expect(onClick).toHaveBeenCalledOnce();
   });
 });

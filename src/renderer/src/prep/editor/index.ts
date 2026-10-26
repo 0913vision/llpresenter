@@ -1,4 +1,8 @@
 export {SongEditor} from './SongEditor';
 export {SongEditorStore, type EditorApi} from './songEditorStore';
-export {SongPreviewPanel} from './SongPreview';
+export {
+  SongPreviewFrame,
+  SongPreviewPanel,
+  type SongPicture,
+} from './SongPreview';
 export {SongSlidePanel} from './SongSlidePanel';

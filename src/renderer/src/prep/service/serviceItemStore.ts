@@ -45,6 +45,11 @@ export interface ServiceItemState {
    * that name, else `undefined` for 기본 (spec 02).
    */
   readonly arrangement: string | undefined;
+  /**
+   * The selected place in the order the item plays, shared by its chips,
+   * thumbnails, and preview. Readers clamp it to the order's length.
+   */
+  readonly position: number;
   readonly busy: boolean;
 }
 
@@ -54,6 +59,7 @@ const NO_ITEM: ServiceItemState = {
   song: null,
   songStatus: null,
   arrangement: undefined,
+  position: 0,
   busy: false,
 };
 
@@ -98,6 +104,7 @@ export class ServiceItemStore {
   private service: ServiceDocument | null = null;
   private songId: SongId | null = null;
   private songStatus: ItemSongStatus = 'loading';
+  private position = 0;
   private serviceRead = 0;
   private songRead = 0;
   private busy = false;
@@ -130,11 +137,20 @@ export class ServiceItemStore {
     if (!this.alive || sameTarget(target, this.target)) return;
     const otherService = target?.serviceId !== this.target?.serviceId;
     this.target = target;
+    this.position = 0;
     if (otherService) {
       this.service = null;
       if (target !== null) editorTask(this.readService(target.serviceId));
     }
     this.followSong();
+    this.publish();
+  }
+
+  /** Selects a place in the order; nothing goes to the output. */
+  selectPosition(index: number): void {
+    if (!this.alive || !Number.isInteger(index) || index < 0) return;
+    if (index === this.position) return;
+    this.position = index;
     this.publish();
   }
 
@@ -340,6 +356,7 @@ export class ServiceItemStore {
       song,
       songStatus: this.songId === null ? null : this.songStatus,
       arrangement: effectiveArrangement(item, song?.history.snapshot.song),
+      position: this.position,
       busy: this.busy,
     };
     for (const listener of this.listeners) listener();

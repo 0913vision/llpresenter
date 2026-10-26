@@ -117,7 +117,8 @@ it('switches back to service context even when selecting the same service row', 
   fireEvent.click(row);
   expect(screen.queryByRole('textbox', {name: '슬라이드 1 가사'})).toBeNull();
   expect(screen.getByRole('region', {name: '항목 설정'})).toBeDefined();
-  expect(fixture.listenerCount()).toBe(5);
+  expect(screen.getByRole('region', {name: '미리보기'})).toBeDefined();
+  expect(fixture.listenerCount()).toBe(6);
   expect(fixture.send).not.toHaveBeenCalled();
 });
 

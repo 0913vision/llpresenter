@@ -383,6 +383,17 @@ describe('service item store', () => {
     expect(items.setOrder([2, 1, 2])).toBe(false);
   });
 
+  it('shares one selected place and starts over for another item', async () => {
+    const {items} = setup();
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
+    items.selectPosition(2);
+    expect(items.getSnapshot().position).toBe(2);
+    for (const invalid of [-1, 1.5]) items.selectPosition(invalid);
+    expect(items.getSnapshot().position).toBe(2);
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.plain});
+    expect(items.getSnapshot().position).toBe(0);
+  });
+
   it('releases its subscriptions and ignores pushes after dispose', async () => {
     const {items, serviceListeners, service, pushService} = setup();
     items.show({serviceId: fixtureServiceId, itemId: fixtureItems.slot});

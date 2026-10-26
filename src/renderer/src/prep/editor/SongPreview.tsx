@@ -11,7 +11,9 @@ import {
 } from 'react';
 import type {LlpApi} from '@shared/ipc';
 import {mediaUrl} from '@shared/media';
+import type {Label} from '@shared/schema/labels';
 import type {SettingsDocument} from '@shared/schema/settingsDocuments';
+import type {Song} from '@shared/schema/song';
 import {OutputRenderer} from '@renderer/render/outputRenderer';
 import {Panel, PanelHeader, PanelTitle} from '@renderer/ui/Panel';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';
@@ -111,21 +113,37 @@ function Picture({
   );
 }
 
-/** Prep draws a local selection with current Look styling, never live layers. */
-export function SongPreviewPanel({
-  store,
+/** One 슬라이드 of a song and its place in the order the panel shows. */
+export interface SongPicture {
+  readonly song: Song;
+  /** The 슬라이드's index in the song file. */
+  readonly block: number;
+  readonly background: string | undefined;
+  /** The 1-based place in the shown order. */
+  readonly position: number;
+  readonly total: number;
+}
+
+/**
+ * The 준비 미리보기 panel: a local picture with the current Look's styling,
+ * never live layers, or an empty panel without a picture.
+ */
+export function SongPreviewFrame({
+  settings,
+  labels,
+  picture,
 }: {
-  readonly store: SongEditorStore;
+  readonly settings: LlpApi['settings'];
+  readonly labels: readonly Label[];
+  readonly picture: SongPicture | null;
 }): JSX.Element {
-  const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const [role, setRole] = useState<PreviewRole>('main');
-  const settings = usePreviewSettings(store.api.settings);
+  const documents = usePreviewSettings(settings);
   const appearance = useMemo(
-    () => previewAppearance(role, settings.looks, settings.screens),
-    [role, settings.looks, settings.screens],
+    () => previewAppearance(role, documents.looks, documents.screens),
+    [role, documents.looks, documents.screens],
   );
-  const session = state.session;
-  if (session === null) {
+  if (picture === null) {
     return (
       <Panel label="미리보기">
         <PanelHeader>
@@ -134,16 +152,11 @@ export function SongPreviewPanel({
       </Panel>
     );
   }
-  const {song, selection} = session.history.snapshot;
-  const layers = selectedPreview(
-    song,
-    {block: selection.block, background: session.background},
-    appearance,
-  );
-  const slide = song.slides[selection.block];
+  const {song, block, background, position, total} = picture;
+  const layers = selectedPreview(song, {block, background}, appearance);
+  const slide = song.slides[block];
   const color =
-    state.labels?.value.labels.find(label => label.name === slide?.label)
-      ?.color ?? 'none';
+    labels.find(label => label.name === slide?.label)?.color ?? 'none';
   return (
     <Panel label="미리보기">
       <PanelHeader>
@@ -167,11 +180,39 @@ export function SongPreviewPanel({
           )}
           <span>{slide?.label}</span>
           <span>
-            {selection.block + 1} / {song.slides.length}
+            {position} / {total}
           </span>
           <span className={styles.style}>{appearance.styleName}</span>
         </div>
       </div>
     </Panel>
+  );
+}
+
+/** The editor's preview: the selected block of the open song. */
+export function SongPreviewPanel({
+  store,
+}: {
+  readonly store: SongEditorStore;
+}): JSX.Element {
+  const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
+  const session = state.session;
+  const snapshot = session?.history.snapshot;
+  return (
+    <SongPreviewFrame
+      settings={store.api.settings}
+      labels={state.labels?.value.labels ?? []}
+      picture={
+        session === null || snapshot === undefined
+          ? null
+          : {
+              song: snapshot.song,
+              block: snapshot.selection.block,
+              background: session.background,
+              position: snapshot.selection.block + 1,
+              total: snapshot.song.slides.length,
+            }
+      }
+    />
   );
 }

@@ -1,4 +1,4 @@
-import {useEffect, useState, useSyncExternalStore, type JSX} from 'react';
+import {useEffect, useSyncExternalStore, type JSX} from 'react';
 import type {ServiceItemOf} from '@shared/schema/service';
 import {isItemOfKind} from '@shared/schema/service';
 import {playbackOrder} from '@shared/songOrder';
@@ -30,6 +30,7 @@ import {isComposing} from '@renderer/ui/ime';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {ItemArrangement} from './ItemArrangement';
 import type {ServiceItemStore} from './serviceItemStore';
+import {shownPosition} from './songItemModel';
 import styles from './SongItemPanel.module.css';
 
 const PANEL_LABEL = '예배 순서 항목';
@@ -89,7 +90,7 @@ function SongItemView({
   session,
   sizeClass,
 }: SongItemViewProps): JSX.Element {
-  const {arrangement} = useSyncExternalStore(
+  const {arrangement, position} = useSyncExternalStore(
     items.subscribe,
     items.getSnapshot,
   );
@@ -97,11 +98,10 @@ function SongItemView({
     useSyncExternalStore(editor.subscribe, editor.getSnapshot).labels?.value
       .labels ?? [];
   const scale = useThumbnailScale(sizeClass);
-  const [selected, setSelected] = useState(0);
   const {song} = session.history.snapshot;
   const sequence = playbackOrder(song, arrangement);
-  const at = selected < sequence.length ? selected : sequence.length - 1;
-  const shown = at < 0 ? undefined : at;
+  const shown = shownPosition(position, sequence.length);
+  const select = (index: number): void => items.selectPosition(index);
   return (
     <div
       className={styles.keys}
@@ -131,7 +131,7 @@ function SongItemView({
           itemId={item.id}
           labels={labels}
           selected={shown}
-          onSelect={setSelected}
+          onSelect={select}
         />
         <PanelBody variant="flush">
           <VirtualSlides
@@ -141,7 +141,7 @@ function SongItemView({
             selected={shown}
             baseline={defaultThumbnailColumns[sizeClass]}
             scale={scale}
-            onSelect={setSelected}
+            onSelect={select}
           />
         </PanelBody>
         <PanelFooter

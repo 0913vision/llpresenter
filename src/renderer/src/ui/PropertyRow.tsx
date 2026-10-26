@@ -141,6 +141,8 @@ export interface PropertyValueProps {
   readonly primary?: boolean | undefined;
   /** Extra information after the value, such as 라이브러리. */
   readonly meta?: string | undefined;
+  /** An sm button at the right end, such as 라이브러리 곡 열기. */
+  readonly action?: ReactNode;
 }
 
 /** A row with a name and a read-only value. */
@@ -150,6 +152,7 @@ export function PropertyValue({
   icon,
   primary = false,
   meta,
+  action,
 }: PropertyValueProps): JSX.Element {
   const labelId = useId();
   return (
@@ -170,6 +173,9 @@ export function PropertyValue({
         </span>
         {meta === undefined ? null : (
           <span className={styles.meta}>{meta}</span>
+        )}
+        {action === undefined ? null : (
+          <span className={styles.action}>{action}</span>
         )}
       </span>
     </div>
