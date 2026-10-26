@@ -281,6 +281,26 @@ describe('service order edits', () => {
     expect(state.document?.service.order[1]).toMatchObject({slot: 'song'});
   });
 
+  it('keeps unknown fields of a slot when it is filled, and brings the slot back on undo', async () => {
+    const {state, edits} = fixture();
+    const slotId = createServiceItemId('90000000-0000-4000-8000-0000000000b1');
+    const slot = {
+      id: slotId,
+      slot: 'song' as const,
+      title: '찬양',
+      future: {keep: true},
+    };
+    await edits.insertItem(serviceId, slot, second);
+    await edits.fillSlotWithSong(serviceId, slotId, songId);
+    expect(state.document?.service.order[1]).toEqual({
+      id: slotId,
+      song: songId,
+      future: {keep: true},
+    });
+    await edits.undo(serviceId);
+    expect(state.document?.service.order[1]).toEqual(slot);
+  });
+
   it('renames a header, keeps unknown fields, and ignores a blank name', async () => {
     const {state, edits, edit} = fixture();
     const headerId = state.document?.service.order.find(

@@ -184,7 +184,8 @@ export class ServiceOrderEdits {
         return refuse('not-found', 'The song no longer exists');
       }
       const order = [...service.order];
-      order[index] = {id: slot.id, song: songId};
+      const {slot: _kind, title: _title, ...kept} = slot;
+      order[index] = {...kept, song: songId};
       return {ok: true, value: order};
     });
   }
