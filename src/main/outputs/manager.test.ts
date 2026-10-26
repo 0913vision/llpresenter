@@ -82,8 +82,9 @@ function turn(on: boolean, screenId = 'main'): LiveCommand {
 
 function simulateReadyFrames(manager: OutputManager, store: LiveStore): void {
   const ready = (): void => {
-    for (const id of manager.screenStates().keys())
+    for (const id of manager.screenStates().keys()) {
       manager.frameReady(id, store.state.version);
+    }
   };
   const dispatch = store.dispatch.bind(store);
   vi.spyOn(store, 'dispatch').mockImplementation((...args) => {

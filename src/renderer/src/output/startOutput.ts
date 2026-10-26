@@ -113,8 +113,9 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
       !fontsReady ||
       frames.frame(latest) === undefined ||
       !renderer.ready()
-    )
+    ) {
       return;
+    }
     const version = latest.version;
     if (version === reportedVersion) return;
     if (stableVersion !== version) {
@@ -126,8 +127,9 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
     void api.output
       .reportReady({screenId, version})
       .then(shown => {
-        if (!stopped && latest?.version === version && enabled() && shown)
+        if (!stopped && latest?.version === version && enabled() && shown) {
           revealPending = false;
+        }
       })
       .catch((error: unknown) =>
         report('could not report a ready output frame', error),

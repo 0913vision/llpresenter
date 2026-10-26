@@ -199,8 +199,9 @@ export class OutputWindow {
       this.prepared = placement;
       this.readyVersion = -1;
     }
-    if (!this.visible && this.readyVersion !== this.options.liveVersion())
+    if (!this.visible && this.readyVersion !== this.options.liveVersion()) {
       return;
+    }
     if (!this.visible) {
       this.recovery.resume();
       this.place(handle, placement);

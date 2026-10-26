@@ -54,6 +54,11 @@ and listeners are cancelled on disposal.
 - No local Electron or native window was started and no sound was played.
 - Full verify runs on GitHub. Under the lead's API-403 rule, the lead confirms
   exact-head CI before merging.
+- The first head's
+  [CI run](https://github.com/0913vision/llpresenter/actions/runs/40331579225)
+  passed coverage tests and build but failed lint: formatting expanded six
+  single-line conditions/loops that then required braces. Those braces are
+  corrected, and own-file lint is checked after formatting for the new head.
 
 ## Review: lead
 

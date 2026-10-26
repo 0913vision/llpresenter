@@ -142,8 +142,9 @@ export class BackgroundLayerView {
       for (const element of [...this.videos, ...this.images]) {
         element.classList.remove(classes.dissolving);
       }
-      if (this.handover !== null)
+      if (this.handover !== null) {
         this.handover = {...this.handover, dissolve: false};
+      }
     }
     const unchanged = media?.mediaId === this.current?.mediaId;
     this.current = media;
@@ -250,8 +251,9 @@ export class BackgroundLayerView {
           const source = this.holding[at];
           this.videoFrames[at] = video.requestVideoFrameCallback(() => {
             this.videoFrames[at] = null;
-            if (this.holding[at] === source && this.holdsCurrent(at))
+            if (this.holding[at] === source && this.holdsCurrent(at)) {
               this.decoded[at] = true;
+            }
           });
         } else this.decoded[at] = true;
       };
