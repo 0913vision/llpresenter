@@ -154,3 +154,14 @@ No Electron process, visible window, soak, or memory measurement was started.
   button that mounts next claims it once.
 - `ShowToolsPanel.tsx`: the tab panel is labelled by the tool name, because a
   tool chosen from 더 보기 has no tab to point to.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (Claude reviewer): Request changes.
+- Round 2 (Codex, codex2): Request changes: eight nonwrapping tool tabs were
+  clipped in a 320 px right column; nit on a private TSDoc.
+- Round 3 (1dca4c76): reviewer (Codex, codex2) Approve; the tabs fold into 더
+  보기 (ui-35) whenever all eight don't fit. Nit for the next shell request: the
+  non-exported `measuredPanel()` helper in `ShowToolsPanel.test.tsx` has TSDoc;
+  remove it or make it a NOTE. Lead Approve. Rebased by the lead onto local
+  `main` without conflicts; typecheck passes. M3-S1b is complete.
