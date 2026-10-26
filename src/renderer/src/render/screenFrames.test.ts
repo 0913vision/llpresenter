@@ -1,6 +1,7 @@
 import {describe, expect, it, vi} from 'vitest';
 import {emptyLiveState, type LiveState} from '@shared/live';
 import {parseLookId} from '@shared/schema/ids';
+import {parseLiveState} from '@shared/schema/liveState';
 import type {SettingsDocument} from '@shared/schema/settingsDocuments';
 import {
   CAPTIONS,
@@ -251,9 +252,67 @@ describe('ScreenFrames', () => {
     frames.dispose();
   });
 
-  it('stops following all three documents on dispose', async () => {
+  it('gives a 무대 화면 the layout chosen for this output, else the Look card layout, and logs a missing one', async () => {
+    const nowNext = overlayUuid(70);
+    const lyrics = overlayUuid(71);
+    const missing = overlayUuid(72);
+    const sermon = overlayUuid(73);
+    const looks = settingsDocument('looks', {
+      current: NORMAL,
+      looks: [
+        {
+          id: NORMAL,
+          name: '평상시',
+          screens: {
+            [MAIN]: {layers: {slide: true}},
+            [STAGE]: {layers: {slide: true}, stageLayout: nowNext},
+          },
+        },
+      ],
+      lyricStyles: [],
+    });
+    const settings = fakeSettings(looks);
+    const onGap = vi.fn<(message: string, gap: LookGap) => void>();
+    const {frames} = await framesFor(STAGE, settings, onGap);
+    settings.push(
+      settingsDocument('stage-layouts', {
+        format: 'llsettings.stage',
+        layouts: [nowNext, lyrics].map(id => ({
+          id,
+          name: id,
+          width: 1920,
+          height: 1080,
+          elements: [],
+        })),
+      }),
+    );
+    const live = (fields: object) => {
+      const parsed = parseLiveState({...emptyLiveState(), ...fields});
+      if (!parsed.ok) throw new Error(JSON.stringify(parsed.error));
+      return parsed.value;
+    };
+    expect(frames.frame(live({}))?.stage?.layout.id).toBe(nowNext);
+    expect(
+      frames.frame(
+        live({stageLayouts: {[STAGE]: lyrics}, stageTimerId: sermon}),
+      )?.stage,
+    ).toMatchObject({layout: {id: lyrics}, timerId: sermon});
+    const gone = live({stageLayouts: {[STAGE]: missing}});
+    expect(frames.frame(gone)).not.toHaveProperty('stage');
+    frames.frame(gone);
+    expect(onGap).toHaveBeenCalledExactlyOnceWith(
+      'the stage layout of this screen is missing; drawing the lyrics',
+      {kind: 'missing-layout', id: missing},
+    );
+    frames.dispose();
+    const audience = await framesFor(MAIN, settings);
+    expect(audience.frames.frame(live({}))).not.toHaveProperty('stage');
+    audience.frames.dispose();
+  });
+
+  it('stops following all four documents on dispose', async () => {
     const {frames, settings} = await framesFor(MAIN);
     frames.dispose();
-    expect(settings.unsubscribe).toHaveBeenCalledTimes(3);
+    expect(settings.unsubscribe).toHaveBeenCalledTimes(4);
   });
 });
