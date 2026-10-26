@@ -2,6 +2,7 @@ import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {parseLiveCommand} from '@shared/schema/liveCommand';
 import {recordingLogger} from '../displays/testing';
 import {startOverlays} from './overlays';
+import type {SkippedLiveCommand} from './sliceRegistry';
 import {LiveStore} from './store';
 import {
   CAPTIONS,
@@ -58,7 +59,7 @@ function setup() {
     }),
   );
   onTestFinished(store.connectSettings(settings.reader));
-  const skipped = vi.fn();
+  const skipped = vi.fn<(skip: SkippedLiveCommand) => void>();
   const send = (value: object): boolean => {
     const command = parseLiveCommand(value);
     if (!command.ok) throw new Error(JSON.stringify(command.error));
@@ -93,9 +94,11 @@ describe('stage.layout.set', () => {
       screenId: overlayUuid(91),
       layoutId: NOW_NEXT,
     });
-    expect(
-      skipped.mock.calls.map(([skip]: [{reason: string}]) => skip.reason),
-    ).toEqual(['missing-target', 'missing-target', 'missing-target']);
+    expect(skipped.mock.calls.map(([skip]) => skip.reason)).toEqual([
+      'missing-target',
+      'missing-target',
+      'missing-target',
+    ]);
     expect(store.state).not.toHaveProperty('stageLayouts');
   });
 
