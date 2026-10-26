@@ -1,4 +1,5 @@
 import {EventEmitter} from 'node:events';
+import {join} from 'node:path';
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {LiveCommand} from '@shared/commands';
 import {makeTempDir} from '../../test/temp-dir';
@@ -25,7 +26,14 @@ const fakes = vi.hoisted(() => {
     lookSelectionContexts: new Array<unknown>(),
     lookSelectionStop: vi.fn<() => void>(),
     selectLook: vi.fn(),
-    recovery: {crashed: false, cleanExit: vi.fn<() => Promise<void>>()},
+    recovery: {
+      crashed: false,
+      markQuitting: vi.fn<() => Promise<void>>(),
+      cleanExit: vi.fn<() => Promise<void>>(),
+    },
+    recordOptions: new Array<unknown>(),
+    recordStart: vi.fn<() => void>(),
+    recordDispose: vi.fn<() => Promise<void>>(),
     macroContexts: new Array<unknown>(),
     macrosStop: vi.fn<() => void>(),
     overlaysStop: vi.fn<() => void>(),
@@ -76,9 +84,20 @@ const fakes = vi.hoisted(() => {
 
 vi.mock('electron', () => fakes.electron);
 vi.mock('./live/recovery/session', () => ({
+  RECOVERY_RECORD_FILE: 'live.json',
   openRecoverySession: async () => {
     fakes.order.push('recovery session');
     return fakes.recovery;
+  },
+}));
+vi.mock('./live/recovery/recordWriter', () => ({
+  openServiceIdOf: () => () => null,
+  RecoveryRecordWriter: class {
+    constructor(options: unknown) {
+      fakes.recordOptions.push(options);
+    }
+    start = fakes.recordStart;
+    dispose = fakes.recordDispose;
   },
 }));
 vi.mock('./macros/register', () => ({
@@ -141,6 +160,7 @@ vi.mock('./store/register', () => ({
     fakes.order.push('data store');
     fakes.storeOptions.push(options);
     return {
+      content: Promise.resolve(null),
       settings: fakes.settings,
       selectLook: fakes.selectLook,
       dispose: fakes.storeDispose,
@@ -215,7 +235,11 @@ beforeEach(async () => {
   fakes.lookSelectionStop.mockReset();
   fakes.selectLook.mockReset();
   fakes.recovery.crashed = false;
+  fakes.recovery.markQuitting.mockReset();
   fakes.recovery.cleanExit.mockReset();
+  fakes.recordOptions.length = 0;
+  fakes.recordStart.mockReset();
+  fakes.recordDispose.mockReset();
   fakes.macroContexts.length = 0;
   fakes.macrosStop.mockReset();
   fakes.overlaysStop.mockReset();
@@ -283,6 +307,37 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
       expect(fakes.electron.app.quit).toHaveBeenCalledOnce(),
     );
   });
+  it('keeps the recovery record of a crashed session until the operator answers', async () => {
+    fakes.recovery.crashed = true;
+    await startMain();
+    const userData = fakes.electron.app.getPath('userData');
+    expect(fakes.recordOptions).toMatchObject([
+      {
+        file: join(userData, 'recovery', 'live.json'),
+        store: fakes.outputContexts[0]?.store,
+      },
+    ]);
+    expect(fakes.recordStart).not.toHaveBeenCalled();
+  });
+
+  it('records a normal session at once and marks quitting before anything else stops', async () => {
+    await startMain();
+    expect(fakes.recordStart).toHaveBeenCalledOnce();
+    beforeQuit();
+    await vi.waitFor(() =>
+      expect(fakes.recovery.cleanExit).toHaveBeenCalledOnce(),
+    );
+    const order = [
+      fakes.recovery.markQuitting,
+      fakes.recordDispose,
+      fakes.scenarioStop,
+      fakes.outputsStop,
+      fakes.recovery.cleanExit,
+    ].map(step => step.mock.invocationCallOrder[0] ?? Infinity);
+    expect(order).toEqual([...order].sort((a, b) => a - b));
+    expect(order.every(Number.isFinite)).toBe(true);
+  });
+
   it('connects macro execution to the shared live and data stores and stops it before closing data', async () => {
     await startMain();
     expect(fakes.macroContexts[0]).toHaveProperty('launch', 'normal');

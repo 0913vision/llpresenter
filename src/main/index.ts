@@ -5,7 +5,14 @@ import {registerTextImport} from './import/register';
 import {LiveStore, dispatchLogged} from './live/store';
 import {startOverlays} from './live/overlays';
 import {registerMacros} from './macros/register';
-import {openRecoverySession} from './live/recovery/session';
+import {
+  openServiceIdOf,
+  RecoveryRecordWriter,
+} from './live/recovery/recordWriter';
+import {
+  openRecoverySession,
+  RECOVERY_RECORD_FILE,
+} from './live/recovery/session';
 import {registerLookSelection} from './live/lookSelection';
 import {createLogger, flushWithin, type Logger} from './log';
 import {registerIpc} from './ipc';
@@ -23,6 +30,7 @@ import {windowModeFrom, type WindowMode} from './windows/testWindows';
 
 const BAD_ENVIRONMENT_EXIT_CODE = 1;
 const UI_STATE_FILE = 'app.json';
+const RECOVERY_FOLDER = 'recovery';
 
 const userDataProblem = applyUserDataOverride(
   process.env['LLP_USER_DATA'],
@@ -85,24 +93,8 @@ function start(): void {
   app
     .whenReady()
     .then(async () => {
-      const session = await openRecoverySession({
-        folder: join(app.getPath('userData'), 'recovery'),
-        log,
-      });
-      if (session.crashed) {
-        // NOTE(0913vision): SAVE_LIMIT_MS can expire before marker cleanup,
-        // so a normal quit with a slow save is indistinguishable from a crash.
-        log.warn(
-          'previous session marker remains after a crash or incomplete shutdown; starting in standby',
-          {
-            possibleCauses: [
-              'crash',
-              'save-limit-expired',
-              'marker-cleanup-failed',
-            ],
-          },
-        );
-      }
+      const recoveryFolder = join(app.getPath('userData'), RECOVERY_FOLDER);
+      const session = await openRecoverySession({folder: recoveryFolder, log});
       const appConfig = await openAppConfig({
         file: join(app.getPath('userData'), UI_STATE_FILE),
         log,
@@ -115,6 +107,15 @@ function start(): void {
         isAnyOutputOn: () => isAnyOutputOn(store.state),
         appConfig,
       });
+      const recoveryRecord = new RecoveryRecordWriter({
+        file: join(recoveryFolder, RECOVERY_RECORD_FILE),
+        store,
+        serviceId: openServiceIdOf(dataStore.content, log),
+        log,
+      });
+      // TODO(0913vision): After a crash, start the record once the operator
+      // answers the recovery dialog (M3-O8 part 2).
+      if (!session.crashed) recoveryRecord.start();
       const disposeIpc = registerIpc(store, log, windowMode);
       // NOTE(0913vision): Register the reader owner before the output source;
       // their settings promise callbacks run in registration order.
@@ -159,7 +160,20 @@ function start(): void {
       const stopSoakRecorder = registerSoakRecorder(log, {
         frameRates: outputs.frameRates,
       });
-      // NOTE(0913vision): The soak scenario stops first, so it changes
+      // NOTE(0913vision): SAVE_LIMIT_MS can end the process before the last
+      // step removes session.lock. The next launch then takes it for a crash,
+      // the safe side (no startup macros), and logs that quitting didn't
+      // finish. The record stops before the outputs close, so it keeps the
+      // state from before the quit.
+      shutdown.add({
+        name: 'mark the recovery session as quitting',
+        run: () => session.markQuitting(),
+      });
+      shutdown.add({
+        name: 'stop the recovery record',
+        run: () => recoveryRecord.dispose(),
+      });
+      // NOTE(0913vision): The soak scenario stops next, so it changes
       // nothing while the outputs close. Output windows turn a close into
       // "output off", so they are destroyed before Electron closes windows to
       // quit.
