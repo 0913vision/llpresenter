@@ -113,6 +113,21 @@ describe('save failures', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
+  it('pushes the next file after an automatic pass moves the failing ones', async () => {
+    const clock = installFakeClock();
+    const {failures, pushed, retry, wait} = setup();
+    for (const file of ['a', 'b', 'c', 'd', 'e']) wait(file);
+    await clock.advance(SAVE_RETRY_INTERVAL_MS);
+    await vi.waitFor(() => expect(retry).toHaveBeenCalledTimes(3));
+    await clock.advance(0);
+    const next = {kind: 'save-failed', name: 'd', count: 5};
+    expect(failures.problems()).toEqual([next]);
+    expect(pushed.mock.calls.slice(-2).map(([problem]) => problem)).toEqual([
+      {kind: 'save-failed', name: 'a', count: 5},
+      next,
+    ]);
+  });
+
   it('keeps every waiting file and recovers only when the last one is written', () => {
     const {failures, pushed, wait} = setup();
     const files = Array.from({length: 300}, (_, index) => `file-${index}`);

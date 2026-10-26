@@ -182,6 +182,10 @@ export class SaveFailures implements SaveFailureSink {
 
   private changed(): void {
     this.scheduleRetry();
+    this.publishChange();
+  }
+
+  private publishChange(): void {
     const current = this.current();
     const previous = this.published;
     if (
@@ -205,6 +209,9 @@ export class SaveFailures implements SaveFailureSink {
       this.timer = undefined;
       this.retryOnce().then(
         () => {
+          // NOTE(0913vision): A pass moves the files that fail again to the
+          // end, which can change the file the card names.
+          this.publishChange();
           this.scheduleRetry();
         },
         (error: unknown) => {
