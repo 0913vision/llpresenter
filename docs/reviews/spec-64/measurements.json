@@ -1,0 +1,54 @@
+{
+  "states": {
+    "편집": {
+      "disabled": "true",
+      "popup": false,
+      "expanded": false,
+      "color": "rgb(110, 110, 110)",
+      "off": "#6e6e6e"
+    },
+    "창": {
+      "disabled": "true",
+      "popup": false,
+      "expanded": false,
+      "color": "rgb(110, 110, 110)",
+      "off": "#6e6e6e"
+    },
+    "도움말": {
+      "disabled": "true",
+      "popup": false,
+      "expanded": false,
+      "color": "rgb(110, 110, 110)",
+      "off": "#6e6e6e"
+    }
+  },
+  "measurements": [
+    {
+      "elements": 397,
+      "heap": 5498904,
+      "documents": 29,
+      "nodes": 1443,
+      "jsEventListeners": 664
+    },
+    {
+      "elements": 397,
+      "heap": 5573688,
+      "documents": 29,
+      "nodes": 1443,
+      "jsEventListeners": 664
+    },
+    {
+      "elements": 397,
+      "heap": 5630176,
+      "documents": 29,
+      "nodes": 1443,
+      "jsEventListeners": 664
+    }
+  ],
+  "errors": [],
+  "roundTrips": 20,
+  "implementedMenusOpenClose": true,
+  "unavailablePointerAndKeyboardChecked": true,
+  "port": 5193,
+  "offscreen": true
+}

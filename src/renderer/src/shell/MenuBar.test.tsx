@@ -56,7 +56,7 @@ describe('MenuBar', () => {
     expect(screen.queryByText('LoveLight Presenter')).toBeNull();
   });
 
-  it('marks the menus as a menu bar of menus that open a menu', () => {
+  it('marks only implemented menu triggers as opening a menu', () => {
     render(<MenuBar title="" />);
     const bar = screen.getByRole('menubar', {name: '메뉴'});
     const items = screen.getAllByRole('menuitem');
@@ -70,10 +70,33 @@ describe('MenuBar', () => {
     ]);
     for (const item of items) {
       expect(bar.contains(item)).toBe(true);
-      expect(item.getAttribute('aria-haspopup')).toBe('menu');
-      expect(item.getAttribute('aria-expanded')).toBe('false');
+      if (['편집', '창', '도움말'].includes(item.textContent)) {
+        expect(item.getAttribute('aria-disabled')).toBe('true');
+        expect(item.hasAttribute('aria-haspopup')).toBe(false);
+        expect(item.hasAttribute('aria-expanded')).toBe(false);
+      } else {
+        expect(item.getAttribute('aria-haspopup')).toBe('menu');
+        expect(item.getAttribute('aria-expanded')).toBe('false');
+      }
     }
   });
+
+  it.each(['편집', '창', '도움말'])(
+    'explains why %s is unavailable and ignores pointer and keyboard activation',
+    async label => {
+      const user = userEvent.setup();
+      render(<MenuBar title="" />);
+      const item = screen.getByRole('menuitem', {name: label});
+      await user.click(item);
+      await user.keyboard('{Enter} {ArrowDown}');
+      expect(document.activeElement).toBe(item);
+      expect(screen.queryByRole('menu')).toBeNull();
+      expect(item.hasAttribute('title')).toBe(false);
+      expect((await hoverForTooltip(item))?.textContent).toBe(
+        `${label} 메뉴를 아직 지원하지 않습니다`,
+      );
+    },
+  );
 
   it('names the window buttons with aria-label and a tooltip, not a title', async () => {
     render(<MenuBar title="" />);

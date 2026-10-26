@@ -32,18 +32,22 @@
   transition: background-color var(--motion-hover);
 }
 
-.menu:hover {
+.menu:not([aria-disabled='true']):hover {
   background: var(--bg-raised);
 }
 
 .menu[aria-expanded='true'],
-.menu:active {
+.menu:not([aria-disabled='true']):active {
   background: var(--bg-control-hover);
   color: var(--text);
 }
 
 .menu:focus-visible {
   outline-offset: 1px;
+}
+
+.menu[aria-disabled='true'] {
+  color: var(--text-off);
 }
 
 .title {

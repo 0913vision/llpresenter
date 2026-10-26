@@ -15,7 +15,6 @@ import {useClipboardAvailability} from './useClipboardAvailability';
 import {workspaceMenu} from './workspaceCommands';
 import type {Workspace} from './Toolbar';
 
-// TODO(0913vision): Open the remaining menus (spec 01).
 const inertMenus = ['편집'] as const;
 const trailingMenus = ['창', '도움말'] as const;
 const OUTPUT_MENU = '출력';
@@ -82,16 +81,22 @@ function WindowButton({
 }
 
 function InertMenu({label}: {readonly label: string}): JSX.Element {
+  const {targetProps, tooltip} = useTooltip({
+    text: `${label} 메뉴를 아직 지원하지 않습니다`,
+  });
   return (
-    <button
-      type="button"
-      role="menuitem"
-      aria-haspopup="menu"
-      aria-expanded={false}
-      className={styles.menu}
-    >
-      {label}
-    </button>
+    <>
+      <button
+        {...targetProps}
+        type="button"
+        role="menuitem"
+        aria-disabled="true"
+        className={styles.menu}
+      >
+        {label}
+      </button>
+      {tooltip}
+    </>
   );
 }
 
