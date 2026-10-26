@@ -195,6 +195,13 @@ export class OutputWindow {
     return this.handle?.bounds() ?? null;
   }
 
+  /** The actual bounds and method of a currently shown output. */
+  shownPlacement(): ShownPlacement | null {
+    if (this.disposed || !this.visible || this.applied === null) return null;
+    const bounds = this.handle?.bounds();
+    return bounds == null ? null : {...this.applied, bounds};
+  }
+
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;

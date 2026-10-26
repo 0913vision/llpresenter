@@ -12,6 +12,7 @@ export interface OutputScreen {
   readonly id: string;
   /** The window title in window mode, for example "본 화면". */
   readonly name: string;
+  readonly kind?: 'audience' | 'stage';
   readonly method: OutputMethod;
   /** The monitor of a full screen output, or null while unassigned. */
   readonly display: SavedDisplay | null;

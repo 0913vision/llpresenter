@@ -7,6 +7,7 @@ import {
   MONITOR_NUMBER_SIDE,
   MonitorNumbers,
   numberSpots,
+  identificationSpots,
   type NumberSpot,
 } from './monitorNumbers';
 
@@ -60,6 +61,102 @@ afterEach(() => {
 });
 
 describe('numberSpots', () => {
+  it('reports physical pixels on a scaled monitor and bounds overly long names', () => {
+    const scaled = monitors(LEFT).map(monitor => ({
+      ...monitor,
+      scaleFactor: 1.5,
+      refreshRate: 59.94,
+      name: 'x'.repeat(250),
+    }));
+    expect(identificationSpots(scaled, [], [])[0]?.details).toEqual({
+      name: 'x'.repeat(200),
+      kind: null,
+      method: 'display',
+      width: 2880,
+      height: 1620,
+      refreshRate: 59.94,
+    });
+  });
+  it('identifies actual shown screens on the exact ultrawide and offset monitor pair', () => {
+    const pair = monitors(
+      {x: 0, y: 0, width: 3440, height: 1440},
+      {x: 3440, y: 222, width: 1920, height: 1080},
+    );
+    const output = {
+      screen: {
+        id: 'main',
+        name: 'Main screen',
+        kind: 'audience' as const,
+        method: 'fullscreen' as const,
+        display: null,
+        onDisconnect: 'window' as const,
+      },
+      placement: {
+        kind: 'fullscreen' as const,
+        bounds: pair[1]?.bounds ?? RIGHT,
+        alwaysOnTop: false,
+      },
+    };
+    const spots = identificationSpots(pair, [], [output]);
+    expect(spots.map(({number, details}) => ({number, details}))).toEqual([
+      {
+        number: 1,
+        details: {
+          name: 'Monitor 0',
+          kind: null,
+          method: 'display',
+          width: 3440,
+          height: 1440,
+          refreshRate: 60,
+        },
+      },
+      {
+        number: 2,
+        details: {
+          name: 'Main screen',
+          kind: 'audience',
+          method: 'fullscreen',
+          width: 1920,
+          height: 1080,
+          refreshRate: 60,
+        },
+      },
+    ]);
+    expect(spots[1]?.bounds).toEqual({
+      x: 4280,
+      y: 642,
+      width: 240,
+      height: 240,
+    });
+  });
+
+  it('keeps multiple output identities separate and avoids their capture area', () => {
+    const capture = {x: 480, y: 270, width: 960, height: 540};
+    const screen = {
+      id: 'stage',
+      name: 'Stage',
+      kind: 'stage' as const,
+      method: 'capture' as const,
+      display: null,
+      onDisconnect: 'window' as const,
+    };
+    const spots = identificationSpots(
+      monitors(LEFT),
+      [capture],
+      [
+        {screen, placement: {kind: 'capture', bounds: capture}},
+        {
+          screen: {...screen, id: 'other', name: 'Other'},
+          placement: {kind: 'window', bounds: capture, reason: 'method'},
+        },
+      ],
+    );
+    expect(spots.map(spot => spot.details?.name)).toEqual(['Stage', 'Other']);
+    expect(spots.map(spot => spot.bounds)).toEqual([
+      {x: 48, y: 48, width: 240, height: 240},
+      {x: 1632, y: 48, width: 240, height: 240},
+    ]);
+  });
   it('centres a square of fixed DIP size on each monitor with its number', () => {
     expect(numberSpots(monitors(LEFT, RIGHT), [])).toEqual([
       {number: 1, bounds: {x: 840, y: 420, width: 240, height: 240}},
@@ -78,6 +175,38 @@ describe('numberSpots', () => {
 });
 
 describe('MonitorNumbers', () => {
+  it('refreshes changed screen names without replacing unchanged windows on repeated Identify', () => {
+    let name = 'Original';
+    const close = vi.fn();
+    const open = vi.fn(() => ({close}));
+    const numbers = new MonitorNumbers({
+      monitors: () => monitors(LEFT),
+      avoid: () => [],
+      outputs: () => [
+        {
+          screen: {
+            id: 'main',
+            name,
+            method: 'window',
+            display: null,
+            onDisconnect: 'window',
+          },
+          placement: {kind: 'window', bounds: LEFT, reason: 'method'},
+        },
+      ],
+      open,
+      log: recordingLogger(),
+    });
+    numbers.identify();
+    for (let repeat = 0; repeat < 20; repeat++) numbers.identify();
+    expect(open).toHaveBeenCalledOnce();
+    name = 'Renamed';
+    numbers.identify();
+    expect(close).toHaveBeenCalledOnce();
+    expect(open).toHaveBeenCalledTimes(2);
+    numbers.dispose();
+    expect(vi.getTimerCount()).toBe(0);
+  });
   it('shows one number per monitor and closes them after three seconds', () => {
     const {numbers, opened, close} = setup();
     numbers.identify();

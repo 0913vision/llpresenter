@@ -17,7 +17,7 @@ const api = window.llp;
 if (root !== null && audio !== null && api !== undefined) {
   startAudio({root, api, muted: audio !== 'sound'});
 } else if (root !== null && monitorNumber !== null) {
-  showMonitorNumber(root, monitorNumber);
+  showMonitorNumber(root, monitorNumber, parameters.get('monitor-details'));
 } else if (root !== null && screenId !== null && api !== undefined) {
   startOutput({root, api, screenId});
 }

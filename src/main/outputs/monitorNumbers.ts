@@ -1,4 +1,8 @@
-import type {Monitor} from '../displays/monitor';
+import type {Identification} from '@shared/schema/identification';
+import {MONITOR_NAME_MAX} from '@shared/schema/monitors';
+import {findControlMonitor, type Monitor} from '../displays/monitor';
+import type {OutputScreen} from './screens';
+import type {ShownPlacement} from './placement';
 import {
   centeredRect,
   intersectionArea,
@@ -20,6 +24,12 @@ const CORNER_INSET = 48;
 export interface NumberSpot {
   readonly number: number;
   readonly bounds: Rect;
+  readonly details?: Identification;
+}
+
+export interface IdentifiedOutput {
+  readonly screen: OutputScreen;
+  readonly placement: ShownPlacement;
 }
 
 export interface NumberWindow {
@@ -29,6 +39,7 @@ export interface NumberWindow {
 interface MonitorNumbersOptions {
   readonly monitors: () => readonly Monitor[];
   readonly avoid: () => readonly Rect[];
+  readonly outputs?: () => readonly IdentifiedOutput[];
   readonly open: (spot: NumberSpot) => NumberWindow;
   readonly log: Logger;
 }
@@ -71,6 +82,49 @@ export function numberSpots(
   });
 }
 
+/** Labels shown outputs on their actual monitor, retaining capture avoidance. */
+export function identificationSpots(
+  monitors: readonly Monitor[],
+  avoid: readonly Rect[],
+  outputs: readonly IdentifiedOutput[],
+): readonly NumberSpot[] {
+  const spots: NumberSpot[] = [];
+  for (const monitor of monitors) {
+    const assigned = outputs.filter(
+      ({placement}) =>
+        findControlMonitor(monitors, placement.bounds)?.id === monitor.id,
+    );
+    const labels: Identification[] =
+      assigned.length === 0
+        ? [
+            {
+              name: monitor.name.slice(0, MONITOR_NAME_MAX),
+              kind: null,
+              method: 'display',
+              width: Math.round(monitor.bounds.width * monitor.scaleFactor),
+              height: Math.round(monitor.bounds.height * monitor.scaleFactor),
+              refreshRate: monitor.refreshRate,
+            },
+          ]
+        : assigned.map(({screen, placement}) => ({
+            name: screen.name.slice(0, MONITOR_NAME_MAX),
+            kind: screen.kind ?? null,
+            method: placement.kind,
+            width: Math.round(placement.bounds.width * monitor.scaleFactor),
+            height: Math.round(placement.bounds.height * monitor.scaleFactor),
+            refreshRate: monitor.refreshRate,
+          }));
+    for (const details of labels) {
+      const spot = numberSpots(
+        [monitor],
+        [...avoid, ...spots.map(({bounds}) => bounds)],
+      )[0];
+      if (spot !== undefined) spots.push({...spot, details});
+    }
+  }
+  return spots;
+}
+
 function sameSpots(
   a: readonly NumberSpot[],
   b: readonly NumberSpot[],
@@ -80,7 +134,9 @@ function sameSpots(
     a.every((spot, index) => {
       const other = b[index];
       return (
-        other?.number === spot.number && sameRect(other.bounds, spot.bounds)
+        other?.number === spot.number &&
+        sameRect(other.bounds, spot.bounds) &&
+        JSON.stringify(other.details) === JSON.stringify(spot.details)
       );
     })
   );
@@ -92,7 +148,7 @@ interface ShownNumber {
 }
 
 /**
- * 모니터 번호 표시: one number window per monitor for
+ * 모니터 번호 표시: identifies shown outputs or unused monitors for
  * {@link MONITOR_NUMBER_MS}. Showing them again while they show keeps the
  * same windows and starts the time over, unless the monitors or the areas to
  * avoid changed. A window that fails to open or close is logged and skipped.
@@ -104,7 +160,14 @@ export class MonitorNumbers implements MonitorNumbersPort {
   constructor(private readonly options: MonitorNumbersOptions) {}
 
   identify(): void {
-    const spots = numberSpots(this.options.monitors(), this.options.avoid());
+    const spots =
+      this.options.outputs === undefined
+        ? numberSpots(this.options.monitors(), this.options.avoid())
+        : identificationSpots(
+            this.options.monitors(),
+            this.options.avoid(),
+            this.options.outputs(),
+          );
     if (
       !sameSpots(
         spots,

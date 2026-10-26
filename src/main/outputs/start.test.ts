@@ -449,13 +449,16 @@ describe('saved output backend', () => {
     expect(fakes.handlers.size + fakes.answers.size).toBe(0);
   });
 
-  it('shows monitor numbers while running, opening no window offscreen', async () => {
+  it('renders monitor identification in offscreen windows while running', async () => {
     const {store, stop} = setup();
     await loaded();
     const skipped = vi.fn();
     store.dispatch({type: 'monitors.identify'}, undefined, skipped);
     expect(skipped).not.toHaveBeenCalled();
-    expect(vi.mocked(openNumberWindow)).not.toHaveBeenCalled();
+    expect(vi.mocked(openNumberWindow)).toHaveBeenCalledTimes(3);
+    for (const call of vi.mocked(openNumberWindow).mock.calls) {
+      expect(call[2]).toBe('offscreen');
+    }
     stop();
     store.dispatch({type: 'monitors.identify'}, undefined, skipped);
     expect(skipped).toHaveBeenCalledWith(

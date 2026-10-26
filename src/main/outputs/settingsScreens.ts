@@ -33,6 +33,7 @@ function outputScreens(reader: SettingsReader): readonly OutputScreen[] {
       {
         id: screen.id,
         name: screen.name,
+        kind: screen.kind,
         method: screen.method,
         display: screen.display ?? null,
         aliases: outputStateKeys(screen.id).slice(1),

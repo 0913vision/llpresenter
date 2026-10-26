@@ -160,6 +160,17 @@ export class OutputManager {
     });
   }
 
+  /** Current output identities and actual placements, excluding hidden windows. */
+  shownOutputs(): ReadonlyArray<{
+    screen: OutputScreen;
+    placement: Exclude<Placement, {kind: 'off'}>;
+  }> {
+    return this.options.screens.list().flatMap(screen => {
+      const placement = this.windows.get(screen.id)?.shownPlacement();
+      return placement == null ? [] : [{screen, placement}];
+    });
+  }
+
   /**
    * The monitor id each full screen output is assigned to, as of the last
    * placement. A screen without a monitor has no entry.

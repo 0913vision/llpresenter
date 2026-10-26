@@ -126,6 +126,29 @@ function setUp(screens: readonly OutputScreen[] = [screenOn(PROJECTOR)]) {
   return {store, displays, source, windows, log, manager};
 }
 
+describe('output identification', () => {
+  it('exposes only shown output placements, and removes hidden screens immediately', () => {
+    const screen = screenOn(PROJECTOR, {kind: 'audience', alwaysOnTop: true});
+    const {manager, store} = setUp([screen]);
+    expect(manager.shownOutputs()).toEqual([]);
+    store.dispatch(turn(true));
+    expect(manager.shownOutputs()).toEqual([
+      {
+        screen,
+        placement: {
+          kind: 'fullscreen',
+          bounds: PROJECTOR_BOUNDS,
+          alwaysOnTop: true,
+        },
+      },
+    ]);
+    store.dispatch(turn(false));
+    expect(manager.shownOutputs()).toEqual([]);
+    manager.dispose();
+    expect(manager.shownOutputs()).toEqual([]);
+  });
+});
+
 function setUpRemoval(
   screens: readonly OutputScreen[] = [
     screenOn(PROJECTOR),

@@ -196,12 +196,8 @@ export function startOutputs({
   const numbers = new MonitorNumbers({
     monitors: () => displays.monitors,
     avoid: () => outputs.captureAreas(),
-    // NOTE(0913vision): An offscreen run never shows a window, so 모니터 번호
-    // 표시 opens nothing there.
-    open: spot =>
-      windowMode === 'offscreen'
-        ? {close: () => undefined}
-        : openNumberWindow(spot, log),
+    outputs: () => outputs.shownOutputs(),
+    open: spot => openNumberWindow(spot, log, windowMode),
     log,
   });
   const releaseNumbers = store.connectMonitorNumbers(numbers);

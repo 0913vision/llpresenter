@@ -11,6 +11,7 @@ function mainScreenFor(monitors: readonly Monitor[]): OutputScreen {
   return {
     id: MAIN_SCREEN_ID,
     name: MAIN_SCREEN_NAME,
+    kind: 'audience',
     method: 'fullscreen',
     display:
       target === undefined

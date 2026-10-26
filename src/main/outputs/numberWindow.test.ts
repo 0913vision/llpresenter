@@ -41,6 +41,46 @@ beforeEach(() => {
 });
 
 describe('openNumberWindow', () => {
+  it('renders offscreen without showing, focusing, or raising a native window', () => {
+    openNumberWindow(SPOT, recordingLogger(), 'offscreen');
+    const win = electron.created[0];
+    win?.emit('ready-to-show');
+    expect(win?.options).toMatchObject({
+      show: false,
+      focusable: false,
+      webPreferences: {offscreen: {useSharedTexture: true}},
+    });
+    expect(win?.showInactive).not.toHaveBeenCalled();
+    expect(win?.show).not.toHaveBeenCalled();
+    expect(win?.focus).not.toHaveBeenCalled();
+    expect(win?.setAlwaysOnTop).not.toHaveBeenCalled();
+  });
+
+  it('passes screen identity as encoded URL data without a preload bridge', () => {
+    const details = {
+      name: 'Main & stage',
+      kind: 'audience' as const,
+      method: 'fullscreen' as const,
+      width: 1920,
+      height: 1080,
+      refreshRate: 60,
+    };
+    openNumberWindow({...SPOT, details}, recordingLogger());
+    expect(vi.mocked(loadPage)).toHaveBeenLastCalledWith(
+      electron.created[0],
+      {
+        name: 'output',
+        query: {
+          'monitor-number': '2',
+          'monitor-details': JSON.stringify(details),
+        },
+      },
+      expect.anything(),
+    );
+    expect(electron.created[0]?.options['webPreferences']).not.toHaveProperty(
+      'preload',
+    );
+  });
   it('opens a borderless, unfocusable, click-through window above the outputs', () => {
     openNumberWindow(SPOT, recordingLogger());
     const win = electron.created[0];

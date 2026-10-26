@@ -214,7 +214,7 @@ function presentOffscreen(win: BrowserWindow): OutputPresentation {
     },
     showCapture: bounds => win.setContentBounds(bounds),
     prepareForMonitorRemoval: () => undefined,
-    bounds: () => null,
+    bounds: () => (win.isDestroyed() ? null : win.getBounds()),
     bringToFront: () => undefined,
     hide: () => undefined,
     dispose: () => undefined,
