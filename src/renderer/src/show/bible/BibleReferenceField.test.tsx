@@ -44,6 +44,81 @@ function setup(count = 0, recentTranslation = lookupRequest().translation) {
 }
 
 describe('Bible reference field', () => {
+  it('completes a single exact book before a pending lookup answers', () => {
+    const view = setup();
+    view.lookup.mockImplementation(() => new Promise(() => undefined));
+    fireEvent.change(view.field, {target: {value: '창'}});
+    expect(fireEvent.keyDown(view.field, {key: 'Tab', cancelable: true})).toBe(
+      false,
+    );
+    expect(view.field.value).toBe('창세기 ');
+    expect(view.field.selectionStart).toBe(4);
+    expect(view.onShow).not.toHaveBeenCalled();
+  });
+  it('takes the highlighted book and keeps an existing range after the book caret', async () => {
+    const view = setup();
+    fireEvent.change(view.field, {target: {value: '요한'}});
+    view.field.focus();
+    expect(
+      screen.getAllByRole('option')[0]?.getAttribute('aria-selected'),
+    ).toBe('true');
+    await view.user.keyboard('{ArrowDown}{Tab}');
+    expect(view.field.value).toBe('요한일서 ');
+    fireEvent.change(view.field, {target: {value: '창 1:1-5'}});
+    view.field.setSelectionRange(1, 1);
+    fireEvent.keyDown(view.field, {key: 'Tab'});
+    expect(view.field.value).toBe('창세기 1:1-5');
+    expect(view.field.selectionStart).toBe(4);
+    expect(view.field.selectionEnd).toBe(4);
+    expect(view.onShow).not.toHaveBeenCalled();
+  });
+  it('leaves Shift Tab, IME Tab and chapter-position Tab to normal navigation', () => {
+    const view = setup();
+    fireEvent.change(view.field, {target: {value: '창'}});
+    expect(fireEvent.keyDown(view.field, {key: 'Tab', shiftKey: true})).toBe(
+      true,
+    );
+    expect(fireEvent.keyDown(view.field, {key: 'Tab', isComposing: true})).toBe(
+      true,
+    );
+    expect(view.field.value).toBe('창');
+    fireEvent.change(view.field, {target: {value: '창 1:1'}});
+    expect(fireEvent.keyDown(view.field, {key: 'Tab'})).toBe(true);
+    expect(view.field.value).toBe('창 1:1');
+  });
+  it.each(['chapter', 'verse'] as const)(
+    'exposes a %s range error in the field and blocks output',
+    async code => {
+      const view = setup();
+      const message =
+        code === 'chapter'
+          ? '장이 범위를 벗어났습니다'
+          : '절이 범위를 벗어났습니다';
+      view.lookup.mockImplementation(async request => ({
+        ...lookupReply(request),
+        result: {ok: false, error: {code, message}},
+      }));
+      fireEvent.change(view.field, {
+        target: {value: code === 'chapter' ? '요 999:1' : '요 3:999'},
+      });
+      await waitFor(() =>
+        expect(view.field.getAttribute('aria-invalid')).toBe('true'),
+      );
+      fireEvent.keyDown(view.field, {key: 'Enter'});
+      await waitFor(() =>
+        expect(view.field.getAttribute('aria-invalid')).toBe('true'),
+      );
+      expect(view.onShow).not.toHaveBeenCalled();
+      expect(view.onPreview).not.toHaveBeenCalled();
+      expect(view.field.getAttribute('aria-describedby')).toBe(
+        screen.getByText(message).id,
+      );
+      await view.user.hover(view.field);
+      expect((await screen.findByRole('tooltip')).textContent).toContain(
+        message,
+      );
+    },
+  );
   it.each(['book', 'recent'])(
     'honors translation changes and removal after choosing a %s suggestion',
     async kind => {
@@ -120,6 +195,21 @@ describe('Bible reference field', () => {
       expect(view.field.value).toBe(input);
     },
   );
+  it('outputs the valid current passage even when the reply omits book suggestions', async () => {
+    const view = setup();
+    view.lookup.mockImplementation(async request => ({
+      ...lookupReply(request),
+      suggestions: [],
+    }));
+    fireEvent.change(view.field, {target: {value: '요 3:16'}});
+    await waitFor(() => expect(view.onPreview).toHaveBeenCalled());
+    fireEvent.keyDown(view.field, {key: 'Enter'});
+    expect(view.onShow).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ref: '요한복음 3:16'}),
+    );
+    expect(view.field.value).toBe('요 3:16');
+  });
+
   it('previews valid input without output and sends the passage on Enter', async () => {
     const {field, onShow, onPreview, user} = setup();
     await user.type(field, '요 3:16');
@@ -133,6 +223,8 @@ describe('Bible reference field', () => {
     );
     expect(document.activeElement).toBe(field);
     expect(screen.queryByRole('listbox')).toBeNull();
+    fireEvent.keyDown(field, {key: 'Enter', repeat: true});
+    expect(onShow).toHaveBeenCalledTimes(1);
   });
 
   it('chooses a different pointed recent before allowing output and caps recents at ten', async () => {
@@ -180,12 +272,10 @@ describe('Bible reference field', () => {
     expect(onShow).not.toHaveBeenCalled();
     expect(field.getAttribute('aria-describedby')).not.toBeNull();
     await user.keyboard('{Escape}');
-    expect(field.value).toBe('unknown');
-    await user.keyboard('{Escape}');
     expect(field.value).toBe('');
   });
 
-  it('keeps a pointed recent when book suggestions arrive later', async () => {
+  it('keeps a pointed recent when passage details arrive later', async () => {
     const view = setup(1);
     let finish: (value: BibleLookupReply) => void = () => undefined;
     view.lookup.mockReturnValueOnce(

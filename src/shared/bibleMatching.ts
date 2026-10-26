@@ -1,4 +1,4 @@
-import {BIBLE_BOOKS, type BibleBook} from './books';
+import {BIBLE_BOOKS, type BibleBook} from './bibleBooks';
 
 const INITIALS = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';
 const VOWELS = 'ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ';

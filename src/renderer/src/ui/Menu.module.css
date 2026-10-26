@@ -167,6 +167,10 @@
   box-shadow: var(--ring-field-focus);
 }
 
+.search[data-invalid='true'] {
+  box-shadow: var(--ring-field-error);
+}
+
 .searchInput {
   flex: 1 1 auto;
   min-width: 0;

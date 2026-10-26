@@ -1,5 +1,7 @@
 import {useEffect, useState, type JSX} from 'react';
 import type {ServiceItem} from '@shared/schema/service';
+import {completeBibleBook} from '@shared/bibleCompletion';
+import {BIBLE_LOOKUP_LIMITS} from '@shared/schema/bibleLookup';
 import type {LibrarySearchMatch} from '@shared/schema/librarySearch';
 import {createServiceItemId, type SongId} from '@shared/schema/ids';
 import {searchRange} from '@shared/searchText';
@@ -192,11 +194,30 @@ export function ServiceQuickAdd({
             value: query,
             onChange: setQuery,
             placeholder: typingPassage ? '성경 구절' : '곡, 가사, 초성',
+            maxLength: typingPassage ? BIBLE_LOOKUP_LIMITS.input : undefined,
+            invalidReason:
+              typingPassage &&
+              query.trim() !== '' &&
+              bible.reply?.result.ok === false
+                ? bible.reply.result.error.message
+                : undefined,
+            complete: typingPassage
+              ? (start, end, pointedId) =>
+                  completeBibleBook({
+                    input: query,
+                    start,
+                    end,
+                    bookId: Number(pointedId?.split(':')[1]),
+                  })
+              : undefined,
           }}
           onClose={() => setOpen(false)}
           entries={
             typingPassage
-              ? bibleEntries(bible.reply, insertPassage)
+              ? bibleEntries(bible.reply, insertPassage, {
+                  input: query,
+                  onComplete: setQuery,
+                })
               : [
                   ...songEntries(songs, query, insert),
                   ...otherItemEntries({

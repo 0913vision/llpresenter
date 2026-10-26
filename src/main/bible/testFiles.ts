@@ -1,5 +1,5 @@
 import {parseBibleTranslation} from '@shared/schema/bibleTranslation';
-import {BIBLE_BOOKS} from './books';
+import {BIBLE_BOOKS} from '@shared/bibleBooks';
 
 export function translationFile(ids: readonly number[] = [43]) {
   return {

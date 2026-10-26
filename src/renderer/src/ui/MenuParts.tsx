@@ -8,6 +8,8 @@ import {
 } from './menuModel';
 import {titleTooltip, useTooltip} from './Tooltip';
 import styles from './Menu.module.css';
+import {useInputCompletion, type InputCompletion} from './useInputCompletion';
+import {useFieldReason} from './fieldFrame';
 
 const ICON_SIZE = 14;
 const CHEVRON_SIZE = 12;
@@ -19,6 +21,15 @@ export interface MenuSearch {
   readonly value: string;
   readonly onChange: (value: string) => void;
   readonly placeholder?: string | undefined;
+  readonly invalidReason?: string | undefined;
+  readonly maxLength?: number | undefined;
+  readonly complete?:
+    | ((
+        start: number,
+        end: number,
+        pointedId: string | undefined,
+      ) => InputCompletion | null)
+    | undefined;
 }
 
 function LabelText({
@@ -125,28 +136,61 @@ export function MenuSearchField({
   search,
   menuId,
   activeId,
+  pointedId,
 }: {
   readonly search: MenuSearch;
   readonly menuId: string;
   readonly activeId: string | undefined;
+  readonly pointedId?: string | undefined;
 }): JSX.Element {
   const placeholder = search.placeholder ?? SEARCH_PLACEHOLDER;
+  const complete = useInputCompletion(search.onChange);
+  const reason = useFieldReason({
+    invalid: search.invalidReason !== undefined,
+    reason: search.invalidReason,
+    describedBy: undefined,
+    title: undefined,
+  });
+  const {targetProps, tooltip} = useTooltip(titleTooltip(reason.tooltip));
   return (
-    <label className={styles.search}>
-      <Icon name="search" size={SEARCH_ICON_SIZE} />
-      <input
-        className={styles.searchInput}
-        type="text"
-        role="combobox"
-        aria-expanded
-        aria-controls={menuId}
-        aria-activedescendant={activeId}
-        aria-label={placeholder}
-        placeholder={placeholder}
-        value={search.value}
-        onChange={event => search.onChange(event.target.value)}
-      />
-    </label>
+    <>
+      <label
+        {...targetProps}
+        className={styles.search}
+        data-invalid={search.invalidReason ? true : undefined}
+      >
+        <Icon name="search" size={SEARCH_ICON_SIZE} />
+        <input
+          className={styles.searchInput}
+          type="text"
+          role="combobox"
+          aria-expanded
+          aria-controls={menuId}
+          aria-activedescendant={activeId}
+          aria-label={placeholder}
+          placeholder={placeholder}
+          value={search.value}
+          maxLength={search.maxLength}
+          aria-invalid={search.invalidReason ? true : undefined}
+          aria-describedby={reason.describedBy}
+          onChange={event => search.onChange(event.target.value)}
+          onKeyDown={event => {
+            if (event.key === 'Tab') {
+              complete(
+                event,
+                search.complete?.(
+                  event.currentTarget.selectionStart ?? search.value.length,
+                  event.currentTarget.selectionEnd ?? search.value.length,
+                  pointedId,
+                ) ?? null,
+              );
+            }
+          }}
+        />
+      </label>
+      {reason.element}
+      {tooltip}
+    </>
   );
 }
 

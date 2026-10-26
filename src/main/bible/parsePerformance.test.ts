@@ -2,7 +2,7 @@ import {mkdir, writeFile} from 'node:fs/promises';
 import {join, resolve} from 'node:path';
 import {expect, it} from 'vitest';
 import {parseBibleTranslation} from '@shared/schema/bibleTranslation';
-import {BIBLE_BOOKS} from './books';
+import {BIBLE_BOOKS} from '@shared/bibleBooks';
 import {FULL_TRANSLATION_VERSES, fullTranslationText} from './testFiles';
 
 it('measures the median of three warmed full-size parses independently of file I/O', async () => {

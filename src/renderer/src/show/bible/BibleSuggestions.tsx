@@ -14,6 +14,7 @@ import {TruncatedText} from '@renderer/ui/TruncatedText';
 import styles from './BibleReferenceField.module.css';
 
 export interface BibleSuggestion {
+  readonly bookId?: number | undefined;
   readonly key: string;
   readonly group: string;
   readonly input: string;

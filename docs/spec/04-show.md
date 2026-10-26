@@ -583,11 +583,22 @@ Source: `ShowH`, `Problems`, `MediaTile` README, `Layout` README.
 
 - The operator types a reference such as "요 3:16-18" in the 퀵 실행 Bible
   field.
-- Suggestions open below the field. The "구절" (passages) group lists books that
-  start with the typed text, with the range and verse count (요한복음 3:16-18,
-  요한일서, 요엘). The "최근" (recent) group lists recent passages (창세기
-  1:1-5, 시편 23:1-6). The up and down arrow keys move through them. A click or
-  Enter chooses one.
+- Keep this as one field. Tab while the caret or selection is in the book part
+  completes the full Korean book name and a space ("창" becomes "창세기 ").
+  Exact full names and abbreviations win before partial matches. One candidate
+  is taken immediately; with several, Tab takes the highlighted candidate, or
+  the first one if none is highlighted. Arrow keys move the highlight. The
+  chapter and verse suffix stays, with the caret just after the completed book.
+  Tab in the chapter or verse part and Shift Tab keep normal focus navigation;
+  IME composition keeps its keys. This shared rule also applies to the 준비 항목
+  추가 성경 구절 field (user decision, October 26).
+- A chapter or verse outside its range marks the field with the design system
+  error ring and explains the reason in its tooltip, without a visible sentence
+  beside the field. It blocks output, or insertion from 준비 항목 추가.
+- Suggestions open below the field. The "구절" (passages) group lists matching
+  books, with the range and verse count (요한복음 3:16-18, 요한일서, 요엘). The
+  "최근" (recent) group lists recent passages (창세기 1:1-5, 시편 23:1-6). The
+  up and down arrow keys move through them. A click or Enter chooses one.
 - As soon as the text is a valid reference, the Bible panel opens in place of
   the 슬라이드 panel in the center column.
 - References can use the full book name or its abbreviation, with

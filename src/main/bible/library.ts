@@ -9,7 +9,7 @@ import {
 } from '@shared/schema/bibleTranslation';
 import type {FileError} from '@shared/schema/fileFormat';
 import {loadFile} from '../store/readFiles';
-import {BIBLE_BOOKS} from './books';
+import {BIBLE_BOOKS} from '@shared/bibleBooks';
 import {
   resolvePassage,
   type ReferenceProblem,

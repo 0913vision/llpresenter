@@ -326,6 +326,7 @@ function MenuSurface(props: SurfaceProps): JSX.Element {
             search={search}
             menuId={baseId}
             activeId={activeId}
+            pointedId={nav.items[nav.pointed]?.id}
           />
         )}
         <MenuBlocks entries={entries} baseId={baseId} renderItem={renderItem} />

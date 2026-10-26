@@ -1,6 +1,7 @@
 import {useId, useRef, useState, type JSX, type KeyboardEvent} from 'react';
 import type {LlpApi} from '@shared/ipc';
 import {recentPassages} from '@shared/bibleRecents';
+import {bibleBookChoices, completeBibleBook} from '@shared/bibleCompletion';
 import type {RecentPassage} from '@shared/schema/bible';
 import {
   BIBLE_LOOKUP_LIMITS,
@@ -9,6 +10,7 @@ import {
 import type {TranslationId} from '@shared/schema/ids';
 import {TextField} from '@renderer/ui';
 import {isComposing} from '@renderer/ui/ime';
+import {useInputCompletion} from '@renderer/ui/useInputCompletion';
 import {BibleSuggestions, type BibleSuggestion} from './BibleSuggestions';
 import {useBibleLookup} from './useBibleLookup';
 import styles from './BibleReferenceField.module.css';
@@ -41,15 +43,28 @@ export function BibleReferenceField(
     setChoice({provided: props.translation, selected: props.translation});
   }
   const reply = useBibleLookup({...props, input, translation});
+  const passage = reply?.result.ok ? reply.result.value : undefined;
+  const books = bibleBookChoices(input);
   const suggestions: readonly BibleSuggestion[] = [
-    ...(reply?.suggestions.map(book => ({
-      key: `book:${book.bookId}`,
-      group: '구절',
-      input: book.input,
-      ref: book.resolved?.ref,
-      translation,
-      count: book.resolved?.verseCount,
-    })) ?? []),
+    ...books.map(book => {
+      const resolved =
+        reply?.suggestions.find(s => s.bookId === book.bookId)?.resolved ??
+        (passage?.ref.startsWith(`${book.name} `)
+          ? {
+              ref: passage.ref,
+              verseCount: passage.verses.length,
+            }
+          : undefined);
+      return {
+        key: `book:${book.bookId}`,
+        bookId: book.bookId,
+        group: '구절',
+        input: book.input,
+        ref: resolved?.ref,
+        translation,
+        count: resolved?.verseCount,
+      };
+    }),
     ...recentPassages(props.recents).map(recent => ({
       key: `recent:${recent.translation}:${recent.ref}`,
       group: '최근',
@@ -58,7 +73,8 @@ export function BibleReferenceField(
       translation: recent.translation,
     })),
   ];
-  const pointed = suggestions.findIndex(item => item.key === pointedKey);
+  const selected = suggestions.findIndex(item => item.key === pointedKey);
+  const pointed = selected >= 0 ? selected : books.length > 0 ? 0 : -1;
   const point = (index: number): void =>
     setPointedKey(suggestions[index]?.key ?? null);
   const expanded = translation !== undefined && open && suggestions.length > 0;
@@ -68,6 +84,7 @@ export function BibleReferenceField(
     setPointedKey(null);
     setOpen(true);
   };
+  const complete = useInputCompletion(change);
   const choose = (suggestion: BibleSuggestion): void => {
     setChoice({provided: props.translation, selected: suggestion.translation});
     change(suggestion.input);
@@ -75,6 +92,21 @@ export function BibleReferenceField(
   };
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
     if (isComposing(event) || event.altKey || event.ctrlKey || event.metaKey) {
+      return;
+    }
+    if (
+      event.key === 'Tab' &&
+      complete(
+        event,
+        completeBibleBook({
+          input,
+          start: event.currentTarget.selectionStart ?? input.length,
+          end: event.currentTarget.selectionEnd ?? input.length,
+          bookId: suggestions[pointed]?.bookId,
+        }),
+      )
+    ) {
+      setOpen(false);
       return;
     }
     if (event.key === 'Escape' && expanded) {
@@ -98,6 +130,7 @@ export function BibleReferenceField(
     if (event.key !== 'Enter') return;
     event.preventDefault();
     event.stopPropagation();
+    if (event.repeat) return;
     const suggestion = expanded ? suggestions[pointed] : undefined;
     if (
       suggestion &&

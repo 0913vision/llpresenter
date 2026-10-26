@@ -1,4 +1,11 @@
-import {act, render, screen, waitFor, within} from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import * as v from 'valibot';
@@ -275,6 +282,69 @@ describe('항목 추가', () => {
     expect(service().service.order[3]).toHaveProperty('id', fixtureItems.slot);
     expect(service().service.order[3]).not.toHaveProperty('slot');
   });
+
+  it('completes books synchronously with Tab and arrows without inserting a passage', async () => {
+    const {api, user, service} = setup();
+    const {lookup} = mockBible(api);
+    lookup.mockImplementation(() => new Promise(() => undefined));
+    const length = service().service.order.length;
+    await user.click(screen.getByRole('button', {name: '항목 추가'}));
+    await user.click(await screen.findByRole('menuitem', {name: '성경 구절'}));
+    const field = screen.getByRole<HTMLInputElement>('combobox', {
+      name: '성경 구절',
+    });
+    fireEvent.change(field, {target: {value: '창'}});
+    await user.keyboard('{Tab}');
+    expect(field.value).toBe('창세기 ');
+    expect(field.selectionStart).toBe(4);
+    expect(document.activeElement).toBe(field);
+    fireEvent.change(field, {target: {value: '요한'}});
+    await user.keyboard('{ArrowDown}{Tab}');
+    expect(field.value).toBe('요한일서 ');
+    fireEvent.change(field, {target: {value: '창 1:1-5'}});
+    field.setSelectionRange(1, 1);
+    await user.keyboard('{Tab}');
+    expect(field.value).toBe('창세기 1:1-5');
+    expect(field.selectionStart).toBe(4);
+    expect(service().service.order).toHaveLength(length);
+    expect(screen.getByRole('menu', {name: '항목 추가'})).toBeTruthy();
+  });
+
+  it.each(['chapter', 'verse'] as const)(
+    'shows a %s error only through the field and cannot insert it',
+    async code => {
+      const {api, user, service} = setup();
+      const {lookup} = mockBible(api);
+      const message =
+        code === 'chapter'
+          ? '장이 범위를 벗어났습니다'
+          : '절이 범위를 벗어났습니다';
+      lookup.mockImplementation(async ({input, translation}) => ({
+        input,
+        translation,
+        suggestions: [],
+        result: {ok: false, error: {code, message}},
+      }));
+      const length = service().service.order.length;
+      await user.click(screen.getByRole('button', {name: '항목 추가'}));
+      await user.click(
+        await screen.findByRole('menuitem', {name: '성경 구절'}),
+      );
+      const field = screen.getByRole('combobox', {name: '성경 구절'});
+      fireEvent.change(field, {
+        target: {value: code === 'chapter' ? '요 999:1' : '요 3:999'},
+      });
+      await waitFor(() =>
+        expect(field.getAttribute('aria-invalid')).toBe('true'),
+      );
+      await user.keyboard('{Enter}');
+      expect(service().service.order).toHaveLength(length);
+      expect(field.getAttribute('aria-invalid')).toBe('true');
+      await hoverForTooltip(field);
+      expect(screen.getByRole('tooltip').textContent).toContain(message);
+      expect(screen.getByRole('menu', {name: '항목 추가'})).toBeTruthy();
+    },
+  );
 
   it('looks up a typed reference and inserts the passage with the default settings', async () => {
     const {api, user, service} = setup();

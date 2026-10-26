@@ -1,8 +1,8 @@
 import type {Result} from '@shared/result';
 import type {BibleTranslationFile} from '@shared/schema/bibleTranslation';
 import type {TranslationId} from '@shared/schema/ids';
-import type {BibleBook} from './books';
-import {matchBooks} from './matching';
+import type {BibleBook} from '@shared/bibleBooks';
+import {matchBooks} from '@shared/bibleMatching';
 
 export type ReferenceErrorCode =
   | 'syntax'

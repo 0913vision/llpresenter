@@ -7,7 +7,7 @@ import {
 import type {Logger} from '../log';
 import type {SettingsReader} from '../store/settingsStore';
 import {BibleLibrary, loadBibleLibrary} from './library';
-import {matchBooks} from './matching';
+import {matchBooks} from '@shared/bibleMatching';
 
 const BOOK_PREFIX = /^((?:[1-3]\s*)?[\p{L}\p{M}\s]+)(.*)$/u;
 
