@@ -8,11 +8,13 @@ import type {
   MediaImportRequest,
   MediaImportResult,
 } from '@shared/schema/mediaEdit';
+import type {AnalysisFailureReason} from '@shared/schema/mediaAnalysis';
 import {MEDIA_LIMITS, type MediaItem} from '@shared/schema/mediaList';
 import type {Logger} from '../log';
 import {mediaRefusal, type PlaylistRef} from '../store/mediaEdits';
 import type {MediaItemsCommit} from '../store/mediaStore';
 import {copyWithProgress, freePath, type CopyOptions} from './copyFile';
+import type {Analysis, AnalysisRequest, MediaFacts} from './mediaAnalyser';
 import {mediaKindOf, type MediaKind} from './mediaKinds';
 import {storedPath} from './storedPath';
 
@@ -28,6 +30,13 @@ export const MAX_IMPORT_JOBS = MEDIA_LIMITS.importBatch;
 const UNSUPPORTED = '지원하지 않는 형식';
 const COPY_FAILED = '복사하지 못함';
 const NOT_ADDED = '미디어 목록에 넣지 못함';
+
+const CANT_PLAY: Readonly<Record<AnalysisFailureReason, string>> = {
+  unsupported: '재생할 수 없는 형식',
+  decode: '손상되어 재생할 수 없는 파일',
+  network: '읽을 수 없는 파일',
+  aborted: '읽을 수 없는 파일',
+};
 
 /** What the importer uses of the media store. */
 export interface ImportStore {
@@ -46,6 +55,8 @@ export interface MediaImporterOptions {
   /** The import dialog; no files when it is cancelled or unavailable. */
   readonly chooseFiles: () => Promise<readonly string[]>;
   readonly createId: () => MediaId;
+  /** Reads a placed file's duration and size, and whether it can play. */
+  readonly analyse: (request: AnalysisRequest) => Promise<Analysis>;
   readonly log: Logger;
   readonly copy?: (options: CopyOptions) => ReturnType<typeof copyWithProgress>;
   /** Whether imports copy into the media folder; {@link COPY_IMPORTED_MEDIA} by default. */
@@ -81,9 +92,11 @@ type Placed =
     }
   | {readonly ok: false; readonly error: string};
 
+type PlacedFile = Extract<Placed, {readonly ok: true}>;
+
 function progress(
   job: Pick<ImportJob, 'mediaId' | 'fileName'>,
-  phase: 'queued' | 'copying' | 'complete' | 'cancelled',
+  phase: 'queued' | 'copying' | 'analysing' | 'complete' | 'cancelled',
   percent: number,
 ): MediaImportProgress {
   const base = {mediaId: job.mediaId, fileName: job.fileName};
@@ -93,9 +106,17 @@ function progress(
     case 'complete':
       return {...base, phase, percent: 100};
     case 'copying':
+    case 'analysing':
     case 'cancelled':
       return {...base, phase, percent};
   }
+}
+
+function factsOf({duration, width, height}: MediaFacts) {
+  return {
+    ...(duration === undefined ? {} : {duration}),
+    ...(width === undefined || height === undefined ? {} : {width, height}),
+  };
 }
 
 function failed(
@@ -122,8 +143,10 @@ function cancelled(job: ImportJob): boolean {
 
 /**
  * Imports media files one at a time: each job copies its file into the media
- * folder with progress, then joins the media list and the chosen playlist. A
- * job can be cancelled while it waits or copies, and disposal cancels all.
+ * folder with progress, analyses it, then joins the media list and the chosen
+ * playlist with its duration and size. A file Chromium's decoders refuse
+ * fails, and its copy is removed. A job can be cancelled while it waits,
+ * copies, or is analysed, and disposal cancels all.
  */
 export class MediaImporter {
   private readonly jobs = new Map<MediaId, ImportJob>();
@@ -247,7 +270,43 @@ export class MediaImporter {
       await this.removeCopy(placed);
       return CANCELLED;
     }
-    return this.admit(job, store, placed);
+    this.options.report(progress(job, 'analysing', 100));
+    const analysis = await this.options.analyse({
+      file: placed.file,
+      kind: job.kind,
+      thumbnail: false,
+      signal: job.abort.signal,
+    });
+    if (cancelled(job)) {
+      await this.removeCopy(placed);
+      return CANCELLED;
+    }
+    if (analysis.kind === 'cant-play') {
+      await this.removeCopy(placed);
+      return this.refused(job, analysis);
+    }
+    if (analysis.kind === 'unavailable') {
+      this.options.log.warn('imported media was not analysed', {
+        file: job.source,
+        message: analysis.message,
+      });
+    }
+    return this.admit(job, store, {
+      placed,
+      facts: analysis.kind === 'read' ? analysis.facts : {},
+    });
+  }
+
+  private refused(
+    job: ImportJob,
+    {reason, message}: Extract<Analysis, {readonly kind: 'cant-play'}>,
+  ): JobOutcome {
+    this.options.log.info('imported media can not play', {
+      file: job.source,
+      reason,
+      message,
+    });
+    return {phase: 'failed', message: CANT_PLAY[reason]};
   }
 
   // NOTE(0913vision): The commit boundary. From here the item may already be
@@ -256,16 +315,19 @@ export class MediaImporter {
   private async admit(
     job: ImportJob,
     store: ImportStore,
-    placed: Extract<Placed, {readonly ok: true}>,
+    {placed, facts}: {readonly placed: PlacedFile; readonly facts: MediaFacts},
   ): Promise<JobOutcome> {
     job.admitting = true;
     const added = await store.add(
       {
         items: [
-          this.itemOf(job, {
-            file: storedPath(store.folder, placed.file),
-            size: placed.size,
-          }),
+          {
+            ...this.itemOf(job, {
+              file: storedPath(store.folder, placed.file),
+              size: placed.size,
+            }),
+            ...factsOf(facts),
+          },
         ],
         baseRevision: store.get().revision,
       },
@@ -277,7 +339,7 @@ export class MediaImporter {
     return {phase: 'failed', message: NOT_ADDED};
   }
 
-  private async removeCopy(placed: Extract<Placed, {readonly ok: true}>) {
+  private async removeCopy(placed: PlacedFile) {
     if (!placed.copied) return;
     try {
       await rm(placed.file, {force: true});

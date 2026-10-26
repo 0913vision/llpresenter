@@ -15,6 +15,7 @@ import {recordingLogger} from '../displays/testing';
 import {EMPTY_MEDIA_LIST} from '../store/defaults';
 import {MediaStore, type MediaItemsCommit} from '../store/mediaStore';
 import type {CopyOptions} from './copyFile';
+import type {Analysis, AnalysisRequest} from './mediaAnalyser';
 import {
   IMPORTED_VIDEO_SOUND,
   MAX_IMPORT_JOBS,
@@ -56,12 +57,17 @@ async function setup(options: Partial<MediaImporterOptions> = {}) {
   const {store, items, add} = fakeStore(media);
   const reports: MediaImportProgress[] = [];
   let next = 0;
+  const analyse = vi.fn<(request: AnalysisRequest) => Promise<Analysis>>(() =>
+    Promise.resolve({kind: 'read', facts: {}}),
+  );
+  const log = recordingLogger();
   const importer = new MediaImporter({
     store: () => Promise.resolve(store),
     report: value => reports.push(value),
     chooseFiles: () => Promise.resolve([]),
     createId: () => createMediaId(uuid(++next)),
-    log: recordingLogger(),
+    analyse,
+    log,
     ...options,
   });
   onTestFinished(() => importer.dispose());
@@ -69,7 +75,18 @@ async function setup(options: Partial<MediaImporterOptions> = {}) {
     await writeFile(join(root, name), text);
     return join(root, name);
   };
-  return {root, sources, media, importer, reports, items, add, source};
+  return {
+    root,
+    sources,
+    media,
+    importer,
+    reports,
+    items,
+    add,
+    source,
+    analyse,
+    log,
+  };
 }
 
 const signal = () => new AbortController().signal;
@@ -299,6 +316,7 @@ describe('media import boundaries', () => {
       report: value => reports.push(value),
       chooseFiles: () => Promise.resolve([]),
       createId: () => createMediaId(uuid(1)),
+      analyse: () => Promise.resolve({kind: 'read', facts: {}}),
       log: recordingLogger(),
     });
     const source = join(root, 'Kept.png');
@@ -361,5 +379,94 @@ describe('media import boundaries', () => {
     await ended(reports, 1);
     expect(reports.at(-1)).toMatchObject({phase: 'complete'});
     expect(await readdir(media)).toEqual(['l.webm']);
+  });
+
+  it('analyses each copied file and adds its duration and size', async () => {
+    const {importer, reports, items, analyse, media, source} = await setup();
+    analyse.mockResolvedValue({
+      kind: 'read',
+      facts: {
+        duration: 12.5,
+        width: 1920,
+        height: 1080,
+        thumbnail: Buffer.from([1]),
+      },
+    });
+    await importer.import(filesOf([await source('Dawn.mp4')]), signal());
+    await ended(reports, 1);
+    expect(
+      reports.slice(-2).map(({phase, percent}) => [phase, percent]),
+    ).toEqual([
+      ['analysing', 100],
+      ['complete', 100],
+    ]);
+    const request = analyse.mock.calls[0]?.[0];
+    expect(request).toMatchObject({
+      file: join(media, 'Dawn.mp4'),
+      kind: 'video',
+      thumbnail: false,
+    });
+    expect(request?.signal?.aborted).toBe(false);
+    expect(items[0]).toMatchObject({duration: 12.5, width: 1920, height: 1080});
+    expect(items[0]).not.toHaveProperty('thumbnail');
+  });
+
+  it('fails a file the decoders refuse and removes its copy', async () => {
+    const {importer, reports, items, analyse, media, source, log} =
+      await setup();
+    analyse.mockResolvedValue({
+      kind: 'cant-play',
+      reason: 'unsupported',
+      message: 'Invented demuxer error',
+    });
+    await importer.import(filesOf([await source('Odd.mov')]), signal());
+    await ended(reports, 1);
+    expect(reports.at(-1)).toMatchObject({
+      phase: 'failed',
+      message: '재생할 수 없는 형식',
+    });
+    expect(items).toEqual([]);
+    expect(await readdir(media)).toEqual([]);
+    expect(log.messages('info')).toEqual(['imported media can not play']);
+  });
+
+  it('adds a file analysis could not read without its facts', async () => {
+    const {importer, reports, items, analyse, source, log} = await setup();
+    analyse.mockResolvedValue({
+      kind: 'unavailable',
+      message: 'The analysis timed out',
+    });
+    await importer.import(filesOf([await source('Slow.mp4')]), signal());
+    await ended(reports, 1);
+    expect(reports.at(-1)).toMatchObject({phase: 'complete'});
+    expect(items[0]).not.toHaveProperty('duration');
+    expect(log.messages('warn')).toEqual(['imported media was not analysed']);
+  });
+
+  it('cancels a job while its file is analysed and removes the copy', async () => {
+    const {importer, reports, items, analyse, media, source} = await setup();
+    let finish: (analysis: Analysis) => void = () => undefined;
+    analyse.mockImplementation(
+      () =>
+        new Promise(resolve => {
+          finish = resolve;
+        }),
+    );
+    const queued = await importer.import(
+      filesOf([await source('Long.mp4')]),
+      signal(),
+    );
+    await vi.waitFor(() => expect(analyse).toHaveBeenCalledOnce());
+    const mediaId = queued.ok ? queued.value[0]?.mediaId : undefined;
+    expect(await importer.cancel(createMediaId(mediaId ?? ''))).toEqual({
+      ok: true,
+      value: null,
+    });
+    expect(analyse.mock.calls[0]?.[0].signal?.aborted).toBe(true);
+    finish({kind: 'read', facts: {duration: 1}});
+    await ended(reports, 1);
+    expect(reports.at(-1)).toMatchObject({phase: 'cancelled'});
+    expect(items).toEqual([]);
+    expect(await readdir(media)).toEqual([]);
   });
 });
