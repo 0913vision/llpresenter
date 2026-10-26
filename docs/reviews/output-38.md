@@ -39,9 +39,9 @@
   root itself never moves, so the margin shows the screen's empty color (black,
   the capture green, or the Look's background), and anything moved past the edge
   is clipped by the root's `overflow: hidden`. It writes the property only when
-  the transform string changes, recomputes on a new correction object or a size
-  change (the existing ResizeObserver), and skips the work when the same
-  correction object comes again, so a live state change allocates nothing.
+  the transform string changes, recomputes on a new screen object or a size
+  change (the existing ResizeObserver), and skips the work when the same screen
+  object comes again, so a live state change allocates nothing.
 - Spec 03: how the screen's own pixels are counted per method, and that previews
   draw the corrected picture as the screen shows it (both proposals).
 
