@@ -190,11 +190,11 @@ At launch, if `recovery\session.lock` still exists, the last exit was a crash
 | Group   | "복구할 상태" (states to restore), with three check rows, all checked by default              |
 | Buttons | 새로 시작 (start fresh) and 복구 (restore, primary). There is no cancel button.               |
 
-| Row                                        | Value example                     | Restores                                                                                                                                                |
-| ------------------------------------------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 화면 출력 (screen output)                  | "본 화면, 무대 화면, 방송 자막"   | Turns on the outputs that were on.                                                                                                                      |
-| 마지막 슬라이드 (last 슬라이드)            | "<song title> 2 / 9"              | The live 슬라이드 (same item and position) and its background (proposal for the background).                                                            |
-| 표시 중이던 항목 (items that were showing) | "메시지 1, 소품 1, 무대 메시지 1" | 소품, 메시지 (with the display time they had left, proposal), the stage message, the 공지 (from the image it showed), and the stage layouts (proposal). |
+| Row                                        | Value example                     | Restores                                                                                                                                                                                 |
+| ------------------------------------------ | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 화면 출력 (screen output)                  | "본 화면, 무대 화면, 방송 자막"   | Turns on the outputs that were on.                                                                                                                                                       |
+| 마지막 슬라이드 (last 슬라이드)            | "<song title> 2 / 9"              | The live 슬라이드 (same item and position) and its background (proposal for the background).                                                                                             |
+| 표시 중이던 항목 (items that were showing) | "메시지 1, 소품 1, 무대 메시지 1" | 소품, 메시지 (with the display time they had left, proposal), the stage message, the 공지 (from the image it showed), and, later, the stage layouts (once M3-O5 adds them to the state). |
 
 - Hide a row that has nothing to restore (proposal). If the record has nothing
   at all to restore, don't show the dialog, and launch normally (proposal).
@@ -261,15 +261,17 @@ Source: `Recovery`, `AlertDialog` README, `Checkbox` README, `Main` decision
 | Backup location unavailable (proposal)               | Warning     |
 | An output window can't be reopened (proposal)        | Warning     |
 | An output window reopened after the limit (proposal) | Information |
-| A 매크로 was dropped whole (01)                      | Warning     |
+| A dispatch that ran a 매크로 was dropped whole (01)  | Warning     |
 
 Don't use notifications for problems of one item (they show in place) or for the
 results of the operator's own actions.
 
-When the main process drops a whole 매크로 because its result would exceed the
-live state limits (01), a warning card titled "매크로 적용 실패" shows, with the
-매크로 name as its detail line. Nothing changes on output: the screens keep the
-state from before the 매크로 ran.
+When the main process drops a whole dispatch because its result would break the
+live state limits (01), and that dispatch ran a 매크로 (`macro.run`, or
+`item.start` with a start 매크로), a warning card titled "매크로 적용 실패"
+shows, with that 매크로's name as its detail line. A dropped dispatch with no
+매크로 is only logged. Nothing changes on output: the screens keep the state
+from before the dispatch.
 
 Source: `Notification` README, `Problems`, `StatusBar` README, design system
 writing rules.

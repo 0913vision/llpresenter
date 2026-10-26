@@ -903,25 +903,29 @@ preferred), `docs/HANDOFF.md` (개역한글 and KJV).
   status bar doesn't change (proposal).
 - A save failure never affects the output.
 
-## What isn't saved, and the recovery snapshot
+## What isn't saved, and the recovery record
 
 Don't put the output state in song, service, or settings files. Instead, the
 main process writes it to the recovery record each time it changes. You can
 batch these writes to once per second (proposal).
 
 `recovery\live.json` uses the `llrecovery` file format, schema version 1. Its
-`state` is a complete validated `LiveState` snapshot, alongside the service ID.
-It keeps the captured live content, including the actual slide lines, rather
-than only the references needed to reconstruct it from song or Bible files.
-Output removes audio and timer state before writing the snapshot.
+`state` is the complete live output state, alongside the service ID. It keeps
+the captured live content, including the actual slide lines, rather than only
+the references needed to reconstruct it from song or Bible files. Output removes
+audio, timer, and clear undo state before writing. The whole record is at most 4
+MiB, with 1 KiB of it reserved for the header, so the state must fit in the rest
+(01, "The main process owns the output state").
 
 | Field or excluded state | Meaning                                                                                        | Row in the recovery dialog                 |
 | ----------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------ |
 | `format`                | `llrecovery`                                                                                   | Not displayed                              |
 | `schemaVersion`         | `1`                                                                                            | Not displayed                              |
 | `savedAt`               | Write time                                                                                     | The time in the dialog's details           |
-| `serviceId`             | Current service ID, or `null` when no service is open                                          | 마지막 슬라이드 (last 슬라이드)            |
-| `state`                 | Full `LiveState` snapshot; its fields provide the three restore rows                           | See the rows below                         |
+| `serviceId`             | Current service ID, or `null` when no service is open or its content hasn't been read yet      | 마지막 슬라이드 (last 슬라이드)            |
+| `state`                 | The complete live output state; its fields provide the three restore rows                      | See the rows below                         |
+| `state.version`         | The state's change count                                                                       | Not displayed; restore starts a new count  |
+| `state.lookId`          | The selected Look, or absent or `null` for the saved current Look                              | Not displayed; see below                   |
 | `state.outputs`         | Screen ID to output on or off                                                                  | 화면 출력 (screen output)                  |
 | `state.layers.slide`    | Complete live 슬라이드: source item ID, position, label, and displayed lines                   | 마지막 슬라이드                            |
 | `state.layers.media`    | Background media choice, loop setting, and playback start time                                 | 마지막 슬라이드 (proposal)                 |
@@ -929,9 +933,13 @@ Output removes audio and timer state before writing the snapshot.
 | `state.layers.message`  | Complete active 메시지 layer, including displayed text and captured item payloads when present | 표시 중이던 항목                           |
 | `state.stageMessage`    | Captured stage message text when present                                                       | 표시 중이던 항목                           |
 | `state.layers.notice`   | Complete active 공지 layer, including captured playback state when present                     | 표시 중이던 항목                           |
+| Stage layout overrides  | Join the state when the stage slice (M3-O5) adds them (later work)                             | 표시 중이던 항목 (later work)              |
 | Timer state             | Excluded before writing; running timers are not recorded for restart                           | Not restored                               |
 | `state.layers.audio`    | Cleared before writing; audio playback is not recorded for restart                             | Not restored                               |
+| `state.canUndo`         | Written as `false`; the undo history of clears is not recorded                                 | Not restored                               |
 
+- Restore applies the record's `lookId` when that Look still exists, and
+  otherwise the saved `looks.current`.
 - Create `recovery\session.lock` at launch and delete it on a clean exit. If the
   file exists at launch, treat the last exit as a crash and open the output
   state recovery dialog. See 08.

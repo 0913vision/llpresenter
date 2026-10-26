@@ -97,12 +97,17 @@ Source: product log (2026-10-23 product philosophy, 2026-10-24 decisions),
   that no longer exists, such as a deleted Look or 소품, is dropped and logged
   the same way. Inside a 매크로 or a batch, that one action is skipped and the
   rest run (07).
+- The live state has limits: at most 4,000 characters per text, 1,000 lines per
+  슬라이드, and 200 screen outputs plus the four fixed names `main`, `stage`,
+  `broadcast`, and `captions`. The whole state must also fit in the recovery
+  record (02): 4 MiB, with 1 KiB of it reserved for the record's header.
 - A 매크로 or a batch whose actions are each valid, but whose result together
-  would exceed the live state limits (`LIVE_STATE_LIMITS` in
-  `src/shared/schema/liveLimits.ts`: text length, 슬라이드 lines, outputs, and
-  the byte size of one state), is dropped whole. The state doesn't change, no
-  window receives a new state, none of its effects run, and the main process
-  logs it once, naming the 매크로 or batch. 08 says what the operator sees.
+  would break the live state limits, is dropped whole. The state doesn't change,
+  no window receives a new state, and none of its effects run. The main process
+  logs the drop once, after any entries for actions that were skipped. When the
+  dropped dispatch ran a 매크로 (`macro.run`, or `item.start` with a start
+  매크로), the entry carries that 매크로's id (later work), and 08 says what the
+  operator sees; any other dropped dispatch is only logged.
 - Each new state carries a number that rises by one with every change. A window
   that receives a state with a lower number than the one it already has ignores
   it (proposal).
