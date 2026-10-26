@@ -89,16 +89,14 @@ describe('output screen identity', () => {
       edgeMargin: 5,
       offset: {x: 12, y: -6},
     });
-    expect(
+    const only = (edgeMargin: number, x: number, y: number) =>
       resolveRenderScreen(
         MAIN,
-        value.screens.map(screen => ({
-          ...screen,
-          edgeMargin: 0,
-          offset: {x: 0, y: 0},
-        })),
-      ),
-    ).not.toHaveProperty('correction');
+        value.screens.map(screen => ({...screen, edgeMargin, offset: {x, y}})),
+      );
+    expect(only(0, 0, 0)).not.toHaveProperty('correction');
+    expect(only(0, 3, 0)?.correction?.offset).toEqual({x: 3, y: 0});
+    expect(only(0, 0, -3)?.correction?.offset).toEqual({x: 0, y: -3});
   });
 
   it('keeps a changed document newer than a pending read and releases its listener', async () => {

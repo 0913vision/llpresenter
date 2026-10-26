@@ -22,6 +22,9 @@ describe('pictureTransform', () => {
     expect(
       pictureTransform(correction, {width: 480, height: 270, pixelRatio: 1}),
     ).toBe('translate(2.5px, -1px) scale(1)');
+    expect(
+      pictureTransform(correction, {width: 960, height: 720, pixelRatio: 1}),
+    ).toBe('translate(5px, -2.6666666666666665px) scale(1)');
   });
 
   it('counts device pixels when the screen has no pixel size', () => {

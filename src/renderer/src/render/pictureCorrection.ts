@@ -13,7 +13,7 @@ function cssPerPixel(
   pixels: number | undefined,
   ratio: number,
 ): number {
-  return pixels !== undefined && pixels > 0 ? cssLength / pixels : 1 / ratio;
+  return pixels === undefined ? 1 / ratio : cssLength / pixels;
 }
 
 /**

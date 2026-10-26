@@ -194,6 +194,13 @@ describe('OutputRenderer', () => {
     expect(root.style.getPropertyValue('--picture-transform')).toBe(
       'translate(20px, 10px) scale(0.8)',
     );
+    const width = vi.mocked(
+      Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'clientWidth')
+        ?.get,
+    );
+    const reads = width?.mock.calls.length;
+    renderer.render(WITH_SLIDE, frame);
+    expect(width?.mock.calls.length).toBe(reads);
     renderer.render(WITH_SLIDE, {
       screen: {...frame.screen, correction: {...correction}},
     });
