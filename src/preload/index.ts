@@ -55,7 +55,12 @@ import {
   parseServiceOpenRequest,
   parseServiceOpenReply,
 } from '@shared/schema/serviceOpen';
-import {parseMediaStripChange, parseUiState} from '@shared/schema/uiState';
+import {
+  parseMediaStripChange,
+  parsePrepMediaChange,
+  parseUiState,
+} from '@shared/schema/uiState';
+import {parseMediaBrowserChange} from '@shared/schema/mediaBrowser';
 import {
   parseUiZoomFactor,
   parseUiZoomPercent,
@@ -283,6 +288,22 @@ const api: LlpApi = {
         return;
       }
       ipcRenderer.send(Channels.uiMediaStripSet, parsed.value);
+    },
+    setPrepMedia: change => {
+      const parsed = parsePrepMediaChange(change);
+      if (!parsed.ok) {
+        logBadValue('request', Channels.uiPrepMediaSet, parsed.error);
+        return;
+      }
+      ipcRenderer.send(Channels.uiPrepMediaSet, parsed.value);
+    },
+    setMediaBrowser: change => {
+      const parsed = parseMediaBrowserChange(change);
+      if (!parsed.ok) {
+        logBadValue('request', Channels.uiMediaBrowserSet, parsed.error);
+        return;
+      }
+      ipcRenderer.send(Channels.uiMediaBrowserSet, parsed.value);
     },
     getZoom: () => invokeChecked(Channels.uiZoomGet, parseUiZoomPercent),
     getZoomFactor: currentZoomFactor,

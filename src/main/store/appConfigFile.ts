@@ -17,7 +17,13 @@ const NEWER_WARNING =
 /** The fields of `app.json` that the UI state store owns. */
 export type UiFields = Pick<
   AppConfig,
-  'layout' | 'previewBig' | 'macroView' | 'macroCollection' | 'mediaStrip'
+  | 'layout'
+  | 'previewBig'
+  | 'macroView'
+  | 'macroCollection'
+  | 'mediaStrip'
+  | 'prepMedia'
+  | 'mediaBrowser'
 >;
 
 /** The part of `app.json` that the UI state store reads and changes. */
@@ -110,14 +116,23 @@ export class AppConfigFile implements UiStateFields {
   }
 
   read(): UiFields {
-    const {layout, previewBig, macroView, macroCollection, mediaStrip} =
-      this.config;
+    const {
+      layout,
+      previewBig,
+      macroView,
+      macroCollection,
+      mediaStrip,
+      prepMedia,
+      mediaBrowser,
+    } = this.config;
     return {
       ...(layout === undefined ? {} : {layout}),
       ...(previewBig === undefined ? {} : {previewBig}),
       ...(macroView === undefined ? {} : {macroView}),
       ...(macroCollection === undefined ? {} : {macroCollection}),
       ...(mediaStrip === undefined ? {} : {mediaStrip}),
+      ...(prepMedia === undefined ? {} : {prepMedia}),
+      ...(mediaBrowser === undefined ? {} : {mediaBrowser}),
     };
   }
 

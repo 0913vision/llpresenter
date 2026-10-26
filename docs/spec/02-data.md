@@ -529,6 +529,15 @@ proposed layout reset, which restores local window bounds, zoom, and all size
 classes' column widths and thumbnail percentages. The data store remains the
 only writer (`docs/decisions.md`, "One owner of app.json").
 
+Media browser UI choices are optional app-local fields: `prepMedia` remembers
+whether 준비 opens its media view (default false), independently of 진행's
+`mediaStrip`. `mediaBrowser.columns` keeps the media grid's integer column
+count, 2 to 8 (default 5), separately from lyric thumbnail scaling.
+`mediaBrowser.view` is `"grid"` or `"list"` (default `"grid"`); audio playlists
+still display tracks as a list. Missing values use these UI defaults without
+adding fields to an unchanged file. Partial UI updates keep other fields and
+unknown metadata through the same writer.
+
 | Field                                           | Meaning                                                                                                                                                                                                                   |
 | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `dataRoot`                                      | The data folder.                                                                                                                                                                                                          |

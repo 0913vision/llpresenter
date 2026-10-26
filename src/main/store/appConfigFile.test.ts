@@ -146,6 +146,7 @@ describe('openAppConfig', () => {
       schemaVersion: 1,
       future: {keep: true},
       layout: {normal: {left: 280, right: 480, extra: true}},
+      mediaBrowser: {columns: 3, view: 'grid', future: {keep: true}},
     };
     await writeJson(file, config);
     const log = fakeLog();
@@ -153,12 +154,17 @@ describe('openAppConfig', () => {
     const ui = new UiStateStore({fields: appConfig, log});
     ui.setMediaStrip({visible: false});
     ui.setLayout({sizeClass: 'normal', leftCollapsed: true});
+    ui.setPrepMedia({visible: true});
+    ui.setMediaBrowser({view: 'list'});
+    ui.setMediaBrowser({columns: 8});
     appConfig.setLastServiceId(SUNDAY);
     appConfig.setUiZoomPercent(120);
     await appConfig.flush();
     expect(await readJson(file)).toEqual({
       ...config,
       mediaStrip: false,
+      prepMedia: true,
+      mediaBrowser: {...config.mediaBrowser, columns: 8, view: 'list'},
       lastServiceId: SUNDAY_ID,
       uiZoomPercent: 120,
       layout: {normal: {...config.layout.normal, leftCollapsed: true}},

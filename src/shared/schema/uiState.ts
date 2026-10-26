@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import type {Result} from '../result';
 import {appLayoutSchema, sizeClasses, type AppConfig} from './appConfig';
+import {mediaBrowserSchema} from './mediaBrowser';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
 
 /**
@@ -48,6 +49,8 @@ const layoutChangeSchema = v.pipe(
 const uiStateSchema = payloadObject({
   layout: v.exactOptional(appLayoutSchema),
   mediaStrip: v.exactOptional(v.boolean()),
+  prepMedia: v.exactOptional(v.boolean()),
+  mediaBrowser: v.exactOptional(mediaBrowserSchema),
 });
 
 const mediaStripChangeSchema = payloadObject({visible: v.boolean()});
@@ -56,7 +59,10 @@ const mediaStripChangeSchema = payloadObject({visible: v.boolean()});
  * The UI part of `app.json` that the control window reads once before its
  * first render. A missing or broken file gives `{}`.
  */
-export type UiState = Pick<AppConfig, 'layout' | 'mediaStrip'>;
+export type UiState = Pick<
+  AppConfig,
+  'layout' | 'mediaStrip' | 'prepMedia' | 'mediaBrowser'
+>;
 
 /** One boolean choice; no collection or unconstrained numeric payload. */
 export type MediaStripChange = Readonly<
@@ -65,6 +71,13 @@ export type MediaStripChange = Readonly<
 
 export function parseMediaStripChange(value: unknown) {
   return parsePayload(mediaStripChangeSchema, value);
+}
+
+export type PrepMediaChange = MediaStripChange;
+
+/** The independent 준비 toolbar media choice uses the same boolean boundary. */
+export function parsePrepMediaChange(value: unknown) {
+  return parseMediaStripChange(value);
 }
 
 /** Checks a `ui:get` reply on the receiving side. Never throws. */

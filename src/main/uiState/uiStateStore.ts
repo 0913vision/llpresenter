@@ -2,8 +2,10 @@ import type {AppLayout} from '@shared/schema/appConfig';
 import {
   parseLayoutChange,
   parseMediaStripChange,
+  parsePrepMediaChange,
   type UiState,
 } from '@shared/schema/uiState';
+import {parseMediaBrowserChange} from '@shared/schema/mediaBrowser';
 import type {Logger} from '../log';
 import type {UiStateFields} from '../store/appConfigFile';
 import {withLayoutChange} from './layout';
@@ -23,10 +25,13 @@ export class UiStateStore {
 
   /** The UI state for the control window. */
   get state(): UiState {
-    const {layout, mediaStrip} = this.options.fields.read();
+    const {layout, mediaStrip, prepMedia, mediaBrowser} =
+      this.options.fields.read();
     return {
       ...(layout === undefined ? {} : {layout}),
       ...(mediaStrip === undefined ? {} : {mediaStrip}),
+      ...(prepMedia === undefined ? {} : {prepMedia}),
+      ...(mediaBrowser === undefined ? {} : {mediaBrowser}),
     };
   }
 
@@ -58,5 +63,31 @@ export class UiStateStore {
       return;
     }
     this.options.fields.change({mediaStrip: change.value.visible});
+  }
+
+  setPrepMedia(value: unknown): void {
+    const change = parsePrepMediaChange(value);
+    if (!change.ok) {
+      this.options.log.warn(
+        'dropped a malformed prep media change',
+        change.error,
+      );
+      return;
+    }
+    this.options.fields.change({prepMedia: change.value.visible});
+  }
+
+  /** Merges only validated fields, preserving file metadata and concurrent UI choices. */
+  setMediaBrowser(value: unknown): void {
+    const change = parseMediaBrowserChange(value);
+    if (!change.ok) {
+      this.options.log.warn(
+        'dropped a malformed media browser change',
+        change.error,
+      );
+      return;
+    }
+    const previous = this.options.fields.read().mediaBrowser;
+    this.options.fields.change({mediaBrowser: {...previous, ...change.value}});
   }
 }

@@ -10,7 +10,7 @@ export interface UiStateRegistration {
 }
 
 /**
- * Registers the UI reads, layout changes, and media strip choice on the UI
+ * Registers UI reads, layout changes, and media choices on the UI
  * fields of `app.json`. Call it before the control window opens, so that the
  * window finds its state. The data store saves the file, and the app's
  * shutdown saves it before quitting, so `dispose()` only removes the channels.
@@ -29,12 +29,20 @@ export function registerUiState(
   ipcMain.on(Channels.uiMediaStripSet, (_event, value: unknown) =>
     store.setMediaStrip(value),
   );
+  ipcMain.on(Channels.uiPrepMediaSet, (_event, value: unknown) =>
+    store.setPrepMedia(value),
+  );
+  ipcMain.on(Channels.uiMediaBrowserSet, (_event, value: unknown) =>
+    store.setMediaBrowser(value),
+  );
 
   return {
     dispose: () => {
       ipcMain.removeHandler(Channels.uiGet);
       ipcMain.removeAllListeners(Channels.uiLayoutSet);
       ipcMain.removeAllListeners(Channels.uiMediaStripSet);
+      ipcMain.removeAllListeners(Channels.uiPrepMediaSet);
+      ipcMain.removeAllListeners(Channels.uiMediaBrowserSet);
     },
   };
 }

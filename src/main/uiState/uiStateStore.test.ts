@@ -47,6 +47,54 @@ describe('UiStateStore state', () => {
 });
 
 describe('panel visibility state', () => {
+  it('merges alternating media fields without replacing layout or strip choices', () => {
+    const {store, changes, warnings} = createHarness({
+      layout,
+      mediaStrip: true,
+      prepMedia: false,
+      mediaBrowser: {columns: 2, view: 'grid'},
+    });
+    store.setMediaBrowser({view: 'list'});
+    store.setPrepMedia({visible: true});
+    store.setMediaBrowser({columns: 8});
+    store.setMediaStrip({visible: false});
+    store.setPrepMedia({visible: false});
+    expect(store.state).toEqual({
+      layout,
+      mediaStrip: false,
+      prepMedia: false,
+      mediaBrowser: {columns: 8, view: 'list'},
+    });
+    expect(changes).toEqual([
+      {mediaBrowser: {columns: 2, view: 'list'}},
+      {prepMedia: true},
+      {mediaBrowser: {columns: 8, view: 'list'}},
+      {mediaStrip: false},
+      {prepMedia: false},
+    ]);
+    expect(warnings).toEqual([]);
+  });
+
+  it('rejects invalid media changes without handing any fields to the writer', () => {
+    const initial = {prepMedia: true, mediaBrowser: {columns: 4}};
+    const {store, changes, warnings} = createHarness(initial);
+    for (const value of [
+      null,
+      [],
+      {},
+      {columns: 9},
+      {view: 'bad'},
+      {columns: 3, view: 'bad'},
+    ]) {
+      store.setMediaBrowser(value);
+    }
+    for (const value of [null, {}, {visible: 'false'}]) {
+      store.setPrepMedia(value);
+    }
+    expect(changes).toEqual([]);
+    expect(warnings).toHaveLength(9);
+    expect(store.state).toEqual(initial);
+  });
   it('merges sidebar state alone without changing widths or other size classes', () => {
     const {store} = createHarness({layout});
     store.setLayout({sizeClass: 'normal', leftCollapsed: true});

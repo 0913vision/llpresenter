@@ -11,6 +11,7 @@ import {
 import {macroCollectionIdSchema, screenIdSchema, serviceIdSchema} from './ids';
 import type {MigrationStep} from './migration';
 import {UI_ZOOM, uiZoomPercentSchema} from './uiZoom';
+import {mediaBrowserSchema} from './mediaBrowser';
 import {
   jsonObject,
   nonNegativeNumber,
@@ -54,6 +55,8 @@ const appConfigSchema = jsonObject({
   macroView: v.exactOptional(v.picklist(['grid', 'list'])),
   macroCollection: v.exactOptional(macroCollectionIdSchema),
   mediaStrip: v.exactOptional(v.boolean()),
+  prepMedia: v.exactOptional(v.boolean()),
+  mediaBrowser: v.exactOptional(mediaBrowserSchema),
   lastBackupAt: v.exactOptional(timestamp),
 });
 

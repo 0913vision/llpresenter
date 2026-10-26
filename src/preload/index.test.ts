@@ -274,6 +274,36 @@ describe('native dropped media file paths', () => {
   });
 });
 
+describe('media browser UI boundary', () => {
+  it('sends only validated partial fields and an independent prep choice', async () => {
+    api.ui.setMediaBrowser({columns: 2});
+    api.ui.setMediaBrowser({view: 'list'});
+    Reflect.apply(api.ui.setPrepMedia, undefined, [
+      {visible: false, dataRoot: 'ignored'},
+    ]);
+    for (const value of [null, {}, {columns: 99}, {view: 'other'}]) {
+      Reflect.apply(api.ui.setMediaBrowser, undefined, [value]);
+    }
+    Reflect.apply(api.ui.setPrepMedia, undefined, [{visible: 'false'}]);
+    expect(
+      electron.send.mock.calls.filter(
+        ([channel]) =>
+          channel === Channels.uiMediaBrowserSet ||
+          channel === Channels.uiPrepMediaSet,
+      ),
+    ).toEqual([
+      [Channels.uiMediaBrowserSet, {columns: 2}],
+      [Channels.uiMediaBrowserSet, {view: 'list'}],
+      [Channels.uiPrepMediaSet, {visible: false}],
+    ]);
+    const state = {prepMedia: true, mediaBrowser: {columns: 8, view: 'list'}};
+    electron.invoke.mockResolvedValueOnce(state);
+    await expect(api.ui.get()).resolves.toEqual(state);
+    electron.invoke.mockResolvedValueOnce({mediaBrowser: {columns: 99}});
+    await expect(api.ui.get()).rejects.toThrow('Bad reply');
+  });
+});
+
 function isLlpApi(value: unknown): value is LlpApi {
   return typeof value === 'object' && value !== null && 'ui' in value;
 }

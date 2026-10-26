@@ -24,7 +24,13 @@ import type {
   ShowLibrarySongRequest,
 } from './schema/showLibrarySong';
 import type {ServiceOpenRequest} from './schema/serviceOpen';
-import type {LayoutChange, MediaStripChange, UiState} from './schema/uiState';
+import type {
+  LayoutChange,
+  MediaStripChange,
+  PrepMediaChange,
+  UiState,
+} from './schema/uiState';
+import type {MediaBrowserChange} from './schema/mediaBrowser';
 import type {Preferences} from './schema/preferences';
 import type {
   SettingsDocument,
@@ -76,6 +82,8 @@ export const Channels = {
   uiGet: 'ui:get',
   uiLayoutSet: 'ui:layout:set',
   uiMediaStripSet: 'ui:media-strip:set',
+  uiPrepMediaSet: 'ui:prep-media:set',
+  uiMediaBrowserSet: 'ui:media-browser:set',
   uiZoomGet: 'ui:zoom:get',
   uiZoomChange: 'ui:zoom:change',
   logWrite: 'log:write',
@@ -219,6 +227,10 @@ export interface LlpApi {
     setLayout(change: LayoutChange): void;
     /** Saves the media strip choice through the single app.json writer. */
     setMediaStrip(change: MediaStripChange): void;
+    /** Saves 준비's media mode independently of 진행's media strip. */
+    setPrepMedia(change: PrepMediaChange): void;
+    /** Changes only the supplied media browser fields through app.json. */
+    setMediaBrowser(change: MediaBrowserChange): void;
     /** Reads the computer-local UI zoom percentage (100 to 200, step 10). */
     getZoom(): Promise<number>;
     /** Reads this window's actual zoom factor synchronously, bounded to 1 to 2. */

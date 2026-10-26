@@ -5,6 +5,13 @@ import {createAppFlushRequestId} from '../schema/ids';
 import {createServiceId} from '../schema/ids';
 
 describe('fakeLlpApi', () => {
+  it('provides media state defaults and supports partial UI overrides', () => {
+    const setMediaBrowser = vi.fn();
+    const api = fakeLlpApi({ui: {setMediaBrowser}});
+    api.ui.setPrepMedia({visible: false});
+    api.ui.setMediaBrowser({columns: 3});
+    expect(setMediaBrowser).toHaveBeenCalledExactlyOnceWith({columns: 3});
+  });
   it('supplies flush defaults and supports a partial app override', () => {
     const requestId = createAppFlushRequestId(
       'a41e0c52-7e1f-4a2b-8c3d-4e5f60718293',

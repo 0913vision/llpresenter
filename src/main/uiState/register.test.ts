@@ -84,6 +84,8 @@ describe('registerUiState', () => {
     expect(handlers.handle.has(Channels.uiGet)).toBe(false);
     expect(handlers.on.has(Channels.uiLayoutSet)).toBe(false);
     expect(handlers.on.has(Channels.uiMediaStripSet)).toBe(false);
+    expect(handlers.on.has(Channels.uiPrepMediaSet)).toBe(false);
+    expect(handlers.on.has(Channels.uiMediaBrowserSet)).toBe(false);
   });
 
   it('saves media and sidebar state through the shared fields', () => {
@@ -101,6 +103,25 @@ describe('registerUiState', () => {
     expect(handlers.handle.get(Channels.uiGet)?.({})).toEqual({
       mediaStrip: false,
       layout: {narrow: {leftCollapsed: true}},
+    });
+  });
+
+  it('routes validated browser patches and the prep choice into shared fields', () => {
+    const {fields, changes} = fieldsOf({mediaStrip: true});
+    registerUiState(fields, log);
+    handlers.on.get(Channels.uiMediaBrowserSet)?.({}, {columns: 6});
+    handlers.on.get(Channels.uiMediaBrowserSet)?.({}, {view: 'list'});
+    handlers.on.get(Channels.uiPrepMediaSet)?.({}, {visible: false});
+    handlers.on.get(Channels.uiMediaBrowserSet)?.({}, {columns: 99});
+    expect(changes).toEqual([
+      {mediaBrowser: {columns: 6}},
+      {mediaBrowser: {columns: 6, view: 'list'}},
+      {prepMedia: false},
+    ]);
+    expect(handlers.handle.get(Channels.uiGet)?.({})).toEqual({
+      mediaStrip: true,
+      prepMedia: false,
+      mediaBrowser: {columns: 6, view: 'list'},
     });
   });
 });
