@@ -121,19 +121,14 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (Codex, codex2): Request changes: the properties panel kept editing an
+  item that the chosen playlist no longer showed, and the speed steps were 0.25
+  instead of spec 10's 0.05 (0.5 with Shift).
+- Round 2 (e3a7fc18): reviewer (Codex, codex4, moved after the round was lost in
+  the queue) Approve. Lead Approve. Merged with data-60 on top; rebased by the
+  lead onto local `main` without conflicts; typecheck passes.
 
 ## Team member's reply
 

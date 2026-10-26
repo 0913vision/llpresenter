@@ -105,19 +105,15 @@ After data-58 merged and data-59 moved to current main, all three preview
 commits again compared equal when restacked on data-59's new head. Only the base
 metadata and subsequent check result are updated after that restack.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (Codex, codex3): Request changes; the findings and replies are above.
+- Round 2 (47cdd2b8): reviewer (Codex, codex3) Approve. Lead Approve; 파일 위치
+  열기 goes through an additive main contract that shows a file in Explorer only
+  inside the media folders, so the renderer can't open arbitrary paths. The CI
+  failure recorded above is in an unrelated screen selection test and is
+  recorded, not rerun (October 24 decision). Rebased by the lead onto local
+  `main` with data-59 without conflicts; typecheck passes.
 
 ## Team member's reply
 
