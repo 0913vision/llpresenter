@@ -2,7 +2,7 @@
 
 - Team member: tools
 - Branch: `feat/tools/stage-tab`
-- Base: local `main` at `6c62d738`, including approved tools-7.
+- Base: local `main` at `31e33ae9`, rebased for round 2.
 - Brief: `docs/briefs/tools.md`, first M3-T1a unit.
 - Final head and exact-head CI are in the report.
 
@@ -16,11 +16,12 @@ selection sends `stage.timer.set`, including `null` for 없음; it does not star
 the timer or save settings. Removed targets cannot be selected.
 
 The stage message field sends with 보내기 or Enter, trims text, rejects blank
-and oversized text, and leaves IME composition alone. Its 내리기 sends the
-existing `stage.message.set` null command. LIVE and preset rings follow the
-received live state. Presets send immediately and leave the operator's draft
-intact. The tab follows preset edits; it does not edit them. Sends are disabled
-without a configured stage screen. Reasons use tooltips.
+and oversized text, and leaves IME composition alone. Held Enter events are
+consumed without sending again. Its 내리기 sends the existing
+`stage.message.set` null command. LIVE and preset rings follow the received live
+state. Presets send immediately and leave the operator's draft intact. The tab
+follows preset edits; it does not edit them. Sends are disabled without a
+configured stage screen. Reasons use tooltips.
 
 ## Changed files and changes outside my paths
 
@@ -47,8 +48,9 @@ output changes.
 
 ## Next units
 
-The 표시 중 and 메시지 tabs remain separate T1a units. Then the retained 타이머
-tab follows; audio waits for O7 and lead confirmation.
+Shared Bible book completion is next under the new user priority. The 표시 중
+and 메시지 tabs remain separate T1a units, followed by the retained 타이머 tab;
+audio waits for O7 and lead confirmation.
 
 ## Review: lead
 
@@ -61,3 +63,9 @@ tab follows; audio waits for O7 and lead confirmation.
 - Findings:
 
 ## Team member's reply
+
+1. Addressed the round-1 finding. Repeated Enter keydowns are prevented and
+   stopped before returning without a command. A fresh press sends again. The
+   regression reproduced three sends before the fix and now checks one command
+   while held, no default action or bubbling, and a second command after release
+   and another press. Final checks and exact-head CI are in the report.

@@ -165,6 +165,33 @@ describe('stage tool', () => {
     expect(fixture.send.mock.calls[1]).toEqual(fixture.send.mock.calls[0]);
   });
 
+  it('consumes held Enter without sending again until the next press', async () => {
+    const fixture = stageFixture();
+    const bubbled = vi.fn();
+    render(
+      <div onKeyDown={bubbled}>
+        <StageTab />
+      </div>,
+    );
+    await screen.findByRole('button', {name: '무대 화면 무대 배치'});
+    const input = screen.getByRole('textbox', {name: '무대 메시지'});
+    fireEvent.change(input, {target: {value: '마지막 후렴'}});
+    const enter = (repeat: boolean): boolean =>
+      fireEvent.keyDown(input, {key: 'Enter', repeat, cancelable: true});
+    expect(enter(false)).toBe(false);
+    expect(enter(true)).toBe(false);
+    expect(enter(true)).toBe(false);
+    expect(fixture.send).toHaveBeenCalledExactlyOnceWith({
+      type: 'stage.message.set',
+      text: '마지막 후렴',
+    });
+    expect(bubbled).not.toHaveBeenCalled();
+    fireEvent.keyUp(input, {key: 'Enter'});
+    expect(enter(false)).toBe(false);
+    expect(fixture.send).toHaveBeenCalledTimes(2);
+    expect(bubbled).not.toHaveBeenCalled();
+  });
+
   it('refuses blank and oversized text and accepts the text limit', async () => {
     const fixture = stageFixture();
     render(<StageTab />);

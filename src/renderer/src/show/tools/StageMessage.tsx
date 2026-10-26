@@ -47,6 +47,7 @@ export function StageMessage({
           if (event.key !== 'Enter' || isComposing(event)) return;
           event.preventDefault();
           event.stopPropagation();
+          if (event.repeat) return;
           send(text);
         }}
       />
