@@ -39,6 +39,10 @@ export const liveActionOptions = [
     layoutId: stageLayoutIdSchema,
   }),
   v.object({
+    type: v.literal('stage.timer.set'),
+    timerId: v.nullable(timerIdSchema),
+  }),
+  v.object({
     type: v.literal('stage.message.set'),
     text: v.nullable(liveNonBlankTextSchema),
   }),

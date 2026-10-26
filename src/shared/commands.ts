@@ -50,6 +50,7 @@ export function interruptsSongOutput(command: LiveCommand): boolean {
     case 'output.set':
     case 'look.set':
     case 'stage.layout.set':
+    case 'stage.timer.set':
     case 'stage.message.set':
     case 'prop.set':
     case 'notice.start':

@@ -3,7 +3,7 @@ import type {
   ActiveProp,
   NoticePlayback,
 } from './schema/overlayState';
-import type {LookId, ScreenId} from './schema/ids';
+import type {LookId, ScreenId, StageLayoutId, TimerId} from './schema/ids';
 import type {TimerRuns} from './schema/timerState';
 export type {
   ActiveMessage,
@@ -40,11 +40,19 @@ export interface MediaLayer extends MediaChoice {
 }
 
 /** The slide on output: a service item, its position in the arrangement, and what to draw. */
+/** The 장 after the live one in the item's sequence, for the 무대 화면. */
+export interface NextSlide {
+  readonly label: string | null;
+  readonly lines: readonly string[];
+}
+
 export interface SlideLayer {
   readonly itemId: string;
   readonly position: number;
   readonly label: string | null;
   readonly lines: readonly string[];
+  /** The next 장 when the sender knows one; absent after the item's last. */
+  readonly next?: NextSlide;
 }
 
 export interface PropLayer {
@@ -92,6 +100,10 @@ export interface LiveState {
   readonly timers?: TimerRuns;
   /** The screens showing the 테스트 패턴; clears never touch it. Absent means none. */
   readonly testPatterns?: readonly ScreenId[];
+  /** Stage layouts chosen for this output, by stage screen, until the next Look change. */
+  readonly stageLayouts?: Readonly<Record<ScreenId, StageLayoutId>>;
+  /** The 타이머 the 무대 화면's 타이머 element shows. Absent means none. */
+  readonly stageTimerId?: TimerId;
 }
 
 export function emptyLayers(): LiveLayers {

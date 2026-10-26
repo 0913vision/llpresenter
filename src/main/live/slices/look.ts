@@ -15,9 +15,12 @@ export const lookSlice = defineSlice({
     if ((history.state.lookId ?? document.value.current) === lookId) {
       return history;
     }
+    // NOTE(0913vision): A Look change ends the stage layouts chosen for this
+    // output, so each stage screen takes the new Look's layout (spec 03).
+    const {stageLayouts: _chosen, ...state} = history.state;
     return {
       ...history,
-      state: {...history.state, lookId, version: history.state.version + 1},
+      state: {...state, lookId, version: state.version + 1},
     };
   },
 });

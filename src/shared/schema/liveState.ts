@@ -2,7 +2,12 @@ import * as v from 'valibot';
 import type {LayerKind, LiveState} from '../live';
 import type {Result} from '../result';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
-import {lookIdSchema, screenIdSchema} from './ids';
+import {
+  lookIdSchema,
+  screenIdSchema,
+  stageLayoutIdSchema,
+  timerIdSchema,
+} from './ids';
 import {
   LIVE_STATE_LIMITS,
   liveTextSchema,
@@ -21,6 +26,11 @@ const count = v.pipe(v.number(), v.integer(), v.minValue(0));
 
 const mediaChoiceEntries = {mediaId: id, loop: v.boolean()};
 
+const slideLinesSchema = v.pipe(
+  v.array(liveTextSchema),
+  v.maxLength(LIVE_STATE_LIMITS.slideLines),
+);
+
 /** A background media choice, as `media.show` carries it. */
 export const mediaChoiceSchema = payloadObject(mediaChoiceEntries);
 
@@ -34,9 +44,12 @@ export const layerSchemas = {
     itemId: id,
     position: count,
     label: v.nullable(liveTextSchema),
-    lines: v.pipe(
-      v.array(liveTextSchema),
-      v.maxLength(LIVE_STATE_LIMITS.slideLines),
+    lines: slideLinesSchema,
+    next: v.exactOptional(
+      payloadObject({
+        label: v.nullable(liveTextSchema),
+        lines: slideLinesSchema,
+      }),
     ),
   }),
   prop: payloadObject({propId: id, items: v.exactOptional(activePropsSchema)}),
@@ -77,6 +90,13 @@ export const liveStateSchema = payloadObject({
       ),
     ),
   ),
+  stageLayouts: v.exactOptional(
+    v.pipe(
+      v.record(screenIdSchema, stageLayoutIdSchema),
+      v.maxEntries(LIVE_STATE_LIMITS.outputs),
+    ),
+  ),
+  stageTimerId: v.exactOptional(timerIdSchema),
 });
 
 /**
