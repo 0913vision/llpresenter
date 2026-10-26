@@ -9,79 +9,62 @@
 - GitHub CI of the head commit: the URL and result are in the review request
   message.
 
-## Shared contract changes (review first)
-
-- `src/shared/screens.ts`: `CAPTURE_WINDOW_SIZE` (1920 x 1080, the client size
-  of a capture window with no saved resolution) moves here from
-  `src/main/outputs/placement.ts`, unchanged, so the renderer reads the same
-  default. Additive: main imports it from the new place; nothing else changes.
-
 ## What changed and why
 
-- `RenderScreen` (`render/layer.ts`) gains `pixels`, the screen's own pixel
-  size, and `correction`, its `edgeMargin` (percent) and `offset` (x and y in
-  the screen's own pixels). `resolveRenderScreen` fills `correction` only when
-  the margin or an offset isn't 0, so an uncorrected screen draws as before.
-  `pixels` is the monitor's real pixels for 전체 화면 (saved bounds times the
-  Windows scale), the set resolution for the capture window
-  (`CAPTURE_WINDOW_SIZE` when none is set), the set resolution for NDI when
-  there is one, and absent for 창. The test pattern (output-39) prints it as the
-  screen's resolution.
+The text below describes the change as it stands after round 1; the reply at the
+end says what changed in round 2.
+
+- `RenderScreen.correction` (`render/layer.ts`): the screen's `edgeMargin`
+  (percent) and `offset` (x and y in reference px). `resolveRenderScreen` fills
+  it only when the margin or an offset isn't 0, so an uncorrected screen draws
+  as before.
 - `pictureTransform` (`render/pictureCorrection.ts`, new): spec 03's rule as a
   CSS transform. Margin m % scales to (100 - 2m) % around the centre, 0 from 50
-  % on. The offset converts to the surface's CSS pixels by the share of the
-  screen it covers (`surface / pixels` per axis), or by `1 / devicePixelRatio`
-  when the screen has no pixel size. A picture drawn smaller, such as a lost
-  monitor's 960 x 540 window or a preview, therefore moves by the same share. It
-  returns null for an uncorrected picture.
+  % on. The offset counts pixels of a 1920 x 1080 reference picture and is
+  scaled by the same factor as lyric sizes (`scaleFor`), so a preview, a lost
+  monitor's window, and a 4K output all move by the same share of the picture
+  (the lead's decision in spec 03). It returns null for an uncorrected picture.
 - `OutputRenderer` sets the transform as the `--picture-transform` custom
-  property on its root, and every layer box reads it (`layers.module.css`). The
-  root itself never moves, so the margin shows the screen's empty color (black,
-  the capture green, or the Look's background), and anything moved past the edge
-  is clipped by the root's `overflow: hidden`. It writes the property only when
-  the transform string changes, recomputes on a new screen object or a size
-  change (the existing ResizeObserver), and skips the work when the same screen
-  object comes again, so a live state change allocates nothing.
-- Spec 03: how the screen's own pixels are counted per method, and that previews
-  draw the corrected picture as the screen shows it (both proposals).
+  property on its root. Only the root's own layer boxes read it
+  (`.root > .layer`), so the boxes that layers nest inside themselves, which
+  share the `.layer` class, never scale it again (a NOTE). The root itself never
+  moves, so the margin shows the screen's empty color (black, the capture green,
+  or the Look's background), and anything moved past the edge is clipped by the
+  root's `overflow: hidden`. It recomputes on a new screen object or a size
+  change (the existing ResizeObserver, which also gives the scale), writes the
+  property only when the transform string changes, and skips the work when the
+  same screen object comes again, so a live state change allocates nothing.
+- Spec 03: the offset unit (lead decision, October 26) and that previews draw
+  the corrected picture (proposal).
 
 ## Changed files
 
 - `src/renderer/src/render/layer.ts`, `screenIdentity.ts`, `outputRenderer.ts`,
   `layers.module.css`, and their tests.
-- `src/renderer/src/render/pictureCorrection.ts` (new), its unit test, and a
-  node test that reads `layers.module.css`.
-- `src/shared/screens.ts`, `src/main/outputs/placement.ts`.
+- `src/renderer/src/render/pictureCorrection.ts` (new), its unit test, a node
+  test of the stylesheet, and a test on the production DOM.
 - `docs/spec/03-output.md`.
 
 ## Changes outside my paths
 
-- `src/shared/screens.ts` (data): the additive constant above.
+None. (Round 1 moved `CAPTURE_WINDOW_SIZE` to `src/shared/screens.ts`; the unit
+change made it unneeded, so that file is unchanged now.)
 
 ## Checks run
 
-| Command or test                                                                                                    | Result                                   |
-| ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------- |
-| `npm run typecheck`                                                                                                | Pass                                     |
-| `npx vitest run src/renderer/src/render src/renderer/src/output src/renderer/src/show src/main/outputs src/shared` | Pass, 1846 tests (the native test skips) |
-| `npx eslint` and `npx prettier --check` on the changed files                                                       | Pass                                     |
-| Mutation checks (`.llp/output-38/mutations.log` in the worktree)                                                   | 17 mutations, see below                  |
-| `npm run verify`                                                                                                   | GitHub CI only (see the request message) |
+| Command or test                                                                                         | Result                                   |
+| ------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| `npm run typecheck`                                                                                     | Pass                                     |
+| `npx vitest run src/renderer/src/render src/renderer/src/show src/renderer/src/output src/main/outputs` | Pass, 696 tests (the native test skips)  |
+| `npx eslint` and `npx prettier --check` on the changed files                                            | Pass                                     |
+| Mutation checks (`.llp/output-38/mutations.log` in the worktree)                                        | All fail a test (see below)              |
+| `npm run verify`                                                                                        | GitHub CI only (see the request message) |
 
-Sixteen mutations fail a test. Five of them survived the first run and fail
-since the commits that pin them (the log shows both runs): the y axis using the
-width, an offset-only correction, the same correction coming again, and the CSS
-rule. After `pixels` moved to `RenderScreen`, the affected mutations ran again
-and fail a test, along with two new ones (the pixel size left out of the screen
-or of the transform). The seventeenth showed that a `pixels > 0` guard was dead
-(the schema allows only positive pixel counts), so the guard is gone.
-
-Tests: the margin scale, the offset in screen pixels on a full size, a quarter
-size, and a non-16:9 surface, device pixels without a screen size, a margin of
-half or more, and no transform for an uncorrected picture; the correction and
-pixel size per method, and offset-only corrections; the renderer writing,
-keeping, recomputing on resize, and removing the property; and the CSS rule that
-every layer box reads it while the root, with its background, stays.
+Every mutation of the current code fails a test: the margin clamp and factor,
+each axis of the offset, the scale kept from the resize, the screen identity
+skip, the transform string skip, the property removal, the reapply on resize,
+the correction only when it changes something, and the CSS rule narrowed back to
+`.layer`. The log also holds round 1's runs of code that is gone now.
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
@@ -96,23 +79,21 @@ every layer box reads it while the root, with its background, stays.
 
 ## Decisions I made (for the lead to confirm)
 
-1. The screen's own pixels per method, as above; a capture window counts its set
-   resolution rather than the device pixels of the control monitor.
-2. Previews (the 진행 screen previews) draw the corrected picture, so they match
+1. Previews (the 진행 screen previews) draw the corrected picture, so they match
    the screen.
-3. The margin area shows the screen's empty color, the Look's background
+2. The margin area shows the screen's empty color, the Look's background
    included, rather than a fixed black.
 
 ## Shared contract change requests
 
-None beyond the additive constant.
+None.
 
 ## Where to look
 
 - `pictureCorrection.ts`: `pictureTransform`.
 - `outputRenderer.ts`: `setCorrection` and `applyCorrection`.
-- `screenIdentity.ts`: `screenPixels`.
-- `layer.ts`: `RenderScreen.pixels` and `correction`.
+- `layers.module.css`: the `.root > .layer` rule.
+- `layer.ts`: `RenderScreen.correction`.
 
 ---
 
@@ -137,4 +118,24 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 (codex4, Request changes):
+
+1. [P1] Compounded transform: fixed in `6762f600`. The rule is now
+   `.root > .layer`, so only the layer boxes the renderer puts on its root take
+   the correction, and the `.layer` boxes that the background, the 장, and the
+   소품 nest inside them don't. Tests: a node test reads `layers.module.css` and
+   finds the transform declared in exactly one rule, `.root > .layer`; a test on
+   the production DOM (background video, 장, and a text 소품 drawn by the real
+   `OutputRenderer`) finds more than two nested `.layer` boxes and checks that
+   `.root > .layer` matches exactly the one box per layer and none of them.
+2. [P2] Window-method previews and 3. [P2] saved display size: resolved by a
+   unit change the lead decided (spec 03, "lead decision, October 26"). An
+   offset now counts pixels of a 1920 x 1080 reference picture and scales with
+   the drawn picture by the same factor as lyric sizes, so no screen pixel size
+   is read or reported anywhere: `RenderScreen.pixels` and the saved display
+   lookup are gone, and so is the `CAPTURE_WINDOW_SIZE` move. A 240 px preview
+   of a 960 px 창 output moves by a quarter of what the output does, and a
+   monitor that goes from 1920 to 3840 px keeps the same share without touching
+   the screen settings. Test (`outputRenderer.test.ts`): one correction of 40
+   and -20 px draws 40 and -20 at 1920 x 1080, 80 and -40 at 3840 x 2160, and 10
+   and -5 at 480 x 270, the same share of the width each time.
