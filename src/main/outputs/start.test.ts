@@ -9,6 +9,7 @@ import {
   displayInfo,
   recordingLogger,
 } from '../displays/testing';
+import {intersectionArea} from '../displays/rect';
 import {dispatchLogged, LiveStore} from '../live/store';
 import {startOverlays} from '../live/overlays';
 import {
@@ -18,6 +19,7 @@ import {
   overlaySettings,
   settingsDocument,
 } from '../live/testing/overlays';
+import type {WindowMode} from '../windows/testWindows';
 import {fakeWindows, type FakeWindows} from './testing';
 import {openNumberWindow} from './numberWindow';
 import {startOutputs} from './start';
@@ -62,7 +64,9 @@ vi.mock('./electronWindow', () => ({
     return fakes.windows.create(...args);
   },
 }));
-vi.mock('./numberWindow', () => ({openNumberWindow: vi.fn()}));
+vi.mock('./numberWindow', () => ({
+  openNumberWindow: vi.fn(() => ({close: vi.fn()})),
+}));
 vi.mock('../ipc', () => ({
   listenToWindows: (channel: string, handler: MessageHandler) => {
     fakes.handlers.set(channel, handler);
@@ -108,7 +112,10 @@ beforeEach(() => {
   fakes.answers.clear();
 });
 
-function setup(loading?: Promise<SettingsReader | null>) {
+function setup(
+  loading?: Promise<SettingsReader | null>,
+  windowMode: WindowMode = 'offscreen',
+) {
   const settings = overlaySettings();
   settings.update(settingsDocument('screens', {screens: [main]}));
   const store = new LiveStore();
@@ -123,7 +130,7 @@ function setup(loading?: Promise<SettingsReader | null>) {
       webPreferences: {offscreen: true},
     }),
     log,
-    windowMode: 'offscreen',
+    windowMode,
   });
   const stop = (): void => {
     running.stop();
@@ -380,6 +387,23 @@ describe('saved output backend', () => {
     expect(skipped).toHaveBeenCalledWith(
       expect.objectContaining({reason: 'failed'}),
     );
+  });
+
+  it('opens a number window on each monitor away from a shown capture window', async () => {
+    const {store, save, windows} = setup(undefined, 'normal');
+    await loaded();
+    save([
+      {...main, method: 'capture', resolution: {width: 1280, height: 720}},
+    ]);
+    store.dispatch({type: 'output.set', screenId: MAIN, on: true});
+    const capture = windows.only(MAIN).bounds();
+    if (capture === null) throw new Error('Missing capture window');
+    store.dispatch({type: 'monitors.identify'});
+    const spots = vi.mocked(openNumberWindow).mock.calls.map(([spot]) => spot);
+    expect(spots.map(({number}) => number)).toEqual([1, 2, 3]);
+    for (const {bounds} of spots) {
+      expect(intersectionArea(bounds, capture)).toBe(0);
+    }
   });
 
   it('reads the monitors at once for 모니터 다시 찾기 and raises the fallback for 창 보기', async () => {

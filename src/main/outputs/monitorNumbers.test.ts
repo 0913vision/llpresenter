@@ -86,6 +86,9 @@ describe('MonitorNumbers', () => {
     vi.advanceTimersByTime(1);
     expect(close).toHaveBeenCalledTimes(2);
     expect(vi.getTimerCount()).toBe(0);
+    numbers.identify();
+    expect(opened).toHaveLength(4);
+    numbers.dispose();
   });
 
   it('keeps the same windows and starts the time over when asked again', () => {
