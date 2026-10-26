@@ -92,7 +92,7 @@ describe('media import registration', () => {
     });
     const stop = registerMediaImport({
       port,
-      media: mediaStore(),
+      media: Promise.resolve(await mediaStore()),
       control: new BrowserWindow(),
       windowMode: 'normal',
       log: recordingLogger(),
@@ -118,7 +118,7 @@ describe('media import registration', () => {
     const log = recordingLogger();
     const stop = registerMediaImport({
       port,
-      media: mediaStore(),
+      media: Promise.resolve(await mediaStore()),
       control: new BrowserWindow(),
       windowMode: 'offscreen',
       log,
@@ -151,7 +151,7 @@ describe('media import registration', () => {
           throw new Error('A media backend is already connected');
         },
       },
-      media: mediaStore(),
+      media: Promise.resolve(await mediaStore()),
       control: new BrowserWindow(),
       windowMode: 'normal',
       log,
