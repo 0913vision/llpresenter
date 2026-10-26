@@ -82,6 +82,12 @@ claimed as ProPresenter behavior.
   [notice resume and restored lyrics](evidence/output-55-round2/restored-run1.png),
   [second launch](evidence/output-55-round2/restored-run2.png).
 
+- After restacking on the output-53 round 3 and output-54 fixes, the rebuilt app
+  repeats both complete launches and every notice-resume, new-slide reset and F1
+  restore cycle again. Both launches quit normally. See the request message for
+  the focused tests and refreshed app measurements; the round 2 screenshots
+  above show this restacked build.
+
 ## Review: lead
 
 - Verdict: pending
