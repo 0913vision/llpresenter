@@ -1,0 +1,30 @@
+{
+  "measurements": [
+    {
+      "elements": 474,
+      "heap": 15881728,
+      "documents": 27,
+      "nodes": 1595,
+      "jsEventListeners": 382
+    },
+    {
+      "elements": 474,
+      "heap": 16212940,
+      "documents": 27,
+      "nodes": 1595,
+      "jsEventListeners": 382
+    },
+    {
+      "elements": 474,
+      "heap": 16183780,
+      "documents": 27,
+      "nodes": 1595,
+      "jsEventListeners": 382
+    }
+  ],
+  "errors": [],
+  "liveUnchanged": true,
+  "noReload": true,
+  "port": 5193,
+  "offscreen": true
+}

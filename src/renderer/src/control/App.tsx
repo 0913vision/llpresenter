@@ -23,6 +23,8 @@ import {useSizeClass} from '@renderer/shell/useSizeClass';
 import {useMediaStripVisibility} from '@renderer/shell/useMediaStripVisibility';
 import {useSidebarCollapse} from '@renderer/shell/useSidebarCollapse';
 import {useUiZoomKeys} from '@renderer/shell/uiZoomKeys';
+import {useWindowShortcuts} from '@renderer/shell/windowShortcuts';
+import {workspaceShortcuts} from '@renderer/shell/workspaceCommands';
 import {Workspace} from '@renderer/shell/Workspace';
 import type {ControlSession} from './controlSession';
 import {RecoveryPrompt} from './recovery/RecoveryPrompt';
@@ -31,6 +33,8 @@ import {useOutputNotices} from './notifications/useOutputNotices';
 import {useProblemNotices} from './notifications/useProblemNotices';
 import {usePrepSelection} from './usePrepSelection';
 import styles from './App.module.css';
+
+const noEditorSubscription = (): (() => void) => () => undefined;
 
 export function App({
   columnWidthStore,
@@ -65,6 +69,24 @@ export function App({
     if (next === 'prep') session.startEditor();
     setWorkspace(next);
   };
+  const onMedia = (): void => {
+    if (workspace === 'prep') setPrepMedia(open => !open);
+    else {
+      onWorkspace('show');
+      mediaStrip.setVisible(workspace === 'screens' || !mediaStrip.visible);
+    }
+  };
+  const imported = useSyncExternalStore(
+    session.editor?.subscribe ?? noEditorSubscription,
+    () => session.editor?.getSnapshot().imported ?? false,
+  );
+  useWindowShortcuts(
+    workspaceShortcuts({
+      onWorkspace,
+      onMedia,
+      imported: workspace === 'prep' && imported,
+    }),
+  );
   useClearKeys();
   useUiZoomKeys();
   useOutputNotices(session.api, session);
@@ -72,6 +94,8 @@ export function App({
   return (
     <div className={styles.app} data-size={sizeClass}>
       <MenuBar
+        onWorkspace={onWorkspace}
+        onMedia={onMedia}
         clipboardAvailable={
           textImport && (() => textImport.clipboardAvailable())
         }

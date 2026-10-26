@@ -12,16 +12,19 @@ import {sendLookChange} from './lookActions';
 import {useLookChoices} from './useLookChoices';
 import styles from './MenuBar.module.css';
 import {useClipboardAvailability} from './useClipboardAvailability';
+import {workspaceMenu} from './workspaceCommands';
+import type {Workspace} from './Toolbar';
 
 // TODO(0913vision): Open the remaining menus (spec 01).
-const inertMenus = ['편집', '보기'] as const;
+const inertMenus = ['편집'] as const;
 const trailingMenus = ['창', '도움말'] as const;
 const OUTPUT_MENU = '출력';
 const FILE_MENU = '파일';
+const VIEW_MENU = '보기';
 const IMPORT_UNAVAILABLE = '텍스트 가져오기를 준비 중입니다';
 
 type ImportText = (source: TextImportReadRequest['source']) => void;
-type MenuName = typeof FILE_MENU | typeof OUTPUT_MENU;
+type MenuName = typeof FILE_MENU | typeof OUTPUT_MENU | typeof VIEW_MENU;
 
 interface ActiveMenu {
   readonly name: MenuName;
@@ -224,6 +227,28 @@ function outputEntries({
   ];
 }
 
+function ViewMenu({
+  control,
+  entries,
+}: {
+  readonly control: MenuControl;
+  readonly entries: readonly MenuEntry[];
+}): JSX.Element {
+  return (
+    <>
+      <MenuTrigger label={VIEW_MENU} control={control} />
+      {control.anchor === null ? null : (
+        <Menu
+          label={VIEW_MENU}
+          anchor={{kind: 'element', element: control.anchor}}
+          entries={entries}
+          onClose={control.close}
+        />
+      )}
+    </>
+  );
+}
+
 // NOTE(0913vision): The 출력 menu holds each screen's output on or off and,
 // while a screen's warning holds, an item that shows its card again (spec
 // 08).
@@ -294,6 +319,8 @@ export function MenuBar({
   onProblem = logProblem,
   onImportText,
   clipboardAvailable,
+  onWorkspace,
+  onMedia,
 }: {
   readonly title: string;
   /** The screens whose warning still holds, for the 출력 menu. */
@@ -303,6 +330,8 @@ export function MenuBar({
   /** Mounts P5's file and clipboard entry flow when its host is available. */
   readonly onImportText?: ImportText | undefined;
   readonly clipboardAvailable?: (() => Promise<boolean>) | undefined;
+  readonly onWorkspace?: ((workspace: Workspace) => void) | undefined;
+  readonly onMedia?: (() => void) | undefined;
 }): JSX.Element {
   const [active, setActive] = useState<ActiveMenu | null>(null);
   const {status: clipboard, check: checkClipboard} =
@@ -347,6 +376,10 @@ export function MenuBar({
         {inertMenus.map(menu => (
           <InertMenu key={menu} label={menu} />
         ))}
+        <ViewMenu
+          control={controlFor(VIEW_MENU)}
+          entries={workspaceMenu({onWorkspace, onMedia})}
+        />
         <OutputMenu
           warnings={warnings}
           onShowWarning={onShowWarning}

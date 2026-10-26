@@ -50,6 +50,48 @@ afterEach(async () => {
 });
 
 describe('App menu bar title', () => {
+  it('opens existing workspaces by S1 keys and View menu without sending live commands', async () => {
+    const send = vi.fn();
+    window.llp = fakeLlpApi({live: {send}});
+    render(
+      <App
+        session={createSession()}
+        columnWidthStore={createMemoryColumnWidthStore()}
+      />,
+    );
+    fireEvent.keyDown(window, {code: 'KeyR', ctrlKey: true});
+    expect(
+      screen.getByRole('tab', {name: '준비'}).getAttribute('aria-selected'),
+    ).toBe('true');
+    fireEvent.keyDown(window, {code: 'Digit1', ctrlKey: true, altKey: true});
+    expect(
+      screen
+        .getByRole('tab', {name: '화면 설정'})
+        .getAttribute('aria-selected'),
+    ).toBe('true');
+    fireEvent.keyDown(window, {code: 'KeyS', ctrlKey: true});
+    expect(
+      screen.getByRole('tab', {name: '진행'}).getAttribute('aria-selected'),
+    ).toBe('true');
+    await userEvent.click(screen.getByRole('menuitem', {name: '보기'}));
+    expect(
+      screen.getByRole('menuitem', {name: /준비Ctrl E \/ Ctrl R/}),
+    ).toBeDefined();
+    await userEvent.click(
+      screen.getByRole('menuitem', {name: /화면 설정Ctrl Alt 1/}),
+    );
+    expect(
+      screen
+        .getByRole('tab', {name: '화면 설정'})
+        .getAttribute('aria-selected'),
+    ).toBe('true');
+    fireEvent.keyDown(window, {code: 'KeyV', ctrlKey: true, shiftKey: true});
+    expect(
+      screen.getByRole('tab', {name: '진행'}).getAttribute('aria-selected'),
+    ).toBe('true');
+    expect(send).not.toHaveBeenCalled();
+  });
+
   it('routes a failed File-menu action to the shared notification stack', async () => {
     window.llp = fakeLlpApi();
     applyService({
