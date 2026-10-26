@@ -132,4 +132,28 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 (codex3, Request changes; the second reviewer, Gemini 4 Argon, through
+the lead):
+
+1. codex3: the TSDoc on the test helper's `changeOutside` is gone; the helper's
+   name and parameters say it.
+2. Gemini 4 Argon, a throwing window in a callback: `check` now runs the window
+   calls inside a try. On a throw it releases the keeper (no more checks until
+   the next deliberate set) and logs an error, so neither the
+   `always-on-top-changed` listener nor the interval lets an exception out, and
+   a destroyed window can't log every 3 s. A deliberate `set` still throws to
+   its caller, as the direct `setAlwaysOnTop` call did before. Test:
+   `isAlwaysOnTop` throws at the check (one error, no timer left, no throw out
+   of the timers), then `setAlwaysOnTop` throws while restoring after an event
+   (no throw out of the event, a second error, no timer).
+3. Gemini 4 Argon, a false loss during full screen entry: `showFullScreen`
+   releases the keeper before `enterFullScreen` and sets the level after it (a
+   NOTE says why), and the native fixture releases before its
+   `setFullScreen(true)`. Test: a full screen output moving to another monitor
+   gets an `always-on-top-changed` event with the level off during
+   `setFullScreen(false)`; nothing warns and the level is set once, after the
+   move.
+
+The three regression tests fail against the previous code
+(`.llp/output-36/mutations-r2.log`). The TSDoc grep finds only exported
+declarations.
