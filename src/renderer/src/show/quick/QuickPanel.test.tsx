@@ -117,6 +117,13 @@ describe('quick panel integration', () => {
       await waitFor(() =>
         expect(within(list).getAllByRole('button')).toHaveLength(7),
       );
+      await waitFor(() =>
+        expect(
+          within(list)
+            .getByRole('button', {name: /^시작 카운트다운/})
+            .getAttribute('aria-disabled'),
+        ).not.toBe('true'),
+      );
       expect(
         within(list)
           .getAllByRole('button')
@@ -154,6 +161,9 @@ describe('quick panel integration', () => {
     render(<QuickPanel selectionVersion={0} onProblem={vi.fn()} />);
     const prop = await screen.findByRole('button', {name: '로고 화면'});
     const timer = screen.getByRole('button', {name: /^시작 카운트다운/});
+    await waitFor(() =>
+      expect(timer.getAttribute('aria-disabled')).not.toBe('true'),
+    );
     expect(prop.getAttribute('aria-pressed')).toBe('false');
     fireEvent.click(prop);
     fireEvent.click(timer);

@@ -16,7 +16,15 @@ export function useQuickTimers(
   quick: NamedDocument<'quick'> | null,
   onProblem: (notice: Notice) => void,
 ) {
-  const timers = useSettingsDocument('timers', '타이머', onProblem);
+  const needed =
+    quick?.value.items.some(
+      item => isKnownQuickItem(item) && item.kind === 'timer',
+    ) ?? false;
+  const timers = useSettingsDocument(
+    needed ? 'timers' : null,
+    '타이머',
+    onProblem,
+  );
   const [failed, setFailed] = useState<string | null>(null);
   const problemShown = useRef(false);
   const definitions = useMemo(

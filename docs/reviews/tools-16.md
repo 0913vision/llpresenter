@@ -21,6 +21,10 @@ refuses an over-cap or read-only change before installation. Secondary shared
 rows cannot start while separation is pending or refused. Failures have an
 explicit retry and resolve their warning when the rows become usable.
 
+Definitions load only when the quick list contains a timer. Disabling that read
+releases its subscription and hides the snapshot; re-enabling waits for a fresh
+read and ignores replies from the previous activation.
+
 One clock per control-window API samples main's monotonic clock and shares one
 250ms interval among ticking values. The final subscriber releases that
 interval. Stopped rows draw their configured value without a clock interval. The
@@ -39,14 +43,18 @@ timer-definition defaults.
 - `src/renderer/src/ui/ListRow.tsx`: allow a React value in `ListActionRow.meta`
   so only timer text subscribes to the clock.
 - This review document and synthetic-fixture screenshots.
+- `src/renderer/src/screens/useSettingsDocument.ts`: optional disabled reads and
+  activation-scoped snapshots, preserving existing callers.
 
 ## Checks and quality
 
-Six affected test files pass 81 tests after rebase. Coverage includes deferred
-separation blocking, close-gate flushing, synchronous API failures, retry and
-warning resolution, read-only/missing data, clock cleanup/restart, overrun,
-reset and the existing quick field/edit flows. Typecheck, ESLint and build pass.
-Final formatting and exact-head CI are in the report. No TSDoc is added.
+Eight affected test files pass 115 tests. Coverage includes deferred separation
+blocking, close-gate flushing, synchronous API failures, retry and warning
+resolution, read-only/missing data, clock cleanup/restart, overrun, reset and
+the existing quick field/edit flows. Typecheck, ESLint and build pass. Final
+formatting and exact-head CI are in the report. No TSDoc is added. The mounted
+App and toolbar notification tests also cover the no-timer case; it no longer
+produces an unnecessary timer-settings load warning.
 
 ## Checked in the app
 
@@ -65,6 +73,11 @@ switches, and used the preload API to introduce a legacy shared reference.
   workspaces. All five samples held 467 elements, 1,546 DOM nodes, 547 event
   listeners and 29 document objects. GC used heap stayed within 6.13 to 6.29 MB;
   the final 15 pairs stayed within 6.23 to 6.29 MB.
+- After the lazy-read fix, removed and restored the timer rows 20 times while
+  alternating their stored durations between two and three seconds. Restored
+  rows showed the fresh values with no added warnings. In that screen state, all
+  samples held 434 elements, 1,492 nodes, 390 listeners and 28 documents; GC
+  used heap stayed within 5.01 to 5.14 MB.
 
 Independent overrun and the original stage selection:
 
@@ -77,3 +90,7 @@ Second click restores the configured value:
 After repeated start/reset and workspace switches:
 
 ![Stable rows after 20 measured pairs](evidence/tools-16/after-20-cycles.png)
+
+Quick list without timers:
+
+![No timer rows or timer load warning](evidence/tools-16/no-timer-rows.png)

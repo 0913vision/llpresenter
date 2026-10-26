@@ -3,6 +3,7 @@ import {
   cleanup,
   fireEvent,
   render,
+  renderHook,
   screen,
   waitFor,
 } from '@testing-library/react';
@@ -19,6 +20,7 @@ import {emptyLiveState} from '@shared/live';
 import {useLive} from '@renderer/state/live';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import type {Notice} from '@renderer/ui/notices';
+import {useSettingsDocument} from '@renderer/screens/useSettingsDocument';
 import {QuickPanel} from './QuickPanel';
 import {deferred, quickFixture, quickId} from './quickTesting';
 
@@ -27,6 +29,7 @@ function documents({
   readOnly = false,
   missing = false,
   clock = false,
+  none = false,
 } = {}) {
   const quick = expectSuccess(
     parseSettingsDocument({
@@ -36,7 +39,7 @@ function documents({
       value: {
         format: 'llsettings.quick',
         schemaVersion: 1,
-        items: (clock ? [1] : [1, 2]).map(n => ({
+        items: (none ? [] : clock ? [1] : [1, 2]).map(n => ({
           id: quickId(n),
           kind: 'timer',
           name: n === 1 ? '첫 타이머' : '둘째 타이머',
@@ -120,6 +123,49 @@ afterEach(() => {
 });
 
 describe('quick timer isolation', () => {
+  it('does not read timer settings when the quick list has no timer rows', async () => {
+    const f = setup({none: true});
+    const get = vi.spyOn(f.api.settings, 'get');
+    f.mount();
+    await waitFor(() =>
+      expect(
+        screen
+          .getByRole('button', {name: '퀵 실행 추가'})
+          .getAttribute('aria-disabled'),
+      ).not.toBe('true'),
+    );
+    expect(get).not.toHaveBeenCalledWith({name: 'timers'});
+    expect(f.problem).not.toHaveBeenCalled();
+  });
+
+  it('clears disabled reads and ignores a previous activation when settings are enabled again', async () => {
+    const f = setup({none: true});
+    const first = deferred<SettingsDocument>();
+    const second = deferred<SettingsDocument>();
+    const get = vi
+      .spyOn(f.api.settings, 'get')
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValueOnce(second.promise);
+    const view = renderHook(
+      ({enabled}) =>
+        useSettingsDocument(enabled ? 'timers' : null, '타이머', f.problem),
+      {initialProps: {enabled: false}},
+    );
+    expect(get).not.toHaveBeenCalled();
+    view.rerender({enabled: true});
+    expect(get).toHaveBeenCalledOnce();
+    view.rerender({enabled: false});
+    expect(view.result.current).toBeNull();
+    expect(f.listeners.size).toBe(0);
+    view.rerender({enabled: true});
+    expect(get).toHaveBeenCalledTimes(2);
+    await act(async () => first.resolve(documents().timers));
+    expect(view.result.current).toBeNull();
+    await act(async () => second.resolve(documents({separate: true}).timers));
+    expect(view.result.current?.revision).toBe(2);
+    view.unmount();
+    expect(f.listeners.size).toBe(0);
+  });
   it('blocks a shared secondary row during separation and keeps the accepted operation in the close gate', async () => {
     const f = setup();
     const view = f.mount();
