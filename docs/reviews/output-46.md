@@ -47,13 +47,15 @@ and capped at 32; synchronous and asynchronous playback errors are isolated.
       assertions
 - [ ] GitHub head verify passes (see request message)
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: pending
-
-## Review: reviewer
-
-- Verdict: pending
+- Round 1 (Codex): Request changes; the findings and replies are above.
+- Round 2 (99d8b67c): reviewer (Codex) Approve. Lead Approve; the player keeps
+  two hidden audio elements, muted unless allowed, swaps to a new track only
+  after it plays, and leaves the last good track on a decoder failure. It is not
+  connected to any window yet; the request that connects the hidden audio window
+  gets a second review because it is on the output path. Rebased by the lead
+  onto local `main` without conflicts; typecheck passes.
 
 ## Team member's reply
 
