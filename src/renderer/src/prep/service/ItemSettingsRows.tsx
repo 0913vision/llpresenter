@@ -281,6 +281,7 @@ export function ItemMemo({
       readOnly={reason !== undefined}
       title={reason}
       onChange={value => {
+        if (!items.typeMemo(target, value)) return;
         setTyped(value);
         latest.current = value;
         clearTimeout(timer.current);

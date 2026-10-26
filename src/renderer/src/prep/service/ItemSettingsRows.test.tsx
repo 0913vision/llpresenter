@@ -146,6 +146,22 @@ describe('항목 설정 이번 예배 and 메모', () => {
     );
   });
 
+  it('lets a close flush save the memo typed a moment ago, before the pause or a blur', async () => {
+    const {settings, user, service, items} = await setup();
+    const memo = within(settings).getByRole('textbox', {name: '메모'});
+    await user.click(memo);
+    await user.keyboard('!!');
+    expect(
+      items.memoDraft({
+        serviceId: fixtureServiceId,
+        itemId: fixtureItems.arranged,
+      }),
+    ).toBe('천천히!!');
+    expect(stored(service, 1)).toMatchObject({memo: '천천히'});
+    expect(await items.flushDrafts()).toBe(true);
+    expect(stored(service, 1)).toMatchObject({memo: '천천히!!'});
+  });
+
   it('saves a memo typed for one item to that item when another is shown', async () => {
     const {settings, user, service, items} = await setup();
     const memo = within(settings).getByRole('textbox', {name: '메모'});

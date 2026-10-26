@@ -375,6 +375,39 @@ describe('service item store', () => {
     expect(items.memoDraft(target)).toBeUndefined();
   });
 
+  it('applies a queued edit to the item it was asked for after the selection moved', async () => {
+    const {api, items, service} = setup();
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
+    await vi.waitFor(() => expect(items.getSnapshot().item).not.toBeNull());
+    const write = api.content.edit;
+    let release: (() => void) | undefined;
+    vi.spyOn(api.content, 'edit').mockImplementationOnce(async edit => {
+      const result = await write(edit);
+      return new Promise(resolve => {
+        release = () => resolve(result);
+      });
+    });
+    const holding = items.setStartMacro(fixtureMacros.sermon);
+    await vi.waitFor(() => expect(release).toBeDefined());
+    const background = items.setBackground(fixtureMedia.warm);
+    const choosing = items.chooseArrangement(undefined);
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.plain});
+    release?.();
+    expect(await holding).toBe(true);
+    expect(await background).toBe(true);
+    expect(await choosing).toBe(true);
+    expect(service().service.order[1]).toMatchObject({
+      macro: fixtureMacros.sermon,
+      background: fixtureMedia.warm,
+    });
+    expect(service().service.order[1]).not.toHaveProperty('arrangement');
+    const other = service().service.order[2];
+    expect(other).toHaveProperty('id', fixtureItems.plain);
+    for (const field of ['macro', 'background']) {
+      expect(other).not.toHaveProperty(field);
+    }
+  });
+
   it('keeps a memo save that overlaps a background change instead of refusing it', async () => {
     const {items, service} = setup();
     items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});

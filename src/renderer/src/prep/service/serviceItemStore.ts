@@ -71,7 +71,7 @@ const NO_ITEM: ServiceItemState = {
 interface ItemEdit {
   readonly change: ServiceItemChange;
   readonly failure: string;
-  readonly target?: ItemTarget | null;
+  readonly target: ItemTarget | null;
   readonly retry?: () => unknown;
 }
 
@@ -226,11 +226,13 @@ export class ServiceItemStore {
 
   /** Picks the item's 구성, or 기본 with `undefined`. */
   chooseArrangement(name: string | undefined): Promise<boolean> {
+    const target = this.target;
     return this.operation(() =>
       this.edit({
         change: item =>
           isItemOfKind(item, 'song') ? withArrangement(item, name) : null,
         failure: '구성 변경 실패',
+        target,
       }),
     );
   }
@@ -281,20 +283,24 @@ export class ServiceItemStore {
 
   /** Overrides the song's background for this item, or follows it with `null`. */
   setBackground(mediaId: MediaId | null): Promise<boolean> {
+    const target = this.target;
     return this.operation(() =>
       this.edit({
         change: backgroundChange(mediaId),
         failure: '배경 변경 실패',
+        target,
       }),
     );
   }
 
   /** The 매크로 that runs when the item starts, or none with `undefined`. */
   setStartMacro(macroId: string | undefined): Promise<boolean> {
+    const target = this.target;
     return this.operation(() =>
       this.edit({
         change: withStartField('macro', macroId),
         failure: '시작 매크로 변경 실패',
+        target,
       }),
     );
   }
@@ -306,9 +312,17 @@ export class ServiceItemStore {
    * removes the field.
    */
   async setMemo(target: ItemTarget, memo: string): Promise<boolean> {
-    const key = draftKey(target);
-    if (!this.keepMemoDraft(key, target, memo)) return false;
+    if (!this.typeMemo(target, memo)) return false;
     return this.operation(() => this.saveMemo(target, memo));
+  }
+
+  /**
+   * Keeps the text typed for an item as its draft, without saving yet, so a
+   * close flush sees it before the typing pause ends. False when no draft
+   * room is left.
+   */
+  typeMemo(target: ItemTarget, memo: string): boolean {
+    return this.keepMemoDraft(draftKey(target), target, memo);
   }
 
   private async saveMemo(target: ItemTarget, memo: string): Promise<boolean> {
@@ -420,7 +434,7 @@ export class ServiceItemStore {
   private async edit({
     change,
     failure,
-    target = this.target,
+    target,
     retry,
   }: ItemEdit): Promise<boolean> {
     if (!this.alive || target === null) return false;
