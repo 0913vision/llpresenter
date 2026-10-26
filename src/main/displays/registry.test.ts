@@ -40,6 +40,22 @@ describe('DisplayRegistry', () => {
     expect(source.watcherCount).toBe(0);
   });
 
+  it('treats a change of only the refresh rate as a monitor change', async () => {
+    const clock = installFakeClock();
+    const source = new FakeDisplaySource(control, projector);
+    const registry = new DisplayRegistry(source, recordingLogger());
+    const listener = vi.fn();
+    registry.subscribe(listener);
+
+    source.change(control, displayInfo({id: 2, x: 1920, refreshRate: 75}));
+    await clock.advance(DISPLAY_SETTLE_MS);
+
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(registry.monitors.map(monitor => monitor.refreshRate)).toEqual([
+      60, 75,
+    ]);
+  });
+
   it('reads the numbered monitors at start', () => {
     const registry = new DisplayRegistry(
       new FakeDisplaySource(projector, control),

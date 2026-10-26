@@ -21,6 +21,7 @@ function monitors(...bounds: readonly Rect[]) {
       bounds: rect,
       workArea: rect,
       scaleFactor: 1,
+      refreshRate: 60,
       primary: index === 0,
     })),
   );

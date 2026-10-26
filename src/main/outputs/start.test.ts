@@ -489,4 +489,33 @@ describe('saved output backend', () => {
     stop();
     expect(fakes.answers.has(Channels.monitorsGet)).toBe(false);
   });
+
+  it('answers and pushes the new refresh rate when only that changes', async () => {
+    setup();
+    await loaded();
+    const rates = () => {
+      const parsed = parseMonitorList(
+        fakes.answers.get(Channels.monitorsGet)?.(),
+      );
+      if (!parsed.ok) throw new Error(parsed.error.message);
+      return parsed.value.map(monitor => monitor.refreshRate);
+    };
+    expect(rates()).toEqual([60, 60, 60]);
+
+    const displays = fakes.displays;
+    if (displays === null) throw new Error('Missing displays');
+    displays.displays = [
+      displayInfo({id: 1, primary: true}),
+      displayInfo({id: 2, x: 1920, refreshRate: 75}),
+      stage,
+    ];
+    fakes.handlers.get(Channels.outputFindMonitors)?.(undefined, 1);
+
+    expect(rates()).toEqual([60, 75, 60]);
+    expect(vi.mocked(sendToWindows)).toHaveBeenLastCalledWith(
+      Channels.monitorsChanged,
+      expect.arrayContaining([expect.objectContaining({refreshRate: 75})]),
+      expect.anything(),
+    );
+  });
 });

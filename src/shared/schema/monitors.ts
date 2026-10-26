@@ -67,7 +67,8 @@ const monitorListSchema = v.pipe(
 
 /**
  * A connected monitor as 화면 설정 shows it. `number` counts from 1, left to
- * right, then top to bottom. `bounds` are in desktop pixels. `refreshRate` is
+ * right, then top to bottom. `bounds` are in
+ * device-independent pixels, as Electron reports them. `refreshRate` is
  * in hertz, and 0 when the system doesn't report one. `hasMainWindow` is set
  * on the monitor that holds the control window.
  */

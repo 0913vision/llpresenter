@@ -17,7 +17,7 @@ needs. Windows could read only `output.findMonitors()` and the monitor saved in
   exposed as `window.llp.monitors.get()` and
   `window.llp.monitors.subscribe(listener)`.
 - Each monitor carries its number (from 1, left to right, then top to bottom),
-  name, bounds in desktop pixels, scale factor, refresh rate in hertz
+  name, bounds in device-independent pixels, scale factor, refresh rate in hertz
   (Electron's `Display.displayFrequency`, 0 when unknown), and `hasMainWindow`,
   set on the monitor that holds the control window.
 - `DisplayInfo` gains `refreshRate`, and the registry now counts a refresh rate
@@ -108,3 +108,16 @@ missing.
 ## Team member's reply
 
 1.
+
+## Round 2 reply
+
+1. [P2] Refresh-rate-only change: added a registry test and a wiring test that
+   change only 60 Hz to 75 Hz. Both fail when the comparison in `monitor.ts` is
+   removed, and pass with it. The wiring test checks the updated reply and the
+   push.
+2. [Nit] `bounds` now read "device-independent pixels, as Electron reports them"
+   in `monitors.ts` and in this document.
+
+Also: after the rebase onto main, `monitorNumbers.test.ts` (output-37) needed
+`refreshRate: 60` in its display fixtures, because `DisplayInfo` has the new
+field. Nothing else outside the `start.test.ts` conflict changed.
