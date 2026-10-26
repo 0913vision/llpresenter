@@ -1,13 +1,14 @@
-import type {JSX} from 'react';
+import {useMemo, type JSX} from 'react';
+import {thumbnailUrl} from '@shared/media';
 import {isItemOfKind, type ServiceItem} from '@shared/schema/service';
 import type {MediaItem} from '@shared/schema/mediaList';
-import {MediaPreview} from '@renderer/show/MediaPreview';
 import {mediaName} from '@renderer/show/backgroundChoices';
 import {
   defaultThumbnailColumns,
   type SizeClass,
 } from '@renderer/shell/sizeClass';
-import {MediaGrid, MediaTile} from '@renderer/ui/MediaTile';
+import {MediaTile} from '@renderer/ui/MediaTile';
+import {VirtualMediaGrid} from '@renderer/prep/media/VirtualMediaGrid';
 import {Panel, PanelBody, PanelHeader, PanelTitle} from '@renderer/ui/Panel';
 import styles from './OtherItemPanel.module.css';
 import {useOtherSources} from './useOtherSources';
@@ -33,32 +34,47 @@ function NoticePanel({
 }): JSX.Element {
   const {media, notices} = useOtherSources(true);
   const set = notices.find(candidate => candidate.id === setId);
+  const byId = useMemo(
+    () => new Map(media.map(item => [item.id, item])),
+    [media],
+  );
+  const tiles = useMemo(
+    () =>
+      set?.media
+        .map(id => byId.get(id))
+        .filter((tile): tile is MediaItem => tile !== undefined) ?? [],
+    [set, byId],
+  );
   if (set === undefined) return <Empty />;
-  const tiles = set.media
-    .map(id => media.find(candidate => candidate.id === id))
-    .filter((tile): tile is MediaItem => tile !== undefined);
   return (
     <Panel label={ITEM_PANEL_LABEL} className={styles.panel}>
       <PanelHeader>
         <PanelTitle title={set.name} meta={`슬라이드 ${tiles.length}개`} />
       </PanelHeader>
-      <PanelBody variant="flush">
-        <MediaGrid
+      <PanelBody variant="flush" className={styles.body}>
+        <VirtualMediaGrid
+          key={setId}
           label={set.name}
+          count={tiles.length}
           selected={undefined}
           columns={defaultThumbnailColumns[sizeClass]}
           onSelect={NOTHING}
           onActivate={NOTHING}
           onOutput={NOTHING}
-        >
-          {tiles.map(tile => (
-            <MediaTile
-              key={tile.id}
-              name={mediaName(tile)}
-              picture={<MediaPreview item={tile} onError={NOTHING} />}
-            />
-          ))}
-        </MediaGrid>
+          onMenu={NOTHING}
+          tile={index => {
+            const tile = tiles[index];
+            return tile === undefined ? null : (
+              <MediaTile
+                key={tile.id}
+                name={mediaName(tile)}
+                picture={
+                  tile.kind === 'audio' ? undefined : thumbnailUrl(tile.id)
+                }
+              />
+            );
+          }}
+        />
       </PanelBody>
     </Panel>
   );

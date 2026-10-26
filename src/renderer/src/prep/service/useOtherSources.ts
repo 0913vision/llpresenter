@@ -1,37 +1,61 @@
 import {useEffect, useState} from 'react';
 import type {MediaItem} from '@shared/schema/mediaList';
 import type {NoticesFile} from '@shared/schema/notices';
+import type {MediaDocument} from '@shared/schema/mediaEdit';
+import type {SettingsDocument} from '@shared/schema/settingsDocuments';
 
-// NOTE(0913vision): The media list and 공지 sets are read once each time the
-// popover or the panel opens.
 export function useOtherSources(open: boolean) {
+  const api = window.llp;
   const [sources, setSources] = useState<{
     readonly media: readonly MediaItem[];
     readonly notices: NoticesFile['sets'];
-  }>({media: [], notices: []});
+    readonly mediaRevision: number;
+    readonly noticesRevision: number;
+  }>({media: [], notices: [], mediaRevision: -1, noticesRevision: -1});
   useEffect(() => {
-    const api = window.llp;
     if (!open || api === undefined) return undefined;
     let current = true;
-    api.media.get().then(
-      document => {
-        if (current) {
-          setSources(state => ({...state, media: document.value.items}));
-        }
-      },
-      (error: unknown) => console.error('Media list read failed', error),
-    );
-    api.settings.get({name: 'notices'}).then(
-      document => {
-        if (current && document.name === 'notices') {
-          setSources(state => ({...state, notices: document.value.sets}));
-        }
-      },
-      (error: unknown) => console.error('공지 sets read failed', error),
-    );
+    const acceptMedia = (document: MediaDocument): void => {
+      if (!current) return;
+      setSources(state =>
+        document.revision <= state.mediaRevision
+          ? state
+          : {
+              ...state,
+              media: document.value.items,
+              mediaRevision: document.revision,
+            },
+      );
+    };
+    const acceptNotices = (document: SettingsDocument): void => {
+      if (!current || document.name !== 'notices') return;
+      setSources(state =>
+        document.revision <= state.noticesRevision
+          ? state
+          : {
+              ...state,
+              notices: document.value.sets,
+              noticesRevision: document.revision,
+            },
+      );
+    };
+    const stopMedia = api.media.subscribe(acceptMedia);
+    const stopNotices = api.settings.subscribe(acceptNotices);
+    api.media
+      .get()
+      .then(acceptMedia, (error: unknown) =>
+        console.error('Media list read failed', error),
+      );
+    api.settings
+      .get({name: 'notices'})
+      .then(acceptNotices, (error: unknown) =>
+        console.error('공지 sets read failed', error),
+      );
     return () => {
       current = false;
+      stopMedia();
+      stopNotices();
     };
-  }, [open]);
+  }, [api, open]);
   return sources;
 }
