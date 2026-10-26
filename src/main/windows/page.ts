@@ -2,8 +2,8 @@ import type {BrowserWindow} from 'electron';
 import {join} from 'node:path';
 import type {Logger} from '../log';
 
-/** The renderer pages: the control window's and the output windows'. */
-export type PageName = 'index' | 'output';
+/** The renderer pages: the control window's, the output windows', and media analysis. */
+export type PageName = 'index' | 'output' | 'analysis';
 
 /** A renderer page and the query string values it reads. */
 export interface PageRequest {

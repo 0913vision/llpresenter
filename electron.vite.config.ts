@@ -29,6 +29,7 @@ export default defineConfig({
         input: {
           index: resolve('src/renderer/index.html'),
           output: resolve('src/renderer/output.html'),
+          analysis: resolve('src/renderer/analysis.html'),
         },
       },
     },
