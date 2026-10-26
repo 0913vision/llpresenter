@@ -5,7 +5,7 @@ Review range: `10fadab4...feat/spec/service-tree`
 - Team member: `spec` (Claude session that took over from Codex)
 - Branch: `feat/spec/service-tree`
 - Base commit: `10fadab4`
-- Review round: 1
+- Review round: 2
 - Task: M3-P4, part 1 of 3 for 새 예배 (P4a): the item counts in the lists and
   the 예배 순서 tree the service dialogs check items in
 - Code owners: data for `src/shared/` and `src/main/store/`; prep for
@@ -44,9 +44,35 @@ This request:
   empty header is checked on its own. `selectedIds` gives the checked ids in
   order; main's `service.importItems` adds the headers of picked items itself.
 - **Box.** `SourceTree` is the "예배 순서" box: ui's `DialogBox` with the count
-  and the check-all box, and a `CheckList` of `CheckRow`s (headers in the
-  `group` variant, their items indented under them). With no rows it shows no
-  check-all box, and an optional line that says why.
+  and the check-all box, and the items as a tree with check states (below). With
+  no rows it shows no check-all box and no tree, and an optional line that says
+  why.
+
+## Round 2 response
+
+1. **Tree semantics.** The rows are now a `role="tree"` (named 예배 순서 항목,
+   `aria-multiselectable`) of `role="treeitem"` rows, as the Checkbox README
+   asks, instead of a `CheckList`. Each row has `aria-checked` (`mixed` for a
+   header with some items checked), `aria-level` (1 for headers and items with
+   no header, 2 for items under a header), and `aria-posinset` and
+   `aria-setsize` within its level; a song's 구성 or a slot's 빈 자리 is its
+   description. Focus moves between the rows themselves: Tab enters the tree
+   once, the up and down arrows, Home, and End move, Left goes from an item to
+   its header, and Space toggles. The box in each row is ui's `Checkbox`, hidden
+   from assistive technology and out of the tab order, so it only draws the
+   state; a click anywhere on the row toggles it, as before. The row look
+   follows the README's list and group header rows, in this folder's CSS module,
+   since `CheckRow` can't be a tree row. Tests assert the tree, its name, the
+   levels and positions, the checked and mixed states, the description, no
+   checkbox inside the tree, and the keyboard.
+2. **Enter.** Enter in the tree stops there, and a click on a row's box leaves
+   focus on the row, never on the box, so useModal never sees a focused checkbox
+   there. A test puts the tree inside ui's `Dialog`, clicks a row's box, and
+   presses Enter on two rows without pressing 만들기; Enter on the check-all box
+   above still presses it. I checked that the test fails with both guards
+   removed.
+3. **TSDoc.** The service list's comment is back above `serviceEntries`; the
+   private `itemCount` keeps only its NOTE.
 
 ## Decisions I made (for the lead to confirm)
 
@@ -69,7 +95,7 @@ This request:
 | Command or test                                                                                                                           | Result                 |
 | ----------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
 | `npm run typecheck`                                                                                                                       | Pass                   |
-| `npx --no-install vitest run --no-fsModuleCache src/renderer/src/prep/services src/shared/schema/contentDocuments.test.ts src/main/store` | Pass, 388 tests        |
+| `npx --no-install vitest run --no-fsModuleCache src/renderer/src/prep/services src/shared/schema/contentDocuments.test.ts src/main/store` | Pass, 390 tests        |
 | `npx --no-install eslint --max-warnings 0 src/main/store src/shared/schema src/renderer/src/prep/services`                                | Pass                   |
 | `npx --no-install prettier --check src/main/store src/shared/schema src/renderer/src/prep/services`                                       | Pass                   |
 | GitHub CI (`npm run verify`)                                                                                                              | In the request message |
@@ -77,7 +103,8 @@ This request:
 Tests: every row kind's label, icon, and detail, the header each item sits
 under, and a missing song; the item count; a full selection, the mixed header
 and check-all states, checking a header with items and an empty header, and the
-checked ids in order; and the rendered box with its count, its rows, the header
-and check-all clicks, and the empty state.
+checked ids in order; and the rendered tree: its name, levels, positions,
+checked and mixed states, description, clicks, keyboard moves and Space, Enter
+inside a dialog, and the empty state.
 
 No Electron process, visible window, soak, or memory measurement was started.
