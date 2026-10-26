@@ -1,10 +1,10 @@
 # Review request: `data-59`
 
-- Team member: data (Claude session)
+- Team member: data (Codex session, taking over from Claude)
 - Branch: `feat/data/media-properties`, stacked on data-58
   (`feat/data/media-playlist-edit`)
-- Base commit: the data-58 head; the request message gives the range, the head
-  commit, and its CI run.
+- Base commit: data-58 round 2 head `859b35b4`; the request message gives the
+  range, the head commit, and its CI run.
 - Related brief: `docs/briefs/data.md`; request from the lead (M3-P6b: the
   properties with the rows of the 10 inventory and the 정보 tab). The preview
   player and 파일 위치 열기 follow in data-60.
@@ -62,7 +62,7 @@ list for it to use.
 
 None.
 
-## Checks run
+## Round 1 checks
 
 | Command or test                                    | Result                                     |
 | -------------------------------------------------- | ------------------------------------------ |
@@ -106,7 +106,8 @@ wrote; the 준비 media view's right column.
 
 1. The defaults above. Spec 02 lists the properties without defaults; 채우기
    follows the board's selected 맞춤.
-2. 속도 runs from 0.25× to 4× in steps of 0.25.
+2. 속도 runs from 0.25× to 4× in steps of 0.05, or 0.5 with Shift, as spec 10
+   requires.
 3. 음량 saves when a drag or a key ends, not on every step of a drag.
 4. Audio has no 화면 group, and an image has only 화면.
 
@@ -138,4 +139,29 @@ missing.
 
 ## Team member's reply
 
-1.
+1. P2, stale selection: `useMediaView` now constrains the effective selection to
+   media present in the current playlist. The grid and properties read the same
+   effective value, so the properties are empty whenever that list has no
+   selected tile. Tests select a video then switch to an excluding media or
+   audio playlist, and remove the selection's playlist membership by a newer
+   document push. The grid and panel agree in every case and send no edit.
+2. P2, speed: use step 0.05 and explicit Shift step 0.5. Tests commit typed
+   1.10× with Enter and blur, preserving 1.1, and check both arrow directions
+   with and without Shift.
+3. Removed a TSDoc on the private context interface's selected member, following
+   the lead's comment rule.
+
+## Round 2 checks
+
+| Check                                       | Result                                    |
+| ------------------------------------------- | ----------------------------------------- |
+| `npm run typecheck`                         | Pass                                      |
+| Targeted Vitest with `--no-fsModuleCache`   | Pass: 61 tests in five files              |
+| ESLint on changed TypeScript files          | Pass                                      |
+| `npm run format` and `npm run format:check` | Pass                                      |
+| `npm run verify`                            | GitHub CI on round 2 head; URL in request |
+
+Restacked on data-58 round 2. One adjacent import conflict in `mediaLibrary.ts`
+was resolved by retaining data-58's `chosenPlaylist` import and this request's
+`MediaProps` import. The original feature's range-diff changes only that import
+context. The additional behavior changes are the findings above.

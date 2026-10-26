@@ -26,7 +26,8 @@ import styles from './MediaPropertiesPanel.module.css';
 /** The slowest and fastest speeds 속도 offers. */
 export const MIN_SPEED = 0.25;
 export const MAX_SPEED = 4;
-const SPEED_STEP = 0.25;
+const SPEED_STEP = 0.05;
+const SPEED_LARGE_STEP = 0.5;
 const MAX_VOLUME = 100;
 
 const KIND_NAMES: Readonly<Record<MediaItem['kind'], string>> = {
@@ -138,6 +139,7 @@ function PlaybackGroup({shown, duration, disabled, change}: Editing) {
             min={MIN_SPEED}
             max={MAX_SPEED}
             step={SPEED_STEP}
+            largeStep={SPEED_LARGE_STEP}
             updateOn="commit"
             suffix="×"
             disabled={disabled}

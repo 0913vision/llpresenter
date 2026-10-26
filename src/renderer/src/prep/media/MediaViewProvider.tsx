@@ -21,7 +21,6 @@ interface MediaViewContextValue {
   readonly library: MediaLibrary;
   readonly choice: MediaListChoice;
   readonly choose: (choice: MediaListChoice) => void;
-  /** The tile selected in the grid, whose properties the right column shows. */
   readonly selected: string | null;
   readonly select: (mediaId: string | null) => void;
 }
@@ -70,7 +69,7 @@ export interface MediaViewState extends MediaViewContextValue {
 
 /**
  * The shared media view state. A chosen playlist that is gone from the list
- * reads as 모든 미디어.
+ * reads as 모든 미디어. A selection outside the current list reads as null.
  */
 export function useMediaView(): MediaViewState {
   const context = use(MediaViewContext);
@@ -81,9 +80,23 @@ export function useMediaView(): MediaViewState {
     context.library.subscribe,
     context.library.getSnapshot,
   );
+  const playlist = chosenPlaylist(view.document, context.choice);
   const gone =
     context.choice.kind !== 'all' &&
     view.document !== null &&
-    chosenPlaylist(view.document, context.choice) === null;
-  return {...context, view, choice: gone ? ALL_MEDIA : context.choice};
+    playlist === null;
+  const item = view.document?.value.items.find(
+    ({id}) => id === context.selected,
+  );
+  const selected =
+    item !== undefined &&
+    (playlist === null || playlist.items.includes(item.id))
+      ? item.id
+      : null;
+  return {
+    ...context,
+    view,
+    choice: gone ? ALL_MEDIA : context.choice,
+    selected,
+  };
 }
