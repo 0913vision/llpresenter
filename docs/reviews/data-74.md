@@ -148,3 +148,10 @@ after entering preparation. Main's Ctrl F focus/select regression remains. All
 161 affected renderer tests pass, as do typecheck, changed-file lint, build and
 formatting. Repeated the offscreen checked-app flow after this conflict
 resolution. Screenshots and raw measurements above are refreshed. CI pending.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 4 (d647b455): reviewer (Codex) Approve. Lead Approve through the lead's
+  merge check: the exact-head CI run passed, the branch rebased onto local
+  `main` without conflicts, and typecheck passes. Earlier rounds' findings and
+  replies are above.
