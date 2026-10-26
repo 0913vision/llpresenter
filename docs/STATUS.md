@@ -16,21 +16,25 @@ Only the lead edits this file. Last updated: October 26, 2026.
 ## Sessions
 
 On October 26 at 08:10, Codex's weekly usage ran low, so Claude sessions took
-over the members' work in the same worktrees, at most four implementing at once
-(user decision). Two Claude reviewers review; the lead routes each request to
-one of them, and later rounds stay with the round-1 reviewer. Ownership works
-like code owners (`CLAUDE.md`, "Your files").
+over the members' work in the same worktrees, at most four implementing at once,
+and two Codex sessions review (user decision). The lead routes renderer requests
+to one reviewer and main-process, contract, and document requests to the other;
+later rounds stay with the round-1 reviewer. Ownership works like code owners
+(`CLAUDE.md`, "Your files").
 
-| Session             | Worktree   | Works on now                                    |
-| ------------------- | ---------- | ----------------------------------------------- |
-| lead (Claude)       | `main`     | Plans, routing, merges, pushes                  |
-| reviewer A (Claude) | shell's    | Renderer requests (ui, 진행, 준비)              |
-| reviewer B (Claude) | review2    | Main process, contracts, documents              |
-| data (Claude)       | reviewer   | Nested dispatch rejection, close handshake      |
-| output (Claude)     | output     | M3-O8 recovery part 2, then the rest of O4      |
-| ui (Claude)         | ui         | M3-P3a item panel and 항목 설정                 |
-| 진행 work (Claude)  | spec       | M3-S1b narrow layout, then M3-S2a notifications |
-| qa, devops (Codex)  | qa, devops | Idle; on request only                           |
+| Session                 | Worktree   | Works on now                                |
+| ----------------------- | ---------- | ------------------------------------------- |
+| lead (Claude)           | `main`     | Plans, routing, merges, pushes              |
+| reviewer codex2 (Codex) | `main`     | Renderer requests (ui, 진행, 준비)          |
+| reviewer codex3 (Codex) | `main`     | Main process, contracts, documents          |
+| data (Claude)           | reviewer   | Close handshake, then the 매크로 drop, P6a  |
+| output (Claude)         | output     | Vitest cache fix, M3-O8 recovery answer, O4 |
+| ui (Claude)             | ui         | M3-P3a item panel, center song panel        |
+| 진행 work (Claude)      | spec       | M3-S1b narrow layout, monitor cards, S2a    |
+| qa, devops (Codex)      | qa, devops | Idle; on request only                       |
+
+All worktrees share one `refs/stash`, so members apply or drop a stash only by
+its commit hash, never with a bare `git stash pop`.
 
 ## Merge queue
 
