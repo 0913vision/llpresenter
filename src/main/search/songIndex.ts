@@ -7,14 +7,14 @@ import {
   type LibrarySearchResult,
 } from '@shared/schema/librarySearch';
 import type {Song} from '@shared/schema/song';
+import {
+  isInitialQuery,
+  normalizeSearch,
+  searchInitials,
+} from '@shared/searchText';
 
 export const INDEX_CHUNK_SIZE = 25;
 
-const INITIALS = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';
-const INITIAL_QUERY = new RegExp(`^[${INITIALS}]+$`, 'u');
-const FIRST_SYLLABLE = 0xac00;
-const LAST_SYLLABLE = 0xd7a3;
-const SYLLABLES_PER_INITIAL = 21 * 28;
 const TITLES = new Intl.Collator('ko', {numeric: true});
 
 interface SearchText {
@@ -30,23 +30,9 @@ interface IndexedSong {
   readonly lines: readonly SearchText[];
 }
 
-function normalize(text: string): string {
-  return text.normalize('NFC').toLowerCase().replace(/\s+/gu, '');
-}
-
 function searchable(original: string): SearchText {
-  const normalized = normalize(original);
-  let initials = '';
-  for (const character of normalized) {
-    const code = character.charCodeAt(0);
-    initials +=
-      code >= FIRST_SYLLABLE && code <= LAST_SYLLABLE
-        ? (INITIALS[
-            Math.floor((code - FIRST_SYLLABLE) / SYLLABLES_PER_INITIAL)
-          ] ?? character)
-        : character;
-  }
-  return {original, normalized, initials};
+  const normalized = normalizeSearch(original);
+  return {original, normalized, initials: searchInitials(normalized)};
 }
 
 function matches(text: SearchText, query: string, initials: boolean): boolean {
@@ -103,10 +89,10 @@ export class SongSearchIndex {
     query,
     limit = LIBRARY_SEARCH_LIMITS.default,
   }: LibrarySearchRequest): LibrarySearchResult {
-    const normalized = normalize(query);
+    const normalized = normalizeSearch(query);
     if (query !== '' && normalized === '') return {query, matches: []};
     const maximum = Math.min(limit, LIBRARY_SEARCH_LIMITS.max);
-    const initials = INITIAL_QUERY.test(normalized);
+    const initials = isInitialQuery(normalized);
     const titles: LibrarySearchMatch[] = [];
     const lyrics: LibrarySearchMatch[] = [];
     for (const song of this.ordered) {

@@ -21,6 +21,7 @@ import {
   ItemPreviewPanel,
   ItemSettingsPanel,
 } from '@renderer/prep/service/ItemSidePanels';
+import {ServiceQuickAdd} from '@renderer/prep/service/QuickAdd';
 import {ServiceItemPanel} from '@renderer/prep/service/SongItemPanel';
 import type {ServiceItemStore} from '@renderer/prep/service/serviceItemStore';
 import {ClearRow} from '@renderer/show/ClearRow';
@@ -298,7 +299,12 @@ function serviceOrderParts({
       />
     ),
     meta: <ReadOnlyMark />,
-    actions,
+    actions: (
+      <>
+        <ServiceQuickAdd onProblem={onProblem ?? logPanelProblem} />
+        {actions}
+      </>
+    ),
   };
 }
 

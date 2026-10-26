@@ -1,4 +1,5 @@
 import type {LabelColor} from '@shared/colors';
+import type {SearchRange} from '@shared/searchText';
 
 /** How an item that can be on reports it: one of several, or on and off. */
 export type MenuCheckKind = 'radio' | 'checkbox';
@@ -8,6 +9,8 @@ export interface MenuItem {
   readonly kind: 'item';
   readonly id: string;
   readonly label: string;
+  /** The part of the label a search matched, drawn strong. */
+  readonly match?: SearchRange | undefined;
   /** A 14px icon in the leading slot. */
   readonly icon?: string | undefined;
   /** A date or a shortcut at the right end, such as `Ctrl Z`. */

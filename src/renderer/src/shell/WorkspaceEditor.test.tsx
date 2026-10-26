@@ -77,6 +77,12 @@ it('shows the selected service song item in the center and swaps to the editor f
     />,
   );
   await screen.findByRole('listbox', {name: '구성 순서'});
+  expect(
+    within(screen.getByRole('region', {name: '예배 순서'})).getByRole(
+      'button',
+      {name: '항목 추가'},
+    ),
+  ).toBeDefined();
   fireEvent.click(screen.getByRole('button', {name: '라이브러리 곡 편집'}));
   expect(await screen.findByRole('region', {name: '곡 편집'})).toBeDefined();
   expect(screen.queryByRole('region', {name: '예배 순서 항목'})).toBeNull();

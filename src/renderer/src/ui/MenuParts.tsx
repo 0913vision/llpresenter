@@ -21,6 +21,25 @@ export interface MenuSearch {
   readonly placeholder?: string | undefined;
 }
 
+function LabelText({
+  label,
+  match,
+}: {
+  readonly label: string;
+  readonly match: MenuItem['match'];
+}): JSX.Element {
+  if (match === undefined) return <>{label}</>;
+  return (
+    <>
+      {label.slice(0, match.start)}
+      <span className={styles.match}>
+        {label.slice(match.start, match.end)}
+      </span>
+      {label.slice(match.end)}
+    </>
+  );
+}
+
 function ItemLead({item}: {readonly item: MenuItem}): JSX.Element {
   return (
     <span className={styles.lead}>
@@ -87,7 +106,9 @@ export function MenuItemRow({
           style={{backgroundColor: `var(--label-${item.swatch})`}}
         />
       )}
-      <span className={styles.label}>{item.label}</span>
+      <span className={styles.label}>
+        <LabelText label={item.label} match={item.match} />
+      </span>
       {item.meta === undefined ? null : (
         <span className={styles.meta}>{item.meta}</span>
       )}
