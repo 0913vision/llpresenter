@@ -958,6 +958,17 @@ describe('preload', () => {
     expect(loggedErrors()).toHaveLength(2);
   });
 
+  it("reads main's 타이머 clock and refuses a malformed reading", async () => {
+    electron.invoke.mockResolvedValueOnce(1234.5);
+    electron.invoke.mockResolvedValueOnce('soon');
+
+    await expect(api.live.clock()).resolves.toBe(1234.5);
+    await expect(api.live.clock()).rejects.toThrow(
+      `Bad reply on ${Channels.liveClock}`,
+    );
+    expect(loggedErrors()).toHaveLength(1);
+  });
+
   it('passes a valid live state through', async () => {
     electron.invoke.mockResolvedValueOnce({...emptyLiveState(), version: 4});
 

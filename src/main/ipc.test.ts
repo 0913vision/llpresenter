@@ -73,6 +73,19 @@ beforeEach(() => {
   electron.window.isMaximized.mockReturnValue(false);
 });
 
+describe('registerIpc live clock', () => {
+  it("answers with the store's 타이머 clock and removes the handler", () => {
+    const store = new LiveStore(undefined, {
+      wall: () => 1,
+      timer: () => 4321,
+    });
+    const dispose = registerIpc(store, fakeLog(), 'offscreen');
+    expect(electron.handlers.get(Channels.liveClock)?.()).toBe(4321);
+    dispose();
+    expect(electron.handlers.has(Channels.liveClock)).toBe(false);
+  });
+});
+
 describe('registerIpc live commands', () => {
   it('skips malformed batch children and sends each window exactly one final live state', () => {
     const store = new LiveStore();
