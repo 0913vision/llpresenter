@@ -172,3 +172,19 @@ Round 1 (codex4, Request changes):
    Spec 04 says both rules.
 
 All three regression tests fail against the previous code.
+
+Round 2 (codex4, Request changes):
+
+1. [P2] Wall-clock kinds after a correction: answered by a lead decision
+   (October 26) rather than by anchoring them to monotonic time. `countdownTo`
+   and `elapsedFrom` are defined by the wall clock, so they follow it: a
+   "10:30까지" countdown has to reach 0 exactly when the clock everyone in the
+   room sees reads 10:30, which is when the service starts, also after Windows
+   corrects its clock. Anchored to monotonic time, it would drift from that
+   clock. Only the fixed-duration countdown keeps the no-backward rule (its
+   counted time never goes down). Spec 04 now says both, marked as the lead's
+   decision (`fd692220`), and so does `timerText`'s TSDoc. No code change was
+   needed: those kinds already read the wall clock. Tests (`82addd5b`): a
+   countdown to 11:00 reads 30:00 at 10:30:00 and 30:10 after the wall clock
+   steps back to 10:29:50, an elapsed time from 10:00 reads 29:50 there, and the
+   existing test keeps a running countdown at 0:30 through the same step back.
