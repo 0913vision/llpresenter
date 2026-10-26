@@ -50,15 +50,13 @@ slides, without reference or translation-name text, stay disabled with a reason
 rather than being silently ignored. Full T4b remains open for those options and
 black.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict:
-- Findings:
-
-## Review: reviewer
-
-- Verdict:
-- Findings:
+- Round 1 (Codex, codex5): Request changes: choosing a recent Bible passage
+  didn't cancel a pending quick action, so an older song could still go out.
+- Round 2 (044ab303): reviewer (Codex, codex5) Approve, no findings. Lead
+  Approve. Written by the Codex tools member. Rebased by the lead onto local
+  `main` without conflicts; typecheck passes.
 
 ## Team member's reply
 
