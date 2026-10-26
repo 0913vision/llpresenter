@@ -59,6 +59,87 @@ async function row(list: string, name: RegExp | string): Promise<HTMLElement> {
 describe('media list panels', () => {
   afterEach(resetTooltips);
 
+  it.each([
+    {kind: 'media', list: '미디어 목록', name: 'Backgrounds', entry: 'pointer'},
+    {
+      kind: 'media',
+      list: '미디어 목록',
+      name: 'Backgrounds',
+      entry: 'keyboard',
+    },
+    {kind: 'audio', list: '오디오 재생목록', name: 'Hymns', entry: 'pointer'},
+    {kind: 'audio', list: '오디오 재생목록', name: 'Hymns', entry: 'keyboard'},
+  ] as const)(
+    'keeps the focused $kind rename field after $entry menu cleanup',
+    async ({kind, list, name, entry}) => {
+      const {edit} = setup();
+      const opener = await row(list, new RegExp(name));
+      act(() => opener.focus());
+      fireEvent.contextMenu(
+        opener,
+        entry === 'pointer' ? {clientX: 50, clientY: 50} : {},
+      );
+      const command = await screen.findByRole('menuitem', {
+        name: '이름 바꾸기',
+      });
+      if (entry === 'pointer') fireEvent.click(command);
+      else fireEvent.keyDown(command, {key: 'Enter'});
+      const field = await screen.findByRole('textbox', {name: `${name} 이름`});
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 20));
+      });
+      expect(document.activeElement).toBe(field);
+      expect(field.isConnected).toBe(true);
+      expect(edit).not.toHaveBeenCalled();
+      fireEvent.change(field, {target: {value: 'Invented revised list'}});
+      fireEvent.keyDown(field, {key: 'Enter'});
+      await vi.waitFor(() => expect(edit).toHaveBeenCalledOnce());
+      expect(edit).toHaveBeenCalledWith({
+        type: 'media.playlist.update',
+        baseRevision: 1,
+        playlist: {
+          kind,
+          value:
+            kind === 'media'
+              ? {
+                  id: playlistId(1),
+                  name: 'Invented revised list',
+                  items: [mediaId(2)],
+                }
+              : {
+                  id: audioPlaylistId(1),
+                  name: 'Invented revised list',
+                  items: [mediaId(3)],
+                  loop: true,
+                },
+        },
+      });
+    },
+  );
+
+  it.each([
+    ['미디어 목록', 'Backgrounds'],
+    ['오디오 재생목록', 'Hymns'],
+  ])(
+    'cancels an existing name in %s after focus restoration (%s)',
+    async (list, name) => {
+      const {edit} = setup();
+      const opener = await row(list, new RegExp(name));
+      act(() => opener.focus());
+      fireEvent.contextMenu(opener);
+      fireEvent.click(
+        await screen.findByRole('menuitem', {name: '이름 바꾸기'}),
+      );
+      const field = await screen.findByRole('textbox', {name: `${name} 이름`});
+      expect(document.activeElement).toBe(field);
+      fireEvent.change(field, {target: {value: 'Invented cancelled name'}});
+      fireEvent.keyDown(field, {key: 'Escape'});
+      expect(edit).not.toHaveBeenCalled();
+      expect(screen.queryByRole('textbox', {name: `${name} 이름`})).toBeNull();
+      expect(await row(list, new RegExp(name))).toBeDefined();
+    },
+  );
+
   it.each(['새 재생목록', '새 오디오 재생목록'])(
     'explains why %s is unavailable while loading',
     async name => {

@@ -1,0 +1,355 @@
+{
+  "port": 5188,
+  "offscreen": true,
+  "samples": [
+    {
+      "round": 5,
+      "counts": {
+        "document": 225,
+        "fields": 1,
+        "panel": 67,
+        "video": 1
+      },
+      "heap": {
+        "backingStorageSize": 1710771,
+        "embedderHeapUsedSize": 3615856,
+        "totalSize": 6746112,
+        "usedSize": 5938856
+      },
+      "dom": {
+        "documents": 30,
+        "jsEventListeners": 528,
+        "nodes": 560
+      }
+    },
+    {
+      "round": 10,
+      "counts": {
+        "document": 225,
+        "fields": 1,
+        "panel": 67,
+        "video": 1
+      },
+      "heap": {
+        "backingStorageSize": 1710771,
+        "embedderHeapUsedSize": 3590608,
+        "totalSize": 6746112,
+        "usedSize": 5951132
+      },
+      "dom": {
+        "documents": 30,
+        "jsEventListeners": 528,
+        "nodes": 560
+      }
+    },
+    {
+      "round": 15,
+      "counts": {
+        "document": 225,
+        "fields": 1,
+        "panel": 67,
+        "video": 1
+      },
+      "heap": {
+        "backingStorageSize": 1710771,
+        "embedderHeapUsedSize": 3661072,
+        "totalSize": 6746112,
+        "usedSize": 5967380
+      },
+      "dom": {
+        "documents": 30,
+        "jsEventListeners": 528,
+        "nodes": 560
+      }
+    },
+    {
+      "round": 20,
+      "counts": {
+        "document": 225,
+        "fields": 1,
+        "panel": 67,
+        "video": 1
+      },
+      "heap": {
+        "backingStorageSize": 1710771,
+        "embedderHeapUsedSize": 3710608,
+        "totalSize": 6746112,
+        "usedSize": 5975904
+      },
+      "dom": {
+        "documents": 30,
+        "jsEventListeners": 528,
+        "nodes": 560
+      }
+    }
+  ],
+  "playlistRename": [
+    {
+      "kind": "media",
+      "initialNaming": true,
+      "committedRenames": 2,
+      "focusSettleMs": 250,
+      "cancelRoundTrips": 20,
+      "before": {
+        "counts": {
+          "elements": 148,
+          "renameFields": 0
+        },
+        "dom": {
+          "documents": 28,
+          "jsEventListeners": 482,
+          "nodes": 297
+        },
+        "heap": {
+          "backingStorageSize": 1710254,
+          "embedderHeapUsedSize": 3136320,
+          "totalSize": 6221824,
+          "usedSize": 5335572
+        }
+      },
+      "after": {
+        "counts": {
+          "elements": 148,
+          "renameFields": 0
+        },
+        "dom": {
+          "documents": 28,
+          "jsEventListeners": 482,
+          "nodes": 297
+        },
+        "heap": {
+          "backingStorageSize": 1710283,
+          "embedderHeapUsedSize": 3034192,
+          "totalSize": 6221824,
+          "usedSize": 5571324
+        }
+      },
+      "samples": [
+        {
+          "round": 5,
+          "counts": {
+            "elements": 148,
+            "renameFields": 0
+          },
+          "dom": {
+            "documents": 28,
+            "jsEventListeners": 482,
+            "nodes": 297
+          },
+          "heap": {
+            "backingStorageSize": 1710283,
+            "embedderHeapUsedSize": 3036360,
+            "totalSize": 6221824,
+            "usedSize": 5479936
+          }
+        },
+        {
+          "round": 10,
+          "counts": {
+            "elements": 148,
+            "renameFields": 0
+          },
+          "dom": {
+            "documents": 28,
+            "jsEventListeners": 482,
+            "nodes": 297
+          },
+          "heap": {
+            "backingStorageSize": 1710283,
+            "embedderHeapUsedSize": 3019464,
+            "totalSize": 6221824,
+            "usedSize": 5508980
+          }
+        },
+        {
+          "round": 15,
+          "counts": {
+            "elements": 148,
+            "renameFields": 0
+          },
+          "dom": {
+            "documents": 28,
+            "jsEventListeners": 482,
+            "nodes": 297
+          },
+          "heap": {
+            "backingStorageSize": 1710283,
+            "embedderHeapUsedSize": 3061952,
+            "totalSize": 6221824,
+            "usedSize": 5537052
+          }
+        },
+        {
+          "round": 20,
+          "counts": {
+            "elements": 148,
+            "renameFields": 0
+          },
+          "dom": {
+            "documents": 28,
+            "jsEventListeners": 482,
+            "nodes": 297
+          },
+          "heap": {
+            "backingStorageSize": 1710283,
+            "embedderHeapUsedSize": 3034192,
+            "totalSize": 6221824,
+            "usedSize": 5571324
+          }
+        }
+      ],
+      "persistedName": "Invented media revised 2"
+    },
+    {
+      "kind": "audio",
+      "initialNaming": true,
+      "committedRenames": 2,
+      "focusSettleMs": 250,
+      "cancelRoundTrips": 20,
+      "before": {
+        "counts": {
+          "elements": 152,
+          "renameFields": 0
+        },
+        "dom": {
+          "documents": 28,
+          "jsEventListeners": 483,
+          "nodes": 303
+        },
+        "heap": {
+          "backingStorageSize": 1710284,
+          "embedderHeapUsedSize": 3026376,
+          "totalSize": 6483968,
+          "usedSize": 5613380
+        }
+      },
+      "after": {
+        "counts": {
+          "elements": 152,
+          "renameFields": 0
+        },
+        "dom": {
+          "documents": 28,
+          "jsEventListeners": 483,
+          "nodes": 303
+        },
+        "heap": {
+          "backingStorageSize": 1710313,
+          "embedderHeapUsedSize": 3041504,
+          "totalSize": 6483968,
+          "usedSize": 5681516
+        }
+      },
+      "samples": [
+        {
+          "round": 5,
+          "counts": {
+            "elements": 152,
+            "renameFields": 0
+          },
+          "dom": {
+            "documents": 28,
+            "jsEventListeners": 483,
+            "nodes": 303
+          },
+          "heap": {
+            "backingStorageSize": 1710313,
+            "embedderHeapUsedSize": 3030280,
+            "totalSize": 6483968,
+            "usedSize": 5624316
+          }
+        },
+        {
+          "round": 10,
+          "counts": {
+            "elements": 152,
+            "renameFields": 0
+          },
+          "dom": {
+            "documents": 28,
+            "jsEventListeners": 483,
+            "nodes": 303
+          },
+          "heap": {
+            "backingStorageSize": 1710313,
+            "embedderHeapUsedSize": 3034896,
+            "totalSize": 6483968,
+            "usedSize": 5643572
+          }
+        },
+        {
+          "round": 15,
+          "counts": {
+            "elements": 152,
+            "renameFields": 0
+          },
+          "dom": {
+            "documents": 28,
+            "jsEventListeners": 483,
+            "nodes": 303
+          },
+          "heap": {
+            "backingStorageSize": 1710313,
+            "embedderHeapUsedSize": 3037144,
+            "totalSize": 6483968,
+            "usedSize": 5647116
+          }
+        },
+        {
+          "round": 20,
+          "counts": {
+            "elements": 152,
+            "renameFields": 0
+          },
+          "dom": {
+            "documents": 28,
+            "jsEventListeners": 483,
+            "nodes": 303
+          },
+          "heap": {
+            "backingStorageSize": 1710313,
+            "embedderHeapUsedSize": 3041504,
+            "totalSize": 6483968,
+            "usedSize": 5681516
+          }
+        }
+      ],
+      "persistedName": "Invented audio revised 2"
+    }
+  ],
+  "renameLeavesOutputUnchanged": true,
+  "baseline": {
+    "counts": {
+      "document": 225,
+      "fields": 1,
+      "panel": 67,
+      "video": 1
+    },
+    "heap": {
+      "backingStorageSize": 1710771,
+      "embedderHeapUsedSize": 3602208,
+      "totalSize": 6746112,
+      "usedSize": 5906644
+    }
+  },
+  "after": {
+    "counts": {
+      "document": 225,
+      "fields": 1,
+      "panel": 67,
+      "video": 1
+    },
+    "heap": {
+      "backingStorageSize": 1710668,
+      "embedderHeapUsedSize": 3635152,
+      "totalSize": 7270400,
+      "usedSize": 6018832
+    },
+    "dom": {
+      "documents": 30,
+      "jsEventListeners": 528,
+      "nodes": 560
+    }
+  },
+  "reopenCount": 2
+}
