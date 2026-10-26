@@ -33,6 +33,7 @@ import styles from './ScreenProperties.module.css';
 const LOAD_TITLE = '화면';
 const noScreens: readonly Screen[] = [];
 const NDI_UNAVAILABLE = '이번 버전에서는 사용할 수 없음';
+const READ_ONLY_REASON = '새 버전에서 만든 설정이므로 변경할 수 없음';
 const NAME_PROBLEMS = {
   empty: '이름이 비어 있음',
   taken: '같은 이름의 화면이 있음',
@@ -59,16 +60,22 @@ function NameRow({
   screen,
   screens,
   change,
+  reason,
 }: {
   readonly screen: Screen;
   readonly screens: readonly Screen[];
   readonly change: Change;
+  readonly reason: string | undefined;
 }): JSX.Element {
   const [draft, setDraft] = useState<string | null>(null);
   const shown = draft ?? screen.name;
   const problem = nameProblem(shown, screens, screen.id);
   const commit = (): void => {
-    if (problem === undefined && shown.trim() !== screen.name) {
+    if (
+      reason === undefined &&
+      problem === undefined &&
+      shown.trim() !== screen.name
+    ) {
       change({name: shown.trim()});
     }
     setDraft(null);
@@ -78,6 +85,9 @@ function NameRow({
       {({controlId}) => (
         <TextField
           id={controlId}
+          readOnly={reason !== undefined}
+          aria-disabled={reason !== undefined ? true : undefined}
+          title={reason}
           block
           value={shown}
           onChange={setDraft}
@@ -99,10 +109,12 @@ function ResolutionRow({
   screen,
   monitor,
   change,
+  reason,
 }: {
   readonly screen: Screen;
   readonly monitor: MonitorInfo | undefined;
   readonly change: Change;
+  readonly reason: string | undefined;
 }): JSX.Element | null {
   if (screen.method === 'capture') {
     const current = targetSize(screen);
@@ -111,6 +123,8 @@ function ResolutionRow({
         {({controlId}) => (
           <SelectMenu
             id={controlId}
+            disabled={reason !== undefined}
+            title={reason}
             block
             menuLabel="해상도"
             options={CAPTURE_RESOLUTIONS.map(size => ({
@@ -138,9 +152,11 @@ function ResolutionRow({
 function CorrectionRows({
   screen,
   change,
+  reason,
 }: {
   readonly screen: Screen;
   readonly change: Change;
+  readonly reason: string | undefined;
 }): JSX.Element {
   const offset = screen.offset ?? {x: 0, y: 0};
   return (
@@ -149,6 +165,9 @@ function CorrectionRows({
         {({controlId}) => (
           <NumberField
             id={controlId}
+            readOnly={reason !== undefined}
+            aria-disabled={reason !== undefined ? true : undefined}
+            title={reason}
             value={screen.edgeMargin ?? 0}
             min={0}
             max={EDGE_MARGIN_MAX}
@@ -163,22 +182,28 @@ function CorrectionRows({
           <span className={styles.pair}>
             <NumberField
               id={controlId}
+              readOnly={reason !== undefined}
+              aria-disabled={reason !== undefined ? true : undefined}
+              title={reason}
               aria-label="가로 위치"
               value={offset.x}
               min={-OFFSET_LIMIT}
               max={OFFSET_LIMIT}
               unit="px"
               updateOn="commit"
-              onChange={x => change({offset: {...offset, x}})}
+              onChange={x => change({offset: {x}})}
             />
             <NumberField
               aria-label="세로 위치"
+              readOnly={reason !== undefined}
+              aria-disabled={reason !== undefined ? true : undefined}
+              title={reason}
               value={offset.y}
               min={-OFFSET_LIMIT}
               max={OFFSET_LIMIT}
               unit="px"
               updateOn="commit"
-              onChange={y => change({offset: {...offset, y}})}
+              onChange={y => change({offset: {y}})}
             />
           </span>
         )}
@@ -190,9 +215,11 @@ function CorrectionRows({
 function StabilityRows({
   screen,
   change,
+  reason,
 }: {
   readonly screen: Screen;
   readonly change: Change;
+  readonly reason: string | undefined;
 }): JSX.Element {
   return (
     <PropertyGroup title="안정성">
@@ -201,6 +228,8 @@ function StabilityRows({
           {({controlId}) => (
             <SelectMenu
               id={controlId}
+              disabled={reason !== undefined}
+              title={reason}
               block
               menuLabel="연결이 끊기면"
               options={DISCONNECT_OPTIONS}
@@ -214,6 +243,8 @@ function StabilityRows({
         {({controlId}) => (
           <Switch
             id={controlId}
+            disabled={reason !== undefined}
+            title={reason}
             checked={alwaysOnTopOf(screen)}
             onChange={alwaysOnTop => change({alwaysOnTop})}
           />
@@ -245,20 +276,29 @@ function PropertyRows({
   screens,
   monitor,
   change,
+  reason,
 }: {
   readonly screen: Screen;
   readonly screens: readonly Screen[];
   readonly monitor: MonitorInfo | undefined;
   readonly change: Change;
+  readonly reason: string | undefined;
 }): JSX.Element {
   return (
     <Properties>
       <PropertyGroup title="화면">
-        <NameRow screen={screen} screens={screens} change={change} />
+        <NameRow
+          screen={screen}
+          screens={screens}
+          change={change}
+          reason={reason}
+        />
         <PropertyRow label="종류">
           {({controlId, labelId}) => (
             <SegmentedControl
               id={controlId}
+              disabled={reason !== undefined}
+              title={reason}
               labelledBy={labelId}
               options={KIND_OPTIONS}
               value={screen.kind}
@@ -273,6 +313,8 @@ function PropertyRows({
           {({controlId, labelId}) => (
             <SegmentedControl
               id={controlId}
+              disabled={reason !== undefined}
+              title={reason}
               labelledBy={labelId}
               options={METHOD_OPTIONS}
               value={screen.method}
@@ -281,11 +323,16 @@ function PropertyRows({
             />
           )}
         </PropertyRow>
-        <ResolutionRow screen={screen} monitor={monitor} change={change} />
+        <ResolutionRow
+          screen={screen}
+          monitor={monitor}
+          change={change}
+          reason={reason}
+        />
         <RefreshRateRow screen={screen} monitor={monitor} />
       </PropertyGroup>
-      <StabilityRows screen={screen} change={change} />
-      <CorrectionRows screen={screen} change={change} />
+      <StabilityRows screen={screen} change={change} reason={reason} />
+      <CorrectionRows screen={screen} change={change} reason={reason} />
     </Properties>
   );
 }
@@ -315,13 +362,16 @@ export function ScreenProperties({
     [selected, monitors],
   );
   if (selected === undefined) return null;
+  const reason = document?.access === 'editable' ? undefined : READ_ONLY_REASON;
   return (
     <PropertyRows
-      key={selected.id}
+      key={`${selected.id}:${document?.access}`}
       screen={selected}
       screens={screens}
       monitor={monitor}
+      reason={reason}
       change={change => {
+        if (reason !== undefined) return;
         // NOTE(0913vision): A change of kind moves the screen to the other
         // group, which would move the fallback selection to another screen.
         select('screen', selected.id);

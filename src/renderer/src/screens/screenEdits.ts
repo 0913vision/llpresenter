@@ -13,7 +13,9 @@ export const CAPTURE_RESOLUTIONS = [
   {width: 3840, height: 2160},
 ] as const;
 
-export type ScreenChange = Partial<Omit<Screen, 'id'>>;
+export type ScreenChange = Partial<Omit<Screen, 'id' | 'offset'>> & {
+  readonly offset?: Partial<NonNullable<Screen['offset']>>;
+};
 
 /** Why a screen name can't be saved, or `undefined` when it can. */
 export type NameProblem = 'empty' | 'taken';
@@ -27,9 +29,14 @@ export function changeScreen(
   id: string,
   change: ScreenChange,
 ): readonly Screen[] {
-  return screens.map(screen =>
-    screen.id === id ? {...screen, ...change} : screen,
-  );
+  return screens.map(screen => {
+    if (screen.id !== id) return screen;
+    const {offset, ...fields} = change;
+    const updated = {...screen, ...fields};
+    return offset === undefined
+      ? updated
+      : {...updated, offset: {x: 0, y: 0, ...screen.offset, ...offset}};
+  });
 }
 
 /** A name must not be empty and must not be another screen's name. */

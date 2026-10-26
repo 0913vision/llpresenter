@@ -2,6 +2,7 @@ import {act, cleanup, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {MonitorList} from '@shared/schema/monitors';
+import type {EditResult} from '@shared/schema/contentEdit';
 import type {
   SettingsDocument,
   SettingsEdit,
@@ -9,6 +10,7 @@ import type {
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {ScreenProperties} from './ScreenProperties';
 import {useScreensSelection} from './selection';
+import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {
   CAPTIONS_ID,
   MAIN_ID,
@@ -28,22 +30,29 @@ const monitors: MonitorList = [
   },
 ];
 
-function setup() {
+function setup({
+  access = 'editable',
+  beforeSave = () => Promise.resolve(),
+}: {
+  readonly access?: 'editable' | 'readOnly';
+  readonly beforeSave?: () => Promise<void>;
+} = {}) {
   const edits: SettingsEdit[] = [];
   const onProblem = vi.fn();
   const listeners = new Set<(document: SettingsDocument) => void>();
   window.llp = fakeLlpApi({
     monitors: {get: () => Promise.resolve(monitors)},
     settings: {
-      get: () => Promise.resolve(screensDocument()),
+      get: () => Promise.resolve({...screensDocument(), access}),
       subscribe: listener => {
         listeners.add(listener);
         return () => {
           listeners.delete(listener);
         };
       },
-      edit: edit => {
+      edit: async (edit): Promise<EditResult> => {
         edits.push(edit);
+        await beforeSave();
         const revision = edits.length + 1;
         if (edit.name === 'screens') {
           const next = settingsDocument(
@@ -55,7 +64,7 @@ function setup() {
             for (const listener of listeners) listener(next);
           });
         }
-        return Promise.resolve({ok: true, value: {id: 'screens', revision}});
+        return {ok: true, value: {id: 'screens', revision}};
       },
     },
   });
@@ -73,6 +82,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  resetTooltips();
   delete window.llp;
 });
 
@@ -81,6 +91,73 @@ async function nameField(): Promise<HTMLElement> {
 }
 
 describe('the screen properties', () => {
+  it('keeps both offset axes when another edit waits for a delayed save', async () => {
+    let release: () => void = () => undefined;
+    const held = new Promise<void>(resolve => {
+      release = resolve;
+    });
+    const {savedScreens, edits} = setup({beforeSave: () => held});
+    const user = userEvent.setup();
+    await nameField();
+    const x = screen.getByRole('spinbutton', {name: '가로 위치'});
+    const y = screen.getByRole('spinbutton', {name: '세로 위치'});
+    await user.clear(x);
+    await user.type(x, '20{Enter}');
+    await waitFor(() => expect(edits).toHaveLength(1));
+    await user.clear(y);
+    await user.type(y, '30{Enter}');
+    expect(edits).toHaveLength(1);
+
+    release();
+
+    await waitFor(() =>
+      expect(savedScreens()[0]?.offset).toEqual({x: 20, y: 30}),
+    );
+  });
+
+  it('locks read-only properties, explains why, and sends no edits', async () => {
+    const {edits} = setup({access: 'readOnly'});
+    const user = userEvent.setup();
+    const name = await nameField();
+    expect(name).toHaveProperty('readOnly', true);
+    await user.type(name, '새 이름{Enter}');
+    expect(name).toHaveProperty('value', '본 화면');
+    const kind = screen.getByRole('radio', {name: '무대'});
+    expect(kind.getAttribute('aria-disabled')).toBe('true');
+    await user.click(kind);
+    const method = screen.getByRole('radio', {name: '창'});
+    expect(method.getAttribute('aria-disabled')).toBe('true');
+    await user.click(method);
+    const alwaysOnTop = screen.getByRole('switch');
+    expect(alwaysOnTop.getAttribute('aria-disabled')).toBe('true');
+    await user.click(alwaysOnTop);
+    const disconnect = screen.getByRole('button', {name: '연결이 끊기면'});
+    expect(disconnect.getAttribute('aria-disabled')).toBe('true');
+    await user.click(disconnect);
+    expect(screen.queryByRole('menu')).toBeNull();
+    for (const field of screen.getAllByRole('spinbutton')) {
+      expect(field).toHaveProperty('readOnly', true);
+      await user.type(field, '20{Enter}');
+    }
+    expect(edits).toEqual([]);
+    expect((await hoverForTooltip(alwaysOnTop))?.textContent).toBe(
+      '새 버전에서 만든 설정이므로 변경할 수 없음',
+    );
+  });
+
+  it('locks the capture resolution for a read-only file', async () => {
+    useScreensSelection.setState({
+      selection: {kind: 'screen', id: CAPTIONS_ID},
+    });
+    const {edits} = setup({access: 'readOnly'});
+    await nameField();
+    const resolution = screen.getByRole('button', {name: '해상도'});
+    expect(resolution.getAttribute('aria-disabled')).toBe('true');
+    await userEvent.click(resolution);
+    expect(screen.queryByRole('menu')).toBeNull();
+    expect(edits).toEqual([]);
+  });
+
   it('shows the selected screen with its monitor details', async () => {
     setup();
 

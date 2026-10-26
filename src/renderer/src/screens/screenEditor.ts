@@ -1,5 +1,6 @@
 import type {LlpApi} from '@shared/ipc';
 import type {SettingsDocument} from '@shared/schema/settingsDocuments';
+import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {changeScreen, type ScreenChange} from './screenEdits';
 
 type ScreensDocument = Extract<SettingsDocument, {name: 'screens'}>;
@@ -33,13 +34,22 @@ export class ScreenEditor {
 
   /** Saves the change to one screen; resolves when it is saved or dropped. */
   change(screenId: string, change: ScreenChange): Promise<void> {
-    this.queue = this.queue.then(() => this.save(screenId, change));
-    return this.queue;
+    return pendingWritesOf(this.api)
+      .run({
+        refused: false,
+        sent: applied => applied,
+        write: () => {
+          const operation = this.queue.then(() => this.save(screenId, change));
+          this.queue = operation.then(() => undefined);
+          return operation;
+        },
+      })
+      .then(() => undefined);
   }
 
-  private async save(screenId: string, change: ScreenChange): Promise<void> {
+  private async save(screenId: string, change: ScreenChange): Promise<boolean> {
     const base = this.base;
-    if (base === null) return;
+    if (base === null || base.access !== 'editable') return false;
     const value = {
       ...base.value,
       screens: changeScreen(base.value.screens, screenId, change),
@@ -57,7 +67,7 @@ export class ScreenEditor {
           value,
           revision: result.value.revision ?? base.revision,
         });
-        return;
+        return true;
       }
       if (result.error.reason === 'write-failed') {
         this.adopt({
@@ -67,6 +77,7 @@ export class ScreenEditor {
         });
       }
       this.report(result.error.message);
+      return result.error.reason === 'write-failed';
     } catch (cause) {
       this.api.log.write({
         level: 'error',
@@ -74,6 +85,7 @@ export class ScreenEditor {
         detail: cause instanceof Error ? cause.message : String(cause),
       });
       this.report('화면 설정 저장 실패');
+      return false;
     }
   }
 }

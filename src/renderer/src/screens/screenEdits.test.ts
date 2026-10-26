@@ -14,6 +14,12 @@ function screens() {
 }
 
 describe('changeScreen', () => {
+  it('merges each offset axis into the latest screen value', () => {
+    const horizontal = changeScreen(screens(), MAIN_ID, {offset: {x: 20}});
+    const vertical = changeScreen(horizontal, MAIN_ID, {offset: {y: 30}});
+    expect(vertical[0]?.offset).toEqual({x: 20, y: 30});
+  });
+
   it('changes only the named screen', () => {
     const before = screens();
 

@@ -1,9 +1,8 @@
 # Review request: `screens-5`
 
 - Team member: `screens`
-- Branch: `feat/screens/properties`, stacked on `screens-4`
-  (`feat/screens/output-preview`)
-- Base commit (`main`): `b99e97d1`
+- Branch: `feat/screens/properties`
+- Base commit (`main`): `ca4b745c`
 - Last commit: see the request line
 - Related brief: `docs/briefs/screens.md`
 
@@ -99,4 +98,27 @@ missing.
 
 ## Team member's reply
 
-1.
+1. P1, close flush: every committed screen change now enters the window's
+   `PendingWrites` before it waits in the editor queue. The close flush waits
+   for both the held write and the queued change, refuses newly attempted
+   changes while closing, and returns false when a change cannot reach main. A
+   write-failed result still counts as applied, so main's disk flush handles
+   persistence. The regression holds each of two saves separately and proves
+   that the flush cannot finish before the second one resolves.
+2. P2, offset axes: controls send only the changed axis. `changeScreen` merges
+   it into the newest queued screen's offset. A delayed-save regression commits
+   X=20 and Y=30 before the first save resolves and checks the final {20,30}; a
+   pure edit test checks the same merge independently.
+3. P2, read-only access: name and number fields become read-only, and segments,
+   selects and the switch are disabled, with a reason tooltip. The editor also
+   checks its latest document access before sending. Tests exercise all property
+   controls and the capture resolution on a read-only document, assert that no
+   edits are sent, and check the tooltip. An access change remounts the controls
+   to discard any draft before it can be committed.
+
+## Round 2 checks
+
+The request line reports targeted tests, typecheck after rebase, ESLint,
+formatting and the GitHub verify run on the exact request head. No full verify
+was run locally. Local checks were paused during the lead's quiet window and
+resumed only after the lead ended it.
