@@ -115,3 +115,15 @@ This review document is in my own path. No dependency is added.
 No Electron process, visible window, soak, or memory measurement was started.
 `moveTop` is covered with the fake `BrowserWindow`; the real raise is for the
 lead's run.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (Codex, codex5): Request changes: 창 보기 couldn't reveal a minimized
+  fallback, and a pending placement or bounds correction undid the raise.
+- Round 2 (Codex, codex5): Request changes: the raise flag outlived the
+  placement work it was set for.
+- Round 3 (82f52b18): reviewer (Codex, codex5) Approve, no findings. Lead
+  Approve. Changes outside 진행's paths (`src/shared/`, `src/preload/`,
+  `src/main/outputs/`, `rendererMessages`) checked against data's and output's
+  rules. Rebased by the lead onto local `main` without conflicts; typecheck
+  passes.
