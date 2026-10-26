@@ -104,7 +104,8 @@ it('keeps the chosen tool when the panel mounts again', async () => {
 const RIGHT_COLUMN_MIN = 320;
 const ALL_TABS_WIDTH = 440;
 
-/** A panel whose width the test sets, with the overflow its tab row would have. */
+// NOTE(0913vision): The panel's width is set by the test, and its tab row
+// reports the overflow the eight tabs would have at that width.
 function measuredPanel() {
   const observers: Array<() => void> = [];
   vi.stubGlobal(
