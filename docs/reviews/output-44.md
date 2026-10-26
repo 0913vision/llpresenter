@@ -80,13 +80,18 @@ Track selection uses the current catalog, not an unbounded copy in live state.
 - `src/shared/schema/audioState.ts` and its valid/invalid state tests.
 - `src/main/windows/audioPolicy.ts` and its dev/test/packaged matrix.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: pending
-
-## Review: reviewer
-
-- Verdict: pending
+- Round 1 (81bd235c): reviewer (Codex, codex3) Approve, no findings; second
+  review (Gemini 4 Argon, gem1) Approve, no findings. Lead Approve. CI: run
+  40287488840 failed only in the known flaky native test
+  `fullscreenOrder.electron.test.ts`, and run 40289709621 of the document head
+  failed only in `QuickEditing.test.tsx`, a tools test this request doesn't
+  touch; both are recorded, not rerun (October 24 decision), and output and
+  tools each fix their flake in a separate request. Rebased by the lead onto
+  local `main` after output-43 without conflicts; typecheck passes. First part
+  of M3-O7 (audio state, transport commands, muted by default in development and
+  tests).
 
 ## Team member's reply
 

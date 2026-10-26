@@ -56,15 +56,12 @@ quick, black execution and the remaining Bible display options are still
 pending. The lead's next priority is T1a, then the retained 타이머 tab. Audio
 waits for O7 and confirmation from the lead before starting.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict:
-- Findings:
-
-## Review: reviewer
-
-- Verdict:
-- Findings:
+- Round 1 (Codex, codex2): Request changes; the findings and replies are above.
+- Round 2 (2421b11a): reviewer (Codex, codex2) Approve. Lead Approve. Rebased by
+  the lead onto local `main` after output-44 without conflicts; typecheck
+  passes. 퀵 실행 target submenus and drag reorder are in.
 
 ## Team member's reply
 
