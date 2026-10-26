@@ -10,11 +10,20 @@ import {
 
 describe('frame readiness', () => {
   it('accepts a current version and boolean acknowledgment', () => {
-    const value = {screenId: 'main', version: 7};
+    const value = {
+      screenId: 'main',
+      version: 7,
+      width: 1920,
+      height: 1080,
+      ready: true,
+    };
     expect(parseFrameReadyReport(value)).toEqual({ok: true, value});
     expect(parseFrameReadyReply(false)).toEqual({ok: true, value: false});
   });
   it.each([
+    {screenId: 'main', version: 1, width: 0, height: 1080, ready: true},
+    {screenId: 'main', version: 1, width: 1920, height: Infinity, ready: true},
+    {screenId: 'main', version: 1, width: 1920, height: 1080, ready: 'yes'},
     {screenId: '', version: 1},
     {screenId: 'x'.repeat(201), version: 0},
     {screenId: 'main', version: -1},

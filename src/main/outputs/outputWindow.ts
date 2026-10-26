@@ -1,4 +1,5 @@
-import {sameRect, type Rect} from '../displays/rect';
+import {sameRect, type Rect, type Size} from '../displays/rect';
+import type {FrameReadyReport} from '@shared/schema/ipcPayloads';
 import type {Logger} from '../log';
 import type {FullScreenPlacement, ShownPlacement} from './placement';
 import {ANSWER_LIMIT_MS, FRAME_SILENCE_MS, HangWatch} from './hangWatch';
@@ -12,7 +13,8 @@ import type {OutputScreen} from './screens';
 /** The Electron window of one output, reduced to what the output needs. */
 export interface OutputWindowHandle {
   configure(screen: OutputScreen): void;
-  prepare(bounds: Rect): void;
+  prepare(bounds: Rect, kind: ShownPlacement['kind']): void;
+  contentSize(): Size;
   /** Shows the window without taking focus, full screen on the monitor with these bounds. */
   showFullScreen(monitorBounds: Rect, alwaysOnTop: boolean): void;
   /** Shows the window without taking focus as a normal window, moved to the bounds when given. */
@@ -67,6 +69,9 @@ export interface OutputWindowOptions {
   readonly onRendererState?: (state: RendererState) => void;
 }
 
+/** A requested output reveals even if decoding, layout or renderer IPC stalls. */
+export const OUTPUT_REVEAL_DEADLINE_MS = 1500;
+
 function sameFullScreen(
   applied: ShownPlacement | null,
   next: FullScreenPlacement,
@@ -91,6 +96,9 @@ export class OutputWindow {
   private disposed = false;
   private drewSinceLoad = false;
   private readyVersion = -1;
+  private readySize: Size | null = null;
+  private revealTimer: ReturnType<typeof setTimeout> | null = null;
+  private warnedRevealFallback = false;
   private wanted: ShownPlacement | null = null;
   private prepared: ShownPlacement | null = null;
   private readonly recovery: RendererRecovery;
@@ -116,8 +124,10 @@ export class OutputWindow {
     return this.recovery.state;
   }
 
-  preload(): void {
-    if (!this.disposed) this.ensureHandle();
+  preload(placement?: ShownPlacement): void {
+    if (this.disposed) return;
+    this.ensureHandle();
+    if (placement !== undefined && !this.visible) this.prepare(placement);
   }
 
   /**
@@ -130,9 +140,15 @@ export class OutputWindow {
     this.watchIfRunning();
   }
 
-  frameReady(version: number): boolean {
-    if (this.disposed || version !== this.options.liveVersion()) return false;
+  frameReady(
+    version: number,
+    frame: Pick<FrameReadyReport, 'width' | 'height' | 'ready'>,
+  ): boolean {
+    if (this.disposed) return false;
+    if (this.visible) return true;
+    if (!frame.ready || version !== this.options.liveVersion()) return false;
     this.readyVersion = version;
+    this.readySize = frame;
     this.frameReported();
     if (!this.visible && this.wanted !== null) this.show(this.wanted);
     return this.visible;
@@ -184,36 +200,78 @@ export class OutputWindow {
     this.disposed = true;
     this.hangWatch.stop();
     this.recovery.dispose();
+    this.cancelReveal();
     this.handle?.destroy();
     this.handle = null;
   }
 
   private show(placement: ShownPlacement): void {
     const handle = this.ensureHandle();
-    if (
-      !this.visible &&
-      !this.keepsOperatorBounds(placement) &&
-      (this.prepared?.kind !== placement.kind ||
-        !sameRect(this.prepared.bounds, placement.bounds))
-    ) {
-      handle.prepare(placement.bounds);
-      this.prepared = placement;
-      this.readyVersion = -1;
-    }
-    if (!this.visible && this.readyVersion !== this.options.liveVersion()) {
-      return;
-    }
     if (!this.visible) {
       this.recovery.resume();
-      this.place(handle, placement);
+      this.prepare(placement);
+      const size = handle.contentSize();
+      if (
+        this.readyVersion !== this.options.liveVersion() ||
+        this.readySize?.width !== size.width ||
+        this.readySize.height !== size.height
+      ) {
+        this.waitToReveal();
+        return;
+      }
+      this.reveal(placement);
+      return;
     } else if (this.changes(placement)) {
       this.place(handle, placement);
     }
     this.applied = placement;
-    if (!this.visible) {
-      this.visible = true;
-      this.watchIfRunning();
-    }
+  }
+
+  private prepare(placement: ShownPlacement): void {
+    if (this.keepsOperatorBounds(placement)) return;
+    if (
+      this.prepared?.kind === placement.kind &&
+      sameRect(this.prepared.bounds, placement.bounds)
+    )
+      return;
+    this.ensureHandle().prepare(placement.bounds, placement.kind);
+    this.prepared = placement;
+  }
+
+  private reveal(placement: ShownPlacement): void {
+    this.cancelReveal();
+    this.place(this.ensureHandle(), placement);
+    this.applied = placement;
+    this.visible = true;
+    this.watchIfRunning();
+  }
+
+  private waitToReveal(): void {
+    if (this.revealTimer !== null) return;
+    this.revealTimer = setTimeout(() => {
+      this.revealTimer = null;
+      if (this.disposed || this.visible || this.wanted === null) return;
+      if (!this.warnedRevealFallback) {
+        this.warnedRevealFallback = true;
+        this.options.log.warn(
+          'output frame preparation timed out; revealing the drawn frame',
+          {screen: this.screen.id},
+        );
+      }
+      try {
+        this.reveal(this.wanted);
+      } catch (error) {
+        this.options.log.error(
+          'could not reveal an output at its frame deadline',
+          error,
+        );
+      }
+    }, OUTPUT_REVEAL_DEADLINE_MS);
+  }
+
+  private cancelReveal(): void {
+    if (this.revealTimer !== null) clearTimeout(this.revealTimer);
+    this.revealTimer = null;
   }
 
   private watchIfRunning(): void {
@@ -274,6 +332,7 @@ export class OutputWindow {
   }
 
   private hide(): void {
+    this.cancelReveal();
     if (!this.visible || this.handle === null) return;
     this.handle.hide();
     this.visible = false;

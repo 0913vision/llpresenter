@@ -35,6 +35,9 @@ const frameRateReportSchema = payloadObject({
 });
 
 const frameReadyReportSchema = payloadObject({
+  width: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(65_536)),
+  height: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(65_536)),
+  ready: v.boolean(),
   screenId: v.pipe(v.string(), v.nonEmpty(), v.maxLength(200)),
   version: v.pipe(
     v.number(),

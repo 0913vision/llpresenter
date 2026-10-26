@@ -397,6 +397,14 @@ describe('createElectronOutputWindow reload', () => {
 });
 
 describe('createElectronOutputWindow normal', () => {
+  it('does not change the prepared viewport through an intermediate half-size on first reveal', () => {
+    const output = openOutput('normal');
+    const win = lastWindow();
+    win.getContentBounds.mockReturnValue(MONITOR);
+    output.showFullScreen(MONITOR, true);
+    expect(win.setBounds).not.toHaveBeenCalled();
+    expect(win.showInactive).toHaveBeenCalledOnce();
+  });
   it.each(['window', 'capture'] as const)(
     'honors an explicit always-on-top choice in %s mode without raising the control',
     method => {

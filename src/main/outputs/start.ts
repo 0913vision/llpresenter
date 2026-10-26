@@ -225,6 +225,7 @@ export function startOutputs({
       return outputs.frameReady(
         screenIdFor(report.value.screenId),
         report.value.version,
+        report.value,
       );
     }),
     screens.subscribe(() => board.refresh()),

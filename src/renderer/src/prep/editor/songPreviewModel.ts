@@ -62,7 +62,7 @@ export function selectedPreview(
     block,
     background,
   }: {readonly block: number; readonly background: string | undefined},
-  appearance: ReturnType<typeof previewAppearance>,
+  appearance: Pick<ReturnType<typeof previewAppearance>, 'slide' | 'media'>,
 ): LiveLayers {
   const slide = song.slides[block];
   return {

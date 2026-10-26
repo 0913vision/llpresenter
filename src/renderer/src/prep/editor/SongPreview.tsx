@@ -11,6 +11,7 @@ import {
 } from 'react';
 import type {LlpApi} from '@shared/ipc';
 import {mediaUrl} from '@shared/media';
+import {emptyLayers} from '@shared/live';
 import type {Label} from '@shared/schema/labels';
 import type {SettingsDocument} from '@shared/schema/settingsDocuments';
 import type {Song} from '@shared/schema/song';
@@ -143,6 +144,20 @@ export function SongPreviewFrame({
     () => previewAppearance(role, documents.looks, documents.screens),
     [role, documents.looks, documents.screens],
   );
+  const song = picture?.song;
+  const block = picture?.block ?? 0;
+  const background = picture?.background;
+  const layers = useMemo(
+    () =>
+      song === undefined
+        ? emptyLayers()
+        : selectedPreview(
+            song,
+            {block, background},
+            {slide: appearance.slide, media: appearance.media},
+          ),
+    [song, block, background, appearance.slide, appearance.media],
+  );
   if (picture === null) {
     return (
       <Panel label="미리보기">
@@ -152,9 +167,8 @@ export function SongPreviewFrame({
       </Panel>
     );
   }
-  const {song, block, background, position, total} = picture;
-  const layers = selectedPreview(song, {block, background}, appearance);
-  const slide = song.slides[block];
+  const {position, total} = picture;
+  const slide = picture.song.slides[block];
   const color =
     labels.find(label => label.name === slide?.label)?.color ?? 'none';
   return (

@@ -3,6 +3,7 @@ import type {LlpApi} from '@shared/ipc';
 import {emptyLiveState, type LiveState} from '@shared/live';
 import type {
   FrameRateReport,
+  FrameReadyReport,
   RendererLogEntry,
 } from '@shared/schema/ipcPayloads';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
@@ -33,6 +34,11 @@ let frameTime = 0;
 function runFramesFor(durationMs: number): void {
   const end = frameTime + durationMs;
   for (; frameTime <= end; frameTime += FRAME_MS) frame?.(frameTime);
+}
+
+async function pumpReadiness(): Promise<void> {
+  runFramesFor(120);
+  for (let index = 0; index < 4; index += 1) await Promise.resolve();
 }
 
 beforeEach(() => {
@@ -77,12 +83,111 @@ function setUp(live: Partial<LlpApi['live']> = {}) {
 }
 
 describe('startOutput', () => {
+  it('rechecks the same live version without requiring a resize event until main acknowledges visibility', async () => {
+    const settings = overlaySettings();
+    const defaults = fakeLlpApi();
+    const reportReady = vi.fn((_report: FrameReadyReport) =>
+      Promise.resolve(false),
+    );
+    const root = document.createElement('div');
+    const api = fakeLlpApi({
+      settings: {
+        get: ({name}) =>
+          name === 'screens'
+            ? Promise.resolve(settings.reader.get(name))
+            : defaults.settings.get({name}),
+      },
+      live: {
+        get: () =>
+          Promise.resolve({
+            ...SHOWING,
+            outputs: {[MAIN]: true},
+            layers: {...SHOWING.layers, media: null},
+          }),
+      },
+      output: {reportReady},
+    });
+    const stop = startOutput({root, api, screenId: MAIN});
+    await Promise.resolve();
+    await pumpReadiness();
+    await pumpReadiness();
+    expect(reportReady.mock.calls.length).toBeGreaterThan(1);
+    expect(
+      reportReady.mock.calls.every(
+        ([report]) =>
+          report.version === SHOWING.version &&
+          report.width === window.innerWidth &&
+          report.height === window.innerHeight,
+      ),
+    ).toBe(true);
+    reportReady.mockImplementation(() => Promise.resolve(true));
+    await pumpReadiness();
+    const calls = reportReady.mock.calls.length;
+    await pumpReadiness();
+    expect(reportReady).toHaveBeenCalledTimes(calls);
+    stop();
+  });
+
+  it('accepts a shown acknowledgment after a newer version and restores the pending background dissolve', async () => {
+    const settings = overlaySettings();
+    const defaults = fakeLlpApi();
+    let current: LiveState = {
+      ...SHOWING,
+      outputs: {[MAIN]: true},
+      layers: {...SHOWING.layers, media: null},
+    };
+    let receive = (_state: LiveState): void => {};
+    let acknowledge = (_shown: boolean): void => {};
+    const reportReady = vi.fn((report: FrameReadyReport) =>
+      report.ready
+        ? new Promise<boolean>(resolve => {
+            acknowledge = resolve;
+          })
+        : Promise.resolve(false),
+    );
+    const root = document.createElement('div');
+    const api = fakeLlpApi({
+      settings: {
+        get: ({name}) =>
+          name === 'screens'
+            ? Promise.resolve(settings.reader.get(name))
+            : defaults.settings.get({name}),
+      },
+      live: {
+        get: () => Promise.resolve(current),
+        subscribe: listener => {
+          receive = listener;
+          return () => {};
+        },
+      },
+      output: {reportReady},
+    });
+    const stop = startOutput({root, api, screenId: MAIN});
+    await Promise.resolve();
+    await pumpReadiness();
+    current = {
+      ...current,
+      version: SHOWING.version + 1,
+      layers: {...current.layers, media: SHOWING.layers.media},
+    };
+    receive(current);
+    acknowledge(true);
+    for (let index = 0; index < 4; index += 1) await Promise.resolve();
+    const incoming = root.querySelector('video[src]');
+    if (incoming === null) throw new Error('Missing replacement background');
+    incoming.dispatchEvent(new Event('playing'));
+    expect(incoming.classList.contains(classes.dissolving)).toBe(true);
+    stop();
+  });
+
   it.each(['video', 'image', 'play'] as const)(
     'reveals valid lyrics with a completed fallback after a terminal %s failure',
     async failure => {
       const settings = overlaySettings();
       const defaults = fakeLlpApi();
-      const reportReady = vi.fn(() => Promise.resolve(true));
+      const reportReady = vi.fn((report: FrameReadyReport) =>
+        Promise.resolve(report.ready),
+      );
       const logs: RendererLogEntry[] = [];
       const api = fakeLlpApi({
         settings: {
@@ -106,7 +211,9 @@ describe('startOutput', () => {
       const stop = startOutput({root, api, screenId: MAIN});
       await Promise.resolve();
       runFramesFor(80);
-      expect(reportReady).not.toHaveBeenCalled();
+      expect(reportReady).not.toHaveBeenCalledWith(
+        expect.objectContaining({ready: true}),
+      );
       const video = root.querySelector('video[src]');
       if (video === null) throw new Error('Missing pending background');
       if (failure === 'image') {
@@ -120,14 +227,18 @@ describe('startOutput', () => {
         image.dispatchEvent(new Event('error'));
       } else if (failure === 'video') video.dispatchEvent(new Event('error'));
       await Promise.resolve();
-      runFramesFor(80);
-      expect(reportReady).toHaveBeenCalledWith({
-        screenId: MAIN,
-        version: SHOWING.version,
-      });
+      await pumpReadiness();
+      await pumpReadiness();
+      expect(reportReady).toHaveBeenCalledWith(
+        expect.objectContaining({
+          screenId: MAIN,
+          version: SHOWING.version,
+          ready: true,
+        }),
+      );
       expect(root.textContent).toContain(SHOWING.layers.slide?.lines[0]);
       expect(root.firstElementChild?.classList.contains(classes.instant)).toBe(
-        true,
+        false,
       );
       expect(logs.some(entry => entry.level === 'error')).toBe(true);
       stop();
@@ -137,8 +248,8 @@ describe('startOutput', () => {
   it('keeps hidden live content loaded and reports ready only with its background, without a reveal dissolve', async () => {
     let current = {...SHOWING, outputs: {[MAIN]: false}};
     let receive: (state: LiveState) => void = () => undefined;
-    const reportReady = vi.fn(() =>
-      Promise.resolve(current.outputs[MAIN] === true),
+    const reportReady = vi.fn((report: FrameReadyReport) =>
+      Promise.resolve(current.outputs[MAIN] === true && report.ready),
     );
     const settings = overlaySettings();
     const defaults = fakeLlpApi();
@@ -188,13 +299,15 @@ describe('startOutput', () => {
     await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
-    expect(reportReady).toHaveBeenCalledWith({screenId: MAIN, version: 4});
+    expect(reportReady).not.toHaveBeenCalled();
     const plays = vi.mocked(HTMLMediaElement.prototype.play).mock.calls.length;
     current = {...current, version: 5, outputs: {[MAIN]: true}};
     receive(current);
     runFramesFor(80);
     await Promise.resolve();
-    expect(reportReady).toHaveBeenLastCalledWith({screenId: MAIN, version: 5});
+    expect(reportReady).toHaveBeenLastCalledWith(
+      expect.objectContaining({screenId: MAIN, version: 5, ready: true}),
+    );
     expect(video.classList.contains(classes.dissolving)).toBe(false);
     expect(vi.mocked(HTMLMediaElement.prototype.play)).toHaveBeenCalledTimes(
       plays,

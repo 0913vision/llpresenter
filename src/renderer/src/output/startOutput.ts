@@ -16,6 +16,7 @@ export interface OutputContext {
 }
 
 type ErrorReport = (message: string, error: unknown) => void;
+export const READY_RECHECK_MS = 100;
 
 function describeError(error: unknown): string {
   const text =
@@ -64,7 +65,8 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
   let latest: LiveState | null = null;
   let stopped = false;
   let revealPending = true;
-  let reportedVersion = -1;
+  let lastAttempt = -Infinity;
+  let enableEpoch = 0;
   let stableVersion = -1;
   let fontsReady = typeof document.fonts === 'undefined';
   let readyInFlight = false;
@@ -105,30 +107,40 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
         report('could not prepare output fonts', error),
       );
   }
-  const reportReady = (): void => {
+  const reportReady = (time: number): void => {
     if (
       stopped ||
       readyInFlight ||
       latest === null ||
-      !fontsReady ||
-      frames.frame(latest) === undefined ||
-      !renderer.ready()
+      !enabled() ||
+      !revealPending
     ) {
       return;
     }
     const version = latest.version;
-    if (version === reportedVersion) return;
-    if (stableVersion !== version) {
+    const complete =
+      fontsReady && frames.frame(latest) !== undefined && renderer.ready();
+    if (complete && stableVersion !== version) {
       stableVersion = version;
       return;
     }
-    reportedVersion = version;
+    if (!complete) stableVersion = -1;
+    if (time - lastAttempt < READY_RECHECK_MS) return;
+    lastAttempt = time;
+    const epoch = enableEpoch;
     readyInFlight = true;
     void api.output
-      .reportReady({screenId, version})
+      .reportReady({
+        screenId,
+        version,
+        ready: complete,
+        width: window.innerWidth,
+        height: window.innerHeight,
+      })
       .then(shown => {
-        if (!stopped && latest?.version === version && enabled() && shown) {
+        if (!stopped && enableEpoch === epoch && enabled() && shown) {
           revealPending = false;
+          draw();
         }
       })
       .catch((error: unknown) =>
@@ -139,7 +151,7 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
       });
   };
   const resized = (): void => {
-    reportedVersion = -1;
+    lastAttempt = -Infinity;
     stableVersion = -1;
   };
   window.addEventListener('resize', resized);
@@ -155,7 +167,13 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
   const stopFollowing = followLiveState(
     api.live,
     state => {
+      const wasEnabled = enabled();
       latest = state;
+      if (wasEnabled !== enabled()) {
+        enableEpoch += 1;
+        revealPending = true;
+        lastAttempt = -Infinity;
+      }
       draw();
       reportFrameRates();
     },

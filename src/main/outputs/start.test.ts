@@ -160,6 +160,8 @@ function setup(
       fakes.answers.get(Channels.outputFrameReady)?.(undefined, {
         screenId: window.screen.id,
         version: store.state.version,
+        ...window.contentSize(),
+        ready: true,
       });
     }
     return result;
@@ -193,6 +195,8 @@ async function loaded() {
     fakes.answers.get(Channels.outputFrameReady)?.(undefined, {
       screenId: window.screen.id,
       version: fakes.liveVersion(),
+      ...window.contentSize(),
+      ready: true,
     });
   }
 }

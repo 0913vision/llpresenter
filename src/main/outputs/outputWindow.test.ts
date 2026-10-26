@@ -1,7 +1,7 @@
 import {describe, expect, it, vi} from 'vitest';
 import {installFakeClock} from '../../../test/fake-clock';
 import {recordingLogger} from '../displays/testing';
-import {OutputWindow} from './outputWindow';
+import {OutputWindow, OUTPUT_REVEAL_DEADLINE_MS} from './outputWindow';
 import type {ShownPlacement} from './placement';
 import {COOLDOWN_STEPS_MS, RELAUNCH_DELAY_MS} from './rendererRecovery';
 import {ANSWER_LIMIT_MS, FRAME_SILENCE_MS} from './hangWatch';
@@ -36,7 +36,10 @@ function setUp(autoReady = true) {
     const update = output.update.bind(output);
     vi.spyOn(output, 'update').mockImplementation((placement, screen) => {
       update(placement, screen);
-      output.frameReady(version);
+      output.frameReady(version, {
+        ...windows.only('main').contentSize(),
+        ready: true,
+      });
     });
   }
   output.update(null);
@@ -52,6 +55,80 @@ function setUp(autoReady = true) {
 }
 
 describe('OutputWindow', () => {
+  it('never leaves a requested output hidden past the frame deadline and logs once', async () => {
+    const clock = installFakeClock();
+    const {output, windows, log} = setUp(false);
+    output.update(FULL_SCREEN);
+    await clock.advance(OUTPUT_REVEAL_DEADLINE_MS - 1);
+    expect(windows.only('main').mode.kind).toBe('hidden');
+    output.update({...FULL_SCREEN});
+    await clock.advance(1);
+    expect(windows.only('main').mode.kind).toBe('fullscreen');
+    output.update(null);
+    output.update(FULL_SCREEN);
+    await clock.advance(OUTPUT_REVEAL_DEADLINE_MS);
+    expect(windows.only('main').mode.kind).toBe('fullscreen');
+    expect(log.messages('warn')).toEqual([
+      'output frame preparation timed out; revealing the drawn frame',
+    ]);
+    output.dispose();
+  });
+
+  it('cancels the pending reveal when switched off or disposed', async () => {
+    const clock = installFakeClock();
+    const {output, windows, log} = setUp(false);
+    output.update(FULL_SCREEN);
+    output.update(null);
+    await clock.advance(OUTPUT_REVEAL_DEADLINE_MS * 2);
+    expect(windows.only('main').mode.kind).toBe('hidden');
+    output.update(FULL_SCREEN);
+    output.dispose();
+    await clock.advance(OUTPUT_REVEAL_DEADLINE_MS * 2);
+    expect(log.messages('warn')).toEqual([]);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('rejects a ready frame laid out at the default viewport instead of the prepared placement', () => {
+    const {output, windows, setVersion} = setUp(false);
+    output.preload(FULL_SCREEN);
+    setVersion(1);
+    output.update(FULL_SCREEN);
+    expect(output.frameReady(1, {width: 800, height: 600, ready: true})).toBe(
+      false,
+    );
+    expect(output.frameReady(1, {...PROJECTOR, ready: false})).toBe(false);
+    expect(windows.only('main').mode.kind).toBe('hidden');
+    expect(output.frameReady(1, {...PROJECTOR, ready: true})).toBe(true);
+    output.dispose();
+  });
+
+  it('keeps an already prepared current frame across same-size method or origin changes without resize', () => {
+    const {output} = setUp(false);
+    output.preload(FULL_SCREEN);
+    output.frameReady(0, {...PROJECTOR, ready: true});
+    const capture = {kind: 'capture', bounds: {...PROJECTOR, x: 0}} as const;
+    output.preload(capture);
+    output.update(capture);
+    expect(output.captureArea()).toEqual(capture.bounds);
+    output.dispose();
+  });
+
+  it('retries a limited hidden renderer as soon as output is requested, before a ready frame', async () => {
+    const clock = installFakeClock();
+    const {output, windows} = setUp(false);
+    const handle = windows.only('main');
+    for (let crash = 0; crash < CRASH_LIMIT; crash += 1) {
+      handle.crash();
+      await clock.advance(RELAUNCH_DELAY_MS);
+    }
+    expect(output.rendererState).toBe('limited');
+    const before = handle.reloads;
+    output.update(FULL_SCREEN);
+    await clock.advance(0);
+    expect(handle.reloads).toBe(before + 1);
+    output.dispose();
+  });
+
   it('preserves the actual operator bounds across fullscreen to window, resize and off/on', () => {
     const {output, windows, setVersion} = setUp();
     output.update(FULL_SCREEN);
@@ -77,14 +154,14 @@ describe('OutputWindow', () => {
     output.frameReported();
     expect(windows.only('main').prepared).toEqual(PROJECTOR);
     expect(windows.only('main').mode.kind).toBe('hidden');
-    expect(output.frameReady(0)).toBe(false);
-    expect(output.frameReady(1)).toBe(true);
+    expect(output.frameReady(0, {...PROJECTOR, ready: true})).toBe(false);
+    expect(output.frameReady(1, {...PROJECTOR, ready: true})).toBe(true);
     expect(windows.only('main').mode.kind).toBe('fullscreen');
     output.update(null);
     setVersion(2);
     output.update(FULL_SCREEN);
     expect(windows.only('main').mode.kind).toBe('hidden');
-    output.frameReady(2);
+    output.frameReady(2, {...PROJECTOR, ready: true});
     expect(windows.created).toHaveLength(1);
     expect(windows.only('main').reloads).toBe(0);
     output.dispose();

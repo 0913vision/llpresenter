@@ -19,6 +19,7 @@ import {
 import {LiveStore} from '../live/store';
 import {createDefaultScreenSource} from './defaultScreens';
 import {OutputManager, type MonitorFeed} from './manager';
+import {OUTPUT_REVEAL_DEADLINE_MS} from './outputWindow';
 import {OUTPUT_WINDOW_SIZE} from './placement';
 import {COOLDOWN_STEPS_MS, RELAUNCH_DELAY_MS} from './rendererRecovery';
 import {CRASH_LIMIT} from './restartBudget';
@@ -80,10 +81,19 @@ function turn(on: boolean, screenId = 'main'): LiveCommand {
   return {type: 'output.set', screenId, on};
 }
 
-function simulateReadyFrames(manager: OutputManager, store: LiveStore): void {
+function simulateReadyFrames(
+  manager: OutputManager,
+  store: LiveStore,
+  windows: ReturnType<typeof fakeWindows>,
+): void {
   const ready = (): void => {
     for (const id of manager.screenStates().keys()) {
-      manager.frameReady(id, store.state.version);
+      const handle = windows.created.find(window => window.screen.id === id);
+      if (handle !== undefined)
+        manager.frameReady(id, store.state.version, {
+          ...handle.contentSize(),
+          ready: true,
+        });
     }
   };
   const dispatch = store.dispatch.bind(store);
@@ -111,7 +121,7 @@ function setUp(screens: readonly OutputScreen[] = [screenOn(PROJECTOR)]) {
     log,
   });
   manager.start();
-  simulateReadyFrames(manager, store);
+  simulateReadyFrames(manager, store, windows);
   return {store, displays, source, windows, log, manager};
 }
 
@@ -137,13 +147,19 @@ function setUpRemoval(
     log,
   });
   manager.start();
-  simulateReadyFrames(manager, store);
+  simulateReadyFrames(manager, store, windows);
   store.dispatch(turn(true));
   store.dispatch(turn(true, 'stage'));
   return {source, displays, store, windows, manager, log};
 }
 
 describe('OutputManager', () => {
+  it('prepares the configured viewport while output is still off', () => {
+    const {store, windows} = setUp();
+    expect(store.state.outputs.main).not.toBe(true);
+    expect(windows.only('main').prepared).toEqual(PROJECTOR_BOUNDS);
+    expect(windows.only('main').mode.kind).toBe('hidden');
+  });
   it('replans a fallback after a later work-area change without replacing its page', async () => {
     const clock = installFakeClock();
     const {source, displays, windows, manager} = setUpRemoval([
@@ -419,7 +435,7 @@ describe('OutputManager', () => {
       log,
     });
     manager.start();
-    simulateReadyFrames(manager, store);
+    simulateReadyFrames(manager, store, windows);
     store.dispatch(turn(true, 'main'));
     store.dispatch(turn(true, 'stage'));
     expect(windows.only('stage').mode.kind).toBe('fullscreen');
@@ -467,12 +483,12 @@ describe('OutputManager', () => {
       log,
     });
     manager.start();
-    simulateReadyFrames(manager, store);
+    simulateReadyFrames(manager, store, windows);
     store.dispatch(turn(true));
 
     source.failure = null;
     await clock.advance(DISPLAY_RETRY_MS);
-    manager.frameReady('main', store.state.version);
+    await clock.advance(OUTPUT_REVEAL_DEADLINE_MS);
     expect(windows.only('main').mode).toEqual({
       kind: 'fullscreen',
       bounds: PROJECTOR_BOUNDS,
@@ -518,7 +534,7 @@ describe('OutputManager', () => {
       onStatusChange,
     });
     manager.start();
-    simulateReadyFrames(manager, store);
+    simulateReadyFrames(manager, store, windows);
     expect(manager.screenStates().get('main')).toEqual({
       placement: 'off',
       renderer: 'running',

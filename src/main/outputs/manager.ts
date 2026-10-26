@@ -9,6 +9,7 @@ import {OutputWindow, type CreateOutputWindowHandle} from './outputWindow';
 import type {RendererState} from './rendererRecovery';
 import {planPlacement, type Placement} from './placement';
 import type {OutputScreen, ScreenSource} from './screens';
+import type {FrameReadyReport} from '@shared/schema/ipcPayloads';
 
 /** The connected monitors, kept current. */
 export interface MonitorFeed {
@@ -128,8 +129,12 @@ export class OutputManager {
     this.windows.get(screenId)?.frameReported();
   }
 
-  frameReady(screenId: string, version: number): boolean {
-    return this.windows.get(screenId)?.frameReady(version) ?? false;
+  frameReady(
+    screenId: string,
+    version: number,
+    frame: Pick<FrameReadyReport, 'width' | 'height' | 'ready'>,
+  ): boolean {
+    return this.windows.get(screenId)?.frameReady(version, frame) ?? false;
   }
 
   /** 다시 시도 for a screen whose window holds the restart limit. */
@@ -243,6 +248,19 @@ export class OutputManager {
     this.lastOutputs = this.options.store.state.outputs;
     const turnOff: string[] = [];
     for (const screen of screens) {
+      const planned = planPlacement({
+        screen,
+        monitor: surroundings.assigned.get(screen.id) ?? null,
+        controlMonitor: surroundings.controlMonitor,
+      });
+      try {
+        if (planned.kind !== 'off') this.windowFor(screen).preload(planned);
+      } catch (error) {
+        this.options.log.error(
+          `could not prepare the ${screen.id} output`,
+          error,
+        );
+      }
       const placement = this.placementFor(screen, surroundings);
       this.apply(screen, placement);
       if (placement?.kind === 'off') turnOff.push(screen.id);

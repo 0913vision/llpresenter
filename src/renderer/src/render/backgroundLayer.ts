@@ -26,6 +26,7 @@ export const MIN_SEEK_SECONDS = 0.5;
 
 const MS_PER_SECOND = 1000;
 const UNSUPPORTED_SOURCE = 4;
+export const VIDEO_FRAME_DEADLINE_MS = 250;
 
 /**
  * Where a background should be now: the time since it started, wrapped for a
@@ -53,6 +54,7 @@ const VIDEO_INDEXES: readonly VideoIndex[] = [0, 1];
 interface Handover {
   readonly to: VideoIndex;
   readonly dissolve: boolean;
+  readonly contentChange: boolean;
 }
 
 const FRONT_LAYER = '1';
@@ -116,6 +118,10 @@ export class BackgroundLayerView {
   private failed = false;
   private readonly decoded: [boolean, boolean] = [false, false];
   private readonly videoFrames: [number | null, number | null] = [null, null];
+  private readonly frameDeadlines: [
+    ReturnType<typeof setTimeout> | null,
+    ReturnType<typeof setTimeout> | null,
+  ] = [null, null];
 
   constructor(
     parent: HTMLElement,
@@ -139,6 +145,8 @@ export class BackgroundLayerView {
    */
   show(media: MediaLayer | null, transitions = true): void {
     this.transitions = transitions;
+    if (this.handover?.contentChange === true)
+      this.handover = {...this.handover, dissolve: transitions};
     if (!transitions) {
       for (const element of [...this.videos, ...this.images]) {
         element.classList.remove(classes.dissolving);
@@ -185,7 +193,7 @@ export class BackgroundLayerView {
     this.settleFront(to);
     this.load(to, media.mediaId);
     this.seekOnceLoaded(video, media);
-    this.handover = {to, dissolve: this.transitions};
+    this.handover = {to, dissolve: this.transitions, contentChange: true};
     this.loopNativelyInPreview();
     this.play(video);
   }
@@ -255,9 +263,17 @@ export class BackgroundLayerView {
           this.videoFrames[at] = video.requestVideoFrameCallback(() => {
             this.videoFrames[at] = null;
             if (this.holding[at] === source && this.holdsCurrent(at)) {
+              this.clearFrameDeadline(at);
               this.decoded[at] = true;
             }
           });
+          this.frameDeadlines[at] = setTimeout(() => {
+            this.frameDeadlines[at] = null;
+            if (this.holding[at] !== source || !this.holdsCurrent(at)) return;
+            if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
+            this.cancelFrame(at);
+            this.decoded[at] = true;
+          }, VIDEO_FRAME_DEADLINE_MS);
         } else this.decoded[at] = true;
       };
       const onEnded = (): void => this.handleEnded(at);
@@ -335,7 +351,7 @@ export class BackgroundLayerView {
       this.restart(this.videos[index]);
       return;
     }
-    this.handover = {to: spareIndex, dissolve: false};
+    this.handover = {to: spareIndex, dissolve: false, contentChange: false};
     this.play(spare);
   }
 
@@ -458,9 +474,16 @@ export class BackgroundLayerView {
   }
 
   private cancelFrame(index: VideoIndex): void {
+    this.clearFrameDeadline(index);
     const frame = this.videoFrames[index];
     if (frame !== null) this.videos[index].cancelVideoFrameCallback(frame);
     this.videoFrames[index] = null;
     this.decoded[index] = false;
+  }
+
+  private clearFrameDeadline(index: VideoIndex): void {
+    const timer = this.frameDeadlines[index];
+    if (timer !== null) clearTimeout(timer);
+    this.frameDeadlines[index] = null;
   }
 }

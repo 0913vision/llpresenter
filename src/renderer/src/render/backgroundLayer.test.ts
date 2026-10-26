@@ -3,6 +3,7 @@ import type {MediaLayer} from '@shared/live';
 import {installFakeClock} from '../../../../test/fake-clock';
 import {
   BACKGROUND_DISSOLVE_MS,
+  VIDEO_FRAME_DEADLINE_MS,
   BackgroundLayerView,
   type RenderMode,
   MIN_SEEK_SECONDS,
@@ -64,6 +65,24 @@ function playsOf(video: HTMLVideoElement): number {
 }
 
 describe('BackgroundLayerView', () => {
+  it('bounds a hidden video frame callback and releases its callback and deadline', async () => {
+    const clock = installFakeClock();
+    const {view, videos} = setUp();
+    const video = videos[1];
+    const cancel = vi.fn();
+    Object.defineProperty(video, 'requestVideoFrameCallback', {
+      value: vi.fn(() => 7),
+    });
+    Object.defineProperty(video, 'cancelVideoFrameCallback', {value: cancel});
+    view.show(WARM_LIGHT, false);
+    video.dispatchEvent(new Event('playing'));
+    expect(view.ready()).toBe(false);
+    await clock.advance(VIDEO_FRAME_DEADLINE_MS);
+    expect(view.ready()).toBe(true);
+    expect(cancel).toHaveBeenCalledWith(7);
+    view.dispose();
+    expect(vi.getTimerCount()).toBe(0);
+  });
   it('makes a failed replacement ready with the last good background and resets on the next source', () => {
     const {view, videos, onError} = setUp();
     view.show(WARM_LIGHT, false);
@@ -152,6 +171,7 @@ describe('BackgroundLayerView', () => {
 
     front.dispatchEvent(new Event('ended'));
     expect(playsOf(spare)).toBe(1);
+    view.show({...WARM_LIGHT});
     expect(isShown(front)).toBe(true);
     spare.dispatchEvent(new Event('playing'));
     expect(isShown(spare)).toBe(true);

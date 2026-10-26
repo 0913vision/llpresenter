@@ -1,4 +1,4 @@
-import type {Rect} from '../displays/rect';
+import type {Rect, Size} from '../displays/rect';
 import type {
   CreateOutputWindowHandle,
   OutputWindowEvents,
@@ -55,9 +55,15 @@ export class FakeOutputHandle implements OutputWindowHandle {
   }
 
   prepared: Rect | null = null;
+  private viewport: Size = {width: 800, height: 600};
 
   prepare(bounds: Rect): void {
     this.prepared = bounds;
+    this.viewport = bounds;
+  }
+
+  contentSize(): Size {
+    return this.viewport;
   }
 
   configure(screen: OutputScreen): void {
@@ -131,6 +137,8 @@ export class FakeOutputHandle implements OutputWindowHandle {
   }
 
   private place(mode: FakeMode): void {
+    if (mode.kind !== 'hidden' && mode.bounds !== null)
+      this.viewport = mode.bounds;
     this.mode = mode;
     this.placements.push(mode);
   }

@@ -71,7 +71,9 @@ function enterFullScreen(win: BrowserWindow, monitorBounds: Rect): void {
   // overlaps most. A smaller window in the middle of the monitor stays on it
   // even when setBounds sizes it wrong across monitors with different scale
   // factors.
-  win.setBounds(centeredRect(monitorBounds, halfOf(monitorBounds)));
+  if (!sameRect(win.getContentBounds(), monitorBounds)) {
+    win.setBounds(centeredRect(monitorBounds, halfOf(monitorBounds)));
+  }
   win.setFullScreen(true);
 }
 
@@ -256,7 +258,11 @@ export function createElectronOutputWindow(
   return {
     ...presentation,
     configure: screen => win.setTitle(screen.name),
-    prepare: bounds => win.setContentBounds(bounds),
+    prepare: (bounds, kind) => {
+      if (kind === 'window') win.setBounds(bounds);
+      else win.setContentBounds(bounds);
+    },
+    contentSize: () => win.getContentBounds(),
     reload: () => startLoading(win, page),
     crashRenderer: () => {
       if (!win.isDestroyed()) win.webContents.forcefullyCrashRenderer();

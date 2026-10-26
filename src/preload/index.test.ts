@@ -1387,7 +1387,13 @@ describe('preload', () => {
   });
 
   it('waits for main to acknowledge a current ready frame and validates the reply', async () => {
-    const report = {screenId: 'main', version: 7};
+    const report = {
+      screenId: 'main',
+      version: 7,
+      width: 1920,
+      height: 1080,
+      ready: true,
+    };
     electron.invoke.mockResolvedValueOnce(true);
     await expect(api.output.reportReady(report)).resolves.toBe(true);
     expect(electron.invoke).toHaveBeenLastCalledWith(
