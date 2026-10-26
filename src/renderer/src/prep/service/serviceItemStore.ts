@@ -11,6 +11,10 @@ import type {SongEditorStore} from '@renderer/prep/editor';
 import {editorTask} from '@renderer/prep/editor/editorTask';
 import type {SongSession} from '@renderer/prep/editor/songSession';
 import {
+  pendingWritesOf,
+  type PendingWrites,
+} from '@renderer/state/pendingWrites';
+import {
   updateServiceItem,
   type ServiceItemChange,
 } from '@renderer/state/serviceItemUpdate';
@@ -108,8 +112,7 @@ export class ServiceItemStore {
   private serviceRead = 0;
   private songRead = 0;
   private busy = false;
-  private editingStopped = false;
-  private readonly operations = new Set<Promise<unknown>>();
+  private readonly writes: PendingWrites;
   private alive = true;
   private state = NO_ITEM;
 
@@ -118,7 +121,9 @@ export class ServiceItemStore {
     private readonly editor: SongEditorStore,
     private readonly onProblem: (notice: Notice) => void,
   ) {
+    this.writes = pendingWritesOf(api);
     this.stops = [
+      this.writes.subscribe(() => this.publish()),
       api.services.subscribe(change =>
         this.acceptService(change.serviceId, change.document),
       ),
@@ -175,20 +180,6 @@ export class ServiceItemStore {
     return this.operation(() => this.addArrangement());
   }
 
-  /**
-   * Close preflight: stops every new item edit, then resolves once the edits
-   * already running have sent their changes. {@link resume} restarts editing
-   * after a refused close.
-   */
-  async flush(): Promise<void> {
-    this.stopEditing(true);
-    await Promise.allSettled(this.operations);
-  }
-
-  resume(): void {
-    this.stopEditing(false);
-  }
-
   private async addArrangement(): Promise<boolean> {
     const {song, arrangement} = this.state;
     const target = this.target;
@@ -216,7 +207,7 @@ export class ServiceItemStore {
     const {song, arrangement} = this.state;
     if (
       !this.alive ||
-      this.editingStopped ||
+      this.writes.isStopped ||
       song === null ||
       arrangement === undefined
     ) {
@@ -231,23 +222,12 @@ export class ServiceItemStore {
     this.listeners.clear();
   }
 
-  // NOTE(0913vision): Every item edit goes through here, so the close flush
-  // can stop new ones and wait for the running ones in one place.
+  // NOTE(0913vision): Every item edit goes through the window's pending
+  // writes, so the close flush stops new ones, waits for the running ones,
+  // and refuses the close when one didn't reach the main process.
   private operation(task: () => Promise<boolean>): Promise<boolean> {
-    if (!this.alive || this.editingStopped) return Promise.resolve(false);
-    const running = task();
-    this.operations.add(running);
-    const settled = (): void => {
-      this.operations.delete(running);
-    };
-    running.then(settled, settled);
-    return running;
-  }
-
-  private stopEditing(stopped: boolean): void {
-    if (this.editingStopped === stopped) return;
-    this.editingStopped = stopped;
-    this.publish();
+    if (!this.alive) return Promise.resolve(false);
+    return this.writes.run({write: task, refused: false, sent: sent => sent});
   }
 
   private async edit(
@@ -404,7 +384,7 @@ export class ServiceItemStore {
       songStatus: this.songId === null ? null : this.songStatus,
       arrangement: effectiveArrangement(item, song?.history.snapshot.song),
       position: this.position,
-      busy: this.busy || this.editingStopped,
+      busy: this.busy || this.writes.isStopped,
     };
     for (const listener of this.listeners) listener();
   }

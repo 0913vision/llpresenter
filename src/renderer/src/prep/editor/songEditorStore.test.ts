@@ -278,6 +278,39 @@ describe('song editor persistence', () => {
     expect(JSON.stringify(edits)).not.toContain('during close');
   });
 
+  it('refuses the shutdown flush when a running 구성 change fails, and resumes on request', async () => {
+    const {api, store, session} = setup();
+    let fail: () => void = () => undefined;
+    const edit = vi.spyOn(api.content, 'edit').mockImplementationOnce(
+      () =>
+        new Promise((_resolve, reject) => {
+          fail = () => {
+            reject(new Error('Invented disconnect'));
+          };
+        }),
+    );
+    const renaming = store.renameArrangement('주일용', '짧은 구성');
+    await vi.waitFor(() => expect(edit).toHaveBeenCalledOnce());
+    const flushing = store.flush();
+    fail();
+    expect(await flushing).toBe(false);
+    expect(await renaming).toBe(false);
+    expect(store.getSnapshot().busy).toBe(false);
+    expect(session.blocked).toBe(true);
+  });
+
+  it('resumes editing after a successful flush when the close is refused elsewhere', async () => {
+    const {store, session, text} = setup();
+    expect(await store.flush()).toBe(true);
+    expect(store.getSnapshot().busy).toBe(true);
+    store.resume();
+    expect(store.getSnapshot().busy).toBe(false);
+    text('after resume');
+    expect(session.history.snapshot.song.slides[0]?.lines).toEqual([
+      'after resume',
+    ]);
+  });
+
   it('restarts edits after a refused shutdown flush', async () => {
     const {store, session, text} = setup();
     vi.spyOn(session, 'flush').mockResolvedValueOnce(false);

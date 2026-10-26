@@ -246,23 +246,29 @@ export class SongEditorStore {
 
   /**
    * Preflight shutdown before unmounting. Every edit stops first, so nothing
-   * typed during or after the flush can be lost. False keeps a refused draft
-   * and restarts editing; after true, editing stays stopped until the window
-   * closes.
+   * typed during or after the flush can be lost. A 구성 or 이름표 change that
+   * is still running must go through too. False keeps a refused draft and
+   * restarts editing; after true, editing stays stopped until the window
+   * closes or {@link resume}.
    */
   async flush(): Promise<boolean> {
     this.stopEditing(true);
     let flushed = false;
     try {
-      await this.operation;
+      const operationDone = (await this.operation) ?? true;
       const results = await Promise.all(
         [...this.sessions.values()].map(session => session.flush()),
       );
-      flushed = results.every(Boolean);
+      flushed = operationDone && results.every(Boolean);
       return flushed;
     } finally {
       if (!flushed) this.stopEditing(false);
     }
+  }
+
+  /** Restarts editing when the window's close was refused elsewhere. */
+  resume(): void {
+    this.stopEditing(false);
   }
 
   async dispose(): Promise<void> {

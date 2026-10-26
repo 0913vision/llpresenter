@@ -1,6 +1,7 @@
 import type {LlpApi, Unsubscribe} from '@shared/ipc';
 import {answerCloseFlush, SongEditorStore} from '@renderer/prep/editor';
 import {ServiceItemStore} from '@renderer/prep/service/serviceItemStore';
+import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {addNotice, removeNotice, type Notice} from '@renderer/ui/notices';
 
 /** Window-owned editor sessions and their shared notification destination. */
@@ -81,19 +82,27 @@ export class ControlSession {
     return this.closing;
   }
 
+  // NOTE(0913vision): Unsent work lives in the editor's sessions and
+  // operations and in the window's pending writes (item, 예배 순서, and
+  // background edits). The close goes on only when all of it reached main.
   private async flushBeforeClose(): Promise<boolean> {
     this.editorBlocked = true;
+    const writes =
+      this.api === undefined ? undefined : pendingWritesOf(this.api);
     let flushed = false;
     try {
-      const [, editorFlushed] = await Promise.all([
-        this.itemStore?.flush(),
-        this.editorStore?.flush(),
+      const [sent, editorFlushed] = await Promise.all([
+        writes?.flush() ?? Promise.resolve(true),
+        this.editorStore?.flush() ?? Promise.resolve(true),
       ]);
-      flushed = editorFlushed ?? true;
+      flushed = sent && editorFlushed;
       return flushed;
     } finally {
       this.editorBlocked = flushed;
-      if (!flushed) this.itemStore?.resume();
+      if (!flushed) {
+        writes?.resume();
+        this.editorStore?.resume();
+      }
     }
   }
 

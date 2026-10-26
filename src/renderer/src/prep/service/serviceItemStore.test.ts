@@ -8,6 +8,7 @@ import {isItemOfKind} from '@shared/schema/service';
 import {SongEditorStore} from '@renderer/prep/editor';
 import type {Notice} from '@renderer/ui/notices';
 import {fixtureItems, fixtureServiceId, itemFixture} from './itemFixture';
+import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {ServiceItemStore} from './serviceItemStore';
 
 function setup() {
@@ -275,14 +276,16 @@ describe('service item store', () => {
     );
     const choosing = items.chooseArrangement(undefined);
     let flushed = false;
-    const flushing = items.flush().then(() => {
+    const writes = pendingWritesOf(api);
+    const flushing = writes.flush().then(sent => {
       flushed = true;
+      return sent;
     });
     await settle();
     expect(flushed).toBe(false);
     expect(items.getSnapshot().busy).toBe(true);
     answer();
-    await flushing;
+    expect(await flushing).toBe(true);
     expect(await choosing).toBe(true);
     expect(edits.filter(edit => edit.type === 'service.update')).toHaveLength(
       1,
@@ -293,7 +296,7 @@ describe('service item store', () => {
     expect(edits.filter(edit => edit.type === 'service.update')).toHaveLength(
       1,
     );
-    items.resume();
+    writes.resume();
     expect(items.getSnapshot().busy).toBe(false);
     expect(await items.chooseArrangement('주일용')).toBe(true);
   });

@@ -14,6 +14,7 @@ import {
   createSongId,
 } from '@shared/schema/ids';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import {pendingWritesOf} from './pendingWrites';
 import {ServiceOrderEdits} from './serviceOrderEdits';
 
 const serviceId = createServiceId('00000000-0000-4000-8000-000000000001');
@@ -107,6 +108,21 @@ function fixture() {
 }
 
 describe('service order edits', () => {
+  it('runs through the window pending writes and refuses edits once they stop', async () => {
+    const {api, edits, edit} = fixture();
+    const writes = pendingWritesOf(api);
+    const moving = edits.move(serviceId, third, first);
+    const flushing = writes.flush();
+    expect(await moving).toEqual({ok: true, value: true});
+    expect(await flushing).toBe(true);
+    expect(await edits.move(serviceId, first, third)).toMatchObject({
+      ok: false,
+      error: {reason: 'busy'},
+    });
+    expect(edit).toHaveBeenCalledOnce();
+    writes.resume();
+  });
+
   it('moves songs and unknown rows without changing outputs', async () => {
     const {edits, ids, send, edit} = fixture();
     expect(await edits.move(serviceId, third, first)).toEqual({

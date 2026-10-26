@@ -8,6 +8,7 @@ import {
   createServiceItemId,
   createSongId,
 } from '@shared/schema/ids';
+import {pendingWritesOf} from './pendingWrites';
 import {updateServiceBackground} from './serviceBackground';
 
 const serviceId = createServiceId('00000000-0000-4000-8000-000000000001');
@@ -61,6 +62,34 @@ function setup() {
 }
 
 describe('service song background edits', () => {
+  it('runs through the window pending writes and refuses once they stop for a close', async () => {
+    const {api, get, edit, change} = setup();
+    let answer: () => void = () => undefined;
+    get.mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          answer = () => {
+            resolve(null);
+          };
+        }),
+    );
+    const writes = pendingWritesOf(api);
+    const changing = updateServiceBackground(api, change);
+    const flushing = writes.flush();
+    answer();
+    expect(await changing).toMatchObject({
+      ok: false,
+      error: {reason: 'not-found'},
+    });
+    expect(await flushing).toBe(false);
+    expect(await updateServiceBackground(api, change)).toMatchObject({
+      ok: false,
+      error: {reason: 'request-failed'},
+    });
+    expect(edit).not.toHaveBeenCalled();
+    writes.resume();
+  });
+
   it('sets only the item override against the fresh revision and preserves unknown data', async () => {
     const {document, api, edit, change} = setup();
     const before = structuredClone(document);

@@ -10,6 +10,7 @@ import {
 } from '@shared/schema/ids';
 import {isItemOfKind, type Service} from '@shared/schema/service';
 import {sectionBoundaryIndex} from '@renderer/show/serviceSections';
+import {pendingWritesOf} from './pendingWrites';
 
 const HISTORY_LIMIT = 100;
 type Order = Service['order'];
@@ -186,10 +187,27 @@ export class ServiceOrderEdits {
     );
   }
 
-  private async update(
+  // NOTE(0913vision): The window's pending writes let the close flush wait
+  // for an edit between its read and its write, and refuse new ones.
+  private update(
     serviceId: ServiceId,
     change: OrderChange,
     action: HistoryAction = 'record',
+  ): Promise<ServiceOrderEditResult> {
+    return pendingWritesOf(this.api).run({
+      write: () => this.send(serviceId, change, action),
+      refused: {
+        ok: false,
+        error: {reason: 'busy', message: 'Edits stopped for closing'},
+      },
+      sent: result => result.ok || result.error.reason === 'write-failed',
+    });
+  }
+
+  private async send(
+    serviceId: ServiceId,
+    change: OrderChange,
+    action: HistoryAction,
   ): Promise<ServiceOrderEditResult> {
     if (this.busy) {
       return {

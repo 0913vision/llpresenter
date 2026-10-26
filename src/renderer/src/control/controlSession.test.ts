@@ -119,3 +119,49 @@ it('restarts item edits when the editor refuses the close flush', async () => {
   expect(await items.chooseArrangement('주일용')).toBe(true);
   await session.dispose();
 });
+
+it('refuses the close when a pending item read rejects while the editor flush succeeds, and resumes both', async () => {
+  const {api} = itemFixture();
+  let request: (value: AppFlushRequest) => void = () => undefined;
+  vi.spyOn(api.app, 'subscribeFlushRequests').mockImplementation(listener => {
+    request = listener;
+    return () => undefined;
+  });
+  const flushDone = vi.spyOn(api.app, 'flushDone');
+  vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  const session = new ControlSession(api);
+  session.startEditor();
+  const {items, editor} = session;
+  if (items === undefined || editor === undefined) {
+    throw new Error('Missing stores');
+  }
+  items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
+  await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
+  let fail: () => void = () => undefined;
+  vi.spyOn(api.services, 'get').mockImplementationOnce(
+    () =>
+      new Promise((_resolve, reject) => {
+        fail = () => {
+          reject(new Error('Invented read failure'));
+        };
+      }),
+  );
+  const choosing = items.chooseArrangement(undefined);
+  const requestId = createAppFlushRequestId(
+    'c29a83da-f097-41a3-8eb5-263748596071',
+  );
+  request({requestId});
+  await vi.waitFor(() => expect(editor.getSnapshot().busy).toBe(true));
+  fail();
+  await vi.waitFor(() => {
+    expect(flushDone).toHaveBeenCalledExactlyOnceWith({
+      requestId,
+      result: false,
+    });
+  });
+  expect(await choosing).toBe(false);
+  expect(items.getSnapshot().busy).toBe(false);
+  expect(editor.getSnapshot().busy).toBe(false);
+  expect(await items.chooseArrangement('주일용')).toBe(true);
+  await session.dispose();
+});
