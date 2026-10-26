@@ -150,14 +150,16 @@ export function DisplayLayout({
                   monitor.hasMainWindow ||
                   monitor.id === undefined ||
                   !event.dataTransfer.types.includes(SCREEN_DRAG_MIME)
-                )
-                  {return;}
+                ) {
+                  return;
+                }
                 const screenId = event.dataTransfer.getData(SCREEN_DRAG_MIME);
                 if (
                   screenId.length > MONITOR_SCREEN_ID_MAX ||
                   !screens.some(screen => screen.id === screenId)
-                )
-                  {return;}
+                ) {
+                  return;
+                }
                 event.preventDefault();
                 select('screen', screenId);
                 editor.assign(screenId, monitor);
