@@ -4,7 +4,7 @@
 .ll-key {
   box-sizing: border-box; display: inline-block; flex: none; min-width: 22px; height: var(--size-count); padding: 0 var(--space-6);
   border-radius: var(--radius-sm); background: var(--bg-control); color: var(--text);
-  font-family: var(--font-ui); font-size: 11px; line-height: 18px; font-weight: 600; text-align: center; white-space: nowrap;
+  font: var(--type-caption-strong); line-height: var(--size-count); text-align: center; white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 .ll-keys[data-state="changed"] .ll-key { background: var(--selection); }
@@ -12,7 +12,7 @@
 .ll-keys[data-state="warning"] { outline: 1px solid var(--warning); outline-offset: 2px; }
 .ll-key-warn { flex: none; display: inline-flex; color: var(--warning); }
 .ll-key-warn .ll-i { width: var(--size-icon-14); height: var(--size-icon-14); }
-.ll-key-empty { font-size: 12px; line-height: 16px; color: var(--text-3); }
+.ll-key-empty { font: var(--type-label); color: var(--text-3); }
 
 /* Text shortcut: size follows the surrounding text. In tooltips and menus,
    ll-tooltip__key (Tooltip) and ll-menu__meta (Menu) draw the same look */

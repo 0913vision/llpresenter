@@ -3,7 +3,7 @@
   box-sizing: border-box; display: inline-flex; align-items: center; gap: var(--space-8);
   min-width: 0; height: var(--size-control-md); padding: 0 var(--space-10);
   border-radius: var(--radius-md); background: var(--bg-well); color: var(--text-3);
-  font-family: var(--font-ui); font-size: 13px; line-height: 18px; vertical-align: middle;
+  font: var(--type-body); vertical-align: middle;
 }
 /* Raised one level to beat `.ll-root input { font: inherit; color: inherit }` (0,1,1) in 00-base */
 .ll-field__input, :is(.ll-root, .ll-preview) .ll-field__input {
@@ -16,7 +16,7 @@
 .ll-field__icon { flex: none; width: var(--size-icon-16); height: var(--size-icon-16); color: var(--text-3); }
 
 /* sm: panel headers, 퀵 실행 in a narrow window, palettes. The toolbar search stays md even in a narrow window */
-.ll-field--sm { height: var(--size-control-sm); padding: 0 var(--space-8); gap: var(--space-6); font-size: 12px; line-height: 16px; }
+.ll-field--sm { height: var(--size-control-sm); padding: 0 var(--space-8); gap: var(--space-6); font: var(--type-label); }
 .ll-field--sm .ll-field__icon { width: var(--size-icon-14); height: var(--size-icon-14); }
 
 /* Fills the cell (property fields, dialog input rows) */
@@ -28,13 +28,13 @@
 /* Number field. The unit sits outside the field */
 .ll-field--num { width: 96px; }
 .ll-field--num .ll-field__input { text-align: right; font-variant-numeric: tabular-nums; }
-.ll-field-unit { flex: none; font-size: 12px; line-height: 16px; color: var(--text-3); }
+.ll-field-unit { flex: none; font: var(--type-label); color: var(--text-3); }
 
 /* Prefix inside the field (start and end of a range field) */
-.ll-field__affix { flex: none; font-size: 11px; line-height: 14px; color: var(--text-3); }
+.ll-field__affix { flex: none; font: var(--type-caption); color: var(--text-3); }
 
 /* Title field: song title in a panel header (imported song editing) */
-.ll-field--title { width: 280px; height: var(--size-control-sm); padding: 0 var(--space-8); font-size: 13px; line-height: 18px; font-weight: 600; }
+.ll-field--title { width: 280px; height: var(--size-control-sm); padding: 0 var(--space-8); font: var(--type-body-strong); }
 
 /* Clear-text button: shows only when there is a value */
 .ll-field__clear, :is(.ll-root, .ll-preview) .ll-field__clear {
@@ -61,7 +61,7 @@
 .ll-textarea {
   box-sizing: border-box; display: block; width: 100%; min-height: 72px; margin: 0; padding: var(--space-8) var(--space-10);
   border: 0; outline: none; border-radius: var(--radius-md); background: var(--bg-well); color: var(--text);
-  font-family: var(--font-ui); font-size: 13px; line-height: 18px; resize: none; overflow: auto;
+  font: var(--type-body); resize: none; overflow: auto;
 }
 .ll-textarea::placeholder { color: var(--text-3); opacity: 1; }
 .ll-textarea:focus, .ll-textarea.is-focus { box-shadow: var(--ring-field-focus); }

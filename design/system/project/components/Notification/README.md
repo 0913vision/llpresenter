@@ -24,7 +24,7 @@ output connection changes and save failures.
   on its inside left edge.
 - Leading icon: 18px, `warning` for warnings or `text-2` for information.
   Center its mask in a `size-control-sm` (26px) title line.
-- Title row: `type-title` (14/20/600), with `type-label` (12/16) time in
+- Title row: `type-title` (16/22/600), with `type-label` (14/20) time in
   `text-3` at the trailing edge. Keep `space-10` between title and time. Long
   titles truncate; the time and close control remain visible.
 - Details: `space-2` below the title row, `type-label` in `text-2`. Use

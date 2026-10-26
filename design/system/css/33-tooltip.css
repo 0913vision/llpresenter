@@ -1,6 +1,6 @@
 /* 33 Tooltip: name, shortcut, disabled or error reason. No arrow. */
 
-.ll-tooltip { box-sizing: border-box; display: block; width: max-content; max-width: 280px; padding: 5px var(--space-8); border-radius: var(--radius-md); background: var(--bg-raised); box-shadow: var(--shadow-popover); color: var(--text); font-size: 12px; line-height: 16px; font-weight: 400; text-align: left; word-break: keep-all; overflow-wrap: anywhere; pointer-events: none; z-index: var(--z-tooltip); animation: ll-tooltip-in 120ms ease-out; }
+.ll-tooltip { box-sizing: border-box; display: block; width: max-content; max-width: 280px; padding: 5px var(--space-8); border-radius: var(--radius-md); background: var(--bg-raised); box-shadow: var(--shadow-popover); color: var(--text); font: var(--type-label); text-align: left; word-break: keep-all; overflow-wrap: anywhere; pointer-events: none; z-index: var(--z-tooltip); animation: ll-tooltip-in 120ms ease-out; }
 .ll-tooltip__key { margin-left: var(--space-8); color: var(--text-3); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .ll-tooltip__sub { display: block; margin-top: var(--space-2); color: var(--text-3); font-variant-numeric: tabular-nums; }
 

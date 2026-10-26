@@ -3,7 +3,7 @@
   box-sizing: border-box; position: relative; display: inline-flex; flex: none; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-4);
   height: var(--size-toolbar-button); min-width: 0; margin: 0; padding: 0 var(--space-8);
   border: 0; border-radius: var(--radius-lg); background: transparent; color: var(--text);
-  font-family: var(--font-ui); font-size: 11px; line-height: 14px; font-weight: 500; white-space: nowrap;
+  font: var(--type-toolbar-label); white-space: nowrap;
   cursor: default; user-select: none; -webkit-user-select: none;
   transition: background-color 100ms ease-out, color 100ms ease-out;
 }
@@ -48,7 +48,7 @@
 .ll-tbtn:is(:disabled, [aria-disabled="true"]) .ll-tbtn__chevron { color: var(--text-off); }
 
 /* Narrow window (toolbar 40) */
-.ll-tbtn.ll-tbtn--compact { flex-direction: row; gap: var(--space-6); height: 32px; padding: 0 var(--space-10) 0 var(--space-8); font-size: 12px; line-height: 16px; font-weight: 400; }
+.ll-tbtn.ll-tbtn--compact { flex-direction: row; gap: var(--space-6); height: 32px; padding: 0 var(--space-10) 0 var(--space-8); font: var(--type-label); }
 .ll-tbtn.ll-tbtn--compact .ll-i { width: var(--size-icon-16); height: var(--size-icon-16); }
 .ll-tbtn.ll-tbtn--compact .ll-tbtn__chevron { width: var(--size-icon-12); height: var(--size-icon-12); }
 .ll-tbtn.ll-tbtn--compact.ll-tbtn--tab,

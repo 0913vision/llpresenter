@@ -2,7 +2,7 @@
 .ll-statusbar {
   box-sizing: border-box; display: flex; flex: none; align-items: center; gap: var(--space-18);
   height: var(--size-statusbar); min-width: 0; padding: 0 var(--space-18); background: var(--bg-app); color: var(--text-3);
-  font-family: var(--font-ui); font-size: 11px; line-height: 14px; font-weight: 400; white-space: nowrap;
+  font: var(--type-caption); white-space: nowrap;
   font-variant-numeric: tabular-nums; cursor: default; user-select: none; -webkit-user-select: none;
 }
 .ll-statusbar__item { display: inline-flex; flex: none; align-items: center; gap: var(--space-6); min-width: 0; }

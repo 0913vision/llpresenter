@@ -6,9 +6,9 @@
 .ll-media__frame { position: relative; display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: var(--radius-md); overflow: hidden; background: var(--bg-well); transition: box-shadow 100ms ease-out; }
 .ll-media__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 /* Duration: bottom right of the picture, with a 12px loop icon for looping playback. */
-.ll-media__dur { position: absolute; right: var(--space-6); bottom: var(--space-6); box-sizing: border-box; display: inline-flex; align-items: center; gap: var(--space-4); height: var(--size-count); padding: 0 var(--space-6); border-radius: var(--radius-sm); background: var(--scrim-strong); color: var(--text); font-size: 11px; line-height: 14px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ll-media__dur { position: absolute; right: var(--space-6); bottom: var(--space-6); box-sizing: border-box; display: inline-flex; align-items: center; gap: var(--space-4); height: var(--size-count); padding: 0 var(--space-6); border-radius: var(--radius-sm); background: var(--scrim-strong); color: var(--text); font: var(--type-caption-strong); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ll-media__dur .ll-i { margin-left: -2px; }
-.ll-media__name { min-width: 0; font-size: 12px; line-height: 16px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.ll-media__name { min-width: 0; font: var(--type-label); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 
 /* States: hover < selected < live. */
 .ll-media:hover .ll-media__frame, .ll-media.is-hover .ll-media__frame { box-shadow: 0 0 0 1px var(--line-control); }
@@ -25,7 +25,7 @@
 .ll-media[data-state~="warning"] .ll-media__missing { display: flex; }
 
 /* Copying: scrim + percentage + progress bar. Can't be clicked. */
-.ll-media__busy { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: var(--scrim); color: var(--text); font-size: 11px; line-height: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.ll-media__busy { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: var(--scrim); color: var(--text); font: var(--type-caption-strong); font-variant-numeric: tabular-nums; }
 .ll-media__busy .ll-progress { position: absolute; left: var(--space-6); right: var(--space-6); bottom: var(--space-6); }
 .ll-media[data-state~="busy"] .ll-media__busy { display: flex; }
 .ll-media[data-state~="busy"] .ll-media__dur { display: none; }

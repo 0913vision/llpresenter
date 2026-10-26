@@ -18,7 +18,7 @@ A floating menu. Menu bar menus, submenus, right-click menus, and popover lists 
 ## Anatomy
 
 - Surface `ll-menu`: background `bg-raised`, corner radius `radius-xl` (6px), shadow `shadow-popover` (includes a 1px `line-strong` border), padding `space-6`. The width fits the content, with a minimum of 180 and a maximum of 320 (service picker 300, macro right-click menu 240). Stacking `z-popover`.
-- Item `ll-menu__item`: height `size-row-menu` (28px), horizontal padding `space-8`, corner radius `radius-md`, text `body` (13/18) `text`. Gap between parts `space-10`.
+- Item `ll-menu__item`: height `size-row-menu` (28px), horizontal padding `space-8`, corner radius `radius-md`, text `body` (16/22) `text`. Gap between parts `space-10`.
   - Leading slot `ll-menu__lead`: 14×14. A 14px icon in `text-2`, or the check mark for the current item (`check` 14px `text`). If any item in a menu uses the leading slot, give every item an empty leading slot. Then all names start on the line 32px (8 + 14 + 10) from the left of the item. A menu that doesn't need a leading slot (the 파일 menu) has none at all.
   - Name `ll-menu__label`: takes the remaining width, truncates with an ellipsis.
   - Trailing info `ll-menu__meta`: `caption` (11/14) `text-3`, tabular numbers, at least 16px from the name. Dates ("10월 25일") and shortcuts ("Ctrl Z", the text shortcut from `KeyCap`).
@@ -41,7 +41,7 @@ A floating menu. Menu bar menus, submenus, right-click menus, and popover lists 
 
 | Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
-| Menu bar menu | Item 28 | `body` 13/18 | 파일, 편집, 보기, 출력, 창, 도움말 |
+| Menu bar menu | Item 28 | `body` 16/22 | 파일, 편집, 보기, 출력, 창, 도움말 |
 | Submenu | Item 28 | `body`, leading icon 14 | 가져오기 › 텍스트 파일, 클립보드 텍스트, PowerPoint 파일 |
 | Right-click menu | Item 28 | `body` | Macro (실행, 이름 바꾸기, 동작 추가 ›, 삭제) |
 | Popover list | Search 30 + item 28 | `body` + `caption` date | Service picker |

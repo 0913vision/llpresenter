@@ -5,10 +5,10 @@
 .ll-rowlist--inset { display: flex; flex-direction: column; padding: var(--space-8); }
 
 /* One-line row */
-.ll-row, :is(.ll-root, .ll-preview) .ll-row { position: relative; box-sizing: border-box; display: flex; align-items: center; gap: var(--space-10); width: 100%; height: var(--size-row); padding: 0 var(--panel-inset); border: 0; border-radius: 0; background: transparent; color: var(--text); font: inherit; font-size: 13px; line-height: 18px; font-weight: 400; text-align: left; cursor: default; transition: background-color 100ms ease-out; }
+.ll-row, :is(.ll-root, .ll-preview) .ll-row { position: relative; box-sizing: border-box; display: flex; align-items: center; gap: var(--space-10); width: 100%; height: var(--size-row); padding: 0 var(--panel-inset); border: 0; border-radius: 0; background: transparent; color: var(--text); font: var(--type-body); text-align: left; cursor: default; transition: background-color 100ms ease-out; }
 .ll-row__icon { flex: none; color: var(--text-2); }
 .ll-row__title { flex: 1 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.ll-row__meta { flex: none; font-size: 11px; line-height: 14px; color: var(--text-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ll-row__meta { flex: none; font: var(--type-caption); color: var(--text-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ll-row__warn { flex: none; color: var(--warning); }
 
 .ll-row:hover, .ll-row.is-hover { background: var(--bg-raised); }
@@ -36,20 +36,20 @@
 .ll-row[aria-disabled="true"] .ll-row__icon, .ll-row[aria-disabled="true"] .ll-row__meta { color: var(--text-off); }
 
 /* Group header: a checkbox can come first */
-.ll-row-group { box-sizing: border-box; display: flex; align-items: center; gap: var(--space-10); margin: 0; padding: var(--space-10) var(--panel-inset) 5px; font-size: 11px; line-height: 14px; font-weight: 600; color: var(--text-3); }
+.ll-row-group { box-sizing: border-box; display: flex; align-items: center; gap: var(--space-10); margin: 0; padding: var(--space-10) var(--panel-inset) 5px; font: var(--type-caption-strong); color: var(--text-3); }
 .ll-rowlist--inset .ll-row-group { padding-left: var(--space-10); padding-right: var(--space-10); }
 .ll-rowlist--inset > .ll-row { padding: 0 var(--space-10); border-radius: var(--radius-lg); }
 
 /* Two-line item: name + second line */
 .ll-row.ll-row--double { height: var(--size-row-double); padding: 0 var(--space-10); border-radius: var(--radius-lg); }
 .ll-row__lines { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: var(--space-2); }
-.ll-row__sub { display: flex; gap: var(--space-8); min-width: 0; overflow: hidden; font-size: 11px; line-height: 14px; color: var(--text-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ll-row__sub { display: flex; gap: var(--space-8); min-width: 0; overflow: hidden; font: var(--type-caption); color: var(--text-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ll-row--double:active .ll-row__sub, .ll-row--double.is-active .ll-row__sub { color: var(--text-2); }
 
 /* Empty slot: a 틀 cell that isn't filled yet */
 .ll-row__slot { flex: 1 1 auto; min-width: 0; box-sizing: border-box; display: flex; align-items: center; gap: var(--space-10); height: 24px; padding: 0 var(--space-6); border: 1px dashed var(--line-control); border-radius: var(--radius-md); color: var(--text-3); }
 .ll-row__slot .ll-row__icon { color: var(--text-3); }
-.ll-row__slot-mark { flex: none; margin-left: auto; font-size: 11px; line-height: 14px; }
+.ll-row__slot-mark { flex: none; margin-left: auto; font: var(--type-caption); }
 
 /* Drop position: a zero-height element between two rows */
 .ll-row-insert { position: relative; height: 0; pointer-events: none; }

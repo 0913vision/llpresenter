@@ -2,7 +2,7 @@
 .ll-macro-grid { box-sizing: border-box; display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: var(--space-16) var(--space-8); justify-items: center; align-content: start; }
 .ll-macro, :is(.ll-root, .ll-preview) .ll-macro { box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: var(--space-8); width: 100%; min-width: 0; margin: 0; padding: 0; border: 0; background: transparent; color: var(--text-2); font: inherit; cursor: default; }
 .ll-macro__tile { position: relative; box-sizing: border-box; display: inline-flex; flex: none; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: var(--radius-tile); background: var(--ll-label); color: var(--text-on-label); transition: box-shadow 100ms ease-out, background-color 100ms ease-out; }
-.ll-macro__name { max-width: 100%; font-size: 12px; line-height: 16px; text-align: center; word-break: keep-all; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.ll-macro__name { max-width: 100%; font: var(--type-label); text-align: center; word-break: keep-all; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
 /* Schedule mark (on start, at a set time). */
 .ll-macro__clock { position: absolute; right: -6px; top: -6px; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: var(--radius-full); background: var(--bg-control); box-shadow: 0 0 0 2px var(--bg-panel); color: var(--text); }
 
@@ -20,10 +20,10 @@
 .ll-macro--new:hover .ll-macro__tile, .ll-macro--new.is-hover .ll-macro__tile { background: var(--bg-raised); box-shadow: none; }
 
 /* List view row: list row rules with a 20px color cell. */
-.ll-macro-row, :is(.ll-root, .ll-preview) .ll-macro-row { box-sizing: border-box; display: flex; align-items: center; gap: var(--space-10); width: 100%; height: var(--size-row); margin: 0; padding: 0 var(--panel-inset); border: 0; background: transparent; color: var(--text); font: inherit; font-size: 13px; line-height: 18px; text-align: left; cursor: default; transition: background-color 100ms ease-out; }
+.ll-macro-row, :is(.ll-root, .ll-preview) .ll-macro-row { box-sizing: border-box; display: flex; align-items: center; gap: var(--space-10); width: 100%; height: var(--size-row); margin: 0; padding: 0 var(--panel-inset); border: 0; background: transparent; color: var(--text); font: var(--type-body); text-align: left; cursor: default; transition: background-color 100ms ease-out; }
 .ll-macro-row__swatch { display: inline-flex; flex: none; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: var(--radius-md); background: var(--ll-label); color: var(--text-on-label); }
 .ll-macro-row__name { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.ll-macro-row__meta { display: inline-flex; flex: none; align-items: center; gap: var(--space-4); color: var(--text-3); font-size: 11px; line-height: 14px; font-variant-numeric: tabular-nums; }
+.ll-macro-row__meta { display: inline-flex; flex: none; align-items: center; gap: var(--space-4); color: var(--text-3); font: var(--type-caption); font-variant-numeric: tabular-nums; }
 .ll-macro-row:hover, .ll-macro-row.is-hover { background: var(--bg-raised); }
 .ll-macro-row[data-state~="last-run"] .ll-macro-row__name { font-weight: 600; }
 .ll-macro-row[aria-selected="true"] { background: var(--selection); }

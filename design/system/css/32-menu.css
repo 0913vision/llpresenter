@@ -1,9 +1,9 @@
 /* 32 Menu: menu bar menus, submenus, right-click menus, popover lists (service picker, labels) */
 
-.ll-menu { box-sizing: border-box; display: flex; flex-direction: column; min-width: 180px; max-width: 320px; padding: var(--space-6); border-radius: var(--radius-xl); background: var(--bg-raised); box-shadow: var(--shadow-popover); color: var(--text); font-size: 13px; line-height: 18px; z-index: var(--z-popover); animation: ll-menu-in 120ms ease-out; }
+.ll-menu { box-sizing: border-box; display: flex; flex-direction: column; min-width: 180px; max-width: 320px; padding: var(--space-6); border-radius: var(--radius-xl); background: var(--bg-raised); box-shadow: var(--shadow-popover); color: var(--text); font: var(--type-body); z-index: var(--z-popover); animation: ll-menu-in 120ms ease-out; }
 .ll-menu__scroll { min-height: 0; overflow-y: auto; display: flex; flex-direction: column; scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
 
-.ll-menu__item, :is(.ll-root, .ll-preview) .ll-menu__item { flex: none; box-sizing: border-box; display: flex; align-items: center; gap: var(--space-10); width: 100%; height: var(--size-row-menu); padding: 0 var(--space-8); border: 0; border-radius: var(--radius-md); background: transparent; color: var(--text); font: inherit; font-size: 13px; line-height: 18px; text-align: left; white-space: nowrap; cursor: default; transition: none; }
+.ll-menu__item, :is(.ll-root, .ll-preview) .ll-menu__item { flex: none; box-sizing: border-box; display: flex; align-items: center; gap: var(--space-10); width: 100%; height: var(--size-row-menu); padding: 0 var(--space-8); border: 0; border-radius: var(--radius-md); background: transparent; color: var(--text); font: var(--type-body); text-align: left; white-space: nowrap; cursor: default; transition: none; }
 /* A pointed item (mouse or arrow keys) and the parent of an open submenu share one background. No focus ring inside a menu. */
 .ll-menu__item:hover, .ll-menu__item:focus-visible, .ll-menu__item.is-hover, .ll-menu__item[aria-expanded="true"] { background: var(--bg-control-hover); outline: none; }
 .ll-menu__item:hover .ll-menu__meta, .ll-menu__item:hover .ll-menu__chevron,
@@ -14,7 +14,7 @@
 .ll-menu__lead { flex: none; display: inline-flex; align-items: center; justify-content: center; width: var(--size-icon-14); height: var(--size-icon-14); color: var(--text-2); }
 .ll-menu__lead .ll-i-check { color: var(--text); }
 .ll-menu__label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-.ll-menu__meta { flex: none; margin-left: var(--space-6); font-size: 11px; line-height: 14px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.ll-menu__meta { flex: none; margin-left: var(--space-6); font: var(--type-caption); color: var(--text-3); font-variant-numeric: tabular-nums; }
 .ll-menu__chevron { flex: none; color: var(--text-3); }
 
 /* Label swatch: after the leading slot, before the name. */
@@ -37,13 +37,13 @@
 .ll-menu__item[aria-disabled="true"] .ll-menu__lead, .ll-menu__item[aria-disabled="true"] .ll-menu__meta, .ll-menu__item[aria-disabled="true"] .ll-menu__chevron { color: var(--text-off); }
 
 .ll-menu__sep { flex: none; height: 1px; margin: var(--space-4) var(--space-2); background: var(--line-strong); }
-.ll-menu__group { flex: none; padding: var(--space-6) var(--space-8) var(--space-4); font-size: 11px; line-height: 14px; font-weight: 600; color: var(--text-3); white-space: nowrap; }
+.ll-menu__group { flex: none; padding: var(--space-6) var(--space-8) var(--space-4); font: var(--type-caption-strong); color: var(--text-3); white-space: nowrap; }
 .ll-menu > .ll-menu__group:first-child { padding-top: var(--space-2); }
 
 /* Search field at the top. Its text starts on the same 32px line as the item names. */
 .ll-menu__search { flex: none; box-sizing: border-box; display: flex; align-items: center; gap: var(--space-8); height: var(--size-control-md); margin-bottom: var(--space-4); padding: 0 var(--space-8); border-radius: var(--radius-md); background: var(--bg-well); color: var(--text-3); }
 .ll-menu__search:focus-within, .ll-menu__search.is-focus { box-shadow: var(--ring-field-focus); outline: none; }
-.ll-menu__search input { flex: 1 1 auto; min-width: 0; height: 100%; padding: 0; border: 0; outline: 0; background: transparent; color: var(--text); font: inherit; font-size: 13px; line-height: 18px; }
+.ll-menu__search input { flex: 1 1 auto; min-width: 0; height: 100%; padding: 0; border: 0; outline: 0; background: transparent; color: var(--text); font: var(--type-body); }
 
 @keyframes ll-menu-in { from { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) {

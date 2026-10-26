@@ -1,5 +1,5 @@
 /* 00 Base: font and background, button reset, focus, icons, preview tools */
-.ll-root, .ll-preview { font-family: var(--font-ui); font-size: 13px; line-height: 18px; color: var(--text); -webkit-font-smoothing: antialiased; font-synthesis: none; }
+.ll-root, .ll-preview { font: var(--type-body); color: var(--text); -webkit-font-smoothing: antialiased; font-synthesis: none; }
 /* The reset uses :where() for zero specificity so that component rules always win */
 :where(.ll-root, .ll-preview) :where(button, input, textarea, select) { font: inherit; color: inherit; margin: 0; cursor: default; }
 :where(.ll-root, .ll-preview) :where(input, textarea)::placeholder { color: var(--text-3); }
@@ -106,6 +106,6 @@
 .ll-preview { box-sizing: border-box; padding: 20px; background: var(--bg-app); display: flex; flex-direction: column; gap: 20px; }
 .ll-spec { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 24px; }
 .ll-spec-item { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
-.ll-spec-label { font-size: 11px; line-height: 14px; color: var(--text-3); white-space: nowrap; }
-.ll-spec-title { font-size: 12px; line-height: 16px; font-weight: 600; color: var(--text-2); }
+.ll-spec-label { font: var(--type-caption); color: var(--text-3); white-space: nowrap; }
+.ll-spec-title { font: var(--type-label-strong); color: var(--text-2); }
 .ll-on-panel { box-sizing: border-box; padding: 14px; border-radius: var(--radius-lg); background: var(--bg-panel); }

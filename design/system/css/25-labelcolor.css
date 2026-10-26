@@ -1,7 +1,7 @@
 /* 25 LabelColorPicker: 이름표 color picker (ll-swatches, ll-swatch) */
 .ll-swatches { display: flex; align-items: center; gap: 0; font-family: var(--font-ui); }
 .ll-swatches--menu { padding: var(--space-2) var(--space-4); }
-.ll-swatches__label { flex: none; margin: 0 var(--space-4); font-size: 13px; line-height: 18px; color: var(--text); }
+.ll-swatches__label { flex: none; margin: 0 var(--space-4); font: var(--type-body); color: var(--text); }
 
 .ll-swatch, :is(.ll-root, .ll-preview) .ll-swatch {
   box-sizing: border-box; flex: none; display: inline-flex; align-items: center; justify-content: center;

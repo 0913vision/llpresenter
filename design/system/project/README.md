@@ -84,22 +84,28 @@ The app uses one typeface, Pretendard Variable (`fonts/PretendardVariable.woff2`
 
 | Style | Size/line height/weight | Where to use |
 | --- | --- | --- |
-| `heading` | 18/24/600 | Confirmation dialog titles, Preferences page titles |
-| `title` | 14/20/600 | Dialog headers, the song title in a panel header |
-| `body` | 14/20/400 | Lists, menus, text fields, md buttons |
-| `body-strong` | 14/20/600 | Names to emphasize, md primary buttons |
-| `label` | 12/16/400 | sm buttons, dropdowns, property names |
-| `label-strong` | 14/20/600 | Panel tabs, sm primary buttons |
-| `band` | 14/20/600 | 이름표 bands on thumbnails, 구성 chips |
-| `caption` | 12/16/400 | Counts, dates, status bar, second lines |
-| `caption-strong` | 14/20/600 | List group headers, 지우기 button names |
-| `toolbar-label` | 12/16/400 | Toolbar button names |
+| `heading` | 20/28/600 | Confirmation dialog titles, Preferences page titles |
+| `title` | 16/22/600 | Dialog headers, the song title in a panel header |
+| `body` | 16/22/400 | Lists, menus, text fields, md buttons |
+| `body-strong` | 16/22/600 | Names to emphasize, md primary buttons |
+| `label` | 14/20/400 | sm buttons, dropdowns, property names |
+| `label-strong` | 16/22/600 | Panel tabs, sm primary buttons |
+| `band` | 16/22/600 | 이름표 bands on thumbnails, 구성 chips |
+| `caption` | 14/20/400 | Counts, dates, status bar, second lines |
+| `caption-strong` | 16/22/600 | List group headers, 지우기 button names |
+| `toolbar-label` | 14/20/400 | Toolbar button names |
 | `micro` | 12/16/400 | LIVE badge |
 
 - Use `font-variant-numeric: tabular-nums` for numbers that must line up, such as counts, times, and 슬라이드 numbers.
 - Truncate a name that doesn't fit on one line with an ellipsis, and show the full name in a tooltip. Don't wrap lyrics or song titles onto two lines (two-line list items and macro names are the only exceptions).
-- UI text is at least 12px. This is the Windows 11 type-ramp proposal chosen
-  for M2 check 1: body 14/20, caption 12/16, with Pretendard retained.
+- M3 live-check proposal: grow general UI text one step, from body 14/20 to
+  16/22 and labels/captions 12/16 to 14/20. Pretendard and weights stay the same.
+  Only the LIVE badge keeps the compact 12/16 `micro` style.
+- Keep the minimum window at 1280x720 without horizontal page scrolling.
+  Single-line list/menu rows and standard control heights stay fixed; their
+  new line heights still fit. Two-line rows grow from 44 to 52px, and count
+  badges/keycaps from 18 to 22px. Lists scroll vertically rather than shrinking
+  the text. Long labels retain ellipsis and tooltips.
 - These are UI sizes. Lyrics inside thumbnails and output previews keep their
   output-relative scale; `thumb-lyrics` stays 4.4cqw/1.45/700.
 - The service-order name keeps its separately chosen 16/22/600 component
@@ -119,9 +125,9 @@ The app uses one typeface, Pretendard Variable (`fonts/PretendardVariable.woff2`
 | 28 | `size-row-menu` | Menu items |
 | 30 | `size-control-md`, `size-row` | Buttons and text fields in dialogs and Preferences, list rows |
 | 34 | `size-panel-header` | Panel headers |
-| 44 | `size-row-double`, `size-dialog-header` | Two-line list items, dialog headers |
+| 44 | `size-dialog-header` | Dialog headers |
 | 48 | `size-toolbar-button` | Toolbar buttons |
-| 52 | `size-clear-button`, `size-dialog-footer` | 지우기 buttons, dialog footers |
+| 52 | `size-row-double`, `size-clear-button`, `size-dialog-footer` | Two-line list items, 지우기 buttons, dialog footers |
 
 - Buttons and text fields come in two sizes only: sm (26) and md (30). Use sm in panels, and md in dialogs, Preferences, and the toolbar search field. Don't make 24, 28, or 32px buttons.
 - Don't make a clickable area smaller than 22×22.

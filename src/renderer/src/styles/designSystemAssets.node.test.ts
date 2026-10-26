@@ -37,16 +37,16 @@ function sha256(path: string): string {
 const faces = fontFaces(readFileSync(TOKENS_CSS, 'utf8'));
 
 const TYPE_SCALE = [
-  ['heading', '18px', '24px', 600],
-  ['title', '14px', '20px', 600],
-  ['body', '14px', '20px', 400],
-  ['body-strong', '14px', '20px', 600],
-  ['label', '12px', '16px', 400],
-  ['label-strong', '14px', '20px', 600],
-  ['band', '14px', '20px', 600],
-  ['caption', '12px', '16px', 400],
-  ['caption-strong', '14px', '20px', 600],
-  ['toolbar-label', '12px', '16px', 400],
+  ['heading', '20px', '28px', 600],
+  ['title', '16px', '22px', 600],
+  ['body', '16px', '22px', 400],
+  ['body-strong', '16px', '22px', 600],
+  ['label', '14px', '20px', 400],
+  ['label-strong', '16px', '22px', 600],
+  ['band', '16px', '22px', 600],
+  ['caption', '14px', '20px', 400],
+  ['caption-strong', '16px', '22px', 600],
+  ['toolbar-label', '14px', '20px', 400],
   ['micro', '12px', '16px', 400],
   ['thumb-lyrics', '4.4cqw', '1.45', 700],
 ] as const;
@@ -87,7 +87,7 @@ describe('design system assets', () => {
   });
 });
 
-describe('chosen Windows type scale', () => {
+describe('one-step larger UI type scale', () => {
   it('keeps the selected scale in the token source without changing output-relative lyrics', () => {
     const source: unknown = JSON.parse(
       readFileSync(resolve(PROJECT, 'tokens.json'), 'utf8'),
@@ -128,5 +128,33 @@ describe('chosen Windows type scale', () => {
       expect(sizes).toHaveLength(TYPE_SCALE.length - 1);
       expect(sizes.every(size => size >= 12)).toBe(true);
     }
+  });
+
+  it('fits the larger lines inside their list and control heights', () => {
+    const token = (name: string): number => {
+      const value = new RegExp(`--${name}:\\s*(\\d+)px;`).exec(appCss)?.[1];
+      if (value === undefined) throw new Error(`Missing ${name}`);
+      return Number(value);
+    };
+    const bodyLine = Number(
+      TYPE_STYLES.find(style => style.name === 'body')?.lineHeight.replace(
+        'px',
+        '',
+      ),
+    );
+    const labelLine = Number(
+      TYPE_STYLES.find(style => style.name === 'label')?.lineHeight.replace(
+        'px',
+        '',
+      ),
+    );
+    expect(token('size-row')).toBeGreaterThan(bodyLine);
+    expect(token('size-row-menu')).toBeGreaterThan(bodyLine);
+    expect(token('size-control-md')).toBeGreaterThan(bodyLine);
+    expect(token('size-control-sm')).toBeGreaterThan(labelLine);
+    expect(token('size-row-double')).toBeGreaterThan(
+      bodyLine + token('space-2') + labelLine,
+    );
+    expect(token('size-count')).toBeGreaterThanOrEqual(bodyLine);
   });
 });

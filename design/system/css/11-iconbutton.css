@@ -3,7 +3,7 @@
   box-sizing: border-box; display: inline-flex; flex: none; align-items: center; justify-content: center;
   width: var(--size-control-sm); height: var(--size-control-sm); margin: 0; padding: 0;
   border: 0; border-radius: var(--radius-md); background: transparent; color: var(--text-2);
-  font-family: var(--font-ui); font-size: 12px; line-height: 16px;
+  font: var(--type-label);
   cursor: default; user-select: none; -webkit-user-select: none;
   transition: background-color 100ms ease-out, color 100ms ease-out;
 }

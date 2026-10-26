@@ -5,14 +5,14 @@
   box-sizing: border-box; display: inline-flex; flex: none; align-items: center; justify-content: center; gap: var(--space-6);
   height: var(--size-control-sm); min-width: 0; margin: 0; padding: 0 var(--space-10);
   border: 0; border-radius: var(--radius-md); background: var(--bg-control); color: var(--text);
-  font-family: var(--font-ui); font-size: 12px; line-height: 16px; font-weight: 400;
+  font: var(--type-label);
   white-space: nowrap; text-decoration: none; cursor: default; user-select: none; -webkit-user-select: none;
   transition: background-color 100ms ease-out, color 100ms ease-out;
 }
 .ll-btn .ll-i { width: var(--size-icon-14); height: var(--size-icon-14); }
 .ll-btn.ll-btn--lead { padding-left: var(--space-8); }
 
-.ll-btn.ll-btn--md { gap: var(--space-8); height: var(--size-control-md); padding: 0 var(--space-14); font-size: 13px; line-height: 18px; }
+.ll-btn.ll-btn--md { gap: var(--space-8); height: var(--size-control-md); padding: 0 var(--space-14); font: var(--type-body); }
 .ll-btn.ll-btn--md .ll-i { width: var(--size-icon-16); height: var(--size-icon-16); }
 .ll-btn.ll-btn--md.ll-btn--lead { padding-left: var(--space-12); }
 

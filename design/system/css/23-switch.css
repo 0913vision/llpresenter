@@ -15,7 +15,7 @@
 .ll-switch:disabled::after { background: var(--text-off); }
 
 /* Name + switch (text import settings row). A click on the name also toggles it */
-.ll-switch-row { display: inline-flex; align-items: center; gap: var(--space-10); font-family: var(--font-ui); font-size: 12px; line-height: 16px; color: var(--text-2); }
+.ll-switch-row { display: inline-flex; align-items: center; gap: var(--space-10); font: var(--type-label); color: var(--text-2); }
 .ll-switch-row:has(> .ll-switch:disabled) { color: var(--text-off); }
 
 @media (prefers-reduced-motion: reduce) { .ll-switch, .ll-switch::after { transition: none; } }

@@ -12,7 +12,7 @@
 
 /* Tabs: the 2px underline of the selected tab sits right above the header line */
 .ll-panel__tabs { display: flex; align-self: stretch; gap: var(--space-18); min-width: 0; }
-.ll-panel__tab, :is(.ll-root, .ll-preview) .ll-panel__tab { position: relative; display: inline-flex; align-items: center; gap: var(--space-6); margin: var(--space-4) 0; padding: 0; border: 0; background: transparent; color: var(--text-3); font: inherit; font-size: 12px; line-height: 16px; font-weight: 600; white-space: nowrap; cursor: default; transition: color 100ms ease-out; }
+.ll-panel__tab, :is(.ll-root, .ll-preview) .ll-panel__tab { position: relative; display: inline-flex; align-items: center; gap: var(--space-6); margin: var(--space-4) 0; padding: 0; border: 0; background: transparent; color: var(--text-3); font: var(--type-label-strong); white-space: nowrap; cursor: default; transition: color 100ms ease-out; }
 .ll-panel__tab:hover, .ll-panel__tab.is-hover { color: var(--text-2); }
 .ll-panel__tab[aria-selected="true"] { color: var(--text); }
 .ll-panel__tab[aria-selected="true"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: calc(-1 * var(--space-4)); height: 2px; background: var(--text); }
@@ -21,12 +21,12 @@
 
 /* Title header: song title + position or count */
 .ll-panel__title { display: flex; align-items: baseline; gap: var(--space-10); min-width: 0; }
-.ll-panel__title-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 13px; line-height: 18px; font-weight: 600; }
-.ll-panel__meta { flex: none; font-size: 12px; line-height: 16px; font-weight: 400; color: var(--text-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ll-panel__title-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; font: var(--type-body-strong); }
+.ll-panel__meta { flex: none; font: var(--type-label); color: var(--text-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ll-panel__tabs + .ll-panel__meta { margin-left: var(--space-10); align-self: center; }
 
 /* Service switcher: ghost sm button right after the tab, "주일 예배 ▾" */
-.ll-panel__switch, :is(.ll-root, .ll-preview) .ll-panel__switch { flex: none; box-sizing: border-box; display: inline-flex; align-items: center; gap: var(--space-4); height: var(--size-control-sm); margin-left: var(--space-4); padding: 0 var(--space-4) 0 var(--space-6); border: 0; border-radius: var(--radius-md); background: transparent; color: var(--text-3); font: inherit; font-size: 12px; line-height: 16px; white-space: nowrap; cursor: default; transition: background-color 100ms ease-out; }
+.ll-panel__switch, :is(.ll-root, .ll-preview) .ll-panel__switch { flex: none; box-sizing: border-box; display: inline-flex; align-items: center; gap: var(--space-4); height: var(--size-control-sm); margin-left: var(--space-4); padding: 0 var(--space-4) 0 var(--space-6); border: 0; border-radius: var(--radius-md); background: transparent; color: var(--text-3); font: var(--type-label); white-space: nowrap; cursor: default; transition: background-color 100ms ease-out; }
 .ll-panel__switch:hover, .ll-panel__switch.is-hover { background: var(--bg-raised); }
 .ll-panel__switch:active, .ll-panel__switch.is-active, .ll-panel__switch[aria-expanded="true"] { background: var(--bg-control-hover); color: var(--text); }
 .ll-panel__switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
@@ -46,7 +46,7 @@
 .ll-panel__body--flush { padding: 0; }
 
 /* Footer row: counts on the left, controls such as thumbnail size on the right */
-.ll-panel__footer { flex: none; box-sizing: border-box; display: flex; align-items: center; gap: var(--space-10); height: var(--size-panel-footer); padding: 0 var(--panel-inset); border-top: 1px solid var(--line); font-size: 11px; line-height: 14px; color: var(--text-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ll-panel__footer { flex: none; box-sizing: border-box; display: flex; align-items: center; gap: var(--space-10); height: var(--size-panel-footer); padding: 0 var(--panel-inset); border-top: 1px solid var(--line); font: var(--type-caption); color: var(--text-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ll-panel__footer-end { display: flex; align-items: center; gap: var(--space-10); margin-left: auto; }
 
 @media (prefers-reduced-motion: reduce) {

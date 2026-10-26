@@ -22,6 +22,7 @@ import {SwitchSection} from './SwitchSection';
 import {TextFieldSection} from './TextFieldSection';
 import {ThumbnailSection} from './ThumbnailSection';
 import {ToolbarSection} from './ToolbarSection';
+import {TypographySection} from './TypographySection';
 import styles from './Gallery.module.css';
 
 interface GalleryEntry {
@@ -33,6 +34,7 @@ interface GalleryEntry {
 
 /** Every component in the gallery, in the order of the design system. */
 export const galleryEntries: readonly GalleryEntry[] = [
+  {name: 'Typography', Section: TypographySection},
   {name: 'Library', Section: LibrarySection},
   {name: 'Button', Section: ButtonSection},
   {name: 'IconButton', Section: IconButtonSection},

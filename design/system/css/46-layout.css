@@ -1,7 +1,7 @@
 /* 46 Layout: window size and layout documentation card. Don't move it into app code. The diagram scales real CSS pixel values by --s. */
 .ll-layout { --s: 0.35; display: flex; flex-direction: column; gap: var(--space-24); }
 .ll-layout__case { display: flex; flex-direction: column; gap: var(--space-8); }
-.ll-layout__head { display: flex; align-items: baseline; gap: var(--space-10); font-size: 12px; line-height: 16px; }
+.ll-layout__head { display: flex; align-items: baseline; gap: var(--space-10); font: var(--type-label); }
 .ll-layout__head b { font-weight: 600; color: var(--text); }
 .ll-layout__head span { color: var(--text-3); font-variant-numeric: tabular-nums; }
 
@@ -29,8 +29,8 @@
 .ll-layout__gap { position: absolute; top: calc(var(--y) * var(--s) * 1px); left: calc(var(--x) * var(--s) * 1px); width: calc(4px * var(--s)); height: calc(var(--h) * var(--s) * 1px); background: var(--accent); }
 
 /* Tables */
-.ll-layout__table { width: 100%; border-collapse: collapse; font-size: 12px; line-height: 16px; font-variant-numeric: tabular-nums; }
-.ll-layout__table th { padding: 0 12px 6px 0; color: var(--text-3); font-size: 11px; line-height: 14px; font-weight: 600; text-align: left; white-space: nowrap; }
+.ll-layout__table { width: 100%; border-collapse: collapse; font: var(--type-label); font-variant-numeric: tabular-nums; }
+.ll-layout__table th { padding: 0 12px 6px 0; color: var(--text-3); font: var(--type-caption-strong); text-align: left; white-space: nowrap; }
 .ll-layout__table td { padding: 7px 12px 7px 0; border-top: 1px solid var(--line); color: var(--text-2); vertical-align: top; }
 .ll-layout__table td:first-child { color: var(--text); font-weight: 600; white-space: nowrap; }
 .ll-layout__table--plain td:first-child { font-weight: 400; }

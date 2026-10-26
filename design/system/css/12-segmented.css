@@ -11,7 +11,7 @@
   box-sizing: border-box; display: inline-flex; flex: none; align-items: center; justify-content: center; gap: var(--space-6);
   height: var(--size-control-xs); min-width: 0; margin: 0; padding: 0 var(--space-10);
   border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--text-3);
-  font-family: var(--font-ui); font-size: 12px; line-height: 16px; font-weight: 400; white-space: nowrap;
+  font: var(--type-label); white-space: nowrap;
   cursor: default; user-select: none; -webkit-user-select: none;
   transition: background-color 100ms ease-out, color 100ms ease-out;
 }
@@ -22,7 +22,7 @@
 .ll-seg__item .ll-i { width: var(--size-icon-14); height: var(--size-icon-14); }
 
 /* Count: a plain number with no background. Only counts that need a fix, such as conflicts, use warning */
-.ll-seg__count { font-size: 11px; line-height: 14px; font-weight: 400; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.ll-seg__count { font: var(--type-caption); color: var(--text-3); font-variant-numeric: tabular-nums; }
 .ll-seg__count.ll-seg__count--warning { color: var(--warning); }
 
 .ll-seg__item:not(:disabled, [aria-disabled="true"]):is(:hover, .is-hover) { background: var(--bg-raised); color: var(--text-2); }

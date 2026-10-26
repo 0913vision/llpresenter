@@ -1,7 +1,7 @@
 /* 45 StatusMarks: LIVE badge, status dot, count badge, progress bar. Other components use these class names as they are. */
 
 /* LIVE badge */
-.ll-badge { box-sizing: border-box; display: inline-flex; flex: none; align-items: center; height: var(--size-badge); padding: 0 var(--space-4); border-radius: var(--radius-sm); font-size: 10px; line-height: 12px; font-weight: 700; letter-spacing: 0.04em; white-space: nowrap; vertical-align: middle; }
+.ll-badge { box-sizing: border-box; display: inline-flex; flex: none; align-items: center; height: var(--size-badge); padding: 0 var(--space-4); border-radius: var(--radius-sm); font: var(--type-micro); letter-spacing: 0.04em; white-space: nowrap; vertical-align: middle; }
 .ll-badge--live { background: var(--live); color: var(--text-on-fill); }
 
 /* Status dot. Add ll-dot--cut on top of an icon. */
@@ -13,7 +13,7 @@
 .ll-dot--cut { box-shadow: var(--ring-dot-cut); }
 
 /* Count badge, next to a panel tab name. */
-.ll-count { box-sizing: border-box; display: inline-flex; flex: none; align-items: center; justify-content: center; min-width: var(--size-count); height: var(--size-count); padding: 0 var(--space-4); border-radius: var(--radius-sm); background: var(--selection); color: var(--text-on-selection); font-size: 11px; line-height: 14px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; vertical-align: middle; }
+.ll-count { box-sizing: border-box; display: inline-flex; flex: none; align-items: center; justify-content: center; min-width: var(--size-count); height: var(--size-count); padding: 0 var(--space-4); border-radius: var(--radius-sm); background: var(--selection); color: var(--text-on-selection); font: var(--type-caption-strong); font-variant-numeric: tabular-nums; white-space: nowrap; vertical-align: middle; }
 
 /* Progress bar: set the length with the width (%) of ll-progress__bar. */
 .ll-progress { position: relative; box-sizing: border-box; display: block; height: 4px; min-width: 24px; border-radius: var(--radius-xs); background: var(--line-strong); overflow: hidden; }

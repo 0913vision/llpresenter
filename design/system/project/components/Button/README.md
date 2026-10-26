@@ -19,8 +19,8 @@ A command button with a text label. Use it in the footers of dialogs and confirm
 ## Anatomy
 
 - Background: secondary `bg-control`, primary `accent-fill`, ghost none. Corner radius `radius-md` (4px). No border or shadow.
-- sm: height `size-control-sm` (26px), text `label` (12/16), horizontal padding `space-10`. With a leading icon, the left padding alone is `space-8`, the icon is `size-icon-14`, and the gap between the icon and the text is `space-6`.
-- md: height `size-control-md` (30px), text `body` (13/18), horizontal padding `space-14`. With a leading icon, the left padding alone is `space-12`, the icon is `size-icon-16`, and the gap is `space-8`.
+- sm: height `size-control-sm` (26px), text `label` (14/20), horizontal padding `space-10`. With a leading icon, the left padding alone is `space-8`, the icon is `size-icon-14`, and the gap between the icon and the text is `space-6`.
+- md: height `size-control-md` (30px), text `body` (16/22), horizontal padding `space-14`. With a leading icon, the left padding alone is `space-12`, the icon is `size-icon-16`, and the gap is `space-8`.
 - Primary button text has weight 600 (sm `label-strong`, md `body-strong`).
 - Icons follow the text color: secondary `text`, primary `text-on-fill`, ghost `text-2`.
 - The width fits the text. Don't set a minimum width, and don't wrap the text.

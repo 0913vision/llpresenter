@@ -14,7 +14,7 @@
 
 /* 구성 strip */
 .ll-chip-strip { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-8); }
-.ll-chip, :is(.ll-root, .ll-preview) .ll-chip { --ll-chip-gap: var(--bg-panel); box-sizing: border-box; display: inline-flex; align-items: center; gap: var(--space-6); height: var(--size-control-md); margin: 0; padding: 0 var(--space-10) 0 var(--space-6); border: 0; border-radius: var(--radius-sm); background: var(--ll-label); color: var(--ll-label-fg); font: inherit; font-size: 12px; line-height: 16px; font-weight: 700; white-space: nowrap; cursor: default; transition: background-color 100ms ease-out, box-shadow 100ms ease-out; }
+.ll-chip, :is(.ll-root, .ll-preview) .ll-chip { --ll-chip-gap: var(--bg-panel); box-sizing: border-box; display: inline-flex; align-items: center; gap: var(--space-6); height: var(--size-control-md); margin: 0; padding: 0 var(--space-10) 0 var(--space-6); border: 0; border-radius: var(--radius-sm); background: var(--ll-label); color: var(--ll-label-fg); font: var(--type-label); font-weight: 700; white-space: nowrap; cursor: default; transition: background-color 100ms ease-out, box-shadow 100ms ease-out; }
 .ll-chip__grip { opacity: 0.55; }
 .ll-chip:hover, .ll-chip.is-hover { cursor: grab; }
 .ll-chip:hover .ll-chip__grip, .ll-chip.is-hover .ll-chip__grip { opacity: 1; }
@@ -33,7 +33,7 @@
 .ll-chip-add:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 /* Small 이름표 22: left of lyric blocks and in lists. As a button, it adds a down arrow and opens the 이름표 picker. */
-.ll-tag, :is(.ll-root, .ll-preview) .ll-tag { box-sizing: border-box; max-width: 100%; display: inline-flex; align-items: center; gap: var(--space-6); height: var(--size-control-xs); margin: 0; padding: 0 var(--space-8); border: 0; border-radius: var(--radius-sm); background: var(--ll-label); color: var(--ll-label-fg); font: inherit; font-size: 12px; line-height: 16px; font-weight: 700; white-space: nowrap; vertical-align: middle; cursor: default; transition: background-color 100ms ease-out; }
+.ll-tag, :is(.ll-root, .ll-preview) .ll-tag { box-sizing: border-box; max-width: 100%; display: inline-flex; align-items: center; gap: var(--space-6); height: var(--size-control-xs); margin: 0; padding: 0 var(--space-8); border: 0; border-radius: var(--radius-sm); background: var(--ll-label); color: var(--ll-label-fg); font: var(--type-label); font-weight: 700; white-space: nowrap; vertical-align: middle; cursor: default; transition: background-color 100ms ease-out; }
 button.ll-tag, :is(.ll-root, .ll-preview) button.ll-tag { padding-right: var(--space-6); }
 .ll-tag:not([data-color]):is(button):hover, .ll-tag:not([data-color]).is-hover { background: var(--bg-control-hover); }
 .ll-tag[aria-expanded="true"] { box-shadow: 0 0 0 2px var(--bg-panel), 0 0 0 3px var(--text); }

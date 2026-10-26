@@ -3,16 +3,16 @@
   box-sizing: border-box; position: relative; display: flex; flex: none; align-items: center;
   height: var(--size-menubar); min-width: 0; padding-left: var(--space-12);
   background: var(--bg-app); color: var(--text);
-  font-family: var(--font-ui); font-size: 12px; line-height: 16px;
+  font: var(--type-label);
   user-select: none; -webkit-user-select: none; -webkit-app-region: drag;
 }
-.ll-menubar__brand { flex: none; margin-right: var(--space-14); font-size: 12px; line-height: 16px; font-weight: 700; letter-spacing: -0.01em; color: var(--text); }
+.ll-menubar__brand { flex: none; margin-right: var(--space-14); font: var(--type-label); font-weight: 700; letter-spacing: -0.01em; color: var(--text); }
 .ll-menubar__menus { display: flex; flex: none; align-items: center; -webkit-app-region: no-drag; }
 
 .ll-menubar__item, :is(.ll-root, .ll-preview) .ll-menubar__item {
   box-sizing: border-box; display: inline-flex; align-items: center; height: 24px; margin: 0; padding: 0 9px;
   border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--text-2);
-  font-family: var(--font-ui); font-size: 12px; line-height: 16px; font-weight: 400; white-space: nowrap;
+  font: var(--type-label); white-space: nowrap;
   cursor: default; transition: background-color 100ms ease-out, color 100ms ease-out;
 }
 .ll-menubar__item:is(:hover, .is-hover) { background: var(--bg-raised); }
@@ -22,7 +22,7 @@
 .ll-menubar__title {
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); max-width: 36%;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  font-size: 12px; line-height: 16px; font-weight: 400; color: var(--text-3); pointer-events: none;
+  font: var(--type-label); color: var(--text-3); pointer-events: none;
 }
 
 .ll-menubar__controls { display: flex; flex: none; margin-left: auto; -webkit-app-region: no-drag; }
@@ -43,7 +43,7 @@
 
 /* Title bar of a secondary window (Preferences): window name on the left and one close button, no menus */
 .ll-menubar.ll-menubar--window { padding-left: var(--space-14); }
-.ll-menubar__name { flex: none; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--text); }
+.ll-menubar__name { flex: none; font: var(--type-label-strong); color: var(--text); }
 
 @media (prefers-reduced-motion: reduce) {
   .ll-menubar__item, :is(.ll-root, .ll-preview) .ll-menubar__item, .ll-menubar__win, :is(.ll-root, .ll-preview) .ll-menubar__win { transition: none; }

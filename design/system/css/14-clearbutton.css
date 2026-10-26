@@ -9,7 +9,7 @@
   box-sizing: border-box; position: relative; display: flex; flex: 1 1 0; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-4);
   height: var(--size-clear-button); min-width: 0; margin: 0; padding: 0;
   border: 0; border-radius: var(--radius-md); background: var(--bg-control); color: var(--text);
-  font-family: var(--font-ui); font-size: 11px; line-height: 14px; font-weight: 600; white-space: nowrap;
+  font: var(--type-caption-strong); white-space: nowrap;
   cursor: default; user-select: none; -webkit-user-select: none;
   transition: background-color 100ms ease-out, color 100ms ease-out;
 }

@@ -4,15 +4,15 @@
   box-sizing: border-box; display: inline-flex; align-items: center; gap: 0;
   min-width: 0; max-width: 100%; height: var(--size-control-md); margin: 0; padding: 0 var(--space-8) 0 var(--space-10);
   border: 0; border-radius: var(--radius-md); background: var(--bg-control); color: var(--text);
-  font-family: var(--font-ui); font-size: 13px; line-height: 18px; text-align: left; white-space: nowrap;
+  font: var(--type-body); text-align: left; white-space: nowrap;
   vertical-align: middle; transition: background-color 100ms ease-out;
 }
-.ll-select.ll-select--sm { height: var(--size-control-sm); padding: 0 var(--space-6) 0 var(--space-8); font-size: 12px; line-height: 16px; }
+.ll-select.ll-select--sm { height: var(--size-control-sm); padding: 0 var(--space-6) 0 var(--space-8); font: var(--type-label); }
 .ll-select.ll-select--block { display: flex; width: 100%; }
 
 .ll-select__value { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-.ll-select__meta { flex: none; margin-left: var(--space-8); font-size: 12px; line-height: 16px; color: var(--text-2); }
-.ll-select--sm .ll-select__meta { font-size: 11px; line-height: 14px; }
+.ll-select__meta { flex: none; margin-left: var(--space-8); font: var(--type-label); color: var(--text-2); }
+.ll-select--sm .ll-select__meta { font: var(--type-caption); }
 .ll-select__chevron { flex: none; width: var(--size-icon-12); height: var(--size-icon-12); margin-left: var(--space-8); color: var(--text-3); }
 
 /* Leading icon (date, time, Bible version) */

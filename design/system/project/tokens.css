@@ -102,7 +102,7 @@
   --size-control-md: 30px;
   --size-row: 30px;
   --size-row-menu: 28px;
-  --size-row-double: 44px;
+  --size-row-double: 52px;
   --size-toolbar-button: 48px;
   --size-toolbar-button-compact: 32px;
   --size-clear-button: 52px;
@@ -128,7 +128,6 @@
   --size-field-number: 96px;
   --size-field-key: 160px;
   --size-field-title: 280px;
-  --size-editor-label: 120px;
   --size-field-clear-sm: 18px;
   --size-textarea-min: 72px;
   --size-select-media: 36px;
@@ -157,7 +156,7 @@
   --size-insert-dot: 8px;
   --size-drag-ghost: 220px;
   --size-badge: 16px;
-  --size-count: 18px;
+  --size-count: 22px;
   --size-color-swatch: 24px;
   --size-color-swatch-chip: 16px;
   --size-label-swatch: 10px;
@@ -185,6 +184,7 @@
   --dialog-xl: 1080px;
   --window-min-width: 1280px;
   --window-min-height: 720px;
+  --size-editor-label: 120px;
   --z-popover: 100;
   --z-tooltip: 200;
   --z-dialog: 300;
@@ -193,29 +193,29 @@
   --motion-popover: 120ms ease-out;
   --motion-dialog: 160ms ease-out;
   --font-ui: "Pretendard Variable", Pretendard, "Segoe UI", "Malgun Gothic", sans-serif;
-  --type-heading: 600 18px/24px var(--font-ui);
-  --type-title: 600 14px/20px var(--font-ui);
-  --type-body: 400 14px/20px var(--font-ui);
-  --type-body-strong: 600 14px/20px var(--font-ui);
-  --type-label: 400 12px/16px var(--font-ui);
-  --type-label-strong: 600 14px/20px var(--font-ui);
-  --type-band: 600 14px/20px var(--font-ui);
-  --type-caption: 400 12px/16px var(--font-ui);
-  --type-caption-strong: 600 14px/20px var(--font-ui);
-  --type-toolbar-label: 400 12px/16px var(--font-ui);
+  --type-heading: 600 20px/28px var(--font-ui);
+  --type-title: 600 16px/22px var(--font-ui);
+  --type-body: 400 16px/22px var(--font-ui);
+  --type-body-strong: 600 16px/22px var(--font-ui);
+  --type-label: 400 14px/20px var(--font-ui);
+  --type-label-strong: 600 16px/22px var(--font-ui);
+  --type-band: 600 16px/22px var(--font-ui);
+  --type-caption: 400 14px/20px var(--font-ui);
+  --type-caption-strong: 600 16px/22px var(--font-ui);
+  --type-toolbar-label: 400 14px/20px var(--font-ui);
   --type-micro: 400 12px/16px var(--font-ui);
   --type-thumb-lyrics: 700 4.4cqw/1.45 var(--font-ui);
 }
-.heading { font-family: var(--font-ui); font-size: 18px; line-height: 24px; font-weight: 600; }
-.title { font-family: var(--font-ui); font-size: 14px; line-height: 20px; font-weight: 600; }
-.body { font-family: var(--font-ui); font-size: 14px; line-height: 20px; font-weight: 400; }
-.body-strong { font-family: var(--font-ui); font-size: 14px; line-height: 20px; font-weight: 600; }
-.label { font-family: var(--font-ui); font-size: 12px; line-height: 16px; font-weight: 400; }
-.label-strong { font-family: var(--font-ui); font-size: 14px; line-height: 20px; font-weight: 600; }
-.band { font-family: var(--font-ui); font-size: 14px; line-height: 20px; font-weight: 600; }
-.caption { font-family: var(--font-ui); font-size: 12px; line-height: 16px; font-weight: 400; }
-.caption-strong { font-family: var(--font-ui); font-size: 14px; line-height: 20px; font-weight: 600; }
-.toolbar-label { font-family: var(--font-ui); font-size: 12px; line-height: 16px; font-weight: 400; }
+.heading { font-family: var(--font-ui); font-size: 20px; line-height: 28px; font-weight: 600; }
+.title { font-family: var(--font-ui); font-size: 16px; line-height: 22px; font-weight: 600; }
+.body { font-family: var(--font-ui); font-size: 16px; line-height: 22px; font-weight: 400; }
+.body-strong { font-family: var(--font-ui); font-size: 16px; line-height: 22px; font-weight: 600; }
+.label { font-family: var(--font-ui); font-size: 14px; line-height: 20px; font-weight: 400; }
+.label-strong { font-family: var(--font-ui); font-size: 16px; line-height: 22px; font-weight: 600; }
+.band { font-family: var(--font-ui); font-size: 16px; line-height: 22px; font-weight: 600; }
+.caption { font-family: var(--font-ui); font-size: 14px; line-height: 20px; font-weight: 400; }
+.caption-strong { font-family: var(--font-ui); font-size: 16px; line-height: 22px; font-weight: 600; }
+.toolbar-label { font-family: var(--font-ui); font-size: 14px; line-height: 20px; font-weight: 400; }
 .micro { font-family: var(--font-ui); font-size: 12px; line-height: 16px; font-weight: 400; }
 .thumb-lyrics { font-family: var(--font-ui); font-size: 4.4cqw; line-height: 1.45; font-weight: 700; }
 @font-face { font-family: "Pretendard Variable"; src: url("fonts/PretendardVariable.woff2") format("woff2"); font-weight: 45 920; font-display: swap; }
