@@ -352,6 +352,28 @@ describe('preload', () => {
     expect(electron.handlers.has(Channels.appProblem)).toBe(false);
   });
 
+  it('reads and follows the missing media and sends a checked file check', async () => {
+    electron.invoke.mockResolvedValueOnce([SONG_ID]);
+    await expect(api.media.missing()).resolves.toEqual([SONG_ID]);
+    expect(electron.invoke).toHaveBeenCalledWith(Channels.mediaMissingGet);
+    electron.invoke.mockResolvedValueOnce(['bad']);
+    await expect(api.media.missing()).rejects.toThrow();
+    const listener = vi.fn();
+    const remove = api.media.subscribeMissing(listener);
+    electron.handlers.get(Channels.mediaMissing)?.({}, [SONG_ID]);
+    electron.handlers.get(Channels.mediaMissing)?.({}, 'bad');
+    expect(listener).toHaveBeenCalledExactlyOnceWith([SONG_ID]);
+    remove();
+    electron.send.mockClear();
+    api.media.check(createMediaId(SONG_ID));
+    Reflect.apply(api.media.check, undefined, ['bad']);
+    expect(electron.send.mock.calls[0]).toEqual([
+      Channels.mediaCheck,
+      {mediaId: SONG_ID},
+    ]);
+    expect(electron.send.mock.calls[1]?.[0]).toBe(Channels.logWrite);
+  });
+
   it('sends a save retry without a payload', () => {
     api.problems.retrySaves();
     expect(electron.send.mock.calls).toEqual([[Channels.appProblemRetrySaves]]);

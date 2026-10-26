@@ -54,6 +54,8 @@ import type {
   RecoveryResult,
   RecoverySummary,
 } from './schema/recovery';
+import type {MediaId} from './schema/ids';
+import type {MissingMedia} from './schema/mediaFiles';
 
 export const Channels = {
   bibleLookup: 'bible:lookup',
@@ -109,6 +111,9 @@ export const Channels = {
   mediaChanged: 'media:changed',
   mediaImport: 'media:import',
   mediaImportChanged: 'media:import:changed',
+  mediaMissing: 'media:missing',
+  mediaMissingGet: 'media:missing:get',
+  mediaCheck: 'media:check',
   recoverySummary: 'recovery:summary',
   recoveryApply: 'recovery:apply',
   recoveryStartFresh: 'recovery:start-fresh',
@@ -316,6 +321,18 @@ export interface LlpApi {
     subscribeImports(
       listener: (progress: MediaImportProgress) => void,
     ): Unsubscribe;
+    /**
+     * Reads the media whose file main can't find now. Rejects, after logging,
+     * when the call fails or the answer is malformed.
+     */
+    missing(): Promise<MissingMedia>;
+    /**
+     * Follows that set as main checks the files again.
+     * @returns A function that removes the listener. Always call it.
+     */
+    subscribeMissing(listener: (missing: MissingMedia) => void): Unsubscribe;
+    /** Asks main to check one media file again, as after it failed to play. */
+    check(mediaId: MediaId): void;
   };
   readonly library: {
     /** Searches main's index; rejects and logs malformed requests or replies. */

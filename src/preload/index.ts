@@ -70,6 +70,10 @@ import {
   parseMediaImportProgress,
 } from '@shared/schema/mediaEdit';
 import {
+  parseMediaCheckRequest,
+  parseMissingMedia,
+} from '@shared/schema/mediaFiles';
+import {
   parseLibrarySearchRequest,
   parseLibrarySearchResult,
 } from '@shared/schema/librarySearch';
@@ -375,6 +379,17 @@ const api: LlpApi = {
       listen(Channels.mediaChanged, parseMediaDocument, listener),
     subscribeImports: listener =>
       listen(Channels.mediaImportChanged, parseMediaImportProgress, listener),
+    missing: () => invokeChecked(Channels.mediaMissingGet, parseMissingMedia),
+    subscribeMissing: listener =>
+      listen(Channels.mediaMissing, parseMissingMedia, listener),
+    check: mediaId => {
+      const parsed = parseMediaCheckRequest({mediaId});
+      if (!parsed.ok) {
+        logBadValue('request', Channels.mediaCheck, parsed.error);
+        return;
+      }
+      ipcRenderer.send(Channels.mediaCheck, parsed.value);
+    },
   },
   library: {
     showSong: request =>
