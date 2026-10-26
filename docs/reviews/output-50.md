@@ -52,13 +52,16 @@ Evidence read without editing:
 - [x] Stop remains idempotent; no new resource or shared contract
 - [ ] GitHub head verify passes (see request message)
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: pending
-
-## Review: reviewer
-
-- Verdict: pending
+- Round 1 (6181c465): reviewer (Codex) Approve. Lead Approve after reading both
+  files: the pattern guard captures the web contents once and checks
+  `control.isDestroyed()` before touching it, and every stop callback of
+  `startOutputs` runs in its own try and catch, with outputs, screens, and
+  displays disposed as ordinary stop callbacks, so a failing release can no
+  longer keep the outputs and the process alive. Fixes qa's M3-C2-1 (major) from
+  the m3-check2 smoke run, which came from output-42. Rebased by the lead onto
+  local `main` without conflicts; typecheck passes.
 
 ## Team member's reply
 
