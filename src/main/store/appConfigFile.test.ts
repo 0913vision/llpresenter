@@ -1,6 +1,7 @@
 import {mkdir, readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
-import {describe, expect, it, vi} from 'vitest';
+import {describe, expect, it, onTestFinished, vi} from 'vitest';
+import {writeFileAtomically} from './atomicWrite';
 import {serviceIdSchema} from '@shared/schema/ids';
 import {testId} from '@shared/schema/testHelpers';
 import {makeTempDir} from '../../../test/temp-dir';
@@ -35,6 +36,37 @@ async function readJson(file: string): Promise<unknown> {
 }
 
 describe('openAppConfig with a broken app.json (qa C19)', () => {
+  it('retains failed app.json writes and saves the newest configuration on retry', async () => {
+    const file = await appJson();
+    await writeJson(file, {
+      format: 'llapp',
+      schemaVersion: 1,
+      uiZoomPercent: 100,
+    });
+    let locked = true;
+    const appConfig = await openAppConfig({
+      file,
+      log: fakeLog(),
+      writeText: (path, text) =>
+        locked
+          ? Promise.resolve({
+              ok: false,
+              error: {file, message: 'EPERM: rename'},
+            })
+          : writeFileAtomically(path, text),
+    });
+    onTestFinished(() => appConfig.dispose());
+    appConfig.setUiZoomPercent(110);
+    expect(await appConfig.savePending()).toBe(false);
+    expect(appConfig.uiZoomPercent).toBe(110);
+    expect(await readJson(file)).toMatchObject({uiZoomPercent: 100});
+    expect(await appConfig.savePending()).toBe(false);
+    appConfig.setUiZoomPercent(120);
+    expect(await appConfig.savePending()).toBe(false);
+    locked = false;
+    expect(await appConfig.savePending()).toBe(true);
+    expect(await readJson(file)).toMatchObject({uiZoomPercent: 120});
+  });
   it.each([
     ['(a) text that is not JSON', 'not json', ''],
     ['(b) an empty file', '', ''],

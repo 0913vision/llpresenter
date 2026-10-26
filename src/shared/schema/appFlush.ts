@@ -3,7 +3,11 @@ import {appFlushRequestIdSchema, type AppFlushRequestId} from './ids';
 import {parsePayload, payloadObject} from './payload';
 
 /** Bounds for main's close-handshake waiter. */
-export const APP_FLUSH_LIMITS = {timeoutMs: 5000, pendingRequests: 1} as const;
+export const APP_FLUSH_LIMITS = {
+  timeoutMs: 5000,
+  progressIntervalMs: 1000,
+  pendingRequests: 1,
+} as const;
 
 const requestSchema = payloadObject({requestId: appFlushRequestIdSchema});
 const doneSchema = payloadObject({

@@ -220,6 +220,14 @@ const api: LlpApi = {
   app: {
     savePending: () =>
       invokeChecked(Channels.appSavePending, parseAppSavePendingResult),
+    flushProgress: request => {
+      const parsed = parseAppFlushRequest(request);
+      if (!parsed.ok) {
+        logBadValue('request', Channels.appFlushProgress, parsed.error);
+        return;
+      }
+      ipcRenderer.send(Channels.appFlushProgress, parsed.value);
+    },
     subscribeFlushRequests: listener =>
       listen(Channels.appFlushRequest, parseAppFlushRequest, listener),
     flushDone: reply => {

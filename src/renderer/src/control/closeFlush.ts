@@ -1,6 +1,6 @@
 import {closeStepAfter} from '@shared/closePolicy';
 import type {LlpApi, Unsubscribe} from '@shared/ipc';
-import type {AppFlushRequest} from '@shared/schema/appFlush';
+import {APP_FLUSH_LIMITS, type AppFlushRequest} from '@shared/schema/appFlush';
 
 /**
  * How long a close flush may run before the 저장 중 dialog shows, so a normal
@@ -26,6 +26,7 @@ export interface CloseFlushOptions {
 export class CloseFlush {
   private view: CloseFlushView = 'hidden';
   private timer: ReturnType<typeof setTimeout> | undefined;
+  private progress: ReturnType<typeof setInterval> | undefined;
   private disposed = false;
   private readonly listeners = new Set<() => void>();
   private readonly stopAnswering: Unsubscribe;
@@ -60,13 +61,19 @@ export class CloseFlush {
   dispose(): void {
     this.disposed = true;
     clearTimeout(this.timer);
+    clearInterval(this.progress);
     this.stopAnswering();
     this.listeners.clear();
   }
 
   private async answer({requestId}: AppFlushRequest): Promise<void> {
     this.showSavingSoon();
+    this.options.api.app.flushProgress({requestId});
+    this.progress = setInterval(() => {
+      this.options.api.app.flushProgress({requestId});
+    }, APP_FLUSH_LIMITS.progressIntervalMs);
     const result = await this.flushed();
+    clearInterval(this.progress);
     clearTimeout(this.timer);
     this.options.api.app.flushDone({requestId, result});
     if (closeStepAfter(result ? 'flushed' : 'refused') === 'warn') {

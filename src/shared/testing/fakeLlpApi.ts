@@ -31,6 +31,7 @@ export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
     },
     app: {
       savePending: () => Promise.resolve(true),
+      flushProgress: () => undefined,
       subscribeFlushRequests: () => () => undefined,
       flushDone: () => undefined,
       closeAnyway: () => undefined,

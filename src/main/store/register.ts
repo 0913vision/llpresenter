@@ -63,7 +63,7 @@ export interface StoreRegistration {
   readonly isAnyOutputOn: () => boolean;
   /** `app.json`, opened once at launch with `openAppConfig`. */
   readonly appConfig: AppConfigView &
-    Pick<AppConfigFile, 'setLastServiceId' | 'flush'>;
+    Pick<AppConfigFile, 'setLastServiceId' | 'flush' | 'savePending'>;
   /** Where the data folders default to. Electron's folders by default. */
   readonly context?: () => LocationContext;
   /** The app's problem cards, which list and push the waiting saves. */
@@ -207,8 +207,8 @@ export function registerStore({
       await ready?.content.flush();
       await readySettings?.flush();
       await readyMedia?.flush();
-      await appConfig.flush();
-      return saveFailures.problems().length === 0;
+      const configSaved = await appConfig.savePending();
+      return configSaved && saveFailures.problems().length === 0;
     } catch (error: unknown) {
       log.error('could not save pending edits before closing', error);
       return false;

@@ -2,7 +2,11 @@ import {randomUUID} from 'node:crypto';
 import {ipcMain, type IpcMainEvent} from 'electron';
 import {Channels} from '@shared/ipc';
 import {closeStepAfter, type FlushOutcome} from '@shared/closePolicy';
-import {APP_FLUSH_LIMITS, parseAppFlushDone} from '@shared/schema/appFlush';
+import {
+  APP_FLUSH_LIMITS,
+  parseAppFlushDone,
+  parseAppFlushRequest,
+} from '@shared/schema/appFlush';
 import {
   createAppFlushRequestId,
   type AppFlushRequestId,
@@ -37,8 +41,8 @@ export interface ControlCloseOptions {
 export interface ControlClose {
   /**
    * Asks the control window to flush its edits, joining a request that is
-   * already pending, and answers whether closing may go on. It settles within
-   * the flush bound and never rejects.
+   * already pending, and answers whether closing may go on. Missing progress
+   * settles it within the flush bound. It never rejects.
    */
   confirmClose(): Promise<boolean>;
   dispose(): void;
@@ -75,10 +79,23 @@ class ControlCloseHandshake implements ControlClose {
     const onCloseAnyway = (event: IpcMainEvent): void => {
       this.handleCloseAnyway(event);
     };
+    const onProgress = (event: IpcMainEvent, value: unknown): void => {
+      if (!this.fromControl(event, Channels.appFlushProgress)) return;
+      const parsed = parseAppFlushRequest(value);
+      if (!parsed.ok) {
+        this.options.log.warn('ignored malformed flush progress', parsed.error);
+        return;
+      }
+      const pending = this.pending;
+      if (pending !== null && parsed.value.requestId === pending.requestId) {
+        this.armTimeout(pending);
+      }
+    };
     control.on('close', onClose);
     contents.on('render-process-gone', onGone);
     ipcMain.on(Channels.appFlushDone, onDone);
     ipcMain.on(Channels.appCloseAnyway, onCloseAnyway);
+    ipcMain.on(Channels.appFlushProgress, onProgress);
     this.stops.push(
       () => control.removeListener('close', onClose),
       () => {
@@ -88,6 +105,7 @@ class ControlCloseHandshake implements ControlClose {
       },
       () => ipcMain.removeListener(Channels.appFlushDone, onDone),
       () => ipcMain.removeListener(Channels.appCloseAnyway, onCloseAnyway),
+      () => ipcMain.removeListener(Channels.appFlushProgress, onProgress),
     );
   }
 
@@ -177,10 +195,7 @@ class ControlCloseHandshake implements ControlClose {
       },
     };
     this.pending = pending;
-    this.timer = setTimeout(() => {
-      log.warn('the control window did not answer the flush request in time');
-      pending.settle('no-reply');
-    }, this.options.timeoutMs ?? APP_FLUSH_LIMITS.timeoutMs);
+    this.armTimeout(pending);
     try {
       control.webContents.send(Channels.appFlushRequest, {requestId});
     } catch (error) {
@@ -188,6 +203,16 @@ class ControlCloseHandshake implements ControlClose {
       pending.settle('no-reply');
     }
     return outcome;
+  }
+
+  private armTimeout(pending: PendingFlush): void {
+    clearTimeout(this.timer);
+    this.timer = setTimeout(() => {
+      this.options.log.warn(
+        'the control window did not answer the flush request in time',
+      );
+      pending.settle('no-reply');
+    }, this.options.timeoutMs ?? APP_FLUSH_LIMITS.timeoutMs);
   }
 
   private closeWindow(): void {

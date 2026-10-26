@@ -62,6 +62,7 @@ export const Channels = {
   bibleLookup: 'bible:lookup',
   appFlushRequest: 'app:flush-request',
   appFlushDone: 'app:flush-done',
+  appFlushProgress: 'app:flush-progress',
   appSavePending: 'app:save-pending',
   appCloseAnyway: 'app:close-anyway',
   appProblem: 'app:problem',
@@ -147,6 +148,8 @@ export interface LlpApi {
     ): Unsubscribe;
     /** Replies with the editor's flush result for one request. */
     flushDone(reply: AppFlushDone): void;
+    /** Keeps the close request alive while the responsive window awaits saves. */
+    flushProgress(request: AppFlushRequest): void;
     /** Writes accepted edits to disk; false while any file remains unsaved. */
     savePending(): Promise<boolean>;
     /**

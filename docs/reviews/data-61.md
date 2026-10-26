@@ -48,10 +48,13 @@ the M3-C1-2 shutdown log's `Object has been destroyed` error.
 ## Shared contract changes
 
 Additive `app:save-pending`, exposed as `LlpApi.app.savePending()` returning a
-checked boolean. No payload, paths, IDs or lists cross this channel. Existing
-flush-request, flush-done and force-close contracts remain compatible.
+checked boolean. No payload, paths, IDs or lists cross this channel.
+`app:flush-progress` carries the existing bounded flush request ID once a second
+while the control window remains responsive. Main accepts it only from that
+window and only for its pending request. Existing flush-request, flush-done and
+force-close contracts remain compatible.
 
-## Checks run
+## Round 1 checks
 
 | Check                                       | Result                                           |
 | ------------------------------------------- | ------------------------------------------------ |
@@ -75,7 +78,9 @@ disk-save response. The fixed source was restored after this negative check.
 
 No native window was opened. The EPERM test injects the atomic writer's failure
 result; QA's actual Windows file handle reproduction remains the native check.
-The five-second unresponsive-renderer bound is unchanged (spec 08).
+The five-second unresponsive-renderer bound now measures silence since the last
+matching progress message (spec 08); main's slow disk work no longer counts as a
+frozen renderer while the renderer continues answering.
 
 ## Quality checklist
 
@@ -108,4 +113,34 @@ remain unchanged for edits outside the close preflight.
 
 ## Team member's reply
 
-1.
+1. P1: the control window now reports progress immediately and every second
+   while submitting edits and waiting for disk. Main rearms the five-second
+   silence bound only for the current request ID from that window. An alive
+   window waiting on slow disk writes stays open; a renderer whose progress
+   stops still reaches the bounded no-reply outcome. The interval stops on
+   completion and disposal. A main persistence regression holds a failed service
+   retry for ten seconds, checks that the window and latest memo remain, then
+   fails it and saves the memo after recovery and retry. Tests also reject
+   progress from another sender, a stale ID or malformed input.
+2. P2: `AppConfigFile` retains whether its current configuration is dirty,
+   retries failed writes on flush and exposes a boolean `savePending` result.
+   The main preflight includes that result, so an app.json EPERM keeps close
+   refused. A subsequent change supersedes the failed snapshot. Unit tests cover
+   repeated failure, a newer zoom setting and recovery; the main close
+   regression also locks app.json, keeps the window open and closes only after
+   retry saves that configuration.
+3. The lead reported that the Argon second review found no further issues.
+
+## Round 2 checks
+
+The slow-save regression fails against round 1's `ControlClose`: the window is
+already destroyed before the disk refusal arrives. The round 2 source was
+restored after that negative check.
+
+| Check                                       | Result                                    |
+| ------------------------------------------- | ----------------------------------------- |
+| Targeted Vitest with `--no-fsModuleCache`   | Pass: 207 tests in 11 files               |
+| `npm run typecheck`                         | Pass                                      |
+| ESLint on changed TypeScript files          | Pass                                      |
+| `npm run format` and `npm run format:check` | Pass                                      |
+| Full `npm run verify`                       | GitHub CI on round 2 head, URL in request |

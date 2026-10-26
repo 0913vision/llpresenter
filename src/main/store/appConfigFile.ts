@@ -68,6 +68,7 @@ export class AppConfigFile implements UiStateFields {
   private config: AppConfig;
   private readonly writer: FileWriter<string>;
   private readonly autosave: Autosave;
+  private dirty = false;
 
   constructor(
     private readonly options: AppConfigOptions,
@@ -135,6 +136,13 @@ export class AppConfigFile implements UiStateFields {
   async flush(): Promise<void> {
     await this.autosave.flush();
     await this.writer.idle();
+    if (this.dirty) await this.save();
+  }
+
+  /** Retries the latest app.json and reports whether it reached disk. */
+  async savePending(): Promise<boolean> {
+    await this.flush();
+    return !this.dirty;
   }
 
   /** Drops a change that waits without saving; call `flush` first to keep it. */
@@ -146,12 +154,14 @@ export class AppConfigFile implements UiStateFields {
     if (this.isBroken || this.opened.newer) {
       return;
     }
+    this.dirty = true;
     this.autosave.schedule(this.options.file, () => this.save());
   }
 
   private async save(): Promise<void> {
     const {file, log} = this.options;
-    const text = serializeAppConfig(this.config, file);
+    const config = this.config;
+    const text = serializeAppConfig(config, file);
     if (!text.ok) {
       log.error('could not save app.json', text.error);
       return;
@@ -159,6 +169,8 @@ export class AppConfigFile implements UiStateFields {
     const written = await this.writer.write(file, text.value);
     if (!written.ok) {
       log.warn('could not save app.json', written.error);
+    } else if (this.config === config) {
+      this.dirty = false;
     }
   }
 }

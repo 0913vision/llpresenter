@@ -54,6 +54,22 @@ vi.mock('electron', () => ({
 let api: LlpApi;
 
 describe('Bible lookup boundary', () => {
+  it('validates close progress IDs and strips extra fields', () => {
+    const requestId = createAppFlushRequestId(
+      '00000000-0000-4000-8000-000000000001',
+    );
+    Reflect.apply(api.app.flushProgress, undefined, [
+      {requestId, extra: 'ignored'},
+    ]);
+    for (const value of [null, {}, {requestId: 'invalid'}]) {
+      Reflect.apply(api.app.flushProgress, undefined, [value]);
+    }
+    expect(
+      electron.send.mock.calls.filter(
+        ([channel]) => channel === Channels.appFlushProgress,
+      ),
+    ).toEqual([[Channels.appFlushProgress, {requestId}]]);
+  });
   it('validates disk save results and rejects failed IPC calls', async () => {
     for (const result of [true, false]) {
       electron.invoke.mockResolvedValueOnce(result);

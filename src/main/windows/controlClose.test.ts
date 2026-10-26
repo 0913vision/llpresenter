@@ -108,6 +108,43 @@ beforeEach(() => {
 });
 
 describe('control window close handshake', () => {
+  it('keeps a responsive renderer open through slow saves and times out only after progress stops', async () => {
+    const clock = installFakeClock();
+    const {control, requestId, reply} = setup();
+    control.close();
+    const request = {requestId: requestId()};
+    for (
+      let elapsed = 0;
+      elapsed < APP_FLUSH_LIMITS.timeoutMs * 2;
+      elapsed += APP_FLUSH_LIMITS.progressIntervalMs
+    ) {
+      electron.ipcMain.emit(Channels.appFlushProgress, CONTROL_ID, request);
+      await clock.advance(APP_FLUSH_LIMITS.progressIntervalMs);
+      expect(control.destroyed).toBe(false);
+    }
+    reply(false);
+    await clock.advance(0);
+    expect(control.destroyed).toBe(false);
+    control.close();
+    await clock.advance(APP_FLUSH_LIMITS.timeoutMs);
+    expect(control.destroyed).toBe(true);
+  });
+
+  it('does not extend a request for progress from another window or request', async () => {
+    const clock = installFakeClock();
+    const {control, requestId} = setup();
+    control.close();
+    await clock.advance(APP_FLUSH_LIMITS.timeoutMs - 1);
+    electron.ipcMain.emit(Channels.appFlushProgress, OTHER_ID, {
+      requestId: requestId(),
+    });
+    electron.ipcMain.emit(Channels.appFlushProgress, CONTROL_ID, {
+      requestId: '00000000-0000-4000-8000-000000000001',
+    });
+    electron.ipcMain.emit(Channels.appFlushProgress, CONTROL_ID, null);
+    await clock.advance(1);
+    expect(control.destroyed).toBe(true);
+  });
   it('asks the window to flush before it closes and closes after a flushed reply', async () => {
     const {control, reply} = setup();
     control.close();

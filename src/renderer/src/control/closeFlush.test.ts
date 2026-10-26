@@ -1,6 +1,6 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {installFakeClock} from '../../../../test/fake-clock';
-import type {AppFlushRequest} from '@shared/schema/appFlush';
+import {APP_FLUSH_LIMITS, type AppFlushRequest} from '@shared/schema/appFlush';
 import {createAppFlushRequestId} from '@shared/schema/ids';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {CloseFlush, SAVING_DIALOG_DELAY_MS} from './closeFlush';
@@ -23,6 +23,7 @@ function deferred(): {
 function setup(flush: () => Promise<boolean>) {
   const listeners = new Set<(request: AppFlushRequest) => void>();
   const flushDone = vi.fn();
+  const flushProgress = vi.fn();
   const closeAnyway = vi.fn();
   const control = vi.fn();
   const write = vi.fn();
@@ -35,6 +36,7 @@ function setup(flush: () => Promise<boolean>) {
         };
       },
       flushDone,
+      flushProgress,
       closeAnyway,
     },
     window: {control},
@@ -49,10 +51,39 @@ function setup(flush: () => Promise<boolean>) {
   const request = () => {
     for (const listener of listeners) listener({requestId});
   };
-  return {model, listeners, flushDone, closeAnyway, control, write, request};
+  return {
+    model,
+    listeners,
+    flushDone,
+    flushProgress,
+    closeAnyway,
+    control,
+    write,
+    request,
+  };
 }
 
 describe('close flush', () => {
+  it('reports progress while waiting for disk beyond the renderer timeout and stops after a refusal', async () => {
+    const clock = installFakeClock();
+    const pending = deferred();
+    const {model, flushProgress, request} = setup(() => pending.promise);
+    request();
+    expect(flushProgress).toHaveBeenCalledExactlyOnceWith({requestId});
+    await clock.advance(APP_FLUSH_LIMITS.timeoutMs * 2);
+    expect(flushProgress).toHaveBeenCalledTimes(
+      1 +
+        (APP_FLUSH_LIMITS.timeoutMs * 2) / APP_FLUSH_LIMITS.progressIntervalMs,
+    );
+    expect(model.getSnapshot()).toBe('saving');
+    pending.resolve(false);
+    await clock.advance(0);
+    expect(model.getSnapshot()).toBe('failed');
+    const progressCount = flushProgress.mock.calls.length;
+    await clock.advance(APP_FLUSH_LIMITS.timeoutMs);
+    expect(flushProgress).toHaveBeenCalledTimes(progressCount);
+    expect(vi.getTimerCount()).toBe(0);
+  });
   it('never shows the dialog when the flush ends before the delay', async () => {
     const clock = installFakeClock();
     const {model, flushDone, request} = setup(() => Promise.resolve(true));
@@ -128,7 +159,7 @@ describe('close flush', () => {
       () => new Promise(() => undefined),
     );
     request();
-    expect(vi.getTimerCount()).toBe(1);
+    expect(vi.getTimerCount()).toBe(2);
     model.dispose();
     expect(listeners.size).toBe(0);
     expect(vi.getTimerCount()).toBe(0);
