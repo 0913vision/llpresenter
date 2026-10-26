@@ -4,7 +4,7 @@ import {audioPositionSeconds} from '@shared/schema/audioState';
 
 interface AudioPlayerOptions {
   readonly now: () => number;
-  readonly onNext: () => void;
+  readonly onNext: (trackVersion: number) => void;
   readonly onError: (message: string, error: unknown) => void;
   readonly muted?: boolean;
 }
@@ -12,8 +12,12 @@ interface AudioPlayerOptions {
 interface Track {
   readonly element: HTMLAudioElement;
   layer: AudioLayer | null;
-  starting: boolean;
+  ready: boolean;
+  attempted: boolean;
+  generation: number;
 }
+
+const MAX_REPORTED_AUDIO_ERRORS = 32;
 
 /** One audio owner, with a spare decoder that preserves the playing track on load failure. */
 export class AudioPlayer {
@@ -35,26 +39,35 @@ export class AudioPlayer {
       element.preload = 'auto';
       element.hidden = true;
       parent.append(element);
-      return {element, layer: null, starting: false};
+      return {
+        element,
+        layer: null,
+        ready: false,
+        attempted: false,
+        generation: 0,
+      };
     });
     for (const track of this.tracks) {
       this.listen(track, 'canplay', () => this.ready(track));
       this.listen(track, 'error', () => {
-        if (track.layer !== null)
+        if (track.layer !== null) {
+          track.attempted = true;
           this.report(new Error(`Audio failed: ${track.layer.mediaId}`));
+        }
       });
       this.listen(track, 'ended', () => {
         const playback = track.layer?.playback;
         if (
           track !== this.active ||
-          playback?.since === null ||
           playback === undefined ||
+          playback.since === null ||
           playback.trackVersion !== this.wanted?.playback?.trackVersion ||
           this.endedVersion === playback.trackVersion
-        )
+        ) {
           return;
+        }
         this.endedVersion = playback.trackVersion;
-        this.options.onNext();
+        this.options.onNext(playback.trackVersion);
       });
     }
   }
@@ -64,33 +77,44 @@ export class AudioPlayer {
     this.attempt(() => {
       const layer = state.layers.audio;
       this.wanted = layer;
-      for (const track of this.tracks)
-        track.element.volume = (state.audioVolume ?? 100) / 100;
-      if (layer?.playback === undefined) {
-        for (const track of this.tracks) this.unload(track);
-        this.active = null;
-        return;
-      }
-      const playing = this.active;
-      if (
-        playing?.layer?.playback?.trackVersion === layer.playback.trackVersion
-      ) {
-        const previous = playing.layer?.playback;
-        playing.layer = layer;
+      for (const track of this.tracks) {
+        const volume = (state.audioVolume ?? 100) / 100;
+        if (track.element.volume !== volume) track.element.volume = volume;
         if (
-          previous?.since !== layer.playback.since ||
-          previous.positionSeconds !== layer.playback.positionSeconds
+          track.layer !== null &&
+          track !== this.active &&
+          track.layer.playback?.trackVersion !== layer?.playback?.trackVersion
         ) {
-          this.transport(playing);
+          this.attempt(() => this.unload(track));
+        }
+      }
+      if (layer?.playback === undefined) {
+        this.active = null;
+        for (const track of this.tracks) {
+          if (track.layer !== null) this.attempt(() => this.unload(track));
         }
         return;
       }
-      const spare = this.tracks.find(track => track !== playing);
-      if (spare === undefined) return;
-      if (spare.layer?.playback?.trackVersion === layer.playback.trackVersion) {
-        spare.layer = layer;
+      const playback = layer.playback;
+      const existing = this.tracks.find(
+        track => track.layer?.playback?.trackVersion === playback.trackVersion,
+      );
+      if (existing !== undefined) {
+        const previous = existing.layer?.playback;
+        existing.layer = layer;
+        if (
+          previous?.since !== playback.since ||
+          previous.positionSeconds !== playback.positionSeconds
+        ) {
+          existing.generation += 1;
+          existing.attempted = false;
+          if (playback.since === null) existing.element.pause();
+          this.synchronize(existing);
+        }
         return;
       }
+      const spare = this.tracks.find(track => track !== this.active);
+      if (spare === undefined) return;
       this.unload(spare);
       spare.layer = layer;
       spare.element.src = mediaUrl(layer.mediaId);
@@ -120,42 +144,50 @@ export class AudioPlayer {
   }
 
   private ready(track: Track): void {
-    const layer = track.layer;
+    track.ready = true;
+    this.synchronize(track);
+  }
+
+  private synchronize(track: Track): void {
+    const playback = track.layer?.playback;
     if (
-      track === this.active ||
-      layer?.playback === undefined ||
-      track.starting ||
-      layer.playback.trackVersion !== this.wanted?.playback?.trackVersion
-    )
+      playback === undefined ||
+      !track.ready ||
+      track.attempted ||
+      playback.trackVersion !== this.wanted?.playback?.trackVersion
+    ) {
       return;
-    track.starting = true;
+    }
+    track.attempted = true;
+    const generation = track.generation;
     const commit = (): void => {
       if (
         this.disposed ||
-        track.layer?.playback?.trackVersion !== layer.playback?.trackVersion ||
-        this.wanted?.playback?.trackVersion !== layer.playback?.trackVersion
-      )
+        track.generation !== generation ||
+        this.wanted?.playback?.trackVersion !== playback.trackVersion
+      ) {
         return;
+      }
       const previous = this.active;
       this.active = track;
-      if (previous !== null && previous !== track)
+      if (previous !== null && previous !== track) {
         this.attempt(() => this.unload(previous));
+      }
     };
     this.seek(track);
-    if (layer.playback.since === null) {
+    if (playback.since === null) {
+      track.element.pause();
       commit();
       return;
     }
     track.element.play().then(
       () => this.attempt(commit),
-      error => this.report(error),
+      (error: unknown) => {
+        if (!this.disposed && track.generation === generation) {
+          this.report(error);
+        }
+      },
     );
-  }
-
-  private transport(track: Track): void {
-    this.seek(track);
-    if (track.layer?.playback?.since === null) track.element.pause();
-    else void track.element.play().catch(error => this.report(error));
   }
 
   private seek(track: Track): void {
@@ -170,10 +202,15 @@ export class AudioPlayer {
 
   private unload(track: Track): void {
     track.layer = null;
-    track.starting = false;
-    track.element.pause();
-    track.element.removeAttribute('src');
-    track.element.load();
+    track.generation += 1;
+    track.ready = false;
+    track.attempted = false;
+    try {
+      track.element.pause();
+    } finally {
+      track.element.removeAttribute('src');
+      track.element.load();
+    }
   }
 
   private attempt(run: () => void): void {
@@ -186,8 +223,12 @@ export class AudioPlayer {
 
   private report(error: unknown): void {
     const message = error instanceof Error ? error.message : String(error);
-    if (this.disposed || this.reported.has(message) || this.reported.size >= 32)
+    if (
+      this.reported.has(message) ||
+      this.reported.size >= MAX_REPORTED_AUDIO_ERRORS
+    ) {
       return;
+    }
     this.reported.add(message);
     this.options.onError('could not play audio', error);
   }
