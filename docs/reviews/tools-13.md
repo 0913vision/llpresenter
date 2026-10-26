@@ -89,3 +89,10 @@ Final repeated drag state and a fresh deliberate quick action:
 ![After 70 drag pairs](evidence/tools-13/show-after-20.png)
 
 ![Deliberate quick click still outputs](evidence/tools-13/quick-deliberate-click.png)
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (c6f7f669): reviewer (Codex) Approve. Lead Approve through the lead's
+  merge check: the exact-head CI run passed, the branch rebased onto local
+  `main` without conflicts, and typecheck passes. Earlier rounds' findings and
+  replies are above.
