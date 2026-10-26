@@ -2,8 +2,8 @@
 
 - Team member: data (Claude session)
 - Branch: `feat/data/close-flush`
-- Base commit (`main`): `439ad039`
-- Last code commit: `334e444d`; the request message gives the head commit and
+- Base commit (`main`): `146547d3`
+- Last code commit: `c2d3d945`; the request message gives the head commit and
   its CI run.
 - Related brief: `docs/briefs/data.md`; request from `.llp/task.md`, "Claude
   takeover (from the lead, 08:10)", item 2 (the close handshake end to end on
@@ -217,3 +217,19 @@ missing.
    the reply `true` the lyric field is read-only and a late change sends no edit
    (`PrepMount.test.tsx`); a session without an editor starts none after its
    reply (`controlSession.test.ts`).
+
+## Round 3 reply
+
+1. Removed the TSDoc from the private `ControlSession.flushBeforeClose`
+   (`style(shell): drop the doc comment of a private session method`).
+2. Rebased onto `main` at `146547d3` (after ui-31 to ui-36). ui-31 had moved
+   session creation into `SongEditorStore.sessionFor` and added
+   `SongSession.clean` and `setArrangementSlides`; the rebase passes
+   `editingStopped` from `sessionFor`, so sessions that a 예배 순서 item
+   attaches stop too, keeps both getters, and gates `setArrangementSlides` like
+   the other edits. The store regression now also checks that a 구성's order
+   can't change during or after a successful flush and can after a refusal.
+3. ui-32 and ui-33 added `ServiceItemStore` to `ControlSession`; its disposal
+   joins the close flush's release, and its new `SongSession.copyArrangement` is
+   gated like the other edits. Its 예배 순서 edits are sent at once, and its
+   song edits go through the stopped sessions, so the close flush covers it.
