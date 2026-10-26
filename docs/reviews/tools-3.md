@@ -2,8 +2,8 @@
 
 - Team member: tools
 - Branch: `feat/tools/bible-panel`
-- Base: `feat/tools/bible-field` at `db8355ad` (tools-2, in review)
-- Main implementation: `37e67bdb`; the report gives the final head and its CI.
+- Base: `feat/tools/bible-field` at `886678db` (tools-2 round 2)
+- Main implementation: `f6f01b9c`; the report gives the final head and its CI.
 - Brief: `docs/briefs/tools.md`, M3-T4b. Merge order: tools-2, then tools-3.
 
 ## What changed and why
@@ -44,10 +44,14 @@ code and test diff is 750 additions and 15 removals. Outside owned paths:
 | Format, format:check, diff --check | Passed                                                           |
 | Full verify                        | Passed at 37e67bdb; final head in report                         |
 
-Implementation CI passed at `37e67bdb`:
+Prior implementation CI passed at `37e67bdb`:
 [run 40263522806](https://github.com/0913vision/llpresenter/actions/runs/40263522806).
-The report supplies final-head CI separately. No full local verify or app
+The report supplies restacked-head CI separately. No full local verify or app
 launch.
+
+Restacked onto the tools-2 translation and normalized-identity fix at
+`886678db`. Typecheck and seven Bible/shared/main test files (58 tests) passed
+after the rebase. Package tools used repository scripts or `npx --no-install`.
 
 ## Quality checklist
 
