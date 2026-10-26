@@ -13,10 +13,12 @@
 ## Shared contract changes (review first)
 
 - `src/shared/schema/timerState.ts` (new): `TimerRun` is
-  `{state: 'running', since, countedMs}` or `{state: 'paused', at, countedMs}`;
-  `timerRunsSchema` is a record from `TimerId` to a run, at most
-  `MAX_LIVE_TIMERS` (200) entries. Unknown fields are dropped, as for every IPC
-  payload.
+  `{state: 'running', since, countedMs, day}` or
+  `{state: 'paused', at, countedMs, day, wallAt}`: `since` and `at` on main's
+  monotonic 타이머 clock, `day` the local midnight of the day the run started
+  and `wallAt` the wall-clock moment of a pause; `timerRunsSchema` is a record
+  from `TimerId` to a run, at most `MAX_LIVE_TIMERS` (200) entries. Unknown
+  fields are dropped, as for every IPC payload.
 - `src/shared/schema/liveState.ts` and `src/shared/live.ts`: the additive
   optional `LiveState.timers`. A state without it parses as before; recovery
   records never carry it.
@@ -148,4 +150,25 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 (codex4, Request changes):
+
+1. [P2] Monotonic time: fixed in `0487697d`. `src/main/live/clock.ts` (new)
+   gives the store two clocks: the wall clock as before, and a monotonic 타이머
+   clock (`performance.timeOrigin + performance.now()`, epoch-like
+   milliseconds). The store passes `timerNow` to slices beside `now`; a single
+   function, as tests pass, serves as both and is still read once per dispatch.
+   Runs start and pause on the 타이머 clock, and `timerText` takes both clocks,
+   so a countdown never reads the wall clock. Tests: the slice advances 30 s,
+   steps the wall clock back 10 s, then pauses, and counts 30 s; a running
+   countdown reads 0:30 at +30 s and still 0:30 after the wall clock steps back
+   to +20 s. Output windows read the main 타이머 clock through a one-time offset
+   that part 2 (output-35) adds with its channel.
+2. [P2] Midnight: fixed in the same commit. A run keeps the local midnight of
+   the day it started (`day`) through pauses and resumes, and a pause keeps its
+   wall-clock moment (`wallAt`); `countdownTo` and `elapsedFrom` read their set
+   time on that day. Tests: a countdown to 23:59 reads -0:59 at 23:59:59 and
+   -1:30 at 00:00:30; an elapsed time from 23:00 reads 59:59 and 1:00:30; a
+   paused one keeps -0:59 after midnight; a resumed run keeps its first day.
+   Spec 04 says both rules.
+
+All three regression tests fail against the previous code.
