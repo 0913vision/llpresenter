@@ -194,7 +194,8 @@ interface PrepBinding {
   readonly selectionRequest?: LibrarySelectionRequest | undefined;
   readonly onSelectionHandled?:
     ((request: LibrarySelectionRequest) => void) | undefined;
-  /** Called before a 예배 순서 item opens in 준비, ahead of the editor. */
+  // NOTE(0913vision): Runs before a 예배 순서 item opens in 준비, ahead of the
+  // editor, so a pending library selection can't replace the item's view.
   readonly onServiceItemOpen?: (() => void) | undefined;
 }
 

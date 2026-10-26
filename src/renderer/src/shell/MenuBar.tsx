@@ -101,10 +101,9 @@ function outputEntries({
   ];
 }
 
-/**
- * The 출력 menu: each screen's output on or off, and, while a screen's
- * warning holds, an item that shows its card again (spec 08).
- */
+// NOTE(0913vision): The 출력 menu holds each screen's output on or off and,
+// while a screen's warning holds, an item that shows its card again (spec
+// 08). The other menus don't open yet.
 function OutputMenu({
   warnings,
   onShowWarning,
