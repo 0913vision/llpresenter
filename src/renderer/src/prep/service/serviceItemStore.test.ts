@@ -408,6 +408,39 @@ describe('service item store', () => {
     }
   });
 
+  it('creates a queued 새 구성 in the song and item it was asked for after the selection moved', async () => {
+    const {api, items, service, documents, first, second} = setup();
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
+    await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
+    const write = api.content.edit;
+    let release: (() => void) | undefined;
+    vi.spyOn(api.content, 'edit').mockImplementationOnce(async edit => {
+      const result = await write(edit);
+      return new Promise(resolve => {
+        release = () => resolve(result);
+      });
+    });
+    const holding = items.setStartMacro(fixtureMacros.sermon);
+    await vi.waitFor(() => expect(release).toBeDefined());
+    const creating = items.createArrangement();
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.plain});
+    await vi.waitFor(() =>
+      expect(items.getSnapshot().song?.document.song.id).toBe(second.song.id),
+    );
+    release?.();
+    expect(await holding).toBe(true);
+    expect(await creating).toBe(true);
+    expect(documents.get(first.song.id)?.song.arrangements).toEqual([
+      {name: '주일용', slides: [1, 2, 2]},
+      {name: '구성 1', slides: [1, 2, 2]},
+    ]);
+    expect(documents.get(second.song.id)?.song.arrangements).toEqual([
+      {name: '주일용', slides: [1, 2, 2]},
+    ]);
+    expect(service().service.order[1]).toMatchObject({arrangement: '구성 1'});
+    expect(service().service.order[2]).not.toHaveProperty('arrangement');
+  });
+
   it('keeps a memo save that overlaps a background change instead of refusing it', async () => {
     const {items, service} = setup();
     items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});

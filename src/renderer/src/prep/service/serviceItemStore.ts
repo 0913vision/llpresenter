@@ -242,15 +242,18 @@ export class ServiceItemStore {
    * saves the song, and then picks the new 구성 for the item.
    */
   createArrangement(): Promise<boolean> {
-    return this.operation(() => this.addArrangement());
-  }
-
-  private async addArrangement(): Promise<boolean> {
     const {song, arrangement} = this.state;
     const target = this.target;
-    if (!this.alive || song === null || target === null) {
-      return false;
-    }
+    if (song === null || target === null) return Promise.resolve(false);
+    return this.operation(() => this.addArrangement(song, arrangement, target));
+  }
+
+  private async addArrangement(
+    song: SongSession,
+    arrangement: string | undefined,
+    target: ItemTarget,
+  ): Promise<boolean> {
+    if (!this.alive) return false;
     const songId = song.document.song.id;
     const name = song.copyArrangement(arrangement);
     if (name === undefined || !(await song.flush())) return false;
