@@ -3,7 +3,7 @@
 - Team member: `screens`
 - Branch: `feat/screens/output-preview`, stacked on `screens-3`
   (`feat/screens/display-layout-panel`)
-- Base commit (`main`): see the request line
+- Base commit (`main`): `7296ddd5`
 - Last commit: see the request line
 - Related brief: `docs/briefs/screens.md`
 
