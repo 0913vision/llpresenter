@@ -56,6 +56,19 @@ describe('OverlayTextView', () => {
     ).toBe('42px');
   });
 
+  it('replaces shown text in place and never shows text that only replaced nothing', () => {
+    const {view, front} = setUp();
+    view.replace('Before anything');
+    expect(front()).toBeNull();
+    view.show('Before anything');
+    const page = front();
+    expect(page?.textContent).toBe('Before anything');
+    view.replace('Changed in place');
+    expect(front()).toBe(page);
+    expect(page?.textContent).toBe('Changed in place');
+    view.dispose();
+  });
+
   it('clears immediately and can show text again without recreating pages', () => {
     const {parent, view, front} = setUp();
     view.show('First');

@@ -130,6 +130,28 @@ describe('타이머 tokens in 소품 text', () => {
     renderer.dispose();
   });
 
+  it('redraws a changed value in place when the live state changes', () => {
+    const {renderer, render, shown} = setup();
+    const state = stateWith(`설교 {timer:${SERMON}}`, running);
+    render(state.layers, state.timers);
+    const page = shown();
+    clock = {timer: clock.timer + 2000, wall: clock.wall + 2000};
+    render(state.layers, state.timers);
+    expect(shown()).toBe(page);
+    expect(page?.textContent).toBe('설교 0:58');
+    renderer.dispose();
+  });
+
+  it('stops the ticker when the ticking 소품 comes down', () => {
+    const {renderer, render} = setup();
+    const stopped = vi.spyOn(globalThis, 'clearInterval');
+    const state = stateWith(`{timer:${SERMON}}`, running);
+    render(state.layers, state.timers);
+    render({...state.layers, prop: null}, state.timers);
+    expect(stopped).toHaveBeenCalledOnce();
+    renderer.dispose();
+  });
+
   it('keeps one ticker only while a shown 타이머 runs, and releases it on dispose', () => {
     const {renderer, render} = setup();
     const started = vi.spyOn(globalThis, 'setInterval');
