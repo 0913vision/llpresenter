@@ -130,19 +130,12 @@ suppressed in offscreen mode and remains output-54's backend verification.
 ![Explicit on is preserved](screens-11/first-explicit-on.png)
 ![Thin scrollbars after restart](screens-11/reopen-thin-scrollbars.png)
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (b2656d2c): reviewer (Codex) Approve. Lead Approve through the lead's
+  merge check: the exact-head CI run passed, the branch rebased onto local
+  `main` without conflicts, and typecheck passes. Earlier rounds' findings and
+  replies are above.
 
 ## Team member's reply
 
