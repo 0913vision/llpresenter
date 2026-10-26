@@ -2,8 +2,8 @@
 
 - Team member: data (Claude session)
 - Branch: `feat/data/close-flush`
-- Base commit (`main`): `2ba089b8`
-- Last code commit: `b27127f3`; the request message gives the head commit and
+- Base commit (`main`): `439ad039`
+- Last code commit: `334e444d`; the request message gives the head commit and
   its CI run.
 - Related brief: `docs/briefs/data.md`; request from `.llp/task.md`, "Claude
   takeover (from the lead, 08:10)", item 2 (the close handshake end to end on
@@ -61,8 +61,12 @@ defined the flush handshake, but nothing used it.
   confirm quits with it, and dispose it on shutdown.
 - `src/renderer/src/prep/editor/closeFlush.ts`, `.test.ts`, `index.ts`, and
   `README.md`: the editor's answer and the warning.
-- `src/renderer/src/control/controlSession.ts` and `PrepMount.test.tsx`: start
-  and stop the answer; the end-to-end renderer tests.
+- `src/renderer/src/control/controlSession.ts`, `controlSession.test.ts`, and
+  `PrepMount.test.tsx`: start and stop the answer, and no editor start after a
+  close flush; the end-to-end renderer tests.
+- `src/renderer/src/prep/editor/songEditorStore.ts`, `songSession.ts`, and
+  `songEditorStore.test.ts` (round 2): stop editing during and after the close
+  flush.
 - `src/main/live/slice.ts`, `sliceRegistry.ts`, and `sliceRegistry.test.ts`: the
   data-45 nits.
 - `docs/reviews/data-44.md`: this request.
@@ -193,3 +197,23 @@ missing.
 ## Team member's reply
 
 1.
+
+## Round 2 reply
+
+1. [P1] `closeFlush.ts:61`, the editor stayed writable during and after the
+   flush. Fixed in
+   `fix(prep): stop editing from the close flush until a refusal restarts it`.
+   `SongEditorStore.flush()` now stops every edit before it flushes: each
+   session refuses lyric, title, background, and arrangement edits, the store
+   refuses label and arrangement operations, and the snapshot reports `busy`, so
+   the editor's fields turn read-only with the existing 저장 중 reason. A
+   refused or throwing flush restarts editing; after a successful flush, editing
+   stays stopped until the window closes, which matches main caching the
+   confirmation. `ControlSession` also refuses to start an editor while a close
+   flush runs or after it succeeded, so a window that answered without an editor
+   can't open one and lose its typing. Regressions: the store ignores typing and
+   a new arrangement during the flush and after `true`, and accepts typing again
+   after `false` (`songEditorStore.test.ts`); through the mounted editor, after
+   the reply `true` the lyric field is read-only and a late change sends no edit
+   (`PrepMount.test.tsx`); a session without an editor starts none after its
+   reply (`controlSession.test.ts`).
