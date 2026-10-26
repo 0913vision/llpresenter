@@ -73,11 +73,12 @@ M3-O1 part 1: the 화면 설정 workspace frame and the screen list.
    (LIVE badge and bar). The Look in use is the live state's `lookId`, or the
    saved `current`. The stage layouts in use are the layouts that this Look
    gives the 무대 screens, the base layout of spec 03.
-2. The screen target for full screen is the monitor number the output last
-   showed on (`status.monitor`), else the saved `display.number`, else
-   `모니터 미지정`.
-3. A screen with its output on but no status yet shows no dot, because the dot
-   must not claim health that nothing has reported.
+2. The screen target for full screen is the monitor number the output shows on
+   (`status.monitor`, used only while the output is on and placed full screen or
+   missing its monitor), else the saved `display.number`, else `모니터 미지정`.
+3. A screen with its output on but no status, or no frame rate reported yet,
+   shows no dot, because the dot must not claim health that nothing has
+   reported. Explicit warnings still show.
 4. The selection store is a module-level store, so the selected row stays when
    the operator leaves and returns to 화면 설정.
 5. The three lists each read their own documents, so `screens` and `looks` have
@@ -118,3 +119,14 @@ missing.
 ## Team member's reply
 
 1.
+
+## Round 2 reply
+
+1. [P2] Old monitor status: fixed in `screenRows.ts`. `status.monitor` now
+   counts only while the output is on and placed `fullscreen` or
+   `monitorMissing`; otherwise the current assignment decides. Tests cover the
+   output off after a reassignment, a removed assignment, and the monitor kept
+   while it is missing.
+2. [P2] Startup health: fixed in `screenRows.ts`. With no warning and `fps`
+   null, the dot is `none` until a frame rate arrives. Tests cover the startup
+   state and an explicit warning before the first report.

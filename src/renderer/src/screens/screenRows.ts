@@ -30,16 +30,30 @@ const targetByMethod = {
   ndi: 'NDI',
 } as const;
 
+function showsOnMonitor(status: ScreenStatus | undefined, on: boolean) {
+  return (
+    on &&
+    (status?.placement === 'fullscreen' ||
+      status?.placement === 'monitorMissing')
+  );
+}
+
 function monitorNumber(
   screen: Screen,
   status: ScreenStatus | undefined,
+  on: boolean,
 ): number | undefined {
-  return status?.monitor ?? screen.display?.number;
+  const shown = showsOnMonitor(status, on) ? status?.monitor : undefined;
+  return shown ?? screen.display?.number;
 }
 
-function targetOf(screen: Screen, status: ScreenStatus | undefined): string {
+function targetOf(
+  screen: Screen,
+  status: ScreenStatus | undefined,
+  on: boolean,
+): string {
   if (screen.method !== 'fullscreen') return targetByMethod[screen.method];
-  const number = monitorNumber(screen, status);
+  const number = monitorNumber(screen, status, on);
   return number === undefined ? UNASSIGNED_TARGET : `모니터 ${number}`;
 }
 
@@ -62,7 +76,8 @@ function healthOf(
 ): Pick<ScreenRow, 'health' | 'problem'> {
   if (!on || status === undefined) return {health: 'none'};
   const problem = problemOf(status);
-  return problem === undefined ? {health: 'ok'} : {health: 'warning', problem};
+  if (problem !== undefined) return {health: 'warning', problem};
+  return status.fps === null ? {health: 'none'} : {health: 'ok'};
 }
 
 function rowOf(
@@ -71,12 +86,13 @@ function rowOf(
   outputs: Readonly<Record<string, boolean>>,
 ): ScreenRow {
   const status = statuses[screen.id];
+  const on = outputs[screen.id] === true;
   return {
     id: screen.id,
     name: screen.name,
     icon: iconOf(screen),
-    target: targetOf(screen, status),
-    ...healthOf(outputs[screen.id] === true, status),
+    target: targetOf(screen, status, on),
+    ...healthOf(on, status),
   };
 }
 

@@ -44,6 +44,37 @@ describe('screenGroups', () => {
     expect(mainRow(statuses).target).toBe('모니터 3');
   });
 
+  it('keeps the shown monitor while it is missing', () => {
+    const status = {
+      ...running,
+      placement: 'monitorMissing',
+      monitor: 3,
+    } as const;
+    expect(mainRow({[MAIN_ID]: status}).target).toBe('모니터 3');
+  });
+
+  it('uses the current assignment while the output is off', () => {
+    const statuses = {[MAIN_ID]: {...running, monitor: 3}};
+    expect(mainRow(statuses, false).target).toBe('모니터 2');
+  });
+
+  it('shows the unassigned target when the assignment is removed', () => {
+    const statuses = {
+      [STAGE_ID]: {...running, placement: 'off', monitor: 3} as const,
+    };
+    const row = screenGroups(screens(), statuses, {[STAGE_ID]: true}).stage[0];
+    expect(row?.target).toBe('모니터 미지정');
+  });
+
+  it('keeps the dot unknown until a frame rate is reported', () => {
+    expect(mainRow({[MAIN_ID]: {...running, fps: null}}).health).toBe('none');
+  });
+
+  it('keeps an explicit warning before a frame rate is reported', () => {
+    const status = {...running, fps: null, renderer: 'restarting'} as const;
+    expect(mainRow({[MAIN_ID]: status})).toMatchObject({health: 'warning'});
+  });
+
   it('shows no dot while the output is off or has no status yet', () => {
     expect(mainRow({[MAIN_ID]: running}, false).health).toBe('none');
     expect(mainRow({}).health).toBe('none');
