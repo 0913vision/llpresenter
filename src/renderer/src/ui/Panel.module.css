@@ -55,7 +55,7 @@
   border: 0;
   background: transparent;
   color: var(--text-3);
-  font: var(--type-label-strong);
+  font: var(--type-title);
   white-space: nowrap;
   transition: color var(--motion-hover);
 }

@@ -14,7 +14,7 @@ The 28px row at the very bottom of the window. It shows the last save time on th
 
 ## Anatomy
 
-- Row: height `size-statusbar` (28px), background `bg-app`, horizontal padding 18px, gap between items 18px, text `caption` (11/14) `text-3`, tabular numbers.
+- Row: height `size-statusbar` (28px), background `bg-app`, horizontal padding 18px, gap between items 18px, text `caption` (14/20) `text-3`, tabular numbers.
 - Save state (left): icon `saved` `size-icon-14` + gap `space-6` + "23:41 저장됨".
 - Output state (right, pushed to the right end from the first item): in the order 본 화면 (main screen), 무대 화면 (stage screen), 방송 자막 (broadcast captions). 6px dot (`radius-full`) + gap `space-6` + "본 화면 60fps".
 - Use only two dot colors: `ok` (healthy) and `warning` (warning). Don't use `live` red (the toolbar shows that an output is on).

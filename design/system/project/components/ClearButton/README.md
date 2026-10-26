@@ -18,7 +18,7 @@ The 지우기 (clear) row in the right column of the 진행 (Show) workspace. It
 
 - Row: background `bg-panel`, corner radius `radius-lg`, padding `space-8`, gap between buttons `space-4`. The row is a panel of its own and has no header.
 - Order: 모두 (all), 가사 (lyrics), 미디어 (media), 소품 (props), 오디오 (audio), 메시지 (message), 공지 (notice). When clear undo is enabled, append its divider and 되돌림.
-- Button: height `size-clear-button` (52px), corner radius `radius-md`, name `caption-strong` (11/14/600) under an icon `size-icon-18`, gap `space-4`. Buttons share the row width (flex 1). 모두 is 1.4 times as wide.
+- Button: height `size-clear-button` (52px), corner radius `radius-md`, name `caption-strong` (16/22/600) under an icon `size-icon-18`, gap `space-4`. Buttons share the row width (flex 1). 모두 is 1.4 times as wide.
 - Icons: 모두 `layers`, 가사 `text`, 미디어 `image`, 소품 `prop`, 오디오 `audio`, 메시지 `msg`, 공지 `notice`, 되돌림 `undo`.
 - Divider: 1×32, `line`, horizontal margin `space-4` (8 together with the gap between buttons).
 - 되돌림: background `bg-toolbar-hover`. It sits one step lower than the 지우기 buttons to show that it does a different job.

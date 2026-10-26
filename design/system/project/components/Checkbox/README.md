@@ -20,12 +20,12 @@ A 16px checkbox for picking several things, and a check row that toggles when yo
   - Off: background `bg-well`, border `inset 0 0 0 1px` `line-control`.
   - On: background `accent-fill`, white check mark (`check` 12px, `text-on-fill`), no border.
   - Mixed: background `accent-fill`, an 8×2 bar in the center (`text-on-fill`, radius 1px).
-- Check row `ll-check-row`: height `size-row` (30), gap between the box and the next element `space-10`, text `body` (13/18) `text`.
+- Check row `ll-check-row`: height `size-row` (30), gap between the box and the next element `space-10`, text `body` (16/22) `text`.
   - Type icon `ll-check-row__icon`: 16px `text-2`, 10px from the text.
-  - Extra info on the right `ll-check-row__meta`: `caption` (11/14) `text-3` (for example, the 구성 (arrangement) name 주일용).
-  - Row with a value (출력 상태 복구): fix the name with `ll-check-row__text--fixed` (168px), and put the value `ll-check-row__value` (`label` 12/16, `text-3`, truncated with an ellipsis) after it.
+  - Extra info on the right `ll-check-row__meta`: `caption` (14/20) `text-3` (for example, the 구성 (arrangement) name 주일용).
+  - Row with a value (출력 상태 복구): fix the name with `ll-check-row__text--fixed` (168px), and put the value `ll-check-row__value` (`label` 14/20, `text-3`, truncated with an ellipsis) after it.
 - Row in a list `ll-check-row--list`: horizontal padding `space-14`, hover `bg-raised`. Same rules as a list row.
-- Group header row `ll-check-row--group`: text `caption-strong` (11/14/600) `text-3`. When only some items of the group are picked, the box shows the mixed state.
+- Group header row `ll-check-row--group`: text `caption-strong` (16/22/600) `text-3`. When only some items of the group are picked, the box shows the mixed state.
 - Rows in a dialog (출력 상태 복구) have no horizontal padding and no hover, and follow the padding of the dialog body.
 
 ## Sizes and variants
@@ -33,9 +33,9 @@ A 16px checkbox for picking several things, and a check row that toggles when yo
 | Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
 | Box | 16 | - | Inside rows, list headers (select all) |
-| Check row | 30 | `body` 13/18 | Choices in dialogs |
-| List row | 30 | `body` 13/18, horizontal padding 14 | 다른 예배에서 가져오기, new service, Look layers |
-| Group header row | 30 | `caption-strong` 11/14/600 `text-3` | Parents in the item tree |
+| Check row | 30 | `body` 16/22 | Choices in dialogs |
+| List row | 30 | `body` 16/22, horizontal padding 14 | 다른 예배에서 가져오기, new service, Look layers |
+| Group header row | 30 | `caption-strong` 16/22/600 `text-3` | Parents in the item tree |
 
 ## States
 

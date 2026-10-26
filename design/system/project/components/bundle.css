@@ -723,7 +723,7 @@
 
 /* Tabs: the 2px underline of the selected tab sits right above the header line */
 .ll-panel__tabs { display: flex; align-self: stretch; gap: var(--space-18); min-width: 0; }
-.ll-panel__tab, :is(.ll-root, .ll-preview) .ll-panel__tab { position: relative; display: inline-flex; align-items: center; gap: var(--space-6); margin: var(--space-4) 0; padding: 0; border: 0; background: transparent; color: var(--text-3); font: var(--type-label-strong); white-space: nowrap; cursor: default; transition: color 100ms ease-out; }
+.ll-panel__tab, :is(.ll-root, .ll-preview) .ll-panel__tab { position: relative; display: inline-flex; align-items: center; gap: var(--space-6); margin: var(--space-4) 0; padding: 0; border: 0; background: transparent; color: var(--text-3); font: var(--type-title); white-space: nowrap; cursor: default; transition: color 100ms ease-out; }
 .ll-panel__tab:hover, .ll-panel__tab.is-hover { color: var(--text-2); }
 .ll-panel__tab[aria-selected="true"] { color: var(--text); }
 .ll-panel__tab[aria-selected="true"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: calc(-1 * var(--space-4)); height: 2px; background: var(--text); }
@@ -732,7 +732,7 @@
 
 /* Title header: song title + position or count */
 .ll-panel__title { display: flex; align-items: baseline; gap: var(--space-10); min-width: 0; }
-.ll-panel__title-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; font: var(--type-body-strong); }
+.ll-panel__title-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; font: var(--type-title); }
 .ll-panel__meta { flex: none; font: var(--type-label); color: var(--text-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ll-panel__tabs + .ll-panel__meta { margin-left: var(--space-10); align-self: center; }
 

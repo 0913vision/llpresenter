@@ -21,15 +21,15 @@ A 30×18 switch that turns on or off a setting that applies the moment you click
 - Thumb: 14×14 circle, `text`, inset `space-2` inside the track. When on, it moves 12px to the right.
 - Motion: track color and thumb position 100ms ease-out. Under `prefers-reduced-motion`, it changes at once.
 - In a property row, put it at the left end of the control cell of `PropertyRow` (name on the left, switch at the start of the control cell). Don't push it to the right end of the control cell. Its left edge must line up with the dropdowns and text fields in other rows.
-- Name + switch row `ll-switch-row`: for places where several controls line up horizontally, such as a settings row. Name `label` (12/16) `text-2`, 10px from the switch.
+- Name + switch row `ll-switch-row`: for places where several controls line up horizontally, such as a settings row. Name `label` (14/20) `text-2`, 10px from the switch.
 
 ## Sizes and variants
 
 | Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
 | Switch | 18 | - | Only one size |
-| Property row | 36 (panel) / 38 (window) | Name `label` 12/16 `text-2` | Preferences, 화면 설정, Look, stage, media |
-| Name + switch | 18 | `label` 12/16 `text-2` | Text import settings row |
+| Property row | 36 (panel) / 38 (window) | Name `label` 14/20 `text-2` | Preferences, 화면 설정, Look, stage, media |
+| Name + switch | 18 | `label` 14/20 `text-2` | Text import settings row |
 
 ## States
 

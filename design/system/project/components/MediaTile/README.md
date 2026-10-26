@@ -17,8 +17,8 @@ A media tile that shows one background video or image as a 16:9 picture with a n
 
 - Tile `ll-media`: a button, with the name `space-8` below the picture frame.
 - Picture frame `ll-media__frame`: 16:9, corner radius `radius-md`, background `bg-well` (before the picture loads). The picture `ll-media__img` uses `object-fit: cover`.
-- Duration `ll-media__dur`: `space-6` in from the bottom right of the picture. Height `size-count` (18), horizontal padding `space-6`, `radius-sm`, background `scrim-strong`, text `caption-strong` (11/14/600) `text`, tabular-nums. For looping playback, a 12px `loop` icon goes in front (gap `space-4`). Don't write a duration for a still image.
-- Name `ll-media__name`: `label` (12/16) `text-2`, one line, truncated with an ellipsis.
+- Duration `ll-media__dur`: `space-6` in from the bottom right of the picture. Height `size-count` (22), horizontal padding `space-6`, `radius-sm`, background `scrim-strong`, text `caption-strong` (16/22/600) `text`, tabular-nums. For looping playback, a 12px `loop` icon goes in front (gap `space-4`). Don't write a duration for a still image.
+- Name `ll-media__name`: `label` (14/20) `text-2`, one line, truncated with an ellipsis.
 - Missing file `ll-media__missing`: the frame background becomes hatching (`bg-inset`/`bg-well`, 135°, 6px), with a 24px `filex` icon in `warning` in the center. Hide the picture and the duration.
 - Copying `ll-media__busy`: `scrim` over the frame, a percentage in the center (`caption-strong` `text`), and a progress bar `space-6` in from the bottom (StatusMarks' `ll-progress`).
 - Grid `ll-media-grid`: the size slider in the panel's bottom row sets the column count (2–8 columns, `--ll-cols`), gap `space-16` vertical, `space-12` horizontal. The outer margin is the panel body's `panel-inset`.

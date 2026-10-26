@@ -17,12 +17,12 @@ A row that places one name and one control side by side in a property field or a
 ## Anatomy
 
 - Group `ll-prop-group`: top `space-12`, bottom `space-8`, a 1px `line` below. The last group has no line.
-- Group name `ll-prop-group__title`: `caption-strong` (11/14/600), `text-3`, bottom `space-4`. If it needs a leading icon, use 12px, 6px from the name (메모).
+- Group name `ll-prop-group__title`: `caption-strong` (16/22/600), `text-3`, bottom `space-4`. If it needs a leading icon, use 12px, 6px from the name (메모).
 - Row `ll-prop`: name cell + control cell, vertically centered.
-- Name `ll-prop__label`: `label` (12/16), `text-2`. Write it as `label for` so that it connects to the control.
+- Name `ll-prop__label`: `label` (14/20), `text-2`. Write it as `label for` so that it connects to the control.
 - Control cell `ll-prop__control`: the remaining width. Gap between the items inside it `space-8`. Place md controls (`size-control-md` 30) in it: `TextField`, `Select` (`--block`), `SegmentedControl` (`--fill`), `Switch`, `Slider` (`--block`), number field + unit.
-- Value `ll-prop__value`: a read-only value. `body` (13/18), `text-2`, tabular numbers, truncated with an ellipsis when it overflows (주사율 60Hz, 현재 버전 1.0.0, 마지막 백업 오늘 07:58). For a value that reads like a name (the source song name), use `ll-prop__value--primary` for `text`. An icon in front of a value is 14px `text-3` (`link` for the source song).
-- Extra information after the value `ll-prop__meta`: `label` (12/16) `text-3` (라이브러리).
+- Value `ll-prop__value`: a read-only value. `body` (16/22), `text-2`, tabular numbers, truncated with an ellipsis when it overflows (주사율 60Hz, 현재 버전 1.0.0, 마지막 백업 오늘 07:58). For a value that reads like a name (the source song name), use `ll-prop__value--primary` for `text`. An icon in front of a value is 14px `text-3` (`link` for the source song).
+- Extra information after the value `ll-prop__meta`: `label` (14/20) `text-3` (라이브러리).
 - An action after a value, such as 라이브러리 곡 열기 (`IconButton` sm, `open` icon), sits at the right end of the control cell (`margin-left: auto`). In code: `PropertyValue` `action`.
 - Put a multi-line control (메모) under the group name at the full cell width, without a name cell. If a multi-line control really needs a name cell, use `ll-prop--top` to align the name with the first line.
 
@@ -35,17 +35,17 @@ The place where the row sits sets the name cell width. Don't set it separately f
 | Panel (right column 480, 360, Look editor grid) | 84px | `space-12` | 36px or more | Remaining width |
 | Window (Preferences) | 168px | `space-16` | 38px or more | Up to 340px |
 
-- A panel's 84px fits names up to "위치 미세 조정" and "연결이 끊기면" on one line in 12px text. Don't wrap a name that overflows onto two lines. Shorten the name.
+- A panel's 84px fits names up to "위치 미세 조정" and "연결이 끊기면" on one line in 14px text. Don't wrap a name that overflows onto two lines. Shorten the name.
 - When you place two columns on a wide surface, as in the Look editor, use `ll-prop-cols` with `space-24` between the columns. Rows inside a column follow the panel rule (84px).
 
 ## Sizes and variants
 
 | Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
-| Panel row | 36 | Name `label` 12/16 `text-2` | Property panels, Look grid |
+| Panel row | 36 | Name `label` 14/20 `text-2` | Property panels, Look grid |
 | Window row `ll-props--window` | 38 | Same | Preferences |
-| Group name | 14 | `caption-strong` 11/14/600 `text-3` | All groups |
-| Value | 18 | `body` 13/18 `text-2` | Read-only values |
+| Group name | 22 | `caption-strong` 16/22/600 `text-3` | All groups |
+| Value | 22 | `body` 16/22 `text-2` | Read-only values |
 
 ## States
 

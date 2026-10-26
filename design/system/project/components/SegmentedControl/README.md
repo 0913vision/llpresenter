@@ -19,10 +19,10 @@ A control that lines up two or three segments in a sunken track and picks one. U
 ## Anatomy
 
 - Track: background `bg-well`, corner radius `radius-lg` (5px), padding `space-2`, height `size-control-sm` (26px). No gap between segments.
-- Segment: height `size-control-xs` (22px), horizontal padding `space-10`, corner radius `radius-sm` (3px), text `label` (12/16).
+- Segment: height `size-control-xs` (22px), horizontal padding `space-10`, corner radius `radius-sm` (3px), text `label` (14/20).
 - Selected segment: background `bg-control-hover`, text `text`. Other segments: no background, text `text-3`. Don't change the weight.
 - Icon segment: 22×28, icon `size-icon-14`, name in `aria-label` and the tooltip.
-- Count: `space-6` after the name, text `caption` (11/14), tabular numbers. `text-3` in unselected segments, `text-2` in the selected segment, and `warning` for a count of things that need fixing, such as conflicts. Don't make it a badge with a background.
+- Count: `space-6` after the name, text `caption` (14/20), tabular numbers. `text-3` in unselected segments, `text-2` in the selected segment, and `warning` for a count of things that need fixing, such as conflicts. Don't make it a badge with a background.
 - Fill variant (`ll-seg--fill`): width 100%, segments share the width equally, horizontal padding `space-8`. Truncate names that overflow with an ellipsis.
 
 ## Sizes and variants

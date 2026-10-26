@@ -20,7 +20,7 @@ A small box that briefly shows a name, a shortcut, the reason something is disab
 ## Anatomy
 
 - Surface `ll-tooltip`: background `bg-raised`, corner radius `radius-md` (4px), shadow `shadow-popover`, padding 5px top and bottom and `space-8` left and right, maximum width 280px. Text that overflows wraps at word boundaries (`keep-all`), and text with no break points, such as a path, breaks anywhere. There is no arrow. Stacking `z-tooltip`.
-- Text: `label` (12/16) `text`.
+- Text: `label` (14/20) `text`.
 - Shortcut `ll-tooltip__key`: `space-8` after the name, `text-3`, tabular numbers, no wrapping. Don't draw a key box (it is the text shortcut from `KeyCap`).
 - Second line `ll-tooltip__sub`: `space-2` above, `text-3`. After the reason, one fact that the user needs to decide (the 슬라이드 (slide) count and modified date of the conflicting song, a file path).
 - Position: 6px below the target, centered horizontally on the target. If the target is wider than the tooltip (a text field), align the left edges. If there isn't enough room below, flip it to 6px above the target, and at the side edges of the window, push it 8px inward. Position it from the target's rectangle, not from the pointer position.
@@ -29,7 +29,7 @@ A small box that briefly shows a name, a shortcut, the reason something is disab
 
 | Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
-| Name only | 26 (16 + 5 × 2) | `label` 12/16 `text` | Icon buttons, toolbar buttons |
+| Name only | 26 (16 + 5 × 2) | `label` 14/20 `text` | Icon buttons, toolbar buttons |
 | Shortcut | 26 | `label` `text` + `text-3` | 지우기 buttons, undo |
 | Two lines | 44 (16 + 2 + 16 + 5 × 2) | `label` `text`, second line `text-3` | Error reason + extra info |
 | Wrapping | Up to 280 wide, 16 per line | `label` | Long reasons, file paths |

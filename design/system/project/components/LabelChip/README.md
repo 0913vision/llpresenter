@@ -19,7 +19,7 @@ A chip that shows a group of 슬라이드 (slide) in a song (1절, 프리코러�
 
 - 이름표 color: `data-color="teal|green|yellow|orange|rose|violet|slate|gray"`. The fill color is `label-*`, and the text is `text-on-label`. Without the attribute, there is no 이름표: `label-none` + `label-gray` text.
 - 구성 strip `ll-chip-strip`: a horizontal row that wraps, gap `space-8` between chips and between lines.
-- Chip `ll-chip`: height `size-control-md` (30), corner radius `radius-sm`, left padding `space-6`, right padding `space-10`, text `band` (12/16/700). A 14px `grip` icon in front (opacity 0.55), gap between icon and text `space-6`. A group without an 이름표 shows its group number ("4").
+- Chip `ll-chip`: height `size-control-md` (30), corner radius `radius-sm`, left padding `space-6`, right padding `space-10`, text `band` (16/22/600). A 14px `grip` icon in front (opacity 0.55), gap between icon and text `space-6`. A group without an 이름표 shows its group number ("4").
 - Insert slot `ll-chip-add`: 30×30, `radius-sm`, 1px dashed `line-control`, 14px `plus` icon in `text-2`. Place it at the very end of the strip.
 - Drop position `ll-chip-drop`: while dragging, a 2px × 30 `accent` bar (`radius-full`) in the middle of the gap between chips. Its left and right margins are pulled in to −5px so that the gap doesn't widen.
 - Small 이름표 `ll-tag`: height `size-control-xs` (22), `radius-sm`, horizontal padding `space-8`, text `band`. If it is a button that picks an 이름표, add a 12px `down` icon after the text (gap `space-6`, right padding `space-6`). With no 이름표, its text is "이름표".

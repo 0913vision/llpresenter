@@ -21,11 +21,11 @@ A floating menu. Menu bar menus, submenus, right-click menus, and popover lists 
 - Item `ll-menu__item`: height `size-row-menu` (28px), horizontal padding `space-8`, corner radius `radius-md`, text `body` (16/22) `text`. Gap between parts `space-10`.
   - Leading slot `ll-menu__lead`: 14×14. A 14px icon in `text-2`, or the check mark for the current item (`check` 14px `text`). If any item in a menu uses the leading slot, give every item an empty leading slot. Then all names start on the line 32px (8 + 14 + 10) from the left of the item. A menu that doesn't need a leading slot (the 파일 menu) has none at all.
   - Name `ll-menu__label`: takes the remaining width, truncates with an ellipsis.
-  - Trailing info `ll-menu__meta`: `caption` (11/14) `text-3`, tabular numbers, at least 16px from the name. Dates ("10월 25일") and shortcuts ("Ctrl Z", the text shortcut from `KeyCap`).
+  - Trailing info `ll-menu__meta`: `caption` (14/20) `text-3`, tabular numbers, at least 16px from the name. Dates ("10월 25일") and shortcuts ("Ctrl Z", the text shortcut from `KeyCap`).
   - Submenu arrow `ll-menu__chevron`: `right` 12px `text-3`, at the right end.
   - 이름표 swatch `ll-menu__swatch`: 18×12, corner radius `radius-xs`, 이름표 color from `data-color`. No 이름표 is `label-none` + 1px `line-control`. Place it after the leading slot and before the name (the check mark for the current 이름표 goes in the leading slot).
 - Divider `ll-menu__sep`: 1px `line-strong`, `space-4` top and bottom, `space-2` left and right.
-- Group name `ll-menu__group`: `caption-strong` (11/14/600) `text-3`, padding 6 top, 8 left and right, 4 bottom (2 top when it is at the top of the menu).
+- Group name `ll-menu__group`: `caption-strong` (16/22/600) `text-3`, padding 6 top, 8 left and right, 4 bottom (2 top when it is at the top of the menu).
 - An item that switches the menu to another mode (성경 구절 in the 항목 추가 popover, which turns the search field into a reference field) keeps the menu open when it runs and puts focus back on the search field. In code: `keepsOpen` on the item.
 - Search match: in a list filtered by a search, the part of an item name that matched is drawn in `body-strong` `text` (the 항목 추가 popover, `AddSongsQuick`). In code: `match` on the item.
 - Search field `ll-menu__search`: at the top of the menu, height `size-control-md` (30px), background `bg-well`, `radius-md`, horizontal padding `space-8`, magnifying glass 16px `text-3`, gap to the text `space-8`, `space-4` below. Placeholder "검색". The text starts on the same line as the item names. Focus `ring-field-focus`.

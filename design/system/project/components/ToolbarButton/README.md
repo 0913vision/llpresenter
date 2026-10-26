@@ -19,12 +19,12 @@ A button on the toolbar, with its name under the icon. Use it for the workspace 
 ## Anatomy
 
 - Height `size-toolbar-button` (48px), corner radius `radius-lg` (5px), no background.
-- Icon `size-icon-18` on top and name `toolbar-label` (11/14/500) below, with a gap of `space-4`. The icon and the name are centered.
+- Icon `size-icon-18` on top and name `toolbar-label` (14/20/400) below, with a gap of `space-4`. The icon and the name are centered.
 - Workspace tab: width 64, no horizontal padding.
 - Action and output buttons: horizontal padding `space-8`, minimum width 64. A button that opens a menu, like Look, has horizontal padding `space-12` and a `size-icon-12` down arrow (`text-3`) `space-4` to the right of the icon.
 - Status dot on output buttons: a 6px circle (`radius-full`) over the top right corner of the icon (top −3px, right −4px). `ring-dot-cut` sets it apart from the icon. When the button is hovered or pressed, the ring color also changes to the button background (`bg-toolbar-hover`, `bg-raised`).
 - Icons: 진행 `slides`, 준비 `edit`, 화면 설정 `gear`, 미디어 `film`, Look `layers` + `down`, 본 화면 and 무대 `mplay`, 방송 자막 `capture`.
-- Compact form: height 32, icon `size-icon-16` to the left of the name, gap `space-6`, name `label` (12/16), horizontal padding `space-8` `space-10`. Look puts the arrow after the name, with right padding `space-6`. 미디어 is icon only, 32×32. Workspace tabs also fit their width to the text.
+- Compact form: height 32, icon `size-icon-16` to the left of the name, gap `space-6`, name `label` (14/20), horizontal padding `space-8` `space-10`. Look puts the arrow after the name, with right padding `space-6`. 미디어 is icon only, 32×32. Workspace tabs also fit their width to the text.
 
 ## Sizes and variants
 

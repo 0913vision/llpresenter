@@ -17,7 +17,7 @@ A button that shows one macro as a 64px color tile with a name. Use it in the ma
 
 - Color: one of the 8 이름표 (label) colors (`data-color`, the color mapping from LabelChip). Macros have no "no color" option.
 - Tile `ll-macro__tile`: 64×64, corner radius `radius-tile` (14), background `label-*`, icon `size-icon-28` in `text-on-label` in the center.
-- Name `ll-macro__name`: `space-8` below the tile, `label` (12/16) `text-2`, centered, up to two lines (truncate with an ellipsis beyond that), `word-break: keep-all`.
+- Name `ll-macro__name`: `space-8` below the tile, `label` (14/20) `text-2`, centered, up to two lines (truncate with an ellipsis beyond that), `word-break: keep-all`.
 - Schedule mark `ll-macro__clock`: only on a macro that runs on start or at a set time. A 20px circle −6px off the top right of the tile, background `bg-control`, 2px `bg-panel` ring, 12px `clock` icon in `text`. Give the time in the title tooltip.
 - New macro slot `ll-macro--new`: the same 64px frame with a 1px dashed `line-control` border. The 24px `plus` icon and the name "새 매크로" (new macro) are both `text-3`. At the very end of the grid.
 - Grid `ll-macro-grid`: `repeat(auto-fill, minmax(76px, 1fr))`, gap `space-16` vertical and at least `space-8` horizontal, cells centered. Panel padding (after the tool row under the header): 10 at the top, `panel-inset` on the left, right, and bottom. It has 5 columns at a right column of 480 (452 inside) and 4 columns at 360.

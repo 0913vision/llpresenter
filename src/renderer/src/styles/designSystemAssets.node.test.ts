@@ -37,8 +37,8 @@ function sha256(path: string): string {
 const faces = fontFaces(readFileSync(TOKENS_CSS, 'utf8'));
 
 const TYPE_SCALE = [
-  ['heading', '20px', '28px', 600],
-  ['title', '16px', '22px', 600],
+  ['heading', '22px', '30px', 600],
+  ['title', '18px', '26px', 600],
   ['body', '16px', '22px', 400],
   ['body-strong', '16px', '22px', 600],
   ['label', '14px', '20px', 400],
@@ -47,7 +47,7 @@ const TYPE_SCALE = [
   ['caption', '14px', '20px', 400],
   ['caption-strong', '16px', '22px', 600],
   ['toolbar-label', '14px', '20px', 400],
-  ['micro', '12px', '16px', 400],
+  ['micro', '14px', '20px', 400],
   ['thumb-lyrics', '4.4cqw', '1.45', 700],
 ] as const;
 
@@ -87,7 +87,7 @@ describe('design system assets', () => {
   });
 });
 
-describe('one-step larger UI type scale', () => {
+describe('1920x1080 UI type scale', () => {
   it('keeps the selected scale in the token source without changing output-relative lyrics', () => {
     const source: unknown = JSON.parse(
       readFileSync(resolve(PROJECT, 'tokens.json'), 'utf8'),
@@ -119,14 +119,14 @@ describe('one-step larger UI type scale', () => {
     },
   );
 
-  it('never ships a UI text token below 12px', () => {
+  it('never ships a UI text token below 14px, including micro', () => {
     const uiToken = /--type-[\w-]+:\s*\d+\s+(\d+(?:\.\d+)?)px\//g;
     for (const css of [designCss, appCss]) {
       const sizes = [...css.matchAll(uiToken)].map(([, size = '0']) =>
         Number(size),
       );
       expect(sizes).toHaveLength(TYPE_SCALE.length - 1);
-      expect(sizes.every(size => size >= 12)).toBe(true);
+      expect(sizes.every(size => size >= 14)).toBe(true);
     }
   });
 
@@ -156,6 +156,16 @@ describe('one-step larger UI type scale', () => {
       bodyLine + token('space-2') + labelLine,
     );
     expect(token('size-count')).toBeGreaterThanOrEqual(bodyLine);
+    const microLine = Number(
+      TYPE_STYLES.find(style => style.name === 'micro')?.lineHeight.replace(
+        'px',
+        '',
+      ),
+    );
+    expect(token('size-badge')).toBeGreaterThanOrEqual(microLine);
+    expect(token('size-row')).toBeGreaterThanOrEqual(
+      token('size-badge') + token('space-4') * 2,
+    );
   });
 });
 

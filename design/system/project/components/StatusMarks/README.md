@@ -18,19 +18,19 @@ Four small marks: the LIVE badge, the status dot, the count badge, and the progr
 
 ## Anatomy
 
-- LIVE badge: height 16, horizontal padding `space-4`, corner radius `radius-sm`, background `live`, text `text-on-fill` `micro` (10/12/700), letter spacing 0.04em. The text is only the uppercase English word "LIVE".
+- LIVE badge: height `size-badge` (22px), horizontal padding `space-4`, corner radius `radius-sm`, background `live`, text `text-on-fill` `micro` (14/20/400), letter spacing 0.04em. The text is only the uppercase English word "LIVE".
 - Status dot: 6×6, `radius-full`. `ll-dot--ok` (`ok`), `--warning` (`warning`), `--live` (`live`), `--off` (`line-strong`). On top of an icon, add `ring-dot-cut` (2px `bg-app`) with `ll-dot--cut`, and let the parent set the position (right −4, top −3 for an 18px icon). Next to text, gap `space-6`.
-- Count badge: height 18, minimum width 18, horizontal padding `space-4`, corner radius `radius-sm`, background `selection`, text `text-on-selection` `caption-strong` (11/14/600), tabular-nums. Gap from the tab name `space-6` (set by the tab).
+- Count badge: height 22, minimum width 22, horizontal padding `space-4`, corner radius `radius-sm`, background `selection`, text `text-on-selection` `caption-strong` (16/22/600), tabular-nums. Gap from the tab name `space-6` (set by the tab).
 - Progress bar: height 4, corner radius `radius-xs`, track `line-strong`, bar `ll-progress__bar` in `accent` (`text` for a playback position). Set the length with the bar's `width` (%).
 
 ## Sizes and variants
 
 | Name | Height | Text | Where to use |
 |---|---|---|---|
-| `ll-badge--live` | 16 | `micro` | List rows |
+| `ll-badge--live` | 22 | `micro` | List rows |
 | `ll-dot` | 6 | None | Status bar, toolbar output buttons, NDI |
 | `ll-dot--cut` | 6 + 2px ring | None | On top of icons |
-| `ll-count` | 18 | `caption-strong` | Panel tabs |
+| `ll-count` | 22 | `caption-strong` | Panel tabs |
 | `ll-progress` | 4 | None | Copying, importing |
 | `ll-progress--playback` | 4 | None | Audio and video playback position (display only) |
 

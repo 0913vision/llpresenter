@@ -16,8 +16,8 @@ The 30px row at the top of the window. It holds the app name, the menus, the ser
 ## Anatomy
 
 - Row: height `size-menubar` (30px), background `bg-app`, left padding `space-12`. No bottom line (it runs into the toolbar on the same background).
-- App name "LoveLight": 12px 700 (the same values as `band`), letter spacing −0.01em, `text`, right margin `space-14`.
-- Menu items: 파일 (File), 편집 (Edit), 보기 (View), 출력 (output), 창 (Window), 도움말 (Help). Height 24px, horizontal padding 9px, corner radius `radius-sm`, text `label` (12/16) `text-2`, no gap between items.
+- App name "LoveLight": 16px 600 (the same values as `band`), letter spacing −0.01em, `text`, right margin `space-14`.
+- Menu items: 파일 (File), 편집 (Edit), 보기 (View), 출력 (output), 창 (Window), 도움말 (Help). Height 24px, horizontal padding 9px, corner radius `radius-sm`, text `label` (14/20) `text-2`, no gap between items.
 - Center title: the name of the current service (주일 예배). Centered in the window width, text `label` `text-3`. Its maximum width is 36% so that it doesn't overlap the menus or the window control buttons. Truncate it with an ellipsis when it overflows.
 - Window control buttons: minimize `min`, maximize `max`, close `x`. 46×30, icon `size-icon-14` `text-2`, no corner radius, flush with the right end.
 - Secondary window title bar: the same 30px row, with the window name in `label-strong` `text` at left `space-14` and one close button on the right.

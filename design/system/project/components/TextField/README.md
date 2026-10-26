@@ -21,26 +21,26 @@ A field for typing text directly. Use it for search, Bible verses in 퀵 실행 
 ## Anatomy
 
 - Outer field `ll-field`: background `bg-well`, radius `radius-md` (4px), text color `text`, placeholder `text-3`.
-- md: height `size-control-md` (30px), horizontal padding `space-10`, text `body` (13/18).
-- sm: height `size-control-sm` (26px), horizontal padding `space-8`, text `label` (12/16).
+- md: height `size-control-md` (30px), horizontal padding `space-10`, text `body` (16/22).
+- sm: height `size-control-sm` (26px), horizontal padding `space-8`, text `label` (14/20).
 - Leading icon `ll-field__icon`: md 16px, sm 14px, color `text-3`. Gap between icon and text: md `space-8`, sm `space-6`. The search field uses the magnifier (`search`), and the Bible verse field uses the book (`book`).
 - Clear-text button `ll-field__clear`: shows only when there is a value. md 22×22 (`size-control-xs`, icon 14), sm 18×18 (icon 12), 4px in from the right end, radius `radius-sm`, icon `text-3`, hover `bg-raised` + `text`.
 - Number field `ll-field--num`: width 96px, value right-aligned, tabular numbers. Put the unit (개, 줄) outside the field as `ll-field-unit` (`label`, `text-3`), 8px away. Attach a unit that is part of the value, such as %, to the value.
-- Prefix inside the field `ll-field__affix`: `caption` (11/14), `text-3`. Use it only when two fields sit side by side, like "시작" (start) and "끝" (end) in the media range fields.
-- Title field `ll-field--title`: the song title inside a panel header (34px). Width 280px, height `size-control-sm` (26px), horizontal padding `space-8`, text `title` (13/18/600).
+- Prefix inside the field `ll-field__affix`: `caption` (14/20), `text-3`. Use it only when two fields sit side by side, like "시작" (start) and "끝" (end) in the media range fields.
+- Title field `ll-field--title`: the song title inside a panel header (34px). Width 280px, height `size-control-sm` (26px), horizontal padding `space-8`, text `title` (18/26/600).
 - Toolbar search field `ll-field--ring`: on `bg-app`, `bg-well` is barely visible, so add `ring-field`. Width 420px (280px in a narrow window), height stays md.
-- Multiline `ll-textarea`: background `bg-well`, `radius-md`, padding `space-8` `space-10`, text `body` (13/18), minimum height 72px. It has no resize handle and grows with its content. Past 8 lines, it scrolls inside the field.
+- Multiline `ll-textarea`: background `bg-well`, `radius-md`, padding `space-8` `space-10`, text `body` (16/22), minimum height 72px. It has no resize handle and grows with its content. Past 8 lines, it scrolls inside the field.
 
 ## Sizes and variants
 
 | Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
-| md | 30 | `body` 13/18 | Dialogs, Preferences, property fields, toolbar search, search and 퀵 실행 in panels (regular window) |
-| sm | 26 | `label` 12/16 | Inside panel headers, 퀵 실행 in a narrow window (1366), macro action palette, key input field |
+| md | 30 | `body` 16/22 | Dialogs, Preferences, property fields, toolbar search, search and 퀵 실행 in panels (regular window) |
+| sm | 26 | `label` 14/20 | Inside panel headers, 퀵 실행 in a narrow window (1366), macro action palette, key input field |
 | Search | md or sm | Same | Leading magnifier, clear-text button when there is a value |
 | Number | md | `body`, right-aligned | Width 96, unit outside the field |
-| Title | 26 | `title` 13/18/600 | Panel header in imported song editing |
-| Multiline | 72 or more | `body` 13/18 | Notes in item settings |
+| Title | 26 | `title` 18/26/600 | Panel header in imported song editing |
+| Multiline | 72 or more | `body` 16/22 | Notes in item settings |
 
 ## States
 

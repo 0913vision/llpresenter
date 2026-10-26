@@ -21,7 +21,7 @@ export function StatusMarksSection(): JSX.Element {
   return (
     <Section title="StatusMarks">
       <SpecGroup title="LIVE badge, ll-badge ll-badge--live">
-        <SpecItem label="16, micro, live">
+        <SpecItem label="22px badge, 14/20 micro, live">
           <LiveBadge />
         </SpecItem>
       </SpecGroup>

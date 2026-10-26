@@ -19,14 +19,14 @@ A dialog that closes only when the user finishes or cancels one task. It has a 4
 - Scrim `ll-scrim`: background `scrim`. It covers the area from under the menu bar (`size-menubar` 30px) to the bottom of the window and centers the dialog. It leaves 16px on the left and right. Stacking `z-dialog`. It doesn't cover the menu bar, but menus don't open while a dialog is open.
 - Surface `ll-dialog`: background `bg-dialog`, corner radius `radius-2xl` (8px), shadow `shadow-dialog` (includes a 1px `line-strong` border). The width is one of `dialog-s/m/l/xl` (`ll-dialog--s` … `--xl`). The content decides the height, or the screen sets a value (새 예배 700). In a small window, width = window width − 32 and maximum height = window height − 64, and only the body scrolls.
 - Header `ll-dialog__header`: height `size-dialog-header` (44px), `dialog-inset` (16px) on the left and `space-8` on the right, 1px `line` at the bottom.
-  - Title `ll-dialog__title`: `title` (13/18/600).
-  - Subtitle `ll-dialog__subtitle`: `space-12` after the title, `label` (12/16) `text-3`, leading icon 14px (gap `space-6`). The name of the object the dialog works on (a file name).
+  - Title `ll-dialog__title`: `title` (18/26/600).
+  - Subtitle `ll-dialog__subtitle`: `space-12` after the title, `label` (14/20) `text-3`, leading icon 14px (gap `space-6`). The name of the object the dialog works on (a file name).
   - Close `ll-dialog__close`: a 30×30 ghost icon button, `x` 16px `text-2`, at the right end.
-- Option bar and input bar `ll-dialog__bar`: height 52px (same as `size-dialog-footer`), 16px left and right, `space-20` between fields, `space-10` between a field name (`label` 12/16 `text-2`) and its control. Controls are md (30px). Above the footer, it has a 1px `line` at the top; under the header (`--top`), a 1px `line` at the bottom.
+- Option bar and input bar `ll-dialog__bar`: height 52px (same as `size-dialog-footer`), 16px left and right, `space-20` between fields, `space-10` between a field name (`label` 14/20 `text-2`) and its control. Controls are md (30px). Above the footer, it has a 1px `line` at the top; under the header (`--top`), a 1px `line` at the bottom.
 - Body `ll-dialog__body`: 16px padding. It takes the remaining height, and only the body scrolls when it overflows.
   - Two columns `ll-dialog__body--split`: `ll-dialog__aside` on the left, 260px (1px `line` on the right, no token), and `ll-dialog__main` on the right (16px padding, `space-12` between boxes).
   - The pick list on the left is `ll-rowlist--inset` from `ListRow` (8px padding, 44px two-line items). An action attached under the list is `ll-dialog__aside-foot` (8 left and right, 8 bottom, the ghost sm button "지금 예배를 틀로 저장").
-  - List box `ll-dialog__box`: background `bg-inset`, 1px inner `line` border, corner radius `radius-lg`. Header `ll-dialog__box-header` 34px (`label-strong` 12/16/600, a select-all checkbox in front, the count `ll-dialog__box-meta` in `text-3` on the right). Body `ll-dialog__box-body` (4 top, 8 bottom) holds the check rows from `Checkbox`.
+  - List box `ll-dialog__box`: background `bg-inset`, 1px inner `line` border, corner radius `radius-lg`. Header `ll-dialog__box-header` 34px (`label-strong` 16/22/600, a select-all checkbox in front, the count `ll-dialog__box-meta` in `text-3` on the right). Body `ll-dialog__box-body` (4 top, 8 bottom) holds the check rows from `Checkbox`.
 - Footer `ll-dialog__footer`: height `size-dialog-footer` (52px), 16px left and right, 1px `line` at the top. Buttons are md (30px), aligned right, with `space-8` between them, in the order [취소] … [primary button]. There is one primary button, at the far right.
 
 ## Sizes and variants
@@ -37,7 +37,7 @@ A dialog that closes only when the user finishes or cancels one task. It has a 4
 | `dialog-m` (600) | Content | - | Output state recovery (`AlertDialog` with a list) |
 | `dialog-l` (820) | 700 | - | 새 예배, 다른 예배에서 가져오기 |
 | `dialog-xl` (1080) | Content | - | 텍스트 가져오기 |
-| Header | 44 | `title` 13/18/600, subtitle `label` `text-3` | All dialogs |
+| Header | 44 | `title` 18/26/600, subtitle `label` `text-3` | All dialogs |
 | Option bar, input bar | 52 | Name `label` `text-2`, md controls | 텍스트 가져오기 options; 새 예배 name, date, time |
 | Footer | 52 | md buttons, `body` | All dialogs |
 

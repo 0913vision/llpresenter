@@ -20,8 +20,8 @@ A confirmation dialog that the user must answer, with one question, before movin
 - Surface `ll-alert`: width `dialog-s` (460px), background `bg-dialog`, corner radius `radius-2xl`, shadow `shadow-dialog`, padding `space-20` top, `space-20` left and right, `space-16` bottom. There are no header or footer lines.
 - Head group `ll-alert__head`: icon cell + `space-14` + text group, aligned to the top.
   - Icon cell `ll-alert__icon`: 40×40, background `bg-panel`, corner radius `radius-lg`, icon 24px `text-2`. It shows what the question is about (song `song`, recovery `history`).
-  - Title `ll-alert__title`: `heading` (16/22/600), wraps at word boundaries.
-  - Extra info `ll-alert__meta`: `space-2` under the title, `label` (12/16) `text-3`, tabular numbers. With two or more values, `space-10` between them ("비정상 종료  10월 25일 오전 11:26").
+  - Title `ll-alert__title`: `heading` (22/30/600), wraps at word boundaries.
+  - Extra info `ll-alert__meta`: `space-2` under the title, `label` (14/20) `text-3`, tabular numbers. With two or more values, `space-10` between them ("비정상 종료  10월 25일 오전 11:26").
   - With a one-line title, the text group height (22 + 2 + 16) equals the 40px icon cell.
 - List section `ll-alert__list` (list type, `ll-alert--list`): width `dialog-m` (600px). `space-16` under the head group, 1px `line` at the top. Group names are `ll-row-group` from `ListRow` (0 left and right, 10 top, 5 bottom), and rows are `ll-check-row` from `Checkbox` (30px, no side padding and no hover, 168px name cell `--fixed`, value `__value` in `label` `text-3`). If there are so many rows that the dialog would exceed the window, only this section scrolls.
 - Button row `ll-alert__actions`: `space-20` above, md buttons (30px), `space-8` between them. [취소] `ll-alert__cancel` goes at the left end, the rest on the right, and the primary button at the far right. In a dialog without [취소], put all buttons on the right.
@@ -30,8 +30,8 @@ A confirmation dialog that the user must answer, with one question, before movin
 
 | Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
-| One question (`dialog-s`) | 126 (20 + 40 + 20 + 30 + 16, one-line title) | `heading` 16/22/600, `label` 12/16 `text-3` | Overwriting the same song, confirming a deletion |
-| List type (`dialog-m`) | Content (30 per row) | Same as above + check rows `body` 13/18 | 출력 상태 복구 |
+| One question (`dialog-s`) | 126 (20 + 40 + 20 + 30 + 16, one-line title) | `heading` 22/30/600, `label` 14/20 `text-3` | Overwriting the same song, confirming a deletion |
+| List type (`dialog-m`) | Content (30 per row) | Same as above + check rows `body` 16/22 | 출력 상태 복구 |
 
 ## States
 
@@ -68,5 +68,5 @@ A confirmation dialog that the user must answer, with one question, before movin
 
 ## Changes from the drafts
 
-- ImportSave: background #262626 → `bg-dialog`. Scrim rgba(0, 0, 0, 0.45) over the whole window → `scrim` from under the menu bar. Icon cell 36×36, radius 8, `bg-panel` + 1px #3a3a3a, icon 18 → 40×40 `radius-lg` with no border, icon 24. Gap between icon and text stays 14. Title 14/20 → `heading` 16/22, gap between title and extra info 6 → 2. Secondary button #333333 → `bg-control`. Primary button #3d8bf0 → `accent-fill`, horizontal padding 16 → 14. Shadow 0 20px 48px → `shadow-dialog`.
+- ImportSave: background #262626 → `bg-dialog`. Scrim rgba(0, 0, 0, 0.45) over the whole window → `scrim` from under the menu bar. Icon cell 36×36, radius 8, `bg-panel` + 1px #3a3a3a, icon 18 → 40×40 `radius-lg` with no border, icon 24. Gap between icon and text stays 14. Title 14/20 → `heading` 22/30, gap between title and extra info 6 → 2. Secondary button #333333 → `bg-control`. Primary button #3d8bf0 → `accent-fill`, horizontal padding 16 → 14. Shadow 0 20px 48px → `shadow-dialog`.
 - Recovery: icon cell #262626, radius 8 → `bg-panel`, `radius-lg`, icon `text` → `text-2`. Head group centered → aligned to the top, gap between title and extra info 3 → 2. Group name 12 top, 6 bottom → 10, 5. Row heights and gaps are in the `Checkbox` document. Footer (1px line at the top, height 60, 20 left and right) → button row with no line (20 top, 16 bottom). Buttons 32 → 30. Shadow 0 20px 48px → `shadow-dialog`.

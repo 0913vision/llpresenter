@@ -35,10 +35,10 @@ One row of a list. The base is a 30px row with a 16px type icon, a 16px name, an
 - Row `ll-row`: height `size-row` (30px), horizontal padding `panel-inset` (14px), width 100%. It reaches the panel edges and has no corner radius.
   - Icon `ll-row__icon`: 16px `text-2`, `space-10` from the name.
   - Name `ll-row__title`: `body` (16/22) `text`, one line, truncated with an ellipsis.
-  - Extra information `ll-row__meta`: at the right end, `caption` (11/14) `text-3`, tabular numbers. 슬라이드 (slide) count ("슬라이드 9개"), duration ("5:00"), count ("42"), 구성 (arrangement) name ("주일용").
+  - Extra information `ll-row__meta`: at the right end, `caption` (14/20) `text-3`, tabular numbers. 슬라이드 (slide) count ("슬라이드 9개"), duration ("5:00"), count ("42"), 구성 (arrangement) name ("주일용").
   - Warning icon `ll-row__warn`: `warning` 14px, color `warning`. After the name, before the LIVE badge. Reason in a tooltip ("미디어 파일 없음").
   - LIVE badge: put `ll-badge ll-badge--live` of `StatusMarks` at the right end. When the badge is present, leave out the extra information.
-- Group header `ll-row-group`: `caption-strong` (11/14/600) `text-3`, padding top `space-10`, left and right 14, bottom 5. It can't be clicked.
+- Group header `ll-row-group`: `caption-strong` (16/22/600) `text-3`, padding top `space-10`, left and right 14, bottom 5. It can't be clicked.
 - Renaming a group header (a 구역 of the 예배 순서): a double click, 이름 바꾸기 in its right-click menu, or 구역 추가 from quick add turns the name into a `TextField`-style field in place (height `size-control-sm`, `bg-well`, `ring-field`, `ring-field-focus` while focused) with the old name selected. A new section starts as 새 구역. Enter or leaving the field saves, Esc keeps the old name, and a blank name keeps it too. In code: `ListGroup` `rename`.
 - Put a list in a panel inside `ll-panel__body--list` of `Panel` (top 4, bottom 8).
 - Two-line item `ll-row--double`: height `size-row-double` (52px), horizontal padding `space-10`, radius `radius-lg`. Name in `body`, with a second line `ll-row__sub` under it (`caption` `text-3`, `space-2` from the name, `space-8` between values).
@@ -52,7 +52,7 @@ One row of a list. The base is a 30px row with a 16px type icon, a 16px name, an
 | Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
 | One line | 30 | `body` 16/22 + `caption` 14/20 | 예배 순서, library, 퀵 실행, media lists |
-| Group header | 29 (10 + 14 + 5) | `caption-strong` 11/14/600 `text-3` | 예배 전, 찬양, 보관함, 재생목록, 틀, 지난 예배 |
+| Group header | 29 (10 + 14 + 5) | `caption-strong` 16/22/600 `text-3` | 예배 전, 찬양, 보관함, 재생목록, 틀, 지난 예배 |
 | Two lines | 52 | `body` + `caption` `text-3` | 틀 and past services in new service and import from another service |
 | Empty slot | 30 (box 24) | `body` `text-3` + `caption` | 틀 items of a new service |
 | Drop position | 0 (line 2, dot 8) | - | Dragging into the 예배 순서 |

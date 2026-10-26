@@ -22,10 +22,10 @@ A dropdown button that shows the current value and, when clicked, opens a menu o
 ## Anatomy
 
 - Background `bg-control`, radius `radius-md`, text `text`. Don't use #262626 (`bg-raised`) dropdowns.
-- md: height `size-control-md` (30), text `body` (13/18), left padding `space-10`, right padding `space-8`. The left padding is narrower than on a button so that the text starts where it does in a text field (TextField).
-- sm: height `size-control-sm` (26), text `label` (12/16), left padding `space-8`, right padding `space-6`.
+- md: height `size-control-md` (30), text `body` (16/22), left padding `space-10`, right padding `space-8`. The left padding is narrower than on a button so that the text starts where it does in a text field (TextField).
+- sm: height `size-control-sm` (26), text `label` (14/20), left padding `space-8`, right padding `space-6`.
 - Value `ll-select__value`: takes the remaining width and truncates with an ellipsis when it overflows.
-- Extra info `ll-select__meta`: 8px after the value, md `label` (12/16) / sm `caption` (11/14), color `text-2`. It sits on `bg-control`, so don't use `text-3`. Examples: 곡 기본값, 매크로, EPSON 프로젝터.
+- Extra info `ll-select__meta`: 8px after the value, md `label` (14/20) / sm `caption` (14/20), color `text-2`. It sits on `bg-control`, so don't use `text-3`. Examples: 곡 기본값, 매크로, EPSON 프로젝터.
 - Arrow `ll-select__chevron`: `down` 12px (`size-icon-12`), `text-3`, 8px from the element before it. It is a mark, not text, so it passes 3:1 even on `bg-control` (4.3:1, and 3.8:1 on the hover background).
 - Leading icon `ll-select__icon`: md 16px, 8px from the text, left padding `space-10` / sm 14px, 6px from the text, left padding `space-8`. Color `text-2`. Date `cal`, time `clock`, Bible version `translate`.
 - Leading media `ll-select__media`: 36×20, `radius-xs`, `object-fit: cover`, 8px from the text. Left padding equals the top and bottom padding: md 5px / sm 3px.
@@ -36,8 +36,8 @@ A dropdown button that shows the current value and, when clicked, opens a menu o
 
 | Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
-| sm | 26 | `label` 12/16 | Panel headers (default background, 구성), Bible verse settings row (Bible version, reference) |
-| md | 30 | `body` 13/18 | Property fields, Preferences, dialogs (new service date and time) |
+| sm | 26 | `label` 14/20 | Panel headers (default background, 구성), Bible verse settings row (Bible version, reference) |
+| md | 30 | `body` 16/22 | Property fields, Preferences, dialogs (new service date and time) |
 | Leading media | sm, md | Same | Where you pick a background |
 | Leading color tile | md | Same | Where you pick a macro |
 | Leading icon | sm, md | Same | Date, time, Bible version |

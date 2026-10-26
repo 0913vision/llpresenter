@@ -10,7 +10,7 @@ The app has one theme, dark. All values are in `tokens.json`, and each CSS varia
 4. **Use red only for 출력.** Use `live` only for what is on the screens right now. Use `accent` for selection and keyboard focus, `accent-fill` for the surface of a primary button, `warning` for problems, and an `ok` dot for a healthy state. Don't use red for warnings or deletion.
 5. **Put emphasis in one place.** Give each window or dialog one primary button, at the far right of the footer. Make every other button a secondary or ghost button.
 6. **Stay safe during a service.** Make the controls that affect 출력 (thumbnails, 지우기, screen output) large, and keep them in the same place. An optional clear undo button restores the last 지우기; its visibility setting is off by default and it has no default shortcut. Ctrl Z is edit undo and never restores a clear. Make actions that cut 출력 (turning off screen output, opening another 예배 순서) undoable without a confirmation dialog too, and show a confirmation dialog only for actions that can't be undone (overwriting, deleting).
-7. **Keep it dense but readable.** The default row height is `size-row` (30px), and the default text is `body` (13px). Start all text and grids in a panel at the left `panel-inset` (14px) line.
+7. **Keep it dense but readable.** Design for a 1920x1080 full-screen window. UI text is never smaller than 14px; the default row height is `size-row` (30px) and default `body` text is 16px. Start all text and grids in a panel at the left `panel-inset` (14px) line.
 
 ## Color
 
@@ -88,32 +88,33 @@ The app uses one typeface, Pretendard Variable (`fonts/PretendardVariable.woff2`
 
 | Style | Size/line height/weight | Where to use |
 | --- | --- | --- |
-| `heading` | 20/28/600 | Confirmation dialog titles, Preferences page titles |
-| `title` | 16/22/600 | Dialog headers, the song title in a panel header |
+| `heading` | 22/30/600 | Confirmation dialog titles, Preferences page titles |
+| `title` | 18/26/600 | Panel titles/tabs, dialog headers, the service-order and song title |
 | `body` | 16/22/400 | Lists, menus, text fields, md buttons |
 | `body-strong` | 16/22/600 | Names to emphasize, md primary buttons |
 | `label` | 14/20/400 | sm buttons, dropdowns, property names |
-| `label-strong` | 16/22/600 | Panel tabs, sm primary buttons |
+| `label-strong` | 16/22/600 | Strong labels, sm primary buttons |
 | `band` | 16/22/600 | 이름표 bands on thumbnails, 구성 chips |
 | `caption` | 14/20/400 | Counts, dates, status bar, second lines |
 | `caption-strong` | 16/22/600 | List group headers, 지우기 button names |
 | `toolbar-label` | 14/20/400 | Toolbar button names |
-| `micro` | 12/16/400 | LIVE badge |
+| `micro` | 14/20/400 | LIVE badge; the minimum applies to every badge too |
 
 - Use `font-variant-numeric: tabular-nums` for numbers that must line up, such as counts, times, and 슬라이드 numbers.
 - Truncate a name that doesn't fit on one line with an ellipsis, and show the full name in a tooltip. Don't wrap lyrics or song titles onto two lines (two-line list items and macro names are the only exceptions).
-- M3 live-check proposal: grow general UI text one step, from body 14/20 to
-  16/22 and labels/captions 12/16 to 14/20. Pretendard and weights stay the same.
-  Only the LIVE badge keeps the compact 12/16 `micro` style.
-- Keep the minimum window at 1280x720 without horizontal page scrolling.
-  Single-line list/menu rows and standard control heights stay fixed; their
-  new line heights still fit. Two-line rows grow from 44 to 52px, and count
-  badges/keycaps from 18 to 22px. Lists scroll vertically rather than shrinking
-  the text. Long labels retain ellipsis and tooltips.
+- The October 27 user decision replaces the earlier one-step proposal: no UI
+  text under 14px, including labels, captions, toolbar names, tooltips and LIVE.
+  Use 16px body/list text, 18px titles and 22px headings. Pretendard and weights
+  stay the same. Icons are not text and retain their specified sizes.
+- Check all three workspaces at 1920x1080 full window content and at the minimum
+  1280x720. Single-line list/menu rows and controls keep their standard heights;
+  two-line rows are 52px and badges/keycaps 22px. Labels and controls must fit
+  without clipping or horizontal page scrolling. Lists and properties scroll
+  vertically rather than shrinking text. Long names retain ellipsis/tooltips.
 - These are UI sizes. Lyrics inside thumbnails and output previews keep their
   output-relative scale; `thumb-lyrics` stays 4.4cqw/1.45/700.
-- The service-order name keeps its separately chosen 16/22/600 component
-  style (header A); it doesn't grow with the general `heading` token.
+- The service-order name and panel tabs use `title` (18/26), including the
+  existing header A layout; the former fixed 16px exception is removed.
 - Don't create other sizes outside this table.
 - In code, set a style with its shorthand variable, for example `font: var(--type-label);`. Each style has one (`--type-<style>`). The global classes (`.label` and the rest) are for the previews.
 
