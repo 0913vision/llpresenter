@@ -82,13 +82,20 @@ export function setLayer<K extends LayerKind>(
   history: LiveHistory,
   kind: K,
   value: LiveLayers[K],
-  options: {readonly preserveClearToggles?: boolean} = {},
+): LiveHistory {
+  const changed = updateLayer(history, kind, value);
+  return changed === history || value === null
+    ? changed
+    : resetClearToggles(changed);
+}
+
+/** Updates transport or retained content without invalidating clear captures. */
+export function updateLayer<K extends LayerKind>(
+  history: LiveHistory,
+  kind: K,
+  value: LiveLayers[K],
 ): LiveHistory {
   if (history.state.layers[kind] === value) return history;
   const layers = {...history.state.layers, [kind]: value};
-  const previous =
-    value === null || options.preserveClearToggles === true
-      ? history
-      : resetClearToggles(history);
-  return withLayers(previous, layers, null);
+  return withLayers(history, layers, null);
 }

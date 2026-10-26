@@ -1,7 +1,7 @@
 import {parseActiveProps} from '@shared/schema/overlayState';
 import type {ActiveProp} from '@shared/live';
 import {MissingLiveTargetError} from '../commandErrors';
-import {setLayer} from '../history';
+import {setLayer, updateLayer} from '../history';
 import {propLayer} from '../propState';
 import {defineSlice} from '../slice';
 
@@ -13,9 +13,7 @@ export const propsSlice = defineSlice({
     const retained = previous.filter(item => item.propId !== command.propId);
     if (!command.on) {
       if (retained.length === previous.length) return history;
-      return setLayer(history, 'prop', propLayer(retained), {
-        preserveClearToggles: true,
-      });
+      return updateLayer(history, 'prop', propLayer(retained));
     }
     const document = settings?.get('props');
     if (document?.name !== 'props') {

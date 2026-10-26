@@ -88,11 +88,16 @@ export const liveStateSchema = payloadObject({
   }),
   outputs: liveOutputsSchema,
   canUndo: v.boolean(),
-  clearToggles: v.exactOptional(v.pipe(
-    v.array(v.picklist(['all', ...layerKinds])),
-    v.maxLength(layerKinds.length + 1),
-    v.check(targets => new Set(targets).size === targets.length, 'Expected each clear key once'),
-  )),
+  clearToggles: v.exactOptional(
+    v.pipe(
+      v.array(v.picklist(['all', ...layerKinds])),
+      v.maxLength(layerKinds.length + 1),
+      v.check(
+        targets => new Set(targets).size === targets.length,
+        'Expected each clear key once',
+      ),
+    ),
+  ),
   timers: v.exactOptional(timerRunsSchema),
   testPatterns: v.exactOptional(
     v.pipe(

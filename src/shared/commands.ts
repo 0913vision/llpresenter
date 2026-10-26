@@ -20,7 +20,7 @@ export type SingleLiveCommand =
   | {readonly type: 'media.show'; readonly media: MediaChoice}
   | {readonly type: 'message.show'; readonly message: MessageLayer}
   | {readonly type: 'layer.clear'; readonly target: ClearTarget}
-    | {readonly type: 'layer.clear.toggle'; readonly target: ClearTarget}
+  | {readonly type: 'layer.clear.toggle'; readonly target: ClearTarget}
   | {readonly type: 'clear.undo'}
   | {
       readonly type: 'output.set';

@@ -1,7 +1,7 @@
 import {parseNoticePlayback} from '@shared/schema/overlayState';
 import type {NoticePlayback} from '@shared/live';
 import {MissingLiveTargetError} from '../commandErrors';
-import {setLayer, type LiveHistory} from '../history';
+import {setLayer, updateLayer, type LiveHistory} from '../history';
 import {noticePosition} from '@shared/noticeClock';
 import {defineSlice, type CommandOf, type SliceContext} from '../slice';
 
@@ -89,17 +89,12 @@ export const noticesSlice = defineSlice({
     if (notice?.playback?.pausedAt !== null) {
       return history;
     }
-    return setLayer(
-      history,
-      'notice',
-      {
-        ...notice,
-        playback: {
-          ...notice.playback,
-          pausedAt: Math.max(context.now, notice.playback.startedAt),
-        },
+    return updateLayer(history, 'notice', {
+      ...notice,
+      playback: {
+        ...notice.playback,
+        pausedAt: Math.max(context.now, notice.playback.startedAt),
       },
-      {preserveClearToggles: true},
-    );
+    });
   },
 });

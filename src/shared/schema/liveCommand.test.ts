@@ -8,7 +8,10 @@ describe('parseLiveCommand', () => {
       {type: 'clear.undo'},
       {type: 'layer.clear', target: 'all'},
       ...layerKinds.map(target => ({type: 'layer.clear', target})),
-      ...['all', ...layerKinds].map(target => ({type: 'layer.clear.toggle', target})),
+      ...['all', ...layerKinds].map(target => ({
+        type: 'layer.clear.toggle',
+        target,
+      })),
       {type: 'output.set', screenId: 'main', on: true},
       {
         type: 'slide.show',
@@ -38,7 +41,11 @@ describe('parseLiveCommand', () => {
 
   it.each([
     ['an unknown type', {type: 'delete.everything'}, 'type'],
-    ['an unknown toggle target', {type: 'layer.clear.toggle', target: 'slides'}, 'target'],
+    [
+      'an unknown toggle target',
+      {type: 'layer.clear.toggle', target: 'slides'},
+      'target',
+    ],
     ['a missing toggle target', {type: 'layer.clear.toggle'}, 'target'],
     ['no type', {target: 'all'}, 'type'],
     [

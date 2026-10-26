@@ -249,7 +249,11 @@ describe('ClearRow', () => {
     fireEvent.click(button);
     expect(sent).toEqual([{type: 'layer.clear.toggle', target: 'slide'}]);
     act(() => setLayers({slide}));
-    expect(screen.getByRole('button', {name: '가사 지우기'}).getAttribute('aria-pressed')).toBe('false');
+    expect(
+      screen
+        .getByRole('button', {name: '가사 지우기'})
+        .getAttribute('aria-pressed'),
+    ).toBe('false');
   });
 
   it('does nothing when a dim button is clicked', () => {

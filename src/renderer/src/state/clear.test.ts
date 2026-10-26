@@ -69,6 +69,12 @@ describe('clearLayer', () => {
     clearLayer('slide');
     expect(sent).toHaveLength(0);
     clearLayer('media');
-    expect(sent).toEqual([{type: 'layer.clear', target: 'media'}]);
+    expect(sent).toEqual([{type: 'layer.clear.toggle', target: 'media'}]);
+  });
+
+  it('sends the toggle even when the layer is empty but has a captured clear', () => {
+    useLive.setState({state: {...emptyLiveState(), clearToggles: ['slide']}});
+    clearLayer('slide');
+    expect(sent).toEqual([{type: 'layer.clear.toggle', target: 'slide'}]);
   });
 });

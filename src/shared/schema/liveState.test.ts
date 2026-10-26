@@ -29,12 +29,18 @@ function busyState(): LiveState {
 
 describe('parseLiveState', () => {
   it('accepts optional unique clear key restore flags', () => {
-    const state = {...emptyLiveState(), clearToggles: ['all', 'slide'] as const};
+    const state = {
+      ...emptyLiveState(),
+      clearToggles: ['all', 'slide'] as const,
+    };
     expect(parseLiveState(state)).toEqual({ok: true, value: state});
   });
   it.each([
-    {clearToggles: ['slide', 'slide']}, {clearToggles: ['unknown']},
-    {clearToggles: Array(8).fill('all')}, {clearToggles: undefined}, {clearToggles: [null]},
+    {clearToggles: ['slide', 'slide']},
+    {clearToggles: ['unknown']},
+    {clearToggles: Array(8).fill('all')},
+    {clearToggles: undefined},
+    {clearToggles: [null]},
   ])('rejects malformed clear key flags %j', ({clearToggles}) => {
     expect(parseLiveState({...emptyLiveState(), clearToggles}).ok).toBe(false);
   });

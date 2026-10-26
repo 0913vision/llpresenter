@@ -70,8 +70,9 @@ it('restores only the layers each key cleared when F1 follows another key', () =
 it('keeps independent captures bounded to seven while keys repeatedly clear and restore', () => {
   const store = setup();
   for (let index = 0; index < 100; index += 1) {
-    for (const target of layerKinds)
+    for (const target of layerKinds) {
       store.dispatch({type: 'layer.clear.toggle', target});
+    }
     expect(store.state.clearToggles?.length).toBeLessThanOrEqual(7);
   }
   expect(store.state.clearToggles).toEqual([]);
@@ -95,6 +96,14 @@ it('new stage text invalidates pending key restores', () => {
   store.dispatch({type: 'stage.message.set', text: 'New stage text'});
   expect(store.state.clearToggles).toEqual([]);
   expect(store.dispatch({type: 'layer.clear.toggle', target: 'all'})).toBe(
+    false,
+  );
+});
+
+it('drops saved restore flags when recovery has no in-memory clear captures', () => {
+  const store = new LiveStore({...emptyLiveState(), clearToggles: ['slide']});
+  expect(store.state.clearToggles).toEqual([]);
+  expect(store.dispatch({type: 'layer.clear.toggle', target: 'slide'})).toBe(
     false,
   );
 });

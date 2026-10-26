@@ -5,7 +5,10 @@ import {sendLive, useLive} from './live';
 /** Whether a layer, or any layer for 모두, has something to clear now. */
 export function useSomethingToClear(target: ClearTarget): boolean {
   return useLive(view =>
-    view.state ? hasSomethingToClear(view.state.layers, target) || (view.state.clearToggles?.includes(target) ?? false) : false,
+    view.state
+      ? hasSomethingToClear(view.state.layers, target) ||
+        (view.state.clearToggles?.includes(target) ?? false)
+      : false,
   );
 }
 
@@ -17,7 +20,12 @@ export function useClearRestores(target: ClearTarget): boolean {
 /** Toggles a key's clear, doing nothing only when it has no content or capture. */
 export function clearLayer(target: ClearTarget): void {
   const state = useLive.getState().state;
-  if (!state || (!hasSomethingToClear(state.layers, target) && !state.clearToggles?.includes(target))) return;
+  if (
+    !state ||
+    (!hasSomethingToClear(state.layers, target) &&
+      !state.clearToggles?.includes(target))
+  )
+    {return;}
   sendLive({type: 'layer.clear.toggle', target});
 }
 

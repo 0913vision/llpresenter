@@ -79,8 +79,11 @@ function toggleClear(
     },
     context,
   );
-  const remaining = {...history.clearSnapshots};
-  delete remaining[target];
+  const remaining = Object.fromEntries(
+    Object.entries(history.clearSnapshots ?? {}).filter(
+      ([key]) => key !== target,
+    ),
+  );
   return withClearSnapshots(restored, remaining);
 }
 

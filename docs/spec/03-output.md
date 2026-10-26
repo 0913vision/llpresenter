@@ -352,8 +352,16 @@ The clear happens at once, with no confirmation, on every screen.
   keep running), stage layouts, the stage message (proposal: the stage message
   comes down from the 진행 도구 무대 tab), and the current item in the 예배
   순서.
-- A button is bright when its layer has something to clear and dim when it has
-  nothing. A dim button, or its shortcut, does nothing. Content hidden by a Look
+- F1 to F7 and their buttons toggle: the first press clears the target, and the
+  next press restores what that same key cleared. Each key retains one capture;
+  F1 restores every layer it actually cleared without replacing other restored
+  layers (user decision, m3-check3).
+- Any new output content resets all key captures, so the next press clears
+  again. Output switches, Looks and transport pause/resume do not send new
+  content. Captures are temporary and are not restored after app recovery.
+- A button is bright when it can clear content or restore its capture. A
+  captured key shows its pressed state and the tooltip changes to 복원. It is
+  dim and does nothing only when it can do neither. Content hidden by a Look
   still counts as something to clear.
 - 모두 has something to clear while any layer has something.
 - Don't show a message after a clear.
@@ -378,8 +386,9 @@ project). Build it as a 매크로 with several clear actions. If needed, set tha
 - 되돌리기 (clear undo) is our optional extension. No checked ProPresenter
   source documents undoing a clear: S1 lists Undo under Edit, and S21 describes
   the clear controls without clear undo. The previous claim that Ctrl Z restores
-  a clear like ProPresenter was unsupported. To show cleared lyrics again, the
-  operator re-triggers the slide (M2 check 1 row 8).
+  a clear like ProPresenter was unsupported. The m3-check3 user decision above
+  adds per-key toggle restore; re-triggering a slide also shows it again. The
+  toggle is a user rule, not a documented ProPresenter behavior.
 - 환경설정 > 진행 > 지우기 되돌리기 단추 보이기 controls the button. It is off
   by default (proposal pending user confirmation; M2 check 1 row 7; 10). Turning
   it on adds a separator and 되돌리기 after 공지 in the clear row. When nothing
