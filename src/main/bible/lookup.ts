@@ -19,11 +19,13 @@ export interface BibleLookupOptions {
 
 function suggestions(input: string) {
   const [, name = '', range = ''] = BOOK_PREFIX.exec(input.trim()) ?? [];
-  return matchBooks(name).map(book => ({
-    bookId: book.id,
-    name: book.korean,
-    input: `${book.korean} ${range.trim()}`.trim(),
-  }));
+  return matchBooks(name)
+    .map(book => ({
+      bookId: book.id,
+      name: book.korean,
+      input: `${book.korean} ${range.trim()}`.trim(),
+    }))
+    .filter(suggestion => suggestion.input.length <= BIBLE_LOOKUP_LIMITS.input);
 }
 
 /** Serializes lazy library reloads and caps requests waiting for disk reads. */

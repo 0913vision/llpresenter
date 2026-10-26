@@ -66,6 +66,21 @@ async function setup() {
 }
 
 describe('Bible lookup session', () => {
+  it('drops expanded suggestions past the reply limit without rejecting the lookup', async () => {
+    const {session} = await setup();
+    const input = `요 3:${' '.repeat(250)}16`;
+    expect(input).toHaveLength(BIBLE_LOOKUP_LIMITS.input);
+    const reply = await session.lookup(request(input));
+    expect(reply.result).toMatchObject({
+      ok: true,
+      value: {ref: '요한복음 3:16'},
+    });
+    expect(reply.suggestions).toEqual([]);
+    const boundary = await session.lookup(request(`요 3:${' '.repeat(247)}16`));
+    expect(boundary.suggestions[0]?.input).toHaveLength(
+      BIBLE_LOOKUP_LIMITS.input,
+    );
+  });
   it('resolves both grammars, preserves the input, and reads cached text after the file disappears', async () => {
     const {folder, session} = await setup();
     const first = await session.lookup(request());

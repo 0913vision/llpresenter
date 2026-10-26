@@ -1,0 +1,59 @@
+.field {
+  padding: var(--space-8) var(--panel-inset);
+}
+
+.popup {
+  position: fixed;
+  z-index: var(--z-popover);
+  width: var(--size-menu-max);
+  max-width: calc(100vw - var(--space-16));
+  max-height: min(var(--size-menu-max), calc(100dvh - var(--space-16)));
+  overflow-y: auto;
+  padding: var(--space-6);
+  background: var(--bg-raised);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-popover);
+  color: var(--text);
+}
+
+.group,
+.count {
+  color: var(--text-3);
+  font: var(--type-caption);
+}
+
+.group {
+  padding: var(--space-6) var(--space-10);
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  width: 100%;
+  min-height: var(--size-row);
+  padding: 0 var(--space-10);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--bg-raised);
+  color: var(--text);
+  font: var(--type-body);
+  text-align: left;
+}
+
+.option[aria-selected='true'] {
+  background: var(--selection);
+}
+
+.option[aria-selected='true'] .count {
+  color: var(--text-on-selection);
+}
+
+.reference {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
