@@ -40,14 +40,11 @@ shared contract, dependency or output behavior changes.
   New `/**` comments were audited before requesting review.
 - No full local verify or app launch.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict:
-- Findings:
-
-## Review: reviewer
-
-- Verdict:
-- Findings:
+- Round 1 (ae051d08): reviewer (Codex) Approve. Lead Approve; this fixes the
+  `QuickEditing.test.tsx` race that failed CI on branches based on `main` (run
+  40289709621), so the check build's verify doesn't trip on it. Fast-forward or
+  rebase onto local `main` without conflicts; typecheck passes.
 
 ## Team member's reply
