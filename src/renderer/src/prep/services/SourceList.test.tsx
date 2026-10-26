@@ -75,4 +75,31 @@ describe('SourceList', () => {
     expect(names()).toEqual(['지난 주일 예배10월 25일 일요일항목 1개']);
     expect(screen.queryByRole('group', {name: '틀'})).toBeNull();
   });
+
+  it('offers 다시 시도 when a list could not be read', async () => {
+    const onRetry = vi.fn();
+    const {rerender} = render(
+      <SourceList
+        templates={[]}
+        services={serviceEntries}
+        selected={null}
+        onSelect={() => undefined}
+        withEmpty
+        onRetry={onRetry}
+      />,
+    );
+    expect(screen.getByText('목록을 다 읽지 못했습니다')).toBeDefined();
+    await userEvent.click(screen.getByRole('button', {name: '다시 시도'}));
+    expect(onRetry).toHaveBeenCalledTimes(1);
+    rerender(
+      <SourceList
+        templates={[]}
+        services={serviceEntries}
+        selected={null}
+        onSelect={() => undefined}
+        withEmpty
+      />,
+    );
+    expect(screen.queryByRole('button', {name: '다시 시도'})).toBeNull();
+  });
 });

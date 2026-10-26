@@ -41,20 +41,36 @@ describe('useSourceLists', () => {
     expect(result.current.songTitles.get(ids.firstSong)).toBe(titles.first);
   });
 
-  it('logs a failed read and shows empty lists', async () => {
+  it('keeps the lists that answered when one read fails, and retries only that one', async () => {
     const write = vi.fn();
+    const templatesList = vi.fn(() => Promise.resolve(templateEntries));
+    const songsList = vi
+      .fn<() => Promise<typeof librarySongs>>()
+      .mockRejectedValueOnce(new Error('Read failed'))
+      .mockResolvedValue(librarySongs);
     const api = fakeLlpApi({
-      templates: {list: () => Promise.reject(new Error('Read failed'))},
+      templates: {list: templatesList},
+      services: {list: () => Promise.resolve(serviceEntries)},
+      songs: {list: songsList},
       log: {write},
     });
     const {result} = renderHook(() => useSourceLists(api));
     await waitFor(() => expect(result.current.ready).toBe(true));
-    expect(result.current.templates).toEqual([]);
+    expect(result.current.templates).toBe(templateEntries);
+    expect(result.current.services).toBe(serviceEntries);
+    expect(result.current.songTitles.size).toBe(0);
+    expect(result.current.failed).toBe(true);
     expect(write).toHaveBeenCalledWith({
       level: 'error',
-      message: 'Could not read the service sources',
+      message: 'Could not read the song titles',
       detail: 'Read failed',
     });
+    act(() => result.current.retry());
+    expect(result.current.ready).toBe(true);
+    await waitFor(() => expect(result.current.failed).toBe(false));
+    expect(result.current.songTitles.get(ids.firstSong)).toBe(titles.first);
+    expect(songsList).toHaveBeenCalledTimes(2);
+    expect(templatesList).toHaveBeenCalledTimes(1);
   });
 
   it('follows list changes and keeps a pushed list over a late read', async () => {
@@ -164,6 +180,38 @@ describe('useSourceDocument', () => {
     answer(templateDocument);
     await Promise.resolve();
     expect(result.current.document?.source).toBe(past);
+  });
+
+  it('shows nothing for A, B, then A again until the new read of A answers', async () => {
+    const reads: Array<(document: TemplateDocument | null) => void> = [];
+    const deferred = fakeLlpApi({
+      templates: {
+        get: () =>
+          new Promise(resolve => {
+            reads.push(resolve);
+          }),
+      },
+      services: {get: () => new Promise(() => undefined)},
+    });
+    const {result, rerender} = renderHook<
+      ReturnType<typeof useSourceDocument>,
+      {readonly source: ServiceSource}
+    >(({source}) => useSourceDocument(deferred, source), {
+      initialProps: {source: template},
+    });
+    await act(async () => {
+      reads[0]?.(templateDocument);
+      await Promise.resolve();
+    });
+    expect(result.current.document?.name).toBe('주일 예배');
+    rerender({source: past});
+    rerender({source: template});
+    expect(result.current).toEqual({document: null, missing: false});
+    await act(async () => {
+      reads[1]?.(null);
+      await Promise.resolve();
+    });
+    expect(result.current).toEqual({document: null, missing: true});
   });
 
   it('names each source by its kind and id', () => {

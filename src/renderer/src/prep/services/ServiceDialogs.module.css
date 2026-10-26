@@ -55,3 +55,13 @@
   color: var(--text-3);
   font: var(--type-caption);
 }
+
+.retry {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+  padding: var(--space-8) var(--space-14);
+  color: var(--text-3);
+  font: var(--type-caption);
+}
