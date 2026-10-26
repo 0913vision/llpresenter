@@ -33,7 +33,8 @@ function mediaDocument(ids: readonly MediaId[]): MediaDocument {
   );
 }
 
-/** A media list whose files a test sets: an absolute path, or null when refused. */
+// NOTE(0913vision): A file is an absolute path, or null for a path the library
+// refuses.
 function fakeSource(files: ReadonlyMap<MediaId, string | null>) {
   const state = {files, document: mediaDocument([...files.keys()])};
   const listeners = new Set<(document: MediaDocument) => void>();

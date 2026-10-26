@@ -64,11 +64,6 @@ function relinkDialog(
   };
 }
 
-/**
- * Checks the media files once the media list opens, answers
- * `media:missing:get`, pushes `media:missing`, and checks one file again on
- * `media:check`.
- */
 function watchMissingFiles({media, log}: MediaBackendRegistration): {
   readonly files: () => MissingFiles | null;
   readonly dispose: () => void;

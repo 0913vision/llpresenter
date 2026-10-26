@@ -91,7 +91,6 @@ function fakePort() {
   return {port, reported, disconnect, handlers};
 }
 
-/** A media list with one image whose file is gone. */
 async function mediaStore(): Promise<MediaBackendStore> {
   const folder = await makeTempDir();
   const document = expectSuccess(

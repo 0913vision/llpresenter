@@ -32,7 +32,6 @@ function mediaDocument(items: readonly object[]): MediaDocument {
 
 interface Stored {
   readonly id: MediaId;
-  /** The item's absolute file now. */
   readonly file: string;
   readonly missing?: boolean;
 }
