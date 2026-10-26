@@ -3,7 +3,7 @@ import type {LibrarySearchMatch} from '@shared/schema/librarySearch';
 import {useShow} from '@renderer/state/show';
 import {openLibrarySong} from '@renderer/state/showLibrary';
 import {withinLookupTimeout} from '@renderer/state/showOutput';
-import type {Notice} from '@renderer/ui/notices';
+import {noticeTime, type Notice} from '@renderer/ui/notices';
 
 export const TOOLBAR_SEARCH_LIMIT = 20;
 
@@ -23,7 +23,7 @@ function problem(title: string, name?: string): Notice {
     icon: 'warning',
     title,
     meta: name ? [name] : undefined,
-    time: new Date().toTimeString().slice(0, 5),
+    time: noticeTime(),
   };
 }
 
