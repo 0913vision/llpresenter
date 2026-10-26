@@ -93,8 +93,7 @@ export class SongSearchIndex {
     if (query !== '' && normalized === '') return {query, matches: []};
     const maximum = Math.min(limit, LIBRARY_SEARCH_LIMITS.max);
     const initials = isInitialQuery(normalized);
-    const titles: LibrarySearchMatch[] = [];
-    const lyrics: LibrarySearchMatch[] = [];
+    const results: LibrarySearchMatch[] = [];
     for (const song of this.ordered) {
       const summary = {
         songId: song.songId,
@@ -102,21 +101,21 @@ export class SongSearchIndex {
         slideCount: song.slideCount,
       };
       if (matches(song.title, normalized, initials)) {
-        titles.push({...summary, match: {kind: 'title'}});
-        if (titles.length === maximum) break;
-      } else if (lyrics.length < maximum) {
+        results.push({...summary, match: {kind: 'title'}});
+      } else {
         const line = song.lines.find(line =>
           matches(line, normalized, initials),
         );
         if (line !== undefined) {
-          lyrics.push({
+          results.push({
             ...summary,
             match: {kind: 'lyrics', line: line.original},
           });
         }
       }
+      if (results.length === maximum) break;
     }
-    return {query, matches: [...titles, ...lyrics].slice(0, maximum)};
+    return {query, matches: results};
   }
 
   private insertionPoint(song: IndexedSong): number {

@@ -42,7 +42,7 @@ const librarySearchResultSchema = payloadObject({
 
 /**
  * A query for the main-owned index. An absent limit defaults to 50, with a
- * maximum of 200. Main owns normalization and title-first ordering.
+ * maximum of 200. Main normalizes queries and sorts all matches by title.
  */
 type NormalizedSearchRequest = Readonly<
   v.InferOutput<typeof librarySearchRequestSchema>

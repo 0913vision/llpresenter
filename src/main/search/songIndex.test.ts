@@ -77,7 +77,7 @@ describe('SongSearchIndex', () => {
     expect(index.search({query: ' \t\n'}).matches).toEqual([]);
   });
 
-  it('puts title matches before lyrics, in Korean numeric title order', async () => {
+  it('mixes title and lyric matches in Korean numeric title order', async () => {
     const index = await buildSongSearchIndex([
       song(1, '가나다', ['첫 찬송 줄', '다음 찬송 줄']),
       song(2, '찬송 10'),
@@ -86,15 +86,19 @@ describe('SongSearchIndex', () => {
     ]);
     const result = index.search({query: '찬송'});
     expect(result.matches.map(match => match.title)).toEqual([
-      '찬송 2',
-      '찬송 10',
       '가나다',
       '나무',
+      '찬송 2',
+      '찬송 10',
     ]);
-    expect(result.matches[2]?.match).toEqual({
+    expect(result.matches[0]?.match).toEqual({
       kind: 'lyrics',
       line: '첫 찬송 줄',
     });
+    expect(result.matches[2]?.match).toEqual({kind: 'title'});
+    expect(
+      index.search({query: '찬송', limit: 2}).matches.map(match => match.title),
+    ).toEqual(['가나다', '나무']);
     expect(result.query).toBe('찬송');
     expect(index.search({query: ''}).matches.map(match => match.title)).toEqual(
       ['가나다', '나무', '찬송 2', '찬송 10'],

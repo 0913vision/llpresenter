@@ -73,7 +73,11 @@ Source: `Reflow`, `PrepService`, `AddSongs`, `ListRow` README.
 - If the query has only Hangul initial consonants (ㄱ to ㅎ), match it against
   the initial consonants of the title and of each line, ignoring spaces
   (proposal). For example, "ㅁㅂㅇ" matches "만복의 근원 하나님".
-- Title matches come first, then lyrics matches, each in title order (proposal).
+- All matching songs appear together in alphabetical title order, regardless of
+  whether the title or lyrics matched. Keep the match indicator and first
+  matching lyric line. This follows the October 27 user decision for qa-12 P03
+  and
+  [ProPresenter's Quick Search ordering](https://support.renewedvision.com/hc/en-us/articles/9808905773715-How-to-Use-Quick-Search-within-ProPresenter).
 - Before matching, the query and the song text are both normalized (proposal):
   Unicode NFC, Latin letters in lowercase, and spaces removed, so "만복의근원"
   matches "만복의 근원". A query with only spaces matches nothing.
