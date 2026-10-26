@@ -46,6 +46,9 @@ All additive, with valid and invalid tests and caps:
   `timers.json` no longer has it.
 - Spec 03 and 04: the next 장 sender and the stage 타이머, marked "(lead
   decision, October 26)".
+- Aside: `recovery/controller.test.ts` waited for a real file write with
+  `vi.waitFor`'s default second and failed once while the whole suite ran in
+  parallel (it passed alone and on the rerun). It now waits up to 5 s (a NOTE).
 
 ## Changed files
 
