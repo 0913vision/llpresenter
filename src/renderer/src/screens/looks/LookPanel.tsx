@@ -226,7 +226,7 @@ export function LookPanel({
       {confirmation === null ? null : (
         <AlertDialog
           icon="trash"
-          title={`${confirmation.name} 삭제?`}
+          title={`‘${confirmation.name}’ Look을 삭제할까요?`}
           meta={confirmation.macros}
           onCancel={() => setConfirmation(null)}
           actions={[

@@ -19,7 +19,7 @@ import {
 } from './layoutBoxes';
 import {fitAspect, type BoxSize} from './fitAspect';
 import {
-  selectedScreenIn,
+  useScreenView,
   useScreensSelection,
   type ScreensSelection,
 } from './selection';
@@ -150,7 +150,7 @@ export function DisplayLayout({
   const editor = useScreenEditor(document, onProblem);
   const selection = useScreensSelection(view => view.selection);
   const screens = document?.value.screens ?? noScreens;
-  const selectedId = selectedScreenIn(selection, screens)?.id;
+  const selectedId = useScreenView(screens)?.id;
   const select = useScreensSelection(view => view.select);
   const [pickedMonitor, setPickedMonitor] = useState<{
     number: number;

@@ -331,11 +331,11 @@ describe('the screen properties', () => {
     );
   });
 
-  it('shows nothing while a Look holds the selection', async () => {
-    useScreensSelection.setState({selection: {kind: 'look', id: 'x'}});
+  it('retains the previous screen while a Look holds the selection', async () => {
+    useScreensSelection.getState().select('screen', CAPTIONS_ID);
+    useScreensSelection.getState().select('look', 'x');
     setup();
 
-    await waitFor(() => expect(window.llp).toBeDefined());
-    expect(screen.queryByRole('textbox')).toBeNull();
+    expect((await nameField()).getAttribute('value')).toBe('방송 자막');
   });
 });

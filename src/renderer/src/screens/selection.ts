@@ -12,6 +12,7 @@ export interface ScreensSelection {
 
 interface SelectionView {
   readonly selection: ScreensSelection;
+  readonly lastScreenId: string | null;
   readonly select: (kind: ScreensSelectionKind, id: string) => void;
 }
 
@@ -23,8 +24,26 @@ const initialSelection: ScreensSelection = {kind: 'screen', id: null};
  */
 export const useScreensSelection = create<SelectionView>(set => ({
   selection: initialSelection,
-  select: (kind, id) => set({selection: {kind, id}}),
+  lastScreenId: null,
+  select: (kind, id) =>
+    set(view => ({
+      selection: {kind, id},
+      lastScreenId:
+        kind === 'screen'
+          ? id
+          : view.selection.kind === 'screen'
+            ? view.selection.id
+            : view.lastScreenId,
+    })),
 }));
+
+/** Retains the screen view while a Look or stage-layout row is selected. */
+export function useScreenView(screens: readonly Screen[]): Screen | undefined {
+  const id = useScreensSelection(view =>
+    view.selection.kind === 'screen' ? view.selection.id : view.lastScreenId,
+  );
+  return selectedScreenIn({kind: 'screen', id}, screens);
+}
 
 /** The selected id within one list, or `undefined` when another list holds it. */
 export function selectedIdIn(

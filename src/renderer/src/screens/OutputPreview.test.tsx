@@ -137,6 +137,24 @@ describe('the output preview', () => {
       screenId: MAIN_ID,
       on: false,
     });
+    expect(drawn.created).toHaveLength(1);
+    expect(
+      screen
+        .getByRole('radio', {name: '화면 내용'})
+        .getAttribute('aria-checked'),
+    ).toBe('true');
+  });
+
+  it('keeps the pattern while a property edit pins the same visible screen', async () => {
+    const {patternCommands} = setup();
+    await choose('테스트 패턴');
+    act(() => useScreensSelection.getState().select('screen', MAIN_ID));
+    expect(patternCommands()).toHaveLength(1);
+    expect(
+      screen
+        .getByRole('radio', {name: '테스트 패턴'})
+        .getAttribute('aria-checked'),
+    ).toBe('true');
   });
 
   it('takes the pattern off when the window is going away', async () => {
@@ -235,11 +253,11 @@ describe('the output preview', () => {
     expect(patternCommands()).toEqual([]);
   });
 
-  it('shows nothing while a Look holds the selection', async () => {
-    useScreensSelection.setState({selection: {kind: 'look', id: 'x'}});
-    const {view} = setup();
+  it('retains the previous screen while a Look holds the selection', async () => {
+    useScreensSelection.getState().select('screen', CAPTIONS_ID);
+    useScreensSelection.getState().select('look', 'x');
+    setup();
 
-    await waitFor(() => expect(window.llp).toBeDefined());
-    expect(view.container.textContent).toBe('');
+    expect(await screen.findByText('방송 자막')).toBeDefined();
   });
 });

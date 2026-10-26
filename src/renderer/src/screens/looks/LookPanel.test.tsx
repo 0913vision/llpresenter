@@ -196,7 +196,9 @@ it('protects current Looks and confirms macro references before deleting', async
   await user.keyboard('{Escape}');
   await menu('설교');
   await user.click(screen.getByRole('menuitem', {name: '삭제'}));
-  const dialog = await screen.findByRole('alertdialog', {name: '설교 삭제?'});
+  const dialog = await screen.findByRole('alertdialog', {
+    name: '‘설교’ Look을 삭제할까요?',
+  });
   expect(within(dialog).getByText('전환')).toBeDefined();
   expect(edit).not.toHaveBeenCalled();
   await user.click(within(dialog).getByRole('button', {name: '삭제'}));

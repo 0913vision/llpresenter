@@ -139,6 +139,42 @@ function selectedOf(name: string): string | null {
 }
 
 describe('the 화면 list', () => {
+  it('retains the screen view when the workspace remounts with a Look selected', async () => {
+    const {view} = setup();
+    await screen.findByRole('option', {name: '방송 자막'});
+    await userEvent.click(option('방송 자막'));
+    await userEvent.click(option('설교'));
+    view.unmount();
+    setup();
+    await screen.findByRole('option', {name: '방송 자막'});
+    await waitFor(() =>
+      expect(
+        screen.getByRole('textbox', {name: '이름'}).getAttribute('value'),
+      ).toBe('방송 자막'),
+    );
+    expect(useScreensSelection.getState().selection.kind).toBe('look');
+  });
+  it.each(['설교', '현재와 다음'])(
+    'retains the chosen screen view while selecting %s',
+    async label => {
+      setup();
+      await screen.findByRole('option', {name: '방송 자막'});
+      const user = userEvent.setup();
+      await user.click(option('방송 자막'));
+      await user.click(option(label));
+      const properties = screen.getByRole('region', {name: '속성'});
+      expect(
+        within(properties)
+          .getByRole('textbox', {name: '이름'})
+          .getAttribute('value'),
+      ).toBe('방송 자막');
+      const preview = screen.getAllByRole('region', {name: '출력 미리보기'})[0];
+      if (preview === undefined) throw new Error('Missing screen preview');
+      expect(within(preview).getByText('방송 자막')).toBeDefined();
+      expect(selectedOf(label)).toBe('true');
+      expect(selectedOf('방송 자막')).toBe('false');
+    },
+  );
   it('stacks 화면, Look, and 무대 배치 in the left column', async () => {
     setup();
     await screen.findByRole('option', {name: '본 화면'});

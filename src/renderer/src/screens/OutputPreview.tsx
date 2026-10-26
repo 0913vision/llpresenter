@@ -9,7 +9,11 @@ import {
   signalText,
   type PreviewCaption,
 } from './previewCaption';
-import {selectedScreenIn, useScreensSelection} from './selection';
+import {
+  useScreenView,
+  useScreensSelection,
+  type ScreensSelection,
+} from './selection';
 import {useMonitors} from './useMonitors';
 import {useSettingsDocument} from './useSettingsDocument';
 import styles from './OutputPreview.module.css';
@@ -50,11 +54,24 @@ function useTestPatternOnOutput(
 function PreviewBody({
   screen,
   caption,
+  selection,
 }: {
   readonly screen: Screen;
   readonly caption: PreviewCaption;
+  readonly selection: ScreensSelection;
 }): JSX.Element {
-  const [mode, setMode] = useState<PreviewMode>('content');
+  const selectionKey =
+    selection.kind === 'screen'
+      ? `screen:${screen.id}`
+      : `${selection.kind}:${selection.id}`;
+  const [preview, setPreview] = useState<{
+    selectionKey: string;
+    mode: PreviewMode;
+  }>({selectionKey, mode: 'content'});
+  if (preview.selectionKey !== selectionKey) {
+    setPreview({selectionKey, mode: 'content'});
+  }
+  const mode = preview.selectionKey === selectionKey ? preview.mode : 'content';
   const [watchPicture, available] = useElementSize();
   const picture =
     available === undefined
@@ -68,7 +85,7 @@ function PreviewBody({
         label={MODE_LABEL}
         options={MODE_OPTIONS}
         value={mode}
-        onChange={setMode}
+        onChange={mode => setPreview({selectionKey, mode})}
         fill
         className={styles.mode}
       />
@@ -106,15 +123,19 @@ export function OutputPreview({
   const document = useSettingsDocument('screens', LOAD_TITLE, onProblem);
   const monitors = useMonitors();
   const selection = useScreensSelection(view => view.selection);
-  const selected = selectedScreenIn(
-    selection,
-    document?.value.screens ?? noScreens,
-  );
+  const selected = useScreenView(document?.value.screens ?? noScreens);
   const caption = useMemo(
     () =>
       selected === undefined ? undefined : previewCaption(selected, monitors),
     [selected, monitors],
   );
   if (selected === undefined || caption === undefined) return null;
-  return <PreviewBody key={selected.id} screen={selected} caption={caption} />;
+  return (
+    <PreviewBody
+      key={selected.id}
+      screen={selected}
+      caption={caption}
+      selection={selection}
+    />
+  );
 }

@@ -24,7 +24,7 @@ import {
   onDisconnectOf,
   type ScreenChange,
 } from './screenEdits';
-import {selectedScreenIn, useScreensSelection} from './selection';
+import {useScreenView, useScreensSelection} from './selection';
 import {useMonitors} from './useMonitors';
 import {useScreenEditor} from './useScreenEditor';
 import {useSettingsDocument} from './useSettingsDocument';
@@ -290,7 +290,7 @@ function PropertyRows({
   readonly assign: (monitor: MonitorInfo) => void;
 }): JSX.Element {
   return (
-    <Properties>
+    <Properties className={styles.inset}>
       <PropertyGroup title="화면">
         <NameRow
           screen={screen}
@@ -360,11 +360,10 @@ export function ScreenProperties({
 }): JSX.Element | null {
   const document = useSettingsDocument('screens', LOAD_TITLE, onProblem);
   const monitors = useMonitors();
-  const selection = useScreensSelection(view => view.selection);
   const select = useScreensSelection(view => view.select);
   const save = useScreenEditor(document, onProblem);
   const screens = document?.value.screens ?? noScreens;
-  const selected = selectedScreenIn(selection, screens);
+  const selected = useScreenView(screens);
   const monitor = useMemo(
     () =>
       selected === undefined
