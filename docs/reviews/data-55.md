@@ -113,19 +113,14 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (Codex, codex2): Request changes: a late first `missing()` reply could
+  overwrite a newer push, and rejected import, cancel, and relink calls escaped
+  without their notice.
+- Round 2 (4e544ca9): reviewer (Codex, codex2) Approve, no findings. Lead
+  Approve. Merged with data-54 and data-56 after data-54's round 3; typecheck
+  passes.
 
 ## Team member's reply
 

@@ -119,19 +119,13 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (Codex, codex5): Request changes: the panel grew with the grid and
+  pushed its footer out, and the grid mounted every tile up to 10,000 items.
+- Round 2 (321fbcb2): reviewer (Codex, codex5) Approve, no findings. Lead
+  Approve; the grid now windows by rows like `VirtualSlides`, so it meets the
+  TECH rule for long lists. Merged with data-54 and data-55; typecheck passes.
 
 ## Team member's reply
 

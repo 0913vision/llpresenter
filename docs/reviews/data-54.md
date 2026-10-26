@@ -144,19 +144,18 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (Codex, codex4): Request changes: a deleted cache file kept answering
+  404, a cache hit skipped the media list check, and an import's thumbnail could
+  outlive a relink or delete during the admission's save.
+- Round 2 (Codex, codex4): Request changes: the cache race between a check and a
+  save of the same id.
+- Round 3 (4cb8ad4c): reviewer (Codex, codex5, moved from a busy codex4)
+  Approve, no findings. Lead Approve; the lead read the byte support in
+  `writeFileAtomically` (temporary file, flush, rename unchanged). Rebased by
+  the lead onto local `main` after screens-4 without conflicts, together with
+  data-55 and data-56; typecheck passes.
 
 ## Team member's reply
 
