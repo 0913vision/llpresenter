@@ -1,0 +1,760 @@
+{
+  "snapshot": "4e3cdb4171654a6c58e3a733abe279a7fdecee6d",
+  "version": "0.17.0",
+  "window": {
+    "width": 1920,
+    "height": 1080,
+    "devicePixelRatio": 1,
+    "visible": false,
+    "mode": "offscreen",
+    "devPort": 5189
+  },
+  "observations": {
+    "C3-1-first-output": {
+      "before": {
+        "frames": [
+          {
+            "time": 45001.20000001788,
+            "animations": 0,
+            "videos": [
+              {
+                "ready": 4,
+                "time": 0.12836
+              }
+            ]
+          },
+          {
+            "time": 45025.70000001788,
+            "animations": 0,
+            "videos": [
+              {
+                "ready": 4,
+                "time": 0.152765
+              }
+            ]
+          },
+          {
+            "time": 45050.59999999404,
+            "animations": 0,
+            "videos": [
+              {
+                "ready": 4,
+                "time": 0.177764
+              }
+            ]
+          },
+          {
+            "time": 45074.70000001788,
+            "animations": 0,
+            "videos": [
+              {
+                "ready": 4,
+                "time": 0.201827
+              }
+            ]
+          }
+        ],
+        "animations": 0
+      },
+      "on": true,
+      "after": {
+        "frames": [
+          {
+            "time": 45549.90000000596,
+            "animations": 0,
+            "videos": [
+              {
+                "ready": 4,
+                "time": 0.677056
+              }
+            ]
+          },
+          {
+            "time": 45575.90000000596,
+            "animations": 0,
+            "videos": [
+              {
+                "ready": 4,
+                "time": 0.703047
+              }
+            ]
+          },
+          {
+            "time": 45599.90000000596,
+            "animations": 0,
+            "videos": [
+              {
+                "ready": 4,
+                "time": 0.727042
+              }
+            ]
+          },
+          {
+            "time": 45624.90000000596,
+            "animations": 0,
+            "videos": [
+              {
+                "ready": 4,
+                "time": 0.752055
+              }
+            ]
+          },
+          {
+            "time": 45649.90000000596,
+            "animations": 0,
+            "videos": [
+              {
+                "ready": 4,
+                "time": 0.777067
+              }
+            ]
+          },
+          {
+            "time": 45675,
+            "animations": 0,
+            "videos": [
+              {
+                "ready": 4,
+                "time": 0.802082
+              }
+            ]
+          },
+          {
+            "time": 45700.40000000596,
+            "animations": 0,
+            "videos": [
+              {
+                "ready": 4,
+                "time": 0.827446
+              }
+            ]
+          },
+          {
+            "time": 45726,
+            "animations": 0,
+            "videos": [
+              {
+                "ready": 4,
+                "time": 0.853042
+              }
+            ]
+          }
+        ],
+        "events": [
+          {
+            "name": "loadedmetadata",
+            "tag": "VIDEO",
+            "time": 44842.59999999404
+          },
+          {
+            "name": "emptied",
+            "tag": "VIDEO",
+            "time": 44874.70000001788
+          },
+          {
+            "name": "loadedmetadata",
+            "tag": "VIDEO",
+            "time": 44877.90000000596
+          }
+        ]
+      }
+    },
+    "C3-1-repeat-output": {
+      "animations": 0,
+      "events": [
+        {
+          "name": "loadedmetadata",
+          "tag": "VIDEO",
+          "time": 44842.59999999404
+        },
+        {
+          "name": "emptied",
+          "tag": "VIDEO",
+          "time": 44874.70000001788
+        },
+        {
+          "name": "loadedmetadata",
+          "tag": "VIDEO",
+          "time": 44877.90000000596
+        }
+      ],
+      "videos": [
+        {
+          "ready": 4,
+          "time": 1.566614
+        }
+      ]
+    },
+    "C3-2-gap": {
+      "tabRight": 343.484375,
+      "selectLeft": 351.484375,
+      "gap": 8
+    },
+    "C3-3-menu-hover": [
+      {
+        "text": "새 예배",
+        "background": "rgb(51, 51, 51)",
+        "transition": "none"
+      },
+      {
+        "text": "다른 예배에서 가져오기",
+        "background": "rgb(51, 51, 51)",
+        "transition": "none"
+      }
+    ],
+    "C3-4-properties-alternation": [
+      {
+        "trip": 1,
+        "kind": "video",
+        "elements": 67,
+        "videos": 1,
+        "inputs": 4
+      },
+      {
+        "trip": 1,
+        "kind": "image",
+        "elements": 27,
+        "videos": 0,
+        "inputs": 0
+      },
+      {
+        "trip": 2,
+        "kind": "video",
+        "elements": 67,
+        "videos": 1,
+        "inputs": 4
+      },
+      {
+        "trip": 2,
+        "kind": "image",
+        "elements": 27,
+        "videos": 0,
+        "inputs": 0
+      },
+      {
+        "trip": 3,
+        "kind": "video",
+        "elements": 67,
+        "videos": 1,
+        "inputs": 4
+      },
+      {
+        "trip": 3,
+        "kind": "image",
+        "elements": 27,
+        "videos": 0,
+        "inputs": 0
+      },
+      {
+        "trip": 4,
+        "kind": "video",
+        "elements": 67,
+        "videos": 1,
+        "inputs": 4
+      },
+      {
+        "trip": 4,
+        "kind": "image",
+        "elements": 27,
+        "videos": 0,
+        "inputs": 0
+      },
+      {
+        "trip": 5,
+        "kind": "video",
+        "elements": 67,
+        "videos": 1,
+        "inputs": 4
+      },
+      {
+        "trip": 5,
+        "kind": "image",
+        "elements": 27,
+        "videos": 0,
+        "inputs": 0
+      },
+      {
+        "trip": 6,
+        "kind": "video",
+        "elements": 67,
+        "videos": 1,
+        "inputs": 4
+      },
+      {
+        "trip": 6,
+        "kind": "image",
+        "elements": 27,
+        "videos": 0,
+        "inputs": 0
+      },
+      {
+        "trip": 7,
+        "kind": "video",
+        "elements": 67,
+        "videos": 1,
+        "inputs": 4
+      },
+      {
+        "trip": 7,
+        "kind": "image",
+        "elements": 27,
+        "videos": 0,
+        "inputs": 0
+      },
+      {
+        "trip": 8,
+        "kind": "video",
+        "elements": 67,
+        "videos": 1,
+        "inputs": 4
+      },
+      {
+        "trip": 8,
+        "kind": "image",
+        "elements": 27,
+        "videos": 0,
+        "inputs": 0
+      },
+      {
+        "trip": 9,
+        "kind": "video",
+        "elements": 67,
+        "videos": 1,
+        "inputs": 4
+      },
+      {
+        "trip": 9,
+        "kind": "image",
+        "elements": 27,
+        "videos": 0,
+        "inputs": 0
+      },
+      {
+        "trip": 10,
+        "kind": "video",
+        "elements": 67,
+        "videos": 1,
+        "inputs": 4
+      },
+      {
+        "trip": 10,
+        "kind": "image",
+        "elements": 27,
+        "videos": 0,
+        "inputs": 0
+      },
+      {
+        "trip": 11,
+        "kind": "video",
+        "elements": 67,
+        "videos": 1,
+        "inputs": 4
+      },
+      {
+        "trip": 11,
+        "kind": "image",
+        "elements": 27,
+        "videos": 0,
+        "inputs": 0
+      },
+      {
+        "trip": 12,
+        "kind": "video",
+        "elements": 67,
+        "videos": 1,
+        "inputs": 4
+      },
+      {
+        "trip": 12,
+        "kind": "image",
+        "elements": 27,
+        "videos": 0,
+        "inputs": 0
+      },
+      {
+        "trip": 13,
+        "kind": "video",
+        "elements": 67,
+        "videos": 1,
+        "inputs": 4
+      },
+      {
+        "trip": 13,
+        "kind": "image",
+        "elements": 27,
+        "videos": 0,
+        "inputs": 0
+      },
+      {
+        "trip": 14,
+        "kind": "video",
+        "elements": 67,
+        "videos": 1,
+        "inputs": 4
+      },
+      {
+        "trip": 14,
+        "kind": "image",
+        "elements": 27,
+        "videos": 0,
+        "inputs": 0
+      },
+      {
+        "trip": 15,
+        "kind": "video",
+        "elements": 67,
+        "videos": 1,
+        "inputs": 4
+      },
+      {
+        "trip": 15,
+        "kind": "image",
+        "elements": 27,
+        "videos": 0,
+        "inputs": 0
+      },
+      {
+        "trip": 16,
+        "kind": "video",
+        "elements": 67,
+        "videos": 1,
+        "inputs": 4
+      },
+      {
+        "trip": 16,
+        "kind": "image",
+        "elements": 27,
+        "videos": 0,
+        "inputs": 0
+      },
+      {
+        "trip": 17,
+        "kind": "video",
+        "elements": 67,
+        "videos": 1,
+        "inputs": 4
+      },
+      {
+        "trip": 17,
+        "kind": "image",
+        "elements": 27,
+        "videos": 0,
+        "inputs": 0
+      },
+      {
+        "trip": 18,
+        "kind": "video",
+        "elements": 67,
+        "videos": 1,
+        "inputs": 4
+      },
+      {
+        "trip": 18,
+        "kind": "image",
+        "elements": 27,
+        "videos": 0,
+        "inputs": 0
+      },
+      {
+        "trip": 19,
+        "kind": "video",
+        "elements": 67,
+        "videos": 1,
+        "inputs": 4
+      },
+      {
+        "trip": 19,
+        "kind": "image",
+        "elements": 27,
+        "videos": 0,
+        "inputs": 0
+      },
+      {
+        "trip": 20,
+        "kind": "video",
+        "elements": 67,
+        "videos": 1,
+        "inputs": 4
+      },
+      {
+        "trip": 20,
+        "kind": "image",
+        "elements": 27,
+        "videos": 0,
+        "inputs": 0
+      }
+    ],
+    "C3-5-notification": {
+      "text": "미디어를 가져오지 못함\n03:22\nQA abstract clip.webm\nQA simulated copy refusal",
+      "rect": {
+        "x": 1444,
+        "y": 98,
+        "width": 464,
+        "height": 64
+      },
+      "animation": "none",
+      "shadow": "rgb(227, 162, 59) 3px 0px 0px 0px inset, rgb(58, 58, 58) 0px 0px 0px 1px, rgba(0, 0, 0, 0.5) 0px 8px 24px 0px",
+      "radius": "5px",
+      "arrow": {
+        "height": 12,
+        "display": "flex"
+      }
+    },
+    "C3-5b-C3-6-import-dispatch": [
+      {
+        "workspace": "진행",
+        "attempt": 1,
+        "before": {
+          "disabled": false,
+          "aria": null
+        },
+        "settledAfterMs": 198,
+        "enabledAfter": true
+      },
+      {
+        "workspace": "진행",
+        "attempt": 2,
+        "before": {
+          "disabled": false,
+          "aria": null
+        },
+        "settledAfterMs": 208,
+        "enabledAfter": true
+      },
+      {
+        "workspace": "준비",
+        "attempt": 1,
+        "before": {
+          "disabled": false,
+          "aria": null
+        },
+        "settledAfterMs": 197,
+        "enabledAfter": true
+      },
+      {
+        "workspace": "준비",
+        "attempt": 2,
+        "before": {
+          "disabled": false,
+          "aria": null
+        },
+        "settledAfterMs": 196,
+        "enabledAfter": true
+      }
+    ],
+    "C3-8-topology": {
+      "fixture": [
+        {
+          "x": 0,
+          "y": 0,
+          "width": 3440,
+          "height": 1440
+        },
+        {
+          "x": 3440,
+          "y": 222,
+          "width": 1920,
+          "height": 1080
+        }
+      ],
+      "boxes": [
+        {
+          "number": "1",
+          "x": 372.984375,
+          "y": 170,
+          "width": 618.703125,
+          "height": 258.984375
+        },
+        {
+          "number": "2",
+          "x": 991.6875,
+          "y": 209.921875,
+          "width": 345.328125,
+          "height": 194.234375
+        }
+      ],
+      "selected": "true"
+    },
+    "C3-9-absent-default": {
+      "switches": [
+        {
+          "checked": "false"
+        }
+      ]
+    },
+    "C3-7-remount-events-corrected": {
+      "samples": [
+        {
+          "tab": "준비",
+          "activeOutputAnimations": 0
+        },
+        {
+          "tab": "진행",
+          "activeOutputAnimations": 0
+        },
+        {
+          "tab": "준비",
+          "activeOutputAnimations": 0
+        },
+        {
+          "tab": "진행",
+          "activeOutputAnimations": 0
+        }
+      ],
+      "events": []
+    },
+    "UX10-fixed": [
+      {
+        "kind": "media",
+        "attempt": 1,
+        "focusRetained": true,
+        "changedNameSaved": true,
+        "name": "QA media renamed 1"
+      },
+      {
+        "kind": "media",
+        "attempt": 2,
+        "focusRetained": true,
+        "changedNameSaved": true,
+        "name": "QA media renamed 2"
+      },
+      {
+        "kind": "audio",
+        "attempt": 1,
+        "focusRetained": true,
+        "changedNameSaved": true,
+        "name": "QA audio renamed 1"
+      },
+      {
+        "kind": "audio",
+        "attempt": 2,
+        "focusRetained": true,
+        "changedNameSaved": true,
+        "name": "QA audio renamed 2"
+      }
+    ],
+    "qa16-smoke": {
+      "reference": "요 3:16-18",
+      "viewport": [1920, 1080, 1],
+      "showCompletion": "요한복음 ",
+      "show": {
+        "heading": ["요한복음 3:16-18", "슬라이드 3개"],
+        "slides": 3,
+        "unavailable": false
+      },
+      "prepCompletion": "요한복음 ",
+      "prepChoices": ["요한복음 3:16-18\n절 3개"],
+      "prepInserted": true,
+      "pass": true
+    },
+    "UX09-delete-0": [
+      "‘QA referenced Look’ Look을 삭제할까요?\n\nQA Look dependency\n\n취소\n삭제"
+    ],
+    "UX09-delete-1": [
+      "‘QA referenced Look’ Look을 삭제할까요?\n\nQA Look dependency\n\n취소\n삭제"
+    ],
+    "UX05-disabled-menus": [
+      {
+        "label": "편집",
+        "disabled": "true",
+        "hasPopup": null,
+        "describedBy": "_r_0_-tooltip",
+        "tooltips": ["편집 메뉴를 아직 지원하지 않습니다"]
+      },
+      {
+        "label": "창",
+        "disabled": "true",
+        "hasPopup": null,
+        "describedBy": "_r_1_-tooltip",
+        "tooltips": ["창 메뉴를 아직 지원하지 않습니다"]
+      },
+      {
+        "label": "도움말",
+        "disabled": "true",
+        "hasPopup": null,
+        "describedBy": "_r_2_-tooltip",
+        "tooltips": ["도움말 메뉴를 아직 지원하지 않습니다"]
+      }
+    ]
+  },
+  "tools": {
+    "표시 중": {
+      "emptyBody": true
+    },
+    "오디오": {
+      "emptyBody": true
+    },
+    "무대": {
+      "emptyBody": false
+    },
+    "타이머": {
+      "emptyBody": true
+    },
+    "메시지": {
+      "emptyBody": false
+    },
+    "공지": {
+      "emptyBody": true
+    },
+    "소품": {
+      "emptyBody": true
+    },
+    "매크로": {
+      "emptyBody": true
+    }
+  },
+  "menuTriggers": {
+    "파일": {
+      "expanded": "true",
+      "menuCount": 1
+    },
+    "편집": {
+      "expanded": null,
+      "menuCount": 0
+    },
+    "보기": {
+      "expanded": "true",
+      "menuCount": 1
+    },
+    "출력": {
+      "expanded": "true",
+      "menuCount": 1
+    },
+    "창": {
+      "expanded": null,
+      "menuCount": 0
+    },
+    "도움말": {
+      "expanded": null,
+      "menuCount": 0
+    }
+  },
+  "propertyGroupLeft": [
+    1450, 1450, 1450, 1450, 1450, 1450, 1450, 1450, 1450, 1450
+  ],
+  "propertyPanelLeft": 1436,
+  "sliderTargets": [
+    {
+      "tag": "INPUT",
+      "label": "슬라이드 크기",
+      "r": {
+        "x": 1222.34375,
+        "y": 858.125,
+        "width": 120,
+        "height": 16,
+        "top": 858.125,
+        "right": 1342.34375,
+        "bottom": 874.125,
+        "left": 1222.34375
+      }
+    }
+  ],
+  "attachedRendererExceptionCount": 0,
+  "controlledHarnessRequestRejections": 0,
+  "normalExitCode": 0,
+  "remainingOwnElectronProcesses": 0,
+  "nativeLimits": [
+    "First visible native frame and desktop reveal not observable.",
+    "Native picker timing, remembered folder and always-on-top require a user check."
+  ]
+}
