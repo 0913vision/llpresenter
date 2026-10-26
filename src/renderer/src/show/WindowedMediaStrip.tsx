@@ -103,15 +103,6 @@ export function WindowedMediaStrip({
     }
   }
   useLayoutEffect(() => {
-    const list =
-      viewport.current?.querySelector<HTMLElement>('[role="listbox"]');
-    list?.setAttribute('aria-orientation', 'horizontal');
-    list?.querySelectorAll<HTMLElement>(OPTIONS).forEach((option, index) => {
-      option.setAttribute('aria-setsize', String(count));
-      option.setAttribute('aria-posinset', String(start + index + 1));
-    });
-  });
-  useLayoutEffect(() => {
     const target = focusNext.current;
     if (target === null || target < start || target >= end) return;
     const options = viewport.current?.querySelectorAll<HTMLElement>(OPTIONS);
@@ -154,6 +145,9 @@ export function WindowedMediaStrip({
       <MediaStrip
         label="미디어"
         className={styles.windowed}
+        positionOffset={start}
+        setSize={count}
+        orientation="horizontal"
         selected={
           selected !== undefined && selected >= start && selected < end
             ? selected - start

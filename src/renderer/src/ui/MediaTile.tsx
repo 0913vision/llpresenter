@@ -10,7 +10,12 @@ import {Icon} from './Icon';
 import type {MenuAnchor} from './Menu';
 import {MissingFileMark, missingFileText} from './MissingFile';
 import {Progress, progressPercent} from './StatusMarks';
-import {gridMoves, stripMoves, TileList} from './TileList';
+import {
+  gridMoves,
+  stripMoves,
+  TileList,
+  type TileListPosition,
+} from './TileList';
 import {titleTooltip, useTooltip} from './Tooltip';
 import styles from './MediaTile.module.css';
 
@@ -214,7 +219,11 @@ export function MediaGrid(props: MediaGridProps): JSX.Element {
   );
 }
 
-export type MediaStripProps = MediaListProps;
+/**
+ * A windowed host mounts part of a long strip and names the mounted tiles'
+ * places in the full list with the position props.
+ */
+export type MediaStripProps = MediaListProps & TileListPosition;
 
 /**
  * The media strip of 진행 (`ll-media-strip`): one row of 150px tiles that
@@ -234,6 +243,9 @@ export function MediaStrip(props: MediaStripProps): JSX.Element {
       onSelect={props.onSelect}
       onActivate={props.onActivate}
       onMenu={props.onMenu}
+      positionOffset={props.positionOffset}
+      setSize={props.setSize}
+      orientation={props.orientation}
       className={classNames(styles.strip, props.className)}
     >
       {props.children}

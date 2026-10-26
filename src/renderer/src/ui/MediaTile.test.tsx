@@ -202,4 +202,38 @@ describe('MediaStrip', () => {
         .getAttribute('data-workspace'),
     ).toBe('show');
   });
+
+  it('names the places of a mounted window in the full strip', () => {
+    render(
+      <MediaStrip
+        label="미디어"
+        selected={undefined}
+        positionOffset={40}
+        setSize={999}
+        orientation="horizontal"
+        onSelect={() => {}}
+        onActivate={() => {}}
+      >
+        {library.slice(0, 2).map(media => (
+          <MediaTile key={media.name} {...media} />
+        ))}
+      </MediaStrip>,
+    );
+    expect(
+      screen
+        .getByRole('listbox', {name: '미디어'})
+        .getAttribute('aria-orientation'),
+    ).toBe('horizontal');
+    expect(
+      screen
+        .getAllByRole('option')
+        .map(option => [
+          option.getAttribute('aria-posinset'),
+          option.getAttribute('aria-setsize'),
+        ]),
+    ).toEqual([
+      ['41', '999'],
+      ['42', '999'],
+    ]);
+  });
 });
