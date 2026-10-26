@@ -2,6 +2,7 @@ import {
   useEffect,
   useEffectEvent,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
   type CSSProperties,
@@ -377,7 +378,8 @@ function Submenu({
 /**
  * A floating menu below a button or at the pointer. It takes focus, points to
  * the first item, and gives focus back to where it was opened when it closes.
- * A click outside closes it and doesn't reach what is underneath.
+ * A click outside closes it and doesn't reach what is underneath. A menu
+ * anchored in a menubar leaves the heading strip interactive.
  */
 export function Menu({
   label,
@@ -388,11 +390,28 @@ export function Menu({
   width,
   minWidth,
 }: MenuProps): JSX.Element {
-  const [opener] = useState(() =>
-    document.activeElement instanceof HTMLElement
-      ? document.activeElement
+  const catcher = useRef<HTMLDivElement>(null);
+  const [menubar] = useState(() =>
+    anchor.kind === 'element'
+      ? anchor.element.closest('[role="menubar"]')
       : null,
   );
+  useLayoutEffect(() => {
+    const element = catcher.current;
+    if (menubar === null || element === null) return undefined;
+    const fit = (): void => {
+      element.style.top = `${menubar.getBoundingClientRect().bottom}px`;
+    };
+    fit();
+    window.addEventListener('resize', fit);
+    return () => window.removeEventListener('resize', fit);
+  }, [menubar]);
+  const [opener] = useState(() => {
+    if (menubar !== null && anchor.kind === 'element') return anchor.element;
+    return document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+  });
   const [place] = useState(() => anchorPlace(anchor));
   const [overModal] = useState(() => modalStack.isOpen);
 
@@ -406,6 +425,7 @@ export function Menu({
   return createPortal(
     <div className={styles.layer} data-over-modal={overModal ? '' : undefined}>
       <div
+        ref={catcher}
         className={styles.catcher}
         onPointerDown={event => {
           event.preventDefault();

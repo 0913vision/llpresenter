@@ -18,6 +18,21 @@ const FILE_MENU = '파일';
 const IMPORT_UNAVAILABLE = '텍스트 가져오기를 준비 중입니다';
 
 type ImportText = (source: TextImportReadRequest['source']) => void;
+type MenuName = typeof FILE_MENU | typeof OUTPUT_MENU;
+
+interface ActiveMenu {
+  readonly name: MenuName;
+  readonly anchor: HTMLButtonElement;
+  readonly openedByHover: boolean;
+}
+
+interface MenuControl {
+  readonly anchor: HTMLButtonElement | null;
+  readonly open: (anchor: HTMLButtonElement) => void;
+  readonly toggle: (anchor: HTMLButtonElement) => void;
+  readonly hover: (anchor: HTMLButtonElement) => void;
+  readonly close: () => void;
+}
 
 /** A screen whose warning still holds, for the 출력 menu. */
 export interface WarningScreen {
@@ -76,14 +91,12 @@ function InertMenu({label}: {readonly label: string}): JSX.Element {
 
 function MenuTrigger({
   label,
-  anchor,
-  onAnchorChange,
+  control,
 }: {
   readonly label: string;
-  readonly anchor: HTMLButtonElement | null;
-  readonly onAnchorChange: (anchor: HTMLButtonElement | null) => void;
+  readonly control: MenuControl;
 }): JSX.Element {
-  const expanded = anchor !== null;
+  const expanded = control.anchor !== null;
   return (
     <button
       type="button"
@@ -91,12 +104,15 @@ function MenuTrigger({
       aria-haspopup="menu"
       aria-expanded={expanded}
       className={styles.menu}
-      onClick={event => onAnchorChange(expanded ? null : event.currentTarget)}
+      onClick={event => control.toggle(event.currentTarget)}
+      onPointerEnter={event => control.hover(event.currentTarget)}
       onKeyDown={event =>
         openOnArrowDown(event, {
           expanded,
-          onExpandedChange: next =>
-            onAnchorChange(next ? event.currentTarget : null),
+          onExpandedChange: next => {
+            if (next) control.open(event.currentTarget);
+            else control.close();
+          },
         })
       }
     >
@@ -108,12 +124,14 @@ function MenuTrigger({
 function FileMenu({
   onProblem,
   onImportText,
+  control,
 }: {
   readonly onProblem: (notice: Notice) => void;
   readonly onImportText: ImportText | undefined;
+  readonly control: MenuControl;
 }): JSX.Element {
-  const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
-  const actions = useServiceActions({onProblem, onOpen: () => setAnchor(null)});
+  const {anchor} = control;
+  const actions = useServiceActions({onProblem, onOpen: control.close});
   const imports: readonly MenuEntry[] = [
     ...(['file', 'clipboard'] as const).map(source => ({
       kind: 'item' as const,
@@ -134,16 +152,12 @@ function FileMenu({
   ];
   return (
     <>
-      <MenuTrigger
-        label={FILE_MENU}
-        anchor={anchor}
-        onAnchorChange={setAnchor}
-      />
+      <MenuTrigger label={FILE_MENU} control={control} />
       {anchor ? (
         <Menu
           label={FILE_MENU}
           anchor={{kind: 'element', element: anchor}}
-          onClose={() => setAnchor(null)}
+          onClose={control.close}
           entries={[
             ...actions.entries,
             {kind: 'separator', id: 'imports'},
@@ -196,24 +210,22 @@ function outputEntries({
 function OutputMenu({
   warnings,
   onShowWarning,
+  control,
 }: {
   readonly warnings: readonly WarningScreen[];
   readonly onShowWarning: (screenId: string) => void;
+  readonly control: MenuControl;
 }): JSX.Element {
-  const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
+  const {anchor} = control;
   const outputs = useOutputs();
   return (
     <>
-      <MenuTrigger
-        label={OUTPUT_MENU}
-        anchor={anchor}
-        onAnchorChange={setAnchor}
-      />
+      <MenuTrigger label={OUTPUT_MENU} control={control} />
       {anchor ? (
         <Menu
           label={OUTPUT_MENU}
           anchor={{kind: 'element', element: anchor}}
-          onClose={() => setAnchor(null)}
+          onClose={control.close}
           entries={outputEntries({outputs, warnings, onShowWarning})}
         />
       ) : null}
@@ -247,15 +259,42 @@ export function MenuBar({
   /** Mounts P5's file and clipboard entry flow when its host is available. */
   readonly onImportText?: ImportText | undefined;
 }): JSX.Element {
+  const [active, setActive] = useState<ActiveMenu | null>(null);
+  const controlFor = (name: MenuName): MenuControl => ({
+    anchor: active?.name === name ? active.anchor : null,
+    open: anchor => setActive({name, anchor, openedByHover: false}),
+    toggle: anchor =>
+      setActive(current =>
+        current?.name === name && !current.openedByHover
+          ? null
+          : {name, anchor, openedByHover: false},
+      ),
+    hover: anchor =>
+      setActive(current =>
+        current !== null && current.name !== name
+          ? {name, anchor, openedByHover: true}
+          : current,
+      ),
+    close: () =>
+      setActive(current => (current?.name === name ? null : current)),
+  });
   return (
     <div className={styles.bar}>
       <span className={styles.wordmark}>LoveLight</span>
       <div role="menubar" aria-label="메뉴" className={styles.menus}>
-        <FileMenu onProblem={onProblem} onImportText={onImportText} />
+        <FileMenu
+          onProblem={onProblem}
+          onImportText={onImportText}
+          control={controlFor(FILE_MENU)}
+        />
         {inertMenus.map(menu => (
           <InertMenu key={menu} label={menu} />
         ))}
-        <OutputMenu warnings={warnings} onShowWarning={onShowWarning} />
+        <OutputMenu
+          warnings={warnings}
+          onShowWarning={onShowWarning}
+          control={controlFor(OUTPUT_MENU)}
+        />
         {trailingMenus.map(menu => (
           <InertMenu key={menu} label={menu} />
         ))}
