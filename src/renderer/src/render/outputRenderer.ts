@@ -1,6 +1,7 @@
 import type {LiveLayers} from '@shared/live';
 import {classes} from './classes';
 import type {
+  PictureCorrection,
   RegisteredLayer,
   RenderLayer,
   RenderLayerOptions,
@@ -8,6 +9,7 @@ import type {
 } from './layer';
 import {renderLayers} from './layers';
 import {scaleFor} from './lyricStyle';
+import {pictureTransform} from './pictureCorrection';
 import {showsLayer, type LookLayer, type ScreenAppearance} from './screenLook';
 
 const CHROMA_BACKGROUND = 'var(--chroma)';
@@ -36,13 +38,19 @@ function createLayerBox(
   return box;
 }
 
-/** Draws registered layers back to front, keeping a failed layer isolated. */
+/**
+ * Draws registered layers back to front, keeping a failed layer isolated. The
+ * screen's picture correction moves and scales every layer, while the empty
+ * area keeps the screen's empty color.
+ */
 export class OutputRenderer {
   private readonly root = document.createElement('div');
   private readonly layers: readonly ActiveLayer[];
   private readonly resizeObserver: ResizeObserver;
   private disposed = false;
   private background: string | null = null;
+  private correction: PictureCorrection | undefined;
+  private transform: string | null = null;
 
   constructor(
     parent: HTMLElement,
@@ -63,6 +71,7 @@ export class OutputRenderer {
       look?.background ??
         (frame?.screen?.method === 'capture' ? CHROMA_BACKGROUND : null),
     );
+    this.setCorrection(frame?.screen?.correction);
     for (const layer of this.layers) {
       this.setHidden(layer, look);
       this.attempt(layer.kind, 'draw', () => layer.view.render(layers, frame));
@@ -85,6 +94,28 @@ export class OutputRenderer {
     if (background === null) {
       this.root.style.removeProperty('--output-background');
     } else this.root.style.setProperty('--output-background', background);
+  }
+
+  private setCorrection(correction: PictureCorrection | undefined): void {
+    if (correction === this.correction) return;
+    this.correction = correction;
+    this.applyCorrection();
+  }
+
+  private applyCorrection(): void {
+    const transform =
+      this.correction === undefined
+        ? null
+        : pictureTransform(this.correction, {
+            width: this.root.clientWidth,
+            height: this.root.clientHeight,
+            pixelRatio: window.devicePixelRatio,
+          });
+    if (transform === this.transform) return;
+    this.transform = transform;
+    if (transform === null) {
+      this.root.style.removeProperty('--picture-transform');
+    } else this.root.style.setProperty('--picture-transform', transform);
   }
 
   // NOTE(0913vision): A layer the Look turns off keeps drawing under opacity
@@ -135,5 +166,6 @@ export class OutputRenderer {
     for (const {kind, view} of this.layers) {
       this.attempt(kind, 'draw', () => view.rescale?.(scale));
     }
+    this.applyCorrection();
   }
 }

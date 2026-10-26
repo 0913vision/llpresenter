@@ -6,10 +6,22 @@ import type {RenderTimers} from './timerTokens';
 import type {ScreenId} from '@shared/schema/ids';
 import type {Screen} from '@shared/schema/screens';
 
+/** 가장자리 여백 and 위치 미세 조정 of a screen (docs/spec/03-output.md). */
+export interface PictureCorrection {
+  /** The percent of the width and of the height left empty on each side. */
+  readonly edgeMargin: number;
+  /** How far the scaled picture moves right and down, in the screen's own pixels. */
+  readonly offset: {readonly x: number; readonly y: number};
+  /** The screen's own pixel size; absent counts the device pixels drawn. */
+  readonly pixels?: {readonly width: number; readonly height: number};
+}
+
 export interface RenderScreen {
   readonly id: ScreenId;
   readonly kind: 'audience' | 'stage';
   readonly method?: Screen['method'];
+  /** Absent draws the picture over the whole screen. */
+  readonly correction?: PictureCorrection;
 }
 
 export interface RenderFrame {

@@ -53,6 +53,13 @@ Rules for output windows:
   right and y px down, in the screen's own pixels (negative values move it left
   and up). What moves past the screen edge isn't drawn, and the empty area is
   the screen's empty color (proposal).
+  - The screen's own pixels are the monitor's real pixels for 전체 화면 (its
+    resolution times its Windows scale), the set resolution for the capture
+    window (1920 x 1080 when none is set), and the drawn device pixels for 창. A
+    picture drawn smaller, such as a lost monitor's window or a preview, moves
+    by the same share of its size (proposal).
+  - Previews of a screen draw its picture with the correction, as the screen
+    shows it (proposal).
 
 Source: `Screens`, `ScreensNDI`, design system README (output windows draw at
 native resolution), `docs/TECH.md` (output windows show no dialogs).

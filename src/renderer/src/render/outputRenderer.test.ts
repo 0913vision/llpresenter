@@ -177,6 +177,39 @@ describe('OutputRenderer', () => {
     expect(rescale).toHaveBeenLastCalledWith(0.5);
   });
 
+  it('moves and scales every layer by the screen correction, keeping the empty color on the root', () => {
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(960);
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(540);
+    const {parent, renderer} = setUp();
+    const root = parent.querySelector<HTMLElement>(`.${classes.root}`);
+    if (root === null) throw new Error('Missing root');
+    const setProperty = vi.spyOn(root.style, 'setProperty');
+    const correction = {
+      edgeMargin: 10,
+      offset: {x: 40, y: 20},
+      pixels: {width: 1920, height: 1080},
+    };
+    const frame = {screen: {id: MAIN, kind: 'audience', correction}} as const;
+    renderer.render(WITH_SLIDE, frame);
+    expect(root.style.getPropertyValue('--picture-transform')).toBe(
+      'translate(20px, 10px) scale(0.8)',
+    );
+    renderer.render(WITH_SLIDE, {
+      screen: {...frame.screen, correction: {...correction}},
+    });
+    expect(
+      setProperty.mock.calls.filter(([name]) => name === '--picture-transform'),
+    ).toHaveLength(1);
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(480);
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(270);
+    FakeResizeObserver.instances[0]?.callback();
+    expect(root.style.getPropertyValue('--picture-transform')).toBe(
+      'translate(10px, 5px) scale(0.8)',
+    );
+    renderer.render(WITH_SLIDE, {screen: {id: MAIN, kind: 'audience'}});
+    expect(root.style.getPropertyValue('--picture-transform')).toBe('');
+  });
+
   it('stops watching the size and removes everything on dispose', () => {
     const {parent, renderer} = setUp();
     renderer.dispose();

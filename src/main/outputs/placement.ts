@@ -1,3 +1,4 @@
+import {CAPTURE_WINDOW_SIZE} from '@shared/screens';
 import type {Monitor} from '../displays/monitor';
 import {centeredRect, type Rect, type Size} from '../displays/rect';
 import type {OutputScreen} from './screens';
@@ -35,7 +36,6 @@ export type FullScreenPlacement = Extract<Placement, {kind: 'fullscreen'}>;
  * 16:9 quarter of a 1920 x 1080 monitor (proposal).
  */
 export const OUTPUT_WINDOW_SIZE: Size = {width: 960, height: 540};
-export const CAPTURE_WINDOW_SIZE: Size = {width: 1920, height: 1080};
 
 /** The arguments of {@link planPlacement}. */
 export interface PlacementInput {

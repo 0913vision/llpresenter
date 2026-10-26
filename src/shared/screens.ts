@@ -7,6 +7,9 @@ export const STARTER_SCREEN_IDS = {
   stage: '00000000-0000-4000-8000-000000000003',
 } as const;
 
+/** The client size of a capture window whose screen saves no resolution (06). */
+export const CAPTURE_WINDOW_SIZE = {width: 1920, height: 1080} as const;
+
 /** Resolves configured IDs first, then M2 aliases for their original starter screen. */
 export function resolveOutputScreen(
   id: string,

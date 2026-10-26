@@ -1,4 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
+import type {Screen} from '@shared/schema/screens';
 import type {SettingsDocument} from '@shared/schema/settingsDocuments';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {
@@ -48,6 +49,56 @@ describe('output screen identity', () => {
       method: 'fullscreen',
     });
     expect(resolveRenderScreen('unknown', value.screens)).toBeUndefined();
+  });
+
+  it('carries the picture correction with the pixel size of each method', () => {
+    const {value} = screens();
+    const corrected = value.screens.map(screen => ({
+      ...screen,
+      edgeMargin: 5,
+      offset: {x: 12, y: -6},
+    }));
+    const correction = (method: Screen['method'], extra: object = {}) =>
+      resolveRenderScreen(
+        MAIN,
+        corrected.map(screen =>
+          screen.id === MAIN ? {...screen, method, ...extra} : screen,
+        ),
+      )?.correction;
+    expect(
+      correction('fullscreen', {
+        display: {
+          id: 2,
+          name: 'EPSON',
+          number: 2,
+          bounds: {x: 1920, y: 0, width: 2560, height: 1440},
+          scaleFactor: 1.5,
+        },
+      }),
+    ).toEqual({
+      edgeMargin: 5,
+      offset: {x: 12, y: -6},
+      pixels: {width: 3840, height: 2160},
+    });
+    expect(correction('capture')?.pixels).toEqual({width: 1920, height: 1080});
+    expect(
+      correction('capture', {resolution: {width: 1280, height: 720}})?.pixels,
+    ).toEqual({width: 1280, height: 720});
+    expect(correction('ndi')).not.toHaveProperty('pixels');
+    expect(correction('window')).toEqual({
+      edgeMargin: 5,
+      offset: {x: 12, y: -6},
+    });
+    expect(
+      resolveRenderScreen(
+        MAIN,
+        value.screens.map(screen => ({
+          ...screen,
+          edgeMargin: 0,
+          offset: {x: 0, y: 0},
+        })),
+      ),
+    ).not.toHaveProperty('correction');
   });
 
   it('keeps a changed document newer than a pending read and releases its listener', async () => {
