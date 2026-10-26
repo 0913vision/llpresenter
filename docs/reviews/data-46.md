@@ -188,3 +188,18 @@ missing.
 2. Nit: removed the TSDoc from `ReductionRecord`, its `skip`, and the
    `store.test.ts` fixture
    (`style(live): drop the doc comments of internal registry helpers`).
+
+## Round 3 reply
+
+1. [P2] `problemFeed.ts:57`, a full standing list could cut unread startup
+   drops. Fixed in
+   `fix(main): keep room for unread problems in the problem list`: the unread
+   one-shot problems (at most `MAX_UNREAD_PROBLEMS`, 16) always go into the
+   reply, and the standing problems get the rest of the
+   `APP_PROBLEM_LIMITS.listed` room; a standing problem left out stays with its
+   source and is listed again on the next read. Regression: 64 standing problems
+   and 2 startup drops list the first 62 standing ones and both drops, and the
+   next read lists all 64 standing ones.
+2. Nit: `LlpApi.problems.list` now says that the newest unread one-shot problems
+   are listed once, that the read clears them, and to subscribe before listing
+   (`docs(ipc): describe the one-time replay of unread problems`).
