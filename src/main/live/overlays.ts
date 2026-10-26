@@ -2,7 +2,7 @@ import type {SettingsReader} from '../store/settingsStore';
 import type {Logger} from '../log';
 import {dispatchLogged, type LiveStore} from './store';
 import {followMessageExpiry} from './messageExpiry';
-import {overlayRefreshCommands} from './overlayRefresh';
+import {overlayRefreshCommands, stageRefreshCommands} from './overlayRefresh';
 
 interface OverlayOptions {
   readonly store: LiveStore;
@@ -34,7 +34,10 @@ export function startOverlays({
       releaseSettings = store.connectSettings(reader);
       stopSettings = reader.subscribe(document => {
         if (disposed) return;
-        const commands = overlayRefreshCommands(store.state, document);
+        const commands = [
+          ...overlayRefreshCommands(store.state, document),
+          ...stageRefreshCommands(store.state, document),
+        ];
         if (commands.length > 0) {
           dispatchLogged(store, {type: 'live.batch', commands}, log);
         }

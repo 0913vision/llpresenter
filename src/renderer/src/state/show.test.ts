@@ -91,6 +91,7 @@ describe('show state', () => {
           position: 1,
           label: '후렴',
           lines: ['함께 불러요 함께 노래해요'],
+          next: {label: '2절', lines: ['낮은 언덕을 넘어', '바람이 불어 오네']},
         },
       },
     ]);

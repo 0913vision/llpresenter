@@ -112,7 +112,13 @@ it('refreshes the source and outputs its background before lyrics without item.s
     {type: 'media.show', media: {mediaId, loop: true}},
     {
       type: 'slide.show',
-      slide: {itemId, position: 0, label: '1절', lines: ['창작한 첫 줄']},
+      slide: {
+        itemId,
+        position: 0,
+        label: '1절',
+        lines: ['창작한 첫 줄'],
+        next: {label: '후렴', lines: ['창작한 두 번째 줄']},
+      },
     },
   ]);
   expect(jumpLabelFor('KeyC')).toBe('후렴');
@@ -178,6 +184,10 @@ it('drops a pending library output after another source outputs', async () => {
       position: 0,
       label: '1절',
       lines: sampleService.tiles['song-morning']?.[0]?.lines,
+      next: {
+        label: sampleService.tiles['song-morning']?.[1]?.label,
+        lines: sampleService.tiles['song-morning']?.[1]?.lines,
+      },
     },
   });
 });

@@ -217,6 +217,7 @@ describe('Bible slide source', () => {
         position: 1,
         label: '3:17',
         lines: ['17 Invented verse 17'],
+        next: {label: '3:18', lines: ['18 Invented verse 18']},
       },
     });
     openBiblePassage({

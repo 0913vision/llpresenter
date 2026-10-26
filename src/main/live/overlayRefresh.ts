@@ -25,3 +25,14 @@ export function overlayRefreshCommands(
     ? [start]
     : [start, {type: 'notice.pause'}];
 }
+
+/** Ends the 무대 화면's 타이머 choice once that 타이머 is deleted. */
+export function stageRefreshCommands(
+  {stageTimerId}: LiveState,
+  document: SettingsDocument,
+): readonly SingleLiveCommand[] {
+  if (document.name !== 'timers' || stageTimerId === undefined) return [];
+  return document.value.timers.some(({id}) => id === stageTimerId)
+    ? []
+    : [{type: 'stage.timer.set', timerId: null}];
+}

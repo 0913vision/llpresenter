@@ -17,8 +17,11 @@ describe('slideLayerOf', () => {
       position: 0,
       label: '1절',
       lines: ['a', 'b'],
+      next: {label: null, lines: ['c']},
     });
-    expect(slideLayerOf({itemId: 'song', index: 1}, tilesOf)?.label).toBeNull();
+    const last = slideLayerOf({itemId: 'song', index: 1}, tilesOf);
+    expect(last?.label).toBeNull();
+    expect(last).not.toHaveProperty('next');
   });
 
   it('returns nothing for a tile that does not exist', () => {
