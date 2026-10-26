@@ -500,6 +500,11 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   Edit view shows the bin, so the 준비 part is ours. Importing, playlists, and
   the properties of the selected item work inside the bin. The 미디어 toggle
   must not look like the 진행 and 준비 workspace switch.
+- The app is designed for a 1920x1080 window in full screen, and its text is
+  sized for that (user decision: "지금 너무 작아, 안 보여"): no UI text under
+  14px, body and list rows 16px, titles 18px, headings 22px. The earlier scale
+  had 12px labels and captions in about 66 places, the size of the Windows tray
+  clock (Segoe UI 9pt at 100%).
 - Turning a screen output off hides its window, so that monitor shows the
   Windows desktop (user decision; Renewed Vision's documents and the 7.5 guide
   don't say what ProPresenter shows, so this is not a ProPresenter rule).
