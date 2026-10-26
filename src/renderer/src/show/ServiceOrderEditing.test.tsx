@@ -267,6 +267,23 @@ describe('service panel editing', () => {
     ).toBe('true');
   });
 
+  it('still lets window commands such as Ctrl L and the F keys through the rename field', () => {
+    setup('prep');
+    fireEvent.doubleClick(screen.getByText('제목'));
+    const field = screen.getByRole('textbox', {name: '제목 이름'});
+    const reached: string[] = [];
+    const listener = (event: KeyboardEvent): void => {
+      reached.push(event.code);
+    };
+    window.addEventListener('keydown', listener);
+    fireEvent.keyDown(field, {code: 'KeyL', key: 'l', ctrlKey: true});
+    fireEvent.keyDown(field, {code: 'F2', key: 'F2'});
+    fireEvent.keyDown(field, {code: 'KeyZ', key: 'z', ctrlKey: true});
+    fireEvent.keyDown(field, {code: 'Home', key: 'Home'});
+    window.removeEventListener('keydown', listener);
+    expect(reached).toEqual(['KeyL', 'F2']);
+  });
+
   it('opens the rename field only from the header itself, not from its items', () => {
     setup('prep');
     fireEvent.doubleClick(screen.getByRole('option', {name: '첫 곡'}));

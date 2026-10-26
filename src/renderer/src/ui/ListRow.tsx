@@ -425,6 +425,33 @@ export interface GroupRename {
   readonly onCancel: () => void;
 }
 
+const FIELD_COMMAND_CODES: ReadonlySet<string> = new Set([
+  'KeyA',
+  'KeyC',
+  'KeyV',
+  'KeyX',
+  'KeyZ',
+  'KeyY',
+  'Backspace',
+  'Delete',
+  'Home',
+  'End',
+  'ArrowLeft',
+  'ArrowRight',
+]);
+const FUNCTION_KEY = /^F\d{1,2}$/;
+
+// NOTE(0913vision): The field keeps the keys that edit text or move its
+// caret; other commands, such as Ctrl L and the F keys, still reach the
+// window shortcuts.
+function ownsFieldKey(event: KeyboardEvent): boolean {
+  if (FUNCTION_KEY.test(event.key) || event.altKey) return false;
+  if (event.ctrlKey || event.metaKey) {
+    return FIELD_COMMAND_CODES.has(event.code);
+  }
+  return true;
+}
+
 function GroupNameField({
   label,
   rename,
@@ -450,7 +477,7 @@ function GroupNameField({
       onChange={event => setValue(event.target.value)}
       onBlur={() => finish(true)}
       onKeyDown={event => {
-        event.stopPropagation();
+        if (ownsFieldKey(event)) event.stopPropagation();
         if (isComposing(event)) return;
         if (event.key === 'Enter') finish(true);
         else if (event.key === 'Escape') finish(false);
