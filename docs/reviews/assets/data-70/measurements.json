@@ -1,0 +1,132 @@
+{
+  "port": 5188,
+  "offscreen": true,
+  "samples": [
+    {
+      "round": 5,
+      "counts": {
+        "document": 216,
+        "fields": 1,
+        "panel": 67,
+        "video": 1
+      },
+      "heap": {
+        "backingStorageSize": 1665976,
+        "embedderHeapUsedSize": 3689248,
+        "totalSize": 6475776,
+        "usedSize": 5348864
+      },
+      "dom": {
+        "documents": 29,
+        "jsEventListeners": 369,
+        "nodes": 544
+      }
+    },
+    {
+      "round": 10,
+      "counts": {
+        "document": 216,
+        "fields": 1,
+        "panel": 67,
+        "video": 1
+      },
+      "heap": {
+        "backingStorageSize": 1665972,
+        "embedderHeapUsedSize": 3704992,
+        "totalSize": 6475776,
+        "usedSize": 5368640
+      },
+      "dom": {
+        "documents": 29,
+        "jsEventListeners": 369,
+        "nodes": 544
+      }
+    },
+    {
+      "round": 15,
+      "counts": {
+        "document": 216,
+        "fields": 1,
+        "panel": 67,
+        "video": 1
+      },
+      "heap": {
+        "backingStorageSize": 1665972,
+        "embedderHeapUsedSize": 3665048,
+        "totalSize": 6475776,
+        "usedSize": 5383292
+      },
+      "dom": {
+        "documents": 29,
+        "jsEventListeners": 369,
+        "nodes": 544
+      }
+    },
+    {
+      "round": 20,
+      "counts": {
+        "document": 216,
+        "fields": 1,
+        "panel": 67,
+        "video": 1
+      },
+      "heap": {
+        "backingStorageSize": 1665972,
+        "embedderHeapUsedSize": 3626608,
+        "totalSize": 6475776,
+        "usedSize": 5392324
+      },
+      "dom": {
+        "documents": 29,
+        "jsEventListeners": 369,
+        "nodes": 544
+      }
+    }
+  ],
+  "imports": [
+    {
+      "round": 1,
+      "elapsedMs": 81,
+      "nativeDialog": "suppressed by production offscreen guard"
+    },
+    {
+      "round": 2,
+      "elapsedMs": 61,
+      "nativeDialog": "suppressed by production offscreen guard"
+    }
+  ],
+  "baseline": {
+    "counts": {
+      "document": 216,
+      "fields": 1,
+      "panel": 67,
+      "video": 1
+    },
+    "heap": {
+      "backingStorageSize": 1665933,
+      "embedderHeapUsedSize": 3658864,
+      "totalSize": 6475776,
+      "usedSize": 5290872
+    }
+  },
+  "after": {
+    "counts": {
+      "document": 216,
+      "fields": 1,
+      "panel": 67,
+      "video": 1
+    },
+    "heap": {
+      "backingStorageSize": 1665929,
+      "embedderHeapUsedSize": 3545184,
+      "totalSize": 6475776,
+      "usedSize": 5477132
+    },
+    "dom": {
+      "documents": 29,
+      "jsEventListeners": 369,
+      "nodes": 544
+    }
+  },
+  "reopenCount": 2
+}

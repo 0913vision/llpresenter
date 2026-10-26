@@ -57,6 +57,7 @@ const appConfigSchema = jsonObject({
   mediaStrip: v.exactOptional(v.boolean()),
   prepMedia: v.exactOptional(v.boolean()),
   mediaBrowser: v.exactOptional(mediaBrowserSchema),
+  mediaImportFolder: v.exactOptional(v.string()),
   lastBackupAt: v.exactOptional(timestamp),
 });
 

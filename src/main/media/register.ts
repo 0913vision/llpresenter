@@ -1,5 +1,7 @@
 import {randomUUID} from 'node:crypto';
+import {dirname, isAbsolute} from 'node:path';
 import {
+  app,
   dialog,
   ipcMain,
   shell,
@@ -16,6 +18,7 @@ import {
 import type {Logger} from '../log';
 import {broadcast} from '../store/contentChannels';
 import type {MediaBackendPort} from '../store/mediaChannels';
+import type {UiStateFields} from '../store/appConfigFile';
 import {realPathInside} from '../windows/insideRoots';
 import type {WindowMode} from '../windows/testWindows';
 import type {MediaAnalysis} from './analysis';
@@ -41,6 +44,7 @@ export interface MediaBackendRegistration {
   /** Analysis and thumbnails for imports; their owner disposes them. */
   readonly analysis: Pick<MediaAnalysis, 'analyse' | 'saveThumbnail'>;
   readonly log: Logger;
+  readonly uiState: UiStateFields;
 }
 
 function dialogParent(
@@ -60,11 +64,22 @@ function importDialog(
   return async () => {
     const parent = dialogParent(options, 'import');
     if (parent === null) return [];
+    const remembered = options.uiState.read().mediaImportFolder;
+    const defaultPath =
+      remembered !== undefined && isAbsolute(remembered)
+        ? remembered
+        : app.getPath('videos');
     const chosen = await dialog.showOpenDialog(parent, {
+      defaultPath,
       properties: ['openFile', 'multiSelections'],
       filters: mediaDialogFilters(),
     });
-    return chosen.canceled ? [] : chosen.filePaths;
+    if (chosen.canceled) return [];
+    const first = chosen.filePaths[0];
+    if (first !== undefined && isAbsolute(first)) {
+      options.uiState.change({mediaImportFolder: dirname(first)});
+    }
+    return chosen.filePaths;
   };
 }
 

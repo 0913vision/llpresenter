@@ -551,6 +551,14 @@ still display tracks as a list. Missing values use these UI defaults without
 adding fields to an unchanged file. Partial UI updates keep other fields and
 unknown metadata through the same writer.
 
+`mediaImportFolder` is the optional last media file-picker folder, local to this
+app data folder. A successful file choice remembers the first chosen file's
+parent folder; cancellation keeps the previous folder. The next import opens
+there immediately, without waiting for copies, analysis, a folder scan, or a
+configuration write. With no absolute saved folder, use the operating system's
+Videos folder as the initial location. Dragging files into the app does not
+change this picker preference.
+
 | Field                                           | Meaning                                                                                                                                                                                                                   |
 | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `dataRoot`                                      | The data folder.                                                                                                                                                                                                          |

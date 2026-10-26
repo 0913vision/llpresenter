@@ -9,6 +9,7 @@ import {parseMediaDocument} from '@shared/schema/mediaEdit';
 import {expectSuccess} from '@shared/schema/testHelpers';
 import {recordingLogger} from '../displays/testing';
 import {EMPTY_MEDIA_LIST} from '../store/defaults';
+import type {UiStateFields} from '../store/appConfigFile';
 import type {
   MediaBackend,
   MediaBackendConnection,
@@ -43,6 +44,7 @@ vi.mock('electron', () => ({
     }
   },
   dialog: {showOpenDialog: electron.showOpenDialog},
+  app: {getPath: () => join('D:', 'videos')},
   shell: {showItemInFolder: electron.showItemInFolder},
   ipcMain: {
     handle: (channel: string, handler: () => unknown) => {
@@ -144,9 +146,11 @@ function register(
   {
     windowMode = 'normal',
     log = recordingLogger(),
+    uiState = {read: () => ({}), change: vi.fn()},
   }: {
     readonly windowMode?: 'normal' | 'offscreen';
     readonly log?: ReturnType<typeof recordingLogger>;
+    readonly uiState?: UiStateFields;
   } = {},
 ) {
   return registerMediaBackend({
@@ -156,10 +160,114 @@ function register(
     windowMode,
     analysis,
     log,
+    uiState,
   });
 }
 
 describe('media backend registration', () => {
+  it('opens immediately in the remembered folder without waiting for the import queue', async () => {
+    const {port, handlers} = fakePort();
+    const store = await mediaStore();
+    const folder = await makeTempDir();
+    const busyFile = join(folder, 'Busy.png');
+    await writeFile(busyFile, 'invented');
+    let finishAnalysis: (value: Analysis) => void = () => undefined;
+    analysis.analyse.mockReturnValue(
+      new Promise(resolve => {
+        finishAnalysis = resolve;
+      }),
+    );
+    const change = vi.fn<UiStateFields['change']>();
+    const uiState: UiStateFields = {
+      read: () => ({mediaImportFolder: folder}),
+      change,
+    };
+    let release: (value: {
+      canceled: boolean;
+      filePaths: string[];
+    }) => void = () => undefined;
+    electron.showOpenDialog.mockReturnValue(
+      new Promise(resolve => {
+        release = resolve;
+      }),
+    );
+    const stop = register(port, store, {uiState});
+    await handlers().import(
+      {source: {kind: 'files', paths: [busyFile]}, playlist: null},
+      new AbortController().signal,
+    );
+    await vi.waitFor(() => expect(analysis.analyse).toHaveBeenCalledOnce());
+    const pending = handlers().import(
+      {source: {kind: 'dialog'}, playlist: null},
+      new AbortController().signal,
+    );
+    expect(electron.showOpenDialog).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({defaultPath: folder}),
+    );
+    expect(change).not.toHaveBeenCalled();
+    release({canceled: true, filePaths: []});
+    expect(await pending).toEqual({ok: true, value: []});
+    expect(change).not.toHaveBeenCalled();
+    finishAnalysis({kind: 'read', facts: {}});
+    await stop();
+  });
+
+  it('remembers the first chosen folder for the next dialog and leaves it on cancellation', async () => {
+    const {port, handlers} = fakePort();
+    const store = await mediaStore();
+    const chosenFolder = await makeTempDir();
+    const file = join(chosenFolder, 'Invented.png');
+    await writeFile(file, 'invented');
+    let folder: string | undefined;
+    const uiState: UiStateFields = {
+      read: () => (folder === undefined ? {} : {mediaImportFolder: folder}),
+      change: fields => {
+        folder = fields.mediaImportFolder;
+      },
+    };
+    electron.showOpenDialog
+      .mockResolvedValueOnce({canceled: false, filePaths: [file]})
+      .mockResolvedValue({canceled: true, filePaths: []});
+    const stop = register(port, store, {uiState});
+    const request = {source: {kind: 'dialog'}, playlist: null} as const;
+    await handlers().import(request, new AbortController().signal);
+    expect(folder).toBe(chosenFolder);
+    await handlers().import(request, new AbortController().signal);
+    expect(electron.showOpenDialog).toHaveBeenLastCalledWith(
+      expect.anything(),
+      expect.objectContaining({defaultPath: chosenFolder}),
+    );
+    expect(folder).toBe(chosenFolder);
+    await stop();
+  });
+
+  it.each([undefined, '', 'relative/folder'])(
+    'uses the local videos folder instead of shell defaults for %s',
+    async folder => {
+      const {port, handlers} = fakePort();
+      electron.showOpenDialog.mockResolvedValue({
+        canceled: true,
+        filePaths: [],
+      });
+      const stop = register(port, await mediaStore(), {
+        uiState: {
+          read: () => (folder === undefined ? {} : {mediaImportFolder: folder}),
+          change: vi.fn(),
+        },
+      });
+      await handlers().import(
+        {source: {kind: 'dialog'}, playlist: null},
+        new AbortController().signal,
+      );
+      expect(electron.showOpenDialog).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({defaultPath: join('D:', 'videos')}),
+      );
+      await stop();
+    },
+  );
+
   it('imports the files the control window dialog chooses and reports their progress', async () => {
     const {port, reported, disconnect, handlers} = fakePort();
     const folder = await makeTempDir();

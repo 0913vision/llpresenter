@@ -24,6 +24,7 @@ export type UiFields = Pick<
   | 'mediaStrip'
   | 'prepMedia'
   | 'mediaBrowser'
+  | 'mediaImportFolder'
 >;
 
 /** The part of `app.json` that the UI state store reads and changes. */
@@ -124,6 +125,7 @@ export class AppConfigFile implements UiStateFields {
       mediaStrip,
       prepMedia,
       mediaBrowser,
+      mediaImportFolder,
     } = this.config;
     return {
       ...(layout === undefined ? {} : {layout}),
@@ -133,6 +135,7 @@ export class AppConfigFile implements UiStateFields {
       ...(mediaStrip === undefined ? {} : {mediaStrip}),
       ...(prepMedia === undefined ? {} : {prepMedia}),
       ...(mediaBrowser === undefined ? {} : {mediaBrowser}),
+      ...(mediaImportFolder === undefined ? {} : {mediaImportFolder}),
     };
   }
 

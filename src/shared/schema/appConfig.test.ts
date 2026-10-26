@@ -31,6 +31,7 @@ function fullConfig() {
     macroView: 'grid',
     macroCollection: COLLECTION_ID,
     mediaStrip: true,
+    mediaImportFolder: 'D:\\llp-dev\\data\\imports',
     lastBackupAt: '2026-10-24T09:00:00+09:00',
   };
 }
@@ -40,6 +41,15 @@ function parse(json: unknown) {
 }
 
 describe('parseAppConfig', () => {
+  it.each([null, 42, {}, []])(
+    'rejects an invalid import folder %j',
+    mediaImportFolder => {
+      expect(
+        expectFailure(parse({...fullConfig(), mediaImportFolder})),
+      ).toMatchObject({field: 'mediaImportFolder'});
+    },
+  );
+
   it('reads a file with every field', () => {
     expect(expectSuccess(parse(fullConfig())).data).toEqual(fullConfig());
   });

@@ -36,6 +36,33 @@ async function readJson(file: string): Promise<unknown> {
 }
 
 describe('openAppConfig with a broken app.json (qa C19)', () => {
+  it('keeps the import folder per app data file across UI edits and reopening', async () => {
+    const file = await appJson();
+    await writeJson(file, {
+      format: 'llapp',
+      schemaVersion: 1,
+      future: {keep: true},
+    });
+    const config = await openAppConfig({file, log: fakeLog()});
+    const folder = join(await makeTempDir(), 'imports');
+    config.change({mediaImportFolder: folder});
+    config.change({mediaStrip: false});
+    await config.flush();
+    config.dispose();
+    const reopened = await openAppConfig({file, log: fakeLog()});
+    const other = await openAppConfig({file: await appJson(), log: fakeLog()});
+    onTestFinished(() => {
+      reopened.dispose();
+      other.dispose();
+    });
+    expect(reopened.read()).toMatchObject({
+      mediaImportFolder: folder,
+      mediaStrip: false,
+    });
+    expect(other.read().mediaImportFolder).toBeUndefined();
+    expect(await readJson(file)).toMatchObject({future: {keep: true}});
+  });
+
   it('retains failed app.json writes and saves the newest configuration on retry', async () => {
     const file = await appJson();
     await writeJson(file, {

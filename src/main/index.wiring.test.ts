@@ -690,6 +690,7 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
       },
     ]);
     expect(fakes.mediaBackendContexts[0]?.analysis).toBe(fakes.analysis);
+    expect(fakes.mediaBackendContexts[0]?.uiState).toBe(fakes.appConfig);
     expect(fakes.mediaOptions[0]?.analysisFile?.('token')).toBe('a.mp4');
     expect(await fakes.mediaOptions[0]?.thumbnail?.('id')).toBe('thumb.jpg');
     beforeQuit();
