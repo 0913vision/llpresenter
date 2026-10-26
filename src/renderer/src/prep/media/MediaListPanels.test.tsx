@@ -1,0 +1,128 @@
+import {act, fireEvent, render, screen, within} from '@testing-library/react';
+import {describe, expect, it, onTestFinished, vi} from 'vitest';
+import {AudioListsPanel, MediaListsPanel} from './MediaListPanels';
+import {MediaView} from './MediaView';
+import {MediaViewProvider} from './MediaViewProvider';
+import {
+  audioPlaylistId,
+  mediaDocument,
+  mediaFixture,
+  mediaId,
+  mediaItem,
+  playlistId,
+} from './mediaTesting';
+
+const LISTS = {
+  playlists: [
+    {id: playlistId(1), name: 'Backgrounds', items: [mediaId(2)]},
+    {id: playlistId(2), name: '', items: []},
+  ],
+  audioPlaylists: [
+    {id: audioPlaylistId(1), name: 'Hymns', items: [mediaId(3)], loop: true},
+  ],
+};
+
+function setup(
+  document = mediaDocument(
+    [
+      mediaItem(1, {name: 'Dawn'}),
+      mediaItem(2, {name: 'Waves'}),
+      mediaItem(3, {name: 'Hymn', kind: 'audio', file: 'hymn.mp3'}),
+    ],
+    1,
+    LISTS,
+  ),
+) {
+  const fixture = mediaFixture(document);
+  window.llp = fixture.api;
+  onTestFinished(() => {
+    delete window.llp;
+  });
+  render(
+    <MediaViewProvider api={fixture.api} onProblem={vi.fn()}>
+      <MediaListsPanel />
+      <AudioListsPanel />
+      <MediaView onProblem={vi.fn()} />
+    </MediaViewProvider>,
+  );
+  return fixture;
+}
+
+async function row(list: string, name: RegExp | string): Promise<HTMLElement> {
+  return within(screen.getByRole('listbox', {name: list})).findByRole(
+    'option',
+    {name},
+  );
+}
+
+describe('media list panels', () => {
+  it('lists 모든 미디어, the playlists, and the audio playlists with their counts', async () => {
+    setup();
+    const all = await row('미디어 목록', /모든 미디어/);
+    expect(all.textContent).toContain('3');
+    expect(all.getAttribute('aria-selected')).toBe('true');
+    expect((await row('미디어 목록', /Backgrounds/)).textContent).toContain(
+      '1',
+    );
+    expect(
+      (await row('미디어 목록', /이름 없는 재생목록/)).textContent,
+    ).toContain('0');
+    expect((await row('오디오 재생목록', /Hymns/)).textContent).toContain('1');
+  });
+
+  it('shows the chosen playlist in the grid and imports into it', async () => {
+    const {importFiles} = setup();
+    fireEvent.click(await row('미디어 목록', /Backgrounds/));
+    const grid = await screen.findByRole('listbox', {name: 'Backgrounds'});
+    expect(
+      within(grid)
+        .getAllByRole('option')
+        .map(option => option.getAttribute('aria-label')),
+    ).toEqual(['Waves']);
+    fireEvent.click(screen.getByRole('button', {name: '가져오기'}));
+    expect(importFiles).toHaveBeenCalledWith({
+      source: {kind: 'dialog'},
+      playlist: {kind: 'media', id: playlistId(1)},
+    });
+    fireEvent.click(await row('오디오 재생목록', /Hymns/));
+    expect(
+      (await row('미디어 목록', /Backgrounds/)).getAttribute('aria-selected'),
+    ).toBe('false');
+    expect(await screen.findByRole('listbox', {name: 'Hymns'})).toBeDefined();
+  });
+
+  it('adds a playlist with 새 재생목록 and shows it once the list has it', async () => {
+    const {edit, pushDocument} = setup();
+    edit.mockResolvedValue({ok: true, value: {id: playlistId(3), revision: 2}});
+    await row('미디어 목록', /모든 미디어/);
+    fireEvent.click(screen.getByRole('button', {name: '새 재생목록'}));
+    expect(edit).toHaveBeenCalledWith({
+      type: 'media.playlist.create',
+      kind: 'media',
+    });
+    act(() => {
+      pushDocument(
+        mediaDocument([mediaItem(1, {name: 'Dawn'})], 2, {
+          playlists: [{id: playlistId(3), name: '새 재생목록', items: []}],
+        }),
+      );
+    });
+    expect(
+      (await row('미디어 목록', /새 재생목록/)).getAttribute('aria-selected'),
+    ).toBe('true');
+    expect(
+      await screen.findByRole('listbox', {name: '새 재생목록'}),
+    ).toBeDefined();
+  });
+
+  it('can add no playlist to a list a newer version wrote', async () => {
+    const {edit} = setup({...mediaDocument([], 1), access: 'readOnly'});
+    await row('미디어 목록', /모든 미디어/);
+    for (const name of ['새 재생목록', '새 오디오 재생목록']) {
+      const button = screen.getByRole('button', {name});
+      expect(button.getAttribute('aria-disabled')).toBe('true');
+      fireEvent.click(button);
+    }
+    expect(edit).not.toHaveBeenCalled();
+  });
+});

@@ -23,7 +23,12 @@ import {
   ItemSettingsPanel,
 } from '@renderer/prep/service/ItemSidePanels';
 import {ServiceQuickAdd} from '@renderer/prep/service/QuickAdd';
+import {
+  AudioListsPanel,
+  MediaListsPanel,
+} from '@renderer/prep/media/MediaListPanels';
 import {MediaView} from '@renderer/prep/media/MediaView';
+import {MediaViewProvider} from '@renderer/prep/media/MediaViewProvider';
 import {ServiceItemPanel} from '@renderer/prep/service/SongItemPanel';
 import type {ServiceItemStore} from '@renderer/prep/service/serviceItemStore';
 import {ClearRow} from '@renderer/show/ClearRow';
@@ -266,12 +271,12 @@ function prepPanelParts({
   readonly sizeClass: SizeClass;
 }): PanelParts {
   if (!prep) return {};
-  if (title === '미디어') {
-    return {
-      embedded: (
-        <MediaView api={prep.api} onProblem={onProblem ?? ignoreProblem} />
-      ),
-    };
+  if (title === '미디어') return {embedded: <MediaListsPanel />};
+  if (title === '오디오') {
+    return {size: 'content', embedded: <AudioListsPanel />};
+  }
+  if (title === '미디어 보기') {
+    return {embedded: <MediaView onProblem={onProblem ?? ignoreProblem} />};
   }
   if (title === '라이브러리') {
     return {
@@ -429,12 +434,11 @@ export function Workspace({
     id === 'prep' && hasSong
       ? [['예배 순서', '라이브러리'], ['편집'], ['미리보기', '슬라이드']]
       : panelsByWorkspace[id];
+  const media = id === 'prep' && mediaView && prep !== undefined ? prep : null;
   const columns =
-    id === 'prep' && mediaView
-      ? prepColumns.map((panels, column) =>
-          column === 1 ? ['미디어'] : panels,
-        )
-      : prepColumns;
+    media === null
+      ? prepColumns
+      : [['미디어', '오디오'], ['미디어 보기'], prepColumns[2]];
   const partsOf = (title: string): PanelParts => {
     if (title === '예배 순서' && id !== 'screens') {
       return serviceOrderParts({
@@ -456,6 +460,37 @@ export function Workspace({
       ? showPanelParts({title, sizeClass, onProblem, bibleOpen, bibleSelection})
       : prepPanelParts({title, prep, hasSong, onProblem, sizeClass});
   };
+  const panelColumns = columns.map((panels, column) => (
+    <Fragment key={column}>
+      {column === 1 && toggle.collapsed ? <div aria-hidden="true" /> : null}
+      {column > 0 && !(column === 1 && toggle.collapsed) ? (
+        <ColumnGap column={column === 1 ? 'left' : 'right'} drag={drag} />
+      ) : null}
+      <div
+        className={styles.column}
+        style={
+          column === 2 && warningHeight > 0
+            ? {paddingTop: `calc(${warningHeight}px + var(--panel-gap))`}
+            : undefined
+        }
+      >
+        {column === 0 && toggle.collapsed ? (
+          <CollapsedSidebar
+            claimFocus={toggle.claimFocus}
+            onPress={button => toggle.toggle(false, button)}
+          />
+        ) : (
+          panels
+            .filter(
+              title => id !== 'show' || title !== '미디어' || mediaVisible,
+            )
+            .map(title => (
+              <Panel key={title} title={title} parts={partsOf(title)} />
+            ))
+        )}
+      </div>
+    </Fragment>
+  ));
   // TODO(0913vision): Let the shrink rule ignore the hidden left width while
   // the left column is collapsed; it still counts the saved width now.
   return (
@@ -470,37 +505,16 @@ export function Workspace({
       {id === 'show' ? (
         <ShowShortcuts onProblem={onProblem ?? logPanelProblem} />
       ) : null}
-      {columns.map((panels, column) => (
-        <Fragment key={column}>
-          {column === 1 && toggle.collapsed ? <div aria-hidden="true" /> : null}
-          {column > 0 && !(column === 1 && toggle.collapsed) ? (
-            <ColumnGap column={column === 1 ? 'left' : 'right'} drag={drag} />
-          ) : null}
-          <div
-            className={styles.column}
-            style={
-              column === 2 && warningHeight > 0
-                ? {paddingTop: `calc(${warningHeight}px + var(--panel-gap))`}
-                : undefined
-            }
-          >
-            {column === 0 && toggle.collapsed ? (
-              <CollapsedSidebar
-                claimFocus={toggle.claimFocus}
-                onPress={button => toggle.toggle(false, button)}
-              />
-            ) : (
-              panels
-                .filter(
-                  title => id !== 'show' || title !== '미디어' || mediaVisible,
-                )
-                .map(title => (
-                  <Panel key={title} title={title} parts={partsOf(title)} />
-                ))
-            )}
-          </div>
-        </Fragment>
-      ))}
+      {media === null ? (
+        panelColumns
+      ) : (
+        <MediaViewProvider
+          api={media.api}
+          onProblem={onProblem ?? ignoreProblem}
+        >
+          {panelColumns}
+        </MediaViewProvider>
+      )}
     </main>
   );
 }

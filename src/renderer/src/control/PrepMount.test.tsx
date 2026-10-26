@@ -251,7 +251,7 @@ it('keeps a refused draft in the 저장할 수 없음 dialog until 다시 시도
   await act(async () => fixture.session.dispose());
 });
 
-it('opens the media view in the center column with 미디어 and closes it again', async () => {
+it('opens the media view with 미디어, the playlist panels on the left, and closes it again', async () => {
   mountPrep();
   const toggle = screen.getByRole('button', {name: '미디어'});
   expect(toggle.getAttribute('aria-pressed')).toBe('false');
@@ -260,7 +260,10 @@ it('opens the media view in the center column with 미디어 and closes it again
     await screen.findByRole('listbox', {name: '모든 미디어'}),
   ).toBeDefined();
   expect(toggle.getAttribute('aria-pressed')).toBe('true');
-  expect(screen.getByRole('region', {name: '라이브러리'})).toBeDefined();
+  expect(screen.getByRole('region', {name: '미디어'})).toBeDefined();
+  expect(screen.getByRole('region', {name: '오디오'})).toBeDefined();
+  expect(screen.queryByRole('region', {name: '라이브러리'})).toBeNull();
   fireEvent.click(toggle);
   expect(screen.queryByRole('listbox', {name: '모든 미디어'})).toBeNull();
+  expect(screen.getByRole('region', {name: '라이브러리'})).toBeDefined();
 });
