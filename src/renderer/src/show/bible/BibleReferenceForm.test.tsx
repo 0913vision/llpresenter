@@ -44,6 +44,47 @@ function enterPassage(view: ReturnType<typeof setup>, end = ''): void {
 }
 
 describe('shared Bible reference form', () => {
+  it('keeps Tab on a canonical book absent from the selected translation', async () => {
+    const view = setup();
+    fireEvent.change(view.book, {target: {value: '시'}});
+    await waitFor(() =>
+      expect(view.book.getAttribute('aria-invalid')).toBe('true'),
+    );
+    expect(
+      document.getElementById(view.book.getAttribute('aria-describedby') ?? '')
+        ?.textContent,
+    ).toBe('역본에 없는 책');
+    await view.user.click(view.book);
+    await view.user.tab();
+    expect(document.activeElement).toBe(view.book);
+    expect(view.book.value).toBe('시');
+    expect(view.onPreview).not.toHaveBeenCalled();
+    expect(view.onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('completes immediately while book availability is pending, then blocks Tab after an unavailable reply', async () => {
+    const view = setup();
+    let finish: (reply: BibleLookupReply) => void = () => undefined;
+    view.lookup.mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          finish = resolve;
+        }),
+    );
+    fireEvent.change(view.book, {target: {value: '시'}});
+    await view.user.click(view.book);
+    await view.user.tab();
+    expect(view.book.value).toBe('시편');
+    expect(document.activeElement).toBe(view.chapter);
+    await act(async () => finish(await formLookupReply(lookupRequest('시편'))));
+    expect(view.book.getAttribute('aria-invalid')).toBe('true');
+    await view.user.click(view.book);
+    await view.user.tab();
+    expect(document.activeElement).toBe(view.book);
+    expect(view.onPreview).not.toHaveBeenCalled();
+    expect(view.onSubmit).not.toHaveBeenCalled();
+  });
+
   it('starts without a highlight and blocks ambiguous Tab until an arrow selects a book', async () => {
     const view = setup();
     await view.user.type(view.book, '베');

@@ -54,6 +54,7 @@ export function BibleReferenceForm(
     input: book?.korean ?? '',
     onPreview: ignorePreview,
   });
+  const bookUnavailable = metadata !== null && metadata.bounds === undefined;
   const state = referenceFieldsState(fields, metadata?.bounds);
   const reply = useBibleLookup({...props, input: state.input});
   const passage = reply?.result.ok ? reply.result.value : undefined;
@@ -80,7 +81,7 @@ export function BibleReferenceForm(
     setOpen(false);
   };
   const reason = (part: ReferencePart): string | undefined => {
-    if (part === 'book' && book && metadata && !metadata.bounds) {
+    if (part === 'book' && bookUnavailable) {
       return '역본에 없는 책';
     }
     if (part === 'start' && reply?.result.ok === false) {
@@ -121,7 +122,7 @@ export function BibleReferenceForm(
       if (event.key === 'Tab' && !event.shiftKey) {
         event.preventDefault();
         const candidate = books[pointed] ?? book;
-        if (!candidate) {
+        if (!candidate || (candidate.id === book?.id && bookUnavailable)) {
           setBlocked('book');
           return;
         }

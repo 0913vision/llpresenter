@@ -40,7 +40,7 @@ None.
 
 ## Checks run
 
-- Scoped Vitest: 16 tests passed.
+- Scoped Vitest: 18 tests passed.
 - Typecheck, ESLint, formatting and exact-head GitHub verify: final results in
   the member report.
 - No full local verify, dependency changes, Bible text, or crawl output.
@@ -58,6 +58,17 @@ initial highlight, async translation replacement, tooltip-only validation, and
 endpoint clamping. The test fixture uses the real resolver. No new queue or
 cache implementation, and the lookup hook and suggestion popup release their
 readers and listeners on unmount.
+
+## Team member's reply
+
+1. Addressed the round-1 P2 finding. Forward Tab now checks the same completed
+   availability result that marks 책 with 역본에 없는 책. If the candidate is
+   the book covered by that result, focus stays on 책. A pending lookup still
+   permits immediate exact or unique completion; selecting a different candidate
+   can begin its own lookup without reusing the previous book's failure.
+   Regression tests use 시편, absent from the invented translation, and cover
+   both an already completed failure and a reply arriving after immediate Tab
+   completion. The mounted bible-3 branch will inherit this fix when restacked.
 
 ## Verdicts
 
