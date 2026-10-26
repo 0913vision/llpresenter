@@ -1,10 +1,10 @@
 # Review request: `data-50`
 
 - Team member: data (Claude session)
-- Branch: `feat/data/media-relink`, stacked on data-49
-  (`feat/data/media-import`)
-- Base commit: the data-49 head; the request message gives the range, the head
-  commit, and its CI run.
+- Branch: `feat/data/media-relink`, on `main` after data-47, data-49, and
+  spec-46 (a75c124a)
+- Base commit: a75c124a; the request message gives the range, the head commit,
+  and its CI run.
 - Related brief: `docs/briefs/data.md`; request from `.llp/task.md`, M3-P6a part
   2 (`docs/plans/m3-breakdown.md`, P6a: "the missing file check, relink, and
   relinking the other files of the same old folder"), split with the lead's
@@ -52,6 +52,11 @@ backend, which refused it until now.
    data store closes.
 6. **A shared helper** (`src/main/media/storedPath.ts`): the importer's stored
    path, now shared with relinking.
+7. **A data-47 nit** (the lead's round 3, moved here). A retry pass moves the
+   files that fail again to the end, which can change the file 저장할 수 없음
+   names, but the automatic retry pushed nothing after it, so the notice could
+   disagree with `problems()`. The automatic retry now pushes the final state
+   when it changed (`src/main/store/saveFailures.ts`).
 
 ## Changed files
 
@@ -63,6 +68,7 @@ backend, which refused it until now.
 - `src/main/media/mediaImporter.ts`: uses `storedPath`.
 - `src/main/media/register.ts` and `.test.ts`: `registerMediaBackend`.
 - `src/main/index.ts` and `index.wiring.test.ts`: the rename.
+- `src/main/store/saveFailures.ts` and `.test.ts`: the data-47 nit.
 - `docs/reviews/data-50.md`: this request.
 
 ## Changes outside my paths
@@ -85,7 +91,7 @@ backend, which refused it until now.
 | Command or test                                    | Result                                     |
 | -------------------------------------------------- | ------------------------------------------ |
 | `npm run typecheck`                                | Pass                                       |
-| Vitest (`--no-fsModuleCache`) on the changed areas | Pass: 145 tests in 10 files                |
+| Vitest (`--no-fsModuleCache`) on the changed areas | Pass: 504 tests in 51 files                |
 | `npx --no-install eslint` on the changed files     | Pass                                       |
 | `npm run format:check`                             | Pass                                       |
 | `npm run verify`                                   | GitHub CI on the head commit (see request) |
@@ -103,7 +109,8 @@ whose file isn't, one that isn't missing, and one from another folder); the
 id and an unreadable chosen file; a second relink while one is open and a
 refused commit; the registration's relink dialog with the item's kind, the
 offscreen refusal of both dialogs, the missing channels and their removal, and a
-backend that can't connect.
+backend that can't connect; an automatic pass over five failing files pushing
+the next file it names.
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
