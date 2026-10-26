@@ -1,8 +1,9 @@
-# Review request: `screens-9`
+# Review request: `screens-15`
 
 - Team member: `screens`
-- Branch: `feat/screens/look-card-model`
-- Base and exact head: see request line.
+- Branch: `feat/screens/look-card-persistence`
+- Stacked base: `e311bde2`, screens-14 round 2. Rebased before checks.
+- Exact head and CI: see request line.
 - Related brief: `docs/briefs/screens.md`, M3-O2 card persistence and preview.
 
 ## What changed and why
@@ -43,33 +44,26 @@ timer clock.
   references, stage selection and picture correction.
 - `LookPreview.tsx`, CSS and tests: output renderer adapter, drawing and
   cleanup.
-- `docs/reviews/screens-9.md`: this request.
+- `docs/reviews/screens-15.md`: this request.
 - Changes outside my paths: none. No output renderer or shared contract changes.
 
 ## Checks run
 
-The request line records post-rebase scoped checks, formatting and exact-head
-CI. No Electron or full local verify was run.
+Post-rebase typecheck, scoped ESLint, formatting and all 30 tests in six related
+Look files pass. Tests cover card edits, queued saves and close flush, selected
+preview frames, renderer reuse and cleanup. CI is pending under the dispatcher
+protocol.
+
+## Checked in the app
+
+This request adds no mounted card control and changes no visible flow. Unit
+tests exercise the new preview's renderer reuse, live subscription cleanup and
+absence of output commands. The next request mounts these APIs and includes
+offscreen app screenshots and repeated operator-flow checks.
 
 ## Remaining M3-O2 work
 
 Mount the center Look editor and per-screen cards. Then add shared lyric-style
 lifecycle and controls. M3-O3 remains with output.
 
-## Review: lead
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
 ## Team member's reply
-
-1.
