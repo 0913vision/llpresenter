@@ -9,6 +9,7 @@ import {broadcast} from '../store/contentChannels';
 import type {MediaBackendPort} from '../store/mediaChannels';
 import type {WindowMode} from '../windows/testWindows';
 import type {AnalysisFiles} from './analysisFiles';
+import {openAnalysisPage} from './analysisPage';
 import {measureImage} from './measureImage';
 import {MediaAnalyser} from './mediaAnalyser';
 import {MediaImporter, type ImportStore} from './mediaImporter';
@@ -130,10 +131,7 @@ export function registerMediaBackend(
     send: () => undefined,
   };
   const analyser = new MediaAnalyser({
-    // TODO(0913vision): data-53 opens the hidden analysis page here. Until
-    // then video and audio join the list without their duration.
-    openPage: () =>
-      Promise.reject(new Error('The media analysis page is not available')),
+    openPage: () => openAnalysisPage(options.log),
     files: options.analysisFiles,
     measureImage,
     log: options.log,

@@ -1,14 +1,7 @@
 import {BrowserWindow} from 'electron';
-import type {AnalysisJob} from '@shared/schema/mediaAnalysis';
 import type {Logger} from '../log';
 import {blockNavigation, startLoading} from '../windows/page';
-
-/** The hidden analysis page as main drives it. */
-export interface AnalysisPage {
-  /** Runs one job; the reply comes from a renderer and isn't checked yet. */
-  run(job: AnalysisJob): Promise<unknown>;
-  close(): void;
-}
+import type {AnalysisPage} from './mediaAnalyser';
 
 /**
  * Opens the analysis page in a window that is never shown or focused,
