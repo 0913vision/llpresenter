@@ -38,15 +38,17 @@ dropped dispatch without a 매크로 is only logged.
 4. **The problem.** After the diagnostics, `LiveStore` reports one
    `macro-dropped` problem per noted 매크로 to `subscribeProblems` listeners; a
    throwing listener goes to the dispatch's listener error handler and the
-   others still run. Main's IPC registration sends each problem to every window
-   and stops on disposal. A dropped dispatch without a 매크로 reports nothing.
+   others still run. A dropped dispatch without a 매크로 reports nothing.
+   `src/main/problemFeed.ts` (round 2) sends each problem to every window and
+   keeps it until a window next reads the list (below).
 5. **Standing problems.** Files skipped at startup are reported before the
    control window loads, so a push alone would lose them (visio-c9).
    `LlpApi.problems.list()` (`app:problem:list`) reads the standing problems
    once, as `output.getStatus` does beside its push; the list is capped at
-   `APP_PROBLEM_LIMITS.listed` (64). Main answers an empty list for now: spec-46
-   fills it with the skipped files, marked with a `TODO` at the handler.
-   One-shot problems such as `macro-dropped` are never listed.
+   `APP_PROBLEM_LIMITS.listed` (64). The problem feed lists its standing sources
+   first (none yet: data-47 adds the waiting saves and spec-46 the skipped
+   files, through `addStanding`), then the one-shot problems that no window has
+   read yet.
 
 ## Changed files
 
@@ -63,14 +65,20 @@ dropped dispatch without a 매크로 is only logged.
 - `src/main/live/limits.test.ts`: the drop entries and one problem.
 - `src/main/macros/runner.ts` and `.test.ts`: note the 매크로; dropped
   `macro.run` and `item.start` dispatches.
-- `src/main/ipc.ts` and `.test.ts`: send problems to the windows.
+- `src/main/problemFeed.ts` and `.test.ts` (round 2): the app's problem feed,
+  its list handler, and the live store's problems.
+- `src/main/index.ts` and `index.wiring.test.ts` (round 2): register the feed
+  and stop it on shutdown.
+- `src/main/ipc.ts` and `.test.ts`: unchanged in the end (round 2 moved the push
+  out again).
 - `docs/reviews/data-46.md`: this request.
 
 ## Changes outside my paths
 
-- `src/main/live/`, `src/main/ipc.ts` (output): the drop is decided in the live
-  registry and logged by `dispatchLogged`, and the IPC registration already
-  sends the live pushes to the windows.
+- `src/main/live/` (output): the drop is decided in the live registry and logged
+  by `dispatchLogged`.
+- `src/main/index.ts` and its wiring test (output): the feed's registration and
+  disposal, following "File ownership" for new main-process modules.
 - `src/main/macros/` (tools): only the runner knows which 매크로 ran and its
   name.
 
@@ -94,9 +102,10 @@ Tests: valid, unknown-field, limit, and invalid payloads, and cutting a name of
 surrogate pairs; preload's check and removal; two 매크로 in one dropped batch
 are reported in order after the log entry, while a skipped child's note is not;
 a throwing problem listener; no problem without a 매크로; the drop entry's
-`macroIds` for `macro.run` and for `item.start`; the IPC send and its release;
-the list schema at and over its cap, preload's list read and its rejection, and
-the empty list handler and its removal.
+`macroIds` for `macro.run` and for `item.start`; the list schema at and over its
+cap, preload's list read and its rejection; the feed's push, its list of a
+startup drop once, standing sources first, a failing source, the unread cap, and
+its disposal; the wiring.
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
@@ -161,3 +170,21 @@ missing.
 ## Team member's reply
 
 1.
+
+## Round 2 reply
+
+1. [P2] `src/main/ipc.ts:132`, a startup 매크로 drop could be pushed before the
+   control window listened, with no replay. Fixed in
+   `fix(main): keep one-shot problems until a window reads the problem list`:
+   the new `ProblemFeed` (`src/main/problemFeed.ts`) owns both app problem
+   channels. It pushes a one-shot problem at once and also keeps it, the newest
+   `MAX_UNREAD_PROBLEMS` (16), until a window next calls `problems.list()`,
+   which a window does once when it loads, before or after it subscribes. The
+   list returns the standing problems, then the unread ones, and clears them, so
+   a reload doesn't show them twice. Regression: a `macro.run` dispatched before
+   any window lists produces one push and one listed drop, and the next list is
+   empty (`problemFeed.test.ts`). `registerIpc` no longer touches problems;
+   `src/main/index.ts` registers the feed.
+2. Nit: removed the TSDoc from `ReductionRecord`, its `skip`, and the
+   `store.test.ts` fixture
+   (`style(live): drop the doc comments of internal registry helpers`).
