@@ -1,0 +1,12 @@
+.child {
+  padding-inline-start: calc(
+    var(--space-14) + var(--size-checkbox) + var(--space-10)
+  );
+}
+
+.empty {
+  margin: 0;
+  padding: var(--space-8) var(--space-14);
+  color: var(--text-3);
+  font: var(--type-caption);
+}
