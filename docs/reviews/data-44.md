@@ -3,7 +3,7 @@
 - Team member: data (Claude session)
 - Branch: `feat/data/close-flush`
 - Base commit (`main`): `146547d3`
-- Last code commit: `c2d3d945`; the request message gives the head commit and
+- Last code commit: `7b894336`; the request message gives the head commit and
   its CI run.
 - Related brief: `docs/briefs/data.md`; request from `.llp/task.md`, "Claude
   takeover (from the lead, 08:10)", item 2 (the close handshake end to end on
@@ -233,3 +233,21 @@ missing.
    joins the close flush's release, and its new `SongSession.copyArrangement` is
    gated like the other edits. Its 예배 순서 edits are sent at once, and its
    song edits go through the stopped sessions, so the close flush covers it.
+
+## Round 4 reply
+
+1. [P1] `controlSession.ts:88`, the item panel's edits weren't part of the close
+   flush. Fixed in `fix(prep): drain and stop item edits in the close flush`.
+   Every `ServiceItemStore` edit now runs through one private `operation` queue
+   (`chooseArrangement`, `createArrangement`; ui-37's memo save can join it),
+   which refuses new edits while editing is stopped and tracks the running ones.
+   Its `flush()` stops editing, shows the store as busy so the 구성 selector is
+   disabled, and resolves once the running edits have sent their
+   `service.update`; `resume()` restarts editing. `setOrder` refuses while
+   stopped too, besides the song session's own gate. `ControlSession` flushes
+   the item store and the editor together, answers `true` only when both are
+   done, and resumes item edits on a refusal. Regressions: with a delayed
+   `services.get`, the store's flush and the window's `flushDone(true)` wait
+   until the item's update is sent, and a 구성 choice, 새 구성, and an order
+   change after the acknowledgement send nothing (`serviceItemStore.test.ts`,
+   `controlSession.test.ts`); after the editor refuses, item edits work again.
