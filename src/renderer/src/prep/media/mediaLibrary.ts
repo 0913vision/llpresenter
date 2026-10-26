@@ -9,6 +9,7 @@ import type {MissingMedia} from '@shared/schema/mediaFiles';
 import {updateActiveCopies, type CopyJob} from '@renderer/show/mediaCopyJobs';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {chosenPlaylist, type ChosenPlaylist} from './mediaEntries';
+import type {MediaProps} from './mediaProps';
 
 /** What the media view uses of the window API. */
 export type MediaApi = Pick<LlpApi, 'media' | 'log'>;
@@ -292,6 +293,31 @@ export class MediaLibrary {
       ]),
     );
     return false;
+  }
+
+  /**
+   * Changes a media item's playback properties at the list's current
+   * revision, keeping the ones it doesn't name.
+   */
+  async updateProps(mediaId: MediaId, change: MediaProps): Promise<void> {
+    const document = this.view.document;
+    const item = document?.value.items.find(({id}) => id === mediaId);
+    if (document === null || item === undefined) return;
+    const result = await this.api.media
+      .edit({
+        type: 'media.properties.update',
+        mediaId,
+        changes: {props: {...item.props, ...change}},
+        baseRevision: document.revision,
+      })
+      .catch(rejected);
+    if (result.ok || result.error.reason === 'write-failed') return;
+    this.refused('Changing media properties was refused', result.error.message);
+    this.onProblem(
+      warning(`media-view:props:${mediaId}`, '미디어 속성을 바꿀 수 없음', [
+        item.name,
+      ]),
+    );
   }
 
   /** 복사 멈추기. A job that already ended changes nothing. */

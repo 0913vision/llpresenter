@@ -27,6 +27,7 @@ import {
   AudioListsPanel,
   MediaListsPanel,
 } from '@renderer/prep/media/MediaListPanels';
+import {MediaPropertiesPanel} from '@renderer/prep/media/MediaPropertiesPanel';
 import {MediaView} from '@renderer/prep/media/MediaView';
 import {MediaViewProvider} from '@renderer/prep/media/MediaViewProvider';
 import {ServiceItemPanel} from '@renderer/prep/service/SongItemPanel';
@@ -286,6 +287,7 @@ function prepPanelParts({
   if (title === '미디어 보기') {
     return {embedded: <MediaView onProblem={onProblem ?? ignoreProblem} />};
   }
+  if (title === '속성') return {embedded: <MediaPropertiesPanel />};
   if (title === '라이브러리') {
     return {
       embedded: (
@@ -446,7 +448,7 @@ export function Workspace({
   const columns =
     media === null
       ? prepColumns
-      : [['미디어', '오디오'], ['미디어 보기'], prepColumns[2]];
+      : [['미디어', '오디오'], ['미디어 보기'], ['속성']];
   const partsOf = (title: string): PanelParts => {
     if (title === '예배 순서' && id !== 'screens') {
       return serviceOrderParts({

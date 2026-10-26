@@ -99,8 +99,7 @@ function EntryTile({
  * outputs it as the background, and a missing file's tile opens 다시 연결.
  */
 export function MediaView({onProblem}: MediaViewProps): JSX.Element {
-  const {library, view, choice} = useMediaView();
-  const [selected, setSelected] = useState<string | null>(null);
+  const {library, view, choice, selected, select: setSelected} = useMediaView();
   const [columns, setColumns] = useState(DEFAULT_MEDIA_COLUMNS);
   const [menu, setMenu] = useState<OpenMenu | null>(null);
   const [importing, setImporting] = useState(false);

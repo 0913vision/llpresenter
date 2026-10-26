@@ -430,4 +430,32 @@ describe('media library for the media view', () => {
       '미디어를 삭제할 수 없음',
     ]);
   });
+
+  it('changes playback properties at the list revision, keeping the others', async () => {
+    const lists = mediaDocument(
+      [mediaItem(1, {props: {audio: false, end: 'stop'}})],
+      6,
+    );
+    const {library, edit, problems} = setup(mediaFixture(lists));
+    await vi.waitFor(() =>
+      expect(library.getSnapshot().document?.revision).toBe(6),
+    );
+    await library.updateProps(mediaId(9), {volume: 50});
+    expect(edit).not.toHaveBeenCalled();
+    await library.updateProps(mediaId(1), {volume: 50});
+    expect(edit).toHaveBeenCalledExactlyOnceWith({
+      type: 'media.properties.update',
+      mediaId: mediaId(1),
+      changes: {props: {audio: false, end: 'stop', volume: 50}},
+      baseRevision: 6,
+    });
+    edit.mockResolvedValueOnce({
+      ok: false,
+      error: {reason: 'invalid', message: 'Invented range'},
+    });
+    await library.updateProps(mediaId(1), {in: 9});
+    expect(problems.mock.calls.map(([notice]) => notice.title)).toEqual([
+      '미디어 속성을 바꿀 수 없음',
+    ]);
+  });
 });

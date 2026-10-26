@@ -262,6 +262,7 @@ it('opens the media view with 미디어, the playlist panels on the left, and cl
   expect(toggle.getAttribute('aria-pressed')).toBe('true');
   expect(screen.getByRole('region', {name: '미디어'})).toBeDefined();
   expect(screen.getByRole('region', {name: '오디오'})).toBeDefined();
+  expect(screen.getByRole('region', {name: '속성'})).toBeDefined();
   expect(screen.queryByRole('region', {name: '라이브러리'})).toBeNull();
   fireEvent.click(toggle);
   expect(screen.queryByRole('listbox', {name: '모든 미디어'})).toBeNull();

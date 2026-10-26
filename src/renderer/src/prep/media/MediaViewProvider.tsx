@@ -21,6 +21,9 @@ interface MediaViewContextValue {
   readonly library: MediaLibrary;
   readonly choice: MediaListChoice;
   readonly choose: (choice: MediaListChoice) => void;
+  /** The tile selected in the grid, whose properties the right column shows. */
+  readonly selected: string | null;
+  readonly select: (mediaId: string | null) => void;
 }
 
 const MediaViewContext = createContext<MediaViewContextValue | null>(null);
@@ -33,8 +36,9 @@ export interface MediaViewProviderProps {
 }
 
 /**
- * The media view's columns share one media list and one chosen list: the
- * playlist panels on the left choose, and the grid in the center shows it.
+ * The media view's columns share one media list, one chosen list, and one
+ * selected tile: the playlist panels on the left choose, the grid in the
+ * center shows the list and selects, and the properties on the right follow.
  */
 export function MediaViewProvider({
   api,
@@ -44,6 +48,7 @@ export function MediaViewProvider({
   const report = useEffectEvent(onProblem);
   const [library] = useState(() => new MediaLibrary(api));
   const [choice, choose] = useState<MediaListChoice>(ALL_MEDIA);
+  const [selected, select] = useState<string | null>(null);
   useEffect(
     () =>
       library.start(notice => {
@@ -51,7 +56,10 @@ export function MediaViewProvider({
       }),
     [library],
   );
-  const value = useMemo(() => ({library, choice, choose}), [library, choice]);
+  const value = useMemo(
+    () => ({library, choice, choose, selected, select}),
+    [library, choice, selected],
+  );
   return <MediaViewContext value={value}>{children}</MediaViewContext>;
 }
 

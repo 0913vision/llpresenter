@@ -1,0 +1,21 @@
+.panel {
+  height: 100%;
+}
+
+.range {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: var(--space-8);
+}
+
+.time {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.empty {
+  margin: 0;
+  color: var(--text-3);
+  font: var(--type-label);
+}
