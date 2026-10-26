@@ -10,12 +10,11 @@ const SCREEN = {
   name: '본 화면',
   kind: 'audience',
   method: 'fullscreen',
-  pixels: {width: 3840, height: 2160},
 } as const;
 
-function setup() {
+function setup(mode?: 'output' | 'preview') {
   const parent = document.createElement('div');
-  const view = new TestPatternView(parent);
+  const view = new TestPatternView(parent, mode);
   const pattern = parent.firstElementChild;
   if (!(pattern instanceof HTMLElement)) throw new Error('Missing pattern');
   const [bars, ramp, label] = [...pattern.children];
@@ -69,20 +68,25 @@ describe('TestPatternView', () => {
     expect(pattern.hidden).toBe(true);
   });
 
-  it('names the screen and its own resolution, or the device pixels of a 창', () => {
+  it('prints the device pixels the output window covers, and follows a resize', () => {
     const {parent, view, label} = setup();
+    vi.spyOn(parent, 'clientWidth', 'get').mockReturnValue(2560);
+    vi.spyOn(parent, 'clientHeight', 'get').mockReturnValue(1440);
+    vi.stubGlobal('devicePixelRatio', 1.5);
     view.show(SCREEN, true);
     expect(label?.textContent).toBe('본 화면\n3840×2160');
     vi.spyOn(parent, 'clientWidth', 'get').mockReturnValue(960);
     vi.spyOn(parent, 'clientHeight', 'get').mockReturnValue(540);
-    vi.stubGlobal('devicePixelRatio', 1.5);
-    const windowed = {id: MAIN, kind: 'audience', method: 'window'} as const;
-    view.show(windowed, true);
-    expect(label?.textContent).toBe('1440×810');
-    vi.spyOn(parent, 'clientWidth', 'get').mockReturnValue(1280);
-    vi.spyOn(parent, 'clientHeight', 'get').mockReturnValue(720);
-    view.rescale(1);
-    expect(label?.textContent).toBe('1920×1080');
+    view.rescale(0.5);
+    expect(label?.textContent).toBe('본 화면\n1440×810');
+  });
+
+  it('prints only the name in a preview, and no label without one', () => {
+    const {view, label} = setup('preview');
+    view.show(SCREEN, true);
+    expect(label?.textContent).toBe('본 화면');
+    view.show({id: MAIN, kind: 'audience'}, true);
+    expect(label instanceof HTMLElement && label.hidden).toBe(true);
   });
 
   it('sizes the label with the screen and relabels only what changed', () => {

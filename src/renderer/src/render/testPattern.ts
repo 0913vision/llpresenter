@@ -1,3 +1,4 @@
+import type {RenderMode} from './backgroundLayer';
 import type {RenderScreen} from './layer';
 import styles from './testPattern.module.css';
 
@@ -39,8 +40,9 @@ function stripe(className: string, colors: readonly string[]): HTMLElement {
 
 /**
  * The 테스트 패턴: color bars over a gray ramp, a white border at the picture
- * edge, and the screen name and resolution in the centre. It is built once and
- * only shown, hidden, and relabeled after that.
+ * edge, and the screen name and resolution in the centre. An output window
+ * prints its own device pixels as the resolution; a preview prints the name
+ * only. It is built once and only shown, hidden, and relabeled after that.
  */
 export class TestPatternView {
   private readonly element = document.createElement('div');
@@ -48,7 +50,10 @@ export class TestPatternView {
   private screen: RenderScreen | undefined;
   private text = '';
 
-  constructor(private readonly parent: HTMLElement) {
+  constructor(
+    private readonly parent: HTMLElement,
+    private readonly mode: RenderMode = 'output',
+  ) {
     this.element.className = classOf('pattern');
     this.element.hidden = true;
     this.label.className = classOf('label');
@@ -78,18 +83,24 @@ export class TestPatternView {
     this.element.remove();
   }
 
-  // NOTE(0913vision): A 창 screen has no pixel size of its own, so it reports
-  // the device pixels it covers now.
+  // NOTE(0913vision): A preview can't know the size of the output it copies,
+  // so only the output window, which covers the screen, prints a resolution.
   private relabel(): void {
-    const pixels = this.screen?.pixels ?? {
-      width: Math.round(this.parent.clientWidth * window.devicePixelRatio),
-      height: Math.round(this.parent.clientHeight * window.devicePixelRatio),
-    };
-    const resolution = `${pixels.width}×${pixels.height}`;
-    const name = this.screen?.name;
-    const text = name === undefined ? resolution : `${name}\n${resolution}`;
+    const lines = [
+      ...(this.screen?.name === undefined ? [] : [this.screen.name]),
+      ...(this.mode === 'output' ? [this.resolution()] : []),
+    ];
+    const text = lines.join('\n');
     if (text === this.text) return;
     this.text = text;
     this.label.textContent = text;
+    this.label.hidden = text === '';
+  }
+
+  private resolution(): string {
+    const ratio = window.devicePixelRatio;
+    const width = Math.round(this.parent.clientWidth * ratio);
+    const height = Math.round(this.parent.clientHeight * ratio);
+    return `${width}×${height}`;
   }
 }
