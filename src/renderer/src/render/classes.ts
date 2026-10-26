@@ -18,4 +18,5 @@ export const classes = {
   block: classOf('block'),
   shadow: classOf('shadow'),
   outline: classOf('outline'),
+  hidden: classOf('hidden'),
 } as const;

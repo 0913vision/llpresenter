@@ -65,8 +65,10 @@ function setup() {
   return {store, removals, stopSettings};
 }
 
+const SETTINGS_FEEDS_PER_PREVIEW = 2;
+
 describe('preview overlay wiring', () => {
-  it('passes the three preview identities and stage text, then releases both feeds', async () => {
+  it('passes the three preview identities and stage text, then releases every feed', async () => {
     const {store, removals, stopSettings} = setup();
     const view = render(<PreviewPanel compact={false} />);
     await act(async () => {});
@@ -99,7 +101,7 @@ describe('preview overlay wiring', () => {
       ),
     ).toHaveLength(0);
     view.unmount();
-    expect(stopSettings).toHaveBeenCalledTimes(3);
+    expect(stopSettings).toHaveBeenCalledTimes(3 * SETTINGS_FEEDS_PER_PREVIEW);
     for (const remove of removals) expect(remove).toHaveBeenCalledTimes(1);
   });
 
@@ -122,9 +124,9 @@ describe('preview overlay wiring', () => {
         `[data-layer="stage-message"] .${classes.shown}`,
       )?.textContent,
     ).toBe('Stage cue');
-    expect(stopSettings).toHaveBeenCalledTimes(1);
+    expect(stopSettings).toHaveBeenCalledTimes(SETTINGS_FEEDS_PER_PREVIEW);
     view.unmount();
-    expect(stopSettings).toHaveBeenCalledTimes(2);
+    expect(stopSettings).toHaveBeenCalledTimes(2 * SETTINGS_FEEDS_PER_PREVIEW);
     for (const remove of removals) expect(remove).toHaveBeenCalledTimes(1);
   });
 });

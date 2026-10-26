@@ -91,14 +91,17 @@ describe('startOutput', () => {
       },
       2,
     );
-    let receive: (document: SettingsDocument) => void = () => undefined;
+    const listeners = new Set<(document: SettingsDocument) => void>();
+    const receive = (document: SettingsDocument): void => {
+      for (const listener of listeners) listener(document);
+    };
     const unsubscribe = vi.fn();
     const root = document.createElement('div');
     const api = fakeLlpApi({
       settings: {
         get: () => Promise.resolve(capture),
         subscribe: listener => {
-          receive = listener;
+          listeners.add(listener);
           return unsubscribe;
         },
       },
@@ -126,10 +129,10 @@ describe('startOutput', () => {
         output.style.getPropertyValue('--output-background'),
     ).toBe('');
     stop();
-    expect(unsubscribe).toHaveBeenCalledOnce();
+    expect(unsubscribe).toHaveBeenCalledTimes(listeners.size);
   });
 
-  it('routes an overlay after screen settings resolve and releases both feeds on stop', async () => {
+  it('routes an overlay after screen settings resolve and releases every feed on stop', async () => {
     const settings = overlaySettings();
     const store = new LiveStore();
     store.connectSettings(settings.reader);
@@ -141,19 +144,19 @@ describe('startOutput', () => {
     });
     const root = document.createElement('div');
     const stopLive = vi.fn();
-    const stopScreens = vi.fn();
-    let resolve: (document: SettingsDocument) => void = () => undefined;
+    const stopSettings = vi.fn();
+    const pending = new Map<string, (document: SettingsDocument) => void>();
     const api = fakeLlpApi({
       live: {
         get: () => Promise.resolve(store.state),
         subscribe: () => stopLive,
       },
       settings: {
-        get: () =>
+        get: ({name}) =>
           new Promise(done => {
-            resolve = done;
+            pending.set(name, done);
           }),
-        subscribe: () => stopScreens,
+        subscribe: () => stopSettings,
       },
     });
     const stop = startOutput({root, api, screenId: 'main'});
@@ -163,12 +166,12 @@ describe('startOutput', () => {
         .querySelector('[data-layer="message"]')
         ?.querySelector(`.${classes.shown}`)?.textContent ?? null;
     expect(message()).toBeNull();
-    resolve(settings.reader.get('screens'));
+    pending.get('screens')?.(settings.reader.get('screens'));
     await Promise.resolve();
     expect(message()).toBe('Targeted output');
     stop();
     expect(stopLive).toHaveBeenCalledTimes(1);
-    expect(stopScreens).toHaveBeenCalledTimes(1);
+    expect(stopSettings).toHaveBeenCalledTimes(2);
     expect(root.children).toHaveLength(0);
   });
 

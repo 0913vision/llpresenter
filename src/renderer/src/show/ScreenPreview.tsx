@@ -3,8 +3,8 @@ import {emptyLayers} from '@shared/live';
 import {mediaUrl} from '@shared/media';
 import {DEFAULT_LYRIC_STYLE} from '@renderer/render/lyricStyle';
 import {OutputRenderer} from '@renderer/render/outputRenderer';
-import {followRenderScreen} from '@renderer/render/screenIdentity';
-import type {RenderScreen} from '@renderer/render/layer';
+import {ScreenFrames} from '@renderer/render/screenFrames';
+import type {LookGap} from '@renderer/render/screenLook';
 import {useLive} from '@renderer/state/live';
 import styles from './ScreenPreview.module.css';
 
@@ -13,6 +13,10 @@ const noLayers = emptyLayers();
 function reportDrawingError(message: string, error: unknown): void {
   const detail = error instanceof Error ? (error.stack ?? error.message) : '';
   window.llp?.log.write({level: 'error', message, detail});
+}
+
+function reportLookGap(message: string, {kind, id}: LookGap): void {
+  window.llp?.log.write({level: 'warn', message, detail: `${kind} ${id}`});
 }
 
 /**
@@ -34,37 +38,31 @@ export function ScreenPreview({
   useEffect(() => {
     const screen = screenRef.current;
     if (!screen) return undefined;
-    // TODO(0913vision): Take the lyric style from the current Look, and draw
-    // the stage layout on the 무대 화면, once the Look reaches the renderer.
+    // TODO(0913vision): Draw the stage layout on the 무대 화면 once stage
+    // layouts reach the renderer (M3-O5).
     const renderer = new OutputRenderer(screen, {
       lyricStyle: DEFAULT_LYRIC_STYLE,
       mediaUrl,
       onError: reportDrawingError,
       mode: 'preview',
     });
-    let identity: RenderScreen | undefined;
+    let frames: ScreenFrames | null = null;
     const draw = (): void => {
       const state = useLive.getState().state;
-      if (identity === undefined) {
-        renderer.render(state?.layers ?? noLayers);
-        return;
-      }
-      renderer.render(state?.layers ?? noLayers, {
-        screen: identity,
-        stageMessage: state?.stageMessage ?? null,
-      });
+      const layers = state?.layers ?? noLayers;
+      const frame = frames?.frame(state);
+      if (frame === undefined) renderer.render(layers);
+      else renderer.render(layers, frame);
     };
-    const stopScreen =
+    frames =
       window.llp === undefined
-        ? () => undefined
-        : followRenderScreen({
+        ? null
+        : new ScreenFrames({
             settings: window.llp.settings,
-            id: screenId,
+            screenId,
+            onChange: draw,
             onError: reportDrawingError,
-            receive: next => {
-              identity = next;
-              draw();
-            },
+            onGap: reportLookGap,
           });
     draw();
     const unsubscribe = useLive.subscribe((next, previous) => {
@@ -72,7 +70,7 @@ export function ScreenPreview({
     });
     return () => {
       unsubscribe();
-      stopScreen();
+      frames?.dispose();
       renderer.dispose();
     };
   }, [screenId]);

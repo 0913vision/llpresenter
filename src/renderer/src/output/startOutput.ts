@@ -3,9 +3,8 @@ import {mediaUrl} from '@shared/media';
 import {RENDERER_LOG_LIMITS} from '@shared/schema/ipcPayloads';
 import {DEFAULT_LYRIC_STYLE} from '../render/lyricStyle';
 import {OutputRenderer} from '../render/outputRenderer';
-import type {RenderScreen} from '../render/layer';
 import type {LiveState} from '@shared/live';
-import {followRenderScreen} from '../render/screenIdentity';
+import {ScreenFrames} from '../render/screenFrames';
 import {startFrameRateMeter} from './frameRateMeter';
 import {followLiveState} from './liveFeed';
 
@@ -62,23 +61,25 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
     mediaUrl,
     onError: report,
   });
-  let screen: RenderScreen | undefined;
   let latest: LiveState | null = null;
   const draw = (): void => {
     if (latest === null) return;
-    renderer.render(latest.layers, {
-      ...(screen === undefined ? {} : {screen}),
-      stageMessage: latest.stageMessage ?? null,
-    });
+    renderer.render(latest.layers, frames.frame(latest));
   };
-  const stopScreen = followRenderScreen({
+  const frames = new ScreenFrames({
     settings: api.settings,
-    id: screenId,
+    screenId,
+    onChange: draw,
     onError: report,
-    receive: next => {
-      screen = next;
-      draw();
-    },
+    onGap: (message, gap) =>
+      api.log.write({
+        level: 'warn',
+        message,
+        detail: `${gap.kind} ${gap.id} on screen ${screenId}`.slice(
+          0,
+          RENDERER_LOG_LIMITS.detail,
+        ),
+      }),
   });
   let stopMeter: (() => void) | null = null;
   const reportFrameRates = (): void => {
@@ -101,7 +102,7 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
   return () => {
     stopMeter?.();
     stopFollowing();
-    stopScreen();
+    frames.dispose();
     renderer.dispose();
     stopCatching();
   };

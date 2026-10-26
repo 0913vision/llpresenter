@@ -4,6 +4,7 @@ import type {RenderMode} from './backgroundLayer';
 import {classes} from './classes';
 import {DEFAULT_LYRIC_STYLE} from './lyricStyle';
 import {OutputRenderer} from './outputRenderer';
+import type {ScreenAppearance} from './screenLook';
 import {SlideLayerView} from './slideLayer';
 import {MAIN} from '../../../main/live/testing/overlays';
 
@@ -194,6 +195,89 @@ describe('OutputRenderer', () => {
     renderer.render(WITH_SLIDE);
     const video = parent.querySelector<HTMLVideoElement>('video[src]');
     expect(video?.loop).toBe(true);
+    renderer.dispose();
+  });
+});
+
+describe('OutputRenderer under a Look', () => {
+  const screen = {id: MAIN, kind: 'audience', method: 'fullscreen'} as const;
+  const lookWith = (
+    layers: ScreenAppearance['layers'],
+    fields: Partial<ScreenAppearance> = {},
+  ): ScreenAppearance => ({
+    layers,
+    lyricStyle: DEFAULT_LYRIC_STYLE,
+    background: null,
+    ...fields,
+  });
+  const box = (parent: HTMLElement, name: string): HTMLElement | null =>
+    parent.querySelector<HTMLElement>(`[data-layer="${name}"]`);
+  const hidden = (parent: HTMLElement, name: string): boolean | undefined =>
+    box(parent, name)?.classList.contains(classes.hidden);
+
+  it('hides a switched-off layer in place and shows it again without new content', () => {
+    const {parent, renderer} = setUp();
+    renderer.render(WITH_SLIDE, {screen, look: lookWith({media: true})});
+    const page = parent.querySelector(`.${classes.page}.${classes.shown}`);
+    const video = parent.querySelector('video[src]');
+    expect(hidden(parent, 'lyrics')).toBe(true);
+    expect(hidden(parent, 'background')).toBe(false);
+    expect(page?.textContent).toContain('만복의 근원');
+    renderer.render(WITH_SLIDE, {
+      screen,
+      look: lookWith({media: true, slide: true}),
+    });
+    expect(hidden(parent, 'lyrics')).toBe(false);
+    expect(parent.querySelector(`.${classes.page}.${classes.shown}`)).toBe(
+      page,
+    );
+    expect(parent.querySelector('video[src]')).toBe(video);
+    renderer.dispose();
+  });
+
+  it('shows the Look color in place of the media and keeps the video loaded', () => {
+    const {parent, renderer} = setUp();
+    const captions = {...screen, method: 'capture'} as const;
+    renderer.render(WITH_SLIDE, {
+      screen: captions,
+      look: lookWith({media: true, slide: true}, {background: '#00B140'}),
+    });
+    const root = parent.querySelector<HTMLElement>(`.${classes.root}`);
+    expect(root?.style.getPropertyValue('--output-background')).toBe('#00B140');
+    expect(hidden(parent, 'background')).toBe(true);
+    expect(parent.querySelector('video[src]')).not.toBeNull();
+    renderer.render(WITH_SLIDE, {screen: captions});
+    expect(root?.style.getPropertyValue('--output-background')).toBe(
+      'var(--chroma)',
+    );
+    expect(hidden(parent, 'background')).toBe(false);
+    renderer.dispose();
+  });
+
+  it('draws the lyrics with the Look style and returns to the default', () => {
+    const {parent, renderer} = setUp();
+    const lowerThird = {...DEFAULT_LYRIC_STYLE, vAlign: 'bottom'} as const;
+    const page = (): HTMLElement | null =>
+      parent.querySelector<HTMLElement>(
+        `[data-layer="lyrics"] .${classes.page}.${classes.shown}`,
+      );
+    renderer.render(WITH_SLIDE, {
+      screen,
+      look: lookWith({slide: true}, {lyricStyle: lowerThird}),
+    });
+    const shown = page();
+    expect(shown?.style.justifyContent).toBe('flex-end');
+    renderer.render(WITH_SLIDE, {screen});
+    expect(page()).toBe(shown);
+    expect(shown?.style.justifyContent).toBe('center');
+    renderer.dispose();
+  });
+
+  it('shows every layer without a Look', () => {
+    const {parent, renderer} = setUp();
+    renderer.render(WITH_SLIDE, {screen, look: lookWith({})});
+    renderer.render(WITH_SLIDE, {screen});
+    expect(parent.querySelectorAll(`.${classes.hidden}`)).toHaveLength(0);
     renderer.dispose();
   });
 });

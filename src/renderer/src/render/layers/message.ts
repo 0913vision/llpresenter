@@ -5,6 +5,7 @@ import {OverlayTextView} from '../overlayText';
 export const messageLayer = defineLayer({
   kind: 'message',
   order: 4,
+  look: 'message',
   create: parent => {
     const view = new OverlayTextView(parent);
     return {

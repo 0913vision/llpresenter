@@ -10,6 +10,7 @@ import type {NoticePlayback} from '@shared/live';
 export const noticeLayer = defineLayer({
   kind: 'notice',
   order: 5,
+  look: 'notice',
   create: (parent, options) => {
     const view = new OverlayImageView(parent, options);
     let playback: NoticePlayback | null = null;

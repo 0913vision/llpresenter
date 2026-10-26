@@ -4,6 +4,7 @@ import {OverlayTextView} from '../overlayText';
 export const stageMessageLayer = defineLayer({
   kind: 'stage-message',
   order: 6,
+  look: 'stageMessage',
   create: parent => {
     const view = new OverlayTextView(parent);
     return {
