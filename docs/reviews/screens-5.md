@@ -86,19 +86,16 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (Codex, codex2): Request changes: queued saves bypassed the close gate
+  (P1), X and Y edits overwrote each other before a push arrived, and read-only
+  settings still allowed editing.
+- Round 2 (Codex, codex2): Request changes; the findings and replies are above.
+- Round 3 (34b0e558): reviewer (Codex, codex2) Approve. Lead Approve. Round 1
+  was written by the Claude Sonnet screens member and the later rounds by its
+  Codex successor. Rebased by the lead onto local `main` without conflicts;
+  typecheck passes. The 속성 panel of 화면 설정 is in.
 
 ## Team member's reply
 
