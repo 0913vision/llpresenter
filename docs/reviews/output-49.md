@@ -51,13 +51,15 @@ run.
 - [ ] GitHub head verify passes (see request message)
 - [ ] Later native audio check passes (intentionally pending)
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: pending
-
-## Review: reviewer
-
-- Verdict: pending
+- Round 1 (Codex): Request changes; the findings and replies are above.
+- Round 2 (fa68d213): reviewer (Codex) Approve. Lead Approve; clearing audio
+  fades the active track over 400 ms and unloads it at the deadline, inside the
+  half-second limit of IC-D2, and new playback or disposal cancels the old
+  deadline. CI result as reported by the member (the anonymous GitHub API limit
+  was reached at merge time). Rebased by the lead onto local `main` without
+  conflicts; typecheck passes.
 
 ## Team member's reply
 
