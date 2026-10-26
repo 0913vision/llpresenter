@@ -5,6 +5,7 @@ import {app, BrowserWindow, screen} from 'electron';
 import {centeredRect, type Rect} from '../../displays/rect';
 import type {Logger} from '../../log';
 import {watchPixelFixture} from '../../windows/fixtures/pixelFixtureLifecycle.mts';
+import {ON_TOP_CHECK_MS, OnTopKeeper} from '../onTopKeeper';
 import {
   BOUNDS_RECHECK_MS,
   FULLSCREEN_EXIT_DEADLINE_MS,
@@ -15,6 +16,7 @@ const NATIVE_SETTLE_MS = 100;
 const EXIT_WAIT_MS =
   FULLSCREEN_EXIT_DEADLINE_MS + BOUNDS_RECHECK_MS + NATIVE_SETTLE_MS;
 let placement: WindowPlacement | null = null;
+let onTop: OnTopKeeper | null = null;
 let exiting = false;
 const deadline = watchPixelFixture(phase =>
   finish(1, new Error(`native fullscreen ${phase} timed out`)),
@@ -27,6 +29,7 @@ function finish(code: number, error?: unknown): void {
   if (error !== undefined) console.error(error);
   try {
     placement?.dispose();
+    onTop?.dispose();
     for (const win of BrowserWindow.getAllWindows()) win.destroy();
   } finally {
     app.exit(code);
@@ -142,18 +145,26 @@ async function run(): Promise<void> {
   const errors: unknown[] = [];
   const log: Logger = {
     info: () => undefined,
-    warn: () => undefined,
+    warn: (message, detail) =>
+      console.log(`WARN ${message} ${JSON.stringify(detail)}`),
     error: (message, detail) => errors.push({message, detail}),
     flush: () => Promise.resolve(),
   };
+  const started = performance.now();
+  const onTopChanges: string[] = [];
+  win.on('always-on-top-changed', (_event, value) =>
+    onTopChanges.push(`${value}@${Math.round(performance.now() - started)}`),
+  );
   placement = new WindowPlacement(win, log);
+  const keeper = new OnTopKeeper(win, log);
+  onTop = keeper;
   win.setFullScreen(true);
-  win.setAlwaysOnTop(true);
+  keeper.set(true);
   await delay(NATIVE_SETTLE_MS);
   ok(win.isFullScreen());
   const target = centeredRect(monitor.workArea, {width: 480, height: 270});
   const behindControl = () => {
-    win.setAlwaysOnTop(false);
+    keeper.set(false);
     control.moveAbove(win.getMediaSourceId());
   };
   behindControl();
@@ -167,9 +178,10 @@ async function run(): Promise<void> {
   equal(win.isAlwaysOnTop(), false);
   placement.fullscreen(() => {
     win.setFullScreen(true);
-    win.setAlwaysOnTop(true);
+    keeper.set(true);
   });
-  await delay(NATIVE_SETTLE_MS);
+  await delay(ON_TOP_CHECK_MS + NATIVE_SETTLE_MS);
+  console.log(`ALWAYS_ON_TOP_CHANGES ${JSON.stringify(onTopChanges)}`);
   ok(win.isFullScreen());
   ok(win.isAlwaysOnTop());
   deepEqual(errors, []);
