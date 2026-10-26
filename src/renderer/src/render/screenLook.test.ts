@@ -133,6 +133,34 @@ describe('screen Look resolution', () => {
   });
 });
 
+describe('stage layouts in a Look', () => {
+  it('reads the card layout for a 무대 화면 only', () => {
+    const layout = overlayUuid(75);
+    const document = settingsDocument('looks', {
+      current: NORMAL,
+      looks: [
+        {
+          id: NORMAL,
+          name: '평상시',
+          screens: {
+            [MAIN]: {layers: {slide: true}, stageLayout: layout},
+            [STAGE]: {layers: {slide: true}, stageLayout: layout},
+          },
+        },
+      ],
+      lyricStyles: [],
+    });
+    if (document.name !== 'looks') throw new Error('Invalid looks fixture');
+    expect(
+      resolveScreenLook(document.value, NORMAL, STAGE_SCREEN).appearance
+        ?.stageLayout,
+    ).toBe(layout);
+    expect(
+      resolveScreenLook(document.value, NORMAL, MAIN_SCREEN).appearance,
+    ).not.toHaveProperty('stageLayout');
+  });
+});
+
 describe('Look layer switches', () => {
   it('show every layer without a Look', () => {
     expect(showsLayer(null, 'notice')).toBe(true);
