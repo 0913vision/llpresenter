@@ -1,7 +1,16 @@
+import type {
+  LibrarySong,
+  ServiceDocument,
+  ServiceEntry,
+  TemplateDocument,
+  TemplateEntry,
+} from '@shared/schema/contentDocuments';
 import {
   createMediaId,
+  createServiceId,
   createServiceItemId,
   createSongId,
+  createTemplateId,
   noticeSetIdSchema,
   translationIdSchema,
 } from '@shared/schema/ids';
@@ -14,8 +23,10 @@ function sample<T>(result: Result<T, unknown>): T {
   return result.value;
 }
 
-/** Ids of the sample songs and items. */
+/** Ids of the sample 틀, past service, songs, and items. */
 export const ids = {
+  template: createTemplateId('30000000-0000-4000-8000-000000000001'),
+  past: createServiceId('40000000-0000-4000-8000-000000000001'),
   praise: createServiceItemId('50000000-0000-4000-8000-000000000001'),
   doxology: createServiceItemId('50000000-0000-4000-8000-000000000002'),
   nearer: createServiceItemId('50000000-0000-4000-8000-000000000003'),
@@ -23,6 +34,8 @@ export const ids = {
   psalm: createServiceItemId('50000000-0000-4000-8000-000000000005'),
   offering: createServiceItemId('50000000-0000-4000-8000-000000000006'),
   closing: createServiceItemId('50000000-0000-4000-8000-000000000007'),
+  pastHeader: createServiceItemId('60000000-0000-4000-8000-000000000001'),
+  pastSong: createServiceItemId('60000000-0000-4000-8000-000000000002'),
   firstSong: createSongId('70000000-0000-4000-8000-000000000001'),
   secondSong: createSongId('70000000-0000-4000-8000-000000000002'),
 };
@@ -73,3 +86,63 @@ export const songTitles: ReadonlyMap<string, string> = new Map([
   [ids.firstSong, titles.first],
   [ids.secondSong, titles.second],
 ]);
+
+export const templateDocument: TemplateDocument = {
+  template: {
+    format: 'llservice',
+    schemaVersion: 1,
+    id: ids.template,
+    name: '주일 예배',
+    time: '11:00',
+    order: templateOrder,
+  },
+  revision: 1,
+  access: 'editable',
+};
+
+export const pastDocument: ServiceDocument = {
+  service: {
+    format: 'llservice',
+    schemaVersion: 1,
+    id: ids.past,
+    name: '지난 주일 예배',
+    date: '2026-10-25T09:30',
+    order: [
+      {id: ids.pastHeader, header: '찬양'},
+      {id: ids.pastSong, song: ids.firstSong},
+    ],
+  },
+  revision: 3,
+  access: 'editable',
+};
+
+export const templateEntries: readonly TemplateEntry[] = [
+  {id: ids.template, name: '주일 예배', access: 'editable', itemCount: 4},
+];
+
+export const serviceEntries: readonly ServiceEntry[] = [
+  {
+    id: ids.past,
+    name: '지난 주일 예배',
+    date: '2026-10-25T09:30',
+    access: 'editable',
+    itemCount: 1,
+  },
+];
+
+export const librarySongs: readonly LibrarySong[] = [
+  {
+    id: ids.firstSong,
+    title: titles.first,
+    slideCount: 4,
+    access: 'editable',
+    usedBy: [],
+  },
+  {
+    id: ids.secondSong,
+    title: titles.second,
+    slideCount: 3,
+    access: 'editable',
+    usedBy: [],
+  },
+];
