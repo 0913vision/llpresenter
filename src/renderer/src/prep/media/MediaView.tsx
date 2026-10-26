@@ -12,7 +12,6 @@ import type {MediaId} from '@shared/schema/ids';
 import {sendLive, useLive} from '@renderer/state/live';
 import {
   Button,
-  MediaGrid,
   MediaTile,
   Panel,
   PanelActions,
@@ -33,6 +32,7 @@ import {
   totalText,
   type MediaEntry,
 } from './mediaEntries';
+import {VirtualMediaGrid} from './VirtualMediaGrid';
 import styles from './MediaView.module.css';
 
 /** The fewest and most grid columns the size slider sets. */
@@ -202,8 +202,9 @@ export function MediaView({api, onProblem}: MediaViewProps): JSX.Element {
           </PanelActions>
         </PanelHeader>
         <PanelBody tab="all" className={styles.body}>
-          <MediaGrid
+          <VirtualMediaGrid
             label="모든 미디어"
+            count={entries.length}
             columns={columns}
             selected={index < 0 ? undefined : index}
             onSelect={at => setSelected(entries[at]?.id ?? null)}
@@ -215,17 +216,19 @@ export function MediaView({api, onProblem}: MediaViewProps): JSX.Element {
                 entry === undefined ? [] : menuEntries(entry, actions(entry));
               if (choices.length > 0) setMenu({entries: choices, anchor});
             }}
-          >
-            {entries.map(entry => (
-              <EntryTile
-                key={entry.id}
-                entry={entry}
-                missing={missing(entry)}
-                live={liveId === entry.id}
-                selected={selected === entry.id}
-              />
-            ))}
-          </MediaGrid>
+            tile={at => {
+              const entry = entries[at];
+              return entry === undefined ? null : (
+                <EntryTile
+                  key={entry.id}
+                  entry={entry}
+                  missing={missing(entry)}
+                  live={liveId === entry.id}
+                  selected={selected === entry.id}
+                />
+              );
+            }}
+          />
         </PanelBody>
         <PanelFooter
           end={

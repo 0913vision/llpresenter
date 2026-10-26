@@ -2,7 +2,9 @@ import {act, fireEvent, render, screen, within} from '@testing-library/react';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {thumbnailUrl} from '@shared/media';
 import {mediaDocument, mediaFixture, mediaId, mediaItem} from './mediaTesting';
-import {MediaView} from './MediaView';
+import {cssRules} from '@renderer/shell/testing/cssRules';
+import {DEFAULT_MEDIA_COLUMNS, MediaView} from './MediaView';
+import {INITIAL_ROWS, OVERSCAN_ROWS} from './VirtualMediaGrid';
 
 function setup() {
   const fixture = mediaFixture(
@@ -122,5 +124,51 @@ describe('media view', () => {
       type: 'media.import.cancel',
       mediaId: mediaId(9),
     });
+  });
+
+  it('mounts only the rows near the view of a long list and reaches every tile by keyboard', async () => {
+    const fixture = mediaFixture(
+      mediaDocument(
+        Array.from({length: 60}, (_, index) =>
+          mediaItem(index + 1, {name: `Tile ${index + 1}`}),
+        ),
+      ),
+    );
+    window.llp = fixture.api;
+    onTestFinished(() => {
+      delete window.llp;
+    });
+    render(<MediaView api={fixture.api} onProblem={vi.fn()} />);
+    const grid = screen.getByRole('listbox', {name: '모든 미디어'});
+    await within(grid).findByRole('option', {name: 'Tile 1'});
+    const mounted = within(grid).getAllByRole('option');
+    const windowSize =
+      (INITIAL_ROWS + OVERSCAN_ROWS * 2) * DEFAULT_MEDIA_COLUMNS;
+    expect(mounted).toHaveLength(windowSize);
+    expect(mounted[0]?.getAttribute('aria-setsize')).toBe('60');
+    const last = mounted.at(-1);
+    if (last === undefined) throw new Error('No mounted tile');
+    fireEvent.click(last);
+    fireEvent.keyDown(last, {key: 'ArrowDown'});
+    const below = await within(grid).findByRole('option', {
+      name: `Tile ${windowSize + DEFAULT_MEDIA_COLUMNS}`,
+    });
+    expect(below.getAttribute('aria-selected')).toBe('true');
+    expect(document.activeElement).toBe(below);
+    fireEvent.keyDown(below, {key: 'End'});
+    const end = await within(grid).findByRole('option', {name: 'Tile 60'});
+    expect(end.getAttribute('aria-selected')).toBe('true');
+    expect(end.getAttribute('aria-posinset')).toBe('60');
+    expect(within(grid).getAllByRole('option').length).toBeLessThanOrEqual(
+      windowSize,
+    );
+  });
+
+  it('fills its column and scrolls only the grid, so the footer stays', () => {
+    const rule = cssRules('src/renderer/src/prep/media/MediaView.module.css');
+    expect(rule('.panel')).toContain('height: 100%');
+    expect(rule('.body')).toContain('overflow: hidden');
+    expect(rule('.viewport')).toContain('min-height: 0');
+    expect(rule('.viewport')).toContain('overflow: auto');
   });
 });

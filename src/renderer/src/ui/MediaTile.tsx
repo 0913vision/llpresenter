@@ -187,7 +187,8 @@ export interface MediaListProps {
   readonly children: ReactNode;
 }
 
-export interface MediaGridProps extends MediaListProps {
+export interface MediaGridProps
+  extends MediaListProps, Pick<TileListPosition, 'positionOffset' | 'setSize'> {
   /** The column count, 2 to 8, from the panel's size slider. */
   readonly columns: number;
   /** A double click sends the media out. */
@@ -211,6 +212,8 @@ export function MediaGrid(props: MediaGridProps): JSX.Element {
       onActivate={props.onActivate}
       onDoubleClick={props.onOutput}
       onMenu={props.onMenu}
+      positionOffset={props.positionOffset}
+      setSize={props.setSize}
       className={classNames(styles.grid, props.className)}
       style={style}
     >

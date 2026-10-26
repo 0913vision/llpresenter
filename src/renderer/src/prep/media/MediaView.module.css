@@ -1,8 +1,31 @@
 .panel {
-  flex: 1;
-  min-height: 0;
+  height: 100%;
 }
 
 .body {
+  display: flex;
+  padding: 0;
+  overflow: hidden;
+}
+
+.viewport {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
   padding: var(--panel-inset);
+  scrollbar-color: var(--line-strong) transparent;
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
+}
+
+.spacer {
+  position: relative;
+}
+
+.window {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--grid-top, 0);
 }
