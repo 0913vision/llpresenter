@@ -75,7 +75,6 @@ export class LiveStore {
     };
   }
 
-  /** Attaches the saved output screens; disposal releases only this connection. */
   /** Attaches the monitor number windows; the returned release is identity-safe. */
   connectMonitorNumbers(monitorNumbers: MonitorNumbersPort): () => void {
     this.monitorNumbers = monitorNumbers;
@@ -86,6 +85,7 @@ export class LiveStore {
     };
   }
 
+  /** Attaches the saved output screens; disposal releases only this connection. */
   connectScreenSettings(screenSettings: ScreenSettingsPort): () => void {
     this.screenSettings = screenSettings;
     return () => {
