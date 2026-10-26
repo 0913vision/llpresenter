@@ -1,5 +1,6 @@
 /* NOTE(0913vision): No design system token sizes this window yet (spec 06,
-   모니터 번호 표시); the window itself is 240 DIP square. */
+   모니터 번호 표시); the window itself is 240 DIP square, and the weight is the
+   one the 화면 설정 display layout box draws its monitor number with. */
 .number {
   display: grid;
   place-items: center;
@@ -8,7 +9,7 @@
   background: var(--output-black);
   font-family: var(--font-ui);
   font-size: 160px;
-  font-weight: 600;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
