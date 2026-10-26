@@ -34,13 +34,14 @@ app-wide settings, and the media list.
 3. **Names.** The card names a song by its title and a 예배 순서 or 틀 by its
    name (`ContentStore.nameOfFile`); settings and the media list use their file
    names, such as `media.json`.
-4. **Channels** (`src/main/store/problemChannels.ts`). The data store answers
-   `app:problem:list` with `save-failed` while files wait, sends every change to
-   the windows on `app:problem`, and retries on `app:problem:retry-saves`
-   (`LlpApi.problems.retrySaves()`, the card's 다시 시도). The list handler
-   moves here from `registerIpc` (data-46's empty placeholder), since the
-   standing problems belong to the data store; spec-46 adds its skipped files
-   here too.
+4. **Channels** (`src/main/store/saveProblems.ts`). The data store adds the
+   waiting saves to data-46's problem feed as a standing source, so
+   `app:problem:list` lists `save-failed` while files wait, pushes every change
+   through the feed on `app:problem`, and retries on `app:problem:retry-saves`
+   (`LlpApi.problems.retrySaves()`, the card's 다시 시도). An explicit retry
+   pushes the current problem again when files still wait, even unchanged,
+   because pressing 다시 시도 closed the card (visio-c9); the automatic retries
+   push only a change. spec-46 adds its skipped files to the same feed.
 5. **Contract.** `AppProblem` gains `{kind: 'save-failed', name, count}` and
    `{kind: 'save-recovered'}`, as agreed with the 진행 member (visio-c9), who
    builds the 저장할 수 없음 card on it in spec-45 and 46.
@@ -52,7 +53,8 @@ app-wide settings, and the media list.
 - `src/shared/ipc.ts`, `src/preload/index.ts` and `.test.ts`,
   `src/shared/testing/fakeLlpApi.ts` and `.test.ts`: `retrySaves`.
 - `src/main/store/saveFailures.ts` and `.test.ts`: the waiting list (new).
-- `src/main/store/problemChannels.ts` and `.test.ts`: the channels (new).
+- `src/main/store/saveProblems.ts` and `.test.ts`: the feed source, the pushes,
+  and the retry listener (new).
 - `src/main/store/contentPersistence.ts` and `.test.ts` (new test): reports and
   `retry(file)`.
 - `src/main/store/documentFiles.ts`: carries the sink.
@@ -60,15 +62,17 @@ app-wide settings, and the media list.
 - `src/main/store/settingsStore.ts`, `mediaLoader.ts` and `.test.ts`: pass the
   sink; `openMediaStore` takes its context as one object.
 - `src/main/store/register.ts` and `.test.ts`: one `SaveFailures` for all
-  stores, the channels, and their disposal.
-- `src/main/ipc.ts` and `.test.ts`: the list handler moved out.
+  stores, its feed source, and their disposal; `registerStore` takes the feed.
+- `src/main/index.ts` and `index.wiring.test.ts`: the feed starts before the
+  data store, which gets it.
 - `src/main/live/store.test.ts`: narrows a problem by kind.
 - `docs/reviews/data-47.md`: this request.
 
 ## Changes outside my paths
 
-- `src/main/ipc.ts` and `.test.ts`, `src/main/live/store.test.ts` (output): the
-  list handler leaves `registerIpc`, and a test narrows the wider union.
+- `src/main/index.ts` and its wiring test, `src/main/live/store.test.ts`
+  (output): the data store gets the problem feed, and a test narrows the wider
+  union.
 
 ## Shared contract changes (additive)
 
@@ -89,12 +93,12 @@ app-wide settings, and the media list.
 Tests: the pushes for a first, a second, and a repeated file, a written file,
 and the last one (`save-recovered`); the list; one retry per file in order,
 joined, with a throwing retry logged; the automatic retry at exactly the
-interval, again while files wait, and no timer once none do; the cap; a throwing
-listener; disposal; `ContentPersistence` reporting by name, retrying the newest
-text, and leaving a superseded failure to the newer write; a song named by its
-title and a 틀 by its name, and the song reported written after its retry; the
-channels' list, push, retry, and removal; the payloads, the preload send, and
-the fake.
+interval, again while files wait, and no timer once none do; an explicit retry
+pushing an unchanged problem again; the cap; a throwing listener; disposal;
+`ContentPersistence` reporting by name, retrying the newest text, and leaving a
+superseded failure to the newer write; a song named by its title and a 틀 by its
+name, and the song reported written after its retry; the feed source's list,
+push, retry, and removal; the payloads, the preload send, and the fake.
 
 ## Quality checklist ("Quality bar" in `docs/TECH.md`)
 
