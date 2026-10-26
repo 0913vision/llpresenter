@@ -2,7 +2,8 @@
 
 - Team member: `screens`
 - Branch: `fix/screens/screen-config-alignment`
-- Base and exact head: see request line.
+- Base commit (`main`): `be389f87`, rebased before final checks.
+- Exact head and CI: see request line.
 - Scope: freeze-allowed Screen Configuration comparison, M3-C3-9 properties
   default, and the deferred screens-10 scrollbar nit. O2 stays parked.
 
@@ -48,6 +49,10 @@ Checked October 27, 2026. No ProPresenter application was installed or run.
 
 ## Comparison and disposition
 
+The off-state arrangement comparison is an inference from the documented
+separation of configuration and enable controls, not an observed ProPresenter
+application run. It remains an investigation item with output.
+
 This compares behavior, not a literal copy of ProPresenter's window layout.
 Repository observations refer to the current `ScreenList`, `ScreenDeviceRow`,
 `DisplayLayout`, `ScreenProperties`, screen settings writer and toolbar.
@@ -90,11 +95,40 @@ require the lead's decision first. None are changed by this request.
 
 ## Checks run
 
-Post-rebase checks and exact-head CI are recorded in the request line.
+After rebase: typecheck, scoped ESLint, 189 tests in 18 screens and shell
+workspace files, and the production build pass. Formatting and exact-head CI are
+recorded in the request line.
 
 ## Checked in the app
 
-Pending the final offscreen checks and screenshots before requesting review.
+Built the rebased code, syntax-checked both CDP scripts with `node --check`
+before each launch, and ran the real app twice with
+`LLP_TEST_WINDOWS=offscreen`, `LLP_DEV_PORT=5192` and CDP port 9512. The
+isolated fixture profile contained only invented screen settings. Both launches
+exited 0 and reported no runtime exceptions.
+
+- Selected fullscreen, capture and window screens whose topmost field was
+  absent: each switch showed off. A fourth screen with explicit true stayed on.
+- Toggled a fullscreen screen on and off, confirmed the saved boolean through
+  main's settings API, closed the app and verified the off value on restart.
+- Each launch made 20 caption/main selection round trips after four warmup trips
+  and left/reopened 화면 설정 twice. Selection samples kept 339 elements, 801
+  DOM nodes and 369 listeners. Reopen samples kept 339 elements and 369
+  listeners; after the first visit to 진행, nodes settled at 834 and stayed
+  there on the second visit.
+- Forced-GC JS heap was 5.57 to 5.82 MB and 5.62 to 5.85 MB during the selection
+  runs. Final heaps after reopening were 5,982,872 and 5,990,548 bytes.
+- At 1280 x 720, dragged the column gap to exercise actual overflow. Both the
+  inner arrangement and outer panel body computed `scrollbar-width: thin` and a
+  `rgb(58, 58, 58)` thumb, matching `line-strong`. The 596 px arrangement
+  scrolled in a 516 px area.
+
+These checks verify the renderer default and saved values. Native stacking is
+suppressed in offscreen mode and remains output-54's backend verification.
+
+![Default off](screens-11/first-default-off.png)
+![Explicit on is preserved](screens-11/first-explicit-on.png)
+![Thin scrollbars after restart](screens-11/reopen-thin-scrollbars.png)
 
 ## Review: lead
 
