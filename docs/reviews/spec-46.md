@@ -1,12 +1,12 @@
-Review range: `d059d1ce...feat/spec/problem-cards`
+Review range: `e03c0e9f...feat/spec/problem-cards`
 
 # Review request: `spec-46`
 
 - Team member: `spec` (Claude session that took over from Codex)
 - Branch: `feat/spec/problem-cards`
-- Base: data-47 (`feat/data/save-retry`, `d059d1ce`), stacked on data-46;
-  stacked until both merge
-- Review round: 1
+- Base: data-47 (`feat/data/save-retry`, `e03c0e9f`), which sits on main now
+  that data-46 is merged; stacked until data-47 merges
+- Review round: 2
 - Task: M3-S2a part 3, the 파일을 읽을 수 없음, 매크로 적용 실패, and 저장할 수
   없음 cards on the app problem feed (lead, 10:1x and 10:5x)
 - Code owners: data for `src/shared/` and `src/main/store/`; shell for the
@@ -51,6 +51,27 @@ new problem with `problems.push`. Both stop when the store is disposed.
   retry that leaves files waiting, so the card comes back even though the
   session closed it on the button press.
 
+## Round 2 response
+
+1. **A late list no longer brings back a resolved save warning.** Once a
+   `save-failed` or `save-recovered` push has arrived, the initial list's save
+   state is ignored, since the push is newer; skipped files and unread 매크로
+   drops from the list still show. Test: the list is held back, a push of 저장할
+   수 없음 and then of `save-recovered` arrives, and the late list with the old
+   `save-failed` shows no card.
+2. **Skipped files are told apart by a stable id.** `file-skipped` now carries
+   `fileId`, a whole number from 1 to `APP_PROBLEM_LIMITS.listed` that
+   `SkippedFiles` gives each file once for as long as the app runs, separate
+   from the display `name`. The card counts by id. Tests: two files with the
+   same base name in different folders, and two long names that clip to the same
+   text, each count as two; the schema rejects a missing, zero, fractional, or
+   out-of-range id.
+3. The private `contentProblems` explains itself with a NOTE.
+
+Restacked onto data-47's tip `26401936`, which now sits on main; `App.tsx` keeps
+both notification hooks (spec-45's and this one), and this hook takes spec-45's
+`NoticeTarget` type now that it's on main.
+
 ## Decisions I made (for the lead to confirm)
 
 1. One card for all skipped files instead of one per file. A broken folder can
@@ -83,14 +104,9 @@ This review document is in my own path. No dependency is added.
 | Command or test                                                                                                                                           | Result                 |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
 | `npm run typecheck`                                                                                                                                       | Pass                   |
-| `npx vitest run --no-fsModuleCache src/main/store src/main/problemFeed.test.ts src/shared/schema/appProblem.test.ts src/renderer/src/control src/preload` | Pass, 522 tests        |
+| `npx vitest run --no-fsModuleCache src/main/store src/main/problemFeed.test.ts src/shared/schema/appProblem.test.ts src/renderer/src/control src/preload` | Pass, 563 tests        |
 | `npx eslint --max-warnings 0` on the changed files                                                                                                        | Pass                   |
 | `npx prettier --check` on the changed files                                                                                                               | Pass                   |
 | GitHub CI (`npm run verify`)                                                                                                                              | In the request message |
 
 No Electron process, visible window, soak, or memory measurement was started.
-
-## Follow-ups
-
-- When spec-45 merges, `useProblemNotices` can share its `NoticeTarget`; it
-  takes the session's `report` and `dismiss` directly to stay independent.
