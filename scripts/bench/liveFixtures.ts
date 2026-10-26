@@ -1,7 +1,8 @@
 import {emptyLiveState, type LiveState} from '../../src/shared/live';
 import {parseLiveState} from '../../src/shared/schema/liveState';
 
-const uuid = (index: number) =>
+/** An invented UUID v4 for fixture ids. */
+export const uuid = (index: number) =>
   `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
 
 /** A service state: a two-line slide, a background, a message, three outputs. */

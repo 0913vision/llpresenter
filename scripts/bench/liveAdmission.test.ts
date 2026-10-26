@@ -11,7 +11,7 @@ import {
 } from '../../src/main/live/sliceRegistry';
 import {batchSlice} from '../../src/main/live/slices/batch';
 import {outputsSlice} from '../../src/main/live/slices/outputs';
-import {heavyState, typicalState} from './liveFixtures';
+import {heavyState, typicalState, uuid} from './liveFixtures';
 
 const SAMPLES = 7;
 function measure(name: string, iterations: number, run: () => void) {
