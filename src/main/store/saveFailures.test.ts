@@ -1,6 +1,6 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {installFakeClock} from '../../../test/fake-clock';
-import {APP_PROBLEM_LIMITS, type AppProblem} from '@shared/schema/appProblem';
+import type {AppProblem} from '@shared/schema/appProblem';
 import {recordingLogger} from '../displays/testing';
 import {SAVE_RETRY_INTERVAL_MS, SaveFailures} from './saveFailures';
 
@@ -113,22 +113,46 @@ describe('save failures', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
-  it('caps the waiting files and logs the one it cannot keep', () => {
-    const {failures, log, wait} = setup();
-    for (let index = 0; index < APP_PROBLEM_LIMITS.waitingSaves; index++) {
-      wait(`file-${index}`);
-    }
-    wait('one-more');
-    wait('file-0');
+  it('keeps every waiting file and recovers only when the last one is written', () => {
+    const {failures, pushed, wait} = setup();
+    const files = Array.from({length: 300}, (_, index) => `file-${index}`);
+    for (const file of files) wait(file);
     expect(failures.problems()).toEqual([
-      {
-        kind: 'save-failed',
-        name: 'file-0',
-        count: APP_PROBLEM_LIMITS.waitingSaves,
-      },
+      {kind: 'save-failed', name: 'file-0', count: 300},
     ]);
-    expect(log.messages('error')).toEqual([
-      'too many files wait for a save retry',
+    for (const file of files.slice(0, -1)) failures.saved(file);
+    expect(failures.problems()).toEqual([
+      {kind: 'save-failed', name: 'file-299', count: 1},
+    ]);
+    expect(pushed).not.toHaveBeenLastCalledWith({kind: 'save-recovered'});
+    failures.saved('file-299');
+    expect(pushed).toHaveBeenLastCalledWith({kind: 'save-recovered'});
+  });
+
+  it('stops a pass after failures in a row and retries those files last next time', async () => {
+    const {failures} = setup();
+    const tried: string[] = [];
+    for (const file of ['a', 'b', 'c', 'd', 'e']) {
+      failures.waiting({
+        file,
+        name: file,
+        retry: () => {
+          tried.push(file);
+          if (file === 'e') failures.saved(file);
+          return Promise.resolve();
+        },
+      });
+    }
+    await failures.retry();
+    expect(tried).toEqual(['a', 'b', 'c']);
+    expect(failures.problems()).toEqual([
+      {kind: 'save-failed', name: 'd', count: 5},
+    ]);
+    tried.length = 0;
+    await failures.retry();
+    expect(tried).toEqual(['d', 'e', 'a', 'b', 'c']);
+    expect(failures.problems()).toEqual([
+      {kind: 'save-failed', name: 'd', count: 4},
     ]);
   });
 

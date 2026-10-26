@@ -4,14 +4,9 @@ import {parsePayload, plainObject} from './payload';
 
 /**
  * Bounds for the problems that main reports to the windows. `listed` is well
- * above the startup file problems that settings and content can report;
- * `waitingSaves` is the most files that wait for a save retry at once.
+ * above the startup file problems that settings and content can report.
  */
-export const APP_PROBLEM_LIMITS = {
-  nameCharacters: 200,
-  listed: 64,
-  waitingSaves: 256,
-} as const;
+export const APP_PROBLEM_LIMITS = {nameCharacters: 200, listed: 64} as const;
 
 const nameSchema = v.pipe(
   v.string(),
@@ -29,12 +24,7 @@ const appProblemSchema = v.pipe(
     v.object({
       kind: v.literal('save-failed'),
       name: v.pipe(nameSchema, v.nonEmpty()),
-      count: v.pipe(
-        v.number(),
-        v.integer(),
-        v.minValue(1),
-        v.maxValue(APP_PROBLEM_LIMITS.waitingSaves),
-      ),
+      count: v.pipe(v.number(), v.safeInteger(), v.minValue(1)),
     }),
     v.object({kind: v.literal('save-recovered')}),
   ]),
@@ -53,8 +43,8 @@ const appProblemListSchema = v.pipe(
  *   because its result would break the live state limits (spec 08, 매크로
  *   적용 실패); `name` is the 매크로's name when it ran.
  * - `save-failed`: files wait in memory because they couldn't be written
- *   (spec 02 and 08, 저장할 수 없음); `name` names the oldest one, and `count`
- *   is how many wait. Main pushes it again whenever either changes.
+ *   (spec 02 and 08, 저장할 수 없음); `name` names the next one to retry,
+ *   and `count` is how many wait. Main pushes it again whenever either changes.
  * - `save-recovered`: every waiting file is written now.
  */
 export type AppProblem = Readonly<v.InferOutput<typeof appProblemSchema>>;

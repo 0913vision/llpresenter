@@ -1,5 +1,4 @@
 import {
-  APP_PROBLEM_LIMITS,
   saveFailedProblem,
   type AppProblem,
   type AppProblemOf,
@@ -8,6 +7,12 @@ import type {Logger} from '../log';
 
 /** How long waiting files wait before main writes them again by itself. */
 export const SAVE_RETRY_INTERVAL_MS = 30_000;
+
+/**
+ * How many files in a row may fail again before a retry pass stops, so a full
+ * or missing disk costs only a few writes per pass.
+ */
+export const MAX_FAILED_RETRIES_IN_A_ROW = 3;
 
 /** A file that couldn't be written, and how its store writes it again. */
 export interface WaitingSave {
@@ -36,12 +41,14 @@ function firstOf<T>(values: Iterable<T>): T | undefined {
 }
 
 /**
- * The files that wait in memory because they couldn't be written, oldest
- * first, at most `APP_PROBLEM_LIMITS.waitingSaves` (spec 02, "Save failures").
- * Every change pushes `save-failed` with the oldest file and the count, and
- * the last file written pushes `save-recovered`. While files wait, they are
- * written again every {@link SAVE_RETRY_INTERVAL_MS}, which pushes only a
- * change, and at once on {@link SaveFailures.retry}.
+ * The files that wait in memory because they couldn't be written, in retry
+ * order (spec 02, "Save failures"). Every change pushes `save-failed` with
+ * the next file and the count, and the last file written pushes
+ * `save-recovered`. While files wait, they are written again every
+ * {@link SAVE_RETRY_INTERVAL_MS}, which pushes only a change, and at once on
+ * {@link SaveFailures.retry}. A pass retries them in order, moves each file
+ * that fails again to the end, and stops after
+ * {@link MAX_FAILED_RETRIES_IN_A_ROW} failures in a row.
  */
 export class SaveFailures implements SaveFailureSink {
   private readonly saves = new Map<string, WaitingSave>();
@@ -56,15 +63,8 @@ export class SaveFailures implements SaveFailureSink {
   /** Keeps a file waiting; a file that waits already keeps its place. */
   waiting(save: WaitingSave): void {
     if (this.disposed) return;
-    if (
-      !this.saves.has(save.file) &&
-      this.saves.size >= APP_PROBLEM_LIMITS.waitingSaves
-    ) {
-      this.options.log.error('too many files wait for a save retry', {
-        file: save.file,
-      });
-      return;
-    }
+    // NOTE(0913vision): One entry per file of a store, which holds every one
+    // of those documents in memory already, so this list can't outgrow them.
     this.saves.set(save.file, save);
     this.changed();
   }
@@ -114,17 +114,35 @@ export class SaveFailures implements SaveFailureSink {
   }
 
   private async retryAll(): Promise<void> {
+    let failedInARow = 0;
     for (const save of [...this.saves.values()]) {
-      if (this.disposed) return;
-      try {
-        await save.retry();
-      } catch (error: unknown) {
-        this.options.log.error('could not retry a save', {
-          file: save.file,
-          error,
-        });
+      if (this.disposed || failedInARow >= MAX_FAILED_RETRIES_IN_A_ROW) return;
+      await this.retryOne(save);
+      if (this.saves.has(save.file)) {
+        failedInARow++;
+        this.moveToEnd(save.file);
+      } else {
+        failedInARow = 0;
       }
     }
+  }
+
+  private async retryOne(save: WaitingSave): Promise<void> {
+    try {
+      await save.retry();
+    } catch (error: unknown) {
+      this.options.log.error('could not retry a save', {
+        file: save.file,
+        error,
+      });
+    }
+  }
+
+  private moveToEnd(file: string): void {
+    const save = this.saves.get(file);
+    if (save === undefined) return;
+    this.saves.delete(file);
+    this.saves.set(file, save);
   }
 
   private current(): AppProblemOf<'save-failed'> | null {

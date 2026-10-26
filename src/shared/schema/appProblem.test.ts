@@ -28,11 +28,7 @@ describe('app problem payloads', () => {
 
   it.each([
     {kind: 'save-failed', name: 'songs.llsong', count: 1},
-    {
-      kind: 'save-failed',
-      name: 'x',
-      count: APP_PROBLEM_LIMITS.waitingSaves,
-    },
+    {kind: 'save-failed', name: 'x', count: 1000},
     {kind: 'save-recovered'},
   ])('reads %j', value => {
     expect(parseAppProblem(value)).toEqual({ok: true, value});
@@ -42,11 +38,7 @@ describe('app problem payloads', () => {
     {kind: 'save-failed', name: '', count: 1},
     {kind: 'save-failed', name: 'x', count: 0},
     {kind: 'save-failed', name: 'x', count: 1.5},
-    {
-      kind: 'save-failed',
-      name: 'x',
-      count: APP_PROBLEM_LIMITS.waitingSaves + 1,
-    },
+    {kind: 'save-failed', name: 'x', count: Number.MAX_SAFE_INTEGER + 1},
     {kind: 'save-failed', count: 1},
   ])('rejects the save problem %j', value => {
     expect(parseAppProblem(value).ok).toBe(false);
