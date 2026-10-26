@@ -1,5 +1,5 @@
 import {EventEmitter} from 'node:events';
-import {describe, expect, it, onTestFinished} from 'vitest';
+import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {parseLiveCommand} from '@shared/schema/liveCommand';
 import {recordingLogger} from '../displays/testing';
 import {LiveStore} from '../live/store';
@@ -10,15 +10,6 @@ class FakeContents extends EventEmitter {
   destroyed = false;
   isDestroyed(): boolean {
     return this.destroyed;
-  }
-
-  // NOTE(0913vision): Electron throws on any call to destroyed web contents.
-  override removeListener(
-    event: string | symbol,
-    listener: (...args: unknown[]) => void,
-  ): this {
-    if (this.destroyed) throw new Error('Object has been destroyed');
-    return super.removeListener(event, listener);
   }
 }
 
@@ -96,6 +87,13 @@ describe('guardTestPatterns', () => {
     expect(control.webContents.listenerCount('did-start-navigation')).toBe(0);
     const destroyed = setup();
     destroyed.control.webContents.destroyed = true;
+    // NOTE(0913vision): Electron throws on any call to destroyed web contents.
+    vi.spyOn(
+      destroyed.control.webContents,
+      'removeListener',
+    ).mockImplementation(() => {
+      throw new Error('Object has been destroyed');
+    });
     expect(() => destroyed.stop()).not.toThrow();
     expect(destroyed.control.listenerCount('closed')).toBe(0);
   });
