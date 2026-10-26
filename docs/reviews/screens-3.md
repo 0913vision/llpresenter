@@ -89,19 +89,20 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (Codex, codex2): Request changes: saved monitor numbers weren't stable
+  identities, scaled monitors showed DIP sizes as their resolution, the panel's
+  selection disagreed with the screen list; nit on capture resolution.
+- Round 2 (Codex, codex2): Request changes: resolving in the window could still
+  disagree with main.
+- Round 3 (Codex, codex3, codex2 being busy): Request changes: the arrangement
+  didn't keep its ratio in a short panel; no test for an assignment-only push.
+- Round 4 (9c5c07f9): reviewer (Codex, codex3) Approve, no findings. Built on
+  Claude Sonnet 5.5 (model trial). Lead Approve. Changes outside screens' paths
+  (`src/shared/`, `src/main/displays/`, `src/main/outputs/`,
+  `shell/Workspace.tsx`) are additive and checked against their owners' rules.
+  Rebased by the lead onto local `main` without conflicts; typecheck passes.
 
 ## Team member's reply
 
