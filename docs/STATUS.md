@@ -42,7 +42,10 @@ the tools area that no Claude member holds (user decision).
 All worktrees share one `refs/stash`, so members apply or drop a stash only by
 its commit hash, never with a bare `git stash pop`. Members run tools only
 through the repository's npm scripts or `npx --no-install`, because a bare
-`npx <package>` downloads what the repository doesn't have.
+`npx <package>` downloads what the repository doesn't have. Test tokens and ids
+use low-entropy fixtures such as `00000000-0000-4000-8000-000000000001`, because
+the public repository is scanned for secrets and a random-looking test value
+raises a false alarm (GitGuardian, October 26).
 
 ## Merge queue
 
