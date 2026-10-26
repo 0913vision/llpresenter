@@ -2,7 +2,7 @@ import {createReadStream} from 'node:fs';
 import {symlink, writeFile} from 'node:fs/promises';
 import {join, relative} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
-import {mediaUrl} from '@shared/media';
+import {analysisUrl, mediaUrl} from '@shared/media';
 import {makeTempDir} from '../../../test/temp-dir';
 import {recordingLogger} from '../displays/testing';
 import {
@@ -166,6 +166,54 @@ describe('createMediaHandler', () => {
     });
     const response = await handle(new Request(mediaUrl('linked')));
     expect(response.status).toBe(404);
+  });
+
+  it('serves a file lent for analysis with CORS, from any folder', async () => {
+    const outside = await makeTempDir();
+    await writeFile(join(outside, 'lent.mp4'), CONTENT);
+    const log = recordingLogger();
+    const handle = createMediaHandler({
+      resolvePath: async () => null,
+      mediaRoots: () => [],
+      analysisFile: token =>
+        token === 'lent' ? join(outside, 'lent.mp4') : null,
+      log,
+    });
+    const response = await handle(
+      new Request(analysisUrl('lent'), {headers: {Range: 'bytes=0-3'}}),
+    );
+    expect(response.status).toBe(206);
+    expect(response.headers.get('access-control-allow-origin')).toBe('*');
+    expect(await response.text()).toBe('0123');
+    expect((await handle(new Request(analysisUrl('other')))).status).toBe(404);
+    expect(
+      (
+        await createMediaHandler({
+          resolvePath: async () => null,
+          mediaRoots: () => [],
+          log,
+        })(new Request(analysisUrl('lent')))
+      ).status,
+    ).toBe(404);
+    expect(log.messages('warn')).toEqual([
+      'no file for an analysis token',
+      'no file for an analysis token',
+    ]);
+  });
+
+  it('answers 404 and logs a lent file that is gone', async () => {
+    const gone = join(await makeTempDir(), 'gone.mp4');
+    const log = recordingLogger();
+    const handle = createMediaHandler({
+      resolvePath: async () => null,
+      mediaRoots: () => [],
+      analysisFile: () => gone,
+      log,
+    });
+    expect((await handle(new Request(analysisUrl('lent')))).status).toBe(404);
+    expect(log.messages('warn')).toEqual([
+      'could not serve a file for analysis',
+    ]);
   });
 
   it('answers 400 for a URL that is not a media URL', async () => {

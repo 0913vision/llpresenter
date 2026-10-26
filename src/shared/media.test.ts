@@ -1,5 +1,11 @@
 import {describe, expect, it} from 'vitest';
-import {MEDIA_SCHEME, mediaIdFromUrl, mediaUrl} from './media';
+import {
+  MEDIA_SCHEME,
+  analysisTokenFromUrl,
+  analysisUrl,
+  mediaIdFromUrl,
+  mediaUrl,
+} from './media';
 
 describe('mediaUrl', () => {
   it('puts the encoded id after llp-media://media/', () => {
@@ -30,5 +36,15 @@ describe('mediaIdFromUrl', () => {
     ['text that is not a URL', 'not a url'],
   ])('returns null for %s', (_name, url) => {
     expect(mediaIdFromUrl(url)).toBeNull();
+  });
+});
+
+describe('analysis URLs', () => {
+  it('reads back the token of an analysis URL and only of one', () => {
+    const token = '0f8fad5b-d9cb-469f-a165-70867728950e';
+    expect(analysisUrl(token)).toBe(`llp-media://analysis/${token}`);
+    expect(analysisTokenFromUrl(analysisUrl(token))).toBe(token);
+    expect(mediaIdFromUrl(analysisUrl(token))).toBeNull();
+    expect(analysisTokenFromUrl(mediaUrl(token))).toBeNull();
   });
 });

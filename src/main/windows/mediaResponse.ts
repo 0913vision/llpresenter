@@ -2,7 +2,7 @@ import {createReadStream} from 'node:fs';
 import {stat} from 'node:fs/promises';
 import {extname} from 'node:path';
 import {Readable} from 'node:stream';
-import {mediaIdFromUrl} from '@shared/media';
+import {analysisTokenFromUrl, mediaIdFromUrl} from '@shared/media';
 import type {Logger} from '../log';
 import {realPathInside} from './insideRoots';
 
@@ -73,10 +73,13 @@ function fileBody(path: string, {start, end}: ByteRange): ResponseBody {
 /**
  * Answers a request for a file, with the part a `Range` header asks for, so
  * video elements can stream and seek.
+ *
+ * @param extraHeaders - Headers to add, such as CORS for the analysis page.
  */
 export async function createFileResponse(
   path: string,
   rangeHeader: string | null,
+  extraHeaders: Readonly<Record<string, string>> = {},
 ): Promise<Response> {
   const {size} = await stat(path);
   const range = parseRange(rangeHeader, size);
@@ -88,6 +91,7 @@ export async function createFileResponse(
   }
   const bytes = range ?? {start: 0, end: size - 1};
   const headers: Record<string, string> = {
+    ...extraHeaders,
     'Content-Type': mediaTypeOf(path),
     'Content-Length': String(bytes.end - bytes.start + 1),
     'Accept-Ranges': 'bytes',
@@ -109,21 +113,52 @@ export interface MediaHandlerOptions {
   readonly resolvePath: MediaPathResolver;
   /** The folders media files may come from. A file outside them is refused. */
   readonly mediaRoots: () => readonly string[];
+  /**
+   * The file main lent the analysis page under a token, or null. It is served
+   * with CORS, so the page can draw it on a canvas, and without the media
+   * folder check, because main chose the file.
+   */
+  readonly analysisFile?: (token: string) => string | null;
   readonly log: Logger;
 }
 
+const ANALYSIS_HEADERS = {'Access-Control-Allow-Origin': '*'} as const;
+
+async function serveAnalysisFile(
+  token: string,
+  request: Request,
+  {analysisFile, log}: MediaHandlerOptions,
+): Promise<Response> {
+  const path = analysisFile?.(token) ?? null;
+  if (path === null) {
+    log.warn('no file for an analysis token');
+    return new Response(null, {status: HTTP_NOT_FOUND});
+  }
+  try {
+    return await createFileResponse(
+      path,
+      request.headers.get('range'),
+      ANALYSIS_HEADERS,
+    );
+  } catch (error: unknown) {
+    log.warn('could not serve a file for analysis', error);
+    return new Response(null, {status: HTTP_NOT_FOUND});
+  }
+}
+
 /**
- * Answers `llp-media:` requests with the library file of the media id. A URL
- * that isn't a media URL, an unknown id, a missing file, and a file outside
- * the media folders never throw; they get an error status, and all but the
- * first are logged.
+ * Answers `llp-media:` requests with the library file of the media id, or the
+ * file lent to the analysis page. A URL that isn't a media URL, an unknown id
+ * or token, a missing file, and a file outside the media folders never throw;
+ * they get an error status, and all but the first are logged.
  */
-export function createMediaHandler({
-  resolvePath,
-  mediaRoots,
-  log,
-}: MediaHandlerOptions): (request: Request) => Promise<Response> {
+export function createMediaHandler(
+  options: MediaHandlerOptions,
+): (request: Request) => Promise<Response> {
+  const {resolvePath, mediaRoots, log} = options;
   return async request => {
+    const token = analysisTokenFromUrl(request.url);
+    if (token !== null) return serveAnalysisFile(token, request, options);
     const mediaId = mediaIdFromUrl(request.url);
     if (mediaId === null) return new Response(null, {status: HTTP_BAD_REQUEST});
     try {
