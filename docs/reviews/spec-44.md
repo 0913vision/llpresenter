@@ -1,11 +1,11 @@
-Review range: `ca295d4c...feat/spec/output-actions`
+Review range: `8e6eba7d...feat/spec/output-actions`
 
 # Review request: `spec-44`
 
 - Team member: `spec` (Claude session that took over from Codex)
 - Branch: `feat/spec/output-actions`
-- Base commit: `ca295d4c`, main after the output-31 approval
-- Review round: 1
+- Base commit: `8e6eba7d`, main at round 2
+- Review round: 2
 - Task: M3-S2a part 1, the output actions and status that the lost monitor card
   needs (lead, 09:3x: shell builds the main handlers too)
 - Code owners: data for `src/shared/` and `src/preload/`; output for
@@ -36,6 +36,21 @@ operator's keys stay in the control window. The manager remembers each screen's
 monitor number when it goes full screen and keeps it through a disconnect; the
 status board passes it on and announces a change of it. The retry and show
 window handlers share one request handler.
+
+## Round 2 response
+
+1. 창 보기 now restores a minimized output first, with `showInactive()`, which
+   on Windows shows the window in its last size without activating it, and then
+   raises it with `moveTop()`. A test checks the order and that neither
+   `focus()` nor `show()` runs.
+2. The Electron window keeps an explicit raise flag. A placement that finishes
+   later (the fallback after a deferred full screen exit) or a bounds correction
+   calls `orderWindow(false)`, which now raises the window again instead of
+   moving the control window above it. The flag clears when the window hides,
+   goes full screen, is placed behind the control for a monitor removal, or is
+   disposed, so the next fallback goes behind the control window again, as spec
+   03 asks. Tests cover the deferred placement, the late correction, and each of
+   the three ends.
 
 ## Decisions I made (for the lead to confirm)
 
