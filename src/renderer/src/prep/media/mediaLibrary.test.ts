@@ -235,4 +235,100 @@ describe('media library for the media view', () => {
       '재생목록을 만들 수 없음',
     ]);
   });
+
+  it('renames a playlist at the list revision, and skips a blank or unchanged name', async () => {
+    const lists = mediaDocument([mediaItem(1)], 4, {
+      playlists: [{id: playlistId(1), name: 'Old', items: [mediaId(1)]}],
+    });
+    const {library, edit, problems} = setup(mediaFixture(lists));
+    await vi.waitFor(() =>
+      expect(library.getSnapshot().document?.revision).toBe(4),
+    );
+    const playlist = {
+      kind: 'media',
+      id: playlistId(1),
+      name: 'Old',
+      items: [mediaId(1)],
+    } as const;
+    await library.renamePlaylist(playlist, '  ');
+    await library.renamePlaylist(playlist, 'Old');
+    expect(edit).not.toHaveBeenCalled();
+    await library.renamePlaylist(playlist, ' New ');
+    expect(edit).toHaveBeenCalledExactlyOnceWith({
+      type: 'media.playlist.update',
+      playlist: {
+        kind: 'media',
+        value: {id: playlistId(1), name: 'New', items: [mediaId(1)]},
+      },
+      baseRevision: 4,
+    });
+    edit.mockResolvedValueOnce({
+      ok: false,
+      error: {reason: 'stale', message: 'Invented newer list'},
+    });
+    await library.renamePlaylist(playlist, 'Newer');
+    expect(problems.mock.calls.map(([notice]) => notice.title)).toEqual([
+      '재생목록 이름을 바꿀 수 없음',
+    ]);
+  });
+
+  it('deletes a playlist and answers whether it went', async () => {
+    const {library, edit, problems} = setup();
+    const playlist = {
+      kind: 'audio',
+      id: audioPlaylistId(1),
+      name: 'Hymns',
+      items: [],
+    } as const;
+    expect(await library.deletePlaylist(playlist)).toBe(true);
+    expect(edit).toHaveBeenCalledWith({
+      type: 'media.playlist.delete',
+      playlist: {kind: 'audio', id: audioPlaylistId(1)},
+    });
+    edit.mockRejectedValueOnce(new Error('Invented failure'));
+    expect(await library.deletePlaylist(playlist)).toBe(false);
+    expect(problems.mock.calls.map(([notice]) => notice.title)).toEqual([
+      '재생목록을 삭제할 수 없음',
+    ]);
+  });
+
+  it('takes media out of a playlist and deletes media, reporting a refusal', async () => {
+    const lists = mediaDocument([mediaItem(1), mediaItem(2)], 3, {
+      playlists: [
+        {id: playlistId(1), name: 'Mixed', items: [mediaId(1), mediaId(2)]},
+      ],
+    });
+    const {library, edit, problems} = setup(mediaFixture(lists));
+    await vi.waitFor(() =>
+      expect(library.getSnapshot().document?.revision).toBe(3),
+    );
+    const playlist = {
+      kind: 'media',
+      id: playlistId(1),
+      name: 'Mixed',
+      items: [mediaId(1), mediaId(2)],
+    } as const;
+    await library.removeFromPlaylist(playlist, mediaId(9), 'Not in it');
+    expect(edit).not.toHaveBeenCalled();
+    await library.removeFromPlaylist(playlist, mediaId(1), 'Invented 1');
+    expect(edit).toHaveBeenCalledWith({
+      type: 'media.playlist.update',
+      playlist: {
+        kind: 'media',
+        value: {id: playlistId(1), name: 'Mixed', items: [mediaId(2)]},
+      },
+      baseRevision: 3,
+    });
+    expect(await library.deleteMedia(mediaId(2), 'Invented 2')).toBe(true);
+    edit.mockResolvedValue({
+      ok: false,
+      error: {reason: 'not-found', message: 'This media no longer exists'},
+    });
+    await library.removeFromPlaylist(playlist, mediaId(2), 'Invented 2');
+    expect(await library.deleteMedia(mediaId(2), 'Invented 2')).toBe(false);
+    expect(problems.mock.calls.map(([notice]) => notice.title)).toEqual([
+      '재생목록에서 뺄 수 없음',
+      '미디어를 삭제할 수 없음',
+    ]);
+  });
 });

@@ -8,6 +8,7 @@ import type {
 import type {MissingMedia} from '@shared/schema/mediaFiles';
 import {updateActiveCopies, type CopyJob} from '@renderer/show/mediaCopyJobs';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
+import type {ChosenPlaylist} from './mediaEntries';
 
 /** What the media view uses of the window API. */
 export type MediaApi = Pick<LlpApi, 'media' | 'log'>;
@@ -44,6 +45,28 @@ function rejected(error: unknown): {
 } {
   const message = error instanceof Error ? error.message : String(error);
   return {ok: false, error: {reason: 'invalid', message}};
+}
+
+interface PlaylistChange {
+  readonly name?: string;
+  readonly items?: readonly MediaId[];
+}
+
+function playlistUpdate(
+  {value}: MediaDocument,
+  playlist: ChosenPlaylist,
+  change: PlaylistChange,
+) {
+  if (playlist.kind === 'media') {
+    const found = value.playlists.find(({id}) => id === playlist.id);
+    return found === undefined
+      ? null
+      : ({kind: 'media', value: {...found, ...change}} as const);
+  }
+  const found = value.audioPlaylists.find(({id}) => id === playlist.id);
+  return found === undefined
+    ? null
+    : ({kind: 'audio', value: {...found, ...change}} as const);
 }
 
 function warning(key: string, title: string, meta?: readonly string[]): Notice {
@@ -167,6 +190,99 @@ export class MediaLibrary {
     this.refused('Creating a playlist was refused', result.error.message);
     this.onProblem(warning('media-view:playlist', '재생목록을 만들 수 없음'));
     return null;
+  }
+
+  /**
+   * 이름 바꾸기 of a playlist, at the list's current revision. A blank or
+   * unchanged name changes nothing.
+   */
+  async renamePlaylist(playlist: ChosenPlaylist, name: string): Promise<void> {
+    const document = this.view.document;
+    const trimmed = name.trim();
+    if (document === null || trimmed === '' || trimmed === playlist.name) {
+      return;
+    }
+    if (await this.updatePlaylist(document, playlist, {name: trimmed})) return;
+    this.onProblem(
+      warning('media-view:playlist-name', '재생목록 이름을 바꿀 수 없음', [
+        playlist.name,
+      ]),
+    );
+  }
+
+  /** 재생목록에서 빼기: the media leaves the playlist and stays in 모든 미디어. */
+  async removeFromPlaylist(
+    playlist: ChosenPlaylist,
+    mediaId: MediaId,
+    name: string,
+  ): Promise<void> {
+    const document = this.view.document;
+    if (document === null || !playlist.items.includes(mediaId)) return;
+    const items = playlist.items.filter(id => id !== mediaId);
+    if (await this.updatePlaylist(document, playlist, {items})) return;
+    this.onProblem(
+      warning(`media-view:leave:${mediaId}`, '재생목록에서 뺄 수 없음', [name]),
+    );
+  }
+
+  /**
+   * 삭제 of a media item: it leaves the media list and every playlist; its
+   * file stays where it is.
+   *
+   * @returns Whether it went.
+   */
+  async deleteMedia(mediaId: MediaId, name: string): Promise<boolean> {
+    const result = await this.api.media
+      .edit({type: 'media.delete', mediaId})
+      .catch(rejected);
+    if (result.ok || result.error.reason === 'write-failed') return true;
+    this.refused('Deleting media was refused', result.error.message);
+    this.onProblem(
+      warning(`media-view:delete:${mediaId}`, '미디어를 삭제할 수 없음', [
+        name,
+      ]),
+    );
+    return false;
+  }
+
+  private async updatePlaylist(
+    document: MediaDocument,
+    playlist: ChosenPlaylist,
+    change: PlaylistChange,
+  ): Promise<boolean> {
+    const update = playlistUpdate(document, playlist, change);
+    if (update === null) return true;
+    const result = await this.api.media
+      .edit({
+        type: 'media.playlist.update',
+        playlist: update,
+        baseRevision: document.revision,
+      })
+      .catch(rejected);
+    if (result.ok || result.error.reason === 'write-failed') return true;
+    this.refused('Changing a playlist was refused', result.error.message);
+    return false;
+  }
+
+  /** 삭제 of a playlist; its media stay in 모든 미디어. */
+  async deletePlaylist(playlist: ChosenPlaylist): Promise<boolean> {
+    const result = await this.api.media
+      .edit({
+        type: 'media.playlist.delete',
+        playlist:
+          playlist.kind === 'media'
+            ? {kind: 'media', id: playlist.id}
+            : {kind: 'audio', id: playlist.id},
+      })
+      .catch(rejected);
+    if (result.ok || result.error.reason === 'write-failed') return true;
+    this.refused('Deleting a playlist was refused', result.error.message);
+    this.onProblem(
+      warning('media-view:playlist-delete', '재생목록을 삭제할 수 없음', [
+        playlist.name,
+      ]),
+    );
+    return false;
   }
 
   /** 복사 멈추기. A job that already ended changes nothing. */
