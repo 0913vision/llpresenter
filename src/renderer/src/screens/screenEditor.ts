@@ -1,10 +1,10 @@
 import type {LlpApi} from '@shared/ipc';
 import type {SettingsDocument} from '@shared/schema/settingsDocuments';
-import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import type {MonitorInfo, MonitorList} from '@shared/schema/monitors';
 import type {Screen} from '@shared/schema/screens';
 import {assignScreenMonitor} from './assignScreenMonitor';
 import {changeScreen, type ScreenChange} from './screenEdits';
+import {SettingsDocumentEditor} from './settingsDocumentEditor';
 
 type ScreensDocument = Extract<SettingsDocument, {name: 'screens'}>;
 interface AssignmentSnapshot {
@@ -22,18 +22,26 @@ export type EditProblemReporter = (reason: string) => void;
  * document the window shows is the one main holds.
  */
 export class ScreenEditor {
-  private base: ScreensDocument | null = null;
-  private queue: Promise<void> = Promise.resolve();
+  private readonly documents: SettingsDocumentEditor<ScreensDocument>;
   private readonly monitorSnapshots = new WeakMap<
     MonitorInfo,
     AssignmentSnapshot
   >();
   private initialSnapshot: AssignmentSnapshot | null = {screens: null};
 
-  constructor(
-    private readonly api: LlpApi,
-    private readonly report: EditProblemReporter,
-  ) {}
+  constructor(api: LlpApi, report: EditProblemReporter) {
+    this.documents = new SettingsDocumentEditor<ScreensDocument>(api, {
+      update: (base, value) => ({
+        type: 'settings.update',
+        name: 'screens',
+        value,
+        baseRevision: base.revision,
+      }),
+      report,
+      failureTitle: '화면 설정 저장 실패',
+      logMessage: 'Could not save the screens',
+    });
+  }
 
   /** Tells the editor the newest document the window has. Older ones are ignored. */
   adopt(document: ScreensDocument | null): void {
@@ -42,17 +50,14 @@ export class ScreenEditor {
       this.initialSnapshot.screens = document.value.screens;
       this.initialSnapshot = null;
     }
-    if (this.base === null || document.revision > this.base.revision) {
-      this.base = document;
-    }
+    this.documents.adopt(document);
   }
 
   /** Records saved assignments for each immutable monitor publication. */
   observeMonitors(monitors: MonitorList): void {
+    const base = this.documents.getSnapshot();
     const snapshot =
-      this.base === null
-        ? this.initialSnapshot
-        : {screens: this.base.value.screens};
+      base === null ? this.initialSnapshot : {screens: base.value.screens};
     if (snapshot === null) return;
     for (const monitor of monitors) {
       if (!this.monitorSnapshots.has(monitor)) {
@@ -69,7 +74,8 @@ export class ScreenEditor {
   /** Assigns a monitor and clears its old assignment in one revision. */
   assign(screenId: string, monitor: MonitorInfo): Promise<void> {
     const observedScreens =
-      this.monitorSnapshots.get(monitor)?.screens ?? this.base?.value.screens;
+      this.monitorSnapshots.get(monitor)?.screens ??
+      this.documents.getSnapshot()?.value.screens;
     return this.enqueue(screens =>
       assignScreenMonitor({screens, screenId, monitor, observedScreens}),
     );
@@ -78,62 +84,11 @@ export class ScreenEditor {
   private enqueue(
     change: (screens: readonly Screen[]) => readonly Screen[],
   ): Promise<void> {
-    return pendingWritesOf(this.api)
-      .run({
-        refused: false,
-        sent: applied => applied,
-        write: () => {
-          const operation = this.queue.then(() => this.save(change));
-          this.queue = operation.then(() => undefined);
-          return operation;
-        },
+    return this.documents
+      .change(value => {
+        const screens = change(value.screens);
+        return screens === value.screens ? value : {...value, screens};
       })
       .then(() => undefined);
-  }
-
-  private async save(
-    change: (screens: readonly Screen[]) => readonly Screen[],
-  ): Promise<boolean> {
-    const base = this.base;
-    if (base?.access !== 'editable') return false;
-    const screens = change(base.value.screens);
-    if (screens === base.value.screens) return true;
-    const value = {
-      ...base.value,
-      screens,
-    };
-    try {
-      const result = await this.api.settings.edit({
-        type: 'settings.update',
-        name: 'screens',
-        value,
-        baseRevision: base.revision,
-      });
-      if (result.ok) {
-        this.adopt({
-          ...base,
-          value,
-          revision: result.value.revision ?? base.revision,
-        });
-        return true;
-      }
-      if (result.error.reason === 'write-failed') {
-        this.adopt({
-          ...base,
-          value,
-          revision: result.error.applied.revision ?? base.revision,
-        });
-      }
-      this.report(result.error.message);
-      return result.error.reason === 'write-failed';
-    } catch (cause) {
-      this.api.log.write({
-        level: 'error',
-        message: 'Could not save the screens',
-        detail: cause instanceof Error ? cause.message : String(cause),
-      });
-      this.report('화면 설정 저장 실패');
-      return false;
-    }
   }
 }

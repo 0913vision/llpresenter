@@ -6,7 +6,10 @@ import type {
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 
 export interface SettingsDocumentEditorOptions<T extends SettingsDocument> {
-  readonly update: (base: T, value: T['value']) => SettingsEdit;
+  readonly update: (
+    base: T,
+    value: T['value'],
+  ) => Extract<SettingsEdit, {type: 'settings.update'; name: T['name']}>;
   readonly report: (reason: string) => void;
   readonly failureTitle: string;
   readonly logMessage: string;

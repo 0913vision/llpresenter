@@ -5,7 +5,7 @@ export interface MonitorAssignmentInput {
   readonly screens: readonly Screen[];
   readonly screenId: string;
   readonly monitor: MonitorInfo;
-  /** Saved assignments when this edit entered the queue. */
+  /** Saved assignments associated with the publication or queued edit. */
   readonly observedScreens?: readonly Screen[] | undefined;
 }
 
