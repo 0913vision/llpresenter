@@ -1,0 +1,44 @@
+{
+  "initial": {
+    "dom": {
+      "count": 464,
+      "menus": 2,
+      "overflow": false
+    },
+    "heap": {
+      "backingStorageSize": 1713161,
+      "embedderHeapUsedSize": 4546304,
+      "totalSize": 6070272,
+      "usedSize": 5147092
+    }
+  },
+  "middle": {
+    "dom": {
+      "count": 464,
+      "menus": 2,
+      "overflow": false
+    },
+    "heap": {
+      "backingStorageSize": 1713246,
+      "embedderHeapUsedSize": 4130080,
+      "totalSize": 6070272,
+      "usedSize": 5299160
+    }
+  },
+  "final": {
+    "dom": {
+      "count": 464,
+      "menus": 2,
+      "overflow": false
+    },
+    "heap": {
+      "backingStorageSize": 1713246,
+      "embedderHeapUsedSize": 4175344,
+      "totalSize": 6070272,
+      "usedSize": 5357056
+    }
+  },
+  "choices": ["이름 없는 미디어", "노을"],
+  "inserted": 1,
+  "exceptions": []
+}

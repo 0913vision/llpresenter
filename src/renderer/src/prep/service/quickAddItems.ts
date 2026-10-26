@@ -1,10 +1,10 @@
 import {createServiceItemId, type NoticeSetId} from '@shared/schema/ids';
 import type {MediaItem} from '@shared/schema/mediaList';
 import type {ServiceItem} from '@shared/schema/service';
+import {backgroundMedia, mediaName} from '@renderer/show/backgroundChoices';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 
 const SECTION_NAME = '새 구역';
-const UNNAMED_MEDIA = '이름 없는 미디어';
 
 export interface NoticeSetChoice {
   readonly id: NoticeSetId;
@@ -64,14 +64,12 @@ export function otherItemEntries({
       icon: 'film',
       submenu: submenu(
         'media',
-        media
-          .filter(item => item.kind !== 'audio')
-          .map((item): MenuEntry => ({
-            kind: 'item',
-            id: `media:${item.id}`,
-            label: item.name === '' ? UNNAMED_MEDIA : item.name,
-            onSelect: () => onInsert({id: newId(), media: item.id}),
-          })),
+        backgroundMedia(media).map((item): MenuEntry => ({
+          kind: 'item',
+          id: `media:${item.id}`,
+          label: mediaName(item),
+          onSelect: () => onInsert({id: newId(), media: item.id}),
+        })),
         '미디어 없음',
       ),
     },

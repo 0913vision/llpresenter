@@ -91,4 +91,27 @@ describe('quick add other items', () => {
       items(entry(entries, 'other:notice').submenu ?? [])[0],
     ).toMatchObject({label: '공지 없음', disabled: true});
   });
+
+  it('retains unnamed videos and their insertion target while excluding audio', () => {
+    const unnamed = createMediaId('60000000-0000-4000-8000-000000000023');
+    const onInsert = vi.fn<(item: ServiceItem) => void>();
+    const entries = otherItemEntries({
+      media: [
+        ...media,
+        {id: unnamed, name: '', kind: 'video', file: 'c.mp4', size: 0},
+      ],
+      notices: [],
+      onInsert,
+      onBible: () => undefined,
+    });
+    const choices = items(entry(entries, 'other:media').submenu ?? []);
+    expect(choices.map(item => item.label)).toEqual([
+      '따뜻한 빛',
+      '이름 없는 미디어',
+    ]);
+    choices[1]?.onSelect?.();
+    expect(onInsert).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({media: unnamed}),
+    );
+  });
 });
