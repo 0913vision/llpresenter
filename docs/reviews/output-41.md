@@ -117,19 +117,21 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (1dc6847e): reviewer (Codex, codex4) Approve, one nit: layouts start
+  as an empty list, so a Look that arrives before the first `stage-layouts` read
+  logs a false missing-layout warning; distinguish loading from a finished
+  lookup, with a delayed-first-read test. Lead Approve after reading
+  `stageLayout.ts`, `screenFrames.ts`, and the layer changes: elements are built
+  once per layout and only their text is rewritten, the one interval runs only
+  while a clock or a running 타이머 shows, errors are logged once and capped,
+  and every layer stays isolated. The three decisions are approved: the canvas
+  is letterboxed and centred and never stretched, the layer sits at order 3
+  under 메시지, and a missing layout logs once and draws the lyrics with 기본
+  (never blank a screen). Lead nit (auto-fit against a zero-size box) is done on
+  `feat/output/stage-refit`. Rebased by the lead onto local `main` without
+  conflicts; typecheck passes. M3-O5b is complete.
 
 ## Team member's reply
 
