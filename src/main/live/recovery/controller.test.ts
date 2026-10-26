@@ -7,6 +7,7 @@ import {RECOVERY_RECORD_LIMITS} from '@shared/schema/recoveryRecord';
 import {makeTempDir} from '../../../../test/temp-dir';
 import {recordingLogger} from '../../displays/testing';
 import type {SettingsReader} from '../../store/settingsStore';
+import {SliceRegistry} from '../sliceRegistry';
 import {LiveStore} from '../store';
 import {
   CAPTIONS,
@@ -44,17 +45,19 @@ interface SetupOptions {
   readonly crashed?: boolean;
   readonly text?: string | null;
   readonly sources?: 'ready' | 'missing';
+  readonly registry?: SliceRegistry;
 }
 
 async function setup({
   crashed = true,
   text = recoveryText(CRASH_STATE),
   sources = 'ready',
+  registry,
 }: SetupOptions = {}) {
   const file = join(await makeTempDir(), 'live.json');
   if (text !== null) await writeFile(file, text);
   const settings = overlaySettings();
-  const store = new LiveStore(undefined, () => NOW);
+  const store = new LiveStore(undefined, () => NOW, registry);
   store.connectSettings(settings.reader);
   const broadcasts: LiveState[] = [];
   store.subscribe(state => broadcasts.push(state));
@@ -219,6 +222,20 @@ describe('recovery controller', () => {
       startedAt: NOW,
       pausedAt: NOW,
     });
+  });
+
+  it('reports a restore that changed nothing and still ends the wait', async () => {
+    const {controller, record, log} = await setup({
+      registry: new SliceRegistry([]),
+    });
+    expect(
+      await controller.apply({savedAt: SAVED_AT, rows: ['outputs']}),
+    ).toMatchObject({ok: false, error: {reason: 'apply-failed'}});
+    expect(log.messages('warn')).toContain(
+      'nothing of the output state was restored',
+    );
+    expect(record.start).toHaveBeenCalledOnce();
+    expect(await controller.summary()).toBeNull();
   });
 
   it('refuses a stale or unoffered answer and keeps waiting', async () => {

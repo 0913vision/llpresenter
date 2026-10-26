@@ -164,7 +164,12 @@ export class RecoveryController implements RecoveryPort {
       .filter(({row}) => rows.includes(row.kind))
       .flatMap(({commands: rowCommands}) => rowCommands);
     try {
-      dispatchBatched(this.options.store, commands, this.options.log);
+      if (!dispatchBatched(this.options.store, commands, this.options.log)) {
+        this.options.log.warn('nothing of the output state was restored', {
+          rows,
+        });
+        return failure('apply-failed', 'Nothing could be restored');
+      }
       this.options.log.info('restored the output state', {rows});
       return OK;
     } catch (error: unknown) {

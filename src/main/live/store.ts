@@ -130,17 +130,21 @@ export class LiveStore {
   }
 }
 
-/** Rejects unhandled commands and logs every listener that throws. */
+/**
+ * Rejects unhandled commands and logs every listener that throws.
+ *
+ * @returns Whether the state changed.
+ */
 export function dispatchLogged(
   store: LiveStore,
   command: LiveCommand,
   log: Logger,
-): void {
+): boolean {
   if (!store.handles(command.type)) {
     log.warn('unhandled live command', {type: command.type});
-    return;
+    return false;
   }
-  store.dispatch(
+  return store.dispatch(
     command,
     error => log.error('live state listener failed', error),
     problem => {
@@ -168,18 +172,30 @@ export function dispatchLogged(
   );
 }
 
-/** Applies commands in order, in as few bounded transactions as the batch limit allows. */
+/**
+ * Applies commands in order, in as few bounded transactions as the batch limit
+ * allows.
+ *
+ * @returns Whether any transaction changed the state.
+ */
 export function dispatchBatched(
   store: LiveStore,
   commands: readonly SingleLiveCommand[],
   log: Logger,
-): void {
+): boolean {
+  let changed = false;
   for (
     let start = 0;
     start < commands.length;
     start += MAX_LIVE_BATCH_COMMANDS
   ) {
     const batch = commands.slice(start, start + MAX_LIVE_BATCH_COMMANDS);
-    dispatchLogged(store, {type: 'live.batch', commands: batch}, log);
+    const batchChanged = dispatchLogged(
+      store,
+      {type: 'live.batch', commands: batch},
+      log,
+    );
+    changed ||= batchChanged;
   }
+  return changed;
 }

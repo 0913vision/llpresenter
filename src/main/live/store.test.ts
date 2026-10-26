@@ -77,7 +77,7 @@ describe('dispatchBatched', () => {
       (_, index) =>
         ({type: 'output.set', screenId: 'main', on: index % 2 === 0}) as const,
     );
-    dispatchBatched(store, commands, recordingLogger());
+    expect(dispatchBatched(store, commands, recordingLogger())).toBe(true);
     expect(dispatch.mock.calls.map(([command]) => command)).toEqual([
       {type: 'live.batch', commands: commands.slice(0, -1)},
       {type: 'live.batch', commands: commands.slice(-1)},
@@ -86,10 +86,17 @@ describe('dispatchBatched', () => {
     expect(store.state.outputs['main']).toBe(true);
   });
 
-  it('dispatches nothing for no commands', () => {
+  it('reports no change for no commands or commands that change nothing', () => {
     const store = new LiveStore();
     const dispatch = vi.spyOn(store, 'dispatch');
-    dispatchBatched(store, [], recordingLogger());
+    expect(dispatchBatched(store, [], recordingLogger())).toBe(false);
     expect(dispatch).not.toHaveBeenCalled();
+    expect(
+      dispatchBatched(
+        store,
+        [{type: 'layer.clear', target: 'all'}],
+        recordingLogger(),
+      ),
+    ).toBe(false);
   });
 });
