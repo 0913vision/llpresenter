@@ -20,13 +20,17 @@ export interface OutputNoticeActions {
 }
 
 type CardChange =
-  | {readonly kind: 'show'; readonly notice: Notice}
+  | {readonly kind: 'show' | 'update'; readonly notice: Notice}
   | {readonly kind: 'dismiss'; readonly key: string};
 
-/** A card to show for a screen, or a card to close. */
+/**
+ * A card to show for a screen, a card to change only if it is showing (the
+ * warning still holds, but nothing new happened to report), or a card to
+ * close.
+ */
 export type NoticeChange =
   | {
-      readonly kind: 'show';
+      readonly kind: 'show' | 'update';
       readonly screenId: string;
       readonly notice: Notice;
     }
@@ -98,21 +102,23 @@ function reconnectedCard({
   after,
   time,
 }: ScreenTransition): Notice {
+  const monitor = monitorLabel(after);
   return {
     key: monitorNoticeKey(screenId),
     kind: 'info',
     icon: 'monitor',
     title: `${names.monitor} 모니터 다시 연결됨`,
     time,
-    meta: monitorLabel(after),
+    ...(monitor.length === 0 ? {} : {meta: monitor}),
   };
 }
 
 // NOTE(0913vision): A lost monitor warns until the screen is full screen
-// again, which turns the card into information. While the monitor stays
-// missing with the output off, the card stays and says so. A later full
-// screen from off, or a switch to window or capture mode, makes the warning
-// obsolete, so its card closes.
+// again, which turns the card into information. Turning the output off while
+// the monitor is missing is the operator's own action (or 연결이 끊기면 set to
+// off), so it only changes a card that is showing to say 출력 꺼짐. A later
+// full screen from off, or a switch to window or capture mode, makes the
+// warning obsolete, so its card closes.
 function monitorChange(transition: ScreenTransition): CardChange | null {
   const was = transition.before?.placement;
   const now = transition.after.placement;
@@ -123,7 +129,7 @@ function monitorChange(transition: ScreenTransition): CardChange | null {
       return {kind: 'show', notice: lostCard(transition, true)};
     case 'off':
       return was === 'monitorMissing'
-        ? {kind: 'show', notice: lostCard(transition, false)}
+        ? {kind: 'update', notice: lostCard(transition, false)}
         : null;
     case 'fullscreen':
       return was === 'monitorMissing'
@@ -214,7 +220,7 @@ export function outputNoticeChanges({
     return [monitorChange(transition), windowChange(transition)].flatMap(
       (change): NoticeChange[] => {
         if (change === null) return [];
-        return change.kind === 'show' ? [{...change, screenId}] : [change];
+        return change.kind === 'dismiss' ? [change] : [{...change, screenId}];
       },
     );
   });

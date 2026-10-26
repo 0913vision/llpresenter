@@ -147,6 +147,29 @@ it('closes the warning when the screen switches to window mode or leaves', () =>
   expect(useOutputWarnings.getState().warnings.size).toBe(0);
 });
 
+it('opens no new card when the operator turns off a screen whose card is closed', () => {
+  const {push} = setup();
+  push({stage: status({placement: 'monitorMissing'})});
+  act(() =>
+    within(lostCard()).getByRole('button', {name: '알림 닫기'}).click(),
+  );
+  push({stage: status({placement: 'off'})});
+  expect(
+    screen.queryByRole('alert', {name: '무대 모니터 연결 끊김'}),
+  ).toBeNull();
+  expect(
+    useOutputWarnings.getState().warnings.get('screen:stage')?.notice.meta,
+  ).toEqual(['모니터 3', '출력 꺼짐']);
+});
+
+it('changes a showing card to 출력 꺼짐 when the output turns off', () => {
+  const {push} = setup();
+  push({stage: status({placement: 'monitorMissing'})});
+  push({stage: status({placement: 'off'})});
+  expect(within(lostCard()).getByText('출력 꺼짐')).toBeDefined();
+  expect(screen.getAllByRole('alert')).toHaveLength(1);
+});
+
 it('shows a closed warning again from the 출력 menu until it resolves', async () => {
   const {push} = setup();
   push({stage: status({placement: 'monitorMissing'})});

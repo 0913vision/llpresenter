@@ -73,6 +73,20 @@ describe('outputNoticeChanges, lost monitor', () => {
     expect(actions.showWindow).toHaveBeenCalledWith('stage');
   });
 
+  it('leaves the detail line out of the reconnected card without a monitor', () => {
+    const missing: OutputScreenStatus = {
+      placement: 'monitorMissing',
+      renderer: 'running',
+      fps: null,
+      fpsLow: false,
+    };
+    const {result} = changes(
+      {stage: missing},
+      {stage: {...missing, placement: 'fullscreen', fps: 60}},
+    );
+    expect(shown(result[0])).not.toHaveProperty('meta');
+  });
+
   it('turns the warning into information when the monitor is back', () => {
     const {result} = changes(
       {stage: status({placement: 'monitorMissing'})},
@@ -88,12 +102,14 @@ describe('outputNoticeChanges, lost monitor', () => {
     });
   });
 
-  it('keeps warning, with only 모니터 다시 찾기, when the output turns off while the monitor is missing', () => {
+  it('only updates a showing card, to 출력 꺼짐 with 모니터 다시 찾기, when the output turns off while the monitor is missing', () => {
     const {result} = changes(
       {main: status({placement: 'monitorMissing', monitor: 2})},
       {main: status({placement: 'off', monitor: 2})},
     );
-    const notice = shown(result[0]);
+    expect(result[0]?.kind).toBe('update');
+    if (result[0]?.kind !== 'update') throw new Error('Expected an update');
+    const {notice} = result[0];
     expect(notice).toMatchObject({
       key: 'screen:main',
       kind: 'warning',

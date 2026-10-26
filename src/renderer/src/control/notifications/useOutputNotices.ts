@@ -27,6 +27,8 @@ const screenNames: ReadonlyMap<string, ScreenNames> = new Map(
 export interface NoticeTarget {
   readonly report: (notice: Notice) => void;
   readonly dismiss: (key: string) => void;
+  /** The cards showing now. */
+  readonly getNotices: () => readonly Notice[];
 }
 
 // NOTE(0913vision): The session closes a card when one of its buttons is
@@ -64,6 +66,9 @@ export function useOutputNotices(
 ): void {
   const report = useEffectEvent(target.report);
   const dismiss = useEffectEvent(target.dismiss);
+  const isShowing = useEffectEvent((key: string) =>
+    target.getNotices().some(notice => notice.key === key),
+  );
   useEffect(() => {
     if (api === undefined) return undefined;
     const {output} = api;
@@ -87,7 +92,7 @@ export function useOutputNotices(
         screenName: screenNames.get(change.screenId)?.window ?? change.screenId,
         notice,
       });
-      report(notice);
+      if (change.kind === 'show' || isShowing(notice.key)) report(notice);
     };
     const apply = (next: OutputStatuses): void => {
       if (stopped) return;
