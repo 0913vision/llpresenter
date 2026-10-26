@@ -118,6 +118,7 @@ export function useNewService({
       : {kind: 'template', id: firstTemplate};
   }, [lists.ready, firstTemplate]);
   const {source, version} = listedSource(lists, chosen, fallback);
+  if (source !== chosen) setChosen(source);
   const {document, missing} = useSourceDocument(api, source, version);
   const rows = useMemo(
     () => (document === null ? [] : treeRows(document.order, lists.songTitles)),

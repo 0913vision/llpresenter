@@ -1,12 +1,12 @@
-Review range: `feat/spec/save-template...feat/spec/rename-delete`
+Review range: `c7912cfa...feat/spec/rename-delete`
 
 # Review request: `spec-53`
 
-- Team member: `spec` (Claude session that took over from Codex)
-- Branch: `feat/spec/rename-delete`, stacked on spec-52
-  (`feat/spec/save-template`)
-- Base commit: spec-52's head, named in the request message
-- Review round: 1
+- Team member: `spec` (Codex, continuing the Claude implementation)
+- Branch: `feat/spec/rename-delete`, rebased onto local `main` after spec-51 and
+  spec-52 merged
+- Base commit: `c7912cfa6553958336c56b9ff29705dd2e891bdb`
+- Review round: 2
 - Task: M3-P4c, rename and delete for 틀 and 예배 순서
 - Code owner: prep for `src/renderer/src/prep/services/` (no prep member; lead
   exception for P4)
@@ -34,11 +34,14 @@ service can't be deleted. P4's acceptance: the current service can't be deleted.
   a refusal reports 삭제할 수 없음.
 - **While it works.** The rename and delete dialogs can't be dismissed while
   their edit is on its way, as spec-51 round 2 settled for the service dialogs.
+  The window's pending writes track the whole action, including the rename's
+  document read, so closing waits for its result and stops new actions.
 - **Lists.** The dialogs follow the lists (spec-49), so a renamed or deleted row
   updates at once. A chosen source that is deleted falls back to the first 틀
   (or 빈 예배, or nothing for 가져오기), and a chosen source whose row changes
   (a rename, or another item count) is read again, so the name default and the
-  tree follow it.
+  tree follow it. Automatic choices keep their source id until it disappears; a
+  rename that reorders the list preserves the selected source and checks.
 
 ## Decisions I made (for the lead to confirm)
 
@@ -51,21 +54,46 @@ service can't be deleted. P4's acceptance: the current service can't be deleted.
 
 ## Changes outside my paths
 
-None.
+`src/renderer/src/prep/services/` belongs to prep. The lead's P4 exception
+covers these service dialogs and their regression tests. No shared contract or
+other owner's implementation changed in round 2.
 
 ## Validation
 
-| Command or test                                                                                       | Result                 |
-| ----------------------------------------------------------------------------------------------------- | ---------------------- |
-| `npm run typecheck`                                                                                   | Pass                   |
-| `npx --no-install vitest run --no-fsModuleCache src/renderer/src/prep/services src/renderer/src/show` | Pass, 441 tests        |
-| `npx --no-install eslint --max-warnings 0 src/renderer/src/prep/services src/renderer/src/show`       | Pass                   |
-| `npx --no-install prettier --check src/renderer/src/prep/services`                                    | Pass                   |
-| GitHub CI (`npm run verify`)                                                                          | In the request message |
+| Round 2 check                                                                              | Result                                         |
+| ------------------------------------------------------------------------------------------ | ---------------------------------------------- |
+| `npm run typecheck`                                                                        | Pass                                           |
+| `npx --no-install vitest run --no-fsModuleCache src/renderer/src/prep/services`            | Pass, 9 files and 77 tests                     |
+| `npx --no-install eslint --max-warnings 0 src/renderer/src/prep/services`                  | Pass                                           |
+| `npx --no-install prettier --check src/renderer/src/prep/services docs/reviews/spec-53.md` | Pass                                           |
+| GitHub CI (`npm run verify`)                                                               | Head run URL and result in the request message |
+
+Round 1's services and show run passed 441 tests. The full round 2 verify runs
+on GitHub only.
 
 Tests: renaming a 틀 and a past service with the whole document and revision; a
 refused rename keeping its dialog; deleting a 틀 after asking, and the dialog
 falling back; the open service's 삭제 unavailable; the chosen 틀 read again
-after a rename; and the delete prompt waiting while its edit is on its way.
+after a rename across the sort order, preserving unchecked items; the close
+flush waiting for both template and service rename reads and writes; refusing
+new rename reads after closing starts; and the delete prompt waiting while its
+edit is on its way.
 
 No Electron process, visible window, soak, or memory measurement was started.
+
+## Team member's reply
+
+1. `useNewService` now stores an automatic choice in `chosen`, including a
+   fallback after deletion. `listedSource` keeps that id until its row
+   disappears. The regression starts with two templates, renames the default so
+   it sorts after the other, and checks its updated name, selected row, original
+   tree, and an unchecked item. It fails without the fix by showing the other
+   template's name and tree.
+2. `useSourceActions` now runs the entire action through
+   `pendingWritesOf(api).run`, with a refused or unsuccessful action returning
+   false. This covers the rename's read and write on the same API used by the
+   close flush. For both templates and services, the tests defer the read, begin
+   closing, verify the flush still waits after the read completes, and finish
+   the write before the flush succeeds. Separate tests confirm a close already
+   in progress prevents new reads and writes. All five regression cases fail
+   without the fixes.

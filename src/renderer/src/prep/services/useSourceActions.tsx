@@ -6,6 +6,7 @@ import {
   type ReactNode,
 } from 'react';
 import type {LlpApi} from '@shared/ipc';
+import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {useShow} from '@renderer/state/show';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {Menu} from '@renderer/ui/Menu';
@@ -130,7 +131,8 @@ export function useSourceActions({
   ): void => {
     if (api === undefined || busy) return;
     setBusy(true);
-    work(api)
+    pendingWritesOf(api)
+      .run({write: () => work(api), refused: false, sent: done => done})
       .then(done => {
         if (!alive.current) return;
         setBusy(false);
