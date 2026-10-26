@@ -1,4 +1,5 @@
 import {useEffect, useEffectEvent, useRef, useState} from 'react';
+import type {SongId} from '@shared/schema/ids';
 import type {LibrarySearchMatch} from '@shared/schema/librarySearch';
 import {useShow} from '@renderer/state/show';
 import {openLibrarySong} from '@renderer/state/showLibrary';
@@ -156,14 +157,28 @@ function useResultChooser(
   return {choose, supersede};
 }
 
-/** Bounded search and source reads; late replies cannot replace a later choice. */
+/**
+ * Bounded search and source reads; late replies cannot replace a later choice.
+ * With `onOpenPrepSong`, a chosen result goes to 준비's library instead of
+ * opening as the 진행 source.
+ */
 export function useToolbarSearch(
   enabled: boolean,
   onProblem: (notice: Notice) => void,
+  onOpenPrepSong?: (songId: SongId) => void,
 ) {
   const [query, setQuery] = useState('');
   const reply = useSearchReply({enabled, query, onProblem});
-  const {choose, supersede} = useResultChooser(enabled, onProblem);
+  const {choose: openSource, supersede} = useResultChooser(enabled, onProblem);
+  const choose = async (match: LibrarySearchMatch): Promise<void> => {
+    if (!enabled) return;
+    if (onOpenPrepSong === undefined) {
+      await openSource(match);
+      return;
+    }
+    supersede();
+    onOpenPrepSong(match.songId);
+  };
   const answered = reply.query === query;
   return {
     query,

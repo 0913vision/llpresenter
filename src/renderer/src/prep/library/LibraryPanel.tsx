@@ -1,4 +1,4 @@
-import {useState, type JSX} from 'react';
+import {useEffect, useEffectEvent, useState, type JSX} from 'react';
 import type {SongId} from '@shared/schema/ids';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {IconButton} from '@renderer/ui/IconButton';
@@ -18,12 +18,19 @@ import {LibraryList} from './LibraryList';
 import {useLibrary, type LibraryApi, type LibrarySelection} from './useLibrary';
 import styles from './LibraryPanel.module.css';
 
+/** A one-shot host request, acknowledged after dispatch so remount cannot replay it. */
+export type LibrarySelectionRequest =
+  {readonly kind: 'open'; readonly songId: SongId} | {readonly kind: 'clear'};
+
 export interface LibraryPanelProps {
   readonly api: LibraryApi;
   /** Opens the editor; after creation the host focuses its title field. */
   readonly onOpenSong: (selection: LibrarySelection) => void;
   /** The workspace host merges problems into its one notification list. */
   readonly onProblem: (notice: Notice) => void;
+  readonly selectionRequest?: LibrarySelectionRequest | undefined;
+  readonly onSelectionHandled?:
+    ((request: LibrarySelectionRequest) => void) | undefined;
 }
 
 /** The independent library panel; the workspace host mounts it beside its editor. */
@@ -31,8 +38,28 @@ export function LibraryPanel({
   api,
   onOpenSong,
   onProblem,
+  selectionRequest,
+  onSelectionHandled,
 }: LibraryPanelProps): JSX.Element {
   const library = useLibrary(api, onOpenSong, onProblem);
+  const selectRequested = useEffectEvent(
+    (request: LibrarySelectionRequest): void => {
+      if (request.kind === 'clear') {
+        library.clearSelection();
+      } else {
+        library.setQuery('');
+        library
+          .open(request.songId)
+          .catch((cause: unknown) =>
+            console.error('Requested library selection failed:', cause),
+          );
+      }
+      onSelectionHandled?.(request);
+    },
+  );
+  useEffect(() => {
+    if (selectionRequest) selectRequested(selectionRequest);
+  }, [selectionRequest]);
   const [menu, setMenu] = useState<{id: SongId; anchor: MenuAnchor} | null>(
     null,
   );

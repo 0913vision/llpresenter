@@ -8,6 +8,7 @@ import {
   type KeyboardEvent,
   type RefObject,
 } from 'react';
+import type {SongId} from '@shared/schema/ids';
 import type {LibrarySearchMatch} from '@shared/schema/librarySearch';
 import {Icon, TextField} from '@renderer/ui';
 import {isComposing} from '@renderer/ui/ime';
@@ -23,7 +24,6 @@ const WORKSPACE_UNAVAILABLE_TIP =
   '현재 작업 공간에서는 검색 결과를 열 수 없습니다';
 
 type ResultKey = 'ArrowDown' | 'ArrowUp';
-type SongId = LibrarySearchMatch['songId'];
 
 function logProblem(notice: Notice): void {
   console.error('Toolbar search failed:', notice.key);
@@ -122,11 +122,13 @@ function ResultRow({
 export function ToolbarSearch({
   enabled,
   onProblem = logProblem,
+  onOpenPrepSong,
 }: {
   readonly enabled: boolean;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
+  readonly onOpenPrepSong?: ((songId: SongId) => void) | undefined;
 }): JSX.Element {
-  const search = useToolbarSearch(enabled, onProblem);
+  const search = useToolbarSearch(enabled, onProblem, onOpenPrepSong);
   const root = useRef<HTMLDivElement>(null);
   const listId = useId();
   const [open, setOpen] = useState(false);

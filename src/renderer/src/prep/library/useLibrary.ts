@@ -274,6 +274,11 @@ export function useLibrary(
     query,
     setQuery,
     selected,
+    clearSelection: (): void => {
+      requests.current.open++;
+      opening.current = null;
+      setSelected(null);
+    },
     loading,
     busy,
     report,

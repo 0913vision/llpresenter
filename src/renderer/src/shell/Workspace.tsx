@@ -7,7 +7,10 @@ import {
   type ReactNode,
 } from 'react';
 import type {LlpApi} from '@shared/ipc';
-import {LibraryPanel} from '@renderer/prep/library/LibraryPanel';
+import {
+  LibraryPanel,
+  type LibrarySelectionRequest,
+} from '@renderer/prep/library/LibraryPanel';
 import {
   SongEditor,
   SongPreviewPanel,
@@ -188,6 +191,11 @@ interface PrepBinding {
   readonly api: LlpApi;
   readonly editor: SongEditorStore;
   readonly items: ServiceItemStore;
+  readonly selectionRequest?: LibrarySelectionRequest | undefined;
+  readonly onSelectionHandled?:
+    ((request: LibrarySelectionRequest) => void) | undefined;
+  /** Called before a 예배 순서 item opens in 준비, ahead of the editor. */
+  readonly onServiceItemOpen?: (() => void) | undefined;
 }
 
 const noSubscribe = (): (() => void) => () => undefined;
@@ -212,6 +220,8 @@ function prepPanelParts({
       embedded: (
         <LibraryPanel
           api={prep.api}
+          selectionRequest={prep.selectionRequest}
+          onSelectionHandled={prep.onSelectionHandled}
           onProblem={onProblem ?? ignoreProblem}
           onOpenSong={selection => {
             prep.editor.open(selection.document, {
@@ -258,6 +268,11 @@ function prepPanelParts({
   return {};
 }
 
+function openPrepItem(prep: PrepBinding | undefined): void {
+  prep?.onServiceItemOpen?.();
+  prep?.editor.open(null);
+}
+
 function serviceOrderParts({
   id,
   prep,
@@ -278,7 +293,7 @@ function serviceOrderParts({
         workspace={id}
         onProblem={onProblem}
         onOpenPrep={onOpenPrep}
-        onOpenItem={id === 'prep' ? () => prep?.editor.open(null) : undefined}
+        onOpenItem={id === 'prep' ? () => openPrepItem(prep) : undefined}
       />
     ),
     meta: <ReadOnlyMark />,

@@ -1,4 +1,5 @@
 import type {JSX} from 'react';
+import type {SongId} from '@shared/schema/ids';
 import {sendLive, useOutputs} from '@renderer/state/live';
 import {
   OutputToggle,
@@ -26,6 +27,7 @@ export interface ToolbarProps {
   readonly workspace: Workspace;
   readonly onWorkspace: (workspace: Workspace) => void;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
+  readonly onOpenPrepSong?: ((songId: SongId) => void) | undefined;
   readonly mediaOpen?: boolean | undefined;
   readonly onMediaOpenChange?: ((open: boolean) => void) | undefined;
 }
@@ -61,6 +63,7 @@ export function Toolbar({
   workspace,
   onWorkspace,
   onProblem,
+  onOpenPrepSong,
   mediaOpen = false,
   onMediaOpenChange,
 }: ToolbarProps): JSX.Element {
@@ -94,7 +97,11 @@ export function Toolbar({
       />
       <ToolbarSearch
         key={workspace}
-        enabled={workspace === 'show'}
+        enabled={
+          workspace === 'show' ||
+          (workspace === 'prep' && onOpenPrepSong !== undefined)
+        }
+        onOpenPrepSong={workspace === 'prep' ? onOpenPrepSong : undefined}
         onProblem={onProblem}
       />
       <LookMenu compact={compact} onProblem={onProblem} />

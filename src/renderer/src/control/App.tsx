@@ -13,6 +13,7 @@ import {useSidebarCollapse} from '@renderer/shell/useSidebarCollapse';
 import {useUiZoomKeys} from '@renderer/shell/uiZoomKeys';
 import {Workspace} from '@renderer/shell/Workspace';
 import type {ControlSession} from './controlSession';
+import {usePrepSelection} from './usePrepSelection';
 import styles from './App.module.css';
 
 export function App({
@@ -33,6 +34,7 @@ export function App({
   const sidebar = useSidebarCollapse(sizeClass, uiState.layout, session.api);
   const serviceName = useShow(view => view.serviceName);
   const [workspace, setWorkspace] = useState<WorkspaceId>('show');
+  const prepSelection = usePrepSelection();
   const notices = useSyncExternalStore(session.subscribe, session.getNotices);
   const [warningHeight, setWarningHeight] = useState(0);
   const onWorkspace = (next: WorkspaceId): void => {
@@ -49,6 +51,7 @@ export function App({
         workspace={workspace}
         onWorkspace={onWorkspace}
         onProblem={session.report}
+        onOpenPrepSong={prepSelection.openSong}
         mediaOpen={workspace === 'show' && mediaStrip.visible}
         onMediaOpenChange={
           workspace === 'show' ? mediaStrip.setVisible : undefined
@@ -61,10 +64,18 @@ export function App({
         onProblem={session.report}
         prep={
           session.api && session.editor && session.items
-            ? {api: session.api, editor: session.editor, items: session.items}
+            ? {
+                api: session.api,
+                editor: session.editor,
+                items: session.items,
+                selectionRequest: prepSelection.request,
+                onSelectionHandled: prepSelection.handled,
+                onServiceItemOpen: prepSelection.clear,
+              }
             : undefined
         }
         onOpenPrep={itemId => {
+          prepSelection.clear();
           openItem(itemId);
           onWorkspace('prep');
           session.editor?.open(null);
