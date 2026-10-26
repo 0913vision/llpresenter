@@ -491,6 +491,15 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   항상 위 is a screen option that is off by default (user decisions from the
   check). An output window comes to the front once when its output turns on;
   after that other windows may cover it, and clicking it brings it back.
+- Media lives in one bottom 미디어 bin, shown and hidden with a 미디어 toggle,
+  in 진행 and in 준비 alike; 준비 no longer switches to a separate media view
+  (user decision, replacing open decision 21). ProPresenter 7 reserves the
+  bottom of its window for the Media Bin and shows or hides it with the toolbar
+  Media button, with playlists in the bin's left column (Renewed Vision,
+  "Understanding The ProPresenter User Interface"); no source says whether its
+  Edit view shows the bin, so the 준비 part is ours. Importing, playlists, and
+  the properties of the selected item work inside the bin. The 미디어 toggle
+  must not look like the 진행 and 준비 workspace switch.
 - Turning a screen output off hides its window, so that monitor shows the
   Windows desktop (user decision; Renewed Vision's documents and the 7.5 guide
   don't say what ProPresenter shows, so this is not a ProPresenter rule).
