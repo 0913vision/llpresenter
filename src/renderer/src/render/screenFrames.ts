@@ -99,7 +99,7 @@ export class ScreenFrames {
     ) {
       return previous.resolved;
     }
-    const resolved = resolveScreenLook(this.looks, lookId, screen.id);
+    const resolved = resolveScreenLook(this.looks, lookId, screen);
     this.resolution = {looks: this.looks, lookId, screen, resolved};
     if (resolved.gap !== null) this.report(screen, resolved.gap);
     return resolved;

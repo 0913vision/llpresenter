@@ -18,6 +18,9 @@ const DELETED = lookIdOf(72);
 const LOWER_THIRD = overlayUuid(73);
 const MISSING_STYLE = overlayUuid(74);
 const GREEN = '#00B140';
+const MAIN_SCREEN = {id: MAIN, kind: 'audience'} as const;
+const CAPTIONS_SCREEN = {id: CAPTIONS, kind: 'audience'} as const;
+const STAGE_SCREEN = {id: STAGE, kind: 'stage'} as const;
 
 function lookIdOf(id: number) {
   const parsed = parseLookId(overlayUuid(id));
@@ -58,14 +61,14 @@ function looks(): LooksFile {
 
 describe('screen Look resolution', () => {
   it('draws as before Looks while the Looks are unknown', () => {
-    expect(resolveScreenLook(null, NORMAL, MAIN)).toEqual({
+    expect(resolveScreenLook(null, NORMAL, MAIN_SCREEN)).toEqual({
       appearance: null,
       gap: null,
     });
   });
 
   it('takes the card of the live Look, with its lyric style and background', () => {
-    expect(resolveScreenLook(looks(), NORMAL, CAPTIONS)).toEqual({
+    expect(resolveScreenLook(looks(), NORMAL, CAPTIONS_SCREEN)).toEqual({
       appearance: {
         layers: {media: true, slide: true},
         lyricStyle: looks().lyricStyles[0],
@@ -73,7 +76,7 @@ describe('screen Look resolution', () => {
       },
       gap: null,
     });
-    expect(resolveScreenLook(looks(), NORMAL, MAIN).appearance).toEqual({
+    expect(resolveScreenLook(looks(), NORMAL, MAIN_SCREEN).appearance).toEqual({
       layers: {media: true, slide: true, message: true},
       lyricStyle: DEFAULT_LYRIC_STYLE,
       background: null,
@@ -81,29 +84,45 @@ describe('screen Look resolution', () => {
   });
 
   it('falls back to the saved current Look for no or a deleted live Look', () => {
-    const current = resolveScreenLook(looks(), NORMAL, STAGE);
-    expect(resolveScreenLook(looks(), DELETED, STAGE)).toEqual(current);
-    expect(resolveScreenLook(looks(), null, STAGE)).toEqual(current);
-    expect(resolveScreenLook(looks(), undefined, STAGE)).toEqual(current);
+    const current = resolveScreenLook(looks(), NORMAL, STAGE_SCREEN);
+    expect(resolveScreenLook(looks(), DELETED, STAGE_SCREEN)).toEqual(current);
+    expect(resolveScreenLook(looks(), null, STAGE_SCREEN)).toEqual(current);
+    expect(resolveScreenLook(looks(), undefined, STAGE_SCREEN)).toEqual(
+      current,
+    );
   });
 
   it('draws as before Looks when the current Look is gone too', () => {
     const orphaned = {...looks(), current: DELETED};
-    expect(resolveScreenLook(orphaned, DELETED, MAIN)).toEqual({
+    expect(resolveScreenLook(orphaned, DELETED, MAIN_SCREEN)).toEqual({
       appearance: null,
       gap: null,
     });
   });
 
   it('draws a screen without a card as before Looks and names the gap', () => {
-    expect(resolveScreenLook(looks(), SERMON, STAGE)).toEqual({
+    expect(resolveScreenLook(looks(), SERMON, STAGE_SCREEN)).toEqual({
       appearance: null,
       gap: {kind: 'no-card', id: SERMON},
     });
   });
 
+  it('draws a 무대 화면 with 기본 whatever lyric style its card names', () => {
+    const turnedStage = {...CAPTIONS_SCREEN, kind: 'stage'} as const;
+    expect(resolveScreenLook(looks(), NORMAL, turnedStage)).toEqual({
+      appearance: {
+        layers: {media: true, slide: true},
+        lyricStyle: DEFAULT_LYRIC_STYLE,
+        background: GREEN,
+      },
+      gap: null,
+    });
+    const missing = {...MAIN_SCREEN, kind: 'stage'} as const;
+    expect(resolveScreenLook(looks(), SERMON, missing).gap).toBeNull();
+  });
+
   it('draws a missing lyric style with 기본 and names the gap', () => {
-    expect(resolveScreenLook(looks(), SERMON, MAIN)).toEqual({
+    expect(resolveScreenLook(looks(), SERMON, MAIN_SCREEN)).toEqual({
       appearance: {
         layers: {media: true},
         lyricStyle: DEFAULT_LYRIC_STYLE,
@@ -120,8 +139,12 @@ describe('Look layer switches', () => {
   });
 
   it('hide an absent switch and the media behind a color background', () => {
-    const captions = resolveScreenLook(looks(), NORMAL, CAPTIONS).appearance;
-    const main = resolveScreenLook(looks(), NORMAL, MAIN).appearance;
+    const captions = resolveScreenLook(
+      looks(),
+      NORMAL,
+      CAPTIONS_SCREEN,
+    ).appearance;
+    const main = resolveScreenLook(looks(), NORMAL, MAIN_SCREEN).appearance;
     expect(showsLayer(main, 'media')).toBe(true);
     expect(showsLayer(main, 'notice')).toBe(false);
     expect(showsLayer(captions, 'media')).toBe(false);

@@ -9,6 +9,7 @@ import {
   overlayUuid,
   settingsDocument,
   STAGE,
+  TEXT_STYLE,
 } from '../../../main/live/testing/overlays';
 import {DEFAULT_LYRIC_STYLE} from './lyricStyle';
 import {MAX_REPORTED_LOOK_GAPS, ScreenFrames} from './screenFrames';
@@ -192,6 +193,44 @@ describe('ScreenFrames', () => {
     expect(onGap.mock.calls.map(([, gap]) => gap)).toEqual(
       broken.map(({id}) => ({kind: 'no-card', id})),
     );
+    frames.dispose();
+  });
+
+  it('drops the lyric style of a screen that becomes a 무대 화면', async () => {
+    const lowerThird = overlayUuid(210);
+    const styled = settingsDocument('looks', {
+      current: NORMAL,
+      looks: [
+        {
+          id: NORMAL,
+          name: '평상시',
+          screens: {
+            [CAPTIONS]: {layers: {slide: true}, lyricStyle: lowerThird},
+          },
+        },
+      ],
+      lyricStyles: [
+        {...TEXT_STYLE, id: lowerThird, name: '하단 자막', vAlign: 'bottom'},
+      ],
+    });
+    const settings = fakeSettings(styled);
+    const {frames} = await framesFor(CAPTIONS, settings);
+    const state = stateWith({});
+    expect(frames.frame(state)?.look?.lyricStyle.vAlign).toBe('bottom');
+    const screens = overlaySettings().reader.get('screens');
+    if (screens.name !== 'screens') throw new Error('Missing screens');
+    settings.push(
+      settingsDocument(
+        'screens',
+        {
+          screens: screens.value.screens.map(screen =>
+            screen.id === CAPTIONS ? {...screen, kind: 'stage'} : screen,
+          ),
+        },
+        2,
+      ),
+    );
+    expect(frames.frame(state)?.look?.lyricStyle).toEqual(DEFAULT_LYRIC_STYLE);
     frames.dispose();
   });
 
