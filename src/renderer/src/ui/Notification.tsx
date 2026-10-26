@@ -71,15 +71,15 @@ function Meta({values}: {readonly values: readonly string[]}): JSX.Element {
       {values.map((value, index) => (
         <Fragment key={value}>
           {index === 0 ? null : (
-            <span role="img" aria-label={META_ARROW_LABEL}>
-              <Icon
-                name="arrow"
-                size={META_ARROW_SIZE}
-                className={styles.arrow}
-              />
+            <span
+              role="img"
+              aria-label={META_ARROW_LABEL}
+              className={styles.separator}
+            >
+              <Icon name="arrow" size={META_ARROW_SIZE} />
             </span>
           )}
-          <span>{value}</span>
+          <span className={styles.value}>{value}</span>
         </Fragment>
       ))}
     </span>

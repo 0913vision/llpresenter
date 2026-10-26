@@ -3,10 +3,13 @@
   top: calc(var(--size-menubar) + var(--size-toolbar) + var(--panel-gap));
   right: var(--panel-gap);
   z-index: var(--z-notification);
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: var(--panel-gap);
+  gap: var(--space-8);
   width: var(--col-right);
+  padding: var(--space-8) var(--space-8) 0;
+  pointer-events: none;
 }
 
 .compact {
@@ -19,22 +22,25 @@
 .card {
   display: flex;
   align-items: flex-start;
-  gap: var(--space-12);
+  gap: var(--space-8);
   width: 100%;
-  padding: var(--space-12) var(--space-8) var(--space-12) var(--panel-inset);
-  border-radius: var(--radius-2xl);
+  padding: var(--space-8);
+  border-radius: var(--radius-lg);
   background: var(--bg-raised);
-  box-shadow: var(--shadow-dialog);
+  box-shadow: var(--shadow-popover);
   color: var(--text);
-  animation: appear var(--motion-popover);
+  animation: none;
+  transition: none;
+  pointer-events: auto;
 }
 
 .card[data-state='warning'] {
-  box-shadow: var(--bar-warning), var(--shadow-dialog);
+  box-shadow: var(--bar-warning), var(--shadow-popover);
 }
 
 .icon {
   flex: none;
+  min-height: var(--size-control-sm);
   color: var(--text-2);
 }
 
@@ -59,7 +65,8 @@
 
 .head {
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  min-height: var(--size-control-sm);
   gap: var(--space-10);
   min-width: 0;
 }
@@ -74,6 +81,7 @@
 
 .time {
   flex: none;
+  margin-inline-start: auto;
   color: var(--text-3);
   font: var(--type-label);
   font-variant-numeric: tabular-nums;
@@ -81,15 +89,24 @@
 
 .meta {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-10);
+  gap: var(--space-4) var(--space-8);
   min-width: 0;
   color: var(--text-2);
   font: var(--type-label);
-  white-space: nowrap;
 }
 
-.arrow {
+.value {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.separator {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  align-self: center;
   color: var(--text-3);
 }
 
@@ -101,7 +118,6 @@
 
 .card .close {
   flex: none;
-  margin-top: calc(-1 * var(--space-4));
 }
 
 .card .close:hover,
@@ -111,10 +127,4 @@
 
 .card .close:active {
   color: var(--text);
-}
-
-@keyframes appear {
-  from {
-    opacity: 0;
-  }
 }

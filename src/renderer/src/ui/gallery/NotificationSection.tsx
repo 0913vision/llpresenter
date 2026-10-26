@@ -110,7 +110,7 @@ export function NotificationSection(): JSX.Element {
   return (
     <Section title="Notification">
       <SpecGroup
-        title="Card: right column width (480, narrow window 360), bg-raised, radius-2xl, padding 12 8 12 14"
+        title="Inset card: bg-raised, radius-lg, shadow-popover, padding 8"
         alignTop
       >
         <SpecItem
@@ -126,6 +126,24 @@ export function NotificationSection(): JSX.Element {
           <NotificationCard notice={back} onClose={ignore} />
         </SpecItem>
       </SpecGroup>
+      <SpecGroup title="Long metadata stays inside the card" alignTop>
+        <SpecItem label="Import failure at narrow width" width={NARROW_WIDTH}>
+          <NotificationCard
+            notice={{
+              key: 'media:copy',
+              kind: 'warning',
+              icon: 'warning',
+              title: '미디어를 가져오지 못함',
+              time: '11:29',
+              meta: [
+                'notice-sample-with-a-long-file-name.webm',
+                '파일을 읽을 수 없음',
+              ],
+            }}
+            onClose={ignore}
+          />
+        </SpecItem>
+      </SpecGroup>
       <SpecGroup title="States" alignTop>
         <SpecItem
           label="Action focus, action and close hover"
@@ -138,8 +156,8 @@ export function NotificationSection(): JSX.Element {
           <NotificationCard notice={back} onClose={ignore} />
         </SpecItem>
       </SpecGroup>
-      <SpecGroup title="Stacking: newest on top, 4px apart, up to 3">
-        <SpecItem label="In the window's top right, under the toolbar">
+      <SpecGroup title="Stacking: newest on top, 8px apart, up to 3">
+        <SpecItem label="Inset from the top-right column, no card animation">
           <StackDemo />
         </SpecItem>
       </SpecGroup>

@@ -7,11 +7,11 @@
 <style>
   html, body { margin: 0; }
   /* Preview only: cards at actual width (480) and a 1920×1080 window scaled to 0.24 */
-  .pv-col { display: flex; flex-direction: column; gap: 4px; width: 480px; }
+  .pv-col { display: flex; flex-direction: column; gap: var(--space-8); width: 480px; }
   .pv-notice { animation: none; }
   .pv-win { position: relative; width: 442px; height: 249px; border-radius: var(--radius-md); background: var(--bg-app); overflow: hidden; box-shadow: 0 0 0 1px var(--line); }
   .pv-win__p { position: absolute; border-radius: 1px; background: var(--bg-panel); }
-  .pv-win__card { position: absolute; right: 1px; top: 22px; width: 110px; height: 25px; border-radius: 2px; background: var(--bg-raised); box-shadow: inset 2px 0 0 var(--warning), 0 0 0 1px var(--line-strong); }
+  .pv-win__card { position: absolute; right: 3px; top: 24px; width: 106px; height: 25px; border-radius: 1px; background: var(--bg-raised); box-shadow: inset 2px 0 0 var(--warning), 0 0 0 1px var(--line-strong); }
   .pv-win__card--info { box-shadow: var(--shadow-popover); }
   .pv-win__prev { position: absolute; right: 4px; width: 104px; height: 58px; border-radius: 1px; background: var(--output-black); box-shadow: 0 0 0 1px var(--line); }
   .pv-win__tag { position: absolute; font-size: 11px; line-height: 14px; color: var(--text-2); white-space: nowrap; }
@@ -20,7 +20,7 @@
 <body>
 <div class="ll-preview">
 
-  <div class="ll-spec-title">Card: right column width (480, narrow window 360), bg-raised, radius-2xl, padding 12 8 12 14</div>
+  <div class="ll-spec-title">Card: inset 8 inside the right column, bg-raised, radius-lg, shadow-popover, padding 8, immediate arrival and dismissal</div>
   <div class="ll-spec" style="align-items: flex-start">
     <div class="ll-spec-item">
       <div class="pv-col">
@@ -59,6 +59,16 @@
   </div>
 
   <div class="ll-spec-title">States</div>
+  <div class="pv-col" style="width: 360px; margin-bottom: var(--space-16)">
+    <section class="ll-notice" role="alert" data-state="warning">
+      <span class="ll-i ll-i-18 ll-i-warning ll-notice__icon" aria-hidden="true"></span>
+      <div class="ll-notice__body"><div class="ll-notice__text">
+        <div class="ll-notice__head"><span class="ll-notice__title">미디어를 가져오지 못함</span><span class="ll-notice__time">11:29</span></div>
+        <div class="ll-notice__meta"><span>notice-sample-with-a-long-file-name.webm</span><span class="ll-i ll-i-12 ll-i-arrow"></span><span>파일을 읽을 수 없음</span></div>
+      </div></div>
+      <button class="ll-notice__close" aria-label="알림 닫기"><span class="ll-i ll-i-x"></span></button>
+    </section>
+  </div>
   <div class="ll-spec" style="align-items: flex-start">
     <div class="ll-spec-item">
       <div class="pv-col">
@@ -96,13 +106,13 @@
     </div>
   </div>
 
-  <div class="ll-spec-title">Position: 4px under the toolbar and from the right. A lasting warning pushes the right column down; information floats, closes after 6s</div>
+  <div class="ll-spec-title">Position: cards 12px below the toolbar and from the right edge. Warning space includes the inset; information closes after 6s</div>
   <div class="ll-spec" style="align-items: flex-start; gap: 16px">
     <div class="ll-spec-item">
       <div class="pv-win" aria-hidden="true">
         <div class="pv-win__p" style="left: 1px; top: 21px; width: 64px; bottom: 8px"></div>
         <div class="pv-win__p" style="left: 66px; top: 21px; right: 112px; bottom: 8px"></div>
-        <div class="pv-win__card" style="top: 21px"></div>
+        <div class="pv-win__card" style="top: 24px"></div>
         <div class="pv-win__p" style="right: 1px; top: 47px; width: 110px; height: 80px"></div>
         <div class="pv-win__prev" style="top: 58px"></div>
         <div class="pv-win__p" style="right: 1px; top: 128px; width: 110px; bottom: 8px"></div>
@@ -118,7 +128,7 @@
         <div class="pv-win__p" style="right: 1px; top: 21px; width: 110px; height: 80px"></div>
         <div class="pv-win__prev" style="top: 32px"></div>
         <div class="pv-win__p" style="right: 1px; top: 102px; width: 110px; bottom: 8px"></div>
-        <div class="pv-win__card pv-win__card--info" style="top: 21px; height: 15px"></div>
+        <div class="pv-win__card pv-win__card--info" style="top: 24px; height: 15px"></div>
         <span class="pv-win__tag" style="left: 72px; top: 30px">Info card floats over the preview</span>
         <span class="pv-win__tag" style="left: 72px; top: 48px">Closes after 6 seconds, waits on hover</span>
       </div>
@@ -126,7 +136,7 @@
     </div>
   </div>
 
-  <div class="ll-spec-title">Stacking: newest on top, 4px apart, up to 3</div>
+  <div class="ll-spec-title">Stacking: newest on top, 8px apart, up to 3</div>
   <div class="pv-col">
     <section class="ll-notice pv-notice" role="status">
       <span class="ll-i ll-i-18 ll-i-monitor ll-notice__icon" aria-hidden="true"></span>

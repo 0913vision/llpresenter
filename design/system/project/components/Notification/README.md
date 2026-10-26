@@ -1,76 +1,80 @@
 # Notification
 
-Shows something the app must report on its own as a card at the top right. A warning, such as a lost output monitor, stays until it is resolved, and information, such as a reconnected monitor, closes after 6 seconds.
+Reports an app problem or recovery in the top-right column. Every workspace
+uses `NotificationStack` and `NotificationCard`, including media import failures,
+output connection changes and save failures.
 
 ## Where to use
 
-- Warnings: a lost monitor connection for an output screen ("무대 모니터 연결 끊김", now showing in a window)
-- Information: a lost monitor is connected again ("무대 모니터 다시 연결됨")
+- App problems that need attention, such as a lost monitor or failed import.
+- Recovery information, such as a monitor reconnecting.
+- Missing files on existing tiles use their in-place missing-file state.
+- Successful operator actions use the status bar. Questions use `AlertDialog`.
 
-## Where not to use
+## Placement and anatomy
 
-- A problem with one 슬라이드 (slide) or one media item (missing media file): show it in place. Media tiles use `MediaTile`, thumbnails use the missing file look of `SlideThumbnail`, and list rows use the warning icon of `ListRow`. Don't show a notification card.
-- The result of something the user just did (cleared, saved): don't show anything. The status bar reports saving with "23:41 저장됨".
-- Something that needs an answer: use `AlertDialog`.
+- The stack's outer box matches the right column: `col-right` (480px), or
+  `col-right-compact` (360px). Anchor it `panel-gap` below the toolbar and from
+  the right window edge, then inset cards by `space-8` on the top and sides.
+  Cards therefore sit 12px from the toolbar and window edge. Separate cards
+  with `space-8`. Use `z-notification`, above dialogs and their scrim.
+- Card: `bg-raised`, `radius-lg`, `shadow-popover`, `space-8` padding and gaps.
+  This is the same floating surface as menus, with the corner treatment of
+  nearby panels. Avoid the heavier dialog shadow. A warning keeps `bar-warning`
+  on its inside left edge.
+- Leading icon: 18px, `warning` for warnings or `text-2` for information.
+  Center its mask in a `size-control-sm` (26px) title line.
+- Title row: `type-title` (14/20/600), with `type-label` (12/16) time in
+  `text-3` at the trailing edge. Keep `space-10` between title and time. Long
+  titles truncate; the time and close control remain visible.
+- Details: `space-2` below the title row, `type-label` in `text-2`. Use
+  `space-8` between values and arrows. Each 12px `text-3` arrow has a flex
+  wrapper centered on the line, without an inline text baseline. Long values
+  wrap within the card. Use `space-4` between wrapped lines.
+- Actions: up to two secondary small buttons, `space-10` below the text,
+  separated by `space-6`.
+- Close: standard 26px `IconButton`, aligned with the title and leading icon.
+  No negative margin. Use `bg-control-hover` on hover or press.
 
-## Anatomy
+## States and motion
 
-- Position `ll-notice-stack`: `panel-gap` (4px) under the toolbar, 4px from the right of the window. In a regular window it is 90px from the top (30 + 56 + 4), and in a narrow window (`--compact`) 74px (30 + 40 + 4). The width matches the right column: `col-right` (480px), or `col-right-compact` (360px) in a narrow window. Stacking `z-notification` (above dialogs and the scrim).
-- Card `ll-notice`: background `bg-raised`, corner radius `radius-2xl`, shadow `shadow-dialog`, padding 12 top, 8 right, 12 bottom, 14 left, `space-12` between parts.
-  - Icon `ll-notice__icon`: 18px. `warning` for a warning, `text-2` for information. A warning card draws a 3px `warning` bar on the inside of its left edge.
-  - Title row `ll-notice__head`: title `ll-notice__title` (`title` 13/18/600) + time `ll-notice__time` (`label` `text-3`), `space-10` between them.
-  - Extra row `ll-notice__meta`: `space-2` under the title row, `label` `text-2`, `space-10` between values, arrow `arrow` 12px `text-3` ("모니터 3 → 창으로 표시 중").
-  - Actions `ll-notice__actions`: `space-10` under the text, secondary sm buttons (leading icon 14px), `space-6` between them, up to two.
-  - Close `ll-notice__close`: 26×26, `x` 16px `text-2`, raised by 4px to center it on the title row. The card is `bg-raised`, so the hover background is `bg-control-hover`.
-- Stacking: the newest notification is on top, 4px apart, up to 3 cards. When there are more, close the oldest information card first. A notification with the same cause (same screen, same monitor) doesn't stack a new card; it replaces that card (lost → connected again).
+| State | Appearance | Lifetime |
+| --- | --- | --- |
+| Warning | `warning` icon and inset bar, `role="alert"` | Until resolved or closed |
+| Information | `text-2` icon, `role="status"` | Six seconds |
+| Pointer or focus inside | No visual change | Restart six seconds on leaving |
+| Focus on action or close | Standard 2px `accent` focus ring | No focus stealing |
+| Arrival, replacement or dismissal | Immediate | No fade, translation or delayed removal |
 
-## Sizes and variants
+Operational state must be readable immediately. Do not use `motion-popover` or
+`motion-dialog` on cards, and do not animate the right column. Interactive
+controls keep `motion-hover`. Reduced motion has the same immediate behavior.
 
-| Name | Height | Text | Where to use |
-| --- | --- | --- | --- |
-| Warning | 96 (12 + 36 + 10 + 26 + 12) | `title` 13/18/600, `label` | Lost monitor connection |
-| Information | 60 (12 + 36 + 12) | `title`, `label` | Connected again |
-| Narrow window | Same, width 360 | Same | 1366×768 and similar |
+## Behavior and accessibility
 
-## States
+- Newest first, at most three. Replace the same cause instead of duplicating
+  it. At the limit, drop the oldest information card before a warning.
+- Lasting warnings reserve the vertical space through the bottom of the last
+  warning, including the stack's top inset. The right column begins a
+  `panel-gap` below it. Information cards float without reserving space.
+- Resolution replaces a warning with information. Closing restores the column
+  immediately. The problem can still be shown by its toolbar/status mark.
+- Keep the notification portal outside modal `inert`. Actions participate in
+  the modal Tab cycle. Notifications never take focus or make a sound.
+- Name each card with `aria-labelledby` pointing to its title. Escape belongs
+  to menus and dialogs and does not dismiss the card.
+- The stack's empty area passes pointer events through to the app.
 
-| State | Background | Text and icon | Other |
-| --- | --- | --- | --- |
-| Warning | `bg-raised` | Icon `warning` | 3px `warning` bar on the left. Stays until resolved or closed. `role="alert"` |
-| Information | `bg-raised` | Icon `text-2` | Closes after 6 seconds. `role="status"` |
-| Pointer over it, focus inside it | Unchanged | Unchanged | Pauses the close timer, and counts 6 seconds again after the pointer or focus leaves |
-| Close, hover | `bg-control-hover` | `text-2` | 100ms |
-| Close, pressed | `bg-control-hover` | `text` | |
-| Close or action, focus | Unchanged | Unchanged | outline 2px `accent`, offset 1px |
-| Appearing | | | 120ms fade, at once under `prefers-reduced-motion` |
+## Writing and implementation
 
-## Behavior
+Use a noun phrase without punctuation for the title, a 24-hour `HH:MM` time,
+short current-state details and verb action labels. No apologies or exclamations.
 
-- Don't cover the preview for long.
-  - While a lasting warning card is present, move the right column down by the height of the card stack + 4px. The preview panel and its controls stay uncovered (same layout as the Problems draft). If there isn't enough height, the 진행 도구 (show tools) panel shrinks first, following the `Layout` rules.
-  - An information card doesn't move the column down. It floats in place and closes after 6 seconds. It briefly covers the preview header and part of the top of the screen.
-  - When the user closes a warning with close (×), only the card disappears and the right column returns to its place. The problem stays visible through the `warning` mark on the toolbar output button and the status bar text ("무대 화면 창으로 표시 중"). A click on that status bar text opens the card again.
-- When the problem is resolved, the warning card turns into an information card ("무대 모니터 다시 연결됨") and closes after 6 seconds.
-- Notifications don't move focus. The card's actions and close button go into the Tab order before the right column. Esc doesn't close a notification (menus and dialogs use Esc).
-- Even while a dialog is open, notifications appear in the same place above the scrim, and their action buttons stay clickable.
-- Notifications make no sound.
-- aria: warning `role="alert"`, information `role="status"`, and `aria-labelledby` on the card pointing to the title.
+`addNotice` replaces by key and caps the list; `removeNotice` removes by key.
+Keep each notice object stable while displayed, because a replacement restarts
+its lifetime. `NotificationStack.onWarningHeightChange` reports the reserved
+height. Release timers and the stack's `ResizeObserver` on unmount.
 
-## Writing
-
-- Write the title as a noun phrase that says what happened to what, with no period: "무대 모니터 연결 끊김", "무대 모니터 다시 연결됨".
-- Write the time in 24-hour format, without seconds: "11:24".
-- Write the current state in the extra row: "모니터 3 → 창으로 표시 중".
-- Write up to two actions, as verbs: "모니터 다시 찾기", "창 보기".
-- Don't write apologies, exclamations, or explanatory sentences.
-
-## Implementation notes
-
-- `<NotificationStack notices={notices} compact={isCompact} onClose={key => …} onWarningHeightChange={height => …} />`. The caller keeps the list: `addNotice(notices, {kind: 'warning' | 'info', key: 'screen:stage', icon: 'plug', title: '무대 모니터 연결 끊김', time: '11:24', meta: ['모니터 3', '창으로 표시 중'], actions: [{icon: 'refresh', label: '모니터 다시 찾기', onSelect}, {icon: 'open', label: '창 보기', onSelect}]})` puts a card on top, replaces the card with the same `key`, and keeps at most 3; `removeNotice(notices, key)` takes one off. An information card calls `onClose` itself after 6 seconds.
-- Pushing the right column down: the stack measures how far the lasting warning cards reach (ResizeObserver) and reports it through `onWarningHeightChange`; set the right column's `padding-top` to that height + 4px. When only information cards are present, it is 0.
-- Keep the notification layer outside the modal's `inert`.
-- Classes: `ll-notice-stack`, `ll-notice-stack--compact`, `ll-notice`, `ll-notice__icon`, `ll-notice__body`, `ll-notice__text`, `ll-notice__head`, `ll-notice__title`, `ll-notice__time`, `ll-notice__meta`, `ll-notice__actions`, `ll-notice__close`. A warning has `data-state="warning"`.
-
-## Changes from the drafts
-
-- Problems notification card: background #1c1c1c (`bg-panel`), radius 5, no shadow → `bg-raised`, `radius-2xl`, `shadow-dialog`. The 3px `warning` bar on the left stays. Close icon 14px #8c8c8c → 16px `text-2`. Extra row arrow #6e6e6e → `text-3`. Gap between title row and extra row 3 → 2.
+The design and renderer galleries cover warnings, recovery information, actions,
+long metadata and a replaceable, dismissible stack. M3-C3-5 replaces the old
+edge-to-edge, rounded dialog card and its entry fade with this treatment.

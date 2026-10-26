@@ -133,9 +133,9 @@ The app uses one typeface, Pretendard Variable (`fonts/PretendardVariable.woff2`
 | `radius-xs` | 2 | Small graphics inside buttons, progress bars |
 | `radius-sm` | 3 | Segments, chips, badges, keycaps, checkboxes |
 | `radius-md` | 4 | Buttons, text fields, thumbnails, menu items |
-| `radius-lg` | 5 | Panels, toolbar buttons, two-line list items |
+| `radius-lg` | 5 | Panels, toolbar buttons, two-line list items, notifications |
 | `radius-xl` | 6 | Menus, popovers, tooltips |
-| `radius-2xl` | 8 | Dialogs, notifications |
+| `radius-2xl` | 8 | Dialogs |
 | `radius-tile` | 14 | Macro tiles |
 
 - Don't make the corner radius of an inner element larger than that of its outer element.
@@ -168,6 +168,9 @@ The app uses one typeface, Pretendard Variable (`fonts/PretendardVariable.woff2`
 - Background changes for hover and pressed take 100ms ease-out, menus and tooltips fade over 120ms, and dialogs fade over 160ms. Don't add any other motion. In code, use the tokens `--motion-hover`, `--motion-popover`, and `--motion-dialog` (for example `transition: background-color var(--motion-hover)`).
 - Don't add UI motion to the output screens. Look and the settings decide the transitions when a 슬라이드 or a background changes.
 - Under `prefers-reduced-motion`, set all UI motion to 0.
+- Notification cards appear, replace and close immediately. Their operational
+  state must stay legible without a fade or translation; controls still use
+  `motion-hover`. See the Notification README for placement and alignment.
 - Menu row backgrounds are an exception to hover motion: entering and leaving
   a row changes its highlight immediately. Menu appearance and submenu timing
   remain the separate behaviors documented in `Menu`.
