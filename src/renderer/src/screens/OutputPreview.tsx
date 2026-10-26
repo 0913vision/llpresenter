@@ -13,6 +13,9 @@ import {selectedScreenIn, useScreensSelection} from './selection';
 import {useMonitors} from './useMonitors';
 import {useSettingsDocument} from './useSettingsDocument';
 import styles from './OutputPreview.module.css';
+import {fitAspect} from './fitAspect';
+import {useElementSize} from './useElementSize';
+import {REFERENCE_SCREEN} from '@renderer/render/lyricStyle';
 
 type PreviewMode = 'content' | 'pattern';
 
@@ -52,6 +55,11 @@ function PreviewBody({
   readonly caption: PreviewCaption;
 }): JSX.Element {
   const [mode, setMode] = useState<PreviewMode>('content');
+  const [watchPicture, available] = useElementSize();
+  const picture =
+    available === undefined
+      ? undefined
+      : fitAspect(available, REFERENCE_SCREEN.width / REFERENCE_SCREEN.height);
   useTestPatternOnOutput(screen.id, mode);
   const signal = signalText(caption);
   return (
@@ -62,12 +70,15 @@ function PreviewBody({
         value={mode}
         onChange={setMode}
         fill
+        className={styles.mode}
       />
-      <div className={styles.frame}>
-        <ScreenPreview
-          screenId={screen.id}
-          chroma={screen.method === 'capture'}
-        />
+      <div className={styles.picture} ref={watchPicture}>
+        <div className={styles.frame} style={picture} data-preview-picture>
+          <ScreenPreview
+            screenId={screen.id}
+            chroma={screen.method === 'capture'}
+          />
+        </div>
       </div>
       <div className={styles.caption}>
         <span className={styles.name}>{caption.name}</span>

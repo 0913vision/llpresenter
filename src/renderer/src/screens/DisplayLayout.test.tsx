@@ -10,6 +10,7 @@ import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@shared/commands';
 import type {MonitorList} from '@shared/schema/monitors';
+import type {SettingsDocument} from '@shared/schema/settingsDocuments';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {DisplayLayout} from './DisplayLayout';
 import {ScreenList} from './ScreenList';
@@ -20,7 +21,9 @@ import {
   MAIN_ID,
   STAGE_ID,
   screensDocument,
+  settingsDocument,
 } from './testing/documents';
+import {wideMonitorArrangement} from './testing/monitorArrangement';
 
 function monitor(number: number, x: number, hasMainWindow = false) {
   return {
@@ -40,6 +43,7 @@ const monitors: MonitorList = [monitor(1, 0, true), monitor(2, 1920)];
 function setup(
   get: () => Promise<MonitorList> = () => Promise.resolve(monitors),
   access: 'editable' | 'readOnly' = 'editable',
+  document: SettingsDocument = screensDocument(),
 ) {
   let push: (next: MonitorList) => void = () => undefined;
   const stop = vi.fn();
@@ -57,7 +61,7 @@ function setup(
       },
     },
     settings: {
-      get: () => Promise.resolve({...screensDocument(), access}),
+      get: () => Promise.resolve({...document, access}),
       edit,
     },
     live: {send},
@@ -279,9 +283,83 @@ describe('the display layout', () => {
     stage.measure();
 
     const arrangement = box(1).parentElement;
-    const {width, height} = arrangement?.style ?? {};
+    const {width, aspectRatio, minWidth} = arrangement?.style ?? {};
     expect(parseFloat(width ?? '')).toBeCloseTo(100 * (1920 / 2160), 5);
-    expect(parseFloat(height ?? '')).toBeCloseTo(100, 5);
+    expect(parseFloat(aspectRatio ?? '')).toBeCloseTo(1920 / 2160);
+    expect(minWidth).toContain('var(--size-row)');
+  });
+
+  it.each(['editable', 'readOnly'] as const)(
+    'selects the exact wide layout and separate cards without writing (%s)',
+    async access => {
+      const stage = stubStage(800, 350);
+      const source = screensDocument();
+      if (source.name !== 'screens') throw new Error('Wrong document');
+      const doc = settingsDocument('screens', {
+        screens: source.value.screens.map(screen =>
+          screen.id === STAGE_ID ? {...screen, method: 'window'} : screen,
+        ),
+      });
+      const {edit, send} = setup(
+        () => Promise.resolve(wideMonitorArrangement),
+        access,
+        doc,
+      );
+      await screen.findByRole('button', {name: '모니터 2 Second monitor'});
+      stage.measure();
+      const arrangement = box(1).parentElement;
+      expect(parseFloat(arrangement?.style.width ?? '')).toBeCloseTo(800);
+      expect(parseFloat(arrangement?.style.aspectRatio ?? '')).toBeCloseTo(
+        5360 / 1440,
+      );
+      expect(parseFloat(box(2).style.top)).toBeCloseTo((222 / 1440) * 100);
+      expect(parseFloat(box(2).style.left)).toBeCloseTo(
+        parseFloat(box(1).style.width),
+      );
+      await userEvent.click(screen.getByRole('button', {name: '방송 자막'}));
+      expect(useScreensSelection.getState().selection.id).toBe(CAPTIONS_ID);
+      await userEvent.click(screen.getByRole('button', {name: '무대 화면'}));
+      expect(useScreensSelection.getState().selection.id).toBe(STAGE_ID);
+      expect(
+        screen.getByRole('button', {name: '무대 화면'}).textContent,
+      ).toContain('960×540');
+      await userEvent.click(
+        screen.getByRole('button', {name: '모니터 2 Second monitor'}),
+      );
+      expect(useScreensSelection.getState().selection.id).toBe(MAIN_ID);
+      await userEvent.click(
+        screen.getByRole('button', {name: '모니터 1 Wide monitor'}),
+      );
+      expect(box(1).getAttribute('aria-pressed')).toBe('true');
+      expect(box(2).getAttribute('aria-pressed')).toBe('false');
+      expect(edit).not.toHaveBeenCalled();
+      expect(send).not.toHaveBeenCalled();
+    },
+  );
+
+  it('names the empty monitor and screen states', async () => {
+    setup(
+      () => Promise.resolve([]),
+      'editable',
+      settingsDocument('screens', {screens: []}),
+    );
+    expect(await screen.findByText('연결된 모니터 없음')).toBeDefined();
+    expect(await screen.findByText('등록된 화면 없음')).toBeDefined();
+    expect(document.querySelector('[data-monitor]')).toBeNull();
+  });
+
+  it('follows changed ownership after selecting a monitor box', async () => {
+    const {push} = setup();
+    const assigned = await screen.findByRole('button', {
+      name: '모니터 2 Monitor 2',
+    });
+    await userEvent.click(assigned);
+    push([
+      {...monitor(1, 0, true), screenIds: [MAIN_ID]},
+      {...monitor(2, 1920), screenIds: []},
+    ]);
+    expect(box(1).getAttribute('aria-pressed')).toBe('true');
+    expect(box(2).getAttribute('aria-pressed')).toBe('false');
   });
 
   it('stops observing the panel when it unmounts', async () => {

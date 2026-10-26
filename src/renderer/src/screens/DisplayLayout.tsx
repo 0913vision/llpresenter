@@ -1,13 +1,28 @@
-import {useMemo, type CSSProperties, type DragEvent, type JSX} from 'react';
+import {
+  useMemo,
+  useState,
+  type CSSProperties,
+  type DragEvent,
+  type JSX,
+} from 'react';
 import type {Screen} from '@shared/schema/screens';
-import {MONITOR_SCREEN_ID_MAX} from '@shared/schema/monitors';
+import {MONITOR_SCREEN_ID_MAX, type MonitorList} from '@shared/schema/monitors';
 import {Button} from '@renderer/ui';
 import {classNames} from '@renderer/ui/classNames';
 import {sendLive} from '@renderer/state/live';
 import type {Notice} from '@renderer/ui/notices';
-import {displayLayout, type MonitorBox, type TargetBox} from './layoutBoxes';
+import {
+  displayLayout,
+  type DisplayLayoutModel,
+  type MonitorBox,
+  type TargetBox,
+} from './layoutBoxes';
 import {fitAspect, type BoxSize} from './fitAspect';
-import {selectedScreenIn, useScreensSelection} from './selection';
+import {
+  selectedScreenIn,
+  useScreensSelection,
+  type ScreensSelection,
+} from './selection';
 import {useElementSize} from './useElementSize';
 import {useMonitors} from './useMonitors';
 import {useSettingsDocument} from './useSettingsDocument';
@@ -20,6 +35,8 @@ const LOAD_TITLE = '화면';
 const IDENTIFY_LABEL = '모니터 번호 표시';
 const CONTROL_LABEL = '컨트롤';
 const PERCENT_UNIT = '%';
+const MIN_MONITOR_WIDTH_ROWS = 6;
+const MIN_MONITOR_HEIGHT_ROWS = 4;
 const noScreens: readonly Screen[] = [];
 
 function percent(value: number): string {
@@ -28,24 +45,44 @@ function percent(value: number): string {
 
 function arrangementStyle(
   available: BoxSize | undefined,
-  aspectRatio: number,
+  model: DisplayLayoutModel,
 ): CSSProperties {
-  if (available === undefined) return {aspectRatio};
-  const {width, height} = fitAspect(available, aspectRatio);
-  return {width: `${width}px`, height: `${height}px`};
+  const {aspectRatio, monitors} = model;
+  const minimumWidth = Math.max(
+    ...monitors.map(box =>
+      Math.max(
+        (MIN_MONITOR_WIDTH_ROWS * 100) / box.width,
+        ((MIN_MONITOR_HEIGHT_ROWS * 100) / box.height) * aspectRatio,
+      ),
+    ),
+  );
+  return {
+    width:
+      available === undefined
+        ? '100%'
+        : `${fitAspect(available, aspectRatio).width}px`,
+    minWidth: `calc(var(--size-row) * ${minimumWidth})`,
+    aspectRatio,
+  };
 }
 
 function MonitorView({
   box,
   onDrop,
   enabled,
+  onSelect,
 }: {
   readonly box: MonitorBox;
   readonly onDrop: (event: DragEvent) => void;
   readonly enabled: boolean;
+  readonly onSelect: () => void;
 }): JSX.Element {
   return (
-    <div
+    <button
+      type="button"
+      aria-label={`모니터 ${box.number} ${box.name}`}
+      aria-pressed={box.selected}
+      onClick={onSelect}
       className={classNames(styles.monitor, box.selected && styles.selected)}
       data-monitor={box.number}
       aria-current={box.selected ? 'true' : undefined}
@@ -72,23 +109,29 @@ function MonitorView({
       {box.screens.length > 0 && (
         <span className={styles.screens}>{box.screens.join(', ')}</span>
       )}
+      {box.screens.length === 0 && <span>연결된 화면 없음</span>}
       {box.control && <span className={styles.control}>{CONTROL_LABEL}</span>}
       <span>{box.resolution}</span>
       <span>{box.name}</span>
-    </div>
+    </button>
   );
 }
 
 function TargetView({target}: {readonly target: TargetBox}): JSX.Element {
   return (
-    <div
+    <button
+      type="button"
+      aria-label={target.name}
+      aria-pressed={target.selected}
+      onClick={() => useScreensSelection.getState().select('screen', target.id)}
       className={classNames(styles.target, target.selected && styles.selected)}
       data-target={target.id}
       aria-current={target.selected ? 'true' : undefined}
     >
       <span className={styles.targetName}>{target.name}</span>
+      <span>{target.detail}</span>
       {target.resolution !== undefined && <span>{target.resolution}</span>}
-    </div>
+    </button>
   );
 }
 
@@ -109,6 +152,11 @@ export function DisplayLayout({
   const screens = document?.value.screens ?? noScreens;
   const selectedId = selectedScreenIn(selection, screens)?.id;
   const select = useScreensSelection(view => view.select);
+  const [pickedMonitor, setPickedMonitor] = useState<{
+    number: number;
+    selection: ScreensSelection;
+    monitors: MonitorList;
+  } | null>(null);
   const [watchStage, stageSize] = useElementSize();
   const model = useMemo(
     () => displayLayout(monitors, screens, selectedId),
@@ -125,56 +173,89 @@ export function DisplayLayout({
         </Button>
       </div>
       <div className={styles.stage} ref={watchStage}>
-        <div
-          className={styles.arrangement}
-          style={arrangementStyle(stageSize, model.aspectRatio)}
-        >
-          {model.monitors.map(box => (
-            <MonitorView
-              key={box.number}
-              box={box}
-              enabled={
-                document?.access === 'editable' &&
-                monitors.some(
-                  monitor =>
-                    monitor.number === box.number && monitor.id !== undefined,
-                )
-              }
-              onDrop={event => {
-                if (document?.access !== 'editable') return;
-                const monitor = monitors.find(
-                  item => item.number === box.number,
-                );
-                if (
-                  monitor === undefined ||
-                  monitor.hasMainWindow ||
-                  monitor.id === undefined ||
-                  !event.dataTransfer.types.includes(SCREEN_DRAG_MIME)
-                ) {
-                  return;
+        {model.monitors.length === 0 ? (
+          <span className={styles.empty}>연결된 모니터 없음</span>
+        ) : (
+          <div
+            className={styles.arrangement}
+            style={arrangementStyle(stageSize, model)}
+          >
+            {model.monitors.map(box => (
+              <MonitorView
+                key={box.number}
+                box={{
+                  ...box,
+                  selected:
+                    pickedMonitor?.selection === selection &&
+                    pickedMonitor.monitors === monitors
+                      ? pickedMonitor.number === box.number
+                      : box.selected,
+                }}
+                onSelect={() => {
+                  const screenId = box.screenIds.includes(selectedId ?? '')
+                    ? selectedId
+                    : box.screenIds[0];
+                  if (screenId !== undefined) select('screen', screenId);
+                  setPickedMonitor({
+                    number: box.number,
+                    selection: useScreensSelection.getState().selection,
+                    monitors,
+                  });
+                }}
+                enabled={
+                  document?.access === 'editable' &&
+                  monitors.some(
+                    monitor =>
+                      monitor.number === box.number && monitor.id !== undefined,
+                  )
                 }
-                const screenId = event.dataTransfer.getData(SCREEN_DRAG_MIME);
-                if (
-                  screenId.length > MONITOR_SCREEN_ID_MAX ||
-                  !screens.some(screen => screen.id === screenId)
-                ) {
-                  return;
-                }
-                event.preventDefault();
-                select('screen', screenId);
-                editor.assign(screenId, monitor);
-              }}
-            />
-          ))}
-        </div>
+                onDrop={event => {
+                  if (document?.access !== 'editable') return;
+                  const monitor = monitors.find(
+                    item => item.number === box.number,
+                  );
+                  if (
+                    monitor === undefined ||
+                    monitor.hasMainWindow ||
+                    monitor.id === undefined ||
+                    !event.dataTransfer.types.includes(SCREEN_DRAG_MIME)
+                  ) {
+                    return;
+                  }
+                  const screenId = event.dataTransfer.getData(SCREEN_DRAG_MIME);
+                  if (
+                    screenId.length > MONITOR_SCREEN_ID_MAX ||
+                    !screens.some(screen => screen.id === screenId)
+                  ) {
+                    return;
+                  }
+                  event.preventDefault();
+                  select('screen', screenId);
+                  editor.assign(screenId, monitor);
+                }}
+              />
+            ))}
+          </div>
+        )}
       </div>
-      {model.targets.length > 0 && (
-        <div className={styles.targets}>
-          {model.targets.map(target => (
-            <TargetView key={target.id} target={target} />
-          ))}
-        </div>
-      )}
+      <div
+        className={styles.targetGroup}
+        role="group"
+        aria-label="별도 창 및 미지정 화면"
+      >
+        <span className={styles.groupTitle}>별도 창 및 미지정 화면</span>
+        {model.targets.length > 0 ? (
+          <div className={styles.targets}>
+            {model.targets.map(target => (
+              <TargetView key={target.id} target={target} />
+            ))}
+          </div>
+        ) : (
+          <span className={styles.empty}>
+            {screens.length === 0 ? '등록된 화면 없음' : '없음'}
+          </span>
+        )}
+      </div>
     </section>
   );
 }

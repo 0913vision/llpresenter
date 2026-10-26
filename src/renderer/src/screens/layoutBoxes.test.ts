@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import type {MonitorList} from '@shared/schema/monitors';
 import {displayLayout} from './layoutBoxes';
+import {wideMonitorArrangement} from './testing/monitorArrangement';
 import {
   CAPTIONS_ID,
   MAIN_ID,
@@ -122,24 +123,47 @@ describe('displayLayout', () => {
   it('shows the default size of a capture window with no saved resolution', () => {
     const model = displayLayout(twoMonitors, screens(), undefined);
 
-    expect(model.targets.map(target => target.resolution)).toEqual([
-      '1920×1080',
-    ]);
+    expect(
+      model.targets.find(target => target.id === CAPTIONS_ID)?.resolution,
+    ).toBe('1920×1080');
   });
 
-  it('puts screens without a monitor in the targets, and leaves an unassigned full screen out', () => {
+  it('keeps unassigned full screens selectable alongside separate windows', () => {
     const model = displayLayout(twoMonitors, screens(), CAPTIONS_ID);
 
     expect(model.targets.map(target => [target.id, target.selected])).toEqual([
       [CAPTIONS_ID, true],
+      [STAGE_ID, false],
     ]);
-    expect(model.targets.map(target => target.id)).not.toContain(STAGE_ID);
+    expect(model.targets.find(target => target.id === STAGE_ID)?.detail).toBe(
+      '모니터 미지정',
+    );
   });
 
   it('gives an empty layout for no monitors and still lists the targets', () => {
     const model = displayLayout([], screens(), undefined);
 
     expect(model.monitors).toEqual([]);
-    expect(model.targets).toHaveLength(1);
+    expect(model.targets).toHaveLength(3);
+  });
+
+  it('keeps the exact wide-monitor aspect ratios and 222-pixel vertical offset', () => {
+    const model = displayLayout(wideMonitorArrangement, screens(), MAIN_ID);
+    const [primary, secondary] = model.monitors;
+    if (primary === undefined || secondary === undefined) {
+      throw new Error('Missing monitors');
+    }
+    expect(model.aspectRatio).toBeCloseTo(5360 / 1440);
+    expect(primary.left).toBe(0);
+    expect(primary.top).toBe(0);
+    expect(secondary.left).toBeCloseTo(primary.width);
+    expect(secondary.top).toBeCloseTo((222 / 1440) * 100);
+    expect((primary.width / primary.height) * model.aspectRatio).toBeCloseTo(
+      3440 / 1440,
+    );
+    expect(
+      (secondary.width / secondary.height) * model.aspectRatio,
+    ).toBeCloseTo(1920 / 1080);
+    expect(secondary.screenIds).toEqual([MAIN_ID]);
   });
 });

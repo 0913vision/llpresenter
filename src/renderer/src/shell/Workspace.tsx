@@ -249,7 +249,7 @@ function screensPanelParts(
     case '속성':
       return {body: <ScreenProperties onProblem={onProblem} />};
     case '출력 미리보기':
-      return {size: 'content', body: <OutputPreview onProblem={onProblem} />};
+      return {body: <OutputPreview onProblem={onProblem} />};
     default:
       return {};
   }

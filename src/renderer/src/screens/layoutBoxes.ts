@@ -2,6 +2,7 @@ import type {MonitorInfo, MonitorList} from '@shared/schema/monitors';
 import type {Screen} from '@shared/schema/screens';
 import {monitorPixelSize, sizeText, targetSize} from './displaySizes';
 import {monitorAssignment} from './monitorAssignment';
+import {targetByMethod} from './screenRows';
 
 /** A monitor's box in the display layout, placed in percent of the whole. */
 export interface MonitorBox {
@@ -14,6 +15,7 @@ export interface MonitorBox {
   readonly height: number;
   /** The names of the screens that show full screen on this monitor. */
   readonly screens: readonly string[];
+  readonly screenIds: readonly string[];
   readonly control: boolean;
   readonly selected: boolean;
 }
@@ -24,6 +26,7 @@ export interface TargetBox {
   readonly name: string;
   readonly resolution: string | undefined;
   readonly selected: boolean;
+  readonly detail: string;
 }
 
 export interface DisplayLayoutModel {
@@ -71,6 +74,7 @@ function monitorBox(
     width: (bounds.width / whole.width) * PERCENT,
     height: (bounds.height / whole.height) * PERCENT,
     screens: shown.map(screen => screen.name),
+    screenIds: shown.map(screen => screen.id),
     control: monitor.hasMainWindow,
     selected: selected !== undefined && shown.includes(selected),
   };
@@ -84,14 +88,23 @@ function sizeOf(screen: Screen): string | undefined {
 function targetBoxes(
   screens: readonly Screen[],
   selected: Screen | undefined,
+  assignment: ReadonlyMap<string, MonitorInfo>,
 ): readonly TargetBox[] {
   return screens
-    .filter(screen => screen.method !== 'fullscreen')
+    .filter(
+      screen => screen.method !== 'fullscreen' || !assignment.has(screen.id),
+    )
     .map(screen => ({
       id: screen.id,
       name: screen.name,
       resolution: sizeOf(screen),
       selected: screen === selected,
+      detail:
+        screen.method === 'fullscreen'
+          ? screen.display === undefined
+            ? '모니터 미지정'
+            : '연결 대기'
+          : targetByMethod[screen.method],
     }));
 }
 
@@ -106,10 +119,10 @@ export function displayLayout(
   selectedId: string | undefined,
 ): DisplayLayoutModel {
   const selected = screens.find(screen => screen.id === selectedId);
-  const targets = targetBoxes(screens, selected);
+  const assignment = monitorAssignment(monitors);
+  const targets = targetBoxes(screens, selected, assignment);
   if (monitors.length === 0) return {aspectRatio: 1, monitors: [], targets};
   const whole = arrangement(monitors);
-  const assignment = monitorAssignment(monitors);
   return {
     aspectRatio: whole.width / whole.height,
     monitors: monitors.map(monitor =>

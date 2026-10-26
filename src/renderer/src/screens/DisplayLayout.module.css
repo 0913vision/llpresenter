@@ -15,15 +15,16 @@
 .stage {
   flex: 1 1 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 0;
+  min-height: var(--size-preview-small-max);
+  overflow: auto;
+  scrollbar-gutter: stable;
 }
 
 .arrangement {
   position: relative;
   flex: none;
   width: 100%;
+  margin: auto;
 }
 
 .monitor {
@@ -41,6 +42,21 @@
   color: var(--text-2);
   font: var(--type-caption);
   text-align: center;
+  padding: var(--space-8);
+  cursor: pointer;
+}
+
+.monitor > span {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.monitor:focus-visible,
+.target:focus-visible {
+  outline: none;
+  box-shadow: var(--ring-selected);
 }
 
 .selected {
@@ -69,6 +85,24 @@
   gap: var(--space-8);
 }
 
+.targetGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  flex: none;
+}
+
+.groupTitle {
+  color: var(--text-2);
+  font: var(--type-caption-strong);
+}
+
+.empty {
+  margin: auto;
+  color: var(--text-3);
+  font: var(--type-caption);
+}
+
 .target {
   display: flex;
   flex-direction: column;
@@ -79,6 +113,9 @@
   background: var(--bg-well);
   color: var(--text-2);
   font: var(--type-caption);
+  text-align: left;
+  min-width: var(--size-field-key);
+  cursor: pointer;
 }
 
 .targetName {
