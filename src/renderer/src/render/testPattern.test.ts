@@ -12,6 +12,33 @@ const SCREEN = {
   method: 'fullscreen',
 } as const;
 
+class FakeMediaQuery {
+  static readonly made: FakeMediaQuery[] = [];
+  readonly listeners = new Set<() => void>();
+
+  constructor(readonly media: string) {
+    FakeMediaQuery.made.push(this);
+  }
+
+  addEventListener(_type: 'change', listener: () => void): void {
+    this.listeners.add(listener);
+  }
+
+  removeEventListener(_type: 'change', listener: () => void): void {
+    this.listeners.delete(listener);
+  }
+
+  change(): void {
+    for (const listener of [...this.listeners]) listener();
+  }
+}
+
+function listening(): readonly string[] {
+  return FakeMediaQuery.made
+    .filter(query => query.listeners.size > 0)
+    .map(({media}) => media);
+}
+
 function setup(mode?: 'output' | 'preview') {
   const parent = document.createElement('div');
   const view = new TestPatternView(parent, mode);
@@ -22,6 +49,8 @@ function setup(mode?: 'output' | 'preview') {
 }
 
 beforeEach(() => {
+  FakeMediaQuery.made.length = 0;
+  vi.stubGlobal('matchMedia', (media: string) => new FakeMediaQuery(media));
   vi.stubGlobal(
     'ResizeObserver',
     class {
@@ -81,10 +110,32 @@ describe('TestPatternView', () => {
     expect(label?.textContent).toBe('본 화면\n1440×810');
   });
 
+  it('follows a new Windows scale at the same CSS size, watching only while it shows', () => {
+    const {parent, view, label} = setup();
+    vi.spyOn(parent, 'clientWidth', 'get').mockReturnValue(1280);
+    vi.spyOn(parent, 'clientHeight', 'get').mockReturnValue(720);
+    vi.stubGlobal('devicePixelRatio', 1);
+    view.show(SCREEN, true);
+    view.show(SCREEN, true);
+    expect(label?.textContent).toBe('본 화면\n1280×720');
+    expect(listening()).toEqual(['(resolution: 1dppx)']);
+    vi.stubGlobal('devicePixelRatio', 1.5);
+    FakeMediaQuery.made.at(-1)?.change();
+    expect(label?.textContent).toBe('본 화면\n1920×1080');
+    expect(listening()).toEqual(['(resolution: 1.5dppx)']);
+    view.show(SCREEN, false);
+    expect(listening()).toEqual([]);
+    view.show(SCREEN, true);
+    expect(listening()).toHaveLength(1);
+    view.dispose();
+    expect(listening()).toEqual([]);
+  });
+
   it('prints only the name in a preview, and no label without one', () => {
     const {view, label} = setup('preview');
     view.show(SCREEN, true);
     expect(label?.textContent).toBe('본 화면');
+    expect(FakeMediaQuery.made).toHaveLength(0);
     view.show({id: MAIN, kind: 'audience'}, true);
     expect(label instanceof HTMLElement && label.hidden).toBe(true);
   });

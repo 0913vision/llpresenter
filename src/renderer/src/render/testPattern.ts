@@ -49,6 +49,11 @@ export class TestPatternView {
   private readonly label = document.createElement('div');
   private screen: RenderScreen | undefined;
   private text = '';
+  private pixelRatio: MediaQueryList | null = null;
+  private readonly onPixelRatio = (): void => {
+    this.followPixelRatio();
+    this.relabel();
+  };
 
   constructor(
     private readonly parent: HTMLElement,
@@ -71,7 +76,14 @@ export class TestPatternView {
   show(screen: RenderScreen | undefined, shown: boolean): void {
     this.element.hidden = !shown;
     this.screen = screen;
-    if (shown) this.relabel();
+    if (!shown) {
+      this.stopPixelRatio();
+      return;
+    }
+    if (this.mode === 'output' && this.pixelRatio === null) {
+      this.followPixelRatio();
+    }
+    this.relabel();
   }
 
   rescale(scale: number): void {
@@ -80,6 +92,7 @@ export class TestPatternView {
   }
 
   dispose(): void {
+    this.stopPixelRatio();
     this.element.remove();
   }
 
@@ -95,6 +108,22 @@ export class TestPatternView {
     this.text = text;
     this.label.textContent = text;
     this.label.hidden = text === '';
+  }
+
+  // NOTE(0913vision): Moving the window to a monitor with another Windows scale
+  // changes the device pixels without a CSS resize, so the label watches the
+  // ratio itself while it shows, with a query re-armed for each new ratio.
+  private followPixelRatio(): void {
+    this.stopPixelRatio();
+    this.pixelRatio = window.matchMedia(
+      `(resolution: ${window.devicePixelRatio}dppx)`,
+    );
+    this.pixelRatio.addEventListener('change', this.onPixelRatio);
+  }
+
+  private stopPixelRatio(): void {
+    this.pixelRatio?.removeEventListener('change', this.onPixelRatio);
+    this.pixelRatio = null;
   }
 
   private resolution(): string {
