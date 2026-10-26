@@ -20,6 +20,8 @@ import {isKnownKind, kindsWithUnknown} from './kinds';
 import type {MigrationStep} from './migration';
 import {jsonObject, listWithUniqueIds, positiveInteger} from './primitives';
 
+export const MAX_QUICK_ITEMS = 500;
+
 /** The 퀵 실행 item kinds. `black` outputs a black screen and has no `ref`. */
 export const quickItemKinds = [
   'song',

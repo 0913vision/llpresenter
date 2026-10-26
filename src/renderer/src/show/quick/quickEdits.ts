@@ -8,8 +8,9 @@ import type {
 import {withinLookupTimeout} from '@renderer/state/showOutput';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import type {EditResult} from '@shared/schema/contentEdit';
+import {MAX_QUICK_ITEMS} from '@shared/schema/quick';
 
-export const MAX_QUICK_ITEMS = 500;
+export {MAX_QUICK_ITEMS} from '@shared/schema/quick';
 export const QUICK_NAME_LIMIT = 256;
 const SAVE_ATTEMPTS = 2;
 

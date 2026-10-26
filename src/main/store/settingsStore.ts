@@ -1,5 +1,9 @@
 import {join} from 'node:path';
-import type {EditRefusalReason, EditResult} from '@shared/schema/contentEdit';
+import type {
+  EditRefusalReason,
+  EditResult,
+  EditSuccess,
+} from '@shared/schema/contentEdit';
 import {
   mergeSettingsDocument,
   settingsNames,
@@ -18,11 +22,12 @@ import {documentFiles} from './documentFiles';
 import type {LoadedStore} from './fileStore';
 import {RecoveryCopies} from './recoveryCopies';
 import type {SaveFailureSink} from './saveFailures';
-import {Saver} from './saver';
+import {Saver, type SaveRequest} from './saver';
 import {settingsCodecs} from './settingsCodecs';
 import {settingsFileName} from './settingsFile';
 import {loadSettingsArea, type SettingsProblem} from './settingsLoader';
 import {SettingsPersistence} from './settingsPersistence';
+import {prepareQuickTimerEdit} from './quickTimerEdits';
 
 export type {SettingsProblem} from './settingsLoader';
 export type SettingsProblemListener = (problem: SettingsProblem) => void;
@@ -174,6 +179,16 @@ export class SettingsStore {
   }
 
   private update(edit: SettingsEdit): Promise<EditResult> {
+    if (
+      edit.type === 'quick.timer.create' ||
+      edit.type === 'quick.timer.rename'
+    ) {
+      const prepared = prepareQuickTimerEdit(this.documents, edit);
+      if (!prepared.ok) {
+        return Promise.resolve({ok: false, error: prepared.error});
+      }
+      return this.commit(prepared.value);
+    }
     if (edit.type !== 'settings.update') {
       return Promise.resolve(
         refuse('invalid', 'A global label rename requires the content store'),
@@ -212,29 +227,59 @@ export class SettingsStore {
       );
     }
     const next = merged.value;
-    const file = join(saving.folder, settingsFileName(edit.name));
-    const text = settingsCodecs[edit.name].serialize(next.value, file);
-    if (!text.ok) return Promise.resolve(refuse('invalid', text.error.message));
-    this.documents.set(edit.name, next);
-    const written = saves.save({
-      target: {file, kind: 'settings', id: edit.name},
-      text: text.value,
+    return this.commit({
+      documents: [next],
+      applied: {id: edit.name, revision: next.revision},
     });
-    this.announce(next);
-    const applied = {id: edit.name, revision: next.revision};
-    return written.then((result): EditResult =>
-      result.ok
-        ? {ok: true, value: applied}
-        : {
-            ok: false,
-            error: {
-              reason: 'write-failed',
-              message: result.error.message,
-              applied,
-              unchangedFiles: [file],
-            },
-          },
-    );
+  }
+
+  private commit({
+    documents,
+    applied,
+  }: {
+    readonly documents: readonly SettingsDocument[];
+    readonly applied: EditSuccess;
+  }): Promise<EditResult> {
+    const saving = this.options.saving;
+    const saves = this.saves;
+    if (this.disposed || saving === undefined || saves === null) {
+      return Promise.resolve(refuse('not-found', 'Settings are unavailable'));
+    }
+    const requests: SaveRequest[] = [];
+    for (const document of documents) {
+      const file = join(saving.folder, settingsFileName(document.name));
+      const text = settingsCodecs[document.name].serialize(
+        document.value,
+        file,
+      );
+      if (!text.ok) {
+        return Promise.resolve(refuse('invalid', text.error.message));
+      }
+      requests.push({
+        target: {file, kind: 'settings', id: document.name},
+        text: text.value,
+      });
+    }
+    for (const document of documents) {
+      this.documents.set(document.name, document);
+    }
+    const written = requests.map(request => saves.save(request));
+    for (const document of documents) this.announce(document);
+    return Promise.all(written).then((results): EditResult => {
+      const failures = results.flatMap(result =>
+        result.ok ? [] : [result.error],
+      );
+      if (failures.length === 0) return {ok: true, value: applied};
+      return {
+        ok: false,
+        error: {
+          reason: 'write-failed',
+          message: failures.map(error => error.message).join('; '),
+          applied,
+          unchangedFiles: failures.map(error => error.file),
+        },
+      };
+    });
   }
 
   private announce(document: SettingsDocument): void {
