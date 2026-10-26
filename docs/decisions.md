@@ -369,3 +369,20 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
 - Changes in someone else's area stay limited to what the request needs; a
   larger change there is that owner's request. `CLAUDE.md`, "Your files" and
   "Shared contracts", and `docs/MILESTONES.md`, "File ownership", say this.
+
+## 2026-10-26: Closing the app while edits are still being saved
+
+- When the app closes while the song editor still has edits to write, the
+  control window shows a modal "저장 중" with a 강제로 닫기 button, the way an
+  editor such as VS Code holds its window while it saves (user decision; it
+  replaces the lead's proposal of a "편집 내용 저장 실패" card with 그래도
+  닫기).
+- The modal appears only when the flush takes longer than a short delay, so a
+  normal close never flashes it. It closes the app by itself once the flush
+  succeeds (lead default).
+- When the flush fails, the modal stays and offers 다시 시도 beside 강제로 닫기;
+  edits are never dropped without the operator choosing 강제로 닫기 (lead
+  default).
+- When the control window doesn't answer within the flush limit (5 seconds), the
+  app closes without the modal, because a frozen window can't draw it and must
+  never keep the app from closing (lead default, data-44).
