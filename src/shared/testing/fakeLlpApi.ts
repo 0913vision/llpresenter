@@ -32,6 +32,7 @@ export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
     app: {
       subscribeFlushRequests: () => () => undefined,
       flushDone: () => undefined,
+      closeAnyway: () => undefined,
       ...overrides.app,
     },
     live: {

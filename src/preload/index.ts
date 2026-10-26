@@ -217,6 +217,9 @@ const api: LlpApi = {
       }
       ipcRenderer.send(Channels.appFlushDone, parsed.value);
     },
+    closeAnyway: () => {
+      ipcRenderer.send(Channels.appCloseAnyway);
+    },
   },
   live: {
     get: () => invokeChecked(Channels.liveGet, parseLiveState),

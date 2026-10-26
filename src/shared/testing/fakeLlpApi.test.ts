@@ -14,6 +14,7 @@ describe('fakeLlpApi', () => {
       const api = fakeLlpApi();
       api.app.subscribeFlushRequests(() => undefined)();
       api.app.flushDone(reply);
+      api.app.closeAnyway();
     }).not.toThrow();
     const flushDone = vi.fn();
     const api = fakeLlpApi({app: {flushDone}});

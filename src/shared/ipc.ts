@@ -58,6 +58,7 @@ export const Channels = {
   bibleLookup: 'bible:lookup',
   appFlushRequest: 'app:flush-request',
   appFlushDone: 'app:flush-done',
+  appCloseAnyway: 'app:close-anyway',
   liveGet: 'live:get',
   liveCommand: 'live:command',
   liveChanged: 'live:changed',
@@ -132,6 +133,11 @@ export interface LlpApi {
     ): Unsubscribe;
     /** Replies with the editor's flush result for one request. */
     flushDone(reply: AppFlushDone): void;
+    /**
+     * 그래도 닫기: closes the control window without another flush, after main
+     * kept it open for a refused one. Main ignores it at any other time.
+     */
+    closeAnyway(): void;
   };
   readonly live: {
     /**
