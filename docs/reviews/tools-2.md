@@ -117,15 +117,14 @@ schema, valid and invalid boundary tests, and main producer are in this request.
 Review current-versus-pointed Enter behavior, async result coalescing, stable
 selection while books arrive, and the max-length suggestion regression test.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict:
-- Findings:
-
-## Review: reviewer
-
-- Verdict:
-- Findings:
+- Round 1 (Codex, codex5): Request changes: a chosen suggestion pinned the
+  translation, and the raw-text comparison mistook the current passage for
+  another suggestion.
+- Round 2 (0562b6d4): reviewer (Codex, codex5) Approve, no findings. Lead
+  Approve. Written by the Codex tools member. Rebased by the lead onto local
+  `main` without conflicts; typecheck passes.
 
 ## Team member's reply
 
