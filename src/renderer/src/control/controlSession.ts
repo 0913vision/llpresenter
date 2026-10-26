@@ -81,7 +81,6 @@ export class ControlSession {
     return this.closing;
   }
 
-  /** Keeps the editor from starting while a close flush runs or after it succeeds. */
   private async flushBeforeClose(): Promise<boolean> {
     this.editorBlocked = true;
     let flushed = false;
