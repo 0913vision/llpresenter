@@ -411,3 +411,17 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   and at the cap refuse new edits before anything is accepted, with the problem
   visible and the reason in a tooltip or the edit result (lead decision; it came
   up in ui-37 and data-47).
+
+## 2026-10-26: Smart guides in the stage layout editor
+
+- Dragging or resizing an element in the stage layout editor (M3-O3) snaps to
+  the edges and centers of the other elements and of the canvas when it comes
+  within a few pixels, and shows a guide line while it does (user decision).
+  Holding Alt while dragging turns snapping off for that drag. 격자에 맞추기
+  stays as the separate grid option; when both apply, the guide wins (lead
+  default).
+- The snap distance and the guide line's look are design system values: ui adds
+  them to the design system first, and O3 reads them as tokens.
+- ProPresenter's slide editor shows alignment tools and X/Y position fields, but
+  no source we found says whether its stage layout editor snaps to other
+  elements, so this is the user's decision, not a ProPresenter rule.
