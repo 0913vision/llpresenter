@@ -453,6 +453,10 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   hold empty sections. A file that has slot items reads each one as an empty
   section with the slot's title, keeping unknown fields; new writes have no
   slots.
+- The section row is called 구역, not 머리글 (user decision: "머리글이라는 표현
+  자체가 매우 이상해"): the menu entry is 구역 추가 and a new one is named 새
+  구역 in rename mode. ProPresenter calls these playlist Headers; the Korean
+  name is the user's choice.
 - Turning a screen output off hides its window, so that monitor shows the
   Windows desktop (user decision; Renewed Vision's documents and the 7.5 guide
   don't say what ProPresenter shows, so this is not a ProPresenter rule).
