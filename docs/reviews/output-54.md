@@ -67,8 +67,8 @@ above it until the operator raises it or its full screen placement returns.
 - Preview bounds stayed identical during every stacking change. Native-call
   observation of the real control and output windows found no movement, resize,
   full-screen, focus, raise or focusability call from those settings changes in
-  offscreen mode. The output's computed cursor stayed visible with both flag
-  values. All native windows stayed hidden throughout.
+  offscreen mode. The output's computed cursor stayed visible during the
+  repeated check. All native windows stayed hidden throughout.
 - Both launches closed the control normally and exited all Electron processes.
   There were five renderer targets throughout, with 314 live DOM elements, 809
   CDP DOM nodes and 346 listeners at iterations 5 and 25. Collected control
@@ -83,6 +83,15 @@ above it until the operator raises it or its full screen placement returns.
   pointer-to-main dispatch, but cannot prove the Windows desktop stacking or
   hardware pointer hit testing. Native-call fakes verify those presentation
   instructions; the user's native check must confirm the actual desktop order.
+
+- After restacking on output-53 round 3, 180 focused tests and typecheck pass.
+  The rebuilt app repeats both launches and all 25 interaction cycles: five
+  targets, 318 elements, 815 CDP nodes and 364 listeners remain constant.
+  Collected heaps are 5,776,188 to 6,065,628 bytes and 5,779,180 to 6,062,972
+  bytes. Both launches quit normally. The screenshots above are refreshed. One
+  preceding launch failed the initial geometry comparison before collecting
+  samples; the instrumented two-launch check recorded unchanged bounds and no
+  native movement or focus calls throughout the stacking edits.
 
 ## Review: lead
 
