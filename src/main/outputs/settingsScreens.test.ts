@@ -15,6 +15,22 @@ import {fullScreenScreen} from './testing';
 const fallback = {list: () => [fullScreenScreen()]};
 
 describe('saved output screens', () => {
+  it('keeps saved screen kinds for output identification', async () => {
+    const settings = overlaySettings();
+    const source = createSettingsScreenSource(
+      Promise.resolve(settings.reader),
+      recordingLogger(),
+      fallback,
+    );
+    await Promise.resolve();
+    expect(source.list().find(screen => screen.id === MAIN)?.kind).toBe(
+      'audience',
+    );
+    expect(source.list().find(screen => screen.id === STAGE)?.kind).toBe(
+      'stage',
+    );
+    source.dispose();
+  });
   it('discards a queued resync on dispose', async () => {
     const settings = overlaySettings();
     const source = createSettingsScreenSource(
