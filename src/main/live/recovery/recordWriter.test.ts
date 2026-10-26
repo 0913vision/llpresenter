@@ -4,6 +4,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState, type LiveState} from '@shared/live';
 import type {Result} from '@shared/result';
 import {createServiceId, type ServiceId} from '@shared/schema/ids';
+import {parseLiveState} from '@shared/schema/liveState';
 import {parseRecoveryRecord} from '@shared/schema/recoveryRecord';
 import {makeTempDir} from '../../../../test/temp-dir';
 import {recordingLogger} from '../../displays/testing';
@@ -17,6 +18,7 @@ import {
 const SAVED_AT = Date.parse('2026-10-26T06:00:00+09:00');
 const SERVICE = createServiceId('a41e0c52-7e1f-4a2b-8c3d-4e5f60718293');
 const MEDIA = {mediaId: 'media', loop: true, startedAt: SAVED_AT - 500};
+const TIMER = '00000000-0000-4000-8000-000000000090';
 
 type Written = Result<void, WriteProblem>;
 
@@ -90,10 +92,10 @@ describe('recovery record writer', () => {
     vi.useRealTimers();
   });
 
-  it('writes a readable record at once, without audio or clear undo', async () => {
+  it('writes a readable record at once, without audio, 타이머, or clear undo', async () => {
     vi.useRealTimers();
     const file = join(await makeTempDir(), 'recovery', 'live.json');
-    const store = fakeStore({
+    const live = parseLiveState({
       ...emptyLiveState(),
       version: 7,
       canUndo: true,
@@ -103,7 +105,10 @@ describe('recovery record writer', () => {
         media: MEDIA,
         audio: {mediaId: 'song audio'},
       },
+      timers: {[TIMER]: {state: 'running', since: SAVED_AT, countedMs: 0}},
     });
+    if (!live.ok) throw new Error(live.error.message);
+    const store = fakeStore(live.value);
     const log = recordingLogger();
     const writer = new RecoveryRecordWriter({
       file,
@@ -127,6 +132,7 @@ describe('recovery record writer', () => {
         layers: {media: MEDIA, audio: null},
       },
     });
+    expect(record.state).not.toHaveProperty('timers');
     expect(Date.parse(record.savedAt)).toBe(SAVED_AT);
     expect(log.entries).toEqual([]);
   });

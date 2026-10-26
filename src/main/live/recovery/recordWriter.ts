@@ -26,8 +26,8 @@ interface RecordWriterOptions {
   ) => Promise<Result<void, WriteProblem>>;
 }
 
-/** The state as recovery restores it: audio and clear undo are never saved. */
-function recordedState(state: LiveState): LiveState {
+/** The state as recovery restores it: audio, 타이머, and clear undo are never saved. */
+function recordedState({timers, ...state}: LiveState): LiveState {
   return {
     ...state,
     canUndo: false,
