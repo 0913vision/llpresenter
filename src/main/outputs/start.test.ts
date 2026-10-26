@@ -35,6 +35,7 @@ const fakes = vi.hoisted(() => {
     answers: new Map<string, () => unknown>(),
     start: vi.fn(() => 7),
     stop: vi.fn(),
+    closeNumber: vi.fn(),
   };
 });
 vi.mock('electron', () => ({
@@ -65,7 +66,7 @@ vi.mock('./electronWindow', () => ({
   },
 }));
 vi.mock('./numberWindow', () => ({
-  openNumberWindow: vi.fn(() => ({close: vi.fn()})),
+  openNumberWindow: vi.fn(() => ({close: fakes.closeNumber})),
 }));
 vi.mock('../ipc', () => ({
   listenToWindows: (channel: string, handler: MessageHandler) => {
@@ -390,7 +391,7 @@ describe('saved output backend', () => {
   });
 
   it('opens a number window on each monitor away from a shown capture window', async () => {
-    const {store, save, windows} = setup(undefined, 'normal');
+    const {store, save, windows, stop} = setup(undefined, 'normal');
     await loaded();
     save([
       {...main, method: 'capture', resolution: {width: 1280, height: 720}},
@@ -404,6 +405,9 @@ describe('saved output backend', () => {
     for (const {bounds} of spots) {
       expect(intersectionArea(bounds, capture)).toBe(0);
     }
+    expect(fakes.closeNumber).not.toHaveBeenCalled();
+    stop();
+    expect(fakes.closeNumber).toHaveBeenCalledTimes(3);
   });
 
   it('reads the monitors at once for 모니터 다시 찾기 and raises the fallback for 창 보기', async () => {
