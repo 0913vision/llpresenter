@@ -1,6 +1,10 @@
 import type {AudioLayer, LiveState} from '@shared/live';
 import {mediaUrl} from '@shared/media';
 import {audioPositionSeconds} from '@shared/schema/audioState';
+import {fadeAudio} from './audioFade';
+
+/** Leaves time for command delivery within the F5 half-second limit. */
+export const AUDIO_CLEAR_FADE_MS = 400;
 
 interface AudioPlayerOptions {
   readonly now: () => number;
@@ -28,6 +32,10 @@ export class AudioPlayer {
   private wanted: AudioLayer | null = null;
   private endedVersion: number | null = null;
   private disposed = false;
+  private cancelFade: (() => void) | null = null;
+  private fading: Track | null = null;
+  private gain = 1;
+  private volume = 1;
 
   constructor(
     parent: HTMLElement,
@@ -77,6 +85,12 @@ export class AudioPlayer {
     this.attempt(() => {
       const layer = state.layers.audio;
       this.wanted = layer;
+      if (layer?.playback !== undefined && this.cancelFade !== null) {
+        this.cancelFade();
+        this.cancelFade = null;
+        this.fading = null;
+        this.gain = 1;
+      }
       const fallback = this.active;
       if (
         layer?.playback?.since === null &&
@@ -86,7 +100,8 @@ export class AudioPlayer {
         this.attempt(() => fallback.element.pause());
       }
       for (const track of this.tracks) {
-        const volume = (state.audioVolume ?? 100) / 100;
+        this.volume = (state.audioVolume ?? 100) / 100;
+        const volume = this.volume * (track === this.fading ? this.gain : 1);
         if (track.element.volume !== volume) track.element.volume = volume;
         if (
           track.layer !== null &&
@@ -97,10 +112,7 @@ export class AudioPlayer {
         }
       }
       if (layer?.playback === undefined) {
-        this.active = null;
-        for (const track of this.tracks) {
-          if (track.layer !== null) this.attempt(() => this.unload(track));
-        }
+        if (this.active !== null && this.fading === null) this.clearAudio();
         return;
       }
       const playback = layer.playback;
@@ -133,12 +145,42 @@ export class AudioPlayer {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    this.cancelFade?.();
+    this.cancelFade = null;
     for (const release of this.releases) release();
     for (const track of this.tracks) {
       this.attempt(() => this.unload(track));
       track.element.remove();
     }
     this.reported.clear();
+  }
+
+  private clearAudio(): void {
+    const track = this.active;
+    if (track === null) return;
+    const finish = (): void => {
+      this.active = null;
+      this.fading = null;
+      this.cancelFade = null;
+      this.gain = 1;
+      this.attempt(() => this.unload(track));
+    };
+    this.fading = track;
+    try {
+      this.cancelFade = fadeAudio({
+        durationMs: AUDIO_CLEAR_FADE_MS,
+        now: this.options.now,
+        gain: fraction => {
+          this.gain = fraction;
+          track.element.volume = this.volume * fraction;
+        },
+        end: finish,
+        onError: error => this.report(error),
+      });
+    } catch (error) {
+      this.report(error);
+      finish();
+    }
   }
 
   private listen(track: Track, event: string, run: () => void): void {

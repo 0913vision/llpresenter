@@ -1,7 +1,15 @@
-import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  onTestFinished,
+  vi,
+} from 'vitest';
 import {emptyLiveState} from '@shared/live';
 import {parseLiveState} from '@shared/schema/liveState';
-import {AudioPlayer} from './audioPlayer';
+import {AUDIO_CLEAR_FADE_MS, AudioPlayer} from './audioPlayer';
 
 const MEDIA = '00000000-0000-4000-8000-000000000001';
 
@@ -53,6 +61,7 @@ beforeEach(() => {
   vi.spyOn(HTMLMediaElement.prototype, 'pause').mockReturnValue(undefined);
   vi.spyOn(HTMLMediaElement.prototype, 'load').mockReturnValue(undefined);
 });
+afterEach(() => vi.useRealTimers());
 
 describe('AudioPlayer', () => {
   it('creates only two muted hidden elements and leaves empty output idle', () => {
@@ -174,12 +183,16 @@ describe('AudioPlayer', () => {
   });
 
   it('clears a pending switch, ignores later completions, and releases listeners and sources on disposal', async () => {
-    const {root, player, first, second, onNext} = setup();
+    vi.useFakeTimers();
+    const {root, player, first, second, onNext, now} = setup();
     player.show(state());
     await ready(first);
     player.show(state(2));
     player.show(emptyLiveState());
     await ready(second);
+    expect(first.hasAttribute('src')).toBe(true);
+    now.mockReturnValue(5000 + AUDIO_CLEAR_FADE_MS);
+    vi.advanceTimersByTime(AUDIO_CLEAR_FADE_MS);
     expect(first.hasAttribute('src')).toBe(false);
     expect(second.hasAttribute('src')).toBe(false);
     const remove = vi.spyOn(first, 'removeEventListener');
@@ -190,6 +203,39 @@ describe('AudioPlayer', () => {
     expect(remove).toHaveBeenCalledTimes(3);
     expect(root.children).toHaveLength(0);
     expect(onNext).not.toHaveBeenCalled();
+  });
+
+  it('fades only once on clear, applies volume during the fade, and unloads within half a second', async () => {
+    vi.useFakeTimers();
+    const {player, first, now} = setup();
+    player.show(state());
+    await ready(first);
+    player.show(emptyLiveState());
+    now.mockReturnValue(5200);
+    vi.advanceTimersByTime(200);
+    expect(first.volume).toBeCloseTo(0.5);
+    player.show({...emptyLiveState(), version: 20, audioVolume: 20});
+    expect(first.volume).toBeCloseTo(0.1);
+    now.mockReturnValue(5400);
+    vi.advanceTimersByTime(200);
+    expect(first.hasAttribute('src')).toBe(false);
+    expect(AUDIO_CLEAR_FADE_MS).toBeLessThanOrEqual(500);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('cancels an old clear deadline when new audio starts and on disposal', async () => {
+    vi.useFakeTimers();
+    const {player, first, second} = setup();
+    player.show(state());
+    await ready(first);
+    player.show(emptyLiveState());
+    player.show(state(2));
+    await ready(second);
+    vi.advanceTimersByTime(AUDIO_CLEAR_FADE_MS);
+    expect(second.hasAttribute('src')).toBe(true);
+    player.show(emptyLiveState());
+    player.dispose();
+    expect(vi.getTimerCount()).toBe(0);
   });
 
   it('bounds distinct error reports and keeps both elements reusable after errors', () => {

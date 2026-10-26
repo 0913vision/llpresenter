@@ -13,6 +13,9 @@ export const batchSlice = defineSlice({
       if (next === current) continue;
       if (command.type === 'layer.clear' && next.undo !== null) {
         undo ??= next.undo;
+        if (next.undo.audioClearedAt !== undefined) {
+          undo = {...undo, audioClearedAt: next.undo.audioClearedAt};
+        }
         current = {...next, undo};
       } else {
         current = next;

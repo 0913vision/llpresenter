@@ -4,6 +4,7 @@ import type {LayerKind, LiveLayers, LiveState} from '@shared/live';
 export interface UndoEntry {
   readonly layers: LiveLayers;
   readonly clearedAt: number;
+  readonly audioClearedAt?: number;
 }
 
 export interface LiveHistory {

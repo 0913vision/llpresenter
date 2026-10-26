@@ -5,17 +5,26 @@ import {
   type MediaLayer,
   type MessageLayer,
   type NoticeLayer,
+  type AudioLayer,
 } from '@shared/live';
+import {audioPositionSeconds} from '@shared/schema/audioState';
 import {withLayers, type LiveHistory} from '../history';
-import {defineSlice} from '../slice';
+import {defineSlice, type SliceContext} from '../slice';
 
 function clear(
   history: LiveHistory,
   target: ClearTarget,
-  now: number,
+  {now, timerNow = now}: SliceContext,
 ): LiveHistory {
   const layers = history.state.layers;
-  const undo = {layers, clearedAt: now};
+  const undo = {
+    layers,
+    clearedAt: now,
+    ...(layers.audio?.playback !== undefined &&
+    (target === 'all' || target === 'audio')
+      ? {audioClearedAt: timerNow}
+      : {}),
+  };
   if (target === 'all') {
     if (!hasAnyLayer(layers)) return history;
     return withLayers(history, emptyLayers(), undo);
@@ -32,7 +41,10 @@ function resumedMedia(
   return {...media, startedAt: media.startedAt + clearedForMs};
 }
 
-function undoClear(history: LiveHistory, now: number): LiveHistory {
+function undoClear(
+  history: LiveHistory,
+  {now, timerNow = now}: SliceContext,
+): LiveHistory {
   const {undo} = history;
   if (undo === null) return history;
   // NOTE(0913vision): A background that the clear took down plays again from
@@ -52,7 +64,36 @@ function undoClear(history: LiveHistory, now: number): LiveHistory {
     history.state.layers.notice === null
       ? resumedNotice(undo.layers.notice, elapsed)
       : undo.layers.notice;
-  return withLayers(history, {...undo.layers, media, message, notice}, null);
+  const audio =
+    history.state.layers.audio === null && undo.audioClearedAt !== undefined
+      ? resumedAudio(undo.layers.audio, {
+          now: timerNow,
+          clearedAt: undo.audioClearedAt,
+          version: history.state.version + 1,
+        })
+      : undo.layers.audio;
+  return withLayers(
+    history,
+    {...undo.layers, media, message, notice, audio},
+    null,
+  );
+}
+
+function resumedAudio(
+  audio: AudioLayer | null,
+  clock: {now: number; clearedAt: number; version: number},
+): AudioLayer | null {
+  const playback = audio?.playback;
+  if (audio === null || playback === undefined) return audio;
+  return {
+    ...audio,
+    playback: {
+      ...playback,
+      positionSeconds: audioPositionSeconds(playback, clock.clearedAt),
+      since: playback.since === null ? null : clock.now,
+      trackVersion: clock.version,
+    },
+  };
 }
 
 function resumedMessages(
@@ -92,12 +133,12 @@ function resumedNotice(
 export const clearSlice = defineSlice({
   commands: ['layer.clear', 'clear.undo'],
   initial: {canUndo: false},
-  reduce: (history, command, {now}) => {
+  reduce: (history, command, context) => {
     switch (command.type) {
       case 'layer.clear':
-        return clear(history, command.target, now);
+        return clear(history, command.target, context);
       case 'clear.undo':
-        return undoClear(history, now);
+        return undoClear(history, context);
     }
   },
 });
