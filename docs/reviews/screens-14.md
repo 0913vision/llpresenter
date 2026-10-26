@@ -2,7 +2,7 @@
 
 - Team member: `screens`
 - Branch: `fix/screens/keep-screen-panels`
-- Base (`main`): `962ec0cc`, rebased before final checks.
+- Base (`main`): `9cc36558`, rebased before round 2 final checks.
 - Exact head and CI: see request line.
 - Scope: M3-UX-03/04 interim screen-view retention, M3-UX-06 inset and M3-UX-09
   delete wording from `docs/qa/m3-ux-pass.md` on `docs/qa/m3-ux`.
@@ -40,7 +40,7 @@ this request leaves its selection discriminator intact.
 
 ## Checks run
 
-After rebase: typecheck, scoped ESLint, 72 tests in five related files,
+After rebase: typecheck, scoped ESLint, 76 tests in five related files,
 formatting and the production build pass. Regression tests cover both row kinds,
 remounts, one selected list, pattern cleanup without recreating the renderer,
 and retaining the pattern while a property edit pins the same screen.
@@ -59,8 +59,8 @@ pattern, selecting a Look hides it in main's live state and restores 화면 내�
 Each launch switches Look/layout selection back and forth 20 times and leaves
 and reopens Screen settings twice. The retained view remains populated.
 
-Both runs stay at 318 elements, 770 DOM nodes and 365 listeners through all 20
-round trips. Final post-GC heaps are 5,584,188 and 5,539,908 bytes. After
+Both runs stay at 318 elements, 772 DOM nodes and 365 listeners through all 20
+round trips. Final post-GC heaps are 5,708,748 and 5,704,960 bytes. After
 loading the Show workspace, the two reopens settle at the same 802 nodes and 365
 listeners in both runs, with 318 elements. No accumulating DOM, listeners or
 heap growth was observed across independent launches.
@@ -74,6 +74,13 @@ A fixture macro references the noncurrent 새 Look. Each launch opens its delete
 confirmation and cancels twice. The polite question and macro name remain
 visible; cancellation retains the Look and the screen view.
 
+Round 2 also starts calibration from both non-screen selections. With 평상시
+selected, it enables the retained screen's pattern and commits horizontal offset
+20; with 현재와 다음 selected, it enables the pattern and commits offset 30.
+Both launches verify the saved values, the selected pattern radio and main's
+active pattern flag after each commit. Pinning the displayed screen keeps the
+pattern running while retaining one preview renderer.
+
 | Changed view           | First launch                                                   | Relaunch                                                                 |
 | ---------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------ |
 | Existing Look selected | ![Look selection](screens-14/first-look-selected.png)          | ![Look selection after reopen](screens-14/reopen-look-selected.png)      |
@@ -82,6 +89,11 @@ visible; cancellation retains the Look and the screen view.
 | Properties inset       | ![Property inset](screens-14/first-properties-inset.png)       | ![Property inset after reopen](screens-14/reopen-properties-inset.png)   |
 | Delete question        | ![Delete question](screens-14/first-delete-question-1.png)     | ![Delete after reopen](screens-14/reopen-delete-question-1.png)          |
 | Second open and cancel | ![Repeated delete](screens-14/first-delete-question-2.png)     | ![Repeated delete after reopen](screens-14/reopen-delete-question-2.png) |
+
+![Correction from Look](screens-14/first-calibration-20.png)
+![Correction from stage layout](screens-14/first-calibration-30.png)
+![Look correction after reopening](screens-14/reopen-calibration-20.png)
+![Stage-layout correction after reopening](screens-14/reopen-calibration-30.png)
 
 ## Team member's reply
 

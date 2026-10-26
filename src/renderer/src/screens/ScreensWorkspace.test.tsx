@@ -158,8 +158,9 @@ describe('the 화면 list', () => {
       await user.type(x, '20{Enter}');
       await waitFor(() => expect(edit).toHaveBeenCalledOnce());
       const request = edit.mock.calls[0]?.[0];
-      if (request?.name !== 'screens')
+      if (request?.name !== 'screens') {
         throw new Error('Missing correction edit');
+      }
       expect(
         request.value.screens.find(screen => screen.id === CAPTIONS_ID)?.offset
           ?.x,
