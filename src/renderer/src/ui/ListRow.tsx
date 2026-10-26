@@ -511,31 +511,49 @@ export function ListGroup({
   label,
   value,
   rename,
+  actions,
   children,
 }: {
   readonly label: string;
   readonly value?: string | undefined;
   readonly rename?: GroupRename | undefined;
+  readonly actions?: ReactNode;
   readonly children: ReactNode;
 }): JSX.Element {
   const labelId = useId();
+  const heading =
+    value !== undefined ? (
+      <ListRow
+        value={value}
+        title={label}
+        rename={rename}
+        className={classNames(styles.group, styles.groupRow)}
+      />
+    ) : rename === undefined ? (
+      label
+    ) : (
+      <NameField label={label} rename={rename} />
+    );
   return (
     <div role="group" aria-labelledby={labelId} className={styles.groupRows}>
       <div
-        id={labelId}
-        className={value === undefined ? styles.group : undefined}
+        id={actions === undefined ? labelId : undefined}
+        className={classNames(
+          value === undefined && styles.group,
+          value !== undefined &&
+            actions !== undefined &&
+            styles.groupWithActions,
+        )}
       >
-        {value !== undefined ? (
-          <ListRow
-            value={value}
-            title={label}
-            rename={rename}
-            className={classNames(styles.group, styles.groupRow)}
-          />
-        ) : rename === undefined ? (
-          label
+        {actions === undefined ? (
+          heading
         ) : (
-          <NameField label={label} rename={rename} />
+          <>
+            <span id={labelId} className={styles.groupLabel}>
+              {heading}
+            </span>
+            {actions}
+          </>
         )}
       </div>
       {children}

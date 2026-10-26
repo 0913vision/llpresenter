@@ -164,6 +164,45 @@ describe('ListBox and ListRow', () => {
     ).toBeDefined();
   });
 
+  it('keeps group actions outside the accessible group name', async () => {
+    const action = vi.fn();
+    render(
+      <ListBox label="Screens" selected="main" onSelect={vi.fn()}>
+        <ListGroup
+          label="Audience"
+          actions={<button onClick={action}>Add screen</button>}
+        >
+          <ListRow value="main" title="Main" />
+        </ListGroup>
+      </ListBox>,
+    );
+    expect(screen.getByRole('group', {name: 'Audience'})).toBeDefined();
+    await userEvent.click(screen.getByRole('button', {name: 'Add screen'}));
+    expect(action).toHaveBeenCalledOnce();
+  });
+
+  it('preserves selectable group headers when actions are present', async () => {
+    const select = vi.fn();
+    const action = vi.fn();
+    render(
+      <ListBox label="Groups" selected={undefined} onSelect={select}>
+        <ListGroup
+          label="Audience"
+          value="audience"
+          actions={<button onClick={action}>Add screen</button>}
+        >
+          <ListRow value="main" title="Main" />
+        </ListGroup>
+      </ListBox>,
+    );
+    expect(screen.getByRole('group', {name: 'Audience'})).toBeDefined();
+    await userEvent.click(screen.getByRole('option', {name: 'Audience'}));
+    expect(select).toHaveBeenLastCalledWith('audience');
+    await userEvent.click(screen.getByRole('button', {name: 'Add screen'}));
+    expect(action).toHaveBeenCalledOnce();
+    expect(select).toHaveBeenCalledOnce();
+  });
+
   it('selects a row on click', async () => {
     const onSelect = vi.fn();
     render(<ServiceOrder onSelect={onSelect} />);

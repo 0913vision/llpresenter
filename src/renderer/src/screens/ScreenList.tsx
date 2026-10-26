@@ -7,8 +7,11 @@ import {
   StatusDot,
 } from '@renderer/ui';
 import type {Screen} from '@shared/schema/screens';
-import {useOutputs} from '@renderer/state/live';
+import {sendLive, useOutputs} from '@renderer/state/live';
 import type {Notice} from '@renderer/ui/notices';
+import {MAX_TARGET_SCREENS} from '@shared/schema/overlayState';
+import {useScreenCreation} from './useScreenCreation';
+import {ScreenGroupActions} from './ScreenGroupActions';
 import {screenGroups, type ScreenRow} from './screenRows';
 import {selectedScreenIn, useScreensSelection} from './selection';
 import {useOutputStatuses} from './useOutputStatuses';
@@ -75,6 +78,7 @@ export function ScreenList({
   readonly onProblem?: ((notice: Notice) => void) | undefined;
 }): JSX.Element {
   const document = useSettingsDocument('screens', LOAD_TITLE, onProblem);
+  const add = useScreenCreation(document, onProblem);
   const click = useDragClickGuard();
   const statuses = useOutputStatuses();
   const outputs = useOutputs();
@@ -87,9 +91,19 @@ export function ScreenList({
   );
   const selected = selectedScreenIn(selection, screens)?.id;
   const sections = [
-    {label: AUDIENCE_LABEL, rows: groups.audience},
-    {label: STAGE_LABEL, rows: groups.stage},
-  ];
+    {kind: 'audience', label: AUDIENCE_LABEL, rows: groups.audience},
+    {kind: 'stage', label: STAGE_LABEL, rows: groups.stage},
+  ] as const;
+  const creationReason =
+    document === null
+      ? '설정을 불러오는 중'
+      : document.access !== 'editable'
+        ? '새 버전에서 만든 설정이므로 변경할 수 없음'
+        : screens.length >= MAX_TARGET_SCREENS
+          ? '화면은 200개까지 추가할 수 있음'
+          : undefined;
+  const groupOutputs = (kind: Screen['kind']) =>
+    screens.filter(screen => screen.kind === kind && screen.method !== 'ndi');
   return (
     <div {...click.props}>
       <ListBox
@@ -97,10 +111,42 @@ export function ScreenList({
         selected={selected}
         onSelect={id => select('screen', id)}
       >
-        {sections
-          .filter(section => section.rows.length > 0)
-          .map(section => (
-            <ListGroup key={section.label} label={section.label}>
+        {sections.map(section => {
+          const outputsInGroup = groupOutputs(section.kind);
+          return (
+            <ListGroup
+              key={section.label}
+              label={section.label}
+              actions={
+                <ScreenGroupActions
+                  kind={section.kind}
+                  label={section.label}
+                  reason={creationReason}
+                  outputReason={
+                    outputsInGroup.length === 0
+                      ? '시스템 화면이 없음'
+                      : undefined
+                  }
+                  on={outputsInGroup.some(
+                    screen => outputs[screen.id] === true,
+                  )}
+                  add={add}
+                  toggle={on =>
+                    sendLive({
+                      type: 'live.batch',
+                      commands: outputsInGroup.map(screen => ({
+                        type: 'output.set',
+                        screenId: screen.id,
+                        on,
+                      })),
+                    })
+                  }
+                />
+              }
+            >
+              {section.rows.length === 0 ? (
+                <div className={styles.empty}>화면 없음</div>
+              ) : null}
               {section.rows.map(row => (
                 <RowView
                   key={row.id}
@@ -109,7 +155,8 @@ export function ScreenList({
                 />
               ))}
             </ListGroup>
-          ))}
+          );
+        })}
       </ListBox>
     </div>
   );

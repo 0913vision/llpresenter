@@ -183,6 +183,19 @@
   display: contents;
 }
 
+.groupLabel {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+
+.groupWithActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding-right: var(--panel-inset);
+}
+
 .double {
   height: var(--size-row-double);
   padding: 0 var(--space-10);
