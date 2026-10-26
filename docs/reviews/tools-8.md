@@ -52,15 +52,13 @@ Shared Bible book completion is next under the new user priority. The 표시 중
 and 메시지 tabs remain separate T1a units, followed by the retained 타이머 tab;
 audio waits for O7 and lead confirmation.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict:
-- Findings:
-
-## Review: reviewer
-
-- Verdict:
-- Findings:
+- Round 1 (Codex): Request changes; the findings and replies are above.
+- Round 2 (5a829985): reviewer (Codex) Approve. Lead Approve; the 무대 tab picks
+  each stage screen's layout and the stage 타이머 through the live commands
+  only, without starting a timer or saving settings. Fast-forward onto local
+  `main`; typecheck passes. M3-T1a (무대 tab) is in.
 
 ## Team member's reply
 
