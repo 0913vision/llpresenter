@@ -172,6 +172,34 @@ describe('ArrangementStrip', () => {
     expect((await hoverForTooltip(chip))?.textContent).toBe(reason);
   });
 
+  it('focuses the place a chip moved to, also between chips that look the same', async () => {
+    const twins: readonly ArrangementChip[] = [
+      {key: 'x', name: '1절', color: 'teal', number: 1},
+      {key: 'y', name: '후렴', color: 'yellow', number: 2},
+      {key: 'z', name: '후렴', color: 'yellow', number: 2},
+    ];
+    function Twins(): JSX.Element {
+      const [selected, setSelected] = useState(2);
+      return (
+        <ArrangementStrip
+          label="구성"
+          chips={twins}
+          selected={selected}
+          onSelect={setSelected}
+          onMove={(_from, to) => setSelected(to)}
+          onRemove={() => undefined}
+          onInsert={() => undefined}
+        />
+      );
+    }
+    render(<Twins />);
+    const options = screen.getAllByRole('option');
+    options[2]?.focus();
+    await userEvent.keyboard('{Alt>}{ArrowLeft}{/Alt}');
+    expect(document.activeElement).toBe(options[1]);
+    expect(options[1]?.getAttribute('aria-selected')).toBe('true');
+  });
+
   it('takes a chip out with Delete', async () => {
     const onRemove = vi.fn();
     render(<Strip onRemove={onRemove} />);

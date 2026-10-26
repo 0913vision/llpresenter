@@ -10,6 +10,7 @@ import {
   outputPrevious,
   revealLiveItem,
 } from '@renderer/state/show';
+import {TEXT_ENTRY_SELECTOR} from '@renderer/ui/textEntry';
 
 const NEXT_CODES: ReadonlySet<string> = new Set([
   'ArrowRight',
@@ -51,7 +52,6 @@ const NUMPAD_DIGIT = /^Numpad(\d)$/;
 const NUM_LOCK = 'NumLock';
 const PRIMARY_BUTTON = 0;
 
-const EDITABLE_SELECTOR = 'input, textarea, select, [contenteditable="true"]';
 const TEXT_FIELD_SELECTOR =
   'textarea, [contenteditable="true"], input:not([type="range"], [type="checkbox"], [type="radio"], [type="button"], [type="submit"], [type="reset"], [type="color"], [type="file"], [type="image"])';
 const OWN_KEYS_SELECTOR =
@@ -126,7 +126,8 @@ function ownsEveryKey(event: KeyboardEvent): boolean {
 
 function belongsToFocusedControl(event: KeyboardEvent): boolean {
   return (
-    isInside(event.target, EDITABLE_SELECTOR) || isTakenByFocusedControl(event)
+    isInside(event.target, TEXT_ENTRY_SELECTOR) ||
+    isTakenByFocusedControl(event)
   );
 }
 

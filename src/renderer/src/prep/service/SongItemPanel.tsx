@@ -5,7 +5,7 @@ import type {ServiceItemOf} from '@shared/schema/service';
 import {isItemOfKind} from '@shared/schema/service';
 import {playbackOrder} from '@shared/songOrder';
 import type {SongEditorStore} from '@renderer/prep/editor';
-import {editedOrder} from '@renderer/prep/editor/songArrangements';
+import {editedOrder, sameOrder} from '@renderer/prep/editor/songArrangements';
 import type {SongSession} from '@renderer/prep/editor/songSession';
 import {VirtualSlides} from '@renderer/prep/editor/VirtualSlides';
 import {
@@ -36,6 +36,7 @@ import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
 import {editorTask} from '@renderer/prep/editor/editorTask';
 import {historyCommand} from '@renderer/prep/editor/editorKeys';
 import {isComposing} from '@renderer/ui/ime';
+import {isInTextEntry} from '@renderer/ui/textEntry';
 import type {ServiceItemStore} from './serviceItemStore';
 import {
   movedOrder,
@@ -160,6 +161,7 @@ function SongItemView({
     <div
       className={styles.keys}
       onKeyDown={event => {
+        if (event.defaultPrevented || isInTextEntry(event.target)) return;
         const command = historyCommand(event);
         if (command === undefined || isComposing(event)) return;
         event.preventDefault();
@@ -205,7 +207,10 @@ function SongItemView({
             readOnlyReason={orderReason}
             onSelect={setSelected}
             onMove={(from, to) => {
-              if (items.setOrder(movedOrder(order, from, to))) setSelected(to);
+              const next = movedOrder(order, from, to);
+              if (sameOrder(next, order) || items.setOrder(next)) {
+                setSelected(to);
+              }
             }}
             onRemove={index => items.setOrder(withoutPosition(order, index))}
             onInsert={setInsertAnchor}

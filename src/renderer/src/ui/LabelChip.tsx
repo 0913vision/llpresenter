@@ -153,6 +153,7 @@ export function ArrangementStrip({
 }: ArrangementStripProps): JSX.Element {
   const chipElements = useRef<Array<HTMLButtonElement | null>>([]);
   const insertButton = useRef<HTMLButtonElement>(null);
+  const focusAfterMove = useRef<number | null>(null);
   const readOnly = readOnlyReason !== undefined;
   const insertTooltip = useTooltip({text: readOnlyReason ?? INSERT_LABEL});
   const tabStop = Math.min(selected ?? 0, chips.length - 1);
@@ -166,6 +167,16 @@ export function ArrangementStrip({
     chipElements.current[index]?.focus();
     if (index !== selected) onSelect(index);
   };
+  const move = (from: number, to: number): void => {
+    focusAfterMove.current = to;
+    onMove(from, to);
+  };
+  useLayoutEffect(() => {
+    const target = focusAfterMove.current;
+    if (target === null) return;
+    focusAfterMove.current = null;
+    chipElements.current[target]?.focus();
+  });
   const remove = (index: number): void => {
     const remaining = chips.length - 1;
     const next = chipAfterRemoval(index, remaining);
@@ -181,7 +192,7 @@ export function ArrangementStrip({
       count: chips.length,
       readOnly,
       select,
-      onMove,
+      onMove: move,
       onRemove: remove,
     };
     if (handleChipKey(event, index, actions)) event.preventDefault();

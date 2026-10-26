@@ -1,4 +1,5 @@
 import type {Arrangement, Song} from '@shared/schema/song';
+import {sameOrder} from './songArrangements';
 import {
   blockSnapshot,
   editBlocks,
@@ -9,16 +10,6 @@ import {
 
 const HISTORY_LIMIT = 100;
 export const TYPING_PAUSE_MS = 1000;
-
-function sameNumbers(
-  left: readonly number[],
-  right: readonly number[],
-): boolean {
-  return (
-    left.length === right.length &&
-    left.every((value, index) => value === right[index])
-  );
-}
 
 /** One song's session history. The owner keeps it when switching songs. */
 export class SongHistory {
@@ -74,7 +65,7 @@ export class SongHistory {
     if (
       arrangements === undefined ||
       current === undefined ||
-      sameNumbers(current.slides, slides)
+      sameOrder(current.slides, slides)
     ) {
       return false;
     }

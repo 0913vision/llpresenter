@@ -113,6 +113,33 @@ describe('service song item panel', () => {
     expect(chips(panel)).toEqual(['후렴', '1절', '후렴']);
   });
 
+  it('moves selection and focus past a neighbor that is the same 슬라이드', async () => {
+    const {panel, user, edits} = await setup();
+    await user.click(chip(panel, 2));
+    await user.keyboard('{Alt>}{ArrowLeft}{/Alt}');
+    expect(chips(panel)).toEqual(['1절', '후렴', '후렴']);
+    expect(selectedThumbnail(panel)).toBe(1);
+    expect(document.activeElement).toBe(chip(panel, 1));
+    expect(edits).toEqual([]);
+    await user.keyboard('{Alt>}{ArrowLeft}{/Alt}');
+    expect(chips(panel)).toEqual(['후렴', '1절', '후렴']);
+    expect(selectedThumbnail(panel)).toBe(0);
+    expect(document.activeElement).toBe(chip(panel, 0));
+  });
+
+  it('leaves Ctrl Z to a text field in the panel', async () => {
+    const {panel, user} = await setup();
+    await user.click(chip(panel, 0));
+    await user.keyboard('{Alt>}{ArrowRight}{/Alt}');
+    expect(chips(panel)).toEqual(['후렴', '1절', '후렴']);
+    const size = within(panel).getByRole('spinbutton', {
+      name: '슬라이드 크기 백분율',
+    });
+    await user.click(size);
+    await user.keyboard('{Control>}z{/Control}');
+    expect(chips(panel)).toEqual(['후렴', '1절', '후렴']);
+  });
+
   it('appends a chosen 슬라이드 from 슬라이드 넣기', async () => {
     mockMenuRowHeight();
     const {panel, user} = await setup();

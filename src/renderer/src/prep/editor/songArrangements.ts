@@ -13,6 +13,17 @@ export function editedOrder(
   );
 }
 
+/** Whether two orders list the same 슬라이드 in the same places. */
+export function sameOrder(
+  left: readonly number[],
+  right: readonly number[],
+): boolean {
+  return (
+    left.length === right.length &&
+    left.every((value, index) => value === right[index])
+  );
+}
+
 /** Copies the selected order under the first unused numbered name. */
 export function newArrangement(
   song: Song,
