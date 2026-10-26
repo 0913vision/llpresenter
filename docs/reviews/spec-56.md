@@ -50,3 +50,10 @@ None. Only `docs/spec/05-prep.md` and this member's review document changed.
    retrying disk persistence never reapplies the import. Checked against
    `appliedId`/`editApplied`, `createService`, `useImportItems`, and the
    accepted spec-50/spec-51 review records. This changes documentation only.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (Codex): Request changes; the findings and replies are above.
+- Round 2 (4f415877): reviewer (Codex) Approve. Lead Approve (see "What changed
+  and why"); the exact-head CI run passed, checked by the lead at merge. Rebased
+  by the lead onto local `main` without conflicts; typecheck passes.
