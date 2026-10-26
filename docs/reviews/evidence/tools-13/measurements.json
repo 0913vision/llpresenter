@@ -1,0 +1,85 @@
+{
+  "selectionPairs": {
+    "service": 70,
+    "library": 20,
+    "screens": 20
+  },
+  "quickDragPairs": 70,
+  "serviceDragPairs": 70,
+  "warmupDragPairs": 50,
+  "measuredDragPairs": 20,
+  "menuCycles": 2,
+  "workspaceOpenCloseCycles": 2,
+  "samples": [
+    {
+      "dom": {
+        "documents": 30,
+        "nodes": 1508,
+        "jsEventListeners": 519
+      },
+      "heap": {
+        "usedSize": 7612444,
+        "totalSize": 8572928,
+        "embedderHeapUsedSize": 4290432,
+        "backingStorageSize": 1670211
+      },
+      "elements": 437
+    },
+    {
+      "dom": {
+        "documents": 30,
+        "nodes": 1508,
+        "jsEventListeners": 519
+      },
+      "heap": {
+        "usedSize": 7615336,
+        "totalSize": 8310784,
+        "embedderHeapUsedSize": 4283080,
+        "backingStorageSize": 1670218
+      },
+      "elements": 437
+    },
+    {
+      "dom": {
+        "documents": 30,
+        "nodes": 1508,
+        "jsEventListeners": 519
+      },
+      "heap": {
+        "usedSize": 7636708,
+        "totalSize": 8310784,
+        "embedderHeapUsedSize": 4288024,
+        "backingStorageSize": 1670218
+      },
+      "elements": 437
+    },
+    {
+      "dom": {
+        "documents": 30,
+        "nodes": 1508,
+        "jsEventListeners": 519
+      },
+      "heap": {
+        "usedSize": 7669844,
+        "totalSize": 8310784,
+        "embedderHeapUsedSize": 4295864,
+        "backingStorageSize": 1670225
+      },
+      "elements": 437
+    },
+    {
+      "dom": {
+        "documents": 30,
+        "nodes": 1508,
+        "jsEventListeners": 519
+      },
+      "heap": {
+        "usedSize": 7682532,
+        "totalSize": 8310784,
+        "embedderHeapUsedSize": 4287216,
+        "backingStorageSize": 1670218
+      },
+      "elements": 437
+    }
+  ]
+}
