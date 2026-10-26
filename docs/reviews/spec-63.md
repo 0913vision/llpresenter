@@ -66,3 +66,10 @@ its already-visible other-item commands; that harness wait was corrected.
   old title-first description; payload shape and validation are unchanged.
 - `docs/spec/04-show.md`, `05-prep.md`, and this review record belong to this
   member.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (00dcde1d): reviewer (Codex) Approve. Lead Approve through the lead's
+  merge check: the exact-head CI run passed, the branch rebased onto local
+  `main` without conflicts, and typecheck passes. Earlier rounds' findings and
+  replies are above.
