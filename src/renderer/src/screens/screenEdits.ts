@@ -39,15 +39,15 @@ export function changeScreen(
   });
 }
 
-/** A name must not be empty and must not be another screen's name. */
+/** A name must not be empty and must not be another item's name. */
 export function nameProblem(
   name: string,
-  screens: readonly Screen[],
+  items: ReadonlyArray<{readonly id: string; readonly name: string}>,
   id: string,
 ): NameProblem | undefined {
   const trimmed = name.trim();
   if (trimmed === '') return 'empty';
-  const taken = screens.some(
+  const taken = items.some(
     screen => screen.id !== id && screen.name.trim() === trimmed,
   );
   return taken ? 'taken' : undefined;
