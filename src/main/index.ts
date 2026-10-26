@@ -3,6 +3,7 @@ import {join} from 'node:path';
 import {isAnyOutputOn} from '@shared/live';
 import {registerBible} from './bible/register';
 import {registerTextImport} from './import/register';
+import {registerMediaImport} from './media/register';
 import {LiveStore, dispatchLogged} from './live/store';
 import {startOverlays} from './live/overlays';
 import {registerMacros} from './macros/register';
@@ -148,6 +149,13 @@ function start(): void {
       control = win;
       const closing = registerControlClose({control: win, log});
       shutdown.confirmWith(() => closing.confirmClose());
+      const stopMediaImport = registerMediaImport({
+        port: dataStore.mediaBackend,
+        media: dataStore.media,
+        control: win,
+        windowMode,
+        log,
+      });
       const stopTextImport = registerTextImport({
         control: win,
         windowMode,
@@ -212,6 +220,7 @@ function start(): void {
       shutdown.add({name: 'stop the soak scenario', run: stopSoakScenario});
       shutdown.add({name: 'stop text import', run: stopTextImport});
       shutdown.add({name: 'stop Bible lookup', run: stopBible});
+      shutdown.add({name: 'stop media import', run: stopMediaImport});
       shutdown.add({name: 'stop macros', run: macros.dispose});
       shutdown.add({name: 'stop overlays', run: stopOverlays});
       shutdown.add({name: 'stop Look selection', run: stopLookSelection});
