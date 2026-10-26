@@ -10,7 +10,7 @@ function comparablePath(file: string): string {
 
 async function existingFile(file: string) {
   try {
-    return await stat(file);
+    return await stat(file, {bigint: true});
   } catch (error: unknown) {
     if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
       return null;
@@ -27,7 +27,7 @@ async function requireDifferentFiles(
     throw new Error('Source and destination must be different files');
   }
   const [input, output] = await Promise.all([
-    stat(source),
+    stat(source, {bigint: true}),
     existingFile(destination),
   ]);
   if (!input.isFile()) throw new Error('Expected a regular source file');
