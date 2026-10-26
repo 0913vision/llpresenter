@@ -18,10 +18,10 @@ Only the lead edits this file. Last updated: October 26, 2026.
 On October 26 at 08:10, Codex's weekly usage ran low, so Claude sessions took
 over the members' work in the same worktrees, at most four implementing at once,
 and Codex sessions review (user decision). The lead routes renderer requests to
-one reviewer and main-process, contract, and document requests to another; a
-third takes round 1 of a request whose area reviewer is busy, and later rounds
-stay with the round-1 reviewer. Ownership works like code owners (`CLAUDE.md`,
-"Your files").
+one reviewer and main-process, contract, and document requests to another; when
+that reviewer is busy, round 1 goes to the reviewer with the shortest queue, and
+later rounds stay with the round-1 reviewer. Ownership works like code owners
+(`CLAUDE.md`, "Your files").
 
 | Session                 | Worktree   | Works on now                                |
 | ----------------------- | ---------- | ------------------------------------------- |
@@ -29,6 +29,7 @@ stay with the round-1 reviewer. Ownership works like code owners (`CLAUDE.md`,
 | reviewer codex2 (Codex) | `main`     | Renderer requests (ui, 진행, 준비)          |
 | reviewer codex3 (Codex) | `main`     | Main process, contracts, documents          |
 | reviewer codex4 (Codex) | `main`     | Overflow: round 1 when the others are busy  |
+| reviewer codex5 (Codex) | `main`     | Overflow: round 1 when the others are busy  |
 | data (Claude)           | reviewer   | Close handshake, then the 매크로 drop, P6a  |
 | output (Claude)         | output     | Vitest cache fix, M3-O8 recovery answer, O4 |
 | ui (Claude)             | ui         | M3-P3a item panel, center song panel        |
