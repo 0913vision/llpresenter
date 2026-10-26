@@ -5,7 +5,8 @@
 - Base, range, and exact-head CI: see the request message
 - Review round: 1
 - Task: M3-UX-05, inert menu triggers presented as enabled
-- Stack: initially prepared on spec-63, to be rebased after its merge
+- Stack: initially prepared on spec-63, now rebased onto local main after its
+  merge
 
 ## What changed and why
 
@@ -40,10 +41,11 @@ port 5193 and CDP 9517 with `LLP_TEST_WINDOWS=offscreen`. The driver passed
   not return focus reliably; native Tab behavior is not claimed here.
 - Opened/closed 파일 and 출력 twice, warmed them ten round trips, then switched
   between them twenty round trips. Both remained operable with correct closing.
-- Matching closed-menu checkpoints stayed at 397 elements, 1443 DOM nodes, 29
-  documents and 664 listeners. Collected heap was 5,498,904, 5,573,688 and
-  5,630,176 bytes, about 128 KiB growth in the short sample. No renderer
-  exception occurred. See [measurements](spec-64/measurements.json).
+- Repeated the build/checks and actual app check after rebasing. Matching
+  closed-menu checkpoints stayed at 399 elements, 1445 DOM nodes, 29 documents
+  and 665 listeners. Collected heap was 5,517,300, 5,587,200 and 5,634,120
+  bytes, about 114 KiB growth in the short sample. No renderer exception
+  occurred. See [measurements](spec-64/measurements.json).
 
 ## Changes outside my paths
 

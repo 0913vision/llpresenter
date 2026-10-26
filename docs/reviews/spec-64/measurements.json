@@ -24,25 +24,25 @@
   },
   "measurements": [
     {
-      "elements": 397,
-      "heap": 5498904,
+      "elements": 399,
+      "heap": 5517300,
       "documents": 29,
-      "nodes": 1443,
-      "jsEventListeners": 664
+      "nodes": 1445,
+      "jsEventListeners": 665
     },
     {
-      "elements": 397,
-      "heap": 5573688,
+      "elements": 399,
+      "heap": 5587200,
       "documents": 29,
-      "nodes": 1443,
-      "jsEventListeners": 664
+      "nodes": 1445,
+      "jsEventListeners": 665
     },
     {
-      "elements": 397,
-      "heap": 5630176,
+      "elements": 399,
+      "heap": 5634120,
       "documents": 29,
-      "nodes": 1443,
-      "jsEventListeners": 664
+      "nodes": 1445,
+      "jsEventListeners": 665
     }
   ],
   "errors": [],
