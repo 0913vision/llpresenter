@@ -82,3 +82,10 @@ obsolete mock removals. Repeated the affected tests, typecheck, changed-file
 lint, build, formatting and the offscreen checked-app flow. Updated screenshots
 and measurements above. All 128 tests in the eight affected files pass. The
 warmed bin, properties, retained nodes and listeners remain flat. CI pending.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 3 (d79aaa4f): reviewer (Codex) Approve. Lead Approve through the lead's
+  merge check: the exact-head CI run passed, the branch rebased onto local
+  `main` without conflicts, and typecheck passes. Earlier rounds' findings and
+  replies are above.
