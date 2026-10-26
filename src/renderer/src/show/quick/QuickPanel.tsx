@@ -3,7 +3,7 @@ import {isKnownQuickItem, type QuickItemKind} from '@shared/schema/quick';
 import {useSettingsDocument} from '@renderer/screens/useSettingsDocument';
 import {useLive} from '@renderer/state/live';
 import {useShow} from '@renderer/state/show';
-import {ListActionRow} from '@renderer/ui';
+import {ListActionRow, ListInsertLine} from '@renderer/ui';
 import {
   Panel,
   PanelBody,
@@ -19,6 +19,7 @@ import styles from './QuickPanel.module.css';
 import {QuickAdd, QuickRowEditor} from './QuickEditing';
 import {MAX_QUICK_ITEMS} from './quickEdits';
 import {useQuickEditing} from './useQuickEditing';
+import {useQuickDrag} from './useQuickDrag';
 
 const icons: Readonly<Record<QuickItemKind, string>> = {
   song: 'song',
@@ -41,6 +42,20 @@ export function QuickPanel({
   const editing = useQuickEditing(api, onProblem);
   const locked = document?.access !== 'editable' || editing.busy;
   const full = (document?.value.items.length ?? 0) >= MAX_QUICK_ITEMS;
+  const drag = useQuickDrag({
+    enabled: !locked,
+    revision: document?.revision ?? null,
+    onMove: (id, before) => {
+      const source = document?.value.items.find(item => item.id === id);
+      const target = document?.value.items.find(item => item.id === before);
+      if (!source || (before !== null && !target)) return;
+      editing
+        .run({kind: 'move', id: source.id, before: target?.id ?? null})
+        .catch((cause: unknown) =>
+          console.error('Quick reorder callback failed:', cause),
+        );
+    },
+  });
   const live = useLive(view => view.state);
   const [activationVersion, setActivationVersion] = useState(0);
   const runner = useMemo(
@@ -82,7 +97,7 @@ export function QuickPanel({
         />
       </PanelTools>
       <PanelBody variant="flush">
-        <div role="group" aria-label="퀵 실행 항목">
+        <div {...drag.listProps} role="group" aria-label="퀵 실행 항목">
           {document?.value.items.map(item => {
             const known = isKnownQuickItem(item);
             const reason = quickItemUnavailable(item);
@@ -93,6 +108,7 @@ export function QuickPanel({
                 item={item}
                 locked={locked}
                 save={editing.run}
+                insertBefore={drag.before === item.id}
               >
                 <ListActionRow
                   title={item.name}
@@ -114,6 +130,7 @@ export function QuickPanel({
               </QuickRowEditor>
             );
           })}
+          {drag.before === null ? <ListInsertLine /> : null}
         </div>
       </PanelBody>
     </Panel>

@@ -2,10 +2,17 @@ import {useEffect, useState, type JSX, type ReactNode} from 'react';
 import type {LlpApi} from '@shared/ipc';
 import type {QuickItem} from '@shared/schema/quick';
 import {isItemOfKind} from '@shared/schema/service';
+import {useSettingsDocument} from '@renderer/screens/useSettingsDocument';
 import {useShow} from '@renderer/state/show';
 import {bibleSourceFor, isLibrarySource} from '@renderer/state/showLibrary';
 import {withinLookupTimeout} from '@renderer/state/showOutput';
-import {Dialog, IconButton, Menu, TextField} from '@renderer/ui';
+import {
+  Dialog,
+  IconButton,
+  Menu,
+  TextField,
+  ListInsertLine,
+} from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import {openOnArrowDown} from '@renderer/ui/menuButton';
 import type {MenuEntry} from '@renderer/ui/menuModel';
@@ -75,6 +82,9 @@ function QuickAddMenu({
   readonly onClose: () => void;
   readonly onProblem: (notice: Notice) => void;
 }): JSX.Element {
+  const props = useSettingsDocument('props', '소품', onProblem);
+  const timers = useSettingsDocument('timers', '타이머', onProblem);
+  const macros = useSettingsDocument('macros', '매크로', onProblem);
   const view = useShow();
   const [current, setCurrent] = useState<{
     view: typeof view;
@@ -114,6 +124,17 @@ function QuickAddMenu({
     label: target.name || '이름 없음',
     onSelect: () => onAdd(target),
   });
+  const group = (
+    id: string,
+    label: string,
+    submenu: readonly MenuEntry[],
+  ): MenuEntry => ({
+    kind: 'item',
+    id,
+    label,
+    submenu,
+    disabled: submenu.length === 0,
+  });
   return (
     <Menu
       label="퀵 실행 추가"
@@ -131,6 +152,27 @@ function QuickAddMenu({
           },
         },
         {kind: 'separator', id: 'targets'},
+        group(
+          'props',
+          '소품',
+          props?.value.props.map(item =>
+            entry(item.id, {kind: 'prop', name: item.name, ref: item.id}),
+          ) ?? [],
+        ),
+        group(
+          'timers',
+          '타이머',
+          timers?.value.timers.map(item =>
+            entry(item.id, {kind: 'timer', name: item.name, ref: item.id}),
+          ) ?? [],
+        ),
+        group(
+          'macros',
+          '매크로',
+          macros?.value.macros.map(item =>
+            entry(item.id, {kind: 'macro', name: item.name, ref: item.id}),
+          ) ?? [],
+        ),
         entry('black', {kind: 'black', name: '검은 화면'}),
       ]}
     />
@@ -191,11 +233,13 @@ export function QuickRowEditor({
   locked,
   save,
   children,
+  insertBefore = false,
 }: {
   readonly item: QuickItem;
   readonly locked: boolean;
   readonly save: Save;
   readonly children: ReactNode;
+  readonly insertBefore?: boolean;
 }): JSX.Element {
   const [menu, setMenu] = useState<MenuAnchor | null>(null);
   const [renaming, setRenaming] = useState(false);
@@ -203,6 +247,7 @@ export function QuickRowEditor({
   const reason = quickNameReason(name);
   return (
     <div
+      data-quick-id={item.id}
       onContextMenu={event => {
         event.preventDefault();
         if (!locked) {
@@ -224,6 +269,7 @@ export function QuickRowEditor({
         setMenu({kind: 'element', element: event.currentTarget});
       }}
     >
+      {insertBefore ? <ListInsertLine /> : null}
       {children}
       {menu && !locked ? (
         <Menu

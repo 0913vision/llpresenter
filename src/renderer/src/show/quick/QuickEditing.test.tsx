@@ -14,6 +14,7 @@ import {parseServiceDocument} from '@shared/schema/contentDocuments';
 import {createQuickItemId, createAppFlushRequestId} from '@shared/schema/ids';
 import type {AppFlushRequest} from '@shared/schema/appFlush';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import {parseSettingsDocument} from '@shared/schema/settingsDocuments';
 import {useShow} from '@renderer/state/show';
 import {useLive} from '@renderer/state/live';
 import {openLibrarySong} from '@renderer/state/showLibrary';
@@ -40,9 +41,55 @@ function setup() {
     document = next;
     base.pushQuick(next);
   };
-  const get = vi.fn<LlpApi['settings']['get']>(request =>
-    request.name === 'quick' ? Promise.resolve(document) : base.get(request),
-  );
+  const get = vi.fn<LlpApi['settings']['get']>(request => {
+    if (request.name === 'quick') return Promise.resolve(document);
+    if (
+      request.name === 'props' ||
+      request.name === 'timers' ||
+      request.name === 'macros'
+    ) {
+      const contents = {
+        props: {
+          props: [
+            {
+              id: quickId(103),
+              name: '소품 대상',
+              content: {kind: 'image', media: quickId(111)},
+              targets: [],
+            },
+          ],
+        },
+        timers: {
+          timers: [{id: quickId(104), name: '타이머 대상', kind: 'clock'}],
+        },
+        macros: {
+          macros: [
+            {
+              id: quickId(105),
+              name: '매크로 대상',
+              icon: 'macro',
+              color: 'teal',
+              actions: [],
+            },
+          ],
+          collections: [],
+        },
+      };
+      const parsed = parseSettingsDocument({
+        name: request.name,
+        revision: 1,
+        access: 'editable',
+        value: {
+          format: `llsettings.${request.name}`,
+          schemaVersion: 1,
+          ...contents[request.name],
+        },
+      });
+      if (!parsed.ok) throw new Error('Invalid target fixture');
+      return Promise.resolve(parsed.value);
+    }
+    return base.get(request);
+  });
   const edit = vi.fn<LlpApi['settings']['edit']>(change => {
     if (change.type !== 'settings.update' || change.name !== 'quick') {
       throw new Error('Unexpected edit');
@@ -112,6 +159,103 @@ afterEach(() => {
 });
 
 describe('quick editing', () => {
+  it.each([
+    {group: '소품', name: '소품 대상', kind: 'prop'},
+    {group: '타이머', name: '타이머 대상', kind: 'timer'},
+    {group: '매크로', name: '매크로 대상', kind: 'macro'},
+  ])(
+    'adds a $kind from its submenu without output',
+    async ({group, name, kind}) => {
+      const fixture = setup();
+      fixture.mount();
+      fireEvent.click(
+        await screen.findByRole('button', {name: '퀵 실행 추가'}),
+      );
+      fireEvent.click(await screen.findByRole('menuitem', {name: group}));
+      fireEvent.click(await screen.findByRole('menuitem', {name}));
+      await waitFor(() =>
+        expect(fixture.current().value.items.at(-1)).toMatchObject({
+          kind,
+          name,
+        }),
+      );
+      expect(fixture.send).not.toHaveBeenCalled();
+      expect(fixture.problem).not.toHaveBeenCalled();
+    },
+  );
+  it('persists a pointer reorder without running the item or clearing output', async () => {
+    const fixture = setup();
+    fixture.mount();
+    const first = await screen.findByRole('button', {name: '저장된 곡'});
+    const live = useLive.getState().state;
+    document
+      .querySelectorAll<HTMLElement>('[data-quick-id]')
+      .forEach((row, index) =>
+        vi
+          .spyOn(row, 'getBoundingClientRect')
+          .mockReturnValue(new DOMRect(0, index * 30, 200, 30)),
+      );
+    const pointer = {pointerId: 1, button: 0, clientX: 10};
+    fireEvent.pointerDown(first, {...pointer, clientY: 15});
+    fireEvent.pointerMove(window, {...pointer, clientY: 300});
+    fireEvent.pointerUp(window, {...pointer, clientY: 300});
+    fireEvent.click(first, {detail: 1});
+    await waitFor(() =>
+      expect(fixture.current().value.items.at(-1)?.id).toBe(
+        quickItem('song').id,
+      ),
+    );
+    expect(fixture.edit).toHaveBeenCalledOnce();
+    expect(fixture.send).not.toHaveBeenCalled();
+    expect(useLive.getState().state).toBe(live);
+  });
+  it('moves an unknown item on the latest list and retains unrelated additions', async () => {
+    const fixture = setup();
+    const current = fixture.current();
+    const source = current.value.items.at(-1);
+    if (!source) throw new Error('Missing future row');
+    const extra = {
+      ...quickItem('black'),
+      id: createQuickItemId(quickId(88)),
+      name: '다른 변경',
+    };
+    fixture.push({
+      ...current,
+      revision: 2,
+      value: {...current.value, items: [extra, ...current.value.items]},
+    });
+    const result = await saveQuickEdit(fixture.api, {
+      kind: 'move',
+      id: source.id,
+      before: quickItem('song').id,
+    });
+    expect(result.ok).toBe(true);
+    expect(fixture.current().value.items.slice(0, 3)).toMatchObject([
+      extra,
+      {id: source.id, extension: true},
+      {id: quickItem('song').id},
+    ]);
+    expect(fixture.edit.mock.calls[0]?.[0]).toMatchObject({baseRevision: 2});
+  });
+  it.each(['self', 'same gap', 'missing source', 'missing target'])(
+    'does not write a move with %s',
+    async kind => {
+      const fixture = setup();
+      const missing = createQuickItemId(quickId(88));
+      const source = kind === 'missing source' ? missing : quickItem('song').id;
+      const before =
+        kind === 'self'
+          ? source
+          : kind === 'missing target'
+            ? missing
+            : quickItem('bible').id;
+      expect(
+        (await saveQuickEdit(fixture.api, {kind: 'move', id: source, before}))
+          .ok,
+      ).toBe(true);
+      expect(fixture.edit).not.toHaveBeenCalled();
+    },
+  );
   it.each([false, true])(
     'holds close through a deferred read and stale retry %s',
     async retry => {

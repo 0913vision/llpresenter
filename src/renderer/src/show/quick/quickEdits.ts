@@ -24,7 +24,12 @@ export type QuickEdit =
       readonly id: QuickItem['id'];
       readonly name: string;
     }
-  | {readonly kind: 'delete'; readonly id: QuickItem['id']};
+  | {readonly kind: 'delete'; readonly id: QuickItem['id']}
+  | {
+      readonly kind: 'move';
+      readonly id: QuickItem['id'];
+      readonly before: QuickItem['id'] | null;
+    };
 
 export function newQuickItem(choice: QuickChoice): KnownQuickItem {
   return {...choice, id: createQuickItemId(crypto.randomUUID())};
@@ -59,6 +64,18 @@ function applyEdit(
       );
     case 'delete':
       return items.filter(item => item.id !== edit.id);
+    case 'move': {
+      const source = items.find(item => item.id === edit.id);
+      if (!source || edit.before === edit.id) return items;
+      const rest = items.filter(item => item.id !== edit.id);
+      const index =
+        edit.before === null
+          ? rest.length
+          : rest.findIndex(item => item.id === edit.before);
+      if (index < 0) return items;
+      const moved = [...rest.slice(0, index), source, ...rest.slice(index)];
+      return moved.every((item, at) => item === items[at]) ? items : moved;
+    }
     default: {
       const unhandled: never = edit;
       return unhandled;
@@ -94,6 +111,9 @@ async function sendQuickEdit(
     throw new Error('Quick settings cannot be edited');
   }
   const items = applyEdit(document.value.items, edit);
+  if (items === document.value.items) {
+    return {ok: true, value: {id: 'quick', revision: document.revision}};
+  }
   const result = await api.settings.edit({
     type: 'settings.update',
     name: 'quick',
