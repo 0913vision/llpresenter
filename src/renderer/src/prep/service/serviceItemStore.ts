@@ -327,6 +327,16 @@ export class ServiceItemStore {
     return this.memoDrafts.get(draftKey(target))?.memo;
   }
 
+  /** Whether a memo for the item can be kept if its save is refused. */
+  hasMemoRoom(target: ItemTarget): boolean {
+    return (
+      this.memoDrafts.has(draftKey(target)) ||
+      this.memoDrafts.size < MAX_MEMO_DRAFTS
+    );
+  }
+
+  readonly memoRoomReason = TOO_MANY_DRAFTS;
+
   private keepMemoDraft(
     key: string,
     target: ItemTarget,
@@ -337,10 +347,12 @@ export class ServiceItemStore {
       return false;
     }
     this.memoDrafts.set(key, {target, memo});
+    this.publish();
     return true;
   }
 
-  /** Drops the drafts of items the service no longer has. */
+  // NOTE(0913vision): A draft goes with its item when the service no longer
+  // has it; no other draft is ever dropped.
   private forgetDeletedDrafts(
     serviceId: string,
     document: ServiceDocument | null,

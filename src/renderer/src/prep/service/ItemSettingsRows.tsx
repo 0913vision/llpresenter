@@ -254,6 +254,10 @@ export function ItemMemo({
   const unsaved = useSyncExternalStore(items.subscribe, () =>
     items.memoDraft(target),
   );
+  const hasRoom = useSyncExternalStore(items.subscribe, () =>
+    items.hasMemoRoom(target),
+  );
+  const reason = lockReason ?? (hasRoom ? undefined : items.memoRoomReason);
   const [typed, setTyped] = useState<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const latest = useRef<string | null>(null);
@@ -275,8 +279,8 @@ export function ItemMemo({
     <TextArea
       aria-label="메모"
       value={typed ?? unsaved ?? saved}
-      readOnly={lockReason !== undefined}
-      title={lockReason}
+      readOnly={reason !== undefined}
+      title={reason}
       onChange={value => {
         setTyped(value);
         latest.current = value;

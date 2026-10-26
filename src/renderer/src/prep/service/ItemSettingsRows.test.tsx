@@ -1,6 +1,7 @@
 import {act, render, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
+import {createServiceItemId} from '@shared/schema/ids';
 import {SongEditorStore} from '@renderer/prep/editor';
 import {mockMenuRowHeight} from '@renderer/prep/editor/editorTesting';
 import {useShow} from '@renderer/state/show';
@@ -267,6 +268,48 @@ describe('항목 설정 이번 예배 and 메모', () => {
         .getByRole('menuitemradio', {name: '찬양'})
         .getAttribute('aria-checked'),
     ).toBe('true');
+  });
+
+  it('makes the memo read-only at the draft limit, so nothing typed can be lost', async () => {
+    const {api, items, settings, user} = await setup();
+    vi.spyOn(api.content, 'edit').mockResolvedValue({
+      ok: false,
+      error: {reason: 'stale', message: 'Fixture refusal'},
+    });
+    for (let n = 0; n < 100; n++) {
+      await items.setMemo(
+        {
+          serviceId: fixtureServiceId,
+          itemId: createServiceItemId(
+            `80000000-0000-4000-8000-${String(n).padStart(12, '0')}`,
+          ),
+        },
+        `메모 ${n}`,
+      );
+    }
+    const memo = within(settings).getByRole('textbox', {name: '메모'});
+    await waitFor(() => expect(memo).toHaveProperty('readOnly', true));
+    await user.click(memo);
+    await user.keyboard('잃을 글');
+    expect(memo).toHaveProperty('value', '천천히');
+    act(() =>
+      items.show({serviceId: fixtureServiceId, itemId: fixtureItems.plain}),
+    );
+    act(() =>
+      items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged}),
+    );
+    expect(
+      within(screen.getByRole('region', {name: '항목 설정'})).getByRole(
+        'textbox',
+        {name: '메모'},
+      ),
+    ).toHaveProperty('value', '천천히');
+    const again = within(
+      screen.getByRole('region', {name: '항목 설정'}),
+    ).getByRole('textbox', {name: '메모'});
+    expect((await hoverForTooltip(again))?.textContent).toBe(
+      '저장하지 못한 메모가 너무 많음',
+    );
   });
 
   it('locks the rows of a read-only service with the reason', async () => {
