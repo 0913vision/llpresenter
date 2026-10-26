@@ -44,6 +44,7 @@ export const DEFAULT_MEDIA_COLUMNS = 5;
 export const UNNAMED_MEDIA = '이름 없는 미디어';
 
 export interface MediaViewProps {
+  readonly workspace?: 'show' | 'prep';
   /** The workspace host merges problems into its one notification list. */
   readonly onProblem: (notice: Notice) => void;
 }
@@ -101,7 +102,10 @@ function EntryTile({
  * copy progress, and the size slider. A click selects a tile, a double click
  * outputs it as the background, and a missing file's tile opens 다시 연결.
  */
-export function MediaView({onProblem}: MediaViewProps): JSX.Element {
+export function MediaView({
+  onProblem,
+  workspace = 'prep',
+}: MediaViewProps): JSX.Element {
   const {library, view, choice, selected, select: setSelected} = useMediaView();
   const [columns, setColumns] = useState(DEFAULT_MEDIA_COLUMNS);
   const [menu, setMenu] = useState<OpenMenu | null>(null);
@@ -127,7 +131,10 @@ export function MediaView({onProblem}: MediaViewProps): JSX.Element {
     const entry = entries[at];
     if (entry === undefined || entry.kind === 'copy') return;
     if (missing(entry)) relink(entry.item.id, nameOf(entry));
-    else setSelected(entry.id);
+    else {
+      setSelected(entry.id);
+      if (workspace === 'show') output(at);
+    }
   };
   const output = (at: number): void => {
     const entry = entries[at];
@@ -232,6 +239,7 @@ export function MediaView({onProblem}: MediaViewProps): JSX.Element {
         </PanelHeader>
         <PanelBody tab="list" className={styles.body}>
           <VirtualMediaGrid
+            workspace={workspace}
             onDragOver={dragOver}
             onDrop={drop}
             label={title}
@@ -240,7 +248,7 @@ export function MediaView({onProblem}: MediaViewProps): JSX.Element {
             selected={index < 0 ? undefined : index}
             onSelect={at => setSelected(entries[at]?.id ?? null)}
             onActivate={activate}
-            onOutput={output}
+            onOutput={workspace === 'show' ? () => undefined : output}
             onMenu={(at, anchor) => {
               const entry = entries[at];
               const choices =

@@ -29,6 +29,7 @@ const MediaViewContext = createContext<MediaViewContextValue | null>(null);
 
 export interface MediaViewProviderProps {
   readonly api: MediaApi;
+  readonly active?: boolean;
   /** The workspace host merges problems into its one notification list. */
   readonly onProblem: (notice: Notice) => void;
   readonly children: ReactNode;
@@ -43,6 +44,7 @@ export function MediaViewProvider({
   api,
   onProblem,
   children,
+  active = true,
 }: MediaViewProviderProps): JSX.Element {
   const report = useEffectEvent(onProblem);
   const [library] = useState(() => new MediaLibrary(api));
@@ -50,10 +52,12 @@ export function MediaViewProvider({
   const [selected, select] = useState<string | null>(null);
   useEffect(
     () =>
-      library.start(notice => {
-        report(notice);
-      }),
-    [library],
+      active
+        ? library.start(notice => {
+            report(notice);
+          })
+        : undefined,
+    [library, active],
   );
   const value = useMemo(
     () => ({library, choice, choose, selected, select}),

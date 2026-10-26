@@ -7,11 +7,14 @@
 }
 
 .screen {
+  flex: none;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   aspect-ratio: 16 / 9;
+  max-height: var(--ll-media-preview-max-height, none);
+  height: var(--ll-media-preview-max-height, auto);
   border-radius: var(--radius-md);
   overflow: hidden;
   background: var(--bg-well);

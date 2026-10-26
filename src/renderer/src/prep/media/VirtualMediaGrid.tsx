@@ -93,6 +93,7 @@ function useMeasure(viewport: RefObject<HTMLDivElement | null>): Measure {
 }
 
 export interface VirtualMediaGridProps {
+  readonly workspace?: 'show' | 'prep';
   /** The list name for assistive technology, such as 모든 미디어. */
   readonly label: string;
   readonly count: number;
@@ -128,6 +129,7 @@ export function VirtualMediaGrid({
   tile,
   onDragOver,
   onDrop,
+  workspace = 'prep',
 }: VirtualMediaGridProps): JSX.Element {
   const viewport = useRef<HTMLDivElement>(null);
   const focusNext = useRef<number | null>(null);
@@ -224,6 +226,7 @@ export function VirtualMediaGrid({
     >
       <div className={styles.spacer} style={windowStyle}>
         <MediaGrid
+          workspace={workspace}
           arrowsMove={arrowsMove}
           label={label}
           columns={columns}

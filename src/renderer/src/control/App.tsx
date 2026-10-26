@@ -56,7 +56,6 @@ export function App({
   const warningMap = useOutputWarnings(state => state.warnings);
   const warnings = useMemo(() => warningScreens(warningMap), [warningMap]);
   const [workspace, setWorkspace] = useState<WorkspaceId>('show');
-  const [prepMedia, setPrepMedia] = useState(false);
   const [focusSearch, setFocusSearch] = useState(false);
   const searchFocused = useCallback(() => setFocusSearch(false), []);
   const [importSource, setImportSource] = useState<'file' | 'clipboard' | null>(
@@ -72,16 +71,12 @@ export function App({
     setWorkspace(next);
   };
   const onMedia = (): void => {
-    if (workspace === 'prep') setPrepMedia(open => !open);
-    else {
-      onWorkspace('show');
-      mediaStrip.setVisible(workspace === 'screens' || !mediaStrip.visible);
-    }
+    if (workspace === 'screens') onWorkspace('show');
+    mediaStrip.setVisible(workspace === 'screens' || !mediaStrip.visible);
   };
   const importText = (source: 'file' | 'clipboard'): void => {
     if (session.api === undefined || importSource !== null) return;
     onWorkspace('prep');
-    setPrepMedia(false);
     session.editor?.requestLeave(() => setImportSource(source));
   };
   const imported = useSyncExternalStore(
@@ -142,17 +137,9 @@ export function App({
         onWorkspace={onWorkspace}
         onProblem={session.report}
         onOpenPrepSong={prepSelection.openSong}
-        mediaOpen={
-          workspace === 'show'
-            ? mediaStrip.visible
-            : workspace === 'prep' && prepMedia
-        }
+        mediaOpen={workspace !== 'screens' && mediaStrip.visible}
         onMediaOpenChange={
-          workspace === 'show'
-            ? mediaStrip.setVisible
-            : workspace === 'prep'
-              ? setPrepMedia
-              : undefined
+          workspace === 'screens' ? undefined : mediaStrip.setVisible
         }
       />
       <Workspace
@@ -185,7 +172,7 @@ export function App({
         }}
         warningHeight={warningHeight}
         mediaVisible={mediaStrip.visible}
-        mediaView={prepMedia}
+        mediaApi={session.api}
         sidebar={sidebar}
       />
       <StatusBar />
@@ -196,7 +183,6 @@ export function App({
           source={importSource}
           onDone={closeImport}
           onEdit={() => {
-            setPrepMedia(false);
             prepSelection.clear();
           }}
           onProblem={session.report}

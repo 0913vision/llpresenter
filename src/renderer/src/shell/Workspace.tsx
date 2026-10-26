@@ -24,18 +24,13 @@ import {
   ItemSettingsPanel,
 } from '@renderer/prep/service/ItemSidePanels';
 import {ServiceQuickAdd} from '@renderer/prep/service/QuickAdd';
-import {
-  AudioListsPanel,
-  MediaListsPanel,
-} from '@renderer/prep/media/MediaListPanels';
-import {MediaPropertiesPanel} from '@renderer/prep/media/MediaPropertiesPanel';
-import {MediaView} from '@renderer/prep/media/MediaView';
+import {MediaBin} from '@renderer/prep/media/MediaBin';
+import type {MediaApi} from '@renderer/prep/media/mediaLibrary';
 import {MediaViewProvider} from '@renderer/prep/media/MediaViewProvider';
 import {ServiceItemPanel} from '@renderer/prep/service/SongItemPanel';
 import type {ServiceItemStore} from '@renderer/prep/service/serviceItemStore';
 import {ClearRow} from '@renderer/show/ClearRow';
 import {PreviewPanel} from '@renderer/show/PreviewPanel';
-import {ShowMediaPanel} from '@renderer/show/ShowMediaPanel';
 import {ServiceOrderHeader} from '@renderer/show/ServiceOrderHeader';
 import {ServiceOrderList} from '@renderer/show/ServiceOrderList';
 import {ShowToolsPanel} from '@renderer/show/ShowToolsPanel';
@@ -75,7 +70,7 @@ const panelsByWorkspace: Readonly<
 > = {
   show: [
     ['예배 순서', '퀵 실행'],
-    ['슬라이드', '미디어'],
+    ['슬라이드'],
     ['미리보기', '지우기', '진행 도구'],
   ],
   prep: [['예배 순서', '라이브러리'], ['편집'], ['미리보기', '항목 설정']],
@@ -209,10 +204,6 @@ function showPanelParts({
           />
         ),
       };
-    case '미디어':
-      return {
-        bare: <ShowMediaPanel onProblem={onProblem ?? logPanelProblem} />,
-      };
     case '지우기':
       return {bare: <ClearRow compact={sizeClass === 'narrow'} />};
     case '슬라이드':
@@ -285,14 +276,6 @@ function prepPanelParts({
   readonly sizeClass: SizeClass;
 }): PanelParts {
   if (!prep) return {};
-  if (title === '미디어') return {embedded: <MediaListsPanel />};
-  if (title === '오디오') {
-    return {size: 'content', embedded: <AudioListsPanel />};
-  }
-  if (title === '미디어 보기') {
-    return {embedded: <MediaView onProblem={onProblem ?? ignoreProblem} />};
-  }
-  if (title === '속성') return {embedded: <MediaPropertiesPanel />};
   if (title === '라이브러리') {
     return {
       embedded: (
@@ -429,7 +412,7 @@ export function Workspace({
   prep,
   warningHeight = 0,
   mediaVisible = true,
-  mediaView = false,
+  mediaApi,
   sidebar,
 }: {
   readonly id: WorkspaceId;
@@ -440,8 +423,7 @@ export function Workspace({
   readonly prep?: PrepBinding | undefined;
   readonly warningHeight?: number;
   readonly mediaVisible?: boolean | undefined;
-  /** 준비 shows the media view in its center column (spec 05, "Layout"). */
-  readonly mediaView?: boolean | undefined;
+  readonly mediaApi?: MediaApi | undefined;
   readonly sidebar?: SidebarCollapse | undefined;
 }): JSX.Element {
   const {gridRef, drag} = useColumnLayout(sizeClass, store);
@@ -458,11 +440,9 @@ export function Workspace({
     id === 'prep' && hasSong
       ? [['예배 순서', '라이브러리'], ['편집'], ['미리보기', '슬라이드']]
       : panelsByWorkspace[id];
-  const media = id === 'prep' && mediaView && prep !== undefined ? prep : null;
-  const columns =
-    media === null
-      ? prepColumns
-      : [['미디어', '오디오'], ['미디어 보기'], ['속성']];
+  const api = mediaApi ?? prep?.api ?? window.llp;
+  const mediaOpen = id !== 'screens' && mediaVisible;
+  const columns = prepColumns;
   const partsOf = (title: string): PanelParts => {
     if (title === '예배 순서' && id !== 'screens') {
       return serviceOrderParts({
@@ -504,41 +484,43 @@ export function Workspace({
             onPress={button => toggle.toggle(false, button)}
           />
         ) : (
-          panels
-            .filter(
-              title => id !== 'show' || title !== '미디어' || mediaVisible,
-            )
-            .map(title => (
-              <Panel key={title} title={title} parts={partsOf(title)} />
-            ))
+          panels.map(title => (
+            <Panel key={title} title={title} parts={partsOf(title)} />
+          ))
         )}
       </div>
     </Fragment>
   ));
   // TODO(0913vision): Let the shrink rule ignore the hidden left width while
   // the left column is collapsed; it still counts the saved width now.
-  return (
-    <main
-      ref={gridRef}
-      className={classNames(
-        styles.columns,
-        toggle.collapsed && styles.leftCollapsed,
-        id === 'screens' && styles.screenSettings,
-      )}
-    >
+  const frame = (
+    <main ref={gridRef} className={styles.workspace}>
       {id === 'show' ? (
         <ShowShortcuts onProblem={onProblem ?? logPanelProblem} />
       ) : null}
-      {media === null ? (
-        panelColumns
-      ) : (
-        <MediaViewProvider
-          api={media.api}
-          onProblem={onProblem ?? ignoreProblem}
-        >
-          {panelColumns}
-        </MediaViewProvider>
-      )}
+      <div
+        className={classNames(
+          styles.columns,
+          toggle.collapsed && styles.leftCollapsed,
+          id === 'screens' && styles.screenSettings,
+        )}
+      >
+        {panelColumns}
+      </div>
+      {mediaOpen && api !== undefined ? (
+        <MediaBin workspace={id} onProblem={onProblem ?? ignoreProblem} />
+      ) : null}
     </main>
+  );
+  return api === undefined ? (
+    frame
+  ) : (
+    <MediaViewProvider
+      api={api}
+      active={mediaOpen}
+      onProblem={onProblem ?? ignoreProblem}
+    >
+      {frame}
+    </MediaViewProvider>
   );
 }

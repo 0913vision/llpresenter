@@ -76,40 +76,52 @@ describe('App menu bar title', () => {
     expect(send).not.toHaveBeenCalled();
   });
 
-  it('routes Ctrl Shift I to the existing import flow and suppresses held repeats', async () => {
-    const read = vi.fn(async () => ({
-      ok: true as const,
-      value: {
-        source: 'file' as const,
-        fileName: 'Invented.txt',
-        text: 'Invented line',
-      },
-    }));
-    window.llp = fakeLlpApi({
-      textImport: {read, preview: async request => convertTextImport(request)},
-    });
-    render(
-      <App
-        session={createSession()}
-        columnWidthStore={createMemoryColumnWidthStore()}
-      />,
-    );
-    fireEvent.keyDown(window, {code: 'KeyI', ctrlKey: true, shiftKey: true});
-    fireEvent.keyDown(window, {
-      code: 'KeyI',
-      ctrlKey: true,
-      shiftKey: true,
-      repeat: true,
-    });
-    await screen.findByText('슬라이드 1');
-    expect(read).toHaveBeenCalledExactlyOnceWith({
-      source: 'file',
-      encoding: 'auto',
-    });
-    expect(
-      screen.getByRole('tab', {name: '준비'}).getAttribute('aria-selected'),
-    ).toBe('true');
-  });
+  it.each([false, true])(
+    'routes Ctrl Shift I without changing media visibility %s and suppresses held repeats',
+    async mediaOpen => {
+      const read = vi.fn(async () => ({
+        ok: true as const,
+        value: {
+          source: 'file' as const,
+          fileName: 'Invented.txt',
+          text: 'Invented line',
+        },
+      }));
+      window.llp = fakeLlpApi({
+        textImport: {
+          read,
+          preview: async request => convertTextImport(request),
+        },
+      });
+      render(
+        <App
+          session={createSession()}
+          columnWidthStore={createMemoryColumnWidthStore()}
+          uiState={{mediaStrip: mediaOpen}}
+        />,
+      );
+      fireEvent.keyDown(window, {code: 'KeyI', ctrlKey: true, shiftKey: true});
+      fireEvent.keyDown(window, {
+        code: 'KeyI',
+        ctrlKey: true,
+        shiftKey: true,
+        repeat: true,
+      });
+      await screen.findByText('슬라이드 1');
+      expect(read).toHaveBeenCalledExactlyOnceWith({
+        source: 'file',
+        encoding: 'auto',
+      });
+      expect(
+        screen.getByRole('tab', {name: '준비'}).getAttribute('aria-selected'),
+      ).toBe('true');
+      expect(
+        screen
+          .getByRole('button', {name: '미디어'})
+          .getAttribute('aria-pressed'),
+      ).toBe(String(mediaOpen));
+    },
+  );
 
   it('opens existing workspaces by S1 keys and View menu without sending live commands', async () => {
     const send = vi.fn();
@@ -223,11 +235,10 @@ describe('App menu bar title', () => {
         screen
           .getByRole('button', {name: '미디어'})
           .getAttribute('aria-pressed'),
-      ).toBe('false');
+      ).toBe(String(mediaOpen));
       expect(session.editor?.getSnapshot().imported).toBe(true);
       expect(edit).not.toHaveBeenCalled();
       if (mediaOpen) {
-        fireEvent.click(screen.getByRole('button', {name: '미디어'}));
         await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
         await userEvent.click(screen.getByRole('menuitem', {name: '가져오기'}));
         await userEvent.click(
@@ -243,6 +254,11 @@ describe('App menu bar title', () => {
       }
       fireEvent.click(screen.getByRole('button', {name: '버리기'}));
       expect(session.editor?.getSnapshot().session).toBeNull();
+      expect(
+        screen
+          .getByRole('button', {name: '미디어'})
+          .getAttribute('aria-pressed'),
+      ).toBe(String(mediaOpen));
     },
   );
   it('hosts and closes service edit warnings in the shared notice stack', async () => {

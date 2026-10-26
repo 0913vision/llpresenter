@@ -1,4 +1,5 @@
 import {act, fireEvent, render, screen, within} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {thumbnailUrl} from '@shared/media';
@@ -11,6 +12,12 @@ import type {MediaDocument, MediaImportResult} from '@shared/schema/mediaEdit';
 import {MEDIA_LIMITS} from '@shared/schema/mediaList';
 import {playlistId, audioPlaylistId} from './mediaTesting';
 import {INITIAL_ROWS, OVERSCAN_ROWS} from './VirtualMediaGrid';
+import {useShowKeys} from '@renderer/show/shortcuts';
+
+function ShowKeys() {
+  useShowKeys();
+  return null;
+}
 
 function ChoiceButton({choice}: {readonly choice: MediaListChoice}) {
   const {choose} = useMediaView();
@@ -31,6 +38,7 @@ function setup(
     ]),
   ),
   choice?: MediaListChoice,
+  workspace: 'show' | 'prep' = 'prep',
 ) {
   const problems = vi.fn();
   window.llp = fixture.api;
@@ -39,8 +47,9 @@ function setup(
   });
   render(
     <MediaViewProvider api={fixture.api} onProblem={problems}>
+      {workspace === 'show' ? <ShowKeys /> : null}
       {choice !== undefined && <ChoiceButton choice={choice} />}
-      <MediaView onProblem={problems} />
+      <MediaView workspace={workspace} onProblem={problems} />
     </MediaViewProvider>,
   );
   return {...fixture, problems};
@@ -239,6 +248,28 @@ describe('media view', () => {
     });
     fireEvent.doubleClick(await tile('Hymn'));
     expect(send).toHaveBeenCalledOnce();
+  });
+
+  it('keeps 진행 click focus and outputs on activation while arrows only select', async () => {
+    const {send} = setup(undefined, undefined, 'show');
+    const prior = document.createElement('input');
+    document.body.append(prior);
+    onTestFinished(() => prior.remove());
+    prior.focus();
+    const video = await tile('Dawn');
+    await userEvent.click(video);
+    expect(document.activeElement).toBe(prior);
+    expect(video.getAttribute('aria-selected')).toBe('true');
+    expect(send).toHaveBeenCalledExactlyOnceWith({
+      type: 'media.show',
+      media: {mediaId: mediaId(1), loop: true},
+    });
+    fireEvent.keyDown(video, {key: 'ArrowRight'});
+    expect(send).toHaveBeenCalledOnce();
+    const selected = await tile('Notice');
+    expect(selected.getAttribute('aria-selected')).toBe('true');
+    fireEvent.keyDown(selected, {key: 'Enter'});
+    expect(send).toHaveBeenCalledTimes(2);
   });
 
   it('relinks a missing file from a click or its menu', async () => {

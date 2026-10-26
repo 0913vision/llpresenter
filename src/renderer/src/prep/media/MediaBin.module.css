@@ -1,0 +1,32 @@
+.bin {
+  --ll-media-preview-max-height: calc(
+    var(--size-media-strip-tile) / (var(--aspect-output))
+  );
+  display: grid;
+  grid-template-columns: var(--ll-col-left) minmax(0, 1fr) var(--ll-col-right);
+  gap: var(--panel-gap);
+  padding: 0 var(--panel-gap);
+  flex: 0 0 min(40%, calc(var(--size-media-strip-tile) * 2));
+  min-height: 0;
+  overflow: hidden;
+}
+
+.lists {
+  display: flex;
+  flex-direction: column;
+  gap: var(--panel-gap);
+  min-width: 0;
+  min-height: 0;
+}
+
+.lists > :first-child {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+}
+
+.lists > :last-child {
+  flex: 0 1 auto;
+  height: auto;
+  max-height: 50%;
+}

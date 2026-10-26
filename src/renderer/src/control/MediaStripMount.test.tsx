@@ -4,6 +4,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
@@ -15,6 +16,12 @@ import {useLive} from '@renderer/state/live';
 import {applyService} from '@renderer/state/show';
 import {App} from './App';
 import {ControlSession} from './controlSession';
+import {
+  mediaDocument,
+  mediaItem,
+  mediaId,
+  playlistId,
+} from '@renderer/prep/media/mediaTesting';
 
 vi.mock('@renderer/render/outputRenderer', () => ({
   OutputRenderer: class {
@@ -52,6 +59,40 @@ beforeEach(() => {
   applyService(null);
   useLive.setState({state: emptyLiveState()});
 });
+
+it.each(['menu', 'shortcut'] as const)(
+  'toggles the shared bin in 준비 through the %s entry point',
+  async entry => {
+    const {mount, save, send} = setup(1920, 1080, {mediaStrip: false});
+    mount();
+    await userEvent.click(screen.getByRole('tab', {name: '준비'}));
+    const toggle = async (): Promise<void> => {
+      if (entry === 'menu') {
+        await userEvent.click(screen.getByRole('menuitem', {name: '보기'}));
+        await userEvent.click(screen.getByRole('menuitem', {name: /^미디어/u}));
+      } else {
+        fireEvent.keyDown(window, {
+          code: 'KeyV',
+          key: 'V',
+          ctrlKey: true,
+          shiftKey: true,
+        });
+      }
+    };
+    await toggle();
+    expect(
+      await screen.findByRole('region', {name: '미디어 보관함'}),
+    ).toBeDefined();
+    expect(
+      screen.getByRole('tab', {name: '준비'}).getAttribute('aria-selected'),
+    ).toBe('true');
+    expect(save).toHaveBeenLastCalledWith({visible: true});
+    await toggle();
+    expect(screen.queryByRole('region', {name: '미디어 보관함'})).toBeNull();
+    expect(save).toHaveBeenLastCalledWith({visible: false});
+    expect(send).not.toHaveBeenCalled();
+  },
+);
 afterEach(async () => {
   cleanup();
   await Promise.all(sessions.splice(0).map(session => session.dispose()));
@@ -199,19 +240,75 @@ it('applies resize defaults until the operator makes an explicit choice', async 
   expect(screen.getByRole('region', {name: '미디어'})).toBeDefined();
 });
 
-it('keeps the window choice across workspace switches, apart from the media view of 준비', async () => {
+it('shares the same bottom bin and visibility across 진행 and 준비', async () => {
   const {mount, send} = setup(1366, 768);
   mount();
   await userEvent.click(screen.getByRole('button', {name: '미디어'}));
   await screen.findByRole('region', {name: '미디어'});
   await userEvent.click(screen.getByRole('tab', {name: '준비'}));
-  expect(screen.queryByRole('region', {name: '미디어'})).toBeNull();
+  const bin = screen.getByRole('region', {name: '미디어 보관함'});
+  expect(screen.getByRole('region', {name: '미디어'})).toBeDefined();
+  expect(screen.getByRole('region', {name: '라이브러리'})).toBeDefined();
   const toggle = screen.getByRole('button', {name: '미디어'});
   expect(toggle.getAttribute('aria-disabled')).toBeNull();
-  expect(toggle.getAttribute('aria-pressed')).toBe('false');
+  expect(toggle.getAttribute('aria-pressed')).toBe('true');
   await userEvent.click(screen.getByRole('tab', {name: '진행'}));
   await screen.findByRole('region', {name: '미디어'});
+  expect(screen.getByRole('region', {name: '미디어 보관함'})).toBe(bin);
   expect(send).not.toHaveBeenCalled();
+});
+
+it('keeps the bin playlist and selected properties across workspace and visibility changes', async () => {
+  const {api, mount, send} = setup(1920, 1080, {
+    mediaStrip: false,
+    prepMedia: true,
+  });
+  const saveLegacy = vi.spyOn(api.ui, 'setPrepMedia');
+  const subscribe = vi.spyOn(api.media, 'subscribe');
+  vi.spyOn(api.media, 'get').mockResolvedValue(
+    mediaDocument(
+      [
+        mediaItem(1, {name: 'First image', kind: 'image', file: 'first.png'}),
+        mediaItem(2, {name: 'Second image', kind: 'image', file: 'second.png'}),
+      ],
+      1,
+      {
+        playlists: [
+          {id: playlistId(1), name: 'Target', items: [mediaId(1), mediaId(2)]},
+        ],
+      },
+    ),
+  );
+  mount();
+  expect(screen.queryByRole('region', {name: '미디어 보관함'})).toBeNull();
+  await userEvent.click(screen.getByRole('button', {name: '미디어'}));
+  const bin = await screen.findByRole('region', {name: '미디어 보관함'});
+  const playlists = within(bin).getByRole('listbox', {name: '미디어 목록'});
+  await userEvent.click(
+    await within(playlists).findByRole('option', {name: /Target/}),
+  );
+  await userEvent.click(within(bin).getByRole('option', {name: 'First image'}));
+  const sent = send.mock.calls.length;
+  await userEvent.click(screen.getByRole('tab', {name: '준비'}));
+  expect(screen.getByRole('region', {name: '미디어 보관함'})).toBe(bin);
+  expect(
+    within(bin).getByRole('option', {name: 'First image', selected: true}),
+  ).toBeDefined();
+  await userEvent.click(
+    within(bin).getByRole('option', {name: 'Second image'}),
+  );
+  expect(send).toHaveBeenCalledTimes(sent);
+  expect(subscribe).toHaveBeenCalledOnce();
+  await userEvent.click(screen.getByRole('button', {name: '미디어'}));
+  expect(screen.queryByRole('region', {name: '미디어 보관함'})).toBeNull();
+  await userEvent.click(screen.getByRole('button', {name: '미디어'}));
+  expect(
+    await screen.findByRole('option', {name: 'Second image', selected: true}),
+  ).toBeDefined();
+  const properties = screen.getByRole('region', {name: '속성'});
+  expect(within(properties).getByText('Second image')).toBeDefined();
+  expect(properties.querySelectorAll('img')).toHaveLength(1);
+  expect(saveLegacy).not.toHaveBeenCalled();
 });
 
 it('sends a mounted panel problem to the app stack without adding a second host', async () => {
@@ -221,7 +318,7 @@ it('sends a mounted panel problem to the app stack without adding a second host'
   );
   mount();
   await waitFor(() => expect(screen.getAllByRole('alert')).toHaveLength(1));
-  expect(screen.getByText('미디어 불러오기 실패')).toBeDefined();
+  expect(screen.getByText('미디어를 불러오지 못함')).toBeDefined();
   await userEvent.click(screen.getByRole('button', {name: '알림 닫기'}));
   expect(screen.queryByRole('alert')).toBeNull();
 });
