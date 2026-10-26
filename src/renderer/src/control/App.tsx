@@ -13,6 +13,7 @@ import {useSidebarCollapse} from '@renderer/shell/useSidebarCollapse';
 import {useUiZoomKeys} from '@renderer/shell/uiZoomKeys';
 import {Workspace} from '@renderer/shell/Workspace';
 import type {ControlSession} from './controlSession';
+import {useOutputNotices} from './notifications/useOutputNotices';
 import {usePrepSelection} from './usePrepSelection';
 import styles from './App.module.css';
 
@@ -43,6 +44,7 @@ export function App({
   };
   useClearKeys();
   useUiZoomKeys();
+  useOutputNotices(session.api, session);
   return (
     <div className={styles.app} data-size={sizeClass}>
       <MenuBar title={serviceName} />

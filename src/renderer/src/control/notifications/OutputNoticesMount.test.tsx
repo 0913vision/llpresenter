@@ -1,0 +1,160 @@
+import {act, cleanup, render, screen, within} from '@testing-library/react';
+import {afterEach, beforeEach, expect, it, vi} from 'vitest';
+import {emptyLiveState} from '@shared/live';
+import type {
+  OutputScreenStatus,
+  OutputStatuses,
+} from '@shared/schema/outputStatus';
+import {editorFixture} from '@renderer/prep/editor/editorFixture';
+import {createMemoryColumnWidthStore} from '@renderer/shell/columnWidthStore';
+import {useLive} from '@renderer/state/live';
+import {applyService} from '@renderer/state/show';
+import {NOTICE_LIFETIME_MS} from '@renderer/ui/Notification';
+import {App} from '../App';
+import {ControlSession} from '../controlSession';
+
+vi.mock('@renderer/render/outputRenderer', () => ({
+  OutputRenderer: class {
+    render = vi.fn();
+    dispose = vi.fn();
+  },
+}));
+
+const sessions: ControlSession[] = [];
+
+function status(change: Partial<OutputScreenStatus> = {}): OutputScreenStatus {
+  return {
+    placement: 'fullscreen',
+    renderer: 'running',
+    fps: 60,
+    fpsLow: false,
+    monitor: 3,
+    ...change,
+  };
+}
+
+function setup(initial: OutputStatuses = {}) {
+  vi.stubGlobal('innerWidth', 1920);
+  vi.stubGlobal('innerHeight', 1080);
+  const {api} = editorFixture();
+  let push: (statuses: OutputStatuses) => void = () => undefined;
+  const stop = vi.fn();
+  vi.spyOn(api.output, 'getStatus').mockResolvedValue(initial);
+  vi.spyOn(api.output, 'subscribeStatus').mockImplementation(listener => {
+    push = listener;
+    return stop;
+  });
+  const findMonitors = vi.spyOn(api.output, 'findMonitors');
+  const showWindow = vi.spyOn(api.output, 'showWindow');
+  const retry = vi.spyOn(api.output, 'retry');
+  window.llp = api;
+  const session = new ControlSession(api);
+  sessions.push(session);
+  const view = render(
+    <App session={session} columnWidthStore={createMemoryColumnWidthStore()} />,
+  );
+  return {
+    push: (statuses: OutputStatuses): void => {
+      act(() => push(statuses));
+    },
+    stop,
+    findMonitors,
+    showWindow,
+    retry,
+    view,
+  };
+}
+
+beforeEach(() => {
+  applyService(null);
+  useLive.setState({state: emptyLiveState()});
+});
+afterEach(async () => {
+  vi.useRealTimers();
+  cleanup();
+  await Promise.all(sessions.splice(0).map(session => session.dispose()));
+  delete window.llp;
+  useLive.setState({state: null});
+});
+
+it('shows 무대 모니터 연결 끊김 with its two actions when the stage monitor goes away', () => {
+  const {push, findMonitors, showWindow} = setup();
+  push({stage: status()});
+  push({stage: status({placement: 'monitorMissing'})});
+  const card = screen.getByRole('alert', {name: '무대 모니터 연결 끊김'});
+  expect(within(card).getByText('창으로 표시 중')).toBeDefined();
+  act(() =>
+    within(card).getByRole('button', {name: '모니터 다시 찾기'}).click(),
+  );
+  expect(findMonitors).toHaveBeenCalledOnce();
+
+  push({stage: status()});
+  push({stage: status({placement: 'monitorMissing'})});
+  act(() =>
+    within(screen.getByRole('alert', {name: '무대 모니터 연결 끊김'}))
+      .getByRole('button', {name: '창 보기'})
+      .click(),
+  );
+  expect(showWindow).toHaveBeenCalledWith('stage');
+  expect(
+    screen.queryByRole('alert', {name: '무대 모니터 연결 끊김'}),
+  ).toBeNull();
+});
+
+it('turns the warning into an information card that closes after six seconds', () => {
+  const {push} = setup();
+  push({stage: status({placement: 'monitorMissing'})});
+  expect(
+    screen.getByRole('alert', {name: '무대 모니터 연결 끊김'}),
+  ).toBeDefined();
+  vi.useFakeTimers();
+  push({stage: status()});
+  expect(screen.queryByRole('alert')).toBeNull();
+  expect(
+    screen.getByRole('status', {name: '무대 모니터 다시 연결됨'}),
+  ).toBeDefined();
+  act(() => {
+    vi.advanceTimersByTime(NOTICE_LIFETIME_MS - 1);
+  });
+  expect(
+    screen.getByRole('status', {name: '무대 모니터 다시 연결됨'}),
+  ).toBeDefined();
+  act(() => {
+    vi.advanceTimersByTime(1);
+  });
+  expect(
+    screen.queryByRole('status', {name: '무대 모니터 다시 연결됨'}),
+  ).toBeNull();
+});
+
+it('warns about a monitor already missing at launch', async () => {
+  setup({stage: status({placement: 'monitorMissing'})});
+  expect(
+    await screen.findByRole('alert', {name: '무대 모니터 연결 끊김'}),
+  ).toBeDefined();
+});
+
+it('warns about the restart limit with 다시 시도', () => {
+  const {push, retry} = setup();
+  push({main: status({renderer: 'limited'})});
+  const card = screen.getByRole('alert', {
+    name: '본 화면 출력 창을 다시 띄울 수 없음',
+  });
+  act(() => within(card).getByRole('button', {name: '다시 시도'}).click());
+  expect(retry).toHaveBeenCalledWith('main');
+});
+
+it('shows at most three cards', () => {
+  const {push} = setup();
+  push({
+    main: status({placement: 'monitorMissing', renderer: 'limited'}),
+    stage: status({placement: 'monitorMissing', renderer: 'limited'}),
+  });
+  expect(screen.getAllByRole('alert')).toHaveLength(3);
+});
+
+it('releases the status listener when the app unmounts', () => {
+  const {stop, view} = setup();
+  view.unmount();
+  expect(stop).toHaveBeenCalledOnce();
+});
