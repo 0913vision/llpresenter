@@ -20,6 +20,7 @@ import {Workspace} from '@renderer/shell/Workspace';
 import type {ControlSession} from './controlSession';
 import {SavingDialog} from './SavingDialog';
 import {useOutputNotices} from './notifications/useOutputNotices';
+import {useProblemNotices} from './notifications/useProblemNotices';
 import {usePrepSelection} from './usePrepSelection';
 import styles from './App.module.css';
 
@@ -53,6 +54,7 @@ export function App({
   useClearKeys();
   useUiZoomKeys();
   useOutputNotices(session.api, session);
+  useProblemNotices(session.api, session);
   return (
     <div className={styles.app} data-size={sizeClass}>
       <MenuBar
