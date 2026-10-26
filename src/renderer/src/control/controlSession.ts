@@ -1,5 +1,5 @@
-import type {LlpApi} from '@shared/ipc';
-import {SongEditorStore} from '@renderer/prep/editor';
+import type {LlpApi, Unsubscribe} from '@shared/ipc';
+import {answerCloseFlush, SongEditorStore} from '@renderer/prep/editor';
 import {ServiceItemStore} from '@renderer/prep/service/serviceItemStore';
 import {addNotice, removeNotice, type Notice} from '@renderer/ui/notices';
 
@@ -10,8 +10,17 @@ export class ControlSession {
   private notices: readonly Notice[] = [];
   private readonly listeners = new Set<() => void>();
   private closing: Promise<void> | undefined;
+  private readonly stopCloseFlush: Unsubscribe | undefined;
 
-  constructor(readonly api: LlpApi | undefined) {}
+  constructor(readonly api: LlpApi | undefined) {
+    this.stopCloseFlush =
+      api &&
+      answerCloseFlush({
+        api,
+        flush: () => this.editorStore?.flush() ?? Promise.resolve(true),
+        report: this.report,
+      });
+  }
 
   get editor(): SongEditorStore | undefined {
     return this.editorStore;
@@ -59,8 +68,9 @@ export class ControlSession {
     this.publish();
   };
 
-  /** Release resources after unmount. The native close flush handshake is separate. */
+  /** Release resources after unmount, including the close flush answer. */
   dispose(): Promise<void> {
+    this.stopCloseFlush?.();
     this.closing ??= Promise.resolve().then(() => {
       this.itemStore?.dispose();
       return this.editorStore?.dispose();
