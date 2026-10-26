@@ -50,3 +50,10 @@ port 5193 and CDP 9517 with `LLP_TEST_WINDOWS=offscreen`. The driver passed
 ## Changes outside my paths
 
 None. Shell implementation/tests/styles and this review record are owned paths.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (9875ad33): reviewer (Codex) Approve. Lead Approve through the lead's
+  merge check: the exact-head CI run passed, the branch rebased onto local
+  `main` without conflicts, and typecheck passes. Earlier rounds' findings and
+  replies are above.
