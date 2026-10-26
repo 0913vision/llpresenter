@@ -2,6 +2,7 @@ import {useMemo, useState, type JSX} from 'react';
 import {thumbnailUrl} from '@shared/media';
 import {mediaLoops} from '@shared/mediaEndRule';
 import type {MediaId} from '@shared/schema/ids';
+import type {MediaItem} from '@shared/schema/mediaList';
 import {sendLive, useLive} from '@renderer/state/live';
 import {
   Button,
@@ -15,6 +16,7 @@ import {
   PanelTabs,
   Slider,
 } from '@renderer/ui';
+import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
@@ -102,6 +104,7 @@ export function MediaView({onProblem}: MediaViewProps): JSX.Element {
   const [columns, setColumns] = useState(DEFAULT_MEDIA_COLUMNS);
   const [menu, setMenu] = useState<OpenMenu | null>(null);
   const [importing, setImporting] = useState(false);
+  const [deleting, setDeleting] = useState<MediaItem | null>(null);
   const liveId = useLive(state => state.state?.layers.media?.mediaId);
   const entries = useMemo(() => mediaEntries(view, choice), [view, choice]);
   const playlist = chosenPlaylist(view.document, choice);
@@ -153,12 +156,23 @@ export function MediaView({onProblem}: MediaViewProps): JSX.Element {
   };
   const actions = (entry: MediaEntry): TileActions => ({
     missing: missing(entry),
+    editable: view.document?.access === 'editable',
+    inPlaylist: playlist !== null,
     cancel: mediaId => {
       library.cancel(mediaId, nameOf(entry)).catch((cause: unknown) => {
         console.error('Stopping a media copy failed:', cause);
       });
     },
     relink: mediaId => relink(mediaId, nameOf(entry)),
+    leave: mediaId => {
+      if (playlist === null) return;
+      library
+        .removeFromPlaylist(playlist, mediaId, nameOf(entry))
+        .catch((cause: unknown) => {
+          console.error('Removing media from a playlist failed:', cause);
+        });
+    },
+    remove: setDeleting,
   });
   const startImport = (): void => {
     setImporting(true);
@@ -244,21 +258,54 @@ export function MediaView({onProblem}: MediaViewProps): JSX.Element {
           entries={menu.entries}
         />
       )}
+      {deleting === null ? null : (
+        <AlertDialog
+          icon={deleting.kind === 'audio' ? 'audio' : 'film'}
+          title={`‘${deleting.name || UNNAMED_MEDIA}’ 미디어를 삭제할까요?`}
+          meta={[
+            '모든 재생목록에서도 빠짐',
+            '곡이나 항목이 배경으로 쓰면 그 배경도 사라짐',
+            '파일은 그대로 남음',
+          ]}
+          onCancel={() => setDeleting(null)}
+          actions={[
+            {
+              label: '삭제',
+              primary: true,
+              onSelect: () => {
+                library
+                  .deleteMedia(deleting.id, deleting.name || UNNAMED_MEDIA)
+                  .then(
+                    () => setDeleting(null),
+                    (cause: unknown) => {
+                      console.error('Deleting media failed:', cause);
+                    },
+                  );
+              },
+            },
+          ]}
+        />
+      )}
     </>
   );
 }
 
 interface TileActions {
   readonly missing: boolean;
+  readonly editable: boolean;
+  readonly inPlaylist: boolean;
   readonly cancel: (mediaId: MediaId) => void;
   readonly relink: (mediaId: MediaId) => void;
+  readonly leave: (mediaId: MediaId) => void;
+  readonly remove: (item: MediaItem) => void;
 }
 
-// NOTE(0913vision): A copying tile offers only 복사 멈추기 (MediaTile README),
-// and a missing file's tile 다시 연결.
+// NOTE(0913vision): A copying tile offers only 복사 멈추기 (MediaTile README).
+// Other tiles offer 다시 연결 when the file is missing, 재생목록에서 빼기 in a
+// playlist, and 삭제 (spec 05, "Behavior").
 function menuEntries(
   entry: MediaEntry,
-  {missing, cancel, relink}: TileActions,
+  actions: TileActions,
 ): readonly MenuEntry[] {
   const copying =
     entry.kind === 'copy'
@@ -273,18 +320,40 @@ function menuEntries(
         id: 'cancel',
         label: '복사 멈추기',
         icon: 'stop',
-        onSelect: () => cancel(copying),
+        onSelect: () => actions.cancel(copying),
       },
     ];
   }
-  if (entry.kind !== 'media' || !missing) return [];
-  return [
-    {
+  if (entry.kind !== 'media') return [];
+  const {item} = entry;
+  const entries: MenuEntry[] = [];
+  if (actions.missing) {
+    entries.push({
       kind: 'item',
       id: 'relink',
       label: '다시 연결',
       icon: 'link',
-      onSelect: () => relink(entry.item.id),
-    },
-  ];
+      onSelect: () => actions.relink(item.id),
+    });
+  }
+  if (actions.editable && actions.inPlaylist) {
+    entries.push({
+      kind: 'item',
+      id: 'leave',
+      label: '재생목록에서 빼기',
+      icon: 'x',
+      onSelect: () => actions.leave(item.id),
+    });
+  }
+  if (actions.editable) {
+    entries.push({
+      kind: 'item',
+      id: 'delete',
+      label: '삭제',
+      icon: 'trash',
+      danger: true,
+      onSelect: () => actions.remove(item),
+    });
+  }
+  return entries;
 }

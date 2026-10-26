@@ -111,10 +111,9 @@ describe('media view', () => {
     expect(send).not.toHaveBeenCalled();
   });
 
-  it('stops a copy from its menu, and opens no menu for a plain tile', async () => {
+  it('stops a copy from its menu', async () => {
     const {edit, pushProgress} = setup();
-    fireEvent.contextMenu(await tile('Dawn'));
-    expect(screen.queryByRole('menu')).toBeNull();
+    await tile('Dawn');
     act(() => {
       pushProgress({
         mediaId: mediaId(9),
@@ -179,5 +178,43 @@ describe('media view', () => {
     expect(rule('.body')).toContain('overflow: hidden');
     expect(rule('.viewport')).toContain('min-height: 0');
     expect(rule('.viewport')).toContain('overflow: auto');
+  });
+
+  it('deletes media from 모든 미디어 after asking', async () => {
+    const {edit} = setup();
+    fireEvent.contextMenu(await tile('Dawn'));
+    expect(
+      screen.getAllByRole('menuitem').map(item => item.textContent),
+    ).toEqual(['삭제']);
+    fireEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
+    const dialog = await screen.findByRole('alertdialog');
+    expect(dialog.textContent).toContain('Dawn');
+    expect(edit).not.toHaveBeenCalled();
+    fireEvent.click(within(dialog).getByRole('button', {name: '삭제'}));
+    await vi.waitFor(() =>
+      expect(screen.queryByRole('alertdialog')).toBeNull(),
+    );
+    expect(edit).toHaveBeenCalledExactlyOnceWith({
+      type: 'media.delete',
+      mediaId: mediaId(1),
+    });
+  });
+
+  it('offers no changes for a list a newer version wrote', async () => {
+    const fixture = mediaFixture({
+      ...mediaDocument([mediaItem(1, {name: 'Dawn'})]),
+      access: 'readOnly',
+    });
+    window.llp = fixture.api;
+    onTestFinished(() => {
+      delete window.llp;
+    });
+    render(
+      <MediaViewProvider api={fixture.api} onProblem={vi.fn()}>
+        <MediaView onProblem={vi.fn()} />
+      </MediaViewProvider>,
+    );
+    fireEvent.contextMenu(await tile('Dawn'));
+    expect(screen.queryByRole('menu')).toBeNull();
   });
 });
