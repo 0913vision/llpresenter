@@ -29,7 +29,7 @@ export async function withinLookupTimeout<T>(
       read(),
       new Promise<never>((_resolve, reject) => {
         timeout = setTimeout(
-          () => reject(new Error('Song background lookup timed out')),
+          () => reject(new Error('Song lookup timed out')),
           LOOKUP_TIMEOUT_MS,
         );
       }),

@@ -20,7 +20,7 @@ import styles from './ToolbarSearch.module.css';
 const SONG_ICON_SIZE = 16;
 const NO_RESULT = -1;
 const WORKSPACE_UNAVAILABLE_TIP =
-  '현재 작업 공간에서는 검색 결과를 열 수 없습니다.';
+  '현재 작업 공간에서는 검색 결과를 열 수 없습니다';
 
 type ResultKey = 'ArrowDown' | 'ArrowUp';
 type SongId = LibrarySearchMatch['songId'];

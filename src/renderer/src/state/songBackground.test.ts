@@ -337,7 +337,7 @@ describe('song backgrounds on output', () => {
     expect(sent.map(command => command.type)).toEqual(['slide.show']);
     expect(store.state.layers.media).toBeNull();
     expect(log).toHaveBeenCalledWith(
-      expect.objectContaining({detail: 'Song background lookup timed out'}),
+      expect.objectContaining({detail: 'Song lookup timed out'}),
     );
     expect(vi.getTimerCount()).toBe(0);
   });
