@@ -12,14 +12,20 @@ export interface PictureCorrection {
   readonly edgeMargin: number;
   /** How far the scaled picture moves right and down, in the screen's own pixels. */
   readonly offset: {readonly x: number; readonly y: number};
-  /** The screen's own pixel size; absent counts the device pixels drawn. */
-  readonly pixels?: {readonly width: number; readonly height: number};
+}
+
+/** A size in the screen's own pixels. */
+export interface ScreenPixels {
+  readonly width: number;
+  readonly height: number;
 }
 
 export interface RenderScreen {
   readonly id: ScreenId;
   readonly kind: 'audience' | 'stage';
   readonly method?: Screen['method'];
+  /** The screen's own pixel size; absent counts the device pixels drawn. */
+  readonly pixels?: ScreenPixels;
   /** Absent draws the picture over the whole screen. */
   readonly correction?: PictureCorrection;
 }

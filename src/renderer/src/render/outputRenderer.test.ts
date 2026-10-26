@@ -184,12 +184,11 @@ describe('OutputRenderer', () => {
     const root = parent.querySelector<HTMLElement>(`.${classes.root}`);
     if (root === null) throw new Error('Missing root');
     const setProperty = vi.spyOn(root.style, 'setProperty');
-    const correction = {
-      edgeMargin: 10,
-      offset: {x: 40, y: 20},
-      pixels: {width: 1920, height: 1080},
-    };
-    const frame = {screen: {id: MAIN, kind: 'audience', correction}} as const;
+    const correction = {edgeMargin: 10, offset: {x: 40, y: 20}};
+    const pixels = {width: 1920, height: 1080};
+    const frame = {
+      screen: {id: MAIN, kind: 'audience', pixels, correction},
+    } as const;
     renderer.render(WITH_SLIDE, frame);
     expect(root.style.getPropertyValue('--picture-transform')).toBe(
       'translate(20px, 10px) scale(0.8)',

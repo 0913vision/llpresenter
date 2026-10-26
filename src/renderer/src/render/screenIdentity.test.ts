@@ -29,6 +29,7 @@ describe('output screen identity', () => {
       id: MAIN,
       kind: 'audience',
       method: 'capture',
+      pixels: {width: 1920, height: 1080},
     });
     expect(resolveRenderScreen('captions', changed)?.id).toBe(CAPTIONS);
     expect(resolveRenderScreen('stage', changed)?.id).toBe(STAGE);
@@ -51,22 +52,22 @@ describe('output screen identity', () => {
     expect(resolveRenderScreen('unknown', value.screens)).toBeUndefined();
   });
 
-  it('carries the picture correction with the pixel size of each method', () => {
+  it('carries the screen pixel size of each method and the picture correction', () => {
     const {value} = screens();
     const corrected = value.screens.map(screen => ({
       ...screen,
       edgeMargin: 5,
       offset: {x: 12, y: -6},
     }));
-    const correction = (method: Screen['method'], extra: object = {}) =>
+    const resolved = (method: Screen['method'], extra: object = {}) =>
       resolveRenderScreen(
         MAIN,
         corrected.map(screen =>
           screen.id === MAIN ? {...screen, method, ...extra} : screen,
         ),
-      )?.correction;
+      );
     expect(
-      correction('fullscreen', {
+      resolved('fullscreen', {
         display: {
           id: 2,
           name: 'EPSON',
@@ -76,19 +77,21 @@ describe('output screen identity', () => {
         },
       }),
     ).toEqual({
-      edgeMargin: 5,
-      offset: {x: 12, y: -6},
+      id: MAIN,
+      kind: 'audience',
+      method: 'fullscreen',
       pixels: {width: 3840, height: 2160},
+      correction: {edgeMargin: 5, offset: {x: 12, y: -6}},
     });
-    expect(correction('capture')?.pixels).toEqual({width: 1920, height: 1080});
+    expect(resolved('capture')?.pixels).toEqual({width: 1920, height: 1080});
     expect(
-      correction('capture', {resolution: {width: 1280, height: 720}})?.pixels,
+      resolved('capture', {resolution: {width: 1280, height: 720}})?.pixels,
     ).toEqual({width: 1280, height: 720});
-    expect(correction('ndi')).not.toHaveProperty('pixels');
-    expect(correction('window')).toEqual({
-      edgeMargin: 5,
-      offset: {x: 12, y: -6},
-    });
+    expect(resolved('ndi')).not.toHaveProperty('pixels');
+    expect(
+      resolved('ndi', {resolution: {width: 1280, height: 720}})?.pixels,
+    ).toEqual({width: 1280, height: 720});
+    expect(resolved('window')).not.toHaveProperty('pixels');
     const only = (edgeMargin: number, x: number, y: number) =>
       resolveRenderScreen(
         MAIN,

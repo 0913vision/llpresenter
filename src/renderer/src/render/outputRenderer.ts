@@ -1,11 +1,11 @@
 import type {LiveLayers} from '@shared/live';
 import {classes} from './classes';
 import type {
-  PictureCorrection,
   RegisteredLayer,
   RenderLayer,
   RenderLayerOptions,
   RenderFrame,
+  RenderScreen,
 } from './layer';
 import {renderLayers} from './layers';
 import {scaleFor} from './lyricStyle';
@@ -49,7 +49,7 @@ export class OutputRenderer {
   private readonly resizeObserver: ResizeObserver;
   private disposed = false;
   private background: string | null = null;
-  private correction: PictureCorrection | undefined;
+  private screen: RenderScreen | undefined;
   private transform: string | null = null;
 
   constructor(
@@ -71,7 +71,7 @@ export class OutputRenderer {
       look?.background ??
         (frame?.screen?.method === 'capture' ? CHROMA_BACKGROUND : null),
     );
-    this.setCorrection(frame?.screen?.correction);
+    this.setScreen(frame?.screen);
     for (const layer of this.layers) {
       this.setHidden(layer, look);
       this.attempt(layer.kind, 'draw', () => layer.view.render(layers, frame));
@@ -96,17 +96,18 @@ export class OutputRenderer {
     } else this.root.style.setProperty('--output-background', background);
   }
 
-  private setCorrection(correction: PictureCorrection | undefined): void {
-    if (correction === this.correction) return;
-    this.correction = correction;
+  private setScreen(screen: RenderScreen | undefined): void {
+    if (screen === this.screen) return;
+    this.screen = screen;
     this.applyCorrection();
   }
 
   private applyCorrection(): void {
+    const correction = this.screen?.correction;
     const transform =
-      this.correction === undefined
+      correction === undefined
         ? null
-        : pictureTransform(this.correction, {
+        : pictureTransform(correction, this.screen?.pixels, {
             width: this.root.clientWidth,
             height: this.root.clientHeight,
             pixelRatio: window.devicePixelRatio,

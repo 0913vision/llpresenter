@@ -1,4 +1,4 @@
-import type {PictureCorrection} from './layer';
+import type {PictureCorrection, ScreenPixels} from './layer';
 
 /** The custom property on the renderer root that every layer box's transform reads. */
 export const PICTURE_TRANSFORM = '--picture-transform';
@@ -24,10 +24,12 @@ function cssPerPixel(
  * (100 - 2m) % around the centre, then 위치 미세 조정 moves it by the offset
  * in the screen's own pixels, converted to the surface's CSS pixels.
  *
+ * @param pixels - The screen's own pixel size; absent counts device pixels.
  * @returns The transform, or null when the picture covers the screen as is.
  */
 export function pictureTransform(
-  {edgeMargin, offset, pixels}: PictureCorrection,
+  {edgeMargin, offset}: PictureCorrection,
+  pixels: ScreenPixels | undefined,
   surface: Surface,
 ): string | null {
   const scale = Math.max(0, 1 - (2 * edgeMargin) / 100);
