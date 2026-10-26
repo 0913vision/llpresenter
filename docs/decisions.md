@@ -516,3 +516,23 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
 - Turning an output on shows a complete frame at once (spec 03): the output
   window is loaded ahead of time with its background ready, and no dissolve
   plays on reveal (bug M3-C3-1 from the check).
+
+## 2026-10-27: Follow ProPresenter where qa-12 found a difference
+
+- The user approved following ProPresenter for the differences in
+  `docs/qa/proposals-vs-pp.md` ("Differences to review first"), and the
+  common-sense defaults suggested there for rows with no ProPresenter source.
+- 구성 (arrangements) become ProPresenter-style groups: a song's slides belong
+  to named groups (1절, 후렴), and an arrangement is an ordered list of groups
+  with repeats; the 예배 순서 구성 chips use groups too. Existing songs convert:
+  runs of slides with the same label become a group, and an arrangement that
+  cuts through a group splits that group so no slide order changes (data defines
+  the exact rule).
+- Library search results sort alphabetically like ProPresenter. Identify shows
+  each screen's name and output details on its monitor. Each countdown has
+  ProPresenter's overrun choice; countdown-to can target a date and time; the
+  elapsed timer counts up from a start value like a stopwatch. A label hot key
+  goes to that particular slide. Copying media into the app on import is an
+  option, off by default (ProPresenter's Manage Media Automatically).
+- Later, not in this freeze: audio output device selection, NDI outputs, and
+  PowerPoint import.
