@@ -150,7 +150,7 @@ export class OutputWindow {
     this.readyVersion = version;
     this.readySize = frame;
     this.frameReported();
-    if (!this.visible && this.wanted !== null) this.show(this.wanted);
+    if (this.wanted !== null) this.show(this.wanted);
     return this.visible;
   }
 
@@ -232,8 +232,9 @@ export class OutputWindow {
     if (
       this.prepared?.kind === placement.kind &&
       sameRect(this.prepared.bounds, placement.bounds)
-    )
+    ) {
       return;
+    }
     this.ensureHandle().prepare(placement.bounds, placement.kind);
     this.prepared = placement;
   }

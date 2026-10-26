@@ -145,8 +145,9 @@ export class BackgroundLayerView {
    */
   show(media: MediaLayer | null, transitions = true): void {
     this.transitions = transitions;
-    if (this.handover?.contentChange === true)
+    if (this.handover?.contentChange === true) {
       this.handover = {...this.handover, dissolve: transitions};
+    }
     if (!transitions) {
       for (const element of [...this.videos, ...this.images]) {
         element.classList.remove(classes.dissolving);

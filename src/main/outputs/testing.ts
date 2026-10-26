@@ -137,8 +137,9 @@ export class FakeOutputHandle implements OutputWindowHandle {
   }
 
   private place(mode: FakeMode): void {
-    if (mode.kind !== 'hidden' && mode.bounds !== null)
+    if (mode.kind !== 'hidden' && mode.bounds !== null) {
       this.viewport = mode.bounds;
+    }
     this.mode = mode;
     this.placements.push(mode);
   }

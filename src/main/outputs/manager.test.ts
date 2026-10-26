@@ -89,11 +89,12 @@ function simulateReadyFrames(
   const ready = (): void => {
     for (const id of manager.screenStates().keys()) {
       const handle = windows.created.find(window => window.screen.id === id);
-      if (handle !== undefined)
+      if (handle !== undefined) {
         manager.frameReady(id, store.state.version, {
           ...handle.contentSize(),
           ready: true,
         });
+      }
     }
   };
   const dispatch = store.dispatch.bind(store);
@@ -154,6 +155,25 @@ function setUpRemoval(
 }
 
 describe('OutputManager', () => {
+  it('reveals a bounded fallback even when the initial monitor service never answers', async () => {
+    const clock = installFakeClock();
+    const store = new LiveStore();
+    const windows = fakeWindows();
+    const manager = new OutputManager({
+      store,
+      displays: new FakeMonitorFeed([]),
+      screens: new FakeScreenSource([fullScreenScreen()]),
+      controlBounds: () => CONTROL_WINDOW,
+      createHandle: windows.create,
+      log: recordingLogger(),
+    });
+    manager.start();
+    store.dispatch(turn(true));
+    await clock.advance(OUTPUT_REVEAL_DEADLINE_MS);
+    expect(windows.only('main').mode.kind).toBe('window');
+    expect(store.state.outputs.main).toBe(true);
+    manager.dispose();
+  });
   it('prepares the configured viewport while output is still off', () => {
     const {store, windows} = setUp();
     expect(store.state.outputs.main).not.toBe(true);

@@ -86,8 +86,8 @@ describe('startOutput', () => {
   it('rechecks the same live version without requiring a resize event until main acknowledges visibility', async () => {
     const settings = overlaySettings();
     const defaults = fakeLlpApi();
-    const reportReady = vi.fn((_report: FrameReadyReport) =>
-      Promise.resolve(false),
+    const reportReady = vi.fn<(report: FrameReadyReport) => Promise<boolean>>(
+      () => Promise.resolve(false),
     );
     const root = document.createElement('div');
     const api = fakeLlpApi({
@@ -136,8 +136,8 @@ describe('startOutput', () => {
       outputs: {[MAIN]: true},
       layers: {...SHOWING.layers, media: null},
     };
-    let receive = (_state: LiveState): void => {};
-    let acknowledge = (_shown: boolean): void => {};
+    let receive: (state: LiveState) => void = () => {};
+    let acknowledge: (shown: boolean) => void = () => {};
     const reportReady = vi.fn((report: FrameReadyReport) =>
       report.ready
         ? new Promise<boolean>(resolve => {

@@ -1,13 +1,18 @@
 import type {LiveState} from '@shared/live';
 import {assignMonitors, type DisplayRequest} from '../displays/assign';
 import {findControlMonitor, type Monitor} from '../displays/monitor';
-import type {Rect} from '../displays/rect';
+import {centeredRect, type Rect} from '../displays/rect';
 import type {MonitorRemovedListener} from '../displays/registry';
 import type {LiveStore} from '../live/store';
 import type {Logger} from '../log';
 import {OutputWindow, type CreateOutputWindowHandle} from './outputWindow';
 import type {RendererState} from './rendererRecovery';
-import {planPlacement, type Placement} from './placement';
+import {
+  planPlacement,
+  OUTPUT_WINDOW_SIZE,
+  CAPTURE_WINDOW_SIZE,
+  type Placement,
+} from './placement';
 import type {OutputScreen, ScreenSource} from './screens';
 import type {FrameReadyReport} from '@shared/schema/ipcPayloads';
 
@@ -243,7 +248,10 @@ export class OutputManager {
       }
     }
     const surroundings = this.surroundings();
-    if (surroundings === null) return;
+    if (surroundings === null) {
+      this.withoutMonitors(screens);
+      return;
+    }
     this.rememberMonitors(surroundings.assigned);
     this.lastOutputs = this.options.store.state.outputs;
     const turnOff: string[] = [];
@@ -270,6 +278,58 @@ export class OutputManager {
       }
     }
     for (const screenId of turnOff) this.turnOff(screenId);
+  }
+
+  private withoutMonitors(screens: readonly OutputScreen[]): void {
+    let area: Rect = {x: 0, y: 0, ...OUTPUT_WINDOW_SIZE};
+    try {
+      area = this.options.controlBounds() ?? area;
+    } catch (error) {
+      this.options.log.error(
+        'could not locate the control window for output fallback',
+        error,
+      );
+    }
+    this.lastOutputs = this.options.store.state.outputs;
+    const turnOff: string[] = [];
+    for (const screen of screens) {
+      const bounds = centeredRect(
+        area,
+        screen.method === 'capture'
+          ? (screen.resolution ?? CAPTURE_WINDOW_SIZE)
+          : OUTPUT_WINDOW_SIZE,
+      );
+      const planned: Placement =
+        screen.method === 'fullscreen' && screen.onDisconnect === 'off'
+          ? {kind: 'off'}
+          : screen.method === 'capture'
+            ? {
+                kind: 'capture',
+                bounds,
+                ...(screen.alwaysOnTop === true ? {alwaysOnTop: true} : {}),
+              }
+            : {
+                kind: 'window',
+                bounds,
+                reason:
+                  screen.method === 'fullscreen' ? 'monitorMissing' : 'method',
+                ...(screen.method === 'window' && screen.alwaysOnTop === true
+                  ? {alwaysOnTop: true}
+                  : {}),
+              };
+      try {
+        if (planned.kind !== 'off') this.windowFor(screen).preload(planned);
+      } catch (error) {
+        this.options.log.error(
+          `could not prepare the ${screen.id} output fallback`,
+          error,
+        );
+      }
+      const placement = this.lastOutputs[screen.id] === true ? planned : null;
+      this.apply(screen, placement);
+      if (placement?.kind === 'off') turnOff.push(screen.id);
+    }
+    for (const id of turnOff) this.turnOff(id);
   }
 
   private pruneOutputs(screens: readonly OutputScreen[]): void {

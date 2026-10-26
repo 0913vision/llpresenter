@@ -67,7 +67,7 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
   let revealPending = true;
   let lastAttempt = -Infinity;
   let enableEpoch = 0;
-  let stableVersion = -1;
+  let stableFrame = '';
   let fontsReady = typeof document.fonts === 'undefined';
   let readyInFlight = false;
   const enabled = (): boolean => latest?.outputs[screenId] === true;
@@ -79,7 +79,7 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
       ...frame,
       transitions: enabled() && !revealPending,
     });
-    stableVersion = -1;
+    stableFrame = '';
   };
   const frames = new ScreenFrames({
     settings: api.settings,
@@ -118,13 +118,16 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
       return;
     }
     const version = latest.version;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    const frameKey = `${version}/${width}/${height}`;
     const complete =
       fontsReady && frames.frame(latest) !== undefined && renderer.ready();
-    if (complete && stableVersion !== version) {
-      stableVersion = version;
+    if (complete && stableFrame !== frameKey) {
+      stableFrame = frameKey;
       return;
     }
-    if (!complete) stableVersion = -1;
+    if (!complete) stableFrame = '';
     if (time - lastAttempt < READY_RECHECK_MS) return;
     lastAttempt = time;
     const epoch = enableEpoch;
@@ -134,8 +137,8 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
         screenId,
         version,
         ready: complete,
-        width: window.innerWidth,
-        height: window.innerHeight,
+        width,
+        height,
       })
       .then(shown => {
         if (!stopped && enableEpoch === epoch && enabled() && shown) {
@@ -152,7 +155,7 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
   };
   const resized = (): void => {
     lastAttempt = -Infinity;
-    stableVersion = -1;
+    stableFrame = '';
   };
   window.addEventListener('resize', resized);
   const reportFrameRates = (): void => {

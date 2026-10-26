@@ -19,19 +19,28 @@ backgrounds, and renderer recovery continues while hidden. Each window is reused
 until its screen is removed or the app quits. Its current placement size is
 prepared without showing it.
 
-A separate ready-frame request carries the screen and current live version. Main
-rejects stale or unknown reports and reveals a pending window only after that
-version is ready. The reply acknowledges the reveal. Heartbeat/frame-rate
-reports alone cannot reveal a window. A ready report never reapplies a visible
-window's placement, preserving monitor-removal demotion.
+A separate frame probe carries the screen, current live version, completeness
+and actual viewport size. Main accepts a complete frame only at the native
+window's prepared content size. The renderer retries every 100 ms while on and
+awaiting a reveal, including without a DOM resize event. Preparing an equal-size
+placement never discards a valid current frame. Probes only acknowledge
+visibility once a window is already shown; they never reapply its placement.
+
+An output requested on never waits hidden indefinitely: after the named 1,500 ms
+deadline main reveals what is drawn and warns once for that window. Switching
+off or disposing cancels the deadline. Unavailable monitor information uses the
+existing window fallback rather than preventing the requested output entirely.
+Hidden windows are sized before the operator's first on command.
 
 The renderer waits for known screen settings, fonts, a complete current
-background and two frame callbacks before reporting. A video uses its decoded
-frame callback when available; images report after loading. Hidden content and
-the pending reveal have no background or lyric transition. The normal 500 ms
-background dissolve remains for changes after main acknowledges a reveal. Ready
-IPC has at most one request in flight, and all video callbacks, frame callbacks
-and listeners are cancelled on disposal.
+background and two frame callbacks stable at the current version and viewport
+before reporting completeness. A video uses its decoded frame callback when
+available, with a 250 ms current-data fallback if hidden presentation suppresses
+that callback; images report after loading. Hidden content and the pending
+reveal have no background or lyric transition. The normal 500 ms background
+dissolve remains for changes after main acknowledges a reveal. Ready IPC has at
+most one request in flight, and all video callbacks, frame callbacks and
+listeners are cancelled on disposal.
 
 The same renderer transition flag makes every newly mounted preview draw its
 current frame instantly. It stays instant for redraws of that initial content;
@@ -49,6 +58,10 @@ media view, without separate transition implementations.
   validated request payload, retaining its disposal path.
 - `src/renderer/src/show/ScreenPreview.test.tsx`: exercise the real shared
   renderer through a preview remount and a subsequent live slide change.
+- `src/renderer/src/prep/editor/SongPreview.tsx`, `songPreviewModel.ts` and
+  `SongPreviewMount.test.tsx`: keep initial picture identity stable through
+  separate asynchronous Look, screen and label redraws.
+- Spec 03: record the bounded reveal fallback requested during Argon's review.
 
 ## Checks run
 
@@ -110,6 +123,36 @@ media view, without separate transition implementations.
   [second fallback run](evidence/output-53-round2/fallback-run2.png),
   [remounted preview](evidence/output-53-round2/prep-remount-run1.png).
 
+### Round 3 app check
+
+- Rebuilt the rebased branch and syntax-checked the launcher before each run.
+  Two offscreen launches repeat the normal, failed-media, operator-bounds and
+  preview-remount flows above. The viewport is already prepared before first on;
+  accepted complete reports are compared with native content bounds.
+- The check suppresses video frame callbacks and changes the hidden background
+  to another silent video entry. It also denies every completeness report for
+  two on/off cycles in each launch. Both cycles must reveal despite that denial,
+  and the preparation timeout must appear exactly once in the window's log.
+- Screen-settings reads in the control window are delayed 500 ms, independently
+  of the Look response. The remounted song preview remains instant both before
+  and after that response and across 25 media-view remounts per launch.
+- Both launches quit normally. The four forced-reveal acknowledgments arrived
+  1,617 to 1,636 ms after on, following the 1,500 ms deadline and status
+  polling. Each window logged the timeout exactly once across both forced
+  reveals. Five targets, 70 output elements and two videos remained constant;
+  output heaps at iterations 5 and 25 were 2,467,100 to 2,477,316 bytes and
+  2,455,540 to 2,465,316 bytes. Preview remounts kept 346 live elements, 1,038
+  CDP nodes and 389 listeners, with heaps 6,709,584 to 6,989,076 bytes and
+  6,706,332 to 6,996,120 bytes. This is a repeated short flow, not an hours-long
+  soak.
+- Offscreen mode cannot reproduce Windows' actual hidden compositor; callback
+  suppression and main's forced deadline exercise its bounded fallback without
+  exposing a desktop window or playing sound. Native hidden-window behavior
+  still needs the user's normal-mode check.
+- Screenshots: [deadline fallback](evidence/output-53-round3/deadline-run1.png),
+  [second deadline run](evidence/output-53-round3/deadline-run2.png),
+  [delayed-settings preview](evidence/output-53-round3/prep-remount-run1.png).
+
 ## Review: lead
 
 - Verdict: pending
@@ -119,6 +162,8 @@ media view, without separate transition implementations.
 - Verdict: pending
 
 ## Team member's reply
+
+### Round 2
 
 1. Terminal video errors, rejected playback and failed image fallback now finish
    readiness with the last good background or the empty screen color. A failed
@@ -132,3 +177,27 @@ media view, without separate transition implementations.
    covers full screen to window, operator resize, and off/on with a new version.
    Rebased onto local main for this round. See the round 2 request for checks
    and exact-head CI.
+
+### Round 3
+
+1. Hidden windows are prepared while off. Ready probes include their actual
+   viewport, and main compares it with native content bounds. A size-stable
+   method/origin change no longer invalidates the current frame. The renderer
+   retries the same version and stabilizes two frames at the actual viewport,
+   without depending on a resize event. The 1,500 ms main deadline reveals the
+   drawn frame and warns once if no complete frame arrives, including when
+   monitor discovery fails. Deadline disposal and cancellation are tested.
+2. A suppressed video frame callback falls back after 250 ms when current data
+   exists. Both the callback and timer are cancelled on source changes and
+   disposal. Main's reveal deadline independently bounds fonts, decoder or IPC
+   readiness stalls.
+3. A shown acknowledgment belongs to the enable cycle, so a newer live version
+   cannot discard it. Redrawing after acknowledgment upgrades a pending content
+   replacement to its normal dissolve. Loop handovers remain immediate.
+4. The local song preview memoizes its layers by actual content and visibility,
+   rather than the enclosing settings object. A real renderer test resolves
+   Looks, then screens, then labels separately: the initial picture remains
+   instant, and only a new selected block enables the normal transition.
+5. Requesting output resumes renderer recovery before entering the readiness
+   gate. A limited hidden renderer retries immediately without needing to
+   produce an impossible ready frame first.
