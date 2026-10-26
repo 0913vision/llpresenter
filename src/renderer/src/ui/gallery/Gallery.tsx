@@ -23,6 +23,7 @@ import {TextFieldSection} from './TextFieldSection';
 import {ThumbnailSection} from './ThumbnailSection';
 import {ToolbarSection} from './ToolbarSection';
 import {TypographySection} from './TypographySection';
+import {CalendarSection} from './CalendarSection';
 import styles from './Gallery.module.css';
 
 interface GalleryEntry {
@@ -42,6 +43,7 @@ export const galleryEntries: readonly GalleryEntry[] = [
   {name: 'ToolbarButton', Section: ToolbarSection},
   {name: 'TextField', Section: TextFieldSection},
   {name: 'Select', Section: SelectSection},
+  {name: 'Calendar', Section: CalendarSection},
   {name: 'Checkbox', Section: CheckboxSection},
   {name: 'Switch', Section: SwitchSection},
   {name: 'Slider', Section: SliderSection},

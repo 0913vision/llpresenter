@@ -1,11 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {
-  dateChoices,
-  dateLabel,
-  localDate,
-  timeChoices,
-  timeLabel,
-} from './serviceDates';
+import {dateLabel, localDate, timeChoices, timeLabel} from './serviceDates';
 
 const monday = new Date(2026, 9, 26, 8, 40);
 
@@ -23,20 +17,9 @@ describe('service dates', () => {
     expect(timeLabel('18:05')).toBe('오후 6:05');
   });
 
-  it('offers today and the next 13 days', () => {
-    const choices = dateChoices(monday, '2026-10-26');
-    expect(choices).toHaveLength(14);
-    expect(choices[0]).toEqual({
-      value: '2026-10-26',
-      label: '10월 26일 월요일',
-    });
-    expect(choices.at(-1)?.value).toBe('2026-11-08');
-  });
-
-  it('keeps a chosen date outside the two weeks, in order', () => {
-    const choices = dateChoices(monday, '2026-10-25');
-    expect(choices).toHaveLength(15);
-    expect(choices[0]?.value).toBe('2026-10-25');
+  it('formats early years as civil dates and leaves invalid labels readable', () => {
+    expect(dateLabel('0001-01-01')).toBe('1월 1일 월요일');
+    expect(dateLabel('invalid')).toBe('invalid');
   });
 
   it('offers 30-minute steps and keeps a time between them', () => {

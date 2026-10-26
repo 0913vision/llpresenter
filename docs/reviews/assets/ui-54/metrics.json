@@ -1,0 +1,58 @@
+{
+  "initial": {
+    "dom": {
+      "count": 507,
+      "dialogs": 1,
+      "grids": 0,
+      "overflow": false
+    },
+    "heap": {
+      "backingStorageSize": 1701607,
+      "embedderHeapUsedSize": 5025088,
+      "totalSize": 6328320,
+      "usedSize": 5476132
+    }
+  },
+  "middle": {
+    "dom": {
+      "count": 507,
+      "dialogs": 1,
+      "grids": 0,
+      "overflow": false
+    },
+    "heap": {
+      "backingStorageSize": 1701613,
+      "embedderHeapUsedSize": 5064776,
+      "totalSize": 6590464,
+      "usedSize": 5805516
+    }
+  },
+  "final": {
+    "dom": {
+      "count": 507,
+      "dialogs": 1,
+      "grids": 0,
+      "overflow": false
+    },
+    "heap": {
+      "backingStorageSize": 1701613,
+      "embedderHeapUsedSize": 5208104,
+      "totalSize": 6852608,
+      "usedSize": 5869956
+    }
+  },
+  "geometry": {
+    "height": 325,
+    "width": 250,
+    "window": [1280, 720],
+    "x": 564.40625,
+    "y": 281.5,
+    "z": "301"
+  },
+  "chosen": "2026-11-28",
+  "saved": {
+    "date": "2026-11-28T11:00",
+    "name": "달력 점검"
+  },
+  "exceptions": []
+}

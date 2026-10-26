@@ -283,5 +283,11 @@ export {
   type TooltipProps,
 } from './Tooltip';
 export {TruncatedText} from './TruncatedText';
+export {
+  Calendar,
+  type CalendarProps,
+  type CalendarCloseReason,
+} from './Calendar';
+export {DateSelect, type DateSelectProps} from './DateSelect';
 export type {ControlSize, GroupName} from './types';
 export type {Workspace} from './workspace';

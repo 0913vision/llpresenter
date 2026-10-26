@@ -1,0 +1,110 @@
+.calendar {
+  position: fixed;
+  z-index: var(--z-popover);
+  box-sizing: border-box;
+  width: var(--size-calendar-width);
+  padding: var(--space-8);
+  border-radius: var(--radius-xl);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow-popover);
+  color: var(--text);
+  animation: appear var(--motion-popover);
+}
+.head {
+  display: grid;
+  grid-template-columns: var(--size-control-sm) minmax(0, 1fr) var(
+      --size-control-sm
+    );
+  align-items: center;
+  gap: var(--space-8);
+  min-height: var(--size-calendar-day);
+  margin-bottom: var(--space-8);
+}
+.month {
+  font: var(--type-title);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.previous [aria-hidden='true'] {
+  transform: rotate(0.5turn);
+}
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, var(--size-calendar-day));
+  gap: var(--space-4);
+}
+.weekday {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--size-calendar-weekday);
+  color: var(--text-3);
+  font: var(--type-label);
+}
+.day {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-calendar-day);
+  height: var(--size-calendar-day);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text);
+  font: var(--type-body);
+  font-variant-numeric: tabular-nums;
+  cursor: default;
+  transition: none;
+}
+.day[data-outside] {
+  color: var(--text-3);
+}
+.day[aria-current='date'] {
+  box-shadow: var(--ring-calendar-today);
+}
+[role='gridcell']:not([aria-selected='true']) .day:not(:disabled):hover,
+[role='gridcell']:not([aria-selected='true']) .day:not(:disabled):active {
+  background: var(--bg-control-hover);
+}
+[role='gridcell'][aria-selected='true'] .day {
+  background: var(--accent-fill);
+  color: var(--text-on-fill);
+  box-shadow: none;
+}
+.day:focus-visible,
+.day.is-focus {
+  outline: var(--space-2) solid var(--accent);
+  outline-offset: var(--radius-hairline);
+}
+.day:disabled {
+  color: var(--text-off);
+  box-shadow: none;
+}
+.foot {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-8);
+  padding-top: var(--space-8);
+  border-top: var(--radius-hairline) solid var(--line);
+}
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .calendar {
+    animation: none;
+  }
+}
+
+.calendar[data-over-modal] {
+  z-index: var(--z-popover-over-modal);
+}

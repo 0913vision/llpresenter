@@ -1,10 +1,11 @@
 import type {JSX} from 'react';
 import {Button} from '@renderer/ui/Button';
 import {Dialog, DialogField} from '@renderer/ui/Dialog';
+import {DateSelect} from '@renderer/ui/DateSelect';
 import type {Notice} from '@renderer/ui/notices';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {TextField} from '@renderer/ui/TextField';
-import {dateChoices, timeChoices} from './serviceDates';
+import {localDate, timeChoices} from './serviceDates';
 import {SourceList} from './SourceList';
 import {SourceTree} from './SourceTree';
 import {useSourceActions} from './useSourceActions';
@@ -85,9 +86,9 @@ export function NewServiceDialog({
               />
             </DialogField>
             <DialogField label="날짜">
-              <SelectMenu
+              <DateSelect
                 aria-label="날짜"
-                options={dateChoices(state.today, state.date)}
+                today={localDate(state.today)}
                 value={state.date}
                 onChange={state.setDate}
               />

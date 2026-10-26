@@ -100,17 +100,47 @@ beforeAll(() => {
 });
 
 beforeEach(() => {
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe = vi.fn();
+      disconnect = vi.fn();
+    },
+  );
   vi.useFakeTimers({toFake: ['Date'], now: new Date(2026, 9, 26, 8, 40)});
   applyService(null);
 });
 
 afterEach(() => {
+  vi.unstubAllGlobals();
   resetTooltips();
   vi.useRealTimers();
   delete window.llp;
 });
 
 describe('NewServiceDialog', () => {
+  it('chooses a date beyond the old two-week list without submitting the parent', async () => {
+    const {edits, onClose} = setup();
+    const user = userEvent.setup();
+    await screen.findByRole('treeitem', {name: titles.first});
+    const date = screen.getByRole('button', {name: '날짜'});
+    await user.click(date);
+    await user.keyboard('{PageDown}{ArrowRight}{Enter}');
+    expect(date.textContent).toBe('11월 27일 금요일');
+    expect(document.activeElement).toBe(date);
+    expect(onClose).not.toHaveBeenCalled();
+    expect(edits).toHaveLength(0);
+    await user.click(createButton());
+    await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
+    expect(edits.filter(edit => edit.type === 'service.create')).toHaveLength(
+      1,
+    );
+    expect(edits[0]).toMatchObject({
+      type: 'service.create',
+      date: '2026-11-27T11:00',
+    });
+  });
+
   it('starts from the first 틀 with every item checked and its name and time', async () => {
     setup();
     expect(
