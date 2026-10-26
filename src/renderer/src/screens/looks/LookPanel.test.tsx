@@ -174,8 +174,9 @@ it('hands keyboard-menu focus to the rename field after the menu restores its op
   act(() => row.focus());
   fireEvent.keyDown(row, {key: 'ContextMenu'});
   await screen.findByRole('menu', {name: 'Look 메뉴'});
-  for (const item of screen.getAllByRole('menuitem'))
+  for (const item of screen.getAllByRole('menuitem')) {
     item.scrollIntoView = vi.fn();
+  }
   await user.keyboard('{ArrowDown}{Enter}');
   const field = await screen.findByRole('textbox', {name: '설교 이름'});
   expect(document.activeElement).toBe(field);

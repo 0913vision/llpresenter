@@ -2,7 +2,7 @@
 
 - Team member: `screens`
 - Branch: `feat/screens/look-list-ui`
-- Base commit (`main`): `5a2ad88c`, after screens-7 merged.
+- Base commit (`main`): `8df43454`, rebased for round 2.
 - Related brief: `docs/briefs/screens.md`, M3-O2 Look list UI.
 
 ## What changed and why
@@ -57,16 +57,45 @@ existing trimmed names, with a padded-name duplication regression.
 
 ## Checks run
 
-After rebasing onto `5a2ad88c`, typecheck and all 178 tests in the 18 screens
-and shell workspace files pass. Scoped lint and formatting are checked before
-the final commit. The request line records exact-head CI. No Electron or full
-local verify was run.
+Round 1 passed typecheck and all 178 tests in the 18 screens and shell workspace
+files after rebasing. Round 2 adds the focused keyboard rename regression, which
+fails against round 1 and passes with the handoff fix. The round 2 request line
+records post-rebase checks and exact-head CI. No Electron or full local verify
+was run.
 
 ## Remaining M3-O2 work
 
 The center Look editor, per-screen layer cards and previews, and shared lyric
 style lifecycle and controls follow in separate requests. M3-O3 belongs to
 output.
+
+## Checked in the app
+
+Built this branch with `npm run build`. Syntax-checked the CDP launcher with
+`node --check` before every Electron launch. Ran the built app with
+`LLP_TEST_WINDOWS=offscreen`, `LLP_DEV_PORT=5192`, CDP port 9512 and an isolated
+fixture profile under `D:\llp-dev\screens`. No window was shown. CDP drove real
+mouse and keyboard events in a 1600 x 900 viewport.
+
+- Added a Look, duplicated it with the keyboard menu, renamed the copy using
+  ContextMenu/ArrowDown/Enter, then typed and committed its name. The field
+  retained focus after the menu closed.
+- Opened a macro-referenced deletion confirmation, canceled it, reopened it and
+  confirmed deletion. The current Look's delete action stayed disabled.
+- Switched between the main screen and the edited Look 20 round trips after four
+  warmup trips. Forced-GC samples at 0/5/10/15/20 trips kept 185 elements, 349
+  DOM nodes and 752 listeners. JS heap was 5.53 to 5.75 MB, a 0.22 MB spread.
+- Closed the app cleanly, changed only the fixture file to a newer schema, and
+  reopened it. The saved name remained. Add and menu edit actions were disabled
+  and the settings revision did not change. Another 20 round trips kept 183
+  elements, 311 nodes and 466 listeners; heap was 5.37 to 5.61 MB.
+- Both exercised launches closed cleanly with exit 0 and no runtime exceptions.
+  The two runs had steady DOM and listener counts and a heap spread below 5%.
+
+![Focused keyboard rename](screens-8/keyboard-rename.png)
+![Look list after editing](screens-8/look-list.png)
+![Macro deletion confirmation](screens-8/macro-delete-confirmation.png)
+![Read-only actions](screens-8/read-only-menu.png)
 
 ## Review: lead
 
