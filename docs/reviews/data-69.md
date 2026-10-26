@@ -63,3 +63,12 @@ reopened the media view twice and selected again.
 ## Team member's reply
 
 1.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (25cb0e61): reviewer (Codex) Approve. Lead Approve; fixes M3-C3-4
+  (major) from the user's check: the preview and the property form shared one
+  key, so each selection left old nodes behind; the panel now renders one item
+  and stays flat when the selection switches, checked in the app. The exact-head
+  CI run passed, checked by the lead at merge. Rebased by the lead onto local
+  `main` without conflicts; typecheck passes.
