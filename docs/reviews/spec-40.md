@@ -123,3 +123,14 @@ the 준비 toolbar field is unavailable with the reason in a tooltip, and the
 library panel's own search stays available. The narrow window layout follows as
 spec-43. No shared, preload, main, prep, or UI source is changed here, and no
 dependency is added.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (Claude, trial-97): Request changes: the list stayed hidden for the
+  whole IME composition, so Korean queries showed no results; five nits.
+- Round 2 (e46d00d4): reviewer (Claude, trial-97) Approve. Nits for the next
+  spec branch: drop the period at the end of `WORKSPACE_UNAVAILABLE_TIP`
+  (`ToolbarSearch.tsx:22-23`); `showOutput.ts:32` rejects with "Song lookup
+  timed out" now that the helper bounds the library reads too. Lead Approve.
+  Written by the Claude session that took over the 진행 work from Codex's
+  unpushed branch. Rebased by the lead onto local `main` without conflicts.
