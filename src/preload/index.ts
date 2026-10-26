@@ -38,6 +38,7 @@ import {
   parseRecoverySummary,
 } from '@shared/schema/recovery';
 import type {PayloadError} from '@shared/schema/payload';
+import {parseMonitorList} from '@shared/schema/monitors';
 import {parseOutputStatuses} from '@shared/schema/outputStatus';
 import {parseShowService} from '@shared/schema/showService';
 import {
@@ -271,6 +272,11 @@ const api: LlpApi = {
   },
   log: {
     write: entry => ipcRenderer.send(Channels.logWrite, entry),
+  },
+  monitors: {
+    get: () => invokeChecked(Channels.monitorsGet, parseMonitorList),
+    subscribe: listener =>
+      listen(Channels.monitorsChanged, parseMonitorList, listener),
   },
   output: {
     reportFrameRate: report =>

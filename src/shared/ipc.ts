@@ -16,6 +16,7 @@ import type {
 import type {ContentEdit, EditResult} from './schema/contentEdit';
 import type {LiveState} from './live';
 import type {FrameRateReport, RendererLogEntry} from './schema/ipcPayloads';
+import type {MonitorList} from './schema/monitors';
 import type {OutputStatuses} from './schema/outputStatus';
 import type {ShowService} from './schema/showService';
 import type {
@@ -83,6 +84,8 @@ export const Channels = {
   outputStatusChanged: 'output:status:changed',
   outputRetry: 'output:retry',
   outputFindMonitors: 'output:find-monitors',
+  monitorsGet: 'monitors:get',
+  monitorsChanged: 'monitors:changed',
   outputShowWindow: 'output:show-window',
   contentEdit: 'content:edit',
   songsList: 'songs:list',
@@ -211,6 +214,20 @@ export interface LlpApi {
   };
   readonly log: {
     write(entry: RendererLogEntry): void;
+  };
+  readonly monitors: {
+    /**
+     * Reads the connected monitors once. Rejects, after logging, when the call
+     * fails or the answer is malformed.
+     */
+    get(): Promise<MonitorList>;
+    /**
+     * Calls the listener whenever the monitor list changes, with every
+     * monitor.
+     *
+     * @returns A function that removes the listener. Always call it.
+     */
+    subscribe(listener: (monitors: MonitorList) => void): Unsubscribe;
   };
   readonly output: {
     /** Reports an output window's measured frame rate, once a second. */

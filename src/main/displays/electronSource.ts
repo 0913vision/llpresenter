@@ -9,6 +9,7 @@ function toDisplayInfo(display: Display, primaryId: number): DisplayInfo {
     bounds: display.bounds,
     workArea: display.workArea,
     scaleFactor: display.scaleFactor,
+    refreshRate: display.displayFrequency,
     primary: display.id === primaryId,
   };
 }

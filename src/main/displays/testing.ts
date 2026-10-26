@@ -15,6 +15,7 @@ export interface DisplaySpec {
   readonly size?: Size;
   readonly name?: string;
   readonly primary?: boolean;
+  readonly refreshRate?: number;
 }
 
 /** A monitor as the operating system would report it, with a taskbar at the bottom. */
@@ -25,6 +26,7 @@ export function displayInfo({
   size = FULL_HD,
   name = `Monitor ${id}`,
   primary = false,
+  refreshRate = 60,
 }: DisplaySpec): DisplayInfo {
   return {
     id,
@@ -32,6 +34,7 @@ export function displayInfo({
     bounds: {x, y, ...size},
     workArea: {x, y, width: size.width, height: size.height - TASKBAR_HEIGHT},
     scaleFactor: 1,
+    refreshRate,
     primary,
   };
 }

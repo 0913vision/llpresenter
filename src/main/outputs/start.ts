@@ -1,7 +1,10 @@
 import type {BrowserWindow} from 'electron';
 import {Channels} from '@shared/ipc';
+import {MONITOR_LIST_MAX} from '@shared/schema/monitors';
 import {createElectronDisplaySource} from '../displays/electronSource';
+import {toMonitorList} from '../displays/monitorList';
 import {DisplayRegistry} from '../displays/registry';
+import type {Rect} from '../displays/rect';
 import {answerWindows, listenToWindows, sendToWindows} from '../ipc';
 import type {LiveStore} from '../live/store';
 import type {Logger} from '../log';
@@ -98,6 +101,27 @@ function publishStatus({
   ];
 }
 
+interface MonitorPublishing {
+  readonly displays: DisplayRegistry;
+  readonly controlBounds: () => Rect | null;
+  readonly log: Logger;
+}
+
+function publishMonitors({
+  displays,
+  controlBounds,
+  log,
+}: MonitorPublishing): Array<() => void> {
+  const list = () =>
+    toMonitorList(displays.monitors, controlBounds(), MONITOR_LIST_MAX);
+  return [
+    answerWindows(Channels.monitorsGet, list),
+    displays.subscribe(() =>
+      sendToWindows(Channels.monitorsChanged, list(), log),
+    ),
+  ];
+}
+
 /** The outputs while they run. */
 export interface RunningOutputs {
   /**
@@ -113,6 +137,7 @@ export interface RunningOutputs {
  * Starts watching the monitors and the output switches, opens the output
  * windows as outputs turn on, follows their frame rate reports, and publishes
  * the output status (`output:status:get`, `output:status:changed`) and
+ * publishes the monitor list (`monitors:get`, `monitors:changed`), and
  * handles 다시 시도 (`output:retry`), 모니터 다시 찾기
  * (`output:find-monitors`), and 창 보기 (`output:show-window`). Call it after
  * the app is ready.
@@ -142,11 +167,13 @@ export function startOutputs({
     screenStates: () => outputs.screenStates(),
     frameRate: screenId => frameRates.current(screenIdFor(screenId)),
   });
+  const controlBounds = () =>
+    control.isDestroyed() ? null : control.getBounds();
   const outputs = new OutputManager({
     store,
     displays,
     screens,
-    controlBounds: () => (control.isDestroyed() ? null : control.getBounds()),
+    controlBounds,
     createHandle: (screen, events) =>
       createElectronOutputWindow(screen, events, {
         log,
@@ -190,6 +217,7 @@ export function startOutputs({
       }, log),
     ),
     ...publishStatus({board, outputs, displays, log, screenIdFor}),
+    ...publishMonitors({displays, controlBounds, log}),
     keepAwakeWhileOutputsOn(
       store,
       new WakeKeeper(createElectronWakeLock(), log),

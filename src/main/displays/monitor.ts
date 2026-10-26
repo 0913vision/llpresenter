@@ -10,6 +10,8 @@ export interface DisplayInfo {
   /** The bounds without the taskbar. */
   readonly workArea: Rect;
   readonly scaleFactor: number;
+  /** The refresh rate in hertz; 0 when the system doesn't report one. */
+  readonly refreshRate: number;
   readonly primary: boolean;
 }
 
@@ -41,6 +43,7 @@ function sameMonitor(a: Monitor, b: Monitor): boolean {
     a.name === b.name &&
     a.number === b.number &&
     a.scaleFactor === b.scaleFactor &&
+    a.refreshRate === b.refreshRate &&
     a.primary === b.primary &&
     sameRect(a.bounds, b.bounds) &&
     sameRect(a.workArea, b.workArea)

@@ -22,6 +22,7 @@ import {
 import type {WindowMode} from '../windows/testWindows';
 import {fakeWindows, type FakeWindows} from './testing';
 import {openNumberWindow} from './numberWindow';
+import {sendToWindows} from '../ipc';
 import {startOutputs} from './start';
 
 const fakes = vi.hoisted(() => {
@@ -459,5 +460,29 @@ describe('saved output backend', () => {
     save([]);
     save([{...main, id: CAPTIONS, method: 'window'}]);
     expect(running.frameRates()).toEqual([]);
+  });
+
+  it('answers the monitor list and pushes it when the monitors change', async () => {
+    const {stop} = setup();
+    await loaded();
+    const numbers = () =>
+      (fakes.answers.get(Channels.monitorsGet)?.() as {number: number}[]).map(
+        monitor => monitor.number,
+      );
+    expect(numbers()).toEqual([1, 2, 3]);
+
+    const displays = fakes.displays;
+    if (displays === null) throw new Error('Missing displays');
+    displays.displays = [displayInfo({id: 1, primary: true}), stage];
+    fakes.handlers.get(Channels.outputFindMonitors)?.(undefined, 1);
+
+    expect(numbers()).toEqual([1, 2]);
+    expect(vi.mocked(sendToWindows)).toHaveBeenCalledWith(
+      Channels.monitorsChanged,
+      expect.arrayContaining([expect.objectContaining({number: 2})]),
+      expect.anything(),
+    );
+    stop();
+    expect(fakes.answers.has(Channels.monitorsGet)).toBe(false);
   });
 });

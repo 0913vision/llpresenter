@@ -1071,6 +1071,40 @@ describe('preload', () => {
     expect(electron.handlers.has(Channels.outputStatusChanged)).toBe(false);
   });
 
+  it('passes a valid monitor list through and rejects a bad one', async () => {
+    const monitor = {
+      number: 1,
+      name: 'Monitor 1',
+      bounds: {x: 0, y: 0, width: 1920, height: 1080},
+      scaleFactor: 1,
+      refreshRate: 60,
+      hasMainWindow: true,
+    };
+    electron.invoke.mockResolvedValueOnce([monitor]);
+    electron.invoke.mockResolvedValueOnce([{...monitor, number: 0}]);
+
+    await expect(api.monitors.get()).resolves.toEqual([monitor]);
+    await expect(api.monitors.get()).rejects.toThrow(
+      `Bad reply on ${Channels.monitorsGet}`,
+    );
+    expect(electron.invoke).toHaveBeenCalledWith(Channels.monitorsGet);
+    expect(loggedErrors()).toHaveLength(1);
+  });
+
+  it('passes only valid pushed monitor lists to a subscriber', () => {
+    const listener = vi.fn();
+    const unsubscribe = api.monitors.subscribe(listener);
+    const push = electron.handlers.get(Channels.monitorsChanged);
+
+    push?.({}, []);
+    push?.({}, {});
+
+    expect(listener.mock.calls).toEqual([[[]]]);
+    expect(loggedErrors()).toHaveLength(1);
+    unsubscribe();
+    expect(electron.handlers.has(Channels.monitorsChanged)).toBe(false);
+  });
+
   it('sends 다시 시도 for a screen one way', () => {
     api.output.retry('main');
 
