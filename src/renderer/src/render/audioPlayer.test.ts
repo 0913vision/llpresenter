@@ -132,6 +132,23 @@ describe('AudioPlayer', () => {
     expect(first.hasAttribute('src')).toBe(false);
   });
 
+  it('pauses the active fallback before a loading replacement is ready, even if it fails', async () => {
+    const {player, first, second} = setup();
+    player.show(state());
+    await ready(first);
+    player.show(state(2));
+    const pause = vi.mocked(HTMLMediaElement.prototype.pause);
+    const play = vi.mocked(HTMLMediaElement.prototype.play);
+    pause.mockClear();
+    play.mockClear();
+    player.show(state(2, {since: null}));
+    expect(pause.mock.contexts).toContain(first);
+    second.dispatchEvent(new Event('error'));
+    player.show(state(2, {since: null}));
+    expect(first.hasAttribute('src')).toBe(true);
+    expect(play).not.toHaveBeenCalled();
+  });
+
   it('honors pause while play is pending and sends next only once for the current running track', async () => {
     const {player, first, second, onNext} = setup();
     let resolve = () => {};

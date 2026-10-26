@@ -77,6 +77,14 @@ export class AudioPlayer {
     this.attempt(() => {
       const layer = state.layers.audio;
       this.wanted = layer;
+      const fallback = this.active;
+      if (
+        layer?.playback?.since === null &&
+        fallback !== null &&
+        fallback.layer?.playback?.trackVersion !== layer.playback.trackVersion
+      ) {
+        this.attempt(() => fallback.element.pause());
+      }
       for (const track of this.tracks) {
         const volume = (state.audioVolume ?? 100) / 100;
         if (track.element.volume !== volume) track.element.volume = volume;

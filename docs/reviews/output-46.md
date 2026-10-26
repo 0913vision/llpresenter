@@ -2,7 +2,7 @@
 
 - Team member: `output`
 - Branch: `feat/output/audio-player`
-- Base and range: in the request message; stacked on approved output-45.
+- Base and range: in the request message; round 2 rebased onto local `main`.
 - Scope: O7's reusable audio player. The hidden window and media-store wiring
   follow in output-47, then fade and undo. O7 remains open.
 - GitHub head CI: URL and result in the request message.
@@ -32,7 +32,7 @@ and capped at 32; synchronous and asynchronous playback errors are isolated.
 
 ## Checks run
 
-- Renderer player tests: 7 pass, using mocked media methods and muted elements.
+- Renderer player tests: 8 pass, using mocked media methods and muted elements.
 - Typecheck, own-file ESLint and formatting: see request message.
 - Full `npm run verify`: GitHub CI only, URL/result in request message.
 - No native windows, media playback or audio were started on this PC.
@@ -57,4 +57,10 @@ and capped at 32; synchronous and asynchronous playback errors are isolated.
 
 ## Team member's reply
 
-1.
+Round 1 reply:
+
+1. A paused replacement now pauses the active fallback immediately, before
+   waiting for the replacement's `canplay`. The new regression starts A, loads
+   B, pauses B before readiness, then fails B. It verifies that A was paused,
+   remains loaded, and is not restarted. The regression failed on the reviewed
+   code before this fix. No other transport behavior changes.
