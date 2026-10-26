@@ -141,7 +141,8 @@ missing.
   focus and pass clicks through, and a monitor whose every spot covers a shown
   capture window shows no number. The look in spec 06 is the lead's decision.
   Rebased by the lead onto local `main` without conflicts; typecheck passes.
-  M3-O9b is complete.
+  This is the 모니터 번호 표시 part of M3-O9b; the edge margin and offset
+  (output-38) and the test pattern remain.
 
 ## Team member's reply
 
