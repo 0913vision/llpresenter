@@ -178,19 +178,16 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (Claude, review2-3e): Request changes: shutdown awaited the recovery
+  write before the must-save steps inside one 3 s budget; three nits.
+- Round 2 (925848c3): reviewer (Claude, review2-3e) Approve with no new
+  findings: the writer stops synchronously early and its last write is awaited
+  only after the data store closes; temp files in the recovery folder are
+  cleaned at launch; the heavy record costs 16.35 ms at most once a second. Lead
+  Approve. Written by the Claude session that took over output's work. Rebased
+  by the lead onto local `main` without conflicts.
 
 ## Team member's reply
 
