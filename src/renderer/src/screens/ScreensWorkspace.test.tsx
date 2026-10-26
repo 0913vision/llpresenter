@@ -139,6 +139,49 @@ function selectedOf(name: string): string | null {
 }
 
 describe('the 화면 list', () => {
+  it.each(['설교', '현재와 다음'])(
+    'keeps the retained-screen pattern while committing a correction from %s',
+    async label => {
+      const {send} = setup();
+      const api = window.llp;
+      if (api === undefined) throw new Error('Missing window API');
+      const edit = vi
+        .spyOn(api.settings, 'edit')
+        .mockResolvedValue({ok: true, value: {id: 'screens', revision: 2}});
+      const user = userEvent.setup();
+      await screen.findByRole('option', {name: '방송 자막'});
+      await user.click(option('방송 자막'));
+      await user.click(option(label));
+      await user.click(screen.getByRole('radio', {name: '테스트 패턴'}));
+      const x = screen.getByRole('spinbutton', {name: '가로 위치'});
+      await user.clear(x);
+      await user.type(x, '20{Enter}');
+      await waitFor(() => expect(edit).toHaveBeenCalledOnce());
+      const request = edit.mock.calls[0]?.[0];
+      if (request?.name !== 'screens')
+        throw new Error('Missing correction edit');
+      expect(
+        request.value.screens.find(screen => screen.id === CAPTIONS_ID)?.offset
+          ?.x,
+      ).toBe(20);
+      expect(useScreensSelection.getState().selection).toEqual({
+        kind: 'screen',
+        id: CAPTIONS_ID,
+      });
+      expect(
+        screen
+          .getByRole('radio', {name: '테스트 패턴'})
+          .getAttribute('aria-checked'),
+      ).toBe('true');
+      expect(
+        send.mock.calls
+          .map(([command]) => command)
+          .filter(command => command.type === 'screen.testPattern.set'),
+      ).toEqual([
+        {type: 'screen.testPattern.set', screenId: CAPTIONS_ID, on: true},
+      ]);
+    },
+  );
   it('retains the screen view when the workspace remounts with a Look selected', async () => {
     const {view} = setup();
     await screen.findByRole('option', {name: '방송 자막'});

@@ -68,10 +68,13 @@ function PreviewBody({
     selectionKey: string;
     mode: PreviewMode;
   }>({selectionKey, mode: 'content'});
+  const mode =
+    selection.kind === 'screen' || preview.selectionKey === selectionKey
+      ? preview.mode
+      : 'content';
   if (preview.selectionKey !== selectionKey) {
-    setPreview({selectionKey, mode: 'content'});
+    setPreview({selectionKey, mode});
   }
-  const mode = preview.selectionKey === selectionKey ? preview.mode : 'content';
   const [watchPicture, available] = useElementSize();
   const picture =
     available === undefined

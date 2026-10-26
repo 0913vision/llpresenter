@@ -157,6 +157,25 @@ describe('the output preview', () => {
     ).toBe('true');
   });
 
+  it.each(['look', 'stage'] as const)(
+    'keeps a retained-screen pattern when a %s selection is pinned for correction',
+    async kind => {
+      const {patternCommands} = setup();
+      act(() => useScreensSelection.getState().select(kind, 'selected-row'));
+      await choose('테스트 패턴');
+      act(() => useScreensSelection.getState().select('screen', MAIN_ID));
+      expect(patternCommands()).toEqual([
+        {type: 'screen.testPattern.set', screenId: MAIN_ID, on: true},
+      ]);
+      expect(
+        screen
+          .getByRole('radio', {name: '테스트 패턴'})
+          .getAttribute('aria-checked'),
+      ).toBe('true');
+      expect(drawn.created).toHaveLength(1);
+    },
+  );
+
   it('takes the pattern off when the window is going away', async () => {
     const {patternCommands} = setup();
     await choose('테스트 패턴');

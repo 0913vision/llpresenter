@@ -84,3 +84,10 @@ visible; cancellation retains the Look and the screen view.
 | Second open and cancel | ![Repeated delete](screens-14/first-delete-question-2.png)     | ![Repeated delete after reopen](screens-14/reopen-delete-question-2.png) |
 
 ## Team member's reply
+
+Round 2: Pinning the currently displayed screen now preserves its preview mode
+even when the prior row selection was a Look or stage layout. Selecting another
+non-screen row still clears the pattern; a different screen still starts in
+content mode. Regressions from both non-screen kinds failed before the fix and
+pass afterward. Workspace tests also commit a real correction edit from each
+kind and verify that no pattern-off command is sent during calibration.
