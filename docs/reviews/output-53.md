@@ -153,13 +153,18 @@ media view, without separate transition implementations.
   [second deadline run](evidence/output-53-round3/deadline-run2.png),
   [delayed-settings preview](evidence/output-53-round3/prep-remount-run1.png).
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: pending
-
-## Review: reviewer
-
-- Verdict: pending
+- Rounds 1 and 2 (Codex): see the findings and replies above.
+- Second review round 1 (Gemini 4 Argon, gem1): Request changes, two High (an
+  output could stay hidden for good; the reveal could wait forever on a video
+  frame), two Medium, and one Low.
+- Round 3 (1dbd62a7): reviewer (Codex, codex3) Approve; Argon round 2 Approve,
+  no findings. Lead Approve; output windows are preloaded hidden and revealed on
+  a complete frame, with a named deadline so an output the operator turned on is
+  never left hidden. Fixes M3-C3-1 and M3-C3-7 from the user's check. The
+  exact-head CI run passed, checked by the lead at merge. Rebased by the lead
+  onto local `main` without conflicts; typecheck passes.
 
 ## Team member's reply
 
