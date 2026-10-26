@@ -194,6 +194,9 @@ export class SongEditorStore {
       try {
         const song = session.history.snapshot.song;
         if (this.importedSaved === null) {
+          if (target.kind === 'overwrite') {
+            await this.sessions.get(target.songId)?.flush();
+          }
           const result = await this.api.content.edit({
             type: 'song.import',
             target,
@@ -227,6 +230,7 @@ export class SongEditorStore {
           return false;
         }
         if (!this.alive) return false;
+        this.sessions.get(document.song.id)?.install(document);
         session.discard();
         this.imported = null;
         this.importedSaved = null;
@@ -302,7 +306,7 @@ export class SongEditorStore {
   // NOTE(0913vision): Dropping a clean session loses only its undo history. A
   // session with unsaved edits, the editor's, and the item panel's stay, so
   // the count can pass the cap until they are saved or closed.
-  private evict(created: SongId): void {
+  private evict(created?: SongId): void {
     if (this.busy) return;
     for (const [id, session] of this.sessions) {
       if (this.sessions.size <= MAX_SESSIONS) return;
@@ -521,6 +525,7 @@ export class SongEditorStore {
       this.renamedSongs.clear();
       this.busy = false;
       this.operation = undefined;
+      this.evict();
       this.publish();
     });
     return this.operation;

@@ -24,7 +24,9 @@ function fixture() {
     imports.push(edit);
     const id =
       edit.target.kind === 'new'
-        ? createSongId('00000000-0000-4000-8000-000000000099')
+        ? createSongId(
+            `00000000-0000-4000-8000-${String(98 + imports.length).padStart(12, '0')}`,
+          )
         : edit.target.songId;
     const parsed = parseSongDocument({
       song: {...f.first.song, ...edit.draft, id},
@@ -45,6 +47,61 @@ function fixture() {
 }
 
 describe('imported song editor sessions', () => {
+  it('evicts clean sessions after repeated imports while retaining the active and item songs', async () => {
+    const f = fixture();
+    f.store.attach(f.first);
+    f.store.showItemSong(f.first.song.id);
+    const ids = [f.first.song.id];
+    for (let index = 0; index < 25; index++) {
+      if (index > 0) f.store.openImported(draft);
+      f.store.getSnapshot().session?.editTitle(`Imported ${index}`);
+      expect(await f.store.saveImported({kind: 'new'})).toBe(true);
+      const active = f.store.getSnapshot().session;
+      if (active === null) throw new Error('No saved session');
+      ids.push(active.document.song.id);
+      expect(f.store.sessionOf(active.document.song.id)).toBe(active);
+    }
+    expect(ids.filter(id => f.store.sessionOf(id) !== undefined)).toHaveLength(
+      20,
+    );
+    expect(f.store.sessionOf(f.first.song.id)).toBeDefined();
+    expect(f.store.sessionOf(ids[1] ?? f.first.song.id)).toBeUndefined();
+  });
+
+  it('installs an accepted overwrite over a cached session blocked by a stale-save refusal', async () => {
+    const f = fixture();
+    f.store.discardImported();
+    f.store.open(f.first);
+    const cached = f.store.getSnapshot().session;
+    if (cached === null) throw new Error('No cached target');
+    vi.spyOn(f.api.content, 'edit').mockResolvedValueOnce({
+      ok: false,
+      error: {reason: 'stale', message: 'Changed elsewhere'},
+    });
+    cached.edit({type: 'text', text: 'Refused local draft', start: 0, end: 0});
+    expect(await cached.flush()).toBe(false);
+    expect(cached.blocked).toBe(true);
+    f.store.openImported({...draft, title: f.first.song.title});
+    expect(
+      await f.store.saveImported({
+        kind: 'overwrite',
+        songId: f.first.song.id,
+        baseRevision: f.first.revision,
+      }),
+    ).toBe(true);
+    const accepted = f.store.getSnapshot().session;
+    expect(accepted).toBe(cached);
+    expect(accepted?.history.snapshot.song.slides).toEqual(draft.slides);
+    expect(accepted?.readOnly).toBe(false);
+    expect(accepted?.history.canUndo).toBe(false);
+    expect(accepted?.document.revision).toBe(2);
+    accepted?.editTitle('Editable after overwrite');
+    expect(await accepted?.flush()).toBe(true);
+    expect(f.edits.at(-1)).toMatchObject({
+      type: 'song.update',
+      song: {title: 'Editable after overwrite'},
+    });
+  });
   it('keeps title, lyrics, background, undo and arrangements local until Save', async () => {
     vi.useFakeTimers();
     onTestFinished(() => {
