@@ -80,6 +80,21 @@ function turn(on: boolean, screenId = 'main'): LiveCommand {
   return {type: 'output.set', screenId, on};
 }
 
+function simulateReadyFrames(manager: OutputManager, store: LiveStore): void {
+  const ready = (): void => {
+    for (const id of manager.screenStates().keys())
+      manager.frameReady(id, store.state.version);
+  };
+  const dispatch = store.dispatch.bind(store);
+  vi.spyOn(store, 'dispatch').mockImplementation((...args) => {
+    const outputs = store.state.outputs;
+    const result = dispatch(...args);
+    if (store.state.outputs !== outputs) ready();
+    return result;
+  });
+  ready();
+}
+
 function setUp(screens: readonly OutputScreen[] = [screenOn(PROJECTOR)]) {
   const store = new LiveStore();
   const displays = new FakeMonitorFeed(monitorsOf(CONTROL, PROJECTOR, STAGE));
@@ -95,6 +110,7 @@ function setUp(screens: readonly OutputScreen[] = [screenOn(PROJECTOR)]) {
     log,
   });
   manager.start();
+  simulateReadyFrames(manager, store);
   return {store, displays, source, windows, log, manager};
 }
 
@@ -120,6 +136,7 @@ function setUpRemoval(
     log,
   });
   manager.start();
+  simulateReadyFrames(manager, store);
   store.dispatch(turn(true));
   store.dispatch(turn(true, 'stage'));
   return {source, displays, store, windows, manager, log};
@@ -254,7 +271,7 @@ describe('OutputManager', () => {
 
   it('opens the output full screen on its monitor when it turns on, and hides it when it turns off', () => {
     const {store, windows} = setUp();
-    expect(windows.created).toHaveLength(0);
+    expect(windows.created).toHaveLength(1);
     store.dispatch(turn(true));
     const handle = windows.only('main');
     expect(handle.mode).toEqual({
@@ -367,7 +384,7 @@ describe('OutputManager', () => {
   it('opens no window and warns about nothing when a monitor goes away while the output is off', () => {
     const {store, displays, windows, log} = setUp();
     displays.plug(CONTROL);
-    expect(windows.created).toHaveLength(0);
+    expect(windows.created).toHaveLength(1);
     expect(log.messages('warn')).toEqual([]);
     store.dispatch(turn(true));
     expect(windows.only('main').mode.kind).toBe('window');
@@ -401,6 +418,7 @@ describe('OutputManager', () => {
       log,
     });
     manager.start();
+    simulateReadyFrames(manager, store);
     store.dispatch(turn(true, 'main'));
     store.dispatch(turn(true, 'stage'));
     expect(windows.only('stage').mode.kind).toBe('fullscreen');
@@ -448,10 +466,12 @@ describe('OutputManager', () => {
       log,
     });
     manager.start();
+    simulateReadyFrames(manager, store);
     store.dispatch(turn(true));
 
     source.failure = null;
     await clock.advance(DISPLAY_RETRY_MS);
+    manager.frameReady('main', store.state.version);
     expect(windows.only('main').mode).toEqual({
       kind: 'fullscreen',
       bounds: PROJECTOR_BOUNDS,
@@ -497,6 +517,7 @@ describe('OutputManager', () => {
       onStatusChange,
     });
     manager.start();
+    simulateReadyFrames(manager, store);
     expect(manager.screenStates().get('main')).toEqual({
       placement: 'off',
       renderer: 'running',

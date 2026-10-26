@@ -5,6 +5,7 @@ const MS_PER_SECOND = 1000;
 const FPS_DECIMALS = 10;
 
 export interface FrameRateMeterOptions {
+  readonly onFrame?: () => void;
   readonly report: (fps: number) => void;
   readonly requestFrame?: (callback: FrameRequestCallback) => number;
   readonly cancelFrame?: (handle: number) => void;
@@ -18,6 +19,7 @@ export interface FrameRateMeterOptions {
  */
 export function startFrameRateMeter({
   report,
+  onFrame: onFrameReady,
   requestFrame = requestAnimationFrame,
   cancelFrame = cancelAnimationFrame,
 }: FrameRateMeterOptions): () => void {
@@ -26,6 +28,7 @@ export function startFrameRateMeter({
   let handle = 0;
   const onFrame = (time: number): void => {
     handle = requestFrame(onFrame);
+    onFrameReady?.();
     if (periodStart === null) {
       periodStart = time;
       return;

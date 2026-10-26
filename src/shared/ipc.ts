@@ -15,7 +15,11 @@ import type {
 } from './schema/contentDocuments';
 import type {ContentEdit, EditResult} from './schema/contentEdit';
 import type {LiveState} from './live';
-import type {FrameRateReport, RendererLogEntry} from './schema/ipcPayloads';
+import type {
+  FrameRateReport,
+  FrameReadyReport,
+  RendererLogEntry,
+} from './schema/ipcPayloads';
 import type {MonitorList} from './schema/monitors';
 import type {OutputStatuses} from './schema/outputStatus';
 import type {ShowService} from './schema/showService';
@@ -88,6 +92,7 @@ export const Channels = {
   uiZoomChange: 'ui:zoom:change',
   logWrite: 'log:write',
   outputFrameRate: 'output:frame-rate',
+  outputFrameReady: 'output:frame-ready',
   serviceGet: 'service:get',
   serviceOpen: 'service:open',
   serviceChanged: 'service:changed',
@@ -258,6 +263,7 @@ export interface LlpApi {
   readonly output: {
     /** Reports an output window's measured frame rate, once a second. */
     reportFrameRate(report: FrameRateReport): void;
+    reportReady(report: FrameReadyReport): Promise<boolean>;
     /**
      * Reads the status of every screen's output once. Rejects, after logging,
      * when the call fails or the answer is malformed.

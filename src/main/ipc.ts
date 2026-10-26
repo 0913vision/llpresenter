@@ -37,7 +37,7 @@ export function sendToWindows(
  */
 export function answerWindows(
   channel: string,
-  answer: () => unknown,
+  answer: (event: unknown, value?: unknown) => unknown,
 ): () => void {
   ipcMain.handle(channel, answer);
   return () => {

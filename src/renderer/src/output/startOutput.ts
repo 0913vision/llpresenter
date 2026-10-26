@@ -62,9 +62,22 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
     onError: report,
   });
   let latest: LiveState | null = null;
+  let stopped = false;
+  let revealPending = true;
+  let reportedVersion = -1;
+  let stableVersion = -1;
+  let fontsReady = typeof document.fonts === 'undefined';
+  let readyInFlight = false;
+  const enabled = (): boolean => latest?.outputs[screenId] === true;
   const draw = (): void => {
     if (latest === null) return;
-    renderer.render(latest.layers, frames.frame(latest));
+    if (!enabled()) revealPending = true;
+    const frame = frames.frame(latest);
+    renderer.render(latest.layers, {
+      ...frame,
+      transitions: enabled() && !revealPending,
+    });
+    stableVersion = -1;
   };
   const frames = new ScreenFrames({
     settings: api.settings,
@@ -83,8 +96,54 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
       }),
   });
   let stopMeter: (() => void) | null = null;
+  if (!fontsReady) {
+    void document.fonts.ready
+      .then(() => {
+        fontsReady = true;
+      })
+      .catch((error: unknown) =>
+        report('could not prepare output fonts', error),
+      );
+  }
+  const reportReady = (): void => {
+    if (
+      stopped ||
+      readyInFlight ||
+      latest === null ||
+      !fontsReady ||
+      frames.frame(latest) === undefined ||
+      !renderer.ready()
+    )
+      return;
+    const version = latest.version;
+    if (version === reportedVersion) return;
+    if (stableVersion !== version) {
+      stableVersion = version;
+      return;
+    }
+    reportedVersion = version;
+    readyInFlight = true;
+    void api.output
+      .reportReady({screenId, version})
+      .then(shown => {
+        if (!stopped && latest?.version === version && enabled() && shown)
+          revealPending = false;
+      })
+      .catch((error: unknown) =>
+        report('could not report a ready output frame', error),
+      )
+      .finally(() => {
+        readyInFlight = false;
+      });
+  };
+  const resized = (): void => {
+    reportedVersion = -1;
+    stableVersion = -1;
+  };
+  window.addEventListener('resize', resized);
   const reportFrameRates = (): void => {
     stopMeter ??= startFrameRateMeter({
+      onFrame: reportReady,
       report: fps => api.output.reportFrameRate({screenId, fps}),
     });
   };
@@ -101,6 +160,8 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
     report,
   );
   return () => {
+    stopped = true;
+    window.removeEventListener('resize', resized);
     stopMeter?.();
     stopFollowing();
     frames.dispose();

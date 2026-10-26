@@ -41,6 +41,7 @@ function createBrowserWindow(
     windowTestOptions(mode);
   return new BrowserWindow({
     show: false,
+    paintWhenInitiallyHidden: true,
     focusable: false,
     title: screen.name,
     backgroundColor:
@@ -254,6 +255,8 @@ export function createElectronOutputWindow(
   win.once('closed', dispose);
   return {
     ...presentation,
+    configure: screen => win.setTitle(screen.name),
+    prepare: bounds => win.setContentBounds(bounds),
     reload: () => startLoading(win, page),
     crashRenderer: () => {
       if (!win.isDestroyed()) win.webContents.forcefullyCrashRenderer();

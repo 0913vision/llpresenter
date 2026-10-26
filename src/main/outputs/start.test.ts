@@ -34,10 +34,11 @@ const fakes = vi.hoisted(() => {
   return {
     ...inputs,
     handlers: new Map<string, MessageHandler>(),
-    answers: new Map<string, () => unknown>(),
+    answers: new Map<string, (event?: unknown, value?: unknown) => unknown>(),
     start: vi.fn(() => 7),
     stop: vi.fn(),
     closeNumber: vi.fn(),
+    liveVersion: (): number => 0,
   };
 });
 const control = await vi.hoisted(async () => {
@@ -88,7 +89,10 @@ vi.mock('../ipc', () => ({
       fakes.handlers.delete(channel);
     };
   },
-  answerWindows: (channel: string, answer: () => unknown) => {
+  answerWindows: (
+    channel: string,
+    answer: (event?: unknown, value?: unknown) => unknown,
+  ) => {
     fakes.answers.set(channel, answer);
     return () => {
       fakes.answers.delete(channel);
@@ -134,6 +138,7 @@ function setup(
   const settings = overlaySettings();
   settings.update(settingsDocument('screens', {screens: [main]}));
   const store = new LiveStore();
+  fakes.liveVersion = () => store.state.version;
   const log = recordingLogger();
   const settingsPromise = loading ?? Promise.resolve(settings.reader);
   const stopOverlays = startOverlays({store, settings: settingsPromise, log});
@@ -147,6 +152,17 @@ function setup(
     control: controlWindow,
     log,
     windowMode,
+  });
+  const dispatch = store.dispatch.bind(store);
+  vi.spyOn(store, 'dispatch').mockImplementation((...args) => {
+    const result = dispatch(...args);
+    for (const window of fakes.windows?.created ?? []) {
+      fakes.answers.get(Channels.outputFrameReady)?.(undefined, {
+        screenId: window.screen.id,
+        version: store.state.version,
+      });
+    }
+    return result;
   });
   const stop = (): void => {
     running.stop();
@@ -173,6 +189,12 @@ function setup(
 async function loaded() {
   await Promise.resolve();
   await Promise.resolve();
+  for (const window of fakes.windows?.created ?? []) {
+    fakes.answers.get(Channels.outputFrameReady)?.(undefined, {
+      screenId: window.screen.id,
+      version: fakes.liveVersion(),
+    });
+  }
 }
 
 describe('saved output backend', () => {
@@ -380,15 +402,13 @@ describe('saved output backend', () => {
     expect(fakes.stop).toHaveBeenCalledExactlyOnceWith(7);
   });
 
-  it('uses the latest settings before the first native handle exists', async () => {
+  it('applies the latest placement to the preloaded hidden native handle', async () => {
     const {save, store, windows} = setup();
     await loaded();
     save([{...main, name: 'Updated', method: 'capture'}]);
     store.dispatch({type: 'output.set', screenId: MAIN, on: true});
-    expect(windows.only(MAIN).screen).toMatchObject({
-      name: 'Updated',
-      method: 'capture',
-    });
+    expect(windows.only(MAIN).mode.kind).toBe('capture');
+    expect(windows.only(MAIN).screen.name).toBe('Updated');
   });
 
   it('releases the last wake lock for removed or unsupported screens even without monitors', async () => {

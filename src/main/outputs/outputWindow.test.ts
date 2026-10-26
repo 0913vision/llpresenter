@@ -20,7 +20,8 @@ const FALLBACK: ShownPlacement = {
   reason: 'monitorMissing',
 };
 
-function setUp() {
+function setUp(autoReady = true) {
+  let version = 0;
   const windows = fakeWindows();
   const log = recordingLogger();
   const onCloseRequested = vi.fn();
@@ -29,11 +30,49 @@ function setUp() {
     createHandle: windows.create,
     onCloseRequested,
     log,
+    liveVersion: () => version,
   });
-  return {output, windows, log, onCloseRequested};
+  if (autoReady) {
+    const update = output.update.bind(output);
+    vi.spyOn(output, 'update').mockImplementation((placement, screen) => {
+      update(placement, screen);
+      output.frameReady(version);
+    });
+  }
+  output.update(null);
+  return {
+    output,
+    windows,
+    log,
+    onCloseRequested,
+    setVersion: (next: number) => {
+      version = next;
+    },
+  };
 }
 
 describe('OutputWindow', () => {
+  it('preloads hidden and reveals only after the current complete frame, rejecting stale reports', () => {
+    const {output, windows, setVersion} = setUp(false);
+    expect(windows.created).toHaveLength(1);
+    expect(windows.only('main').mode.kind).toBe('hidden');
+    setVersion(1);
+    output.update(FULL_SCREEN);
+    output.frameReported();
+    expect(windows.only('main').prepared).toEqual(PROJECTOR);
+    expect(windows.only('main').mode.kind).toBe('hidden');
+    expect(output.frameReady(0)).toBe(false);
+    expect(output.frameReady(1)).toBe(true);
+    expect(windows.only('main').mode.kind).toBe('fullscreen');
+    output.update(null);
+    setVersion(2);
+    output.update(FULL_SCREEN);
+    expect(windows.only('main').mode.kind).toBe('hidden');
+    output.frameReady(2);
+    expect(windows.created).toHaveLength(1);
+    expect(windows.only('main').reloads).toBe(0);
+    output.dispose();
+  });
   it('recenters a lost-monitor fallback when the work area settles again', () => {
     const {output, windows} = setUp();
     output.update(FULL_SCREEN);
@@ -122,10 +161,10 @@ describe('OutputWindow', () => {
     expect(output.captureArea()).toBeNull();
   });
 
-  it('creates no window until the output first turns on', () => {
+  it('preloads the window before the output first turns on', () => {
     const {output, windows} = setUp();
     output.update(null);
-    expect(windows.created).toHaveLength(0);
+    expect(windows.created).toHaveLength(1);
     output.update(FULL_SCREEN);
     expect(windows.only('main').mode).toEqual(FULL_SCREEN);
   });
@@ -253,7 +292,7 @@ describe('OutputWindow', () => {
     expect(handle.reloads).toBe(CRASH_LIMIT);
   });
 
-  it('stops the attempts while the output is off and tries at once when it turns on', async () => {
+  it('keeps recovery running while hidden so the next reveal can use a preloaded page', async () => {
     const clock = installFakeClock();
     const {output, windows} = setUp();
     output.update(FULL_SCREEN);
@@ -263,10 +302,12 @@ describe('OutputWindow', () => {
       await clock.advance(RELAUNCH_DELAY_MS);
     }
     output.update(null);
-    await clock.advance(COOLDOWN_STEPS_MS.at(-1) ?? 0);
-    expect(handle.reloads).toBe(CRASH_LIMIT - 1);
-    output.update(FULL_SCREEN);
+    await clock.advance(COOLDOWN_STEPS_MS[0] ?? 0);
     expect(handle.reloads).toBe(CRASH_LIMIT);
+    expect(handle.mode.kind).toBe('hidden');
+    const reloads = handle.reloads;
+    output.update(FULL_SCREEN);
+    expect(handle.reloads).toBe(reloads);
   });
 
   it('destroys the window and its pending restart on dispose', async () => {
@@ -362,7 +403,7 @@ describe('OutputWindow', () => {
 
   it('does not watch a page that has not drawn since it loaded', async () => {
     const clock = installFakeClock();
-    const {output, windows} = setUp();
+    const {output, windows} = setUp(false);
     output.update(FULL_SCREEN);
     const handle = windows.only('main');
     handle.answerAfterMs = null;

@@ -1385,4 +1385,16 @@ describe('preload', () => {
       report,
     );
   });
+
+  it('waits for main to acknowledge a current ready frame and validates the reply', async () => {
+    const report = {screenId: 'main', version: 7};
+    electron.invoke.mockResolvedValueOnce(true);
+    await expect(api.output.reportReady(report)).resolves.toBe(true);
+    expect(electron.invoke).toHaveBeenLastCalledWith(
+      Channels.outputFrameReady,
+      report,
+    );
+    electron.invoke.mockResolvedValueOnce('ready');
+    await expect(api.output.reportReady(report)).rejects.toThrow();
+  });
 });

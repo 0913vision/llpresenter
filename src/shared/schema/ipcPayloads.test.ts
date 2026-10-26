@@ -4,7 +4,27 @@ import {
   isRendererLogEntry,
   parseFrameRateReport,
   parseRendererLogEntry,
+  parseFrameReadyReport,
+  parseFrameReadyReply,
 } from './ipcPayloads';
+
+describe('frame readiness', () => {
+  it('accepts a current version and boolean acknowledgment', () => {
+    const value = {screenId: 'main', version: 7};
+    expect(parseFrameReadyReport(value)).toEqual({ok: true, value});
+    expect(parseFrameReadyReply(false)).toEqual({ok: true, value: false});
+  });
+  it.each([
+    {screenId: '', version: 1},
+    {screenId: 'x'.repeat(201), version: 0},
+    {screenId: 'main', version: -1},
+    {screenId: 'main', version: 0.5},
+    {screenId: 'main', version: Infinity},
+    {screenId: 'main', version: Number.MAX_SAFE_INTEGER + 1},
+  ])('rejects malformed ready reports %j', value => {
+    expect(parseFrameReadyReport(value).ok).toBe(false);
+  });
+});
 
 describe('parseRendererLogEntry', () => {
   it('accepts an entry with and without a detail', () => {

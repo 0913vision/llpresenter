@@ -69,6 +69,7 @@ export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
       ...overrides.monitors,
     },
     output: {
+      reportReady: () => Promise.resolve(false),
       reportFrameRate: () => undefined,
       getStatus: () => Promise.resolve({}),
       subscribeStatus: () => () => undefined,

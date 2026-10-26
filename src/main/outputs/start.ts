@@ -7,6 +7,7 @@ import {DisplayRegistry} from '../displays/registry';
 import type {Rect} from '../displays/rect';
 import {answerWindows, listenToWindows, sendToWindows} from '../ipc';
 import type {LiveStore} from '../live/store';
+import {parseFrameReadyReport} from '@shared/schema/ipcPayloads';
 import type {Logger} from '../log';
 import type {SettingsReader} from '../store/settingsStore';
 import type {WindowMode} from '../windows/testWindows';
@@ -215,6 +216,17 @@ export function startOutputs({
     guardTestPatterns({control, store, log}),
     () => numbers.dispose(),
     stopNormalizing,
+    answerWindows(Channels.outputFrameReady, (_event, value) => {
+      const report = parseFrameReadyReport(value);
+      if (!report.ok) {
+        log.error('invalid output frame ready report', report.error);
+        return false;
+      }
+      return outputs.frameReady(
+        screenIdFor(report.value.screenId),
+        report.value.version,
+      );
+    }),
     screens.subscribe(() => board.refresh()),
     listenToWindows(
       Channels.outputFrameRate,

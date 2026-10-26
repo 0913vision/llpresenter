@@ -23,6 +23,7 @@ const electron = await vi.hoisted(async () => {
       forcefullyCrashRenderer: vi.fn(),
     });
     readonly setContentBounds = vi.fn<(bounds: Rect) => void>();
+    readonly setTitle = vi.fn();
     readonly setBounds = vi.fn<(bounds: Rect) => void>();
     readonly getBounds = vi.fn(() => ({x: 0, y: 0, width: 800, height: 600}));
     readonly getContentBounds = vi.fn(() => ({

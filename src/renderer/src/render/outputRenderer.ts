@@ -52,6 +52,7 @@ export class OutputRenderer {
   private screen: RenderScreen | undefined;
   private transform: string | null = null;
   private scale = 1;
+  private testPattern = false;
 
   constructor(
     parent: HTMLElement,
@@ -68,6 +69,8 @@ export class OutputRenderer {
   render(layers: LiveLayers, frame?: RenderFrame): void {
     if (this.disposed) return;
     const look = frame?.look ?? null;
+    this.testPattern = frame?.testPattern === true;
+    this.root.classList.toggle(classes.instant, frame?.transitions === false);
     this.setBackground(
       look?.background ??
         (frame?.screen?.method === 'capture' ? CHROMA_BACKGROUND : null),
@@ -87,6 +90,16 @@ export class OutputRenderer {
       this.attempt(kind, 'dispose', () => view.dispose());
     }
     this.root.remove();
+  }
+
+  ready(): boolean {
+    return (
+      !this.disposed &&
+      (this.testPattern ||
+        this.layers.every(
+          ({hidden, view}) => hidden || (view.ready?.() ?? true),
+        ))
+    );
   }
 
   private setBackground(background: string | null): void {

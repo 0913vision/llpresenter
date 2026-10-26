@@ -46,12 +46,22 @@ export class FakeOutputHandle implements OutputWindowHandle {
   readonly placements: FakeMode[] = [];
 
   constructor(
-    readonly screen: OutputScreen,
+    public screen: OutputScreen,
     private readonly events: OutputWindowEvents,
   ) {}
 
   showFullScreen(bounds: Rect, alwaysOnTop: boolean): void {
     this.place({kind: 'fullscreen', bounds, alwaysOnTop});
+  }
+
+  prepared: Rect | null = null;
+
+  prepare(bounds: Rect): void {
+    this.prepared = bounds;
+  }
+
+  configure(screen: OutputScreen): void {
+    this.screen = screen;
   }
 
   showWindowed(bounds: Rect | null, alwaysOnTop = false): void {

@@ -64,6 +64,42 @@ function playsOf(video: HTMLVideoElement): number {
 }
 
 describe('BackgroundLayerView', () => {
+  it('waits for a decoded frame and makes hidden/reveal backgrounds instant', () => {
+    const {view, videos} = setUp();
+    const video = videos[1];
+    let decoded = (): void => {};
+    const cancel = vi.fn();
+    Object.defineProperty(video, 'requestVideoFrameCallback', {
+      value: (callback: VideoFrameRequestCallback) => {
+        decoded = () =>
+          callback(0, {
+            width: 1920,
+            height: 1080,
+            mediaTime: 0,
+            presentationTime: 0,
+            expectedDisplayTime: 0,
+            presentedFrames: 1,
+            processingDuration: 0,
+          });
+        return 1;
+      },
+    });
+    Object.defineProperty(video, 'cancelVideoFrameCallback', {value: cancel});
+    view.show(WARM_LIGHT, false);
+    expect(view.ready()).toBe(false);
+    video.dispatchEvent(new Event('playing'));
+    expect(view.ready()).toBe(false);
+    expect(video.classList.contains(classes.dissolving)).toBe(false);
+    decoded();
+    expect(view.ready()).toBe(true);
+    const plays = playsOf(video);
+    view.show({...WARM_LIGHT}, false);
+    expect(playsOf(video)).toBe(plays);
+    view.show(STILL_WATER, true);
+    videos[0].dispatchEvent(new Event('playing'));
+    expect(videos[0].classList.contains(classes.dissolving)).toBe(true);
+    view.dispose();
+  });
   it('starts a background on the spare and dissolves it in once it plays', () => {
     const {view, videos} = setUp();
     view.show(WARM_LIGHT);

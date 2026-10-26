@@ -112,6 +112,9 @@ export class BackgroundLayerView {
   private handover: Handover | null = null;
   private spareTimer: ReturnType<typeof setTimeout> | null = null;
   private stopWaitingToSeek: (() => void) | null = null;
+  private transitions = true;
+  private readonly decoded: [boolean, boolean] = [false, false];
+  private readonly videoFrames: [number | null, number | null] = [null, null];
 
   constructor(
     parent: HTMLElement,
@@ -133,7 +136,15 @@ export class BackgroundLayerView {
    * Starts the background, or clears the layer at once for null. The same
    * media again keeps playing without a restart (docs/spec/03-output.md).
    */
-  show(media: MediaLayer | null): void {
+  show(media: MediaLayer | null, transitions = true): void {
+    this.transitions = transitions;
+    if (!transitions) {
+      for (const element of [...this.videos, ...this.images]) {
+        element.classList.remove(classes.dissolving);
+      }
+      if (this.handover !== null)
+        this.handover = {...this.handover, dissolve: false};
+    }
     const unchanged = media?.mediaId === this.current?.mediaId;
     this.current = media;
     if (unchanged) {
@@ -155,13 +166,22 @@ export class BackgroundLayerView {
     this.element.remove();
   }
 
+  ready(): boolean {
+    return (
+      this.current === null ||
+      (this.handover === null &&
+        this.holdsCurrent(this.front) &&
+        this.decoded[this.front])
+    );
+  }
+
   private start(media: MediaLayer): void {
     const to = otherOf(this.front);
     const video = this.videos[to];
     this.settleFront(to);
     this.load(to, media.mediaId);
     this.seekOnceLoaded(video, media);
-    this.handover = {to, dissolve: true};
+    this.handover = {to, dissolve: this.transitions};
     this.loopNativelyInPreview();
     this.play(video);
   }
@@ -199,12 +219,14 @@ export class BackgroundLayerView {
   }
 
   private load(index: VideoIndex, mediaId: string): void {
+    this.cancelFrame(index);
     this.clearImage(index);
     this.videos[index].src = this.options.mediaUrl(mediaId);
     this.holding[index] = mediaId;
   }
 
   private unloadAt(index: VideoIndex): void {
+    this.cancelFrame(index);
     this.clearImage(index);
     unload(this.videos[index]);
     this.holding[index] = null;
@@ -220,7 +242,18 @@ export class BackgroundLayerView {
     const removers = this.videos.flatMap((video, index) => {
       const at: VideoIndex = index === 0 ? 0 : 1;
       const onPlaying = (): void => {
-        if (!this.isImage(at)) this.handlePlaying(at);
+        if (this.isImage(at)) return;
+        this.handlePlaying(at);
+        if (!this.holdsCurrent(at)) return;
+        if (typeof video.requestVideoFrameCallback === 'function') {
+          this.cancelFrame(at);
+          const source = this.holding[at];
+          this.videoFrames[at] = video.requestVideoFrameCallback(() => {
+            this.videoFrames[at] = null;
+            if (this.holding[at] === source && this.holdsCurrent(at))
+              this.decoded[at] = true;
+          });
+        } else this.decoded[at] = true;
       };
       const onEnded = (): void => this.handleEnded(at);
       const onError = (): void => this.handleError(at);
@@ -258,6 +291,7 @@ export class BackgroundLayerView {
       hide(previous);
       this.videos[otherOf(index)].pause();
       this.videos[otherOf(index)].currentTime = 0;
+      if (!this.holdsCurrent(otherOf(index))) this.prepareSpare();
     }
   }
 
@@ -375,11 +409,15 @@ export class BackgroundLayerView {
     if (this.isImage(index)) return true;
     const src = this.videos[index].getAttribute('src');
     if (src === null) return false;
+    this.cancelFrame(index);
     this.cancelSeek();
     unload(this.videos[index]);
     this.stopImages[index] = loadBackgroundImage(this.images[index], {
       src,
-      onReady: () => this.handlePlaying(index),
+      onReady: () => {
+        this.decoded[index] = true;
+        this.handlePlaying(index);
+      },
       onError: () => {
         this.handover = null;
         this.options.onError('could not load a background media file', {src});
@@ -393,5 +431,12 @@ export class BackgroundLayerView {
     if (this.spareTimer === null) return;
     clearTimeout(this.spareTimer);
     this.spareTimer = null;
+  }
+
+  private cancelFrame(index: VideoIndex): void {
+    const frame = this.videoFrames[index];
+    if (frame !== null) this.videos[index].cancelVideoFrameCallback(frame);
+    this.videoFrames[index] = null;
+    this.decoded[index] = false;
   }
 }

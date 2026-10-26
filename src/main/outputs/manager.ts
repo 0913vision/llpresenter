@@ -128,6 +128,10 @@ export class OutputManager {
     this.windows.get(screenId)?.frameReported();
   }
 
+  frameReady(screenId: string, version: number): boolean {
+    return this.windows.get(screenId)?.frameReady(version) ?? false;
+  }
+
   /** 다시 시도 for a screen whose window holds the restart limit. */
   retry(screenId: string): void {
     this.windows.get(screenId)?.retry();
@@ -223,6 +227,16 @@ export class OutputManager {
     const screens = this.options.screens.list();
     this.removeWindowsNotIn(screens);
     this.pruneOutputs(screens);
+    for (const screen of screens) {
+      try {
+        this.windowFor(screen).preload();
+      } catch (error) {
+        this.options.log.error(
+          `could not preload the ${screen.id} output`,
+          error,
+        );
+      }
+    }
     const surroundings = this.surroundings();
     if (surroundings === null) return;
     this.rememberMonitors(surroundings.assigned);
@@ -338,6 +352,7 @@ export class OutputManager {
       createHandle: this.options.createHandle,
       onCloseRequested: () => this.turnOff(screen.id),
       log: this.options.log,
+      liveVersion: () => this.options.store.state.version,
       onRendererState: () => this.options.onStatusChange?.(),
     });
     this.windows.set(screen.id, output);

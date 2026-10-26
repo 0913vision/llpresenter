@@ -34,6 +34,32 @@ const frameRateReportSchema = payloadObject({
   ),
 });
 
+const frameReadyReportSchema = payloadObject({
+  screenId: v.pipe(v.string(), v.nonEmpty(), v.maxLength(200)),
+  version: v.pipe(
+    v.number(),
+    v.integer(),
+    v.minValue(0),
+    v.maxValue(Number.MAX_SAFE_INTEGER),
+  ),
+});
+
+export type FrameReadyReport = Readonly<
+  v.InferOutput<typeof frameReadyReportSchema>
+>;
+
+export function parseFrameReadyReport(
+  value: unknown,
+): Result<FrameReadyReport, PayloadError> {
+  return parsePayload(frameReadyReportSchema, value);
+}
+
+export function parseFrameReadyReply(
+  value: unknown,
+): Result<boolean, PayloadError> {
+  return parsePayload(v.boolean(), value);
+}
+
 /**
  * A log line from a window. Output windows never show errors; they send them
  * here. `detail` holds an error stack as text.

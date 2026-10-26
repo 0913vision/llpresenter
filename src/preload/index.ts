@@ -34,7 +34,10 @@ import {
   parseTemplateEntries,
 } from '@shared/schema/contentDocuments';
 import {parseEditResult} from '@shared/schema/contentEdit';
-import {RENDERER_LOG_LIMITS} from '@shared/schema/ipcPayloads';
+import {
+  RENDERER_LOG_LIMITS,
+  parseFrameReadyReply,
+} from '@shared/schema/ipcPayloads';
 import {parseLiveState} from '@shared/schema/liveState';
 import {parseLiveCommandRequest} from '@shared/schema/liveCommand';
 import {parseTimerClockReading} from '@shared/schema/timerState';
@@ -319,6 +322,8 @@ const api: LlpApi = {
       listen(Channels.monitorsChanged, parseMonitorList, listener),
   },
   output: {
+    reportReady: report =>
+      invokeChecked(Channels.outputFrameReady, parseFrameReadyReply, report),
     reportFrameRate: report =>
       ipcRenderer.send(Channels.outputFrameRate, report),
     getStatus: () =>

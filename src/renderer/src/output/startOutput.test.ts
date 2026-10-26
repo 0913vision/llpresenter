@@ -77,6 +77,88 @@ function setUp(live: Partial<LlpApi['live']> = {}) {
 }
 
 describe('startOutput', () => {
+  it('keeps hidden live content loaded and reports ready only with its background, without a reveal dissolve', async () => {
+    let current = {...SHOWING, outputs: {[MAIN]: false}};
+    let receive: (state: LiveState) => void = () => undefined;
+    const reportReady = vi.fn(() =>
+      Promise.resolve(current.outputs[MAIN] === true),
+    );
+    const settings = overlaySettings();
+    const defaults = fakeLlpApi();
+    const api = fakeLlpApi({
+      settings: {
+        get: ({name}) =>
+          name === 'screens'
+            ? Promise.resolve(settings.reader.get(name))
+            : defaults.settings.get({name}),
+      },
+      live: {
+        get: () => Promise.resolve(current),
+        subscribe: listener => {
+          receive = listener;
+          return () => {};
+        },
+      },
+      output: {reportReady},
+    });
+    const root = document.createElement('div');
+    const stop = startOutput({root, api, screenId: MAIN});
+    await Promise.resolve();
+    current = {
+      ...current,
+      version: 4,
+      layers: {
+        ...current.layers,
+        media: {mediaId: 'still-water', loop: true, startedAt: 0},
+        slide: {
+          itemId: 'fixture',
+          position: 0,
+          label: null,
+          lines: ['Hidden content'],
+        },
+      },
+    };
+    receive(current);
+    runFramesFor(80);
+    expect(root.textContent).toContain('Hidden content');
+    expect(reportReady).not.toHaveBeenCalled();
+    const video = [...root.querySelectorAll('video')].find(video =>
+      video.src.includes('still-water'),
+    );
+    if (video === undefined) throw new Error('Missing hidden background');
+    video.dispatchEvent(new Event('playing'));
+    runFramesFor(80);
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(reportReady).toHaveBeenCalledWith({screenId: MAIN, version: 4});
+    const plays = vi.mocked(HTMLMediaElement.prototype.play).mock.calls.length;
+    current = {...current, version: 5, outputs: {[MAIN]: true}};
+    receive(current);
+    runFramesFor(80);
+    await Promise.resolve();
+    expect(reportReady).toHaveBeenLastCalledWith({screenId: MAIN, version: 5});
+    expect(video.classList.contains(classes.dissolving)).toBe(false);
+    expect(vi.mocked(HTMLMediaElement.prototype.play)).toHaveBeenCalledTimes(
+      plays,
+    );
+    current = {
+      ...current,
+      version: 6,
+      layers: {
+        ...current.layers,
+        media: {mediaId: 'warm-light', loop: true, startedAt: 0},
+      },
+    };
+    receive(current);
+    const incoming = [...root.querySelectorAll('video')].find(video =>
+      video.src.includes('warm-light'),
+    );
+    if (incoming === undefined) throw new Error('Missing new background');
+    incoming.dispatchEvent(new Event('playing'));
+    expect(incoming.classList.contains(classes.dissolving)).toBe(true);
+    stop();
+  });
   it('follows capture method changes in place without replacing the live content', async () => {
     const settings = overlaySettings();
     const screenDocument = settings.reader.get('screens');

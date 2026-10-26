@@ -58,6 +58,10 @@
   transition: none;
 }
 
+.instant .dissolving {
+  transition: none;
+}
+
 .shown {
   opacity: 1;
 }

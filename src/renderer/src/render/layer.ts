@@ -33,6 +33,7 @@ export interface StageFrame {
 }
 
 export interface RenderFrame {
+  readonly transitions?: boolean;
   readonly screen?: RenderScreen;
   readonly stageMessage?: string | null;
   /** The screen's appearance under the current Look; absent draws as before Looks. */
@@ -57,6 +58,7 @@ export interface RenderLayerOptions {
 
 /** One persistent layer instance, owned and released by its output renderer. */
 export interface RenderLayer {
+  ready?(): boolean;
   render(layers: LiveLayers, frame?: RenderFrame): void;
   rescale?(scale: number): void;
   dispose(): void;

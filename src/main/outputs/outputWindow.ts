@@ -11,6 +11,8 @@ import type {OutputScreen} from './screens';
 
 /** The Electron window of one output, reduced to what the output needs. */
 export interface OutputWindowHandle {
+  configure(screen: OutputScreen): void;
+  prepare(bounds: Rect): void;
   /** Shows the window without taking focus, full screen on the monitor with these bounds. */
   showFullScreen(monitorBounds: Rect, alwaysOnTop: boolean): void;
   /** Shows the window without taking focus as a normal window, moved to the bounds when given. */
@@ -60,6 +62,7 @@ export interface OutputWindowOptions {
   readonly createHandle: CreateOutputWindowHandle;
   readonly onCloseRequested: () => void;
   readonly log: Logger;
+  readonly liveVersion: () => number;
   /** Hears every change of the renderer state. */
   readonly onRendererState?: (state: RendererState) => void;
 }
@@ -76,8 +79,8 @@ function sameFullScreen(
 }
 
 /**
- * One screen's output window. It creates the window the first time the output
- * turns on, keeps it across hides, moves it when the placement changes, and
+ * One screen's preloaded output window. It stays hidden until the current
+ * complete frame is ready, keeps it across hides, moves it when placement changes, and
  * brings its renderer back after crashes.
  */
 export class OutputWindow {
@@ -87,6 +90,9 @@ export class OutputWindow {
   private visible = false;
   private disposed = false;
   private drewSinceLoad = false;
+  private readyVersion = -1;
+  private wanted: ShownPlacement | null = null;
+  private prepared: ShownPlacement | null = null;
   private readonly recovery: RendererRecovery;
   private readonly hangWatch = new HangWatch({
     ping: () => this.handle?.ping() ?? Promise.resolve(),
@@ -110,6 +116,10 @@ export class OutputWindow {
     return this.recovery.state;
   }
 
+  preload(): void {
+    if (!this.disposed) this.ensureHandle();
+  }
+
   /**
    * The page reported its frame rate: it has drawn the output state since its
    * last load, and it is still drawing.
@@ -120,6 +130,14 @@ export class OutputWindow {
     this.watchIfRunning();
   }
 
+  frameReady(version: number): boolean {
+    if (this.disposed || version !== this.options.liveVersion()) return false;
+    this.readyVersion = version;
+    this.frameReported();
+    if (!this.visible && this.wanted !== null) this.show(this.wanted);
+    return this.visible;
+  }
+
   /** 다시 시도: while the restart limit waits, an attempt starts at once. */
   retry(): void {
     this.recovery.retry();
@@ -127,8 +145,12 @@ export class OutputWindow {
 
   /** Shows the window at the placement, or hides it for null. */
   update(placement: ShownPlacement | null, screen = this.screen): void {
+    const changed = screen !== this.screen;
     this.screen = screen;
     if (this.disposed) return;
+    this.ensureHandle();
+    if (changed) this.handle?.configure(screen);
+    this.wanted = placement;
     if (placement === null) this.hide();
     else this.show(placement);
   }
@@ -168,6 +190,17 @@ export class OutputWindow {
 
   private show(placement: ShownPlacement): void {
     const handle = this.ensureHandle();
+    if (
+      !this.visible &&
+      (this.prepared?.kind !== placement.kind ||
+        !sameRect(this.prepared.bounds, placement.bounds))
+    ) {
+      handle.prepare(placement.bounds);
+      this.prepared = placement;
+      this.readyVersion = -1;
+    }
+    if (!this.visible && this.readyVersion !== this.options.liveVersion())
+      return;
     if (!this.visible) {
       this.recovery.resume();
       this.place(handle, placement);
@@ -238,7 +271,6 @@ export class OutputWindow {
     this.handle.hide();
     this.visible = false;
     this.hangWatch.stop();
-    this.recovery.pause();
   }
 
   private reloadPage(): Promise<void> {
@@ -250,6 +282,7 @@ export class OutputWindow {
     const handle = this.options.createHandle(this.screen, {
       onRendererGone: details => {
         this.drewSinceLoad = false;
+        this.readyVersion = -1;
         this.hangWatch.pageReplaced();
         if (!this.disposed) this.recovery.crashed(details);
       },
