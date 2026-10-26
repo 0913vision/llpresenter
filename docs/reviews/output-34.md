@@ -134,19 +134,19 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (Codex, codex4): Request changes: a clock correction could reverse a
+  running 타이머, and wall-clock 타이머 changed their reference day at midnight.
+- Round 2 (Codex, codex4): Request changes: countdownTo and elapsedFrom still
+  read the wall clock. Lead decision: those two kinds are defined by the wall
+  clock and follow it, including corrections, so a "10:30까지" countdown reaches
+  0 when the room's clock reads 10:30; only fixed-duration countdowns keep the
+  no-backward rule (spec 04).
+- Round 3 (4f3189d9): reviewer (Codex, codex4) Approve, no findings. Lead
+  Approve. Changes outside output's paths (`src/shared/`, spec 04) checked
+  against data's and spec's rules. Rebased by the lead onto local `main` without
+  conflicts; typecheck passes.
 
 ## Team member's reply
 
