@@ -48,6 +48,17 @@ export class SongSession {
     return this.writing;
   }
 
+  /** Nothing unsaved or pending: dropping the session loses only its undo. */
+  get clean(): boolean {
+    return (
+      !this.hasChanges &&
+      !this.title.hasDraft &&
+      !this.writing &&
+      !this.blocked &&
+      this.saveTimer === undefined
+    );
+  }
+
   get arrangement(): string | undefined {
     return this.pickedArrangement;
   }

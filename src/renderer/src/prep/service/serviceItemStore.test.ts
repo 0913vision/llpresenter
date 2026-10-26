@@ -1,5 +1,8 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import type {ServiceDocument} from '@shared/schema/contentDocuments';
+import type {
+  ServiceDocument,
+  SongDocument,
+} from '@shared/schema/contentDocuments';
 import {isItemOfKind} from '@shared/schema/service';
 import {SongEditorStore} from '@renderer/prep/editor';
 import type {Notice} from '@renderer/ui/notices';
@@ -9,13 +12,14 @@ import {ServiceItemStore} from './serviceItemStore';
 function setup() {
   const fixture = itemFixture();
   const problem = vi.fn<(notice: Notice) => void>();
+  const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
   const editor = new SongEditorStore(fixture.api, vi.fn());
   const items = new ServiceItemStore(fixture.api, editor, problem);
   onTestFinished(async () => {
     items.dispose();
     await editor.dispose();
   });
-  return {...fixture, editor, items, problem};
+  return {...fixture, editor, items, problem, log};
 }
 
 async function settle(): Promise<void> {
@@ -85,6 +89,88 @@ describe('service item store', () => {
     expect(items.getSnapshot()).toMatchObject({service: null, item: null});
   });
 
+  it('tells loading, ready, and missing songs apart, and nothing for other kinds', async () => {
+    const {api, items, first} = setup();
+    let answer: (document: SongDocument | null) => void = () => undefined;
+    vi.spyOn(api.songs, 'get').mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          answer = resolve;
+        }),
+    );
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
+    await vi.waitFor(() => expect(items.getSnapshot().item).not.toBeNull());
+    expect(items.getSnapshot()).toMatchObject({
+      songStatus: 'loading',
+      song: null,
+    });
+    answer(first);
+    await vi.waitFor(() =>
+      expect(items.getSnapshot().songStatus).toBe('ready'),
+    );
+    expect(items.getSnapshot().arrangement).toBe('주일용');
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.slot});
+    expect(items.getSnapshot()).toMatchObject({
+      songStatus: null,
+      arrangement: undefined,
+    });
+    vi.spyOn(api.songs, 'get').mockResolvedValueOnce(null);
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.plain});
+    await vi.waitFor(() =>
+      expect(items.getSnapshot().songStatus).toBe('missing'),
+    );
+    expect(items.getSnapshot().song).toBeNull();
+  });
+
+  it('plays 기본 for a 구성 the song lost and keeps its order unchanged', async () => {
+    const {items, edits} = setup();
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.lost});
+    await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
+    expect(items.getSnapshot().arrangement).toBeUndefined();
+    expect(items.setOrder([2, 1])).toBe(false);
+    expect(edits).toEqual([]);
+  });
+
+  it('logs a failed song read and reads it again from 다시 불러오기', async () => {
+    const {api, items, problem, log} = setup();
+    const cause = new Error('Disk gone');
+    vi.spyOn(api.songs, 'get').mockRejectedValueOnce(cause);
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
+    await vi.waitFor(() =>
+      expect(items.getSnapshot().songStatus).toBe('failed'),
+    );
+    expect(log).toHaveBeenCalledWith(expect.any(String), cause);
+    const notice = problem.mock.calls.at(-1)?.[0];
+    expect(notice?.title).toBe('곡 불러오기 실패');
+    notice?.actions?.[0]?.onSelect();
+    expect(items.getSnapshot().songStatus).toBe('loading');
+    await vi.waitFor(() =>
+      expect(items.getSnapshot().songStatus).toBe('ready'),
+    );
+    expect(items.getSnapshot().song).not.toBeNull();
+  });
+
+  it('drops a song read that answers after another song item was shown', async () => {
+    const {api, items, editor, first, second} = setup();
+    let answer: (document: SongDocument | null) => void = () => undefined;
+    vi.spyOn(api.songs, 'get').mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          answer = resolve;
+        }),
+    );
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
+    await vi.waitFor(() => expect(items.getSnapshot().item).not.toBeNull());
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.plain});
+    await vi.waitFor(() =>
+      expect(items.getSnapshot().song?.document.song.id).toBe(second.song.id),
+    );
+    answer(first);
+    await settle();
+    expect(editor.sessionOf(first.song.id)).toBeUndefined();
+    expect(items.getSnapshot().song?.document.song.id).toBe(second.song.id);
+  });
+
   it('reports a failed read with a retry that reads again', async () => {
     const {api, items, problem} = setup();
     vi.spyOn(api.services, 'get').mockRejectedValueOnce(new Error('Gone'));
@@ -140,7 +226,7 @@ describe('service item store', () => {
     });
     expect(await items.chooseArrangement('주일용')).toBe(true);
     expect(problem).toHaveBeenLastCalledWith(
-      expect.objectContaining({title: '예배 순서 파일 저장 실패'}),
+      expect.objectContaining({title: '예배 순서 저장 실패'}),
     );
   });
 

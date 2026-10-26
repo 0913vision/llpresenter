@@ -6,6 +6,7 @@ import {
   type ServiceItem,
   type ServiceItemOf,
 } from '@shared/schema/service';
+import type {Song} from '@shared/schema/song';
 import type {SongEditorStore} from '@renderer/prep/editor';
 import {editorTask} from '@renderer/prep/editor/editorTask';
 import type {SongSession} from '@renderer/prep/editor/songSession';
@@ -15,7 +16,10 @@ import {
 } from '@renderer/state/serviceItemUpdate';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 
-export type ServiceItemApi = Pick<LlpApi, 'services' | 'songs' | 'content'>;
+export type ServiceItemStoreApi = Pick<
+  LlpApi,
+  'services' | 'songs' | 'content'
+>;
 
 /** The 예배 순서 item that 준비 shows: its service and its id. */
 export interface ItemTarget {
@@ -23,11 +27,24 @@ export interface ItemTarget {
   readonly itemId: string;
 }
 
+/**
+ * Where the song of a song item stands: being read, shown through its
+ * session, gone from the 라이브러리, or not readable.
+ */
+export type ItemSongStatus = 'loading' | 'ready' | 'missing' | 'failed';
+
 export interface ServiceItemState {
   readonly service: ServiceDocument | null;
   readonly item: ServiceItem | null;
   /** The song of a song item, edited through the song editor's session. */
   readonly song: SongSession | null;
+  /** `null` when the item isn't a song item. */
+  readonly songStatus: ItemSongStatus | null;
+  /**
+   * The 구성 the item plays: its `arrangement` while the song has a 구성 of
+   * that name, else `undefined` for 기본 (spec 02).
+   */
+  readonly arrangement: string | undefined;
   readonly busy: boolean;
 }
 
@@ -35,6 +52,8 @@ const NO_ITEM: ServiceItemState = {
   service: null,
   item: null,
   song: null,
+  songStatus: null,
+  arrangement: undefined,
   busy: false,
 };
 
@@ -53,6 +72,19 @@ function withArrangement(
   return updated;
 }
 
+function effectiveArrangement(
+  item: ServiceItem | null,
+  song: Song | undefined,
+): string | undefined {
+  if (item === null || !isItemOfKind(item, 'song') || song === undefined) {
+    return undefined;
+  }
+  return song.arrangements?.some(entry => entry.name === item.arrangement) ===
+    true
+    ? item.arrangement
+    : undefined;
+}
+
 /**
  * The 예배 순서 item selected in 준비. It follows the item's service file and,
  * for a song item, keeps the song's session in the song editor store, so the
@@ -65,13 +97,14 @@ export class ServiceItemStore {
   private target: ItemTarget | null = null;
   private service: ServiceDocument | null = null;
   private songId: SongId | null = null;
+  private songStatus: ItemSongStatus = 'loading';
   private serviceRead = 0;
   private busy = false;
   private alive = true;
   private state = NO_ITEM;
 
   constructor(
-    private readonly api: ServiceItemApi,
+    private readonly api: ServiceItemStoreApi,
     private readonly editor: SongEditorStore,
     private readonly onProblem: (notice: Notice) => void,
   ) {
@@ -79,7 +112,7 @@ export class ServiceItemStore {
       api.services.subscribe(change =>
         this.acceptService(change.serviceId, change.document),
       ),
-      editor.subscribe(() => this.publish()),
+      editor.subscribe(() => this.editorChanged()),
     ];
   }
 
@@ -117,18 +150,11 @@ export class ServiceItemStore {
    * 순서 that uses that 구성 shows it. 기본 has no order to change.
    */
   setOrder(slides: readonly number[]): boolean {
-    const item = this.currentItem();
-    const session = this.state.song;
-    if (
-      !this.alive ||
-      session === null ||
-      item === null ||
-      !isItemOfKind(item, 'song') ||
-      item.arrangement === undefined
-    ) {
+    const {song, arrangement} = this.state;
+    if (!this.alive || song === null || arrangement === undefined) {
       return false;
     }
-    return session.setArrangementSlides(item.arrangement, slides);
+    return song.setArrangementSlides(arrangement, slides);
   }
 
   dispose(): void {
@@ -148,7 +174,7 @@ export class ServiceItemStore {
     this.setBusy(false);
     if (result.ok) return true;
     if (result.error.reason === 'write-failed') {
-      this.problem('예배 순서 파일 저장 실패');
+      this.problem('예배 순서 저장 실패');
       return true;
     }
     this.problem(failure);
@@ -160,7 +186,8 @@ export class ServiceItemStore {
     try {
       const document = await this.api.services.get(serviceId);
       if (read === this.serviceRead) this.acceptService(serviceId, document);
-    } catch {
+    } catch (error) {
+      console.error('Could not read the service of the item', error);
       if (read === this.serviceRead) {
         this.problem('예배 순서 불러오기 실패', () =>
           this.readService(serviceId),
@@ -197,22 +224,48 @@ export class ServiceItemStore {
       item !== null && isItemOfKind(item, 'song') ? item.song : null;
     if (songId === this.songId) return;
     this.songId = songId;
-    if (songId !== null && this.editor.sessionOf(songId) === undefined) {
-      editorTask(this.readSong(songId));
+    this.editor.showItemSong(songId);
+    if (songId === null) return;
+    if (this.editor.sessionOf(songId) === undefined) this.loadSong(songId);
+    else this.songStatus = 'ready';
+  }
+
+  private editorChanged(): void {
+    if (
+      this.songId !== null &&
+      this.songStatus === 'ready' &&
+      this.editor.sessionOf(this.songId) === undefined
+    ) {
+      this.loadSong(this.songId);
     }
+    this.publish();
+  }
+
+  private loadSong(songId: SongId): void {
+    this.songStatus = 'loading';
+    editorTask(this.readSong(songId));
   }
 
   private async readSong(songId: SongId): Promise<void> {
     try {
       const document = await this.api.songs.get(songId);
-      if (this.alive && this.songId === songId && document !== null) {
-        this.editor.attach(document);
-      }
-    } catch {
-      if (this.songId === songId) {
-        this.problem('곡 불러오기 실패', () => this.readSong(songId));
-      }
+      if (!this.alive || this.songId !== songId) return;
+      this.songStatus = document === null ? 'missing' : 'ready';
+      if (document !== null) this.editor.attach(document);
+      this.publish();
+    } catch (error) {
+      console.error('Could not read the song of the item', error);
+      if (!this.alive || this.songId !== songId) return;
+      this.songStatus = 'failed';
+      this.publish();
+      this.problem('곡 불러오기 실패', () => this.retrySong(songId));
     }
+  }
+
+  private retrySong(songId: SongId): void {
+    if (!this.alive || this.songId !== songId) return;
+    this.loadSong(songId);
+    this.publish();
   }
 
   private setBusy(busy: boolean): void {
@@ -240,13 +293,17 @@ export class ServiceItemStore {
 
   private publish(): void {
     if (!this.alive) return;
+    const item = this.currentItem();
+    const song =
+      this.songId === null
+        ? null
+        : (this.editor.sessionOf(this.songId) ?? null);
     this.state = {
       service: this.service,
-      item: this.currentItem(),
-      song:
-        this.songId === null
-          ? null
-          : (this.editor.sessionOf(this.songId) ?? null),
+      item,
+      song,
+      songStatus: this.songId === null ? null : this.songStatus,
+      arrangement: effectiveArrangement(item, song?.history.snapshot.song),
       busy: this.busy,
     };
     for (const listener of this.listeners) listener();

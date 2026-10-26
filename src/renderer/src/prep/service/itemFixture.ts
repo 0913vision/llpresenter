@@ -15,6 +15,7 @@ export const fixtureItems = {
   arranged: createServiceItemId('50000000-0000-4000-8000-000000000002'),
   plain: createServiceItemId('50000000-0000-4000-8000-000000000003'),
   slot: createServiceItemId('50000000-0000-4000-8000-000000000004'),
+  lost: createServiceItemId('50000000-0000-4000-8000-000000000005'),
 } as const;
 
 function serviceDocument(value: unknown): ServiceDocument {
@@ -50,6 +51,11 @@ export function itemFixture() {
         },
         {id: fixtureItems.plain, song: editor.second.song.id},
         {id: fixtureItems.slot, slot: 'song', title: '헌금 찬양'},
+        {
+          id: fixtureItems.lost,
+          song: editor.first.song.id,
+          arrangement: '사라진 구성',
+        },
       ],
     },
     revision: 3,

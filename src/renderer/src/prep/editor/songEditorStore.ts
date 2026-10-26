@@ -24,6 +24,8 @@ interface EditorState {
   readonly titleFocus: number;
 }
 
+const MAX_SESSIONS = 20;
+
 /** One control window's editor sessions. The host disposes it at window close. */
 export class SongEditorStore {
   private readonly sessions = new Map<SongId, SongSession>();
@@ -32,6 +34,7 @@ export class SongEditorStore {
   private readonly renamedSongs = new Map<SongId, SongDocument>();
   private labels: EditorLabels | null = null;
   private active: SongId | null = null;
+  private itemSong: SongId | null = null;
   private busy = false;
   private renaming = false;
   private alive = true;
@@ -115,9 +118,20 @@ export class SongEditorStore {
     return this.sessions.get(id);
   }
 
+  /**
+   * Names the song the 예배 순서 item panel shows, or none. Like the song open
+   * in the editor, its session is never evicted.
+   */
+  showItemSong(id: SongId | null): void {
+    this.itemSong = id;
+    if (id !== null) this.touch(id);
+  }
+
   private sessionFor(document: SongDocument): SongSession {
-    const existing = this.sessions.get(document.song.id);
+    const id = document.song.id;
+    const existing = this.sessions.get(id);
     if (existing !== undefined) {
+      this.touch(id);
       existing.receive(document);
       return existing;
     }
@@ -134,8 +148,37 @@ export class SongEditorStore {
       problem: () =>
         this.problem('곡 저장 실패', () => this.reload(document.song.id)),
     });
-    this.sessions.set(document.song.id, session);
+    this.sessions.set(id, session);
+    this.evict(id);
     return session;
+  }
+
+  private touch(id: SongId): void {
+    const session = this.sessions.get(id);
+    if (session === undefined) return;
+    this.sessions.delete(id);
+    this.sessions.set(id, session);
+  }
+
+  /**
+   * Keeps at most {@link MAX_SESSIONS} sessions by dropping the least recently
+   * used clean ones, with their undo history. A session with unsaved edits,
+   * the editor's, and the item panel's always stay.
+   */
+  private evict(created: SongId): void {
+    if (this.busy) return;
+    for (const [id, session] of this.sessions) {
+      if (this.sessions.size <= MAX_SESSIONS) return;
+      if (
+        id !== created &&
+        id !== this.active &&
+        id !== this.itemSong &&
+        session.clean
+      ) {
+        session.discard();
+        this.sessions.delete(id);
+      }
+    }
   }
 
   /** Claims a new-song focus request once, including across panel remounts. */
