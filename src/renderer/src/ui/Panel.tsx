@@ -2,12 +2,14 @@ import {
   createContext,
   useContext,
   useId,
+  useState,
   type JSX,
   type KeyboardEvent,
   type ReactNode,
 } from 'react';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
+import {Menu} from './Menu';
 import {menuButtonProps} from './menuButton';
 import {useRovingSelection} from './roving';
 import {CountBadge} from './StatusMarks';
@@ -142,10 +144,72 @@ function PanelTabButton<T extends string>({
   );
 }
 
+/** Tabs that don't fit the header, behind one menu button. */
+export interface PanelTabsMore<T extends string> {
+  /** The button name, such as 더 보기. */
+  readonly label: string;
+  readonly tabs: ReadonlyArray<PanelTab<T>>;
+}
+
 export interface PanelTabsProps<T extends string> {
   readonly tabs: ReadonlyArray<PanelTab<T>>;
   readonly value: T;
   readonly onChange: (value: T) => void;
+  /**
+   * The rest of the tabs at the right end of the header, as in the narrow
+   * 진행 도구 panel. The button shows as the selected tab while one of its
+   * tabs is.
+   */
+  readonly more?: PanelTabsMore<T> | undefined;
+}
+
+function PanelMoreTabs<T extends string>({
+  more,
+  value,
+  onChange,
+}: {
+  readonly more: PanelTabsMore<T>;
+  readonly value: T;
+  readonly onChange: (value: T) => void;
+}): JSX.Element {
+  const [button, setButton] = useState<HTMLButtonElement | null>(null);
+  const [expanded, setExpanded] = useState(false);
+  const active = more.tabs.some(tab => tab.value === value);
+  return (
+    <>
+      <button
+        ref={setButton}
+        type="button"
+        {...menuButtonProps({expanded, onExpandedChange: setExpanded})}
+        data-active={active || undefined}
+        className={styles.more}
+      >
+        {more.label}
+        <Icon
+          name="down"
+          size={SWITCH_CHEVRON_SIZE}
+          className={styles.moreChevron}
+        />
+      </button>
+      {expanded && button !== null ? (
+        <Menu
+          label={more.label}
+          anchor={{kind: 'element', element: button}}
+          onClose={() => setExpanded(false)}
+          entries={more.tabs.map(tab => ({
+            kind: 'item',
+            id: tab.value,
+            label: tab.label,
+            check: 'radio',
+            checked: tab.value === value,
+            disabled: tab.disabled,
+            title: tab.title,
+            onSelect: () => onChange(tab.value),
+          }))}
+        />
+      ) : null}
+    </>
+  );
 }
 
 /**
@@ -156,6 +220,7 @@ export function PanelTabs<T extends string>({
   tabs,
   value,
   onChange,
+  more,
 }: PanelTabsProps<T>): JSX.Element {
   const roving = useRovingSelection({
     items: tabs,
@@ -168,19 +233,24 @@ export function PanelTabs<T extends string>({
     onChange(tab.value);
   };
   return (
-    <div role="tablist" className={styles.tabs}>
-      {tabs.map((tab, index) => (
-        <PanelTabButton
-          key={tab.value}
-          tab={tab}
-          selected={tab.value === value}
-          tabIndex={roving.tabIndexOf(index)}
-          elementRef={roving.refOf(index)}
-          onSelect={() => select(tab)}
-          onKeyDown={event => roving.onKeyDown(index, event)}
-        />
-      ))}
-    </div>
+    <>
+      <div role="tablist" className={styles.tabs}>
+        {tabs.map((tab, index) => (
+          <PanelTabButton
+            key={tab.value}
+            tab={tab}
+            selected={tab.value === value}
+            tabIndex={roving.tabIndexOf(index)}
+            elementRef={roving.refOf(index)}
+            onSelect={() => select(tab)}
+            onKeyDown={event => roving.onKeyDown(index, event)}
+          />
+        ))}
+      </div>
+      {more === undefined || more.tabs.length === 0 ? null : (
+        <PanelMoreTabs more={more} value={value} onChange={onChange} />
+      )}
+    </>
   );
 }
 

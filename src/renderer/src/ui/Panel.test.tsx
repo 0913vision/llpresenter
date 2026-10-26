@@ -77,6 +77,71 @@ describe('Panel', () => {
   });
 });
 
+type NarrowTool = 'showing' | 'stage' | 'audio' | 'message';
+
+function NarrowTools({
+  more = [
+    {value: 'audio', label: '오디오'},
+    {value: 'message', label: '메시지', disabled: true, title: '메시지 없음'},
+  ],
+}: {
+  readonly more?: ReadonlyArray<PanelTab<NarrowTool>>;
+}): JSX.Element {
+  const [tool, setTool] = useState<NarrowTool>('showing');
+  return (
+    <Panel label="진행 도구">
+      <PanelHeader>
+        <PanelTabs
+          tabs={[
+            {value: 'showing', label: '표시 중'},
+            {value: 'stage', label: '무대'},
+          ]}
+          value={tool}
+          onChange={setTool}
+          more={{label: '더 보기', tabs: more}}
+        />
+      </PanelHeader>
+    </Panel>
+  );
+}
+
+describe('PanelTabs with a 더 보기 group', () => {
+  it('opens the rest of the tabs as a menu from a button after the tabs', async () => {
+    Element.prototype.scrollIntoView = () => undefined;
+    render(<NarrowTools />);
+    const more = screen.getByRole('button', {name: '더 보기'});
+    expect(more.getAttribute('aria-haspopup')).toBe('menu');
+    expect(screen.getByRole('tablist').contains(more)).toBe(false);
+    more.focus();
+    await userEvent.keyboard('{ArrowDown}');
+    expect(more.getAttribute('aria-expanded')).toBe('true');
+    expect(
+      screen
+        .getByRole('menuitemradio', {name: '메시지'})
+        .getAttribute('aria-disabled'),
+    ).toBe('true');
+    await userEvent.click(screen.getByRole('menuitemradio', {name: '오디오'}));
+    expect(screen.queryByRole('menu')).toBeNull();
+    expect(screen.queryByRole('tab', {selected: true})).toBeNull();
+    expect(more.hasAttribute('data-active')).toBe(true);
+    await userEvent.click(more);
+    expect(
+      screen
+        .getByRole('menuitemradio', {name: '오디오'})
+        .getAttribute('aria-checked'),
+    ).toBe('true');
+    await userEvent.keyboard('{Escape}');
+    await userEvent.click(screen.getByRole('tab', {name: '무대'}));
+    expect(selectedTab()).toBe('무대');
+    expect(more.hasAttribute('data-active')).toBe(false);
+  });
+
+  it('draws no button when no tab is left over', () => {
+    render(<NarrowTools more={[]} />);
+    expect(screen.queryByRole('button', {name: '더 보기'})).toBeNull();
+  });
+});
+
 function Switcher({
   onExpandedChange = () => {},
   disabled = false,

@@ -82,6 +82,51 @@
   color: var(--text-off);
 }
 
+.more {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-4);
+  height: var(--size-control-sm);
+  margin-left: auto;
+  padding: 0 var(--space-6) 0 var(--space-8);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-2);
+  font: var(--type-label);
+  white-space: nowrap;
+  transition: background-color var(--motion-hover);
+}
+
+.more:hover {
+  background: var(--bg-raised);
+}
+
+.more:is(:active, [aria-expanded='true']) {
+  background: var(--bg-control-hover);
+  color: var(--text);
+}
+
+.more[data-active] {
+  color: var(--text);
+}
+
+.more[data-active]::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: calc(-1 * var(--space-4));
+  left: 0;
+  height: var(--space-2);
+  background: var(--text);
+}
+
+.moreChevron {
+  color: var(--text-3);
+}
+
 .title {
   display: flex;
   align-items: baseline;

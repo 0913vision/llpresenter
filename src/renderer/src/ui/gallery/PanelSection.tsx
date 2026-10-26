@@ -134,6 +134,17 @@ function ServiceHeader({
   );
 }
 
+const narrowTools: ReadonlyArray<PanelTab<Tool>> = [
+  {value: 'showing', label: '표시 중'},
+  {value: 'stage', label: '무대'},
+];
+
+const moreTools: ReadonlyArray<PanelTab<Tool>> = [
+  {value: 'audio', label: '오디오'},
+  {value: 'timer', label: '타이머'},
+  {value: 'message', label: '메시지'},
+];
+
 export function PanelSection(): JSX.Element {
   return (
     <Section title="Panel">
@@ -163,6 +174,23 @@ export function PanelSection(): JSX.Element {
               <Panel label="진행 도구">
                 <PanelHeader>
                   <PanelTabs tabs={tools} value={tool} onChange={setTool} />
+                </PanelHeader>
+                <MiniBody />
+              </Panel>
+            )}
+          </Stateful>
+        </SpecItem>
+        <SpecItem label="Narrow tabs + 더 보기 (try it)" width={320}>
+          <Stateful<Tool> initial="message">
+            {(tool, setTool) => (
+              <Panel label="진행 도구">
+                <PanelHeader>
+                  <PanelTabs
+                    tabs={narrowTools}
+                    value={tool}
+                    onChange={setTool}
+                    more={{label: '더 보기', tabs: moreTools}}
+                  />
                 </PanelHeader>
                 <MiniBody />
               </Panel>
