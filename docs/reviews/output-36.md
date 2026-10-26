@@ -116,19 +116,18 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (Codex, codex3): Request changes: TSDoc in a test helper. A second
+  reviewer (Gemini 4 Argon) found two real issues on this output path: the
+  keeper's event and interval callbacks were unguarded, and a level change
+  during full screen entry raised a false warning and spent the one restore.
+- Round 2 (b1706d8e): reviewer (Codex, codex3) Approve, no findings; both Argon
+  findings are fixed with regression tests. Lead Approve after reading the
+  keeper: guarded checks, the interval runs only while an output should be on
+  top and is cleared on release and dispose, and the levels match the old calls.
+  Rebased by the lead onto local `main` without conflicts; typecheck passes.
+  Fixes the native always-on-top test that failed twice on CI runners.
 
 ## Team member's reply
 
