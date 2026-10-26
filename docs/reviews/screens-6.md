@@ -101,20 +101,28 @@ device select itself appears only for that method.
 
 ## Team member's reply
 
-1. Queued swap: each assignment captures the saved screen assignments when it
-   enters the queue. While saving, published `screenIds` can release a prior
-   owner only if that owner's saved assignment is unchanged. A current saved id
-   that matches the chosen monitor is still released directly. Comparison uses
-   the saved method and display fields rather than object identity, so an
-   unchanged fallback owner is still released after a settings push clones it.
-   The queued A3/B2 regression holds the first save, submits the second with the
-   unchanged monitor feed, then checks both final assignments and the close
-   flush. It fails against round 1 because A loses monitor 3. Pure regressions
-   cover an intervening assignment and an unchanged cloned fallback owner.
+1. Queued swap: monitor publications are associated with the saved assignments
+   the window knew when they arrived. While saving, published `screenIds` can
+   release a prior owner only if its saved assignment still matches that
+   publication's snapshot. Reusing an old feed after a save response or settings
+   push keeps its original snapshot. Before the first document arrives, feeds
+   share a deferred snapshot filled by that first document. Weak keys release
+   obsolete feeds. Direct callers without a feed snapshot capture at enqueue. A
+   saved id matching the chosen monitor still releases its owner directly.
+   Comparisons use saved method and display values, so cloned unchanged
+   assignments retain their normal behavior. The held A3/B2 swap fails against
+   round 1 before the fix. A hook regression also fails with enqueue-only
+   snapshots when a save and settings push arrive before the monitor feed
+   changes. Tests cover both startup arrival orders, the close flush, unchanged
+   cloned fallback ownership, and a fresh publication legitimately reporting a
+   new fallback owner after an earlier move.
 
 ## Round 2 checks
 
 The queued-swap regression fails against round 1 before the fix. The request was
-rebased onto main `59083227`; 157 tests in 16 screens and monitor files pass, as
-do typecheck, changed-file ESLint, formatting and format:check. The request line
-reports GitHub verify on the exact head.
+rebased onto main `59083227`. The request line reports final targeted tests,
+typecheck, changed-file ESLint, formatting and exact-head GitHub verify.
+
+The final targeted run passes 161 tests in 16 files, including the completed
+save/settings-push race and both startup orders. The enqueue-only implementation
+failed the completed-save hook regression before publication tracking was added.

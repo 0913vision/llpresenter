@@ -1,5 +1,6 @@
 import {useEffect, useState} from 'react';
 import type {MonitorList} from '@shared/schema/monitors';
+import {adoptScreenMonitors} from './useScreenEditor';
 
 const noMonitors: MonitorList = [];
 
@@ -14,14 +15,18 @@ export function useMonitors(): MonitorList {
     if (api === undefined) return undefined;
     let active = true;
     let pushed = false;
+    const accept = (next: MonitorList): void => {
+      adoptScreenMonitors(api, next);
+      setMonitors(next);
+    };
     const stop = api.monitors.subscribe(next => {
       if (!active) return;
       pushed = true;
-      setMonitors(next);
+      accept(next);
     });
     api.monitors.get().then(
       next => {
-        if (active && !pushed) setMonitors(next);
+        if (active && !pushed) accept(next);
       },
       (cause: unknown) => {
         api.log.write({

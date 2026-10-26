@@ -3,7 +3,7 @@ import {noticeTime, type Notice} from '@renderer/ui/notices';
 import type {NamedDocument} from './useSettingsDocument';
 import {ScreenEditor} from './screenEditor';
 import type {ScreenChange} from './screenEdits';
-import type {MonitorInfo} from '@shared/schema/monitors';
+import type {MonitorInfo, MonitorList} from '@shared/schema/monitors';
 import type {LlpApi} from '@shared/ipc';
 import type {EditProblemReporter} from './screenEditor';
 
@@ -27,6 +27,11 @@ function sessionFor(api: LlpApi) {
     sessions.set(api, session);
   }
   return session;
+}
+
+/** Captures saved assignments when an immutable monitor feed arrives. */
+export function adoptScreenMonitors(api: LlpApi, monitors: MonitorList): void {
+  sessionFor(api).editor.observeMonitors(monitors);
 }
 
 /**

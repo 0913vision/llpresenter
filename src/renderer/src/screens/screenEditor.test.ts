@@ -40,6 +40,44 @@ const saved = (revision: number): EditResult => ({
 });
 
 describe('ScreenEditor', () => {
+  it.each([true, false])(
+    'keeps the original feed snapshot when it arrives before the document: %s',
+    async feedFirst => {
+      const {editor, edits} = setup([saved(2), saved(3)]);
+      const monitor3 = {...projector, id: 3, number: 3, screenIds: []};
+      if (feedFirst) editor.observeMonitors([projector, monitor3]);
+      editor.adopt(screensAt(1));
+      if (!feedFirst) editor.observeMonitors([projector, monitor3]);
+      await editor.assign(MAIN_ID, monitor3);
+      await editor.assign(STAGE_ID, projector);
+      const last = edits[1];
+      expect(
+        last?.name === 'screens' && last.value.screens[0]?.display?.id,
+      ).toBe(3);
+      expect(
+        last?.name === 'screens' && last.value.screens[2]?.display?.id,
+      ).toBe(2);
+    },
+  );
+
+  it('releases a newly published fallback owner after an earlier move', async () => {
+    const {editor, edits} = setup([saved(2), saved(3)]);
+    editor.adopt(screensAt(1));
+    const monitor3 = {...projector, id: 3, number: 3, screenIds: []};
+    editor.observeMonitors([projector, monitor3]);
+    await editor.assign(MAIN_ID, monitor3);
+    const fallback = {...projector};
+    editor.observeMonitors([fallback]);
+    await editor.assign(STAGE_ID, fallback);
+    const last = edits[1];
+    expect(
+      last?.name === 'screens' && last.value.screens[0]?.display,
+    ).toBeUndefined();
+    expect(last?.name === 'screens' && last.value.screens[2]?.display?.id).toBe(
+      2,
+    );
+  });
+
   it('preserves both assignments in a queued swap before the monitor feed changes', async () => {
     const initial = screensAt(1);
     const monitor2 = {...projector, number: 2};

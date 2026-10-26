@@ -4,12 +4,79 @@ import type {EditResult} from '@shared/schema/contentEdit';
 import type {SettingsEdit} from '@shared/schema/settingsDocuments';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {useScreenEditor} from './useScreenEditor';
+import {useMonitors} from './useMonitors';
+import type {NamedDocument} from './useSettingsDocument';
 import {MAIN_ID, STAGE_ID, screensDocument} from './testing/documents';
 import {projector} from './testing/monitors';
 
 afterEach(() => {
   cleanup();
   delete window.llp;
+});
+
+it('keeps a completed move when a settings push arrives before the old monitor feed changes', async () => {
+  const initial = screensDocument();
+  if (initial.name !== 'screens') throw new Error('Expected screens');
+  const monitor2 = {...projector, number: 2};
+  const monitor3 = {...projector, id: 3, number: 3, screenIds: [STAGE_ID]};
+  const document: NamedDocument<'screens'> = {
+    ...initial,
+    value: {
+      ...initial.value,
+      screens: initial.value.screens.map(screen =>
+        screen.id === STAGE_ID
+          ? {
+              ...screen,
+              display: {
+                id: 3,
+                number: 3,
+                name: monitor3.name,
+                bounds: monitor3.bounds,
+                scaleFactor: monitor3.scaleFactor,
+              },
+            }
+          : screen,
+      ),
+    },
+  };
+  const edits: SettingsEdit[] = [];
+  window.llp = fakeLlpApi({
+    monitors: {get: () => Promise.resolve([monitor2, monitor3])},
+    settings: {
+      edit: edit => {
+        edits.push(edit);
+        return Promise.resolve({
+          ok: true,
+          value: {id: 'screens', revision: edits.length === 1 ? 2 : 4},
+        });
+      },
+    },
+  });
+  const hook = renderHook(
+    ({document}) => ({
+      monitors: useMonitors(),
+      writer: useScreenEditor(document, undefined),
+    }),
+    {initialProps: {document}},
+  );
+  await waitFor(() => expect(hook.result.current.monitors).toHaveLength(2));
+  await act(async () => hook.result.current.writer.assign(MAIN_ID, monitor3));
+  await waitFor(() => expect(edits).toHaveLength(1));
+  const first = edits[0];
+  if (first?.name !== 'screens') throw new Error('Expected screen edit');
+  hook.rerender({
+    document: {...document, value: structuredClone(first.value), revision: 3},
+  });
+  await act(async () => hook.result.current.writer.assign(STAGE_ID, monitor2));
+  await waitFor(() => expect(edits).toHaveLength(2));
+  const last = edits[1];
+  expect(last).toMatchObject({baseRevision: 3});
+  expect(last?.name === 'screens' && last.value.screens[0]?.display?.id).toBe(
+    3,
+  );
+  expect(last?.name === 'screens' && last.value.screens[2]?.display?.id).toBe(
+    2,
+  );
 });
 
 it('serializes property and layout panel edits against one shared revision', async () => {

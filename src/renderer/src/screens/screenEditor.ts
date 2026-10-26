@@ -1,12 +1,15 @@
 import type {LlpApi} from '@shared/ipc';
 import type {SettingsDocument} from '@shared/schema/settingsDocuments';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
-import type {MonitorInfo} from '@shared/schema/monitors';
+import type {MonitorInfo, MonitorList} from '@shared/schema/monitors';
 import type {Screen} from '@shared/schema/screens';
 import {assignScreenMonitor} from './assignScreenMonitor';
 import {changeScreen, type ScreenChange} from './screenEdits';
 
 type ScreensDocument = Extract<SettingsDocument, {name: 'screens'}>;
+interface AssignmentSnapshot {
+  screens: readonly Screen[] | null;
+}
 
 /** Where the editor reports a failed save; the window shows it as a notice. */
 export type EditProblemReporter = (reason: string) => void;
@@ -21,6 +24,11 @@ export type EditProblemReporter = (reason: string) => void;
 export class ScreenEditor {
   private base: ScreensDocument | null = null;
   private queue: Promise<void> = Promise.resolve();
+  private readonly monitorSnapshots = new WeakMap<
+    MonitorInfo,
+    AssignmentSnapshot
+  >();
+  private initialSnapshot: AssignmentSnapshot | null = {screens: null};
 
   constructor(
     private readonly api: LlpApi,
@@ -30,8 +38,26 @@ export class ScreenEditor {
   /** Tells the editor the newest document the window has. Older ones are ignored. */
   adopt(document: ScreensDocument | null): void {
     if (document === null) return;
+    if (this.initialSnapshot !== null) {
+      this.initialSnapshot.screens = document.value.screens;
+      this.initialSnapshot = null;
+    }
     if (this.base === null || document.revision > this.base.revision) {
       this.base = document;
+    }
+  }
+
+  /** Records saved assignments for each immutable monitor publication. */
+  observeMonitors(monitors: MonitorList): void {
+    const snapshot =
+      this.base === null
+        ? this.initialSnapshot
+        : {screens: this.base.value.screens};
+    if (snapshot === null) return;
+    for (const monitor of monitors) {
+      if (!this.monitorSnapshots.has(monitor)) {
+        this.monitorSnapshots.set(monitor, snapshot);
+      }
     }
   }
 
@@ -42,7 +68,8 @@ export class ScreenEditor {
 
   /** Assigns a monitor and clears its old assignment in one revision. */
   assign(screenId: string, monitor: MonitorInfo): Promise<void> {
-    const observedScreens = this.base?.value.screens;
+    const observedScreens =
+      this.monitorSnapshots.get(monitor)?.screens ?? this.base?.value.screens;
     return this.enqueue(screens =>
       assignScreenMonitor({screens, screenId, monitor, observedScreens}),
     );
