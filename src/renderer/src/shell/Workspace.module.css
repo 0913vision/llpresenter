@@ -85,3 +85,18 @@
 .rest {
   flex: 1 0 var(--tools-min-height);
 }
+
+.leftCollapsed {
+  grid-template-columns:
+    var(--size-panel-header) var(--panel-gap)
+    minmax(var(--col-center-min), 1fr) var(--panel-gap) var(--ll-col-right);
+}
+
+.actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-8);
+  margin-left: auto;
+  padding-left: var(--space-8);
+}

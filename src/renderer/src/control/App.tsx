@@ -9,6 +9,7 @@ import {NotificationStack} from '@renderer/ui/Notification';
 import {Toolbar, type Workspace as WorkspaceId} from '@renderer/shell/Toolbar';
 import {useSizeClass} from '@renderer/shell/useSizeClass';
 import {useMediaStripVisibility} from '@renderer/shell/useMediaStripVisibility';
+import {useSidebarCollapse} from '@renderer/shell/useSidebarCollapse';
 import {useUiZoomKeys} from '@renderer/shell/uiZoomKeys';
 import {Workspace} from '@renderer/shell/Workspace';
 import type {ControlSession} from './controlSession';
@@ -29,6 +30,7 @@ export function App({
     uiState.mediaStrip,
     session.api,
   );
+  const sidebar = useSidebarCollapse(sizeClass, uiState.layout, session.api);
   const serviceName = useShow(view => view.serviceName);
   const [workspace, setWorkspace] = useState<WorkspaceId>('show');
   const notices = useSyncExternalStore(session.subscribe, session.getNotices);
@@ -69,6 +71,7 @@ export function App({
         }}
         warningHeight={warningHeight}
         mediaVisible={mediaStrip.visible}
+        sidebar={sidebar}
       />
       <StatusBar />
       <NotificationStack

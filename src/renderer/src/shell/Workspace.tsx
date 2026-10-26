@@ -1,4 +1,11 @@
-import {Fragment, useSyncExternalStore, type JSX, type ReactNode} from 'react';
+import {
+  Fragment,
+  useCallback,
+  useRef,
+  useSyncExternalStore,
+  type JSX,
+  type ReactNode,
+} from 'react';
 import type {LlpApi} from '@shared/ipc';
 import {LibraryPanel} from '@renderer/prep/library/LibraryPanel';
 import {
@@ -18,6 +25,7 @@ import {PreviewPanel} from '@renderer/show/PreviewPanel';
 import {ShowMediaPanel} from '@renderer/show/ShowMediaPanel';
 import {ServiceOrderHeader} from '@renderer/show/ServiceOrderHeader';
 import {ServiceOrderList} from '@renderer/show/ServiceOrderList';
+import {ShowToolsPanel} from '@renderer/show/ShowToolsPanel';
 import {SongBackgroundControl} from '@renderer/show/SongBackgroundControl';
 import {ReadOnlyMark} from '@renderer/show/ReadOnlyMark';
 import {
@@ -27,12 +35,15 @@ import {
 } from '@renderer/show/SlidePanel';
 import {useShowKeys} from '@renderer/show/shortcuts';
 import {useLibrarySongSync} from '@renderer/show/useLibrarySongSync';
+import {classNames} from '@renderer/ui/classNames';
 import type {Notice} from '@renderer/ui/notices';
 import {ColumnGap} from './ColumnGap';
+import {CollapsedSidebar, SidebarCollapseButton} from './SidebarToggle';
 import type {ColumnWidthStore} from './columnWidthStore';
 import type {SizeClass} from './sizeClass';
 import type {Workspace as WorkspaceId} from './Toolbar';
 import {useColumnLayout} from './useColumnLayout';
+import type {SidebarCollapse} from './useSidebarCollapse';
 import styles from './Workspace.module.css';
 
 type ColumnPanels = readonly string[];
@@ -61,6 +72,7 @@ interface PanelParts {
   readonly header?: ReactNode;
   readonly body?: ReactNode;
   readonly meta?: ReactNode;
+  readonly actions?: ReactNode;
   readonly footer?: ReactNode;
   // NOTE(0913vision): A body whose content sizes itself from the body width
   // keeps room for the scrollbar, so a scrollbar that appears doesn't narrow
@@ -68,10 +80,15 @@ interface PanelParts {
   readonly stableScrollbar?: boolean;
 }
 
-function panelClass(size: PanelParts['size']): string {
-  if (size === 'content') return `${styles.panel} ${styles.content}`;
-  if (size === 'rest') return `${styles.panel} ${styles.rest}`;
-  return `${styles.panel}`;
+function sizedClass(
+  base: string | undefined,
+  size: PanelParts['size'],
+): string {
+  return classNames(
+    base,
+    size === 'content' && styles.content,
+    size === 'rest' && styles.rest,
+  );
 }
 
 function Panel({
@@ -83,19 +100,23 @@ function Panel({
 }): JSX.Element {
   if (parts.embedded) {
     return (
-      <div
-        className={`${styles.embedded}${parts.size === 'content' ? ` ${styles.content}` : ''}`}
-      >
+      <div className={sizedClass(styles.embedded, parts.size)}>
         {parts.embedded}
       </div>
     );
   }
   if (parts.bare) return <div className={styles.bare}>{parts.bare}</div>;
   return (
-    <section className={panelClass(parts.size)} aria-label={title}>
+    <section
+      className={sizedClass(styles.panel, parts.size)}
+      aria-label={title}
+    >
       <div className={styles.header}>
         {parts.header ?? <span className={styles.tab}>{title}</span>}
         {parts.meta}
+        {parts.actions ? (
+          <div className={styles.actions}>{parts.actions}</div>
+        ) : null}
       </div>
       <div
         className={
@@ -139,7 +160,7 @@ function showPanelParts(
         body: <PreviewPanel compact={sizeClass === 'narrow'} />,
       };
     case '진행 도구':
-      return {size: 'rest'};
+      return {size: 'rest', embedded: <ShowToolsPanel sizeClass={sizeClass} />};
     case '미디어':
       return {
         bare: <ShowMediaPanel onProblem={onProblem ?? logPanelProblem} />,
@@ -237,6 +258,61 @@ function prepPanelParts({
   return {};
 }
 
+function serviceOrderParts({
+  id,
+  prep,
+  onProblem,
+  onOpenPrep,
+  actions,
+}: {
+  readonly id: Exclude<WorkspaceId, 'screens'>;
+  readonly prep: PrepBinding | undefined;
+  readonly onProblem: ((notice: Notice) => void) | undefined;
+  readonly onOpenPrep: ((itemId: string) => void) | undefined;
+  readonly actions: ReactNode;
+}): PanelParts {
+  return {
+    header: <ServiceOrderHeader onProblem={onProblem} />,
+    body: (
+      <ServiceOrderList
+        workspace={id}
+        onProblem={onProblem}
+        onOpenPrep={onOpenPrep}
+        onOpenItem={id === 'prep' ? () => prep?.editor.open(null) : undefined}
+      />
+    ),
+    meta: <ReadOnlyMark />,
+    actions,
+  };
+}
+
+/**
+ * Collapses and expands the left column. When the button that is pressed
+ * leaves with the keyboard focus, the button that replaces it takes it.
+ */
+function useSidebarToggle(sidebar: SidebarCollapse | undefined) {
+  const columnRef = useRef<HTMLDivElement>(null);
+  const pendingFocus = useRef(false);
+  const claimFocus = useCallback((): boolean => {
+    const pending = pendingFocus.current;
+    pendingFocus.current = false;
+    return pending;
+  }, []);
+  const setCollapsed = sidebar?.setCollapsed;
+  const toggle = (collapsed: boolean): void => {
+    pendingFocus.current =
+      columnRef.current?.contains(document.activeElement) ?? false;
+    setCollapsed?.(collapsed);
+  };
+  return {
+    columnRef,
+    claimFocus,
+    collapsible: setCollapsed !== undefined,
+    collapsed: setCollapsed !== undefined && sidebar?.collapsed === true,
+    toggle,
+  };
+}
+
 /** The three-column frame shared by all workspaces. */
 export function Workspace({
   id,
@@ -247,6 +323,7 @@ export function Workspace({
   prep,
   warningHeight = 0,
   mediaVisible = true,
+  sidebar,
 }: {
   readonly id: WorkspaceId;
   readonly sizeClass: SizeClass;
@@ -256,8 +333,10 @@ export function Workspace({
   readonly prep?: PrepBinding | undefined;
   readonly warningHeight?: number;
   readonly mediaVisible?: boolean | undefined;
+  readonly sidebar?: SidebarCollapse | undefined;
 }): JSX.Element {
   const {gridRef, drag} = useColumnLayout(sizeClass, store);
+  const toggle = useSidebarToggle(id === 'show' ? sidebar : undefined);
   const hasSong = useSyncExternalStore(
     prep?.editor.subscribe ?? noSubscribe,
     () => Boolean(prep?.editor.getSnapshot().session),
@@ -266,17 +345,45 @@ export function Workspace({
     id === 'prep' && hasSong
       ? [['예배 순서', '라이브러리'], ['편집'], ['미리보기', '슬라이드']]
       : panelsByWorkspace[id];
+  const partsOf = (title: string): PanelParts => {
+    if (title === '예배 순서' && id !== 'screens') {
+      return serviceOrderParts({
+        id,
+        prep,
+        onProblem,
+        onOpenPrep,
+        actions: toggle.collapsible ? (
+          <SidebarCollapseButton
+            claimFocus={toggle.claimFocus}
+            onPress={() => toggle.toggle(true)}
+          />
+        ) : null,
+      });
+    }
+    return id === 'show'
+      ? showPanelParts(title, sizeClass, onProblem)
+      : prepPanelParts({title, prep, hasSong, onProblem, sizeClass});
+  };
   return (
-    <main ref={gridRef} className={styles.columns}>
+    <main
+      ref={gridRef}
+      className={
+        toggle.collapsed
+          ? `${styles.columns} ${styles.leftCollapsed}`
+          : styles.columns
+      }
+    >
       {id === 'show' ? (
         <ShowShortcuts onProblem={onProblem ?? logPanelProblem} />
       ) : null}
       {columns.map((panels, column) => (
         <Fragment key={column}>
-          {column > 0 && (
+          {column === 1 && toggle.collapsed ? <div aria-hidden="true" /> : null}
+          {column > 0 && !(column === 1 && toggle.collapsed) ? (
             <ColumnGap column={column === 1 ? 'left' : 'right'} drag={drag} />
-          )}
+          ) : null}
           <div
+            ref={column === 0 ? toggle.columnRef : undefined}
             className={styles.column}
             style={
               column === 2 && warningHeight > 0
@@ -284,44 +391,20 @@ export function Workspace({
                 : undefined
             }
           >
-            {panels
-              .filter(
-                title => id !== 'show' || title !== '미디어' || mediaVisible,
-              )
-              .map(title => (
-                <Panel
-                  key={title}
-                  title={title}
-                  parts={
-                    title === '예배 순서' && id !== 'screens'
-                      ? {
-                          header: <ServiceOrderHeader onProblem={onProblem} />,
-                          body: (
-                            <ServiceOrderList
-                              workspace={id}
-                              onProblem={onProblem}
-                              onOpenPrep={onOpenPrep}
-                              onOpenItem={
-                                id === 'prep'
-                                  ? () => prep?.editor.open(null)
-                                  : undefined
-                              }
-                            />
-                          ),
-                          meta: <ReadOnlyMark />,
-                        }
-                      : id === 'show'
-                        ? showPanelParts(title, sizeClass, onProblem)
-                        : prepPanelParts({
-                            title,
-                            prep,
-                            hasSong,
-                            onProblem,
-                            sizeClass,
-                          })
-                  }
-                />
-              ))}
+            {column === 0 && toggle.collapsed ? (
+              <CollapsedSidebar
+                claimFocus={toggle.claimFocus}
+                onPress={() => toggle.toggle(false)}
+              />
+            ) : (
+              panels
+                .filter(
+                  title => id !== 'show' || title !== '미디어' || mediaVisible,
+                )
+                .map(title => (
+                  <Panel key={title} title={title} parts={partsOf(title)} />
+                ))
+            )}
           </div>
         </Fragment>
       ))}

@@ -1,0 +1,14 @@
+/* NOTE(0913vision): The arrow icon points right; the square ghost button is
+   mirrored as a whole so that it points left without reaching into ui's DOM. */
+.collapse {
+  transform: scaleX(-1);
+}
+
+.strip {
+  display: flex;
+  justify-content: center;
+  min-height: 0;
+  padding-top: calc((var(--size-panel-header) - var(--size-control-sm)) / 2);
+  border-radius: var(--radius-lg);
+  background: var(--bg-panel);
+}
