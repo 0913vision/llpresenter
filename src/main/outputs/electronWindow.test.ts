@@ -44,6 +44,7 @@ const electron = await vi.hoisted(async () => {
     readonly show = vi.fn();
     readonly focus = vi.fn();
     readonly moveTop = vi.fn();
+    readonly isMinimized = vi.fn(() => false);
     readonly hide = vi.fn();
     readonly removeMenu = vi.fn();
     readonly isDestroyed = vi.fn(() => false);
@@ -154,6 +155,89 @@ describe('createElectronOutputWindow offscreen', () => {
     expect(win.moveTop).toHaveBeenCalledTimes(1);
     expect(win.focus).not.toHaveBeenCalled();
   });
+
+  it('restores a minimized output without focus before raising it', () => {
+    const output = openOutput('normal');
+    const win = lastWindow();
+    const calls: string[] = [];
+    win.isMinimized.mockReturnValue(true);
+    win.showInactive.mockImplementation(() => calls.push('showInactive'));
+    win.moveTop.mockImplementation(() => calls.push('moveTop'));
+
+    output.bringToFront();
+
+    expect(calls).toEqual(['showInactive', 'moveTop']);
+    expect(win.focus).not.toHaveBeenCalled();
+    expect(win.show).not.toHaveBeenCalled();
+  });
+
+  it('keeps the raise when a fallback placement finishes after 창 보기', async () => {
+    const clock = installFakeClock();
+    const control = fakeControl();
+    const output = openOutput('normal', control);
+    const win = lastWindow();
+    output.showFullScreen(MONITOR, true);
+    win.isFullScreen.mockReturnValue(true);
+    win.isVisible.mockReturnValue(true);
+    output.showWindowed(WINDOW_BOUNDS);
+
+    output.bringToFront();
+    expect(win.moveTop).toHaveBeenCalledTimes(1);
+    win.isFullScreen.mockReturnValue(false);
+    win.emit('leave-full-screen');
+    await clock.advance(0);
+
+    expect(win.setBounds).toHaveBeenCalledWith(WINDOW_BOUNDS);
+    expect(win.moveTop).toHaveBeenCalledTimes(2);
+    expect(control.moveAbove).not.toHaveBeenCalled();
+    output.destroy();
+  });
+
+  it('keeps the raise when a late bounds correction runs after 창 보기', async () => {
+    const clock = installFakeClock();
+    const control = fakeControl();
+    const output = openOutput('normal', control);
+    const win = lastWindow();
+    let bounds = WINDOW_BOUNDS;
+    win.getBounds.mockImplementation(() => bounds);
+    win.setBounds.mockImplementation(next => {
+      bounds = next;
+    });
+    output.showWindowed(WINDOW_BOUNDS);
+    expect(control.moveAbove).toHaveBeenCalledTimes(1);
+    win.isVisible.mockReturnValue(true);
+    output.bringToFront();
+
+    bounds = {...WINDOW_BOUNDS, x: 2480};
+    win.emit('move');
+    await clock.advance(0);
+
+    expect(bounds).toEqual(WINDOW_BOUNDS);
+    expect(win.moveTop).toHaveBeenCalledTimes(2);
+    expect(control.moveAbove).toHaveBeenCalledTimes(1);
+    output.destroy();
+  });
+
+  it.each(['hide', 'full screen', 'monitor removal'] as const)(
+    'places the window behind the control again after %s ends the raise',
+    end => {
+      const control = fakeControl();
+      const output = openOutput('normal', control);
+      const win = lastWindow();
+      win.isVisible.mockReturnValue(true);
+      output.bringToFront();
+      if (end === 'hide') output.hide();
+      if (end === 'full screen') output.showFullScreen(MONITOR, true);
+      if (end === 'monitor removal') output.prepareForMonitorRemoval();
+      control.moveAbove.mockClear();
+
+      output.showWindowed(WINDOW_BOUNDS);
+
+      expect(control.moveAbove).toHaveBeenCalledTimes(1);
+      expect(win.moveTop).toHaveBeenCalledTimes(1);
+      output.destroy();
+    },
+  );
 
   it('never raises a window in offscreen mode', () => {
     const output = openOutput('offscreen');

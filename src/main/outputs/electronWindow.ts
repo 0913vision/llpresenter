@@ -100,13 +100,25 @@ function presentOnScreen(
 ): OutputPresentation {
   const placement = new WindowPlacement(win, log);
   let unplacedBounds: Rect | null = null;
+  // NOTE(0913vision): 창 보기 keeps the window raised through a placement or
+  // bounds correction that runs later, until the window hides, goes full
+  // screen, or its monitor goes away again.
+  let raised = false;
+  const raise = () => {
+    if (win.isMinimized()) win.showInactive();
+    else if (!win.isVisible()) return;
+    win.moveTop();
+  };
   const orderWindow = (alwaysOnTop: boolean) => {
     win.setAlwaysOnTop(alwaysOnTop);
-    if (!alwaysOnTop && !control.isDestroyed()) {
-      control.moveAbove(win.getMediaSourceId());
-    }
+    if (alwaysOnTop) return;
+    if (raised) raise();
+    else if (!control.isDestroyed()) control.moveAbove(win.getMediaSourceId());
   };
-  const placeBehindControl = () => orderWindow(false);
+  const placeBehindControl = () => {
+    raised = false;
+    orderWindow(false);
+  };
   const profile = (method: 'window' | 'capture') => {
     const normal = method === 'window';
     win.setBackgroundColor(normal ? OUTPUT_BACKGROUND : CAPTURE_BACKGROUND);
@@ -117,6 +129,7 @@ function presentOnScreen(
   return {
     showFullScreen: (monitorBounds, alwaysOnTop) => {
       unplacedBounds = null;
+      raised = false;
       const place = () => {
         profile('window');
         win.setFocusable(false);
@@ -158,13 +171,16 @@ function presentOnScreen(
     },
     prepareForMonitorRemoval: placeBehindControl,
     bringToFront: () => {
-      if (win.isVisible()) win.moveTop();
+      raised = true;
+      raise();
     },
     hide: () => {
+      raised = false;
       placement.cancel();
       win.hide();
     },
     dispose: () => {
+      raised = false;
       unplacedBounds = null;
       placement.dispose();
     },

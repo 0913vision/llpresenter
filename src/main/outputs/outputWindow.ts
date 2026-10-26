@@ -19,7 +19,11 @@ export interface OutputWindowHandle {
   showCapture(contentBounds: Rect, alwaysOnTop?: boolean): void;
   /** Drops always on top and places the control directly above this output without focus. */
   prepareForMonitorRemoval(): void;
-  /** Raises the shown window above the other windows without taking focus. */
+  /**
+   * Raises the shown window above the other windows without taking focus,
+   * restoring it first when it is minimized, and keeps it raised through
+   * placements that finish later.
+   */
   bringToFront(): void;
   hide(): void;
   /**
