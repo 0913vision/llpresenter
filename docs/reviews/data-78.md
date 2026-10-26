@@ -70,3 +70,14 @@ attached JSON records retained heap samples and the file assertions.
 ![Enabled copying adds the second import](assets/data-78/import-copy.png)
 
 ![Selection and properties after repeated switching](assets/data-78/properties.png)
+
+## Verdicts (recorded by the lead at merge)
+
+- Earlier rounds (Codex): see the findings and replies above.
+- Final round (6ed00265): reviewer (Codex) Approve. Lead Approve after reading
+  the importer: copying on import is the preference `media.copyOnImport`, off by
+  default like ProPresenter's Manage Media Automatically (user decision of
+  October 27), resolved once per request. Nit for the next branch: when the
+  preference read rejects, fall back to the default instead of failing the
+  import. The exact-head CI run passed, checked by the lead at merge. Rebased by
+  the lead onto local `main` without conflicts; typecheck passes.
