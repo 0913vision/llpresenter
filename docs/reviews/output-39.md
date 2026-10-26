@@ -116,19 +116,18 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (Codex, codex4): Request changes: the resolution label went stale when
+  the Windows scale changed without a CSS size change.
+- Round 2 (e44cbbfd): reviewer (Codex, codex3, codex4 being busy) Approve. Nit
+  for output's next request: `src/main/live/testPattern.test.ts:60` clears an
+  empty live state, so clear and undo are no-ops there; seed a visible layer and
+  check it clears and restores while the pattern stays on. Lead Approve after
+  reading the slice. One risk noted for screens part 3: the pattern sits above
+  every layer and clears don't remove it, so leaving 화면 설정 must always send
+  the hide, also on unmount. Rebased by the lead onto local `main` without
+  conflicts; typecheck passes. M3-O9b is complete.
 
 ## Team member's reply
 
