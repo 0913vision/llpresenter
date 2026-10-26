@@ -69,13 +69,18 @@ window on reentry. No native window was opened locally.
 - [x] Comment rules, formatting, and exported TSDoc placement checked
 - [ ] GitHub head verify passes (see request message)
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: pending
-
-## Review: reviewer
-
-- Verdict: pending
+- Round 1 (c34c5fd0): reviewer (Codex, codex3) Approve; second review (Gemini 4
+  Argon, gem1) Approve, no findings, asked to look at side effects of the
+  `screen-saver` level on windowed outputs, dialogs, the taskbar, and focus.
+  Lead Approve: the keeper sets and restores topmost at the explicit
+  `screen-saver` level, which skips Electron's taskbar-relative move that could
+  drop the topmost style, and the native fixture now checks topmost at once on
+  first entry and reentry with no retry loop. This closes the flaky
+  `fullscreenOrder.electron.test.ts` failure. A real always-on-top check stays
+  on the user's check sheet. Rebased by the lead onto local `main` without
+  conflicts; typecheck passes.
 
 ## Team member's reply
 
