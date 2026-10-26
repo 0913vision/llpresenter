@@ -403,7 +403,10 @@ describe('createElectronOutputWindow normal', () => {
       const output = openOutput('normal', control);
       if (method === 'capture') output.showCapture(WINDOW_BOUNDS, true);
       else output.showWindowed(WINDOW_BOUNDS, true);
-      expect(lastWindow().setAlwaysOnTop).toHaveBeenLastCalledWith(true);
+      expect(lastWindow().setAlwaysOnTop).toHaveBeenLastCalledWith(
+        true,
+        'screen-saver',
+      );
       expect(control.moveAbove).not.toHaveBeenCalled();
     },
   );
@@ -474,7 +477,7 @@ describe('createElectronOutputWindow normal', () => {
     expect(win.setMaximizable).toHaveBeenLastCalledWith(true);
     expect(win.setBackgroundColor).toHaveBeenLastCalledWith('#000000');
     output.showFullScreen(MONITOR, true);
-    expect(win.setAlwaysOnTop).toHaveBeenLastCalledWith(true);
+    expect(win.setAlwaysOnTop).toHaveBeenLastCalledWith(true, 'screen-saver');
   });
 
   it('bounds a missing fullscreen-leave event for capture and releases pending work on dispose', async () => {
@@ -562,7 +565,10 @@ describe('createElectronOutputWindow normal', () => {
         expect(win.setBounds).toHaveBeenCalledWith(WINDOW_BOUNDS);
       } else {
         expect(win.setFullScreen).toHaveBeenLastCalledWith(true);
-        expect(win.setAlwaysOnTop).toHaveBeenLastCalledWith(true);
+        expect(win.setAlwaysOnTop).toHaveBeenLastCalledWith(
+          true,
+          'screen-saver',
+        );
       }
       output.destroy();
       expect(vi.getTimerCount()).toBe(0);
@@ -586,7 +592,7 @@ describe('createElectronOutputWindow normal', () => {
 
     output.showFullScreen(MONITOR, true);
 
-    expect(win.setAlwaysOnTop).toHaveBeenLastCalledWith(true);
+    expect(win.setAlwaysOnTop).toHaveBeenLastCalledWith(true, 'screen-saver');
     expect(win.setFullScreen).toHaveBeenLastCalledWith(true);
     expect(win.focus).not.toHaveBeenCalled();
     output.destroy();
@@ -600,7 +606,7 @@ describe('createElectronOutputWindow normal', () => {
     output.showFullScreen(MONITOR, true);
     win.onTop = false;
     win.emit('always-on-top-changed', {}, false);
-    expect(win.setAlwaysOnTop).toHaveBeenLastCalledWith(true);
+    expect(win.setAlwaysOnTop).toHaveBeenLastCalledWith(true, 'screen-saver');
     expect(log.warn).toHaveBeenCalledOnce();
     output.hide();
     win.setAlwaysOnTop.mockClear();
@@ -627,7 +633,7 @@ describe('createElectronOutputWindow normal', () => {
     win.setAlwaysOnTop.mockClear();
     output.showFullScreen(WINDOW_BOUNDS, true);
     expect(win.setFullScreen.mock.calls.slice(-2)).toEqual([[false], [true]]);
-    expect(win.setAlwaysOnTop.mock.calls).toEqual([[true]]);
+    expect(win.setAlwaysOnTop.mock.calls).toEqual([[true, 'screen-saver']]);
     expect(log.warn).not.toHaveBeenCalled();
     output.destroy();
   });
@@ -744,7 +750,10 @@ describe('createElectronOutputWindow normal', () => {
       expect(control.moveAbove).not.toHaveBeenCalled();
       if (action === 'fullscreen') {
         expect(win.setFullScreen).toHaveBeenLastCalledWith(true);
-        expect(win.setAlwaysOnTop).toHaveBeenLastCalledWith(true);
+        expect(win.setAlwaysOnTop).toHaveBeenLastCalledWith(
+          true,
+          'screen-saver',
+        );
       } else expect(win.showInactive).not.toHaveBeenCalled();
       output.destroy();
       expect(win.listenerCount('leave-full-screen')).toBe(0);
@@ -816,7 +825,7 @@ describe('createElectronOutputWindow normal', () => {
 
     expect(win.setFocusable).toHaveBeenCalledWith(false);
     expect(win.setFullScreen).toHaveBeenCalledWith(true);
-    expect(win.setAlwaysOnTop).toHaveBeenCalledWith(true);
+    expect(win.setAlwaysOnTop).toHaveBeenCalledWith(true, 'screen-saver');
     expect(win.showInactive).toHaveBeenCalledTimes(1);
     expect(win.focus).not.toHaveBeenCalled();
   });

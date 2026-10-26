@@ -10,10 +10,12 @@ function fakeWindow() {
   };
   const win = {
     isAlwaysOnTop: vi.fn(() => onTop),
-    setAlwaysOnTop: vi.fn((flag: boolean) => {
-      onTop = flag;
-      emit();
-    }),
+    setAlwaysOnTop: vi.fn<(flag: boolean, level?: 'screen-saver') => void>(
+      flag => {
+        onTop = flag;
+        emit();
+      },
+    ),
     on: (_event: 'always-on-top-changed', listener: () => void) =>
       listeners.add(listener),
     removeListener: (_event: 'always-on-top-changed', listener: () => void) =>
@@ -49,7 +51,10 @@ describe('OnTopKeeper', () => {
     keeper.set(true);
     changeOutside(false, {event: true});
     expect(win.isAlwaysOnTop()).toBe(true);
-    expect(win.setAlwaysOnTop.mock.calls).toEqual([[true], [true]]);
+    expect(win.setAlwaysOnTop.mock.calls).toEqual([
+      [true, 'screen-saver'],
+      [true, 'screen-saver'],
+    ]);
     expect(log.messages('warn')).toEqual([
       'an output window lost its always-on-top level; restoring it',
     ]);
@@ -65,6 +70,24 @@ describe('OnTopKeeper', () => {
     vi.advanceTimersByTime(1);
     expect(win.isAlwaysOnTop()).toBe(true);
     expect(log.messages('warn')).toHaveLength(1);
+    keeper.dispose();
+  });
+
+  it('keeps the topmost style when the Windows taskbar is not topmost, on set and restore', () => {
+    const {win, changeOutside, log, keeper} = setup();
+    win.setAlwaysOnTop.mockImplementation((flag, level) => {
+      changeOutside(flag && level === 'screen-saver', {event: false});
+    });
+    keeper.set(true);
+    expect(win.isAlwaysOnTop()).toBe(true);
+    expect(log.entries).toEqual([]);
+    changeOutside(false, {event: true});
+    expect(win.isAlwaysOnTop()).toBe(true);
+    expect(win.setAlwaysOnTop).toHaveBeenCalledTimes(2);
+    expect(log.messages('warn')).toHaveLength(1);
+    keeper.set(false);
+    expect(win.isAlwaysOnTop()).toBe(false);
+    expect(log.messages('error')).toEqual([]);
     keeper.dispose();
   });
 
@@ -124,7 +147,10 @@ describe('OnTopKeeper', () => {
     keeper.set(true);
     keeper.set(false);
     for (const listener of listeners) listener();
-    expect(win.setAlwaysOnTop.mock.calls).toEqual([[true], [false]]);
+    expect(win.setAlwaysOnTop.mock.calls).toEqual([
+      [true, 'screen-saver'],
+      [false],
+    ]);
     expect(log.entries).toEqual([]);
     keeper.dispose();
   });

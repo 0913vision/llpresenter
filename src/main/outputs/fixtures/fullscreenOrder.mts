@@ -147,7 +147,10 @@ async function run(): Promise<void> {
     info: () => undefined,
     warn: (message, detail) =>
       console.log(`WARN ${message} ${JSON.stringify(detail)}`),
-    error: (message, detail) => errors.push({message, detail}),
+    error: (message, detail) => {
+      errors.push({message, detail});
+      console.error(`ERROR ${message} ${JSON.stringify(detail)}`);
+    },
     flush: () => Promise.resolve(),
   };
   const started = performance.now();
@@ -160,6 +163,7 @@ async function run(): Promise<void> {
   onTop = keeper;
   win.setFullScreen(true);
   keeper.set(true);
+  ok(win.isAlwaysOnTop(), 'The explicit output level must hold immediately');
   await delay(NATIVE_SETTLE_MS);
   ok(win.isFullScreen());
   const target = centeredRect(monitor.workArea, {width: 480, height: 270});
@@ -180,6 +184,7 @@ async function run(): Promise<void> {
     keeper.release();
     win.setFullScreen(true);
     keeper.set(true);
+    ok(win.isAlwaysOnTop(), 'Full-screen reentry must keep the topmost style');
   });
   await delay(ON_TOP_CHECK_MS + NATIVE_SETTLE_MS);
   console.log(`ALWAYS_ON_TOP_CHANGES ${JSON.stringify(onTopChanges)}`);

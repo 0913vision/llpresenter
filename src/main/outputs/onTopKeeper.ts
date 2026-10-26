@@ -3,10 +3,12 @@ import type {Logger} from '../log';
 /** How often a shown output that should stay on top checks that it still is. */
 export const ON_TOP_CHECK_MS = 3000;
 
+const OUTPUT_ON_TOP_LEVEL = 'screen-saver';
+
 /** The part of an Electron window that the keeper reads and sets. */
 export interface OnTopWindow {
   isAlwaysOnTop(): boolean;
-  setAlwaysOnTop(flag: boolean): void;
+  setAlwaysOnTop(flag: boolean, level?: typeof OUTPUT_ON_TOP_LEVEL): void;
   on(event: 'always-on-top-changed', listener: () => void): unknown;
   removeListener(event: 'always-on-top-changed', listener: () => void): unknown;
 }
@@ -35,7 +37,7 @@ export class OnTopKeeper {
   set(onTop: boolean): void {
     this.expected = onTop;
     this.restored = false;
-    this.win.setAlwaysOnTop(onTop);
+    this.setLevel(onTop);
     this.followChecks();
   }
 
@@ -84,7 +86,15 @@ export class OnTopKeeper {
         alwaysOnTop: expected,
       },
     );
-    this.win.setAlwaysOnTop(expected);
+    this.setLevel(expected);
+  }
+
+  // NOTE(0913vision): Electron's default floating level moves the window
+  // behind the Windows taskbar, which can remove its topmost style when the
+  // taskbar itself is not topmost. screen-saver skips that native move.
+  private setLevel(onTop: boolean): void {
+    if (onTop) this.win.setAlwaysOnTop(true, OUTPUT_ON_TOP_LEVEL);
+    else this.win.setAlwaysOnTop(false);
   }
 
   private followChecks(): void {
