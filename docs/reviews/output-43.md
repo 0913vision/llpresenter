@@ -81,15 +81,13 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: pending
-- Findings:
-
-## Review: reviewer
-
-- Verdict: pending
-- Findings:
+- Round 1 (ee4365d2): reviewer (Codex, codex3) Approve. Lead Approve; stage text
+  that was fit against a zero-size box (a collapsed preview) fits again on the
+  next rescale and is not rewritten after that, which settles the lead's nit on
+  output-41. Rebased by the lead onto local `main` after ui-41 without
+  conflicts; typecheck passes.
 
 ## Team member's reply
 
