@@ -59,6 +59,26 @@ function setup(loop = false) {
 }
 
 describe('audio transport', () => {
+  it('ignores stale or paused ended notifications, while a matching track can advance', () => {
+    const {store, start, send} = setup();
+    start();
+    const trackVersion = store.state.layers.audio?.playback?.trackVersion;
+    expect(send({type: 'audio.next', trackVersion: 0})).toBe(false);
+    send({type: 'audio.pause'});
+    expect(send({type: 'audio.next', trackVersion})).toBe(false);
+    send({type: 'audio.play'});
+    send({type: 'audio.next', trackVersion});
+    expect(store.state.layers.audio?.mediaId).toBe(SECOND);
+    expect(send({type: 'audio.next', trackVersion})).toBe(false);
+  });
+  it.each([-1, 0.5, Infinity, Number.MAX_SAFE_INTEGER + 1])(
+    'rejects invalid ended track version %s',
+    trackVersion => {
+      expect(parseLiveCommand({type: 'audio.next', trackVersion}).ok).toBe(
+        false,
+      );
+    },
+  );
   it('plays playlist entries in order, including duplicate media, and stops after the last', () => {
     const {store, start, send} = setup();
     start();

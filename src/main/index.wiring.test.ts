@@ -25,6 +25,8 @@ const fakes = vi.hoisted(() => {
   return {
     order,
     overlayContexts: new Array<unknown>(),
+    audioContexts: new Array<unknown>(),
+    audioStop: vi.fn<() => void>(),
     lookSelectionContexts: new Array<unknown>(),
     lookSelectionStop: vi.fn<() => void>(),
     selectLook: vi.fn(),
@@ -156,6 +158,12 @@ vi.mock('./macros/register', () => ({
   registerMacros: (context: unknown) => {
     fakes.macroContexts.push(context);
     return {dispose: fakes.macrosStop, startFresh: fakes.macrosStartFresh};
+  },
+}));
+vi.mock('./windows/audio', () => ({
+  registerAudioOutput: (context: unknown) => {
+    fakes.audioContexts.push(context);
+    return fakes.audioStop;
   },
 }));
 vi.mock('./live/overlays', () => ({
@@ -307,6 +315,8 @@ beforeEach(async () => {
   fakes.controlWindow.focus.mockClear();
   fakes.order.length = 0;
   fakes.overlayContexts.length = 0;
+  fakes.audioContexts.length = 0;
+  fakes.audioStop.mockReset();
   fakes.lookSelectionContexts.length = 0;
   fakes.lookSelectionStop.mockReset();
   fakes.selectLook.mockReset();
@@ -481,6 +491,21 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     await vi.waitFor(() => expect(fakes.storeDispose).toHaveBeenCalledOnce());
     expect(fakes.macrosStop).toHaveBeenCalledOnce();
     expect(fakes.macrosStop.mock.invocationCallOrder[0]).toBeLessThan(
+      fakes.storeDispose.mock.invocationCallOrder[0] ?? Infinity,
+    );
+  });
+  it('starts independent audio output and releases it before the data store', async () => {
+    await startMain();
+    expect(fakes.audioContexts).toEqual([
+      expect.objectContaining({
+        store: fakes.outputContexts[0]?.store,
+        windowMode: 'normal',
+      }),
+    ]);
+    beforeQuit();
+    await vi.waitFor(() => expect(fakes.storeDispose).toHaveBeenCalledOnce());
+    expect(fakes.audioStop).toHaveBeenCalledOnce();
+    expect(fakes.audioStop.mock.invocationCallOrder[0]).toBeLessThan(
       fakes.storeDispose.mock.invocationCallOrder[0] ?? Infinity,
     );
   });

@@ -76,7 +76,12 @@ export const liveActionOptions = [
     source: v.exactOptional(audioSourceSchema),
   }),
   v.object({type: v.literal('audio.pause')}),
-  v.object({type: v.literal('audio.next')}),
+  v.object({
+    type: v.literal('audio.next'),
+    trackVersion: v.exactOptional(
+      v.pipe(nonNegativeInteger, v.maxValue(Number.MAX_SAFE_INTEGER)),
+    ),
+  }),
   v.object({type: v.literal('audio.previous')}),
   v.object({type: v.literal('audio.fadeOut')}),
   v.object({type: v.literal('audio.volume.set'), volume: percent}),

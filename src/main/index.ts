@@ -32,6 +32,7 @@ import {registerUiZoom} from './store/uiZoom';
 import {registerUiState} from './uiState/register';
 import {applyUserDataOverride, type UserDataProblem} from './userData';
 import {createControlWindow} from './windows/control';
+import {registerAudioOutput} from './windows/audio';
 import {registerControlClose} from './windows/controlClose';
 import {registerMediaScheme, serveMedia} from './windows/mediaProtocol';
 import {windowModeFrom, type WindowMode} from './windows/testWindows';
@@ -178,6 +179,12 @@ function start(): void {
         log,
         windowMode,
       });
+      const stopAudio = registerAudioOutput({
+        store,
+        media: dataStore.media,
+        log,
+        windowMode,
+      });
       const macros = registerMacros({
         store,
         data: dataStore,
@@ -233,6 +240,7 @@ function start(): void {
       shutdown.add({name: 'stop the media backend', run: stopMediaBackend});
       shutdown.add({name: 'stop media analysis', run: analysis.dispose});
       shutdown.add({name: 'stop macros', run: macros.dispose});
+      shutdown.add({name: 'stop audio', run: stopAudio});
       shutdown.add({name: 'stop overlays', run: stopOverlays});
       shutdown.add({name: 'stop Look selection', run: stopLookSelection});
       shutdown.add({name: 'stop the outputs', run: outputs.stop});

@@ -110,6 +110,13 @@ export const audioSlice = defineSlice({
           },
         });
       case 'audio.next':
+        if (
+          command.trackVersion !== undefined &&
+          (layer?.playback?.trackVersion !== command.trackVersion ||
+            layer.playback.since === null)
+        ) {
+          return history;
+        }
         return move(history, 1, context);
       case 'audio.previous':
         return move(history, -1, context);
