@@ -13,6 +13,7 @@ interface SessionOptions {
   readonly changed: () => void;
   readonly problem: () => void;
   readonly isDuplicateTitle?: (value: string) => boolean;
+  readonly persistence?: 'automatic' | 'manual';
   /** True while the window's close preflight holds every edit. */
   readonly editingStopped?: () => boolean;
 }
@@ -170,6 +171,10 @@ export class SongSession {
   }
 
   finishTitle(): void {
+    if (this.options.persistence === 'manual') {
+      this.endTyping();
+      return;
+    }
     this.title.revertInvalid();
     if (!this.writing && !this.blocked && !this.hasChanges) {
       if (this.incoming !== undefined) this.install(this.incoming);
@@ -259,11 +264,11 @@ export class SongSession {
   arrangementChanged(
     from: string,
     to: string | undefined,
-    document: SongDocument,
+    document?: SongDocument,
   ): void {
     this.history.changeArrangement(from, to);
     if (this.pickedArrangement === from) this.pickedArrangement = to;
-    this.acceptGlobalEdit(document);
+    if (document !== undefined) this.acceptGlobalEdit(document);
     this.options.changed();
   }
 
@@ -284,6 +289,7 @@ export class SongSession {
   }
 
   async flush(): Promise<boolean> {
+    if (this.options.persistence === 'manual') return true;
     do {
       this.cancelSaveTimer();
       if (!(await this.save())) return false;
@@ -306,6 +312,7 @@ export class SongSession {
   }
 
   private delaySave(): void {
+    if (this.options.persistence === 'manual') return;
     this.cancelSaveTimer();
     this.saveTimer = setTimeout(() => this.endTyping(), TYPING_PAUSE_MS);
   }
@@ -316,6 +323,7 @@ export class SongSession {
   }
 
   private save(): Promise<boolean> {
+    if (this.options.persistence === 'manual') return Promise.resolve(true);
     if (this.pending !== undefined) return this.pending;
     if (!this.hasChanges || this.blocked) return Promise.resolve(!this.blocked);
     this.writing = true;

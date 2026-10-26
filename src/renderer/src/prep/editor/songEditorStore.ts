@@ -1,6 +1,11 @@
 import type {LlpApi} from '@shared/ipc';
+import type {ContentEdit} from '@shared/schema/contentEdit';
+import {parseSongDocument} from '@shared/schema/contentDocuments';
 import type {LibrarySong, SongDocument} from '@shared/schema/contentDocuments';
 import type {SongId} from '@shared/schema/ids';
+import {createSongId} from '@shared/schema/ids';
+import type {TextImportDraft} from '@shared/schema/textImport';
+import {DEFAULT_ARRANGEMENT_NAME} from '@shared/schema/song';
 import type {Label} from '@shared/schema/labels';
 import type {
   SettingsDocument,
@@ -22,6 +27,8 @@ interface EditorState {
   readonly busy: boolean;
   readonly library: readonly LibrarySong[];
   readonly titleFocus: number;
+  readonly imported: boolean;
+  readonly discardRequested: boolean;
 }
 
 const MAX_SESSIONS = 20;
@@ -34,6 +41,9 @@ export class SongEditorStore {
   private readonly renamedSongs = new Map<SongId, SongDocument>();
   private labels: EditorLabels | null = null;
   private active: SongId | null = null;
+  private imported: SongSession | null = null;
+  private importedSaved: SongId | null = null;
+  private pendingLeave: (() => void) | null = null;
   private itemSong: SongId | null = null;
   private busy = false;
   private editingStopped = false;
@@ -50,6 +60,8 @@ export class SongEditorStore {
     busy: false,
     library: [],
     titleFocus: 0,
+    imported: false,
+    discardRequested: false,
   };
 
   constructor(
@@ -94,6 +106,10 @@ export class SongEditorStore {
     options: {readonly focusTitle?: boolean} = {},
   ): void {
     if (!this.alive) return;
+    if (this.imported !== null) {
+      this.requestLeave(() => this.open(document, options));
+      return;
+    }
     if (this.active !== null && this.active !== document?.song.id) {
       this.sessions.get(this.active)?.endTyping();
     }
@@ -102,6 +118,127 @@ export class SongEditorStore {
       document !== null && options.focusTitle === true ? ++this.focusSerial : 0;
     if (document !== null) this.sessionFor(document);
     this.publish();
+  }
+
+  openImported(draft: TextImportDraft): void {
+    if (!this.alive || this.locked) return;
+    if (this.imported !== null) {
+      this.requestLeave(() => this.openImported(draft));
+      return;
+    }
+    const checked = parseSongDocument({
+      song: {
+        format: 'llsong',
+        schemaVersion: 1,
+        id: createSongId(crypto.randomUUID()),
+        title: normalizeSongTitle(draft.title) || '가져온 곡',
+        slides: draft.slides,
+      },
+      revision: 1,
+      access: 'editable',
+    });
+    if (!checked.ok || checked.value === null) {
+      this.problem('가져온 곡 열기 실패');
+      return;
+    }
+    this.sessions.get(this.active ?? checked.value.song.id)?.endTyping();
+    this.active = null;
+    this.imported = new SongSession({
+      document: checked.value,
+      api: this.api.content,
+      persistence: 'manual',
+      changed: () => this.publish(),
+      editingStopped: () => this.locked,
+      isDuplicateTitle: title =>
+        this.library.some(entry => normalizeSongTitle(entry.title) === title),
+      problem: () => this.problem('가져온 곡 저장 실패'),
+    });
+    this.imported.editTitle(draft.title);
+    this.titleFocus = ++this.focusSerial;
+    this.publish();
+  }
+
+  requestLeave(action: () => void): void {
+    if (!this.alive || this.locked) return;
+    if (this.imported === null) action();
+    else {
+      this.pendingLeave = action;
+      this.publish();
+    }
+  }
+
+  cancelDiscard(): void {
+    this.pendingLeave = null;
+    this.publish();
+  }
+
+  discardImported(): void {
+    if (this.locked) return;
+    const action = this.pendingLeave;
+    this.pendingLeave = null;
+    this.imported?.discard();
+    this.imported = null;
+    this.importedSaved = null;
+    this.publish();
+    action?.();
+  }
+
+  saveImported(
+    target: Extract<ContentEdit, {type: 'song.import'}>['target'],
+  ): Promise<boolean> {
+    const session = this.imported;
+    if (!this.alive || this.locked || session === null) {
+      return Promise.resolve(false);
+    }
+    return this.runOperation(async () => {
+      try {
+        const song = session.history.snapshot.song;
+        if (this.importedSaved === null) {
+          const result = await this.api.content.edit({
+            type: 'song.import',
+            target,
+            draft: {
+              title: normalizeSongTitle(session.title.value),
+              slides: song.slides,
+              ...(song.arrangements === undefined
+                ? {}
+                : {arrangements: song.arrangements}),
+              ...(session.background === undefined
+                ? {}
+                : {background: session.background}),
+            },
+          });
+          const applied = result.ok
+            ? result.value
+            : result.error.reason === 'write-failed'
+              ? result.error.applied
+              : undefined;
+          if (applied === undefined) {
+            this.problem('가져온 곡 저장 실패');
+            return false;
+          }
+          this.importedSaved = createSongId(applied.id);
+          session.blocked = true;
+          if (!result.ok) this.problem('곡 파일 저장 실패');
+        }
+        const document = await this.api.songs.get(this.importedSaved);
+        if (document === null) {
+          this.problem('저장한 곡 불러오기 실패');
+          return false;
+        }
+        if (!this.alive) return false;
+        session.discard();
+        this.imported = null;
+        this.importedSaved = null;
+        this.pendingLeave = null;
+        this.open(document);
+        return true;
+      } catch (error) {
+        console.error('Imported song save failed', error);
+        this.problem('가져온 곡 저장 실패');
+        return false;
+      }
+    });
   }
 
   /**
@@ -225,7 +362,8 @@ export class SongEditorStore {
     to: string | undefined,
   ): Promise<boolean> {
     const session =
-      this.active === null ? undefined : this.sessions.get(this.active);
+      this.imported ??
+      (this.active === null ? undefined : this.sessions.get(this.active));
     if (
       !this.alive ||
       this.locked ||
@@ -240,6 +378,20 @@ export class SongEditorStore {
       )
     ) {
       return Promise.resolve(false);
+    }
+    if (this.imported === session) {
+      if (
+        to !== undefined &&
+        (!to.trim() ||
+          to === DEFAULT_ARRANGEMENT_NAME ||
+          session.history.snapshot.song.arrangements.some(
+            item => item.name === to && item.name !== from,
+          ))
+      ) {
+        return Promise.resolve(false);
+      }
+      session.arrangementChanged(from, to);
+      return Promise.resolve(true);
     }
     return this.runOperation(() => this.writeArrangement(session, from, to));
   }
@@ -259,7 +411,8 @@ export class SongEditorStore {
       const results = await Promise.all(
         [...this.sessions.values()].map(session => session.flush()),
       );
-      flushed = operationDone && results.every(Boolean);
+      flushed =
+        operationDone && results.every(Boolean) && this.imported === null;
       return flushed;
     } finally {
       if (!flushed) this.stopEditing(false);
@@ -279,6 +432,9 @@ export class SongEditorStore {
       [...this.sessions.values()].map(session => session.close()),
     );
     this.sessions.clear();
+    this.imported?.discard();
+    this.imported = null;
+    this.pendingLeave = null;
     this.renamedSongs.clear();
     this.listeners.clear();
   }
@@ -399,6 +555,7 @@ export class SongEditorStore {
   }
 
   private async acceptRename(from: string, to: string): Promise<void> {
+    this.imported?.renamed(from, to);
     for (const [id, session] of this.sessions) {
       const document =
         this.renamedSongs.get(id) ??
@@ -492,11 +649,16 @@ export class SongEditorStore {
     if (!this.alive) return;
     this.state = {
       session:
-        this.active === null ? null : (this.sessions.get(this.active) ?? null),
+        this.imported ??
+        (this.active === null
+          ? null
+          : (this.sessions.get(this.active) ?? null)),
       labels: this.labels,
       busy: this.locked,
       library: this.library,
       titleFocus: this.titleFocus,
+      imported: this.imported !== null,
+      discardRequested: this.pendingLeave !== null,
     };
     for (const listener of this.listeners) listener();
   }
