@@ -76,9 +76,15 @@ const signal = () => new AbortController().signal;
 
 const ENDED = new Set(['complete', 'failed', 'cancelled']);
 
+// NOTE(0913vision): Jobs copy real files, which can take over the default
+// second when the whole suite runs at once.
+const JOB_END_TIMEOUT_MS = 5_000;
+
 async function ended(reports: readonly MediaImportProgress[], count: number) {
-  await vi.waitFor(() =>
-    expect(reports.filter(({phase}) => ENDED.has(phase))).toHaveLength(count),
+  await vi.waitFor(
+    () =>
+      expect(reports.filter(({phase}) => ENDED.has(phase))).toHaveLength(count),
+    {timeout: JOB_END_TIMEOUT_MS},
   );
 }
 
