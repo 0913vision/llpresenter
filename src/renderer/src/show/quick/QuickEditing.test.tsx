@@ -138,7 +138,7 @@ function failPersistedEdit(edit: ReturnType<typeof setup>['edit']): void {
 }
 
 async function openAddMenu(): Promise<void> {
-  const add = screen.getByRole('button', {name: '퀵 실행 추가'});
+  const add = await screen.findByRole('button', {name: '퀵 실행 추가'});
   await waitFor(() =>
     expect(add.getAttribute('aria-disabled')).not.toBe('true'),
   );
