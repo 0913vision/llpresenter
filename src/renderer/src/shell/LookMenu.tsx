@@ -1,9 +1,9 @@
 import {useState, type JSX} from 'react';
 import type {LookId} from '@shared/schema/ids';
-import {sendLive} from '@renderer/state/live';
 import {Menu, ToolbarButton} from '@renderer/ui';
 import {openOnArrowDown} from '@renderer/ui/menuButton';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/notices';
+import {sendLookChange} from './lookActions';
 import {useLookChoices} from './useLookChoices';
 
 const CONFIRMATION_UNAVAILABLE = '현재 버전에서는 Look 적용을 확인할 수 없음';
@@ -22,30 +22,14 @@ export function LookMenu({
 }): JSX.Element {
   const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
   const open = anchor !== null;
-  const {document, loading, prepare} = useLookChoices({open, onProblem});
+  const {document, loading} = useLookChoices({open, onProblem});
   const disabled = window.llp === undefined;
   const setExpanded = (next: boolean, button: HTMLButtonElement): void => {
-    if (next) prepare();
     setAnchor(next ? button : null);
   };
   const choose = (lookId: LookId): void => {
     setAnchor(null);
-    try {
-      sendLive({type: 'look.set', lookId});
-    } catch (cause) {
-      window.llp?.log.write({
-        level: 'error',
-        message: 'Could not send the Look change command',
-        detail: cause instanceof Error ? cause.message : String(cause),
-      });
-      onProblem({
-        key: 'toolbar-look:send',
-        kind: 'warning',
-        icon: 'warning',
-        title: 'Look 변경 실패',
-        time: noticeTime(),
-      });
-    }
+    sendLookChange(lookId, onProblem);
   };
   return (
     <>

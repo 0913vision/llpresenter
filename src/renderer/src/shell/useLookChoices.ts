@@ -13,7 +13,15 @@ export function useLookChoices({
   readonly onProblem: (notice: Notice) => void;
 }) {
   const [document, setDocument] = useState<LooksDocument | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(open);
+  const [wasOpen, setWasOpen] = useState(open);
+  if (wasOpen !== open) {
+    setWasOpen(open);
+    if (open) {
+      setDocument(null);
+      setLoading(true);
+    }
+  }
   useEffect(() => {
     const api = window.llp;
     if (!open || !api) return undefined;
@@ -47,9 +55,5 @@ export function useLookChoices({
       stop();
     };
   }, [open, onProblem]);
-  const prepare = (): void => {
-    setDocument(null);
-    setLoading(true);
-  };
-  return {document, loading, prepare};
+  return {document, loading};
 }

@@ -2,15 +2,17 @@ import {useState, type JSX} from 'react';
 import type {WindowAction} from '@shared/ipc';
 import type {TextImportReadRequest} from '@shared/schema/textImport';
 import {useServiceActions} from '@renderer/prep/services/useServiceActions';
-import {sendLive, useOutputs} from '@renderer/state/live';
+import {sendLive, useLive, useOutputs} from '@renderer/state/live';
 import {Icon, Menu, useTooltip} from '@renderer/ui';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {openOnArrowDown} from '@renderer/ui/menuButton';
 import type {Notice} from '@renderer/ui/notices';
 import {defaultScreens} from './screens';
+import {sendLookChange} from './lookActions';
+import {useLookChoices} from './useLookChoices';
 import styles from './MenuBar.module.css';
 
-// TODO(0913vision): Open the other menus, and add the Looks to 출력 (spec 01).
+// TODO(0913vision): Open the remaining menus (spec 01).
 const inertMenus = ['편집', '보기'] as const;
 const trailingMenus = ['창', '도움말'] as const;
 const OUTPUT_MENU = '출력';
@@ -172,10 +174,12 @@ function FileMenu({
 
 function outputEntries({
   outputs,
+  looks,
   warnings,
   onShowWarning,
 }: {
   readonly outputs: Readonly<Record<string, boolean>>;
+  readonly looks: readonly MenuEntry[];
   readonly warnings: readonly WarningScreen[];
   readonly onShowWarning: (screenId: string) => void;
 }): readonly MenuEntry[] {
@@ -191,10 +195,14 @@ function outputEntries({
         sendLive({type: 'output.set', screenId: screen.id, on: !on}),
     };
   });
-  if (warnings.length === 0) return toggles;
   return [
     ...toggles,
-    {kind: 'separator', id: 'warnings'},
+    ...(looks.length === 0
+      ? []
+      : [{kind: 'separator', id: 'looks'} as const, ...looks]),
+    ...(warnings.length === 0
+      ? []
+      : [{kind: 'separator', id: 'warnings'} as const]),
     ...warnings.map(({screenId, screenName}): MenuEntry => ({
       kind: 'item',
       id: `warning:${screenId}`,
@@ -211,13 +219,34 @@ function OutputMenu({
   warnings,
   onShowWarning,
   control,
+  onProblem,
 }: {
   readonly warnings: readonly WarningScreen[];
   readonly onShowWarning: (screenId: string) => void;
   readonly control: MenuControl;
+  readonly onProblem: (notice: Notice) => void;
 }): JSX.Element {
   const {anchor} = control;
   const outputs = useOutputs();
+  const liveLook = useLive(view =>
+    view.state === null ? undefined : (view.state.lookId ?? null),
+  );
+  const {document} = useLookChoices({
+    open: anchor !== null,
+    onProblem,
+  });
+  const currentLook =
+    liveLook === undefined ? null : (liveLook ?? document?.value.current);
+  const looks: readonly MenuEntry[] = (document?.value.looks ?? []).map(
+    look => ({
+      kind: 'item',
+      id: `look:${look.id}`,
+      label: look.name || '이름 없는 Look',
+      check: 'radio',
+      checked: look.id === currentLook,
+      onSelect: () => sendLookChange(look.id, onProblem),
+    }),
+  );
   return (
     <>
       <MenuTrigger label={OUTPUT_MENU} control={control} />
@@ -226,7 +255,7 @@ function OutputMenu({
           label={OUTPUT_MENU}
           anchor={{kind: 'element', element: anchor}}
           onClose={control.close}
-          entries={outputEntries({outputs, warnings, onShowWarning})}
+          entries={outputEntries({outputs, looks, warnings, onShowWarning})}
         />
       ) : null}
     </>
@@ -294,6 +323,7 @@ export function MenuBar({
           warnings={warnings}
           onShowWarning={onShowWarning}
           control={controlFor(OUTPUT_MENU)}
+          onProblem={onProblem}
         />
         {trailingMenus.map(menu => (
           <InertMenu key={menu} label={menu} />
