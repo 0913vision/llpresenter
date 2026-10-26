@@ -60,71 +60,131 @@ and service files. The folder names and the rest are proposals.
 
 ## Song file (`.llsong`)
 
-Each song is one file.
+Each song is one file. Version 2 uses named groups (user decision, 2026-10-27).
+This replaces version 1's slide-number arrangements.
 
 ```json
 {
   "format": "llsong",
-  "schemaVersion": 1,
-  "id": "6f1c2a9e-...",
-  "title": "만복의 근원 하나님",
-  "background": "3b9d0c52-...",
-  "slides": [
-    {"label": "1절", "lines": ["...", "..."]},
-    {"label": "프리코러스", "lines": ["...", "..."]},
-    {"label": "후렴", "lines": ["...", "..."]},
-    {"label": "", "lines": ["...", "..."]}
+  "schemaVersion": 2,
+  "id": "00000000-0000-4000-8000-000000000001",
+  "title": "Invented song",
+  "groups": [
+    {
+      "id": "00000000-0000-4000-8000-000000000002",
+      "name": "1절",
+      "slides": [{"lines": ["Invented first line"]}]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000003",
+      "name": "후렴",
+      "slides": [{"lines": ["Invented second line"]}]
+    }
   ],
   "arrangements": [
-    {"name": "주일용", "slides": [1, 2, 3, 4, 2, 3, 4, 3, 4]},
-    {"name": "짧게", "slides": [1, 2, 3, 4]}
+    {
+      "name": "주일용",
+      "groups": [
+        "00000000-0000-4000-8000-000000000002",
+        "00000000-0000-4000-8000-000000000003",
+        "00000000-0000-4000-8000-000000000003"
+      ]
+    }
   ]
 }
 ```
 
-| Field                   | Type                        | Required | Meaning                                                                                                                 |
-| ----------------------- | --------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `format`                | `"llsong"`                  | Yes      | File type.                                                                                                              |
-| `schemaVersion`         | Integer                     | Yes      | 1 in version 1.                                                                                                         |
-| `id`                    | String (UUID)               | Yes      | Song ID. A 예배 순서 points to the song with this value.                                                                |
-| `title`                 | String                      | Yes      | Title. It can't be empty. Titles are unique in the 라이브러리 (proposal, see 05).                                       |
-| `background`            | String (media ID) or absent | No       | Default background. If absent, outputting the song doesn't change the background (see 03).                              |
-| `slides`                | Array                       | Yes      | The 슬라이드 list. This order is the default 구성. A song has at least one 슬라이드 (proposal).                         |
-| `slides[].label`        | String                      | No       | 이름표 name. Absent or `""` means no 이름표.                                                                            |
-| `slides[].lines`        | Array of strings            | Yes      | The lines that show on the 슬라이드. Line breaks are exactly this array. An empty array is a blank 슬라이드 (proposal). |
-| `arrangements`          | Array                       | No       | Named 구성. If absent, the song has only the default 구성.                                                              |
-| `arrangements[].name`   | String                      | Yes      | 구성 name. Unique within the song. "기본" (default) is reserved (proposal).                                             |
-| `arrangements[].slides` | Array of integers           | Yes      | The order of 슬라이드 numbers, starting at 1. A number can appear more than once.                                       |
-| `updatedAt`             | String (ISO 8601)           | No       | Time of the last edit (proposal). The duplicate title dialog uses it ("10월 20일 수정", edited October 20).             |
+| Field                     | Type                        | Required | Meaning                                                                                                     |
+| ------------------------- | --------------------------- | -------- | ----------------------------------------------------------------------------------------------------------- |
+| `format`                  | `"llsong"`                  | Yes      | File type.                                                                                                  |
+| `schemaVersion`           | Integer                     | Yes      | 2 for grouped songs.                                                                                        |
+| `id`                      | String (UUID)               | Yes      | Song ID. A 예배 순서 points to the song with this value.                                                    |
+| `title`                   | String                      | Yes      | Title. It can't be empty. Titles are unique in the 라이브러리 (proposal, see 05).                           |
+| `background`              | String (media ID) or absent | No       | Default background. If absent, outputting the song doesn't change the background (see 03).                  |
+| `groups`                  | Nonempty array              | Yes      | Groups in master order. Each slide belongs to exactly one group.                                            |
+| `groups[].id`             | String (UUID v4)            | Yes      | Stable group ID, unique within the song. References use IDs, not names or positions.                        |
+| `groups[].name`           | String                      | Yes      | Group name, such as 1절 or 후렴. Names may repeat; `""` means unnamed.                                      |
+| `groups[].slides`         | Nonempty array              | Yes      | This group's slides in their source order. Lyrics are stored once, even when a group repeats in a 구성.     |
+| `groups[].slides[].lines` | Array of strings            | Yes      | Exact slide lines. An empty array is a blank slide.                                                         |
+| `arrangements`            | Array                       | No       | Named 구성. If absent, the song has only the default 구성.                                                  |
+| `arrangements[].name`     | String                      | Yes      | 구성 name. Unique within the song. "기본" (default) is reserved (proposal).                                 |
+| `arrangements[].groups`   | Array of group IDs          | Yes      | Group occurrences in playback order. Repeated IDs repeat the whole group. All IDs must exist in this song.  |
+| `updatedAt`               | String (ISO 8601)           | No       | Time of the last edit (proposal). The duplicate title dialog uses it ("10월 20일 수정", edited October 20). |
 
 Rules:
 
-- Don't store the default 구성. It's always the file order of `slides`.
+- Don't store the default 구성. It expands every group once in file order.
 - A 구성 belongs to the song, not to any service. A 예배 순서 item picks a 구성
   by name.
 - Don't store 이름표 colors or jump keys in the song file. See the 이름표 list.
-- When you insert, delete, or move a 슬라이드, rewrite the 슬라이드 numbers in
-  every 구성. A deleted 슬라이드 drops out of each 구성, and higher numbers
-  shift down (implementation requirement). If a 구성 becomes empty, keep it, but
-  show it in 진행 like the default 구성 (proposal).
-- Splitting a 슬라이드 expands every reference to it into all its parts, in
-  order. This applies to every split: Enter on an empty line, Ctrl Enter at the
-  cursor, or pasting text with blank lines. For example, `[1, 3, 3]` becomes
-  `[1, 3, 4, 3, 4]` when 슬라이드 3 splits into 3 and 4.
-- Merging blocks with Backspace at the start of a block maps references to the
-  removed block to the merged block. Collapse adjacent duplicates created by
-  that merge: `[2, 3]` becomes `[2]` when 3 merges into 2, and `[3]` also
-  becomes `[2]`. A split or merge never drops lyrics from a 구성; only deleting
-  a 슬라이드 removes its references. See the
-  [lead's October 26 decision](../decisions.md#2026-10-26-a-구성-never-loses-lyrics-through-a-split-or-merge)
-  (`f8c38e2`, amended by `2b5ae57`).
-- Version 1 has no per-슬라이드 images or notes in songs.
-- If a later version adds fields such as a score, version 1 must not remove them
-  (unknown fields are kept).
+- Editing or splitting a slide changes its group's source slides. Every
+  occurrence uses the updated group, without rewriting positional references. A
+  new slide stays in the active group. Deleting the last slide deletes the group
+  and removes its occurrences; keep at least one group and one slide.
+- Moving or renaming a group keeps its ID and all arrangement references.
+  Explicitly splitting a group replaces every occurrence with its parts in
+  order. Backspace merges slides only within one group. At the first slide of
+  any group it does nothing, leaving lyrics, group IDs and all arrangements
+  unchanged. Show the reason in a tooltip: 그룹 경계에서는 슬라이드를 합칠 수
+  없습니다. This applies even when the adjacent groups have the same name.
+  Whole-group references cannot represent every cross-group slide merge. See the
+  [October 26 split/merge decision](../decisions.md#2026-10-26-a-구성-never-loses-lyrics-through-a-split-or-merge).
+- For adjacent single-slide groups A and B, cross-boundary Backspace leaves
+  separate arrangements `[A]` and `[B]` unchanged, leaves reversed `[B, A]`
+  unchanged, and leaves repeated `[A, B, A, B]` unchanged. No special-case merge
+  is attempted for the repeated pairs. Within a group C, merging two source
+  slides changes C's source once and every `[C, C]` occurrence uses the
+  resulting slide. It does not remove either occurrence.
+- An empty named arrangement remains stored and plays the default order, as in
+  version 1. A missing arrangement name also falls back to the default.
+- Keep unknown fields on songs, groups, slides and arrangements.
 
-Source: `Main` song file sample and notes, `Main` decisions "가사는 자체 형식"
-and "곡 구성은 프리셋", product log version 61, design system README (이름표
-colors).
+### Version 1 migration
+
+Validate the complete version 1 file before converting it. A malformed number,
+missing slide or invalid arrangement must fail validation, not disappear.
+
+1. Partition the source slides into maximal adjacent runs with the same `label`.
+   Absent and empty labels both mean unnamed. Nonadjacent runs with the same
+   name remain different groups.
+2. In every stored arrangement, partition its slide numbers into maximal
+   increasing consecutive stretches. For each stretch, mark a cut before its
+   first source slide and after its last. Combine the cuts from all arrangements
+   with the original run boundaries. Empty arrangements add no cuts.
+3. Split each run at those cuts. Give each resulting group a new UUID v4 and the
+   run's name. Keep the source slide order. Consume each slide's known `label`
+   into the group name and retain all its other fields, including unknown nested
+   values.
+4. Replace each arrangement stretch with the IDs of the groups it covers, in
+   order. Keep repeated occurrences and arrangement names. Expanding each
+   migrated arrangement must produce exactly its old slide-number sequence; the
+   default must also remain identical.
+
+For example, source slides 1..3 all named 1절 and arrangement `[3, 1, 2]`
+produce groups A = `[1, 2]` and B = `[3]`, with arrangement `[B, A]`.
+Arrangement `[1, 2, 2, 3]` cuts that run into three groups and becomes
+`[A, B, B, C]`. Cuts required by any arrangement apply to the whole song.
+Migration never duplicates lyric objects or merges nonadjacent groups.
+
+Unknown fields retain their original paths except when a version 1 unknown
+`groups` field occupies a newly defined key on the song or an arrangement. In
+that case preserve its original value under that object's `legacyV1.groups`. If
+`legacyV1` already exists, preserve its entire original value under the new
+`legacyV1.legacyV1` before adding the archived fields. Never overwrite unknown
+data. Known version 1 `slides` fields are consumed by the conversion.
+
+Convert in memory on read. Keep the original file until the first successful
+edit save, with the normal pre-migration recovery copy. New grouped writes use
+version 2. The data schema/migration API lands first; activating it in the store
+and IPC waits until editor, grid, chip and live consumers accept groups. During
+that transition the existing version 1 entry points stay active and must not
+write a grouped file through an old editor. This is a rollout rule, not a second
+permanent song format.
+
+Source: October 27 user decision and Renewed Vision's
+[Using Groups and Arrangements](https://support.renewedvision.com/hc/en-us/articles/360041809973-Using-Groups-and-Arrangements-for-Presentation-Organization),
+checked October 27. The source establishes group tokens and arrangements; the
+JSON shape, migration and rollout rules are this app's contract.
 
 ## Service file (`.llservice`)
 

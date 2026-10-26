@@ -134,9 +134,10 @@ The song editor edits the 라이브러리 song, which is the source for every �
 
 - The label "구성" and a segmented control: 기본 (default), then the song's 구성
   names (주일용, 짧게), then 구성 추가 (add 구성, plus icon).
-- Choosing a 구성 shows the 슬라이드 list on the right in that order (proposal).
-  The order itself is edited in the 예배 순서 item's chip strip (see "예배 순서
-  item settings").
+- A 구성 is an ordered list of named groups, with repeats (October 27 user
+  decision). Choosing it shows the expanded slides on the right. The source
+  editor keeps master group order; repeated group occurrences share the same
+  lyrics. The order is edited in the item's group chip strip (see below).
 - 구성 추가 creates a 구성 that copies the order of the chosen 구성, adds it as
   a new segment, and puts its name into rename mode with the name "구성 1"
   (proposal).
@@ -151,9 +152,14 @@ The song editor edits the 라이브러리 song, which is the source for every �
 
 ### Blocks
 
-- Each block is one 슬라이드. On the left, the block number and the 이름표 chip,
-  a button with a down arrow that reads "이름표" when the 슬라이드 has none. On
-  the right, the lines, edited in place without field chrome.
+- Source blocks are organized into named groups, such as 1절 and 후렴. A group
+  contains one or more slides. Show its 이름표 chip at the group start; unnamed
+  groups show 이름표. The name comes from the group, not an independent label on
+  each slide. Names may repeat, and different groups with the same name remain
+  distinct. Show their source position to distinguish them in menus.
+- Each block is one 슬라이드. Show its source number on the left and edit its
+  lines on the right without field chrome. Editing a repeated group's source
+  updates every occurrence.
 - The block that holds the cursor is active. It has a lighter background and a
   blue bar at its left edge.
 - Editing rules (proposal, our design: ProPresenter's Reflow editor shows the
@@ -163,11 +169,18 @@ The song editor edits the 라이브러리 song, which is the source for every �
   - Enter starts a new line in the same block.
   - Enter on an empty line splits the block there. The empty line goes away, and
     the lines after it become a new block.
-  - Backspace at the start of a block merges it into the previous block.
+  - Backspace at the start of a block merges it into the previous block only
+    within the same group. At a group's first slide it does nothing, with the
+    tooltip 그룹 경계에서는 슬라이드를 합칠 수 없습니다 (02). Lyrics and all
+    arrangements remain unchanged, including separate, reversed and repeated
+    uses of the two adjacent groups.
   - Pasting text with blank lines splits it into blocks at the blank lines.
   - The up and down arrow keys move between lines and across blocks.
-- When blocks are inserted, deleted, merged, or moved, rewrite the 슬라이드
-  numbers in every 구성 (see 02).
+- Inserting or splitting a block keeps the new slide in its group. Group IDs
+  keep arrangement references stable when slides move. Splitting a group
+  replaces each occurrence with its parts in order. Cross-group Backspace is
+  refused as defined in 02, even when the two groups share a name or every
+  current occurrence happens to use them together.
 - Ctrl Z undoes edits for the current session, and Ctrl Y or Ctrl Shift Z redoes
   them (decided; Ctrl Y follows ProPresenter, S1). Each song has its own history
   while the app runs, up to 100 steps; the oldest step drops off past that.
@@ -186,12 +199,14 @@ The song editor edits the 라이브러리 song, which is the source for every �
   - A separator, then the color row of the current 이름표 (for example "후렴
     색", chorus color): 없음 (none) and the eight colors.
   - A separator, then 새 이름표 (new 이름표).
-- Choosing a name sets the 슬라이드's `label` to that name.
+- Choosing a name sets the group's `name`. Starting a new group at a slide
+  splits the current group there, retaining every arrangement's slide order
+  (02). Renaming one group does not merge it with another same-named group.
 - Choosing a color in the color row changes that 이름표's color in the app-wide
-  list at once, and the menu stays open. Every 슬라이드 with that 이름표, in
-  every song, changes color.
+  list at once, and the menu stays open. Every group with that name, in every
+  song, changes color.
 - 새 이름표 opens a name field in the menu. Enter adds the name to the end of
-  the list with no color and sets it on the block (proposal).
+  the list with no color and sets it on the group (proposal).
 
 ### Managing the 이름표 list (proposal)
 
@@ -238,18 +253,19 @@ settings) panel.
   The menu lists 기본 and the song's 구성. It also has 새 구성 (new 구성), which
   creates a 구성 in the song as a copy of the current order and chooses it
   (proposal).
-- Chip strip: one chip per position in the sequence. A chip shows the 이름표
-  name in its color, or the 슬라이드 number when the 슬라이드 has no 이름표, and
-  a grip.
+- Chip strip: one chip per group occurrence, showing its name in the 이름표
+  color and a grip. Unnamed groups show 이름표 없음 and their source position.
+  Repeated group IDs produce repeated chips, not duplicated source slides.
   - Dragging a chip reorders the sequence. Alt+← and Alt+→ move the selected
     chip one place.
-  - Delete removes that position from the 구성. It never removes the 슬라이드
-    from the song.
-  - 슬라이드 넣기 (insert 슬라이드, plus box) at the end opens a menu of the
-    song's 슬라이드, each shown as its 이름표 name or number and its first line
-    (proposal), and appends the chosen 슬라이드.
-  - Selecting a chip also selects the matching thumbnail. The chip of the live
-    position has the on-output ring.
+  - Delete removes that group occurrence from the 구성. It never deletes the
+    source group or its slides.
+  - 그룹 넣기 (insert group, plus box) opens the song's groups in master order,
+    with name, source position and first line, and appends the chosen group. The
+    same group may be inserted more than once.
+  - Selecting a chip selects the first thumbnail of that occurrence. The chip
+    containing the live slide has the on-output ring. Repeated occurrences have
+    distinct sequence positions even though they reference one group.
   - Chip edits change the chosen 구성 in the song file. So they show in every
     예배 순서 that uses that 구성 (product log version 61, open question).
   - With 기본 chosen, the chips are read-only, with the reason in a tooltip
