@@ -19,6 +19,7 @@ export const quickTimerCreateSchema = v.pipe(
       v.minValue(1),
       v.maxValue(MAX_TIMER_SECONDS),
     ),
+    overrun: v.exactOptional(v.boolean()),
   }),
   v.check(
     edit => String(edit.quickItemId) !== edit.timerId,

@@ -9,6 +9,8 @@ import {withinLookupTimeout} from '@renderer/state/showOutput';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import type {EditResult} from '@shared/schema/contentEdit';
 import {MAX_QUICK_ITEMS} from '@shared/schema/quick';
+import {isKnownQuickItem} from '@shared/schema/quick';
+import type {QuickTimerEdit} from '@shared/schema/quickTimerEdit';
 
 export {MAX_QUICK_ITEMS} from '@shared/schema/quick';
 export const QUICK_NAME_LIMIT = 256;
@@ -19,6 +21,10 @@ export type QuickChoice = {
 }[QuickItemKind];
 
 export type QuickEdit =
+  | (Omit<
+      Extract<QuickTimerEdit, {type: 'quick.timer.create'}>,
+      'type' | 'name'
+    > & {readonly kind: 'timer-add'})
   | {readonly kind: 'add'; readonly item: KnownQuickItem}
   | {
       readonly kind: 'rename';
@@ -44,7 +50,7 @@ export function quickNameReason(name: string): string | undefined {
 
 function applyEdit(
   items: readonly QuickItem[],
-  edit: QuickEdit,
+  edit: Exclude<QuickEdit, {kind: 'timer-add'}>,
 ): readonly QuickItem[] {
   switch (edit.kind) {
     case 'add':
@@ -105,11 +111,34 @@ async function sendQuickEdit(
   edit: QuickEdit,
   attempt = 0,
 ): Promise<EditResult> {
+  if (edit.kind === 'timer-add') {
+    return api.settings.edit({
+      type: 'quick.timer.create',
+      name: 'quick',
+      quickItemId: edit.quickItemId,
+      timerId: edit.timerId,
+      duration: edit.duration,
+      ...(edit.overrun === undefined ? {} : {overrun: edit.overrun}),
+    });
+  }
   const document = await withinLookupTimeout(() =>
     api.settings.get({name: 'quick'}),
   );
   if (document.name !== 'quick' || document.access !== 'editable') {
     throw new Error('Quick settings cannot be edited');
+  }
+  if (edit.kind === 'rename') {
+    const item = document.value.items.find(item => item.id === edit.id);
+    if (item && isKnownQuickItem(item) && item.kind === 'timer') {
+      if (quickNameReason(edit.name))
+        throw new Error('Invalid quick item name');
+      return api.settings.edit({
+        type: 'quick.timer.rename',
+        name: 'quick',
+        quickItemId: item.id,
+        timerName: edit.name.trim(),
+      });
+    }
   }
   const items = applyEdit(document.value.items, edit);
   if (items === document.value.items) {

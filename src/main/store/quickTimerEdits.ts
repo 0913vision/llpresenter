@@ -104,7 +104,8 @@ function createTimer(
       item.kind === 'timer' &&
       item.ref === edit.timerId &&
       timer?.kind === 'countdown' &&
-      timer.duration === edit.duration
+      timer.duration === edit.duration &&
+      (timer.overrun ?? true) === (edit.overrun ?? true)
     ) {
       return unchanged(current, edit.quickItemId);
     }
@@ -131,7 +132,13 @@ function createTimer(
         ...timers.value,
         timers: [
           ...timers.value.timers,
-          {id: edit.timerId, kind: 'countdown', name, duration: edit.duration},
+          {
+            id: edit.timerId,
+            kind: 'countdown',
+            name,
+            duration: edit.duration,
+            ...(edit.overrun === undefined ? {} : {overrun: edit.overrun}),
+          },
         ],
       },
     },

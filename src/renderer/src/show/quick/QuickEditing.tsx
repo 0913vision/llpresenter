@@ -24,6 +24,7 @@ import {
   type QuickChoice,
   type QuickEdit,
 } from './quickEdits';
+import {QuickTimerDialog} from './QuickTimerDialog';
 
 type Save = (edit: QuickEdit) => Promise<boolean>;
 
@@ -73,17 +74,18 @@ function QuickAddMenu({
   api,
   anchor,
   onAdd,
+  onAddTimer,
   onClose,
   onProblem,
 }: {
   readonly api: LlpApi;
   readonly anchor: MenuAnchor;
   readonly onAdd: (choice: QuickChoice) => void;
+  readonly onAddTimer: () => void;
   readonly onClose: () => void;
   readonly onProblem: (notice: Notice) => void;
 }): JSX.Element {
   const props = useSettingsDocument('props', '소품', onProblem);
-  const timers = useSettingsDocument('timers', '타이머', onProblem);
   const macros = useSettingsDocument('macros', '매크로', onProblem);
   const view = useShow();
   const [current, setCurrent] = useState<{
@@ -159,13 +161,7 @@ function QuickAddMenu({
             entry(item.id, {kind: 'prop', name: item.name, ref: item.id}),
           ) ?? [],
         ),
-        group(
-          'timers',
-          '타이머',
-          timers?.value.timers.map(item =>
-            entry(item.id, {kind: 'timer', name: item.name, ref: item.id}),
-          ) ?? [],
-        ),
+        {kind: 'item', id: 'timer', label: '타이머', onSelect: onAddTimer},
         group(
           'macros',
           '매크로',
@@ -191,6 +187,7 @@ export function QuickAdd({
   readonly onProblem: (notice: Notice) => void;
 }): JSX.Element {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  const [addingTimer, setAddingTimer] = useState(false);
   const open = anchor !== null;
   return (
     <>
@@ -216,12 +213,20 @@ export function QuickAdd({
           anchor={{kind: 'element', element: anchor}}
           onClose={() => setAnchor(null)}
           onProblem={onProblem}
+          onAddTimer={() => setAddingTimer(true)}
           onAdd={choice => {
             save({kind: 'add', item: newQuickItem(choice)}).catch(
               (cause: unknown) =>
                 console.error('Quick add callback failed:', cause),
             );
           }}
+        />
+      ) : null}
+      {addingTimer ? (
+        <QuickTimerDialog
+          locked={locked}
+          save={save}
+          onClose={() => setAddingTimer(false)}
         />
       ) : null}
     </>

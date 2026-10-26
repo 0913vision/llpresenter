@@ -91,6 +91,46 @@ function setup() {
     return base.get(request);
   });
   const edit = vi.fn<LlpApi['settings']['edit']>(change => {
+    if (change.type === 'quick.timer.rename') {
+      push({
+        ...document,
+        revision: document.revision + 1,
+        value: {
+          ...document.value,
+          items: document.value.items.map(item =>
+            item.id === change.quickItemId
+              ? {...item, name: change.timerName}
+              : item,
+          ),
+        },
+      });
+      return Promise.resolve({
+        ok: true,
+        value: {id: change.quickItemId, revision: document.revision},
+      });
+    }
+    if (change.type === 'quick.timer.create') {
+      push({
+        ...document,
+        revision: document.revision + 1,
+        value: {
+          ...document.value,
+          items: [
+            ...document.value.items,
+            {
+              id: change.quickItemId,
+              kind: 'timer',
+              ref: change.timerId,
+              name: '타이머 1',
+            },
+          ],
+        },
+      });
+      return Promise.resolve({
+        ok: true,
+        value: {id: change.quickItemId, revision: document.revision},
+      });
+    }
     if (change.type !== 'settings.update' || change.name !== 'quick') {
       throw new Error('Unexpected edit');
     }
@@ -192,7 +232,6 @@ describe('quick editing', () => {
   });
   it.each([
     {group: '소품', name: '소품 대상', kind: 'prop'},
-    {group: '타이머', name: '타이머 대상', kind: 'timer'},
     {group: '매크로', name: '매크로 대상', kind: 'macro'},
   ])(
     'adds a $kind from its submenu without output',

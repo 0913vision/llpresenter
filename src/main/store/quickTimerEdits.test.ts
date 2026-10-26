@@ -95,6 +95,32 @@ function setup(options: FixtureOptions = {}) {
 }
 
 describe('paired quick timer edits', () => {
+  it.each([true, false])(
+    'persists overrun %s and only replays the same timer configuration',
+    async overrun => {
+      const f = setup();
+      expect(await f.save({...create(), overrun})).toMatchObject({ok: true});
+      expect(f.timers().value.timers[0]).toMatchObject({overrun});
+      expect(await f.save({...create(), overrun})).toMatchObject({ok: true});
+      expect(await f.save({...create(), overrun: !overrun})).toMatchObject({
+        ok: false,
+        error: {reason: 'invalid'},
+      });
+      expect(f.quick().value.items).toHaveLength(1);
+      expect(f.timers().value.timers).toHaveLength(1);
+      expect(f.write).toHaveBeenCalledTimes(2);
+    },
+  );
+
+  it('treats omitted and explicit continue as the same configuration on retry', async () => {
+    const f = setup();
+    expect(await f.save(create())).toMatchObject({ok: true});
+    expect(await f.save({...create(), overrun: true})).toMatchObject({
+      ok: true,
+    });
+    expect(f.quick().value.items).toHaveLength(1);
+    expect(f.write).toHaveBeenCalledTimes(2);
+  });
   it('separates legacy shared references once, preserving the first ID, row order and unknown fields', async () => {
     const f = setup({
       quickItems: [1, 2, 3].map(n => ({
