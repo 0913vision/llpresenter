@@ -132,4 +132,16 @@ missing.
 
 ## Team member's reply
 
-1.
+Round 1 (codex4, Request changes):
+
+1. [P2] A stale resolution after a Windows scale change: fixed. While an output
+   window shows the pattern, the view watches
+   `matchMedia('(resolution: <ratio>dppx)')`. On a change it relabels and
+   re-arms the query for the new ratio, so each later change is caught too (a
+   NOTE says why). It arms once per showing, not on every redraw, stops on hide,
+   and stops on dispose. A preview never watches, since it prints no resolution.
+   Test: at a fixed CSS size of 1280 x 720, the label reads 1280×720 at ratio 1
+   and 1920×1080 after the ratio becomes 1.5 and the query reports it. One query
+   listens at a time (the old one is released), two redraws make one query, and
+   hiding and dispose leave no listener. Each of these fails a test when
+   reverted (`.llp/output-39/mutations.log`).
