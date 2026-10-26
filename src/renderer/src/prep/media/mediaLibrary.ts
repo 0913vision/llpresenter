@@ -320,6 +320,11 @@ export class MediaLibrary {
     );
   }
 
+  /** 파일 위치 열기: main shows the file in Explorer, if it is in a media folder. */
+  reveal(mediaId: MediaId): void {
+    this.api.media.reveal(mediaId);
+  }
+
   /** 복사 멈추기. A job that already ended changes nothing. */
   async cancel(mediaId: MediaId, name: string): Promise<void> {
     const result = await this.api.media

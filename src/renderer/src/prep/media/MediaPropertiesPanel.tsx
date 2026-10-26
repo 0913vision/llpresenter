@@ -13,6 +13,7 @@ import {Slider} from '@renderer/ui/Slider';
 import {Switch} from '@renderer/ui/Switch';
 import {TextField} from '@renderer/ui/TextField';
 import {durationText, sizeText} from './mediaEntries';
+import {MediaPreviewPlayer} from './MediaPreviewPlayer';
 import {
   parseTime,
   shownProps,
@@ -268,11 +269,12 @@ function MediaInfo({item}: {readonly item: MediaItem}): JSX.Element {
 
 /**
  * The right column of the media view (spec 05, "Properties"): the selected
- * media's playback properties in 속성, which save at once, and its file in
- * 정보. 전환 and 소리 wait until they are defined (spec 05's proposal).
+ * media's preview player, its playback properties in 속성, which save at
+ * once, and its file in 정보. 전환 and 소리 wait until they are defined (spec
+ * 05's proposal).
  */
 export function MediaPropertiesPanel(): JSX.Element {
-  const {view, selected} = useMediaView();
+  const {library, view, selected} = useMediaView();
   const [tab, setTab] = useState<Tab>('props');
   const item =
     view.document?.value.items.find(({id}) => id === selected) ?? null;
@@ -292,10 +294,20 @@ export function MediaPropertiesPanel(): JSX.Element {
       <PanelBody tab={tab}>
         {item === null ? (
           <p className={styles.empty}>선택한 미디어 없음</p>
-        ) : tab === 'props' ? (
-          <MediaProperties key={item.id} item={item} disabled={disabled} />
         ) : (
-          <MediaInfo item={item} />
+          <>
+            <MediaPreviewPlayer
+              key={item.id}
+              item={item}
+              missing={view.missing.has(item.id)}
+              onReveal={() => library.reveal(item.id)}
+            />
+            {tab === 'props' ? (
+              <MediaProperties key={item.id} item={item} disabled={disabled} />
+            ) : (
+              <MediaInfo item={item} />
+            )}
+          </>
         )}
       </PanelBody>
     </Panel>

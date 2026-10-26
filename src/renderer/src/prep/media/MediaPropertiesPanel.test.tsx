@@ -253,4 +253,15 @@ describe('media properties panel', () => {
     fireEvent.click(within(panel).getByRole('radio', {name: '멈춤'}));
     expect(edit).not.toHaveBeenCalled();
   });
+
+  it('previews the selected media and opens its file location', async () => {
+    const fixture = setup();
+    const reveal = vi.spyOn(fixture.api.media, 'reveal');
+    const panel = await choose('Dawn');
+    expect(panel.querySelector('video')).not.toBeNull();
+    fireEvent.click(
+      within(panel).getByRole('button', {name: '파일 위치 열기'}),
+    );
+    expect(reveal).toHaveBeenCalledExactlyOnceWith(mediaId(1));
+  });
 });
