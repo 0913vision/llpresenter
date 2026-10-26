@@ -401,6 +401,17 @@ describe('preload', () => {
     expect(electron.send.mock.calls[1]?.[0]).toBe(Channels.logWrite);
   });
 
+  it('sends a checked reveal of a media file', () => {
+    electron.send.mockClear();
+    api.media.reveal(createMediaId(SONG_ID));
+    Reflect.apply(api.media.reveal, undefined, ['bad']);
+    expect(electron.send.mock.calls[0]).toEqual([
+      Channels.mediaReveal,
+      {mediaId: SONG_ID},
+    ]);
+    expect(electron.send.mock.calls[1]?.[0]).toBe(Channels.logWrite);
+  });
+
   it('sends a save retry without a payload', () => {
     api.problems.retrySaves();
     expect(electron.send.mock.calls).toEqual([[Channels.appProblemRetrySaves]]);

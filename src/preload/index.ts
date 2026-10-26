@@ -77,6 +77,7 @@ import {
 } from '@shared/schema/mediaEdit';
 import {
   parseMediaCheckRequest,
+  parseMediaRevealRequest,
   parseMissingMedia,
 } from '@shared/schema/mediaFiles';
 import {
@@ -411,6 +412,14 @@ const api: LlpApi = {
         return;
       }
       ipcRenderer.send(Channels.mediaCheck, parsed.value);
+    },
+    reveal: mediaId => {
+      const parsed = parseMediaRevealRequest({mediaId});
+      if (!parsed.ok) {
+        logBadValue('request', Channels.mediaReveal, parsed.error);
+        return;
+      }
+      ipcRenderer.send(Channels.mediaReveal, parsed.value);
     },
   },
   library: {

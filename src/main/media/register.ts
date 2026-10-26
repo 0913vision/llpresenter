@@ -1,12 +1,22 @@
 import {randomUUID} from 'node:crypto';
-import {dialog, ipcMain, type BrowserWindow, type IpcMainEvent} from 'electron';
+import {
+  dialog,
+  ipcMain,
+  shell,
+  type BrowserWindow,
+  type IpcMainEvent,
+} from 'electron';
 import {Channels} from '@shared/ipc';
 import {createMediaId} from '@shared/schema/ids';
 import type {MediaImportProgress} from '@shared/schema/mediaEdit';
-import {parseMediaCheckRequest} from '@shared/schema/mediaFiles';
+import {
+  parseMediaCheckRequest,
+  parseMediaRevealRequest,
+} from '@shared/schema/mediaFiles';
 import type {Logger} from '../log';
 import {broadcast} from '../store/contentChannels';
 import type {MediaBackendPort} from '../store/mediaChannels';
+import {realPathInside} from '../windows/insideRoots';
 import type {WindowMode} from '../windows/testWindows';
 import type {MediaAnalysis} from './analysis';
 import {MediaImporter, type ImportStore} from './mediaImporter';
@@ -15,7 +25,12 @@ import {MediaRelinker, type RelinkStore} from './mediaRelinker';
 import {MissingFiles, type MissingFilesSource} from './missingFiles';
 
 /** What the media backend uses of the media store. */
-export type MediaBackendStore = ImportStore & RelinkStore & MissingFilesSource;
+export type MediaBackendStore = ImportStore &
+  RelinkStore &
+  MissingFilesSource & {
+    /** The folders media files may come from; 파일 위치 열기 stays inside them. */
+    readonly roots: readonly string[];
+  };
 
 /** The arguments of {@link registerMediaBackend}. */
 export interface MediaBackendRegistration {
@@ -112,10 +127,48 @@ function watchMissingFiles({media, log}: MediaBackendRegistration): {
   };
 }
 
+// NOTE(0913vision): A window names only a media id, and the file must be
+// inside the media folders after links are followed, as the media scheme
+// checks, so 파일 위치 열기 can't open any other path.
+async function revealFile(
+  media: Promise<MediaBackendStore | null>,
+  mediaId: string,
+  log: Logger,
+): Promise<void> {
+  const store = await media;
+  const file = store?.fileOf(mediaId) ?? null;
+  const inside =
+    store === null || file === null
+      ? null
+      : await realPathInside(file, store.roots);
+  if (inside === null) {
+    log.info('no media file to reveal inside the media folders', {mediaId});
+    return;
+  }
+  shell.showItemInFolder(inside);
+}
+
+function listenForReveals({media, log}: MediaBackendRegistration): () => void {
+  const reveal = (_event: IpcMainEvent, value: unknown): void => {
+    const parsed = parseMediaRevealRequest(value);
+    if (!parsed.ok) {
+      log.warn('dropped a malformed media reveal', parsed.error);
+      return;
+    }
+    revealFile(media, parsed.value.mediaId, log).catch((error: unknown) => {
+      log.error('could not reveal a media file', error);
+    });
+  };
+  ipcMain.on(Channels.mediaReveal, reveal);
+  return () => {
+    ipcMain.removeListener(Channels.mediaReveal, reveal);
+  };
+}
+
 /**
  * Connects the media backend to the media channels: the import dialog on the
  * control window, copying into the media folder with progress and analysis,
- * cancelling, relinking a file, and the missing file check. Never throws: a
+ * cancelling, relinking a file, the missing file check, and 파일 위치 열기. Never throws: a
  * backend that can't connect is logged, and the missing file check still runs.
  *
  * @returns A function that cancels every import job, waits for the running
@@ -139,6 +192,7 @@ export function registerMediaBackend(
     log: options.log,
   });
   const missing = watchMissingFiles(options);
+  const stopReveals = listenForReveals(options);
   const relinker = new MediaRelinker({
     store: () => options.media,
     chooseFile: relinkDialog(options),
@@ -159,6 +213,7 @@ export function registerMediaBackend(
     };
     return async () => {
       missing.dispose();
+      stopReveals();
       await importer.dispose();
       connection.disconnect();
     };
@@ -166,6 +221,7 @@ export function registerMediaBackend(
     options.log.error('could not connect the media backend', error);
     return () => {
       missing.dispose();
+      stopReveals();
       return importer.dispose();
     };
   }

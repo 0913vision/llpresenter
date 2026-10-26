@@ -120,6 +120,7 @@ export const Channels = {
   mediaMissing: 'media:missing',
   mediaMissingGet: 'media:missing:get',
   mediaCheck: 'media:check',
+  mediaReveal: 'media:reveal',
   recoverySummary: 'recovery:summary',
   recoveryApply: 'recovery:apply',
   recoveryStartFresh: 'recovery:start-fresh',
@@ -362,6 +363,8 @@ export interface LlpApi {
     subscribeMissing(listener: (missing: MissingMedia) => void): Unsubscribe;
     /** Asks main to check one media file again, as after it failed to play. */
     check(mediaId: MediaId): void;
+    /** Shows the media file in Explorer (파일 위치 열기). */
+    reveal(mediaId: MediaId): void;
   };
   readonly library: {
     /** Searches main's index; rejects and logs malformed requests or replies. */

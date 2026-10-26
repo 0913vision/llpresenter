@@ -113,6 +113,7 @@ export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
       missing: () => Promise.resolve([]),
       subscribeMissing: () => () => undefined,
       check: () => undefined,
+      reveal: () => undefined,
       ...overrides.media,
     },
     library: {
