@@ -42,15 +42,18 @@ Target submenus, reorder and service-row drag/drop follow separately. Black
 execution and the remaining Bible display options still need their additive
 contract and renderer units; the stored black entry remains disabled for now.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict:
-- Findings:
-
-## Review: reviewer
-
-- Verdict:
-- Findings:
+- Round 1 (Codex, codex5): Request changes: the read-before-write operation
+  bypassed the close gate, so closing during a pending read could lose an edit,
+  and an applied `write-failed` edit was reported as rejected, which could add a
+  duplicate row on retry.
+- Round 2 (7ceae0e7): reviewer (Codex, codex5) Approve, no findings. Lead
+  Approve. Changes outside tools' paths (`createQuickItemId` in
+  `shared/schema/ids.ts` with valid and invalid tests) checked. Rebased by the
+  lead onto local `main` after the 0.15.0 bump without conflicts; typecheck
+  passes. M3-T4b (퀵 실행 add, rename, delete) is complete; target submenus,
+  reorder and drag and drop follow.
 
 ## Team member's reply
 
