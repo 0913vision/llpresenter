@@ -15,9 +15,9 @@ the background. Supported saved Bible passages reopen at their first verse
 through the existing output/history path.
 
 Delayed reads time out and are discarded after another action, selection, clear,
-settings replacement, typing in the Bible field, or unmount. Explicit
-service-row reselection cancels them too. Quick actions cancel an older field
-lookup. Unknown kinds stay visible and disabled.
+settings replacement, typing or choosing a suggestion in the Bible field, or
+unmount. Explicit service-row reselection cancels them too. Quick actions cancel
+an older field lookup. Unknown kinds stay visible and disabled.
 
 ## Changed files and changes outside my paths
 
@@ -42,12 +42,13 @@ the fake API default fixes them. Final head CI is in the report.
 ## Remaining units and shared contract request
 
 Add menu, drag/drop, reorder, rename and delete follow in the next request.
-Black stays disabled pending data/output's built-in black prop contract:
-`prop.set` currently requires a saved prop ID and neither stored nor live prop
-content supports a black fill. The lead was asked to assign this contract. Saved
-Bible options beyond the approved panel's numbered one-verse slides, without
-reference or translation-name text, stay disabled with a reason rather than
-being silently ignored. Full T4b remains open for those options and black.
+Black stays disabled until the following additive contract unit: `prop.set`
+currently requires a saved prop ID and neither stored nor live prop content
+supports a black fill. The lead authorized tools to add the contract in its own
+request. Saved Bible options beyond the approved panel's numbered one-verse
+slides, without reference or translation-name text, stay disabled with a reason
+rather than being silently ignored. Full T4b remains open for those options and
+black.
 
 ## Review: lead
 
@@ -61,4 +62,12 @@ being silently ignored. Full T4b remains open for those options and black.
 
 ## Team member's reply
 
-None yet.
+1. Addressed round-1 P2. `BibleReferenceField` now reports reference intent
+   explicitly when its value changes, including suggestion selection by mouse or
+   keyboard. `BibleQuickField` forwards it to the quick runner's cancellation
+   callback. The panel no longer depends on a captured DOM change event. Two
+   deferred integration cases choose a recent passage, resolve the older song
+   first, and verify that it produces no output and leaves the field intact.
+   They then resolve the chosen Bible lookup and verify that Enter outputs it.
+   Both cases reproduced the failure before the fix. Final checks and exact-head
+   CI are in the round-2 report.

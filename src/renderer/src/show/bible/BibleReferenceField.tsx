@@ -19,6 +19,7 @@ export interface BibleReferenceFieldProps {
   readonly recents: readonly RecentPassage[];
   readonly onPreview: (passage: BibleLookupPassage) => void;
   readonly onShow: (passage: BibleLookupPassage) => void;
+  readonly onIntent?: (() => void) | undefined;
 }
 
 /** A reference combobox; choosing a different suggestion previews before output. */
@@ -62,6 +63,7 @@ export function BibleReferenceField(
     setPointedKey(suggestions[index]?.key ?? null);
   const expanded = translation !== undefined && open && suggestions.length > 0;
   const change = (value: string): void => {
+    props.onIntent?.();
     setInput(value);
     setPointedKey(null);
     setOpen(true);

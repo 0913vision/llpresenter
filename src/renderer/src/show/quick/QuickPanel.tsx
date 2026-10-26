@@ -60,12 +60,11 @@ export function QuickPanel({
         <PanelTitle title="퀵 실행" />
       </PanelHeader>
       <PanelTools>
-        <div onChangeCapture={() => runner?.cancel()}>
-          <BibleQuickField
-            api={api}
-            selectionVersion={selectionVersion + activationVersion}
-          />
-        </div>
+        <BibleQuickField
+          api={api}
+          selectionVersion={selectionVersion + activationVersion}
+          onIntent={() => runner?.cancel()}
+        />
       </PanelTools>
       <PanelBody variant="flush">
         <div role="group" aria-label="퀵 실행 항목">

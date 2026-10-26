@@ -47,6 +47,58 @@ afterEach(() => {
 });
 
 describe('quick panel integration', () => {
+  it.each(['mouse', 'keyboard'])(
+    'cancels a pending song when a recent passage is chosen with %s',
+    async method => {
+      const fixture = quickFixture();
+      window.llp = fixture.api;
+      const recent = lookupRequest('창세기 1:1');
+      const document = fixture.document();
+      fixture.push({
+        ...document,
+        value: {
+          ...document.value,
+          recents: [
+            {
+              ref: recent.input,
+              translation: recent.translation,
+            },
+          ],
+        },
+      });
+      const song = deferred<typeof fixture.song | null>();
+      const passage = deferred<BibleLookupReply>();
+      fixture.showSong.mockReturnValueOnce(song.promise);
+      fixture.lookup.mockReturnValueOnce(passage.promise);
+      render(<QuickPanel selectionVersion={0} onProblem={vi.fn()} />);
+      fireEvent.click(await screen.findByRole('button', {name: '저장된 곡'}));
+      const field = screen.getByRole<HTMLInputElement>('combobox');
+      await waitFor(() => expect(field.disabled).toBe(false));
+      fireEvent.focus(field);
+      if (method === 'mouse') {
+        fireEvent.click(screen.getByRole('option', {name: recent.input}));
+      } else {
+        fireEvent.keyDown(field, {key: 'ArrowDown'});
+        fireEvent.keyDown(field, {key: 'Enter'});
+      }
+      await waitFor(() => expect(fixture.lookup).toHaveBeenCalledWith(recent));
+      await act(async () => song.resolve(fixture.song));
+      expect(fixture.send).not.toHaveBeenCalled();
+      expect(useShow.getState().librarySong).toBeNull();
+      expect(screen.getByRole<HTMLInputElement>('combobox').value).toBe(
+        recent.input,
+      );
+      await act(async () => passage.resolve(lookupReply(recent)));
+      expect(useShow.getState().bibleSource?.passage.ref).toBe(recent.input);
+      fireEvent.keyDown(screen.getByRole('combobox'), {key: 'Enter'});
+      expect(fixture.send).toHaveBeenCalledOnce();
+      expect(fixture.send.mock.calls[0]?.[0]).toMatchObject({
+        type: 'slide.show',
+        slide: {position: 0},
+      });
+      await waitFor(() => expect(fixture.edit).toHaveBeenCalledOnce());
+    },
+  );
   it.each(['narrow', 'normal', 'wide'] as const)(
     'mounts the persisted list in order in the %s workspace',
     async sizeClass => {

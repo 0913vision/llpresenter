@@ -10,9 +10,11 @@ import {openBiblePassage, showBiblePassage} from '../bible/actions';
 export function BibleQuickField({
   api,
   selectionVersion = 0,
+  onIntent,
 }: {
   readonly api: LlpApi;
   readonly selectionVersion?: number;
+  readonly onIntent?: (() => void) | undefined;
 }): JSX.Element {
   const [document, setDocument] = useState<Extract<
     SettingsDocument,
@@ -55,6 +57,7 @@ export function BibleQuickField({
         (translations.find(item => item.default) ?? translations[0])?.id
       }
       recents={document?.value.recents ?? []}
+      onIntent={onIntent}
       onPreview={openBiblePassage}
       onShow={showBiblePassage}
     />
