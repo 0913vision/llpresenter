@@ -45,13 +45,18 @@ const electron = await vi.hoisted(async () => {
       this.onTop = flag;
     });
     readonly isAlwaysOnTop = vi.fn(() => this.onTop);
-    readonly isVisible = vi.fn(() => false);
-    readonly showInactive = vi.fn();
+    visible = false;
+    readonly isVisible = vi.fn(() => this.visible);
+    readonly showInactive = vi.fn(() => {
+      this.visible = true;
+    });
     readonly show = vi.fn();
     readonly focus = vi.fn();
     readonly moveTop = vi.fn();
     readonly isMinimized = vi.fn(() => false);
-    readonly hide = vi.fn();
+    readonly hide = vi.fn(() => {
+      this.visible = false;
+    });
     readonly removeMenu = vi.fn();
     readonly isDestroyed = vi.fn(() => false);
     readonly destroy = vi.fn();
@@ -427,6 +432,23 @@ describe('createElectronOutputWindow normal', () => {
     output.showFullScreen(MONITOR, true);
     expect(win.setBounds).not.toHaveBeenCalled();
     expect(win.showInactive).toHaveBeenCalledOnce();
+  });
+  it('raises a non-topmost output once on show and never keeps raising it', async () => {
+    const clock = installFakeClock();
+    const control = fakeControl();
+    const output = openOutput('normal', control);
+    const win = lastWindow();
+    output.showFullScreen(MONITOR, false);
+    expect(win.moveTop).toHaveBeenCalledOnce();
+    expect(win.setAlwaysOnTop).toHaveBeenLastCalledWith(false);
+    expect(control.moveAbove).not.toHaveBeenCalled();
+    await clock.advance(ON_TOP_CHECK_MS * 3);
+    expect(win.moveTop).toHaveBeenCalledOnce();
+    output.bringToFront();
+    expect(win.moveTop).toHaveBeenCalledTimes(2);
+    output.hide();
+    output.showFullScreen(MONITOR, false);
+    expect(win.moveTop).toHaveBeenCalledTimes(3);
   });
   it.each(['window', 'capture'] as const)(
     'honors an explicit always-on-top choice in %s mode without raising the control',

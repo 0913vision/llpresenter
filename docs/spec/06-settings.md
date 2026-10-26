@@ -133,7 +133,8 @@ Source: `Screens`, `Looks`, `StageEditor`, `Main` board guide (화면 설정, Lo
 ### Screen properties
 
 Note: the proposal in 10 would remove the 절전 막기 row (fixed on while any
-output is on) and make the 항상 위 default depend on the method.
+output is on). 항상 위 defaults off for every method and can be enabled in the
+screen's properties (user decision, m3-check3).
 
 | Group              | Row                                   | Control                                                                           | Behavior                                                                                                                                                   |
 | ------------------ | ------------------------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |

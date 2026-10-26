@@ -29,8 +29,13 @@ Rules for output windows:
 
 - Never show dialogs, tooltips, notifications, or menus in an output window. If
   an error happens in an output window, log it and keep the last good picture.
-- A full screen output window never takes focus and hides the mouse cursor
-  (proposal). The main window always receives keyboard input.
+- A full screen output window never takes focus. The mouse pointer stays visible
+  over every output, including when 항상 위 is on (user decision, m3-check3).
+  The main window always receives keyboard input.
+- 항상 위 defaults off for every screen method. On reveal, raise the output once
+  without taking focus. Other windows may cover it afterwards; clicking the
+  output raises it again. No background keeper raises an output while 항상 위 is
+  off (user decision, m3-check3).
 - If 항상 위 (always on top) is on, keep the full screen window above other
   windows. If 절전 막기 (prevent sleep) is on, prevent display sleep and system
   sleep while that screen's output is on.

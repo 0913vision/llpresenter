@@ -25,8 +25,7 @@ export interface OutputWindowHandle {
   prepareForMonitorRemoval(): void;
   /**
    * Raises the shown window above the other windows without taking focus,
-   * restoring it first when it is minimized, and keeps it raised through the
-   * placement work still running when it was asked.
+   * restoring it first when it is minimized.
    */
   bringToFront(): void;
   /** Where the window is now on screen, or null while it never shows. */
@@ -179,9 +178,9 @@ export class OutputWindow {
     this.handle?.prepareForMonitorRemoval();
   }
 
-  /** 창 보기: raises the window only while it shows as a normal window. */
+  /** Raises a shown output after an operator click or 창 보기. */
   bringToFront(): void {
-    if (this.disposed || !this.visible || this.applied?.kind !== 'window') {
+    if (this.disposed || !this.visible) {
       return;
     }
     this.handle?.bringToFront();

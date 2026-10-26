@@ -106,26 +106,20 @@ function presentOnScreen(
   const placement = new WindowPlacement(win, log);
   const onTop = new OnTopKeeper(win, log);
   let unplacedBounds: Rect | null = null;
-  // NOTE(0913vision): 창 보기 keeps the window raised through the deferred
-  // placement and the bounds correction that were still running when it was
-  // pressed. Any placement that starts later puts the window behind the
-  // control window again, as spec 03 asks.
-  let raiseWhilePending = false;
-  const raise = () => {
+  const raise = (): void => {
     if (win.isMinimized()) win.showInactive();
     else if (!win.isVisible()) return;
     win.moveTop();
   };
-  const orderWindow = (alwaysOnTop: boolean) => {
-    onTop.set(alwaysOnTop);
-    if (alwaysOnTop) return;
-    if (raiseWhilePending) raise();
-    else if (!control.isDestroyed()) control.moveAbove(win.getMediaSourceId());
-    if (!placement.isPending()) raiseWhilePending = false;
+  const showOnce = (): void => {
+    if (win.isVisible()) return;
+    win.showInactive();
+    win.moveTop();
   };
-  const placeBehindControl = () => {
-    raiseWhilePending = false;
-    orderWindow(false);
+  const orderWindow = (alwaysOnTop: boolean): void => onTop.set(alwaysOnTop);
+  const placeBehindControl = (): void => {
+    onTop.set(false);
+    if (!control.isDestroyed()) control.moveAbove(win.getMediaSourceId());
   };
   const profile = (method: 'window' | 'capture') => {
     const normal = method === 'window';
@@ -137,7 +131,6 @@ function presentOnScreen(
   return {
     showFullScreen: (monitorBounds, alwaysOnTop) => {
       unplacedBounds = null;
-      raiseWhilePending = false;
       const place = () => {
         profile('window');
         win.setFocusable(false);
@@ -146,12 +139,11 @@ function presentOnScreen(
         onTop.release();
         enterFullScreen(win, monitorBounds);
         onTop.set(alwaysOnTop);
-        if (!win.isVisible()) win.showInactive();
+        showOnce();
       };
       placement.fullscreen(place);
     },
     showWindowed: (bounds, alwaysOnTop = false) => {
-      raiseWhilePending = false;
       if (bounds !== null) unplacedBounds = bounds;
       const place = () => {
         profile('window');
@@ -163,14 +155,13 @@ function presentOnScreen(
           );
         }
         unplacedBounds = null;
-        if (!win.isVisible()) win.showInactive();
+        showOnce();
         orderWindow(alwaysOnTop);
       };
       onTop.set(false);
       placement.windowed(place);
     },
     showCapture: (bounds, alwaysOnTop = false) => {
-      raiseWhilePending = false;
       unplacedBounds = null;
       onTop.set(false);
       placement.windowed(() => {
@@ -178,7 +169,7 @@ function presentOnScreen(
         win.setFocusable(true);
         win.setContentBounds(bounds);
         placement.verifyContentBounds(bounds, () => orderWindow(alwaysOnTop));
-        if (!win.isVisible()) win.showInactive();
+        showOnce();
         orderWindow(alwaysOnTop);
       });
     },
@@ -186,16 +177,13 @@ function presentOnScreen(
     bounds: () => (win.isDestroyed() ? null : win.getBounds()),
     bringToFront: () => {
       raise();
-      raiseWhilePending = placement.isPending();
     },
     hide: () => {
-      raiseWhilePending = false;
       placement.cancel();
       onTop.release();
       win.hide();
     },
     dispose: () => {
-      raiseWhilePending = false;
       unplacedBounds = null;
       placement.dispose();
       onTop.dispose();

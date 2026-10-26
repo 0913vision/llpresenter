@@ -18,7 +18,7 @@ function mainScreenFor(monitors: readonly Monitor[]): OutputScreen {
         ? null
         : {id: target.id, name: target.name, bounds: target.bounds},
     onDisconnect: 'window',
-    alwaysOnTop: true,
+    alwaysOnTop: false,
   };
 }
 

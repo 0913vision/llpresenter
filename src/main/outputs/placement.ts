@@ -106,7 +106,7 @@ export function planPlacement({
       return {
         kind: 'fullscreen',
         bounds: monitor.bounds,
-        alwaysOnTop: screen.alwaysOnTop ?? true,
+        alwaysOnTop: screen.alwaysOnTop ?? false,
       };
   }
 }

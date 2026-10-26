@@ -35,6 +35,11 @@ export class OnTopKeeper {
 
   /** Sets the level on purpose and keeps it from now on. */
   set(onTop: boolean): void {
+    if (!onTop) {
+      this.release();
+      this.setLevel(false);
+      return;
+    }
     this.expected = onTop;
     this.restored = false;
     this.setLevel(onTop);

@@ -38,7 +38,7 @@ function outputScreens(reader: SettingsReader): readonly OutputScreen[] {
         display: screen.display ?? null,
         aliases: outputStateKeys(screen.id).slice(1),
         onDisconnect: screen.onDisconnect ?? onDisconnect,
-        alwaysOnTop: screen.alwaysOnTop ?? screen.method === 'fullscreen',
+        alwaysOnTop: screen.alwaysOnTop ?? false,
         ...(screen.resolution === undefined
           ? {}
           : {resolution: screen.resolution}),

@@ -17,7 +17,7 @@ export interface OutputScreen {
   /** The monitor of a full screen output, or null while unassigned. */
   readonly display: SavedDisplay | null;
   readonly onDisconnect: DisconnectAction;
-  /** Defaults on for full screen and off for other methods; fallback is always off. */
+  /** Defaults off for every method; fallback is always off. */
   readonly alwaysOnTop?: boolean;
   readonly resolution?: Size;
   readonly aliases?: readonly string[];

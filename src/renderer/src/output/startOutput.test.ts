@@ -253,6 +253,7 @@ describe('startOutput', () => {
     );
     const settings = overlaySettings();
     const defaults = fakeLlpApi();
+    const raise = vi.fn();
     const api = fakeLlpApi({
       settings: {
         get: ({name}) =>
@@ -267,7 +268,7 @@ describe('startOutput', () => {
           return () => {};
         },
       },
-      output: {reportReady},
+      output: {reportReady, showWindow: raise},
     });
     const root = document.createElement('div');
     const stop = startOutput({root, api, screenId: MAIN});
@@ -308,6 +309,8 @@ describe('startOutput', () => {
     expect(reportReady).toHaveBeenLastCalledWith(
       expect.objectContaining({screenId: MAIN, version: 5, ready: true}),
     );
+    root.dispatchEvent(new MouseEvent('pointerdown', {bubbles: true}));
+    expect(raise).toHaveBeenCalledExactlyOnceWith(MAIN);
     expect(video.classList.contains(classes.dissolving)).toBe(false);
     expect(vi.mocked(HTMLMediaElement.prototype.play)).toHaveBeenCalledTimes(
       plays,
@@ -328,6 +331,8 @@ describe('startOutput', () => {
     incoming.dispatchEvent(new Event('playing'));
     expect(incoming.classList.contains(classes.dissolving)).toBe(true);
     stop();
+    root.dispatchEvent(new MouseEvent('pointerdown', {bubbles: true}));
+    expect(raise).toHaveBeenCalledOnce();
   });
   it('follows capture method changes in place without replacing the live content', async () => {
     const settings = overlaySettings();

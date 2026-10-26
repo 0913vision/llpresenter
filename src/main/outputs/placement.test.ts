@@ -38,7 +38,7 @@ describe('planPlacement', () => {
         controlMonitor,
       });
       if (placement.kind === 'off') throw new Error('Missing placement');
-      expect(placement.alwaysOnTop ?? false).toBe(method === 'fullscreen');
+      expect(placement.alwaysOnTop ?? false).toBe(false);
       const chosen = planPlacement({
         screen: fullScreenScreen({method, alwaysOnTop: true}),
         monitor: projector,

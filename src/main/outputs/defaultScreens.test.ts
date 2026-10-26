@@ -20,7 +20,7 @@ describe('createDefaultScreenSource', () => {
       method: 'fullscreen',
       display: {id: 5, name: 'Left', bounds: {x: -1920, y: 0}},
       onDisconnect: 'window',
-      alwaysOnTop: true,
+      alwaysOnTop: false,
     });
   });
 

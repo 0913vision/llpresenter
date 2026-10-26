@@ -302,24 +302,24 @@ describe('OutputWindow', () => {
     expect(handle.reloads).toBe(0);
   });
 
-  it('raises the window for 창 보기 only while it shows as a normal window', () => {
+  it('raises any visible output after an operator request and leaves hidden outputs alone', () => {
     const {output, windows} = setUp();
     output.bringToFront();
     output.update(FULL_SCREEN);
     output.bringToFront();
     const handle = windows.only('main');
-    expect(handle.raises).toBe(0);
+    expect(handle.raises).toBe(1);
 
     output.update(FALLBACK);
     output.bringToFront();
-    expect(handle.raises).toBe(1);
+    expect(handle.raises).toBe(2);
 
     output.update(null);
     output.bringToFront();
     output.update(FALLBACK);
     output.dispose();
     output.bringToFront();
-    expect(handle.raises).toBe(1);
+    expect(handle.raises).toBe(2);
   });
 
   it('keeps where the operator dragged a window when it shows again', () => {

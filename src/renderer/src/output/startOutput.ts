@@ -158,6 +158,10 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
     stableFrame = '';
   };
   window.addEventListener('resize', resized);
+  const raise = (): void => {
+    if (enabled()) api.output.showWindow(screenId);
+  };
+  root.addEventListener('pointerdown', raise);
   const reportFrameRates = (): void => {
     stopMeter ??= startFrameRateMeter({
       onFrame: reportReady,
@@ -185,6 +189,7 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
   return () => {
     stopped = true;
     window.removeEventListener('resize', resized);
+    root.removeEventListener('pointerdown', raise);
     stopMeter?.();
     stopFollowing();
     frames.dispose();

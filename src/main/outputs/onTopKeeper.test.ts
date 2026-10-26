@@ -134,11 +134,12 @@ describe('OnTopKeeper', () => {
     keeper.dispose();
   });
 
-  it('keeps an output that should not be on top off it', () => {
+  it('does not keep or restore levels after always on top is disabled', () => {
     const {win, changeOutside, keeper} = setup();
     keeper.set(false);
     changeOutside(true, {event: true});
-    expect(win.isAlwaysOnTop()).toBe(false);
+    expect(win.isAlwaysOnTop()).toBe(true);
+    expect(vi.getTimerCount()).toBe(0);
     keeper.dispose();
   });
 

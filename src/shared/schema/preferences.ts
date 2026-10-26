@@ -134,7 +134,7 @@ export const defaultPreferences: Preferences = {
   backupCopies: 10,
   showOnLaunch: false,
   preventSleep: true,
-  alwaysOnTop: true,
+  alwaysOnTop: false,
   onDisconnect: 'window',
   hardwareAcceleration: true,
   previewFps: 30,
