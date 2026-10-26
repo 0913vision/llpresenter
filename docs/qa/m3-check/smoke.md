@@ -1,3 +1,36 @@
+# M3 check3 user-check smoke
+
+Current user tag: `m3-check3`, commit
+`9bde04fd51ba782d80fbed8dc01770baa269e219`, version `0.16.0`. On October 26,
+20:27 to 20:36 KST, QA detached the tag, ran npm ci and build, and used a fresh
+sample copy at `D:/llp-dev/qa/m3-check3-data`, port 5189, CDP 15189 and
+`LLP_TEST_WINDOWS=offscreen`. No app code or API was patched. All launch/driver
+scripts passed node syntax checks before use.
+[Check3 evidence](evidence/check3.json) preserves observations. The save marker
+retains the earlier helper's literal check2 wording; the launch commit and
+check3 data folder establish this retest's build.
+
+| Check                                        | Result  | Observation                                                                                                                                                                                                                                                                  |
+| -------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Fresh startup                                | Pass    | No recovery dialog or problems; six source rows; outputs off.                                                                                                                                                                                                                |
+| M3-C2-1 quit after outputs                   | Pass    | Two launches created main/stage output pages and hidden muted audio page, enabled then disabled both outputs and requested normal close. Both main PIDs exited, launch wrappers returned zero and CDP became unavailable with no remaining targets. No Task Manager cleanup. |
+| M3-C1-1 real Windows file lock               | Pass    | FileShare.Read lock on copied service. Changed first-song memo and closed. Control stayed open with 저장할 수 없음. Released lock and retried; latest memo reached disk and process exited zero. Restart showed same memo.                                                   |
+| Bible Tab completion in 진행                 | Pass    | 창 plus Tab becomes 창세기; 베 shows three book candidates. ArrowDown followed by Tab selects 베드로전서. Book-name completion does not require text for those books; sample verse text remains John only.                                                                   |
+| Bible Tab completion in 준비                 | Pass    | 항목 추가, 성경 구절: 요 plus Tab becomes 요한복음.                                                                                                                                                                                                                          |
+| Screen properties                            | Pass    | Mounted editable name/kind/method/always-on-top/margin/offset controls. Real CDP keyboard insertion and Enter saved QA3 main in the list. Earlier DOM-setter attempts did not establish a save and were excluded. Physical placement and stacking remain user checks.        |
+| Template rename/delete                       | Pass    | From 새 예배 source context menu, renamed a copied runtime template, confirmed delete and observed removal. Repository fixture unchanged.                                                                                                                                    |
+| Past-service actions                         | Pass    | Source context menu mounts rename and delete; delete correctly unavailable for the currently open service. Mutation of another past service was not rerun in this short pass.                                                                                                |
+| Stage tab                                    | Pass    | Mounted 무대 화면 layout selector, timer selector and message controls. Broad stage rendering evidence remains the check2 run below.                                                                                                                                         |
+| Text song import                             | Blocked | TextImportDialog exists but has no production caller/import; File/Edit/View menus remain inert in shell/MenuBar.tsx. No user entry point in this tag. Sheet lists unavailable instead of an impossible step.                                                                 |
+| Hidden audio window                          | Pass    | audio=muted page exists and is disposed on quit. Sound is intentionally not available.                                                                                                                                                                                       |
+| Native second screen/cards/AOT/saving dialog | Blocked | User-only physical screen and transient-dialog checks retained in sheet; offscreen checks do not establish them.                                                                                                                                                             |
+
+M3-C2-1 is fixed in check3. Its check2 failure and evidence below are
+historical. No new major finding arose in this focused pass. This is not a full
+milestone sign-off or a repeat of every check2 row.
+
+## Historical check2 smoke
+
 # M3 user check smoke report
 
 Current user tag: `m3-check2`, commit

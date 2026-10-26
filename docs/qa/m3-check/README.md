@@ -1,9 +1,9 @@
 # M3 user check fixture
 
-The [Korean user sheet](../m3-check.md) targets `m3-check2` at `ca4b745c`,
-version `0.15.0`. The [smoke report](smoke.md) retains both tagged runs and the
-known C2-1 output cleanup failure. These fixtures were added after the app tags,
-so the sheet fetches QA files separately while preserving the app tag.
+The [Korean user sheet](../m3-check.md) targets `m3-check3` at `9bde04fd`,
+version `0.16.0`. The [smoke report](smoke.md) retains the earlier tagged runs
+and the passing check3 retest of C2-1. These fixtures were added after the app
+tags, so the sheet fetches QA files separately while preserving the app tag.
 
 Copy `sample/` to a new user-data folder. Its root must contain `app.json`,
 `bible/`, and `LoveLight/`. Set `LLP_USER_DATA` to that root. Never run against
