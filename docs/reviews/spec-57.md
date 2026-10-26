@@ -43,3 +43,10 @@ order display, selection, and drop behavior. No shared schema is changed here.
    template definitions. Its new-service comparison explicitly distinguishes our
    empty sections from ProPresenter placeholders and links to 02 and 05. Checked
    all four affected specs for remaining active slot definitions.
+
+## Verdicts (recorded by the lead at merge)
+
+- Earlier rounds (Codex): see the findings and replies above.
+- Final round (96d6e04a): reviewer (Codex) Approve. Lead Approve (see "What
+  changed and why"); the exact-head CI run passed, checked by the lead at merge.
+  Rebased by the lead onto local `main` without conflicts; typecheck passes.
