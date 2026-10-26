@@ -96,29 +96,46 @@ export class SongEditorStore {
     this.active = document?.song.id ?? null;
     this.titleFocus =
       document !== null && options.focusTitle === true ? ++this.focusSerial : 0;
-    if (document !== null) {
-      const session = this.sessions.get(document.song.id);
-      if (session !== undefined) session.receive(document);
-      else {
-        this.sessions.set(
-          document.song.id,
-          new SongSession({
-            document,
-            api: this.api.content,
-            isDuplicateTitle: value =>
-              this.library.some(
-                entry =>
-                  entry.id !== document.song.id &&
-                  normalizeSongTitle(entry.title) === value,
-              ),
-            changed: () => this.publish(),
-            problem: () =>
-              this.problem('곡 저장 실패', () => this.reload(document.song.id)),
-          }),
-        );
-      }
-    }
+    if (document !== null) this.sessionFor(document);
     this.publish();
+  }
+
+  /**
+   * Gives the song's session without opening it in the editor, so a 예배 순서
+   * item edits its 구성 through the same writer as the editor.
+   */
+  attach(document: SongDocument): SongSession | undefined {
+    if (!this.alive) return undefined;
+    const session = this.sessionFor(document);
+    this.publish();
+    return session;
+  }
+
+  sessionOf(id: SongId): SongSession | undefined {
+    return this.sessions.get(id);
+  }
+
+  private sessionFor(document: SongDocument): SongSession {
+    const existing = this.sessions.get(document.song.id);
+    if (existing !== undefined) {
+      existing.receive(document);
+      return existing;
+    }
+    const session = new SongSession({
+      document,
+      api: this.api.content,
+      isDuplicateTitle: value =>
+        this.library.some(
+          entry =>
+            entry.id !== document.song.id &&
+            normalizeSongTitle(entry.title) === value,
+        ),
+      changed: () => this.publish(),
+      problem: () =>
+        this.problem('곡 저장 실패', () => this.reload(document.song.id)),
+    });
+    this.sessions.set(document.song.id, session);
+    return session;
   }
 
   /** Claims a new-song focus request once, including across panel remounts. */

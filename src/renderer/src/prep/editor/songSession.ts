@@ -81,6 +81,27 @@ export class SongSession {
     return value.name;
   }
 
+  /**
+   * Saves a named 구성's new order as one undo step, as the 예배 순서 item's
+   * chip strip edits it. The 슬라이드 themselves stay as they are.
+   */
+  setArrangementSlides(name: string, slides: readonly number[]): boolean {
+    if (!this.accepting || this.readOnly) return false;
+    const count = this.history.snapshot.song.slides.length;
+    if (
+      !slides.every(
+        slide => Number.isInteger(slide) && slide >= 1 && slide <= count,
+      )
+    ) {
+      return false;
+    }
+    if (!this.history.setArrangementSlides(name, slides)) return false;
+    this.dirty = true;
+    this.endTyping();
+    this.options.changed();
+    return true;
+  }
+
   private reconcileArrangement(): void {
     if (
       !this.history.snapshot.song.arrangements?.some(

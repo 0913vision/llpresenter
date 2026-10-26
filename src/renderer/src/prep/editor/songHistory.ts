@@ -10,6 +10,16 @@ import {
 const HISTORY_LIMIT = 100;
 export const TYPING_PAUSE_MS = 1000;
 
+function sameNumbers(
+  left: readonly number[],
+  right: readonly number[],
+): boolean {
+  return (
+    left.length === right.length &&
+    left.every((value, index) => value === right[index])
+  );
+}
+
 /** One song's session history. The owner keeps it when switching songs. */
 export class SongHistory {
   private value: BlockSnapshot;
@@ -55,6 +65,31 @@ export class SongHistory {
         arrangements: [...(this.value.song.arrangements ?? []), arrangement],
       },
     };
+  }
+
+  /** Replaces a named 구성's order as one undo step; false when nothing changes. */
+  setArrangementSlides(name: string, slides: readonly number[]): boolean {
+    const arrangements = this.value.song.arrangements;
+    const current = arrangements?.find(item => item.name === name);
+    if (
+      arrangements === undefined ||
+      current === undefined ||
+      sameNumbers(current.slides, slides)
+    ) {
+      return false;
+    }
+    this.endTyping();
+    this.remember();
+    this.value = {
+      ...this.value,
+      song: {
+        ...this.value.song,
+        arrangements: arrangements.map(item =>
+          item === current ? {...item, slides: [...slides]} : item,
+        ),
+      },
+    };
+    return true;
   }
 
   changeArrangement(from: string, to: string | undefined): void {
