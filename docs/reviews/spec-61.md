@@ -71,3 +71,10 @@ mock work before checking the preview. No production shortcut code changed in
 this response. Rebuilt and repeated the actual app flow, and corrected the old
 offscreen-picker description from cancellation to a reported refusal. Push is
 followed immediately by the round 2 request with CI pending.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 2 (320ef60d): reviewer (Codex) Approve. Lead Approve through the lead's
+  merge check: the exact-head CI run passed, the branch rebased onto local
+  `main` without conflicts, and typecheck passes. Earlier rounds' findings and
+  replies are above.
