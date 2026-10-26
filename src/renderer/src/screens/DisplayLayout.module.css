@@ -18,6 +18,8 @@
   min-height: var(--size-preview-small-max);
   overflow: auto;
   scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
 }
 
 .arrangement {

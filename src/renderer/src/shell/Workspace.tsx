@@ -520,11 +520,11 @@ export function Workspace({
   return (
     <main
       ref={gridRef}
-      className={
-        toggle.collapsed
-          ? `${styles.columns} ${styles.leftCollapsed}`
-          : styles.columns
-      }
+      className={classNames(
+        styles.columns,
+        toggle.collapsed && styles.leftCollapsed,
+        id === 'screens' && styles.screenSettings,
+      )}
     >
       {id === 'show' ? (
         <ShowShortcuts onProblem={onProblem ?? logPanelProblem} />

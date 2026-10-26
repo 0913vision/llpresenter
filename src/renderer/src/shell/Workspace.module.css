@@ -50,6 +50,11 @@
   overflow: auto;
 }
 
+.screenSettings .body {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
 .stableScrollbar {
   scrollbar-gutter: stable;
 }

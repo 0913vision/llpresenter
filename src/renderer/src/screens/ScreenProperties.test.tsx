@@ -225,7 +225,7 @@ describe('the screen properties', () => {
     expect(await screen.findByText('1920×1080')).toBeTruthy();
     expect(screen.getByText('60Hz')).toBeTruthy();
     expect(screen.getByRole('switch').getAttribute('aria-checked')).toBe(
-      'true',
+      'false',
     );
   });
 
@@ -278,7 +278,7 @@ describe('the screen properties', () => {
     expect(await nameField()).toHaveProperty('value', '본 화면');
     await user.click(screen.getByRole('switch'));
 
-    await waitFor(() => expect(savedScreens()[0]?.alwaysOnTop).toBe(false));
+    await waitFor(() => expect(savedScreens()[0]?.alwaysOnTop).toBe(true));
     expect(savedScreens()[0]?.kind).toBe('stage');
   });
 

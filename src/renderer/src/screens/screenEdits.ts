@@ -53,9 +53,9 @@ export function nameProblem(
   return taken ? 'taken' : undefined;
 }
 
-/** 항상 위 when the screen sets none: on for full screen, off for a window. */
+/** 항상 위 defaults off when the screen has no explicit setting. */
 export function alwaysOnTopOf(screen: Screen): boolean {
-  return screen.alwaysOnTop ?? screen.method === 'fullscreen';
+  return screen.alwaysOnTop ?? false;
 }
 
 /** 연결이 끊기면 when the screen sets none. */

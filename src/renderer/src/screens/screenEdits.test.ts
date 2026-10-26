@@ -67,13 +67,25 @@ describe('nameProblem', () => {
 });
 
 describe('screen defaults', () => {
-  it('puts a full screen on top and a window or capture window not', () => {
+  it.each(['fullscreen', 'window', 'capture', 'ndi'] as const)(
+    'defaults %s off while preserving explicit values',
+    method => {
+      const [screen] = screens();
+      if (screen === undefined) throw new Error('Missing screen');
+      expect(alwaysOnTopOf({...screen, method})).toBe(false);
+      expect(alwaysOnTopOf({...screen, method, alwaysOnTop: true})).toBe(true);
+      expect(alwaysOnTopOf({...screen, method, alwaysOnTop: false})).toBe(
+        false,
+      );
+    },
+  );
+  it('leaves all methods off always on top until explicitly enabled', () => {
     const [main, captions] = screens();
     if (main === undefined || captions === undefined) {
       throw new Error('Missing');
     }
 
-    expect(alwaysOnTopOf(main)).toBe(true);
+    expect(alwaysOnTopOf(main)).toBe(false);
     expect(alwaysOnTopOf(captions)).toBe(false);
     expect(alwaysOnTopOf({...captions, alwaysOnTop: true})).toBe(true);
     expect(alwaysOnTopOf({...main, alwaysOnTop: false})).toBe(false);
