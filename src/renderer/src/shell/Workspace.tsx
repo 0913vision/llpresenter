@@ -197,7 +197,15 @@ function showPanelParts({
         body: <PreviewPanel compact={sizeClass === 'narrow'} />,
       };
     case '진행 도구':
-      return {size: 'rest', embedded: <ShowToolsPanel sizeClass={sizeClass} />};
+      return {
+        size: 'rest',
+        embedded: (
+          <ShowToolsPanel
+            sizeClass={sizeClass}
+            onProblem={onProblem ?? logPanelProblem}
+          />
+        ),
+      };
     case '미디어':
       return {
         bare: <ShowMediaPanel onProblem={onProblem ?? logPanelProblem} />,

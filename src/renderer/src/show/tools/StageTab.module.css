@@ -1,0 +1,40 @@
+.root {
+  padding: var(--space-8) var(--panel-inset) var(--space-14);
+}
+
+.message {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  color: var(--text-2);
+  font: var(--type-caption-strong);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-6);
+}
+
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  padding: var(--space-4);
+}
+
+.preset {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.preset[aria-pressed='true'] {
+  box-shadow: var(--ring-live);
+}

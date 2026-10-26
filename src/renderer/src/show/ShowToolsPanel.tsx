@@ -2,7 +2,9 @@ import {useLayoutEffect, useRef, useState, type JSX} from 'react';
 import type {SizeClass} from '@renderer/shell/sizeClass';
 import {useShowToolTab} from '@renderer/state/showToolTab';
 import {Panel, PanelBody, PanelHeader, PanelTabs} from '@renderer/ui/Panel';
+import type {Notice} from '@renderer/ui/notices';
 import {ALL_TOOL_TABS, COMPACT_TOOL_TABS} from './showTools';
+import {StageTab} from './tools/StageTab';
 import styles from './ShowToolsPanel.module.css';
 
 const MORE_LABEL = '더 보기';
@@ -47,15 +49,16 @@ function useAllTabsFit(measuring: boolean) {
  */
 export function ShowToolsPanel({
   sizeClass,
+  onProblem,
 }: {
   readonly sizeClass: SizeClass;
+  readonly onProblem?: ((notice: Notice) => void) | undefined;
 }): JSX.Element {
   const tool = useShowToolTab(state => state.tool);
   const setTool = useShowToolTab(state => state.setTool);
   const narrow = sizeClass === 'narrow';
   const {rootRef, fits} = useAllTabsFit(!narrow);
   const {tabs, more} = narrow || !fits ? COMPACT_TOOL_TABS : ALL_TOOL_TABS;
-  // TODO(0913vision): Mount the tools role's content in the tab panel.
   return (
     <div ref={rootRef} className={styles.root}>
       <Panel label="진행 도구" className={styles.panel}>
@@ -68,7 +71,7 @@ export function ShowToolsPanel({
           />
         </PanelHeader>
         <PanelBody variant="flush" tab={tool}>
-          {null}
+          {tool === 'stage' ? <StageTab onProblem={onProblem} /> : null}
         </PanelBody>
       </Panel>
     </div>
