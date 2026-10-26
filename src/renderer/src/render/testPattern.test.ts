@@ -119,6 +119,7 @@ describe('TestPatternView', () => {
     view.show(SCREEN, true);
     expect(label?.textContent).toBe('본 화면\n1280×720');
     expect(listening()).toEqual(['(resolution: 1dppx)']);
+    expect(FakeMediaQuery.made).toHaveLength(1);
     vi.stubGlobal('devicePixelRatio', 1.5);
     FakeMediaQuery.made.at(-1)?.change();
     expect(label?.textContent).toBe('본 화면\n1920×1080');
