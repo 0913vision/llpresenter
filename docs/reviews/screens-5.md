@@ -3,7 +3,7 @@
 - Team member: `screens`
 - Branch: `feat/screens/properties`, stacked on `screens-4`
   (`feat/screens/output-preview`)
-- Base commit (`main`): see the request line
+- Base commit (`main`): `b99e97d1`
 - Last commit: see the request line
 - Related brief: `docs/briefs/screens.md`
 
