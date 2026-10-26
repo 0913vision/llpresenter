@@ -2,7 +2,11 @@ import {createReadStream} from 'node:fs';
 import {stat} from 'node:fs/promises';
 import {extname} from 'node:path';
 import {Readable} from 'node:stream';
-import {analysisTokenFromUrl, mediaIdFromUrl} from '@shared/media';
+import {
+  analysisTokenFromUrl,
+  mediaIdFromUrl,
+  thumbnailIdFromUrl,
+} from '@shared/media';
 import type {Logger} from '../log';
 import {realPathInside} from './insideRoots';
 
@@ -119,7 +123,32 @@ export interface MediaHandlerOptions {
    * folder check, because main chose the file.
    */
   readonly analysisFile?: (token: string) => string | null;
+  /** A media item's thumbnail file, made when needed; null when it has none. */
+  readonly thumbnail?: (mediaId: string) => Promise<string | null>;
   readonly log: Logger;
+}
+
+// NOTE(0913vision): A relinked file gets a new thumbnail at the same URL, so
+// windows ask again instead of reusing what they have.
+const THUMBNAIL_HEADERS = {'Cache-Control': 'no-cache'} as const;
+
+async function serveThumbnail(
+  mediaId: string,
+  request: Request,
+  {thumbnail, log}: MediaHandlerOptions,
+): Promise<Response> {
+  try {
+    const path = (await thumbnail?.(mediaId)) ?? null;
+    if (path === null) return new Response(null, {status: HTTP_NOT_FOUND});
+    return await createFileResponse(
+      path,
+      request.headers.get('range'),
+      THUMBNAIL_HEADERS,
+    );
+  } catch (error: unknown) {
+    log.warn('could not serve a thumbnail', error);
+    return new Response(null, {status: HTTP_NOT_FOUND});
+  }
 }
 
 const ANALYSIS_HEADERS = {'Access-Control-Allow-Origin': '*'} as const;
@@ -159,6 +188,10 @@ export function createMediaHandler(
   return async request => {
     const token = analysisTokenFromUrl(request.url);
     if (token !== null) return serveAnalysisFile(token, request, options);
+    const thumbnailId = thumbnailIdFromUrl(request.url);
+    if (thumbnailId !== null) {
+      return serveThumbnail(thumbnailId, request, options);
+    }
     const mediaId = mediaIdFromUrl(request.url);
     if (mediaId === null) return new Response(null, {status: HTTP_BAD_REQUEST});
     try {

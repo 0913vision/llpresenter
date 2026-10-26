@@ -2,7 +2,7 @@ import {createReadStream} from 'node:fs';
 import {symlink, writeFile} from 'node:fs/promises';
 import {join, relative} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
-import {analysisUrl, mediaUrl} from '@shared/media';
+import {analysisUrl, mediaUrl, thumbnailUrl} from '@shared/media';
 import {makeTempDir} from '../../../test/temp-dir';
 import {recordingLogger} from '../displays/testing';
 import {
@@ -219,6 +219,31 @@ describe('createMediaHandler', () => {
     expect(log.messages('warn')).toEqual([
       'could not serve a file for analysis',
     ]);
+  });
+
+  it('serves a thumbnail without caching, and 404 when there is none', async () => {
+    const folder = await makeTempDir();
+    await writeFile(join(folder, 'thumb.jpg'), CONTENT);
+    const log = recordingLogger();
+    const handle = createMediaHandler({
+      resolvePath: async () => null,
+      mediaRoots: () => [],
+      thumbnail: async mediaId => {
+        if (mediaId === 'broken') throw new Error('Invented failure');
+        return mediaId === 'dawn' ? join(folder, 'thumb.jpg') : null;
+      },
+      log,
+    });
+    const response = await handle(new Request(thumbnailUrl('dawn')));
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toBe('image/jpeg');
+    expect(response.headers.get('cache-control')).toBe('no-cache');
+    expect(await response.text()).toBe(CONTENT);
+    expect((await handle(new Request(thumbnailUrl('song')))).status).toBe(404);
+    expect((await handle(new Request(thumbnailUrl('broken')))).status).toBe(
+      404,
+    );
+    expect(log.messages('warn')).toEqual(['could not serve a thumbnail']);
   });
 
   it('answers 400 for a URL that is not a media URL', async () => {

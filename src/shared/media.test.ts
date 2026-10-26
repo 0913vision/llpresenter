@@ -5,6 +5,8 @@ import {
   analysisUrl,
   mediaIdFromUrl,
   mediaUrl,
+  thumbnailIdFromUrl,
+  thumbnailUrl,
 } from './media';
 
 describe('mediaUrl', () => {
@@ -46,5 +48,15 @@ describe('analysis URLs', () => {
     expect(analysisTokenFromUrl(analysisUrl(token))).toBe(token);
     expect(mediaIdFromUrl(analysisUrl(token))).toBeNull();
     expect(analysisTokenFromUrl(mediaUrl(token))).toBeNull();
+  });
+});
+
+describe('thumbnail URLs', () => {
+  it('reads back the media id of a thumbnail URL and only of one', () => {
+    const id = '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293';
+    expect(thumbnailUrl(id)).toBe(`llp-media://thumbnail/${id}`);
+    expect(thumbnailIdFromUrl(thumbnailUrl(id))).toBe(id);
+    expect(mediaIdFromUrl(thumbnailUrl(id))).toBeNull();
+    expect(thumbnailIdFromUrl(mediaUrl(id))).toBeNull();
   });
 });

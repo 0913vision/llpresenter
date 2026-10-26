@@ -3,6 +3,7 @@ export const MEDIA_SCHEME = 'llp-media';
 
 const MEDIA_HOST = 'media';
 const ANALYSIS_HOST = 'analysis';
+const THUMBNAIL_HOST = 'thumbnail';
 const MEDIA_PROTOCOL = `${MEDIA_SCHEME}:`;
 
 /** The URL of a library media file: `llp-media://media/<encoded id>`. */
@@ -16,6 +17,19 @@ export function mediaUrl(mediaId: string): string {
  */
 export function analysisUrl(token: string): string {
   return `${MEDIA_SCHEME}://${ANALYSIS_HOST}/${encodeURIComponent(token)}`;
+}
+
+/**
+ * The URL of a media item's tile thumbnail, which main makes on the first
+ * request: `llp-media://thumbnail/<encoded id>`. Audio has none (404).
+ */
+export function thumbnailUrl(mediaId: string): string {
+  return `${MEDIA_SCHEME}://${THUMBNAIL_HOST}/${encodeURIComponent(mediaId)}`;
+}
+
+/** The media id in a thumbnail URL, or `null` when the URL isn't one. */
+export function thumbnailIdFromUrl(url: string): string | null {
+  return idFromUrl(url, THUMBNAIL_HOST);
 }
 
 /** The media id in a media URL, or `null` when the URL isn't one. */
