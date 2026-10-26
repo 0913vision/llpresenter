@@ -1,4 +1,4 @@
-import {render, screen, within} from '@testing-library/react';
+import {act, render, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {describe, expect, it, vi} from 'vitest';
@@ -98,6 +98,20 @@ describe('SourceTree', () => {
     expect(document.activeElement).toBe(item('찬양'));
     expect(item('찬양').tabIndex).toBe(0);
     expect(item(titles.second).tabIndex).toBe(-1);
+  });
+
+  it('acts on a row that took focus without a click, such as a right click', async () => {
+    render(<Tree />);
+    await userEvent.click(item(titles.first));
+    expect(state(titles.first)).toBe('false');
+    act(() => item('광고').focus());
+    expect(item('광고').tabIndex).toBe(0);
+    expect(item(titles.first).tabIndex).toBe(-1);
+    await userEvent.keyboard(' ');
+    expect(state('광고')).toBe('false');
+    expect(state(titles.first)).toBe('false');
+    await userEvent.keyboard('{ArrowUp}');
+    expect(document.activeElement).toBe(item('헌금 찬양'));
   });
 
   it('keeps Enter in the tree inside a dialog', async () => {

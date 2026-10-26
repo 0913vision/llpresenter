@@ -17,6 +17,7 @@ import {
   itemCount,
   rowState,
   toggleRow,
+  treePosition,
   type TreeRow,
   type TreeSelection,
 } from './serviceTree';
@@ -48,36 +49,24 @@ function hasModifier(event: KeyboardEvent): boolean {
   return event.ctrlKey || event.altKey || event.metaKey || event.shiftKey;
 }
 
-// NOTE(0913vision): Rows are one level unless they sit under a header, and
-// each level counts its own positions for aria-posinset and aria-setsize.
-function positionOf(
-  rows: readonly TreeRow[],
-  row: TreeRow,
-): {readonly level: number; readonly position: number; readonly size: number} {
-  const siblings = rows.filter(other => other.headerId === row.headerId);
-  return {
-    level: row.headerId === undefined ? 1 : 2,
-    position: siblings.indexOf(row) + 1,
-    size: siblings.length,
-  };
-}
-
 function TreeItem({
   row,
   rows,
   checked,
   focusable,
   onToggle,
+  onFocus,
 }: {
   readonly row: TreeRow;
   readonly rows: readonly TreeRow[];
   readonly checked: CheckState;
   readonly focusable: boolean;
   readonly onToggle: (row: TreeRow, on: boolean) => void;
+  readonly onFocus: (row: TreeRow) => void;
 }): JSX.Element {
   const labelId = useId();
   const detailId = useId();
-  const {level, position, size} = positionOf(rows, row);
+  const {level, position, size} = treePosition(rows, row);
   return (
     <div
       role="treeitem"
@@ -100,6 +89,7 @@ function TreeItem({
         event.preventDefault();
         event.currentTarget.focus();
       }}
+      onFocus={() => onFocus(row)}
       onClick={() => onToggle(row, nextCheckState(checked))}
     >
       <Checkbox
@@ -155,7 +145,14 @@ export function SourceTree({
       return;
     }
     if (hasModifier(event)) return;
-    const index = rows.findIndex(row => row.id === activeId);
+    // NOTE(0913vision): The row comes from the key's target, so a row that
+    // took focus some other way, such as a right click, is the one that acts.
+    const target =
+      event.target instanceof Element
+        ? event.target.closest<HTMLElement>(TREE_ITEM)?.dataset['id']
+        : undefined;
+    const id = target ?? activeId;
+    const index = rows.findIndex(row => row.id === id);
     const current = rows[index];
     if (current === undefined) return;
     if (event.key === ' ') {
@@ -207,6 +204,7 @@ export function SourceTree({
               checked={rowState(rows, row, selection)}
               focusable={row.id === activeId}
               onToggle={toggle}
+              onFocus={focused => setActive(focused.id)}
             />
           ))}
         </div>

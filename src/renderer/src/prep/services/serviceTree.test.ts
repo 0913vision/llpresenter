@@ -6,6 +6,7 @@ import {
   rowState,
   selectedIds,
   toggleRow,
+  treePosition,
   treeRows,
   type TreeRow,
 } from './serviceTree';
@@ -68,6 +69,27 @@ describe('treeRows', () => {
     ]);
     expect(treeRows(templateOrder, new Map())[1]?.label).toBe(
       '곡을 찾을 수 없음',
+    );
+  });
+
+  it('places each row among the rows at its level, once per rows array', () => {
+    expect(treePosition(rows, row(ids.praise))).toEqual({
+      level: 1,
+      position: 1,
+      size: 3,
+    });
+    expect(treePosition(rows, row(ids.offering))).toEqual({
+      level: 2,
+      position: 2,
+      size: 2,
+    });
+    expect(treePosition(rows, row(ids.closing))).toEqual({
+      level: 1,
+      position: 3,
+      size: 3,
+    });
+    expect(treePosition(rows, row(ids.nearer))).toBe(
+      treePosition(rows, row(ids.nearer)),
     );
   });
 

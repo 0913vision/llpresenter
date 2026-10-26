@@ -82,18 +82,75 @@ export function treeRows(
   });
 }
 
+/** Where a row sits in the tree, for `aria-level`, `aria-posinset`, and `aria-setsize`. */
+export interface TreePosition {
+  /** 1 for headers and items with no header, 2 for items under a header. */
+  readonly level: number;
+  readonly position: number;
+  readonly size: number;
+}
+
+interface TreeShape {
+  readonly children: ReadonlyMap<ServiceItemId, readonly ServiceItemId[]>;
+  readonly checkable: readonly ServiceItemId[];
+  readonly positions: ReadonlyMap<ServiceItemId, TreePosition>;
+}
+
+// NOTE(0913vision): Each rows array is read once, so rendering and keys stay
+// linear in the number of rows. The hooks keep the array while its order is
+// the same, and a new array gets a new shape. `checkable` is a full
+// selection: every item, and every header with no items under it.
+const shapes = new WeakMap<readonly TreeRow[], TreeShape>();
+
+function buildShape(rows: readonly TreeRow[]): TreeShape {
+  const children = new Map<ServiceItemId, ServiceItemId[]>();
+  const levels = new Map<ServiceItemId | undefined, ServiceItemId[]>();
+  for (const row of rows) {
+    if (row.header) children.set(row.id, []);
+    if (row.headerId !== undefined) children.get(row.headerId)?.push(row.id);
+    const siblings = levels.get(row.headerId) ?? [];
+    siblings.push(row.id);
+    levels.set(row.headerId, siblings);
+  }
+  const positions = new Map<ServiceItemId, TreePosition>();
+  for (const [headerId, siblings] of levels) {
+    siblings.forEach((id, index) => {
+      positions.set(id, {
+        level: headerId === undefined ? 1 : 2,
+        position: index + 1,
+        size: siblings.length,
+      });
+    });
+  }
+  const checkable = rows
+    .filter(row => !row.header || children.get(row.id)?.length === 0)
+    .map(row => row.id);
+  return {children, checkable, positions};
+}
+
+function shapeOf(rows: readonly TreeRow[]): TreeShape {
+  const cached = shapes.get(rows);
+  if (cached !== undefined) return cached;
+  const shape = buildShape(rows);
+  shapes.set(rows, shape);
+  return shape;
+}
+
 function childrenOf(
   rows: readonly TreeRow[],
   headerId: ServiceItemId,
-): readonly TreeRow[] {
-  return rows.filter(row => row.headerId === headerId);
+): readonly ServiceItemId[] {
+  return shapeOf(rows).children.get(headerId) ?? [];
 }
 
-// NOTE(0913vision): A full selection holds every item and every empty header.
-function checkableIds(rows: readonly TreeRow[]): readonly ServiceItemId[] {
-  return rows
-    .filter(row => !row.header || childrenOf(rows, row.id).length === 0)
-    .map(row => row.id);
+/** Where a row sits among the rows at its level. */
+export function treePosition(
+  rows: readonly TreeRow[],
+  row: TreeRow,
+): TreePosition {
+  return (
+    shapeOf(rows).positions.get(row.id) ?? {level: 1, position: 1, size: 1}
+  );
 }
 
 function stateOf(
@@ -115,10 +172,7 @@ export function rowState(
   const children = childrenOf(rows, row.id);
   return children.length === 0
     ? selection.has(row.id)
-    : stateOf(
-        children.map(child => child.id),
-        selection,
-      );
+    : stateOf(children, selection);
 }
 
 /** The check-all box's state. */
@@ -126,7 +180,7 @@ export function allState(
   rows: readonly TreeRow[],
   selection: TreeSelection,
 ): CheckState {
-  return stateOf(checkableIds(rows), selection);
+  return stateOf(shapeOf(rows).checkable, selection);
 }
 
 /** Checks or unchecks a row; a header with items checks or unchecks them all. */
@@ -142,8 +196,7 @@ export function toggleRow({
   readonly selection: TreeSelection;
 }): TreeSelection {
   const children = row.header ? childrenOf(rows, row.id) : [];
-  const ids =
-    children.length === 0 ? [row.id] : children.map(child => child.id);
+  const ids = children.length === 0 ? [row.id] : children;
   const next = new Set(selection);
   for (const id of ids) {
     if (on) next.add(id);
@@ -154,7 +207,7 @@ export function toggleRow({
 
 /** Every row checked, or none. */
 export function checkAll(rows: readonly TreeRow[], on: boolean): TreeSelection {
-  return new Set(on ? checkableIds(rows) : []);
+  return new Set(on ? shapeOf(rows).checkable : []);
 }
 
 /** The checked ids in order, for an import; main adds their headers. */
