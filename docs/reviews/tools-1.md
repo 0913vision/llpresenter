@@ -112,15 +112,14 @@ Additive `bible:lookup`, with no changes to existing commands or file schemas.
 Review `BibleLookupSession` shutdown and queue handling, the preload reply
 correlation, and the default filename correction. Tests use invented text only.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict:
-- Findings:
-
-## Review: reviewer
-
-- Verdict:
-- Findings:
+- Round 1 (421bc7fd): reviewer (Codex, codex5) Approve. Nit for tools-2:
+  expanding a book name can push a suggestion past the reply's 256-character cap
+  (for example `'요 3:' + ' '.repeat(250) + '16'`), which rejects the whole
+  lookup; drop oversized suggestions and add a boundary test. Lead Approve.
+  Written by the Codex tools member. Rebased by the lead onto local `main`
+  without conflicts; typecheck passes.
 
 ## Team member's reply
 
