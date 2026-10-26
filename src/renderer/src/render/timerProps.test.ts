@@ -24,6 +24,12 @@ const WALL_START = new Date(2026, 9, 26, 10, 0, 0).getTime();
 const screen = {id: MAIN, kind: 'audience'} as const;
 
 let clock: TimerNow = {timer: TIMER_START, wall: WALL_START};
+let clockError: Error | null = null;
+
+function readClock(): TimerNow {
+  if (clockError !== null) throw clockError;
+  return clock;
+}
 
 function advance(ms: number): void {
   clock = {timer: clock.timer + ms, wall: clock.wall + ms};
@@ -103,7 +109,7 @@ function setup() {
   const render = (layers: LiveLayers, runs: TimerRuns | undefined) =>
     renderer.render(layers, {
       screen,
-      timers: {list, runs, now: () => clock},
+      timers: {list, runs, now: readClock},
     });
   const shown = () =>
     parent.querySelector<HTMLElement>(
@@ -115,6 +121,7 @@ function setup() {
 beforeEach(() => {
   vi.useFakeTimers();
   clock = {timer: TIMER_START, wall: WALL_START};
+  clockError = null;
   vi.stubGlobal(
     'ResizeObserver',
     class {
@@ -181,12 +188,7 @@ describe('타이머 tokens in 소품 text', () => {
     const state = stateWith(`설교 {timer:${SERMON}}`, running);
     render(state.layers, state.timers);
     const page = shown();
-    clock = {
-      get timer(): number {
-        throw new Error('no clock');
-      },
-      wall: WALL_START,
-    };
+    clockError = new Error('no clock');
     vi.advanceTimersByTime(3000);
     expect(page?.textContent).toBe('설교 1:00');
     expect(onError).toHaveBeenCalledExactlyOnceWith(
