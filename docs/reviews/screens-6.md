@@ -2,7 +2,7 @@
 
 - Team member: `screens`
 - Branch: `feat/screens/monitor-assignment`
-- Base commit (`main`): `a89cecfd`
+- Base commit (`main`): `59083227`
 - Last commit, review range and CI: see the request line.
 - Related brief: `docs/briefs/screens.md`, M3-O1 device assignment.
 
@@ -114,5 +114,7 @@ device select itself appears only for that method.
 
 ## Round 2 checks
 
-The queued-swap regression fails against round 1 before the fix. The request
-line reports targeted checks after rebase and GitHub verify on the exact head.
+The queued-swap regression fails against round 1 before the fix. The request was
+rebased onto main `59083227`; 157 tests in 16 screens and monitor files pass, as
+do typecheck, changed-file ESLint, formatting and format:check. The request line
+reports GitHub verify on the exact head.
