@@ -2,7 +2,7 @@
 
 - Team member: data (Codex takeover of the Claude implementation)
 - Branch: `feat/data/media-preview`, stacked on data-59 round 2
-- Base commit: `b5d3d65b`; the request reports the head, range and CI URL.
+- Base commit: `a3feb01e`; the request reports the head, range and CI URL.
 - Related brief: `docs/briefs/data.md`; M3-P6b part 4, preview player and 파일
   위치 열기 (spec 05, Media view).
 
@@ -58,7 +58,7 @@ accepts no renderer-supplied file path. Existing contracts are unchanged.
 | Check                                       | Result                                       |
 | ------------------------------------------- | -------------------------------------------- |
 | `npm run typecheck`                         | Pass                                         |
-| Targeted Vitest with `--no-fsModuleCache`   | Pass: 118 tests in five files                |
+| Targeted Vitest with `--no-fsModuleCache`   | Pass: 120 tests in five files after restack  |
 | ESLint on changed TypeScript files          | Pass                                         |
 | `npm run format` and `npm run format:check` | Pass                                         |
 | Full `npm run verify`                       | GitHub CI on the request head; URL in report |
@@ -98,6 +98,10 @@ Both original implementation commits compare equal after restacking on data-59
 round 2. Before requesting review, the takeover adds natural-end handling,
 missing-file lifecycle coverage, playback refusal logging and disabled reasons,
 plus the offscreen reveal guard and this document.
+
+After data-58 merged and data-59 moved to current main, all three preview
+commits again compared equal when restacked on data-59's new head. Only the base
+metadata and subsequent check result are updated after that restack.
 
 ## Review: lead
 
