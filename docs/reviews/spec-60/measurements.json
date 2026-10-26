@@ -1,25 +1,32 @@
 {
   "measurements": [
     {
-      "elements": 474,
-      "heap": 15881728,
+      "elements": 399,
+      "heap": 6527656,
       "documents": 27,
-      "nodes": 1595,
-      "jsEventListeners": 382
+      "nodes": 1444,
+      "jsEventListeners": 387
     },
     {
-      "elements": 474,
-      "heap": 16212940,
+      "elements": 399,
+      "heap": 6710768,
       "documents": 27,
-      "nodes": 1595,
-      "jsEventListeners": 382
+      "nodes": 1444,
+      "jsEventListeners": 387
     },
     {
-      "elements": 474,
-      "heap": 16183780,
+      "elements": 399,
+      "heap": 6810836,
       "documents": 27,
-      "nodes": 1595,
-      "jsEventListeners": 382
+      "nodes": 1444,
+      "jsEventListeners": 387
+    },
+    {
+      "elements": 399,
+      "heap": 6902228,
+      "documents": 27,
+      "nodes": 1444,
+      "jsEventListeners": 387
     }
   ],
   "errors": [],

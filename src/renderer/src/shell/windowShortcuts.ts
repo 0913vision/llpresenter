@@ -3,6 +3,8 @@ import {isColumnDragActive} from '@renderer/state/drag';
 import {modalStack} from '@renderer/ui/modalStack';
 import {SHORTCUT_RECORDING_SELECTOR} from '@renderer/ui/shortcutRecording';
 
+const POINTER_DRAG_THRESHOLD_PX = 4;
+
 /** A physical control-window key, after fields and popup surfaces take theirs. */
 export interface WindowShortcut {
   readonly code: string;
@@ -45,6 +47,30 @@ export function useWindowShortcuts(shortcuts: readonly WindowShortcut[]): void {
   useEffect(() => {
     let composing = false;
     let dragging = false;
+    let pointer: {id: number; x: number; y: number; dragged: boolean} | null =
+      null;
+    const pointerDown = (event: PointerEvent): void => {
+      if (event.button === 0) {
+        pointer = {
+          id: event.pointerId,
+          x: event.clientX,
+          y: event.clientY,
+          dragged: false,
+        };
+      }
+    };
+    const pointerMove = (event: PointerEvent): void => {
+      if (pointer?.id !== event.pointerId) return;
+      pointer.dragged ||=
+        Math.hypot(event.clientX - pointer.x, event.clientY - pointer.y) >
+        POINTER_DRAG_THRESHOLD_PX;
+    };
+    const pointerEnd = (): void => {
+      pointer = null;
+    };
+    const cancelPointer = (event: KeyboardEvent): void => {
+      if (event.code === 'Escape') pointerEnd();
+    };
     const startComposition = (): void => {
       composing = true;
     };
@@ -60,15 +86,22 @@ export function useWindowShortcuts(shortcuts: readonly WindowShortcut[]): void {
     const reset = (): void => {
       endComposition();
       endDrag();
+      pointerEnd();
     };
     const keyDown = (event: KeyboardEvent): void => {
-      if (!composing && !dragging) run(event);
+      if (!composing && !dragging && pointer?.dragged !== true) run(event);
     };
     window.addEventListener('compositionstart', startComposition, true);
     window.addEventListener('compositionend', endComposition, true);
     window.addEventListener('dragstart', startDrag, true);
     window.addEventListener('dragend', endDrag, true);
     window.addEventListener('drop', endDrag, true);
+    window.addEventListener('pointerdown', pointerDown, true);
+    window.addEventListener('pointermove', pointerMove, true);
+    window.addEventListener('pointerup', pointerEnd, true);
+    window.addEventListener('pointercancel', pointerEnd, true);
+    window.addEventListener('lostpointercapture', pointerEnd, true);
+    window.addEventListener('keydown', cancelPointer, true);
     window.addEventListener('blur', reset);
     window.addEventListener('keydown', keyDown);
     return () => {
@@ -77,6 +110,12 @@ export function useWindowShortcuts(shortcuts: readonly WindowShortcut[]): void {
       window.removeEventListener('dragstart', startDrag, true);
       window.removeEventListener('dragend', endDrag, true);
       window.removeEventListener('drop', endDrag, true);
+      window.removeEventListener('pointerdown', pointerDown, true);
+      window.removeEventListener('pointermove', pointerMove, true);
+      window.removeEventListener('pointerup', pointerEnd, true);
+      window.removeEventListener('pointercancel', pointerEnd, true);
+      window.removeEventListener('lostpointercapture', pointerEnd, true);
+      window.removeEventListener('keydown', cancelPointer, true);
       window.removeEventListener('blur', reset);
       window.removeEventListener('keydown', keyDown);
     };

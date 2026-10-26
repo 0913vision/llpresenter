@@ -1,8 +1,17 @@
-import {act, cleanup, fireEvent, renderHook} from '@testing-library/react';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  renderHook,
+  screen,
+} from '@testing-library/react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {setColumnDragActive} from '@renderer/state/drag';
 import {modalStack} from '@renderer/ui/modalStack';
 import {useWindowShortcuts} from './windowShortcuts';
+import {workspaceShortcuts} from './workspaceCommands';
+import {useQuickDrag} from '@renderer/show/quick/useQuickDrag';
 
 function press(
   options: KeyboardEventInit = {},
@@ -29,6 +38,59 @@ afterEach(() => {
 });
 
 describe('window shortcuts', () => {
+  it('blocks workspace keys during actual quick-list pointer reordering and releases them on drop', () => {
+    const onWorkspace = vi.fn();
+    function QuickList() {
+      const drag = useQuickDrag({enabled: true, revision: 1, onMove: vi.fn()});
+      useWindowShortcuts(
+        workspaceShortcuts({onWorkspace, onMedia: vi.fn(), imported: false}),
+      );
+      return (
+        <div {...drag.listProps}>
+          <div data-quick-id="first">
+            <button>First quick item</button>
+          </div>
+          <div data-quick-id="second">
+            <button>Second quick item</button>
+          </div>
+        </div>
+      );
+    }
+    render(<QuickList />);
+    const first = screen.getByRole('button', {name: 'First quick item'});
+    const pointer = {pointerId: 1, button: 0, clientX: 10, clientY: 10};
+    fireEvent.pointerDown(first, pointer);
+    fireEvent.pointerMove(window, {...pointer, clientY: 30});
+    expect(press().defaultPrevented).toBe(false);
+    expect(press({code: 'KeyR'}).defaultPrevented).toBe(false);
+    expect(onWorkspace).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', {name: 'First quick item'})).toBe(first);
+    fireEvent.pointerUp(window, {...pointer, clientY: 30});
+    press();
+    expect(onWorkspace).toHaveBeenCalledExactlyOnceWith('prep');
+  });
+
+  it.each(['pointercancel', 'lostpointercapture', 'blur', 'escape'])(
+    'releases pointer drag precedence after %s',
+    ending => {
+      const run = vi.fn();
+      renderHook(() => useWindowShortcuts([{code: 'KeyE', ctrl: true, run}]));
+      fireEvent.pointerDown(document.body, {
+        pointerId: 1,
+        button: 0,
+        clientX: 0,
+        clientY: 0,
+      });
+      fireEvent.pointerMove(window, {pointerId: 1, clientX: 10, clientY: 0});
+      press();
+      expect(run).not.toHaveBeenCalled();
+      if (ending === 'escape') press({code: 'Escape', ctrlKey: false});
+      else fireEvent(window, new Event(ending));
+      press();
+      expect(run).toHaveBeenCalledOnce();
+    },
+  );
+
   it('matches physical modifiers exactly and swallows held repeats without rerunning', () => {
     const run = vi.fn();
     renderHook(() => useWindowShortcuts([{code: 'KeyE', ctrl: true, run}]));
