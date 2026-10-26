@@ -29,15 +29,22 @@ function settingsFeed() {
 }
 
 describe('SkippedFiles', () => {
-  it('keeps each skipped file once, named by its file name', () => {
+  it('keeps each skipped file once, with its own id and its file name', () => {
     const skipped = new SkippedFiles(recordingLogger());
     expect(skipped.addSkippedFile(LOOKS)).toEqual({
       kind: 'file-skipped',
+      fileId: 1,
       name: 'looks.json',
     });
     expect(skipped.addSkippedFile(LOOKS)).toBeNull();
+    expect(skipped.addSkippedFile('D:/backup/settings/looks.json')).toEqual({
+      kind: 'file-skipped',
+      fileId: 2,
+      name: 'looks.json',
+    });
     expect(skipped.list()).toEqual([
-      {kind: 'file-skipped', name: 'looks.json'},
+      {kind: 'file-skipped', fileId: 1, name: 'looks.json'},
+      {kind: 'file-skipped', fileId: 2, name: 'looks.json'},
     ]);
   });
 
@@ -71,8 +78,8 @@ describe('startSkippedFileProblems', () => {
     feed.report(LOOKS);
     await Promise.resolve();
     expect(announce.mock.calls.map(([problem]) => problem)).toEqual([
-      {kind: 'file-skipped', name: 'looks.json'},
-      {kind: 'file-skipped', name: 'a1.llsong'},
+      {kind: 'file-skipped', fileId: 1, name: 'looks.json'},
+      {kind: 'file-skipped', fileId: 2, name: 'a1.llsong'},
     ]);
     expect(skipped.list()).toHaveLength(2);
   });

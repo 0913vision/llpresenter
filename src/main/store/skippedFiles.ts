@@ -31,7 +31,7 @@ export class SkippedFiles {
       }
       return null;
     }
-    const problem = fileSkippedProblem(file);
+    const problem = fileSkippedProblem(this.problems.size + 1, file);
     this.problems.set(file, problem);
     return problem;
   }

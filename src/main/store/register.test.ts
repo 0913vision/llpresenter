@@ -1326,16 +1326,21 @@ describe('registerStore', () => {
         .flatMap(source => source())
         .filter(problem => problem.kind === 'file-skipped');
     const expected = [
-      {kind: 'file-skipped', name: 'broken.llsong'},
-      {kind: 'file-skipped', name: 'looks.json'},
+      expect.objectContaining({kind: 'file-skipped', name: 'broken.llsong'}),
+      expect.objectContaining({kind: 'file-skipped', name: 'looks.json'}),
     ];
 
     await vi.waitFor(() =>
       expect([...skipped()].sort(byName)).toEqual(expected),
     );
     expect(push.mock.calls.map(([problem]) => problem).sort(byName)).toEqual(
-      expected,
+      [...skipped()].sort(byName),
     );
+    expect(
+      new Set(
+        skipped().map(problem => ('fileId' in problem ? problem.fileId : 0)),
+      ).size,
+    ).toBe(2);
   });
 
   it('logs at most 50 problems and counts the rest', async () => {

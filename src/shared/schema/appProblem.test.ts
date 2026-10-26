@@ -71,9 +71,18 @@ describe('app problem payloads', () => {
     'macro-dropped',
     {kind: 'disk-full', macroId: MACRO_ID, name: 'x'},
     {kind: 'file-skipped'},
-    {kind: 'file-skipped', name: ''},
+    {kind: 'file-skipped', fileId: 1, name: ''},
+    {kind: 'file-skipped', name: 'looks.json'},
+    {kind: 'file-skipped', fileId: 0, name: 'looks.json'},
+    {kind: 'file-skipped', fileId: 1.5, name: 'looks.json'},
     {
       kind: 'file-skipped',
+      fileId: APP_PROBLEM_LIMITS.listed + 1,
+      name: 'looks.json',
+    },
+    {
+      kind: 'file-skipped',
+      fileId: 1,
       name: 'x'.repeat(APP_PROBLEM_LIMITS.nameCharacters + 1),
     },
     {kind: 'macro-dropped', macroId: 'not-a-uuid', name: 'x'},
@@ -128,21 +137,29 @@ describe('fileSkippedProblem', () => {
     ['/data/settings/screens.json', 'screens.json'],
     ['looks.json', 'looks.json'],
   ])('names %s by its file name %s', (file, name) => {
-    const problem = fileSkippedProblem(file);
-    expect(problem).toEqual({kind: 'file-skipped', name});
+    const problem = fileSkippedProblem(3, file);
+    expect(problem).toEqual({kind: 'file-skipped', fileId: 3, name});
     expect(parseAppProblem(problem).ok).toBe(true);
   });
 
   it('cuts a long file name at a whole character within the limit', () => {
     const name = `${'가'.repeat(APP_PROBLEM_LIMITS.nameCharacters)}.json`;
-    const problem = fileSkippedProblem(`C:\\data\\${name}`);
+    const problem = fileSkippedProblem(1, `C:\\data\\${name}`);
     expect(problem.name).toBe('가'.repeat(APP_PROBLEM_LIMITS.nameCharacters));
     expect(parseAppProblem(problem).ok).toBe(true);
   });
 
   it('reads a file problem and strips unknown fields', () => {
     expect(
-      parseAppProblem({kind: 'file-skipped', name: 'looks.json', file: 'x'}),
-    ).toEqual({ok: true, value: {kind: 'file-skipped', name: 'looks.json'}});
+      parseAppProblem({
+        kind: 'file-skipped',
+        fileId: 2,
+        name: 'looks.json',
+        file: 'x',
+      }),
+    ).toEqual({
+      ok: true,
+      value: {kind: 'file-skipped', fileId: 2, name: 'looks.json'},
+    });
   });
 });

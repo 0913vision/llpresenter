@@ -29,6 +29,12 @@ const appProblemSchema = v.pipe(
     v.object({kind: v.literal('save-recovered')}),
     v.object({
       kind: v.literal('file-skipped'),
+      fileId: v.pipe(
+        v.number(),
+        v.integer(),
+        v.minValue(1),
+        v.maxValue(APP_PROBLEM_LIMITS.listed),
+      ),
       name: v.pipe(nameSchema, v.nonEmpty()),
     }),
   ]),
@@ -51,8 +57,9 @@ const appProblemListSchema = v.pipe(
  *   and `count` is how many wait. Main pushes it again whenever either changes.
  * - `save-recovered`: every waiting file is written now.
  * - `file-skipped`: a data file couldn't be read at startup and was skipped
- *   (spec 08, "File can't be read"); `name` is its file name without the
- *   folder.
+ *   (spec 08, "File can't be read"); `fileId` tells the skipped files apart
+ *   for as long as the app runs, and `name` is the file name without the
+ *   folder, which two files can share.
  */
 export type AppProblem = Readonly<v.InferOutput<typeof appProblemSchema>>;
 
@@ -114,13 +121,18 @@ export function macroDroppedProblem(
 const FOLDER_SEPARATOR = /[\\/]/;
 
 /**
- * The problem for a data file skipped at startup, named by its file name
- * without the folder. A name over the limit is cut at a whole character.
+ * The problem for a data file skipped at startup, with the id main gave it
+ * and its file name without the folder. A name over the limit is cut at a
+ * whole character.
  */
-export function fileSkippedProblem(file: string): AppProblemOf<'file-skipped'> {
+export function fileSkippedProblem(
+  fileId: number,
+  file: string,
+): AppProblemOf<'file-skipped'> {
   const name = file.split(FOLDER_SEPARATOR).at(-1) ?? file;
   return {
     kind: 'file-skipped',
+    fileId,
     name: clipped(name, APP_PROBLEM_LIMITS.nameCharacters),
   };
 }

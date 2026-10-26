@@ -29,13 +29,17 @@ const MACRO_ID = expectSuccess(
   parseMacroId('c63a2e74-9a31-4c4d-8e5f-607182930415'),
 );
 
-function setup(listed: readonly AppProblem[] = []) {
+function setup(
+  listed: readonly AppProblem[] | Promise<readonly AppProblem[]> = [],
+) {
   vi.stubGlobal('innerWidth', 1920);
   vi.stubGlobal('innerHeight', 1080);
   const {api} = editorFixture();
   let push: (problem: AppProblem) => void = () => undefined;
   const stop = vi.fn();
-  vi.spyOn(api.problems, 'list').mockResolvedValue(listed);
+  vi.spyOn(api.problems, 'list').mockImplementation(() =>
+    Promise.resolve(listed),
+  );
   const retrySaves = vi.spyOn(api.problems, 'retrySaves');
   vi.spyOn(api.problems, 'subscribe').mockImplementation(listener => {
     push = listener;
@@ -74,8 +78,8 @@ afterEach(async () => {
 
 it('shows the files skipped before the window loaded as one card', async () => {
   setup([
-    fileSkippedProblem('D:/data/settings/looks.json'),
-    fileSkippedProblem('D:/data/곡/a1.llsong'),
+    fileSkippedProblem(1, 'D:/data/settings/looks.json'),
+    fileSkippedProblem(2, 'D:/data/곡/a1.llsong'),
   ]);
   const card = await screen.findByRole('alert', {name: '파일을 읽을 수 없음'});
   expect(within(card).getByText('looks.json 외 1개')).toBeDefined();
@@ -83,11 +87,11 @@ it('shows the files skipped before the window loaded as one card', async () => {
 });
 
 it('counts a file that arrives by push and by the list only once', async () => {
-  const {push} = setup([fileSkippedProblem('D:/data/settings/looks.json')]);
+  const {push} = setup([fileSkippedProblem(1, 'D:/data/settings/looks.json')]);
   await screen.findByRole('alert', {name: '파일을 읽을 수 없음'});
-  push(fileSkippedProblem('D:/data/settings/looks.json'));
+  push(fileSkippedProblem(1, 'D:/data/settings/looks.json'));
   expect(within(skippedCard()).getByText('looks.json')).toBeDefined();
-  push(fileSkippedProblem('D:/data/곡/a1.llsong'));
+  push(fileSkippedProblem(2, 'D:/data/곡/a1.llsong'));
   expect(within(skippedCard()).getByText('looks.json 외 1개')).toBeDefined();
   expect(screen.getAllByRole('alert')).toHaveLength(1);
 });
@@ -95,13 +99,43 @@ it('counts a file that arrives by push and by the list only once', async () => {
 it('counts at most the listed limit of skipped files', () => {
   const {push} = setup();
   for (let index = 0; index < APP_PROBLEM_LIMITS.listed + 5; index += 1) {
-    push(fileSkippedProblem(`D:/data/곡/${index}.llsong`));
+    push(fileSkippedProblem(index + 1, `D:/data/곡/${index}.llsong`));
   }
   expect(
     within(skippedCard()).getByText(
       `0.llsong 외 ${APP_PROBLEM_LIMITS.listed - 1}개`,
     ),
   ).toBeDefined();
+});
+
+it('counts two skipped files that share a file name as two', () => {
+  const {push} = setup();
+  push(fileSkippedProblem(1, 'D:/data/곡/a1.llsong'));
+  push(fileSkippedProblem(2, 'D:/backup/곡/a1.llsong'));
+  expect(within(skippedCard()).getByText('a1.llsong 외 1개')).toBeDefined();
+});
+
+it('counts two skipped files whose long names clip to the same text as two', () => {
+  const {push} = setup();
+  const stem = '가'.repeat(APP_PROBLEM_LIMITS.nameCharacters);
+  push(fileSkippedProblem(1, `D:/data/곡/${stem}1.llsong`));
+  push(fileSkippedProblem(2, `D:/data/곡/${stem}2.llsong`));
+  expect(within(skippedCard()).getByText(`${stem} 외 1개`)).toBeDefined();
+});
+
+it('keeps a pushed save change over an older one in a list that arrives late', async () => {
+  let finishList: (problems: readonly AppProblem[]) => void = () => undefined;
+  const lateList = new Promise<readonly AppProblem[]>(resolve => {
+    finishList = resolve;
+  });
+  const {push} = setup(lateList);
+  push(saveFailedProblem('주일 예배', 1));
+  push({kind: 'save-recovered'});
+  await act(async () => {
+    finishList([saveFailedProblem('주일 예배', 1)]);
+    await lateList;
+  });
+  expect(screen.queryByRole('alert', {name: '저장할 수 없음'})).toBeNull();
 });
 
 it('warns that a 매크로 was not applied', () => {
