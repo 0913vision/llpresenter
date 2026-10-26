@@ -75,3 +75,10 @@ regressions after that request lands.
    real-app fixture also stores raw song/Bible slots on disk before launch;
    creation and import must produce section rows and preserve unknown fields.
    The tree no longer receives raw slots from validated source documents.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 2 (d342a7af): reviewer (Codex) Approve. Lead Approve through the lead's
+  merge check: the exact-head CI run passed, the branch rebased onto local
+  `main` without conflicts, and typecheck passes. Earlier rounds' findings and
+  replies are above.
