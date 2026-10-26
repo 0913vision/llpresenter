@@ -66,3 +66,10 @@ requests; this document does not claim that the current app already uses groups.
    refusal tooltip. Within-group merges still update every occurrence of that
    source group without removing repeated occurrences. This conservative rule
    needs no unrepresentable partial-group references.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 2 (de36b9d2): reviewer (Codex) Approve. Lead Approve through the lead's
+  merge check: the exact-head CI run passed, the branch rebased onto local
+  `main` without conflicts, and typecheck passes. Earlier rounds' findings and
+  replies are above.
