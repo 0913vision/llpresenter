@@ -202,6 +202,32 @@ describe('missing media files', () => {
     await vi.waitFor(() => expect(pushed).toHaveBeenCalledWith(ids));
   });
 
+  it('drops removed items from the queue while every worker is busy', async () => {
+    const base = Array.from({length: MAX_PARALLEL_FILE_CHECKS}, (_, index) =>
+      mediaId(index + 1),
+    );
+    const files = new Map(base.map(id => [id, `D:/media/${id}.png`]));
+    const waiting: Array<(value: boolean) => void> = [];
+    const {missing, exist, change} = setup(
+      files,
+      () =>
+        new Promise<boolean>(resolve => {
+          waiting.push(resolve);
+        }),
+    );
+    missing.start();
+    expect(waiting).toHaveLength(MAX_PARALLEL_FILE_CHECKS);
+    for (let round = 0; round < 50; round++) {
+      const added = mediaId(100 + round);
+      change(new Map([...files, [added, `D:/media/${added}.png`]]));
+      change(files);
+    }
+    expect(missing.waitingChecks).toBe(0);
+    for (const resolve of waiting.splice(0)) resolve(true);
+    await new Promise(resolve => setTimeout(resolve, 20));
+    expect(exist).toHaveBeenCalledTimes(MAX_PARALLEL_FILE_CHECKS);
+  });
+
   it('stops following the list and pushing on dispose', async () => {
     const check = deferred();
     const {missing, pushed, listeners} = setup(

@@ -48,7 +48,8 @@ export class MissingFiles {
   private readonly missing = new Set<MediaId>();
   private readonly checkedFiles = new Map<MediaId, string | null>();
   private readonly checks = new Map<MediaId, number>();
-  private readonly queue: MediaId[] = [];
+  // NOTE(0913vision): A Set keeps the order and lets each item wait once.
+  private readonly queue = new Set<MediaId>();
   private running = 0;
   private serial = 0;
   private published: MissingMedia = [];
@@ -72,6 +73,11 @@ export class MissingFiles {
     if (this.checkedFiles.has(mediaId)) this.enqueue(mediaId);
   }
 
+  /** How many checks wait for a free worker; at most the media items. */
+  get waitingChecks(): number {
+    return this.queue.size;
+  }
+
   isMissing(mediaId: MediaId): boolean {
     return this.missing.has(mediaId);
   }
@@ -88,7 +94,7 @@ export class MissingFiles {
     this.disposed = true;
     this.stopSource?.();
     this.stopSource = null;
-    this.queue.length = 0;
+    this.queue.clear();
     if (this.publishTimer !== null) clearTimeout(this.publishTimer);
     this.publishTimer = null;
   }
@@ -100,6 +106,7 @@ export class MissingFiles {
       this.checkedFiles.delete(id);
       this.checks.delete(id);
       this.missing.delete(id);
+      this.queue.delete(id);
     }
     for (const item of document.value.items) {
       const file = this.options.source.fileOf(item.id);
@@ -118,7 +125,7 @@ export class MissingFiles {
   private enqueue(mediaId: MediaId): void {
     if (this.disposed) return;
     this.checks.set(mediaId, ++this.serial);
-    if (!this.queue.includes(mediaId)) this.queue.push(mediaId);
+    this.queue.add(mediaId);
     this.pump();
   }
 
@@ -126,10 +133,11 @@ export class MissingFiles {
     while (
       !this.disposed &&
       this.running < MAX_PARALLEL_FILE_CHECKS &&
-      this.queue.length > 0
+      this.queue.size > 0
     ) {
-      const mediaId = this.queue.shift();
+      const [mediaId] = this.queue;
       if (mediaId === undefined) return;
+      this.queue.delete(mediaId);
       this.running++;
       const done = (): void => {
         this.running--;
