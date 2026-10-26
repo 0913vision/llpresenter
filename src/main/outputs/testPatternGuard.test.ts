@@ -11,6 +11,15 @@ class FakeContents extends EventEmitter {
   isDestroyed(): boolean {
     return this.destroyed;
   }
+
+  // NOTE(0913vision): Electron throws on any call to destroyed web contents.
+  override removeListener(
+    event: string | symbol,
+    listener: (...args: unknown[]) => void,
+  ): this {
+    if (this.destroyed) throw new Error('Object has been destroyed');
+    return super.removeListener(event, listener);
+  }
 }
 
 class FakeControl extends EventEmitter {
