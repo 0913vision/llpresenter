@@ -8,6 +8,11 @@
 .layer {
   position: absolute;
   inset: 0;
+}
+
+/* NOTE(0913vision): Only the layer boxes on the root take the picture
+   correction; layers nest more `.layer` boxes, which would scale it again. */
+.root > .layer {
   transform: var(--picture-transform, none);
 }
 

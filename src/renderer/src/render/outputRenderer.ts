@@ -51,6 +51,7 @@ export class OutputRenderer {
   private background: string | null = null;
   private screen: RenderScreen | undefined;
   private transform: string | null = null;
+  private scale = 1;
 
   constructor(
     parent: HTMLElement,
@@ -107,11 +108,7 @@ export class OutputRenderer {
     const transform =
       correction === undefined
         ? null
-        : pictureTransform(correction, this.screen?.pixels, {
-            width: this.root.clientWidth,
-            height: this.root.clientHeight,
-            pixelRatio: window.devicePixelRatio,
-          });
+        : pictureTransform(correction, this.scale);
     if (transform === this.transform) return;
     this.transform = transform;
     if (transform === null) {
@@ -164,6 +161,7 @@ export class OutputRenderer {
     const {clientWidth, clientHeight} = this.root;
     if (clientWidth === 0 || clientHeight === 0) return;
     const scale = scaleFor(clientWidth, clientHeight);
+    this.scale = scale;
     for (const {kind, view} of this.layers) {
       this.attempt(kind, 'draw', () => view.rescale?.(scale));
     }

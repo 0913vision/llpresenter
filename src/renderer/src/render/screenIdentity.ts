@@ -1,27 +1,8 @@
 import type {LlpApi} from '@shared/ipc';
 import type {Screen} from '@shared/schema/screens';
-import type {PictureCorrection, RenderScreen, ScreenPixels} from './layer';
-import {CAPTURE_WINDOW_SIZE, resolveOutputScreen} from '@shared/screens';
+import type {PictureCorrection, RenderScreen} from './layer';
+import {resolveOutputScreen} from '@shared/screens';
 import {followSettingsDocument} from './settingsFeed';
-
-function screenPixels(screen: Screen): ScreenPixels | undefined {
-  switch (screen.method) {
-    case 'fullscreen': {
-      if (screen.display === undefined) return undefined;
-      const {bounds, scaleFactor} = screen.display;
-      return {
-        width: bounds.width * scaleFactor,
-        height: bounds.height * scaleFactor,
-      };
-    }
-    case 'capture':
-      return screen.resolution ?? CAPTURE_WINDOW_SIZE;
-    case 'ndi':
-      return screen.resolution;
-    case 'window':
-      return undefined;
-  }
-}
 
 function pictureCorrection(screen: Screen): PictureCorrection | undefined {
   const edgeMargin = screen.edgeMargin ?? 0;
@@ -37,13 +18,11 @@ export function resolveRenderScreen(
 ): RenderScreen | undefined {
   const screen = resolveOutputScreen(id, screens);
   if (screen === undefined) return undefined;
-  const pixels = screenPixels(screen);
   const correction = pictureCorrection(screen);
   return {
     id: screen.id,
     kind: screen.kind,
     method: screen.method,
-    ...(pixels === undefined ? {} : {pixels}),
     ...(correction === undefined ? {} : {correction}),
   };
 }

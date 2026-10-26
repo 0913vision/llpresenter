@@ -177,43 +177,64 @@ describe('OutputRenderer', () => {
     expect(rescale).toHaveBeenLastCalledWith(0.5);
   });
 
-  it('moves and scales every layer by the screen correction, keeping the empty color on the root', () => {
+  it('sets the screen correction on the root once, and only for a new screen or size', () => {
     vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(960);
     vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(540);
     const {parent, renderer} = setUp();
     const root = parent.querySelector<HTMLElement>(`.${classes.root}`);
     if (root === null) throw new Error('Missing root');
     const setProperty = vi.spyOn(root.style, 'setProperty');
-    const correction = {edgeMargin: 10, offset: {x: 40, y: 20}};
-    const pixels = {width: 1920, height: 1080};
-    const frame = {
-      screen: {id: MAIN, kind: 'audience', pixels, correction},
-    } as const;
+    let reads = 0;
+    const correction = {
+      get edgeMargin(): number {
+        reads += 1;
+        return 10;
+      },
+      offset: {x: 40, y: 20},
+    };
+    const frame = {screen: {id: MAIN, kind: 'audience', correction}} as const;
     renderer.render(WITH_SLIDE, frame);
     expect(root.style.getPropertyValue('--picture-transform')).toBe(
       'translate(20px, 10px) scale(0.8)',
     );
-    const width = vi.mocked(
-      Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'clientWidth')
-        ?.get,
-    );
-    const reads = width?.mock.calls.length;
     renderer.render(WITH_SLIDE, frame);
-    expect(width?.mock.calls.length).toBe(reads);
+    expect(reads).toBe(1);
     renderer.render(WITH_SLIDE, {
-      screen: {...frame.screen, correction: {...correction}},
+      screen: {
+        ...frame.screen,
+        correction: {edgeMargin: 10, offset: {x: 40, y: 20}},
+      },
     });
     expect(
       setProperty.mock.calls.filter(([name]) => name === '--picture-transform'),
     ).toHaveLength(1);
-    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(480);
-    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(270);
-    FakeResizeObserver.instances[0]?.callback();
-    expect(root.style.getPropertyValue('--picture-transform')).toBe(
-      'translate(10px, 5px) scale(0.8)',
-    );
     renderer.render(WITH_SLIDE, {screen: {id: MAIN, kind: 'audience'}});
     expect(root.style.getPropertyValue('--picture-transform')).toBe('');
+  });
+
+  it('moves the picture by the same share of its size at any drawn size', () => {
+    const size = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get');
+    const height = vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get');
+    size.mockReturnValue(1920);
+    height.mockReturnValue(1080);
+    const {parent, renderer} = setUp();
+    const root = parent.querySelector<HTMLElement>(`.${classes.root}`);
+    const correction = {edgeMargin: 0, offset: {x: 40, y: -20}};
+    renderer.render(WITH_SLIDE, {
+      screen: {id: MAIN, kind: 'audience', correction},
+    });
+    const transformAt = (width: number, tall: number) => {
+      size.mockReturnValue(width);
+      height.mockReturnValue(tall);
+      FakeResizeObserver.instances[0]?.callback();
+      return root?.style.getPropertyValue('--picture-transform');
+    };
+    expect(transformAt(1920, 1080)).toBe('translate(40px, -20px) scale(1)');
+    // NOTE(0913vision): A 4K monitor and a quarter-size preview move the
+    // picture by the same share of their width.
+    expect(transformAt(3840, 2160)).toBe('translate(80px, -40px) scale(1)');
+    expect(transformAt(480, 270)).toBe('translate(10px, -5px) scale(1)');
+    renderer.dispose();
   });
 
   it('stops watching the size and removes everything on dispose', () => {

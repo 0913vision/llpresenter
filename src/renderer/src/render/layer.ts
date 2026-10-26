@@ -10,22 +10,14 @@ import type {Screen} from '@shared/schema/screens';
 export interface PictureCorrection {
   /** The percent of the width and of the height left empty on each side. */
   readonly edgeMargin: number;
-  /** How far the scaled picture moves right and down, in the screen's own pixels. */
+  /** How far the scaled picture moves right and down, in reference px (1080 lines). */
   readonly offset: {readonly x: number; readonly y: number};
-}
-
-/** A size in the screen's own pixels. */
-export interface ScreenPixels {
-  readonly width: number;
-  readonly height: number;
 }
 
 export interface RenderScreen {
   readonly id: ScreenId;
   readonly kind: 'audience' | 'stage';
   readonly method?: Screen['method'];
-  /** The screen's own pixel size; absent counts the device pixels drawn. */
-  readonly pixels?: ScreenPixels;
   /** Absent draws the picture over the whole screen. */
   readonly correction?: PictureCorrection;
 }
