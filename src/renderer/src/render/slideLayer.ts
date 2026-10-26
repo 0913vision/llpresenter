@@ -141,6 +141,15 @@ export class SlideLayerView {
     this.front = back;
   }
 
+  /** Rewrites the lines on screen in place, without a dissolve; nothing shown stays empty. */
+  replaceLines(lines: readonly string[]): void {
+    if (this.current === null) return;
+    this.current = {...this.current, lines};
+    const front = this.pages[this.front];
+    writeLines(front.block, lines);
+    this.fit(front);
+  }
+
   /** Applies a changed text style in place, without replacing pages or dissolving. */
   setStyle(style: LyricStyle): void {
     if (STYLE_FIELDS.every(key => this.style[key] === style[key])) return;

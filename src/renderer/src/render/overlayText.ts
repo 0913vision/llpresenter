@@ -29,6 +29,13 @@ export class OverlayTextView {
     );
   }
 
+  /** Changes the shown text in place, without a dissolve, as a ticking 타이머 does. */
+  replace(text: string): void {
+    if (text === this.text || this.text === null) return;
+    this.text = text;
+    this.view.replaceLines([text]);
+  }
+
   rescale(scale: number): void {
     this.view.rescale(scale);
   }
