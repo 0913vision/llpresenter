@@ -73,3 +73,11 @@ verse slots, handle cleanup, missing files, directories and symlinks.
 ## Team member's reply
 
 1.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (114bacf6): reviewer (Codex, codex3) Approve. Lead Approve; the Bible
+  reader now follows the chunked format of data-62 (headers at launch,
+  positioned chapter reads, a capped cache, a broken file skipped with one
+  warning) behind the same lookup API. Rebased by the lead onto local `main`
+  after output-47 without conflicts; typecheck passes.
