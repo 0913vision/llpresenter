@@ -17,6 +17,7 @@ import {slideLayerOf} from '@renderer/show/slideLayer';
 import {rememberBibleOutput} from '@renderer/show/bible/recentWriter';
 import {sendLive, useLive} from './live';
 import {
+  bibleSourceFor,
   isBibleSource,
   isLibrarySource,
   outputLibraryTile,
@@ -120,11 +121,17 @@ export function outputTile(cursor: TileCursor): void {
     );
     return;
   }
+  const view = useShow.getState();
+  const source = bibleSourceFor(view, cursor.itemId);
+  const liveItemId = live.state?.layers.slide?.itemId ?? null;
+  useShow.setState({
+    liveBibleSource: bibleSourceFor(view, liveItemId),
+    requestedBibleSource: source?.id === liveItemId ? null : source,
+  });
   startServiceItem(cursor.itemId);
   sendLive({type: 'slide.show', slide});
-  const view = useShow.getState();
-  if (isBibleSource(view, cursor.itemId) && view.bibleSource !== null) {
-    rememberBibleOutput(view.bibleSource.passage);
+  if (source !== null) {
+    rememberBibleOutput(source.passage);
   }
 }
 

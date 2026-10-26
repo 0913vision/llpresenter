@@ -7,7 +7,13 @@ import {BibleReferenceField} from '../bible/BibleReferenceField';
 import {openBiblePassage, showBiblePassage} from '../bible/actions';
 
 /** The quick-panel mount; previewing never writes output or recent history. */
-export function BibleQuickField({api}: {readonly api: LlpApi}): JSX.Element {
+export function BibleQuickField({
+  api,
+  selectionVersion = 0,
+}: {
+  readonly api: LlpApi;
+  readonly selectionVersion?: number;
+}): JSX.Element {
   const [document, setDocument] = useState<Extract<
     SettingsDocument,
     {name: 'bible'}
@@ -43,7 +49,7 @@ export function BibleQuickField({api}: {readonly api: LlpApi}): JSX.Element {
   const translations = document?.value.translations ?? [];
   return (
     <BibleReferenceField
-      key={session}
+      key={`${selectionVersion}:${session}`}
       api={api.bible}
       translation={
         (translations.find(item => item.default) ?? translations[0])?.id

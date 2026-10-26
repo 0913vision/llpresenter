@@ -5,6 +5,8 @@ import type {ItemId, ServiceRow, SlideTile} from '@renderer/show/model';
 
 export interface ShowView {
   readonly bibleSource: BibleSource | null;
+  readonly liveBibleSource: BibleSource | null;
+  readonly requestedBibleSource: BibleSource | null;
   readonly librarySong: ShowLibrarySong | null;
   readonly revision: number | null;
   readonly serviceId: string | null;
@@ -32,6 +34,8 @@ export const useShow = create<ShowView>(() => ({
   ...noService,
   librarySong: null,
   bibleSource: null,
+  liveBibleSource: null,
+  requestedBibleSource: null,
   openItemId: null,
   selectedTile: 0,
 }));

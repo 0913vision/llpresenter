@@ -12,13 +12,19 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {BibleLookupReply} from '@shared/schema/bibleLookup';
 import {Workspace} from '@renderer/shell/Workspace';
 import {createMemoryColumnWidthStore} from '@renderer/shell/columnWidthStore';
-import {useShow, openItem} from '@renderer/state/show';
+import {
+  useShow,
+  openItem,
+  revealLiveItem,
+  selectTile,
+} from '@renderer/state/show';
 import {useLive} from '@renderer/state/live';
 import {emptyLiveState} from '@shared/live';
 import {seedSampleService} from '../testing/sampleService';
 import {BibleQuickField} from '../quick/BibleQuickField';
 import {BiblePanel} from './BiblePanel';
-import {bibleDocument, panelApi} from './panelTesting';
+import {bibleDocument, panelApi, panelPassage} from './panelTesting';
+import {openBiblePassage, showBiblePassage} from './actions';
 import {lookupReply, lookupRequest} from './testBible';
 
 vi.mock('@renderer/show/PreviewPanel', () => ({PreviewPanel: () => null}));
@@ -28,6 +34,8 @@ beforeEach(() => {
   HTMLElement.prototype.scrollIntoView = vi.fn();
   useShow.setState({
     bibleSource: null,
+    liveBibleSource: null,
+    requestedBibleSource: null,
     librarySong: null,
     openItemId: null,
     selectedTile: 0,
@@ -38,10 +46,86 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   delete window.llp;
-  useShow.setState({bibleSource: null, openItemId: null});
+  useShow.setState({
+    bibleSource: null,
+    liveBibleSource: null,
+    requestedBibleSource: null,
+    openItemId: null,
+  });
 });
 
 describe('Bible panel integration', () => {
+  it('cancels a deferred lookup when the already-open service row is selected again', async () => {
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    openItem('song-morning');
+    let finish: (value: BibleLookupReply) => void = () => undefined;
+    fixture.lookup.mockReturnValueOnce(
+      new Promise(resolve => {
+        finish = resolve;
+      }),
+    );
+    render(
+      <Workspace
+        id="show"
+        sizeClass="normal"
+        store={createMemoryColumnWidthStore()}
+        mediaVisible={false}
+      />,
+    );
+    const field = screen.getByRole<HTMLInputElement>('combobox', {
+      name: '성경 구절',
+    });
+    await waitFor(() => expect(field.disabled).toBe(false));
+    fireEvent.change(field, {target: {value: '요 3:16'}});
+    await waitFor(() => expect(fixture.lookup).toHaveBeenCalledOnce());
+    const service = screen.getByRole('region', {name: '예배 순서'});
+    fireEvent.click(within(service).getByRole('option', {selected: true}));
+    await act(async () => finish(lookupReply(lookupRequest())));
+    expect(useShow.getState().openItemId).toBe('song-morning');
+    expect(screen.queryByRole('region', {name: '성경'})).toBeNull();
+    expect(screen.getByRole('region', {name: '슬라이드'})).toBeTruthy();
+    expect(
+      screen.getByRole<HTMLInputElement>('combobox', {name: '성경 구절'}).value,
+    ).toBe('');
+    expect(fixture.send).not.toHaveBeenCalled();
+  });
+
+  it('renders retained live A instead of preview B after reveal', () => {
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    const passageA = panelPassage();
+    openBiblePassage(passageA);
+    selectTile(2);
+    showBiblePassage(passageA);
+    const sourceA = useShow.getState().bibleSource;
+    if (sourceA === null) throw new Error('Missing live Bible fixture');
+    const live = emptyLiveState();
+    useLive.setState({
+      state: {
+        ...live,
+        layers: {
+          ...live.layers,
+          slide: {
+            itemId: sourceA.id,
+            position: 2,
+            label: '3:18',
+            lines: [],
+          },
+        },
+      },
+    });
+    openBiblePassage({
+      ...passageA,
+      ref: '창세기 1:1',
+      displayRef: '창세기 1:1',
+    });
+    render(<BiblePanel sizeClass="normal" />);
+    expect(screen.getByText('창세기 1:1')).toBeTruthy();
+    act(() => revealLiveItem());
+    expect(screen.getByText(passageA.displayRef)).toBeTruthy();
+    expect(screen.queryByText('창세기 1:1')).toBeNull();
+  });
   it.each(['narrow', 'normal', 'wide'] as const)(
     'mounts the field and panel in the %s workspace and shares output/history',
     async sizeClass => {

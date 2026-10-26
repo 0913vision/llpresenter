@@ -2,6 +2,7 @@ import {
   Fragment,
   useCallback,
   useRef,
+  useState,
   useSyncExternalStore,
   type JSX,
   type ReactNode,
@@ -163,15 +164,21 @@ function showPanelParts({
   sizeClass,
   onProblem,
   bibleOpen,
+  bibleSelection,
 }: {
   readonly title: string;
   readonly sizeClass: SizeClass;
   readonly onProblem: ((notice: Notice) => void) | undefined;
   readonly bibleOpen: boolean;
+  readonly bibleSelection: number;
 }): PanelParts {
   switch (title) {
     case '퀵 실행':
-      return {body: window.llp ? <BibleQuickField api={window.llp} /> : null};
+      return {
+        body: window.llp ? (
+          <BibleQuickField api={window.llp} selectionVersion={bibleSelection} />
+        ) : null,
+      };
     case '미리보기':
       return {
         size: 'content',
@@ -312,12 +319,14 @@ function serviceOrderParts({
   onProblem,
   onOpenPrep,
   actions,
+  onShowSelection,
 }: {
   readonly id: Exclude<WorkspaceId, 'screens'>;
   readonly prep: PrepBinding | undefined;
   readonly onProblem: ((notice: Notice) => void) | undefined;
   readonly onOpenPrep: ((itemId: string) => void) | undefined;
   readonly actions: ReactNode;
+  readonly onShowSelection: () => void;
 }): PanelParts {
   return {
     header: <ServiceOrderHeader onProblem={onProblem} />,
@@ -326,7 +335,7 @@ function serviceOrderParts({
         workspace={id}
         onProblem={onProblem}
         onOpenPrep={onOpenPrep}
-        onOpenItem={id === 'prep' ? () => openPrepItem(prep) : undefined}
+        onOpenItem={id === 'prep' ? () => openPrepItem(prep) : onShowSelection}
       />
     ),
     meta: <ReadOnlyMark />,
@@ -386,6 +395,7 @@ export function Workspace({
   readonly sidebar?: SidebarCollapse | undefined;
 }): JSX.Element {
   const {gridRef, drag} = useColumnLayout(sizeClass, store);
+  const [bibleSelection, setBibleSelection] = useState(0);
   const bibleOpen = useShow(
     view => id === 'show' && isBibleSource(view, view.openItemId),
   );
@@ -405,6 +415,7 @@ export function Workspace({
         prep,
         onProblem,
         onOpenPrep,
+        onShowSelection: () => setBibleSelection(value => value + 1),
         actions: toggle.collapsible ? (
           <SidebarCollapseButton
             claimFocus={toggle.claimFocus}
@@ -415,7 +426,7 @@ export function Workspace({
     }
     if (id === 'screens') return screensPanelParts(title, onProblem);
     return id === 'show'
-      ? showPanelParts({title, sizeClass, onProblem, bibleOpen})
+      ? showPanelParts({title, sizeClass, onProblem, bibleOpen, bibleSelection})
       : prepPanelParts({title, prep, hasSong, onProblem, sizeClass});
   };
   // TODO(0913vision): Let the shrink rule ignore the hidden left width while

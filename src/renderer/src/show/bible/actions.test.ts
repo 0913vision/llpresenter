@@ -1,4 +1,4 @@
-import {afterEach, beforeEach, describe, expect, it} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@shared/live';
 import {LIVE_STATE_LIMITS} from '@shared/schema/liveLimits';
 import {useLive} from '@renderer/state/live';
@@ -11,7 +11,7 @@ import {
   selectTile,
   useShow,
 } from '@renderer/state/show';
-import {shownTiles} from '@renderer/state/showLibrary';
+import {bibleSourceFor, shownTiles} from '@renderer/state/showLibrary';
 import {sampleService} from '../testing/sampleService';
 import {openBiblePassage, showBiblePassage} from './actions';
 import {panelApi, panelPassage} from './panelTesting';
@@ -20,6 +20,8 @@ import {bibleSource} from './source';
 beforeEach(() => {
   useShow.setState({
     bibleSource: null,
+    liveBibleSource: null,
+    requestedBibleSource: null,
     librarySong: null,
     openItemId: null,
     selectedTile: 0,
@@ -29,10 +31,158 @@ beforeEach(() => {
 });
 afterEach(() => {
   delete window.llp;
-  useShow.setState({bibleSource: null, openItemId: null});
+  useShow.setState({
+    bibleSource: null,
+    liveBibleSource: null,
+    requestedBibleSource: null,
+    openItemId: null,
+  });
 });
 
 describe('Bible slide source', () => {
+  it('retains a requested passage while its output feedback and another preview cross', async () => {
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    const passageA = panelPassage();
+    showBiblePassage(passageA);
+    const sentA = fixture.send.mock.calls.at(-1)?.[0];
+    if (sentA?.type !== 'slide.show') throw new Error('Missing output A');
+    const live = emptyLiveState();
+    useLive.setState({
+      state: {...live, layers: {...live.layers, slide: sentA.slide}},
+    });
+    const passageB = {
+      ...passageA,
+      ref: '요한복음 4:16-18',
+      displayRef: '요한복음 4:16-18',
+      verses: passageA.verses.map(verse => ({
+        ...verse,
+        chapter: 4,
+        text: `Invented B ${verse.verse}`,
+      })),
+    };
+    openBiblePassage(passageB);
+    selectTile(2);
+    showBiblePassage(passageB);
+    const sentB = fixture.send.mock.calls.at(-1)?.[0];
+    if (sentB?.type !== 'slide.show') throw new Error('Missing output B');
+    openBiblePassage({
+      ...passageA,
+      ref: '창세기 1:1',
+      displayRef: '창세기 1:1',
+    });
+    expect(
+      bibleSourceFor(useShow.getState(), sentA.slide.itemId),
+    ).not.toBeNull();
+    useLive.setState({
+      state: {...live, layers: {...live.layers, slide: sentB.slide}},
+    });
+    revealLiveItem();
+    expect(useShow.getState().openItemId).toBe(sentB.slide.itemId);
+    outputPrevious();
+    expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+      type: 'slide.show',
+      slide: {
+        itemId: sentB.slide.itemId,
+        position: 1,
+        lines: ['17 Invented B 17'],
+      },
+    });
+    openBiblePassage({
+      ...passageA,
+      ref: '창세기 1:2',
+      displayRef: '창세기 1:2',
+    });
+    expect(bibleSourceFor(useShow.getState(), sentA.slide.itemId)).toBeNull();
+    await vi.waitFor(() =>
+      expect(fixture.document().value.recents[0]?.ref).toBe(passageB.ref),
+    );
+  });
+  it.each([true, false])(
+    'retains live A apart from later previews for reveal and previous, with early feedback %s',
+    async earlyFeedback => {
+      const fixture = panelApi();
+      window.llp = fixture.api;
+      const passageA = panelPassage();
+      openBiblePassage(passageA);
+      selectTile(2);
+      showBiblePassage(passageA);
+      const sourceA = useShow.getState().bibleSource;
+      if (sourceA === null) throw new Error('Missing output Bible source');
+      const live = emptyLiveState();
+      const accepted = {
+        ...live,
+        layers: {
+          ...live.layers,
+          slide: {
+            itemId: sourceA.id,
+            position: 2,
+            label: '3:18',
+            lines: sourceA.tiles[2]?.lines ?? [],
+          },
+        },
+      };
+      if (earlyFeedback) useLive.setState({state: accepted});
+      await vi.waitFor(() => expect(fixture.edit).toHaveBeenCalledOnce());
+      openBiblePassage({
+        ...passageA,
+        ref: '창세기 1:1',
+        displayRef: '창세기 1:1',
+      });
+      const previewB = useShow.getState().bibleSource;
+      if (previewB === null) throw new Error('Missing preview Bible source');
+      expect(useShow.getState().liveBibleSource).toBe(
+        earlyFeedback ? sourceA : null,
+      );
+      openBiblePassage({
+        ...passageA,
+        ref: '창세기 1:2',
+        displayRef: '창세기 1:2',
+      });
+      expect(bibleSourceFor(useShow.getState(), previewB.id)).toBeNull();
+      expect(bibleSourceFor(useShow.getState(), sourceA.id)).toBe(sourceA);
+      if (!earlyFeedback) useLive.setState({state: accepted});
+      revealLiveItem();
+      expect(useShow.getState().openItemId).toBe(sourceA.id);
+      expect(shownTiles(useShow.getState())).toBe(sourceA.tiles);
+      expect(fixture.send).toHaveBeenCalledOnce();
+      outputPrevious();
+      expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+        type: 'slide.show',
+        slide: {
+          itemId: sourceA.id,
+          position: 1,
+          lines: ['17 Invented verse 17'],
+        },
+      });
+      await vi.waitFor(() => expect(fixture.edit).toHaveBeenCalledTimes(2));
+      expect(fixture.document().value.recents.map(item => item.ref)).toEqual([
+        passageA.ref,
+      ]);
+      useLive.setState({
+        state: {
+          ...live,
+          layers: {
+            ...live.layers,
+            slide: {
+              itemId: 'song-morning',
+              position: 0,
+              label: null,
+              lines: ['Invented song'],
+            },
+          },
+        },
+        lastSlideItemId: 'song-morning',
+      });
+      openBiblePassage({
+        ...passageA,
+        ref: '창세기 1:3',
+        displayRef: '창세기 1:3',
+      });
+      expect(useShow.getState().liveBibleSource).toBeNull();
+      expect(bibleSourceFor(useShow.getState(), sourceA.id)).toBeNull();
+    },
+  );
   it('keeps long verses within output line limits without splitting Unicode pairs', () => {
     const text = '𠀀'.repeat(LIVE_STATE_LIMITS.textCharacters);
     const source = bibleSource({

@@ -12,7 +12,18 @@ import {useShow, type ShowView} from './showStore';
 const noTiles: readonly SlideTile[] = [];
 
 export function isBibleSource(view: ShowView, itemId: ItemId | null): boolean {
-  return view.bibleSource !== null && view.bibleSource.id === itemId;
+  return bibleSourceFor(view, itemId) !== null;
+}
+
+export function bibleSourceFor(
+  view: ShowView,
+  itemId: ItemId | null,
+): ShowView['bibleSource'] {
+  if (view.bibleSource?.id === itemId) return view.bibleSource;
+  if (view.liveBibleSource?.id === itemId) return view.liveBibleSource;
+  return view.requestedBibleSource?.id === itemId
+    ? view.requestedBibleSource
+    : null;
 }
 
 /** Namespaces a library source without inventing a service item. */
@@ -38,7 +49,7 @@ export function tilesForView(
   return isLibrarySource(view, itemId)
     ? view.librarySong.tiles
     : isBibleSource(view, itemId)
-      ? (view.bibleSource?.tiles ?? noTiles)
+      ? (bibleSourceFor(view, itemId)?.tiles ?? noTiles)
       : (view.tiles[itemId] ?? noTiles);
 }
 
