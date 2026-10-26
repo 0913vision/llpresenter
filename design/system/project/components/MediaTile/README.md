@@ -50,6 +50,7 @@ A media tile that shows one background video or image as a 16:9 picture with a n
 - A click on a missing file tile opens the "다시 연결" (relink) file open dialog. The right-click menu also has "다시 연결". Don't put a button inside the tile.
 - A copying tile can't be clicked, and its right-click menu has only "복사 멈추기" (stop copying).
 - The grid and the strip are `role="listbox"`, and each tile is `role="option"` + `aria-selected`. While a tile has keyboard focus, the arrow keys move between tiles, and Enter acts as a click.
+- Read-only notice grids move keyboard focus without selecting or outputting tiles. Tab enters once at the last focused tile; arrow keys, Home, and End reach tiles across virtual windows.
 - In the media strip of the 진행 workspace, a mouse click sends the media out but doesn't give the tile keyboard focus; only Tab moves keyboard focus into the strip. So → and Space after a click still go to 다음 슬라이드. In the media view, a click selects the tile and focuses it as usual.
 - State attributes: `data-state="live"`, `data-state="warning"`, `data-state="busy"` (separate them with spaces when combined).
 - The progress bar is `role="progressbar"` + `aria-valuenow`.
@@ -64,6 +65,7 @@ A media tile that shows one background video or image as a 16:9 picture with a n
 
 - `<MediaTile name="따뜻한 빛" picture={thumb} duration="0:30" loop live selected missingFile={path} copying={62} />`
 - `<MediaGrid label="배경 영상" columns={5} selected={index} onSelect={…} onActivate={…} onOutput={…} onMenu={…}>`: a click or Enter calls `onActivate` (select), a double click `onOutput`.
+- `MediaGrid` and its windowed host accept `arrowsMove="focus"` for read-only notice tiles. The default remains `"selection"` for the media view.
 - `<MediaStrip label="배경 영상" selected={index} onSelect={…} onActivate={…} onMenu={…}>`: a click or Enter calls `onActivate` (send out). On a tile whose file is missing, the caller's `onActivate` opens 다시 연결 instead.
 - Classes: `ll-media-grid`, `ll-media-strip`, `ll-media`, `ll-media__frame`, `ll-media__img`, `ll-media__dur`, `ll-media__name`, `ll-media__missing`, `ll-media__busy`.
 - The duration chip background is `scrim` (0.6) for now. A 0.72 token has been requested so that the text reads on bright pictures too.

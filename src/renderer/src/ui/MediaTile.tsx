@@ -189,6 +189,8 @@ export interface MediaListProps {
 
 export interface MediaGridProps
   extends MediaListProps, Pick<TileListPosition, 'positionOffset' | 'setSize'> {
+  /** Arrow keys can move only keyboard focus in a read-only grid. */
+  readonly arrowsMove?: 'selection' | 'focus' | undefined;
   /** The column count, 2 to 8, from the panel's size slider. */
   readonly columns: number;
   /** A double click sends the media out. */
@@ -206,7 +208,7 @@ export function MediaGrid(props: MediaGridProps): JSX.Element {
       moves={gridMoves}
       columns={props.columns}
       spaceKey="pass"
-      arrowsMove="selection"
+      arrowsMove={props.arrowsMove ?? 'selection'}
       selected={props.selected}
       onSelect={props.onSelect}
       onActivate={props.onActivate}

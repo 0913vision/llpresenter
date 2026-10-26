@@ -206,8 +206,14 @@ export function TileList(props: TileListProps): JSX.Element {
   const {moves, columns, spaceKey, selected, onActivate} = props;
   const listRef = useRef<HTMLDivElement>(null);
   const [focusStop, setFocusStop] = useState(0);
+  const offset =
+    Number.isInteger(props.positionOffset) && (props.positionOffset ?? -1) >= 0
+      ? (props.positionOffset ?? 0)
+      : 0;
   const followsSelection = props.arrowsMove === 'selection';
-  const tabStop = followsSelection ? (selected ?? 0) : focusStop;
+  const tabStop = followsSelection
+    ? (selected ?? 0)
+    : Math.max(0, focusStop - offset);
   const positioned = useRef(false);
   useFocusFollowsSelection(listRef, followsSelection ? selected : undefined);
   useLayoutEffect(() => {
@@ -217,11 +223,6 @@ export function TileList(props: TileListProps): JSX.Element {
     const supplied =
       props.setSize !== undefined || props.positionOffset !== undefined;
     if (!supplied && !positioned.current) return;
-    const offset =
-      Number.isInteger(props.positionOffset) &&
-      (props.positionOffset ?? -1) >= 0
-        ? (props.positionOffset ?? 0)
-        : 0;
     const tiles = tilesOf(list);
     const total = Number.isInteger(props.setSize)
       ? Math.max(props.setSize ?? 0, offset + tiles.length)
@@ -307,7 +308,7 @@ export function TileList(props: TileListProps): JSX.Element {
   const onFocus = (event: FocusEvent<HTMLDivElement>): void => {
     if (followsSelection) return;
     const index = indexOf(event.currentTarget, tileOf(event.target));
-    if (index >= 0) setFocusStop(index);
+    if (index >= 0) setFocusStop(offset + index);
   };
 
   return (

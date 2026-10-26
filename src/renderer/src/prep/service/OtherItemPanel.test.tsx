@@ -6,6 +6,7 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import * as v from 'valibot';
 import {thumbnailUrl} from '@shared/media';
@@ -175,6 +176,94 @@ describe('the center panel of other item kinds', () => {
         image.src.startsWith('llp-media://thumbnail/'),
       ),
     ).toBe(true);
+  });
+
+  it('moves keyboard focus between visible notice tiles and keeps one Tab stop without selecting', async () => {
+    const user = userEvent.setup();
+    render(<button>Before</button>);
+    const fixture = show({id: itemId, notice: noticeSet});
+    render(<button>After</button>);
+    const first = await screen.findByRole('option', {name: '따뜻한 빛'});
+    const second = screen.getByRole('option', {name: '새벽 하늘'});
+    await user.tab();
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', {name: 'Before'}),
+    );
+    await user.tab();
+    expect(document.activeElement).toBe(first);
+    await user.keyboard('{ArrowRight}');
+    expect(document.activeElement).toBe(second);
+    await user.tab();
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', {name: 'After'}),
+    );
+    await user.tab({shift: true});
+    expect(document.activeElement).toBe(second);
+    await user.keyboard('{ArrowLeft}');
+    expect(document.activeElement).toBe(first);
+    expect(
+      screen
+        .getAllByRole('option')
+        .every(tile => tile.getAttribute('aria-selected') === 'false'),
+    ).toBe(true);
+    expect(fixture.send).not.toHaveBeenCalled();
+  });
+
+  it('moves keyboard focus within and across notice windows while retaining bounded unselected tiles', async () => {
+    const user = userEvent.setup();
+    const items = Array.from({length: 1000}, (_, index) =>
+      mediaItem(index + 1),
+    );
+    const fixture = show(
+      {id: itemId, notice: noticeSet},
+      sourcesFixture(
+        mediaDocument(items),
+        noticesDocument({media: items.map(item => item.id)}),
+      ),
+    );
+    await screen.findByRole('option', {name: 'Invented 1'});
+    const viewport = screen.getByRole('listbox', {name: '주보 공지'})
+      .parentElement?.parentElement;
+    if (viewport === null || viewport === undefined) {
+      throw new Error('Missing viewport');
+    }
+    Object.defineProperty(viewport, 'clientHeight', {
+      configurable: true,
+      value: INITIAL_ROWS,
+    });
+    await user.tab();
+    const moves = [
+      ['{ArrowRight}', 2],
+      ['{ArrowDown}', 6],
+      ['{ArrowDown}', 10],
+      ['{ArrowDown}', 14],
+      ['{ArrowDown}', 18],
+      ['{ArrowDown}', 22],
+      ['{End}', 1000],
+      ['{ArrowLeft}', 999],
+      ['{Home}', 1],
+    ] as const;
+    const bound =
+      (INITIAL_ROWS + OVERSCAN_ROWS * 2) * defaultThumbnailColumns.normal;
+    for (const [key, index] of moves) {
+      await user.keyboard(key);
+      const target = await screen.findByRole('option', {
+        name: `Invented ${index}`,
+      });
+      expect(document.activeElement).toBe(target);
+      expect(target.tabIndex).toBe(0);
+      expect(
+        screen.getAllByRole('option').filter(tile => tile.tabIndex === 0),
+      ).toHaveLength(1);
+      expect(target.getAttribute('aria-posinset')).toBe(String(index));
+      expect(screen.getAllByRole('option').length).toBeLessThanOrEqual(bound);
+      expect(
+        screen
+          .getAllByRole('option')
+          .every(tile => tile.getAttribute('aria-selected') === 'false'),
+      ).toBe(true);
+    }
+    expect(fixture.send).not.toHaveBeenCalled();
   });
 
   it('follows notice names, membership, media renames, and deletions without remounting', async () => {

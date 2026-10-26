@@ -54,6 +54,7 @@ function NoticePanel({
       <PanelBody variant="flush" className={styles.body}>
         <VirtualMediaGrid
           key={setId}
+          arrowsMove="focus"
           label={set.name}
           count={tiles.length}
           selected={undefined}

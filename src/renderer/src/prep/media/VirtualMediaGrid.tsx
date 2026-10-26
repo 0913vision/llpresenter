@@ -97,6 +97,8 @@ export interface VirtualMediaGridProps {
   readonly count: number;
   readonly columns: number;
   readonly selected: number | undefined;
+  /** Read-only grids move focus without changing selection. */
+  readonly arrowsMove?: 'selection' | 'focus';
   readonly onSelect: (index: number) => void;
   readonly onActivate: (index: number) => void;
   readonly onOutput: (index: number) => void;
@@ -115,6 +117,7 @@ export function VirtualMediaGrid({
   count,
   columns,
   selected,
+  arrowsMove = 'selection',
   onSelect,
   onActivate,
   onOutput,
@@ -174,9 +177,12 @@ export function VirtualMediaGrid({
     }
     const node = viewport.current;
     const option =
-      event.target instanceof Element ? event.target.closest(OPTION) : null;
+      event.target instanceof Element
+        ? event.target.closest<HTMLElement>(OPTION)
+        : null;
     if (node === null || option === null) return;
-    const local = [...node.querySelectorAll(OPTION)].indexOf(option);
+    const options = [...node.querySelectorAll<HTMLElement>(OPTION)];
+    const local = options.indexOf(option);
     const current = start + local;
     const moves: Readonly<Record<string, number>> = {
       ArrowLeft: current - 1,
@@ -191,9 +197,11 @@ export function VirtualMediaGrid({
     event.preventDefault();
     event.stopPropagation();
     const next = Math.max(0, Math.min(count - 1, proposed));
-    focusNext.current = next;
+    const target = options[next - start];
+    focusNext.current = target === undefined ? next : null;
     setScrollTop(reveal(node, next, {columns, stride, inset: measure.inset}));
-    onSelect(next);
+    target?.focus({preventScroll: true});
+    if (arrowsMove === 'selection') onSelect(next);
   };
   const windowStyle: WindowStyle = {
     height: Math.max(0, rows * stride - measure.yGap),
@@ -209,6 +217,7 @@ export function VirtualMediaGrid({
     >
       <div className={styles.spacer} style={windowStyle}>
         <MediaGrid
+          arrowsMove={arrowsMove}
           label={label}
           columns={columns}
           positionOffset={start}
