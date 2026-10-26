@@ -61,3 +61,11 @@ bible-2, then 준비 quick add in bible-3.
 ## Verdicts
 
 Recorded by the lead at merge.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (2f82f53c): reviewer (Codex) Approve. Lead Approve; the first slice of
+  the four-field Bible input (the shared model with copible's candidate and Tab
+  rules), per the user decisions of October 26. The exact-head CI run passed,
+  checked by the lead at merge. Rebased by the lead onto local `main` without
+  conflicts; typecheck passes.
