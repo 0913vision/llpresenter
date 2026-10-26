@@ -112,19 +112,18 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (Codex, codex4): Request changes: each tick dropped a text 소품's
+  custom style; internal TSDoc.
+- Round 2 (Codex, codex4): Approve. The lead, reading this output-path change,
+  asked for two more fixes: guard the tick so a failure keeps the last text and
+  is logged a bounded number of times, and tick only the 소품 that show a
+  running 타이머.
+- Round 3 (a3f6da65): reviewed by the lead: both fixes are in, each with a test
+  that fails without it, and the failure log is capped and cleared on dispose.
+  Lead Approve. Rebased by the lead onto local `main` without conflicts;
+  typecheck passes. M3-O6b is complete.
 
 ## Team member's reply
 
