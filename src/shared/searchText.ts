@@ -35,9 +35,14 @@ export interface SearchRange {
   readonly end: number;
 }
 
+const GRAPHEMES = new Intl.Segmenter(undefined, {granularity: 'grapheme'});
+
 /**
  * The first part of `text` that a library search for `query` matches, by the
- * same rules as the index, or `undefined`.
+ * same rules as the index, or `undefined`. The offsets refer to `text` as it
+ * is, so decomposed Hangul and characters outside the BMP keep their places:
+ * each character cluster is normalized alone and maps its search units back
+ * to its own span of `text`.
  */
 export function searchRange(
   text: string,
@@ -45,18 +50,14 @@ export function searchRange(
 ): SearchRange | undefined {
   const needle = normalizeSearch(query);
   if (needle === '') return undefined;
-  const source = text.normalize('NFC');
   let normalized = '';
   const starts: number[] = [];
   const ends: number[] = [];
-  let offset = 0;
-  for (const character of source) {
-    for (const unit of normalizeSearch(character)) {
-      normalized += unit;
-      starts.push(offset);
-      ends.push(offset + character.length);
-    }
-    offset += character.length;
+  for (const {segment, index} of GRAPHEMES.segment(text)) {
+    const search = normalizeSearch(segment);
+    normalized += search;
+    starts.push(...Array<number>(search.length).fill(index));
+    ends.push(...Array<number>(search.length).fill(index + segment.length));
   }
   const haystack = isInitialQuery(needle)
     ? searchInitials(normalized)

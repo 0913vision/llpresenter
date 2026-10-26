@@ -175,6 +175,29 @@ describe('Menu', () => {
     expect(item.textContent).toBe('만복의 근원 하나님');
   });
 
+  it('points to the first item again when the search term changes', async () => {
+    function Searching(): JSX.Element {
+      const [value, setValue] = useState('');
+      return (
+        <Harness
+          search={{value, onChange: setValue}}
+          entries={[
+            {kind: 'item', id: 'a', label: '가'},
+            {kind: 'item', id: 'b', label: '나'},
+            {kind: 'item', id: 'c', label: '다'},
+          ]}
+        />
+      );
+    }
+    render(<Searching />);
+    await openMenu();
+    const field = screen.getByRole('combobox');
+    await userEvent.keyboard('{ArrowDown}{ArrowDown}');
+    expect(field.getAttribute('aria-activedescendant')).toContain('item-2');
+    await userEvent.keyboard('x');
+    expect(field.getAttribute('aria-activedescendant')).toContain('item-0');
+  });
+
   it('runs an item on click', async () => {
     const onSelect = vi.fn();
     render(<Harness onSelect={onSelect} />);

@@ -76,6 +76,37 @@ describe('항목 추가', () => {
     expect(screen.queryByRole('menu')).toBeNull();
   });
 
+  it('points to the first result again when the query changes', async () => {
+    const {user, service, first} = setup();
+    await user.click(screen.getByRole('button', {name: '항목 추가'}));
+    const menu = screen.getByRole('menu', {name: '항목 추가'});
+    await waitFor(() =>
+      expect(within(menu).getAllByRole('menuitem')).toHaveLength(2),
+    );
+    await user.keyboard('{ArrowDown}');
+    const field = screen.getByRole('combobox', {name: '곡, 가사, 초성'});
+    const items = within(menu).getAllByRole('menuitem');
+    expect(field.getAttribute('aria-activedescendant')).toBe(items[1]?.id);
+    await user.keyboard('노래');
+    await waitFor(() =>
+      expect(
+        within(menu)
+          .getAllByRole('menuitem')
+          .map(item => item.id),
+      ).toHaveLength(2),
+    );
+    await waitFor(() =>
+      expect(field.getAttribute('aria-activedescendant')).toBe(
+        within(menu).getAllByRole('menuitem')[0]?.id,
+      ),
+    );
+    await user.keyboard('{Enter}');
+    await waitFor(() => expect(service().service.order).toHaveLength(6));
+    expect(service().service.order.at(-1)).toMatchObject({
+      song: first.song.id,
+    });
+  });
+
   it('is unavailable for a read-only service, with the reason', async () => {
     setup();
     act(() => useShow.setState({readOnly: true}));

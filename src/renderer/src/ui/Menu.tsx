@@ -138,11 +138,14 @@ function focusMenu(surface: HTMLElement | null): void {
 
 function useMenuNavigation({
   entries,
+  searchValue,
   surface,
   onClose,
   onBack,
 }: {
   readonly entries: readonly MenuEntry[];
+  /** A new search term points to the first item again. */
+  readonly searchValue: string | undefined;
   readonly surface: RefObject<HTMLDivElement | null>;
   readonly onClose: (reason: MenuCloseReason) => void;
   readonly onBack: (() => void) | undefined;
@@ -151,6 +154,11 @@ function useMenuNavigation({
   const itemElements = useRef<Array<HTMLDivElement | null>>([]);
   const timers = useMenuTimers();
   const [pointedState, setPointed] = useState(0);
+  const [seenSearch, setSeenSearch] = useState(searchValue);
+  if (seenSearch !== searchValue) {
+    setSeenSearch(searchValue);
+    setPointed(0);
+  }
   const [submenu, setSubmenu] = useState<OpenSubmenu | null>(null);
   const pointed = Math.min(pointedState, items.length - 1);
 
@@ -241,7 +249,13 @@ function MenuSurface(props: SurfaceProps): JSX.Element {
   const {label, entries, place, onClose, onBack, search, autoFocus} = props;
   const baseId = useId();
   const surface = useRef<HTMLDivElement>(null);
-  const nav = useMenuNavigation({entries, surface, onClose, onBack});
+  const nav = useMenuNavigation({
+    entries,
+    searchValue: search?.value,
+    surface,
+    onClose,
+    onBack,
+  });
   const itemId = (index: number): string => `${baseId}-item-${index}`;
   const activeId = nav.pointed >= 0 ? itemId(nav.pointed) : undefined;
 

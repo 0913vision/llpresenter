@@ -26,4 +26,25 @@ describe('library search text', () => {
     expect(searchRange(title, '없음')).toBeUndefined();
     expect(searchRange(title, '  ')).toBeUndefined();
   });
+
+  it('keeps offsets of the original text for decomposed Hangul', () => {
+    const decomposed = '만복'.normalize('NFD') + ' 근원'.normalize('NFD');
+    const range = searchRange(decomposed, '근원');
+    expect(range).toBeDefined();
+    expect(decomposed.slice(range?.start, range?.end).normalize('NFC')).toBe(
+      '근원',
+    );
+    const initials = searchRange(decomposed, 'ㅁㅂ');
+    expect(
+      decomposed.slice(initials?.start, initials?.end).normalize('NFC'),
+    ).toBe('만복');
+  });
+
+  it('keeps offsets across characters outside the BMP', () => {
+    const title = '🎵 아멘 찬양';
+    const range = searchRange(title, '찬양');
+    expect(title.slice(range?.start, range?.end)).toBe('찬양');
+    const emoji = searchRange(title, '아멘');
+    expect(title.slice(emoji?.start, emoji?.end)).toBe('아멘');
+  });
 });
