@@ -182,6 +182,23 @@ describe('media import', () => {
     expect(reports.at(-1)).toMatchObject({phase: 'complete', percent: 100});
   });
 
+  it('imports the original using the default when the preference read rejects', async () => {
+    const {importer, items, reports, source, log} = await setup({
+      copyIntoFolder: () =>
+        Promise.reject(new Error('Invented preferences read failure')),
+    });
+    const file = await source('Original.mp4');
+    await importer.import(filesOf([file]), signal());
+    await ended(reports, 1);
+    expect(items[0]?.file).toBe(file);
+    expect(reports.at(-1)).toMatchObject({phase: 'complete'});
+    expect(reports.some(report => report.phase === 'copying')).toBe(false);
+    expect(log.messages('warn')).toEqual([
+      'could not read media copy preference; using the default',
+    ]);
+    expect(await readFile(file, 'utf8')).toBe('invented media');
+  });
+
   it('snapshots one policy per batch while queued jobs keep their admitted policy', async () => {
     let copying = false;
     const policy = vi.fn(() => Promise.resolve(copying));

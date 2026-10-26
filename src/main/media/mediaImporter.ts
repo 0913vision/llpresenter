@@ -174,11 +174,7 @@ export class MediaImporter {
       return mediaRefusal('not-found', 'Media import is closing');
     }
     if (paths.length === 0) return {ok: true, value: []};
-    const policy = this.options.copyIntoFolder;
-    const copyIntoFolder =
-      typeof policy === 'function'
-        ? await policy()
-        : (policy ?? COPY_IMPORTED_MEDIA);
+    const copyIntoFolder = await this.copyPolicy();
     if (this.isClosing(signal)) {
       return mediaRefusal('not-found', 'Media import is closing');
     }
@@ -216,6 +212,21 @@ export class MediaImporter {
 
   private isClosing(signal: AbortSignal): boolean {
     return this.disposed || signal.aborted;
+  }
+
+  private async copyPolicy(): Promise<boolean> {
+    try {
+      const policy = this.options.copyIntoFolder;
+      return typeof policy === 'function'
+        ? await policy()
+        : (policy ?? COPY_IMPORTED_MEDIA);
+    } catch (error: unknown) {
+      this.options.log.warn(
+        'could not read media copy preference; using the default',
+        error,
+      );
+      return COPY_IMPORTED_MEDIA;
+    }
   }
 
   /** Cancels every job and resolves once the running one has stopped. */

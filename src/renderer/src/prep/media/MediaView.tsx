@@ -33,6 +33,7 @@ import {
 import {useMediaView} from './MediaViewProvider';
 import {VirtualMediaGrid} from './VirtualMediaGrid';
 import {useMediaImportAction} from './useMediaImportAction';
+import {MediaImportOptions} from './MediaImportOptions';
 import styles from './MediaView.module.css';
 
 /** The fewest and most grid columns the size slider sets. */
@@ -218,6 +219,7 @@ export function MediaView({onProblem}: MediaViewProps): JSX.Element {
           />
           <PanelMeta>{items.length}</PanelMeta>
           <PanelActions>
+            <MediaImportOptions onProblem={onProblem} />
             <Button
               icon="upload"
               disabled={importReason !== undefined}

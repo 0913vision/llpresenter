@@ -1,0 +1,226 @@
+{
+  "port": 5188,
+  "offscreen": true,
+  "samples": [
+    {
+      "round": 5,
+      "counts": {
+        "document": 231,
+        "fields": 1,
+        "panel": 67,
+        "video": 1
+      },
+      "heap": {
+        "backingStorageSize": 1713934,
+        "embedderHeapUsedSize": 3737720,
+        "totalSize": 6483968,
+        "usedSize": 5567224
+      },
+      "dom": {
+        "documents": 30,
+        "jsEventListeners": 531,
+        "nodes": 566
+      }
+    },
+    {
+      "round": 10,
+      "counts": {
+        "document": 231,
+        "fields": 1,
+        "panel": 67,
+        "video": 1
+      },
+      "heap": {
+        "backingStorageSize": 1713930,
+        "embedderHeapUsedSize": 3696096,
+        "totalSize": 6221824,
+        "usedSize": 5591564
+      },
+      "dom": {
+        "documents": 30,
+        "jsEventListeners": 531,
+        "nodes": 566
+      }
+    },
+    {
+      "round": 15,
+      "counts": {
+        "document": 231,
+        "fields": 1,
+        "panel": 67,
+        "video": 1
+      },
+      "heap": {
+        "backingStorageSize": 1713930,
+        "embedderHeapUsedSize": 3748584,
+        "totalSize": 6221824,
+        "usedSize": 5611872
+      },
+      "dom": {
+        "documents": 30,
+        "jsEventListeners": 531,
+        "nodes": 566
+      }
+    },
+    {
+      "round": 20,
+      "counts": {
+        "document": 231,
+        "fields": 1,
+        "panel": 67,
+        "video": 1
+      },
+      "heap": {
+        "backingStorageSize": 1713930,
+        "embedderHeapUsedSize": 3759992,
+        "totalSize": 6221824,
+        "usedSize": 5621776
+      },
+      "dom": {
+        "documents": 30,
+        "jsEventListeners": 531,
+        "nodes": 566
+      }
+    }
+  ],
+  "copyPolicy": {
+    "defaultOff": true,
+    "explorerDrops": 2,
+    "linkedPath": "source/Linked.webm",
+    "copiedPath": "Linked.webm",
+    "originalUnchanged": true,
+    "copiedBytesMatch": true,
+    "noCopyPhaseWhenOff": true,
+    "settingChangedVia": "native option-menu clicks"
+  },
+  "menuSamples": [
+    {
+      "round": 5,
+      "count": 233,
+      "dom": {
+        "documents": 30,
+        "jsEventListeners": 678,
+        "nodes": 569
+      },
+      "heap": {
+        "backingStorageSize": 1713657,
+        "embedderHeapUsedSize": 3511800,
+        "totalSize": 6746112,
+        "usedSize": 5761408
+      }
+    },
+    {
+      "round": 10,
+      "count": 233,
+      "dom": {
+        "documents": 30,
+        "jsEventListeners": 678,
+        "nodes": 569
+      },
+      "heap": {
+        "backingStorageSize": 1713657,
+        "embedderHeapUsedSize": 3504832,
+        "totalSize": 6746112,
+        "usedSize": 5785276
+      }
+    },
+    {
+      "round": 15,
+      "count": 233,
+      "dom": {
+        "documents": 30,
+        "jsEventListeners": 678,
+        "nodes": 569
+      },
+      "heap": {
+        "backingStorageSize": 1713657,
+        "embedderHeapUsedSize": 3845432,
+        "totalSize": 6746112,
+        "usedSize": 5804656
+      }
+    },
+    {
+      "round": 20,
+      "count": 233,
+      "dom": {
+        "documents": 30,
+        "jsEventListeners": 678,
+        "nodes": 569
+      },
+      "heap": {
+        "backingStorageSize": 1713657,
+        "embedderHeapUsedSize": 3504832,
+        "totalSize": 6746112,
+        "usedSize": 5813136
+      }
+    }
+  ],
+  "options": {
+    "menuRoundTrips": 20,
+    "before": {
+      "count": 233,
+      "dom": {
+        "documents": 30,
+        "jsEventListeners": 678,
+        "nodes": 569
+      },
+      "heap": {
+        "backingStorageSize": 1713657,
+        "embedderHeapUsedSize": 3717992,
+        "totalSize": 6483968,
+        "usedSize": 5730320
+      }
+    },
+    "after": {
+      "count": 233,
+      "dom": {
+        "documents": 30,
+        "jsEventListeners": 678,
+        "nodes": 569
+      },
+      "heap": {
+        "backingStorageSize": 1713657,
+        "embedderHeapUsedSize": 3482264,
+        "totalSize": 6746112,
+        "usedSize": 5813136
+      }
+    },
+    "selectionRetained": true,
+    "outputUnchanged": true,
+    "persistedAfterReload": true
+  },
+  "baseline": {
+    "counts": {
+      "document": 231,
+      "fields": 1,
+      "panel": 67,
+      "video": 1
+    },
+    "heap": {
+      "backingStorageSize": 1713934,
+      "embedderHeapUsedSize": 3737192,
+      "totalSize": 6746112,
+      "usedSize": 5519340
+    }
+  },
+  "after": {
+    "counts": {
+      "document": 231,
+      "fields": 1,
+      "panel": 67,
+      "video": 1
+    },
+    "heap": {
+      "backingStorageSize": 1713887,
+      "embedderHeapUsedSize": 3717744,
+      "totalSize": 6221824,
+      "usedSize": 5725632
+    },
+    "dom": {
+      "documents": 30,
+      "jsEventListeners": 531,
+      "nodes": 566
+    }
+  },
+  "reopenCount": 2
+}
