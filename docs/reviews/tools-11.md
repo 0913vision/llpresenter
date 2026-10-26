@@ -42,3 +42,10 @@ Every added `/**` is checked before the request.
 
 표시 중 with row-specific clear undo remains the final T1a unit. The retained
 타이머 tab follows. Audio waits for O7 and lead confirmation before starting.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (4d61eed0): reviewer (Codex, codex4) Approve. Lead Approve (see "What
+  changed and why"); the exact-head CI run passed, checked by the lead at merge.
+  Rebased by the lead onto local `main` after output-51 without conflicts;
+  typecheck passes.
