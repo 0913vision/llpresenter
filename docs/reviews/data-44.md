@@ -2,8 +2,8 @@
 
 - Team member: data (Claude session)
 - Branch: `feat/data/close-flush`
-- Base commit (`main`): `146547d3`
-- Last code commit: `7b894336`; the request message gives the head commit and
+- Base commit (`main`): `d91ae981`
+- Last code commit: `54220428`; the request message gives the head commit and
   its CI run.
 - Related brief: `docs/briefs/data.md`; request from `.llp/task.md`, "Claude
   takeover (from the lead, 08:10)", item 2 (the close handshake end to end on
@@ -82,6 +82,9 @@ defined the flush handshake, but nothing used it.
   the quit must ask before the save steps close the data store.
 - `src/renderer/src/prep/editor/` (prep, no member): the editor's reply, as the
   request names it.
+- `src/renderer/src/state/` and `src/renderer/src/prep/service/` (shell and
+  prep, round 5): the 예배 순서, item, and background edits run through the
+  window's pending writes, so the close flush waits for them.
 - `src/renderer/src/control/` (shell): the window session owns the editor store
   and the notice stack, so it starts and stops the answer. Without it, a window
   that never opened the editor would leave every close waiting 5 s.
@@ -251,3 +254,47 @@ missing.
    until the item's update is sent, and a 구성 choice, 새 구성, and an order
    change after the acknowledgement send nothing (`serviceItemStore.test.ts`,
    `controlSession.test.ts`); after the editor refuses, item edits work again.
+
+## Round 5 reply
+
+1. [P1] `serviceItemStore.ts:185`, a failed item operation was dropped from the
+   result. Fixed in
+   `fix(prep): answer the close flush only when every unsent window write reached main`,
+   after walking the whole close path.
+
+   Where unsent work can live in the control window, and how the flush now
+   covers each:
+
+   - The editor's sessions (typing timer, title, background, 구성 order):
+     `SongEditorStore.flush` stops every edit and saves them (rounds 2 to 4).
+   - The editor's running 구성 rename or delete and 이름표 edit: the flush now
+     folds that operation's result in, so a failed one refuses the close.
+   - Edits that read before they send: the item panel's 구성 changes, the 진행
+     예배 순서 edits (`ServiceOrderEdits`: add, move, delete, undo, redo), and
+     the 슬라이드 background override (`updateServiceBackground`). All three now
+     run through one `PendingWrites` per window API
+     (`src/renderer/src/state/pendingWrites.ts`, replacing round 4's item-only
+     queue). Its `flush()` stops new writes, waits for the running ones, and
+     answers whether each reached main (sent, or applied with a disk failure
+     that main keeps for a retry); a rejected read or a refused edit answers
+     false.
+   - Writes that send at once and so are already in main's queue when the reply
+     goes out: 새 곡 and 곡 삭제 (`useLibrary`), 예배 순서 open, the UI state
+     and zoom. Main's shutdown waits for its stores.
+
+   `ControlSession` answers `true` only when the editor and the pending writes
+   both did; on a refusal it resumes both (`SongEditorStore.resume` is new for
+   the case where the editor itself succeeded). A throw anywhere counts as a
+   refusal. On the main side, a lost renderer or no answer in 5 s closes
+   (data-44), and quitting asks first.
+
+   Regressions: a pending item read that rejects while the editor flush succeeds
+   answers `false` and resumes both (`controlSession.test.ts`); a running 구성
+   rename that fails refuses the editor's flush; the editor resumes after a
+   successful flush; pending writes wait, fold a rejection, refuse while
+   stopped, and resume (`pendingWrites.test.ts`); 예배 순서 and background edits
+   are waited for and refused once writes stop (`serviceOrderEdits.test.ts`,
+   `serviceBackground.test.ts`).
+
+2. Rebased onto `main` at `d91ae981` (spec-44's wiring test merged with the
+   handshake's fakes).
