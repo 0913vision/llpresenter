@@ -1,11 +1,11 @@
-Review range: `d7bf32c6...docs/spec/recovery-snapshot`
+Review range: `2ba089b8...docs/spec/recovery-snapshot`
 
 # Review request: `spec-41`
 
 - Team member: `spec` (Claude session that took over from Codex)
 - Branch: `docs/spec/recovery-snapshot`
-- Base commit: `d7bf32c6`, main after the ui-30 approval
-- Review round: 1
+- Base commit: `2ba089b8`, main after the spec-40 approval
+- Review round: 2
 - Task: the lead's spec docs items of 05:45, 06:50, and 09:12
 
 ## What changed and why
@@ -38,13 +38,28 @@ operator switches windows. No change was needed.
 Codex wrote the recovery commit on `589e7b59` and never sent it; I rebased it
 onto `main` without conflicts and added the spec 01 and 08 commit.
 
-## Decisions I made (for the lead to confirm)
+## Round 2 response
 
-1. Spec 01 points to `LIVE_STATE_LIMITS` for the limits instead of copying the
-   numbers, so the spec doesn't drift from the code.
-2. Spec 08 gives the notice only for a 매크로, as the lead asked. A batch that
-   isn't a 매크로 (an item start with its first 슬라이드) is dropped and logged
-   with no card.
+1. Spec 02's table adds `state.version` ("Not displayed; restore starts a new
+   count"), `state.lookId`, and `state.canUndo` (written as `false`, not
+   restored, like audio). A rule under the table says restore applies the
+   record's `lookId` when that Look still exists, and otherwise the saved
+   `looks.current`. The header names clear undo state among what output removes
+   before writing.
+2. Spec 02 keeps a row for stage layout overrides, which join the state when the
+   stage slice (M3-O5) adds them; spec 08's 표시 중이던 항목 row marks the stage
+   layouts as later work.
+3. Spec 01 and 08 show the card only when the dropped dispatch ran a 매크로
+   (`macro.run`, or `item.start` with a start 매크로), with that 매크로's name;
+   a dispatch with no 매크로 is only logged. Spec 01 says the drop entry carries
+   the 매크로 id (later work) and follows any entries for skipped actions.
+4. Spec 01 writes the limits as behavior: 4,000 characters per text, 1,000 lines
+   per 슬라이드, 200 screen outputs plus `main`, `stage`, `broadcast`, and
+   `captions`, and a recovery record of 4 MiB with 1 KiB reserved for its
+   header. Spec 02 says "the complete live output state" and cites the limits.
+5. The heading is "What isn't saved, and the recovery record" again, so the
+   citations in 01, 02, 03, and 08 still match.
+6. `serviceId` is also `null` before the content has been read.
 
 ## Changed files
 
