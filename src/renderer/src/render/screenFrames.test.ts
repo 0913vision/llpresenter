@@ -274,18 +274,17 @@ describe('ScreenFrames', () => {
     const settings = fakeSettings(looks);
     const onGap = vi.fn<(message: string, gap: LookGap) => void>();
     const {frames} = await framesFor(STAGE, settings, onGap);
-    settings.push(
-      settingsDocument('stage-layouts', {
-        format: 'llsettings.stage',
-        layouts: [nowNext, lyrics].map(id => ({
-          id,
-          name: id,
-          width: 1920,
-          height: 1080,
-          elements: [],
-        })),
-      }),
-    );
+    const layouts = settingsDocument('stage-layouts', {
+      format: 'llsettings.stage',
+      layouts: [nowNext, lyrics].map(id => ({
+        id,
+        name: id,
+        width: 1920,
+        height: 1080,
+        elements: [],
+      })),
+    });
+    settings.push(layouts);
     const live = (fields: object) => {
       const parsed = parseLiveState({...emptyLiveState(), ...fields});
       if (!parsed.ok) throw new Error(JSON.stringify(parsed.error));
@@ -306,6 +305,7 @@ describe('ScreenFrames', () => {
     );
     frames.dispose();
     const audience = await framesFor(MAIN, settings);
+    settings.push(layouts);
     expect(audience.frames.frame(live({}))).not.toHaveProperty('stage');
     expect(
       audience.frames.frame(live({stageLayouts: {[MAIN]: lyrics}})),
