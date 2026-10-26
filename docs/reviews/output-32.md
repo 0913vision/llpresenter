@@ -35,3 +35,11 @@ broke.
 ## Review
 
 A merge repair reviewed by the lead, without a Codex round (lead decision).
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (a66efae0): lead review as a merge repair, no Codex round (lead
+  decision: main failed typecheck after data-45 and output-29 landed with a
+  clean text rebase). Lead Approve: the export and import are exactly what the
+  two `uuid` uses need; `npm run typecheck` passes on main after the merge.
+  Rebased by the lead onto local `main` without conflicts.
