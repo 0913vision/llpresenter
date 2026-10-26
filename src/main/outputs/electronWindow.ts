@@ -125,8 +125,9 @@ function presentOnScreen(
   };
   const orderWindow = (): void => {
     onTop.set(wantedOnTop);
-    if (demoted && !control.isDestroyed())
+    if (demoted && !control.isDestroyed()) {
       control.moveAbove(win.getMediaSourceId());
+    }
   };
   const placeBehindControl = (): void => {
     demoted = true;

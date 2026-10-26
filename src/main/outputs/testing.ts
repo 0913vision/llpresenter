@@ -73,8 +73,9 @@ export class FakeOutputHandle implements OutputWindowHandle {
 
   setAlwaysOnTop(onTop: boolean): void {
     this.stackingChanges.push(onTop);
-    if (this.mode.kind !== 'hidden')
+    if (this.mode.kind !== 'hidden') {
       this.mode = {...this.mode, alwaysOnTop: onTop};
+    }
   }
 
   showWindowed(bounds: Rect | null, alwaysOnTop = false): void {

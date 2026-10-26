@@ -445,8 +445,9 @@ describe('createElectronOutputWindow normal', () => {
       else if (method === 'window') output.showWindowed(WINDOW_BOUNDS);
       else output.showCapture(MONITOR);
       vi.clearAllMocks();
-      for (let index = 0; index < 20; index += 1)
+      for (let index = 0; index < 20; index += 1) {
         output.setAlwaysOnTop(index % 2 === 0);
+      }
       expect(win.setAlwaysOnTop).toHaveBeenCalledTimes(20);
       expect(win.setFullScreen).not.toHaveBeenCalled();
       expect(win.setBounds).not.toHaveBeenCalled();

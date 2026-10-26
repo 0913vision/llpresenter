@@ -47,6 +47,11 @@ above it until the operator raises it or its full screen placement returns.
   removal still demotes safely.
 - Typecheck, build, formatting and lint: see request message. Full verify runs
   on GitHub.
+- The first
+  [CI run](https://github.com/0913vision/llpresenter/actions/runs/40339237255)
+  passed coverage, typecheck, format and build but failed three curly-brace lint
+  checks after formatting. The branches were restacked on output-53's review
+  fixes, the braces were corrected and lint was run after formatting completed.
 
 ## Checked in the app
 
