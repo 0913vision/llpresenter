@@ -62,7 +62,8 @@ duplicate identities, broken headers and pending success/failure after clear.
 
 ## Verdicts (recorded by the lead at merge)
 
-- Round 1 (d4862b24): reviewer (Codex) Approve. Lead Approve; a build-time
-  script converts a `.llbible` v1 JSON file into the chunked file of data-62
-  with an atomic write, tested with invented sentences only. Rebased by the lead
-  onto local `main` without conflicts; typecheck passes.
+- Round 1 (d4862b24): reviewer (Codex) Approve. Lead Approve; the second reader
+  slice adds the header catalog of installed chunked files (unsafe names and
+  duplicate identities refused) and the capped chapter cache; the next request
+  connects it to the lookup and removes the whole-file loader. Rebased by the
+  lead onto local `main` without conflicts; typecheck passes.
