@@ -464,10 +464,13 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   clears 끝절; an empty 끝절 means one verse; an 끝절 past the chapter's last
   verse becomes the last verse. This replaces the single field of the
   autocomplete decision above.
-- Book candidates list the books whose name or short name starts with the typed
-  text first ("베" gives 베드로전서 and 베드로후서); containment matches such as
-  에베소서 show only when nothing starts with it (user decision). copible lists
-  every containment match in canonical order, so this goes past copible.
+- Tab in 책 follows copible exactly (`src/data/bible-search.js`): nothing is
+  highlighted at first, Tab completes an exact match or a single candidate, and
+  with several candidates Tab is blocked until the operator picks one with the
+  arrow keys. tools-9 highlighted the first candidate and let Tab take it ("베"
+  chose 에베소서); that was a deviation, now corrected. copible lists every
+  containment match in canonical order; whether prefix matches should come first
+  is still open with the user.
 - Turning a screen output off hides its window, so that monitor shows the
   Windows desktop (user decision; Renewed Vision's documents and the 7.5 guide
   don't say what ProPresenter shows, so this is not a ProPresenter rule).
