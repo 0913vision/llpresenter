@@ -487,6 +487,10 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   and shows the running time in the row; clicking it again stops it and resets
   it. ProPresenter's Start button toggles Start and Stop with a separate Reset;
   the press-again reset is the user's rule.
+- The mouse pointer stays visible over output windows, also with 항상 위 on, and
+  항상 위 is a screen option that is off by default (user decisions from the
+  check). An output window comes to the front once when its output turns on;
+  after that other windows may cover it, and clicking it brings it back.
 - Turning a screen output off hides its window, so that monitor shows the
   Windows desktop (user decision; Renewed Vision's documents and the 7.5 guide
   don't say what ProPresenter shows, so this is not a ProPresenter rule).
