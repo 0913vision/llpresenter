@@ -197,7 +197,8 @@ export class ServiceItemStore {
     }
   }
 
-  /** An old notice's retry reads only the service the store still shows. */
+  // NOTE(0913vision): A retry from an old notice must not start a read for a
+  // service the store no longer shows, which would discard the current read.
   private retryService(serviceId: string): void {
     if (this.alive && this.target?.serviceId === serviceId) {
       editorTask(this.readService(serviceId));
@@ -250,7 +251,8 @@ export class ServiceItemStore {
     this.publish();
   }
 
-  /** Starts a read that answers only while no newer read or song replaced it. */
+  // NOTE(0913vision): Each read takes a new generation, and a change of song
+  // takes one too, so only the newest read of the shown song may answer.
   private loadSong(songId: SongId): void {
     this.songStatus = 'loading';
     editorTask(this.readSong(songId, ++this.songRead));

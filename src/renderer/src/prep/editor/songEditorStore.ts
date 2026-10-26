@@ -160,11 +160,9 @@ export class SongEditorStore {
     this.sessions.set(id, session);
   }
 
-  /**
-   * Keeps at most {@link MAX_SESSIONS} sessions by dropping the least recently
-   * used clean ones, with their undo history. A session with unsaved edits,
-   * the editor's, and the item panel's always stay.
-   */
+  // NOTE(0913vision): Dropping a clean session loses only its undo history. A
+  // session with unsaved edits, the editor's, and the item panel's stay, so
+  // the count can pass the cap until they are saved or closed.
   private evict(created: SongId): void {
     if (this.busy) return;
     for (const [id, session] of this.sessions) {

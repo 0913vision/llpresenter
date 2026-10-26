@@ -264,7 +264,6 @@ interface LabelChipProps {
   readonly selected: boolean;
   readonly live: boolean;
   readonly dragging: boolean;
-  /** The tooltip of a chip that only selects. */
   readonly reason: string | undefined;
   readonly tabIndex: 0 | -1;
   readonly elementRef: (element: HTMLButtonElement | null) => void;
