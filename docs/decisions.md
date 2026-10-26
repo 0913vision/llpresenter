@@ -425,3 +425,22 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
 - ProPresenter's slide editor shows alignment tools and X/Y position fields, but
   no source we found says whether its stage layout editor snaps to other
   elements, so this is the user's decision, not a ProPresenter rule.
+
+## 2026-10-26: Bible reference autocomplete first, chunked Bible files
+
+- The Bible reference field follows copible's input flow before any passage
+  splitting work starts (user decision): Tab completes the book part to its full
+  name and a space ("창" becomes "창세기 "); a single candidate is taken at
+  once, and among several the highlighted one is taken; a chapter or verse out
+  of range shows its reason in place and blocks output. The single field ("요
+  3:16-18") stays. Splitting a long verse into slides marked [계속] (copible's
+  slide module) comes after, discussed with the user first.
+- Translations are prepared in advance as database files, and a new translation
+  arrives as an app update, not through the app (user decision). So 환경설정 has
+  no 역본 추가 and no 삭제; the installed list keeps 기본으로.
+- A translation file is read in chunks, not whole (user decision): a header with
+  the metadata and a chapter offset table, then one block of UTF-8 text per
+  chapter. Launch reads only the header; a lookup reads the chapters it needs
+  with positioned reads and keeps recent chapters in a capped cache. The October
+  25 rule still holds: no Bible text and no file built from a crawl is committed
+  to the public repository; the files live in the app data folder.
