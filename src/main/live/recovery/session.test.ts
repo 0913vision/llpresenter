@@ -1,4 +1,5 @@
-import {mkdir, readFile, rm, stat, writeFile} from 'node:fs/promises';
+import {randomUUID} from 'node:crypto';
+import {mkdir, readFile, rm, stat, utimes, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
 import {makeTempDir} from '../../../../test/temp-dir';
@@ -8,6 +9,8 @@ import {
   RECOVERY_RECORD_FILE,
   SESSION_LOCK_FILE,
 } from './session';
+
+const STALE_TEMPORARY_AGE_MS = 120_000;
 
 async function setup() {
   const folder = join(await makeTempDir(), 'recovery');
@@ -37,7 +40,6 @@ describe('recovery session marker', () => {
     await writeFile(file, 'unclean previous launch');
     const session = await openRecoverySession({folder, log});
     expect(session.crashed).toBe(true);
-    expect(session.leftWhile).toBe('running');
     expect(await readFile(record, 'utf8')).toBe('previous recovery record');
     await session.cleanExit();
     expect(await readFile(record, 'utf8')).toBe('previous recovery record');
@@ -53,7 +55,6 @@ describe('recovery session marker', () => {
     await writeFile(record, 'record of a clean session');
     const session = await openRecoverySession({folder, log});
     expect(session.crashed).toBe(false);
-    expect(session.leftWhile).toBeNull();
     await expect(stat(record)).rejects.toMatchObject({code: 'ENOENT'});
     expect(await readFile(file, 'utf8')).toMatch(/^[0-9a-f-]{36}$/);
     await session.cleanExit();
@@ -81,7 +82,6 @@ describe('recovery session marker', () => {
 quitting`);
     const next = await openRecoverySession({folder, log});
     expect(next.crashed).toBe(true);
-    expect(next.leftWhile).toBe('quitting');
     expect(log.messages('warn')).toEqual([
       'the previous session did not finish quitting',
     ]);
@@ -89,7 +89,7 @@ quitting`);
     await next.cleanExit();
     await expect(stat(file)).rejects.toMatchObject({code: 'ENOENT'});
     const clean = await openRecoverySession({folder, log});
-    expect(clean.leftWhile).toBeNull();
+    expect(clean.crashed).toBe(false);
     await clean.cleanExit();
   });
 
@@ -126,6 +126,22 @@ quitting`);
     await current.cleanExit();
   });
 
+  it('removes the temporary files of an interrupted write before writing the marker', async () => {
+    const {folder, log} = await setup();
+    await mkdir(folder);
+    const stale = join(folder, `.${RECOVERY_RECORD_FILE}.${randomUUID()}.tmp`);
+    const current = join(folder, `.${SESSION_LOCK_FILE}.${randomUUID()}.tmp`);
+    await writeFile(stale, 'half a record');
+    await writeFile(current, 'a write in progress');
+    const longAgo = new Date(Date.now() - STALE_TEMPORARY_AGE_MS);
+    await utimes(stale, longAgo, longAgo);
+    const session = await openRecoverySession({folder, log});
+    await expect(stat(stale)).rejects.toMatchObject({code: 'ENOENT'});
+    expect(await readFile(current, 'utf8')).toBe('a write in progress');
+    await session.cleanExit();
+    expect(log.entries).toEqual([]);
+  });
+
   it('leaves an overlong replacement marker intact', async () => {
     const {folder, log, file} = await setup();
     const session = await openRecoverySession({folder, log});
@@ -134,8 +150,12 @@ quitting`);
     await session.cleanExit();
     expect(await readFile(file, 'utf8')).toBe(token + 'x'.repeat(512));
     const next = await openRecoverySession({folder, log});
-    expect(next.leftWhile).toBe('unknown');
+    expect(next.crashed).toBe(true);
     await next.cleanExit();
+    expect(log.messages('warn')).toEqual([
+      'recovery session marker changed; keeping it',
+      'the previous session left an unrecognized marker',
+    ]);
   });
 
   it('does not block launch when the recovery folder is a file', async () => {
@@ -143,7 +163,10 @@ quitting`);
     await writeFile(folder, 'a file blocks the folder');
     const session = await openRecoverySession({folder, log});
     await expect(session.cleanExit()).resolves.toBeUndefined();
-    expect(log.messages('warn')).toHaveLength(1);
+    expect(log.messages('warn')).toEqual([
+      'could not remove a temporary recovery file',
+      'could not write the recovery session marker',
+    ]);
   });
 
   it('logs a write failure and keeps the preexisting marker', async () => {
@@ -151,7 +174,6 @@ quitting`);
     await mkdir(file, {recursive: true});
     const session = await openRecoverySession({folder, log});
     expect(session.crashed).toBe(true);
-    expect(session.leftWhile).toBe('unknown');
     await session.cleanExit();
     expect((await stat(file)).isDirectory()).toBe(true);
     expect(log.messages('warn')).toEqual([

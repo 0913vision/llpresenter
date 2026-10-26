@@ -4,6 +4,7 @@ import {join} from 'node:path';
 import type {Logger} from '../../log';
 import {writeFileAtomically} from '../../store/atomicWrite';
 import {isMissingFile} from '../../store/fsErrors';
+import {removeStaleTempFiles} from '../../store/staleTempFiles';
 
 export const SESSION_LOCK_FILE = 'session.lock';
 export const RECOVERY_RECORD_FILE = 'live.json';
@@ -12,13 +13,11 @@ const QUITTING_SUFFIX = '\nquitting';
 const MAX_MARKER_BYTES = 64;
 
 /** What the previous launch was doing when it left its marker behind. */
-export type LeftMarker = 'running' | 'quitting' | 'unknown';
+type LeftMarker = 'running' | 'quitting' | 'unknown';
 
 export interface RecoverySession {
   readonly crashed: boolean;
-  /** Null when the previous launch exited cleanly or never ran. */
-  readonly leftWhile: LeftMarker | null;
-  /** Records that quitting started, so an unfinished quit reads apart from a crash. */
+  /** Records that quitting started, so the next launch logs an unfinished quit apart from a crash. */
   markQuitting(): Promise<void>;
   cleanExit(): Promise<void>;
 }
@@ -63,6 +62,15 @@ async function leftMarker(file: string): Promise<LeftMarker | null> {
   const text = await readMarker(file);
   if (text === null) return 'unknown';
   return text.endsWith(QUITTING_SUFFIX) ? 'quitting' : 'running';
+}
+
+async function removeTemporaryFiles({
+  folder,
+  log,
+}: SessionOptions): Promise<void> {
+  for (const problem of await removeStaleTempFiles(folder)) {
+    log.warn('could not remove a temporary recovery file', problem);
+  }
 }
 
 async function removeStaleRecord(folder: string, log: Logger): Promise<void> {
@@ -137,12 +145,12 @@ async function removeMarker({file, token}: Marker, log: Logger): Promise<void> {
 export async function openRecoverySession(
   options: SessionOptions,
 ): Promise<RecoverySession> {
+  await removeTemporaryFiles(options);
   const marker = await acquireMarker(options);
   let quitting: Promise<void> | null = null;
   let finishing: Promise<void> | null = null;
   return {
     crashed: marker.leftWhile !== null,
-    leftWhile: marker.leftWhile,
     markQuitting: () =>
       (quitting ??=
         finishing === null
