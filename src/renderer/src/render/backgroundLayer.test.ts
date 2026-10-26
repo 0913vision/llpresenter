@@ -64,6 +64,23 @@ function playsOf(video: HTMLVideoElement): number {
 }
 
 describe('BackgroundLayerView', () => {
+  it('makes a failed replacement ready with the last good background and resets on the next source', () => {
+    const {view, videos, onError} = setUp();
+    view.show(WARM_LIGHT, false);
+    videos[1].dispatchEvent(new Event('playing'));
+    expect(view.ready()).toBe(true);
+    view.show(STILL_WATER, false);
+    expect(view.ready()).toBe(false);
+    videos[0].dispatchEvent(new Event('error'));
+    expect(view.ready()).toBe(true);
+    expect(isShown(videos[1])).toBe(true);
+    expect(videos[0].hasAttribute('src')).toBe(false);
+    expect(onError).toHaveBeenCalledOnce();
+    view.show({...STILL_WATER, mediaId: 'next'});
+    expect(view.ready()).toBe(false);
+    view.dispose();
+  });
+
   it('waits for a decoded frame and makes hidden/reveal backgrounds instant', () => {
     const {view, videos} = setUp();
     const video = videos[1];

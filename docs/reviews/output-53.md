@@ -94,6 +94,21 @@ media view, without separate transition implementations.
   [decoded output](evidence/output-53/output-run1.png),
   [준비 after media remount](evidence/output-53/prep-remount-run1.png),
   [second launch](evidence/output-53/prep-remount-run2.png).
+- Round 2 repeats both launches against the review fixes. Each launch also
+  alternates a missing background and an intentionally corrupt image 20 times:
+  main acknowledges a completed fallback and valid lyrics remain visible at
+  once. After a full screen to window change, native bounds set to x 123, y 234,
+  1100 by 700 remain exactly unchanged through 20 off/on cycles. These are
+  hidden native bounds and decoder checks, not a desktop full-screen check.
+- Round 2 again kept five targets and 70 output elements with two videos. Output
+  heaps at iterations 5 and 25 were 2,454,536 to 2,463,632 bytes and 2,454,384
+  to 2,463,660 bytes. Prep remounts kept 347 live elements and 376 listeners,
+  with collected heaps 6,643,908 to 6,935,208 bytes and 6,641,024 to 6,949,316
+  bytes. Both launches closed normally.
+- Round 2 screenshots:
+  [fallback with valid lyrics](evidence/output-53-round2/fallback-run1.png),
+  [second fallback run](evidence/output-53-round2/fallback-run2.png),
+  [remounted preview](evidence/output-53-round2/prep-remount-run1.png).
 
 ## Review: lead
 
@@ -105,4 +120,15 @@ media view, without separate transition implementations.
 
 ## Team member's reply
 
-1.
+1. Terminal video errors, rejected playback and failed image fallback now finish
+   readiness with the last good background or the empty screen color. A failed
+   replacement unloads its candidate and cancels pending work; changing to a new
+   source waits for that source again. Regressions cover initial
+   video/image/play failure revealing valid lyrics and a failed replacement
+   retaining its last good background.
+2. Hidden preparation now uses the same operator-bound preservation decision as
+   actual placement. An existing window-method output keeps its native size and
+   position without a default `setContentBounds` before reveal. A regression
+   covers full screen to window, operator resize, and off/on with a new version.
+   Rebased onto local main for this round. See the round 2 request for checks
+   and exact-head CI.

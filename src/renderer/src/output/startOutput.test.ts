@@ -77,6 +77,63 @@ function setUp(live: Partial<LlpApi['live']> = {}) {
 }
 
 describe('startOutput', () => {
+  it.each(['video', 'image', 'play'] as const)(
+    'reveals valid lyrics with a completed fallback after a terminal %s failure',
+    async failure => {
+      const settings = overlaySettings();
+      const defaults = fakeLlpApi();
+      const reportReady = vi.fn(() => Promise.resolve(true));
+      const logs: RendererLogEntry[] = [];
+      const api = fakeLlpApi({
+        settings: {
+          get: ({name}) =>
+            name === 'screens'
+              ? Promise.resolve(settings.reader.get(name))
+              : defaults.settings.get({name}),
+        },
+        live: {
+          get: () => Promise.resolve({...SHOWING, outputs: {[MAIN]: true}}),
+        },
+        output: {reportReady},
+        log: {write: entry => logs.push(entry)},
+      });
+      if (failure === 'play') {
+        vi.mocked(HTMLMediaElement.prototype.play).mockRejectedValueOnce(
+          new Error('Decoder could not start'),
+        );
+      }
+      const root = document.createElement('div');
+      const stop = startOutput({root, api, screenId: MAIN});
+      await Promise.resolve();
+      runFramesFor(80);
+      expect(reportReady).not.toHaveBeenCalled();
+      const video = root.querySelector('video[src]');
+      if (video === null) throw new Error('Missing pending background');
+      if (failure === 'image') {
+        Object.defineProperty(video, 'error', {
+          value: {code: 4},
+          configurable: true,
+        });
+        video.dispatchEvent(new Event('error'));
+        const image = root.querySelector('img[src]');
+        if (image === null) throw new Error('Missing pending image');
+        image.dispatchEvent(new Event('error'));
+      } else if (failure === 'video') video.dispatchEvent(new Event('error'));
+      await Promise.resolve();
+      runFramesFor(80);
+      expect(reportReady).toHaveBeenCalledWith({
+        screenId: MAIN,
+        version: SHOWING.version,
+      });
+      expect(root.textContent).toContain(SHOWING.layers.slide?.lines[0]);
+      expect(root.firstElementChild?.classList.contains(classes.instant)).toBe(
+        true,
+      );
+      expect(logs.some(entry => entry.level === 'error')).toBe(true);
+      stop();
+    },
+  );
+
   it('keeps hidden live content loaded and reports ready only with its background, without a reveal dissolve', async () => {
     let current = {...SHOWING, outputs: {[MAIN]: false}};
     let receive: (state: LiveState) => void = () => undefined;

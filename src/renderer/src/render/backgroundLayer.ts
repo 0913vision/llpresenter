@@ -113,6 +113,7 @@ export class BackgroundLayerView {
   private spareTimer: ReturnType<typeof setTimeout> | null = null;
   private stopWaitingToSeek: (() => void) | null = null;
   private transitions = true;
+  private failed = false;
   private readonly decoded: [boolean, boolean] = [false, false];
   private readonly videoFrames: [number | null, number | null] = [null, null];
 
@@ -152,6 +153,7 @@ export class BackgroundLayerView {
       this.loopNativelyInPreview();
       return;
     }
+    this.failed = false;
     this.cancelSpare();
     this.cancelSeek();
     if (media === null) this.clearAtOnce();
@@ -170,6 +172,7 @@ export class BackgroundLayerView {
   ready(): boolean {
     return (
       this.current === null ||
+      this.failed ||
       (this.handover === null &&
         this.holdsCurrent(this.front) &&
         this.decoded[this.front])
@@ -342,14 +345,13 @@ export class BackgroundLayerView {
     if (video.error?.code === UNSUPPORTED_SOURCE && this.tryImage(index)) {
       return;
     }
-    if (this.handover !== null && this.videos[this.handover.to] === video) {
-      this.handover = null;
-    }
-    this.options.onError('could not play a background video', {
+    const detail = {
       src: video.getAttribute('src'),
       code: video.error?.code ?? null,
       message: video.error?.message ?? null,
-    });
+    };
+    this.fail(index);
+    this.options.onError('could not play a background video', detail);
   }
 
   private prepareSpare(): void {
@@ -385,6 +387,7 @@ export class BackgroundLayerView {
         return;
       }
       this.options.onError('could not start a background video', error);
+      this.fail(index);
     });
   }
 
@@ -421,12 +424,31 @@ export class BackgroundLayerView {
         this.handlePlaying(index);
       },
       onError: () => {
-        this.handover = null;
+        this.fail(index);
         this.options.onError('could not load a background media file', {src});
       },
     });
     this.loopNativelyInPreview();
     return true;
+  }
+
+  private fail(index: VideoIndex): void {
+    if (!this.holdsCurrent(index)) return;
+    if (this.handover?.to !== index && this.front !== index) return;
+    this.failed = true;
+    this.handover = null;
+    this.cancelSpare();
+    this.cancelSeek();
+    if (index === this.front && this.decoded[index]) {
+      this.videos[index].pause();
+      return;
+    }
+    this.hideAt(index);
+    this.unloadAt(index);
+    if (index !== this.front && !this.decoded[this.front]) {
+      this.hideAt(this.front);
+      this.unloadAt(this.front);
+    }
   }
 
   private cancelSpare(): void {

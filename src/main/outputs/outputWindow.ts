@@ -192,6 +192,7 @@ export class OutputWindow {
     const handle = this.ensureHandle();
     if (
       !this.visible &&
+      !this.keepsOperatorBounds(placement) &&
       (this.prepared?.kind !== placement.kind ||
         !sameRect(this.prepared.bounds, placement.bounds))
     ) {
@@ -255,15 +256,20 @@ export class OutputWindow {
     }
     // NOTE(0913vision): Normal windows keep an operator's placement. A lost
     // monitor fallback follows later work-area changes as Windows settles.
-    const previous = this.applied?.kind === 'window' ? this.applied : null;
-    const keepOperatorBounds =
-      previous !== null &&
+    handle.showWindowed(
+      this.keepsOperatorBounds(placement) ? null : placement.bounds,
+      placement.alwaysOnTop ?? false,
+    );
+  }
+
+  private keepsOperatorBounds(placement: ShownPlacement): boolean {
+    const previous = this.applied;
+    return (
+      placement.kind === 'window' &&
+      previous?.kind === 'window' &&
       (placement.reason === 'method' ||
         (previous.reason === 'monitorMissing' &&
-          sameRect(previous.bounds, placement.bounds)));
-    handle.showWindowed(
-      keepOperatorBounds ? null : placement.bounds,
-      placement.alwaysOnTop ?? false,
+          sameRect(previous.bounds, placement.bounds)))
     );
   }
 

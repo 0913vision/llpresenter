@@ -52,6 +52,22 @@ function setUp(autoReady = true) {
 }
 
 describe('OutputWindow', () => {
+  it('preserves the actual operator bounds across fullscreen to window, resize and off/on', () => {
+    const {output, windows, setVersion} = setUp();
+    output.update(FULL_SCREEN);
+    output.update({...FALLBACK, reason: 'method'});
+    const handle = windows.only('main');
+    const moved = {x: 123, y: 234, width: 1100, height: 700};
+    handle.mode = {kind: 'window', bounds: moved};
+    const prepare = vi.spyOn(handle, 'prepare');
+    output.update(null);
+    setVersion(1);
+    output.update({...FALLBACK, reason: 'method'});
+    expect(prepare).not.toHaveBeenCalled();
+    expect(handle.placements.at(-1)).toEqual({kind: 'window', bounds: null});
+    output.dispose();
+  });
+
   it('preloads hidden and reveals only after the current complete frame, rejecting stale reports', () => {
     const {output, windows, setVersion} = setUp(false);
     expect(windows.created).toHaveLength(1);
