@@ -15,8 +15,8 @@ See 01 for the full list.
 
 | Rule           | Requirement                                                                                                                                                                                                                     | Source                                                           |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| Encoding       | Every file is UTF-8 JSON without a byte order mark.                                                                                                                                                                             | `Main` song file sample                                          |
-| Header fields  | Every file starts with `format` (a string that names the file type) and `schemaVersion` (an integer, 1 in version 1).                                                                                                           | `Main` samples                                                   |
+| Encoding       | Files are UTF-8 JSON without a byte order mark. The chapter-based Bible container has the framing defined under "Bible translations".                                                                                           | `Main` song file sample; user decision, 2026-10-26               |
+| Header fields  | Each file's JSON header declares `format` (the file type) and `schemaVersion`. Most formats use version 1; the chapter-based Bible container uses version 2 and the prefix defined below.                                       | `Main` samples; user decision, 2026-10-26                        |
 | IDs            | Songs, 예배 순서, 틀, media, screens, Looks, lyric styles, stage layouts, 매크로, collections, 퀵 실행 items, 메시지 templates, 공지 sets, 소품, 타이머, and 예배 순서 items have a UUID v4 ID in lowercase. Never reuse an ID. | `Main` samples (song and media IDs). The rest is a proposal.     |
 | Unknown fields | When you read a file, keep every unknown field in memory and write it back unchanged. This also applies to nested objects (슬라이드, 구성, items).                                                                              | `Main` song file notes, product log 2026-10-24 (room for scores) |
 | Dates          | A service date is local time without a time zone, `YYYY-MM-DDTHH:mm`. Record timestamps such as `updatedAt` are ISO 8601 with a time zone offset (proposal).                                                                    | `Main` service sample                                            |
@@ -570,8 +570,9 @@ only writer (`docs/decisions.md`, "One owner of app.json").
 - Version 1 bundles 개역한글 and KJV as offline translation files. 개역한글 is
   the default. Don't include 개역개정 until the Korean Bible Society permits its
   use.
-- 역본 추가 (add translation) in 환경설정 adds a file in the same format.
-  See 06.
+- Translations are prepared in advance and delivered with an app update. The
+  installed list in 환경설정 offers 기본으로 (make default); the app never
+  installs or removes translations (user decision, 2026-10-26). See 06.
 - Every Bible feature works without the network (01). The app never fetches
   verse text.
 
@@ -617,70 +618,111 @@ The app bundles one table of the 66 books in code. It isn't a user file.
   because versification differs between translations (one dataset counts 31,101
   verses for 개역한글 and 31,102 for KJV).
 
-### Translation file (`.llbible`, proposal)
+### Translation file (`.llbible`, schema version 2)
 
-Each translation is one JSON file in the `bible\` folder of the app data folder.
-It follows the common rules of this document (UTF-8, `format`, `schemaVersion`).
-The example shows the shape only; "..." stands for text.
+Each installed translation is one read-only, chapter-based file in `bible\`
+under the app data folder (user decision, 2026-10-26). The settings file keeps
+its existing translation IDs and file names. The runtime reads schema version 2;
+the former whole-file JSON schema version 1 is build-time converter input.
 
-```json
-{
-  "format": "llbible",
-  "schemaVersion": 1,
-  "id": "krv",
-  "name": "개역한글",
-  "shortName": "개역한글",
-  "language": "ko",
-  "source": {
-    "title": "...",
-    "publisher": "...",
-    "url": "...",
-    "license": "...",
-    "retrieved": "2026-10-25"
-  },
-  "books": [{"id": 1, "chapters": [["...", "..."], ["..."]]}]
-}
+The container has this byte layout:
+
+```text
+4-byte unsigned little-endian header length H
+H bytes of UTF-8 JSON header
+chapter blocks in canonical book and chapter order
 ```
 
-| Field                | Type             | Meaning                                                                                                                                    |
-| -------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `format`             | `"llbible"`      | File type.                                                                                                                                 |
-| `schemaVersion`      | Integer          | 1 in version 1.                                                                                                                            |
-| `id`                 | String           | Lowercase, unique among installed translations, for example `krv` (개역한글) or `kjv`. `bible.json` and Bible passage objects refer to it. |
-| `name`               | String           | Name in the translation select, for example 개역한글 or KJV.                                                                               |
-| `shortName`          | String           | Name appended after a reference when 역본 이름 is on (04), for example 개역한글 or KJV.                                                    |
-| `language`           | String (BCP 47)  | `ko`, `en`. It decides the book names in references (below).                                                                               |
-| `source`             | Object           | Where the text comes from: `title`, `publisher`, `url`, `license`, `retrieved` (date). The 성경 page of 환경설정 can show it.              |
-| `books[]`            | Array            | The books the file has, in canonical order.                                                                                                |
-| `books[].id`         | Integer, 1 to 66 | Book ID from "Book metadata".                                                                                                              |
-| `books[].chapters[]` | Array of arrays  | One array per chapter, in order. Each chapter is an array of verse strings; index 0 is verse 1.                                            |
+`H` excludes the length prefix. There is no byte order mark or separator after
+the header. The chapter data starts at byte `4 + H`. An offset in the table is
+relative to that data start, so metadata size changes never change the table's
+offsets. All lengths and offsets count UTF-8 bytes, not characters.
 
-Rules (proposal):
+| Header field         | Type                      | Meaning                                                                        |
+| -------------------- | ------------------------- | ------------------------------------------------------------------------------ |
+| `format`             | `"llbible"`               | File type.                                                                     |
+| `schemaVersion`      | `2`                       | Chapter-based container version; other file types keep their own versions.     |
+| `id`                 | String                    | Lowercase installed translation ID, matching its entry in `bible.json`.        |
+| `name`               | String                    | Name in the translation select.                                                |
+| `shortName`          | String                    | Name appended to a reference when 역본 이름 is on (04).                        |
+| `language`           | String (BCP 47)           | For example `ko` or `en`; chooses reference book names.                        |
+| `source`             | Object                    | `title`, `publisher`, HTTP(S) `url`, `license`, and `retrieved` date.          |
+| `books[]`            | Array                     | Chapter offset table grouped by books in canonical order. Books may be absent. |
+| `books[].id`         | Integer, 1 to 66          | Unique, strictly increasing ID from "Book metadata".                           |
+| `books[].chapters[]` | Array                     | One entry for each chapter, in order, with the book metadata's chapter count.  |
+| `.offset`            | Non-negative safe integer | Byte offset of the chapter block from the chapter data start.                  |
+| `.bytes`             | Positive safe integer     | Length of the chapter block in bytes, including its final LF.                  |
+| `.verses`            | Positive safe integer     | Number of verse slots, including omitted verses.                               |
 
-- A verse string is the text exactly as the source gives it, without the verse
-  number or any markup, trimmed at both ends. The app never changes it. For
-  개역한글 this also follows the Korean Bible Society's condition to keep the
-  text unchanged and name the author (see "Candidate text sources").
-- A verse that a translation leaves out is an empty string, so verse numbers
-  stay aligned with their index. "Omitted verses" says how lookup and display
-  treat it.
-- A file may leave out books (for example a New Testament only file). A
-  reference to a missing book shows the error ring with the reason "이 역본에
-  없는 책입니다" (this translation doesn't have this book).
-- When the app reads a file, it checks `format`, `schemaVersion`, book IDs from
-  1 to 66 without duplicates and in order, a chapter count equal to "Book
-  metadata" for each book, and non-empty chapters of strings. A file that fails
-  is skipped with one warning notification, and its row on the 성경 page shows
-  the warning icon with the reason (`docs/TECH.md` storage).
-- The app treats translation files as read-only. It never writes one, except
-  when 역본 추가 copies a checked file into `bible\` and adds it to
-  `bible.json`.
-- A file is about 4 to 5 MB (the `Prefs` board shows 4.3MB and 4.2MB). The main
-  process reads the installed files at launch without blocking and keeps them in
-  memory; a lookup never touches the disk.
-- 역본 추가 accepts `.llbible` files only in version 1. Converting other formats
-  (USFM, OSIS, SWORD modules) belongs to a build-time script for the bundled
-  files, not to the app.
+Each chapter block is a compact UTF-8 JSON array of verse strings followed by
+one LF byte. Array index 0 is verse 1; an omitted verse is `""`, preserving its
+number. The decoded count must match the table's `verses`. Verse strings are
+trimmed source text without verse numbers or markup. Neither runtime nor
+converter edits the text; an invalid source must be corrected before packing.
+The existing source attribution rules apply.
+
+This chapter block contains invented text only and is 32 bytes including LF:
+
+```text
+["Invented first sentence.",""]
+```
+
+For a file containing only book 57, which has one chapter, its table is
+`[{"id":57,"chapters":[{"offset":0,"bytes":32,"verses":2}]}]`.
+
+#### Reading and validation
+
+- Launch reads the four-byte length, exactly the header bytes, and the file's
+  size. It validates installed headers without reading chapter blocks. Book
+  completion uses "Book metadata"; chapter and verse bounds use the table.
+- Validate metadata, `format`, version, installed ID, book ordering and chapter
+  counts before publishing an index. Offsets and sums must be safe integers. The
+  first offset is zero, each subsequent block starts at the previous end, and
+  the final end equals the chapter data size. Reject gaps, overlaps, truncation
+  and entries outside the file. An empty book table has no data.
+- A lookup first validates its reference and requested verse count against the
+  header and existing lookup limits. It reads only the needed uncached chapters,
+  using positioned reads at `4 + H + offset`. Fill each requested byte span
+  across partial reads; EOF before its end is an error. Validate UTF-8, JSON,
+  final LF, verse count and strings before using a block.
+- A broken header or unreadable file is skipped with one warning for that file.
+  A later broken chapter invalidates its translation and cached chapters, also
+  reporting only one warning for that file per library session. Other
+  translations stay available. Repeated lookups never repeat the warning.
+- Missing books and invalid references retain the existing lookup errors and
+  behavior below. The window lookup API and passage objects are unchanged.
+- Files remain read-only. File handles close after reading and on failure;
+  clearing or disposing the library drops its index and chapter cache. Pending
+  work after disposal cannot publish a result or refill the cache.
+
+The reader has these named bounds. Check byte lengths before allocating read
+buffers, and reject files or blocks that exceed their applicable bound.
+
+| Constant                        | Value     | Meaning                                                      |
+| ------------------------------- | --------- | ------------------------------------------------------------ |
+| `BIBLE_HEADER_MAX_BYTES`        | 1,048,576 | Header JSON bytes, excluding its four-byte length.           |
+| `BIBLE_CHAPTER_MAX_BYTES`       | 1,048,576 | Bytes of one chapter block, including LF.                    |
+| `BIBLE_CHAPTER_CACHE_LIMIT`     | 32        | Decoded chapters retained across all installed translations. |
+| `BIBLE_CHAPTER_CACHE_MAX_BYTES` | 8,388,608 | Sum of source block byte lengths retained in that cache.     |
+
+The recent-chapter cache is least recently used. Hits refresh recency; a miss
+adds only a fully validated chapter and evicts oldest entries until both cache
+bounds hold. Eviction never changes installed files or passages already read.
+
+#### Build-time conversion
+
+A build-time script converts a checked `.llbible` schema version 1 JSON file
+into this version 2 container. It preserves metadata, unknown metadata fields,
+book order, every verse string and omitted-verse slots. It computes block
+lengths and relative offsets from the serialized UTF-8 bytes and validates the
+completed index before writing. Input and destination paths must differ.
+
+Write to a temporary file in the destination folder, flush and atomically rename
+it over the destination. Failure leaves an existing destination intact. This
+prepares files delivered in an app update; the running app does not convert or
+install files. Other formats such as USFM, OSIS and SWORD remain build-time
+source preparation. Tests and committed examples contain invented sentences
+only; never commit Bible text or output derived from a crawl.
 
 ### Reference grammar (proposal)
 

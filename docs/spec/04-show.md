@@ -599,10 +599,10 @@ Source: `ShowH`, `Problems`, `MediaTile` README, `Layout` README.
 
 - Header: the passage ("요한복음 3:16-18") and the 슬라이드 count ("슬라이드
   3개").
-- Settings row: the translation select (개역한글) with 역본 추가 (add
-  translation), 나누기 (split: 한 슬라이드에 한 절 one verse per 슬라이드, 두
-  절씩 two verses, 길이에 맞춤 fit to length), 참조 (reference: 슬라이드마다
-  every 슬라이드), 절 번호 (verse numbers), and 역본 이름 (translation name).
+- Settings row: the installed translation select (개역한글), 나누기 (split: 한
+  슬라이드에 한 절 one verse per 슬라이드, 두 절씩 two verses, 길이에 맞춤 fit
+  to length), 참조 (reference: 슬라이드마다 every 슬라이드), 절 번호 (verse
+  numbers), and 역본 이름 (translation name).
   - Fit to length fills each 슬라이드 with verses up to the 환경설정 option 한
     슬라이드 최대 줄 수 (maximum lines per 슬라이드) (proposal).
   - 참조 decides where the reference (3:16) appears. The board shows only
@@ -610,7 +610,6 @@ Source: `ShowH`, `Problems`, `MediaTile` README, `Layout` README.
     (reference position, bottom right) (proposal).
   - Turning on 역본 이름 appends the translation name after the reference
     (proposal).
-  - 역본 추가 opens the Bible page of 환경설정 (proposal).
 - Bible 슬라이드 grid: each 슬라이드 shows its verse numbers and text, and the
   band shows the number and the reference ("3:16"). Clicking a tile outputs that
   슬라이드 at once. The next and previous keys work within the passage.
