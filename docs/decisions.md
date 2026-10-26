@@ -480,6 +480,13 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   pointer passes the drag threshold, releasing never counts as a click, so a
   drag can't select a row or run a 퀵 실행 action (user decision from the
   check).
+- Timers are friendly to run from 퀵 실행 (user decision from the check): every
+  timer is its own, so adding a timer row creates a new timer and starting one
+  never starts another; adding one asks for its time and names it 타이머 1,
+  타이머 2, and so on, renamed with 이름 바꾸기; clicking a timer row starts it
+  and shows the running time in the row; clicking it again stops it and resets
+  it. ProPresenter's Start button toggles Start and Stop with a separate Reset;
+  the press-again reset is the user's rule.
 - Turning a screen output off hides its window, so that monitor shows the
   Windows desktop (user decision; Renewed Vision's documents and the 7.5 guide
   don't say what ProPresenter shows, so this is not a ProPresenter rule).
