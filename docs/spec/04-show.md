@@ -413,8 +413,8 @@ after its name, and hides it at 0.
   tokens and the stage timer picker refer to that same timer by ID; the operator
   sees its name (user decision from the October 26 check).
 - One row per 타이머: an icon, the name and kind ("10:30까지" until 10:30,
-  "35분" 35 minutes, "10:30부터" since 10:30, "시계" clock), a large value, 시작
-  (start) or 일시 정지 (pause), and 처음으로 (reset). The clock has no buttons.
+  "35분" 35 minutes, "경과" elapsed, "시계" clock), a large value, 시작 (start)
+  or 일시 정지 (pause), and 처음으로 (reset). The clock has no buttons.
 - Behavior by kind:
   - Every kind but the clock starts with 시작 and pauses with 일시 정지; the
     button switches between the two (follows ProPresenter 7, whose Start button
@@ -424,30 +424,44 @@ after its name, and hides it at 0.
     ProPresenter 7, where Reset returns the timer to its settings: same
     article).
   - Fixed duration (`countdown`): counts down from the duration while it runs.
-    Past 0, it keeps counting and shows the overrun with a leading "-" (follows
-    ProPresenter 7 with overrun on: same article). Until `timers.json` has the 0
-    지나면 field of 10, every countdown keeps counting (lead decision, October
-    26).
-  - Until a time (`countdownTo`): while it runs, shows the time left until
-    today's set time, and past it the time since, with a leading "-".
-  - Since a time (`elapsedFrom`): while it runs, shows the time since today's
-    set time, and before it the time left, with a leading "-".
+  - Until a date and time (`countdownTo`): the operator chooses a calendar date
+    and a local 24-hour time. While running, it counts toward that fixed target,
+    including tomorrow or a later date. Starting it does not replace the target
+    date with the start date (user decision, October 27).
+  - Both countdown kinds have 0 지나면: 계속 or 멈춤. 계속 counts below zero
+    with a leading "-". 멈춤 stops at zero, holds zero and clears the running
+    state. Starting a finished fixed-duration countdown starts again from its
+    full duration; 처음으로 restores its configured value without starting.
+    Existing records without the option keep 계속, the current default (10).
+    This replaces the earlier always-overrun rule (user decision, October 27,
+    following ProPresenter's Overrun option).
+  - Elapsed (`elapsed`): counts up from a nonnegative start value, like a
+    stopwatch. The operator enters the start value as a duration. Starting
+    counts from that value, pausing holds it, and 처음으로 returns to it.
+    Changing the wall clock does not change the counted duration (user decision,
+    October 27, following ProPresenter's Elapsed Time).
+  - Older time-of-day elapsed records (`elapsedFrom`) keep their meaning and
+    show as 시각 경과, distinct from 경과. They count from the recorded time of
+    day, with a leading "-" before it. New 경과 timers use a start duration.
   - Before they start, `countdownTo` and `elapsedFrom` show their value as of
     the moment they are drawn, without counting, so a row is never blank; a
     paused one keeps the value it had when it paused (lead decision, October 26;
     the article doesn't say what these timers show before they start).
   - Clock (`clock`): the current time as 24-hour "HH:mm:ss". It has no buttons
     (lead decision, October 26; a format choice is later work).
-- A fixed-duration countdown counts on the main process's monotonic clock: the
-  time it has counted never goes down, even when the computer's clock is
+- Fixed-duration countdown and elapsed duration count on main's monotonic clock:
+  the time it has counted never goes down, even when the computer's clock is
   corrected (lead decision, October 26).
 - `countdownTo` and `elapsedFrom` show the time to or since the set time by the
   wall clock, including after a correction of the computer's clock, so a
   "10:30까지" countdown reaches 0 when the clock in the room reads 10:30 (lead
   decision, October 26).
-- A `countdownTo` or `elapsedFrom` that runs or is paused reads its set time on
-  the day it started, so it keeps counting across midnight (lead decision,
-  October 26).
+- Dated `countdownTo` timers retain their configured date across midnight.
+  Earlier `countdownTo` records with no date and legacy `elapsedFrom` records
+  retain the start-day anchor, including while paused. The editor adds an
+  explicit date when the operator edits an undated countdown-to. Pausing holds
+  the shown value; resuming a date/time target reads the current wall clock
+  against that target.
 - Values under an hour show as "minutes:seconds", and longer values as
   "hours:minutes:seconds" (proposal).
 - 타이머 keep running regardless of clears. They show in 소품 text and in the
@@ -464,6 +478,14 @@ after its name, and hides it at 0.
 - No board shows where to add or edit a 타이머 (open question). Version 1 has a
   plus button in the tab and a right-click menu on each row (rename, change kind
   and time, delete) (proposal).
+- The timer editor offers countdown duration, countdown date/time, elapsed start
+  duration and clock. Countdown editors include 0 지나면. Invalid dates, times
+  or durations use an error ring and tooltip and block saving.
+
+Source for Overrun and elapsed start-value behavior:
+[Setting up Timers in ProPresenter 7](https://support.renewedvision.com/hc/en-us/articles/360050782494-Setting-up-Timers-in-ProPresenter-7).
+Explicit calendar-date selection is the October 27 user decision. See qa-12 rows
+T03, T07 and T09.
 
 ### 메시지
 
@@ -543,8 +565,9 @@ README (count badge).
   1:1-5"). See "Bible passages".
 - List: one row per item, with a kind icon and a name. Rows show no shortcuts.
 - A timer row also shows its current value in place. While stopped, it shows its
-  configured duration; while running, it counts down and keeps counting past
-  zero with a leading "-". The running row keeps its red on-state bar.
+  configured duration; while running, it follows that timer's 0 지나면 choice. A
+  finished 멈춤 timer holds zero with its red on-state bar off until the
+  operator starts it again or resets it. A running row keeps the red bar.
 
 ### Clicking an item
 

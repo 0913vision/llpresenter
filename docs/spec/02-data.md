@@ -510,13 +510,16 @@ keep that ID. Each resulting timer starts stopped on launch, as before.
 
 ### 타이머 (`timers.json`)
 
-| Field          | Type                                                             | Meaning                                                                                                                   | Source                                  |
-| -------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
-| `timers[]`     | Array                                                            | The 타이머.                                                                                                               | `Overlays` 타이머 tab                   |
-| `.id`, `.name` | String                                                           | ID and name, for example 예배 시작 (service start), 설교 (sermon), 예배 경과 (service elapsed), 현재 시각 (current time). | `Overlays`                              |
-| `.kind`        | `"countdownTo"` \| `"countdown"` \| `"elapsedFrom"` \| `"clock"` | Time left until a set time ("10:30까지"), a fixed duration ("35분"), time since a set time ("10:30부터"), or a clock.     | `Overlays`. Value names are a proposal. |
-| `.time`        | `HH:mm`                                                          | Reference time for `countdownTo` and `elapsedFrom`.                                                                       | `Overlays`                              |
-| `.duration`    | Seconds                                                          | Duration of a `countdown`.                                                                                                | `Overlays`                              |
+| Field          | Type                                                                            | Meaning                                                                                                                                                               | Source                                               |
+| -------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| `timers[]`     | Array                                                                           | The 타이머.                                                                                                                                                           | `Overlays` 타이머 tab                                |
+| `.id`, `.name` | String                                                                          | ID and name, for example 예배 시작 (service start), 설교 (sermon), 예배 경과 (service elapsed), 현재 시각 (current time).                                             | `Overlays`                                           |
+| `.kind`        | `"countdownTo"` \| `"countdown"` \| `"elapsed"` \| `"elapsedFrom"` \| `"clock"` | Date/time countdown, fixed duration, stopwatch elapsed duration, legacy time-of-day elapsed, or clock.                                                                | `Overlays`; October 27 user decision adds `elapsed`. |
+| `.time`        | `HH:mm`                                                                         | Reference time for `countdownTo` and `elapsedFrom`.                                                                                                                   | `Overlays`                                           |
+| `.duration`    | Seconds                                                                         | Duration of a `countdown`.                                                                                                                                            | `Overlays`                                           |
+| `.date`        | `YYYY-MM-DD`, or absent                                                         | Calendar date for `countdownTo`, in the computer's local time zone with `.time`. Required by the new date/time editor. Absence preserves the legacy start-day anchor. | October 27 user decision                             |
+| `.overrun`     | Boolean, or absent                                                              | `countdown` and `countdownTo`: true keeps counting with "-" after zero; false stops and holds zero. Absence means true.                                               | October 27 user decision; 10                         |
+| `.start`       | Nonnegative seconds                                                             | Initial counted duration of `elapsed`, including zero. It is a duration rather than a time of day.                                                                    | October 27 user decision                             |
 
 Don't save whether a 타이머 is running or how much time is left. That is output
 state (see the recovery record).
@@ -525,15 +528,23 @@ The quick timer flow in 04 uses the existing `countdown` shape: `.duration` is
 the entered minutes times 60 plus seconds, a positive whole number for newly
 added quick timers. Each addition creates a new UUID v4 and a name 타이머 1,
 타이머 2, and so on, using an unused number. It never reuses another timer's ID
-or running state, including when durations match. The file keeps the existing
-four timer kinds and the configured duration after a stop/reset. No field or
-schema version changes are needed for these rules.
+or running state, including when durations match. The configured duration stays
+after a stop/reset. The October 27 modes add optional countdown fields and the
+distinct `elapsed` kind; earlier kinds and fields keep their original meaning.
 
 Names are for display in 퀵 실행, the timer tab and stage pickers. References
 stay ID-based, so 이름 바꾸기 does not break a stage selection or a 소품 token.
 Quick start/reset changes only the referenced timer's live state. Passing zero
-does not rewrite `.duration`: the displayed value continues with a leading "-"
-(user decision from the October 26 check, see 04).
+does not rewrite `.duration`: `.overrun` determines whether the timer stops or
+continues with "-". A finished run holds zero and is not running; a fresh start
+of a finished duration timer starts from its configured duration. Completion and
+pause remain live state, never fields in this settings file.
+
+Existing `elapsedFrom` records retain their `HH:mm` reference and remain
+distinct from `elapsed`. New elapsed records use `.start`, keep counting on
+main's monotonic clock, hold their value while paused and return to `.start`
+when reset. Existing IDs and unknown fields are preserved; stage and prop
+references continue resolving by ID (October 27 user decision, see 04).
 
 ### 이름표 list (`labels.json`)
 
