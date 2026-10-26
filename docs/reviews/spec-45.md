@@ -1,10 +1,10 @@
-Review range: `82f52b18...feat/spec/output-notices`
+Review range: `d91ae981...feat/spec/output-notices`
 
 # Review request: `spec-45`
 
 - Team member: `spec` (Claude session that took over from Codex)
 - Branch: `feat/spec/output-notices`
-- Base commit: `82f52b18`, main with spec-44 merged
+- Base commit: `d91ae981`, main with spec-44 merged
 - Review round: 2
 - Task: M3-S2a part 2, the output notifications of spec 08
 - Code owner: shell (`src/renderer/src/control/notifications/` and `App.tsx`)
@@ -78,6 +78,20 @@ event channel (agreed with data).
    closing the card, reopening it from the menu, and the item disappearing once
    the monitor is back; store tests for keeping, dropping, and listing each
    screen once.
+
+**Trial review (shadow review of 156a8e5f), all three taken:**
+
+- (a) Turning an output off while its monitor is missing is the operator's own
+  action (or 연결이 끊기면 set to off), so that transition is now an `update`:
+  it changes the kept warning to "모니터 3 → 출력 꺼짐" with only 모니터 다시
+  찾기, and replaces the card only if it is showing. A closed card stays closed
+  (the 출력 menu still offers it). `NoticeTarget` gains `getNotices`, which
+  `ControlSession` already has. Tests: a closed card stays closed after turning
+  off; a showing card turns into 출력 꺼짐 in place.
+- (b) The TSDoc on the private `monitorChange` and `windowChange` was already a
+  NOTE in this round.
+- (c) The reconnected card leaves the detail line out when the screen never had
+  a monitor; tested.
 
 Private helper comments in `outputNotices.ts` are NOTE comments now, as the
 spec-43 review asked of private TSDoc. The lead's spec-43 nit is also here: the
