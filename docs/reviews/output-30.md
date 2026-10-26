@@ -205,3 +205,10 @@ Round 1 (codex3, Request changes):
    슬라이드 from service A, open B, change the stage message so the record is
    written again naming B, then `recovery.summary` still offers the 슬라이드
    with service A). All four fail against the previous lookup.
+
+CI note for round 2: run 40255827451 at `867bf5fe` failed only in
+`src/main/outputs/fullscreenOrder.electron.test.ts`, the native window test on
+the runner (`win.isAlwaysOnTop()` was false after leaving full screen). This
+request doesn't touch output windows. The same failure appeared on data's
+`feat/data/macro-drop` ten minutes later (run 40256513282), while output-33's
+run right after it passed, so it looks intermittent. This commit runs CI again.
