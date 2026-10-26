@@ -82,7 +82,7 @@ describe('ServiceOrderHeader', () => {
     expect(useShow.getState().serviceId).toBe(sampleService.id);
   });
 
-  it('ends the picker with 새 예배, which opens its dialog', async () => {
+  it('ends the picker with the service commands, which open their dialogs', async () => {
     window.llp = fakeLlpApi({
       services: {
         list: () =>
@@ -103,15 +103,45 @@ describe('ServiceOrderHeader', () => {
     const items = [
       ...screen.getByRole('menu').querySelectorAll('[role^="menuitem"]'),
     ].map(item => item.textContent);
-    expect(items).toEqual([expect.stringContaining('저녁 예배'), '새 예배']);
+    expect(items).toEqual([
+      expect.stringContaining('저녁 예배'),
+      '새 예배',
+      '다른 예배에서 가져오기',
+    ]);
+    for (const name of ['새 예배', '다른 예배에서 가져오기']) {
+      if (screen.queryByRole('menu') === null) {
+        await act(async () => {
+          fireEvent.click(screen.getByText(sampleService.name));
+        });
+      }
+      await act(async () => {
+        fireEvent.click(screen.getByRole('menuitem', {name}));
+      });
+      expect(screen.queryByRole('menu')).toBeNull();
+      expect(screen.getByRole('dialog', {name})).toBeDefined();
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', {name: '취소'}));
+      });
+      expect(screen.queryByRole('dialog')).toBeNull();
+    }
+  });
+
+  it('offers 다른 예배에서 가져오기 only with a service open', async () => {
+    window.llp = fakeLlpApi();
+    render(<ServiceOrderHeader />);
+    act(() => applyService(null));
     await act(async () => {
-      fireEvent.click(screen.getByRole('menuitem', {name: '새 예배'}));
+      fireEvent.click(screen.getByText('예배 순서'));
     });
-    expect(screen.queryByRole('menu')).toBeNull();
-    expect(screen.getByRole('dialog', {name: '새 예배'})).toBeDefined();
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', {name: '취소'}));
-    });
-    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(
+      screen
+        .getByRole('menuitem', {name: '다른 예배에서 가져오기'})
+        .getAttribute('aria-disabled'),
+    ).toBe('true');
+    expect(
+      screen
+        .getByRole('menuitem', {name: '새 예배'})
+        .getAttribute('aria-disabled'),
+    ).toBeNull();
   });
 });

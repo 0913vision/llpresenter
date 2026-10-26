@@ -6,7 +6,7 @@ import {Menu} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import {openOnArrowDown} from '@renderer/ui/menuButton';
 import type {MenuEntry} from '@renderer/ui/menuModel';
-import {NewServiceDialog} from '@renderer/prep/services/NewServiceDialog';
+import {useServiceActions} from '@renderer/prep/services/useServiceActions';
 import {useServicePicker} from './useServicePicker';
 import styles from './ServiceOrderHeader.module.css';
 
@@ -24,8 +24,8 @@ export function ServiceOrderHeader({
   readonly onProblem?: ((notice: Notice) => void) | undefined;
 }): JSX.Element {
   const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
-  const [creating, setCreating] = useState(false);
   const picker = useServicePicker(onProblem);
+  const actions = useServiceActions({onProblem, onOpen: picker.close});
   const currentId = useShow(view => view.serviceId);
   const name = useShow(view =>
     view.serviceId === null ? null : view.serviceName,
@@ -80,25 +80,11 @@ export function ServiceOrderHeader({
             ...(picker.visible.length === 0
               ? []
               : [{kind: 'separator', id: 'service-actions'} as const]),
-            {
-              kind: 'item',
-              id: 'new-service',
-              label: '새 예배',
-              icon: 'plus',
-              onSelect: () => {
-                picker.close();
-                setCreating(true);
-              },
-            },
+            ...actions.entries,
           ]}
         />
       ) : null}
-      {creating ? (
-        <NewServiceDialog
-          onClose={() => setCreating(false)}
-          onProblem={onProblem}
-        />
-      ) : null}
+      {actions.dialogs}
     </>
   );
 }
