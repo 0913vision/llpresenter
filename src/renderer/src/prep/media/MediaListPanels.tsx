@@ -162,9 +162,14 @@ function useCreate(kind: 'media' | 'audio', onCreated: (id: string) => void) {
         setCreating(false);
       });
   };
-  const disabled =
-    creating || view.document === null || view.document.access === 'readOnly';
-  return {create, disabled};
+  const disabledReason = creating
+    ? '재생목록 만드는 중'
+    : view.document === null
+      ? '미디어 불러오는 중'
+      : view.document.access === 'readOnly'
+        ? '읽기 전용 미디어 목록'
+        : undefined;
+  return {create, disabledReason};
 }
 
 /**
@@ -176,7 +181,7 @@ function useCreate(kind: 'media' | 'audio', onCreated: (id: string) => void) {
 export function MediaListsPanel(): JSX.Element {
   const {view, choice, choose} = useMediaView();
   const editing = usePlaylistEditing('media');
-  const {create, disabled} = useCreate('media', editing.startRename);
+  const {create, disabledReason} = useCreate('media', editing.startRename);
   const items = view.document?.value.items.length ?? 0;
   const playlists = view.document?.value.playlists ?? [];
   return (
@@ -191,7 +196,8 @@ export function MediaListsPanel(): JSX.Element {
           <IconButton
             icon="plus"
             label="새 재생목록"
-            disabled={disabled}
+            disabled={disabledReason !== undefined}
+            title={disabledReason}
             onClick={create}
           />
         </PanelActions>
@@ -239,7 +245,7 @@ export function MediaListsPanel(): JSX.Element {
 export function AudioListsPanel(): JSX.Element {
   const {view, choice, choose} = useMediaView();
   const editing = usePlaylistEditing('audio');
-  const {create, disabled} = useCreate('audio', editing.startRename);
+  const {create, disabledReason} = useCreate('audio', editing.startRename);
   const playlists = view.document?.value.audioPlaylists ?? [];
   return (
     <Panel label="오디오" className={styles.panel}>
@@ -253,7 +259,8 @@ export function AudioListsPanel(): JSX.Element {
           <IconButton
             icon="plus"
             label="새 오디오 재생목록"
-            disabled={disabled}
+            disabled={disabledReason !== undefined}
+            title={disabledReason}
             onClick={create}
           />
         </PanelActions>

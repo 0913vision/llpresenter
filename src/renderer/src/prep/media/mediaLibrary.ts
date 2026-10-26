@@ -8,7 +8,7 @@ import type {
 import type {MissingMedia} from '@shared/schema/mediaFiles';
 import {updateActiveCopies, type CopyJob} from '@renderer/show/mediaCopyJobs';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
-import type {ChosenPlaylist} from './mediaEntries';
+import {chosenPlaylist, type ChosenPlaylist} from './mediaEntries';
 
 /** What the media view uses of the window API. */
 export type MediaApi = Pick<LlpApi, 'media' | 'log'>;
@@ -198,8 +198,14 @@ export class MediaLibrary {
    */
   async renamePlaylist(playlist: ChosenPlaylist, name: string): Promise<void> {
     const document = this.view.document;
+    const current = chosenPlaylist(document, playlist);
     const trimmed = name.trim();
-    if (document === null || trimmed === '' || trimmed === playlist.name) {
+    if (
+      document === null ||
+      current === null ||
+      trimmed === '' ||
+      trimmed === current.name
+    ) {
       return;
     }
     if (await this.updatePlaylist(document, playlist, {name: trimmed})) return;
@@ -217,8 +223,11 @@ export class MediaLibrary {
     name: string,
   ): Promise<void> {
     const document = this.view.document;
-    if (document === null || !playlist.items.includes(mediaId)) return;
-    const items = playlist.items.filter(id => id !== mediaId);
+    const current = chosenPlaylist(document, playlist);
+    if (document === null || !current?.items.includes(mediaId)) {
+      return;
+    }
+    const items = current.items.filter(id => id !== mediaId);
     if (await this.updatePlaylist(document, playlist, {items})) return;
     this.onProblem(
       warning(`media-view:leave:${mediaId}`, '재생목록에서 뺄 수 없음', [name]),

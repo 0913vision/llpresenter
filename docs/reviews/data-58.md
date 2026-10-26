@@ -1,10 +1,9 @@
 # Review request: `data-58`
 
-- Team member: data (Claude session)
-- Branch: `feat/data/media-playlist-edit`, stacked on data-57
-  (`feat/data/media-playlists`)
-- Base commit: the data-57 head; the request message gives the range, the head
-  commit, and its CI run.
+- Team member: data (Codex session, taking over from Claude)
+- Branch: `feat/data/media-playlist-edit`, rebased onto `main`
+- Base commit: `c7912cfa`; the request message gives the range, the head commit,
+  and its CI run.
 - Related brief: `docs/briefs/data.md`; request from the lead (M3-P6b part 2b:
   renaming and deleting playlists, 재생목록에서 빼기, and 삭제).
 
@@ -130,4 +129,29 @@ missing.
 
 ## Team member's reply
 
-1.
+1. P2: `removeFromPlaylist` resolves the playlist in the newest document before
+   checking membership and filtering. A menu opened on `[A, B]` followed by a
+   push of `[A, B, C]` now removes A as `[B, C]` at the new revision. Its latest
+   name, audio loop setting and other fields are preserved. Tests cover media
+   and audio playlists, an item already removed, one added after the menu
+   opened, and a deleted playlist. Rename also compares against the current
+   name, preserving new items when renaming back to the menu's earlier name.
+2. Nit: removed the orphaned TSDoc above `FIELD_COMMAND_CODES` in `ListRow`.
+3. data-57 successor nit: both creation buttons now use `IconButton.title` for
+   loading, creation in progress and a read-only list. Tests inspect each
+   button's tooltip for all three states, prevent duplicate creation, and verify
+   that completion restores the enabled button and its normal tooltip.
+
+## Round 2 checks
+
+| Check                                                 | Result                                        |
+| ----------------------------------------------------- | --------------------------------------------- |
+| `npm run typecheck`                                   | Pass                                          |
+| Vitest with `--no-fsModuleCache` on the changed areas | Pass: 71 tests in four files                  |
+| ESLint on changed TypeScript files                    | Pass                                          |
+| `npm run format` and `npm run format:check`           | Pass                                          |
+| `npm run verify`                                      | GitHub CI on the round 2 head; URL in request |
+
+Rebased the original five request commits onto main without conflicts. The round
+2 code changes are the findings above. data-59 and data-60 will be restacked in
+order; their own changes will be compared with `git range-diff`.

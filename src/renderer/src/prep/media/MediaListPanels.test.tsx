@@ -1,5 +1,6 @@
 import {act, fireEvent, render, screen, within} from '@testing-library/react';
-import {describe, expect, it, onTestFinished, vi} from 'vitest';
+import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
+import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {AudioListsPanel, MediaListsPanel} from './MediaListPanels';
 import {MediaView} from './MediaView';
 import {MediaViewProvider} from './MediaViewProvider';
@@ -32,8 +33,8 @@ function setup(
     1,
     LISTS,
   ),
+  fixture = mediaFixture(document),
 ) {
-  const fixture = mediaFixture(document);
   window.llp = fixture.api;
   onTestFinished(() => {
     delete window.llp;
@@ -56,6 +57,67 @@ async function row(list: string, name: RegExp | string): Promise<HTMLElement> {
 }
 
 describe('media list panels', () => {
+  afterEach(resetTooltips);
+
+  it.each(['새 재생목록', '새 오디오 재생목록'])(
+    'explains why %s is unavailable while loading',
+    async name => {
+      const document = mediaDocument([]);
+      const fixture = mediaFixture(document);
+      vi.spyOn(fixture.api.media, 'get').mockReturnValue(
+        new Promise(() => undefined),
+      );
+      setup(document, fixture);
+      const button = screen.getByRole('button', {name});
+      expect(button.getAttribute('aria-disabled')).toBe('true');
+      fireEvent.click(button);
+      expect(fixture.edit).not.toHaveBeenCalled();
+      expect((await hoverForTooltip(button))?.textContent).toBe(
+        '미디어 불러오는 중',
+      );
+    },
+  );
+
+  it.each(['새 재생목록', '새 오디오 재생목록'])(
+    'explains why %s is unavailable for a read-only list',
+    async name => {
+      setup({...mediaDocument([], 1), access: 'readOnly'});
+      await row('미디어 목록', /모든 미디어/);
+      const button = screen.getByRole('button', {name});
+      expect(button.getAttribute('aria-disabled')).toBe('true');
+      expect((await hoverForTooltip(button))?.textContent).toBe(
+        '읽기 전용 미디어 목록',
+      );
+    },
+  );
+
+  it.each(['새 재생목록', '새 오디오 재생목록'])(
+    'explains why %s is unavailable while creating and enables it after completion',
+    async name => {
+      const {edit} = setup();
+      let finish: () => void = () => undefined;
+      edit.mockReturnValue(
+        new Promise(resolve => {
+          finish = () => resolve({ok: true, value: null});
+        }),
+      );
+      await row('미디어 목록', /모든 미디어/);
+      const button = screen.getByRole('button', {name});
+      fireEvent.click(button);
+      fireEvent.click(button);
+      expect(edit).toHaveBeenCalledOnce();
+      expect(button.getAttribute('aria-disabled')).toBe('true');
+      expect((await hoverForTooltip(button))?.textContent).toBe(
+        '재생목록 만드는 중',
+      );
+      await act(async () => {
+        finish();
+      });
+      expect(button.getAttribute('aria-disabled')).toBeNull();
+      resetTooltips();
+      expect((await hoverForTooltip(button))?.textContent).toBe(name);
+    },
+  );
   it('lists 모든 미디어, the playlists, and the audio playlists with their counts', async () => {
     setup();
     const all = await row('미디어 목록', /모든 미디어/);

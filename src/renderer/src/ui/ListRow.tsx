@@ -432,8 +432,6 @@ export function ListActionRow({
   );
 }
 
-/** A group name being edited in place. */
-
 const FIELD_COMMAND_CODES: ReadonlySet<string> = new Set([
   'KeyA',
   'KeyC',

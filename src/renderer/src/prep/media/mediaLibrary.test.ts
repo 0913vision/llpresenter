@@ -10,6 +10,7 @@ import {
   playlistId,
 } from './mediaTesting';
 import {MediaLibrary} from './mediaLibrary';
+import {chosenPlaylist} from './mediaEntries';
 
 function setup(fixture = mediaFixture(mediaDocument([mediaItem(1)]))) {
   const library = new MediaLibrary(fixture.api);
@@ -22,6 +23,104 @@ function setup(fixture = mediaFixture(mediaDocument([mediaItem(1)]))) {
 const JOB = {mediaId: mediaId(9), fileName: 'Invented.mp4'} as const;
 
 describe('media library for the media view', () => {
+  it.each(['media', 'audio'] as const)(
+    'removes from the current %s playlist after a newer document push',
+    async kind => {
+      const list = (items: readonly MediaId[], revision: number) =>
+        mediaDocument(
+          [mediaItem(1), mediaItem(2), mediaItem(3)],
+          revision,
+          kind === 'media'
+            ? {playlists: [{id: playlistId(1), name: 'Current', items}]}
+            : {
+                audioPlaylists: [
+                  {id: audioPlaylistId(1), name: 'Current', items, loop: true},
+                ],
+              },
+        );
+      const initial = list([mediaId(1), mediaId(2)], 1);
+      const playlist = chosenPlaylist(initial, {
+        kind,
+        id: kind === 'media' ? playlistId(1) : audioPlaylistId(1),
+      });
+      if (playlist === null) throw new Error('Missing playlist');
+      const {library, edit, pushDocument} = setup(mediaFixture(initial));
+      await vi.waitFor(() =>
+        expect(library.getSnapshot().document?.revision).toBe(1),
+      );
+      const latest = list([mediaId(1), mediaId(2), mediaId(3)], 7);
+      pushDocument(latest);
+      await library.removeFromPlaylist(playlist, mediaId(1), 'Invented 1');
+      const current =
+        kind === 'media'
+          ? latest.value.playlists[0]
+          : latest.value.audioPlaylists[0];
+      expect(edit).toHaveBeenCalledExactlyOnceWith({
+        type: 'media.playlist.update',
+        baseRevision: 7,
+        playlist: {kind, value: {...current, items: [mediaId(2), mediaId(3)]}},
+      });
+      edit.mockClear();
+      pushDocument(list([mediaId(2), mediaId(3)], 8));
+      await library.removeFromPlaylist(playlist, mediaId(1), 'Already gone');
+      expect(edit).not.toHaveBeenCalled();
+      await library.removeFromPlaylist(
+        playlist,
+        mediaId(3),
+        'Added since menu opened',
+      );
+      expect(edit).toHaveBeenCalledExactlyOnceWith({
+        type: 'media.playlist.update',
+        baseRevision: 8,
+        playlist: {kind, value: {...current, items: [mediaId(2)]}},
+      });
+      edit.mockClear();
+      pushDocument(mediaDocument([], 9));
+      await library.removeFromPlaylist(
+        playlist,
+        mediaId(2),
+        'Playlist deleted',
+      );
+      expect(edit).not.toHaveBeenCalled();
+    },
+  );
+
+  it('compares a rename against the current playlist name and preserves new items', async () => {
+    const initial = mediaDocument([], 1, {
+      playlists: [{id: playlistId(1), name: 'Old', items: [mediaId(1)]}],
+    });
+    const playlist = chosenPlaylist(initial, {
+      kind: 'media',
+      id: playlistId(1),
+    });
+    if (playlist === null) throw new Error('Missing playlist');
+    const {library, edit, pushDocument} = setup(mediaFixture(initial));
+    await vi.waitFor(() =>
+      expect(library.getSnapshot().document?.revision).toBe(1),
+    );
+    pushDocument(
+      mediaDocument([], 2, {
+        playlists: [
+          {id: playlistId(1), name: 'New', items: [mediaId(1), mediaId(2)]},
+        ],
+      }),
+    );
+    await library.renamePlaylist(playlist, 'New');
+    expect(edit).not.toHaveBeenCalled();
+    await library.renamePlaylist(playlist, 'Old');
+    expect(edit).toHaveBeenCalledExactlyOnceWith({
+      type: 'media.playlist.update',
+      baseRevision: 2,
+      playlist: {
+        kind: 'media',
+        value: {
+          id: playlistId(1),
+          name: 'Old',
+          items: [mediaId(1), mediaId(2)],
+        },
+      },
+    });
+  });
   it('reads the list and the missing files, and follows only newer lists', async () => {
     const {library, pushDocument, pushMissing} = setup();
     await vi.waitFor(() =>
