@@ -124,3 +124,11 @@ bounds. Window and capture regressions use different frame/content sizes,
 including a scaled monitor. Electron adapter tests cover normal and offscreen
 modes against
 [`getContentBounds`](https://www.electronjs.org/docs/latest/api/browser-window#wingetcontentbounds).
+
+## Verdicts (recorded by the lead at merge)
+
+- Final round (b93054af): reviewer (Codex) Approve; second review (Gemini 4
+  Argon, gem1) Approve, no findings, on the output-window changes. Lead Approve;
+  the exact-head CI run passed, checked by the lead at merge. Rebased by the
+  lead onto local `main` without conflicts; typecheck passes. Earlier rounds'
+  findings and replies are above.
