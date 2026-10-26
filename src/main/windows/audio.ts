@@ -56,7 +56,8 @@ export function registerAudioOutput({
       },
     });
     win = opened;
-    opened.webContents.setAudioMuted(muted);
+    const contents = opened.webContents;
+    contents.setAudioMuted(muted);
     blockNavigation(opened);
     const page: PageRequest = {
       name: 'output',
@@ -77,13 +78,14 @@ export function registerAudioOutput({
       attempt(() => recovery.crashed(details));
     };
     const ready = (): void => attempt(() => recovery.pageDrawn());
-    opened.webContents.on('render-process-gone', crashed);
-    opened.webContents.on('did-finish-load', ready);
     releaseCrash = () => {
-      opened.webContents.removeListener('render-process-gone', crashed);
-      opened.webContents.removeListener('did-finish-load', ready);
       recovery.dispose();
+      if (opened.isDestroyed() || contents.isDestroyed()) return;
+      attempt(() => contents.removeListener('render-process-gone', crashed));
+      attempt(() => contents.removeListener('did-finish-load', ready));
     };
+    contents.on('render-process-gone', crashed);
+    contents.on('did-finish-load', ready);
     loadPage(opened, page, log);
   });
   void media

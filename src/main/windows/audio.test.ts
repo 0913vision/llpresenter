@@ -16,10 +16,15 @@ import {
 const fakes = await vi.hoisted(async () => {
   const {EventEmitter} = await import('node:events');
   class Window extends EventEmitter {
-    readonly webContents = Object.assign(new EventEmitter(), {
+    readonly contents = Object.assign(new EventEmitter(), {
       setAudioMuted: vi.fn(),
+      isDestroyed: vi.fn(() => this.destroyed),
     });
     destroyed = false;
+    get webContents() {
+      if (this.destroyed) throw new TypeError('Object has been destroyed');
+      return this.contents;
+    }
     readonly destroy = vi.fn(() => {
       this.destroyed = true;
     });
@@ -113,7 +118,7 @@ describe('registerAudioOutput', () => {
     stop();
     stop();
     expect(win.destroy).toHaveBeenCalledOnce();
-    expect(win.webContents.listenerCount('render-process-gone')).toBe(0);
+    expect(win.contents.listenerCount('render-process-gone')).toBe(0);
   });
   it.each(['offscreen', 'normal'] as const)(
     'mutes packaged tests in %s mode',
@@ -168,7 +173,57 @@ describe('registerAudioOutput', () => {
     const before = vi.mocked(startLoading).mock.calls.length;
     await clock.advance(120_000);
     expect(startLoading).toHaveBeenCalledTimes(before);
-    expect(win.webContents.listenerCount('did-finish-load')).toBe(0);
+    expect(win.contents.listenerCount('did-finish-load')).toBe(0);
+  });
+
+  it.each([1, 3])(
+    'cancels pending recovery after %s crashes even when the audio window is already destroyed',
+    async crashes => {
+      const clock = installFakeClock();
+      const {win, stop, log} = setup();
+      for (let index = 0; index < crashes; index += 1) {
+        win.contents.emit(
+          'render-process-gone',
+          {},
+          {reason: 'crashed', exitCode: -1},
+        );
+        if (index < crashes - 1) {
+          await clock.advance(RELAUNCH_DELAY_MS);
+          win.contents.emit('did-finish-load');
+        }
+      }
+      expect(vi.getTimerCount()).toBeGreaterThan(0);
+      const getter = vi.spyOn(win, 'webContents', 'get');
+      win.destroy();
+      expect(() => stop()).not.toThrow();
+      expect(getter).not.toHaveBeenCalled();
+      expect(vi.getTimerCount()).toBe(0);
+      const before = vi.mocked(startLoading).mock.calls.length;
+      await clock.advance(120_000);
+      expect(startLoading).toHaveBeenCalledTimes(before);
+      expect(log.messages('error')).not.toContain('audio output failed');
+    },
+  );
+
+  it('isolates listener removal failures while releasing other listeners and recovery timers', async () => {
+    const clock = installFakeClock();
+    const {win, stop, log} = setup();
+    win.contents.emit(
+      'render-process-gone',
+      {},
+      {reason: 'crashed', exitCode: -1},
+    );
+    const error = new Error('Listener removal failed');
+    vi.spyOn(win.contents, 'removeListener').mockImplementationOnce(() => {
+      throw error;
+    });
+    expect(() => stop()).not.toThrow();
+    expect(win.destroy).toHaveBeenCalledOnce();
+    expect(win.contents.listenerCount('did-finish-load')).toBe(0);
+    expect(vi.getTimerCount()).toBe(0);
+    await clock.advance(120_000);
+    expect(startLoading).not.toHaveBeenCalled();
+    expect(log.messages('error')).toContain('audio output failed');
   });
   it('resets the crash limit after a loaded audio page survives a minute', async () => {
     const clock = installFakeClock();
