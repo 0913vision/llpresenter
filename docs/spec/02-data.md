@@ -746,13 +746,40 @@ install files. Other formats such as USFM, OSIS and SWORD remain build-time
 source preparation. Tests and committed examples contain invented sentences
 only; never commit Bible text or output derived from a crawl.
 
+### Reference input
+
+The 진행 and 준비 reference form uses four shared fields: 책, 장, 시작절, and
+optional 끝절 (user decision, 2026-10-26). The form builds a normalized
+single-chapter reference for the grammar below; stored references still accept
+whole chapters and ranges across chapters.
+
+- 책 lists every Korean full-name or short-name jamo containment match and every
+  English name or code containment match, including input interpreted as Korean
+  typed with the IME off, in canonical order. The list is bounded by the 66
+  books, with no initial highlight. Exact matches remain in this list along with
+  other containment matches. Tab completes the exact match or the only candidate
+  to the full name and moves to 장. With several candidates and no exact match,
+  Tab stays until an arrow-key selection is made.
+- 장 is an integer from 1 to the book's chapter count. 시작절 is an integer from
+  1 to the selected chapter's verse count. 끝절 is empty for one verse, or an
+  integer from 시작절 through the chapter's last verse. Changing 시작절 clears
+  끝절. Invalid fields block forward Tab and expose a short Korean reason only
+  through the field tooltip. Shift Tab remains backward navigation.
+- A 끝절 above the last verse blocks Tab, but lookup clamps it to that last
+  verse. An end below 시작절 remains invalid and blocks lookup.
+- Optional `bounds` in a Bible lookup reply contains `bookId` and
+  `chapterVerses`, one positive verse-slot count per chapter, including omitted
+  verses. A book-only request returns this from the installed header without
+  reading chapter text. Bounds are capped at 150 chapters and 40,000 slots per
+  chapter. The form ignores bounds for another book or translation.
+
 ### Reference grammar (proposal)
 
-The 퀵 실행 Bible field (04) accepts these forms. Each form has a colon form and
-a Korean form with 장 and 절; one reference uses one of them throughout, so a
-mixed reference such as "요 3:16-4장 2절" is invalid. Spaces between the book,
-the numbers, and the separators are optional ("요3:16", "요한복음3장16절"), and
-"~" works like "-" ("요 3:16~18").
+Stored references and the lookup API accept these forms. Each form has a colon
+form and a Korean form with 장 and 절; one reference uses one of them
+throughout, so a mixed reference such as "요 3:16-4장 2절" is invalid. Spaces
+between the book, the numbers, and the separators are optional ("요3:16",
+"요한복음3장16절"), and "~" works like "-" ("요 3:16~18").
 
 | Form                  | Colon form  | Korean form         | Meaning                      |
 | --------------------- | ----------- | ------------------- | ---------------------------- |

@@ -1,4 +1,5 @@
 import type {Result} from '@shared/result';
+import {exactBibleBook, matchBooks} from '@shared/bibleMatching';
 import {
   loadBibleChapterLibrary,
   type BibleChapterLibrary,
@@ -16,6 +17,22 @@ export class BibleLibrary {
 
   get translations() {
     return this.catalog.translations;
+  }
+
+  /** Reads verse slots from the installed header, including omitted verses. */
+  bounds(translation: string, name: string) {
+    const matches = matchBooks(name);
+    const book =
+      exactBibleBook(name) ?? (matches.length === 1 ? matches[0] : undefined);
+    const indexed = this.catalog
+      .header(translation)
+      ?.books.find(entry => entry.id === book?.id);
+    return indexed
+      ? {
+          bookId: indexed.id,
+          chapterVerses: indexed.chapters.map(chapter => chapter.verses),
+        }
+      : undefined;
   }
 
   async resolve(

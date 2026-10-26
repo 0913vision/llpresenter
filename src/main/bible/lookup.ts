@@ -129,10 +129,13 @@ export class BibleLookupSession {
     if (!library) throw new Error('Bible settings are unavailable');
     const result = await library.resolve(request.translation, request.input);
     const candidates = await suggestions(request, library);
+    const [, name = ''] = BOOK_PREFIX.exec(request.input.trim()) ?? [];
+    const bounds = library.bounds(request.translation, name);
     this.ensureOpen();
     const reply = parseBibleLookupReply(request, {
       ...request,
       suggestions: candidates,
+      ...(bounds === undefined ? {} : {bounds}),
       result,
     });
     if (!reply.ok) {

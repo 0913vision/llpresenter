@@ -8,6 +8,7 @@ export const BIBLE_LOOKUP_LIMITS = {
   input: 256,
   translationId: 256,
   books: 66,
+  chapters: 150,
   suggestions: 8,
   verses: 40_000,
   verseText: 20_000,
@@ -59,6 +60,18 @@ const problemSchema = payloadObject({
 const replySchema = payloadObject({
   input: referenceText,
   translation: translationId,
+  bounds: v.exactOptional(
+    payloadObject({
+      bookId: v.pipe(positiveInteger, v.maxValue(BIBLE_LOOKUP_LIMITS.books)),
+      chapterVerses: v.pipe(
+        v.array(
+          v.pipe(positiveInteger, v.maxValue(BIBLE_LOOKUP_LIMITS.verses)),
+        ),
+        v.minLength(1),
+        v.maxLength(BIBLE_LOOKUP_LIMITS.chapters),
+      ),
+    }),
+  ),
   suggestions: v.pipe(
     v.array(
       payloadObject({

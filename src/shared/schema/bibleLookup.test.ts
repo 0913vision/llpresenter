@@ -27,6 +27,41 @@ function parsedRequest() {
 }
 
 describe('Bible lookup payloads', () => {
+  it('accepts optional header bounds without passage text and strips unknown fields', () => {
+    expect(
+      parseBibleLookupReply(parsedRequest(), {
+        ...reply,
+        bounds: {bookId: 43, chapterVerses: [8, 8, 36], extra: true},
+      }),
+    ).toMatchObject({
+      ok: true,
+      value: {bounds: {bookId: 43, chapterVerses: [8, 8, 36]}},
+    });
+  });
+
+  it.each([
+    null,
+    {},
+    {bookId: 0, chapterVerses: [1]},
+    {bookId: 67, chapterVerses: [1]},
+    {bookId: 43, chapterVerses: []},
+    {bookId: 43, chapterVerses: [0]},
+    {bookId: 43, chapterVerses: [1.5]},
+    {bookId: 43, chapterVerses: ['1']},
+    {bookId: 43, chapterVerses: [BIBLE_LOOKUP_LIMITS.verses + 1]},
+    {
+      bookId: 43,
+      chapterVerses: Array.from(
+        {length: BIBLE_LOOKUP_LIMITS.chapters + 1},
+        () => 1,
+      ),
+    },
+  ])('rejects malformed or unbounded book metadata %#', bounds => {
+    expect(parseBibleLookupReply(parsedRequest(), {...reply, bounds}).ok).toBe(
+      false,
+    );
+  });
+
   it('accepts optional normalized suggestion metadata and strips unknown fields', () => {
     const suggestion = {
       ...reply.suggestions[0],

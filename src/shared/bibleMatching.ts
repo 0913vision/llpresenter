@@ -95,21 +95,29 @@ const names = BIBLE_BOOKS.map(book => ({
   korean: [book.korean, book.koreanShort].map(letters),
 }));
 
-/** Exact names win; partial suggestions keep canonical order and are capped. */
-export function matchBooks(input: string): readonly BibleBook[] {
-  const plain = normalize(input);
-  if (plain === '') return [];
-  const original = letters(input);
-  const keyboard = letters(
+function keyboardLetters(input: string): string {
+  return letters(
     Array.from(
       input,
       key => SHIFTED[key] ?? KEYBOARD[key.toLowerCase()] ?? key,
     ).join(''),
   );
-  const exact = names.find(
+}
+
+export function exactBibleBook(input: string): BibleBook | undefined {
+  const plain = normalize(input);
+  const keyboard = keyboardLetters(input);
+  return names.find(
     entry => entry.plain.includes(plain) || entry.korean.includes(keyboard),
-  );
-  if (exact !== undefined) return [exact.book];
+  )?.book;
+}
+
+/** Returns every containment match in canonical order, at most 66 books. */
+export function findBibleBooks(input: string): readonly BibleBook[] {
+  const plain = normalize(input);
+  if (plain === '') return [];
+  const original = letters(input);
+  const keyboard = keyboardLetters(input);
   return names
     .filter(
       entry =>
@@ -118,6 +126,13 @@ export function matchBooks(input: string): readonly BibleBook[] {
           name => name.includes(original) || name.includes(keyboard),
         ),
     )
-    .slice(0, BOOK_SUGGESTION_LIMIT)
     .map(({book}) => book);
+}
+
+/** Preserves exact-name priority and the legacy lookup suggestion cap. */
+export function matchBooks(input: string): readonly BibleBook[] {
+  const exact = exactBibleBook(input);
+  return exact
+    ? [exact]
+    : findBibleBooks(input).slice(0, BOOK_SUGGESTION_LIMIT);
 }

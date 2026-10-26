@@ -69,6 +69,22 @@ async function setup() {
 }
 
 describe('Bible lookup session', () => {
+  it('returns chapter bounds for a book-only request without reading chapter text', async () => {
+    const read = vi.spyOn(chapterFile, 'readBibleChapter');
+    const {session} = await setup();
+    const answer = await session.lookup(request('요한복음'));
+    expect(answer.bounds).toEqual({
+      bookId: 43,
+      chapterVerses: Array.from({length: 21}, (_, index) =>
+        index === 2 ? 36 : 8,
+      ),
+    });
+    expect(answer.result.ok).toBe(false);
+    expect(read).not.toHaveBeenCalled();
+    expect((await session.lookup(request('베'))).bounds).toBeUndefined();
+    expect((await session.lookup(request('창세기'))).bounds).toBeUndefined();
+  });
+
   it.each([
     {input: '요 3:16-99', code: 'verse'},
     {input: '요 3장 35절-4장 9절', code: 'verse'},
