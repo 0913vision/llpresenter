@@ -81,7 +81,8 @@ only the sample main screen, preserving other fields, to fullscreen with always
 on top on the first non-primary display. With one display it changes nothing.
 The sheet clears offscreen mode before the user's actual app run.
 
-This bridges the unmounted screen-properties UI for the user's real second
-screen/stacking check. QA syntax, ESLint, and an isolated-copy helper run
-passed; the physical fullscreen picture, native stacking and monitor cards are
-user checks. The default tracked fixture stays portable and uses no monitor IDs.
+Check3 mounts screen properties but has no monitor-assignment control. This
+helper fills that gap for the user's real second-screen/stacking check. QA
+syntax, ESLint, and an isolated-copy helper run passed; the physical fullscreen
+picture, native stacking and monitor cards are user checks. The default tracked
+fixture stays portable and uses no monitor IDs.
