@@ -66,6 +66,22 @@ describe('screenGroups', () => {
     expect(row?.target).toBe('모니터 미지정');
   });
 
+  it('shows the unassigned target for a cleared assignment that stays on', () => {
+    const status = {
+      ...running,
+      placement: 'monitorMissing',
+      monitor: 2,
+    } as const;
+    const cleared = screens().map(screen =>
+      screen.id === MAIN_ID ? {...screen, display: undefined} : screen,
+    );
+
+    const row = screenGroups(cleared, {[MAIN_ID]: status}, {[MAIN_ID]: true})
+      .audience[0];
+
+    expect(row?.target).toBe('모니터 미지정');
+  });
+
   it('keeps the dot unknown until a frame rate is reported', () => {
     expect(mainRow({[MAIN_ID]: {...running, fps: null}}).health).toBe('none');
   });

@@ -130,3 +130,9 @@ missing.
 2. [P2] Startup health: fixed in `screenRows.ts`. With no warning and `fps`
    null, the dot is `none` until a frame rate arrives. Tests cover the startup
    state and an explicit warning before the first report.
+
+## Round 3 reply
+
+1. [P2] Cleared assignment while on: fixed in `screenRows.ts`. A screen with no
+   `display` shows `모니터 미지정` before the old status is consulted. A test
+   covers the output on, placement `monitorMissing`, and a kept monitor number.

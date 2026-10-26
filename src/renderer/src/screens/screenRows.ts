@@ -43,8 +43,9 @@ function monitorNumber(
   status: ScreenStatus | undefined,
   on: boolean,
 ): number | undefined {
+  if (screen.display === undefined) return undefined;
   const shown = showsOnMonitor(status, on) ? status?.monitor : undefined;
-  return shown ?? screen.display?.number;
+  return shown ?? screen.display.number;
 }
 
 function targetOf(
