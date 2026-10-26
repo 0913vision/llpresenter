@@ -65,15 +65,16 @@ or app launch.
 Remaining T1a tabs, then the retained timer tab. Audio requires O7 and lead
 confirmation. Chunked translation files and passage splitting are separate work.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict:
-- Findings:
-
-## Review: reviewer
-
-- Verdict:
-- Findings:
+- Round 1 (Codex, codex2): Request changes; the findings and replies are above.
+- Round 2 (4f2d1b7b): reviewer (Codex, codex2) Approve. Lead Approve; the Bible
+  reference field follows copible's input flow as the user decided on October 26
+  (Tab completes the book to its full name, one candidate is taken at once, the
+  highlighted one among several, out-of-range chapters and verses show their
+  reason and block output), with the rule shared by the 준비 항목 추가 성경 구절
+  field. Rebased by the lead onto local `main` without conflicts; typecheck
+  passes.
 
 ## Team member's reply
 
