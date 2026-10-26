@@ -1,8 +1,7 @@
 # Review request: `data-54`
 
 - Team member: data (Claude session)
-- Branch: `feat/data/thumbnails`, stacked on data-53
-  (`feat/data/analysis-window`)
+- Branch: `feat/data/thumbnails`, on `main` after data-52 and data-53
 - Base commit: the data-53 head; the request message gives the range, the head
   commit, and its CI run.
 - Related brief: `docs/briefs/data.md`; request from `.llp/task.md`, M3-P6a part
@@ -162,3 +161,27 @@ missing.
 ## Team member's reply
 
 1.
+
+## Round 1 reply
+
+All three in
+`fix(media): check cached thumbnails against their files and items`.
+
+1. [P2] `thumbnailCache.ts:46`, a deleted cache file stayed in the cache. A
+   lookup now checks the file and forgets an entry whose file is gone, so the
+   thumbnail is made again. Regression: the cache folder deleted after a
+   thumbnail was kept answers nothing, and the thumbnail is kept again at the
+   same path.
+2. [P2] `thumbnails.ts:58`, a cache hit skipped the media list. A thumbnail,
+   cached or not, now needs an item in the list now, with a picture (not audio)
+   and a path the library accepts. Regression: a prefilled cache answers nothing
+   for an unknown item, audio, or a refused path, and answers the current
+   video's thumbnail without analysis.
+3. [P2] `mediaImporter.ts:299`, an import's thumbnail could outlive a relink or
+   delete during the admission's save. The importer passes the file the
+   thumbnail was made from, and `Thumbnails.save` keeps it only while the item
+   still has that file, checked again after the write, as thumbnails made on
+   request already were. Regressions: a save for an older file keeps nothing; a
+   file that changes during the write drops the thumbnail; and an import whose
+   item is relinked while its admission is still saving keeps no thumbnail (a
+   real `Thumbnails` behind the importer).
