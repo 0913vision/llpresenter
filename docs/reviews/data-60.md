@@ -151,3 +151,15 @@ assignment errors escaped rendering. They pass with the fixes.
 The round 2 stack is rebased onto local main 6c62d738 through data-59 head
 bb30361f. All five preview commits compare equal across that restack, including
 the two fixes above. Only base metadata is changed after the rebase.
+
+## CI follow-up
+
+The first round 2 CI on `0bd44f2f` failed in an unchanged screen-selection test:
+`src/renderer/src/screens/ScreensWorkspace.test.tsx:170`, "selects the first
+screen until another row is chosen". It expected `aria-selected="true"` and
+received `false`.
+[Failed run](https://github.com/0913vision/llpresenter/actions/runs/40295908564).
+This request changes no screens files. The data-59 parent's run
+[passed](https://github.com/0913vision/llpresenter/actions/runs/40295902087).
+The next documentation-only commit records this failure before CI is tried
+again; the preview fixes are unchanged.
