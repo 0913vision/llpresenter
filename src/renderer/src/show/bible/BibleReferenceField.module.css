@@ -2,6 +2,17 @@
   padding: var(--space-8) var(--panel-inset);
 }
 
+.form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-6);
+}
+
+.book {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
 .popup {
   position: fixed;
   z-index: var(--z-popover);
