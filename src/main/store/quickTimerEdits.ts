@@ -2,6 +2,7 @@ import type {EditFailure, EditSuccess} from '@shared/schema/contentEdit';
 import {randomUUID} from 'node:crypto';
 import {createTimerId, type TimerId} from '@shared/schema/ids';
 import type {Timer} from '@shared/schema/timers';
+import {nextTimerName} from '@shared/timerNames';
 import type {Result} from '@shared/result';
 import {isKnownQuickItem, MAX_QUICK_ITEMS} from '@shared/schema/quick';
 import {
@@ -73,15 +74,12 @@ function prepared(
 }
 
 function unusedTimerName({quick, timers}: TimerDocuments): string {
-  const names = new Set([
+  return nextTimerName([
     ...timers.value.timers.map(timer => timer.name),
     ...quick.value.items
       .filter(item => item.kind === 'timer')
       .map(item => item.name),
   ]);
-  let index = 1;
-  while (names.has(`타이머 ${index}`)) index++;
-  return `타이머 ${index}`;
 }
 
 function createTimer(

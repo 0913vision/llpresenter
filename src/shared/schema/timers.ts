@@ -21,6 +21,7 @@ import {
 } from './primitives';
 
 export const MAX_TIMER_SECONDS = Math.floor(Number.MAX_SAFE_INTEGER / 1000);
+export const MAX_TIMER_DEFINITIONS = 500;
 
 const timerFields = {id: timerIdSchema, name: v.string()};
 

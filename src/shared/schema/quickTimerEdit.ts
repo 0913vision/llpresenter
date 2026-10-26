@@ -3,9 +3,8 @@ import {quickItemIdSchema, timerIdSchema} from './ids';
 import type {ReadonlyKnown} from './fileFormat';
 import {MAX_TIMER_SECONDS} from './timers';
 
-export const MAX_TIMER_DEFINITIONS = 500;
 export const TIMER_NAME_LIMIT = 256;
-export {MAX_TIMER_SECONDS} from './timers';
+export {MAX_TIMER_SECONDS, MAX_TIMER_DEFINITIONS} from './timers';
 
 export const quickTimerCreateSchema = v.pipe(
   v.object({
