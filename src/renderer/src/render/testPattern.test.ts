@@ -79,6 +79,10 @@ describe('TestPatternView', () => {
     const windowed = {id: MAIN, kind: 'audience', method: 'window'} as const;
     view.show(windowed, true);
     expect(label?.textContent).toBe('1440×810');
+    vi.spyOn(parent, 'clientWidth', 'get').mockReturnValue(1280);
+    vi.spyOn(parent, 'clientHeight', 'get').mockReturnValue(720);
+    view.rescale(1);
+    expect(label?.textContent).toBe('1920×1080');
   });
 
   it('sizes the label with the screen and relabels only what changed', () => {
