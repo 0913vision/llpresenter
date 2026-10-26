@@ -38,20 +38,33 @@ missing-fixture warnings from obscuring notification and file-error tests.
 
 Focused tests cover all six hidden previous selections, three window classes,
 arrow navigation, nonempty controls, subscription cleanup and remounting. App
-and notification regressions are included. Final check counts and CI are in the
-report. TSDoc audit: the changed comment is on exported `ShowToolsPanel`; no
-private documentation comments are added.
+and notification regressions are included: 19 focused files, 186 tests passed.
+Typecheck after rebasing onto main, changed-file ESLint, formatting and build
+passed. CI is in the report. TSDoc audit: the changed comment is on exported
+`ShowToolsPanel`; no private documentation comments are added.
 
 ## Checked in the app
 
 Built and ran installed Electron with `LLP_TEST_WINDOWS=offscreen`, tools port
 5183, CDP 9513 and the isolated invented fixture. `node --check` passed before
 launching Electron and running the CDP script. Real mouse input selected the
-working tabs. Normal and 1366 by 768 narrow viewports each had 30 warmup and 20
-measured back-and-forth pairs. Opened/closed the workspace twice and verified
-the selected message tab remained selected.
+working tabs. Added one invented message through real settings IPC to exercise
+both panels with content, then restored the fixture. Normal and 1366 by 768
+narrow viewports each had 30 warmup and 20 measured back-and-forth pairs.
+Opened/closed the workspace twice and verified the selected message tab remained
+selected.
 
-The final build's element, DOM/listener and GC heap measurements are below.
+The final build kept counts fixed for each panel and size:
+
+| Viewport/panel  | Elements | DOM nodes | Listeners | Documents | GC heap         |
+| --------------- | -------- | --------- | --------- | --------- | --------------- |
+| Normal, stage   | 460      | 1,529     | 398       | 28        | 5.55 to 5.66 MB |
+| Normal, message | 459      | 1,522     | 394       | 28        | 5.54 to 5.64 MB |
+| Narrow, stage   | 438      | 1,492     | 395       | 27        | 5.77 to 5.80 MB |
+| Narrow, message | 437      | 1,485     | 391       | 27        | 5.76 to 5.78 MB |
+
+The final ten narrow pairs changed each heap by less than 5 KB. No DOM or
+subscription accumulation was observed.
 
 ![Normal stage panel](evidence/tools-20/normal-stage.png)
 
