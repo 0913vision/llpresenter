@@ -4,7 +4,7 @@ import type {CloseFlush, CloseFlushView} from './closeFlush';
 
 const TITLES: Readonly<Record<Exclude<CloseFlushView, 'hidden'>, string>> = {
   saving: '저장 중',
-  failed: '저장 실패',
+  failed: '저장할 수 없음',
 };
 
 /**

@@ -224,7 +224,7 @@ it('submits a typed but unsent lyric edit when main asks to flush before quittin
   expect(fixture.flushListeners.size).toBe(0);
 });
 
-it('keeps a refused draft in the 저장 실패 dialog until 다시 시도 or 강제로 닫기', async () => {
+it('keeps a refused draft in the 저장할 수 없음 dialog until 다시 시도 or 강제로 닫기', async () => {
   const fixture = mountPrep();
   await openSong(fixture.first.song.title);
   const editor = fixture.session.editor;
@@ -239,7 +239,7 @@ it('keeps a refused draft in the 저장 실패 dialog until 다시 시도 or 강
   act(() => {
     fixture.requestFlush({requestId});
   });
-  await screen.findByRole('alertdialog', {name: '저장 실패'});
+  await screen.findByRole('alertdialog', {name: '저장할 수 없음'});
   expect(flushDone).toHaveBeenCalledExactlyOnceWith({requestId, result: false});
   expect(screen.queryAllByRole('alert')).toHaveLength(0);
   fireEvent.click(screen.getByRole('button', {name: '다시 시도'}));

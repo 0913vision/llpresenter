@@ -7,7 +7,7 @@ import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {CloseFlush} from './closeFlush';
 import {SavingDialog} from './SavingDialog';
 
-it('shows nothing, then 저장 중 with 다시 시도 off, then 저장 실패 with 다시 시도 as the default', async () => {
+it('shows nothing, then 저장 중 with 다시 시도 off, then 저장할 수 없음 with 다시 시도 as the default', async () => {
   let request: (value: AppFlushRequest) => void = () => undefined;
   let finish: (value: boolean) => void = () => undefined;
   const closeAnyway = vi.fn();
@@ -44,7 +44,9 @@ it('shows nothing, then 저장 중 with 다시 시도 off, then 저장 실패 wi
     finish(false);
     await Promise.resolve();
   });
-  expect(screen.getByRole('alertdialog', {name: '저장 실패'})).toBeTruthy();
+  expect(
+    screen.getByRole('alertdialog', {name: '저장할 수 없음'}),
+  ).toBeTruthy();
   const retry = screen.getByRole('button', {name: '다시 시도'});
   expect(retry.getAttribute('aria-disabled')).toBeNull();
   expect(document.activeElement).toBe(retry);
