@@ -54,6 +54,17 @@ vi.mock('electron', () => ({
 let api: LlpApi;
 
 describe('Bible lookup boundary', () => {
+  it('validates disk save results and rejects failed IPC calls', async () => {
+    for (const result of [true, false]) {
+      electron.invoke.mockResolvedValueOnce(result);
+      await expect(api.app.savePending()).resolves.toBe(result);
+    }
+    expect(electron.invoke).toHaveBeenCalledWith(Channels.appSavePending);
+    electron.invoke.mockResolvedValueOnce('true');
+    await expect(api.app.savePending()).rejects.toThrow('Bad reply');
+    electron.invoke.mockRejectedValueOnce(new Error('Unavailable'));
+    await expect(api.app.savePending()).rejects.toThrow();
+  });
   it('validates requests and correlates replies with input and translation', async () => {
     const parsed = parseBibleLookupRequest({
       translation: 'sample',

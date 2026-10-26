@@ -2,6 +2,7 @@ import {describe, expect, expectTypeOf, it} from 'vitest';
 import {
   parseAppFlushDone,
   parseAppFlushRequest,
+  parseAppSavePendingResult,
   type AppFlushDone,
   type AppFlushRequest,
 } from './appFlush';
@@ -15,6 +16,16 @@ const ID = 'a41e0c52-7e1f-4a2b-8c3d-4e5f60718293';
 const OTHER_ID = 'b52f1d63-8f2a-4b3c-9d4e-5f6071829304';
 
 describe('app flush handshake payloads', () => {
+  it.each([true, false])('reads the disk save result %s', value => {
+    expect(parseAppSavePendingResult(value)).toEqual({ok: true, value});
+  });
+
+  it.each([undefined, null, 0, 1, 'true', {}, []])(
+    'rejects an invalid disk save result %j',
+    value => {
+      expect(parseAppSavePendingResult(value).ok).toBe(false);
+    },
+  );
   it('reads the request and strips fields outside the bounded contract', () => {
     expect(parseAppFlushRequest({requestId: ID, extra: ['ignored']})).toEqual({
       ok: true,

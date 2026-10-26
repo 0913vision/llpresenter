@@ -197,6 +197,23 @@ export function registerStore({
   const mediaLibrary = new LoadingMediaLibrary(
     media.then(store => (store === null ? null : {media: store})),
   );
+  ipcMain.handle(Channels.appSavePending, async () => {
+    try {
+      const [ready, readySettings, readyMedia] = await Promise.all([
+        opened,
+        settings,
+        media,
+      ]);
+      await ready?.content.flush();
+      await readySettings?.flush();
+      await readyMedia?.flush();
+      await appConfig.flush();
+      return saveFailures.problems().length === 0;
+    } catch (error: unknown) {
+      log.error('could not save pending edits before closing', error);
+      return false;
+    }
+  });
   return {
     content: contentOf(opened),
     settings,
@@ -215,6 +232,7 @@ export function registerStore({
       await serviceClosing;
       await mediaClosing;
       ipcMain.removeHandler(Channels.preferencesGet);
+      ipcMain.removeHandler(Channels.appSavePending);
       removeContentChannels();
       removeSearch();
       removeLibrarySong();

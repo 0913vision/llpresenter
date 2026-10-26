@@ -30,6 +30,7 @@ export function fakeLlpApi(overrides: FakeLlpApiParts = {}): LlpApi {
       ...overrides.bible,
     },
     app: {
+      savePending: () => Promise.resolve(true),
       subscribeFlushRequests: () => () => undefined,
       flushDone: () => undefined,
       closeAnyway: () => undefined,

@@ -21,6 +21,11 @@ export function parseAppFlushRequest(value: unknown) {
   return parsePayload(requestSchema, value);
 }
 
+/** Validates whether main saved every accepted edit to disk. */
+export function parseAppSavePendingResult(value: unknown) {
+  return parsePayload(v.boolean(), value);
+}
+
 /** Validates a result and optionally the pending request it must answer. */
 export function parseAppFlushDone(
   value: unknown,

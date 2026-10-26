@@ -239,4 +239,19 @@ describe('control window close handshake', () => {
     control.close();
     expect(control.destroyed).toBe(true);
   });
+
+  it('disposes after destruction without reading the destroyed window contents', () => {
+    const {control, closing} = setup();
+    const contents = control.webContents;
+    control.destroyed = true;
+    contents.destroyed = true;
+    Object.defineProperty(control, 'webContents', {
+      get: () => {
+        throw new TypeError('Object has been destroyed');
+      },
+    });
+    expect(() => closing.dispose()).not.toThrow();
+    expect(electron.ipcMain.count()).toBe(0);
+    expect(() => closing.dispose()).not.toThrow();
+  });
 });

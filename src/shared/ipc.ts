@@ -62,6 +62,7 @@ export const Channels = {
   bibleLookup: 'bible:lookup',
   appFlushRequest: 'app:flush-request',
   appFlushDone: 'app:flush-done',
+  appSavePending: 'app:save-pending',
   appCloseAnyway: 'app:close-anyway',
   appProblem: 'app:problem',
   appProblemList: 'app:problem:list',
@@ -146,6 +147,8 @@ export interface LlpApi {
     ): Unsubscribe;
     /** Replies with the editor's flush result for one request. */
     flushDone(reply: AppFlushDone): void;
+    /** Writes accepted edits to disk; false while any file remains unsaved. */
+    savePending(): Promise<boolean>;
     /**
      * 강제로 닫기: closes the control window without waiting for its flush, or
      * without another one after main kept it open for a refusal. Main ignores

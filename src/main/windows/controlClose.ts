@@ -61,7 +61,8 @@ class ControlCloseHandshake implements ControlClose {
 
   constructor(private readonly options: ControlCloseOptions) {
     const {control} = options;
-    this.controlId = control.webContents.id;
+    const contents = control.webContents;
+    this.controlId = contents.id;
     const onClose: CloseListener = event => {
       this.handleClose(event);
     };
@@ -75,14 +76,14 @@ class ControlCloseHandshake implements ControlClose {
       this.handleCloseAnyway(event);
     };
     control.on('close', onClose);
-    control.webContents.on('render-process-gone', onGone);
+    contents.on('render-process-gone', onGone);
     ipcMain.on(Channels.appFlushDone, onDone);
     ipcMain.on(Channels.appCloseAnyway, onCloseAnyway);
     this.stops.push(
       () => control.removeListener('close', onClose),
       () => {
-        if (!control.webContents.isDestroyed()) {
-          control.webContents.removeListener('render-process-gone', onGone);
+        if (!contents.isDestroyed()) {
+          contents.removeListener('render-process-gone', onGone);
         }
       },
       () => ipcMain.removeListener(Channels.appFlushDone, onDone),

@@ -1,4 +1,4 @@
-import {expect, it, vi} from 'vitest';
+import {expect, it, onTestFinished, vi} from 'vitest';
 import type {AppFlushRequest} from '@shared/schema/appFlush';
 import {createAppFlushRequestId} from '@shared/schema/ids';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
@@ -8,6 +8,78 @@ import {
   itemFixture,
 } from '@renderer/prep/service/itemFixture';
 import {ControlSession} from './controlSession';
+
+it('refuses close after a memo reaches main but cannot be saved to disk, then retries', async () => {
+  const {api} = itemFixture();
+  let request: (value: AppFlushRequest) => void = () => undefined;
+  vi.spyOn(api.app, 'subscribeFlushRequests').mockImplementation(listener => {
+    request = listener;
+    return () => undefined;
+  });
+  const flushDone = vi.spyOn(api.app, 'flushDone');
+  const save = vi.spyOn(api.app, 'savePending').mockResolvedValue(false);
+  const edit = vi.spyOn(api.content, 'edit');
+  const session = new ControlSession(api);
+  onTestFinished(() => session.dispose());
+  session.startEditor();
+  const items = session.items;
+  if (items === undefined) throw new Error('Missing item store');
+  const target = {serviceId: fixtureServiceId, itemId: fixtureItems.arranged};
+  items.show(target);
+  await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
+  expect(items.typeMemo(target, 'Newest unsent memo')).toBe(true);
+  const requestId = createAppFlushRequestId(
+    '00000000-0000-4000-8000-000000000001',
+  );
+  request({requestId});
+  await vi.waitFor(() =>
+    expect(session.closeFlush?.getSnapshot()).toBe('failed'),
+  );
+  expect(flushDone).toHaveBeenLastCalledWith({requestId, result: false});
+  expect(save.mock.invocationCallOrder[0]).toBeGreaterThan(
+    edit.mock.invocationCallOrder[0] ?? Infinity,
+  );
+  expect(items.getSnapshot().busy).toBe(false);
+  expect(
+    (await api.services.get(fixtureServiceId))?.service.order,
+  ).toContainEqual(
+    expect.objectContaining({id: target.itemId, memo: 'Newest unsent memo'}),
+  );
+  save.mockResolvedValue(true);
+  session.closeFlush?.retry();
+  request({requestId});
+  await vi.waitFor(() =>
+    expect(flushDone).toHaveBeenLastCalledWith({requestId, result: true}),
+  );
+  expect(items.getSnapshot().busy).toBe(true);
+  expect(edit).toHaveBeenCalledOnce();
+});
+
+it('refuses close and resumes editing when the disk save call rejects', async () => {
+  let request: (value: AppFlushRequest) => void = () => undefined;
+  const api = fakeLlpApi({
+    app: {
+      subscribeFlushRequests: listener => {
+        request = listener;
+        return () => undefined;
+      },
+      savePending: () => Promise.reject(new Error('Disk save unavailable')),
+    },
+  });
+  const flushDone = vi.spyOn(api.app, 'flushDone');
+  const session = new ControlSession(api);
+  onTestFinished(() => session.dispose());
+  const requestId = createAppFlushRequestId(
+    '00000000-0000-4000-8000-000000000001',
+  );
+  request({requestId});
+  await vi.waitFor(() =>
+    expect(session.closeFlush?.getSnapshot()).toBe('failed'),
+  );
+  expect(flushDone).toHaveBeenLastCalledWith({requestId, result: false});
+  session.startEditor();
+  expect(session.editor).toBeDefined();
+});
 
 it('answers a close flush without an editor and starts none after it', async () => {
   let request: (value: AppFlushRequest) => void = () => undefined;

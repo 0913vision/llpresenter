@@ -15,7 +15,11 @@ import {
   parseBibleLookupRequest,
   parseBibleLookupReply,
 } from '@shared/schema/bibleLookup';
-import {parseAppFlushDone, parseAppFlushRequest} from '@shared/schema/appFlush';
+import {
+  parseAppFlushDone,
+  parseAppFlushRequest,
+  parseAppSavePendingResult,
+} from '@shared/schema/appFlush';
 import {parseAppProblem, parseAppProblems} from '@shared/schema/appProblem';
 import {
   parseLibrarySongs,
@@ -214,6 +218,8 @@ function documentApi<TEntry, TDocument, TChange>(
 
 const api: LlpApi = {
   app: {
+    savePending: () =>
+      invokeChecked(Channels.appSavePending, parseAppSavePendingResult),
     subscribeFlushRequests: listener =>
       listen(Channels.appFlushRequest, parseAppFlushRequest, listener),
     flushDone: reply => {
