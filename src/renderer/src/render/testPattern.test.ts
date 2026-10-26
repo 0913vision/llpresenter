@@ -130,4 +130,19 @@ describe('the 테스트 패턴 layer', () => {
     expect(pattern instanceof HTMLElement && pattern.hidden).toBe(true);
     renderer.dispose();
   });
+
+  it('labels a preview with the name only', () => {
+    const parent = document.createElement('div');
+    const renderer = new OutputRenderer(parent, {
+      lyricStyle: DEFAULT_LYRIC_STYLE,
+      mediaUrl: id => `https://media.test/${id}`,
+      onError: vi.fn(),
+      mode: 'preview',
+    });
+    renderer.render(emptyLayers(), {screen: SCREEN, testPattern: true});
+    const label = parent.querySelector('[data-layer="test-pattern"]')
+      ?.firstElementChild?.lastElementChild;
+    expect(label?.textContent).toBe('본 화면');
+    renderer.dispose();
+  });
 });
