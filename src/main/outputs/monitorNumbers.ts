@@ -8,6 +8,7 @@ import {
   intersectionArea,
   sameRect,
   type Rect,
+  type Size,
 } from '../displays/rect';
 import type {MonitorNumbersPort} from '../live/slice';
 import type {Logger} from '../log';
@@ -30,6 +31,7 @@ export interface NumberSpot {
 export interface IdentifiedOutput {
   readonly screen: OutputScreen;
   readonly placement: ShownPlacement;
+  readonly contentSize: Size;
 }
 
 export interface NumberWindow {
@@ -106,12 +108,12 @@ export function identificationSpots(
               refreshRate: monitor.refreshRate,
             },
           ]
-        : assigned.map(({screen, placement}) => ({
+        : assigned.map(({screen, placement, contentSize}) => ({
             name: screen.name.slice(0, MONITOR_NAME_MAX),
             kind: screen.kind ?? null,
             method: placement.kind,
-            width: Math.round(placement.bounds.width * monitor.scaleFactor),
-            height: Math.round(placement.bounds.height * monitor.scaleFactor),
+            width: Math.round(contentSize.width * monitor.scaleFactor),
+            height: Math.round(contentSize.height * monitor.scaleFactor),
             refreshRate: monitor.refreshRate,
           }));
     for (const details of labels) {

@@ -202,6 +202,13 @@ export class OutputWindow {
     return bounds == null ? null : {...this.applied, bounds};
   }
 
+  /** The shown output's client area in DIP, excluding native window chrome. */
+  shownContentSize(): Size | null {
+    if (this.disposed || !this.visible) return null;
+    const size = this.handle?.contentSize();
+    return size === undefined ? null : {width: size.width, height: size.height};
+  }
+
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;

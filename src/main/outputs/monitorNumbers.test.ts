@@ -61,6 +61,37 @@ afterEach(() => {
 });
 
 describe('numberSpots', () => {
+  it.each(['window', 'capture'] as const)(
+    'uses client dimensions for %s resolution while placing by outer bounds',
+    method => {
+      const scaled = monitors(LEFT, RIGHT).map(monitor => ({
+        ...monitor,
+        scaleFactor: 1.5,
+      }));
+      const outer = {x: 2100, y: 100, width: 976, height: 579};
+      const spots = identificationSpots(
+        scaled,
+        [],
+        [
+          {
+            screen: {
+              id: 'test',
+              name: 'Framed output',
+              kind: 'audience',
+              method,
+              display: null,
+              onDisconnect: 'window',
+            },
+            placement: {kind: method, bounds: outer, reason: 'method'},
+            contentSize: {width: 960, height: 540},
+          },
+        ],
+      );
+      expect(
+        spots.find(spot => spot.details?.name === 'Framed output'),
+      ).toMatchObject({number: 2, details: {width: 1440, height: 810}});
+    },
+  );
   it('reports physical pixels on a scaled monitor and bounds overly long names', () => {
     const scaled = monitors(LEFT).map(monitor => ({
       ...monitor,
@@ -83,6 +114,7 @@ describe('numberSpots', () => {
       {x: 3440, y: 222, width: 1920, height: 1080},
     );
     const output = {
+      contentSize: {width: 1920, height: 1080},
       screen: {
         id: 'main',
         name: 'Main screen',
@@ -144,10 +176,15 @@ describe('numberSpots', () => {
       monitors(LEFT),
       [capture],
       [
-        {screen, placement: {kind: 'capture', bounds: capture}},
+        {
+          screen,
+          placement: {kind: 'capture', bounds: capture},
+          contentSize: capture,
+        },
         {
           screen: {...screen, id: 'other', name: 'Other'},
           placement: {kind: 'window', bounds: capture, reason: 'method'},
+          contentSize: capture,
         },
       ],
     );
@@ -192,6 +229,7 @@ describe('MonitorNumbers', () => {
             onDisconnect: 'window',
           },
           placement: {kind: 'window', bounds: LEFT, reason: 'method'},
+          contentSize: LEFT,
         },
       ],
       open,

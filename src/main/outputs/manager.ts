@@ -14,6 +14,7 @@ import {
   type Placement,
 } from './placement';
 import type {OutputScreen, ScreenSource} from './screens';
+import type {IdentifiedOutput} from './monitorNumbers';
 import type {FrameReadyReport} from '@shared/schema/ipcPayloads';
 
 /** The connected monitors, kept current. */
@@ -161,13 +162,14 @@ export class OutputManager {
   }
 
   /** Current output identities and actual placements, excluding hidden windows. */
-  shownOutputs(): ReadonlyArray<{
-    screen: OutputScreen;
-    placement: Exclude<Placement, {kind: 'off'}>;
-  }> {
+  shownOutputs(): readonly IdentifiedOutput[] {
     return this.options.screens.list().flatMap(screen => {
-      const placement = this.windows.get(screen.id)?.shownPlacement();
-      return placement == null ? [] : [{screen, placement}];
+      const output = this.windows.get(screen.id);
+      const placement = output?.shownPlacement();
+      const contentSize = output?.shownContentSize();
+      return placement == null || contentSize == null
+        ? []
+        : [{screen, placement, contentSize}];
     });
   }
 

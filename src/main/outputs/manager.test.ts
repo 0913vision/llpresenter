@@ -127,6 +127,30 @@ function setUp(screens: readonly OutputScreen[] = [screenOn(PROJECTOR)]) {
 }
 
 describe('output identification', () => {
+  it.each(['window', 'capture'] as const)(
+    'keeps outer %s bounds separate from its client size',
+    method => {
+      const screen = screenOn(PROJECTOR, {method});
+      const {manager, store, windows} = setUp([screen]);
+      store.dispatch(turn(true));
+      const handle = windows.only('main');
+      const outer = {x: 1920, y: 100, width: 976, height: 579};
+      vi.spyOn(handle, 'bounds').mockReturnValue(outer);
+      vi.spyOn(handle, 'contentSize').mockReturnValue({
+        width: 960,
+        height: 540,
+      });
+      expect(manager.shownOutputs()).toEqual([
+        {
+          screen,
+          placement: expect.objectContaining({kind: method, bounds: outer}),
+          contentSize: {width: 960, height: 540},
+        },
+      ]);
+      if (method === 'capture') expect(manager.captureAreas()).toEqual([outer]);
+      manager.dispose();
+    },
+  );
   it('exposes only shown output placements, and removes hidden screens immediately', () => {
     const screen = screenOn(PROJECTOR, {kind: 'audience', alwaysOnTop: true});
     const {manager, store} = setUp([screen]);
@@ -135,6 +159,10 @@ describe('output identification', () => {
     expect(manager.shownOutputs()).toEqual([
       {
         screen,
+        contentSize: {
+          width: PROJECTOR_BOUNDS.width,
+          height: PROJECTOR_BOUNDS.height,
+        },
         placement: {
           kind: 'fullscreen',
           bounds: PROJECTOR_BOUNDS,

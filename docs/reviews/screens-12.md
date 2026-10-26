@@ -115,3 +115,11 @@ elements, listeners or heap retention were observed.
 | Control workspace    | ![Configuration](screens-12/first-configuration.png) | ![Configuration after reopen](screens-12/reopen-configuration.png) |
 
 ## Team member's reply
+
+Round 2: Identify now carries the existing `contentSize()` client dimensions
+separately from outer placement bounds. Resolution uses client dimensions and
+the monitor scale factor; monitor choice and capture avoidance keep outer
+bounds. Window and capture regressions use different frame/content sizes,
+including a scaled monitor. Electron adapter tests cover normal and offscreen
+modes against
+[`getContentBounds`](https://www.electronjs.org/docs/latest/api/browser-window#wingetcontentbounds).

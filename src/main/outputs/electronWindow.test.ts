@@ -138,6 +138,22 @@ beforeEach(() => {
 });
 
 describe('createElectronOutputWindow offscreen', () => {
+  it.each(['normal', 'offscreen'] as const)(
+    'reports client size independently of outer bounds in %s mode',
+    mode => {
+      const output = openOutput(mode);
+      const win = lastWindow();
+      win.getBounds.mockReturnValue({x: 100, y: 100, width: 976, height: 579});
+      win.getContentBounds.mockReturnValue({
+        x: 108,
+        y: 131,
+        width: 960,
+        height: 540,
+      });
+      expect(output.bounds()).toMatchObject({width: 976, height: 579});
+      expect(output.contentSize()).toMatchObject({width: 960, height: 540});
+    },
+  );
   it('exposes virtual output bounds for identification without presenting it', () => {
     const output = openOutput('offscreen');
     const win = lastWindow();
