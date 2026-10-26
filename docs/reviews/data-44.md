@@ -192,9 +192,9 @@ missing.
   ui-33) was neither drained nor blocked by the flush.
 - Round 4 (Codex, codex3): Request changes: failed item operations were dropped,
   so the flush could answer true.
-- Round 5 (): reviewer (Codex, codex3) Approve, no findings; every store that
-  can hold unsent work now shares one pending-writes gate, and a refusal resumes
-  both. Lead Approve. Changes outside data's paths (`src/main/windows/`,
+- Round 5 (9fb1139b): reviewer (Codex, codex3) Approve, no findings; every store
+  that can hold unsent work now shares one pending-writes gate, and a refusal
+  resumes both. Lead Approve. Changes outside data's paths (`src/main/windows/`,
   `prep/editor`, `prep/service`, `control/`, `state/`) checked against their
   owners' rules. Rebased by the lead onto local `main` without conflicts;
   typecheck passes.
