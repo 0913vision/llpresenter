@@ -103,3 +103,10 @@ non-screen row still clears the pattern; a different screen still starts in
 content mode. Regressions from both non-screen kinds failed before the fix and
 pass afterward. Workspace tests also commit a real correction edit from each
 kind and verify that no pattern-off command is sent during calibration.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 2 (f7cc6935): reviewer (Codex) Approve. Lead Approve through the lead's
+  merge check: the exact-head CI run passed, the branch rebased onto local
+  `main` without conflicts, and typecheck passes. Earlier rounds' findings and
+  replies are above.
