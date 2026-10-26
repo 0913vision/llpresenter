@@ -227,13 +227,13 @@ describe('항목 추가', () => {
     expect(service().service.order.at(-1)).toMatchObject({song: first.song.id});
   });
 
-  it('inserts 머리글 and asks the list to rename it', async () => {
+  it('inserts a new section and asks the list to rename it', async () => {
     const {user, service} = setup();
     await user.click(screen.getByRole('button', {name: '항목 추가'}));
-    await user.click(screen.getByRole('menuitem', {name: '머리글'}));
+    await user.click(screen.getByRole('menuitem', {name: '구역 추가'}));
     await waitFor(() => expect(service().service.order).toHaveLength(6));
     const added = service().service.order.at(-1);
-    expect(added).toMatchObject({header: '머리글'});
+    expect(added).toMatchObject({header: '새 구역'});
     expect(useHeaderRename.getState().requested).toBe(added?.id);
   });
 

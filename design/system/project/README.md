@@ -168,6 +168,9 @@ The app uses one typeface, Pretendard Variable (`fonts/PretendardVariable.woff2`
 - Background changes for hover and pressed take 100ms ease-out, menus and tooltips fade over 120ms, and dialogs fade over 160ms. Don't add any other motion. In code, use the tokens `--motion-hover`, `--motion-popover`, and `--motion-dialog` (for example `transition: background-color var(--motion-hover)`).
 - Don't add UI motion to the output screens. Look and the settings decide the transitions when a 슬라이드 or a background changes.
 - Under `prefers-reduced-motion`, set all UI motion to 0.
+- Menu row backgrounds are an exception to hover motion: entering and leaving
+  a row changes its highlight immediately. Menu appearance and submenu timing
+  remain the separate behaviors documented in `Menu`.
 
 ## Window sizes and layout
 
@@ -210,6 +213,7 @@ Sizes are CSS pixels after Windows display scaling is applied. A 1920×1080 scre
 | 출력 | output | 송출, 라이브 | Sending content to the screens |
 | 슬라이드 | slide | 장 (for a slide) | One screen of lyrics or other content; Bible chapter numbers keep 장 |
 | 예배 순서 | service order | 재생목록, 플레이리스트, 큐시트 | The list of items in one service |
+| 구역 | section | 머리글 | A named group in the 예배 순서; its stored item kind remains `header` |
 | 틀 | template | 템플릿 | A 예배 순서 that you use to create a new 예배 순서 |
 | 구성 | arrangement | 편곡, 어레인지먼트 | A named 슬라이드 order saved in a song (기본, 주일용, 짧게) |
 | 이름표 | label | 그룹, 태그 | The name of a 슬라이드, such as 1절, 프리코러스, or 후렴 |

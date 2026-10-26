@@ -3,7 +3,7 @@ import type {MediaItem} from '@shared/schema/mediaList';
 import type {ServiceItem} from '@shared/schema/service';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 
-const HEADER_NAME = '머리글';
+const SECTION_NAME = '새 구역';
 const UNNAMED_MEDIA = '이름 없는 미디어';
 const SLOT_KINDS = [
   {slot: 'song', label: '찬양'},
@@ -38,7 +38,7 @@ function submenu(
     : [{kind: 'item', id: `${prefix}:none`, label: empty, disabled: true}];
 }
 
-/** The 다른 항목 group: 머리글, 빈 자리, 미디어, and 공지 (spec 05). */
+/** Commands in the service order's other-items group. */
 export function otherItemEntries({
   media,
   notices,
@@ -50,9 +50,9 @@ export function otherItemEntries({
     {
       kind: 'item',
       id: 'other:header',
-      label: HEADER_NAME,
+      label: '구역 추가',
       icon: 'rows',
-      onSelect: () => onInsert({id: newId(), header: HEADER_NAME}),
+      onSelect: () => onInsert({id: newId(), header: SECTION_NAME}),
     },
     {
       kind: 'item',

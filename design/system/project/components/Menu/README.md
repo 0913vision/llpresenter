@@ -52,7 +52,7 @@ A floating menu. Menu bar menus, submenus, right-click menus, and popover lists 
 | State | Background | Text and icon | Other |
 | --- | --- | --- | --- |
 | Default | Transparent | Name `text`, leading slot `text-2`, trailing info and arrow `text-3` | |
-| Pointed (mouse, arrow keys) | `bg-control-hover` | Trailing info and arrow `text-2` | No ring inside a menu. 100ms |
+| Pointed (mouse, arrow keys) | `bg-control-hover` | Trailing info and arrow `text-2` | Immediate background change, no ring or transition |
 | Submenu open | `bg-control-hover` | Trailing info and arrow `text-2` | `aria-expanded="true"` on the parent item |
 | Current item | Transparent | `check` 14px `text` in the leading slot | `aria-checked="true"` |
 | Delete | Transparent, `bg-control-hover` when pointed | `text` | At the bottom, after a divider |
@@ -66,6 +66,10 @@ A floating menu. Menu bar menus, submenus, right-click menus, and popover lists 
 - Mouse: open a submenu when the pointer rests on its parent item for 150ms. While the pointer moves diagonally toward the submenu (within 300ms), don't close it even if the pointer crosses other items. If a menu bar menu is open and the pointer moves to another menu name, switch to that menu.
 - A click outside the menu closes it, and that click doesn't pass through to what is underneath. Running an item closes all menus and returns focus to where the menu was opened.
 - Fade in over 120ms when appearing; disappear at once when closing. Under `prefers-reduced-motion`, don't fade.
+- Row backgrounds change immediately on entering and leaving. Do not apply the
+  global hover transition to menu items: the previous row must lose its highlight
+  as soon as the pointer or keyboard moves to another row. The submenu opening
+  delay and diagonal-movement grace period remain separate behavior.
 - aria: surface `role="menu"` + `aria-label`, item `role="menuitem"`, an item that picks one of several `menuitemradio`, an item that toggles on and off `menuitemcheckbox`, both with `aria-checked`. Submenu parent `aria-haspopup="menu"` + `aria-expanded`. Divider `role="separator"`, group `role="group"` + `aria-labelledby`. Disabled `aria-disabled="true"`.
 
 ## Writing

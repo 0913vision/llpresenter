@@ -20,6 +20,8 @@ import {useLive} from '@renderer/state/live';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {useShowKeys} from './shortcuts';
 import {ShowMediaPanel} from './ShowMediaPanel';
+import {cssRules} from '@renderer/shell/testing/cssRules';
+import styles from './ShowMediaPanel.module.css';
 
 function id(index: number) {
   return createMediaId(
@@ -115,6 +117,16 @@ afterEach(() => {
   delete window.llp;
   useLive.setState({state: null});
   resetTooltips();
+});
+
+it('separates the playlist selector from the media tab with the control spacing token', () => {
+  const {report} = fixture();
+  render(<ShowMediaPanel onProblem={report} />);
+  const picker = screen.getByRole('button', {name: '미디어 재생 목록'});
+  expect(picker.className.split(' ')).toContain(styles.playlists);
+  expect(
+    cssRules('src/renderer/src/show/ShowMediaPanel.module.css')('.playlists'),
+  ).toContain('margin-inline-start: var(--space-8)');
 });
 
 it('filters audio, switches playlists, and marks LIVE only when main confirms the background', async () => {

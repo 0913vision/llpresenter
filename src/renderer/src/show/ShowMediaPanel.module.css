@@ -2,6 +2,10 @@
   flex: none;
 }
 
+.playlists {
+  margin-inline-start: var(--space-8);
+}
+
 .body {
   padding: var(--space-10) var(--panel-inset);
   overflow: hidden;

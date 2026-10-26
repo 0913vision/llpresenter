@@ -5,6 +5,7 @@ import {afterEach, beforeAll, describe, expect, it, vi} from 'vitest';
 import {Menu, type MenuCloseReason, type MenuSearch} from './Menu';
 import type {MenuEntry} from './menuModel';
 import {maxPopoverHeight} from './placement';
+import {cssRules} from '@renderer/shell/testing/cssRules';
 import {installFakeClock} from '../../../../test/fake-clock';
 import {letTimePass, pointAt, resetTooltips} from './tooltipTesting';
 
@@ -107,6 +108,21 @@ async function openMenu(): Promise<void> {
 }
 
 describe('Menu', () => {
+  it('moves the row highlight immediately without a background transition', async () => {
+    expect(cssRules('src/renderer/src/ui/Menu.module.css')('.item')).toContain(
+      'transition: none',
+    );
+    render(<Harness />);
+    await openMenu();
+    const first = screen.getByRole('menuitem', {name: /^새 예배/});
+    const second = screen.getByRole('menuitem', {name: '예배 열기'});
+    pointAt(second);
+    expect(second.getAttribute('data-pointed')).toBe('true');
+    expect(first.getAttribute('data-pointed')).toBe('false');
+    pointAt(first);
+    expect(first.getAttribute('data-pointed')).toBe('true');
+    expect(second.getAttribute('data-pointed')).toBe('false');
+  });
   it('opens as a named menu with focus on it and the first item pointed', async () => {
     render(<Harness />);
     await openMenu();

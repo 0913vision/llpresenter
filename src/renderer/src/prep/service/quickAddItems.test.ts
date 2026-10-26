@@ -37,11 +37,11 @@ function build(onInsert: (item: ServiceItem) => void) {
 }
 
 describe('quick add other items', () => {
-  it('lists 머리글, 빈 자리, 미디어, and 공지 under 다른 항목', () => {
+  it('lists the section command alongside the other item types', () => {
     const entries = build(() => undefined);
     expect(entries[0]).toMatchObject({kind: 'group', label: '다른 항목'});
     expect(items(entries).map(item => item.label)).toEqual([
-      '머리글',
+      '구역 추가',
       '빈 자리',
       '성경 구절',
       '미디어',
@@ -49,12 +49,12 @@ describe('quick add other items', () => {
     ]);
   });
 
-  it('inserts a header named 머리글 with a new id', () => {
+  it('inserts a new section with a unique id and the unchanged header field', () => {
     const onInsert = vi.fn<(item: ServiceItem) => void>();
     entry(build(onInsert), 'other:header').onSelect?.();
     entry(build(onInsert), 'other:header').onSelect?.();
     const [first, second] = onInsert.mock.calls.map(([item]) => item);
-    expect(first).toMatchObject({header: '머리글'});
+    expect(first).toMatchObject({header: '새 구역'});
     expect(first?.id).not.toBe(second?.id);
   });
 

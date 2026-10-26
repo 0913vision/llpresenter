@@ -27,6 +27,9 @@ The basic surface of the window. It has a 34px header (tabs or a title, controls
 - Body `ll-panel__body`: padding `panel-inset` (14px). It takes all remaining height, and only the body scrolls vertically when the content overflows. A list body `ll-panel__body--list` has `space-4` at the top, `space-8` at the bottom, and 0 left and right (the rows carry the 14px). A body with no padding is `--flush`. Draw a thin scrollbar with a `line-strong` thumb.
 - Footer row `ll-panel__footer`: height 32px (no token, requested), left and right 14px, a 1px `line` at the top, `caption` (11/14) `text-3`. Counts and sizes go on the left ("7개 2.1GB"), and the thumbnail size slider (`ll-slider-row` of `Slider`) goes on the right in `ll-panel__footer-end`.
 
+- Keep `space-8` between the media tab and its playlist Select, matching the
+  spacing between other header controls. They must not touch.
+
 ## Sizes and variants
 
 | Name | Height | Text | Where to use |

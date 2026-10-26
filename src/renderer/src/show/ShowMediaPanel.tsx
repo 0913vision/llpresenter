@@ -67,6 +67,7 @@ export function ShowMediaPanel({
           onChange={() => undefined}
         />
         <SelectMenu
+          className={styles.playlists}
           aria-label="미디어 재생 목록"
           size="sm"
           value={chosen?.id ?? ALL_MEDIA}

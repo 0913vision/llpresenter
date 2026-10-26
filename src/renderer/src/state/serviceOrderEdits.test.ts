@@ -210,7 +210,7 @@ describe('service order edits', () => {
     const {state, edits, ids} = fixture();
     const header = {
       id: createServiceItemId('90000000-0000-4000-8000-000000000001'),
-      header: '머리글',
+      header: '구역',
     };
     const slot = {
       id: createServiceItemId('90000000-0000-4000-8000-000000000002'),
