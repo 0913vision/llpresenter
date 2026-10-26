@@ -909,6 +909,53 @@ describe('registerStore', () => {
       'Invalid settings read',
     );
   });
+  it('imports through IPC, keeps the overwritten recovery copy, and persists new labels', async () => {
+    const context = await developmentContext();
+    const root = join(context.appDataFolder, DATA_FOLDER_NAME);
+    const file = join(root, '곡', 'song.llsong');
+    const original = {...hymnOne(), future: 'kept'};
+    await writeJson(file, original);
+    await register(fakeLog(), context);
+    const result = parseEditResult(
+      await ask(Channels.contentEdit, {
+        type: 'song.import',
+        draft: {
+          title: 'Invented import',
+          slides: [{label: 'Invented label', lines: ['Invented line']}],
+        },
+        target: {kind: 'overwrite', songId: HYMN_ONE_ID, baseRevision: 1},
+      }),
+    );
+    expect(result).toMatchObject({
+      ok: true,
+      value: {ok: true, value: {id: HYMN_ONE_ID, revision: 2}},
+    });
+    expect(JSON.parse(await readFile(file, 'utf8'))).toMatchObject({
+      title: 'Invented import',
+      future: 'kept',
+    });
+    const copies = join(root, '.복구 사본', 'song', HYMN_ONE_ID);
+    const [copy] = await readdir(copies);
+    if (copy === undefined) throw new Error('Missing recovery copy');
+    expect(JSON.parse(await readFile(join(copies, copy), 'utf8'))).toEqual(
+      original,
+    );
+    expect(
+      JSON.parse(await readFile(join(root, '설정', 'labels.json'), 'utf8')),
+    ).toHaveProperty(
+      'labels',
+      expect.arrayContaining([
+        {name: 'Invented label', color: 'none', key: null},
+      ]),
+    );
+    expect(
+      (await readdir(join(root, '곡'))).filter(name => name.endsWith('.tmp')),
+    ).toHaveLength(0);
+    expect(
+      await ask(Channels.librarySearch, {query: 'Invented import'}),
+    ).toMatchObject({matches: [{title: 'Invented import'}]});
+  });
+
   it('searches the initial library and applies song edits, deletion, and creation before the next search', async () => {
     const context = await developmentContext();
     const root = join(context.appDataFolder, DATA_FOLDER_NAME);

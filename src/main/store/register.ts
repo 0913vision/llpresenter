@@ -343,6 +343,7 @@ async function createContent(
       );
   });
   const content = new ContentStore({
+    settings,
     locations: store.locations,
     songs: store.songs,
     services: store.services,

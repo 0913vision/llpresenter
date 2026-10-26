@@ -2,6 +2,7 @@ import {basename, join, resolve} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {Result} from '@shared/result';
 import type {ContentEdit} from '@shared/schema/contentEdit';
+import {parseSettingsDocument} from '@shared/schema/settingsDocuments';
 import type {FileError, LoadedFile} from '@shared/schema/fileFormat';
 import {
   createSongId,
@@ -25,6 +26,7 @@ import {resolveLocations} from './locations';
 import type {RecoveryTarget} from './recoveryCopies';
 import {MAX_WAITING_SAVES, type WaitingSave} from './saveFailures';
 import type {SaveRequest} from './saver';
+import {SettingsStore} from './settingsStore';
 import {
   hymnOne,
   HYMN_ONE_ID,
@@ -175,11 +177,11 @@ function setUp(
   options: Partial<
     Pick<
       ContentStoreOptions,
-      'writeDelayMs' | 'openServiceId' | 'templates' | 'songs'
+      'writeDelayMs' | 'openServiceId' | 'templates' | 'songs' | 'settings'
     >
   > = {},
+  files = fakeFiles(),
 ) {
-  const files = fakeFiles();
   const events = fakeEvents();
   const song = songFile({...hymnOne(), copyright: 'public domain'});
   const log = quietLog();
@@ -206,6 +208,214 @@ function songEdit(title: string, baseRevision: number): ContentEdit {
     baseRevision,
   };
 }
+
+function importSetup(
+  services: Parameters<typeof setUp>[0] = [],
+  options: Parameters<typeof setUp>[1] = {},
+  labelOptions: {
+    readonly access?: 'editable' | 'readOnly';
+    readonly count?: number;
+  } = {},
+) {
+  const files = fakeFiles();
+  const labels = parseSettingsDocument({
+    name: 'labels',
+    revision: 1,
+    access: labelOptions.access ?? 'editable',
+    value: {
+      format: 'llsettings.labels',
+      schemaVersion: 1,
+      labels: Array.from({length: labelOptions.count ?? 0}, (_, index) => ({
+        name: `Existing ${index}`,
+        color: 'teal',
+        key: null,
+      })),
+      future: 'kept',
+    },
+  });
+  if (!labels.ok) throw new Error('Invalid labels fixture');
+  const settings = new SettingsStore({
+    documents: new Map([['labels', labels.value]]),
+    problems: [],
+    log: quietLog(),
+    saving: {folder: locations.settings, files, delayMs: 0},
+  });
+  onTestFinished(() => settings.dispose());
+  return {...setUp(services, {...options, settings}, files), settings};
+}
+
+const importedDraft = {
+  title: 'Invented import',
+  slides: [{label: 'New label', lines: ['Invented line']}],
+};
+
+describe('song.import storage', () => {
+  it('refuses missing overwrite targets and refuses new labels in a read-only list', async () => {
+    const {store, files, settings} = importSetup(
+      [],
+      {},
+      {access: 'readOnly', count: 1},
+    );
+    expect(
+      await store.apply({
+        type: 'song.import',
+        draft: importedDraft,
+        target: {
+          kind: 'overwrite',
+          songId: createSongId('00000000-0000-4000-8000-000000000002'),
+          baseRevision: 1,
+        },
+      }),
+    ).toMatchObject({ok: false, error: {reason: 'not-found'}});
+    expect(
+      await store.apply({
+        type: 'song.import',
+        draft: importedDraft,
+        target: {kind: 'new'},
+      }),
+    ).toMatchObject({ok: false, error: {reason: 'read-only'}});
+    expect(files.written).toHaveLength(0);
+    expect(settings.get('labels').revision).toBe(1);
+    expect(
+      await store.apply({
+        type: 'song.import',
+        draft: {...importedDraft, slides: [{label: 'Existing 0', lines: []}]},
+        target: {kind: 'new'},
+      }),
+    ).toMatchObject({ok: true});
+    expect(files.written).toHaveLength(1);
+    expect(settings.get('labels').revision).toBe(1);
+  });
+  it('refuses adding labels past the import cap before any document changes', async () => {
+    const {store, files, settings} = importSetup([], {}, {count: 10_000});
+    expect(
+      await store.apply({
+        type: 'song.import',
+        draft: importedDraft,
+        target: {kind: 'new'},
+      }),
+    ).toMatchObject({ok: false, error: {reason: 'invalid'}});
+    expect(store.songList()).toHaveLength(1);
+    expect(files.written).toHaveLength(0);
+    expect(settings.get('labels').revision).toBe(1);
+  });
+  it('creates a new song, adds labels first, and rejects duplicate titles without changes', async () => {
+    const {store, files, settings} = importSetup();
+    const result = await store.apply({
+      type: 'song.import',
+      draft: importedDraft,
+      target: {kind: 'new'},
+    });
+    if (!result.ok) throw new Error('Import failed');
+    expect(result.value.id).not.toBe(SONG);
+    expect(store.song(result.value.id)?.song).toMatchObject(importedDraft);
+    expect(files.written[0]).toBe(join(locations.settings, 'labels.json'));
+    expect(settings.get('labels').value).toMatchObject({
+      future: 'kept',
+      labels: [{name: 'New label', color: 'none', key: null}],
+    });
+    const writes = files.written.length;
+    expect(
+      await store.apply({
+        type: 'song.import',
+        draft: importedDraft,
+        target: {kind: 'new'},
+      }),
+    ).toMatchObject({ok: false, error: {reason: 'duplicate-title'}});
+    expect(files.written).toHaveLength(writes);
+  });
+  it('overwrites at the checked revision, preserves nested unknowns, and resets removed arrangement picks', async () => {
+    const original = songFile({
+      ...hymnOne(),
+      future: 'song',
+      slides: [{lines: ['Old'], future: 'slide'}],
+      arrangements: [
+        {name: 'Keep', slides: [1], future: 'arrangement'},
+        {name: 'Drop', slides: [1]},
+      ],
+    });
+    const picked = {
+      id: itemId(1),
+      song: HYMN_ONE_ID,
+      arrangement: 'Drop',
+      future: 'item',
+    };
+    const {store, files} = importSetup([serviceFile(SUNDAY_ID, [picked])], {
+      songs: new Map([[HYMN_ONE_ID, original]]),
+      templates: new Map([[TEMPLATE_ID, templateFile([picked])]]),
+    });
+    const draft = {
+      ...importedDraft,
+      arrangements: [{name: 'Keep', slides: [1]}],
+    };
+    expect(
+      await store.apply({
+        type: 'song.import',
+        draft,
+        target: {kind: 'overwrite', songId: SONG, baseRevision: 1},
+      }),
+    ).toEqual({ok: true, value: {id: SONG, revision: 2}});
+    expect(store.song(SONG)?.song).toMatchObject({
+      future: 'song',
+      slides: [{future: 'slide'}],
+      arrangements: [{name: 'Keep', future: 'arrangement'}],
+    });
+    expect(store.service(SUNDAY)?.service.order[0]).toMatchObject({
+      song: SONG,
+      future: 'item',
+    });
+    expect(store.service(SUNDAY)?.service.order[0]).not.toHaveProperty(
+      'arrangement',
+    );
+    expect(store.template(TEMPLATE)?.template.order[0]).not.toHaveProperty(
+      'arrangement',
+    );
+    const before = files.written.length;
+    expect(
+      await store.apply({
+        type: 'song.import',
+        draft,
+        target: {kind: 'overwrite', songId: SONG, baseRevision: 1},
+      }),
+    ).toMatchObject({ok: false, error: {reason: 'stale'}});
+    expect(files.written).toHaveLength(before);
+  });
+  it('returns applied write failures and retries both labels and song through existing persistence', async () => {
+    const {store, settings, files} = importSetup();
+    files.failAll = true;
+    const result = await store.apply({
+      type: 'song.import',
+      draft: importedDraft,
+      target: {kind: 'new'},
+    });
+    if (result.ok || result.error.reason !== 'write-failed') {
+      throw new Error('Expected applied failure');
+    }
+    expect(result.error.unchangedFiles).toHaveLength(2);
+    expect(store.song(result.error.applied.id)?.song.title).toBe(
+      importedDraft.title,
+    );
+    files.failAll = false;
+    await settings.flush();
+    await store.flush();
+    expect(files.texts.size).toBe(2);
+  });
+  it('rejects read-only overwrites before creating labels or writing files', async () => {
+    const original = songFile({...hymnOne(), schemaVersion: 2});
+    const {store, files, settings} = importSetup([], {
+      songs: new Map([[HYMN_ONE_ID, original]]),
+    });
+    expect(
+      await store.apply({
+        type: 'song.import',
+        draft: importedDraft,
+        target: {kind: 'overwrite', songId: SONG, baseRevision: 1},
+      }),
+    ).toMatchObject({ok: false, error: {reason: 'read-only'}});
+    expect(files.written).toHaveLength(0);
+    expect(settings.get('labels').revision).toBe(1);
+  });
+});
 
 describe('ContentStore save failures', () => {
   it('names a waiting song by its title and reports it once written again', async () => {
@@ -246,6 +456,11 @@ describe('ContentStore save failures', () => {
 
     const refusals = [
       await store.apply({type: 'song.create'}),
+      await store.apply({
+        type: 'song.import',
+        draft: importedDraft,
+        target: {kind: 'new'},
+      }),
       await store.apply({type: 'song.delete', songId: song.data.id}),
       await store.apply(songEdit('Invented refused title', 1)),
     ];
@@ -259,7 +474,7 @@ describe('ContentStore save failures', () => {
         },
       })),
     );
-    expect(files.reminded).toBe(3);
+    expect(files.reminded).toBe(4);
     expect(store.song(song.data.id)?.revision).toBe(1);
     expect(store.songList().map(({id}) => id)).toEqual([song.data.id]);
     expect(files.written).toHaveLength(written);

@@ -12,6 +12,7 @@ import {payloadObject, plainObject, type PayloadError} from './payload';
 import {localDateTime} from './primitives';
 import {serviceSchema, templateSchema} from './service';
 import {arrangementNameSchema, songSchema} from './song';
+import {songImportDraftSchema, songImportTargetSchema} from './songImport';
 
 /** Why an edit wasn't applied. */
 export const editRefusalReasons = [
@@ -31,6 +32,11 @@ const importSourceSchema = v.variant('kind', [
 ]);
 
 const songEditSchemas = [
+  v.object({
+    type: v.literal('song.import'),
+    draft: songImportDraftSchema,
+    target: songImportTargetSchema,
+  }),
   v.object({type: v.literal('song.create')}),
   v.object({
     type: v.literal('song.update'),

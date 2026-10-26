@@ -1,5 +1,6 @@
 import {randomUUID} from 'node:crypto';
 import {basename, join} from 'node:path';
+import {NO_LABEL_COLOR} from '@shared/colors';
 import type {Result} from '@shared/result';
 import type {
   LibrarySong,
@@ -15,7 +16,9 @@ import type {
   EditResult,
   EditSuccess,
 } from '@shared/schema/contentEdit';
-import type {FileError} from '@shared/schema/fileFormat';
+import {checkPart, type FileError} from '@shared/schema/fileFormat';
+import {preserveUnknownFields} from '@shared/schema/preserveUnknown';
+import {SONG_IMPORT_LIMITS} from '@shared/schema/songImport';
 import {
   createServiceId,
   createSongId,
@@ -27,11 +30,12 @@ import {
 import {
   serializeService,
   serializeTemplate,
+  isItemOfKind,
   type Service,
   type ServiceItem,
   type Template,
 } from '@shared/schema/service';
-import {serializeSong, type Song} from '@shared/schema/song';
+import {serializeSong, songSchema, type Song} from '@shared/schema/song';
 import {
   parseSettingsEdit,
   type LabelRename,
@@ -84,6 +88,7 @@ export interface ContentEvents {
 }
 
 export interface ContentStoreOptions {
+  readonly settings?: SettingsStore | null;
   readonly locations: DataLocations;
   readonly songs: ReadonlyMap<string, StoredFile<Song>>;
   readonly services: ReadonlyMap<string, StoredFile<Service>>;
@@ -322,6 +327,8 @@ export class ContentStore {
 
   private async applyEdit(edit: ContentEdit): Promise<EditResult> {
     switch (edit.type) {
+      case 'song.import':
+        return this.importSong(edit);
       case 'song.create':
         return this.createSong();
       case 'song.update':
@@ -405,6 +412,111 @@ export class ContentStore {
   dispose(): void {
     this.autosave.dispose();
     this.queuedSaves.dispose();
+  }
+
+  private async importSong({
+    draft,
+    target,
+  }: Extract<ContentEdit, {type: 'song.import'}>): Promise<EditResult> {
+    await this.autosave.flush();
+    const current =
+      target.kind === 'overwrite' ? this.songs.get(target.songId) : undefined;
+    if (target.kind === 'overwrite') {
+      const checked = checkEditable(current);
+      if (!checked.ok) return checked.error;
+      if (checked.value.revision !== target.baseRevision) {
+        return refuse('stale', 'The song changed before import');
+      }
+    }
+    const id = current?.data.id ?? createSongId(randomUUID());
+    const title = normalizeSongTitle(draft.title);
+    if (this.hasOtherSongTitled(title, id)) {
+      return refuse('duplicate-title', `Another song is titled ${title}`);
+    }
+    const checked = checkPart(
+      songSchema,
+      preserveUnknownFields(songSchema, current?.data, {
+        ...draft,
+        format: 'llsong',
+        schemaVersion: SCHEMA_VERSION,
+        id,
+        title,
+        updatedAt: new Date().toISOString(),
+      }),
+    );
+    if (!checked.ok) return refuse('invalid', checked.error.message);
+    const song = checked.value;
+    const file =
+      current?.file ??
+      join(this.options.locations.songs, `${id}${SONG_EXTENSION}`);
+    const servicePicks = importPicks(this.services, song);
+    const templatePicks = importPicks(this.templates, song);
+    const full = this.savesFull([
+      file,
+      ...servicePicks.map(pick => pick.document.file),
+      ...templatePicks.map(pick => pick.document.file),
+    ]);
+    if (full !== null) return full;
+    const labels = await this.importLabels(song);
+    if (!labels.ok && labels.error.reason !== 'write-failed') return labels;
+    const stored =
+      current === undefined
+        ? this.songs.add(song, file)
+        : this.songs.replace(current, song);
+    const services = rewritePicks(this.services, servicePicks);
+    const templates = rewritePicks(this.templates, templatePicks);
+    this.announceSong(id);
+    for (const service of services) this.announceService(service.data.id);
+    for (const template of templates) this.announceTemplate(template.data.id);
+    const written: Written[] = [];
+    if (!labels.ok && labels.error.reason === 'write-failed') {
+      const {message, unchangedFiles} = labels.error;
+      for (const file of unchangedFiles) {
+        written.push({file, result: {ok: false, error: {file, message}}});
+      }
+    }
+    written.push(await this.write(SONG, stored));
+    for (const service of services) {
+      written.push(await this.write(SERVICE, service));
+    }
+    for (const template of templates) {
+      written.push(await this.write(TEMPLATE, template));
+    }
+    return answer({id, revision: stored.revision}, written);
+  }
+
+  private async importLabels(song: Song): Promise<EditResult> {
+    const settings = this.options.settings;
+    const current = settings?.get('labels');
+    if (!settings || current?.name !== 'labels') {
+      return refuse('not-found', 'The label list is unavailable');
+    }
+    const existing = new Set(current.value.labels.map(label => label.name));
+    const names = new Set(
+      song.slides.flatMap(slide => (slide.label ? [slide.label] : [])),
+    );
+    const added = [...names]
+      .filter(name => !existing.has(name))
+      .map(name => ({name, color: NO_LABEL_COLOR, key: null}));
+    if (added.length === 0) {
+      return {ok: true, value: {id: 'labels', revision: current.revision}};
+    }
+    if (
+      current.value.labels.length + added.length >
+      SONG_IMPORT_LIMITS.labels
+    ) {
+      return refuse('invalid', 'Too many labels after import');
+    }
+    const edit = parseSettingsEdit({
+      type: 'settings.update',
+      name: 'labels',
+      baseRevision: current.revision,
+      value: {...current.value, labels: [...current.value.labels, ...added]},
+    });
+    if (!edit.ok) return refuse('invalid', edit.error.message);
+    const result = settings.apply(edit.value);
+    await settings.savePending();
+    return result;
   }
 
   private async createSong(): Promise<EditResult> {
@@ -836,6 +948,35 @@ export class ContentStore {
 interface PickRewrite<T> {
   readonly document: StoredDocument<T>;
   readonly order: readonly ServiceItem[];
+}
+
+function importPicks<
+  T extends {readonly id: string; readonly order: readonly ServiceItem[]},
+>(documents: DocumentCollection<T>, song: Song): ReadonlyArray<PickRewrite<T>> {
+  const names = new Set(
+    song.arrangements?.map(arrangement => arrangement.name),
+  );
+  return documents
+    .all()
+    .filter(document => document.access === 'editable')
+    .flatMap(document => {
+      const order = document.data.order.map(item => {
+        if (
+          !isItemOfKind(item, 'song') ||
+          item.song !== song.id ||
+          item.arrangement === undefined ||
+          names.has(item.arrangement)
+        ) {
+          return item;
+        }
+        const {arrangement: _arrangement, ...kept} = item;
+        return kept;
+      });
+      return order.some((item, index) => item !== document.data.order[index])
+        ? [{document, order}]
+        : [];
+    })
+    .sort((a, b) => a.document.data.id.localeCompare(b.document.data.id));
 }
 
 function picksToRewrite<

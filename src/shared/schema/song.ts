@@ -40,7 +40,7 @@ const arrangementSchema = jsonObject({
   slides: v.array(positiveInteger),
 });
 
-const arrangementsSchema = v.pipe(
+export const arrangementsSchema = v.pipe(
   v.array(arrangementSchema),
   v.checkItems(
     (_arrangement, index, arrangements) =>
