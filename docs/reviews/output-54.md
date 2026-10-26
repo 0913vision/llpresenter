@@ -70,9 +70,9 @@ above it until the operator raises it or its full screen placement returns.
   offscreen mode. The output's computed cursor stayed visible with both flag
   values. All native windows stayed hidden throughout.
 - Both launches closed the control normally and exited all Electron processes.
-  There were five renderer targets throughout, with 305 live DOM elements, 800
-  CDP DOM nodes and 344 listeners at iterations 5 and 25. Collected control
-  heaps were 5,635,364 to 5,864,052 bytes and 5,621,628 to 5,860,816 bytes. This
+  There were five renderer targets throughout, with 314 live DOM elements, 809
+  CDP DOM nodes and 346 listeners at iterations 5 and 25. Collected control
+  heaps were 5,720,504 to 5,963,964 bytes and 5,797,980 to 6,073,532 bytes. This
   short repeated-flow check showed no growing window or element count; it is not
   an hours-long soak.
 - Screenshots: [screen properties](evidence/output-54/properties-run1.png),
