@@ -158,19 +158,16 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
-
-## Review: reviewer
-
-- Verdict: Approve / Request changes
-- Findings:
-
-  1.
+- Round 1 (Codex, codex4): Request changes: a 무대 화면 could draw with an
+  audience Look card's lyric style.
+- Round 2 (d4688074): reviewer (Codex, codex4) Approve, no findings; the stage
+  style rule has regression tests, including an audience screen that turns
+  stage. Lead Approve; the five fallback rules in spec 03 are the lead decisions
+  of October 26. Changes outside output's paths (`show/ScreenPreview.tsx`,
+  spec 03) checked against their owners' rules. Rebased by the lead onto local
+  `main` without conflicts; typecheck passes. M3-O4 is complete.
 
 ## Team member's reply
 
