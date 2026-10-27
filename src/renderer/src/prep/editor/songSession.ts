@@ -1,5 +1,6 @@
 import type {LlpApi} from '@shared/ipc';
 import type {MediaId, SongGroupId} from '@shared/schema/ids';
+import {arrangementGroupIds} from '@shared/schema/groupedSong';
 import type {Song} from '@shared/schema/song';
 import {
   isGroupedSong,
@@ -92,25 +93,13 @@ export class SongSession<S extends AnySong = Song> {
   get arrangementGroups(): readonly SongGroupId[] | undefined {
     const song = this.history.snapshot.song;
     if (!isGroupedSong(song)) return undefined;
-    const chosen =
-      this.arrangement === undefined
-        ? undefined
-        : song.arrangements?.find(item => item.name === this.arrangement);
-    if (chosen !== undefined) return chosen.groups;
-    return song.groups.map(g => g.id);
+    return arrangementGroupIds(song, this.arrangement);
   }
 
   get arrangementSlides(): readonly number[] {
     const song = this.history.snapshot.song;
     if (isGroupedSong(song)) {
-      const chosen =
-        this.arrangement === undefined
-          ? undefined
-          : song.arrangements?.find(item => item.name === this.arrangement);
-      const groupIds =
-        chosen !== undefined && chosen.groups.length > 0
-          ? chosen.groups
-          : song.groups.map(g => g.id);
+      const groupIds = arrangementGroupIds(song, this.arrangement);
       const groupOffset = new Map<string, number>();
       let offset = 1;
       for (const group of song.groups) {
@@ -183,14 +172,7 @@ export class SongSession<S extends AnySong = Song> {
       let number = 1;
       while (names.has(`구성 ${number}`)) number++;
       const name = `구성 ${number}`;
-      const chosen =
-        base === undefined
-          ? undefined
-          : song.arrangements?.find(item => item.name === base);
-      const groups =
-        chosen !== undefined && chosen.groups.length > 0
-          ? [...chosen.groups]
-          : song.groups.map(group => group.id);
+      const groups = [...arrangementGroupIds(song, base)];
       this.history.setArrangementGroups(name, groups);
       this.dirty = true;
       this.endTyping();
@@ -459,21 +441,30 @@ export class SongSession<S extends AnySong = Song> {
 
   private async drain(): Promise<boolean> {
     while (this.hasChanges && !this.blocked && this.saveTimer === undefined) {
+      const docSong = this.document.song;
+      const draft = this.history.snapshot.song;
+      if (isGroupedSong(docSong) || isGroupedSong(draft)) {
+        // TODO(0913vision): Activate grouped song persistence in group-7.
+        // During the consumer rollout, refuse saving grouped songs to the
+        // v1 store contract so edits remain visibly unsaved instead of
+        // silently dropping data.
+        return false;
+      }
+
       const lyricsDirty = this.dirty;
       this.dirty = false;
-      const draft = this.history.snapshot.song;
       const titleDraft =
         this.title.reason === undefined ? this.title.value : undefined;
       const background = this.background;
 
-      if (isGroupedSong(draft) || isGroupedSong(this.document.song)) {
-        // NOTE(0913vision): Grouped song persistence waits for group-7 store activation.
-        this.options.changed();
-        return true;
-      }
+      const {
+        background: _oldBackground,
+        arrangements: _oldArrangements,
+        ...baseSong
+      } = docSong;
 
       const song: Song = {
-        ...this.document.song,
+        ...baseSong,
         ...draft,
         title: this.title.nextValue,
         slides: draft.slides,

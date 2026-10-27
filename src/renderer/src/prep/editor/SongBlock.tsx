@@ -16,7 +16,6 @@ import {isComposing} from '@renderer/ui/ime';
 import {layerContainer} from '@renderer/ui/layers';
 import {placeFloating} from '@renderer/ui/floating';
 import {placeTooltip, viewportSize} from '@renderer/ui/placement';
-import {useTooltip} from '@renderer/ui/Tooltip';
 import tooltipStyles from '@renderer/ui/Tooltip.module.css';
 import {
   isGroupedSong,
@@ -106,10 +105,6 @@ export const SongBlock = memo(
       });
     }, [session, block, showRefusal]);
 
-    const {targetProps, tooltip: hoverTooltip} = useTooltip(
-      isGrouped && isGroupStart ? {text: BACKSPACE_REFUSAL_MESSAGE} : undefined,
-    );
-
     const refusalTooltip =
       refused && typeof document !== 'undefined'
         ? createPortal(
@@ -161,16 +156,6 @@ export const SongBlock = memo(
       focus.current.requested = true;
       focus.current.target = 'lyrics';
       if (command !== undefined) {
-        if (
-          typeof command === 'object' &&
-          command.type === 'merge' &&
-          isGrouped &&
-          isGroupStart
-        ) {
-          showRefusal();
-          session.edit(command);
-          return;
-        }
         session.edit(command);
       } else if (adjacent !== undefined) {
         session.select(adjacent);
@@ -204,7 +189,6 @@ export const SongBlock = memo(
           ) : null}
         </div>
         <textarea
-          {...targetProps}
           ref={input => {
             focus.current.inputs[block] = input;
           }}
@@ -216,16 +200,12 @@ export const SongBlock = memo(
           wrap="off"
           spellCheck={false}
           onFocus={event => {
-            targetProps.onFocus(event);
             select(event.currentTarget);
           }}
-          onBlur={event => {
-            targetProps.onBlur(event);
+          onBlur={() => {
             focus.current.composing = false;
             session.endTyping();
           }}
-          onPointerEnter={targetProps.onPointerEnter}
-          onPointerLeave={targetProps.onPointerLeave}
           onSelect={event => {
             if (event.currentTarget === document.activeElement) {
               select(event.currentTarget);
@@ -261,7 +241,6 @@ export const SongBlock = memo(
             });
           }}
         />
-        {hoverTooltip}
         {refusalTooltip}
       </div>
     );

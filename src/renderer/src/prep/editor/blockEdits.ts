@@ -1,13 +1,15 @@
-import type {GroupedSong, SongGroup} from '@shared/schema/groupedSong';
+import {
+  isGroupedSong,
+  type AnySong,
+  type GroupedSong,
+  type SongGroup,
+} from '@shared/schema/groupedSong';
 import type {SongGroupId} from '@shared/schema/ids';
 import type {SlideHotKey} from '@shared/schema/slideHotKey';
 import type {Slide, Song} from '@shared/schema/song';
 
-export type AnySong = Song | GroupedSong;
-
-export function isGroupedSong(song: AnySong): song is GroupedSong {
-  return 'groups' in song && Array.isArray(song.groups);
-}
+export type {AnySong};
+export {isGroupedSong};
 
 export interface BlockSelection {
   readonly block: number;
@@ -422,9 +424,12 @@ function mergeGrouped(
   if (targetGroup === undefined) return snapshot;
   const previous = targetGroup.slides[addr.slideIndex - 1];
   if (previous === undefined) return snapshot;
+  // NOTE(0913vision): Keep the first slide's hot key when defined, or inherit
+  // the merged slide's key when the first slide had none.
+  const hotKey = previous.hotKey ?? addr.slide.hotKey;
   const mergedSlide = {
-    ...previous,
     lines: [...previous.lines, ...addr.slide.lines],
+    ...(hotKey !== undefined ? {hotKey} : {}),
   };
   const newSlides = [...targetGroup.slides];
   newSlides.splice(addr.slideIndex - 1, 2, mergedSlide);

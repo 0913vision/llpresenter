@@ -1,5 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {
+  arrangementGroupIds,
+  isGroupedSong,
   parseGroupedSong,
   serializeGroupedSong,
   SONG_GROUP_LIMITS,
@@ -405,6 +407,23 @@ describe('version 1 group migration', () => {
         {...expectSuccess(parse(input)).data, schemaVersion: 1},
         FILE,
       ),
+    );
+  });
+
+  it('distinguishes grouped songs from legacy v1 songs', () => {
+    const v1 = expectSuccess(parseSong(JSON.stringify(legacy()), FILE)).data;
+    const v2 = expectSuccess(parse(legacy())).data;
+    expect(isGroupedSong(v1)).toBe(false);
+    expect(isGroupedSong(v2)).toBe(true);
+  });
+
+  it('resolves arrangement group IDs falling back to all groups', () => {
+    const v2 = expectSuccess(parse(legacy())).data;
+    const allIds = v2.groups.map(group => group.id);
+    expect(arrangementGroupIds(v2, undefined)).toEqual(allIds);
+    expect(arrangementGroupIds(v2, 'nonexistent')).toEqual(allIds);
+    expect(arrangementGroupIds(v2, 'Alternate')).toEqual(
+      v2.arrangements?.[0]?.groups,
     );
   });
 });

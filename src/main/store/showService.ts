@@ -1,7 +1,13 @@
 import {NO_LABEL_COLOR, type LabelColor} from '@shared/colors';
 import type {MediaChoice} from '@shared/live';
 import type {LoadedFile} from '@shared/schema/fileFormat';
-import type {GroupedSong, SongGroup} from '@shared/schema/groupedSong';
+import {
+  arrangementGroupIds,
+  isGroupedSong,
+  type AnySong,
+  type GroupedSong,
+  type SongGroup,
+} from '@shared/schema/groupedSong';
 import type {Label} from '@shared/schema/labels';
 import {
   isItemOfKind,
@@ -15,7 +21,7 @@ import {
   type ShowService,
   type ShowTile,
 } from '@shared/schema/showService';
-import type {Slide, Song} from '@shared/schema/song';
+import type {Slide} from '@shared/schema/song';
 import {playbackOrder} from '@shared/songOrder';
 
 export {SHOW_SERVICE_LIMITS} from '@shared/schema/showService';
@@ -23,7 +29,8 @@ export {SHOW_SERVICE_LIMITS} from '@shared/schema/showService';
 /** A document's content and whether a newer app version wrote it. */
 type Shown<T> = Pick<LoadedFile<T>, 'data' | 'access'>;
 
-export type AnySong = Song | GroupedSong;
+export type {AnySong};
+export {isGroupedSong};
 
 type SongLibrary = ReadonlyMap<string, Shown<AnySong>>;
 
@@ -39,10 +46,6 @@ export interface ShowServiceSources {
 export interface ProjectedSongTiles {
   readonly tiles: readonly ShowTile[];
   readonly capped: boolean;
-}
-
-export function isGroupedSong(song: AnySong): song is GroupedSong {
-  return 'groups' in song && Array.isArray(song.groups);
 }
 
 /**
@@ -188,14 +191,7 @@ function projectGroupedSongTiles(
   colors: ReadonlyMap<string, LabelColor>,
   arrangement?: string,
 ): ProjectedSongTiles {
-  const chosen =
-    arrangement === undefined
-      ? undefined
-      : song.arrangements?.find(item => item.name === arrangement);
-  const groupIds =
-    chosen !== undefined && chosen.groups.length > 0
-      ? chosen.groups
-      : song.groups.map(group => group.id);
+  const groupIds = arrangementGroupIds(song, arrangement);
 
   const groupsById = new Map<string, SongGroup>(
     song.groups.map(group => [group.id, group]),

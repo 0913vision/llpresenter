@@ -322,8 +322,23 @@ describe('grouped song sessions', () => {
     expect(session.arrangementGroups).toEqual(newGroups);
     expect(session.arrangementSlides).toEqual([3, 1, 2]);
 
-    await session.flush();
-    // NOTE(0913vision): Grouped song persistence waits for group-7 store flip.
+    const flushed = await session.flush();
+    expect(flushed).toBe(false);
+    expect(session.clean).toBe(false);
     expect(changed).toHaveBeenCalled();
+  });
+
+  it('does not mark a grouped edit clean and refuses saving to v1 store', async () => {
+    const {session, edits} = setupGrouped();
+    expect(session.clean).toBe(true);
+
+    session.select({block: 1, start: 0, end: 0});
+    session.edit({type: 'text', text: 'modified', start: 8, end: 8});
+    expect(session.clean).toBe(false);
+
+    const flushed = await session.flush();
+    expect(flushed).toBe(false);
+    expect(session.clean).toBe(false);
+    expect(edits).toHaveLength(0);
   });
 });

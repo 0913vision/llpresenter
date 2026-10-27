@@ -141,16 +141,13 @@ describe('SongBlock', () => {
     ]);
   });
 
-  it('shows Backspace refusal tooltip on hover over first slide', async () => {
+  it('does not show refusal tooltip on plain focus or hover over first slide', async () => {
     renderBlock(0);
     const input = screen.getByRole('textbox', {name: '슬라이드 1 가사'});
-    const tooltip = await hoverForTooltip(input);
-    expect(tooltip?.textContent).toBe(BACKSPACE_REFUSAL_MESSAGE);
-  });
-
-  it('does not show refusal tooltip on hover over non-first slide', async () => {
-    renderBlock(1);
-    const input = screen.getByRole('textbox', {name: '슬라이드 2 가사'});
+    act(() => {
+      input.focus();
+    });
+    expect(screen.queryByRole('tooltip')).toBeNull();
     const tooltip = await hoverForTooltip(input);
     expect(tooltip).toBeNull();
   });

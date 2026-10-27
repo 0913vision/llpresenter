@@ -589,6 +589,91 @@ describe('grouped song block edits', () => {
     expect(next.mergeRefused).toBeUndefined();
   });
 
+  it('preserves first hotKey or inherits on merge within group', () => {
+    const singleArrangement = [
+      {
+        name: '기본순서',
+        groups: ['11111111-1111-4111-a111-111111111111'],
+      },
+    ];
+    const withBothKeys = sampleGroupedSong(
+      [
+        {
+          id: '11111111-1111-4111-a111-111111111111',
+          name: '1절',
+          slides: [
+            {lines: ['first'], hotKey: 'Digit1'},
+            {lines: ['second'], hotKey: 'Digit2'},
+          ],
+        },
+      ],
+      singleArrangement,
+    );
+    const mergedBoth = editBlocks(
+      blockSnapshot(withBothKeys, {block: 1, start: 0, end: 0}),
+      {type: 'merge'},
+    );
+    expect(mergedBoth.song.groups[0]?.slides[0]?.hotKey).toBe('Digit1');
+
+    const withSecondKey = sampleGroupedSong(
+      [
+        {
+          id: '11111111-1111-4111-a111-111111111111',
+          name: '1절',
+          slides: [{lines: ['first']}, {lines: ['second'], hotKey: 'Digit2'}],
+        },
+      ],
+      singleArrangement,
+    );
+    const mergedSecond = editBlocks(
+      blockSnapshot(withSecondKey, {block: 1, start: 0, end: 0}),
+      {type: 'merge'},
+    );
+    expect(mergedSecond.song.groups[0]?.slides[0]?.hotKey).toBe('Digit2');
+  });
+
+  it('keeps hotKey on first slide and leaves new slide without hotKey on split and enter', () => {
+    const singleArrangement = [
+      {
+        name: '기본순서',
+        groups: ['11111111-1111-4111-a111-111111111111'],
+      },
+    ];
+    const withKey = sampleGroupedSong(
+      [
+        {
+          id: '11111111-1111-4111-a111-111111111111',
+          name: '1절',
+          slides: [{lines: ['first', 'second'], hotKey: 'Digit1'}],
+        },
+      ],
+      singleArrangement,
+    );
+    const split = editBlocks(
+      blockSnapshot(withKey, {block: 0, start: 5, end: 5}),
+      {type: 'split'},
+    );
+    expect(split.song.groups[0]?.slides[0]?.hotKey).toBe('Digit1');
+    expect(split.song.groups[0]?.slides[1]?.hotKey).toBeUndefined();
+
+    const withEmptyLine = sampleGroupedSong(
+      [
+        {
+          id: '11111111-1111-4111-a111-111111111111',
+          name: '1절',
+          slides: [{lines: ['first', '', 'second'], hotKey: 'Digit1'}],
+        },
+      ],
+      singleArrangement,
+    );
+    const entered = editBlocks(
+      blockSnapshot(withEmptyLine, {block: 0, start: 6, end: 6}),
+      {type: 'enter'},
+    );
+    expect(entered.song.groups[0]?.slides[0]?.hotKey).toBe('Digit1');
+    expect(entered.song.groups[0]?.slides[1]?.hotKey).toBeUndefined();
+  });
+
   it('refuses merge at group boundary (first slide of any group) with mergeRefused: true', () => {
     const original = sampleGroupedSong();
     // NOTE(0913vision): Block 0 is first slide of group 0 (group boundary)

@@ -8,7 +8,12 @@ import {
   type LoadedFile,
   type ReadonlyKnown,
 } from './fileFormat';
-import {mediaIdSchema, songGroupIdSchema, songIdSchema} from './ids';
+import {
+  mediaIdSchema,
+  songGroupIdSchema,
+  songIdSchema,
+  type SongGroupId,
+} from './ids';
 import {
   isFirstWithKey,
   jsonObject,
@@ -16,7 +21,7 @@ import {
   positiveInteger,
   timestamp,
 } from './primitives';
-import {arrangementNameSchema} from './song';
+import {arrangementNameSchema, type Song} from './song';
 import {migrateSongGroups} from './songGroupMigration';
 import {slideHotKeySchema} from './slideHotKey';
 
@@ -141,4 +146,29 @@ export function serializeGroupedSong(
   file: string,
 ): Result<string, FileError> {
   return serializeFile(groupedSongFormat, song, file);
+}
+
+/** Either a legacy version 1 song or a modern grouped version 2 song. */
+export type AnySong = Song | GroupedSong;
+
+/** Checks whether a song document is in grouped (version 2+) structure. */
+export function isGroupedSong(song: AnySong): song is GroupedSong {
+  return 'groups' in song;
+}
+
+/**
+ * Returns the group IDs for a named arrangement, or all group IDs in file order
+ * when the arrangement is missing or has an empty sequence.
+ */
+export function arrangementGroupIds(
+  song: GroupedSong,
+  arrangementName?: string,
+): readonly SongGroupId[] {
+  const chosen =
+    arrangementName === undefined
+      ? undefined
+      : song.arrangements?.find(item => item.name === arrangementName);
+  return chosen !== undefined && chosen.groups.length > 0
+    ? chosen.groups
+    : song.groups.map(group => group.id);
 }

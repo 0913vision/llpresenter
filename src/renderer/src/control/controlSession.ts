@@ -45,6 +45,8 @@ export class ControlSession {
         this.report,
       );
       if (typeof window !== 'undefined' && import.meta.env.DEV) {
+        // NOTE(0913vision): Expose the song editor store on window in DEV
+        // mode for automated offscreen CDP verification tests.
         window.__llpSongEditorStore = this.editorStore;
       }
     }
