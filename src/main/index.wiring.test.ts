@@ -6,6 +6,7 @@ import {makeTempDir} from '../../test/temp-dir';
 import type {LiveStore} from './live/store';
 import type {MediaBackendRegistration} from './media/register';
 import type {MediaHandlerOptions} from './windows/mediaResponse';
+import type {BibleLookupSession} from './bible/lookup';
 
 // NOTE(0913vision): Each test imports the whole main process afresh, which
 // takes several seconds under coverage on a busy machine.
@@ -52,6 +53,7 @@ const fakes = vi.hoisted(() => {
     textImportContexts: new Array<unknown>(),
     textImportStop: vi.fn<() => void>(),
     bibleContexts: new Array<unknown>(),
+    bible: {lookup: vi.fn<BibleLookupSession['lookup']>()},
     bibleStop: vi.fn<() => void>(),
     mediaBackendContexts: new Array<MediaBackendRegistration>(),
     analysisOptions: new Array<unknown>(),
@@ -238,6 +240,7 @@ vi.mock('./store/register', () => ({
     fakes.order.push('data store');
     fakes.storeOptions.push(options);
     return {
+      bible: fakes.bible,
       content: Promise.resolve(null),
       settings: fakes.settings,
       selectLook: fakes.selectLook,
@@ -387,14 +390,14 @@ function beforeQuit(): {prevented: boolean} {
 }
 
 describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
-  it('connects Bible lookup to app-local files and stops it before closing data', async () => {
+  it('connects Bible IPC to the data store reader and stops IPC before closing data', async () => {
     await startMain();
     expect(fakes.bibleContexts).toEqual([
       expect.objectContaining({
-        folder: join(fakes.electron.app.getPath('userData'), 'bible'),
-        settings: fakes.settings,
+        session: fakes.bible,
       }),
     ]);
+    expect(fakes.bibleContexts[0]).toHaveProperty('log');
     beforeQuit();
     await vi.waitFor(() => expect(fakes.storeDispose).toHaveBeenCalledOnce());
     expect(fakes.bibleStop).toHaveBeenCalledOnce();

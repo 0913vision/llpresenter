@@ -80,8 +80,9 @@ export function buildShowService({
     }
   }
 
-  for (const [itemId, tiles] of passages?.tiles ?? [])
+  for (const [itemId, tiles] of passages?.tiles ?? []) {
     itemTiles[itemId] = tiles;
+  }
   const rowSources: RowSources = {songs, backgrounds, cappedItems, passages};
   return {
     revision,

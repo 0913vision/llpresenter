@@ -219,8 +219,9 @@ describe('registerStore', () => {
     const readChapter = vi.spyOn(chapterFile, 'readBibleChapter');
     const store = await register(fakeLog(), context, () => true);
     const shown = parseShowService(await askForService());
-    if (!shown.ok || shown.value === null)
+    if (!shown.ok || shown.value === null) {
       throw new Error('Missing projected service');
+    }
     expect(shown.value.tiles[itemId(60)]).toMatchObject([
       {label: '3:16', lines: ['16 Invented book 43, chapter 3, verse 16']},
       {label: '3:17'},
@@ -254,8 +255,9 @@ describe('registerStore', () => {
       }),
     ).toMatchObject({ok: true});
     const removed = parseShowService(await askForService());
-    if (!removed.ok || removed.value === null)
+    if (!removed.ok || removed.value === null) {
       throw new Error('Missing refreshed service');
+    }
     expect(removed.value.tiles).toEqual({});
     expect(
       removed.value.rows.every(

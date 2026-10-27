@@ -3,8 +3,8 @@
 - Team member: bible
 - Branch: `fix/bible/prep-saved-passage`
 - Depends on bible-4, `0b1f1b0e7777862a729607fa291090c6250d0578`.
-- Restacked onto main `aec7a5e10ea48245d4e56e64e678cbaae96739e8`; the lower
-  bible-4 copy is `39799e1706048b08d0e65f892b9674e96bf8cb86`. Review this
+- Restacked onto main `98f9ede7078e93f8d1eb3ae9db5af8497da8b4c3`; the lower
+  bible-4 copy is `11b923727ae4a1f5e02c87cc5abe8a50ff24123b`. Review this
   request from that copy to the reported head. The original bible-4 review
   branch remains unchanged.
 - Related brief: `docs/briefs/tools.md`, M3-T4b; M3-UX-R1 Prep follow-up.
@@ -59,6 +59,8 @@ Built on dev port 5193 and launched with `LLP_TEST_WINDOWS=offscreen`, using
 Electron. All visible sentences come from the repository's invented QA fixture.
 The isolated service contains rows inserted by earlier checks.
 
+### Initial review check
+
 The real CDP flow opens the three-verse saved passage in Prep, clicks verses,
 and switches back and forth between song and Bible selections. Home and
 ArrowRight change the local verse and caption. The broadcast preview renders the
@@ -85,8 +87,46 @@ physical monitor behavior. The app exits normally after the check.
 
 ![Unavailable book clears the local preview](bible-5/prep-missing-verse.png)
 
+### Round 2 after CI repair and main rebase
+
+Rebuilt on main `98f9ede7` plus this series, syntax-checked the launcher and
+built main, and repeated the actual offscreen CDP flow. Wheel scrolling a long
+passage before selecting another saved item, pointer and physical-key selection,
+broadcast preview, an unavailable book, and two additional reopen cycles pass.
+No output or service edits occur.
+
+[Round 2 counters](bible-5/round-2/check.json) include 40 warmup and 20 measured
+round trips. Elements remain 410, nodes 921, and listeners 384 across baseline,
+10 cycles, and 20 cycles. Used heap is 7,073,368 / 7,229,136 / 7,270,344 bytes
+(+2.8%, with 41,208 bytes in the second half). The isolated fixture now has two
+additional section rows prepared for the next request, so its absolute counts
+differ from round 1. The app exits normally after the check.
+
+![Round 2 local first verse](bible-5/round-2/prep-first-verse.png)
+
+![Round 2 physical-key selection](bible-5/round-2/prep-keyboard-verse.png)
+
+![Round 2 broadcast preview](bible-5/round-2/prep-broadcast-verse.png)
+
+![Round 2 unavailable passage](bible-5/round-2/prep-missing-verse.png)
+
 ## Review focus
 
 Please check the shared preview frame's retained song behavior, stale-service
 guard, local selection and scroll reset, and the absence of output commands from
 Prep interactions.
+
+## Team member's reply
+
+1. Round 2 CI repair: the
+   [exact-head run at 49e447f0](https://github.com/0913vision/llpresenter/actions/runs/40499868224)
+   failed in `src/main/index.wiring.test.ts`. Its data-store mock omitted the
+   shared `bible` reader, and its assertion still required the old
+   `folder/settings` registration. The mock now provides a typed reader and the
+   assertion verifies that exact reader reaches Bible IPC. The check still
+   verifies that IPC stops before the data store closes. Scoped startup,
+   storage, and Prep regression checks pass, with 119 tests across eight files.
+   Rebased onto local main, retaining grouped playback order and grouped-song
+   read-only handling when resolving the two import conflicts. Added braces
+   required by ESLint after formatting the inherited projection tests and loop.
+   CI pending under the dispatcher rule.
