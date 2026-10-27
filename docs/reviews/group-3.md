@@ -225,3 +225,14 @@ CDP port 9514) using `D:\llp-dev\group\verify-editor-cdp.mjs`:
 - `npm run format:check` (Prettier code style passed)
 - `git diff --check` (passed with 0 output)
 - `npm run build` (electron-vite build production passed)
+
+## Verdicts (recorded by the lead at merge)
+
+- Final round (8373b825): first-pass reviewer (Gemini Flash) and final reviewer
+  (Claude Sonnet) Approve. Lead Approve; the lead read the store and shared
+  schema diff (a move of the grouped song helpers into the shared schema, with
+  no change in projection) and the save guard, which now keeps grouped edits
+  unsaved instead of clearing them, and kept the final reviewer's four nits for
+  the next branch. The exact-head CI run passed, checked by the lead at merge.
+  Rebased by the lead onto local `main` without conflicts; typecheck passes.
+  Earlier rounds' findings and replies are above.
