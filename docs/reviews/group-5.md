@@ -240,3 +240,12 @@ Screenshot SHA-256 hashes (all distinct):
   `d7dfc55a3cdbd8b5e648128f6be14ec1f27afd9e2273a988f33f918d0889c2d7`
 - `item-tooltip.png`:
   `6b37bd84dcec9db883bb3982d1b0f98c8f57301e1452cd1af46d85f5adc55e4c`
+
+## Verdicts (recorded by the lead at merge)
+
+- Final round (5af7c6ee): reviewer (Codex) Approve. Lead Approve; the lead read
+  the store and shared diff (the playback fallback for an empty arrangement now
+  lives in one helper, playbackGroupIds, with no change in projection). The
+  exact-head CI run passed, checked by the lead at merge. Rebased by the lead
+  onto local `main` without conflicts; typecheck passes. Earlier rounds'
+  findings and replies are above.
