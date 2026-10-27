@@ -146,6 +146,27 @@ describe('stage document edits', () => {
     expect(await readOnly.editor.renameLayout(LAYOUT_ID, 'Name')).toBe(false);
     expect(readOnly.edits).toHaveLength(0);
   });
+  it('queues clock format patches without replacing other element fields', async () => {
+    const {editor, edits} = setup();
+    await Promise.all([
+      editor.patch(LAYOUT_ID, 'element', {kind: 'clock', clockFormat: '12h'}),
+      editor.patch(LAYOUT_ID, 'element', {name: 'Renamed clock'}),
+    ]);
+    expect(edits.map(edit => edit.baseRevision)).toEqual([1, 2]);
+    expect(edits.at(-1)?.value.layouts[0]?.elements[0]).toMatchObject({
+      kind: 'clock',
+      clockFormat: '12h',
+      name: 'Renamed clock',
+      future: 'keep',
+      frame: {future: 1},
+      box: {future: 'box'},
+    });
+    const readOnly = setup('readOnly');
+    expect(
+      await readOnly.editor.patch(LAYOUT_ID, 'element', {clockFormat: '12h'}),
+    ).toBe(false);
+    expect(readOnly.edits).toEqual([]);
+  });
   it('queues independent box patches and removes only the background field', async () => {
     const {editor, edits} = setup();
     await Promise.all([

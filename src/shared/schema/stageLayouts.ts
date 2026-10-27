@@ -40,6 +40,7 @@ const elementSchema = jsonObject({
   name: v.string(),
   kind: v.picklist(stageElementKinds),
   show: v.exactOptional(v.picklist(['text', 'image', 'memo'])),
+  clockFormat: v.exactOptional(v.picklist(['24h', '12h'])),
   frame: jsonObject({
     x: pixelPosition,
     y: pixelPosition,

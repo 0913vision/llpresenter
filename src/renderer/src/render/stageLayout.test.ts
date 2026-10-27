@@ -202,9 +202,41 @@ describe('stageClockText', () => {
       '23:59',
     );
   });
+  it.each([
+    {hours: 0, text: '오전 12:05'},
+    {hours: 9, text: '오전 9:05'},
+    {hours: 12, text: '오후 12:05'},
+    {hours: 13, text: '오후 1:05'},
+    {hours: 23, text: '오후 11:05'},
+  ])('formats the 12-hour boundary at $hours', ({hours, text}) => {
+    expect(
+      stageClockText(new Date(2026, 9, 26, hours, 5).getTime(), '12h'),
+    ).toBe(text);
+  });
 });
 
 describe('StageLayoutView', () => {
+  it('applies independent clock formats to reused output elements and keeps one ticker', () => {
+    const parent = document.createElement('div');
+    const view = new StageLayoutView(parent, vi.fn());
+    const layout = layoutOf([
+      {...EVERY_KIND.elements[4], id: 'default', kind: 'clock'},
+      {
+        ...EVERY_KIND.elements[4],
+        id: 'twelve',
+        kind: 'clock',
+        clockFormat: '12h',
+      },
+    ]);
+    view.render(LAYERS, {...frameOf(), stage: {layout}});
+    expect(parent.textContent).toBe('09:05오전 9:05');
+    const boxes = [...(parent.firstElementChild?.children ?? [])];
+    vi.advanceTimersByTime(STAGE_TICK_MS * 20);
+    expect([...(parent.firstElementChild?.children ?? [])]).toEqual(boxes);
+    expect(vi.getTimerCount()).toBe(1);
+    view.dispose();
+    expect(vi.getTimerCount()).toBe(0);
+  });
   it('draws every element kind from the live 장, the stage 타이머, and the stage message', () => {
     const {view, texts} = setup();
     view.render(LAYERS, frameOf());

@@ -44,6 +44,7 @@ export const elementNames: Readonly<Record<StageElement['kind'], string>> = {
 export interface StageElementPatch {
   readonly name?: string;
   readonly kind?: StageElement['kind'];
+  readonly clockFormat?: NonNullable<StageElement['clockFormat']>;
   readonly text?: Partial<NonNullable<StageElement['text']>>;
   readonly box?: StageBoxPatch;
 }
@@ -242,6 +243,9 @@ export class StageEditor {
               ...element,
               ...(patch.name === undefined ? {} : {name: patch.name}),
               ...(patch.kind === undefined ? {} : {kind: patch.kind}),
+              ...(patch.clockFormat === undefined
+                ? {}
+                : {clockFormat: patch.clockFormat}),
               ...(patch.box === undefined
                 ? {}
                 : {box: patchBox(element.box, patch.box)}),

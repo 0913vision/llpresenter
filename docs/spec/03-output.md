@@ -486,7 +486,7 @@ The 무대 화면 draws the elements of the current stage layout:
 | Next lyrics (`nextSlide`)       | The 슬라이드 after the live 슬라이드 in the current item's sequence. Empty after the last 슬라이드 (proposal). |
 | Current 이름표 (`currentLabel`) | The live 슬라이드's 이름표 name (the board shows "프리코러스").                                                |
 | Next 이름표 (`nextLabel`)       | The next 슬라이드's 이름표 name (the board shows "다음 후렴", next chorus).                                    |
-| Clock (`clock`)                 | The current time, for example "11:24" (24-hour, proposal).                                                     |
+| Clock (`clock`)                 | The current time, for example "11:24". Each element selects 24시간 (default) or 12시간 with 오전/오후 (10).    |
 | 타이머 (`timer`)                | The value of the 타이머 chosen in the 진행 도구 무대 tab (the board shows "예배 경과 00:54", proposal).        |
 | Stage message (`stageMessage`)  | The stage message sent from the 무대 tab.                                                                      |
 

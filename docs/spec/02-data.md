@@ -460,6 +460,10 @@ board.
 | `..text`            | Object                                                                                                               | `font`, `weight`, `size`, `color`, `align`, `vAlign`, `lineHeight`, `autoFit`.                                                    | `StageEditor` 글자 (text) tab                                                                                                                               |
 | `..box`             | Object                                                                                                               | Values of the 모양 (appearance) tab, for example `background` and `opacity` (proposal). The board doesn't show the tab's content. | `StageEditor` 모양 tab                                                                                                                                      |
 
+Each element may also store `clockFormat`: `"24h"` or `"12h"`, defaulting to
+`"24h"` when absent (10, 시계 형식). Only clock elements use the value; changing
+an element's kind preserves it for a later return to the clock kind.
+
 Default: one layout, 현재와 다음, with the current 이름표, current lyrics,
 clock, 타이머, next 이름표, next lyrics, and stage message. Element positions
 follow the `StageEditor` board.

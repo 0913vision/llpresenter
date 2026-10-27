@@ -1,4 +1,4 @@
-import {describe, expectTypeOf, it} from 'vitest';
+import {describe, expect, expectTypeOf, it} from 'vitest';
 import type {StageElementId} from './ids';
 import {
   parseStageLayouts,
@@ -7,6 +7,7 @@ import {
   type StageElement,
 } from './stageLayouts';
 import {expectInvalidField, expectRoundTrip} from './testHelpers';
+import {parseSettingsEdit} from './settingsDocuments';
 
 const codec = {parse: parseStageLayouts, serialize: serializeStageLayouts};
 const CURRENT_AND_NEXT = '77777777-7777-4777-8777-777777777777';
@@ -72,6 +73,41 @@ describe('parseStageLayouts', () => {
       expectRoundTrip(codec, withElement({...currentLyrics(), kind}));
     }
   });
+
+  it.each(['24h', '12h'])(
+    'round-trips the optional clock format %s',
+    clockFormat => {
+      expectRoundTrip(
+        codec,
+        withElement({
+          ...currentLyrics(),
+          kind: 'clock',
+          clockFormat,
+          future: 'keep',
+        }),
+      );
+    },
+  );
+
+  it.each(['digital', [], null, 12])(
+    'rejects malformed clock formats in files and settings IPC: %j',
+    clockFormat => {
+      const value = withElement({
+        ...currentLyrics(),
+        kind: 'clock',
+        clockFormat,
+      });
+      expectInvalidField(codec, value, 'layouts.0.elements.0.clockFormat');
+      expect(
+        parseSettingsEdit({
+          type: 'settings.update',
+          name: 'stage-layouts',
+          baseRevision: 1,
+          value,
+        }).ok,
+      ).toBe(false);
+    },
+  );
 
   it('keeps unknown fields in elements, frames, and text', () => {
     const element = currentLyrics();

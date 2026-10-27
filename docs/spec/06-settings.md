@@ -248,6 +248,9 @@ Source: `Looks`, `Main` board guide (Look 편집), `Checkbox` README,
   글자 text, 그림 image, 메모 memo). Then the tabs 모양 (appearance) and 글자
   (text). The 글자 tab has 글꼴, 굵기 (weight), 크기, 글자색, 가로 정렬, 세로
   정렬, 줄 간격, and 크기 자동 맞춤 (auto-fit size).
+- Clock elements also offer 시계 형식: 24시간 (default) or 12시간. The latter
+  shows 오전/오후 with the 12-hour time, including noon and midnight. It changes
+  only that element's display; the wall clock and other clocks are unaffected.
 
 ### Element kinds
 

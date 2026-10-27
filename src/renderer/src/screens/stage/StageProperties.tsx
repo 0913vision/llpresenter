@@ -73,6 +73,28 @@ export function StageProperties({
             />
           )}
         </PropertyRow>
+        {element.kind === 'clock' ? (
+          <PropertyRow label="시계 형식">
+            {({controlId, labelId}) => (
+              <SegmentedControl
+                id={controlId}
+                labelledBy={labelId}
+                disabled={reason !== undefined}
+                title={reason}
+                value={element.clockFormat ?? '24h'}
+                options={[
+                  {value: '24h', label: '24시간'},
+                  {value: '12h', label: '12시간'},
+                ]}
+                onChange={clockFormat =>
+                  run(editor =>
+                    editor.patch(layout.id, element.id, {clockFormat}),
+                  )
+                }
+              />
+            )}
+          </PropertyRow>
+        ) : null}
         <Button
           size="sm"
           disabled={reason !== undefined}

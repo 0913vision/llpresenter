@@ -54,10 +54,17 @@ function twoDigits(value: number): string {
   return String(value).padStart(2, '0');
 }
 
-/** The 24-hour clock of a 무대 화면, such as "11:24" (docs/spec/03-output.md). */
-export function stageClockText(wall: number): string {
+/** Formats stage clock elements using the saved format, defaulting to 24-hour time. */
+export function stageClockText(
+  wall: number,
+  format: NonNullable<StageElement['clockFormat']> = '24h',
+): string {
   const date = new Date(wall);
-  return `${twoDigits(date.getHours())}:${twoDigits(date.getMinutes())}`;
+  const hours = date.getHours(),
+    minutes = twoDigits(date.getMinutes());
+  return format === '12h'
+    ? `${hours < 12 ? '오전' : '오후'} ${hours % 12 || 12}:${minutes}`
+    : `${twoDigits(hours)}:${minutes}`;
 }
 
 function rgba(hex: string, opacity: number): string {
@@ -78,7 +85,7 @@ interface StageContent {
 }
 
 function contentOf(
-  {kind, show}: StageElement,
+  {kind, show, clockFormat}: StageElement,
   {layers, frame}: StageContent,
 ): string | null {
   const shown = ELEMENT_SWITCH[kind];
@@ -99,7 +106,10 @@ function contentOf(
     case 'nextLabel':
       return slide?.next?.label ?? null;
     case 'clock':
-      return stageClockText(frame?.timers?.now().wall ?? Date.now());
+      return stageClockText(
+        frame?.timers?.now().wall ?? Date.now(),
+        clockFormat,
+      );
     case 'timer': {
       const token = timerToken(frame);
       const timers = frame?.timers;

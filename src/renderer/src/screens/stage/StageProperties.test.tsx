@@ -10,6 +10,7 @@ import {
 import userEvent from '@testing-library/user-event';
 import {afterEach, expect, it, vi} from 'vitest';
 import type {SettingsDocument} from '@shared/schema/settingsDocuments';
+import type {StageElement} from '@shared/schema/stageLayouts';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {settingsDocument, LAYOUT_ID} from '../testing/documents';
 import {useScreensSelection} from '../selection';
@@ -24,6 +25,7 @@ afterEach(() => {
 function setup(
   access: 'editable' | 'readOnly' = 'editable',
   saving: Promise<void> = Promise.resolve(),
+  kind: StageElement['kind'] = 'currentSlide',
 ) {
   const make = (value: object, revision = 1) => {
     const document = settingsDocument('stage-layouts', value, revision);
@@ -44,7 +46,7 @@ function setup(
           {
             id: 'first',
             name: 'First',
-            kind: 'currentSlide',
+            kind,
             frame: {x: 0, y: 0, w: 500, h: 100},
             text: {...STAGE_DEFAULT_TEXT, future: 'keep'},
             box: {background: '#112233', opacity: 0.375, future: 'keep'},
@@ -135,6 +137,58 @@ it('saves text controls on the selected element and preserves unknown style fiel
   ).toBe('Second');
   view.unmount();
   expect(listeners.size).toBe(0);
+});
+
+it('defaults clocks to 24-hour time and retains the saved format across selections and kinds', async () => {
+  const {first} = setup('editable', Promise.resolve(), 'clock');
+  const user = userEvent.setup();
+  const group = await screen.findByRole('radiogroup', {name: '시계 형식'});
+  expect(
+    within(group)
+      .getByRole('radio', {name: '24시간'})
+      .getAttribute('aria-checked'),
+  ).toBe('true');
+  await user.click(within(group).getByRole('radio', {name: '12시간'}));
+  await waitFor(() => expect(first()?.clockFormat).toBe('12h'));
+  expect(first()).toMatchObject({
+    frame: {w: 500},
+    box: {future: 'keep'},
+    text: {future: 'keep'},
+  });
+  act(() =>
+    useScreensSelection.getState().selectStageElement(LAYOUT_ID, 'second'),
+  );
+  expect(screen.queryByRole('radiogroup', {name: '시계 형식'})).toBeNull();
+  act(() =>
+    useScreensSelection.getState().selectStageElement(LAYOUT_ID, 'first'),
+  );
+  expect(
+    screen.getByRole('radio', {name: '12시간'}).getAttribute('aria-checked'),
+  ).toBe('true');
+  await user.click(screen.getByRole('button', {name: '내용 종류'}));
+  await user.click(
+    await screen.findByRole('menuitemradio', {name: '현재 가사'}),
+  );
+  await waitFor(() =>
+    expect(screen.queryByRole('radiogroup', {name: '시계 형식'})).toBeNull(),
+  );
+  expect(first()?.clockFormat).toBe('12h');
+  await user.click(screen.getByRole('button', {name: '내용 종류'}));
+  await user.click(await screen.findByRole('menuitemradio', {name: '시계'}));
+  await waitFor(() =>
+    expect(
+      screen.getByRole('radio', {name: '12시간'}).getAttribute('aria-checked'),
+    ).toBe('true'),
+  );
+});
+
+it('disables clock format changes in read-only settings', async () => {
+  const {edit} = setup('readOnly', Promise.resolve(), 'clock');
+  const group = await screen.findByRole('radiogroup', {name: '시계 형식'});
+  const twelve = within(group).getByRole('radio', {name: '12시간'});
+  expect(twelve.getAttribute('aria-disabled')).toBe('true');
+  fireEvent.click(twelve);
+  expect(edit).not.toHaveBeenCalled();
 });
 
 it('refuses malformed colors, cancels a draft with Escape, and deletes the selection', async () => {
