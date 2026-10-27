@@ -14,6 +14,7 @@ import {
   timerTimeReason,
   type TimerConfiguration,
 } from './timerConfiguration';
+import type {TimerEditDraft} from './timerEditDraft';
 
 const KINDS = [
   {value: 'countdown', label: '카운트다운'},
@@ -21,26 +22,35 @@ const KINDS = [
   {value: 'elapsed', label: '경과'},
   {value: 'clock', label: '시계'},
 ] as const;
+const LEGACY_KINDS = [
+  ...KINDS,
+  {value: 'elapsedFrom', label: '시각 경과'},
+] as const;
 const SECONDS_PER_MINUTE = 60;
 
-function initialDuration(initial: TimerConfiguration | undefined): number {
+function initialDuration(initial: TimerEditDraft | undefined): number {
   if (initial?.kind === 'countdown') return initial.duration;
   if (initial?.kind === 'elapsed') return initial.start;
   return 0;
 }
 
-export function TimerDialog({
-  initial,
-  locked,
-  onSave,
-  onClose,
-}: {
-  readonly initial?: TimerConfiguration | undefined;
+type TimerDialogProps = {
   readonly locked: boolean;
-  readonly onSave: (fields: TimerConfiguration) => Promise<boolean>;
   readonly onClose: () => void;
-}): JSX.Element {
-  const [kind, setKind] = useState<TimerConfiguration['kind']>(
+} & (
+  | {
+      readonly initial?: undefined;
+      readonly onSave: (fields: TimerConfiguration) => Promise<boolean>;
+    }
+  | {
+      readonly initial: TimerEditDraft;
+      readonly onSave: (fields: TimerEditDraft) => Promise<boolean>;
+    }
+);
+
+export function TimerDialog(props: TimerDialogProps): JSX.Element {
+  const {initial, locked, onClose} = props;
+  const [kind, setKind] = useState<TimerEditDraft['kind']>(
     initial?.kind ?? 'countdown',
   );
   const [minutes, setMinutes] = useState(() =>
@@ -58,7 +68,9 @@ export function TimerDialog({
     initial?.kind === 'countdownTo' ? initial.date : localDateText(new Date()),
   );
   const [time, setTime] = useState(
-    initial?.kind === 'countdownTo' ? initial.time : '12:00',
+    initial?.kind === 'countdownTo' || initial?.kind === 'elapsedFrom'
+      ? initial.time
+      : '12:00',
   );
   const duration = parseTimerDuration(
     minutes,
@@ -67,7 +79,7 @@ export function TimerDialog({
   );
   const dateReason = timerDateReason(date);
   const timeReason = timerTimeReason(time);
-  const configuration = (): TimerConfiguration | undefined => {
+  const configuration = (): TimerEditDraft | undefined => {
     switch (kind) {
       case 'clock':
         return {kind};
@@ -75,6 +87,8 @@ export function TimerDialog({
         return dateReason || timeReason
           ? undefined
           : {kind, date, time, overrun};
+      case 'elapsedFrom':
+        return timeReason ? undefined : {kind, time};
       case 'countdown':
         return duration.duration === undefined
           ? undefined
@@ -89,12 +103,21 @@ export function TimerDialog({
   const reason =
     kind === 'countdownTo'
       ? (dateReason ?? timeReason)
-      : kind === 'clock'
-        ? undefined
-        : (duration.minutesReason ?? duration.secondsReason);
+      : kind === 'elapsedFrom'
+        ? timeReason
+        : kind === 'clock'
+          ? undefined
+          : (duration.minutesReason ?? duration.secondsReason);
   const save = (): void => {
     if (locked || !fields) return;
-    onSave(fields)
+    let saving: Promise<boolean>;
+    if (props.initial === undefined) {
+      if (fields.kind === 'elapsedFrom') return;
+      saving = props.onSave(fields);
+    } else {
+      saving = props.onSave(fields);
+    }
+    saving
       .then(saved => {
         if (saved) onClose();
       })
@@ -124,7 +147,7 @@ export function TimerDialog({
               disabled={locked}
               value={kind}
               onChange={setKind}
-              options={KINDS}
+              options={initial?.kind === 'elapsedFrom' ? LEGACY_KINDS : KINDS}
             />
           )}
         </PropertyRow>
@@ -139,40 +162,40 @@ export function TimerDialog({
           />
         ) : null}
         {kind === 'countdownTo' ? (
-          <>
-            <PropertyRow label="날짜">
-              {({controlId}) => (
-                <TextField
-                  id={controlId}
-                  aria-label="날짜"
-                  block
-                  value={date}
-                  onChange={setDate}
-                  maxLength={10}
-                  placeholder="YYYY-MM-DD"
-                  readOnly={locked}
-                  invalid={dateReason !== undefined}
-                  invalidReason={dateReason}
-                />
-              )}
-            </PropertyRow>
-            <PropertyRow label="시각">
-              {({controlId}) => (
-                <TextField
-                  id={controlId}
-                  aria-label="시각"
-                  block
-                  value={time}
-                  onChange={setTime}
-                  maxLength={5}
-                  placeholder="HH:mm"
-                  readOnly={locked}
-                  invalid={timeReason !== undefined}
-                  invalidReason={timeReason}
-                />
-              )}
-            </PropertyRow>
-          </>
+          <PropertyRow label="날짜">
+            {({controlId}) => (
+              <TextField
+                id={controlId}
+                aria-label="날짜"
+                block
+                value={date}
+                onChange={setDate}
+                maxLength={10}
+                placeholder="YYYY-MM-DD"
+                readOnly={locked}
+                invalid={dateReason !== undefined}
+                invalidReason={dateReason}
+              />
+            )}
+          </PropertyRow>
+        ) : null}
+        {kind === 'countdownTo' || kind === 'elapsedFrom' ? (
+          <PropertyRow label="시각">
+            {({controlId}) => (
+              <TextField
+                id={controlId}
+                aria-label="시각"
+                block
+                value={time}
+                onChange={setTime}
+                maxLength={5}
+                placeholder="HH:mm"
+                readOnly={locked}
+                invalid={timeReason !== undefined}
+                invalidReason={timeReason}
+              />
+            )}
+          </PropertyRow>
         ) : null}
         {kind === 'countdown' || kind === 'countdownTo' ? (
           <TimerOverrunField

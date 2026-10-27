@@ -220,3 +220,71 @@ it.each([
     expect(save).toHaveBeenCalledExactlyOnceWith(initial);
   },
 );
+
+it('edits an older elapsed-from timer without converting its kind', async () => {
+  const initial = {kind: 'elapsedFrom', time: '09:15'} as const;
+  const save = vi.fn().mockResolvedValue(true);
+  const close = vi.fn();
+  render(
+    <TimerDialog
+      initial={initial}
+      locked={false}
+      onSave={save}
+      onClose={close}
+    />,
+  );
+  expect(
+    screen.getByRole('button', {name: '타이머 종류'}).textContent,
+  ).toContain('시각 경과');
+  expect(screen.getByRole('textbox', {name: '시각'})).toHaveProperty(
+    'value',
+    '09:15',
+  );
+  expect(screen.queryByRole('radio', {name: '계속'})).toBeNull();
+  choose('시계');
+  choose('시각 경과');
+  expect(screen.getByRole('textbox', {name: '시각'})).toHaveProperty(
+    'value',
+    '09:15',
+  );
+  change('시각', '24:00');
+  fireEvent.click(screen.getByRole('button', {name: '저장'}));
+  expect(save).not.toHaveBeenCalled();
+  change('시각', '10:30');
+  fireEvent.click(screen.getByRole('button', {name: '저장'}));
+  expect(save).toHaveBeenCalledExactlyOnceWith({
+    kind: 'elapsedFrom',
+    time: '10:30',
+  });
+  await waitFor(() => expect(close).toHaveBeenCalledOnce());
+});
+
+it('does not offer the legacy elapsed-from kind when adding a timer', () => {
+  setup();
+  fireEvent.click(screen.getByRole('button', {name: '타이머 종류'}));
+  expect(screen.queryByRole('menuitemradio', {name: '시각 경과'})).toBeNull();
+});
+
+it('does not silently round a saved fractional countdown', () => {
+  const save = vi.fn().mockResolvedValue(true);
+  render(
+    <TimerDialog
+      initial={{kind: 'countdown', duration: 1.5, overrun: true}}
+      locked={false}
+      onSave={save}
+      onClose={vi.fn()}
+    />,
+  );
+  const seconds = screen.getByRole('textbox', {name: '초'});
+  expect(seconds).toHaveProperty('value', '1.5');
+  expect(seconds.getAttribute('aria-invalid')).toBe('true');
+  fireEvent.click(screen.getByRole('button', {name: '저장'}));
+  expect(save).not.toHaveBeenCalled();
+  change('초', '2');
+  fireEvent.click(screen.getByRole('button', {name: '저장'}));
+  expect(save).toHaveBeenCalledExactlyOnceWith({
+    kind: 'countdown',
+    duration: 2,
+    overrun: true,
+  });
+});
