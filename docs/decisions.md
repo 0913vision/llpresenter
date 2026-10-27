@@ -536,3 +536,11 @@ The full product decisions are in `docs/HANDOFF.md` and `docs/spec/`.
   option, off by default (ProPresenter's Manage Media Automatically).
 - Later, not in this freeze: audio output device selection, NDI outputs, and
   PowerPoint import.
+
+## 2026-10-28: Outline and shadow controls follow ProPresenter
+
+- The lyric style's outline has a width and a color, and its shadow has a blur,
+  a distance, an angle, an opacity, and a color, as in ProPresenter (open
+  decision 26, option (c)). This unblocks M3-X2.
+- 메시지 appearance (open decision 25) waits until the user sees drafts of
+  options (a) and (b).

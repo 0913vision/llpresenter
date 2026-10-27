@@ -51,7 +51,7 @@ Conventions:
 | 23  | Bible reference frequency            | M3 wave D | T4b, data            | ProPresenter's four options                          |       |
 | 24  | Enter in the Bible field             | M3 wave D | T4b                  | Enter outputs, like 바로 띄우기                      |       |
 | 25  | 메시지 appearance                    | M3, waits | X1a, X1b, X1c        | A 메시지 style per screen in the Look                |       |
-| 26  | Outline and shadow detail            | M3, waits | X2a, X2b, X2c        | Width and color; blur, distance, opacity, color      |       |
+| 26  | Outline and shadow detail            | Answered  | X2a, X2b, X2c        | (c): (b) plus a shadow angle, as in ProPresenter     |       |
 | 27  | The 일반 page                        | M4        | Settings window      | Hide one-option rows, add launch with Windows        |       |
 | 28  | 지금 백업 during a service           | M4        | Settings window      | Unavailable while any output is on                   | Yes   |
 | 29  | Menus                                | M4        | Menu bar             | The minimal menus of 01, no 내보내기                 | Yes   |
@@ -428,6 +428,7 @@ Conventions:
 - **ProPresenter:** stroke width and color; shadow blur, opacity, color, angle,
   and offset (S4 pp. 63 to 65).
 - **From:** question 16.
+- **Answer (2026-10-28):** (c), as in ProPresenter.
 
 ## Needed in M4
 
