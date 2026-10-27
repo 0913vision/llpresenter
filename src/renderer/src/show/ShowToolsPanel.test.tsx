@@ -27,7 +27,7 @@ it.each(['normal', 'wide', 'narrow'] as const)(
   async sizeClass => {
     render(<ShowToolsPanel sizeClass={sizeClass} />);
     await stageReady();
-    expect(tabNames()).toEqual(['무대', '메시지']);
+    expect(tabNames()).toEqual(['무대', '타이머', '메시지']);
     expect(screen.queryByRole('button', {name: '더 보기'})).toBeNull();
     expect(
       screen.getByRole('tab', {name: '무대'}).getAttribute('aria-selected'),
@@ -41,14 +41,17 @@ it.each(['normal', 'wide', 'narrow'] as const)(
 );
 
 it.each(
-  SHOW_TOOLS.filter(tab => tab.value !== 'stage' && tab.value !== 'message'),
+  SHOW_TOOLS.filter(
+    tab =>
+      tab.value !== 'stage' && tab.value !== 'timer' && tab.value !== 'message',
+  ),
 )(
   'opens working stage controls for a previously selected hidden tab: $label',
   async tab => {
     useShowToolTab.setState({tool: tab.value});
     render(<ShowToolsPanel sizeClass="normal" />);
     await stageReady();
-    expect(tabNames()).toEqual(['무대', '메시지']);
+    expect(tabNames()).toEqual(['무대', '타이머', '메시지']);
     expect(screen.queryByRole('tab', {name: tab.label})).toBeNull();
     expect(
       screen.getByRole('tab', {name: '무대'}).getAttribute('aria-selected'),
@@ -63,6 +66,11 @@ it('selects only working panels with arrow keys and releases their subscriptions
   const {unmount} = render(<ShowToolsPanel sizeClass="narrow" />);
   await stageReady();
   screen.getByRole('tab', {name: '무대'}).focus();
+  await userEvent.keyboard('{ArrowRight}');
+  await waitFor(() => expect(fixture.count()).toBe(1));
+  expect(
+    screen.getByRole('tabpanel', {name: '타이머'}).childElementCount,
+  ).toBeGreaterThan(0);
   await userEvent.keyboard('{ArrowRight}');
   await waitFor(() => expect(fixture.count()).toBe(2));
   expect(

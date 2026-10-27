@@ -14,5 +14,8 @@ export type ShowToolEntry = (typeof SHOW_TOOLS)[number];
 export type ShowTool = ShowToolEntry['value'];
 
 export const AVAILABLE_TOOL_TABS = SHOW_TOOLS.filter(
-  tool => tool.value === 'stage' || tool.value === 'message',
+  tool =>
+    tool.value === 'stage' ||
+    tool.value === 'timer' ||
+    tool.value === 'message',
 );

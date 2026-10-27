@@ -77,7 +77,7 @@ it('shows the narrow window layout at 1366 x 768', () => {
   expect(screen.queryByRole('button', {name: '더 보기'})).toBeNull();
   expect(screen.getByRole('tab', {name: '무대'})).toBeDefined();
   expect(screen.getByRole('tab', {name: '메시지'})).toBeDefined();
-  expect(screen.queryByRole('tab', {name: '타이머'})).toBeNull();
+  expect(screen.getByRole('tab', {name: '타이머'})).toBeDefined();
 });
 
 it('collapses and expands the left column and saves each choice for narrow windows', async () => {

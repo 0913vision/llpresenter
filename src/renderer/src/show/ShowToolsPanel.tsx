@@ -6,6 +6,7 @@ import type {Notice} from '@renderer/ui/notices';
 import {AVAILABLE_TOOL_TABS} from './showTools';
 import {StageTab} from './tools/StageTab';
 import {MessageTab} from './tools/MessageTab';
+import {TimerTab} from './tools/TimerTab';
 import styles from './ShowToolsPanel.module.css';
 
 /** Shows the 진행 도구 tabs whose panels have working controls. */
@@ -32,6 +33,7 @@ export function ShowToolsPanel({
         </PanelHeader>
         <PanelBody variant="flush" tab={selected}>
           {selected === 'stage' ? <StageTab onProblem={onProblem} /> : null}
+          {selected === 'timer' ? <TimerTab onProblem={onProblem} /> : null}
           {selected === 'message' ? <MessageTab onProblem={onProblem} /> : null}
         </PanelBody>
       </Panel>
