@@ -1,5 +1,6 @@
 import type {LlpApi} from '@shared/ipc';
 import type {MediaId, SongGroupId} from '@shared/schema/ids';
+import type {SongSlideSource} from '@shared/schema/showService';
 import {
   arrangementGroupIds,
   isGroupedSong,
@@ -268,6 +269,17 @@ export class SongSession<S extends AnySong = GroupedSong> {
     if (current.block !== selection.block) this.endTyping();
     this.history.select(selection);
     this.options.changed();
+  }
+
+  /** Commits one slide key through the session's existing lock, history and save path. */
+  setSlideHotKey(source: SongSlideSource, code: string | undefined): boolean {
+    if (!this.acceptsEdits || !this.history.setSlideHotKey(source, code)) {
+      return false;
+    }
+    this.dirty = true;
+    this.endTyping();
+    this.options.changed();
+    return true;
   }
 
   edit(command: BlockCommand | 'undo' | 'redo'): void {

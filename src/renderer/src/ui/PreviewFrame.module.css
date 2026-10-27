@@ -10,6 +10,7 @@
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
   container-type: inline-size;
 }
 

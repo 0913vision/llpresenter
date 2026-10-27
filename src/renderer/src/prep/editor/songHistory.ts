@@ -1,7 +1,9 @@
 import type {SongGroupId} from '@shared/schema/ids';
+import type {SongSlideSource} from '@shared/schema/showService';
 import type {Arrangement, Song} from '@shared/schema/song';
 import {sameOrder} from './songArrangements';
 import {isGroupedSong, type AnySong} from '@shared/schema/groupedSong';
+import {assignSlideHotKey} from './slideHotKeyEditing';
 import {
   blockSnapshot,
   editBlocks,
@@ -47,6 +49,21 @@ export class SongHistory<S extends AnySong = Song> {
   /** Ends a typing group on blur, even when focus later returns to this block. */
   endTyping(): void {
     this.typing = undefined;
+  }
+
+  /** Assigns one grouped source slide's key as a separate undo step. */
+  setSlideHotKey(source: SongSlideSource, code: string | undefined): boolean {
+    const song = this.value.song;
+    if (!isGroupedSong(song)) return false;
+    const result = assignSlideHotKey(song, source, code);
+    if (!result.ok || result.value === song) return false;
+    this.endTyping();
+    this.remember();
+    this.value = {
+      ...this.value,
+      song: {...song, groups: result.value.groups},
+    };
+    return true;
   }
 
   addArrangement(arrangement: Arrangement): void {
