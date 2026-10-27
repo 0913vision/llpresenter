@@ -14,10 +14,32 @@
   flex: 1;
 }
 
+.screens {
+  display: flex;
+  align-items: center;
+  gap: var(--space-18);
+  height: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+}
+
 .item {
   display: inline-flex;
+  flex: none;
   align-items: center;
   gap: var(--space-6);
+  min-width: 0;
+  max-width: calc(var(--size-toolbar-button-min) * 2);
+}
+
+.name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .off {
@@ -25,6 +47,7 @@
 }
 
 .dot {
+  flex: none;
   width: 6px;
   height: 6px;
   border-radius: var(--radius-full);

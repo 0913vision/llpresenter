@@ -10,6 +10,7 @@ import type {UiState} from '@shared/schema/uiState';
 import type {ColumnWidthStore} from '@renderer/shell/columnWidthStore';
 import {useClearKeys} from '@renderer/show/clearKeys';
 import {MenuBar} from '@renderer/shell/MenuBar';
+import {ScreenSummariesProvider} from '@renderer/shell/ScreenSummaries';
 import {StatusBar} from '@renderer/shell/StatusBar';
 import {
   outputWarningCards,
@@ -36,15 +37,25 @@ import styles from './App.module.css';
 
 const noEditorSubscription = (): (() => void) => () => undefined;
 
-export function App({
-  columnWidthStore,
-  session,
-  uiState = {},
-}: {
+interface AppProps {
   readonly columnWidthStore: ColumnWidthStore;
   readonly session: ControlSession;
   readonly uiState?: UiState | undefined;
-}): JSX.Element {
+}
+
+export function App(props: AppProps): JSX.Element {
+  return (
+    <ScreenSummariesProvider onProblem={props.session.report}>
+      <ControlApp {...props} />
+    </ScreenSummariesProvider>
+  );
+}
+
+function ControlApp({
+  columnWidthStore,
+  session,
+  uiState = {},
+}: AppProps): JSX.Element {
   const sizeClass = useSizeClass();
   const mediaStrip = useMediaStripVisibility(
     sizeClass,

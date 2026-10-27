@@ -10,6 +10,8 @@ import {LiveStore} from '../../../main/live/store';
 import {useLive} from '../state/live';
 import {PreviewPanel} from '../show/PreviewPanel';
 import {ScreenPreview} from '../show/ScreenPreview';
+import {ScreenSummariesContext} from '../shell/ScreenSummaries';
+import {summarizeScreens} from '../shell/screens';
 import {classes} from './classes';
 
 beforeEach(() => {
@@ -62,15 +64,26 @@ function setup() {
       subscribe: () => stopSettings,
     },
   });
-  return {store, removals, stopSettings};
+  const screens = settings.reader.get('screens');
+  if (screens.name !== 'screens') throw new Error('Missing screen fixture');
+  return {
+    store,
+    removals,
+    stopSettings,
+    screens: summarizeScreens(screens.value.screens),
+  };
 }
 
 const SETTINGS_FEEDS_PER_PREVIEW = 4;
 
 describe('preview overlay wiring', () => {
   it('passes the three preview identities and stage text, then releases every feed', async () => {
-    const {store, removals, stopSettings} = setup();
-    const view = render(<PreviewPanel compact={false} />);
+    const {store, removals, stopSettings, screens} = setup();
+    const view = render(
+      <ScreenSummariesContext value={screens}>
+        <PreviewPanel compact={false} />
+      </ScreenSummariesContext>,
+    );
     await act(async () => {});
     const messages = [
       ...view.container.querySelectorAll(

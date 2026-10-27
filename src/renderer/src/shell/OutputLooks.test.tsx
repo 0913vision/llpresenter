@@ -1,4 +1,4 @@
-import {act, render, screen, waitFor} from '@testing-library/react';
+import {act, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@shared/live';
@@ -9,6 +9,7 @@ import {
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {useLive} from '@renderer/state/live';
 import {MenuBar} from './MenuBar';
+import {renderWithScreenSummaries as render} from './testing/screenSummaries';
 
 const first = '00000000-0000-4000-8000-000000000001';
 const second = '00000000-0000-4000-8000-000000000002';

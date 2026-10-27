@@ -7,14 +7,22 @@
   height: 100%;
   min-width: 0;
   min-height: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  container-type: inline-size;
 }
 
 .main {
+  position: sticky;
+  left: 0;
   display: flex;
   grid-row: 1;
   flex-direction: column;
   min-width: 0;
   min-height: 0;
+  width: 100cqw;
+  max-width: 100%;
 }
 
 .surface {
@@ -164,6 +172,12 @@
   color: var(--accent);
   font: var(--type-caption);
   white-space: nowrap;
+}
+
+.selectedName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .hit:focus-visible {

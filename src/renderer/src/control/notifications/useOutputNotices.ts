@@ -1,7 +1,6 @@
 import {useEffect, useEffectEvent} from 'react';
 import type {LlpApi} from '@shared/ipc';
 import type {OutputStatuses} from '@shared/schema/outputStatus';
-import {defaultScreens} from '@renderer/shell/screens';
 import {
   dropOutputWarning,
   keepOutputWarning,
@@ -16,12 +15,11 @@ import {
 
 // TODO(0913vision): Name the screens from the screen settings once they reach
 // the control window; until then only the built-in screens get cards.
-const screenNames: ReadonlyMap<string, ScreenNames> = new Map(
-  defaultScreens.map(screen => [
-    screen.id,
-    {monitor: screen.toolbarLabel, window: screen.statusLabel},
-  ]),
-);
+const screenNames: ReadonlyMap<string, ScreenNames> = new Map([
+  ['main', {monitor: '본 화면', window: '본 화면'}],
+  ['stage', {monitor: '무대', window: '무대 화면'}],
+  ['broadcast', {monitor: '방송 자막', window: '방송 자막'}],
+]);
 
 /** Where the cards go: the app's one notice list. */
 export interface NoticeTarget {

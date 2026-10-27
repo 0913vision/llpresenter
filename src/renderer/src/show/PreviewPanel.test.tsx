@@ -1,4 +1,4 @@
-import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
+import {act, cleanup, fireEvent, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLayers, emptyLiveState, type LiveLayers} from '@shared/live';
 import {mediaUrl} from '@shared/media';
@@ -9,6 +9,7 @@ import {showLarge, usePreview} from '@renderer/state/preview';
 import {openItem, outputTile, selectTile, useShow} from '@renderer/state/show';
 import {PreviewPanel} from './PreviewPanel';
 import {seedSampleService} from './testing/sampleService';
+import {renderWithScreenSummaries as render} from '@renderer/shell/testing/screenSummaries';
 
 interface Instance {
   readonly parent: HTMLElement;
@@ -156,7 +157,7 @@ describe('PreviewPanel layout', () => {
     setLayers({}, allOn);
     render(<PreviewPanel compact={false} />);
     expect(screen.getAllByText('본 화면')).toHaveLength(2);
-    expect(screen.getByText('모니터 2')).toBeTruthy();
+    expect(screen.getByText('창')).toBeTruthy();
     expect(screen.getByText('무대 화면')).toBeTruthy();
     expect(screen.getByText('방송 자막')).toBeTruthy();
     expect(screen.queryByText('모니터 3')).toBeNull();

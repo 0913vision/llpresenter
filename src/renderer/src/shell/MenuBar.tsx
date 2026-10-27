@@ -1,13 +1,16 @@
 import {useState, type JSX} from 'react';
 import type {WindowAction} from '@shared/ipc';
+import {STARTER_SCREEN_IDS} from '@shared/screens';
 import type {TextImportReadRequest} from '@shared/schema/textImport';
 import {useServiceActions} from '@renderer/prep/services/useServiceActions';
-import {sendLive, useLive, useOutputs} from '@renderer/state/live';
+import {useLive, useOutputs} from '@renderer/state/live';
 import {Icon, Menu, useTooltip} from '@renderer/ui';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {openOnArrowDown} from '@renderer/ui/menuButton';
 import type {Notice} from '@renderer/ui/notices';
-import {defaultScreens} from './screens';
+import type {ScreenSummary} from './screens';
+import {useScreenSummaries} from './ScreenSummaries';
+import {screenOutputEntries} from './screenOutputEntries';
 import {sendLookChange} from './lookActions';
 import {useLookChoices} from './useLookChoices';
 import styles from './MenuBar.module.css';
@@ -194,28 +197,19 @@ function FileMenu({
 }
 
 function outputEntries({
+  screens,
   outputs,
   looks,
   warnings,
   onShowWarning,
 }: {
+  readonly screens: readonly ScreenSummary[];
   readonly outputs: Readonly<Record<string, boolean>>;
   readonly looks: readonly MenuEntry[];
   readonly warnings: readonly WarningScreen[];
   readonly onShowWarning: (screenId: string) => void;
 }): readonly MenuEntry[] {
-  const toggles: MenuEntry[] = defaultScreens.map(screen => {
-    const on = outputs[screen.id] === true;
-    return {
-      kind: 'item',
-      id: `output:${screen.id}`,
-      label: screen.statusLabel,
-      check: 'checkbox',
-      checked: on,
-      onSelect: () =>
-        sendLive({type: 'output.set', screenId: screen.id, on: !on}),
-    };
-  });
+  const toggles = screenOutputEntries(screens, outputs);
   return [
     ...toggles,
     ...(looks.length === 0
@@ -224,12 +218,22 @@ function outputEntries({
     ...(warnings.length === 0
       ? []
       : [{kind: 'separator', id: 'warnings'} as const]),
-    ...warnings.map(({screenId, screenName}): MenuEntry => ({
-      kind: 'item',
-      id: `warning:${screenId}`,
-      label: `${screenName} 경고 보기`,
-      onSelect: () => onShowWarning(screenId),
-    })),
+    ...warnings.map(({screenId, screenName}): MenuEntry => {
+      const role = screenId === 'captions' ? 'broadcast' : screenId;
+      const canonicalId =
+        Object.entries(STARTER_SCREEN_IDS).find(
+          ([alias]) => alias === role,
+        )?.[1] ?? screenId;
+      const name =
+        screens.find(screen => screen.id === canonicalId)?.statusLabel ??
+        screenName;
+      return {
+        kind: 'item',
+        id: `warning:${screenId}`,
+        label: `${name} 경고 보기`,
+        onSelect: () => onShowWarning(screenId),
+      };
+    }),
   ];
 }
 
@@ -269,6 +273,7 @@ function OutputMenu({
   readonly control: MenuControl;
   readonly onProblem: (notice: Notice) => void;
 }): JSX.Element {
+  const screens = useScreenSummaries();
   const {anchor} = control;
   const outputs = useOutputs();
   const liveLook = useLive(view =>
@@ -300,7 +305,13 @@ function OutputMenu({
           label={OUTPUT_MENU}
           anchor={{kind: 'element', element: anchor}}
           onClose={control.close}
-          entries={outputEntries({outputs, looks, warnings, onShowWarning})}
+          entries={outputEntries({
+            screens,
+            outputs,
+            looks,
+            warnings,
+            onShowWarning,
+          })}
         />
       ) : null}
     </>

@@ -182,15 +182,13 @@ it('shows a closed warning again from the 출력 menu until it resolves', async 
 
   await userEvent.click(screen.getByRole('menuitem', {name: '출력'}));
   await userEvent.click(
-    screen.getByRole('menuitem', {name: '무대 화면 경고 보기'}),
+    screen.getByRole('menuitem', {name: 'stage 경고 보기'}),
   );
   expect(lostCard()).toBeDefined();
 
   push({stage: status()});
   await userEvent.click(screen.getByRole('menuitem', {name: '출력'}));
-  expect(
-    screen.queryByRole('menuitem', {name: '무대 화면 경고 보기'}),
-  ).toBeNull();
+  expect(screen.queryByRole('menuitem', {name: 'stage 경고 보기'})).toBeNull();
 });
 
 it('turns the warning into an information card that closes after six seconds', () => {

@@ -1,10 +1,4 @@
-import {
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  within,
-} from '@testing-library/react';
+import {cleanup, fireEvent, screen, within} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {isColumnDragActive} from '@renderer/state/drag';
 import * as showState from '@renderer/state/show';
@@ -14,6 +8,7 @@ import {
 } from '@renderer/show/testing/sampleService';
 import {createMemoryColumnWidthStore} from './columnWidthStore';
 import {Workspace} from './Workspace';
+import {renderWithScreenSummaries as render} from './testing/screenSummaries';
 
 vi.mock('@renderer/render/outputRenderer', () => ({
   OutputRenderer: class {

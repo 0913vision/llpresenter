@@ -1,7 +1,7 @@
 import type {JSX} from 'react';
 import {useOutputs} from '@renderer/state/live';
 import {showLarge, usePreview} from '@renderer/state/preview';
-import {defaultScreens} from '@renderer/shell/screens';
+import {useScreenSummaries} from '@renderer/shell/ScreenSummaries';
 import {PreviewFrame, type PreviewScreen} from '@renderer/ui/PreviewFrame';
 import {ScreenPreview} from './ScreenPreview';
 import styles from './PreviewPanel.module.css';
@@ -18,15 +18,16 @@ export function PreviewPanel({
 }): JSX.Element {
   const largeScreenId = usePreview(view => view.largeScreenId);
   const outputs = useOutputs();
-  const large = defaultScreens.some(screen => screen.id === largeScreenId)
+  const summaries = useScreenSummaries();
+  const large = summaries.some(screen => screen.id === largeScreenId)
     ? largeScreenId
-    : (defaultScreens[0]?.id ?? 'main');
-  const screens: ReadonlyArray<PreviewScreen<string>> = defaultScreens.map(
+    : (summaries[0]?.id ?? '');
+  const screens: ReadonlyArray<PreviewScreen<string>> = summaries.map(
     screen => ({
       id: screen.id,
       name: screen.statusLabel,
       target: {
-        kind: screen.target === 'NDI' ? 'ndi' : 'display',
+        kind: screen.targetKind,
         label: screen.target,
       },
       status: {kind: outputs[screen.id] === true ? 'on' : 'off'},

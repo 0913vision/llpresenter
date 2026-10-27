@@ -1,4 +1,4 @@
-import {cleanup, fireEvent, render, screen} from '@testing-library/react';
+import {cleanup, fireEvent, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@shared/live';
@@ -6,6 +6,7 @@ import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {useLive} from '@renderer/state/live';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {MenuBar} from './MenuBar';
+import {renderWithScreenSummaries as render} from '@renderer/shell/testing/screenSummaries';
 
 beforeEach(() => {
   HTMLElement.prototype.scrollIntoView = vi.fn();

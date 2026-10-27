@@ -4,6 +4,7 @@ import type {LiveCommand} from '@shared/commands';
 import {emptyLiveState} from '@shared/live';
 import {createServiceId, createServiceItemId} from '@shared/schema/ids';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import {settingsDocument} from '@renderer/screens/testing/documents';
 import userEvent from '@testing-library/user-event';
 import {convertTextImport} from '../../../main/import/convert';
 import {createMemoryColumnWidthStore} from '@renderer/shell/columnWidthStore';
@@ -32,6 +33,15 @@ function titleOfMenuBar(): string {
 const sessions: ControlSession[] = [];
 
 function createSession(): ControlSession {
+  const api = window.llp;
+  if (api !== undefined) {
+    const get = api.settings.get;
+    vi.spyOn(api.settings, 'get').mockImplementation(request =>
+      request.name === 'screens'
+        ? Promise.resolve(settingsDocument('screens', {screens: []}))
+        : get(request),
+    );
+  }
   const session = new ControlSession(window.llp);
   sessions.push(session);
   return session;

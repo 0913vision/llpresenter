@@ -7,7 +7,8 @@ import {
   ToolbarTabs,
   type ToolbarTab,
 } from '@renderer/ui';
-import {defaultScreens} from './screens';
+import {useScreenSummaries} from './ScreenSummaries';
+import {OutputOverflow} from './OutputOverflow';
 import {LookMenu} from './LookMenu';
 import {ToolbarSearch} from './ToolbarSearch';
 import type {Notice} from '@renderer/ui/notices';
@@ -21,6 +22,8 @@ const workspaceTabs: ReadonlyArray<ToolbarTab<Workspace>> = [
   {value: 'prep', icon: 'edit', label: '준비'},
   {value: 'screens', icon: 'gear', label: '화면 설정'},
 ];
+
+const INLINE_OUTPUT_LIMIT = 3;
 
 export interface ToolbarProps {
   readonly sizeClass: SizeClass;
@@ -36,12 +39,19 @@ export interface ToolbarProps {
 
 function OutputToggles({compact}: {readonly compact: boolean}): JSX.Element {
   const outputs = useOutputs();
+  const screens = useScreenSummaries();
+  const overflow = screens.slice(INLINE_OUTPUT_LIMIT);
   return (
-    <div role="group" aria-label="화면 출력" className={styles.group}>
-      {defaultScreens.map(screen => {
+    <div
+      role="group"
+      aria-label="화면 출력"
+      className={`${styles.group} ${styles.outputs}`}
+    >
+      {screens.slice(0, INLINE_OUTPUT_LIMIT).map(screen => {
         const on = outputs[screen.id] === true;
         return (
           <OutputToggle
+            className={styles.output}
             key={screen.id}
             icon={screen.icon}
             label={screen.toolbarLabel}
@@ -55,6 +65,13 @@ function OutputToggles({compact}: {readonly compact: boolean}): JSX.Element {
           />
         );
       })}
+      {overflow.length > 0 ? (
+        <OutputOverflow
+          screens={overflow}
+          outputs={outputs}
+          compact={compact}
+        />
+      ) : null}
     </div>
   );
 }

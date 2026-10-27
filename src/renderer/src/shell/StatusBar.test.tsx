@@ -1,8 +1,9 @@
-import {cleanup, render, screen} from '@testing-library/react';
+import {cleanup, screen} from '@testing-library/react';
 import {afterEach, describe, expect, it} from 'vitest';
 import {emptyLiveState} from '@shared/live';
 import {useLive} from '@renderer/state/live';
 import {StatusBar} from './StatusBar';
+import {renderWithScreenSummaries as render} from '@renderer/shell/testing/screenSummaries';
 
 afterEach(() => {
   cleanup();
@@ -26,6 +27,6 @@ describe('StatusBar', () => {
   it('shows a dot only for a screen on output', () => {
     useLive.setState({state: {...emptyLiveState(), outputs: {stage: true}}});
     const {container} = render(<StatusBar />);
-    expect(container.querySelectorAll('span > span')).toHaveLength(1);
+    expect(container.querySelectorAll('[aria-hidden="true"]')).toHaveLength(1);
   });
 });

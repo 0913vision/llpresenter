@@ -1,4 +1,4 @@
-import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
+import {act, cleanup, fireEvent, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@shared/live';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
@@ -7,6 +7,7 @@ import {classes} from '@renderer/render/classes';
 import {useLive} from '@renderer/state/live';
 import {usePreview} from '@renderer/state/preview';
 import {PreviewPanel} from './PreviewPanel';
+import {renderWithScreenSummaries as render} from '@renderer/shell/testing/screenSummaries';
 
 class FakeResizeObserver {
   observe(): void {}

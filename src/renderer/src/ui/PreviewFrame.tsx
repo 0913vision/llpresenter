@@ -3,12 +3,13 @@ import {classNames} from './classNames';
 import {Icon, type IconSize} from './Icon';
 import {titleTooltip, useTooltip} from './Tooltip';
 import styles from './PreviewFrame.module.css';
+import {TruncatedText} from './TruncatedText';
 
 const LARGE_ICON_SIZE: IconSize = 14;
 
-/** Where a screen goes out: a monitor, or NDI (no icon, text only). */
+/** Where a screen goes out: a monitor, window, capture window, or NDI. */
 export interface PreviewTarget {
-  readonly kind: 'display' | 'ndi';
+  readonly kind: 'display' | 'window' | 'capture' | 'ndi';
   /** Such as 모니터 2 or NDI. */
   readonly label: string;
 }
@@ -123,7 +124,18 @@ function TargetIcon({
 }): JSX.Element | null {
   if (warning) return <Icon name="warning" size={size} />;
   if (target.kind === 'ndi') return null;
-  return <Icon name="monitor" size={size} />;
+  return (
+    <Icon
+      name={
+        target.kind === 'display'
+          ? 'monitor'
+          : target.kind === 'capture'
+            ? 'capture'
+            : 'mplay'
+      }
+      size={size}
+    />
+  );
 }
 
 function Caption<Id extends string>({
@@ -213,7 +225,10 @@ function ScreenCell<Id extends string>({
             </span>
             <span className={styles.selectedCaption} aria-hidden="true">
               <Icon name="check" size={12} />
-              {screen.name}
+              <TruncatedText
+                text={screen.name}
+                className={styles.selectedName}
+              />
             </span>
           </>
         ) : null}
@@ -237,7 +252,9 @@ export function PreviewFrame<Id extends string>({
   return (
     <div
       className={classNames(styles.monitor, compact && styles.compact)}
-      style={{gridTemplateColumns: `repeat(${screens.length}, minmax(0, 1fr))`}}
+      style={{
+        gridTemplateColumns: `repeat(${Math.max(1, screens.length)}, minmax(var(--size-preview-compact), 1fr))`,
+      }}
     >
       {screens.map((screen, index) => (
         <ScreenCell

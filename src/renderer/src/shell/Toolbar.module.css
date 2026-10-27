@@ -18,6 +18,14 @@
   gap: var(--space-4);
 }
 
+.outputs {
+  flex: none;
+}
+
+.output {
+  max-width: calc(var(--size-toolbar-button-min) + var(--space-16) * 2);
+}
+
 .divider {
   flex: none;
   width: 1px;

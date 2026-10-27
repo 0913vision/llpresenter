@@ -1,4 +1,4 @@
-import {cleanup, render, screen, within} from '@testing-library/react';
+import {act, cleanup, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@shared/commands';
@@ -7,6 +7,9 @@ import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {useLive} from '@renderer/state/live';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
 import {Toolbar} from './Toolbar';
+import {renderWithScreenSummaries as render} from '@renderer/shell/testing/screenSummaries';
+import {ScreenSummariesContext} from './ScreenSummaries';
+import type {ScreenSummary} from './screens';
 
 function installApi(send: (command: LiveCommand) => void): void {
   window.llp = fakeLlpApi({
@@ -23,6 +26,96 @@ afterEach(() => {
   cleanup();
   useLive.setState({state: null});
   delete window.llp;
+  vi.unstubAllGlobals();
+});
+
+const manyScreens: readonly ScreenSummary[] = Array.from(
+  {length: 8},
+  (_, index) => ({
+    id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+    icon: 'mplay',
+    toolbarLabel: `아주 긴 검증용 화면 이름 ${index + 1}을 끝까지 확인합니다`,
+    statusLabel: `아주 긴 검증용 화면 이름 ${index + 1}을 끝까지 확인합니다`,
+    target: '창',
+    targetKind: 'window',
+    chroma: false,
+  }),
+);
+
+describe('saved output overflow', () => {
+  it('keeps three inline outputs at 1280 and exposes all additional long names with live toggles', async () => {
+    vi.stubGlobal('innerWidth', 1280);
+    const send = vi.fn();
+    installApi(send);
+    render(
+      <ScreenSummariesContext value={manyScreens}>
+        <Toolbar sizeClass="narrow" workspace="show" onWorkspace={vi.fn()} />
+      </ScreenSummariesContext>,
+    );
+    const group = screen.getByRole('group', {name: '화면 출력'});
+    const last = manyScreens[7];
+    if (last === undefined) throw new Error('Missing fixture screen');
+    expect(within(group).getAllByRole('button')).toHaveLength(4);
+    expect(
+      within(group).queryByRole('button', {name: last.toolbarLabel}),
+    ).toBeNull();
+    await userEvent.click(
+      within(group).getByRole('button', {name: '다른 화면'}),
+    );
+    const menu = screen.getByRole('menu', {name: '다른 화면 출력'});
+    expect(
+      within(menu)
+        .getAllByRole('menuitemcheckbox')
+        .map(item => item.textContent),
+    ).toEqual(manyScreens.slice(3).map(item => item.statusLabel));
+    await userEvent.click(
+      within(menu).getByRole('menuitemcheckbox', {name: last.statusLabel}),
+    );
+    expect(send).toHaveBeenCalledExactlyOnceWith({
+      type: 'output.set',
+      screenId: last.id,
+      on: true,
+    });
+    act(() =>
+      useLive.setState({
+        state: {...emptyLiveState(), outputs: {[last.id]: true}},
+      }),
+    );
+    await userEvent.click(
+      within(group).getByRole('button', {name: '다른 화면'}),
+    );
+    const checked = screen.getByRole('menuitemcheckbox', {
+      name: last.statusLabel,
+    });
+    expect(checked.getAttribute('aria-checked')).toBe('true');
+    await userEvent.click(checked);
+    expect(send).toHaveBeenLastCalledWith({
+      type: 'output.set',
+      screenId: last.id,
+      on: false,
+    });
+    expect(screen.queryByRole('menu')).toBeNull();
+    expect(screen.getByRole('combobox', {name: '검색'})).toBeTruthy();
+  });
+
+  it('removes the open overflow when its last hidden choices disappear', async () => {
+    const content = (screens: readonly ScreenSummary[]) => (
+      <ScreenSummariesContext value={screens}>
+        <Toolbar sizeClass="narrow" workspace="show" onWorkspace={vi.fn()} />
+      </ScreenSummariesContext>
+    );
+    const view = render(content(manyScreens));
+    await userEvent.click(screen.getByRole('button', {name: '다른 화면'}));
+    expect(screen.getByRole('menu', {name: '다른 화면 출력'})).toBeTruthy();
+    view.rerender(content(manyScreens.slice(0, 2)));
+    expect(screen.queryByRole('menu')).toBeNull();
+    expect(screen.queryByRole('button', {name: '다른 화면'})).toBeNull();
+    expect(
+      within(screen.getByRole('group', {name: '화면 출력'})).getAllByRole(
+        'button',
+      ),
+    ).toHaveLength(2);
+  });
 });
 
 describe('Toolbar', () => {
@@ -159,7 +252,7 @@ describe('Toolbar design system parts', () => {
     );
     const stage = screen.getByRole('button', {name: '무대'});
     expect((await hoverForTooltip(stage))?.textContent).toBe(
-      '무대 화면 출력 켜기 (모니터 3)',
+      '무대 화면 출력 켜기 (창)',
     );
   });
 });
