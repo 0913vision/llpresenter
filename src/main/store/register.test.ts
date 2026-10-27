@@ -1,4 +1,12 @@
-import {readdir, readFile, rm, symlink, utimes} from 'node:fs/promises';
+import {
+  mkdir,
+  readdir,
+  readFile,
+  rm,
+  symlink,
+  utimes,
+  writeFile,
+} from 'node:fs/promises';
 import {join} from 'node:path';
 import {
   afterEach,
@@ -26,6 +34,9 @@ import {
 import {parseLibrarySearchResult} from '@shared/schema/librarySearch';
 import {makeTempDir} from '../../../test/temp-dir';
 import type {Logger} from '../log';
+import {chunkedTranslationFile} from '../bible/testFiles';
+import * as chapterFile from '../bible/chapterFile';
+import {parseBibleLookupRequest} from '@shared/schema/bibleLookup';
 import * as atomicWrite from './atomicWrite';
 import {openAppConfig} from './appConfigFile';
 import {DATA_FOLDER_NAME} from './locations';
@@ -122,6 +133,7 @@ async function register(
   {appDataFolder, developmentFolder, documents}: TestFolders,
   isAnyOutputOn: () => boolean = () => false,
 ): Promise<DataStore> {
+  electron.paths.set('userData', appDataFolder);
   const appConfig = await openAppConfig({
     file: join(appDataFolder, 'app.json'),
     log,
@@ -159,6 +171,103 @@ afterEach(async () => {
 });
 
 describe('registerStore', () => {
+  it('projects saved Bible items from the installed chunked translation and refreshes removed translations', async () => {
+    const context = await developmentContext();
+    const root = join(context.appDataFolder, DATA_FOLDER_NAME);
+    const bibleFolder = join(context.appDataFolder, 'bible');
+    await mkdir(bibleFolder, {recursive: true});
+    await writeFile(
+      join(bibleFolder, 'sample.llbible'),
+      chunkedTranslationFile().bytes,
+    );
+    const bibleItem = {
+      id: itemId(60),
+      bible: {
+        translation: 'sample',
+        ref: '요한복음 3:16-18',
+        split: 'verse',
+        reference: 'every',
+        verseNumbers: true,
+        translationName: false,
+      },
+    };
+    await writeJson(
+      join(root, '예배', `${SUNDAY_ID}.llservice`),
+      service(SUNDAY_ID, '2026-11-01T11:00', [
+        bibleItem,
+        {
+          ...bibleItem,
+          id: itemId(61),
+          bible: {...bibleItem.bible, ref: '창세기 1:1'},
+        },
+      ]),
+    );
+    await writeJson(join(root, '설정', 'bible.json'), {
+      format: 'llsettings.bible',
+      schemaVersion: 1,
+      recents: [],
+      translations: [
+        {
+          id: 'sample',
+          name: 'Invented',
+          lang: 'ko',
+          file: 'sample.llbible',
+          default: true,
+        },
+      ],
+    });
+    const readChapter = vi.spyOn(chapterFile, 'readBibleChapter');
+    const store = await register(fakeLog(), context, () => true);
+    const shown = parseShowService(await askForService());
+    if (!shown.ok || shown.value === null)
+      throw new Error('Missing projected service');
+    expect(shown.value.tiles[itemId(60)]).toMatchObject([
+      {label: '3:16', lines: ['16 Invented book 43, chapter 3, verse 16']},
+      {label: '3:17'},
+      {label: '3:18'},
+    ]);
+    expect(shown.value.rows).toEqual([
+      {kind: 'bible', id: itemId(60), title: '요한복음 3:16-18'},
+      {
+        kind: 'bible',
+        id: itemId(61),
+        title: '창세기 1:1',
+        problem: 'missing-bible',
+      },
+    ]);
+    const reader = store.bible;
+    const request = parseBibleLookupRequest({
+      translation: 'sample',
+      input: '요한복음 3:16-18',
+    });
+    if (!request.ok) throw new Error('Invalid request fixture');
+    expect((await reader.lookup(request.value)).result.ok).toBe(true);
+    expect(readChapter).toHaveBeenCalledOnce();
+    const document = (await store.settings)?.get('bible');
+    if (document?.name !== 'bible') throw new Error('Missing Bible document');
+    expect(
+      await ask(Channels.settingsEdit, {
+        type: 'settings.update',
+        name: 'bible',
+        baseRevision: document.revision,
+        value: {...document.value, translations: []},
+      }),
+    ).toMatchObject({ok: true});
+    const removed = parseShowService(await askForService());
+    if (!removed.ok || removed.value === null)
+      throw new Error('Missing refreshed service');
+    expect(removed.value.tiles).toEqual({});
+    expect(
+      removed.value.rows.every(
+        row => row.kind !== 'header' && row.problem === 'missing-bible',
+      ),
+    ).toBe(true);
+    await store.dispose();
+    await expect(reader.lookup(request.value)).rejects.toThrow(
+      'Bible lookup is unavailable',
+    );
+  });
+
   it('reads the latest standalone song revision and returns null after deletion', async () => {
     const context = await developmentContext();
     const root = join(context.appDataFolder, DATA_FOLDER_NAME);

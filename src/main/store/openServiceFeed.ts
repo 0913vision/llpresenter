@@ -4,6 +4,8 @@ import {isItemOfKind} from '@shared/schema/service';
 import type {ShowService} from '@shared/schema/showService';
 import type {ContentStore} from './contentStore';
 import {buildShowService, songBackgroundId} from './showService';
+import {resolveServicePassages} from '../bible/servicePassages';
+import type {BibleLookupSession} from '../bible/lookup';
 
 const FIRST_REVISION = 1;
 
@@ -13,6 +15,7 @@ export interface OpenServiceSources {
   readonly labels: readonly Label[];
   readonly content: Pick<ContentStore, 'storedService' | 'storedSongs'>;
   readonly backgroundOf: (mediaId: string) => Promise<MediaChoice | null>;
+  readonly bible?: Pick<BibleLookupSession, 'lookup'>;
 }
 
 /**
@@ -110,6 +113,18 @@ export class OpenServiceFeed {
       labels,
       revision: FIRST_REVISION,
       backgrounds,
+      ...(this.sources.bible === undefined
+        ? {}
+        : {
+            passages: await resolveServicePassages(
+              service.data.order,
+              this.sources.bible,
+              {
+                reportError: this.reportError,
+                isCurrent: () => this.canPublish(),
+              },
+            ),
+          }),
     });
   }
 }

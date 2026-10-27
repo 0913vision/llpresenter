@@ -127,8 +127,7 @@ function start(): void {
       });
       const disposeIpc = registerIpc(store, log, windowMode);
       const stopBible = registerBible({
-        folder: join(app.getPath('userData'), 'bible'),
-        settings: dataStore.settings,
+        session: dataStore.bible,
         log,
       });
       // NOTE(0913vision): Register the reader owner before the output source;

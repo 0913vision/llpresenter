@@ -22,6 +22,7 @@ import {
 } from '@shared/schema/showService';
 import type {Slide} from '@shared/schema/song';
 import {playbackGroupIds, playbackOrder} from '@shared/songOrder';
+import type {ServicePassages} from '../bible/servicePassages';
 
 export {SHOW_SERVICE_LIMITS} from '@shared/schema/showService';
 
@@ -37,6 +38,7 @@ export interface ShowServiceSources {
   readonly labels: readonly Label[];
   readonly revision: number;
   readonly backgrounds?: ReadonlyMap<string, MediaChoice>;
+  readonly passages?: ServicePassages;
 }
 
 export interface ProjectedSongTiles {
@@ -56,6 +58,7 @@ export function buildShowService({
   labels,
   revision,
   backgrounds = new Map(),
+  passages,
 }: ShowServiceSources): ShowService {
   const {id, name, order} = service.data;
   const colors = new Map(
@@ -77,7 +80,9 @@ export function buildShowService({
     }
   }
 
-  const rowSources: RowSources = {songs, backgrounds, cappedItems};
+  for (const [itemId, tiles] of passages?.tiles ?? [])
+    itemTiles[itemId] = tiles;
+  const rowSources: RowSources = {songs, backgrounds, cappedItems, passages};
   return {
     revision,
     id,
@@ -93,6 +98,7 @@ interface RowSources {
   readonly songs: SongLibrary;
   readonly backgrounds: ReadonlyMap<string, MediaChoice>;
   readonly cappedItems: ReadonlySet<string>;
+  readonly passages: ServicePassages | undefined;
 }
 
 function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
@@ -107,7 +113,14 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
     return {kind: 'slot', id, title: item.title, accepts: item.slot};
   }
   if (isItemOfKind(item, 'bible')) {
-    return {kind: 'bible', id, title: item.bible.ref};
+    return {
+      kind: 'bible',
+      id,
+      title: item.bible.ref,
+      ...(sources.passages?.unavailable.has(id)
+        ? {problem: 'missing-bible' as const}
+        : {}),
+    };
   }
   if (isItemOfKind(item, 'media')) {
     return {kind: 'media', id, title: ''};

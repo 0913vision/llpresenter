@@ -32,6 +32,7 @@ const slotIconByKind: Readonly<Record<SlotKind, string>> = {
 
 const problemTips: Readonly<Record<RowProblem, string>> = {
   'missing-song': '곡 파일을 찾을 수 없습니다.',
+  'missing-bible': '성경 구절 없음',
   'missing-background': '배경 파일을 찾을 수 없습니다.',
   'missing-media': '미디어 파일을 찾을 수 없습니다.',
   'unknown-kind': '이 버전에서 알 수 없는 항목입니다.',

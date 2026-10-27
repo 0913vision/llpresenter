@@ -25,6 +25,25 @@ function showService() {
 }
 
 describe('parseShowService', () => {
+  it('retains an unavailable saved Bible warning without accepting an unknown problem', () => {
+    const row = {
+      kind: 'bible',
+      id: 'passage',
+      title: 'Invented reference',
+      problem: 'missing-bible',
+    };
+    expect(parseShowService({...showService(), rows: [row]})).toMatchObject({
+      ok: true,
+      value: {rows: [row]},
+    });
+    expect(
+      parseShowService({
+        ...showService(),
+        rows: [{...row, problem: 'missing-anything'}],
+      }).ok,
+    ).toBe(false);
+  });
+
   it('accepts a service and no service', () => {
     expect(parseShowService(showService())).toEqual({
       ok: true,

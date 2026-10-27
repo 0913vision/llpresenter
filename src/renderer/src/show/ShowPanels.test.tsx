@@ -69,6 +69,26 @@ vi.mock('@renderer/ui/Icon', () => ({
 }));
 
 describe('ServiceOrderList', () => {
+  it('shows a missing Bible warning without sending output when selected', () => {
+    useShow.setState({
+      rows: [
+        {
+          kind: 'bible',
+          id: 'missing-passage',
+          title: '시편 1:1',
+          problem: 'missing-bible',
+        },
+      ],
+      tiles: {},
+    });
+    render(<ServiceOrderList />);
+    const row = screen.getByRole('option', {name: /시편 1:1/u});
+    fireEvent.click(row);
+    expect(useShow.getState().openItemId).toBe('missing-passage');
+    expect(within(row).getByLabelText('성경 구절 없음')).toBeTruthy();
+    expect(sent).toHaveLength(0);
+  });
+
   it('is a 진행 list, whose rows draw no keyboard focus outline', () => {
     render(<ServiceOrderList />);
     const list = screen.getByRole('listbox', {name: '예배 순서'});

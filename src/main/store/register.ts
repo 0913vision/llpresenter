@@ -1,3 +1,4 @@
+import {join} from 'node:path';
 import {app, ipcMain} from 'electron';
 import type {FileError} from '@shared/schema/fileFormat';
 import {Channels} from '@shared/ipc';
@@ -46,6 +47,7 @@ import {createLookSelection, type LookSelectionPort} from './lookSelection';
 import {registerServiceChannels} from './serviceChannels';
 import type {AppConfigFile} from './appConfigFile';
 import {registerLibrarySong, type LibrarySongSources} from './librarySong';
+import {BibleLookupSession} from '../bible/lookup';
 
 const MAX_LOGGED_PROBLEMS = 50;
 
@@ -72,6 +74,7 @@ export interface StoreRegistration {
 
 /** What the main process wiring uses of the data store. */
 export interface DataStore extends SettingsAccess, LookSelectionPort {
+  readonly bible: Pick<BibleLookupSession, 'lookup'>;
   readonly content: Promise<ContentStore | null>;
   readonly settings: Promise<SettingsReader | null>;
   readonly media: Promise<MediaStore | null>;
@@ -139,10 +142,25 @@ export function registerStore({
       return null;
     });
   const mediaChannels = registerMediaChannels(media, log);
+  let bible: BibleLookupSession | undefined;
+  let bibleClosed = false;
+  const openBible = (): BibleLookupSession =>
+    (bible ??= new BibleLookupSession({
+      folder: join(app.getPath('userData'), 'bible'),
+      settings,
+      log,
+    }));
+  const bibleReader: Pick<BibleLookupSession, 'lookup'> = {
+    lookup: request =>
+      bibleClosed
+        ? Promise.reject(new Error('Bible lookup is unavailable'))
+        : openBible().lookup(request),
+  };
   const opened = openContent(loading, log, {
     settings,
     media,
     failures: saveFailures,
+    bible: bibleReader,
   });
   const settingsChannels = registerSettingsChannels(
     settings,
@@ -215,6 +233,10 @@ export function registerStore({
     }
   });
   return {
+    get bible() {
+      if (!bibleClosed) openBible();
+      return bibleReader;
+    },
     content: contentOf(opened),
     settings,
     media,
@@ -240,6 +262,8 @@ export function registerStore({
       const ready = await opened;
       ready?.removeSettings();
       await ready?.feed.dispose();
+      bibleClosed = true;
+      bible?.dispose();
       try {
         await ready?.content.flush();
       } finally {
@@ -290,6 +314,7 @@ async function openContent(
     readonly settings: Promise<SettingsStore | null>;
     readonly media: Promise<MediaStore | null>;
     readonly failures: SaveFailureSink;
+    readonly bible: Pick<BibleLookupSession, 'lookup'>;
   },
 ): Promise<OpenedContent | null> {
   const store = await loading;
@@ -301,6 +326,7 @@ async function openContent(
       settings: await readers.settings,
       media: await readers.media,
       failures: readers.failures,
+      bible: readers.bible,
     });
   } catch (error: unknown) {
     log.error('could not open the songs and 예배 순서', error);
@@ -315,10 +341,12 @@ async function createContent(
     settings,
     media,
     failures,
+    bible,
   }: {
     readonly settings: SettingsStore | null;
     readonly media: MediaStore | null;
     readonly failures: SaveFailureSink;
+    readonly bible: Pick<BibleLookupSession, 'lookup'>;
   },
 ): Promise<OpenedContent> {
   const search = await buildSongSearchIndex(
@@ -377,17 +405,21 @@ async function createContent(
       },
       content,
       backgroundOf: library.backgroundOf,
+      bible,
     },
     service => broadcast(Channels.serviceChanged, service, log),
     error => log.error('could not refresh the open 예배 순서', error),
   );
   const removeSettingsListener =
     settings?.subscribe(document => {
-      if (document.name === 'labels') {
+      if (document.name === 'labels' || document.name === 'bible') {
         feed
           .refresh()
           .catch((error: unknown) =>
-            log.error('could not refresh labels in the open service', error),
+            log.error(
+              'could not refresh item sources in the open service',
+              error,
+            ),
           );
       }
     }) ?? (() => undefined);

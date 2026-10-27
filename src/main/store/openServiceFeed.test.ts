@@ -6,9 +6,15 @@ import type {OpenServiceSources} from './openServiceFeed';
 import {OpenServiceFeed} from './openServiceFeed';
 import type {StoredDocument} from './documents';
 import {service, SUNDAY_ID, HYMN_ONE_ID, hymnOne, itemId} from './testFiles';
+import {
+  parseBibleLookupRequest,
+  type BibleLookupReply,
+} from '@shared/schema/bibleLookup';
+import {createServiceItemId} from '@shared/schema/ids';
 
 async function setUp(
   backgroundOf: OpenServiceSources['backgroundOf'] = async () => null,
+  bible?: OpenServiceSources['bible'],
 ) {
   const parsed = parseService(
     JSON.stringify(service(SUNDAY_ID, '2026-11-01T11:00', [])),
@@ -31,7 +37,13 @@ async function setUp(
   const push = vi.fn();
   const report = vi.fn();
   const feed = new OpenServiceFeed(
-    {serviceId: SUNDAY_ID, labels: [], content, backgroundOf},
+    {
+      serviceId: SUNDAY_ID,
+      labels: [],
+      content,
+      backgroundOf,
+      ...(bible === undefined ? {} : {bible}),
+    },
     push,
     report,
   );
@@ -41,6 +53,67 @@ async function setUp(
 }
 
 describe('OpenServiceFeed', () => {
+  it('discards a superseded saved-passage read and publishes only the latest service content', async () => {
+    const request = parseBibleLookupRequest({
+      translation: 'sample',
+      input: '요한복음 3:16',
+    });
+    if (!request.ok) throw new Error('Invalid lookup fixture');
+    const answer: BibleLookupReply = {
+      ...request.value,
+      suggestions: [],
+      result: {
+        ok: true,
+        value: {
+          translation: request.value.translation,
+          ref: request.value.input,
+          displayRef: request.value.input,
+          verses: [{chapter: 3, verse: 16, text: 'Invented'}],
+        },
+      },
+    };
+    let finish: (reply: BibleLookupReply) => void = () => undefined;
+    const lookup = vi
+      .fn<NonNullable<OpenServiceSources['bible']>['lookup']>()
+      .mockReturnValueOnce(
+        new Promise(resolve => {
+          finish = resolve;
+        }),
+      );
+    const {feed, content, current, push} = await setUp(undefined, {lookup});
+    const item = {
+      id: createServiceItemId(itemId(60)),
+      bible: {
+        translation: request.value.translation,
+        ref: request.value.input,
+        split: 'verse' as const,
+        reference: 'every' as const,
+        verseNumbers: true,
+        translationName: false,
+      },
+    };
+    content.storedService.mockReturnValue({
+      ...current,
+      data: {...current.data, order: [item]},
+    });
+    const first = feed.refresh();
+    await vi.waitFor(() => expect(lookup).toHaveBeenCalledOnce());
+    content.storedService.mockReturnValue({
+      ...current,
+      data: {...current.data, name: 'Latest selection', order: []},
+    });
+    const latest = feed.refresh();
+    finish(answer);
+    await Promise.all([first, latest]);
+    expect(feed.current()).toMatchObject({
+      name: 'Latest selection',
+      rows: [],
+      tiles: {},
+    });
+    expect(push).toHaveBeenCalledOnce();
+    await feed.dispose();
+  });
+
   it('drains a refresh queued between flush completion and finalization before either caller resolves', async () => {
     let finish: (value: MediaChoice | null) => void = () => undefined;
     const check = new Promise<MediaChoice | null>(resolve => {

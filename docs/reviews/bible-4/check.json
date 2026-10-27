@@ -1,0 +1,57 @@
+{
+  "date": "2026-10-27T11:31:44.733Z",
+  "warmupCycles": 20,
+  "measuredCycles": 20,
+  "checks": [
+    "Saved per-verse passage has three usable tiles after selecting its service row",
+    "Twenty warmup and twenty measured song/Bible selection round trips preserve live output",
+    "Click first tile and ArrowRight output saved item identity with correct chapter/verse positions; stored verseNumbers=false honored",
+    "Missing installed book has warning and no tiles; selecting it preserves output",
+    "Two extra close/reopen cycles and existing numbered passage checked",
+    "Prep service row receives the resolved count of three; center grid and preview remain the next unit"
+  ],
+  "serviceId": "4e6b8a0c-2d4f-4b6a-9c8d-9e0f1a2b3c44",
+  "samples": [
+    {
+      "elements": 586,
+      "documents": 32,
+      "nodes": 1721,
+      "jsEventListeners": 425,
+      "usedSize": 6978964,
+      "totalSize": 7909376,
+      "embedderHeapUsedSize": 4956024,
+      "backingStorageSize": 1744719
+    },
+    {
+      "elements": 586,
+      "documents": 32,
+      "nodes": 1721,
+      "jsEventListeners": 425,
+      "usedSize": 7016728,
+      "totalSize": 7909376,
+      "embedderHeapUsedSize": 5005856,
+      "backingStorageSize": 1744719
+    },
+    {
+      "elements": 586,
+      "documents": 32,
+      "nodes": 1721,
+      "jsEventListeners": 425,
+      "usedSize": 7064260,
+      "totalSize": 7909376,
+      "embedderHeapUsedSize": 5050016,
+      "backingStorageSize": 1744719
+    }
+  ],
+  "firstOutput": {
+    "itemId": "00000000-0000-4000-8000-000000004201",
+    "position": 0,
+    "label": "3:16",
+    "lines": ["성경이 아닌 창작 점검 문장입니다. 3장 16절 위치를 확인합니다."],
+    "next": {
+      "label": "3:17",
+      "lines": ["성경이 아닌 창작 점검 문장입니다. 3장 17절 위치를 확인합니다."]
+    }
+  },
+  "finished": "2026-10-27T11:31:57.409Z"
+}

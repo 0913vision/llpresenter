@@ -1,6 +1,7 @@
 import {describe, expect, it, vi} from 'vitest';
 import {Channels} from '@shared/ipc';
 import {registerBible} from './register';
+import {BibleLookupSession} from './lookup';
 
 type Handler = (event: unknown, value: unknown) => Promise<unknown>;
 const handlers = vi.hoisted(() => new Map<string, Handler>());
@@ -20,11 +21,12 @@ describe('Bible IPC registration', () => {
       error: vi.fn(),
       flush: async () => undefined,
     };
-    const stop = registerBible({
+    const session = new BibleLookupSession({
       folder: 'unused',
       settings: Promise.resolve(null),
       log,
     });
+    const stop = registerBible({session, log});
     try {
       const handler = handlers.get(Channels.bibleLookup);
       if (handler === undefined) {
@@ -41,6 +43,7 @@ describe('Bible IPC registration', () => {
     } finally {
       stop();
       stop();
+      session.dispose();
     }
     expect(handlers.has(Channels.bibleLookup)).toBe(false);
   });
