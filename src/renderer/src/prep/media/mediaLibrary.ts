@@ -7,7 +7,7 @@ import type {
 } from '@shared/schema/mediaEdit';
 import type {MissingMedia} from '@shared/schema/mediaFiles';
 import {MEDIA_LIMITS} from '@shared/schema/mediaList';
-import {updateActiveCopies, type CopyJob} from '@renderer/show/mediaCopyJobs';
+import {updateActiveCopies, type CopyJob} from './mediaCopyJobs';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {chosenPlaylist, type ChosenPlaylist} from './mediaEntries';
 import type {MediaProps} from './mediaProps';

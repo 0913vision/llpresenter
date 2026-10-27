@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import type {MediaId} from '@shared/schema/ids';
 import type {MediaDocument} from '@shared/schema/mediaEdit';
-import type {CopyJob} from '@renderer/show/mediaCopyJobs';
+import type {CopyJob} from './mediaCopyJobs';
 import {
   ALL_MEDIA,
   chosenPlaylist,
