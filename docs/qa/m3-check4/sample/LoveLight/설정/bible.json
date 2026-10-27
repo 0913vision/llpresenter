@@ -1,0 +1,14 @@
+{
+  "format": "llsettings.bible",
+  "schemaVersion": 1,
+  "translations": [
+    {
+      "id": "sample",
+      "name": "점검용 창작문 (성경 아님)",
+      "lang": "한국어",
+      "file": "sample.llbible",
+      "default": true
+    }
+  ],
+  "recents": []
+}

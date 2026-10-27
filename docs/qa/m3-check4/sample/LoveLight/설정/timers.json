@@ -1,0 +1,12 @@
+{
+  "format": "llsettings.timers",
+  "schemaVersion": 1,
+  "timers": [
+    {
+      "id": "00000000-0000-4000-8000-000000000103",
+      "name": "점검 1분",
+      "kind": "countdown",
+      "duration": 60
+    }
+  ]
+}

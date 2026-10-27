@@ -1,0 +1,46 @@
+{
+  "format": "llsettings.labels",
+  "schemaVersion": 1,
+  "labels": [
+    {
+      "name": "1절",
+      "color": "teal",
+      "key": "Digit1"
+    },
+    {
+      "name": "2절",
+      "color": "teal",
+      "key": "Digit2"
+    },
+    {
+      "name": "3절",
+      "color": "teal",
+      "key": "Digit3"
+    },
+    {
+      "name": "프리코러스",
+      "color": "green",
+      "key": "KeyP"
+    },
+    {
+      "name": "후렴",
+      "color": "yellow",
+      "key": "KeyC"
+    },
+    {
+      "name": "브리지",
+      "color": "violet",
+      "key": "KeyB"
+    },
+    {
+      "name": "간주",
+      "color": "gray",
+      "key": "KeyI"
+    },
+    {
+      "name": "엔딩",
+      "color": "none",
+      "key": "KeyE"
+    }
+  ]
+}
