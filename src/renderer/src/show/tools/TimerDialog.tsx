@@ -21,22 +21,45 @@ const KINDS = [
   {value: 'elapsed', label: '경과'},
   {value: 'clock', label: '시계'},
 ] as const;
+const SECONDS_PER_MINUTE = 60;
+
+function initialDuration(initial: TimerConfiguration | undefined): number {
+  if (initial?.kind === 'countdown') return initial.duration;
+  if (initial?.kind === 'elapsed') return initial.start;
+  return 0;
+}
 
 export function TimerDialog({
+  initial,
   locked,
   onSave,
   onClose,
 }: {
+  readonly initial?: TimerConfiguration | undefined;
   readonly locked: boolean;
   readonly onSave: (fields: TimerConfiguration) => Promise<boolean>;
   readonly onClose: () => void;
 }): JSX.Element {
-  const [kind, setKind] = useState<TimerConfiguration['kind']>('countdown');
-  const [minutes, setMinutes] = useState('0');
-  const [seconds, setSeconds] = useState('0');
-  const [overrun, setOverrun] = useState(true);
-  const [date, setDate] = useState(() => localDateText(new Date()));
-  const [time, setTime] = useState('12:00');
+  const [kind, setKind] = useState<TimerConfiguration['kind']>(
+    initial?.kind ?? 'countdown',
+  );
+  const [minutes, setMinutes] = useState(() =>
+    String(Math.floor(initialDuration(initial) / SECONDS_PER_MINUTE)),
+  );
+  const [seconds, setSeconds] = useState(() =>
+    String(initialDuration(initial) % SECONDS_PER_MINUTE),
+  );
+  const [overrun, setOverrun] = useState(
+    initial?.kind === 'countdown' || initial?.kind === 'countdownTo'
+      ? initial.overrun
+      : true,
+  );
+  const [date, setDate] = useState(() =>
+    initial?.kind === 'countdownTo' ? initial.date : localDateText(new Date()),
+  );
+  const [time, setTime] = useState(
+    initial?.kind === 'countdownTo' ? initial.time : '12:00',
+  );
   const duration = parseTimerDuration(
     minutes,
     seconds,
@@ -81,11 +104,11 @@ export function TimerDialog({
   };
   return (
     <Dialog
-      title="타이머 추가"
+      title={initial ? '타이머 수정' : '타이머 추가'}
       size="s"
       onCancel={onClose}
       primary={{
-        label: '추가',
+        label: initial ? '저장' : '추가',
         disabled: locked || fields === undefined,
         title: reason,
         onSelect: save,
