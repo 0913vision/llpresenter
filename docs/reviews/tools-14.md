@@ -55,3 +55,10 @@ invented and no existing timer is converted. The general quick-row wording and
 table now defer to these kind rules. Checked against the shared formatter, quick
 action runner and main timer slice. Documentation only; no new runtime behavior
 or TSDoc comments.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 2 (046538cc): reviewer (Codex) Approve. Lead Approve through the lead's
+  merge check: the exact-head CI run passed, the branch rebased onto local
+  `main` without conflicts, and typecheck passes. Earlier rounds' findings and
+  replies are above.
