@@ -8,16 +8,27 @@ const BUNDLED_WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900];
 const BUNDLED_WEIGHT_MIN = 45;
 const BUNDLED_WEIGHT_MAX = 920;
 const BUNDLED_NAMES = ['pretendard', 'pretendard variable'];
-const normalize = (name: string): string => name.trim().toLowerCase();
+/** Normalizes family names for comparison without changing saved values. */
+export function normalizeFontName(name: string): string {
+  return name.trim().normalize('NFC').toLowerCase();
+}
+
+/** Identifies the bundled family by either supported name. */
+export function isBundledFont(name: string): boolean {
+  return BUNDLED_NAMES.includes(normalizeFontName(name));
+}
+
 const namesOf = (family: FontFamily): readonly string[] =>
-  [family.family, family.label, ...family.aliases].map(normalize);
+  [family.family, family.label, ...family.aliases].map(normalizeFontName);
 
 /** Matches localized names and aliases without rewriting the saved family. */
 export function installedFamily(
   font: string,
   families: FontCatalog,
 ): FontFamily | undefined {
-  return families.find(family => namesOf(family).includes(normalize(font)));
+  return families.find(family =>
+    namesOf(family).includes(normalizeFontName(font)),
+  );
 }
 
 /** Shows a fallback warning only after successful native enumeration. */
@@ -27,7 +38,7 @@ export function missingFontReason(
 ): string | undefined {
   if (
     state.status !== 'ready' ||
-    BUNDLED_NAMES.includes(normalize(font)) ||
+    isBundledFont(font) ||
     installedFamily(font, state.families) !== undefined
   ) {
     return undefined;
@@ -41,7 +52,7 @@ export function weightChoices(
   weight: number,
   state: FontCatalogState,
 ): ReadonlyArray<SelectOption<string>> {
-  if (state.status !== 'ready' && !BUNDLED_NAMES.includes(normalize(font))) {
+  if (state.status !== 'ready' && !isBundledFont(font)) {
     return [
       {
         value: String(weight),
@@ -55,7 +66,7 @@ export function weightChoices(
     ];
   }
   const family =
-    state.status === 'ready' && !BUNDLED_NAMES.includes(normalize(font))
+    state.status === 'ready' && !isBundledFont(font)
       ? installedFamily(font, state.families)
       : undefined;
   const weights = family?.weights ?? BUNDLED_WEIGHTS;
@@ -88,7 +99,7 @@ export function lookFontWarnings(
   ]);
   const missing = new Map(
     looks.lyricStyles
-      .filter(style => !available.has(normalize(style.font)))
+      .filter(style => !available.has(normalizeFontName(style.font)))
       .map(style => [
         style.id,
         `글꼴이 없어 Pretendard로 표시 중: ${style.font}`,

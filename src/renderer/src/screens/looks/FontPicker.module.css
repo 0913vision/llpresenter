@@ -1,0 +1,26 @@
+.picker {
+  width: var(--size-menu-max);
+}
+
+.viewport {
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-color: var(--line-strong) transparent;
+  scrollbar-width: thin;
+}
+
+.option {
+  position: absolute;
+  left: 0;
+  box-sizing: border-box;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+}
+
+.empty {
+  padding: var(--space-8);
+  color: var(--text-3);
+  font: var(--type-label);
+}

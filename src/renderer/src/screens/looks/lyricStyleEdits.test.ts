@@ -125,6 +125,45 @@ it('serializes rapid changes with list edits and waits for them during close', a
   ).toEqual([1, 2, 3]);
 });
 
+it('skips an unchanged font but preserves a queued return to it behind a held save', async () => {
+  const {document, style} = fixture();
+  let release: (result: EditResult) => void = () => undefined;
+  const held = new Promise<EditResult>(resolve => {
+    release = resolve;
+  });
+  const writes: SettingsEdit[] = [];
+  const api = fakeLlpApi({
+    settings: {
+      edit: edit => {
+        writes.push(edit);
+        return writes.length === 1
+          ? held
+          : Promise.resolve({ok: true, value: {id: 'looks', revision: 3}});
+      },
+    },
+  });
+  const editor = new LookListEditor(api, vi.fn(), () => ({
+    current: document.value.current,
+    macros: [],
+  }));
+  editor.adopt(document);
+  expect(
+    await editor.changeStyle({id: style.id, change: {font: style.font}}),
+  ).toBe(true);
+  expect(writes).toHaveLength(0);
+  const first = editor.changeStyle({
+    id: style.id,
+    change: {font: 'Fixture Sans'},
+  });
+  await vi.waitFor(() => expect(writes).toHaveLength(1));
+  const second = editor.changeStyle({id: style.id, change: {font: style.font}});
+  release({ok: true, value: {id: 'looks', revision: 2}});
+  expect(await first).toBe(true);
+  expect(await second).toBe(true);
+  expect(writes).toHaveLength(2);
+  expect(editor.getSnapshot()?.value.lyricStyles[0]?.font).toBe(style.font);
+});
+
 it('refuses shared style writes for a read-only document', async () => {
   const {document, style} = fixture();
   const edit = vi.fn();

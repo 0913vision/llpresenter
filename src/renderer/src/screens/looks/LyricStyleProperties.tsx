@@ -13,6 +13,7 @@ import {Switch} from '@renderer/ui/Switch';
 import {TextField} from '@renderer/ui/TextField';
 import {isComposing} from '@renderer/ui/ime';
 import type {LyricStyleEdit} from './lyricStyleEdits';
+import {FontPicker} from './FontPicker';
 import {missingFontReason, weightChoices} from './fontAvailability';
 import {useFontCatalog} from './useFontCatalog';
 import styles from './LyricStyles.module.css';
@@ -91,8 +92,6 @@ export function LyricStyleProperties({
   const fontProblem =
     missing ??
     (fonts.status === 'failed' ? '설치 글꼴을 불러올 수 없음' : undefined);
-  const fontReason =
-    [reason, fontProblem].filter(Boolean).join('\n') || undefined;
   const weights = weightChoices(style.font, style.weight, fonts);
   const weightReason =
     reason ??
@@ -103,21 +102,12 @@ export function LyricStyleProperties({
         <div>
           <PropertyRow label="글꼴">
             {({controlId}) => (
-              <SelectMenu
+              <FontPicker
                 id={controlId}
-                block
-                value={style.font}
-                options={[...new Set(['Pretendard', style.font])].map(font => ({
-                  value: font,
-                  label: font,
-                }))}
-                lead={
-                  fontProblem === undefined
-                    ? undefined
-                    : {kind: 'icon', icon: 'warning'}
-                }
-                disabled={reason !== undefined}
-                title={fontReason}
+                font={style.font}
+                state={fonts}
+                reason={reason}
+                problem={fontProblem}
                 onChange={font => change({font})}
               />
             )}

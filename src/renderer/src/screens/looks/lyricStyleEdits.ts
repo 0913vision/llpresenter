@@ -19,6 +19,9 @@ export function editLyricStyle(
   if (style === undefined) return undefined;
   const change = parseLyricTextStyle({...style, ...edit.change});
   if (change === undefined) return undefined;
+  if (JSON.stringify(change) === JSON.stringify(parseLyricTextStyle(style))) {
+    return file;
+  }
   return {
     ...file,
     lyricStyles: file.lyricStyles.map(style =>

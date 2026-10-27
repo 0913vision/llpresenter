@@ -64,6 +64,9 @@ function documentWithFont(font: string) {
 
 it('recognizes localized aliases, waits for enumeration and keeps bundled variable fonts available', () => {
   expect(installedFamily('  FIXTURE SANS ', ready.families)).toBe(family);
+  expect(installedFamily(family.label.normalize('NFD'), ready.families)).toBe(
+    family,
+  );
   expect(missingFontReason(family.label, ready)).toBeUndefined();
   expect(
     missingFontReason('Absent Fixture', {status: 'loading'}),
@@ -236,6 +239,6 @@ it('shows the missing-font reason and saves only an explicit replacement', async
   resetTooltips();
   vi.useRealTimers();
   fireEvent.click(screen.getByLabelText('글꼴'));
-  fireEvent.click(screen.getByRole('menuitemradio', {name: 'Pretendard'}));
+  fireEvent.click(screen.getByRole('option', {name: 'Pretendard'}));
   expect(change).toHaveBeenCalledExactlyOnceWith({font: 'Pretendard'});
 });
