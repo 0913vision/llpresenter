@@ -39,6 +39,7 @@ import {ITEM_PANEL_LABEL, OtherItemPanel} from './OtherItemPanel';
 import type {ServiceItemStore} from './serviceItemStore';
 import {isV1SongDocument, shownPosition} from './songItemModel';
 import styles from './SongItemPanel.module.css';
+import {BibleItemPanel} from './BibleItemPanel';
 
 /**
  * The center panel of 준비 for the item selected in the 예배 순서. It shows
@@ -60,7 +61,22 @@ export function ServiceItemPanel({
       serviceId === null || itemId === null ? null : {serviceId, itemId},
     );
   }, [items, serviceId, itemId]);
-  const {item, song} = useSyncExternalStore(items.subscribe, items.getSnapshot);
+  const {item, song, position, service} = useSyncExternalStore(
+    items.subscribe,
+    items.getSnapshot,
+  );
+  if (item !== null && isItemOfKind(item, 'bible') && service !== null) {
+    return (
+      <BibleItemPanel
+        key={`${service.service.id}:${item.id}`}
+        item={item}
+        serviceId={service.service.id}
+        position={position}
+        onSelect={index => items.selectPosition(index)}
+        sizeClass={sizeClass}
+      />
+    );
+  }
   if (item === null || !isItemOfKind(item, 'song') || song === null) {
     return <OtherItemPanel item={item} sizeClass={sizeClass} />;
   }

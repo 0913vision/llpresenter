@@ -1,0 +1,46 @@
+{
+  "date": "2026-10-27T11:51:30.521Z",
+  "warmupCycles": 40,
+  "measuredCycles": 20,
+  "checks": [
+    "Saved Bible row opens three Prep tiles and a locally rendered first verse",
+    "Wheel scroll a longer saved Bible then switch to another: first tile is visible and clickable",
+    "Forty warmup and twenty measured tile and song/Bible switches retain stable element/listener counts",
+    "Mouse and physical Home/ArrowRight change local selection/caption only",
+    "Broadcast target preview works; missing book clears both grid and preview",
+    "Two extra close/reopen cycles; no output or service edits"
+  ],
+  "samples": [
+    {
+      "elements": 400,
+      "documents": 25,
+      "nodes": 909,
+      "jsEventListeners": 382,
+      "usedSize": 7033660,
+      "totalSize": 8171520,
+      "embedderHeapUsedSize": 4071096,
+      "backingStorageSize": 1747685
+    },
+    {
+      "elements": 400,
+      "documents": 25,
+      "nodes": 909,
+      "jsEventListeners": 382,
+      "usedSize": 7201120,
+      "totalSize": 8433664,
+      "embedderHeapUsedSize": 3852704,
+      "backingStorageSize": 1747685
+    },
+    {
+      "elements": 400,
+      "documents": 25,
+      "nodes": 909,
+      "jsEventListeners": 382,
+      "usedSize": 7241864,
+      "totalSize": 8433664,
+      "embedderHeapUsedSize": 3842888,
+      "backingStorageSize": 1747685
+    }
+  ],
+  "finished": "2026-10-27T11:52:15.838Z"
+}

@@ -83,7 +83,7 @@ function NoticePanel({
 
 /**
  * The center panel of 준비 for an item that is not a song: the 공지 images, a
- * header for a Bible passage or a media file, or an empty panel.
+ * header for a media file, or an empty panel.
  */
 export function OtherItemPanel({
   item,
@@ -94,17 +94,6 @@ export function OtherItemPanel({
 }): JSX.Element {
   if (item !== null && isItemOfKind(item, 'notice')) {
     return <NoticePanel setId={item.notice} sizeClass={sizeClass} />;
-  }
-  if (item !== null && isItemOfKind(item, 'bible')) {
-    // TODO(0913vision): Show the Bible panel of 진행 without the output buttons
-    // (spec 05, 예배 순서 panel in 준비).
-    return (
-      <Panel label={ITEM_PANEL_LABEL} className={styles.panel}>
-        <PanelHeader>
-          <PanelTitle title={item.bible.ref} />
-        </PanelHeader>
-      </Panel>
-    );
   }
   if (item !== null && isItemOfKind(item, 'media')) {
     return <MediaItemPanel mediaId={item.media} />;

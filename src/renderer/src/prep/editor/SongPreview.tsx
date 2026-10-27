@@ -13,6 +13,7 @@ import type {LlpApi} from '@shared/ipc';
 import {mediaUrl} from '@shared/media';
 import {emptyLayers} from '@shared/live';
 import type {Label} from '@shared/schema/labels';
+import type {ShowTile} from '@shared/schema/showService';
 import type {SettingsDocument} from '@shared/schema/settingsDocuments';
 import {isGroupedSong, type AnySong} from '@shared/schema/groupedSong';
 import {linearBlockAddress, linearSlidesOf, slideCountOf} from './blockEdits';
@@ -126,18 +127,26 @@ export interface SongPicture {
   readonly total: number;
 }
 
+/** A projected service tile with its local selection position. */
+export interface TilePicture {
+  readonly itemId: string;
+  readonly tile: ShowTile;
+  readonly position: number;
+  readonly total: number;
+}
+
 /**
  * The 준비 미리보기 panel: a local picture with the current Look's styling,
  * never live layers, or an empty panel without a picture.
  */
-export function SongPreviewFrame({
+export function ContentPreviewFrame({
   settings,
   labels,
   picture,
 }: {
   readonly settings: LlpApi['settings'];
   readonly labels: readonly Label[];
-  readonly picture: SongPicture | null;
+  readonly picture: SongPicture | TilePicture | null;
 }): JSX.Element {
   const [role, setRole] = useState<PreviewRole>('main');
   const documents = usePreviewSettings(settings);
@@ -145,19 +154,35 @@ export function SongPreviewFrame({
     () => previewAppearance(role, documents.looks, documents.screens),
     [role, documents.looks, documents.screens],
   );
-  const song = picture?.song;
-  const block = picture?.block ?? 0;
-  const background = picture?.background;
+  const songPicture =
+    picture !== null && 'song' in picture ? picture : undefined;
+  const tilePicture =
+    picture !== null && 'tile' in picture ? picture : undefined;
+  const song = songPicture?.song;
+  const block = songPicture?.block ?? 0;
+  const background = songPicture?.background;
   const layers = useMemo(
     () =>
-      song === undefined
-        ? emptyLayers()
-        : selectedPreview(
-            song,
-            {block, background},
-            {slide: appearance.slide, media: appearance.media},
-          ),
-    [song, block, background, appearance.slide, appearance.media],
+      tilePicture !== undefined
+        ? {
+            ...emptyLayers(),
+            slide: appearance.slide
+              ? {
+                  itemId: tilePicture.itemId,
+                  position: tilePicture.position - 1,
+                  label: tilePicture.tile.label,
+                  lines: tilePicture.tile.lines,
+                }
+              : null,
+          }
+        : song === undefined
+          ? emptyLayers()
+          : selectedPreview(
+              song,
+              {block, background},
+              {slide: appearance.slide, media: appearance.media},
+            ),
+    [song, block, background, tilePicture, appearance.slide, appearance.media],
   );
   if (picture === null) {
     return (
@@ -169,22 +194,31 @@ export function SongPreviewFrame({
     );
   }
   const {position, total} = picture;
-  const slides = isGroupedSong(picture.song)
-    ? linearSlidesOf(picture.song)
-    : picture.song.slides;
+  const slides =
+    song === undefined
+      ? []
+      : isGroupedSong(song)
+        ? linearSlidesOf(song)
+        : song.slides;
   const slide = slides[block];
-  const addr = isGroupedSong(picture.song)
-    ? linearBlockAddress(picture.song, block)
-    : undefined;
+  const addr =
+    song !== undefined && isGroupedSong(song)
+      ? linearBlockAddress(song, block)
+      : undefined;
   const labelName =
-    addr !== undefined
-      ? addr.groupName === ''
-        ? undefined
-        : addr.groupName
-      : slide?.label === ''
-        ? undefined
-        : slide?.label;
-  const color = labels.find(label => label.name === labelName)?.color ?? 'none';
+    tilePicture !== undefined
+      ? (tilePicture.tile.label ?? undefined)
+      : addr !== undefined
+        ? addr.groupName === ''
+          ? undefined
+          : addr.groupName
+        : slide?.label === ''
+          ? undefined
+          : slide?.label;
+  const color =
+    tilePicture?.tile.labelColor ??
+    labels.find(label => label.name === labelName)?.color ??
+    'none';
   return (
     <Panel label="미리보기">
       <PanelHeader>
@@ -217,6 +251,8 @@ export function SongPreviewFrame({
   );
 }
 
+export {ContentPreviewFrame as SongPreviewFrame};
+
 /** The editor's preview: the selected block of the open song. */
 export function SongPreviewPanel({
   store,
@@ -227,7 +263,7 @@ export function SongPreviewPanel({
   const session = state.session;
   const snapshot = session?.history.snapshot;
   return (
-    <SongPreviewFrame
+    <ContentPreviewFrame
       settings={store.api.settings}
       labels={state.labels?.value.labels ?? []}
       picture={

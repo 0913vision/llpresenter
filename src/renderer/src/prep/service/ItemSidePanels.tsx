@@ -17,7 +17,9 @@ import {
   type ServiceItemStore,
   type StartItem,
 } from './serviceItemStore';
-import {isV1SongDocument, itemPicture} from './songItemModel';
+import {isV1SongDocument, itemPicture, shownPosition} from './songItemModel';
+import {useShow} from '@renderer/state/show';
+import {savedPassageTiles} from './bibleItemModel';
 
 const SETTINGS_TAB = [{value: 'settings', label: '항목 설정'}] as const;
 const SAVING_REASON = '저장 중';
@@ -29,22 +31,36 @@ interface ItemPanelProps {
 
 /** The selected place of the 준비 item, drawn locally; never the output. */
 export function ItemPreviewPanel({items, editor}: ItemPanelProps): JSX.Element {
-  const {item, song, arrangement, position} = useSyncExternalStore(
+  const {service, item, song, arrangement, position} = useSyncExternalStore(
     items.subscribe,
     items.getSnapshot,
   );
+  const tiles = useShow(view =>
+    savedPassageTiles(
+      view,
+      service?.service.id,
+      item !== null && isItemOfKind(item, 'bible') ? item.id : undefined,
+    ),
+  );
+  const at = shownPosition(position, tiles.length);
+  const tile = at === undefined ? undefined : tiles[at];
   const labels =
     useSyncExternalStore(editor.subscribe, editor.getSnapshot).labels?.value
       .labels ?? [];
   const picture =
-    item === null || !isItemOfKind(item, 'song') || song === null
-      ? null
-      : itemPicture({
-          song: song.history.snapshot.song,
-          arrangement,
-          position,
-          background: item.background ?? song.background,
-        });
+    item !== null &&
+    isItemOfKind(item, 'bible') &&
+    tile !== undefined &&
+    at !== undefined
+      ? {itemId: item.id, tile, position: at + 1, total: tiles.length}
+      : item === null || !isItemOfKind(item, 'song') || song === null
+        ? null
+        : itemPicture({
+            song: song.history.snapshot.song,
+            arrangement,
+            position,
+            background: item.background ?? song.background,
+          });
   return (
     <SongPreviewFrame
       settings={editor.api.settings}

@@ -14,7 +14,6 @@ import {
   createServiceItemId,
   noticeSetIdSchema,
   screenIdSchema,
-  translationIdSchema,
   type MediaId,
 } from '@shared/schema/ids';
 import {
@@ -393,22 +392,6 @@ describe('the center panel of other item kinds', () => {
     unmount();
     expect(fixture.listeners.document.size).toBe(0);
     expect(fixture.noticesListeners.size).toBe(0);
-  });
-
-  it('shows the passage of a Bible item in the header', () => {
-    show({
-      id: itemId,
-      bible: {
-        translation: v.parse(translationIdSchema, 'krv'),
-        ref: '요한복음 3:16',
-        split: 'verse',
-        reference: 'every',
-        verseNumbers: true,
-        translationName: false,
-      },
-    });
-    expect(screen.getByText('요한복음 3:16')).toBeDefined();
-    expect(screen.queryAllByRole('option')).toHaveLength(0);
   });
 
   it('shows the name of a media item in the header', async () => {
