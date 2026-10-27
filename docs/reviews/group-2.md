@@ -196,3 +196,13 @@ missing.
    `showService.test.ts`.
 
 ## Verdicts (recorded by the lead at merge)
+
+## Verdicts (recorded by the lead at merge)
+
+- Final round (cc42a190): first-pass reviewer (Gemini Flash) and final reviewer
+  (Claude Sonnet) Approve. Lead Approve; the lead read the projection diff in
+  the sensitive src/main/store path (the tile cap is now checked before each
+  tile) and kept the final reviewer's three nits for the next branch. The
+  exact-head CI run passed, checked by the lead at merge. Rebased by the lead
+  onto local `main` without conflicts; typecheck passes. Earlier rounds'
+  findings and replies are above.
