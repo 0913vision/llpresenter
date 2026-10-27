@@ -12,6 +12,7 @@ import {LabelMenu} from './LabelMenu';
 import {SongBlock, type EditorFocus} from './SongBlock';
 import {SongHeader} from './SongHeader';
 import {ArrangementRow} from './ArrangementRow';
+import {SlideHotKeyControl} from './SlideHotKeyControl';
 import type {SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';
 import styles from './SongEditor.module.css';
@@ -40,6 +41,7 @@ export function SongEditor({
             onImportedSave={onImportedSave}
           />
           <ArrangementRow store={store} session={state.session} />
+          <SlideHotKeyControl session={state.session} busy={state.busy} />
           <SongBlocks store={store} session={state.session} />
         </div>
       )}
