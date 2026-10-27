@@ -5,7 +5,7 @@ import type {SettingsReader} from '../store/settingsStore';
 import type {Logger} from '../log';
 import {MissingLiveTargetError} from '../live/commandErrors';
 import type {ScreenSettingsPort} from '../live/slice';
-import {outputStateKeys} from './identity';
+import {outputStateKeys} from '@shared/screens';
 import type {OutputScreen, ScreenSource} from './screens';
 
 export interface SettingsScreens extends ScreenSource, ScreenSettingsPort {

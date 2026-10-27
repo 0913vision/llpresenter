@@ -1,6 +1,10 @@
 import {describe, expect, it} from 'vitest';
 import {parseScreens, type Screen} from './schema/screens';
-import {resolveOutputScreen, STARTER_SCREEN_IDS} from './screens';
+import {
+  outputStateKeys,
+  resolveOutputScreen,
+  STARTER_SCREEN_IDS,
+} from './screens';
 
 function configuredScreens(screens: readonly object[]): readonly Screen[] {
   const parsed = parseScreens(
@@ -33,6 +37,34 @@ function starters(): readonly Screen[] {
     },
   ]);
 }
+
+describe('outputStateKeys', () => {
+  it.each(['main', 'broadcast', 'stage'] as const)(
+    'returns canonical-first state keys for the %s role and its UUID',
+    role => {
+      const id = STARTER_SCREEN_IDS[role];
+      const expected =
+        role === 'broadcast' ? [id, role, 'captions'] : [id, role];
+      expect(outputStateKeys(role)).toEqual(expected);
+      expect(outputStateKeys(id)).toEqual(expected);
+    },
+  );
+
+  it('maps the legacy captions key to the same broadcast output', () => {
+    expect(outputStateKeys('captions')).toEqual([
+      STARTER_SCREEN_IDS.broadcast,
+      'broadcast',
+      'captions',
+    ]);
+  });
+
+  it.each(['11111111-1111-4111-8111-111111111111', 'unknown', 'Main', ''])(
+    'retains the exact custom or unrecognized state key %j',
+    id => {
+      expect(outputStateKeys(id)).toEqual([id]);
+    },
+  );
+});
 
 describe('resolveOutputScreen', () => {
   it('resolves starter roles and the legacy captions alias to their UUIDs', () => {

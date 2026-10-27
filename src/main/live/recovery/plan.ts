@@ -15,7 +15,7 @@ import type {ServiceId} from '@shared/schema/ids';
 import type {Song} from '@shared/schema/song';
 import type {SettingsReader} from '../../store/settingsStore';
 import {songTiles} from '../../store/showService';
-import {outputStateKeys} from '../../outputs/identity';
+import {outputStateKeys} from '@shared/screens';
 import {savedScreens, switchableScreens} from '../../outputs/savedScreens';
 
 const MILLISECONDS_PER_SECOND = 1000;
