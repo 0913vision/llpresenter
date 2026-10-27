@@ -321,6 +321,54 @@ describe('shared Bible reference form', () => {
     expect(view.end.value).toBe('');
   });
 
+  it('does not submit an old passage when returning to it during a new lookup', async () => {
+    const view = setup();
+    enterPassage(view);
+    await waitFor(() => expect(view.onPreview).toHaveBeenCalled());
+    let finish: (reply: BibleLookupReply) => void = () => undefined;
+    let finishReturn: (reply: BibleLookupReply) => void = () => undefined;
+    view.lookup
+      .mockImplementationOnce(
+        () =>
+          new Promise(resolve => {
+            finish = resolve;
+          }),
+      )
+      .mockImplementationOnce(
+        () =>
+          new Promise(resolve => {
+            finishReturn = resolve;
+          }),
+      );
+    fireEvent.change(view.start, {target: {value: '17'}});
+    await waitFor(() =>
+      expect(view.lookup).toHaveBeenLastCalledWith(
+        lookupRequest('요한복음 3:17'),
+      ),
+    );
+    fireEvent.change(view.start, {target: {value: '16'}});
+    fireEvent.keyDown(view.start, {key: 'Enter'});
+    expect(view.onSubmit).not.toHaveBeenCalled();
+    await act(async () =>
+      finish(await formLookupReply(lookupRequest('요한복음 3:17'))),
+    );
+    await waitFor(() =>
+      expect(view.lookup).toHaveBeenLastCalledWith(
+        lookupRequest('요한복음 3:16'),
+      ),
+    );
+    fireEvent.keyDown(view.start, {key: 'Enter'});
+    expect(view.onSubmit).not.toHaveBeenCalled();
+    await act(async () =>
+      finishReturn(await formLookupReply(lookupRequest('요한복음 3:16'))),
+    );
+    await waitFor(() => expect(view.onPreview).toHaveBeenCalledTimes(2));
+    fireEvent.keyDown(view.start, {key: 'Enter'});
+    expect(view.onSubmit).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ref: '요한복음 3:16'}),
+    );
+  });
+
   it('cannot use old bounds or a passage while a different translation is pending', async () => {
     const view = setup();
     enterPassage(view);

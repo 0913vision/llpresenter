@@ -19,6 +19,11 @@ export function useBibleLookup({
   readonly onPreview: (passage: BibleLookupPassage) => void;
 }) {
   const [reply, setReply] = useState<BibleLookupReply | null>(null);
+  const [key, setKey] = useState({input, translation});
+  if (key.input !== input || key.translation !== translation) {
+    setKey({input, translation});
+    setReply(null);
+  }
   const reader = useRef<LatestLookup | null>(null);
   const accept = useEffectEvent((answer: BibleLookupReply) => {
     if (answer.input !== input || answer.translation !== translation) return;
@@ -57,7 +62,10 @@ export function useBibleLookup({
       translation === undefined ? null : {input, translation},
     );
   }, [api, input, translation]);
-  return reply?.input === input && reply.translation === translation
+  return key.input === input &&
+    key.translation === translation &&
+    reply?.input === input &&
+    reply.translation === translation
     ? reply
     : null;
 }
