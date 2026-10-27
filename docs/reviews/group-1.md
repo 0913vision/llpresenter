@@ -96,43 +96,12 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead (round 3)
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: Request changes
-- Findings:
-
-  1. docs/plans/grouped-songs.md:288-300 The reply says
-     src/shared/schema/showService.ts was added to the group-2 Paths changed,
-     but the list does not contain it. The file has no SHOW_SERVICE_LIMITS. Line
-     92 is an uncapped v.record(..., v.array(showTileSchema)), and only
-     SHOW_LIBRARY_SONG_LIMITS.tiles exists, in showLibrarySong.ts:10. Section
-     3.4 (line 115) also wrongly says the schema file "defines
-     SHOW_SERVICE_LIMITS.tiles". Fix: state that the cap is a new constant.
-     Define it, and the array maxLength in showServiceSchema, in
-     src/shared/schema/showService.ts, not in src/main/store/showService.ts
-     (line 255). Add the file and its test showService.test.ts to the Paths
-     changed. Tag it as an additive contract change, since the schema is shared.
-     Without the schema cap, the service tile cap is unvalidated at the
-     boundary.
-  2. docs/plans/grouped-songs.md:258-262 The cap path reports unknown-kind on a
-     ShowRow, and the same path reports newer-version on a ShowLibrarySong.
-     These are inconsistent for one cause. A row that is over the cap shows the
-     "unknown item" tooltip, which tells the operator nothing useful. The reuse
-     is acceptable for staging, but add a TODO(0913vision) to switch to a
-     dedicated problem in group-7, plus a test that the row is flagged at 10,001
-     tiles. As written, the "decision" is not testable.
-  3. docs/plans/grouped-songs.md:266-272 The hotkey dispatch is underspecified.
-     Say what happens when the key is pressed with no open item, when modifier
-     keys are held, and when focus is in a text input (it must not fire). Also
-     state that event.repeat is ignored so a held key does not re-output. Add
-     these as named tests in shortcuts.test.ts.
-  4. Nit: docs/plans/grouped-songs.md:301-304 "flat element count over 10
-     repeated triggers" is fine, but also name which element count is measured
-     (for example the thumbnail DOM node count in the 진행 grid).
-
-## Review: reviewer (round 3)
-
-- Verdict: Request changes (same as lead)
+- Round 4 (dfcfbb9b): reviewer (Codex) Approve. Lead Approve through the lead's
+  merge check: the exact-head CI run passed, the branch rebased onto local
+  `main` without conflicts, and typecheck passes. Earlier rounds' findings and
+  replies are above.
 
 ## Team member's reply (round 4)
 
