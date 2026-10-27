@@ -90,6 +90,26 @@ claimed as ProPresenter behavior.
   5,568,552 to 5,834,776 bytes and 5,554,408 to 5,834,236 bytes. The round 2
   screenshots above show this final restacked build.
 
+### Round 3 restack and app check
+
+- Restacked on output-54 round 4. The unchanged-notice resume regression and its
+  reply below remain in this range. All 105 focused tests in eight files,
+  typecheck and build pass. CI pending for this head.
+- The rebuilt app completed two offscreen launches with 25 cycles each,
+  including notice pause/resume between clear and restore, new-slide reset,
+  button restore and F1 restoring lyrics and background. Five targets and 533
+  elements remain constant; CDP nodes remain at 1,654. Listeners decrease from
+  422 to 417. Collected heaps at iterations 5/25 are 5,930,396/6,279,136 and
+  5,905,444/6,273,616 bytes. Both launches quit normally.
+- A preliminary second launch exceeded the 30-second child-exit observation
+  bound after the outputs stopped. The diagnostic launcher now records main quit
+  events and completes the inspector disconnect handshake before closing the
+  control window. The complete two-launch check above then passed; no product
+  shutdown timeout or retry was added.
+- Screenshots:
+  [restored after notice resume](evidence/output-55-round3/restored-run1.png),
+  [second launch](evidence/output-55-round3/restored-run2.png).
+
 ## Review: lead
 
 - Verdict: pending
