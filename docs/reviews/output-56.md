@@ -169,13 +169,14 @@ action fields of the planned macro editor. Neither editing screen exists in the
 current renderer. This request stores and renders their choices through the
 existing settings documents; it does not introduce either editor.
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: pending
-
-## Review: reviewer
-
-- Verdict: pending
+- Final round (8645413f): reviewer (Codex) and second reviewer (Gemini Argon)
+  Approve. Lead Approve; the second reviewer (Gemini Argon) checked the clear
+  fades in the live state, output windows and macros for the lead and found no
+  output-path risk. The exact-head CI run passed, checked by the lead at merge.
+  Rebased by the lead onto local `main` without conflicts; typecheck passes.
+  Earlier rounds' findings and replies are above.
 
 ## Team member's reply
 
