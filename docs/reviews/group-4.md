@@ -256,3 +256,14 @@ CDP port 9514) using `D:\llp-dev\group\verify-group-4-cdp.mjs`:
 - `npm run format:check` (Prettier code style passed)
 - `git diff --check` (passed with 0 output)
 - `npm run build` (electron-vite build production passed)
+
+## Verdicts (recorded by the lead at merge)
+
+- Final round (72f3e36d): first-pass reviewer (Gemini Flash) and final reviewer
+  (Claude Sonnet) Approve. Lead Approve; the lead read the store and shared diff
+  (the empty named arrangement now stays empty in the editor while playback and
+  진행 still fall back to file order, and the TODO lines are wrapped) and kept
+  the final reviewer's four nits for the next branch, the duplicated fallback
+  first. The exact-head CI run passed, checked by the lead at merge. Rebased by
+  the lead onto local `main` without conflicts; typecheck passes. Earlier
+  rounds' findings and replies are above.
