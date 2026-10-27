@@ -213,12 +213,3 @@ existing settings documents; it does not introduce either editor.
    than the shrinking logical list. The regression clears A then B from
    `[A, B, C]`, checks stable order and separate gains, and verifies each clear
    finishes at its own deadline while C remains visible.
-
-## Verdicts (recorded by the lead at merge)
-
-- Final round (69a8ae99): reviewer (Codex) and second reviewer (Gemini Argon)
-  Approve. Lead Approve; the second reviewer (Gemini Argon) checked the clear
-  fades in the live state, output windows and macros for the lead and found no
-  output-path risk. The exact-head CI run passed, checked by the lead at merge.
-  Rebased by the lead onto local `main` without conflicts; typecheck passes.
-  Earlier rounds' findings and replies are above.
