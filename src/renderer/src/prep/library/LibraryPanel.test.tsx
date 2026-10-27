@@ -226,6 +226,72 @@ describe('library panel', () => {
     expect(document.activeElement).not.toBe(input);
   });
 
+  it('finds matching songs after the first 200 results', async () => {
+    const fixture = libraryFixture(
+      Array.from({length: 205}, (_, index) =>
+        fixtureSong(index + 1, `Invented song ${index + 1}`),
+      ),
+    );
+    const search = vi.spyOn(fixture.api.library, 'search');
+    const {onOpenSong} = await setup(fixture);
+    fireEvent.change(screen.getByRole('textbox', {name: '라이브러리 검색'}), {
+      target: {value: 'Invented'},
+    });
+    await waitFor(() =>
+      expect(search).toHaveBeenCalledWith({
+        query: 'Invented',
+        limit: LIBRARY_SEARCH_LIMITS.max,
+        offset: 200,
+      }),
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByRole('option', {name: 'Invented song 1'}),
+      ).toBeDefined(),
+    );
+    fireEvent.keyDown(screen.getByRole('listbox', {name: '라이브러리 곡'}), {
+      key: 'End',
+    });
+    await waitFor(() =>
+      expect(onOpenSong).toHaveBeenCalledWith({
+        document: fixtureSong(205, 'Invented song 205'),
+        focusTitle: false,
+      }),
+    );
+  });
+
+  it('ignores a later page when the search changes before it arrives', async () => {
+    const fixture = libraryFixture(
+      Array.from({length: 205}, (_, index) =>
+        fixtureSong(index + 1, `Invented song ${index + 1}`),
+      ),
+    );
+    const original = fixture.api.library.search;
+    let resolvePage: ((result: LibrarySearchResult) => void) | undefined;
+    vi.spyOn(fixture.api.library, 'search').mockImplementation(request =>
+      request.offset === 200
+        ? new Promise(resolve => {
+            resolvePage = resolve;
+          })
+        : original(request),
+    );
+    await setup(fixture);
+    const input = screen.getByRole('textbox', {name: '라이브러리 검색'});
+    fireEvent.change(input, {target: {value: 'Invented'}});
+    await waitFor(() => expect(resolvePage).toBeDefined());
+    fireEvent.change(input, {target: {value: 'Invented song 205'}});
+    await waitFor(() =>
+      expect(
+        screen.getByRole('option', {name: 'Invented song 205'}),
+      ).toBeDefined(),
+    );
+    await act(async () => resolvePage?.({query: 'Invented', matches: []}));
+    expect(screen.getAllByRole('option')).toHaveLength(1);
+    expect(
+      screen.getByRole('option', {name: 'Invented song 205'}),
+    ).toBeDefined();
+  });
+
   it('ignores stale search responses and a response received after Esc clears', async () => {
     const fixture = libraryFixture();
     const pending = new Map<string, (result: LibrarySearchResult) => void>();

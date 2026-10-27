@@ -155,6 +155,23 @@ describe('SongSearchIndex', () => {
     ).toEqual([first.id, second.id]);
   });
 
+  it('pages matching titles and lyrics in the same order as a single search', async () => {
+    const index = await buildSongSearchIndex([
+      song(1, 'Alpha', ['matching line']),
+      song(2, 'Matching title'),
+      song(3, 'Zulu', ['matching words']),
+      song(4, 'No match'),
+    ]);
+    const all = index.search({query: 'matching'}).matches;
+    expect(index.search({query: 'matching', limit: 2}).matches).toEqual(
+      all.slice(0, 2),
+    );
+    expect(
+      index.search({query: 'matching', offset: 2, limit: 2}).matches,
+    ).toEqual(all.slice(2));
+    expect(index.search({query: 'matching', offset: 10}).matches).toEqual([]);
+  });
+
   it.each(['song', 'refrain', ''])(
     'uses the shared default and maximum for query %j',
     async query => {

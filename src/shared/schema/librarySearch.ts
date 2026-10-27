@@ -8,6 +8,9 @@ export const LIBRARY_SEARCH_LIMITS = {default: 50, max: 200} as const;
 
 const librarySearchRequestSchema = payloadObject({
   query: v.string(),
+  offset: v.exactOptional(
+    v.pipe(nonNegativeInteger, v.maxValue(Number.MAX_SAFE_INTEGER)),
+  ),
   limit: v.exactOptional(
     v.pipe(positiveInteger, v.maxValue(LIBRARY_SEARCH_LIMITS.max)),
     LIBRARY_SEARCH_LIMITS.default,

@@ -88,6 +88,7 @@ export class SongSearchIndex {
 
   search({
     query,
+    offset = 0,
     limit = LIBRARY_SEARCH_LIMITS.default,
   }: LibrarySearchRequest): LibrarySearchResult {
     const normalized = normalizeSearch(query);
@@ -95,25 +96,26 @@ export class SongSearchIndex {
     const maximum = Math.min(limit, LIBRARY_SEARCH_LIMITS.max);
     const initials = isInitialQuery(normalized);
     const results: LibrarySearchMatch[] = [];
+    let skipped = 0;
     for (const song of this.ordered) {
       const summary = {
         songId: song.songId,
         title: song.title.original,
         slideCount: song.slideCount,
       };
+      let match: LibrarySearchMatch['match'] | undefined;
       if (matches(song.title, normalized, initials)) {
-        results.push({...summary, match: {kind: 'title'}});
+        match = {kind: 'title'};
       } else {
         const line = song.lines.find(line =>
           matches(line, normalized, initials),
         );
         if (line !== undefined) {
-          results.push({
-            ...summary,
-            match: {kind: 'lyrics', line: line.original},
-          });
+          match = {kind: 'lyrics', line: line.original};
         }
       }
+      if (match === undefined || skipped++ < offset) continue;
+      results.push({...summary, match});
       if (results.length === maximum) break;
     }
     return {query, matches: results};

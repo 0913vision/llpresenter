@@ -100,7 +100,7 @@ export function libraryFixture(
       },
     },
     library: {
-      search: ({query, limit = LIBRARY_SEARCH_LIMITS.default}) =>
+      search: ({query, offset = 0, limit = LIBRARY_SEARCH_LIMITS.default}) =>
         Promise.resolve({
           query,
           matches: list()
@@ -109,7 +109,7 @@ export function libraryFixture(
                 ? song.title === '만복의 근원 하나님'
                 : song.title.toLowerCase().includes(query.toLowerCase()),
             )
-            .slice(0, limit)
+            .slice(offset, offset + limit)
             .map(song => ({
               songId: song.id,
               title: song.title,

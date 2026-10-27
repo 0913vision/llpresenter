@@ -160,14 +160,27 @@ export function useLibrary(
   useEffect(() => {
     if (query === '') return undefined;
     let current = true;
-    api.library.search({query, limit: LIBRARY_SEARCH_LIMITS.max}).then(
-      result => {
-        if (current && result.query === query) setSearch(result);
-      },
-      () => {
-        if (current) report('search');
-      },
-    );
+    const load = async (): Promise<void> => {
+      const matches: Array<LibrarySearchResult['matches'][number]> = [];
+      for (
+        let offset = 0;
+        offset < songs.length;
+        offset += LIBRARY_SEARCH_LIMITS.max
+      ) {
+        const result = await api.library.search({
+          query,
+          limit: LIBRARY_SEARCH_LIMITS.max,
+          ...(offset === 0 ? {} : {offset}),
+        });
+        if (!current || result.query !== query) return;
+        matches.push(...result.matches);
+        if (result.matches.length < LIBRARY_SEARCH_LIMITS.max) break;
+      }
+      if (current) setSearch({query, matches});
+    };
+    load().catch(() => {
+      if (current) report('search');
+    });
     return () => {
       current = false;
     };

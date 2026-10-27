@@ -34,6 +34,16 @@ describe('library search requests', () => {
     ).toEqual({query: '새', limit: 20});
   });
 
+  it('accepts a nonnegative offset for subsequent pages', () => {
+    expect(
+      expectSuccess(parseLibrarySearchRequest({query: '새', offset: 200})),
+    ).toEqual({
+      query: '새',
+      offset: 200,
+      limit: LIBRARY_SEARCH_LIMITS.default,
+    });
+  });
+
   it.each([1, LIBRARY_SEARCH_LIMITS.max])('accepts the limit %s', limit => {
     expect(
       expectSuccess(parseLibrarySearchRequest({query: '', limit})),
@@ -55,6 +65,9 @@ describe('library search requests', () => {
     {query: '새', limit: LIBRARY_SEARCH_LIMITS.max + 1},
     {query: '새', limit: Infinity},
     {query: '새', limit: NaN},
+    {query: '새', offset: -1},
+    {query: '새', offset: 1.5},
+    {query: '새', offset: Number.MAX_SAFE_INTEGER + 1},
   ])('rejects %j', value => {
     expect(parseLibrarySearchRequest(value).ok).toBe(false);
   });

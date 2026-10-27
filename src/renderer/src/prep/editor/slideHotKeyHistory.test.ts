@@ -2,7 +2,7 @@ import {expect, it, vi} from 'vitest';
 import type {GroupedSong} from '@shared/schema/groupedSong';
 import type {SongSlideSource} from '@shared/schema/showService';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
-import {editorGroupedSong, editorSong} from './editorFixture';
+import {editorGroupedSong, editorLegacySong} from './editorFixture';
 import {SongHistory} from './songHistory';
 import {SongSession} from './songSession';
 
@@ -62,7 +62,7 @@ it('preserves redo and history for unchanged, invalid or duplicate assignments',
 });
 
 it('does not add grouped metadata to a legacy song', () => {
-  const {song} = editorSong(1);
+  const song = editorLegacySong(1);
   const history = new SongHistory(song);
   expect(
     history.setSlideHotKey(sourceOf(editorGroupedSong(1).song), 'KeyC'),
