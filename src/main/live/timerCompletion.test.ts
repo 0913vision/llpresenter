@@ -223,7 +223,7 @@ describe('countdown completion lifecycle', () => {
     env.settings.update(settingsDocument('timers', {timers: []}));
     expect(vi.getTimerCount()).toBe(0);
     vi.advanceTimersByTime(2 * SECOND);
-    expect(env.run()?.state).toBe('running');
+    expect(env.run()).toBeUndefined();
     expect(env.log.entries).toEqual([]);
   });
 

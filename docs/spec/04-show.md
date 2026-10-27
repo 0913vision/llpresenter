@@ -483,6 +483,9 @@ after its name, and hides it at 0.
 - No board shows where to add or edit a 타이머 (open question). Version 1 has a
   plus button in the tab and a right-click menu on each row (rename, change kind
   and time, delete) (proposal).
+- Removing a timer definition releases its running or paused state immediately
+  and frees its live-timer slot. The stage picker clears a removed selection;
+  other timer runs remain unchanged.
 - The timer editor offers countdown duration, countdown date/time, elapsed start
   duration and clock. Countdown editors include 0 지나면. Invalid dates, times
   or durations use an error ring and tooltip and block saving.

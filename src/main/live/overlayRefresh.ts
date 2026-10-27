@@ -1,6 +1,7 @@
 import type {SingleLiveCommand} from '@shared/commands';
 import type {LiveState} from '@shared/live';
 import type {SettingsDocument} from '@shared/schema/settingsDocuments';
+import {createTimerId} from '@shared/schema/ids';
 
 /** Updates active overlay snapshots when their saved configuration changes. */
 export function overlayRefreshCommands(
@@ -26,13 +27,19 @@ export function overlayRefreshCommands(
     : [start, {type: 'notice.pause'}];
 }
 
-/** Ends the 무대 화면's 타이머 choice once that 타이머 is deleted. */
-export function stageRefreshCommands(
-  {stageTimerId}: LiveState,
+/** Releases runs and the stage choice after their timer definitions are removed. */
+export function timerRefreshCommands(
+  {stageTimerId, timers: runs}: LiveState,
   document: SettingsDocument,
 ): readonly SingleLiveCommand[] {
-  if (document.name !== 'timers' || stageTimerId === undefined) return [];
-  return document.value.timers.some(({id}) => id === stageTimerId)
-    ? []
-    : [{type: 'stage.timer.set', timerId: null}];
+  if (document.name !== 'timers') return [];
+  const defined = new Set(document.value.timers.map(timer => timer.id));
+  const commands = Object.keys(runs ?? {})
+    .map(createTimerId)
+    .filter(id => !defined.has(id))
+    .map((timerId): SingleLiveCommand => ({type: 'timer.reset', timerId}));
+  if (stageTimerId !== undefined && !defined.has(stageTimerId)) {
+    commands.push({type: 'stage.timer.set', timerId: null});
+  }
+  return commands;
 }
