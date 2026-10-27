@@ -88,3 +88,7 @@ The basic surface of the window. It has a 34px header (tabs or a title, controls
 - ShowH 진행 도구 tabs: gap between tabs 14 → 18, header right padding 14 → 8, unselected tab weight 500 → 600.
 - Compact, all panel headers: padding left 12 and right 6 → 14, 8. 진행 도구 tab gap 12 → 18, unselected tab weight 500 → 600. Gap between the + button and the collapse button in the 예배 순서 header 0 → 8. 퀵 실행 tool row padding 6 6 4 → 8 8 6.
 - Service switcher button (예배 순서 header in ShowH, PrepService, Reflow, ServiceSwitch, AddSongs, AddSongsQuick, Bible, ImportEdit, ImportSave, ImportText, NewService, ServiceImport, Problems): height 24 → 26 (sm).
+
+## Unavailable reference counts
+
+Song usage metadata shows `예배 순서 …` while its catalog is pending, and `예배 순서 ?` with a `warning` icon and color when usage cannot be read. Explain the state in a tooltip rather than a sentence in the header. Show `예배 순서 0곳` only after a known catalog entry confirms no references. Keep the existing link icon, names tooltip and count for known data; a failed refresh must not replace a known count with zero. A newer catalog push supersedes older replies and failures.

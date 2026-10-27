@@ -23,9 +23,22 @@ export function SongHeader({
 }): JSX.Element {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const titleFrame = useRef<HTMLDivElement>(null);
-  const usedBy =
-    state.library.find(entry => entry.id === session.document.song.id)
-      ?.usedBy ?? [];
+  const usedBy = state.library.find(
+    entry => entry.id === session.document.song.id,
+  )?.usedBy;
+  const usageUnavailable =
+    usedBy === undefined && state.libraryStatus !== 'loading';
+  const usageText =
+    usedBy === undefined
+      ? `예배 순서 ${usageUnavailable ? '?' : '…'}`
+      : `예배 순서 ${usedBy.length}곳`;
+  const usageTip =
+    usedBy === undefined
+      ? usageUnavailable
+        ? '곡 사용처 정보를 확인할 수 없습니다'
+        : '사용처를 불러오는 중입니다'
+      : usedBy.map(service => service.name).join(', ') ||
+        '사용 중인 예배 순서 없음';
   useLayoutEffect(() => {
     const input = titleFrame.current?.querySelector('input');
     if (
@@ -78,15 +91,14 @@ export function SongHeader({
             <Icon name="folder" size={12} />
             라이브러리
           </span>
-          <Tooltip
-            text={
-              usedBy.map(service => service.name).join(', ') ||
-              '사용 중인 예배 순서 없음'
-            }
-          >
-            <span tabIndex={0} className={styles.used}>
-              <Icon name="link" size={14} />
-              예배 순서 {usedBy.length}곳
+          <Tooltip text={usageTip}>
+            <span
+              tabIndex={0}
+              className={styles.used}
+              data-unavailable={usageUnavailable || undefined}
+            >
+              <Icon name={usageUnavailable ? 'warning' : 'link'} size={14} />
+              {usageText}
             </span>
           </Tooltip>
         </>

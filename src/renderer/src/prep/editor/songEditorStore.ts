@@ -26,6 +26,7 @@ interface EditorState {
   readonly labels: EditorLabels | null;
   readonly busy: boolean;
   readonly library: readonly LibrarySong[];
+  readonly libraryStatus: 'loading' | 'ready' | 'failed';
   readonly titleFocus: number;
   readonly imported: boolean;
   readonly discardRequested: boolean;
@@ -51,6 +52,7 @@ export class SongEditorStore {
   private alive = true;
   private operation: Promise<boolean> | undefined;
   private library: readonly LibrarySong[] = [];
+  private libraryStatus: EditorState['libraryStatus'] = 'loading';
   private libraryVersion = 0;
   private focusSerial = 0;
   private titleFocus = 0;
@@ -59,6 +61,7 @@ export class SongEditorStore {
     labels: null,
     busy: false,
     library: [],
+    libraryStatus: 'loading',
     titleFocus: 0,
     imported: false,
     discardRequested: false,
@@ -586,12 +589,19 @@ export class SongEditorStore {
 
   private async readLibrary(): Promise<void> {
     const version = ++this.libraryVersion;
+    this.libraryStatus = 'loading';
+    this.publish();
     try {
       const entries = await this.api.songs.list();
       if (this.alive && version === this.libraryVersion) {
         this.acceptLibrary(entries);
       }
     } catch {
+      if (!this.alive || version !== this.libraryVersion) {
+        return;
+      }
+      this.libraryStatus = 'failed';
+      this.publish();
       this.problem('곡 목록 불러오기 실패', () => this.readLibrary());
     }
   }
@@ -599,6 +609,7 @@ export class SongEditorStore {
   private acceptLibrary(entries: readonly LibrarySong[]): void {
     if (!this.alive) return;
     this.library = entries;
+    this.libraryStatus = 'ready';
     const ids = new Set(entries.map(entry => entry.id));
     for (const id of this.sessions.keys()) {
       if (!ids.has(id)) this.remove(id);
@@ -665,6 +676,7 @@ export class SongEditorStore {
       labels: this.labels,
       busy: this.locked,
       library: this.library,
+      libraryStatus: this.libraryStatus,
       titleFocus: this.titleFocus,
       imported: this.imported !== null,
       discardRequested: this.pendingLeave !== null,

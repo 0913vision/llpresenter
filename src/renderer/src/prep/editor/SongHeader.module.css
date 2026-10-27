@@ -24,6 +24,10 @@
   font-variant-numeric: tabular-nums;
 }
 
+.used[data-unavailable='true'] {
+  color: var(--warning);
+}
+
 .library,
 .used {
   display: inline-flex;

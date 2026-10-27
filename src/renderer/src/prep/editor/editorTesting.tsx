@@ -2,6 +2,7 @@ import {render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {expect, onTestFinished, vi} from 'vitest';
 import {resetTooltips} from '@renderer/ui/tooltipTesting';
+import type {Notice} from '@renderer/ui/notices';
 import {editorFixture} from './editorFixture';
 import {SongEditor} from './SongEditor';
 import {SongEditorStore} from './songEditorStore';
@@ -9,7 +10,8 @@ import {SongEditorStore} from './songEditorStore';
 export async function editorSetup(fixture = editorFixture()) {
   resetTooltips();
   HTMLElement.prototype.scrollIntoView = vi.fn();
-  const store = new SongEditorStore(fixture.api, vi.fn());
+  const onProblem = vi.fn<(notice: Notice) => void>();
+  const store = new SongEditorStore(fixture.api, onProblem);
   store.open(fixture.first);
   const view = render(
     <>
@@ -24,7 +26,7 @@ export async function editorSetup(fixture = editorFixture()) {
   await waitFor(() => expect(store.getSnapshot().labels).not.toBeNull());
   const session = store.getSnapshot().session;
   if (session === null) throw new Error('Missing session');
-  return {...fixture, store, session, user: userEvent.setup(), view};
+  return {...fixture, store, session, user: userEvent.setup(), view, onProblem};
 }
 
 export function lyrics(number = 1): HTMLTextAreaElement {

@@ -1,6 +1,10 @@
 import type {JSX} from 'react';
 import {Button} from '../Button';
 import {IconButton} from '../IconButton';
+import {Icon} from '../Icon';
+import {Tooltip} from '../Tooltip';
+import {classNames} from '../classNames';
+import styles from './PanelSection.module.css';
 import {
   Panel,
   PanelActions,
@@ -36,6 +40,26 @@ const tools: ReadonlyArray<PanelTab<Tool>> = [
 ];
 
 const MINI_BODY_HEIGHT = 12;
+const usageStates = [
+  {
+    label: 'Pending usage',
+    text: '예배 순서 …',
+    tip: '사용처를 불러오는 중입니다',
+    failed: false,
+  },
+  {
+    label: 'Unavailable usage',
+    text: '예배 순서 ?',
+    tip: '곡 사용처 정보를 확인할 수 없습니다',
+    failed: true,
+  },
+  {
+    label: 'Known zero',
+    text: '예배 순서 0곳',
+    tip: '사용 중인 예배 순서 없음',
+    failed: false,
+  },
+];
 
 function MiniBody(): JSX.Element {
   return (
@@ -238,6 +262,35 @@ export function PanelSection(): JSX.Element {
         {['슬라이드', '화면', '배치', '속성'].map(label => (
           <SpecItem key={label} label={label} width={150}>
             <SingleTab label={label} selected />
+          </SpecItem>
+        ))}
+      </SpecGroup>
+      <SpecGroup title="Reference count readiness">
+        {usageStates.map(state => (
+          <SpecItem key={state.label} label={state.label} width={320}>
+            <Panel label={state.label}>
+              <PanelHeader>
+                <PanelTitle title="곡 정보" />
+                <PanelMeta>
+                  <Tooltip text={state.tip}>
+                    <span
+                      className={classNames(
+                        styles.usage,
+                        state.failed && styles.unavailable,
+                      )}
+                      tabIndex={0}
+                    >
+                      <Icon
+                        name={state.failed ? 'warning' : 'link'}
+                        size={14}
+                      />
+                      {state.text}
+                    </span>
+                  </Tooltip>
+                </PanelMeta>
+              </PanelHeader>
+              <MiniBody />
+            </Panel>
           </SpecItem>
         ))}
       </SpecGroup>

@@ -14,6 +14,78 @@ function title(): HTMLInputElement {
 }
 
 describe('song editor header', () => {
+  it('keeps usage unknown until the catalog confirms a real zero', async () => {
+    const fixture = editorFixture();
+    const entries = await fixture.api.songs.list();
+    let finish: (value: typeof entries) => void = () => undefined;
+    vi.spyOn(fixture.api.songs, 'list').mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          finish = resolve;
+        }),
+    );
+    await editorSetup(fixture);
+    expect(screen.queryByText('예배 순서 0곳')).toBeNull();
+    expect(screen.getByText('예배 순서 …')).toBeDefined();
+    await act(async () => {
+      finish(entries.map(entry => ({...entry, usedBy: []})));
+      await Promise.resolve();
+    });
+    expect(screen.queryByText('예배 순서 …')).toBeNull();
+    expect(screen.getByText('예배 순서 0곳')).toBeDefined();
+  });
+
+  it('distinguishes a failed usage read and returns to pending during retry', async () => {
+    const fixture = editorFixture();
+    const entries = await fixture.api.songs.list();
+    let finish: (value: typeof entries) => void = () => undefined;
+    vi.spyOn(fixture.api.songs, 'list')
+      .mockRejectedValueOnce(new Error('Catalog unavailable'))
+      .mockImplementationOnce(
+        () =>
+          new Promise(resolve => {
+            finish = resolve;
+          }),
+      );
+    const {onProblem} = await editorSetup(fixture);
+    expect(screen.queryByText('예배 순서 0곳')).toBeNull();
+    expect(screen.getByText('예배 순서 ?')).toBeDefined();
+    const retry = onProblem.mock.calls[0]?.[0].actions?.[0]?.onSelect;
+    if (retry === undefined) {
+      throw new Error('Missing catalog retry');
+    }
+    act(() => {
+      retry();
+    });
+    expect(screen.getByText('예배 순서 …')).toBeDefined();
+    await act(async () => {
+      finish(entries);
+      await Promise.resolve();
+    });
+    expect(screen.queryByText('예배 순서 …')).toBeNull();
+    expect(screen.queryByText('예배 순서 ?')).toBeNull();
+  });
+
+  it('ignores a rejected startup read after a newer catalog push', async () => {
+    const fixture = editorFixture();
+    const entries = await fixture.api.songs.list();
+    let fail: (reason: Error) => void = () => undefined;
+    vi.spyOn(fixture.api.songs, 'list').mockImplementationOnce(
+      () =>
+        new Promise((_resolve, reject) => {
+          fail = reject;
+        }),
+    );
+    const {onProblem} = await editorSetup(fixture);
+    act(() => fixture.pushList(entries));
+    await act(async () => {
+      fail(new Error('Older catalog read failed'));
+      await Promise.resolve();
+    });
+    expect(onProblem).not.toHaveBeenCalled();
+    expect(screen.queryByText('예배 순서 ?')).toBeNull();
+  });
+
   it('coalesces title typing and keeps the saved title through lyric undo', async () => {
     const {session, edits, documents, first} = await editorSetup();
     vi.useFakeTimers();
