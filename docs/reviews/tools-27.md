@@ -68,3 +68,12 @@ selection after every set.
 ## Team member's reply
 
 No findings yet.
+
+## Verdicts (recorded by the lead at merge)
+
+- Final round (0813dd89): reviewer (Codex) Approve. Lead Approve; the lead read
+  the live overlay diff (when a 타이머 definition is removed, its run is reset
+  and the stage choice cleared in one batch, so orphan runs no longer keep live
+  slots). The exact-head CI run passed, checked by the lead at merge. Rebased by
+  the lead onto local `main` without conflicts; typecheck passes. Earlier
+  rounds' findings and replies are above.
