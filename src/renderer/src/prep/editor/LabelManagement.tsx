@@ -2,7 +2,7 @@ import {useState, type JSX} from 'react';
 import type {Label} from '@shared/schema/labels';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {Menu} from '@renderer/ui/Menu';
-import {LabelDialog} from './LabelDialog';
+import {LabelDialog, LABEL_RENAME_SCOPE} from './LabelDialog';
 import type {LabelContext} from './LabelChoices';
 import type {SongEditorStore} from './songEditorStore';
 import {editorTask} from './editorTask';
@@ -31,11 +31,12 @@ export function LabelManagement({
       <AlertDialog
         icon="trash"
         title="이름표 삭제"
-        meta={[context.label.name]}
+        meta={[context.label.name, '모든 곡의 이름표 유지']}
         onCancel={onClose}
         actions={[
           {
             label: '삭제',
+            title: '공유 목록에서만 삭제하며 곡의 이름표는 유지합니다',
             primary: true,
             disabled: locked,
             onSelect: () => {
@@ -79,6 +80,7 @@ export function LabelManagement({
           kind: 'item',
           id: 'rename',
           label: '이름 바꾸기',
+          title: LABEL_RENAME_SCOPE,
           disabled: locked,
           onSelect: () => setAction('rename'),
         },
@@ -94,6 +96,7 @@ export function LabelManagement({
           kind: 'item',
           id: 'delete',
           label: '삭제',
+          title: '공유 목록에서만 삭제하며 곡의 이름표는 유지합니다',
           disabled: locked,
           onSelect: () => setAction('delete'),
         },

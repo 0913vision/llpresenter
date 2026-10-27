@@ -28,6 +28,7 @@ export const labelColorNames: Readonly<Record<LabelColor, string>> = {
 
 interface SwatchProps {
   readonly color: LabelColor;
+  readonly scope?: string | undefined;
   readonly checked: boolean;
   readonly tabIndex: 0 | -1;
   readonly elementRef: (element: HTMLElement | null) => void;
@@ -37,6 +38,7 @@ interface SwatchProps {
 
 function Swatch({
   color,
+  scope,
   checked,
   tabIndex,
   elementRef,
@@ -44,7 +46,7 @@ function Swatch({
   onKeyDown,
 }: SwatchProps): JSX.Element {
   const name = labelColorNames[color];
-  const {targetProps, tooltip} = useTooltip({text: name});
+  const {targetProps, tooltip} = useTooltip({text: name, sub: scope});
   const isNone = color === NO_LABEL_COLOR;
   return (
     <>
@@ -79,6 +81,8 @@ export interface SwatchRowProps<T extends LabelColor> {
   readonly onChange: (color: T) => void;
   /** The row name for assistive technology, such as 후렴 색. */
   readonly label: string;
+  /** A secondary tooltip fact when a color affects shared references. */
+  readonly scope?: string | undefined;
   /** A visible name before the row, such as 색 in the macro menu. */
   readonly name?: string | undefined;
   /** Draws the row inside a menu, lined up with the menu items. */
@@ -90,6 +94,7 @@ function SwatchRow<T extends LabelColor>({
   value,
   onChange,
   label,
+  scope,
   name,
   inMenu = false,
 }: SwatchRowProps<T>): JSX.Element {
@@ -110,6 +115,7 @@ function SwatchRow<T extends LabelColor>({
         <Swatch
           key={color}
           color={color}
+          scope={scope}
           checked={color === value}
           tabIndex={roving.tabIndexOf(index)}
           elementRef={roving.refOf(index)}

@@ -3,6 +3,7 @@ import {describe, expect, it, vi} from 'vitest';
 import {editorFixture} from './editorFixture';
 import {editorSetup, lyrics} from './editorTesting';
 import {JUMP_KEY_REASON} from './LabelDialog';
+import {hoverForTooltip} from '@renderer/ui/tooltipTesting';
 
 async function openMenu(user: Awaited<ReturnType<typeof editorSetup>>['user']) {
   await user.click(screen.getByRole('button', {name: '1절'}));
@@ -19,6 +20,28 @@ async function manage(name: string, action: string) {
 }
 
 describe('song editor label menu', () => {
+  it('discloses shared color scope before applying a color', async () => {
+    const {user, labelEdits} = await editorSetup();
+    const menu = await openMenu(user);
+    const color = within(menu).getByRole('radio', {name: '초록'});
+    expect((await hoverForTooltip(color))?.textContent).toBe(
+      '초록모든 곡에 적용',
+    );
+    expect(labelEdits).toHaveLength(0);
+  });
+
+  it('explains the library-wide rename from its name field', async () => {
+    const {user, labelEdits} = await editorSetup();
+    await openMenu(user);
+    const dialog = await manage('1절', '이름 바꾸기');
+    const input = within(dialog).getByRole('textbox', {name: '이름표 이름'});
+    const tooltip = await hoverForTooltip(input);
+    expect(tooltip?.textContent).toBe(
+      '모든 곡에서 이 이름표의 이름을 바꿉니다',
+    );
+    expect(labelEdits).toHaveLength(0);
+  });
+
   it('allows label selection but protects a read-only global list', async () => {
     const fixture = editorFixture();
     vi.spyOn(fixture.api.settings, 'get').mockResolvedValue({
@@ -99,6 +122,7 @@ describe('song editor label menu', () => {
     fireEvent.keyDown(row, {key: 'F10', code: 'F10', shiftKey: true});
     await user.click(screen.getByRole('menuitem', {name: '이름 바꾸기'}));
     const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByText('1절')).toBeDefined();
     const field = within(dialog).getByRole('textbox', {name: '이름표 이름'});
     await user.clear(field);
     await user.type(field, '새 절{Enter}');
@@ -177,6 +201,15 @@ describe('song editor label menu', () => {
     await openMenu(user);
     fireEvent.contextMenu(screen.getByRole('menuitemradio', {name: '1절'}));
     await user.click(screen.getByRole('menuitem', {name: '삭제'}));
+    const confirmation = screen.getByRole('alertdialog');
+    expect(
+      within(confirmation).getByText('모든 곡의 이름표 유지'),
+    ).toBeDefined();
+    expect(
+      document.getElementById(
+        confirmation.getAttribute('aria-describedby') ?? '',
+      )?.textContent,
+    ).toContain('모든 곡의 이름표 유지');
     expect(labels().value.labels).toHaveLength(2);
     await user.click(
       within(screen.getByRole('alertdialog')).getByRole('button', {

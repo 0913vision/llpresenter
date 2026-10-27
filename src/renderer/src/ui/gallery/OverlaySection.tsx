@@ -372,6 +372,27 @@ export function OverlaySection(): JSX.Element {
         </SpecItem>
       </SpecGroup>
       <SpecGroup title="Dialog and AlertDialog">
+        <SpecItem label="Shared label deletion preserves song references">
+          <DialogButton
+            label="이름표 삭제"
+            render={close => (
+              <AlertDialog
+                icon="trash"
+                title="이름표 삭제"
+                meta={['1절', '모든 곡의 이름표 유지']}
+                onCancel={close}
+                actions={[
+                  {
+                    label: '삭제',
+                    primary: true,
+                    title: '공유 목록에서만 삭제하며 곡의 이름표는 유지합니다',
+                    onSelect: close,
+                  },
+                ]}
+              />
+            )}
+          />
+        </SpecItem>
         <SpecItem label="새 예배: dialog-l, two columns, input bar">
           <DialogButton
             label="새 예배"

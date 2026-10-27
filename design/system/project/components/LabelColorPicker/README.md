@@ -42,6 +42,7 @@ A row of color swatches for picking the color of an 이름표 (label) or a macro
 ## Behavior
 
 - A click applies that color at once and leaves the menu open. Changing an 이름표 color changes the band color of every 슬라이드 (slide) that uses that 이름표.
+- The library label menu uses shared definitions. Each color tooltip keeps its color name and adds `모든 곡에 적용` on the secondary line. The optional `scope` prop supplies this fact; macro and local pickers omit it. Rename controls explain that matching labels in every library song change together. Keep scope in tooltips, without adding a status badge or instruction paragraph. Selecting a label for one block remains local to that block.
 - Keyboard: Tab enters the row once (focus on the selected color), and the left and right arrows move and select at once. Inside a menu, the up and down arrows move between menu items, and once focus reaches the color row, the left and right arrows move between colors.
 - aria: the row has `role="radiogroup"` and an `aria-label` (for example, "후렴 색", "색"). Each swatch has `role="radio"`, `aria-checked`, and an `aria-label` (the color name: 청록, 초록, 노랑, 주황, 분홍, 보라, 남색, 회색, 없음).
 

@@ -169,7 +169,11 @@ popup has name choices, a color row that stays open, and an inline new-name
 field. ContextMenu or Shift F10 opens the same management menu as right-click.
 Rename and jump-key dialogs reuse the design system's modal/focus behavior.
 Definition deletion uses its confirmation dialog. Read-only label settings leave
-existing label selection available and explain blocked writes in tooltips.
+existing label selection available and explain blocked writes in tooltips. Color
+swatch and rename tooltips disclose their library-wide scope. Rename and key
+dialogs identify the current label in the subtitle. Deletion confirmation
+metadata states that every song retains its label, and its action tooltip
+distinguishes shared-list removal from changing song references (P18).
 
 Color, creation, jump keys, and deletion use revision-checked settings updates.
 Rename flushes every cached song's pending edits, then calls main's

@@ -79,6 +79,24 @@ describe('LabelColorPicker', () => {
     );
     expect(tooltip?.textContent).toBe('남색');
   });
+
+  it('adds shared scope without replacing the color name or selecting it', async () => {
+    const onChange = vi.fn();
+    render(
+      <LabelColorPicker
+        label="후렴 색"
+        scope="모든 곡에 적용"
+        value="yellow"
+        onChange={onChange}
+      />,
+    );
+    const color = screen.getByRole('radio', {name: '남색'});
+    const tooltip = await hoverForTooltip(color);
+    expect(tooltip?.textContent).toBe('남색모든 곡에 적용');
+    expect(color.getAttribute('aria-describedby')).toBe(tooltip?.id);
+    expect(onChange).not.toHaveBeenCalled();
+    expect(checkedColor()).toBe('노랑');
+  });
 });
 
 describe('MacroColorPicker', () => {

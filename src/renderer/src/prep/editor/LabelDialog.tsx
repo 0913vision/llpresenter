@@ -12,6 +12,7 @@ export const EMPTY_LABEL_NAME_REASON =
   '이름표 이름을 적어야 저장할 수 있습니다';
 export const DUPLICATE_LABEL_NAME_REASON = '같은 이름의 이름표가 있습니다';
 export const JUMP_KEY_REASON = '영문자나 숫자 키만 쓸 수 있습니다';
+export const LABEL_RENAME_SCOPE = '모든 곡에서 이 이름표의 이름을 바꿉니다';
 
 /** The labels file stores unique, nonblank names without trimming old names. */
 export function labelNameReason(
@@ -56,6 +57,9 @@ export function LabelDialog({
   const conflict = labels.find(
     item => item.name !== label.name && item.key !== null && item.key === key,
   );
+  const unchangedName = kind === 'rename' && name.trim() === label.name;
+  const unavailableReason =
+    reason ?? (busy ? '저장 중' : unchangedName ? '같은 이름' : undefined);
   const save = async (): Promise<void> => {
     if (busy || reason !== undefined) return;
     const saved =
@@ -104,6 +108,7 @@ export function LabelDialog({
   return (
     <Dialog
       title={kind === 'rename' ? '이름표 이름 바꾸기' : '이름표 바로 가기 키'}
+      subtitle={{text: label.name}}
       size="s"
       onCancel={onClose}
       primary={{
@@ -111,22 +116,16 @@ export function LabelDialog({
         onSelect: () => {
           editorTask(save());
         },
-        disabled:
-          busy ||
-          reason !== undefined ||
-          (kind === 'rename' && name.trim() === label.name),
+        disabled: busy || reason !== undefined || unchangedName,
         title:
-          reason ??
-          (busy
-            ? '저장 중'
-            : kind === 'rename' && name.trim() === label.name
-              ? '같은 이름'
-              : undefined),
+          unavailableReason ??
+          (kind === 'rename' ? LABEL_RENAME_SCOPE : undefined),
       }}
     >
       {kind === 'rename' ? (
         <TextField
           aria-label="이름표 이름"
+          title={LABEL_RENAME_SCOPE}
           value={name}
           onChange={setName}
           autoFocus

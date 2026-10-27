@@ -268,6 +268,7 @@ export function LabelSection(): JSX.Element {
             {(value, setValue) => (
               <LabelColorPicker
                 label="후렴 색"
+                scope="모든 곡에 적용"
                 value={value}
                 onChange={setValue}
               />

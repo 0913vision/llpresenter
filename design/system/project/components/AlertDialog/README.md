@@ -62,6 +62,7 @@ A confirmation dialog that the user must answer, with one question, before movin
 - When it is clear what the dialog asks, write the title as a noun: "출력 상태 복구".
 - Write only the facts needed to decide as extra info: "라이브러리 곡 슬라이드 4개, 10월 20일 수정", "비정상 종료  10월 25일 오전 11:26". Don't write explanatory paragraphs.
 - When saving a duplicate as a new song, show the exact available title before committing: "새 곡 제목: ‘만복의 근원 하나님 (2)’". Keep it in the metadata read by `aria-describedby`, and wrap it without clipping.
+- When deleting a shared label definition, show its name and the retained-reference fact `모든 곡의 이름표 유지` in metadata. The delete action tooltip explains that removal affects the shared list only. Do not suggest that song labels or slides are deleted.
 - Write buttons as verbs for what happens: "덮어쓰기", "새 곡으로 저장", "복구", "새로 시작". Don't use "예" (Yes), "아니요" (No), or "확인" (OK).
 
 ## Implementation notes

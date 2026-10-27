@@ -115,6 +115,7 @@ export function LabelMenu({
                 <fieldset disabled={locked} className={styles.colors}>
                   <LabelColorPicker
                     label={`${current.name} 색`}
+                    scope="모든 곡에 적용"
                     name={`${current.name} 색`}
                     inMenu
                     value={current.color}
