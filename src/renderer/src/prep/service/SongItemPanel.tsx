@@ -1,9 +1,14 @@
 import {useEffect, useSyncExternalStore, type JSX} from 'react';
+import type {SongDocument} from '@shared/schema/contentDocuments';
 import type {ServiceItemOf} from '@shared/schema/service';
 import {isItemOfKind} from '@shared/schema/service';
 import {playbackOrder} from '@shared/songOrder';
+import type {GroupedSong} from '@shared/schema/groupedSong';
 import type {SongEditorStore} from '@renderer/prep/editor';
-import type {SongSession} from '@renderer/prep/editor/songSession';
+import type {
+  EditorSongDocument,
+  SongSession,
+} from '@renderer/prep/editor/songSession';
 import {VirtualSlides} from '@renderer/prep/editor/VirtualSlides';
 import {
   defaultThumbnailColumns,
@@ -74,8 +79,14 @@ interface SongItemViewProps {
   readonly items: ServiceItemStore;
   readonly editor: SongEditorStore;
   readonly item: ServiceItemOf<'song'>;
-  readonly session: SongSession;
+  readonly session: SongSession | SongSession<GroupedSong>;
   readonly sizeClass: SizeClass;
+}
+
+function isV1SongDocument(
+  document: EditorSongDocument | EditorSongDocument<GroupedSong>,
+): document is SongDocument {
+  return 'slides' in document.song;
 }
 
 function SongItemView({
@@ -115,7 +126,14 @@ function SongItemView({
             meta={`슬라이드 ${sequence.length}개`}
           />
           <PanelActions>
-            <Button icon="edit" onClick={() => editor.open(session.document)}>
+            <Button
+              icon="edit"
+              onClick={() => {
+                if (isV1SongDocument(session.document)) {
+                  editor.open(session.document);
+                }
+              }}
+            >
               라이브러리 곡 편집
             </Button>
           </PanelActions>

@@ -2,7 +2,6 @@ import {NO_LABEL_COLOR, type LabelColor} from '@shared/colors';
 import type {MediaChoice} from '@shared/live';
 import type {LoadedFile} from '@shared/schema/fileFormat';
 import {
-  arrangementGroupIds,
   isGroupedSong,
   type AnySong,
   type GroupedSong,
@@ -22,7 +21,7 @@ import {
   type ShowTile,
 } from '@shared/schema/showService';
 import type {Slide} from '@shared/schema/song';
-import {playbackOrder} from '@shared/songOrder';
+import {playbackGroupIds, playbackOrder} from '@shared/songOrder';
 
 export {SHOW_SERVICE_LIMITS} from '@shared/schema/showService';
 
@@ -189,9 +188,7 @@ function projectGroupedSongTiles(
   colors: ReadonlyMap<string, LabelColor>,
   arrangement?: string,
 ): ProjectedSongTiles {
-  const rawGroupIds = arrangementGroupIds(song, arrangement);
-  const groupIds =
-    rawGroupIds.length === 0 ? song.groups.map(group => group.id) : rawGroupIds;
+  const groupIds = playbackGroupIds(song, arrangement);
 
   const groupsById = new Map<string, SongGroup>(
     song.groups.map(group => [group.id, group]),

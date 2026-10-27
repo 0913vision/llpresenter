@@ -8,6 +8,7 @@ import {CloseFlush} from './closeFlush';
 declare global {
   interface Window {
     __llpSongEditorStore?: SongEditorStore;
+    __llpServiceItemStore?: ServiceItemStore;
   }
 }
 
@@ -45,9 +46,10 @@ export class ControlSession {
         this.report,
       );
       if (typeof window !== 'undefined' && import.meta.env.DEV) {
-        // NOTE(0913vision): Expose the song editor store on window in DEV
-        // mode for automated offscreen CDP verification tests.
+        // NOTE(0913vision): Expose stores on window in DEV mode for automated
+        // offscreen CDP verification tests.
         window.__llpSongEditorStore = this.editorStore;
+        window.__llpServiceItemStore = this.itemStore;
       }
     }
   }
@@ -82,6 +84,7 @@ export class ControlSession {
   dispose(): Promise<void> {
     if (typeof window !== 'undefined' && import.meta.env.DEV) {
       delete window.__llpSongEditorStore;
+      delete window.__llpServiceItemStore;
     }
     this.closeFlush?.dispose();
     this.closing ??= Promise.resolve().then(() => {

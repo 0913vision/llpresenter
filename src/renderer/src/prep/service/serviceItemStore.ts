@@ -1,13 +1,17 @@
 import type {LlpApi} from '@shared/ipc';
-import type {ServiceDocument} from '@shared/schema/contentDocuments';
-import type {MediaId, SongId} from '@shared/schema/ids';
+import type {
+  ServiceDocument,
+  SongDocument,
+} from '@shared/schema/contentDocuments';
+import type {MediaId, SongGroupId, SongId} from '@shared/schema/ids';
+import {isGroupedSong} from '@shared/schema/groupedSong';
 import {
   isItemOfKind,
   type ServiceItem,
   type ServiceItemOf,
 } from '@shared/schema/service';
+import type {GroupedSong} from '@shared/schema/groupedSong';
 import type {Song} from '@shared/schema/song';
-import type {SongEditorStore} from '@renderer/prep/editor';
 import {editorTask} from '@renderer/prep/editor/editorTask';
 import type {SongSession} from '@renderer/prep/editor/songSession';
 import {backgroundChange} from '@renderer/state/serviceBackground';
@@ -26,6 +30,13 @@ export type ServiceItemStoreApi = Pick<
   'services' | 'songs' | 'content'
 >;
 
+export interface ServiceItemEditor {
+  sessionOf(id: SongId): SongSession | SongSession<GroupedSong> | undefined;
+  showItemSong(id: SongId | null): void;
+  attach(document: SongDocument): SongSession | undefined;
+  subscribe(listener: () => void): () => void;
+}
+
 /** The 예배 순서 item that 준비 shows: its service and its id. */
 export interface ItemTarget {
   readonly serviceId: string;
@@ -42,7 +53,7 @@ export interface ServiceItemState {
   readonly service: ServiceDocument | null;
   readonly item: ServiceItem | null;
   /** The song of a song item, edited through the song editor's session. */
-  readonly song: SongSession | null;
+  readonly song: SongSession | SongSession<GroupedSong> | null;
   /** `null` when the item isn't a song item. */
   readonly songStatus: ItemSongStatus | null;
   /**
@@ -142,7 +153,7 @@ function withStartField(
 
 function effectiveArrangement(
   item: ServiceItem | null,
-  song: Song | undefined,
+  song: Song | GroupedSong | undefined,
 ): string | undefined {
   if (item === null || !isItemOfKind(item, 'song') || song === undefined) {
     return undefined;
@@ -181,7 +192,7 @@ export class ServiceItemStore {
 
   constructor(
     private readonly api: ServiceItemStoreApi,
-    private readonly editor: SongEditorStore,
+    private readonly editor: ServiceItemEditor,
     private readonly onProblem: (notice: Notice) => void,
   ) {
     this.writes = pendingWritesOf(api);
@@ -249,7 +260,7 @@ export class ServiceItemStore {
   }
 
   private async addArrangement(
-    song: SongSession,
+    song: SongSession | SongSession<GroupedSong>,
     arrangement: string | undefined,
     target: ItemTarget,
   ): Promise<boolean> {
@@ -271,7 +282,7 @@ export class ServiceItemStore {
    * Gives the item's chosen 구성 a new order in the song file, so every 예배
    * 순서 that uses that 구성 shows it. 기본 has no order to change.
    */
-  setOrder(slides: readonly number[]): boolean {
+  setOrder(order: readonly number[] | readonly SongGroupId[]): boolean {
     const {song, arrangement} = this.state;
     if (
       !this.alive ||
@@ -281,7 +292,19 @@ export class ServiceItemStore {
     ) {
       return false;
     }
-    return song.setArrangementSlides(arrangement, slides);
+    const currentSong = song.history.snapshot.song;
+    if (isGroupedSong(currentSong)) {
+      if (
+        order.every((item): item is SongGroupId => typeof item === 'string')
+      ) {
+        return song.setArrangementGroups(arrangement, order);
+      }
+      return false;
+    }
+    if (order.every((item): item is number => typeof item === 'number')) {
+      return song.setArrangementSlides(arrangement, order);
+    }
+    return false;
   }
 
   /** Overrides the song's background for this item, or follows it with `null`. */

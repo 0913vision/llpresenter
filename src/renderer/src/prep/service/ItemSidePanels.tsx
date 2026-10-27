@@ -1,7 +1,12 @@
 import {useSyncExternalStore, type JSX} from 'react';
+import type {SongDocument} from '@shared/schema/contentDocuments';
+import type {GroupedSong} from '@shared/schema/groupedSong';
 import {isItemOfKind} from '@shared/schema/service';
 import {SongPreviewFrame, type SongEditorStore} from '@renderer/prep/editor';
-import type {SongSession} from '@renderer/prep/editor/songSession';
+import type {
+  EditorSongDocument,
+  SongSession,
+} from '@renderer/prep/editor/songSession';
 import {IconButton} from '@renderer/ui/IconButton';
 import {Panel, PanelBody, PanelHeader, PanelTabs} from '@renderer/ui/Panel';
 import {
@@ -24,6 +29,12 @@ const SAVING_REASON = '저장 중';
 interface ItemPanelProps {
   readonly items: ServiceItemStore;
   readonly editor: SongEditorStore;
+}
+
+function isV1SongDocument(
+  document: EditorSongDocument | EditorSongDocument<GroupedSong>,
+): document is SongDocument {
+  return 'slides' in document.song;
 }
 
 /** The selected place of the 준비 item, drawn locally; never the output. */
@@ -86,7 +97,11 @@ export function ItemSettingsPanel({
                     <IconButton
                       icon="open"
                       label="라이브러리 곡 열기"
-                      onClick={() => editor.open(song.document)}
+                      onClick={() => {
+                        if (isV1SongDocument(song.document)) {
+                          editor.open(song.document);
+                        }
+                      }}
                     />
                   }
                 />
@@ -129,7 +144,7 @@ function ThisService({
   readonly items: ServiceItemStore;
   readonly api: SongEditorStore['api'];
   readonly item: StartItem;
-  readonly song: SongSession | null;
+  readonly song: SongSession | SongSession<GroupedSong> | null;
   readonly lockReason: string | undefined;
 }): JSX.Element {
   const {busy} = useSyncExternalStore(items.subscribe, items.getSnapshot);

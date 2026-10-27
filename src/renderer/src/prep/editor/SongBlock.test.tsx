@@ -209,6 +209,18 @@ describe('SongBlock', () => {
     expect(onOpen).toHaveBeenCalledWith(splitButton, 1);
   });
 
+  it('opens label menu via Ctrl+G anchored to label button on group-start slide', () => {
+    const onOpen = vi.fn();
+    renderBlock(0, createGroupedSong(), {onOpen, active: true});
+    const labelButton = screen.getByRole('button', {name: /1절/});
+    const input = blockLyrics(1);
+    act(() => {
+      input.focus();
+    });
+    fireEvent.keyDown(input, {key: 'g', code: 'KeyG', ctrlKey: true});
+    expect(onOpen).toHaveBeenCalledWith(labelButton, 0);
+  });
+
   it('does nothing on Ctrl+G keyboard shortcut when block is not editable', () => {
     const onOpen = vi.fn();
     renderBlock(1, createGroupedSong(), {

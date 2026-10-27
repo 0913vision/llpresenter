@@ -3,9 +3,16 @@ import type {
   ServiceDocument,
   SongDocument,
 } from '@shared/schema/contentDocuments';
-import {createServiceId, createServiceItemId} from '@shared/schema/ids';
+import {
+  createServiceId,
+  createServiceItemId,
+  type SongId,
+} from '@shared/schema/ids';
 import {isItemOfKind} from '@shared/schema/service';
 import {SongEditorStore} from '@renderer/prep/editor';
+import {SongSession} from '@renderer/prep/editor/songSession';
+import {editorGroupedSong} from '@renderer/prep/editor/editorFixture';
+import type {GroupedSong} from '@shared/schema/groupedSong';
 import type {Notice} from '@renderer/ui/notices';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {
@@ -493,6 +500,53 @@ describe('service item store', () => {
     await session?.flush();
     expect(documents.get(first.song.id)?.song.arrangements).toEqual([
       {name: '주일용', slides: [1, 2, 2]},
+    ]);
+  });
+
+  it('saves a new group order of the chosen 구성 in a grouped song', async () => {
+    const {editor, pushService, service, api} = setup();
+    const gSong = editorGroupedSong(1);
+    const session = new SongSession<GroupedSong>({
+      document: gSong,
+      api: api.content,
+      changed: () => undefined,
+      problem: () => undefined,
+    });
+    const testEditor = {
+      sessionOf: (id: SongId) =>
+        id === gSong.song.id ? session : editor.sessionOf(id),
+      showItemSong: (id: SongId | null) => editor.showItemSong(id),
+      attach: (doc: SongDocument) => editor.attach(doc),
+      subscribe: (listener: () => void) => editor.subscribe(listener),
+    };
+    const items = new ServiceItemStore(api, testEditor, () => undefined);
+    const g1 = gSong.song.groups[0]?.id;
+    const g2 = gSong.song.groups[1]?.id;
+    if (g1 === undefined || g2 === undefined) throw new Error('Missing groups');
+    const groupedItemId = createServiceItemId(
+      '50000000-0000-4000-8000-000000000099',
+    );
+    const currentService = service();
+    const updatedService: ServiceDocument = {
+      ...currentService,
+      service: {
+        ...currentService.service,
+        order: [
+          ...currentService.service.order,
+          {
+            id: groupedItemId,
+            song: gSong.song.id,
+            arrangement: '주일용',
+          },
+        ],
+      },
+    };
+    pushService(updatedService);
+    items.show({serviceId: fixtureServiceId, itemId: groupedItemId});
+    await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
+    expect(items.setOrder([g2, g1])).toBe(true);
+    expect(session.history.snapshot.song.arrangements).toEqual([
+      {name: '주일용', groups: [g2, g1]},
     ]);
   });
 

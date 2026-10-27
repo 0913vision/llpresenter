@@ -27,6 +27,23 @@ export function expandGroupSlides(
 }
 
 /**
+ * Resolves the group sequence for playback: falls back to all groups in file order
+ * when the arrangement is missing or empty (spec 02).
+ */
+export function playbackGroupIds(
+  song: GroupedSong,
+  name: string | undefined,
+): readonly SongGroupId[] {
+  const chosen =
+    name === undefined
+      ? undefined
+      : song.arrangements?.find(item => item.name === name);
+  return chosen !== undefined && chosen.groups.length > 0
+    ? chosen.groups
+    : song.groups.map(g => g.id);
+}
+
+/**
  * Playback order for a grouped song: uses file order when the named order
  * is missing or empty (spec 02).
  */
@@ -34,15 +51,7 @@ export function groupedPlaybackOrder(
   song: GroupedSong,
   name: string | undefined,
 ): readonly number[] {
-  const chosen =
-    name === undefined
-      ? undefined
-      : song.arrangements?.find(item => item.name === name);
-  const groupIds =
-    chosen !== undefined && chosen.groups.length > 0
-      ? chosen.groups
-      : song.groups.map(g => g.id);
-  return expandGroupSlides(song, groupIds);
+  return expandGroupSlides(song, playbackGroupIds(song, name));
 }
 
 /** Playback uses file order when the named order is missing or empty (spec 02). */

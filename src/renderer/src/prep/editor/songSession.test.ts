@@ -366,5 +366,10 @@ describe('grouped song sessions', () => {
     session.setArrangementGroups('기본순서', []);
     session.selectArrangement('기본순서');
     expect(session.arrangementSlides).toEqual([]);
+    const created = session.copyArrangement('기본순서');
+    expect(
+      session.history.snapshot.song.arrangements?.find(a => a.name === created)
+        ?.groups,
+    ).toEqual([]);
   });
 });
