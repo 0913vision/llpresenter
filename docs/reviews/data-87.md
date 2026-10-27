@@ -93,3 +93,13 @@ changes from 5,669,556 to 5,861,816 bytes in the first run and 5,595,256 to
 ![Fresh app run retains the external video reference](assets/data-87/reload-video.png)
 
 ![Fresh app run retains the external WAV reference](assets/data-87/reload-audio.png)
+
+## Verdicts (recorded by the lead at merge)
+
+- Final round (380e4c32): reviewer (Codex) Approve. Lead Approve; the lead read
+  the store diff (absolute media references outside the media folder are now
+  admitted in development runs too, as they already were in packaged runs; every
+  file is still resolved by catalogued ID and checked against the media roots),
+  which closes qa's M3-C4-1. The exact-head CI run passed, checked by the lead
+  at merge. Rebased by the lead onto local `main` without conflicts; typecheck
+  passes. Earlier rounds' findings and replies are above.
