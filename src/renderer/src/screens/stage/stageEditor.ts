@@ -10,7 +10,12 @@ import {REFERENCE_SCREEN} from '@renderer/render/lyricStyle';
 import {STAGE_TEXT_FALLBACK} from '@renderer/render/stageLayout';
 import {SettingsDocumentEditor} from '../settingsDocumentEditor';
 import type {NamedDocument} from '../useSettingsDocument';
-import {editFrame, type ElementFrame} from './frameEdit';
+import {
+  editFrame,
+  editFrameValue,
+  type ElementFrame,
+  type FrameFieldChange,
+} from './frameEdit';
 
 export const STAGE_LAYOUT_LIMIT = 1000;
 export const STAGE_ELEMENT_LIMIT = 128;
@@ -121,6 +126,32 @@ export class StageEditor {
       ),
     }));
   }
+  async frameValue(
+    layoutId: string,
+    elementId: string,
+    change: FrameFieldChange,
+  ): Promise<ElementFrame | null> {
+    if (!Number.isFinite(change.value)) return null;
+    const result: {frame: ElementFrame | null; changed: boolean} = {
+      frame: null,
+      changed: false,
+    };
+    const saved = await this.change(layoutId, layout => {
+      const current = layout.elements.find(element => element.id === elementId);
+      if (current === undefined) return undefined;
+      const frame = editFrameValue(current.frame, change, layout);
+      result.frame = frame;
+      if (frame === current.frame) return undefined;
+      result.changed = true;
+      return {
+        ...layout,
+        elements: layout.elements.map(element =>
+          element.id === elementId ? {...element, frame} : element,
+        ),
+      };
+    });
+    return result.changed && !saved ? null : result.frame;
+  }
   nudge(
     layoutId: string,
     elementId: string,
@@ -130,7 +161,10 @@ export class StageEditor {
       ...layout,
       elements: layout.elements.map(element =>
         element.id === elementId
-          ? {...element, frame: editFrame(element.frame, delta, 'move')}
+          ? {
+              ...element,
+              frame: editFrame(element.frame, delta, {handle: 'move'}),
+            }
           : element,
       ),
     }));

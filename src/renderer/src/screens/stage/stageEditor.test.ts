@@ -113,6 +113,83 @@ describe('stage document edits', () => {
     await editor.remove(layout, element);
     expect(edits.at(-1)?.value.layouts.at(-1)?.elements).toEqual([]);
   });
+  it('queues individual reference-pixel fields without overwriting other queued axes', async () => {
+    const {editor, edits} = setup();
+    await Promise.all([
+      editor.frameValue(LAYOUT_ID, 'element', {field: 'x', value: 240}),
+      editor.frameValue(LAYOUT_ID, 'element', {field: 'y', value: 360}),
+      editor.frameValue(LAYOUT_ID, 'element', {field: 'w', value: 600}),
+      editor.frameValue(LAYOUT_ID, 'element', {field: 'h', value: 120}),
+    ]);
+    expect(edits.map(edit => edit.baseRevision)).toEqual([1, 2, 3, 4]);
+    expect(edits.at(-1)?.value.layouts[0]?.elements[0]).toMatchObject({
+      future: 'keep',
+      frame: {x: 240, y: 360, w: 600, h: 120, future: 1},
+    });
+  });
+  it('bounds numeric geometry to the canvas and refuses invalid or unchanged values', async () => {
+    const {editor, edits} = setup();
+    expect(
+      await editor.frameValue(LAYOUT_ID, 'element', {field: 'x', value: 10}),
+    ).toMatchObject({x: 10, y: 20});
+    expect(
+      await editor.frameValue(LAYOUT_ID, 'element', {field: 'w', value: NaN}),
+    ).toBeNull();
+    expect(
+      await editor.frameValue(LAYOUT_ID, 'element', {
+        field: 'h',
+        value: Infinity,
+      }),
+    ).toBeNull();
+    expect(
+      await editor.frameValue(LAYOUT_ID, 'missing', {field: 'x', value: 20}),
+    ).toBeNull();
+    expect(edits).toHaveLength(0);
+    await editor.frameValue(LAYOUT_ID, 'element', {field: 'x', value: -50});
+    await editor.frameValue(LAYOUT_ID, 'element', {field: 'y', value: 9000});
+    await editor.frameValue(LAYOUT_ID, 'element', {field: 'w', value: 1});
+    await editor.frameValue(LAYOUT_ID, 'element', {field: 'h', value: 9000});
+    expect(edits.at(-1)?.value.layouts[0]?.elements[0]?.frame).toMatchObject({
+      x: 0,
+      y: 1080,
+      w: 20,
+      h: 1080,
+      future: 1,
+    });
+    await editor.frameValue(LAYOUT_ID, 'element', {field: 'w', value: 31.7});
+    expect(edits.at(-1)?.value.layouts[0]?.elements[0]?.frame.w).toBe(32);
+    const locked = setup('readOnly');
+    expect(
+      await locked.editor.frameValue(LAYOUT_ID, 'element', {
+        field: 'x',
+        value: 20,
+      }),
+    ).toBeNull();
+    expect(locked.edits).toHaveLength(0);
+  });
+  it('couples ratio edits using the newest queued frame and preserves the origin', async () => {
+    const {editor, edits} = setup();
+    const frames = await Promise.all([
+      editor.frameValue(LAYOUT_ID, 'element', {
+        field: 'w',
+        value: 200,
+        keepRatio: true,
+      }),
+      editor.frameValue(LAYOUT_ID, 'element', {
+        field: 'h',
+        value: 240,
+        keepRatio: true,
+      }),
+    ]);
+    expect(frames).toMatchObject([
+      {x: 10, y: 20, w: 200, h: 160, future: 1},
+      {x: 10, y: 20, w: 300, h: 240, future: 1},
+    ]);
+    expect(edits.at(-1)?.value.layouts[0]?.elements[0]?.frame).toMatchObject({
+      w: 300,
+      h: 240,
+    });
+  });
   it('refuses writes to future-version documents and enforces both collection caps', async () => {
     const readOnly = setup('readOnly');
     expect(await readOnly.editor.add(LAYOUT_ID, 'clock')).toBeNull();

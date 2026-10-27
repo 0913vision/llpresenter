@@ -69,7 +69,13 @@ afterEach(() => {
 function setup(
   access: 'editable' | 'readOnly' = 'editable',
   saving: Promise<void> = Promise.resolve(),
-  {properties = false}: {properties?: boolean} = {},
+  {
+    properties = false,
+    delayedFeed = false,
+  }: {
+    properties?: boolean;
+    delayedFeed?: boolean;
+  } = {},
 ) {
   let current = settingsDocument('stage-layouts', {
     format: 'llsettings.stage',
@@ -107,7 +113,9 @@ function setup(
         change.value,
         current.revision + 1,
       );
-      for (const listener of listeners) listener(current);
+      if (!delayedFeed) {
+        for (const listener of listeners) listener(current);
+      }
       return {
         ok: true as const,
         value: {id: 'stage-layouts', revision: current.revision},
@@ -142,7 +150,10 @@ function setup(
       ? current.value.layouts[0]?.elements[0]
       : undefined;
   const frame = () => element()?.frame;
-  return {view, edit, frame, element, listeners};
+  const publish = () => {
+    for (const listener of listeners) listener(current);
+  };
+  return {view, edit, frame, element, listeners, publish};
 }
 
 it('selects, previews a scaled drag, saves once, nudges cumulatively, and deletes', async () => {
@@ -269,6 +280,157 @@ it.each([
     await waitFor(() => expect(element()).toMatchObject(expected));
   },
 );
+it('edits bounded reference-pixel fields and cancels invalid or escaped drafts', async () => {
+  const {edit, frame} = setup();
+  const item = await screen.findByRole('button', {name: '현재 가사'});
+  expect(
+    screen.getByRole('spinbutton', {name: 'X'}).hasAttribute('readonly'),
+  ).toBe(true);
+  fireEvent.click(item);
+  const enter = (name: string, value: string) => {
+    const input = screen.getByRole('spinbutton', {name});
+    fireEvent.change(input, {target: {value}});
+    fireEvent.keyDown(input, {key: 'Enter'});
+  };
+  enter('X', '160');
+  enter('Y', '210');
+  enter('W', '500');
+  enter('H', '260');
+  await waitFor(() =>
+    expect(frame()).toMatchObject({x: 160, y: 210, w: 500, h: 260}),
+  );
+  const x = screen.getByRole('spinbutton', {name: 'X'});
+  fireEvent.change(x, {target: {value: '400'}});
+  fireEvent.keyDown(x, {key: 'Escape'});
+  fireEvent.blur(x);
+  enter('X', 'invalid');
+  expect(edit).toHaveBeenCalledTimes(4);
+  expect(frame()?.x).toBe(160);
+  enter('X', '-25');
+  enter('W', '9999');
+  await waitFor(() => expect(frame()).toMatchObject({x: 0, w: 1920}));
+  expect(screen.getByLabelText('캔버스 배율').textContent).toBe('50%');
+});
+
+it('keeps a held drag and subsequent numeric fields drawn until their queued saves arrive', async () => {
+  let release: () => void = () => undefined;
+  const saving = new Promise<void>(resolve => {
+    release = resolve;
+  });
+  const {edit, frame} = setup('editable', saving);
+  const item = await screen.findByRole('button', {name: '현재 가사'});
+  const canvas = screen.getByLabelText('무대 배치 캔버스');
+  fireEvent.pointerDown(item, {
+    button: 0,
+    pointerId: 1,
+    clientX: 100,
+    clientY: 100,
+  });
+  fireEvent.pointerMove(canvas, {pointerId: 1, clientX: 110, clientY: 120});
+  fireEvent.pointerUp(canvas, {pointerId: 1});
+  await waitFor(() => expect(edit).toHaveBeenCalledTimes(1));
+  for (const [name, value] of [
+    ['X', '160'],
+    ['Y', '210'],
+  ] as const) {
+    const input = screen.getByRole('spinbutton', {name});
+    fireEvent.change(input, {target: {value}});
+    fireEvent.keyDown(input, {key: 'Enter'});
+  }
+  const element = document.querySelector<HTMLElement>(
+    '[data-stage-element="first"]',
+  );
+  expect(Number.parseFloat(element?.style.left ?? '')).toBeCloseTo(
+    (100 * 160) / 1920,
+  );
+  expect(Number.parseFloat(element?.style.top ?? '')).toBeCloseTo(
+    (100 * 210) / 1080,
+  );
+  expect(frame()).toMatchObject({x: 100, y: 100});
+  release();
+  await waitFor(() =>
+    expect(frame()).toMatchObject({x: 160, y: 210, w: 400, h: 200}),
+  );
+  expect(edit).toHaveBeenCalledTimes(3);
+  expect(
+    screen.getByRole('spinbutton', {name: 'X'}).getAttribute('value'),
+  ).toBe('160');
+});
+
+it('keeps the other pending axes when a numeric edit returns one coordinate to its original value', async () => {
+  let release: () => void = () => undefined;
+  const saving = new Promise<void>(resolve => {
+    release = resolve;
+  });
+  const {edit, frame, publish} = setup('editable', saving, {delayedFeed: true});
+  const item = await screen.findByRole('button', {name: '현재 가사'});
+  const canvas = screen.getByLabelText('무대 배치 캔버스');
+  fireEvent.pointerDown(item, {
+    button: 0,
+    pointerId: 1,
+    clientX: 100,
+    clientY: 100,
+  });
+  fireEvent.pointerMove(canvas, {pointerId: 1, clientX: 110, clientY: 120});
+  fireEvent.pointerUp(canvas, {pointerId: 1});
+  await waitFor(() => expect(edit).toHaveBeenCalledTimes(1));
+  const x = screen.getByRole('spinbutton', {name: 'X'});
+  fireEvent.change(x, {target: {value: '100'}});
+  fireEvent.keyDown(x, {key: 'Enter'});
+  const element = document.querySelector<HTMLElement>(
+    '[data-stage-element="first"]',
+  );
+  expect(Number.parseFloat(element?.style.top ?? '')).toBeCloseTo(
+    (100 * 140) / 1080,
+  );
+  expect(frame()).toMatchObject({x: 100, y: 100});
+  release();
+  await waitFor(() => expect(frame()).toMatchObject({x: 100, y: 140}));
+  expect(Number.parseFloat(element?.style.top ?? '')).toBeCloseTo(
+    (100 * 140) / 1080,
+  );
+  act(publish);
+  await waitFor(() =>
+    expect(
+      screen.getByRole('spinbutton', {name: 'Y'}).getAttribute('value'),
+    ).toBe('140'),
+  );
+});
+
+it('toggles ratio without saving and couples both numeric and pointer resizing', async () => {
+  const {edit, frame} = setup();
+  fireEvent.click(await screen.findByRole('button', {name: '현재 가사'}));
+  const ratio = screen.getByRole('button', {name: '비율 고정'});
+  expect(ratio.getAttribute('aria-pressed')).toBe('false');
+  fireEvent.click(ratio);
+  expect(edit).not.toHaveBeenCalled();
+  const width = screen.getByRole('spinbutton', {name: 'W'});
+  fireEvent.change(width, {target: {value: '600'}});
+  fireEvent.keyDown(width, {key: 'Enter'});
+  await waitFor(() =>
+    expect(frame()).toMatchObject({x: 100, y: 100, w: 600, h: 300}),
+  );
+  const handle = screen.getByRole('button', {
+    name: '현재 가사 오른쪽 아래 크기 조절',
+  });
+  fireEvent.pointerDown(handle, {
+    button: 0,
+    pointerId: 2,
+    clientX: 0,
+    clientY: 0,
+  });
+  const canvas = screen.getByLabelText('무대 배치 캔버스');
+  fireEvent.pointerMove(canvas, {pointerId: 2, clientX: 20, clientY: 10});
+  fireEvent.pointerUp(canvas, {pointerId: 2});
+  await waitFor(() =>
+    expect(frame()).toMatchObject({x: 100, y: 100, w: 640, h: 320}),
+  );
+  fireEvent.click(ratio);
+  const height = screen.getByRole('spinbutton', {name: 'H'});
+  fireEvent.change(height, {target: {value: '400'}});
+  fireEvent.keyDown(height, {key: 'Enter'});
+  await waitFor(() => expect(frame()).toMatchObject({w: 640, h: 400}));
+});
 
 it('cancels a draft on Escape and keeps read-only elements selectable', async () => {
   const editable = setup();
@@ -296,5 +458,12 @@ it('cancels a draft on Escape and keeps read-only elements selectable', async ()
   ).toBe('true');
   expect(screen.queryAllByRole('button', {name: /크기 조절/})).toHaveLength(0);
   fireEvent.keyDown(screen.getByLabelText('무대 배치 캔버스'), {key: 'Delete'});
+  expect(readOnly.edit).not.toHaveBeenCalled();
+  expect(
+    screen.getByRole('spinbutton', {name: 'W'}).hasAttribute('readonly'),
+  ).toBe(true);
+  fireEvent.keyDown(screen.getByRole('spinbutton', {name: 'X'}), {
+    key: 'ArrowUp',
+  });
   expect(readOnly.edit).not.toHaveBeenCalled();
 });

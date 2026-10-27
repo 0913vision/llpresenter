@@ -17,6 +17,7 @@ import {useElementSize} from '../useElementSize';
 import {fitAspect} from '../fitAspect';
 import {
   editFrame,
+  editFrameValue,
   resizeHandles,
   type ElementFrame,
   type ResizeHandle,
@@ -24,6 +25,7 @@ import {
 import {elementNames, STAGE_ELEMENT_LIMIT} from './stageEditor';
 import {useStageEditor} from './useStageEditor';
 import {StagePicture} from './StagePicture';
+import {StageFrameBar} from './StageFrameBar';
 import styles from './StageCanvas.module.css';
 
 interface Gesture {
@@ -35,6 +37,7 @@ interface Gesture {
   readonly scale: number;
   readonly handle: ResizeHandle | 'move';
   readonly target: HTMLElement;
+  readonly keepRatio: boolean;
   frame: ElementFrame;
 }
 const handleNames: Readonly<Record<ResizeHandle, string>> = {
@@ -59,6 +62,7 @@ export function StageCanvas({
   const selection = useScreensSelection(view => view.selection);
   const live = useLive(view => view.state);
   const run = useStageEditor(document, onProblem);
+  const [keepRatio, setKeepRatio] = useState(false);
   const layout =
     selection.kind === 'stage'
       ? document?.value.layouts.find(layout => layout.id === selection.id)
@@ -71,6 +75,8 @@ export function StageCanvas({
       run={run}
       live={live}
       timers={timers?.value.timers ?? []}
+      keepRatio={keepRatio}
+      setKeepRatio={setKeepRatio}
     />
   );
 }
@@ -81,12 +87,16 @@ function CanvasBody({
   run,
   live,
   timers,
+  keepRatio,
+  setKeepRatio,
 }: {
   layout: StageLayout;
   readOnly: boolean;
   run: ReturnType<typeof useStageEditor>;
   live: Parameters<typeof StagePicture>[0]['live'];
   timers: Parameters<typeof StagePicture>[0]['timers'];
+  keepRatio: boolean;
+  setKeepRatio: (value: boolean) => void;
 }): JSX.Element {
   const picked = useScreensSelection(view => view.stageElement);
   const selectElement = useScreensSelection(view => view.selectStageElement);
@@ -96,6 +106,7 @@ function CanvasBody({
     id: string;
     frame: ElementFrame;
     pending?: boolean;
+    waiting?: boolean;
   } | null>(null);
   const [kind, setKind] = useState<StageElement['kind']>('currentSlide');
   const gesture = useRef<Gesture | null>(null);
@@ -125,7 +136,7 @@ function CanvasBody({
               : element,
           ),
         };
-  if (draft?.pending) {
+  if (draft?.pending && !draft.waiting) {
     const frame = layout.elements.find(
       element => element.id === draft.id,
     )?.frame;
@@ -190,6 +201,7 @@ function CanvasBody({
       scale: width / layout.width,
       handle,
       target: event.currentTarget,
+      keepRatio,
     };
     event.currentTarget.setPointerCapture(event.pointerId);
   };
@@ -242,7 +254,7 @@ function CanvasBody({
                 x: (event.clientX - current.x) / current.scale,
                 y: (event.clientY - current.y) / current.scale,
               },
-              current.handle,
+              {handle: current.handle, keepRatio: current.keepRatio},
             );
             setDraft({id: current.elementId, frame: current.frame});
           }}
@@ -362,6 +374,53 @@ function CanvasBody({
           ))}
         </div>
       </div>
+      <StageFrameBar
+        frame={picture.elements.find(element => element.id === selected)?.frame}
+        width={layout.width}
+        height={layout.height}
+        zoom={size.width / layout.width}
+        readOnly={readOnly}
+        keepRatio={keepRatio}
+        setKeepRatio={setKeepRatio}
+        change={(field, value) => {
+          const element = picture.elements.find(
+            element => element.id === selected,
+          );
+          if (element === undefined || readOnly || gesture.current !== null) {
+            return;
+          }
+          const sequence = ++saveSequence.current;
+          setDraft({
+            id: element.id,
+            frame: editFrameValue(
+              element.frame,
+              {field, value, keepRatio},
+              layout,
+            ),
+            waiting: true,
+            pending: true,
+          });
+          run(
+            editor =>
+              editor.frameValue(layout.id, element.id, {
+                field,
+                value,
+                keepRatio,
+              }),
+            frame => {
+              if (active.current && saveSequence.current === sequence) {
+                setDraft(current =>
+                  current?.id !== element.id
+                    ? current
+                    : frame === null
+                      ? null
+                      : {id: element.id, frame, pending: true},
+                );
+              }
+            },
+          );
+        }}
+      />
     </section>
   );
 }
