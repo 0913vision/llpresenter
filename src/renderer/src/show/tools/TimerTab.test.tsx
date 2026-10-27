@@ -12,8 +12,14 @@ import {settingsDocument} from '@renderer/screens/testing/documents';
 import {stageFixture} from './stageTesting';
 import {TimerTab} from './TimerTab';
 import {MAX_LIVE_TIMERS} from '@shared/schema/timerState';
+import {
+  hoverForTooltip,
+  pointAway,
+  resetTooltips,
+} from '@renderer/ui/tooltipTesting';
 
 afterEach(() => {
+  resetTooltips();
   cleanup();
   delete window.llp;
   vi.restoreAllMocks();
@@ -25,6 +31,21 @@ const fixture = (timers: readonly object[]) => {
   return f;
 };
 const countdown = {id, name: '설교', kind: 'countdown', duration: 30};
+
+it('shows the full timer name only when the row truncates it', async () => {
+  const name = '아주 긴 타이머 이름을 끝까지 확인합니다';
+  fixture([{...countdown, name}]);
+  render(<TimerTab />);
+  const text = await screen.findByText(name);
+  Object.defineProperties(text, {
+    clientWidth: {configurable: true, value: 100},
+    scrollWidth: {configurable: true, value: 100},
+  });
+  expect(await hoverForTooltip(text)).toBeNull();
+  pointAway(text);
+  Object.defineProperty(text, 'scrollWidth', {configurable: true, value: 300});
+  expect((await hoverForTooltip(text))?.textContent).toBe(name);
+});
 
 it('starts, pauses and resets one timer without commanding another', async () => {
   const f = fixture([

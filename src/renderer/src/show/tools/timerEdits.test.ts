@@ -5,10 +5,17 @@ import {MAX_TIMER_DEFINITIONS, MAX_TIMER_SECONDS} from '@shared/schema/timers';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {deferred} from '../quick/quickTesting';
-import {saveNewCountdown} from './timerEdits';
+import {saveNewCountdown, saveNewTimer} from './timerEdits';
+import type {TimerConfiguration} from './timerConfiguration';
 
 const id = createTimerId('00000000-0000-4000-8000-000000000001');
 const fields = {id, duration: 30, overrun: false};
+const configurations: readonly TimerConfiguration[] = [
+  {kind: 'countdownTo', date: '2028-02-29', time: '23:59', overrun: false},
+  {kind: 'elapsed', start: 0},
+  {kind: 'elapsed', start: 75},
+  {kind: 'clock'},
+];
 function document(
   timers: readonly object[] = [],
   access = 'editable',
@@ -59,6 +66,67 @@ it('adds a separately named definition and keeps unknown fields', async () => {
       ],
     },
   });
+});
+
+it.each(configurations)(
+  'creates and recognizes an identical $kind definition without changing existing timers',
+  async configuration => {
+    const old = {
+      id: '00000000-0000-4000-8000-000000000002',
+      name: 'Legacy',
+      kind: 'elapsedFrom',
+      time: '09:00',
+      future: true,
+    };
+    const get = vi.fn().mockResolvedValue(document([old]));
+    const edit = vi
+      .fn()
+      .mockResolvedValue({ok: true, value: {id: 'timers', revision: 2}});
+    const api = fakeLlpApi({settings: {get, edit}});
+    await saveNewTimer(api, {id, ...configuration});
+    expect(edit).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        value: {
+          ...document().value,
+          timers: [old, {id, name: '타이머 1', ...configuration}],
+        },
+      }),
+    );
+    edit.mockClear();
+    get.mockResolvedValue(
+      document([{id, name: 'Renamed', ...configuration, future: true}]),
+    );
+    await expect(
+      saveNewTimer(api, {id, ...configuration}),
+    ).resolves.toMatchObject({ok: true});
+    expect(edit).not.toHaveBeenCalled();
+    const other =
+      configuration.kind === 'clock'
+        ? {kind: 'elapsed', start: 0}
+        : {kind: 'clock'};
+    get.mockResolvedValue(document([{id, name: 'Occupied', ...other}]));
+    await expect(saveNewTimer(api, {id, ...configuration})).rejects.toThrow(
+      'already in use',
+    );
+  },
+);
+
+it('refuses invalid new configurations before reading or writing', async () => {
+  const get = vi.fn();
+  const edit = vi.fn();
+  const api = fakeLlpApi({settings: {get, edit}});
+  for (const configuration of [
+    {kind: 'elapsed', start: -1},
+    {kind: 'elapsed', start: 0.5},
+    {kind: 'countdownTo', date: '2027-02-29', time: '12:00', overrun: true},
+    {kind: 'countdownTo', date: '2028-02-29', time: '24:00', overrun: true},
+  ] satisfies readonly TimerConfiguration[]) {
+    await expect(saveNewTimer(api, {id, ...configuration})).rejects.toThrow(
+      'Invalid timer',
+    );
+  }
+  expect(get).not.toHaveBeenCalled();
+  expect(edit).not.toHaveBeenCalled();
 });
 
 it('holds close through a deferred read and retries on the newest document', async () => {

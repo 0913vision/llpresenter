@@ -4,8 +4,8 @@ import {MAX_TIMER_DEFINITIONS} from '@shared/schema/timers';
 import {useSettingsDocument} from '@renderer/screens/useSettingsDocument';
 import {IconButton} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';
-import {CountdownDialog} from './CountdownDialog';
-import {saveNewCountdown, type NewCountdown} from './timerEdits';
+import {TimerDialog} from './TimerDialog';
+import {saveNewTimer, type NewTimer} from './timerEdits';
 import {useToolEditing} from './useToolEditing';
 import {WindowedTimers} from './WindowedTimers';
 import styles from './TimerTab.module.css';
@@ -16,12 +16,12 @@ function NewTimerDialog({
   onClose,
 }: {
   readonly locked: boolean;
-  readonly save: (timer: NewCountdown) => Promise<boolean>;
+  readonly save: (timer: NewTimer) => Promise<boolean>;
   readonly onClose: () => void;
 }): JSX.Element {
   const [id] = useState(() => createTimerId(crypto.randomUUID()));
   return (
-    <CountdownDialog
+    <TimerDialog
       locked={locked}
       onClose={onClose}
       onSave={fields => save({id, ...fields})}
@@ -39,7 +39,7 @@ export function TimerTab({
   const editing = useToolEditing({
     api,
     onProblem,
-    write: saveNewCountdown,
+    write: saveNewTimer,
     area: {key: 'timers', label: '타이머', log: 'Could not edit timers'},
   });
   const [adding, setAdding] = useState(false);

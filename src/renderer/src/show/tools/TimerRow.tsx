@@ -3,7 +3,7 @@ import type {LlpApi} from '@shared/ipc';
 import type {Timer} from '@shared/schema/timers';
 import {MAX_LIVE_TIMERS} from '@shared/schema/timerState';
 import {useLive} from '@renderer/state/live';
-import {Button, Icon} from '@renderer/ui';
+import {Button, Icon, TruncatedText} from '@renderer/ui';
 import {TimerValue} from './TimerValue';
 import styles from './TimerTab.module.css';
 
@@ -49,7 +49,10 @@ export const TimerRow = memo(
       >
         <div className={styles.heading}>
           <Icon name="timer" size={16} />
-          <span className={styles.name}>{timer.name || '이름 없음'}</span>
+          <TruncatedText
+            className={styles.name}
+            text={timer.name || '이름 없음'}
+          />
           <span className={styles.kind}>{kindText(timer)}</span>
         </div>
         <div className={styles.reading}>

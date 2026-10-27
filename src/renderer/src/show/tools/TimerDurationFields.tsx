@@ -10,7 +10,11 @@ const wholeNumber = (text: string, max: number): boolean =>
   Number.isSafeInteger(Number(text)) &&
   Number(text) <= max;
 
-export function parseTimerDuration(minutes: string, seconds: string) {
+export function parseTimerDuration(
+  minutes: string,
+  seconds: string,
+  minimum: 0 | 1 = 1,
+) {
   const minutesReason = wholeNumber(minutes, MAX_MINUTES)
     ? undefined
     : '분은 설정 가능한 0 이상의 정수여야 합니다';
@@ -19,7 +23,7 @@ export function parseTimerDuration(minutes: string, seconds: string) {
     : '초는 0부터 59까지의 정수여야 합니다';
   const duration = Number(minutes) * SECONDS_PER_MINUTE + Number(seconds);
   const totalReason =
-    duration === 0
+    duration < minimum
       ? '시간은 0보다 커야 합니다'
       : duration > MAX_TIMER_SECONDS
         ? '설정할 수 있는 시간을 넘었습니다'
@@ -38,14 +42,16 @@ export function TimerDurationFields({
   onMinutesChange,
   onSecondsChange,
   disabled = false,
+  minimum = 1,
 }: {
   readonly minutes: string;
   readonly seconds: string;
   readonly onMinutesChange: (value: string) => void;
   readonly onSecondsChange: (value: string) => void;
   readonly disabled?: boolean;
+  readonly minimum?: 0 | 1;
 }): JSX.Element {
-  const draft = parseTimerDuration(minutes, seconds);
+  const draft = parseTimerDuration(minutes, seconds, minimum);
   return (
     <>
       <PropertyRow label="분">

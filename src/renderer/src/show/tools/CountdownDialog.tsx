@@ -1,6 +1,7 @@
 import {useState, type JSX} from 'react';
-import {Dialog, Properties, PropertyRow, SegmentedControl} from '@renderer/ui';
+import {Dialog, Properties} from '@renderer/ui';
 import {parseTimerDuration, TimerDurationFields} from './TimerDurationFields';
+import {TimerOverrunField} from './TimerOverrunField';
 
 export function CountdownDialog({
   locked,
@@ -48,22 +49,11 @@ export function CountdownDialog({
           onSecondsChange={setSeconds}
           disabled={locked}
         />
-        <PropertyRow label="0 지나면">
-          {({controlId}) => (
-            <SegmentedControl
-              id={controlId}
-              label="0 지나면"
-              fill
-              disabled={locked}
-              value={overrun ? 'continue' : 'stop'}
-              onChange={value => setOverrun(value === 'continue')}
-              options={[
-                {value: 'continue', label: '계속'},
-                {value: 'stop', label: '멈춤'},
-              ]}
-            />
-          )}
-        </PropertyRow>
+        <TimerOverrunField
+          value={overrun}
+          onChange={setOverrun}
+          disabled={locked}
+        />
       </Properties>
     </Dialog>
   );

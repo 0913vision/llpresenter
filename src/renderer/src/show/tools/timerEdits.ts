@@ -1,10 +1,14 @@
 import type {LlpApi} from '@shared/ipc';
 import type {TimerId} from '@shared/schema/ids';
 import type {EditResult} from '@shared/schema/contentEdit';
-import {MAX_TIMER_DEFINITIONS, MAX_TIMER_SECONDS} from '@shared/schema/timers';
+import {MAX_TIMER_DEFINITIONS} from '@shared/schema/timers';
 import {nextTimerName} from '@shared/timerNames';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {withinLookupTimeout} from '@renderer/state/showOutput';
+import {
+  validTimerConfiguration,
+  type TimerConfiguration,
+} from './timerConfiguration';
 
 const SAVE_ATTEMPTS = 2;
 export interface NewCountdown {
@@ -12,13 +16,24 @@ export interface NewCountdown {
   readonly duration: number;
   readonly overrun: boolean;
 }
+export type NewTimer = TimerConfiguration & {readonly id: TimerId};
 
 export async function saveNewCountdown(
   api: LlpApi,
   timer: NewCountdown,
 ): Promise<EditResult> {
+  if (!validTimerConfiguration({kind: 'countdown', ...timer})) {
+    throw new Error('Invalid countdown duration');
+  }
+  return saveNewTimer(api, {kind: 'countdown', ...timer});
+}
+
+export async function saveNewTimer(
+  api: LlpApi,
+  timer: NewTimer,
+): Promise<EditResult> {
   const result = await pendingWritesOf(api).run<EditResult | null>({
-    write: () => sendCountdown(api, timer),
+    write: () => sendTimer(api, timer),
     refused: null,
     sent: outcome =>
       outcome !== null &&
@@ -28,17 +43,13 @@ export async function saveNewCountdown(
   return result;
 }
 
-async function sendCountdown(
+async function sendTimer(
   api: LlpApi,
-  timer: NewCountdown,
+  timer: NewTimer,
   attempt = 0,
 ): Promise<EditResult> {
-  if (
-    !Number.isSafeInteger(timer.duration) ||
-    timer.duration <= 0 ||
-    timer.duration > MAX_TIMER_SECONDS
-  ) {
-    throw new Error('Invalid countdown duration');
+  if (!validTimerConfiguration(timer)) {
+    throw new Error('Invalid timer configuration');
   }
   const document = await withinLookupTimeout(() =>
     api.settings.get({name: 'timers'}),
@@ -48,10 +59,13 @@ async function sendCountdown(
   }
   const existing = document.value.timers.find(item => item.id === timer.id);
   if (existing) {
+    const saved = new Map<string, unknown>(Object.entries(existing));
     if (
-      existing.kind !== 'countdown' ||
-      existing.duration !== timer.duration ||
-      (existing.overrun ?? true) !== timer.overrun
+      Object.entries(timer).some(
+        ([key, value]) =>
+          (key === 'overrun' ? (saved.get(key) ?? true) : saved.get(key)) !==
+          value,
+      )
     ) {
       throw new Error('The timer ID is already in use');
     }
@@ -67,12 +81,12 @@ async function sendCountdown(
     baseRevision: document.revision,
     value: {
       ...document.value,
-      timers: [...document.value.timers, {kind: 'countdown', name, ...timer}],
+      timers: [...document.value.timers, {name, ...timer}],
     },
   });
   if (result.ok || result.error.reason === 'write-failed') return result;
   if (result.error.reason === 'stale' && attempt + 1 < SAVE_ATTEMPTS) {
-    return sendCountdown(api, timer, attempt + 1);
+    return sendTimer(api, timer, attempt + 1);
   }
   throw new Error(result.error.message);
 }
