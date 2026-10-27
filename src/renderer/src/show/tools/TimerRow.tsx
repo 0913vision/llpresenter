@@ -32,11 +32,13 @@ export const TimerRow = memo(
     timer,
     editable = false,
     onProblem,
+    onRemove,
   }: {
     readonly api: LlpApi;
     readonly timer: Timer;
     readonly editable?: boolean;
     readonly onProblem?: ((notice: Notice) => void) | undefined;
+    readonly onRemove?: ((timer: Timer) => void) | undefined;
   }): JSX.Element => {
     const run = useLive(view => view.state?.timers?.[timer.id]);
     const full = useLive(
@@ -53,6 +55,7 @@ export const TimerRow = memo(
         timer={timer}
         editable={editable}
         onProblem={onProblem}
+        onRemove={onRemove}
       >
         <div className={styles.heading}>
           <Icon name="timer" size={16} />

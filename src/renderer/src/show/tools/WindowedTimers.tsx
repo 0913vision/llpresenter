@@ -20,11 +20,13 @@ export function WindowedTimers({
   timers,
   editable = false,
   onProblem,
+  onRemove,
 }: {
   readonly api: LlpApi;
   readonly timers: readonly Timer[];
   readonly editable?: boolean;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
+  readonly onRemove?: ((timer: Timer) => void) | undefined;
 }): JSX.Element {
   const viewport = useRef<HTMLDivElement>(null);
   const pendingFocus = useRef<number | null>(null);
@@ -151,6 +153,7 @@ export function WindowedTimers({
               timer={timer}
               editable={editable}
               onProblem={onProblem}
+              onRemove={onRemove}
             />
           </div>
         ))}

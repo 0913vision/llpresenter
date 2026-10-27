@@ -70,12 +70,14 @@ export function TimerRowMenu({
   timer,
   editable,
   onProblem,
+  onRemove,
   children,
 }: {
   readonly api: LlpApi;
   readonly timer: Timer;
   readonly editable: boolean;
   readonly onProblem: ((notice: Notice) => void) | undefined;
+  readonly onRemove: ((timer: Timer) => void) | undefined;
   readonly children: ReactNode;
 }): JSX.Element {
   const [menu, setMenu] = useState<MenuAnchor | null>(null);
@@ -132,6 +134,17 @@ export function TimerRowMenu({
               label: '이름 바꾸기',
               onSelect: () => setRenaming(true),
             },
+            ...(onRemove
+              ? [
+                  {
+                    kind: 'item' as const,
+                    id: 'delete',
+                    label: '삭제',
+                    danger: true,
+                    onSelect: () => onRemove(timer),
+                  },
+                ]
+              : []),
           ]}
         />
       ) : null}
