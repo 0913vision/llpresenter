@@ -16,7 +16,6 @@ import {useScreensSelection} from '../selection';
 import {useElementSize} from '../useElementSize';
 import {fitAspect} from '../fitAspect';
 import {
-  editFrame,
   editFrameValue,
   resizeHandles,
   type ElementFrame,
@@ -26,7 +25,7 @@ import {elementNames, STAGE_ELEMENT_LIMIT} from './stageEditor';
 import {useStageEditor} from './useStageEditor';
 import {StagePicture} from './StagePicture';
 import {StageFrameBar} from './StageFrameBar';
-import {snapToGrid} from './gridSnap';
+import {guideFrame, type GuideLines} from './smartGuides';
 import styles from './StageCanvas.module.css';
 
 interface Gesture {
@@ -40,6 +39,9 @@ interface Gesture {
   readonly target: HTMLElement;
   readonly keepRatio: boolean;
   readonly snapGrid: boolean;
+  readonly distance: number;
+  readonly targets: readonly ElementFrame[];
+  delta: {x: number; y: number};
   frame: ElementFrame;
 }
 const handleNames: Readonly<Record<ResizeHandle, string>> = {
@@ -116,6 +118,7 @@ function CanvasBody({
     frame: ElementFrame;
     pending?: boolean;
     waiting?: boolean;
+    guides?: GuideLines;
   } | null>(null);
   const [kind, setKind] = useState<StageElement['kind']>('currentSlide');
   const gesture = useRef<Gesture | null>(null);
@@ -195,8 +198,9 @@ function CanvasBody({
     handle: Gesture['handle'],
   ): void => {
     if (event.button !== 0 || readOnly || gesture.current !== null) return;
-    const width = canvas.current?.getBoundingClientRect().width ?? 0;
-    if (width <= 0) return;
+    const surface = canvas.current;
+    const width = surface?.getBoundingClientRect().width ?? 0;
+    if (surface === null || width <= 0) return;
     event.preventDefault();
     event.currentTarget.focus();
     select(element.id);
@@ -212,8 +216,25 @@ function CanvasBody({
       target: event.currentTarget,
       keepRatio,
       snapGrid,
+      distance: Number.parseFloat(
+        getComputedStyle(surface).getPropertyValue('--size-guide-snap'),
+      ),
+      targets: [
+        {x: 0, y: 0, w: layout.width, h: layout.height},
+        ...layout.elements
+          .filter(item => item.id !== element.id)
+          .map(item => item.frame),
+      ],
+      delta: {x: 0, y: 0},
     };
     event.currentTarget.setPointerCapture(event.pointerId);
+  };
+  const update = (bypass: boolean): void => {
+    const current = gesture.current;
+    if (current === null) return;
+    const {frame, guides} = guideFrame({...current, bypass});
+    current.frame = frame;
+    setDraft({id: current.elementId, frame, guides});
   };
   return (
     <section className={styles.editor} aria-label="무대 배치 편집기">
@@ -258,21 +279,11 @@ function CanvasBody({
           onPointerMove={event => {
             const current = gesture.current;
             if (current?.id !== event.pointerId) return;
-            const delta = {
+            current.delta = {
               x: (event.clientX - current.x) / current.scale,
               y: (event.clientY - current.y) / current.scale,
             };
-            const snapped = current.snapGrid
-              ? snapToGrid(current.start, delta, current)
-              : {delta, ratioAxis: undefined};
-            current.frame = editFrame(current.start, snapped.delta, {
-              handle: current.handle,
-              keepRatio: current.keepRatio,
-              ...(snapped.ratioAxis === undefined
-                ? {}
-                : {ratioAxis: snapped.ratioAxis}),
-            });
-            setDraft({id: current.elementId, frame: current.frame});
+            update(event.altKey);
           }}
           onPointerUp={event => {
             if (gesture.current?.id === event.pointerId) stop(true);
@@ -312,6 +323,11 @@ function CanvasBody({
             }
           }}
           onKeyDown={event => {
+            if (event.key === 'Alt' && gesture.current !== null) {
+              event.preventDefault();
+              update(true);
+              return;
+            }
             if (event.key === 'Escape') {
               stop(false);
               return;
@@ -354,8 +370,40 @@ function CanvasBody({
               run(editor => editor.nudge(layout.id, element.id, direction));
             }
           }}
+          onKeyUp={event => {
+            if (event.key === 'Alt' && gesture.current !== null) {
+              event.preventDefault();
+              update(false);
+            }
+          }}
         >
           <StagePicture layout={picture} live={live} timers={timers} />
+          {draft?.guides === undefined || selected !== draft.id ? null : (
+            <div className={styles.guides} aria-hidden="true">
+              {draft.guides.x === undefined ||
+              draft.guides.x < 0 ||
+              draft.guides.x > layout.width ? null : (
+                <span
+                  className={styles.guideX}
+                  data-stage-guide="x"
+                  style={{
+                    left: `min(${(100 * draft.guides.x) / layout.width}%, calc(100% - var(--size-guide-line)))`,
+                  }}
+                />
+              )}
+              {draft.guides.y === undefined ||
+              draft.guides.y < 0 ||
+              draft.guides.y > layout.height ? null : (
+                <span
+                  className={styles.guideY}
+                  data-stage-guide="y"
+                  style={{
+                    top: `min(${(100 * draft.guides.y) / layout.height}%, calc(100% - var(--size-guide-line)))`,
+                  }}
+                />
+              )}
+            </div>
+          )}
           {picture.elements.map(element => (
             <div
               key={element.id}

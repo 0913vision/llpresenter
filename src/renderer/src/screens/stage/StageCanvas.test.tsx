@@ -243,6 +243,71 @@ it('selects an element without writing unchanged geometry on a pointer click', a
   expect(edit).not.toHaveBeenCalled();
 });
 
+it('draws token-distance guides, responds to Alt without pointer movement, and removes decoration before saving', async () => {
+  const {edit, frame} = setup();
+  const item = await screen.findByRole('button', {name: '현재 가사'});
+  const canvas = screen.getByLabelText('무대 배치 캔버스');
+  canvas.style.setProperty('--size-guide-snap', '6px');
+  const guides = () => document.querySelectorAll('[data-stage-guide]');
+  fireEvent.pointerDown(item, {
+    button: 0,
+    pointerId: 1,
+    clientX: 100,
+    clientY: 100,
+  });
+  fireEvent.pointerMove(canvas, {pointerId: 1, clientX: 51, clientY: 100});
+  expect(guides()).toHaveLength(1);
+  expect(guides()[0]?.parentElement?.getAttribute('aria-hidden')).toBe('true');
+  fireEvent.keyDown(item, {key: 'Alt', altKey: true});
+  expect(guides()).toHaveLength(0);
+  expect(
+    document.querySelector<HTMLElement>('[data-stage-element="first"]')?.style
+      .left,
+  ).toBe(`${(100 * 2) / 1920}%`);
+  fireEvent.keyUp(item, {key: 'Alt'});
+  expect(guides()).toHaveLength(1);
+  fireEvent.pointerMove(canvas, {pointerId: 1, clientX: 56.5, clientY: 100});
+  expect(guides()).toHaveLength(0);
+  fireEvent.pointerMove(canvas, {pointerId: 1, clientX: 56, clientY: 100});
+  expect(guides()).toHaveLength(1);
+  expect(edit).not.toHaveBeenCalled();
+  fireEvent.pointerUp(canvas, {pointerId: 1});
+  expect(guides()).toHaveLength(0);
+  await waitFor(() => expect(frame()).toEqual({x: 0, y: 100, w: 400, h: 200}));
+});
+
+it('excludes the manipulated element and discards guides on cancellation and unmount', async () => {
+  const {edit, view, listeners} = setup();
+  const item = await screen.findByRole('button', {name: '현재 가사'});
+  const canvas = screen.getByLabelText('무대 배치 캔버스');
+  canvas.style.setProperty('--size-guide-snap', '6px');
+  fireEvent.pointerDown(item, {
+    button: 0,
+    pointerId: 1,
+    clientX: 100,
+    clientY: 100,
+  });
+  fireEvent.pointerMove(canvas, {pointerId: 1, clientX: 102, clientY: 100});
+  expect(document.querySelectorAll('[data-stage-guide]')).toHaveLength(0);
+  fireEvent.pointerMove(canvas, {pointerId: 1, clientX: 51, clientY: 100});
+  expect(document.querySelectorAll('[data-stage-guide]')).toHaveLength(1);
+  fireEvent.keyDown(item, {key: 'Escape'});
+  expect(document.querySelectorAll('[data-stage-guide]')).toHaveLength(0);
+  fireEvent.pointerUp(canvas, {pointerId: 1});
+  expect(edit).not.toHaveBeenCalled();
+  fireEvent.pointerDown(item, {
+    button: 0,
+    pointerId: 2,
+    clientX: 100,
+    clientY: 100,
+  });
+  fireEvent.pointerMove(canvas, {pointerId: 2, clientX: 51, clientY: 100});
+  view.unmount();
+  expect(document.querySelectorAll('[data-stage-guide]')).toHaveLength(0);
+  expect(listeners.size).toBe(0);
+  expect(edit).not.toHaveBeenCalled();
+});
+
 it.each([
   {
     label: '이름',

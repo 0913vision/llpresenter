@@ -266,6 +266,13 @@ Source: `Looks`, `Main` board guide (Look 편집), `Checkbox` README,
 - Dragging an element moves it. Dragging a handle resizes it. With 비율 고정 on,
   resizing keeps the aspect ratio. With 격자에 맞추기 on, positions snap to a 20
   px grid (proposal for the grid size).
+- Moving aligns element edges and centers with the canvas or other elements;
+  resizing aligns the moving edge while preserving its opposite. Smart guides
+  acquire within the design token's 6 viewport CSS pixels, independently of
+  canvas zoom, and take precedence over the grid on their matched axis. Alt
+  temporarily bypasses snapping. At most two one-pixel guide lines appear,
+  disappearing immediately when the gesture ends; guides are never saved or
+  rendered on output (user decision, "Smart guides in the stage layout editor").
 - The arrow keys move the selected element 1 px, and Shift with an arrow key
   moves it 10 px. Delete removes it (proposal).
 - While editing, elements show the live content if there is any, and sample text

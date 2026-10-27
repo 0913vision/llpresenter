@@ -20,8 +20,6 @@ export interface FrameFieldChange {
 }
 const MIN_SIZE = 1;
 
-// TODO(0913vision): Add smart guides using UI's guide tokens.
-
 /** Applies a canvas-pixel gesture without flipping a handle past its opposite edge. */
 export function editFrame(
   frame: ElementFrame,
@@ -30,47 +28,58 @@ export function editFrame(
     handle,
     keepRatio = false,
     ratioAxis,
+    precision = 'pixel',
   }: {
     handle: ResizeHandle | 'move';
     keepRatio?: boolean;
     ratioAxis?: 'x' | 'y';
+    precision?: 'pixel' | 'pointer';
   },
 ): ElementFrame {
   if (!Number.isFinite(delta.x) || !Number.isFinite(delta.y)) return frame;
+  const round = precision === 'pixel' ? Math.round : (value: number) => value;
   if (handle === 'move') {
-    const x = Math.round(frame.x + delta.x),
-      y = Math.round(frame.y + delta.y);
+    const x = round(frame.x + delta.x),
+      y = round(frame.y + delta.y);
     return Number.isFinite(x) && Number.isFinite(y) ? {...frame, x, y} : frame;
   }
   const right = frame.x + frame.w,
     bottom = frame.y + frame.h;
   const x = handle.includes('w')
-    ? Math.min(right - MIN_SIZE, Math.round(frame.x + delta.x))
+    ? Math.min(right - MIN_SIZE, round(frame.x + delta.x))
     : frame.x;
   const y = handle.includes('n')
-    ? Math.min(bottom - MIN_SIZE, Math.round(frame.y + delta.y))
+    ? Math.min(bottom - MIN_SIZE, round(frame.y + delta.y))
     : frame.y;
   const w = handle.includes('w')
     ? right - x
     : handle.includes('e')
-      ? Math.max(MIN_SIZE, Math.round(frame.w + delta.x))
+      ? Math.max(MIN_SIZE, round(frame.w + delta.x))
       : frame.w;
   const h = handle.includes('n')
     ? bottom - y
     : handle.includes('s')
-      ? Math.max(MIN_SIZE, Math.round(frame.h + delta.y))
+      ? Math.max(MIN_SIZE, round(frame.h + delta.y))
       : frame.h;
   if (![x, y, w, h].every(Number.isFinite)) return frame;
   const next = {...frame, x, y, w, h};
   return keepRatio && frame.w > 0 && frame.h > 0
-    ? resizeWithRatio(frame, next, {handle, ratioAxis})
+    ? resizeWithRatio(frame, next, {handle, ratioAxis, round})
     : next;
 }
 
 function resizeWithRatio(
   frame: ElementFrame,
   next: ElementFrame,
-  {handle, ratioAxis}: {handle: ResizeHandle; ratioAxis: 'x' | 'y' | undefined},
+  {
+    handle,
+    ratioAxis,
+    round,
+  }: {
+    handle: ResizeHandle;
+    ratioAxis: 'x' | 'y' | undefined;
+    round: (value: number) => number;
+  },
 ): ElementFrame {
   const horizontal = handle.includes('w') || handle.includes('e');
   const vertical = handle.includes('n') || handle.includes('s');
@@ -85,8 +94,8 @@ function resizeWithRatio(
     MIN_SIZE / frame.w,
     MIN_SIZE / frame.h,
   );
-  const w = Math.max(MIN_SIZE, Math.round(frame.w * scale));
-  const h = Math.max(MIN_SIZE, Math.round(frame.h * scale));
+  const w = Math.max(MIN_SIZE, round(frame.w * scale));
+  const h = Math.max(MIN_SIZE, round(frame.h * scale));
   const x = handle.includes('w')
     ? frame.x + frame.w - w
     : handle.includes('e')
