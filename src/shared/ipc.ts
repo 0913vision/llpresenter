@@ -21,6 +21,7 @@ import type {
   RendererLogEntry,
 } from './schema/ipcPayloads';
 import type {MonitorList} from './schema/monitors';
+import type {FontCatalog} from './schema/fontCatalog';
 import type {OutputStatuses} from './schema/outputStatus';
 import type {ShowService} from './schema/showService';
 import type {
@@ -101,6 +102,7 @@ export const Channels = {
   outputRetry: 'output:retry',
   outputFindMonitors: 'output:find-monitors',
   monitorsGet: 'monitors:get',
+  fontsGet: 'fonts:get',
   monitorsChanged: 'monitors:changed',
   outputShowWindow: 'output:show-window',
   contentEdit: 'content:edit',
@@ -259,6 +261,10 @@ export interface LlpApi {
      * @returns A function that removes the listener. Always call it.
      */
     subscribe(listener: (monitors: MonitorList) => void): Unsubscribe;
+  };
+  readonly fonts: {
+    /** Reads installed family names and weights; rejects after logging on failure. */
+    get(): Promise<FontCatalog>;
   };
   readonly output: {
     /** Reports an output window's measured frame rate, once a second. */

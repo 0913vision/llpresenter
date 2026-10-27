@@ -48,6 +48,7 @@ import {
 } from '@shared/schema/recovery';
 import type {PayloadError} from '@shared/schema/payload';
 import {parseMonitorList} from '@shared/schema/monitors';
+import {parseFontCatalog} from '@shared/schema/fontCatalog';
 import {parseOutputStatuses} from '@shared/schema/outputStatus';
 import {parseShowService} from '@shared/schema/showService';
 import {
@@ -320,6 +321,9 @@ const api: LlpApi = {
     get: () => invokeChecked(Channels.monitorsGet, parseMonitorList),
     subscribe: listener =>
       listen(Channels.monitorsChanged, parseMonitorList, listener),
+  },
+  fonts: {
+    get: () => invokeChecked(Channels.fontsGet, parseFontCatalog),
   },
   output: {
     reportReady: report =>

@@ -1198,6 +1198,23 @@ describe('preload', () => {
     expect(electron.handlers.has(Channels.outputStatusChanged)).toBe(false);
   });
 
+  it('validates installed font families before exposing them', async () => {
+    const family = {
+      family: 'Fixture Sans',
+      label: '검사용 고딕',
+      aliases: ['Fixture Sans', '검사용 고딕'],
+      weights: [350, 400, 700],
+    };
+    electron.invoke.mockResolvedValueOnce([family]);
+    electron.invoke.mockResolvedValueOnce([{...family, weights: [0]}]);
+    await expect(api.fonts.get()).resolves.toEqual([family]);
+    await expect(api.fonts.get()).rejects.toThrow(
+      `Bad reply on ${Channels.fontsGet}`,
+    );
+    expect(electron.invoke).toHaveBeenCalledWith(Channels.fontsGet);
+    expect(loggedErrors()).toHaveLength(1);
+  });
+
   it('passes a valid monitor list through and rejects a bad one', async () => {
     const monitor = {
       number: 1,

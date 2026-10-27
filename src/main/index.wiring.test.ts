@@ -55,6 +55,8 @@ const fakes = vi.hoisted(() => {
     bibleContexts: new Array<unknown>(),
     bible: {lookup: vi.fn<BibleLookupSession['lookup']>()},
     bibleStop: vi.fn<() => void>(),
+    fontContexts: new Array<unknown>(),
+    fontsStop: vi.fn<() => void>(),
     mediaBackendContexts: new Array<MediaBackendRegistration>(),
     analysisOptions: new Array<unknown>(),
     analysis: {
@@ -120,6 +122,12 @@ vi.mock('./bible/register', () => ({
   registerBible: (context: unknown) => {
     fakes.bibleContexts.push(context);
     return fakes.bibleStop;
+  },
+}));
+vi.mock('./fonts/register', () => ({
+  registerFonts: (control: unknown, log: unknown) => {
+    fakes.fontContexts.push({control, log});
+    return fakes.fontsStop;
   },
 }));
 vi.mock('./live/recovery/session', () => ({
@@ -343,6 +351,8 @@ beforeEach(async () => {
   fakes.textImportStop.mockReset();
   fakes.bibleContexts.length = 0;
   fakes.bibleStop.mockReset();
+  fakes.fontContexts.length = 0;
+  fakes.fontsStop.mockReset();
   fakes.mediaBackendContexts.length = 0;
   fakes.mediaBackendStop.mockReset();
   fakes.analysisOptions.length = 0;
@@ -390,6 +400,19 @@ function beforeQuit(): {prevented: boolean} {
 }
 
 describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
+  it('registers fonts for the control window and stops enumeration before closing data', async () => {
+    const control = await startMain();
+    expect(fakes.fontContexts).toHaveLength(1);
+    expect(fakes.fontContexts[0]).toHaveProperty('control', control);
+    expect(fakes.fontContexts[0]).toHaveProperty('log.warn');
+    beforeQuit();
+    await vi.waitFor(() => expect(fakes.storeDispose).toHaveBeenCalledOnce());
+    expect(fakes.fontsStop).toHaveBeenCalledOnce();
+    expect(fakes.fontsStop.mock.invocationCallOrder[0]).toBeLessThan(
+      fakes.storeDispose.mock.invocationCallOrder[0] ?? Infinity,
+    );
+  });
+
   it('connects Bible IPC to the data store reader and stops IPC before closing data', async () => {
     await startMain();
     expect(fakes.bibleContexts).toEqual([

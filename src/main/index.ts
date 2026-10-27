@@ -2,6 +2,7 @@ import {app, type BrowserWindow} from 'electron';
 import {join} from 'node:path';
 import {isAnyOutputOn} from '@shared/live';
 import {registerBible} from './bible/register';
+import {registerFonts} from './fonts/register';
 import {registerTextImport} from './import/register';
 import {startMediaAnalysis} from './media/analysis';
 import {registerMediaBackend} from './media/register';
@@ -156,6 +157,7 @@ function start(): void {
       });
       const win = createControlWindow(log, windowMode, zoom);
       control = win;
+      const stopFonts = registerFonts(win, log);
       const closing = registerControlClose({control: win, log});
       shutdown.confirmWith(() => closing.confirmClose());
       const stopMediaBackend = registerMediaBackend({
@@ -238,6 +240,7 @@ function start(): void {
       shutdown.add({name: 'stop the soak scenario', run: stopSoakScenario});
       shutdown.add({name: 'stop text import', run: stopTextImport});
       shutdown.add({name: 'stop Bible lookup', run: stopBible});
+      shutdown.add({name: 'stop font enumeration', run: stopFonts});
       shutdown.add({name: 'stop the media backend', run: stopMediaBackend});
       shutdown.add({name: 'stop media analysis', run: analysis.dispose});
       shutdown.add({name: 'stop macros', run: macros.dispose});
