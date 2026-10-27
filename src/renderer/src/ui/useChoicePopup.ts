@@ -21,7 +21,7 @@ interface PopupOptions {
 }
 
 /** Initializes focus and releases every outside/viewport listener on close. */
-export function useLabelPopup({anchor, onClose, onEscape}: PopupOptions): {
+export function useChoicePopup({anchor, onClose, onEscape}: PopupOptions): {
   readonly surface: RefObject<HTMLDivElement | null>;
   readonly onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void;
 } {

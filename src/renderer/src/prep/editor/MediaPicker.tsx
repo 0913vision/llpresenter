@@ -16,7 +16,7 @@ import {isComposing} from '@renderer/ui/ime';
 import {layerContainer} from '@renderer/ui/layers';
 import {MenuSearchField} from '@renderer/ui/MenuParts';
 import menu from '@renderer/ui/Menu.module.css';
-import {useLabelPopup} from './useLabelPopup';
+import {useChoicePopup} from '@renderer/ui/useChoicePopup';
 import styles from './SongBackground.module.css';
 
 const VISIBLE_ROWS = 8;
@@ -91,7 +91,7 @@ export function MediaPicker({
   const viewport = useRef<HTMLDivElement>(null);
   const initialized = useRef(false);
   const id = useId();
-  const {surface} = useLabelPopup({
+  const {surface} = useChoicePopup({
     anchor,
     onClose,
     onEscape: () => onClose(true),

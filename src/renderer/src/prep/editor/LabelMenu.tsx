@@ -11,7 +11,7 @@ import menuStyles from '@renderer/ui/Menu.module.css';
 import {labelNameReason} from './LabelDialog';
 import {LabelChoices, type LabelContext} from './LabelChoices';
 import {LabelManagement} from './LabelManagement';
-import {useLabelPopup} from './useLabelPopup';
+import {useChoicePopup} from '@renderer/ui/useChoicePopup';
 import type {SongEditorStore} from './songEditorStore';
 import {editorTask} from './editorTask';
 import styles from './LabelMenu.module.css';
@@ -48,7 +48,7 @@ export function LabelMenu({
   const [context, setContext] = useState<LabelContext | null>(null);
   const current = labels.find(label => label.name === selected);
   const reason = labelNameReason(name, labels);
-  const {surface, onKeyDown} = useLabelPopup({
+  const {surface, onKeyDown} = useChoicePopup({
     anchor,
     onClose,
     onEscape: () => {
