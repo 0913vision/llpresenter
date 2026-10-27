@@ -140,6 +140,27 @@ Manual three-second audio fade behavior remains separate.
   count assertion despite stable DOM and heap samples. No application retry or
   window-count assertion was removed.
 
+### Round 5 validation and app check
+
+- Rebased the request onto local main `097bf425`. The schema correction adds
+  array rejection before object defaults. All 112 focused schema, preferences,
+  macro, IPC and main clear tests pass, as do typecheck, build, formatting and
+  changed-file lint. CI pending for this head.
+- Rebuilt and syntax-checked the launcher before two offscreen launches. Each
+  completed 20 cycles: malformed clear IPC keeps the current lyrics, malformed
+  per-key preferences and macro timing leave their documents and revisions
+  unchanged, and valid F2/F1 clear/restore flows still work. Both quit normally.
+- Control stays at 532 elements and 1,653 CDP nodes. Listeners are 422 to 420
+  and 417 throughout. Collected heaps at iterations 5/20 are 6,015,796/6,328,324
+  and 6,180,312/6,493,456 bytes. The original five app renderer identities are
+  retained. A preliminary raw target-count check also counted main's transient
+  hidden `analysis.html` media worker. The final check permits only that bounded
+  analysis target and still rejects replacement of an original app window or any
+  other extra window.
+- Screenshots:
+  [restored after rejected input](evidence/output-56-round5/restored-run1.png),
+  [second launch](evidence/output-56-round5/restored-run2.png).
+
 ## Follow-up controls
 
 The user allows the editing controls as a follow-up request. Per-key controls
@@ -157,6 +178,15 @@ existing settings documents; it does not introduce either editor.
 - Verdict: pending
 
 ## Team member's reply
+
+### Round 5
+
+1. Clear fade options now use the existing `jsonObject` wrapper instead of
+   `v.looseObject` alone. Arrays are rejected before defaults can turn them into
+   objects. Regressions reject empty arrays, nonempty arrays and arrays with
+   object-like properties through layer/prop clear IPC, per-key preferences, and
+   all three macro clear-action forms. Partial object defaults and unknown
+   stored fields remain covered by the existing round-trip tests.
 
 ### Round 3
 

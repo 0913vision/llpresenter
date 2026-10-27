@@ -125,3 +125,65 @@ it('validates per-key names and bounds live effect metadata', () => {
     ).toBe(false);
   }
 });
+
+it.each([
+  {options: []},
+  {options: [transition]},
+  {options: Object.assign([], transition)},
+])(
+  'rejects array fade options at IPC and stored-document boundaries: %j',
+  ({options}) => {
+    expect(v.safeParse(clearFadeSchema, options).success).toBe(false);
+    expect(
+      parseLiveCommand({
+        type: 'layer.clear',
+        target: 'slide',
+        transition: options,
+      }).ok,
+    ).toBe(false);
+    expect(
+      parseLiveCommand({
+        type: 'overlay.clear',
+        target: {kind: 'prop', propId: ID},
+        transition: options,
+      }).ok,
+    ).toBe(false);
+    for (const target of ['all', 'slide']) {
+      expect(
+        parsePreferences(
+          JSON.stringify({
+            format: 'llsettings.preferences',
+            schemaVersion: 1,
+            clearKeys: {[target]: options},
+          }),
+          'preferences.json',
+        ).ok,
+      ).toBe(false);
+    }
+    for (const action of [
+      {kind: 'clearAll'},
+      {kind: 'clearLayer', layer: 'slide'},
+      {kind: 'clearLayer', prop: ID},
+    ]) {
+      expect(
+        parseMacros(
+          JSON.stringify({
+            format: 'llsettings.macros',
+            schemaVersion: 1,
+            collections: [],
+            macros: [
+              {
+                id: ID,
+                name: 'Malformed clear',
+                icon: 'play',
+                color: 'green',
+                actions: [{...action, transition: options}],
+              },
+            ],
+          }),
+          'macros.json',
+        ).ok,
+      ).toBe(false);
+    }
+  },
+);

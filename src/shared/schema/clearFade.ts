@@ -3,11 +3,12 @@ import {layerKinds} from '../live';
 import {MAX_ACTIVE_PROPS} from './overlayState';
 import {propIdSchema} from './ids';
 import {plainObject, payloadObject} from './payload';
+import {jsonObject} from './primitives';
 
 export const CLEAR_FADE_LIMIT_MS = 30_000;
 export const MAX_CLEAR_EFFECTS = MAX_ACTIVE_PROPS + layerKinds.length;
 export const DEFAULT_CLEAR_FADE = {fade: false, durationMs: 500} as const;
-export const clearFadeSchema = v.looseObject({
+export const clearFadeSchema = jsonObject({
   fade: v.optional(v.boolean(), DEFAULT_CLEAR_FADE.fade),
   durationMs: v.optional(
     v.pipe(
