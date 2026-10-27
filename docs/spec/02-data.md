@@ -555,6 +555,11 @@ from stage selections and prop tokens keep their IDs and meaning.
 Don't save whether a 타이머 is running or how much time is left. That is output
 state (see the recovery record).
 
+Deleting a timer definition and its linked known quick timer rows is one
+targeted edit. Other definitions, opaque quick rows, prop text and unknown
+fields are preserved. Removed IDs are not reused. Live run/selection cleanup
+follows 04.
+
 The quick timer flow in 04 uses the existing `countdown` shape: `.duration` is
 the entered minutes times 60 plus seconds, a positive whole number for newly
 added quick timers. Each addition creates a new UUID v4 and a name 타이머 1,

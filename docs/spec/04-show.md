@@ -486,6 +486,11 @@ after its name, and hides it at 0.
 - Removing a timer definition releases its running or paused state immediately
   and frees its live-timer slot. The stage picker clears a removed selection;
   other timer runs remain unchanged.
+- Deleting a definition also removes known quick timer rows linked to that ID in
+  the same edit. Unrelated rows, unknown fields and prop text are preserved.
+  Prop tokens for a missing timer render empty, as before. The edit requires
+  writable timer settings and, when linked rows must change, writable quick
+  settings. A refused edit removes nothing.
 - The timer editor offers countdown duration, countdown date/time, elapsed start
   duration and clock. Countdown editors include 0 지나면. Invalid dates, times
   or durations use an error ring and tooltip and block saving.

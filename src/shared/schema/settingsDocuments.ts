@@ -16,6 +16,7 @@ import {screensSchema} from './screens';
 import {shortcutsSchema} from './shortcuts';
 import {stageLayoutsSchema} from './stageLayouts';
 import {timersSchema} from './timers';
+import {timerDeleteSchema} from './timerDeletion';
 import {preserveUnknownFields} from './preserveUnknown';
 import {nonBlankText} from './primitives';
 import {
@@ -139,6 +140,7 @@ const settingsEditSchema = v.pipe(
     quickTimerCreateSchema,
     quickTimerRenameSchema,
     quickTimersSeparateSchema,
+    timerDeleteSchema,
   ]),
 );
 
