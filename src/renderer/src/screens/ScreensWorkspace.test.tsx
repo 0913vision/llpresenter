@@ -80,7 +80,7 @@ function setup({
   const onProblem = vi.fn();
   const send = vi.fn<(command: LiveCommand) => void>();
   window.llp = fakeLlpApi({
-    live: {send},
+    live: {send, clock: () => Promise.resolve(1000)},
     settings: {
       get: request => read(request.name),
       subscribe: listener => {
@@ -125,6 +125,14 @@ function setup({
 }
 
 beforeEach(() => {
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  );
   useScreensSelection.setState({selection: {kind: 'screen', id: null}});
 });
 
@@ -133,6 +141,7 @@ afterEach(() => {
   useLive.setState({state: null});
   delete window.llp;
   resetTooltips();
+  vi.unstubAllGlobals();
 });
 
 function option(name: string): HTMLElement {
@@ -189,7 +198,7 @@ describe('the 화면 list', () => {
     expect(onProblem).toHaveBeenCalledOnce();
   });
   it.each(['현재와 다음'])(
-    'keeps the retained-screen pattern while committing a correction from %s',
+    'stops the retained-screen pattern on opening %s and restores correction controls on return',
     async label => {
       const {send} = setup();
       const api = window.llp;
@@ -200,7 +209,10 @@ describe('the 화면 list', () => {
       const user = userEvent.setup();
       await screen.findByRole('option', {name: '방송 자막'});
       await user.click(option('방송 자막'));
+      await user.click(screen.getByRole('radio', {name: '테스트 패턴'}));
       await user.click(option(label));
+      expect(screen.getByLabelText('무대 배치 캔버스')).toBeDefined();
+      await user.click(option('방송 자막'));
       await user.click(screen.getByRole('radio', {name: '테스트 패턴'}));
       const x = screen.getByRole('spinbutton', {name: '가로 위치'});
       await user.clear(x);
@@ -229,6 +241,8 @@ describe('the 화면 list', () => {
           .filter(command => command.type === 'screen.testPattern.set'),
       ).toEqual([
         {type: 'screen.testPattern.set', screenId: CAPTIONS_ID, on: true},
+        {type: 'screen.testPattern.set', screenId: CAPTIONS_ID, on: false},
+        {type: 'screen.testPattern.set', screenId: CAPTIONS_ID, on: true},
       ]);
     },
   );
@@ -240,21 +254,33 @@ describe('the 화면 list', () => {
     view.unmount();
     setup();
     await screen.findByRole('option', {name: '방송 자막'});
+    expect(useScreensSelection.getState().selection.kind).toBe('stage');
+    expect(useScreensSelection.getState().lastScreenId).toBe(CAPTIONS_ID);
+    expect(screen.getByLabelText('무대 배치 캔버스')).toBeDefined();
+    await userEvent.click(option('방송 자막'));
     await waitFor(() =>
       expect(
         screen.getByRole('textbox', {name: '이름'}).getAttribute('value'),
       ).toBe('방송 자막'),
     );
-    expect(useScreensSelection.getState().selection.kind).toBe('stage');
+    expect(useScreensSelection.getState().selection).toEqual({
+      kind: 'screen',
+      id: CAPTIONS_ID,
+    });
   });
   it.each(['현재와 다음'])(
-    'retains the chosen screen view while selecting %s',
+    'restores the chosen screen view after editing %s',
     async label => {
       setup();
       await screen.findByRole('option', {name: '방송 자막'});
       const user = userEvent.setup();
       await user.click(option('방송 자막'));
       await user.click(option(label));
+      expect(screen.getByLabelText('무대 배치 캔버스')).toBeDefined();
+      expect(useScreensSelection.getState().lastScreenId).toBe(CAPTIONS_ID);
+      expect(selectedOf(label)).toBe('true');
+      expect(selectedOf('방송 자막')).toBe('false');
+      await user.click(option('방송 자막'));
       const properties = screen.getByRole('region', {name: '속성'});
       expect(
         within(properties)
@@ -264,8 +290,8 @@ describe('the 화면 list', () => {
       const preview = screen.getAllByRole('region', {name: '출력 미리보기'})[0];
       if (preview === undefined) throw new Error('Missing screen preview');
       expect(within(preview).getByText('방송 자막')).toBeDefined();
-      expect(selectedOf(label)).toBe('true');
-      expect(selectedOf('방송 자막')).toBe('false');
+      expect(selectedOf(label)).toBe('false');
+      expect(selectedOf('방송 자막')).toBe('true');
     },
   );
   it('stacks 화면, Look, and 무대 배치 in the left column', async () => {

@@ -48,6 +48,7 @@ import {
 import {useShowKeys} from '@renderer/show/shortcuts';
 import {useLibrarySongSync} from '@renderer/show/useLibrarySongSync';
 import {DisplayLayout} from '@renderer/screens/DisplayLayout';
+import {StageCanvas} from '@renderer/screens/stage/StageCanvas';
 import {OutputPreview} from '@renderer/screens/OutputPreview';
 import {ScreenList} from '@renderer/screens/ScreenList';
 import {ScreenProperties} from '@renderer/screens/ScreenProperties';
@@ -238,9 +239,9 @@ function screensPanelParts(
     case 'Look 편집':
       return {embedded: <LookEditor onProblem={onProblem} />};
     case '무대 배치':
-      return {body: <StageLayoutList onProblem={onProblem} />};
+      return {embedded: <StageLayoutList onProblem={onProblem} />};
     case '배치':
-      return {body: <DisplayLayout onProblem={onProblem} />};
+      return {body: <ScreenCanvas onProblem={onProblem} />};
     case '속성':
       return {body: <ScreenProperties onProblem={onProblem} />};
     case '출력 미리보기':
@@ -248,6 +249,19 @@ function screensPanelParts(
     default:
       return {};
   }
+}
+
+function ScreenCanvas({
+  onProblem,
+}: {
+  onProblem: ((notice: Notice) => void) | undefined;
+}): JSX.Element | null {
+  const stage = useScreensSelection(view => view.selection.kind === 'stage');
+  return stage ? (
+    <StageCanvas onProblem={onProblem} />
+  ) : (
+    <DisplayLayout onProblem={onProblem} />
+  );
 }
 
 interface PrepBinding {
@@ -443,10 +457,15 @@ export function Workspace({
     prep?.editor.subscribe ?? noSubscribe,
     () => Boolean(prep?.editor.getSnapshot().session),
   );
+  const stageEditing = useScreensSelection(
+    view => view.selection.kind === 'stage',
+  );
   const prepColumns =
     id === 'prep' && hasSong
       ? [['예배 순서', '라이브러리'], ['편집'], ['미리보기', '슬라이드']]
-      : panelsByWorkspace[id];
+      : id === 'screens' && stageEditing
+        ? [panelsByWorkspace.screens[0], ['배치'], panelsByWorkspace.screens[2]]
+        : panelsByWorkspace[id];
   const api = mediaApi ?? prep?.api ?? window.llp;
   const mediaOpen = id !== 'screens' && mediaVisible;
   const columns = lookEditing

@@ -5,7 +5,7 @@ import type {LyricStyle} from './lyricStyle';
 import type {LookLayer, ScreenAppearance} from './screenLook';
 import type {RenderTimers} from './timerTokens';
 import type {ScreenId, TimerId} from '@shared/schema/ids';
-import type {StageLayout} from '@shared/schema/stageLayouts';
+import type {StageElement, StageLayout} from '@shared/schema/stageLayouts';
 import type {Screen} from '@shared/schema/screens';
 
 /** 가장자리 여백 and 위치 미세 조정 of a screen (docs/spec/03-output.md). */
@@ -29,6 +29,7 @@ export interface RenderScreen {
 /** What a 무대 화면 draws with its stage layout. */
 export interface StageFrame {
   readonly layout: StageLayout;
+  readonly samples?: Readonly<Partial<Record<StageElement['kind'], string>>>;
   /** The 타이머 the layout's 타이머 element shows; absent shows none. */
   readonly timerId?: TimerId;
 }

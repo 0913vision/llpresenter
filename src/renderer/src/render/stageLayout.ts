@@ -260,7 +260,12 @@ export class StageLayoutView {
         ELEMENT_SWITCH[view.element.kind] === 'slide'
           ? (this.content.frame?.clearOpacity?.slide ?? 1)
           : 1;
-      view.show(contentOf(view.element, this.content), opacity);
+      view.show(
+        contentOf(view.element, this.content) ??
+          this.content.frame?.stage?.samples?.[view.element.kind] ??
+          null,
+        opacity,
+      );
     }
   }
 

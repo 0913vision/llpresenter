@@ -67,6 +67,28 @@ function element(kind: string, index: number, fields: object = {}) {
 
 const EVERY_KIND = layoutOf(KINDS.map((kind, index) => element(kind, index)));
 
+it('uses editor samples only for absent content and never supplies them on output', () => {
+  const root = document.createElement('div');
+  const view = new StageLayoutView(root, vi.fn());
+  const layers = {
+    ...emptyLayers(),
+    slide: {itemId: 'sample', position: 0, label: null, lines: ['Live frame']},
+  };
+  view.render(layers, {
+    stage: {
+      layout: EVERY_KIND,
+      samples: {currentSlide: 'Sample current', nextSlide: 'Sample next'},
+    },
+  });
+  expect(root.textContent).toContain('Live frame');
+  expect(root.textContent).toContain('Sample next');
+  expect(root.textContent).not.toContain('Sample current');
+  view.render(emptyLayers(), {stage: {layout: EVERY_KIND}});
+  expect(root.textContent).not.toContain('Sample next');
+  expect(root.textContent).not.toContain('Live frame');
+  view.dispose();
+});
+
 it('fades stage lyrics and labels without fading the clock, timer or stage message', () => {
   const parent = document.createElement('div');
   const view = new StageLayoutView(parent, vi.fn());
