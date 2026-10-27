@@ -5,7 +5,7 @@ import {openItem, selectTile, useShow} from '@renderer/state/show';
 import {openBiblePassage} from '../bible/actions';
 import {panelPassage} from '../bible/panelTesting';
 import {lookupRequest} from '../bible/testBible';
-import {quickItemOn, quickRunner} from './quickActions';
+import {quickItemOn, quickItemUnavailable, quickRunner} from './quickActions';
 import {
   deferred,
   quickFixture,
@@ -49,27 +49,42 @@ describe('quick execution', () => {
     expect(fixture.edit).not.toHaveBeenCalled();
     expect(problem).not.toHaveBeenCalled();
   });
-  it('reopens a saved Bible passage at the first verse and records output history', async () => {
-    const fixture = quickFixture();
-    window.llp = fixture.api;
-    openBiblePassage(panelPassage());
-    selectTile(2);
-    await quickRunner(fixture.api, vi.fn()).run(quickItem('bible'));
-    expect(fixture.lookup).toHaveBeenCalledWith({
-      translation: 'sample',
-      input: '요한복음 3:16-18',
-    });
-    expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
-      type: 'slide.show',
-      slide: {
-        position: 0,
-        lines: ['16 Invented book 43, chapter 3, verse 16'],
-      },
-    });
-    await vi.waitFor(() =>
-      expect(fixture.document().value.recents[0]?.ref).toBe(panelPassage().ref),
-    );
-  });
+  it.each([true, false])(
+    'reopens a saved Bible passage with numbering %s at the first verse and records output history',
+    async numbers => {
+      const fixture = quickFixture();
+      window.llp = fixture.api;
+      openBiblePassage(panelPassage(), {verseNumbers: !numbers});
+      selectTile(2);
+      const item = quickItem('bible');
+      if (item.kind !== 'bible') {
+        throw new Error('Missing Bible item');
+      }
+      const stored = {...item, ref: {...item.ref, verseNumbers: numbers}};
+      const problem = vi.fn();
+      expect(quickItemUnavailable(stored)).toBeUndefined();
+      await quickRunner(fixture.api, problem).run(stored);
+      expect(fixture.lookup).toHaveBeenCalledWith({
+        translation: 'sample',
+        input: '요한복음 3:16-18',
+      });
+      expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+        type: 'slide.show',
+        slide: {
+          position: 0,
+          lines: [
+            `${numbers ? '16 ' : ''}Invented book 43, chapter 3, verse 16`,
+          ],
+        },
+      });
+      await vi.waitFor(() =>
+        expect(fixture.document().value.recents[0]?.ref).toBe(
+          panelPassage().ref,
+        ),
+      );
+      expect(problem).not.toHaveBeenCalled();
+    },
+  );
   it('rejects unsupported passage display settings instead of discarding them', async () => {
     const fixture = quickFixture();
     window.llp = fixture.api;

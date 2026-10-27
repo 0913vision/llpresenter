@@ -612,27 +612,35 @@ describe('quick editing', () => {
       expect(fixture.send).not.toHaveBeenCalled();
     },
   );
-  it('copies the open Bible preview without writing output or recent history', async () => {
-    const fixture = setup();
-    openBiblePassage(panelPassage());
-    fixture.mount();
-    await openAddMenu();
-    const current = await screen.findByRole('menuitem', {
-      name: /현재 항목 추가/,
-    });
-    await waitFor(() =>
-      expect(current.getAttribute('aria-disabled')).not.toBe('true'),
-    );
-    fireEvent.click(current);
-    await waitFor(() =>
-      expect(fixture.current().value.items.at(-1)).toMatchObject({
-        kind: 'bible',
-        ref: {ref: panelPassage().ref, split: 'verse', reference: 'none'},
-      }),
-    );
-    expect(fixture.send).not.toHaveBeenCalled();
-    expect(fixture.document().value.recents).toEqual([]);
-  });
+  it.each([true, false])(
+    'copies the open Bible preview with numbering %s without writing output or recent history',
+    async verseNumbers => {
+      const fixture = setup();
+      openBiblePassage(panelPassage(), {verseNumbers});
+      fixture.mount();
+      await openAddMenu();
+      const current = await screen.findByRole('menuitem', {
+        name: /현재 항목 추가/,
+      });
+      await waitFor(() =>
+        expect(current.getAttribute('aria-disabled')).not.toBe('true'),
+      );
+      fireEvent.click(current);
+      await waitFor(() =>
+        expect(fixture.current().value.items.at(-1)).toMatchObject({
+          kind: 'bible',
+          ref: {
+            ref: panelPassage().ref,
+            split: 'verse',
+            reference: 'none',
+            verseNumbers,
+          },
+        }),
+      );
+      expect(fixture.send).not.toHaveBeenCalled();
+      expect(fixture.document().value.recents).toEqual([]);
+    },
+  );
   it('adds the open library song and keeps its background out of the saved target', async () => {
     const fixture = setup();
     openLibrarySong(fixture.song);

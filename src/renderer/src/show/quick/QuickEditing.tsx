@@ -40,7 +40,7 @@ async function currentChoice(api: LlpApi): Promise<QuickChoice | null> {
         ref: bible.passage.ref,
         split: 'verse',
         reference: 'none',
-        verseNumbers: true,
+        verseNumbers: bible.verseNumbers,
         translationName: false,
       },
     };
