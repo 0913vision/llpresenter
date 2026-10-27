@@ -82,6 +82,11 @@ export function parseLookId(value: unknown) {
   return parsePayload(lookIdSchema, value);
 }
 
+/** Checks a generated lyric style UUID without throwing. */
+export function parseLyricStyleId(value: unknown) {
+  return parsePayload(lyricStyleIdSchema, value);
+}
+
 /** Brands a generated song UUID; throws unless it is lowercase version 4. */
 export function createSongId(uuid: string): SongId {
   return v.parse(songIdSchema, uuid);

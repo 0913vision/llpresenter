@@ -5,6 +5,11 @@ import {SettingsDocumentEditor} from '../settingsDocumentEditor';
 import {editLookCard, type LookCardEdit} from './lookCardEdits';
 import {editLyricStyle, type LyricStyleEdit} from './lyricStyleEdits';
 import {
+  editLyricStyleList,
+  type LyricStyleListEdit,
+  type LyricStyleListProblem,
+} from './lyricStyleListEdits';
+import {
   editLookList,
   type LookListContext,
   type LookListEdit,
@@ -49,6 +54,23 @@ export class LookListEditor {
 
   changeStyle(edit: LyricStyleEdit): Promise<boolean> {
     return this.documents.change(value => editLyricStyle(value, edit));
+  }
+
+  async changeStyleList(
+    edit: LyricStyleListEdit,
+  ): Promise<Result<boolean, LyricStyleListProblem>> {
+    let problem: LyricStyleListProblem | undefined;
+    const applied = await this.documents.change(value => {
+      const result = editLyricStyleList(value, edit);
+      if (!result.ok) {
+        problem = result.error;
+        return value;
+      }
+      return result.value;
+    });
+    return problem === undefined
+      ? {ok: true, value: applied}
+      : {ok: false, error: problem};
   }
 
   async change(edit: LookListEdit): Promise<Result<boolean, LookListProblem>> {

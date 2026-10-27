@@ -215,6 +215,8 @@ export function LookEditor({
             <LyricStyles
               looks={document.value}
               reason={reason}
+              onListChange={editor.changeStyleList}
+              onProblem={editor.report}
               onChange={edit => {
                 editor.changeStyle(edit)?.catch(failed);
               }}

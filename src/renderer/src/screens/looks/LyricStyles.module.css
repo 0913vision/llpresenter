@@ -10,10 +10,17 @@
 }
 
 .segments {
+  min-width: 0;
   max-width: 100%;
   overflow-x: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--line-strong) transparent;
+}
+
+.selector {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
 }
 
 .preview {

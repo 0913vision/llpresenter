@@ -47,7 +47,13 @@ function setup(reason?: string) {
   });
   const change = vi.fn<(edit: LyricStyleEdit) => void>();
   const view = render(
-    <LyricStyles looks={looks} reason={reason} onChange={change} />,
+    <LyricStyles
+      looks={looks}
+      reason={reason}
+      onChange={change}
+      onListChange={() => undefined}
+      onProblem={vi.fn()}
+    />,
   );
   return {...view, change};
 }
