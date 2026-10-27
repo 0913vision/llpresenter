@@ -217,8 +217,11 @@ the process only at a milestone boundary, never in the middle of one.
   following data's conventions. A change that alters or removes an existing
   contract is tagged `break` and goes to data first.
 - **Branches:** create your own (`<tag>/<name>/<feature>`). While one is in
-  review, start the next one stacked on it (`docs/WORKFLOW.md`, "Stacked
-  branches").
+  review, decide for yourself what to do next, as a developer on a real team
+  would: start an independent ticket from `main`, stack on the open branch only
+  when the next work really builds on it, and wait for the review when the open
+  change is risky or likely to change (`docs/WORKFLOW.md`, "Stacked branches").
+  Own your ticket until it merges; don't let it drag.
 - **Checks:** before every push, run the typecheck, the format check, ESLint on
   your changed files, and the tests related to them (`docs/MEMBER.md`). The full
   `npm run verify` runs on GitHub; the review starts only after your branch's CI

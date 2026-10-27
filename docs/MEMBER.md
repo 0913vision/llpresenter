@@ -30,8 +30,13 @@ session that can't send messages works with the lead.
 
    The title is the commit message `main` gets, so follow the commit rules in
    `CLAUDE.md`. Screenshots, if you need them, go in `.llp/pr/<name>/`. Then
-   print the request line and start your next ticket:
-   `LLPREQ:<name>|<branch>|<base commit>|<round>`.
+   print the request line: `LLPREQ:<name>|<branch>|<base commit>|<round>`. What
+   you do while it is reviewed is your call, as on a real team: an independent
+   ticket from `main`, a branch stacked on it when the next work really builds
+   on it, or waiting for the review when the change is risky or likely to
+   change. You own the ticket until it merges; when something outside it slows
+   you down (a flaky test, a conflict, an unclear spec), fix or report it
+   quickly instead of letting the ticket drag.
 
 5. **CI and review:** the dispatcher waits for your branch's CI run to pass,
    then sends the pull request to a reviewer. A failed run or the review verdict

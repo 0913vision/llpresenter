@@ -168,8 +168,11 @@ Rules:
 
 ## Stacked branches
 
-Don't wait for a merge to keep working. Stack the next branch on the one under
-review:
+While a pull request is in review, choose the next step yourself. Start an
+independent ticket from `main` when there is one. Stack only when the next work
+really builds on the open branch. Wait for the review instead when the open
+change is risky or likely to change a lot, because building on it would mean
+reworking both. When you do stack:
 
 1. **Start:** if your previous branch is merged, branch from `main`. If it is
    still in review, branch from it:
