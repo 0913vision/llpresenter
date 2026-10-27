@@ -413,9 +413,52 @@ describe('buildShowService', () => {
     ]);
   });
 
-  it('stops iteration and marks row unknown-kind when tile expansion hits limit (10,000)', () => {
+  it('accepts exactly 10,000 tiles for grouped songs without flagging capped', () => {
     const gSongId = createSongId('20000000-0000-4000-8000-000000000004');
     const g1Id = createSongGroupId('d0000000-0000-4000-8000-000000000001');
+    const slides = Array.from({length: 100}, (_, index) => ({
+      lines: [`Slide ${index + 1}`],
+    }));
+    const repeatedGroups = Array.from({length: 100}, () => g1Id);
+    const maxSong: GroupedSong = {
+      format: 'llsong',
+      schemaVersion: 2,
+      id: gSongId,
+      title: 'Max Grouped Song',
+      groups: [{id: g1Id, name: '반복절', slides}],
+      arrangements: [{name: '한계구성', groups: repeatedGroups}],
+    };
+
+    const projected = projectSongTiles(maxSong, new Map(), '한계구성');
+    expect(projected.capped).toBe(false);
+    expect(projected.tiles).toHaveLength(10_000);
+
+    const show = buildShowService({
+      service: loadedService([
+        {id: itemId(1), song: gSongId, arrangement: '한계구성'},
+      ]),
+      songs: new Map([
+        [
+          gSongId,
+          {
+            format: 'llsong',
+            schemaVersion: 2,
+            access: 'editable',
+            data: maxSong,
+          },
+        ],
+      ]),
+      labels: [],
+      revision: 1,
+    });
+
+    expect(show.rows[0]).not.toHaveProperty('problem');
+    expect(show.tiles[itemId(1)]).toHaveLength(10_000);
+  });
+
+  it('stops iteration and marks row unknown-kind when tile expansion exceeds limit (10,001 tiles)', () => {
+    const gSongId = createSongId('20000000-0000-4000-8000-000000000005');
+    const g1Id = createSongGroupId('d0000000-0000-4000-8000-000000000002');
     const slides = Array.from({length: 100}, (_, index) => ({
       lines: [`Slide ${index + 1}`],
     }));
@@ -461,5 +504,33 @@ describe('buildShowService', () => {
 
     expect(songTiles(hugeSong, new Map(), '초과구성')).toEqual([]);
     expect(SHOW_SERVICE_LIMITS.tiles).toBe(10_000);
+  });
+
+  it('accepts exactly 10,000 tiles and flags capped at 10,001 tiles for v1 songs', () => {
+    const maxV1Song: Song = {
+      ...loadedSong(hymnOne()).data,
+      arrangements: [
+        {
+          name: '한계구성',
+          slides: Array.from({length: 10_000}, () => 1),
+        },
+      ],
+    };
+    const maxProjected = projectSongTiles(maxV1Song, new Map(), '한계구성');
+    expect(maxProjected.capped).toBe(false);
+    expect(maxProjected.tiles).toHaveLength(10_000);
+
+    const overV1Song: Song = {
+      ...loadedSong(hymnOne()).data,
+      arrangements: [
+        {
+          name: '초과구성',
+          slides: Array.from({length: 10_001}, () => 1),
+        },
+      ],
+    };
+    const overProjected = projectSongTiles(overV1Song, new Map(), '초과구성');
+    expect(overProjected.capped).toBe(true);
+    expect(overProjected.tiles).toEqual([]);
   });
 });

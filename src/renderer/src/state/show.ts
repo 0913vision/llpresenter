@@ -33,6 +33,16 @@ import {noService, useShow, type ShowView} from './showStore';
 
 export {useShow} from './showStore';
 
+declare global {
+  interface Window {
+    __llpShowStore?: typeof useShow;
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.__llpShowStore = useShow;
+}
+
 export function tilesOf(itemId: ItemId): readonly SlideTile[] {
   return tilesForView(useShow.getState(), itemId);
 }

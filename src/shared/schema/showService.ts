@@ -26,6 +26,10 @@ export const showRowProblems = [
   'newer-version',
 ] as const;
 
+export const SHOW_SERVICE_LIMITS = {
+  tiles: 10_000,
+} as const;
+
 const id = v.pipe(v.string(), v.nonEmpty());
 
 const showRowSchema = v.pipe(
@@ -89,7 +93,13 @@ const showServiceSchema = payloadObject({
   name: v.string(),
   readOnly: v.boolean(),
   rows: v.array(showRowSchema),
-  tiles: v.pipe(plainObject, v.record(v.string(), v.array(showTileSchema))),
+  tiles: v.pipe(
+    plainObject,
+    v.record(
+      v.string(),
+      v.pipe(v.array(showTileSchema), v.maxLength(SHOW_SERVICE_LIMITS.tiles)),
+    ),
+  ),
   jumpKeys: v.pipe(plainObject, v.record(v.string(), v.string())),
 });
 

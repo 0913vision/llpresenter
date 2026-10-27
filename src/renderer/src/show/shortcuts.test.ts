@@ -384,10 +384,37 @@ describe('handleShowKey slide hotkeys', () => {
     expect(showState.outputHotKey).toHaveBeenCalledWith('KeyA');
   });
 
-  it('runs a held slide hotkey once and swallows repeat events', () => {
-    vi.spyOn(showState, 'hasSlideHotKey').mockImplementation(
-      code => code === 'KeyA',
-    );
+  it('ignores slide hotkeys when no item is open', () => {
+    vi.spyOn(showState, 'hasSlideHotKey').mockReturnValue(false);
+    const event = press('KeyA');
+    expect(event.defaultPrevented).toBe(false);
+    expect(showState.outputHotKey).not.toHaveBeenCalled();
+  });
+
+  it('ignores slide hotkeys when modifier keys (ctrl, alt, meta) are held', () => {
+    vi.spyOn(showState, 'hasSlideHotKey').mockReturnValue(true);
+    const ctrlEvent = press('KeyA', {ctrlKey: true});
+    const altEvent = press('KeyA', {altKey: true});
+    const metaEvent = press('KeyA', {metaKey: true});
+    expect(ctrlEvent.defaultPrevented).toBe(false);
+    expect(altEvent.defaultPrevented).toBe(false);
+    expect(metaEvent.defaultPrevented).toBe(false);
+    expect(showState.outputHotKey).not.toHaveBeenCalled();
+  });
+
+  it('ignores slide hotkeys when focus is inside a text input or textarea', () => {
+    vi.spyOn(showState, 'hasSlideHotKey').mockReturnValue(true);
+    const input = appendTo('input');
+    const textarea = appendTo('textarea');
+    const inputEvent = press('KeyA', {}, input);
+    const textareaEvent = press('KeyA', {}, textarea);
+    expect(inputEvent.defaultPrevented).toBe(false);
+    expect(textareaEvent.defaultPrevented).toBe(false);
+    expect(showState.outputHotKey).not.toHaveBeenCalled();
+  });
+
+  it('ignores repeated keydown events (event.repeat)', () => {
+    vi.spyOn(showState, 'hasSlideHotKey').mockReturnValue(true);
     press('KeyA');
     const repeated = press('KeyA', {repeat: true});
     expect(showState.outputHotKey).toHaveBeenCalledTimes(1);

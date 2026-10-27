@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {parseShowService} from './showService';
+import {parseShowService, SHOW_SERVICE_LIMITS} from './showService';
 
 function showService() {
   return {
@@ -122,6 +122,32 @@ describe('parseShowService', () => {
   it('rejects values that are not a service', () => {
     for (const value of [undefined, [], 'service', 3]) {
       expect(parseShowService(value).ok).toBe(false);
+    }
+  });
+
+  it('accepts tile count at limit (10,000) and rejects exceeding it (10,001)', () => {
+    const singleTile = {label: null, labelColor: 'none', lines: []};
+    const maxTiles = Array.from(
+      {length: SHOW_SERVICE_LIMITS.tiles},
+      () => singleTile,
+    );
+    const valid = parseShowService({
+      ...showService(),
+      tiles: {'item-2': maxTiles},
+    });
+    expect(valid.ok).toBe(true);
+
+    const overTiles = Array.from(
+      {length: SHOW_SERVICE_LIMITS.tiles + 1},
+      () => singleTile,
+    );
+    const invalid = parseShowService({
+      ...showService(),
+      tiles: {'item-2': overTiles},
+    });
+    expect(invalid.ok).toBe(false);
+    if (!invalid.ok) {
+      expect(invalid.error.field).toBe('tiles.item-2');
     }
   });
 });

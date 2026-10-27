@@ -9,14 +9,16 @@ import {
   type ServiceItem,
   type ServiceItemOf,
 } from '@shared/schema/service';
-import type {ShowRow, ShowService, ShowTile} from '@shared/schema/showService';
+import {
+  SHOW_SERVICE_LIMITS,
+  type ShowRow,
+  type ShowService,
+  type ShowTile,
+} from '@shared/schema/showService';
 import type {Slide, Song} from '@shared/schema/song';
 import {playbackOrder} from '@shared/songOrder';
 
-/** Caps tile expansion from repeated groups to prevent unbounded allocation. */
-export const SHOW_SERVICE_LIMITS = {
-  tiles: 10_000,
-} as const;
+export {SHOW_SERVICE_LIMITS} from '@shared/schema/showService';
 
 /** A document's content and whether a newer app version wrote it. */
 type Shown<T> = Pick<LoadedFile<T>, 'data' | 'access'>;
@@ -139,6 +141,7 @@ function songRow(
   const background =
     mediaId === undefined ? undefined : sources.backgrounds.get(mediaId);
   const capped = sources.cappedItems.has(item.id);
+  // TODO(0913vision): Switch 'unknown-kind' to a dedicated tile-limit problem in group-7.
   const problem = capped
     ? 'unknown-kind'
     : mediaId !== undefined && background === undefined
@@ -167,12 +170,15 @@ export function projectSongTiles(
   if (isGroupedSong(song)) {
     return projectGroupedSongTiles(song, colors, arrangement);
   }
-  const tiles = playbackOrder(song, arrangement).flatMap(number => {
+  const order = playbackOrder(song, arrangement);
+  const tiles: ShowTile[] = [];
+  for (const number of order) {
     const slide = song.slides[number - 1];
-    return slide === undefined ? [] : [tileOf(slide, colors)];
-  });
-  if (tiles.length > SHOW_SERVICE_LIMITS.tiles) {
-    return {tiles: [], capped: true};
+    if (slide === undefined) continue;
+    if (tiles.length >= SHOW_SERVICE_LIMITS.tiles) {
+      return {tiles: [], capped: true};
+    }
+    tiles.push(tileOf(slide, colors));
   }
   return {tiles, capped: false};
 }
@@ -204,11 +210,11 @@ function projectGroupedSongTiles(
       label === null ? NO_LABEL_COLOR : (colors.get(label) ?? NO_LABEL_COLOR);
 
     for (let slideIndex = 0; slideIndex < group.slides.length; slideIndex++) {
+      const slide = group.slides[slideIndex];
+      if (slide === undefined) continue;
       if (tiles.length >= SHOW_SERVICE_LIMITS.tiles) {
         return {tiles: [], capped: true};
       }
-      const slide = group.slides[slideIndex];
-      if (slide === undefined) continue;
       tiles.push({
         label,
         labelColor,
