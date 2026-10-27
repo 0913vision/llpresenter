@@ -44,6 +44,12 @@ export interface StageElementPatch {
   readonly name?: string;
   readonly kind?: StageElement['kind'];
   readonly text?: Partial<NonNullable<StageElement['text']>>;
+  readonly box?: StageBoxPatch;
+}
+
+export interface StageBoxPatch {
+  readonly background?: string | null;
+  readonly opacity?: number;
 }
 
 /** Serializes stage edits through the same document queue as the screen editor. */
@@ -188,6 +194,9 @@ export class StageEditor {
               ...element,
               ...(patch.name === undefined ? {} : {name: patch.name}),
               ...(patch.kind === undefined ? {} : {kind: patch.kind}),
+              ...(patch.box === undefined
+                ? {}
+                : {box: patchBox(element.box, patch.box)}),
               ...(patch.text === undefined
                 ? {}
                 : {
@@ -210,6 +219,17 @@ export class StageEditor {
       updateLayout(value, layoutId, transform),
     );
   }
+}
+
+function patchBox(
+  current: StageElement['box'],
+  patch: StageBoxPatch,
+): NonNullable<StageElement['box']> {
+  const next = {...current};
+  if (patch.opacity !== undefined) next.opacity = patch.opacity;
+  if (patch.background === null) delete next.background;
+  else if (patch.background !== undefined) next.background = patch.background;
+  return next;
 }
 
 function updateLayout(

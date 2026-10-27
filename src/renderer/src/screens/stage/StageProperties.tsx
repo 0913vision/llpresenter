@@ -1,4 +1,4 @@
-import type {JSX} from 'react';
+import {useState, type JSX} from 'react';
 import {stageElementKinds} from '@shared/schema/stageLayouts';
 import {STAGE_TEXT_FALLBACK} from '@renderer/render/stageLayout';
 import {
@@ -7,12 +7,14 @@ import {
   PropertyGroup,
   PropertyRow,
   SelectMenu,
+  SegmentedControl,
 } from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';
 import {useScreensSelection} from '../selection';
 import {useSettingsDocument} from '../useSettingsDocument';
 import {elementNames} from './stageEditor';
 import {useStageEditor} from './useStageEditor';
+import {StageBoxProperties} from './StageBoxProperties';
 import {
   StageStringProperty,
   StageTextProperties,
@@ -30,6 +32,7 @@ export function StageProperties({
   const picked = useScreensSelection(view => view.stageElement);
   const select = useScreensSelection(view => view.selectStageElement);
   const run = useStageEditor(document, onProblem);
+  const [tab, setTab] = useState<'appearance' | 'text'>('text');
   const layout =
     selection.kind === 'stage'
       ? document?.value.layouts.find(layout => layout.id === selection.id)
@@ -93,15 +96,38 @@ export function StageProperties({
           요소 삭제
         </Button>
       </PropertyGroup>
-      <PropertyGroup title="글자">
-        <StageTextProperties
-          text={element.text ?? STAGE_TEXT_FALLBACK}
-          reason={reason}
-          change={text =>
-            run(editor => editor.patch(layout.id, element.id, {text}))
-          }
-        />
-      </PropertyGroup>
+      <SegmentedControl
+        label="요소 속성"
+        kind="tabs"
+        fill
+        value={tab}
+        onChange={setTab}
+        options={[
+          {value: 'appearance', label: '모양'},
+          {value: 'text', label: '글자'},
+        ]}
+      />
+      <div role="tabpanel" aria-label={tab === 'text' ? '글자' : '모양'}>
+        <PropertyGroup title={tab === 'text' ? '글자' : '모양'}>
+          {tab === 'text' ? (
+            <StageTextProperties
+              text={element.text ?? STAGE_TEXT_FALLBACK}
+              reason={reason}
+              change={text =>
+                run(editor => editor.patch(layout.id, element.id, {text}))
+              }
+            />
+          ) : (
+            <StageBoxProperties
+              box={element.box}
+              reason={reason}
+              change={box =>
+                run(editor => editor.patch(layout.id, element.id, {box}))
+              }
+            />
+          )}
+        </PropertyGroup>
+      </div>
     </Properties>
   );
 }

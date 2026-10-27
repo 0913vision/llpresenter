@@ -47,6 +47,7 @@ function setup(
             kind: 'currentSlide',
             frame: {x: 0, y: 0, w: 500, h: 100},
             text: {...STAGE_DEFAULT_TEXT, future: 'keep'},
+            box: {background: '#112233', opacity: 0.375, future: 'keep'},
           },
           {
             id: 'second',
@@ -233,4 +234,91 @@ it('does not clear a new selection when an earlier deletion completes', async ()
     ).toBe('Second'),
   );
   expect(useScreensSelection.getState().stageElement?.elementId).toBe('second');
+});
+
+it('edits the box fill independently from text and preserves opacity when removing it', async () => {
+  const {first, edit} = setup();
+  const user = userEvent.setup();
+  await user.click(await screen.findByRole('tab', {name: '모양'}));
+  const color = screen.getByRole('textbox', {name: '배경색'});
+  const opacity = screen.getByRole('spinbutton', {name: '불투명도'});
+  expect(opacity.getAttribute('aria-valuenow')).toBe('37.5');
+  color.focus();
+  fireEvent.blur(color);
+  expect(edit).not.toHaveBeenCalled();
+  fireEvent.change(color, {target: {value: 'invalid'}});
+  fireEvent.blur(color);
+  expect(edit).not.toHaveBeenCalled();
+  fireEvent.change(color, {target: {value: '#00aa11'}});
+  fireEvent.blur(color);
+  await waitFor(() => expect(first()?.box?.background).toBe('#00AA11'));
+  expect(first()?.box?.opacity).toBe(0.375);
+  fireEvent.change(opacity, {target: {value: '50'}});
+  fireEvent.keyDown(opacity, {key: 'Enter'});
+  await waitFor(() => expect(first()?.box?.opacity).toBe(0.5));
+  await user.clear(color);
+  await user.tab();
+  await waitFor(() => expect(first()?.box?.background).toBeUndefined());
+  expect(first()?.box).toMatchObject({opacity: 0.5, future: 'keep'});
+  expect(first()?.text).toEqual({...STAGE_DEFAULT_TEXT, future: 'keep'});
+  expect(opacity.hasAttribute('readonly')).toBe(false);
+  act(() =>
+    useScreensSelection.getState().selectStageElement(LAYOUT_ID, 'second'),
+  );
+  expect(
+    screen.getByRole('tab', {name: '모양'}).getAttribute('aria-selected'),
+  ).toBe('true');
+  const empty = screen.getByRole('textbox', {name: '배경색'});
+  expect(empty.getAttribute('value')).toBe('');
+  expect(empty.getAttribute('placeholder')).toBe('없음');
+  expect(
+    screen
+      .getByRole('spinbutton', {name: '불투명도'})
+      .getAttribute('aria-valuenow'),
+  ).toBe('100');
+  await user.type(empty, '#334455');
+  await user.tab();
+  await waitFor(() =>
+    expect(edit.mock.calls.at(-1)?.[0]).toMatchObject({
+      value: {layouts: [{elements: [{}, {box: {background: '#334455'}}]}]},
+    }),
+  );
+});
+
+it('commits a color draft before changing tabs and cancels opacity drafts', async () => {
+  const {first} = setup();
+  const user = userEvent.setup();
+  await user.click(await screen.findByRole('tab', {name: '모양'}));
+  const color = screen.getByRole('textbox', {name: '배경색'});
+  await user.clear(color);
+  await user.type(color, '#22aa33');
+  await user.click(screen.getByRole('tab', {name: '글자'}));
+  await waitFor(() => expect(first()?.box?.background).toBe('#22AA33'));
+  await user.click(screen.getByRole('tab', {name: '모양'}));
+  const opacity = screen.getByRole('spinbutton', {name: '불투명도'});
+  fireEvent.change(opacity, {target: {value: '12'}});
+  fireEvent.keyDown(opacity, {key: 'Escape'});
+  fireEvent.blur(opacity);
+  expect(first()?.box?.opacity).toBe(0.375);
+  fireEvent.change(opacity, {target: {value: '200'}});
+  fireEvent.keyDown(opacity, {key: 'Enter'});
+  await waitFor(() => expect(first()?.box?.opacity).toBe(1));
+  fireEvent.change(opacity, {target: {value: '-1'}});
+  fireEvent.keyDown(opacity, {key: 'Enter'});
+  await waitFor(() => expect(first()?.box?.opacity).toBe(0));
+});
+
+it('keeps appearance available to read without allowing future-version writes', async () => {
+  const {edit} = setup('readOnly');
+  const user = userEvent.setup();
+  await user.click(await screen.findByRole('tab', {name: '모양'}));
+  expect(
+    screen.getByRole('textbox', {name: '배경색'}).hasAttribute('readonly'),
+  ).toBe(true);
+  expect(
+    screen.getByRole('spinbutton', {name: '불투명도'}).hasAttribute('readonly'),
+  ).toBe(true);
+  await user.type(screen.getByRole('textbox', {name: '배경색'}), '#001122');
+  await user.tab();
+  expect(edit).not.toHaveBeenCalled();
 });

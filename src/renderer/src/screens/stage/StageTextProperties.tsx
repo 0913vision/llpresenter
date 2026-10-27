@@ -24,6 +24,7 @@ export function StageStringProperty({
   commit,
   validate = () => undefined,
   autoFocus = false,
+  placeholder,
   onCancel,
 }: {
   label: string;
@@ -32,6 +33,7 @@ export function StageStringProperty({
   commit: (value: string) => void;
   validate?: (value: string) => string | undefined;
   autoFocus?: boolean;
+  placeholder?: string;
   onCancel?: () => void;
 }): JSX.Element {
   const [draft, setDraft] = useState<string | null>(null);
@@ -44,6 +46,7 @@ export function StageStringProperty({
           id={controlId}
           block
           autoFocus={autoFocus}
+          placeholder={placeholder}
           value={shown}
           readOnly={reason !== undefined}
           title={reason}

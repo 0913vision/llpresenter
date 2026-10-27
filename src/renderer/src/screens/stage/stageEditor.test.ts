@@ -18,6 +18,7 @@ function setup(
     kind: 'currentSlide',
     name: 'Current',
     frame: {x: 10, y: 20, w: 100, h: 80, future: 1},
+    box: {opacity: 0.375, future: 'box'},
     future: 'keep',
   };
   const value = settingsDocument('stage-layouts', {
@@ -62,6 +63,26 @@ function setup(
   return {editor, edits, value, report, log};
 }
 describe('stage document edits', () => {
+  it('queues independent box patches and removes only the background field', async () => {
+    const {editor, edits} = setup();
+    await Promise.all([
+      editor.patch(LAYOUT_ID, 'element', {box: {background: '#00AA11'}}),
+      editor.patch(LAYOUT_ID, 'element', {box: {opacity: 0.5}}),
+    ]);
+    expect(edits.map(edit => edit.baseRevision)).toEqual([1, 2]);
+    expect(edits.at(-1)?.value.layouts[0]?.elements[0]).toMatchObject({
+      frame: {future: 1},
+      box: {background: '#00AA11', opacity: 0.5, future: 'box'},
+    });
+    await editor.patch(LAYOUT_ID, 'element', {box: {background: null}});
+    const box = edits.at(-1)?.value.layouts[0]?.elements[0]?.box;
+    expect(box).toEqual({opacity: 0.5, future: 'box'});
+    const readOnly = setup('readOnly');
+    expect(
+      await readOnly.editor.patch(LAYOUT_ID, 'element', {box: {opacity: 0.5}}),
+    ).toBe(false);
+    expect(readOnly.edits).toEqual([]);
+  });
   it('queues nudges against the latest revision and retains unknown fields', async () => {
     const {editor, edits} = setup();
     await Promise.all([
