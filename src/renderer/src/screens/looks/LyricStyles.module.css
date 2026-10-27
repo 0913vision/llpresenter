@@ -1,0 +1,35 @@
+.section {
+  margin-top: var(--space-24);
+  padding-top: var(--space-14);
+  border-top: 1px solid var(--line);
+}
+
+.title {
+  margin: 0 0 var(--space-12);
+  font: var(--type-body-strong);
+}
+
+.segments {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+.preview {
+  max-width: var(--col-right);
+  margin: var(--space-14) 0;
+}
+
+.swatch {
+  flex: none;
+  width: var(--space-16);
+  height: var(--space-16);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+}
+
+.empty {
+  color: var(--text-3);
+  font: var(--type-label);
+}

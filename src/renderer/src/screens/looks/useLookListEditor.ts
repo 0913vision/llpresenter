@@ -6,6 +6,7 @@ import type {NamedDocument} from '../useSettingsDocument';
 import {LookListEditor} from './lookListEditor';
 import type {LookListEdit} from './lookListEdits';
 import type {LookCardEdit} from './lookCardEdits';
+import type {LyricStyleEdit} from './lyricStyleEdits';
 
 const sessions = new WeakMap<LlpApi, ReturnType<typeof createSession>>();
 
@@ -76,6 +77,8 @@ export function useLookListEditor(
     change: (edit: LookListEdit) => session.current?.editor.change(edit),
     changeCard: (edit: LookCardEdit) =>
       session.current?.editor.changeCard(edit),
+    changeStyle: (edit: LyricStyleEdit) =>
+      session.current?.editor.changeStyle(edit),
     report: (title: string): void => session.current?.report(title),
   };
 }

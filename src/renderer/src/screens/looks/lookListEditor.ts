@@ -3,6 +3,7 @@ import type {Result} from '@shared/result';
 import type {NamedDocument} from '../useSettingsDocument';
 import {SettingsDocumentEditor} from '../settingsDocumentEditor';
 import {editLookCard, type LookCardEdit} from './lookCardEdits';
+import {editLyricStyle, type LyricStyleEdit} from './lyricStyleEdits';
 import {
   editLookList,
   type LookListContext,
@@ -44,6 +45,10 @@ export class LookListEditor {
 
   changeCard(edit: LookCardEdit): Promise<boolean> {
     return this.documents.change(value => editLookCard(value, edit));
+  }
+
+  changeStyle(edit: LyricStyleEdit): Promise<boolean> {
+    return this.documents.change(value => editLyricStyle(value, edit));
   }
 
   async change(edit: LookListEdit): Promise<Result<boolean, LookListProblem>> {

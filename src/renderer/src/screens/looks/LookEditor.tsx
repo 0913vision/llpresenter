@@ -20,6 +20,7 @@ import {useSettingsDocument} from '../useSettingsDocument';
 import {useMonitors} from '../useMonitors';
 import {previewCaption} from '../previewCaption';
 import {LookScreenCard} from './LookScreenCard';
+import {LyricStyles} from './LyricStyles';
 import {LOOK_LIST_LIMIT} from './lookListEdits';
 import {useLookListEditor} from './useLookListEditor';
 import styles from './LookEditor.module.css';
@@ -186,26 +187,39 @@ export function LookEditor({
       </PanelHeader>
       <PanelBody className={styles.body}>
         {look === undefined || document === null ? null : (
-          <div className={styles.cards}>
-            {screens?.value.screens.map(screen => (
-              <LookScreenCard
-                key={screen.id}
-                look={look}
-                screen={screen}
-                looks={document.value}
-                stageLayouts={layouts?.value.layouts ?? []}
-                timers={timers?.value.timers ?? []}
-                target={previewCaption(screen, monitors).target}
-                reason={reason}
-                onProblem={editor.report}
-                onChange={change => {
-                  editor
-                    .changeCard({lookId: look.id, screenId: screen.id, change})
-                    ?.catch(failed);
-                }}
-              />
-            ))}
-          </div>
+          <>
+            <div className={styles.cards}>
+              {screens?.value.screens.map(screen => (
+                <LookScreenCard
+                  key={screen.id}
+                  look={look}
+                  screen={screen}
+                  looks={document.value}
+                  stageLayouts={layouts?.value.layouts ?? []}
+                  timers={timers?.value.timers ?? []}
+                  target={previewCaption(screen, monitors).target}
+                  reason={reason}
+                  onProblem={editor.report}
+                  onChange={change => {
+                    editor
+                      .changeCard({
+                        lookId: look.id,
+                        screenId: screen.id,
+                        change,
+                      })
+                      ?.catch(failed);
+                  }}
+                />
+              ))}
+            </div>
+            <LyricStyles
+              looks={document.value}
+              reason={reason}
+              onChange={edit => {
+                editor.changeStyle(edit)?.catch(failed);
+              }}
+            />
+          </>
         )}
       </PanelBody>
     </Panel>
