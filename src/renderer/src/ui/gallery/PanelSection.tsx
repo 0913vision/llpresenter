@@ -234,6 +234,13 @@ export function PanelSection(): JSX.Element {
           </Panel>
         </SpecItem>
       </SpecGroup>
+      <SpecGroup title="Workspace heading labels use the panel title scale">
+        {['슬라이드', '화면', '배치', '속성'].map(label => (
+          <SpecItem key={label} label={label} width={150}>
+            <SingleTab label={label} selected />
+          </SpecItem>
+        ))}
+      </SpecGroup>
       <SpecGroup title="Tab states">
         {tabStates.map(state => (
           <SpecItem

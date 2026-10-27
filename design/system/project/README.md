@@ -89,7 +89,7 @@ The app uses one typeface, Pretendard Variable (`fonts/PretendardVariable.woff2`
 | Style | Size/line height/weight | Where to use |
 | --- | --- | --- |
 | `heading` | 22/30/600 | Confirmation dialog titles, Preferences page titles |
-| `title` | 18/26/600 | Panel titles/tabs, dialog headers, the service-order and song title |
+| `title` | 18/26/600 | Panel titles/tabs, including workspace wrappers, dialog headers, the service-order and song title |
 | `body` | 16/22/400 | Lists, menus, text fields, md buttons |
 | `body-strong` | 16/22/600 | Names to emphasize, md primary buttons |
 | `label` | 14/20/400 | sm buttons, dropdowns, property names |

@@ -11,6 +11,7 @@ import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import type {TextImportReadResult} from '@shared/schema/textImport';
 import {SONG_IMPORT_LIMITS} from '@shared/schema/songImport';
+import {parseSongDocument} from '@shared/schema/contentDocuments';
 import {convertTextImport} from '../../../../main/import/convert';
 import {editorFixture, editorSong} from '../editor/editorFixture';
 import {SongEditorStore} from '../editor/songEditorStore';
@@ -297,7 +298,18 @@ describe('imported song actions', () => {
         if (edit.type !== 'song.import') {
           throw new Error('Unexpected keyboard edit');
         }
-        f.pushSong({...accepted, song: {...accepted.song, ...edit.draft}});
+        const document = parseSongDocument({
+          ...accepted,
+          song: {
+            ...accepted.song,
+            ...edit.draft,
+            arrangements: edit.draft.arrangements ?? [],
+          },
+        });
+        if (!document.ok || document.value === null) {
+          throw new Error('Invalid keyboard import fixture');
+        }
+        f.pushSong(document.value);
         return {
           ok: true,
           value: {id: accepted.song.id, revision: accepted.revision},

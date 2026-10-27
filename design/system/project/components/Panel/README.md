@@ -5,6 +5,7 @@ The basic surface of the window. It has a 34px header (tabs or a title, controls
 ## Where to use
 
 - Every cell of the 진행 (Show), 준비 (Prep), and media workspaces
+- Workspace wrappers, including 슬라이드, 화면, 배치 and 속성, use the same 18/26 `title` token as the shared panel header.
 - A narrow window (1366×768) uses the same panels. Column widths and the layout inside the window follow `Layout`.
 
 ## Where not to use

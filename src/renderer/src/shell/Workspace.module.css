@@ -72,7 +72,7 @@
   align-items: center;
   margin-bottom: -1px;
   border-bottom: 2px solid var(--text);
-  font: var(--type-label-strong);
+  font: var(--type-title);
 }
 
 .body {
