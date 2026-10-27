@@ -197,8 +197,6 @@ missing.
 
 ## Verdicts (recorded by the lead at merge)
 
-## Verdicts (recorded by the lead at merge)
-
 - Final round (cc42a190): first-pass reviewer (Gemini Flash) and final reviewer
   (Claude Sonnet) Approve. Lead Approve; the lead read the projection diff in
   the sensitive src/main/store path (the tile cap is now checked before each

@@ -95,10 +95,6 @@ missing.
 
 ## Verdicts (recorded by the lead at merge)
 
-- Not reviewed yet.
-
-## Verdicts (recorded by the lead at merge)
-
 - Round 1 (3998f1b, codex2): Request changes with two findings and a nit: the
   input guard blocked Ctrl L in text fields and every command on the slider,
   item navigation lost the grid focus, and a test passed on the old code.
