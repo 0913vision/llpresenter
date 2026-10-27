@@ -64,7 +64,12 @@ export function TimerTab({
         />
       </div>
       {api ? (
-        <WindowedTimers api={api} timers={document?.value.timers ?? []} />
+        <WindowedTimers
+          api={api}
+          timers={document?.value.timers ?? []}
+          editable={document?.access === 'editable'}
+          onProblem={onProblem}
+        />
       ) : null}
       {adding ? (
         <NewTimerDialog

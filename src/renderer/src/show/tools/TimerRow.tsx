@@ -5,6 +5,8 @@ import {MAX_LIVE_TIMERS} from '@shared/schema/timerState';
 import {useLive} from '@renderer/state/live';
 import {Button, Icon, TruncatedText} from '@renderer/ui';
 import {TimerValue} from './TimerValue';
+import {TimerRowMenu} from './TimerRowMenu';
+import type {Notice} from '@renderer/ui/notices';
 import styles from './TimerTab.module.css';
 
 function kindText(timer: Timer): string {
@@ -28,9 +30,13 @@ export const TimerRow = memo(
   ({
     api,
     timer,
+    editable = false,
+    onProblem,
   }: {
     readonly api: LlpApi;
     readonly timer: Timer;
+    readonly editable?: boolean;
+    readonly onProblem?: ((notice: Notice) => void) | undefined;
   }): JSX.Element => {
     const run = useLive(view => view.state?.timers?.[timer.id]);
     const full = useLive(
@@ -42,10 +48,11 @@ export const TimerRow = memo(
         ? '시작할 수 있는 타이머가 가득 찼습니다'
         : undefined;
     return (
-      <section
-        className={styles.row}
-        role="group"
-        aria-label={timer.name || '이름 없음'}
+      <TimerRowMenu
+        api={api}
+        timer={timer}
+        editable={editable}
+        onProblem={onProblem}
       >
         <div className={styles.heading}>
           <Icon name="timer" size={16} />
@@ -85,7 +92,7 @@ export const TimerRow = memo(
             </div>
           )}
         </div>
-      </section>
+      </TimerRowMenu>
     );
   },
 );

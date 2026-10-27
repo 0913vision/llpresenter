@@ -9,6 +9,7 @@ import {
 import type {Timer} from '@shared/schema/timers';
 import type {LlpApi} from '@shared/ipc';
 import {TimerRow} from './TimerRow';
+import type {Notice} from '@renderer/ui/notices';
 import styles from './TimerTab.module.css';
 
 const INITIAL_ROWS = 4;
@@ -17,9 +18,13 @@ const OVERSCAN = 2;
 export function WindowedTimers({
   api,
   timers,
+  editable = false,
+  onProblem,
 }: {
   readonly api: LlpApi;
   readonly timers: readonly Timer[];
+  readonly editable?: boolean;
+  readonly onProblem?: ((notice: Notice) => void) | undefined;
 }): JSX.Element {
   const viewport = useRef<HTMLDivElement>(null);
   const pendingFocus = useRef<number | null>(null);
@@ -67,7 +72,11 @@ export function WindowedTimers({
     const row = viewport.current?.querySelector<HTMLElement>(
       `[data-timer-row="${index}"]`,
     );
-    (row?.querySelector<HTMLElement>('button') ?? row)?.focus({
+    (
+      row?.querySelector<HTMLElement>('button') ??
+      row?.querySelector<HTMLElement>('[role=group]') ??
+      row
+    )?.focus({
       preventScroll: true,
     });
     pendingFocus.current = null;
@@ -86,6 +95,7 @@ export function WindowedTimers({
       event.target instanceof Element
         ? event.target.closest<HTMLElement>('[data-timer-row]')
         : null;
+    if (row === null && event.target !== event.currentTarget) return;
     const current = Number(row?.dataset['timerRow'] ?? -1);
     const targets: Readonly<Record<string, number>> = {
       ArrowDown: current + 1,
@@ -106,7 +116,11 @@ export function WindowedTimers({
       `[data-timer-row="${target}"]`,
     );
     if (rendered) {
-      (rendered.querySelector<HTMLElement>('button') ?? rendered).focus({
+      (
+        rendered.querySelector<HTMLElement>('button') ??
+        rendered.querySelector<HTMLElement>('[role=group]') ??
+        rendered
+      ).focus({
         preventScroll: true,
       });
       pendingFocus.current = null;
@@ -132,7 +146,12 @@ export function WindowedTimers({
             tabIndex={-1}
             style={{top: (start + offset) * view.row}}
           >
-            <TimerRow api={api} timer={timer} />
+            <TimerRow
+              api={api}
+              timer={timer}
+              editable={editable}
+              onProblem={onProblem}
+            />
           </div>
         ))}
       </div>
