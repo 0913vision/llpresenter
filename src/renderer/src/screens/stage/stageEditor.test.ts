@@ -63,6 +63,27 @@ function setup(
   return {editor, edits, value, report, log};
 }
 describe('stage document edits', () => {
+  it('removes a layout against the newest queued document and returns its neighbour', async () => {
+    const {editor, edits, value} = setup('editable', 2);
+    const second = value.value.layouts[1]?.id;
+    if (second === undefined) throw new Error('Missing second layout');
+    const [removed, renamed] = await Promise.all([
+      editor.removeLayout(LAYOUT_ID),
+      editor.renameLayout(second, 'Renamed'),
+    ]);
+    expect(removed).toEqual({next: second});
+    expect(renamed).toBe(true);
+    expect(edits.map(edit => edit.baseRevision)).toEqual([1, 2]);
+    expect(edits.at(-1)?.value).toMatchObject({
+      future: 'file',
+      layouts: [{id: second, name: 'Renamed', future: 'layout'}],
+    });
+    expect(await editor.removeLayout('missing')).toBeNull();
+    expect(await editor.removeLayout(second)).toEqual({next: null});
+    const readOnly = setup('readOnly');
+    expect(await readOnly.editor.removeLayout(LAYOUT_ID)).toBeNull();
+    expect(readOnly.edits).toEqual([]);
+  });
   it('duplicates layouts with unique names and preserves fields without sharing edits', async () => {
     const {editor, edits, value} = setup();
     const copied = await editor.duplicate(LAYOUT_ID);

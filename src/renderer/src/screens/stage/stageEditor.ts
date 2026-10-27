@@ -131,6 +131,17 @@ export class StageEditor {
       };
     });
   }
+  async removeLayout(layoutId: string): Promise<{next: string | null} | null> {
+    let next: string | null = null;
+    const saved = await this.documents.change(value => {
+      const index = value.layouts.findIndex(layout => layout.id === layoutId);
+      if (index < 0) return undefined;
+      const layouts = value.layouts.filter(layout => layout.id !== layoutId);
+      next = layouts[Math.min(index, layouts.length - 1)]?.id ?? null;
+      return {...value, layouts};
+    });
+    return saved ? {next} : null;
+  }
   async add(layoutId: string, kind: StageElement['kind']) {
     const parsed = parsePayload(stageElementIdSchema, crypto.randomUUID());
     if (!parsed.ok) throw new Error(parsed.error.message);

@@ -14,6 +14,7 @@ interface SelectionView {
   readonly selection: ScreensSelection;
   readonly lastScreenId: string | null;
   readonly select: (kind: ScreensSelectionKind, id: string) => void;
+  readonly selectAfterStageRemoval: (id: string, next: string | null) => void;
   readonly stageElement: {
     readonly layoutId: string;
     readonly elementId: string;
@@ -43,6 +44,19 @@ export const useScreensSelection = create<SelectionView>(set => ({
             ? view.selection.id
             : view.lastScreenId,
     })),
+  selectAfterStageRemoval: (id, next) =>
+    set(view => {
+      if (view.selection.kind !== 'stage' || view.selection.id !== id) {
+        return view;
+      }
+      return {
+        selection:
+          next === null
+            ? {kind: 'screen', id: view.lastScreenId}
+            : {kind: 'stage', id: next},
+        stageElement: null,
+      };
+    }),
   stageElement: null,
   selectStageElement: (layoutId, elementId) =>
     set({stageElement: elementId === null ? null : {layoutId, elementId}}),

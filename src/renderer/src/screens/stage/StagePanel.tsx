@@ -7,8 +7,10 @@ import {
   type JSX,
 } from 'react';
 import type {StageLayout} from '@shared/schema/stageLayouts';
+import {referencedStageLayouts} from '@shared/stageLayoutReferences';
 import {useLive} from '@renderer/state/live';
 import {IconButton} from '@renderer/ui/IconButton';
+import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {
   Panel,
@@ -33,6 +35,7 @@ const NAME_PROBLEMS = {
 };
 const READ_ONLY_REASON = '새 버전에서 만든 설정이므로 변경할 수 없음';
 const FULL_REASON = '무대 배치는 1,000개까지 추가할 수 있음';
+const REFERENCED_REASON = 'Look에서 사용 중인 배치는 삭제할 수 없음';
 
 /** Stage list actions share the existing settings-document lifecycle. */
 export function StagePanel({
@@ -60,6 +63,9 @@ export function StagePanel({
     null,
   );
   const [renaming, setRenaming] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<{id: string; name: string} | null>(
+    null,
+  );
   const pendingRename = useRef<string | null>(null);
   const mounted = useRef(false);
   useLayoutEffect(() => {
@@ -96,6 +102,26 @@ export function StagePanel({
     );
   };
   const target = items.find(layout => layout.id === menu?.id);
+  const referenced = useMemo(
+    () => (looks === null ? null : referencedStageLayouts(looks.value)),
+    [looks],
+  );
+  const deleteReason =
+    reason ??
+    (referenced === null
+      ? 'Look을 불러오는 중'
+      : target !== undefined && referenced.has(target.id)
+        ? REFERENCED_REASON
+        : undefined);
+  const confirmReason =
+    reason ??
+    (referenced === null
+      ? 'Look을 불러오는 중'
+      : deleting !== null && referenced.has(deleting.id)
+        ? REFERENCED_REASON
+        : deleting !== null && !items.some(layout => layout.id === deleting.id)
+          ? '배치를 찾을 수 없음'
+          : undefined);
   const inUse = useMemo(
     () =>
       looks === null || screens === null
@@ -171,6 +197,46 @@ export function StagePanel({
               title: reason,
               onSelect: () => {
                 pendingRename.current = target.id;
+              },
+            },
+            {
+              kind: 'item',
+              id: 'delete',
+              label: '삭제',
+              danger: true,
+              disabled: deleteReason !== undefined,
+              title: deleteReason,
+              onSelect: () => {
+                setDeleting({id: target.id, name: target.name});
+              },
+            },
+          ]}
+        />
+      )}
+      {deleting === null ? null : (
+        <AlertDialog
+          icon="trash"
+          title={`‘${deleting.name}’ 배치를 삭제할까요?`}
+          onCancel={() => setDeleting(null)}
+          actions={[
+            {
+              label: '삭제',
+              primary: true,
+              disabled: confirmReason !== undefined,
+              title: confirmReason,
+              onSelect: () => {
+                const id = deleting.id;
+                setDeleting(null);
+                run(
+                  editor => editor.removeLayout(id),
+                  result => {
+                    if (mounted.current && result !== null) {
+                      useScreensSelection
+                        .getState()
+                        .selectAfterStageRemoval(id, result.next);
+                    }
+                  },
+                );
               },
             },
           ]}

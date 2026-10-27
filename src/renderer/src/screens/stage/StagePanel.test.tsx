@@ -5,6 +5,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, expect, it, vi} from 'vitest';
@@ -22,6 +23,8 @@ import {
   looksDocument,
   screensDocument,
   LAYOUT_ID,
+  LOOK_ID,
+  STAGE_ID,
 } from '../testing/documents';
 import {StagePanel} from './StagePanel';
 
@@ -36,10 +39,14 @@ function setup({
   access = 'editable',
   count = 2,
   saving = Promise.resolve(),
+  lookDocument = looksDocument(),
+  refuse = false,
 }: {
   access?: 'editable' | 'readOnly';
   count?: number;
   saving?: Promise<void>;
+  lookDocument?: SettingsDocument | Promise<SettingsDocument>;
+  refuse?: boolean;
 } = {}) {
   const make = (value: object, revision = 1) => {
     const document = settingsDocument('stage-layouts', value, revision);
@@ -66,6 +73,12 @@ function setup({
       throw new Error('Wrong edit');
     }
     await saving;
+    if (refuse) {
+      return {
+        ok: false as const,
+        error: {reason: 'invalid' as const, message: 'Layout is in use'},
+      };
+    }
     current = make(change.value, current.revision + 1);
     for (const listener of listeners) listener(current);
     return {
@@ -82,7 +95,7 @@ function setup({
           name === 'stage-layouts'
             ? current
             : name === 'looks'
-              ? looksDocument()
+              ? lookDocument
               : screensDocument(),
         ),
       edit,
@@ -96,13 +109,147 @@ function setup({
   });
   useLive.setState({state: emptyLiveState()});
   useScreensSelection.getState().select('stage', LAYOUT_ID);
-  const view = render(<StagePanel onProblem={vi.fn()} />);
-  return {view, edit, send, current: () => current, user: userEvent.setup()};
+  const onProblem = vi.fn();
+  const view = render(<StagePanel onProblem={onProblem} />);
+  return {
+    view,
+    edit,
+    send,
+    onProblem,
+    current: () => current,
+    user: userEvent.setup(),
+  };
 }
 async function menu(name = 'Source') {
   fireEvent.contextMenu(await screen.findByRole('option', {name}));
   await screen.findByRole('menu', {name: '무대 배치 메뉴'});
 }
+async function confirmDelete(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole('menuitem', {name: '삭제'}));
+  const dialog = await screen.findByRole('alertdialog');
+  await user.click(within(dialog).getByRole('button', {name: '삭제'}));
+}
+
+it('asks about the named layout and leaves it intact on cancel', async () => {
+  const {current, edit, user} = setup();
+  await menu('Other 1');
+  await user.click(screen.getByRole('menuitem', {name: '삭제'}));
+  const dialog = await screen.findByRole('alertdialog', {
+    name: '‘Other 1’ 배치를 삭제할까요?',
+  });
+  expect(edit).not.toHaveBeenCalled();
+  await user.click(within(dialog).getByRole('button', {name: '취소'}));
+  expect(screen.queryByRole('alertdialog')).toBeNull();
+  expect(current().value.layouts).toHaveLength(2);
+  expect(edit).not.toHaveBeenCalled();
+});
+
+it('disables deletion of layouts used by current or inactive Looks', async () => {
+  const original = looksDocument();
+  if (original.name !== 'looks') throw new Error('Missing Looks');
+  const otherId = '00000000-0000-4000-8000-000000000501';
+  const lookDocument = settingsDocument('looks', {
+    ...original.value,
+    looks: original.value.looks.map((look, index) =>
+      index !== 1
+        ? look
+        : {
+            ...look,
+            screens: {
+              ...look.screens,
+              [STAGE_ID]: {layers: {}, stageLayout: otherId},
+            },
+          },
+    ),
+  });
+  const {edit, user} = setup({lookDocument});
+  for (const name of ['Source', 'Other 1']) {
+    await menu(name);
+    const remove = screen.getByRole('menuitem', {name: '삭제'});
+    expect(remove.getAttribute('aria-disabled')).toBe('true');
+    await user.click(remove);
+    expect(edit).not.toHaveBeenCalled();
+    await user.keyboard('{Escape}');
+  }
+});
+
+it('keeps deletion disabled until Look references are available', async () => {
+  const lookDocument = new Promise<SettingsDocument>(() => undefined);
+  const {edit, user} = setup({lookDocument});
+  await menu('Other 1');
+  const remove = screen.getByRole('menuitem', {name: '삭제'});
+  expect(remove.getAttribute('aria-disabled')).toBe('true');
+  await user.click(remove);
+  expect(edit).not.toHaveBeenCalled();
+});
+
+it('deletes an unused selected layout and selects its surviving neighbour', async () => {
+  const {current, user, send} = setup();
+  await user.click(await screen.findByRole('option', {name: 'Other 1'}));
+  await menu('Other 1');
+  await confirmDelete(user);
+  await waitFor(() => expect(current().value.layouts).toHaveLength(1));
+  expect(useScreensSelection.getState().selection).toEqual({
+    kind: 'stage',
+    id: LAYOUT_ID,
+  });
+  expect(send).not.toHaveBeenCalled();
+});
+
+it('clears the stage selection after deleting the last unreferenced layout', async () => {
+  const lookDocument = settingsDocument('looks', {
+    current: LOOK_ID,
+    looks: [{id: LOOK_ID, name: 'Plain', screens: {}}],
+    lyricStyles: [],
+  });
+  const {current, user} = setup({count: 1, lookDocument});
+  useScreensSelection.setState({lastScreenId: null});
+  useScreensSelection.getState().selectStageElement(LAYOUT_ID, 'element');
+  await menu();
+  await confirmDelete(user);
+  await waitFor(() => expect(current().value.layouts).toHaveLength(0));
+  expect(useScreensSelection.getState().selection).toEqual({
+    kind: 'screen',
+    id: null,
+  });
+  expect(useScreensSelection.getState().stageElement).toBeNull();
+});
+
+it('does not replace a newer selection when a delayed removal completes', async () => {
+  let release: () => void = () => undefined;
+  const saving = new Promise<void>(resolve => {
+    release = resolve;
+  });
+  const {current, edit, user} = setup({saving});
+  await user.click(await screen.findByRole('option', {name: 'Other 1'}));
+  await menu('Other 1');
+  await confirmDelete(user);
+  await waitFor(() => expect(edit).toHaveBeenCalledOnce());
+  act(() => useScreensSelection.getState().select('screen', 'newer'));
+  await act(async () => {
+    release();
+    await saving;
+  });
+  await waitFor(() => expect(current().value.layouts).toHaveLength(1));
+  expect(useScreensSelection.getState().selection).toEqual({
+    kind: 'screen',
+    id: 'newer',
+  });
+});
+
+it('keeps selection and reports a backend refusal if a Look assignment wins a race', async () => {
+  const {current, edit, onProblem, user} = setup({refuse: true});
+  await user.click(await screen.findByRole('option', {name: 'Other 1'}));
+  await menu('Other 1');
+  await confirmDelete(user);
+  await waitFor(() => expect(onProblem).toHaveBeenCalled());
+  expect(edit).toHaveBeenCalledOnce();
+  expect(current().value.layouts).toHaveLength(2);
+  expect(useScreensSelection.getState().selection).toEqual({
+    kind: 'stage',
+    id: '00000000-0000-4000-8000-000000000501',
+  });
+});
 
 it('duplicates and selects a layout without changing live output', async () => {
   const {current, user, send} = setup();
@@ -186,6 +333,9 @@ it('keeps future-version menus read-only and leaves rename available at the copy
     screen
       .getByRole('menuitem', {name: '이름 변경'})
       .getAttribute('aria-disabled'),
+  ).toBe('true');
+  expect(
+    screen.getByRole('menuitem', {name: '삭제'}).getAttribute('aria-disabled'),
   ).toBe('true');
   readOnly.view.unmount();
   setup({count: 1000});
