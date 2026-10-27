@@ -130,6 +130,29 @@ describe('screen creation and group outputs', () => {
     },
   );
 
+  it.each(['', '방송 자막'])(
+    'restores the saved name on blur after invalid draft %j',
+    async draft => {
+      const {edit} = setup();
+      fireEvent.contextMenu(
+        await screen.findByRole('option', {name: '본 화면'}),
+      );
+      await userEvent.click(
+        await screen.findByRole('menuitem', {name: '이름 변경'}),
+      );
+      const field = await screen.findByRole('textbox', {name: '본 화면 이름'});
+      await userEvent.clear(field);
+      if (draft !== '') await userEvent.type(field, draft);
+      await userEvent.keyboard('{Enter}');
+      expect(screen.getByRole('textbox', {name: '본 화면 이름'})).toBe(field);
+      expect(edit).not.toHaveBeenCalled();
+      await userEvent.click(screen.getByRole('option', {name: '무대 화면'}));
+      expect(screen.queryByRole('textbox', {name: '본 화면 이름'})).toBeNull();
+      expect(screen.getByRole('option', {name: '본 화면'})).toBeDefined();
+      expect(edit).not.toHaveBeenCalled();
+    },
+  );
+
   it('hands focused keyboard-menu rename off after cleanup and saves only once', async () => {
     const {edit} = setup();
     const row = await screen.findByRole('option', {name: '본 화면'});

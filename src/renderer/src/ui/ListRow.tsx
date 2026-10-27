@@ -498,7 +498,7 @@ function NameField({
       autoFocus
       onFocus={event => event.currentTarget.select()}
       onChange={setValue}
-      onBlur={() => finish(true)}
+      onBlur={() => finish(problem === undefined)}
       onKeyDown={event => {
         if (ownsFieldKey(event)) event.stopPropagation();
         if (isComposing(event)) return;
