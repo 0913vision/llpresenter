@@ -124,6 +124,35 @@ once and guarded against destruction.
   [second launch](evidence/output-54-round3/key-navigation-run2.png),
   [output](evidence/output-54-round3/output-run1.png).
 
+### Round 4 app check
+
+- Rebuilt on local main and syntax-checked the launcher. The offscreen app uses
+  isolated output-member data, two active outputs and invented fixture content.
+  A process-local Electron display source supplies an invented monitor; no OS
+  display settings are changed.
+- Each launch repeats 25 cycles: assign the invented monitor, remove it, wait
+  for the fallback, change the control monitor's work area, switch the fallback
+  to capture, change capture content between 1280 x 720 and 1920 x 1080, toggle
+  always on top, reconnect the monitor and return to full screen. The existing
+  cursor, preview-geometry and output-click/native-key checks also repeat.
+- Offscreen presentation suppresses native stacking. This app check validates
+  settings, fallback/status transitions, client dimensions, reuse and key
+  delivery. The normal-presentation call regressions verify the demotion
+  lifecycle itself; the native-desktop limit described above still applies.
+- Focused checks pass 111 tests across three files, plus typecheck, build,
+  formatting and changed-file lint. CI pending for the requested head.
+- Both launches quit normally. Five targets, 611 control elements, 1,926 CDP
+  nodes and 586 listeners stay constant at iterations 5/25. Collected control
+  heaps are 7,395,688/8,150,460 and 7,539,052/8,275,052 bytes. This is a short
+  repeated flow, not an hours-long soak. Preliminary instrumentation was
+  adjusted for cold startup, the public status mapping (`monitorMissing` for
+  fallback and `window` for capture), and repeat-safe inspector evaluation
+  scopes.
+- Screenshots:
+  [capture after disconnect](evidence/output-54-round4/capture-after-disconnect-run1.png),
+  [native output key navigation](evidence/output-54-round4/key-navigation-run1.png),
+  [second launch](evidence/output-54-round4/capture-after-disconnect-run2.png).
+
 ## Review: lead
 
 - Verdict: pending
@@ -133,6 +162,18 @@ once and guarded against destruction.
 - Verdict: pending
 
 ## Team member's reply
+
+### Round 4
+
+1. Disconnect demotion now ends when the fallback bounds check settles,
+   including an unchanged check, one corrective reapply, cancellation and the
+   no-bounds case. The correction keeps its one required ordering action before
+   releasing demotion. Capture placement, explicit always-on-top changes and a
+   windowed request with always on top also clear it immediately. Regressions
+   cover capture switches and resolution changes with both top values, changing
+   the preference during a pending check, and a later independent work-area
+   placement after each completion path. No new timer or unbounded state was
+   introduced.
 
 ### Round 3
 

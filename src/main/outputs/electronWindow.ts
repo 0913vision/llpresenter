@@ -112,6 +112,7 @@ function presentOnScreen(
   let wantedOnTop = false;
   let demoted = false;
   const setAlwaysOnTop = (on: boolean): void => {
+    demoted = false;
     wantedOnTop = on;
     onTop.set(on);
   };
@@ -132,8 +133,9 @@ function presentOnScreen(
     }
   };
   const placeBehindControl = (): void => {
-    demoted = true;
+    placement.cancel();
     setAlwaysOnTop(false);
+    demoted = true;
     if (!control.isDestroyed()) control.moveAbove(win.getMediaSourceId());
   };
   const profile = (method: 'window' | 'capture') => {
@@ -162,24 +164,30 @@ function presentOnScreen(
       placement.fullscreen(place);
     },
     showWindowed: (bounds, alwaysOnTop = false) => {
+      if (alwaysOnTop) demoted = false;
       wantedOnTop = alwaysOnTop;
       if (bounds !== null) unplacedBounds = bounds;
       const place = () => {
         profile('window');
         win.setFocusable(true);
-        if (unplacedBounds !== null) {
-          win.setBounds(unplacedBounds);
-          placement.verifyBounds(unplacedBounds, orderWindow);
+        const wantedBounds = unplacedBounds;
+        if (wantedBounds !== null) {
+          win.setBounds(wantedBounds);
+          placement.verifyBounds(wantedBounds, orderWindow, () => {
+            demoted = false;
+          });
         }
         unplacedBounds = null;
         showOnce();
         orderWindow();
+        if (wantedBounds === null) demoted = false;
       };
       onTop.set(false);
       placement.windowed(place);
     },
     showCapture: (bounds, alwaysOnTop = false) => {
       unplacedBounds = null;
+      demoted = false;
       wantedOnTop = alwaysOnTop;
       onTop.set(false);
       placement.windowed(() => {
