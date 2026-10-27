@@ -23,6 +23,7 @@ import {
   LOOK_ID,
   SERMON_LOOK_ID,
   looksDocument,
+  screensDocument,
   settingsDocument,
 } from '../testing/documents';
 import {LookPanel} from './LookPanel';
@@ -73,7 +74,13 @@ function setup({
     settings: {
       get: request =>
         Promise.resolve(
-          request.name === 'looks' ? document : holdMacros ? loading : macros,
+          request.name === 'looks'
+            ? document
+            : request.name === 'screens'
+              ? screensDocument()
+              : holdMacros
+                ? loading
+                : macros,
         ),
       edit,
       subscribe: listener => {

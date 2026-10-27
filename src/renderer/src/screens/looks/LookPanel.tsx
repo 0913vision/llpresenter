@@ -1,4 +1,11 @@
-import {useEffect, useLayoutEffect, useRef, useState, type JSX} from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type JSX,
+} from 'react';
 import {parseLookId} from '@shared/schema/ids';
 import type {Look} from '@shared/schema/looks';
 import {useLive} from '@renderer/state/live';
@@ -17,6 +24,8 @@ import {selectedIdIn, useScreensSelection} from '../selection';
 import {nameProblem} from '../screenEdits';
 import {useSettingsDocument} from '../useSettingsDocument';
 import {LookRows} from './LookRows';
+import {lookFontWarnings} from './fontAvailability';
+import {useFontCatalog} from './useFontCatalog';
 import {
   LOOK_LIST_LIMIT,
   type LookListEdit,
@@ -45,6 +54,12 @@ export function LookPanel({
 }): JSX.Element {
   const document = useSettingsDocument('looks', 'Look', onProblem);
   const macros = useSettingsDocument('macros', '매크로', onProblem);
+  const screens = useSettingsDocument('screens', '화면', onProblem);
+  const fonts = useFontCatalog();
+  const warnings = useMemo(
+    () => lookFontWarnings(document?.value, screens?.value.screens, fonts),
+    [document, screens, fonts],
+  );
   const editor = useLookListEditor(document, macros, onProblem);
   const mounted = useRef(false);
   useLayoutEffect(() => {
@@ -163,6 +178,7 @@ export function LookPanel({
         <PanelBody variant="flush" className={styles.body}>
           <LookRows
             looks={looks}
+            warnings={warnings}
             selected={selectedIdIn(selection, 'look')}
             current={current}
             onSelect={id => select('look', id)}

@@ -13,6 +13,8 @@ import {Switch} from '@renderer/ui/Switch';
 import {TextField} from '@renderer/ui/TextField';
 import {isComposing} from '@renderer/ui/ime';
 import type {LyricStyleEdit} from './lyricStyleEdits';
+import {missingFontReason, weightChoices} from './fontAvailability';
+import {useFontCatalog} from './useFontCatalog';
 import styles from './LyricStyles.module.css';
 
 type Change = (change: LyricStyleEdit['change']) => void;
@@ -23,8 +25,6 @@ const NUMBER_FIELDS = [
   {key: 'maxLines', label: '최대 줄 수', min: 1, max: 10, step: 1},
   {key: 'margin', label: '여백', min: 0, max: 30, step: 1},
 ] as const;
-
-const FONT_WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900];
 
 function ColorField({
   style,
@@ -86,6 +86,17 @@ export function LyricStyleProperties({
   readonly reason: string | undefined;
   readonly change: Change;
 }): JSX.Element {
+  const fonts = useFontCatalog();
+  const missing = missingFontReason(style.font, fonts);
+  const fontProblem =
+    missing ??
+    (fonts.status === 'failed' ? '설치 글꼴을 불러올 수 없음' : undefined);
+  const fontReason =
+    [reason, fontProblem].filter(Boolean).join('\n') || undefined;
+  const weights = weightChoices(style.font, style.weight, fonts);
+  const weightReason =
+    reason ??
+    (weights.every(option => option.disabled) ? weights[0]?.title : undefined);
   return (
     <Properties>
       <PropertyColumns>
@@ -100,8 +111,13 @@ export function LyricStyleProperties({
                   value: font,
                   label: font,
                 }))}
+                lead={
+                  fontProblem === undefined
+                    ? undefined
+                    : {kind: 'icon', icon: 'warning'}
+                }
                 disabled={reason !== undefined}
-                title={reason}
+                title={fontReason}
                 onChange={font => change({font})}
               />
             )}
@@ -112,14 +128,9 @@ export function LyricStyleProperties({
                 id={controlId}
                 block
                 value={String(style.weight)}
-                options={[...new Set([...FONT_WEIGHTS, style.weight])]
-                  .sort((left, right) => left - right)
-                  .map(weight => ({
-                    value: String(weight),
-                    label: String(weight),
-                  }))}
-                disabled={reason !== undefined}
-                title={reason}
+                options={weights}
+                disabled={weightReason !== undefined}
+                title={weightReason}
                 onChange={weight => change({weight: Number(weight)})}
               />
             )}

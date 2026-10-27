@@ -17,6 +17,7 @@ const OVERSCAN = 4;
 /** Windows a long Look list while keeping keyboard navigation over every Look. */
 export function LookRows({
   looks,
+  warnings,
   selected,
   current,
   renaming,
@@ -24,6 +25,7 @@ export function LookRows({
   onMenu,
 }: {
   readonly looks: readonly Look[];
+  readonly warnings: ReadonlyMap<string, string>;
   readonly selected: string | undefined;
   readonly current: string | undefined;
   readonly renaming: {
@@ -172,6 +174,7 @@ export function LookRows({
             <ListRow
               value={look.id}
               title={look.name}
+              warning={warnings.get(look.id)}
               live={look.id === current}
               rename={renaming?.id === look.id ? renaming.handlers : undefined}
             />
