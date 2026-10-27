@@ -107,20 +107,29 @@ or projecting songs, categorized by component and owner:
 - `src/main/live/testing/recovery.ts` (Owner: `output`): uses `parseSong` and v1
   fixtures for recovery testing.
 
-### 3.4 Projection to 진행 Tiles (Owners: `data`, `shell`)
+### 3.4 Projection to 진행 Tiles (Owners: `data`, `shell`, `ui`)
 
 - `src/main/store/showService.ts` (Owner: `data`): `songTiles(song: Song, ...)`
   maps `playbackOrder` numbers to slides. Does not populate `hotKey` or
   `sourceSlide`.
+- `src/shared/schema/showService.ts` (Owner: `data`): defines `ShowTile` and
+  `SHOW_SERVICE_LIMITS.tiles` cap.
 - `src/main/store/librarySong.ts` (Owner: `data`): `showLibrarySong` calls
   `songTiles(song, ...)`.
 - `src/renderer/src/show/SlidePanel.tsx` (Owner: `shell`): displays meta count
   and thumbnail grid.
 - `src/renderer/src/show/SlideGrid.tsx` (Owner: `shell`): renders
-  `SlideThumbnail`s and handles output tile clicks.
+  `SlideThumbnail`s, passes `hotKey={tile.hotKey}`, and handles output tile
+  clicks.
+- `src/renderer/src/show/shortcuts.ts` and `shortcuts.test.ts` (Owner: `shell`):
+  `handleShowKey` intercepts keyboard events for 진행 live navigation and jump
+  keys; checks `hasSlideHotKey(code)` and triggers `outputHotKey(code)`.
 - `src/renderer/src/state/show.ts` (Owner: `shell`): `jumpLabelFor` /
   `outputLabel` use jump keys from labels. Hotkey lookup via `findSlideHotKey`
-  is not yet connected.
+  is queried by `hasSlideHotKey` and `outputHotKey`.
+- `src/renderer/src/ui/SlideThumbnail.tsx` and `SlideThumbnail.module.css`
+  (Owner: `ui`): renders thumbnail canvas and `.hotKey` keycap badge with
+  accessibility announcement.
 
 ### 3.5 Renderer Song Editor (Owner: `prep`)
 
@@ -235,23 +244,32 @@ group-7: Store & IPC Final Activation (break/group/activate-contracts, double re
 ### Request `group-2`: Projection to 진행 Tiles, Tile Expansion Cap, and Slide Hotkeys
 
 - **Role & Owners**: `data` (store projection) and `shell` (진행 keyboard & tile
-  dispatch)
+  dispatch), `ui` (thumbnail badge)
 - **Tag & Branch**: `feat/group/show-projection-hotkeys`
 - **Scope**:
-  - Add additive grouped tile projection helper `projectGroupedTiles` in
-    `src/main/store/showService.ts` mapping `GroupedSong` to `ShowTile[]`:
-    populates `label`, `labelColor`, `lines`, `hotKey`, and
+  - Add grouped tile projection helpers `projectSongTiles` and
+    `projectGroupedSongTiles` in `src/main/store/showService.ts` and
+    `src/main/store/librarySong.ts` supporting both `Song` (v1) and
+    `GroupedSong` (v2): populates `label`, `labelColor`, `lines`, `hotKey`, and
     `sourceSlide: {songId, groupId, slideIndex}`.
-  - **Tile Expansion Cap**: define `SHOW_SERVICE_LIMITS.tiles = 10_000`
-    (matching `SHOW_LIBRARY_SONG_LIMITS.tiles`). When expanding repeated groups
-    in an arrangement, stop iterating immediately if the count exceeds 10,000 to
+  - **Tile Expansion Cap**: define `SHOW_SERVICE_LIMITS.tiles = 10_000` in
+    `src/main/store/showService.ts` (matching `SHOW_LIBRARY_SONG_LIMITS.tiles`
+    in `src/shared/schema/showLibrarySong.ts`). When expanding repeated groups
+    in an arrangement, stop iterating immediately if the count reaches 10,000 to
     prevent unbounded allocation. Emit empty tiles and mark
-    `problem: 'unknown-kind'` on the `ShowRow`. Never truncate silently.
-  - **Hotkey Dispatch**: in `src/renderer/src/state/show.ts`, intercept physical
-    keys `KeyA`..`KeyZ` and `Digit0`..`Digit9`. Look up the first matching tile
-    via `findSlideHotKey(tiles, event.code)`. When matched, output the tile
-    immediately through the main command path (`outputTile({itemId, index})`,
-    which sends `SlideLayer` to output windows) and update `selectedTile`.
+    `problem: 'unknown-kind'` on `ShowRow` (`problem: 'newer-version'` on
+    `ShowLibrarySong`). Reusing `unknown-kind` (which triggers tooltip "이
+    버전에서 알 수 없는 항목입니다.") is intentional to keep the shared contract
+    `showRowProblems` completely unchanged before group-7. Never truncate
+    silently. Ensure `songTiles(song, ...).length` returns 0 at the cap,
+    safeguarding recovery `plan.ts:135`.
+  - **Hotkey Dispatch**: in `src/renderer/src/show/shortcuts.ts`
+    (`handleShowKey`), intercept physical keys `KeyA`..`KeyZ` and
+    `Digit0`..`Digit9`. Query active item tiles via `hasSlideHotKey(code)` in
+    `src/renderer/src/state/show.ts` (using `findSlideHotKey`). When matched,
+    output the tile immediately through the main command path
+    (`outputHotKey(code)` calling `outputTile({itemId, index})`, which sends
+    `SlideLayer` to output windows) and update `selectedTile`.
   - **Conflict Resolution**:
     - If a key matches both a slide hot key in the open presentation and an
       app-wide label jump key in `labels.json`, the slide hot key takes
@@ -260,24 +278,31 @@ group-7: Store & IPC Final Activation (break/group/activate-contracts, double re
     - Spec 10 shortcut conflict checking applies only across global shortcuts;
       presentation-local slide hot keys are scoped to their song by
       `groupedSongSchema`.
-  - **Thumbnail Hotkey Badge**: in `src/renderer/src/ui/SlideThumbnail.tsx`,
-    render a compact keycap badge in the top-right corner when `tile.hotKey` is
-    present.
+  - **Thumbnail Hotkey Badge**: in `src/renderer/src/ui/SlideThumbnail.tsx` and
+    `SlideThumbnail.module.css`, render a compact keycap badge in the top-right
+    corner when `tile.hotKey` is present with `aria-hidden="true"`, and include
+    `, 단축키 <key>` in `thumbnailName`. In
+    `src/renderer/src/show/SlideGrid.tsx`, pass `hotKey={tile.hotKey}` to
+    `<SlideThumbnail />`.
   - Keep active v1 projection paths operational for existing files.
 - **Paths changed**:
   - `src/main/store/showService.ts`
   - `src/main/store/librarySong.ts`
   - `src/main/live/recovery/plan.ts` (test helper compatibility at limit)
   - `src/renderer/src/state/show.ts`
+  - `src/renderer/src/show/shortcuts.ts`
+  - `src/renderer/src/show/SlideGrid.tsx`
   - `src/renderer/src/ui/SlideThumbnail.tsx`
+  - `src/renderer/src/ui/SlideThumbnail.module.css`
   - Tests: `src/main/store/showService.test.ts`,
     `src/main/store/librarySong.test.ts`, `src/renderer/src/state/show.test.ts`,
-    `src/renderer/src/show/SlidePanel.test.tsx`
+    `src/renderer/src/show/shortcuts.test.ts`,
+    `src/renderer/src/ui/SlideThumbnail.test.tsx`
 - **Checked in the app**:
   - Offscreen run: open presentation with hotkey tiles, press hotkey, capture
     screenshot showing output triggered and selected tile updated, verify flat
     element count over 10 repeated triggers.
-- **Estimated lines**: ~580 lines.
+- **Estimated lines**: ~620 lines.
 
 ---
 
@@ -437,10 +462,19 @@ group-7: Store & IPC Final Activation (break/group/activate-contracts, double re
       import.
   - In `src/renderer/src/prep/import/TextImportFlow.tsx` and
     `TextImportDialog.tsx`:
-    - Update import previews to reflect group groupings.
+    - Update import previews to reflect candidate group boundaries and labels.
+- **Paths changed**:
+  - `src/main/import/convert.ts`
+  - `src/renderer/src/prep/import/TextImportFlow.tsx`
+  - `src/renderer/src/prep/import/TextImportDialog.tsx`
   - Tests: `src/main/import/convert.test.ts`,
-    `src/renderer/src/prep/import/TextImportFlow.test.tsx`.
-- **Estimated lines**: ~480 lines.
+    `src/renderer/src/prep/import/TextImportFlow.test.tsx`
+- **Checked in the app**:
+  - Offscreen run: open text import dialog with bracketed lyrics text (`[1절]`,
+    `[후렴]`), verify candidate group preview sections and labels render, commit
+    import, and verify flat element count over 10 repeated dialog preview
+    updates. Record screenshots.
+- **Estimated lines**: ~510 lines.
 
 ---
 
@@ -452,6 +486,9 @@ group-7: Store & IPC Final Activation (break/group/activate-contracts, double re
   CLAUDE.md because it alters the active shared contracts `songDocumentSchema`
   and `song.update`)_
 - **Double Review**: Reviewed twice (Lead + Codex).
+- **Lead Directive**: Build the consumer units in order, but do not start
+  group-7 (the store, IPC, and contract flip) until the lead tells you to. When
+  reaching group-7, report `Waiting for the lead`.
 - **Scope**:
   - Switch `src/shared/schema/contentDocuments.ts`: `songDocumentSchema` uses
     `groupedSongSchema`. `librarySongSchema.slideCount` counts total source
@@ -472,6 +509,11 @@ group-7: Store & IPC Final Activation (break/group/activate-contracts, double re
       `migrateSongGroups`.
     - Line 496: collects labels from `group.name` to add to `labels.json`.
     - Line 571: updates slide count check for library list notification.
+  - Update consumers expecting `Song` to now accept `GroupedSong`:
+    - `src/main/store/showService.ts` (`SongLibrary` / `buildShowService`)
+    - `src/main/store/librarySong.ts` (`showLibrarySong`)
+    - `src/main/live/recovery/plan.ts` (`RecoveryContent.song`)
+    - `src/shared/songOrder.ts` (`playbackOrder`)
   - Update `src/main/store/contentLists.ts`: sums `slideCount` across groups.
   - Update `src/main/store/contentEdits.ts`: `withRenamedArrangement` /
     `withoutArrangement` on `GroupedSong`.
@@ -493,22 +535,28 @@ group-7: Store & IPC Final Activation (break/group/activate-contracts, double re
   - `src/preload/index.ts`
   - `src/main/store/fileStore.ts`
   - `src/main/store/contentStore.ts`
+  - `src/main/store/showService.ts`
+  - `src/main/store/librarySong.ts`
   - `src/main/store/contentLists.ts`
   - `src/main/store/contentEdits.ts`
   - `src/main/search/songIndex.ts`
+  - `src/main/live/recovery/plan.ts`
   - `src/main/live/testing/recovery.ts`
+  - `src/shared/songOrder.ts`
   - `src/renderer/src/prep/editor/songEditorStore.ts`
   - Tests: `src/main/store/contentStore.test.ts`,
     `src/main/store/fileStore.test.ts`, `src/main/search/songIndex.test.ts`,
     `src/main/store/labelRename.test.ts`,
     `src/shared/schema/contentDocuments.test.ts`,
-    `src/shared/schema/contentEdit.test.ts`, `src/preload/index.test.ts`
+    `src/shared/schema/contentEdit.test.ts`, `src/preload/index.test.ts`,
+    `src/main/store/openServiceFeed.test.ts`,
+    `src/renderer/src/prep/editor/songEditorStore.test.ts`
 - **Checked in the app**:
   - Full end-to-end offscreen run: load existing v1 song from disk, verify
     automatic migration in memory, edit lyrics, verify v2 atomic save with
     `.복구 사본` backup, verify 진행 tile projection and hotkey output. Record
     screenshots and flat element count.
-- **Estimated lines**: ~640 lines.
+- **Estimated lines**: ~650 lines.
 
 ## 5. Open Questions and Clarifications for the Lead
 

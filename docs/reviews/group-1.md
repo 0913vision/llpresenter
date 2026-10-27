@@ -1,4 +1,4 @@
-# Review request: `group-1` (round 2)
+# Review request: `group-1` (round 3)
 
 - Team member: `group`
 - Branch: `docs/group/plan`
@@ -13,41 +13,28 @@ ProPresenter-style grouped songs end-to-end across the store, IPC, song editor,
 예배 순서 구성 chips, and projection to the 진행 tiles, following the user's
 October 27 decision ("Follow ProPresenter where qa-12 found a difference").
 
-Round 2 incorporates all 10 findings from the round 1 review:
+Round 3 addresses all 4 findings from the round 2 review:
 
-1. Reordered the rollout to strictly comply with the Spec 02 rollout rule:
-   active v1 store and IPC entry points remain active while consumers (editor,
-   chips, projection, text import) are upgraded to accept groups; store, IPC,
-   and shared contracts flip together in one final atomic request (`group-7`)
-   with the required double review.
-2. Formally designated the contract-flipping request as `break(data)` on branch
-   `break/group/activate-contracts`.
-3. Expanded the code audit to include all missing consumers across
-   `songEditorStore`, `SongEditor`, `SongHeader`, `SongPreview`,
-   `VirtualSlides`, `useSongBlockWindow`, `editorFixture`, `ArrangementDialog`,
-   `textImport.ts`, `recovery.ts`, and `contentStore` (:496, :571); explicitly
-   identified new test files `SongBlock.test.tsx`, `SongSlidePanel.test.tsx`,
-   and `ItemArrangement.test.tsx`.
-4. Defined tile expansion cap `SHOW_SERVICE_LIMITS.tiles = 10_000`, stopping
-   iteration immediately to prevent unbounded allocation and setting typed
-   problem `unknown-kind` on the row rather than truncating silently; planned
-   tests at the limit for service tiles, library tiles, and recovery slide
-   count.
-5. Specified hotkey behavior: outputs the tile immediately through the main
-   command path (`outputTile`); established precedence of slide hot keys over
-   label jump keys; confirmed spec 10 shortcut conflict scoping; decided on
-   drawing a keycap badge on `SlideThumbnail`.
-6. Added mandatory "Checked in the app" offscreen CDP verification with
-   screenshots and flat element counts to every operator-visible request
-   (`group-2`, `group-3`, `group-4`, `group-5`, `group-7`).
-7. Aligned unnamed group display strictly with Spec 05 (`이름표 없음` and source
-   position in chip strip; `이름표` placeholder at group start in editor);
-   removed contradictory open question 3.
-8. Used exact Spec 02 wording: "maximal increasing consecutive stretches".
-9. Cited port 5194 and app data `D:\llp-dev\group` assignment from
-   `.llp/restart.md` and requested addition to the `docs/WORKFLOW.md` table.
-10. Settled text import draft handling on Option (a) (draft wire contract stays
-    stable, `importSong` converts to grouped song via migration).
+1. Added `- Paths changed:` and `- Checked in the app:` offscreen verification
+   sections to request `group-6` (`convert.ts`, `TextImportFlow.tsx`,
+   `TextImportDialog.tsx`), covering candidate group preview rendering and flat
+   element counts.
+2. Added `src/renderer/src/show/shortcuts.ts` and `shortcuts.test.ts` to audit
+   Section 3.4 and `group-2` scope/paths/tests. Added
+   `src/renderer/src/show/SlideGrid.tsx`,
+   `src/renderer/src/ui/SlideThumbnail.module.css`, and
+   `src/shared/schema/showService.ts` to `group-2` Paths changed.
+3. Added `src/main/store/showService.ts` (`SongLibrary` / `buildShowService`),
+   `src/main/store/librarySong.ts` (`showLibrarySong`),
+   `src/main/live/recovery/plan.ts` (`RecoveryContent.song`),
+   `src/shared/songOrder.ts` (`playbackOrder`), and tests
+   (`openServiceFeed.test.ts`, `songEditorStore.test.ts`) to `group-7` scope and
+   paths changed.
+4. Clarified tile expansion cap problem reporting: reusing `unknown-kind` (which
+   triggers tooltip "이 버전에서 알 수 없는 항목입니다." in
+   `ServiceOrderList.tsx`) is intentional in `group-2` to keep the shared
+   `showRowProblems` contract unchanged prior to the contract activation in
+   `group-7`.
 
 ## Changed files
 
@@ -76,6 +63,8 @@ Round 2 incorporates all 10 findings from the round 1 review:
 - Defined tile expansion cap of 10,000 tiles with typed row problem reporting.
 - Established that slide hotkeys trigger output directly, override global label
   jump keys for the active item, and render a keycap badge on slide thumbnails.
+- Reusing existing `unknown-kind` row problem in `group-2` to respect shared
+  contract boundaries prior to `group-7`.
 
 ## Shared contract change requests
 
@@ -85,8 +74,9 @@ to `groupedSongSchema`.
 
 ## Where to look
 
-- `docs/plans/grouped-songs.md`: Section 3 (Comprehensive Code Audit), Section 4
-  (Rollout Strategy and Request Breakdown), and Section 5 (Open Questions).
+- `docs/plans/grouped-songs.md`: Section 3.4 (진행 Projection & Hotkeys),
+  Section 4 (`group-2`, `group-6`, and `group-7` scopes/paths/verifications),
+  and Section 5 (Open Questions).
 
 ---
 
@@ -95,7 +85,68 @@ improves the overall health of the code, even if it isn't perfect. Request
 changes when a clean code rule or a comment rule is broken, or when tests are
 missing.
 
-## Review: lead
+## Review: lead (round 2)
+
+- Verdict: Request changes
+- Findings:
+
+  1. docs/plans/grouped-songs.md:425-446 Request group-6 lacks a "- Paths
+     changed:" section and an offscreen real-app verification section ("-
+     Checked in the app:"). Updating import previews in TextImportFlow.tsx and
+     TextImportDialog.tsx changes what the operator sees, which requires
+     offscreen CDP checks with screenshots and flat element counts per CODEX.md.
+     Add Paths changed and the "Checked in the app" verification plan.
+  2. docs/plans/grouped-songs.md:251-280 Hotkey interception is described under
+     src/renderer/src/state/show.ts, but keyboard event handling for 진행 live
+     navigation and jump keys lives in src/renderer/src/show/shortcuts.ts
+     (handleShowKey). Add src/renderer/src/show/shortcuts.ts and
+     shortcuts.test.ts to audit section 3.4 and group-2 scope/paths/tests. Also
+     add src/renderer/src/show/SlideGrid.tsx (passes tile.hotKey to
+     SlideThumbnail), src/renderer/src/ui/SlideThumbnail.module.css (badge
+     styles), and src/shared/schema/showService.ts (defines
+     SHOW_SERVICE_LIMITS.tiles and showServiceSchema cap) to group-2 Paths
+     changed.
+  3. docs/plans/grouped-songs.md:447-508 When group-7 switches ContentStore and
+     songDocumentSchema to GroupedSong, existing consumers expecting Song will
+     fail typechecking unless updated in the same request. Include
+     src/main/store/showService.ts (SongLibrary / buildShowService),
+     src/main/store/librarySong.ts (showLibrarySong),
+     src/main/live/recovery/plan.ts (RecoveryContent.song),
+     src/shared/songOrder.ts (playbackOrder), and tests
+     (openServiceFeed.test.ts, songEditorStore.test.ts) in group-7 scope and
+     paths changed.
+  4. docs/plans/grouped-songs.md:252 Nit: Emitting empty tiles and marking
+     problem: 'unknown-kind' on ShowRow triggers the tooltip "이 버전에서 알 수
+     없는 항목입니다." in ServiceOrderList.tsx. For an arrangement exceeding the
+     10,000 tile cap, clarify whether reusing unknown-kind is intentional or if
+     a dedicated row problem is planned.
+
+## Review: reviewer (round 2)
+
+- Verdict: Request changes (same as lead)
+
+## Team member's reply (round 3)
+
+1. Added "- Paths changed:" and "- Checked in the app:" sections with offscreen
+   CDP checks, screenshots, and flat element counts to request `group-6`
+   (`convert.ts`, `TextImportFlow.tsx`, `TextImportDialog.tsx`).
+2. Added `src/renderer/src/show/shortcuts.ts` and `shortcuts.test.ts` to audit
+   Section 3.4 and `group-2` scope/paths/tests. Added
+   `src/renderer/src/show/SlideGrid.tsx`,
+   `src/renderer/src/ui/SlideThumbnail.module.css`, and
+   `src/shared/schema/showService.ts` to `group-2` Paths changed.
+3. Added `src/main/store/showService.ts` (`SongLibrary` / `buildShowService`),
+   `src/main/store/librarySong.ts` (`showLibrarySong`),
+   `src/main/live/recovery/plan.ts` (`RecoveryContent.song`),
+   `src/shared/songOrder.ts` (`playbackOrder`), and tests
+   (`openServiceFeed.test.ts`, `songEditorStore.test.ts`) to `group-7` scope and
+   paths changed.
+4. Clarified that reusing `unknown-kind` (which triggers tooltip "이 버전에서 알
+   수 없는 항목입니다.") is intentional in `group-2` to avoid breaking the
+   active shared contract `showRowProblems` prior to the final activation in
+   `group-7`.
+
+## Review: lead (round 1)
 
 - Verdict: Request changes
 - Findings:
@@ -118,11 +169,11 @@ missing.
   9. docs/plans/grouped-songs.md:387 Port 5194 assignment documentation.
   10. docs/plans/grouped-songs.md:432-433 Settle text import draft policy.
 
-## Review: reviewer
+## Review: reviewer (round 1)
 
 - Verdict: Request changes (same as lead)
 
-## Team member's reply
+## Team member's reply (round 2)
 
 1. Reordered the rollout so all consumers (projection, editor core, editor
    shell, item chip strip, text import) accept groups first via additive
