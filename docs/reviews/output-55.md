@@ -110,13 +110,15 @@ claimed as ProPresenter behavior.
   [restored after notice resume](evidence/output-55-round3/restored-run1.png),
   [second launch](evidence/output-55-round3/restored-run2.png).
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: pending
-
-## Review: reviewer
-
-- Verdict: pending
+- Final round (2c91727d): reviewer (Codex) Approve. Lead Approve; the lead read
+  the live state diff (each clear key keeps at most one captured clear, a second
+  press restores only the layers that are still empty, and new content or undo
+  resets every toggle) and found no output-path risk; it also closes qa's
+  M3-C4-3. The exact-head CI run passed, checked by the lead at merge. Rebased
+  by the lead onto local `main` without conflicts; typecheck passes. Earlier
+  rounds' findings and replies are above.
 
 ## Team member's reply
 
