@@ -84,6 +84,63 @@ function selectedThumbnail(panel: HTMLElement): number {
 }
 
 describe('service song item panel', () => {
+  it('marks a missing named arrangement and follows its restoration without repairing the item', async () => {
+    const {panel, first, pushSong, service, edits} = await setup();
+    const missing = {
+      ...first,
+      revision: first.revision + 1,
+      song: {...first.song, arrangements: []},
+    };
+    act(() => pushSong(missing));
+    const reason = '‘주일용’ 구성이 없어 기본 구성을 사용합니다';
+    expect(within(panel).getByRole('img', {name: reason})).toBeDefined();
+    expect(
+      within(panel)
+        .getByRole('button', {name: '구성'})
+        .getAttribute('aria-description'),
+    ).toBe(reason);
+    expect(chips(panel)).toEqual(['1절', '후렴']);
+    expect(service().service.order[1]).toMatchObject({arrangement: '주일용'});
+    expect(edits).toEqual([]);
+    act(() => pushSong({...first, revision: missing.revision + 1}));
+    expect(within(panel).queryByRole('img', {name: reason})).toBeNull();
+    expect(chips(panel)).toEqual(['1절', '후렴', '후렴']);
+    act(() => pushSong(missing));
+    expect(within(panel).queryByRole('img', {name: reason})).toBeNull();
+    expect(edits).toEqual([]);
+  });
+
+  it('repairs a missing arrangement only after an explicit choice of 기본', async () => {
+    mockMenuRowHeight();
+    const {panel, first, pushSong, user, service} = await setup();
+    act(() =>
+      pushSong({
+        ...first,
+        revision: first.revision + 1,
+        song: {...first.song, arrangements: []},
+      }),
+    );
+    const before = service().service.order;
+    const choice = within(panel).getByRole('button', {name: '구성'});
+    expect(choice.getAttribute('aria-description')).toBe(
+      '‘주일용’ 구성이 없어 기본 구성을 사용합니다',
+    );
+    await user.click(choice);
+    await user.keyboard('{Escape}');
+    expect(service().service.order).toEqual(before);
+    await user.click(choice);
+    await user.click(screen.getByRole('menuitemradio', {name: '기본'}));
+    await waitFor(() =>
+      expect(choice.getAttribute('aria-description')).toBeNull(),
+    );
+    const repaired = service().service.order[1];
+    expect(repaired).not.toHaveProperty('arrangement');
+    expect(repaired).toMatchObject({memo: '천천히', future: {keep: true}});
+    expect(
+      service().service.order.filter(item => item.id !== fixtureItems.arranged),
+    ).toEqual(before.filter(item => item.id !== fixtureItems.arranged));
+  });
+
   it('shows the song, the chosen 구성 as chips, and its thumbnails', async () => {
     const {panel, first} = await setup();
     expect(within(panel).getByText(first.song.title)).toBeDefined();
@@ -436,6 +493,7 @@ describe('service song item panel', () => {
     const panel = screen.getByRole('region', {name: '예배 순서 항목'});
     // NOTE(0913vision): v1 fallback: playbackOrder falls back to file order (2 slides).
     expect(within(panel).getByText('슬라이드 2개')).toBeDefined();
+    expect(within(panel).queryByRole('img', {name: /구성이 없어/})).toBeNull();
     expect(
       within(panel)
         .getAllByRole('option')

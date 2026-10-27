@@ -24,3 +24,9 @@
 .choiceLabel {
   font: var(--type-label-strong);
 }
+
+.warning {
+  display: inline-flex;
+  flex: none;
+  color: var(--warning);
+}

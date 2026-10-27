@@ -53,10 +53,12 @@ A dropdown button that shows the current value and, when clicked, opens a menu o
 | Open | `bg-control-hover` | Same | `aria-expanded="true"`. Stays until the menu closes |
 | Focus | `bg-control` | Same | outline 2px `accent`, offset 1px (keyboard only) |
 | Disabled | `bg-control` | All `text-off` | No hover, the media image stays as is. Reason in a tooltip |
+| Missing saved reference with a usable fallback | Same as default | Show the effective fallback value; adjacent 14px `warning` icon in `warning` | Use `space-10` before the mark. Tooltip names the missing reference and fallback; the select's accessible description states the same reason |
 
 ## Behavior
 
 - A media lead can show an image or a muted video's first frame. React callers use `lead: {kind: 'media', src, mediaType: 'video'}` for a video. It loads metadata without autoplay and releases the source on change or unmount; the 36x20 frame is unchanged.
+- A missing named song arrangement displays `기본`, with the adjacent warning identifying the unavailable name and the basic arrangement fallback. Opening/cancelling the menu never repairs stored data. An explicit valid choice changes only the selected service item and clears the warning. A valid empty named arrangement is not a missing reference.
 - A click, Enter, Space, or the down arrow opens the menu. Open the menu below the button, aligned to its left edge, and don't make the menu narrower than the button.
 - In the menu, put a check mark in the cell before the current value (`Menu` rule). Choosing a value closes the menu and returns focus to the button. Esc closes it without choosing.
 - A command that makes a new value, such as 새 구성 in a 예배 순서 item's 구성 select, goes below the values after a separator, with its icon and no check mark (`actions` in `SelectMenu`). Running it closes the menu without choosing a value.

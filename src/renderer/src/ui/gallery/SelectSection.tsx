@@ -1,7 +1,10 @@
 import type {JSX} from 'react';
 import {Select, type SelectProps} from '../Select';
+import {Icon} from '../Icon';
+import {Tooltip} from '../Tooltip';
 import {Section, SpecGroup, SpecItem, Stateful} from './Spec';
 import warmLight from '../../../../../design/system/upload/Media/warm-light.jpg';
+import styles from './SelectSection.module.css';
 
 function Dropdown(
   props: Omit<SelectProps, 'expanded' | 'onExpandedChange'> & {
@@ -18,15 +21,17 @@ function Dropdown(
 }
 
 const media = {kind: 'media', src: warmLight} as const;
+const MISSING_ARRANGEMENT_REASON =
+  '‘주일용’ 구성이 없어 기본 구성을 사용합니다';
 
 export function SelectSection(): JSX.Element {
   return (
     <Section title="Select">
       <SpecGroup title="Sizes" surface="panel">
-        <SpecItem label="sm 26, 12px, panel header">
+        <SpecItem label="sm 26, 14px, panel header">
           <Dropdown size="sm" value="주일용" />
         </SpecItem>
-        <SpecItem label="md 30, 13px, Preferences, property fields" width={240}>
+        <SpecItem label="md 30, 16px, Preferences, property fields" width={240}>
           <Dropdown block value="한국어" />
         </SpecItem>
         <SpecItem label="md, extra info on the right text-2" width={300}>
@@ -88,6 +93,26 @@ export function SelectSection(): JSX.Element {
         </SpecItem>
       </SpecGroup>
       <SpecGroup title="States" surface="panel">
+        <SpecItem label="Missing saved reference, effective fallback">
+          <div className={styles.reference}>
+            <Dropdown
+              size="sm"
+              aria-label="구성"
+              aria-description={MISSING_ARRANGEMENT_REASON}
+              value="기본"
+              title={MISSING_ARRANGEMENT_REASON}
+            />
+            <Tooltip text={MISSING_ARRANGEMENT_REASON}>
+              <span
+                role="img"
+                aria-label={MISSING_ARRANGEMENT_REASON}
+                className={styles.warning}
+              >
+                <Icon name="warning" size={14} />
+              </span>
+            </Tooltip>
+          </div>
+        </SpecItem>
         <SpecItem label="Default" width={150}>
           <Dropdown block value="1분마다" />
         </SpecItem>

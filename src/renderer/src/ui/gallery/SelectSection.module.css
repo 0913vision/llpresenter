@@ -1,0 +1,10 @@
+.reference {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-10);
+}
+
+.warning {
+  display: inline-flex;
+  color: var(--warning);
+}

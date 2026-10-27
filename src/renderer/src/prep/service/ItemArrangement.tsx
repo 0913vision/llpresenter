@@ -3,6 +3,7 @@ import type {Label} from '@shared/schema/labels';
 import {DEFAULT_ARRANGEMENT_NAME, type Song} from '@shared/schema/song';
 import {isGroupedSong, type GroupedSong} from '@shared/schema/groupedSong';
 import type {SongGroupId} from '@shared/schema/ids';
+import {isItemOfKind} from '@shared/schema/service';
 import {editedOrder} from '@renderer/prep/editor/songArrangements';
 import {editorTask} from '@renderer/prep/editor/editorTask';
 import type {SongSession} from '@renderer/prep/editor/songSession';
@@ -11,6 +12,8 @@ import {ArrangementStrip, type ArrangementChip} from '@renderer/ui/LabelChip';
 import {Menu} from '@renderer/ui/Menu';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
+import {Icon} from '@renderer/ui/Icon';
+import {Tooltip} from '@renderer/ui/Tooltip';
 import type {ServiceItemStore} from './serviceItemStore';
 import {
   chipIndexForSlide,
@@ -208,7 +211,7 @@ export function ItemArrangement({
   selected,
   onSelect,
 }: ItemArrangementProps): JSX.Element {
-  const {busy, service, arrangement} = useSyncExternalStore(
+  const {busy, service, arrangement, item} = useSyncExternalStore(
     items.subscribe,
     items.getSnapshot,
   );
@@ -252,6 +255,12 @@ export function ItemArrangement({
       : undefined;
   const serviceReason =
     service?.access === 'readOnly' ? NEWER_FILE_REASON : undefined;
+  const requestedArrangement =
+    item !== null && isItemOfKind(item, 'song') ? item.arrangement : undefined;
+  const missingReason =
+    requestedArrangement !== undefined && arrangement === undefined
+      ? `‘${requestedArrangement}’ 구성이 없어 기본 구성을 사용합니다`
+      : undefined;
 
   const drag = useChipDrag({
     enabled: orderReason === undefined,
@@ -264,11 +273,12 @@ export function ItemArrangement({
         <span className={styles.choiceLabel}>구성</span>
         <SelectMenu
           aria-label="구성"
+          aria-description={missingReason}
           size="sm"
           options={arrangementOptions(song)}
           value={arrangement ?? DEFAULT_ARRANGEMENT_NAME}
           disabled={busy || serviceReason !== undefined}
-          title={serviceReason}
+          title={serviceReason ?? missingReason}
           onChange={value =>
             editorTask(
               items.chooseArrangement(
@@ -287,6 +297,17 @@ export function ItemArrangement({
             },
           ]}
         />
+        {missingReason === undefined ? null : (
+          <Tooltip text={missingReason}>
+            <span
+              role="img"
+              aria-label={missingReason}
+              className={styles.warning}
+            >
+              <Icon name="warning" size={14} />
+            </span>
+          </Tooltip>
+        )}
       </div>
       <div {...drag.stripProps}>
         <ArrangementStrip

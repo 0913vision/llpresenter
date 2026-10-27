@@ -184,6 +184,31 @@ async function setupGrouped(
 }
 
 describe('ItemArrangement with grouped songs', () => {
+  it.each([false, true])(
+    'identifies a missing group arrangement with song readOnly=%s',
+    async readOnly => {
+      const {service, edits} = await setupGrouped({
+        arrangement: '없는 구성',
+        readOnly,
+      });
+      const reason = '‘없는 구성’ 구성이 없어 기본 구성을 사용합니다';
+      const warning = screen.getByRole('img', {name: reason});
+      expect(screen.getByRole('button', {name: '구성'}).textContent).toBe(
+        '기본',
+      );
+      expect(
+        within(screen.getByRole('listbox', {name: '구성 순서'})).getAllByRole(
+          'option',
+        ),
+      ).toHaveLength(3);
+      expect(service().service.order[0]).toMatchObject({
+        arrangement: '없는 구성',
+      });
+      expect(edits).toEqual([]);
+      expect((await hoverForTooltip(warning))?.textContent).toBe(reason);
+    },
+  );
+
   it('renders one chip per group occurrence and colors chips by label', async () => {
     await setupGrouped();
     const listbox = screen.getByRole('listbox', {name: '구성 순서'});
@@ -301,6 +326,7 @@ describe('ItemArrangement with grouped songs', () => {
     const listbox = screen.getByRole('listbox', {name: '구성 순서'});
     const chips = within(listbox).queryAllByRole('option');
     expect(chips).toHaveLength(0);
+    expect(screen.queryByRole('img', {name: /구성이 없어/})).toBeNull();
   });
 
   it('handles an arrangement with a dangling group id first by filtering it when read, allowing remove without offset', async () => {
