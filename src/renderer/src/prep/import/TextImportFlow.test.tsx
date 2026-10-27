@@ -9,6 +9,7 @@ import {
 } from '@testing-library/react';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
+import type {Notice} from '@renderer/ui/notices';
 import type {TextImportReadResult} from '@shared/schema/textImport';
 import {SONG_IMPORT_LIMITS} from '@shared/schema/songImport';
 import {parseSongDocument} from '@shared/schema/contentDocuments';
@@ -19,12 +20,19 @@ import {SongEditor} from '../editor/SongEditor';
 import {ImportedSongActions} from './ImportedSongActions';
 import {TextImportFlow} from './TextImportFlow';
 
-function fixture() {
-  const f = editorFixture();
-  const problem = vi.fn();
+function fixture(f = editorFixture()) {
+  const problem = vi.fn<(notice: Notice) => void>();
   const store = new SongEditorStore(f.api, problem);
   onTestFinished(() => store.dispose());
   return {...f, store, problem};
+}
+
+function deferred<T>() {
+  let resolve: (value: T) => void = () => undefined;
+  const promise = new Promise<T>(done => {
+    resolve = done;
+  });
+  return {promise, resolve};
 }
 
 describe('text import flow', () => {
@@ -205,6 +213,140 @@ describe('text import flow', () => {
 });
 
 describe('imported song actions', () => {
+  it('waits for the catalog before either save entry point checks duplicates', async () => {
+    const apiFixture = editorFixture();
+    const entries = await apiFixture.api.songs.list();
+    const pending = deferred<typeof entries>();
+    vi.spyOn(apiFixture.api.songs, 'list').mockReturnValueOnce(pending.promise);
+    const f = fixture(apiFixture);
+    f.store.openImported({
+      title: f.first.song.title,
+      slides: [{lines: ['Draft']}],
+    });
+    const save = vi.spyOn(f.store, 'saveImported').mockResolvedValue(false);
+    render(<SongEditor store={f.store} />);
+    const button = screen.getByRole('button', {name: '저장'});
+    expect(button.getAttribute('aria-disabled')).toBe('true');
+    fireEvent.click(button);
+    fireEvent.keyDown(screen.getByRole('textbox', {name: '곡 제목'}), {
+      key: 's',
+      code: 'KeyS',
+      ctrlKey: true,
+    });
+    expect(save).not.toHaveBeenCalled();
+    await act(async () => pending.resolve(entries));
+    expect(button.getAttribute('aria-disabled')).toBeNull();
+    expect(save).not.toHaveBeenCalled();
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    fireEvent.keyDown(screen.getByRole('textbox', {name: '곡 제목'}), {
+      key: 's',
+      code: 'KeyS',
+      ctrlKey: true,
+    });
+    const dialog = await screen.findByRole('alertdialog');
+    expect(dialog.textContent).toContain(
+      `새 곡 제목: ‘${f.first.song.title} (2)’`,
+    );
+    expect(save).not.toHaveBeenCalled();
+    expect(f.edits).toHaveLength(0);
+  });
+
+  it('retains the draft on a failed catalog read and re-enables save after retry', async () => {
+    const apiFixture = editorFixture();
+    const entries = await apiFixture.api.songs.list();
+    const retryRead = deferred<typeof entries>();
+    vi.spyOn(apiFixture.api.songs, 'list')
+      .mockRejectedValueOnce(new Error('Catalog unavailable'))
+      .mockReturnValueOnce(retryRead.promise);
+    const f = fixture(apiFixture);
+    f.store.openImported({
+      title: f.first.song.title,
+      slides: [{lines: ['Draft']}],
+    });
+    const save = vi.spyOn(f.store, 'saveImported').mockResolvedValue(false);
+    render(<SongEditor store={f.store} />);
+    await waitFor(() => expect(f.problem).toHaveBeenCalledOnce());
+    const button = screen.getByRole('button', {name: '저장'});
+    expect(button.getAttribute('aria-disabled')).toBe('true');
+    fireEvent.click(button);
+    fireEvent.keyDown(screen.getByRole('textbox', {name: '곡 제목'}), {
+      key: 's',
+      code: 'KeyS',
+      ctrlKey: true,
+    });
+    expect(save).not.toHaveBeenCalled();
+    expect(f.store.getSnapshot().imported).toBe(true);
+    expect(
+      screen
+        .getByRole('button', {name: '버리기'})
+        .getAttribute('aria-disabled'),
+    ).toBeNull();
+    const retry = f.problem.mock.calls[0]?.[0].actions?.[0]?.onSelect;
+    if (retry === undefined) throw new Error('Missing catalog retry');
+    act(() => {
+      retry();
+    });
+    expect(button.getAttribute('aria-disabled')).toBe('true');
+    await act(async () => retryRead.resolve(entries));
+    fireEvent.click(button);
+    await screen.findByRole('alertdialog');
+    expect(save).not.toHaveBeenCalled();
+    expect(f.edits).toHaveLength(0);
+  });
+
+  it('withholds confirmation actions and stale candidates while a retry is pending', async () => {
+    const apiFixture = editorFixture();
+    const entries = await apiFixture.api.songs.list();
+    const retryRead = deferred<typeof entries>();
+    vi.spyOn(apiFixture.api.songs, 'list')
+      .mockRejectedValueOnce(new Error('Catalog unavailable'))
+      .mockReturnValueOnce(retryRead.promise);
+    const f = fixture(apiFixture);
+    f.store.openImported({
+      title: f.first.song.title,
+      slides: [{lines: ['Draft']}],
+    });
+    const save = vi.spyOn(f.store, 'saveImported').mockResolvedValue(false);
+    render(<ImportedSongActions store={f.store} />);
+    await waitFor(() => expect(f.problem).toHaveBeenCalledOnce());
+    act(() => f.pushList(entries));
+    fireEvent.click(screen.getByRole('button', {name: '저장'}));
+    const dialog = await screen.findByRole('alertdialog');
+    const retry = f.problem.mock.calls[0]?.[0].actions?.[0]?.onSelect;
+    if (retry === undefined) throw new Error('Missing catalog retry');
+    act(() => {
+      retry();
+    });
+    expect(dialog.textContent).not.toContain('새 곡 제목:');
+    for (const name of ['새 곡으로 저장', '덮어쓰기']) {
+      const button = within(dialog).getByRole('button', {name});
+      expect(button.getAttribute('aria-disabled')).toBe('true');
+      fireEvent.click(button);
+    }
+    expect(save).not.toHaveBeenCalled();
+    await act(async () =>
+      retryRead.resolve(
+        entries.map(entry =>
+          entry.id === f.second.song.id
+            ? {...entry, title: `${f.first.song.title} (2)`}
+            : entry,
+        ),
+      ),
+    );
+    expect(dialog.textContent).toContain(
+      `새 곡 제목: ‘${f.first.song.title} (3)’`,
+    );
+    fireEvent.click(
+      within(dialog).getByRole('button', {name: '새 곡으로 저장'}),
+    );
+    await waitFor(() =>
+      expect(save).toHaveBeenCalledExactlyOnceWith({kind: 'new'}),
+    );
+    expect(f.store.getSnapshot().session?.title.value).toBe(
+      `${f.first.song.title} (3)`,
+    );
+  });
+
   it('disables overwrite for a read-only target without preventing a new copy', async () => {
     const f = fixture();
     f.store.openImported({
@@ -318,6 +460,13 @@ describe('imported song actions', () => {
       const save = vi.spyOn(f.store, 'saveImported');
       const onSaved = vi.fn();
       render(<SongEditor store={f.store} onImportedSave={onSaved} />);
+      await waitFor(() =>
+        expect(
+          screen
+            .getByRole('button', {name: '저장'})
+            .getAttribute('aria-disabled'),
+        ).toBeNull(),
+      );
       const field = screen.getByRole('textbox', {name});
       act(() => field.focus());
       expect(

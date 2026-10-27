@@ -21,6 +21,12 @@ const states: readonly StateSpec[] = [
   {label: 'Disabled', disabled: true},
 ];
 
+const catalogStates = [
+  {label: 'Pending catalog', reason: '곡 목록을 불러오는 중입니다'},
+  {label: 'Unavailable catalog', reason: '곡 목록을 확인할 수 없습니다'},
+  {label: 'Known catalog', reason: undefined},
+];
+
 function StateRow({
   title,
   text,
@@ -52,6 +58,22 @@ export function ButtonSection(): JSX.Element {
         text="만들기"
       />
       <StateRow title="Primary button, sm 26" variant="primary" text="저장" />
+      <SpecGroup title="Imported song Save readiness">
+        {catalogStates.map(state => (
+          <SpecItem key={state.label} label={state.label} width={HEADER_WIDTH}>
+            <div className={styles.dialogFooter}>
+              <Button>버리기</Button>
+              <Button
+                variant="primary"
+                disabled={state.reason !== undefined}
+                title={state.reason}
+              >
+                저장
+              </Button>
+            </div>
+          </SpecItem>
+        ))}
+      </SpecGroup>
       <StateRow
         title="Secondary button, md 30"
         size="md"

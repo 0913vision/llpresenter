@@ -53,6 +53,7 @@ A command button with a text label. Use it in the footers of dialogs and confirm
 - Make a disabled button with `aria-disabled="true"` instead of `disabled`, and ignore presses. The button stays focusable and can show the reason in a tooltip. The CSS accepts both.
 - Don't draw the focus ring on a mouse click (`:focus-visible` only).
 - Icons are `aria-hidden`. The button text gives the name.
+- Keep imported-song Save disabled while its song catalog is loading or unavailable; a missing catalog is not an empty library. Explain the reason in the tooltip, apply the same guard to Ctrl S and confirmation actions, and keep Discard available. The existing failure notice provides Retry; after recovery, the next explicit Save checks duplicates and previews the available title.
 
 ## Writing
 

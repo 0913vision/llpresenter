@@ -35,16 +35,29 @@ export function ImportedSongActions({
         ? '곡 제목이 너무 깁니다'
         : undefined;
   const busy = state.busy || reading;
+  const libraryReason =
+    state.libraryStatus === 'ready'
+      ? undefined
+      : state.libraryStatus === 'loading'
+        ? '곡 목록을 불러오는 중입니다'
+        : '곡 목록을 확인할 수 없습니다';
+  const unavailable = busy || libraryReason !== undefined;
   const save = async (
     target: Parameters<SongEditorStore['saveImported']>[0],
   ): Promise<void> => {
+    if (store.getSnapshot().libraryStatus !== 'ready') return;
     if (await store.saveImported(target)) {
       const id = store.getSnapshot().session?.document.song.id;
       if (id !== undefined) onSaved?.(id);
     } else setDuplicate(null);
   };
   const beginSave = async (): Promise<void> => {
-    if (!state.imported || session === null || busy || invalid !== undefined) {
+    if (
+      !state.imported ||
+      session === null ||
+      unavailable ||
+      invalid !== undefined
+    ) {
       return;
     }
     const existing = state.library.find(
@@ -81,10 +94,13 @@ export function ImportedSongActions({
     },
   ]);
   if (!state.imported || session === null) return null;
-  const newTitle = unusedTitle(
-    title,
-    state.library.map(entry => normalizeSongTitle(entry.title)),
-  );
+  const newTitle =
+    state.libraryStatus === 'ready'
+      ? unusedTitle(
+          title,
+          state.library.map(entry => normalizeSongTitle(entry.title)),
+        )
+      : null;
   return (
     <>
       <Button size="sm" disabled={busy} onClick={() => store.discardImported()}>
@@ -93,8 +109,8 @@ export function ImportedSongActions({
       <Button
         size="sm"
         variant="primary"
-        disabled={busy || invalid !== undefined}
-        title={invalid ?? (busy ? '저장 중' : undefined)}
+        disabled={unavailable || invalid !== undefined}
+        title={invalid ?? (busy ? '저장 중' : libraryReason)}
         onClick={() => editorTask(beginSave())}
       >
         저장
@@ -133,10 +149,12 @@ export function ImportedSongActions({
           actions={[
             {
               label: '새 곡으로 저장',
-              disabled: busy || newTitle === null,
-              title: newTitle === null ? '새 곡 제목이 너무 깁니다' : undefined,
+              disabled: unavailable || newTitle === null,
+              title:
+                libraryReason ??
+                (newTitle === null ? '새 곡 제목이 너무 깁니다' : undefined),
               onSelect: () => {
-                if (newTitle === null || busy) return;
+                if (newTitle === null || unavailable) return;
                 session.editTitle(newTitle);
                 editorTask(save({kind: 'new'}));
               },
@@ -144,9 +162,11 @@ export function ImportedSongActions({
             {
               label: '덮어쓰기',
               primary: true,
-              disabled: busy || duplicate.access === 'readOnly',
+              disabled: unavailable || duplicate.access === 'readOnly',
               title:
-                duplicate.access === 'readOnly' ? '읽기 전용 곡' : undefined,
+                duplicate.access === 'readOnly'
+                  ? '읽기 전용 곡'
+                  : libraryReason,
               onSelect: () =>
                 editorTask(
                   save({
