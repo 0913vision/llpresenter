@@ -63,6 +63,68 @@ function setup(
   return {editor, edits, value, report, log};
 }
 describe('stage document edits', () => {
+  it('duplicates layouts with unique names and preserves fields without sharing edits', async () => {
+    const {editor, edits, value} = setup();
+    const copied = await editor.duplicate(LAYOUT_ID);
+    if (copied === null) throw new Error('Missing copy');
+    const copy = edits.at(-1)?.value.layouts.at(-1);
+    expect(copied).not.toBe(LAYOUT_ID);
+    expect(copy).toMatchObject({
+      name: '새 배치 복사본',
+      width: 1920,
+      height: 1080,
+      future: 'layout',
+    });
+    expect(copy?.elements).toEqual(value.value.layouts[0]?.elements);
+    await editor.frame(copied, 'element', {x: 500, y: 20, w: 100, h: 80});
+    expect(edits.at(-1)?.value.layouts[0]?.elements[0]?.frame.x).toBe(10);
+    expect(edits.at(-1)?.value.layouts[1]?.elements[0]?.frame.x).toBe(500);
+  });
+  it('checks copy names and conflicting renames against the newest queued document', async () => {
+    const {editor, edits, report} = setup();
+    const copies = await Promise.all([
+      editor.duplicate(LAYOUT_ID),
+      editor.duplicate(LAYOUT_ID),
+    ]);
+    expect(edits.at(-1)?.value.layouts.map(layout => layout.name)).toEqual([
+      '새 배치',
+      '새 배치 복사본',
+      '새 배치 복사본 2',
+    ]);
+    const copied = copies[0];
+    if (copied === null) {
+      throw new Error('Missing copy');
+    }
+    expect(
+      await Promise.all([
+        editor.renameLayout(LAYOUT_ID, 'Shared'),
+        editor.renameLayout(copied, ' Shared '),
+      ]),
+    ).toEqual([true, false]);
+    expect(edits.map(edit => edit.baseRevision)).toEqual([1, 2, 3]);
+    expect(report).toHaveBeenCalledWith('invalid stage layout name');
+    expect(edits.at(-1)?.value.layouts[1]?.name).toBe('새 배치 복사본');
+  });
+  it('trims names, skips unchanged or missing layouts, and refuses invalid names and copies', async () => {
+    const {editor, edits} = setup();
+    expect(await editor.renameLayout(LAYOUT_ID, '  Renamed  ')).toBe(true);
+    expect(edits.at(-1)?.value.layouts[0]).toMatchObject({
+      name: 'Renamed',
+      future: 'layout',
+    });
+    expect(await editor.renameLayout(LAYOUT_ID, 'Renamed')).toBe(false);
+    expect(await editor.renameLayout(LAYOUT_ID, ' ')).toBe(false);
+    expect(await editor.renameLayout('missing', 'Name')).toBe(false);
+    expect(await editor.duplicate('missing')).toBeNull();
+    expect(edits).toHaveLength(1);
+    const full = setup('editable', STAGE_LAYOUT_LIMIT, 0);
+    expect(await full.editor.duplicate(LAYOUT_ID)).toBeNull();
+    expect(full.edits).toHaveLength(0);
+    const readOnly = setup('readOnly');
+    expect(await readOnly.editor.duplicate(LAYOUT_ID)).toBeNull();
+    expect(await readOnly.editor.renameLayout(LAYOUT_ID, 'Name')).toBe(false);
+    expect(readOnly.edits).toHaveLength(0);
+  });
   it('queues independent box patches and removes only the background field', async () => {
     const {editor, edits} = setup();
     await Promise.all([

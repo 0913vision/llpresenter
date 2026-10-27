@@ -9,6 +9,7 @@ import type {
 import {REFERENCE_SCREEN} from '@renderer/render/lyricStyle';
 import {STAGE_TEXT_FALLBACK} from '@renderer/render/stageLayout';
 import {SettingsDocumentEditor} from '../settingsDocumentEditor';
+import {nameProblem} from '../screenEdits';
 import type {NamedDocument} from '../useSettingsDocument';
 import {
   editFrame,
@@ -57,7 +58,10 @@ export class StageEditor {
   private readonly documents: SettingsDocumentEditor<
     NamedDocument<'stage-layouts'>
   >;
-  constructor(api: LlpApi, report: (reason: string) => void) {
+  constructor(
+    api: LlpApi,
+    private readonly report: (reason: string) => void,
+  ) {
     this.documents = new SettingsDocumentEditor(api, {
       update: (base, value) => ({
         type: 'settings.update',
@@ -74,16 +78,10 @@ export class StageEditor {
     this.documents.adopt(document);
   }
   async create() {
-    const parsed = parsePayload(stageLayoutIdSchema, crypto.randomUUID());
-    if (!parsed.ok) throw new Error(parsed.error.message);
-    const id = parsed.value;
+    const id = createLayoutId();
     const saved = await this.documents.change(value => {
       if (value.layouts.length >= STAGE_LAYOUT_LIMIT) return undefined;
-      let name = '새 배치',
-        suffix = 2;
-      while (value.layouts.some(layout => layout.name === name)) {
-        name = `새 배치 ${suffix++}`;
-      }
+      const name = availableName('새 배치', value.layouts);
       return {
         ...value,
         layouts: [
@@ -93,6 +91,45 @@ export class StageEditor {
       };
     });
     return saved ? id : null;
+  }
+  async duplicate(layoutId: string) {
+    const id = createLayoutId();
+    const saved = await this.documents.change(value => {
+      const source = value.layouts.find(layout => layout.id === layoutId);
+      if (source === undefined || value.layouts.length >= STAGE_LAYOUT_LIMIT) {
+        return undefined;
+      }
+      return {
+        ...value,
+        layouts: [
+          ...value.layouts,
+          {
+            ...source,
+            id,
+            name: availableName(`${source.name.trim()} 복사본`, value.layouts),
+          },
+        ],
+      };
+    });
+    return saved ? id : null;
+  }
+  renameLayout(layoutId: string, name: string): Promise<boolean> {
+    return this.documents.change(value => {
+      const current = value.layouts.find(layout => layout.id === layoutId);
+      if (current === undefined) return undefined;
+      if (nameProblem(name, value.layouts, layoutId) !== undefined) {
+        this.report('invalid stage layout name');
+        return undefined;
+      }
+      const trimmed = name.trim();
+      if (current.name === trimmed) return undefined;
+      return {
+        ...value,
+        layouts: value.layouts.map(layout =>
+          layout.id === layoutId ? {...layout, name: trimmed} : layout,
+        ),
+      };
+    });
   }
   async add(layoutId: string, kind: StageElement['kind']) {
     const parsed = parsePayload(stageElementIdSchema, crypto.randomUUID());
@@ -219,6 +256,21 @@ export class StageEditor {
       updateLayout(value, layoutId, transform),
     );
   }
+}
+
+function createLayoutId() {
+  const parsed = parsePayload(stageLayoutIdSchema, crypto.randomUUID());
+  if (!parsed.ok) throw new Error(parsed.error.message);
+  return parsed.value;
+}
+
+function availableName(base: string, layouts: readonly StageLayout[]): string {
+  let name = base,
+    suffix = 2;
+  while (layouts.some(layout => layout.name.trim() === name)) {
+    name = `${base} ${suffix++}`;
+  }
+  return name;
 }
 
 function patchBox(
