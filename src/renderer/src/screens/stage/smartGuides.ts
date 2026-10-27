@@ -119,6 +119,7 @@ export function guideFrame(gesture: GuideGesture): {
   guides: GuideLines;
 } {
   const {start, delta, bypass, scale, distance, handle, keepRatio} = gesture;
+  if (delta.x === 0 && delta.y === 0) return {frame: start, guides: {}};
   const grid =
     gesture.snapGrid && !bypass ? snapToGrid(start, delta, gesture) : {delta};
   const fallback = editFrame(start, grid.delta, {
@@ -133,8 +134,7 @@ export function guideFrame(gesture: GuideGesture): {
     !Number.isFinite(distance) ||
     distance < 0 ||
     !Number.isFinite(delta.x) ||
-    !Number.isFinite(delta.y) ||
-    (delta.x === 0 && delta.y === 0)
+    !Number.isFinite(delta.y)
   ) {
     return {frame: fallback, guides: {}};
   }

@@ -147,6 +147,24 @@ it('does not acquire an illegal resize or jump on a zero-distance click', () => 
     }),
   ).toEqual({frame: {...start, x: 199, w: 1}, guides: {}});
 });
+it.each(['move', 'nw', 'se'] as const)(
+  'retains the exact fractional frame for a stationary %s gesture when Alt changes',
+  handle => {
+    const fractional = {...start, x: 350.5, y: 120.25, w: 99.5, h: 80.5};
+    for (const bypass of [true, false]) {
+      const result = move({
+        start: fractional,
+        delta: {x: 0, y: 0},
+        handle,
+        keepRatio: true,
+        snapGrid: true,
+        bypass,
+      });
+      expect(result.frame).toBe(fractional);
+      expect(result.guides).toEqual({});
+    }
+  },
+);
 it.each([0, NaN, Infinity])(
   'disables guides for an unusable scale %s',
   scale => {
