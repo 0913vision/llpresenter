@@ -11,6 +11,7 @@ import type {Label} from '@shared/schema/labels';
 import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui/SlideThumbnail';
 import {thumbnailWidth} from '@renderer/ui/thumbnailSize';
 import {isComposing} from '@renderer/ui/ime';
+import {linearSlidesOf, type AnySong} from './blockEdits';
 import styles from './SongPanels.module.css';
 
 const OVERSCAN_ROWS = 1;
@@ -65,7 +66,7 @@ export function VirtualSlides({
   baseline,
   scale,
 }: {
-  readonly song: Pick<Song, 'slides'>;
+  readonly song: Pick<Song, 'slides'> | AnySong;
   readonly numbers: readonly number[];
   readonly labels: readonly Label[];
   readonly selected: number | undefined;
@@ -207,7 +208,9 @@ export function VirtualSlides({
           className={styles.grid}
         >
           {numbers.slice(start, end).map((number, index) => {
-            const slide = song.slides[number - 1];
+            const slides =
+              'slides' in song ? song.slides : linearSlidesOf(song);
+            const slide = slides[number - 1];
             return slide === undefined ? null : (
               <SlideThumbnail
                 key={start + index}

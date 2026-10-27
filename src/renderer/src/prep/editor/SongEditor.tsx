@@ -1,6 +1,7 @@
 import {
   useCallback,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
@@ -16,6 +17,7 @@ import type {SongSession} from './songSession';
 import styles from './SongEditor.module.css';
 import type {SongId} from '@shared/schema/ids';
 import {isComposing} from '@renderer/ui/ime';
+import {isGroupedSong, linearSlidesOf, type AnySong} from './blockEdits';
 import {useSongBlockWindow} from './useSongBlockWindow';
 
 /** Mount with a window-owned store; unmounting does not discard song history. */
@@ -49,7 +51,7 @@ function SongBlocks({
   session,
 }: {
   readonly store: SongEditorStore;
-  readonly session: SongSession;
+  readonly session: SongSession<AnySong>;
 }): JSX.Element {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const {song, selection} = session.history.snapshot;
@@ -63,8 +65,12 @@ function SongBlocks({
   const [menu, setMenu] = useState<{anchor: HTMLElement; block: number} | null>(
     null,
   );
+  const slides = useMemo(
+    () => (isGroupedSong(song) ? linearSlidesOf(song) : song.slides),
+    [song],
+  );
   const {viewport, total, offsets, indices, setScrollTop} = useSongBlockWindow(
-    song.slides,
+    slides,
     selection.block,
     menu?.block,
   );
@@ -88,7 +94,7 @@ function SongBlocks({
       return;
     }
     const next = block + (event.shiftKey ? -1 : 1);
-    if (!Number.isInteger(block) || next < 0 || next >= song.slides.length) {
+    if (!Number.isInteger(block) || next < 0 || next >= slides.length) {
       return;
     }
     event.preventDefault();
@@ -109,7 +115,7 @@ function SongBlocks({
   );
   useLayoutEffect(() => {
     const owner = focus.current;
-    owner.inputs.length = song.slides.length;
+    owner.inputs.length = slides.length;
     if (owner.composing) return;
     const input = owner.inputs[selection.block];
     const changedBlock = previousBlock.current !== selection.block;
@@ -151,7 +157,7 @@ function SongBlocks({
     >
       <div className={styles.blockWindow} style={{height: total}}>
         {indices.map(block => {
-          const slide = song.slides[block];
+          const slide = slides[block];
           return slide === undefined ? null : (
             <SongBlock
               key={block}
@@ -179,9 +185,9 @@ function SongBlocks({
           store={store}
           anchor={menu.anchor}
           selected={
-            song.slides[menu.block]?.label === ''
+            slides[menu.block]?.label === ''
               ? undefined
-              : song.slides[menu.block]?.label
+              : slides[menu.block]?.label
           }
           onChoose={name => {
             session.select({block: menu.block, start: 0, end: 0});

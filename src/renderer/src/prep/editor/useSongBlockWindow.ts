@@ -1,5 +1,4 @@
 import {useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {Slide} from '@shared/schema/song';
 
 const INITIAL_ROWS = 8;
 const OVERSCAN = 2;
@@ -10,6 +9,10 @@ interface Measure {
   readonly inset: number;
 }
 const EMPTY: Measure = {viewport: 0, line: 1, minimum: 1, inset: 0};
+
+export interface WindowSlideItem {
+  readonly lines: readonly string[];
+}
 
 function rowAt(offsets: readonly number[], position: number): number {
   let start = 0;
@@ -23,7 +26,7 @@ function rowAt(offsets: readonly number[], position: number): number {
 }
 
 export function useSongBlockWindow(
-  slides: readonly Slide[],
+  slides: readonly WindowSlideItem[],
   selected: number,
   menu: number | undefined,
 ) {

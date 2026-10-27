@@ -1,8 +1,12 @@
+import type {SongGroupId} from '@shared/schema/ids';
 import type {Arrangement, Song} from '@shared/schema/song';
 import {sameOrder} from './songArrangements';
 import {
   blockSnapshot,
   editBlocks,
+  isGroupedSong,
+  slideCountOf,
+  type AnySong,
   type BlockCommand,
   type BlockSelection,
   type BlockSnapshot,
@@ -12,17 +16,17 @@ const HISTORY_LIMIT = 100;
 export const TYPING_PAUSE_MS = 1000;
 
 /** One song's session history. The owner keeps it when switching songs. */
-export class SongHistory {
-  private value: BlockSnapshot;
-  private readonly past: BlockSnapshot[] = [];
-  private readonly future: BlockSnapshot[] = [];
+export class SongHistory<S extends AnySong = Song> {
+  private value: BlockSnapshot<S>;
+  private readonly past: Array<BlockSnapshot<S>> = [];
+  private readonly future: Array<BlockSnapshot<S>> = [];
   private typing: {readonly block: number; readonly time: number} | undefined;
 
-  constructor(song: Song) {
+  constructor(song: S) {
     this.value = blockSnapshot(song);
   }
 
-  get snapshot(): BlockSnapshot {
+  get snapshot(): BlockSnapshot<S> {
     return this.value;
   }
   get canUndo(): boolean {
@@ -47,6 +51,7 @@ export class SongHistory {
   }
 
   addArrangement(arrangement: Arrangement): void {
+    if (isGroupedSong(this.value.song)) return;
     this.endTyping();
     this.remember();
     this.value = {
@@ -60,6 +65,7 @@ export class SongHistory {
 
   /** Replaces a named 구성's order as one undo step; false when nothing changes. */
   setArrangementSlides(name: string, slides: readonly number[]): boolean {
+    if (isGroupedSong(this.value.song)) return false;
     const arrangements = this.value.song.arrangements;
     const current = arrangements?.find(item => item.name === name);
     if (
@@ -83,24 +89,69 @@ export class SongHistory {
     return true;
   }
 
-  changeArrangement(from: string, to: string | undefined): void {
-    const rewrite = (snapshot: BlockSnapshot): BlockSnapshot => ({
-      ...snapshot,
+  /** Replaces a named 구성's group order as one undo step; false when nothing changes. */
+  setArrangementGroups(name: string, groups: readonly SongGroupId[]): boolean {
+    const song = this.value.song;
+    if (!isGroupedSong(song)) return false;
+    const arrangements = song.arrangements;
+    const current = arrangements?.find(item => item.name === name);
+    if (
+      arrangements === undefined ||
+      current === undefined ||
+      (current.groups.length === groups.length &&
+        current.groups.every((id, index) => id === groups[index]))
+    ) {
+      return false;
+    }
+    this.endTyping();
+    this.remember();
+    this.value = {
+      ...this.value,
       song: {
-        ...snapshot.song,
-        ...(snapshot.song.arrangements === undefined
-          ? {}
-          : {
-              arrangements: snapshot.song.arrangements.flatMap(item =>
-                item.name !== from
-                  ? [item]
-                  : to === undefined
-                    ? []
-                    : [{...item, name: to}],
-              ),
-            }),
+        ...song,
+        arrangements: arrangements.map(item =>
+          item === current ? {...item, groups: [...groups]} : item,
+        ),
       },
-    });
+    };
+    return true;
+  }
+
+  changeArrangement(from: string, to: string | undefined): void {
+    const rewrite = (snapshot: BlockSnapshot<S>): BlockSnapshot<S> => {
+      const song = snapshot.song;
+      if (song.arrangements === undefined) {
+        return snapshot;
+      }
+      if (isGroupedSong(song)) {
+        return {
+          ...snapshot,
+          song: {
+            ...song,
+            arrangements: song.arrangements.flatMap(item =>
+              item.name !== from
+                ? [item]
+                : to === undefined
+                  ? []
+                  : [{...item, name: to}],
+            ),
+          },
+        };
+      }
+      return {
+        ...snapshot,
+        song: {
+          ...song,
+          arrangements: song.arrangements.flatMap(item =>
+            item.name !== from
+              ? [item]
+              : to === undefined
+                ? []
+                : [{...item, name: to}],
+          ),
+        },
+      };
+    };
     this.endTyping();
     this.value = rewrite(this.value);
     for (const snapshots of [this.past, this.future]) {
@@ -112,15 +163,30 @@ export class SongHistory {
 
   /** A global rename also updates undo/redo snapshots without adding a step. */
   renameLabel(from: string, to: string): void {
-    const rename = (snapshot: BlockSnapshot): BlockSnapshot => {
-      if (!snapshot.song.slides.some(slide => slide.label === from)) {
+    const rename = (snapshot: BlockSnapshot<S>): BlockSnapshot<S> => {
+      const song = snapshot.song;
+      if (isGroupedSong(song)) {
+        if (!song.groups.some(group => group.name === from)) {
+          return snapshot;
+        }
+        return {
+          ...snapshot,
+          song: {
+            ...song,
+            groups: song.groups.map(group =>
+              group.name === from ? {...group, name: to} : group,
+            ),
+          },
+        };
+      }
+      if (!song.slides.some(slide => slide.label === from)) {
         return snapshot;
       }
       return {
         ...snapshot,
         song: {
-          ...snapshot.song,
-          slides: snapshot.song.slides.map(slide =>
+          ...song,
+          slides: song.slides.map(slide =>
             slide.label === from ? {...slide, label: to} : slide,
           ),
         },
@@ -135,7 +201,7 @@ export class SongHistory {
     }
   }
 
-  apply(command: BlockCommand, time = Date.now()): BlockSnapshot {
+  apply(command: BlockCommand, time = Date.now()): BlockSnapshot<S> {
     const next = editBlocks(this.value, command);
     if (next.song === this.value.song) {
       this.value = next;
@@ -145,7 +211,7 @@ export class SongHistory {
     const typing =
       command.type === 'text' ||
       (command.type === 'enter' &&
-        next.song.slides.length === this.value.song.slides.length);
+        slideCountOf(next.song) === slideCountOf(this.value.song));
     const grouped =
       typing &&
       this.typing?.block === block &&
@@ -158,7 +224,7 @@ export class SongHistory {
     return next;
   }
 
-  undo(): BlockSnapshot {
+  undo(): BlockSnapshot<S> {
     this.endTyping();
     const previous = this.past.pop();
     if (previous !== undefined) {
@@ -168,7 +234,7 @@ export class SongHistory {
     return this.value;
   }
 
-  redo(): BlockSnapshot {
+  redo(): BlockSnapshot<S> {
     this.endTyping();
     const next = this.future.pop();
     if (next !== undefined) {

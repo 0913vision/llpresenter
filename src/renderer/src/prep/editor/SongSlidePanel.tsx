@@ -1,5 +1,6 @@
 import {useState, useSyncExternalStore, type JSX} from 'react';
 import {playbackOrder} from '@shared/songOrder';
+import {isGroupedSong, slideCountOf} from './blockEdits';
 import {
   Panel,
   PanelBody,
@@ -47,7 +48,9 @@ export function SongSlidePanel({
     );
   }
   const {song, selection} = session.history.snapshot;
-  const numbers = playbackOrder(song, session.arrangement);
+  const numbers = isGroupedSong(song)
+    ? Array.from({length: slideCountOf(song)}, (_, i) => i + 1)
+    : playbackOrder(song, session.arrangement);
   const at =
     pointed !== null &&
     pointed.songId === song.id &&

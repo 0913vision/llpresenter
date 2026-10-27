@@ -1,11 +1,36 @@
-import {memo, type JSX, type KeyboardEvent, type RefObject} from 'react';
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type JSX,
+  type KeyboardEvent,
+  type RefObject,
+} from 'react';
+import {createPortal} from 'react-dom';
 import type {LabelColor} from '@shared/colors';
 import type {Slide} from '@shared/schema/song';
 import {LabelTag} from '@renderer/ui/LabelChip';
 import {isComposing} from '@renderer/ui/ime';
+import {layerContainer} from '@renderer/ui/layers';
+import {placeFloating} from '@renderer/ui/floating';
+import {placeTooltip, viewportSize} from '@renderer/ui/placement';
+import {useTooltip} from '@renderer/ui/Tooltip';
+import tooltipStyles from '@renderer/ui/Tooltip.module.css';
+import {
+  isGroupedSong,
+  linearBlockAddress,
+  linearSlidesOf,
+  type AnySong,
+  type EditorSlideItem,
+} from './blockEdits';
 import {adjacentBlock, editorCommand} from './editorKeys';
 import type {SongSession} from './songSession';
 import styles from './SongEditor.module.css';
+
+export const BACKSPACE_REFUSAL_MESSAGE =
+  '그룹 경계에서는 슬라이드를 합칠 수 없습니다';
 
 export interface EditorFocus {
   inputs: Array<HTMLTextAreaElement | null>;
@@ -16,9 +41,9 @@ export interface EditorFocus {
 }
 
 interface BlockProps {
-  readonly slide: Slide;
+  readonly slide: Slide | EditorSlideItem;
   readonly block: number;
-  readonly session: SongSession;
+  readonly session: SongSession<AnySong>;
   readonly focus: RefObject<EditorFocus>;
   readonly active: boolean;
   readonly locked: boolean;
@@ -27,6 +52,7 @@ interface BlockProps {
   readonly expanded: boolean;
   readonly onOpen: (anchor: HTMLElement, block: number) => void;
   readonly top: number;
+  readonly isGroupStart?: boolean;
 }
 
 /** Keeps untouched blocks out of the typing render path. */
@@ -43,7 +69,72 @@ export const SongBlock = memo(
     expanded,
     onOpen,
     top,
+    isGroupStart: propIsGroupStart,
   }: BlockProps): JSX.Element => {
+    const song = session.history.snapshot.song;
+    const isGrouped = isGroupedSong(song);
+    const isGroupStart =
+      propIsGroupStart ??
+      (isGrouped
+        ? (linearBlockAddress(song, block)?.isGroupStart ?? true)
+        : true);
+
+    const [refused, setRefused] = useState(false);
+    const refusalTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+      undefined,
+    );
+
+    const showRefusal = useCallback((): void => {
+      setRefused(true);
+      clearTimeout(refusalTimer.current);
+      refusalTimer.current = setTimeout(() => {
+        setRefused(false);
+      }, 2000);
+    }, []);
+
+    useEffect(() => {
+      return () => {
+        clearTimeout(refusalTimer.current);
+      };
+    }, []);
+
+    useEffect(() => {
+      return session.onBackspaceRefused(refusedBlock => {
+        if (refusedBlock === block) {
+          showRefusal();
+        }
+      });
+    }, [session, block, showRefusal]);
+
+    const {targetProps, tooltip: hoverTooltip} = useTooltip(
+      isGrouped && isGroupStart ? {text: BACKSPACE_REFUSAL_MESSAGE} : undefined,
+    );
+
+    const refusalTooltip =
+      refused && typeof document !== 'undefined'
+        ? createPortal(
+            <div
+              role="tooltip"
+              className={tooltipStyles.tooltip}
+              ref={element => {
+                const input = focus.current.inputs[block];
+                if (element !== null && input !== null && input !== undefined) {
+                  placeFloating(element, size =>
+                    placeTooltip(
+                      input.getBoundingClientRect(),
+                      size,
+                      viewportSize(),
+                    ),
+                  );
+                }
+              }}
+            >
+              {BACKSPACE_REFUSAL_MESSAGE}
+            </div>,
+            layerContainer('tooltip'),
+          )
+        : null;
+
     const select = (input: HTMLTextAreaElement): void => {
       if (focus.current.restoring || focus.current.requested) return;
       session.select({
@@ -52,13 +143,16 @@ export const SongBlock = memo(
         end: input.selectionEnd,
       });
     };
+
     const keyDown = (event: KeyboardEvent<HTMLTextAreaElement>): void => {
       if (locked || focus.current.composing || isComposing(event)) return;
       select(event.currentTarget);
       const command = editorCommand(event);
       const adjacent = adjacentBlock(
         event,
-        session.history.snapshot.song.slides.map(part => part.lines.join('\n')),
+        linearSlidesOf(session.history.snapshot.song).map(part =>
+          part.lines.join('\n'),
+        ),
         block,
       );
       if (command === undefined && adjacent === undefined) return;
@@ -66,9 +160,23 @@ export const SongBlock = memo(
       event.stopPropagation();
       focus.current.requested = true;
       focus.current.target = 'lyrics';
-      if (command !== undefined) session.edit(command);
-      else if (adjacent !== undefined) session.select(adjacent);
+      if (command !== undefined) {
+        if (
+          typeof command === 'object' &&
+          command.type === 'merge' &&
+          isGrouped &&
+          isGroupStart
+        ) {
+          showRefusal();
+          session.edit(command);
+          return;
+        }
+        session.edit(command);
+      } else if (adjacent !== undefined) {
+        session.select(adjacent);
+      }
     };
+
     return (
       <div
         className={styles.block}
@@ -78,22 +186,25 @@ export const SongBlock = memo(
       >
         <span className={styles.number}>{block + 1}</span>
         <div className={styles.label}>
-          <LabelTag
-            name={slide.label === '' ? undefined : slide.label}
-            color={color}
-            picker={
-              !editable
-                ? undefined
-                : {
-                    expanded,
-                    onOpen: anchor => {
-                      if (!locked) onOpen(anchor, block);
-                    },
-                  }
-            }
-          />
+          {isGroupStart ? (
+            <LabelTag
+              name={slide.label === '' ? undefined : slide.label}
+              color={color}
+              picker={
+                !editable
+                  ? undefined
+                  : {
+                      expanded,
+                      onOpen: anchor => {
+                        if (!locked) onOpen(anchor, block);
+                      },
+                    }
+              }
+            />
+          ) : null}
         </div>
         <textarea
+          {...targetProps}
           ref={input => {
             focus.current.inputs[block] = input;
           }}
@@ -104,15 +215,21 @@ export const SongBlock = memo(
           readOnly={locked}
           wrap="off"
           spellCheck={false}
-          onFocus={event => select(event.currentTarget)}
+          onFocus={event => {
+            targetProps.onFocus(event);
+            select(event.currentTarget);
+          }}
+          onBlur={event => {
+            targetProps.onBlur(event);
+            focus.current.composing = false;
+            session.endTyping();
+          }}
+          onPointerEnter={targetProps.onPointerEnter}
+          onPointerLeave={targetProps.onPointerLeave}
           onSelect={event => {
             if (event.currentTarget === document.activeElement) {
               select(event.currentTarget);
             }
-          }}
-          onBlur={() => {
-            focus.current.composing = false;
-            session.endTyping();
           }}
           onCompositionStart={() => {
             focus.current.composing = true;
@@ -144,6 +261,8 @@ export const SongBlock = memo(
             });
           }}
         />
+        {hoverTooltip}
+        {refusalTooltip}
       </div>
     );
   },

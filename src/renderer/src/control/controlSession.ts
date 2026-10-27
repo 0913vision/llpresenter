@@ -5,6 +5,12 @@ import {pendingWritesOf} from '@renderer/state/pendingWrites';
 import {addNotice, removeNotice, type Notice} from '@renderer/ui/notices';
 import {CloseFlush} from './closeFlush';
 
+declare global {
+  interface Window {
+    __llpSongEditorStore?: SongEditorStore;
+  }
+}
+
 /** Window-owned editor sessions and their shared notification destination. */
 export class ControlSession {
   private editorStore: SongEditorStore | undefined;
@@ -38,6 +44,9 @@ export class ControlSession {
         this.editorStore,
         this.report,
       );
+      if (typeof window !== 'undefined' && import.meta.env.DEV) {
+        window.__llpSongEditorStore = this.editorStore;
+      }
     }
   }
 
@@ -69,6 +78,9 @@ export class ControlSession {
 
   /** Release resources after unmount, including the close flush answer. */
   dispose(): Promise<void> {
+    if (typeof window !== 'undefined' && import.meta.env.DEV) {
+      delete window.__llpSongEditorStore;
+    }
     this.closeFlush?.dispose();
     this.closing ??= Promise.resolve().then(() => {
       this.itemStore?.dispose();

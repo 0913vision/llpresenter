@@ -1,7 +1,11 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
+import {parseGroupedSong} from '@shared/schema/groupedSong';
+import {createSongGroupId} from '@shared/schema/ids';
 import {parseSongDocument} from '@shared/schema/contentDocuments';
+import {expectSuccess} from '@shared/schema/testHelpers';
 import {editorFixture} from './editorFixture';
 import {SongEditorStore} from './songEditorStore';
+import {SongSession} from './songSession';
 
 function setup() {
   vi.useFakeTimers();
@@ -210,5 +214,116 @@ describe('typing-group autosaves', () => {
     expect(vi.getTimerCount()).toBe(0);
     await vi.advanceTimersByTimeAsync(2000);
     expect(edit).toHaveBeenCalledOnce();
+  });
+});
+
+describe('grouped song sessions', () => {
+  function setupGrouped() {
+    vi.useFakeTimers();
+    const fixture = editorFixture();
+    const grouped = expectSuccess(
+      parseGroupedSong(
+        JSON.stringify({
+          format: 'llsong',
+          schemaVersion: 2,
+          id: '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab',
+          title: '새 아침',
+          groups: [
+            {
+              id: '11111111-1111-4111-a111-111111111111',
+              name: '1절',
+              slides: [{lines: ['first']}, {lines: ['second']}],
+            },
+            {
+              id: '22222222-2222-4222-a222-222222222222',
+              name: '후렴',
+              slides: [{lines: ['third']}],
+            },
+          ],
+          arrangements: [
+            {
+              name: '기본순서',
+              groups: [
+                '11111111-1111-4111-a111-111111111111',
+                '22222222-2222-4222-a222-222222222222',
+              ],
+            },
+          ],
+        }),
+        'memory.llsong',
+      ),
+    ).data;
+    const changed = vi.fn();
+    const problem = vi.fn();
+    const backspaceRefused = vi.fn();
+    const session = new SongSession({
+      document: {song: grouped, revision: 1, access: 'editable'},
+      api: fixture.api.content,
+      changed,
+      problem,
+      backspaceRefused,
+    });
+    return {
+      session,
+      edits: fixture.edits,
+      changed,
+      problem,
+      backspaceRefused,
+      grouped,
+    };
+  }
+
+  it('notifies onBackspaceRefused at group boundary without altering song', () => {
+    const {session, backspaceRefused, grouped} = setupGrouped();
+    const listener = vi.fn();
+    const unsubscribe = session.onBackspaceRefused(listener);
+
+    // NOTE(0913vision): Block 0 is first slide of group 0 -> group boundary!
+    session.select({block: 0, start: 0, end: 0});
+    session.edit({type: 'merge'});
+
+    expect(backspaceRefused).toHaveBeenCalledWith(0);
+    expect(listener).toHaveBeenCalledWith(0);
+    expect(session.history.snapshot.song).toBe(grouped);
+
+    // NOTE(0913vision): Block 2 is first slide of group 1 -> group boundary!
+    session.select({block: 2, start: 0, end: 0});
+    session.edit({type: 'merge'});
+    expect(backspaceRefused).toHaveBeenCalledWith(2);
+    expect(listener).toHaveBeenCalledWith(2);
+    expect(session.history.snapshot.song).toBe(grouped);
+
+    unsubscribe();
+  });
+
+  it('merges within group without triggering refusal notification', () => {
+    const {session, backspaceRefused} = setupGrouped();
+    // NOTE(0913vision): Block 1 is second slide of group 0 -> within group!
+    session.select({block: 1, start: 0, end: 0});
+    session.edit({type: 'merge'});
+
+    expect(backspaceRefused).not.toHaveBeenCalled();
+    expect(session.history.snapshot.song.groups[0]?.slides).toHaveLength(1);
+    expect(session.history.snapshot.song.groups[0]?.slides[0]?.lines).toEqual([
+      'first',
+      'second',
+    ]);
+  });
+
+  it('updates arrangement groups via setArrangementGroups and flushes', async () => {
+    const {session, changed} = setupGrouped();
+    session.selectArrangement('기본순서');
+    const newGroups = [
+      createSongGroupId('22222222-2222-4222-a222-222222222222'),
+      createSongGroupId('11111111-1111-4111-a111-111111111111'),
+    ];
+    const updated = session.setArrangementGroups('기본순서', newGroups);
+    expect(updated).toBe(true);
+    expect(session.arrangementGroups).toEqual(newGroups);
+    expect(session.arrangementSlides).toEqual([3, 1, 2]);
+
+    await session.flush();
+    // NOTE(0913vision): Grouped song persistence waits for group-7 store flip.
+    expect(changed).toHaveBeenCalled();
   });
 });

@@ -4,9 +4,9 @@ import {screenIdSchema} from '@shared/schema/ids';
 import {parsePayload} from '@shared/schema/payload';
 import type {LooksFile} from '@shared/schema/looks';
 import type {ScreensFile} from '@shared/schema/screens';
-import type {Song} from '@shared/schema/song';
 import type {RenderScreen} from '@renderer/render/layer';
 import {DEFAULT_LYRIC_STYLE} from '@renderer/render/lyricStyle';
+import {isGroupedSong, linearSlidesOf, type AnySong} from './blockEdits';
 
 export const PREVIEW_ROLES = [
   {value: 'main', label: '본 화면'},
@@ -57,14 +57,15 @@ export function previewAppearance(
 
 /** A local selected song picture; no service selection or output command. */
 export function selectedPreview(
-  song: Song,
+  song: AnySong,
   {
     block,
     background,
   }: {readonly block: number; readonly background: string | undefined},
   appearance: Pick<ReturnType<typeof previewAppearance>, 'slide' | 'media'>,
 ): LiveLayers {
-  const slide = song.slides[block];
+  const slides = isGroupedSong(song) ? linearSlidesOf(song) : song.slides;
+  const slide = slides[block];
   return {
     ...emptyLayers(),
     slide:

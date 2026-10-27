@@ -265,14 +265,14 @@ group-7: Store & IPC Final Activation (break/group/activate-contracts, double re
       ensuring boundary validation.
     - In `src/main/store/showService.ts` and `src/main/store/librarySong.ts`,
       check the tile count inside projection loops (both v1 and v2 branches) and
-      stop iterating immediately if the count reaches 10,000 to prevent large
-      memory allocations.
+      halt early. A song with up to 10,000 tiles succeeds without problem; the
+      10,001st tile triggers the problem to prevent large memory allocations.
     - When exceeding 10,000 tiles (tested at 10,001 tiles): emit empty tiles and
       mark `problem: 'unknown-kind'` on `ShowRow` (`problem: 'newer-version'` on
       `ShowLibrarySong`). Reusing `unknown-kind` (which triggers tooltip "이
       버전에서 알 수 없는 항목입니다.") is intentional temporary staging to keep
       the active shared contract `showRowProblems` completely unchanged before
-      group-7.
+      group-7. Added a unit test at exactly 10,000 tiles expecting no problem.
     - Add `TODO(0913vision)` in `src/main/store/showService.ts` and
       `src/main/store/librarySong.ts` to switch to a dedicated typed row problem
       in group-7.
@@ -374,6 +374,14 @@ group-7: Store & IPC Final Activation (break/group/activate-contracts, double re
   - `src/renderer/src/prep/editor/songHistory.ts`
   - `src/renderer/src/prep/editor/songSession.ts`
   - `src/renderer/src/prep/editor/SongBlock.tsx`
+  - `src/renderer/src/prep/editor/SongEditor.tsx`
+  - `src/renderer/src/prep/editor/SongHeader.tsx`
+  - `src/renderer/src/prep/editor/SongPreview.tsx`
+  - `src/renderer/src/prep/editor/songPreviewModel.ts`
+  - `src/renderer/src/prep/editor/SongSlidePanel.tsx`
+  - `src/renderer/src/prep/editor/VirtualSlides.tsx`
+  - `src/renderer/src/prep/editor/useSongBlockWindow.ts`
+  - `src/renderer/src/control/controlSession.ts`
   - `src/renderer/src/prep/editor/SongBlock.test.tsx` (new file)
   - Tests: `src/renderer/src/prep/editor/blockEditing.test.ts`,
     `src/renderer/src/prep/editor/songSession.test.ts`
@@ -545,8 +553,12 @@ group-7: Store & IPC Final Activation (break/group/activate-contracts, double re
     - Line 496: collects labels from `group.name` to add to `labels.json`.
     - Line 571: updates slide count check for library list notification.
   - Update consumers expecting `Song` to now accept `GroupedSong`:
-    - `src/main/store/showService.ts` (`SongLibrary` / `buildShowService`)
-    - `src/main/store/librarySong.ts` (`showLibrarySong`)
+    - `src/main/store/showService.ts` (`SongLibrary` / `buildShowService`,
+      removing `TODO(0913vision)` to switch from staged `unknown-kind` to
+      dedicated tile cap problem)
+    - `src/main/store/librarySong.ts` (`showLibrarySong`, removing
+      `TODO(0913vision)` to switch from staged `newer-version` to dedicated tile
+      cap problem)
     - `src/main/live/recovery/plan.ts` (`RecoveryContent.song`)
     - `src/shared/songOrder.ts` (`playbackOrder`)
   - Update `src/main/store/contentLists.ts`: sums `slideCount` across groups.

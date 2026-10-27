@@ -14,7 +14,12 @@ import {mediaUrl} from '@shared/media';
 import {emptyLayers} from '@shared/live';
 import type {Label} from '@shared/schema/labels';
 import type {SettingsDocument} from '@shared/schema/settingsDocuments';
-import type {Song} from '@shared/schema/song';
+import {
+  isGroupedSong,
+  linearSlidesOf,
+  slideCountOf,
+  type AnySong,
+} from './blockEdits';
 import {OutputRenderer} from '@renderer/render/outputRenderer';
 import {Panel, PanelHeader, PanelTitle} from '@renderer/ui/Panel';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';
@@ -116,7 +121,7 @@ function Picture({
 
 /** One 슬라이드 of a song and its place in the order the panel shows. */
 export interface SongPicture {
-  readonly song: Song;
+  readonly song: AnySong;
   /** The 슬라이드's index in the song file. */
   readonly block: number;
   readonly background: string | undefined;
@@ -168,7 +173,10 @@ export function SongPreviewFrame({
     );
   }
   const {position, total} = picture;
-  const slide = picture.song.slides[block];
+  const slides = isGroupedSong(picture.song)
+    ? linearSlidesOf(picture.song)
+    : picture.song.slides;
+  const slide = slides[block];
   const color =
     labels.find(label => label.name === slide?.label)?.color ?? 'none';
   return (
@@ -224,7 +232,7 @@ export function SongPreviewPanel({
               block: snapshot.selection.block,
               background: session.background,
               position: snapshot.selection.block + 1,
-              total: snapshot.song.slides.length,
+              total: slideCountOf(snapshot.song),
             }
       }
     />

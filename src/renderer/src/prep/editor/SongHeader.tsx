@@ -3,6 +3,7 @@ import {Icon} from '@renderer/ui/Icon';
 import {TextField} from '@renderer/ui/TextField';
 import {Tooltip} from '@renderer/ui/Tooltip';
 import {isComposing} from '@renderer/ui/ime';
+import {slideCountOf} from './blockEdits';
 import type {SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';
 import styles from './SongHeader.module.css';
@@ -69,7 +70,7 @@ export function SongHeader({
         />
       </div>
       <span className={styles.count}>
-        슬라이드 {session.history.snapshot.song.slides.length}개
+        슬라이드 {slideCountOf(session.history.snapshot.song)}개
       </span>
       {state.imported ? null : (
         <>

@@ -1,7 +1,20 @@
 import {describe, expect, it} from 'vitest';
+import {
+  parseGroupedSong,
+  serializeGroupedSong,
+  type GroupedSong,
+} from '@shared/schema/groupedSong';
+import {createSongGroupId} from '@shared/schema/ids';
 import {parseSong, serializeSong} from '@shared/schema/song';
 import {expectSuccess} from '@shared/schema/testHelpers';
-import {blockSnapshot, editBlocks, type BlockCommand} from './blockEdits';
+import {
+  blockSnapshot,
+  editBlocks,
+  linearBlockAddress,
+  linearSlidesOf,
+  slideCountOf,
+  type BlockCommand,
+} from './blockEdits';
 import {SongHistory} from './songHistory';
 
 function song(
@@ -336,7 +349,7 @@ describe('song history', () => {
     history.select({block: 2, start: 0, end: 0});
     const before = history.snapshot;
     const split = history.apply({type: 'split'});
-    expect(split.song.arrangements?.[0]?.slides).toEqual([1, 3, 4, 3, 4]);
+    expect(split.song.arrangements[0]?.slides).toEqual([1, 3, 4, 3, 4]);
     const merged = history.apply({type: 'merge'});
     expect(merged.song).toEqual(original);
     expect(history.undo()).toBe(split);
@@ -361,5 +374,264 @@ describe('song history', () => {
     expect(first.canRedo).toBe(false);
     expect(second.snapshot.song.slides[0]?.lines).toEqual(['other']);
     expect(second.canUndo).toBe(false);
+  });
+});
+
+function sampleGroupedSong(
+  groups: ReadonlyArray<{
+    readonly id: string;
+    readonly name: string;
+    readonly slides: ReadonlyArray<{
+      readonly lines: readonly string[];
+      readonly hotKey?: string;
+    }>;
+  }> = [
+    {
+      id: '11111111-1111-4111-a111-111111111111',
+      name: '1절',
+      slides: [{lines: ['first']}, {lines: ['second']}],
+    },
+    {
+      id: '22222222-2222-4222-a222-222222222222',
+      name: '후렴',
+      slides: [{lines: ['third']}],
+    },
+  ],
+  arrangements: ReadonlyArray<{
+    readonly name: string;
+    readonly groups: readonly string[];
+  }> = [
+    {
+      name: '기본순서',
+      groups: [
+        '11111111-1111-4111-a111-111111111111',
+        '22222222-2222-4222-a222-222222222222',
+      ],
+    },
+  ],
+): GroupedSong {
+  return expectSuccess(
+    parseGroupedSong(
+      JSON.stringify({
+        format: 'llsong',
+        schemaVersion: 2,
+        id: '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab',
+        title: '새 아침',
+        groups,
+        arrangements,
+      }),
+      'memory.llsong',
+    ),
+  ).data;
+}
+
+describe('grouped song block edits', () => {
+  it('indexes linear blocks across groups and detects group starts', () => {
+    const song = sampleGroupedSong();
+    expect(slideCountOf(song)).toBe(3);
+
+    const addr0 = linearBlockAddress(song, 0);
+    expect(addr0).toMatchObject({
+      groupIndex: 0,
+      groupId: '11111111-1111-4111-a111-111111111111',
+      groupName: '1절',
+      slideIndex: 0,
+      isGroupStart: true,
+      slide: {lines: ['first']},
+    });
+
+    const addr1 = linearBlockAddress(song, 1);
+    expect(addr1).toMatchObject({
+      groupIndex: 0,
+      groupId: '11111111-1111-4111-a111-111111111111',
+      groupName: '1절',
+      slideIndex: 1,
+      isGroupStart: false,
+      slide: {lines: ['second']},
+    });
+
+    const addr2 = linearBlockAddress(song, 2);
+    expect(addr2).toMatchObject({
+      groupIndex: 1,
+      groupId: '22222222-2222-4222-a222-222222222222',
+      groupName: '후렴',
+      slideIndex: 0,
+      isGroupStart: true,
+      slide: {lines: ['third']},
+    });
+
+    expect(linearBlockAddress(song, 3)).toBeUndefined();
+  });
+
+  it('linearSlidesOf produces items with labels only on group start', () => {
+    const song = sampleGroupedSong();
+    const slides = linearSlidesOf(song);
+    expect(slides).toEqual([
+      {
+        lines: ['first'],
+        label: '1절',
+        isGroupStart: true,
+        groupId: '11111111-1111-4111-a111-111111111111',
+        slideIndex: 0,
+      },
+      {
+        lines: ['second'],
+        isGroupStart: false,
+        groupId: '11111111-1111-4111-a111-111111111111',
+        slideIndex: 1,
+      },
+      {
+        lines: ['third'],
+        label: '후렴',
+        isGroupStart: true,
+        groupId: '22222222-2222-4222-a222-222222222222',
+        slideIndex: 0,
+      },
+    ]);
+  });
+
+  it('updates text within a slide inside its group', () => {
+    const original = sampleGroupedSong();
+    const next = editBlocks(
+      blockSnapshot(original, {block: 1, start: 0, end: 6}),
+      {type: 'text', text: 'modified', start: 0, end: 8},
+    );
+    expect(next.song.groups[0]?.slides[1]?.lines).toEqual(['modified']);
+    expect(next.song.groups[0]?.slides[0]?.lines).toEqual(['first']);
+    expect(next.song.groups[1]?.slides[0]?.lines).toEqual(['third']);
+    expect(next.song.arrangements).toEqual(original.arrangements);
+    expect(serializeGroupedSong(next.song, 'memory.llsong').ok).toBe(true);
+  });
+
+  it('splits slide within its group on empty line Enter and preserves arrangement references', () => {
+    const original = sampleGroupedSong();
+    // NOTE(0913vision): In block 0: 'first\n\nlast'
+    const withBlank = editBlocks(
+      blockSnapshot(original, {block: 0, start: 0, end: 5}),
+      {type: 'text', text: 'first\n\nlast', start: 0, end: 11},
+    );
+    const next = editBlocks(
+      blockSnapshot(withBlank.song, {block: 0, start: 6, end: 6}),
+      {type: 'enter'},
+    );
+    expect(next.song.groups[0]?.slides).toHaveLength(3);
+    expect(next.song.groups[0]?.slides[0]?.lines).toEqual(['first']);
+    expect(next.song.groups[0]?.slides[1]?.lines).toEqual(['last']);
+    expect(next.song.groups[0]?.slides[2]?.lines).toEqual(['second']);
+    expect(next.selection).toEqual({block: 1, start: 0, end: 0});
+    expect(next.song.groups[1]?.slides).toEqual(original.groups[1]?.slides);
+    expect(next.song.arrangements).toEqual(original.arrangements);
+  });
+
+  it('splits slide within group via Ctrl Enter split command', () => {
+    const original = sampleGroupedSong();
+    const next = editBlocks(
+      blockSnapshot(original, {block: 0, start: 2, end: 4}),
+      {type: 'split'},
+    );
+    expect(next.song.groups[0]?.slides).toHaveLength(3);
+    expect(next.song.groups[0]?.slides[0]?.lines).toEqual(['fi']);
+    expect(next.song.groups[0]?.slides[1]?.lines).toEqual(['t']);
+    expect(next.selection).toEqual({block: 1, start: 0, end: 0});
+    expect(next.song.arrangements).toEqual(original.arrangements);
+  });
+
+  it('inserts empty slide within group via Ctrl Shift N insert command', () => {
+    const original = sampleGroupedSong();
+    const next = editBlocks(
+      blockSnapshot(original, {block: 0, start: 0, end: 0}),
+      {type: 'insert'},
+    );
+    expect(next.song.groups[0]?.slides).toHaveLength(3);
+    expect(next.song.groups[0]?.slides[1]?.lines).toEqual([]);
+    expect(next.selection).toEqual({block: 1, start: 0, end: 0});
+    expect(next.song.arrangements).toEqual(original.arrangements);
+  });
+
+  it('pastes multi-line text with blank lines into multiple slides inside the group', () => {
+    const original = sampleGroupedSong();
+    const next = editBlocks(
+      blockSnapshot(original, {block: 0, start: 5, end: 5}),
+      {type: 'paste', text: '\n\nsecondPart\n\nthirdPart'},
+    );
+    expect(next.song.groups[0]?.slides).toHaveLength(4);
+    expect(next.song.groups[0]?.slides.map(s => s.lines)).toEqual([
+      ['first'],
+      ['secondPart'],
+      ['thirdPart'],
+      ['second'],
+    ]);
+  });
+
+  it('renames group name via label command', () => {
+    const original = sampleGroupedSong();
+    const next = editBlocks(
+      blockSnapshot(original, {block: 0, start: 0, end: 0}),
+      {type: 'label', name: '새 이름'},
+    );
+    expect(next.song.groups[0]?.name).toBe('새 이름');
+    expect(next.song.groups[0]?.id).toBe(original.groups[0]?.id);
+    expect(next.song.arrangements).toEqual(original.arrangements);
+  });
+
+  it('merges within the same group when Backspace is pressed at start of non-first slide', () => {
+    const original = sampleGroupedSong();
+    // NOTE(0913vision): Block 1 is second slide of group 0
+    const next = editBlocks(
+      blockSnapshot(original, {block: 1, start: 0, end: 0}),
+      {type: 'merge'},
+    );
+    expect(next.song.groups[0]?.slides).toHaveLength(1);
+    expect(next.song.groups[0]?.slides[0]?.lines).toEqual(['first', 'second']);
+    expect(next.song.groups[1]?.slides).toEqual(original.groups[1]?.slides);
+    expect(next.song.arrangements).toEqual(original.arrangements);
+    expect(next.selection).toEqual({block: 0, start: 5, end: 5});
+    expect(next.mergeRefused).toBeUndefined();
+  });
+
+  it('refuses merge at group boundary (first slide of any group) with mergeRefused: true', () => {
+    const original = sampleGroupedSong();
+    // NOTE(0913vision): Block 0 is first slide of group 0 (group boundary)
+    const atFirst = editBlocks(
+      blockSnapshot(original, {block: 0, start: 0, end: 0}),
+      {type: 'merge'},
+    );
+    expect(atFirst.song).toBe(original);
+    expect(atFirst.mergeRefused).toBe(true);
+
+    // NOTE(0913vision): Block 2 is first slide of group 1 (group boundary between 1절 and 후렴)
+    const atSecondGroup = editBlocks(
+      blockSnapshot(original, {block: 2, start: 0, end: 0}),
+      {type: 'merge'},
+    );
+    expect(atSecondGroup.song).toBe(original);
+    expect(atSecondGroup.mergeRefused).toBe(true);
+    expect(atSecondGroup.song.groups).toHaveLength(2);
+    expect(atSecondGroup.song.arrangements).toEqual(original.arrangements);
+  });
+
+  it('supports undo, redo, and setArrangementGroups on grouped songs', () => {
+    const original = sampleGroupedSong();
+    const history = new SongHistory(original);
+    history.select({block: 0, start: 5, end: 5});
+    const before = history.snapshot;
+    const split = history.apply({type: 'split'});
+    expect(history.undo()).toBe(before);
+    expect(history.redo()).toBe(split);
+
+    // NOTE(0913vision): setArrangementGroups
+    const newGroups = [
+      createSongGroupId('22222222-2222-4222-a222-222222222222'),
+      createSongGroupId('11111111-1111-4111-a111-111111111111'),
+    ];
+    const changed = history.setArrangementGroups('기본순서', newGroups);
+    expect(changed).toBe(true);
+    expect(history.snapshot.song.arrangements?.[0]?.groups).toEqual(newGroups);
+    expect(history.canUndo).toBe(true);
+    history.undo();
+    expect(history.snapshot.song.arrangements?.[0]?.groups).toEqual([
+      '11111111-1111-4111-a111-111111111111',
+      '22222222-2222-4222-a222-222222222222',
+    ]);
   });
 });
