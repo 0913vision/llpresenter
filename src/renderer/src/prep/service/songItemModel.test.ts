@@ -8,6 +8,8 @@ import type {GroupedSong} from '@shared/schema/groupedSong';
 import {
   chipIndexForSlide,
   editedGroupOrder,
+  groupRanges,
+  groupRangesFromGroups,
   groupStartIndices,
   groupStartIndicesFromGroups,
   itemPicture,
@@ -126,6 +128,7 @@ describe('song item model', () => {
     expect(editedGroupOrder(grouped, '주일용')).toEqual(
       grouped.arrangements?.[0]?.groups,
     );
+    const ranges = groupRanges(grouped, '주일용');
     const starts = groupStartIndices(grouped, '주일용');
     expect(starts).toEqual([0, 2, 3]);
     expect(
@@ -134,15 +137,67 @@ describe('song item model', () => {
       ]),
     ).toEqual([0]);
 
-    expect(chipIndexForSlide(0, starts, 5)).toBe(0);
-    expect(chipIndexForSlide(1, starts, 5)).toBe(0);
-    expect(chipIndexForSlide(2, starts, 5)).toBe(1);
-    expect(chipIndexForSlide(3, starts, 5)).toBe(2);
-    expect(chipIndexForSlide(4, starts, 5)).toBe(2);
+    expect(chipIndexForSlide(0, ranges, 5)).toBe(0);
+    expect(chipIndexForSlide(1, ranges, 5)).toBe(0);
+    expect(chipIndexForSlide(2, ranges, 5)).toBe(1);
+    expect(chipIndexForSlide(3, ranges, 5)).toBe(2);
+    expect(chipIndexForSlide(4, ranges, 5)).toBe(2);
 
-    expect(chipIndexForSlide(undefined, starts, 5)).toBeUndefined();
-    expect(chipIndexForSlide(-1, starts, 5)).toBeUndefined();
-    expect(chipIndexForSlide(5, starts, 5)).toBeUndefined();
+    expect(chipIndexForSlide(undefined, ranges, 5)).toBeUndefined();
+    expect(chipIndexForSlide(-1, ranges, 5)).toBeUndefined();
+    expect(chipIndexForSlide(5, ranges, 5)).toBeUndefined();
+  });
+
+  it('maps slide indices correctly when a group has zero slides', () => {
+    const g1 = createSongGroupId('11111111-1111-4111-a111-111111111111');
+    const g2 = createSongGroupId('22222222-2222-4222-a222-222222222222');
+    const g3 = createSongGroupId('33333333-3333-4333-a333-333333333333');
+    const grouped: GroupedSong = {
+      format: 'llsong',
+      schemaVersion: 2,
+      id: createSongId('00000000-0000-4000-8000-000000000001'),
+      title: '곡',
+      groups: [
+        {id: g1, name: '1절', slides: [{lines: ['가사 1']}]},
+        {id: g2, name: '빈 그룹', slides: []},
+        {id: g3, name: '2절', slides: [{lines: ['가사 2']}]},
+      ],
+    };
+    const ranges = groupRangesFromGroups(grouped, [g1, g2, g3]);
+    expect(ranges).toEqual([
+      {start: 0, length: 1},
+      {start: 1, length: 0},
+      {start: 1, length: 1},
+    ]);
+    expect(chipIndexForSlide(0, ranges, 2)).toBe(0);
+    expect(chipIndexForSlide(1, ranges, 2)).toBe(2);
+  });
+
+  it('skips dangling group IDs and numbers unnamed groups by source position', () => {
+    const g1 = createSongGroupId('11111111-1111-4111-a111-111111111111');
+    const g2 = createSongGroupId('22222222-2222-4222-a222-222222222222');
+    const dangling = createSongGroupId('99999999-9999-4999-a999-999999999999');
+    const grouped: GroupedSong = {
+      format: 'llsong',
+      schemaVersion: 2,
+      id: createSongId('00000000-0000-4000-8000-000000000001'),
+      title: '곡',
+      groups: [
+        {id: g1, name: '', slides: [{lines: ['1']}]},
+        {id: g2, name: '', slides: [{lines: ['2']}]},
+      ],
+    };
+    const chips = orderChips(grouped, [g1, dangling, g2, g1], []);
+    expect(chips).toEqual([
+      {key: `${g1}:1`, name: '이름표 없음 1', color: 'none', number: 1},
+      {key: `${g2}:1`, name: '이름표 없음 2', color: 'none', number: 2},
+      {key: `${g1}:2`, name: '이름표 없음 1', color: 'none', number: 1},
+    ]);
+    const ranges = groupRangesFromGroups(grouped, [g1, dangling, g2]);
+    expect(ranges).toEqual([
+      {start: 0, length: 1},
+      {start: 1, length: 1},
+    ]);
   });
 
   it('compares sequences with sameSequence', () => {

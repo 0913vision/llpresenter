@@ -1,12 +1,8 @@
 import {useSyncExternalStore, type JSX} from 'react';
-import type {SongDocument} from '@shared/schema/contentDocuments';
 import type {GroupedSong} from '@shared/schema/groupedSong';
 import {isItemOfKind} from '@shared/schema/service';
 import {SongPreviewFrame, type SongEditorStore} from '@renderer/prep/editor';
-import type {
-  EditorSongDocument,
-  SongSession,
-} from '@renderer/prep/editor/songSession';
+import type {SongSession} from '@renderer/prep/editor/songSession';
 import {IconButton} from '@renderer/ui/IconButton';
 import {Panel, PanelBody, PanelHeader, PanelTabs} from '@renderer/ui/Panel';
 import {
@@ -21,7 +17,7 @@ import {
   type ServiceItemStore,
   type StartItem,
 } from './serviceItemStore';
-import {itemPicture} from './songItemModel';
+import {isV1SongDocument, itemPicture} from './songItemModel';
 
 const SETTINGS_TAB = [{value: 'settings', label: '항목 설정'}] as const;
 const SAVING_REASON = '저장 중';
@@ -29,12 +25,6 @@ const SAVING_REASON = '저장 중';
 interface ItemPanelProps {
   readonly items: ServiceItemStore;
   readonly editor: SongEditorStore;
-}
-
-function isV1SongDocument(
-  document: EditorSongDocument | EditorSongDocument<GroupedSong>,
-): document is SongDocument {
-  return 'slides' in document.song;
 }
 
 /** The selected place of the 준비 item, drawn locally; never the output. */
@@ -97,6 +87,12 @@ export function ItemSettingsPanel({
                     <IconButton
                       icon="open"
                       label="라이브러리 곡 열기"
+                      disabled={!isV1SongDocument(song.document)}
+                      title={
+                        !isV1SongDocument(song.document)
+                          ? NEWER_FILE_REASON
+                          : undefined
+                      }
                       onClick={() => {
                         if (isV1SongDocument(song.document)) {
                           editor.open(song.document);

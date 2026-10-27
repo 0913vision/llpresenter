@@ -8,9 +8,18 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
+import type {ServiceDocument} from '@shared/schema/contentDocuments';
+import type {GroupedSong} from '@shared/schema/groupedSong';
+import {
+  createServiceItemId,
+  createSongGroupId,
+  createSongId,
+  type SongId,
+} from '@shared/schema/ids';
 import {emptyLiveState} from '@shared/live';
 import {SongEditorStore} from '@renderer/prep/editor';
 import {mockMenuRowHeight} from '@renderer/prep/editor/editorTesting';
+import {SongSession} from '@renderer/prep/editor/songSession';
 import {useLive} from '@renderer/state/live';
 import {useShow} from '@renderer/state/show';
 import {hoverForTooltip, resetTooltips} from '@renderer/ui/tooltipTesting';
@@ -272,6 +281,93 @@ describe('service song item panel', () => {
       within(panel).getByRole('button', {name: '라이브러리 곡 편집'}),
     );
     expect(editor.getSnapshot().session?.document.song.id).toBe(first.song.id);
+  });
+
+  it('shows 0 slides and disables 라이브러리 곡 편집 for grouped song with empty named 구성', async () => {
+    HTMLElement.prototype.scrollIntoView = vi.fn();
+    const fixture = itemFixture();
+    const g1Id = createSongGroupId('11111111-1111-4111-a111-111111111111');
+    const songId = createSongId('6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab');
+    const groupedSong: GroupedSong = {
+      format: 'llsong',
+      schemaVersion: 2,
+      id: songId,
+      title: '새 그룹 찬양',
+      groups: [
+        {
+          id: g1Id,
+          name: '1절',
+          slides: [{lines: ['은혜로운 찬양']}],
+        },
+      ],
+      arrangements: [{name: '빈 구성', groups: []}],
+    };
+    const document = {
+      song: groupedSong,
+      revision: 1,
+      access: 'editable' as const,
+    };
+    const itemId = createServiceItemId('50000000-0000-4000-8000-000000000099');
+    const currentService = fixture.service();
+    const updatedService: ServiceDocument = {
+      ...currentService,
+      service: {
+        ...currentService.service,
+        order: [
+          {
+            id: itemId,
+            song: document.song.id,
+            arrangement: '빈 구성',
+          },
+        ],
+      },
+    };
+    fixture.pushService(updatedService);
+
+    const editor = new SongEditorStore(fixture.api, vi.fn());
+    const session = new SongSession<GroupedSong>({
+      document,
+      api: fixture.api.content,
+      changed: () => undefined,
+      problem: () => undefined,
+    });
+    const testEditor = {
+      sessionOf: (id: SongId) =>
+        id === document.song.id ? session : editor.sessionOf(id),
+      showItemSong: (id: SongId | null) => editor.showItemSong(id),
+      attach: (doc: Parameters<typeof editor.attach>[0]) => editor.attach(doc),
+      subscribe: (listener: () => void) => editor.subscribe(listener),
+    };
+
+    const items = new ServiceItemStore(fixture.api, testEditor, vi.fn());
+    useShow.setState({serviceId: fixtureServiceId, openItemId: itemId});
+    items.show({serviceId: fixtureServiceId, itemId});
+    await waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
+
+    const view = render(
+      <ServiceItemPanel items={items} editor={editor} sizeClass="normal" />,
+    );
+    onTestFinished(async () => {
+      view.unmount();
+      items.dispose();
+      await editor.dispose();
+    });
+
+    await screen.findByRole('listbox', {name: '구성 순서'});
+    const panel = screen.getByRole('region', {name: '예배 순서 항목'});
+    expect(within(panel).getByText('슬라이드 0개')).toBeDefined();
+    expect(within(strip(panel)).queryAllByRole('option')).toHaveLength(0);
+
+    const editBtn = within(panel).getByRole('button', {
+      name: '라이브러리 곡 편집',
+    });
+    expect(editBtn.getAttribute('aria-disabled')).toBe('true');
+    const user = userEvent.setup();
+    await user.click(editBtn);
+    expect(editor.getSnapshot().session).toBeNull();
+    expect((await hoverForTooltip(editBtn))?.textContent).toBe(
+      NEWER_FILE_REASON,
+    );
   });
 
   it('shows an empty panel for nothing selected and for other kinds', async () => {

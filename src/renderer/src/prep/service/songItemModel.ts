@@ -1,5 +1,6 @@
 import type {Label} from '@shared/schema/labels';
 import type {Song} from '@shared/schema/song';
+import type {SongDocument} from '@shared/schema/contentDocuments';
 import {
   arrangementGroupIds,
   isGroupedSong,
@@ -8,8 +9,16 @@ import {
 import type {SongGroupId} from '@shared/schema/ids';
 import {playbackOrder} from '@shared/songOrder';
 import type {SongPicture} from '@renderer/prep/editor';
+import type {EditorSongDocument} from '@renderer/prep/editor/songSession';
 import {linearSlidesOf} from '@renderer/prep/editor/blockEdits';
 import type {ArrangementChip} from '@renderer/ui/LabelChip';
+
+/** Whether an editor document holds a version 1 song. */
+export function isV1SongDocument(
+  document: EditorSongDocument | EditorSongDocument<GroupedSong>,
+): document is SongDocument {
+  return 'slides' in document.song;
+}
 
 /** The 이름표 of a 슬라이드, or `undefined` when it has none. */
 export function slideLabel(
@@ -40,6 +49,43 @@ export function sameSequence<T>(
   );
 }
 
+export interface GroupOccurrenceRange {
+  readonly start: number;
+  readonly length: number;
+}
+
+/**
+ * Returns the 0-based starting slide index and length in the expanded playback order
+ * for each group occurrence in the list of group IDs. Dangling IDs are skipped.
+ */
+export function groupRangesFromGroups(
+  song: GroupedSong,
+  groupIds: readonly SongGroupId[],
+): readonly GroupOccurrenceRange[] {
+  const groupsById = new Map(song.groups.map(group => [group.id, group]));
+  const ranges: GroupOccurrenceRange[] = [];
+  let offset = 0;
+  for (const id of groupIds) {
+    const group = groupsById.get(id);
+    if (group === undefined) continue;
+    const length = group.slides.length;
+    ranges.push({start: offset, length});
+    offset += length;
+  }
+  return ranges;
+}
+
+/**
+ * Returns the 0-based starting slide index and length in the expanded playback order
+ * for each group occurrence in the named arrangement.
+ */
+export function groupRanges(
+  song: GroupedSong,
+  name: string | undefined,
+): readonly GroupOccurrenceRange[] {
+  return groupRangesFromGroups(song, editedGroupOrder(song, name));
+}
+
 /**
  * Returns the 0-based starting slide index in the expanded playback order
  * for each group occurrence in the list of group IDs.
@@ -48,15 +94,7 @@ export function groupStartIndicesFromGroups(
   song: GroupedSong,
   groupIds: readonly SongGroupId[],
 ): readonly number[] {
-  const groupsById = new Map(song.groups.map(group => [group.id, group]));
-  const starts: number[] = [];
-  let offset = 0;
-  for (const id of groupIds) {
-    starts.push(offset);
-    const group = groupsById.get(id);
-    offset += group?.slides.length ?? 0;
-  }
-  return starts;
+  return groupRangesFromGroups(song, groupIds).map(range => range.start);
 }
 
 /**
@@ -67,72 +105,78 @@ export function groupStartIndices(
   song: GroupedSong,
   name: string | undefined,
 ): readonly number[] {
-  return groupStartIndicesFromGroups(song, editedGroupOrder(song, name));
+  return groupRanges(song, name).map(range => range.start);
 }
 
 /**
- * Maps a 0-based slide index in the expanded playback order to its
- * corresponding group chip index in the arrangement.
+ * Maps a 0-based slide index in the expanded playback order to the group chip
+ * index whose range contains the slide. Returns undefined if the slide is outside
+ * all group ranges.
  */
 export function chipIndexForSlide(
   slideIndex: number | undefined,
-  starts: readonly number[],
+  ranges: readonly GroupOccurrenceRange[],
   totalSlides: number,
 ): number | undefined {
-  if (slideIndex === undefined || starts.length === 0) return undefined;
+  if (slideIndex === undefined || ranges.length === 0) return undefined;
   if (slideIndex < 0 || slideIndex >= totalSlides) return undefined;
-  for (let i = starts.length - 1; i >= 0; i--) {
-    const start = starts[i];
-    if (start !== undefined && slideIndex >= start) {
+  for (let i = 0; i < ranges.length; i++) {
+    const range = ranges[i];
+    if (
+      range !== undefined &&
+      slideIndex >= range.start &&
+      slideIndex < range.start + range.length
+    ) {
       return i;
     }
   }
-  return 0;
+  return undefined;
 }
 
 /**
- * One chip per position or group occurrence. A repeating item keeps a key
- * per occurrence, so a moved chip keeps its element and its focus.
+ * One chip per group occurrence. Unnamed groups show 이름표 없음 <sourcePosition>.
+ * Stale or dangling IDs not found in the song are skipped.
  */
-export function orderChips(
-  song: Song | GroupedSong,
-  order: readonly number[] | readonly SongGroupId[],
+export function groupedOrderChips(
+  song: GroupedSong,
+  order: readonly SongGroupId[],
   labels: readonly Label[],
 ): readonly ArrangementChip[] {
-  if (isGroupedSong(song)) {
-    const groupMap = new Map(
-      song.groups.map((group, index) => [
-        group.id,
-        {group, position: index + 1},
-      ]),
-    );
-    const seen = new Map<SongGroupId, number>();
-    const chips: ArrangementChip[] = [];
-    for (const item of order) {
-      if (typeof item !== 'string') continue;
-      const entry = groupMap.get(item);
-      const occurrence = (seen.get(item) ?? 0) + 1;
-      seen.set(item, occurrence);
-      const position = entry?.position ?? 0;
-      const groupName = entry?.group.name ?? '';
-      const name = groupName !== '' ? groupName : `이름표 없음 ${position}`;
-      const color =
-        groupName !== ''
-          ? (labels.find(label => label.name === groupName)?.color ?? 'none')
-          : 'none';
-      chips.push({
-        key: `${item}:${occurrence}`,
-        name,
-        color,
-        number: position,
-      });
-    }
-    return chips;
+  const groupMap = new Map(
+    song.groups.map((group, index) => [group.id, {group, position: index + 1}]),
+  );
+  const seen = new Map<SongGroupId, number>();
+  const chips: ArrangementChip[] = [];
+  for (const id of order) {
+    const entry = groupMap.get(id);
+    if (entry === undefined) continue;
+    const occurrence = (seen.get(id) ?? 0) + 1;
+    seen.set(id, occurrence);
+    const {group, position} = entry;
+    const name = group.name !== '' ? group.name : `이름표 없음 ${position}`;
+    const color =
+      group.name !== ''
+        ? (labels.find(label => label.name === group.name)?.color ?? 'none')
+        : 'none';
+    chips.push({
+      key: `${id}:${occurrence}`,
+      name,
+      color,
+      number: position,
+    });
   }
+  return chips;
+}
+
+/** One chip per slide position for a version 1 song. */
+export function legacyOrderChips(
+  song: Song,
+  order: readonly number[],
+  labels: readonly Label[],
+): readonly ArrangementChip[] {
   const seen = new Map<number, number>();
   const chips: ArrangementChip[] = [];
   for (const number of order) {
-    if (typeof number !== 'number') continue;
     const occurrence = (seen.get(number) ?? 0) + 1;
     seen.set(number, occurrence);
     const name = slideLabel(song, number);
@@ -144,6 +188,44 @@ export function orderChips(
     });
   }
   return chips;
+}
+
+/**
+ * One chip per position or group occurrence. A repeating item keeps a key
+ * per occurrence, so a moved chip keeps its element and its focus.
+ */
+export function orderChips(
+  song: GroupedSong,
+  order: readonly SongGroupId[],
+  labels: readonly Label[],
+): readonly ArrangementChip[];
+export function orderChips(
+  song: Song,
+  order: readonly number[],
+  labels: readonly Label[],
+): readonly ArrangementChip[];
+export function orderChips(
+  song: Song | GroupedSong,
+  order: readonly number[] | readonly SongGroupId[],
+  labels: readonly Label[],
+): readonly ArrangementChip[];
+export function orderChips(
+  song: Song | GroupedSong,
+  order: readonly number[] | readonly SongGroupId[],
+  labels: readonly Label[],
+): readonly ArrangementChip[] {
+  if (isGroupedSong(song)) {
+    const groupOrder: SongGroupId[] = [];
+    for (const item of order) {
+      if (typeof item === 'string') groupOrder.push(item);
+    }
+    return groupedOrderChips(song, groupOrder, labels);
+  }
+  const slideOrder: number[] = [];
+  for (const item of order) {
+    if (typeof item === 'number') slideOrder.push(item);
+  }
+  return legacyOrderChips(song, slideOrder, labels);
 }
 
 /** The selected place clamped to an order, or `undefined` for an empty one. */

@@ -6,6 +6,7 @@ import type {
 import {
   createServiceId,
   createServiceItemId,
+  createSongGroupId,
   type SongId,
 } from '@shared/schema/ids';
 import {isItemOfKind} from '@shared/schema/service';
@@ -489,8 +490,13 @@ describe('service item store', () => {
     items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
     await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
     const session = items.getSnapshot().song;
-    expect(items.setOrder([2, 1, 2])).toBe(true);
-    expect(items.setOrder([2, 1, 2])).toBe(false);
+    expect(
+      items.setGroupOrder([
+        createSongGroupId('11111111-1111-4111-a111-111111111111'),
+      ]),
+    ).toBe(false);
+    expect(items.setSlideOrder([2, 1, 2])).toBe(true);
+    expect(items.setSlideOrder([2, 1, 2])).toBe(false);
     await session?.flush();
     expect(documents.get(first.song.id)?.song.arrangements).toEqual([
       {name: '주일용', slides: [2, 1, 2]},
@@ -544,9 +550,14 @@ describe('service item store', () => {
     pushService(updatedService);
     items.show({serviceId: fixtureServiceId, itemId: groupedItemId});
     await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
-    expect(items.setOrder([g2, g1])).toBe(true);
+    expect(items.setSlideOrder([1, 2])).toBe(false);
+    expect(items.setGroupOrder([g2, g1])).toBe(true);
     expect(session.history.snapshot.song.arrangements).toEqual([
       {name: '주일용', groups: [g2, g1]},
+    ]);
+    expect(items.setGroupOrder([])).toBe(true);
+    expect(session.history.snapshot.song.arrangements).toEqual([
+      {name: '주일용', groups: []},
     ]);
   });
 

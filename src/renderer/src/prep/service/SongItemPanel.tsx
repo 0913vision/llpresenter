@@ -1,14 +1,10 @@
 import {useEffect, useSyncExternalStore, type JSX} from 'react';
-import type {SongDocument} from '@shared/schema/contentDocuments';
 import type {ServiceItemOf} from '@shared/schema/service';
 import {isItemOfKind} from '@shared/schema/service';
-import {playbackOrder} from '@shared/songOrder';
 import type {GroupedSong} from '@shared/schema/groupedSong';
 import type {SongEditorStore} from '@renderer/prep/editor';
-import type {
-  EditorSongDocument,
-  SongSession,
-} from '@renderer/prep/editor/songSession';
+import {editedOrder} from '@renderer/prep/editor/songArrangements';
+import type {SongSession} from '@renderer/prep/editor/songSession';
 import {VirtualSlides} from '@renderer/prep/editor/VirtualSlides';
 import {
   defaultThumbnailColumns,
@@ -33,10 +29,10 @@ import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
 import {historyCommand} from '@renderer/prep/editor/editorKeys';
 import {isComposing} from '@renderer/ui/ime';
 import {isInTextEntry} from '@renderer/ui/textEntry';
-import {ItemArrangement} from './ItemArrangement';
+import {ItemArrangement, NEWER_FILE_REASON} from './ItemArrangement';
 import {ITEM_PANEL_LABEL, OtherItemPanel} from './OtherItemPanel';
 import type {ServiceItemStore} from './serviceItemStore';
-import {shownPosition} from './songItemModel';
+import {isV1SongDocument, shownPosition} from './songItemModel';
 import styles from './SongItemPanel.module.css';
 
 /**
@@ -83,12 +79,6 @@ interface SongItemViewProps {
   readonly sizeClass: SizeClass;
 }
 
-function isV1SongDocument(
-  document: EditorSongDocument | EditorSongDocument<GroupedSong>,
-): document is SongDocument {
-  return 'slides' in document.song;
-}
-
 function SongItemView({
   items,
   editor,
@@ -105,7 +95,7 @@ function SongItemView({
       .labels ?? [];
   const scale = useThumbnailScale(sizeClass);
   const {song} = session.history.snapshot;
-  const sequence = playbackOrder(song, arrangement);
+  const sequence = editedOrder(song, arrangement);
   const shown = shownPosition(position, sequence.length);
   const select = (index: number): void => items.selectPosition(index);
   return (
@@ -128,6 +118,12 @@ function SongItemView({
           <PanelActions>
             <Button
               icon="edit"
+              disabled={!isV1SongDocument(session.document)}
+              title={
+                !isV1SongDocument(session.document)
+                  ? NEWER_FILE_REASON
+                  : undefined
+              }
               onClick={() => {
                 if (isV1SongDocument(session.document)) {
                   editor.open(session.document);

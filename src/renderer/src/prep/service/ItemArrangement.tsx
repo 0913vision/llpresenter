@@ -3,12 +3,11 @@ import type {Label} from '@shared/schema/labels';
 import {DEFAULT_ARRANGEMENT_NAME, type Song} from '@shared/schema/song';
 import {isGroupedSong, type GroupedSong} from '@shared/schema/groupedSong';
 import type {SongGroupId} from '@shared/schema/ids';
-import {playbackOrder} from '@shared/songOrder';
 import {editedOrder} from '@renderer/prep/editor/songArrangements';
 import {editorTask} from '@renderer/prep/editor/editorTask';
 import type {SongSession} from '@renderer/prep/editor/songSession';
 import {useLive} from '@renderer/state/live';
-import {ArrangementStrip} from '@renderer/ui/LabelChip';
+import {ArrangementStrip, type ArrangementChip} from '@renderer/ui/LabelChip';
 import {Menu} from '@renderer/ui/Menu';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
@@ -16,10 +15,11 @@ import type {ServiceItemStore} from './serviceItemStore';
 import {
   chipIndexForSlide,
   editedGroupOrder,
-  groupStartIndices,
-  groupStartIndicesFromGroups,
+  groupRanges,
+  groupRangesFromGroups,
+  groupedOrderChips,
+  legacyOrderChips,
   movedOrder,
-  orderChips,
   sameSequence,
   slideLabel,
   withoutPosition,
@@ -29,6 +29,20 @@ import styles from './SongItemPanel.module.css';
 
 export const DEFAULT_ORDER_REASON = '기본 구성은 변경할 수 없습니다';
 export const NEWER_FILE_REASON = '새 버전의 파일이라 바꿀 수 없습니다';
+
+interface ArrangementAdapter {
+  readonly menuLabel: string;
+  readonly chips: readonly ArrangementChip[];
+  readonly chipSelected: (selected: number | undefined) => number | undefined;
+  readonly chipLive: (live: number | undefined) => number | undefined;
+  readonly selectFromChip: (chipIndex: number) => void;
+  readonly move: (from: number, to: number) => void;
+  readonly remove: (index: number) => void;
+  readonly insertEntries: (
+    labels: readonly Label[],
+    onClose: () => void,
+  ) => readonly MenuEntry[];
+}
 
 function legacyInsertEntries(
   song: Song,
@@ -57,18 +71,112 @@ function groupedInsertEntries(
   return song.groups.map((group, index) => {
     const position = index + 1;
     const name = group.name !== '' ? group.name : `이름표 없음 ${position}`;
-    const firstLine = group.slides[0]?.lines[0] ?? '';
-    const label = firstLine === '' ? name : `${name} ${firstLine}`;
+    const firstLine = group.slides[0]?.lines[0]?.trim() ?? '';
     const swatch =
       labels.find(item => item.name === group.name)?.color ?? 'none';
     return {
       kind: 'item',
       id: group.id,
-      label,
+      label: name,
+      ...(firstLine !== '' ? {meta: firstLine} : {}),
       swatch,
       onSelect: () => onInsert(group.id),
     };
   });
+}
+
+function makeGroupedAdapter({
+  song,
+  arrangement,
+  labels,
+  items,
+  sequenceLength,
+  onSelect,
+}: {
+  readonly song: GroupedSong;
+  readonly arrangement: string | undefined;
+  readonly labels: readonly Label[];
+  readonly items: ServiceItemStore;
+  readonly sequenceLength: number;
+  readonly onSelect: (index: number) => void;
+}): ArrangementAdapter {
+  const ranges = groupRanges(song, arrangement);
+  const order = editedGroupOrder(song, arrangement);
+  const chips = groupedOrderChips(song, order, labels);
+
+  return {
+    menuLabel: '그룹 넣기',
+    chips,
+    chipSelected: selected =>
+      chipIndexForSlide(selected, ranges, sequenceLength),
+    chipLive: live => chipIndexForSlide(live, ranges, sequenceLength),
+    selectFromChip: chipIndex => {
+      const target = ranges[chipIndex]?.start;
+      if (target !== undefined) onSelect(target);
+    },
+    move: (from, to) => {
+      const next = movedOrder(order, from, to);
+      if (sameSequence(next, order) || items.setGroupOrder(next)) {
+        const nextRanges = groupRangesFromGroups(song, next);
+        const target = nextRanges[to]?.start;
+        if (target !== undefined) onSelect(target);
+      }
+    },
+    remove: index => {
+      items.setGroupOrder(withoutPosition(order, index));
+    },
+    insertEntries: (menuLabels, onClose) =>
+      groupedInsertEntries(song, menuLabels, id => {
+        const next = [...order, id];
+        if (items.setGroupOrder(next)) {
+          const nextRanges = groupRangesFromGroups(song, next);
+          const target = nextRanges[order.length]?.start;
+          if (target !== undefined) onSelect(target);
+        }
+        onClose();
+      }),
+  };
+}
+
+function makeLegacyAdapter({
+  song,
+  arrangement,
+  labels,
+  items,
+  onSelect,
+}: {
+  readonly song: Song;
+  readonly arrangement: string | undefined;
+  readonly labels: readonly Label[];
+  readonly items: ServiceItemStore;
+  readonly onSelect: (index: number) => void;
+}): ArrangementAdapter {
+  const order = editedOrder(song, arrangement);
+  const chips = legacyOrderChips(song, order, labels);
+
+  return {
+    menuLabel: '슬라이드 넣기',
+    chips,
+    chipSelected: selected => selected,
+    chipLive: live => live,
+    selectFromChip: chipIndex => onSelect(chipIndex),
+    move: (from, to) => {
+      const next = movedOrder(order, from, to);
+      if (sameSequence(next, order) || items.setSlideOrder(next)) {
+        onSelect(to);
+      }
+    },
+    remove: index => {
+      items.setSlideOrder(withoutPosition(order, index));
+    },
+    insertEntries: (menuLabels, onClose) =>
+      legacyInsertEntries(song, menuLabels, number => {
+        if (items.setSlideOrder([...order, number])) {
+          onSelect(order.length);
+        }
+        onClose();
+      }),
+  };
 }
 
 function arrangementOptions(song: Song | GroupedSong) {
@@ -109,29 +217,23 @@ export function ItemArrangement({
   });
   const [insertAnchor, setInsertAnchor] = useState<HTMLElement | null>(null);
   const {song} = session.history.snapshot;
-  const isGrouped = isGroupedSong(song);
-  const sequence = playbackOrder(song, arrangement);
-  const starts = isGrouped ? groupStartIndices(song, arrangement) : undefined;
-  const groupOrder = isGrouped
-    ? editedGroupOrder(song, arrangement)
-    : undefined;
-  const legacyOrder = !isGrouped ? editedOrder(song, arrangement) : undefined;
-  const chips =
-    isGrouped && groupOrder !== undefined
-      ? orderChips(song, groupOrder, labels)
-      : legacyOrder !== undefined
-        ? orderChips(song, legacyOrder, labels)
-        : [];
-
-  const chipSelected =
-    isGrouped && starts !== undefined
-      ? chipIndexForSlide(selected, starts, sequence.length)
-      : selected;
-
-  const chipLive =
-    isGrouped && starts !== undefined
-      ? chipIndexForSlide(live, starts, sequence.length)
-      : live;
+  const sequence = editedOrder(song, arrangement);
+  const adapter = isGroupedSong(song)
+    ? makeGroupedAdapter({
+        song,
+        arrangement,
+        labels,
+        items,
+        sequenceLength: sequence.length,
+        onSelect,
+      })
+    : makeLegacyAdapter({
+        song,
+        arrangement,
+        labels,
+        items,
+        onSelect,
+      });
 
   const orderReason = session.readOnly
     ? NEWER_FILE_REASON
@@ -141,57 +243,10 @@ export function ItemArrangement({
   const serviceReason =
     service?.access === 'readOnly' ? NEWER_FILE_REASON : undefined;
 
-  const selectFromChip = (chipIndex: number): void => {
-    if (isGrouped && starts !== undefined) {
-      onSelect(starts[chipIndex] ?? 0);
-    } else {
-      onSelect(chipIndex);
-    }
-  };
-
-  const move = (from: number, to: number): void => {
-    if (isGrouped && groupOrder !== undefined) {
-      const next = movedOrder(groupOrder, from, to);
-      if (sameSequence(next, groupOrder) || items.setOrder(next)) {
-        const nextStarts = groupStartIndicesFromGroups(song, next);
-        onSelect(nextStarts[to] ?? 0);
-      }
-      return;
-    }
-    if (legacyOrder !== undefined) {
-      const next = movedOrder(legacyOrder, from, to);
-      if (sameSequence(next, legacyOrder) || items.setOrder(next)) onSelect(to);
-    }
-  };
-
-  const drag = useChipDrag({enabled: orderReason === undefined, onMove: move});
-
-  const insertGroup = (id: SongGroupId): void => {
-    if (isGrouped && groupOrder !== undefined) {
-      const next = [...groupOrder, id];
-      if (items.setOrder(next)) {
-        const nextStarts = groupStartIndicesFromGroups(song, next);
-        onSelect(nextStarts[groupOrder.length] ?? 0);
-      }
-    }
-  };
-
-  const insertSlide = (number: number): void => {
-    if (legacyOrder !== undefined) {
-      if (items.setOrder([...legacyOrder, number]))
-        onSelect(legacyOrder.length);
-    }
-  };
-
-  const remove = (index: number): void => {
-    if (isGrouped && groupOrder !== undefined) {
-      items.setOrder(withoutPosition(groupOrder, index));
-      return;
-    }
-    if (legacyOrder !== undefined) {
-      items.setOrder(withoutPosition(legacyOrder, index));
-    }
-  };
+  const drag = useChipDrag({
+    enabled: orderReason === undefined,
+    onMove: adapter.move,
+  });
 
   return (
     <div className={styles.arrangement}>
@@ -226,27 +281,23 @@ export function ItemArrangement({
       <div {...drag.stripProps}>
         <ArrangementStrip
           label="구성 순서"
-          chips={chips}
-          selected={chipSelected}
-          live={chipLive}
+          chips={adapter.chips}
+          selected={adapter.chipSelected(selected)}
+          live={adapter.chipLive(live)}
           readOnlyReason={orderReason}
           dropIndex={drag.dropIndex}
           draggingIndex={drag.draggingIndex}
-          onSelect={selectFromChip}
-          onMove={move}
-          onRemove={remove}
+          onSelect={adapter.selectFromChip}
+          onMove={adapter.move}
+          onRemove={adapter.remove}
           onInsert={setInsertAnchor}
         />
       </div>
       {insertAnchor === null ? null : (
         <Menu
-          label={isGrouped ? '그룹 넣기' : '슬라이드 넣기'}
+          label={adapter.menuLabel}
           anchor={{kind: 'element', element: insertAnchor}}
-          entries={
-            isGrouped
-              ? groupedInsertEntries(song, labels, insertGroup)
-              : legacyInsertEntries(song, labels, insertSlide)
-          }
+          entries={adapter.insertEntries(labels, () => setInsertAnchor(null))}
           onClose={() => setInsertAnchor(null)}
         />
       )}

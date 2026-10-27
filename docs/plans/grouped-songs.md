@@ -477,7 +477,8 @@ group-7: Store & IPC Final Activation (break/group/activate-contracts, double re
   - `src/renderer/src/prep/service/songItemModel.ts`
   - `src/renderer/src/prep/service/serviceItemStore.ts`
   - `src/renderer/src/prep/service/SongItemPanel.tsx`
-  - `src/renderer/src/prep/service/useChipDrag.ts`
+  - `src/renderer/src/prep/service/ItemSettingsRows.tsx`
+  - `src/renderer/src/prep/service/ItemSidePanels.tsx`
   - `src/renderer/src/prep/service/ItemArrangement.test.tsx` (new file)
   - Tests: `src/renderer/src/prep/service/songItemModel.test.ts`,
     `src/renderer/src/prep/service/serviceItemStore.test.ts`,

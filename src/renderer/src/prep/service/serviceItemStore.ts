@@ -278,33 +278,55 @@ export class ServiceItemStore {
     });
   }
 
-  /**
-   * Gives the item's chosen 구성 a new order in the song file, so every 예배
-   * 순서 that uses that 구성 shows it. 기본 has no order to change.
-   */
-  setOrder(order: readonly number[] | readonly SongGroupId[]): boolean {
+  /** Writes a new group order into the current named arrangement. */
+  setGroupOrder(order: readonly SongGroupId[]): boolean {
     const {song, arrangement} = this.state;
     if (
       !this.alive ||
       this.writes.isStopped ||
       song === null ||
-      arrangement === undefined
+      arrangement === undefined ||
+      !isGroupedSong(song.history.snapshot.song)
     ) {
       return false;
     }
-    const currentSong = song.history.snapshot.song;
-    if (isGroupedSong(currentSong)) {
-      if (
-        order.every((item): item is SongGroupId => typeof item === 'string')
-      ) {
-        return song.setArrangementGroups(arrangement, order);
-      }
+    return song.setArrangementGroups(arrangement, order);
+  }
+
+  /** Writes a new slide order into the current named arrangement. */
+  setSlideOrder(order: readonly number[]): boolean {
+    const {song, arrangement} = this.state;
+    if (
+      !this.alive ||
+      this.writes.isStopped ||
+      song === null ||
+      arrangement === undefined ||
+      isGroupedSong(song.history.snapshot.song)
+    ) {
       return false;
     }
-    if (order.every((item): item is number => typeof item === 'number')) {
-      return song.setArrangementSlides(arrangement, order);
+    return song.setArrangementSlides(arrangement, order);
+  }
+
+  /**
+   * Gives the item's chosen 구성 a new order in the song file, so every 예배
+   * 순서 that uses that 구성 shows it. 기본 has no order to change.
+   */
+  setOrder(order: readonly number[] | readonly SongGroupId[]): boolean {
+    const {song} = this.state;
+    if (song === null) return false;
+    if (isGroupedSong(song.history.snapshot.song)) {
+      const groupOrder: SongGroupId[] = [];
+      for (const item of order) {
+        if (typeof item === 'string') groupOrder.push(item);
+      }
+      return this.setGroupOrder(groupOrder);
     }
-    return false;
+    const slideOrder: number[] = [];
+    for (const item of order) {
+      if (typeof item === 'number') slideOrder.push(item);
+    }
+    return this.setSlideOrder(slideOrder);
   }
 
   /** Overrides the song's background for this item, or follows it with `null`. */

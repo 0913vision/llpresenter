@@ -286,4 +286,11 @@ describe('ItemArrangement with grouped songs', () => {
     const tooltip = await hoverForTooltip(first);
     expect(tooltip?.textContent).toContain(NEWER_FILE_REASON);
   });
+
+  it('renders zero chips for an empty named 구성 without errors', async () => {
+    await setupGrouped({arrangement: '빈 구성'});
+    const listbox = screen.getByRole('listbox', {name: '구성 순서'});
+    const chips = within(listbox).queryAllByRole('option');
+    expect(chips).toHaveLength(0);
+  });
 });
