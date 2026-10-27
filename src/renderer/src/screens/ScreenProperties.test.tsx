@@ -250,6 +250,55 @@ describe('the screen properties', () => {
     await waitFor(() => expect(savedScreens()[0]?.name).toBe('본당'));
   });
 
+  it('rejects a duplicate name queued before an earlier rename is published', async () => {
+    let release: () => void = () => undefined;
+    const held = new Promise<void>(resolve => {
+      release = resolve;
+    });
+    const {edits, savedScreens, onProblem} = setup({beforeSave: () => held});
+    const user = userEvent.setup();
+    const first = await nameField();
+    await user.clear(first);
+    await user.type(first, '공통 이름{Enter}');
+    await waitFor(() => expect(edits).toHaveLength(1));
+
+    act(() => useScreensSelection.getState().select('screen', CAPTIONS_ID));
+    const second = await nameField();
+    await user.clear(second);
+    await user.type(second, '공통 이름{Enter}');
+    expect(edits).toHaveLength(1);
+    release();
+
+    await waitFor(() =>
+      expect(onProblem).toHaveBeenCalledWith(
+        expect.objectContaining({title: '같은 이름의 화면이 있음'}),
+      ),
+    );
+    expect(edits).toHaveLength(1);
+    expect(savedScreens()[0]?.name).toBe('공통 이름');
+    expect(savedScreens()[1]?.name).toBe('방송 자막');
+  });
+
+  it('keeps a queued reversion to the displayed name while the first rename is held', async () => {
+    let release: () => void = () => undefined;
+    const held = new Promise<void>(resolve => {
+      release = resolve;
+    });
+    const {edits, savedScreens} = setup({beforeSave: () => held});
+    const user = userEvent.setup();
+    const name = await nameField();
+    await user.clear(name);
+    await user.type(name, '임시 이름{Enter}');
+    await waitFor(() => expect(edits).toHaveLength(1));
+    await user.clear(name);
+    await user.type(name, '본 화면{Enter}');
+    expect(edits).toHaveLength(1);
+
+    release();
+    await waitFor(() => expect(edits).toHaveLength(2));
+    expect(savedScreens()[0]?.name).toBe('본 화면');
+  });
+
   it('keeps an empty or taken name out of the file and brings the old name back', async () => {
     const {edits} = setup();
     const user = userEvent.setup();

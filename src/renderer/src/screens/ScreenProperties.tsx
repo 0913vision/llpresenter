@@ -12,7 +12,7 @@ import {
   Switch,
   TextField,
 } from '@renderer/ui';
-import type {Notice} from '@renderer/ui/notices';
+import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {monitorPixelSize, sizeText, targetSize} from './displaySizes';
 import {monitorAssignment} from './monitorAssignment';
 import {
@@ -60,24 +60,20 @@ type Change = (change: ScreenChange) => void;
 function NameRow({
   screen,
   screens,
-  change,
+  rename,
   reason,
 }: {
   readonly screen: Screen;
   readonly screens: readonly Screen[];
-  readonly change: Change;
+  readonly rename: (name: string) => void;
   readonly reason: string | undefined;
 }): JSX.Element {
   const [draft, setDraft] = useState<string | null>(null);
   const shown = draft ?? screen.name;
   const problem = nameProblem(shown, screens, screen.id);
   const commit = (): void => {
-    if (
-      reason === undefined &&
-      problem === undefined &&
-      shown.trim() !== screen.name
-    ) {
-      change({name: shown.trim()});
+    if (reason === undefined && problem === undefined && draft !== null) {
+      rename(shown.trim());
     }
     setDraft(null);
   };
@@ -280,6 +276,7 @@ function PropertyRows({
   reason,
   monitors,
   assign,
+  rename,
 }: {
   readonly screen: Screen;
   readonly screens: readonly Screen[];
@@ -288,6 +285,7 @@ function PropertyRows({
   readonly reason: string | undefined;
   readonly monitors: MonitorList;
   readonly assign: (monitor: MonitorInfo) => void;
+  readonly rename: (name: string) => void;
 }): JSX.Element {
   return (
     <Properties className={styles.inset}>
@@ -295,7 +293,7 @@ function PropertyRows({
         <NameRow
           screen={screen}
           screens={screens}
-          change={change}
+          rename={rename}
           reason={reason}
         />
         <PropertyRow label="종류">
@@ -381,6 +379,40 @@ export function ScreenProperties({
       monitor={monitor}
       reason={reason}
       monitors={monitors}
+      rename={name => {
+        if (reason !== undefined) return;
+        select('screen', selected.id);
+        save
+          .rename(selected.id, name)
+          .then(result => {
+            if (result.ok) return;
+            const title =
+              result.error === 'missing'
+                ? '화면을 찾을 수 없음'
+                : NAME_PROBLEMS[result.error];
+            onProblem?.({
+              key: 'screens:rename',
+              kind: 'warning',
+              icon: 'warning',
+              title,
+              time: noticeTime(),
+            });
+          })
+          .catch((cause: unknown) => {
+            window.llp?.log.write({
+              level: 'error',
+              message: 'Could not rename the screen',
+              detail: String(cause),
+            });
+            onProblem?.({
+              key: 'screens:rename',
+              kind: 'warning',
+              icon: 'warning',
+              title: '화면 설정 저장 실패',
+              time: noticeTime(),
+            });
+          });
+      }}
       assign={target => {
         if (reason !== undefined) return;
         select('screen', selected.id);
