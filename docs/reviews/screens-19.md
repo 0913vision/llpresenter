@@ -85,3 +85,10 @@ display remain follow-ups from screens-11. Published monitor ownership stays
 with main; this request does not infer or change assignments in the renderer.
 
 ## Team member's reply
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 1 (2d8db9e4): reviewer (Codex) Approve. Lead Approve through the lead's
+  merge check: the exact-head CI run passed, the branch rebased onto local
+  `main` without conflicts, and typecheck passes. Earlier rounds' findings and
+  replies are above.
