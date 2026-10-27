@@ -190,6 +190,10 @@ export class SongEditorStore {
     this.problem('덮어쓸 곡 불러오기 실패');
   }
 
+  reportImportTargetChanged(): void {
+    this.problem('중복 곡이 변경되었습니다');
+  }
+
   discardImported(): void {
     if (this.locked) return;
     const action = this.pendingLeave;

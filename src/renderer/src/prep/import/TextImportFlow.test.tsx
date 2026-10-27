@@ -11,6 +11,7 @@ import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {fakeLlpApi} from '@shared/testing/fakeLlpApi';
 import type {Notice} from '@renderer/ui/notices';
 import type {TextImportReadResult} from '@shared/schema/textImport';
+import type {SongDocument} from '@shared/schema/contentDocuments';
 import {SONG_IMPORT_LIMITS} from '@shared/schema/songImport';
 import {parseGroupedSongDraft} from '@shared/schema/groupedSong';
 import {convertTextImport} from '../../../../main/import/convert';
@@ -389,6 +390,56 @@ describe('imported song actions', () => {
     expect(f.store.getSnapshot().session?.readOnly).toBe(false);
     expect(screen.queryByRole('alertdialog')).toBeNull();
   });
+
+  it.each(['new document', 'new catalog', 'replacement'] as const)(
+    'does not confirm a stale overwrite target after a %s arrives during the read',
+    async change => {
+      const f = fixture();
+      f.store.openImported({
+        title: f.first.song.title,
+        slides: [{lines: ['Invented imported line']}],
+      });
+      await waitFor(() =>
+        expect(f.store.getSnapshot().libraryStatus).toBe('ready'),
+      );
+      const pending = deferred<SongDocument | null>();
+      vi.spyOn(f.api.songs, 'get').mockReturnValueOnce(pending.promise);
+      const save = vi.spyOn(f.store, 'saveImported').mockResolvedValue(false);
+      render(<ImportedSongActions store={f.store} />);
+      fireEvent.click(screen.getByRole('button', {name: '저장'}));
+      const renamed = {
+        ...f.first,
+        song: {...f.first.song, title: 'Renamed song'},
+      };
+      if (change === 'new catalog') act(() => f.pushSong(renamed));
+      if (change === 'replacement') {
+        act(() =>
+          f.pushList(
+            f.store
+              .getSnapshot()
+              .library.filter(entry => entry.id !== f.first.song.id)
+              .map(entry => ({...entry, title: f.first.song.title})),
+          ),
+        );
+      }
+      await act(async () =>
+        pending.resolve(change === 'new document' ? renamed : f.first),
+      );
+      expect(screen.queryByRole('alertdialog')).toBeNull();
+      expect(f.problem).toHaveBeenCalledWith(
+        expect.objectContaining({title: '중복 곡이 변경되었습니다'}),
+      );
+      expect(save).not.toHaveBeenCalled();
+      expect(f.store.getSnapshot().imported).toBe(true);
+      expect(f.edits).toHaveLength(0);
+      if (change === 'new catalog') {
+        fireEvent.click(screen.getByRole('button', {name: '저장'}));
+        await waitFor(() =>
+          expect(save).toHaveBeenCalledExactlyOnceWith({kind: 'new'}),
+        );
+      }
+    },
+  );
 
   async function actions(title = '') {
     const f = fixture();

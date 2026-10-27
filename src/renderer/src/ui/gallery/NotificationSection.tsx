@@ -125,6 +125,18 @@ export function NotificationSection(): JSX.Element {
         >
           <NotificationCard notice={back} onClose={ignore} />
         </SpecItem>
+        <SpecItem label="Changed import target" width={NARROW_WIDTH}>
+          <NotificationCard
+            notice={{
+              key: 'import:target-changed',
+              kind: 'warning',
+              icon: 'warning',
+              title: '중복 곡이 변경되었습니다',
+              time: '11:29',
+            }}
+            onClose={ignore}
+          />
+        </SpecItem>
       </SpecGroup>
       <SpecGroup title="Long metadata stays inside the card" alignTop>
         <SpecItem label="Import failure at narrow width" width={NARROW_WIDTH}>

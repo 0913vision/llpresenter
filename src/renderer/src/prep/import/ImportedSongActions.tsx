@@ -71,10 +71,22 @@ export function ImportedSongActions({
     setReading(true);
     try {
       const document = await store.api.songs.get(existing.id);
+      const latest = store.getSnapshot();
       if (
-        store.getSnapshot().session !== session ||
+        latest.session !== session ||
         normalizeSongTitle(session.title.value) !== title
       ) {
+        return;
+      }
+      if (latest.libraryStatus !== 'ready') return;
+      const match = latest.library.find(
+        entry => normalizeSongTitle(entry.title) === title,
+      );
+      if (
+        match?.id !== existing.id ||
+        (document !== null && normalizeSongTitle(document.song.title) !== title)
+      ) {
+        store.reportImportTargetChanged();
         return;
       }
       if (document === null) await save({kind: 'new'});
