@@ -1,5 +1,6 @@
 import {
   act,
+  fireEvent,
   cleanup,
   render,
   screen,
@@ -96,6 +97,107 @@ afterEach(() => {
 });
 
 describe('screen creation and group outputs', () => {
+  it.each([
+    {draft: '', reason: '이름이 비어 있음'},
+    {draft: '방송 자막', reason: '같은 이름의 화면이 있음'},
+  ])(
+    'shows inline draft validation for $reason before committing',
+    async ({draft, reason}) => {
+      const {edit} = setup();
+      fireEvent.contextMenu(
+        await screen.findByRole('option', {name: '본 화면'}),
+      );
+      await userEvent.click(
+        await screen.findByRole('menuitem', {name: '이름 변경'}),
+      );
+      const field = await screen.findByRole('textbox', {name: '본 화면 이름'});
+      await userEvent.clear(field);
+      if (draft !== '') await userEvent.type(field, draft);
+      expect(field.getAttribute('aria-invalid')).toBe('true');
+      await hoverForTooltip(field);
+      expect(screen.getByRole('tooltip').textContent).toBe(reason);
+      resetTooltips();
+      vi.useRealTimers();
+      await userEvent.keyboard('{Enter}');
+      expect(screen.getByRole('textbox', {name: '본 화면 이름'})).toBe(field);
+      expect(edit).not.toHaveBeenCalled();
+      await userEvent.clear(field);
+      await userEvent.type(field, '고친 이름');
+      expect(field.getAttribute('aria-invalid')).toBeNull();
+      await userEvent.keyboard('{Enter}');
+      await screen.findByRole('option', {name: '고친 이름'});
+      expect(edit).toHaveBeenCalledOnce();
+    },
+  );
+
+  it('hands focused keyboard-menu rename off after cleanup and saves only once', async () => {
+    const {edit} = setup();
+    const row = await screen.findByRole('option', {name: '본 화면'});
+    row.focus();
+    fireEvent.keyDown(row, {key: 'ContextMenu'});
+    await userEvent.click(
+      await screen.findByRole('menuitem', {name: '이름 변경'}),
+    );
+    const field = await screen.findByRole('textbox', {name: '본 화면 이름'});
+    await waitFor(() => expect(document.activeElement).toBe(field));
+    expect(edit).not.toHaveBeenCalled();
+    await userEvent.keyboard('{Control>}a{/Control}새 이름{Enter}');
+    await screen.findByRole('option', {name: '새 이름'});
+    expect(edit).toHaveBeenCalledOnce();
+  });
+
+  it('cancels deletion without a write and then removes only the confirmed screen', async () => {
+    const {edit, send} = setup();
+    const row = await screen.findByRole('option', {name: '본 화면'});
+    await userEvent.click(row);
+    fireEvent.contextMenu(row);
+    await userEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
+    const first = await screen.findByRole('alertdialog');
+    await waitFor(() =>
+      expect(document.activeElement).toBe(
+        within(first).getByRole('button', {name: '삭제'}),
+      ),
+    );
+    await userEvent.click(within(first).getByRole('button', {name: '취소'}));
+    expect(edit).not.toHaveBeenCalled();
+    fireEvent.contextMenu(row);
+    await userEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
+    await userEvent.click(
+      within(await screen.findByRole('alertdialog')).getByRole('button', {
+        name: '삭제',
+      }),
+    );
+    await waitFor(() =>
+      expect(screen.queryByRole('option', {name: '본 화면'})).toBeNull(),
+    );
+    expect(
+      (await screen.findByRole('option', {name: '방송 자막'})).getAttribute(
+        'aria-selected',
+      ),
+    ).toBe('true');
+    const request = edit.mock.calls[0]?.[0];
+    if (request?.name !== 'screens') throw new Error('Missing removal');
+    expect(request.value.screens.map(screen => screen.id)).toEqual([
+      CAPTIONS_ID,
+      STAGE_ID,
+    ]);
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it('disables row lifecycle actions in read-only settings', async () => {
+    const {edit} = setup({...screensDocument(), access: 'readOnly'});
+    fireEvent.contextMenu(await screen.findByRole('option', {name: '본 화면'}));
+    const rename = await screen.findByRole('menuitem', {name: '이름 변경'});
+    expect(rename.getAttribute('aria-disabled')).toBe('true');
+    expect(
+      screen
+        .getByRole('menuitem', {name: '삭제'})
+        .getAttribute('aria-disabled'),
+    ).toBe('true');
+    await userEvent.click(rename);
+    expect(edit).not.toHaveBeenCalled();
+  });
+
   it('disables creation at the shared screen limit', async () => {
     const screens = Array.from({length: 200}, (_, index) => ({
       id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,

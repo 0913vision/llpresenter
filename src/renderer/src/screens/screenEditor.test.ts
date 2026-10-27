@@ -41,6 +41,99 @@ const saved = (revision: number): EditResult => ({
 });
 
 describe('ScreenEditor', () => {
+  it('checks rapid row renames against the latest queued names without writing a refusal', async () => {
+    const {editor, edits} = setup([saved(2)]);
+    editor.adopt(screensAt(1));
+    const first = editor.rename(MAIN_ID, '공통 이름');
+    const second = editor.rename(CAPTIONS_ID, ' 공통 이름 ');
+    expect(await first).toEqual({ok: true, value: true});
+    expect(await second).toEqual({ok: false, error: 'taken'});
+    expect(await editor.rename(MAIN_ID, '공통 이름')).toEqual({
+      ok: true,
+      value: true,
+    });
+    expect(await editor.rename(MAIN_ID, ' ')).toEqual({
+      ok: false,
+      error: 'empty',
+    });
+    expect(edits).toHaveLength(1);
+  });
+
+  it('keeps queued removal in the close flush and preserves siblings and unknown fields', async () => {
+    let release: (result: EditResult) => void = () => undefined;
+    const held = new Promise<EditResult>(resolve => {
+      release = resolve;
+    });
+    const edits: SettingsEdit[] = [];
+    const api = fakeLlpApi({
+      settings: {
+        edit: edit => {
+          edits.push(edit);
+          return edits.length === 1 ? held : Promise.resolve(saved(3));
+        },
+      },
+    });
+    const editor = new ScreenEditor(api, vi.fn());
+    const document = screensAt(1);
+    const value = {
+      ...document.value,
+      future: 'file',
+      screens: document.value.screens.map(screen => ({
+        ...screen,
+        future: 'screen',
+      })),
+    };
+    editor.adopt({...document, value});
+    const changing = editor.change(MAIN_ID, {offset: {x: 20}});
+    await vi.waitFor(() => expect(edits).toHaveLength(1));
+    const removing = editor.remove(CAPTIONS_ID);
+    let closed = false;
+    const closing = pendingWritesOf(api)
+      .flush()
+      .then(result => {
+        closed = true;
+        return result;
+      });
+    await Promise.resolve();
+    expect(closed).toBe(false);
+    release(saved(2));
+    await changing;
+    expect(await removing).toBe(true);
+    expect(await closing).toBe(true);
+    const removed = edits[1];
+    if (removed?.name !== 'screens') throw new Error('Missing removal');
+    expect(removed.baseRevision).toBe(2);
+    expect(removed.value).toMatchObject({future: 'file'});
+    expect(removed.value.screens.map(screen => screen.id)).toEqual([
+      MAIN_ID,
+      STAGE_ID,
+    ]);
+    expect(removed.value.screens[0]).toMatchObject({
+      future: 'screen',
+      offset: {x: 20},
+    });
+  });
+
+  it('refuses read-only row operations and treats an already removed target as a no-op', async () => {
+    const {editor, edits} = setup();
+    editor.adopt({...screensAt(1), access: 'readOnly'});
+    expect(await editor.remove(MAIN_ID)).toBe(false);
+    expect(await editor.rename(MAIN_ID, '거절')).toEqual({
+      ok: true,
+      value: false,
+    });
+    editor.adopt({
+      ...screensAt(2),
+      value: {...screensAt(2).value, screens: []},
+    });
+    expect(await editor.remove(MAIN_ID)).toBe(true);
+    expect(await editor.rename(MAIN_ID, '없음')).toEqual({
+      ok: false,
+      error: 'missing',
+    });
+    expect(edits).toHaveLength(0);
+  });
+
   it('names rapid creations against the preceding save without waiting for a push', async () => {
     const first = parseScreenId('00000000-0000-4000-8000-000000000201');
     const second = parseScreenId('00000000-0000-4000-8000-000000000202');

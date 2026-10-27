@@ -19,6 +19,9 @@ import {useSettingsDocument} from './useSettingsDocument';
 import {SCREEN_DRAG_MIME} from './screenDrag';
 import styles from './ScreenList.module.css';
 import {useDragClickGuard} from '@renderer/ui/useDragClickGuard';
+import type {GroupRename} from '@renderer/ui/ListRow';
+import type {MenuAnchor} from '@renderer/ui/Menu';
+import {useScreenRowActions} from './useScreenRowActions';
 
 const LIST_LABEL = '화면';
 const AUDIENCE_LABEL = '청중';
@@ -29,16 +32,37 @@ const noScreens: readonly Screen[] = [];
 function RowView({
   row,
   canDrag,
+  rename,
+  onMenu,
 }: {
   readonly row: ScreenRow;
   readonly canDrag: boolean;
+  readonly rename: GroupRename | undefined;
+  readonly onMenu: (id: string, anchor: MenuAnchor) => void;
 }): JSX.Element {
   const ghost = useRef<HTMLDivElement>(null);
   return (
     <div
-      draggable={canDrag}
+      draggable={canDrag && rename === undefined}
+      onContextMenu={event => {
+        event.preventDefault();
+        onMenu(row.id, {
+          kind: 'point',
+          point: {x: event.clientX, y: event.clientY},
+        });
+      }}
+      onKeyDown={event => {
+        if (
+          event.key !== 'ContextMenu' &&
+          !(event.key === 'F10' && event.shiftKey)
+        ) {
+          return;
+        }
+        event.preventDefault();
+        onMenu(row.id, {kind: 'element', element: event.currentTarget});
+      }}
       onDragStart={event => {
-        if (!canDrag) {
+        if (!canDrag || rename !== undefined) {
           event.preventDefault();
           return;
         }
@@ -55,6 +79,7 @@ function RowView({
       <ListRow
         value={row.id}
         title={row.name}
+        rename={rename}
         icon={row.icon}
         meta={row.target}
         reason={row.problem}
@@ -79,6 +104,7 @@ export function ScreenList({
 }): JSX.Element {
   const document = useSettingsDocument('screens', LOAD_TITLE, onProblem);
   const add = useScreenCreation(document, onProblem);
+  const actions = useScreenRowActions(document, onProblem);
   const click = useDragClickGuard();
   const statuses = useOutputStatuses();
   const outputs = useOutputs();
@@ -152,12 +178,15 @@ export function ScreenList({
                   key={row.id}
                   row={row}
                   canDrag={document?.access === 'editable'}
+                  rename={actions.renameFor(row.id)}
+                  onMenu={actions.open}
                 />
               ))}
             </ListGroup>
           );
         })}
       </ListBox>
+      {actions.overlays}
     </div>
   );
 }

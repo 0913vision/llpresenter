@@ -1,9 +1,15 @@
 import type {LlpApi} from '@shared/ipc';
+import type {Result} from '@shared/result';
 import type {SettingsDocument} from '@shared/schema/settingsDocuments';
 import type {MonitorInfo, MonitorList} from '@shared/schema/monitors';
 import type {Screen} from '@shared/schema/screens';
 import {assignScreenMonitor} from './assignScreenMonitor';
-import {changeScreen, type ScreenChange} from './screenEdits';
+import {
+  changeScreen,
+  nameProblem,
+  type NameProblem,
+  type ScreenChange,
+} from './screenEdits';
 import {SettingsDocumentEditor} from './settingsDocumentEditor';
 import {addScreen, type NewScreen} from './addScreen';
 
@@ -14,6 +20,8 @@ interface AssignmentSnapshot {
 
 /** Where the editor reports a failed save; the window shows it as a notice. */
 export type EditProblemReporter = (reason: string) => void;
+
+export type ScreenRenameProblem = NameProblem | 'missing';
 
 /**
  * Saves changes to `screens.json` one at a time. Each save starts from the
@@ -78,6 +86,43 @@ export class ScreenEditor {
       ...value,
       screens: addScreen(value.screens, input),
     }));
+  }
+
+  /** Validates a row rename against the latest queued names before saving. */
+  async rename(
+    screenId: string,
+    name: string,
+  ): Promise<Result<boolean, ScreenRenameProblem>> {
+    let problem: ScreenRenameProblem | undefined;
+    const saved = await this.documents.change(value => {
+      problem = value.screens.some(screen => screen.id === screenId)
+        ? nameProblem(name, value.screens, screenId)
+        : 'missing';
+      if (problem !== undefined) return value;
+      if (
+        value.screens.find(screen => screen.id === screenId)?.name ===
+        name.trim()
+      ) {
+        return value;
+      }
+      return {
+        ...value,
+        screens: changeScreen(value.screens, screenId, {name: name.trim()}),
+      };
+    });
+    return problem === undefined
+      ? {ok: true, value: saved}
+      : {ok: false, error: problem};
+  }
+
+  /** Removes only the targeted screen; main reconciles its output after the save. */
+  remove(screenId: string): Promise<boolean> {
+    return this.documents.change(value => {
+      const screens = value.screens.filter(screen => screen.id !== screenId);
+      return screens.length === value.screens.length
+        ? value
+        : {...value, screens};
+    });
   }
 
   /** Assigns a monitor and clears its old assignment in one revision. */

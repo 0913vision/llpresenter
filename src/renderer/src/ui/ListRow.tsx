@@ -21,6 +21,7 @@ import {hasModifier} from './modifierKeys';
 import {pressHandler} from './press';
 import {LiveBadge} from './StatusMarks';
 import {titleTooltip, useTooltip} from './Tooltip';
+import {TextField} from './TextField';
 import {TruncatedText} from './TruncatedText';
 import type {Workspace} from './workspace';
 import styles from './ListRow.module.css';
@@ -218,6 +219,8 @@ export function ListBox({
 }
 
 export interface GroupRename {
+  /** Returns a draft's validation reason; invalid drafts stay open. */
+  readonly validate?: ((value: string) => string | undefined) | undefined;
   /** Saves the typed name; Enter and leaving the field both ask for it. */
   readonly onCommit: (name: string) => void;
   /** Esc leaves the old name as it was. */
@@ -475,21 +478,26 @@ function NameField({
 }): JSX.Element {
   const [value, setValue] = useState(label);
   const finished = useRef(false);
+  const problem = rename.validate?.(value);
   const finish = (commit: boolean): void => {
     if (finished.current) return;
+    if (commit && problem !== undefined) return;
     finished.current = true;
     if (commit) rename.onCommit(value);
     else rename.onCancel();
   };
   return (
-    <input
+    <TextField
       id={id}
       aria-label={`${label} 이름`}
       className={styles.groupField}
+      size="sm"
+      invalid={problem !== undefined}
+      invalidReason={problem}
       value={value}
       autoFocus
       onFocus={event => event.currentTarget.select()}
-      onChange={event => setValue(event.target.value)}
+      onChange={setValue}
       onBlur={() => finish(true)}
       onKeyDown={event => {
         if (ownsFieldKey(event)) event.stopPropagation();

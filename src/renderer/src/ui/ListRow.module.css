@@ -169,11 +169,6 @@
   height: auto;
 }
 
-.groupField:focus {
-  outline: none;
-  box-shadow: var(--ring-field-focus);
-}
-
 .inset .group {
   padding-right: var(--space-10);
   padding-left: var(--space-10);
