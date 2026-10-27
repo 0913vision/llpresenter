@@ -153,13 +153,15 @@ once and guarded against destruction.
   [native output key navigation](evidence/output-54-round4/key-navigation-run1.png),
   [second launch](evidence/output-54-round4/capture-after-disconnect-run2.png).
 
-## Review: lead
+## Verdicts (recorded by the lead at merge)
 
-- Verdict: pending
-
-## Review: reviewer
-
-- Verdict: pending
+- Final round (86810f65): reviewer (Codex) and second reviewer (Gemini Argon)
+  Approve. Lead Approve; the second reviewer (Gemini Argon) checked the
+  output-path change for the lead and confirmed that its round 3 finding, the
+  demotion flag that stayed set after the monitor-disconnect fallback, is fixed
+  with tests. The exact-head CI run passed, checked by the lead at merge.
+  Rebased by the lead onto local `main` without conflicts; typecheck passes.
+  Earlier rounds' findings and replies are above.
 
 ## Team member's reply
 
