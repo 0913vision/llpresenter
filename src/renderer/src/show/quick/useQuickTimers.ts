@@ -3,12 +3,14 @@ import type {LlpApi} from '@shared/ipc';
 import type {EditResult} from '@shared/schema/contentEdit';
 import {isKnownQuickItem, type QuickItem} from '@shared/schema/quick';
 import type {Timer} from '@shared/schema/timers';
+import {MAX_LIVE_TIMERS} from '@shared/schema/timerState';
 import type {TimerId, QuickItemId} from '@shared/schema/ids';
 import {
   useSettingsDocument,
   type NamedDocument,
 } from '@renderer/screens/useSettingsDocument';
 import {pendingWritesOf} from '@renderer/state/pendingWrites';
+import {useLive} from '@renderer/state/live';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 
 export function useQuickTimers(
@@ -20,6 +22,8 @@ export function useQuickTimers(
     quick?.value.items.some(
       item => isKnownQuickItem(item) && item.kind === 'timer',
     ) ?? false;
+  const runs = useLive(view => view.state?.timers);
+  const full = Object.keys(runs ?? {}).length >= MAX_LIVE_TIMERS;
   const timers = useSettingsDocument(
     needed ? 'timers' : null,
     '타이머',
@@ -138,6 +142,9 @@ export function useQuickTimers(
             : '타이머를 분리하고 있습니다';
       }
       if (timer.kind === 'clock') return '시계는 시작하거나 멈추지 않습니다';
+      if (runs?.[timer.id] === undefined && full) {
+        return '시작할 수 있는 타이머가 가득 찼습니다';
+      }
       return undefined;
     },
   };
