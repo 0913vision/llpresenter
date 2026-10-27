@@ -93,3 +93,10 @@ All 121 affected tests, typecheck, lint and build pass. The completed app run
 passes the exact M3-C4-4 dimensions in both workspaces, the thin dark scrollbar
 checks, twenty selection round trips per workspace, twenty workspace round
 trips, both preparation menu/shortcut paths and two normal-size reopens.
+
+## Verdicts (recorded by the lead at merge)
+
+- Round 4 (46ea6dc3): reviewer (Codex) Approve. Lead Approve through the lead's
+  merge check: the exact-head CI run passed, the branch rebased onto local
+  `main` without conflicts, and typecheck passes. Earlier rounds' findings and
+  replies are above.
