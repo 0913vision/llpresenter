@@ -130,3 +130,14 @@ Prep interactions.
    read-only handling when resolving the two import conflicts. Added braces
    required by ESLint after formatting the inherited projection tests and loop.
    CI pending under the dispatcher rule.
+
+## Verdicts (recorded by the lead at merge)
+
+- Final round (1e342170): reviewer (Codex) Approve. Lead Approve; the lead read
+  the store and main-process diff in round 1 (the data store now owns one lazily
+  opened Bible session shared by the lookup channel and the service projection,
+  rejects lookups after close, and disposes it at shutdown); round 2 only
+  rebased it and fixed the startup wiring test that failed CI. The exact-head CI
+  run passed, checked by the lead at merge. Rebased by the lead onto local
+  `main` without conflicts; typecheck passes. Earlier rounds' findings and
+  replies are above.
